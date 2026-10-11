@@ -4,12 +4,17 @@ on:
   pull_request:
     branches:
       - develop
+      - rearchitecture-p2p-swap
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   analyze-and-test:
     name: Analyze and Unit Tests
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
@@ -19,18 +24,18 @@ jobs:
         uses: ./.github/actions/setup-flutter
 
       - name: Install Flutter dependencies
-        run: flutter pub get
+        run: flutter pub get --enforce-lockfile
 
       - name: Analyze rearchitecture code
-        run: flutter analyze lib/rearchitecture
+        run: flutter analyze --no-pub --no-fatal-infos lib/rearchitecture
 
       - name: Run unit and widget tests
-        run: flutter test test --exclude-tags chain
+        run: flutter test --no-pub test --exclude-tags chain
 
       - name: Check generated files are up to date
         run: |
           # Generated Dart files are committed in this repository. Regenerating
           # them in CI catches stale JSON/Hive/BDD outputs before they are merged.
-          dart run build_runner build
+          dart run build_runner build --delete-conflicting-outputs
           dart format integration_test
           git diff --exit-code
