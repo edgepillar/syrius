@@ -1,6 +1,9 @@
 name: PR Fast Validation
 
 on:
+  push:
+    branches:
+      - 'codex/**'
   pull_request:
     branches:
       - develop
