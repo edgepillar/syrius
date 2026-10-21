@@ -1,24 +1,29 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/single_child_widget.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/card_parts/card_parts.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-/// A widget that display the amount of uncollected pillar rewards
+/// Provides what [PillarCollect] needs: the selected address's uncollected
+/// pillar rewards, and a bloc to send the collect block.
 ///
-/// If it's higher than zero, then a button to trigger their collection is
-/// displayed
-class PillarCollectCard extends StatelessWidget {
-  /// {@macro default_constructor}
-  const PillarCollectCard({super.key});
+/// It wraps the whole rewards card rather than the strip alone, so the
+/// card's refresh button reaches the uncollected amount too.
+class PillarCollectScope extends StatelessWidget {
+  /// Creates the scope around [child].
+  const PillarCollectScope({required this.child, super.key});
+
+  /// The rewards card.
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
@@ -27,95 +32,69 @@ class PillarCollectCard extends StatelessWidget {
         BlocProvider<UncollectedPillarRewardsBloc>(
           create: (_) => UncollectedPillarRewardsBloc(zenon: zenon!)
             ..add(
-              FetchRequestData(
-                address: Address.parse(
-                  kSelectedAddress!,
-                ),
-              ),
+              FetchRequestData(address: Address.parse(kSelectedAddress!)),
             ),
         ),
         BlocProvider<SendTransactionBloc>(
           create: (_) => SendTransactionBloc(),
         ),
       ],
-      child: const _View(),
+      child: child,
     );
   }
 }
 
-class _View extends StatelessWidget {
-  const _View();
+/// What the selected address can collect as a pillar, and the button that
+/// collects it. The head of the pillar rewards card; it was a card of its
+/// own, which spent a third of the row on one number.
+class PillarCollect extends StatelessWidget {
+  /// Creates the strip. Needs a [PillarCollectScope] above it.
+  const PillarCollect({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return NewCardScaffold(
-      data: _buildCardData(context: context),
-      onRefreshPressed: () {
-        context.read<UncollectedPillarRewardsBloc>().add(
-          FetchRequestData(address: Address.parse(kSelectedAddress!)),
+    const String label = 'To collect';
+    return BlocBuilder<
+      UncollectedPillarRewardsBloc,
+      FetchState<UncollectedReward>
+    >(
+      builder: (_, FetchState<UncollectedReward> state) {
+        final BigInt znn = state is FetchPopulated<UncollectedReward>
+            ? state.data.znnAmount
+            : BigInt.zero;
+        return CardCollect(
+          figures: <Widget>[
+            switch (state) {
+              FetchInitial<UncollectedReward>() => const Figure(
+                label: label,
+                value: '',
+              ),
+              FetchFailure<UncollectedReward>() => Figure(
+                label: label,
+                value: cardErrorText(state.exception),
+                valueStyle: cardDimStyle(context),
+              ),
+              FetchPopulated<UncollectedReward>() => cardAmountFigure(
+                context,
+                label: label,
+                amount: znn,
+                decimals: kZnnCoin.decimals,
+                symbol: kZnnCoin.symbol,
+                ink: AppColors.znnColor,
+              ),
+            },
+          ],
+          button: _CollectButton(enabled: znn > BigInt.zero),
         );
       },
-      body:
-          BlocBuilder<
-            UncollectedPillarRewardsBloc,
-            FetchState<UncollectedReward>
-          >(
-            builder: (_, FetchState<UncollectedReward> state) =>
-                switch (state) {
-                  FetchFailure<UncollectedReward>() => SyriusErrorWidget(
-                    state.exception,
-                  ),
-                  FetchInitial<UncollectedReward>() =>
-                    const SyriusLoadingWidget(),
-                  FetchPopulated<UncollectedReward>() => _Populated(
-                    uncollectedReward: state.data,
-                  ),
-                },
-          ),
-    );
-  }
-
-  CardData _buildCardData({required BuildContext context}) => CardData(
-    description: context.l10n.pillarCollectDescription,
-    title: context.l10n.pillarCollectTitle,
-  );
-}
-
-class _Populated extends StatelessWidget {
-  const _Populated({required this.uncollectedReward});
-
-  final UncollectedReward uncollectedReward;
-
-  @override
-  Widget build(BuildContext context) {
-    if (uncollectedReward.znnAmount == BigInt.zero) {
-      return SyriusErrorWidget(context.l10n.noRewardsCollect);
-    }
-
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        NumberAnimation(
-          end: uncollectedReward.znnAmount
-              .addDecimals(
-                coinDecimals,
-              )
-              .toNum(),
-          after: ' ${kZnnCoin.symbol}',
-          style: Theme.of(context).textTheme.headlineLarge!.copyWith(
-            color: AppColors.znnColor,
-            fontSize: 30,
-          ),
-        ),
-        kVerticalGap16,
-        const _CollectButton(),
-      ],
     );
   }
 }
 
 class _CollectButton extends StatefulWidget {
-  const _CollectButton();
+  const _CollectButton({required this.enabled});
+
+  final bool enabled;
 
   @override
   State<_CollectButton> createState() => _CollectButtonState();
@@ -132,9 +111,11 @@ class _CollectButtonState extends State<_CollectButton> {
       child: LoadingButton.stepper(
         key: _collectButtonKey,
         text: context.l10n.collect,
-        onPressed: () => _onCollectPressed(
-          bloc: context.read<SendTransactionBloc>(),
-        ),
+        onPressed: widget.enabled
+            ? () => _onCollectPressed(
+                bloc: context.read<SendTransactionBloc>(),
+              )
+            : null,
       ),
     );
   }
@@ -145,7 +126,7 @@ class _CollectButtonState extends State<_CollectButton> {
     } else if (state.status == SendTransactionStatus.success) {
       _collectButtonKey.currentState?.animateReverse();
       _sendConfirmationNotification(block: state.data!);
-      _refreshUncollectedRewardsAfterDelay();
+      _refreshRewardsAfterDelay();
     } else if (state.status == SendTransactionStatus.failure) {
       _collectButtonKey.currentState?.animateReverse();
       unawaited(
@@ -157,15 +138,17 @@ class _CollectButtonState extends State<_CollectButton> {
     }
   }
 
-  void _refreshUncollectedRewardsAfterDelay() {
+  void _refreshRewardsAfterDelay() {
     Future<void>.delayed(
       kDelayAfterAccountBlockCreationCall,
       () {
         if (mounted) {
+          final Address address = Address.parse(kSelectedAddress!);
           context.read<UncollectedPillarRewardsBloc>().add(
-            FetchRequestData(
-              address: Address.parse(kSelectedAddress!),
-            ),
+            FetchRequestData(address: address),
+          );
+          context.read<PillarRewardsHistoryBloc>().add(
+            FetchRequestData(address: address),
           );
         }
       },
@@ -177,7 +160,8 @@ class _CollectButtonState extends State<_CollectButton> {
       SendTransactionInitiateFromBlock(
         block: zenon!.embedded.pillar.collectReward(),
         fromAddress: kSelectedAddress!,
-        reasonForGeneratingPlasma: context.l10n.collectPillarRewards,
+        reasonForGeneratingPlasma:
+            context.l10n.plasmaPurposeCollectPillarRewards,
       ),
     );
   }

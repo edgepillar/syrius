@@ -1,5 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/notifiers/locale_notifier.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -41,8 +43,11 @@ const String kNodesBox = 'nodes_box';
 const String kKeyStoreBox = 'key_store_box';
 const String kHtlcSwapsBox = 'htlc_swaps_box';
 const String kLastCheckedHtlcBlockBox = 'last_checked_htlc_block_box';
+// The Accelerator's projects by chain: public data, so not encrypted.
+const String kAcceleratorProjectsBox = 'accelerator_projects_box';
 
 const List<String> kCacheBoxesToBeDeleted = <String>[
+  kAcceleratorProjectsBox,
   kFavoriteTokensBox,
   kAddressesBox,
   kAddressLabelsBox,
@@ -60,9 +65,17 @@ const String kNameWalletFile = 'wallet';
 const String kGithubReleasesLink =
     'https://github.com/zenon-network/syrius/releases/latest';
 
-const String kIncorrectPasswordNotificationTitle = 'Incorrect password';
-const String kUnlockFailedNotificationTitle = 'Unlock failed';
-const String kDefaultDateFormat = 'dd MMMM, yyyy';
+// Text, so read in the language of the moment, not kept: a getter each, where
+// these used to be constants.
+String get kIncorrectPasswordNotificationTitle =>
+    currentL10n.walletPasswordIncorrectError;
+String get kUnlockFailedNotificationTitle =>
+    currentL10n.walletUnlockFailedNotificationTitle;
+// A date that is read is worded by `FormatUtils`, in the app's language:
+// `formatDate`, `formatNotificationStamp` and the rest. The patterns that
+// stood here are gone but this one, which is what English keeps for the
+// moment something runs out (`FormatUtils.formatDeadline`), and what the
+// error of a swap recovery still passes to `FormatUtils.formatDate` itself.
 const String kDefaultDateTimeFormat = 'yyyy-MM-dd hh:mm a';
 
 // Key-value store
@@ -120,6 +133,9 @@ const List<int> kPowerUsersPlasmaRequirements = <int>[
   kIssueTokenPlasmaAmountNeeded,
 ];
 
+// The embedded node's entry in the list of nodes. Saved as the selected node
+// and compared against, so it is an identifier and stays as it is in every
+// language; where it is shown, the screen puts the translated name instead.
 const String kEmbeddedNode = 'Embedded Node';
 const String kLocalhostDefaultNodeUrl = 'ws://127.0.0.1:$kDefaultPort';
 const int kDefaultPort = 35998;
@@ -135,7 +151,6 @@ const List<String> kWalletActions = <String>[
 // Notifications constants
 const int kNotificationsResultLimit = 100;
 const int kNotificationsEntriesLimit = 10000;
-const String kNotificationsTimeFormat = 'hh:mm aaa';
 const int kWalletNotificationHiveTypeId = 100;
 const int kNotificationTypeEnumHiveTypeId = 101;
 
@@ -184,10 +199,21 @@ const bool kAutoReceiveDefaultValue = true;
 const String kChainIdKey = 'chain_id';
 const int kChainIdDefaultValue = 1; // 1 corresponds to Alphanet
 
+/// The GitHub repository, as `owner/name`, that Settings reads embedded-node
+/// releases from. Absent until changed; the default is
+/// `NodeUpdateSource.defaultRepository`.
+const String kNodeUpdateRepositoryKey = 'node_update_repository';
+
 // Display constants
 const String kThemeModeKey = 'theme_mode_key';
 const ThemeMode kDefaultThemeMode = ThemeMode.dark;
 const TextScaling kDefaultTextScaling = TextScaling.system;
+const String kLanguageKey = 'language_key';
+const AppLanguage kDefaultAppLanguage = AppLanguage.system;
+
+/// Whether the navigation rail is collapsed to its icons. Absent until the
+/// rail is first opened or closed, and absent reads as collapsed.
+const String kRailCollapsedKey = 'rail_collapsed';
 
 const Map<BlockTypeEnum, Color> kBlockTypeColorMap = <BlockTypeEnum, Color>{
   BlockTypeEnum.userReceive: AppColors.darkHintTextColor,

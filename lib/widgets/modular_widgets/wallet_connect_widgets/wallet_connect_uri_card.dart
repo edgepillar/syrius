@@ -1,15 +1,16 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:logging/logging.dart';
 import 'package:reown_walletkit/reown_walletkit.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
-const String _kWidgetTitle = 'WalletConnect Link';
-const String _kWidgetDescription = 'Paste the WalletConnect link here';
+/// The height of the link field and of the buttons beside it.
+const double kWalletConnectFieldHeight = 44;
 
+/// The WalletConnect link field and its Connect, the main action of the
+/// Connected sites page. A link copied while the wallet runs lands here.
 class WalletConnectUriCard extends StatefulWidget {
   const WalletConnectUriCard({super.key});
 
@@ -26,90 +27,95 @@ class _WalletConnectUriCardState extends State<WalletConnectUriCard> {
 
   @override
   Widget build(BuildContext context) {
-    return CardScaffold(
-      title: _kWidgetTitle,
-      description: _kWidgetDescription,
-      childBuilder: _getCardBody,
+    return ValueListenableBuilder<String?>(
+      builder: (_, String? value, Widget? child) {
+        if (value != null) {
+          _uriController.text = value;
+          kLastWalletConnectUriNotifier.value = null;
+        }
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Expanded(
+              child: Form(
+                key: _uriKey,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                child: InputField(
+                  validator: (value) {
+                    if (Uri.tryParse(value ?? '') != null) {
+                      return null;
+                    } else {
+                      return 'URI invalid';
+                    }
+                  },
+                  onChanged: (String value) {
+                    setState(() {});
+                  },
+                  controller: _uriController,
+                  inputtedTextStyle: monoStyle(
+                    const TextStyle(fontSize: 13, color: AppColors.znnColor),
+                  ),
+                  suffixIcon: IconButton(
+                    tooltip: 'Paste',
+                    iconSize: 16,
+                    icon: const Icon(
+                      Icons.content_paste,
+                      color: AppColors.faint,
+                    ),
+                    onPressed: _onPastePressed,
+                  ),
+                  hintText: 'WalletConnect link',
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            MyOutlinedButton(
+              key: const Key('wc_connect'),
+              text: 'Connect',
+              onPressed: Uri.tryParse(_uriController.text) != null
+                  ? () {
+                      _pairWithDapp(
+                        Uri.parse(_uriController.text),
+                      );
+                    }
+                  : null,
+              minimumSize: const Size(100, kWalletConnectFieldHeight),
+            ),
+          ],
+        );
+      },
+      valueListenable: kLastWalletConnectUriNotifier,
     );
   }
 
-  Widget _getCardBody() {
-    return Padding(
-      padding: const EdgeInsets.all(15),
-      child: ValueListenableBuilder<String?>(
-        builder: (_, String? value, Widget? child) {
-          if (value != null) {
-            _uriController.text = value;
-            kLastWalletConnectUriNotifier.value = null;
-          }
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: <Widget>[
-              SizedBox(
-                height: 120,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    const CircleAvatar(
-                      backgroundColor: Colors.white12,
-                      child: Icon(
-                        Icons.link,
-                        color: AppColors.znnColor,
-                      ),
-                    ),
-                    Form(
-                      key: _uriKey,
-                      autovalidateMode: AutovalidateMode.onUserInteraction,
-                      child: InputField(
-                        validator: (value) {
-                          if (Uri.tryParse(value ?? '') != null) {
-                            return null;
-                          } else {
-                            return 'URI invalid';
-                          }
-                        },
-                        onChanged: (String value) {
-                          setState(() {});
-                        },
-                        controller: _uriController,
-                        suffixIcon: PasteContentButton(controller: _uriController),
-                        hintText: 'WalletConnect URI',
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              MyOutlinedButton(
-                text: 'Connect',
-                onPressed:
-                    Uri.tryParse(_uriController.text) != null
-                        ? () {
-                            _pairWithDapp(
-                              Uri.parse(_uriController.text),
-                            );
-                          }
-                        : null,
-                minimumSize: kLoadingButtonMinSize,
-              ),
-            ],
-          );
-        },
-        valueListenable: kLastWalletConnectUriNotifier,
-      ),
+  /// Pastes the clipboard into the field and rebuilds, so Connect follows
+  /// what was pasted.
+  void _onPastePressed() {
+    ClipboardUtils.pasteToClipboard(
+      callback: (String value) {
+        if (!mounted) return;
+        setState(() {
+          _uriController.text = value;
+        });
+      },
     );
   }
 
   Future<void> _pairWithDapp(Uri uri) async {
     try {
-      final PairingInfo pairingInfo = await sl.get<IWeb3WalletService>().pair(uri);
-      Logger('WalletConnectPairingCard')
-          .log(Level.INFO, 'pairing info', pairingInfo.toJson());
+      final PairingInfo pairingInfo = await sl.get<IWeb3WalletService>().pair(
+        uri,
+      );
+      Logger(
+        'WalletConnectPairingCard',
+      ).log(Level.INFO, 'pairing info', pairingInfo.toJson());
       _uriController = TextEditingController();
       _uriKey.currentState?.reset();
       setState(() {});
     } catch (e, stackTrace) {
-      Logger('WalletConnectPairingCard')
-          .log(Level.INFO, 'pairing failed', e, stackTrace);
+      Logger(
+        'WalletConnectPairingCard',
+      ).log(Level.INFO, 'pairing failed', e, stackTrace);
       await NotificationUtils.sendNotificationError(e, 'Pairing failed');
     }
   }

@@ -34,6 +34,7 @@ dependencies:
   web_socket_channel: ^3.0.1
   x25519: ^0.1.1
 
+  material_ui: any
 dev_dependencies:
   build_runner: ^2.4.13
   build_version: ^2.1.1

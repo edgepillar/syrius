@@ -1,0 +1,3 @@
+#!/bin/sh
+# Runs the harness CLI from anywhere. See harness/README.md.
+exec dart "$(dirname "$0")/bin/harness.dart" "$@"

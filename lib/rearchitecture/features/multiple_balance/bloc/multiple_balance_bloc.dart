@@ -5,6 +5,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/refresh_bloc_mixin.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/node_change.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'multiple_balance_bloc.g.dart';
@@ -32,6 +33,10 @@ class MultipleBalanceBloc
 
   /// The Zenon SDK instance for ledger interactions.
   final Zenon zenon;
+
+  /// Cached per node: see `lib/utils/node_change.dart`.
+  @override
+  String get storagePrefix => nodeScopedStoragePrefix(runtimeType);
 
   /// Handles the [MultipleBalanceFetch] event to fetch balances for all
   /// addresses.

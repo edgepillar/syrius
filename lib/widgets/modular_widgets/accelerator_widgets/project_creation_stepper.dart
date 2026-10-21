@@ -1,21 +1,31 @@
-import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
+import 'dart:async';
+
+import 'package:material_ui/material_ui.dart';
 import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/motion/motion.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
     as custom_material_stepper;
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// The steps of creating an Accelerator project.
 enum ProjectCreationStep {
+  /// The address that will own the project, and the fee it pays.
   projectCreation,
+
+  /// The project's name, description, link and budget.
   projectDetails,
+
+  /// Sending it.
   submitProject,
 }
 
+/// Creates an Accelerator project owned by the selected address.
 class ProjectCreationStepper extends StatefulWidget {
+  /// Creates the stepper.
   const ProjectCreationStepper({super.key});
 
   @override
@@ -45,7 +55,7 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
   void initState() {
     super.initState();
     _addressController.text = kSelectedAddress!;
-    sl.get<BalanceBloc>().getBalanceForAllAddresses();
+    unawaited(sl.get<BalanceBloc>().getBalanceForAllAddresses());
   }
 
   @override
@@ -53,81 +63,83 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
     return StreamBuilder<Map<String, AccountInfo>?>(
       stream: sl.get<BalanceBloc>().stream,
       builder: (_, AsyncSnapshot<Map<String, AccountInfo>?> snapshot) {
+        final Widget state;
         if (snapshot.hasError) {
-          return SyriusErrorWidget(snapshot.error!);
-        }
-        if (snapshot.connectionState == ConnectionState.active) {
-          if (snapshot.hasData) {
-            return _getWidgetBody(
+          state = SyriusErrorWidget(
+            snapshot.error!,
+            key: const ValueKey<String>('error'),
+          );
+        } else if (snapshot.connectionState == ConnectionState.active &&
+            snapshot.hasData) {
+          state = KeyedSubtree(
+            key: const ValueKey<String>('steps'),
+            child: _buildBody(
               context,
               snapshot.data![_addressController.text]!,
-            );
-          }
-          return const SyriusLoadingWidget();
+            ),
+          );
+        } else {
+          state = const AccStepperLoading(key: ValueKey<String>('loading'));
         }
-        return const SyriusLoadingWidget();
+        return StateSwitcher(child: state);
       },
     );
   }
 
-  Widget _getWidgetBody(BuildContext context, AccountInfo accountInfo) {
-    return Stack(
-      children: <Widget>[
-        ListView(
-          children: <Widget>[
-            _getMaterialStepper(context, accountInfo),
-          ],
-        ),
-        Visibility(
-          visible: _lastCompletedStep == ProjectCreationStep.values.last,
-          child: Positioned(
-            bottom: 20,
-            right: 0,
-            left: 0,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                StepperButton.icon(
-                  label: 'Create another project',
-                  onPressed: () {
-                    _clearInput();
-                    setState(() {
-                      _currentStep = ProjectCreationStep.values.first;
-                      _lastCompletedStep = null;
-                    });
-                  },
-                  iconData: Icons.refresh,
-                ),
-                const SizedBox(
-                  width: 75,
-                ),
-                StepperButton(
-                  text: 'View projects',
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                ),
-              ],
+  Widget _buildBody(BuildContext context, AccountInfo accountInfo) {
+    return AccStepperFrame(
+      isDone: _lastCompletedStep == ProjectCreationStep.values.last,
+      againLabel: 'Create another',
+      onAgain: () {
+        _clearInput();
+        setState(() {
+          _currentStep = ProjectCreationStep.values.first;
+          _lastCompletedStep = null;
+        });
+      },
+      doneLabel: 'View projects',
+      onDone: () {
+        Navigator.pop(context);
+      },
+      stepper: custom_material_stepper.Stepper(
+        currentStep: _currentStep.index,
+        onStepTapped: (int index) {},
+        steps: <custom_material_stepper.Step>[
+          StepperUtils.getMaterialStep(
+            stepTitle: 'Owner',
+            stepContent: _buildOwnerStep(accountInfo),
+            stepSubtitle: _addressController.text,
+            stepState: StepperUtils.getStepState(
+              ProjectCreationStep.projectCreation.index,
+              _lastCompletedStep?.index,
             ),
+            context: context,
           ),
-        ),
-        Visibility(
-          visible: _lastCompletedStep == ProjectCreationStep.values.last,
-          child: Positioned(
-            right: 50,
-            child: SizedBox(
-              width: 400,
-              height: 400,
-              child: Center(
-                child: Lottie.asset(
-                  'assets/lottie/ic_anim_zts.json',
-                  repeat: false,
-                ),
-              ),
+          StepperUtils.getMaterialStep(
+            stepTitle: 'Details',
+            stepContent: _buildDetailsStep(),
+            stepSubtitle:
+                '${_projectNameController.text} · '
+                '${_projectZnnAmountController.text} ${kZnnCoin.symbol} · '
+                '${_projectQsrAmountController.text} ${kQsrCoin.symbol}',
+            stepState: StepperUtils.getStepState(
+              ProjectCreationStep.projectDetails.index,
+              _lastCompletedStep?.index,
             ),
+            context: context,
           ),
-        ),
-      ],
+          StepperUtils.getMaterialStep(
+            stepTitle: 'Submit',
+            stepContent: _buildSubmitStep(),
+            stepSubtitle: 'Submitted',
+            stepState: StepperUtils.getStepState(
+              ProjectCreationStep.submitProject.index,
+              _lastCompletedStep?.index,
+            ),
+            context: context,
+          ),
+        ],
+      ),
     );
   }
 
@@ -144,80 +156,28 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
     _projectQsrKey = GlobalKey();
   }
 
-  Widget _getMaterialStepper(BuildContext context, AccountInfo accountInfo) {
-    return Theme(
-      data: Theme.of(context).copyWith(
-        highlightColor: Colors.transparent,
-        splashColor: Colors.transparent,
-        hoverColor: Colors.transparent,
-      ),
-      child: custom_material_stepper.Stepper(
-        currentStep: _currentStep.index,
-        onStepTapped: (int index) {},
-        steps: <custom_material_stepper.Step>[
-          StepperUtils.getMaterialStep(
-            stepTitle: 'Project creation',
-            stepContent: _getProjectCreationStepContent(accountInfo),
-            stepSubtitle: _addressController.text,
-            stepState: StepperUtils.getStepState(
-              ProjectCreationStep.projectCreation.index,
-              _lastCompletedStep?.index,
-            ),
-            context: context,
-          ),
-          StepperUtils.getMaterialStep(
-            stepTitle: 'Project details',
-            stepContent: _getProjectDetailsStepContent(accountInfo),
-            stepSubtitle: '${_projectNameController.text} ● '
-                '${_projectZnnAmountController.text} ${kZnnCoin.symbol} ● '
-                '${_projectQsrAmountController.text} ${kQsrCoin.symbol}',
-            stepState: StepperUtils.getStepState(
-              ProjectCreationStep.projectDetails.index,
-              _lastCompletedStep?.index,
-            ),
-            context: context,
-          ),
-          StepperUtils.getMaterialStep(
-            stepTitle: 'Submit project',
-            stepContent: _getSubmitProjectStepContent(),
-            stepSubtitle: 'Project submitted',
-            stepState: StepperUtils.getStepState(
-              ProjectCreationStep.submitProject.index,
-              _lastCompletedStep?.index,
-            ),
-            context: context,
-          ),
-        ],
-      ),
-    );
-  }
+  /// The creation fee, as "1 ZNN".
+  String get _fee =>
+      accAmount(projectCreationFeeInZnn, coinDecimals, kZnnCoin.symbol);
 
-  Widget _getProjectCreationStepContent(AccountInfo accountInfo) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        const Text('This will be your project owner address'),
-        kVerticalSpacing,
-        DisabledAddressField(_addressController),
-        StepperUtils.getBalanceWidget(kZnnCoin, accountInfo),
-        DottedBorderInfoWidget(
-          text:
-              'Creating a project consumes ${projectCreationFeeInZnn.addDecimals(coinDecimals)} ${kZnnCoin.symbol} that goes to the Accelerator',
-        ),
-        kVerticalSpacing,
-        Row(
-          children: <Widget>[
-            StepperButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              text: 'Cancel',
-            ),
-            const SizedBox(
-              width: 15,
-            ),
-            StepperButton(
-              onPressed: accountInfo.getBalance(
+  Widget _buildOwnerStep(AccountInfo accountInfo) {
+    return FocusTraversalGroup(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          AccField(
+            label: 'Owner',
+            child: DisabledAddressField(_addressController),
+          ),
+          AccBalanceLine(kZnnCoin, accountInfo),
+          const SizedBox(height: kAccFieldGap),
+          DottedBorderInfoWidget(
+            text: 'Creating a project costs $_fee, paid to the Accelerator',
+          ),
+          AccStepActions(
+            primary: StepperButton(
+              onPressed:
+                  accountInfo.getBalance(
                         kZnnCoin.tokenStandard,
                       ) >=
                       projectCreationFeeInZnn
@@ -231,203 +191,160 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
                   : null,
               text: 'Continue',
             ),
-          ],
-        ),
-      ],
+            secondaryLabel: 'Cancel',
+            onSecondary: () {
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _getProjectDetailsStepContent(AccountInfo accountInfo) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: Form(
-                key: _projectNameKey,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                child: InputField(
-                  controller: _projectNameController,
-                  hintText: 'Project name',
-                  onChanged: (String value) {
-                    setState(() {});
-                  },
-                  validator: Validations.projectName,
-                ),
+  Widget _buildDetailsStep() {
+    final TextStyle text = accFieldTextStyle(context);
+    final TextStyle amount = accFieldTextStyle(context, mono: true);
+    return FocusTraversalGroup(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          AccField(
+            label: 'Name',
+            child: Form(
+              key: _projectNameKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child: InputField(
+                controller: _projectNameController,
+                inputtedTextStyle: text,
+                onChanged: (String value) {
+                  setState(() {});
+                },
+                validator: Validations.projectName,
               ),
             ),
-            // Empty space so that all the right edges will align
-            const SizedBox(
-              width: 23,
-            ),
-          ],
-        ),
-        kVerticalSpacing,
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: Form(
-                key: _projectDescriptionKey,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                child: InputField(
-                  controller: _projectDescriptionController,
-                  hintText: 'Project description',
-                  onChanged: (String value) {
-                    setState(() {});
-                  },
-                  validator: Validations.projectDescription,
-                ),
+          ),
+          const SizedBox(height: kAccFieldGap),
+          AccField(
+            label: 'Description',
+            child: Form(
+              key: _projectDescriptionKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child: InputField(
+                controller: _projectDescriptionController,
+                inputtedTextStyle: text,
+                onChanged: (String value) {
+                  setState(() {});
+                },
+                validator: Validations.projectDescription,
               ),
             ),
-            // Empty space so that all the right edges will align
-            const SizedBox(
-              width: 23,
-            ),
-          ],
-        ),
-        kVerticalSpacing,
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: Form(
-                key: _projectUrlKey,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                child: InputField(
-                  controller: _projectUrlController,
-                  hintText: 'Project URL',
-                  onChanged: (String value) {
-                    setState(() {});
-                  },
-                  validator: InputValidators.checkUrl,
-                ),
+          ),
+          const SizedBox(height: kAccFieldGap),
+          AccField(
+            label: 'URL',
+            help: 'Link to the project article',
+            child: Form(
+              key: _projectUrlKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child: InputField(
+                controller: _projectUrlController,
+                hintText: 'https://',
+                inputtedTextStyle: text,
+                onChanged: (String value) {
+                  setState(() {});
+                },
+                validator: InputValidators.checkUrl,
               ),
             ),
-            const StandardTooltipIcon(
-              'Link to project article',
-              Icons.help,
-            ),
-          ],
-        ),
-        kVerticalSpacing,
-        Row(
-          children: <Widget>[
-            Text(
-              'Total project budget',
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-            const StandardTooltipIcon(
-              'Set a budget for the project',
-              Icons.help,
-            ),
-          ],
-        ),
-        kVerticalSpacing,
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: Form(
-                key: _projectZnnKey,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                child: InputField(
-                  inputFormatters: FormatUtils.getAmountTextInputFormatters(
-                    _projectZnnAmountController.text,
-                  ),
-                  controller: _projectZnnAmountController,
-                  hintText: 'ZNN Amount',
-                  suffixIcon: AmountSuffixWidgets(
-                    kZnnCoin,
-                    onMaxPressed: () {
-                      final BigInt maxZnn = kZnnProjectMaximumFunds;
-                      if (_projectZnnAmountController.text.isEmpty ||
-                          _projectZnnAmountController.text
-                                  .extractDecimals(coinDecimals) <
-                              maxZnn) {
-                        setState(() {
-                          _projectZnnAmountController.text =
-                              maxZnn.addDecimals(coinDecimals);
-                        });
-                      }
-                    },
-                  ),
-                  validator: (String? value) => InputValidators.correctValue(
-                    value,
-                    kZnnProjectMaximumFunds,
-                    kZnnCoin.decimals,
-                    kZnnProjectMinimumFunds,
-                    canBeEqualToMin: true,
-                  ),
-                  onChanged: (String value) {
-                    setState(() {});
+          ),
+          const SizedBox(height: kAccFieldGap),
+          AccField(
+            label: 'ZNN budget',
+            child: Form(
+              key: _projectZnnKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child: InputField(
+                inputFormatters: FormatUtils.getAmountTextInputFormatters(
+                  _projectZnnAmountController.text,
+                ),
+                controller: _projectZnnAmountController,
+                hintText: '0.0',
+                inputtedTextStyle: amount,
+                suffixIcon: AmountSuffixWidgets(
+                  kZnnCoin,
+                  onMaxPressed: () {
+                    final BigInt maxZnn = kZnnProjectMaximumFunds;
+                    if (_projectZnnAmountController.text.isEmpty ||
+                        _projectZnnAmountController.text.extractDecimals(
+                              coinDecimals,
+                            ) <
+                            maxZnn) {
+                      setState(() {
+                        _projectZnnAmountController.text = maxZnn.addDecimals(
+                          coinDecimals,
+                        );
+                      });
+                    }
                   },
                 ),
+                validator: (String? value) => InputValidators.correctValue(
+                  value,
+                  kZnnProjectMaximumFunds,
+                  kZnnCoin.decimals,
+                  kZnnProjectMinimumFunds,
+                  canBeEqualToMin: true,
+                ),
+                onChanged: (String value) {
+                  setState(() {});
+                },
               ),
             ),
-            // Empty space so that all the right edges will align
-            const SizedBox(
-              width: 23,
-            ),
-          ],
-        ),
-        kVerticalSpacing,
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: Form(
-                key: _projectQsrKey,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                child: InputField(
-                  inputFormatters: FormatUtils.getAmountTextInputFormatters(
-                    _projectQsrAmountController.text,
-                  ),
-                  controller: _projectQsrAmountController,
-                  hintText: 'QSR Amount',
-                  suffixIcon: AmountSuffixWidgets(
-                    kQsrCoin,
-                    onMaxPressed: () {
-                      final BigInt maxQsr = kQsrProjectMaximumFunds;
-                      if (_projectQsrAmountController.text.isEmpty ||
-                          _projectQsrAmountController.text
-                                  .extractDecimals(coinDecimals) <
-                              maxQsr) {
-                        setState(() {
-                          _projectQsrAmountController.text =
-                              maxQsr.addDecimals(coinDecimals);
-                        });
-                      }
-                    },
-                  ),
-                  validator: (String? value) => InputValidators.correctValue(
-                    value,
-                    kQsrProjectMaximumFunds,
-                    kQsrCoin.decimals,
-                    kQsrProjectMinimumFunds,
-                    canBeEqualToMin: true,
-                  ),
-                  onChanged: (String value) {
-                    setState(() {});
+          ),
+          const SizedBox(height: kAccFieldGap),
+          AccField(
+            label: 'QSR budget',
+            child: Form(
+              key: _projectQsrKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child: InputField(
+                inputFormatters: FormatUtils.getAmountTextInputFormatters(
+                  _projectQsrAmountController.text,
+                ),
+                controller: _projectQsrAmountController,
+                hintText: '0.0',
+                inputtedTextStyle: amount,
+                suffixIcon: AmountSuffixWidgets(
+                  kQsrCoin,
+                  onMaxPressed: () {
+                    final BigInt maxQsr = kQsrProjectMaximumFunds;
+                    if (_projectQsrAmountController.text.isEmpty ||
+                        _projectQsrAmountController.text.extractDecimals(
+                              coinDecimals,
+                            ) <
+                            maxQsr) {
+                      setState(() {
+                        _projectQsrAmountController.text = maxQsr.addDecimals(
+                          coinDecimals,
+                        );
+                      });
+                    }
                   },
                 ),
+                validator: (String? value) => InputValidators.correctValue(
+                  value,
+                  kQsrProjectMaximumFunds,
+                  kQsrCoin.decimals,
+                  kQsrProjectMinimumFunds,
+                  canBeEqualToMin: true,
+                ),
+                onChanged: (String value) {
+                  setState(() {});
+                },
               ),
             ),
-            const SizedBox(
-              width: 23,
-            ),
-          ],
-        ),
-        kVerticalSpacing,
-        Row(
-          children: <Widget>[
-            StepperButton(
-              text: 'Cancel',
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-            const SizedBox(
-              width: 15,
-            ),
-            StepperButton(
+          ),
+          AccStepActions(
+            primary: StepperButton(
               text: 'Continue',
               onPressed: _areInputDetailsValid()
                   ? () {
@@ -438,43 +355,36 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
                     }
                   : null,
             ),
-          ],
-        ),
-      ],
+            secondaryLabel: 'Cancel',
+            onSecondary: () {
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _getSubmitProjectStepContent() {
+  Widget _buildSubmitStep() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        DottedBorderInfoWidget(
-          text:
-              'Consume ${projectCreationFeeInZnn.addDecimals(coinDecimals)} ${kZnnCoin.symbol} to submit the project',
-        ),
-        kVerticalSpacing,
-        Row(
-          children: <Widget>[
-            StepperButton(
-              onPressed: () {
-                setState(() {
-                  _currentStep = ProjectCreationStep.projectDetails;
-                  _lastCompletedStep = ProjectCreationStep.projectCreation;
-                });
-              },
-              text: 'Go back',
-            ),
-            const SizedBox(
-              width: 15,
-            ),
-            _getSubmitProjectViewModel(),
-          ],
+        DottedBorderInfoWidget(text: 'Submitting costs $_fee'),
+        AccStepActions(
+          primary: _buildSubmitProjectViewModel(),
+          secondaryLabel: 'Back',
+          onSecondary: () {
+            setState(() {
+              _currentStep = ProjectCreationStep.projectDetails;
+              _lastCompletedStep = ProjectCreationStep.projectCreation;
+            });
+          },
         ),
       ],
     );
   }
 
-  Widget _getSubmitProjectViewModel() {
+  Widget _buildSubmitProjectViewModel() {
     return ViewModelBuilder<CreateProjectBloc>.reactive(
       onViewModelReady: (CreateProjectBloc model) {
         model.stream.listen(
@@ -486,7 +396,7 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
               });
             }
           },
-          onError: (error) async {
+          onError: (Object error) async {
             _submitButtonKey.currentState?.animateReverse();
             await NotificationUtils.sendNotificationError(
               error,
@@ -495,13 +405,14 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
           },
         );
       },
-      builder: (_, CreateProjectBloc model, __) => _getSubmitProjectButton(model),
+      builder: (_, CreateProjectBloc model, _) =>
+          _buildSubmitProjectButton(model),
       viewModelBuilder: CreateProjectBloc.new,
     );
   }
 
-  Widget _getSubmitProjectButton(CreateProjectBloc model) {
-    return LoadingButton.stepper(
+  Widget _buildSubmitProjectButton(CreateProjectBloc model) {
+    return LoadingButton(
       onPressed: () {
         _submitButtonKey.currentState?.animateForward();
         model.createProject(
@@ -517,6 +428,7 @@ class _ProjectCreationStepperState extends State<ProjectCreationStepper> {
         );
       },
       text: 'Submit',
+      circularBorderRadius: kLoadingButtonMinSize.height / 2,
       key: _submitButtonKey,
     );
   }

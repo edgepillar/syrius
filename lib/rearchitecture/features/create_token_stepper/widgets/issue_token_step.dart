@@ -1,15 +1,22 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/card_parts/card_parts.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/ltr.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-/// Final step that issues the token.
+/// The width of the labels of the review, so the values start on one edge.
+/// The longest, "Burnable by any holder", fits in capitals.
+const double _kReviewLabelWidth = 176;
+
+/// Final step: what was chosen, the fee, and the action that issues the
+/// token.
 class IssueTokenStep extends StatefulWidget {
   /// Creates an [IssueTokenStep].
   const IssueTokenStep({
@@ -17,6 +24,7 @@ class IssueTokenStep extends StatefulWidget {
     required this.onIssueDone,
     required this.onIssuePressed,
     required this.tokenData,
+    this.active = true,
     super.key,
   });
 
@@ -32,6 +40,9 @@ class IssueTokenStep extends StatefulWidget {
   /// Token data draft updated by this step.
   final ValueNotifier<NewTokenData> tokenData;
 
+  /// Whether this is the step shown.
+  final bool active;
+
   @override
   State<IssueTokenStep> createState() => _IssueTokenStepState();
 }
@@ -39,93 +50,82 @@ class IssueTokenStep extends StatefulWidget {
 class _IssueTokenStepState extends State<IssueTokenStep> {
   final GlobalKey<LoadingButtonState> _createButtonKey = GlobalKey();
 
-  bool get _isLoading =>
-      (_createButtonKey.currentState?.btnState ?? ButtonState.idle) !=
-      ButtonState.idle;
+  // From the press until the bloc has failed, or the stepper has moved on.
+  // The bloc's own state will not do: it still says done when the stepper
+  // is run a second time.
+  bool _isSending = false;
 
   @override
   Widget build(BuildContext context) {
     return BlocListener<IssueTokenBloc, IssueTokenState>(
       listener: (_, IssueTokenState state) => _onIssueTokenStateChanged(state),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Row(
-            children: <Widget>[
-              Checkbox(
-                key: const Key('token_utility_checkbox'),
-                activeColor: AppColors.ztsColor,
-                value: widget.tokenData.value.isUtility,
-                onChanged: (bool? value) {
-                  if (value != null) {
+      child: ValueListenableBuilder<NewTokenData>(
+        valueListenable: widget.tokenData,
+        builder: (BuildContext context, NewTokenData data, _) {
+          final AppTokens tokens = AppTokens.of(context);
+          return TokenStepFrame(
+            active: widget.active,
+            busy: _isSending,
+            onBack: widget.onBackPressed,
+            onSubmit: _isSending ? null : _onIssuePressed,
+            body: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                _Review(data),
+                SizedBox(height: tokens.cardGap),
+                TokenStepToggle(
+                  checkboxKey: const Key('token_utility_checkbox'),
+                  label: context.l10n.utilityToken,
+                  help: context.l10n.tokenStatusUtilityTooltip,
+                  value: data.isUtility,
+                  onChanged: (bool value) {
                     widget.tokenData.value = widget.tokenData.value.copyWith(
                       isUtility: value,
                     );
-                  }
-                },
-              ),
-              Text(
-                context.l10n.utilityToken,
-                style: Theme.of(context).inputDecorationTheme.hintStyle,
-              ),
-              kHorizontalGap8,
-              const Icon(
-                Icons.settings,
-                color: AppColors.ztsColor,
-              ),
-              StandardTooltipIcon(
-                context.l10n.tokenStatusUtilityTooltip,
-                Icons.help,
-                iconColor: AppColors.ztsColor,
-              ),
-            ],
-          ),
-          kVerticalGap25,
-          DottedBorderInfoWidget(
-            text: context.l10n.burnTokenIssueFee(
-              tokenZtsIssueFeeInZnn.addDecimals(coinDecimals),
-              kZnnCoin.symbol,
-            ),
-            borderColor: AppColors.ztsColor,
-          ),
-          kVerticalGap25,
-          Row(
-            children: <Widget>[
-              Visibility(
-                visible: !_isLoading,
-                child: Row(
-                  children: <Widget>[
-                    OutlinedButton(
-                      onPressed: widget.onBackPressed,
-                      child: Text(context.l10n.goBack),
-                    ),
-                    kHorizontalGap25,
-                  ],
-                ),
-              ),
-              KeyedSubtree(
-                key: const Key('token_create_button'),
-                child: LoadingButton.stepper(
-                  textColor: AppColors.ztsColor,
-                  text: context.l10n.create,
-                  outlineColor: AppColors.ztsColor,
-                  onPressed: () {
-                    widget.onIssuePressed();
                   },
-                  key: _createButtonKey,
                 ),
+                SizedBox(height: tokens.cardGap),
+                DottedBorderInfoWidget(
+                  text: context.l10n.burnTokenIssueFee(
+                    cardAmount(tokenZtsIssueFeeInZnn, coinDecimals, ''),
+                    kZnnCoin.symbol,
+                  ),
+                  borderColor: tokens.znnInk,
+                ),
+              ],
+            ),
+            primary: KeyedSubtree(
+              key: const Key('token_create_button'),
+              child: LoadingButton(
+                onPressed: _onIssuePressed,
+                text: context.l10n.create,
+                circularBorderRadius: kLoadingButtonMinSize.height / 2,
+                key: _createButtonKey,
               ),
-            ],
-          ),
-          kVerticalGap25,
-        ],
+            ),
+          );
+        },
       ),
     );
+  }
+
+  void _onIssuePressed() {
+    if (_isSending) {
+      return;
+    }
+    setState(() {
+      _isSending = true;
+    });
+    widget.onIssuePressed();
   }
 
   void _onIssueTokenStateChanged(IssueTokenState state) {
     if (state is IssueTokenLoading) {
       _createButtonKey.currentState?.animateForward();
+      setState(() {
+        _isSending = true;
+      });
     } else if (state is IssueTokenDone) {
       unawaited(
         _onIssueTokenDone(
@@ -135,6 +135,9 @@ class _IssueTokenStepState extends State<IssueTokenStep> {
       );
     } else if (state is IssueTokenFailure) {
       _createButtonKey.currentState?.animateReverse();
+      setState(() {
+        _isSending = false;
+      });
       unawaited(
         NotificationUtils.sendNotificationError(
           state.exception,
@@ -162,8 +165,152 @@ class _IssueTokenStepState extends State<IssueTokenStep> {
     } finally {
       if (context.mounted) {
         _createButtonKey.currentState?.animateReverse();
+        setState(() {
+          _isSending = false;
+        });
         widget.onIssueDone();
       }
     }
+  }
+}
+
+/// Every value chosen in the steps before, and what issuing costs.
+class _Review extends StatelessWidget {
+  const _Review(this.data);
+
+  final NewTokenData data;
+
+  @override
+  Widget build(BuildContext context) {
+    final TextStyle text = accFieldTextStyle(context);
+    final TextStyle mono = accFieldTextStyle(context, mono: true);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        _ReviewRow(
+          label: context.l10n.address,
+          value: Tooltip(
+            message: data.address,
+            child: Text(
+              data.address,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textDirection: TextDirection.ltr,
+              textAlign: ltrTextAlign(context),
+              style: mono,
+            ),
+          ),
+        ),
+        _ReviewRow(
+          label: context.l10n.tokenName,
+          value: _ReviewText(data.tokenName, style: text),
+        ),
+        _ReviewRow(
+          label: context.l10n.tokenSymbol,
+          value: _ReviewText(data.tokenSymbol, style: text),
+        ),
+        _ReviewRow(
+          label: context.l10n.tokenDomain,
+          value: _ReviewText(data.tokenDomain, style: text),
+        ),
+        _ReviewRow(
+          label: context.l10n.createTokenDecimalsLabel,
+          value: _ReviewText('${data.decimals}', style: mono),
+        ),
+        // The token has no standard until it is issued, so its symbol takes
+        // the text colour.
+        _ReviewRow(
+          label: context.l10n.totalSupply,
+          value: AmountText(
+            data.totalSupply,
+            decimals: data.decimals,
+            style: text,
+            symbol: data.tokenSymbol,
+          ),
+        ),
+        _ReviewRow(
+          label: context.l10n.maxSupply,
+          value: AmountText(
+            data.maxSupply,
+            decimals: data.decimals,
+            style: text,
+            symbol: data.tokenSymbol,
+          ),
+        ),
+        _ReviewRow(
+          label: context.l10n.mintable,
+          value: _ReviewText(
+            data.isMintable ? context.l10n.yes : context.l10n.no,
+            style: text,
+          ),
+        ),
+        _ReviewRow(
+          label: context.l10n.burnableToken,
+          value: _ReviewText(
+            data.isBurnable ? context.l10n.yes : context.l10n.no,
+            style: text,
+          ),
+        ),
+        _ReviewRow(
+          label: context.l10n.createTokenFeeLabel,
+          value: AmountText(
+            tokenZtsIssueFeeInZnn,
+            decimals: coinDecimals,
+            style: text,
+            symbol: kZnnCoin.symbol,
+            symbolColor: cardTokenInk(kZnnCoin.tokenStandard, context),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// One line of the review: a ledger label, then its value.
+class _ReviewRow extends StatelessWidget {
+  const _ReviewRow({required this.label, required this.value});
+
+  final String label;
+  final Widget value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: <Widget>[
+          SizedBox(
+            width: _kReviewLabelWidth,
+            child: Text(
+              label.toUpperCase(),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: ledgerLabelStyle(context),
+            ),
+          ),
+          SizedBox(width: AppTokens.of(context).cardGap),
+          Expanded(child: value),
+        ],
+      ),
+    );
+  }
+}
+
+/// A value of the review that is a word or a name.
+class _ReviewText extends StatelessWidget {
+  const _ReviewText(this.text, {required this.style});
+
+  final String text;
+  final TextStyle style;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: style,
+    );
   }
 }

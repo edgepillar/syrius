@@ -1,6 +1,6 @@
 import 'dart:isolate';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:hive_ce/hive_ce.dart';
 import 'package:logging/logging.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -9,6 +9,7 @@ import 'package:zenon_syrius_wallet_flutter/embedded_node/embedded_node.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/settings_parts.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 class NodeManagementScreen extends StatefulWidget {
@@ -56,104 +57,64 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        padding: const EdgeInsets.symmetric(
-          vertical: 30,
-          horizontal: 50,
-        ),
-        child: ListView(
-          shrinkWrap: true,
-          children: <Widget>[
-            const NotificationWidget(),
-            Text(
-              'Node Management',
-              style: Theme.of(context).textTheme.headlineLarge,
-              textAlign: TextAlign.center,
-            ),
-            kVerticalSpacing,
-            Text(
-              'By default Syrius connects to its own built-in full node, which is called the Embedded Node. '
-              'It may take up to 24 hours to fully sync the network via the embedded node. '
-              'During this time, you cannot send or receive transactions.\n\n'
-              'It you want to get started right away, please connect to a community node.',
-              style: Theme.of(context).textTheme.headlineSmall,
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(
-              height: kVerticalSpacing.height! * 2,
-            ),
-            Row(
-              children: <Widget>[
-                const Expanded(
-                  child: SizedBox(),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        'Node selection',
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                      _getNodeTiles(),
-                      kVerticalSpacing,
-                      Text(
-                        'Wallet options',
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                      _getAutoReceiveCheckboxContainer(),
-                      _getConfirmNodeSelectionButton(),
-                      kVerticalSpacing,
-                      Text(
-                        'Add node',
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                      kVerticalSpacing,
-                      _getAddNodeColumn(),
-                    ],
-                  ),
-                ),
-                const Expanded(
-                  child: SizedBox(),
-                ),
-              ],
-            ),
-          ],
-        ),
+    return SettingsScreenFrame(
+      top: const NotificationWidget(),
+      width: 600,
+      title: 'Node',
+      note:
+          'Syrius runs its own full node, the Embedded Node. It can take up '
+          'to a day to sync, and until then nothing can be sent or received. '
+          'To start now, pick a community node.',
+      actions: <Widget>[_buildConfirmNodeSelectionButton()],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          _buildNodeTiles(),
+          const SizedBox(height: 10),
+          _buildAddNodeRow(),
+          const SizedBox(height: 14),
+          const Divider(),
+          const SizedBox(height: 6),
+          _buildAutoReceiveRow(),
+        ],
       ),
     );
   }
 
-  Widget _getAutoReceiveCheckboxContainer() {
+  Widget _buildAutoReceiveRow() {
     return Row(
       children: <Widget>[
-        Checkbox(
-          value: _autoReceive,
-          checkColor: Theme.of(context).colorScheme.primary,
-          activeColor: AppColors.znnColor,
-          onChanged: (bool? value) async {
-            if (value == true) {
-              NodeUtils.getUnreceivedTransactions().then((value) {
-                sl<AutoReceiveTxWorker>().autoReceive();
-              }).onError((Object? error, StackTrace stackTrace) {
-                Logger('MainAppContainer').log(Level.WARNING,
-                    '_getAutoReceiveCheckboxContainer', error, stackTrace,);
-              });
-            } else if (value == false &&
-                sl<AutoReceiveTxWorker>().pool.isNotEmpty) {
+        Expanded(
+          child: Text(
+            'Receive transactions automatically',
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
+        ),
+        Switch(
+          value: _autoReceive ?? false,
+          onChanged: (bool value) async {
+            if (value) {
+              NodeUtils.getUnreceivedTransactions()
+                  .then((value) {
+                    sl<AutoReceiveTxWorker>().autoReceive();
+                  })
+                  .onError((Object? error, StackTrace stackTrace) {
+                    Logger('MainAppContainer').log(
+                      Level.WARNING,
+                      '_getAutoReceiveCheckboxContainer',
+                      error,
+                      stackTrace,
+                    );
+                  });
+            } else if (sl<AutoReceiveTxWorker>().pool.isNotEmpty) {
               sl<AutoReceiveTxWorker>().pool.clear();
             }
             setState(() {
               _autoReceive = value;
             });
-            await _changeAutoReceiveStatus(value ?? false);
+            await _changeAutoReceiveStatus(value);
           },
-        ),
-        Text(
-          'Automatically receive transactions',
-          style: Theme.of(context).textTheme.headlineSmall,
         ),
       ],
     );
@@ -190,16 +151,12 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
     );
   }
 
-  Row _getConfirmNodeSelectionButton() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        LoadingButton.settings(
-          text: 'Continue',
-          onPressed: _onConfirmNodeButtonPressed,
-          key: _confirmNodeButtonKey,
-        ),
-      ],
+  Widget _buildConfirmNodeSelectionButton() {
+    return LoadingButton(
+      text: 'Continue',
+      onPressed: _onConfirmNodeButtonPressed,
+      minimumSize: const Size(120, 40),
+      key: _confirmNodeButtonKey,
     );
   }
 
@@ -270,33 +227,38 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
     ).pushReplacementNamed(MainAppContainer.route);
   }
 
-  Widget _getAddNodeColumn() {
-    return Column(
+  Widget _buildAddNodeRow() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Form(
-          key: _newNodeKey,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          child: InputField(
-            controller: _newNodeController,
-            hintText: 'Node address with port',
-            onSubmitted: (String value) {
-              if (_ifUserInputValid()) {
-                _onAddNodePressed();
-              }
-            },
-            onChanged: (String value) {
-              if (value.isNotEmpty) {
-                setState(() {});
-              }
-            },
-            validator: InputValidators.node,
+        Expanded(
+          child: Form(
+            key: _newNodeKey,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            child: InputField(
+              controller: _newNodeController,
+              hintText: 'Node address with port',
+              onSubmitted: (String value) {
+                if (_ifUserInputValid()) {
+                  _onAddNodePressed();
+                }
+              },
+              onChanged: (String value) {
+                if (value.isNotEmpty) {
+                  setState(() {});
+                }
+              },
+              validator: InputValidators.node,
+            ),
           ),
         ),
-        kVerticalSpacing,
-        LoadingButton.settings(
-          onPressed: _ifUserInputValid() ? _onAddNodePressed : null,
-          text: 'Add node',
-          key: _addNodeButtonKey,
+        const SizedBox(width: 10),
+        SecondaryAction(
+          child: LoadingButton.settings(
+            onPressed: _ifUserInputValid() ? _onAddNodePressed : null,
+            text: 'Add node',
+            key: _addNodeButtonKey,
+          ),
         ),
       ],
     );
@@ -336,17 +298,17 @@ class _NodeManagementScreenState extends State<NodeManagementScreen> {
     }
   }
 
-  Widget _getNodeTiles() {
+  Widget _buildNodeTiles() {
     return Column(
       children: <String>{
         ...kDefaultNodes,
         ...kDefaultCommunityNodes,
         ...kDbNodes,
-      }.toList().map(_getNodeTile).toList(),
+      }.toList().map(_buildNodeTile).toList(),
     );
   }
 
-  Row _getNodeTile(String node) {
+  Widget _buildNodeTile(String node) {
     return Row(
       children: <Widget>[
         Radio<String?>(

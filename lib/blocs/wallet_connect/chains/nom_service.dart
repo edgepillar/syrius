@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:reown_walletkit/reown_walletkit.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/chains/i_chain.dart';
@@ -13,6 +13,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/functions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/plasma_purpose.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/main_app_container.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dialogs.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/icons/link_icon.dart';
@@ -305,7 +306,7 @@ class NoMService extends IChain {
               block: block,
               fromAddress: fromAddress,
               //TODO(maxwell): check if it's worth localizing strings
-              reasonForGeneratingPlasma: 'Execute transfer',
+              reasonForGeneratingPlasma: PlasmaPurpose.executeTransfer.message,
             ),
           );
 

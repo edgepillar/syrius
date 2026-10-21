@@ -1,8 +1,9 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:hive_ce/hive_ce.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/notification_type.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
@@ -41,11 +42,11 @@ class ZenonAddressUtils {
         if (walletAccount is LedgerWalletAccount) {
           await sl.get<NotificationsBloc>().addNotification(
                 WalletNotification(
-                  title:
-                      'Adding address, please confirm the address on your hardware device',
+                  title: currentL10n.addressAddConfirmNotificationTitle,
                   timestamp: DateTime.now().millisecondsSinceEpoch,
-                  details:
-                      'Confirm address for account index: $addrListCounter',
+                  details: currentL10n.addressAddConfirmNotificationDetails(
+                    addrListCounter,
+                  ),
                   type: NotificationType.confirm,
                 ),
               );
@@ -61,7 +62,7 @@ class ZenonAddressUtils {
         final Box addressLabelsBox = Hive.box(kAddressLabelsBox);
         await addressLabelsBox.put(
           listAddr.elementAt(i).toString(),
-          'Address ${kDefaultAddressList.length}',
+          currentL10n.addressDefaultLabel(kDefaultAddressList.length),
         );
         _initAddressLabels(addressLabelsBox);
         NodeUtils.getUnreceivedTransactionsByAddress(listAddr[i]!);
@@ -75,7 +76,7 @@ class ZenonAddressUtils {
       listAddr.clear();
     } catch (e) {
       await NotificationUtils.sendNotificationError(
-          e, 'Error while generating new address',);
+          e, currentL10n.addressGenerateFailedNotificationTitle,);
     } finally {
       kWalletFile!.close();
     }
@@ -87,7 +88,11 @@ class ZenonAddressUtils {
     if (addressLabelsBox.isEmpty) {
       for (final String? address in kDefaultAddressList) {
         await addressLabelsBox.put(
-            address, 'Address ${kDefaultAddressList.indexOf(address) + 1}',);
+          address,
+          currentL10n.addressDefaultLabel(
+            kDefaultAddressList.indexOf(address) + 1,
+          ),
+        );
       }
     }
     _initAddressLabels(addressLabelsBox);

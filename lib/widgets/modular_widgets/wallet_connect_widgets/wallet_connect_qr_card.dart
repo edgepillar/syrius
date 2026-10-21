@@ -1,10 +1,9 @@
 import 'dart:io';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:image/image.dart' as img;
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
-import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:reown_walletkit/reown_walletkit.dart';
 import 'package:screen_capturer/screen_capturer.dart';
 import 'package:window_manager/window_manager.dart';
@@ -14,14 +13,10 @@ import 'package:zenon_syrius_wallet_flutter/model/database/notification_type.dar
 import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
 import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/settings_parts.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 import 'package:zxing2/qrcode.dart';
 
-const String _kWidgetTitle = 'On-screen QR Scanner';
-const String _kWidgetDescription =
-    'Scan the WalletConnect QR code using an on-screen QR scanner. '
-    'This requires the screen recording permission';
 
 final ScreenCapturer screenCapturer = ScreenCapturer.instance;
 
@@ -40,58 +35,25 @@ class _WalletConnectQrCardState extends State<WalletConnectQrCard> {
 
   final GlobalKey<FormState> _uriKey = GlobalKey<FormState>();
 
+  /// The Scan screen button: hides the wallet, lets the person drag over
+  /// the dApp's QR code, reads it and pairs. Needs the screen recording
+  /// permission on macOS.
   @override
   Widget build(BuildContext context) {
-    return CardScaffold(
-      title: _kWidgetTitle,
-      description: _kWidgetDescription,
-      childBuilder: _getCardBody,
-    );
-  }
-
-  Widget _getCardBody() {
-    return Padding(
-      padding: const EdgeInsets.all(15),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: <Widget>[
-          Container(
-            height: 130,
-            width: 130,
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: PrettyQrView.data(
-              data: 'Scan the WalletConnect QR from the dApp',
-              decoration: const PrettyQrDecoration(
-                  shape: PrettyQrSmoothSymbol(
-                    roundFactor: 0,
-                    color: AppColors.znnColor,
-                  ),
-                  image: PrettyQrDecorationImage(
-                      scale: 0.3,
-                      padding: EdgeInsets.only(top: 10, bottom: 10),
-                      image: AssetImage(
-                          'assets/images/qr_code_child_image_znn_cut.png',),),),
-              errorCorrectLevel: QrErrorCorrectLevel.H,
-            ),
-          ),
-          MyOutlinedButton(
-            text: 'Scan QR',
-            onPressed: () {
-              checkPermissionForMacOS().then((bool value) {
-                if (value) {
-                  windowManager.minimize().then(
-                        (value) => _handleClickCapture(CaptureMode.region),
-                      );
-                }
-              });
-            },
-            minimumSize: kLoadingButtonMinSize,
-          ),
-        ],
+    return SecondaryAction(
+      child: OutlinedButton.icon(
+        key: const Key('wc_scan_screen'),
+        onPressed: () {
+          checkPermissionForMacOS().then((bool value) {
+            if (value) {
+              windowManager.minimize().then(
+                (value) => _handleClickCapture(CaptureMode.region),
+              );
+            }
+          });
+        },
+        icon: const Icon(Icons.qr_code_scanner, size: 16),
+        label: const Text('Scan screen'),
       ),
     );
   }

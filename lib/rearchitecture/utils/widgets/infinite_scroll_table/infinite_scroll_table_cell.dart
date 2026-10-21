@@ -19,12 +19,18 @@ class InfiniteScrollTableCell extends StatelessWidget {
   /// If [textToBeCopied] is not null, then the cell will also have a
   /// [CopyToClipboardButton] widget that copies to clipboard the
   /// [textToBeCopied] - which is not already the same as the [content] value.
+  ///
+  /// [textDirection] is left to right for an address, a hash, an amount: a
+  /// right-to-left interface otherwise swaps the two ends of a shortened
+  /// hash that is all digits. The row still puts the text at the app's
+  /// start. Null, for words, follows the app.
   factory InfiniteScrollTableCell.withText({
     required String content,
     String? textToBeCopied,
     TextStyle? textStyle,
     int flex = 1,
     String tooltipMessage = '',
+    TextDirection? textDirection,
   }) => InfiniteScrollTableCell(
     flex: flex,
     child: Row(
@@ -36,6 +42,7 @@ class InfiniteScrollTableCell extends StatelessWidget {
               content,
               overflow: TextOverflow.ellipsis,
               maxLines: 1,
+              textDirection: textDirection,
               style: textStyle,
             ),
           ),
@@ -66,16 +73,10 @@ class InfiniteScrollTableCell extends StatelessWidget {
     bool isShortVersion = true,
     int flex = 2,
   }) {
-    final TextStyle? textStyle =
-        address.isEmbedded() ||
-            (isStakeAddress && address.toString() == kSelectedAddress)
-        ? const TextStyle(
-            color: AppColors.znnColor,
-            fontWeight: FontWeight.bold,
-          )
-        : null;
-
     final bool hasLabel = kAddressLabelMap[address.toString()] != null;
+    final bool isOwn =
+        address.isEmbedded() ||
+        (isStakeAddress && address.toString() == kSelectedAddress);
 
     final String content = hasLabel
         ? ZenonAddressUtils.getLabel(address.toString())
@@ -83,12 +84,35 @@ class InfiniteScrollTableCell extends StatelessWidget {
         ? address.toShortString()
         : address.toString();
 
-    return InfiniteScrollTableCell.withText(
-      content: content,
+    // The green is text, so it takes the theme's ZNN ink: the brand green is
+    // too pale to read on the light theme's white card. The factory has no
+    // context, hence the Builder.
+    return InfiniteScrollTableCell(
       flex: flex,
-      textStyle: textStyle,
-      tooltipMessage: address.toString(),
-      textToBeCopied: address.toString(),
+      child: Builder(
+        builder: (BuildContext context) {
+          final TextStyle? ownStyle = isOwn
+              ? TextStyle(
+                  color: AppTokens.of(context).znnInk,
+                  fontWeight: FontWeight.bold,
+                )
+              : null;
+          final TextStyle? textStyle = hasLabel
+              ? ownStyle
+              : monoStyle(ownStyle);
+
+          return InfiniteScrollTableCell.withText(
+            content: content,
+            flex: flex,
+            textStyle: textStyle,
+            tooltipMessage: address.toString(),
+            textToBeCopied: address.toString(),
+            // An address runs left to right in every language; a label is
+            // the user's own words and follows the app.
+            textDirection: hasLabel ? null : TextDirection.ltr,
+          ).child;
+        },
+      ),
     );
   }
 

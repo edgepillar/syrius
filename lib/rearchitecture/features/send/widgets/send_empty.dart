@@ -1,15 +1,13 @@
-import 'package:flutter/material.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/reusable_widgets.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/card_parts/card_parts.dart';
 
-/// A widget that display a error message - indicating that no data was yet
-/// loaded
+/// The send form before the first balances arrive.
 class SendEmpty extends StatelessWidget {
   /// Creates new instance.
   const SendEmpty({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return SyriusErrorWidget(context.l10n.waitingForDataFetching);
+    return const CardLoading();
   }
 }

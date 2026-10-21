@@ -1,0 +1,1854 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Syrius redesign mockups</title>
+<style>
+/* Review page: a list of screens on the left, one desktop window (1280x780) on the right, scaled to fit.
+   ?shot=<id>&theme=light renders that one window alone at 1280x780 for the screenshot script. */
+@font-face{font-family:"Space Grotesk";font-weight:300 700;font-display:swap;src:url(data:font/woff2;base64,__SG__) format("woff2")}
+@font-face{font-family:"JetBrains Mono";font-weight:100 800;font-display:swap;src:url(data:font/woff2;base64,__JB__) format("woff2")}
+:root{
+  color-scheme:dark;
+  --bg:#1b1c1b; --card:#262726; --card2:#2e302e; --card3:#363836; --line:#383a38; --fg:#f1f4f1; --dim:#a5aaa5; --faint:#717671;
+  --znn:#4fd166; --znn-ink:#4fd166; --qsr:#006aff; --qsr-ink:#5b9dff; --pink:#f91690; --pink-ink:#ff5fb3; --err:#f40442; --warn:#dab544;
+  --page:#121312; --on-znn:#06230d; --glass:rgba(38,39,38,.86);
+  --sans:"Space Grotesk",ui-sans-serif,system-ui,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  --r:8px; --ease:cubic-bezier(.4,0,.2,1); --spring:cubic-bezier(.2,.8,.2,1);
+  --plasma:linear-gradient(100deg,var(--znn),#35b7a0 55%,var(--qsr));
+}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){
+  color-scheme:light;
+  --bg:#eaeaea; --card:#f6f7f6; --card2:#ffffff; --card3:#eef0ee; --line:#d5d8d5; --fg:#141614; --dim:#535853; --faint:#858a85;
+  --znn-ink:#168a35; --qsr-ink:#0058d6; --pink-ink:#d92f8c; --err:#d40037; --warn:#93700a; --page:#dcdddc; --glass:rgba(246,247,246,.88);
+}}
+:root[data-theme="light"]{
+  color-scheme:light;
+  --bg:#eaeaea; --card:#f6f7f6; --card2:#ffffff; --card3:#eef0ee; --line:#d5d8d5; --fg:#141614; --dim:#535853; --faint:#858a85;
+  --znn-ink:#168a35; --qsr-ink:#0058d6; --pink-ink:#d92f8c; --err:#d40037; --warn:#93700a; --page:#dcdddc; --glass:rgba(246,247,246,.88);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--page);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.45}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+
+/* review chrome */
+.review{display:grid;grid-template-columns:250px 1fr;min-height:100vh}
+.list{border-right:1px solid var(--line);padding:16px 10px;position:sticky;top:0;height:100vh;overflow:auto;background:var(--bg)}
+.list h1{font-size:17px;font-weight:600;margin:0 8px 4px}
+.list .sub{color:var(--dim);font-size:12px;margin:0 8px 14px}
+.list h2{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);font-weight:400;margin:14px 8px 4px}
+.list a{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;color:var(--dim);font-size:13.5px;min-height:32px}
+.list a:hover{color:var(--fg);background:var(--card)}
+.list a.on{color:var(--fg);background:var(--card2);box-shadow:inset 2px 0 0 var(--znn)}
+.list a i{font-family:var(--mono);font-size:10px;color:var(--faint);font-style:normal;width:18px;flex:none}
+.stagewrap{padding:18px 22px 40px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.bar h2{font-size:20px;font-weight:600;margin:0}
+.bar .theme{margin-left:auto;display:flex;background:var(--card);border-radius:999px;padding:3px;border:1px solid var(--line)}
+.bar .theme button{padding:5px 12px;border-radius:999px;color:var(--dim);font-size:13px}
+.bar .theme button.on{background:var(--card2);color:var(--fg);box-shadow:inset 0 0 0 1px var(--line)}
+.stage{overflow:hidden;border-radius:12px}
+.scaler{transform-origin:0 0}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px 24px;margin:0;padding:0;list-style:none}
+.notes li{padding-top:10px;border-top:1px solid var(--line);color:var(--dim);font-size:14px;min-width:0}
+.notes b{display:block;color:var(--fg);font-weight:600;margin-bottom:2px}
+.scr{display:none}
+.scr.on{display:block}
+body.shot{background:var(--bg)}
+body.shot .review{display:block}
+body.shot .list,body.shot .bar,body.shot .notes{display:none}
+body.shot .stagewrap{padding:0}
+body.shot .stage{border-radius:0;overflow:visible}
+body.shot .scaler{transform:none!important;width:auto!important;height:auto!important}
+body.shot .win{border:0;border-radius:0}
+kbd{font-family:var(--mono);font-size:11px;border:1px solid var(--line);border-radius:4px;padding:1px 6px;color:var(--dim)}
+
+/* the window */
+.win{width:1280px;height:780px;background:var(--bg);border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;font-size:14px;position:relative}
+.title{height:32px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 4px 0 14px;color:var(--faint);font-size:12px;letter-spacing:.34em}
+.title span:last-child{display:flex;letter-spacing:0}
+.title i{width:44px;height:32px;display:grid;place-items:center;font-style:normal}
+.body{flex:1;min-height:0;display:flex}
+svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+svg.i.s{width:14px;height:14px}
+svg.i.xs{width:12px;height:12px}
+
+/* rail: icons at rest, labels as a tooltip; the open state is shown on one screen */
+.rail{width:56px;flex:none;padding:4px 8px 12px;display:flex;flex-direction:column;gap:2px;transition:width 200ms var(--spring)}
+.rail a{position:relative;display:flex;align-items:center;gap:12px;height:40px;padding:0 11px;border-radius:var(--r);color:var(--dim);white-space:nowrap;overflow:hidden}
+.rail a.on{background:var(--card);color:var(--fg)}
+.rail a.on svg{color:var(--znn-ink)}
+.rail a:hover{color:var(--fg)}
+.rail a span{opacity:0;transition:opacity 150ms var(--ease)}
+.rail.open{width:200px}
+.rail.open a span{opacity:1}
+.rail .gap{flex:1}
+.rail .tog{color:var(--faint);height:32px}
+.rail .dot{position:absolute;left:24px;top:10px;width:7px;height:7px;border-radius:50%;background:var(--pink);box-shadow:0 0 0 2px var(--bg)}
+.tip{position:absolute;left:58px;background:var(--card3);color:var(--fg);font-size:12.5px;padding:5px 10px;border-radius:6px;border:1px solid var(--line);box-shadow:0 6px 18px rgba(0,0,0,.35);white-space:nowrap;z-index:5}
+.tip kbd{margin-left:8px}
+main.col{flex:1;min-width:0;display:flex;flex-direction:column;padding:4px 16px 14px 4px;gap:12px}
+.pg{flex:1;min-height:0;display:flex;flex-direction:column;gap:12px}
+.strip{flex:none;display:flex;align-items:center;gap:22px;padding:9px 16px;color:var(--dim);font-size:13px;background:var(--card);border-radius:var(--r)}
+.strip .end{margin-left:auto;display:flex;align-items:center;gap:14px}
+
+/* cards and text */
+.card{background:var(--card);border-radius:var(--r);display:flex;flex-direction:column;min-width:0;min-height:0;position:relative}
+.hd{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--line);font-weight:600;min-height:44px}
+.hd .end{margin-left:auto;display:flex;align-items:center;gap:8px;font-weight:400}
+.hd .cnt{font-family:var(--mono);font-size:11px;color:var(--faint)}
+.hd.closed{border-bottom:0}
+.hd .chev{color:var(--faint);transition:transform 220ms var(--spring)}
+.hd.closed .chev{transform:rotate(-90deg)}
+.bd{padding:12px 16px;flex:1;min-height:0;display:flex;flex-direction:column;gap:10px}
+.lab{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+.num,.addr{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.addr{color:var(--dim)}
+.dim{color:var(--dim)} .faint{color:var(--faint)} .znn{color:var(--znn-ink)} .qsr{color:var(--qsr-ink)} .pink{color:var(--pink-ink)} .warn{color:var(--warn)} .err{color:var(--err)}
+.row{display:flex;align-items:center;gap:10px;min-width:0}
+.sp{justify-content:space-between}
+.col{display:flex;flex-direction:column}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:12px;color:var(--dim);white-space:nowrap;height:26px}
+.chip.on{color:var(--fg);border-color:var(--faint);background:var(--card2)}
+.chip.ok{color:var(--znn-ink);border-color:transparent;background:color-mix(in srgb,var(--znn) 14%,transparent)}
+.chip.wait{color:var(--qsr-ink);border-color:transparent;background:color-mix(in srgb,var(--qsr) 14%,transparent)}
+.chip.need{color:var(--warn);border-color:transparent;background:color-mix(in srgb,var(--warn) 16%,transparent)}
+.chip.bad{color:var(--err);border-color:transparent;background:color-mix(in srgb,var(--err) 14%,transparent)}
+.chip.new{color:var(--pink-ink);border-color:transparent;background:color-mix(in srgb,var(--pink) 14%,transparent)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--znn);flex:none}
+.dot.live{animation:pulse 2.4s var(--ease) infinite}
+.dot.blue{background:var(--qsr)} .dot.amber{background:var(--warn)} .dot.red{background:var(--err)}
+@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--znn) 60%,transparent)}70%,100%{box-shadow:0 0 0 7px transparent}}
+.btn{font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;height:38px;padding:0 16px;border-radius:999px;border:1px solid var(--line);background:var(--card2);color:var(--fg);white-space:nowrap;transition:background 150ms var(--ease),border-color 150ms var(--ease)}
+.btn:hover{border-color:var(--faint)}
+.btn.go{background:var(--plasma);border:0;color:#04140a;position:relative;overflow:hidden}
+.btn.go::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.35) 50%,transparent 70%);transform:translateX(-120%);transition:transform 600ms var(--ease)}
+.btn.go:hover::after{transform:translateX(120%)}
+.btn.sm{height:30px;padding:0 12px;font-size:13px;font-weight:500}
+.btn.xs{height:26px;padding:0 10px;font-size:12px;font-weight:500}
+.btn.ghost{background:none;border-color:transparent;color:var(--dim)}
+.btn.ghost:hover{color:var(--fg);background:var(--card2)}
+.btn.danger{color:var(--err)}
+.btn[disabled]{opacity:.45;cursor:default}
+.btn .spin{width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--fg);border-radius:50%;animation:spin 800ms linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ic{width:32px;height:32px;border-radius:999px;display:grid;place-items:center;color:var(--dim)}
+.ic:hover{background:var(--card3);color:var(--fg)}
+table{width:100%;border-collapse:collapse}
+th{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);font-weight:400;text-align:left;padding:8px 16px}
+td{padding:9px 16px;border-top:1px solid var(--line);white-space:nowrap}
+td.r,th.r{text-align:right}
+tr.open td{background:var(--card2)}
+tr.sub td{background:var(--card2);border-top:0;padding-top:0;white-space:normal}
+.in{color:var(--znn-ink)} .out{color:var(--dim)}
+.meter{height:6px;border-radius:3px;background:var(--line);overflow:hidden;position:relative}
+.meter b{display:block;height:100%;background:var(--qsr);border-radius:3px}
+.meter.flow b{background:linear-gradient(90deg,var(--qsr),#5b9dff 40%,var(--qsr) 60%,#3d87ff);background-size:200% 100%;animation:flow 1.6s linear infinite}
+@keyframes flow{to{background-position:-200% 0}}
+.coin{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-family:var(--mono);font-size:11px;font-weight:700;color:#fff;flex:none}
+.coin.z{background:var(--znn);color:var(--on-znn)} .coin.q{background:var(--qsr)} .coin.p{background:var(--pink)} .coin.g{background:var(--faint)}
+.big{font-size:34px;font-weight:500;letter-spacing:-.01em;line-height:1.1}
+.field{display:flex;align-items:center;gap:8px;height:42px;padding:0 12px;border-radius:var(--r);background:var(--card2);border:1px solid var(--line);color:var(--faint);min-width:0}
+.field.on{border-color:var(--faint);color:var(--fg)}
+.field .v{color:var(--fg);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.field .ph{flex:1;color:var(--faint)}
+.field .end{margin-left:auto;display:flex;gap:8px;align-items:center;color:var(--faint)}
+.field.area{height:auto;align-items:flex-start;padding:10px 12px;min-height:72px}
+.seg{display:inline-flex;background:var(--card2);border:1px solid var(--line);border-radius:999px;padding:3px;position:relative}
+.seg span{padding:5px 14px;border-radius:999px;color:var(--dim);font-size:13px;white-space:nowrap;position:relative;z-index:1}
+.seg span.on{color:var(--fg)}
+.seg span.on::before{content:"";position:absolute;inset:0;border-radius:999px;background:var(--card3);box-shadow:inset 0 0 0 1px var(--line);z-index:-1}
+.tabs{display:flex;gap:2px;padding:0 8px;border-bottom:1px solid var(--line)}
+.tabs span{padding:12px 10px;color:var(--dim);border-bottom:2px solid transparent;margin-bottom:-1px;font-weight:500}
+.tabs span.on{color:var(--fg);border-color:var(--znn)}
+.tabs .cnt{font-family:var(--mono);font-size:11px;color:var(--faint);margin-left:6px}
+.sw{width:38px;height:22px;border-radius:999px;background:var(--line);position:relative;flex:none}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:var(--fg);transition:left 180ms var(--spring)}
+.sw.on{background:var(--znn)} .sw.on::after{left:19px;background:#04140a}
+.radio{width:16px;height:16px;border-radius:50%;border:2px solid var(--faint);flex:none}
+.radio.on{border-color:var(--znn);background:radial-gradient(circle,var(--znn) 40%,transparent 44%)}
+.cb{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--faint);flex:none;display:grid;place-items:center}
+.cb.on{background:var(--znn);border-color:var(--znn);color:#04140a}
+.line{height:1px;background:var(--line)}
+.note{font-size:13px;color:var(--dim);display:flex;gap:8px;align-items:flex-start}
+.note svg{margin-top:2px}
+.empty{padding:14px 16px;color:var(--dim);font-size:13.5px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 18px;font-size:13.5px}
+.kv .lab{align-self:center}
+.hero{padding:20px 24px;flex-direction:row;align-items:center;gap:36px;overflow:hidden;isolation:isolate}
+.hero::before{content:"";position:absolute;inset:-40%;z-index:-1;opacity:.55;filter:blur(40px);
+  background:radial-gradient(closest-side at 30% 40%,color-mix(in srgb,var(--znn) 45%,transparent),transparent),
+             radial-gradient(closest-side at 70% 60%,color-mix(in srgb,var(--qsr) 45%,transparent),transparent),
+             radial-gradient(closest-side at 50% 90%,color-mix(in srgb,var(--pink) 38%,transparent),transparent);
+  animation:drift 18s ease-in-out infinite alternate}
+@keyframes drift{from{transform:translate(-3%,-2%) rotate(0deg)}to{transform:translate(3%,2%) rotate(6deg)}}
+.hero .bal{display:flex;flex-direction:column;gap:5px;min-width:0}
+.hero .acts{margin-left:auto;display:flex;gap:10px}
+.stripcard{flex-direction:row;align-items:center;gap:28px;padding:12px 18px}
+.stripcard .stat{display:flex;flex-direction:column;gap:3px}
+.stripcard .stat .v{font-family:var(--mono);font-size:19px;font-variant-numeric:tabular-nums}
+.stripcard .acts{margin-left:auto;display:flex;gap:8px}
+.skel{height:10px;border-radius:5px;background:linear-gradient(90deg,var(--line) 0%,var(--card3) 50%,var(--line) 100%);background-size:200% 100%;animation:sweep 1.4s linear infinite}
+@keyframes sweep{to{background-position:-200% 0}}
+.flash{animation:flash 1.2s var(--ease) 1}
+@keyframes flash{0%{background:color-mix(in srgb,var(--znn) 22%,transparent)}100%{background:transparent}}
+.rise{animation:rise 320ms var(--spring)}
+@keyframes rise{from{opacity:.4;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* overlays */
+.ov{position:absolute;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35);backdrop-filter:blur(6px)}
+.dlg{background:var(--glass);backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.06);width:520px;display:flex;flex-direction:column}
+.dlg .hd{padding:14px 20px}
+.dlg .bd{padding:16px 20px;gap:12px}
+.dlg .ft{display:flex;justify-content:flex-end;gap:8px;padding:12px 20px 16px}
+.panel{position:absolute;top:0;right:0;bottom:0;width:380px;z-index:10;background:var(--glass);backdrop-filter:blur(12px);border-left:1px solid var(--line);box-shadow:-20px 0 50px rgba(0,0,0,.35);display:flex;flex-direction:column;animation:slidein 240ms var(--spring)}
+@keyframes slidein{from{transform:translateX(24px);opacity:0}to{transform:none;opacity:1}}
+.toast{position:absolute;top:44px;right:24px;z-index:12;width:300px;background:var(--glass);backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 36px rgba(0,0,0,.4);padding:12px 14px 10px;display:flex;flex-direction:column;gap:8px;animation:rise 300ms var(--spring)}
+.toast .bar2{height:3px;border-radius:2px;background:var(--line);overflow:hidden}
+.toast .bar2 b{display:block;height:100%;width:100%;background:var(--znn);transform-origin:left;animation:drain 5s linear forwards}
+@keyframes drain{to{transform:scaleX(0)}}
+.burst{position:absolute;left:50%;top:50%;width:0;height:0;z-index:11;pointer-events:none}
+.burst i{position:absolute;width:6px;height:6px;border-radius:50%;background:var(--pink);animation:spark 900ms var(--ease) forwards}
+.burst i:nth-child(3n){background:var(--znn)} .burst i:nth-child(3n+1){background:var(--qsr-ink)}
+@keyframes spark{to{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0}}
+.steps{display:flex;align-items:center;gap:0;padding:4px 0}
+.steps span{display:flex;align-items:center;gap:8px;color:var(--faint);font-size:13px;white-space:nowrap}
+.steps span b{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font-family:var(--mono);font-size:11px;font-weight:500}
+.steps span.done b{background:var(--znn);border-color:var(--znn);color:#04140a}
+.steps span.on{color:var(--fg)} .steps span.on b{border-color:var(--znn);color:var(--znn-ink)}
+.steps i{flex:1;height:1px;background:var(--line);margin:0 10px;min-width:24px}
+.bolt{width:120px;height:120px;display:grid;place-items:center;position:relative}
+.bolt::before{content:"";position:absolute;inset:14px;border-radius:50%;filter:blur(18px);background:radial-gradient(circle,color-mix(in srgb,var(--pink) 80%,transparent),color-mix(in srgb,var(--qsr) 50%,transparent) 55%,transparent 72%);animation:breathe 3s ease-in-out infinite}
+@keyframes breathe{50%{transform:scale(1.12);opacity:.8}}
+.bolt svg{width:54px;height:54px;position:relative;stroke:#fff;fill:#fff;stroke-width:1}
+.obj{width:64px;height:64px;border-radius:12px;background:radial-gradient(circle at 35% 30%,var(--card3),var(--bg));display:grid;place-items:center;border:1px solid var(--line);flex:none}
+.obj.sm{width:40px;height:40px;border-radius:8px}
+.votes{display:flex;height:6px;border-radius:3px;overflow:hidden;background:var(--line);width:140px}
+.votes b{display:block;height:100%} .votes .y{background:var(--znn)} .votes .n{background:var(--err)} .votes .a{background:var(--faint)}
+.lockpage{flex:1;display:flex;align-items:center;justify-content:center;position:relative;isolation:isolate}
+.lockpage::before{content:"";position:absolute;inset:-20%;z-index:-1;opacity:.35;filter:blur(60px);
+  background:radial-gradient(closest-side at 30% 35%,color-mix(in srgb,var(--znn) 40%,transparent),transparent),radial-gradient(closest-side at 70% 65%,color-mix(in srgb,var(--qsr) 40%,transparent),transparent),radial-gradient(closest-side at 55% 20%,color-mix(in srgb,var(--pink) 30%,transparent),transparent);animation:drift 20s ease-in-out infinite alternate}
+.qr{width:150px;height:150px;border-radius:8px;background:
+  repeating-linear-gradient(0deg,var(--fg) 0 6px,transparent 6px 12px),repeating-linear-gradient(90deg,var(--fg) 0 6px,transparent 6px 12px);background-blend-mode:multiply;opacity:.9;position:relative}
+.qr::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,var(--card2) 0 14px,transparent 15px)}
+.smallcap{font-size:12.5px;color:var(--faint)}
+.sortmenu{position:absolute;right:16px;top:46px;z-index:6;background:var(--glass);backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.4);padding:6px;min-width:170px;display:flex;flex-direction:column}
+.sortmenu span{padding:8px 10px;border-radius:6px;font-size:13.5px;color:var(--dim);display:flex;align-items:center;gap:8px}
+.sortmenu span.on{color:var(--fg);background:var(--card3)}
+/* dollar values: mainnet's price, dim, never the headline */
+.usd{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:13px;font-weight:400;letter-spacing:0;color:var(--faint);margin-left:12px;white-space:nowrap}
+.usd.tot{margin-left:0;color:var(--dim)}
+/* the original Lottie animations, played by the vendored lottie-web from art/<name>.js */
+.lot{display:block;position:relative;flex:none}
+.lot svg{display:block}
+.lot.fill{position:absolute;inset:0}
+.well{background:#000;position:relative;overflow:hidden;flex:none}
+.zoom{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
+.win.black{background:#000}
+.win.black .title{color:#555}
+.stage-black{flex:1;position:relative;background:#000;overflow:hidden}
+.tile{display:flex;flex-direction:column;gap:8px;min-width:0}
+.tile .art{height:112px;border-radius:var(--r);background:var(--card2);border:1px solid var(--line);position:relative;overflow:hidden;display:grid;place-items:center}
+.tile .art.black{background:#000;border-color:#000}
+.tile b{font-weight:600;font-size:13.5px}
+.tile span{font-size:12.5px;color:var(--dim)}
+.motion{padding:0 0 20px}
+.motion h3{font-size:16px;margin:22px 0 8px}
+.motion table{font-size:13.5px}
+.motion td{white-space:normal;vertical-align:top;color:var(--dim)}
+.motion td:first-child{color:var(--fg);font-weight:500}
+.motion code{font-family:var(--mono);font-size:12px;color:var(--fg)}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="up" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></symbol>
+<symbol id="down" viewBox="0 0 24 24"><path d="M12 5v14M19 12l-7 7-7-7"/></symbol>
+<symbol id="copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></symbol>
+<symbol id="gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></symbol>
+<symbol id="bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 0 0 4 0"/></symbol>
+<symbol id="lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+<symbol id="zap" viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></symbol>
+<symbol id="search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+<symbol id="home" viewBox="0 0 24 24"><path d="M3 11 12 3l9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></symbol>
+<symbol id="send" viewBox="0 0 24 24"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/></symbol>
+<symbol id="stack" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5zM3 13l9 5 9-5M3 18l9 5 9-5"/></symbol>
+<symbol id="shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
+<symbol id="coins" viewBox="0 0 24 24"><circle cx="9" cy="9" r="6"/><path d="M15.5 9.5a6 6 0 1 1-6 6"/></symbol>
+<symbol id="token" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/></symbol>
+<symbol id="swap" viewBox="0 0 24 24"><path d="M7 4 3 8l4 4M3 8h14M17 12l4 4-4 4M21 16H7"/></symbol>
+<symbol id="link" viewBox="0 0 24 24"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></symbol>
+<symbol id="more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></symbol>
+<symbol id="chev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+<symbol id="chevr" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+<symbol id="chevl" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></symbol>
+<symbol id="check" viewBox="0 0 24 24"><path d="m5 12 5 5L20 7"/></symbol>
+<symbol id="checkc" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></symbol>
+<symbol id="dl" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></symbol>
+<symbol id="rocket" viewBox="0 0 24 24"><path d="M12 2c4 3 5 8 4 13H8C7 10 8 5 12 2zM8 15l-3 3 3 1M16 15l3 3-3 1M12 19v3"/></symbol>
+<symbol id="eye" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+<symbol id="eyeoff" viewBox="0 0 24 24"><path d="M3 3l18 18M10.6 5.3A10 10 0 0 1 12 5c6 0 10 7 10 7a17 17 0 0 1-3.2 3.9M6.6 6.6C4 8.4 2 12 2 12s4 7 10 7c1.6 0 3-.4 4.2-1M9.9 9.9a3 3 0 0 0 4.2 4.2"/></symbol>
+<symbol id="dice" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1.2"/><circle cx="16" cy="8" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="8" cy="16" r="1.2"/><circle cx="16" cy="16" r="1.2"/></symbol>
+<symbol id="book" viewBox="0 0 24 24"><path d="M4 4h12a3 3 0 0 1 3 3v13H7a3 3 0 0 0-3 3zM4 4v16M19 16H7a3 3 0 0 0-3 3"/></symbol>
+<symbol id="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+<symbol id="ext" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/></symbol>
+<symbol id="sort" viewBox="0 0 24 24"><path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3"/></symbol>
+<symbol id="star" viewBox="0 0 24 24"><path d="m12 3 2.8 5.8 6.2.9-4.5 4.4 1.1 6.3L12 17.4l-5.6 3 1.1-6.3L3 9.7l6.2-.9z"/></symbol>
+<symbol id="info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+<symbol id="warn" viewBox="0 0 24 24"><path d="M12 3 2 20h20zM12 10v4M12 17h.01"/></symbol>
+<symbol id="clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+<symbol id="trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></symbol>
+<symbol id="edit" viewBox="0 0 24 24"><path d="M4 20h4l10-10-4-4L4 16zM13 7l4 4"/></symbol>
+<symbol id="qr" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3M21 14v7h-7v-3M17 21h1"/></symbol>
+<symbol id="refresh" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5"/></symbol>
+<symbol id="key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="M11 12 21 2M15 8l3 3M18 5l3 3"/></symbol>
+<symbol id="file" viewBox="0 0 24 24"><path d="M6 2h8l6 6v14H6zM14 2v6h6"/></symbol>
+<symbol id="usb" viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="8" rx="1"/><path d="M9 11v10h6V11M10 6h1M13 6h1"/></symbol>
+<symbol id="filter" viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></symbol>
+<symbol id="cmd" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="m8 10 3 2-3 2M13 15h4"/></symbol>
+<symbol id="menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+<symbol id="chart" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></symbol>
+<symbol id="globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></symbol>
+<symbol id="hand" viewBox="0 0 24 24"><path d="M8 13V5a1.5 1.5 0 0 1 3 0v6M11 11V3.5a1.5 1.5 0 0 1 3 0V11M14 11V5a1.5 1.5 0 0 1 3 0v8M17 13v-2a1.5 1.5 0 0 1 3 0v4a7 7 0 0 1-7 7h-1a7 7 0 0 1-6-3.4L4 15a1.5 1.5 0 0 1 2.6-1.5L8 15"/></symbol>
+<symbol id="vote" viewBox="0 0 24 24"><path d="m9 11 3 3 7-7M20 12v7a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h11"/></symbol>
+<symbol id="fp" viewBox="0 0 24 24"><path d="M6 11a6 6 0 0 1 12 0v2M9 11a3 3 0 0 1 6 0v5M12 11v8M4 8a9 9 0 0 1 16 0"/></symbol>
+<symbol id="pin" viewBox="0 0 24 24"><path d="M12 22s7-7 7-12a7 7 0 0 0-14 0c0 5 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+</defs></svg>
+
+<div class="review">
+  <nav class="list" id="list">
+    <h1>Syrius redesign</h1>
+    <p class="sub">Every screen on mockup B. 1280 by 780, example figures. README.md has the plan.</p>
+  </nav>
+  <div class="stagewrap">
+    <div class="bar">
+      <h2 id="ttl">Home</h2>
+      <span class="smallcap" id="grp"></span>
+      <div class="theme"><button id="t-dark" class="on">Dark</button><button id="t-light">Light</button></div>
+    </div>
+    <div class="stage" id="stage"><div class="scaler" id="scaler">
+
+<!-- ===== Shell and Home ===== -->
+<section class="scr" id="home-rest" data-nav="home" data-group="Shell and Home" data-title="Home at rest" data-strip="flight">
+<div class="pg">
+  <div class="card hero">
+    <div class="bal">
+      <span class="row lab" style="gap:8px">Address 2 <span class="addr" style="text-transform:none">z1qq9n…g0mq</span><svg class="i s"><use href="#copy"/></svg><svg class="i s"><use href="#chev"/></svg><svg class="i s" style="margin-left:6px"><use href="#eye"/></svg></span>
+      <span class="big num">1,204.5 <span class="znn" style="font-size:18px">ZNN</span><span class="usd">$746.79</span></span>
+      <span class="num dim" style="font-size:18px">12,880 <span class="qsr">QSR</span><span class="usd">$399.28</span></span>
+      <span class="usd tot">≈ $1,146.07</span>
+    </div>
+    <div style="width:220px;display:flex;flex-direction:column;gap:6px">
+      <span class="row sp lab"><span>Plasma</span><span>High</span></span>
+      <div class="meter"><b style="width:72%"></b></div>
+      <span class="dim" style="font-size:13px">Enough for about 4 sends</span>
+    </div>
+    <div class="acts">
+      <button class="btn go"><svg class="i"><use href="#up"/></svg>Send</button>
+      <button class="btn"><svg class="i"><use href="#down"/></svg>Receive</button>
+      <button class="btn"><svg class="i"><use href="#zap"/></svg>Zap</button>
+    </div>
+  </div>
+  <div style="flex:1;min-height:0;display:grid;grid-template-columns:1.6fr 1fr;gap:12px">
+    <div class="card">
+      <div class="hd">Activity<span class="end"><span class="chip">All addresses <svg class="i xs"><use href="#chev"/></svg></span></span></div>
+      <table>
+        <tr><td class="in"><span class="row"><svg class="i s"><use href="#zap"/></svg>Zap</span></td><td class="addr">z1qz8v…k3ey</td><td class="r num">+ 1 ZNN</td><td class="r dim">2 min</td><td class="r"><button class="btn xs">Message</button></td></tr>
+        <tr><td class="in"><span class="row"><svg class="i s"><use href="#down"/></svg>Received</span></td><td class="addr">z1qz8v…k3ey</td><td class="r num">+ 250 ZNN</td><td class="r dim">4 min</td><td class="r faint"><svg class="i s"><use href="#ext"/></svg></td></tr>
+        <tr><td class="out"><span class="row"><svg class="i s"><use href="#up"/></svg>Sent</span></td><td class="addr">Alice <span class="faint">z1qr4p…9d2a</span></td><td class="r num">− 12.5 ZNN</td><td class="r dim">55 min</td><td class="r faint"><svg class="i s"><use href="#ext"/></svg></td></tr>
+        <tr><td class="out"><span class="row"><svg class="i s"><use href="#stack"/></svg>Delegated</span></td><td class="addr">dev1</td><td class="r num dim">0 ZNN</td><td class="r dim">3 h</td><td class="r faint"><svg class="i s"><use href="#ext"/></svg></td></tr>
+        <tr><td class="out"><span class="row"><svg class="i s"><use href="#zap"/></svg>Fused</span></td><td class="addr">Plasma, Address 2</td><td class="r num">− 120 QSR</td><td class="r dim">1 d</td><td class="r faint"><svg class="i s"><use href="#ext"/></svg></td></tr>
+        <tr><td class="in"><span class="row"><svg class="i s"><use href="#coins"/></svg>Reward</span></td><td class="addr">Delegation, dev1</td><td class="r num">+ 1.072 ZNN</td><td class="r dim">1 d</td><td class="r faint"><svg class="i s"><use href="#ext"/></svg></td></tr>
+        <tr><td class="out"><span class="row"><svg class="i s"><use href="#coins"/></svg>Staked</span></td><td class="addr">6 months</td><td class="r num">− 500 ZNN</td><td class="r dim">3 d</td><td class="r faint"><svg class="i s"><use href="#ext"/></svg></td></tr>
+        <tr><td class="in"><span class="row"><svg class="i s"><use href="#down"/></svg>Received</span></td><td class="addr">z1qpx3…m7ua</td><td class="r num">+ 40 PP</td><td class="r dim">6 d</td><td class="r faint"><svg class="i s"><use href="#ext"/></svg></td></tr>
+      </table>
+    </div>
+    <div class="col" style="gap:12px;min-height:0">
+      <div class="card">
+        <div class="hd">To collect<span class="end"><span class="num dim" style="font-size:13px">3.214 ZNN · 18.4 QSR<span class="usd" style="margin-left:8px">≈ $2.56</span></span><button class="btn sm">Collect all</button></span></div>
+      </div>
+      <div class="card">
+        <div class="hd closed">Tokens<span class="cnt">3</span><span class="end"><svg class="i s chev"><use href="#chev"/></svg></span></div>
+      </div>
+      <div class="card" style="flex:1">
+        <div class="hd">Pending<span class="cnt">1</span><span class="end"><svg class="i s chev"><use href="#chev"/></svg></span></div>
+        <table>
+          <tr><td class="dim" style="white-space:normal"><span class="row"><svg class="i s"><use href="#up"/></svg>Sending 12.5 ZNN</span></td><td class="r"><span class="chip wait"><svg class="i xs"><use href="#clock"/></svg>momentum</span></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="home-open" data-nav="home" data-group="Shell and Home" data-title="Rail opened, tooltip, a value flashed" data-rail="open">
+<div class="pg">
+  <div class="card hero">
+    <div class="bal">
+      <span class="row lab" style="gap:8px">Address 2 <span class="addr" style="text-transform:none">z1qq9n…g0mq</span><svg class="i s"><use href="#copy"/></svg><svg class="i s"><use href="#chev"/></svg><svg class="i s" style="margin-left:6px"><use href="#eye"/></svg></span>
+      <span class="big num flash" style="border-radius:6px;padding:0 6px;margin-left:-6px">1,454.5 <span class="znn" style="font-size:18px">ZNN</span><span class="usd">$901.79</span></span>
+      <span class="num dim" style="font-size:18px">12,880 <span class="qsr">QSR</span><span class="usd">$399.28</span></span>
+      <span class="usd tot">≈ $1,301.07</span>
+    </div>
+    <div style="width:220px;display:flex;flex-direction:column;gap:6px">
+      <span class="row sp lab"><span>Plasma</span><span>High</span></span>
+      <div class="meter"><b style="width:72%"></b></div>
+      <span class="dim" style="font-size:13px">Enough for about 4 sends</span>
+    </div>
+    <div class="acts">
+      <button class="btn go"><svg class="i"><use href="#up"/></svg>Send</button>
+      <button class="btn"><svg class="i"><use href="#down"/></svg>Receive</button>
+      <button class="btn"><svg class="i"><use href="#zap"/></svg>Zap</button>
+    </div>
+  </div>
+  <div style="flex:1;min-height:0;display:grid;grid-template-columns:1.6fr 1fr;gap:12px">
+    <div class="card">
+      <div class="hd">Activity<span class="end"><span class="chip">All addresses <svg class="i xs"><use href="#chev"/></svg></span></span></div>
+      <table>
+        <tr class="rise"><td class="in"><span class="row"><svg class="i s"><use href="#down"/></svg>Received</span></td><td class="addr">z1qz8v…k3ey</td><td class="r num">+ 250 ZNN</td><td class="r dim">now</td><td class="r faint"><svg class="i s"><use href="#ext"/></svg></td></tr>
+        <tr><td class="out"><span class="row"><svg class="i s"><use href="#up"/></svg>Sent</span></td><td class="addr">Alice <span class="faint">z1qr4p…9d2a</span></td><td class="r num">− 12.5 ZNN</td><td class="r dim">55 min</td><td class="r faint"><svg class="i s"><use href="#ext"/></svg></td></tr>
+        <tr><td class="out"><span class="row"><svg class="i s"><use href="#stack"/></svg>Delegated</span></td><td class="addr">dev1</td><td class="r num dim">0 ZNN</td><td class="r dim">3 h</td><td class="r faint"><svg class="i s"><use href="#ext"/></svg></td></tr>
+        <tr><td class="out"><span class="row"><svg class="i s"><use href="#zap"/></svg>Fused</span></td><td class="addr">Plasma, Address 2</td><td class="r num">− 120 QSR</td><td class="r dim">1 d</td><td class="r faint"><svg class="i s"><use href="#ext"/></svg></td></tr>
+        <tr><td class="in"><span class="row"><svg class="i s"><use href="#coins"/></svg>Reward</span></td><td class="addr">Delegation, dev1</td><td class="r num">+ 1.072 ZNN</td><td class="r dim">1 d</td><td class="r faint"><svg class="i s"><use href="#ext"/></svg></td></tr>
+        <tr><td class="out"><span class="row"><svg class="i s"><use href="#coins"/></svg>Staked</span></td><td class="addr">6 months</td><td class="r num">− 500 ZNN</td><td class="r dim">3 d</td><td class="r faint"><svg class="i s"><use href="#ext"/></svg></td></tr>
+      </table>
+    </div>
+    <div class="col" style="gap:12px;min-height:0">
+      <div class="card"><div class="hd">To collect<span class="end"><span class="num dim" style="font-size:13px">3.214 ZNN · 18.4 QSR<span class="usd" style="margin-left:8px">≈ $2.56</span></span><button class="btn sm">Collect all</button></span></div></div>
+      <div class="card">
+        <div class="hd">Tokens<span class="cnt">3</span><span class="end"><svg class="i s chev"><use href="#chev"/></svg></span></div>
+        <div class="bd" style="gap:8px">
+          <div class="row sp"><span class="row"><span class="coin p">P</span>PP</span><span class="num">40</span></div>
+          <div class="row sp"><span class="row"><span class="coin g">W</span>WBTC</span><span class="num">0.0021</span></div>
+          <div class="row sp"><span class="row"><span class="coin g">L</span>ZNN-ETH LP</span><span class="num">12.4</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="home-hidden" data-nav="home" data-group="Shell and Home" data-title="Balances hidden, the original eye">
+<div class="pg">
+  <div class="card hero">
+    <div class="bal">
+      <span class="row lab" style="gap:8px">Address 2 <span class="addr" style="text-transform:none">z1qq9n…g0mq</span><svg class="i s"><use href="#copy"/></svg><svg class="i s"><use href="#chev"/></svg></span>
+      <span class="row" style="gap:14px"><span class="big num" style="letter-spacing:.08em">•••• <span class="znn" style="font-size:18px;letter-spacing:0">ZNN</span></span><span class="lot" data-lot="eye" data-at="0.4" data-loop="1" data-from="30" data-to="200" style="width:150px;height:150px;margin:-56px -58px" title="Show balances"></span></span>
+      <span class="num dim" style="font-size:18px;letter-spacing:.08em">•••• <span class="qsr" style="letter-spacing:0">QSR</span></span>
+      <span class="usd tot">≈ ••••</span>
+    </div>
+    <div style="width:220px;display:flex;flex-direction:column;gap:6px">
+      <span class="row sp lab"><span>Plasma</span><span>High</span></span>
+      <div class="meter"><b style="width:72%"></b></div>
+      <span class="dim" style="font-size:13px">Enough for about 4 sends</span>
+    </div>
+    <div class="acts">
+      <button class="btn go"><svg class="i"><use href="#up"/></svg>Send</button>
+      <button class="btn"><svg class="i"><use href="#down"/></svg>Receive</button>
+      <button class="btn"><svg class="i"><use href="#zap"/></svg>Zap</button>
+    </div>
+  </div>
+  <div style="flex:1;min-height:0;display:grid;grid-template-columns:1.6fr 1fr;gap:12px">
+    <div class="card">
+      <div class="hd">Activity<span class="end"><span class="chip">All addresses <svg class="i xs"><use href="#chev"/></svg></span></span></div>
+      <table>
+        <tr><td class="in"><span class="row"><svg class="i s"><use href="#down"/></svg>Received</span></td><td class="addr">z1qz8v…k3ey</td><td class="r num dim">•••• ZNN</td><td class="r dim">4 min</td><td class="r faint"><svg class="i s"><use href="#ext"/></svg></td></tr>
+        <tr><td class="out"><span class="row"><svg class="i s"><use href="#up"/></svg>Sent</span></td><td class="addr">Alice <span class="faint">z1qr4p…9d2a</span></td><td class="r num dim">•••• ZNN</td><td class="r dim">55 min</td><td class="r faint"><svg class="i s"><use href="#ext"/></svg></td></tr>
+        <tr><td class="out"><span class="row"><svg class="i s"><use href="#stack"/></svg>Delegated</span></td><td class="addr">dev1</td><td class="r num dim">•••• ZNN</td><td class="r dim">3 h</td><td class="r faint"><svg class="i s"><use href="#ext"/></svg></td></tr>
+        <tr><td class="out"><span class="row"><svg class="i s"><use href="#zap"/></svg>Fused</span></td><td class="addr">Plasma, Address 2</td><td class="r num dim">•••• QSR</td><td class="r dim">1 d</td><td class="r faint"><svg class="i s"><use href="#ext"/></svg></td></tr>
+        <tr><td class="in"><span class="row"><svg class="i s"><use href="#coins"/></svg>Reward</span></td><td class="addr">Delegation, dev1</td><td class="r num dim">•••• ZNN</td><td class="r dim">1 d</td><td class="r faint"><svg class="i s"><use href="#ext"/></svg></td></tr>
+      </table>
+    </div>
+    <div class="col" style="gap:12px;min-height:0">
+      <div class="card"><div class="hd">To collect<span class="end"><span class="num dim" style="font-size:13px">•••• ZNN · •••• QSR</span><button class="btn sm">Collect all</button></span></div></div>
+      <div class="card"><div class="hd closed">Tokens<span class="cnt">3</span><span class="end"><svg class="i s chev"><use href="#chev"/></svg></span></div></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="home-bell" data-nav="home" data-group="Shell and Home" data-title="Notifications panel and a toast" data-belldot="0">
+<div class="pg">
+  <div class="card hero">
+    <div class="bal">
+      <span class="row lab" style="gap:8px">Address 2 <span class="addr" style="text-transform:none">z1qq9n…g0mq</span><svg class="i s"><use href="#copy"/></svg><svg class="i s"><use href="#chev"/></svg><svg class="i s" style="margin-left:6px"><use href="#eye"/></svg></span>
+      <span class="big num">1,204.5 <span class="znn" style="font-size:18px">ZNN</span><span class="usd">$746.79</span></span>
+      <span class="num dim" style="font-size:18px">12,880 <span class="qsr">QSR</span><span class="usd">$399.28</span></span>
+      <span class="usd tot">≈ $1,146.07</span>
+    </div>
+    <div style="width:220px;display:flex;flex-direction:column;gap:6px">
+      <span class="row sp lab"><span>Plasma</span><span>High</span></span>
+      <div class="meter"><b style="width:72%"></b></div>
+      <span class="dim" style="font-size:13px">Enough for about 4 sends</span>
+    </div>
+    <div class="acts">
+      <button class="btn go"><svg class="i"><use href="#up"/></svg>Send</button>
+      <button class="btn"><svg class="i"><use href="#down"/></svg>Receive</button>
+      <button class="btn"><svg class="i"><use href="#zap"/></svg>Zap</button>
+    </div>
+  </div>
+  <div style="flex:1;min-height:0;display:grid;grid-template-columns:1.6fr 1fr;gap:12px">
+    <div class="card">
+      <div class="hd">Activity<span class="end"><span class="chip">All addresses <svg class="i xs"><use href="#chev"/></svg></span></span></div>
+      <table>
+        <tr><td class="in"><span class="row"><svg class="i s"><use href="#down"/></svg>Received</span></td><td class="addr">z1qz8v…k3ey</td><td class="r num">+ 250 ZNN</td><td class="r dim">4 min</td><td class="r faint"><svg class="i s"><use href="#ext"/></svg></td></tr>
+        <tr><td class="out"><span class="row"><svg class="i s"><use href="#up"/></svg>Sent</span></td><td class="addr">Alice <span class="faint">z1qr4p…9d2a</span></td><td class="r num">− 12.5 ZNN</td><td class="r dim">55 min</td><td class="r faint"><svg class="i s"><use href="#ext"/></svg></td></tr>
+        <tr><td class="out"><span class="row"><svg class="i s"><use href="#stack"/></svg>Delegated</span></td><td class="addr">dev1</td><td class="r num dim">0 ZNN</td><td class="r dim">3 h</td><td class="r faint"><svg class="i s"><use href="#ext"/></svg></td></tr>
+        <tr><td class="out"><span class="row"><svg class="i s"><use href="#zap"/></svg>Fused</span></td><td class="addr">Plasma, Address 2</td><td class="r num">− 120 QSR</td><td class="r dim">1 d</td><td class="r faint"><svg class="i s"><use href="#ext"/></svg></td></tr>
+      </table>
+    </div>
+    <div class="col" style="gap:12px;min-height:0">
+      <div class="card"><div class="hd">To collect<span class="end"><span class="num dim" style="font-size:13px">3.214 ZNN · 18.4 QSR<span class="usd" style="margin-left:8px">≈ $2.56</span></span><button class="btn sm">Collect all</button></span></div></div>
+      <div class="card"><div class="hd closed">Tokens<span class="cnt">3</span><span class="end"><svg class="i s chev"><use href="#chev"/></svg></span></div></div>
+    </div>
+  </div>
+</div>
+<div class="toast" style="right:404px">
+  <div class="row sp"><span class="row" style="font-weight:600"><svg class="i s znn"><use href="#down"/></svg>Incoming 250 ZNN</span><svg class="i s faint"><use href="#x"/></svg></div>
+  <span class="dim" style="font-size:13px">From z1qz8v…k3ey to Address 2</span>
+  <div class="bar2"><b></b></div>
+</div>
+<aside class="panel">
+  <div class="hd">Notifications<span class="end"><button class="btn xs ghost">Clear</button><svg class="i s faint"><use href="#x"/></svg></span></div>
+  <div class="bd" style="gap:0;padding:0;overflow:hidden">
+    <div class="lab" style="padding:12px 16px 6px">Needs you</div>
+    <div class="col" style="padding:8px 16px 12px;gap:8px;background:var(--card2)">
+      <div class="row"><svg class="i s warn"><use href="#link"/></svg><span style="font-weight:600">bridge.zenon.foo</span><span class="dim" style="margin-left:auto;font-size:12px">now</span></div>
+      <span class="dim" style="font-size:13px">Asks to connect to Address 2.</span>
+      <div class="row" style="gap:8px"><button class="btn sm go">Approve</button><button class="btn sm">Decline</button></div>
+    </div>
+    <div class="lab" style="padding:12px 16px 6px">Today</div>
+    <div class="row" style="padding:9px 16px;gap:10px"><svg class="i s znn"><use href="#down"/></svg><span class="col" style="min-width:0"><span>Incoming 250 ZNN</span><span class="dim" style="font-size:12px">From z1qz8v…k3ey</span></span><span class="dim" style="margin-left:auto;font-size:12px">4 min</span></div>
+    <div class="row" style="padding:9px 16px;gap:10px"><svg class="i s znn"><use href="#check"/></svg><span class="col"><span>Sent 12.5 ZNN to Alice</span><span class="dim" style="font-size:12px">Confirmed in momentum 3,281,880</span></span><span class="dim" style="margin-left:auto;font-size:12px">55 min</span></div>
+    <div class="row" style="padding:9px 16px;gap:10px"><svg class="i s pink"><use href="#zap"/></svg><span class="col"><span>Zap from z1qz8v…k3ey</span><span class="dim" style="font-size:12px">1 ZNN + 10 QSR, with a message</span></span><span class="dim" style="margin-left:auto;font-size:12px">2 h</span></div>
+    <div class="row" style="padding:9px 16px;gap:10px"><svg class="i s faint"><use href="#checkc"/></svg><span class="dim">Block published <span class="num">× 6</span></span><svg class="i xs faint" style="margin-left:4px"><use href="#chev"/></svg><span class="dim" style="margin-left:auto;font-size:12px">3 h</span></div>
+    <div class="row" style="padding:9px 16px;gap:10px"><svg class="i s err"><use href="#warn"/></svg><span class="col"><span>Receive failed</span><span class="dim" style="font-size:12px">Not enough plasma. Fuse QSR, then retry.</span></span><span class="dim" style="margin-left:auto;font-size:12px">5 h</span></div>
+    <div class="lab" style="padding:12px 16px 6px">Yesterday</div>
+    <div class="row" style="padding:9px 16px;gap:10px"><svg class="i s faint"><use href="#coins"/></svg><span class="dim">Rewards collected <span class="num">3.2 ZNN</span></span><span class="dim" style="margin-left:auto;font-size:12px">1 d</span></div>
+  </div>
+</aside>
+</section>
+
+<section class="scr" id="home-goto" data-nav="home" data-group="Shell and Home" data-title="Go to palette (Ctrl K)">
+<div class="pg">
+  <div class="card hero">
+    <div class="bal">
+      <span class="row lab" style="gap:8px">Address 2 <span class="addr" style="text-transform:none">z1qq9n…g0mq</span><svg class="i s"><use href="#copy"/></svg><svg class="i s"><use href="#chev"/></svg></span>
+      <span class="big num">1,204.5 <span class="znn" style="font-size:18px">ZNN</span><span class="usd">$746.79</span></span>
+      <span class="num dim" style="font-size:18px">12,880 <span class="qsr">QSR</span><span class="usd">$399.28</span></span>
+      <span class="usd tot">≈ $1,146.07</span>
+    </div>
+    <div class="acts"><button class="btn go"><svg class="i"><use href="#up"/></svg>Send</button><button class="btn"><svg class="i"><use href="#down"/></svg>Receive</button><button class="btn"><svg class="i"><use href="#zap"/></svg>Zap</button></div>
+  </div>
+  <div class="card" style="flex:1"><div class="hd">Activity</div><div class="bd"><div class="skel" style="width:60%"></div><div class="skel" style="width:40%"></div><div class="skel" style="width:70%"></div></div></div>
+</div>
+<div class="ov" style="align-items:flex-start;padding-top:120px">
+  <div class="dlg" style="width:560px">
+    <div class="row" style="padding:12px 16px;border-bottom:1px solid var(--line)"><svg class="i faint"><use href="#search"/></svg><span style="flex:1;font-size:16px">del<span style="opacity:.4">|</span></span><kbd>Esc</kbd></div>
+    <div class="col" style="padding:6px">
+      <div class="lab" style="padding:8px 10px 4px">Pages</div>
+      <div class="row" style="padding:9px 10px;border-radius:6px;background:var(--card3)"><svg class="i s"><use href="#stack"/></svg><span><b>Del</b>egation</span><span class="dim" style="font-size:13px">Nodes</span><kbd style="margin-left:auto">Ctrl 4</kbd></div>
+      <div class="lab" style="padding:8px 10px 4px">Actions</div>
+      <div class="row" style="padding:9px 10px;border-radius:6px"><svg class="i s"><use href="#stack"/></svg><span><b>Del</b>egate to a pillar</span></div>
+      <div class="row" style="padding:9px 10px;border-radius:6px"><svg class="i s"><use href="#trash"/></svg><span><b>Del</b>ete cache</span><span class="dim" style="font-size:13px">Settings</span></div>
+      <div class="lab" style="padding:8px 10px 4px">Addresses</div>
+      <div class="row" style="padding:9px 10px;border-radius:6px"><svg class="i s"><use href="#book"/></svg><span>Alice</span><span class="addr" style="font-size:13px">z1qr4p…9d2a</span><span class="dim" style="margin-left:auto;font-size:13px">Send to</span></div>
+    </div>
+    <div class="row" style="padding:8px 16px 12px;gap:14px;font-size:12px;color:var(--faint)"><span><kbd>↑↓</kbd> move</span><span><kbd>↵</kbd> open</span><span style="margin-left:auto"><kbd>Ctrl 1</kbd> to <kbd>Ctrl 8</kbd> pages · <kbd>Ctrl L</kbd> lock · <kbd>Ctrl R</kbd> refresh</span></div>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="home-zap" data-nav="home" data-group="Shell and Home" data-title="A zap arrived">
+<div class="pg">
+  <div class="card hero">
+    <div class="bal">
+      <span class="row lab" style="gap:8px">Address 2 <span class="addr" style="text-transform:none">z1qq9n…g0mq</span><svg class="i s"><use href="#copy"/></svg><svg class="i s"><use href="#chev"/></svg></span>
+      <span class="big num">1,205.5 <span class="znn" style="font-size:18px">ZNN</span><span class="usd">$747.41</span></span>
+      <span class="num dim" style="font-size:18px">12,890 <span class="qsr">QSR</span><span class="usd">$399.59</span></span>
+      <span class="usd tot">≈ $1,147.00</span>
+    </div>
+    <div class="acts"><button class="btn go"><svg class="i"><use href="#up"/></svg>Send</button><button class="btn"><svg class="i"><use href="#down"/></svg>Receive</button><button class="btn"><svg class="i"><use href="#zap"/></svg>Zap</button></div>
+  </div>
+  <div class="card" style="flex:1"><div class="hd">Activity</div>
+    <table>
+      <tr class="flash"><td class="in"><span class="row"><svg class="i s"><use href="#zap"/></svg>Zap</span></td><td class="addr">z1qz8v…k3ey</td><td class="r num">+ 1 ZNN</td><td class="r dim">now</td><td class="r"><button class="btn xs">Message</button></td></tr>
+      <tr><td class="in"><span class="row"><svg class="i s"><use href="#zap"/></svg>Zap</span></td><td class="addr">z1qz8v…k3ey</td><td class="r num">+ 10 QSR</td><td class="r dim">now</td><td class="r faint"><svg class="i s"><use href="#ext"/></svg></td></tr>
+      <tr><td class="in"><span class="row"><svg class="i s"><use href="#down"/></svg>Received</span></td><td class="addr">z1qz8v…k3ey</td><td class="r num">+ 250 ZNN</td><td class="r dim">4 min</td><td class="r faint"><svg class="i s"><use href="#ext"/></svg></td></tr>
+    </table>
+  </div>
+</div>
+<div class="burst" id="burst"></div>
+<div class="ov">
+  <div class="dlg" style="width:460px">
+    <div class="hd"><svg class="i pink"><use href="#zap"/></svg>Zap<span class="end"><svg class="i s faint"><use href="#x"/></svg></span></div>
+    <div class="bd">
+      <div class="kv"><span class="lab">From</span><span class="addr">z1qz8vk7w0p2xlm9ue4a6pz0t2gs3x8r5cq2wk3ey</span><span class="lab">Amount</span><span class="num">1 ZNN + 10 QSR</span></div>
+      <div class="field area" style="font-size:15px;color:var(--fg)">You got zapped. Have a great day, alien.</div>
+      <span class="note"><svg class="i s"><use href="#info"/></svg>Written by the sender, not by Syrius.</span>
+    </div>
+    <div class="ft"><button class="btn">Zap back</button><button class="btn go">Nice</button></div>
+  </div>
+</div>
+</section>
+
+<!-- ===== Transfer: one card, Send / Receive / Zap ===== -->
+<section class="scr" id="send-rest" data-nav="transfer" data-group="Transfer" data-title="Send at rest">
+<div class="pg" style="align-items:center">
+  <div class="card" style="width:640px">
+    <div class="hd" style="gap:14px"><div class="seg"><span class="on">Send</span><span>Receive</span><span>Zap</span></div><span class="end"><span class="chip">Address 2 · 1,204.5 ZNN <svg class="i xs"><use href="#chev"/></svg></span></span></div>
+    <div class="bd" style="gap:12px;padding:16px 20px 20px">
+      <div class="row" style="gap:10px">
+        <div class="field on" style="flex:1"><span class="v addr" style="color:var(--fg)">z1qr4pm3x9ue2a6kz0t2g8s3x5c7q1wl4r9d2a</span><span class="end"><svg class="i s"><use href="#book"/></svg><svg class="i s"><use href="#x"/></svg></span></div>
+      </div>
+      <div class="row" style="gap:6px;flex-wrap:wrap"><span class="smallcap">Recent</span><span class="chip on">Alice</span><span class="chip">z1qpx3…m7ua</span><span class="chip">Exchange</span><span class="chip">dev1 reward</span></div>
+      <div class="row" style="gap:10px">
+        <div class="field on" style="flex:1"><span class="v num" style="font-size:20px">12.5</span><span class="end"><span class="znn" style="font-weight:600">Max</span></span></div>
+        <div class="field" style="width:170px"><span class="coin z" style="width:22px;height:22px;font-size:10px">Z</span><span class="v">ZNN</span><span class="end"><svg class="i s"><use href="#chev"/></svg></span></div>
+      </div>
+      <div class="row sp" style="font-size:13px"><span class="dim">Available <span class="num" style="color:var(--fg)">1,204.5 ZNN</span></span><span class="usd">≈ $7.75</span></div>
+      <span class="note"><svg class="i s"><use href="#info"/></svg>Alice. Last sent 55 min ago.</span>
+      <button class="btn go" style="height:46px;font-size:16px;margin-top:4px"><svg class="i"><use href="#up"/></svg>Send 12.5 ZNN</button>
+    </div>
+  </div>
+  <div class="card" style="width:640px">
+    <div class="hd">To receive<span class="cnt">2</span><span class="end"><span class="chip">Auto-receive off</span></span></div>
+    <table>
+      <tr><td class="addr">z1qz8v…k3ey</td><td class="r num">250 ZNN</td><td class="r dim">4 min</td><td class="r"><button class="btn xs" disabled><span class="spin"></span>Receiving</button></td></tr>
+      <tr><td class="addr">z1qpx3…m7ua</td><td class="r num">40 PP</td><td class="r dim">6 min</td><td class="r"><button class="btn xs">Receive</button></td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="send-warn" data-nav="transfer" data-group="Transfer" data-title="Send: look-alike address, node not synced">
+<div class="pg" style="align-items:center">
+  <div class="card" style="width:640px;border-bottom:0">
+    <div class="row" style="padding:10px 16px;gap:10px;background:color-mix(in srgb,var(--warn) 12%,transparent);border-radius:var(--r) var(--r) 0 0;font-size:13.5px"><svg class="i s warn"><use href="#warn"/></svg><span><b>Node is 42 momentums behind.</b> A send waits until it catches up.</span></div>
+    <div class="hd" style="gap:14px;border-radius:0"><div class="seg"><span class="on">Send</span><span>Receive</span><span>Zap</span></div><span class="end"><span class="chip">Address 2 · 1,204.5 ZNN <svg class="i xs"><use href="#chev"/></svg></span></span></div>
+    <div class="bd" style="gap:12px;padding:16px 20px 20px">
+      <div class="field on" style="border-color:var(--warn)"><span class="v addr" style="color:var(--fg)">z1qr4p<span class="warn">k2m7c4n9ue8a1z0x5t3g6s</span>9d2a</span><span class="end"><svg class="i s"><use href="#book"/></svg><svg class="i s"><use href="#x"/></svg></span></div>
+      <div class="col" style="gap:8px;padding:12px 14px;border-radius:var(--r);background:color-mix(in srgb,var(--warn) 10%,transparent)">
+        <span class="row" style="font-weight:600;gap:8px"><svg class="i s warn"><use href="#warn"/></svg>Looks like Alice, but is not</span>
+        <span class="dim" style="font-size:13px">Same first and last characters, different middle. A dust transfer from this address arrived 2 days ago.</span>
+        <div class="kv" style="font-size:12.5px"><span class="lab">Alice</span><span class="addr">z1qr4p<span style="color:var(--fg)">m3x9ue2a6kz0t2g8s3x5c7q1wl4r</span>9d2a</span><span class="lab">Typed</span><span class="addr">z1qr4p<span class="warn">k2m7c4n9ue8a1z0x5t3g6s</span>9d2a</span></div>
+        <div class="row" style="gap:8px"><button class="btn sm">Use Alice</button><button class="btn sm ghost">Send to the typed address anyway</button></div>
+      </div>
+      <div class="row" style="gap:10px">
+        <div class="field on" style="flex:1"><span class="v num" style="font-size:20px">12.5</span><span class="end"><span class="znn" style="font-weight:600">Max</span></span></div>
+        <div class="field" style="width:170px"><span class="coin z" style="width:22px;height:22px;font-size:10px">Z</span><span class="v">ZNN</span><span class="end"><svg class="i s"><use href="#chev"/></svg></span></div>
+      </div>
+      <button class="btn go" style="height:46px;font-size:16px;margin-top:4px" disabled>Waiting for the node</button>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="receive" data-nav="transfer" data-group="Transfer" data-title="Receive, QR behind a button">
+<div class="pg" style="align-items:center">
+  <div class="card" style="width:640px">
+    <div class="hd" style="gap:14px"><div class="seg"><span>Send</span><span class="on">Receive</span><span>Zap</span></div><span class="end"><span class="chip">Address 2 <svg class="i xs"><use href="#chev"/></svg></span></span></div>
+    <div class="bd" style="gap:14px;padding:18px 20px 20px;align-items:center">
+      <span class="lab">Address 2</span>
+      <span class="addr" style="font-size:17px;color:var(--fg);letter-spacing:.01em;text-align:center;word-break:break-all;max-width:520px">z1qq9n7fpaqd8lpcljandzmx4xtku9w4ftwyg0mq</span>
+      <div class="row" style="gap:8px"><button class="btn go"><svg class="i"><use href="#copy"/></svg>Copy address</button><button class="btn"><svg class="i"><use href="#qr"/></svg>Show QR</button></div>
+      <div class="line" style="width:100%;margin-top:4px"></div>
+      <div class="row sp" style="width:100%"><span class="dim" style="font-size:13.5px">Request a specific amount</span><svg class="i s faint" style="transform:rotate(-90deg)"><use href="#chev"/></svg></div>
+    </div>
+  </div>
+  <div class="card" style="width:640px">
+    <div class="hd closed">To receive<span class="end"><span class="dim" style="font-weight:400;font-size:13px">None yet</span></span></div>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="receive-qr" data-nav="transfer" data-group="Transfer" data-title="Receive, QR shown with an amount">
+<div class="pg" style="align-items:center">
+  <div class="card" style="width:640px">
+    <div class="hd" style="gap:14px"><div class="seg"><span>Send</span><span class="on">Receive</span><span>Zap</span></div><span class="end"><span class="chip">Address 2 <svg class="i xs"><use href="#chev"/></svg></span></span></div>
+    <div class="bd" style="gap:14px;padding:18px 20px 20px;flex-direction:row;align-items:flex-start">
+      <div class="col" style="gap:10px;align-items:center;padding:12px;border-radius:var(--r);background:var(--card2)">
+        <div class="qr"></div>
+        <div class="row" style="gap:6px"><button class="btn xs ghost"><svg class="i xs"><use href="#copy"/></svg>Copy image</button><button class="btn xs ghost"><svg class="i xs"><use href="#dl"/></svg>Save</button></div>
+      </div>
+      <div class="col" style="flex:1;gap:12px">
+        <span class="addr" style="font-size:14px;color:var(--fg);word-break:break-all">z1qq9n7fpaqd8lpcljandzmx4xtku9w4ftwyg0mq</span>
+        <div class="row" style="gap:8px"><button class="btn sm go"><svg class="i s"><use href="#copy"/></svg>Copy address</button><button class="btn sm"><svg class="i s"><use href="#qr"/></svg>Hide QR</button></div>
+        <div class="line"></div>
+        <div class="row sp"><span style="font-size:13.5px">Request a specific amount</span><svg class="i s faint"><use href="#chev"/></svg></div>
+        <div class="row" style="gap:10px">
+          <div class="field on" style="flex:1"><span class="v num" style="font-size:18px">100</span></div>
+          <div class="field" style="width:150px"><span class="coin q" style="width:22px;height:22px;font-size:10px">Q</span><span class="v">QSR</span><span class="end"><svg class="i s"><use href="#chev"/></svg></span></div>
+        </div>
+        <span class="smallcap">The QR carries the amount. Syrius and the extension read it.</span>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="zap-form" data-nav="transfer" data-group="Transfer" data-title="Zap a stranger">
+<div class="pg" style="align-items:center">
+  <div class="card" style="width:640px">
+    <div class="hd" style="gap:14px"><div class="seg"><span>Send</span><span>Receive</span><span class="on">Zap</span></div><span class="end"><span class="chip">Address 2 <svg class="i xs"><use href="#chev"/></svg></span></span></div>
+    <div class="bd" style="gap:12px;padding:16px 20px 20px">
+      <div class="row sp"><span class="lab">A random alien</span><span class="smallcap">Received something in the last 7 days · 212 found</span></div>
+      <div class="row" style="gap:10px">
+        <div class="field on" style="flex:1"><span class="v addr" style="color:var(--fg)">z1qz8vk7w0p2xlm9ue4a6pz0t2gs3x8r5cq2wk3ey</span><span class="end"><svg class="i s"><use href="#copy"/></svg></span></div>
+        <button class="btn" style="height:42px"><svg class="i"><use href="#dice"/></svg>Pick another</button>
+      </div>
+      <div class="row" style="gap:10px">
+        <div class="field on" style="flex:1"><span class="coin z" style="width:22px;height:22px;font-size:10px">Z</span><span class="v num" style="font-size:18px">1</span><span class="end znn">ZNN</span></div>
+        <div class="field on" style="flex:1"><span class="coin q" style="width:22px;height:22px;font-size:10px">Q</span><span class="v num" style="font-size:18px">10</span><span class="end qsr">QSR</span></div>
+      </div>
+      <div class="field area on"><span class="v" style="color:var(--fg)">You got zapped. Have a great day, alien.</span><span class="end num smallcap" style="align-self:flex-end">41/140</span></div>
+      <div class="row sp" style="font-size:13px"><span class="dim">Two blocks, one per coin</span><span class="usd">≈ $0.93</span></div>
+      <span class="note"><svg class="i s"><use href="#info"/></svg>Picked from what your node reports, so the node can steer it. Two blocks, two confirmations on a hardware wallet.</span>
+      <button class="btn go" style="height:46px;font-size:16px;margin-top:4px"><svg class="i"><use href="#zap"/></svg>Zap 1 ZNN + 10 QSR</button>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="send-confirm" data-nav="transfer" data-group="Transfer" data-title="Confirm, then followed to its momentum" data-strip="flight">
+<div class="pg" style="align-items:center">
+  <div class="card" style="width:640px">
+    <div class="hd" style="gap:14px"><div class="seg"><span class="on">Send</span><span>Receive</span><span>Zap</span></div><span class="end"><span class="chip">Address 2 · 1,204.5 ZNN <svg class="i xs"><use href="#chev"/></svg></span></span></div>
+    <div class="bd" style="gap:12px;padding:16px 20px 20px">
+      <div class="field on"><span class="v addr" style="color:var(--fg)">z1qr4pm3x9ue2a6kz0t2g8s3x5c7q1wl4r9d2a</span></div>
+      <div class="row" style="gap:10px"><div class="field on" style="flex:1"><span class="v num" style="font-size:20px">12.5</span></div><div class="field" style="width:170px"><span class="coin z" style="width:22px;height:22px;font-size:10px">Z</span><span class="v">ZNN</span></div></div>
+      <button class="btn go" style="height:46px;font-size:16px;margin-top:4px">Send 12.5 ZNN</button>
+    </div>
+  </div>
+</div>
+<div class="ov">
+  <div class="dlg" style="width:440px">
+    <div class="hd">Send 12.5 ZNN?</div>
+    <div class="bd">
+      <div class="kv"><span class="lab">To</span><span class="row" style="gap:8px"><span>Alice</span><span class="addr" style="font-size:13px">z1qr4p…9d2a</span></span><span class="lab">From</span><span>Address 2</span><span class="lab">Plasma</span><span class="dim">From fused QSR, no wait</span></div>
+      <div class="row" style="gap:8px;padding:10px 12px;border-radius:var(--r);background:var(--card2)"><svg class="i s dim"><use href="#usb"/></svg><span class="dim" style="font-size:13px">Confirm on the Ledger after Send.</span></div>
+    </div>
+    <div class="ft"><button class="btn">Cancel</button><button class="btn go">Send</button></div>
+  </div>
+</div>
+</section>
+
+<!-- ===== Staking ===== -->
+<section class="scr" id="staking" data-nav="staking" data-group="Staking and Nodes" data-title="Staking at rest">
+<div class="pg">
+  <div class="card stripcard">
+    <div class="stat"><span class="lab">Staked</span><span class="v">1,500 <span class="znn" style="font-size:13px">ZNN</span><span class="usd">$930.00</span></span></div>
+    <div class="stat"><span class="lab">To collect</span><span class="v">18.4 <span class="qsr" style="font-size:13px">QSR</span><span class="usd">$0.5704</span></span></div>
+    <div class="stat"><span class="lab">Last 7 days</span><span class="v dim">+ 41.2 <span style="font-size:13px">QSR</span></span></div>
+    <button class="btn sm" style="margin-left:-8px">Collect</button>
+    <div class="acts"><button class="btn ghost sm"><svg class="i s"><use href="#chart"/></svg>Rewards</button><button class="btn go"><svg class="i"><use href="#plus"/></svg>Stake</button></div>
+  </div>
+  <div class="card" style="flex:1">
+    <div class="hd">Stakes<span class="cnt">3</span></div>
+    <table>
+      <tr><th>Amount</th><th>Duration</th><th>Started</th><th>Unlocks</th><th class="r"></th></tr>
+      <tr><td class="num">500 ZNN</td><td>6 months</td><td class="dim">3 d ago</td><td><span class="chip wait"><svg class="i xs"><use href="#clock"/></svg>5 mo 27 d</span></td><td class="r"><button class="btn xs" disabled>Cancel</button></td></tr>
+      <tr><td class="num">800 ZNN</td><td>12 months</td><td class="dim">8 mo ago</td><td><span class="chip wait"><svg class="i xs"><use href="#clock"/></svg>3 mo 12 d</span></td><td class="r"><button class="btn xs" disabled>Cancel</button></td></tr>
+      <tr><td class="num">200 ZNN</td><td>1 month</td><td class="dim">2 mo ago</td><td><span class="chip ok"><svg class="i xs"><use href="#check"/></svg>Unlocked</span></td><td class="r"><button class="btn xs">Cancel and withdraw</button></td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="staking-new" data-nav="staking" data-group="Staking and Nodes" data-title="New stake opened in place">
+<div class="pg">
+  <div class="card stripcard">
+    <div class="stat"><span class="lab">Staked</span><span class="v">1,500 <span class="znn" style="font-size:13px">ZNN</span><span class="usd">$930.00</span></span></div>
+    <div class="stat"><span class="lab">To collect</span><span class="v">18.4 <span class="qsr" style="font-size:13px">QSR</span><span class="usd">$0.5704</span></span></div>
+    <div class="stat"><span class="lab">Last 7 days</span><span class="v dim">+ 41.2 <span style="font-size:13px">QSR</span></span></div>
+    <button class="btn sm" style="margin-left:-8px">Collect</button>
+    <div class="acts"><button class="btn ghost sm"><svg class="i s"><use href="#chart"/></svg>Rewards</button><button class="btn"><svg class="i"><use href="#x"/></svg>Close</button></div>
+  </div>
+  <div class="card rise">
+    <div class="bd" style="flex-direction:row;align-items:center;gap:14px;padding:14px 18px">
+      <div class="col" style="gap:6px"><span class="lab">Duration</span><div class="seg"><span>1</span><span>2</span><span>3</span><span class="on">6</span><span>9</span><span>12 months</span></div></div>
+      <div class="col" style="gap:6px;flex:1"><span class="lab">Amount</span><div class="field on"><span class="v num" style="font-size:18px">300</span><span class="end"><span class="znn" style="font-weight:600">Max</span><span class="dim">of 1,204.5 ZNN</span></span></div></div>
+      <div class="col" style="gap:6px"><span class="lab">Unlocks</span><span class="num" style="height:42px;display:flex;align-items:center">13 Apr 2027</span></div>
+      <button class="btn go" style="align-self:flex-end;height:42px">Stake 300 ZNN</button>
+    </div>
+  </div>
+  <div class="card" style="flex:1">
+    <div class="hd">Stakes<span class="cnt">3</span></div>
+    <table>
+      <tr><th>Amount</th><th>Duration</th><th>Started</th><th>Unlocks</th><th class="r"></th></tr>
+      <tr><td class="num">500 ZNN</td><td>6 months</td><td class="dim">3 d ago</td><td><span class="chip wait"><svg class="i xs"><use href="#clock"/></svg>5 mo 27 d</span></td><td class="r"><button class="btn xs" disabled>Cancel</button></td></tr>
+      <tr><td class="num">800 ZNN</td><td>12 months</td><td class="dim">8 mo ago</td><td><span class="chip wait"><svg class="i xs"><use href="#clock"/></svg>3 mo 12 d</span></td><td class="r"><button class="btn xs" disabled>Cancel</button></td></tr>
+      <tr><td class="num">200 ZNN</td><td>1 month</td><td class="dim">2 mo ago</td><td><span class="chip ok"><svg class="i xs"><use href="#check"/></svg>Unlocked</span></td><td class="r"><button class="btn xs">Cancel and withdraw</button></td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="staking-empty" data-nav="staking" data-group="Staking and Nodes" data-title="An empty list: the original no-data mark">
+<div class="pg">
+  <div class="card stripcard">
+    <div class="stat"><span class="lab">Staked</span><span class="v dim">0 <span style="font-size:13px">ZNN</span></span></div>
+    <div class="stat"><span class="lab">To collect</span><span class="v dim">0 <span style="font-size:13px">QSR</span></span></div>
+    <div class="acts"><button class="btn go"><svg class="i"><use href="#plus"/></svg>Stake</button></div>
+  </div>
+  <div class="card" style="flex:1">
+    <div class="hd">Stakes</div>
+    <div class="col" style="flex:1;align-items:center;justify-content:center;gap:12px">
+      <span class="lot" data-lot="no_data" data-at="0.2" data-loop="1" style="width:44px;height:44px;opacity:.85"></span>
+      <span class="dim">None yet</span>
+    </div>
+  </div>
+  <div class="card"><div class="hd closed"><span class="lot" data-lot="no_data" data-at="0.2" style="width:16px;height:16px;opacity:.7"></span>Rewards<span class="end"><span class="dim" style="font-weight:400;font-size:13px">None yet</span></span></div></div>
+</div>
+</section>
+
+<!-- ===== Nodes: pillars and sentinels in one page ===== -->
+<section class="scr" id="pillars" data-nav="nodes" data-group="Staking and Nodes" data-title="Nodes: Pillars tab, delegation strip, a row opened">
+<div class="pg">
+  <div class="card stripcard">
+    <div class="stat"><span class="lab">Delegated to</span><span class="v" style="font-size:17px">dev1 <span class="dim" style="font-size:13px">· 1,204.5 ZNN weight</span></span></div>
+    <button class="btn sm" style="margin-left:-8px">Change</button>
+    <div class="stat"><span class="lab">To collect</span><span class="v">3.214 <span class="znn" style="font-size:13px">ZNN</span><span class="usd">$1.99</span></span></div>
+    <button class="btn sm" style="margin-left:-8px">Collect</button>
+    <div class="acts"><button class="btn ghost sm"><svg class="i s"><use href="#chart"/></svg>Rewards</button><button class="btn ghost sm"><svg class="i s"><use href="#more"/></svg></button></div>
+  </div>
+  <div class="card" style="flex:1">
+    <div class="tabs"><span class="on">Pillars<span class="cnt">97</span></span><span>Sentinels<span class="cnt">12</span></span><span style="margin-left:auto;display:flex;align-items:center;gap:8px;padding:6px 0"><span class="field" style="height:30px;width:200px;font-size:13px"><svg class="i s"><use href="#search"/></svg><span class="ph">Search</span></span><span class="chip"><svg class="i xs"><use href="#sort"/></svg>Weight</span></span></div>
+    <table>
+      <tr><th>Name</th><th class="r">Weight</th><th class="r">Shares</th><th class="r">Uptime</th><th class="r">APR est.</th><th></th></tr>
+      <tr class="open"><td><span class="row"><svg class="i s faint" style="transform:rotate(0)"><use href="#chev"/></svg>dev1 <span class="chip ok" style="height:22px">Yours</span></span></td><td class="r num">9.92K ZNN</td><td class="r num">0% / 100%</td><td class="r num">99.8%</td><td class="r num">12.4%</td><td class="r"><button class="btn xs" disabled>Delegated</button></td></tr>
+      <tr class="sub"><td colspan="6"><div class="kv" style="grid-template-columns:auto 1fr auto 1fr;padding:2px 0 8px 26px;font-size:13px"><span class="lab">Producer</span><span class="addr">z1qz9zr…yrn2un <svg class="i xs"><use href="#copy"/></svg></span><span class="lab">Momentums</span><span class="num">1,760 of 1,762 expected</span><span class="lab">Reward</span><span class="addr">z1qq9n…g0mq</span><span class="lab">Registered</span><span>14 Nov 2021 <a class="dim"><svg class="i xs"><use href="#ext"/></svg> explorer</a></span></div></td></tr>
+      <tr><td><span class="row"><svg class="i s faint" style="transform:rotate(-90deg)"><use href="#chev"/></svg>SultanOfStaking</span></td><td class="r num">8.41K ZNN</td><td class="r num">0% / 100%</td><td class="r num">100%</td><td class="r num">12.6%</td><td class="r"><button class="btn xs">Delegate</button></td></tr>
+      <tr><td><span class="row"><svg class="i s faint" style="transform:rotate(-90deg)"><use href="#chev"/></svg>dev2</span></td><td class="r num">7.02K ZNN</td><td class="r num">10% / 90%</td><td class="r num">98.1%</td><td class="r num">11.1%</td><td class="r"><button class="btn xs">Delegate</button></td></tr>
+      <tr><td><span class="row"><svg class="i s faint" style="transform:rotate(-90deg)"><use href="#chev"/></svg>Zenon Hub</span></td><td class="r num">5.55K ZNN</td><td class="r num">0% / 100%</td><td class="r num">99.2%</td><td class="r num">13.0%</td><td class="r"><button class="btn xs">Delegate</button></td></tr>
+      <tr><td><span class="row"><svg class="i s faint" style="transform:rotate(-90deg)"><use href="#chev"/></svg>dev3</span></td><td class="r num">0 ZNN</td><td class="r num">100% / 0%</td><td class="r num">72%</td><td class="r num dim">0%</td><td class="r"><button class="btn xs">Delegate</button></td></tr>
+      <tr><td><span class="row"><svg class="i s faint" style="transform:rotate(-90deg)"><use href="#chev"/></svg>Alien Pillar</span></td><td class="r num">3.12K ZNN</td><td class="r num">0% / 100%</td><td class="r num">97.5%</td><td class="r num">12.0%</td><td class="r"><button class="btn xs">Delegate</button></td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="pillar-mine" data-nav="nodes" data-group="Staking and Nodes" data-title="Pillar mode: your pillar opened from the strip">
+<div class="pg">
+  <div class="card stripcard">
+    <span class="lot" data-lot="pillar_small" data-at="0.99" data-hover="1" style="width:48px;height:48px;margin:-6px -8px -6px -6px"></span>
+    <div class="stat"><span class="lab">Your pillar</span><span class="v" style="font-size:17px">dev1 <span class="chip ok" style="height:22px;margin-left:6px"><span class="dot live" style="width:6px;height:6px"></span>Producing</span></span></div>
+    <div class="stat"><span class="lab">To collect</span><span class="v">3.214 <span class="znn" style="font-size:13px">ZNN</span> <span class="dim">· 0.4</span> <span class="qsr" style="font-size:13px">QSR</span><span class="usd">$2.01</span></span></div>
+    <button class="btn sm" style="margin-left:-8px">Collect</button>
+    <div class="acts"><button class="btn"><svg class="i"><use href="#x"/></svg>Close</button></div>
+  </div>
+  <div class="card rise">
+    <div class="bd" style="flex-direction:row;gap:28px;padding:16px 18px;align-items:flex-start">
+      <span class="lot" data-lot="pillar_small" data-at="0.99" data-hover="1" style="width:132px;height:132px;margin:-8px -8px -8px -14px"></span>
+      <div class="kv" style="flex:1;grid-template-columns:auto 1fr auto 1fr;gap:10px 20px">
+        <span class="lab">Locked</span><span class="num">15,000 ZNN</span>
+        <span class="lab">Deposited</span><span class="num">150,000 QSR <span class="dim">of 150,000</span></span>
+        <span class="lab">Producer</span><span class="addr">z1qz9zr…yrn2un <svg class="i xs"><use href="#copy"/></svg></span>
+        <span class="lab">Revocable</span><span><span class="chip wait"><svg class="i xs"><use href="#clock"/></svg>in 12 d 4 h</span></span>
+        <span class="lab">Reward</span><span class="addr">z1qq9n…g0mq</span>
+        <span class="lab">Sharing</span><span class="num">0% block · 100% delegate</span>
+        <span class="lab">Momentums</span><span class="num">1,760 of 1,762 <span class="dim">· 99.8%</span></span>
+        <span class="lab">Weight</span><span class="num">9.92K ZNN <span class="dim">· 214 delegators</span></span>
+      </div>
+      <div class="col" style="gap:8px;min-width:170px">
+        <button class="btn sm"><svg class="i s"><use href="#edit"/></svg>Update</button>
+        <button class="btn sm"><svg class="i s"><use href="#down"/></svg>Deposit QSR</button>
+        <button class="btn sm"><svg class="i s"><use href="#up"/></svg>Withdraw QSR</button>
+        <button class="btn sm ghost danger"><svg class="i s"><use href="#trash"/></svg>Disassemble</button>
+      </div>
+    </div>
+  </div>
+  <div class="card" style="flex:1">
+    <div class="tabs"><span class="on">Pillars<span class="cnt">97</span></span><span>Sentinels<span class="cnt">12</span></span></div>
+    <table>
+      <tr><th>Name</th><th class="r">Weight</th><th class="r">Shares</th><th class="r">Uptime</th><th class="r">APR est.</th><th></th></tr>
+      <tr><td>dev1 <span class="chip ok" style="height:22px">Yours</span></td><td class="r num">9.92K ZNN</td><td class="r num">0% / 100%</td><td class="r num">99.8%</td><td class="r num">12.4%</td><td class="r"><button class="btn xs" disabled>Delegated</button></td></tr>
+      <tr><td>SultanOfStaking</td><td class="r num">8.41K ZNN</td><td class="r num">0% / 100%</td><td class="r num">100%</td><td class="r num">12.6%</td><td class="r"><button class="btn xs">Delegate</button></td></tr>
+      <tr><td>dev2</td><td class="r num">7.02K ZNN</td><td class="r num">10% / 90%</td><td class="r num">98.1%</td><td class="r num">11.1%</td><td class="r"><button class="btn xs">Delegate</button></td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="sentinels" data-nav="nodes" data-group="Staking and Nodes" data-title="Nodes: Sentinels tab, sentinel mode">
+<div class="pg">
+  <div class="card stripcard">
+    <span class="lot" data-lot="sentinel_small" data-at="0.99" data-hover="1" style="width:48px;height:48px;margin:-6px -8px -6px -6px"></span>
+    <div class="stat"><span class="lab">Your sentinel</span><span class="v" style="font-size:17px">Address 3 <span class="chip ok" style="height:22px;margin-left:6px"><span class="dot live" style="width:6px;height:6px"></span>Active</span></span></div>
+    <div class="stat"><span class="lab">To collect</span><span class="v">0.42 <span class="znn" style="font-size:13px">ZNN</span> <span class="dim">· 2.1</span> <span class="qsr" style="font-size:13px">QSR</span><span class="usd">$0.3255</span></span></div>
+    <button class="btn sm" style="margin-left:-8px">Collect</button>
+    <div class="stat"><span class="lab">Revocable</span><span class="v" style="font-size:15px"><span class="chip wait"><svg class="i xs"><use href="#clock"/></svg>in 3 d 2 h</span></span></div>
+    <div class="acts"><button class="btn ghost sm"><svg class="i s"><use href="#chart"/></svg>Rewards</button><button class="btn ghost sm"><svg class="i s"><use href="#more"/></svg></button></div>
+  </div>
+  <div class="card" style="flex:1">
+    <div class="tabs"><span>Pillars<span class="cnt">97</span></span><span class="on">Sentinels<span class="cnt">12</span></span><span style="margin-left:auto;display:flex;align-items:center;gap:8px;padding:6px 0"><button class="btn xs"><svg class="i xs"><use href="#plus"/></svg>Spawn</button></span></div>
+    <table>
+      <tr><th>Owner</th><th>Registered</th><th>Revocable</th><th class="r">Status</th></tr>
+      <tr><td class="addr">Address 3 <span class="chip ok" style="height:22px">Yours</span></td><td class="dim">27 d ago</td><td class="dim">in 3 d 2 h</td><td class="r"><span class="chip ok">Active</span></td></tr>
+      <tr><td class="addr">z1qz9zr…yrn2un</td><td class="dim">1 y ago</td><td class="dim">in 14 d</td><td class="r"><span class="chip ok">Active</span></td></tr>
+      <tr><td class="addr">z1qzedc…na6g8e</td><td class="dim">2 y ago</td><td class="dim">now</td><td class="r"><span class="chip ok">Active</span></td></tr>
+      <tr><td class="addr">z1qp2kx…7f0ehv</td><td class="dim">8 mo ago</td><td class="dim">in 22 d</td><td class="r"><span class="chip">Revoked</span></td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="spawn" data-nav="nodes" data-group="Staking and Nodes" data-title="Spawn a pillar: stepper, shared axis">
+<div class="pg">
+  <div class="card" style="flex:1">
+    <div class="hd"><button class="btn xs ghost"><svg class="i s"><use href="#chevl"/></svg>Nodes</button>Spawn a pillar<span class="end"><svg class="i s faint"><use href="#x"/></svg></span></div>
+    <div class="bd" style="flex-direction:row;gap:0;padding:0">
+      <div class="col" style="width:300px;padding:20px;border-right:1px solid var(--line);gap:18px">
+        <div class="steps" style="flex-direction:column;align-items:stretch;gap:14px">
+          <span class="done"><b><svg class="i xs"><use href="#check"/></svg></b>Deposit QSR</span>
+          <span class="on"><b>2</b>Name and addresses</span>
+          <span><b>3</b>Reward sharing</span>
+          <span><b>4</b>Register</span>
+        </div>
+        <div class="line"></div>
+        <div class="kv" style="font-size:13px"><span class="lab">Slot fee</span><span class="num">150,000 QSR <span class="znn">deposited</span></span><span class="lab">Locks</span><span class="num">15,000 ZNN</span><span class="lab">Have</span><span class="num">15,120 ZNN</span></div>
+      </div>
+      <div class="col rise" style="flex:1;padding:24px 28px;gap:14px;max-width:620px">
+        <div class="col" style="gap:6px"><span class="lab">Pillar name</span><div class="field on"><span class="v">dev4</span><span class="end"><svg class="i s znn"><use href="#check"/></svg></span></div><span class="smallcap">Letters, numbers, 3 to 40. Free.</span></div>
+        <div class="col" style="gap:6px"><span class="lab">Producer address</span><div class="field on"><span class="v addr" style="color:var(--fg)">z1qz9zr4ue2a6kz0t2g8s3x5c7q1wl4rm3x9yrn2un</span><span class="end"><svg class="i s"><use href="#book"/></svg></span></div><span class="smallcap">The node's own address, from a different seed than this wallet.</span></div>
+        <div class="col" style="gap:6px"><span class="lab">Reward address</span><div class="field on"><span class="v addr" style="color:var(--fg)">z1qq9n7fpaqd8lpcljandzmx4xtku9w4ftwyg0mq</span><span class="end"><span class="chip" style="height:22px">This address</span></span></div></div>
+        <div class="row" style="gap:8px;margin-top:8px"><button class="btn">Back</button><button class="btn go">Continue</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="pillar-done" data-nav="nodes" data-group="Staking and Nodes" data-title="Pillar registered: the original pillar assembles">
+<div class="pg">
+  <div class="card" style="flex:1">
+    <div class="hd"><button class="btn xs ghost"><svg class="i s"><use href="#chevl"/></svg>Nodes</button>Spawn a pillar<span class="end"><svg class="i s faint"><use href="#x"/></svg></span></div>
+    <div class="bd" style="flex-direction:row;gap:0;padding:0">
+      <div class="col" style="width:300px;padding:20px;border-right:1px solid var(--line);gap:18px">
+        <div class="steps" style="flex-direction:column;align-items:stretch;gap:14px">
+          <span class="done"><b><svg class="i xs"><use href="#check"/></svg></b>Deposit QSR</span>
+          <span class="done"><b><svg class="i xs"><use href="#check"/></svg></b>Name and addresses</span>
+          <span class="done"><b><svg class="i xs"><use href="#check"/></svg></b>Reward sharing</span>
+          <span class="done"><b><svg class="i xs"><use href="#check"/></svg></b>Register</span>
+        </div>
+        <div class="line"></div>
+        <div class="kv" style="font-size:13px"><span class="lab">Slot fee</span><span class="num">150,000 QSR</span><span class="lab">Locked</span><span class="num">15,000 ZNN</span><span class="lab">Block</span><span class="addr">5c52…c2d1 <svg class="i xs"><use href="#ext"/></svg></span></div>
+      </div>
+      <div class="col rise" style="flex:1;align-items:center;justify-content:center;gap:6px;padding:8px 28px 28px">
+        <span class="lot" data-lot="pillar" data-at="0.99" data-hover="1" style="width:340px;height:340px"></span>
+        <span style="font-size:22px;font-weight:600;margin-top:-18px">dev4 is registered</span>
+        <span class="dim">It joins the producers within a few momentums.</span>
+        <div class="row" style="gap:8px;margin-top:14px"><button class="btn go">View pillar</button><button class="btn">Done</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ===== Plasma ===== -->
+<section class="scr" id="plasma" data-nav="plasma" data-group="Plasma, Tokens" data-title="Plasma at rest" data-strip="pow">
+<div class="pg" style="flex-direction:row;gap:12px">
+  <div class="card" style="width:340px">
+    <div class="bd" style="align-items:center;gap:8px;padding-top:22px">
+      <div class="bolt"><svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></div>
+      <span class="big num" style="font-size:30px">63,000</span>
+      <span class="lab">Plasma · High</span>
+      <div class="meter flow" style="width:100%;margin-top:6px"><b style="width:72%"></b></div>
+      <div class="row sp" style="width:100%;font-size:13px"><span class="dim">Fused <span class="num" style="color:var(--fg)">630 QSR</span></span><span class="dim">About 4 sends</span></div>
+    </div>
+    <div class="hd closed" style="border-top:1px solid var(--line)">Other addresses<span class="cnt">3</span><span class="end"><span class="dim" style="font-weight:400;font-size:12.5px">1 low</span><svg class="i s chev"><use href="#chev"/></svg></span></div>
+  </div>
+  <div class="col" style="flex:1;gap:12px;min-width:0">
+    <div class="card stripcard">
+      <div class="stat"><span class="lab">Available</span><span class="v">12,880 <span class="qsr" style="font-size:13px">QSR</span></span></div>
+      <div class="stat"><span class="lab">Fused by you</span><span class="v">750 <span class="qsr" style="font-size:13px">QSR</span> <span class="dim" style="font-size:13px">in 4 entries</span></span></div>
+      <div class="acts"><button class="btn go"><svg class="i"><use href="#zap"/></svg>Fuse</button></div>
+    </div>
+    <div class="card" style="flex:1">
+      <div class="hd">Fused<span class="cnt">4</span><span class="end"><span class="dim" style="font-weight:400;font-size:12.5px">Select rows to cancel together</span></span></div>
+      <table>
+        <tr><th style="width:36px"></th><th>Amount</th><th>Beneficiary</th><th>Expires</th><th class="r"></th></tr>
+        <tr><td><span class="cb"></span></td><td class="num">120 QSR</td><td>Address 2 <span class="chip" style="height:22px">this</span></td><td><span class="chip wait"><svg class="i xs"><use href="#lock"/></svg>8 h 16 m</span></td><td class="r"><button class="btn xs" disabled>Cancel</button></td></tr>
+        <tr><td><span class="cb"></span></td><td class="num">500 QSR</td><td>Address 2</td><td><span class="chip ok"><svg class="i xs"><use href="#check"/></svg>Cancelable</span></td><td class="r"><button class="btn xs">Cancel</button></td></tr>
+        <tr><td><span class="cb"></span></td><td class="num">10 QSR</td><td class="addr">Alice <span class="faint">z1qr4p…9d2a</span></td><td><span class="chip ok"><svg class="i xs"><use href="#check"/></svg>Cancelable</span></td><td class="r"><button class="btn xs">Cancel</button></td></tr>
+        <tr><td><span class="cb"></span></td><td class="num">120 QSR</td><td>Address 4</td><td><span class="chip wait"><svg class="i xs"><use href="#lock"/></svg>8 h 37 m</span></td><td class="r"><button class="btn xs" disabled>Cancel</button></td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="plasma-fuse" data-nav="plasma" data-group="Plasma, Tokens" data-title="Plasma: fuse form, other addresses, batch cancel">
+<div class="pg" style="flex-direction:row;gap:12px">
+  <div class="card" style="width:340px">
+    <div class="bd" style="align-items:center;gap:8px;padding-top:22px">
+      <div class="bolt"><svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></div>
+      <span class="big num" style="font-size:30px">63,000</span>
+      <span class="lab">Plasma · High</span>
+      <div class="meter" style="width:100%;margin-top:6px"><b style="width:72%"></b></div>
+    </div>
+    <div class="hd" style="border-top:1px solid var(--line)">Other addresses<span class="cnt">3</span><span class="end"><svg class="i s chev"><use href="#chev"/></svg></span></div>
+    <div class="bd" style="gap:10px">
+      <div class="row sp"><span>Address 1</span><div class="meter" style="width:90px"><b style="width:85%"></b></div><span class="lab">High</span></div>
+      <div class="row sp"><span>Address 3</span><div class="meter" style="width:90px"><b style="width:0%"></b></div><span class="lab">None</span></div>
+      <div class="row sp"><span>Address 4</span><div class="meter" style="width:90px"><b style="width:18%"></b></div><span class="lab warn">Low</span></div>
+    </div>
+  </div>
+  <div class="col" style="flex:1;gap:12px;min-width:0">
+    <div class="card stripcard">
+      <div class="stat"><span class="lab">Available</span><span class="v">12,880 <span class="qsr" style="font-size:13px">QSR</span></span></div>
+      <div class="stat"><span class="lab">Fused by you</span><span class="v">750 <span class="qsr" style="font-size:13px">QSR</span></span></div>
+      <div class="acts"><button class="btn"><svg class="i"><use href="#x"/></svg>Close</button></div>
+    </div>
+    <div class="card rise">
+      <div class="bd" style="flex-direction:row;align-items:flex-end;gap:12px;padding:14px 18px">
+        <div class="col" style="gap:6px;flex:1"><span class="lab">Amount</span><div class="field on"><span class="v num" style="font-size:18px">100</span><span class="end"><span class="znn" style="font-weight:600">Max</span><span class="qsr">QSR</span></span></div></div>
+        <div class="col" style="gap:6px;flex:1.4"><span class="lab">For</span><div class="field"><span class="v">Address 2</span><span class="end"><span class="dim" style="font-size:12.5px">Another address</span><svg class="i s"><use href="#chev"/></svg></span></div></div>
+        <button class="btn go" style="height:42px">Fuse 100 QSR</button>
+      </div>
+      <div class="row" style="padding:0 18px 12px;font-size:12.5px;color:var(--faint)">Fused QSR can be taken back after 10 hours.</div>
+    </div>
+    <div class="card" style="flex:1">
+      <div class="hd">Fused<span class="cnt">4</span><span class="end"><span class="dim" style="font-weight:400;font-size:12.5px">2 selected</span><button class="btn xs">Cancel 2 fuses</button></span></div>
+      <table>
+        <tr><th style="width:36px"></th><th>Amount</th><th>Beneficiary</th><th>Expires</th><th class="r"></th></tr>
+        <tr><td><span class="cb"></span></td><td class="num">120 QSR</td><td>Address 2</td><td><span class="chip wait"><svg class="i xs"><use href="#lock"/></svg>8 h 16 m</span></td><td class="r"><button class="btn xs" disabled>Cancel</button></td></tr>
+        <tr class="open"><td><span class="cb on"><svg class="i xs"><use href="#check"/></svg></span></td><td class="num">500 QSR</td><td>Address 2</td><td><span class="chip ok"><svg class="i xs"><use href="#check"/></svg>Cancelable</span></td><td class="r"><button class="btn xs">Cancel</button></td></tr>
+        <tr class="open"><td><span class="cb on"><svg class="i xs"><use href="#check"/></svg></span></td><td class="num">10 QSR</td><td class="addr">Alice</td><td><span class="chip ok"><svg class="i xs"><use href="#check"/></svg>Cancelable</span></td><td class="r"><button class="btn xs">Cancel</button></td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ===== Tokens ===== -->
+<section class="scr" id="tokens" data-nav="tokens" data-group="Plasma, Tokens" data-title="Tokens: one list, your balance in the row">
+<div class="pg">
+  <div class="card stripcard">
+    <span class="lot" data-lot="zts_small" data-at="0.99" data-hover="1" style="width:52px;height:52px;margin:-8px -8px -8px -6px"></span>
+    <div class="stat"><span class="lab">You hold</span><span class="v">3 <span class="dim" style="font-size:13px">tokens</span></span></div>
+    <div class="stat"><span class="lab">Issued by you</span><span class="v">1</span></div>
+    <div class="stat"><span class="lab">Issue fee</span><span class="v">1 <span class="znn" style="font-size:13px">ZNN</span></span></div>
+    <div class="acts"><button class="btn go"><svg class="i"><use href="#plus"/></svg>Create token</button></div>
+  </div>
+  <div class="card" style="flex:1">
+    <div class="hd" style="gap:14px"><div class="seg"><span class="on">Held</span><span>Favorites</span><span>All</span></div><span class="end"><span class="field" style="height:30px;width:260px;font-size:13px"><svg class="i s"><use href="#search"/></svg><span class="ph">Name, symbol, owner or ZTS</span></span></span></div>
+    <table>
+      <tr><th></th><th>Token</th><th class="r">You hold</th><th class="r">Supply</th><th>Owner</th><th></th></tr>
+      <tr><td style="width:40px"><svg class="i s pink"><use href="#star"/></svg></td><td><span class="row"><span class="coin p">P</span><span class="col"><span>Plasma Points</span><span class="addr" style="font-size:12px">PP · zts1pp0…2k7m</span></span></span></td><td class="r num">40</td><td class="r num">1,000,000 <span class="dim">of 10M</span></td><td class="addr">Address 2 <span class="chip" style="height:22px">you</span></td><td class="r"><svg class="i s faint"><use href="#chev"/></svg></td></tr>
+      <tr class="open"><td><svg class="i s faint"><use href="#star"/></svg></td><td><span class="row"><span class="coin g">W</span><span class="col"><span>Wrapped BTC</span><span class="addr" style="font-size:12px">WBTC · zts1wbtc…9ur2</span></span></span></td><td class="r num">0.0021</td><td class="r num">21.4</td><td class="addr">z1qxem…sd88</td><td class="r"><svg class="i s faint" style="transform:rotate(180deg)"><use href="#chev"/></svg></td></tr>
+      <tr class="sub"><td colspan="6"><div class="row" style="padding:0 0 10px 50px;gap:28px;font-size:13px"><span class="kv" style="grid-template-columns:auto 1fr auto 1fr;gap:4px 16px"><span class="lab">Decimals</span><span class="num">8</span><span class="lab">Domain</span><span>bridge.zenon.network <svg class="i xs"><use href="#ext"/></svg></span><span class="lab">Mintable</span><span>Yes, by owner</span><span class="lab">Burnable</span><span>By any holder</span></span><span class="row" style="margin-left:auto;gap:8px"><button class="btn xs">Burn</button><button class="btn xs">Send</button><a class="dim" style="font-size:12.5px"><svg class="i xs"><use href="#ext"/></svg> explorer</a></span></div></td></tr>
+      <tr><td><svg class="i s faint"><use href="#star"/></svg></td><td><span class="row"><span class="coin g">L</span><span class="col"><span>ZNN-ETH LP</span><span class="addr" style="font-size:12px">LP · zts1lp…x4qa</span></span></span></td><td class="r num">12.4</td><td class="r num">5,210</td><td class="addr">z1qpx3…m7ua</td><td class="r"><svg class="i s faint"><use href="#chev"/></svg></td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="token-mine" data-nav="tokens" data-group="Plasma, Tokens" data-title="Tokens: your token's row opened, mint in place">
+<div class="pg">
+  <div class="card stripcard">
+    <span class="lot" data-lot="zts_small" data-at="0.99" data-hover="1" style="width:52px;height:52px;margin:-8px -8px -8px -6px"></span>
+    <div class="stat"><span class="lab">You hold</span><span class="v">3 <span class="dim" style="font-size:13px">tokens</span></span></div>
+    <div class="stat"><span class="lab">Issued by you</span><span class="v">1</span></div>
+    <div class="stat"><span class="lab">Issue fee</span><span class="v">1 <span class="znn" style="font-size:13px">ZNN</span></span></div>
+    <div class="acts"><button class="btn go"><svg class="i"><use href="#plus"/></svg>Create token</button></div>
+  </div>
+  <div class="card" style="flex:1">
+    <div class="hd" style="gap:14px"><div class="seg"><span class="on">Held</span><span>Favorites</span><span>All</span></div></div>
+    <table>
+      <tr><th></th><th>Token</th><th class="r">You hold</th><th class="r">Supply</th><th>Owner</th><th></th></tr>
+      <tr class="open"><td style="width:40px"><svg class="i s pink"><use href="#star"/></svg></td><td><span class="row"><span class="coin p">P</span><span class="col"><span>Plasma Points</span><span class="addr" style="font-size:12px">PP · zts1pp0…2k7m</span></span></span></td><td class="r num">40</td><td class="r num">1,000,000 <span class="dim">of 10M</span></td><td class="addr">Address 2 <span class="chip" style="height:22px">you</span></td><td class="r"><svg class="i s faint" style="transform:rotate(180deg)"><use href="#chev"/></svg></td></tr>
+      <tr class="sub"><td colspan="6">
+        <div class="col" style="padding:0 0 12px 50px;gap:12px">
+          <div class="row" style="gap:28px;font-size:13px"><span class="kv" style="grid-template-columns:auto 1fr auto 1fr;gap:4px 16px"><span class="lab">Decimals</span><span class="num">8</span><span class="lab">Domain</span><span>pp.zenon.foo</span><span class="lab">Mintable</span><span>Yes, by owner</span><span class="lab">Burnable</span><span>By any holder</span><span class="lab">Utility</span><span>Yes</span><span class="lab">Issued</span><span>2 Oct 2026</span></span><span class="row" style="margin-left:auto;gap:8px;align-self:flex-start"><span class="seg"><span class="on">Mint</span><span>Burn</span><span>Transfer ownership</span><span>Flags</span></span></span></div>
+          <div class="row rise" style="gap:10px;padding:12px 14px;border-radius:var(--r);background:var(--card3);max-width:720px">
+            <div class="field on" style="flex:1"><span class="v num" style="font-size:16px">5,000</span><span class="end pink">PP</span></div>
+            <div class="field on" style="flex:1.6"><span class="v addr" style="color:var(--fg)">z1qq9n7fpaqd8lpcljandzmx4xtku9w4ftwyg0mq</span><span class="end"><span class="chip" style="height:22px">This address</span></span></div>
+            <button class="btn go" style="height:42px">Mint</button>
+          </div>
+          <span class="smallcap">9,000,000 left under the max supply.</span>
+        </div>
+      </td></tr>
+      <tr><td><svg class="i s faint"><use href="#star"/></svg></td><td><span class="row"><span class="coin g">W</span><span class="col"><span>Wrapped BTC</span><span class="addr" style="font-size:12px">WBTC · zts1wbtc…9ur2</span></span></span></td><td class="r num">0.0021</td><td class="r num">21.4</td><td class="addr">z1qxem…sd88</td><td class="r"><svg class="i s faint"><use href="#chev"/></svg></td></tr>
+      <tr><td><svg class="i s faint"><use href="#star"/></svg></td><td><span class="row"><span class="coin g">L</span><span class="col"><span>ZNN-ETH LP</span><span class="addr" style="font-size:12px">LP · zts1lp…x4qa</span></span></span></td><td class="r num">12.4</td><td class="r num">5,210</td><td class="addr">z1qpx3…m7ua</td><td class="r"><svg class="i s faint"><use href="#chev"/></svg></td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="token-new" data-nav="tokens" data-group="Plasma, Tokens" data-title="Create token: stepper">
+<div class="pg">
+  <div class="card" style="flex:1">
+    <div class="hd"><button class="btn xs ghost"><svg class="i s"><use href="#chevl"/></svg>Tokens</button>Create token<span class="end"><svg class="i s faint"><use href="#x"/></svg></span></div>
+    <div class="bd" style="flex-direction:row;gap:0;padding:0">
+      <div class="col" style="width:300px;padding:20px;border-right:1px solid var(--line);gap:18px">
+        <div class="steps" style="flex-direction:column;align-items:stretch;gap:14px">
+          <span class="on"><b>1</b>Name and symbol</span>
+          <span><b>2</b>Supply</span>
+          <span><b>3</b>Options</span>
+          <span><b>4</b>Issue</span>
+        </div>
+        <div class="line"></div>
+        <div class="kv" style="font-size:13px"><span class="lab">Fee</span><span class="num">1 ZNN <span class="dim">burned</span></span><span class="lab">Have</span><span class="num">1,204.5 ZNN</span></div>
+        <div class="col" style="gap:8px;padding:12px;border-radius:var(--r);background:var(--card2)"><span class="lab">Preview</span><span class="row"><span class="coin p">M</span><span class="col"><span>Moon Tokens</span><span class="addr" style="font-size:12px">MOON · zts1…</span></span></span></div>
+      </div>
+      <div class="col rise" style="flex:1;padding:24px 28px;gap:14px;max-width:620px">
+        <div class="row" style="gap:12px">
+          <div class="col" style="gap:6px;flex:1.6"><span class="lab">Name</span><div class="field on"><span class="v">Moon Tokens</span></div></div>
+          <div class="col" style="gap:6px;flex:1"><span class="lab">Symbol</span><div class="field on"><span class="v num">MOON</span><span class="end"><svg class="i s znn"><use href="#check"/></svg></span></div></div>
+        </div>
+        <div class="col" style="gap:6px"><span class="lab">Domain</span><div class="field"><span class="ph">example.com</span></div><span class="smallcap">Optional. Where the token is described.</span></div>
+        <div class="row" style="gap:8px;margin-top:8px"><button class="btn" disabled>Back</button><button class="btn go">Continue</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ===== P2P Swap ===== -->
+<section class="scr" id="swap-list" data-nav="swap" data-group="Swap, Accelerator" data-title="Swap: list with an active swap opened">
+<div class="pg">
+  <div class="card stripcard">
+    <div class="stat"><span class="lab">Active</span><span class="v">1</span></div>
+    <div class="stat"><span class="lab">Completed</span><span class="v">4</span></div>
+    <div class="stat"><span class="lab">To reclaim</span><span class="v">0</span></div>
+    <div class="acts"><button class="btn"><svg class="i"><use href="#link"/></svg>Join swap</button><button class="btn go"><svg class="i"><use href="#plus"/></svg>Start swap</button></div>
+  </div>
+  <div class="card" style="flex:1">
+    <div class="hd">Swaps<span class="cnt">5</span><span class="end"><span class="chip">All <svg class="i xs"><use href="#chev"/></svg></span><button class="btn xs ghost"><svg class="i s"><use href="#more"/></svg></button></span></div>
+    <table>
+      <tr><th>Status</th><th>You send</th><th>You receive</th><th>Counterparty</th><th>Expires</th><th></th></tr>
+      <tr class="open"><td><span class="chip wait"><span class="dot blue live" style="width:6px;height:6px"></span>Waiting</span></td><td class="num">100 ZNN</td><td class="num">1,000 QSR</td><td class="addr">z1qpx3…m7ua</td><td><span class="num dim">23 h 12 m</span></td><td class="r"><svg class="i s faint" style="transform:rotate(180deg)"><use href="#chev"/></svg></td></tr>
+      <tr class="sub"><td colspan="6">
+        <div class="col" style="padding:0 0 12px 0;gap:12px">
+          <div class="row" style="gap:10px;padding:10px 12px;border-radius:var(--r);background:var(--card3)"><svg class="i s qsr"><use href="#info"/></svg><span style="font-size:13.5px">Waiting for the counterparty. Keep Syrius open.</span><span class="dim" style="margin-left:auto;font-size:12.5px">They join within 23 h, or your deposit comes back.</span></div>
+          <div class="kv" style="grid-template-columns:auto 1fr auto 1fr;gap:6px 20px;font-size:13px">
+            <span class="lab">Your deposit ID</span><span class="addr" style="color:var(--fg)">a94c3f…e1b8 <svg class="i xs"><use href="#copy"/></svg> <button class="btn xs" style="margin-left:6px">Copy for them</button></span>
+            <span class="lab">Counterparty</span><span class="addr">z1qpx3lm9ue4a6pz0t2gs3x8r5cq2wkz8vk7w0m7ua</span>
+            <span class="lab">Rate</span><span class="num">1 ZNN = 10 QSR</span>
+            <span class="lab">Hashlock</span><span class="addr">3b7f…9c21</span>
+            <span class="lab">Started</span><span>48 min ago <a class="dim"><svg class="i xs"><use href="#ext"/></svg> explorer</a></span>
+            <span class="lab">Secret</span><span class="dim">Kept on this computer until they join</span>
+          </div>
+        </div>
+      </td></tr>
+      <tr><td><span class="chip ok"><svg class="i xs"><use href="#check"/></svg>Completed</span></td><td class="num">50 ZNN</td><td class="num">2 WBTC</td><td class="addr">Alice</td><td class="dim">3 d ago</td><td class="r"><svg class="i s faint"><use href="#chev"/></svg></td></tr>
+      <tr><td><span class="chip ok"><svg class="i xs"><use href="#check"/></svg>Completed</span></td><td class="num">1,000 QSR</td><td class="num">100 ZNN</td><td class="addr">z1qr4p…9d2a</td><td class="dim">9 d ago</td><td class="r"><svg class="i s faint"><use href="#chev"/></svg></td></tr>
+      <tr><td><span class="chip">Reclaimed</span></td><td class="num">20 ZNN</td><td class="num">200 PP</td><td class="addr">z1qz8v…k3ey</td><td class="dim">21 d ago</td><td class="r"><svg class="i s faint"><use href="#chev"/></svg></td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="swap-start" data-nav="swap" data-group="Swap, Accelerator" data-title="Start swap: the transfer shape in a dialog">
+<div class="pg">
+  <div class="card stripcard"><div class="stat"><span class="lab">Active</span><span class="v">1</span></div><div class="stat"><span class="lab">Completed</span><span class="v">4</span></div><div class="stat"><span class="lab">To reclaim</span><span class="v">0</span></div><div class="acts"><button class="btn">Join swap</button><button class="btn go">Start swap</button></div></div>
+  <div class="card" style="flex:1"><div class="hd">Swaps<span class="cnt">5</span></div><div class="bd"><div class="skel" style="width:60%"></div><div class="skel" style="width:40%"></div></div></div>
+</div>
+<div class="ov">
+  <div class="dlg" style="width:480px">
+    <div class="hd">Start swap<span class="end"><a class="dim" style="font-size:13px;font-weight:400">How it works</a><svg class="i s faint"><use href="#x"/></svg></span></div>
+    <div class="bd" style="gap:10px">
+      <div class="col" style="gap:6px;padding:14px;border-radius:12px;background:var(--card2);border:1px solid var(--line)">
+        <span class="row sp lab"><span>You send</span><span style="text-transform:none">Address 2 · 1,204.5 ZNN</span></span>
+        <div class="row" style="gap:10px"><span class="col" style="flex:1"><span class="num" style="font-size:28px">100</span><span class="usd" style="margin-left:0">$62.00</span></span><span class="chip on" style="height:34px;font-size:14px"><span class="coin z" style="width:20px;height:20px;font-size:9px">Z</span>ZNN <svg class="i xs"><use href="#chev"/></svg></span></div>
+      </div>
+      <div style="display:flex;justify-content:center;margin:-16px 0;position:relative;z-index:1"><span class="ic" style="background:var(--card3);border:1px solid var(--line);color:var(--fg)"><svg class="i s"><use href="#swap"/></svg></span></div>
+      <div class="col" style="gap:6px;padding:14px;border-radius:12px;background:var(--card2);border:1px solid var(--line)">
+        <span class="row sp lab"><span>You receive</span><span style="text-transform:none">to Address 2</span></span>
+        <div class="row" style="gap:10px"><span class="col" style="flex:1"><span class="num" style="font-size:28px">1,000</span><span class="usd" style="margin-left:0">$31.00</span></span><span class="chip on" style="height:34px;font-size:14px"><span class="coin q" style="width:20px;height:20px;font-size:9px">Q</span>QSR <svg class="i xs"><use href="#chev"/></svg></span></div>
+      </div>
+      <div class="col" style="gap:6px"><span class="lab">Counterparty</span><div class="field on"><span class="v addr" style="color:var(--fg)">z1qpx3lm9ue4a6pz0t2gs3x8r5cq2wkz8vk7w0m7ua</span><span class="end"><svg class="i s"><use href="#book"/></svg></span></div></div>
+      <div class="row sp" style="font-size:13px"><span class="dim">Rate <span class="num" style="color:var(--fg)">1 ZNN = 10 QSR</span></span><span class="dim">They join within <span class="num" style="color:var(--fg)">24 h</span></span></div>
+      <span class="note"><svg class="i s warn"><use href="#warn"/></svg>Experimental. Funds can be lost; split a large swap. The wallet does not auto-lock during a swap.</span>
+    </div>
+    <div class="ft"><button class="btn">Cancel</button><button class="btn go">Start swap</button></div>
+  </div>
+</div>
+</section>
+
+<!-- ===== Accelerator ===== -->
+<section class="scr" id="az" data-nav="az" data-group="Swap, Accelerator" data-title="Accelerator: projects with votes in the row">
+<div class="pg">
+  <div class="card stripcard">
+    <div class="stat"><span class="lab">Fund</span><span class="v">1,000,000 <span class="znn" style="font-size:13px">ZNN</span> <span class="dim" style="font-size:13px">·</span> 10,000,000 <span class="qsr" style="font-size:13px">QSR</span></span></div>
+    <div class="stat"><span class="lab">Voting</span><span class="v">6 <span class="dim" style="font-size:13px">need your pillar</span></span></div>
+    <div class="acts"><button class="btn"><svg class="i"><use href="#hand"/></svg>Donate</button><button class="btn go"><svg class="i"><use href="#plus"/></svg>Create project</button></div>
+  </div>
+  <div class="card" style="flex:1">
+    <div class="hd" style="gap:14px"><div class="seg"><span class="on">Voting</span><span>Active</span><span>Mine</span><span>All</span></div><span class="end"><span class="field" style="height:30px;width:220px;font-size:13px"><svg class="i s"><use href="#search"/></svg><span class="ph">Search</span></span><span class="chip"><svg class="i xs"><use href="#sort"/></svg>Newest</span></span></div>
+    <table>
+      <tr><th>Project</th><th class="r">Budget</th><th>Votes</th><th>Quorum</th><th>Status</th><th></th></tr>
+      <tr><td><span class="col"><span>Sentinel snapshot sync</span><span class="addr" style="font-size:12px">by z1qz9zr…yrn2un · 2 d ago</span></span></td><td class="r num">5,000 ZNN<br><span class="dim">50,000 QSR</span></td><td><span class="row" style="gap:8px"><span class="votes"><b class="y" style="width:62%"></b><b class="n" style="width:14%"></b><b class="a" style="width:6%"></b></span><span class="num dim" style="font-size:12px">21 · 5 · 2</span></span></td><td><span class="num">28 of 33</span></td><td><span class="chip need"><svg class="i xs"><use href="#vote"/></svg>Your vote</span></td><td class="r"><svg class="i s faint"><use href="#chevr"/></svg></td></tr>
+      <tr><td><span class="col"><span>Syrius desktop redesign</span><span class="addr" style="font-size:12px">by Address 2 · 5 d ago</span></span></td><td class="r num">12,000 ZNN<br><span class="dim">120,000 QSR</span></td><td><span class="row" style="gap:8px"><span class="votes"><b class="y" style="width:80%"></b><b class="n" style="width:4%"></b></span><span class="num dim" style="font-size:12px">33 · 2 · 0</span></span></td><td><span class="num">35 of 33</span></td><td><span class="chip ok"><svg class="i xs"><use href="#check"/></svg>Accepted</span></td><td class="r"><svg class="i s faint"><use href="#chevr"/></svg></td></tr>
+      <tr><td><span class="col"><span>PTLC on mainnet</span><span class="addr" style="font-size:12px">by z1qr4p…9d2a · 6 d ago</span></span></td><td class="r num">8,000 ZNN<br><span class="dim">0 QSR</span></td><td><span class="row" style="gap:8px"><span class="votes"><b class="y" style="width:30%"></b><b class="n" style="width:38%"></b><b class="a" style="width:8%"></b></span><span class="num dim" style="font-size:12px">11 · 14 · 3</span></span></td><td><span class="num">28 of 33</span></td><td><span class="chip need"><svg class="i xs"><use href="#vote"/></svg>Your vote</span></td><td class="r"><svg class="i s faint"><use href="#chevr"/></svg></td></tr>
+      <tr><td><span class="col"><span>Rust client, phase 2</span><span class="addr" style="font-size:12px">by z1qpx3…m7ua · 12 d ago</span></span></td><td class="r num">20,000 ZNN<br><span class="dim">200,000 QSR</span></td><td><span class="row" style="gap:8px"><span class="votes"><b class="y" style="width:50%"></b><b class="n" style="width:10%"></b></span><span class="num dim" style="font-size:12px">18 · 4 · 0</span></span></td><td><span class="num dim">22 of 33</span></td><td><span class="chip wait"><svg class="i xs"><use href="#clock"/></svg>Voting</span></td><td class="r"><svg class="i s faint"><use href="#chevr"/></svg></td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="az-project" data-nav="az" data-group="Swap, Accelerator" data-title="Accelerator: a project, opened by container transform">
+<div class="pg">
+  <div class="card" style="flex:1">
+    <div class="hd"><button class="btn xs ghost"><svg class="i s"><use href="#chevl"/></svg>Projects</button><span style="font-size:16px">Sentinel snapshot sync</span><span class="chip need" style="margin-left:4px"><svg class="i xs"><use href="#vote"/></svg>Your vote</span><span class="end"><a class="dim" style="font-size:13px;font-weight:400"><svg class="i xs"><use href="#ext"/></svg> Article</a><a class="dim" style="font-size:13px;font-weight:400"><svg class="i xs"><use href="#ext"/></svg> Explorer</a></span></div>
+    <div class="bd" style="flex-direction:row;gap:0;padding:0;min-height:0">
+      <div class="col" style="flex:1;padding:20px 24px;gap:16px;border-right:1px solid var(--line);min-width:0">
+        <div class="row" style="gap:28px">
+          <div class="stat col"><span class="lab">Budget</span><span class="num" style="font-size:19px">5,000 ZNN <span class="dim" style="font-size:13px">· 50,000 QSR</span></span></div>
+          <div class="stat col"><span class="lab">Owner</span><span class="addr" style="font-size:14px">z1qz9zr…yrn2un</span></div>
+          <div class="stat col"><span class="lab">Created</span><span>11 Oct 2026</span></div>
+        </div>
+        <p class="dim" style="margin:0;font-size:14px;max-width:62ch">State snapshots served by Sentinels so a new node syncs in minutes instead of days. Phase 1 is the snapshot format and the serving endpoint; phase 2 is verification against the state root.</p>
+        <div class="card" style="background:var(--card2)">
+          <div class="hd">Phases<span class="cnt">2</span><span class="end"><button class="btn xs" disabled>Create phase</button></span></div>
+          <table>
+            <tr><td><span class="col"><span>1 · Snapshot format and endpoint</span><span class="dim" style="font-size:12px">Proof: PR #14</span></span></td><td class="r num">2,000 ZNN<br><span class="dim">20,000 QSR</span></td><td><span class="row" style="gap:8px"><span class="votes"><b class="y" style="width:70%"></b><b class="n" style="width:6%"></b></span><span class="num dim" style="font-size:12px">23 · 2 · 0</span></span></td><td class="r"><span class="chip ok"><svg class="i xs"><use href="#check"/></svg>Paid</span></td></tr>
+            <tr><td><span class="col"><span>2 · Verification against the state root</span><span class="dim" style="font-size:12px">Proof: PR #19</span></span></td><td class="r num">3,000 ZNN<br><span class="dim">30,000 QSR</span></td><td><span class="row" style="gap:8px"><span class="votes"><b class="y" style="width:62%"></b><b class="n" style="width:14%"></b><b class="a" style="width:6%"></b></span><span class="num dim" style="font-size:12px">21 · 5 · 2</span></span></td><td class="r"><span class="chip wait"><svg class="i xs"><use href="#clock"/></svg>Voting</span></td></tr>
+          </table>
+        </div>
+      </div>
+      <div class="col" style="width:320px;padding:20px;gap:14px">
+        <span class="lab">Vote as dev1, phase 2</span>
+        <div class="row" style="gap:8px"><button class="btn go" style="flex:1">Yes</button><button class="btn" style="flex:1">No</button><button class="btn ghost">Abstain</button></div>
+        <div class="col" style="gap:8px;padding:12px;border-radius:var(--r);background:var(--card2)">
+          <div class="row sp" style="font-size:13px"><span class="dim">Yes</span><span class="num">21</span></div>
+          <div class="row sp" style="font-size:13px"><span class="dim">No</span><span class="num">5</span></div>
+          <div class="row sp" style="font-size:13px"><span class="dim">Abstain</span><span class="num">2</span></div>
+          <div class="line"></div>
+          <div class="row sp" style="font-size:13px"><span class="dim">Quorum</span><span class="num">28 of 33</span></div>
+          <div class="meter"><b style="width:85%;background:var(--znn)"></b></div>
+          <span class="smallcap">Needs 33 votes and more yes than no.</span>
+        </div>
+        <span class="smallcap">Voting closes in 9 d 4 h.</span>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ===== Settings: one section menu, groups closed ===== -->
+<section class="scr" id="set-node" data-nav="settings" data-group="Settings" data-title="Settings: Node, embedded node update">
+<div class="pg" style="flex-direction:row;gap:12px">
+  <div class="card" style="width:200px">
+    <div class="col" style="padding:8px">
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#book"/></svg>Addresses</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;background:var(--card2);color:var(--fg)"><svg class="i s znn"><use href="#globe"/></svg>Node</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#shield"/></svg>Security</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#eye"/></svg>Display</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#gear"/></svg>Wallet</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#link"/></svg>Apps</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#info"/></svg>About</a>
+    </div>
+  </div>
+  <div class="col" style="flex:1;gap:12px;min-width:0;overflow:hidden">
+    <div class="card">
+      <div class="hd">Nodes<span class="cnt">3</span><span class="end"><span class="row" style="gap:16px;font-size:12.5px;color:var(--dim)"><span class="row" style="gap:6px"><span class="dot live"></span>Synced</span><span>Momentum <span class="num">3,281,904</span></span><span>Peers <span class="num">23</span></span><span>Chain <span class="num">1</span></span></span><button class="btn xs"><svg class="i xs"><use href="#plus"/></svg>Add node</button></span></div>
+      <table>
+        <tr><td style="width:36px"><span class="radio on"></span></td><td><span class="col"><span>Embedded node</span><span class="addr" style="font-size:12px">ws://127.0.0.1:35998</span></span></td><td class="dim">Chain 1</td><td><span class="chip ok"><svg class="i xs"><use href="#check"/></svg>Connected</span></td><td class="r"><span class="num dim" style="font-size:12px">9 ms</span></td></tr>
+        <tr><td><span class="radio"></span></td><td><span class="col"><span>Zenon Hub</span><span class="addr" style="font-size:12px">wss://node.zenonhub.io:35998</span></span></td><td class="dim">Chain 1</td><td><span class="chip"><svg class="i xs"><use href="#check"/></svg>Reachable</span></td><td class="r"><span class="num dim" style="font-size:12px">41 ms</span></td></tr>
+        <tr><td><span class="radio"></span></td><td><span class="col"><span>Lab</span><span class="addr" style="font-size:12px">ws://127.0.0.1:45998</span></span></td><td class="warn">Chain 321</td><td><span class="chip bad"><svg class="i xs"><use href="#x"/></svg>Down</span></td><td class="r"><button class="btn xs ghost"><svg class="i xs"><use href="#trash"/></svg></button></td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <div class="hd">Embedded node<span class="end"><span class="chip new">v0.0.9 is out</span></span></div>
+      <div class="bd" style="gap:12px">
+        <div class="kv" style="grid-template-columns:auto 1fr auto 1fr;gap:6px 20px"><span class="lab">Running</span><span class="num">v0.0.8 <span class="dim">bundled</span></span><span class="lab">Newest</span><span class="num">v0.0.9-alphanet <span class="dim">10 Oct 2026</span></span><span class="lab">Data</span><span class="addr">%AppData%\znn <svg class="i xs"><use href="#ext"/></svg></span><span class="lab">Checked</span><span class="dim">2 h ago, every 6 h</span></div>
+        <div class="col" style="gap:10px;padding:12px 14px;border-radius:var(--r);background:var(--card2)">
+          <div class="row sp"><span class="row" style="gap:8px"><svg class="i s znn"><use href="#check"/></svg><span>libznn-windows-amd64.zip downloaded and verified</span></span><span class="addr" style="font-size:12px">sha256 e89338…70c42</span></div>
+          <div class="row" style="gap:16px;font-size:12.5px;color:var(--dim)"><span class="row" style="gap:6px"><svg class="i xs znn"><use href="#check"/></svg>Matches the release checksum file</span><span class="row" style="gap:6px"><svg class="i xs znn"><use href="#check"/></svg>Matches GitHub's digest</span></div>
+          <div class="row" style="gap:8px"><button class="btn sm go">Install, restart node</button><button class="btn sm ghost">Use bundled node</button><button class="btn sm ghost">Install from file</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="card"><div class="hd closed">Chain identifier<span class="end"><span class="num dim" style="font-weight:400;font-size:13px">1 · follows the node</span><svg class="i s chev"><use href="#chev"/></svg></span></div></div>
+    <div class="card"><div class="hd closed">Peers<span class="cnt">23</span><span class="end"><svg class="i s chev"><use href="#chev"/></svg></span></div></div>
+    <div class="card"><div class="hd closed">Sporks<span class="cnt">12</span><span class="end"><span class="dim" style="font-weight:400;font-size:12.5px">Sporks mode</span><svg class="i s chev"><use href="#chev"/></svg></span></div></div>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="set-security" data-nav="settings" data-group="Settings" data-title="Settings: Security, settings apply when chosen">
+<div class="pg" style="flex-direction:row;gap:12px">
+  <div class="card" style="width:200px">
+    <div class="col" style="padding:8px">
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#book"/></svg>Addresses</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#globe"/></svg>Node</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;background:var(--card2);color:var(--fg)"><svg class="i s znn"><use href="#shield"/></svg>Security</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#eye"/></svg>Display</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#gear"/></svg>Wallet</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#link"/></svg>Apps</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#info"/></svg>About</a>
+    </div>
+  </div>
+  <div class="col" style="flex:1;gap:12px;min-width:0;overflow:hidden">
+    <div class="card">
+      <div class="bd" style="gap:0;padding:0">
+        <div class="row sp" style="padding:9px 16px"><span class="col"><span>Lock after</span><span class="dim" style="font-size:12.5px">Of inactivity</span></span><div class="seg"><span>5 min</span><span class="on">15 min</span><span>1 h</span><span>On close</span></div></div>
+        <div class="line"></div>
+        <div class="row sp" style="padding:9px 16px"><span class="col"><span>Unlock with Windows Hello</span><span class="dim" style="font-size:12.5px">The password still works. Later.</span></span><span class="sw"></span></div>
+        <div class="line"></div>
+        <div class="row sp" style="padding:9px 16px"><span class="col"><span>Remove this wallet after wrong passwords</span><span class="dim" style="font-size:12.5px">On by default. The wallet file is deleted after the limit. Back up the seed first.</span></span><div class="row" style="gap:10px"><div class="seg"><span>Off</span><span class="on">3</span><span>5</span><span>10</span></div></div></div>
+        <div class="line"></div>
+        <div class="row sp" style="padding:9px 16px"><span>Password</span><button class="btn sm">Change</button></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="hd">Backup</div>
+      <div class="bd" style="gap:0;padding:0">
+        <div class="row sp" style="padding:9px 16px"><span class="col"><span>Seed phrase</span><span class="dim" style="font-size:12.5px">Shown on screen, in clear</span></span><button class="btn sm"><svg class="i s"><use href="#eye"/></svg>Show</button></div>
+        <div class="line"></div>
+        <div class="row sp" style="padding:9px 16px"><span class="col"><span>Seed Vault</span><span class="dim" style="font-size:12.5px">An encrypted file of the seed</span></span><button class="btn sm"><svg class="i s"><use href="#dl"/></svg>Export</button></div>
+      </div>
+    </div>
+    <div class="card"><div class="hd closed">Sign a message<span class="end"><svg class="i s chev"><use href="#chev"/></svg></span></div></div>
+    <div class="card"><div class="hd closed">Verify a signature<span class="end"><svg class="i s chev"><use href="#chev"/></svg></span></div></div>
+    <div class="card"><div class="hd closed">Remove wallet<span class="end"><span class="dim" style="font-weight:400;font-size:12.5px">Needs the seed or a Seed Vault</span><svg class="i s chev"><use href="#chev"/></svg></span></div></div>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="set-display" data-nav="settings" data-group="Settings" data-title="Settings: Display, dollar values">
+<div class="pg" style="flex-direction:row;gap:12px">
+  <div class="card" style="width:200px">
+    <div class="col" style="padding:8px">
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#book"/></svg>Addresses</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#globe"/></svg>Node</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#shield"/></svg>Security</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;background:var(--card2);color:var(--fg)"><svg class="i s znn"><use href="#eye"/></svg>Display</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#gear"/></svg>Wallet</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#link"/></svg>Apps</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#info"/></svg>About</a>
+    </div>
+  </div>
+  <div class="col" style="flex:1;gap:12px;min-width:0;overflow:hidden">
+    <div class="card">
+      <div class="bd" style="gap:0;padding:0">
+        <div class="row sp" style="padding:9px 16px"><span>Theme</span><div class="seg"><span>System</span><span class="on">Dark</span><span>Light</span></div></div>
+        <div class="line"></div>
+        <div class="row sp" style="padding:9px 16px"><span>Text size</span><div class="seg"><span>Small</span><span class="on">Default</span><span>Large</span></div></div>
+        <div class="line"></div>
+        <div class="row sp" style="padding:9px 16px"><span>Language</span><span class="chip" style="height:30px">English <svg class="i xs"><use href="#chev"/></svg></span></div>
+        <div class="line"></div>
+        <div class="row sp" style="padding:9px 16px"><span class="col"><span>Menu</span><span class="dim" style="font-size:12.5px">Icons only, labels on hover</span></span><div class="seg"><span class="on">Icons</span><span>Labels</span></div></div>
+        <div class="line"></div>
+        <div class="row sp" style="padding:9px 16px"><span class="col"><span>Hide balances</span><span class="dim" style="font-size:12.5px">Also the eye on Home</span></span><span class="sw"></span></div>
+        <div class="line"></div>
+        <div class="row sp" style="padding:9px 16px"><span class="col"><span>Dollar values</span><span class="dim" style="font-size:12.5px">ZNN and QSR at CoinGecko's price, asked once a minute while a value is on screen. Mainnet's price on every chain.</span></span><span class="sw on"></span></div>
+        <div class="line"></div>
+        <div class="row sp" style="padding:9px 16px"><span class="col"><span>Explorer</span><span class="dim" style="font-size:12.5px">Links follow the chain. None off chain 1.</span></span><span class="chip" style="height:30px">explorer.zenon.network <svg class="i xs"><use href="#chev"/></svg></span></div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="set-wallet" data-nav="settings" data-group="Settings" data-title="Settings: Wallet, modes">
+<div class="pg" style="flex-direction:row;gap:12px">
+  <div class="card" style="width:200px">
+    <div class="col" style="padding:8px">
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#book"/></svg>Addresses</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#globe"/></svg>Node</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#shield"/></svg>Security</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#eye"/></svg>Display</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;background:var(--card2);color:var(--fg)"><svg class="i s znn"><use href="#gear"/></svg>Wallet</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#link"/></svg>Apps</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#info"/></svg>About</a>
+    </div>
+  </div>
+  <div class="col" style="flex:1;gap:12px;min-width:0;overflow:hidden">
+    <div class="card">
+      <div class="bd" style="gap:0;padding:0">
+        <div class="row sp" style="padding:9px 16px"><span class="col"><span>Auto-receive</span><span class="dim" style="font-size:12.5px">Off: receive each transaction by hand</span></span><span class="sw on"></span></div>
+        <div class="line"></div>
+        <div class="row sp" style="padding:9px 16px"><span class="col"><span>Desktop notifications</span><span class="dim" style="font-size:12.5px">Incoming funds and zaps when the window is in the tray</span></span><span class="sw on"></span></div>
+        <div class="line"></div>
+        <div class="row sp" style="padding:9px 16px"><span>Launch at startup</span><span class="sw"></span></div>
+        <div class="line"></div>
+        <div class="row sp" style="padding:9px 16px"><span class="col"><span>Modes</span><span class="dim" style="font-size:12.5px">Auto: shown when the selected address owns one</span></span><span class="row" style="gap:12px;font-size:13px"><span class="row" style="gap:6px">Pillar <span class="seg"><span class="on">Auto</span><span>On</span><span>Off</span></span></span><span class="row" style="gap:6px">Sentinel <span class="seg"><span class="on">Auto</span><span>On</span><span>Off</span></span></span><span class="row" style="gap:6px">Sporks <span class="seg"><span>Auto</span><span>On</span><span class="on">Off</span></span></span></span></div>
+        <div class="line"></div>
+        <div class="row sp" style="padding:9px 16px"><span class="col"><span>Delete cache</span><span class="dim" style="font-size:12.5px">Node data and notifications. Labels, contacts and favorites stay.</span></span><button class="btn sm">Delete</button></div>
+      </div>
+    </div>
+    <div class="card"><div class="hd closed">Wallets on this computer<span class="cnt">3</span><span class="end"><span class="dim" style="font-weight:400;font-size:12.5px">Rename, remove, add</span><svg class="i s chev"><use href="#chev"/></svg></span></div></div>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="set-apps" data-nav="settings" data-group="Settings" data-title="Settings: Apps (was the Connected sites page)">
+<div class="pg" style="flex-direction:row;gap:12px">
+  <div class="card" style="width:200px">
+    <div class="col" style="padding:8px">
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#book"/></svg>Addresses</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#globe"/></svg>Node</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#shield"/></svg>Security</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#eye"/></svg>Display</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#gear"/></svg>Wallet</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;background:var(--card2);color:var(--fg)"><svg class="i s znn"><use href="#link"/></svg>Apps</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#info"/></svg>About</a>
+    </div>
+  </div>
+  <div class="col" style="flex:1;gap:12px;min-width:0;overflow:hidden">
+    <div class="card">
+      <div class="row sp" style="padding:9px 16px"><span class="col"><span>Web apps</span><span class="dim" style="font-size:12.5px">Pages on this computer may ask to connect. <span class="addr">127.0.0.1:35996</span></span></span><span class="sw on"></span></div>
+    </div>
+    <div class="card" style="flex:1">
+      <div class="hd">Connected<span class="cnt">2</span><span class="end"><button class="btn xs"><svg class="i xs"><use href="#plus"/></svg>Connect by link</button></span></div>
+      <table>
+        <tr><th>Site</th><th>Address</th><th>Last used</th><th>Via</th><th class="r"></th></tr>
+        <tr><td><span class="row" style="gap:8px"><span class="coin g" style="width:22px;height:22px;font-size:9px">B</span>bridge.zenon.foo</span></td><td>Address 2</td><td class="dim">3 h ago</td><td class="dim">Web app</td><td class="r"><button class="btn xs ghost">Disconnect</button></td></tr>
+        <tr><td><span class="row" style="gap:8px"><span class="coin g" style="width:22px;height:22px;font-size:9px">G</span>glyphswap.zenon.foo</span></td><td>Address 1</td><td class="dim">2 d ago</td><td class="dim">WalletConnect</td><td class="r"><button class="btn xs ghost">Disconnect</button></td></tr>
+      </table>
+    </div>
+    <div class="card"><div class="hd closed">WalletConnect<span class="end"><span class="dim" style="font-weight:400;font-size:12.5px">1 session · 1 pairing</span><svg class="i s chev"><use href="#chev"/></svg></span></div></div>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="set-addresses" data-nav="settings" data-group="Settings" data-title="Settings: Addresses, labels, contacts">
+<div class="pg" style="flex-direction:row;gap:12px">
+  <div class="card" style="width:200px">
+    <div class="col" style="padding:8px">
+      <a class="row" style="padding:9px 10px;border-radius:6px;background:var(--card2);color:var(--fg)"><svg class="i s znn"><use href="#book"/></svg>Addresses</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#globe"/></svg>Node</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#shield"/></svg>Security</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#eye"/></svg>Display</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#gear"/></svg>Wallet</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#link"/></svg>Apps</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#info"/></svg>About</a>
+    </div>
+  </div>
+  <div class="col" style="flex:1;gap:12px;min-width:0;overflow:hidden">
+    <div class="card">
+      <div class="hd">Your addresses<span class="cnt">4</span><span class="end"><button class="btn xs"><svg class="i xs"><use href="#plus"/></svg>Add address</button></span></div>
+      <table>
+        <tr><td style="width:36px"><span class="radio"></span></td><td><span class="col"><span>Address 1</span><span class="addr" style="font-size:12px">z1qq9n7fpaqd8lpcljandzmx4xtku9w4ftwyg0mq</span></span></td><td class="r num">0.5 ZNN</td><td class="r num dim">120 QSR</td><td class="r"><span class="row" style="gap:4px;justify-content:flex-end"><button class="ic"><svg class="i s"><use href="#edit"/></svg></button><button class="ic"><svg class="i s"><use href="#copy"/></svg></button></span></td></tr>
+        <tr><td><span class="radio on"></span></td><td><span class="col"><span>Address 2 <span class="chip ok" style="height:20px;font-size:11px">selected</span></span><span class="addr" style="font-size:12px">z1qq6eg8n43g032hanpsfp02qcdmv7zfj3y2lt5d</span></span></td><td class="r num">1,204.5 ZNN</td><td class="r num dim">12,880 QSR</td><td class="r"><span class="row" style="gap:4px;justify-content:flex-end"><button class="ic"><svg class="i s"><use href="#edit"/></svg></button><button class="ic"><svg class="i s"><use href="#copy"/></svg></button></span></td></tr>
+        <tr><td><span class="radio"></span></td><td><span class="col"><span>Sentinel <span class="dim" style="font-size:12px">Address 3</span></span><span class="addr" style="font-size:12px">z1qzmzssx28dc0fmvlca05hyxk2kgkgu7n0cj8pl</span></span></td><td class="r num">5,000 ZNN</td><td class="r num dim">50,000 QSR</td><td class="r"><span class="row" style="gap:4px;justify-content:flex-end"><button class="ic"><svg class="i s"><use href="#edit"/></svg></button><button class="ic"><svg class="i s"><use href="#copy"/></svg></button></span></td></tr>
+        <tr><td><span class="radio"></span></td><td><span class="col"><span>Address 4</span><span class="addr" style="font-size:12px">z1qp3yph55qgresyytz83anynr2f4z39x2z3ej3e</span></span></td><td class="r num">0 ZNN</td><td class="r num dim">0 QSR</td><td class="r"><span class="row" style="gap:4px;justify-content:flex-end"><button class="ic"><svg class="i s"><use href="#edit"/></svg></button><button class="ic"><svg class="i s"><use href="#copy"/></svg></button></span></td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <div class="hd">Contacts<span class="cnt">3</span><span class="end"><button class="btn xs"><svg class="i xs"><use href="#plus"/></svg>Add contact</button></span></div>
+      <table>
+        <tr><td>Alice</td><td class="addr">z1qr4pm3x9ue2a6kz0t2g8s3x5c7q1wl4r9d2a</td><td class="dim">Sent 55 min ago</td><td class="r"><span class="row" style="gap:4px;justify-content:flex-end"><button class="btn xs">Send</button><button class="ic"><svg class="i s"><use href="#edit"/></svg></button></span></td></tr>
+        <tr><td>Exchange</td><td class="addr">z1qpx3lm9ue4a6pz0t2gs3x8r5cq2wkz8vk7w0m7ua</td><td class="dim">Sent 12 d ago</td><td class="r"><span class="row" style="gap:4px;justify-content:flex-end"><button class="btn xs">Send</button><button class="ic"><svg class="i s"><use href="#edit"/></svg></button></span></td></tr>
+      </table>
+    </div>
+    <div class="card"><div class="hd closed">Account chain of Address 2<span class="end"><span class="num dim" style="font-weight:400;font-size:12.5px">7 blocks</span><svg class="i s chev"><use href="#chev"/></svg></span></div></div>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="set-about" data-nav="settings" data-group="Settings" data-title="Settings: About">
+<div class="pg" style="flex-direction:row;gap:12px">
+  <div class="card" style="width:200px">
+    <div class="col" style="padding:8px">
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#book"/></svg>Addresses</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#globe"/></svg>Node</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#shield"/></svg>Security</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#eye"/></svg>Display</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#gear"/></svg>Wallet</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#link"/></svg>Apps</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;background:var(--card2);color:var(--fg)"><svg class="i s znn"><use href="#info"/></svg>About</a>
+    </div>
+  </div>
+  <div class="col" style="flex:1;gap:12px;min-width:0;overflow:hidden">
+    <div class="card stripcard">
+      <div class="stat"><span class="lab">Syrius</span><span class="v">0.2.5</span></div>
+      <div class="stat"><span class="lab">Embedded node</span><span class="v">v0.0.8</span></div>
+      <div class="stat"><span class="lab">Build</span><span class="v dim" style="font-size:14px">da7eeab3 · 13 Oct 2026</span></div>
+      <div class="acts"><span class="chip new" style="align-self:center">0.3.0 is out</span><button class="btn sm">What changed</button><button class="btn go"><svg class="i"><use href="#dl"/></svg>Download and verify</button></div>
+    </div>
+    <div class="card"><div class="hd closed">Links<span class="cnt">14</span><span class="end"><span class="dim" style="font-weight:400;font-size:12.5px">Docs, explorers, community</span><svg class="i s chev"><use href="#chev"/></svg></span></div></div>
+    <div class="card"><div class="hd closed">This computer<span class="end"><span class="dim" style="font-weight:400;font-size:12.5px">Paths, platform, wallet type</span><svg class="i s chev"><use href="#chev"/></svg></span></div></div>
+    <div class="card"><div class="hd closed">Licences<span class="end"><svg class="i s chev"><use href="#chev"/></svg></span></div></div>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="set-licences" data-nav="settings" data-group="Settings" data-title="Settings: Licences, scrolled to the end">
+<div class="pg" style="flex-direction:row;gap:12px">
+  <div class="card" style="width:200px">
+    <div class="col" style="padding:8px">
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#book"/></svg>Addresses</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#globe"/></svg>Node</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#shield"/></svg>Security</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#eye"/></svg>Display</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#gear"/></svg>Wallet</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#link"/></svg>Apps</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;background:var(--card2);color:var(--fg)"><svg class="i s znn"><use href="#info"/></svg>About</a>
+    </div>
+  </div>
+  <div class="col" style="flex:1;gap:12px;min-width:0;overflow:hidden">
+    <div class="card"><div class="hd closed">Links<span class="cnt">14</span><span class="end"><span class="dim" style="font-weight:400;font-size:12.5px">Docs, explorers, community</span><svg class="i s chev"><use href="#chev"/></svg></span></div></div>
+    <div class="card"><div class="hd closed">This computer<span class="end"><span class="dim" style="font-weight:400;font-size:12.5px">Paths, platform, wallet type</span><svg class="i s chev"><use href="#chev"/></svg></span></div></div>
+    <div class="card" style="flex:1;overflow:hidden">
+      <div class="hd">Licences<span class="end"><svg class="i s chev"><use href="#chev"/></svg></span></div>
+      <div style="position:relative;flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end">
+      <table>
+        <tr><td><span class="col"><span>webkit_inspection_protocol</span></span></td><td class="dim">BSD-3-Clause</td><td class="r"><svg class="i s faint" style="transform:rotate(-90deg)"><use href="#chev"/></svg></td></tr>
+        <tr><td><span class="col"><span>win32</span></span></td><td class="dim">BSD-3-Clause</td><td class="r"><svg class="i s faint" style="transform:rotate(-90deg)"><use href="#chev"/></svg></td></tr>
+        <tr><td><span class="col"><span>win32_registry</span></span></td><td class="dim">BSD-3-Clause</td><td class="r"><svg class="i s faint" style="transform:rotate(-90deg)"><use href="#chev"/></svg></td></tr>
+        <tr><td><span class="col"><span>window_manager</span></span></td><td class="dim">MIT</td><td class="r"><svg class="i s faint" style="transform:rotate(-90deg)"><use href="#chev"/></svg></td></tr>
+        <tr><td><span class="col"><span>x25519</span></span></td><td class="dim">Apache-2.0</td><td class="r"><svg class="i s faint" style="transform:rotate(-90deg)"><use href="#chev"/></svg></td></tr>
+        <tr><td><span class="col"><span>xdg_directories</span></span></td><td class="dim">BSD-3-Clause</td><td class="r"><svg class="i s faint" style="transform:rotate(-90deg)"><use href="#chev"/></svg></td></tr>
+        <tr><td><span class="col"><span>xml</span></span></td><td class="dim">MIT</td><td class="r"><svg class="i s faint" style="transform:rotate(-90deg)"><use href="#chev"/></svg></td></tr>
+        <tr><td><span class="col"><span>yaml</span></span></td><td class="dim">MIT</td><td class="r"><svg class="i s faint" style="transform:rotate(-90deg)"><use href="#chev"/></svg></td></tr>
+        <tr><td><span class="col"><span>yaml_writer</span></span></td><td class="dim">BSD-3-Clause</td><td class="r"><svg class="i s faint" style="transform:rotate(-90deg)"><use href="#chev"/></svg></td></tr>
+        <tr><td><span class="col"><span>znn_ledger_dart</span></span></td><td class="dim">MIT</td><td class="r"><svg class="i s faint" style="transform:rotate(-90deg)"><use href="#chev"/></svg></td></tr>
+        <tr><td><span class="col"><span>znn_sdk_dart</span></span></td><td class="dim">MIT</td><td class="r"><svg class="i s faint" style="transform:rotate(-90deg)"><use href="#chev"/></svg></td></tr>
+        <tr><td><span class="col"><span>zxing2</span></span></td><td class="dim">BSD-3-Clause</td><td class="r"><svg class="i s faint" style="transform:rotate(-90deg)"><use href="#chev"/></svg></td></tr>
+      </table>
+      <div style="padding:22px 16px 26px;border-top:1px solid var(--line)"><div class="field" style="width:132px;height:34px"></div></div>
+      <span style="position:absolute;right:4px;top:6px;bottom:6px;width:4px;border-radius:2px;background:var(--line)"><span style="position:absolute;left:0;right:0;bottom:0;height:46px;border-radius:2px;background:var(--faint)"></span></span>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="set-originals" data-nav="settings" data-group="Settings" data-title="Easter egg: 321 in the box at the end of Licences">
+<div class="pg" style="flex-direction:row;gap:12px">
+  <div class="card" style="width:200px">
+    <div class="col" style="padding:8px">
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#book"/></svg>Addresses</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#globe"/></svg>Node</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#shield"/></svg>Security</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#eye"/></svg>Display</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#gear"/></svg>Wallet</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#link"/></svg>Apps</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;background:var(--card2);color:var(--fg)"><svg class="i s znn"><use href="#info"/></svg>About</a>
+    </div>
+  </div>
+  <div class="col" style="flex:1;gap:12px;min-width:0;overflow:hidden">
+    <div class="card" style="overflow:hidden">
+      <div class="hd">Licences<span class="end"><svg class="i s chev"><use href="#chev"/></svg></span></div>
+      <div style="position:relative;flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end">
+      <table>
+        <tr><td><span class="col"><span>znn_sdk_dart</span></span></td><td class="dim">MIT</td><td class="r"><svg class="i s faint" style="transform:rotate(-90deg)"><use href="#chev"/></svg></td></tr>
+        <tr><td><span class="col"><span>zxing2</span></span></td><td class="dim">BSD-3-Clause</td><td class="r"><svg class="i s faint" style="transform:rotate(-90deg)"><use href="#chev"/></svg></td></tr>
+      </table>
+      <div style="padding:22px 16px 26px;border-top:1px solid var(--line)"><div class="field on" style="width:132px;height:34px"><span class="v num">321<span style="opacity:.5">|</span></span></div></div>
+      <span style="position:absolute;right:4px;top:6px;bottom:6px;width:4px;border-radius:2px;background:var(--line)"><span style="position:absolute;left:0;right:0;bottom:0;height:30px;border-radius:2px;background:var(--faint)"></span></span>
+      </div>
+    </div>
+    <div class="card rise">
+      <div class="hd">Originals<span class="end"><span class="lab">Since Syrius 0.0.5, April 2022</span><button class="btn xs"><svg class="i xs"><use href="#refresh"/></svg>Play launch</button></span></div>
+      <div class="bd" style="gap:14px">
+        <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px">
+          <div class="tile"><div class="art black"><span class="lot zoom" data-lot="splash" data-at="0.42" data-hover="1" style="width:420px;height:236px"></span></div><b>Launch</b><span>Every start, then the lock card</span></div>
+          <div class="tile"><div class="art"><span class="lot zoom" data-lot="welcome" data-at="0.4" data-loop="1" style="width:206px;height:116px"></span></div><b>Globe</b><span>Welcome</span></div>
+          <div class="tile"><div class="art"><span class="lot zoom" data-lot="map" data-at="0.5" data-loop="1" style="width:250px;height:141px"></span></div><b>Map</b><span>Wallet ready</span></div>
+          <div class="tile"><div class="art"><span class="lot" data-lot="pillar_small" data-at="0.99" data-hover="1" style="width:108px;height:108px"></span></div><b>Pillar</b><span>Your pillar, Spawn</span></div>
+          <div class="tile"><div class="art"><span class="lot" data-lot="sentinel_small" data-at="0.99" data-hover="1" style="width:108px;height:108px"></span></div><b>Sentinel</b><span>Your sentinel, Spawn</span></div>
+          <div class="tile"><div class="art"><span class="lot" data-lot="zts_small" data-at="0.99" data-hover="1" style="width:104px;height:104px"></span></div><b>ZTS</b><span>Tokens, Create token</span></div>
+        </div>
+        <div class="line"></div>
+        <div class="row" style="gap:26px;font-size:13px;color:var(--dim)"><span class="row" style="gap:8px"><span class="lot" data-lot="plasma_generation" data-at="0.45" data-loop="1" style="width:22px;height:22px"></span>Generating plasma, in the strip</span><span class="row" style="gap:8px"><span class="lot" data-lot="eye" data-at="0.4" data-loop="1" data-from="30" data-to="200" style="width:96px;height:96px;margin:-37px -36px"></span>Hidden balances</span><span class="row" style="gap:8px"><span class="lot" data-lot="no_data" data-at="0.2" data-loop="1" style="width:18px;height:18px"></span>Empty lists</span><span style="margin-left:auto" class="smallcap">Hover to play</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ===== Entry: launch, lock and onboarding (no rail) ===== -->
+<section class="scr" id="launch" data-shell="none" data-win="black" data-group="Entry" data-title="Launch: the original animation, full window">
+<div class="stage-black">
+  <span class="lot fill" data-lot="splash" data-at="0.42" data-fit="slice" data-hover="1"></span>
+  <div style="position:absolute;left:0;right:0;bottom:26px;display:flex;justify-content:center"><span style="font-size:12px;color:#5a5f5a;letter-spacing:.04em">Click or press a key to skip</span></div>
+</div>
+</section>
+
+<section class="scr" id="launch-settle" data-shell="none" data-group="Entry" data-title="Launch settles into the lock card">
+<div class="lockpage">
+  <div class="card" style="width:420px;background:var(--glass);border:1px solid var(--line);border-radius:12px;overflow:hidden;opacity:.4;transform:translateY(8px)">
+    <div style="height:118px"></div>
+    <div class="col" style="padding:20px 28px 22px;gap:14px">
+      <div class="col" style="gap:6px"><span class="lab">Wallet</span><div class="field"><svg class="i s"><use href="#key"/></svg><span class="v">Main <span class="addr" style="font-size:12.5px">z1qq9n…g0mq</span></span></div></div>
+      <div class="col" style="gap:6px"><span class="lab">Password</span><div class="field"><span class="ph">Password</span></div></div>
+      <button class="btn go" style="height:46px;font-size:16px"><svg class="i"><use href="#lock"/></svg>Unlock</button>
+      <div class="row sp" style="font-size:12.5px"><a class="dim">Add a wallet</a><a class="dim">Forgot the password</a></div>
+    </div>
+  </div>
+  <div class="well" style="position:absolute;left:50%;top:50%;width:780px;height:330px;transform:translate(-50%,-78%);border-radius:14px;box-shadow:0 30px 90px rgba(0,0,0,.55)"><span class="lot zoom" data-lot="splash" data-at="0.99" data-still="1" style="width:1040px;height:585px"></span></div>
+</div>
+</section>
+
+<section class="scr" id="lock-screen" data-shell="none" data-group="Entry" data-title="Lock screen: the launch animation's last frame heads the card">
+<div class="lockpage">
+  <div class="card" style="width:420px;background:var(--glass);backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.35)">
+    <div class="well" style="height:118px"><span class="lot zoom" data-lot="splash" data-at="0.99" data-from="14" data-hover="1" style="width:640px;height:360px"></span></div>
+    <div class="col" style="padding:20px 28px 22px;gap:14px">
+      <div class="col" style="gap:6px"><span class="lab">Wallet</span><div class="field on"><svg class="i s"><use href="#key"/></svg><span class="v">Main <span class="addr" style="font-size:12.5px">z1qq9n…g0mq</span></span><span class="end"><svg class="i s"><use href="#chev"/></svg></span></div></div>
+      <div class="col" style="gap:6px"><span class="lab">Password</span><div class="field on"><span class="v num" style="letter-spacing:.2em">••••••••••••</span><span class="end"><svg class="i s"><use href="#eye"/></svg></span></div></div>
+      <button class="btn go" style="height:46px;font-size:16px"><svg class="i"><use href="#lock"/></svg>Unlock</button>
+      <div class="row sp" style="font-size:12.5px"><a class="dim">Add a wallet</a><a class="dim">Forgot the password</a></div>
+    </div>
+  </div>
+  <div class="strip" style="position:absolute;left:16px;right:16px;bottom:14px">
+    <span class="row"><span class="dot live"></span>Embedded node <span class="num">#3,281,904</span></span>
+    <span class="end"><span class="row warn" style="gap:8px"><svg class="i s"><use href="#dl"/></svg>Syrius 0.3.0 is out<button class="btn xs">What changed</button></span></span>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="lock-wrong" data-shell="none" data-group="Entry" data-title="Lock screen: a wrong password, the limit counted down">
+<div class="lockpage">
+  <div class="card" style="width:420px;background:var(--glass);backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.35)">
+    <div class="well" style="height:118px"><span class="lot zoom" data-lot="splash" data-at="0.42" data-from="14" data-hover="1" style="width:640px;height:360px"></span></div>
+    <div class="col" style="padding:20px 28px 22px;gap:14px">
+      <div class="col" style="gap:6px"><span class="lab">Wallet</span><div class="field on"><svg class="i s"><use href="#key"/></svg><span class="v">Main <span class="addr" style="font-size:12.5px">z1qq9n…g0mq</span></span><span class="end"><svg class="i s"><use href="#chev"/></svg></span></div></div>
+      <div class="col" style="gap:6px"><span class="lab">Password</span><div class="field on" style="border-color:var(--err)"><span class="ph">Password</span><span class="end"><svg class="i s"><use href="#eye"/></svg></span></div>
+        <span class="note" style="color:var(--err)"><svg class="i s"><use href="#warn"/></svg><span><b>Incorrect password.</b> 2 tries left, then this wallet is removed from this computer.</span></span></div>
+      <button class="btn go" style="height:46px;font-size:16px"><svg class="i"><use href="#lock"/></svg>Unlock</button>
+      <div class="row sp" style="font-size:12.5px"><a class="dim">Add a wallet</a><a class="dim">Forgot the password</a></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="lock-pick" data-shell="none" data-group="Entry" data-title="Lock screen: choosing a wallet">
+<div class="lockpage">
+  <div class="card" style="width:420px;background:var(--glass);backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.35)">
+    <div class="well" style="height:118px"><span class="lot zoom" data-lot="splash" data-at="0.99" data-still="1" style="width:640px;height:360px"></span></div>
+    <div class="col" style="padding:20px 28px 22px;gap:14px">
+      <div class="col" style="gap:6px"><span class="lab">Wallet</span><div class="field on"><svg class="i s"><use href="#key"/></svg><span class="v">Main <span class="addr" style="font-size:12.5px">z1qq9n…g0mq</span></span><span class="end"><svg class="i s" style="transform:rotate(180deg)"><use href="#chev"/></svg></span></div>
+        <div class="sortmenu rise" style="position:static;margin-top:4px;width:100%">
+          <span class="on"><svg class="i s"><use href="#key"/></svg>Main<span class="addr" style="margin-left:auto;font-size:12px">z1qq9n…g0mq</span></span>
+          <span><svg class="i s"><use href="#usb"/></svg>Ledger<span class="addr" style="margin-left:auto;font-size:12px">z1qzmz…j8pl</span></span>
+          <span><svg class="i s"><use href="#key"/></svg>Lab devnet<span class="addr" style="margin-left:auto;font-size:12px">z1qp3y…ej3e</span></span>
+          <div class="line" style="margin:4px 0"></div>
+          <span><svg class="i s"><use href="#plus"/></svg>Add a wallet</span>
+        </div>
+      </div>
+      <div class="col" style="gap:6px"><span class="lab">Password</span><div class="field"><span class="ph">Password</span></div></div>
+      <button class="btn go" style="height:46px;font-size:16px" disabled>Unlock</button>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="welcome" data-shell="none" data-group="Entry" data-title="Welcome: the original globe, three ways in">
+<div class="lockpage">
+  <div class="row" style="gap:36px;align-items:center">
+    <div style="width:470px;height:470px;position:relative;overflow:hidden;flex:none"><span class="lot zoom" data-lot="welcome" data-at="0.4" data-loop="1" style="width:836px;height:470px"></span></div>
+    <div class="col" style="gap:12px;width:400px">
+      <span style="font-size:28px;font-weight:600">Welcome</span>
+      <span class="dim" style="margin-bottom:8px">One wallet, every address you will need.</span>
+      <a class="card" style="flex-direction:row;align-items:center;gap:14px;padding:14px 16px;border:1px solid var(--line)"><span class="ic" style="width:40px;height:40px;background:var(--plasma);color:#04140a"><svg class="i"><use href="#plus"/></svg></span><span class="col"><b style="font-weight:600">Create wallet</b><span class="dim" style="font-size:13px">A new seed of 12 or 24 words</span></span><svg class="i s faint" style="margin-left:auto"><use href="#chevr"/></svg></a>
+      <a class="card" style="flex-direction:row;align-items:center;gap:14px;padding:14px 16px;border:1px solid var(--line)"><span class="ic" style="width:40px;height:40px;background:var(--card2)"><svg class="i"><use href="#file"/></svg></span><span class="col"><b style="font-weight:600">Import wallet</b><span class="dim" style="font-size:13px">A seed, or a wallet file dropped here</span></span><svg class="i s faint" style="margin-left:auto"><use href="#chevr"/></svg></a>
+      <a class="card" style="flex-direction:row;align-items:center;gap:14px;padding:14px 16px;border:1px solid var(--line)"><span class="ic" style="width:40px;height:40px;background:var(--card2)"><svg class="i"><use href="#usb"/></svg></span><span class="col"><b style="font-weight:600">Hardware wallet</b><span class="dim" style="font-size:13px">Ledger, with the Zenon app open</span></span><svg class="i s faint" style="margin-left:auto"><use href="#chevr"/></svg></a>
+      <span class="smallcap" style="margin-top:6px">Node and chain can be changed later in Settings.</span>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="import" data-shell="none" data-group="Entry" data-title="Import: any file that parses as a keyfile">
+<div class="lockpage">
+  <div class="card" style="width:620px;padding:24px 28px 26px;gap:16px;border:1px solid var(--line)">
+    <div class="row" style="gap:10px"><button class="btn xs ghost"><svg class="i s"><use href="#chevl"/></svg>Back</button><span style="font-size:18px;font-weight:600">Import your wallet</span></div>
+    <div class="steps"><span class="on"><b>1</b>Seed or file</span><i></i><span><b>2</b>Password</span><i></i><span><b>3</b>Ready</span></div>
+    <div class="col" style="gap:10px;padding:22px;border:1.5px dashed var(--faint);border-radius:12px;align-items:center;background:var(--card2)">
+      <svg class="i" style="width:28px;height:28px;color:var(--faint)"><use href="#file"/></svg>
+      <span>Type your seed, or drop a wallet file</span>
+      <span class="smallcap">Any file name. It is accepted if it decrypts as a Syrius keyfile.</span>
+    </div>
+    <div class="field area on"><span class="v" style="color:var(--fg)">route tissue morning alien plasma stamp orbit velvet <span class="faint">…</span></span><span class="end num smallcap" style="align-self:flex-end">8 of 12</span></div>
+    <div class="row sp"><span class="seg"><span class="on">12 words</span><span>24 words</span></span><button class="btn go" disabled>Continue</button></div>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="seed-quiz" data-shell="none" data-group="Entry" data-title="New wallet: confirm three words">
+<div class="lockpage">
+  <div class="card" style="width:620px;padding:24px 28px 26px;gap:18px;border:1px solid var(--line)">
+    <div class="row" style="gap:10px"><button class="btn xs ghost"><svg class="i s"><use href="#chevl"/></svg>Back</button><span style="font-size:18px;font-weight:600">Confirm your seed</span></div>
+    <div class="steps"><span class="done"><b><svg class="i xs"><use href="#check"/></svg></b>Seed</span><i></i><span class="on"><b>2</b>Confirm</span><i></i><span><b>3</b>Password</span><i></i><span><b>4</b>Ready</span></div>
+    <div class="col" style="gap:14px">
+      <div class="row sp"><span>Word <span class="num">3</span></span><div class="row" style="gap:8px"><span class="chip">alien</span><span class="chip on">morning</span><span class="chip">stamp</span><span class="chip">velvet</span></div></div>
+      <div class="line"></div>
+      <div class="row sp"><span>Word <span class="num">7</span></span><div class="row" style="gap:8px"><span class="chip">orbit</span><span class="chip">tissue</span><span class="chip">plasma</span><span class="chip">route</span></div></div>
+      <div class="line"></div>
+      <div class="row sp"><span class="dim">Word <span class="num">11</span></span><div class="row" style="gap:8px"><span class="chip" style="opacity:.5">…</span></div></div>
+    </div>
+    <div class="row sp"><span class="smallcap">One of three done.</span><button class="btn go" disabled>Continue</button></div>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="wallet-ready" data-shell="none" data-group="Entry" data-title="Wallet ready: the original map">
+<div class="lockpage">
+  <span class="lot fill" data-lot="map" data-at="0.5" data-loop="1"></span>
+  <div class="card" style="width:540px;padding:26px 32px 24px;gap:16px;align-items:center;background:var(--glass);backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.35);position:relative;z-index:1">
+    <div class="steps" style="align-self:stretch"><span class="done"><b><svg class="i xs"><use href="#check"/></svg></b>Seed</span><i></i><span class="done"><b><svg class="i xs"><use href="#check"/></svg></b>Confirm</span><i></i><span class="done"><b><svg class="i xs"><use href="#check"/></svg></b>Password</span><i></i><span class="done"><b><svg class="i xs"><use href="#check"/></svg></b>Ready</span></div>
+    <span style="font-size:22px;font-weight:600;margin-top:6px">Your wallet is ready</span>
+    <div class="col" style="gap:4px;align-items:center"><span class="lab">Address 1</span><span class="addr" style="font-size:13.5px;color:var(--fg)">z1qq9n7fpaqd8lpcljandzmx4xtku9w4ftwyg0mq <svg class="i xs"><use href="#copy"/></svg></span></div>
+    <button class="btn go" style="height:46px;font-size:16px;align-self:stretch;margin-top:4px">Open wallet</button>
+  </div>
+</div>
+</section>
+
+    </div></div>
+    <ul class="notes" id="notes"></ul>
+  </div>
+</div>
+
+<script src="vendor/lottie.min.js"></script>
+<script>
+// Each .scr holds a page body; the shell (title bar, rail, status strip) is added here so it is written once.
+const NAV = [
+  ['home','Home','home','Ctrl 1'],['transfer','Transfer','send','Ctrl 2'],['staking','Staking','coins','Ctrl 3'],['nodes','Nodes','stack','Ctrl 4'],
+  ['plasma','Plasma','zap','Ctrl 5'],['tokens','Tokens','token','Ctrl 6'],['swap','Swap','swap','Ctrl 7'],['az','Accelerator','rocket','Ctrl 8']
+];
+const NAV2 = [['bell','Notifications','bell',''],['settings','Settings','gear','Ctrl ,'],['lock','Lock','lock','Ctrl L']];
+const ico = (n, cls) => `<svg class="i ${cls||''}"><use href="#${n}"/></svg>`;
+function rail(on, open, belldot){
+  const a = (n,l,i,k) => `<a class="${n===on?'on':''}">${ico(i)}<span>${l}</span>${n==='bell'&&belldot?'<span class="dot"></span>':''}</a>`;
+  return `<nav class="rail ${open?'open':''}"><a class="tog">${ico(open?'chevl':'chevr')}</a>${NAV.map(x=>a(...x)).join('')}<span class="gap"></span>${NAV2.map(x=>a(...x)).join('')}</nav>`;
+}
+function strip(kind){
+  let mid = '';
+  if (kind==='flight') mid = `<span class="row" style="gap:8px"><span class="dot blue live"></span>Sending 12.5 ZNN <span class="faint">· waiting for a momentum</span></span>`;
+  if (kind==='pow') mid = `<span class="row" style="gap:8px"><span class="lot" data-lot="plasma_generation" data-at="0.45" data-loop="1" style="width:18px;height:18px"></span>Generating plasma <span class="num">14 s</span> <span class="faint">· usually about 25 s</span></span>`;
+  return `<div class="strip"><span class="row"><span class="dot live"></span><span class="num">#3,281,904</span></span><span>Node <span class="addr">ws://127.0.0.1:35998</span></span><span>Chain <span class="num">1</span></span><span>Peers <span class="num">23</span></span>${mid}<span class="end"><span class="row warn" style="gap:8px">${ico('dl','s')}Syrius 0.3.0 is out<button class="btn xs">Update</button></span></span></div>`;
+}
+const title = `<div class="title"><span>SYRIUS</span><span><i>&#8212;</i><i>&#9633;</i><i>&#10005;</i></span></div>`;
+document.querySelectorAll('.scr').forEach(s => {
+  const inner = s.innerHTML;
+  if (s.dataset.shell === 'none') {
+    s.innerHTML = `<div class="win ${s.dataset.win || ''}">${title}<div class="body">${inner}</div></div>`;
+    return;
+  }
+  const open = s.dataset.rail === 'open';
+  const belldot = s.dataset.belldot !== '0';
+  const tip = open ? '' : (s.id === 'home-open' ? '' : '');
+  s.innerHTML = `<div class="win">${title}<div class="body">${rail(s.dataset.nav, open, belldot)}<main class="col">${inner}${strip(s.dataset.strip)}</main></div></div>`;
+});
+// the tooltip on the first screen only
+(() => { const w = document.querySelector('#home-rest .win'); if (!w) return; const t = document.createElement('div'); t.className='tip'; t.style.top='656px'; t.innerHTML='Notifications'; w.querySelector('.body').appendChild(t); })();
+// the zap burst
+(() => { const b = document.getElementById('burst'); if (!b) return; for (let i=0;i<28;i++){ const s=document.createElement('i'); const a=Math.random()*Math.PI*2, r=120+Math.random()*160; s.style.setProperty('--dx',(Math.cos(a)*r)+'px'); s.style.setProperty('--dy',(Math.sin(a)*r)+'px'); s.style.animationDelay=(Math.random()*120)+'ms'; b.appendChild(s);} })();
+
+// The wallet's own Lottie files, played by lottie-web 5.12.2 (vendor/, MIT). Each is loaded on first use
+// from art/<name>.js, plays when its screen is shown and pauses when it is not. In a screenshot it is
+// stopped at data-at, a fraction of its length.
+let SHOT = false;
+const LOTS = new Map(), waiting = {};
+function need(name, cb){
+  if (window.LOTTIE_DATA && LOTTIE_DATA[name]) return cb();
+  (waiting[name] = waiting[name] || []).push(cb);
+  if (waiting[name].length > 1) return;
+  const sc = document.createElement('script'); sc.src = 'art/' + name + '.js';
+  sc.onload = () => waiting[name].splice(0).forEach(f => f());
+  document.head.appendChild(sc);
+}
+function runLot(el){
+  const a = LOTS.get(el); if (!a) return; const d = el.dataset;
+  if (!el.closest('.scr').classList.contains('on')) { a.pause(); return; }
+  if (SHOT || d.still === '1') { a.goToAndStop(Math.floor(a.totalFrames * (+d.at || 0.99)), true); return; }
+  if (d.loop === '1') { if (d.from) a.playSegments([+d.from, +d.to], true); else a.play(); }
+  else a.goToAndPlay(+(d.from || 0), true);
+}
+function initLot(el){
+  if (LOTS.has(el)) return; LOTS.set(el, null);
+  const d = el.dataset;
+  need(d.lot, () => {
+    const a = lottie.loadAnimation({ container: el, renderer: 'svg', loop: d.loop === '1', autoplay: false,
+      animationData: JSON.parse(JSON.stringify(LOTTIE_DATA[d.lot])),
+      rendererSettings: { preserveAspectRatio: d.fit === 'slice' ? 'xMidYMid slice' : 'xMidYMid meet' } });
+    LOTS.set(el, a);
+    a.addEventListener('DOMLoaded', () => runLot(el));
+    if (d.hover === '1') el.addEventListener('mouseenter', () => { if (!SHOT) a.goToAndPlay(+(d.from || 0), true); });
+  });
+}
+
+const NOTES = {
+  'home-rest': [['At rest','Hero, Activity at full height, To collect as one line with Collect all, Tokens closed, Pending open only while a block is in flight.'],['One click away','Address switcher, hide balances (the eye), the token list.'],['Motion','The light field drifts behind the hero (shader 1). The plasma pill sheens on hover (effect 2). A changed balance flashes once. Rows arrive with a 6 px rise.'],['Ported and new','Zap is the third action. Rows name what the block did and link to the explorer. The pending block is followed to its momentum, not a 31 s timer.'],["Dollar values", "Each balance at CoinGecko's price beside it and the two together under them, as the extension shows them. Dim and mono; the coin is the headline. Asked once a minute while on screen."]],
+  'home-open': [['At rest','The rail is icons. The chevron opens it; the state is kept across restarts.'],['One click away','Each entry has a Ctrl digit, shown in its tooltip.'],['Motion','Rail width springs over 200 ms; labels fade in after. The balance has just changed and flashes green for 1.2 s.'],['Dropped','Thirteen labelled entries, 200 px wide, on every page.']],
+  'home-hidden': [["Hidden", "Every amount becomes dots: balances, dollar values, to collect, token balances and the Activity column. For sharing a screen."], ["The eye", "The original eye animation is the control. It blinks while balances are hidden; a click plays its closing frames and the figures come back."], ["Also", "Ctrl H, and Settings > Display."]],
+  'home-bell': [['Panel','Opens from the bell, over the page, frosted (effect 4). What needs the user is first; runs of the same event fold into one row.'],['Toast','One event in a few words, a bar that drains to dismissal in 5 s, as the extension does. Hover pauses it.'],['Ported','"Incoming 250 ZNN, from z1…" instead of "Transaction received". A failure says the remedy.'],['Dropped','The Notifications page.']],
+  'home-goto': [['Go to','Ctrl K. Pages, actions, addresses and contacts in one list; typing filters. Frosted backdrop.'],['Shortcuts','Ctrl 1 to 8 pages, Ctrl L lock, Ctrl R refresh, Ctrl , settings, Esc closes anything.'],['Why','Every page is one keystroke away, so the rail can stay small.'],['Motion','Palette rises 6 px over 240 ms; results re-sort in place.']],
+  'home-zap': [['Celebrate once','A burst of sparks from the centre, 900 ms, then the message. Seen hashes are remembered per address so it never repeats.'],['The message','Plain text only, one line, with "Written by the sender, not by Syrius." Zap back reuses the sender as recipient.'],['Row','The two blocks read "Zap", the first keeps a Message button.'],['Tray','A desktop notification if the window is hidden (Settings, Wallet).']],
+  'send-rest': [['One card','Send, Receive and Zap are a segmented switch in one card, 640 px, centred. The page is the form.'],['Recipient','Address book icon in the field; the last five recipients as chips under it. A known contact shows its name and when you last sent.'],['To receive','Shown only with rows. A row whose receive is under way has its button blocked with a spinner (task 37).'],['Dropped','The Activity list (Home has it), the always-open Receive card and its QR.'],["Dollar values", "The estimate sits at the right of the line under the amount. Only ZNN and QSR have a price; another token shows none."]],
+  'send-warn': [['Look-alike','Same first and last characters as Alice, different middle: a blocking warning with both addresses and the difference marked. A first-time recipient gets one line in the confirm dialog.'],['Node behind','Said above the form before anything is typed, and the button says what it waits for.'],['Why','Address poisoning is caught where the address is typed; the error today arrives after the send fails.']],
+  'receive': [['At rest','The address, Copy, and Show QR. The QR is behind the button; most receives are a copied address.'],['One click away','The QR, and "Request a specific amount", which encodes amount and token into the QR.'],['To receive','One line when empty.']],
+  'receive-qr': [['Opened','QR with Copy image and Save; the amount row open. Both wallets read the encoded amount.'],['Motion','The QR panel slides down 8 px over 240 ms; Show QR becomes Hide QR in place.']],
+  'zap-form': [['The form','A random receiver from the last seven days, a dice to redraw, ZNN and QSR with the extension\'s defaults, a 140 byte message with a counter.'],['Honesty line','"Picked from what your node reports, so the node can steer it", and the hardware wallet\'s two confirmations.'],['Bytes','Marker 7a 61 70 01 and UTF-8, exactly the extension\'s format, so each wallet reads the other\'s zaps.'],['Why here','The owner\'s open question was Home, Transfer or Settings. Transfer keeps every way of moving funds in one card; Home\'s Zap button opens this tab.']],
+  'send-confirm': [['Confirm','Name, address, source, how plasma is paid; the Ledger line only on a hardware wallet.'],['After Send','The dialog closes, the strip shows "Sending 12.5 ZNN, waiting for a momentum", and the page refreshes when the block is confirmed (parity row 8).'],['Motion','Dialog rises 6 px over 240 ms over a frosted backdrop. The plasma pill sheens once when the send is accepted.']],
+  'staking': [['At rest','Strip: staked, to collect with Collect, the week\'s rewards, a Stake button. Then the list.'],['One click away','The New stake form (under Stake), the reward chart (under Rewards).'],['Rows','Unlock as a countdown chip; Cancel disabled until unlocked, then "Cancel and withdraw".'],['Dropped','The empty Rewards card holding half the page.'],["Dollar values", "Beside staked and to collect. Under a dollar, four decimals, as the extension formats it."]],
+  'staking-new': [['Opened in place','Duration as a segment, amount with Max and the balance beside it, the unlock date computed.'],['Motion','The form rises under the strip over 320 ms (spring); Stake becomes Close. The row arrives in the list with a rise and a flash when confirmed.']],
+  'staking-empty': [["Empty", "A list with nothing in it shows the original no-data mark at 44 px and \"None yet\". A one-line empty card carries it at 16 px."], ["Still one action", "The strip keeps Stake, so an empty page is not a dead end."]],
+  'pillars': [['One page','Pillars and Sentinels are tabs of Nodes. The strip is delegation: whom, your weight, Change, and what is to collect.'],['Five columns','Name, weight, reward shares, uptime, estimated APR, and Delegate. A row opens for the producer, momentums, reward address and the explorer link.'],['Ported','Sort by weight, APR or production (the code exists and is switched off); APR per pillar from the extension\'s formula.'],['Dropped','The empty Rewards card, the "Your pillar" card for addresses with no pillar (it comes back in Pillar mode).']],
+  'pillar-mine': [['Pillar mode','The strip starts with your pillar when the selected address owns one (Auto), or always (Settings, Wallet, Modes). Opening it shows the panel.'],['Panel','Locked ZNN, deposited QSR, producer, revocable countdown, sharing, production, weight; Update, Deposit, Withdraw, Disassemble.'],['The original','The pillar assembles once when the panel opens, at 132 px, and holds its last frame; the same at 48 px in the strip. Hover replays it.'],['Disassemble','Asks for the password, then once more, as the extension does.']],
+  'sentinels': [['Sentinel mode','Your sentinel leads the strip: status, rewards, revocable countdown. Spawn sits in the tab bar for addresses with none.'],['List','Owner, registered, revocable, status. Nothing else is actionable here, which is why Sentinels does not earn a rail entry of its own.'],['The original','The sentinel forms once at 48 px in the strip when the tab opens, and again at full size on "Sentinel registered".']],
+  'spawn': [['Stepper','Steps on the left with the cost summary, the current step on the right. Steps change on a shared axis (package animations).'],['Validation','Inline, as typed: name free, producer from another seed, reward defaults to this address.'],['Same shape','Spawn sentinel (deposit, register), Create token, Update pillar, Accelerator project and phase, Donate.']],
+  'pillar-done': [["The moment", "Registering a pillar is the one place the original plays at full size: the hexagon rises and the pillar assembles over 2.8 s, then holds."], ["Same shape", "Sentinel registered and Token created end the same way, with the sentinel and the coin."], ["Motion", "Shared axis into this step; the animation starts when the block is confirmed, not when the button is pressed."]],
+  'plasma': [['At rest','The glow with the level and fused QSR; a strip with available QSR, what you fused, Fuse; the fused list. Other addresses closed, with "1 low" as the summary.'],['Glow','The heatmap shader in plasma pink and QSR blue (5d, 5g). The meter flows while generating (shader 5), still when idle.'],['Strip','"Generating plasma 14 s, usually about 25 s": elapsed and typical time (parity row 12). The mark beside it is the original bolt: it traces its outline, then fills, for as long as the work runs.'],['Dropped','The Fuse form at rest, the beneficiary address spelled out in full.']],
+  'plasma-fuse': [['Opened','Fuse form under the strip: amount with Max, beneficiary defaults to this address with "Another address" to change it. Other addresses opened.'],['Batch cancel','Checkboxes on the rows; "Cancel 2 fuses" sends them as one job and says how many landed if one fails (parity row 16).'],['Motion','Form rises 320 ms; a cancelled row collapses over 200 ms.']],
+  'tokens': [['One list','Your balance is a column, so the Balances card is gone. Held, Favorites, All as a segment; search by name, symbol, owner or ZTS.'],['Row opened','Decimals, domain, flags, Burn and Send, explorer link.'],['Strip','Tokens held, issued by you, the issue fee, Create token. The original coin leads it: its shards close once when the page opens, from the file built for this size, so it stays sharp.']],
+  'token-mine': [['Owner\'s row','Mint, Burn, Transfer ownership and Flags as a segment inside the row; the chosen action opens under it.'],['Motion','Opening a row slides it down 8 px over 240 ms; the segment thumb slides over 360 ms.']],
+  'token-new': [['Stepper','Name and symbol, Supply, Options, Issue. The preview on the left draws the coin as it will look in lists.'],['Fee','Said once, in the summary: 1 ZNN burned.']],
+  'swap-list': [['At rest','Strip: active, completed, to reclaim, Join and Start. One list with the status chip first.'],['Row opened','What it waits for, in one line, then deposit ID with "Copy for them", counterparty, rate, hashlock, secret kept locally.'],['Statuses','Waiting (blue), Completed (green), Reclaimable (amber), Unsuccessful (crimson), Reclaimed (plain).']],
+  'swap-start': [['Transfer shape','Two stacked cards, You send over You receive, the reverse button on the seam (RULES.md section 11), in a dialog.'],['Text','Rate and the join window under the cards; the experimental warning as one line. Join swap is the same dialog with a deposit ID field at the top.'],['Motion','The reverse button turns when pressed; amounts swap in place over 260 ms.'],["Dollar values", "Under each amount, so a lopsided rate is seen before the swap starts."]],
+  'az': [['At rest','Strip: the fund, how many projects await your pillar\'s vote, Donate, Create project. Voting, Active, Mine, All as a segment.'],['Rows','Budget, a yes/no/abstain bar with the counts, quorum, status. "Your vote" marks what needs you in Pillar mode.'],['Ported','Cached projects (done): warm first paint 0.15 s; the list stays lazy.']],
+  'az-project': [['Opened','The row grows into the page (container transform, package animations). Phases with their votes and proofs; the vote column for a pillar.'],['Vote','Yes as the plasma action, No, Abstain; the tally and the quorum meter beside it.'],['Owner','Create phase enabled once accepted and the last phase paid.']],
+  'set-node': [['Node','One list of nodes with chain, state and latency; Add node opens a row. Sync figures live in the header.'],['Embedded node','The update card: running and newest, the verified download with both checks, Install. The 6 h check runs on its own.'],['Closed','Chain identifier (follows the node, warns on mismatch), Peers, Sporks (Sporks mode: read, and activate behind a typed name).']],
+  'set-security': [['Applies on click','Lock after and the wrong-password limit are segments that save when chosen; no Confirm button.'],['The limit','On by default, at 3 (owner). The row says what it does, and the lock screen counts the tries left before the last one.'],['Closed','Sign, Verify (one UTF-8 signer for both Settings and web apps), Remove wallet behind a seed check.'],['Later','Windows Hello / Touch ID, drawn in place so the row exists.']],
+  'set-display': [["Display", "Theme, text size, language, menu (icons or labels), hide balances, dollar values, explorer."], ["Dollar values", "On by default, as in the extension. One request to CoinGecko a minute, only while a value is on screen; the last answer stays if a request fails. A switch, because desktop has room for one."], ["Dropped", "Every Confirm button."]],
+  'set-wallet': [["Wallet", "Auto-receive, desktop notifications, launch at startup, the three modes with Auto, On, Off; Delete cache that keeps what the person made."], ["Closed", "Wallets on this computer: rename, remove, add. The lock screen picks among them."]],
+  'set-apps': [['Folded in','Connected sites was a page with three empty cards. Here: the web apps switch, one list of connected sites whichever channel they came by, WalletConnect closed.'],['Connect by link','Opens a small dialog with the link field and Scan screen.'],['Approval','Arrives in the Notifications panel and as a dialog if the window is in front.']],
+  'set-addresses': [['Addresses','Balances in the row, the selected one marked, label and copy; Add address.'],['Contacts','The address book: name, address, last used, Send. Offered on Send as chips.'],['Closed','The account chain of the selected address.']],
+  'set-about': [["Version", "Syrius, embedded node and build in one strip, with the update: what changed, download and verify."], ["Closed", "Links, This computer, Licences. Nothing here says there is anything else."]],
+  'set-licences': [["Licences", "Every package and font the wallet ships, from Flutter's licence registry. A long list; a row opens to the licence text."], ["The box", "Under the last licence, one small field. No label, no placeholder, no tooltip, no button. It is not in Go to and not in the search."], ["Anything but 321", "Nothing happens: no error, no shake, no hint."]],
+  'set-originals': [["321", "On the third digit the field empties and the Originals card rises under it: every animation the first Syrius shipped, where each plays now, and a button that replays the launch full window."], ["Motion", "The card rises 6 px over 320 ms; the six tiles follow with a 40 ms stagger and each plays once."], ["Not kept", "It is there until Settings is left. Nothing is stored, so no file gives it away and it is found again each time."], ["Hover to play", "Each tile plays its file as shipped. Nothing was redrawn."]],
+  'lock-screen': [["The well", "The card is headed by a black well showing the launch animation's last frame, the chrome wordmark. It is the same frames, not a redrawn logo."], ["Replay", "Locking from inside the app replays the mark and the wordmark in the well, 1.4 s. A cold start plays the whole animation full window first."], ["Picker", "A wallet dropdown when there are two or more files, preselecting the last used."], ["Update line", "\"Syrius 0.3.0 is out\" in the strip, with What changed."]],
+  'lock-wrong': [["Wrong password", "The field shakes 4 px twice and clears, the well replays the mark. The line counts the tries left and says what happens after the last."], ["The limit", "On by default at 3 (owner). Counted per wallet; only that wallet's file is removed."]],
+  'lock-pick': [['Opened','Keystore, Ledger and a devnet wallet, each by name with its base address; Add a wallet at the end.'],['Motion','The list slides down 8 px over 240 ms; the chevron turns over.']],
+  'welcome': [["The globe", "The original welcome animation, bundled with the wallet and unused today, back where it was made for. It turns slowly at the left; the three ways in are a list at the right."], ["Three rows", "Create, Import, Hardware, one line each. Node and chain are set later."], ["Motion", "The globe loops, 30 s a turn. The rows rise in with a 40 ms stagger, once."]],
+  'import': [['Any file','The drop zone takes any file name and keeps it if it decrypts as a keyfile (item 11, done). Seed typing with a word counter and 12/24 switch.'],['Steps','Seed or file, Password, Ready, on a shared axis.']],
+  'seed-quiz': [['Three words','Three positions, four choices each, as the extension does, instead of placing six words by hand.'],['Motion','A wrong choice shakes 4 px, twice, 200 ms; a right one fills green.']],
+  'wallet-ready': [["The map", "The original dotted map with its nodes lighting up, full window behind a glass card, where it has always played."], ["One action", "The first address, copyable, and Open wallet."], ["Cost", "100 to 140 ms in the frame that first draws it, measured. Preload it during the password step."]],
+  'launch': [["As it was", "The 2022 launch animation, edge to edge on black: the blue wireframe, the green mark, the wordmark. 1.9 s, on every cold start."], ["Skip", "A click or any key goes straight to the lock card."], ["Weight", "The file is 10 MB on disk. The 826 MB is memory: the Lottie player decodes all 56 frames of 2560 by 1440 before it draws one. As an animated WebP, decoded a frame at a time, the same pictures hold about 17 MB at 1920 by 1080. See the README, Weight."], ["Light theme", "The stage is black in both themes; the frames are drawn on black."]],
+  'launch-settle': [["The transition", "On its last frame the black stage shrinks from the window to the head of the lock card while the card rises round it. 400 ms, emphasized decelerate. One container transform; the wordmark never leaves the screen."], ["Why", "The old launch ended in a cut to another screen. Here it becomes the lock card, so the homage is part of the interface and not a film before it."], ["Still", "This is one frame of that motion, about half way."]],
+};
+const list = document.getElementById('list'), scaler = document.getElementById('scaler'), stage = document.getElementById('stage'), notes = document.getElementById('notes'), ttl = document.getElementById('ttl'), grp = document.getElementById('grp');
+const screens = [...document.querySelectorAll('.scr')];
+let g = ''; let n = 0;
+screens.forEach(s => {
+  if (s.dataset.group !== g) { g = s.dataset.group; const h = document.createElement('h2'); h.textContent = g; list.appendChild(h); }
+  n++; const a = document.createElement('a'); a.href = '#' + s.id; a.dataset.id = s.id; a.innerHTML = `<i>${String(n).padStart(2,'0')}</i>${s.dataset.title}`; list.appendChild(a);
+});
+function fit(){ const w = stage.clientWidth; const sc = Math.max(.4, Math.min(1, w / 1282)); scaler.style.transform = 'scale(' + sc + ')'; scaler.style.width = (1282*sc) + 'px'; scaler.style.height = (782*sc) + 'px'; }
+function show(id){
+  const s = document.getElementById(id); if (!s) return;
+  screens.forEach(e => e.classList.toggle('on', e === s));
+  list.querySelectorAll('a').forEach(a => a.classList.toggle('on', a.dataset.id === id));
+  ttl.textContent = s.dataset.title; grp.textContent = s.dataset.group;
+  notes.innerHTML = (NOTES[id] || []).map(x => `<li><b>${x[0]}</b>${x[1]}</li>`).join('');
+  s.querySelectorAll('.lot').forEach(initLot);
+  LOTS.forEach((a, el) => runLot(el));
+  try { localStorage.setItem('syrius-redesign-screen', id) } catch (e) {}
+}
+function theme(t){ document.documentElement.setAttribute('data-theme', t); document.getElementById('t-dark').classList.toggle('on', t==='dark'); document.getElementById('t-light').classList.toggle('on', t==='light'); try { localStorage.setItem('syrius-redesign-theme', t) } catch (e) {} }
+document.getElementById('t-dark').onclick = () => theme('dark');
+document.getElementById('t-light').onclick = () => theme('light');
+list.addEventListener('click', e => { const a = e.target.closest('a'); if (!a) return; e.preventDefault(); history.replaceState(null, '', '#' + a.dataset.id); show(a.dataset.id); });
+addEventListener('resize', fit);
+const q = new URLSearchParams(location.search);
+if (q.get('shot')) { SHOT = true; document.body.classList.add('shot'); theme(q.get('theme') || 'dark'); show(q.get('shot')); }
+else {
+  let t = 'dark'; try { t = localStorage.getItem('syrius-redesign-theme') || t } catch (e) {}
+  theme(t);
+  let start = (location.hash || '').slice(1); if (!document.getElementById(start)) { try { start = localStorage.getItem('syrius-redesign-screen') } catch (e) {} }
+  fit(); show(document.getElementById(start) ? start : screens[0].id);
+}
+</script>
+</body>
+</html>

@@ -1,16 +1,20 @@
 import 'dart:io';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:launch_at_startup/launch_at_startup.dart';
 import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/page_widgets.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/settings_parts.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
+/// How the wallet behaves: receiving, starting with the computer, desktop
+/// notifications and the clipboard watcher. Each switch applies at once.
 class WalletOptions extends StatefulWidget {
   const WalletOptions({super.key});
 
@@ -47,138 +51,64 @@ class _WalletOptionsState extends State<WalletOptions> {
 
   @override
   Widget build(BuildContext context) {
-    return CardScaffold(
-      title: 'Wallet Options',
-      description: 'Other wallet options',
-      childBuilder: _getWidgetBody,
-    );
-  }
-
-  Widget _getWidgetBody() {
-    return ListView(
+    return Panel(
+      title: 'Preferences',
       shrinkWrap: true,
-      children: <Widget>[
-        CustomExpandablePanel('Delete cache', _getDeleteCacheExpandedWidget()),
-        CustomExpandablePanel('Reset wallet', _getResetWalletExpandedWidget()),
-        CustomExpandablePanel('Preferences', _getPreferencesExpandedWidget()),
-      ],
+      child: SettingsList(
+        children: <Widget>[
+          _buildAutoReceiveRow(),
+          _buildLaunchAtStartupRow(),
+          _buildEnableDesktopNotificationsRow(),
+          _buildEnableClipboardWatcherRow(),
+        ],
+      ),
     );
   }
 
-  Column _getResetWalletExpandedWidget() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Text(
-          'This option will erase the wallet files. Make sure you have a '
-          'backup first',
-          style: Theme.of(context).textTheme.titleSmall,
-        ),
-        kVerticalSpacing,
-        Center(
-          child: SettingsButton(
-            onPressed: () => NavigationUtils.push(
-              context,
-              const ResetWalletScreen(),
-            ),
-            text: 'Reset wallet',
-          ),
-        ),
-      ],
+  Widget _buildLaunchAtStartupRow() {
+    return SettingRow(
+      label: 'Launch at startup',
+      trailing: Switch(
+        value: _launchAtStartup ?? false,
+        onChanged: (bool value) async {
+          setState(() {
+            _launchAtStartup = value;
+          });
+          await _changeLaunchAtStartupStatus(value);
+        },
+      ),
     );
   }
 
-  Widget _getDeleteCacheExpandedWidget() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Text(
-          'This option will delete the wallet cache and close the application',
-          style: Theme.of(context).textTheme.titleSmall,
-        ),
-        kVerticalSpacing,
-        Center(
-          child: SettingsButton(
-            onPressed: () {
-              NavigationUtils.pushReplacement(
-                context,
-                const SplashScreen(
-                  deleteCacheFlow: true,
-                ),
-              );
-            },
-            text: 'Delete cache',
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _getPreferencesExpandedWidget() {
-    return Column(
-      children: <Widget>[
-        _getLaunchAtStartupWidget(),
-        _getEnableDesktopNotifications(),
-        _buildEnableClipboardWatcher(),
-        _getAutoReceiveWidget(),
-      ],
-    );
-  }
-
-  Widget _getLaunchAtStartupWidget() {
-    return Row(
-      children: <Widget>[
-        Text(
-          'Launch at startup ',
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
-        SyriusCheckbox(
-          onChanged: (bool? value) async {
-            setState(() {
-              _launchAtStartup = value;
-            });
-            await _changeLaunchAtStartupStatus(value ?? false);
-          },
-          value: _launchAtStartup,
-          context: context,
-        ),
-      ],
-    );
-  }
-
-  Widget _getAutoReceiveWidget() {
-    return Row(
-      children: <Widget>[
-        Text(
-          'Auto-receiver',
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
-        SyriusCheckbox(
-          onChanged: (bool? value) async {
-            if (value == true) {
-              NodeUtils.getUnreceivedTransactions().then((value) {
-                sl<AutoReceiveTxWorker>().autoReceive();
-              }).onError((Object? error, StackTrace stackTrace) {
-                Logger('MainAppContainer').log(
-                    Level.WARNING, '_getAutoReceiveWidget', error, stackTrace,);
-              });
-            } else if (value == false &&
-                sl<AutoReceiveTxWorker>().pool.isNotEmpty) {
-              sl<AutoReceiveTxWorker>().pool.clear();
-            }
-            setState(() {
-              _autoReceive = value;
-            });
-            await _changeAutoReceiveStatus(value ?? false);
-          },
-          value: _autoReceive,
-          context: context,
-        ),
-        const StandardTooltipIcon(
-          'Uncheck to disable the auto-receiver and receive transactions manually',
-          Icons.help,
-        ),
-      ],
+  Widget _buildAutoReceiveRow() {
+    return SettingRow(
+      label: 'Auto-receive',
+      hint: 'Off: receive each transaction by hand',
+      trailing: Switch(
+        value: _autoReceive ?? false,
+        onChanged: (bool value) async {
+          if (value) {
+            NodeUtils.getUnreceivedTransactions()
+                .then((value) {
+                  sl<AutoReceiveTxWorker>().autoReceive();
+                })
+                .onError((Object? error, StackTrace stackTrace) {
+                  Logger('MainAppContainer').log(
+                    Level.WARNING,
+                    '_getAutoReceiveWidget',
+                    error,
+                    stackTrace,
+                  );
+                });
+          } else if (sl<AutoReceiveTxWorker>().pool.isNotEmpty) {
+            sl<AutoReceiveTxWorker>().pool.clear();
+          }
+          setState(() {
+            _autoReceive = value;
+          });
+          await _changeAutoReceiveStatus(value);
+        },
+      ),
     );
   }
 
@@ -258,50 +188,34 @@ class _WalletOptionsState extends State<WalletOptions> {
         );
   }
 
-  Widget _getEnableDesktopNotifications() {
-    return Row(
-      children: <Widget>[
-        Text(
-          'Enable desktop notifications ',
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
-        SyriusCheckbox(
-          onChanged: (bool? value) {
-            setState(() {
-              _enableDesktopNotifications = value;
-              _changeEnableDesktopNotificationsStatus(value ?? false);
-            });
-          },
-          value: _enableDesktopNotifications,
-          context: context,
-        ),
-      ],
+  Widget _buildEnableDesktopNotificationsRow() {
+    return SettingRow(
+      label: 'Desktop notifications',
+      trailing: Switch(
+        value: _enableDesktopNotifications ?? false,
+        onChanged: (bool value) {
+          setState(() {
+            _enableDesktopNotifications = value;
+            _changeEnableDesktopNotificationsStatus(value);
+          });
+        },
+      ),
     );
   }
 
-  Widget _buildEnableClipboardWatcher() {
-    return Row(
-      children: <Widget>[
-        Text(
-          'Enable clipboard watcher',
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
-        SyriusCheckbox(
-          onChanged: (bool? value) {
-            setState(() {
-              _enabledClipboardWatcher = value;
-              _changeEnableClipboardWatcherStatus(value ?? false);
-            });
-          },
-          value: _enabledClipboardWatcher,
-          context: context,
-        ),
-        const StandardTooltipIcon(
-          'Listens to the values passed to the clipboard and sends a '
-          'notification when a WalletConnect URI has been copied',
-          Icons.help,
-        ),
-      ],
+  Widget _buildEnableClipboardWatcherRow() {
+    return SettingRow(
+      label: 'Clipboard watcher',
+      hint: 'Offers to connect when a WalletConnect link is copied',
+      trailing: Switch(
+        value: _enabledClipboardWatcher ?? false,
+        onChanged: (bool value) {
+          setState(() {
+            _enabledClipboardWatcher = value;
+            _changeEnableClipboardWatcherStatus(value);
+          });
+        },
+      ),
     );
   }
 
@@ -354,5 +268,54 @@ class _WalletOptionsState extends State<WalletOptions> {
             type: NotificationType.paymentSent,
           ),
         );
+  }
+}
+
+/// The two ways out: delete the cache, or erase the wallet from this
+/// computer. Reset opens its own confirmation screen.
+class WalletReset extends StatelessWidget {
+  /// Creates the panel.
+  const WalletReset({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Panel(
+      title: 'Reset',
+      shrinkWrap: true,
+      child: SettingsList(
+        children: <Widget>[
+          SettingRow(
+            label: 'Delete cache',
+            hint: 'Clears cached data and closes the app',
+            trailing: SecondaryAction(
+              child: SettingsButton(
+                onPressed: () {
+                  NavigationUtils.pushReplacement(
+                    context,
+                    const SplashScreen(
+                      deleteCacheFlow: true,
+                    ),
+                  );
+                },
+                text: 'Delete',
+              ),
+            ),
+          ),
+          SettingRow(
+            label: 'Reset wallet',
+            hint: 'Erases the wallet files. Back up first',
+            trailing: DangerAction(
+              child: SettingsButton(
+                onPressed: () => NavigationUtils.push(
+                  context,
+                  const ResetWalletScreen(),
+                ),
+                text: 'Reset',
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

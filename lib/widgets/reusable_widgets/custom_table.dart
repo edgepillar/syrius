@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:marquee_widget/marquee_widget.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
@@ -150,7 +151,7 @@ class _CustomTableState<T> extends State<CustomTable<T>> {
       ),
       onPressed: widget.onShowMoreButtonPressed,
       child: Text(
-        'Show more',
+        context.l10n.commonShowMore,
         style: Theme.of(context).textTheme.titleMedium,
       ),
     );

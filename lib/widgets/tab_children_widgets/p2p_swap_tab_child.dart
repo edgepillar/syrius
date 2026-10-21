@@ -1,67 +1,63 @@
-import 'package:flutter/material.dart';
-import 'package:layout/layout.dart';
-import 'package:provider/provider.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'dart:async';
+
+import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/p2p_swap/p2p_swaps_list_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/page_widgets.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/node_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/p2p_swap_options_card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/p2p_swaps_card.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
+/// P2P Swap: the wallet's swaps are the page.
+///
+/// A fixed row on top counts them by state and holds the two ways into a
+/// new swap; the table of swaps takes every pixel under it. The page owns
+/// the list so the figures and the table always agree.
 class P2pSwapTabChild extends StatefulWidget {
-
+  /// Creates the P2P Swap page.
   const P2pSwapTabChild({
     required this.onStepperNotificationSeeMorePressed,
     super.key,
   });
+
+  /// Opens the notifications page. Kept for the shell, which passes it to
+  /// every page; nothing here raises a stepper notification.
   final VoidCallback onStepperNotificationSeeMorePressed;
 
   @override
-  State createState() => P2pSwapTabChildState();
+  State<P2pSwapTabChild> createState() => _P2pSwapTabChildState();
 }
 
-class P2pSwapTabChildState extends State<P2pSwapTabChild> {
+class _P2pSwapTabChildState extends State<P2pSwapTabChild> {
+  final P2pSwapsListBloc _swapsBloc = P2pSwapsListBloc();
+
   @override
   void initState() {
     super.initState();
-    NodeUtils.checkForLocalTimeDiscrepancy(
-        '''Local time discrepancy detected. Please confirm your operating '''
-        '''system's time is correct before conducting P2P swaps.''');
+    _swapsBloc.getDataPeriodically();
+    // A hashed timelock is only as safe as the clock that reads it.
+    unawaited(
+      NodeUtils.checkForLocalTimeDiscrepancy(
+        'Your clock is off. Set the system time before swapping.',
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _swapsBloc.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return _getLayout(context);
-  }
-
-  StandardFluidLayout _getLayout(BuildContext context) {
-    return StandardFluidLayout(
-      children: <FluidCell>[
-        FluidCell(
-          height: kStaggeredNumOfColumns / 2,
-          width: context.layout.value(
-            xl: kStaggeredNumOfColumns ~/ 3,
-            lg: kStaggeredNumOfColumns ~/ 3,
-            md: kStaggeredNumOfColumns ~/ 3,
-            sm: kStaggeredNumOfColumns,
-            xs: kStaggeredNumOfColumns,
-          ),
-          child: const P2pSwapOptionsCard(),
-        ),
-        FluidCell(
-          height: kStaggeredNumOfColumns / 2,
-          width: context.layout.value(
-            xl: kStaggeredNumOfColumns ~/ 1.5,
-            lg: kStaggeredNumOfColumns ~/ 1.5,
-            md: kStaggeredNumOfColumns ~/ 1.5,
-            sm: kStaggeredNumOfColumns,
-            xs: kStaggeredNumOfColumns,
-          ),
-          child: Consumer<SelectedAddressNotifier>(
-            builder: (_, __, ___) => P2pSwapsCard(
-              onStepperNotificationSeeMorePressed:
-                  widget.onStepperNotificationSeeMorePressed,
-            ),
-          ),
-        ),
+    return PageGrid(
+      rows: <PageRow>[
+        PageRow.fixed(88, <PageCell>[
+          PageCell(P2pSwapOptionsCard(swaps: _swapsBloc.stream)),
+        ]),
+        PageRow.fill(<PageCell>[
+          PageCell(P2pSwapsCard(bloc: _swapsBloc)),
+        ]),
       ],
     );
   }

@@ -1,14 +1,14 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path/path.dart' as path;
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/app_lottie.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class ReceiveQrImage extends StatelessWidget {
@@ -24,6 +24,22 @@ class ReceiveQrImage extends StatelessWidget {
   final String _data;
   final double _size;
   final TokenStandard _tokenStandard;
+
+  // The last code made, kept: the card rebuilds on every keystroke in the
+  // form beside it and on every visit to the page, and laying out the
+  // modules again each time took about 5 ms of each of those frames.
+  static String? _lastData;
+  static QrImage? _lastImage;
+
+  static QrImage _imageFor(String data) {
+    if (_lastData == data && _lastImage != null) return _lastImage!;
+    final QrImage image = QrImage(
+      QrCode.fromData(data: data, errorCorrectLevel: QrErrorCorrectLevel.M),
+    );
+    _lastData = data;
+    _lastImage = image;
+    return image;
+  }
 
   PrettyQrDecorationImage get _decorationImage => PrettyQrDecorationImage(
         colorFilter: ColorFilter.mode(
@@ -46,12 +62,7 @@ class ReceiveQrImage extends StatelessWidget {
     final Color qrCodeColor = Theme.of(context).colorScheme.onSurface;
 
     try {
-      qrImage = QrImage(
-        QrCode.fromData(
-          data: _data,
-          errorCorrectLevel: QrErrorCorrectLevel.M,
-        ),
-      );
+      qrImage = _imageFor(_data);
 
       qrDecoration = PrettyQrDecoration(
         shape: PrettyQrSmoothSymbol(
@@ -61,23 +72,21 @@ class ReceiveQrImage extends StatelessWidget {
         image: _decorationImage,
       );
 
-      qrWidget = PrettyQrView(
-        qrImage: qrImage,
-        decoration: qrDecoration,
+      qrWidget = RepaintBoundary(
+        child: PrettyQrView(
+          qrImage: qrImage,
+          decoration: qrDecoration,
+        ),
       );
     } on Exception catch (e) {
       qrWidget = Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          Lottie.asset(
-            'assets/lottie/ic_anim_no_data.json',
-            width: 32,
-            height: 32,
-          ),
+          const AppLottie(AppLottieAsset.noData, size: 32),
           Tooltip(
             message: e.toString(),
             child: Text(
-              'Failed to create QR code',
+              context.l10n.receiveQrFailedError,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium,
             ),

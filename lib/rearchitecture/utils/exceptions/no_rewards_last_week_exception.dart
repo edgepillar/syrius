@@ -1,5 +1,6 @@
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 
 part 'no_rewards_last_week_exception.g.dart';
@@ -9,9 +10,12 @@ part 'no_rewards_last_week_exception.g.dart';
 @JsonSerializable()
 class NoRewardsLastWeekException extends SyriusException {
   /// Creates a [NoRewardsLastWeekException] instance
+  ///
+  /// With no [message] it says "No rewards in the last week" in the language
+  /// the app is showing when it is made.
   NoRewardsLastWeekException({
-    String message = 'No rewards in the last week',
-  }) : super(message);
+    String? message,
+  }) : super(message ?? currentL10n.rewardsHistoryLastWeekEmpty);
 
   /// {@macro instance_from_json}
   factory NoRewardsLastWeekException.fromJson(

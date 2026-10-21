@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:hive_ce/hive_ce.dart';
 import 'package:logging/logging.dart';
 import 'package:lottie/lottie.dart';
@@ -31,32 +31,69 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  late final Future<LottieComposition> _composition;
+  // The start-up work runs once, when the animation has played. A rebuild
+  // (a theme change, a resize) must not start it again.
+  bool _initsScheduled = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _composition = AssetLottie('assets/lottie/ic_anim_splash.json').load();
+  // Set when the animation has played and the start-up work is still going.
+  bool _waiting = false;
+
+  void _onAnimationLoaded(LottieComposition composition) {
+    if (_initsScheduled) return;
+    _initsScheduled = true;
+    Future.delayed(composition.duration, () {
+      if (mounted) setState(() => _waiting = true);
+      // What the first pages draw, read while the start-up work waits on
+      // the disk and the node: off this isolate, and after the launch
+      // animation, so it costs that no frame.
+      unawaited(AppLottie.preload());
+      _splashInits();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<LottieComposition>(
-      future: _composition,
-      builder: (context, snapshot) {
-        var composition = snapshot.data;
-        if (composition != null) {
-          Future.delayed(composition.duration, () {
-            _splashInits();
-          });
-          return Lottie(
-            composition: composition,
+    // The animation's frames are drawn on black, edge to edge; the window
+    // round them is black too, so a window of another shape shows no seam.
+    return ColoredBox(
+      color: Colors.black,
+      child: Stack(
+        fit: StackFit.expand,
+        children: <Widget>[
+          // The launch animation is kept as it was, filling the window, on a
+          // layer of its own. Its 56 frames are given back when this screen
+          // goes.
+          AppLottie(
+            AppLottieAsset.splash,
             repeat: false,
-          );
-        } else {
-          return const Center(child: CircularProgressIndicator());
-        }
-      },
+            fit: BoxFit.contain,
+            onLoaded: _onAnimationLoaded,
+          ),
+          // Once the animation has played, a thin line says the app is
+          // still starting, rather than a still black window.
+          Align(
+            alignment: const Alignment(0, 0.82),
+            child: AnimatedOpacity(
+              opacity: _waiting ? 1 : 0,
+              duration: Durations.medium2,
+              curve: Easing.standard,
+              child: SizedBox(
+                width: 120,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(2),
+                  child: _waiting
+                      ? const LinearProgressIndicator(
+                          minHeight: 2,
+                          color: AppColors.znnColor,
+                          backgroundColor: Color(0x1FFFFFFF),
+                        )
+                      : const SizedBox(height: 2),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -65,8 +102,8 @@ class _SplashScreenState extends State<SplashScreen> {
       widget.resetWalletFlow
           ? await _resetWallet()
           : widget.deleteCacheFlow
-              ? await _deleteCache().then((value) => exit(0))
-              : await InitUtils.initApp(context);
+          ? await _deleteCache().then((value) => exit(0))
+          : await InitUtils.initApp(context);
       _navigateToNextScreen();
     } on Exception catch (e) {
       Navigator.pushReplacementNamed(
@@ -131,8 +168,9 @@ class _SplashScreenState extends State<SplashScreen> {
         await web3WalletService.deactivatePairing(topic: pairing.topic);
       }
     } catch (e, stackTrace) {
-      Logger('SplashScreen')
-          .log(Level.WARNING, '_deleteWeb3Cache', e, stackTrace);
+      Logger(
+        'SplashScreen',
+      ).log(Level.WARNING, '_deleteWeb3Cache', e, stackTrace);
     }
   }
 
@@ -146,7 +184,8 @@ class _SplashScreenState extends State<SplashScreen> {
     }
   }
 
-  void _checkForDefaultNode() => sharedPrefsService!.get(
+  void _checkForDefaultNode() =>
+      sharedPrefsService!.get(
             kSelectedNodeKey,
           ) !=
           null

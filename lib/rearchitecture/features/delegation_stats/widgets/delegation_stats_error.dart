@@ -1,8 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/card_parts/card_parts.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 
-/// A widget that display the [error] message
+/// The delegation when it could not be read.
+///
+/// An address that backs no pillar is not an error to the person, although
+/// the bloc reports it as one; the card shows `DelegationStatsEmpty` for it.
 class DelegationStatsError extends StatelessWidget {
   /// Creates a DelegationError object.
   const DelegationStatsError({required this.error, super.key});
@@ -12,6 +15,6 @@ class DelegationStatsError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SyriusErrorWidget(error);
+    return CardNote.error(error);
   }
 }

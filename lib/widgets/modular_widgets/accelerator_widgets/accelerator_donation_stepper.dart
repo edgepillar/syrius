@@ -1,21 +1,31 @@
-import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
+import 'dart:async';
+
+import 'package:material_ui/material_ui.dart';
 import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/motion/motion.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
     as custom_material_stepper;
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// The steps of a donation to the Accelerator.
 enum AcceleratorDonationStep {
+  /// The address that donates, and what it holds.
   donationAddress,
+
+  /// How much ZNN and QSR.
   donationDetails,
+
+  /// Sending it.
   submitDonation,
 }
 
+/// Donates ZNN, QSR or both from the selected address to the Accelerator.
 class AcceleratorDonationStepper extends StatefulWidget {
+  /// Creates the stepper.
   const AcceleratorDonationStepper({super.key});
 
   @override
@@ -43,7 +53,7 @@ class _AcceleratorDonationStepperState
   void initState() {
     super.initState();
     _addressController.text = kSelectedAddress!;
-    sl.get<BalanceBloc>().getBalanceForAllAddresses();
+    unawaited(sl.get<BalanceBloc>().getBalanceForAllAddresses());
   }
 
   @override
@@ -51,97 +61,50 @@ class _AcceleratorDonationStepperState
     return StreamBuilder<Map<String, AccountInfo>?>(
       stream: sl.get<BalanceBloc>().stream,
       builder: (_, AsyncSnapshot<Map<String, AccountInfo>?> snapshot) {
+        final Widget state;
         if (snapshot.hasError) {
-          return SyriusErrorWidget(snapshot.error!);
-        }
-        if (snapshot.connectionState == ConnectionState.active) {
-          if (snapshot.hasData) {
-            return _getWidgetBody(
+          state = SyriusErrorWidget(
+            snapshot.error!,
+            key: const ValueKey<String>('error'),
+          );
+        } else if (snapshot.connectionState == ConnectionState.active &&
+            snapshot.hasData) {
+          state = KeyedSubtree(
+            key: const ValueKey<String>('steps'),
+            child: _buildBody(
               context,
               snapshot.data![_addressController.text]!,
-            );
-          }
-          return const SyriusLoadingWidget();
+            ),
+          );
+        } else {
+          state = const AccStepperLoading(key: ValueKey<String>('loading'));
         }
-        return const SyriusLoadingWidget();
+        return StateSwitcher(child: state);
       },
     );
   }
 
-  Widget _getWidgetBody(BuildContext context, AccountInfo accountInfo) {
-    return Stack(
-      children: <Widget>[
-        ListView(
-          children: <Widget>[
-            _getMaterialStepper(context, accountInfo),
-          ],
-        ),
-        Visibility(
-          visible: _lastCompletedStep == AcceleratorDonationStep.values.last,
-          child: Positioned(
-            bottom: 20,
-            right: 0,
-            left: 0,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                StepperButton.icon(
-                  label: 'Make another donation',
-                  onPressed: () {
-                    setState(() {
-                      _currentStep = AcceleratorDonationStep.values.first;
-                      _lastCompletedStep = null;
-                    });
-                  },
-                  iconData: Icons.refresh,
-                ),
-                const SizedBox(
-                  width: 75,
-                ),
-                StepperButton(
-                  text: 'Return to project list',
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-        Visibility(
-          visible: _lastCompletedStep == AcceleratorDonationStep.values.last,
-          child: Positioned(
-            right: 50,
-            child: SizedBox(
-              width: 400,
-              height: 400,
-              child: Center(
-                child: Lottie.asset(
-                  'assets/lottie/ic_anim_zts.json',
-                  repeat: false,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _getMaterialStepper(BuildContext context, AccountInfo accountInfo) {
-    return Theme(
-      data: Theme.of(context).copyWith(
-        highlightColor: Colors.transparent,
-        splashColor: Colors.transparent,
-        hoverColor: Colors.transparent,
-      ),
-      child: custom_material_stepper.Stepper(
+  Widget _buildBody(BuildContext context, AccountInfo accountInfo) {
+    return AccStepperFrame(
+      isDone: _lastCompletedStep == AcceleratorDonationStep.values.last,
+      againLabel: 'Donate again',
+      onAgain: () {
+        setState(() {
+          _currentStep = AcceleratorDonationStep.values.first;
+          _lastCompletedStep = null;
+        });
+      },
+      doneLabel: 'View projects',
+      onDone: () {
+        Navigator.pop(context);
+      },
+      stepper: custom_material_stepper.Stepper(
         currentStep: _currentStep.index,
         onStepTapped: (int index) {},
         steps: <custom_material_stepper.Step>[
           StepperUtils.getMaterialStep(
-            stepTitle: 'Donation address',
-            stepContent: _getDonationAddressStepContent(accountInfo),
+            stepTitle: 'Address',
+            stepContent: _buildAddressStep(accountInfo),
             stepSubtitle: _addressController.text,
             stepState: StepperUtils.getStepState(
               AcceleratorDonationStep.donationAddress.index,
@@ -150,9 +113,9 @@ class _AcceleratorDonationStepperState
             context: context,
           ),
           StepperUtils.getMaterialStep(
-            stepTitle: 'Donation details',
-            stepContent: _getDonationDetailsStepContent(accountInfo),
-            stepSubtitle: _getDonationDetailsStepSubtitle(),
+            stepTitle: 'Amount',
+            stepContent: _buildAmountStep(accountInfo),
+            stepSubtitle: _donationSummary(),
             stepState: StepperUtils.getStepState(
               AcceleratorDonationStep.donationDetails.index,
               _lastCompletedStep?.index,
@@ -160,9 +123,9 @@ class _AcceleratorDonationStepperState
             context: context,
           ),
           StepperUtils.getMaterialStep(
-            stepTitle: 'Submit donation',
-            stepContent: _getSubmitDonationStepContent(),
-            stepSubtitle: 'Donation submitted',
+            stepTitle: 'Donate',
+            stepContent: _buildSubmitStep(),
+            stepSubtitle: 'Sent',
             stepState: StepperUtils.getStepState(
               AcceleratorDonationStep.submitDonation.index,
               _lastCompletedStep?.index,
@@ -174,44 +137,45 @@ class _AcceleratorDonationStepperState
     );
   }
 
-  String _getDonationDetailsStepSubtitle() {
+  /// What was typed, as "10 ZNN · 5 QSR"; either part may be missing.
+  String _donationSummary() {
     final String znnPrefix = _znnAmountController.text.isNotEmpty
         ? '${_znnAmountController.text} ${kZnnCoin.symbol}'
         : '';
     final String qsrSuffix = _qsrAmountController.text.isNotEmpty
         ? '${_qsrAmountController.text} ${kQsrCoin.symbol}'
         : '';
-    final String splitter = znnPrefix.isNotEmpty && qsrSuffix.isNotEmpty ? ' ● ' : '';
+    final String splitter = znnPrefix.isNotEmpty && qsrSuffix.isNotEmpty
+        ? ' · '
+        : '';
 
     return znnPrefix + splitter + qsrSuffix;
   }
 
-  Widget _getDonationAddressStepContent(AccountInfo accountInfo) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        DisabledAddressField(_addressController),
-        Row(children: <Widget>[
-          StepperUtils.getBalanceWidget(kZnnCoin, accountInfo),
-          StepperUtils.getBalanceWidget(kQsrCoin, accountInfo),
-        ],),
-        const DottedBorderInfoWidget(
-          text: 'All donated funds go directly into the Accelerator address',
-        ),
-        kVerticalSpacing,
-        Row(
-          children: <Widget>[
-            StepperButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              text: 'Cancel',
-            ),
-            const SizedBox(
-              width: 15,
-            ),
-            StepperButton(
-              onPressed: accountInfo.znn()! > BigInt.zero ||
+  Widget _buildAddressStep(AccountInfo accountInfo) {
+    return FocusTraversalGroup(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          AccField(
+            label: 'From',
+            child: DisabledAddressField(_addressController),
+          ),
+          Row(
+            children: <Widget>[
+              AccBalanceLine(kZnnCoin, accountInfo),
+              const SizedBox(width: 20),
+              AccBalanceLine(kQsrCoin, accountInfo),
+            ],
+          ),
+          const SizedBox(height: kAccFieldGap),
+          const DottedBorderInfoWidget(
+            text: 'Donations go to the Accelerator fund',
+          ),
+          AccStepActions(
+            primary: StepperButton(
+              onPressed:
+                  accountInfo.znn()! > BigInt.zero ||
                       accountInfo.qsr()! > BigInt.zero
                   ? () {
                       setState(() {
@@ -223,116 +187,116 @@ class _AcceleratorDonationStepperState
                   : null,
               text: 'Continue',
             ),
-          ],
-        ),
-      ],
+            secondaryLabel: 'Cancel',
+            onSecondary: () {
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _getDonationDetailsStepContent(AccountInfo accountInfo) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        const Row(
-          children: <Widget>[
-            Text('Total donation budget'),
-            StandardTooltipIcon(
-              'Your donation matters',
-              Icons.help,
-            ),
-          ],
-        ),
-        kVerticalSpacing,
-        Form(
-          key: _znnAmountKey,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          child: InputField(
-            hintText: 'ZNN Amount',
-            controller: _znnAmountController,
-            suffixIcon: AmountSuffixWidgets(
-              kZnnCoin,
-              onMaxPressed: () {
-                final BigInt maxZnn = accountInfo.getBalance(
-                  kZnnCoin.tokenStandard,
-                );
-                if (_znnAmountController.text.isEmpty ||
-                    _znnAmountController.text.extractDecimals(coinDecimals) <
-                        maxZnn) {
-                  setState(() {
-                    _znnAmountController.text =
-                        maxZnn.addDecimals(coinDecimals);
-                  });
-                }
-              },
-            ),
-            validator: (String? value) => InputValidators.correctValue(
-              value,
-              accountInfo.znn()!,
-              coinDecimals,
-              BigInt.zero,
-              canBeEqualToMin: true,
-              canBeBlank: true,
-            ),
-            onChanged: (String value) {
-              setState(() {});
-            },
-            inputFormatters: FormatUtils.getAmountTextInputFormatters(
-              _znnAmountController.text,
-            ),
-          ),
-        ),
-        StepperUtils.getBalanceWidget(kZnnCoin, accountInfo),
-        Form(
-          key: _qsrAmountKey,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          child: InputField(
-            hintText: 'QSR Amount',
-            controller: _qsrAmountController,
-            suffixIcon: AmountSuffixWidgets(
-              kQsrCoin,
-              onMaxPressed: () {
-                final BigInt maxQsr = accountInfo.getBalance(
-                  kQsrCoin.tokenStandard,
-                );
-                if (_qsrAmountController.text.isEmpty ||
-                    _qsrAmountController.text.extractDecimals(coinDecimals) <
-                        maxQsr) {
-                  setState(() {
-                    _qsrAmountController.text =
-                        maxQsr.addDecimals(coinDecimals);
-                  });
-                }
-              },
-            ),
-            validator: (String? value) => InputValidators.correctValue(
-              value,
-              accountInfo.qsr()!,
-              coinDecimals,
-              BigInt.zero,
-              canBeEqualToMin: true,
-              canBeBlank: true,
-            ),
-            onChanged: (String value) {
-              setState(() {});
-            },
-            inputFormatters: FormatUtils.getAmountTextInputFormatters(
-              _qsrAmountController.text,
+  Widget _buildAmountStep(AccountInfo accountInfo) {
+    return FocusTraversalGroup(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          AccField(
+            label: 'ZNN amount',
+            child: Form(
+              key: _znnAmountKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child: InputField(
+                hintText: '0.0',
+                inputtedTextStyle: accFieldTextStyle(context, mono: true),
+                controller: _znnAmountController,
+                suffixIcon: AmountSuffixWidgets(
+                  kZnnCoin,
+                  onMaxPressed: () {
+                    final BigInt maxZnn = accountInfo.getBalance(
+                      kZnnCoin.tokenStandard,
+                    );
+                    if (_znnAmountController.text.isEmpty ||
+                        _znnAmountController.text.extractDecimals(
+                              coinDecimals,
+                            ) <
+                            maxZnn) {
+                      setState(() {
+                        _znnAmountController.text = maxZnn.addDecimals(
+                          coinDecimals,
+                        );
+                      });
+                    }
+                  },
+                ),
+                validator: (String? value) => InputValidators.correctValue(
+                  value,
+                  accountInfo.znn()!,
+                  coinDecimals,
+                  BigInt.zero,
+                  canBeEqualToMin: true,
+                  canBeBlank: true,
+                ),
+                onChanged: (String value) {
+                  setState(() {});
+                },
+                inputFormatters: FormatUtils.getAmountTextInputFormatters(
+                  _znnAmountController.text,
+                ),
+              ),
             ),
           ),
-        ),
-        StepperUtils.getBalanceWidget(kQsrCoin, accountInfo),
-        Row(
-          children: <Widget>[
-            StepperButton(
-              text: 'Cancel',
-              onPressed: () {
-                Navigator.pop(context);
-              },
+          AccBalanceLine(kZnnCoin, accountInfo),
+          const SizedBox(height: kAccFieldGap),
+          AccField(
+            label: 'QSR amount',
+            child: Form(
+              key: _qsrAmountKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child: InputField(
+                hintText: '0.0',
+                inputtedTextStyle: accFieldTextStyle(context, mono: true),
+                controller: _qsrAmountController,
+                suffixIcon: AmountSuffixWidgets(
+                  kQsrCoin,
+                  onMaxPressed: () {
+                    final BigInt maxQsr = accountInfo.getBalance(
+                      kQsrCoin.tokenStandard,
+                    );
+                    if (_qsrAmountController.text.isEmpty ||
+                        _qsrAmountController.text.extractDecimals(
+                              coinDecimals,
+                            ) <
+                            maxQsr) {
+                      setState(() {
+                        _qsrAmountController.text = maxQsr.addDecimals(
+                          coinDecimals,
+                        );
+                      });
+                    }
+                  },
+                ),
+                validator: (String? value) => InputValidators.correctValue(
+                  value,
+                  accountInfo.qsr()!,
+                  coinDecimals,
+                  BigInt.zero,
+                  canBeEqualToMin: true,
+                  canBeBlank: true,
+                ),
+                onChanged: (String value) {
+                  setState(() {});
+                },
+                inputFormatters: FormatUtils.getAmountTextInputFormatters(
+                  _qsrAmountController.text,
+                ),
+              ),
             ),
-            const SizedBox(
-              width: 15,
-            ),
-            StepperButton(
+          ),
+          AccBalanceLine(kQsrCoin, accountInfo),
+          AccStepActions(
+            primary: StepperButton(
               text: 'Continue',
               onPressed: _ifInputValid(accountInfo)
                   ? () {
@@ -344,9 +308,13 @@ class _AcceleratorDonationStepperState
                     }
                   : null,
             ),
-          ],
-        ),
-      ],
+            secondaryLabel: 'Cancel',
+            onSecondary: () {
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      ),
     );
   }
 
@@ -358,7 +326,7 @@ class _AcceleratorDonationStepperState
       _qsrAmount = _qsrAmountController.text.isNotEmpty
           ? _qsrAmountController.text.extractDecimals(coinDecimals)
           : BigInt.zero;
-    } catch (_) {}
+    } on Object catch (_) {}
 
     return InputValidators.correctValue(
                   _znnAmountController.text,
@@ -394,50 +362,40 @@ class _AcceleratorDonationStepperState
             _qsrAmount <= accountInfo.qsr()!);
   }
 
-  Widget _getSubmitDonationStepContent() {
+  Widget _buildSubmitStep() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        const DottedBorderInfoWidget(
-          text: 'Thank you for supporting the Accelerator',
+        DottedBorderInfoWidget(
+          text: 'Sends ${_donationSummary()} to the Accelerator fund',
         ),
-        kVerticalSpacing,
-        Row(
-          children: <Widget>[
-            StepperButton(
-              onPressed: () {
-                setState(() {
-                  _currentStep = AcceleratorDonationStep.donationDetails;
-                  _lastCompletedStep = AcceleratorDonationStep.donationAddress;
-                });
-              },
-              text: 'Go back',
-            ),
-            const SizedBox(
-              width: 15,
-            ),
-            _getSubmitDonationViewModel(),
-          ],
+        AccStepActions(
+          primary: _buildSubmitDonationViewModel(),
+          secondaryLabel: 'Back',
+          onSecondary: () {
+            setState(() {
+              _currentStep = AcceleratorDonationStep.donationDetails;
+              _lastCompletedStep = AcceleratorDonationStep.donationAddress;
+            });
+          },
         ),
       ],
     );
   }
 
-  Widget _getSubmitDonationButton(SubmitDonationBloc model) {
-    return LoadingButton.stepper(
+  Widget _buildSubmitDonationButton(SubmitDonationBloc model) {
+    return LoadingButton(
       onPressed: () {
         _submitButtonKey.currentState?.animateForward();
-        model.submitDonation(
-          _znnAmount,
-          _qsrAmount,
-        );
+        unawaited(model.submitDonation(_znnAmount, _qsrAmount));
       },
-      text: 'Submit',
+      text: 'Donate',
+      circularBorderRadius: kLoadingButtonMinSize.height / 2,
       key: _submitButtonKey,
     );
   }
 
-  Widget _getSubmitDonationViewModel() {
+  Widget _buildSubmitDonationViewModel() {
     return ViewModelBuilder<SubmitDonationBloc>.reactive(
       onViewModelReady: (SubmitDonationBloc model) {
         model.stream.listen(
@@ -449,7 +407,7 @@ class _AcceleratorDonationStepperState
               });
             }
           },
-          onError: (error) async {
+          onError: (Object error) async {
             _submitButtonKey.currentState?.animateReverse();
             await NotificationUtils.sendNotificationError(
               error,
@@ -458,7 +416,8 @@ class _AcceleratorDonationStepperState
           },
         );
       },
-      builder: (_, SubmitDonationBloc model, __) => _getSubmitDonationButton(model),
+      builder: (_, SubmitDonationBloc model, _) =>
+          _buildSubmitDonationButton(model),
       viewModelBuilder: SubmitDonationBloc.new,
     );
   }

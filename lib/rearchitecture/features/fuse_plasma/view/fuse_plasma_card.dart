@@ -1,35 +1,32 @@
 import 'dart:async';
 
-import 'package:collection/collection.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:provider/provider.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/card_parts/card_parts.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/ltr.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-/// A card that lets the user fuse QSR for Plasma.
+/// The least width of the Fuse button, as the Send button beside its field.
+const double _kButtonMinWidth = 104;
+
+/// The width of the meter that previews the plasma a fusion gives.
+const double _kPreviewMeterWidth = 120;
+
+/// The form that fuses QSR from the selected address into plasma for a
+/// beneficiary.
 class FusePlasmaCard extends StatelessWidget {
   /// Creates a [FusePlasmaCard].
-  const FusePlasmaCard({
-    required this.onPlasmaFused,
-    this.plasmaStatsResults,
-    this.errorText,
-    super.key,
-  });
+  const FusePlasmaCard({required this.onPlasmaFused, super.key});
 
-  /// Plasma stats used to preview generated Plasma for the beneficiary address.
-  final List<PlasmaInfoWrapper>? plasmaStatsResults;
-
-  /// Called after a fuse transaction was successfully created.
+  /// Called after a fuse transaction was successfully created: the place to
+  /// reload what shows the fusion, the plasma levels and the fusions.
   final VoidCallback onPlasmaFused;
-
-  /// Error text from the Plasma stats loader.
-  final String? errorText;
 
   @override
   Widget build(BuildContext context) {
@@ -39,55 +36,100 @@ class FusePlasmaCard extends StatelessWidget {
         zenon: zenon!,
         zenonAddressUtils: ZenonAddressUtils(),
       ),
-      child: _View(
-        plasmaStatsResults: plasmaStatsResults,
-        onPlasmaFused: onPlasmaFused,
-        errorText: errorText,
-      ),
+      child: _View(onPlasmaFused: onPlasmaFused),
     );
   }
 }
 
 class _View extends StatelessWidget {
-  const _View({
-    required this.onPlasmaFused,
-    required this.errorText,
-    this.plasmaStatsResults,
-  });
+  const _View({required this.onPlasmaFused});
 
-  final List<PlasmaInfoWrapper>? plasmaStatsResults;
   final VoidCallback onPlasmaFused;
-  final String? errorText;
 
   @override
   Widget build(BuildContext context) {
-    return NewCardScaffold(
-      data: _buildCardData(context: context),
-      onRefreshPressed: _fetchBalance,
-      body: errorText != null
-          ? SyriusErrorWidget(errorText!)
-          : BlocBuilder<MultipleBalanceBloc, MultipleBalanceState>(
-              builder: (_, MultipleBalanceState state) => switch (state
-                  .status) {
-                MultipleBalanceStatus.failure => SyriusErrorWidget(
-                  state.error!,
-                ),
-                MultipleBalanceStatus.initial => const SyriusLoadingWidget(),
-                MultipleBalanceStatus.loading => const SyriusLoadingWidget(),
-                MultipleBalanceStatus.success => _Populated(
-                  mapAccountInfo: state.data!,
-                  plasmaStatsResults: plasmaStatsResults!,
-                  onPlasmaFused: onPlasmaFused,
-                ),
-              },
-            ),
+    // The form spends from the selected address, which can change while the
+    // page is open.
+    context.watch<SelectedAddressNotifier>();
+    return Panel(
+      title: context.l10n.fuse,
+      actions: const <Widget>[RefreshButton(onPressed: _fetchBalance)],
+      child: BlocBuilder<MultipleBalanceBloc, MultipleBalanceState>(
+        builder: (_, MultipleBalanceState state) {
+          final AccountInfo? accountInfo = state.data?[kSelectedAddress];
+          return StateSwitcher(
+            child: switch (state.status) {
+              MultipleBalanceStatus.failure => CardNote.error(
+                state.error!,
+                key: const ValueKey<String>('failure'),
+              ),
+              // A refresh keeps the balances it had, so the form stays up,
+              // with what was typed in it, while the new ones load.
+              _ when accountInfo != null => _Populated(
+                key: const ValueKey<String>('form'),
+                accountInfo: accountInfo,
+                onPlasmaFused: onPlasmaFused,
+              ),
+              _ => const _Loading(key: ValueKey<String>('loading')),
+            },
+          );
+        },
+      ),
     );
   }
+}
 
-  CardData _buildCardData({required BuildContext context}) => CardData(
-    title: context.l10n.fusePlasmaTitle,
-    description: context.l10n.fusePlasmaDescription(kQsrCoin.symbol),
-  );
+/// The form while the balance loads: a bar or a block where each of its
+/// parts will be, so the form arrives where they stood.
+class _Loading extends StatelessWidget {
+  const _Loading({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final AppTokens tokens = AppTokens.of(context);
+    final Widget field = Skeleton(
+      height: kCardFieldHeight,
+      radius: tokens.cardRadius,
+    );
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      padding: kCardBodyPadding,
+      child: RepaintBoundary(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            // The Available line: its label, and the balance at the right.
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Skeleton(width: 72),
+                  Skeleton(width: 96),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            // The beneficiary.
+            field,
+            SizedBox(height: tokens.cardGap),
+            // The amount, and the Fuse button beside it.
+            Row(
+              children: <Widget>[
+                Expanded(child: field),
+                SizedBox(width: tokens.cardGap),
+                const Skeleton(
+                  width: _kButtonMinWidth,
+                  height: kCardFieldHeight,
+                  radius: kCardFieldHeight / 2,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 void _fetchBalance() {
@@ -100,13 +142,12 @@ void _fetchBalance() {
 
 class _Populated extends StatefulWidget {
   const _Populated({
-    required this.mapAccountInfo,
-    required this.plasmaStatsResults,
+    required this.accountInfo,
     required this.onPlasmaFused,
+    super.key,
   });
 
-  final Map<String, AccountInfo> mapAccountInfo;
-  final List<PlasmaInfoWrapper> plasmaStatsResults;
+  final AccountInfo accountInfo;
   final VoidCallback onPlasmaFused;
 
   @override
@@ -114,335 +155,281 @@ class _Populated extends StatefulWidget {
 }
 
 class _PopulatedState extends State<_Populated> {
-  final TextEditingController _qsrAmountController = TextEditingController();
-  final TextEditingController _addressController = TextEditingController();
-  final TextEditingController _beneficiaryAddressController =
-      TextEditingController();
+  final TextEditingController _amountController = TextEditingController();
+  final TextEditingController _beneficiaryController = TextEditingController();
+  final FocusNode _amountFocusNode = FocusNode();
   final GlobalKey<LoadingButtonState> _fuseButtonKey = GlobalKey();
 
-  final double _marginWidth = 20;
-  final double _spaceBetweenExpandedWidgets = 10;
+  late final Listenable _inputs = Listenable.merge(<Listenable>[
+    _amountController,
+    _beneficiaryController,
+  ]);
 
   BigInt get _maxQsrAmount =>
-      widget.mapAccountInfo[kSelectedAddress!]?.getBalance(
-        kQsrCoin.tokenStandard,
-      ) ??
-      BigInt.zero;
+      widget.accountInfo.getBalance(kQsrCoin.tokenStandard);
 
-  AccountInfo? get _accountInfo => widget.mapAccountInfo[kSelectedAddress!];
+  String get _amount => _amountController.text;
 
-  String? get _qsrAmountError => InputValidators.correctValue(
-    _qsrAmountController.text,
-    _maxQsrAmount,
-    kQsrCoin.decimals,
-    fuseMinQsrAmount,
-    canBeEqualToMin: true,
-  );
+  String get _beneficiary => _beneficiaryController.text;
 
-  String? get _beneficiaryAddressError =>
-      InputValidators.checkAddress(_beneficiaryAddressController.text);
+  String? get _amountError => _amount.isEmpty
+      ? null
+      : InputValidators.correctValue(
+          _amount,
+          _maxQsrAmount,
+          kQsrCoin.decimals,
+          fuseMinQsrAmount,
+          canBeEqualToMin: true,
+        );
+
+  String? get _beneficiaryError =>
+      _beneficiary.isEmpty ? null : InputValidators.checkAddress(_beneficiary);
 
   bool get _isInputValid =>
-      _qsrAmountController.text.isNotEmpty &&
-      _qsrAmountError == null &&
-      _beneficiaryAddressController.text.isNotEmpty &&
-      _beneficiaryAddressError == null;
+      _amount.isNotEmpty &&
+      _amountError == null &&
+      _beneficiary.isNotEmpty &&
+      _beneficiaryError == null;
+
+  /// The plasma the typed amount would add; nothing while it is not a number.
+  int get _plasmaToAdd {
+    if (_amount.isEmpty) return 0;
+    try {
+      return plasmaForQsr(
+        _amount.extractDecimals(kQsrCoin.decimals),
+        kQsrCoin.decimals,
+      );
+    } on FormatException {
+      return 0;
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-    _addressController.text = kSelectedAddress!;
-    _initializeBeneficiaryAddress();
-    _fetchBalance();
+    _beneficiaryController
+      ..text = context.read<PlasmaBeneficiaryAddressCubit>().state ?? ''
+      ..addListener(_onBeneficiaryTyped);
   }
 
   @override
   void dispose() {
-    _qsrAmountController.dispose();
-    _addressController.dispose();
-    _beneficiaryAddressController.dispose();
+    _amountController.dispose();
+    _beneficiaryController.dispose();
+    _amountFocusNode.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<FusePlasmaBloc, FusePlasmaState>(
-      listener: (_, FusePlasmaState state) => _onFusePlasmaStateChanged(
-        state,
-      ),
-      child: BlocListener<PlasmaBeneficiaryAddressCubit, String?>(
-        listener: (_, String? address) => _onBeneficiaryAddressChanged(
-          address,
+    final AppTokens tokens = AppTokens.of(context);
+    return MultiBlocListener(
+      listeners: <BlocListener<dynamic, dynamic>>[
+        BlocListener<FusePlasmaBloc, FusePlasmaState>(
+          listener: (_, FusePlasmaState state) => _onFuseStateChanged(state),
         ),
-        child: Consumer<SelectedAddressNotifier>(
-          builder: (_, _, Widget? child) {
-            _addressController.text = kSelectedAddress!;
-            return child!;
-          },
-          child: LayoutBuilder(
-            builder: (_, BoxConstraints constraints) {
-              final AccountInfo? accountInfo = _accountInfo;
-              if (accountInfo == null) {
-                return const SyriusLoadingWidget();
-              }
-
-              return _buildBody(accountInfo);
-            },
-          ),
+        BlocListener<PlasmaBeneficiaryAddressCubit, String?>(
+          listener: (_, String? address) => _onBeneficiaryPicked(address),
         ),
-      ),
-    );
-  }
-
-  Widget _buildBody(AccountInfo accountInfo) {
-    return Container(
-      margin: EdgeInsets.all(_marginWidth),
-      child: Column(
-        crossAxisAlignment: .start,
-        children: <Widget>[
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: .start,
-                  children: <Widget>[
-                    DisabledAddressField(
-                      _addressController,
-                    ),
-                  ],
+      ],
+      child: CardFields(
+        // Tab goes through the fields before it reaches the button.
+        child: FocusTraversalGroup(
+          policy: OrderedTraversalPolicy(),
+          // A scroll view, so an error line under a field can never push
+          // the Fuse button off the card.
+          child: SingleChildScrollView(
+            padding: kCardBodyPadding,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                ValueFlash(
+                  // Another address's balance is not a change of this one.
+                  key: ValueKey<String?>(kSelectedAddress),
+                  value: _maxQsrAmount,
+                  color: tokens.qsrInk,
+                  child: CardAvailable(
+                    amount: _maxQsrAmount,
+                    decimals: kQsrCoin.decimals,
+                    symbol: kQsrCoin.symbol,
+                    symbolColor: tokens.qsrInk,
+                  ),
                 ),
-              ),
-              SizedBox(width: _spaceBetweenExpandedWidgets),
-              Expanded(
-                child: ValueListenableBuilder<TextEditingValue>(
-                  valueListenable: _qsrAmountController,
-                  builder: (_, TextEditingValue value, _) {
-                    return TextField(
-                      key: const Key('fuse_plasma_amount_field'),
-                      decoration: InputDecoration(
-                        errorText: value.text.isNotEmpty
-                            ? _qsrAmountError
-                            : null,
-                        suffixIcon: TextButton(
-                          style: TextButton.styleFrom(
-                            foregroundColor: AppColors.qsrColor,
-                          ),
-                          onPressed: _maxQsrAmount > BigInt.zero
-                              ? _onMaxPressed
-                              : null,
-                          child: Text(
-                            context.l10n.max.toUpperCase(),
-                          ),
-                        ),
-                        hintText: context.l10n.amount,
-                      ),
-                      enabled: _maxQsrAmount > BigInt.zero,
-                      onChanged: (_) {
-                        setState(() {});
-                      },
-                      inputFormatters:
-                          FormatUtils.getPlasmaAmountTextInputFormatters(
-                            value.text,
-                          ),
-                      controller: _qsrAmountController,
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-          AvailableBalance.stepper(kQsrCoin, accountInfo),
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: ValueListenableBuilder<TextEditingValue>(
-                  valueListenable: _beneficiaryAddressController,
-                  builder: (_, TextEditingValue value, _) {
-                    return TextField(
+                const SizedBox(height: 12),
+                FocusTraversalOrder(
+                  order: const NumericFocusOrder(1),
+                  child: ValueListenableBuilder<TextEditingValue>(
+                    valueListenable: _beneficiaryController,
+                    builder: (_, _, _) => TextField(
                       key: const Key('fuse_plasma_beneficiary_address_field'),
+                      controller: _beneficiaryController,
+                      style: monoStyle(cardValueStyle(context)),
+                      // An address is typed and read left to right in every
+                      // language, from the app's start. The hint, the suffix
+                      // and the error line keep the app's direction.
+                      textDirection: TextDirection.ltr,
+                      textAlign: ltrTextAlign(context, TextAlign.start),
                       decoration: InputDecoration(
-                        errorText: value.text.isNotEmpty
-                            ? _beneficiaryAddressError
-                            : null,
+                        errorText: _beneficiaryError,
                         hintText: context.l10n.beneficiaryAddress,
                         suffixIcon: FieldSuffixButtons(
-                          controller: _beneficiaryAddressController,
+                          controller: _beneficiaryController,
                         ),
                       ),
                       inputFormatters: <TextInputFormatter>[
-                        FilteringTextInputFormatter.allow(
-                          RegExp('[0-9a-z]'),
-                        ),
+                        FilteringTextInputFormatter.allow(RegExp('[0-9a-z]')),
                       ],
-                      controller: _beneficiaryAddressController,
-                    );
-                  },
+                      onSubmitted: (_) => _amountFocusNode.requestFocus(),
+                    ),
+                  ),
                 ),
-              ),
-              SizedBox(width: _spaceBetweenExpandedWidgets),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: .stretch,
+                SizedBox(height: tokens.cardGap),
+                // The amount and the one action of the card share a line.
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    ListenableBuilder(
-                      listenable: Listenable.merge(<Listenable?>[
-                        _beneficiaryAddressController,
-                        _qsrAmountController,
-                      ]),
-                      builder: (_, _) {
-                        return _buildFuseButton();
-                      },
+                    Expanded(
+                      child: FocusTraversalOrder(
+                        order: const NumericFocusOrder(2),
+                        child: ValueListenableBuilder<TextEditingValue>(
+                          valueListenable: _amountController,
+                          // QSR is fused whole. A refused key, a point or a
+                          // comma for one, says so under the field, over
+                          // what the validator says.
+                          builder: (_, TextEditingValue value, _) =>
+                              AmountRefusalScope(
+                                controller: _amountController,
+                                builder: (_, String? refusal) => TextField(
+                                  key: const Key('fuse_plasma_amount_field'),
+                                  controller: _amountController,
+                                  focusNode: _amountFocusNode,
+                                  enabled: _maxQsrAmount > BigInt.zero,
+                                  style: monoStyle(cardValueStyle(context)),
+                                  // An amount, like the address above.
+                                  textDirection: TextDirection.ltr,
+                                  textAlign: ltrTextAlign(
+                                    context,
+                                    TextAlign.start,
+                                  ),
+                                  decoration: InputDecoration(
+                                    errorText: refusal ?? _amountError,
+                                    hintText: context.l10n.amount,
+                                    suffixIcon: CardFieldAction(
+                                      label: context.l10n.max,
+                                      onPressed: _maxQsrAmount > BigInt.zero
+                                          ? _onMaxPressed
+                                          : null,
+                                    ),
+                                  ),
+                                  inputFormatters:
+                                      FormatUtils.getPlasmaAmountTextInputFormatters(
+                                        value.text,
+                                      ),
+                                  onSubmitted: (_) {
+                                    if (_isInputValid) {
+                                      _onFusePressed();
+                                    }
+                                  },
+                                ),
+                              ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: tokens.cardGap),
+                    FocusTraversalOrder(
+                      order: const NumericFocusOrder(3),
+                      child: ListenableBuilder(
+                        listenable: _inputs,
+                        builder: (_, _) => KeyedSubtree(
+                          key: const Key('fuse_plasma_submit_button'),
+                          child: LoadingButton(
+                            key: _fuseButtonKey,
+                            text: context.l10n.fuse,
+                            minimumSize: const Size(
+                              _kButtonMinWidth,
+                              kCardFieldHeight,
+                            ),
+                            paddingAroundChild: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                            ),
+                            circularBorderRadius: kCardFieldHeight / 2,
+                            onPressed: _isInputValid ? _onFusePressed : null,
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
-              ),
-            ],
-          ),
-          kVerticalGap16,
-          ListenableBuilder(
-            listenable: Listenable.merge(<Listenable?>[
-              _beneficiaryAddressController,
-              _qsrAmountController,
-            ]),
-            builder: (_, _) {
-              return Visibility(
-                visible: _isInputValid,
-                child: Row(
-                  children: <Widget>[
-                    const Text('Future plasma: '),
-                    kHorizontalGap8,
-                    _buildPlasmaIcon(),
-                  ],
+                const SizedBox(height: 12),
+                ListenableBuilder(
+                  listenable: _inputs,
+                  builder: (_, _) => _After(
+                    visible: _isInputValid,
+                    beneficiary: _beneficiary,
+                    plasmaToAdd: _plasmaToAdd,
+                  ),
                 ),
-              );
-            },
+              ],
+            ),
           ),
-        ],
-      ),
-    );
-  }
-
-  /// How plasma is calculated: 1 QSR equals a plasma value of 2100
-  ///
-  /// The text field seems to not allow the user to enter decimals. Which is
-  /// good because the way the plasma value is calculated, converted and
-  /// handled, it seems that the decimals are disregarded
-  ///
-  /// So a number with decimals might break the flow, or those decimals might
-  /// be lost in data type conversions
-  PlasmaIcon _buildPlasmaIcon() {
-    BigInt currentPlasma = BigInt.zero;
-    if (_qsrAmountController.text.isNotEmpty) {
-      final BigInt qsrAmountWithoutDecimals = _qsrAmountController.text
-          .extractDecimals(
-            kQsrCoin.decimals,
-          );
-
-      final BigInt plasmaValueWithoutDecimals = zenon!.embedded.plasma
-          .getPlasmaByQsr(qsrAmountWithoutDecimals);
-
-      final String plasmaValue = plasmaValueWithoutDecimals.addDecimals(
-        kQsrCoin.decimals,
-      );
-
-      currentPlasma = BigInt.parse(plasmaValue);
-    }
-
-    final BigInt pastPlasma = BigInt.from(_getPlasmaForCurrentBeneficiary());
-
-    final BigInt finalPlasma = currentPlasma + pastPlasma;
-
-    return PlasmaIcon(
-      PlasmaInfo.fromJson(
-        <String, dynamic>{
-          'currentPlasma': finalPlasma.toInt(),
-          'maxPlasma': 0,
-          'qsrAmount': '0',
-        },
-      ),
-    );
-  }
-
-  int _getPlasmaForCurrentBeneficiary() {
-    final PlasmaInfoWrapper? plasmaInfoWrapper = widget.plasmaStatsResults
-        .firstWhereOrNull(
-          (PlasmaInfoWrapper plasmaInfo) =>
-              plasmaInfo.address == _beneficiaryAddressController.text,
-        );
-
-    return plasmaInfoWrapper?.plasmaInfo.currentPlasma ?? 0;
-  }
-
-  Widget _buildFuseButton() {
-    const Widget icon = Icon(
-      Icons.bolt,
-    );
-
-    // TODO(maznnwell): make sure the button is as tall as the text field
-    return KeyedSubtree(
-      key: const Key('fuse_plasma_submit_button'),
-      child: LoadingButton.icon(
-        key: _fuseButtonKey,
-        onPressed: _isInputValid ? _onFusePressed : null,
-        label: context.l10n.fuse,
-        outlineColor: AppColors.qsrColor,
-        icon: icon,
-        textStyle: const TextStyle(
-          color: AppColors.qsrColor,
         ),
       ),
     );
   }
 
   void _onFusePressed() {
-    context.read<FusePlasmaBloc>().add(
+    final FusePlasmaBloc bloc = context.read<FusePlasmaBloc>();
+    // Enter in the amount field reaches here too, and the busy button does
+    // not stop it: a second Enter would send a second fusion.
+    if (!_isInputValid || bloc.state is FusePlasmaLoading) {
+      return;
+    }
+    bloc.add(
       FusePlasmaRequested(
-        beneficiaryAddress: _beneficiaryAddressController.text,
-        amount: _qsrAmountController.text.extractDecimals(kQsrCoin.decimals),
+        beneficiaryAddress: _beneficiary,
+        amount: _amount.extractDecimals(kQsrCoin.decimals),
       ),
     );
   }
 
   void _onMaxPressed() {
-    if (_qsrAmountController.text.isEmpty ||
-        _qsrAmountController.text.extractDecimals(kQsrCoin.decimals) !=
-            _maxQsrAmount) {
-      _qsrAmountController.text = _maxQsrAmount.addDecimals(kQsrCoin.decimals);
+    if (_amount.isEmpty ||
+        _amount.extractDecimals(kQsrCoin.decimals) != _maxQsrAmount) {
+      _amountController.text = _maxQsrAmount.addDecimals(kQsrCoin.decimals);
     }
   }
 
-  void _initializeBeneficiaryAddress() {
-    final String? beneficiaryAddress = context
-        .read<PlasmaBeneficiaryAddressCubit>()
-        .state;
+  /// Keeps the address marked in the Plasma card in step with the field: a
+  /// typed address that is not the marked one unmarks it.
+  void _onBeneficiaryTyped() {
+    final PlasmaBeneficiaryAddressCubit cubit = context
+        .read<PlasmaBeneficiaryAddressCubit>();
+    final String? typed = _beneficiary.isEmpty ? null : _beneficiary;
+    if (cubit.state != typed) {
+      cubit.changeAddress(typed);
+    }
+  }
 
-    if (beneficiaryAddress == null) {
+  /// An address picked elsewhere (a row of the Plasma card, a new selected
+  /// address) fills the field.
+  void _onBeneficiaryPicked(String? address) {
+    if (address == null || address == _beneficiary) {
       return;
     }
-
-    _beneficiaryAddressController.text = beneficiaryAddress;
+    _beneficiaryController.text = address;
   }
 
-  void _onBeneficiaryAddressChanged(String? address) {
-    if (address == null) {
-      return;
-    }
-
-    _beneficiaryAddressController.text = address;
-  }
-
-  void _onFusePlasmaStateChanged(FusePlasmaState state) {
+  void _onFuseStateChanged(FusePlasmaState state) {
     if (state is FusePlasmaLoading) {
       _fuseButtonKey.currentState?.animateForward();
     } else if (state is FusePlasmaDone) {
       _fuseButtonKey.currentState?.animateReverse();
-      _qsrAmountController.clear();
-      _beneficiaryAddressController.clear();
+      // The beneficiary stays: the next fusion is most often for the same
+      // address, and its row stays marked.
+      _amountController.clear();
       _fetchBalance();
-      context.read<PlasmaStatsBloc>().add(
-        const InfiniteListRefreshRequested(),
-      );
+      // The plasma levels and the fusions show the fusion only once the
+      // contract has received it; the page reloads them until they do.
       widget.onPlasmaFused();
     } else if (state is FusePlasmaFailure) {
       _fuseButtonKey.currentState?.animateReverse();
@@ -453,5 +440,57 @@ class _PopulatedState extends State<_Populated> {
         ),
       );
     }
+  }
+}
+
+/// The level the beneficiary reaches once the fusion is in: what it has now,
+/// where the wallet knows it, plus what the amount adds. Shown only for an
+/// input that can be fused.
+class _After extends StatelessWidget {
+  const _After({
+    required this.visible,
+    required this.beneficiary,
+    required this.plasmaToAdd,
+  });
+
+  final bool visible;
+  final String beneficiary;
+  final int plasmaToAdd;
+
+  @override
+  Widget build(BuildContext context) {
+    // Known only for the wallet's own addresses; another address starts
+    // from nothing here.
+    final int current = context.select<PlasmaStatsBloc, int>((
+      PlasmaStatsBloc bloc,
+    ) {
+      for (final PlasmaInfoWrapper w
+          in bloc.state.data ?? const <PlasmaInfoWrapper>[]) {
+        if (w.address == beneficiary) {
+          return w.plasmaInfo.currentPlasma;
+        }
+      }
+      return 0;
+    });
+    final int after = current + plasmaToAdd;
+    return AnimatedOpacity(
+      opacity: visible ? 1 : 0,
+      duration: Durations.short4,
+      curve: Easing.standard,
+      child: CardRow(
+        label: 'After fusing',
+        value: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            SizedBox(
+              width: _kPreviewMeterWidth,
+              child: PlasmaLevelMeter(plasma: after),
+            ),
+            SizedBox(width: AppTokens.of(context).cardGap),
+            PlasmaLevelLabel(plasma: after),
+          ],
+        ),
+      ),
+    );
   }
 }

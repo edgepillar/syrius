@@ -1,112 +1,158 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/card_parts/card_parts.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/home/widgets/amount_text.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/multiple_balance/multiple_balance.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/refresh_button/refresh_button.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-/// Displays the ZTS token balances for the selected address.
+const String _kTitle = 'Balances';
+
+/// The height of a balance row.
+const double _kRowHeight = 44;
+
+/// The ZTS tokens the selected address holds, and how much of each.
 class TokenBalanceCard extends StatelessWidget {
   /// Creates a new instance.
   const TokenBalanceCard({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return NewCardScaffold(
-      data: _buildCardData(context: context),
-      onRefreshPressed: () {
-        sl.get<MultipleBalanceBloc>().add(
-          MultipleBalanceFetch(
-            addresses: kDefaultAddressList.map((String? e) => e!).toList(),
-          ),
-        );
-      },
-      body: BlocBuilder<MultipleBalanceBloc, MultipleBalanceState>(
-        builder: (_, MultipleBalanceState state) => switch (state.status) {
-          MultipleBalanceStatus.failure => _Error(error: state.error!),
-          MultipleBalanceStatus.initial => const _Empty(),
-          MultipleBalanceStatus.loading => const _Loading(),
-          MultipleBalanceStatus.success => _Populated(balances: state.data!),
+    return Panel(
+      title: _kTitle,
+      actions: <Widget>[
+        RefreshButton(
+          onPressed: () {
+            context.read<MultipleBalanceBloc>().add(
+              MultipleBalanceFetch(
+                addresses: kDefaultAddressList.map((String? e) => e!).toList(),
+              ),
+            );
+          },
+        ),
+      ],
+      child: BlocBuilder<MultipleBalanceBloc, MultipleBalanceState>(
+        buildWhen: (MultipleBalanceState previous, MultipleBalanceState next) =>
+            previous.status != next.status || previous.data != next.data,
+        builder: (BuildContext context, MultipleBalanceState state) {
+          // A refresh keeps the last balances on screen; a balance that
+          // comes back different flashes.
+          final AccountInfo? accountInfo = state.data?[kSelectedAddress];
+          return StateSwitcher(
+            child: accountInfo != null
+                ? _Populated(
+                    key: const ValueKey<String>('populated'),
+                    accountInfo: accountInfo,
+                  )
+                : state.status == MultipleBalanceStatus.failure
+                ? CardNote.error(
+                    state.error!,
+                    key: const ValueKey<String>('error'),
+                  )
+                : const Padding(
+                    key: ValueKey<String>('loading'),
+                    padding: kCardBodyPadding,
+                    child: SkeletonRows(),
+                  ),
+          );
         },
       ),
     );
   }
-
-  CardData _buildCardData({required BuildContext context}) => CardData(
-    title: context.l10n.tokenBalanceTitle,
-    description: context.l10n.tokenBalanceDescription,
-  );
-}
-
-class _Empty extends StatelessWidget {
-  const _Empty({this.message});
-
-  final String? message;
-
-  @override
-  Widget build(BuildContext context) {
-    return SyriusErrorWidget(message ?? context.l10n.waitingForDataFetching);
-  }
-}
-
-class _Error extends StatelessWidget {
-  const _Error({required this.error});
-
-  final SyriusException error;
-
-  @override
-  Widget build(BuildContext context) {
-    return SyriusErrorWidget(error);
-  }
-}
-
-class _Loading extends StatelessWidget {
-  const _Loading();
-
-  @override
-  Widget build(BuildContext context) {
-    return const SyriusLoadingWidget();
-  }
 }
 
 class _Populated extends StatelessWidget {
-  const _Populated({required this.balances});
+  const _Populated({required this.accountInfo, super.key});
 
-  final Map<String, AccountInfo> balances;
+  final AccountInfo accountInfo;
 
   @override
   Widget build(BuildContext context) {
-    final AccountInfo accountInfo = balances[kSelectedAddress!]!;
-    final List<BalanceInfoListItem> tokenBalances = _getTokenBalances(
-      accountInfo,
-    );
-
-    final List<Token> tokens = tokenBalances
-        .map((BalanceInfoListItem e) => e.token!)
-        .toList();
-
-    if (tokens.isEmpty) {
-      return _Empty(message: context.l10n.noZtsTokensAvailable);
-    }
-
-    return BalancePopulated(
-      address: kSelectedAddress!,
-      accountInfo: accountInfo,
-      zts: tokens,
-    );
-  }
-
-  List<BalanceInfoListItem> _getTokenBalances(AccountInfo? accountInfo) {
-    return accountInfo?.balanceInfoList
+    final Set<TokenStandard> coins = <TokenStandard>{
+      kZnnCoin.tokenStandard,
+      kQsrCoin.tokenStandard,
+    };
+    final List<BalanceInfoListItem> balances =
+        accountInfo.balanceInfoList
             ?.where(
-              (BalanceInfoListItem item) => !<TokenStandard>{
-                kZnnCoin.tokenStandard,
-                kQsrCoin.tokenStandard,
-              }.contains(item.token!.tokenStandard),
+              (BalanceInfoListItem item) =>
+                  item.token != null &&
+                  item.balance != null &&
+                  !coins.contains(item.token!.tokenStandard),
             )
             .toList() ??
         <BalanceInfoListItem>[];
+
+    if (balances.isEmpty) {
+      return CardNote(context.l10n.noItemsFound);
+    }
+
+    return ListView.builder(
+      key: const PageStorageKey<String>('token_balances'),
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      itemExtent: _kRowHeight,
+      itemCount: balances.length,
+      itemBuilder: (BuildContext context, int index) => _BalanceRow(
+        key: ValueKey<String>(balances[index].token!.tokenStandard.toString()),
+        balance: balances[index].balance!,
+        token: balances[index].token!,
+      ),
+    );
+  }
+}
+
+/// A token's symbol and name, and the amount held in mono.
+class _BalanceRow extends StatelessWidget {
+  const _BalanceRow({required this.balance, required this.token, super.key});
+
+  final BigInt balance;
+  final Token token;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: <Widget>[
+          Text(
+            token.symbol.toUpperCase(),
+            style: cardValueStyle(context).copyWith(
+              fontWeight: FontWeight.w600,
+              color: cardTokenInk(token.tokenStandard),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Tooltip(
+              message: token.tokenStandard.toString(),
+              child: Text(
+                token.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: cardDimStyle(context),
+              ),
+            ),
+          ),
+          const SizedBox(width: kCardGap),
+          // The amount keeps the right half, so the figures of every row
+          // end on one edge whatever the length of the name.
+          Expanded(
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: ValueFlash(
+                value: balance,
+                child: AmountText(
+                  balance,
+                  decimals: token.decimals,
+                  style: cardValueStyle(context),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

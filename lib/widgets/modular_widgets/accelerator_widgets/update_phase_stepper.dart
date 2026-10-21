@@ -1,27 +1,38 @@
-import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
+import 'dart:async';
+
+import 'package:material_ui/material_ui.dart';
 import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/motion/motion.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
     as custom_material_stepper;
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// The steps of updating a phase that is being voted on.
 enum UpdatePhaseStep {
+  /// The phase's name, description, link and budget.
   phaseDetails,
+
+  /// Sending it.
   updatePhase,
 }
 
+/// Updates [phase] of [project]. An update resets the phase's votes.
 class UpdatePhaseStepper extends StatefulWidget {
-
+  /// Creates the stepper for [phase] of [project].
   const UpdatePhaseStepper(
     this.phase,
     this.project, {
     super.key,
   });
+
+  /// The phase to update.
   final Phase phase;
+
+  /// The project it belongs to.
   final Project project;
 
   @override
@@ -56,11 +67,13 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
     _phaseNameController.text = widget.phase.name;
     _phaseDescriptionController.text = widget.phase.description;
     _phaseUrlController.text = widget.phase.url;
-    _phaseZnnAmountController.text =
-        widget.phase.znnFundsNeeded.addDecimals(coinDecimals);
-    _phaseQsrAmountController.text =
-        widget.phase.qsrFundsNeeded.addDecimals(coinDecimals);
-    sl.get<BalanceBloc>().getBalanceForAllAddresses();
+    _phaseZnnAmountController.text = widget.phase.znnFundsNeeded.addDecimals(
+      coinDecimals,
+    );
+    _phaseQsrAmountController.text = widget.phase.qsrFundsNeeded.addDecimals(
+      coinDecimals,
+    );
+    unawaited(sl.get<BalanceBloc>().getBalanceForAllAddresses());
   }
 
   @override
@@ -68,93 +81,50 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
     return StreamBuilder<Map<String, AccountInfo>?>(
       stream: sl.get<BalanceBloc>().stream,
       builder: (_, AsyncSnapshot<Map<String, AccountInfo>?> snapshot) {
+        final Widget state;
         if (snapshot.hasError) {
-          return SyriusErrorWidget(snapshot.error!);
+          state = SyriusErrorWidget(
+            snapshot.error!,
+            key: const ValueKey<String>('error'),
+          );
+        } else if (snapshot.connectionState == ConnectionState.active &&
+            snapshot.hasData) {
+          state = KeyedSubtree(
+            key: const ValueKey<String>('steps'),
+            child: _buildBody(context),
+          );
+        } else {
+          state = const AccStepperLoading(key: ValueKey<String>('loading'));
         }
-        if (snapshot.connectionState == ConnectionState.active) {
-          if (snapshot.hasData) {
-            return _getWidgetBody(
-              context,
-              snapshot.data![_addressController.text]!,
-            );
-          }
-          return const SyriusLoadingWidget();
-        }
-        return const SyriusLoadingWidget();
+        return StateSwitcher(child: state);
       },
     );
   }
 
-  Widget _getWidgetBody(BuildContext context, AccountInfo accountInfo) {
-    return Stack(
-      children: <Widget>[
-        ListView(
-          children: <Widget>[
-            _getMaterialStepper(context, accountInfo),
-          ],
-        ),
-        Visibility(
-          visible: _lastCompletedStep == UpdatePhaseStep.updatePhase,
-          child: Positioned(
-            bottom: 20,
-            right: 0,
-            left: 0,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                StepperButton(
-                  text: 'View Phases',
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-        Visibility(
-          visible: _lastCompletedStep == UpdatePhaseStep.updatePhase,
-          child: Positioned(
-            right: 50,
-            child: SizedBox(
-              width: 400,
-              height: 400,
-              child: Center(
-                child: Lottie.asset(
-                  'assets/lottie/ic_anim_zts.json',
-                  repeat: false,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _getMaterialStepper(BuildContext context, AccountInfo accountInfo) {
-    return Theme(
-      data: Theme.of(context).copyWith(
-        highlightColor: Colors.transparent,
-        splashColor: Colors.transparent,
-        hoverColor: Colors.transparent,
-      ),
-      child: custom_material_stepper.Stepper(
+  Widget _buildBody(BuildContext context) {
+    return AccStepperFrame(
+      isDone: _lastCompletedStep == UpdatePhaseStep.updatePhase,
+      doneLabel: 'View phases',
+      onDone: () {
+        Navigator.pop(context);
+      },
+      stepper: custom_material_stepper.Stepper(
         currentStep: _currentStep.index,
         onStepTapped: (int index) {},
         steps: <custom_material_stepper.Step>[
           StepperUtils.getMaterialStep(
-            stepTitle: 'Phase details',
-            stepContent: _getPhaseDetailsStepContent(accountInfo),
-            stepSubtitle: '${_phaseNameController.text} ● '
-                '${_phaseZnnAmountController.text} ${kZnnCoin.symbol} ● '
+            stepTitle: 'Details',
+            stepContent: _buildDetailsStep(),
+            stepSubtitle:
+                '${_phaseNameController.text} · '
+                '${_phaseZnnAmountController.text} ${kZnnCoin.symbol} · '
                 '${_phaseQsrAmountController.text} ${kQsrCoin.symbol}',
             stepState: _getStepState(UpdatePhaseStep.phaseDetails),
             context: context,
           ),
           StepperUtils.getMaterialStep(
-            stepTitle: 'Update phase',
-            stepContent: _getUpdatePhaseStepContent(),
+            stepTitle: 'Update',
+            stepContent: _buildUpdateStep(),
             stepSubtitle: 'ID ${widget.phase.id.toShortString()}',
             stepState: _getStepState(UpdatePhaseStep.updatePhase),
             context: context,
@@ -171,142 +141,155 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
         : custom_material_stepper.StepState.indexed;
   }
 
-  Widget _getPhaseDetailsStepContent(AccountInfo accountInfo) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: Text(
-                'This phase belongs to Project ID '
-                '${widget.phase.id.toShortString()}',
-                style: Theme.of(context).textTheme.headlineSmall,
+  Widget _buildDetailsStep() {
+    final TextStyle text = accFieldTextStyle(context);
+    final TextStyle amount = accFieldTextStyle(context, mono: true);
+    return FocusTraversalGroup(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          AccIdLine(
+            label: 'Phase',
+            name: widget.phase.name,
+            id: widget.phase.id,
+          ),
+          AccField(
+            label: 'Name',
+            child: Form(
+              key: _phaseNameKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child: InputField(
+                controller: _phaseNameController,
+                inputtedTextStyle: text,
+                onChanged: (String value) {
+                  setState(() {});
+                },
+                validator: Validations.projectName,
               ),
             ),
-          ],
-        ),
-        kVerticalSpacing,
-        Form(
-          key: _phaseNameKey,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          child: InputField(
-            controller: _phaseNameController,
-            hintText: 'Phase name',
-            onChanged: (String value) {
-              setState(() {});
-            },
-            validator: Validations.projectName,
           ),
-        ),
-        kVerticalSpacing,
-        Form(
-          key: _phaseDescriptionKey,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          child: InputField(
-            controller: _phaseDescriptionController,
-            hintText: 'Phase description',
-            onChanged: (String value) {
-              setState(() {});
-            },
-            validator: Validations.projectDescription,
-          ),
-        ),
-        kVerticalSpacing,
-        Form(
-          key: _phaseUrlKey,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          child: InputField(
-            controller: _phaseUrlController,
-            hintText: 'Phase URL',
-            onChanged: (String value) {
-              setState(() {});
-            },
-            validator: InputValidators.checkUrl,
-          ),
-        ),
-        kVerticalSpacing,
-        Text(
-          'Total phase budget',
-          style: Theme.of(context).textTheme.bodyLarge,
-        ),
-        kVerticalSpacing,
-        Form(
-          key: _phaseZnnAmountKey,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          child: InputField(
-            controller: _phaseZnnAmountController,
-            hintText: 'ZNN Amount',
-            suffixIcon: AmountSuffixWidgets(
-              kZnnCoin,
-              onMaxPressed: () {
-                setState(() {
-                  _phaseZnnAmountController.text = widget.project
-                      .getRemainingZnnFunds()
-                      .addDecimals(coinDecimals);
-                });
-              },
+          const SizedBox(height: kAccFieldGap),
+          AccField(
+            label: 'Description',
+            child: Form(
+              key: _phaseDescriptionKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child: InputField(
+                controller: _phaseDescriptionController,
+                inputtedTextStyle: text,
+                onChanged: (String value) {
+                  setState(() {});
+                },
+                validator: Validations.projectDescription,
+              ),
             ),
-            inputFormatters: FormatUtils.getAmountTextInputFormatters(
-              _phaseZnnAmountController.text,
+          ),
+          const SizedBox(height: kAccFieldGap),
+          AccField(
+            label: 'URL',
+            help: 'Proof of progress, such as a pull request',
+            child: Form(
+              key: _phaseUrlKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child: InputField(
+                controller: _phaseUrlController,
+                hintText: 'https://',
+                inputtedTextStyle: text,
+                onChanged: (String value) {
+                  setState(() {});
+                },
+                validator: InputValidators.checkUrl,
+              ),
             ),
-            validator: (String? value) => InputValidators.correctValue(
-              value,
+          ),
+          const SizedBox(height: kAccFieldGap),
+          AccField(
+            label: 'ZNN budget',
+            child: Form(
+              key: _phaseZnnAmountKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child: InputField(
+                controller: _phaseZnnAmountController,
+                hintText: '0.0',
+                inputtedTextStyle: amount,
+                suffixIcon: AmountSuffixWidgets(
+                  kZnnCoin,
+                  onMaxPressed: () {
+                    setState(() {
+                      _phaseZnnAmountController.text = widget.project
+                          .getRemainingZnnFunds()
+                          .addDecimals(coinDecimals);
+                    });
+                  },
+                ),
+                inputFormatters: FormatUtils.getAmountTextInputFormatters(
+                  _phaseZnnAmountController.text,
+                ),
+                validator: (String? value) => InputValidators.correctValue(
+                  value,
+                  widget.project.getRemainingZnnFunds(),
+                  kZnnCoin.decimals,
+                  BigInt.zero,
+                  canBeEqualToMin: true,
+                ),
+                onChanged: (String value) {
+                  setState(() {});
+                },
+              ),
+            ),
+          ),
+          AccHintLine(
+            '${accAmount(
               widget.project.getRemainingZnnFunds(),
-              kZnnCoin.decimals,
-              BigInt.zero,
-              canBeEqualToMin: true,
-            ),
-            onChanged: (String value) {
-              setState(() {});
-            },
+              coinDecimals,
+              kZnnCoin.symbol,
+            )} left in the project',
           ),
-        ),
-        kVerticalSpacing,
-        Form(
-          key: _phaseQsrAmountKey,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          child: InputField(
-            controller: _phaseQsrAmountController,
-            hintText: 'QSR Amount',
-            suffixIcon: AmountSuffixWidgets(
-              kQsrCoin,
-              onMaxPressed: () {
-                setState(() {
-                  _phaseQsrAmountController.text = widget.project
-                      .getRemainingQsrFunds()
-                      .addDecimals(coinDecimals);
-                });
-              },
+          const SizedBox(height: kAccFieldGap),
+          AccField(
+            label: 'QSR budget',
+            child: Form(
+              key: _phaseQsrAmountKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child: InputField(
+                controller: _phaseQsrAmountController,
+                hintText: '0.0',
+                inputtedTextStyle: amount,
+                suffixIcon: AmountSuffixWidgets(
+                  kQsrCoin,
+                  onMaxPressed: () {
+                    setState(() {
+                      _phaseQsrAmountController.text = widget.project
+                          .getRemainingQsrFunds()
+                          .addDecimals(coinDecimals);
+                    });
+                  },
+                ),
+                inputFormatters: FormatUtils.getAmountTextInputFormatters(
+                  _phaseQsrAmountController.text,
+                ),
+                validator: (String? value) => InputValidators.correctValue(
+                  value,
+                  widget.project.getRemainingQsrFunds(),
+                  kQsrCoin.decimals,
+                  BigInt.zero,
+                  canBeEqualToMin: true,
+                ),
+                onChanged: (String value) {
+                  setState(() {});
+                },
+              ),
             ),
-            inputFormatters: FormatUtils.getAmountTextInputFormatters(
-              _phaseQsrAmountController.text,
-            ),
-            validator: (String? value) => InputValidators.correctValue(
-              value,
+          ),
+          AccHintLine(
+            '${accAmount(
               widget.project.getRemainingQsrFunds(),
-              kQsrCoin.decimals,
-              BigInt.zero,
-              canBeEqualToMin: true,
-            ),
-            onChanged: (String value) {
-              setState(() {});
-            },
+              coinDecimals,
+              kQsrCoin.symbol,
+            )} left in the project',
           ),
-        ),
-        kVerticalSpacing,
-        Row(
-          children: <Widget>[
-            StepperButton(
-              text: 'Cancel',
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-            const SizedBox(
-              width: 15,
-            ),
-            StepperButton(
+          AccStepActions(
+            primary: StepperButton(
               text: 'Continue',
               onPressed: _areInputDetailsValid()
                   ? () {
@@ -317,42 +300,39 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
                     }
                   : null,
             ),
-          ],
-        ),
-      ],
+            secondaryLabel: 'Cancel',
+            onSecondary: () {
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _getUpdatePhaseStepContent() {
+  Widget _buildUpdateStep() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         const DottedBorderInfoWidget(
-          text: 'Updating this phase will reset all current votes',
+          text: 'Updating resets the votes on this phase',
+          borderColor: AppColors.warn,
         ),
-        kVerticalSpacing,
-        Row(
-          children: <Widget>[
-            StepperButton(
-              onPressed: () {
-                setState(() {
-                  _currentStep = UpdatePhaseStep.phaseDetails;
-                  _lastCompletedStep = null;
-                });
-              },
-              text: 'Go back',
-            ),
-            const SizedBox(
-              width: 15,
-            ),
-            _getUpdatePhaseViewModel(),
-          ],
+        AccStepActions(
+          primary: _buildUpdatePhaseViewModel(),
+          secondaryLabel: 'Back',
+          onSecondary: () {
+            setState(() {
+              _currentStep = UpdatePhaseStep.phaseDetails;
+              _lastCompletedStep = null;
+            });
+          },
         ),
       ],
     );
   }
 
-  StepperButton _getUpdatePhaseButton(UpdatePhaseBloc model) {
+  StepperButton _buildUpdatePhaseButton(UpdatePhaseBloc model) {
     return StepperButton(
       onPressed: () {
         model.updatePhase(
@@ -390,7 +370,7 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
           ) ==
           null;
 
-  Widget _getUpdatePhaseViewModel() {
+  Widget _buildUpdatePhaseViewModel() {
     return ViewModelBuilder<UpdatePhaseBloc>.reactive(
       onViewModelReady: (UpdatePhaseBloc model) {
         model.stream.listen(
@@ -401,7 +381,7 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
               });
             }
           },
-          onError: (error) async {
+          onError: (Object error) async {
             await NotificationUtils.sendNotificationError(
               error,
               'Error while updating phase',
@@ -409,21 +389,29 @@ class _UpdatePhaseStepperState extends State<UpdatePhaseStepper> {
           },
         );
       },
-      builder: (_, UpdatePhaseBloc model, __) => StreamBuilder<AccountBlockTemplate?>(
-        stream: model.stream,
-        builder: (_, AsyncSnapshot<AccountBlockTemplate?> snapshot) {
-          if (snapshot.hasError) {
-            return _getUpdatePhaseButton(model);
-          }
-          if (snapshot.connectionState == ConnectionState.active) {
-            if (snapshot.hasData) {
-              return _getUpdatePhaseButton(model);
-            }
-            return const SyriusLoadingWidget();
-          }
-          return _getUpdatePhaseButton(model);
-        },
-      ),
+      builder: (_, UpdatePhaseBloc model, _) =>
+          StreamBuilder<AccountBlockTemplate?>(
+            stream: model.stream,
+            builder: (_, AsyncSnapshot<AccountBlockTemplate?> snapshot) {
+              if (snapshot.hasError) {
+                return _buildUpdatePhaseButton(model);
+              }
+              if (snapshot.connectionState == ConnectionState.active) {
+                if (snapshot.hasData) {
+                  return _buildUpdatePhaseButton(model);
+                }
+                // The update is on its way: the ring stands where the
+                // button was, at the button's size, so the row keeps still.
+                return SizedBox.fromSize(
+                  size: kLoadingButtonMinSize,
+                  child: const Center(
+                    child: SyriusLoadingWidget(size: 18, strokeWidth: 1.5),
+                  ),
+                );
+              }
+              return _buildUpdatePhaseButton(model);
+            },
+          ),
       viewModelBuilder: UpdatePhaseBloc.new,
     );
   }

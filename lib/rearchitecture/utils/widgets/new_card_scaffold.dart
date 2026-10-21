@@ -2,10 +2,9 @@ import 'dart:async';
 
 import 'package:expandable/expandable.dart';
 import 'package:flip_card/flip_card.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
-import 'package:lottie/lottie.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/theming/new_app_themes.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
@@ -94,9 +93,7 @@ class _NewCardScaffoldState extends State<NewCardScaffold> {
             key: cardKey,
             onFlipDone: (bool status) {},
             front: ClipRRect(
-              borderRadius: BorderRadius.circular(
-                15,
-              ),
+              borderRadius: BorderRadius.circular(kCardRadius),
               child: ColoredBox(
                 color: background,
                 child: Column(
@@ -112,9 +109,7 @@ class _NewCardScaffoldState extends State<NewCardScaffold> {
               ),
             ),
             back: ClipRRect(
-              borderRadius: BorderRadius.circular(
-                15,
-              ),
+              borderRadius: BorderRadius.circular(kCardRadius),
               child: ColoredBox(
                 color: background,
                 child: Column(
@@ -158,7 +153,7 @@ class _NewCardScaffoldState extends State<NewCardScaffold> {
                     kHorizontalGap4,
                     Expanded(
                       child: Text(
-                        'Description',
+                        context.l10n.cardScaffoldDescriptionLabel,
                         style: context.themeData.textTheme.titleSmall,
                       ),
                     ),
@@ -181,7 +176,7 @@ class _NewCardScaffoldState extends State<NewCardScaffold> {
                   kHorizontalGap4,
                   Expanded(
                     child: Text(
-                      'Discreet mode',
+                      context.l10n.cardScaffoldDiscreetModeLabel,
                       style: context.themeData.textTheme.titleSmall,
                     ),
                   ),
@@ -287,7 +282,7 @@ class _NewCardScaffoldState extends State<NewCardScaffold> {
   }
 
   Widget _getHiddenInfoWidget() {
-    return Lottie.asset('assets/lottie/ic_anim_eye.json');
+    return const AppLottie(AppLottieAsset.eye);
   }
 
   bool _isFrontWidgetHidden(String title) {

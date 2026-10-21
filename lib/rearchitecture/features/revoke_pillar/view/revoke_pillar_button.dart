@@ -1,8 +1,9 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/card_parts/card_parts.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/revoke_pillar/bloc/revoke_pillar_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
@@ -56,12 +57,9 @@ class RevokePillarButton extends StatelessWidget {
 
   OutlinedButton _buildButton(BuildContext context) {
     return OutlinedButton.icon(
-      style: OutlinedButton.styleFrom(
-        iconColor: AppColors.errorColor,
-        side: const BorderSide(
-          color: AppColors.errorColor,
-        ),
-      ),
+      // A secondary action with a red line: it undoes something, and the
+      // card's filled button is kept for its main action.
+      style: cardSecondaryButtonStyle(context, line: AppColors.errorColor),
       onPressed: () async {
         final RevokePillarBloc revokePillarBloc = context
             .read<RevokePillarBloc>();
@@ -79,14 +77,9 @@ class RevokePillarButton extends StatelessWidget {
           );
         }
       },
-      icon: const Icon(Icons.close),
+      icon: const Icon(Icons.close, size: 16),
       iconAlignment: .end,
-      label: Text(
-        context.l10n.disassemble,
-        style: TextStyle(
-          color: context.newThemeData.textTheme.titleSmall!.color,
-        ),
-      ),
+      label: const Text('Disassemble'),
     );
   }
 }

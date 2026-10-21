@@ -1,13 +1,17 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_vector_icons/flutter_vector_icons.dart';
-import 'package:marquee_widget/marquee_widget.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/page_widgets.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/settings_parts.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
+/// The network as the connected node sees it: its latest momentum and how
+/// many peers it has.
 class GeneralWidget extends StatefulWidget {
   const GeneralWidget({super.key});
 
@@ -28,157 +32,79 @@ class GeneralWidgetState extends State<GeneralWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return CardScaffold(
-      title: 'General',
-      description: 'Generic wallet & network information',
-      childBuilder: _getStreamBuilder,
+    return Panel(
+      title: 'Network',
+      child: _buildStreamBuilder(),
     );
   }
 
-  Widget _getNewBody(GeneralStats generalStats) {
-    return Center(
-      child: ListView(
-        shrinkWrap: true,
+  Widget _buildBody(GeneralStats generalStats) {
+    final ThemeData theme = Theme.of(context);
+    final TextStyle figure = monoStyle(
+      theme.textTheme.headlineSmall,
+    ).copyWith(fontSize: 18, fontWeight: FontWeight.w500);
+    final String hash = generalStats.frontierMomentum.hash.toString();
+    final int peers = generalStats.networkInfo.peers.length;
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          Column(
+          Wrap(
+            spacing: 28,
+            runSpacing: 10,
             children: <Widget>[
-              Text(
-                'Momentum height',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              Container(height: 10),
-              Container(
-                width: 150,
-                height: 150,
-                decoration: const ShapeDecoration(
-                  color: Colors.transparent,
-                  shape: CircleBorder(
-                    side: BorderSide(
-                      width: 6,
-                      color: AppColors.znnColor,
-                    ),
-                  ),
+              _Figure(
+                label: 'Momentum',
+                child: NumberAnimation(
+                  end: generalStats.frontierMomentum.height,
+                  isInt: true,
+                  style: figure,
                 ),
-                child: Center(
-                  child: NumberAnimation(
-                    end: generalStats.frontierMomentum.height,
-                    isInt: true,
-                    style: Theme.of(context).textTheme.headlineMedium,
+              ),
+              _Figure(
+                label: 'Peers',
+                child: Text(
+                  '$peers',
+                  style: figure.copyWith(
+                    color: peers == 0 ? AppColors.warn : null,
                   ),
                 ),
               ),
-              Container(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  if (generalStats.networkInfo.peers.isNotEmpty) const Icon(
-                          MaterialCommunityIcons.lan_connect,
-                          size: 15,
-                          color: AppColors.znnColor,
-                        ) else const Icon(
-                          MaterialCommunityIcons.lan_disconnect,
-                          size: 15,
-                          color: AppColors.errorColor,
-                        ),
-                  const SizedBox(
-                    width: 4,
+              _Figure(
+                label: 'Time',
+                child: Text(
+                  FormatUtils.formatTimeSeconds(
+                    generalStats.frontierMomentum.timestamp * 1000,
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      if (generalStats.networkInfo.peers.isNotEmpty) Text(
-                              'Peers connected',
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ) else const Text('Peers available'),
-                      const SizedBox(
-                        width: 10,
-                      ),
-                      if (generalStats.networkInfo.peers.isNotEmpty) Text(
-                              '${generalStats.networkInfo.peers.length}',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ) else Text(
-                              'No peers found',
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(
-                height: 10,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  const Icon(
-                    MaterialCommunityIcons.timer,
-                    size: 15,
-                    color: AppColors.qsrColor,
-                  ),
-                  const SizedBox(
-                    width: 4,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Text(
-                        'Timestamp',
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    '${generalStats.frontierMomentum.timestamp}',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ],
-              ),
-              const SizedBox(
-                height: 6,
-              ),
-              RawMaterialButton(
-                constraints: const BoxConstraints(
-                  minHeight: 40,
+                  style: figure,
                 ),
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: Tooltip(
+                  message: hash,
+                  child: Text(
+                    hash,
+                    overflow: TextOverflow.ellipsis,
+                    style: settingMonoStyle(context),
+                  ),
+                ),
+              ),
+              CopyToClipboardButton(hash, iconSize: 16),
+              IconButton(
+                tooltip: 'Open in explorer',
+                visualDensity: VisualDensity.compact,
+                iconSize: 16,
+                icon: const Icon(Icons.open_in_new, color: AppColors.faint),
                 onPressed: () => NavigationUtils.openUrl(
                   '$kExplorer/momentum/${generalStats.frontierMomentum.hash}',
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Text(
-                      'Momentum hash',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    Container(width: 10),
-                    const Icon(
-                      MaterialCommunityIcons.compass,
-                      size: 20,
-                      color: AppColors.znnColor,
-                    ),
-                  ],
-                ),
-              ),
-              Row(
-                children: <Widget>[
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.only(
-                        top: 12,
-                        right: 22,
-                        left: 22,
-                      ),
-                      child: Marquee(
-                        child: Text(
-                          '${generalStats.frontierMomentum.hash}',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
               ),
             ],
           ),
@@ -187,16 +113,16 @@ class GeneralWidgetState extends State<GeneralWidget> {
     );
   }
 
-  Widget _getStreamBuilder() {
+  Widget _buildStreamBuilder() {
     return StreamBuilder<GeneralStats>(
       stream: _generalStatsBloc!.stream,
       builder: (_, AsyncSnapshot<GeneralStats> snapshot) {
         if (snapshot.hasData) {
-          return _getNewBody(snapshot.data!);
+          return _buildBody(snapshot.data!);
         } else if (snapshot.hasError) {
-          return SyriusErrorWidget(snapshot.error!);
+          return QuietNote.error(snapshot.error!);
         }
-        return const SyriusLoadingWidget();
+        return const QuietNote.loading();
       },
     );
   }
@@ -205,5 +131,27 @@ class GeneralWidgetState extends State<GeneralWidget> {
   void dispose() {
     _generalStatsBloc!.dispose();
     super.dispose();
+  }
+}
+
+/// A ledger label over a value that is a widget rather than a string, so a
+/// counting number fits where the shared `Figure` takes text.
+class _Figure extends StatelessWidget {
+  const _Figure({required this.label, required this.child});
+
+  final String label;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Text(label.toUpperCase(), style: ledgerLabelStyle(context)),
+        const SizedBox(height: 4),
+        child,
+      ],
+    );
   }
 }

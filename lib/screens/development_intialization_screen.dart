@@ -1,13 +1,11 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 /// This will be used to quickly initialize the app when testing in the
 /// development phase
-
 class DevelopmentInitializationScreen extends StatefulWidget {
-
   const DevelopmentInitializationScreen({super.key});
   static const String route = 'development-initialization-screen';
 
@@ -20,6 +18,8 @@ class _DevelopmentInitializationScreenState
     extends State<DevelopmentInitializationScreen> {
   @override
   Widget build(BuildContext context) {
+    // No theme lookup here: this build starts the app's initialisation, and
+    // a dependency on the theme would start it again on a theme change.
     return FutureBuilder(
       future: _checkIfWalletPathIsNull(context: context),
       builder: (_, AsyncSnapshot<bool> snapshot) {
@@ -36,10 +36,10 @@ class _DevelopmentInitializationScreenState
 
           return const SizedBox.shrink();
         } else if (snapshot.hasError) {
-          return Text('Error: ${snapshot.error}');
+          return SyriusErrorWidget(snapshot.error!);
         }
 
-        return const Center(child: CircularProgressIndicator());
+        return const Center(child: SyriusLoadingWidget());
       },
     );
   }

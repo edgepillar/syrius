@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
@@ -50,10 +50,7 @@ class _NewAddressesDropdownState extends State<NewAddressesDropdown> {
       inputDecorationTheme: const InputDecorationTheme(
         filled: true,
       ),
-      leadingIcon: const Icon(
-        Icons.search,
-        color: color,
-      ),
+      leadingIcon: const Icon(Icons.search, color: AppColors.faint, size: 18),
       dropdownMenuEntries: entries,
       menuHeight: kDropdownMenuHeight,
       onSelected: (String? address) {
@@ -62,12 +59,10 @@ class _NewAddressesDropdownState extends State<NewAddressesDropdown> {
         }
       },
       searchCallback: _searchCallback,
-      textStyle: const TextStyle(
-        color: color,
-      ),
+      textStyle: const TextStyle(fontSize: 14),
       trailingIcon: const Icon(
         Icons.keyboard_arrow_down_rounded,
-        color: color,
+        color: AppColors.faint,
       ),
     );
   }

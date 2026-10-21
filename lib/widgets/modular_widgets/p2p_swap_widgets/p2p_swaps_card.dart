@@ -1,19 +1,34 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
+
+import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/p2p_swap/p2p_swaps_list_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/p2p_swap/p2p_swap.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/refresh_button/view/refresh_button.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/page_widgets.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/native_p2p_swap_modal.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/recover_deposit_modal.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/p2p_swaps_list_item.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dialogs.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
 
+enum _SwapsMenu { recoverDeposit, tutorial, clearHistory }
+
+/// The swaps this wallet has made, as the table that fills the P2P Swap
+/// page. A row opens its swap.
+///
+/// The list comes from [bloc], which the page owns so that the figures above
+/// the table read the same data.
 class P2pSwapsCard extends StatefulWidget {
-  const P2pSwapsCard({
-    required this.onStepperNotificationSeeMorePressed,
-    super.key,
-  });
+  /// Creates the table over [bloc].
+  const P2pSwapsCard({required this.bloc, super.key});
 
-  final VoidCallback onStepperNotificationSeeMorePressed;
+  /// The wallet's swaps, refreshed periodically.
+  final P2pSwapsListBloc bloc;
 
   @override
   State<P2pSwapsCard> createState() => _P2pSwapsCardState();
@@ -21,79 +36,176 @@ class P2pSwapsCard extends StatefulWidget {
 
 class _P2pSwapsCardState extends State<P2pSwapsCard> {
   final ScrollController _scrollController = ScrollController();
-  final P2pSwapsListBloc _p2pSwapsListBloc = P2pSwapsListBloc();
-
-  bool _isListScrolled = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _p2pSwapsListBloc.getDataPeriodically();
-    _scrollController.addListener(() {
-      if (_scrollController.position.pixels > 0 && !_isListScrolled) {
-        setState(() {
-          _isListScrolled = true;
-        });
-      } else if (_scrollController.position.pixels == 0) {
-        setState(() {
-          _isListScrolled = false;
-        });
-      }
-    });
-  }
 
   @override
   void dispose() {
     _scrollController.dispose();
-    _p2pSwapsListBloc.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return CardScaffold<List<P2pSwap>>(
-      title: 'P2P Swaps',
-      childStream: _p2pSwapsListBloc.stream,
-      onCompletedStatusCallback: (List<P2pSwap> data) => data.isEmpty
-          ? const SyriusErrorWidget('No P2P swaps')
-          : _getTable(data),
-      onRefreshPressed: _p2pSwapsListBloc.getData,
-      description:
-          'This card displays a list of P2P swaps that have been conducted '
-          'with this wallet.',
-      customItem: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: GestureDetector(
-          onTap: _onDeleteSwapHistoryTapped,
-          child: Row(
-            children: <Widget>[
-              const Icon(
-                Icons.delete,
-                color: AppColors.znnColor,
-                size: 20,
+    return Panel(
+      title: 'Swaps',
+      actions: <Widget>[
+        if (htlcSwapsService!.isMaxSwapsReached) _buildHistoryFullNote(),
+        RefreshButton(onPressed: widget.bloc.getData),
+        PopupMenuButton<_SwapsMenu>(
+          key: const Key('p2p_swaps_menu'),
+          tooltip: 'More',
+          iconSize: 18,
+          icon: const Icon(Icons.more_horiz, color: AppColors.faint),
+          onSelected: _onMenuSelected,
+          itemBuilder: (_) => const <PopupMenuEntry<_SwapsMenu>>[
+            PopupMenuItem<_SwapsMenu>(
+              value: _SwapsMenu.recoverDeposit,
+              child: Text('Recover deposit'),
+            ),
+            PopupMenuItem<_SwapsMenu>(
+              value: _SwapsMenu.tutorial,
+              child: Text('Swap tutorial'),
+            ),
+            PopupMenuItem<_SwapsMenu>(
+              value: _SwapsMenu.clearHistory,
+              child: Text('Clear history'),
+            ),
+          ],
+        ),
+      ],
+      child: StreamBuilder<List<P2pSwap>>(
+        stream: widget.bloc.stream,
+        builder: (_, AsyncSnapshot<List<P2pSwap>> snapshot) {
+          if (snapshot.hasError) {
+            return RepaintBoundary(child: SyriusErrorWidget(snapshot.error!));
+          }
+          if (!snapshot.hasData) {
+            return const Center(
+              child: SyriusLoadingWidget(size: 18, strokeWidth: 1.5),
+            );
+          }
+          final List<P2pSwap> swaps = snapshot.data!;
+          if (swaps.isEmpty) {
+            return Center(
+              child: Text(
+                'None yet',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium!.copyWith(fontSize: 14),
               ),
-              const SizedBox(
-                width: 5,
-                height: 38,
+            );
+          }
+          return _buildTable(swaps);
+        },
+      ),
+    );
+  }
+
+  Widget _buildHistoryFullNote() {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: Tooltip(
+        message: 'The oldest swap is dropped when a new one starts',
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            const Icon(Icons.info_outline, size: 14, color: AppColors.warn),
+            const SizedBox(width: 6),
+            Text(
+              'History full',
+              style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                fontSize: 12,
+                color: AppColors.warn,
               ),
-              Expanded(
-                child: Text(
-                  'Delete swap history',
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
+  Widget _buildTable(List<P2pSwap> swaps) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        _buildHeader(),
+        const Divider(),
+        Expanded(
+          child: Scrollbar(
+            controller: _scrollController,
+            child: ListView.separated(
+              key: const PageStorageKey<String>('p2p_swaps'),
+              controller: _scrollController,
+              itemCount: swaps.length,
+              separatorBuilder: (_, _) => const Divider(thickness: 0.75),
+              itemBuilder: (_, int index) {
+                final P2pSwap swap = swaps[index];
+                return P2pSwapsListItem(
+                  key: ValueKey<String>(swap.id),
+                  swap: swap,
+                  onTap: _onSwapTapped,
+                  onDelete: _onDeleteSwapTapped,
+                );
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHeader() {
+    const List<String> names = <String>[
+      'Status',
+      'You send',
+      'You receive',
+      'Counterparty',
+      'Started',
+    ];
+    final TextStyle label = ledgerLabelStyle(context);
+    return SizedBox(
+      height: 40,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: kP2pSwapRowPadding),
+        child: Row(
+          children: <Widget>[
+            for (int i = 0; i < names.length; i++)
+              Expanded(
+                flex: kP2pSwapColumnFlex[i],
+                child: Text(
+                  names[i].toUpperCase(),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: label,
+                ),
+              ),
+            const SizedBox(width: kP2pSwapActionWidth),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _onMenuSelected(_SwapsMenu choice) {
+    switch (choice) {
+      case _SwapsMenu.recoverDeposit:
+        unawaited(
+          showCustomDialog(
+            context: context,
+            content: const RecoverDepositModal(),
+          ),
+        );
+      case _SwapsMenu.tutorial:
+        unawaited(NavigationUtils.openUrl(kP2pSwapTutorialLink));
+      case _SwapsMenu.clearHistory:
+        unawaited(_onDeleteSwapHistoryTapped());
+    }
+  }
+
   void _onSwapTapped(String swapId) {
-    showCustomDialog(
-      context: context,
-      content: NativeP2pSwapModal(
-        swapId: swapId,
+    unawaited(
+      showCustomDialog(
+        context: context,
+        content: NativeP2pSwapModal(swapId: swapId),
       ),
     );
   }
@@ -103,135 +215,28 @@ class _P2pSwapsCardState extends State<P2pSwapsCard> {
       context: context,
       isBarrierDismissible: true,
       title: 'Delete swap',
-      description:
-          'Are you sure you want to delete this swap? This action cannot be undone.',
+      description: 'This cannot be undone.',
     );
 
     if (deleteConfirmed ?? false) {
       if (swap.mode == P2pSwapMode.htlc) {
         await htlcSwapsService!.deleteSwap(swap.id);
       }
-      _p2pSwapsListBloc.getData();
+      widget.bloc.getData();
     }
   }
 
   Future<void> _onDeleteSwapHistoryTapped() async {
-    final bool? deleteHistoryConfirmed =  await showDialogWithNoAndYesOptions(
+    final bool? deleteHistoryConfirmed = await showDialogWithNoAndYesOptions(
       context: context,
       isBarrierDismissible: true,
-      title: 'Delete swap history',
-      description:
-          'Are you sure you want to delete your swap history? Active swaps cannot be deleted.',
+      title: 'Clear history',
+      description: 'Active swaps are kept. This cannot be undone.',
     );
 
     if (deleteHistoryConfirmed ?? false) {
       await htlcSwapsService!.deleteInactiveSwaps();
-      _p2pSwapsListBloc.getData();
+      widget.bloc.getData();
     }
-  }
-
-  Widget _getTable(List<P2pSwap> swaps) {
-    return Padding(
-      padding: const EdgeInsets.all(15),
-      child: Column(
-        children: <Widget>[
-          _getHeader(),
-          const SizedBox(
-            height: 15,
-          ),
-          Visibility(
-            visible: _isListScrolled,
-            child: const Divider(),
-          ),
-          Expanded(
-            child: Scrollbar(
-              controller: _scrollController,
-              child: ListView.separated(
-                controller: _scrollController,
-                cacheExtent: 1000,
-                itemCount: swaps.length,
-                separatorBuilder: (_, __) {
-                  return const SizedBox(
-                    height: 15,
-                  );
-                },
-                itemBuilder: (_, int index) {
-                  return P2pSwapsListItem(
-                    key: ValueKey(swaps.elementAt(index).id),
-                    swap: swaps.elementAt(index),
-                    onTap: _onSwapTapped,
-                    onDelete: _onDeleteSwapTapped,
-                  );
-                },
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _getHeader() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Row(
-        children: <Widget>[
-          Expanded(
-            flex: 20,
-            child: _getHeaderItem('Status'),
-          ),
-          Expanded(
-            flex: 20,
-            child: _getHeaderItem('From'),
-          ),
-          Expanded(
-            flex: 20,
-            child: _getHeaderItem('To'),
-          ),
-          Expanded(
-            flex: 20,
-            child: _getHeaderItem('Started'),
-          ),
-          Expanded(
-            flex: 20,
-            child: Visibility(
-              visible: htlcSwapsService!.isMaxSwapsReached,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: <Widget>[
-                  _getHeaderItem(
-                    'Swap history is full',
-                    textColor: AppColors.errorColor,
-                    textHeight: 1,
-                  ),
-                  const SizedBox(
-                    width: 5,
-                  ),
-                  const Tooltip(
-                    message:
-                        'The oldest swap entry will be deleted when a new swap is started.',
-                    child: Padding(
-                      padding: EdgeInsets.only(top: 3),
-                      child: Icon(
-                        Icons.info,
-                        color: AppColors.errorColor,
-                        size: 12,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _getHeaderItem(String text, {Color? textColor, double? textHeight}) {
-    return Text(
-      text,
-      style: TextStyle(fontSize: 12, height: textHeight, color: textColor),
-    );
   }
 }

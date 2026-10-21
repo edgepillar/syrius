@@ -2,6 +2,7 @@ export 'account_block_utils.dart';
 export 'address_utils.dart';
 export 'app_colors.dart';
 export 'app_theme.dart';
+export 'background_crypto.dart';
 export 'clipboard_utils.dart';
 export 'color_utils.dart';
 export 'constants.dart';

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/plasma_purpose.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -40,7 +41,7 @@ class FusePlasmaBloc extends Bloc<FusePlasmaEvent, FusePlasmaState> {
       final AccountBlockTemplate accountBlock = await _accountBlockUtils
           .createAccountBlock(
             transactionParams,
-            'fuse ${kQsrCoin.symbol} for Plasma',
+            PlasmaPurpose.fuseQsrForPlasma.message,
             waitForRequiredPlasma: true,
           );
 

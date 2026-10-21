@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_pillar_stepper/widgets/pillar_reward_sliders.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_token_stepper/widgets/token_step_parts.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 /// Reward distribution step for updating a pillar.
 class PillarUpdateRewardsStep extends StatelessWidget {
@@ -11,6 +11,7 @@ class PillarUpdateRewardsStep extends StatelessWidget {
     required this.momentumRewardPercentage,
     required this.onBackPressed,
     required this.onNextPressed,
+    this.active = true,
     super.key,
   });
 
@@ -26,85 +27,25 @@ class PillarUpdateRewardsStep extends StatelessWidget {
   /// Called when the user continues to the submit step.
   final VoidCallback onNextPressed;
 
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: <Widget>[
-        ValueListenableBuilder<double>(
-          valueListenable: momentumRewardPercentage,
-          builder: (_, double value, _) => Column(
-            children: <Widget>[
-              CustomSlider(
-                description: context.l10n.percentageOfMomentumRewards,
-                descriptionPosition: SliderDescriptionPosition.top,
-                startValue: value,
-                min: 0,
-                maxValue: 100,
-                callback: (double newValue) {
-                  momentumRewardPercentage.value = newValue;
-                },
-              ),
-              _RewardSplitLabels(percentage: value),
-            ],
-          ),
-        ),
-        kVerticalSpacing,
-        ValueListenableBuilder<double>(
-          valueListenable: delegateRewardPercentage,
-          builder: (_, double value, _) => Column(
-            children: <Widget>[
-              CustomSlider(
-                description: context.l10n.percentageDelegationRewardsGiven,
-                descriptionPosition: SliderDescriptionPosition.top,
-                startValue: value,
-                min: 0,
-                maxValue: 100,
-                callback: (double newValue) {
-                  delegateRewardPercentage.value = newValue;
-                },
-              ),
-              _RewardSplitLabels(percentage: value),
-            ],
-          ),
-        ),
-        kVerticalSpacing,
-        Row(
-          children: <Widget>[
-            OutlinedButton(
-              onPressed: onBackPressed,
-              child: Text(context.l10n.goBack),
-            ),
-            kHorizontalGap25,
-            OutlinedButton(
-              onPressed: onNextPressed,
-              child: Text(context.l10n.next),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _RewardSplitLabels extends StatelessWidget {
-  const _RewardSplitLabels({required this.percentage});
-
-  final double percentage;
+  /// Whether this is the step shown.
+  final bool active;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: <Widget>[
-        Text(
-          context.l10n.pillarsWithNumber(100 - percentage.toInt()),
-          style: Theme.of(context).textTheme.titleSmall,
-        ),
-        Text(
-          context.l10n.delegators(percentage.toInt()),
-          style: Theme.of(context).textTheme.titleSmall,
-        ),
-      ],
+    return TokenStepFrame(
+      active: active,
+      onBack: onBackPressed,
+      onSubmit: onNextPressed,
+      // The two sliders registering a Pillar has, starting where the Pillar
+      // stands.
+      body: PillarRewardSliders(
+        delegateRewardPercentage: delegateRewardPercentage,
+        momentumRewardPercentage: momentumRewardPercentage,
+      ),
+      primary: OutlinedButton(
+        onPressed: onNextPressed,
+        child: Text(context.l10n.next),
+      ),
     );
   }
 }

@@ -134,3 +134,20 @@ app.*.symbols
 /macos/libargon2_ffi.dylib
 /macos/libledger_ffi.dylib
 /macos/libpow_links.dylib
+
+# Harness builds, instance profiles and screenshots
+.harness/
+
+# The redesign build (PROMPT-redesign-build.md). The compare page and its diff
+# images are rebuilt from the shots by tool/redesign_compare.py.
+/mockups/redesign/compare/
+# Bytecode from the Python tools in tool/ and mockups/.
+__pycache__/
+# Claude Code's per-machine settings and agent worktrees.
+/.claude/settings.local.json
+/.claude/worktrees/
+# Working notes, kept local by the owner's word (2026-10-21).
+/HANDOFF.md
+/TODO.md
+/WISHLIST.md
+/docs/handoff-archive-*.md

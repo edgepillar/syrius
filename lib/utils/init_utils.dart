@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:hive_ce/hive_ce.dart';
 import 'package:version/version.dart';
 import 'package:zenon_syrius_wallet_flutter/handlers/htlc_swaps_handler.dart';
@@ -18,6 +18,7 @@ class InitUtils {
   static Future<void> initApp(BuildContext context) async {
     WidgetUtils.setThemeMode(context);
     WidgetUtils.setTextScale(context);
+    WidgetUtils.setLanguage(context);
     _setAutoEraseWalletNumAttempts();
     _setAutoLockWalletTimeInterval();
     await WalletUtils.setWalletPath();

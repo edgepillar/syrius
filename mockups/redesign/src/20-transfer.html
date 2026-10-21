@@ -1,0 +1,141 @@
+
+<!-- ===== Transfer: one card, Send / Receive / Zap ===== -->
+<section class="scr" id="send-rest" data-nav="transfer" data-group="Transfer" data-title="Send at rest">
+<div class="pg" style="align-items:center">
+  <div class="card" style="width:640px">
+    <div class="hd" style="gap:14px"><div class="seg"><span class="on">Send</span><span>Receive</span><span>Zap</span></div><span class="end"><span class="chip">Address 2 · 1,204.5 ZNN <svg class="i xs"><use href="#chev"/></svg></span></span></div>
+    <div class="bd" style="gap:12px;padding:16px 20px 20px">
+      <div class="row" style="gap:10px">
+        <div class="field on" style="flex:1"><span class="v addr" style="color:var(--fg)">z1qr4pm3x9ue2a6kz0t2g8s3x5c7q1wl4r9d2a</span><span class="end"><svg class="i s"><use href="#book"/></svg><svg class="i s"><use href="#x"/></svg></span></div>
+      </div>
+      <div class="row" style="gap:6px;flex-wrap:wrap"><span class="smallcap">Recent</span><span class="chip on">Alice</span><span class="chip">z1qpx3…m7ua</span><span class="chip">Exchange</span><span class="chip">dev1 reward</span></div>
+      <div class="row" style="gap:10px">
+        <div class="field on" style="flex:1"><span class="v num" style="font-size:20px">12.5</span><span class="end"><span class="znn" style="font-weight:600">Max</span></span></div>
+        <div class="field" style="width:170px"><span class="coin z" style="width:22px;height:22px;font-size:10px">Z</span><span class="v">ZNN</span><span class="end"><svg class="i s"><use href="#chev"/></svg></span></div>
+      </div>
+      <div class="row sp" style="font-size:13px"><span class="dim">Available <span class="num" style="color:var(--fg)">1,204.5 ZNN</span></span><span class="usd">≈ $7.75</span></div>
+      <span class="note"><svg class="i s"><use href="#info"/></svg>Alice. Last sent 55 min ago.</span>
+      <button class="btn go" style="height:46px;font-size:16px;margin-top:4px"><svg class="i"><use href="#up"/></svg>Send 12.5 ZNN</button>
+    </div>
+  </div>
+  <div class="card" style="width:640px">
+    <div class="hd">To receive<span class="cnt">2</span><span class="end"><span class="chip">Auto-receive off</span></span></div>
+    <table>
+      <tr><td class="addr">z1qz8v…k3ey</td><td class="r num">250 ZNN</td><td class="r dim">4 min</td><td class="r"><button class="btn xs" disabled><span class="spin"></span>Receiving</button></td></tr>
+      <tr><td class="addr">z1qpx3…m7ua</td><td class="r num">40 PP</td><td class="r dim">6 min</td><td class="r"><button class="btn xs">Receive</button></td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="send-warn" data-nav="transfer" data-group="Transfer" data-title="Send: look-alike address, node not synced">
+<div class="pg" style="align-items:center">
+  <div class="card" style="width:640px;border-bottom:0">
+    <div class="row" style="padding:10px 16px;gap:10px;background:color-mix(in srgb,var(--warn) 12%,transparent);border-radius:var(--r) var(--r) 0 0;font-size:13.5px"><svg class="i s warn"><use href="#warn"/></svg><span><b>Node is 42 momentums behind.</b> A send waits until it catches up.</span></div>
+    <div class="hd" style="gap:14px;border-radius:0"><div class="seg"><span class="on">Send</span><span>Receive</span><span>Zap</span></div><span class="end"><span class="chip">Address 2 · 1,204.5 ZNN <svg class="i xs"><use href="#chev"/></svg></span></span></div>
+    <div class="bd" style="gap:12px;padding:16px 20px 20px">
+      <div class="field on" style="border-color:var(--warn)"><span class="v addr" style="color:var(--fg)">z1qr4p<span class="warn">k2m7c4n9ue8a1z0x5t3g6s</span>9d2a</span><span class="end"><svg class="i s"><use href="#book"/></svg><svg class="i s"><use href="#x"/></svg></span></div>
+      <div class="col" style="gap:8px;padding:12px 14px;border-radius:var(--r);background:color-mix(in srgb,var(--warn) 10%,transparent)">
+        <span class="row" style="font-weight:600;gap:8px"><svg class="i s warn"><use href="#warn"/></svg>Looks like Alice, but is not</span>
+        <span class="dim" style="font-size:13px">Same first and last characters, different middle. A dust transfer from this address arrived 2 days ago.</span>
+        <div class="kv" style="font-size:12.5px"><span class="lab">Alice</span><span class="addr">z1qr4p<span style="color:var(--fg)">m3x9ue2a6kz0t2g8s3x5c7q1wl4r</span>9d2a</span><span class="lab">Typed</span><span class="addr">z1qr4p<span class="warn">k2m7c4n9ue8a1z0x5t3g6s</span>9d2a</span></div>
+        <div class="row" style="gap:8px"><button class="btn sm">Use Alice</button><button class="btn sm ghost">Send to the typed address anyway</button></div>
+      </div>
+      <div class="row" style="gap:10px">
+        <div class="field on" style="flex:1"><span class="v num" style="font-size:20px">12.5</span><span class="end"><span class="znn" style="font-weight:600">Max</span></span></div>
+        <div class="field" style="width:170px"><span class="coin z" style="width:22px;height:22px;font-size:10px">Z</span><span class="v">ZNN</span><span class="end"><svg class="i s"><use href="#chev"/></svg></span></div>
+      </div>
+      <button class="btn go" style="height:46px;font-size:16px;margin-top:4px" disabled>Waiting for the node</button>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="receive" data-nav="transfer" data-group="Transfer" data-title="Receive, QR behind a button">
+<div class="pg" style="align-items:center">
+  <div class="card" style="width:640px">
+    <div class="hd" style="gap:14px"><div class="seg"><span>Send</span><span class="on">Receive</span><span>Zap</span></div><span class="end"><span class="chip">Address 2 <svg class="i xs"><use href="#chev"/></svg></span></span></div>
+    <div class="bd" style="gap:14px;padding:18px 20px 20px;align-items:center">
+      <span class="lab">Address 2</span>
+      <span class="addr" style="font-size:17px;color:var(--fg);letter-spacing:.01em;text-align:center;word-break:break-all;max-width:520px">z1qq9n7fpaqd8lpcljandzmx4xtku9w4ftwyg0mq</span>
+      <div class="row" style="gap:8px"><button class="btn go"><svg class="i"><use href="#copy"/></svg>Copy address</button><button class="btn"><svg class="i"><use href="#qr"/></svg>Show QR</button></div>
+      <div class="line" style="width:100%;margin-top:4px"></div>
+      <div class="row sp" style="width:100%"><span class="dim" style="font-size:13.5px">Request a specific amount</span><svg class="i s faint" style="transform:rotate(-90deg)"><use href="#chev"/></svg></div>
+    </div>
+  </div>
+  <div class="card" style="width:640px">
+    <div class="hd closed">To receive<span class="end"><span class="dim" style="font-weight:400;font-size:13px">None yet</span></span></div>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="receive-qr" data-nav="transfer" data-group="Transfer" data-title="Receive, QR shown with an amount">
+<div class="pg" style="align-items:center">
+  <div class="card" style="width:640px">
+    <div class="hd" style="gap:14px"><div class="seg"><span>Send</span><span class="on">Receive</span><span>Zap</span></div><span class="end"><span class="chip">Address 2 <svg class="i xs"><use href="#chev"/></svg></span></span></div>
+    <div class="bd" style="gap:14px;padding:18px 20px 20px;flex-direction:row;align-items:flex-start">
+      <div class="col" style="gap:10px;align-items:center;padding:12px;border-radius:var(--r);background:var(--card2)">
+        <div class="qr"></div>
+        <div class="row" style="gap:6px"><button class="btn xs ghost"><svg class="i xs"><use href="#copy"/></svg>Copy image</button><button class="btn xs ghost"><svg class="i xs"><use href="#dl"/></svg>Save</button></div>
+      </div>
+      <div class="col" style="flex:1;gap:12px">
+        <span class="addr" style="font-size:14px;color:var(--fg);word-break:break-all">z1qq9n7fpaqd8lpcljandzmx4xtku9w4ftwyg0mq</span>
+        <div class="row" style="gap:8px"><button class="btn sm go"><svg class="i s"><use href="#copy"/></svg>Copy address</button><button class="btn sm"><svg class="i s"><use href="#qr"/></svg>Hide QR</button></div>
+        <div class="line"></div>
+        <div class="row sp"><span style="font-size:13.5px">Request a specific amount</span><svg class="i s faint"><use href="#chev"/></svg></div>
+        <div class="row" style="gap:10px">
+          <div class="field on" style="flex:1"><span class="v num" style="font-size:18px">100</span></div>
+          <div class="field" style="width:150px"><span class="coin q" style="width:22px;height:22px;font-size:10px">Q</span><span class="v">QSR</span><span class="end"><svg class="i s"><use href="#chev"/></svg></span></div>
+        </div>
+        <span class="smallcap">The QR carries the amount. Syrius and the extension read it.</span>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="zap-form" data-nav="transfer" data-group="Transfer" data-title="Zap a stranger">
+<div class="pg" style="align-items:center">
+  <div class="card" style="width:640px">
+    <div class="hd" style="gap:14px"><div class="seg"><span>Send</span><span>Receive</span><span class="on">Zap</span></div><span class="end"><span class="chip">Address 2 <svg class="i xs"><use href="#chev"/></svg></span></span></div>
+    <div class="bd" style="gap:12px;padding:16px 20px 20px">
+      <div class="row sp"><span class="lab">A random alien</span><span class="smallcap">Received something in the last 7 days · 212 found</span></div>
+      <div class="row" style="gap:10px">
+        <div class="field on" style="flex:1"><span class="v addr" style="color:var(--fg)">z1qz8vk7w0p2xlm9ue4a6pz0t2gs3x8r5cq2wk3ey</span><span class="end"><svg class="i s"><use href="#copy"/></svg></span></div>
+        <button class="btn" style="height:42px"><svg class="i"><use href="#dice"/></svg>Pick another</button>
+      </div>
+      <div class="row" style="gap:10px">
+        <div class="field on" style="flex:1"><span class="coin z" style="width:22px;height:22px;font-size:10px">Z</span><span class="v num" style="font-size:18px">1</span><span class="end znn">ZNN</span></div>
+        <div class="field on" style="flex:1"><span class="coin q" style="width:22px;height:22px;font-size:10px">Q</span><span class="v num" style="font-size:18px">10</span><span class="end qsr">QSR</span></div>
+      </div>
+      <div class="field area on"><span class="v" style="color:var(--fg)">You got zapped. Have a great day, alien.</span><span class="end num smallcap" style="align-self:flex-end">41/140</span></div>
+      <div class="row sp" style="font-size:13px"><span class="dim">Two blocks, one per coin</span><span class="usd">≈ $0.93</span></div>
+      <span class="note"><svg class="i s"><use href="#info"/></svg>Picked from what your node reports, so the node can steer it. Two blocks, two confirmations on a hardware wallet.</span>
+      <button class="btn go" style="height:46px;font-size:16px;margin-top:4px"><svg class="i"><use href="#zap"/></svg>Zap 1 ZNN + 10 QSR</button>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="send-confirm" data-nav="transfer" data-group="Transfer" data-title="Confirm, then followed to its momentum" data-strip="flight">
+<div class="pg" style="align-items:center">
+  <div class="card" style="width:640px">
+    <div class="hd" style="gap:14px"><div class="seg"><span class="on">Send</span><span>Receive</span><span>Zap</span></div><span class="end"><span class="chip">Address 2 · 1,204.5 ZNN <svg class="i xs"><use href="#chev"/></svg></span></span></div>
+    <div class="bd" style="gap:12px;padding:16px 20px 20px">
+      <div class="field on"><span class="v addr" style="color:var(--fg)">z1qr4pm3x9ue2a6kz0t2g8s3x5c7q1wl4r9d2a</span></div>
+      <div class="row" style="gap:10px"><div class="field on" style="flex:1"><span class="v num" style="font-size:20px">12.5</span></div><div class="field" style="width:170px"><span class="coin z" style="width:22px;height:22px;font-size:10px">Z</span><span class="v">ZNN</span></div></div>
+      <button class="btn go" style="height:46px;font-size:16px;margin-top:4px">Send 12.5 ZNN</button>
+    </div>
+  </div>
+</div>
+<div class="ov">
+  <div class="dlg" style="width:440px">
+    <div class="hd">Send 12.5 ZNN?</div>
+    <div class="bd">
+      <div class="kv"><span class="lab">To</span><span class="row" style="gap:8px"><span>Alice</span><span class="addr" style="font-size:13px">z1qr4p…9d2a</span></span><span class="lab">From</span><span>Address 2</span><span class="lab">Plasma</span><span class="dim">From fused QSR, no wait</span></div>
+      <div class="row" style="gap:8px;padding:10px 12px;border-radius:var(--r);background:var(--card2)"><svg class="i s dim"><use href="#usb"/></svg><span class="dim" style="font-size:13px">Confirm on the Ledger after Send.</span></div>
+    </div>
+    <div class="ft"><button class="btn">Cancel</button><button class="btn go">Send</button></div>
+  </div>
+</div>
+</section>

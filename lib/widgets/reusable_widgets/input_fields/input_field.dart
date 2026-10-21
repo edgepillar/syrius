@@ -1,7 +1,9 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_fields/amount_input_field.dart';
 
 class InputField extends StatefulWidget {
 
@@ -30,6 +32,8 @@ class InputField extends StatefulWidget {
     this.errorBorder,
     this.focusedBorder,
     this.focusedErrorBorder,
+    this.textDirection,
+    this.textAlign = TextAlign.start,
     super.key,
   });
   final TextEditingController controller;
@@ -54,6 +58,15 @@ class InputField extends StatefulWidget {
   final InputBorder? errorBorder;
   final InputBorder? focusedErrorBorder;
 
+  /// The direction of what is typed. Null is the app's; an amount, an
+  /// address or a hash is given `TextDirection.ltr`, with `ltrTextAlign` as
+  /// [textAlign] so that it still starts at the app's start. The hint, the
+  /// suffix and the error line keep the app's direction either way.
+  final TextDirection? textDirection;
+
+  /// Where what is typed sits in the field.
+  final TextAlign textAlign;
+
   @override
   State createState() {
     return _InputFieldState();
@@ -63,7 +76,41 @@ class InputField extends StatefulWidget {
 class _InputFieldState extends State<InputField> {
   @override
   Widget build(BuildContext context) {
+    // An amount field says why a key did nothing. It is told from the
+    // formatters, so that every form that builds one is covered without
+    // being changed.
+    final bool isAmount =
+        widget.inputFormatters?.any(
+          (TextInputFormatter formatter) => formatter is AmountInputFormatter,
+        ) ??
+        false;
+    if (!isAmount) {
+      return _buildField(context);
+    }
+    return AmountRefusalScope(
+      controller: widget.controller,
+      builder: (BuildContext context, String? refusal) =>
+          _buildField(context, refusal: refusal, isAmount: true),
+    );
+  }
+
+  /// [refusal] is shown over what the validator says: it is about a key
+  /// just pressed, and it shows in a field the form has not validated yet,
+  /// as after a first paste that was refused.
+  Widget _buildField(
+    BuildContext context, {
+    String? refusal,
+    bool isAmount = false,
+  }) {
     return TextFormField(
+      forceErrorText: refusal,
+      // The forms around the amount fields validate on user interaction, and
+      // they are built before this field is given a [refusal] or loses it.
+      // Validating here as well gives the validator's line back in the same
+      // frame the refusal is withdrawn.
+      autovalidateMode: isAmount ? AutovalidateMode.onUserInteraction : null,
+      textDirection: widget.textDirection,
+      textAlign: widget.textAlign,
       contextMenuBuilder: (BuildContext context, EditableTextState editableTextState) {
         return AdaptiveTextSelectionToolbar(
             anchors: editableTextState.contextMenuAnchors,

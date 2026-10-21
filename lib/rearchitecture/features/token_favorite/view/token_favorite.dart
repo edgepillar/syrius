@@ -1,19 +1,23 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/token_favorite/bloc/token_favorite_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/token_favorite/exceptions/favorite_tokens_exception.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/tokens/widgets/token_row_action.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-/// Displays a button that adds or removes a token from favorites.
+const String _kAddTooltip = 'Add to favorites';
+const String _kRemoveTooltip = 'Remove from favorites';
+
+/// The star of a token row: adds the token to the wallet's favorites, or
+/// takes it out.
 class TokenFavorite extends StatelessWidget {
   /// Creates a [TokenFavorite].
   const TokenFavorite({
@@ -45,47 +49,42 @@ class _View extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocConsumer<TokenFavoriteBloc, TokenFavoriteState>(
       listener: _onTokenFavoriteStateChanged,
-      builder: (BuildContext context, TokenFavoriteState state) =>
-          switch (state) {
-            TokenFavoriteLoading() => const SyriusLoadingWidget(size: 15),
-            TokenFavoriteFavorited() => _buildRemoveButton(context),
-            TokenFavoriteNotFavorited() => _buildAddButton(context),
-            TokenFavoriteFailure(
-              exception: AddingToFavoriteTokensException(),
-            ) =>
-              _buildAddButton(context),
-            TokenFavoriteFailure(
-              exception: RemovingFromFavoriteTokensException(),
-            ) =>
-              _buildRemoveButton(context),
-          },
-    );
-  }
-
-  Widget _buildAddButton(BuildContext context) {
-    return Tooltip(
-      message: context.l10n.clickToAddToFavorites,
-      child: IconButton(
-        onPressed: () => context.read<TokenFavoriteBloc>().add(
-          const TokenFavoriteAdded(),
-        ),
-        icon: const Icon(
-          Icons.star_border,
-          color: AppColors.lightSecondaryContainer,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRemoveButton(BuildContext context) {
-    return Tooltip(
-      message: context.l10n.clickToRemoveFromFavorites,
-      child: IconButton(
-        onPressed: () => context.read<TokenFavoriteBloc>().add(
-          const TokenFavoriteRemoved(),
-        ),
-        icon: const Icon(Icons.star, color: AppColors.znnColor),
-      ),
+      // While the change is being saved the star keeps the look it had: the
+      // bloc ignores a second press, and a spinner in a list row would only
+      // make the row jump.
+      buildWhen: (_, TokenFavoriteState current) =>
+          current is! TokenFavoriteLoading,
+      builder: (BuildContext context, TokenFavoriteState state) {
+        final bool isFavorite = switch (state) {
+          TokenFavoriteFavorited() => true,
+          TokenFavoriteNotFavorited() || TokenFavoriteLoading() => false,
+          TokenFavoriteFailure(:final FavoriteTokensException exception) =>
+            exception is RemovingFromFavoriteTokensException,
+        };
+        return TokenRowAction(
+          key: const Key('token_favorite_button'),
+          tooltip: isFavorite ? _kRemoveTooltip : _kAddTooltip,
+          onPressed: () => context.read<TokenFavoriteBloc>().add(
+            isFavorite
+                ? const TokenFavoriteRemoved()
+                : const TokenFavoriteAdded(),
+          ),
+          icon: AnimatedSwitcher(
+            duration: Durations.short4,
+            switchInCurve: Easing.emphasizedDecelerate,
+            switchOutCurve: Easing.emphasizedAccelerate,
+            transitionBuilder: (Widget child, Animation<double> animation) =>
+                ScaleTransition(scale: animation, child: child),
+            child: Icon(
+              isFavorite ? Icons.star : Icons.star_border,
+              key: ValueKey<bool>(isFavorite),
+              color: isFavorite
+                  ? AppTokens.of(context).znnInk
+                  : AppTokens.of(context).faint,
+            ),
+          ),
+        );
+      },
     );
   }
 

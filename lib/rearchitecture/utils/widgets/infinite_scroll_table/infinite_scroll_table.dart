@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/constants/app_sizes.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
@@ -31,6 +31,8 @@ class InfiniteScrollTable<T> extends StatefulWidget {
     required this.generateRowCells,
     required this.onScrollReachedBottom,
     required this.columns,
+    this.heads =
+        const <InfiniteScrollTableColumnType, InfiniteScrollTableHead>{},
     this.itemKeyGenerator,
     this.onItemTap,
     super.key,
@@ -38,6 +40,11 @@ class InfiniteScrollTable<T> extends StatefulWidget {
 
   /// The columns that will the organized in an fixed header
   final List<InfiniteScrollTableColumnType> columns;
+
+  /// The columns whose head this table names or sizes itself. A column with
+  /// no entry keeps its type's name and flex, which is every column by
+  /// default.
+  final Map<InfiniteScrollTableColumnType, InfiniteScrollTableHead> heads;
 
   /// Function that takes in an item and returns the cells consisting the row
   final List<Widget> Function(T) generateRowCells;
@@ -99,7 +106,7 @@ class _InfiniteScrollTableState<T> extends State<InfiniteScrollTable<T>> {
       controller: _scrollController,
       slivers: <Widget>[
         PinnedHeaderSliver(
-          child: _Header(columns: widget.columns),
+          child: _Header(columns: widget.columns, heads: widget.heads),
         ),
         SliverList.separated(
           separatorBuilder: (_, _) => const Divider(
@@ -161,28 +168,29 @@ class _InfiniteScrollTableState<T> extends State<InfiniteScrollTable<T>> {
   Widget _getTableRow(T item, int indexOfRow) {
     final Key? key = widget.itemKeyGenerator?.call(item);
 
-    final Padding child = Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: kInfiniteTableHorizontalPadding,
-        vertical: kInfiniteTableHorizontalPadding / 2,
-      ),
-      child: Row(
-        children: widget.generateRowCells(item),
+    final Widget child = DefaultTextStyle.merge(
+      style: const TextStyle(fontSize: 13),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: kInfiniteTableHorizontalPadding,
+          vertical: kInfiniteTableHorizontalPadding / 2,
+        ),
+        child: Row(
+          children: widget.generateRowCells(item),
+        ),
       ),
     );
 
     if (widget.onItemTap == null) {
-      return KeyedSubtree(
-        key: key,
-        child: child,
-      );
+      return _RowHover(key: key, child: child);
     }
 
-    return Material(
+    return _RowHover(
       key: key,
-      color: Colors.transparent,
       child: InkWell(
         mouseCursor: SystemMouseCursors.click,
+        // The row's tint is the hover; the ink's own would be laid over it.
+        hoverColor: Colors.transparent,
         onTap: () => widget.onItemTap!(indexOfRow),
         child: child,
       ),
@@ -190,26 +198,78 @@ class _InfiniteScrollTableState<T> extends State<InfiniteScrollTable<T>> {
   }
 }
 
+/// A row as a surface: tinted under the pointer, so a wide row can be read
+/// across without losing the line.
+///
+/// It only watches the pointer. It takes no tap and no focus and leaves the
+/// cursor alone, so a row with nothing to click does not claim to have it.
+class _RowHover extends StatefulWidget {
+  const _RowHover({required this.child, super.key});
+
+  final Widget child;
+
+  @override
+  State<_RowHover> createState() => _RowHoverState();
+}
+
+class _RowHoverState extends State<_RowHover> {
+  bool _hovered = false;
+
+  void _setHovered(bool value) {
+    if (_hovered != value) {
+      setState(() => _hovered = value);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final Color tint = AppTokens.of(context).hover;
+    return MouseRegion(
+      opaque: false,
+      onEnter: (_) => _setHovered(true),
+      onExit: (_) => _setHovered(false),
+      child: TweenAnimationBuilder<Color?>(
+        tween: ColorTween(end: _hovered ? tint : tint.withValues(alpha: 0)),
+        duration: Durations.short3,
+        curve: Easing.standard,
+        // A Material rather than a coloured box, so the ink of the row and
+        // of its buttons is painted over the tint and not under it. A
+        // Material also sets its own default text style; handing it the
+        // inherited one keeps the row's type as it was without the tint.
+        builder: (BuildContext context, Color? color, Widget? child) =>
+            Material(
+              color: color ?? Colors.transparent,
+              textStyle: DefaultTextStyle.of(context).style,
+              child: child,
+            ),
+        child: widget.child,
+      ),
+    );
+  }
+}
+
 class _Header extends StatelessWidget {
-  const _Header({required this.columns});
+  const _Header({required this.columns, required this.heads});
 
   final List<InfiniteScrollTableColumnType> columns;
+  final Map<InfiniteScrollTableColumnType, InfiniteScrollTableHead> heads;
 
   @override
   Widget build(BuildContext context) {
     // The content is scrolled under the header, hence we need to cover it up
-    final Color background = context.isDarkMode
-        ? AppColors.darkPrimary
-        : Colors.white;
+    // with the colour of the panel the table sits in.
+    final Color background = Theme.of(context).colorScheme.primary;
 
     final List<Widget> children = List<Widget>.generate(
       columns.length,
       (int index) {
         final InfiniteScrollTableColumnType column = columns[index];
 
-        final int flex = column.flex;
+        final InfiniteScrollTableHead? head = heads[column];
 
-        final String name = column.name(context: context);
+        final int flex = head?.flex ?? column.flex;
+
+        final String name = head?.name ?? column.name(context: context);
 
         final MainAxisAlignment alignment = column.aligment;
 
@@ -217,6 +277,7 @@ class _Header extends StatelessWidget {
           alignment: alignment,
           name: name,
           flex: flex,
+          tooltip: head?.tooltip,
         );
       },
     );
@@ -226,7 +287,7 @@ class _Header extends StatelessWidget {
       child: Column(
         children: <Widget>[
           SizedBox(
-            height: 50,
+            height: 40,
             child: Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: kInfiniteTableHorizontalPadding,

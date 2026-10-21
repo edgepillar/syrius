@@ -1,53 +1,75 @@
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/card_parts/card_parts.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-/// A widget that displays the pillar rewards
+/// The pillar rewards of the selected address: what it can collect now, with
+/// the Collect button, over the chart of what it earned.
 ///
-/// It receives updates from a [PillarRewardsHistoryBloc] and displays a
-/// [_Chart] when data is available
+/// The amount to collect used to be a card of its own beside this one.
 class PillarRewardsCard extends StatelessWidget {
   /// Constructs a new instance.
   const PillarRewardsCard({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return NewCardScaffold(
-      data: _buildCardData(context: context),
-      onRefreshPressed: () {
-        context.read<PillarRewardsHistoryBloc>().add(
-          FetchRequestData(
-            address: Address.parse(kSelectedAddress!),
-          ),
-        );
-      },
-      body:
-          BlocBuilder<PillarRewardsHistoryBloc, FetchState<RewardHistoryList>>(
-            builder: (_, FetchState<RewardHistoryList> state) {
-              return switch (state) {
-                FetchFailure<RewardHistoryList>() => SyriusErrorWidget(
-                  state.exception,
+    return const PillarCollectScope(child: _View());
+  }
+}
+
+class _View extends StatelessWidget {
+  const _View();
+
+  @override
+  Widget build(BuildContext context) {
+    return Panel(
+      title: 'Rewards',
+      actions: <Widget>[
+        RefreshButton(
+          onPressed: () {
+            final Address address = Address.parse(kSelectedAddress!);
+            context.read<PillarRewardsHistoryBloc>().add(
+              FetchRequestData(address: address),
+            );
+            context.read<UncollectedPillarRewardsBloc>().add(
+              FetchRequestData(address: address),
+            );
+          },
+        ),
+      ],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          const PillarCollect(),
+          const Divider(),
+          Expanded(
+            child:
+                BlocBuilder<
+                  PillarRewardsHistoryBloc,
+                  FetchState<RewardHistoryList>
+                >(
+                  builder: (_, FetchState<RewardHistoryList> state) {
+                    return switch (state) {
+                      FetchFailure<RewardHistoryList>() => CardNote.error(
+                        state.exception,
+                      ),
+                      FetchInitial<RewardHistoryList>() => const CardLoading(),
+                      FetchPopulated<RewardHistoryList>() => _Chart(
+                        rewardsHistoryList: state.data,
+                      ),
+                    };
+                  },
                 ),
-                FetchInitial<RewardHistoryList>() =>
-                  const SyriusLoadingWidget(),
-                FetchPopulated<RewardHistoryList>() => _Chart(
-                  rewardsHistoryList: state.data,
-                ),
-              };
-            },
           ),
+        ],
+      ),
     );
   }
-
-  CardData _buildCardData({required BuildContext context}) => CardData(
-    description: context.l10n.pillarRewardsDescription,
-    title: context.l10n.pillarRewardsTitle,
-  );
 }
 
 /// A [StandardChart] adapted to show the pillar rewards

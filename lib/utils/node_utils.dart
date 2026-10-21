@@ -6,6 +6,7 @@ import 'package:logging/logging.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/embedded_node/embedded_node.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
@@ -49,10 +50,9 @@ class NodeUtils {
       if (kEmbeddedNodeRunning) {
         await sl.get<NotificationsBloc>().addNotification(
               WalletNotification(
-                title: 'Waiting for Embedded Node to stop',
+                title: currentL10n.embeddedNodeStoppingNotificationTitle,
                 timestamp: DateTime.now().millisecondsSinceEpoch,
-                details:
-                    'The app will close after the Embedded Node has been stopped',
+                details: currentL10n.embeddedNodeStoppingNotificationDetails,
                 type: NotificationType.changedNode,
               ),
             );
@@ -158,7 +158,7 @@ class NodeUtils {
         final int timeDifference = (frontierTime - DateTimeUtils.unixTimeNow).abs();
         if (timeDifference > maxAllowedDiscrepancy.inSeconds) {
           await NotificationUtils.sendNotificationError(
-            Exception('Local time discrepancy detected.'),
+            Exception(currentL10n.nodeLocalTimeDiscrepancyError),
             warningMessage,
           );
         }

@@ -2,6 +2,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/plasma_purpose.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class VoteProjectBloc extends BaseBloc<AccountBlockTemplate?> {
@@ -20,7 +21,7 @@ class VoteProjectBloc extends BaseBloc<AccountBlockTemplate?> {
       );
       AccountBlockUtils().createAccountBlock(
         transactionParams,
-        'vote for project',
+        PlasmaPurpose.voteForProject.message,
       )
           .then(
         addEvent,

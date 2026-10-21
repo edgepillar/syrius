@@ -1,55 +1,106 @@
 import 'dart:math';
 
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/card_parts/card_parts.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-/// A widget that displays the sentinel rewards history.
+/// The sentinel rewards of the selected address: what it can collect now,
+/// with the Collect button, over the chart of what it earned.
+///
+/// The amounts to collect used to be a card of their own beside this one.
 class SentinelRewardsCard extends StatelessWidget {
   /// Constructs a new instance.
   const SentinelRewardsCard({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return NewCardScaffold(
-      data: _buildCardData(context: context),
-      onRefreshPressed: () {
-        context.read<SentinelRewardsHistoryBloc>().add(
-          FetchRequestData(
-            address: Address.parse(kSelectedAddress!),
-          ),
-        );
-      },
-      body:
-          BlocBuilder<
-            SentinelRewardsHistoryBloc,
-            FetchState<RewardHistoryList>
-          >(
-            builder: (_, FetchState<RewardHistoryList> state) {
-              return switch (state) {
-                FetchFailure<RewardHistoryList>() => SyriusErrorWidget(
-                  state.exception,
+    return const SentinelCollectScope(child: _View());
+  }
+}
+
+class _View extends StatelessWidget {
+  const _View();
+
+  @override
+  Widget build(BuildContext context) {
+    return Panel(
+      title: 'Rewards',
+      actions: <Widget>[
+        RefreshButton(
+          onPressed: () {
+            final Address address = Address.parse(kSelectedAddress!);
+            context.read<SentinelRewardsHistoryBloc>().add(
+              FetchRequestData(address: address),
+            );
+            context.read<UncollectedSentinelRewardsBloc>().add(
+              FetchRequestData(address: address),
+            );
+          },
+        ),
+      ],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          const SentinelCollect(),
+          const Divider(),
+          Expanded(
+            child:
+                BlocBuilder<
+                  SentinelRewardsHistoryBloc,
+                  FetchState<RewardHistoryList>
+                >(
+                  builder: (_, FetchState<RewardHistoryList> state) {
+                    return StateSwitcher(
+                      child: switch (state) {
+                        // A week without rewards comes from the bloc as a
+                        // failure; here it is the empty state, with a key of
+                        // its own so it fades to a real error and back.
+                        FetchFailure<RewardHistoryList>() => CardNote.error(
+                          state.exception,
+                          key: ValueKey<String>(
+                            state.exception is NoRewardsLastWeekException
+                                ? 'empty'
+                                : 'failure',
+                          ),
+                        ),
+                        FetchInitial<RewardHistoryList>() =>
+                          const _ChartLoading(
+                            key: ValueKey<String>('loading'),
+                          ),
+                        FetchPopulated<RewardHistoryList>() => _Chart(
+                          key: const ValueKey<String>('chart'),
+                          rewardsHistoryList: state.data,
+                        ),
+                      },
+                    );
+                  },
                 ),
-                FetchInitial<RewardHistoryList>() =>
-                  const SyriusLoadingWidget(),
-                FetchPopulated<RewardHistoryList>() => _Chart(
-                  rewardsHistoryList: state.data,
-                ),
-              };
-            },
           ),
+        ],
+      ),
     );
   }
+}
 
-  CardData _buildCardData({required BuildContext context}) => CardData(
-    description: context.l10n.sentinelRewardsDescription,
-    title: context.l10n.sentinelRewardsTitle,
-  );
+/// The chart while it loads: bars down the space it will fill.
+class _ChartLoading extends StatelessWidget {
+  const _ChartLoading({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    // A short card shows fewer bars instead of overflowing.
+    return const SingleChildScrollView(
+      physics: NeverScrollableScrollPhysics(),
+      padding: kCardBodyPadding,
+      child: SkeletonRows(rows: 5, gap: 26),
+    );
+  }
 }
 
 /// A [StandardChart] adapted to show the sentinel rewards.
@@ -57,6 +108,7 @@ class _Chart extends StatelessWidget {
   /// Constructs a new instance.
   const _Chart({
     required this._rewardsHistoryList,
+    super.key,
   });
 
   final RewardHistoryList _rewardsHistoryList;

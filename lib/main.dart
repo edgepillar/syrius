@@ -4,7 +4,7 @@ import 'dart:isolate';
 
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_ce/hive_ce.dart';
@@ -29,6 +29,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_
 import 'package:zenon_syrius_wallet_flutter/handlers/htlc_swaps_handler.dart';
 import 'package:zenon_syrius_wallet_flutter/hive/hive_registrar.g.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
@@ -38,6 +39,7 @@ import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
 import 'package:zenon_syrius_wallet_flutter/services/web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/functions.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/motion_binding.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -53,7 +55,10 @@ final GlobalKey<NavigatorState> globalNavigatorKey =
     GlobalKey<NavigatorState>();
 
 main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  // Not the SDK's binding: this one keeps every animation at full length when
+  // the system asks for reduced motion. It must be the first binding the
+  // process creates, so anything that wraps this main installs it too.
+  MotionBinding.ensureInitialized();
   Bloc.observer = CustomBlocObserver();
   if (Platform.isWindows) {
     registerProtocolHandler(kDeepLinkingUrlScheme);
@@ -131,6 +136,10 @@ main() async {
   }
 
   htlcSwapsService ??= sl.get<HtlcSwapsService>();
+
+  // The channel a web page reaches this wallet through. It answers nothing
+  // about the wallet until the person approves the page's origin.
+  unawaited(DappBridge.instance.start());
 
   windowManager.waitUntilReadyToShow().then((_) async {
     await windowManager.setTitle('s y r i u s');
@@ -359,6 +368,12 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
           ChangeNotifierProvider<AppThemeNotifier>(
             create: (_) => AppThemeNotifier(),
           ),
+          // Starts in the saved language: the preferences are open before
+          // runApp, and waiting for InitUtils.initApp would show the first
+          // frames in the system's language and direction.
+          ChangeNotifierProvider<LocaleNotifier>(
+            create: (_) => LocaleNotifier(WidgetUtils.savedLanguage()),
+          ),
           ChangeNotifierProvider<ValueNotifier<List<String>>>(
             create: (_) => ValueNotifier<List<String>>(
               <String>[],
@@ -367,8 +382,13 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
           Provider<LockBloc>(
             create: (_) => LockBloc(),
             builder: (BuildContext context, Widget? child) {
-              return Consumer<AppThemeNotifier>(
-                builder: (_, AppThemeNotifier appThemeNotifier, __) {
+              return Consumer2<AppThemeNotifier, LocaleNotifier>(
+                builder: (
+                  _,
+                  AppThemeNotifier appThemeNotifier,
+                  LocaleNotifier localeNotifier,
+                  __,
+                ) {
                   final LockBloc lockBloc = Provider.of<LockBloc>(
                     context,
                     listen: false,
@@ -408,8 +428,19 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
                               themeMode: appThemeNotifier.currentThemeMode,
                               initialRoute: SplashScreen.route,
                               scrollBehavior: RemoveOverscrollEffect(),
-                              localizationsDelegates:
-                                  AppLocalizations.localizationsDelegates,
+                              // The app is on material_ui; window_manager,
+                              // lottie and expandable still build on the
+                              // SDK's Material, which looks up its own
+                              // Theme. The bridge hands them this one.
+                              builder: (BuildContext context, Widget? child) =>
+                                  MaterialUiCompatibilityBridge(child: child!),
+                              // Null follows the system; the callback maps
+                              // either to one of the five, else English.
+                              // The delegates carry the framework's own
+                              // strings and right-to-left for Arabic.
+                              locale: localeNotifier.locale,
+                              localeListResolutionCallback: resolveAppLocale,
+                              localizationsDelegates: appLocalizationsDelegates,
                               supportedLocales:
                                   AppLocalizations.supportedLocales,
                               routes: <String, WidgetBuilder>{

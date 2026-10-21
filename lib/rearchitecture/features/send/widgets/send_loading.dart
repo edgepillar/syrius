@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/card_parts/card_parts.dart';
 
 /// A widget that display a loading indicator.
 class SendLoading extends StatelessWidget {
@@ -8,6 +8,6 @@ class SendLoading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SyriusLoadingWidget();
+    return const CardLoading();
   }
 }

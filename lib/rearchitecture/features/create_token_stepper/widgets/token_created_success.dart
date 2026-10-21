@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/app_lottie.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
 
 /// Success UI shown after a token has been created.
 class TokenCreatedSuccess extends StatelessWidget {
@@ -21,27 +21,22 @@ class TokenCreatedSuccess extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(
+      padding: const EdgeInsetsDirectional.only(
         top: 50,
         bottom: 20,
       ),
+      // The quiet way on first, the main one last, as under every step.
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          OutlinedButton.icon(
-            label: Text(context.l10n.createAnotherToken),
+          TextButton.icon(
+            style: quietButtonStyle(context),
             onPressed: onCreateAnotherTokenPressed,
-            icon: const Icon(Icons.refresh, color: Colors.white,),
-            iconAlignment: .end,
+            icon: const Icon(Icons.refresh, size: 18),
+            label: Text(context.l10n.createAnotherToken),
           ),
-          const SizedBox(
-            width: 80,
-          ),
+          const SizedBox(width: 8),
           OutlinedButton(
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.ztsColor,
-              side: const BorderSide(color: AppColors.ztsColor),
-            ),
             onPressed: onViewTokensPressed,
             child: Text(context.l10n.viewMyTokens),
           ),
@@ -58,16 +53,15 @@ class TokenCreatedSuccessAnimation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      right: 50,
+    // At the end of the line, so it stays clear of the steps when the
+    // interface runs right to left.
+    return const PositionedDirectional(
+      end: 50,
       child: SizedBox(
         width: 400,
         height: 400,
         child: Center(
-          child: Lottie.asset(
-            'assets/lottie/ic_anim_zts.json',
-            repeat: false,
-          ),
+          child: AppLottie(AppLottieAsset.zts, size: 400, repeat: false),
         ),
       ),
     );

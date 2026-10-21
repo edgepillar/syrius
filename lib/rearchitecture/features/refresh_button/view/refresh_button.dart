@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A button that, initially, shows a refresh icon but re-builds to show a
 /// loading indicator to show to the user that an async operation is being done
@@ -33,6 +33,9 @@ class _Initial extends StatelessWidget {
   Widget build(BuildContext context) {
     return IconButton(
       mouseCursor: SystemMouseCursors.click,
+      tooltip: 'Refresh',
+      iconSize: 18,
+      color: const Color(0xFF717671),
       icon: const Icon(Icons.refresh),
       onPressed: onPressed,
     );

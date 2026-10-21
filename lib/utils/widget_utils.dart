@@ -1,10 +1,12 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/app_theme_notifier.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/notifiers/locale_notifier.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/text_scaling_notifier.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -42,6 +44,23 @@ class WidgetUtils {
     }
   }
 
+  /// The language picked in Settings, as saved; the default when none was.
+  ///
+  /// Read twice: by `main`, for the [LocaleNotifier] it creates, so the
+  /// first frame is in that language, and by [setLanguage].
+  static AppLanguage savedLanguage() =>
+      AppLanguage.fromStored(sharedPrefsService?.get(kLanguageKey));
+
+  /// Brings the language back in line with what is saved. At start-up it
+  /// changes nothing; after a wallet reset has deleted the preferences it
+  /// returns the language to the default, as the theme returns to its own.
+  static void setLanguage(BuildContext context) {
+    Provider.of<LocaleNotifier>(
+      context,
+      listen: false,
+    ).changeLanguage(savedLanguage());
+  }
+
   static String isWidgetHiddenKey(String widgetTitle) =>
       '${widgetTitle}is_hidden';
 
@@ -73,15 +92,15 @@ class WidgetUtils {
 
   static String getPlasmaToolTipMessage(PlasmaInfo plasmaInfo) {
     if (plasmaInfo.currentPlasma >= kPillarPlasmaAmountNeeded) {
-      return 'High Plasma';
+      return currentL10n.plasmaLevelHighTooltip;
     } else if (plasmaInfo.currentPlasma >= kIssueTokenPlasmaAmountNeeded &&
         plasmaInfo.currentPlasma < kPillarPlasmaAmountNeeded) {
-      return 'Average Plasma';
+      return currentL10n.plasmaLevelAverageTooltip;
     } else if (plasmaInfo.currentPlasma >= minPlasmaAmount.toInt() &&
         plasmaInfo.currentPlasma < kIssueTokenPlasmaAmountNeeded) {
-      return 'Low Plasma';
+      return currentL10n.plasmaLevelLowTooltip;
     } else {
-      return 'Insufficient Plasma';
+      return currentL10n.plasmaLevelInsufficientTooltip;
     }
   }
 

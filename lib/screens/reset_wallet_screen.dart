@@ -1,9 +1,12 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_vector_icons/flutter_vector_icons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/settings_parts.dart';
 
+/// The confirmation before the wallet is erased from this computer.
+///
+/// Reset is the red outline, never the filled action, and Cancel takes the
+/// focus first, so Enter on arrival does not erase anything.
 class ResetWalletScreen extends StatefulWidget {
   const ResetWalletScreen({super.key});
 
@@ -14,80 +17,23 @@ class ResetWalletScreen extends StatefulWidget {
 class _ResetWalletScreenState extends State<ResetWalletScreen> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        children: <Widget>[
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Container(
-                  padding: const EdgeInsets.only(
-                    bottom: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      width: 4,
-                      color: AppColors.errorColor,
-                    ),
-                  ),
-                  child: const Padding(
-                    padding: EdgeInsets.all(20),
-                    child: Icon(
-                      Feather.alert_triangle,
-                      color: AppColors.errorColor,
-                      size: 50,
-                    ),
-                  ),
-                ),
-                kVerticalSpacing,
-                Text(
-                  'Reset wallet',
-                  style: Theme.of(context).textTheme.headlineLarge,
-                ),
-                kVerticalSpacing,
-                SizedBox(
-                  width: 500,
-                  child: Text(
-                    'All your wallet data will be erased permanently. Make sure '
-                    'you have a backup of your mnemonic or Seed Vault & Seed Vault Key before you proceed '
-                    'with erasing the wallet',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
-                ),
-              ],
-            ),
+    return SettingsScreenFrame(
+      title: 'Reset wallet',
+      note:
+          'Erases this wallet from this computer, for good. Without the seed '
+          'phrase, or a Seed Vault and its key, the funds are lost.',
+      actions: <Widget>[
+        const ScreenBackAction(label: 'Cancel', autofocus: true),
+        DangerAction(
+          child: OutlinedButton(
+            key: const Key('reset_wallet_confirm'),
+            style: OutlinedButton.styleFrom(minimumSize: kScreenActionSize),
+            onPressed: _onResetPressed,
+            child: const Text('Reset'),
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              MyOutlinedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                outlineColor: Colors.white,
-                text: 'Cancel',
-                minimumSize: const Size(100, 40),
-              ),
-              const SizedBox(
-                width: 20,
-              ),
-              MyOutlinedButton(
-                outlineColor: AppColors.errorColor,
-                onPressed: _onResetPressed,
-                text: 'Reset',
-                textColor: AppColors.errorColor,
-                minimumSize: const Size(100, 40),
-              ),
-            ],
-          ),
-          const SizedBox(
-            height: 30,
-          ),
-        ],
-      ),
+        ),
+      ],
+      child: const SizedBox.shrink(),
     );
   }
 

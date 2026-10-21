@@ -1,11 +1,17 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/theming/new_app_themes.dart';
 
 /// Extension on the [BuildContext] class
 extension BuildContextExtension on BuildContext {
   /// Getter method for easier access to the [AppLocalizations] instance
-  AppLocalizations get l10n => AppLocalizations.of(this)!;
+  ///
+  /// Under the app there is always one. A shared widget shown with no
+  /// localisation delegate above it, as one pumped alone in a test, used to
+  /// carry its own English and so needed none; it gets [currentL10n] here
+  /// rather than a null check that throws.
+  AppLocalizations get l10n => AppLocalizations.of(this) ?? currentL10n;
 
   /// Returns the current ThemeData
   ThemeData get themeData => Theme.of(this);

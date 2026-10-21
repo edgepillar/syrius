@@ -1,5 +1,6 @@
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 
 part 'failure_exception.g.dart';
@@ -10,9 +11,12 @@ part 'failure_exception.g.dart';
 @JsonSerializable()
 class FailureException extends SyriusException {
   /// Creates a [FailureException] instance.
+  ///
+  /// With no [message] it says "Something went wrong" in the language the
+  /// app is showing when it is made.
   FailureException({
-    String message = 'Something went wrong',
-  }) : super(message);
+    String? message,
+  }) : super(message ?? currentL10n.commonSomethingWentWrong);
 
   /// Creates a [FailureException] instance from a JSON map.
   factory FailureException.fromJson(Map<String, dynamic> json) =>

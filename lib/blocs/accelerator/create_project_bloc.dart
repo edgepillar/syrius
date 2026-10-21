@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/plasma_purpose.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -25,7 +26,7 @@ class CreateProjectBloc extends BaseBloc<AccountBlockTemplate?> {
       );
       AccountBlockUtils().createAccountBlock(
         transactionParams,
-        'creating project',
+        PlasmaPurpose.createProject.message,
       ).then(
         (AccountBlockTemplate block) {
           ZenonAddressUtils().refreshBalance();

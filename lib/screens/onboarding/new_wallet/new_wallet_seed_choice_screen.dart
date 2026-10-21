@@ -1,14 +1,15 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hive_ce/hive_ce.dart';
 import 'package:provider/provider.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/onboarding/onboarding_scaffold.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class NewWalletSeedChoiceScreen extends StatefulWidget {
-
   const NewWalletSeedChoiceScreen({super.key, this.export});
   final bool? export;
 
@@ -37,71 +38,67 @@ class _NewWalletSeedChoiceScreenState extends State<NewWalletSeedChoiceScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        padding: const EdgeInsets.symmetric(
-          vertical: 30,
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            Column(
-              children: <Widget>[
-                const ProgressBar(
-                  currentLevel: 1,
-                ),
-                const SizedBox(
-                  height: 30,
-                ),
-                Text(
-                  _isSeed12Selected
-                      ? 'This is your 12 words seed'
-                      : 'This is your 24 words seed',
-                  style: Theme.of(context).textTheme.headlineLarge,
-                ),
-                kVerticalSpacing,
-                Text(
-                  'Please carefully write down your seed and export it to a safe location',
-                  style: Theme.of(context).textTheme.headlineMedium,
-                ),
-                kVerticalSpacing,
-                SizedBox(
-                  height: 45,
-                  child: Visibility(
-                    visible: !_isSeedSecure!,
-                    child: _getSeedChoice(),
-                  ),
-                ),
-                kVerticalSpacing,
-                _getSeedGrid(),
-              ],
+    return OnboardingScaffold(
+      step: 1,
+      title: _isSeed12Selected ? 'Your 12 word seed' : 'Your 24 word seed',
+      subtitle: 'Write it down and export it to a safe place',
+      help: 'Hover a word to read it. Click its number to keep it shown.',
+      onBack: _onBackPressed,
+      maxWidth: 880,
+      primary: _buildContinueButton(),
+      child: Column(
+        children: <Widget>[
+          // The choice goes once the seed is said to be backed up: changing
+          // it then would show a seed that was never written down.
+          SizedBox(
+            height: 40,
+            child: Visibility(
+              visible: !_isSeedSecure!,
+              child: _getSeedChoice(),
             ),
-            SizedBox(
-              height: 40,
-              child: Visibility(
-                visible: !_isSeedSecure!,
-                child: _getBackUpSeedContainer(),
-              ),
+          ),
+          const SizedBox(height: 16),
+          _getSeedGrid(),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 40,
+            child: Visibility(
+              visible: !_isSeedSecure!,
+              child: _getBackUpSeedContainer(),
             ),
-            Column(
-              children: <Widget>[
-                _getConfirmSecureCheckboxContainer(),
-                _getConfirmWrittenDownCheckbox(),
-              ],
-            ),
-            _getActionButtons(),
-          ],
-        ),
+          ),
+          const SizedBox(height: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              _getConfirmSecureCheckboxContainer(),
+              _getConfirmWrittenDownCheckbox(),
+            ],
+          ),
+        ],
       ),
     );
+  }
+
+  void _onBackPressed() {
+    if (widget.export!) {
+      Navigator.popUntil(
+        context,
+        ModalRoute.withName(AccessWalletScreen.route),
+      );
+    } else {
+      Navigator.pop(context);
+    }
   }
 
   void _openHiveAddressesBox() {
     Hive.boxExists(kAddressesBox).then(
       (bool addressesBoxExists) {
         if (addressesBoxExists) {
-          Hive.openBox(kAddressesBox)
-              .then((Box addressesBox) => addressesBox.clear());
+          Hive.openBox(
+            kAddressesBox,
+          ).then((Box addressesBox) => addressesBox.clear());
         }
       },
     );
@@ -143,45 +140,17 @@ class _NewWalletSeedChoiceScreenState extends State<NewWalletSeedChoiceScreen> {
 
   Widget _getBackUpSeedContainer() {
     return Consumer<ValueNotifier<List<String>>>(
-      builder: (_, ValueNotifier<List<String>> exportedSeed, __) => Container(
-        decoration: BoxDecoration(
-            color: _isSeedExported(exportedSeed.value)
-                ? AppColors.znnColor
-                : Colors.transparent,
-            borderRadius: const BorderRadius.all(Radius.circular(6)),
-            border: Border.all(
-              color: AppColors.znnColor,
-            ),),
-        child: InkWell(
-          child: FocusableActionDetector(
-            child: SizedBox(
-              height: 50,
-              width: 150,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Container(
-                    color: Colors.transparent,
-                    child: SvgPicture.asset(
-                      'assets/svg/ic_export_seed.svg',
-                      colorFilter: ColorFilter.mode(
-                          Theme.of(context).textTheme.headlineSmall!.color!,
-                          BlendMode.srcIn,),
-                      height: 18,
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 15,
-                  ),
-                  Text(
-                    'Export Seed',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                ],
-              ),
-            ),
+      builder: (_, ValueNotifier<List<String>> exportedSeed, __) {
+        final bool exported = _isSeedExported(exportedSeed.value);
+        return OutlinedButton.icon(
+          style: secondaryButtonStyle(context).copyWith(
+            side: exported
+                ? const WidgetStatePropertyAll<BorderSide>(
+                    BorderSide(color: AppColors.znnColor),
+                  )
+                : null,
           ),
-          onTap: () {
+          onPressed: () {
             if (_isSeed12Selected) {
               NavigationUtils.push(
                 context,
@@ -198,92 +167,87 @@ class _NewWalletSeedChoiceScreenState extends State<NewWalletSeedChoiceScreen> {
               );
             }
           },
-        ),
-      ),
+          icon: exported
+              ? const Icon(Icons.check, size: 18, color: AppColors.znnColor)
+              : SvgPicture.asset(
+                  'assets/svg/ic_export_seed.svg',
+                  colorFilter: ColorFilter.mode(
+                    Theme.of(context).textTheme.bodyLarge!.color!,
+                    BlendMode.srcIn,
+                  ),
+                  height: 16,
+                ),
+          label: Text(exported ? 'Exported' : 'Export seed'),
+        );
+      },
     );
   }
 
   Widget _getConfirmSecureCheckboxContainer() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        Checkbox(
-          value: _isSeedSecure,
-          checkColor: Theme.of(context).colorScheme.primary,
-          activeColor: AppColors.znnColor,
-          onChanged: (bool? value) {
-            setState(() {
-              _isSeedSecure = value;
-            });
-          },
-        ),
-        Text(
-          'I have backed up my seed in a safe location',
-          style: Theme.of(context).textTheme.headlineSmall,
-        ),
-      ],
+    return _buildCheckRow(
+      value: _isSeedSecure,
+      label: 'I have backed up my seed in a safe location',
+      onChanged: (bool? value) {
+        setState(() {
+          _isSeedSecure = value;
+        });
+      },
     );
   }
 
-  Widget _getActionButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        OnboardingButton(
-          onPressed: () {
-            if (widget.export!) {
-              Navigator.popUntil(
-                context,
-                ModalRoute.withName(AccessWalletScreen.route),
-              );
-            } else {
-              Navigator.pop(context);
+  Widget _buildContinueButton() {
+    return OnboardingButton(
+      onPressed:
+          _isSeedSecure! &&
+              _isSeedWrittenDown! &&
+              !_seedGridKey.currentState!.continueButtonDisabled!
+          ? () {
+              if (_isSeed12Selected) {
+                NavigationUtils.push(
+                  context,
+                  NewWalletConfirmSeedScreen(_generatedSeed12),
+                );
+              } else {
+                NavigationUtils.push(
+                  context,
+                  NewWalletConfirmSeedScreen(_generatedSeed24),
+                );
+              }
             }
-          },
-          text: 'Go back',
-        ),
-        kSpacingBetweenActionButtons,
-        OnboardingButton(
-          onPressed: _isSeedSecure! &&
-                  _isSeedWrittenDown! &&
-                  !_seedGridKey.currentState!.continueButtonDisabled!
-              ? () {
-                  if (_isSeed12Selected) {
-                    NavigationUtils.push(
-                      context,
-                      NewWalletConfirmSeedScreen(_generatedSeed12),
-                    );
-                  } else {
-                    NavigationUtils.push(
-                      context,
-                      NewWalletConfirmSeedScreen(_generatedSeed24),
-                    );
-                  }
-                }
-              : null,
-          text: 'Continue',
-        ),
-      ],
+          : null,
+      text: 'Continue',
     );
   }
 
   Widget _getConfirmWrittenDownCheckbox() {
+    return _buildCheckRow(
+      value: _isSeedWrittenDown,
+      label: 'I have written down my seed',
+      onChanged: (bool? value) {
+        setState(() {
+          _isSeedWrittenDown = value;
+        });
+      },
+    );
+  }
+
+  Widget _buildCheckRow({
+    required bool? value,
+    required String label,
+    required ValueChanged<bool?> onChanged,
+  }) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         Checkbox(
-          value: _isSeedWrittenDown,
+          value: value,
           checkColor: Theme.of(context).colorScheme.primary,
           activeColor: AppColors.znnColor,
-          onChanged: (bool? value) {
-            setState(() {
-              _isSeedWrittenDown = value;
-            });
-          },
+          onChanged: onChanged,
         ),
         Text(
-          'I have written down my seed',
-          style: Theme.of(context).textTheme.headlineSmall,
+          label,
+          style: TextStyle(fontSize: 14, color: dimColorOf(context)),
         ),
       ],
     );

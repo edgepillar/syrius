@@ -1,3 +1,10 @@
 arb-dir: lib/l10n
 template-arb-file: app_en.arb
 output-localization-file: app_localizations.dart
+# English first, so anything that falls back to the first supported locale
+# lands on English and not on Arabic, which sorts ahead of it.
+preferred-supported-locales: [en]
+# A key missing from a translation is generated from app_en.arb, so a
+# half-translated language builds and shows English where it has nothing.
+# This file lists, per language, the keys that are still English.
+untranslated-messages-file: lib/l10n/untranslated.json

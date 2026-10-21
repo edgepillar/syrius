@@ -1,8 +1,9 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/card_parts/card_parts.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/revoke_sentinel/bloc/revoke_sentinel_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
@@ -58,19 +59,23 @@ class RevokeSentinelButton extends StatelessWidget {
 
   OutlinedButton _buildButton(BuildContext context) {
     return OutlinedButton.icon(
-      style: OutlinedButton.styleFrom(
-        iconColor: AppColors.errorColor,
-        side: const BorderSide(color: AppColors.errorColor),
-      ),
+      // A secondary action with a red line: it undoes something, and the
+      // card's filled button is kept for its main action.
+      style: cardSecondaryButtonStyle(context, line: AppColors.errorColor),
       onPressed: () async {
         final RevokeSentinelBloc revokeSentinelBloc = context
             .read<RevokeSentinelBloc>();
+        // The block revokes the sentinel of the address that sends it, so
+        // the confirmation names that address: by its label when it has one.
+        final String owner = kSelectedAddress!;
+        final String? label = kAddressLabelMap[owner];
         final bool? revocationConfirmed = await showDialogWithNoAndYesOptions(
           isBarrierDismissible: false,
           context: context,
           title: context.l10n.disassemble,
-          // TODO(maznnwell): localize if the description is okay
-          description: 'Are you sure you want to revoke the sentinel?',
+          description: context.l10n.disassembleSentinelConfirm(
+            label != null && label != owner ? label : owner.short,
+          ),
         );
 
         if (revocationConfirmed ?? false) {
@@ -79,14 +84,9 @@ class RevokeSentinelButton extends StatelessWidget {
           );
         }
       },
-      icon: const Icon(Icons.close),
+      icon: const Icon(Icons.close, size: 16),
       iconAlignment: .end,
-      label: Text(
-        context.l10n.disassemble,
-        style: TextStyle(
-          color: context.newThemeData.textTheme.titleSmall!.color,
-        ),
-      ),
+      label: const Text('Disassemble'),
     );
   }
 }

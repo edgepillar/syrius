@@ -1,9 +1,10 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/card_parts/card_parts.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
@@ -19,6 +20,9 @@ enum _Step {
 }
 
 /// A stepper that guides the user through creating a sentinel.
+///
+/// The deposit QSR step does not let more QSR be deposited, by mistake,
+/// than a Sentinel takes.
 class CreateSentinelStepperView extends StatefulWidget {
   /// {@macro default_constructor}
   const CreateSentinelStepperView({super.key});
@@ -40,8 +44,11 @@ class _MainSentinelState extends State<CreateSentinelStepperView> {
   @override
   void initState() {
     super.initState();
-    _znnAmountController.text = sentinelRegisterZnnAmount.addDecimals(
+    // Shown, never typed: grouped, and with no trailing zeros.
+    _znnAmountController.text = cardAmount(
+      sentinelRegisterZnnAmount,
       coinDecimals,
+      '',
     );
     _addressController.text = kSelectedAddress!;
     sl.get<MultipleBalanceBloc>().add(
@@ -54,45 +61,65 @@ class _MainSentinelState extends State<CreateSentinelStepperView> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<MultipleBalanceBloc, MultipleBalanceState>(
-      builder: (_, MultipleBalanceState state) => switch (state.status) {
-        MultipleBalanceStatus.failure => SyriusErrorWidget(state.error!),
-        MultipleBalanceStatus.initial => const SyriusLoadingWidget(),
-        MultipleBalanceStatus.loading => const SyriusLoadingWidget(),
-        MultipleBalanceStatus.success => _buildBody(
-          context,
-          state.data![_addressController.text]!,
-        ),
-      },
+      // Loading, the steps and an error fade into one another. The steps
+      // themselves change with the stepper's own transition.
+      builder: (_, MultipleBalanceState state) => StateSwitcher(
+        alignment: Alignment.center,
+        child: switch (state.status) {
+          MultipleBalanceStatus.failure => SyriusErrorWidget(
+            state.error!,
+            key: const ValueKey<String>('error'),
+          ),
+          MultipleBalanceStatus.initial ||
+          MultipleBalanceStatus.loading => const SyriusLoadingWidget(
+            key: ValueKey<String>('loading'),
+          ),
+          MultipleBalanceStatus.success => KeyedSubtree(
+            key: const ValueKey<String>('steps'),
+            child: _buildBody(
+              context,
+              state.data![_addressController.text]!,
+            ),
+          ),
+        },
+      ),
     );
   }
 
   Widget _buildBody(BuildContext context, AccountInfo accountInfo) {
-    return ValueListenableBuilder<_Step?>(
-      valueListenable: _currentStep,
-      builder: (_, _Step? currentStep, _) {
-        final bool hasSentinelBeenRegistered = currentStep == null;
+    // The steps are told how tall the card is: the list they sit in would
+    // give a step any height, and its actions would end below the window.
+    return LayoutBuilder(
+      builder: (_, BoxConstraints constraints) => TokenStepViewport(
+        height: constraints.maxHeight,
+        child: ValueListenableBuilder<_Step?>(
+          valueListenable: _currentStep,
+          builder: (_, _Step? currentStep, _) {
+            final bool hasSentinelBeenRegistered = currentStep == null;
 
-        return Stack(
-          children: <Widget>[
-            ListView(
+            return Stack(
               children: <Widget>[
-                _buildMaterialStepper(
-                  accountInfo: accountInfo,
-                  currentStep: currentStep,
+                ListView(
+                  children: <Widget>[
+                    _buildMaterialStepper(
+                      accountInfo: accountInfo,
+                      currentStep: currentStep,
+                    ),
+                    if (hasSentinelBeenRegistered)
+                      SentinelRegisteredSuccess(
+                        onViewSentinelsPressed: () {
+                          Navigator.pop(context);
+                        },
+                      ),
+                  ],
                 ),
                 if (hasSentinelBeenRegistered)
-                  SentinelRegisteredSuccess(
-                    onViewSentinelsPressed: () {
-                      Navigator.pop(context);
-                    },
-                  ),
+                  const SentinelRegisteredSuccessAnimation(),
               ],
-            ),
-            if (hasSentinelBeenRegistered)
-              const SentinelRegisteredSuccessAnimation(),
-          ],
-        );
-      },
+            );
+          },
+        ),
+      ),
     );
   }
 
@@ -101,6 +128,9 @@ class _MainSentinelState extends State<CreateSentinelStepperView> {
     required _Step? currentStep,
   }) {
     final int lastStepIndex = _Step.values.last.index;
+    // The one accent of the stepper: its marks, the lines between them and
+    // what a finished step says under its title.
+    final Color accent = AppTokens.of(context).znnInk;
 
     custom_material_stepper.StepState getStepState(
       _Step step,
@@ -112,12 +142,14 @@ class _MainSentinelState extends State<CreateSentinelStepperView> {
     }
 
     return custom_material_stepper.Stepper(
+      activeColor: accent,
       currentStep: currentStep?.index ?? lastStepIndex,
       onStepTapped: (int index) {},
       steps: <custom_material_stepper.Step>[
         StepperUtils.getMaterialStep(
           stepTitle: context.l10n.plasmaCheck,
           stepContent: SentinelPlasmaCheckStep(
+            active: currentStep == _Step.checkPlasma,
             addressController: _addressController,
             onNextPressed: _onPlasmaCheckNextPressed,
           ),
@@ -127,12 +159,15 @@ class _MainSentinelState extends State<CreateSentinelStepperView> {
             currentStep,
           ),
           context: context,
+          stepSubtitleColor: accent,
         ),
         StepperUtils.getMaterialStep(
           stepTitle: context.l10n.management(kQsrCoin.symbol),
           stepContent: SentinelQsrManagementStep(
+            active: currentStep == _Step.qsrManagement,
             accountInfo: accountInfo,
             addressController: _addressController,
+            onBackPressed: _navigateToPreviousStep,
             onNextPressed: _navigateToNextStep,
             qsrAmountController: _qsrAmountController,
           ),
@@ -142,13 +177,16 @@ class _MainSentinelState extends State<CreateSentinelStepperView> {
             currentStep,
           ),
           context: context,
+          stepSubtitleColor: accent,
           expanded: true,
         ),
         StepperUtils.getMaterialStep(
           stepTitle: context.l10n.management(kZnnCoin.symbol),
           stepContent: SentinelZnnManagementStep(
+            active: currentStep == _Step.znnManagement,
             accountInfo: accountInfo,
             addressController: _addressController,
+            onBackPressed: _navigateToPreviousStep,
             onNextPressed: _navigateToNextStep,
             znnAmountController: _znnAmountController,
           ),
@@ -158,10 +196,14 @@ class _MainSentinelState extends State<CreateSentinelStepperView> {
             currentStep,
           ),
           context: context,
+          stepSubtitleColor: accent,
         ),
         StepperUtils.getMaterialStep(
           stepTitle: context.l10n.registerSentinel,
           stepContent: DeploySentinelStep(
+            active: currentStep == _Step.deploySentinel,
+            address: _addressController.text,
+            onBackPressed: _navigateToPreviousStep,
             onDeployDone: _onDeployDone,
           ),
           stepSubtitle: context.l10n.sentinelRegistered,
@@ -170,6 +212,7 @@ class _MainSentinelState extends State<CreateSentinelStepperView> {
             currentStep,
           ),
           context: context,
+          stepSubtitleColor: accent,
         ),
       ],
     );
@@ -189,9 +232,25 @@ class _MainSentinelState extends State<CreateSentinelStepperView> {
   }
 
   void _navigateToNextStep() {
-    final int currentStepIndex = _currentStep.value!.index;
+    final _Step? currentStep = _currentStep.value;
 
-    _currentStep.value = _Step.values[currentStepIndex + 1];
+    // Every step stays mounted, so a Next that still holds the focus can be
+    // pressed once more after its step has closed.
+    if (currentStep == null || currentStep == _Step.values.last) {
+      return;
+    }
+
+    _currentStep.value = _Step.values[currentStep.index + 1];
+  }
+
+  void _navigateToPreviousStep() {
+    final _Step? currentStep = _currentStep.value;
+
+    if (currentStep == null || currentStep.index == 0) {
+      return;
+    }
+
+    _currentStep.value = _Step.values[currentStep.index - 1];
   }
 
   void _onPlasmaCheckNextPressed() {

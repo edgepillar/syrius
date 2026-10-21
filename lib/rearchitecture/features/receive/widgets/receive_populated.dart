@@ -1,5 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/card_parts/card_parts.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
@@ -58,56 +60,85 @@ class _ReceivePopulatedState extends State<ReceivePopulated> {
   Widget build(BuildContext context) {
     final List<Token> sortedAssets = sortAssets(widget.assets);
 
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          ReceiveQrImage(
-            data: _getQrString(),
-            size: 150,
-            tokenStandard: _selectedToken.tokenStandard,
-          ),
-          kHorizontalGap16,
-          Expanded(
-            child: Column(
-              children: <Widget>[
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: _getDefaultAddressDropdown(),
-                    ),
-                    CopyToClipboardButton(
-                      _selectedSenderAddress,
-                    ),
-                  ],
-                ),
-                kVerticalGap16,
-                ZtsDropdown(
-                  availableTokens: sortedAssets,
-                  onChangeCallback: (Token token) => setState(() {
-                    _selectedToken = token;
-                  }),
-                  selectedToken: _selectedToken,
-                ),
-                kVerticalGap16,
-                TextField(
-                  decoration: InputDecoration(
-                    errorText: _amount.isNotEmpty ? _amountErrorText : null,
-                    hintText: context.l10n.amount,
+    return CardFields(
+      child: SingleChildScrollView(
+        padding: kCardBodyPadding,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            ReceiveQrImage(
+              data: _getQrString(),
+              size: 140,
+              tokenStandard: _selectedToken.tokenStandard,
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  _buildDefaultAddressDropdown(),
+                  const SizedBox(height: kCardGap),
+                  ZtsDropdown(
+                    availableTokens: sortedAssets,
+                    onChangeCallback: (Token token) => setState(() {
+                      _selectedToken = token;
+                    }),
+                    selectedToken: _selectedToken,
                   ),
-                  onChanged: (String value) => setState(() {}),
-                  inputFormatters: FormatUtils.getAmountTextInputFormatters(
-                    _amountController.text,
+                  const SizedBox(height: kCardGap),
+                  // A refused key, a comma for one, says so under the field,
+                  // over what the validator says.
+                  AmountRefusalScope(
+                    controller: _amountController,
+                    builder: (_, String? refusal) => TextField(
+                      style: monoStyle(const TextStyle(fontSize: 14)),
+                      decoration: InputDecoration(
+                        errorText:
+                            refusal ??
+                            (_amount.isNotEmpty ? _amountErrorText : null),
+                        hintText: context.l10n.amount,
+                      ),
+                      onChanged: (String value) => setState(() {}),
+                      inputFormatters:
+                          FormatUtils.getAmountTextInputFormatters(
+                            _amountController.text,
+                          ),
+                      controller: _amountController,
+                    ),
                   ),
-                  controller: _amountController,
-                ),
-              ],
+                  const SizedBox(height: 4),
+                  _buildAddressLine(),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// The receiving address in mono, shortened, with its copy button: what
+  /// the person reads out or pastes when the QR code will not do.
+  Widget _buildAddressLine() {
+    final String address = _selectedSenderAddress;
+    final String short = address.length > 12
+        ? '${address.substring(0, 6)}…${address.substring(address.length - 4)}'
+        : address;
+    return Row(
+      children: <Widget>[
+        Expanded(
+          child: Tooltip(
+            message: address,
+            child: Text(
+              short,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: monoStyle(cardDimStyle(context)),
             ),
           ),
-        ],
-      ),
+        ),
+        CopyToClipboardButton(address, iconSize: 16),
+      ],
     );
   }
 
@@ -125,7 +156,7 @@ class _ReceivePopulatedState extends State<ReceivePopulated> {
     }
   }
 
-  Widget _getDefaultAddressDropdown() {
+  Widget _buildDefaultAddressDropdown() {
     return NewAddressesDropdown(
       addresses: kDefaultAddressList.map((String? e) => e!).toList(),
       selectedAddress: _selectedSenderAddress,

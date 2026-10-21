@@ -1,5 +1,6 @@
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 
 part 'node_not_synced_exception.g.dart';
@@ -9,9 +10,12 @@ part 'node_not_synced_exception.g.dart';
 @JsonSerializable()
 class NodeNotSyncedException extends SyriusException {
   /// Creates a [NodeNotSyncedException] instance.
+  ///
+  /// With no [message] it says "Node is not synced" in the language the app
+  /// is showing when it is made.
   NodeNotSyncedException({
-    String message = 'Node is not synced',
-  }) : super(message);
+    String? message,
+  }) : super(message ?? currentL10n.nodeNotSyncedError);
 
   /// Creates a [NodeNotSyncedException] instance from a JSON map.
   factory NodeNotSyncedException.fromJson(Map<String, dynamic> json) =>

@@ -1,6 +1,5 @@
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/color_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
@@ -56,8 +55,8 @@ class _RealtimeTxsChartState extends State<RealtimeTxsChart> {
         pairedAccountBlock = transaction.pairedAccountBlock;
       }
 
-      if (DateFormat('d MMM, yyyy').format(date) ==
-          DateFormat('d MMM, yyyy').format(
+      if (FormatUtils.dayKey(date) ==
+          FormatUtils.dayKey(
             DateTime.fromMillisecondsSinceEpoch(
               (transaction.confirmationDetail?.momentumTimestamp ?? 0) * 1000,
             ),

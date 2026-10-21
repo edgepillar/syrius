@@ -5,6 +5,7 @@ import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:logging/logging.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/balance/balance.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/node_change.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'timer_state.dart';
@@ -37,6 +38,10 @@ abstract class TimerCubit<T, S extends TimerState<T>> extends HydratedCubit<S> {
 
   /// The interval at which to fetch the data again.
   final Duration refreshInterval;
+
+  /// Cached per node: see `lib/utils/node_change.dart`.
+  @override
+  String get storagePrefix => nodeScopedStoragePrefix(runtimeType);
 
   /// Fetches data of type [T] that is managed by the bloc.
   ///

@@ -1,54 +1,40 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/base_modal.dart';
 
-class P2PSwapWarningModal extends StatefulWidget {
-
+/// Shown once, before the first swap: P2P swaps are experimental.
+class P2PSwapWarningModal extends StatelessWidget {
+  /// Creates the warning. [onAccepted] runs when the person continues.
   const P2PSwapWarningModal({
     required this.onAccepted,
     super.key,
   });
-  final Function() onAccepted;
 
-  @override
-  State<P2PSwapWarningModal> createState() => _P2PSwapWarningModalState();
-}
+  /// Called when the person continues.
+  final VoidCallback onAccepted;
 
-class _P2PSwapWarningModalState extends State<P2PSwapWarningModal> {
   @override
   Widget build(BuildContext context) {
     return BaseModal(
-      title: 'Before continuing',
-      child: _getContent(),
-    );
-  }
-
-  Widget _getContent() {
-    return Column(
-      children: <Widget>[
-        const SizedBox(
-          height: 20,
-        ),
-        const Text(
-          '''Please note that the P2P swap is an experimental feature and may result in funds being lost.\n\n'''
-          '''Use the feature with caution and consider splitting large swaps into multiple smaller ones.''',
-          style: TextStyle(
-            fontSize: 14,
+      title: 'Before you swap',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          const SizedBox(height: 20),
+          Text(
+            'P2P swaps are experimental and funds can be lost. Split a large '
+            'swap into smaller ones.',
+            style: Theme.of(
+              context,
+            ).textTheme.bodyLarge!.copyWith(fontSize: 14),
           ),
-        ),
-        const SizedBox(
-          height: 30,
-        ),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: () => widget.onAccepted.call(),
-            child: Text(
-              'Continue',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
+          const SizedBox(height: 24),
+          OutlinedButton(
+            key: const Key('p2p_warning_continue'),
+            onPressed: onAccepted,
+            child: const Text('Continue'),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

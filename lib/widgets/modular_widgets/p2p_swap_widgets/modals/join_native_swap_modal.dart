@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
-import 'package:flutter_vector_icons/flutter_vector_icons.dart';
+
+import 'package:material_ui/material_ui.dart';
 import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/dashboard/balance_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/p2p_swap/htlc_swap/initial_htlc_for_swap_bloc.dart';
@@ -27,12 +27,16 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_wid
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/base_modal.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// Joins a swap the counterparty started: find their deposit by its id,
+/// then deposit the other side.
 class JoinNativeSwapModal extends StatefulWidget {
+  /// Creates the dialog. [onJoinedSwap] gets the id of the joined swap.
   const JoinNativeSwapModal({
     required this.onJoinedSwap,
     super.key,
   });
 
+  /// Called with the swap's id once this wallet has joined it.
   final Function(String) onJoinedSwap;
 
   @override
@@ -47,9 +51,10 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
   late String _selfAddress;
 
   HtlcInfo? _initialHltc;
+  Future<Token?>? _tokenToReceive;
   String? _initialHtlcError;
   int? _safeExpirationTime;
-  StreamSubscription? _safeExpirationSubscription;
+  StreamSubscription<void>? _safeExpirationSubscription;
 
   Token _selectedToken = kZnnCoin;
   bool _isAmountValid = false;
@@ -58,21 +63,24 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
   @override
   void initState() {
     super.initState();
-    sl.get<BalanceBloc>().getBalanceForAllAddresses();
+    unawaited(sl.get<BalanceBloc>().getBalanceForAllAddresses());
     _safeExpirationSubscription =
-        Stream.periodic(const Duration(seconds: 5)).listen((_) {
-      if (_initialHltc != null) {
-        _safeExpirationTime =
-            _calculateSafeExpirationTime(_initialHltc!.expirationTime);
-        setState(() {});
-      }
-    });
+        Stream<void>.periodic(const Duration(seconds: 5)).listen((_) {
+          if (_initialHltc != null) {
+            _safeExpirationTime = _calculateSafeExpirationTime(
+              _initialHltc!.expirationTime,
+            );
+            setState(() {});
+          }
+        });
   }
 
   @override
   void dispose() {
+    _addressController.dispose();
     _amountController.dispose();
-    _safeExpirationSubscription?.cancel();
+    _depositIdController.dispose();
+    unawaited(_safeExpirationSubscription?.cancel());
     super.dispose();
   }
 
@@ -81,34 +89,33 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
     return BaseModal(
       title: 'Join swap',
       child: _initialHltc == null
-          ? _getSearchView()
+          ? _buildSearchView()
           : FutureBuilder<Token?>(
-              future:
-                  zenon!.embedded.token.getByZts(_initialHltc!.tokenStandard),
+              future: _tokenToReceive,
               builder: (_, AsyncSnapshot<Token?> snapshot) {
                 if (snapshot.hasError) {
                   return Padding(
                     padding: const EdgeInsets.all(20),
-                    child: SyriusErrorWidget(snapshot.error!),
+                    child: RepaintBoundary(
+                      child: SyriusErrorWidget(snapshot.error!),
+                    ),
                   );
                 } else if (snapshot.hasData) {
-                  return _getContent(snapshot.data!);
+                  return _buildContent(snapshot.data!);
                 }
                 return const Padding(
-                  padding: EdgeInsets.all(50),
-                  child: SyriusLoadingWidget(),
+                  padding: EdgeInsets.all(40),
+                  child: SyriusLoadingWidget(size: 18, strokeWidth: 1.5),
                 );
               },
             ),
     );
   }
 
-  Widget _getSearchView() {
+  Widget _buildSearchView() {
     return Column(
       children: <Widget>[
-        const SizedBox(
-          height: 20,
-        ),
+        const SizedBox(height: 20),
         Form(
           autovalidateMode: AutovalidateMode.onUserInteraction,
           child: InputField(
@@ -127,7 +134,7 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
               ),
               child: const Icon(
                 Icons.content_paste,
-                color: AppColors.darkHintTextColor,
+                color: AppColors.faint,
                 size: 15,
               ),
             ),
@@ -135,49 +142,46 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
               maxWidth: 45,
               maxHeight: 20,
             ),
-            hintText: 'Deposit ID provided by the counterparty',
+            hintText: 'Deposit ID from your counterparty',
             contentLeftPadding: 10,
           ),
         ),
-        const SizedBox(
-          height: 25,
-        ),
-        Visibility(
-          visible: _initialHtlcError != null,
-          child: Column(
-            children: <Widget>[
-              ImportantTextContainer(
-                text: _initialHtlcError ?? '',
-                showBorder: true,
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-            ],
+        const SizedBox(height: 20),
+        if (_initialHtlcError != null) ...<Widget>[
+          ImportantTextContainer(
+            text: _initialHtlcError!,
+            showBorder: true,
           ),
-        ),
-        _getInitialHtlcViewModel(),
+          const SizedBox(height: 20),
+        ],
+        _buildInitialHtlcViewModel(),
       ],
     );
   }
 
-  ViewModelBuilder<InitialHtlcForSwapBloc> _getInitialHtlcViewModel() {
+  ViewModelBuilder<InitialHtlcForSwapBloc> _buildInitialHtlcViewModel() {
     return ViewModelBuilder<InitialHtlcForSwapBloc>.reactive(
       onViewModelReady: (InitialHtlcForSwapBloc model) {
         model.stream.listen(
           (HtlcInfo? event) async {
             if (event is HtlcInfo) {
               _initialHltc = event;
+              // Fetched once: the dialog rebuilds every few seconds, and a
+              // future made in build would fetch the token every time.
+              _tokenToReceive = zenon!.embedded.token.getByZts(
+                event.tokenStandard,
+              );
               _isLoading = false;
               _addressController.text = event.hashLocked.toString();
               _selfAddress = event.hashLocked.toString();
-              _safeExpirationTime =
-                  _calculateSafeExpirationTime(event.expirationTime);
+              _safeExpirationTime = _calculateSafeExpirationTime(
+                event.expirationTime,
+              );
               _initialHtlcError = null;
               setState(() {});
             }
           },
-          onError: (error) {
+          onError: (Object error) {
             setState(() {
               _initialHtlcError = error.toString();
               _isLoading = false;
@@ -185,17 +189,17 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
           },
         );
       },
-      builder: (_, InitialHtlcForSwapBloc model, __) =>
-          _getContinueButton(model),
+      builder: (_, InitialHtlcForSwapBloc model, _) =>
+          _buildContinueButton(model),
       viewModelBuilder: InitialHtlcForSwapBloc.new,
     );
   }
 
-  Widget _getContinueButton(InitialHtlcForSwapBloc model) {
+  Widget _buildContinueButton(InitialHtlcForSwapBloc model) {
     return InstructionButton(
       text: 'Continue',
       loadingText: 'Searching',
-      instructionText: 'Input the deposit ID',
+      instructionText: 'Enter the deposit ID',
       isEnabled: _isHashValid(),
       isLoading: _isLoading,
       onPressed: () => _onContinueButtonPressed(model),
@@ -207,125 +211,108 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
       _isLoading = true;
       _initialHtlcError = null;
     });
-    model.getInitialHtlc(Hash.parse(_depositIdController.text));
+    unawaited(model.getInitialHtlc(Hash.parse(_depositIdController.text)));
   }
 
-  Widget _getContent(Token tokenToReceive) {
+  Widget _buildContent(Token tokenToReceive) {
+    final ThemeData theme = Theme.of(context);
+    final TextStyle strong = theme.textTheme.bodyLarge!.copyWith(fontSize: 14);
+    final int minutesLeft =
+        (((_initialHltc!.expirationTime -
+                        kMinSafeTimeToFindPreimage.inSeconds -
+                        kCounterHtlcDuration.inSeconds) -
+                    DateTimeUtils.unixTimeNow) /
+                60)
+            .ceil();
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
         const SizedBox(height: 20),
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: LabeledInputContainer(
-                labelText: 'Your address',
-                helpText: 'You will receive the swapped funds to this address.',
-                inputWidget: DisabledAddressField(
-                  _addressController,
-                  contentLeftPadding: 10,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 20),
-        Divider(color: Colors.white.withOpacity(0.1)),
-        const SizedBox(height: 20),
         LabeledInputContainer(
-          labelText: 'You are sending',
+          labelText: 'Your address',
+          helpText: 'The swapped funds arrive at this address',
+          inputWidget: DisabledAddressField(
+            _addressController,
+            contentLeftPadding: 10,
+          ),
+        ),
+        const SizedBox(height: 16),
+        LabeledInputContainer(
+          labelText: 'You send',
           inputWidget: Flexible(
             child: StreamBuilder<Map<String, AccountInfo>?>(
               stream: sl.get<BalanceBloc>().stream,
               builder: (_, AsyncSnapshot<Map<String, AccountInfo>?> snapshot) {
                 if (snapshot.hasError) {
-                  return SyriusErrorWidget(snapshot.error!);
+                  return RepaintBoundary(
+                    child: SyriusErrorWidget(snapshot.error!),
+                  );
                 }
-                if (snapshot.connectionState == ConnectionState.active) {
-                  if (snapshot.hasData) {
-                    return AmountInputField(
-                      controller: _amountController,
-                      accountInfo: snapshot.data![_selfAddress]!,
-                      valuePadding: 10,
-                      textColor: Theme.of(context).colorScheme.inverseSurface,
-                      initialToken: _selectedToken,
-                      hintText: '0.0',
-                      onChanged: (Token token, bool isValid) {
-                        setState(() {
-                          _selectedToken = token;
-                          _isAmountValid = isValid;
-                        });
-                      },
-                    );
-                  } else {
-                    return const SyriusLoadingWidget();
-                  }
-                } else {
-                  return const SyriusLoadingWidget();
+                if (snapshot.connectionState == ConnectionState.active &&
+                    snapshot.hasData) {
+                  return AmountInputField(
+                    controller: _amountController,
+                    accountInfo: snapshot.data![_selfAddress]!,
+                    valuePadding: 10,
+                    textColor: theme.colorScheme.inverseSurface,
+                    initialToken: _selectedToken,
+                    hintText: '0.0',
+                    onChanged: (Token token, bool isValid) {
+                      setState(() {
+                        _selectedToken = token;
+                        _isAmountValid = isValid;
+                      });
+                    },
+                  );
                 }
+                return const SyriusLoadingWidget(size: 18, strokeWidth: 1.5);
               },
             ),
           ),
         ),
-        kVerticalSpacing,
-        const Icon(
-          AntDesign.arrowdown,
-          color: Colors.white,
-          size: 20,
-        ),
-        kVerticalSpacing,
+        const SizedBox(height: 10),
+        const Icon(Icons.arrow_downward, color: AppColors.faint, size: 18),
+        const SizedBox(height: 10),
         HtlcCard.fromHtlcInfo(
-          title: 'You are receiving',
+          title: 'You receive',
           htlc: _initialHltc!,
           token: tokenToReceive,
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 12),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 4),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              const Text(
-                'Exchange Rate',
-                style: TextStyle(fontSize: 14, color: AppColors.subtitleColor),
+              Text(
+                'Rate',
+                style: theme.textTheme.titleMedium!.copyWith(fontSize: 13),
               ),
-              _getExchangeRateWidget(tokenToReceive),
+              _buildExchangeRate(tokenToReceive),
             ],
           ),
         ),
-        const SizedBox(height: 20),
-        Divider(color: Colors.white.withOpacity(0.1)),
-        if (_safeExpirationTime != null) const SizedBox(height: 20),
-        if (_safeExpirationTime != null)
+        const SizedBox(height: 16),
+        if (_safeExpirationTime != null) ...<Widget>[
           BulletPointCard(
             bulletPoints: <RichText>[
               RichText(
                 text: BulletPointCard.textSpan(
-                  'You have ',
+                  'Join within ',
                   children: <TextSpan>[
-                    TextSpan(
-                      text:
-                          '${(((_initialHltc!.expirationTime - kMinSafeTimeToFindPreimage.inSeconds - kCounterHtlcDuration.inSeconds) - DateTimeUtils.unixTimeNow) / 60).ceil()} minutes',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.white,
-                      ),
-                    ),
-                    BulletPointCard.textSpan(' left to join the swap.'),
+                    TextSpan(text: '$minutesLeft minutes', style: strong),
+                    BulletPointCard.textSpan('.'),
                   ],
                 ),
               ),
               RichText(
                 text: BulletPointCard.textSpan(
-                  'The counterparty will have ',
+                  'The counterparty then has ',
                   children: <TextSpan>[
                     TextSpan(
-                      text: '~${kCounterHtlcDuration.inHours} hour',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.white,
-                      ),
+                      text: 'about ${kCounterHtlcDuration.inHours} hour',
+                      style: strong,
                     ),
                     BulletPointCard.textSpan(' to complete the swap.'),
                   ],
@@ -333,43 +320,35 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
               ),
               RichText(
                 text: BulletPointCard.textSpan(
-                  'You can reclaim your funds if the counterparty fails to complete the swap. ',
+                  'If they do not, you can reclaim your funds.',
                 ),
               ),
             ],
           ),
-        const SizedBox(height: 20),
-        if (_safeExpirationTime != null)
-          Column(
-            children: <Widget>[
-              Visibility(
-                visible:
-                    !isTrustedToken(tokenToReceive.tokenStandard.toString()),
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 20),
-                  child: ImportantTextContainer(
-                    text:
-                        '''You are receiving a token that is not in your favorites. '''
-                        '''Please verify that the token standard is correct: ${tokenToReceive.tokenStandard}''',
-                    isSelectable: true,
-                  ),
-                ),
+          const SizedBox(height: 20),
+          if (!isTrustedToken(tokenToReceive.tokenStandard.toString()))
+            Padding(
+              padding: const EdgeInsets.only(bottom: 20),
+              child: ImportantTextContainer(
+                text:
+                    'This token is not in your favorites. Check its token '
+                    'standard: ${tokenToReceive.tokenStandard}',
+                isSelectable: true,
               ),
-              _getJoinSwapViewModel(tokenToReceive),
-            ],
-          )
-        else
+            ),
+          _buildJoinSwapViewModel(tokenToReceive),
+        ] else
           const ImportantTextContainer(
-            text:
-                'Cannot join swap. The swap will expire too soon for a safe swap.',
+            text: 'Too close to expiry to join safely.',
             showBorder: true,
           ),
       ],
     );
   }
 
-  ViewModelBuilder<JoinHtlcSwapBloc> _getJoinSwapViewModel(
-      Token tokenToReceive) {
+  ViewModelBuilder<JoinHtlcSwapBloc> _buildJoinSwapViewModel(
+    Token tokenToReceive,
+  ) {
     return ViewModelBuilder<JoinHtlcSwapBloc>.reactive(
       onViewModelReady: (JoinHtlcSwapBloc model) {
         model.stream.listen(
@@ -378,7 +357,8 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
               widget.onJoinedSwap.call(event.id);
             }
           },
-          onError: (error) {
+          onError: (Object error) {
+            if (!mounted) return;
             setState(() {
               _isLoading = false;
             });
@@ -386,17 +366,17 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
           },
         );
       },
-      builder: (_, JoinHtlcSwapBloc model, __) =>
-          _getJoinSwapButton(model, tokenToReceive),
+      builder: (_, JoinHtlcSwapBloc model, _) =>
+          _buildJoinSwapButton(model, tokenToReceive),
       viewModelBuilder: JoinHtlcSwapBloc.new,
     );
   }
 
-  Widget _getJoinSwapButton(JoinHtlcSwapBloc model, Token tokenToReceive) {
+  Widget _buildJoinSwapButton(JoinHtlcSwapBloc model, Token tokenToReceive) {
     return InstructionButton(
       text: 'Join swap',
-      instructionText: 'Input an amount to send',
-      loadingText: 'Sending transaction',
+      instructionText: 'Enter an amount',
+      loadingText: 'Sending',
       isEnabled: _isInputValid(),
       isLoading: _isLoading,
       onPressed: () => _onJoinButtonPressed(model, tokenToReceive),
@@ -410,16 +390,19 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
     setState(() {
       _isLoading = true;
     });
-    model.joinHtlcSwap(
-      initialHtlc: _initialHltc!,
-      fromToken: _selectedToken,
-      toToken: tokenToReceive,
-      fromAmount:
-          _amountController.text.extractDecimals(_selectedToken.decimals),
-      swapType: P2pSwapType.native,
-      fromChain: P2pSwapChain.nom,
-      toChain: P2pSwapChain.nom,
-      counterHtlcExpirationTime: _safeExpirationTime!,
+    unawaited(
+      model.joinHtlcSwap(
+        initialHtlc: _initialHltc!,
+        fromToken: _selectedToken,
+        toToken: tokenToReceive,
+        fromAmount: _amountController.text.extractDecimals(
+          _selectedToken.decimals,
+        ),
+        swapType: P2pSwapType.native,
+        fromChain: P2pSwapChain.nom,
+        toChain: P2pSwapChain.nom,
+        counterHtlcExpirationTime: _safeExpirationTime!,
+      ),
     );
   }
 
@@ -433,10 +416,11 @@ class _JoinNativeSwapModalState extends State<JoinNativeSwapModal> {
         : null;
   }
 
-  Widget _getExchangeRateWidget(Token tokenToReceive) {
+  Widget _buildExchangeRate(Token tokenToReceive) {
     return ExchangeRateWidget(
-      fromAmount:
-          _amountController.text.extractDecimals(_selectedToken.decimals),
+      fromAmount: _amountController.text.extractDecimals(
+        _selectedToken.decimals,
+      ),
       fromDecimals: _selectedToken.decimals,
       fromSymbol: _selectedToken.symbol,
       toAmount: _initialHltc!.amount,

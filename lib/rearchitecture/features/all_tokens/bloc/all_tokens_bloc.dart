@@ -3,6 +3,7 @@ import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/all_tokens/all_tokens.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/node_change.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'all_tokens_event.dart';
@@ -22,6 +23,10 @@ class AllTokensBloc extends HydratedBloc<AllTokensEvent, AllTokensState>
 
   /// The client used to interact with the Zenon network
   final Zenon zenon;
+
+  /// Cached per node: see `lib/utils/node_change.dart`.
+  @override
+  String get storagePrefix => nodeScopedStoragePrefix(runtimeType);
 
   Future<void> _onTokensRequested(
     AllTokensRequested _,

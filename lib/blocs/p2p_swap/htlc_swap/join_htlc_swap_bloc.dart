@@ -6,6 +6,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/date_time_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/plasma_purpose.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class JoinHtlcSwapBloc extends BaseBloc<HtlcSwap?> {
@@ -30,7 +31,8 @@ class JoinHtlcSwapBloc extends BaseBloc<HtlcSwap?> {
         initialHtlc.keyMaxSize,
         initialHtlc.hashLock,
       );
-      AccountBlockUtils().createAccountBlock(transactionParams, 'join swap',
+      AccountBlockUtils().createAccountBlock(
+              transactionParams, PlasmaPurpose.joinSwap.message,
               address: initialHtlc.hashLocked, waitForRequiredPlasma: true,)
           .then(
         (AccountBlockTemplate response) async {

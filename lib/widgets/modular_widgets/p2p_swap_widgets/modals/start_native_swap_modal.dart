@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
+
+import 'package:material_ui/material_ui.dart';
 import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/dashboard/balance_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/p2p_swap/htlc_swap/start_htlc_swap_bloc.dart';
@@ -24,12 +26,15 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_wid
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/base_modal.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// Starts a swap: deposit one side for a counterparty to match.
 class StartNativeSwapModal extends StatefulWidget {
-
+  /// Creates the dialog. [onSwapStarted] gets the new swap's id.
   const StartNativeSwapModal({
     required this.onSwapStarted,
     super.key,
   });
+
+  /// Called with the swap's id once its deposit is sent.
   final Function(String) onSwapStarted;
 
   @override
@@ -50,7 +55,7 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal> {
   @override
   void initState() {
     super.initState();
-    sl.get<BalanceBloc>().getBalanceForAllAddresses();
+    unawaited(sl.get<BalanceBloc>().getBalanceForAllAddresses());
   }
 
   @override
@@ -83,7 +88,9 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal> {
                   _selectedSelfAddress,
                   (String? address) => setState(() {
                     _selectedSelfAddress = address;
-                    sl.get<BalanceBloc>().getBalanceForAllAddresses();
+                    unawaited(
+                      sl.get<BalanceBloc>().getBalanceForAllAddresses(),
+                    );
                   }),
                 ),
               ),
@@ -94,7 +101,7 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal> {
             Expanded(
               child: LabeledInputContainer(
                 labelText: 'Counterparty address',
-                helpText: 'The address of the trading partner for the swap.',
+                helpText: 'Who you are swapping with',
                 inputWidget: Form(
                   autovalidateMode: AutovalidateMode.onUserInteraction,
                   child: InputField(
@@ -107,15 +114,16 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal> {
                     suffixIcon: RawMaterialButton(
                       shape: const CircleBorder(),
                       onPressed: () {
-                        ClipboardUtils.pasteToClipboard(callback:
-                            (String value) {
-                          _counterpartyAddressController.text = value;
-                          setState(() {});
-                        });
+                        ClipboardUtils.pasteToClipboard(
+                          callback: (String value) {
+                            _counterpartyAddressController.text = value;
+                            setState(() {});
+                          },
+                        );
                       },
                       child: const Icon(
                         Icons.content_paste,
-                        color: AppColors.darkHintTextColor,
+                        color: AppColors.faint,
                         size: 15,
                       ),
                     ),
@@ -133,13 +141,15 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal> {
         ),
         kVerticalSpacing,
         LabeledInputContainer(
-          labelText: 'You are sending',
+          labelText: 'You send',
           inputWidget: Flexible(
             child: StreamBuilder<Map<String, AccountInfo>?>(
               stream: sl.get<BalanceBloc>().stream,
               builder: (_, AsyncSnapshot<Map<String, AccountInfo>?> snapshot) {
                 if (snapshot.hasError) {
-                  return SyriusErrorWidget(snapshot.error!);
+                  return RepaintBoundary(
+                    child: SyriusErrorWidget(snapshot.error!),
+                  );
                 }
                 if (snapshot.connectionState == ConnectionState.active) {
                   if (snapshot.hasData) {
@@ -161,10 +171,16 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal> {
                       },
                     );
                   } else {
-                    return const SyriusLoadingWidget();
+                    return const SyriusLoadingWidget(
+                      size: 18,
+                      strokeWidth: 1.5,
+                    );
                   }
                 } else {
-                  return const SyriusLoadingWidget();
+                  return const SyriusLoadingWidget(
+                    size: 18,
+                    strokeWidth: 1.5,
+                  );
                 }
               },
             ),
@@ -175,24 +191,28 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal> {
           bulletPoints: <RichText>[
             RichText(
               text: BulletPointCard.textSpan(
-                  'After starting the swap, wait for the counterparty to join the swap with the agreed upon amount.',),
+                'Then wait for the counterparty to join with the agreed '
+                'amount.',
+              ),
             ),
             RichText(
               text: BulletPointCard.textSpan(
-                '''You can reclaim your funds in ''',
+                'If they do not, reclaim your funds after ',
                 children: <TextSpan>[
                   TextSpan(
-                      text: '${kInitialHtlcDuration.inHours} hours',
-                      style:
-                          const TextStyle(fontSize: 14, color: Colors.white),),
-                  BulletPointCard.textSpan(
-                      ' if the counterparty fails to join the swap.',),
+                    text: '${kInitialHtlcDuration.inHours} hours',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyLarge!.copyWith(fontSize: 14),
+                  ),
+                  BulletPointCard.textSpan('.'),
                 ],
               ),
             ),
             RichText(
               text: BulletPointCard.textSpan(
-                  'The swap must be completed on this machine.',),
+                'Finish the swap on this computer.',
+              ),
             ),
           ],
         ),
@@ -211,7 +231,8 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal> {
               widget.onSwapStarted.call(event.id);
             }
           },
-          onError: (error) {
+          onError: (Object error) {
+            if (!mounted) return;
             setState(() {
               _isLoading = false;
             });
@@ -219,7 +240,7 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal> {
           },
         );
       },
-      builder: (_, StartHtlcSwapBloc model, __) => _getStartSwapButton(model),
+      builder: (_, StartHtlcSwapBloc model, _) => _getStartSwapButton(model),
       viewModelBuilder: StartHtlcSwapBloc.new,
     );
   }
@@ -227,8 +248,8 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal> {
   Widget _getStartSwapButton(StartHtlcSwapBloc model) {
     return InstructionButton(
       text: 'Start swap',
-      instructionText: 'Fill in the swap details',
-      loadingText: 'Sending transaction',
+      instructionText: 'Enter an address and an amount',
+      loadingText: 'Sending',
       isEnabled: _isInputValid(),
       isLoading: _isLoading,
       onPressed: () => _onStartButtonPressed(model),
@@ -239,17 +260,21 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal> {
     setState(() {
       _isLoading = true;
     });
-    model.startHtlcSwap(
+    unawaited(
+      model.startHtlcSwap(
         selfAddress: Address.parse(_selectedSelfAddress!),
         counterpartyAddress: Address.parse(_counterpartyAddressController.text),
         fromToken: _selectedToken,
-        fromAmount:
-            _amountController.text.extractDecimals(_selectedToken.decimals),
+        fromAmount: _amountController.text.extractDecimals(
+          _selectedToken.decimals,
+        ),
         hashType: htlcHashTypeSha3,
         swapType: P2pSwapType.native,
         fromChain: P2pSwapChain.nom,
         toChain: P2pSwapChain.nom,
-        initialHtlcDuration: kInitialHtlcDuration.inSeconds,);
+        initialHtlcDuration: kInitialHtlcDuration.inSeconds,
+      ),
+    );
   }
 
   bool _isInputValid() =>

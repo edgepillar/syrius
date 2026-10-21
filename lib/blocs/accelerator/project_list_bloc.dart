@@ -4,270 +4,272 @@ import 'package:logging/logging.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/services/accelerator_project_cache.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-class ProjectListBloc with RefreshBlocMixin {
+/// What the project list shows.
+class ProjectListState {
+  /// Creates a state.
+  const ProjectListState({this.projects, this.error, this.refreshing = false});
 
+  /// The projects that pass the search and the filters, in the order
+  /// shown; null while there is no list yet.
+  final List<Project>? projects;
+
+  /// Why there is no list.
+  final Object? error;
+
+  /// Whether the node is being asked for what happened since the list.
+  final bool refreshing;
+}
+
+/// The Accelerator's projects, searched and filtered.
+///
+/// The whole list is held here, read through [AcceleratorProjectCache]: the
+/// stored one first, then what the node has since. The search, the filters
+/// and the sort run over it in memory. They used to go back through the
+/// fetch; and the refresh button did not refresh, since the list, once
+/// read, was never asked for again.
+class ProjectListBloc with RefreshBlocMixin {
+  /// Creates the list as seen by the owner of [pillarInfo], or by an
+  /// address with no Pillar.
   ProjectListBloc({
     required this.pillarInfo,
-  }) {
-    _onPageRequest.stream
-        .flatMap(_fetchList)
-        .listen(_onNewListingStateController.add)
-        .addTo(_subscriptions);
-
-    _onSearchInputChangedSubject.stream
-        .flatMap((_) => _doRefreshResults())
-        .listen(_onNewListingStateController.add)
-        .addTo(_subscriptions);
-
-    listenToWsRestart(refreshResults);
+    AcceleratorProjectCache? cache,
+    Zenon Function()? node,
+  }) : _cache = cache ?? AcceleratorProjectCache.getInstance(),
+       _node = node ?? (() => zenon!) {
+    // Another node may be on another chain: the list on screen is taken
+    // down until that chain's own is known.
+    listenToWsRestart(() => unawaited(_load(reset: true)));
+    unawaited(_load(reset: true));
   }
-  List<Project>? _allProjects;
 
-  final List<AccProjectsFilterTag> selectedProjectsFilterTag = <AccProjectsFilterTag>[];
+  static final Logger _log = Logger('ProjectListBloc');
 
+  final AcceleratorProjectCache _cache;
+  final Zenon Function() _node;
+
+  /// The Pillar the selected address owns, if any.
   final PillarInfo? pillarInfo;
 
-  void refreshResults() {
-    if (!_onSearchInputChangedSubject.isClosed) {
-      onRefreshResultsRequest.add(null);
+  /// The filters switched on. Changed through [toggleFilter].
+  final List<AccProjectsFilterTag> selectedProjectsFilterTag =
+      <AccProjectsFilterTag>[];
+
+  final BehaviorSubject<ProjectListState> _state =
+      BehaviorSubject<ProjectListState>.seeded(const ProjectListState());
+
+  /// The list as it changes.
+  Stream<ProjectListState> get stream => _state.stream;
+
+  /// The list now.
+  ProjectListState get state => _state.value;
+
+  List<Project>? _all;
+  Object? _error;
+  bool _refreshing = false;
+  String _search = '';
+
+  /// Null for the node's order, last update first.
+  bool? _ascending;
+
+  /// The ids, among those in voting, this Pillar has voted on. Per Pillar,
+  /// so it is held here and never stored. Dropped whenever the list or the
+  /// filters change, since a vote cast from a row changes it.
+  Future<Set<String>>? _voted;
+
+  /// Counts the loads, so that a slow one finishing late is ignored.
+  int _run = 0;
+
+  /// Counts the views published, for the same reason.
+  int _view = 0;
+
+  /// Asks the node for what happened since the list, keeping the list on
+  /// screen meanwhile.
+  void refreshResults() => unawaited(_load(reset: false));
+
+  /// Narrows the list to the projects whose id, owner, name, description
+  /// or link holds [term].
+  void search(String term) {
+    final String next = term.trim().toLowerCase();
+    if (next == _search) return;
+    _search = next;
+    unawaited(_publish());
+  }
+
+  /// Switches [tag] on or off.
+  void toggleFilter(AccProjectsFilterTag tag) {
+    if (!selectedProjectsFilterTag.remove(tag)) {
+      selectedProjectsFilterTag.add(tag);
     }
+    _voted = null;
+    unawaited(_publish());
   }
 
-  Stream<InfiniteScrollBlocListingState<Project>> _doRefreshResults() async* {
-    yield InfiniteScrollBlocListingState<Project>();
-    yield* _fetchList(0);
+  /// Sorts by last update, oldest first, then newest first on the next
+  /// call.
+  void sortByLastUpdate() {
+    _ascending = !(_ascending ?? false);
+    unawaited(_publish());
   }
 
-  static const int _pageSize = 10;
-
-  final CompositeSubscription _subscriptions = CompositeSubscription();
-
-  final BehaviorSubject<InfiniteScrollBlocListingState<Project>> _onNewListingStateController =
-      BehaviorSubject<InfiniteScrollBlocListingState<Project>>.seeded(
-    InfiniteScrollBlocListingState<Project>(),
-  );
-
-  Stream<InfiniteScrollBlocListingState<Project>> get onNewListingState =>
-      _onNewListingStateController.stream;
-
-  final StreamController<int> _onPageRequest = StreamController<int>();
-
-  Sink<int> get onPageRequestSink => _onPageRequest.sink;
-
-  final BehaviorSubject<String?> _onSearchInputChangedSubject = BehaviorSubject<String?>.seeded(null);
-
-  Sink<String?> get onRefreshResultsRequest =>
-      _onSearchInputChangedSubject.sink;
-
-  List<Project>? get lastListingItems =>
-      _onNewListingStateController.value.itemList;
-
-  Sink<String?> get onSearchInputChangedSink =>
-      _onSearchInputChangedSubject.sink;
-
-  String? get _searchInputTerm => _onSearchInputChangedSubject.value;
-
-  Stream<InfiniteScrollBlocListingState<Project>> _fetchList(
-      int pageKey,) async* {
-    final InfiniteScrollBlocListingState<Project> lastListingState = _onNewListingStateController.value;
-    try {
-      final List<Project> newItems = await getData(pageKey, _pageSize, _searchInputTerm);
-      final bool isLastPage = newItems.length < _pageSize;
-      final int? nextPageKey = isLastPage ? null : pageKey + 1;
-      final List<Project> allItems = <Project>[
-        ...lastListingState.itemList ?? <Project>[],
-        ...newItems,
-      ];
-      yield InfiniteScrollBlocListingState<Project>(
-        nextPageKey: nextPageKey,
-        itemList: allItems,
-      );
-    } catch (e, stackTrace) {
-      Logger('ProjectListBloc').log(Level.WARNING, 'addError', e, stackTrace);
-      yield InfiniteScrollBlocListingState<Project>(
-        error: e,
-        nextPageKey: lastListingState.nextPageKey,
-        itemList: lastListingState.itemList,
-      );
-    }
-  }
-
+  /// Closes the stream.
   void dispose() {
-    _onSearchInputChangedSubject.close();
-    _onNewListingStateController.close();
-    _subscriptions.dispose();
-    _onPageRequest.close();
+    cancelStreamSubscription();
+    _run += 1;
+    unawaited(_state.close());
   }
 
-  Future<List<Project>> getData(
-    int pageKey,
-    int pageSize,
-    String? searchTerm,
-  ) async {
-    _allProjects ??= (await zenon!.embedded.accelerator.getAll()).list;
-    List<Project> results = <Project>[];
-    if (searchTerm != null && searchTerm.isNotEmpty) {
-      results =
-          _filterProjectsBySearchKeyWord(_allProjects!, searchTerm).toList();
-    } else {
-      results = _allProjects!;
+  Future<void> _load({required bool reset}) async {
+    final int run = _run += 1;
+    if (reset) _all = null;
+    _error = null;
+    _refreshing = true;
+    await _publish();
+    try {
+      await for (final AcceleratorCacheEvent event in _cache.load()) {
+        if (run != _run) return;
+        switch (event) {
+          case AcceleratorProjectsLoaded():
+            _all = event.projects;
+            _refreshing = event.fromCache;
+          case AcceleratorCacheDropped():
+            _all = null;
+        }
+        _voted = null;
+        await _publish();
+      }
+    } on Object catch (e, stackTrace) {
+      if (run != _run) return;
+      _log.log(Level.WARNING, '_load', e, stackTrace);
+      // With a list on screen a failed refresh leaves it there: it was
+      // true a moment ago, and an error in its place tells less.
+      if (_all == null) _error = e;
     }
-    results = await _filterProjectsAccordingToPillarInfo(
-        await _filterProjectsByTags(results),);
-    return results.sublist(
-      pageKey * pageSize,
-      (pageKey + 1) * pageSize <= results.length
-          ? (pageKey + 1) * pageSize
-          : results.length,
-    );
+    if (run != _run) return;
+    _refreshing = false;
+    await _publish();
   }
 
-  /*
-  This method filters the projects according to the following rule:
-  if a user doesn't have a Pillar, only show the active
-  projects or all owned projects
-   */
-  Future<List<Project>> _filterProjectsAccordingToPillarInfo(
-      Set<Project> projectList,) async {
-    final bool isPillarAddress = pillarInfo != null;
-    if (isPillarAddress) {
-      return projectList.toList();
-    } else {
-      final List<Project> activeProjects = projectList
-          .where(
-            (Project project) =>
-                project.status == AcceleratorProjectStatus.active ||
-                kDefaultAddressList.contains(project.owner.toString()),
-          )
-          .toList();
-      if (activeProjects.isNotEmpty) {
-        return activeProjects;
-      } else {
-        throw 'No active projects';
+  Future<void> _publish() async {
+    if (_state.isClosed) return;
+    final int view = _view += 1;
+    final List<Project>? all = _all;
+    if (all == null) {
+      _state.add(ProjectListState(error: _error, refreshing: _refreshing));
+      return;
+    }
+    Set<String> voted = const <String>{};
+    if (_filtersByVote) {
+      // The request is held, not its answer, so that two views published
+      // in one turn share it.
+      final Future<Set<String>> asked = _voted ??= _votedIds(all);
+      try {
+        voted = await asked;
+        if (view != _view || _state.isClosed) return;
+      } on Object catch (e, stackTrace) {
+        if (identical(_voted, asked)) _voted = null;
+        if (view != _view || _state.isClosed) return;
+        _log.log(Level.WARNING, '_votedIds', e, stackTrace);
+        _state.add(ProjectListState(error: e));
+        return;
       }
     }
-  }
-
-  Set<Project> _filterProjectsBySearchKeyWord(
-      List<Project> projects, String searchKeyWord,) {
-    final Set<Project> filteredProjects = <Project>{};
-    filteredProjects.addAll(
-      projects.where(
-        (Project element) =>
-            element.id.toString().toLowerCase().contains(
-                  searchKeyWord.toLowerCase(),
-                ) &&
-            !filteredProjects.contains(element),
-      ),
-    );
-    filteredProjects.addAll(
-      projects.where(
-        (Project element) =>
-            element.owner.toString().toLowerCase().contains(
-                  searchKeyWord.toLowerCase(),
-                ) &&
-            !filteredProjects.contains(element),
-      ),
-    );
-    filteredProjects.addAll(
-      projects.where(
-        (Project element) =>
-            element.name.toLowerCase().contains(
-                  searchKeyWord.toLowerCase(),
-                ) &&
-            !filteredProjects.contains(element),
-      ),
-    );
-    filteredProjects.addAll(
-      projects.where(
-        (Project element) =>
-            element.description.toLowerCase().contains(
-                  searchKeyWord.toLowerCase(),
-                ) &&
-            !filteredProjects.contains(element),
-      ),
-    );
-    filteredProjects.addAll(
-      projects.where(
-        (Project element) =>
-            element.url.toLowerCase().contains(
-                  searchKeyWord.toLowerCase(),
-                ) &&
-            !filteredProjects.contains(element),
-      ),
-    );
-    return filteredProjects;
-  }
-
-  Future<Set<Project>> _filterProjectsByTags(List<Project> projects) async {
-    if (selectedProjectsFilterTag.isNotEmpty) {
-      Iterable<Hash>? votedProjectIds;
-      Iterable<Hash>? votedPhaseIds;
-      Iterable<Project> filteredProjects = projects;
-      if (selectedProjectsFilterTag.contains(AccProjectsFilterTag.myProjects)) {
-        filteredProjects = filteredProjects.where(
-          (Project project) => kDefaultAddressList.contains(project.owner.toString()),
-        );
-      }
-      if (selectedProjectsFilterTag
-          .contains(AccProjectsFilterTag.onlyAccepted)) {
-        filteredProjects = filteredProjects.where(
-            (Project project) => project.status == AcceleratorProjectStatus.active,);
-      }
-      if (selectedProjectsFilterTag
-          .contains(AccProjectsFilterTag.needsVoting)) {
-        votedProjectIds ??= await _getVotedProjectIdsByPillar(filteredProjects);
-        votedPhaseIds ??= await _getVotedPhaseIdsByPillar(filteredProjects);
-        filteredProjects = filteredProjects.where(
-          (Project project) =>
-              (project.status == AcceleratorProjectStatus.voting &&
-                  !votedProjectIds!.contains(project.id)) ||
-              project.phases.any((Phase phase) =>
-                  phase.status == AcceleratorProjectStatus.voting &&
-                  !votedPhaseIds!.contains(phase.id),),
-        );
-      }
-      if (selectedProjectsFilterTag
-          .contains(AccProjectsFilterTag.alreadyVoted)) {
-        votedProjectIds ??= await _getVotedProjectIdsByPillar(filteredProjects);
-        votedPhaseIds ??= await _getVotedPhaseIdsByPillar(filteredProjects);
-        filteredProjects = filteredProjects.where(
-          (Project project) =>
-              (project.status == AcceleratorProjectStatus.voting &&
-                  votedProjectIds!.contains(project.id)) ||
-              project.phases.any((Phase phase) =>
-                  phase.status == AcceleratorProjectStatus.voting &&
-                  votedPhaseIds!.contains(phase.id),),
-        );
-      }
-      return filteredProjects.toSet();
-    } else {
-      return projects.toSet();
+    final List<Project> shown = _filter(all, voted);
+    if (shown.isEmpty &&
+        pillarInfo == null &&
+        _search.isEmpty &&
+        selectedProjectsFilterTag.isEmpty) {
+      _state.add(
+        ProjectListState(error: 'No active projects', refreshing: _refreshing),
+      );
+      return;
     }
+    _state.add(ProjectListState(projects: shown, refreshing: _refreshing));
   }
 
-  Future<Iterable<Hash>> _getVotedProjectIdsByPillar(
-      Iterable<Project> projects,) async {
-    final List<PillarVote?> pillarVotes = await zenon!.embedded.accelerator.getPillarVotes(
-      pillarInfo!.name,
-      projects.map((Project e) => e.id.toString()).toList(),
-    );
-    return pillarVotes.where((PillarVote? e) => e != null).map((PillarVote? e) => e!.id);
+  bool get _filtersByVote =>
+      pillarInfo != null &&
+      (selectedProjectsFilterTag.contains(AccProjectsFilterTag.needsVoting) ||
+          selectedProjectsFilterTag.contains(
+            AccProjectsFilterTag.alreadyVoted,
+          ));
+
+  /// One request, for the projects and phases in voting only: the two
+  /// voting filters look at nothing else. It used to be two requests
+  /// naming every project and every phase, for each page of ten.
+  Future<Set<String>> _votedIds(List<Project> all) async {
+    final List<String> inVoting = <String>[
+      for (final Project project in all) ...<String>[
+        if (project.status == AcceleratorProjectStatus.voting)
+          project.id.toString(),
+        for (final Phase phase in project.phases)
+          if (phase.status == AcceleratorProjectStatus.voting)
+            phase.id.toString(),
+      ],
+    ];
+    if (inVoting.isEmpty) return <String>{};
+    final List<PillarVote?> votes = await _node().embedded.accelerator
+        .getPillarVotes(pillarInfo!.name, inVoting);
+    return <String>{
+      for (final PillarVote? vote in votes)
+        if (vote != null) vote.id.toString(),
+    };
   }
 
-  Future<Iterable<Hash>> _getVotedPhaseIdsByPillar(
-      Iterable<Project> projects,) async {
-    final List<PillarVote?> pillarVotes = await zenon!.embedded.accelerator.getPillarVotes(
-      pillarInfo!.name,
-      projects
-          .expand((Project project) => project.phaseIds)
-          .map((Hash id) => id.toString())
-          .toList(),
-    );
-    return pillarVotes.where((PillarVote? e) => e != null).map((PillarVote? e) => e!.id);
+  List<Project> _filter(List<Project> all, Set<String> voted) {
+    final List<AccProjectsFilterTag> tags = selectedProjectsFilterTag;
+    bool owned(Project project) =>
+        kDefaultAddressList.contains(project.owner.toString());
+    bool waits(Project project, {required bool votedOn}) =>
+        (project.status == AcceleratorProjectStatus.voting &&
+            voted.contains(project.id.toString()) == votedOn) ||
+        project.phases.any(
+          (Phase phase) =>
+              phase.status == AcceleratorProjectStatus.voting &&
+              voted.contains(phase.id.toString()) == votedOn,
+        );
+    final List<Project> shown = all.where((Project project) {
+      if (_search.isNotEmpty && !_matches(project, _search)) return false;
+      if (tags.contains(AccProjectsFilterTag.myProjects) && !owned(project)) {
+        return false;
+      }
+      if (tags.contains(AccProjectsFilterTag.onlyAccepted) &&
+          project.status != AcceleratorProjectStatus.active) {
+        return false;
+      }
+      if (tags.contains(AccProjectsFilterTag.needsVoting) &&
+          !waits(project, votedOn: false)) {
+        return false;
+      }
+      if (tags.contains(AccProjectsFilterTag.alreadyVoted) &&
+          !waits(project, votedOn: true)) {
+        return false;
+      }
+      // An address with no Pillar cannot vote, so it is shown what was
+      // accepted and what it owns.
+      return pillarInfo != null ||
+          project.status == AcceleratorProjectStatus.active ||
+          owned(project);
+    }).toList();
+    final bool? ascending = _ascending;
+    if (ascending != null) {
+      shown.sort(
+        (Project a, Project b) => ascending
+            ? a.lastUpdateTimestamp.compareTo(b.lastUpdateTimestamp)
+            : b.lastUpdateTimestamp.compareTo(a.lastUpdateTimestamp),
+      );
+    }
+    return shown;
   }
+
+  static bool _matches(Project project, String term) =>
+      project.id.toString().toLowerCase().contains(term) ||
+      project.owner.toString().toLowerCase().contains(term) ||
+      project.name.toLowerCase().contains(term) ||
+      project.description.toLowerCase().contains(term) ||
+      project.url.toLowerCase().contains(term);
 }

@@ -1,5 +1,5 @@
 import 'package:big_decimal/big_decimal.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -35,8 +35,11 @@ class _ExchangeRateWidgetState extends State<ExchangeRateWidget> {
       visible: widget.fromAmount > BigInt.zero && widget.toAmount > BigInt.zero,
       child: Row(
         children: [
+          // "1 ZNN = 10.00000 QSR" reads left to right in every language;
+          // the row still puts it at the app's start.
           Text(
             _getFormattedRate(),
+            textDirection: TextDirection.ltr,
             style:
                 const TextStyle(fontSize: 14.0, color: AppColors.subtitleColor),
           ),

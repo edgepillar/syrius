@@ -4,13 +4,10 @@ import 'dart:io';
 import 'package:app_links/app_links.dart';
 import 'package:clipboard_watcher/clipboard_watcher.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:logging/logging.dart';
-import 'package:lottie/lottie.dart';
 import 'package:nested/nested.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
@@ -21,13 +18,13 @@ import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/go_to_palette.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/motion/motion.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/clipboard_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/text_scaling_notifier.dart';
@@ -35,25 +32,11 @@ import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/wallet_connect_tab_child.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/shell.dart';
 
-enum Tabs {
-  dashboard,
-  transfer,
-  help,
-  notifications,
-  settings,
-  lock,
-  sentinels,
-  pillars,
-  staking,
-  plasma,
-  tokens,
-  p2pSwap,
-  generation,
-  sync,
-  accelerator,
-  walletConnect,
-}
+export 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show RailCollapse, ShellRail;
+export 'package:zenon_syrius_wallet_flutter/widgets/shell/tabs.dart';
 
 class MainAppContainer extends StatefulWidget {
   const MainAppContainer({
@@ -70,22 +53,43 @@ class MainAppContainer extends StatefulWidget {
 }
 
 class _MainAppContainerState extends State<MainAppContainer>
-    with TickerProviderStateMixin, ClipboardListener, WindowListener {
-  late AnimationController _animationController;
-  late Animation _animation;
+    with ClipboardListener, WindowListener {
   late StreamSubscription _lockBlockStreamSubscription;
   late StreamSubscription _incomingLinkSubscription;
   late LockBloc _lockBloc;
 
   Timer? _navigateToLockTimer;
-  TabController? _tabController;
   bool _initialUriIsHandled = false;
 
-  final AppLinks _appLinks = AppLinks();
-  final FocusNode _focusNode = FocusNode(
-    skipTraversal: true,
-    canRequestFocus: false,
+  /// The page shown, as an index into [kTabs]. The rail and the page area
+  /// listen to it, so a change of page rebuilds those two and not the shell.
+  final ValueNotifier<int> _tabIndex = ValueNotifier<int>(
+    kWalletInitCompleted ? 0 : kTabs.length - 1,
   );
+
+  /// The page shown before the current one: where an unlock returns to.
+  int _previousTabIndex = 0;
+
+  /// Whether the wallet is locked, for the rail. It follows the auto-lock
+  /// timer, which changes without a change of page (the countdown starting
+  /// after a new wallet is made), so the rail cannot read it at build time.
+  final ValueNotifier<bool> _locked = ValueNotifier<bool>(true);
+
+  late final Listenable _railState = Listenable.merge(<Listenable>[
+    _tabIndex,
+    _locked,
+  ]);
+
+  /// Whether the rail is collapsed to its icons. Held here and not in the
+  /// rail because the shortcut that changes it is the shell's.
+  final RailCollapse _railCollapse = RailCollapse();
+
+  /// The send form's half-typed values, kept here because the page that
+  /// shows them is disposed when another is opened. Cleared on a send and on
+  /// lock.
+  final SendDraftCubit _sendDraft = SendDraftCubit();
+
+  final AppLinks _appLinks = AppLinks();
   final NodeSyncStatusCubit _nodeSyncStatusCubit = NodeSyncStatusCubit(
     zenon: zenon!,
   );
@@ -97,13 +101,7 @@ class _MainAppContainerState extends State<MainAppContainer>
 
     ClipboardUtils.toggleClipboardWatcherStatus();
 
-    _initTabController();
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    );
-    _animationController.repeat(reverse: true);
-    _animation = Tween<double>(begin: 1, end: 3).animate(_animationController);
+    _previousTabIndex = _tabIndex.value;
     kCurrentPage = kWalletInitCompleted ? Tabs.dashboard : Tabs.lock;
     _initLockBlock();
     _handleIncomingLinks();
@@ -127,6 +125,7 @@ class _MainAppContainerState extends State<MainAppContainer>
         BlocProvider<SendTransactionBloc>(
           create: (_) => SendTransactionBloc(),
         ),
+        BlocProvider<SendDraftCubit>.value(value: _sendDraft),
         BlocProvider<MultipleBalanceBloc>(
           create: (_) => sl.get<MultipleBalanceBloc>(),
         ),
@@ -188,169 +187,231 @@ class _MainAppContainerState extends State<MainAppContainer>
             ..add(FetchRequestData(address: Address.parse(kSelectedAddress!))),
         ),
       ],
-      child: Consumer<TextScalingNotifier>(
-        builder:
-            (
-              BuildContext context,
-              TextScalingNotifier textScalingNotifier,
-              Widget? child,
-            ) => MediaQuery(
-              data: MediaQuery.of(context).copyWith(
-                textScaler: TextScaler.linear(
-                  textScalingNotifier.getTextScaleFactor(context),
-                ),
-              ),
-              child: Scaffold(
-                body: Container(
-                  margin: const EdgeInsets.all(
-                    20,
-                  ),
-                  child: Column(
-                    children: <Widget>[
-                      _getDesktopNavigationContainer(),
-                      SizedBox(
-                        height: NotificationUtils.shouldShowNotification()
-                            ? 15.0
-                            : 20.0,
-                      ),
-                      NotificationWidget(
-                        onSeeMorePressed: () {
-                          _navigateTo(Tabs.notifications);
-                        },
-                        onDismissPressed: () {
-                          setState(() {});
-                        },
-                        onNewNotificationCallback: () {
-                          setState(() {});
-                        },
-                        popBeforeSeeMoreIsPressed: false,
-                      ),
-                      Expanded(
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(
-                            15,
-                          ),
-                          child: Container(
-                            child: _getCurrentPageContainer(),
-                          ),
-                        ),
-                      ),
-                    ],
+      child: BlocListener<SendTransactionBloc, SendTransactionState>(
+        // A send that lands while another page is shown finds no form to
+        // clear, so the draft is cleared here, above the pages.
+        listenWhen:
+            (SendTransactionState previous, SendTransactionState next) =>
+                previous.status != next.status &&
+                next.status == SendTransactionStatus.success,
+        listener: (_, _) => _sendDraft.clear(),
+        child: Consumer<TextScalingNotifier>(
+          // Built with the shell and handed to the builder, so a change of
+          // text scale gives the tree a new MediaQuery and not a new shell.
+          child: _buildShortcuts(child: _buildBody()),
+          builder:
+              (
+                BuildContext context,
+                TextScalingNotifier textScalingNotifier,
+                Widget? child,
+              ) => MediaQuery(
+                data: MediaQuery.of(context).copyWith(
+                  textScaler: TextScaler.linear(
+                    textScalingNotifier.getTextScaleFactor(context),
                   ),
                 ),
+                child: child!,
               ),
-            ),
+        ),
       ),
     );
   }
 
-  Widget _getDesktopNavigationContainer() {
-    final Color borderColor = NotificationUtils.shouldShowNotification()
-        ? kLastNotification!.getColor()
-        : Colors.transparent;
-
-    return AnimatedBuilder(
-      animation: _animationController,
-      builder: (BuildContext context, Widget? widget) {
-        return Row(
+  /// The rail, the page and the status strip.
+  ///
+  /// Nothing here calls setState: each part listens to what it shows (the
+  /// page index, the lock, a cubit), so a notification, a new momentum or a
+  /// change of page rebuilds that part and leaves the rest alone. The shell
+  /// used to rebuild whole, pages included, for every notification.
+  Widget _buildBody() {
+    return Scaffold(
+      body: Padding(
+        padding: const EdgeInsets.fromLTRB(10, 14, 18, 18),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
+            // The rail, the page and the strip each animate on their own
+            // (hover, page switch, a flashing height, the plasma glow), so
+            // each gets a layer: one repainting does not repaint the others.
+            // The rail has no width here: it is as wide as it is open, and
+            // the page takes the rest.
+            RepaintBoundary(child: _buildRail()),
+            const SizedBox(width: 8),
             Expanded(
-              child: Container(
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.all(
-                    Radius.circular(
-                      15,
-                    ),
-                  ),
-                  boxShadow: (borderColor != Colors.transparent)
-                      ? <BoxShadow>[
-                          BoxShadow(
-                            color: borderColor,
-                            blurRadius: _animation.value,
-                            spreadRadius: _animation.value,
-                          ),
-                        ]
-                      : <BoxShadow>[
-                          const BoxShadow(
-                            color: Colors.transparent,
-                          ),
-                        ],
-                ),
-                child: Material(
-                  color: Theme.of(context).colorScheme.primary,
-                  borderRadius: const BorderRadius.all(
-                    Radius.circular(
-                      15,
-                    ),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                    ),
-                    child: Focus(
-                      focusNode: _focusNode,
-                      onKeyEvent: (FocusNode focusNode, KeyEvent event) {
-                        if ((event.physicalKey == PhysicalKeyboardKey.tab ||
-                                event.physicalKey ==
-                                    PhysicalKeyboardKey.enter ||
-                                event.physicalKey ==
-                                    PhysicalKeyboardKey.numpadEnter ||
-                                event.physicalKey ==
-                                    PhysicalKeyboardKey.space) &&
-                            _isWalletLocked()) {
-                          return KeyEventResult.handled;
-                        }
-                        return KeyEventResult.ignored;
-                      },
-                      child: IgnorePointer(
-                        ignoring: _isWalletLocked(),
-                        child: TabBar(
-                          labelStyle: Theme.of(context).textTheme.headlineSmall!
-                              .copyWith(
-                                fontSize: 15,
-                              ),
-                          labelColor: Theme.of(
-                            context,
-                          ).textTheme.headlineSmall!.color,
-                          onTap: (int index) {
-                            if (_isTabSelected(Tabs.lock)) {
-                              _onNavigateToLock();
-                            }
-                          },
-                          labelPadding: const EdgeInsets.symmetric(
-                            vertical: 5,
-                          ),
-                          indicator: UnderlineTabIndicator(
-                            borderSide: BorderSide(
-                              color: NotificationUtils.shouldShowNotification()
-                                  ? Colors.transparent
-                                  : _isIconTabSelected()
-                                  ? Colors.transparent
-                                  : AppColors.znnColor,
-                              width: 2,
-                            ),
-                          ),
-                          dividerHeight: 0.0,
-                          controller: _tabController,
-                          tabs: _getTabs(),
-                        ),
+              child: Column(
+                children: <Widget>[
+                  Expanded(
+                    child: NotificationOverlay(
+                      banner: _buildNotificationBanner(),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(kCardRadius),
+                        child: RepaintBoundary(child: _buildCurrentPage()),
                       ),
                     ),
                   ),
-                ),
+                  const SizedBox(height: 14),
+                  RepaintBoundary(
+                    child: StatusStrip(
+                      syncCubit: _nodeSyncStatusCubit,
+                      page: _tabIndex,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
-        );
-      },
+        ),
+      ),
     );
+  }
+
+  /// The latest notification, floating over the top of the page.
+  ///
+  /// The banner rebuilds itself when a notification arrives or is dismissed
+  /// and takes no room from the page, so the shell has nothing to do for
+  /// one. It is rebuilt on a change of page because its "See more" is not
+  /// offered on the lock screen.
+  Widget _buildNotificationBanner() {
+    return ValueListenableBuilder<int>(
+      valueListenable: _tabIndex,
+      builder: (BuildContext context, int index, Widget? child) =>
+          NotificationWidget(
+            onSeeMorePressed: () => _navigateTo(Tabs.notifications),
+            popBeforeSeeMoreIsPressed: false,
+            floating: true,
+          ),
+    );
+  }
+
+  /// The shell's keyboard shortcuts: the chord key (Ctrl; Cmd on macOS) with
+  /// 1 to 9 opens the rail's pages in order, with L locks, with K opens the
+  /// "Go to" palette, with B opens or collapses the rail (the chord editors
+  /// use for their side bar).
+  ///
+  /// They are a Shortcuts widget round the shell and not a global key
+  /// handler, so they stop by themselves where they should: a dialog is
+  /// another route and hears none of them. Locked, the map is empty: the
+  /// only way past the lock screen is the password.
+  ///
+  /// Nothing is taken from a text field. Every binding needs the chord key,
+  /// and none of these chords edits text on the platform it is bound on
+  /// (Ctrl+K kills a line on macOS, which is why macOS gets Cmd). AltGr,
+  /// which Windows reports as Ctrl+Alt, does not match: the bindings want
+  /// Ctrl alone.
+  ///
+  /// The FocusScope gives the shell a focus node of its own under the
+  /// Shortcuts. Without it, focus falls back to the route's scope when a
+  /// focused field is disposed by a change of page, and that scope is above
+  /// the Shortcuts, so the keys would go dead until something was clicked.
+  Widget _buildShortcuts({required Widget child}) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: _locked,
+      child: FocusScope(autofocus: true, child: child),
+      builder: (BuildContext context, bool locked, Widget? child) => Shortcuts(
+        shortcuts: locked
+            ? const <ShortcutActivator, Intent>{}
+            : kShellShortcuts,
+        child: Actions(actions: _shellActions, child: child!),
+      ),
+    );
+  }
+
+  late final Map<Type, Action<Intent>> _shellActions = <Type, Action<Intent>>{
+    OpenPageIntent: CallbackAction<OpenPageIntent>(
+      onInvoke: (OpenPageIntent intent) {
+        _onRailTap(intent.tab);
+        return null;
+      },
+    ),
+    OpenGoToIntent: CallbackAction<OpenGoToIntent>(
+      onInvoke: (OpenGoToIntent intent) {
+        unawaited(_openGoTo());
+        return null;
+      },
+    ),
+    ToggleRailIntent: CallbackAction<ToggleRailIntent>(
+      onInvoke: (ToggleRailIntent intent) {
+        _toggleRail();
+        return null;
+      },
+    ),
+  };
+
+  bool _goToOpen = false;
+
+  /// Opens the "Go to" palette and shows the page chosen in it.
+  Future<void> _openGoTo() async {
+    if (_isWalletLocked() || _goToOpen) {
+      return;
+    }
+    _goToOpen = true;
+    final Tabs? tab = await showGoToPalette<Tabs>(
+      context: context,
+      entries: <GoToEntry<Tabs>>[
+        for (int i = 0; i < kRailPages.length; i++)
+          GoToEntry<Tabs>(
+            value: kRailPages[i].tab,
+            label: kRailPages[i].label,
+            icon: kRailPages[i].icon,
+            shortcut: i < 9 ? '$kChordName ${i + 1}' : null,
+          ),
+        for (final RailEntry entry in railWalletEntries(onLock: false))
+          GoToEntry<Tabs>(
+            value: entry.tab,
+            label: entry.label,
+            icon: entry.icon,
+            shortcut: entry.tab == Tabs.lock ? '$kChordName L' : null,
+          ),
+      ],
+    );
+    _goToOpen = false;
+    // The wallet may have locked itself while the palette was open;
+    // _onRailTap refuses then.
+    if (tab != null && mounted) {
+      _onRailTap(tab);
+    }
+  }
+
+  /// The side rail of mockup B: its labels shown when it is open, its icons
+  /// alone when it is collapsed. It sets its own width.
+  Widget _buildRail() {
+    return ListenableBuilder(
+      listenable: _railState,
+      builder: (BuildContext context, Widget? child) => ShellRail(
+        collapse: _railCollapse,
+        selected: kTabs[_tabIndex.value],
+        locked: _locked.value,
+        onSelected: _onRailTap,
+      ),
+    );
+  }
+
+  void _toggleRail() {
+    // The same rule as [_onRailTap]: locked, nothing in the rail answers.
+    if (_isWalletLocked()) {
+      return;
+    }
+    _railCollapse.toggle();
+  }
+
+  void _onRailTap(Tabs tab) {
+    // The rail takes no pointer and no focus while locked; this is the
+    // same rule for any path that reaches it anyway.
+    if (_isWalletLocked() || kTabs[_tabIndex.value] == tab) {
+      return;
+    }
+    _navigateTo(tab);
+    if (tab == Tabs.lock) {
+      unawaited(_onNavigateToLock());
+    }
   }
 
   Future<void> _onNavigateToLock() async {
     if (kWalletFile != null) kWalletFile!.close();
     kWalletFile = null;
     _navigateToLockTimer?.cancel();
+    _sendDraft.clear();
+    _syncLocked();
   }
 
   bool _isWalletLocked() {
@@ -358,179 +419,74 @@ class _MainAppContainerState extends State<MainAppContainer>
         _navigateToLockTimer != null && !_navigateToLockTimer!.isActive;
   }
 
-  List<Tab> _getTabs() {
-    return _getTextTabs() + _getIconTabs();
-  }
+  /// Tells the rail after anything that starts or stops the auto-lock timer.
+  void _syncLocked() => _locked.value = _isWalletLocked();
 
-  List<Tab> _getTextTabs() {
-    return kTabsWithTextTitles
-        .map<Tab>(
-          (Tabs e) => e == Tabs.p2pSwap
-              ? const Tab(text: 'P2P Swap')
-              : Tab(
-                  text: FormatUtils.extractNameFromEnum<Tabs>(e).capitalize(),
-                ),
-        )
-        .toList();
-  }
-
-  List<Tab> _getIconTabs() {
-    return <Tab>[
-      if (kWcProjectId.isNotEmpty)
-        Tab(
-          child: SvgPicture.asset(
-            'assets/svg/walletconnect-logo.svg',
-            width: 24,
-            fit: BoxFit.fitWidth,
-            colorFilter: _isTabSelected(Tabs.walletConnect)
-                ? const ColorFilter.mode(AppColors.znnColor, BlendMode.srcIn)
-                : ColorFilter.mode(
-                    Theme.of(context).iconTheme.color!,
-                    BlendMode.srcIn,
-                  ),
-          ),
-        ),
-      Tab(
-        child: Icon(
-          MaterialCommunityIcons.rocket,
-          size: 24,
-          color: _isTabSelected(Tabs.accelerator)
-              ? AppColors.znnColor
-              : Theme.of(context).iconTheme.color,
+  /// The page for the selected rail item.
+  ///
+  /// Only that page is built. It used to be a TabBarView, which slid
+  /// sideways through every page between two rail items and kept the
+  /// neighbours built, each with its own fetches. The rail's destinations
+  /// have no left-to-right order, so the new page fades in and rises a few
+  /// pixels instead, and the old one is gone 100 ms after it is left.
+  Widget _buildCurrentPage() {
+    return ValueListenableBuilder<int>(
+      valueListenable: _tabIndex,
+      builder: (BuildContext context, int index, Widget? child) => RiseSwitcher(
+        child: KeyedSubtree(
+          key: ValueKey<int>(index),
+          child: _buildPage(kTabs[index]),
         ),
       ),
-      Tab(
-        child: Icon(
-          Icons.info,
-          size: 24,
-          color: _isTabSelected(Tabs.help)
-              ? AppColors.znnColor
-              : Theme.of(context).iconTheme.color,
-        ),
-      ),
-      Tab(
-        child: Icon(
-          Icons.notifications,
-          size: 24,
-          color: _isTabSelected(Tabs.notifications)
-              ? AppColors.znnColor
-              : Theme.of(context).iconTheme.color,
-        ),
-      ),
-      Tab(
-        child: Icon(
-          Icons.settings,
-          size: 24,
-          color: _isTabSelected(Tabs.settings)
-              ? AppColors.znnColor
-              : Theme.of(context).iconTheme.color,
-        ),
-      ),
-      Tab(
-        child: _getGenerationStatus(),
-      ),
-      Tab(
-        child: BlocProvider.value(
-          value: _nodeSyncStatusCubit,
-          child: const NodeSyncStatusIcon(),
-        ),
-      ),
-      Tab(
-        child: _isTabSelected(Tabs.lock)
-            ? Icon(
-                Icons.lock,
-                size: 24,
-                color: _isTabSelected(Tabs.lock)
-                    ? AppColors.znnColor
-                    : Theme.of(context).iconTheme.color,
-              )
-            : Icon(
-                MaterialCommunityIcons.lock_open_variant,
-                size: 24,
-                color: Theme.of(context).iconTheme.color,
-              ),
-      ),
-    ];
-  }
-
-  Widget _getGenerationStatus() {
-    return StreamBuilder<PowStatus>(
-      stream: sl.get<PowGeneratingStatusBloc>().stream,
-      builder: (_, AsyncSnapshot<PowStatus> snapshot) {
-        if (snapshot.hasData && snapshot.data == PowStatus.generating) {
-          return Tooltip(
-            message: 'Generating Plasma',
-            child: Lottie.asset(
-              'assets/lottie/ic_anim_plasma_generation.json',
-              fit: BoxFit.contain,
-              width: 30,
-              repeat: true,
-            ),
-          );
-        }
-        return Tooltip(
-          message: 'Plasma generation idle',
-          child: Icon(
-            MaterialCommunityIcons.lightning_bolt,
-            color: Theme.of(context).iconTheme.color,
-          ),
-        );
-      },
     );
   }
 
-  Widget _getCurrentPageContainer() {
-    return TabBarView(
-      physics: const NeverScrollableScrollPhysics(),
-      controller: _tabController,
-      children: <Widget>[
-        DashboardTabChild(changePage: _navigateTo),
-        TransferTabChild(),
-        PillarsTabChild(
-          onStepperNotificationSeeMorePressed: () =>
-              _navigateTo(Tabs.notifications),
-        ),
-        SentinelsTabChild(
-          onStepperNotificationSeeMorePressed: () =>
-              _navigateTo(Tabs.notifications),
-        ),
-        const StakingTabChild(),
-        const PlasmaTabChild(),
-        TokensTabChild(
-          onStepperNotificationSeeMorePressed: () =>
-              _navigateTo(Tabs.notifications),
-        ),
-        P2pSwapTabChild(
-          onStepperNotificationSeeMorePressed: () =>
-              _navigateTo(Tabs.notifications),
-        ),
-        if (kWcProjectId.isNotEmpty) const WalletConnectTabChild(),
-        AcceleratorTabChild(
-          onStepperNotificationSeeMorePressed: () =>
-              _navigateTo(Tabs.notifications),
-        ),
-        const HelpTabChild(),
-        const NotificationsTabChild(),
-        SettingsTabChild(
-          _onChangeAutoLockTime,
-          onStepperNotificationSeeMorePressed: () => _navigateTo(
-            Tabs.notifications,
-          ),
-          onNodeChangedCallback: () => _navigateTo(
-            Tabs.dashboard,
-          ),
-        ),
-        const SizedBox(),
-        const SizedBox(),
-        LockTabChild(_mainLockCallback, _afterAppInitCallback),
-      ],
-    );
+  Widget _buildPage(Tabs tab) {
+    return switch (tab) {
+      Tabs.dashboard => DashboardTabChild(changePage: _navigateTo),
+      // Not const, so another page's constructor can change without
+      // breaking the shell.
+      Tabs.transfer => TransferTabChild(),
+      Tabs.pillars => PillarsTabChild(
+        onStepperNotificationSeeMorePressed: () =>
+            _navigateTo(Tabs.notifications),
+      ),
+      Tabs.sentinels => SentinelsTabChild(
+        onStepperNotificationSeeMorePressed: () =>
+            _navigateTo(Tabs.notifications),
+      ),
+      Tabs.staking => const StakingTabChild(),
+      Tabs.plasma => const PlasmaTabChild(),
+      Tabs.tokens => TokensTabChild(
+        onStepperNotificationSeeMorePressed: () =>
+            _navigateTo(Tabs.notifications),
+      ),
+      Tabs.p2pSwap => P2pSwapTabChild(
+        onStepperNotificationSeeMorePressed: () =>
+            _navigateTo(Tabs.notifications),
+      ),
+      Tabs.walletConnect => const WalletConnectTabChild(),
+      Tabs.accelerator => AcceleratorTabChild(
+        onStepperNotificationSeeMorePressed: () =>
+            _navigateTo(Tabs.notifications),
+      ),
+      Tabs.notifications => const NotificationsTabChild(),
+      Tabs.settings => SettingsTabChild(
+        _onChangeAutoLockTime,
+        onStepperNotificationSeeMorePressed: () =>
+            _navigateTo(Tabs.notifications),
+        onNodeChangedCallback: () => _navigateTo(Tabs.dashboard),
+      ),
+      // Never shown: [_navigateTo] refuses the disabled tabs.
+      Tabs.generation || Tabs.sync => const SizedBox.shrink(),
+      Tabs.lock => LockTabChild(_mainLockCallback, _afterAppInitCallback),
+    };
   }
 
   Future<void> _mainLockCallback(String password) async {
-    _navigateToLockTimer = _createAutoLockTimer();
+    _startAutoLockTimer();
     if (kLastWalletConnectUriNotifier.value != null) {
-      _tabController!.animateTo(_getTabChildIndex(Tabs.walletConnect));
+      _navigateTo(Tabs.walletConnect);
     } else {
       _lockBloc.addEvent(LockEvent.navigateToPreviousTab);
     }
@@ -540,11 +496,13 @@ class _MainAppContainerState extends State<MainAppContainer>
   void dispose() {
     windowManager.removeListener(this);
     _nodeSyncStatusCubit.close();
-    _animationController.dispose();
+    _sendDraft.close();
     _navigateToLockTimer?.cancel();
     _lockBlockStreamSubscription.cancel();
     _incomingLinkSubscription.cancel();
-    _tabController?.dispose();
+    _tabIndex.dispose();
+    _locked.dispose();
+    _railCollapse.dispose();
     super.dispose();
   }
 
@@ -564,9 +522,9 @@ class _MainAppContainerState extends State<MainAppContainer>
 
   void _afterAppInitCallback() {
     _nodeSyncStatusCubit.fetchDataPeriodically();
-    _navigateToLockTimer = _createAutoLockTimer();
+    _startAutoLockTimer();
     if (kLastWalletConnectUriNotifier.value != null) {
-      _tabController!.animateTo(_getTabChildIndex(Tabs.walletConnect));
+      _navigateTo(Tabs.walletConnect);
     } else {
       _lockBloc.addEvent(LockEvent.navigateToDashboard);
     }
@@ -580,43 +538,21 @@ class _MainAppContainerState extends State<MainAppContainer>
     });
   }
 
-  bool _isTabSelected(Tabs page) =>
-      _tabController!.index == kTabs.indexOf(page);
-
-  bool _isIconTabSelected() => kTabsWithIconTitles.contains(
-    kTabs[_tabController!.index],
-  );
-
-  int _getTabChildIndex(Tabs page) => kTabs.indexOf(page);
-
+  /// Shows [page]. Every change of page goes through here: the rail, the
+  /// lock, a deep link, a page's own "see more".
+  ///
+  /// This is what the TabController did, without its ticker: a page that is
+  /// not in [kTabs] (WalletConnect without a project id) or is disabled is
+  /// refused, and the page left is remembered for the next unlock.
   void _navigateTo(Tabs page) {
-    if (kCurrentPage != page) {
-      kCurrentPage = page;
-      _tabController!.animateTo(kTabs.indexOf(page));
+    final int index = kTabs.indexOf(page);
+    if (index < 0 || index == _tabIndex.value || kDisabledTabs.contains(page)) {
+      return;
     }
-  }
-
-  void _initTabController() {
-    _tabController = TabController(
-      initialIndex: kWalletInitCompleted ? 0 : kTabs.length - 1,
-      length: kTabs.length,
-      vsync: this,
-    );
-
-    _tabController!.addListener(
-      () {
-        if (kDisabledTabs.contains(
-          kTabs[_tabController!.index],
-        )) {
-          final int index = _tabController!.previousIndex;
-          setState(() {
-            _tabController!.index = index;
-          });
-        } else if (_tabController!.indexIsChanging) {
-          kCurrentPage = kTabs[_tabController!.index];
-        }
-      },
-    );
+    _previousTabIndex = _tabIndex.value;
+    kCurrentPage = page;
+    _tabIndex.value = index;
+    DappBridge.instance.selectionChanged();
   }
 
   void _initLockBlock() {
@@ -625,10 +561,10 @@ class _MainAppContainerState extends State<MainAppContainer>
       switch (event) {
         case LockEvent.countDown:
           if (kCurrentPage != Tabs.lock) {
-            _navigateToLockTimer = _createAutoLockTimer();
+            _startAutoLockTimer();
           }
         case LockEvent.navigateToDashboard:
-          _tabController!.animateTo(_getTabChildIndex(Tabs.dashboard));
+          _navigateTo(Tabs.dashboard);
         case LockEvent.navigateToLock:
           if (Navigator.of(context).canPop()) {
             Navigator.popUntil(
@@ -637,16 +573,13 @@ class _MainAppContainerState extends State<MainAppContainer>
             );
           }
           _onNavigateToLock();
-          _tabController!.animateTo(
-            _getTabChildIndex(Tabs.lock),
-          );
+          _navigateTo(Tabs.lock);
         case LockEvent.resetTimer:
           if (_navigateToLockTimer != null && _navigateToLockTimer!.isActive) {
-            _navigateToLockTimer?.cancel();
-            _navigateToLockTimer = _createAutoLockTimer();
+            _startAutoLockTimer();
           }
         case LockEvent.navigateToPreviousTab:
-          _tabController!.animateTo(_tabController!.previousIndex);
+          _navigateTo(kTabs[_previousTabIndex]);
       }
     });
     if (widget.redirectedFromWalletSuccess) {
@@ -654,14 +587,26 @@ class _MainAppContainerState extends State<MainAppContainer>
     }
   }
 
-  Timer _createAutoLockTimer() {
-    return Timer.periodic(Duration(minutes: kAutoLockWalletMinutes!), (
-      Timer timer,
-    ) {
-      if (!sl<HtlcSwapsHandler>().hasActiveIncomingSwaps) {
-        _lockBloc.addEvent(LockEvent.navigateToLock);
-      }
-    });
+  /// Starts the auto-lock countdown afresh, and is the only place that
+  /// makes its timer.
+  ///
+  /// The timer is periodic, so that a lock put off by an incoming swap is
+  /// tried again one interval later. A periodic timer that is replaced
+  /// without being cancelled keeps firing: the countdown, an unlock and the
+  /// end of initialisation each used to assign a new one over the last, and
+  /// the one left behind locked the wallet on its own, earlier schedule.
+  /// Cancelling here first means there is never more than one.
+  void _startAutoLockTimer() {
+    _navigateToLockTimer?.cancel();
+    _navigateToLockTimer = Timer.periodic(
+      Duration(minutes: kAutoLockWalletMinutes!),
+      (Timer timer) {
+        if (!sl<HtlcSwapsHandler>().hasActiveIncomingSwaps) {
+          _lockBloc.addEvent(LockEvent.navigateToLock);
+        }
+      },
+    );
+    _syncLocked();
   }
 
   void _handleIncomingLinks() async {
@@ -681,7 +626,7 @@ class _MainAppContainerState extends State<MainAppContainer>
             ).log(Level.INFO, '_handleIncomingLinks $uriRaw');
 
             if (context.mounted) {
-              if (uriRaw.contains('wc')) {
+              if (uri.host == 'wc') {
                 if (Platform.isWindows) {
                   uriRaw = uriRaw.replaceAll('/?', '?');
                 }
@@ -745,6 +690,10 @@ class _MainAppContainerState extends State<MainAppContainer>
 
               if (context.mounted) {
                 switch (uri.host) {
+                  // A page asks for the wallet to be started or brought
+                  // forward, then talks to it over the loopback channel.
+                  case 'open':
+                    break;
                   case 'transfer':
                     await sl<NotificationsBloc>().addNotification(
                       WalletNotification(
@@ -827,7 +776,8 @@ class _MainAppContainerState extends State<MainAppContainer>
                           SendTransactionInitiateFromBlock(
                             block: block,
                             fromAddress: kSelectedAddress!,
-                            reasonForGeneratingPlasma: context.l10n.createStake,
+                            reasonForGeneratingPlasma:
+                                context.l10n.plasmaPurposeCreateStake,
                           ),
                         );
                       }
@@ -1022,12 +972,11 @@ class _MainAppContainerState extends State<MainAppContainer>
       if (kCurrentPage != Tabs.walletConnect) {
         await sl<NotificationsBloc>().addNotification(
           WalletNotification(
-            title:
-                'WalletConnect link detected. Go to WalletConnect tab to connect.',
+            title: 'WalletConnect link detected. Open Connected sites.',
             timestamp: DateTime.now().millisecondsSinceEpoch,
             details:
                 'A WalletConnect link has been copied to clipboard. '
-                'Go to the WalletConnect tab to connect to the dApp through ${kLastWalletConnectUriNotifier.value}',
+                'Open Connected sites to connect to the dApp through ${kLastWalletConnectUriNotifier.value}',
             type: NotificationType.copiedToClipboard,
           ),
         );

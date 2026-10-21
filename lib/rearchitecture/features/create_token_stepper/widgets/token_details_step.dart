@@ -1,7 +1,9 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_token_stepper/widgets/token_step_parts.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// Step that collects token name, symbol, and domain.
@@ -14,6 +16,7 @@ class TokenDetailsStep extends StatefulWidget {
     required this.tokenDomainController,
     required this.tokenNameController,
     required this.tokenSymbolController,
+    this.active = true,
     super.key,
   });
 
@@ -34,6 +37,9 @@ class TokenDetailsStep extends StatefulWidget {
 
   /// Controller for token symbol input.
   final TextEditingController tokenSymbolController;
+
+  /// Whether this is the step shown.
+  final bool active;
 
   @override
   State<TokenDetailsStep> createState() => _TokenDetailsStepState();
@@ -58,80 +64,79 @@ class _TokenDetailsStepState extends State<TokenDetailsStep> {
         widget.tokenSymbolController,
         widget.tokenDomainController,
       ]),
-      builder: (_, _) => Column(
-        children: <Widget>[
-          TextField(
-            key: const Key('token_name_field'),
-            controller: widget.tokenNameController,
-            decoration: InputDecoration(
-              errorText: widget.tokenNameController.text.isNotEmpty
-                  ? _nameError
-                  : null,
-              hintText: context.l10n.tokenName,
-            ),
-          ),
-          kVerticalGap16,
-          TextField(
-            key: const Key('token_symbol_field'),
-            controller: widget.tokenSymbolController,
-            decoration: InputDecoration(
-              errorText: widget.tokenSymbolController.text.isNotEmpty
-                  ? _symbolError
-                  : null,
-              hintText: context.l10n.tokenSymbol,
-            ),
-          ),
-          kVerticalGap16,
-          // Blockchain seems to accept only "testing.com" URLs, not
-          // "https://testing.com" also
-          TextField(
-            key: const Key('token_domain_field'),
-            controller: widget.tokenDomainController,
-            decoration: InputDecoration(
-              errorText: widget.tokenDomainController.text.isNotEmpty
-                  ? _domainError
-                  : null,
-              hintText: context.l10n.tokenDomain,
-              suffixIcon: FieldSuffixButtons(
-                controller: widget.tokenDomainController,
-              ),
-            ),
-          ),
-          kVerticalGap25,
-          Row(
+      builder: (BuildContext context, _) {
+        final double gap = AppTokens.of(context).cardGap;
+        final TextStyle text = accFieldTextStyle(context);
+        final bool valid = _areTokenDetailsCorrect();
+        return TokenStepFrame(
+          active: widget.active,
+          onBack: widget.onBackPressed,
+          onSubmit: valid ? _onContinuePressed : null,
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              OutlinedButton(
-                onPressed: widget.onBackPressed,
-                child: Text(context.l10n.goBack),
+              AccField(
+                label: context.l10n.tokenName,
+                child: TextField(
+                  key: const Key('token_name_field'),
+                  controller: widget.tokenNameController,
+                  style: text,
+                  decoration: InputDecoration(
+                    errorText: widget.tokenNameController.text.isNotEmpty
+                        ? _nameError
+                        : null,
+                  ),
+                ),
               ),
-              kHorizontalGap25,
-              OutlinedButton(
-                key: const Key('token_details_next_button'),
-                onPressed: _areTokenDetailsCorrect()
-                    ? _onContinuePressed
-                    : null,
-                child: Text(context.l10n.continueText),
+              SizedBox(height: gap),
+              AccField(
+                label: context.l10n.tokenSymbol,
+                child: TextField(
+                  key: const Key('token_symbol_field'),
+                  controller: widget.tokenSymbolController,
+                  style: text,
+                  decoration: InputDecoration(
+                    errorText: widget.tokenSymbolController.text.isNotEmpty
+                        ? _symbolError
+                        : null,
+                  ),
+                ),
+              ),
+              SizedBox(height: gap),
+              // Blockchain seems to accept only "testing.com" URLs, not
+              // "https://testing.com" also
+              AccField(
+                label: context.l10n.tokenDomain,
+                child: TextField(
+                  key: const Key('token_domain_field'),
+                  controller: widget.tokenDomainController,
+                  style: text,
+                  decoration: InputDecoration(
+                    errorText: widget.tokenDomainController.text.isNotEmpty
+                        ? _domainError
+                        : null,
+                    hintText: context.l10n.createTokenDomainHint,
+                    suffixIcon: FieldSuffixButtons(
+                      controller: widget.tokenDomainController,
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
-        ],
-      ),
+          primary: OutlinedButton(
+            key: const Key('token_details_next_button'),
+            onPressed: valid ? _onContinuePressed : null,
+            child: Text(context.l10n.continueText),
+          ),
+        );
+      },
     );
   }
 
   bool _areTokenDetailsCorrect() =>
-      Validations.tokenName(
-            widget.tokenNameController.text,
-          ) ==
-          null &&
-      Validations.tokenSymbol(
-            widget.tokenSymbolController.text,
-          ) ==
-          null &&
-      InputValidators.checkUrl(
-            widget.tokenDomainController.text,
-          ) ==
-          null;
+      _nameError == null && _symbolError == null && _domainError == null;
 
   void _onContinuePressed() {
     widget.tokenData.value = widget.tokenData.value.copyWith(

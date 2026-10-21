@@ -1,6 +1,7 @@
 export 'accelerator_project_details.dart';
 export 'access_wallet_fluid_cell.dart';
 export 'amount_info_column.dart';
+export 'app_lottie.dart';
 export 'available_balance.dart';
 export 'buttons/buttons.dart';
 export 'cancel_timer.dart';

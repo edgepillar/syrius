@@ -1,0 +1,325 @@
+
+<!-- ===== Settings: one section menu, groups closed ===== -->
+<section class="scr" id="set-node" data-nav="settings" data-group="Settings" data-title="Settings: Node, embedded node update">
+<div class="pg" style="flex-direction:row;gap:12px">
+  <div class="card" style="width:200px">
+    <div class="col" style="padding:8px">
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#book"/></svg>Addresses</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;background:var(--card2);color:var(--fg)"><svg class="i s znn"><use href="#globe"/></svg>Node</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#shield"/></svg>Security</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#eye"/></svg>Display</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#gear"/></svg>Wallet</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#link"/></svg>Apps</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#info"/></svg>About</a>
+    </div>
+  </div>
+  <div class="col" style="flex:1;gap:12px;min-width:0;overflow:hidden">
+    <div class="card">
+      <div class="hd">Nodes<span class="cnt">3</span><span class="end"><span class="row" style="gap:16px;font-size:12.5px;color:var(--dim)"><span class="row" style="gap:6px"><span class="dot live"></span>Synced</span><span>Momentum <span class="num">3,281,904</span></span><span>Peers <span class="num">23</span></span><span>Chain <span class="num">1</span></span></span><button class="btn xs"><svg class="i xs"><use href="#plus"/></svg>Add node</button></span></div>
+      <table>
+        <tr><td style="width:36px"><span class="radio on"></span></td><td><span class="col"><span>Embedded node</span><span class="addr" style="font-size:12px">ws://127.0.0.1:35998</span></span></td><td class="dim">Chain 1</td><td><span class="chip ok"><svg class="i xs"><use href="#check"/></svg>Connected</span></td><td class="r"><span class="num dim" style="font-size:12px">9 ms</span></td></tr>
+        <tr><td><span class="radio"></span></td><td><span class="col"><span>Zenon Hub</span><span class="addr" style="font-size:12px">wss://node.zenonhub.io:35998</span></span></td><td class="dim">Chain 1</td><td><span class="chip"><svg class="i xs"><use href="#check"/></svg>Reachable</span></td><td class="r"><span class="num dim" style="font-size:12px">41 ms</span></td></tr>
+        <tr><td><span class="radio"></span></td><td><span class="col"><span>Lab</span><span class="addr" style="font-size:12px">ws://127.0.0.1:45998</span></span></td><td class="warn">Chain 321</td><td><span class="chip bad"><svg class="i xs"><use href="#x"/></svg>Down</span></td><td class="r"><button class="btn xs ghost"><svg class="i xs"><use href="#trash"/></svg></button></td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <div class="hd">Embedded node<span class="end"><span class="chip new">v0.0.9 is out</span></span></div>
+      <div class="bd" style="gap:12px">
+        <div class="kv" style="grid-template-columns:auto 1fr auto 1fr;gap:6px 20px"><span class="lab">Running</span><span class="num">v0.0.8 <span class="dim">bundled</span></span><span class="lab">Newest</span><span class="num">v0.0.9-alphanet <span class="dim">10 Oct 2026</span></span><span class="lab">Data</span><span class="addr">%AppData%\znn <svg class="i xs"><use href="#ext"/></svg></span><span class="lab">Checked</span><span class="dim">2 h ago, every 6 h</span></div>
+        <div class="col" style="gap:10px;padding:12px 14px;border-radius:var(--r);background:var(--card2)">
+          <div class="row sp"><span class="row" style="gap:8px"><svg class="i s znn"><use href="#check"/></svg><span>libznn-windows-amd64.zip downloaded and verified</span></span><span class="addr" style="font-size:12px">sha256 e89338…70c42</span></div>
+          <div class="row" style="gap:16px;font-size:12.5px;color:var(--dim)"><span class="row" style="gap:6px"><svg class="i xs znn"><use href="#check"/></svg>Matches the release checksum file</span><span class="row" style="gap:6px"><svg class="i xs znn"><use href="#check"/></svg>Matches GitHub's digest</span></div>
+          <div class="row" style="gap:8px"><button class="btn sm go">Install, restart node</button><button class="btn sm ghost">Use bundled node</button><button class="btn sm ghost">Install from file</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="card"><div class="hd closed">Chain identifier<span class="end"><span class="num dim" style="font-weight:400;font-size:13px">1 · follows the node</span><svg class="i s chev"><use href="#chev"/></svg></span></div></div>
+    <div class="card"><div class="hd closed">Peers<span class="cnt">23</span><span class="end"><svg class="i s chev"><use href="#chev"/></svg></span></div></div>
+    <div class="card"><div class="hd closed">Sporks<span class="cnt">12</span><span class="end"><span class="dim" style="font-weight:400;font-size:12.5px">Sporks mode</span><svg class="i s chev"><use href="#chev"/></svg></span></div></div>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="set-security" data-nav="settings" data-group="Settings" data-title="Settings: Security, settings apply when chosen">
+<div class="pg" style="flex-direction:row;gap:12px">
+  <div class="card" style="width:200px">
+    <div class="col" style="padding:8px">
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#book"/></svg>Addresses</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#globe"/></svg>Node</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;background:var(--card2);color:var(--fg)"><svg class="i s znn"><use href="#shield"/></svg>Security</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#eye"/></svg>Display</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#gear"/></svg>Wallet</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#link"/></svg>Apps</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#info"/></svg>About</a>
+    </div>
+  </div>
+  <div class="col" style="flex:1;gap:12px;min-width:0;overflow:hidden">
+    <div class="card">
+      <div class="bd" style="gap:0;padding:0">
+        <div class="row sp" style="padding:9px 16px"><span class="col"><span>Lock after</span><span class="dim" style="font-size:12.5px">Of inactivity</span></span><div class="seg"><span>5 min</span><span class="on">15 min</span><span>1 h</span><span>On close</span></div></div>
+        <div class="line"></div>
+        <div class="row sp" style="padding:9px 16px"><span class="col"><span>Unlock with Windows Hello</span><span class="dim" style="font-size:12.5px">The password still works. Later.</span></span><span class="sw"></span></div>
+        <div class="line"></div>
+        <div class="row sp" style="padding:9px 16px"><span class="col"><span>Remove this wallet after wrong passwords</span><span class="dim" style="font-size:12.5px">On by default. The wallet file is deleted after the limit. Back up the seed first.</span></span><div class="row" style="gap:10px"><div class="seg"><span>Off</span><span class="on">3</span><span>5</span><span>10</span></div></div></div>
+        <div class="line"></div>
+        <div class="row sp" style="padding:9px 16px"><span>Password</span><button class="btn sm">Change</button></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="hd">Backup</div>
+      <div class="bd" style="gap:0;padding:0">
+        <div class="row sp" style="padding:9px 16px"><span class="col"><span>Seed phrase</span><span class="dim" style="font-size:12.5px">Shown on screen, in clear</span></span><button class="btn sm"><svg class="i s"><use href="#eye"/></svg>Show</button></div>
+        <div class="line"></div>
+        <div class="row sp" style="padding:9px 16px"><span class="col"><span>Seed Vault</span><span class="dim" style="font-size:12.5px">An encrypted file of the seed</span></span><button class="btn sm"><svg class="i s"><use href="#dl"/></svg>Export</button></div>
+      </div>
+    </div>
+    <div class="card"><div class="hd closed">Sign a message<span class="end"><svg class="i s chev"><use href="#chev"/></svg></span></div></div>
+    <div class="card"><div class="hd closed">Verify a signature<span class="end"><svg class="i s chev"><use href="#chev"/></svg></span></div></div>
+    <div class="card"><div class="hd closed">Remove wallet<span class="end"><span class="dim" style="font-weight:400;font-size:12.5px">Needs the seed or a Seed Vault</span><svg class="i s chev"><use href="#chev"/></svg></span></div></div>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="set-display" data-nav="settings" data-group="Settings" data-title="Settings: Display, dollar values">
+<div class="pg" style="flex-direction:row;gap:12px">
+  <div class="card" style="width:200px">
+    <div class="col" style="padding:8px">
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#book"/></svg>Addresses</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#globe"/></svg>Node</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#shield"/></svg>Security</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;background:var(--card2);color:var(--fg)"><svg class="i s znn"><use href="#eye"/></svg>Display</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#gear"/></svg>Wallet</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#link"/></svg>Apps</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#info"/></svg>About</a>
+    </div>
+  </div>
+  <div class="col" style="flex:1;gap:12px;min-width:0;overflow:hidden">
+    <div class="card">
+      <div class="bd" style="gap:0;padding:0">
+        <div class="row sp" style="padding:9px 16px"><span>Theme</span><div class="seg"><span>System</span><span class="on">Dark</span><span>Light</span></div></div>
+        <div class="line"></div>
+        <div class="row sp" style="padding:9px 16px"><span>Text size</span><div class="seg"><span>Small</span><span class="on">Default</span><span>Large</span></div></div>
+        <div class="line"></div>
+        <div class="row sp" style="padding:9px 16px"><span>Language</span><span class="chip" style="height:30px">English <svg class="i xs"><use href="#chev"/></svg></span></div>
+        <div class="line"></div>
+        <div class="row sp" style="padding:9px 16px"><span class="col"><span>Menu</span><span class="dim" style="font-size:12.5px">Icons only, labels on hover</span></span><div class="seg"><span class="on">Icons</span><span>Labels</span></div></div>
+        <div class="line"></div>
+        <div class="row sp" style="padding:9px 16px"><span class="col"><span>Hide balances</span><span class="dim" style="font-size:12.5px">Also the eye on Home</span></span><span class="sw"></span></div>
+        <div class="line"></div>
+        <div class="row sp" style="padding:9px 16px"><span class="col"><span>Dollar values</span><span class="dim" style="font-size:12.5px">ZNN and QSR at CoinGecko's price, asked once a minute while a value is on screen. Mainnet's price on every chain.</span></span><span class="sw on"></span></div>
+        <div class="line"></div>
+        <div class="row sp" style="padding:9px 16px"><span class="col"><span>Explorer</span><span class="dim" style="font-size:12.5px">Links follow the chain. None off chain 1.</span></span><span class="chip" style="height:30px">explorer.zenon.network <svg class="i xs"><use href="#chev"/></svg></span></div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="set-wallet" data-nav="settings" data-group="Settings" data-title="Settings: Wallet, modes">
+<div class="pg" style="flex-direction:row;gap:12px">
+  <div class="card" style="width:200px">
+    <div class="col" style="padding:8px">
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#book"/></svg>Addresses</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#globe"/></svg>Node</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#shield"/></svg>Security</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#eye"/></svg>Display</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;background:var(--card2);color:var(--fg)"><svg class="i s znn"><use href="#gear"/></svg>Wallet</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#link"/></svg>Apps</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#info"/></svg>About</a>
+    </div>
+  </div>
+  <div class="col" style="flex:1;gap:12px;min-width:0;overflow:hidden">
+    <div class="card">
+      <div class="bd" style="gap:0;padding:0">
+        <div class="row sp" style="padding:9px 16px"><span class="col"><span>Auto-receive</span><span class="dim" style="font-size:12.5px">Off: receive each transaction by hand</span></span><span class="sw on"></span></div>
+        <div class="line"></div>
+        <div class="row sp" style="padding:9px 16px"><span class="col"><span>Desktop notifications</span><span class="dim" style="font-size:12.5px">Incoming funds and zaps when the window is in the tray</span></span><span class="sw on"></span></div>
+        <div class="line"></div>
+        <div class="row sp" style="padding:9px 16px"><span>Launch at startup</span><span class="sw"></span></div>
+        <div class="line"></div>
+        <div class="row sp" style="padding:9px 16px"><span class="col"><span>Modes</span><span class="dim" style="font-size:12.5px">Auto: shown when the selected address owns one</span></span><span class="row" style="gap:12px;font-size:13px"><span class="row" style="gap:6px">Pillar <span class="seg"><span class="on">Auto</span><span>On</span><span>Off</span></span></span><span class="row" style="gap:6px">Sentinel <span class="seg"><span class="on">Auto</span><span>On</span><span>Off</span></span></span><span class="row" style="gap:6px">Sporks <span class="seg"><span>Auto</span><span>On</span><span class="on">Off</span></span></span></span></div>
+        <div class="line"></div>
+        <div class="row sp" style="padding:9px 16px"><span class="col"><span>Delete cache</span><span class="dim" style="font-size:12.5px">Node data and notifications. Labels, contacts and favorites stay.</span></span><button class="btn sm">Delete</button></div>
+      </div>
+    </div>
+    <div class="card"><div class="hd closed">Wallets on this computer<span class="cnt">3</span><span class="end"><span class="dim" style="font-weight:400;font-size:12.5px">Rename, remove, add</span><svg class="i s chev"><use href="#chev"/></svg></span></div></div>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="set-apps" data-nav="settings" data-group="Settings" data-title="Settings: Apps (was the Connected sites page)">
+<div class="pg" style="flex-direction:row;gap:12px">
+  <div class="card" style="width:200px">
+    <div class="col" style="padding:8px">
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#book"/></svg>Addresses</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#globe"/></svg>Node</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#shield"/></svg>Security</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#eye"/></svg>Display</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#gear"/></svg>Wallet</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;background:var(--card2);color:var(--fg)"><svg class="i s znn"><use href="#link"/></svg>Apps</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#info"/></svg>About</a>
+    </div>
+  </div>
+  <div class="col" style="flex:1;gap:12px;min-width:0;overflow:hidden">
+    <div class="card">
+      <div class="row sp" style="padding:9px 16px"><span class="col"><span>Web apps</span><span class="dim" style="font-size:12.5px">Pages on this computer may ask to connect. <span class="addr">127.0.0.1:35996</span></span></span><span class="sw on"></span></div>
+    </div>
+    <div class="card" style="flex:1">
+      <div class="hd">Connected<span class="cnt">2</span><span class="end"><button class="btn xs"><svg class="i xs"><use href="#plus"/></svg>Connect by link</button></span></div>
+      <table>
+        <tr><th>Site</th><th>Address</th><th>Last used</th><th>Via</th><th class="r"></th></tr>
+        <tr><td><span class="row" style="gap:8px"><span class="coin g" style="width:22px;height:22px;font-size:9px">B</span>bridge.zenon.foo</span></td><td>Address 2</td><td class="dim">3 h ago</td><td class="dim">Web app</td><td class="r"><button class="btn xs ghost">Disconnect</button></td></tr>
+        <tr><td><span class="row" style="gap:8px"><span class="coin g" style="width:22px;height:22px;font-size:9px">G</span>glyphswap.zenon.foo</span></td><td>Address 1</td><td class="dim">2 d ago</td><td class="dim">WalletConnect</td><td class="r"><button class="btn xs ghost">Disconnect</button></td></tr>
+      </table>
+    </div>
+    <div class="card"><div class="hd closed">WalletConnect<span class="end"><span class="dim" style="font-weight:400;font-size:12.5px">1 session · 1 pairing</span><svg class="i s chev"><use href="#chev"/></svg></span></div></div>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="set-addresses" data-nav="settings" data-group="Settings" data-title="Settings: Addresses, labels, contacts">
+<div class="pg" style="flex-direction:row;gap:12px">
+  <div class="card" style="width:200px">
+    <div class="col" style="padding:8px">
+      <a class="row" style="padding:9px 10px;border-radius:6px;background:var(--card2);color:var(--fg)"><svg class="i s znn"><use href="#book"/></svg>Addresses</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#globe"/></svg>Node</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#shield"/></svg>Security</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#eye"/></svg>Display</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#gear"/></svg>Wallet</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#link"/></svg>Apps</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#info"/></svg>About</a>
+    </div>
+  </div>
+  <div class="col" style="flex:1;gap:12px;min-width:0;overflow:hidden">
+    <div class="card">
+      <div class="hd">Your addresses<span class="cnt">4</span><span class="end"><button class="btn xs"><svg class="i xs"><use href="#plus"/></svg>Add address</button></span></div>
+      <table>
+        <tr><td style="width:36px"><span class="radio"></span></td><td><span class="col"><span>Address 1</span><span class="addr" style="font-size:12px">z1qq9n7fpaqd8lpcljandzmx4xtku9w4ftwyg0mq</span></span></td><td class="r num">0.5 ZNN</td><td class="r num dim">120 QSR</td><td class="r"><span class="row" style="gap:4px;justify-content:flex-end"><button class="ic"><svg class="i s"><use href="#edit"/></svg></button><button class="ic"><svg class="i s"><use href="#copy"/></svg></button></span></td></tr>
+        <tr><td><span class="radio on"></span></td><td><span class="col"><span>Address 2 <span class="chip ok" style="height:20px;font-size:11px">selected</span></span><span class="addr" style="font-size:12px">z1qq6eg8n43g032hanpsfp02qcdmv7zfj3y2lt5d</span></span></td><td class="r num">1,204.5 ZNN</td><td class="r num dim">12,880 QSR</td><td class="r"><span class="row" style="gap:4px;justify-content:flex-end"><button class="ic"><svg class="i s"><use href="#edit"/></svg></button><button class="ic"><svg class="i s"><use href="#copy"/></svg></button></span></td></tr>
+        <tr><td><span class="radio"></span></td><td><span class="col"><span>Sentinel <span class="dim" style="font-size:12px">Address 3</span></span><span class="addr" style="font-size:12px">z1qzmzssx28dc0fmvlca05hyxk2kgkgu7n0cj8pl</span></span></td><td class="r num">5,000 ZNN</td><td class="r num dim">50,000 QSR</td><td class="r"><span class="row" style="gap:4px;justify-content:flex-end"><button class="ic"><svg class="i s"><use href="#edit"/></svg></button><button class="ic"><svg class="i s"><use href="#copy"/></svg></button></span></td></tr>
+        <tr><td><span class="radio"></span></td><td><span class="col"><span>Address 4</span><span class="addr" style="font-size:12px">z1qp3yph55qgresyytz83anynr2f4z39x2z3ej3e</span></span></td><td class="r num">0 ZNN</td><td class="r num dim">0 QSR</td><td class="r"><span class="row" style="gap:4px;justify-content:flex-end"><button class="ic"><svg class="i s"><use href="#edit"/></svg></button><button class="ic"><svg class="i s"><use href="#copy"/></svg></button></span></td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <div class="hd">Contacts<span class="cnt">3</span><span class="end"><button class="btn xs"><svg class="i xs"><use href="#plus"/></svg>Add contact</button></span></div>
+      <table>
+        <tr><td>Alice</td><td class="addr">z1qr4pm3x9ue2a6kz0t2g8s3x5c7q1wl4r9d2a</td><td class="dim">Sent 55 min ago</td><td class="r"><span class="row" style="gap:4px;justify-content:flex-end"><button class="btn xs">Send</button><button class="ic"><svg class="i s"><use href="#edit"/></svg></button></span></td></tr>
+        <tr><td>Exchange</td><td class="addr">z1qpx3lm9ue4a6pz0t2gs3x8r5cq2wkz8vk7w0m7ua</td><td class="dim">Sent 12 d ago</td><td class="r"><span class="row" style="gap:4px;justify-content:flex-end"><button class="btn xs">Send</button><button class="ic"><svg class="i s"><use href="#edit"/></svg></button></span></td></tr>
+      </table>
+    </div>
+    <div class="card"><div class="hd closed">Account chain of Address 2<span class="end"><span class="num dim" style="font-weight:400;font-size:12.5px">7 blocks</span><svg class="i s chev"><use href="#chev"/></svg></span></div></div>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="set-about" data-nav="settings" data-group="Settings" data-title="Settings: About">
+<div class="pg" style="flex-direction:row;gap:12px">
+  <div class="card" style="width:200px">
+    <div class="col" style="padding:8px">
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#book"/></svg>Addresses</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#globe"/></svg>Node</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#shield"/></svg>Security</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#eye"/></svg>Display</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#gear"/></svg>Wallet</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#link"/></svg>Apps</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;background:var(--card2);color:var(--fg)"><svg class="i s znn"><use href="#info"/></svg>About</a>
+    </div>
+  </div>
+  <div class="col" style="flex:1;gap:12px;min-width:0;overflow:hidden">
+    <div class="card stripcard">
+      <div class="stat"><span class="lab">Syrius</span><span class="v">0.2.5</span></div>
+      <div class="stat"><span class="lab">Embedded node</span><span class="v">v0.0.8</span></div>
+      <div class="stat"><span class="lab">Build</span><span class="v dim" style="font-size:14px">da7eeab3 · 13 Oct 2026</span></div>
+      <div class="acts"><span class="chip new" style="align-self:center">0.3.0 is out</span><button class="btn sm">What changed</button><button class="btn go"><svg class="i"><use href="#dl"/></svg>Download and verify</button></div>
+    </div>
+    <div class="card"><div class="hd closed">Links<span class="cnt">14</span><span class="end"><span class="dim" style="font-weight:400;font-size:12.5px">Docs, explorers, community</span><svg class="i s chev"><use href="#chev"/></svg></span></div></div>
+    <div class="card"><div class="hd closed">This computer<span class="end"><span class="dim" style="font-weight:400;font-size:12.5px">Paths, platform, wallet type</span><svg class="i s chev"><use href="#chev"/></svg></span></div></div>
+    <div class="card"><div class="hd closed">Licences<span class="end"><svg class="i s chev"><use href="#chev"/></svg></span></div></div>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="set-licences" data-nav="settings" data-group="Settings" data-title="Settings: Licences, scrolled to the end">
+<div class="pg" style="flex-direction:row;gap:12px">
+  <div class="card" style="width:200px">
+    <div class="col" style="padding:8px">
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#book"/></svg>Addresses</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#globe"/></svg>Node</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#shield"/></svg>Security</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#eye"/></svg>Display</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#gear"/></svg>Wallet</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#link"/></svg>Apps</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;background:var(--card2);color:var(--fg)"><svg class="i s znn"><use href="#info"/></svg>About</a>
+    </div>
+  </div>
+  <div class="col" style="flex:1;gap:12px;min-width:0;overflow:hidden">
+    <div class="card"><div class="hd closed">Links<span class="cnt">14</span><span class="end"><span class="dim" style="font-weight:400;font-size:12.5px">Docs, explorers, community</span><svg class="i s chev"><use href="#chev"/></svg></span></div></div>
+    <div class="card"><div class="hd closed">This computer<span class="end"><span class="dim" style="font-weight:400;font-size:12.5px">Paths, platform, wallet type</span><svg class="i s chev"><use href="#chev"/></svg></span></div></div>
+    <div class="card" style="flex:1;overflow:hidden">
+      <div class="hd">Licences<span class="end"><svg class="i s chev"><use href="#chev"/></svg></span></div>
+      <div style="position:relative;flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end">
+      <table>
+        <tr><td><span class="col"><span>webkit_inspection_protocol</span></span></td><td class="dim">BSD-3-Clause</td><td class="r"><svg class="i s faint" style="transform:rotate(-90deg)"><use href="#chev"/></svg></td></tr>
+        <tr><td><span class="col"><span>win32</span></span></td><td class="dim">BSD-3-Clause</td><td class="r"><svg class="i s faint" style="transform:rotate(-90deg)"><use href="#chev"/></svg></td></tr>
+        <tr><td><span class="col"><span>win32_registry</span></span></td><td class="dim">BSD-3-Clause</td><td class="r"><svg class="i s faint" style="transform:rotate(-90deg)"><use href="#chev"/></svg></td></tr>
+        <tr><td><span class="col"><span>window_manager</span></span></td><td class="dim">MIT</td><td class="r"><svg class="i s faint" style="transform:rotate(-90deg)"><use href="#chev"/></svg></td></tr>
+        <tr><td><span class="col"><span>x25519</span></span></td><td class="dim">Apache-2.0</td><td class="r"><svg class="i s faint" style="transform:rotate(-90deg)"><use href="#chev"/></svg></td></tr>
+        <tr><td><span class="col"><span>xdg_directories</span></span></td><td class="dim">BSD-3-Clause</td><td class="r"><svg class="i s faint" style="transform:rotate(-90deg)"><use href="#chev"/></svg></td></tr>
+        <tr><td><span class="col"><span>xml</span></span></td><td class="dim">MIT</td><td class="r"><svg class="i s faint" style="transform:rotate(-90deg)"><use href="#chev"/></svg></td></tr>
+        <tr><td><span class="col"><span>yaml</span></span></td><td class="dim">MIT</td><td class="r"><svg class="i s faint" style="transform:rotate(-90deg)"><use href="#chev"/></svg></td></tr>
+        <tr><td><span class="col"><span>yaml_writer</span></span></td><td class="dim">BSD-3-Clause</td><td class="r"><svg class="i s faint" style="transform:rotate(-90deg)"><use href="#chev"/></svg></td></tr>
+        <tr><td><span class="col"><span>znn_ledger_dart</span></span></td><td class="dim">MIT</td><td class="r"><svg class="i s faint" style="transform:rotate(-90deg)"><use href="#chev"/></svg></td></tr>
+        <tr><td><span class="col"><span>znn_sdk_dart</span></span></td><td class="dim">MIT</td><td class="r"><svg class="i s faint" style="transform:rotate(-90deg)"><use href="#chev"/></svg></td></tr>
+        <tr><td><span class="col"><span>zxing2</span></span></td><td class="dim">BSD-3-Clause</td><td class="r"><svg class="i s faint" style="transform:rotate(-90deg)"><use href="#chev"/></svg></td></tr>
+      </table>
+      <div style="padding:22px 16px 26px;border-top:1px solid var(--line)"><div class="field" style="width:132px;height:34px"></div></div>
+      <span style="position:absolute;right:4px;top:6px;bottom:6px;width:4px;border-radius:2px;background:var(--line)"><span style="position:absolute;left:0;right:0;bottom:0;height:46px;border-radius:2px;background:var(--faint)"></span></span>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="set-originals" data-nav="settings" data-group="Settings" data-title="Easter egg: 321 in the box at the end of Licences">
+<div class="pg" style="flex-direction:row;gap:12px">
+  <div class="card" style="width:200px">
+    <div class="col" style="padding:8px">
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#book"/></svg>Addresses</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#globe"/></svg>Node</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#shield"/></svg>Security</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#eye"/></svg>Display</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#gear"/></svg>Wallet</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;color:var(--dim)"><svg class="i s"><use href="#link"/></svg>Apps</a>
+      <a class="row" style="padding:9px 10px;border-radius:6px;background:var(--card2);color:var(--fg)"><svg class="i s znn"><use href="#info"/></svg>About</a>
+    </div>
+  </div>
+  <div class="col" style="flex:1;gap:12px;min-width:0;overflow:hidden">
+    <div class="card" style="overflow:hidden">
+      <div class="hd">Licences<span class="end"><svg class="i s chev"><use href="#chev"/></svg></span></div>
+      <div style="position:relative;flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end">
+      <table>
+        <tr><td><span class="col"><span>znn_sdk_dart</span></span></td><td class="dim">MIT</td><td class="r"><svg class="i s faint" style="transform:rotate(-90deg)"><use href="#chev"/></svg></td></tr>
+        <tr><td><span class="col"><span>zxing2</span></span></td><td class="dim">BSD-3-Clause</td><td class="r"><svg class="i s faint" style="transform:rotate(-90deg)"><use href="#chev"/></svg></td></tr>
+      </table>
+      <div style="padding:22px 16px 26px;border-top:1px solid var(--line)"><div class="field on" style="width:132px;height:34px"><span class="v num">321<span style="opacity:.5">|</span></span></div></div>
+      <span style="position:absolute;right:4px;top:6px;bottom:6px;width:4px;border-radius:2px;background:var(--line)"><span style="position:absolute;left:0;right:0;bottom:0;height:30px;border-radius:2px;background:var(--faint)"></span></span>
+      </div>
+    </div>
+    <div class="card rise">
+      <div class="hd">Originals<span class="end"><span class="lab">Since Syrius 0.0.5, April 2022</span><button class="btn xs"><svg class="i xs"><use href="#refresh"/></svg>Play launch</button></span></div>
+      <div class="bd" style="gap:14px">
+        <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px">
+          <div class="tile"><div class="art black"><span class="lot zoom" data-lot="splash" data-at="0.42" data-hover="1" style="width:420px;height:236px"></span></div><b>Launch</b><span>Every start, then the lock card</span></div>
+          <div class="tile"><div class="art"><span class="lot zoom" data-lot="welcome" data-at="0.4" data-loop="1" style="width:206px;height:116px"></span></div><b>Globe</b><span>Welcome</span></div>
+          <div class="tile"><div class="art"><span class="lot zoom" data-lot="map" data-at="0.5" data-loop="1" style="width:250px;height:141px"></span></div><b>Map</b><span>Wallet ready</span></div>
+          <div class="tile"><div class="art"><span class="lot" data-lot="pillar_small" data-at="0.99" data-hover="1" style="width:108px;height:108px"></span></div><b>Pillar</b><span>Your pillar, Spawn</span></div>
+          <div class="tile"><div class="art"><span class="lot" data-lot="sentinel_small" data-at="0.99" data-hover="1" style="width:108px;height:108px"></span></div><b>Sentinel</b><span>Your sentinel, Spawn</span></div>
+          <div class="tile"><div class="art"><span class="lot" data-lot="zts_small" data-at="0.99" data-hover="1" style="width:104px;height:104px"></span></div><b>ZTS</b><span>Tokens, Create token</span></div>
+        </div>
+        <div class="line"></div>
+        <div class="row" style="gap:26px;font-size:13px;color:var(--dim)"><span class="row" style="gap:8px"><span class="lot" data-lot="plasma_generation" data-at="0.45" data-loop="1" style="width:22px;height:22px"></span>Generating plasma, in the strip</span><span class="row" style="gap:8px"><span class="lot" data-lot="eye" data-at="0.4" data-loop="1" data-from="30" data-to="200" style="width:96px;height:96px;margin:-37px -36px"></span>Hidden balances</span><span class="row" style="gap:8px"><span class="lot" data-lot="no_data" data-at="0.2" data-loop="1" style="width:18px;height:18px"></span>Empty lists</span><span style="margin-left:auto" class="smallcap">Hover to play</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>

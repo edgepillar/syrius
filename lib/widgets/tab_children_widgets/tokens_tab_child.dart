@@ -1,9 +1,20 @@
-import 'package:flutter/material.dart';
-import 'package:layout/layout.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 
-/// Tab that displays the cards related to tokens
+/// The height of the strip on top, as on the Accelerator page.
+const double _kStripHeight = 88;
+
+/// The least the list row may have before the page scrolls: the search
+/// field, the header and four rows.
+const double _kListMinHeight = 380;
+
+/// Tokens: the list of every token on the network is the page. A strip on
+/// top holds what the address has and the one primary action, creating a
+/// token; the address's balances stand beside the list.
+///
+/// Favourite, mint, burn and transfer ownership are actions on a token's
+/// row, not cards of their own.
 class TokensTabChild extends StatelessWidget {
   /// Creates a new instance
   const TokensTabChild({
@@ -14,42 +25,20 @@ class TokensTabChild extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StandardFluidLayout(
-      children: <FluidCell>[
-        FluidCell(
-          width: context.layout.value(
-            xl: kStaggeredNumOfColumns ~/ 3,
-            lg: kStaggeredNumOfColumns ~/ 3,
-            md: kStaggeredNumOfColumns ~/ 3,
-            sm: kStaggeredNumOfColumns,
-            xs: kStaggeredNumOfColumns,
+    return PageGrid(
+      rows: <PageRow>[
+        PageRow.fixed(_kStripHeight, <PageCell>[
+          PageCell(
+            CreateTokenCard(
+              onStepperNotificationSeeMorePressed:
+                  _onStepperNotificationSeeMorePressed,
+            ),
           ),
-          child: const TokenBalanceCard(),
-        ),
-        FluidCell(
-          height: kStaggeredNumOfColumns / 2,
-          width: context.layout.value(
-            xl: kStaggeredNumOfColumns ~/ 1.5,
-            lg: kStaggeredNumOfColumns ~/ 1.5,
-            md: kStaggeredNumOfColumns ~/ 1.5,
-            sm: kStaggeredNumOfColumns,
-            xs: kStaggeredNumOfColumns,
-          ),
-          child: const TokensCard(),
-        ),
-        FluidCell(
-          width: context.layout.value(
-            xl: kStaggeredNumOfColumns ~/ 3,
-            lg: kStaggeredNumOfColumns ~/ 3,
-            md: kStaggeredNumOfColumns ~/ 3,
-            sm: kStaggeredNumOfColumns,
-            xs: kStaggeredNumOfColumns,
-          ),
-          child: CreateTokenCard(
-            onStepperNotificationSeeMorePressed:
-                _onStepperNotificationSeeMorePressed,
-          ),
-        ),
+        ]),
+        const PageRow.fill(<PageCell>[
+          PageCell(TokensCard(), flex: 5),
+          PageCell(TokenBalanceCard(), flex: 2),
+        ], height: _kListMinHeight),
       ],
     );
   }

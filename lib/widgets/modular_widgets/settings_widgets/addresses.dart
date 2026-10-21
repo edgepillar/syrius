@@ -1,21 +1,18 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
-import 'package:hive_ce/hive_ce.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:number_selector/number_selector.dart';
-import 'package:provider/provider.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/page_widgets.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/notifiers/default_address_notifier.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/notifiers/plasma_beneficiary_address_cubit.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/settings_parts.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
-import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// The wallet's addresses: pick the one the wallet acts as, rename, copy,
+/// and derive more.
 class Addresses extends StatefulWidget {
   const Addresses({
     required this.accountChainStatsBloc,
@@ -50,140 +47,92 @@ class AddressesState extends State<Addresses> {
 
   @override
   Widget build(BuildContext context) {
-    return CardScaffold(
+    return Panel(
       title: 'Addresses',
-      description:
-          'Select the default address that will be used throughout '
-          'the wallet for any network operation',
-      childBuilder: _getGenerateNewAddressFutureBuilder,
+      actions: <Widget>[
+        Text(
+          '${kDefaultAddressList.length}',
+          style: ledgerLabelStyle(context),
+        ),
+        const SizedBox(width: 8),
+      ],
+      child: _buildGenerateNewAddressFutureBuilder(),
     );
   }
 
   Future<void> _changeDefaultAddress(String? newDefaultAddress) async {
     try {
-      final Box box = Hive.box(kSharedPrefsBox);
-      await box.put(kDefaultAddressKey, newDefaultAddress);
+      // The switch itself is shared with the home's address picker.
+      await selectWalletAddress(context, newDefaultAddress!);
       if (!mounted) return;
-      Provider.of<SelectedAddressNotifier>(
-        context,
-        listen: false,
-      ).changeSelectedAddress(newDefaultAddress);
-      context.read<PlasmaBeneficiaryAddressCubit>().changeAddress(
-        newDefaultAddress,
-      );
       widget.accountChainStatsBloc.updateStream();
       _selectedAddress = newDefaultAddress;
-
-      final Address newAddress = Address.parse(_selectedAddress!);
-
-      context.read<LatestTransactionsBloc>().add(
-        InfiniteListRefreshRequested(
-          address: newAddress,
-        ),
-      );
-      context.read<PendingTransactionsBloc>().add(
-        InfiniteListRefreshRequested(
-          address: newAddress,
-        ),
-      );
-      context.read<PillarRewardsHistoryBloc>().add(
-        FetchRequestData(
-          address: newAddress,
-        ),
-      );
-      context.read<SentinelRewardsHistoryBloc>().add(
-        FetchRequestData(
-          address: newAddress,
-        ),
-      );
-      context.read<StakingRewardsHistoryBloc>().add(
-        FetchRequestData(
-          address: newAddress,
-        ),
-      );
-      context.read<PillarsByOwnerBloc>().add(
-        FetchRequestData(
-          address: newAddress,
-        ),
-      );
-      context.read<DelegationStatsBloc>().add(
-        FetchRequestData(
-          address: newAddress,
-        ),
-      );
     } catch (e) {
       rethrow;
     }
   }
 
-  Widget _getAddAddressWidget() {
+  Widget _buildAddAddressRow() {
+    final ThemeData theme = Theme.of(context);
+    final Color line = theme.dividerTheme.color!;
     return Padding(
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: NumberSelector.plain(
-                borderColor: AppColors.znnColor,
-                iconColor: AppColors.znnColor,
-                dividerColor: AppColors.znnColor,
-                current: 1,
-                min: 1,
-                max: 10,
-                onUpdate: (int val) {
-                  _onAddAddressPressedCallback(val);
-                },
+          NumberSelector.plain(
+            width: 132,
+            height: 36,
+            contentPadding: 4,
+            borderRadius: kCardRadius,
+            hasBorder: true,
+            showMinMax: false,
+            showSuffix: false,
+            borderColor: line,
+            iconColor: theme.textTheme.titleMedium!.color!,
+            textStyle: settingMonoStyle(context).copyWith(
+              color: theme.textTheme.bodyLarge!.color,
+            ),
+            current: numberOfAddressesToAdd,
+            min: 1,
+            max: 10,
+            onUpdate: _onAddAddressPressedCallback,
+          ),
+          const SizedBox(width: 12),
+          SecondaryAction(
+            child: OutlinedButton.icon(
+              key: const Key('settings_add_address'),
+              onPressed: () {
+                setState(() {
+                  _futureGenerateNewAddress =
+                      ZenonAddressUtils.generateNewAddress(
+                        numAddr: numberOfAddressesToAdd,
+                        callback: () {
+                          setState(() {
+                            _shouldScrollToTheEnd = true;
+                          });
+                        },
+                      );
+                });
+              },
+              icon: const Icon(Icons.add, size: 16),
+              label: Text(
+                numberOfAddressesToAdd == 1
+                    ? 'Add 1 address'
+                    : 'Add $numberOfAddressesToAdd addresses',
               ),
             ),
           ),
-          InkWell(
-            onTap: () {
-              setState(() {
-                _futureGenerateNewAddress =
-                    ZenonAddressUtils.generateNewAddress(
-                      numAddr: numberOfAddressesToAdd,
-                      callback: () {
-                        setState(() {
-                          _shouldScrollToTheEnd = true;
-                        });
-                      },
-                    );
-              });
-            },
-            child: Container(
-              constraints: const BoxConstraints(minWidth: 150, minHeight: 50),
-              alignment: Alignment.center,
-              child: Row(
-                children: <Widget>[
-                  const Icon(
-                    Icons.add_circle,
-                    color: AppColors.znnColor,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    (numberOfAddressesToAdd == 1)
-                        ? 'Add $numberOfAddressesToAdd address  '
-                        : 'Add $numberOfAddressesToAdd addresses',
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
         ],
       ),
     );
   }
 
-  Widget _getAddresses() {
+  Widget _buildAddresses() {
     final List<Widget> addresses = kDefaultAddressList
         .map(
           (String? e) => Row(
             children: <Widget>[
+              const SizedBox(width: 6),
               Radio<String?>(
                 value: e,
                 groupValue: _selectedAddress,
@@ -203,7 +152,7 @@ class AddressesState extends State<Addresses> {
     final Widget listView = ListView.builder(
       controller: _scrollController,
       key: const PageStorageKey('Addresses list view'),
-      shrinkWrap: true,
+      padding: const EdgeInsets.symmetric(vertical: 6),
       itemCount: addresses.length,
       itemBuilder: (BuildContext context, int index) {
         return addresses[index];
@@ -230,48 +179,48 @@ class AddressesState extends State<Addresses> {
     );
   }
 
-  Widget _getCardBody() {
+  Widget _buildCardBody() {
     return Column(
       children: <Widget>[
         Expanded(
-          child: _getAddresses(),
+          child: _buildAddresses(),
         ),
         const Divider(),
-        _getAddAddressWidget(),
+        _buildAddAddressRow(),
       ],
     );
   }
 
-  Widget _getGenerateNewAddressFutureBuilder() {
+  Widget _buildGenerateNewAddressFutureBuilder() {
     return FutureBuilder(
       future: _futureGenerateNewAddress,
       builder: (_, AsyncSnapshot<void> snapshot) {
         if (snapshot.hasError) {
-          return SyriusErrorWidget(snapshot.error!);
+          return QuietNote.error(snapshot.error!);
         } else if (<ConnectionState>[
           ConnectionState.none,
           ConnectionState.done,
         ].contains(snapshot.connectionState)) {
-          return _getChangeDefaultAddressFutureBuilder();
+          return _buildChangeDefaultAddressFutureBuilder();
         }
-        return const SyriusLoadingWidget();
+        return const QuietNote('Adding');
       },
     );
   }
 
-  Widget _getChangeDefaultAddressFutureBuilder() {
+  Widget _buildChangeDefaultAddressFutureBuilder() {
     return FutureBuilder(
       future: _futureChangeDefaultAddress,
       builder: (_, AsyncSnapshot<void> snapshot) {
         if (snapshot.hasError) {
-          return SyriusErrorWidget(snapshot.error!);
+          return QuietNote.error(snapshot.error!);
         } else if (<ConnectionState>[
           ConnectionState.none,
           ConnectionState.done,
         ].contains(snapshot.connectionState)) {
-          return _getCardBody();
+          return _buildCardBody();
         }
-        return const SyriusLoadingWidget();
+        return const QuietNote('Switching');
       },
     );
   }

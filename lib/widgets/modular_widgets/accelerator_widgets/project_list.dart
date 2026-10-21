@@ -1,29 +1,48 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
-import 'package:flutter_vector_icons/flutter_vector_icons.dart';
-import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
-import 'package:rxdart/rxdart.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/refresh_button/view/refresh_button.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/page_widgets.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_parts.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_project_list_item.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_fields/input_field.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// The filters of the project list. [ProjectListBloc] reads them.
 enum AccProjectsFilterTag {
+  /// Projects the selected address owns.
   myProjects,
+
+  /// Accepted projects.
   onlyAccepted,
+
+  /// Projects the selected address's Pillar has not voted on.
   needsVoting,
+
+  /// Projects the selected address's Pillar has voted on.
   alreadyVoted,
 }
 
+/// Every Accelerator project, as the list that fills the Accelerator page:
+/// a search field and filters over the list [ProjectListBloc] holds. Rows
+/// are built as they scroll into view, so the list needs no paging.
 class AccProjectList extends StatefulWidget {
-
+  /// Creates the list. With [pillarInfo] it offers the voting filters.
   const AccProjectList({
     required this.onStepperNotificationSeeMorePressed,
     required this.pillarInfo,
     super.key,
   });
+
+  /// Opens the notifications page from a stepper.
   final VoidCallback onStepperNotificationSeeMorePressed;
+
+  /// The Pillar the selected address owns, if any.
   final PillarInfo? pillarInfo;
 
   @override
@@ -32,20 +51,10 @@ class AccProjectList extends StatefulWidget {
 
 class _AccProjectListState extends State<AccProjectList> {
   final ScrollController _scrollController = ScrollController();
-  final PagingController<int, Project> _pagingController = PagingController(
-    firstPageKey: 0,
-  );
-  late StreamSubscription _blocListingStateSubscription;
   late ProjectListBloc _bloc;
 
   final TextEditingController _searchKeyWordController =
       TextEditingController();
-
-  final StreamController<String> _textChangeStreamController =
-      StreamController();
-  late StreamSubscription _textChangesSubscription;
-
-  bool _sortAscending = true;
 
   @override
   void initState() {
@@ -53,96 +62,57 @@ class _AccProjectListState extends State<AccProjectList> {
     _bloc = ProjectListBloc(
       pillarInfo: widget.pillarInfo,
     );
-    _textChangesSubscription = _textChangeStreamController.stream
-        .debounceTime(
-          const Duration(seconds: 1),
-        )
-        .distinct()
-        .listen((String text) {
-      _bloc.onSearchInputChangedSink.add(text);
-    });
-    _pagingController.addPageRequestListener((int pageKey) {
-      _bloc.onPageRequestSink.add(pageKey);
-    });
-    _blocListingStateSubscription = _bloc.onNewListingState.listen(
-      (InfiniteScrollBlocListingState<Project> listingState) {
-        _pagingController.value = PagingState(
-          nextPageKey: listingState.nextPageKey,
-          error: listingState.error,
-          itemList: listingState.itemList,
-        );
-      },
-    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return CardScaffold(
-      title: 'Project List',
-      childBuilder: _getInfiniteScrollList,
-      onRefreshPressed: () {
-        _searchKeyWordController.clear();
-        _bloc.refreshResults();
-      },
-      description: 'This card displays a list that contains all the projects',
-    );
-  }
-
-  Widget _getInfiniteScrollList() {
-    return Padding(
-      padding: const EdgeInsets.all(15),
+    return Panel(
+      title: 'Projects',
+      actions: <Widget>[
+        IconButton(
+          key: const Key('acc_sort'),
+          tooltip: 'Sort by last update',
+          iconSize: 18,
+          color: AppColors.faint,
+          mouseCursor: SystemMouseCursors.click,
+          onPressed: _bloc.sortByLastUpdate,
+          icon: const Icon(Icons.swap_vert),
+        ),
+        RefreshButton(
+          onPressed: () {
+            // Clearing the field in code does not call its onChanged.
+            _searchKeyWordController.clear();
+            _bloc
+              ..search('')
+              ..refreshResults();
+            // The fund's balance in the row above can only have moved with
+            // the projects, so one refresh renews both.
+            unawaited(
+              sl.get<AcceleratorBalanceBloc>().getAcceleratorBalance(),
+            );
+          },
+        ),
+      ],
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          _getSearchInputField(),
-          kVerticalSpacing,
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              _getProjectsFilterTags(),
-              InkWell(
-                onTap: _sortProjectListByLastUpdate,
-                child: Icon(
-                  Entypo.select_arrows,
-                  size: 15,
-                  color: Theme.of(context).iconTheme.color,
-                ),
-              ),
-            ],
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+            child: Row(
+              children: <Widget>[
+                SizedBox(width: 280, child: _buildSearchInputField()),
+                const SizedBox(width: 14),
+                Expanded(child: _buildProjectsFilterTags()),
+              ],
+            ),
           ),
-          kVerticalSpacing,
+          const Divider(),
           Expanded(
-            child: Scrollbar(
-              controller: _scrollController,
-              thumbVisibility: true,
-              child: PagedListView.separated(
-                scrollController: _scrollController,
-                pagingController: _pagingController,
-                separatorBuilder: (_, __) => const SizedBox(
-                  height: 15,
-                ),
-                builderDelegate: PagedChildBuilderDelegate<Project>(
-                  itemBuilder: (_, Project project, __) => AcceleratorProjectListItem(
-                    key: ValueKey(
-                      project.id.toString(),
-                    ),
-                    pillarInfo: widget.pillarInfo,
-                    acceleratorProject: project,
-                    onStepperNotificationSeeMorePressed:
-                        widget.onStepperNotificationSeeMorePressed,
-                  ),
-                  firstPageProgressIndicatorBuilder: (_) =>
-                      const SyriusLoadingWidget(),
-                  firstPageErrorIndicatorBuilder: (_) => SyriusErrorWidget(
-                    _pagingController.error,
-                  ),
-                  newPageProgressIndicatorBuilder: (_) =>
-                      const SyriusLoadingWidget(),
-                  noMoreItemsIndicatorBuilder: (_) =>
-                      const SyriusErrorWidget('No more items'),
-                  noItemsFoundIndicatorBuilder: (_) =>
-                      const SyriusErrorWidget('No items found'),
-                ),
-              ),
+            child: StreamBuilder<ProjectListState>(
+              stream: _bloc.stream,
+              initialData: _bloc.state,
+              builder: (_, AsyncSnapshot<ProjectListState> snapshot) =>
+                  _buildList(snapshot.data!),
             ),
           ),
         ],
@@ -150,88 +120,112 @@ class _AccProjectListState extends State<AccProjectList> {
     );
   }
 
-  Widget _getSearchInputField() {
+  Widget _buildList(ProjectListState state) {
+    final List<Project>? projects = state.projects;
+    if (projects == null) {
+      if (state.error != null) {
+        return RepaintBoundary(child: SyriusErrorWidget(state.error!));
+      }
+      return const Padding(
+        padding: EdgeInsets.all(24),
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(
+              strokeWidth: 1.5,
+              color: AppColors.znnColor,
+            ),
+          ),
+        ),
+      );
+    }
+    if (projects.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.all(24),
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: Text(
+            'None yet',
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium!.copyWith(fontSize: 14),
+          ),
+        ),
+      );
+    }
+    return Scrollbar(
+      controller: _scrollController,
+      child: ListView.separated(
+        controller: _scrollController,
+        itemCount: projects.length,
+        separatorBuilder: (_, _) => const Divider(thickness: 0.75),
+        itemBuilder: (_, int index) => AcceleratorProjectListItem(
+          key: ValueKey<String>(projects[index].id.toString()),
+          pillarInfo: widget.pillarInfo,
+          acceleratorProject: projects[index],
+          onStepperNotificationSeeMorePressed:
+              widget.onStepperNotificationSeeMorePressed,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchInputField() {
     return InputField(
       controller: _searchKeyWordController,
-      hintText: 'Search by id, owner, name, description, or URL',
+      hintText: 'Search projects',
+      inputtedTextStyle: Theme.of(
+        context,
+      ).textTheme.bodyLarge!.copyWith(fontSize: 14),
       suffixIcon: const Icon(
         Icons.search,
-        color: Colors.green,
+        size: 18,
+        color: AppColors.faint,
       ),
-      onChanged: _textChangeStreamController.add,
+      // Each keystroke: the search is over the list in memory.
+      onChanged: _bloc.search,
     );
   }
 
-  Row _getProjectsFilterTags() {
-    final List<TagWidget> children = <TagWidget>[];
-
+  Widget _buildProjectsFilterTags() {
+    final List<Widget> children = <Widget>[];
     for (final AccProjectsFilterTag tag in AccProjectsFilterTag.values) {
-      if (widget.pillarInfo == null) {
-        if (<AccProjectsFilterTag>[
-          AccProjectsFilterTag.needsVoting,
-          AccProjectsFilterTag.alreadyVoted,
-        ].contains(tag)) {
-          continue;
-        }
+      if (widget.pillarInfo == null &&
+          <AccProjectsFilterTag>[
+            AccProjectsFilterTag.needsVoting,
+            AccProjectsFilterTag.alreadyVoted,
+          ].contains(tag)) {
+        continue;
       }
-      children.add(_getProjectsFilterTag(tag));
+      if (children.isNotEmpty) children.add(const SizedBox(width: 6));
+      children.add(_buildProjectsFilterTag(tag));
     }
-
-    return Row(
-      children: children,
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(children: children),
     );
   }
 
-  TagWidget _getProjectsFilterTag(AccProjectsFilterTag filterTag) {
-    return TagWidget(
-      text: FormatUtils.extractNameFromEnum<AccProjectsFilterTag>(filterTag),
-      hexColorCode: Theme.of(context)
-          .colorScheme
-          .primaryContainer
-          .value
-          .toRadixString(16)
-          .substring(2),
-      iconData: _bloc.selectedProjectsFilterTag.contains(filterTag)
-          ? Icons.check_rounded
-          : null,
+  Widget _buildProjectsFilterTag(AccProjectsFilterTag filterTag) {
+    final bool selected = _bloc.selectedProjectsFilterTag.contains(filterTag);
+    return AccChip(
+      key: Key('acc_filter_${filterTag.name}'),
+      label: FormatUtils.extractNameFromEnum<AccProjectsFilterTag>(filterTag),
+      icon: selected ? Icons.check_rounded : null,
+      selected: selected,
       onPressed: () {
-        setState(() {
-          if (_bloc.selectedProjectsFilterTag.contains(filterTag)) {
-            _bloc.selectedProjectsFilterTag.remove(filterTag);
-          } else {
-            _bloc.selectedProjectsFilterTag.add(filterTag);
-          }
-          _bloc.refreshResults();
-        });
+        setState(() => _bloc.toggleFilter(filterTag));
       },
     );
   }
 
   @override
   void dispose() {
-    _textChangesSubscription.cancel();
-    _blocListingStateSubscription.cancel();
-    _textChangeStreamController.sink.close();
-    _textChangeStreamController.close();
-    _bloc.onPageRequestSink.close();
-    _bloc.onSearchInputChangedSink.close();
     _bloc.dispose();
-    _pagingController.dispose();
+    _searchKeyWordController.dispose();
     _scrollController.dispose();
     super.dispose();
-  }
-
-  void _sortProjectListByLastUpdate() {
-    if (_pagingController.itemList != null &&
-        _pagingController.itemList!.isNotEmpty) {
-      _sortAscending
-          ? _pagingController.itemList!.sort(
-              (Project a, Project b) => a.lastUpdateTimestamp.compareTo(b.lastUpdateTimestamp),)
-          : _pagingController.itemList!.sort(
-              (Project a, Project b) => b.lastUpdateTimestamp.compareTo(a.lastUpdateTimestamp),);
-      setState(() {
-        _sortAscending = !_sortAscending;
-      });
-    }
   }
 }

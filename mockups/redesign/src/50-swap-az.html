@@ -1,0 +1,122 @@
+
+<!-- ===== P2P Swap ===== -->
+<section class="scr" id="swap-list" data-nav="swap" data-group="Swap, Accelerator" data-title="Swap: list with an active swap opened">
+<div class="pg">
+  <div class="card stripcard">
+    <div class="stat"><span class="lab">Active</span><span class="v">1</span></div>
+    <div class="stat"><span class="lab">Completed</span><span class="v">4</span></div>
+    <div class="stat"><span class="lab">To reclaim</span><span class="v">0</span></div>
+    <div class="acts"><button class="btn"><svg class="i"><use href="#link"/></svg>Join swap</button><button class="btn go"><svg class="i"><use href="#plus"/></svg>Start swap</button></div>
+  </div>
+  <div class="card" style="flex:1">
+    <div class="hd">Swaps<span class="cnt">5</span><span class="end"><span class="chip">All <svg class="i xs"><use href="#chev"/></svg></span><button class="btn xs ghost"><svg class="i s"><use href="#more"/></svg></button></span></div>
+    <table>
+      <tr><th>Status</th><th>You send</th><th>You receive</th><th>Counterparty</th><th>Expires</th><th></th></tr>
+      <tr class="open"><td><span class="chip wait"><span class="dot blue live" style="width:6px;height:6px"></span>Waiting</span></td><td class="num">100 ZNN</td><td class="num">1,000 QSR</td><td class="addr">z1qpx3…m7ua</td><td><span class="num dim">23 h 12 m</span></td><td class="r"><svg class="i s faint" style="transform:rotate(180deg)"><use href="#chev"/></svg></td></tr>
+      <tr class="sub"><td colspan="6">
+        <div class="col" style="padding:0 0 12px 0;gap:12px">
+          <div class="row" style="gap:10px;padding:10px 12px;border-radius:var(--r);background:var(--card3)"><svg class="i s qsr"><use href="#info"/></svg><span style="font-size:13.5px">Waiting for the counterparty. Keep Syrius open.</span><span class="dim" style="margin-left:auto;font-size:12.5px">They join within 23 h, or your deposit comes back.</span></div>
+          <div class="kv" style="grid-template-columns:auto 1fr auto 1fr;gap:6px 20px;font-size:13px">
+            <span class="lab">Your deposit ID</span><span class="addr" style="color:var(--fg)">a94c3f…e1b8 <svg class="i xs"><use href="#copy"/></svg> <button class="btn xs" style="margin-left:6px">Copy for them</button></span>
+            <span class="lab">Counterparty</span><span class="addr">z1qpx3lm9ue4a6pz0t2gs3x8r5cq2wkz8vk7w0m7ua</span>
+            <span class="lab">Rate</span><span class="num">1 ZNN = 10 QSR</span>
+            <span class="lab">Hashlock</span><span class="addr">3b7f…9c21</span>
+            <span class="lab">Started</span><span>48 min ago <a class="dim"><svg class="i xs"><use href="#ext"/></svg> explorer</a></span>
+            <span class="lab">Secret</span><span class="dim">Kept on this computer until they join</span>
+          </div>
+        </div>
+      </td></tr>
+      <tr><td><span class="chip ok"><svg class="i xs"><use href="#check"/></svg>Completed</span></td><td class="num">50 ZNN</td><td class="num">2 WBTC</td><td class="addr">Alice</td><td class="dim">3 d ago</td><td class="r"><svg class="i s faint"><use href="#chev"/></svg></td></tr>
+      <tr><td><span class="chip ok"><svg class="i xs"><use href="#check"/></svg>Completed</span></td><td class="num">1,000 QSR</td><td class="num">100 ZNN</td><td class="addr">z1qr4p…9d2a</td><td class="dim">9 d ago</td><td class="r"><svg class="i s faint"><use href="#chev"/></svg></td></tr>
+      <tr><td><span class="chip">Reclaimed</span></td><td class="num">20 ZNN</td><td class="num">200 PP</td><td class="addr">z1qz8v…k3ey</td><td class="dim">21 d ago</td><td class="r"><svg class="i s faint"><use href="#chev"/></svg></td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="swap-start" data-nav="swap" data-group="Swap, Accelerator" data-title="Start swap: the transfer shape in a dialog">
+<div class="pg">
+  <div class="card stripcard"><div class="stat"><span class="lab">Active</span><span class="v">1</span></div><div class="stat"><span class="lab">Completed</span><span class="v">4</span></div><div class="stat"><span class="lab">To reclaim</span><span class="v">0</span></div><div class="acts"><button class="btn">Join swap</button><button class="btn go">Start swap</button></div></div>
+  <div class="card" style="flex:1"><div class="hd">Swaps<span class="cnt">5</span></div><div class="bd"><div class="skel" style="width:60%"></div><div class="skel" style="width:40%"></div></div></div>
+</div>
+<div class="ov">
+  <div class="dlg" style="width:480px">
+    <div class="hd">Start swap<span class="end"><a class="dim" style="font-size:13px;font-weight:400">How it works</a><svg class="i s faint"><use href="#x"/></svg></span></div>
+    <div class="bd" style="gap:10px">
+      <div class="col" style="gap:6px;padding:14px;border-radius:12px;background:var(--card2);border:1px solid var(--line)">
+        <span class="row sp lab"><span>You send</span><span style="text-transform:none">Address 2 · 1,204.5 ZNN</span></span>
+        <div class="row" style="gap:10px"><span class="col" style="flex:1"><span class="num" style="font-size:28px">100</span><span class="usd" style="margin-left:0">$62.00</span></span><span class="chip on" style="height:34px;font-size:14px"><span class="coin z" style="width:20px;height:20px;font-size:9px">Z</span>ZNN <svg class="i xs"><use href="#chev"/></svg></span></div>
+      </div>
+      <div style="display:flex;justify-content:center;margin:-16px 0;position:relative;z-index:1"><span class="ic" style="background:var(--card3);border:1px solid var(--line);color:var(--fg)"><svg class="i s"><use href="#swap"/></svg></span></div>
+      <div class="col" style="gap:6px;padding:14px;border-radius:12px;background:var(--card2);border:1px solid var(--line)">
+        <span class="row sp lab"><span>You receive</span><span style="text-transform:none">to Address 2</span></span>
+        <div class="row" style="gap:10px"><span class="col" style="flex:1"><span class="num" style="font-size:28px">1,000</span><span class="usd" style="margin-left:0">$31.00</span></span><span class="chip on" style="height:34px;font-size:14px"><span class="coin q" style="width:20px;height:20px;font-size:9px">Q</span>QSR <svg class="i xs"><use href="#chev"/></svg></span></div>
+      </div>
+      <div class="col" style="gap:6px"><span class="lab">Counterparty</span><div class="field on"><span class="v addr" style="color:var(--fg)">z1qpx3lm9ue4a6pz0t2gs3x8r5cq2wkz8vk7w0m7ua</span><span class="end"><svg class="i s"><use href="#book"/></svg></span></div></div>
+      <div class="row sp" style="font-size:13px"><span class="dim">Rate <span class="num" style="color:var(--fg)">1 ZNN = 10 QSR</span></span><span class="dim">They join within <span class="num" style="color:var(--fg)">24 h</span></span></div>
+      <span class="note"><svg class="i s warn"><use href="#warn"/></svg>Experimental. Funds can be lost; split a large swap. The wallet does not auto-lock during a swap.</span>
+    </div>
+    <div class="ft"><button class="btn">Cancel</button><button class="btn go">Start swap</button></div>
+  </div>
+</div>
+</section>
+
+<!-- ===== Accelerator ===== -->
+<section class="scr" id="az" data-nav="az" data-group="Swap, Accelerator" data-title="Accelerator: projects with votes in the row">
+<div class="pg">
+  <div class="card stripcard">
+    <div class="stat"><span class="lab">Fund</span><span class="v">1,000,000 <span class="znn" style="font-size:13px">ZNN</span> <span class="dim" style="font-size:13px">·</span> 10,000,000 <span class="qsr" style="font-size:13px">QSR</span></span></div>
+    <div class="stat"><span class="lab">Voting</span><span class="v">6 <span class="dim" style="font-size:13px">need your pillar</span></span></div>
+    <div class="acts"><button class="btn"><svg class="i"><use href="#hand"/></svg>Donate</button><button class="btn go"><svg class="i"><use href="#plus"/></svg>Create project</button></div>
+  </div>
+  <div class="card" style="flex:1">
+    <div class="hd" style="gap:14px"><div class="seg"><span class="on">Voting</span><span>Active</span><span>Mine</span><span>All</span></div><span class="end"><span class="field" style="height:30px;width:220px;font-size:13px"><svg class="i s"><use href="#search"/></svg><span class="ph">Search</span></span><span class="chip"><svg class="i xs"><use href="#sort"/></svg>Newest</span></span></div>
+    <table>
+      <tr><th>Project</th><th class="r">Budget</th><th>Votes</th><th>Quorum</th><th>Status</th><th></th></tr>
+      <tr><td><span class="col"><span>Sentinel snapshot sync</span><span class="addr" style="font-size:12px">by z1qz9zr…yrn2un · 2 d ago</span></span></td><td class="r num">5,000 ZNN<br><span class="dim">50,000 QSR</span></td><td><span class="row" style="gap:8px"><span class="votes"><b class="y" style="width:62%"></b><b class="n" style="width:14%"></b><b class="a" style="width:6%"></b></span><span class="num dim" style="font-size:12px">21 · 5 · 2</span></span></td><td><span class="num">28 of 33</span></td><td><span class="chip need"><svg class="i xs"><use href="#vote"/></svg>Your vote</span></td><td class="r"><svg class="i s faint"><use href="#chevr"/></svg></td></tr>
+      <tr><td><span class="col"><span>Syrius desktop redesign</span><span class="addr" style="font-size:12px">by Address 2 · 5 d ago</span></span></td><td class="r num">12,000 ZNN<br><span class="dim">120,000 QSR</span></td><td><span class="row" style="gap:8px"><span class="votes"><b class="y" style="width:80%"></b><b class="n" style="width:4%"></b></span><span class="num dim" style="font-size:12px">33 · 2 · 0</span></span></td><td><span class="num">35 of 33</span></td><td><span class="chip ok"><svg class="i xs"><use href="#check"/></svg>Accepted</span></td><td class="r"><svg class="i s faint"><use href="#chevr"/></svg></td></tr>
+      <tr><td><span class="col"><span>PTLC on mainnet</span><span class="addr" style="font-size:12px">by z1qr4p…9d2a · 6 d ago</span></span></td><td class="r num">8,000 ZNN<br><span class="dim">0 QSR</span></td><td><span class="row" style="gap:8px"><span class="votes"><b class="y" style="width:30%"></b><b class="n" style="width:38%"></b><b class="a" style="width:8%"></b></span><span class="num dim" style="font-size:12px">11 · 14 · 3</span></span></td><td><span class="num">28 of 33</span></td><td><span class="chip need"><svg class="i xs"><use href="#vote"/></svg>Your vote</span></td><td class="r"><svg class="i s faint"><use href="#chevr"/></svg></td></tr>
+      <tr><td><span class="col"><span>Rust client, phase 2</span><span class="addr" style="font-size:12px">by z1qpx3…m7ua · 12 d ago</span></span></td><td class="r num">20,000 ZNN<br><span class="dim">200,000 QSR</span></td><td><span class="row" style="gap:8px"><span class="votes"><b class="y" style="width:50%"></b><b class="n" style="width:10%"></b></span><span class="num dim" style="font-size:12px">18 · 4 · 0</span></span></td><td><span class="num dim">22 of 33</span></td><td><span class="chip wait"><svg class="i xs"><use href="#clock"/></svg>Voting</span></td><td class="r"><svg class="i s faint"><use href="#chevr"/></svg></td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="az-project" data-nav="az" data-group="Swap, Accelerator" data-title="Accelerator: a project, opened by container transform">
+<div class="pg">
+  <div class="card" style="flex:1">
+    <div class="hd"><button class="btn xs ghost"><svg class="i s"><use href="#chevl"/></svg>Projects</button><span style="font-size:16px">Sentinel snapshot sync</span><span class="chip need" style="margin-left:4px"><svg class="i xs"><use href="#vote"/></svg>Your vote</span><span class="end"><a class="dim" style="font-size:13px;font-weight:400"><svg class="i xs"><use href="#ext"/></svg> Article</a><a class="dim" style="font-size:13px;font-weight:400"><svg class="i xs"><use href="#ext"/></svg> Explorer</a></span></div>
+    <div class="bd" style="flex-direction:row;gap:0;padding:0;min-height:0">
+      <div class="col" style="flex:1;padding:20px 24px;gap:16px;border-right:1px solid var(--line);min-width:0">
+        <div class="row" style="gap:28px">
+          <div class="stat col"><span class="lab">Budget</span><span class="num" style="font-size:19px">5,000 ZNN <span class="dim" style="font-size:13px">· 50,000 QSR</span></span></div>
+          <div class="stat col"><span class="lab">Owner</span><span class="addr" style="font-size:14px">z1qz9zr…yrn2un</span></div>
+          <div class="stat col"><span class="lab">Created</span><span>11 Oct 2026</span></div>
+        </div>
+        <p class="dim" style="margin:0;font-size:14px;max-width:62ch">State snapshots served by Sentinels so a new node syncs in minutes instead of days. Phase 1 is the snapshot format and the serving endpoint; phase 2 is verification against the state root.</p>
+        <div class="card" style="background:var(--card2)">
+          <div class="hd">Phases<span class="cnt">2</span><span class="end"><button class="btn xs" disabled>Create phase</button></span></div>
+          <table>
+            <tr><td><span class="col"><span>1 · Snapshot format and endpoint</span><span class="dim" style="font-size:12px">Proof: PR #14</span></span></td><td class="r num">2,000 ZNN<br><span class="dim">20,000 QSR</span></td><td><span class="row" style="gap:8px"><span class="votes"><b class="y" style="width:70%"></b><b class="n" style="width:6%"></b></span><span class="num dim" style="font-size:12px">23 · 2 · 0</span></span></td><td class="r"><span class="chip ok"><svg class="i xs"><use href="#check"/></svg>Paid</span></td></tr>
+            <tr><td><span class="col"><span>2 · Verification against the state root</span><span class="dim" style="font-size:12px">Proof: PR #19</span></span></td><td class="r num">3,000 ZNN<br><span class="dim">30,000 QSR</span></td><td><span class="row" style="gap:8px"><span class="votes"><b class="y" style="width:62%"></b><b class="n" style="width:14%"></b><b class="a" style="width:6%"></b></span><span class="num dim" style="font-size:12px">21 · 5 · 2</span></span></td><td class="r"><span class="chip wait"><svg class="i xs"><use href="#clock"/></svg>Voting</span></td></tr>
+          </table>
+        </div>
+      </div>
+      <div class="col" style="width:320px;padding:20px;gap:14px">
+        <span class="lab">Vote as dev1, phase 2</span>
+        <div class="row" style="gap:8px"><button class="btn go" style="flex:1">Yes</button><button class="btn" style="flex:1">No</button><button class="btn ghost">Abstain</button></div>
+        <div class="col" style="gap:8px;padding:12px;border-radius:var(--r);background:var(--card2)">
+          <div class="row sp" style="font-size:13px"><span class="dim">Yes</span><span class="num">21</span></div>
+          <div class="row sp" style="font-size:13px"><span class="dim">No</span><span class="num">5</span></div>
+          <div class="row sp" style="font-size:13px"><span class="dim">Abstain</span><span class="num">2</span></div>
+          <div class="line"></div>
+          <div class="row sp" style="font-size:13px"><span class="dim">Quorum</span><span class="num">28 of 33</span></div>
+          <div class="meter"><b style="width:85%;background:var(--znn)"></b></div>
+          <span class="smallcap">Needs 33 votes and more yes than no.</span>
+        </div>
+        <span class="smallcap">Voting closes in 9 d 4 h.</span>
+      </div>
+    </div>
+  </div>
+</div>
+</section>

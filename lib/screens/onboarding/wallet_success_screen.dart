@@ -1,11 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/onboarding/onboarding_scaffold.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
+/// The last step: the wallet is made. The map animation is kept as it was.
 class WalletSuccessScreen extends StatefulWidget {
-
   const WalletSuccessScreen({
     this.progressBarNumLevels = 5,
     super.key,
@@ -19,49 +19,19 @@ class WalletSuccessScreen extends StatefulWidget {
 class _WalletSuccessScreenState extends State<WalletSuccessScreen> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        padding: const EdgeInsets.symmetric(
-          vertical: 30,
-        ),
-        child: _getSuccessBody(),
+    return OnboardingScaffold(
+      step: widget.progressBarNumLevels,
+      steps: widget.progressBarNumLevels,
+      title: "You're all set",
+      subtitle: 'Your wallet is ready',
+      maxWidth: 560,
+      primary: _getAccessWalletActionButton(),
+      child: const SizedBox(
+        height: 260,
+        // The animation repaints every frame; its own layer keeps that off
+        // the page.
+        child: AppLottie(AppLottieAsset.map, fit: BoxFit.contain),
       ),
-    );
-  }
-
-  Column _getSuccessBody() {
-    return Column(
-      children: <Widget>[
-        Column(
-          children: <Widget>[
-            ProgressBar(
-              currentLevel: widget.progressBarNumLevels,
-              numLevels: widget.progressBarNumLevels,
-            ),
-            const SizedBox(
-              height: 30,
-            ),
-            Text(
-              "You're all set",
-              style: Theme.of(context).textTheme.headlineLarge,
-            ),
-            kVerticalSpacing,
-            Text(
-              'The wallet has been successfully created',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-        Expanded(
-          child: Center(
-            child: Lottie.asset(
-              'assets/lottie/ic_anim_map.json',
-              fit: BoxFit.contain,
-            ),
-          ),
-        ),
-        _getAccessWalletActionButton(),
-      ],
     );
   }
 

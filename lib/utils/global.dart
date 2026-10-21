@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
@@ -39,7 +39,6 @@ bool kEmbeddedNodeRunning = false;
 final List<Tabs> kTabsWithIconTitles = <Tabs>[
   if (kWcProjectId.isNotEmpty) Tabs.walletConnect,
   Tabs.accelerator,
-  Tabs.help,
   Tabs.notifications,
   Tabs.settings,
   Tabs.generation,

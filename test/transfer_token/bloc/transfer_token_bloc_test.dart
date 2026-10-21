@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/plasma_purpose.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -64,7 +65,7 @@ void main() {
       when(
         () => accountBlockUtils.createAccountBlock(
           transactionParams,
-          'transfer token',
+          PlasmaPurpose.transferToken.message,
           waitForRequiredPlasma: true,
         ),
       ).thenAnswer((_) async => response);
@@ -100,7 +101,7 @@ void main() {
         verify(
           () => accountBlockUtils.createAccountBlock(
             transactionParams,
-            'transfer token',
+            PlasmaPurpose.transferToken.message,
             waitForRequiredPlasma: true,
           ),
         ).called(1);
@@ -117,7 +118,7 @@ void main() {
         when(
           () => accountBlockUtils.createAccountBlock(
             transactionParams,
-            'transfer token',
+            PlasmaPurpose.transferToken.message,
             waitForRequiredPlasma: true,
           ),
         ).thenThrow(FailureException());
@@ -145,7 +146,7 @@ void main() {
         when(
           () => accountBlockUtils.createAccountBlock(
             transactionParams,
-            'transfer token',
+            PlasmaPurpose.transferToken.message,
             waitForRequiredPlasma: true,
           ),
         ).thenThrow(Exception('boom'));

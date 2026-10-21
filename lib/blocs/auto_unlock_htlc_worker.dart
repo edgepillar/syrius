@@ -4,6 +4,7 @@ import 'dart:collection';
 import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:logging/logging.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/base_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/notification_type.dart';
 import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
@@ -12,6 +13,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/plasma_purpose.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class AutoUnlockHtlcWorker extends BaseBloc<WalletNotification> {
@@ -34,17 +36,17 @@ class AutoUnlockHtlcWorker extends BaseBloc<WalletNotification> {
         final HtlcSwap? swap = htlcSwapsService!
             .getSwapByHashLock(FormatUtils.encodeHexString(htlc.hashLock));
         if (swap == null || swap.preimage == null) {
-          throw 'Invalid swap';
+          throw currentL10n.autoUnlockInvalidSwapError;
         }
         if (!kDefaultAddressList.contains(htlc.hashLocked.toString())) {
-          throw 'Swap address not in default addresses. Please add the address in the addresses list.';
+          throw currentL10n.autoUnlockAddressNotInWalletError;
         }
         final AccountBlockTemplate transactionParams = zenon!.embedded.htlc
             .unlock(htlc.id, FormatUtils.decodeHexString(swap.preimage!));
         final AccountBlockTemplate response =
             await AccountBlockUtils().createAccountBlock(
           transactionParams,
-          'complete swap',
+          PlasmaPurpose.completeSwap.message,
           address: htlc.hashLocked,
           waitForRequiredPlasma: true,
         );
@@ -70,9 +72,9 @@ class AutoUnlockHtlcWorker extends BaseBloc<WalletNotification> {
   void _sendErrorNotification(String errorText) {
     addEvent(
       WalletNotification(
-        title: 'Failed to complete swap',
+        title: currentL10n.autoUnlockFailedNotificationTitle,
         timestamp: DateTime.now().millisecondsSinceEpoch,
-        details: 'Failed to complete the swap: $errorText',
+        details: currentL10n.autoUnlockFailedNotificationDetails(errorText),
         type: NotificationType.error,
       ),
     );
@@ -81,10 +83,13 @@ class AutoUnlockHtlcWorker extends BaseBloc<WalletNotification> {
   void _sendSuccessNotification(AccountBlockTemplate block, String toAddress) {
     addEvent(
       WalletNotification(
-        title:
-            'Transaction received on ${ZenonAddressUtils.getLabel(toAddress)}',
+        title: currentL10n.transactionReceivedNotificationTitle(
+          ZenonAddressUtils.getLabel(toAddress),
+        ),
         timestamp: DateTime.now().millisecondsSinceEpoch,
-        details: 'Transaction hash: ${block.hash}',
+        details: currentL10n.transactionReceivedNotificationDetails(
+          '${block.hash}',
+        ),
         type: NotificationType.paymentReceived,
       ),
     );

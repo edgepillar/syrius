@@ -1,6 +1,7 @@
 import 'package:convert/convert.dart';
 import 'package:logging/logging.dart';
 import 'package:validators/validators.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -11,7 +12,7 @@ class InputValidators {
     if (address != null && RegExp(kEVMAddressRegex).hasMatch(address)) {
       return null;
     }
-    return 'Invalid address';
+    return currentL10n.validatorInvalidAddress;
   }
 
   static String? node(String? node) {
@@ -20,31 +21,33 @@ class InputValidators {
             .hasMatch(node)) {
       return null;
     }
-    return 'Invalid Node';
+    return currentL10n.validatorInvalidNode;
   }
 
   static String? recipientAddress(String recipientAddress) {
     if (!kDefaultAddressList.contains(recipientAddress)) {
-      return 'Must be an address from your wallet';
+      return currentL10n.validatorAddressNotInWallet;
     }
     return null;
   }
 
   static String? notEmpty(String fieldName, String? value) {
-    return (value ?? '').isEmpty ? '$fieldName must not be empty' : null;
+    return (value ?? '').isEmpty
+        ? currentL10n.validatorFieldEmpty(fieldName)
+        : null;
   }
 
   static String? validateNumber(String? number) {
     try {
       if (number == null || number.isEmpty) {
-        return 'Number required';
+        return currentL10n.validatorNumberRequired;
       }
       int.parse(number);
       return null;
     } catch (e, stackTrace) {
       Logger('InputValidators')
           .log(Level.SEVERE, 'validateNumber ', e, stackTrace);
-      return 'Input is not a valid number';
+      return currentL10n.validatorInvalidNumber;
     }
   }
 
@@ -52,17 +55,17 @@ class InputValidators {
     if (value != null) {
       try {
         if (value.isEmpty) {
-          return 'Invalid amount';
+          return currentL10n.validatorInvalidAmount;
         }
         BigInt.parse(value);
         return null;
       } catch (e, stackTrace) {
         Logger('InputValidators')
             .log(Level.SEVERE, 'validateAmount', e, stackTrace);
-        return 'Error';
+        return currentL10n.validatorError;
       }
     } else {
-      return 'Value is null';
+      return currentL10n.validatorValueNull;
     }
   }
 
@@ -80,59 +83,71 @@ class InputValidators {
           if (canBeEqualToMin) {
             return null;
           }
-          return 'Empty balance';
+          return currentL10n.validatorEmptyBalance;
         }
         if (value.isEmpty) {
           if (canBeBlank) {
             return null;
           } else {
-            return 'Enter a valid amount';
+            return currentL10n.validatorEnterValidAmount;
           }
         }
 
         final BigInt inputNum = value.extractDecimals(decimals);
 
         if (value.contains('.') && value.split('.')[1].length > decimals) {
-          return 'Inputted number has too many decimals';
+          return currentL10n.validatorTooManyDecimals;
         }
         if (maxValue < minValue) {
-          return 'Your available balance must be at least ${minValue.addDecimals(decimals)}';
+          return currentL10n.validatorBalanceBelowMin(
+            minValue.addDecimals(decimals),
+          );
         }
         if (canBeEqualToMin) {
           return minValue <= inputNum && inputNum <= maxValue
               ? null
               : maxValue == minValue
-                  ? 'Value must be  ${minValue.addDecimals(decimals)}'
-                  : 'Value must be between ${minValue.addDecimals(decimals)} and ${maxValue.addDecimals(decimals)}';
+                  ? currentL10n.validatorValueMustBeMinAllowed(
+                      minValue.addDecimals(decimals),
+                    )
+                  : currentL10n.validatorValueOutOfRange(
+                      minValue.addDecimals(decimals),
+                      maxValue.addDecimals(decimals),
+                    );
         }
         return minValue < inputNum && inputNum <= maxValue
             ? null
             : maxValue == minValue
-                ? 'Value must be ${minValue.addDecimals(decimals)}'
-                : 'Value must be between ${minValue.addDecimals(decimals)} and ${maxValue.addDecimals(decimals)}';
+                ? currentL10n.validatorValueMustBe(
+                    minValue.addDecimals(decimals),
+                  )
+                : currentL10n.validatorValueOutOfRange(
+                    minValue.addDecimals(decimals),
+                    maxValue.addDecimals(decimals),
+                  );
       } catch (e, stackTrace) {
         Logger('InputValidators')
             .log(Level.SEVERE, 'correctValue', e, stackTrace);
-        return 'Error';
+        return currentL10n.validatorError;
       }
     }
-    return "Value can't be empty";
+    return currentL10n.validatorValueEmpty;
   }
 
   static String? checkAddress(String? value) {
     if (value != null) {
       if (value.isEmpty) {
-        return 'Enter an address';
+        return currentL10n.validatorEnterAddress;
       }
-      return Address.isValid(value) ? null : 'Invalid address';
+      return Address.isValid(value) ? null : currentL10n.validatorInvalidAddress;
     } else {
-      return 'Value is null';
+      return currentL10n.validatorValueNull;
     }
   }
 
   static String? checkPasswordMatch(String firstPass, String? secondPass) {
     if (firstPass != secondPass) {
-      return 'Passwords do not match';
+      return currentL10n.validatorPasswordsDoNotMatch;
     }
     return null;
   }
@@ -140,7 +155,7 @@ class InputValidators {
   static String? validatePassword(String? value) {
     if (value != null) {
       if (value.length < 8) {
-        return 'Password not strong enough';
+        return currentL10n.validatorPasswordTooWeak;
       }
       const String pattern =
           r'''^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[`~!@#$%^&*()\-_=+\[\]\{\}\\|;:",<.>\/\?']).{8,}$''';
@@ -148,9 +163,9 @@ class InputValidators {
       if (regExp.hasMatch(value)) {
         return null;
       }
-      return 'Invalid password';
+      return currentL10n.validatorInvalidPassword;
     } else {
-      return 'Value is null';
+      return currentL10n.validatorValueNull;
     }
   }
 
@@ -158,14 +173,14 @@ class InputValidators {
     if (value != null) {
       if (checkAddress(value) == null) {
         if (kDefaultAddressList.contains(value)) {
-          return 'Pillar producer address must be generated from a different seed';
+          return currentL10n.validatorPillarProducerAddressSameSeed;
         }
       } else {
         return checkAddress(value);
       }
       return null;
     } else {
-      return 'Value is null';
+      return currentL10n.validatorValueNull;
     }
   }
 
@@ -173,16 +188,16 @@ class InputValidators {
     if (value != null) {
       try {
         if (BigInt.parse(value) != BigInt.zero) {
-          return 'Max supply must be 0 for non-mintable tokens';
+          return currentL10n.validatorMaxSupplyNotZero;
         }
         return null;
       } catch (e, stackTrace) {
         Logger('InputValidators')
             .log(Level.SEVERE, 'isMaxSupplyZero', e, stackTrace);
-        return 'Error';
+        return currentL10n.validatorError;
       }
     } else {
-      return 'Value is null';
+      return currentL10n.validatorValueNull;
     }
   }
 
@@ -192,7 +207,7 @@ class InputValidators {
     if (isURL(value, protocols: protocols)) {
       return null;
     }
-    return 'Invalid URL';
+    return currentL10n.validatorInvalidUrl;
   }
 
   static String? checkHash(String? value) {
@@ -201,9 +216,9 @@ class InputValidators {
         return null;
       }
     } catch (e) {
-      return 'Invalid hash';
+      return currentL10n.validatorInvalidHash;
     }
-    return 'Invalid hash';
+    return currentL10n.validatorInvalidHash;
   }
 
   static Future<String?> checkSecret(HtlcInfo htlc, String? value) async {
@@ -217,9 +232,9 @@ class InputValidators {
           return null;
         }
       } catch (e) {
-        return 'Invalid secret';
+        return currentL10n.validatorInvalidSecret;
       }
     }
-    return 'Invalid secret';
+    return currentL10n.validatorInvalidSecret;
   }
 }

@@ -1,5 +1,5 @@
 import 'package:event/event.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:reown_core/store/i_generic_store.dart';
 import 'package:reown_core/store/i_store.dart';
 import 'package:reown_core/store/store_models.dart';

@@ -1,21 +1,22 @@
-import 'dart:async';
-
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:lottie/lottie.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/card_parts/card_parts.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/pillar_parts/pillar_parts.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-/// Shows the current selected address sentinel status.
+/// The selected address's own sentinel, under the sentinel animation.
 ///
-/// If the selected address does not own a sentinel, the card shows an action to
-/// start the sentinel creation flow. If it already owns one, the card informs
-/// the user that the address cannot be reused for another sentinel.
+/// If the address does not own one, the card offers to spawn one. If it
+/// does, the card says so; an address cannot hold a second sentinel.
+///
+/// The card has four states, which cross-fade: loading (bars), populated,
+/// empty (no sentinel on the address) and error.
 class SentinelStatsCard extends StatelessWidget {
   /// {@macro default_constructor}
   const SentinelStatsCard({
@@ -53,95 +54,159 @@ class _View extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return NewCardScaffold(
-      body: _buildBody(context),
-      data: _buildCardData(context: context),
-      onRefreshPressed: () {
-        context.read<SentinelsByOwnerBloc>().add(
-          FetchRequestData(
-            address: Address.parse(kSelectedAddress!),
-          ),
-        );
-      },
-    );
-  }
-
-  CardData _buildCardData({required BuildContext context}) {
-    return CardData(
-      description: context.l10n.createSentinelDescription,
-      title: context.l10n.sentinelStats,
-    );
-  }
-
-  Widget _buildBody(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: <Widget>[
-        Lottie.asset('assets/lottie/ic_anim_sentinel.json', repeat: false),
-        Expanded(
-          child:
-              BlocBuilder<SentinelsByOwnerBloc, FetchState<List<SentinelInfo>>>(
-                builder: (_, FetchState<List<SentinelInfo>> state) {
-                  return switch (state) {
-                    FetchFailure<List<SentinelInfo>>() => SyriusErrorWidget(
-                      state.exception,
-                    ),
-                    FetchInitial<List<SentinelInfo>>() =>
-                      const SyriusLoadingWidget(),
-                    FetchPopulated<List<SentinelInfo>>() =>
-                      state.data.any(
-                            (SentinelInfo sentinelInfo) => sentinelInfo.active,
-                          )
-                          ? _buildAlreadyCreatedSentinelWidgetBody(context)
-                          : _buildCreateSentinelWidgetBody(context),
-                  };
-                },
+    return Panel(
+      title: 'Your sentinel',
+      actions: <Widget>[
+        RefreshButton(
+          onPressed: () {
+            context.read<SentinelsByOwnerBloc>().add(
+              FetchRequestData(
+                address: Address.parse(kSelectedAddress!),
               ),
+            );
+          },
         ),
       ],
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        child: Column(
+          children: <Widget>[
+            // The sentinel animation is kept from the old card. It plays
+            // once, on its own layer, so the page does not repaint with it.
+            const NodeObject.sentinel(),
+            const SizedBox(height: 8),
+            // The four states cross-fade under the animation, which stays
+            // put. They are keyed apart, so a refresh that lands on the same
+            // state does not fade.
+            BlocBuilder<SentinelsByOwnerBloc, FetchState<List<SentinelInfo>>>(
+              builder: (_, FetchState<List<SentinelInfo>> state) {
+                return switch (state) {
+                  FetchInitial<List<SentinelInfo>>() => const CardStates(
+                    state: 'loading',
+                    fill: false,
+                    child: _Loading(),
+                  ),
+                  FetchFailure<List<SentinelInfo>>() => CardStates(
+                    state: 'error',
+                    fill: false,
+                    child: _Note(cardErrorText(state.exception)),
+                  ),
+                  FetchPopulated<List<SentinelInfo>>() =>
+                    state.data.any(
+                          (SentinelInfo sentinelInfo) => sentinelInfo.active,
+                        )
+                        ? const CardStates(
+                            state: 'populated',
+                            fill: false,
+                            child: _Populated(),
+                          )
+                        : CardStates(
+                            state: 'empty',
+                            fill: false,
+                            child: _Empty(
+                              onStepperNotificationSeeMorePressed:
+                                  onStepperNotificationSeeMorePressed,
+                            ),
+                          ),
+                };
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
+}
 
-  Widget _buildAlreadyCreatedSentinelWidgetBody(BuildContext context) {
+/// Bars where the line and the button will be.
+class _Loading extends StatelessWidget {
+  const _Loading();
+
+  static const double _width = 140;
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.only(top: 6),
+      child: SizedBox(width: _width, child: SkeletonRows(rows: 2)),
+    );
+  }
+}
+
+/// One quiet, centred line: an error.
+class _Note extends StatelessWidget {
+  const _Note(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      textAlign: TextAlign.center,
+      maxLines: 3,
+      overflow: TextOverflow.ellipsis,
+      style: cardDimStyle(context),
+    );
+  }
+}
+
+/// The address owns a sentinel: say so. The icon says why it cannot spawn
+/// another.
+class _Populated extends StatelessWidget {
+  const _Populated();
+
+  @override
+  Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        Expanded(
+        Flexible(
           child: Text(
             context.l10n.sentinelDetectedOnThisAddress,
-            style: Theme.of(context).textTheme.bodyLarge,
+            textAlign: TextAlign.center,
+            style: cardValueStyle(context),
           ),
         ),
+        const SizedBox(width: 4),
         StandardTooltipIcon(
           context.l10n.cannotReuseAddressForSentinel,
-          Icons.help,
+          Icons.info_outline,
+          iconColor: AppTokens.of(context).faint,
         ),
-        kHorizontalGap16,
       ],
     );
   }
+}
 
-  Widget _buildCreateSentinelWidgetBody(BuildContext context) {
-    return Row(
-      mainAxisSize: .min,
+/// The address owns no sentinel: say so, and offer to spawn one.
+class _Empty extends StatelessWidget {
+  const _Empty({required this.onStepperNotificationSeeMorePressed});
+
+  final VoidCallback onStepperNotificationSeeMorePressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        ElevatedButton.icon(
+        Text('No sentinel on this address', style: cardDimStyle(context)),
+        SizedBox(height: AppTokens.of(context).cardGap),
+        OutlinedButton.icon(
           onPressed: () {
-            unawaited(
-              Navigator.push(
-                context,
-                MaterialPageRoute<void>(
-                  builder: (BuildContext context) => StepperScreen(
-                    stepper: const CreateSentinelStepperPage(),
-                    onStepperNotificationSeeMorePressed:
-                        onStepperNotificationSeeMorePressed,
-                  ),
+            Navigator.push(
+              context,
+              MaterialPageRoute<void>(
+                builder: (BuildContext context) => StepperScreen(
+                  stepper: const CreateSentinelStepperPage(),
+                  onStepperNotificationSeeMorePressed:
+                      onStepperNotificationSeeMorePressed,
                 ),
               ),
             );
           },
           label: Text(context.l10n.spawn),
-          icon: const Icon(Icons.add),
+          icon: const Icon(Icons.add, size: 18),
         ),
       ],
     );

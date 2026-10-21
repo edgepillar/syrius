@@ -1,0 +1,160 @@
+
+<!-- ===== Plasma ===== -->
+<section class="scr" id="plasma" data-nav="plasma" data-group="Plasma, Tokens" data-title="Plasma at rest" data-strip="pow">
+<div class="pg" style="flex-direction:row;gap:12px">
+  <div class="card" style="width:340px">
+    <div class="bd" style="align-items:center;gap:8px;padding-top:22px">
+      <div class="bolt"><svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></div>
+      <span class="big num" style="font-size:30px">63,000</span>
+      <span class="lab">Plasma · High</span>
+      <div class="meter flow" style="width:100%;margin-top:6px"><b style="width:72%"></b></div>
+      <div class="row sp" style="width:100%;font-size:13px"><span class="dim">Fused <span class="num" style="color:var(--fg)">630 QSR</span></span><span class="dim">About 4 sends</span></div>
+    </div>
+    <div class="hd closed" style="border-top:1px solid var(--line)">Other addresses<span class="cnt">3</span><span class="end"><span class="dim" style="font-weight:400;font-size:12.5px">1 low</span><svg class="i s chev"><use href="#chev"/></svg></span></div>
+  </div>
+  <div class="col" style="flex:1;gap:12px;min-width:0">
+    <div class="card stripcard">
+      <div class="stat"><span class="lab">Available</span><span class="v">12,880 <span class="qsr" style="font-size:13px">QSR</span></span></div>
+      <div class="stat"><span class="lab">Fused by you</span><span class="v">750 <span class="qsr" style="font-size:13px">QSR</span> <span class="dim" style="font-size:13px">in 4 entries</span></span></div>
+      <div class="acts"><button class="btn go"><svg class="i"><use href="#zap"/></svg>Fuse</button></div>
+    </div>
+    <div class="card" style="flex:1">
+      <div class="hd">Fused<span class="cnt">4</span><span class="end"><span class="dim" style="font-weight:400;font-size:12.5px">Select rows to cancel together</span></span></div>
+      <table>
+        <tr><th style="width:36px"></th><th>Amount</th><th>Beneficiary</th><th>Expires</th><th class="r"></th></tr>
+        <tr><td><span class="cb"></span></td><td class="num">120 QSR</td><td>Address 2 <span class="chip" style="height:22px">this</span></td><td><span class="chip wait"><svg class="i xs"><use href="#lock"/></svg>8 h 16 m</span></td><td class="r"><button class="btn xs" disabled>Cancel</button></td></tr>
+        <tr><td><span class="cb"></span></td><td class="num">500 QSR</td><td>Address 2</td><td><span class="chip ok"><svg class="i xs"><use href="#check"/></svg>Cancelable</span></td><td class="r"><button class="btn xs">Cancel</button></td></tr>
+        <tr><td><span class="cb"></span></td><td class="num">10 QSR</td><td class="addr">Alice <span class="faint">z1qr4p…9d2a</span></td><td><span class="chip ok"><svg class="i xs"><use href="#check"/></svg>Cancelable</span></td><td class="r"><button class="btn xs">Cancel</button></td></tr>
+        <tr><td><span class="cb"></span></td><td class="num">120 QSR</td><td>Address 4</td><td><span class="chip wait"><svg class="i xs"><use href="#lock"/></svg>8 h 37 m</span></td><td class="r"><button class="btn xs" disabled>Cancel</button></td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="plasma-fuse" data-nav="plasma" data-group="Plasma, Tokens" data-title="Plasma: fuse form, other addresses, batch cancel">
+<div class="pg" style="flex-direction:row;gap:12px">
+  <div class="card" style="width:340px">
+    <div class="bd" style="align-items:center;gap:8px;padding-top:22px">
+      <div class="bolt"><svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></div>
+      <span class="big num" style="font-size:30px">63,000</span>
+      <span class="lab">Plasma · High</span>
+      <div class="meter" style="width:100%;margin-top:6px"><b style="width:72%"></b></div>
+    </div>
+    <div class="hd" style="border-top:1px solid var(--line)">Other addresses<span class="cnt">3</span><span class="end"><svg class="i s chev"><use href="#chev"/></svg></span></div>
+    <div class="bd" style="gap:10px">
+      <div class="row sp"><span>Address 1</span><div class="meter" style="width:90px"><b style="width:85%"></b></div><span class="lab">High</span></div>
+      <div class="row sp"><span>Address 3</span><div class="meter" style="width:90px"><b style="width:0%"></b></div><span class="lab">None</span></div>
+      <div class="row sp"><span>Address 4</span><div class="meter" style="width:90px"><b style="width:18%"></b></div><span class="lab warn">Low</span></div>
+    </div>
+  </div>
+  <div class="col" style="flex:1;gap:12px;min-width:0">
+    <div class="card stripcard">
+      <div class="stat"><span class="lab">Available</span><span class="v">12,880 <span class="qsr" style="font-size:13px">QSR</span></span></div>
+      <div class="stat"><span class="lab">Fused by you</span><span class="v">750 <span class="qsr" style="font-size:13px">QSR</span></span></div>
+      <div class="acts"><button class="btn"><svg class="i"><use href="#x"/></svg>Close</button></div>
+    </div>
+    <div class="card rise">
+      <div class="bd" style="flex-direction:row;align-items:flex-end;gap:12px;padding:14px 18px">
+        <div class="col" style="gap:6px;flex:1"><span class="lab">Amount</span><div class="field on"><span class="v num" style="font-size:18px">100</span><span class="end"><span class="znn" style="font-weight:600">Max</span><span class="qsr">QSR</span></span></div></div>
+        <div class="col" style="gap:6px;flex:1.4"><span class="lab">For</span><div class="field"><span class="v">Address 2</span><span class="end"><span class="dim" style="font-size:12.5px">Another address</span><svg class="i s"><use href="#chev"/></svg></span></div></div>
+        <button class="btn go" style="height:42px">Fuse 100 QSR</button>
+      </div>
+      <div class="row" style="padding:0 18px 12px;font-size:12.5px;color:var(--faint)">Fused QSR can be taken back after 10 hours.</div>
+    </div>
+    <div class="card" style="flex:1">
+      <div class="hd">Fused<span class="cnt">4</span><span class="end"><span class="dim" style="font-weight:400;font-size:12.5px">2 selected</span><button class="btn xs">Cancel 2 fuses</button></span></div>
+      <table>
+        <tr><th style="width:36px"></th><th>Amount</th><th>Beneficiary</th><th>Expires</th><th class="r"></th></tr>
+        <tr><td><span class="cb"></span></td><td class="num">120 QSR</td><td>Address 2</td><td><span class="chip wait"><svg class="i xs"><use href="#lock"/></svg>8 h 16 m</span></td><td class="r"><button class="btn xs" disabled>Cancel</button></td></tr>
+        <tr class="open"><td><span class="cb on"><svg class="i xs"><use href="#check"/></svg></span></td><td class="num">500 QSR</td><td>Address 2</td><td><span class="chip ok"><svg class="i xs"><use href="#check"/></svg>Cancelable</span></td><td class="r"><button class="btn xs">Cancel</button></td></tr>
+        <tr class="open"><td><span class="cb on"><svg class="i xs"><use href="#check"/></svg></span></td><td class="num">10 QSR</td><td class="addr">Alice</td><td><span class="chip ok"><svg class="i xs"><use href="#check"/></svg>Cancelable</span></td><td class="r"><button class="btn xs">Cancel</button></td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ===== Tokens ===== -->
+<section class="scr" id="tokens" data-nav="tokens" data-group="Plasma, Tokens" data-title="Tokens: one list, your balance in the row">
+<div class="pg">
+  <div class="card stripcard">
+    <span class="lot" data-lot="zts_small" data-at="0.99" data-hover="1" style="width:52px;height:52px;margin:-8px -8px -8px -6px"></span>
+    <div class="stat"><span class="lab">You hold</span><span class="v">3 <span class="dim" style="font-size:13px">tokens</span></span></div>
+    <div class="stat"><span class="lab">Issued by you</span><span class="v">1</span></div>
+    <div class="stat"><span class="lab">Issue fee</span><span class="v">1 <span class="znn" style="font-size:13px">ZNN</span></span></div>
+    <div class="acts"><button class="btn go"><svg class="i"><use href="#plus"/></svg>Create token</button></div>
+  </div>
+  <div class="card" style="flex:1">
+    <div class="hd" style="gap:14px"><div class="seg"><span class="on">Held</span><span>Favorites</span><span>All</span></div><span class="end"><span class="field" style="height:30px;width:260px;font-size:13px"><svg class="i s"><use href="#search"/></svg><span class="ph">Name, symbol, owner or ZTS</span></span></span></div>
+    <table>
+      <tr><th></th><th>Token</th><th class="r">You hold</th><th class="r">Supply</th><th>Owner</th><th></th></tr>
+      <tr><td style="width:40px"><svg class="i s pink"><use href="#star"/></svg></td><td><span class="row"><span class="coin p">P</span><span class="col"><span>Plasma Points</span><span class="addr" style="font-size:12px">PP · zts1pp0…2k7m</span></span></span></td><td class="r num">40</td><td class="r num">1,000,000 <span class="dim">of 10M</span></td><td class="addr">Address 2 <span class="chip" style="height:22px">you</span></td><td class="r"><svg class="i s faint"><use href="#chev"/></svg></td></tr>
+      <tr class="open"><td><svg class="i s faint"><use href="#star"/></svg></td><td><span class="row"><span class="coin g">W</span><span class="col"><span>Wrapped BTC</span><span class="addr" style="font-size:12px">WBTC · zts1wbtc…9ur2</span></span></span></td><td class="r num">0.0021</td><td class="r num">21.4</td><td class="addr">z1qxem…sd88</td><td class="r"><svg class="i s faint" style="transform:rotate(180deg)"><use href="#chev"/></svg></td></tr>
+      <tr class="sub"><td colspan="6"><div class="row" style="padding:0 0 10px 50px;gap:28px;font-size:13px"><span class="kv" style="grid-template-columns:auto 1fr auto 1fr;gap:4px 16px"><span class="lab">Decimals</span><span class="num">8</span><span class="lab">Domain</span><span>bridge.zenon.network <svg class="i xs"><use href="#ext"/></svg></span><span class="lab">Mintable</span><span>Yes, by owner</span><span class="lab">Burnable</span><span>By any holder</span></span><span class="row" style="margin-left:auto;gap:8px"><button class="btn xs">Burn</button><button class="btn xs">Send</button><a class="dim" style="font-size:12.5px"><svg class="i xs"><use href="#ext"/></svg> explorer</a></span></div></td></tr>
+      <tr><td><svg class="i s faint"><use href="#star"/></svg></td><td><span class="row"><span class="coin g">L</span><span class="col"><span>ZNN-ETH LP</span><span class="addr" style="font-size:12px">LP · zts1lp…x4qa</span></span></span></td><td class="r num">12.4</td><td class="r num">5,210</td><td class="addr">z1qpx3…m7ua</td><td class="r"><svg class="i s faint"><use href="#chev"/></svg></td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="token-mine" data-nav="tokens" data-group="Plasma, Tokens" data-title="Tokens: your token's row opened, mint in place">
+<div class="pg">
+  <div class="card stripcard">
+    <span class="lot" data-lot="zts_small" data-at="0.99" data-hover="1" style="width:52px;height:52px;margin:-8px -8px -8px -6px"></span>
+    <div class="stat"><span class="lab">You hold</span><span class="v">3 <span class="dim" style="font-size:13px">tokens</span></span></div>
+    <div class="stat"><span class="lab">Issued by you</span><span class="v">1</span></div>
+    <div class="stat"><span class="lab">Issue fee</span><span class="v">1 <span class="znn" style="font-size:13px">ZNN</span></span></div>
+    <div class="acts"><button class="btn go"><svg class="i"><use href="#plus"/></svg>Create token</button></div>
+  </div>
+  <div class="card" style="flex:1">
+    <div class="hd" style="gap:14px"><div class="seg"><span class="on">Held</span><span>Favorites</span><span>All</span></div></div>
+    <table>
+      <tr><th></th><th>Token</th><th class="r">You hold</th><th class="r">Supply</th><th>Owner</th><th></th></tr>
+      <tr class="open"><td style="width:40px"><svg class="i s pink"><use href="#star"/></svg></td><td><span class="row"><span class="coin p">P</span><span class="col"><span>Plasma Points</span><span class="addr" style="font-size:12px">PP · zts1pp0…2k7m</span></span></span></td><td class="r num">40</td><td class="r num">1,000,000 <span class="dim">of 10M</span></td><td class="addr">Address 2 <span class="chip" style="height:22px">you</span></td><td class="r"><svg class="i s faint" style="transform:rotate(180deg)"><use href="#chev"/></svg></td></tr>
+      <tr class="sub"><td colspan="6">
+        <div class="col" style="padding:0 0 12px 50px;gap:12px">
+          <div class="row" style="gap:28px;font-size:13px"><span class="kv" style="grid-template-columns:auto 1fr auto 1fr;gap:4px 16px"><span class="lab">Decimals</span><span class="num">8</span><span class="lab">Domain</span><span>pp.zenon.foo</span><span class="lab">Mintable</span><span>Yes, by owner</span><span class="lab">Burnable</span><span>By any holder</span><span class="lab">Utility</span><span>Yes</span><span class="lab">Issued</span><span>2 Oct 2026</span></span><span class="row" style="margin-left:auto;gap:8px;align-self:flex-start"><span class="seg"><span class="on">Mint</span><span>Burn</span><span>Transfer ownership</span><span>Flags</span></span></span></div>
+          <div class="row rise" style="gap:10px;padding:12px 14px;border-radius:var(--r);background:var(--card3);max-width:720px">
+            <div class="field on" style="flex:1"><span class="v num" style="font-size:16px">5,000</span><span class="end pink">PP</span></div>
+            <div class="field on" style="flex:1.6"><span class="v addr" style="color:var(--fg)">z1qq9n7fpaqd8lpcljandzmx4xtku9w4ftwyg0mq</span><span class="end"><span class="chip" style="height:22px">This address</span></span></div>
+            <button class="btn go" style="height:42px">Mint</button>
+          </div>
+          <span class="smallcap">9,000,000 left under the max supply.</span>
+        </div>
+      </td></tr>
+      <tr><td><svg class="i s faint"><use href="#star"/></svg></td><td><span class="row"><span class="coin g">W</span><span class="col"><span>Wrapped BTC</span><span class="addr" style="font-size:12px">WBTC · zts1wbtc…9ur2</span></span></span></td><td class="r num">0.0021</td><td class="r num">21.4</td><td class="addr">z1qxem…sd88</td><td class="r"><svg class="i s faint"><use href="#chev"/></svg></td></tr>
+      <tr><td><svg class="i s faint"><use href="#star"/></svg></td><td><span class="row"><span class="coin g">L</span><span class="col"><span>ZNN-ETH LP</span><span class="addr" style="font-size:12px">LP · zts1lp…x4qa</span></span></span></td><td class="r num">12.4</td><td class="r num">5,210</td><td class="addr">z1qpx3…m7ua</td><td class="r"><svg class="i s faint"><use href="#chev"/></svg></td></tr>
+    </table>
+  </div>
+</div>
+</section>
+
+<section class="scr" id="token-new" data-nav="tokens" data-group="Plasma, Tokens" data-title="Create token: stepper">
+<div class="pg">
+  <div class="card" style="flex:1">
+    <div class="hd"><button class="btn xs ghost"><svg class="i s"><use href="#chevl"/></svg>Tokens</button>Create token<span class="end"><svg class="i s faint"><use href="#x"/></svg></span></div>
+    <div class="bd" style="flex-direction:row;gap:0;padding:0">
+      <div class="col" style="width:300px;padding:20px;border-right:1px solid var(--line);gap:18px">
+        <div class="steps" style="flex-direction:column;align-items:stretch;gap:14px">
+          <span class="on"><b>1</b>Name and symbol</span>
+          <span><b>2</b>Supply</span>
+          <span><b>3</b>Options</span>
+          <span><b>4</b>Issue</span>
+        </div>
+        <div class="line"></div>
+        <div class="kv" style="font-size:13px"><span class="lab">Fee</span><span class="num">1 ZNN <span class="dim">burned</span></span><span class="lab">Have</span><span class="num">1,204.5 ZNN</span></div>
+        <div class="col" style="gap:8px;padding:12px;border-radius:var(--r);background:var(--card2)"><span class="lab">Preview</span><span class="row"><span class="coin p">M</span><span class="col"><span>Moon Tokens</span><span class="addr" style="font-size:12px">MOON · zts1…</span></span></span></div>
+      </div>
+      <div class="col rise" style="flex:1;padding:24px 28px;gap:14px;max-width:620px">
+        <div class="row" style="gap:12px">
+          <div class="col" style="gap:6px;flex:1.6"><span class="lab">Name</span><div class="field on"><span class="v">Moon Tokens</span></div></div>
+          <div class="col" style="gap:6px;flex:1"><span class="lab">Symbol</span><div class="field on"><span class="v num">MOON</span><span class="end"><svg class="i s znn"><use href="#check"/></svg></span></div></div>
+        </div>
+        <div class="col" style="gap:6px"><span class="lab">Domain</span><div class="field"><span class="ph">example.com</span></div><span class="smallcap">Optional. Where the token is described.</span></div>
+        <div class="row" style="gap:8px;margin-top:8px"><button class="btn" disabled>Back</button><button class="btn go">Continue</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>

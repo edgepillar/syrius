@@ -4,7 +4,7 @@ import 'dart:isolate';
 
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_ce/hive_ce.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
@@ -28,6 +28,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_
 import 'package:zenon_syrius_wallet_flutter/handlers/htlc_swaps_handler.dart';
 import 'package:zenon_syrius_wallet_flutter/hive/hive_registrar.g.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
@@ -38,6 +39,7 @@ import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
 import 'package:zenon_syrius_wallet_flutter/services/web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/functions.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/motion_binding.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -45,7 +47,8 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 const String p = String.fromEnvironment('PASSWORD');
 
 main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  // As in main.dart: the binding that keeps animations at full length.
+  MotionBinding.ensureInitialized();
   if (Platform.isWindows) {
     registerProtocolHandler(kDeepLinkingUrlScheme);
   }
@@ -334,6 +337,10 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
           ChangeNotifierProvider<AppThemeNotifier>(
             create: (_) => AppThemeNotifier(),
           ),
+          // Starts in the saved language, as in main.dart.
+          ChangeNotifierProvider<LocaleNotifier>(
+            create: (_) => LocaleNotifier(WidgetUtils.savedLanguage()),
+          ),
           ChangeNotifierProvider<ValueNotifier<List<String>>>(
             create: (_) => ValueNotifier<List<String>>(
               <String>[],
@@ -342,8 +349,13 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
           Provider<LockBloc>(
             create: (_) => LockBloc(),
             builder: (BuildContext context, Widget? child) {
-              return Consumer<AppThemeNotifier>(
-                builder: (_, AppThemeNotifier appThemeNotifier, __) {
+              return Consumer2<AppThemeNotifier, LocaleNotifier>(
+                builder: (
+                  _,
+                  AppThemeNotifier appThemeNotifier,
+                  LocaleNotifier localeNotifier,
+                  __,
+                ) {
                   final LockBloc lockBloc =
                   Provider.of<LockBloc>(context, listen: false);
                   return OverlaySupport(
@@ -380,7 +392,13 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
                               themeMode: appThemeNotifier.currentThemeMode,
                               initialRoute: DevelopmentInitializationScreen.route,
                               scrollBehavior: RemoveOverscrollEffect(),
-                              localizationsDelegates: AppLocalizations.localizationsDelegates,
+                              // As in main.dart: dependencies still on the
+                              // SDK's Material get this app's theme.
+                              builder: (BuildContext context, Widget? child) =>
+                                  MaterialUiCompatibilityBridge(child: child!),
+                              locale: localeNotifier.locale,
+                              localeListResolutionCallback: resolveAppLocale,
+                              localizationsDelegates: appLocalizationsDelegates,
                               supportedLocales: AppLocalizations.supportedLocales,
                               routes: <String, WidgetBuilder>{
                                 AccessWalletScreen.route: (BuildContext context) =>

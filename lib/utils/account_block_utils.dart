@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
@@ -56,12 +57,13 @@ class AccountBlockUtils {
         );
         await sl.get<NotificationsBloc>().addNotification(
               WalletNotification(
-                title: 'Account-block published',
+                title: currentL10n.accountBlockPublishedNotificationTitle,
                 timestamp: DateTime.now().millisecondsSinceEpoch,
-                details:
-                    'Account-block type: ${FormatUtils.extractNameFromEnum<BlockTypeEnum>(
-                  BlockTypeEnum.values[response.blockType],
-                )}',
+                details: currentL10n.accountBlockPublishedNotificationDetails(
+                  FormatUtils.extractNameFromEnum<BlockTypeEnum>(
+                    BlockTypeEnum.values[response.blockType],
+                  ),
+                ),
                 type: NotificationType.paymentSent,
               ),
             );
@@ -166,13 +168,15 @@ class AccountBlockUtils {
       AccountBlockTemplate transactionParams,) async {
     await sl.get<NotificationsBloc>().addNotification(
           WalletNotification(
-            title:
-                '${BlockUtils.isSendBlock(transactionParams.blockType) ? 'Sending transaction' : 'Receiving transaction'}, please review the transaction on your hardware device',
+            title: BlockUtils.isSendBlock(transactionParams.blockType)
+                ? currentL10n.accountBlockReviewSendNotificationTitle
+                : currentL10n.accountBlockReviewReceiveNotificationTitle,
             timestamp: DateTime.now().millisecondsSinceEpoch,
-            details:
-                'Review account-block type: ${FormatUtils.extractNameFromEnum<BlockTypeEnum>(
-              BlockTypeEnum.values[transactionParams.blockType],
-            )}',
+            details: currentL10n.accountBlockReviewNotificationDetails(
+              FormatUtils.extractNameFromEnum<BlockTypeEnum>(
+                BlockTypeEnum.values[transactionParams.blockType],
+              ),
+            ),
             type: NotificationType.confirm,
           ),
         );

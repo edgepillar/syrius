@@ -1,13 +1,9 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/card_parts/card_parts.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart'
-    hide
-        InfiniteScrollTable,
-        InfiniteScrollTableCell,
-        InfiniteScrollTableHeaderColumn;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// A widget that displays the current pending transactions.
@@ -22,16 +18,20 @@ class PendingTransactionsCard extends StatelessWidget {
     final PendingTransactionsBloc bloc = context
         .read<PendingTransactionsBloc>();
 
-    return NewCardScaffold(
-      data: _buildCardData(context: context),
-      onRefreshPressed: () {
-        bloc.add(
-          InfiniteListRefreshRequested(
-            address: Address.parse(kSelectedAddress!),
-          ),
-        );
-      },
-      body:
+    return Panel(
+      title: 'To receive',
+      actions: <Widget>[
+        RefreshButton(
+          onPressed: () {
+            bloc.add(
+              InfiniteListRefreshRequested(
+                address: Address.parse(kSelectedAddress!),
+              ),
+            );
+          },
+        ),
+      ],
+      child:
           BlocBuilder<PendingTransactionsBloc, InfiniteListState<AccountBlock>>(
             builder: (_, InfiniteListState<AccountBlock> state) {
               final InfiniteListStatus status = state.status;
@@ -52,11 +52,6 @@ class PendingTransactionsCard extends StatelessWidget {
           ),
     );
   }
-
-  CardData _buildCardData({required BuildContext context}) => CardData(
-    description: context.l10n.pendingTransactionsDescription,
-    title: context.l10n.pendingTransactionsTitle,
-  );
 }
 
 class _PendingTransactionsInitial extends StatelessWidget {
@@ -64,7 +59,7 @@ class _PendingTransactionsInitial extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SyriusLoadingWidget();
+    return const CardLoading();
   }
 }
 
@@ -75,7 +70,7 @@ class _PendingTransactionsFailure extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SyriusErrorWidget(exception.message);
+    return CardNote.error(exception.message);
   }
 }
 

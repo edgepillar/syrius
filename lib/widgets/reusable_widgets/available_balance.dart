@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -27,10 +28,12 @@ class AvailableBalance extends StatelessWidget {
     return Padding(
       padding: padding,
       child: Text(
-        '${accountInfo.getBalance(
-          token.tokenStandard,
-        ).addDecimals(token.decimals)} '
-        '${token.symbol} available',
+        context.l10n.availableBalanceLabel(
+          accountInfo
+              .getBalance(token.tokenStandard)
+              .addDecimals(token.decimals),
+          token.symbol,
+        ),
         style: Theme.of(context).inputDecorationTheme.hintStyle,
       ),
     );

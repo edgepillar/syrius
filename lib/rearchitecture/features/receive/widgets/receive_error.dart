@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/card_parts/card_parts.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
 
 /// A widget that displays an error message
 class ReceiveError extends StatelessWidget {
@@ -12,6 +12,6 @@ class ReceiveError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SyriusErrorWidget(error.message);
+    return CardNote.error(error.message);
   }
 }

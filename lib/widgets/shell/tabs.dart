@@ -1,0 +1,17 @@
+enum Tabs {
+  dashboard,
+  transfer,
+  notifications,
+  settings,
+  lock,
+  sentinels,
+  pillars,
+  staking,
+  plasma,
+  tokens,
+  p2pSwap,
+  generation,
+  sync,
+  accelerator,
+  walletConnect,
+}

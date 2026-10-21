@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -44,10 +44,6 @@ class _ZtsDropdownState extends State<ZtsDropdown> {
       },
     ).toList();
 
-    final Color color = ColorUtils.getTokenColor(
-      widget._selectedToken.tokenStandard,
-    );
-
     return DropdownMenu<Token>(
       controller: _searchController,
       expandedInsets: EdgeInsets.zero,
@@ -55,10 +51,7 @@ class _ZtsDropdownState extends State<ZtsDropdown> {
       inputDecorationTheme: const InputDecorationTheme(
         filled: true,
       ),
-      leadingIcon: Icon(
-        Icons.search,
-        color: color,
-      ),
+      leadingIcon: const Icon(Icons.search, color: AppColors.faint, size: 18),
       dropdownMenuEntries: entries,
       menuHeight: kDropdownMenuHeight,
       onSelected: (Token? token) {
@@ -67,12 +60,10 @@ class _ZtsDropdownState extends State<ZtsDropdown> {
         }
       },
       searchCallback: _searchCallback,
-      textStyle: TextStyle(
-        color: color,
-      ),
-      trailingIcon: Icon(
+      textStyle: const TextStyle(fontSize: 14),
+      trailingIcon: const Icon(
         Icons.keyboard_arrow_down_rounded,
-        color: color,
+        color: AppColors.faint,
       ),
     );
   }

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/plasma_purpose.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -42,7 +43,7 @@ class DelegationBloc extends Bloc<DelegationEvent, DelegationState> {
 
       await _accountBlockUtils.createAccountBlock(
         transactionParams,
-        'delegate to Pillar',
+        PlasmaPurpose.delegateToPillar.message,
         address: event.address,
         waitForRequiredPlasma: true,
       );

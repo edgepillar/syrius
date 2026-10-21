@@ -1,10 +1,13 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/onboarding/onboarding_scaffold.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
 
+/// The welcome: the three ways into a wallet, one under the other, with
+/// creating a new one as the main action.
 class AccessWalletScreen extends StatefulWidget {
-
   const AccessWalletScreen({super.key});
   static const String route = 'access-wallet-screen';
 
@@ -15,55 +18,59 @@ class AccessWalletScreen extends StatefulWidget {
 class _AccessWalletScreenState extends State<AccessWalletScreen> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        padding: const EdgeInsets.all(50),
-        child: Column(
-          children: <Widget>[
-            Column(
-              children: <Widget>[
-                Text(
-                  'Welcome',
-                  style: Theme.of(context).textTheme.headlineLarge,
+    return OnboardingScaffold(
+      title: 'Welcome',
+      maxWidth: 360,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          OutlinedButton.icon(
+            onPressed: _onCreateWalletButtonPressed,
+            style: OutlinedButton.styleFrom(minimumSize: const Size(0, 44)),
+            icon: _buildIcon('assets/svg/ic_create_new.svg', kOnZnnColor),
+            label: const Text('Create wallet'),
+          ),
+          const SizedBox(height: 10),
+          OutlinedButton.icon(
+            onPressed: _onImportWalletButtonPressed,
+            style:
+                secondaryButtonStyle(
+                  context,
+                ).copyWith(
+                  minimumSize: const WidgetStatePropertyAll<Size>(Size(0, 44)),
                 ),
-                kVerticalSpacing,
-                Text(
-                  'Select an option to access your wallet',
-                  style: Theme.of(context).textTheme.headlineMedium,
-                ),
-                const SizedBox(
-                  height: 50,
-                ),
-              ],
+            icon: _buildIcon(
+              'assets/svg/ic_import_wallet.svg',
+              AppColors.znnColor,
             ),
-            Expanded(
-              child: StandardFluidLayout(
-                defaultCellHeight: kStaggeredNumOfColumns / 3,
-                children: <FluidCell>[
-                  AccessWalletFluidCell(
-                    onPressed: _onCreateWalletButtonPressed,
-                    buttonIconLocation: 'assets/svg/ic_create_new.svg',
-                    buttonText: 'Create wallet',
-                    context: context,
-                  ),
-                  AccessWalletFluidCell(
-                    onPressed: _onImportWalletButtonPressed,
-                    buttonIconLocation: 'assets/svg/ic_import_wallet.svg',
-                    buttonText: 'Import wallet',
-                    context: context,
-                  ),
-                  AccessWalletFluidCell(
-                    onPressed: _onHardwareWalletButtonPressed,
-                    buttonIconLocation: 'assets/svg/ic_hardware_wallet.svg',
-                    buttonText: 'Hardware wallet',
-                    context: context,
-                  ),
-                ],
-              ),
+            label: const Text('Import wallet'),
+          ),
+          const SizedBox(height: 10),
+          OutlinedButton.icon(
+            onPressed: _onHardwareWalletButtonPressed,
+            style:
+                secondaryButtonStyle(
+                  context,
+                ).copyWith(
+                  minimumSize: const WidgetStatePropertyAll<Size>(Size(0, 44)),
+                ),
+            icon: _buildIcon(
+              'assets/svg/ic_hardware_wallet.svg',
+              AppColors.znnColor,
             ),
-          ],
-        ),
+            label: const Text('Hardware wallet'),
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _buildIcon(String asset, Color color) {
+    return SvgPicture.asset(
+      asset,
+      width: 18,
+      height: 18,
+      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
     );
   }
 

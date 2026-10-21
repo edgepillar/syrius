@@ -4,6 +4,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/plasma_purpose.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -46,7 +47,7 @@ class DeployPillarBloc extends Bloc<DeployPillarEvent, DeployPillarState> {
       final AccountBlockTemplate response = await _accountBlockUtils
           .createAccountBlock(
             transactionParams,
-            'register Pillar',
+            PlasmaPurpose.registerPillar.message,
             waitForRequiredPlasma: true,
           );
 

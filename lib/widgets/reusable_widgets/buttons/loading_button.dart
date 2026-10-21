@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
@@ -151,6 +151,7 @@ class LoadingButtonState extends State<LoadingButton>
   ButtonState btnState = ButtonState.idle;
 
   final GlobalKey<MyOutlinedButtonState> _outlineButtonKey = GlobalKey();
+  final SheenController _sheen = SheenController();
   double _minWidth = 0;
 
   double get minWidth => _minWidth;
@@ -197,6 +198,7 @@ class LoadingButtonState extends State<LoadingButton>
   @override
   void dispose() {
     _animationController.dispose();
+    _sheen.dispose();
     super.dispose();
   }
 
@@ -212,10 +214,30 @@ class LoadingButtonState extends State<LoadingButton>
 
   Widget buttonBody() {
     final Color? textColor = widget.textStyle?.color;
+    final double? radius = lerpDouble(
+      widget.circularBorderRadius,
+      widget.minimumSize.height / 2,
+      _animation.value,
+    );
 
+    return Sheen(
+      // A busy button is a spinner in a shrinking circle: no band over that.
+      enabled: widget.onPressed != null && btnState == ButtonState.idle,
+      borderRadius: radius == null ? null : BorderRadius.circular(radius),
+      controller: _sheen,
+      child: _button(textColor, radius),
+    );
+  }
+
+  Widget _button(Color? textColor, double? radius) {
     return MyOutlinedButton(
       textColor: textColor,
-      textStyle: widget.textStyle,
+      // A style given to a button replaces the theme's whole, face included,
+      // so a caller that only wanted a colour or a size dropped the label
+      // out of the app font. Laying it over the label style keeps the face.
+      textStyle: widget.textStyle == null
+          ? null
+          : kOutlinedButtonTextStyle.merge(widget.textStyle),
       borderWidth: widget.borderWidth,
       outlineColor: widget.outlineColor,
       minimumSize: Size(
@@ -224,11 +246,7 @@ class LoadingButtonState extends State<LoadingButton>
       ),
       onPressed: btnState == ButtonState.idle ? widget.onPressed : null,
       key: _outlineButtonKey,
-      circularBorderRadius: lerpDouble(
-        widget.circularBorderRadius,
-        widget.minimumSize.height / 2,
-        _animation.value,
-      ),
+      circularBorderRadius: radius,
       padding: widget.paddingAroundChild,
       child: btnState == ButtonState.idle
           ? widget.child ?? Text(widget.text!)
@@ -257,6 +275,13 @@ class LoadingButtonState extends State<LoadingButton>
       _animationController.reverse();
     }
   }
+
+  /// One pass of the sheen: the action this button started has landed.
+  ///
+  /// The button cannot tell on its own. [animateReverse] is called for a
+  /// failure as well as a success, so the caller that knows which it was
+  /// says so here.
+  void landed() => _sheen.pass();
 
   double? lerpWidth(double a, double b, double t) {
     if (a == 0.0 || b == 0.0) {

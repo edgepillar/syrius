@@ -1,0 +1,158 @@
+
+    </div></div>
+    <ul class="notes" id="notes"></ul>
+  </div>
+</div>
+
+<script src="vendor/lottie.min.js"></script>
+<script>
+// Each .scr holds a page body; the shell (title bar, rail, status strip) is added here so it is written once.
+const NAV = [
+  ['home','Home','home','Ctrl 1'],['transfer','Transfer','send','Ctrl 2'],['staking','Staking','coins','Ctrl 3'],['nodes','Nodes','stack','Ctrl 4'],
+  ['plasma','Plasma','zap','Ctrl 5'],['tokens','Tokens','token','Ctrl 6'],['swap','Swap','swap','Ctrl 7'],['az','Accelerator','rocket','Ctrl 8']
+];
+const NAV2 = [['bell','Notifications','bell',''],['settings','Settings','gear','Ctrl ,'],['lock','Lock','lock','Ctrl L']];
+const ico = (n, cls) => `<svg class="i ${cls||''}"><use href="#${n}"/></svg>`;
+function rail(on, open, belldot){
+  const a = (n,l,i,k) => `<a class="${n===on?'on':''}">${ico(i)}<span>${l}</span>${n==='bell'&&belldot?'<span class="dot"></span>':''}</a>`;
+  return `<nav class="rail ${open?'open':''}"><a class="tog">${ico(open?'chevl':'chevr')}</a>${NAV.map(x=>a(...x)).join('')}<span class="gap"></span>${NAV2.map(x=>a(...x)).join('')}</nav>`;
+}
+function strip(kind){
+  let mid = '';
+  if (kind==='flight') mid = `<span class="row" style="gap:8px"><span class="dot blue live"></span>Sending 12.5 ZNN <span class="faint">· waiting for a momentum</span></span>`;
+  if (kind==='pow') mid = `<span class="row" style="gap:8px"><span class="lot" data-lot="plasma_generation" data-at="0.45" data-loop="1" style="width:18px;height:18px"></span>Generating plasma <span class="num">14 s</span> <span class="faint">· usually about 25 s</span></span>`;
+  return `<div class="strip"><span class="row"><span class="dot live"></span><span class="num">#3,281,904</span></span><span>Node <span class="addr">ws://127.0.0.1:35998</span></span><span>Chain <span class="num">1</span></span><span>Peers <span class="num">23</span></span>${mid}<span class="end"><span class="row warn" style="gap:8px">${ico('dl','s')}Syrius 0.3.0 is out<button class="btn xs">Update</button></span></span></div>`;
+}
+const title = `<div class="title"><span>SYRIUS</span><span><i>&#8212;</i><i>&#9633;</i><i>&#10005;</i></span></div>`;
+document.querySelectorAll('.scr').forEach(s => {
+  const inner = s.innerHTML;
+  if (s.dataset.shell === 'none') {
+    s.innerHTML = `<div class="win ${s.dataset.win || ''}">${title}<div class="body">${inner}</div></div>`;
+    return;
+  }
+  const open = s.dataset.rail === 'open';
+  const belldot = s.dataset.belldot !== '0';
+  const tip = open ? '' : (s.id === 'home-open' ? '' : '');
+  s.innerHTML = `<div class="win">${title}<div class="body">${rail(s.dataset.nav, open, belldot)}<main class="col">${inner}${strip(s.dataset.strip)}</main></div></div>`;
+});
+// the tooltip on the first screen only
+(() => { const w = document.querySelector('#home-rest .win'); if (!w) return; const t = document.createElement('div'); t.className='tip'; t.style.top='656px'; t.innerHTML='Notifications'; w.querySelector('.body').appendChild(t); })();
+// the zap burst
+(() => { const b = document.getElementById('burst'); if (!b) return; for (let i=0;i<28;i++){ const s=document.createElement('i'); const a=Math.random()*Math.PI*2, r=120+Math.random()*160; s.style.setProperty('--dx',(Math.cos(a)*r)+'px'); s.style.setProperty('--dy',(Math.sin(a)*r)+'px'); s.style.animationDelay=(Math.random()*120)+'ms'; b.appendChild(s);} })();
+
+// The wallet's own Lottie files, played by lottie-web 5.12.2 (vendor/, MIT). Each is loaded on first use
+// from art/<name>.js, plays when its screen is shown and pauses when it is not. In a screenshot it is
+// stopped at data-at, a fraction of its length.
+let SHOT = false;
+const LOTS = new Map(), waiting = {};
+function need(name, cb){
+  if (window.LOTTIE_DATA && LOTTIE_DATA[name]) return cb();
+  (waiting[name] = waiting[name] || []).push(cb);
+  if (waiting[name].length > 1) return;
+  const sc = document.createElement('script'); sc.src = 'art/' + name + '.js';
+  sc.onload = () => waiting[name].splice(0).forEach(f => f());
+  document.head.appendChild(sc);
+}
+function runLot(el){
+  const a = LOTS.get(el); if (!a) return; const d = el.dataset;
+  if (!el.closest('.scr').classList.contains('on')) { a.pause(); return; }
+  if (SHOT || d.still === '1') { a.goToAndStop(Math.floor(a.totalFrames * (+d.at || 0.99)), true); return; }
+  if (d.loop === '1') { if (d.from) a.playSegments([+d.from, +d.to], true); else a.play(); }
+  else a.goToAndPlay(+(d.from || 0), true);
+}
+function initLot(el){
+  if (LOTS.has(el)) return; LOTS.set(el, null);
+  const d = el.dataset;
+  need(d.lot, () => {
+    const a = lottie.loadAnimation({ container: el, renderer: 'svg', loop: d.loop === '1', autoplay: false,
+      animationData: JSON.parse(JSON.stringify(LOTTIE_DATA[d.lot])),
+      rendererSettings: { preserveAspectRatio: d.fit === 'slice' ? 'xMidYMid slice' : 'xMidYMid meet' } });
+    LOTS.set(el, a);
+    a.addEventListener('DOMLoaded', () => runLot(el));
+    if (d.hover === '1') el.addEventListener('mouseenter', () => { if (!SHOT) a.goToAndPlay(+(d.from || 0), true); });
+  });
+}
+
+const NOTES = {
+  'home-rest': [['At rest','Hero, Activity at full height, To collect as one line with Collect all, Tokens closed, Pending open only while a block is in flight.'],['One click away','Address switcher, hide balances (the eye), the token list.'],['Motion','The light field drifts behind the hero (shader 1). The plasma pill sheens on hover (effect 2). A changed balance flashes once. Rows arrive with a 6 px rise.'],['Ported and new','Zap is the third action. Rows name what the block did and link to the explorer. The pending block is followed to its momentum, not a 31 s timer.'],["Dollar values", "Each balance at CoinGecko's price beside it and the two together under them, as the extension shows them. Dim and mono; the coin is the headline. Asked once a minute while on screen."]],
+  'home-open': [['At rest','The rail is icons. The chevron opens it; the state is kept across restarts.'],['One click away','Each entry has a Ctrl digit, shown in its tooltip.'],['Motion','Rail width springs over 200 ms; labels fade in after. The balance has just changed and flashes green for 1.2 s.'],['Dropped','Thirteen labelled entries, 200 px wide, on every page.']],
+  'home-hidden': [["Hidden", "Every amount becomes dots: balances, dollar values, to collect, token balances and the Activity column. For sharing a screen."], ["The eye", "The original eye animation is the control. It blinks while balances are hidden; a click plays its closing frames and the figures come back."], ["Also", "Ctrl H, and Settings > Display."]],
+  'home-bell': [['Panel','Opens from the bell, over the page, frosted (effect 4). What needs the user is first; runs of the same event fold into one row.'],['Toast','One event in a few words, a bar that drains to dismissal in 5 s, as the extension does. Hover pauses it.'],['Ported','"Incoming 250 ZNN, from z1…" instead of "Transaction received". A failure says the remedy.'],['Dropped','The Notifications page.']],
+  'home-goto': [['Go to','Ctrl K. Pages, actions, addresses and contacts in one list; typing filters. Frosted backdrop.'],['Shortcuts','Ctrl 1 to 8 pages, Ctrl L lock, Ctrl R refresh, Ctrl , settings, Esc closes anything.'],['Why','Every page is one keystroke away, so the rail can stay small.'],['Motion','Palette rises 6 px over 240 ms; results re-sort in place.']],
+  'home-zap': [['Celebrate once','A burst of sparks from the centre, 900 ms, then the message. Seen hashes are remembered per address so it never repeats.'],['The message','Plain text only, one line, with "Written by the sender, not by Syrius." Zap back reuses the sender as recipient.'],['Row','The two blocks read "Zap", the first keeps a Message button.'],['Tray','A desktop notification if the window is hidden (Settings, Wallet).']],
+  'send-rest': [['One card','Send, Receive and Zap are a segmented switch in one card, 640 px, centred. The page is the form.'],['Recipient','Address book icon in the field; the last five recipients as chips under it. A known contact shows its name and when you last sent.'],['To receive','Shown only with rows. A row whose receive is under way has its button blocked with a spinner (task 37).'],['Dropped','The Activity list (Home has it), the always-open Receive card and its QR.'],["Dollar values", "The estimate sits at the right of the line under the amount. Only ZNN and QSR have a price; another token shows none."]],
+  'send-warn': [['Look-alike','Same first and last characters as Alice, different middle: a blocking warning with both addresses and the difference marked. A first-time recipient gets one line in the confirm dialog.'],['Node behind','Said above the form before anything is typed, and the button says what it waits for.'],['Why','Address poisoning is caught where the address is typed; the error today arrives after the send fails.']],
+  'receive': [['At rest','The address, Copy, and Show QR. The QR is behind the button; most receives are a copied address.'],['One click away','The QR, and "Request a specific amount", which encodes amount and token into the QR.'],['To receive','One line when empty.']],
+  'receive-qr': [['Opened','QR with Copy image and Save; the amount row open. Both wallets read the encoded amount.'],['Motion','The QR panel slides down 8 px over 240 ms; Show QR becomes Hide QR in place.']],
+  'zap-form': [['The form','A random receiver from the last seven days, a dice to redraw, ZNN and QSR with the extension\'s defaults, a 140 byte message with a counter.'],['Honesty line','"Picked from what your node reports, so the node can steer it", and the hardware wallet\'s two confirmations.'],['Bytes','Marker 7a 61 70 01 and UTF-8, exactly the extension\'s format, so each wallet reads the other\'s zaps.'],['Why here','The owner\'s open question was Home, Transfer or Settings. Transfer keeps every way of moving funds in one card; Home\'s Zap button opens this tab.']],
+  'send-confirm': [['Confirm','Name, address, source, how plasma is paid; the Ledger line only on a hardware wallet.'],['After Send','The dialog closes, the strip shows "Sending 12.5 ZNN, waiting for a momentum", and the page refreshes when the block is confirmed (parity row 8).'],['Motion','Dialog rises 6 px over 240 ms over a frosted backdrop. The plasma pill sheens once when the send is accepted.']],
+  'staking': [['At rest','Strip: staked, to collect with Collect, the week\'s rewards, a Stake button. Then the list.'],['One click away','The New stake form (under Stake), the reward chart (under Rewards).'],['Rows','Unlock as a countdown chip; Cancel disabled until unlocked, then "Cancel and withdraw".'],['Dropped','The empty Rewards card holding half the page.'],["Dollar values", "Beside staked and to collect. Under a dollar, four decimals, as the extension formats it."]],
+  'staking-new': [['Opened in place','Duration as a segment, amount with Max and the balance beside it, the unlock date computed.'],['Motion','The form rises under the strip over 320 ms (spring); Stake becomes Close. The row arrives in the list with a rise and a flash when confirmed.']],
+  'staking-empty': [["Empty", "A list with nothing in it shows the original no-data mark at 44 px and \"None yet\". A one-line empty card carries it at 16 px."], ["Still one action", "The strip keeps Stake, so an empty page is not a dead end."]],
+  'pillars': [['One page','Pillars and Sentinels are tabs of Nodes. The strip is delegation: whom, your weight, Change, and what is to collect.'],['Five columns','Name, weight, reward shares, uptime, estimated APR, and Delegate. A row opens for the producer, momentums, reward address and the explorer link.'],['Ported','Sort by weight, APR or production (the code exists and is switched off); APR per pillar from the extension\'s formula.'],['Dropped','The empty Rewards card, the "Your pillar" card for addresses with no pillar (it comes back in Pillar mode).']],
+  'pillar-mine': [['Pillar mode','The strip starts with your pillar when the selected address owns one (Auto), or always (Settings, Wallet, Modes). Opening it shows the panel.'],['Panel','Locked ZNN, deposited QSR, producer, revocable countdown, sharing, production, weight; Update, Deposit, Withdraw, Disassemble.'],['The original','The pillar assembles once when the panel opens, at 132 px, and holds its last frame; the same at 48 px in the strip. Hover replays it.'],['Disassemble','Asks for the password, then once more, as the extension does.']],
+  'sentinels': [['Sentinel mode','Your sentinel leads the strip: status, rewards, revocable countdown. Spawn sits in the tab bar for addresses with none.'],['List','Owner, registered, revocable, status. Nothing else is actionable here, which is why Sentinels does not earn a rail entry of its own.'],['The original','The sentinel forms once at 48 px in the strip when the tab opens, and again at full size on "Sentinel registered".']],
+  'spawn': [['Stepper','Steps on the left with the cost summary, the current step on the right. Steps change on a shared axis (package animations).'],['Validation','Inline, as typed: name free, producer from another seed, reward defaults to this address.'],['Same shape','Spawn sentinel (deposit, register), Create token, Update pillar, Accelerator project and phase, Donate.']],
+  'pillar-done': [["The moment", "Registering a pillar is the one place the original plays at full size: the hexagon rises and the pillar assembles over 2.8 s, then holds."], ["Same shape", "Sentinel registered and Token created end the same way, with the sentinel and the coin."], ["Motion", "Shared axis into this step; the animation starts when the block is confirmed, not when the button is pressed."]],
+  'plasma': [['At rest','The glow with the level and fused QSR; a strip with available QSR, what you fused, Fuse; the fused list. Other addresses closed, with "1 low" as the summary.'],['Glow','The heatmap shader in plasma pink and QSR blue (5d, 5g). The meter flows while generating (shader 5), still when idle.'],['Strip','"Generating plasma 14 s, usually about 25 s": elapsed and typical time (parity row 12). The mark beside it is the original bolt: it traces its outline, then fills, for as long as the work runs.'],['Dropped','The Fuse form at rest, the beneficiary address spelled out in full.']],
+  'plasma-fuse': [['Opened','Fuse form under the strip: amount with Max, beneficiary defaults to this address with "Another address" to change it. Other addresses opened.'],['Batch cancel','Checkboxes on the rows; "Cancel 2 fuses" sends them as one job and says how many landed if one fails (parity row 16).'],['Motion','Form rises 320 ms; a cancelled row collapses over 200 ms.']],
+  'tokens': [['One list','Your balance is a column, so the Balances card is gone. Held, Favorites, All as a segment; search by name, symbol, owner or ZTS.'],['Row opened','Decimals, domain, flags, Burn and Send, explorer link.'],['Strip','Tokens held, issued by you, the issue fee, Create token. The original coin leads it: its shards close once when the page opens, from the file built for this size, so it stays sharp.']],
+  'token-mine': [['Owner\'s row','Mint, Burn, Transfer ownership and Flags as a segment inside the row; the chosen action opens under it.'],['Motion','Opening a row slides it down 8 px over 240 ms; the segment thumb slides over 360 ms.']],
+  'token-new': [['Stepper','Name and symbol, Supply, Options, Issue. The preview on the left draws the coin as it will look in lists.'],['Fee','Said once, in the summary: 1 ZNN burned.']],
+  'swap-list': [['At rest','Strip: active, completed, to reclaim, Join and Start. One list with the status chip first.'],['Row opened','What it waits for, in one line, then deposit ID with "Copy for them", counterparty, rate, hashlock, secret kept locally.'],['Statuses','Waiting (blue), Completed (green), Reclaimable (amber), Unsuccessful (crimson), Reclaimed (plain).']],
+  'swap-start': [['Transfer shape','Two stacked cards, You send over You receive, the reverse button on the seam (RULES.md section 11), in a dialog.'],['Text','Rate and the join window under the cards; the experimental warning as one line. Join swap is the same dialog with a deposit ID field at the top.'],['Motion','The reverse button turns when pressed; amounts swap in place over 260 ms.'],["Dollar values", "Under each amount, so a lopsided rate is seen before the swap starts."]],
+  'az': [['At rest','Strip: the fund, how many projects await your pillar\'s vote, Donate, Create project. Voting, Active, Mine, All as a segment.'],['Rows','Budget, a yes/no/abstain bar with the counts, quorum, status. "Your vote" marks what needs you in Pillar mode.'],['Ported','Cached projects (done): warm first paint 0.15 s; the list stays lazy.']],
+  'az-project': [['Opened','The row grows into the page (container transform, package animations). Phases with their votes and proofs; the vote column for a pillar.'],['Vote','Yes as the plasma action, No, Abstain; the tally and the quorum meter beside it.'],['Owner','Create phase enabled once accepted and the last phase paid.']],
+  'set-node': [['Node','One list of nodes with chain, state and latency; Add node opens a row. Sync figures live in the header.'],['Embedded node','The update card: running and newest, the verified download with both checks, Install. The 6 h check runs on its own.'],['Closed','Chain identifier (follows the node, warns on mismatch), Peers, Sporks (Sporks mode: read, and activate behind a typed name).']],
+  'set-security': [['Applies on click','Lock after and the wrong-password limit are segments that save when chosen; no Confirm button.'],['The limit','On by default, at 3 (owner). The row says what it does, and the lock screen counts the tries left before the last one.'],['Closed','Sign, Verify (one UTF-8 signer for both Settings and web apps), Remove wallet behind a seed check.'],['Later','Windows Hello / Touch ID, drawn in place so the row exists.']],
+  'set-display': [["Display", "Theme, text size, language, menu (icons or labels), hide balances, dollar values, explorer."], ["Dollar values", "On by default, as in the extension. One request to CoinGecko a minute, only while a value is on screen; the last answer stays if a request fails. A switch, because desktop has room for one."], ["Dropped", "Every Confirm button."]],
+  'set-wallet': [["Wallet", "Auto-receive, desktop notifications, launch at startup, the three modes with Auto, On, Off; Delete cache that keeps what the person made."], ["Closed", "Wallets on this computer: rename, remove, add. The lock screen picks among them."]],
+  'set-apps': [['Folded in','Connected sites was a page with three empty cards. Here: the web apps switch, one list of connected sites whichever channel they came by, WalletConnect closed.'],['Connect by link','Opens a small dialog with the link field and Scan screen.'],['Approval','Arrives in the Notifications panel and as a dialog if the window is in front.']],
+  'set-addresses': [['Addresses','Balances in the row, the selected one marked, label and copy; Add address.'],['Contacts','The address book: name, address, last used, Send. Offered on Send as chips.'],['Closed','The account chain of the selected address.']],
+  'set-about': [["Version", "Syrius, embedded node and build in one strip, with the update: what changed, download and verify."], ["Closed", "Links, This computer, Licences. Nothing here says there is anything else."]],
+  'set-licences': [["Licences", "Every package and font the wallet ships, from Flutter's licence registry. A long list; a row opens to the licence text."], ["The box", "Under the last licence, one small field. No label, no placeholder, no tooltip, no button. It is not in Go to and not in the search."], ["Anything but 321", "Nothing happens: no error, no shake, no hint."]],
+  'set-originals': [["321", "On the third digit the field empties and the Originals card rises under it: every animation the first Syrius shipped, where each plays now, and a button that replays the launch full window."], ["Motion", "The card rises 6 px over 320 ms; the six tiles follow with a 40 ms stagger and each plays once."], ["Not kept", "It is there until Settings is left. Nothing is stored, so no file gives it away and it is found again each time."], ["Hover to play", "Each tile plays its file as shipped. Nothing was redrawn."]],
+  'lock-screen': [["The well", "The card is headed by a black well showing the launch animation's last frame, the chrome wordmark. It is the same frames, not a redrawn logo."], ["Replay", "Locking from inside the app replays the mark and the wordmark in the well, 1.4 s. A cold start plays the whole animation full window first."], ["Picker", "A wallet dropdown when there are two or more files, preselecting the last used."], ["Update line", "\"Syrius 0.3.0 is out\" in the strip, with What changed."]],
+  'lock-wrong': [["Wrong password", "The field shakes 4 px twice and clears, the well replays the mark. The line counts the tries left and says what happens after the last."], ["The limit", "On by default at 3 (owner). Counted per wallet; only that wallet's file is removed."]],
+  'lock-pick': [['Opened','Keystore, Ledger and a devnet wallet, each by name with its base address; Add a wallet at the end.'],['Motion','The list slides down 8 px over 240 ms; the chevron turns over.']],
+  'welcome': [["The globe", "The original welcome animation, bundled with the wallet and unused today, back where it was made for. It turns slowly at the left; the three ways in are a list at the right."], ["Three rows", "Create, Import, Hardware, one line each. Node and chain are set later."], ["Motion", "The globe loops, 30 s a turn. The rows rise in with a 40 ms stagger, once."]],
+  'import': [['Any file','The drop zone takes any file name and keeps it if it decrypts as a keyfile (item 11, done). Seed typing with a word counter and 12/24 switch.'],['Steps','Seed or file, Password, Ready, on a shared axis.']],
+  'seed-quiz': [['Three words','Three positions, four choices each, as the extension does, instead of placing six words by hand.'],['Motion','A wrong choice shakes 4 px, twice, 200 ms; a right one fills green.']],
+  'wallet-ready': [["The map", "The original dotted map with its nodes lighting up, full window behind a glass card, where it has always played."], ["One action", "The first address, copyable, and Open wallet."], ["Cost", "100 to 140 ms in the frame that first draws it, measured. Preload it during the password step."]],
+  'launch': [["As it was", "The 2022 launch animation, edge to edge on black: the blue wireframe, the green mark, the wordmark. 1.9 s, on every cold start."], ["Skip", "A click or any key goes straight to the lock card."], ["Weight", "The file is 10 MB on disk. The 826 MB is memory: the Lottie player decodes all 56 frames of 2560 by 1440 before it draws one. As an animated WebP, decoded a frame at a time, the same pictures hold about 17 MB at 1920 by 1080. See the README, Weight."], ["Light theme", "The stage is black in both themes; the frames are drawn on black."]],
+  'launch-settle': [["The transition", "On its last frame the black stage shrinks from the window to the head of the lock card while the card rises round it. 400 ms, emphasized decelerate. One container transform; the wordmark never leaves the screen."], ["Why", "The old launch ended in a cut to another screen. Here it becomes the lock card, so the homage is part of the interface and not a film before it."], ["Still", "This is one frame of that motion, about half way."]],
+};
+const list = document.getElementById('list'), scaler = document.getElementById('scaler'), stage = document.getElementById('stage'), notes = document.getElementById('notes'), ttl = document.getElementById('ttl'), grp = document.getElementById('grp');
+const screens = [...document.querySelectorAll('.scr')];
+let g = ''; let n = 0;
+screens.forEach(s => {
+  if (s.dataset.group !== g) { g = s.dataset.group; const h = document.createElement('h2'); h.textContent = g; list.appendChild(h); }
+  n++; const a = document.createElement('a'); a.href = '#' + s.id; a.dataset.id = s.id; a.innerHTML = `<i>${String(n).padStart(2,'0')}</i>${s.dataset.title}`; list.appendChild(a);
+});
+function fit(){ const w = stage.clientWidth; const sc = Math.max(.4, Math.min(1, w / 1282)); scaler.style.transform = 'scale(' + sc + ')'; scaler.style.width = (1282*sc) + 'px'; scaler.style.height = (782*sc) + 'px'; }
+function show(id){
+  const s = document.getElementById(id); if (!s) return;
+  screens.forEach(e => e.classList.toggle('on', e === s));
+  list.querySelectorAll('a').forEach(a => a.classList.toggle('on', a.dataset.id === id));
+  ttl.textContent = s.dataset.title; grp.textContent = s.dataset.group;
+  notes.innerHTML = (NOTES[id] || []).map(x => `<li><b>${x[0]}</b>${x[1]}</li>`).join('');
+  s.querySelectorAll('.lot').forEach(initLot);
+  LOTS.forEach((a, el) => runLot(el));
+  try { localStorage.setItem('syrius-redesign-screen', id) } catch (e) {}
+}
+function theme(t){ document.documentElement.setAttribute('data-theme', t); document.getElementById('t-dark').classList.toggle('on', t==='dark'); document.getElementById('t-light').classList.toggle('on', t==='light'); try { localStorage.setItem('syrius-redesign-theme', t) } catch (e) {} }
+document.getElementById('t-dark').onclick = () => theme('dark');
+document.getElementById('t-light').onclick = () => theme('light');
+list.addEventListener('click', e => { const a = e.target.closest('a'); if (!a) return; e.preventDefault(); history.replaceState(null, '', '#' + a.dataset.id); show(a.dataset.id); });
+addEventListener('resize', fit);
+const q = new URLSearchParams(location.search);
+if (q.get('shot')) { SHOT = true; document.body.classList.add('shot'); theme(q.get('theme') || 'dark'); show(q.get('shot')); }
+else {
+  let t = 'dark'; try { t = localStorage.getItem('syrius-redesign-theme') || t } catch (e) {}
+  theme(t);
+  let start = (location.hash || '').slice(1); if (!document.getElementById(start)) { try { start = localStorage.getItem('syrius-redesign-screen') } catch (e) {} }
+  fit(); show(document.getElementById(start) ? start : screens[0].id);
+}
+</script>
+</body>
+</html>

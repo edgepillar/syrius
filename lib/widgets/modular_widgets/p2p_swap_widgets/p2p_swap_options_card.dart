@@ -1,24 +1,32 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/pow_generating_status_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/model/p2p_swap/p2p_swap.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/page_widgets.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/toast_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/join_native_swap_modal.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/native_p2p_swap_modal.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/p2p_swap_warning_modal.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/recover_deposit_modal.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/start_native_swap_modal.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/p2p_swap_options_button.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/dialogs.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/layout_scaffold/card_scaffold.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// The top row of the P2P Swap page: how the wallet's swaps stand, and the
+/// two ways into a new one.
+///
+/// Starting a swap is the page's one primary action. Joining one is the
+/// same flow from the other side, so it sits beside it as a quieter button.
 class P2pSwapOptionsCard extends StatefulWidget {
-  const P2pSwapOptionsCard({
-    super.key,
-  });
+  /// Creates the row over the wallet's [swaps].
+  const P2pSwapOptionsCard({required this.swaps, super.key});
+
+  /// The wallet's swaps; the figures count them by state.
+  final Stream<List<P2pSwap>> swaps;
 
   @override
   State<P2pSwapOptionsCard> createState() => _P2pSwapOptionsCardState();
@@ -26,168 +34,162 @@ class P2pSwapOptionsCard extends StatefulWidget {
 
 class _P2pSwapOptionsCardState extends State<P2pSwapOptionsCard> {
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return CardScaffold(
-      title: 'P2P Swap Options',
-      description: 'Starting and joining P2P swaps can be done from this card.',
-      childBuilder: () => _getWidgetBody(context),
-      customItem: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: GestureDetector(
-          onTap: () {
-            showCustomDialog(
-              context: context,
-              content: const RecoverDepositModal(),
-            );
-          },
-          child: Row(
-            children: <Widget>[
-              const Icon(
-                Icons.refresh,
-                color: AppColors.znnColor,
-                size: 20,
-              ),
-              const SizedBox(
-                width: 5,
-                height: 38,
-              ),
-              Expanded(
-                child: Text(
-                  'Recover deposit',
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-              ),
-            ],
-          ),
-        ),
+    return Panel(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Row(
+        children: <Widget>[
+          Expanded(child: _buildFigures()),
+          const SizedBox(width: 16),
+          _buildActions(),
+        ],
       ),
     );
   }
 
-  Widget _getWidgetBody(BuildContext context) {
-    return StreamBuilder<PowStatus>(
-      stream: sl.get<PowGeneratingStatusBloc>().stream,
-      builder: (_, AsyncSnapshot<PowStatus> snapshot) {
-        if (snapshot.hasError) {
-          return SyriusErrorWidget(snapshot.error!);
-        }
-        final bool isGeneratingPlasma = _isGeneratingPlasma(snapshot.data);
-        return Container(
-          margin: const EdgeInsets.all(20),
-          child: _getNativeOptions(isGeneratingPlasma),
+  Widget _buildFigures() {
+    return StreamBuilder<List<P2pSwap>>(
+      stream: widget.swaps,
+      builder: (_, AsyncSnapshot<List<P2pSwap>> snapshot) {
+        final List<P2pSwap>? swaps = snapshot.data;
+        String count(Set<P2pSwapState> states) => swaps == null
+            ? '-'
+            : '${swaps.where((P2pSwap s) => states.contains(s.state)).length}';
+        final bool needsReclaim =
+            swaps != null &&
+            swaps.any((P2pSwap s) => s.state == P2pSwapState.reclaimable);
+        return Row(
+          children: <Widget>[
+            Flexible(
+              child: Figure(
+                key: const Key('p2p_figure_active'),
+                label: 'Active',
+                value: count(<P2pSwapState>{
+                  P2pSwapState.pending,
+                  P2pSwapState.active,
+                }),
+              ),
+            ),
+            const SizedBox(width: 40),
+            Flexible(
+              child: Figure(
+                key: const Key('p2p_figure_completed'),
+                label: 'Completed',
+                value: count(<P2pSwapState>{P2pSwapState.completed}),
+              ),
+            ),
+            const SizedBox(width: 40),
+            Flexible(
+              child: Figure(
+                key: const Key('p2p_figure_reclaim'),
+                label: 'To reclaim',
+                value: count(<P2pSwapState>{P2pSwapState.reclaimable}),
+                // Funds waiting to be taken back are the one figure here
+                // that needs the person.
+                valueStyle: needsReclaim
+                    ? monoStyle(
+                        Theme.of(context).textTheme.headlineSmall,
+                      ).copyWith(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.warn,
+                      )
+                    : null,
+              ),
+            ),
+          ],
         );
       },
     );
   }
 
-  void _showUserWarningModalIfNeeded({required VoidCallback onContinue}) {
-    final hasReadWarning = sharedPrefsService!.get(
+  Widget _buildActions() {
+    final ThemeData theme = Theme.of(context);
+    final Color ink = theme.textTheme.bodyLarge!.color!;
+    return StreamBuilder<PowStatus>(
+      stream: sl.get<PowGeneratingStatusBloc>().stream,
+      builder: (_, AsyncSnapshot<PowStatus> snapshot) {
+        final bool isGeneratingPlasma = snapshot.data == PowStatus.generating;
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            OutlinedButton.icon(
+              key: const Key('p2p_join_swap'),
+              onPressed: () => _open(
+                isGeneratingPlasma: isGeneratingPlasma,
+                content: JoinNativeSwapModal(onJoinedSwap: _showSwap),
+              ),
+              icon: const Icon(Icons.call_merge, size: 18),
+              label: const Text('Join swap'),
+              // The neutral pill of mockup B: the card's raised tone and a
+              // hairline, so it does not compete with the filled action.
+              style: OutlinedButton.styleFrom(
+                foregroundColor: ink,
+                iconColor: ink,
+                backgroundColor: theme.colorScheme.primaryContainer,
+                side: BorderSide(color: theme.dividerTheme.color!),
+              ),
+            ),
+            const SizedBox(width: 10),
+            OutlinedButton.icon(
+              key: const Key('p2p_start_swap'),
+              onPressed: () => _open(
+                isGeneratingPlasma: isGeneratingPlasma,
+                content: StartNativeSwapModal(onSwapStarted: _showSwap),
+              ),
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('Start swap'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Opens a start or join dialog, after the one-time warning if it has not
+  /// been read. A transaction cannot be sent while plasma is generating, so
+  /// neither dialog opens then.
+  void _open({required bool isGeneratingPlasma, required Widget content}) {
+    if (isGeneratingPlasma) {
+      ToastUtils.showToast(context, 'Wait for plasma to generate');
+      return;
+    }
+    final Object? hasReadWarning = sharedPrefsService!.get(
       kHasReadP2pSwapWarningKey,
       defaultValue: kHasReadP2pSwapWarningDefaultValue,
     );
-    if (hasReadWarning == false) {
+    if (hasReadWarning != false) {
+      unawaited(showCustomDialog(context: context, content: content));
+      return;
+    }
+    unawaited(
       showCustomDialog(
         context: context,
-        content: P2PSwapWarningModal(onAccepted: () {
-          Navigator.pop(context);
-          sharedPrefsService!.put(kHasReadP2pSwapWarningKey, true);
-          Timer.run(onContinue);
-        },),
-      );
-    } else {
-      onContinue();
-    }
-  }
-
-  void _showNativeSwapModal(String swapId) {
-    Navigator.pop(context);
-    Timer.run(
-      () => showCustomDialog(
-        context: context,
-        content: NativeP2pSwapModal(
-          swapId: swapId,
+        content: P2PSwapWarningModal(
+          onAccepted: () {
+            Navigator.pop(context);
+            unawaited(sharedPrefsService!.put(kHasReadP2pSwapWarningKey, true));
+            Timer.run(
+              () => unawaited(
+                showCustomDialog(context: context, content: content),
+              ),
+            );
+          },
         ),
       ),
     );
   }
 
-  Column _getNativeOptions(bool isGeneratingPlasma) {
-    return Column(
-      children: <Widget>[
-        P2pSwapOptionsButton(
-          primaryText: 'Start swap',
-          secondaryText: 'Start a native swap with a counterparty.',
-          onClick: () => isGeneratingPlasma
-              ? _showGeneratingPlasmaToast()
-              : _showUserWarningModalIfNeeded(
-                  onContinue: () => showCustomDialog(
-                        context: context,
-                        content: StartNativeSwapModal(
-                            onSwapStarted: _showNativeSwapModal,),
-                      ),),
+  /// Replaces the start or join dialog with the swap it created.
+  void _showSwap(String swapId) {
+    Navigator.pop(context);
+    Timer.run(
+      () => unawaited(
+        showCustomDialog(
+          context: context,
+          content: NativeP2pSwapModal(swapId: swapId),
         ),
-        const SizedBox(
-          height: 25,
-        ),
-        P2pSwapOptionsButton(
-          primaryText: 'Join swap',
-          secondaryText: 'Join a native swap started by a counterparty.',
-          onClick: () => isGeneratingPlasma
-              ? _showGeneratingPlasmaToast()
-              : _showUserWarningModalIfNeeded(
-                  onContinue: () => showCustomDialog(
-                    context: context,
-                    content:
-                        JoinNativeSwapModal(onJoinedSwap: _showNativeSwapModal),
-                  ),
-                ),
-        ),
-        const SizedBox(
-          height: 40,
-        ),
-        MouseRegion(
-          cursor: SystemMouseCursors.click,
-          child: GestureDetector(
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Text(
-                  'View swap tutorial',
-                  style: TextStyle(
-                    color: AppColors.subtitleColor,
-                    fontSize: 14,
-                  ),
-                ),
-                SizedBox(
-                  width: 3,
-                ),
-                Icon(
-                  Icons.open_in_new,
-                  size: 18,
-                  color: AppColors.subtitleColor,
-                ),
-              ],
-            ),
-            onTap: () => NavigationUtils.openUrl(kP2pSwapTutorialLink),
-          ),
-        ),
-        const SizedBox(
-          height: 40,
-        ),
-      ],
+      ),
     );
-  }
-
-  bool _isGeneratingPlasma(PowStatus? status) {
-    return status != null && status == PowStatus.generating;
-  }
-
-  void _showGeneratingPlasmaToast() {
-    ToastUtils.showToast(context, 'Please wait while Plasma is generated');
   }
 }

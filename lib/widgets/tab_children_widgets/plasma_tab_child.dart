@@ -1,27 +1,28 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:layout/layout.dart';
-import 'package:provider/provider.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-/// Tab content for Plasma-related cards and lists.
-class PlasmaTabChild extends StatefulWidget {
+/// The height of the Fuse form: its two fields, the balance over them and
+/// the preview under them, with room for one error line.
+const double _kFuseHeight = 272;
+
+/// The least height the list of fusions keeps when the window is short.
+const double _kFusedMinHeight = 220;
+
+/// Plasma: the plasma mark and every address's level down the left; the
+/// Fuse form over the address's fusions on the right.
+///
+/// Each card reads the state it shows. The page used to sit inside one
+/// builder on the plasma levels, which put a spinner over the whole page
+/// until they loaded and rebuilt all three cards whenever they changed.
+class PlasmaTabChild extends StatelessWidget {
   /// Creates a Plasma tab child.
   const PlasmaTabChild({super.key});
 
-  @override
-  State createState() {
-    return _PlasmaTabChildState();
-  }
-}
-
-class _PlasmaTabChildState extends State<PlasmaTabChild> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<FusedPlasmaBloc>(
@@ -29,74 +30,70 @@ class _PlasmaTabChildState extends State<PlasmaTabChild> {
         ..add(
           InfiniteListRequested(address: Address.parse(kSelectedAddress!)),
         ),
-      child: BlocBuilder<PlasmaStatsBloc, InfiniteListState<PlasmaInfoWrapper>>(
-        builder: (_, InfiniteListState<PlasmaInfoWrapper> state) {
-          final InfiniteListStatus status = state.status;
-
-          return switch (status) {
-            InfiniteListStatus.initial => const SyriusLoadingWidget(),
-            InfiniteListStatus.failure => _buildFluidLayout(
-              errorText: state.error.toString(),
-            ),
-            InfiniteListStatus.success => _buildFluidLayout(
-              plasmaStatsResults: state.data,
-            ),
-          };
-        },
+      child: const PageGrid(
+        rows: <PageRow>[
+          PageRow.fill(
+            <PageCell>[
+              PageCell(
+                PlasmaStatsCard(version: PlasmaStatsWidgetVersion.plasmaTab),
+              ),
+              PageCell(_FuseColumn(), flex: 2),
+            ],
+            height: _kFuseHeight + kPanelGap + _kFusedMinHeight,
+          ),
+        ],
       ),
     );
   }
+}
 
-  Widget _buildFluidLayout({
-    List<PlasmaInfoWrapper>? plasmaStatsResults,
-    String? errorText,
-  }) {
-    return Builder(
-      builder: (BuildContext context) {
-        return StandardFluidLayout(
-          children: <FluidCell>[
-            FluidCell(
-              child: Consumer<PlasmaGeneratedNotifier>(
-                builder: (_, _, _) => const PlasmaStatsCard(
-                  version: PlasmaStatsWidgetVersion.plasmaTab,
-                ),
-              ),
-              width: context.layout.value(
-                xl: kStaggeredNumOfColumns ~/ 3,
-                lg: kStaggeredNumOfColumns ~/ 3,
-                md: kStaggeredNumOfColumns ~/ 3,
-                sm: kStaggeredNumOfColumns,
-                xs: kStaggeredNumOfColumns,
-              ),
-            ),
-            FluidCell(
-              child: FusePlasmaCard(
-                plasmaStatsResults: plasmaStatsResults,
-                errorText: errorText,
-                onPlasmaFused: () {
-                  context.read<FusedPlasmaBloc>().add(
-                    InfiniteListRefreshRequested(
-                      address: Address.parse(kSelectedAddress!),
-                    ),
-                  );
-                },
-              ),
-              width: context.layout.value(
-                xl: kStaggeredNumOfColumns ~/ 1.5,
-                lg: kStaggeredNumOfColumns ~/ 1.5,
-                md: kStaggeredNumOfColumns ~/ 1.5,
-                sm: kStaggeredNumOfColumns,
-                xs: kStaggeredNumOfColumns,
-              ),
-            ),
-            const FluidCell(
-              child: FusedPlasmaCard(),
-              width: kStaggeredNumOfColumns,
-              height: kStaggeredNumOfColumns / 2,
-            ),
-          ],
-        );
-      },
+/// The Fuse form over the list of fusions, which takes the height left.
+///
+/// After a fuse or a cancel it reloads the fusions and the plasma levels
+/// until the fusions show the change: the contract makes or drops a fusion
+/// about two momentums after the send, and a single reload at the send
+/// found nothing. Leaving the page, which locking the wallet does too,
+/// stops the reloads.
+class _FuseColumn extends StatefulWidget {
+  const _FuseColumn();
+
+  @override
+  State<_FuseColumn> createState() => _FuseColumnState();
+}
+
+class _FuseColumnState extends State<_FuseColumn> {
+  late final FusionsFollowUp _followUp;
+
+  @override
+  void initState() {
+    super.initState();
+    _followUp = FusionsFollowUp(
+      fusions: context.read<FusedPlasmaBloc>(),
+      levels: context.read<PlasmaStatsBloc>(),
+      address: () => Address.parse(kSelectedAddress!),
+    );
+  }
+
+  @override
+  void dispose() {
+    _followUp.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        SizedBox(
+          height: _kFuseHeight,
+          child: FusePlasmaCard(onPlasmaFused: _followUp.start),
+        ),
+        const SizedBox(height: kPanelGap),
+        Expanded(
+          child: FusedPlasmaCard(onFusionCancelled: _followUp.start),
+        ),
+      ],
     );
   }
 }

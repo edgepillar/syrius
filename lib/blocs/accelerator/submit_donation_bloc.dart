@@ -1,6 +1,7 @@
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/plasma_purpose.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -29,7 +30,7 @@ class SubmitDonationBloc extends BaseBloc<AccountBlockTemplate?> {
       AccountBlockTemplate transactionParams,) async {
     await AccountBlockUtils().createAccountBlock(
       transactionParams,
-      'donate for accelerator',
+      PlasmaPurpose.donateToAccelerator.message,
     ).then(
       (AccountBlockTemplate block) {
         sl.get<AcceleratorBalanceBloc>().getAcceleratorBalance();

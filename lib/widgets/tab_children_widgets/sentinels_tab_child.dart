@@ -1,9 +1,12 @@
-import 'package:flutter/material.dart';
-import 'package:layout/layout.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 
-/// Displays the Sentinels tab content in a responsive fluid layout.
+/// Sentinels: the address's rewards (what it can collect, over what it
+/// earned) and its own sentinel on top; every sentinel filling the rest.
+///
+/// The amounts to collect are the head of the rewards card instead of a
+/// card of their own.
 class SentinelsTabChild extends StatelessWidget {
   /// Creates a Sentinels tab child.
   const SentinelsTabChild({
@@ -16,49 +19,19 @@ class SentinelsTabChild extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<FluidCell> children = <FluidCell>[
-      FluidCell(
-        child: const SentinelRewardsCard(),
-        width: context.layout.value(
-          xl: kStaggeredNumOfColumns ~/ 3,
-          lg: kStaggeredNumOfColumns ~/ 3,
-          md: kStaggeredNumOfColumns ~/ 3,
-          sm: kStaggeredNumOfColumns ~/ 2,
-          xs: kStaggeredNumOfColumns,
-        ),
-      ),
-      FluidCell(
-        child: const SentinelCollectCard(),
-        width: context.layout.value(
-          xl: kStaggeredNumOfColumns ~/ 3,
-          lg: kStaggeredNumOfColumns ~/ 3,
-          md: kStaggeredNumOfColumns ~/ 3,
-          sm: kStaggeredNumOfColumns ~/ 2,
-          xs: kStaggeredNumOfColumns,
-        ),
-      ),
-      FluidCell(
-        child: SentinelStatsCard(
-          onStepperNotificationSeeMorePressed:
-              onStepperNotificationSeeMorePressed,
-        ),
-        width: context.layout.value(
-          xl: kStaggeredNumOfColumns ~/ 3,
-          lg: kStaggeredNumOfColumns ~/ 3,
-          md: kStaggeredNumOfColumns ~/ 3,
-          sm: kStaggeredNumOfColumns ~/ 2,
-          xs: kStaggeredNumOfColumns,
-        ),
-      ),
-      const FluidCell(
-        child: SentinelsCard(),
-        width: kStaggeredNumOfColumns,
-        height: kStaggeredNumOfColumns / 2,
-      ),
-    ];
-
-    return StandardFluidLayout(
-      children: children,
+    return PageGrid(
+      rows: <PageRow>[
+        PageRow.fixed(300, <PageCell>[
+          const PageCell(SentinelRewardsCard(), flex: 2),
+          PageCell(
+            SentinelStatsCard(
+              onStepperNotificationSeeMorePressed:
+                  onStepperNotificationSeeMorePressed,
+            ),
+          ),
+        ]),
+        const PageRow.fill(<PageCell>[PageCell(SentinelsCard())]),
+      ],
     );
   }
 }

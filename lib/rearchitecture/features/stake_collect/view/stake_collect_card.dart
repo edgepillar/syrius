@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/single_child_widget.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
@@ -12,10 +12,18 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-/// A card that displays and collects pending staking rewards.
-class StakeCollectCard extends StatelessWidget {
-  /// Creates a widget that displays and collects staking rewards.
-  const StakeCollectCard({super.key});
+/// Provides what [StakeCollectButton] needs: the selected address's
+/// uncollected staking rewards, and a bloc to send the collect block.
+///
+/// It wraps the whole Staking page rather than the button alone, so the
+/// strip's figure and the list's refresh button reach the uncollected
+/// amount too.
+class StakeCollectScope extends StatelessWidget {
+  /// Creates the scope around [child].
+  const StakeCollectScope({required this.child, super.key});
+
+  /// The page.
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
@@ -24,110 +32,52 @@ class StakeCollectCard extends StatelessWidget {
         BlocProvider<UncollectedStakingRewardsBloc>(
           create: (_) => UncollectedStakingRewardsBloc(zenon: zenon!)
             ..add(
-              FetchRequestData(
-                address: Address.parse(kSelectedAddress!),
-              ),
+              FetchRequestData(address: Address.parse(kSelectedAddress!)),
             ),
         ),
         BlocProvider<SendTransactionBloc>(
           create: (_) => SendTransactionBloc(),
         ),
       ],
-      child: const _View(),
+      child: child,
     );
   }
 }
 
-class _View extends StatelessWidget {
-  const _View();
+/// The button that collects what the selected address earned from its
+/// stakes. Needs a [StakeCollectScope] above it.
+///
+/// It stands in the Staking page's strip beside the amount; the head of a
+/// rewards card that used to hold both is gone with that card.
+class StakeCollectButton extends StatefulWidget {
+  /// Creates the button. Disabled while there is nothing to collect.
+  const StakeCollectButton({required this.enabled, super.key});
+
+  /// Whether there is anything to collect.
+  final bool enabled;
 
   @override
-  Widget build(BuildContext context) {
-    return NewCardScaffold(
-      data: _buildCardData(context: context),
-      onRefreshPressed: () {
-        context.read<UncollectedStakingRewardsBloc>().add(
-          FetchRequestData(address: Address.parse(kSelectedAddress!)),
-        );
-      },
-      body:
-          BlocBuilder<
-            UncollectedStakingRewardsBloc,
-            FetchState<UncollectedReward>
-          >(
-            builder: (_, FetchState<UncollectedReward> state) =>
-                switch (state) {
-                  FetchFailure<UncollectedReward>() => SyriusErrorWidget(
-                    state.exception,
-                  ),
-                  FetchInitial<UncollectedReward>() =>
-                    const SyriusLoadingWidget(),
-                  FetchPopulated<UncollectedReward>() => _Populated(
-                    uncollectedReward: state.data,
-                  ),
-                },
-          ),
-    );
-  }
-
-  CardData _buildCardData({required BuildContext context}) => CardData(
-    description: context.l10n.stakeCollectDescription,
-    title: context.l10n.stakeCollectTitle,
-  );
+  State<StakeCollectButton> createState() => _StakeCollectButtonState();
 }
 
-class _Populated extends StatelessWidget {
-  const _Populated({required this.uncollectedReward});
-
-  final UncollectedReward uncollectedReward;
-
-  @override
-  Widget build(BuildContext context) {
-    if (uncollectedReward.qsrAmount == BigInt.zero) {
-      return SyriusErrorWidget(context.l10n.noRewardsCollect);
-    }
-
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        NumberAnimation(
-          end: uncollectedReward.qsrAmount.addDecimals(coinDecimals).toNum(),
-          after: ' ${kQsrCoin.symbol}',
-          style: Theme.of(context).textTheme.headlineLarge!.copyWith(
-            color: AppColors.qsrColor,
-            fontSize: 30,
-          ),
-        ),
-        kVerticalSpacing,
-        const _CollectButton(),
-      ],
-    );
-  }
-}
-
-class _CollectButton extends StatefulWidget {
-  const _CollectButton();
-
-  @override
-  State<_CollectButton> createState() => _CollectButtonState();
-}
-
-class _CollectButtonState extends State<_CollectButton> {
+class _StakeCollectButtonState extends State<StakeCollectButton> {
   final GlobalKey<LoadingButtonState> _collectButtonKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
+    // The card's one primary action, like every other Collect; it used to
+    // be drawn in QSR blue, which made it look like a second kind of button.
     return BlocListener<SendTransactionBloc, SendTransactionState>(
       listener: (_, SendTransactionState state) =>
           _onTransactionStateChanged(state),
       child: LoadingButton.stepper(
         key: _collectButtonKey,
         text: context.l10n.collect,
-        outlineColor: AppColors.qsrColor,
-        textColor: AppColors.qsrColor,
-        onPressed: () => _onCollectPressed(
-          bloc: context.read<SendTransactionBloc>(),
-        ),
+        onPressed: widget.enabled
+            ? () => _onCollectPressed(
+                bloc: context.read<SendTransactionBloc>(),
+              )
+            : null,
       ),
     );
   }
@@ -172,7 +122,8 @@ class _CollectButtonState extends State<_CollectButton> {
       SendTransactionInitiateFromBlock(
         block: zenon!.embedded.stake.collectReward(),
         fromAddress: kSelectedAddress!,
-        reasonForGeneratingPlasma: context.l10n.collectStakingRewards,
+        reasonForGeneratingPlasma:
+            context.l10n.plasmaPurposeCollectStakingRewards,
       ),
     );
   }

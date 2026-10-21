@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/plasma_purpose.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -41,7 +42,7 @@ class TransferTokenBloc extends Bloc<TransferTokenEvent, TransferTokenState> {
       final AccountBlockTemplate response = await _accountBlockUtils
           .createAccountBlock(
             transactionParams,
-            'transfer token',
+            PlasmaPurpose.transferToken.message,
             waitForRequiredPlasma: true,
           );
 

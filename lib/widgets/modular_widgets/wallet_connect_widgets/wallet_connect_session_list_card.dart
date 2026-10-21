@@ -1,17 +1,15 @@
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:reown_walletkit/reown_walletkit.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/wallet_connect/wallet_connect_sessions_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/page_widgets.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/settings_parts.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
-const String _kWidgetTitle = 'WalletConnect Sessions List';
-const String _kWidgetDescription =
-    "A session refers to a live connection between a user's wallet and a dApp "
-    'A session allows the dApp to communicate with the wallet '
-    'securely over the Internet';
-
+/// The sites connected over WalletConnect: one row per live session.
 class WalletConnectSessionsCard extends StatefulWidget {
   const WalletConnectSessionsCard({super.key});
 
@@ -21,46 +19,48 @@ class WalletConnectSessionsCard extends StatefulWidget {
 }
 
 class _WalletConnectSessionsCardState extends State<WalletConnectSessionsCard> {
-  final WalletConnectSessionsBloc _sessionsBloc =
-      sl.get<WalletConnectSessionsBloc>();
+  final WalletConnectSessionsBloc _sessionsBloc = sl
+      .get<WalletConnectSessionsBloc>();
 
   @override
   Widget build(BuildContext context) {
-    return CardScaffold(
-      title: _kWidgetTitle,
-      description: _kWidgetDescription,
-      childBuilder: _getCardBody,
-      onRefreshPressed: _sessionsBloc.refreshResults,
+    return Panel(
+      title: 'WalletConnect',
+      actions: <Widget>[
+        IconButton(
+          tooltip: 'Refresh',
+          iconSize: 18,
+          icon: const Icon(Icons.refresh, color: AppColors.faint),
+          onPressed: _sessionsBloc.refreshResults,
+        ),
+      ],
+      child: _buildSessionsTable(),
     );
   }
 
-  Widget _getCardBody() {
-    return _buildPairingsTable();
-  }
-
-  Widget _buildPairingsTable() {
+  Widget _buildSessionsTable() {
     return InfiniteScrollTable<SessionData>(
       disposeBloc: false,
       bloc: _sessionsBloc,
       headerColumns: const <InfiniteScrollTableHeaderColumn>[
         InfiniteScrollTableHeaderColumn(
-          columnName: 'Name',
+          columnName: 'Site',
         ),
         InfiniteScrollTableHeaderColumn(
           columnName: 'URL',
           flex: 2,
         ),
         InfiniteScrollTableHeaderColumn(
-          columnName: 'Pairing Topic',
+          columnName: 'Pairing',
         ),
         InfiniteScrollTableHeaderColumn(
-          columnName: 'Session Topic',
+          columnName: 'Session',
         ),
         InfiniteScrollTableHeaderColumn(
-          columnName: 'Expiration',
+          columnName: 'Expires',
         ),
         InfiniteScrollTableHeaderColumn(
-          columnName: 'Acknowledged',
+          columnName: 'Acked',
         ),
       ],
       generateRowCells: (SessionData sessionData, bool isSelected) {
@@ -73,21 +73,30 @@ class _WalletConnectSessionsCardState extends State<WalletConnectSessionsCard> {
             _buildTableUrlWidget(sessionData.peer.metadata.url),
             flex: 2,
           ),
-          if (isSelected) InfiniteScrollTableCell.withMarquee(
-                  sessionData.pairingTopic,
-                ) else InfiniteScrollTableCell.withText(
-                  context,
-                  sessionData.pairingTopic.short,
-                ),
-          if (isSelected) InfiniteScrollTableCell.withMarquee(
-                  sessionData.topic,
-                ) else InfiniteScrollTableCell.withText(
-                  context,
-                  sessionData.topic.short,
-                ),
+          if (isSelected)
+            InfiniteScrollTableCell.withMarquee(
+              sessionData.pairingTopic,
+            )
+          else
+            InfiniteScrollTableCell.withText(
+              context,
+              sessionData.pairingTopic.short,
+              textStyle: settingMonoStyle(context),
+            ),
+          if (isSelected)
+            InfiniteScrollTableCell.withMarquee(
+              sessionData.topic,
+            )
+          else
+            InfiniteScrollTableCell.withText(
+              context,
+              sessionData.topic.short,
+              textStyle: settingMonoStyle(context),
+            ),
           InfiniteScrollTableCell.withText(
             context,
             _formatExpiryDateTime(sessionData.expiry),
+            textStyle: settingMonoStyle(context),
           ),
           InfiniteScrollTableCell.withText(
             context,
@@ -98,24 +107,21 @@ class _WalletConnectSessionsCardState extends State<WalletConnectSessionsCard> {
     );
   }
 
-  Row _buildTableUrlWidget(String? peerUrl) {
+  Widget _buildTableUrlWidget(String? peerUrl) {
     return Row(
       children: <Widget>[
-        Text(peerUrl ?? 'Empty'),
-        Visibility(
-          visible: peerUrl != null,
-          child: LinkIcon(
-            url: peerUrl!,
+        Flexible(
+          child: Text(
+            peerUrl ?? '-',
+            overflow: TextOverflow.ellipsis,
+            style: settingMonoStyle(context),
           ),
         ),
+        if (peerUrl != null) LinkIcon(url: peerUrl),
       ],
     );
   }
 
-  String _formatExpiryDateTime(int expirySeconds) {
-    final DateTime expiryDateTime =
-        DateTime.fromMillisecondsSinceEpoch(expirySeconds * 1000);
-
-    return DateFormat('MMM dd, y HH:mm:ss').format(expiryDateTime);
-  }
+  String _formatExpiryDateTime(int expirySeconds) =>
+      FormatUtils.formatDayMonthTime(expirySeconds * 1000);
 }

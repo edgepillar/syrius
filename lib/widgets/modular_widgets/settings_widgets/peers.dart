@@ -1,8 +1,11 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/page_widgets.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/settings_parts.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// The peers the connected node talks to.
 class PeersWidget extends StatefulWidget {
   const PeersWidget({super.key});
 
@@ -25,52 +28,66 @@ class _PeersWidget extends State<PeersWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return CardScaffold(
+    return Panel(
       title: 'Peers',
-      description:
-          'This card displays information about connected network peers',
-      childBuilder: _getStreamBuilder,
+      child: _buildStreamBuilder(),
     );
   }
 
-  Widget _getTable() {
+  Widget _buildTable() {
+    if (_peers!.isEmpty) {
+      return const QuietNote('No peers');
+    }
     return CustomTable<Peer>(
       items: _peers,
       headerColumns: <CustomHeaderColumn>[
         CustomHeaderColumn(
           columnName: 'IP',
           onSortArrowsPressed: _onSortArrowsPressed,
-          contentAlign: MainAxisAlignment.center,
         ),
         CustomHeaderColumn(
-          columnName: 'Public Key',
+          columnName: 'Public key',
           onSortArrowsPressed: _onSortArrowsPressed,
-          contentAlign: MainAxisAlignment.center,
+          flex: 2,
         ),
       ],
       generateRowCells: (Peer peer, bool isSelected, {Object? model}) {
         return <Widget>[
-          CustomTableCell.withText(context, peer.ip),
-          CustomTableCell.withMarquee(
-            peer.publicKey,
-            showCopyToClipboardIcon: false,
+          CustomTableCell.withText(
+            context,
+            peer.ip,
+            textStyle: settingMonoStyle(context),
+          ),
+          CustomTableCell(
+            Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: Tooltip(
+                message: peer.publicKey,
+                child: Text(
+                  peer.publicKey,
+                  overflow: TextOverflow.ellipsis,
+                  style: settingMonoStyle(context),
+                ),
+              ),
+            ),
+            flex: 2,
           ),
         ];
       },
     );
   }
 
-  Widget _getStreamBuilder() {
+  Widget _buildStreamBuilder() {
     return StreamBuilder<NetworkInfo>(
       stream: _peersBloc!.stream,
       builder: (_, AsyncSnapshot<NetworkInfo> snapshot) {
         if (snapshot.hasData) {
           _peers = snapshot.data!.peers;
-          return _getTable();
+          return _buildTable();
         } else if (snapshot.hasError) {
-          return SyriusErrorWidget(snapshot.error!);
+          return QuietNote.error(snapshot.error!);
         }
-        return const SyriusLoadingWidget();
+        return const QuietNote.loading();
       },
     );
   }
@@ -81,7 +98,7 @@ class _PeersWidget extends State<PeersWidget> {
         _sortAscending
             ? _peers!.sort((Peer a, Peer b) => a.ip.compareTo(b.ip))
             : _peers!.sort((Peer a, Peer b) => b.ip.compareTo(a.ip));
-      case 'Public Key':
+      case 'Public key':
         _sortAscending
             ? _peers!.sort(
                 (Peer a, Peer b) => a.publicKey.compareTo(b.publicKey),
@@ -93,7 +110,6 @@ class _PeersWidget extends State<PeersWidget> {
         _sortAscending
             ? _peers!.sort((Peer a, Peer b) => a.ip.compareTo(b.ip))
             : _peers!.sort((Peer a, Peer b) => b.ip.compareTo(a.ip));
-        break;
     }
     setState(() {
       _sortAscending = !_sortAscending;

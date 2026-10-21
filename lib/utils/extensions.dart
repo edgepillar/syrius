@@ -1,4 +1,6 @@
 import 'dart:math' show pow;
+import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
 import 'package:znn_ledger_dart/znn_ledger_dart.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -78,45 +80,46 @@ extension LedgerErrorExtensions on LedgerError {
   }
 
   String _mapStatusWord(StatusWord statusWord) {
+    final AppLocalizations l10n = currentL10n;
     switch (statusWord) {
       case StatusWord.deny:
-        return 'Deny';
+        return l10n.ledgerStatusDeny;
       case StatusWord.wrongP1P2:
-        return 'Invalid P1 or P2';
+        return l10n.ledgerStatusWrongP1P2;
       case StatusWord.wrongDataLength:
-        return 'Invalid data length';
+        return l10n.ledgerStatusWrongDataLength;
       case StatusWord.inactiveDevice:
-        return 'Device is inactive';
+        return l10n.ledgerStatusInactiveDevice;
       case StatusWord.notAllowed:
-        return 'Request not allowed';
+        return l10n.ledgerStatusNotAllowed;
       case StatusWord.insNotSupported:
-        return 'Instruction not supported, please make sure the Zenon app is opened';
+        return l10n.ledgerStatusInsNotSupported;
       case StatusWord.claNotSupported:
-        return 'Class not supported, please make sure the Zenon app is opened';
+        return l10n.ledgerStatusClaNotSupported;
       case StatusWord.appIsNotOpen:
-        return 'App not open, please open the Zenon app on your device';
+        return l10n.ledgerStatusAppIsNotOpen;
       case StatusWord.wrongResponseLength:
-        return 'Invalid response, please reconnect the device and try again';
+        return l10n.ledgerStatusWrongResponseLength;
       case StatusWord.displayBip32PathFail:
-        return 'Failed to display BIP32 path';
+        return l10n.ledgerStatusDisplayBip32PathFail;
       case StatusWord.displayAddressFail:
-        return 'Failed to display address';
+        return l10n.ledgerStatusDisplayAddressFail;
       case StatusWord.displayAmountFail:
-        return 'Failed to display amount';
+        return l10n.ledgerStatusDisplayAmountFail;
       case StatusWord.wrongTxLength:
-        return 'Invalid transaction length';
+        return l10n.ledgerStatusWrongTxLength;
       case StatusWord.txParsingFail:
-        return 'Failed to parse transaction';
+        return l10n.ledgerStatusTxParsingFail;
       case StatusWord.txHashFail:
-        return 'Failed to hash transaction';
+        return l10n.ledgerStatusTxHashFail;
       case StatusWord.badState:
-        return 'Bad state, please reconnect the device and try again';
+        return l10n.ledgerStatusBadState;
       case StatusWord.signatureFail:
-        return 'Failed to create signature';
+        return l10n.ledgerStatusSignatureFail;
       case StatusWord.success:
-        return 'Success';
+        return l10n.ledgerStatusSuccess;
       case StatusWord.unknownError:
-        return 'Unknown error, please make sure the device is unlocked';
+        return l10n.ledgerStatusUnknownError;
     }
   }
 }

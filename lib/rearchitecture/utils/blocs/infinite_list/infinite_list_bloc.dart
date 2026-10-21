@@ -8,6 +8,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/constants/api.d
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/functions/functions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/node_change.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'infinite_list_bloc.g.dart';
@@ -71,6 +72,10 @@ abstract class InfiniteListBloc<T>
 
   /// THe number of results to be returned per page.
   final int pageSize;
+
+  /// Cached per node: see `lib/utils/node_change.dart`.
+  @override
+  String get storagePrefix => nodeScopedStoragePrefix(runtimeType);
 
   /// Method that helps deserializing the generic [T] type
   final T Function(Object?) fromJsonT;

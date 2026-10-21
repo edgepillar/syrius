@@ -1,7 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/app_lottie.dart';
 
 /// Success action shown after a pillar has been updated.
 class PillarUpdatedSuccess extends StatelessWidget {
@@ -16,16 +15,16 @@ class PillarUpdatedSuccess extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
+    return PositionedDirectional(
       bottom: 20,
-      right: 0,
-      left: 0,
+      start: 0,
+      end: 0,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          StepperButton(
-            text: context.l10n.viewPillars,
+          OutlinedButton(
             onPressed: onViewPillarsPressed,
+            child: Text(context.l10n.viewPillars),
           ),
         ],
       ),
@@ -40,16 +39,15 @@ class PillarUpdatedSuccessAnimation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      right: 50,
+    // At the end of the line, so it stays clear of the steps when the
+    // interface runs right to left.
+    return const PositionedDirectional(
+      end: 50,
       child: SizedBox(
         width: 400,
         height: 400,
         child: Center(
-          child: Lottie.asset(
-            'assets/lottie/ic_anim_pillar.json',
-            repeat: false,
-          ),
+          child: AppLottie(AppLottieAsset.pillar, size: 400, repeat: false),
         ),
       ),
     );

@@ -1,5 +1,5 @@
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 
@@ -75,12 +75,11 @@ class StandardChart extends StatelessWidget {
                         distanceFromEdge: 0,
                       ),
                       child: Text(
-                        FormatUtils.formatDate(
+                        FormatUtils.formatDayMonth(
                           FormatUtils.subtractDaysFromDate(
                             value.toInt(),
                             titlesReferenceDate,
                           ),
-                          dateFormat: 'd MMM',
                         ),
                         style: Theme.of(context).textTheme.titleSmall,
                       ),

@@ -1,10 +1,11 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:provider/single_child_widget.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/card_parts/card_parts.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/pillar_parts/pillar_parts.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart'
@@ -14,27 +15,22 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart'
         InfiniteScrollTableHeaderColumn;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-/// A widget that displays the list of pillars, each UI item from the list
-/// showing some specific information about the represented pillar
+/// Every pillar, with what it shares and how well it produces.
 ///
-/// If a user has delegated to a pillar, a 'Delegated' mention is shown
-/// If a user hasn't delegated to a pillar, than a 'Delegate' button is shown
-/// which allow the user to delegate without un-delegating first
+/// The pillar the address delegates to is marked "Delegated". Every other
+/// row offers Delegate, which moves the delegation without undelegating
+/// first; it is hidden while the address holds too little ZNN to delegate.
 class PillarsCard extends StatelessWidget {
   /// {@macro default_constructor}
   const PillarsCard({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: <SingleChildWidget>[
-        BlocProvider<DelegationBloc>(
-          create: (_) => DelegationBloc(
-            accountBlockUtils: AccountBlockUtils(),
-            zenon: zenon!,
-          ),
-        ),
-      ],
+    return BlocProvider<DelegationBloc>(
+      create: (_) => DelegationBloc(
+        accountBlockUtils: AccountBlockUtils(),
+        zenon: zenon!,
+      ),
       child: const _View(),
     );
   }
@@ -45,44 +41,74 @@ class _View extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return NewCardScaffold(
-      data: _buildCardData(context: context),
-      onRefreshPressed: () {
-        context.read<PillarsBloc>().add(
-          InfiniteListRefreshRequested(
-            address: Address.parse(kSelectedAddress!),
-          ),
-        );
-      },
-      body: BlocBuilder<PillarsBloc, InfiniteListState<PillarInfo>>(
-        builder:
-            (
-              _,
-              InfiniteListState<PillarInfo> state,
-            ) {
-              final InfiniteListStatus status = state.status;
-
-              return switch (status) {
-                InfiniteListStatus.initial => const SyriusLoadingWidget(),
-                InfiniteListStatus.failure => SyriusErrorWidget(
-                  state.error!,
+    return Panel(
+      title: context.l10n.pillars,
+      actions: <Widget>[
+        RefreshButton(
+          onPressed: () {
+            context.read<PillarsBloc>().add(
+              InfiniteListRefreshRequested(
+                address: Address.parse(kSelectedAddress!),
+              ),
+            );
+          },
+        ),
+      ],
+      child: BlocBuilder<PillarsBloc, InfiniteListState<PillarInfo>>(
+        builder: (_, InfiniteListState<PillarInfo> state) {
+          return StateSwitcher(
+            child: switch (state.status) {
+              InfiniteListStatus.initial => const _Loading(
+                key: ValueKey<String>('loading'),
+              ),
+              InfiniteListStatus.failure => CardNote.error(
+                state.error!,
+                key: const ValueKey<String>('failure'),
+              ),
+              // The table would say "None yet" itself, but under the
+              // table's key, and the first pillar would appear with no fade.
+              InfiniteListStatus.success when state.data!.isEmpty =>
+                SyriusErrorWidget(
+                  context.l10n.noItemsFound,
+                  key: const ValueKey<String>('empty'),
                 ),
-                InfiniteListStatus.success => _Populated(
-                  hasReachedMax: state.hasReachedMax,
-                  pillars: state.data!,
-                ),
-              };
+              InfiniteListStatus.success => _Populated(
+                key: const ValueKey<String>('table'),
+                hasReachedMax: state.hasReachedMax,
+                pillars: state.data!,
+              ),
             },
+          );
+        },
       ),
     );
   }
+}
 
-  CardData _buildCardData({
-    required BuildContext context,
-  }) {
-    return CardData(
-      description: context.l10n.pillarsListDescription(kZnnCoin.symbol),
-      title: context.l10n.pillars,
+/// The table's head, and a row with a Delegate button in it, as the table
+/// lays them out; the loading bars are spaced by them.
+const double _kHeadHeight = 40;
+const double _kRowHeight = 32 + kInfiniteTableHorizontalPadding;
+const double _kSkeletonBar = 12;
+
+/// The list while it loads: a bar where each of the first rows will be,
+/// under the space the column names take, so the rows arrive where the bars
+/// stood.
+class _Loading extends StatelessWidget {
+  const _Loading({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    // A short card shows fewer bars instead of overflowing.
+    return const SingleChildScrollView(
+      physics: NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.fromLTRB(
+        kInfiniteTableHorizontalPadding,
+        _kHeadHeight + 1 + (_kRowHeight - _kSkeletonBar) / 2,
+        kInfiniteTableHorizontalPadding,
+        0,
+      ),
+      child: SkeletonRows(rows: 5, gap: _kRowHeight + 1 - _kSkeletonBar),
     );
   }
 }
@@ -91,6 +117,7 @@ class _Populated extends StatefulWidget {
   const _Populated({
     required this.hasReachedMax,
     required this.pillars,
+    super.key,
   });
 
   final bool hasReachedMax;
@@ -101,20 +128,11 @@ class _Populated extends StatefulWidget {
 }
 
 class _PopulatedState extends State<_Populated> {
-  final List<PillarInfo> _pillarInfoWrappers = <PillarInfo>[];
-
   final Map<String, GlobalKey<LoadingButtonState>> _delegateButtonKeys =
       <String, GlobalKey<LoadingButtonState>>{};
 
-  bool _sortAscending = true;
-
-  String? _currentlyDelegatingToPillar;
-
-  DelegationInfo? _delegationInfo;
-
-  GlobalKey<LoadingButtonState>? _currentlyActiveButtonKey;
-
-  AccountInfo? _accountInfo;
+  /// The pillar a delegation is being sent to, until the block is answered.
+  String? _delegatingTo;
 
   @override
   void initState() {
@@ -128,255 +146,202 @@ class _PopulatedState extends State<_Populated> {
 
   @override
   Widget build(BuildContext context) {
-    final MultipleBalanceState multipleBalanceState = context
-        .watch<MultipleBalanceBloc>()
-        .state;
-
-    if (multipleBalanceState.status == .initial ||
-        multipleBalanceState.status == .loading) {
-      return const SyriusLoadingWidget();
-    } else if (multipleBalanceState.status == .failure) {
-      return SyriusErrorWidget(multipleBalanceState.error!);
-    } else {
-      _accountInfo = multipleBalanceState.data![kSelectedAddress!];
-    }
+    // The list reads two things besides the pillars, and only these two
+    // values of them: a balance or a delegation that changes in any other
+    // way does not rebuild the table.
+    final bool canDelegate = context.select<MultipleBalanceBloc, bool>(
+      (MultipleBalanceBloc bloc) =>
+          (bloc.state.data?[kSelectedAddress]?.znn() ?? BigInt.zero) >=
+          kMinDelegationAmount,
+    );
+    final String? delegatedTo = context.select<DelegationStatsBloc, String?>((
+      DelegationStatsBloc bloc,
+    ) {
+      final FetchState<DelegationInfo> state = bloc.state;
+      return state is FetchPopulated<DelegationInfo> ? state.data.name : null;
+    });
 
     return BlocListener<DelegationBloc, DelegationState>(
-      listener: (_, DelegationState state) {
-        if (state is DelegationDone) {
-          context.read<DelegationStatsBloc>().add(
-            FetchRequestData(address: Address.parse(kSelectedAddress!)),
-          );
-          _currentlyActiveButtonKey?.currentState?.animateReverse();
-          setState(() {
-            _currentlyDelegatingToPillar = null;
-          });
-        } else if (state is DelegationFailure) {
-          _currentlyActiveButtonKey?.currentState?.animateReverse();
-          unawaited(
-            NotificationUtils.sendNotificationError(
-              state.exception,
-              context.l10n.pillarDelegationError,
+      listener: _onDelegationStateChanged,
+      // Delegate repeats on every row, so it is a secondary button; a column
+      // of filled green pills would drown the list.
+      child: CardSecondaryButtons(
+        // Tab goes through the rows' buttons, top to bottom, before it
+        // leaves the card.
+        child: FocusTraversalGroup(
+          policy: ReadingOrderTraversalPolicy(),
+          child: SizedBox.expand(
+            child: InfiniteScrollTable<PillarInfo>(
+              // Keeps the scroll position when the page is left and shown
+              // again.
+              key: const PageStorageKey<String>('pillars_table'),
+              itemKeyGenerator: (PillarInfo pillarInfo) =>
+                  ValueKey<String>(pillarInfo.name),
+              items: widget.pillars,
+              hasReachedMax: widget.hasReachedMax,
+              columns: _columns,
+              heads: _heads(context),
+              generateRowCells: (PillarInfo pillarInfo) => _buildRowCells(
+                context,
+                pillarInfo,
+                canDelegate: canDelegate,
+                delegatedTo: delegatedTo,
+              ),
+              onScrollReachedBottom: () {
+                context.read<PillarsBloc>().add(
+                  const InfiniteListMoreRequested(),
+                );
+              },
             ),
-          );
-          setState(() {
-            _currentlyDelegatingToPillar = null;
-          });
-        }
-      },
-      child: BlocBuilder<DelegationStatsBloc, FetchState<DelegationInfo>>(
-        builder: (BuildContext context, FetchState<DelegationInfo> state) {
-          final Widget table = InfiniteScrollTable<PillarInfo>(
-            itemKeyGenerator: (PillarInfo pillarInfo) =>
-                ValueKey<String>(pillarInfo.name),
-            items: widget.pillars,
-            hasReachedMax: widget.hasReachedMax,
-            columns: _buildHeaderColumns(),
-            generateRowCells: _rowCellsGenerator,
-            onScrollReachedBottom: () {
-              context.read<PillarsBloc>().add(
-                const InfiniteListMoreRequested(),
-              );
-            },
-          );
-
-          if (state is FetchPopulated<DelegationInfo>) {
-            _delegationInfo = state.data;
-          }
-
-          return switch (state) {
-            FetchFailure<DelegationInfo>() =>
-              state.exception is NoDelegationStatsException
-                  ? table
-                  : SyriusErrorWidget(state.exception),
-            FetchInitial<DelegationInfo>() => const SyriusLoadingWidget(),
-            FetchPopulated<DelegationInfo>() => table,
-          };
-        },
+          ),
+        ),
       ),
     );
   }
 
-  bool _isOwnerAddressSelected(PillarInfo pillarInfo) {
-    return pillarInfo.ownerAddress.toString() == kSelectedAddress;
+  void _onDelegationStateChanged(BuildContext context, DelegationState state) {
+    if (state is DelegationDone) {
+      context.read<DelegationStatsBloc>().add(
+        FetchRequestData(address: Address.parse(kSelectedAddress!)),
+      );
+    } else if (state is DelegationFailure) {
+      unawaited(
+        NotificationUtils.sendNotificationError(
+          state.exception,
+          context.l10n.pillarDelegationError,
+        ),
+      );
+    } else {
+      return;
+    }
+    _delegateButtonKeys[_delegatingTo]?.currentState?.animateReverse();
+    setState(() => _delegatingTo = null);
   }
 
-  List<InfiniteScrollTableCell> _rowCellsGenerator(
-    PillarInfo pillarInfo,
-  ) {
+  void _onDelegatePressed(PillarInfo pillarInfo) {
+    _delegateButtonKeys[pillarInfo.name]?.currentState?.animateForward();
+    setState(() => _delegatingTo = pillarInfo.name);
+    context.read<DelegationBloc>().add(
+      DelegationRequested(
+        address: Address.parse(kSelectedAddress!),
+        pillarName: pillarInfo.name,
+      ),
+    );
+  }
+
+  List<InfiniteScrollTableCell> _buildRowCells(
+    BuildContext context,
+    PillarInfo pillarInfo, {
+    required bool canDelegate,
+    required String? delegatedTo,
+  }) {
+    final AppTokens tokens = AppTokens.of(context);
+    final bool own = pillarInfo.ownerAddress.toString() == kSelectedAddress;
+    final Color? ink = own ? tokens.znnInk : null;
+    final TextStyle mono = monoStyle(null);
+
     return <InfiniteScrollTableCell>[
       InfiniteScrollTableCell.withText(
         content: pillarInfo.name,
-        textStyle: TextStyle(
-          color: _isOwnerAddressSelected(pillarInfo)
-              ? AppColors.znnColor
-              : AppColors.subtitleColor,
-        ),
+        textStyle: TextStyle(color: ink),
+        flex: _nameFlex,
+        // A pillar's name may be 40 characters; the hover has all of it.
+        tooltipMessage: pillarInfo.name,
       ),
       InfiniteScrollTableCell.textFromAddress(
         address: pillarInfo.producerAddress,
-        flex: 3,
-        isStakeAddress: _isOwnerAddressSelected(pillarInfo),
+        flex: _producerFlex,
+        isStakeAddress: own,
       ),
       InfiniteScrollTableCell(
-        child: FormattedAmountWithTooltip(
-          amount: pillarInfo.weight.addDecimals(
-            kZnnCoin.decimals,
-          ),
-          tokenSymbol: kZnnCoin.symbol,
-          builder: (String formattedAmount, String tokenSymbol) => Text(
-            '$formattedAmount $tokenSymbol',
-            style: Theme.of(context).textTheme.titleMedium!.copyWith(
-              color: _isOwnerAddressSelected(pillarInfo)
-                  ? AppColors.znnColor
-                  : AppColors.subtitleColor,
+        flex: _weightFlex,
+        // Aligned, so the flash is as wide as the weight and not as the
+        // column.
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: ValueFlash(
+            // Keyed by the pillar: a row that comes to show another pillar
+            // is not a change of this one's weight.
+            key: ValueKey<String>(pillarInfo.name),
+            value: pillarInfo.weight,
+            color: tokens.znnInk,
+            // Short form in the column ("9.92K"), which has no trailing
+            // zeros; the exact weight is on hover.
+            child: FormattedAmountWithTooltip(
+              amount: pillarInfo.weight.addDecimals(kZnnCoin.decimals),
+              tokenSymbol: kZnnCoin.symbol,
+              builder: (String formattedAmount, String tokenSymbol) =>
+                  Text.rich(
+                    TextSpan(
+                      style: mono.copyWith(color: ink),
+                      children: <InlineSpan>[
+                        TextSpan(text: formattedAmount),
+                        TextSpan(
+                          text: ' $tokenSymbol',
+                          style: TextStyle(
+                            fontFamily: kSansFontFamily,
+                            fontWeight: FontWeight.w500,
+                            color: tokens.znnInk,
+                          ),
+                        ),
+                      ],
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
             ),
           ),
         ),
       ),
       InfiniteScrollTableCell.withText(
-        content: '${pillarInfo.giveMomentumRewardPercentage} %',
+        content: '${pillarInfo.giveMomentumRewardPercentage}%',
+        textStyle: mono,
+        flex: _shareFlex,
       ),
       InfiniteScrollTableCell.withText(
-        content: '${pillarInfo.giveDelegateRewardPercentage} %',
+        content: '${pillarInfo.giveDelegateRewardPercentage}%',
+        textStyle: mono,
+        flex: _shareFlex,
       ),
       InfiniteScrollTableCell.withText(
         content:
-            '${pillarInfo.expectedMomentums}/${pillarInfo.producedMomentums} ',
+            '${pillarInfo.expectedMomentums}/${pillarInfo.producedMomentums}',
+        textStyle: mono,
+        flex: _momentumsFlex,
       ),
       InfiniteScrollTableCell.withText(
-        content: '${_getMomentumsPercentage(pillarInfo)} %',
+        content: '${_uptime(pillarInfo)}%',
+        textStyle: mono,
+        flex: _uptimeFlex,
       ),
       InfiniteScrollTableCell(
-        child: _buildDelegateCell(
-          pillarInfo: pillarInfo,
+        flex: _delegationFlex,
+        child: _DelegateCell(
+          delegated: delegatedTo == pillarInfo.name,
+          offered: canDelegate,
+          buttonKey: _delegateButtonKeys.putIfAbsent(
+            pillarInfo.name,
+            GlobalKey<LoadingButtonState>.new,
+          ),
+          // While one delegation is on its way, every Delegate is disabled;
+          // the one pressed shows its progress.
+          onPressed: _delegatingTo == null
+              ? () => _onDelegatePressed(pillarInfo)
+              : null,
         ),
       ),
     ];
   }
 
-  Widget _buildDelegateCell({
-    required PillarInfo pillarInfo,
-  }) {
-    final bool currentlyDelegatingToAPillar =
-        _currentlyDelegatingToPillar != null;
-    final bool currentlyDelegatingToThisPillar =
-        _currentlyDelegatingToPillar == pillarInfo.name;
-
-    final bool delegatedToThisPillar = _delegationInfo?.name == pillarInfo.name;
-
-    if (currentlyDelegatingToThisPillar) {
-      return _buildDelegateButton(pillarInfo: pillarInfo);
-    } else if (delegatedToThisPillar) {
-      // TODO(maznnwell): check if we can tell with how many ZNN were delegated
-      return const Text(
-        'Delegated',
-        style: TextStyle(
-          color: AppColors.znnColor,
-        ),
-        textAlign: .center,
-      );
-    }
-    if (currentlyDelegatingToAPillar) {
-      return const SizedBox.shrink();
-    } else {
-      return _buildDelegateButton(pillarInfo: pillarInfo);
-    }
-  }
-
-  // TODO(maznnwell): to be used when sorting is enabled
-  // ignore: unused_element
-  void _onSortArrowsPressed(String columnName) {
-    switch (columnName) {
-      case 'Name':
-        _sortAscending
-            ? _pillarInfoWrappers.sort(
-                (PillarInfo a, PillarInfo b) => a.name.compareTo(b.name),
-              )
-            : _pillarInfoWrappers.sort(
-                (PillarInfo a, PillarInfo b) => b.name.compareTo(a.name),
-              );
-      case 'Producer Address':
-        _sortAscending
-            ? _pillarInfoWrappers.sort(
-                (PillarInfo a, PillarInfo b) =>
-                    a.producerAddress.compareTo(b.producerAddress),
-              )
-            : _pillarInfoWrappers.sort(
-                (PillarInfo a, PillarInfo b) =>
-                    b.producerAddress.compareTo(a.producerAddress),
-              );
-      case 'Weight':
-        _sortAscending
-            ? _pillarInfoWrappers.sort(
-                (PillarInfo a, PillarInfo b) => a.weight.compareTo(b.weight),
-              )
-            : _pillarInfoWrappers.sort(
-                (PillarInfo a, PillarInfo b) => b.weight.compareTo(a.weight),
-              );
-      default:
-        _sortAscending
-            ? _pillarInfoWrappers.sort(
-                (PillarInfo a, PillarInfo b) => a.name.compareTo(b.name),
-              )
-            : _pillarInfoWrappers.sort(
-                (PillarInfo a, PillarInfo b) => b.name.compareTo(a.name),
-              );
-    }
-
-    setState(() {
-      _sortAscending = !_sortAscending;
-    });
-  }
-
-  Widget _buildDelegateButton({
-    required PillarInfo pillarInfo,
-  }) {
-    _delegateButtonKeys[pillarInfo.name] ??= GlobalKey<LoadingButtonState>();
-    final GlobalKey<LoadingButtonState> delegateButtonKey =
-        _delegateButtonKeys[pillarInfo.name]!;
-
-    return Row(
-      mainAxisAlignment: .center,
-      mainAxisSize: .min,
-      children: <Widget>[
-        Visibility(
-          visible: _accountInfo!.znn()! >= kMinDelegationAmount,
-          child: LoadingButton(
-            onPressed: () {
-              delegateButtonKey.currentState?.animateForward();
-              setState(() {
-                _currentlyDelegatingToPillar = pillarInfo.name;
-                _currentlyActiveButtonKey = delegateButtonKey;
-              });
-              context.read<DelegationBloc>().add(
-                DelegationRequested(
-                  address: Address.parse(kSelectedAddress!),
-                  pillarName: pillarInfo.name,
-                ),
-              );
-            },
-            text: context.l10n.delegateKey.capitalize(),
-            textStyle: const TextStyle(
-              color: Colors.white,
-            ),
-            key: delegateButtonKey,
-          ),
-        ),
-      ],
-    );
-  }
-
-  int _getMomentumsPercentage(PillarInfo pillarInfo) {
+  /// The share of the momentums expected of a pillar that it produced.
+  static int _uptime(PillarInfo pillarInfo) {
+    if (pillarInfo.expectedMomentums == 0) return 0;
     final double percentage =
         pillarInfo.producedMomentums / pillarInfo.expectedMomentums * 100;
-    if (percentage.isNaN) {
-      return 0;
-    }
-    return percentage.round();
+    return percentage.isNaN ? 0 : percentage.round();
   }
 
-  List<InfiniteScrollTableColumnType> _buildHeaderColumns() =>
+  static const List<InfiniteScrollTableColumnType> _columns =
       <InfiniteScrollTableColumnType>[
         .pillarName,
         .producerAddress,
@@ -387,4 +352,88 @@ class _PopulatedState extends State<_Populated> {
         .uptime,
         .delegation,
       ];
+
+  // Eight columns share 932 px in the narrowest window (1200 px), so each
+  // takes what its widest value needs and no more: a short address with its
+  // copy button, a weight, the 96 px button, and a few characters for the
+  // rest. With one unit of flex each, a percentage had as much room as a
+  // name, and the three long heads were cut.
+  static const int _nameFlex = 14;
+  static const int _producerFlex = 18;
+  static const int _weightFlex = 10;
+  static const int _shareFlex = 9;
+  static const int _momentumsFlex = 9;
+  static const int _uptimeFlex = 7;
+  static const int _delegationFlex = 11;
+
+  /// The heads, in the order of [_columns]. The three that were too long for
+  /// a narrow column have a short name and say the full one on hover.
+  static Map<InfiniteScrollTableColumnType, InfiniteScrollTableHead> _heads(
+    BuildContext context,
+  ) => <InfiniteScrollTableColumnType, InfiniteScrollTableHead>{
+    .pillarName: const InfiniteScrollTableHead(flex: _nameFlex),
+    .producerAddress: const InfiniteScrollTableHead(flex: _producerFlex),
+    .weight: const InfiniteScrollTableHead(flex: _weightFlex),
+    .momentumReward: InfiniteScrollTableHead(
+      name: 'Momentum %',
+      tooltip: context.l10n.momentumReward,
+      flex: _shareFlex,
+    ),
+    .delegationReward: InfiniteScrollTableHead(
+      name: 'Delegate %',
+      tooltip: context.l10n.delegationReward,
+      flex: _shareFlex,
+    ),
+    .expectedProducedMomentums: InfiniteScrollTableHead(
+      name: 'Momentums',
+      tooltip: context.l10n.expectedProducedMomentums,
+      flex: _momentumsFlex,
+    ),
+    .uptime: const InfiniteScrollTableHead(flex: _uptimeFlex),
+    .delegation: const InfiniteScrollTableHead(flex: _delegationFlex),
+  };
+}
+
+/// The last cell of a row: "Delegated" for the pillar the address backs,
+/// Delegate for the others, nothing while the address holds too little ZNN
+/// to delegate.
+class _DelegateCell extends StatelessWidget {
+  const _DelegateCell({
+    required this.delegated,
+    required this.offered,
+    required this.buttonKey,
+    required this.onPressed,
+  });
+
+  /// Whether the address delegates to this pillar.
+  final bool delegated;
+
+  /// Whether the address holds enough ZNN to delegate.
+  final bool offered;
+
+  /// Lets the card run the button's progress.
+  final GlobalKey<LoadingButtonState> buttonKey;
+
+  /// Null while a delegation is on its way, which disables the button.
+  final VoidCallback? onPressed;
+
+  static const Size _buttonSize = Size(96, 32);
+
+  @override
+  Widget build(BuildContext context) {
+    if (delegated) {
+      return const Center(child: StatusDot(on: true, label: 'Delegated'));
+    }
+    if (!offered) {
+      return const SizedBox.shrink();
+    }
+    return Center(
+      child: LoadingButton(
+        key: buttonKey,
+        onPressed: onPressed,
+        text: 'Delegate',
+        minimumSize: _buttonSize,
+      ),
+    );
+  }
 }

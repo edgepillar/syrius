@@ -1,12 +1,12 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter_vector_icons/flutter_vector_icons.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/page_widgets.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/settings_parts.dart';
 
+/// The first of the two export steps: what a Seed Vault is, and the promise
+/// to keep it, without which the next step stays shut.
 class ExportWalletInfoScreen extends StatefulWidget {
-
   const ExportWalletInfoScreen(
     this.seed, {
     this.backupWalletFlow = false,
@@ -24,172 +24,17 @@ class _ExportWalletInfoScreenState extends State<ExportWalletInfoScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        padding: const EdgeInsets.symmetric(
-          vertical: 30,
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            const ProgressBar(
-              currentLevel: 1,
-              numLevels: 2,
-            ),
-            Container(
-              color: Colors.transparent,
-              child: SvgPicture.asset(
-                'assets/svg/ic_export_seed.svg',
-                colorFilter:
-                    const ColorFilter.mode(AppColors.znnColor, BlendMode.srcIn),
-                height: 55,
-              ),
-            ),
-            Text(
-              'Export Seed Vault',
-              style: Theme.of(context).textTheme.headlineLarge,
-            ),
-            _getSeedFieldsGrid(),
-            _getSecureSeedInfo(),
-            _secureSeedCheckBoxContainer(),
-            _getActionButtons(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _getSeedFieldsGrid() {
-    final double seedFieldsGridWidth = MediaQuery.of(context).size.width * 0.5;
-    const String text = 'A Seed Vault is an encrypted file for backing up your Seed.'
-        ' The Seed is encrypted with a Seed Vault Key and cannot be accessed '
-        'without it. Make sure you backup your Seed Vault in multiple offline locations '
-        '(e.g. USB, external HDD) and do not lose your Seed Vault Key.'
-        " If you lose the Seed Vault file or you don't remember the Seed Vault "
-        'Key you lose access to your funds.';
-    return Container(
-      width: seedFieldsGridWidth,
-      padding: const EdgeInsets.symmetric(
-        vertical: 40,
-        horizontal: 50,
-      ),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.secondaryContainer,
-        borderRadius: const BorderRadius.all(
-          Radius.circular(10),
-        ),
-      ),
-      child: Text(
-        text,
-        style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-              color: Colors.white,
-            ),
-        textAlign: TextAlign.justify,
-      ),
-    );
-  }
-
-  Widget _getSecureSeedInfo() {
-    return SizedBox(
-      width: MediaQuery.of(context).size.width * 0.2,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: <Widget>[
-          Column(
-            children: <Widget>[
-              Container(
-                color: Colors.transparent,
-                child: SvgPicture.asset(
-                  'assets/svg/ic_seed.svg',
-                  colorFilter: const ColorFilter.mode(
-                      AppColors.qsrColor, BlendMode.srcIn,),
-                  height: 50,
-                ),
-              ),
-              const Padding(
-                padding: EdgeInsets.only(top: 8),
-              ),
-              Text(
-                'Seed',
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-            ],
-          ),
-          Column(
-            children: <Widget>[
-              const Icon(
-                SimpleLineIcons.key,
-                size: 50,
-                color: AppColors.errorColor,
-              ),
-              const Padding(
-                padding: EdgeInsets.only(top: 8),
-              ),
-              Text(
-                'Seed Vault Key',
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-            ],
-          ),
-          Column(
-            children: <Widget>[
-              Container(
-                color: Colors.transparent,
-                child: SvgPicture.asset(
-                  'assets/svg/ic_vault_seed.svg',
-                  colorFilter: const ColorFilter.mode(
-                      AppColors.znnColor, BlendMode.srcIn,),
-                  height: 50,
-                ),
-              ),
-              const Padding(
-                padding: EdgeInsets.only(top: 8),
-              ),
-              Text(
-                'Seed Vault',
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _secureSeedCheckBoxContainer() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        Checkbox(
-          value: _isSecure,
-          checkColor: Colors.black,
-          activeColor: AppColors.znnColor,
-          onChanged: (bool? value) {
-            setState(() {
-              _isSecure = value;
-            });
-          },
-        ),
-        Text(
-          'I will securely store the Seed Vault & Seed Vault Key',
-          style: Theme.of(context).textTheme.headlineSmall,
-        ),
-      ],
-    );
-  }
-
-  Widget _getActionButtons() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        OnboardingButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-          text: 'Go back',
-        ),
-        kSpacingBetweenActionButtons,
-        OnboardingButton(
+    return SettingsScreenFrame(
+      title: 'Export Seed Vault',
+      note:
+          'A Seed Vault is a file of the seed, encrypted with a key you '
+          'choose next. Keep the file and the key apart and offline. '
+          'Lose either and the funds are lost.',
+      actions: <Widget>[
+        const ScreenBackAction(),
+        OutlinedButton(
+          key: const Key('export_seed_vault_continue'),
+          style: OutlinedButton.styleFrom(minimumSize: kScreenActionSize),
           onPressed: _isSecure!
               ? () {
                   NavigationUtils.push(
@@ -201,9 +46,85 @@ class _ExportWalletInfoScreenState extends State<ExportWalletInfoScreen> {
                   );
                 }
               : null,
-          text: 'Continue',
+          child: const Text('Continue'),
         ),
       ],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          const ExportStepLabel(step: 1),
+          const SizedBox(height: kSettingFormGap),
+          _SecurePromise(
+            value: _isSecure!,
+            onChanged: (bool value) {
+              setState(() {
+                _isSecure = value;
+              });
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Where the person is in the export: "STEP 1 OF 2".
+class ExportStepLabel extends StatelessWidget {
+  /// Creates the label for [step] of the two.
+  const ExportStepLabel({required this.step, super.key});
+
+  /// The step, from 1.
+  final int step;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text('STEP $step OF 2', style: ledgerLabelStyle(context));
+  }
+}
+
+/// The promise to store the vault and its key, as one row that is pressed
+/// anywhere: the box alone is a small target for a mouse.
+class _SecurePromise extends StatelessWidget {
+  const _SecurePromise({required this.value, required this.onChanged});
+
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    return Material(
+      color: theme.colorScheme.primaryContainer,
+      borderRadius: BorderRadius.circular(kCardRadius),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        key: const Key('export_seed_vault_promise'),
+        onTap: () => onChanged(!value),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(4, 6, 14, 6),
+          child: Row(
+            children: <Widget>[
+              // The row is the control; the box only shows its state.
+              ExcludeFocus(
+                child: IgnorePointer(
+                  child: Checkbox(
+                    value: value,
+                    onChanged: (bool? value) {},
+                  ),
+                ),
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  'I will keep the Seed Vault and its key safe',
+                  style: theme.textTheme.bodyLarge,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

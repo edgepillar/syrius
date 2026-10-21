@@ -1,6 +1,6 @@
 import 'dart:isolate';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:hive_ce/hive_ce.dart';
@@ -9,8 +9,11 @@ import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/embedded_node/embedded_node.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/page_widgets.dart';
 import 'package:zenon_syrius_wallet_flutter/services/i_web3wallet_service.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/node_change.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/settings_parts.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -65,55 +68,40 @@ class _NodeManagementState extends State<NodeManagement> {
     );
   }
 
+  /// Two panels: the nodes to connect to, with Connect and the form that adds
+  /// one, and under them the chain identifier the wallet signs for.
   @override
   Widget build(BuildContext context) {
-    return CardScaffold(
-      title: 'Node Management',
-      description:
-          'This card allows one to set the ZNN Node used to connect to. '
-          'By default the wallet is connected to the Embedded Node. '
-          'If you are running a local ZNN Node, please use the localhost option',
-      childBuilder: _getWidgetBody,
-    );
-  }
-
-  Widget _getWidgetBody() {
-    return ListView(
-      shrinkWrap: true,
-      children: <Widget>[
-        CustomExpandablePanel(
-          'Client chain identifier selection',
-          _getChainIdSelectionExpandableChild(),
-        ),
-        CustomExpandablePanel(
-          'Node selection',
-          _getNodeSelectionExpandableChild(),
-        ),
-        CustomExpandablePanel(
-          'Add node',
-          _getAddNodeExpandableChild(),
-        ),
-      ],
-    );
-  }
-
-  Widget _getNodeSelectionExpandableChild() {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        _getNodeTiles(),
-        _getConfirmNodeSelectionButton(),
-      ],
-    );
-  }
-
-  Row _getConfirmNodeSelectionButton() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        LoadingButton.settings(
-          text: 'Confirm node',
-          onPressed: _onConfirmNodeButtonPressed,
-          key: _confirmNodeButtonKey,
+        Expanded(
+          child: Panel(
+            title: 'Node',
+            actions: <Widget>[
+              LoadingButton.settings(
+                text: 'Connect',
+                onPressed: _onConfirmNodeButtonPressed,
+                key: _confirmNodeButtonKey,
+              ),
+            ],
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Expanded(child: _buildNodeTiles()),
+                const Divider(),
+                _buildAddNodeRow(),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: kPanelGap),
+        // As tall as its row: at a fixed 128 the validator's line under the
+        // field pushed the row past the panel's edge.
+        Panel(
+          title: 'Chain identifier',
+          shrinkWrap: true,
+          child: _buildChainIdRow(),
         ),
       ],
     );
@@ -138,6 +126,7 @@ class _NodeManagementState extends State<NodeManagement> {
             _selectedNode,
           );
           kCurrentNode = _selectedNode;
+          NodeChange.announce();
           await _sendChangingNodeSuccessNotification();
           widget.onNodeChangedCallback();
         } else {
@@ -190,35 +179,42 @@ class _NodeManagementState extends State<NodeManagement> {
     return isConnectionEstablished;
   }
 
-  Widget _getAddNodeExpandableChild() {
-    return Column(
-      children: <Widget>[
-        Form(
-          key: _newNodeKey,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          child: InputField(
-            controller: _newNodeController,
-            hintText: 'Node address with port',
-            onSubmitted: (String value) {
-              if (_ifUserInputValid()) {
-                _onAddNodePressed();
-              }
-            },
-            onChanged: (String value) {
-              if (value.isNotEmpty) {
-                setState(() {});
-              }
-            },
-            validator: InputValidators.node,
+  Widget _buildAddNodeRow() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 10, 12, 10),
+      child: Row(
+        children: <Widget>[
+          Expanded(
+            child: Form(
+              key: _newNodeKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child: InputField(
+                controller: _newNodeController,
+                hintText: 'Node address with port',
+                onSubmitted: (String value) {
+                  if (_ifUserInputValid()) {
+                    _onAddNodePressed();
+                  }
+                },
+                onChanged: (String value) {
+                  if (value.isNotEmpty) {
+                    setState(() {});
+                  }
+                },
+                validator: InputValidators.node,
+              ),
+            ),
           ),
-        ),
-        kVerticalSpacing,
-        LoadingButton.settings(
-          onPressed: _ifUserInputValid() ? _onAddNodePressed : null,
-          text: 'Add node',
-          key: _addNodeButtonKey,
-        ),
-      ],
+          const SizedBox(width: 10),
+          SecondaryAction(
+            child: LoadingButton.settings(
+              onPressed: _ifUserInputValid() ? _onAddNodePressed : null,
+              text: 'Add node',
+              key: _addNodeButtonKey,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -254,19 +250,25 @@ class _NodeManagementState extends State<NodeManagement> {
     }
   }
 
-  Widget _getNodeTiles() {
-    return Column(
-      children: <String>{
-        ...kDefaultNodes,
-        ...kDefaultCommunityNodes,
-        ...kDbNodes,
-      }.toList().map(_getNodeTile).toList(),
+  Widget _buildNodeTiles() {
+    // Built all at once, not lazily: each tile asks the node for its chain
+    // identifier when it is created, and scrolling must not repeat that.
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Column(
+        children: <String>{
+          ...kDefaultNodes,
+          ...kDefaultCommunityNodes,
+          ...kDbNodes,
+        }.toList().map(_buildNodeTile).toList(),
+      ),
     );
   }
 
-  Row _getNodeTile(String node) {
+  Widget _buildNodeTile(String node) {
     return Row(
       children: <Widget>[
+        const SizedBox(width: 6),
         Radio<String?>(
           value: node,
           groupValue: _selectedNode,
@@ -324,13 +326,14 @@ class _NodeManagementState extends State<NodeManagement> {
         );
   }
 
-  Widget _getChainIdSelectionExpandableChild() {
-    return Column(
-      children: <Widget>[
-        Row(
-          children: <Widget>[
-            Expanded(
-                child: Form(
+  Widget _buildChainIdRow() {
+    final bool alphanet = getChainIdentifier() == 1;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+      child: Row(
+        children: <Widget>[
+          Expanded(
+            child: Form(
               key: _newChainIdKey,
               autovalidateMode: AutovalidateMode.onUserInteraction,
               child: InputField(
@@ -352,32 +355,33 @@ class _NodeManagementState extends State<NodeManagement> {
                 },
                 validator: InputValidators.validateNumber,
               ),
-            ),),
-            StandardTooltipIcon(
-              (getChainIdentifier() == 1)
-                  ? 'Alphanet chain identifier'
-                  : 'Non-alphanet chain identifier',
-              MaterialCommunityIcons.network,
-              iconColor: (getChainIdentifier() == 1)
-                  ? AppColors.znnColor
-                  : Colors.orange,
             ),
-            const StandardTooltipIcon(
-              'The chain identifier is used in transaction signing to prevent replay attacks',
-              MaterialCommunityIcons.alert,
-              iconColor: Colors.orange,
+          ),
+          StandardTooltipIcon(
+            alphanet
+                ? 'Alphanet chain identifier'
+                : 'Non-alphanet chain identifier',
+            MaterialCommunityIcons.network,
+            iconColor: alphanet ? AppColors.znnColor : AppColors.warn,
+          ),
+          const StandardTooltipIcon(
+            'The chain identifier is used in transaction signing to prevent '
+            'replay attacks',
+            Icons.info_outline,
+            iconColor: AppColors.faint,
+          ),
+          const SizedBox(width: 8),
+          SecondaryAction(
+            child: LoadingButton.settings(
+              onPressed: _isChainIdSelectionInputIsValid()
+                  ? _onConfirmChainIdPressed
+                  : null,
+              text: 'Confirm',
+              key: _confirmChainIdButtonKey,
             ),
-          ],
-        ),
-        kVerticalSpacing,
-        LoadingButton.settings(
-          onPressed: _isChainIdSelectionInputIsValid()
-              ? _onConfirmChainIdPressed
-              : null,
-          text: 'Confirm',
-          key: _confirmChainIdButtonKey,
-        ),
-      ],
+          ),
+        ],
+      ),
     );
   }
 

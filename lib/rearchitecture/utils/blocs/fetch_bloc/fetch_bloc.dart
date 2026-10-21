@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/node_change.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'fetch_event.dart';
@@ -35,6 +36,10 @@ abstract class FetchBloc<T extends Object>
 
   /// Retrieves the data for [address].
   Future<T> getData({required Address address});
+
+  /// Cached per node: see `lib/utils/node_change.dart`.
+  @override
+  String get storagePrefix => nodeScopedStoragePrefix(runtimeType);
 
   Future<void> _requestData(
     FetchRequestData event,

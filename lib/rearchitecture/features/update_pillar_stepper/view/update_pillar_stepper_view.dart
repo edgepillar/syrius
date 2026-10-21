@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
     as custom_material_stepper;
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
@@ -56,29 +57,41 @@ class _UpdatePillarStepperViewState extends State<UpdatePillarStepperView> {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<_Step?>(
-      valueListenable: _currentStep,
-      builder: (_, _Step? currentStep, _) {
-        final bool hasPillarBeenUpdated = currentStep == null;
+    // The steps are told how tall the card is: the list they sit in would
+    // give a step any height, and its actions would end below the window.
+    return LayoutBuilder(
+      builder: (_, BoxConstraints constraints) => TokenStepViewport(
+        height: constraints.maxHeight,
+        child: ValueListenableBuilder<_Step?>(
+          valueListenable: _currentStep,
+          builder: (_, _Step? currentStep, _) {
+            final bool hasPillarBeenUpdated = currentStep == null;
 
-        return Stack(
-          children: <Widget>[
-            ListView(
+            return Stack(
               children: <Widget>[
-                _getMaterialStepper(currentStep: currentStep),
+                ListView(
+                  children: <Widget>[
+                    _getMaterialStepper(currentStep: currentStep),
+                  ],
+                ),
+                if (hasPillarBeenUpdated)
+                  PillarUpdatedSuccess(
+                    onViewPillarsPressed: _onViewPillarsPressed,
+                  ),
+                if (hasPillarBeenUpdated) const PillarUpdatedSuccessAnimation(),
               ],
-            ),
-            if (hasPillarBeenUpdated)
-              PillarUpdatedSuccess(onViewPillarsPressed: _onViewPillarsPressed),
-            if (hasPillarBeenUpdated) const PillarUpdatedSuccessAnimation(),
-          ],
-        );
-      },
+            );
+          },
+        ),
+      ),
     );
   }
 
   Widget _getMaterialStepper({required _Step? currentStep}) {
     final int lastStepIndex = _Step.values.last.index;
+    // The one accent of the stepper: its marks, the lines between them and
+    // what a finished step says under its title.
+    final Color accent = AppTokens.of(context).znnInk;
 
     custom_material_stepper.StepState getStepState(
       _Step step,
@@ -90,12 +103,14 @@ class _UpdatePillarStepperViewState extends State<UpdatePillarStepperView> {
     }
 
     return custom_material_stepper.Stepper(
+      activeColor: accent,
       currentStep: currentStep?.index ?? lastStepIndex,
       onStepTapped: (int index) {},
       steps: <custom_material_stepper.Step>[
         StepperUtils.getMaterialStep(
           stepTitle: context.l10n.pillarDetails,
           stepContent: PillarUpdateDetailsStep(
+            active: currentStep == _Step.pillarDetails,
             onCancelPressed: _onCancelPressed,
             onNextPressed: _navigateToNextStep,
             pillarNameController: _pillarNameController,
@@ -108,32 +123,38 @@ class _UpdatePillarStepperViewState extends State<UpdatePillarStepperView> {
             currentStep,
           ),
           context: context,
+          stepSubtitleColor: accent,
         ),
         StepperUtils.getMaterialStep(
-          stepTitle: context.l10n.pillarMomentumAddress,
+          stepTitle: context.l10n.updatePillarRewardsTitle,
           stepContent: PillarUpdateRewardsStep(
+            active: currentStep == _Step.pillarMomentumReward,
             delegateRewardPercentage: _delegateRewardPercentageGiven,
             momentumRewardPercentage: _momentumRewardPercentageGiven,
             onBackPressed: _navigateToPreviousStep,
             onNextPressed: _navigateToNextStep,
           ),
+          // Whole numbers: the sliders move in steps of one, and "50.0"
+          // reads 50.
           stepSubtitle:
               '${context.l10n.momentumPercentageGiven(
-                _momentumRewardPercentageGiven.value,
+                _momentumRewardPercentageGiven.value.toInt(),
               )}'
               '\n'
               '${context.l10n.delegationPercentageGiven(
-                _delegateRewardPercentageGiven.value,
+                _delegateRewardPercentageGiven.value.toInt(),
               )}',
           stepState: getStepState(
             _Step.pillarMomentumReward,
             currentStep,
           ),
           context: context,
+          stepSubtitleColor: accent,
         ),
         StepperUtils.getMaterialStep(
           stepTitle: context.l10n.pillarUpdate,
           stepContent: SubmitPillarUpdateStep(
+            active: currentStep == _Step.pillarUpdate,
             delegateRewardPercentage: _delegateRewardPercentageGiven,
             momentumRewardPercentage: _momentumRewardPercentageGiven,
             onBackPressed: _navigateToPreviousStep,
@@ -148,6 +169,7 @@ class _UpdatePillarStepperViewState extends State<UpdatePillarStepperView> {
             currentStep,
           ),
           context: context,
+          stepSubtitleColor: accent,
         ),
       ],
     );
@@ -173,9 +195,13 @@ class _UpdatePillarStepperViewState extends State<UpdatePillarStepperView> {
   }
 
   void _navigateToPreviousStep() {
-    final int currentStepIndex = _currentStep.value!.index;
+    final _Step? currentStep = _currentStep.value;
 
-    _currentStep.value = _Step.values[currentStepIndex - 1];
+    if (currentStep == null || currentStep.index == 0) {
+      return;
+    }
+
+    _currentStep.value = _Step.values[currentStep.index - 1];
   }
 
   @override

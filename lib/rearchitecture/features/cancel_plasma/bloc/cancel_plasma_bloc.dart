@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/plasma_purpose.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -38,7 +39,7 @@ class CancelPlasmaBloc extends Bloc<CancelPlasmaEvent, CancelPlasmaState> {
 
       await _accountBlockUtils.createAccountBlock(
         transactionParams,
-        'cancel Plasma',
+        PlasmaPurpose.cancelPlasma.message,
         waitForRequiredPlasma: true,
       );
 

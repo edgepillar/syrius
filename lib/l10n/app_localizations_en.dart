@@ -427,7 +427,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get no => 'no';
 
   @override
-  String get noItemsFound => 'No items founds';
+  String get noItemsFound => 'None yet';
 
   @override
   String get noMoreItems => 'No more items';
@@ -971,4 +971,1263 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get ztsSearchDescription =>
       'Coins and tokens can be searched by name - \"Zenon\" -, by symbol - \"ZNN\" -, and by token standard - \"zts1znnxxxxxxxxxxxxx9z4ulx\"';
+
+  @override
+  String burnTokenConfirm(Object amount) {
+    return 'Burn $amount?';
+  }
+
+  @override
+  String get cannotBeUndone => 'This cannot be undone.';
+
+  @override
+  String transferTokenConfirm(Object symbol) {
+    return 'Transfer $symbol?';
+  }
+
+  @override
+  String transferTokenConfirmTo(Object address) {
+    return '$address becomes the owner. This cannot be undone.';
+  }
+
+  @override
+  String get sentinelYours => 'Yours';
+
+  @override
+  String disassembleSentinelConfirm(Object address) {
+    return 'Disassemble the sentinel of $address?';
+  }
+
+  @override
+  String get validatorInvalidAddress => 'Invalid address';
+
+  @override
+  String get validatorInvalidNode => 'Invalid Node';
+
+  @override
+  String get validatorAddressNotInWallet =>
+      'Must be an address from your wallet';
+
+  @override
+  String validatorFieldEmpty(String fieldName) {
+    return '$fieldName must not be empty';
+  }
+
+  @override
+  String get validatorNumberRequired => 'Number required';
+
+  @override
+  String get validatorInvalidNumber => 'Input is not a valid number';
+
+  @override
+  String get validatorInvalidAmount => 'Invalid amount';
+
+  @override
+  String get validatorError => 'Error';
+
+  @override
+  String get validatorValueNull => 'Value is null';
+
+  @override
+  String get validatorEmptyBalance => 'Empty balance';
+
+  @override
+  String get validatorEnterValidAmount => 'Enter a valid amount';
+
+  @override
+  String get validatorTooManyDecimals =>
+      'Inputted number has too many decimals';
+
+  @override
+  String validatorBalanceBelowMin(String min) {
+    return 'Your available balance must be at least $min';
+  }
+
+  @override
+  String validatorValueMustBe(String value) {
+    return 'Value must be $value';
+  }
+
+  @override
+  String validatorValueMustBeMinAllowed(String value) {
+    return 'Value must be  $value';
+  }
+
+  @override
+  String validatorValueOutOfRange(String min, String max) {
+    return 'Value must be between $min and $max';
+  }
+
+  @override
+  String get validatorValueEmpty => 'Value can\'t be empty';
+
+  @override
+  String get validatorEnterAddress => 'Enter an address';
+
+  @override
+  String get validatorPasswordsDoNotMatch => 'Passwords do not match';
+
+  @override
+  String get validatorPasswordTooWeak => 'Password not strong enough';
+
+  @override
+  String get validatorInvalidPassword => 'Invalid password';
+
+  @override
+  String get validatorPillarProducerAddressSameSeed =>
+      'Pillar producer address must be generated from a different seed';
+
+  @override
+  String get validatorMaxSupplyNotZero =>
+      'Max supply must be 0 for non-mintable tokens';
+
+  @override
+  String get validatorInvalidUrl => 'Invalid URL';
+
+  @override
+  String get validatorInvalidHash => 'Invalid hash';
+
+  @override
+  String get validatorInvalidSecret => 'Invalid secret';
+
+  @override
+  String get ledgerStatusDeny => 'Deny';
+
+  @override
+  String get ledgerStatusWrongP1P2 => 'Invalid P1 or P2';
+
+  @override
+  String get ledgerStatusWrongDataLength => 'Invalid data length';
+
+  @override
+  String get ledgerStatusInactiveDevice => 'Device is inactive';
+
+  @override
+  String get ledgerStatusNotAllowed => 'Request not allowed';
+
+  @override
+  String get ledgerStatusInsNotSupported =>
+      'Instruction not supported, please make sure the Zenon app is opened';
+
+  @override
+  String get ledgerStatusClaNotSupported =>
+      'Class not supported, please make sure the Zenon app is opened';
+
+  @override
+  String get ledgerStatusAppIsNotOpen =>
+      'App not open, please open the Zenon app on your device';
+
+  @override
+  String get ledgerStatusWrongResponseLength =>
+      'Invalid response, please reconnect the device and try again';
+
+  @override
+  String get ledgerStatusDisplayBip32PathFail => 'Failed to display BIP32 path';
+
+  @override
+  String get ledgerStatusDisplayAddressFail => 'Failed to display address';
+
+  @override
+  String get ledgerStatusDisplayAmountFail => 'Failed to display amount';
+
+  @override
+  String get ledgerStatusWrongTxLength => 'Invalid transaction length';
+
+  @override
+  String get ledgerStatusTxParsingFail => 'Failed to parse transaction';
+
+  @override
+  String get ledgerStatusTxHashFail => 'Failed to hash transaction';
+
+  @override
+  String get ledgerStatusBadState =>
+      'Bad state, please reconnect the device and try again';
+
+  @override
+  String get ledgerStatusSignatureFail => 'Failed to create signature';
+
+  @override
+  String get ledgerStatusSuccess => 'Success';
+
+  @override
+  String get ledgerStatusUnknownError =>
+      'Unknown error, please make sure the device is unlocked';
+
+  @override
+  String timeAgoHours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count h ago',
+      one: '$count h ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String timeAgoMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count min ago',
+      one: '$count min ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String timeAgoSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count s ago',
+      one: '$count s ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String durationDaysHours(int days, int hours) {
+    return '$days d $hours h';
+  }
+
+  @override
+  String durationHoursMinutes(int hours, int minutes) {
+    return '$hours h $minutes m';
+  }
+
+  @override
+  String durationMinutesSeconds(int minutes, int seconds) {
+    return '$minutes m $seconds s';
+  }
+
+  @override
+  String durationSeconds(int seconds) {
+    return '$seconds s';
+  }
+
+  @override
+  String get createTokenOpenLabel => 'Create token';
+
+  @override
+  String get createTokenHeldLabel => 'Tokens held';
+
+  @override
+  String get createTokenFeeLabel => 'Issue fee';
+
+  @override
+  String get createTokenDecimalsLabel => 'Decimals';
+
+  @override
+  String get createTokenDomainHint => 'example.com';
+
+  @override
+  String get plasmaPurposeReceiveTransaction =>
+      'Plasma will be generated in order to receive transaction';
+
+  @override
+  String get plasmaPurposeSendTransaction =>
+      'Plasma will be generated in order to send transaction';
+
+  @override
+  String get plasmaPurposeExecuteTransfer =>
+      'Plasma will be generated in order to Execute transfer';
+
+  @override
+  String plasmaPurposeSendForDapp(String origin) {
+    return 'Plasma will be generated in order to Send for $origin';
+  }
+
+  @override
+  String get plasmaPurposeCreateStake =>
+      'Plasma will be generated in order to create stake';
+
+  @override
+  String get plasmaPurposeCancelStake =>
+      'Plasma will be generated in order to cancel stake';
+
+  @override
+  String get plasmaPurposeCollectStakingRewards =>
+      'Plasma will be generated in order to Collect staking rewards';
+
+  @override
+  String get plasmaPurposeCollectPillarRewards =>
+      'Plasma will be generated in order to Collect Pillar rewards';
+
+  @override
+  String get plasmaPurposeCollectSentinelRewards =>
+      'Plasma will be generated in order to Collect Sentinel rewards';
+
+  @override
+  String get plasmaPurposeDelegateToPillar =>
+      'Plasma will be generated in order to delegate to Pillar';
+
+  @override
+  String get plasmaPurposeUndelegate =>
+      'Plasma will be generated in order to undelegate';
+
+  @override
+  String plasmaPurposeFuseQsrForPlasma(String qsrSymbol) {
+    return 'Plasma will be generated in order to fuse $qsrSymbol for Plasma';
+  }
+
+  @override
+  String get plasmaPurposeCancelPlasma =>
+      'Plasma will be generated in order to cancel Plasma';
+
+  @override
+  String get plasmaPurposeRegisterPillar =>
+      'Plasma will be generated in order to register Pillar';
+
+  @override
+  String get plasmaPurposeUpdatePillar =>
+      'Plasma will be generated in order to update pillar';
+
+  @override
+  String get plasmaPurposeDisassemblePillar =>
+      'Plasma will be generated in order to disassemble Pillar';
+
+  @override
+  String plasmaPurposeDepositQsrForPillarSlot(String qsrSymbol) {
+    return 'Plasma will be generated in order to deposit $qsrSymbol from Pillar Slot';
+  }
+
+  @override
+  String plasmaPurposeWithdrawQsrFromPillarSlot(String qsrSymbol) {
+    return 'Plasma will be generated in order to withdraw $qsrSymbol from Pillar Slot';
+  }
+
+  @override
+  String get plasmaPurposeRegisterSentinel =>
+      'Plasma will be generated in order to register Sentinel';
+
+  @override
+  String get plasmaPurposeDisassembleSentinel =>
+      'Plasma will be generated in order to disassemble Sentinel';
+
+  @override
+  String plasmaPurposeDepositQsrForSentinelSlot(String qsrSymbol) {
+    return 'Plasma will be generated in order to deposit $qsrSymbol for Sentinel Slot';
+  }
+
+  @override
+  String plasmaPurposeWithdrawQsrFromSentinelSlot(String qsrSymbol) {
+    return 'Plasma will be generated in order to withdraw $qsrSymbol from Sentinel Slot';
+  }
+
+  @override
+  String get plasmaPurposeIssueToken =>
+      'Plasma will be generated in order to issue token';
+
+  @override
+  String get plasmaPurposeMintToken =>
+      'Plasma will be generated in order to mint token';
+
+  @override
+  String get plasmaPurposeBurnToken =>
+      'Plasma will be generated in order to burn token';
+
+  @override
+  String get plasmaPurposeTransferToken =>
+      'Plasma will be generated in order to transfer token';
+
+  @override
+  String get plasmaPurposeCreateProject =>
+      'Plasma will be generated in order to creating project';
+
+  @override
+  String get plasmaPurposeCreatePhase =>
+      'Plasma will be generated in order to create phase';
+
+  @override
+  String get plasmaPurposeUpdatePhase =>
+      'Plasma will be generated in order to update phase';
+
+  @override
+  String get plasmaPurposeVoteForProject =>
+      'Plasma will be generated in order to vote for project';
+
+  @override
+  String get plasmaPurposeDonateToAccelerator =>
+      'Plasma will be generated in order to donate for accelerator';
+
+  @override
+  String get plasmaPurposeStartSwap =>
+      'Plasma will be generated in order to start swap';
+
+  @override
+  String get plasmaPurposeJoinSwap =>
+      'Plasma will be generated in order to join swap';
+
+  @override
+  String get plasmaPurposeCompleteSwap =>
+      'Plasma will be generated in order to complete swap';
+
+  @override
+  String get plasmaPurposeReclaimSwapFunds =>
+      'Plasma will be generated in order to reclaim swap funds';
+
+  @override
+  String get plasmaNotificationDetails =>
+      'Plasma will be generated for this account-block';
+
+  @override
+  String notificationErrorWithDetails(String title, Object error) {
+    return '$title: $error';
+  }
+
+  @override
+  String get notificationEmptyTitle => 'Empty title';
+
+  @override
+  String get notificationNoDetails => 'No details available';
+
+  @override
+  String get nodeUpdatePanelTitle => 'Embedded node';
+
+  @override
+  String get nodeUpdateStatusError => 'The node folder could not be read.';
+
+  @override
+  String get nodeUpdateLoadedLabel => 'Loaded';
+
+  @override
+  String get nodeUpdateNextStartLabel => 'Used at the next start';
+
+  @override
+  String get nodeUpdateBundledLabel => 'Bundled';
+
+  @override
+  String get nodeUpdateFromFileLabel => 'From a file';
+
+  @override
+  String get nodeUpdateMissingLabel => 'No node library found';
+
+  @override
+  String get nodeUpdateHashLabel => 'SHA-256';
+
+  @override
+  String get nodeUpdateHashCopyTooltip => 'Copy SHA-256';
+
+  @override
+  String nodeUpdateReopenStagedLabel(String name) {
+    return 'Close and reopen Syrius to use $name.';
+  }
+
+  @override
+  String get nodeUpdateReopenBundledLabel =>
+      'Close and reopen Syrius to use the bundled node.';
+
+  @override
+  String get nodeUpdateBadError =>
+      'The installed node failed to load. The bundled one is in use.';
+
+  @override
+  String get nodeUpdateStagedRejectedError =>
+      'The staged node did not match its checksum and was removed.';
+
+  @override
+  String get nodeUpdateReleaseLabel => 'Latest release';
+
+  @override
+  String get nodeUpdateCheckLabel => 'Check';
+
+  @override
+  String get nodeUpdateNotCheckedHint => 'Not checked';
+
+  @override
+  String get nodeUpdateNoReleaseLabel => 'This repository has no releases.';
+
+  @override
+  String get nodeUpdateCompareUpToDateLabel => 'Up to date';
+
+  @override
+  String get nodeUpdateCompareAvailableLabel => 'Update available';
+
+  @override
+  String get nodeUpdateCompareStagedLabel => 'Staged for the next start';
+
+  @override
+  String get nodeUpdateCompareUnknownLabel => 'Not compared';
+
+  @override
+  String get nodeUpdateInstallLabel => 'Install';
+
+  @override
+  String get nodeUpdateInstallHint => 'Takes effect at the next start';
+
+  @override
+  String get nodeUpdateDownloadLabel => 'Download';
+
+  @override
+  String get nodeUpdateFileLabel => 'From file';
+
+  @override
+  String nodeUpdateProgressLabel(String received, String total) {
+    return '$received of $total MB';
+  }
+
+  @override
+  String nodeUpdateReadingFileLabel(String name) {
+    return 'Reading $name';
+  }
+
+  @override
+  String get nodeUpdateStagingLabel => 'Installing';
+
+  @override
+  String get nodeUpdateInstallTitle => 'Install this node?';
+
+  @override
+  String get nodeUpdateRepositoryLabel => 'Repository';
+
+  @override
+  String get nodeUpdateTagLabel => 'Release';
+
+  @override
+  String get nodeUpdateAssetLabel => 'Asset';
+
+  @override
+  String get nodeUpdateFileNameLabel => 'File';
+
+  @override
+  String get nodeUpdateNoneLabel => 'None';
+
+  @override
+  String get nodeUpdateChecksumFileLabel => 'Checksum file';
+
+  @override
+  String get nodeUpdateDigestLabel => 'GitHub digest';
+
+  @override
+  String get nodeUpdateChecksumVerifiedLabel =>
+      'Matches the release\'s checksum file';
+
+  @override
+  String get nodeUpdateChecksumNotListedLabel =>
+      'Not listed in the release\'s checksum file';
+
+  @override
+  String get nodeUpdateChecksumAbsentLabel =>
+      'The release has no checksum file';
+
+  @override
+  String get nodeUpdateDigestVerifiedLabel => 'Matches GitHub\'s digest';
+
+  @override
+  String get nodeUpdateDigestAbsentLabel =>
+      'GitHub gives no digest for this release';
+
+  @override
+  String get nodeUpdateFileUncheckedLabel =>
+      'Not checked: a file from this computer';
+
+  @override
+  String get nodeUpdateInstallConfirm =>
+      'This replaces the node that runs inside the wallet. It takes effect at the next start.';
+
+  @override
+  String get nodeUpdateUnverifiedTitle => 'Download without verification?';
+
+  @override
+  String nodeUpdateUnverifiedConfirm(String tag) {
+    return 'Nothing verifies this file. Release $tag publishes no checksum for it.';
+  }
+
+  @override
+  String get nodeUpdateUnverifiedDownloadLabel => 'Download anyway';
+
+  @override
+  String get nodeUpdateRollbackLabel => 'Roll back';
+
+  @override
+  String get nodeUpdateRollbackHint => 'Applies at the next start';
+
+  @override
+  String get nodeUpdateUseBundledLabel => 'Use bundled node';
+
+  @override
+  String get nodeUpdateUsePreviousLabel => 'Use previous';
+
+  @override
+  String get nodeUpdateUseBundledTitle => 'Use the bundled node?';
+
+  @override
+  String get nodeUpdateUseBundledConfirm =>
+      'The nodes listed here are removed. The bundled node runs from the next start.';
+
+  @override
+  String get nodeUpdateInstalledLabel => 'Installed';
+
+  @override
+  String get nodeUpdateStagedLabel => 'Staged';
+
+  @override
+  String get nodeUpdateUsePreviousTitle => 'Use the previous node?';
+
+  @override
+  String get nodeUpdateUsePreviousConfirm =>
+      'This node replaces the installed one at the next start. Anything staged is removed.';
+
+  @override
+  String get nodeUpdateSourceLabel => 'Source repository';
+
+  @override
+  String get nodeUpdateSourceHint => 'A GitHub repository, as owner/name';
+
+  @override
+  String get nodeUpdateSourceSaveLabel => 'Save';
+
+  @override
+  String get nodeUpdateSourceError => 'Enter a repository as owner/name.';
+
+  @override
+  String get nodeUpdateSourceForeignHint =>
+      'Libraries from another repository are not the Zenon project\'s.';
+
+  @override
+  String nodeUpdateRateLimitedUntilError(DateTime time) {
+    final intl.DateFormat timeDateFormat = intl.DateFormat.jm(localeName);
+    final String timeString = timeDateFormat.format(time);
+
+    return 'GitHub is limiting requests from this computer. Try again after $timeString.';
+  }
+
+  @override
+  String get nodeUpdateRateLimitedError =>
+      'GitHub is limiting requests from this computer. Try again later.';
+
+  @override
+  String get nodeUpdateNetworkError => 'No connection to GitHub.';
+
+  @override
+  String get nodeUpdateNotFoundError =>
+      'GitHub has no such repository or file.';
+
+  @override
+  String nodeUpdateHttpError(int status) {
+    return 'GitHub answered with error $status.';
+  }
+
+  @override
+  String get nodeUpdateMalformedError => 'GitHub\'s answer could not be read.';
+
+  @override
+  String get nodeUpdateForbiddenUrlError =>
+      'The download led outside GitHub and was refused.';
+
+  @override
+  String nodeUpdateTooLargeError(int megabytes) {
+    return 'The file is over $megabytes MB.';
+  }
+
+  @override
+  String get nodeUpdateSizeMismatchError => 'The download was incomplete.';
+
+  @override
+  String get nodeUpdateDigestMismatchError =>
+      'The download does not match the published checksum and was deleted.';
+
+  @override
+  String get nodeUpdateExpectedLabel => 'Published';
+
+  @override
+  String get nodeUpdateActualLabel => 'Downloaded';
+
+  @override
+  String get nodeUpdateChecksumConflictError =>
+      'The release\'s checksum file and GitHub\'s digest disagree. Nothing was downloaded.';
+
+  @override
+  String get nodeUpdateMalformedChecksumsError =>
+      'The release\'s checksum file could not be read.';
+
+  @override
+  String get nodeUpdateUnverifiedError =>
+      'The release publishes no checksum for this file.';
+
+  @override
+  String get nodeUpdateNotLibraryError => 'This is not a libznn library.';
+
+  @override
+  String get nodeUpdateCancelledError => 'Cancelled.';
+
+  @override
+  String nodeUpdateNoAssetError(String tag) {
+    return 'Release $tag has no library for this platform.';
+  }
+
+  @override
+  String get nodeUpdateFileError => 'The file could not be read or written.';
+
+  @override
+  String get validatorAmountUsePoint => 'Use a point for decimals';
+
+  @override
+  String get nodeSyncingNotificationTitle =>
+      'The node is still syncing with the network. Please wait until the loading circle turns green before sending any transactions';
+
+  @override
+  String get nodeSyncingNotificationDetails =>
+      'The information displayed in the wallet does not reflect the most recent network state. Operations should not be performed, as they will likely become invalid by the time the node is fully synced';
+
+  @override
+  String get accountBlockPublishedNotificationTitle =>
+      'Account-block published';
+
+  @override
+  String accountBlockPublishedNotificationDetails(String blockType) {
+    return 'Account-block type: $blockType';
+  }
+
+  @override
+  String get accountBlockReviewSendNotificationTitle =>
+      'Sending transaction, please review the transaction on your hardware device';
+
+  @override
+  String get accountBlockReviewReceiveNotificationTitle =>
+      'Receiving transaction, please review the transaction on your hardware device';
+
+  @override
+  String accountBlockReviewNotificationDetails(String blockType) {
+    return 'Review account-block type: $blockType';
+  }
+
+  @override
+  String get addressAddConfirmNotificationTitle =>
+      'Adding address, please confirm the address on your hardware device';
+
+  @override
+  String addressAddConfirmNotificationDetails(int index) {
+    return 'Confirm address for account index: $index';
+  }
+
+  @override
+  String addressDefaultLabel(int number) {
+    return 'Address $number';
+  }
+
+  @override
+  String get addressGenerateFailedNotificationTitle =>
+      'Error while generating new address';
+
+  @override
+  String get embeddedNodeStoppingNotificationTitle =>
+      'Waiting for Embedded Node to stop';
+
+  @override
+  String get embeddedNodeStoppingNotificationDetails =>
+      'The app will close after the Embedded Node has been stopped';
+
+  @override
+  String get nodeLocalTimeDiscrepancyError =>
+      'Local time discrepancy detected.';
+
+  @override
+  String openUrlFailedNotificationTitle(String url) {
+    return 'Error while trying to open $url';
+  }
+
+  @override
+  String openUrlFailedNotificationDetails(String url) {
+    return 'Something went wrong while trying to open $url';
+  }
+
+  @override
+  String get copied => 'Copied';
+
+  @override
+  String get clipboardPasteError => 'The clipboard data could not be obtained';
+
+  @override
+  String get clipboardPasteFailedNotificationTitle =>
+      'Something went wrong while getting the clipboard data';
+
+  @override
+  String get walletPasswordIncorrectError => 'Incorrect password';
+
+  @override
+  String get walletUnlockFailedNotificationTitle => 'Unlock failed';
+
+  @override
+  String walletFileTypeNotSupportedError(String walletType) {
+    return 'Wallet type ($walletType) is not supported';
+  }
+
+  @override
+  String walletFilePathNotFoundError(String path) {
+    return 'Given wallet path does not exist ($path)';
+  }
+
+  @override
+  String get walletFileLedgerNotFoundError =>
+      'Cannot find the hardware device, please connect/unlock the device on which the wallet is initialized';
+
+  @override
+  String fileDeleteNoFileError(String path) {
+    return 'There is no file at the following path: $path';
+  }
+
+  @override
+  String fileDeleteNoDirectoryError(String path) {
+    return 'There is no directory at the following path: $path';
+  }
+
+  @override
+  String get signMessage32BytesError => 'A 32 byte message is refused. Pad it';
+
+  @override
+  String get plasmaLevelHighTooltip => 'High Plasma';
+
+  @override
+  String get plasmaLevelAverageTooltip => 'Average Plasma';
+
+  @override
+  String get plasmaLevelLowTooltip => 'Low Plasma';
+
+  @override
+  String get plasmaLevelInsufficientTooltip => 'Insufficient Plasma';
+
+  @override
+  String get autoReceiveFailedNotificationTitle => 'Receive transaction failed';
+
+  @override
+  String autoReceiveFailedNotificationDetails(String error) {
+    return 'Failed to receive the transaction: $error';
+  }
+
+  @override
+  String transactionReceivedNotificationTitle(String address) {
+    return 'Transaction received on $address';
+  }
+
+  @override
+  String transactionReceivedNotificationDetails(String hash) {
+    return 'Transaction hash: $hash';
+  }
+
+  @override
+  String get autoUnlockInvalidSwapError => 'Invalid swap';
+
+  @override
+  String get autoUnlockAddressNotInWalletError =>
+      'Swap address not in default addresses. Please add the address in the addresses list.';
+
+  @override
+  String get autoUnlockFailedNotificationTitle => 'Failed to complete swap';
+
+  @override
+  String autoUnlockFailedNotificationDetails(String error) {
+    return 'Failed to complete the swap: $error';
+  }
+
+  @override
+  String get completeSwapExpiresTooSoonError =>
+      'The swap will expire too soon for a safe swap.';
+
+  @override
+  String get completeSwapSecretTooLargeError =>
+      'The swap secret size exceeds the maximum allowed size.';
+
+  @override
+  String createPillarSuccessMessage(String controller) {
+    return 'Pillar registered. Use $controller to check its status.';
+  }
+
+  @override
+  String get createPillarCollateralLabel => 'Collateral';
+
+  @override
+  String get createPillarSlotFeeLabel => 'Slot fee';
+
+  @override
+  String get createPillarMomentumShareLabel => 'Momentum share';
+
+  @override
+  String get createPillarDelegationShareLabel => 'Delegation share';
+
+  @override
+  String get updatePillarRewardsTitle => 'Reward sharing';
+
+  @override
+  String get validatorAmountDigitsOnly => 'Digits and a point only';
+
+  @override
+  String get validatorAmountWholeNumber => 'Whole QSR only';
+
+  @override
+  String get commonCopy => 'Copy';
+
+  @override
+  String get commonClose => 'Close';
+
+  @override
+  String get commonDismiss => 'Dismiss';
+
+  @override
+  String get commonSeeMore => 'See more';
+
+  @override
+  String get commonShowMore => 'Show more';
+
+  @override
+  String get commonRetry => 'Retry';
+
+  @override
+  String get commonSave => 'Save';
+
+  @override
+  String get commonOk => 'OK';
+
+  @override
+  String get commonYes => 'Yes';
+
+  @override
+  String get commonNo => 'No';
+
+  @override
+  String get commonSomethingWentWrong => 'Something went wrong';
+
+  @override
+  String get commonNotConnectedError => 'Not connected to the network';
+
+  @override
+  String get cardAvailableLabel => 'AVAILABLE';
+
+  @override
+  String availableBalanceLabel(String amount, String symbol) {
+    return '$amount $symbol available';
+  }
+
+  @override
+  String get nodeNotSyncedError => 'Node is not synced';
+
+  @override
+  String get rewardsHistoryLastWeekEmpty => 'No rewards in the last week';
+
+  @override
+  String get cardScaffoldAboutTooltip => 'About this card';
+
+  @override
+  String get cardScaffoldDescriptionLabel => 'Description';
+
+  @override
+  String get cardScaffoldDiscreetModeLabel => 'Discreet mode';
+
+  @override
+  String get goToPaletteHint => 'Go to';
+
+  @override
+  String get goToPaletteEmpty => 'No page by that name';
+
+  @override
+  String get assetCellUnknownStandardTooltip => 'Unknown token standard';
+
+  @override
+  String get receiveQrFailedError => 'Failed to create QR code';
+
+  @override
+  String get selectFileHint => 'Drop a file here, or click to browse';
+
+  @override
+  String get selectFileInvalidError => 'This file cannot be used';
+
+  @override
+  String get selectFileTypeLabel => 'file';
+
+  @override
+  String get settingsAddressRenameTooltip => 'Rename';
+
+  @override
+  String get settingsAddressLabelHint => 'Label';
+
+  @override
+  String get settingsAddressLabelEmptyError => 'Label can\'t be empty';
+
+  @override
+  String settingsAddressLabelTooLongNotificationTitle(int max) {
+    String _temp0 = intl.Intl.pluralLogic(
+      max,
+      locale: localeName,
+      other: 'The label has more than $max characters',
+      one: 'The label has more than $max character',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settingsAddressLabelTooLongNotificationDetails(
+    String label,
+    int length,
+    int max,
+  ) {
+    String _temp0 = intl.Intl.pluralLogic(
+      length,
+      locale: localeName,
+      other:
+          'The label $label is $length characters long, which is more than the $max limit.',
+      one:
+          'The label $label is $length character long, which is more than the $max limit.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settingsAddressLabelExistsNotificationTitle =>
+      'Label already exists';
+
+  @override
+  String settingsAddressLabelExistsNotificationDetails(String label) {
+    return 'Label $label already exists in the database';
+  }
+
+  @override
+  String get settingsAddressRenameFailedNotificationTitle =>
+      'Something went wrong while changing the address label';
+
+  @override
+  String settingsNodeChainIdTooltip(int client, int node) {
+    return 'Client chain identifier: $client\nNode chain identifier: $node';
+  }
+
+  @override
+  String settingsNodeChainIdMismatchTooltip(int client, int node) {
+    return 'Chain identifier mismatch\nClient chain identifier: $client\nNode chain identifier: $node';
+  }
+
+  @override
+  String get settingsNodeEncryptedTooltip => 'Encrypted connection';
+
+  @override
+  String get settingsNodeUnencryptedTooltip => 'Unencrypted connection';
+
+  @override
+  String get settingsNodeEmbeddedTooltip =>
+      'Integrated Full Node: enhanced security and privacy';
+
+  @override
+  String get settingsNodeEmbeddedSyncTooltip =>
+      'The Embedded Node validates all network transactions\nIt may take several hours to fully sync with the network';
+
+  @override
+  String get settingsNodeCommunityTooltip => 'Community Node';
+
+  @override
+  String get settingsNodeEditTooltip => 'Edit node';
+
+  @override
+  String get settingsNodeDeleteLabel => 'Delete node';
+
+  @override
+  String settingsNodeDeleteConfirm(String node) {
+    return 'Delete $node from the list of nodes? This can\'t be undone.';
+  }
+
+  @override
+  String get settingsNodeAddressHint => 'Node address with port';
+
+  @override
+  String get settingsNodeEmptyError => 'Node address can\'t be empty';
+
+  @override
+  String settingsNodeTooLongError(int max) {
+    String _temp0 = intl.Intl.pluralLogic(
+      max,
+      locale: localeName,
+      other: 'The node has more than $max characters',
+      one: 'The node has more than $max character',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settingsNodeExistsError => 'Node already exists';
+
+  @override
+  String settingsNodeDeleteFailedNotificationTitle(String node) {
+    return 'Error during deleting node $node from the database';
+  }
+
+  @override
+  String seedChoiceWordsLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count words',
+      one: '$count word',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String durationDays(int days) {
+    return '$days d';
+  }
+
+  @override
+  String durationHours(int hours) {
+    return '$hours h';
+  }
+
+  @override
+  String durationMinutes(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String durationDaysClock(int days, String clock) {
+    return '$days d $clock';
+  }
+
+  @override
+  String acceleratorClosesIn(String duration) {
+    return 'Closes in $duration';
+  }
+
+  @override
+  String cancelUnlocksIn(String duration) {
+    return 'Unlocks in $duration';
+  }
+
+  @override
+  String p2pSwapExpiresIn(String duration) {
+    return 'The swap expires in $duration';
+  }
+
+  @override
+  String stakeDurationMonths(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count months',
+      one: '$count month',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String createSentinelSuccessMessage(String controller) {
+    return 'Sentinel registered. Use $controller to check its status.';
+  }
+
+  @override
+  String get createSentinelDepositLabel => 'Deposit';
+
+  @override
+  String get railExpand => 'Expand';
+
+  @override
+  String get railCollapse => 'Collapse';
+
+  @override
+  String get stripGeneratingPlasma => 'Generating plasma';
+
+  @override
+  String get stripPlasmaIdle => 'Plasma idle';
+
+  @override
+  String stripSeconds(int seconds) {
+    return '$seconds s';
+  }
+
+  @override
+  String stripPlasmaTypical(int seconds) {
+    return 'usually about $seconds s';
+  }
+
+  @override
+  String stripSending(String amount) {
+    return 'Sending $amount';
+  }
+
+  @override
+  String stripSendingMany(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Sending $count blocks',
+      one: 'Sending 1 block',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get stripWaitingMomentum => 'waiting for a momentum';
+
+  @override
+  String stripMomentumsBehind(int count) {
+    final intl.NumberFormat countNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString momentums behind',
+      one: '1 momentum behind',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get stripPeers => 'Peers';
+
+  @override
+  String get stakingStaked => 'Staked';
+
+  @override
+  String get stakingToCollect => 'To collect';
+
+  @override
+  String get stakingLast7Days => 'Last 7 days';
+
+  @override
+  String get stakingChart => 'Chart';
+
+  @override
+  String get plasmaPageFusedByYou => 'Fused by you';
+
+  @override
+  String get plasmaPageFused => 'Fused';
+
+  @override
+  String get plasmaPageOtherAddresses => 'Other addresses';
+
+  @override
+  String plasmaPageLowCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count low',
+      one: '1 low',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String plasmaPageCancelFuses(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Cancel $count fuses',
+      one: 'Cancel 1 fuse',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String plasmaPageCancelFusesConfirm(int count, String amount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Cancel $count fuses, $amount in all?',
+      one: 'Cancel 1 fuse of $amount?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String plasmaPageCancelFusesDone(int done, int total) {
+    return '$done of $total cancelled';
+  }
 }

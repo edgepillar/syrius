@@ -1,11 +1,12 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/card_parts/card_parts.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_material_stepper.dart'
@@ -52,8 +53,11 @@ class _MainPillarState extends State<CreatePillarStepperView> {
   @override
   void initState() {
     super.initState();
-    _znnAmountController.text = pillarRegisterZnnAmount.addDecimals(
+    // Shown, never typed: grouped, and with no trailing zeros.
+    _znnAmountController.text = cardAmount(
+      pillarRegisterZnnAmount,
       coinDecimals,
+      '',
     );
     _addressController.text = kSelectedAddress!;
     sl.get<MultipleBalanceBloc>().add(
@@ -66,47 +70,67 @@ class _MainPillarState extends State<CreatePillarStepperView> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<MultipleBalanceBloc, MultipleBalanceState>(
-      builder: (_, MultipleBalanceState state) => switch (state.status) {
-        MultipleBalanceStatus.failure => SyriusErrorWidget(state.error!),
-        MultipleBalanceStatus.initial => const SyriusLoadingWidget(),
-        MultipleBalanceStatus.loading => const SyriusLoadingWidget(),
-        MultipleBalanceStatus.success => _buildBody(
-          context,
-          state.data![_addressController.text]!,
-        ),
-      },
+      // Loading, the steps and an error fade into one another. The steps
+      // themselves change with the stepper's own transition.
+      builder: (_, MultipleBalanceState state) => StateSwitcher(
+        alignment: Alignment.center,
+        child: switch (state.status) {
+          MultipleBalanceStatus.failure => SyriusErrorWidget(
+            state.error!,
+            key: const ValueKey<String>('error'),
+          ),
+          MultipleBalanceStatus.initial ||
+          MultipleBalanceStatus.loading => const SyriusLoadingWidget(
+            key: ValueKey<String>('loading'),
+          ),
+          MultipleBalanceStatus.success => KeyedSubtree(
+            key: const ValueKey<String>('steps'),
+            child: _buildBody(
+              context,
+              state.data![_addressController.text]!,
+            ),
+          ),
+        },
+      ),
     );
   }
 
   Widget _buildBody(BuildContext context, AccountInfo accountInfo) {
-    return ValueListenableBuilder<_Step?>(
-      valueListenable: _currentStep,
-      builder: (_, _Step? currentStep, _) {
-        final bool hasPillarBeenRegistered = _currentStep.value == null;
+    // The steps are told how tall the card is: the list they sit in would
+    // give a step any height, and its actions would end below the window.
+    return LayoutBuilder(
+      builder: (_, BoxConstraints constraints) => TokenStepViewport(
+        height: constraints.maxHeight,
+        child: ValueListenableBuilder<_Step?>(
+          valueListenable: _currentStep,
+          builder: (_, _Step? currentStep, _) {
+            final bool hasPillarBeenRegistered = currentStep == null;
 
-        return Stack(
-          children: <Widget>[
-            ListView(
+            return Stack(
               children: <Widget>[
-                _buildMaterialStepper(
-                  accountInfo: accountInfo,
-                  currentStep: currentStep,
+                ListView(
+                  children: <Widget>[
+                    _buildMaterialStepper(
+                      accountInfo: accountInfo,
+                      currentStep: currentStep,
+                    ),
+                    if (hasPillarBeenRegistered)
+                      PillarRegisteredSuccess(
+                        onRegisterAnotherPressed:
+                            _onDeployAnotherPillarButtonPressed,
+                        onViewPillarsPressed: () {
+                          Navigator.pop(context);
+                        },
+                      ),
+                  ],
                 ),
                 if (hasPillarBeenRegistered)
-                  PillarRegisteredSuccess(
-                    onRegisterAnotherPressed:
-                        _onDeployAnotherPillarButtonPressed,
-                    onViewPillarsPressed: () {
-                      Navigator.pop(context);
-                    },
-                  ),
+                  const PillarRegisteredSuccessAnimation(),
               ],
-            ),
-            if (hasPillarBeenRegistered)
-              const PillarRegisteredSuccessAnimation(),
-          ],
-        );
-      },
+            );
+          },
+        ),
+      ),
     );
   }
 
@@ -115,6 +139,9 @@ class _MainPillarState extends State<CreatePillarStepperView> {
     required _Step? currentStep,
   }) {
     final int lastStepIndex = _Step.values.last.index;
+    // The one accent of the stepper: its marks, the lines between them and
+    // what a finished step says under its title.
+    final Color accent = AppTokens.of(context).znnInk;
 
     // TODO(maznnwell): to be extracted to StepperUtils
     custom_material_stepper.StepState getStepState(
@@ -127,64 +154,76 @@ class _MainPillarState extends State<CreatePillarStepperView> {
     }
 
     return custom_material_stepper.Stepper(
+      activeColor: accent,
       currentStep: currentStep?.index ?? lastStepIndex,
       onStepTapped: (int index) {},
       steps: <custom_material_stepper.Step>[
         StepperUtils.getMaterialStep(
           stepTitle: context.l10n.plasmaCheck,
           stepContent: PillarPlasmaCheckStep(
+            active: currentStep == _Step.checkPlasma,
             addressController: _addressController,
             onNextPressed: _onPlasmaCheckNextPressed,
           ),
           stepSubtitle: context.l10n.sufficientPlasma,
           stepState: getStepState(
             _Step.checkPlasma,
-            _currentStep.value,
+            currentStep,
           ),
           context: context,
+          stepSubtitleColor: accent,
         ),
         StepperUtils.getMaterialStep(
           stepTitle: context.l10n.management(kQsrCoin.symbol),
           stepContent: PillarQsrManagementStep(
+            active: currentStep == _Step.qsrManagement,
             accountInfo: accountInfo,
             addressController: _addressController,
+            onBackPressed: _navigateToPreviousStep,
             onNextPressed: _navigateToNextStep,
             qsrAmountController: _qsrAmountController,
           ),
           stepSubtitle: context.l10n.deposited(kQsrCoin.symbol),
           stepState: getStepState(
             _Step.qsrManagement,
-            _currentStep.value,
+            currentStep,
           ),
           context: context,
+          stepSubtitleColor: accent,
           expanded: true,
         ),
         StepperUtils.getMaterialStep(
           stepTitle: context.l10n.management(kZnnCoin.symbol),
           stepContent: PillarZnnManagementStep(
+            active: currentStep == _Step.znnManagement,
             accountInfo: accountInfo,
             addressController: _addressController,
+            onBackPressed: _navigateToPreviousStep,
             onNextPressed: _navigateToNextStep,
             znnAmountController: _znnAmountController,
           ),
           stepSubtitle: context.l10n.locked(kZnnCoin.symbol),
           stepState: getStepState(
             _Step.znnManagement,
-            _currentStep.value,
+            currentStep,
           ),
           context: context,
+          stepSubtitleColor: accent,
         ),
         StepperUtils.getMaterialStep(
           stepTitle: context.l10n.registerPillar,
           stepContent: DeployPillarStep(
+            active: currentStep == _Step.deployPillar,
+            onBackPressed: _navigateToPreviousStep,
             onDeployDone: _onDeployDone,
           ),
           stepSubtitle: context.l10n.pillarRegistered,
           stepState: getStepState(
             _Step.deployPillar,
-            _currentStep.value,
+            currentStep,
           ),
           context: context,
+          stepSubtitleColor: accent,
         ),
       ],
     );
@@ -215,6 +254,16 @@ class _MainPillarState extends State<CreatePillarStepperView> {
     _currentStep.value = _Step.values[currentStepIndex + 1];
   }
 
+  void _navigateToPreviousStep() {
+    final _Step? currentStep = _currentStep.value;
+
+    if (currentStep == null || currentStep.index == 0) {
+      return;
+    }
+
+    _currentStep.value = _Step.values[currentStep.index - 1];
+  }
+
   void _onPlasmaCheckNextPressed() {
     _navigateToNextStep();
     context.read<CreatePillarQsrInfoBloc>().add(
@@ -227,6 +276,7 @@ class _MainPillarState extends State<CreatePillarStepperView> {
     _qsrAmountController.dispose();
     _znnAmountController.dispose();
     _addressController.dispose();
+    _currentStep.dispose();
     super.dispose();
   }
 }

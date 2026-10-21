@@ -1,13 +1,17 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:hive_ce/hive_ce.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/settings_parts.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
+/// One address in Settings: its label over the address, a rename and a copy.
 class SettingsAddress extends StatefulWidget {
-
   const SettingsAddress({
     required this.address,
     required this.onAddressLabelPressed,
@@ -33,89 +37,74 @@ class _SettingsAddressState extends State<SettingsAddress> {
     if (kAddressLabelMap[widget.address] != null) {
       _labelController.text = kAddressLabelMap[widget.address]!;
     } else {
-      _labelController.text = 'Address 1';
+      // No context can be read in initState.
+      _labelController.text = currentL10n.addressDefaultLabel(1);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(
-        vertical: 5,
-      ),
-      child:
-          _editable ? _getAddressLabelInputField() : _getAddressLabel(context),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: _editable
+          ? _buildAddressLabelInputField()
+          : _buildAddressLabel(context),
     );
   }
 
-  Row _getAddressLabel(BuildContext context) {
+  Widget _buildAddressLabel(BuildContext context) {
     return Row(
       children: <Widget>[
         Expanded(
           child: InkWell(
-            borderRadius: BorderRadius.circular(
-              10,
-            ),
+            borderRadius: BorderRadius.circular(kCardRadius),
             onTap: () => widget.onAddressLabelPressed(widget.address),
             child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
                     _labelController.text,
-                    style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                          color: Theme.of(context)
-                              .textTheme
-                              .bodyLarge!
-                              .color!
-                              .withOpacity(0.7),
-                        ),
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodyLarge,
                   ),
-                  _getAddressTextWidget(),
+                  const SizedBox(height: 2),
+                  _buildAddressText(),
                 ],
               ),
             ),
           ),
         ),
-        const SizedBox(
-          width: 5,
-        ),
-        MaterialIconButton(
-          size: 15,
-          iconData: Icons.edit,
+        IconButton(
+          tooltip: context.l10n.settingsAddressRenameTooltip,
+          visualDensity: VisualDensity.compact,
+          iconSize: 16,
+          icon: const Icon(Icons.edit_outlined, color: AppColors.faint),
           onPressed: () {
             setState(() {
               _editable = true;
             });
           },
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
-        const SizedBox(
-          width: 5,
-        ),
-        CopyToClipboardButton(
-          widget.address!,
-        ),
-        const SizedBox(
-          width: 5,
-        ),
+        CopyToClipboardButton(widget.address!, iconSize: 16),
+        const SizedBox(width: 8),
       ],
     );
   }
 
-  Widget _getAddressLabelInputField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: SizedBox(
-                height: 40,
+  Widget _buildAddressLabelInputField() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Expanded(
                 child: InputField(
                   controller: _labelController,
+                  hintText: context.l10n.settingsAddressLabelHint,
                   onSubmitted: (String value) {
                     if (_labelController.text !=
                         kAddressLabelMap[widget.address]!) {
@@ -125,74 +114,45 @@ class _SettingsAddressState extends State<SettingsAddress> {
                   onChanged: (String value) {
                     setState(() {});
                   },
-                  inputtedTextStyle:
-                      Theme.of(context).textTheme.bodyMedium!.copyWith(
-                            color: AppColors.znnColor,
-                          ),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide.none,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  contentLeftPadding: 5,
-                  disabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Colors.white.withOpacity(0.1),
-                    ),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: AppColors.znnColor),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  errorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(
-                      color: AppColors.errorColor,
-                      width: 2,
-                    ),
-                  ),
-                  focusedErrorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(
-                      color: AppColors.errorColor,
-                      width: 2,
-                    ),
-                  ),
                 ),
               ),
-            ),
-            const SizedBox(
-              width: 15,
-            ),
-            SettingsButton(
-              onPressed:
-                  _labelController.text != kAddressLabelMap[widget.address]!
+              const SizedBox(width: 10),
+              SecondaryAction(
+                child: SettingsButton(
+                  onPressed:
+                      _labelController.text != kAddressLabelMap[widget.address]!
                       ? _onChangeButtonPressed
                       : null,
-              text: 'Change',
-              key: _changeButtonKey,
-            ),
-            MaterialIconButton(
-              size: 15,
-              onPressed: () {
-                setState(() {
-                  _labelController.text = kAddressLabelMap[widget.address]!;
-                  _editable = false;
-                });
-              },
-              iconData: Icons.clear,
-            ),
-          ],
-        ),
-        _getAddressTextWidget(),
-      ],
+                  text: context.l10n.commonSave,
+                  key: _changeButtonKey,
+                ),
+              ),
+              IconButton(
+                tooltip: context.l10n.cancel,
+                visualDensity: VisualDensity.compact,
+                iconSize: 16,
+                icon: const Icon(Icons.close, color: AppColors.faint),
+                onPressed: () {
+                  setState(() {
+                    _labelController.text = kAddressLabelMap[widget.address]!;
+                    _editable = false;
+                  });
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          _buildAddressText(),
+        ],
+      ),
     );
   }
 
-  Text _getAddressTextWidget() {
+  Widget _buildAddressText() {
     return Text(
       widget.address!,
-      style: Theme.of(context).textTheme.bodyMedium,
+      overflow: TextOverflow.ellipsis,
+      style: settingMonoStyle(context).copyWith(fontSize: 12),
     );
   }
 
@@ -212,26 +172,32 @@ class _SettingsAddressState extends State<SettingsAddress> {
         });
       } else if (_labelController.text.isEmpty) {
         await NotificationUtils.sendNotificationError(
-          "Label can't be empty",
-          "Label can't be empty",
+          currentL10n.settingsAddressLabelEmptyError,
+          currentL10n.settingsAddressLabelEmptyError,
         );
       } else if (_labelController.text.length > kAddressLabelMaxLength) {
         await NotificationUtils.sendNotificationError(
-          'The label ${_labelController.text} is ${_labelController.text.length} '
-              'characters long, which is more than the $kAddressLabelMaxLength limit.',
-          'The label has more than $kAddressLabelMaxLength characters',
+          currentL10n.settingsAddressLabelTooLongNotificationDetails(
+            _labelController.text,
+            _labelController.text.length,
+            kAddressLabelMaxLength,
+          ),
+          currentL10n.settingsAddressLabelTooLongNotificationTitle(
+            kAddressLabelMaxLength,
+          ),
         );
       } else {
         await NotificationUtils.sendNotificationError(
-          'Label ${_labelController.text}'
-              ' already exists in the database',
-          'Label already exists',
+          currentL10n.settingsAddressLabelExistsNotificationDetails(
+            _labelController.text,
+          ),
+          currentL10n.settingsAddressLabelExistsNotificationTitle,
         );
       }
     } catch (e) {
       await NotificationUtils.sendNotificationError(
         e,
-        'Something went wrong while changing the address label',
+        currentL10n.settingsAddressRenameFailedNotificationTitle,
       );
     } finally {
       _changeButtonKey.currentState!.showLoadingIndicator(false);

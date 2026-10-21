@@ -4,8 +4,12 @@ import 'dart:io';
 import 'package:hex/hex.dart';
 import 'package:mutex/mutex.dart';
 import 'package:path/path.dart' as path;
+import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/background_crypto.dart';
 import 'package:znn_ledger_dart/znn_ledger_dart.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
+
+const int _kMaxWalletFileSize = 1024 * 1024;
 
 abstract class WalletFile {
 
@@ -22,23 +26,61 @@ abstract class WalletFile {
       return LedgerWalletFile.decrypt(walletPath, password);
     } else {
       throw WalletException(
-          'Wallet type (${encrypted.metadata![walletTypeKey]}) is not supported',);
+        currentL10n.walletFileTypeNotSupportedError(
+          '${encrypted.metadata![walletTypeKey]}',
+        ),
+      );
     }
   }
 
   static Future<EncryptedFile> read(String walletPath) async {
     final File file = File(walletPath);
     if (!file.existsSync()) {
-      throw WalletException('Given wallet path does not exist ($walletPath)');
+      throw WalletException(
+        currentL10n.walletFilePathNotFoundError(walletPath),
+      );
     }
     return EncryptedFile.fromJson(json.decode(file.readAsStringSync()));
+  }
+
+  /// Whether the file at [walletPath] parses as a key store wallet file,
+  /// whatever it is named. A backup is often renamed or loses its extension,
+  /// so the content decides, not the name. Nothing is decrypted here.
+  static bool isKeyStoreFile(String walletPath) {
+    try {
+      final File file = File(walletPath);
+      // A key store file is under 1 KB; the bound keeps a dropped video from
+      // being read into memory.
+      if (!file.existsSync() || file.lengthSync() > _kMaxWalletFileSize) {
+        return false;
+      }
+      final dynamic decoded = json.decode(file.readAsStringSync());
+      if (decoded is! Map<String, dynamic>) {
+        return false;
+      }
+      final EncryptedFile encrypted = EncryptedFile.fromJson(decoded);
+      final walletType = encrypted.metadata?[walletTypeKey];
+      if (walletType != null && walletType != keyStoreWalletType) {
+        return false;
+      }
+      final crypto = encrypted.crypto;
+      return crypto != null &&
+          crypto.argon2Params?.salt != null &&
+          crypto.argon2Params!.salt!.isNotEmpty &&
+          crypto.nonce != null &&
+          crypto.nonce!.isNotEmpty &&
+          crypto.cipherData != null &&
+          crypto.cipherData!.isNotEmpty;
+    } catch (_) {
+      return false;
+    }
   }
 
   static Future<void> write(String walletPath, String password, List<int> data,
       {Map<String, dynamic>? metadata,}) async {
     final File file = File(walletPath);
     final EncryptedFile encrypted =
-        await EncryptedFile.encrypt(data, password, metadata: metadata);
+        await BackgroundCrypto.encrypt(data, password, metadata: metadata);
     file.writeAsString(json.encode(encrypted), mode: FileMode.writeOnly);
   }
 
@@ -66,7 +108,8 @@ abstract class WalletFile {
   Future<void> changePassword(
       String currentPassword, String newPassword,) async {
     final EncryptedFile file = await WalletFile.read(walletPath);
-    final List<int> decrypted = await file.decrypt(currentPassword);
+    final List<int> decrypted =
+        await BackgroundCrypto.decrypt(file, currentPassword);
     await WalletFile.write(walletPath, newPassword, decrypted,
         metadata: file.metadata,);
   }
@@ -84,7 +127,11 @@ class KeyStoreWalletFile extends WalletFile {
 
   static Future<KeyStoreWalletFile> create(String mnemonic, String password,
       {String? name,}) async {
-    final KeyStore wallet = KeyStore.fromMnemonic(mnemonic);
+    final BackgroundKeyStore wallet =
+        await BackgroundKeyStore.fromMnemonic(mnemonic);
+    // Named here: left to `saveKeyStore`, the name is the base address
+    // worked out on the calling isolate, which is the UI's.
+    name ??= (await (await wallet.getAccount()).getAddress()).toString();
     final KeyStoreDefinition walletDefinition =
         await keyStoreWalletManager.saveKeyStore(wallet, password, name: name);
     return KeyStoreWalletFile._internal(
@@ -98,9 +145,13 @@ class KeyStoreWalletFile extends WalletFile {
         encrypted.metadata![walletTypeKey] != null &&
         encrypted.metadata![walletTypeKey] != keyStoreWalletType) {
       throw WalletException(
-          'Wallet type (${encrypted.metadata![walletTypeKey]}) is not supported',);
+        currentL10n.walletFileTypeNotSupportedError(
+          '${encrypted.metadata![walletTypeKey]}',
+        ),
+      );
     }
-    final List<int> decrypted = await encrypted.decrypt(password);
+    final List<int> decrypted =
+        await BackgroundCrypto.decrypt(encrypted, password);
     return KeyStoreWalletFile._internal(walletPath, HEX.encode(decrypted));
   }
 
@@ -117,7 +168,7 @@ class KeyStoreWalletFile extends WalletFile {
   Future<Wallet> open() async {
     await _lock.acquire();
     try {
-      _keyStore ??= KeyStore.fromEntropy(_walletSeed);
+      _keyStore ??= await BackgroundKeyStore.fromEntropy(_walletSeed);
       return _keyStore!;
     } catch (_) {
       _lock.release();
@@ -149,9 +200,9 @@ class LedgerWalletFile extends WalletFile {
             as LedgerWallet;
       }
     }
-    throw const LedgerError.connectionError(
-        origMessage:
-            'Cannot find the hardware device, please connect/unlock the device on which the wallet is initialized',);
+    throw LedgerError.connectionError(
+      origMessage: currentL10n.walletFileLedgerNotFoundError,
+    );
   }
 
   static Future<LedgerWalletFile> create(String walletId, String password,
@@ -178,9 +229,13 @@ class LedgerWalletFile extends WalletFile {
     if (encrypted.metadata == null ||
         encrypted.metadata![walletTypeKey] != ledgerWalletType) {
       throw WalletException(
-          'Wallet type (${encrypted.metadata![walletTypeKey]}) is not supported',);
+        currentL10n.walletFileTypeNotSupportedError(
+          '${encrypted.metadata![walletTypeKey]}',
+        ),
+      );
     }
-    final List<int> decrypted = await encrypted.decrypt(password);
+    final List<int> decrypted =
+        await BackgroundCrypto.decrypt(encrypted, password);
     return LedgerWalletFile._internal(walletPath, utf8.decode(decrypted));
   }
 

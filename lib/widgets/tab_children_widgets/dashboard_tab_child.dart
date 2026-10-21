@@ -1,89 +1,17 @@
-import 'package:flutter/material.dart';
-import 'package:layout/layout.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/models/card/card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
-class DashboardTabChild extends StatefulWidget {
+/// The Home tab. Since the refresh it is the balance-first home of mockup B
+/// ([HomeView]); the grid of network statistics cards it used to hold is gone
+/// from here, and those figures belong to the pages they describe.
+class DashboardTabChild extends StatelessWidget {
   const DashboardTabChild({super.key, this.changePage});
 
   final void Function(Tabs)? changePage;
 
   @override
-  State<DashboardTabChild> createState() => _DashboardTabChildState();
-}
-
-class _DashboardTabChildState extends State<DashboardTabChild> {
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return _getFluidLayout();
-  }
-
-  Widget _getFluidLayout() {
-    final int defaultCellWidth = context.layout.value(
-      xl: kStaggeredNumOfColumns ~/ 6,
-      lg: kStaggeredNumOfColumns ~/ 6,
-      md: kStaggeredNumOfColumns ~/ 6,
-      sm: kStaggeredNumOfColumns ~/ 4,
-      xs: kStaggeredNumOfColumns ~/ 2,
-    );
-
-    final List<FluidCell> children = <FluidCell>[
-      const FluidCell(
-        child: DualCoinStatsCard(),
-      ),
-      const FluidCell(
-        child: PlasmaStatsCard(),
-      ),
-      FluidCell(
-        child: TransferCard(
-          changePage: widget.changePage,
-        ),
-      ),
-      const FluidCell(
-        child: TotalHourlyTransactionsCard(),
-        height: kStaggeredNumOfColumns / 4,
-      ),
-      const FluidCell(
-        child: ActivePillarsCard(),
-        height: kStaggeredNumOfColumns / 8,
-      ),
-      const FluidCell(
-        child: StakingCard(),
-        height: kStaggeredNumOfColumns / 8,
-      ),
-      const FluidCell(
-        child: DelegationCard(),
-        height: kStaggeredNumOfColumns / 8,
-      ),
-      const FluidCell(
-        child: ActiveSentinelsCard(),
-        height: kStaggeredNumOfColumns / 8,
-      ),
-      FluidCell(
-        child: const BalanceCard(),
-        width: defaultCellWidth * 2,
-      ),
-      FluidCell(
-        child: const RealtimeStatisticsCard(),
-        width: defaultCellWidth * 2,
-      ),
-      FluidCell(
-        child: LatestTransactionsCard(
-          type: CardType.latestTransactionsDashboard,
-        ),
-        width: defaultCellWidth * 2,
-      ),
-    ];
-
-    return StandardFluidLayout(
-      defaultCellWidth: defaultCellWidth,
-      children: children,
-    );
+    return HomeView(changePage: changePage ?? (_) {});
   }
 }

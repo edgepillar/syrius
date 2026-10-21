@@ -1,59 +1,101 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/card_parts/card_parts.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/empty_note.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart'
-    hide
-        InfiniteScrollTable,
-        InfiniteScrollTableCell,
-        InfiniteScrollTableHeaderColumn;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-/// A card that displays staking entries for the selected address.
+/// The stakes of the selected address, one line each, with its Cancel
+/// button or the wait until it can be cancelled.
+///
+/// The address column is gone: every line is the selected address's, which
+/// the shell already names.
 class StakesCard extends StatelessWidget {
   /// Creates a stakes list card.
-  const StakesCard({super.key});
+  const StakesCard({this.onRefresh, super.key});
+
+  /// Called as well when the refresh button reloads the list: the page's
+  /// other figures have no refresh button of their own.
+  final VoidCallback? onRefresh;
 
   @override
   Widget build(BuildContext context) {
-    return const _View();
-  }
-}
-
-class _View extends StatelessWidget {
-  const _View();
-
-  @override
-  Widget build(BuildContext context) {
-    return NewCardScaffold(
-      data: _buildCardData(context: context),
-      onRefreshPressed: () => _refreshStakes(context),
-      body: BlocBuilder<StakesBloc, InfiniteListState<StakeEntry>>(
+    return Panel(
+      title: context.l10n.stakesListTitle,
+      actions: <Widget>[
+        RefreshButton(
+          onPressed: () {
+            _refreshStakes(context);
+            onRefresh?.call();
+          },
+        ),
+      ],
+      child: BlocBuilder<StakesBloc, InfiniteListState<StakeEntry>>(
         builder: (_, InfiniteListState<StakeEntry> state) {
-          return switch (state.status) {
-            InfiniteListStatus.initial => const SyriusLoadingWidget(),
-            InfiniteListStatus.failure => SyriusErrorWidget(state.error!),
-            InfiniteListStatus.success => _Populated(
-              hasReachedMax: state.hasReachedMax,
-              stakes: state.data!,
-            ),
-          };
+          return StateSwitcher(
+            child: switch (state.status) {
+              InfiniteListStatus.initial => const _Loading(
+                key: ValueKey<String>('loading'),
+              ),
+              InfiniteListStatus.failure => CardNote.error(
+                state.error!,
+                key: const ValueKey<String>('failure'),
+              ),
+              // The table would say "None yet" itself, but under the
+              // table's key: the first stake would then appear with no fade.
+              InfiniteListStatus.success when state.data!.isEmpty => EmptyNote(
+                text: context.l10n.noItemsFound,
+                key: const ValueKey<String>('empty'),
+              ),
+              InfiniteListStatus.success => _Populated(
+                key: const ValueKey<String>('table'),
+                hasReachedMax: state.hasReachedMax,
+                stakes: state.data!,
+              ),
+            },
+          );
         },
       ),
     );
   }
+}
 
-  CardData _buildCardData({required BuildContext context}) => CardData(
-    description: context.l10n.stakesListDescription,
-    title: context.l10n.stakesListTitle,
-  );
+/// The table's head, and a row with a Cancel button in it, as the table
+/// lays them out; the loading bars are spaced by them.
+const double _kHeadHeight = 40;
+const double _kRowHeight = 32 + kInfiniteTableHorizontalPadding;
+const double _kSkeletonBar = 12;
+
+/// The list while it loads: a bar where each of the first rows will be,
+/// under the space the column names take.
+class _Loading extends StatelessWidget {
+  const _Loading({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    // A short card shows fewer bars instead of overflowing.
+    return const SingleChildScrollView(
+      physics: NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.fromLTRB(
+        kInfiniteTableHorizontalPadding,
+        _kHeadHeight + 1 + (_kRowHeight - _kSkeletonBar) / 2,
+        kInfiniteTableHorizontalPadding,
+        0,
+      ),
+      child: SkeletonRows(gap: _kRowHeight + 1 - _kSkeletonBar),
+    );
+  }
 }
 
 class _Populated extends StatelessWidget {
   const _Populated({
     required this.hasReachedMax,
     required this.stakes,
+    super.key,
   });
 
   final bool hasReachedMax;
@@ -61,101 +103,93 @@ class _Populated extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InfiniteScrollTable<StakeEntry>(
-      itemKeyGenerator: (StakeEntry stakeEntry) =>
-          ValueKey<String>(stakeEntry.id.toString()),
-      items: stakes,
-      hasReachedMax: hasReachedMax,
-      columns: _buildHeaderColumns(),
-      generateRowCells: (StakeEntry stakeEntry) => _buildRowCells(
-        context: context,
-        stakeEntry: stakeEntry,
-      ),
-      onScrollReachedBottom: () {
-        context.read<StakesBloc>().add(
-          InfiniteListMoreRequested(address: Address.parse(kSelectedAddress!)),
-        );
-      },
-    );
-  }
-
-  List<InfiniteScrollTableCell> _buildRowCells({
-    required BuildContext context,
-    required StakeEntry stakeEntry,
-  }) {
-    return <InfiniteScrollTableCell>[
-      InfiniteScrollTableCell(
-        child: FormattedAmountWithTooltip(
-          amount: stakeEntry.amount.addDecimals(kZnnCoin.decimals),
-          tokenSymbol: kZnnCoin.symbol,
-          builder: (String formattedAmount, String tokenSymbol) => Text(
-            '$formattedAmount $tokenSymbol',
-            style: Theme.of(context).textTheme.titleMedium!.copyWith(
-              color: AppColors.subtitleColor,
+    final AppTokens tokens = AppTokens.of(context);
+    return SizedBox.expand(
+      child: InfiniteScrollTable<StakeEntry>(
+        itemKeyGenerator: (StakeEntry stakeEntry) =>
+            ValueKey<String>(stakeEntry.id.toString()),
+        items: stakes,
+        hasReachedMax: hasReachedMax,
+        columns: const <InfiniteScrollTableColumnType>[
+          .amount,
+          .duration,
+          .expiration,
+        ],
+        generateRowCells: (StakeEntry stakeEntry) => <Widget>[
+          InfiniteScrollTableCell(
+            // Aligned, so the flash is as wide as the amount and not as
+            // the column. The row is keyed by the stake, so only a change
+            // to this stake's amount flashes.
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: ValueFlash(
+                value: stakeEntry.amount,
+                color: tokens.znnInk,
+                child: AmountText(
+                  stakeEntry.amount,
+                  decimals: kZnnCoin.decimals,
+                  style: cardValueStyle(context),
+                  symbol: kZnnCoin.symbol,
+                  symbolColor: tokens.znnInk,
+                ),
+              ),
             ),
           ),
-        ),
+          InfiniteScrollTableCell.withText(
+            content: stakeDurationText(
+              stakeEntry.expirationTimestamp - stakeEntry.startTimestamp,
+              context.l10n,
+            ),
+          ),
+          InfiniteScrollTableCell(
+            child: Center(child: _Expiration(stakeEntry: stakeEntry)),
+          ),
+        ],
+        onScrollReachedBottom: () {
+          context.read<StakesBloc>().add(
+            InfiniteListMoreRequested(
+              address: Address.parse(kSelectedAddress!),
+            ),
+          );
+        },
       ),
-      InfiniteScrollTableCell.withText(
-        content: _getStakingDurationInMonths(
-          stakeEntry.expirationTimestamp - stakeEntry.startTimestamp,
-        ),
-      ),
-      InfiniteScrollTableCell.textFromAddress(
-        address: stakeEntry.address,
-      ),
-      InfiniteScrollTableCell(
-        child: _buildExpirationCell(context: context, stakeEntry: stakeEntry),
-      ),
-    ];
+    );
   }
+}
 
-  Widget _buildExpirationCell({
-    required BuildContext context,
-    required StakeEntry stakeEntry,
-  }) {
-    if (_isStakeExpired(stakeEntry)) {
+/// The last cell of a stake: Cancel once its time is up, the time left
+/// until then.
+class _Expiration extends StatelessWidget {
+  const _Expiration({required this.stakeEntry});
+
+  final StakeEntry stakeEntry;
+
+  @override
+  Widget build(BuildContext context) {
+    final int secondsLeft =
+        stakeEntry.expirationTimestamp -
+        DateTime.now().millisecondsSinceEpoch ~/
+            Duration.millisecondsPerSecond;
+    if (secondsLeft <= 0) {
       return CancelStakeButton(
         stakeHash: stakeEntry.id,
+        amount: stakeEntry.amount,
         onCancelled: () => _refreshStakes(context),
       );
     }
-
-    return Row(
-      mainAxisAlignment: .center,
-      children: <Widget>[
-        CancelTimer(
-          Duration(seconds: _secondsUntilExpiration(stakeEntry)),
-          AppColors.errorColor,
-          onTimeFinishedCallback: () => _refreshStakes(context),
-        ),
-      ],
+    return CancelCountdown(
+      duration: Duration(seconds: secondsLeft),
+      onFinished: () => _refreshStakes(context),
     );
   }
-
-  List<InfiniteScrollTableColumnType> _buildHeaderColumns() =>
-      <InfiniteScrollTableColumnType>[
-        .amount,
-        .duration,
-        .address,
-        .expiration,
-      ];
-
-  bool _isStakeExpired(StakeEntry stakeEntry) =>
-      stakeEntry.expirationTimestamp * 1000 <
-      DateTime.now().millisecondsSinceEpoch;
-
-  int _secondsUntilExpiration(StakeEntry stakeEntry) =>
-      stakeEntry.expirationTimestamp -
-      DateTime.now().millisecondsSinceEpoch ~/ 1000;
-
-  String _getStakingDurationInMonths(int seconds) {
-    final int numDays = seconds / 3600 ~/ 24;
-    final int numMonths = numDays ~/ 30;
-
-    return '$numMonths month${numMonths > 1 ? 's' : ''}';
-  }
 }
+
+/// A stake's length in the months it was made for: `1 month`, `12 months`.
+///
+/// In [l10n]'s language, which a widget passes as `context.l10n`; without
+/// it, in the app's language of the moment.
+String stakeDurationText(int seconds, [AppLocalizations? l10n]) =>
+    (l10n ?? currentL10n).stakeDurationMonths(seconds ~/ stakeTimeUnitSec);
 
 void _refreshStakes(BuildContext context) {
   context.read<StakesBloc>().add(

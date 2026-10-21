@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/ltr.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 // TODO(maznnwell): to be refactored, the controller should be just Text
 class DisabledAddressField extends StatelessWidget {
@@ -15,15 +15,25 @@ class DisabledAddressField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // The field shows the address's label, the address itself is the
+    // tooltip. A label in Latin letters ("Address 1") reads left to right in
+    // every language; one written right to left keeps the app's direction.
+    // Either way it stands at the app's start, with the padding on that side.
+    final String? label = kAddressLabelMap[_addressController.text];
+
     return Tooltip(
       message: _addressController.text,
       child: TextField(
         enabled: false,
         controller: TextEditingController(
-          text: kAddressLabelMap[_addressController.text],
+          text: label,
         ),
+        textDirection: ltrUnlessRtl(label ?? ''),
+        textAlign: ltrTextAlign(context, TextAlign.start),
         decoration: InputDecoration(
-          contentPadding: EdgeInsets.only(left: contentLeftPadding),
+          contentPadding: EdgeInsetsDirectional.only(
+            start: contentLeftPadding,
+          ),
         ),
       ),
     );

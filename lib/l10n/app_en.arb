@@ -114,7 +114,7 @@
   "newOwnerAddress": "New owner address",
   "next": "Next",
   "no": "no",
-  "noItemsFound": "No items founds",
+  "noItemsFound": "None yet",
   "noMoreItems": "No more items",
   "noRewardsCollect": "No rewards to collect",
   "noZtsTokensAvailable": "No ZTS tokens available",
@@ -263,5 +263,1517 @@
   "youHaveDeposited": "You have deposited {coins} {kQsrCoinSymbol}",
   "zenonTransactions": "{zenon} transactions",
   "znnController": "znn-controller ",
-  "ztsSearchDescription": "Coins and tokens can be searched by name - \"Zenon\" -, by symbol - \"ZNN\" -, and by token standard - \"zts1znnxxxxxxxxxxxxx9z4ulx\""
+  "ztsSearchDescription": "Coins and tokens can be searched by name - \"Zenon\" -, by symbol - \"ZNN\" -, and by token standard - \"zts1znnxxxxxxxxxxxxx9z4ulx\"",
+  "burnTokenConfirm": "Burn {amount}?",
+  "cannotBeUndone": "This cannot be undone.",
+  "transferTokenConfirm": "Transfer {symbol}?",
+  "transferTokenConfirmTo": "{address} becomes the owner. This cannot be undone.",
+  "sentinelYours": "Yours",
+  "disassembleSentinelConfirm": "Disassemble the sentinel of {address}?",
+  "validatorInvalidAddress": "Invalid address",
+  "validatorInvalidNode": "Invalid Node",
+  "validatorAddressNotInWallet": "Must be an address from your wallet",
+  "validatorFieldEmpty": "{fieldName} must not be empty",
+  "@validatorFieldEmpty": {
+    "description": "Under a form field left empty. fieldName is the field's own label, given by the screen that shows it.",
+    "placeholders": {
+      "fieldName": {
+        "type": "String",
+        "example": "Token name"
+      }
+    }
+  },
+  "validatorNumberRequired": "Number required",
+  "validatorInvalidNumber": "Input is not a valid number",
+  "validatorInvalidAmount": "Invalid amount",
+  "validatorError": "Error",
+  "validatorValueNull": "Value is null",
+  "validatorEmptyBalance": "Empty balance",
+  "validatorEnterValidAmount": "Enter a valid amount",
+  "validatorTooManyDecimals": "Inputted number has too many decimals",
+  "validatorBalanceBelowMin": "Your available balance must be at least {min}",
+  "@validatorBalanceBelowMin": {
+    "description": "Under an amount field when the whole balance is less than the least the action takes. min is that least amount, a formatted decimal number.",
+    "placeholders": {
+      "min": {
+        "type": "String",
+        "example": "5000"
+      }
+    }
+  },
+  "validatorValueMustBe": "Value must be {value}",
+  "@validatorValueMustBe": {
+    "description": "Under an amount field that takes one amount only. value is that amount, a formatted decimal number.",
+    "placeholders": {
+      "value": {
+        "type": "String",
+        "example": "5000"
+      }
+    }
+  },
+  "validatorValueMustBeMinAllowed": "Value must be  {value}",
+  "@validatorValueMustBeMinAllowed": {
+    "description": "The same sentence as validatorValueMustBe, shown by fields where the least amount is itself allowed. The English has two spaces before the value, as the wallet always showed it; a translation takes one.",
+    "placeholders": {
+      "value": {
+        "type": "String",
+        "example": "5000"
+      }
+    }
+  },
+  "validatorValueOutOfRange": "Value must be between {min} and {max}",
+  "@validatorValueOutOfRange": {
+    "description": "Under an amount field when the amount is outside what the action takes. min and max are formatted decimal numbers.",
+    "placeholders": {
+      "min": {
+        "type": "String",
+        "example": "1"
+      },
+      "max": {
+        "type": "String",
+        "example": "5000"
+      }
+    }
+  },
+  "validatorValueEmpty": "Value can't be empty",
+  "validatorEnterAddress": "Enter an address",
+  "validatorPasswordsDoNotMatch": "Passwords do not match",
+  "validatorPasswordTooWeak": "Password not strong enough",
+  "validatorInvalidPassword": "Invalid password",
+  "validatorPillarProducerAddressSameSeed": "Pillar producer address must be generated from a different seed",
+  "validatorMaxSupplyNotZero": "Max supply must be 0 for non-mintable tokens",
+  "validatorInvalidUrl": "Invalid URL",
+  "validatorInvalidHash": "Invalid hash",
+  "validatorInvalidSecret": "Invalid secret",
+  "ledgerStatusDeny": "Deny",
+  "ledgerStatusWrongP1P2": "Invalid P1 or P2",
+  "ledgerStatusWrongDataLength": "Invalid data length",
+  "ledgerStatusInactiveDevice": "Device is inactive",
+  "ledgerStatusNotAllowed": "Request not allowed",
+  "ledgerStatusInsNotSupported": "Instruction not supported, please make sure the Zenon app is opened",
+  "ledgerStatusClaNotSupported": "Class not supported, please make sure the Zenon app is opened",
+  "ledgerStatusAppIsNotOpen": "App not open, please open the Zenon app on your device",
+  "ledgerStatusWrongResponseLength": "Invalid response, please reconnect the device and try again",
+  "ledgerStatusDisplayBip32PathFail": "Failed to display BIP32 path",
+  "ledgerStatusDisplayAddressFail": "Failed to display address",
+  "ledgerStatusDisplayAmountFail": "Failed to display amount",
+  "ledgerStatusWrongTxLength": "Invalid transaction length",
+  "ledgerStatusTxParsingFail": "Failed to parse transaction",
+  "ledgerStatusTxHashFail": "Failed to hash transaction",
+  "ledgerStatusBadState": "Bad state, please reconnect the device and try again",
+  "ledgerStatusSignatureFail": "Failed to create signature",
+  "ledgerStatusSuccess": "Success",
+  "ledgerStatusUnknownError": "Unknown error, please make sure the device is unlocked",
+  "timeAgoHours": "{count, plural, one{{count} h ago} other{{count} h ago}}",
+  "@timeAgoHours": {
+    "description": "How long ago a transaction was made, in whole hours, in a narrow table column. h is the short unit for hours.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "timeAgoMinutes": "{count, plural, one{{count} min ago} other{{count} min ago}}",
+  "@timeAgoMinutes": {
+    "description": "How long ago a transaction was made, in whole minutes, in a narrow table column. min is the short unit for minutes.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "timeAgoSeconds": "{count, plural, one{{count} s ago} other{{count} s ago}}",
+  "@timeAgoSeconds": {
+    "description": "How long ago a transaction was made, in whole seconds, in a narrow table column. s is the short unit for seconds. The count can be 0.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "45"
+      }
+    }
+  },
+  "durationDaysHours": "{days} d {hours} h",
+  "@durationDaysHours": {
+    "description": "A length of time of a day or more, as whole days and the hours left over, in short units: 214 d 3 h.",
+    "placeholders": {
+      "days": {
+        "type": "int",
+        "example": "214"
+      },
+      "hours": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "durationHoursMinutes": "{hours} h {minutes} m",
+  "@durationHoursMinutes": {
+    "description": "A length of time under a day, as whole hours and the minutes left over, in short units: 9 h 52 m.",
+    "placeholders": {
+      "hours": {
+        "type": "int",
+        "example": "9"
+      },
+      "minutes": {
+        "type": "int",
+        "example": "52"
+      }
+    }
+  },
+  "durationMinutesSeconds": "{minutes} m {seconds} s",
+  "@durationMinutesSeconds": {
+    "description": "A length of time under an hour, as whole minutes and the seconds left over, in short units: 14 m 32 s.",
+    "placeholders": {
+      "minutes": {
+        "type": "int",
+        "example": "14"
+      },
+      "seconds": {
+        "type": "int",
+        "example": "32"
+      }
+    }
+  },
+  "durationSeconds": "{seconds} s",
+  "@durationSeconds": {
+    "description": "A length of time under a minute, in whole seconds, in a short unit: 32 s. Also what a finished countdown reads, 0 s.",
+    "placeholders": {
+      "seconds": {
+        "type": "int",
+        "example": "32"
+      }
+    }
+  },
+  "createTokenOpenLabel": "Create token",
+  "@createTokenOpenLabel": {
+    "description": "The button on the Tokens page that opens the steps for issuing a new ZTS token."
+  },
+  "createTokenHeldLabel": "Tokens held",
+  "@createTokenHeldLabel": {
+    "description": "Label over a count on the Tokens page: how many different ZTS tokens the selected address holds."
+  },
+  "createTokenFeeLabel": "Issue fee",
+  "@createTokenFeeLabel": {
+    "description": "Label beside the amount of ZNN that issuing a new token costs, on the Tokens page and on the last step before the token is issued."
+  },
+  "createTokenDecimalsLabel": "Decimals",
+  "@createTokenDecimalsLabel": {
+    "description": "Label beside a number from 0 to 18 in the summary of a new token: how many decimal places the token has."
+  },
+  "createTokenDomainHint": "example.com",
+  "@createTokenDomainHint": {
+    "description": "Example shown in the empty domain field of a new token. A domain name without https:// in front."
+  },
+  "plasmaPurposeReceiveTransaction": "Plasma will be generated in order to receive transaction",
+  "@plasmaPurposeReceiveTransaction": {
+    "description": "Title of the notification shown when the wallet starts generating Plasma (proof of work) for a transaction, here one that receives funds. Every plasmaPurpose key is this sentence for another action; translate each as one whole sentence."
+  },
+  "plasmaPurposeSendTransaction": "Plasma will be generated in order to send transaction",
+  "plasmaPurposeExecuteTransfer": "Plasma will be generated in order to Execute transfer",
+  "@plasmaPurposeExecuteTransfer": {
+    "description": "The plasmaPurpose sentence for a transfer asked for by an app connected over WalletConnect."
+  },
+  "plasmaPurposeSendForDapp": "Plasma will be generated in order to Send for {origin}",
+  "@plasmaPurposeSendForDapp": {
+    "description": "The plasmaPurpose sentence for a send asked for by a web page through the dapp bridge. origin is that page's origin, shown as it is.",
+    "placeholders": {
+      "origin": {
+        "type": "String",
+        "example": "https://example.com"
+      }
+    }
+  },
+  "plasmaPurposeCreateStake": "Plasma will be generated in order to create stake",
+  "plasmaPurposeCancelStake": "Plasma will be generated in order to cancel stake",
+  "plasmaPurposeCollectStakingRewards": "Plasma will be generated in order to Collect staking rewards",
+  "plasmaPurposeCollectPillarRewards": "Plasma will be generated in order to Collect Pillar rewards",
+  "plasmaPurposeCollectSentinelRewards": "Plasma will be generated in order to Collect Sentinel rewards",
+  "plasmaPurposeDelegateToPillar": "Plasma will be generated in order to delegate to Pillar",
+  "plasmaPurposeUndelegate": "Plasma will be generated in order to undelegate",
+  "plasmaPurposeFuseQsrForPlasma": "Plasma will be generated in order to fuse {qsrSymbol} for Plasma",
+  "@plasmaPurposeFuseQsrForPlasma": {
+    "description": "The plasmaPurpose sentence for fusing the second coin to get Plasma. qsrSymbol is that coin's symbol.",
+    "placeholders": {
+      "qsrSymbol": {
+        "type": "String",
+        "example": "QSR"
+      }
+    }
+  },
+  "plasmaPurposeCancelPlasma": "Plasma will be generated in order to cancel Plasma",
+  "plasmaPurposeRegisterPillar": "Plasma will be generated in order to register Pillar",
+  "plasmaPurposeUpdatePillar": "Plasma will be generated in order to update pillar",
+  "plasmaPurposeDisassemblePillar": "Plasma will be generated in order to disassemble Pillar",
+  "plasmaPurposeDepositQsrForPillarSlot": "Plasma will be generated in order to deposit {qsrSymbol} from Pillar Slot",
+  "@plasmaPurposeDepositQsrForPillarSlot": {
+    "description": "The plasmaPurpose sentence for depositing the second coin towards a Pillar Slot. qsrSymbol is that coin's symbol. The English says from where for is meant, as the wallet always showed it; a translation says for.",
+    "placeholders": {
+      "qsrSymbol": {
+        "type": "String",
+        "example": "QSR"
+      }
+    }
+  },
+  "plasmaPurposeWithdrawQsrFromPillarSlot": "Plasma will be generated in order to withdraw {qsrSymbol} from Pillar Slot",
+  "@plasmaPurposeWithdrawQsrFromPillarSlot": {
+    "description": "The plasmaPurpose sentence for taking back the second coin deposited towards a Pillar Slot. qsrSymbol is that coin's symbol.",
+    "placeholders": {
+      "qsrSymbol": {
+        "type": "String",
+        "example": "QSR"
+      }
+    }
+  },
+  "plasmaPurposeRegisterSentinel": "Plasma will be generated in order to register Sentinel",
+  "plasmaPurposeDisassembleSentinel": "Plasma will be generated in order to disassemble Sentinel",
+  "plasmaPurposeDepositQsrForSentinelSlot": "Plasma will be generated in order to deposit {qsrSymbol} for Sentinel Slot",
+  "@plasmaPurposeDepositQsrForSentinelSlot": {
+    "description": "The plasmaPurpose sentence for depositing the second coin towards a Sentinel Slot. qsrSymbol is that coin's symbol.",
+    "placeholders": {
+      "qsrSymbol": {
+        "type": "String",
+        "example": "QSR"
+      }
+    }
+  },
+  "plasmaPurposeWithdrawQsrFromSentinelSlot": "Plasma will be generated in order to withdraw {qsrSymbol} from Sentinel Slot",
+  "@plasmaPurposeWithdrawQsrFromSentinelSlot": {
+    "description": "The plasmaPurpose sentence for taking back the second coin deposited towards a Sentinel Slot. qsrSymbol is that coin's symbol.",
+    "placeholders": {
+      "qsrSymbol": {
+        "type": "String",
+        "example": "QSR"
+      }
+    }
+  },
+  "plasmaPurposeIssueToken": "Plasma will be generated in order to issue token",
+  "plasmaPurposeMintToken": "Plasma will be generated in order to mint token",
+  "plasmaPurposeBurnToken": "Plasma will be generated in order to burn token",
+  "plasmaPurposeTransferToken": "Plasma will be generated in order to transfer token",
+  "@plasmaPurposeTransferToken": {
+    "description": "The plasmaPurpose sentence for handing the ownership of a token to another address."
+  },
+  "plasmaPurposeCreateProject": "Plasma will be generated in order to creating project",
+  "@plasmaPurposeCreateProject": {
+    "description": "The plasmaPurpose sentence for creating an Accelerator-Z project. The English says creating where create is meant, as the wallet always showed it; a translation takes the plain verb."
+  },
+  "plasmaPurposeCreatePhase": "Plasma will be generated in order to create phase",
+  "plasmaPurposeUpdatePhase": "Plasma will be generated in order to update phase",
+  "plasmaPurposeVoteForProject": "Plasma will be generated in order to vote for project",
+  "plasmaPurposeDonateToAccelerator": "Plasma will be generated in order to donate for accelerator",
+  "plasmaPurposeStartSwap": "Plasma will be generated in order to start swap",
+  "plasmaPurposeJoinSwap": "Plasma will be generated in order to join swap",
+  "plasmaPurposeCompleteSwap": "Plasma will be generated in order to complete swap",
+  "plasmaPurposeReclaimSwapFunds": "Plasma will be generated in order to reclaim swap funds",
+  "plasmaNotificationDetails": "Plasma will be generated for this account-block",
+  "notificationErrorWithDetails": "{title}: {error}",
+  "@notificationErrorWithDetails": {
+    "description": "The details of an error notification: what failed, then the error itself. title is the notification's own title, already in the wallet's language; error is the error's text as it was raised.",
+    "placeholders": {
+      "title": {
+        "type": "String",
+        "example": "Error while sending transaction"
+      },
+      "error": {
+        "type": "Object",
+        "example": "Node is not synced"
+      }
+    }
+  },
+  "notificationEmptyTitle": "Empty title",
+  "notificationNoDetails": "No details available",
+  "nodeUpdatePanelTitle": "Embedded node",
+  "@nodeUpdatePanelTitle": {
+    "description": "Title of the Settings panel about the node software (libznn) that runs inside the wallet: which build is loaded, and installing another one."
+  },
+  "nodeUpdateStatusError": "The node folder could not be read.",
+  "@nodeUpdateStatusError": {
+    "description": "Shown in place of the Embedded node panel when the folder holding the installed node library cannot be read."
+  },
+  "nodeUpdateLoadedLabel": "Loaded",
+  "@nodeUpdateLoadedLabel": {
+    "description": "Label over the node library the running wallet has loaded."
+  },
+  "nodeUpdateNextStartLabel": "Used at the next start",
+  "@nodeUpdateNextStartLabel": {
+    "description": "Label over the node library the wallet will load when it next starts, shown while the embedded node is not running."
+  },
+  "nodeUpdateBundledLabel": "Bundled",
+  "@nodeUpdateBundledLabel": {
+    "description": "Name of the node library that ships with the wallet, as opposed to one installed later."
+  },
+  "nodeUpdateFromFileLabel": "From a file",
+  "@nodeUpdateFromFileLabel": {
+    "description": "Shown beside a node library's file name where a repository name would be: it was installed from a file on this computer, not downloaded."
+  },
+  "nodeUpdateMissingLabel": "No node library found",
+  "@nodeUpdateMissingLabel": {
+    "description": "Shown where the loaded node library would be named, when neither a bundled nor an installed one exists."
+  },
+  "nodeUpdateHashLabel": "SHA-256",
+  "@nodeUpdateHashLabel": {
+    "description": "Label before a file's SHA-256 checksum, a 64-digit hexadecimal number. The name of the algorithm; not translated."
+  },
+  "nodeUpdateHashCopyTooltip": "Copy SHA-256",
+  "@nodeUpdateHashCopyTooltip": {
+    "description": "Tooltip of the icon button that copies a node library's full SHA-256 checksum."
+  },
+  "nodeUpdateReopenStagedLabel": "Close and reopen Syrius to use {name}.",
+  "@nodeUpdateReopenStagedLabel": {
+    "description": "Line telling the person that a node library is waiting and only takes effect when the wallet starts again. name is its release tag or file name, shown as it is.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "v0.0.8"
+      }
+    }
+  },
+  "nodeUpdateReopenBundledLabel": "Close and reopen Syrius to use the bundled node.",
+  "@nodeUpdateReopenBundledLabel": {
+    "description": "Line telling the person that the wallet goes back to the node library it shipped with, and only when it starts again."
+  },
+  "nodeUpdateBadError": "The installed node failed to load. The bundled one is in use.",
+  "@nodeUpdateBadError": {
+    "description": "Warning line: the node library the person installed could not be loaded at start, so the wallet fell back to the one it shipped with."
+  },
+  "nodeUpdateStagedRejectedError": "The staged node did not match its checksum and was removed.",
+  "@nodeUpdateStagedRejectedError": {
+    "description": "Warning line: at start, the node library waiting to be installed had changed on disk since it was confirmed, so the wallet deleted it."
+  },
+  "nodeUpdateReleaseLabel": "Latest release",
+  "@nodeUpdateReleaseLabel": {
+    "description": "Label of the row showing the newest node release published in the source repository, once the person has pressed Check."
+  },
+  "nodeUpdateCheckLabel": "Check",
+  "@nodeUpdateCheckLabel": {
+    "description": "Button that asks GitHub for the newest node release. The wallet never asks by itself."
+  },
+  "nodeUpdateNotCheckedHint": "Not checked",
+  "@nodeUpdateNotCheckedHint": {
+    "description": "Shown where the latest release would be, before the person has pressed Check."
+  },
+  "nodeUpdateNoReleaseLabel": "This repository has no releases.",
+  "@nodeUpdateNoReleaseLabel": {
+    "description": "Answer to Check when the source repository exists and has published nothing."
+  },
+  "nodeUpdateCompareUpToDateLabel": "Up to date",
+  "@nodeUpdateCompareUpToDateLabel": {
+    "description": "Beside the latest release: the wallet already uses this release."
+  },
+  "nodeUpdateCompareAvailableLabel": "Update available",
+  "@nodeUpdateCompareAvailableLabel": {
+    "description": "Beside the latest release: it is not the one the wallet uses."
+  },
+  "nodeUpdateCompareStagedLabel": "Staged for the next start",
+  "@nodeUpdateCompareStagedLabel": {
+    "description": "Beside the latest release: it has been installed and takes effect when the wallet starts again."
+  },
+  "nodeUpdateCompareUnknownLabel": "Not compared",
+  "@nodeUpdateCompareUnknownLabel": {
+    "description": "Beside the latest release: the wallet cannot tell whether it is the one in use, because the node in use carries no release tag."
+  },
+  "nodeUpdateInstallLabel": "Install",
+  "@nodeUpdateInstallLabel": {
+    "description": "Label of the row with the Download and From file buttons, and the button in the confirmation dialog that installs the node library shown."
+  },
+  "nodeUpdateInstallHint": "Takes effect at the next start",
+  "@nodeUpdateInstallHint": {
+    "description": "Line under Install: an installed node library is only used once the wallet has been closed and opened again."
+  },
+  "nodeUpdateDownloadLabel": "Download",
+  "@nodeUpdateDownloadLabel": {
+    "description": "Button that downloads the latest release's node library. Nothing is installed until a confirmation that follows."
+  },
+  "nodeUpdateFileLabel": "From file",
+  "@nodeUpdateFileLabel": {
+    "description": "Button that opens a file dialog to pick a node library on this computer, instead of downloading one."
+  },
+  "nodeUpdateProgressLabel": "{received} of {total} MB",
+  "@nodeUpdateProgressLabel": {
+    "description": "Under the download's progress bar: megabytes received and megabytes expected, each with one decimal.",
+    "placeholders": {
+      "received": {
+        "type": "String",
+        "example": "3.2"
+      },
+      "total": {
+        "type": "String",
+        "example": "12.9"
+      }
+    }
+  },
+  "nodeUpdateReadingFileLabel": "Reading {name}",
+  "@nodeUpdateReadingFileLabel": {
+    "description": "Shown while a picked file is copied and its checksum computed. name is the file's name.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "libznn-windows-amd64.zip"
+      }
+    }
+  },
+  "nodeUpdateStagingLabel": "Installing",
+  "@nodeUpdateStagingLabel": {
+    "description": "Shown for the moment a confirmed node library is being put in place for the next start."
+  },
+  "nodeUpdateInstallTitle": "Install this node?",
+  "@nodeUpdateInstallTitle": {
+    "description": "Title of the dialog that lists exactly which node library is about to be installed and asks for confirmation."
+  },
+  "nodeUpdateRepositoryLabel": "Repository",
+  "@nodeUpdateRepositoryLabel": {
+    "description": "Label before the GitHub repository (owner/name) a node library was downloaded from."
+  },
+  "nodeUpdateTagLabel": "Release",
+  "@nodeUpdateTagLabel": {
+    "description": "Label before a release's tag, such as v0.0.8."
+  },
+  "nodeUpdateAssetLabel": "Asset",
+  "@nodeUpdateAssetLabel": {
+    "description": "Label before the name of the file downloaded from a GitHub release."
+  },
+  "nodeUpdateFileNameLabel": "File",
+  "@nodeUpdateFileNameLabel": {
+    "description": "Label before the name of a file picked on this computer."
+  },
+  "nodeUpdateNoneLabel": "None",
+  "@nodeUpdateNoneLabel": {
+    "description": "Stands where a repository or a release tag would be, for a node library that came from a file and has neither."
+  },
+  "nodeUpdateChecksumFileLabel": "Checksum file",
+  "@nodeUpdateChecksumFileLabel": {
+    "description": "Label before the result of comparing a download with the checksum file published in the same release, or before the checksum that file names."
+  },
+  "nodeUpdateDigestLabel": "GitHub digest",
+  "@nodeUpdateDigestLabel": {
+    "description": "Label before the result of comparing a download with the checksum GitHub itself computes for a release file, or before that checksum."
+  },
+  "nodeUpdateChecksumVerifiedLabel": "Matches the release's checksum file",
+  "@nodeUpdateChecksumVerifiedLabel": {
+    "description": "Result: the download's checksum equals the one in the release's checksum file."
+  },
+  "nodeUpdateChecksumNotListedLabel": "Not listed in the release's checksum file",
+  "@nodeUpdateChecksumNotListedLabel": {
+    "description": "Result: the release has a checksum file, and it does not mention this download, so nothing was compared."
+  },
+  "nodeUpdateChecksumAbsentLabel": "The release has no checksum file",
+  "@nodeUpdateChecksumAbsentLabel": {
+    "description": "Result: the release publishes no checksum file, so nothing was compared."
+  },
+  "nodeUpdateDigestVerifiedLabel": "Matches GitHub's digest",
+  "@nodeUpdateDigestVerifiedLabel": {
+    "description": "Result: the download's checksum equals the one GitHub computed for the file."
+  },
+  "nodeUpdateDigestAbsentLabel": "GitHub gives no digest for this release",
+  "@nodeUpdateDigestAbsentLabel": {
+    "description": "Result: GitHub has no checksum of its own for this file, so nothing was compared."
+  },
+  "nodeUpdateFileUncheckedLabel": "Not checked: a file from this computer",
+  "@nodeUpdateFileUncheckedLabel": {
+    "description": "Result shown for both checks when the node library was picked from disk: there is no release to compare it with."
+  },
+  "nodeUpdateInstallConfirm": "This replaces the node that runs inside the wallet. It takes effect at the next start.",
+  "@nodeUpdateInstallConfirm": {
+    "description": "Plain statement at the foot of the install confirmation: what installing does and when."
+  },
+  "nodeUpdateUnverifiedTitle": "Download without verification?",
+  "@nodeUpdateUnverifiedTitle": {
+    "description": "Title of the warning dialog shown when a release publishes no checksum at all for its node library."
+  },
+  "nodeUpdateUnverifiedConfirm": "Nothing verifies this file. Release {tag} publishes no checksum for it.",
+  "@nodeUpdateUnverifiedConfirm": {
+    "description": "Body of the warning dialog: the download could be damaged or replaced and the wallet could not tell. tag is the release's tag, shown as it is.",
+    "placeholders": {
+      "tag": {
+        "type": "String",
+        "example": "v0.0.8"
+      }
+    }
+  },
+  "nodeUpdateUnverifiedDownloadLabel": "Download anyway",
+  "@nodeUpdateUnverifiedDownloadLabel": {
+    "description": "Button of the warning dialog that goes ahead with a download nothing can verify."
+  },
+  "nodeUpdateRollbackLabel": "Roll back",
+  "@nodeUpdateRollbackLabel": {
+    "description": "Label of the row with the buttons that go back to the bundled node library or to the one installed before."
+  },
+  "nodeUpdateRollbackHint": "Applies at the next start",
+  "@nodeUpdateRollbackHint": {
+    "description": "Line under Roll back: either choice is only used once the wallet has been closed and opened again."
+  },
+  "nodeUpdateUseBundledLabel": "Use bundled node",
+  "@nodeUpdateUseBundledLabel": {
+    "description": "Button that removes any installed node library, so the wallet uses the one it shipped with. Also the confirming button of its dialog."
+  },
+  "nodeUpdateUsePreviousLabel": "Use previous",
+  "@nodeUpdateUsePreviousLabel": {
+    "description": "Button that puts back the node library that was installed before the current one. Also the confirming button of its dialog."
+  },
+  "nodeUpdateUseBundledTitle": "Use the bundled node?",
+  "@nodeUpdateUseBundledTitle": {
+    "description": "Title of the dialog confirming a return to the node library the wallet shipped with."
+  },
+  "nodeUpdateUseBundledConfirm": "The nodes listed here are removed. The bundled node runs from the next start.",
+  "@nodeUpdateUseBundledConfirm": {
+    "description": "Body of that dialog, under a list of the installed and the staged node library."
+  },
+  "nodeUpdateInstalledLabel": "Installed",
+  "@nodeUpdateInstalledLabel": {
+    "description": "Label before the node library that is installed in place of the bundled one."
+  },
+  "nodeUpdateStagedLabel": "Staged",
+  "@nodeUpdateStagedLabel": {
+    "description": "Label before the node library that is waiting to be used at the next start."
+  },
+  "nodeUpdateUsePreviousTitle": "Use the previous node?",
+  "@nodeUpdateUsePreviousTitle": {
+    "description": "Title of the dialog confirming a return to the node library installed before the current one."
+  },
+  "nodeUpdateUsePreviousConfirm": "This node replaces the installed one at the next start. Anything staged is removed.",
+  "@nodeUpdateUsePreviousConfirm": {
+    "description": "Body of that dialog, under the details of the earlier node library."
+  },
+  "nodeUpdateSourceLabel": "Source repository",
+  "@nodeUpdateSourceLabel": {
+    "description": "Label of the setting naming the GitHub repository node releases are read from."
+  },
+  "nodeUpdateSourceHint": "A GitHub repository, as owner/name",
+  "@nodeUpdateSourceHint": {
+    "description": "Line under Source repository saying what to type. owner/name is the literal form, such as zenon-network/go-zenon."
+  },
+  "nodeUpdateSourceSaveLabel": "Save",
+  "@nodeUpdateSourceSaveLabel": {
+    "description": "Button that keeps the typed source repository; it is used by the next Check."
+  },
+  "nodeUpdateSourceError": "Enter a repository as owner/name.",
+  "@nodeUpdateSourceError": {
+    "description": "Under the source repository field when what is typed is not of the form owner/name."
+  },
+  "nodeUpdateSourceForeignHint": "Libraries from another repository are not the Zenon project's.",
+  "@nodeUpdateSourceForeignHint": {
+    "description": "Warning line under the source repository field when it names anything but the Zenon project's own repository."
+  },
+  "nodeUpdateRateLimitedUntilError": "GitHub is limiting requests from this computer. Try again after {time}.",
+  "@nodeUpdateRateLimitedUntilError": {
+    "description": "GitHub refused the request because too many were made from this address. time is the local time of day from which it answers again.",
+    "placeholders": {
+      "time": {
+        "type": "DateTime",
+        "format": "jm",
+        "example": "14:32"
+      }
+    }
+  },
+  "nodeUpdateRateLimitedError": "GitHub is limiting requests from this computer. Try again later.",
+  "@nodeUpdateRateLimitedError": {
+    "description": "GitHub refused the request because too many were made from this address, and did not say until when."
+  },
+  "nodeUpdateNetworkError": "No connection to GitHub.",
+  "@nodeUpdateNetworkError": {
+    "description": "The request to GitHub could not be made or broke off: no network, a timeout, a failed secure connection."
+  },
+  "nodeUpdateNotFoundError": "GitHub has no such repository or file.",
+  "@nodeUpdateNotFoundError": {
+    "description": "GitHub answered 404: the source repository does not exist, or a release file is gone."
+  },
+  "nodeUpdateHttpError": "GitHub answered with error {status}.",
+  "@nodeUpdateHttpError": {
+    "description": "GitHub answered with an HTTP status that is not a success. status is that number.",
+    "placeholders": {
+      "status": {
+        "type": "int",
+        "example": "503"
+      }
+    }
+  },
+  "nodeUpdateMalformedError": "GitHub's answer could not be read.",
+  "@nodeUpdateMalformedError": {
+    "description": "GitHub answered, but not with a list of releases the wallet understands."
+  },
+  "nodeUpdateForbiddenUrlError": "The download led outside GitHub and was refused.",
+  "@nodeUpdateForbiddenUrlError": {
+    "description": "A download address or a redirect pointed at a host that is not GitHub's, so the wallet did not follow it."
+  },
+  "nodeUpdateTooLargeError": "The file is over {megabytes} MB.",
+  "@nodeUpdateTooLargeError": {
+    "description": "The download, the picked file or the unpacked library is larger than the wallet accepts. megabytes is that limit.",
+    "placeholders": {
+      "megabytes": {
+        "type": "int",
+        "example": "200"
+      }
+    }
+  },
+  "nodeUpdateSizeMismatchError": "The download was incomplete.",
+  "@nodeUpdateSizeMismatchError": {
+    "description": "The download ended with fewer or more bytes than the release lists."
+  },
+  "nodeUpdateDigestMismatchError": "The download does not match the published checksum and was deleted.",
+  "@nodeUpdateDigestMismatchError": {
+    "description": "The downloaded file's checksum differs from the one the release publishes. The two checksums follow on their own lines."
+  },
+  "nodeUpdateExpectedLabel": "Published",
+  "@nodeUpdateExpectedLabel": {
+    "description": "Label before the checksum the release publishes, in a checksum mismatch."
+  },
+  "nodeUpdateActualLabel": "Downloaded",
+  "@nodeUpdateActualLabel": {
+    "description": "Label before the checksum of the file that was actually downloaded, in a checksum mismatch."
+  },
+  "nodeUpdateChecksumConflictError": "The release's checksum file and GitHub's digest disagree. Nothing was downloaded.",
+  "@nodeUpdateChecksumConflictError": {
+    "description": "The release names two different checksums for the same file. The two checksums follow on their own lines."
+  },
+  "nodeUpdateMalformedChecksumsError": "The release's checksum file could not be read.",
+  "@nodeUpdateMalformedChecksumsError": {
+    "description": "The release has a checksum file, and it is not in the usual format."
+  },
+  "nodeUpdateUnverifiedError": "The release publishes no checksum for this file.",
+  "@nodeUpdateUnverifiedError": {
+    "description": "Nothing was downloaded because there is nothing to verify the file against."
+  },
+  "nodeUpdateNotLibraryError": "This is not a libznn library.",
+  "@nodeUpdateNotLibraryError": {
+    "description": "The picked file, or the downloaded archive, does not hold the node library for this computer. libznn is the library's name; not translated."
+  },
+  "nodeUpdateCancelledError": "Cancelled.",
+  "@nodeUpdateCancelledError": {
+    "description": "The person stopped the download."
+  },
+  "nodeUpdateNoAssetError": "Release {tag} has no library for this platform.",
+  "@nodeUpdateNoAssetError": {
+    "description": "The release exists and has no node library built for this operating system and processor. tag is the release's tag, shown as it is.",
+    "placeholders": {
+      "tag": {
+        "type": "String",
+        "example": "v0.0.8"
+      }
+    }
+  },
+  "nodeUpdateFileError": "The file could not be read or written.",
+  "@nodeUpdateFileError": {
+    "description": "The disk refused: no space, no permission, or a file that went away."
+  },
+  "validatorAmountUsePoint": "Use a point for decimals",
+  "@validatorAmountUsePoint": {
+    "description": "Under an amount field whose last keystroke or paste was refused and left the amount as it was: a comma, a second point, a letter. An amount is Latin digits with a point before the decimals in every language, so the point is not translated into a comma."
+  },
+  "nodeSyncingNotificationTitle": "The node is still syncing with the network. Please wait until the loading circle turns green before sending any transactions",
+  "@nodeSyncingNotificationTitle": {
+    "description": "Title of the notification raised half a minute after connecting to a node that is still more than 20 momentums behind the network. The loading circle is the sync indicator in the wallet's top bar."
+  },
+  "nodeSyncingNotificationDetails": "The information displayed in the wallet does not reflect the most recent network state. Operations should not be performed, as they will likely become invalid by the time the node is fully synced",
+  "@nodeSyncingNotificationDetails": {
+    "description": "Details of the node-still-syncing notification."
+  },
+  "accountBlockPublishedNotificationTitle": "Account-block published",
+  "@accountBlockPublishedNotificationTitle": {
+    "description": "Title of the notification raised each time the wallet has published a transaction. An account-block is one transaction in an address's own chain."
+  },
+  "accountBlockPublishedNotificationDetails": "Account-block type: {blockType}",
+  "@accountBlockPublishedNotificationDetails": {
+    "description": "Details of the account-block published notification. blockType is the protocol's own name for the kind of block, in English.",
+    "placeholders": {
+      "blockType": {
+        "type": "String",
+        "example": "User send"
+      }
+    }
+  },
+  "accountBlockReviewSendNotificationTitle": "Sending transaction, please review the transaction on your hardware device",
+  "@accountBlockReviewSendNotificationTitle": {
+    "description": "Title of the notification asking the person to check and approve, on their Ledger device, a transaction that sends."
+  },
+  "accountBlockReviewReceiveNotificationTitle": "Receiving transaction, please review the transaction on your hardware device",
+  "@accountBlockReviewReceiveNotificationTitle": {
+    "description": "Title of the notification asking the person to check and approve, on their Ledger device, a transaction that receives."
+  },
+  "accountBlockReviewNotificationDetails": "Review account-block type: {blockType}",
+  "@accountBlockReviewNotificationDetails": {
+    "description": "Details of both review-on-your-hardware-device notifications. blockType is the protocol's own name for the kind of block, in English.",
+    "placeholders": {
+      "blockType": {
+        "type": "String",
+        "example": "User send"
+      }
+    }
+  },
+  "addressAddConfirmNotificationTitle": "Adding address, please confirm the address on your hardware device",
+  "@addressAddConfirmNotificationTitle": {
+    "description": "Title of the notification asking the person to confirm, on their Ledger device, a new address being added to the wallet."
+  },
+  "addressAddConfirmNotificationDetails": "Confirm address for account index: {index}",
+  "@addressAddConfirmNotificationDetails": {
+    "description": "Details of the confirm-address-on-your-hardware-device notification. index is the address's position in the wallet, counted from 0, as the device shows it.",
+    "placeholders": {
+      "index": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "addressDefaultLabel": "Address {number}",
+  "@addressDefaultLabel": {
+    "description": "The name a new address of the wallet is given until the person renames it. number is its position in the wallet, counted from 1. Saved with the address when it is made, so it stays in the language of that moment.",
+    "placeholders": {
+      "number": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "addressGenerateFailedNotificationTitle": "Error while generating new address",
+  "@addressGenerateFailedNotificationTitle": {
+    "description": "Title of the error notification raised when adding an address to the wallet failed."
+  },
+  "embeddedNodeStoppingNotificationTitle": "Waiting for Embedded Node to stop",
+  "@embeddedNodeStoppingNotificationTitle": {
+    "description": "Title of the notification raised when the wallet is being closed while the node that runs inside it is still running."
+  },
+  "embeddedNodeStoppingNotificationDetails": "The app will close after the Embedded Node has been stopped",
+  "@embeddedNodeStoppingNotificationDetails": {
+    "description": "Details of the waiting-for-Embedded-Node-to-stop notification."
+  },
+  "nodeLocalTimeDiscrepancyError": "Local time discrepancy detected.",
+  "@nodeLocalTimeDiscrepancyError": {
+    "description": "The error named in the details of a warning notification: this computer's clock is more than five minutes away from the network's time."
+  },
+  "openUrlFailedNotificationTitle": "Error while trying to open {url}",
+  "@openUrlFailedNotificationTitle": {
+    "description": "Title of the error notification raised when a link could not be opened in the browser. url is the link, shown as it is.",
+    "placeholders": {
+      "url": {
+        "type": "String",
+        "example": "https://zenon.network"
+      }
+    }
+  },
+  "openUrlFailedNotificationDetails": "Something went wrong while trying to open {url}",
+  "@openUrlFailedNotificationDetails": {
+    "description": "Details of the link-could-not-be-opened notification. url is the link, shown as it is.",
+    "placeholders": {
+      "url": {
+        "type": "String",
+        "example": "https://zenon.network"
+      }
+    }
+  },
+  "copied": "Copied",
+  "@copied": {
+    "description": "Short message shown for three seconds at the bottom of the window after something was copied to the clipboard."
+  },
+  "clipboardPasteError": "The clipboard data could not be obtained",
+  "@clipboardPasteError": {
+    "description": "The error named in the details of the notification raised when a paste button found nothing to paste."
+  },
+  "clipboardPasteFailedNotificationTitle": "Something went wrong while getting the clipboard data",
+  "@clipboardPasteFailedNotificationTitle": {
+    "description": "Title of the error notification raised when a paste button could not read the clipboard."
+  },
+  "walletPasswordIncorrectError": "Incorrect password",
+  "@walletPasswordIncorrectError": {
+    "description": "Shown when the wallet password typed is wrong: as the title of an error notification on the lock screen, and under a password field."
+  },
+  "walletUnlockFailedNotificationTitle": "Unlock failed",
+  "@walletUnlockFailedNotificationTitle": {
+    "description": "Title of the error notification raised when unlocking the wallet failed for a reason other than a wrong password."
+  },
+  "walletFileTypeNotSupportedError": "Wallet type ({walletType}) is not supported",
+  "@walletFileTypeNotSupportedError": {
+    "description": "Error raised when a wallet file says it is of a kind this wallet cannot open. walletType is the kind as the file names it, shown as it is.",
+    "placeholders": {
+      "walletType": {
+        "type": "String",
+        "example": "trezor"
+      }
+    }
+  },
+  "walletFilePathNotFoundError": "Given wallet path does not exist ({path})",
+  "@walletFilePathNotFoundError": {
+    "description": "Error raised when the wallet file is not where the wallet expects it. path is the file's full path on this computer.",
+    "placeholders": {
+      "path": {
+        "type": "String",
+        "example": "C:\\Users\\name\\AppData\\Roaming\\znn\\wallet\\wallet"
+      }
+    }
+  },
+  "walletFileLedgerNotFoundError": "Cannot find the hardware device, please connect/unlock the device on which the wallet is initialized",
+  "@walletFileLedgerNotFoundError": {
+    "description": "Error shown when the Ledger device a hardware wallet was set up with is not connected or is locked."
+  },
+  "fileDeleteNoFileError": "There is no file at the following path: {path}",
+  "@fileDeleteNoFileError": {
+    "description": "Error raised when a file the wallet was about to delete is not there. path is the file's full path on this computer.",
+    "placeholders": {
+      "path": {
+        "type": "String",
+        "example": "C:\\Users\\name\\AppData\\Roaming\\znn\\wallet\\wallet"
+      }
+    }
+  },
+  "fileDeleteNoDirectoryError": "There is no directory at the following path: {path}",
+  "@fileDeleteNoDirectoryError": {
+    "description": "Error raised when a folder the wallet was about to delete is not there. path is the folder's full path on this computer.",
+    "placeholders": {
+      "path": {
+        "type": "String",
+        "example": "C:\\Users\\name\\AppData\\Roaming\\znn\\syrius"
+      }
+    }
+  },
+  "signMessage32BytesError": "A 32 byte message is refused. Pad it",
+  "@signMessage32BytesError": {
+    "description": "Under the message field of the Sign and Verify panels when the message is exactly 32 bytes long: a transaction's hash has that size, so the wallet does not sign it as a message. Pad it means make it longer or shorter."
+  },
+  "plasmaLevelHighTooltip": "High Plasma",
+  "@plasmaLevelHighTooltip": {
+    "description": "Tooltip of the Plasma icon beside an address that has enough Plasma for any transaction."
+  },
+  "plasmaLevelAverageTooltip": "Average Plasma",
+  "@plasmaLevelAverageTooltip": {
+    "description": "Tooltip of the Plasma icon beside an address that has a middling amount of Plasma."
+  },
+  "plasmaLevelLowTooltip": "Low Plasma",
+  "@plasmaLevelLowTooltip": {
+    "description": "Tooltip of the Plasma icon beside an address that has only a little Plasma."
+  },
+  "plasmaLevelInsufficientTooltip": "Insufficient Plasma",
+  "@plasmaLevelInsufficientTooltip": {
+    "description": "Tooltip of the Plasma icon beside an address that has too little Plasma to send a transaction without proof of work."
+  },
+  "autoReceiveFailedNotificationTitle": "Receive transaction failed",
+  "@autoReceiveFailedNotificationTitle": {
+    "description": "Title of the error notification raised when the wallet could not receive a pending transaction by itself."
+  },
+  "autoReceiveFailedNotificationDetails": "Failed to receive the transaction: {error}",
+  "@autoReceiveFailedNotificationDetails": {
+    "description": "Details of the receive-transaction-failed notification. error is the error's text as it was raised.",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Node is not synced"
+      }
+    }
+  },
+  "transactionReceivedNotificationTitle": "Transaction received on {address}",
+  "@transactionReceivedNotificationTitle": {
+    "description": "Title of the notification raised when the wallet has received a transaction. address is the receiving address's label, or the address itself when it has none.",
+    "placeholders": {
+      "address": {
+        "type": "String",
+        "example": "Address 1"
+      }
+    }
+  },
+  "transactionReceivedNotificationDetails": "Transaction hash: {hash}",
+  "@transactionReceivedNotificationDetails": {
+    "description": "Details of the transaction-received notification. hash is the transaction's hash, 64 hexadecimal digits.",
+    "placeholders": {
+      "hash": {
+        "type": "String",
+        "example": "9f2c4e8a1b3d5f7092a4c6e8b0d2f4a6c8e0b2d4f6a8c0e2b4d6f8a0c2e4b6d8"
+      }
+    }
+  },
+  "autoUnlockInvalidSwapError": "Invalid swap",
+  "@autoUnlockInvalidSwapError": {
+    "description": "The error named in the details of the failed-to-complete-swap notification when the wallet has no record, or no secret, for the P2P swap it was about to complete."
+  },
+  "autoUnlockAddressNotInWalletError": "Swap address not in default addresses. Please add the address in the addresses list.",
+  "@autoUnlockAddressNotInWalletError": {
+    "description": "The error named in the details of the failed-to-complete-swap notification when the address a P2P swap pays out to is not among the wallet's addresses."
+  },
+  "autoUnlockFailedNotificationTitle": "Failed to complete swap",
+  "@autoUnlockFailedNotificationTitle": {
+    "description": "Title of the error notification raised when the wallet could not complete a P2P swap by itself."
+  },
+  "autoUnlockFailedNotificationDetails": "Failed to complete the swap: {error}",
+  "@autoUnlockFailedNotificationDetails": {
+    "description": "Details of the failed-to-complete-swap notification. error is the error's text as it was raised.",
+    "placeholders": {
+      "error": {
+        "type": "String",
+        "example": "Invalid swap"
+      }
+    }
+  },
+  "completeSwapExpiresTooSoonError": "The swap will expire too soon for a safe swap.",
+  "@completeSwapExpiresTooSoonError": {
+    "description": "Error shown when the person completes a P2P swap whose deposit runs out in under ten minutes."
+  },
+  "completeSwapSecretTooLargeError": "The swap secret size exceeds the maximum allowed size.",
+  "@completeSwapSecretTooLargeError": {
+    "description": "Error shown when the secret that unlocks a P2P swap is longer than the other side's deposit accepts."
+  },
+  "createPillarSuccessMessage": "Pillar registered. Use {controller} to check its status.",
+  "@createPillarSuccessMessage": {
+    "description": "Shown once a Pillar has been registered. controller is the name of the program that runs a Pillar node, znn-controller; it is not translated, and it is drawn as a link wherever it stands in the sentence.",
+    "placeholders": {
+      "controller": {
+        "type": "String",
+        "example": "znn-controller"
+      }
+    }
+  },
+  "createPillarCollateralLabel": "Collateral",
+  "@createPillarCollateralLabel": {
+    "description": "Label of the ZNN amount that registering a Pillar locks, in the Pillar stepper. The amount follows on the same line or under it."
+  },
+  "createPillarSlotFeeLabel": "Slot fee",
+  "@createPillarSlotFeeLabel": {
+    "description": "Label of the QSR amount burned for a Pillar slot, in the review before a Pillar is registered. The amount follows on the same line."
+  },
+  "createPillarMomentumShareLabel": "Momentum share",
+  "@createPillarMomentumShareLabel": {
+    "description": "Label in the review before a Pillar is registered or updated: the percentage of its momentum rewards the Pillar gives to its delegators. The percentage follows on the same line."
+  },
+  "createPillarDelegationShareLabel": "Delegation share",
+  "@createPillarDelegationShareLabel": {
+    "description": "Label in the review before a Pillar is registered or updated: the percentage of its delegation rewards the Pillar gives to its delegators. The percentage follows on the same line."
+  },
+  "updatePillarRewardsTitle": "Reward sharing",
+  "@updatePillarRewardsTitle": {
+    "description": "Title of the step of the update-Pillar stepper that sets the two percentages of rewards given to delegators."
+  },
+  "validatorAmountDigitsOnly": "Digits and a point only",
+  "@validatorAmountDigitsOnly": {
+    "description": "Under an amount field after a key or a paste that was refused and left the amount as it was, when what was refused was not a comma: a letter, a space, a sign, a second point. The point is the decimal mark in every language and is not translated into a comma."
+  },
+  "validatorAmountWholeNumber": "Whole QSR only",
+  "@validatorAmountWholeNumber": {
+    "description": "Under the amount field of the Fuse card after a key or a paste that was refused and left the amount as it was: a point, a comma, a letter. QSR is fused in whole coins. QSR is a coin's symbol and is not translated."
+  },
+  "commonCopy": "Copy",
+  "@commonCopy": {
+    "description": "Tooltip of the icon button that copies a value (an address, a hash) to the clipboard. A verb."
+  },
+  "commonClose": "Close",
+  "@commonClose": {
+    "description": "Tooltip of the x button in the corner of a modal, which closes it. A verb."
+  },
+  "commonDismiss": "Dismiss",
+  "@commonDismiss": {
+    "description": "Button on the notification banner that removes the banner. A verb."
+  },
+  "commonSeeMore": "See more",
+  "@commonSeeMore": {
+    "description": "Button on the notification banner that opens the Notifications page at this notification."
+  },
+  "commonShowMore": "Show more",
+  "@commonShowMore": {
+    "description": "Button under the last row of a table that loads its next rows."
+  },
+  "commonRetry": "Retry",
+  "@commonRetry": {
+    "description": "Button under an error line in a card: asks again for the data that could not be had. A verb."
+  },
+  "commonSave": "Save",
+  "@commonSave": {
+    "description": "Button beside a field being edited in Settings (an address label, a node address): keeps the change. A verb."
+  },
+  "commonOk": "OK",
+  "@commonOk": {
+    "description": "The confirming button of a warning dialog when the caller names no action of its own."
+  },
+  "commonYes": "Yes",
+  "@commonYes": {
+    "description": "The confirming button of a dialog that asks a question. Capitalised, as a button."
+  },
+  "commonNo": "No",
+  "@commonNo": {
+    "description": "The declining button of a dialog that asks a question. Capitalised, as a button."
+  },
+  "commonSomethingWentWrong": "Something went wrong",
+  "@commonSomethingWentWrong": {
+    "description": "What a card or an error notification says when an action failed and nothing more specific is known."
+  },
+  "commonNotConnectedError": "Not connected to the network",
+  "@commonNotConnectedError": {
+    "description": "Shown in a card in place of its data when the wallet has no open connection to a node."
+  },
+  "cardAvailableLabel": "AVAILABLE",
+  "@cardAvailableLabel": {
+    "description": "Small label at the left of a line in a form; the balance that can be spent stands at the right of the same line. Upper case in English, as the other small labels are; use the plain form in a script with no capitals."
+  },
+  "availableBalanceLabel": "{amount} {symbol} available",
+  "@availableBalanceLabel": {
+    "description": "Under an amount field in a stepper: the balance of the chosen token that can be spent. symbol is the token's ticker and is not translated.",
+    "placeholders": {
+      "amount": {
+        "type": "String",
+        "example": "1204.5"
+      },
+      "symbol": {
+        "type": "String",
+        "example": "ZNN"
+      }
+    }
+  },
+  "nodeNotSyncedError": "Node is not synced",
+  "@nodeNotSyncedError": {
+    "description": "Error shown when a transaction cannot be made because the node the wallet is connected to has not caught up with the network yet."
+  },
+  "rewardsHistoryLastWeekEmpty": "No rewards in the last week",
+  "@rewardsHistoryLastWeekEmpty": {
+    "description": "Shown in place of the chart of a rewards card (Pillar, Sentinel, staking) when the address earned nothing in the last seven days."
+  },
+  "cardScaffoldAboutTooltip": "About this card",
+  "@cardScaffoldAboutTooltip": {
+    "description": "Tooltip of the info button in a card's header, which turns the card over to its description."
+  },
+  "cardScaffoldDescriptionLabel": "Description",
+  "@cardScaffoldDescriptionLabel": {
+    "description": "On the back of a card: heading of the row that unfolds the text saying what the card shows."
+  },
+  "cardScaffoldDiscreetModeLabel": "Discreet mode",
+  "@cardScaffoldDiscreetModeLabel": {
+    "description": "On the back of a card: label of the switch that hides the card's content until the wallet password is entered."
+  },
+  "goToPaletteHint": "Go to",
+  "@goToPaletteHint": {
+    "description": "Hint in the empty field of the Go to palette, where the name of a page is typed to open it."
+  },
+  "goToPaletteEmpty": "No page by that name",
+  "@goToPaletteEmpty": {
+    "description": "Shown under the field of the Go to palette when no page's name contains what was typed."
+  },
+  "assetCellUnknownStandardTooltip": "Unknown token standard",
+  "@assetCellUnknownStandardTooltip": {
+    "description": "Tooltip on the Asset cell of a transaction row when the transaction's token is not known. A token standard is a token's identifier on the network."
+  },
+  "receiveQrFailedError": "Failed to create QR code",
+  "@receiveQrFailedError": {
+    "description": "Shown in place of the QR code of the Receive card when the code could not be drawn."
+  },
+  "selectFileHint": "Drop a file here, or click to browse",
+  "@selectFileHint": {
+    "description": "Text inside the dashed zone that takes a file, before one is given: a file can be dragged onto it, and a click opens the system's file dialog."
+  },
+  "selectFileInvalidError": "This file cannot be used",
+  "@selectFileInvalidError": {
+    "description": "Text inside the file zone after a file was refused, when the screen has no more specific reason to give."
+  },
+  "selectFileTypeLabel": "file",
+  "@selectFileTypeLabel": {
+    "description": "Name of the file type in the filter of the system's file dialog, opened from the file zone. Lower case; the system may put the extension after it."
+  },
+  "settingsAddressRenameTooltip": "Rename",
+  "@settingsAddressRenameTooltip": {
+    "description": "Tooltip of the pencil button beside an address in Settings, which lets its label be changed. A verb."
+  },
+  "settingsAddressLabelHint": "Label",
+  "@settingsAddressLabelHint": {
+    "description": "Hint in the field where an address's label, the name the person gives it, is typed in Settings."
+  },
+  "settingsAddressLabelEmptyError": "Label can't be empty",
+  "@settingsAddressLabelEmptyError": {
+    "description": "Title and details of the error notification raised when an address label is saved empty."
+  },
+  "settingsAddressLabelTooLongNotificationTitle": "{max, plural, one{The label has more than {max} character} other{The label has more than {max} characters}}",
+  "@settingsAddressLabelTooLongNotificationTitle": {
+    "description": "Title of the error notification raised when an address label is saved longer than the limit. max is the limit, in characters.",
+    "placeholders": {
+      "max": {
+        "type": "int",
+        "example": "80"
+      }
+    }
+  },
+  "settingsAddressLabelTooLongNotificationDetails": "{length, plural, one{The label {label} is {length} character long, which is more than the {max} limit.} other{The label {label} is {length} characters long, which is more than the {max} limit.}}",
+  "@settingsAddressLabelTooLongNotificationDetails": {
+    "description": "Details of the error notification raised when an address label is saved longer than the limit. label is what was typed, length its number of characters, max the limit in characters.",
+    "placeholders": {
+      "label": {
+        "type": "String",
+        "example": "Savings"
+      },
+      "length": {
+        "type": "int",
+        "example": "92"
+      },
+      "max": {
+        "type": "int",
+        "example": "80"
+      }
+    }
+  },
+  "settingsAddressLabelExistsNotificationTitle": "Label already exists",
+  "@settingsAddressLabelExistsNotificationTitle": {
+    "description": "Title of the error notification raised when an address is given a label another address already has."
+  },
+  "settingsAddressLabelExistsNotificationDetails": "Label {label} already exists in the database",
+  "@settingsAddressLabelExistsNotificationDetails": {
+    "description": "Details of the error notification raised when an address is given a label another address already has. label is what was typed.",
+    "placeholders": {
+      "label": {
+        "type": "String",
+        "example": "Savings"
+      }
+    }
+  },
+  "settingsAddressRenameFailedNotificationTitle": "Something went wrong while changing the address label",
+  "@settingsAddressRenameFailedNotificationTitle": {
+    "description": "Title of the error notification raised when saving an address's new label failed."
+  },
+  "settingsNodeChainIdTooltip": "Client chain identifier: {client}\nNode chain identifier: {node}",
+  "@settingsNodeChainIdTooltip": {
+    "description": "Tooltip of the icon beside the node in use in Settings, when the wallet and the node are on the same chain. Two lines. client is the chain identifier the wallet is set to, node the one the node reports.",
+    "placeholders": {
+      "client": {
+        "type": "int",
+        "example": "1"
+      },
+      "node": {
+        "type": "int",
+        "example": "1"
+      }
+    }
+  },
+  "settingsNodeChainIdMismatchTooltip": "Chain identifier mismatch\nClient chain identifier: {client}\nNode chain identifier: {node}",
+  "@settingsNodeChainIdMismatchTooltip": {
+    "description": "Tooltip of the red icon beside the node in use in Settings, when the wallet and the node are on different chains. Three lines. client is the chain identifier the wallet is set to, node the one the node reports.",
+    "placeholders": {
+      "client": {
+        "type": "int",
+        "example": "1"
+      },
+      "node": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "settingsNodeEncryptedTooltip": "Encrypted connection",
+  "@settingsNodeEncryptedTooltip": {
+    "description": "Tooltip of the closed-lock icon beside a node in Settings whose address begins with wss://."
+  },
+  "settingsNodeUnencryptedTooltip": "Unencrypted connection",
+  "@settingsNodeUnencryptedTooltip": {
+    "description": "Tooltip of the open-lock icon beside a node in Settings whose address begins with ws://."
+  },
+  "settingsNodeEmbeddedTooltip": "Integrated Full Node: enhanced security and privacy",
+  "@settingsNodeEmbeddedTooltip": {
+    "description": "Tooltip of the shield icon beside the Embedded Node in the list of nodes in Settings: the node that runs inside the wallet."
+  },
+  "settingsNodeEmbeddedSyncTooltip": "The Embedded Node validates all network transactions\nIt may take several hours to fully sync with the network",
+  "@settingsNodeEmbeddedSyncTooltip": {
+    "description": "Tooltip of the clock icon beside the Embedded Node in the list of nodes in Settings. Two lines, with no full stop."
+  },
+  "settingsNodeCommunityTooltip": "Community Node",
+  "@settingsNodeCommunityTooltip": {
+    "description": "Tooltip of the link icon beside a node in Settings that is run by a member of the community and ships in the wallet's list."
+  },
+  "settingsNodeEditTooltip": "Edit node",
+  "@settingsNodeEditTooltip": {
+    "description": "Tooltip of the pencil button beside a node the person added in Settings, which lets its address be changed."
+  },
+  "settingsNodeDeleteLabel": "Delete node",
+  "@settingsNodeDeleteLabel": {
+    "description": "Tooltip of the bin button beside a node the person added in Settings, and the title of the dialog that asks before removing it."
+  },
+  "settingsNodeDeleteConfirm": "Delete {node} from the list of nodes? This can't be undone.",
+  "@settingsNodeDeleteConfirm": {
+    "description": "Question of the dialog that asks before a node is removed from the list in Settings. node is the node's address.",
+    "placeholders": {
+      "node": {
+        "type": "String",
+        "example": "wss://my.znn.node:35998"
+      }
+    }
+  },
+  "settingsNodeAddressHint": "Node address with port",
+  "@settingsNodeAddressHint": {
+    "description": "Hint in the field where a node's address is edited in Settings, as in ws://127.0.0.1:35998."
+  },
+  "settingsNodeEmptyError": "Node address can't be empty",
+  "@settingsNodeEmptyError": {
+    "description": "Under the node address field in Settings when it is saved empty."
+  },
+  "settingsNodeTooLongError": "{max, plural, one{The node has more than {max} character} other{The node has more than {max} characters}}",
+  "@settingsNodeTooLongError": {
+    "description": "Under the node address field in Settings when the address is longer than the limit. max is the limit, in characters.",
+    "placeholders": {
+      "max": {
+        "type": "int",
+        "example": "80"
+      }
+    }
+  },
+  "settingsNodeExistsError": "Node already exists",
+  "@settingsNodeExistsError": {
+    "description": "Under the node address field in Settings when the address is already in the list of nodes."
+  },
+  "settingsNodeDeleteFailedNotificationTitle": "Error during deleting node {node} from the database",
+  "@settingsNodeDeleteFailedNotificationTitle": {
+    "description": "Title of the error notification raised when removing a node from the list in Settings failed. node is the node's address.",
+    "placeholders": {
+      "node": {
+        "type": "String",
+        "example": "wss://my.znn.node:35998"
+      }
+    }
+  },
+  "seedChoiceWordsLabel": "{count, plural, one{{count} word} other{{count} words}}",
+  "@seedChoiceWordsLabel": {
+    "description": "Each half of the switch between a 24-word and a 12-word seed phrase, when a wallet is made or imported. count is 24 or 12.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "24"
+      }
+    }
+  },
+  "durationDays": "{days} d",
+  "@durationDays": {
+    "description": "A length of time in whole days alone, in a short unit: 12 d. Used where there is room for one unit only.",
+    "placeholders": {
+      "days": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "durationHours": "{hours} h",
+  "@durationHours": {
+    "description": "A length of time under a day in whole hours alone, in a short unit: 5 h.",
+    "placeholders": {
+      "hours": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  "durationMinutes": "{minutes} min",
+  "@durationMinutes": {
+    "description": "A length of time under an hour in whole minutes alone, in a short unit: 40 min.",
+    "placeholders": {
+      "minutes": {
+        "type": "int",
+        "example": "40"
+      }
+    }
+  },
+  "durationDaysClock": "{days} d {clock}",
+  "@durationDaysClock": {
+    "description": "A countdown of a day or more: whole days, then the rest as a clock of hours, minutes and seconds, 2 d 03:04:05. Only the unit for days is translated; clock is digits and colons.",
+    "placeholders": {
+      "days": {
+        "type": "int",
+        "example": "2"
+      },
+      "clock": {
+        "type": "String",
+        "example": "03:04:05"
+      }
+    }
+  },
+  "acceleratorClosesIn": "Closes in {duration}",
+  "@acceleratorClosesIn": {
+    "description": "On the line under an Accelerator-Z project that is being voted on: how long until voting closes. duration is a length of time in one short unit, already translated: 12 d, 5 h, 40 min, 30 s.",
+    "placeholders": {
+      "duration": {
+        "type": "String",
+        "example": "12 d"
+      }
+    }
+  },
+  "cancelUnlocksIn": "Unlocks in {duration}",
+  "@cancelUnlocksIn": {
+    "description": "Tooltip of a Cancel button that cannot be pressed yet, on a Plasma fusion still locked. duration is a length of time already translated: 9 h 52 m.",
+    "placeholders": {
+      "duration": {
+        "type": "String",
+        "example": "9 h 52 m"
+      }
+    }
+  },
+  "p2pSwapExpiresIn": "The swap expires in {duration}",
+  "@p2pSwapExpiresIn": {
+    "description": "Warning in a P2P swap's dialog when little time is left to complete it. duration is a length of time already translated: 9 m 58 s.",
+    "placeholders": {
+      "duration": {
+        "type": "String",
+        "example": "9 m 58 s"
+      }
+    }
+  },
+  "stakeDurationMonths": "{count, plural, one{{count} month} other{{count} months}}",
+  "@stakeDurationMonths": {
+    "description": "The length a stake was made for, in whole months, in the stakes table: 1 month, 12 months.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "createSentinelSuccessMessage": "Sentinel registered. Use {controller} to check its status.",
+  "@createSentinelSuccessMessage": {
+    "description": "Shown once a Sentinel has been registered. controller is the name of the program that runs a Sentinel node, znn-controller; it is not translated, and it is drawn as a link wherever it stands in the sentence.",
+    "placeholders": {
+      "controller": {
+        "type": "String",
+        "example": "znn-controller"
+      }
+    }
+  },
+  "createSentinelDepositLabel": "Deposit",
+  "@createSentinelDepositLabel": {
+    "description": "Label, a noun, of the QSR amount deposited for a Sentinel, in the review before a Sentinel is registered. The deposit is locked, not burned: it comes back when the Sentinel is disassembled. The amount follows on the same line."
+  },
+  "railExpand": "Expand",
+  "@railExpand": {
+    "description": "Tooltip, a verb, of the button at the top of the navigation rail while the rail is collapsed to icons. Pressing it opens the rail, so each page's name shows beside its icon."
+  },
+  "railCollapse": "Collapse",
+  "@railCollapse": {
+    "description": "Tooltip, a verb, of the button at the top of the navigation rail while the rail is open. Pressing it narrows the rail to icons."
+  },
+  "stripGeneratingPlasma": "Generating plasma",
+  "@stripGeneratingPlasma": {
+    "description": "Label in the status strip at the bottom of the window while the wallet computes proof of work (plasma) for a block. An animated bolt stands before it and the seconds elapsed follow it, so keep it to two or three words."
+  },
+  "stripPlasmaIdle": "Plasma idle",
+  "@stripPlasmaIdle": {
+    "description": "Tooltip of the plasma mark in the status strip while the wallet is not generating plasma."
+  },
+  "stripSeconds": "{seconds} s",
+  "@stripSeconds": {
+    "description": "Seconds elapsed since plasma generation started, counting up in the status strip right after the label 'Generating plasma'. The unit is abbreviated.",
+    "placeholders": {
+      "seconds": {
+        "type": "int",
+        "example": "14"
+      }
+    }
+  },
+  "stripPlasmaTypical": "usually about {seconds} s",
+  "@stripPlasmaTypical": {
+    "description": "How long plasma generation has lately taken on this computer, in the status strip after the elapsed seconds and a middle dot. Lower case: it continues the line. The unit is abbreviated.",
+    "placeholders": {
+      "seconds": {
+        "type": "int",
+        "example": "25"
+      }
+    }
+  },
+  "stripSending": "Sending {amount}",
+  "@stripSending": {
+    "description": "Status strip, while a transaction the wallet published waits to be included in a momentum. amount is the amount with its token symbol; it is drawn left to right wherever it stands in the sentence.",
+    "placeholders": {
+      "amount": {
+        "type": "String",
+        "example": "12.5 ZNN"
+      }
+    }
+  },
+  "stripSendingMany": "{count, plural, =1{Sending 1 block} other{Sending {count} blocks}}",
+  "@stripSendingMany": {
+    "description": "Status strip, while several transactions the wallet published wait to be included in a momentum. It stands in place of the line that names one amount.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "stripWaitingMomentum": "waiting for a momentum",
+  "@stripWaitingMomentum": {
+    "description": "Status strip, in a quieter colour after 'Sending 12.5 ZNN' and a middle dot. Lower case: it continues the line. A momentum is the Network of Momentum's block of blocks; it is not translated differently from elsewhere in the wallet."
+  },
+  "stripMomentumsBehind": "{count, plural, =1{1 momentum behind} other{{count} momentums behind}}",
+  "@stripMomentumsBehind": {
+    "description": "Status strip, in the warning colour beside the momentum height, while the node the wallet is connected to has not caught up with the network. count is how many momentums it is short.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "format": "decimalPattern",
+        "example": "42"
+      }
+    }
+  },
+  "stripPeers": "Peers",
+  "@stripPeers": {
+    "description": "Label in the status strip before the number of peers the node is connected to, as in 'Peers 23'."
+  },
+  "stakingStaked": "Staked",
+  "@stakingStaked": {
+    "description": "Label of a figure in the strip at the top of the Staking page: the total ZNN the selected address has staked. The amount stands under it."
+  },
+  "stakingToCollect": "To collect",
+  "@stakingToCollect": {
+    "description": "Label of a figure in the strip at the top of the Staking page: the QSR the selected address has earned from its stakes and not collected yet. The amount stands under it and the Collect button beside it."
+  },
+  "stakingLast7Days": "Last 7 days",
+  "@stakingLast7Days": {
+    "description": "Label of a figure in the strip at the top of the Staking page, and title of the chart under it: the QSR the selected address earned from its stakes over the last seven daily reward periods."
+  },
+  "stakingChart": "Chart",
+  "@stakingChart": {
+    "description": "Label, a noun, of the small button in the strip at the top of the Staking page that shows or hides the chart of the last seven days of staking rewards."
+  },
+  "plasmaPageFusedByYou": "Fused by you",
+  "@plasmaPageFusedByYou": {
+    "description": "Label of a figure in the strip at the top of the Plasma page: the QSR the selected address has fused, for itself or for other addresses, summed over the list under the strip. The amount stands under it."
+  },
+  "plasmaPageFused": "Fused",
+  "@plasmaPageFused": {
+    "description": "Title of the list on the Plasma page: the fusions the selected address has made, one row each. A number beside it says how many."
+  },
+  "plasmaPageOtherAddresses": "Other addresses",
+  "@plasmaPageOtherAddresses": {
+    "description": "Title of a section on the Plasma page that opens to show the plasma level of the wallet's addresses other than the selected one. A number beside it says how many."
+  },
+  "plasmaPageLowCount": "{count, plural, =1{1 low} other{{count} low}}",
+  "@plasmaPageLowCount": {
+    "description": "Short summary at the end of the 'Other addresses' header on the Plasma page while it is closed: how many of those addresses have the plasma level Low. Lower case, as few words as the language allows.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "1"
+      }
+    }
+  },
+  "plasmaPageCancelFuses": "{count, plural, =1{Cancel 1 fuse} other{Cancel {count} fuses}}",
+  "@plasmaPageCancelFuses": {
+    "description": "Button above the list of fusions on the Plasma page, shown once rows are ticked, and the title of the question it asks. It cancels the ticked fusions one after another. count is how many are ticked.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+  "plasmaPageCancelFusesConfirm": "{count, plural, =1{Cancel 1 fuse of {amount}?} other{Cancel {count} fuses, {amount} in all?}}",
+  "@plasmaPageCancelFusesConfirm": {
+    "description": "Question asked before the ticked fusions on the Plasma page are cancelled. count is how many; amount is the QSR they hold together, with its symbol.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "2"
+      },
+      "amount": {
+        "type": "String",
+        "example": "510 QSR"
+      }
+    }
+  },
+  "plasmaPageCancelFusesDone": "{done} of {total} cancelled",
+  "@plasmaPageCancelFusesDone": {
+    "description": "Shown above the list of fusions on the Plasma page when cancelling several stopped at one that failed: how many of the ticked fusions were cancelled before it, out of how many were ticked.",
+    "placeholders": {
+      "done": {
+        "type": "int",
+        "example": "1"
+      },
+      "total": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  }
 }

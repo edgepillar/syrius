@@ -2,13 +2,15 @@ import 'dart:async';
 
 import 'package:expandable/expandable.dart';
 import 'package:flip_card/flip_card.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
-import 'package:lottie/lottie.dart';
 import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/page_widgets.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/widget_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
@@ -66,9 +68,7 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
       key: cardKey,
       onFlipDone: (bool status) {},
       front: ClipRRect(
-        borderRadius: BorderRadius.circular(
-          15,
-        ),
+        borderRadius: BorderRadius.circular(kCardRadius),
         child: Container(
           color: Theme.of(context).colorScheme.primary,
           child: Column(
@@ -87,9 +87,7 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
         ),
       ),
       back: ClipRRect(
-        borderRadius: BorderRadius.circular(
-          15,
-        ),
+        borderRadius: BorderRadius.circular(kCardRadius),
         child: Material(
           child: Container(
             color: Theme.of(context).colorScheme.primary,
@@ -133,7 +131,7 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
                 ),
                 Expanded(
                   child: Text(
-                    'Description',
+                    context.l10n.cardScaffoldDescriptionLabel,
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
                 ),
@@ -163,7 +161,7 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
               ),
               Expanded(
                 child: Text(
-                  'Discreet mode',
+                  context.l10n.cardScaffoldDiscreetModeLabel,
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
               ),
@@ -223,16 +221,16 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
       children: <Widget>[
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
             child: Row(
               children: <Widget>[
                 Expanded(
                   child: Text(
                     title,
-                    style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                          fontSize: widget.titleFontSize,
-                          height: 1,
-                        ),
+                    overflow: TextOverflow.ellipsis,
+                    style: panelTitleStyle(context).copyWith(
+                      fontSize: widget.titleFontSize,
+                    ),
                   ),
                 ),
                 const SizedBox(
@@ -266,9 +264,10 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
               color: Colors.transparent,
               child: IconButton(
                 splashRadius: 15,
-                icon: const Icon(Icons.more_horiz),
+                tooltip: context.l10n.cardScaffoldAboutTooltip,
+                icon: const Icon(Icons.info_outline),
                 iconSize: 18,
-                color: Theme.of(context).textTheme.bodyLarge!.color,
+                color: AppColors.faint,
                 onPressed: () {
                   cardKey.currentState!.toggleCard();
                 },
@@ -287,7 +286,7 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
       },
       controller: _passwordController,
       errorText: _messageToUser,
-      hintText: 'Password',
+      hintText: context.l10n.password,
     );
   }
 
@@ -369,7 +368,7 @@ class _CardScaffoldState<T> extends State<CardScaffold<T>> {
   }
 
   Widget _getHiddenInfoWidget() {
-    return Lottie.asset('assets/lottie/ic_anim_eye.json');
+    return const AppLottie(AppLottieAsset.eye);
   }
 
   bool _getWidgetHiddenInfoValue(String? title) {

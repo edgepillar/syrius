@@ -1,5 +1,6 @@
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/plasma_purpose.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -17,7 +18,10 @@ class UpdatePhaseBloc extends BaseBloc<AccountBlockTemplate?> {
         znnFundsNeeded,
         qsrFundsNeeded,
       );
-      AccountBlockUtils().createAccountBlock(transactionParams, 'update phase')
+      AccountBlockUtils().createAccountBlock(
+        transactionParams,
+        PlasmaPurpose.updatePhase.message,
+      )
           .then(
         addEvent,
       )

@@ -1,16 +1,19 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
+
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/p2p_swap/htlc_swap/complete_htlc_swap_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/p2p_swap/htlc_swap/htlc_swap_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/p2p_swap/htlc_swap/reclaim_htlc_swap_funds_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/model/p2p_swap/htlc_swap.dart';
 import 'package:zenon_syrius_wallet_flutter/model/p2p_swap/p2p_swap.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/home/home.dart'
+    show AmountText;
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/htlc_card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/htlc_swap_details_widget.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/elevated_button.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/instruction_button.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/exchange_rate_widget.dart';
@@ -20,14 +23,20 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_wid
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/base_modal.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// One swap, from its first deposit to its end: what each side puts in,
+/// and the one thing this wallet can do next.
 class NativeP2pSwapModal extends StatefulWidget {
-
+  /// Creates the dialog of the swap with [swapId].
   const NativeP2pSwapModal({
     required this.swapId,
     this.onSwapStarted,
     super.key,
   });
+
+  /// The swap shown.
   final String swapId;
+
+  /// Called with the swap's id once it has started.
   final Function(String)? onSwapStarted;
 
   @override
@@ -37,7 +46,7 @@ class NativeP2pSwapModal extends StatefulWidget {
 class _NativeP2pSwapModalState extends State<NativeP2pSwapModal> {
   late final HtlcSwapBloc _htlcSwapBloc;
 
-  String _swapCompletedText = 'Swap completed.';
+  String _swapCompletedText = 'Swap completed';
 
   bool _isSendingTransaction = false;
   bool _shouldShowIncorrectAmountInstructions = false;
@@ -63,18 +72,20 @@ class _NativeP2pSwapModalState extends State<NativeP2pSwapModal> {
         if (snapshot.hasData) {
           return BaseModal(
             title: _getTitle(snapshot.data!),
-            child: _getContent(snapshot.data!),
+            child: _buildContent(snapshot.data!),
           );
         } else if (snapshot.hasError) {
           return BaseModal(
             title: '',
             child: Padding(
               padding: const EdgeInsets.all(20),
-              child: SyriusErrorWidget(snapshot.error!),
+              child: RepaintBoundary(
+                child: SyriusErrorWidget(snapshot.error!),
+              ),
             ),
           );
         }
-        return const SyriusLoadingWidget();
+        return const SyriusLoadingWidget(size: 18, strokeWidth: 1.5);
       },
     );
   }
@@ -83,379 +94,300 @@ class _NativeP2pSwapModalState extends State<NativeP2pSwapModal> {
     return swap.state == P2pSwapState.active ? 'Active swap' : '';
   }
 
-  Widget _getContent(HtlcSwap swap) {
+  TextStyle get _dim =>
+      Theme.of(context).textTheme.titleMedium!.copyWith(fontSize: 13);
+
+  TextStyle get _body =>
+      Theme.of(context).textTheme.bodyLarge!.copyWith(fontSize: 14);
+
+  Widget _buildContent(HtlcSwap swap) {
     switch (swap.state) {
       case P2pSwapState.pending:
-        return _getPendingView();
+        return _buildPendingView();
       case P2pSwapState.active:
-        return _getActiveView(swap);
+        return _buildActiveView(swap);
       case P2pSwapState.completed:
-        return _getCompletedView(swap);
+        return _buildCompletedView(swap);
       case P2pSwapState.reclaimable:
       case P2pSwapState.unsuccessful:
-        return _getUnsuccessfulView(swap);
+        return _buildUnsuccessfulView(swap);
       default:
-        return Container();
+        return const SizedBox.shrink();
     }
   }
 
-  Widget _getPendingView() {
-    return const SizedBox(
-      height: 215,
+  Widget _buildPendingView() {
+    return SizedBox(
+      height: 180,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          Text(
-            'Starting swap. This will take a moment.',
-            style: TextStyle(
-              fontSize: 16,
-            ),
-          ),
-          SizedBox(height: 25),
-          SyriusLoadingWidget(),
+          Text('Starting swap', style: _body.copyWith(fontSize: 15)),
+          const SizedBox(height: 20),
+          const SyriusLoadingWidget(size: 18, strokeWidth: 1.5),
         ],
       ),
     );
   }
 
-  Widget _getActiveView(HtlcSwap swap) {
+  Widget _buildActiveView(HtlcSwap swap) {
     return Column(
       children: <Widget>[
-        const SizedBox(
-          height: 20,
-        ),
+        const SizedBox(height: 20),
         HtlcCard.sending(swap: swap),
-        const SizedBox(
-          height: 15,
-        ),
-        const Icon(
-          AntDesign.arrowdown,
-          color: Colors.white,
-          size: 20,
-        ),
-        const SizedBox(
-          height: 15,
-        ),
+        const SizedBox(height: 10),
+        const Icon(Icons.arrow_downward, color: AppColors.faint, size: 18),
+        const SizedBox(height: 10),
         HtlcCard.receiving(swap: swap),
-        const SizedBox(
-          height: 25,
-        ),
-        _getBottomSection(swap),
+        const SizedBox(height: 20),
+        _buildBottomSection(swap),
       ],
     );
   }
 
-  Widget _getCompletedView(HtlcSwap swap) {
+  /// The inner surface of a result: the card colour on the dialog's raised
+  /// tone, at the card radius.
+  Widget _buildSummary(List<Widget> rows) {
+    return Material(
+      color: Theme.of(context).colorScheme.primary,
+      borderRadius: BorderRadius.circular(kCardRadius),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Column(children: rows),
+      ),
+    );
+  }
+
+  /// A label and its value at the two ends of a line.
+  ///
+  /// An amount is a single text and fades if it outgrows the line. The rate
+  /// is a row of its own that would stretch across the space it is given,
+  /// so with [shrinkValue] it is laid out at its own width instead.
+  Widget _buildSummaryRow(
+    String label,
+    Widget value, {
+    bool shrinkValue = false,
+  }) {
+    return SizedBox(
+      height: 32,
+      child: Row(
+        children: <Widget>[
+          Text(label, style: _dim),
+          const SizedBox(width: 12),
+          if (shrinkValue) ...<Widget>[
+            const Spacer(),
+            value,
+          ] else
+            Expanded(
+              child: Align(alignment: Alignment.centerRight, child: value),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAmount(BigInt amount, int decimals, String symbol) {
+    return AmountText(amount, decimals: decimals, style: _body, symbol: symbol);
+  }
+
+  Widget _buildCompletedView(HtlcSwap swap) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
-        const SizedBox(
-          height: 10,
-        ),
-        Container(
-          width: 72,
-          height: 72,
-          color: Colors.transparent,
+        const SizedBox(height: 10),
+        SizedBox(
+          width: 64,
+          height: 64,
           child: SvgPicture.asset(
             'assets/svg/ic_completed_symbol.svg',
-            colorFilter:
-                const ColorFilter.mode(AppColors.znnColor, BlendMode.srcIn),
-          ),
-        ),
-        const SizedBox(
-          height: 30,
-        ),
-        Text(
-          _swapCompletedText,
-          style: const TextStyle(
-            fontSize: 16,
-          ),
-        ),
-        const SizedBox(height: 25),
-        Container(
-          decoration: const BoxDecoration(
-              color: Color(0xff282828),
-              borderRadius: BorderRadius.all(Radius.circular(8)),),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    const Text(
-                      'From',
-                      style: TextStyle(
-                          fontSize: 14, color: AppColors.subtitleColor,),
-                    ),
-                    _getAmountAndSymbolWidget(
-                        swap.fromAmount.addDecimals(swap.fromDecimals),
-                        swap.fromSymbol,),
-                  ],
-                ),
-                const SizedBox(
-                  height: 15,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    const Text(
-                      'To',
-                      style: TextStyle(
-                          fontSize: 14, color: AppColors.subtitleColor,),
-                    ),
-                    _getAmountAndSymbolWidget(
-                        swap.toAmount!.addDecimals(swap.toDecimals!),
-                        swap.toSymbol!,),
-                  ],
-                ),
-                const SizedBox(
-                  height: 15,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    const Text(
-                      'Exchange Rate',
-                      style: TextStyle(
-                          fontSize: 14, color: AppColors.subtitleColor,),
-                    ),
-                    _getExchangeRateWidget(swap),
-                  ],
-                ),
-              ],
+            colorFilter: const ColorFilter.mode(
+              AppColors.znnColor,
+              BlendMode.srcIn,
             ),
           ),
         ),
-        const SizedBox(
-          height: 20,
+        const SizedBox(height: 20),
+        Text(
+          _swapCompletedText,
+          textAlign: TextAlign.center,
+          style: _body.copyWith(fontSize: 15),
         ),
+        const SizedBox(height: 20),
+        _buildSummary(<Widget>[
+          _buildSummaryRow(
+            'Sent',
+            _buildAmount(swap.fromAmount, swap.fromDecimals, swap.fromSymbol),
+          ),
+          _buildSummaryRow(
+            'Received',
+            _buildAmount(swap.toAmount!, swap.toDecimals!, swap.toSymbol!),
+          ),
+          _buildSummaryRow(
+            'Rate',
+            _buildExchangeRate(swap),
+            shrinkValue: true,
+          ),
+        ]),
+        const SizedBox(height: 16),
         HtlcSwapDetailsWidget(swap: swap),
       ],
     );
   }
 
-  Widget _getUnsuccessfulView(HtlcSwap swap) {
+  Widget _buildUnsuccessfulView(HtlcSwap swap) {
     final int? expiration = swap.direction == P2pSwapDirection.outgoing
         ? swap.initialHtlcExpirationTime
         : swap.counterHtlcExpirationTime;
-    final Duration remainingDuration =
-        Duration(seconds: (expiration ?? 0) - DateTimeUtils.unixTimeNow);
-    final bool isReclaimable = remainingDuration.inSeconds <= 0 &&
+    final Duration remainingDuration = Duration(
+      seconds: (expiration ?? 0) - DateTimeUtils.unixTimeNow,
+    );
+    final bool isReclaimable =
+        remainingDuration.inSeconds <= 0 &&
         swap.state == P2pSwapState.reclaimable;
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
-        const SizedBox(
-          height: 10,
-        ),
-        Container(
-          width: 72,
-          height: 72,
-          color: Colors.transparent,
+        const SizedBox(height: 10),
+        SizedBox(
+          width: 64,
+          height: 64,
           child: SvgPicture.asset(
             'assets/svg/ic_unsuccessful_symbol.svg',
-            colorFilter:
-                const ColorFilter.mode(AppColors.errorColor, BlendMode.srcIn),
-          ),
-        ),
-        const SizedBox(
-          height: 30,
-        ),
-        Text(
-          isReclaimable || swap.state == P2pSwapState.unsuccessful
-              ? 'The swap was unsuccessful.'
-              : 'The swap was unsuccessful.\nPlease wait for your deposit to expire to reclaim your funds.',
-          style: const TextStyle(
-            fontSize: 16,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 25),
-        Container(
-          decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary,
-              borderRadius: const BorderRadius.all(Radius.circular(8)),),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: <Widget>[
-                if (remainingDuration.inSeconds > 0)
-                  TweenAnimationBuilder<Duration>(
-                    duration: remainingDuration,
-                    tween: Tween(begin: remainingDuration, end: Duration.zero),
-                    onEnd: () => setState(() {}),
-                    builder: (_, Duration d, __) {
-                      return Visibility(
-                        visible: d.inSeconds > 0,
-                        child: Padding(
-                          padding: const EdgeInsets.only(bottom: 15),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: <Widget>[
-                              const Text(
-                                'Deposit expires in',
-                                style: TextStyle(
-                                    fontSize: 14,
-                                    color: AppColors.subtitleColor,),
-                              ),
-                              Text(
-                                d.toString().split('.').first,
-                                style: const TextStyle(
-                                    fontSize: 14,
-                                    color: AppColors.subtitleColor,),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Text(
-                      swap.state == P2pSwapState.reclaimable
-                          ? 'Deposited amount'
-                          : 'Deposited amount (reclaimed)',
-                      style: const TextStyle(
-                          fontSize: 14, color: AppColors.subtitleColor,),
-                    ),
-                    _getAmountAndSymbolWidget(
-                        swap.fromAmount.addDecimals(swap.fromDecimals),
-                        swap.fromSymbol,),
-                  ],
-                ),
-              ],
+            colorFilter: const ColorFilter.mode(
+              AppColors.errorColor,
+              BlendMode.srcIn,
             ),
           ),
         ),
+        const SizedBox(height: 20),
+        Text(
+          isReclaimable || swap.state == P2pSwapState.unsuccessful
+              ? 'Swap unsuccessful'
+              : 'Swap unsuccessful. Reclaim your deposit once it expires.',
+          style: _body.copyWith(fontSize: 15),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 20),
+        _buildSummary(<Widget>[
+          if (remainingDuration.inSeconds > 0)
+            TweenAnimationBuilder<Duration>(
+              duration: remainingDuration,
+              tween: Tween<Duration>(
+                begin: remainingDuration,
+                end: Duration.zero,
+              ),
+              onEnd: () => setState(() {}),
+              builder: (_, Duration d, _) {
+                return Visibility(
+                  visible: d.inSeconds > 0,
+                  child: _buildSummaryRow(
+                    'Deposit expires in',
+                    Text(
+                      d.toString().split('.').first,
+                      style: monoStyle(_body),
+                    ),
+                  ),
+                );
+              },
+            ),
+          _buildSummaryRow(
+            swap.state == P2pSwapState.reclaimable ? 'Deposited' : 'Reclaimed',
+            _buildAmount(swap.fromAmount, swap.fromDecimals, swap.fromSymbol),
+          ),
+        ]),
         if (isReclaimable)
           Padding(
-            padding: const EdgeInsets.fromLTRB(0, 20, 0, 5),
-            child: _getReclaimButton(swap),
+            padding: const EdgeInsets.only(top: 20),
+            child: _buildReclaimButton(swap),
           ),
-        const SizedBox(
-          height: 25,
-        ),
+        const SizedBox(height: 16),
         HtlcSwapDetailsWidget(swap: swap),
       ],
     );
   }
 
-  Widget _getBottomSection(HtlcSwap swap) {
+  Widget _buildBottomSection(HtlcSwap swap) {
     if (swap.counterHtlcId == null) {
       return Column(
         children: <Widget>[
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 10),
-            child: Text(
-              'Send your deposit ID to the counterparty via a messaging service so that they can join the swap.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-              ),
-            ),
+          Text(
+            'Send the deposit ID to your counterparty so they can join.',
+            textAlign: TextAlign.center,
+            style: _dim.copyWith(fontSize: 14),
           ),
-          const SizedBox(
-            height: 25,
-          ),
-          SyriusElevatedButton(
-            text: 'Copy deposit ID',
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF333333),
-            ),
-            onPressed: () =>
-                ClipboardUtils.copyToClipboard(swap.initialHtlcId, context),
-            icon: const Icon(
-              Icons.copy,
-              color: Colors.white,
-              size: 18,
-            ),
-          ),
-        ],
-      );
-    } else {
-      return Column(
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                const Text(
-                  'Exchange Rate',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: AppColors.subtitleColor,
-                  ),
-                ),
-                _getExchangeRateWidget(swap),
-              ],
-            ),
-          ),
-          const SizedBox(
-            height: 25,
-          ),
-          Visibility(
-            visible: swap.direction == P2pSwapDirection.outgoing,
-            child: Column(
-              children: <Widget>[
-                Visibility(
-                  visible: !isTrustedToken(swap.toTokenStandard ?? ''),
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 25),
-                    child: ImportantTextContainer(
-                      text:
-                          '''You are receiving a token that is not in your favorites. '''
-                          '''Please verify that the token standard is correct: ${swap.toTokenStandard ?? ''}''',
-                      isSelectable: true,
-                    ),
-                  ),
-                ),
-                _getExpirationWarningForOutgoingSwap(swap),
-                _getSwapButtonViewModel(swap),
-                const SizedBox(
-                  height: 25,
-                ),
-                _getIncorrectAmountButton(swap),
-              ],
-            ),
-          ),
-          Visibility(
-            visible: swap.direction == P2pSwapDirection.incoming,
-            child: const Padding(
-              padding: EdgeInsets.symmetric(vertical: 15),
-              child: LoadingInfoText(
-                text:
-                    'Waiting for the counterparty. Please keep Syrius running.',
-                tooltipText:
-                    'Your wallet will not be auto-locked while the swap is in progress.',
-              ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              key: const Key('p2p_copy_deposit_id'),
+              onPressed: () =>
+                  ClipboardUtils.copyToClipboard(swap.initialHtlcId, context),
+              icon: const Icon(Icons.copy_outlined, size: 18),
+              label: const Text('Copy deposit ID'),
             ),
           ),
         ],
       );
     }
+    return Column(
+      children: <Widget>[
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: _buildSummaryRow(
+            'Rate',
+            _buildExchangeRate(swap),
+            shrinkValue: true,
+          ),
+        ),
+        const SizedBox(height: 16),
+        if (swap.direction == P2pSwapDirection.outgoing) ...<Widget>[
+          if (!isTrustedToken(swap.toTokenStandard ?? ''))
+            Padding(
+              padding: const EdgeInsets.only(bottom: 20),
+              child: ImportantTextContainer(
+                text:
+                    'This token is not in your favorites. Check its token '
+                    'standard: ${swap.toTokenStandard ?? ''}',
+                isSelectable: true,
+              ),
+            ),
+          _buildExpirationWarningForOutgoingSwap(swap),
+          _buildSwapButton(swap),
+          const SizedBox(height: 16),
+          _buildIncorrectAmountButton(swap),
+        ],
+        if (swap.direction == P2pSwapDirection.incoming)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: LoadingInfoText(
+              text: 'Waiting for the counterparty. Keep Syrius open.',
+              tooltipText: 'The wallet does not auto-lock during a swap',
+            ),
+          ),
+      ],
+    );
   }
 
-  Widget _getExpirationWarningForOutgoingSwap(HtlcSwap swap) {
+  Widget _buildExpirationWarningForOutgoingSwap(HtlcSwap swap) {
     const Duration warningThreshold = Duration(minutes: 10);
-    final Duration timeToCompleteSwap = Duration(
-            seconds:
-                swap.counterHtlcExpirationTime! - DateTimeUtils.unixTimeNow,) -
+    final Duration timeToCompleteSwap =
+        Duration(
+          seconds: swap.counterHtlcExpirationTime! - DateTimeUtils.unixTimeNow,
+        ) -
         kMinSafeTimeToCompleteSwap;
     return TweenAnimationBuilder<Duration>(
       duration: timeToCompleteSwap,
-      tween: Tween(begin: timeToCompleteSwap, end: Duration.zero),
+      tween: Tween<Duration>(begin: timeToCompleteSwap, end: Duration.zero),
       onEnd: () => setState(() {}),
-      builder: (_, Duration d, __) {
+      builder: (_, Duration d, _) {
         return Visibility(
           visible: timeToCompleteSwap <= warningThreshold,
           child: Padding(
-            padding: const EdgeInsets.only(bottom: 25),
+            padding: const EdgeInsets.only(bottom: 20),
             child: ImportantTextContainer(
-              text: 'The swap will expire in ${d.toString().split('.').first}',
+              text: context.l10n.p2pSwapExpiresIn(
+                FormatUtils.formatDuration(context.l10n, d),
+              ),
             ),
           ),
         );
@@ -463,19 +395,19 @@ class _NativeP2pSwapModalState extends State<NativeP2pSwapModal> {
     );
   }
 
-  Widget _getSwapButtonViewModel(HtlcSwap swap) {
+  Widget _buildSwapButton(HtlcSwap swap) {
     return ViewModelBuilder<CompleteHtlcSwapBloc>.reactive(
       onViewModelReady: (CompleteHtlcSwapBloc model) {
         model.stream.listen(
           (HtlcSwap? event) async {
             if (event is HtlcSwap) {
               setState(() {
-                _swapCompletedText =
-                    'Swap completed. You will receive the funds shortly.';
+                _swapCompletedText = 'Swap completed. Funds arrive shortly.';
               });
             }
           },
-          onError: (error) {
+          onError: (Object error) {
+            if (!mounted) return;
             setState(() {
               _isSendingTransaction = false;
             });
@@ -483,7 +415,7 @@ class _NativeP2pSwapModalState extends State<NativeP2pSwapModal> {
           },
         );
       },
-      builder: (_, CompleteHtlcSwapBloc model, __) => InstructionButton(
+      builder: (_, CompleteHtlcSwapBloc model, _) => InstructionButton(
         text: 'Swap',
         isEnabled: true,
         isLoading: _isSendingTransaction,
@@ -492,81 +424,81 @@ class _NativeP2pSwapModalState extends State<NativeP2pSwapModal> {
           setState(() {
             _isSendingTransaction = true;
           });
-          model.completeHtlcSwap(swap: swap);
+          unawaited(model.completeHtlcSwap(swap: swap));
         },
       ),
       viewModelBuilder: CompleteHtlcSwapBloc.new,
     );
   }
 
-  Widget _getIncorrectAmountButton(HtlcSwap swap) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      child: SizedBox(
-        width: double.infinity,
-        child: AnimatedCrossFade(
-          duration: const Duration(milliseconds: 50),
-          firstCurve: Curves.easeInOut,
-          firstChild: InkWell(
+  Widget _buildIncorrectAmountButton(HtlcSwap swap) {
+    return SizedBox(
+      width: double.infinity,
+      child: AnimatedCrossFade(
+        duration: Durations.short4,
+        firstCurve: Easing.standard,
+        secondCurve: Easing.standard,
+        sizeCurve: Easing.standard,
+        firstChild: Center(
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            mouseCursor: SystemMouseCursors.click,
             onTap: () => setState(() {
               _shouldShowIncorrectAmountInstructions = true;
             }),
-            child: const Center(
-              child: Text(
-                "I'm receiving the wrong token or amount.",
-                style: TextStyle(
-                  fontSize: 14,
-                  color: AppColors.subtitleColor,
-                ),
-              ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              child: Text('Wrong token or amount?', style: _dim),
             ),
           ),
-          secondChild:
-              _getIncorrectAmountInstructions(swap.initialHtlcExpirationTime),
-          crossFadeState: _shouldShowIncorrectAmountInstructions
-              ? CrossFadeState.showSecond
-              : CrossFadeState.showFirst,
         ),
+        secondChild: _buildIncorrectAmountInstructions(
+          swap.initialHtlcExpirationTime,
+        ),
+        crossFadeState: _shouldShowIncorrectAmountInstructions
+            ? CrossFadeState.showSecond
+            : CrossFadeState.showFirst,
       ),
     );
   }
 
-  Widget _getIncorrectAmountInstructions(int expirationTime) {
+  Widget _buildIncorrectAmountInstructions(int expirationTime) {
+    final String expires = FormatUtils.formatDeadline(expirationTime * 1000);
     return Text(
-      'If the token or the amount you are receiving is not what you have agreed upon, wait until your deposit expires to reclaim your funds.\nYour deposit will expire at ${FormatUtils.formatDate(expirationTime * 1000, dateFormat: kDefaultDateTimeFormat)}.',
+      'Do not swap. Your deposit expires at $expires; reclaim it then.',
       textAlign: TextAlign.center,
-      style: const TextStyle(
-        fontSize: 14,
-      ),
+      style: _dim,
     );
   }
 
-  Widget _getReclaimButton(HtlcSwap swap) {
+  Widget _buildReclaimButton(HtlcSwap swap) {
     return ViewModelBuilder<ReclaimHtlcSwapFundsBloc>.reactive(
       onViewModelReady: (ReclaimHtlcSwapFundsBloc model) {
         model.stream.listen(
           null,
-          onError: (error) {
+          onError: (Object error) {
             setState(() {
               _isSendingTransaction = false;
             });
           },
         );
       },
-      builder: (_, ReclaimHtlcSwapFundsBloc model, __) => InstructionButton(
+      builder: (_, ReclaimHtlcSwapFundsBloc model, _) => InstructionButton(
         text: 'Reclaim funds',
         isEnabled: true,
         isLoading: _isSendingTransaction,
-        loadingText: 'Reclaiming. This will take a moment.',
+        loadingText: 'Reclaiming',
         onPressed: () {
           setState(() {
             _isSendingTransaction = true;
           });
-          model.reclaimFunds(
-            htlcId: swap.direction == P2pSwapDirection.outgoing
-                ? Hash.parse(swap.initialHtlcId)
-                : Hash.parse(swap.counterHtlcId!),
-            selfAddress: Address.parse(swap.selfAddress),
+          unawaited(
+            model.reclaimFunds(
+              htlcId: swap.direction == P2pSwapDirection.outgoing
+                  ? Hash.parse(swap.initialHtlcId)
+                  : Hash.parse(swap.counterHtlcId!),
+              selfAddress: Address.parse(swap.selfAddress),
+            ),
           );
         },
       ),
@@ -574,42 +506,14 @@ class _NativeP2pSwapModalState extends State<NativeP2pSwapModal> {
     );
   }
 
-  Widget _getExchangeRateWidget(HtlcSwap swap) {
+  Widget _buildExchangeRate(HtlcSwap swap) {
     return ExchangeRateWidget(
-        fromAmount: swap.fromAmount,
-        fromDecimals: swap.fromDecimals,
-        fromSymbol: swap.fromSymbol,
-        toAmount: swap.toAmount!,
-        toDecimals: swap.toDecimals!,
-        toSymbol: swap.toSymbol!,);
-  }
-
-  Widget _getAmountAndSymbolWidget(String amount, String symbol) {
-    return Row(
-      children: <Widget>[
-        Container(
-          constraints: const BoxConstraints(maxWidth: 150),
-          child: Text(
-            amount,
-            style:
-                const TextStyle(fontSize: 14, color: AppColors.subtitleColor),
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
-            softWrap: false,
-          ),
-        ),
-        Container(
-          constraints: const BoxConstraints(maxWidth: 100),
-          child: Text(
-            ' $symbol',
-            style:
-                const TextStyle(fontSize: 14, color: AppColors.subtitleColor),
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
-            softWrap: false,
-          ),
-        ),
-      ],
+      fromAmount: swap.fromAmount,
+      fromDecimals: swap.fromDecimals,
+      fromSymbol: swap.fromSymbol,
+      toAmount: swap.toAmount!,
+      toDecimals: swap.toDecimals!,
+      toSymbol: swap.toSymbol!,
     );
   }
 }

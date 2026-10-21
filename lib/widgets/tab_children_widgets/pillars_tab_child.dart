@@ -1,12 +1,16 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:layout/layout.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
-/// Displays the Pillars tab content in a responsive fluid layout.
+/// Pillars: on top, the address's rewards (what it can collect, over what it
+/// earned), whom it delegates to, and its own pillar; every pillar, to
+/// delegate to, fills the rest.
+///
+/// The amount to collect is the head of the rewards card instead of a card
+/// of its own. The delegation card was on the old dashboard and had no page
+/// since; without it there was no way to undelegate.
 class PillarsTabChild extends StatelessWidget {
   /// Creates a Pillars tab child.
   const PillarsTabChild({
@@ -19,52 +23,24 @@ class PillarsTabChild extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<FluidCell> children = <FluidCell>[
-      FluidCell(
-        child: const PillarRewardsCard(),
-        width: context.layout.value(
-          xl: kStaggeredNumOfColumns ~/ 3,
-          lg: kStaggeredNumOfColumns ~/ 3,
-          md: kStaggeredNumOfColumns ~/ 3,
-          sm: kStaggeredNumOfColumns ~/ 2,
-          xs: kStaggeredNumOfColumns,
-        ),
-      ),
-      FluidCell(
-        child: const PillarCollectCard(),
-        width: context.layout.value(
-          xl: kStaggeredNumOfColumns ~/ 3,
-          lg: kStaggeredNumOfColumns ~/ 3,
-          md: kStaggeredNumOfColumns ~/ 3,
-          sm: kStaggeredNumOfColumns ~/ 2,
-          xs: kStaggeredNumOfColumns,
-        ),
-      ),
-      FluidCell(
-        child: PillarStatsCard(
-          onStepperNotificationSeeMorePressed:
-              _onStepperNotificationSeeMorePressed,
-        ),
-        width: context.layout.value(
-          xl: kStaggeredNumOfColumns ~/ 3,
-          lg: kStaggeredNumOfColumns ~/ 3,
-          md: kStaggeredNumOfColumns ~/ 3,
-          sm: kStaggeredNumOfColumns ~/ 2,
-          xs: kStaggeredNumOfColumns,
-        ),
-      ),
-      const FluidCell(
-        child: PillarsCard(),
-        width: kStaggeredNumOfColumns,
-        height: kStaggeredNumOfColumns / 2,
-      ),
-    ];
     return BlocProvider<PillarsBloc>(
       create: (_) =>
           PillarsBloc(zenon: zenon!)
             ..add(const InfiniteListRequested(address: null)),
-      child: StandardFluidLayout(
-        children: children,
+      child: PageGrid(
+        rows: <PageRow>[
+          PageRow.fixed(300, <PageCell>[
+            const PageCell(PillarRewardsCard(), flex: 2),
+            const PageCell(DelegationCard()),
+            PageCell(
+              PillarStatsCard(
+                onStepperNotificationSeeMorePressed:
+                    _onStepperNotificationSeeMorePressed,
+              ),
+            ),
+          ]),
+          const PageRow.fill(<PageCell>[PageCell(PillarsCard())]),
+        ],
       ),
     );
   }

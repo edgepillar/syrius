@@ -1,86 +1,109 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/model/p2p_swap/p2p_swap.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/home/home.dart'
+    show AmountText;
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/color_utils.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/loading_widget.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-class P2pSwapsListItem extends StatefulWidget {
+/// The shares of the swap table's columns: status, sent, received,
+/// counterparty, started. The header and every row read this one list, so
+/// they cannot drift apart.
+const List<int> kP2pSwapColumnFlex = <int>[3, 4, 4, 4, 3];
 
+/// The width kept at the end of a swap row for its one action.
+const double kP2pSwapActionWidth = 104;
+
+/// The side padding of the swap table's header and rows.
+const double kP2pSwapRowPadding = 16;
+
+/// One swap as a table row. The row opens the swap; its last cell holds the
+/// one thing left to do with it, if anything.
+class P2pSwapsListItem extends StatelessWidget {
+  /// Creates the row of [swap].
   const P2pSwapsListItem({
     required this.swap,
     required this.onTap,
     required this.onDelete,
     super.key,
   });
+
+  /// The swap shown.
   final P2pSwap swap;
-  final Function(String) onTap;
-  final Function(P2pSwap) onDelete;
 
-  @override
-  State<P2pSwapsListItem> createState() => _P2pSwapsListItemState();
-}
+  /// Opens the swap with the given id.
+  final void Function(String) onTap;
 
-class _P2pSwapsListItemState extends State<P2pSwapsListItem> {
-  bool _isDeleteIconHovered = false;
+  /// Asks to delete the swap.
+  final void Function(P2pSwap) onDelete;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Theme.of(context).colorScheme.primaryContainer,
-      elevation: 1,
-      borderRadius: BorderRadius.circular(
-        8,
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(8),
-        onTap: () => widget.onTap.call(widget.swap.id),
-        child: Container(
-          height: 56,
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+    final ThemeData theme = Theme.of(context);
+    final TextStyle text = theme.textTheme.bodyMedium!.copyWith(fontSize: 13);
+    final TextStyle dim = theme.textTheme.titleMedium!.copyWith(fontSize: 13);
+    // The counterparty's amount is known once they have joined; a swap that
+    // failed never delivers it, so it is not shown there.
+    final bool showsReceived =
+        swap.state == P2pSwapState.active ||
+        swap.state == P2pSwapState.completed;
+    return InkWell(
+      mouseCursor: SystemMouseCursors.click,
+      onTap: () => onTap(swap.id),
+      child: SizedBox(
+        height: 46,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: kP2pSwapRowPadding),
           child: Row(
             children: <Widget>[
               Expanded(
-                flex: 20,
-                child: Row(
-                  children: <Widget>[
-                    _getStatusWidget(),
-                    const SizedBox(
-                      width: 8,
-                    ),
-                    _getStatusText(),
-                  ],
+                flex: kP2pSwapColumnFlex[0],
+                child: _buildStatus(text),
+              ),
+              Expanded(
+                flex: kP2pSwapColumnFlex[1],
+                child: _buildAmount(
+                  text,
+                  swap.fromAmount,
+                  swap.fromDecimals,
+                  swap.fromTokenStandard,
+                  swap.fromSymbol,
                 ),
               ),
               Expanded(
-                flex: 20,
-                child: _getAmountWidget(
-                    widget.swap.fromAmount,
-                    widget.swap.fromDecimals,
-                    widget.swap.fromTokenStandard,
-                    widget.swap.fromSymbol,),
+                flex: kP2pSwapColumnFlex[2],
+                child: showsReceived
+                    ? _buildAmount(
+                        text,
+                        swap.toAmount,
+                        swap.toDecimals,
+                        swap.toTokenStandard,
+                        swap.toSymbol,
+                      )
+                    : Text('-', style: dim),
               ),
               Expanded(
-                flex: 20,
-                child: widget.swap.state == P2pSwapState.completed
-                    ? _getAmountWidget(
-                        widget.swap.toAmount,
-                        widget.swap.toDecimals,
-                        widget.swap.toTokenStandard,
-                        widget.swap.toSymbol,)
-                    : _getTextWidget('-'),
+                flex: kP2pSwapColumnFlex[3],
+                child: _buildCounterparty(dim),
               ),
               Expanded(
-                flex: 20,
-                child: _getTextWidget(
-                  _formatTime(widget.swap.startTime * 1000),
+                flex: kP2pSwapColumnFlex[4],
+                child: Text(
+                  _formatTime(swap.startTime * 1000),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: dim,
                 ),
               ),
-              Expanded(
-                flex: 20,
-                child: _getActionButton(),
+              SizedBox(
+                width: kP2pSwapActionWidth,
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: _buildAction(),
+                ),
               ),
             ],
           ),
@@ -89,74 +112,80 @@ class _P2pSwapsListItemState extends State<P2pSwapsListItem> {
     );
   }
 
-  Widget _getStatusWidget() {
+  Widget _buildStatus(TextStyle text) {
     const double size = 16;
-    switch (widget.swap.state) {
-      case P2pSwapState.pending:
-      case P2pSwapState.active:
-        return const SyriusLoadingWidget(
-          size: 12,
-          strokeWidth: 2,
-          padding: 2,
-        );
-      case P2pSwapState.completed:
-        return const Icon(Icons.check_circle_outline,
-            color: AppColors.znnColor, size: size,);
-      default:
-        return const Icon(Icons.cancel_outlined,
-            color: AppColors.errorColor, size: size,);
-    }
+    final (Widget mark, String label) = switch (swap.state) {
+      P2pSwapState.pending => (
+        const SyriusLoadingWidget(size: 12, strokeWidth: 1.5, padding: 2),
+        'Starting',
+      ),
+      P2pSwapState.active => (
+        const SyriusLoadingWidget(size: 12, strokeWidth: 1.5, padding: 2),
+        'Active',
+      ),
+      P2pSwapState.completed => (
+        const Icon(
+          Icons.check_circle_outline,
+          color: AppColors.znnColor,
+          size: size,
+        ),
+        'Completed',
+      ),
+      P2pSwapState.reclaimable => (
+        const Icon(Icons.replay, color: AppColors.warn, size: size),
+        'Reclaimable',
+      ),
+      _ => (
+        const Icon(
+          Icons.cancel_outlined,
+          color: AppColors.errorColor,
+          size: size,
+        ),
+        'Unsuccessful',
+      ),
+    };
+    return Row(
+      children: <Widget>[
+        mark,
+        const SizedBox(width: 8),
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: text,
+          ),
+        ),
+      ],
+    );
   }
 
-  Widget _getStatusText() {
-    late final String text;
-    switch (widget.swap.state) {
-      case P2pSwapState.pending:
-        text = 'Starting';
-      case P2pSwapState.active:
-        text = 'Active';
-      case P2pSwapState.completed:
-        text = 'Completed';
-      default:
-        text = 'Unsuccessful';
-    }
-    return _getTextWidget(text);
-  }
-
-  Widget _getTextWidget(String text) {
-    return Text(text,
-        style: const TextStyle(
-            fontSize: 12, height: 1, color: AppColors.subtitleColor,),
-        overflow: TextOverflow.ellipsis,
-        maxLines: 1,
-        softWrap: false,);
-  }
-
-  Widget _getAmountWidget(
-      BigInt? amount, int? decimals, String? tokenStandard, String? symbol,) {
+  Widget _buildAmount(
+    TextStyle text,
+    BigInt? amount,
+    int? decimals,
+    String? tokenStandard,
+    String? symbol,
+  ) {
     if (amount == null ||
         decimals == null ||
         tokenStandard == null ||
         symbol == null) {
-      return _getTextWidget('-');
+      return Text('-', style: text);
     }
     return Row(
       children: <Widget>[
-        Row(
-          children: <Widget>[
-            Container(
-              constraints: const BoxConstraints(maxWidth: 70),
-              child: _getTextWidget(amount.addDecimals(decimals)),
-            ),
-            Container(
-              constraints: const BoxConstraints(maxWidth: 50),
-              child: _getTextWidget(' $symbol'),
-            ),
-          ],
+        Flexible(
+          child: AmountText(
+            amount,
+            decimals: decimals,
+            style: text,
+            symbol: symbol,
+          ),
         ),
-        const SizedBox(
-          width: 6,
-        ),
+        const SizedBox(width: 6),
+        // The symbol is free text; the dot is derived from the token
+        // standard, so two tokens that share a symbol still look different.
         Container(
           height: 6,
           width: 6,
@@ -167,63 +196,51 @@ class _P2pSwapsListItemState extends State<P2pSwapsListItem> {
             ),
           ),
         ),
+        const SizedBox(width: 12),
       ],
     );
   }
 
-  Widget _getActionButton() {
-    switch (widget.swap.state) {
+  Widget _buildCounterparty(TextStyle dim) {
+    final String address = swap.counterpartyAddress;
+    final String short = address.length <= 12
+        ? address
+        : '${address.substring(0, 6)}…'
+              '${address.substring(address.length - 4)}';
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Tooltip(
+        message: address,
+        child: Text(
+          short,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: monoStyle(dim),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAction() {
+    switch (swap.state) {
       case P2pSwapState.completed:
       case P2pSwapState.unsuccessful:
-        return Align(
-          alignment: Alignment.centerRight,
-          child: FittedBox(
-            child: Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(
-                  4,
-                ),
-                color: const Color(0xff333333),
-              ),
-              child: MouseRegion(
-                cursor: SystemMouseCursors.click,
-                onEnter: (_) => setState(() => _isDeleteIconHovered = true),
-                onExit: (_) => setState(() => _isDeleteIconHovered = false),
-                child: GestureDetector(
-                  onTap: () => widget.onDelete.call(widget.swap),
-                  child: Icon(
-                    Icons.delete,
-                    color: _isDeleteIconHovered
-                        ? Colors.white
-                        : AppColors.subtitleColor,
-                    size: 18,
-                  ),
-                ),
-              ),
-            ),
-          ),
+        return IconButton(
+          tooltip: 'Delete',
+          iconSize: 18,
+          visualDensity: VisualDensity.compact,
+          mouseCursor: SystemMouseCursors.click,
+          onPressed: () => onDelete(swap),
+          icon: const Icon(Icons.delete_outline, color: AppColors.faint),
         );
       case P2pSwapState.reclaimable:
-        return Align(
-          alignment: Alignment.centerRight,
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: SizedBox(
-              height: 32,
-              child: ElevatedButton(
-                onPressed: () => widget.onTap.call(widget.swap.id),
-                child: const Text(
-                  'Reclaim funds',
-                  style: TextStyle(fontSize: 12, color: Colors.white),
-                ),
-              ),
-            ),
-          ),
+        return TextButton(
+          style: TextButton.styleFrom(foregroundColor: kOnZnnColor),
+          onPressed: () => onTap(swap.id),
+          child: const Text('Reclaim'),
         );
       default:
-        return Container();
+        return const SizedBox.shrink();
     }
   }
 
@@ -231,20 +248,8 @@ class _P2pSwapsListItemState extends State<P2pSwapsListItem> {
     final int currentMillis = DateTime.now().millisecondsSinceEpoch;
     if (currentMillis - transactionMillis <=
         const Duration(days: 1).inMilliseconds) {
-      return _formatTimeShort(currentMillis - transactionMillis);
+      return FormatUtils.formatDataShort(currentMillis - transactionMillis);
     }
-    return FormatUtils.formatDate(transactionMillis,
-        dateFormat: 'MM/dd/yyyy hh:mm a',);
-  }
-
-  String _formatTimeShort(int i) {
-    final Duration duration = Duration(milliseconds: i);
-    if (duration.inHours > 0) {
-      return '${duration.inHours} h ago';
-    }
-    if (duration.inMinutes > 0) {
-      return '${duration.inMinutes} min ago';
-    }
-    return '${duration.inSeconds} s ago';
+    return FormatUtils.formatDateTime(transactionMillis);
   }
 }

@@ -1,6 +1,7 @@
 import 'package:clipboard_watcher/clipboard_watcher.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 
@@ -24,7 +25,11 @@ class ClipboardUtils {
         text: stringValue,
       ),
     ).then((_) =>
-        ToastUtils.showToast(context, 'Copied', color: AppColors.znnColor),);
+        ToastUtils.showToast(
+          context,
+          currentL10n.copied,
+          color: AppColors.znnColor,
+        ),);
   }
 
   static void pasteToClipboard({
@@ -35,8 +40,8 @@ class ClipboardUtils {
         callback(value.text!);
       } else {
         await NotificationUtils.sendNotificationError(
-          Exception('The clipboard data could not be obtained'),
-          'Something went wrong while getting the clipboard data',
+          Exception(currentL10n.clipboardPasteError),
+          currentL10n.clipboardPasteFailedNotificationTitle,
         );
       }
     });

@@ -1,6 +1,10 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_token_stepper/widgets/token_step_parts.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/ltr.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 
 /// Details step for updating a pillar.
 class PillarUpdateDetailsStep extends StatelessWidget {
@@ -11,6 +15,7 @@ class PillarUpdateDetailsStep extends StatelessWidget {
     required this.pillarNameController,
     required this.pillarProducerController,
     required this.pillarRewardController,
+    this.active = true,
     super.key,
   });
 
@@ -29,82 +34,94 @@ class PillarUpdateDetailsStep extends StatelessWidget {
   /// Controller containing the producer address.
   final TextEditingController pillarProducerController;
 
+  /// Whether this is the step shown.
+  final bool active;
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Text(
-          context.l10n.pillarName,
-          style: Theme.of(context).textTheme.bodyLarge,
-        ),
-        kVerticalSpacing,
-        TextField(
-          controller: pillarNameController,
-          enabled: false,
-          style: const TextStyle(
-            color: AppColors.znnColor,
+    return ListenableBuilder(
+      listenable: Listenable.merge(<Listenable>[
+        pillarRewardController,
+        pillarProducerController,
+      ]),
+      builder: (BuildContext context, _) {
+        final double gap = AppTokens.of(context).cardGap;
+        // An address reads left to right in every language.
+        final TextStyle address = accFieldTextStyle(context, mono: true);
+        final TextAlign addressAlign = ltrTextAlign(context);
+        final bool valid = _arePillarDetailsValid();
+        return TokenStepFrame(
+          active: active,
+          onSubmit: valid ? onNextPressed : null,
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              AccField(
+                label: context.l10n.pillarName,
+                child: TextField(
+                  controller: pillarNameController,
+                  enabled: false,
+                  style: accFieldTextStyle(context),
+                ),
+              ),
+              SizedBox(height: gap),
+              AccField(
+                label: context.l10n.pillarRewardAddress,
+                help: context.l10n.addressToCollectRewards,
+                child: TextFormField(
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  controller: pillarRewardController,
+                  validator: InputValidators.checkAddress,
+                  style: address,
+                  textDirection: TextDirection.ltr,
+                  textAlign: addressAlign,
+                  decoration: InputDecoration(
+                    suffixIcon: FieldSuffixButtons(
+                      controller: pillarRewardController,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: gap),
+              AccField(
+                label: context.l10n.pillarProducerAddress,
+                help: context.l10n.addressToProduceMomentums,
+                child: TextFormField(
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  controller: pillarProducerController,
+                  validator: InputValidators.validatePillarMomentumAddress,
+                  style: address,
+                  textDirection: TextDirection.ltr,
+                  textAlign: addressAlign,
+                  decoration: InputDecoration(
+                    suffixIcon: FieldSuffixButtons(
+                      controller: pillarProducerController,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ),
-        kVerticalSpacing,
-        Text(
-          context.l10n.pillarRewardAddress,
-          style: Theme.of(context).textTheme.bodyLarge,
-        ),
-        kVerticalSpacing,
-        TextFormField(
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          decoration: InputDecoration(
-            hintText: context.l10n.pillarRewardAddress,
-            suffixIcon: FieldSuffixButtons(controller: pillarRewardController),
-          ),
-          controller: pillarRewardController,
-          validator: InputValidators.checkAddress,
-          style: const TextStyle(
-            color: AppColors.znnColor,
-          ),
-        ),
-        kVerticalSpacing,
-        Text(
-          context.l10n.pillarProducerAddress,
-          style: Theme.of(context).textTheme.bodyLarge,
-        ),
-        kVerticalSpacing,
-        TextFormField(
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          controller: pillarProducerController,
-          decoration: InputDecoration(
-            hintText: context.l10n.pillarProducerAddress,
-            suffixIcon: FieldSuffixButtons(
-              controller: pillarProducerController,
-            ),
-          ),
-          style: const TextStyle(
-            color: AppColors.znnColor,
-          ),
-          validator: InputValidators.validatePillarMomentumAddress,
-        ),
-        kVerticalSpacing,
-        Row(
-          children: <Widget>[
-            OutlinedButton(
-              onPressed: onCancelPressed,
-              child: Text(context.l10n.cancel),
-            ),
-            kHorizontalGap25,
-            ListenableBuilder(
-              listenable: Listenable.merge(<Listenable>[
-                pillarRewardController,
-                pillarProducerController,
-              ]),
-              builder: (_, _) => OutlinedButton(
-                onPressed: _arePillarDetailsValid() ? onNextPressed : null,
+          // The frame's quiet action is Back, and the first step has nothing
+          // to go back to: its way out is Cancel, in the same place and tone.
+          primary: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              TextButton(
+                style: quietButtonStyle(context),
+                onPressed: onCancelPressed,
+                child: Text(context.l10n.cancel),
+              ),
+              const SizedBox(width: 8),
+              OutlinedButton(
+                onPressed: valid ? onNextPressed : null,
                 child: Text(context.l10n.next),
               ),
-            ),
-          ],
-        ),
-      ],
+            ],
+          ),
+        );
+      },
     );
   }
 

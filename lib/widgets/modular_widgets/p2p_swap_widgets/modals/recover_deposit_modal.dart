@@ -1,4 +1,6 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
+
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stacked/stacked.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/dashboard/balance_bloc.dart';
@@ -11,7 +13,10 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/base_modal.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// Recovers a deposit by its id, for a swap started on a computer that is
+/// no longer at hand.
 class RecoverDepositModal extends StatefulWidget {
+  /// Creates the dialog.
   const RecoverDepositModal({
     super.key,
   });
@@ -31,7 +36,7 @@ class _RecoverDepositModalState extends State<RecoverDepositModal> {
   @override
   void initState() {
     super.initState();
-    sl.get<BalanceBloc>().getBalanceForAllAddresses();
+    unawaited(sl.get<BalanceBloc>().getBalanceForAllAddresses());
   }
 
   @override
@@ -60,78 +65,58 @@ class _RecoverDepositModalState extends State<RecoverDepositModal> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
-        const SizedBox(
-          height: 10,
-        ),
-        Container(
-          width: 72,
-          height: 72,
-          color: Colors.transparent,
+        const SizedBox(height: 10),
+        SizedBox(
+          width: 64,
+          height: 64,
           child: SvgPicture.asset(
             'assets/svg/ic_completed_symbol.svg',
-            colorFilter:
-                const ColorFilter.mode(AppColors.znnColor, BlendMode.srcIn),
+            colorFilter: const ColorFilter.mode(
+              AppColors.znnColor,
+              BlendMode.srcIn,
+            ),
           ),
         ),
-        const SizedBox(
-          height: 30,
+        const SizedBox(height: 20),
+        Text(
+          'Recovery sent. Funds arrive shortly.',
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodyLarge!.copyWith(fontSize: 15),
         ),
-        const Text(
-          'Recovery transaction sent. You will receive the funds shortly.',
-          style: TextStyle(
-            fontSize: 16,
-          ),
-        ),
-        const SizedBox(
-          height: 30,
-        ),
+        const SizedBox(height: 24),
       ],
     );
   }
 
   Widget _getSearchView() {
+    final TextStyle dim = Theme.of(
+      context,
+    ).textTheme.titleMedium!.copyWith(fontSize: 14);
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        const SizedBox(
-          height: 20,
+        const SizedBox(height: 20),
+        Text(
+          'Lost the computer a swap was started on? Recover the deposit '
+          'with its ID. The tutorial shows how to find the ID on an '
+          'explorer.',
+          style: dim,
         ),
-        const Text(
-          "If you have lost access to the machine that a swap was started on, the deposited funds can be recovered with the deposit ID.\n\nIf you don't have the deposit ID, please refer to the swap tutorial for instructions on how to recover it using a block explorer.",
-          style: TextStyle(
-            fontSize: 14,
-          ),
-        ),
-        const SizedBox(
-          height: 20,
-        ),
-        MouseRegion(
-          cursor: SystemMouseCursors.click,
-          child: GestureDetector(
-            child: const Row(
-              children: <Widget>[
-                Text(
-                  'View swap tutorial',
-                  style: TextStyle(
-                    color: AppColors.subtitleColor,
-                    fontSize: 14,
-                  ),
-                ),
-                SizedBox(
-                  width: 3,
-                ),
-                Icon(
-                  Icons.open_in_new,
-                  size: 18,
-                  color: AppColors.subtitleColor,
-                ),
-              ],
+        const SizedBox(height: 8),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            style: TextButton.styleFrom(
+              backgroundColor: Colors.transparent,
+              foregroundColor: dim.color,
+              padding: EdgeInsets.zero,
             ),
-            onTap: () => NavigationUtils.openUrl(kP2pSwapTutorialLink),
+            onPressed: () => NavigationUtils.openUrl(kP2pSwapTutorialLink),
+            icon: const Icon(Icons.open_in_new, size: 16),
+            label: const Text('Swap tutorial'),
           ),
         ),
-        const SizedBox(
-          height: 25,
-        ),
+        const SizedBox(height: 16),
         Form(
           autovalidateMode: AutovalidateMode.onUserInteraction,
           child: InputField(
@@ -150,7 +135,7 @@ class _RecoverDepositModalState extends State<RecoverDepositModal> {
               ),
               child: const Icon(
                 Icons.content_paste,
-                color: AppColors.darkHintTextColor,
+                color: AppColors.faint,
                 size: 15,
               ),
             ),
@@ -162,9 +147,7 @@ class _RecoverDepositModalState extends State<RecoverDepositModal> {
             contentLeftPadding: 10,
           ),
         ),
-        const SizedBox(
-          height: 25,
-        ),
+        const SizedBox(height: 20),
         Visibility(
           visible: _errorText != null,
           child: Column(
@@ -195,7 +178,7 @@ class _RecoverDepositModalState extends State<RecoverDepositModal> {
               });
             }
           },
-          onError: (error) {
+          onError: (Object error) {
             setState(() {
               _errorText = error.toString();
               _isLoading = false;
@@ -203,18 +186,20 @@ class _RecoverDepositModalState extends State<RecoverDepositModal> {
           },
         );
       },
-      builder: (_, RecoverHtlcSwapFundsBloc model, __) => InstructionButton(
+      builder: (_, RecoverHtlcSwapFundsBloc model, _) => InstructionButton(
         text: 'Recover deposit',
         isEnabled: _isHashValid(),
         isLoading: _isLoading,
-        loadingText: 'Sending transaction',
-        instructionText: 'Input the deposit ID',
+        loadingText: 'Sending',
+        instructionText: 'Enter the deposit ID',
         onPressed: () {
           setState(() {
             _isLoading = true;
             _errorText = null;
           });
-          model.recoverFunds(htlcId: Hash.parse(_depositIdController.text));
+          unawaited(
+            model.recoverFunds(htlcId: Hash.parse(_depositIdController.text)),
+          );
         },
       ),
       viewModelBuilder: RecoverHtlcSwapFundsBloc.new,

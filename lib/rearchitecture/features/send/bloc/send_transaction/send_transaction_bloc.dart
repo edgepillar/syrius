@@ -5,6 +5,7 @@ import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:logging/logging.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/plasma_purpose.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -54,7 +55,7 @@ class SendTransactionBloc
       final AccountBlockTemplate response = await accountBlockUtilsHelper
           .createAccountBlock(
             accountBlock,
-            'send transaction',
+            PlasmaPurpose.sendTransaction.message,
             address: Address.parse(event.fromAddress),
             waitForRequiredPlasma: true,
           );

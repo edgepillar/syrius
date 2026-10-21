@@ -1,158 +1,148 @@
-import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/material.dart';
+import 'dart:async';
+
+import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/home/home.dart'
+    show splitAmount;
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/page_widgets.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/stepper_screen.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_donation_stepper.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/project_creation_stepper.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// The top row of the Accelerator page: what the fund holds, what a vote
+/// needs, and the two ways to put something in.
+///
+/// Creating a project is the page's one primary action; a donation is the
+/// quieter button beside it. This row replaces three cards: the donation
+/// card, the fund's pie chart and the create-project card.
 class AcceleratorStats extends StatefulWidget {
-  const AcceleratorStats({super.key});
+  /// Creates the row.
+  const AcceleratorStats({
+    required this.onStepperNotificationSeeMorePressed,
+    this.pillarInfo,
+    super.key,
+  });
+
+  /// Opens the notifications page from a stepper.
+  final VoidCallback onStepperNotificationSeeMorePressed;
+
+  /// The Pillar the selected address owns, if any.
+  final PillarInfo? pillarInfo;
 
   @override
   State<AcceleratorStats> createState() => _AcceleratorStatsState();
 }
 
 class _AcceleratorStatsState extends State<AcceleratorStats> {
-  String? _touchedSectionTitle;
-
   @override
   void initState() {
     super.initState();
-    sl.get<AcceleratorBalanceBloc>().getAcceleratorBalance();
+    unawaited(sl.get<AcceleratorBalanceBloc>().getAcceleratorBalance());
   }
 
   @override
   Widget build(BuildContext context) {
-    return CardScaffold(
-      title: 'Accelerator Stats',
-      childBuilder: () => _getWidgetBodyFutureBuilder(context),
-      onRefreshPressed: () {
-        sl.get<AcceleratorBalanceBloc>().getAcceleratorBalance();
-      },
-      description: 'Accelerator available balance',
-    );
-  }
-
-  Widget _getWidgetBodyFutureBuilder(BuildContext context) {
-    return StreamBuilder<AccountInfo?>(
-      stream: sl.get<AcceleratorBalanceBloc>().stream,
-      builder: (_, AsyncSnapshot<AccountInfo?> snapshot) {
-        if (snapshot.hasError) {
-          return SyriusErrorWidget(snapshot.error!);
-        }
-        if (snapshot.connectionState == ConnectionState.active) {
-          if (snapshot.hasData) {
-            return _getWidgetBody(context, snapshot.data!);
-          }
-          return const SyriusLoadingWidget();
-        }
-        return const SyriusLoadingWidget();
-      },
-    );
-  }
-
-  Widget _getWidgetBody(BuildContext context, AccountInfo accountInfo) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        SizedBox(
-          width: 150,
-          child: _getPieChart(accountInfo),
-        ),
-        SizedBox(
-          width: 200,
-          child: _getPieChartLegend(context, accountInfo),
-        ),
-      ],
-    );
-  }
-
-  Widget _getPieChartLegend(BuildContext context, AccountInfo accountInfo) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        ChartLegend(
-          dotColor: AppColors.znnColor,
-          mainText: 'Available',
-          detailsWidget: FormattedAmountWithTooltip(
-            amount: accountInfo
-                .getBalance(
-                  kZnnCoin.tokenStandard,
-                )
-                .addDecimals(coinDecimals),
-            tokenSymbol: kZnnCoin.symbol,
-            builder: (String amount, String tokenSymbol) => Text(
-              '$amount $tokenSymbol',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-          ),
-        ),
-        kVerticalSpacing,
-        ChartLegend(
-          dotColor: AppColors.qsrColor,
-          mainText: 'Available',
-          detailsWidget: FormattedAmountWithTooltip(
-            amount: accountInfo
-                .getBalance(
-                  kQsrCoin.tokenStandard,
-                )
-                .addDecimals(coinDecimals),
-            tokenSymbol: kQsrCoin.symbol,
-            builder: (String amount, String tokenSymbol) => Text(
-              '$amount $tokenSymbol',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _getPieChart(AccountInfo accountInfo) {
-    return AspectRatio(
-      aspectRatio: 1,
-      child: StandardPieChart(
-        sections: showingSections(accountInfo),
-        centerSpaceRadius: 0,
-        sectionsSpace: 4,
-        onChartSectionTouched: (PieTouchedSection? pieTouchedSection) {
-          setState(() {
-            _touchedSectionTitle = pieTouchedSection?.touchedSection?.title;
-          });
-        },
+    return Panel(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Row(
+        children: <Widget>[
+          Expanded(child: _buildFigures()),
+          const SizedBox(width: 16),
+          _buildActions(),
+        ],
       ),
     );
   }
 
-  List<PieChartSectionData> showingSections(AccountInfo accountInfo) {
-    return <PieChartSectionData>[
-      if (accountInfo.findTokenByTokenStandard(kZnnCoin.tokenStandard) != null)
-        _getPieCharSectionsData(kZnnCoin, accountInfo),
-      if (accountInfo.findTokenByTokenStandard(kQsrCoin.tokenStandard) != null)
-        _getPieCharSectionsData(kQsrCoin, accountInfo),
-    ];
+  Widget _buildFigures() {
+    final int? pillars = kNumOfPillars;
+    return StreamBuilder<AccountInfo?>(
+      stream: sl.get<AcceleratorBalanceBloc>().stream,
+      builder: (_, AsyncSnapshot<AccountInfo?> snapshot) {
+        final AccountInfo? fund = snapshot.data;
+        String amount(BigInt? raw) =>
+            raw == null ? '-' : splitAmount(raw, coinDecimals).$1;
+        final Widget figures = Row(
+          children: <Widget>[
+            Flexible(
+              child: Figure(
+                key: const Key('acc_figure_znn'),
+                label: 'ZNN available',
+                value: amount(fund?.znn()),
+              ),
+            ),
+            const SizedBox(width: 40),
+            Flexible(
+              child: Figure(
+                key: const Key('acc_figure_qsr'),
+                label: 'QSR available',
+                value: amount(fund?.qsr()),
+              ),
+            ),
+            if (pillars != null && pillars > 0) ...<Widget>[
+              const SizedBox(width: 40),
+              Flexible(
+                child: Figure(
+                  label: 'Quorum',
+                  value: '${(pillars * 0.33).ceil()} of $pillars',
+                ),
+              ),
+            ],
+            if (widget.pillarInfo != null) ...<Widget>[
+              const SizedBox(width: 40),
+              Flexible(
+                child: Figure(
+                  label: 'Votes as',
+                  value: widget.pillarInfo!.name,
+                  valueStyle: panelTitleStyle(context).copyWith(fontSize: 18),
+                ),
+              ),
+            ],
+          ],
+        );
+        return snapshot.hasError
+            ? Tooltip(message: snapshot.error.toString(), child: figures)
+            : figures;
+      },
+    );
   }
 
-  PieChartSectionData _getPieCharSectionsData(
-    Token token,
-    AccountInfo accountInfo,
-  ) {
-    final BigInt value = token.tokenStandard == kZnnCoin.tokenStandard
-        ? accountInfo.znn()!
-        : accountInfo.qsr()!;
-    final BigInt sumValues = accountInfo.znn()! + accountInfo.qsr()!;
+  Widget _buildActions() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        OutlinedButton.icon(
+          key: const Key('acc_donate'),
+          style: secondaryButtonStyle(context),
+          onPressed: () => _openStepper(const AcceleratorDonationStepper()),
+          icon: const Icon(Icons.volunteer_activism_outlined, size: 18),
+          label: const Text('Donate'),
+        ),
+        const SizedBox(width: 10),
+        OutlinedButton.icon(
+          key: const Key('acc_create_project'),
+          onPressed: () => _openStepper(const ProjectCreationStepper()),
+          icon: const Icon(Icons.add, size: 18),
+          label: const Text('Create project'),
+        ),
+      ],
+    );
+  }
 
-    final bool isTouched = token.symbol == _touchedSectionTitle;
-    final double opacity = isTouched ? 1.0 : 0.5;
-
-    return PieChartSectionData(
-      color: ColorUtils.getTokenColor(token.tokenStandard).withOpacity(opacity),
-      value: value / sumValues,
-      title: accountInfo.findTokenByTokenStandard(token.tokenStandard)!.symbol,
-      radius: 60,
-      titleStyle: Theme.of(context).textTheme.bodyLarge,
+  void _openStepper(Widget stepper) {
+    Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (BuildContext context) => StepperScreen(
+          stepper: stepper,
+          onStepperNotificationSeeMorePressed:
+              widget.onStepperNotificationSeeMorePressed,
+        ),
+      ),
     );
   }
 }

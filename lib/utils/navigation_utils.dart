@@ -1,7 +1,8 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 
@@ -16,9 +17,9 @@ class NavigationUtils {
     } else {
       await sl.get<NotificationsBloc>().addNotification(
             WalletNotification(
-              title: 'Error while trying to open $url',
+              title: currentL10n.openUrlFailedNotificationTitle(url),
               timestamp: DateTime.now().millisecondsSinceEpoch,
-              details: 'Something went wrong while trying to open $url',
+              details: currentL10n.openUrlFailedNotificationDetails(url),
               type: NotificationType.error,
             ),
           );
