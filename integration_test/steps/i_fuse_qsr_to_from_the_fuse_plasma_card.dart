@@ -1,11 +1,12 @@
 // BDD Usage comments intentionally mirror Gherkin placeholders.
-// ignore_for_file: unintended_html_in_doc_comment, non_constant_identifier_names
+// ignore_for_file: unintended_html_in_doc_comment
+// ignore_for_file: non_constant_identifier_names
 
 import 'dart:async';
 
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:nested/nested.dart';
 import 'package:provider/provider.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
@@ -51,10 +52,7 @@ Future<void> iFuseQsrToFromTheFusePlasmaCard(
             ),
           ],
           child: Scaffold(
-            body: FusePlasmaCard(
-              plasmaStatsResults: const <PlasmaInfoWrapper>[],
-              onPlasmaFused: () {},
-            ),
+            body: FusePlasmaCard(onPlasmaFused: () {}),
           ),
         ),
       ),

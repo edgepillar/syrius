@@ -1,0 +1,8 @@
+# prerequisite: unlocked-home
+goto settings
+tap --key settings_about
+wait --key about_page --timeout 30
+tap --key about_licences_toggle
+wait --key about_licences_list --timeout 30
+reveal --key about_licences_end
+assert --key about_licences_end

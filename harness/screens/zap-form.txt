@@ -1,0 +1,5 @@
+# prerequisite: unlocked-home
+goto transfer
+tap --key transfer_mode_zap
+wait --key zap_form_ready
+assert --key zap_form_ready

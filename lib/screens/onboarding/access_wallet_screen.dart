@@ -1,14 +1,15 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:zenon_syrius_wallet_flutter/screens/onboarding/onboarding_scaffold.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/onboarding/welcome_surface.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
 
 /// The welcome: the three ways into a wallet, one under the other, with
 /// creating a new one as the main action.
 class AccessWalletScreen extends StatefulWidget {
+  /// Presents entry choices without eagerly mounting their wallet owners.
   const AccessWalletScreen({super.key});
+
+  /// Stable route name for the existing wallet-entry destination.
   static const String route = 'access-wallet-screen';
 
   @override
@@ -16,84 +17,31 @@ class AccessWalletScreen extends StatefulWidget {
 }
 
 class _AccessWalletScreenState extends State<AccessWalletScreen> {
+  final Object _source = Object();
+
   @override
-  Widget build(BuildContext context) {
-    return OnboardingScaffold(
-      title: 'Welcome',
-      maxWidth: 360,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          OutlinedButton.icon(
-            onPressed: _onCreateWalletButtonPressed,
-            style: OutlinedButton.styleFrom(minimumSize: const Size(0, 44)),
-            icon: _buildIcon('assets/svg/ic_create_new.svg', kOnZnnColor),
-            label: const Text('Create wallet'),
-          ),
-          const SizedBox(height: 10),
-          OutlinedButton.icon(
-            onPressed: _onImportWalletButtonPressed,
-            style:
-                secondaryButtonStyle(
-                  context,
-                ).copyWith(
-                  minimumSize: const WidgetStatePropertyAll<Size>(Size(0, 44)),
-                ),
-            icon: _buildIcon(
-              'assets/svg/ic_import_wallet.svg',
-              AppColors.znnColor,
-            ),
-            label: const Text('Import wallet'),
-          ),
-          const SizedBox(height: 10),
-          OutlinedButton.icon(
-            onPressed: _onHardwareWalletButtonPressed,
-            style:
-                secondaryButtonStyle(
-                  context,
-                ).copyWith(
-                  minimumSize: const WidgetStatePropertyAll<Size>(Size(0, 44)),
-                ),
-            icon: _buildIcon(
-              'assets/svg/ic_hardware_wallet.svg',
-              AppColors.znnColor,
-            ),
-            label: const Text('Hardware wallet'),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => WelcomeSurface(
+    source: _source,
+    onSelected: _onSelected,
+  );
 
-  Widget _buildIcon(String asset, Color color) {
-    return SvgPicture.asset(
-      asset,
-      width: 18,
-      height: 18,
-      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    );
-  }
-
-  void _onCreateWalletButtonPressed() {
-    NavigationUtils.push(
-      context,
-      const NewWalletSeedChoiceScreen(
-        export: false,
-      ),
-    );
-  }
-
-  void _onImportWalletButtonPressed() {
-    NavigationUtils.push(
-      context,
-      const ImportWalletSeedChoiceScreen(),
-    );
-  }
-
-  void _onHardwareWalletButtonPressed() {
-    NavigationUtils.push(
-      context,
-      const HardwareWalletDeviceChoiceScreen(),
-    );
+  void _onSelected(WelcomeDestination destination) {
+    if (!mounted || !(ModalRoute.of(context)?.isCurrent ?? false)) return;
+    // These owners generate seed material, clear address state or construct
+    // Ledger access on mount. Only an admitted row press constructs one.
+    switch (destination) {
+      case WelcomeDestination.createWallet:
+        NavigationUtils.push(
+          context,
+          const NewWalletSeedChoiceScreen(),
+        );
+      case WelcomeDestination.importWallet:
+        NavigationUtils.push(context, const ImportWalletSeedChoiceScreen());
+      case WelcomeDestination.hardwareWallet:
+        NavigationUtils.push(
+          context,
+          const HardwareWalletDeviceChoiceScreen(),
+        );
+    }
   }
 }

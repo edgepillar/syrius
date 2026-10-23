@@ -1,0 +1,8 @@
+# prerequisite: unlocked-home
+# Real selected-address balances must have arrived. No example data is seeded.
+goto dashboard
+wait --key home_hero --timeout 30
+wait --key home_znn --timeout 30
+assert --key home_send
+assert --key home_receive
+assert --key home_hero

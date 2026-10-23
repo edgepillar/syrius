@@ -1,0 +1,5 @@
+# prerequisite: unlocked-home
+goto settings
+tap --key settings_display
+wait --key display_page --timeout 30
+assert --key display_page

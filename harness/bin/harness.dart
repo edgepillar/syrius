@@ -10,6 +10,11 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import '../app/fixtures/seed_policy.dart';
+import '../app/presentation_mode.dart';
+import '../seed/seed_recipe.dart';
+import 'screen_capture.dart';
+
 final String repo = File.fromUri(Platform.script).parent.parent.parent.path;
 final String stateRoot = '$repo${Platform.pathSeparator}.harness';
 
@@ -64,6 +69,10 @@ class Args {
     'dir',
     'tab',
     'max',
+    'ws',
+    'http',
+    'counterparty',
+    'presentation',
   };
 
   final Map<String, String> flags = <String, String>{};
@@ -75,7 +84,11 @@ class Args {
 }
 
 class Instance {
-  Instance(this.name);
+  Instance(this.name) {
+    if (!RegExp(r'^[A-Za-z0-9][A-Za-z0-9_-]*$').hasMatch(name)) {
+      throw Fail('instance names contain only letters, digits, _ and -');
+    }
+  }
 
   final String name;
 
@@ -123,7 +136,7 @@ class Instance {
             'cmd': 'ping',
           }, timeout: const Duration(seconds: 3)))['ok'] ==
           true;
-    } catch (_) {
+    } on Object catch (_) {
       return false;
     }
   }
@@ -181,7 +194,7 @@ String describe(Map<String, dynamic> n) {
     if (n[k] == true) b.write('$k ');
   }
   if (n['enabled'] == false) b.write('DISABLED ');
-  final List<dynamic> r = n['rect'] as List<dynamic>;
+  final List<num> r = (n['rect'] as List<dynamic>).cast<num>();
   final List<dynamic> path = n['path'] as List<dynamic>? ?? <dynamic>[];
   final String where = path.isEmpty || path.last == n['type']
       ? '${n['type']}'
@@ -247,9 +260,38 @@ Future<int> freePort() async {
 }
 
 Future<void> start(Instance inst, Args a) async {
+  final String? presentation = harnessPresentationSurface(a['presentation']);
+  if (presentation != null && (inst.name == 'default' || a.has('fresh'))) {
+    throw Fail('presentation needs an explicit unused instance, without fresh');
+  }
   if (await inst.alive()) {
+    final Map<String, dynamic> observed = await call(
+      inst,
+      <String, Object?>{'cmd': 'ping'},
+    );
+    final Object? expectedPid = inst.read()?['pid'];
+    if (expectedPid is! int ||
+        !harnessLaunchMatches(
+          observed,
+          presentation: presentation,
+          expectedPid: expectedPid,
+        )) {
+      throw Fail('the instance is already running another harness host');
+    }
     stdout.writeln('instance "${inst.name}" is already running');
     return;
+  }
+  if (presentation != null) {
+    final FileSystemEntityType parent = FileSystemEntity.typeSync(
+      stateRoot,
+      followLinks: false,
+    );
+    if ((parent != FileSystemEntityType.directory &&
+            parent != FileSystemEntityType.notFound) ||
+        FileSystemEntity.typeSync(inst.home, followLinks: false) !=
+            FileSystemEntityType.notFound) {
+      throw Fail('presentation needs an unused profile without links');
+    }
   }
   final String mode = a['mode'] ?? 'release';
   final File exe = File('$stateRoot/app/$mode/syrius.exe');
@@ -289,27 +331,16 @@ Future<void> start(Instance inst, Args a) async {
 
   // Every place the wallet, its SDK and its embedded node look for a profile
   // goes into the instance home; nothing reads the real %AppData%\znn.
-  const Set<String> replaced = <String>{
-    'APPDATA',
-    'LOCALAPPDATA',
-    'TEMP',
-    'TMP',
-    'HOME',
-    'USERPROFILE',
-  };
-  final Map<String, String> env = <String, String>{
-    for (final MapEntry<String, String> e in Platform.environment.entries)
-      if (!replaced.contains(e.key.toUpperCase())) e.key: e.value,
-    'APPDATA': roaming,
-    'LOCALAPPDATA': local,
-    'TEMP': temp,
-    'TMP': temp,
-    'HOME': home.path,
-    'USERPROFILE': home.path,
-    'SYRIUS_HARNESS_HOME': home.path,
-    'SYRIUS_HARNESS_PORT': '$port',
-    'SYRIUS_HARNESS_TOKEN': token,
-  };
+  final Map<String, String> env = harnessLaunchEnvironment(
+    Platform.environment,
+    profileHome: home.path,
+    appData: roaming,
+    localAppData: local,
+    temporary: temp,
+    port: port,
+    token: token,
+    presentation: presentation,
+  );
   final Process p = await Process.start(
     exe.path,
     <String>[],
@@ -324,24 +355,35 @@ Future<void> start(Instance inst, Args a) async {
       'port': port,
       'token': token,
       'mode': mode,
+      'harnessMode': presentation == null ? 'wallet' : 'presentation',
+      'presentationScreen': ?presentation,
       'started': DateTime.now().toUtc().toIso8601String(),
     }),
   );
   final Stopwatch sw = Stopwatch()..start();
   while (sw.elapsed < const Duration(seconds: 60)) {
     await Future<void>.delayed(const Duration(milliseconds: 300));
+    final Map<String, dynamic> r;
     try {
-      final Map<String, dynamic> r = await inst.send(<String, Object?>{
+      r = await inst.send(<String, Object?>{
         'cmd': 'ping',
       }, timeout: const Duration(seconds: 3));
-      if (r['booted'] == true) {
-        stdout.writeln(
-          'started "${inst.name}": pid ${p.pid}, port $port, home ${home.path}',
-        );
-        return;
-      }
     } on Fail {
       // Not listening yet.
+      continue;
+    }
+    if (r['booted'] == true) {
+      if (!harnessLaunchMatches(
+        r,
+        presentation: presentation,
+        expectedPid: p.pid,
+      )) {
+        throw Fail('the original process and harness host were not observed');
+      }
+      stdout.writeln(
+        'started "${inst.name}": pid ${p.pid}, port $port, home ${home.path}',
+      );
+      return;
     }
   }
   throw Fail('the wallet did not come up within 60 s (pid ${p.pid})');
@@ -409,10 +451,40 @@ void report(Map<String, dynamic> r, Args a, {String? note}) {
   stdout.writeln(
     <String>[
       'ok',
-      if (note != null) note,
+      ?note,
       if (t != null) describe(t),
     ].join('  '),
   );
+}
+
+Map<String, Object?> assertionArgs(Args a) {
+  const Set<String> allowed = <String>{
+    'key',
+    'type',
+    'kind',
+    'tab',
+    'nth',
+    'exact',
+  };
+  if (a.rest.length > 1 ||
+      a.flags.keys.any((String f) => !allowed.contains(f))) {
+    throw Fail(
+      'assert <selector> [--key <key>] uses a stable positive selector',
+    );
+  }
+  final Map<String, Object?> sel = selector(
+    a.rest.isEmpty ? null : a.rest.first,
+    a,
+  );
+  if (sel.containsKey('at') ||
+      sel.containsKey('ref') ||
+      !<String>['text', 'key', 'type', 'tab'].any(sel.containsKey) ||
+      (a.integer('nth') ?? 0) < 0) {
+    throw Fail(
+      'assert needs text, key, type or tab; coordinates and refs expire',
+    );
+  }
+  return <String, Object?>{...sel, 'exact': true};
 }
 
 Future<void> run(Instance inst, String command, Args a) async {
@@ -503,8 +575,7 @@ Future<void> run(Instance inst, String command, Args a) async {
         a,
       );
     case 'drop':
-      final String file =
-          arg(1) ?? (throw Fail('drop <selector> <file>'));
+      final String file = arg(1) ?? (throw Fail('drop <selector> <file>'));
       report(
         await call(inst, <String, Object?>{
           'cmd': 'drop',
@@ -522,6 +593,77 @@ Future<void> run(Instance inst, String command, Args a) async {
           'timeoutMs': (num.parse(a['timeout']!) * 1000).round(),
       });
       report(out, a, note: '${out['ms']} ms');
+    case 'assert':
+      report(
+        await call(inst, <String, Object?>{
+          'cmd': 'assert',
+          ...assertionArgs(a),
+        }),
+        a,
+      );
+    case 'theme':
+      if (r.length != 1 || (r.first != 'dark' && r.first != 'light')) {
+        throw Fail('theme dark|light');
+      }
+      stdout.writeln(
+        jsonEncode(
+          await call(inst, <String, Object?>{
+            'cmd': 'theme',
+            'mode': r.first,
+          }),
+        ),
+      );
+    case 'presentation':
+      if (r.length != 1 ||
+          a.flags.keys.any(
+            (String flag) => !<String>{'instance', 'json'}.contains(flag),
+          )) {
+        throw Fail('presentation <surface> [--instance <name>]');
+      }
+      final String surface = harnessPresentationSurface(r.single)!;
+      stdout.writeln(
+        jsonEncode(
+          await call(inst, <String, Object?>{
+            'cmd': 'presentation',
+            'surface': surface,
+          }),
+        ),
+      );
+    case 'screens':
+      if (r.length != 1 ||
+          a.flags.keys.any(
+            (String f) => !<String>{'instance', 'dir', 'json'}.contains(f),
+          )) {
+        throw Fail('screens <id>|all [--dir .harness/<fresh-directory>]');
+      }
+      if ((await stateOf(inst))['harnessMode'] == 'presentation') {
+        throw Fail('presentation previews cannot create wallet capture proof');
+      }
+      final List<String> paths = await ScreenCapture(
+        repository: Directory(repo),
+        call: (Map<String, Object?> command) => call(inst, command),
+        prepareHome: () => prepareScreenHome(inst),
+        runLine: (List<String> words) =>
+            run(inst, words.first, Args(words.sublist(1))),
+        assertionFor: (List<String> words) =>
+            assertionArgs(Args(words.sublist(1))),
+        readRailState: () => screenRailExpanded(inst),
+        restoreRailState: ({required bool expanded}) =>
+            restoreScreenRail(inst, expanded: expanded),
+      ).capture(r.first, directory: a['dir']);
+      if (a.has('json')) {
+        stdout.writeln(
+          jsonEncode(<String, Object?>{
+            'captures': paths,
+            'client': <int>[1280, 780],
+            'scale': 1,
+          }),
+        );
+      } else {
+        for (final String path in paths) {
+          stdout.writeln('$path  1280x780 (logical scale 1)');
+        }
+      }
     case 'shot':
       final Map<String, dynamic> s = await call(inst, <String, Object?>{
         'cmd': 'shot',
@@ -546,7 +688,8 @@ Future<void> run(Instance inst, String command, Args a) async {
       if (a.has('json')) {
         stdout.writeln(const JsonEncoder.withIndent('  ').convert(out));
       } else {
-        for (final dynamic l in out['logs'] as List<dynamic>) {
+        for (final Map<String, dynamic> l
+            in (out['logs'] as List<dynamic>).cast<Map<String, dynamic>>()) {
           stdout.writeln(
             '${l['seq']} ${l['time']} ${l['level']} ${l['logger']}: '
             '${l['message']}${l['error'] == null ? '' : ' | ${l['error']}'}',
@@ -561,12 +704,17 @@ Future<void> run(Instance inst, String command, Args a) async {
         if (a.has('min')) 'min': a.integer('min'),
       });
       if (a.has('brief')) {
-        stdout.writeln(<String>[
-          for (final dynamic s in out['stalls'] as List<dynamic>)
-            '${s['kind']} ${s['ms']}',
-        ].join(', '));
+        stdout.writeln(
+          <String>[
+            for (final Map<String, dynamic> s
+                in (out['stalls'] as List<dynamic>)
+                    .cast<Map<String, dynamic>>())
+              '${s['kind']} ${s['ms']}',
+          ].join(', '),
+        );
       } else {
-        for (final dynamic s in out['stalls'] as List<dynamic>) {
+        for (final Map<String, dynamic> s
+            in (out['stalls'] as List<dynamic>).cast<Map<String, dynamic>>()) {
           stdout.writeln('${s['time']} ${s['kind']} ${s['ms']} ms');
         }
       }
@@ -591,6 +739,8 @@ Future<void> run(Instance inst, String command, Args a) async {
       );
     case 'run':
       await script(inst, arg(0) ?? (throw Fail('run <file>')), a);
+    case 'seed':
+      await seed(inst, a);
     default:
       if (!await recipe(inst, command, a)) {
         throw Fail('unknown command "$command"; see harness/README.md');
@@ -601,6 +751,112 @@ Future<void> run(Instance inst, String command, Args a) async {
   }
 }
 
+/// A fixed, preflighted source recipe; no nested script or lifecycle command.
+Future<void> seed(Instance inst, Args a) async {
+  const Set<String> allowed = <String>{
+    'instance',
+    'ws',
+    'http',
+    'counterparty',
+    'checkpoint-ready',
+    'json',
+  };
+  if (!a.has('instance') ||
+      inst.name == 'default' ||
+      a['ws'] != seedWsOrigin ||
+      a['http'] != seedHttpOrigin ||
+      a.flags.keys.any((String flag) => !allowed.contains(flag)) ||
+      a.rest.isEmpty) {
+    throw Fail(
+      'seed requires an explicit nondefault --instance and exact --ws/--http '
+      'lab origins; see harness/seed/README.md',
+    );
+  }
+  Future<Map<String, dynamic>> command(Map<String, Object?> fields) async {
+    final Map<String, dynamic> result = await inst
+        .send(<String, Object?>{
+          'cmd': 'seed',
+          ...fields,
+        }, timeout: const Duration(seconds: 300))
+        .timeout(const Duration(seconds: 305));
+    if (result['ok'] != true) throw Fail('seed refused: ${result['error']}');
+    return result;
+  }
+
+  if (a.rest.first == 'fixture') {
+    if (a.rest.length != 2 ||
+        !<String>{'sentinel', 'aged-fuse'}.contains(a.rest[1])) {
+      throw Fail('seed fixture sentinel|aged-fuse');
+    }
+    stdout.writeln(
+      jsonEncode(
+        await command(<String, Object?>{
+          'action': 'fixture',
+          'kind': a.rest[1],
+          'profile': inst.name,
+          'ws': a['ws'],
+          'http': a['http'],
+        }),
+      ),
+    );
+    return;
+  }
+  if (a.rest.length != 1 ||
+      !seedRecipeIds.contains(a.rest.single) ||
+      a['checkpoint-ready'] != 'true') {
+    throw Fail(
+      'seed <recipe> requires a reversible isolated chain/profile checkpoint; '
+      'no automatic restore or cleanup',
+    );
+  }
+  final String id = a.rest.single;
+  final File file = File('$repo/harness/seed/$id.txt');
+  if (FileSystemEntity.typeSync(file.path, followLinks: false) !=
+          FileSystemEntityType.file ||
+      file.lengthSync() > 8192) {
+    throw Fail('seed recipe source is missing or held');
+  }
+  final SeedRecipe plan = SeedRecipe.parse(id, file.readAsStringSync());
+  final Map<String, dynamic> ready = await command(<String, Object?>{
+    'action': 'begin',
+    'recipe': id,
+    'profile': inst.name,
+    'ws': a['ws'],
+    'http': a['http'],
+    'checkpointReady': true,
+    if (a['counterparty'] != null) 'counterparty': a['counterparty'],
+  });
+  final Map<String, String> values = <String, String>{
+    if (ready['secondaryAddress'] is String)
+      r'${secondaryAddress}': ready['secondaryAddress'] as String,
+    if (ready['counterparty'] is String)
+      r'${counterparty}': ready['counterparty'] as String,
+  };
+  final List<List<String>> lines = plan.lines
+      .map((List<String> words) => plan.resolve(words, values))
+      .toList();
+  await prepareScreenHome(inst);
+  for (final List<String> words in lines) {
+    await command(<String, Object?>{'action': 'check'});
+    if (words.first == 'publish') {
+      stdout.writeln(
+        jsonEncode(await command(<String, Object?>{'action': 'publish'})),
+      );
+    } else if (words.first == 'tap') {
+      await command(<String, Object?>{
+        'action': 'prepare',
+        'selector': words.sublist(1),
+      });
+      stdout.writeln('ok');
+    } else {
+      await run(inst, words.first, Args(words.sublist(1)));
+    }
+  }
+  stdout.writeln(
+    jsonEncode(await command(<String, Object?>{'action': 'finish'})),
+  );
+}
+
 /// Runs a file of harness command lines, stopping at the first that fails.
 /// `#` starts a comment; quotes group words.
 Future<void> script(Instance inst, String file, Args outer) async {
@@ -608,16 +864,11 @@ Future<void> script(Instance inst, String file, Args outer) async {
   for (int i = 0; i < lines.length; i++) {
     final String line = lines[i].trim();
     if (line.isEmpty || line.startsWith('#')) continue;
-    final List<String> words = <String>[
-      for (final RegExpMatch m in RegExp(
-        r'''"((?:[^"\\]|\\.)*)"|'([^']*)'|(\S+)''',
-      ).allMatches(line))
-        m.group(1)?.replaceAll(r'\"', '"') ?? m.group(2) ?? m.group(3)!,
-    ];
     stdout.writeln('> $line');
     try {
+      final List<String> words = scriptWords(line);
       await run(inst, words.first, Args(words.sublist(1)));
-    } on Fail catch (e) {
+    } on Object catch (e) {
       throw Fail('$file:${i + 1}: $e');
     }
   }
@@ -630,6 +881,52 @@ Future<void> script(Instance inst, String file, Args outer) async {
 
 Future<Map<String, dynamic>> stateOf(Instance inst) =>
     call(inst, <String, Object?>{'cmd': 'state'});
+
+Future<void> prepareScreenHome(Instance inst) async {
+  final Map<String, dynamic> state = await stateOf(inst);
+  if (state['booted'] != true ||
+      state['walletUnlocked'] != true ||
+      state['walletInitCompleted'] != true ||
+      state['tab'] == 'lock') {
+    throw Fail(
+      'screens needs unlocked Home; entry preparation is pending F06/N',
+    );
+  }
+  final List<dynamic> tabs = state['tabs'] as List<dynamic>;
+  final String home = tabs.contains('home') ? 'home' : 'dashboard';
+  await goto(inst, home);
+  await setScreenRail(inst, expanded: false);
+  final Map<String, dynamic> observed = await stateOf(inst);
+  if (observed['tab'] != home || observed['walletUnlocked'] != true) {
+    throw Fail('screens could not establish unlocked Home');
+  }
+}
+
+Future<bool> screenRailExpanded(Instance inst) async {
+  final Map<String, dynamic> state = await stateOf(inst);
+  if (state['walletUnlocked'] != true ||
+      state['tab'] == 'lock' ||
+      state['walletInitCompleted'] != true ||
+      !await present(inst, <String, Object?>{'key': 'rail_toggle'})) {
+    throw Fail('screens rail is not ready in an unlocked profile');
+  }
+  return present(inst, <String, Object?>{'key': 'rail_label_dashboard'});
+}
+
+Future<void> setScreenRail(Instance inst, {required bool expanded}) async {
+  if (await screenRailExpanded(inst) == expanded) return;
+  await call(inst, <String, Object?>{'cmd': 'tap', 'key': 'rail_toggle'});
+  await call(inst, <String, Object?>{
+    'cmd': 'wait',
+    'key': 'rail_label_dashboard',
+    if (!expanded) 'gone': true,
+  });
+}
+
+Future<void> restoreScreenRail(Instance inst, {required bool expanded}) async {
+  await prepareScreenHome(inst);
+  await setScreenRail(inst, expanded: expanded);
+}
 
 Future<bool> present(Instance inst, Map<String, Object?> sel) async {
   final Map<String, dynamic> r = await inst.send(<String, Object?>{
@@ -892,10 +1189,10 @@ Future<void> tour(Instance inst, Args a) async {
       '${tab.padRight(14)} ${nodes.length.toString().padLeft(4)} nodes  '
       '${errors.length} error widgets  ${bad.length} errors logged',
     );
-    for (final dynamic e in errors) {
-      stdout.writeln('    widget: ${(e as Map<String, dynamic>)['label']}');
+    for (final Map<String, dynamic> e in errors.cast<Map<String, dynamic>>()) {
+      stdout.writeln('    widget: ${e['label']}');
     }
-    for (final dynamic l in bad) {
+    for (final Map<String, dynamic> l in bad.cast<Map<String, dynamic>>()) {
       stdout.writeln(
         '    ${l['level']} ${l['logger']}: ${l['message']}'
         '${l['error'] == null ? '' : ' | ${l['error']}'}',
@@ -963,11 +1260,11 @@ Future<void> main(List<String> argv) async {
     );
     return;
   }
-  final Args a = Args(argv.sublist(1));
-  final Instance inst = Instance(a['instance'] ?? 'default');
   try {
+    final Args a = Args(argv.sublist(1));
+    final Instance inst = Instance(a['instance'] ?? 'default');
     await run(inst, argv.first, a);
-  } on Fail catch (e) {
+  } on Object catch (e) {
     stderr.writeln('error: $e');
     exitCode = 1;
   }

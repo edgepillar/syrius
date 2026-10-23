@@ -1,0 +1,8 @@
+# prerequisite: unlocked-home
+# Windows harness recipe. It opens and filters the palette without selecting.
+goto dashboard
+key ctrl+k
+wait --key go_to_field --timeout 30
+type --key go_to_field "" del
+assert --key go_to_palette
+assert --key go_to_results

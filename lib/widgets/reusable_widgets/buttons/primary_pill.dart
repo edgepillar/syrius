@@ -1,15 +1,16 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/sheen.dart';
 
-/// The main action of a card or page: the filled green pill, with its sheen.
+/// The main action of a card or page: the plasma pill, with its sheen.
 ///
-/// The app theme already styles every [OutlinedButton] as this pill
-/// (`primaryButtonStyle`), so this widget adds only the [Sheen]. It exists
-/// so a page can adopt the sheen by renaming one constructor instead of
-/// wrapping its button by hand.
+/// The gradient belongs to this explicit primary control. Applying it to the
+/// outlined-button theme would also fill secondary and destructive actions.
+/// The button keeps Material's input, semantics and focus handling; the
+/// decoration changes only its paint.
 class PrimaryPill extends StatelessWidget {
-  /// A pill round [child]. A null [onPressed] is the empty outline of an
-  /// action that is not ready, which gets no sheen.
+  /// A pill round [child]. A null [onPressed] dims the same surface without
+  /// changing its geometry and gets no sheen.
   const PrimaryPill({
     required this.onPressed,
     required this.child,
@@ -37,17 +38,56 @@ class PrimaryPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Sheen(
-      enabled: onPressed != null,
-      controller: sheen,
-      child: icon == null
-          ? OutlinedButton(onPressed: onPressed, style: style, child: child)
-          : OutlinedButton.icon(
-              onPressed: onPressed,
-              style: style,
-              icon: icon,
-              label: child,
+    final AppTokens tokens = AppTokens.of(context);
+    final bool enabled = onPressed != null;
+    final ButtonStyle pillStyle = (style ?? const ButtonStyle())
+        .merge(
+          ButtonStyle(
+            minimumSize: WidgetStatePropertyAll<Size>(
+              Size(0, tokens.buttonHeight),
             ),
+            textStyle: WidgetStatePropertyAll<TextStyle>(tokens.buttonText),
+          ),
+        )
+        .copyWith(
+          backgroundColor: const WidgetStatePropertyAll<Color>(
+            Colors.transparent,
+          ),
+          foregroundColor: WidgetStatePropertyAll<Color>(
+            tokens.primaryButtonForeground,
+          ),
+          iconColor: WidgetStatePropertyAll<Color>(
+            tokens.primaryButtonForeground,
+          ),
+          side:
+              style?.side ??
+              const WidgetStatePropertyAll<BorderSide>(BorderSide.none),
+        );
+    final Widget button = icon == null
+        ? OutlinedButton(
+            onPressed: onPressed,
+            style: pillStyle,
+            child: child,
+          )
+        : OutlinedButton.icon(
+            onPressed: onPressed,
+            style: pillStyle,
+            icon: icon,
+            label: child,
+          );
+    return Sheen(
+      enabled: enabled,
+      controller: sheen,
+      child: Opacity(
+        opacity: enabled ? 1 : tokens.disabledOpacity,
+        child: DecoratedBox(
+          decoration: ShapeDecoration(
+            gradient: tokens.plasma,
+            shape: const StadiumBorder(),
+          ),
+          child: button,
+        ),
+      ),
     );
   }
 }

@@ -180,7 +180,7 @@ class DevnetWalletFile extends WalletFile {
   }
 
   @override
-  void close() {
+  Future<void> close() async {
     _isOpen = false;
   }
 }
@@ -206,12 +206,22 @@ class InMemoryHydratedStorage implements Storage {
 
 class TestNotificationsBloc extends NotificationsBloc {
   @override
-  Future<void> addNotification(WalletNotification? notification) async {
-    addEvent(notification);
+  Future<void> addNotification(
+    WalletNotification? notification, {
+    bool Function()? shouldDisplay,
+    Box<dynamic>? originalStore,
+    bool requireOriginalStore = false,
+  }) async {
+    if (shouldDisplay?.call() != false) addEvent(notification);
   }
 
   @override
-  Future<void> sendPlasmaNotification(String purposeOfGeneratingPlasma) async {}
+  Future<void> sendPlasmaNotification(
+    String purposeOfGeneratingPlasma, {
+    bool Function()? shouldDisplay,
+    Box<dynamic>? originalStore,
+    bool requireOriginalStore = false,
+  }) async {}
 }
 
 void _registerTestServices() {

@@ -1,0 +1,513 @@
+import 'package:flutter_test/flutter_test.dart';
+
+import '../../harness/app/fixtures/seed_policy.dart';
+
+String _hash(int id) => id.toRadixString(16).padLeft(64, '0');
+SeedEnvironment _environment({
+  String profile = 'lab-fixture',
+  bool isolated = true,
+  bool unlocked = true,
+  String ws = seedWsOrigin,
+  String http = seedHttpOrigin,
+  int nodeChain = 321,
+  int signingChain = 321,
+  int index = 1,
+  List<String> members = const <String>['producer', 'owner', 'recipient'],
+}) => SeedEnvironment(
+  profile: profile,
+  isolated: isolated,
+  unlocked: unlocked,
+  initialized: true,
+  booted: true,
+  ws: ws,
+  http: http,
+  nodeChain: nodeChain,
+  signingChain: signingChain,
+  selectedIndex: index,
+  owner: 'owner',
+  members: members,
+);
+
+class _Original implements SeedOriginal {
+  @override
+  final Object identity = Object();
+  @override
+  bool settled = true;
+  @override
+  bool failed = false;
+  @override
+  bool releaseFailed = false;
+  @override
+  String? acceptedHash = _hash(9);
+}
+
+class _Journal implements SeedJournal {
+  final Set<String> attempts = <String>{};
+  final Map<String, String> acceptedHashes = <String, String>{};
+  final Map<String, String> confirmedHashes = <String, String>{};
+  @override
+  void requireAvailable(String recipe) {
+    if (attempts.contains(recipe) ||
+        attempts.any((String id) => !confirmedHashes.containsKey(id))) {
+      throw const SeedRefused('earlier-seed-attempt-held');
+    }
+  }
+
+  @override
+  void claim(String recipe) {
+    requireAvailable(recipe);
+    attempts.add(recipe);
+  }
+
+  @override
+  void accepted(String recipe, String hash) {
+    final String? original = acceptedHashes[recipe];
+    if (original != null && original != hash) {
+      throw const SeedRefused('original-hash-changed');
+    }
+    acceptedHashes[recipe] = hash;
+  }
+
+  @override
+  void confirmed(String recipe, String hash) => confirmedHashes[recipe] = hash;
+}
+
+class _Source implements SeedSource {
+  _Source({SeedEnvironment? environment})
+    : environment = environment ?? _environment();
+  @override
+  final SeedEnvironment environment;
+  @override
+  bool isCurrent = true;
+  bool advancingWs = true;
+  bool advancingHttp = true;
+  bool agreement = true;
+  bool effectPresent = true;
+  bool positiveConfirmation = true;
+  bool targetMatches = true;
+  int wsReads = 0;
+  int httpReads = 0;
+  int confirmationReads = 0;
+  int effectReads = 0;
+  int delays = 0;
+  String? receiptHash;
+  String receiptOwner = 'owner';
+  int receiptChain = 321;
+  SeedFunding balance = SeedFunding(BigInt.from(100), BigInt.from(100));
+  final List<SeedOriginal> operations = <SeedOriginal>[];
+  Future<void> Function()? onWs;
+  Future<void> delay(Duration duration) async {
+    delays++;
+  }
+
+  @override
+  Future<SeedFrontier> wsFrontier() async {
+    wsReads++;
+    await onWs?.call();
+    return SeedFrontier(
+      chain: 321,
+      height: advancingWs ? wsReads + 10 : 10,
+      timestamp: advancingWs ? wsReads + 100 : 100,
+      hash: _hash(advancingWs ? wsReads + 10 : 10),
+    );
+  }
+
+  @override
+  Future<SeedFrontier> httpFrontier() async {
+    httpReads++;
+    return SeedFrontier(
+      chain: 321,
+      height: advancingHttp ? httpReads + 10 : 10,
+      timestamp: advancingHttp ? httpReads + 100 : 100,
+      hash: _hash(advancingHttp ? httpReads + 10 : 10),
+    );
+  }
+
+  @override
+  Future<bool> sameMomentum(SeedFrontier http) async => agreement;
+  @override
+  Future<SeedFunding> funding() async => balance;
+  @override
+  SeedFunding minimum(String recipe) => SeedFunding(BigInt.one, BigInt.one);
+  @override
+  List<SeedOriginal> originals() => List<SeedOriginal>.unmodifiable(operations);
+  @override
+  Future<SeedConfirmed?> confirmed(String recipe, String hash) async {
+    confirmationReads++;
+    return SeedConfirmed(
+      hash: receiptHash ?? hash,
+      owner: receiptOwner,
+      chain: receiptChain,
+      positiveConfirmation: positiveConfirmation,
+      matchesRecipe: targetMatches,
+    );
+  }
+
+  @override
+  Future<bool> effect(String recipe, String hash) async {
+    effectReads++;
+    return effectPresent;
+  }
+}
+
+void main() {
+  late _Source source;
+  late _Journal journal;
+  late SeedGuard guard;
+  setUp(() {
+    source = _Source();
+    journal = _Journal();
+    guard = SeedGuard(source: source, journal: journal, delay: source.delay);
+  });
+
+  test('only an explicit isolated unlocked profile can admit', () async {
+    for (final SeedEnvironment environment in <SeedEnvironment>[
+      _environment(profile: 'default'),
+      _environment(isolated: false),
+      _environment(unlocked: false),
+    ]) {
+      final _Source other = _Source(environment: environment);
+      final SeedGuard scoped = SeedGuard(
+        source: other,
+        journal: _Journal(),
+        delay: other.delay,
+      );
+      await expectLater(scoped.admit('stake'), throwsA(isA<SeedRefused>()));
+      expect(other.wsReads, 0);
+    }
+  });
+
+  test(
+    'exact loopback origins and both chain identifiers are required',
+    () async {
+      for (final SeedEnvironment environment in <SeedEnvironment>[
+        _environment(ws: 'ws://localhost:45998'),
+        _environment(ws: '$seedWsOrigin/'),
+        _environment(http: 'http://127.0.0.1:35997'),
+        _environment(http: 'https://example.test'),
+        _environment(nodeChain: 1),
+        _environment(signingChain: 69),
+      ]) {
+        final _Source other = _Source(environment: environment);
+        await expectLater(
+          SeedGuard(
+            source: other,
+            journal: _Journal(),
+            delay: other.delay,
+          ).admit('stake'),
+          throwsA(isA<SeedRefused>()),
+        );
+        expect(other.wsReads, 0);
+      }
+    },
+  );
+
+  test(
+    'selected index and immutable exact membership are independent '
+    'requirements',
+    () {
+      final List<String> members = <String>['producer', 'owner', 'recipient'];
+      final SeedEnvironment captured = _environment(members: members);
+      members[1] = 'replacement';
+      expect(captured.members[1], 'owner');
+      expect(captured.requireLab, returnsNormally);
+      expect(_environment(index: 0).requireLab, throwsA(isA<SeedRefused>()));
+      expect(
+        _environment(members: <String>['owner', 'owner']).requireLab,
+        throwsA(isA<SeedRefused>()),
+      );
+    },
+  );
+
+  test(
+    'both frontiers must positively advance within six bounded polls',
+    () async {
+      source.advancingHttp = false;
+      await expectLater(guard.admit('stake'), throwsA(isA<SeedRefused>()));
+      expect(source.httpReads, 7);
+      expect(source.delays, 6);
+      expect(journal.attempts, isEmpty);
+    },
+  );
+
+  test(
+    'same chain labels cannot replace exact cross-endpoint momentum agreement',
+    () async {
+      source.agreement = false;
+      await expectLater(guard.admit('stake'), throwsA(isA<SeedRefused>()));
+      expect(source.wsReads, 1);
+      expect(journal.attempts, isEmpty);
+    },
+  );
+
+  test('funding zero refuses before the UI publication control', () async {
+    source.balance = SeedFunding(BigInt.zero, BigInt.from(100));
+    int taps = 0;
+    await expectLater(
+      guard.publish('stake', () async {
+        taps++;
+      }),
+      throwsA(isA<SeedRefused>()),
+    );
+    expect(taps, 0);
+    expect(journal.attempts, isEmpty);
+  });
+
+  test(
+    'revocation during a frontier read never recaptures a replacement source',
+    () async {
+      source.onWs = () async {
+        source.isCurrent = false;
+      };
+      await expectLater(guard.admit('stake'), throwsA(isA<SeedRefused>()));
+      source.isCurrent = true;
+      expect(guard.requireCurrent, throwsA(isA<SeedRefused>()));
+      expect(journal.attempts, isEmpty);
+    },
+  );
+
+  test(
+    'an earlier pending, failed or unreleased original prevents another tap',
+    () async {
+      for (int kind = 0; kind < 3; kind++) {
+        final _Original operation = _Original();
+        if (kind == 0) operation.settled = false;
+        if (kind == 1) operation.failed = true;
+        if (kind == 2) operation.releaseFailed = true;
+        source.operations
+          ..clear()
+          ..add(operation);
+        await expectLater(guard.admit('stake'), throwsA(isA<SeedRefused>()));
+      }
+      expect(journal.attempts, isEmpty);
+    },
+  );
+
+  test(
+    'one tap retains the original accepted hash and requires exact '
+    'effect proof',
+    () async {
+      int taps = 0;
+      final String hash = await guard.publish('stake', () async {
+        taps++;
+        source.operations.add(_Original());
+      });
+      expect(hash, _hash(9));
+      expect(taps, 1);
+      expect(journal.confirmedHashes['stake'], hash);
+      expect(source.confirmationReads, 1);
+      expect(source.effectReads, 1);
+    },
+  );
+
+  test(
+    'multiple new originals are ambiguous and are never selected '
+    'by resemblance',
+    () async {
+      await expectLater(
+        guard.publish('stake', () async {
+          source.operations.addAll(<SeedOriginal>[_Original(), _Original()]);
+        }),
+        throwsA(isA<SeedRefused>()),
+      );
+      expect(source.confirmationReads, 0);
+      expect(journal.attempts, contains('stake'));
+      expect(journal.confirmedHashes, isEmpty);
+    },
+  );
+
+  test(
+    'a tap exception holds its original attempt without a second tap',
+    () async {
+      int taps = 0;
+      Future<void> tap() async {
+        taps++;
+        throw StateError('synthetic pointer failure');
+      }
+
+      await expectLater(
+        guard.publish('stake', tap),
+        throwsA(isA<StateError>()),
+      );
+      await expectLater(
+        guard.publish('stake', tap),
+        throwsA(isA<SeedRefused>()),
+      );
+      expect(taps, 1);
+      expect(journal.attempts, contains('stake'));
+    },
+  );
+  test('preparation cannot continue after a claimed pointer failure', () async {
+    expect(guard.requirePreparation, returnsNormally);
+    await expectLater(
+      guard.publish('stake', () async {
+        expect(journal.attempts, <String>{'stake'});
+        expect(
+          guard.requirePreparation,
+          throwsA(
+            isA<SeedRefused>().having(
+              (SeedRefused error) => error.code,
+              'code',
+              'original-attempt-held',
+            ),
+          ),
+        );
+        throw StateError('synthetic pointer failure');
+      }),
+      throwsA(isA<StateError>()),
+    );
+    expect(
+      guard.requirePreparation,
+      throwsA(
+        isA<SeedRefused>().having(
+          (SeedRefused error) => error.code,
+          'code',
+          'original-attempt-held',
+        ),
+      ),
+    );
+    expect(journal.attempts, <String>{'stake'});
+    expect(journal.acceptedHashes, isEmpty);
+    expect(journal.confirmedHashes, isEmpty);
+    expect(source.operations, isEmpty);
+    expect(source.confirmationReads, 0);
+    expect(source.effectReads, 0);
+  });
+  test('preparation latches original context revocation before any input', () {
+    source.isCurrent = false;
+    expect(
+      guard.requirePreparation,
+      throwsA(
+        isA<SeedRefused>().having(
+          (SeedRefused error) => error.code,
+          'code',
+          'original-context-changed',
+        ),
+      ),
+    );
+    source.isCurrent = true;
+    expect(guard.requirePreparation, throwsA(isA<SeedRefused>()));
+    expect(journal.attempts, isEmpty);
+    expect(source.wsReads, 0);
+    expect(source.httpReads, 0);
+  });
+
+  test(
+    'an accepted hash stays retained when the original release fails',
+    () async {
+      final _Original operation = _Original()..releaseFailed = true;
+      await expectLater(
+        guard.publish('stake', () async {
+          source.operations.add(operation);
+        }),
+        throwsA(isA<SeedRefused>()),
+      );
+      expect(guard.acceptedHash, _hash(9));
+      expect(journal.acceptedHashes['stake'], _hash(9));
+      expect(journal.confirmedHashes, isEmpty);
+    },
+  );
+
+  test(
+    'a toast or elapsed polls cannot establish chain confirmation',
+    () async {
+      source.positiveConfirmation = false;
+      await expectLater(
+        guard.publish('stake', () async {
+          source.operations.add(_Original());
+        }),
+        throwsA(isA<SeedRefused>()),
+      );
+      expect(source.confirmationReads, 18);
+      expect(source.effectReads, 0);
+      expect(journal.confirmedHashes, isEmpty);
+    },
+  );
+
+  test(
+    'confirmed account send alone cannot establish a contract effect',
+    () async {
+      source.effectPresent = false;
+      await expectLater(
+        guard.publish('stake', () async {
+          source.operations.add(_Original());
+        }),
+        throwsA(isA<SeedRefused>()),
+      );
+      expect(source.effectReads, 18);
+      expect(journal.confirmedHashes, isEmpty);
+    },
+  );
+
+  test(
+    'changed hash, owner, chain or recipe receipt refuses the exact original',
+    () async {
+      for (int mismatch = 0; mismatch < 4; mismatch++) {
+        final _Source other = _Source();
+        if (mismatch == 0) other.receiptHash = _hash(10);
+        if (mismatch == 1) other.receiptOwner = 'replacement';
+        if (mismatch == 2) other.receiptChain = 1;
+        if (mismatch == 3) other.targetMatches = false;
+        final _Journal records = _Journal();
+        final SeedGuard scoped = SeedGuard(
+          source: other,
+          journal: records,
+          delay: other.delay,
+        );
+        await expectLater(
+          scoped.publish('stake', () async {
+            other.operations.add(_Original());
+          }),
+          throwsA(isA<SeedRefused>()),
+        );
+        expect(records.confirmedHashes, isEmpty);
+      }
+    },
+  );
+
+  test(
+    'a context change after acceptance keeps the hash without stale '
+    'confirmation',
+    () async {
+      await expectLater(
+        guard.publish('stake', () async {
+          source.operations.add(_Original());
+          source.isCurrent = false;
+        }),
+        throwsA(isA<SeedRefused>()),
+      );
+      expect(guard.acceptedHash, _hash(9));
+      expect(source.confirmationReads, 0);
+      expect(journal.confirmedHashes, isEmpty);
+    },
+  );
+
+  test(
+    'an unsettled original remains held after a finite outcome window',
+    () async {
+      final _Original operation = _Original()
+        ..settled = false
+        ..acceptedHash = null;
+      int taps = 0;
+      await expectLater(
+        guard.publish('stake', () async {
+          taps++;
+          source.operations.add(operation);
+        }),
+        throwsA(isA<SeedRefused>()),
+      );
+      expect(source.delays, 61);
+      await expectLater(
+        SeedGuard(
+          source: source,
+          journal: journal,
+          delay: source.delay,
+        ).publish('fuse', () async {
+          taps++;
+        }),
+        throwsA(isA<SeedRefused>()),
+      );
+      expect(taps, 1);
+    },
+  );
+}

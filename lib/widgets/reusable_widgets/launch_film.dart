@@ -94,6 +94,10 @@ class LaunchFilmController extends ChangeNotifier {
   /// last request only, and it takes the place of autoplay.
   void Function(_LaunchFilmState state)? _asked;
 
+  /// A takeover reports the frame before applying a queued request. A
+  /// listener can make a newer request during that report; it must win.
+  int _requests = 0;
+
   int _frame = -1;
   int _frameCount = 0;
   bool _isDone = false;
@@ -123,12 +127,14 @@ class LaunchFilmController extends ChangeNotifier {
   /// Goes to the last frame and holds it, without waiting out the frames
   /// between: each is still decoded, since the codec has no other way to
   /// the last one, but none is shown. Starts a run if none is under way;
-  /// does nothing once [isDone].
+  /// does nothing once the attached film has finished. A new film can be
+  /// skipped even when this controller still reports a previous one's end.
   void skipToEnd() {
     _ask((_LaunchFilmState state) => state._skipToEnd());
   }
 
   void _ask(void Function(_LaunchFilmState state) request) {
+    _requests += 1;
     final _LaunchFilmState? state = _state;
     if (state == null) {
       _asked = request;
@@ -226,15 +232,24 @@ class _LaunchFilmState extends State<LaunchFilm>
     // A new asset, bundle or width is picked up by the next run; the one
     // under way plays out the file it opened.
     if (!identical(oldWidget.controller, widget.controller)) {
-      final LaunchFilmController old =
-          (oldWidget.controller ?? _ownController!).._state = null;
-      _attach(_controller);
+      final LaunchFilmController old = (oldWidget.controller ?? _ownController!)
+        .._state = null;
+      final LaunchFilmController next = _controller;
+      final void Function(_LaunchFilmState state)? asked = next._asked;
+      final int requests = next._requests;
+      next._asked = null;
+      _attach(next);
       // Told where the film is, as if it had been listening all along.
-      _controller._report(
+      next._report(
         frame: old.frame,
         frameCount: old.frameCount,
         isDone: old.isDone,
       );
+      // A request made before takeover has the same effect as one made
+      // before the first mount, unless a listener has since replaced it.
+      if (asked != null && next._requests == requests) {
+        asked(this);
+      }
     }
   }
 
@@ -270,7 +285,7 @@ class _LaunchFilmState extends State<LaunchFilm>
 
   void _skipToEnd() {
     if (!_running) {
-      if (!_controller.isDone) {
+      if (_run == 0 || !_controller.isDone) {
         _play(0, skip: true);
       }
       return;

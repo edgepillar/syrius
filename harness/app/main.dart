@@ -1,13 +1,18 @@
-// Harness entrypoint: the real app (lib/main.dart, unchanged) with the agent
-// beside it. Build it with `harness/h build`, never ship it.
+// Default startup runs the real app beside the agent. An explicit presentation
+// mode selects an independent read-only host before any wallet owner starts.
+// Build it with `harness/h build`, never ship it.
 
 import 'dart:io';
 
+import 'package:material_ui/material_ui.dart';
 import 'package:path/path.dart' as path;
+import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
 import 'package:zenon_syrius_wallet_flutter/utils/motion_binding.dart';
 
 import 'agent.dart';
+import 'presentation_host.dart';
+import 'presentation_mode.dart';
 
 const String _protocolKey = r'HKCU\Software\Classes\syrius';
 
@@ -33,11 +38,51 @@ Future<void> main() async {
     exit(64);
   }
 
+  final String? presentation = env[harnessPresentationEnvironment];
+  if (presentation != null &&
+      !harnessPresentationSurfaces.contains(presentation)) {
+    stderr.writeln('syrius harness: unsupported presentation surface');
+    exit(64);
+  }
+
   // The agent needs a binding before app.main() runs, and the first binding
   // created is the one the process keeps. A plain one here would switch the
   // app's own off, and the harness would then drive a wallet whose animations
   // shorten under reduced motion while the shipped one's do not.
   MotionBinding.ensureInitialized();
+
+  if (presentation != null) {
+    final HarnessPresentationController controller =
+        HarnessPresentationController(surface: presentation);
+    final GlobalKey host = GlobalKey();
+    HarnessAgent.instance.usePresentation(
+      controller: controller,
+      context: () => host.currentContext,
+      isCurrent: () {
+        final BuildContext? context = host.currentContext;
+        return context != null &&
+            context.mounted &&
+            context.widget is HarnessPresentationHost &&
+            identical(
+              (context.widget as HarnessPresentationHost).controller,
+              controller,
+            );
+      },
+    );
+    await windowManager.ensureInitialized();
+    await windowManager.setPreventClose(false);
+    await HarnessAgent.start(port: port, token: token);
+    runApp(_PresentationRoot(controller: controller, host: host));
+    await windowManager.waitUntilReadyToShow();
+    await windowManager.setTitle('Syrius presentation fixture');
+    await windowManager.setMinimumSize(const Size(1200, 600));
+    await windowManager.setSize(const Size(1280, 780));
+    await windowManager.show();
+    await windowManager.focus();
+    await WidgetsBinding.instance.endOfFrame;
+    HarnessAgent.instance.booted = true;
+    return;
+  }
   await HarnessAgent.start(port: port, token: token);
 
   // app.main() registers this executable as the handler of syrius:// links.
@@ -49,6 +94,30 @@ Future<void> main() async {
     _restoreProtocolCommand(previous);
   }
   HarnessAgent.instance.booted = true;
+}
+
+class _PresentationRoot extends StatefulWidget {
+  const _PresentationRoot({required this.controller, required this.host});
+
+  final HarnessPresentationController controller;
+  final GlobalKey host;
+
+  @override
+  State<_PresentationRoot> createState() => _PresentationRootState();
+}
+
+class _PresentationRootState extends State<_PresentationRoot> {
+  @override
+  void dispose() {
+    widget.controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => HarnessPresentationHost(
+    key: widget.host,
+    controller: widget.controller,
+  );
 }
 
 String? _readProtocolCommand() {

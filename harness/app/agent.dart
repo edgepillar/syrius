@@ -4,7 +4,7 @@
 // entrypoint (harness/app/main.dart), never into lib/main.dart.
 
 // The agent reads framework internals on purpose.
-// ignore_for_file: invalid_use_of_protected_member, avoid_dynamic_calls
+// ignore_for_file: invalid_use_of_protected_member
 
 import 'dart:async';
 import 'dart:convert';
@@ -13,15 +13,30 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:logging/logging.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_token_stepper/widgets/token_create_frame.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/widgets/send_confirmation.dart';
+import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/tabs.dart';
+
+import '../seed/seed_recipe.dart' show requireSeedTokenPreparation;
+import 'client_window.dart';
+import 'fixtures/seed_commands.dart';
+import 'fixtures/seed_policy.dart';
+import 'logical_capture.dart';
+import 'presentation_close.dart';
+import 'presentation_host.dart';
+import 'presentation_mode.dart';
+import 'theme_control.dart';
 
 /// Widgets that say nothing about where a node sits; left out of `path`.
 const Set<String> _kPathNoise = <String>{
@@ -226,6 +241,7 @@ class _Ctx {
     this.tappable,
     this.decoration,
     this.tip,
+    this.semanticTip = false,
     this.key,
     this.inText = false,
     this.blocked = false,
@@ -236,6 +252,7 @@ class _Ctx {
   final _Node? tappable;
   final InputDecoration? decoration;
   final String? tip;
+  final bool semanticTip;
   final String? key;
   final bool inText;
   final bool blocked;
@@ -246,6 +263,7 @@ class _Ctx {
     _Node? tappable,
     InputDecoration? decoration,
     String? tip,
+    bool? semanticTip,
     String? key,
     bool clearKey = false,
     bool clearTip = false,
@@ -257,6 +275,7 @@ class _Ctx {
     tappable: tappable ?? this.tappable,
     decoration: decoration ?? this.decoration,
     tip: clearTip ? null : (tip ?? this.tip),
+    semanticTip: !clearTip && (semanticTip ?? this.semanticTip),
     key: clearKey ? null : (key ?? this.key),
     inText: inText ?? this.inText,
     blocked: blocked ?? this.blocked,
@@ -275,7 +294,24 @@ class HarnessError implements Exception {
 }
 
 class HarnessAgent {
-  HarnessAgent._();
+  HarnessAgent._()
+    : _closePresentation = windowManager.close,
+      _waitForPresentationClose = null;
+
+  @visibleForTesting
+  HarnessAgent.forTest({
+    Future<void> Function()? closePresentation,
+    this._waitForPresentationClose,
+  }) : _closePresentation = closePresentation ?? _refuseTestClose;
+
+  static Future<void> _refuseTestClose() =>
+      throw HarnessError('no test close callback was supplied');
+
+  /// Runs no server, timers, native window or app startup. Transport tests and
+  /// production commands still go through the authenticated loopback server.
+  @visibleForTesting
+  Future<Map<String, Object?>> commandForTest(Map<String, dynamic> command) =>
+      _run(command);
 
   static final HarnessAgent _instance = HarnessAgent._();
 
@@ -290,8 +326,41 @@ class HarnessAgent {
   bool _mouseAdded = false;
   Offset _mouseAt = Offset.zero;
   bool booted = false;
+  final SeedCommands _seeds = SeedCommands();
+  HarnessPresentationController? _presentation;
+  bool Function()? _presentationIsCurrent;
+  BuildContext? Function()? _presentationContext;
+  Element? _presentationElement;
+  bool _modeSelected = false;
+  bool _presentationRevoked = false;
+  int _presentationEpoch = 0;
+  int _presentationRevision = 0;
+  final Future<void> Function() _closePresentation;
+  final Future<void> Function()? _waitForPresentationClose;
+  bool _presentationCloseReserved = false;
+  PresentationCloseAttempt? _presentationCloseAttempt;
+
+  @visibleForTesting
+  PresentationCloseAttempt? get presentationCloseForTest =>
+      _presentationCloseAttempt;
 
   static HarnessAgent get instance => _instance;
+
+  /// Chooses the independent host before the first remote command or startup.
+  void usePresentation({
+    required HarnessPresentationController controller,
+    required bool Function() isCurrent,
+    required BuildContext? Function() context,
+  }) {
+    if (_modeSelected || booted || _presentation != null) {
+      throw HarnessError('the harness host mode is already reserved');
+    }
+    _modeSelected = true;
+    _presentation = controller;
+    _presentationIsCurrent = isCurrent;
+    _presentationContext = context;
+    controller.addListener(() => _presentationRevision++);
+  }
 
   static Future<void> start({required int port, required String token}) async {
     final HttpServer server = await HttpServer.bind(
@@ -322,7 +391,7 @@ class HarnessAgent {
       _queue = _queue.then((_) async {
         try {
           done.complete(await _run(cmd));
-        } catch (e, st) {
+        } on Object catch (e, st) {
           done.completeError(e, st);
         }
       });
@@ -334,7 +403,7 @@ class HarnessAgent {
         'error': e.message,
         if (e.detail != null) 'detail': e.detail,
       };
-    } catch (e, st) {
+    } on Object catch (e, st) {
       status = 500;
       out = <String, Object?>{
         'ok': false,
@@ -350,11 +419,239 @@ class HarnessAgent {
   }
 
   Future<Map<String, Object?>> _run(Map<String, dynamic> c) async {
+    final HarnessPresentationController? presentation = _presentation;
+    if (presentation != null) {
+      return _runPresentation(presentation, c);
+    }
+    _modeSelected = true;
+    return _runWalletCommand(c);
+  }
+
+  Element _requirePresentationCurrent() {
+    if (_presentationRevoked) {
+      throw HarnessError('the original presentation host was retired');
+    }
+    bool current = false;
+    BuildContext? context;
+    try {
+      current = _presentationIsCurrent?.call() == true;
+      if (current && !_presentationRevoked) {
+        context = _presentationContext?.call();
+      }
+    } on Object {
+      _presentationRevoked = true;
+      rethrow;
+    }
+    if (!current ||
+        _presentationRevoked ||
+        context is! Element ||
+        !context.mounted ||
+        _presentationElement != null &&
+            !identical(context, _presentationElement)) {
+      _presentationRevoked = true;
+      throw HarnessError('the original presentation host was retired');
+    }
+    _presentationElement ??= context;
+    return context;
+  }
+
+  String _presentationBrightness() {
+    final Element context = _requirePresentationCurrent();
+    Brightness? observed;
+    void visit(Element element) {
+      if (observed != null) return;
+      final Widget widget = element.widget;
+      if (widget is Theme) {
+        observed = widget.data.brightness;
+      } else {
+        element.visitChildren(visit);
+      }
+    }
+
+    context.visitChildren(visit);
+    if (observed == null) {
+      throw HarnessError('the presentation theme is not attached');
+    }
+    return observed!.name;
+  }
+
+  Future<Map<String, Object?>> _runPresentation(
+    HarnessPresentationController presentation,
+    Map<String, dynamic> command,
+  ) async {
+    final String name = command['cmd'] as String? ?? 'ping';
+    if (!harnessPresentationAllows(name)) {
+      throw HarnessError('read-only presentation refuses this command');
+    }
+    if (name == 'ping') {
+      if (booted) _requirePresentationCurrent();
+      return <String, Object?>{
+        'pid': pid,
+        'booted': booted,
+        'harnessMode': 'presentation',
+        'presentationScreen': presentation.surface,
+      };
+    }
+    _requirePresentationCurrent();
+    if (name == 'state') {
+      return <String, Object?>{
+        ...presentation.snapshot(),
+        'harnessMode': 'presentation',
+        'presentationScreen': presentation.surface,
+        'booted': booted,
+        'walletUnlocked': false,
+        'walletInitCompleted': false,
+        'tabs': <String>[],
+        if (_presentationCloseAttempt case final PresentationCloseAttempt close)
+          'close': close.snapshot(),
+      };
+    }
+    if (_presentationCloseReserved &&
+        <String>{'presentation', 'theme', 'window'}.contains(name)) {
+      throw HarnessError('the presentation close is already reserved');
+    }
+    // Validate before callbacks. Unsupported requests cannot change the host.
+    if (name == 'presentation') {
+      final Object? surface = command['surface'];
+      if (surface is! String ||
+          !harnessPresentationSurfaces.contains(surface)) {
+        throw HarnessError('a supported presentation surface is required');
+      }
+    } else if (name == 'theme' &&
+        (command['restore'] != null ||
+            command['mode'] != null &&
+                !<String>{'dark', 'light'}.contains(command['mode']))) {
+      throw HarnessError('presentation theme is dark or light, in memory');
+    }
+    final int epoch = ++_presentationEpoch;
+    final String expectedSurface = name == 'presentation'
+        ? command['surface'] as String
+        : presentation.surface;
+    final String expectedTheme = name == 'theme' && command['mode'] is String
+        ? command['mode'] as String
+        : presentation.theme;
+    final int expectedRevision =
+        _presentationRevision +
+        (expectedSurface != presentation.surface ||
+                expectedTheme != presentation.theme
+            ? 1
+            : 0);
+    final bool mutating = <String>{
+      'presentation',
+      'theme',
+      'window',
+      'quit',
+    }.contains(name);
+    try {
+      final Map<String, Object?> result;
+      if (name == 'theme' || name == 'presentation') {
+        if (name == 'presentation') {
+          presentation.show(command['surface'] as String);
+        } else if (command['mode'] case final String theme) {
+          presentation.setTheme(theme);
+        }
+        _requirePresentationCurrent();
+        // A preview theme response requires the original frame completion.
+        // The ordinary input helper's quiet-wait timeout is not that receipt.
+        await WidgetsBinding.instance.endOfFrame;
+        await _settle();
+        _requirePresentationCurrent();
+        final String brightness = _presentationBrightness();
+        if (brightness != presentation.theme) {
+          throw HarnessError('the presentation theme was not observed');
+        }
+        result = <String, Object?>{
+          ...presentation.snapshot(),
+          'mode': presentation.theme,
+          'brightness': brightness,
+        };
+      } else if (name == 'assert') {
+        result = _assertPresentation(command);
+      } else if (name == 'quit') {
+        result = <String, Object?>{
+          'close': _queuePresentationClose(presentation),
+        };
+      } else {
+        result = await _runWalletCommand(command);
+      }
+      _requirePresentationCurrent();
+      if (epoch != _presentationEpoch ||
+          !identical(presentation, _presentation) ||
+          expectedRevision != _presentationRevision ||
+          expectedSurface != presentation.surface ||
+          expectedTheme != presentation.theme) {
+        _presentationRevoked = true;
+        throw HarnessError('the presentation changed during this command');
+      }
+      return <String, Object?>{
+        ...result,
+        'harnessMode': 'presentation',
+        'presentationScreen': presentation.surface,
+        'readOnly': true,
+      };
+    } on Object {
+      if (mutating) _presentationRevoked = true;
+      rethrow;
+    }
+  }
+
+  Map<String, Object?> _queuePresentationClose(
+    HarnessPresentationController presentation,
+  ) {
+    if (_presentationCloseReserved) {
+      final PresentationCloseAttempt? retained = _presentationCloseAttempt;
+      if (retained == null) {
+        throw HarnessError('the original close reservation is pending');
+      }
+      return retained.snapshot();
+    }
+    final int revision = _presentationRevision;
+    final String surface = presentation.surface;
+    final String theme = presentation.theme;
+    // Reserve before the original delay callback can reenter the agent.
+    _presentationCloseReserved = true;
+    final PresentationCloseAttempt attempt = PresentationCloseAttempt(
+      waitUntilAdmission: _waitForPresentationClose,
+      requireCurrent: () {
+        _requirePresentationCurrent();
+        if (!identical(presentation, _presentation) ||
+            revision != _presentationRevision ||
+            surface != presentation.surface ||
+            theme != presentation.theme) {
+          _presentationRevoked = true;
+          throw HarnessError('the presentation changed before close');
+        }
+      },
+      close: _closePresentation,
+    );
+    _presentationCloseAttempt = attempt;
+    return attempt.snapshot();
+  }
+
+  Future<Map<String, Object?>> _runWalletCommand(
+    Map<String, dynamic> c,
+  ) async {
     switch (c['cmd'] as String? ?? 'ping') {
       case 'ping':
-        return <String, Object?>{'pid': pid, 'booted': booted};
+        return <String, Object?>{
+          'pid': pid,
+          'booted': booted,
+          'harnessMode': 'wallet',
+        };
       case 'state':
         return _state();
+      case 'seed':
+        try {
+          return await _seeds.run(
+            c,
+            booted: booted,
+            ui: _run,
+            tap: (Map<String, dynamic> selector, void Function() admission) =>
+                _tap(selector, requireAdmission: admission),
+          );
+        } on SeedRefused catch (error) {
+          throw HarnessError(error.code);
+        }
       case 'tree':
         return _tree(c);
       case 'tap':
@@ -373,8 +670,12 @@ class HarnessAgent {
         return _drop(c);
       case 'wait':
         return _wait(c);
+      case 'assert':
+        return _assert(c);
       case 'shot':
-        return _shot();
+        return _shot(c);
+      case 'theme':
+        return _theme(c);
       case 'logs':
         return _logsCmd(c);
       case 'stalls':
@@ -408,10 +709,11 @@ class HarnessAgent {
     });
     final Size size = _viewSize();
     return <String, Object?>{
+      'harnessMode': 'wallet',
       'booted': booted,
       'route': route,
       'tab': kCurrentPage?.name,
-      'tabs': <String>[for (final t in kTabs) t.name],
+      'tabs': <String>[for (final Tabs t in kTabs) t.name],
       'node': kCurrentNode,
       'chainId': kNodeChainId,
       'ws': app.zenon?.wsClient.status().name,
@@ -421,12 +723,26 @@ class HarnessAgent {
       'walletPath': kWalletPath,
       'walletUnlocked': kWalletFile != null,
       'walletInitCompleted': kWalletInitCompleted,
+      if (_seeds.fixtureName != null) 'harnessFixture': _seeds.fixtureName,
       'size': <int>[size.width.round(), size.height.round()],
       'appData': Platform.environment['AppData'],
     };
   }
 
-  Size _viewSize() => WidgetsBinding.instance.renderViews.first.size;
+  RenderView get _view {
+    final List<RenderView> views = WidgetsBinding.instance.renderViews.toList();
+    if (views.length != 1) {
+      throw HarnessError('expected one owned Flutter view', views.length);
+    }
+    return views.single;
+  }
+
+  ClientMetrics _clientMetrics() {
+    final ui.FlutterView view = _view.flutterView;
+    return ClientMetrics(view.physicalSize, view.devicePixelRatio);
+  }
+
+  Size _viewSize() => _clientMetrics().logicalSize;
 
   // ---------------------------------------------------------------- snapshot
 
@@ -450,11 +766,8 @@ class HarnessAgent {
     final RenderObject? ro = e.renderObject;
     if (ro is! RenderBox || !ro.attached || !ro.hasSize) return null;
     try {
-      return MatrixUtils.transformRect(
-        ro.getTransformTo(null),
-        Offset.zero & ro.size,
-      );
-    } catch (_) {
+      return logicalClientRect(ro);
+    } on Object catch (_) {
       return null;
     }
   }
@@ -469,7 +782,7 @@ class HarnessAgent {
     if (type.startsWith('_ModalScopeStatus')) {
       try {
         if (!((w as dynamic).isCurrent as bool)) n = n.copy(blocked: true);
-      } catch (_) {}
+      } on Object catch (_) {}
     }
     if (n.blocked) return;
 
@@ -485,14 +798,25 @@ class HarnessAgent {
 
     final Key? key = w.key;
     if (key is ValueKey<String>) n = n.copy(key: key.value);
-    if (w is Tooltip && w.message != null) {
+    if (w is Semantics && w.properties.tooltip != null) {
+      n = n.copy(tip: w.properties.tooltip, semanticTip: true);
+      n.tappable?.extra['tip'] = w.properties.tooltip;
+    }
+    if (w is Tooltip) {
+      final InlineSpan? rich = w.richMessage;
+      final String? tip =
+          w.message ??
+          (rich is TextSpan ? rich.semanticsLabel : null) ??
+          rich?.toPlainText(includePlaceholders: false);
       // Above a button the tip is carried down to it; inside one (IconButton
       // builds its own) it is handed up.
       final _Node? t = n.tappable;
-      if (t != null && t.foldable) {
-        t.extra.putIfAbsent('tip', () => w.message);
-      } else {
-        n = n.copy(tip: w.message);
+      if (tip != null && !n.semanticTip) {
+        if (t != null && t.foldable) {
+          t.extra.putIfAbsent('tip', () => tip);
+        } else {
+          n = n.copy(tip: tip);
+        }
       }
     }
     // The side rail names each item by key, `nav_<tab>`.
@@ -691,7 +1015,7 @@ class HarnessAgent {
       Object? group;
       try {
         group = (w as dynamic).groupValue;
-      } catch (_) {}
+      } on Object catch (_) {}
       return (
         kind: 'toggle',
         enabled: true,
@@ -896,6 +1220,10 @@ class HarnessAgent {
   bool _reachable(_Node n, Offset p) {
     final RenderObject? ro = n.element.renderObject;
     if (ro == null) return false;
+    return _reachableRender(ro, p);
+  }
+
+  bool _reachableRender(RenderObject ro, Offset p) {
     final HitTestResult result = HitTestResult();
     WidgetsBinding.instance.hitTestInView(
       result,
@@ -960,8 +1288,10 @@ class HarnessAgent {
     Offset p, {
     int buttons = kPrimaryButton,
     int holdMs = 50,
+    void Function()? requireAdmission,
   }) async {
     await _moveTo(p);
+    requireAdmission?.call();
     final int id = ++_pointer;
     _send(
       PointerDownEvent(
@@ -973,6 +1303,19 @@ class HarnessAgent {
       ),
     );
     await Future<void>.delayed(Duration(milliseconds: holdMs));
+    try {
+      requireAdmission?.call();
+    } on Object {
+      _send(
+        PointerCancelEvent(
+          pointer: id,
+          position: p,
+          kind: PointerDeviceKind.mouse,
+          device: _device,
+        ),
+      );
+      rethrow;
+    }
     _send(
       PointerUpEvent(
         pointer: id,
@@ -983,7 +1326,10 @@ class HarnessAgent {
     );
   }
 
-  Future<Map<String, Object?>> _tap(Map<String, dynamic> c) async {
+  Future<Map<String, Object?>> _tap(
+    Map<String, dynamic> c, {
+    void Function()? requireAdmission,
+  }) async {
     final ({Offset point, _Node? node}) t = _target(c);
     final _Node? n = t.node;
     if (n != null && c['force'] != true) {
@@ -992,15 +1338,68 @@ class HarnessAgent {
         throw HarnessError('covered by something else', n.toJson());
       }
     }
+    void admission() {
+      requireAdmission?.call();
+      if (requireAdmission != null) {
+        final ({Offset point, _Node? node}) fresh = _target(c);
+        if (n == null ||
+            fresh.node == null ||
+            !identical(fresh.node!.element, n.element) ||
+            fresh.point != t.point ||
+            !fresh.node!.enabled ||
+            !_reachable(fresh.node!, fresh.point)) {
+          throw const SeedRefused('original-ui-control-changed');
+        }
+        if (c['seedTokenPreparation'] == true) {
+          TokenCreateFrame? frame;
+          fresh.node!.element.visitAncestorElements((Element ancestor) {
+            if (ancestor.widget case final TokenCreateFrame value) {
+              frame = value;
+              return false;
+            }
+            return true;
+          });
+          final Key? key = frame?.key;
+          requireSeedTokenPreparation(
+            frameKey: key is ValueKey<String> ? key.value : null,
+            active: frame?.active == true,
+            busy: frame?.busy != false,
+          );
+        }
+        if (c['seedOwner'] != null) {
+          SendConfirmation? confirmation;
+          fresh.node!.element.visitAncestorElements((Element ancestor) {
+            if (ancestor.widget case final SendConfirmation value) {
+              confirmation = value;
+              return false;
+            }
+            return true;
+          });
+          final SendConfirmation? shown = confirmation;
+          if (shown == null ||
+              shown.intent.fromAddress != c['seedOwner'] ||
+              shown.intent.toAddress != c['seedRecipient'] ||
+              shown.intent.tokenStandard != c['seedToken'] ||
+              shown.intent.amount.toString() != c['seedAmount']) {
+            throw const SeedRefused('original-transfer-review-mismatch');
+          }
+        }
+      }
+    }
+
     if (c['right'] == true) {
-      await _click(t.point, buttons: kSecondaryButton);
+      await _click(
+        t.point,
+        buttons: kSecondaryButton,
+        requireAdmission: admission,
+      );
     } else if (c['long'] == true) {
-      await _click(t.point, holdMs: 700);
+      await _click(t.point, holdMs: 700, requireAdmission: admission);
     } else {
-      await _click(t.point);
+      await _click(t.point, requireAdmission: admission);
       if (c['double'] == true) {
         await Future<void>.delayed(const Duration(milliseconds: 60));
-        await _click(t.point);
+        await _click(t.point, requireAdmission: admission);
       }
     }
     await _settle(c['settleMs'] as int? ?? 600);
@@ -1032,14 +1431,13 @@ class HarnessAgent {
         WidgetsBinding.instance.platformDispatcher.views.first.devicePixelRatio;
     final List<double> at = <double>[t.point.dx * ratio, t.point.dy * ratio];
     Future<void> send(String method, Object arguments) async {
-      await ServicesBinding.instance.defaultBinaryMessenger
-          .handlePlatformMessage(
-            'desktop_drop',
-            const StandardMethodCodec().encodeMethodCall(
-              MethodCall(method, arguments),
-            ),
-            (ByteData? _) {},
-          );
+      ServicesBinding.instance.channelBuffers.push(
+        'desktop_drop',
+        const StandardMethodCodec().encodeMethodCall(
+          MethodCall(method, arguments),
+        ),
+        (ByteData? _) {},
+      );
     }
 
     await send('entered', at);
@@ -1093,7 +1491,6 @@ class HarnessAgent {
         position: from,
         kind: PointerDeviceKind.mouse,
         device: _device,
-        buttons: kPrimaryButton,
       ),
     );
     const int steps = 12;
@@ -1107,7 +1504,6 @@ class HarnessAgent {
           delta: next - at,
           kind: PointerDeviceKind.mouse,
           device: _device,
-          buttons: kPrimaryButton,
         ),
       );
       at = next;
@@ -1213,15 +1609,38 @@ class HarnessAgent {
         'alt': (LogicalKeyboardKey.altLeft, PhysicalKeyboardKey.altLeft),
         'a': (LogicalKeyboardKey.keyA, PhysicalKeyboardKey.keyA),
         'c': (LogicalKeyboardKey.keyC, PhysicalKeyboardKey.keyC),
+        'h': (LogicalKeyboardKey.keyH, PhysicalKeyboardKey.keyH),
+        'k': (LogicalKeyboardKey.keyK, PhysicalKeyboardKey.keyK),
+        'l': (LogicalKeyboardKey.keyL, PhysicalKeyboardKey.keyL),
+        'r': (LogicalKeyboardKey.keyR, PhysicalKeyboardKey.keyR),
         'v': (LogicalKeyboardKey.keyV, PhysicalKeyboardKey.keyV),
         'x': (LogicalKeyboardKey.keyX, PhysicalKeyboardKey.keyX),
         'z': (LogicalKeyboardKey.keyZ, PhysicalKeyboardKey.keyZ),
+        ',': (LogicalKeyboardKey.comma, PhysicalKeyboardKey.comma),
+        '1': (LogicalKeyboardKey.digit1, PhysicalKeyboardKey.digit1),
+        '2': (LogicalKeyboardKey.digit2, PhysicalKeyboardKey.digit2),
+        '3': (LogicalKeyboardKey.digit3, PhysicalKeyboardKey.digit3),
+        '4': (LogicalKeyboardKey.digit4, PhysicalKeyboardKey.digit4),
+        '5': (LogicalKeyboardKey.digit5, PhysicalKeyboardKey.digit5),
+        '6': (LogicalKeyboardKey.digit6, PhysicalKeyboardKey.digit6),
+        '7': (LogicalKeyboardKey.digit7, PhysicalKeyboardKey.digit7),
+        '8': (LogicalKeyboardKey.digit8, PhysicalKeyboardKey.digit8),
       };
 
   bool _dispatchKey(KeyEvent e) {
     HardwareKeyboard.instance.handleKeyEvent(e);
+    // The pinned Flutter FocusManager still registers only this bridge.
+    // HardwareKeyboard alone would update pressed keys but skip Shortcuts,
+    // focus traversal and text editing. Retain it until Flutter migrates.
+    // The pinned FocusManager bridge preserves Shortcuts, editing and the
+    // original handled result.
+    // ignore: deprecated_member_use
     final KeyMessageHandler? h =
+        // The pinned FocusManager still installs this key-message handler.
+        // ignore: deprecated_member_use
         ServicesBinding.instance.keyEventManager.keyMessageHandler;
+    // This pinned bridge returns the actual Shortcuts and editing result.
+    // ignore: deprecated_member_use
     return h?.call(KeyMessage(<KeyEvent>[e], null)) ?? false;
   }
 
@@ -1296,24 +1715,177 @@ class HarnessAgent {
 
   // -------------------------------------------------------------------- misc
 
-  Future<Map<String, Object?>> _shot() async {
-    await _frame();
-    final RenderView view = WidgetsBinding.instance.renderViews.first;
-    final OffsetLayer layer = view.layer! as OffsetLayer;
-    final ui.Image image = await layer.toImage(view.paintBounds);
-    final ByteData? png = await image.toByteData(
-      format: ui.ImageByteFormat.png,
-    );
-    final int w = image.width;
-    final int h = image.height;
-    image.dispose();
-    if (png == null) throw HarnessError('the engine returned no image');
+  Map<String, Object?> _assertPresentation(Map<String, dynamic> c) {
+    final Element original = _requirePresentationCurrent();
+    if (c['ref'] != null || c['at'] != null || c['gone'] == true) {
+      throw HarnessError('assert needs a stable positive selector');
+    }
+    final List<_Node> errors = _snapshot()
+        .where((_Node n) => n.kind == 'error')
+        .toList();
+    if (errors.isNotEmpty) {
+      throw HarnessError('error widget on screen', errors.first.toJson());
+    }
+    final _Node node = _find(<String, dynamic>{...c, 'exact': true});
+    bool owned = identical(node.element, original);
+    node.element.visitAncestorElements((Element ancestor) {
+      if (identical(ancestor, original)) owned = true;
+      return !owned;
+    });
+    if (!owned) {
+      throw HarnessError('presentation target has another owner');
+    }
+    final RenderObject? boundary = presentationVisibilityBoundary(original);
+    bool inside = false;
+    for (
+      RenderObject? object = node.element.renderObject;
+      object != null;
+      object = object.parent
+    ) {
+      if (!object.attached ||
+          object is RenderOffstage && object.offstage ||
+          object is RenderOpacity && object.opacity <= 0 ||
+          object is RenderAnimatedOpacity && object.opacity.value <= 0) {
+        throw HarnessError('presentation target is hidden', node.toJson());
+      }
+      if (identical(object, boundary)) inside = true;
+    }
+    final bool visible = inside && boundary != null
+        ? _reachableRender(boundary, node.center)
+        : node.key == 'harness_presentation_banner' &&
+              _reachable(node, node.center);
+    if (!visible) {
+      throw HarnessError('presentation target is covered', node.toJson());
+    }
     return <String, Object?>{
-      'width': w,
-      'height': h,
-      'scale': view.flutterView.devicePixelRatio,
-      'png': base64Encode(png.buffer.asUint8List()),
+      'asserted': true,
+      'presentationOnly': true,
+      'actualCapture': false,
+      'target': node.toJson(),
     };
+  }
+
+  Map<String, Object?> _assert(Map<String, dynamic> c) {
+    if (c['ref'] != null || c['at'] != null || c['gone'] == true) {
+      throw HarnessError('assert needs a stable positive selector');
+    }
+    final List<_Node> errors = _snapshot()
+        .where((_Node n) => n.kind == 'error')
+        .toList();
+    if (errors.isNotEmpty) {
+      throw HarnessError('error widget on screen', errors.first.toJson());
+    }
+    final _Node node = _find(<String, dynamic>{...c, 'exact': true});
+    if (!_reachable(node, node.center)) {
+      throw HarnessError('assert target is covered', node.toJson());
+    }
+    return <String, Object?>{'asserted': true, 'target': node.toJson()};
+  }
+
+  HarnessThemeControl _themeControl() {
+    final SharedPrefsService? prefs = app.sharedPrefsService;
+    if (prefs == null) throw HarnessError('theme preferences are not ready');
+    return HarnessThemeControl(
+      context: () {
+        final BuildContext? context = app.globalNavigatorKey.currentContext;
+        if (context == null) throw HarnessError('the app theme is not ready');
+        return context;
+      },
+      readPreference: () => prefs.get(kThemeModeKey),
+      savePreference: (Object? value) => prefs.put(kThemeModeKey, value),
+      settle: () async {
+        await _frame();
+        await _settle();
+      },
+    );
+  }
+
+  Future<Map<String, Object?>> _theme(Map<String, dynamic> c) async {
+    final HarnessThemeControl control = _themeControl();
+    if (c['restore'] is Map<String, dynamic>) {
+      return control.restore(c['restore'] as Map<String, dynamic>);
+    }
+    if (c['mode'] == null) return control.snapshot();
+    return control.change(c['mode'] as String);
+  }
+
+  Future<Map<String, Object?>> _shot(Map<String, dynamic> c) async {
+    await _frame();
+    final RenderView view = _view;
+    final ClientMetrics metrics = _clientMetrics();
+    final bool guarded = c['expect'] != null;
+    String? theme;
+    if (guarded) {
+      final Size requested = Size(
+        (c['width'] as num).toDouble(),
+        (c['height'] as num).toDouble(),
+      );
+      if (!metrics.matches(requested)) {
+        throw HarnessError(
+          'capture client dimensions differ',
+          <String, Object?>{
+            'requestedClient': <double>[requested.width, requested.height],
+            ...metrics.toJson(),
+          },
+        );
+      }
+      if (await windowManager.isMinimized()) {
+        throw HarnessError('a minimized window cannot be captured');
+      }
+      final Map<String, Object?> observed = _themeControl().snapshot();
+      theme = c['theme'] as String;
+      if (observed['mode'] != theme || observed['brightness'] != theme) {
+        throw HarnessError('capture theme differs', observed);
+      }
+      _assert(Map<String, dynamic>.from(c['expect'] as Map<Object?, Object?>));
+    }
+    final Layer? layer = view.layer;
+    if (layer is! OffsetLayer) {
+      throw HarnessError('the view has no image layer');
+    }
+    final ui.Image image = await captureLogicalView(view, layer);
+    try {
+      final ByteData? png = await image.toByteData(
+        format: ui.ImageByteFormat.png,
+      );
+      if (png == null) throw HarnessError('the engine returned no image');
+      if (guarded &&
+          (image.width != c['width'] || image.height != c['height'])) {
+        throw HarnessError('captured PNG dimensions differ', <String, int>{
+          'width': image.width,
+          'height': image.height,
+        });
+      }
+      // A resize or automatic route change during encoding invalidates this
+      // frame too. Never label it with the state that preceded capture.
+      if (guarded) {
+        final ClientMetrics after = _clientMetrics();
+        final Map<String, Object?> observed = _themeControl().snapshot();
+        if (!after.matches(metrics.logicalSize) ||
+            after.physicalSize != metrics.physicalSize ||
+            after.devicePixelRatio != metrics.devicePixelRatio ||
+            observed['brightness'] != theme ||
+            observed['mode'] != theme) {
+          throw HarnessError('capture state changed while encoding');
+        }
+        _assert(
+          Map<String, dynamic>.from(c['expect'] as Map<Object?, Object?>),
+        );
+      }
+      return <String, Object?>{
+        'width': image.width,
+        'height': image.height,
+        'scale': 1,
+        ...metrics.toJson(),
+        if (guarded) 'theme': theme,
+        if (guarded) 'asserted': true,
+        'png': base64Encode(
+          png.buffer.asUint8List(png.offsetInBytes, png.lengthInBytes),
+        ),
+      };
+    } finally {
+      image.dispose();
+    }
   }
 
   void _hookLogs() {
@@ -1436,18 +2008,35 @@ class HarnessAgent {
   }
 
   Future<Map<String, Object?>> _window(Map<String, dynamic> c) async {
-    if (c['width'] != null && c['height'] != null) {
-      await windowManager.setSize(
-        Size((c['width'] as num).toDouble(), (c['height'] as num).toDouble()),
-      );
+    final Object? original = c['restoreState'];
+    if (original is Map<String, dynamic>) {
+      return _restoreWindow(original);
     }
-    if (c['x'] != null && c['y'] != null) {
-      await windowManager.setPosition(
-        Offset((c['x'] as num).toDouble(), (c['y'] as num).toDouble()),
-      );
+    final bool resize = c['width'] != null || c['height'] != null;
+    if (resize && (c['width'] is! num || c['height'] is! num)) {
+      throw HarnessError('window needs both client width and height');
     }
-    switch (c['do'] as String?) {
+    if (resize) {
+      final num width = c['width'] as num;
+      final num height = c['height'] as num;
+      if (!width.isFinite ||
+          !height.isFinite ||
+          width <= 0 ||
+          height <= 0 ||
+          width > 16384 ||
+          height > 16384) {
+        throw HarnessError(
+          'client dimensions must be positive and at most 16384',
+        );
+      }
+    }
+    final String? action = c['do'] as String?;
+    if (resize && (action == 'minimize' || action == 'maximize')) {
+      throw HarnessError('client sizing needs a restored window');
+    }
+    switch (action) {
       case 'show':
+        if (await windowManager.isMinimized()) await windowManager.restore();
         await windowManager.show();
         await windowManager.focus();
       case 'minimize':
@@ -1456,18 +2045,108 @@ class HarnessAgent {
         await windowManager.maximize();
       case 'restore':
         await windowManager.restore();
+      case null:
+        break;
+      default:
+        throw HarnessError('unknown window action $action');
     }
-    await _settle();
+    ClientResizeResult? result;
+    if (resize) {
+      if (await windowManager.isMaximized() ||
+          await windowManager.isMinimized()) {
+        await windowManager.restore();
+        await _settle();
+      }
+      try {
+        result = await resizeClientArea(
+          requested: Size(
+            (c['width'] as num).toDouble(),
+            (c['height'] as num).toDouble(),
+          ),
+          readMetrics: _clientMetrics,
+          readOuter: windowManager.getSize,
+          setOuter: windowManager.setSize,
+          settle: () async {
+            await _frame();
+            await _settle();
+          },
+        );
+      } on ClientResizeError catch (e) {
+        throw HarnessError(e.toString(), e.result.toJson());
+      }
+    }
+    final Map<String, Object?> observed = await _windowSnapshot();
+    if (result != null && !_clientMetrics().matches(result.requested)) {
+      throw HarnessError(
+        'client dimensions changed before reporting',
+        <String, Object?>{
+          ...result.toJson(),
+          ...observed,
+          'clientMatched': false,
+        },
+      );
+    }
+    return <String, Object?>{
+      if (result != null) ...result.toJson(),
+      ...observed,
+    };
+  }
+
+  Future<Map<String, Object?>> _windowSnapshot() async {
     final Size size = await windowManager.getSize();
     final Offset pos = await windowManager.getPosition();
     return <String, Object?>{
-      'window': <int>[
-        pos.dx.round(),
-        pos.dy.round(),
-        size.width.round(),
-        size.height.round(),
+      'window': <double>[
+        pos.dx,
+        pos.dy,
+        size.width,
+        size.height,
       ],
+      ..._clientMetrics().toJson(),
       'minimized': await windowManager.isMinimized(),
+      'maximized': await windowManager.isMaximized(),
     };
+  }
+
+  Future<Map<String, Object?>> _restoreWindow(
+    Map<String, dynamic> state,
+  ) async {
+    final Object? raw = state['window'];
+    if (raw is! List ||
+        raw.length != 4 ||
+        raw.any((dynamic n) => n is! num || !n.isFinite) ||
+        state['minimized'] is! bool ||
+        state['maximized'] is! bool) {
+      throw HarnessError('invalid original window geometry');
+    }
+    final List<double> values = raw
+        .map((dynamic n) => (n as num).toDouble())
+        .toList();
+    if (values[2] <= 0 || values[3] <= 0) {
+      throw HarnessError('invalid original window size');
+    }
+    await windowManager.restore();
+    await windowManager.setSize(Size(values[2], values[3]));
+    await windowManager.setPosition(Offset(values[0], values[1]));
+    if (state['maximized'] == true) await windowManager.maximize();
+    if (state['minimized'] == true) await windowManager.minimize();
+    await _settle();
+    final Map<String, Object?> observed = await _windowSnapshot();
+    if (observed['maximized'] != state['maximized'] ||
+        observed['minimized'] != state['minimized']) {
+      throw HarnessError('original window mode was not restored', observed);
+    }
+    if (state['maximized'] == false && state['minimized'] == false) {
+      final List<double> actual = observed['window']! as List<double>;
+      for (int i = 0; i < values.length; i++) {
+        if ((actual[i] - values[i]).abs() >= 0.01) {
+          throw HarnessError(
+            'original window geometry was not restored',
+            observed,
+          );
+        }
+      }
+    }
+    return <String, Object?>{...observed, 'restored': true};
   }
 }

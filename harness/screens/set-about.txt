@@ -1,0 +1,12 @@
+# prerequisite: unlocked-home
+goto settings
+tap --key settings_about
+wait --key about_page --timeout 30
+assert --key about_strip
+assert --key about_version
+assert --key about_embedded_version
+assert --key about_build
+assert --key about_links_toggle
+assert --key about_computer_toggle
+assert --key about_licences_toggle
+assert --key about_update_gate
