@@ -98,8 +98,8 @@ HTLC work retain their original ownership and uncertainty boundaries. Password
 migration and full two-sided Swap terms remain behind registered seams.
 
 Six inert read-only presentation components can start before production wallet
-startup. They refuse wallet actions and shot evidence. The native capture
-adapter remains unavailable. Synthetic presentation, visible content and equal
+startup. They refuse wallet actions and shot evidence. At that initial source,
+the native capture adapter was unavailable. Synthetic presentation, visible content and equal
 theme values do not prove native preparation, restoration or a wallet capture.
 
 ### Harness follow-up checks
@@ -217,15 +217,98 @@ passed: formatting, strict two-file analysis with zero diagnostics, 105
 admission regressions without skips, root analysis and the diff check. The
 regressions include eighteen new offline fixture cases and 87 existing
 publication-session cases. Root analysis reports zero errors, zero warnings
-and the existing 1,322 infos. These tests acquired no signer and made no RPC
-request. A new hosted run must establish actual devnet behavior at this source.
+and the existing 1,322 infos. The eighteen new offline cases acquired no signer
+and made no RPC request. Source equality carries these local results to
+`d225317cce491b8c590a19571b8552ee982b66c5`.
+
+At that published head, attempt 1 of
+[Fast Validation 40018735731](https://github.com/edgepillar/syrius/actions/runs/40018735731)
+passed patched-package/application analysis, 4,015 unit/widget tests with one
+existing skip, and generation consistency.
+[Devnet qualification 40018730800](https://github.com/edgepillar/syrius/actions/runs/40018730800)
+advanced into the first Pillar registration stepper and failed because its
+isolated host lacked `SendTransactionBloc`. The earlier identity refusal did
+not recur. The devnet startup, readiness and teardown steps passed; later
+scenarios remain unqualified. Unchanged desktop builds and presentation checks
+were disabled for this fixture-only follow-up.
+
+### Native entry follow-up
+
+The authored follow-up adds two independent, default-off Windows lanes. The
+baseline lane records a bounded tool inventory, Windows doctor sections,
+locked restoration, actual Dart test terminal counts, generated-file
+correspondence and Debug/Release builds. It hashes the source and packaged
+embedded libraries and maps each in a separate Dart process to look up
+`RunNode` and `StopNode` without calling either export. Mapping can still run
+DLL initialization; this is separate from node startup or chain qualification.
+
+The entry lane builds the ordinary harness target in a fresh hosted profile.
+It requires the original Windows process, controller, view and native window,
+the actual first-show callback and a later native frame callback. Capture
+retains a real renderer image through its original PNG encoding operation
+while ordinary motion continues. Each attempt verifies the original entry,
+service, theme and preference owners and awaits actual restoration.
+
+Entry receipts require an explicit harness opt-in before startup. Ordinary
+production entry retains no route, State or controller in the registry. Late
+opt-in cannot adopt an existing entry session. An Import capture requires the
+original Welcome action's untouched empty route; edits, file offers, picker
+requests and source replacement revoke that proof. Restoration awaits the
+original navigation, route transition and controller disposal.
+
+The hosted controller admits only Welcome and empty Import in both themes at
+1280 by 780 logical pixels. It verifies bounded PNG structure and actual
+original process exit. Exactly four PNGs and a finite manifest may be uploaded;
+partial failure keeps an `UNKNOWN` manifest. Profiles, tokens, private owner
+identities and raw process output are excluded from these artifacts. These
+captures would establish entry evidence, not visual parity or full-wallet
+readiness.
+
+The same batch gives each isolated registration stepper one owning
+`SendTransactionBloc` provider while borrowing the original balance provider.
+The host retains its sender through rebuilds and closes only that sender on
+disposal. Production registration admission is unchanged.
+
+The local follow-up pins 34 inputs, including 23 Dart files and the four
+unchanged dependency/analyzer inputs. All 34 blobs match code commit
+`5f9faeb37c820e8817b075f0bf9a2850b8fb41f5`. The managed evidence task closed
+with outcome `SUCCESS`; the original command exited 0 with complete output,
+and the retained output digest was verified. These results come from the
+frozen source before that commit; source equality carries the evidence,
+rather than a fresh execution at a publication commit.
+
+| Check | Observed result |
+| --- | --- |
+| Formatting | 23 Dart files; exit 0 |
+| Strict follow-up analysis | Zero diagnostics; exit 0 |
+| Entry and registration-host gate | Six passed; no failures, errors or skips; exit 0 |
+| Python controllers | 90 finite cases passed; exit 0 |
+| Workflow semantics | Five documents; existing lanes preserved; new Windows lanes default off; five explicit artifact files |
+| Focused lifecycle regressions | 350 passed; no failures, errors or skips; exit 0 |
+| Root analysis with `--no-fatal-infos` | Zero errors, zero warnings, 1,314 infos; exit 0 |
+| Diff check | Exit 0 |
+| Full serial unit/widget suite | 4,051 passed, one existing skip; no failures or errors; exit 0 |
+
+The six-case gate observes actual Navigator pushes before waiting for those
+same routes to become visible. Provider teardown observes the original close
+Futures through finite real-queue turns. Neither correction weakens original
+ownership, late-opt-in refusal or disposal assertions. Earlier failed runs and
+the complete output from a failed summary-record attempt remain preserved.
+
+The owner selected the `docs/design/RULES.md` brand colours: green `#00D557`
+and blue `#0061EB`. Applying those values to the shared palette is a separate
+follow-up; it is not included in the qualified source above.
+
+Actual execution of the new Windows lanes remains pending. These offline
+results do not establish native behavior, successful Windows compilation of
+the new owner hooks, captured images or full-wallet restoration.
 
 ## Native acceptance gates
 
 | Required acceptance | Current evidence | Remaining gate |
 | --- | --- | --- |
-| Windows debug and release builds | Hosted builds passed at e67d0fab4c54 | Windows baseline and runtime portions remain separate below |
-| Windows baseline and embedded library | Successful native compilation | Inventory, doctor, Windows Dart tests, generated-file correspondence and explicit library mapping/export checks |
+| Windows debug and release builds | Hosted builds passed at e67d0fab4c54 | New owner hooks await hosted compilation; baseline and runtime portions remain separate below |
+| Windows baseline and embedded library | Hosted native builds at e67d0fab4c54 | Inventory, doctor, Windows Dart tests, generated-file correspondence and explicit library mapping/export checks at the follow-up source |
 | Running native harness | Hosted isolated Welcome/empty-Import presentation passes; source adapters and injected tests | Complete native wallet startup, tour and original owner lifecycle |
 | Isolated chain 321 send | Source scripts only | Producing owned devnet, imported harness-only profile and confirmed send |
 | 47 screens in both themes | 47 scripts with final assertions | All 94 actual captures, comparisons and independent pair review |
