@@ -125,6 +125,12 @@ jobs:
     name: Hosted Windows baseline
     runs-on: windows-latest
     timeout-minutes: 100
+    # Match the controllers' explicit isolation from system/global Git config.
+    # Apply this before checkout so CRLF conversion cannot create a false diff.
+    env:
+      GIT_CONFIG_COUNT: "1"
+      GIT_CONFIG_KEY_0: core.autocrlf
+      GIT_CONFIG_VALUE_0: "false"
     defaults:
       run:
         shell: bash
@@ -157,6 +163,10 @@ jobs:
     name: Ordinary Windows entry captures
     runs-on: windows-latest
     timeout-minutes: 35
+    env:
+      GIT_CONFIG_COUNT: "1"
+      GIT_CONFIG_KEY_0: core.autocrlf
+      GIT_CONFIG_VALUE_0: "false"
     defaults:
       run:
         shell: bash
