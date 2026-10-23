@@ -5,6 +5,7 @@ on:
     branches:
       - dev
   workflow_dispatch:
+  workflow_call:
 
 env:
   FLUTTER_VERSION: "3.47.7"

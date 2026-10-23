@@ -1,0 +1,115 @@
+name: Public Contribution Qualification
+run-name: Desktop redesign qualification at ${{ github.sha }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      desktop_builds:
+        description: Build Debug and Release on Linux, macOS and Windows
+        type: boolean
+        default: true
+      presentation_smoke:
+        description: Check isolated Windows presentation and actual process exit
+        type: boolean
+        default: true
+      devnet_tests:
+        description: Run the isolated Linux Docker devnet BDD tests
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+env:
+  FLUTTER_VERSION: "3.47.7"
+
+jobs:
+  desktop-builds:
+    if: inputs.desktop_builds
+    name: ${{ matrix.target }} Debug and Release
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            target: linux
+          - runner: macos-26
+            target: macos
+          - runner: windows-latest
+            target: windows
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout the dispatched source
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Record the exact source
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git rev-parse HEAD
+          git rev-parse 'HEAD^{tree}'
+
+      - name: Install Linux desktop dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev \
+            libnotify-dev libayatana-appindicator3-dev libsecret-1-dev \
+            libjsoncpp-dev
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Record the toolchain
+        run: flutter --version
+
+      - name: Restore locked dependencies
+        run: |
+          flutter pub get --enforce-lockfile
+          git diff --exit-code -- pubspec.lock analysis_options.yaml
+
+      - name: Generate source metadata
+        run: dart run tool/generate_git_metadata.dart
+
+      - name: Enable the desktop target
+        run: flutter config --enable-${{ matrix.target }}-desktop
+
+      # Both configurations share one runner and dependency cache. Compiling
+      # here does not establish native startup, capture or motion acceptance.
+      - name: Build Debug
+        run: flutter build ${{ matrix.target }} --debug --no-pub --dart-define-from-file=.dart_tool/git_metadata.json
+
+      - name: Build Release
+        run: flutter build ${{ matrix.target }} --release --no-pub --dart-define-from-file=.dart_tool/git_metadata.json
+
+      - name: Test the presentation controller
+        if: runner.os == 'Windows' && inputs.presentation_smoke
+        run: |
+          python --version
+          python -B -m unittest discover -s test/ci -p test_windows_presentation_smoke.py
+
+      - name: Build the isolated Windows presentation target
+        if: runner.os == 'Windows' && inputs.presentation_smoke
+        run: flutter build windows --debug --no-pub --target harness/app/main.dart --dart-define-from-file=.dart_tool/git_metadata.json
+
+      - name: Check isolated Windows presentation
+        if: runner.os == 'Windows' && inputs.presentation_smoke
+        timeout-minutes: 5
+        run: python -B tool/ci/windows_presentation_smoke.py
+
+      - name: Verify source inputs remain unchanged
+        run: git diff --exit-code -- pubspec.lock analysis_options.yaml assets/community-nodes.json
+
+  devnet-tests:
+    if: inputs.devnet_tests
+    uses: ./.github/workflows/blockchain-integration-tests.yml

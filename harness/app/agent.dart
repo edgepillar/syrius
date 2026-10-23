@@ -29,6 +29,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/tabs.dart';
 
 import '../seed/seed_recipe.dart' show requireSeedTokenPreparation;
+import 'capture_frame.dart';
 import 'client_window.dart';
 import 'fixtures/seed_commands.dart';
 import 'fixtures/seed_policy.dart';
@@ -295,17 +296,29 @@ class HarnessError implements Exception {
 
 class HarnessAgent {
   HarnessAgent._()
-    : _closePresentation = windowManager.close,
+    : _captureFrames = CaptureFrameGate(
+        waitForFrame: () => WidgetsBinding.instance.endOfFrame,
+      ),
+      _closePresentation = windowManager.close,
       _waitForPresentationClose = null;
 
   @visibleForTesting
   HarnessAgent.forTest({
     Future<void> Function()? closePresentation,
+    Future<void> Function()? waitForCaptureFrame,
+    Future<void> Function()? waitForCaptureFrameDeadline,
     this._waitForPresentationClose,
-  }) : _closePresentation = closePresentation ?? _refuseTestClose;
+  }) : _captureFrames = CaptureFrameGate(
+         waitForFrame: waitForCaptureFrame ?? _refuseTestCaptureFrame,
+         waitUntilDeadline: waitForCaptureFrameDeadline,
+       ),
+       _closePresentation = closePresentation ?? _refuseTestClose;
 
   static Future<void> _refuseTestClose() =>
       throw HarnessError('no test close callback was supplied');
+
+  static Future<void> _refuseTestCaptureFrame() =>
+      throw HarnessError('no test capture frame callback was supplied');
 
   /// Runs no server, timers, native window or app startup. Transport tests and
   /// production commands still go through the authenticated loopback server.
@@ -335,6 +348,7 @@ class HarnessAgent {
   bool _presentationRevoked = false;
   int _presentationEpoch = 0;
   int _presentationRevision = 0;
+  final CaptureFrameGate _captureFrames;
   final Future<void> Function() _closePresentation;
   final Future<void> Function()? _waitForPresentationClose;
   bool _presentationCloseReserved = false;
@@ -343,6 +357,10 @@ class HarnessAgent {
   @visibleForTesting
   PresentationCloseAttempt? get presentationCloseForTest =>
       _presentationCloseAttempt;
+
+  /// Exposes the original receipt without a native readback or HTTP payload.
+  @visibleForTesting
+  CaptureFrameReceipt? get captureFrameForTest => _captureFrames.receipt;
 
   static HarnessAgent get instance => _instance;
 
@@ -628,9 +646,7 @@ class HarnessAgent {
     return attempt.snapshot();
   }
 
-  Future<Map<String, Object?>> _runWalletCommand(
-    Map<String, dynamic> c,
-  ) async {
+  Future<Map<String, Object?>> _runWalletCommand(Map<String, dynamic> c) async {
     switch (c['cmd'] as String? ?? 'ping') {
       case 'ping':
         return <String, Object?>{
@@ -789,9 +805,7 @@ class HarnessAgent {
     if (w is ErrorWidget) {
       final Rect? r = _rectOf(e);
       if (r != null) {
-        out.add(
-          _Node('error', type, e, r, n.path)..parts.add(w.message),
-        );
+        out.add(_Node('error', type, e, r, n.path)..parts.add(w.message));
       }
       return;
     }
@@ -1538,11 +1552,7 @@ class HarnessAgent {
     EditableTextState? state;
     _Node? node;
     if (c['at'] != null || _hasSelector(c)) {
-      node = _find(
-        c,
-        kinds: const <String>['field'],
-        only: true,
-      );
+      node = _find(c, kinds: const <String>['field'], only: true);
       if (!node.enabled) throw HarnessError('read-only field', node.toJson());
       if (!_reachable(node, node.center)) {
         throw HarnessError('covered by something else', node.toJson());
@@ -1579,53 +1589,44 @@ class HarnessAgent {
     };
   }
 
-  static final Map<String, (LogicalKeyboardKey, PhysicalKeyboardKey)> _keys =
-      <String, (LogicalKeyboardKey, PhysicalKeyboardKey)>{
-        'enter': (LogicalKeyboardKey.enter, PhysicalKeyboardKey.enter),
-        'tab': (LogicalKeyboardKey.tab, PhysicalKeyboardKey.tab),
-        'escape': (LogicalKeyboardKey.escape, PhysicalKeyboardKey.escape),
-        'space': (LogicalKeyboardKey.space, PhysicalKeyboardKey.space),
-        'backspace': (
-          LogicalKeyboardKey.backspace,
-          PhysicalKeyboardKey.backspace,
-        ),
-        'delete': (LogicalKeyboardKey.delete, PhysicalKeyboardKey.delete),
-        'up': (LogicalKeyboardKey.arrowUp, PhysicalKeyboardKey.arrowUp),
-        'down': (LogicalKeyboardKey.arrowDown, PhysicalKeyboardKey.arrowDown),
-        'left': (LogicalKeyboardKey.arrowLeft, PhysicalKeyboardKey.arrowLeft),
-        'right': (
-          LogicalKeyboardKey.arrowRight,
-          PhysicalKeyboardKey.arrowRight,
-        ),
-        'home': (LogicalKeyboardKey.home, PhysicalKeyboardKey.home),
-        'end': (LogicalKeyboardKey.end, PhysicalKeyboardKey.end),
-        'pageup': (LogicalKeyboardKey.pageUp, PhysicalKeyboardKey.pageUp),
-        'pagedown': (LogicalKeyboardKey.pageDown, PhysicalKeyboardKey.pageDown),
-        'shift': (LogicalKeyboardKey.shiftLeft, PhysicalKeyboardKey.shiftLeft),
-        'ctrl': (
-          LogicalKeyboardKey.controlLeft,
-          PhysicalKeyboardKey.controlLeft,
-        ),
-        'alt': (LogicalKeyboardKey.altLeft, PhysicalKeyboardKey.altLeft),
-        'a': (LogicalKeyboardKey.keyA, PhysicalKeyboardKey.keyA),
-        'c': (LogicalKeyboardKey.keyC, PhysicalKeyboardKey.keyC),
-        'h': (LogicalKeyboardKey.keyH, PhysicalKeyboardKey.keyH),
-        'k': (LogicalKeyboardKey.keyK, PhysicalKeyboardKey.keyK),
-        'l': (LogicalKeyboardKey.keyL, PhysicalKeyboardKey.keyL),
-        'r': (LogicalKeyboardKey.keyR, PhysicalKeyboardKey.keyR),
-        'v': (LogicalKeyboardKey.keyV, PhysicalKeyboardKey.keyV),
-        'x': (LogicalKeyboardKey.keyX, PhysicalKeyboardKey.keyX),
-        'z': (LogicalKeyboardKey.keyZ, PhysicalKeyboardKey.keyZ),
-        ',': (LogicalKeyboardKey.comma, PhysicalKeyboardKey.comma),
-        '1': (LogicalKeyboardKey.digit1, PhysicalKeyboardKey.digit1),
-        '2': (LogicalKeyboardKey.digit2, PhysicalKeyboardKey.digit2),
-        '3': (LogicalKeyboardKey.digit3, PhysicalKeyboardKey.digit3),
-        '4': (LogicalKeyboardKey.digit4, PhysicalKeyboardKey.digit4),
-        '5': (LogicalKeyboardKey.digit5, PhysicalKeyboardKey.digit5),
-        '6': (LogicalKeyboardKey.digit6, PhysicalKeyboardKey.digit6),
-        '7': (LogicalKeyboardKey.digit7, PhysicalKeyboardKey.digit7),
-        '8': (LogicalKeyboardKey.digit8, PhysicalKeyboardKey.digit8),
-      };
+  static final Map<String, (LogicalKeyboardKey, PhysicalKeyboardKey)>
+  _keys = <String, (LogicalKeyboardKey, PhysicalKeyboardKey)>{
+    'enter': (LogicalKeyboardKey.enter, PhysicalKeyboardKey.enter),
+    'tab': (LogicalKeyboardKey.tab, PhysicalKeyboardKey.tab),
+    'escape': (LogicalKeyboardKey.escape, PhysicalKeyboardKey.escape),
+    'space': (LogicalKeyboardKey.space, PhysicalKeyboardKey.space),
+    'backspace': (LogicalKeyboardKey.backspace, PhysicalKeyboardKey.backspace),
+    'delete': (LogicalKeyboardKey.delete, PhysicalKeyboardKey.delete),
+    'up': (LogicalKeyboardKey.arrowUp, PhysicalKeyboardKey.arrowUp),
+    'down': (LogicalKeyboardKey.arrowDown, PhysicalKeyboardKey.arrowDown),
+    'left': (LogicalKeyboardKey.arrowLeft, PhysicalKeyboardKey.arrowLeft),
+    'right': (LogicalKeyboardKey.arrowRight, PhysicalKeyboardKey.arrowRight),
+    'home': (LogicalKeyboardKey.home, PhysicalKeyboardKey.home),
+    'end': (LogicalKeyboardKey.end, PhysicalKeyboardKey.end),
+    'pageup': (LogicalKeyboardKey.pageUp, PhysicalKeyboardKey.pageUp),
+    'pagedown': (LogicalKeyboardKey.pageDown, PhysicalKeyboardKey.pageDown),
+    'shift': (LogicalKeyboardKey.shiftLeft, PhysicalKeyboardKey.shiftLeft),
+    'ctrl': (LogicalKeyboardKey.controlLeft, PhysicalKeyboardKey.controlLeft),
+    'alt': (LogicalKeyboardKey.altLeft, PhysicalKeyboardKey.altLeft),
+    'a': (LogicalKeyboardKey.keyA, PhysicalKeyboardKey.keyA),
+    'c': (LogicalKeyboardKey.keyC, PhysicalKeyboardKey.keyC),
+    'h': (LogicalKeyboardKey.keyH, PhysicalKeyboardKey.keyH),
+    'k': (LogicalKeyboardKey.keyK, PhysicalKeyboardKey.keyK),
+    'l': (LogicalKeyboardKey.keyL, PhysicalKeyboardKey.keyL),
+    'r': (LogicalKeyboardKey.keyR, PhysicalKeyboardKey.keyR),
+    'v': (LogicalKeyboardKey.keyV, PhysicalKeyboardKey.keyV),
+    'x': (LogicalKeyboardKey.keyX, PhysicalKeyboardKey.keyX),
+    'z': (LogicalKeyboardKey.keyZ, PhysicalKeyboardKey.keyZ),
+    ',': (LogicalKeyboardKey.comma, PhysicalKeyboardKey.comma),
+    '1': (LogicalKeyboardKey.digit1, PhysicalKeyboardKey.digit1),
+    '2': (LogicalKeyboardKey.digit2, PhysicalKeyboardKey.digit2),
+    '3': (LogicalKeyboardKey.digit3, PhysicalKeyboardKey.digit3),
+    '4': (LogicalKeyboardKey.digit4, PhysicalKeyboardKey.digit4),
+    '5': (LogicalKeyboardKey.digit5, PhysicalKeyboardKey.digit5),
+    '6': (LogicalKeyboardKey.digit6, PhysicalKeyboardKey.digit6),
+    '7': (LogicalKeyboardKey.digit7, PhysicalKeyboardKey.digit7),
+    '8': (LogicalKeyboardKey.digit8, PhysicalKeyboardKey.digit8),
+  };
 
   bool _dispatchKey(KeyEvent e) {
     HardwareKeyboard.instance.handleKeyEvent(e);
@@ -1801,6 +1802,9 @@ class HarnessAgent {
   }
 
   Future<Map<String, Object?>> _theme(Map<String, dynamic> c) async {
+    if (c['mode'] != null || c.containsKey('restore')) {
+      _requireCaptureFrameIdle();
+    }
     final HarnessThemeControl control = _themeControl();
     if (c['restore'] is Map<String, dynamic>) {
       return control.restore(c['restore'] as Map<String, dynamic>);
@@ -1810,7 +1814,30 @@ class HarnessAgent {
   }
 
   Future<Map<String, Object?>> _shot(Map<String, dynamic> c) async {
+    _requireCaptureFrameIdle();
+    if (c['expect'] != null) {
+      try {
+        return await _captureFrames.capture<Map<String, Object?>>(
+          () => _readShot(c),
+        );
+      } on CaptureFrameRefused {
+        throw HarnessError('the original capture frame is unavailable');
+      }
+    }
     await _frame();
+    _requireCaptureFrameIdle();
+    return _readShot(c);
+  }
+
+  void _requireCaptureFrameIdle() {
+    try {
+      _captureFrames.requireIdle();
+    } on CaptureFrameRefused {
+      throw HarnessError('the original capture frame is unavailable');
+    }
+  }
+
+  Future<Map<String, Object?>> _readShot(Map<String, dynamic> c) async {
     final RenderView view = _view;
     final ClientMetrics metrics = _clientMetrics();
     final bool guarded = c['expect'] != null;
@@ -2096,12 +2123,7 @@ class HarnessAgent {
     final Size size = await windowManager.getSize();
     final Offset pos = await windowManager.getPosition();
     return <String, Object?>{
-      'window': <double>[
-        pos.dx,
-        pos.dy,
-        size.width,
-        size.height,
-      ],
+      'window': <double>[pos.dx, pos.dy, size.width, size.height],
       ..._clientMetrics().toJson(),
       'minimized': await windowManager.isMinimized(),
       'maximized': await windowManager.isMaximized(),

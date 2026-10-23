@@ -13,6 +13,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+import 'fixture_cleanup.dart';
 import 'seed_policy.dart';
 
 /// Only the harness imports this route. It supplies presentation data locally;
@@ -23,12 +24,16 @@ class SeedPresentationFixture extends StatefulWidget {
     required this.owner,
     required this.originalSdk,
     required this.isCurrent,
+    required this.cleanup,
     super.key,
   });
   final String kind;
   final String owner;
   final Zenon originalSdk;
   final bool Function() isCurrent;
+
+  /// The original admission, retained after this route becomes inactive.
+  final FixtureCleanup cleanup;
   @override
   State<SeedPresentationFixture> createState() =>
       _SeedPresentationFixtureState();
@@ -40,11 +45,14 @@ class _SeedPresentationFixtureState extends State<SeedPresentationFixture> {
   PlasmaOwnerController? _fusions;
   Timer? _scopeClock;
   bool _expired = false;
+  late final FixtureCleanup _cleanup;
   late final SentinelInfo _sentinel;
   bool get _current => mounted && !_expired && widget.isCurrent();
   @override
   void initState() {
     super.initState();
+    _cleanup = widget.cleanup;
+    _cleanup.attach(this);
     _sentinel = SentinelInfo.fromJson(<String, dynamic>{
       'owner': widget.owner,
       'registrationTimestamp': 1625132800,
@@ -57,7 +65,8 @@ class _SeedPresentationFixtureState extends State<SeedPresentationFixture> {
         sdk: widget.originalSdk,
         rows: <SentinelInfo>[_sentinel],
         current: () => _current,
-      )..add(const InfiniteListRequested());
+      );
+      _sentinels!.add(const InfiniteListRequested());
     } else if (widget.kind == 'aged-fuse') {
       _sender = _FixtureSender();
       _fusions = PlasmaOwnerController(
@@ -116,13 +125,22 @@ class _SeedPresentationFixtureState extends State<SeedPresentationFixture> {
   @override
   void dispose() {
     _expired = true;
-    _scopeClock?.cancel();
-    _fusions?.dispose();
+    final Timer? clock = _scopeClock;
+    final PlasmaOwnerController? fusions = _fusions;
     final _FixtureSentinels? sentinels = _sentinels;
     final _FixtureSender? sender = _sender;
-    if (sentinels != null) unawaited(sentinels.close());
-    if (sender != null) unawaited(sender.close());
-    super.dispose();
+    _cleanup.dispose(
+      owner: this,
+      dispose: <void Function()>[
+        if (clock != null) clock.cancel,
+        if (fusions != null) fusions.dispose,
+      ],
+      close: <Future<void> Function()>[
+        if (sentinels != null) sentinels.close,
+        if (sender != null) sender.close,
+      ],
+      stateDisposed: () => super.dispose(),
+    );
   }
 
   @override

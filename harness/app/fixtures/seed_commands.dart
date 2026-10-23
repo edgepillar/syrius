@@ -1,23 +1,33 @@
-import 'dart:async';
-
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../../seed/seed_recipe.dart';
+import 'fixture_cleanup.dart';
 import 'lab_seed_binding.dart';
 import 'presentation_fixtures.dart';
 import 'seed_policy.dart';
 
 /// Reached only through the harness's authenticated, serial command queue.
 final class SeedCommands {
+  /// Captures real bindings only when an explicit begin command is admitted.
+  SeedCommands();
+
+  /// Injects inert lifecycle and policy owners without capturing a wallet.
+  @visibleForTesting
+  SeedCommands.withFixtureAdmission({
+    required FixtureCleanup this._fixture,
+    required SeedGuard this._guard,
+    required String this._recipe,
+    this._confirmed = false,
+  }) : _source = _guard.source;
+
   SeedGuard? _guard;
-  LabSeedBinding? _source;
+  SeedSource? _source;
   String? _recipe;
   bool _confirmed = false;
-  Route<void>? _fixture;
-  String? _fixtureName;
-  String? get fixtureName => _fixture?.isActive == true ? _fixtureName : null;
+  FixtureCleanup? _fixture;
+  String? get fixtureName => _fixture?.heldName;
 
   Future<Map<String, Object?>> run(
     Map<String, dynamic> command, {
@@ -31,10 +41,10 @@ final class SeedCommands {
   }) async {
     try {
       final String? action = command['action'] as String?;
+      if (<String>{'begin', 'fixture', 'prepare', 'publish'}.contains(action)) {
+        _requireFixtureClear();
+      }
       if (action == 'begin' || action == 'fixture') {
-        if (fixtureName != null) {
-          throw const SeedRefused('close-current-fixture-first');
-        }
         final String profile = command['profile'] as String? ?? '';
         final LabSeedBinding source = LabSeedBinding.capture(
           profile: profile,
@@ -71,14 +81,20 @@ final class SeedCommands {
       }
       final SeedGuard? guard = _guard;
       final String? recipe = _recipe;
-      final LabSeedBinding? source = _source;
+      final SeedSource? source = _source;
       if (guard == null || recipe == null || source == null) {
         throw const SeedRefused('explicit-seed-begin-required');
       }
       guard.requireCurrent();
       if (action == 'check') return <String, Object?>{'current': true};
       if (action == 'prepare') {
-        guard.requirePreparation();
+        void requirePreparation() {
+          _requireFixtureClear();
+          guard.requirePreparation();
+          _requireFixtureClear();
+        }
+
+        requirePreparation();
         final Object? raw = command['selector'];
         if (raw is! List || raw.any((Object? value) => value is! String)) {
           throw const SeedRefused('seed-preparation-selector-refused');
@@ -97,13 +113,13 @@ final class SeedCommands {
             target['ref'] is! int) {
           throw const SeedRefused('enabled-preparation-control-required');
         }
-        guard.requirePreparation();
+        requirePreparation();
         await tap(<String, dynamic>{
           'cmd': 'tap',
           'ref': target['ref'],
           if (recipe == 'token' && exact['key'] == 'token_create_continue')
             'seedTokenPreparation': true,
-        }, guard.requirePreparation);
+        }, requirePreparation);
         return <String, Object?>{'prepared': true};
       }
       if (action == 'finish') {
@@ -117,6 +133,13 @@ final class SeedCommands {
       if (action != 'publish' || _confirmed) {
         throw const SeedRefused('seed-command-refused');
       }
+      void requirePublication() {
+        _requireFixtureClear();
+        guard.requireCurrent();
+        _requireFixtureClear();
+      }
+
+      requirePublication();
       final String nativeStandard = znnZts.toString();
       final List<String> selector = seedPublishSelector(recipe);
       final Map<String, dynamic> exact = selector.first == '--key'
@@ -145,8 +168,9 @@ final class SeedCommands {
       // This internal ref retains the actual asserted element across the
       // advancing-frontier wait. A similarly labelled replacement is refused.
       final int originalRef = target['ref'] as int;
-      guard.requireCurrent();
+      requirePublication();
       final String hash = await guard.publish(recipe, () async {
+        requirePublication();
         await tap(<String, dynamic>{
           'cmd': 'tap',
           'ref': originalRef,
@@ -156,7 +180,7 @@ final class SeedCommands {
             'seedToken': nativeStandard,
             'seedAmount': '1000000000',
           },
-        }, guard.requireCurrent);
+        }, requirePublication);
       });
       _confirmed = true;
       return <String, Object?>{
@@ -169,6 +193,12 @@ final class SeedCommands {
     } on Object {
       // Do not return wallet paths, transport diagnostics or SDK payloads.
       throw const SeedRefused('seed-prerequisite-or-read-failed');
+    }
+  }
+
+  void _requireFixtureClear() {
+    if (fixtureName != null) {
+      throw const SeedRefused('close-current-fixture-first');
     }
   }
 
@@ -191,6 +221,7 @@ final class SeedCommands {
         !identical(navigator, app.globalNavigatorKey.currentState)) {
       throw const SeedRefused('fixture-route-changed');
     }
+    final FixtureCleanup cleanup = FixtureCleanup(name: kind);
     late final MaterialPageRoute<void> route;
     route = MaterialPageRoute<void>(
       builder: (_) => SeedPresentationFixture(
@@ -198,24 +229,15 @@ final class SeedCommands {
         owner: source.environment.owner,
         originalSdk: source.originalSdk,
         isCurrent: () => source.isCurrent && route.isActive,
+        cleanup: cleanup,
       ),
     );
-    _fixture = route;
-    _fixtureName = kind;
-    final Future<void> closed = navigator.push<void>(route);
-    unawaited(_watchFixture(route, closed));
+    _fixture = cleanup;
+    cleanup.open(
+      routeCompleted: route.completed,
+      push: () => navigator.push<void>(route),
+    );
     return <String, Object?>{'fixture': kind, 'readOnly': true, 'chain': 321};
-  }
-
-  Future<void> _watchFixture(Route<void> route, Future<void> closed) async {
-    try {
-      await closed;
-    } finally {
-      if (identical(_fixture, route)) {
-        _fixture = null;
-        _fixtureName = null;
-      }
-    }
   }
 }
 

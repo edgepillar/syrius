@@ -1,0 +1,544 @@
+import 'dart:async';
+
+import 'package:flutter_test/flutter_test.dart';
+
+import '../../harness/app/fixtures/fixture_cleanup.dart';
+import '../../harness/app/fixtures/seed_commands.dart';
+import '../../harness/app/fixtures/seed_policy.dart';
+
+String _hash(int value) => value.toRadixString(16).padLeft(64, '0');
+
+Future<void> _turns() async {
+  for (int turn = 0; turn < 8; turn++) {
+    await Future<void>.value();
+  }
+}
+
+Matcher _refused(String code) => throwsA(
+  isA<SeedRefused>().having((SeedRefused error) => error.code, 'code', code),
+);
+
+Map<String, Object?> _target() => <String, Object?>{
+  'target': <String, Object?>{'ref': 7, 'enabled': true},
+};
+
+Future<Map<String, Object?>> _run(
+  SeedCommands commands,
+  String action, {
+  Future<Map<String, Object?>> Function(Map<String, dynamic>)? ui,
+  Future<Map<String, Object?>> Function(
+    Map<String, dynamic>,
+    void Function(),
+  )?
+  tap,
+}) => commands.run(
+  <String, dynamic>{
+    'action': action,
+    if (action == 'prepare')
+      'selector': <String>['--key', 'staking_stake_button'],
+  },
+  booted: false,
+  ui: ui ?? (_) async => throw StateError('Unexpected UI access'),
+  tap: tap ?? (_, _) async => throw StateError('Unexpected pointer access'),
+);
+
+class _Original implements SeedOriginal {
+  @override
+  final Object identity = Object();
+  @override
+  bool get settled => true;
+  @override
+  bool get failed => false;
+  @override
+  bool get releaseFailed => false;
+  @override
+  String get acceptedHash => _hash(9);
+}
+
+class _Journal implements SeedJournal {
+  int claims = 0;
+  String? acceptedHash;
+  String? confirmedHash;
+
+  @override
+  void requireAvailable(String recipe) {
+    if (claims != 0) throw const SeedRefused('original-attempt-held');
+  }
+
+  @override
+  void claim(String recipe) {
+    requireAvailable(recipe);
+    claims++;
+  }
+
+  @override
+  void accepted(String recipe, String hash) => acceptedHash = hash;
+
+  @override
+  void confirmed(String recipe, String hash) => confirmedHash = hash;
+}
+
+/// Policy inputs are synthetic values, without an SDK, wallet or transport.
+class _Source implements SeedSource {
+  @override
+  final SeedEnvironment environment = SeedEnvironment(
+    profile: 'fixture-policy',
+    isolated: true,
+    unlocked: true,
+    initialized: true,
+    booted: true,
+    ws: seedWsOrigin,
+    http: seedHttpOrigin,
+    nodeChain: 321,
+    signingChain: 321,
+    selectedIndex: 1,
+    owner: 'owner',
+    members: <String>['producer', 'owner'],
+  );
+  @override
+  bool isCurrent = true;
+  int reads = 0;
+  int confirmations = 0;
+  int _wsHeight = 10;
+  int _httpHeight = 10;
+  void Function()? onRead;
+  final List<SeedOriginal> operations = <SeedOriginal>[];
+
+  Future<void> delay(Duration _) async {}
+
+  SeedFrontier _frontier(int height) {
+    reads++;
+    onRead?.call();
+    return SeedFrontier(
+      chain: 321,
+      height: height,
+      timestamp: height + 100,
+      hash: _hash(height),
+    );
+  }
+
+  @override
+  Future<SeedFrontier> wsFrontier() async => _frontier(++_wsHeight);
+  @override
+  Future<SeedFrontier> httpFrontier() async => _frontier(++_httpHeight);
+  @override
+  Future<bool> sameMomentum(SeedFrontier _) async => true;
+  @override
+  Future<SeedFunding> funding() async => SeedFunding(BigInt.one, BigInt.one);
+  @override
+  SeedFunding minimum(String _) => SeedFunding(BigInt.one, BigInt.one);
+  @override
+  List<SeedOriginal> originals() => List<SeedOriginal>.unmodifiable(operations);
+  @override
+  Future<SeedConfirmed?> confirmed(String recipe, String hash) async {
+    confirmations++;
+    return SeedConfirmed(
+      hash: hash,
+      owner: environment.owner,
+      chain: 321,
+      positiveConfirmation: true,
+      matchesRecipe: true,
+    );
+  }
+
+  @override
+  Future<bool> effect(String recipe, String hash) async => true;
+}
+
+class _Fixture {
+  _Fixture() {
+    cleanup
+      ..open(routeCompleted: route.future, push: () => popped.future)
+      ..attach(owner);
+  }
+
+  final Completer<void> route = Completer<void>();
+  final Completer<void> popped = Completer<void>();
+  final Completer<void> close = Completer<void>();
+  final Object owner = Object();
+  final FixtureCleanup cleanup = FixtureCleanup(name: 'sentinel');
+  int disposals = 0;
+  int closes = 0;
+
+  void retire() {
+    cleanup.dispose(
+      owner: owner,
+      dispose: <void Function()>[],
+      close: <Future<void> Function()>[_close],
+      stateDisposed: _disposed,
+    );
+    route.complete();
+    popped.complete();
+  }
+
+  Future<void> allow() async {
+    retire();
+    close.complete();
+    await _turns();
+    expect(cleanup.heldName, isNull);
+  }
+
+  void holdAgain() {
+    expect(() => cleanup.attach(Object()), throwsStateError);
+    expect(cleanup.heldName, 'sentinel');
+  }
+
+  Future<void> _close() {
+    closes++;
+    return close.future;
+  }
+
+  void _disposed() => disposals++;
+}
+
+void main() {
+  for (final String phase in <String>['active', 'pending', 'failed']) {
+    test(
+      '$phase fixture refuses every mutating seed action before UI or binding',
+      () async {
+        final _Fixture fixture = _Fixture();
+        final _Source source = _Source();
+        final _Journal journal = _Journal();
+        final SeedGuard guard = SeedGuard(
+          source: source,
+          journal: journal,
+          delay: source.delay,
+        );
+        final SeedCommands commands = SeedCommands.withFixtureAdmission(
+          fixture: fixture.cleanup,
+          guard: guard,
+          recipe: 'stake',
+        );
+        if (phase != 'active') fixture.retire();
+        if (phase == 'failed') {
+          fixture.close.completeError(
+            StateError('Synthetic original cleanup failure'),
+            StackTrace.current,
+          );
+        }
+        await _turns();
+        for (final String action in <String>[
+          'begin',
+          'fixture',
+          'prepare',
+          'publish',
+        ]) {
+          await expectLater(
+            _run(commands, action),
+            _refused('close-current-fixture-first'),
+          );
+        }
+        expect(source.reads, 0);
+        expect(journal.claims, 0);
+        expect(guard.acceptedHash, isNull);
+        expect(guard.requirePreparation, returnsNormally);
+        expect(await _run(commands, 'check'), <String, Object?>{
+          'current': true,
+        });
+        await expectLater(
+          _run(commands, 'finish'),
+          _refused('exact-confirmation-required'),
+        );
+        expect(commands.fixtureName, 'sentinel');
+        if (phase == 'active') fixture.retire();
+        if (!fixture.close.isCompleted) fixture.close.complete();
+        await _turns();
+        expect(fixture.disposals, 1);
+        expect(fixture.closes, 1);
+      },
+    );
+  }
+
+  test(
+    'successful original cleanup permits the retained unattempted recipe',
+    () async {
+      final _Fixture fixture = _Fixture();
+      await fixture.allow();
+      final _Source source = _Source();
+      final _Journal journal = _Journal();
+      final SeedGuard guard = SeedGuard(
+        source: source,
+        journal: journal,
+        delay: source.delay,
+      );
+      final SeedCommands commands = SeedCommands.withFixtureAdmission(
+        fixture: fixture.cleanup,
+        guard: guard,
+        recipe: 'stake',
+      );
+      int effects = 0;
+      expect(
+        await _run(
+          commands,
+          'prepare',
+          ui: (_) async => _target(),
+          tap: (_, void Function() admission) async {
+            admission();
+            effects++;
+            admission();
+            return <String, Object?>{};
+          },
+        ),
+        <String, Object?>{'prepared': true},
+      );
+      expect(effects, 1);
+      expect(source.reads, 0);
+      expect(journal.claims, 0);
+      expect(guard.requirePreparation, returnsNormally);
+      expect(
+        await _run(
+          commands,
+          'publish',
+          ui: (_) async => _target(),
+          tap: (_, void Function() admission) async {
+            admission();
+            effects++;
+            source.operations.add(_Original());
+            admission();
+            return <String, Object?>{};
+          },
+        ),
+        <String, Object?>{
+          'confirmed': true,
+          'recipe': 'stake',
+          'hash': _hash(9),
+        },
+      );
+      expect(effects, 2);
+      expect(journal.claims, 1);
+      expect(guard.acceptedHash, _hash(9));
+      expect(await _run(commands, 'finish'), <String, Object?>{
+        'confirmed': true,
+        'recipe': 'stake',
+        'hash': _hash(9),
+      });
+      await expectLater(
+        _run(commands, 'prepare'),
+        _refused('original-attempt-held'),
+      );
+      await expectLater(
+        _run(commands, 'publish'),
+        _refused('seed-command-refused'),
+      );
+      expect(journal.claims, 1);
+      expect(source.operations, hasLength(1));
+    },
+  );
+
+  test('held cleanup leaves the original confirmed hash readable', () async {
+    final _Source source = _Source();
+    final _Journal journal = _Journal();
+    final SeedGuard guard = SeedGuard(
+      source: source,
+      journal: journal,
+      delay: source.delay,
+    );
+    final String originalHash = await guard.publish('stake', () async {
+      source.operations.add(_Original());
+    });
+    final _Fixture fixture = _Fixture()..retire();
+    final SeedCommands commands = SeedCommands.withFixtureAdmission(
+      fixture: fixture.cleanup,
+      guard: guard,
+      recipe: 'stake',
+      confirmed: true,
+    );
+    final int originalReads = source.reads;
+    for (int observation = 0; observation < 2; observation++) {
+      if (observation == 1) {
+        fixture.close.completeError(
+          StateError('Synthetic late original cleanup failure'),
+          StackTrace.current,
+        );
+        await _turns();
+      }
+      expect(await _run(commands, 'check'), <String, Object?>{'current': true});
+      expect(await _run(commands, 'finish'), <String, Object?>{
+        'confirmed': true,
+        'recipe': 'stake',
+        'hash': originalHash,
+      });
+      await expectLater(
+        _run(commands, 'publish'),
+        _refused('close-current-fixture-first'),
+      );
+      expect(guard.acceptedHash, originalHash);
+      expect(journal.acceptedHash, originalHash);
+      expect(journal.confirmedHash, originalHash);
+      expect(journal.claims, 1);
+      expect(source.reads, originalReads);
+      expect(source.operations, hasLength(1));
+    }
+  });
+
+  for (final String action in <String>['prepare', 'publish']) {
+    test(
+      '$action rechecks fixture admission after its original UI assertion',
+      () async {
+        final _Fixture fixture = _Fixture();
+        await fixture.allow();
+        final _Source source = _Source();
+        final _Journal journal = _Journal();
+        final SeedGuard guard = SeedGuard(
+          source: source,
+          journal: journal,
+          delay: source.delay,
+        );
+        final SeedCommands commands = SeedCommands.withFixtureAdmission(
+          fixture: fixture.cleanup,
+          guard: guard,
+          recipe: 'stake',
+        );
+        int taps = 0;
+        await expectLater(
+          _run(
+            commands,
+            action,
+            ui: (_) async {
+              fixture.holdAgain();
+              return _target();
+            },
+            tap: (_, _) async {
+              taps++;
+              return <String, Object?>{};
+            },
+          ),
+          _refused('close-current-fixture-first'),
+        );
+        expect(taps, 0);
+        expect(source.reads, 0);
+        expect(journal.claims, 0);
+        expect(guard.requirePreparation, returnsNormally);
+      },
+    );
+
+    test(
+      '$action rechecks held admission in the original pointer callback',
+      () async {
+        final _Fixture fixture = _Fixture();
+        await fixture.allow();
+        final _Source source = _Source();
+        final _Journal journal = _Journal();
+        final SeedGuard guard = SeedGuard(
+          source: source,
+          journal: journal,
+          delay: source.delay,
+        );
+        final SeedCommands commands = SeedCommands.withFixtureAdmission(
+          fixture: fixture.cleanup,
+          guard: guard,
+          recipe: 'stake',
+        );
+        int taps = 0;
+        int effects = 0;
+        await expectLater(
+          _run(
+            commands,
+            action,
+            ui: (_) async => _target(),
+            tap: (_, void Function() admission) async {
+              taps++;
+              admission();
+              fixture.holdAgain();
+              admission();
+              effects++;
+              return <String, Object?>{};
+            },
+          ),
+          _refused('close-current-fixture-first'),
+        );
+        expect(taps, 1);
+        expect(effects, 0);
+        expect(journal.claims, action == 'publish' ? 1 : 0);
+        if (action == 'publish') {
+          expect(guard.requirePreparation, _refused('original-attempt-held'));
+        } else {
+          expect(guard.requirePreparation, returnsNormally);
+        }
+        expect(source.operations, isEmpty);
+        expect(guard.acceptedHash, isNull);
+        expect(await _run(commands, 'check'), <String, Object?>{
+          'current': true,
+        });
+      },
+    );
+  }
+
+  test(
+    'publication refuses a late held fixture before invoking its original tap',
+    () async {
+      final _Fixture fixture = _Fixture();
+      await fixture.allow();
+      final _Source source = _Source();
+      source.onRead = () {
+        source.onRead = null;
+        fixture.holdAgain();
+      };
+      final _Journal journal = _Journal();
+      final SeedGuard guard = SeedGuard(
+        source: source,
+        journal: journal,
+        delay: source.delay,
+      );
+      final SeedCommands commands = SeedCommands.withFixtureAdmission(
+        fixture: fixture.cleanup,
+        guard: guard,
+        recipe: 'stake',
+      );
+      int taps = 0;
+      await expectLater(
+        _run(
+          commands,
+          'publish',
+          ui: (_) async => _target(),
+          tap: (_, _) async {
+            taps++;
+            return <String, Object?>{};
+          },
+        ),
+        _refused('close-current-fixture-first'),
+      );
+      expect(taps, 0);
+      expect(journal.claims, 1);
+      expect(guard.requirePreparation, _refused('original-attempt-held'));
+      expect(guard.acceptedHash, isNull);
+      expect(source.confirmations, 0);
+      await expectLater(
+        _run(commands, 'publish'),
+        _refused('close-current-fixture-first'),
+      );
+      expect(journal.claims, 1);
+    },
+  );
+
+  test(
+    'read-only results still require the original wallet policy context',
+    () async {
+      final _Fixture fixture = _Fixture();
+      final _Source source = _Source();
+      final SeedGuard guard = SeedGuard(
+        source: source,
+        journal: _Journal(),
+        delay: source.delay,
+      );
+      final SeedCommands commands = SeedCommands.withFixtureAdmission(
+        fixture: fixture.cleanup,
+        guard: guard,
+        recipe: 'stake',
+        confirmed: true,
+      );
+      source.isCurrent = false;
+      await expectLater(
+        _run(commands, 'check'),
+        _refused('original-context-changed'),
+      );
+      await expectLater(
+        _run(commands, 'finish'),
+        _refused('original-context-changed'),
+      );
+      fixture.retire();
+      fixture.close.complete();
+      await _turns();
+    },
+  );
+}
