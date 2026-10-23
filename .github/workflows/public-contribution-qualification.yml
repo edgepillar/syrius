@@ -16,6 +16,14 @@ on:
         description: Run the isolated Linux Docker devnet BDD tests
         type: boolean
         default: true
+      windows_baseline:
+        description: Record hosted Windows tools, Dart baseline and DLL map/export checks
+        type: boolean
+        default: false
+      entry_capture_smoke:
+        description: Capture genuine Welcome and empty Import on isolated hosted Windows
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -109,6 +117,99 @@ jobs:
 
       - name: Verify source inputs remain unchanged
         run: git diff --exit-code -- pubspec.lock analysis_options.yaml assets/community-nodes.json
+
+  # This lane can run with desktop_builds=false without repeating Linux or
+  # macOS. It qualifies this hosted runner, not the owner's Windows machine.
+  windows-baseline:
+    if: inputs.windows_baseline
+    name: Hosted Windows baseline
+    runs-on: windows-latest
+    timeout-minutes: 100
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout the dispatched source
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Test the Windows baseline controller
+        run: python -B -m unittest discover -s test/ci -p test_windows_baseline.py
+
+      # Raw child output, including doctor paths, stays in bounded private
+      # memory. Only allowlisted observations reach the Actions transcript.
+      # DLL mapping can initialize its runtime. No export is called here.
+      - name: Qualify the hosted Windows baseline
+        run: python -B tool/ci/windows_baseline.py
+
+  # This independent lane admits only genuine ordinary startup and empty entry
+  # captures. It establishes neither mockup matches nor wallet/chain readiness.
+  windows-entry-capture:
+    if: inputs.entry_capture_smoke
+    name: Ordinary Windows entry captures
+    runs-on: windows-latest
+    timeout-minutes: 35
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout the dispatched source
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Restore locked dependencies
+        run: |
+          flutter pub get --enforce-lockfile
+          git diff --exit-code -- pubspec.lock analysis_options.yaml
+
+      - name: Generate source metadata
+        run: dart run tool/generate_git_metadata.dart
+
+      - name: Enable Windows desktop
+        run: flutter config --enable-windows-desktop
+
+      - name: Build the ordinary Windows harness target
+        run: flutter build windows --debug --no-pub --target harness/app/main.dart --dart-define-from-file=.dart_tool/git_metadata.json
+
+      - name: Test the finite entry controller
+        run: python -B -m unittest discover -s test/ci -p test_windows_entry_capture_smoke.py
+
+      - name: Capture genuine ordinary entry and observe original process exit
+        timeout-minutes: 5
+        run: python -B tool/ci/windows_entry_capture_smoke.py
+
+      # Explicit files preserve partial captures without exposing the profile,
+      # token, process output or a recursive directory archive.
+      - name: Retain entry evidence and finite manifest
+        if: always() && hashFiles('.harness/ci-entry-capture/manifest.json') != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-entry-capture-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          compression-level: 0
+          include-hidden-files: true
+          if-no-files-found: error
+          path: |
+            .harness/ci-entry-capture/welcome-dark.png
+            .harness/ci-entry-capture/welcome-light.png
+            .harness/ci-entry-capture/import-dark.png
+            .harness/ci-entry-capture/import-light.png
+            .harness/ci-entry-capture/manifest.json
 
   devnet-tests:
     if: inputs.devnet_tests

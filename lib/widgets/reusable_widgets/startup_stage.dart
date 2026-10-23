@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/entry_capture_source.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/launch_film.dart';
 
 /// Builds the actual authentication owner before the launch's first frame.
@@ -25,7 +28,10 @@ class StartupStageSession implements Listenable {
     this.asset = LaunchFilm.defaultAsset,
     this.wellAsset = 'assets/images/launch_well.webp',
     this.bundle,
-  });
+  }) {
+    detachedReceipt = EntryCaptureCompletion(_detached.future);
+    cleanupReceipt = EntryCaptureCompletion(_cleanup.future);
+  }
 
   /// Constructs the real owner using only its existing startup data.
   final StartupAuthBuilder authBuilder;
@@ -52,6 +58,24 @@ class StartupStageSession implements Listenable {
 
   final GlobalKey _authKey = GlobalKey(debugLabel: 'Startup authentication');
   final _StartupChanges _changes = _StartupChanges();
+  final Completer<void> _detached = Completer<void>();
+  final Completer<void> _cleanup = Completer<void>();
+
+  /// Actual detach and resource results. Closing the session proves neither.
+  late final EntryCaptureCompletion detachedReceipt;
+
+  /// The original detach and decoder cleanup result, including failure.
+  late final EntryCaptureCompletion cleanupReceipt;
+  LaunchFilmCleanup? _originalFilmCleanup;
+
+  /// The original two-frame detach Future.
+  Future<void> get detached => _detached.future;
+
+  /// The original resource cleanup Future, without a timeout or replacement.
+  Future<void> get cleanup => _cleanup.future;
+
+  /// Captured before removal; a later film can never supply this completion.
+  LaunchFilmCleanup? get originalFilmCleanup => _originalFilmCleanup;
 
   /// Only the card's paint listens each frame; authentication does not rerun.
   final ValueNotifier<double> motion = ValueNotifier<double>(0);
@@ -214,6 +238,7 @@ class StartupStageSession implements Listenable {
   void dispose() {
     if (_closed) return;
     _closed = true;
+    _originalFilmCleanup = film.cleanup;
     _onDone = null;
     _afterUnlock = null;
     _afterInit = null;
@@ -225,12 +250,48 @@ class StartupStageSession implements Listenable {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // Overlay removal during a build is applied on the following frame.
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        film.dispose();
-        motion.dispose();
-        _changes.dispose();
+        try {
+          film.dispose();
+          motion.dispose();
+          _changes.dispose();
+          if (filmKey.currentContext != null ||
+              _authKey.currentContext != null) {
+            _detached.completeError(
+              StateError('Original startup subtree is still attached'),
+            );
+          } else {
+            _detached.complete();
+          }
+        } on Object catch (error, stack) {
+          if (!_detached.isCompleted) _detached.completeError(error, stack);
+          rethrow;
+        } finally {
+          unawaited(_finishCleanup());
+        }
       });
       WidgetsBinding.instance.scheduleFrame();
     });
+  }
+
+  Future<void> _finishCleanup() async {
+    await detachedReceipt.completion;
+    final LaunchFilmCleanup? original = _originalFilmCleanup;
+    if (original == null) {
+      _cleanup.completeError(StateError('Original startup film unavailable'));
+      return;
+    }
+    await original.completion.completion;
+    final Object? error = detachedReceipt.error ?? original.completion.error;
+    if (error != null) {
+      _cleanup.completeError(
+        error,
+        detachedReceipt.stackTrace ?? original.completion.stackTrace,
+      );
+    } else if (film.cleanupOwnerReplaced) {
+      _cleanup.completeError(StateError('Original startup film was replaced'));
+    } else {
+      _cleanup.complete();
+    }
   }
 }
 

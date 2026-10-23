@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/entry_capture_source.dart';
 
 /// The launch animation, played from one animated image a frame at a time.
 ///
@@ -89,6 +90,14 @@ class LaunchFilm extends StatefulWidget {
 /// run starts or ends.
 class LaunchFilmController extends ChangeNotifier {
   _LaunchFilmState? _state;
+  LaunchFilmCleanup? _cleanup;
+  bool _cleanupOwnerReplaced = false;
+
+  /// The first actual film State's cleanup, retained after controller detach.
+  LaunchFilmCleanup? get cleanup => _cleanup;
+
+  /// A new film cannot erase uncertainty about the first owner's decoder.
+  bool get cleanupOwnerReplaced => _cleanupOwnerReplaced;
 
   /// What was asked for before a [LaunchFilm] held this controller; the
   /// last request only, and it takes the place of autoplay.
@@ -157,6 +166,51 @@ class LaunchFilmController extends ChangeNotifier {
   }
 }
 
+/// Resource cleanup of one actual film State, separate from playback's end.
+class LaunchFilmCleanup {
+  LaunchFilmCleanup._(this.owner) {
+    completion = EntryCaptureCompletion(_finished.future);
+  }
+
+  /// Identity of the original State, never a replacement decoder or image.
+  final Object owner;
+  final Completer<void> _finished = Completer<void>();
+
+  /// Settles only after synchronous image release and the original decoder.
+  late final EntryCaptureCompletion completion;
+  EntryCaptureCompletion? _decoder;
+  Object? _error;
+  StackTrace? _stack;
+  bool _stateDisposed = false;
+
+  /// Captured before State.dispose invalidates the run or releases a frame.
+  EntryCaptureCompletion? get decoder => _decoder;
+
+  /// True only after synchronous image release and State.dispose return.
+  bool get stateDisposed => _stateDisposed;
+
+  /// Decoder failures remain private diagnostic identities, even after detach.
+  Object? get error => _error ?? _decoder?.error;
+
+  /// Original private stack for the retained cleanup failure.
+  StackTrace? get stackTrace => _stack ?? _decoder?.stackTrace;
+
+  void _failed(Object error, StackTrace stack) {
+    _error ??= error;
+    _stack ??= stack;
+  }
+
+  Future<void> _finish() async {
+    await _decoder!.completion;
+    final Object? failure = error;
+    if (failure != null) {
+      _finished.completeError(failure, stackTrace);
+    } else if (_stateDisposed) {
+      _finished.complete();
+    }
+  }
+}
+
 /// A decoded frame waiting for its turn.
 class _Frame {
   const _Frame(this.index, this.image, this.duration, {required this.last});
@@ -170,6 +224,7 @@ class _Frame {
 class _LaunchFilmState extends State<LaunchFilm>
     with SingleTickerProviderStateMixin<LaunchFilm> {
   late final Ticker _ticker = createTicker(_tick);
+  late final LaunchFilmCleanup _cleanup = LaunchFilmCleanup._(this);
 
   /// Used when the widget is given no controller, so the rest of the state
   /// reports to one place either way.
@@ -258,6 +313,11 @@ class _LaunchFilmState extends State<LaunchFilm>
       controller._state == null,
       'A LaunchFilmController drives one LaunchFilm.',
     );
+    if (controller._cleanup == null) {
+      controller._cleanup = _cleanup;
+    } else if (!identical(controller._cleanup, _cleanup)) {
+      controller._cleanupOwnerReplaced = true;
+    }
     controller._state = this;
   }
 
@@ -361,6 +421,7 @@ class _LaunchFilmState extends State<LaunchFilm>
         await taken.future;
       }
     } on Object catch (error, stack) {
+      _cleanup._failed(error, stack);
       if (run == _run) {
         _fail(error, stack, asset);
       }
@@ -450,14 +511,23 @@ class _LaunchFilmState extends State<LaunchFilm>
   void dispose() {
     // The decoder sees the new number when its frame comes back, disposes
     // that frame and its codec, and stops.
-    _run += 1;
-    _dropNext();
-    _ticker.dispose();
-    _shown?.dispose();
-    _shown = null;
-    _controller._state = null;
-    _ownController?.dispose();
-    super.dispose();
+    _cleanup._decoder = EntryCaptureCompletion(_decoder);
+    try {
+      _run += 1;
+      _dropNext();
+      _ticker.dispose();
+      _shown?.dispose();
+      _shown = null;
+      _controller._state = null;
+      _ownController?.dispose();
+      super.dispose();
+      _cleanup._stateDisposed = true;
+    } on Object catch (error, stack) {
+      _cleanup._failed(error, stack);
+      rethrow;
+    } finally {
+      unawaited(_cleanup._finish());
+    }
   }
 
   @override

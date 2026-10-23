@@ -6,6 +6,7 @@ import 'package:zenon_syrius_wallet_flutter/main.dart' show sharedPrefsService;
 import 'package:zenon_syrius_wallet_flutter/model/model.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/entry_capture_source.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_maintenance.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/startup_stage.dart';
@@ -38,6 +39,8 @@ class _SplashScreenState extends State<SplashScreen> {
   bool _initsScheduled = false;
   bool _maintenanceUnavailable = false;
   late final StartupStageSession _startup;
+  final Object _entrySource = Object();
+  EntryStartupReceipt? _entryCapture;
 
   @override
   void initState() {
@@ -59,13 +62,36 @@ class _SplashScreenState extends State<SplashScreen> {
     });
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final ModalRoute<dynamic>? route = ModalRoute.of(context);
+    if (widget.maintenance != null || route == null) return;
+    final EntryStartupReceipt? receipt = EntryCaptureRegistry.instance
+        .attachStartup(
+          owner: this,
+          source: _entrySource,
+          route: route,
+          startupOwner: _startup,
+          detached: _startup.detached,
+          cleanup: _startup.cleanup,
+          current: () =>
+              mounted &&
+              route.isCurrent &&
+              identical(ModalRoute.of(context), route),
+        );
+    _entryCapture ??= receipt;
+  }
+
   void _onFilmDone() {
     if (!mounted || _initsScheduled) return;
     _initsScheduled = true;
     _startup.wait();
     // Optional art preloading cannot replace startup's actual result.
     unawaited(AppLottie.preload().onError<Object>((Object _, StackTrace _) {}));
-    unawaited(_splashInits());
+    final Future<void> original = _splashInits();
+    _entryCapture?.retainSplashOperation(original);
+    unawaited(original);
   }
 
   @override
@@ -105,7 +131,15 @@ class _SplashScreenState extends State<SplashScreen> {
         }
         return;
       }
-      await InitUtils.initApp(context);
+      _entryCapture?.beginInitialization();
+      try {
+        final Future<void> original = InitUtils.initApp(context);
+        _entryCapture?.initializing(original);
+        await original;
+      } on Object catch (error, stack) {
+        _entryCapture?.initializationFailed(error, stack);
+        rethrow;
+      }
       if (!mounted) return;
       _navigateToNextScreen();
     } on Object catch (error) {
@@ -131,9 +165,11 @@ class _SplashScreenState extends State<SplashScreen> {
       _checkForDefaultNode();
     } else {
       _startup.dispose();
+      _entryCapture?.requestingWelcome();
       Navigator.pushReplacementNamed<void, void>(
         context,
         AccessWalletScreen.route,
+        arguments: _entryCapture,
       );
     }
   }

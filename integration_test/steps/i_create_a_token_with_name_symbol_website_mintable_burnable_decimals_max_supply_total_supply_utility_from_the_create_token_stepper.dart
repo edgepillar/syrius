@@ -1,21 +1,28 @@
 // BDD Usage comments intentionally mirror Gherkin placeholders.
-// ignore_for_file: unintended_html_in_doc_comment, non_constant_identifier_names
+// ignore_for_file: non_constant_identifier_names
 
 import 'dart:async';
 
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+import '../support/devnet_registration_host.dart';
 import '../support/devnet_test_context.dart';
 
-/// Usage: I create a token with name <token_name>, symbol <token_symbol>, website <website>, mintable <mintable>, burnable <burnable>, decimals <decimals>, max supply <max_supply>, total supply <total_supply>, utility <utility> from the Create Token stepper
+/// Usage: I create a token with name `<token_name>`, symbol `<token_symbol>`,
+/// website `<website>`, mintable `<mintable>`, burnable `<burnable>`,
+/// decimals `<decimals>`, max supply `<max_supply>`,
+/// total supply `<total_supply>`, utility `<utility>`
+/// from the Create Token stepper.
 Future<void>
+// The BDD generator names this function after its complete step text.
+// ignore: lines_longer_than_80_chars
 iCreateATokenWithNameSymbolWebsiteMintableBurnableDecimalsMaxSupplyTotalSupplyUtilityFromTheCreateTokenStepper(
   WidgetTester tester,
   dynamic token_name,
@@ -44,8 +51,8 @@ iCreateATokenWithNameSymbolWebsiteMintableBurnableDecimalsMaxSupplyTotalSupplyUt
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
-        body: BlocProvider<MultipleBalanceBloc>.value(
-          value: app.sl<MultipleBalanceBloc>(),
+        body: DevnetRegistrationHost(
+          balances: app.sl<MultipleBalanceBloc>(),
           child: BlocProvider<AllTokensBloc>(
             create: (_) => AllTokensBloc(zenon: app.zenon!),
             child: const CreateTokenStepperPage(),

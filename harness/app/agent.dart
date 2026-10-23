@@ -30,10 +30,13 @@ import 'package:zenon_syrius_wallet_flutter/widgets/shell/tabs.dart';
 
 import '../seed/seed_recipe.dart' show requireSeedTokenPreparation;
 import 'capture_frame.dart';
+import 'capture_protocol.dart' show CaptureRefused;
 import 'client_window.dart';
 import 'fixtures/seed_commands.dart';
 import 'fixtures/seed_policy.dart';
 import 'logical_capture.dart';
+import 'native_entry_capture.dart';
+import 'native_window_owner.dart';
 import 'presentation_close.dart';
 import 'presentation_host.dart';
 import 'presentation_mode.dart';
@@ -341,6 +344,7 @@ class HarnessAgent {
   bool booted = false;
   final SeedCommands _seeds = SeedCommands();
   HarnessPresentationController? _presentation;
+  NativeEntryCapture? _nativeEntry;
   bool Function()? _presentationIsCurrent;
   BuildContext? Function()? _presentationContext;
   Element? _presentationElement;
@@ -363,6 +367,27 @@ class HarnessAgent {
   CaptureFrameReceipt? get captureFrameForTest => _captureFrames.receipt;
 
   static HarnessAgent get instance => _instance;
+
+  /// The ordinary Windows process retains one native entry scope from startup.
+  void useNativeEntry({required NativeWindowOwner window}) {
+    if (_modeSelected ||
+        booted ||
+        _presentation != null ||
+        _nativeEntry != null) {
+      throw HarnessError('the harness host mode is already reserved');
+    }
+    _modeSelected = true;
+    _nativeEntry = NativeEntryCapture(
+      window: window,
+      readView: () => _view,
+      openImport: (VoidCallback admission) async {
+        await _tap(
+          <String, dynamic>{'key': 'welcome_import'},
+          requireAdmission: admission,
+        );
+      },
+    );
+  }
 
   /// Chooses the independent host before the first remote command or startup.
   void usePresentation({
@@ -656,6 +681,10 @@ class HarnessAgent {
         };
       case 'state':
         return _state();
+      case 'entry-state':
+      case 'entry-check':
+      case 'entry-capture':
+        return _entryCommand(c);
       case 'seed':
         try {
           return await _seeds.run(
@@ -716,6 +745,51 @@ class HarnessAgent {
   }
 
   // ------------------------------------------------------------------- state
+
+  Future<Map<String, Object?>> _entryCommand(
+    Map<String, dynamic> command,
+  ) async {
+    final NativeEntryCapture? entry = _nativeEntry;
+    if (command['cmd'] == 'entry-state') {
+      if (command.keys.any((String key) => key != 'cmd')) {
+        throw HarnessError('unsupported entry state input');
+      }
+      return <String, Object?>{
+        'available': entry != null,
+        ...?entry?.snapshot(),
+      };
+    }
+    if (entry == null) {
+      throw HarnessError('native entry capture is unavailable');
+    }
+    _requireCaptureFrameIdle();
+    try {
+      if (command['cmd'] == 'entry-check') {
+        if (command.keys.any((String key) => key != 'cmd')) {
+          throw HarnessError('unsupported entry check input');
+        }
+        return <String, Object?>{
+          'available': true,
+          ...await entry.verifyCurrent(),
+        };
+      }
+      if (command.keys.any(
+            (String key) => !<String>{'cmd', 'screen', 'theme'}.contains(key),
+          ) ||
+          command['screen'] is! String ||
+          command['theme'] is! String) {
+        throw HarnessError('unsupported entry capture input');
+      }
+      return await entry.capture(
+        screen: command['screen'] as String,
+        theme: command['theme'] as String,
+      );
+    } on CaptureRefused catch (error) {
+      throw HarnessError(error.code);
+    } on NativeWindowRefused {
+      throw HarnessError('original native entry window is unavailable');
+    }
+  }
 
   Map<String, Object?> _state() {
     String? route;

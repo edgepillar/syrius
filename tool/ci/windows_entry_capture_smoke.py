@@ -1,0 +1,558 @@
+"""Bounded hosted-Windows evidence for ordinary Welcome and empty Import only.
+
+The workflow builds the Debug harness first. One new process gets an isolated
+profile, ordinary wallet mode and a private token. Public output and the five
+explicit artifacts contain only allowlisted identities and finite outcomes.
+This does not qualify the launch film, Ready, a wallet, chain 321 or mockups.
+"""
+
+from __future__ import annotations
+
+import base64
+import binascii
+import hashlib
+import json
+import math
+import os
+from pathlib import Path
+import re
+import secrets
+import socket
+import stat
+import struct
+import subprocess
+import sys
+import zlib
+
+try:
+    from . import windows_presentation_smoke as bounded
+except ImportError:
+    import windows_presentation_smoke as bounded
+
+
+MAX_PNG = 8 * 1024 * 1024
+MAX_BASE64 = 4 * ((MAX_PNG + 2) // 3)
+OUTPUT = Path(".harness/ci-entry-capture")
+SCENES = tuple((screen, theme) for screen in ("welcome", "import")
+               for theme in ("dark", "light"))
+FILES = tuple(f"{screen}-{theme}.png" for screen, theme in SCENES)
+CHECKS = (
+    "environment", "source", "profile", "preflight", "identity", "auth",
+    "entry_ready", "window_saved", "client_matched", "welcome_dark",
+    "welcome_light", "import_dark", "import_light", "window_restored",
+    "entry_restored", "close_ack", "exit", "payload_stable",
+)
+CODES = bounded.CODES | frozenset((
+    "OUTPUT_REFUSED", "ARTIFACT_FAILED", "ENTRY_UNAVAILABLE", "ENTRY_HELD",
+    "ENTRY_INVALID", "WINDOW_INVALID", "WINDOW_RESTORE_FAILED",
+    "CAPTURE_INVALID", "PNG_INVALID", "RESTORATION_INVALID",
+))
+LIMITS = bounded.Limits(total=150, ready=45, request=20,
+                        response_bytes=MAX_BASE64 + 65536)
+
+
+class Failure(bounded.SmokeFailure):
+    def __init__(self, code):
+        self.code = code if code in CODES else "INTERNAL_ERROR"
+        Exception.__init__(self, self.code)
+
+
+class Report(bounded.Report):
+    def __init__(self):
+        super().__init__()
+        self.source_tree = self.run_id = self.run_attempt = None
+        self.checks = dict.fromkeys(CHECKS, False)
+        self.captures = []
+        self.output_bytes = 0
+
+    def fail(self, code, original=None):
+        code = code if code in CODES else "INTERNAL_ERROR"
+        if code not in self.errors:
+            self.errors.append(code)
+        if original is not None:
+            self.original_errors.append(original)
+
+    def public(self):
+        captures = []
+        for name in FILES:
+            for item in self.captures:
+                if (item.get("file") == name and bounded.safe_digest(item.get("sha256"))
+                        and type(item.get("bytes")) is int and 0 < item["bytes"] <= MAX_PNG):
+                    captures.append({"file": name, "sha256": item["sha256"],
+                                     "bytes": item["bytes"], "width": 1280, "height": 780})
+                    break
+        complete = (
+            all(self.checks.get(name) is True for name in CHECKS)
+            and len(captures) == 4 and self.exit_observed and self.exit_code == 0
+            and self.output_complete and not self.output_overflow
+            and not self.forced_kill and not self.errors
+        )
+        return {
+            "schema": 1,
+            "source_sha": self.source_sha if bounded.valid_sha(self.source_sha) else None,
+            "source_tree": self.source_tree if bounded.valid_sha(self.source_tree) else None,
+            "run_id": anonymous_number(self.run_id),
+            "run_attempt": anonymous_number(self.run_attempt, 6),
+            "runner_sha256": bounded.safe_digest(self.runner_sha256),
+            "dart_kernel_sha256": bounded.safe_digest(self.dart_kernel_sha256),
+            "checks": {name: self.checks.get(name) is True for name in CHECKS},
+            "captures": captures, "capture_count": len(captures),
+            "exit_code": self.exit_code if type(self.exit_code) is int else None,
+            "exit_observed": self.exit_observed is True,
+            "forced_kill": self.forced_kill is True,
+            "output_bytes": self.output_bytes if type(self.output_bytes) is int
+                            and 0 <= self.output_bytes < 2 ** 63 else None,
+            "output_complete": self.output_complete is True,
+            "output_overflow": self.output_overflow is True,
+            "complete": complete, "success": complete,
+            "status": "SUCCESS" if complete else "UNKNOWN",
+            "error_codes": [code for code in self.errors if code in CODES],
+        }
+
+
+def anonymous_number(value, digits=20):
+    return value if isinstance(value, str) and re.fullmatch(
+        rf"[1-9][0-9]{{0,{digits - 1}}}", value,
+    ) else None
+
+
+def require_ci(parent, expected, *, platform):
+    parent, expected = bounded.require_ci(parent, expected, platform=platform)
+    if (anonymous_number(parent.get("GITHUB_RUN_ID")) is None
+            or anonymous_number(parent.get("GITHUB_RUN_ATTEMPT"), 6) is None):
+        raise Failure("ENVIRONMENT_REFUSED")
+    return parent, expected
+
+
+def source_tree(repo, parent, *, run=bounded.fixed_command):
+    env = {key: value for key, value in parent.items() if not key.upper().startswith("GIT_")}
+    env.update(GIT_CONFIG_NOSYSTEM="1", GIT_CONFIG_GLOBAL=os.devnull)
+    code, output = run(["git", "-C", str(repo), "rev-parse", "HEAD^{tree}"],
+                       cwd=repo, env=env, cap=128)
+    try:
+        tree = output.decode("ascii").rstrip("\r\n")
+    except UnicodeError:
+        raise Failure("SOURCE_REFUSED") from None
+    if code != 0 or not bounded.valid_sha(tree) or output not in (
+        (tree + "\n").encode(), (tree + "\r\n").encode(),
+    ):
+        raise Failure("SOURCE_REFUSED")
+    code, _ = run(["git", "-C", str(repo), "diff", "--quiet", "HEAD", "--"],
+                  cwd=repo, env=env)
+    if code != 0:
+        raise Failure("SOURCE_REFUSED")
+    return tree
+
+
+def private_root(repo):
+    root = repo / ".harness"
+    if not root.exists():
+        root.mkdir(mode=0o700)
+    if not stat.S_ISDIR(bounded.plain(root).st_mode):
+        raise Failure("PROFILE_REFUSED")
+    return root
+
+
+def new_profile(repo):
+    profile = private_root(repo) / ("ci-entry-smoke-" + secrets.token_hex(12))
+    profile.mkdir(mode=0o700)
+    for name in ("AppData/Roaming", "AppData/Local", "Temp", "Config", "Data", "Cache"):
+        (profile / name).mkdir(parents=True, mode=0o700)
+    bounded.plain(profile)
+    return profile
+
+
+def child_environment(parent, profile, port, token):
+    env = {key.upper(): value for key, value in parent.items()
+           if key.upper() in bounded.RUNTIME_ENV}
+    env.update({
+        "APPDATA": str(profile / "AppData/Roaming"),
+        "LOCALAPPDATA": str(profile / "AppData/Local"),
+        "TEMP": str(profile / "Temp"), "TMP": str(profile / "Temp"),
+        "HOME": str(profile), "USERPROFILE": str(profile),
+        "XDG_CONFIG_HOME": str(profile / "Config"),
+        "XDG_DATA_HOME": str(profile / "Data"),
+        "XDG_CACHE_HOME": str(profile / "Cache"),
+        "SYRIUS_HARNESS_HOME": str(profile),
+        "SYRIUS_HARNESS_PORT": str(port), "SYRIUS_HARNESS_TOKEN": token,
+    })
+    if profile.drive:
+        env.update(HOMEDRIVE=profile.drive, HOMEPATH=str(profile)[len(profile.drive):])
+    return env
+
+
+def png_bytes(encoded):
+    """Admit bounded screenshot pixels, never textual/private PNG metadata."""
+    try:
+        if not isinstance(encoded, str) or not 0 < len(encoded) <= MAX_BASE64:
+            raise ValueError()
+        data = base64.b64decode(encoded, validate=True)
+        if not 0 < len(data) <= MAX_PNG or base64.b64encode(data).decode("ascii") != encoded:
+            raise ValueError()
+        if data[:8] != b"\x89PNG\r\n\x1a\n":
+            raise ValueError()
+        offset, chunks, colors, ended, idat = 8, 0, None, False, False
+        compressed = bytearray()
+        seen = set()
+        while offset < len(data):
+            chunks += 1
+            if chunks > 4096 or len(data) - offset < 12 or ended:
+                raise ValueError()
+            length, kind = struct.unpack_from(">I4s", data, offset)
+            if length > MAX_PNG or offset + 12 + length > len(data):
+                raise ValueError()
+            payload = data[offset + 8:offset + 8 + length]
+            crc, = struct.unpack_from(">I", data, offset + 8 + length)
+            if crc != zlib.crc32(kind + payload) & 0xffffffff:
+                raise ValueError()
+            if chunks == 1:
+                if kind != b"IHDR" or length != 13:
+                    raise ValueError()
+                width, height, depth, colors, comp, filt, interlace = struct.unpack(
+                    ">IIBBBBB", payload,
+                )
+                if (width, height, depth, comp, filt, interlace) != (1280, 780, 8, 0, 0, 0):
+                    raise ValueError()
+                if colors not in (2, 6):
+                    raise ValueError()
+            elif kind == b"IDAT":
+                idat = True
+                compressed.extend(payload)
+            elif kind == b"IEND":
+                if length or not compressed:
+                    raise ValueError()
+                ended = True
+            elif (kind in (b"sRGB", b"gAMA", b"cHRM") and not idat
+                  and kind not in seen):
+                if (kind == b"sRGB" and (length != 1 or payload[0] > 3)
+                        or kind == b"gAMA" and (length != 4 or payload == b"\0" * 4)
+                        or kind == b"cHRM" and length != 32):
+                    raise ValueError()
+            else:
+                raise ValueError()
+            seen.add(kind)
+            offset += length + 12
+        if not ended or offset != len(data):
+            raise ValueError()
+        stride = 1280 * (4 if colors == 6 else 3) + 1
+        expected = stride * 780
+        decoder = zlib.decompressobj()
+        pixels = decoder.decompress(compressed, expected + 1)
+        if (len(pixels) != expected or not decoder.eof
+                or decoder.unused_data or decoder.unconsumed_tail
+                or any(pixels[row * stride] > 4 for row in range(780))):
+            raise ValueError()
+        return data
+    except (ValueError, TypeError, UnicodeError, binascii.Error, struct.error, zlib.error):
+        raise Failure("PNG_INVALID") from None
+
+
+def number(value, *, positive=False):
+    return (type(value) in (int, float) and abs(value) <= 10000000
+            and math.isfinite(value) and (not positive or value > 0))
+
+
+def vector(value, length, *, positive=False):
+    return (isinstance(value, list) and len(value) == length
+            and all(number(item, positive=positive) for item in value))
+
+
+def capture_bytes(body, screen, theme):
+    keys = {"ok", "screen", "theme", "width", "height", "scale", "client",
+            "physical", "devicePixelRatio", "png", "harnessMode", "captureMode",
+            "restorationVerified"}
+    if (body.keys() != keys or body.get("harnessMode") != "wallet"
+            or body.get("captureMode") != "entry" or body.get("screen") != screen
+            or body.get("theme") != theme or body.get("restorationVerified") is not True
+            or type(body.get("width")) is not int or body["width"] != 1280
+            or type(body.get("height")) is not int or body["height"] != 780
+            or not number(body.get("scale"), positive=True) or body["scale"] != 1
+            or not vector(body.get("client"), 2, positive=True)
+            or any(abs(a - b) >= .01 for a, b in zip(body["client"], (1280, 780)))
+            or not number(body.get("devicePixelRatio"), positive=True)
+            or not vector(body.get("physical"), 2, positive=True)
+            or any(abs(a - b * body["devicePixelRatio"]) >= .01
+                   for a, b in zip(body["physical"], body["client"]))):
+        raise Failure("CAPTURE_INVALID")
+    return png_bytes(body["png"])
+
+
+class Artifacts:
+    def __init__(self, repo):
+        private_root(repo)
+        self.root = repo / OUTPUT
+        try:
+            self.root.mkdir(mode=0o700)  # Existing or linked output is never adopted.
+        except OSError:
+            raise Failure("OUTPUT_REFUSED") from None
+        self.identity = self._identity()
+        self.records = []
+
+    def _identity(self):
+        info = bounded.plain(self.root)
+        if not stat.S_ISDIR(info.st_mode):
+            raise Failure("OUTPUT_REFUSED")
+        return info.st_dev, info.st_ino
+
+    def _write(self, name, data):
+        if self._identity() != self.identity:
+            raise Failure("OUTPUT_REFUSED")
+        with (self.root / name).open("xb") as original:
+            if original.write(data) != len(data):
+                raise Failure("ARTIFACT_FAILED")
+            original.flush()
+            os.fsync(original.fileno())
+        if self._identity() != self.identity or bounded.plain(self.root / name).st_size != len(data):
+            raise Failure("ARTIFACT_FAILED")
+
+    def png(self, name, data):
+        if name not in FILES or any(item["file"] == name for item in self.records):
+            raise Failure("OUTPUT_REFUSED")
+        if not 0 < len(data) <= MAX_PNG:
+            raise Failure("PNG_INVALID")
+        self._write(name, data)
+        self.records.append({"file": name, "sha256": hashlib.sha256(data).hexdigest(),
+                             "bytes": len(data)})
+
+    def manifest(self, public):
+        # Publish only after the complete sanitized bytes have been flushed.
+        # Windows rename refuses an existing destination. The explicit check
+        # also keeps the finite portable fixture from replacing its own file.
+        final = self.root / "manifest.json"
+        if final.exists() or final.is_symlink():
+            raise FileExistsError()
+        self._write("manifest.pending", json.dumps(
+            public, sort_keys=True, separators=(",", ":"),
+        ).encode("ascii") + b"\n")
+        (self.root / "manifest.pending").rename(final)
+
+
+class EntrySmoke(bounded.PresentationSmoke):
+    """Reuse only bounded transport/health primitives; ordinary protocol below."""
+
+    def __init__(self, *args, artifacts, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.artifacts = artifacts
+        self.original_window = None
+        self.window_changed = self.authenticated = False
+
+    def _positive(self, command, *, allow_exit=False):
+        status, body = self._exchange(command, allow_exit=allow_exit)
+        if status != 200 or body["ok"] is not True:
+            raise Failure("COMMAND_FAILED")
+        return body
+
+    def _entry(self, body, *, count):
+        if body.get("available") is not True:
+            raise Failure("ENTRY_UNAVAILABLE")
+        if body.get("held") is not False:
+            raise Failure("ENTRY_HELD")
+        if (type(body.get("captures")) is not int or body["captures"] != count
+                or any(type(body.get(name)) is not bool for name in (
+                    "nativeWindowReady", "startupReady", "welcomeReady"))):
+            raise Failure("ENTRY_INVALID")
+        return all(body[name] for name in ("nativeWindowReady", "startupReady", "welcomeReady"))
+
+    def _ready(self):
+        until = min(self.deadline, self.clock() + self.limits.ready)
+        while self.clock() < until:
+            try:
+                status, body = self._exchange({"cmd": "ping"}, until=until)
+            except ConnectionRefusedError:
+                body = None
+            if body is not None:
+                if status != 200 or body["ok"] is not True:
+                    raise Failure("COMMAND_FAILED")
+                if type(body.get("pid")) is not int or body["pid"] != self.process.pid:
+                    raise Failure("IDENTITY_REFUSED")
+                if body.get("harnessMode") != "wallet":
+                    raise Failure("MODE_REFUSED")
+                if type(body.get("booted")) is not bool:
+                    raise Failure("RESPONSE_INVALID")
+                if body["booted"]:
+                    self.report.checks["identity"] = True
+                    break
+            self.sleep(min(self.limits.poll, max(0, until - self.clock())))
+        else:
+            raise Failure("READINESS_TIMEOUT")
+        status, body = self._exchange({"cmd": "ping"}, token="invalid-entry-smoke-token", until=until)
+        if status != 400 or body != {"ok": False, "error": "bad token"}:
+            raise Failure("AUTH_REFUSAL_INVALID")
+        self.authenticated = self.report.checks["auth"] = True
+        while self.clock() < until:
+            status, body = self._exchange({"cmd": "entry-state"}, until=until)
+            if status != 200 or body["ok"] is not True:
+                raise Failure("COMMAND_FAILED")
+            if self._entry(body, count=0):
+                self.report.checks["entry_ready"] = True
+                return
+            self.sleep(min(self.limits.poll, max(0, until - self.clock())))
+        raise Failure("READINESS_TIMEOUT")
+
+    def _window(self, body):
+        if (not vector(body.get("window"), 4)
+                or any(value <= 0 for value in body["window"][2:])
+                or not vector(body.get("client"), 2, positive=True)
+                or not vector(body.get("physical"), 2, positive=True)
+                or not number(body.get("devicePixelRatio"), positive=True)
+                or type(body.get("minimized")) is not bool
+                or type(body.get("maximized")) is not bool):
+            raise Failure("WINDOW_INVALID")
+        return {name: body[name] for name in (
+            "window", "client", "physical", "devicePixelRatio", "minimized", "maximized",
+        )}
+
+    def _restore(self):
+        if self.window_changed:
+            restored = self._positive({"cmd": "window", "restoreState": self.original_window})
+            actual = self._window(restored)
+            if restored.get("restored") is not True:
+                raise Failure("WINDOW_RESTORE_FAILED")
+            for key, expected in self.original_window.items():
+                value = actual[key]
+                same = (all(abs(a - b) < .01 for a, b in zip(value, expected))
+                        if isinstance(expected, list) else value == expected)
+                if not same:
+                    raise Failure("WINDOW_RESTORE_FAILED")
+            self.report.checks["window_restored"] = True
+            body = self._positive({"cmd": "entry-check"})
+            if (not self._entry(body, count=4) or body.get("frameReady") is not True
+                    or body.get("restorationVerified") is not True):
+                raise Failure("RESTORATION_INVALID")
+            self.report.checks["entry_restored"] = True
+
+    def _quit(self):
+        self.quit_sent = True
+        try:
+            body = self._positive({"cmd": "quit"}, allow_exit=True)
+        except Exception as error:
+            self.report.original_errors.append(error)
+            raise Failure("CLOSE_UNCERTAIN") from None
+        if body != {"ok": True}:
+            raise Failure("CLOSE_FAILED")
+        self.report.checks["close_ack"] = True
+        try:
+            code = self.process.wait(timeout=min(self.limits.exit, self._health(allow_exit=True)))
+        except subprocess.TimeoutExpired:
+            raise Failure("EXIT_TIMEOUT") from None
+        self.report.exit_code, self.report.exit_observed = code, type(code) is int
+        if type(code) is not int or code != 0:
+            raise Failure("EXIT_FAILED")
+        self.report.checks["exit"] = True
+
+    def _record(self, action):
+        try:
+            action()
+        except bounded.SmokeFailure as error:
+            self.report.fail(error.code, error)
+        except (Exception, KeyboardInterrupt) as error:
+            self.report.fail("INTERNAL_ERROR", error)
+
+    def run(self):
+        def capture():
+            self._ready()
+            self.original_window = self._window(self._positive({"cmd": "window"}))
+            self.report.checks["window_saved"] = True
+            self.window_changed = True  # Reserve before the mutating RPC.
+            body = self._positive({"cmd": "window", "do": "show", "width": 1280, "height": 780})
+            actual = self._window(body)
+            if (body.get("clientMatched") is not True or actual["minimized"]
+                    or actual["maximized"] or any(abs(a - b) >= .01 for a, b in zip(
+                        actual["client"], (1280, 780)))):
+                raise Failure("WINDOW_INVALID")
+            self.report.checks["client_matched"] = True
+            for screen, theme in SCENES:
+                body = self._positive({"cmd": "entry-capture", "screen": screen, "theme": theme})
+                self.artifacts.png(f"{screen}-{theme}.png", capture_bytes(body, screen, theme))
+                self.report.checks[f"{screen}_{theme}"] = True
+        try:
+            self._record(capture)
+        finally:
+            if self.authenticated and self.process.poll() is None:
+                self._record(self._restore)
+                self._record(self._quit)
+            grace = min(self.limits.exit, max(0, self.deadline - self.clock())) if self.quit_sent else 0
+            bounded.finish_original(self.process, self.drain, self.report, self.limits, grace=grace)
+            self.report.output_bytes = getattr(self.drain, "count", 0)
+            self.report.captures = self.artifacts.records
+        return self.report.public()
+
+
+def main(arguments=None):
+    report = Report()
+    process = drain = artifacts = None
+    try:
+        arguments = sys.argv[1:] if arguments is None else arguments
+        if arguments and (len(arguments) != 2 or arguments[0] != "--source-sha"
+                          or not bounded.valid_sha(arguments[1])):
+            raise Failure("ARGUMENTS_REFUSED")
+        parent, expected = require_ci(os.environ, arguments[1] if arguments else None, platform=os.name)
+        repo = Path(parent["GITHUB_WORKSPACE"])
+        bounded.plain(repo)
+        if repo.resolve() != Path.cwd().resolve():
+            raise Failure("ENVIRONMENT_REFUSED")
+        report.checks["environment"] = True
+        report.source_sha, report.run_id = expected, parent["GITHUB_RUN_ID"]
+        report.run_attempt = parent["GITHUB_RUN_ATTEMPT"]
+        artifacts = Artifacts(repo)
+        bounded.verify_source(repo, expected, parent)
+        report.source_tree = source_tree(repo, parent)
+        report.checks["source"] = True
+        binary, report.runner_sha256, identity = bounded.binary_hash(repo)
+        kernel, report.dart_kernel_sha256, kernel_identity = bounded.binary_hash(repo, bounded.KERNEL)
+        bounded.check_no_existing(repo, parent)
+        report.checks["preflight"] = True
+        profile = new_profile(repo)
+        report.checks["profile"] = True
+        token = secrets.token_urlsafe(32)
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as reservation:
+            reservation.bind(("127.0.0.1", 0))
+            port = reservation.getsockname()[1]
+        env = child_environment(parent, profile, port, token)
+        for selected, original in ((binary, identity), (kernel, kernel_identity)):
+            info = bounded.plain(selected)
+            if (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns) != original:
+                raise Failure("BINARY_REFUSED")
+        try:
+            process = subprocess.Popen([str(binary)], cwd=binary.parent, env=env,
+                                       shell=False, stdin=subprocess.DEVNULL,
+                                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=0)
+        except Exception as error:
+            report.fail("LAUNCH_FAILED", error)
+            raise Failure("LAUNCH_FAILED") from None
+        drain = bounded.OutputDrain(process.stdout, LIMITS.output_bytes)
+        session = EntrySmoke(process, bounded.LoopbackTransport(port, LIMITS.response_bytes),
+                             token, drain, report, artifacts=artifacts, limits=LIMITS)
+        process = None  # The session now owns the retained original object.
+        session.run()
+        for relative, digest, original in (
+            (bounded.BINARY, report.runner_sha256, identity),
+            (bounded.KERNEL, report.dart_kernel_sha256, kernel_identity),
+        ):
+            _, observed, current = bounded.binary_hash(repo, relative)
+            if observed != digest or current != original:
+                raise Failure("BINARY_REFUSED")
+        bounded.verify_source(repo, expected, parent)
+        if source_tree(repo, parent) != report.source_tree:
+            raise Failure("SOURCE_REFUSED")
+        report.checks["payload_stable"] = True
+    except bounded.SmokeFailure as error:
+        report.fail(error.code, error)
+    except (Exception, KeyboardInterrupt) as error:
+        report.fail("INTERNAL_ERROR", error)
+    finally:
+        if process is not None:
+            bounded.finish_original(process, drain, report, LIMITS)
+        if artifacts is not None:
+            report.captures = artifacts.records
+            try:
+                artifacts.manifest(report.public())
+            except (Exception, KeyboardInterrupt) as error:
+                report.fail("ARTIFACT_FAILED", error)
+    public = report.public()
+    print(json.dumps(public, sort_keys=True, separators=(",", ":")))
+    return 0 if public["success"] else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
