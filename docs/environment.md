@@ -177,12 +177,56 @@ tokens and raw process diagnostics stay out of that summary. This qualifies
 isolated presentation behavior; actual wallet ownership, restoration and the
 94 screen captures retain their separate acceptance gates.
 
+### Hosted follow-up at e67d0fab4c54
+
+The following results are bound to
+`e67d0fab4c54920862e470387540ea65941a0f05`, attempt 1. They do not qualify
+subsequent changes to the devnet fixture.
+
+| Check | Observed result |
+| --- | --- |
+| [Fast Validation 40012208457](https://github.com/edgepillar/syrius/actions/runs/40012208457) | Passed patched-package and application analysis, 3,997 unit/widget tests with one existing skip, and generation consistency |
+| [Desktop qualification 40012204159](https://github.com/edgepillar/syrius/actions/runs/40012204159), Linux job | Debug and Release builds passed |
+| Same run, macOS job | Debug and Release builds passed |
+| Same run, Windows job | Debug and Release builds, controller tests, separate harness build and isolated presentation probe passed |
+| Same run, Docker devnet job | First scenario failed during setup with a wallet/node session-identity refusal |
+
+The desktop workflow's overall result is failure because its devnet job failed.
+The retained failure and test-support source identify missing wallet-path and
+verified node-chain identity in that fixture. Production admission guards remain
+unchanged. The Docker workflow uses chain 69; it does not qualify the redesign
+lab's separate chain 321 checkpoints or send.
+
+The target repository's [Fast Validation](https://github.com/sol-znn/syrius/actions/runs/40012153005),
+[builder](https://github.com/sol-znn/syrius/actions/runs/40012153007) and
+[blockchain integration](https://github.com/sol-znn/syrius/actions/runs/40012153018)
+runs at that source require maintainer approval and have zero jobs. Fork build
+and test results remain separate from target acceptance.
+
+### Devnet fixture repair
+
+Source commit `8ea04bc8caea59e4f35a3cc9e8c8d59f1ee5ad79` binds the
+integration fixture to its owned in-memory wallet path, original node socket
+and positively verified chain 69. It restores the previous identity values and
+collection objects, and refuses foreign wallet or node owners. Production
+publication admission is unchanged.
+
+All six retained qualification inputs match that commit: the two changed Dart
+files and four protected dependency/analyzer inputs. All five local stages
+passed: formatting, strict two-file analysis with zero diagnostics, 105
+admission regressions without skips, root analysis and the diff check. The
+regressions include eighteen new offline fixture cases and 87 existing
+publication-session cases. Root analysis reports zero errors, zero warnings
+and the existing 1,322 infos. These tests acquired no signer and made no RPC
+request. A new hosted run must establish actual devnet behavior at this source.
+
 ## Native acceptance gates
 
 | Required acceptance | Current evidence | Remaining gate |
 | --- | --- | --- |
-| Windows debug and release builds | Pinned source/toolchain; offline checks | Windows host, MSVC and Windows SDK |
-| Running native harness | Source adapters and injected tests | Native desktop tooling and original owner lifecycle |
+| Windows debug and release builds | Hosted builds passed at e67d0fab4c54 | Windows baseline and runtime portions remain separate below |
+| Windows baseline and embedded library | Successful native compilation | Inventory, doctor, Windows Dart tests, generated-file correspondence and explicit library mapping/export checks |
+| Running native harness | Hosted isolated Welcome/empty-Import presentation passes; source adapters and injected tests | Complete native wallet startup, tour and original owner lifecycle |
 | Isolated chain 321 send | Source scripts only | Producing owned devnet, imported harness-only profile and confirmed send |
 | 47 screens in both themes | 47 scripts with final assertions | All 94 actual captures, comparisons and independent pair review |
 | Motion, shaders and frame times | Finite widget and original-art cases | Running native build and baseline measurements |
@@ -191,8 +235,8 @@ isolated presentation behavior; actual wallet ownership, restoration and the
 | Restoration and cold startup | Conservative source guards | Original native owner, renderer frame pins and positive restoration receipts |
 
 The macOS host has Command Line Tools without full Xcode. Windows desktop tools
-and a usable Docker daemon are unavailable locally. Hosted build and devnet
-results require separate exact-source receipts. Signing, real-wallet operation,
+and a usable Docker daemon are unavailable locally. The hosted results above
+do not establish owner-machine provisioning. Signing, real-wallet operation,
 live-chain effects and production acceptance remain unclaimed.
 The PR must remain a Draft until the outstanding qualification is resolved.
 
