@@ -392,12 +392,12 @@ macOS; Windows provision and acceptance remain pending. See
 
 ### Now
 
-- Updated: 2026-10-23T17:19Z
-- Running: Anonymous source snapshot e13abb387577 is prepared on the public dev base; original local history is preserved separately; no changes have been pushed
-- Next: Windows provisioning and builds, producing owned lab and checkpoints, original native preparation and restoration, all 94 capture matches, running motion and frame-time, native seam and minimum-window acceptance remain pending
-- Last batch check: The final implementation batch had 299 selected Dart files with zero diagnostics and 123 passing harness cases; the full serial suite had 3960 successes, 1 existing skip and no failures in 906.654 seconds; root analysis had no errors or warnings and 1322 infos; default analysis still treats that backlog as fatal; all 94 actual captures remain pending
-- Publication evidence: Row commit hashes identify e13abb387577; row dates record earlier implementation work; local results precede publication and are carried by exact source equality, not a fresh run at this commit; see docs/environment.md
-- CI: All three PR workflow filters now target dev and their YAML parses locally; other workflow semantics are unchanged; hosted CI has not run
+- Updated: 2026-10-23T19:30Z
+- Running: Preparing the qualified follow-up at ddf740e14206 for publication through edgepillar/syrius:redesign and the existing Draft PR #6
+- Next: Dispatch exact-source native builds, isolated Windows presentation and devnet checks; original native preparation and restoration, owned lab checkpoints, all 94 matches, running motion and frame-time, seam and minimum-window acceptance remain pending
+- Last batch check: All nine final local stages passed: locked offline vendored restoration, zero-diagnostic vendored analysis, 32 Python controller cases, five workflow checks, eight-file formatting and strict Dart analysis, 160 harness cases, root analysis and diff checks; the retained full suite has 3997 successes and 1 existing skip before the sole redundant-import Dart delta; root analysis has zero errors, zero warnings and 1322 existing infos
+- Publication evidence: Initial rows identify e13abb387577; X125-X130 identify ddf740e14206, whose sixteen pinned files match the final local qualification bytes; local evidence is carried by source equality, not a fresh execution at a publication commit; see docs/environment.md
+- CI: Target runs at 3041ffa73569 require maintainer approval and have zero jobs; fork run 39998807152 passed analysis, parallel tests and generation checks at that earlier source; hosted follow-up and native acceptance remain pending
 
 ### Rows
 
@@ -607,6 +607,12 @@ macOS; Windows provision and acceptance remain pending. See
 | X122 | done | 2026-10-23T15:54Z | e13abb387577 adds six labelled inert standalone components before wallet startup, explicit isolated mode and process acknowledgement, attached-theme checks and denied wallet or shot commands; strict and full local checks pass; native execution and actual capture remain unqualified |
 | X123 | done | 2026-10-23T15:54Z | e13abb387577 pins the original Element, preserves Welcome clocks behind pointer and keyboard barriers, checks only owned visible content and retains one delayed original close outcome; unseen remount, both themes, coverage, keyboard cleanup, retirement and late-error regressions pass |
 | X124 | done | 2026-10-23T17:19Z | e13abb387577 targets dev in all three PR workflow filters; local YAML parsing and exact semantic comparison pass; push, tag and release conditions are preserved; hosted CI remains unrun |
+| X125 | done | 2026-10-23T19:30Z | ddf740e14206 adds the manual exact-source desktop Debug and Release matrix and same-commit devnet reuse; all five workflow documents pass local semantic checks, preserving existing triggers and release behavior; hosted execution remains pending |
+| X126 | done | 2026-10-23T19:30Z | ddf740e14206 retains the original frame Future and late outcomes; deadline or failure holds readback and theme changes; thirteen frame regressions pass within the 160-case harness suite; native renderer and owner restoration proof remain separate |
+| X127 | done | 2026-10-23T19:30Z | ddf740e14206 retains original route completion, State disposal and every asynchronous close; thirteen cleanup regressions pass, including actual Navigator teardown with a pending original close; native wallet restoration remains unqualified |
+| X128 | done | 2026-10-23T19:30Z | ddf740e14206 retains typed success handlers and original error tearoffs; the full suite passes 3997 tests with one existing skip before one redundant import is removed; final strict analysis has zero diagnostics and root analysis has zero errors, zero warnings and 1322 infos after locked offline vendored tool restoration; failed receipts remain preserved |
+| X129 | done | 2026-10-23T19:30Z | ddf740e14206 refuses seed begin, preparation and publication while original fixture cleanup is held; original callbacks, guards, attempts, check and exact finish hashes remain; eleven inert policy regressions pass within the 160-case harness suite |
+| X130 | done | 2026-10-23T19:30Z | ddf740e14206 adds the CI-only Windows presentation controller with original process handles, exact source and selected runner/kernel hashes; all 32 finite controller tests pass without native process or network execution; hosted Windows behavior remains pending |
 
 `X` rows from the batch checks are appended here, each naming its screen,
 the difference and its write paths in the note.
