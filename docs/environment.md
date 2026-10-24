@@ -1618,3 +1618,57 @@ startup and production acceptance remain pending. Password migration and
 full two-sided Swap terms remain seamed. The inherited informational
 analysis backlog remains. No match or full acceptance is inferred from
 these positive finite results.
+
+### Retained comparison and Import border box
+
+At `d8dd4a3e20f45a6cb5ba9fff8055e02300fbc68f`, the existing local comparison
+generator reads all 94 reference PNGs in place and reuses the four verified
+Welcome/Import captures from `efeca119cf2f`. It produces the required 47-screen,
+94-pair page with four unreviewed pairs, ninety missing captures and no
+reviewed match. Input/focus and animation states still differ; no wallet input
+is inserted into a capture. The selected brand-colour exception remains explicit.
+
+The original generator command exits zero with complete output. Its final
+metadata reader requires a package record to be read-only before task close,
+while the manager makes that metadata read-only during close. The original
+refusal therefore remains CLOSED/FAILURE/CLEANED. Separate read-only
+reconciliation verifies all eleven exported files, their original command,
+CAS objects, image hashes, PNG structure and dimensions, relative image links,
+package references and the exact incomplete report state. It neither changes
+that failed outcome nor repeats generation, capture, transport or an SDK test.
+
+The explicit local export contains 1466021 bytes. Original aliases, retained
+objects and that export account for 3490206 logical bytes under the declared
+64 MiB task budget and 16 MiB export cap; this is not a measured physical peak.
+No reference image, SDK or archive is copied, and no new download occurs.
+The generated report remains local and outside Git. Browser preview is
+unverified because the browser tool rejects local-file URLs; no alternate
+browser, protocol workaround or render success is claimed.
+
+Source review of the Import pair identifies a separate border-box discrepancy.
+The reference has `box-sizing: border-box` and a 1.5 px dashed border. The
+pinned `dotted_border` 3.1.0 painter centers its stroke on the supplied path;
+zero child padding omits the border from layout. Anonymous
+`f1b533811cefc87fa1fc6f0b402ebe31b690d16c` reserves the border width, insets
+the centerline by half that width and adjusts its radius to preserve the
+outer curve. The original 1.5 px stroke, dash pattern, fill, callbacks, input
+owners and continuation admission remain unchanged.
+
+All five focused local gates pass: formatting, zero-diagnostic strict analysis,
+thirteen existing presentation cases and one loader with no failure/error/skip,
+root analysis with zero errors, zero warnings and 1295 infos, and whitespace
+checks. Both themes' card, footer, stable focus, pointer hover/fill and stroke
+paint cases pass. The complete 251397-byte original output has SHA-256
+`68ee8daf12e90f3cb65caf3f92db001ea1742e65b7026f27d3270798fa227b88`.
+All 69 raw inputs, original command and stream boundaries, source correspondence,
+genuine CLOSED/SUCCESS, free lease and absence of the original process group
+are independently verified. Analyzer scratch remains HOLD. The 512 MiB task
+cap and shared 12 GiB scratch cap preserve the 10 GiB floor and other policy
+limits; no historical cleanup is performed.
+
+The unchanged Python controllers and earlier chain-69 results retain their
+separate source scopes. This Import edit changes a runtime input, so the
+earlier ordinary-entry screenshots and Windows application builds do not
+qualify it. Fresh Fast, Windows baseline and native entry qualification are
+next. All 94 visual matches and the separate owned lab, full wallet lifecycle,
+motion/frame-time, seam and minimum-window/RTL acceptance remain pending.
