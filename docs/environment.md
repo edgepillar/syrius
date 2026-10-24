@@ -299,15 +299,34 @@ The owner selected the `docs/design/RULES.md` brand colours: green `#00D557`
 and blue `#0061EB`. Applying those values to the shared palette is a separate
 follow-up; it is not included in the qualified source above.
 
-Actual execution of the new Windows lanes remains pending. These offline
-results do not establish native behavior, successful Windows compilation of
-the new owner hooks, captured images or full-wallet restoration.
+Hosted follow-up at `8b019e3eb6d701982729165ee13b668193e2329a` passed fork
+Fast Validation with 4,051 tests and one existing skip. Its ordinary Windows
+harness Debug build compiled the new owner hooks, but capture failed with
+`SOURCE_REFUSED` and zero images. The retained artifact contains only an
+`UNKNOWN` manifest. The independent baseline failed with `SOURCE_CHANGED`
+before its inventory and doctor checks. The same source built Linux for
+devnet testing, then failed the pillar stepper scenario; that retained failure
+is under separate diagnosis.
+
+The workflow-only commit `2f98e42b9a942734a54c902a390266903255ed60` sets
+`core.autocrlf=false` before checkout in both new Windows jobs. A finite local
+Git fixture verified that checkout policy and preserved genuine edit refusal;
+it did not establish the cause of the earlier hosted failure. Both Windows
+jobs in run 40035196304 attempt 1 now pass source admission and fail at later
+gates. Baseline reports `DOCTOR_UNPROVEN`, with both required headings unknown
+despite a complete exit-0 doctor command. Entry passes startup, authentication
+and original window observation, then reports `COMMAND_FAILED` at
+show-and-resize. Its verified source/run-bound artifact has zero captures and
+an `UNKNOWN` manifest; original window restoration and process exit 0 were
+observed without force. No images or full-wallet restoration have passed
+these attempts. Target builder, Fast and blockchain runs for this
+source were `action_required` with zero jobs at 2026-10-23T22:43Z.
 
 ## Native acceptance gates
 
 | Required acceptance | Current evidence | Remaining gate |
 | --- | --- | --- |
-| Windows debug and release builds | Hosted builds passed at e67d0fab4c54 | New owner hooks await hosted compilation; baseline and runtime portions remain separate below |
+| Windows debug and release builds | Hosted builds passed at e67d0fab4c54; ordinary harness Debug compiled new owner hooks at 8b019e3eb6d7 | Follow-up Release, baseline and runtime qualification remain separate below |
 | Windows baseline and embedded library | Hosted native builds at e67d0fab4c54 | Inventory, doctor, Windows Dart tests, generated-file correspondence and explicit library mapping/export checks at the follow-up source |
 | Running native harness | Hosted isolated Welcome/empty-Import presentation passes; source adapters and injected tests | Complete native wallet startup, tour and original owner lifecycle |
 | Isolated chain 321 send | Source scripts only | Producing owned devnet, imported harness-only profile and confirmed send |
@@ -337,4 +356,65 @@ Existing full-coverage faces and locale fallbacks remain bundled. Binary metadat
 and offline widget checks do not establish native font rendering or parity.
 
 The mockup fills (`#4FD166`, `#006AFF`) differ from the general design-rule values
-(`#00D557`, `#0061EB`). That source discrepancy still requires owner resolution.
+(`#00D557`, `#0061EB`). The owner selected the design-rule values. The palette
+follow-up applies that decision while retaining the original references.
+The shared green also supplies dark-theme ZNN ink; the separately defined
+blue inks and light-theme green ink retain their reference values for
+readability. Visual review must account for these approved colour changes;
+source-token checks do not establish visual parity.
+
+## Recipe, lab-policy and confirmation follow-up
+
+Implementation commit `be6a7612aa364dd48e72b54e21a402a464de58ff` follows
+`2f98e42b9a942734a54c902a390266903255ed60`. Its 22 implementation files and
+eight protected inputs are byte-identical to the final 30-input local source.
+The successful task finished before the commit; exact raw blob equality carries
+these results to the commit rather than claiming fresh execution there.
+
+| Fresh local check | Observed result |
+| --- | --- |
+| Formatting | 11 Dart files; exit 0 |
+| Strict follow-up analysis | Zero diagnostics; exit 0 |
+| Python controllers and lab policy | 183 passed; exit 0 |
+| Recipe and confirmation regressions | 65 passed, zero skips, failures or errors; exit 0 |
+| Root analysis with `--no-fatal-infos` | Zero errors, zero warnings, 1,314 infos; exit 0 |
+| Diff check | Exit 0 |
+
+The original command exited 0 with complete, rehashed output. Its protected
+stdout is 277,259 bytes, SHA-256
+`175dc927efac71377dece0730aa5edd668a3dedc2cd80a47f983be6e3a65d26b`;
+stderr is empty. Positive task closure and cleanup of its own registered
+scratch completed. Earlier failed and interrupted attempts retain their actual
+outcomes. The unchanged 55 parser checks, 49 manifest-contract checks and 387
+unaffected focused cases retain separate earlier source-bound evidence. The
+separate palette task passed 37 theme cases. The older 4,051-case full-suite
+result above is not a fresh full-suite result for this follow-up.
+
+The owner-selected green `#00D557` and blue `#0061EB` now apply to the shared
+palette. Original references and theme-specific readable inks are preserved
+as described above. No actual screen match follows from token checks.
+
+The harness recipes require original context and finite completion before
+another action. Registration fixtures retain their original sender operation
+and require exact confirmation and effect observations before advancing.
+These 31 offline confirmation cases do not qualify native registration; the
+two earlier Sentinel pre-deposit reads remain the separate X153 follow-up.
+Production admission and publication guards remain unchanged.
+
+The injected owned-lab supervisor has no actual build or Docker/storage
+adapter: default admission remains `BUILD_UNKNOWN`, and seed admission remains
+false. Its direct socket boundary passed 42 cases, including three actual
+local socket-mechanics cases; those cases establish no TCP node, producing
+chain 321, checkpoint or wallet send. Native build and owner capabilities
+remain separate requirements in `docs/testing/owned-lab-admission.md`.
+
+Windows doctor-prefix parsing and schema-2 finite entry diagnostics passed
+their offline cases. Their repair of the earlier hosted failures requires a
+new exact-source run. CI commit
+`e2a2dd648e17c512f93a2040b94d044e9d6ff52c` adds only one finite Python test
+step to PR Fast Validation. The actual Ruby semantic check verified all five
+workflow documents, the preserved `dev` filter and existing Flutter and
+generated-source behavior. Its original command exited 0 with complete,
+rehashed output, genuine `SUCCESS` closure and positive owned cleanup.
+All 34 selected raw inputs match that commit. This is workflow semantic
+qualification; no new hosted execution is claimed here.
