@@ -14,6 +14,7 @@ import '../app/fixtures/seed_policy.dart';
 import '../app/presentation_mode.dart';
 import '../seed/seed_recipe.dart';
 import 'screen_capture.dart';
+import 'wallet_recipe.dart';
 
 final String repo = File.fromUri(Platform.script).parent.parent.parent.path;
 final String stateRoot = '$repo${Platform.pathSeparator}.harness';
@@ -32,6 +33,10 @@ class Args {
       if (a.startsWith('--') && a.length > 2) {
         final String name = a.substring(2);
         final int eq = name.indexOf('=');
+        final String option = eq > 0 ? name.substring(0, eq) : name;
+        if (option == 'chain' && flags.containsKey(option)) {
+          throw Fail('the chain option is ambiguous');
+        }
         if (eq > 0) {
           flags[name.substring(0, eq)] = name.substring(eq + 1);
         } else if (_valued.contains(name) && i + 1 < raw.length) {
@@ -110,17 +115,19 @@ class Instance {
     final HttpClient client = HttpClient()
       ..connectionTimeout = const Duration(seconds: 3);
     try {
-      final HttpClientRequest req = await client.post(
-        '127.0.0.1',
-        info['port'] as int,
-        '/',
-      );
+      final HttpClientRequest req = await client
+          .post(
+            '127.0.0.1',
+            info['port'] as int,
+            '/',
+          )
+          .timeout(timeout);
       req.headers
         ..set('x-harness-token', info['token'] as String)
         ..contentType = ContentType.json;
       req.write(jsonEncode(cmd));
       final HttpClientResponse res = await req.close().timeout(timeout);
-      final String body = await utf8.decoder.bind(res).join();
+      final String body = await utf8.decoder.bind(res).join().timeout(timeout);
       return jsonDecode(body) as Map<String, dynamic>;
     } on SocketException {
       throw Fail('instance "$name" is not running; run `start`');
@@ -1021,123 +1028,31 @@ Future<void> unlock(Instance inst, String password) async {
 
 /// From the Welcome screen of an empty profile to the dashboard.
 Future<void> importWallet(Instance inst, Args a) async {
-  final List<String> words =
-      (a['mnemonic'] ?? (throw Fail('--mnemonic "<12 or 24 words>"')))
-          .trim()
-          .split(RegExp(r'\s+'));
-  final String password =
-      a['password'] ?? (throw Fail('--password <password>'));
-  if (words.length != 12 && words.length != 24) {
-    throw Fail('a mnemonic is 12 or 24 words, got ${words.length}');
-  }
-  Future<Map<String, dynamic>> tap(Map<String, Object?> sel) =>
-      call(inst, <String, Object?>{'cmd': 'tap', ...sel});
-  Future<Map<String, dynamic>> wait(String text, [int ms = 15000]) => call(
-    inst,
-    <String, Object?>{'cmd': 'wait', 'text': text, 'timeoutMs': ms},
+  await walletRecipe(inst).importWallet(
+    chain: a['chain'],
+    mnemonic: a['mnemonic'],
+    password: a['password'],
+    node: a['node'],
   );
-
-  await wait('Import wallet');
-  await tap(<String, Object?>{'text': 'Import wallet'});
-  await wait('Import your wallet');
-  if (words.length == 12) {
-    await tap(<String, Object?>{'text': 'assets/svg/ic_seed_12.svg'});
-  }
-  for (int i = 0; i < words.length; i++) {
-    await call(inst, <String, Object?>{
-      'cmd': 'type',
-      'kind': 'field',
-      'nth': i,
-      'value': words[i],
-      'settleMs': 60,
-    });
-  }
-  await tap(<String, Object?>{'text': 'Continue', 'kind': 'button'});
-  await wait('Create a wallet password');
-  await call(inst, <String, Object?>{
-    'cmd': 'type',
-    'text': 'Password',
-    'exact': true,
-    'value': password,
-  });
-  await call(inst, <String, Object?>{
-    'cmd': 'type',
-    'text': 'Confirm password',
-    'value': password,
-  });
-  await tap(<String, Object?>{'text': 'Confirm password', 'kind': 'button'});
-  await wait('Node Management', 60000);
-  if (a.has('node')) await selectNode(inst, a['node']!);
-  await tap(<String, Object?>{'text': 'Continue', 'kind': 'button'});
-  await wait('Access wallet', 60000);
-  await tap(<String, Object?>{'text': 'Access wallet'});
-  await until(
-    inst,
-    (Map<String, dynamic> s) => s['tab'] == 'dashboard',
-    'dashboard',
-  );
-  final Map<String, dynamic> s = await stateOf(inst);
-  stdout.writeln(
-    'imported: ${s['address']} on ${s['node']} (chain ${s['chainId']})',
-  );
+  stdout.writeln('imported with the verified signing policy');
 }
+
+/// The recipe never prints private responses or retries an uncertain command.
+WalletRecipe walletRecipe(Instance inst) => WalletRecipe(
+  send: (Map<String, Object?> command, Duration timeout) =>
+      inst.send(command, timeout: timeout),
+);
 
 /// On a screen that shows the node list (onboarding, or Settings): adds the
 /// node if it is not listed, and selects it.
 Future<void> selectNode(Instance inst, String url) async {
-  final Map<String, Object?> row = <String, Object?>{
-    'text': url,
-    'exact': true,
-    'kind': 'button',
-  };
-  if (!await present(inst, row)) {
-    final Map<String, Object?> field = <String, Object?>{
-      'text': 'Node address with port',
-      'kind': 'field',
-    };
-    await reveal(inst, field);
-    await call(inst, <String, Object?>{'cmd': 'type', ...field, 'value': url});
-    final Map<String, Object?> add = <String, Object?>{
-      'text': 'Add node',
-      'kind': 'button',
-    };
-    await reveal(inst, add);
-    await call(inst, <String, Object?>{'cmd': 'tap', ...add});
-    await call(inst, <String, Object?>{'cmd': 'wait', ...row});
-  }
-  await call(inst, <String, Object?>{'cmd': 'tap', ...row});
+  await walletRecipe(inst).selectNode(url);
 }
 
 /// Sets the chain identifier the wallet signs with, in Settings. A devnet
 /// refuses blocks signed for chain 1, and the wallet does not follow the node.
 Future<void> clientChain(Instance inst, int id) async {
-  await goto(inst, 'settings');
-  final Map<String, Object?> done = <String, Object?>{
-    'text': 'Current client chain identifier is $id',
-    'kind': 'field',
-  };
-  final Map<String, Object?> field = <String, Object?>{
-    'text': 'Current client chain identifier',
-    'kind': 'field',
-  };
-  if (!await present(inst, field)) {
-    final Map<String, Object?> expander = <String, Object?>{
-      'text': 'Client chain identifier selection',
-    };
-    await reveal(inst, expander);
-    await call(inst, <String, Object?>{'cmd': 'tap', ...expander});
-    await reveal(inst, field);
-  }
-  if (await present(inst, done)) return;
-  await call(inst, <String, Object?>{'cmd': 'type', ...field, 'value': '$id'});
-  // The Confirm button of this section is the first one below the field.
-  await call(inst, <String, Object?>{
-    'cmd': 'tap',
-    'text': 'Confirm',
-    'exact': true,
-    'kind': 'button',
-  });
-  await call(inst, <String, Object?>{'cmd': 'wait', ...done});
+  await walletRecipe(inst).changeClientChain(id);
 }
 
 /// Opens every tab in turn, takes a screenshot of each and lists what looks
@@ -1234,7 +1149,7 @@ Future<bool> recipe(Instance inst, String command, Args a) async {
     case 'chain':
       await clientChain(
         inst,
-        a.rest.isEmpty ? (throw Fail('chain <id>')) : int.parse(a.rest.first),
+        walletRecipeChain(a.rest.isEmpty ? null : a.rest.single),
       );
       stdout.writeln('ok');
     case 'reveal':

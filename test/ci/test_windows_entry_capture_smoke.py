@@ -55,6 +55,14 @@ def capture_reply(screen="welcome", theme="dark"):
             "harnessMode": "wallet", "captureMode": "entry", "restorationVerified": True}
 
 
+def resize_detail(**changes):
+    result = {"requestedClient": [1280, 780], "client": [1264, 741],
+              "physical": [1896, 1111.5], "devicePixelRatio": 1.5,
+              "outer": [1280, 780], "resizeAttempts": 5, "clientMatched": False}
+    result.update(changes)
+    return result
+
+
 class Clock:
     def __init__(self):
         self.now = 0.0
@@ -208,6 +216,9 @@ class ControllerTests(unittest.TestCase):
         result = self.run_smoke()
         self.assertTrue(result["success"])
         self.assertEqual(result["status"], "SUCCESS")
+        self.assertEqual(result["schema"], 2)
+        self.assertIsNone(result["first_command_failure"])
+        self.assertEqual(result["cleanup_failures"], [])
         self.assertEqual(tuple(self.artifacts.writes), smoke.FILES)
         self.assertEqual([command for command in self.commands("entry-capture")], [
             {"cmd": "entry-capture", "screen": screen, "theme": theme}
@@ -296,6 +307,79 @@ class ControllerTests(unittest.TestCase):
         self.assertIn("WINDOW_INVALID", result["error_codes"])
         self.assertFalse(self.commands("entry-capture"))
         self.assertEqual(len([c for c in self.commands("window") if "restoreState" in c]), 1)
+        self.assertEqual(result["first_command_failure"], {
+            "phase": "window_show_resize", "code": "WINDOW_INVALID", "http_status": 200,
+            "category": "GUARD_FAILED", "resize": None})
+
+    def test_known_resize_rejections_keep_finite_facts_and_separate_cleanup_failure(self):
+        for error, category in (
+                ("the requested client area was not observed", "CLIENT_RESIZE_UNOBSERVED"),
+                ("client dimensions changed before reporting", "CLIENT_METRICS_CHANGED")):
+            with self.subTest(category=category):
+                self.setUp()
+                detail = resize_detail(private=TOKEN, window=[17, 23, 1280, 780],
+                                       stack="private-profile-path")
+                def refused(command, token):
+                    if command.get("do") == "show":
+                        return reply({"ok": False, "error": error, "detail": detail,
+                                      "stack": TOKEN}, 400)
+                    if command["cmd"] == "entry-check":
+                        return reply({"ok": False, "error": TOKEN}, 400)
+                self.host.hook = refused
+                result = self.run_smoke()
+                self.assertFalse(result["success"])
+                self.assertEqual(result["capture_count"], 0)
+                self.assertFalse(self.commands("entry-capture"))
+                self.assertEqual(len([c for c in self.commands("window")
+                                      if c.get("do") == "show"]), 1)
+                self.assertEqual(result["first_command_failure"], {
+                    "phase": "window_show_resize", "code": "COMMAND_FAILED", "http_status": 400,
+                    "category": category, "resize": resize_detail()})
+                self.assertEqual(result["cleanup_failures"], [{
+                    "phase": "entry_verify", "code": "COMMAND_FAILED", "http_status": 400,
+                    "category": "REMOTE_ERROR", "resize": None}])
+                self.assertEqual(result["error_codes"], ["COMMAND_FAILED"])
+                self.assertTrue(result["checks"]["window_restored"])
+                self.assertTrue(result["checks"]["close_ack"])
+                self.assertEqual(result["exit_code"], 0)
+                self.assertEqual(self.process.kill_count, 0)
+                self.assertNotIn(TOKEN, json.dumps(result))
+                self.assertNotIn("private-profile-path", json.dumps(result))
+                self.assertNotIn("stack", json.dumps(result))
+
+    def test_unknown_remote_error_never_adopts_lookalike_resize_detail(self):
+        def refused(command, token):
+            if command.get("do") == "show":
+                return reply({"ok": False, "error": {"private": TOKEN},
+                              "detail": resize_detail(), "stack": TOKEN}, 500)
+        self.host.hook = refused
+        result = self.run_smoke()
+        self.assertEqual(result["capture_count"], 0)
+        self.assertFalse(self.commands("entry-capture"))
+        self.assertEqual(result["first_command_failure"], {
+            "phase": "window_show_resize", "code": "COMMAND_FAILED", "http_status": 500,
+            "category": "REMOTE_ERROR", "resize": None})
+        self.assertEqual(result["cleanup_failures"], [{
+            "phase": "entry_verify", "code": "ENTRY_INVALID", "http_status": 200,
+            "category": "GUARD_FAILED", "resize": None}])
+        self.assertFalse(result["success"])
+        self.assertNotIn(TOKEN, json.dumps(result))
+
+    def test_lost_window_reply_is_unknown_and_is_never_retried(self):
+        def lost(command, token):
+            if command.get("do") == "show":
+                raise TimeoutError(TOKEN)
+        self.host.hook = lost
+        result = self.run_smoke()
+        self.assertIn("HTTP_FAILED", result["error_codes"])
+        self.assertEqual(result["first_command_failure"], {
+            "phase": "window_show_resize", "code": "HTTP_FAILED", "http_status": None,
+            "category": "EXCHANGE_FAILED", "resize": None})
+        self.assertEqual(len([c for c in self.commands("window") if c.get("do") == "show"]), 1)
+        self.assertFalse(self.commands("entry-capture"))
+        self.assertEqual(result["exit_code"], 0)
+        self.assertFalse(result["success"])
+        self.assertNotIn(TOKEN, json.dumps(result))
 
     def test_capture_refusal_preserves_prior_pngs_and_never_retries_capture(self):
         def refuse_second(command, token):
@@ -342,6 +426,10 @@ class ControllerTests(unittest.TestCase):
         self.assertFalse(result["checks"]["window_restored"])
         self.assertFalse(self.commands("entry-check"))
         self.assertEqual(len(self.commands("quit")), 1)
+        self.assertEqual(result["first_command_failure"], {
+            "phase": "window_restore", "code": "WINDOW_RESTORE_FAILED", "http_status": 200,
+            "category": "GUARD_FAILED", "resize": None})
+        self.assertEqual(result["cleanup_failures"], [result["first_command_failure"]])
 
     def test_fresh_frame_restoration_count_and_no_hold_are_all_required(self):
         for field, value in (("frameReady", False), ("restorationVerified", False),
@@ -374,6 +462,11 @@ class ControllerTests(unittest.TestCase):
         self.host.hook = lost_close
         result = self.run_smoke()
         self.assertIn("CLOSE_UNCERTAIN", result["error_codes"])
+        self.assertEqual(result["first_command_failure"], {
+            "phase": "close", "code": "HTTP_FAILED", "http_status": None,
+            "category": "EXCHANGE_FAILED", "resize": None})
+        self.assertEqual(result["cleanup_failures"], [{
+            **result["first_command_failure"], "code": "CLOSE_UNCERTAIN"}])
         self.assertEqual(result["exit_code"], 0)
         self.assertFalse(result["success"])
         self.setUp()
@@ -414,7 +507,99 @@ class ControllerTests(unittest.TestCase):
                          "run_attempt", "runner_sha256", "dart_kernel_sha256", "checks",
                          "captures", "capture_count", "exit_code", "exit_observed", "forced_kill",
                          "output_bytes", "output_complete", "output_overflow", "complete", "success",
-                         "status", "error_codes"})
+                         "status", "error_codes", "first_command_failure", "cleanup_failures"})
+        self.assertEqual(result["schema"], 2)
+
+
+class DiagnosticProjectionTests(unittest.TestCase):
+    def failure(self, detail=None):
+        return smoke.command_failure(
+            "window_show_resize", "COMMAND_FAILED", 400, category="REMOTE_ERROR",
+            body={"error": "the requested client area was not observed",
+                  "detail": resize_detail() if detail is None else detail})
+
+    def test_diagnostic_keys_types_and_bounds_are_explicit(self):
+        failure = self.failure()
+        self.assertEqual(set(failure), {"phase", "code", "http_status", "category", "resize"})
+        self.assertEqual(set(failure["resize"]), {
+            "requestedClient", "client", "physical", "devicePixelRatio", "outer",
+            "resizeAttempts", "clientMatched"})
+        self.assertIs(type(failure["http_status"]), int)
+        self.assertIs(type(failure["resize"]["resizeAttempts"]), int)
+        self.assertIs(type(failure["resize"]["clientMatched"]), bool)
+        self.assertTrue(all(type(failure[name]) is str for name in ("phase", "code", "category")))
+        for name in ("requestedClient", "client", "physical", "outer"):
+            self.assertIs(type(failure["resize"][name]), list)
+            self.assertEqual(len(failure["resize"][name]), 2)
+            self.assertTrue(all(type(item) in (int, float) for item in failure["resize"][name]))
+        maximum = resize_detail(client=[32768, 32768], physical=[524288, 524288],
+                                outer=[32768, 32768], devicePixelRatio=16)
+        self.assertEqual(self.failure(maximum)["resize"], maximum)
+        for attempts in (0, 5):
+            self.assertEqual(self.failure(resize_detail(resizeAttempts=attempts))["resize"]
+                             ["resizeAttempts"], attempts)
+
+    def test_malformed_numeric_detail_is_omitted_without_losing_the_refusal(self):
+        changes = (
+            {"requestedClient": [1280, True]}, {"requestedClient": [1280, 781]},
+            {"client": [0, 741]}, {"client": [32769, 741]}, {"client": "private-path"},
+            {"physical": [524289, 1111.5]}, {"physical": [1896, 1112]},
+            {"outer": [1280, float("inf")]}, {"outer": [32769, 780]},
+            {"devicePixelRatio": True}, {"devicePixelRatio": 0},
+            {"devicePixelRatio": 16.1}, {"devicePixelRatio": float("nan")},
+            {"resizeAttempts": True}, {"resizeAttempts": 1.0},
+            {"resizeAttempts": -1}, {"resizeAttempts": 6},
+            {"clientMatched": 0}, {"clientMatched": True},
+        )
+        for change in changes:
+            with self.subTest(change=change):
+                failure = self.failure(resize_detail(**change))
+                self.assertEqual(failure["code"], "COMMAND_FAILED")
+                self.assertEqual(failure["category"], "CLIENT_RESIZE_UNOBSERVED")
+                self.assertIsNone(failure["resize"])
+                json.dumps(failure, allow_nan=False)
+        self.assertIsNone(self.failure({})["resize"])
+        self.assertIsNone(self.failure(TOKEN)["resize"])
+
+    def test_unknown_shapes_and_private_fields_cannot_enter_public_diagnostics(self):
+        valid = self.failure()
+        for change in ({"phase": TOKEN}, {"phase": []}, {"code": TOKEN},
+                       {"category": TOKEN}, {"category": True}, {"private": TOKEN}):
+            with self.subTest(change=change):
+                report = smoke.Report()
+                report.first_command_failure = {**valid, **change}
+                report.cleanup_failures = [{**valid, **change}]
+                self.assertIsNone(report.public()["first_command_failure"])
+                self.assertEqual(report.public()["cleanup_failures"], [])
+                self.assertNotIn(TOKEN, json.dumps(report.public()))
+        for status in (True, 400.0, "400", 99, 600, TOKEN):
+            with self.subTest(status=status):
+                self.assertIsNone(smoke.failure_projection({**valid, "http_status": status})
+                                  ["http_status"])
+        for status in (100, 400, 599):
+            self.assertEqual(smoke.failure_projection({**valid, "http_status": status})
+                             ["http_status"], status)
+        detail = resize_detail(password=TOKEN, stack=TOKEN, path=TOKEN)
+        self.assertEqual(self.failure(detail)["resize"], resize_detail())
+        report = smoke.Report()
+        report.first_command_failure = self.failure(detail)
+        report.cleanup_failures = TOKEN
+        public = report.public()
+        self.assertEqual(public["cleanup_failures"], [])
+        self.assertNotIn(TOKEN, json.dumps(public, allow_nan=False))
+        self.assertFalse(public["success"])
+
+    def test_cleanup_projection_is_finite_and_only_uses_cleanup_phases(self):
+        report = smoke.Report()
+        valid = {"phase": "window_restore", "code": "WINDOW_RESTORE_FAILED",
+                 "http_status": 200, "category": "GUARD_FAILED", "resize": None}
+        report.cleanup_failures = [valid, {**valid, "phase": "entry_verify"},
+                                   {**valid, "phase": "close"}, {"private": TOKEN}]
+        self.assertEqual(report.public()["cleanup_failures"], report.cleanup_failures[:2])
+        report.cleanup_failures = [valid, valid]
+        self.assertEqual(report.public()["cleanup_failures"], [valid])
+        report.cleanup_failures = [{**valid, "phase": "window_observe"}]
+        self.assertEqual(report.public()["cleanup_failures"], [])
 
 
 class ParserTests(unittest.TestCase):
@@ -529,6 +714,30 @@ class AdmissionArtifactTests(unittest.TestCase):
         with self.assertRaises(smoke.Failure):
             smoke.source_tree(Path("checkout"), {}, run=lambda args, **kw:
                               (0, (TREE + "\n").encode()) if "rev-parse" in args else (1, b""))
+
+    def test_dirty_source_preserves_only_the_exact_observed_tree_before_refusal(self):
+        report = smoke.Report()
+        observations = []
+        def observed(tree):
+            observations.append(tree)
+            report.source_tree = tree
+        def dirty(arguments, **kwargs):
+            if "rev-parse" in arguments:
+                return 0, (TREE + "\n").encode()
+            self.assertEqual(observations, [TREE])
+            return 1, (TOKEN + " private-profile-path").encode()
+        with self.assertRaises(smoke.Failure) as caught:
+            smoke.source_tree(Path("checkout"), self.parent(), run=dirty, observe_tree=observed)
+        self.assertEqual(caught.exception.code, "SOURCE_REFUSED")
+        self.assertEqual(report.public()["source_tree"], TREE)
+        self.assertFalse(report.public()["checks"]["source"])
+        self.assertNotIn(TOKEN, json.dumps(report.public()))
+        self.assertFalse(report.public()["success"])
+        observations.clear()
+        with self.assertRaises(smoke.Failure):
+            smoke.source_tree(Path("checkout"), {}, observe_tree=observed,
+                              run=lambda *args, **kwargs: (0, (TREE + "\nprivate-path").encode()))
+        self.assertEqual(observations, [])
 
     def test_fresh_output_is_separate_from_profile_and_never_adopts_existing_output(self):
         with tempfile.TemporaryDirectory() as location:

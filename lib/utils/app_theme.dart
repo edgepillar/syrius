@@ -3,9 +3,10 @@ import 'dart:ui' show lerpDouble;
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 
-/// The desktop mockup's semantic values, including the surfaces used by
-/// Material. The source is `mockups/redesign/src/00-head.html`; every root
-/// custom property has a named counterpart here:
+/// The desktop's semantic values, including the surfaces used by Material.
+/// Surfaces and motion follow `mockups/redesign/src/00-head.html`; brand
+/// fills follow the owner-selected `docs/design/RULES.md` palette. Every
+/// root custom property has a named counterpart here:
 ///
 /// | Mockup | Token |
 /// | --- | --- |

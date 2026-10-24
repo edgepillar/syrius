@@ -9,6 +9,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dar
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+import '../support/devnet_deposit_confirmation.dart';
 import '../support/devnet_registration_host.dart';
 import '../support/devnet_test_context.dart';
 
@@ -37,7 +38,11 @@ Future<void> iCreateASentinelFromTheCreateSentinelStepperFor(
   await tester.pumpAndSettle();
 
   await _tapAndSettle(tester, const Key('sentinel_plasma_next_button'));
-  await _completeQsrStep(tester, owner, accountInfo);
+  final DevnetDepositConfirmation? depositConfirmation = await _completeQsrStep(
+    tester,
+    owner,
+    accountInfo,
+  );
   await _tapAndSettle(tester, const Key('sentinel_znn_next_button'));
 
   final Finder registerButton = find.byKey(
@@ -55,11 +60,17 @@ Future<void> iCreateASentinelFromTheCreateSentinelStepperFor(
         if (state is DeploySentinelDone && !completer.isCompleted) {
           completer.complete();
         } else if (state is DeploySentinelFailure && !completer.isCompleted) {
-          completer.completeError(state.exception);
+          completer.completeError(
+            DevnetDepositFailure(
+              DevnetDepositFailureCode.registrationFailed,
+              originalError: state.error ?? state.exception,
+            ),
+          );
         }
       });
 
   try {
+    depositConfirmation?.requireCurrent();
     await tester.tap(registerButton);
     await _pumpUntilComplete(
       tester,
@@ -71,7 +82,7 @@ Future<void> iCreateASentinelFromTheCreateSentinelStepperFor(
   }
 }
 
-Future<void> _completeQsrStep(
+Future<DevnetDepositConfirmation?> _completeQsrStep(
   WidgetTester tester,
   String owner,
   AccountInfo accountInfo,
@@ -84,6 +95,7 @@ Future<void> _completeQsrStep(
     const Key('sentinel_qsr_amount_field'),
   );
   await _pumpUntilAnyFound(tester, <Finder>[qsrNextButton, qsrAmountField]);
+  DevnetDepositConfirmation? confirmation;
 
   final BigInt depositedQsr = await app.zenon!.embedded.sentinel
       .getDepositedQsr(ownerAddress);
@@ -114,6 +126,15 @@ Future<void> _completeQsrStep(
     final SentinelDepositQsrBloc depositBloc = tester
         .element(depositButton)
         .read<SentinelDepositQsrBloc>();
+    final DevnetDepositConfirmation originalConfirmation =
+        DevnetDepositConfirmation.capture(
+          sender: tester.element(depositButton).read<SendTransactionBloc>(),
+          ownerAddress: owner,
+          expectedDeposit: app.zenon!.embedded.sentinel.depositQsr(
+            depositAmount,
+          ),
+        );
+    confirmation = originalConfirmation;
     final Completer<void> completer = Completer<void>();
     final StreamSubscription<SentinelDepositQsrState> subscription = depositBloc
         .stream
@@ -122,7 +143,12 @@ Future<void> _completeQsrStep(
             completer.complete();
           } else if (state is SentinelDepositQsrFailure &&
               !completer.isCompleted) {
-            completer.completeError(state.exception);
+            completer.completeError(
+              DevnetDepositFailure(
+                DevnetDepositFailureCode.depositFailed,
+                originalError: state.exception,
+              ),
+            );
           }
         });
 
@@ -133,13 +159,13 @@ Future<void> _completeQsrStep(
         completer.future,
         'sentinel QSR deposit success',
       );
-      await _poll<BigInt>(
-        () => app.zenon!.embedded.sentinel.getDepositedQsr(ownerAddress),
-        isReady: (BigInt value) => value == sentinelRegisterQsrAmount,
-        description: 'sentinel QSR deposit to reach the registration amount',
-      );
+      await originalConfirmation.confirm(tester);
+      final BigInt completedDeposit = await originalConfirmation
+          .waitForSentinelDeposit(tester);
+      expect(completedDeposit, sentinelRegisterQsrAmount);
     } finally {
       await subscription.cancel();
+      await originalConfirmation.close(tester);
     }
   } else {
     expect(
@@ -149,7 +175,9 @@ Future<void> _completeQsrStep(
     );
   }
 
+  confirmation?.requireCurrent();
   await _tapAndSettle(tester, const Key('sentinel_qsr_next_button'));
+  return confirmation;
 }
 
 Future<void> _tapAndSettle(WidgetTester tester, Key key) async {
@@ -219,29 +247,4 @@ Future<void> _pumpUntilComplete(
   if (error != null) {
     Error.throwWithStackTrace(error!, stackTrace!);
   }
-}
-
-Future<T> _poll<T>(
-  Future<T> Function() fetch, {
-  required bool Function(T value) isReady,
-  required String description,
-}) async {
-  final DateTime deadline = DateTime.now().add(const Duration(seconds: 90));
-  Object? lastError;
-
-  while (DateTime.now().isBefore(deadline)) {
-    try {
-      final T value = await fetch();
-      if (isReady(value)) {
-        return value;
-      }
-    } on Object catch (error) {
-      lastError = error;
-    }
-    await Future<void>.delayed(const Duration(seconds: 1));
-  }
-
-  throw TimeoutException(
-    'Timed out waiting for $description. Last error: $lastError',
-  );
 }

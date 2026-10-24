@@ -17,16 +17,29 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:hive_ce/hive_ce.dart';
 import 'package:logging/logging.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_token_stepper/widgets/token_create_frame.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/widgets/send_confirmation.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/onboarding/wallet_ready_surface.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/onboarding/wallet_success_screen.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/node_transition.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/wallet_context_revision.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/node_settings_presenter.dart'
+    show NodeSettingsEntry;
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/node_settings_view.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/tabs.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart'
+    show WebsocketStatus, getChainIdentifier;
 
 import '../seed/seed_recipe.dart' show requireSeedTokenPreparation;
 import 'capture_frame.dart';
@@ -297,6 +310,40 @@ class HarnessError implements Exception {
   String toString() => message;
 }
 
+class _RecipeSelection {
+  _RecipeSelection({
+    required this.id,
+    required this.source,
+    required this.presenter,
+    required this.file,
+    required this.client,
+    required this.socket,
+    required this.ledgerTransport,
+    required this.node,
+    required this.originalNode,
+    required this.revision,
+    required this.signingChain,
+    required this.expectedChain,
+  });
+
+  final int id;
+  final Element source;
+  final Object presenter;
+  final Object? file;
+  final Object? client;
+  final Object? socket;
+  final Object? ledgerTransport;
+  final String node;
+  final String? originalNode;
+  final int revision;
+  final int signingChain;
+  final int? expectedChain;
+  Element? question;
+  Route<dynamic>? questionRoute;
+  VoidCallback? questionCallback;
+  bool accepted = false;
+}
+
 class HarnessAgent {
   HarnessAgent._()
     : _captureFrames = CaptureFrameGate(
@@ -342,6 +389,13 @@ class HarnessAgent {
   bool _mouseAdded = false;
   Offset _mouseAt = Offset.zero;
   bool booted = false;
+  Object? _recipeFile;
+  Object? _recipeClient;
+  Object? _recipeSocket;
+  int _recipeOwner = 0;
+  int _recipeSelectionId = 0;
+  _RecipeSelection? _recipeSelection;
+  bool _recipeReadyOpening = false;
   final SeedCommands _seeds = SeedCommands();
   HarnessPresentationController? _presentation;
   NativeEntryCapture? _nativeEntry;
@@ -681,6 +735,8 @@ class HarnessAgent {
         };
       case 'state':
         return _state();
+      case 'wallet-recipe':
+        return _walletRecipeCommand(c);
       case 'entry-state':
       case 'entry-check':
       case 'entry-capture':
@@ -806,6 +862,8 @@ class HarnessAgent {
       'tabs': <String>[for (final Tabs t in kTabs) t.name],
       'node': kCurrentNode,
       'chainId': kNodeChainId,
+      ..._recipeSigningPolicy(),
+      'nodeTransitionPending': NodeTransitions.pending,
       'ws': app.zenon?.wsClient.status().name,
       'embeddedNode': kEmbeddedNodeRunning,
       'address': kSelectedAddress,
@@ -817,6 +875,409 @@ class HarnessAgent {
       'size': <int>[size.width.round(), size.height.round()],
       'appData': Platform.environment['AppData'],
     };
+  }
+
+  Map<String, Object?> _recipeSigningPolicy() {
+    Object? saved;
+    bool known = false;
+    bool nodeSaved = false;
+    try {
+      if (app.sharedPrefsService != null && Hive.isBoxOpen(kSharedPrefsBox)) {
+        final Box<dynamic> box = Hive.box<dynamic>(kSharedPrefsBox);
+        saved = box.get(kChainIdKey, defaultValue: kChainIdDefaultValue);
+        known = box.isOpen && saved is int && saved > 0;
+        nodeSaved =
+            kCurrentNode != null && box.get(kSelectedNodeKey) == kCurrentNode;
+      }
+    } on Object {
+      // An unreadable preference is unknown, never an invented default.
+    }
+    return <String, Object?>{
+      'signingChainId': getChainIdentifier(),
+      'savedSigningChainId': known ? saved : null,
+      'signingPolicyReady': known,
+      'nodeSelectionSaved': nodeSaved,
+    };
+  }
+
+  static bool _recipeKey(String? key) =>
+      key != null &&
+      (<String>{
+            'welcome_import',
+            'import_words_12',
+            'import_words_24',
+            'import_seed_field',
+            'import_continue',
+            'import_new_password',
+            'import_confirm_password',
+            'import_password_continue',
+            'node_settings_add',
+            'node_settings_endpoint',
+            'node_settings_endpoint_save',
+            'node_onboarding_continue',
+            'node_settings_question_accept',
+            'node_settings_chain_toggle',
+            'node_settings_client_chain',
+            'node_settings_chain_save',
+            'wallet_ready_open',
+            'nav_settings',
+            'nav_dashboard',
+            'settings_node',
+          }.contains(key) ||
+          key.startsWith('node_settings_select_'));
+
+  bool _recipeEnabled(_Node node) {
+    final Widget widget = node.element.widget;
+    return node.enabled && (widget is! Radio || widget.enabled != false);
+  }
+
+  List<Element> _recipeNodeViews() {
+    final List<Element> views = <Element>[];
+    void visit(Element element) {
+      if (element.widget is NodeSettingsView) views.add(element);
+      element.debugVisitOnstageChildren(visit);
+    }
+
+    WidgetsBinding.instance.rootElement?.debugVisitOnstageChildren(visit);
+    if (views.length > 1) {
+      throw HarnessError('wallet-recipe-node-view-ambiguous');
+    }
+    return views;
+  }
+
+  bool _recipeReady(_Node node) {
+    WalletSuccessScreen? owner;
+    WalletReadySurface? surface;
+    node.element.visitAncestorElements((Element ancestor) {
+      if (ancestor.widget case final WalletSuccessScreen value) owner = value;
+      if (ancestor.widget case final WalletReadySurface value) surface = value;
+      return true;
+    });
+    return owner != null &&
+        identical(owner!.originalFile, kWalletFile) &&
+        surface?.binding?.transportQuarantined == false &&
+        surface?.binding?.isCurrent == true &&
+        ModalRoute.of(node.element)?.isCurrent == true &&
+        kWalletInitCompleted &&
+        !NodeTransitions.pending;
+  }
+
+  int? _recipeQuestion(
+    List<_Node> nodes,
+    List<Element> views,
+    Map<String, dynamic> command,
+  ) {
+    final List<_Node> accepts = nodes
+        .where((_Node node) => node.key == 'node_settings_question_accept')
+        .toList();
+    if (accepts.isEmpty) return null;
+    final _RecipeSelection? selection = _recipeSelection;
+    if (accepts.length != 1 || views.length != 1 || selection == null) {
+      throw HarnessError('wallet-recipe-question-unowned');
+    }
+    final _Node accept = accepts.single;
+    final NodeSettingsView source = views.single.widget as NodeSettingsView;
+    DialogCard? dialog;
+    accept.element.visitAncestorElements((Element ancestor) {
+      if (ancestor.widget case final DialogCard value) dialog = value;
+      return dialog == null;
+    });
+    final AppLocalizations? l10n = AppLocalizations.of(accept.element);
+    final ModalRoute<dynamic>? route = ModalRoute.of(accept.element);
+    final Widget button = accept.element.widget;
+    final Widget? body = dialog?.body;
+    final List<Widget>? children = body is Column ? body.children : null;
+    final int? expected = selection.expectedChain;
+    if (expected == null ||
+        l10n == null ||
+        command['expectedNode'] != selection.node ||
+        command['expectedNodeChain'] != expected ||
+        command['originalSigningChain'] != selection.signingChain ||
+        !identical(views.single, selection.source) ||
+        !identical(source.presenter, selection.presenter) ||
+        !identical(kWalletFile, selection.file) ||
+        !identical(app.zenon, selection.client) ||
+        !identical(app.zenon?.wsClient, selection.socket) ||
+        !identical(app.zenon?.ledger.client, selection.ledgerTransport) ||
+        app.zenon?.wsClient.url != selection.node ||
+        app.zenon?.wsClient.status() != WebsocketStatus.running ||
+        kCurrentNode != selection.originalNode ||
+        WalletContextRevision.value != selection.revision + 1 ||
+        getChainIdentifier() != selection.signingChain ||
+        !NodeTransitions.pending ||
+        source.presenter.state.pendingNode != selection.node ||
+        source.presenter.state.clientChain != selection.signingChain ||
+        dialog?.title != l10n.nodeSettingsMismatchTitle ||
+        route is! FrostedDialogRoute<bool> ||
+        button is! TextButton ||
+        button.onPressed == null ||
+        dialog?.actions.length != 2 ||
+        dialog!.actions.first.key !=
+            const Key('node_settings_question_cancel') ||
+        !identical(dialog!.actions.last, button) ||
+        children == null ||
+        children.length != 3 ||
+        children.first is! Text ||
+        (children.first as Text).data !=
+            l10n.nodeSettingsMismatchBody(expected, selection.signingChain) ||
+        children.last is! Text ||
+        (children.last as Text).data != selection.node ||
+        !route.isCurrent) {
+      throw HarnessError('wallet-recipe-question-facts-refused');
+    }
+    selection.question ??= accept.element;
+    selection.questionRoute ??= route;
+    selection.questionCallback ??= button.onPressed;
+    if (!identical(selection.question, accept.element) ||
+        !identical(selection.questionRoute, route) ||
+        !identical(selection.questionCallback, button.onPressed)) {
+      throw HarnessError('wallet-recipe-question-replaced');
+    }
+    return selection.id;
+  }
+
+  Map<String, Object?> _recipeObservation(Map<String, dynamic> command) {
+    if (_recipeOwner == 0 ||
+        !identical(_recipeFile, kWalletFile) ||
+        !identical(_recipeClient, app.zenon) ||
+        !identical(_recipeSocket, app.zenon?.wsClient)) {
+      _recipeFile = kWalletFile;
+      _recipeClient = app.zenon;
+      _recipeSocket = app.zenon?.wsClient;
+      _recipeOwner++;
+    }
+    final List<_Node> nodes = _snapshot();
+    final List<Element> views = _recipeNodeViews();
+    final NodeSettingsView? view = views.isEmpty
+        ? null
+        : views.single.widget as NodeSettingsView;
+    final List<_Node> controls = nodes
+        .where(
+          (_Node node) =>
+              _recipeKey(node.key) &&
+              <String>{'button', 'toggle', 'field'}.contains(node.kind),
+        )
+        .toList();
+    return <String, Object?>{
+      'harnessMode': 'wallet',
+      'booted': booted,
+      'owner': _recipeOwner,
+      'revision': WalletContextRevision.value,
+      'walletPresent': kWalletFile != null,
+      'walletInitCompleted': kWalletInitCompleted,
+      'tab': kCurrentPage?.name,
+      'node': kCurrentNode,
+      'chainId': kNodeChainId,
+      'nodeConnected':
+          kCurrentNode != null &&
+          app.zenon?.wsClient.status() == WebsocketStatus.running &&
+          app.zenon?.wsClient.url == kCurrentNode,
+      ..._recipeSigningPolicy(),
+      'transitionPending': NodeTransitions.pending,
+      'nodeBusy': view?.presenter.state.busy ?? false,
+      'nodePicker': view != null,
+      'nodeCatalog': <String>[
+        if (view != null)
+          for (final NodeSettingsEntry row in view.presenter.state.entries)
+            row.node,
+      ],
+      'question': _recipeQuestion(nodes, views, command),
+      'readyOriginal': controls.any(
+        (_Node node) => node.key == 'wallet_ready_open' && _recipeReady(node),
+      ),
+      'hasError':
+          nodes.any((_Node node) => node.kind == 'error') ||
+          view?.presenter.state.failure != null,
+      'controls': <Map<String, Object?>>[
+        for (final _Node node in controls)
+          <String, Object?>{
+            'key': node.key,
+            'enabled': _recipeEnabled(node) && _reachable(node, node.center),
+            if (node.key == 'node_settings_chain_toggle')
+              'expanded': _recipeExpanded(node.element),
+          },
+      ],
+    };
+  }
+
+  bool? _recipeExpanded(Element element) {
+    bool? expanded;
+    element.visitAncestorElements((Element ancestor) {
+      if (ancestor.widget case final Semantics semantics) {
+        expanded ??= semantics.properties.expanded;
+      }
+      return expanded == null;
+    });
+    return expanded;
+  }
+
+  _Node _recipeControl(String key, {required bool field}) {
+    final List<_Node> nodes = _snapshot();
+    if (nodes.any((_Node node) => node.kind == 'error')) {
+      throw HarnessError('wallet-recipe-visible-error');
+    }
+    final List<_Node> hits = nodes
+        .where(
+          (_Node node) =>
+              node.key == key &&
+              (field
+                  ? node.kind == 'field'
+                  : <String>{'button', 'toggle'}.contains(node.kind)),
+        )
+        .toList();
+    if (hits.length != 1 ||
+        !_recipeEnabled(hits.single) ||
+        !_reachable(hits.single, hits.single.center)) {
+      throw HarnessError('wallet-recipe-control-refused');
+    }
+    return hits.single;
+  }
+
+  Future<Map<String, Object?>> _walletRecipeCommand(
+    Map<String, dynamic> command,
+  ) async {
+    try {
+      if (command.keys.any(
+        (String key) => !<String>{
+          'cmd',
+          'action',
+          'key',
+          'value',
+          'owner',
+          'revision',
+          'dy',
+          'expectedNode',
+          'expectedNodeChain',
+          'originalSigningChain',
+          'originNode',
+          'originRevision',
+          'question',
+        }.contains(key),
+      )) {
+        throw HarnessError('wallet-recipe-input-refused');
+      }
+      final Object? action = command['action'];
+      if (action == 'observe') return _recipeObservation(command);
+      final Map<String, Object?> observed = _recipeObservation(command);
+      void current() {
+        final Map<String, Object?> fresh = _recipeObservation(command);
+        if (!identical(_recipeFile, kWalletFile) ||
+            !identical(_recipeClient, app.zenon) ||
+            command['owner'] != _recipeOwner ||
+            command['revision'] != WalletContextRevision.value ||
+            fresh['hasError'] != false ||
+            fresh['signingPolicyReady'] != true ||
+            fresh['signingChainId'] != fresh['savedSigningChainId']) {
+          throw HarnessError('wallet-recipe-original-owner-changed');
+        }
+      }
+
+      current();
+      if (action == 'scroll') {
+        if (NodeTransitions.pending ||
+            observed['question'] != null ||
+            !<int>{-300, 300}.contains(command['dy'])) {
+          throw HarnessError('wallet-recipe-scroll-refused');
+        }
+        await _scroll(<String, dynamic>{'dy': command['dy']});
+        return <String, Object?>{'acted': true};
+      }
+      final Object? key = command['key'];
+      if (key is! String ||
+          !_recipeKey(key) ||
+          (action != 'tap' && action != 'type')) {
+        throw HarnessError('wallet-recipe-action-refused');
+      }
+      if (NodeTransitions.pending && key != 'node_settings_question_accept') {
+        throw HarnessError('wallet-recipe-transition-held');
+      }
+      final bool field = action == 'type';
+      final _Node original = _recipeControl(key, field: field);
+      if (key.startsWith('node_settings_select_') ||
+          key == 'node_onboarding_continue') {
+        final List<Element> views = _recipeNodeViews();
+        if (views.length != 1 ||
+            command['expectedNode'] is! String ||
+            !command.containsKey('originNode') ||
+            command['originNode'] != kCurrentNode ||
+            command['originRevision'] != WalletContextRevision.value ||
+            command['originalSigningChain'] != getChainIdentifier() ||
+            (key.startsWith('node_settings_select_') &&
+                key != 'node_settings_select_${command['expectedNode']}') ||
+            (key == 'node_onboarding_continue' &&
+                command['expectedNode'] != kCurrentNode)) {
+          throw HarnessError('wallet-recipe-selection-origin-refused');
+        }
+        final NodeSettingsView view = views.single.widget as NodeSettingsView;
+        _recipeSelection = _RecipeSelection(
+          id: ++_recipeSelectionId,
+          source: views.single,
+          presenter: view.presenter,
+          file: kWalletFile,
+          client: app.zenon,
+          socket: app.zenon?.wsClient,
+          ledgerTransport: app.zenon?.ledger.client,
+          node: command['expectedNode'] as String,
+          originalNode: kCurrentNode,
+          revision: WalletContextRevision.value,
+          signingChain: getChainIdentifier(),
+          expectedChain: command['expectedNodeChain'] as int?,
+        );
+      }
+      final _RecipeSelection? selection = _recipeSelection;
+      if (key == 'node_settings_question_accept') {
+        if (selection == null ||
+            selection.accepted ||
+            command['question'] != observed['question'] ||
+            command['question'] != selection.id) {
+          throw HarnessError('wallet-recipe-question-already-used');
+        }
+        selection.accepted = true;
+      }
+      if (key == 'wallet_ready_open') {
+        if (_recipeReadyOpening || !_recipeReady(original)) {
+          throw HarnessError('wallet-recipe-original-ready-unavailable');
+        }
+        _recipeReadyOpening = true;
+      }
+      void admission() {
+        current();
+        final _Node fresh = _recipeControl(key, field: field);
+        if (!identical(fresh.element, original.element) ||
+            fresh.center != original.center) {
+          throw HarnessError('wallet-recipe-original-control-changed');
+        }
+        if (key == 'node_settings_question_accept') {
+          if (!identical(selection, _recipeSelection) ||
+              _recipeQuestion(_snapshot(), _recipeNodeViews(), command) !=
+                  selection?.id) {
+            throw HarnessError('wallet-recipe-original-question-changed');
+          }
+        }
+        if (key == 'wallet_ready_open' && !_recipeReady(fresh)) {
+          throw HarnessError('wallet-recipe-original-ready-changed');
+        }
+      }
+
+      final Map<String, dynamic> input = <String, dynamic>{'key': key};
+      if (field) {
+        final Object? value = command['value'];
+        if (value is! String || value.length > 512) {
+          throw HarnessError('wallet-recipe-private-input-refused');
+        }
+        await _type(
+          <String, dynamic>{...input, 'value': value},
+          requireAdmission: admission,
+        );
+      } else {
+        await _tap(input, requireAdmission: admission);
+      }
+      // Generic type/tree replies can contain private field data. Recipe
+      // commands return only the fact that their original action completed.
+      return <String, Object?>{'acted': true};
+    } on Object {
+      throw HarnessError('wallet-recipe-refused');
+    }
   }
 
   RenderView get _view {
@@ -1621,7 +2082,10 @@ class HarnessAgent {
     return ctx.findAncestorStateOfType<EditableTextState>();
   }
 
-  Future<Map<String, Object?>> _type(Map<String, dynamic> c) async {
+  Future<Map<String, Object?>> _type(
+    Map<String, dynamic> c, {
+    void Function()? requireAdmission,
+  }) async {
     final String text = c['value'] as String? ?? '';
     EditableTextState? state;
     _Node? node;
@@ -1632,8 +2096,9 @@ class HarnessAgent {
         throw HarnessError('covered by something else', node.toJson());
       }
       // Click into it first, as a person would: focus listeners fire.
-      await _click(node.center);
+      await _click(node.center, requireAdmission: requireAdmission);
       await _frame();
+      requireAdmission?.call();
       state = (node.element as StatefulElement).state as EditableTextState;
     } else {
       state = _focusedEditable();

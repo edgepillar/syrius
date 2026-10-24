@@ -107,6 +107,30 @@ class ParserTests(unittest.TestCase):
                          {"windows_version": "pass", "visual_studio": "pass"})
         self.assertNotIn(PRIVATE, json.dumps(baseline.doctor_status(text)))
 
+    def test_doctor_accepts_only_pinned_timing_prefix_and_original_status(self):
+        for prefix in ("[        ] ", "[   +1 ms] ", "[  +12 ms] ", "[+1234 ms] "):
+            for marker in ("✓", "√"):
+                with self.subTest(prefix=prefix, marker=marker):
+                    output = (prefix + "[" + marker + "] Windows Version (" + PRIVATE + ")\n"
+                              + prefix + "[" + marker + "] Visual Studio - " + PRIVATE + "\n")
+                    parsed = baseline.doctor_status(output.encode())
+                    self.assertEqual(parsed, {"windows_version": "pass", "visual_studio": "pass"})
+                    self.assertNotIn(PRIVATE, json.dumps(parsed))
+        self.assertEqual(baseline.doctor_status(
+            b"[   +1 ms] [!] Windows Version warning\n"
+            b"[        ] [X] Visual Studio failed\n"),
+            {"windows_version": "warning", "visual_studio": "fail"})
+
+    def test_doctor_verbose_noise_or_malformed_prefix_cannot_create_proof(self):
+        for prefix in ("[trace] ", "[ +0 ms] ", "[ -1 ms] ", "[ +1.5 ms] ",
+                       "[ +1 s] ", "[ +1 ms] Executing ", "[ +1 ms] [ +2 ms] "):
+            with self.subTest(prefix=prefix):
+                parsed = baseline.doctor_status((prefix + "[✓] Windows Version\n"
+                                                 + prefix + "[✓] Visual Studio\n").encode())
+                self.assertEqual(set(parsed.values()), {"unknown"})
+        with self.assertRaises(baseline.BaselineFailure):
+            baseline.doctor_status("[✓] Windows Version\n[   +1 ms] [✓] Windows Version\n".encode())
+
     def test_doctor_warning_failure_missing_and_duplicate_stay_unproven(self):
         self.assertEqual(baseline.doctor_status(b"[!] Visual Studio - warning\n")["visual_studio"], "warning")
         self.assertEqual(baseline.doctor_status(b"[X] Windows Version broken\n")["windows_version"], "fail")

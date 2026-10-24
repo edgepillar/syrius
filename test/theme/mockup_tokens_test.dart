@@ -65,7 +65,19 @@ void main() {
   final String css = File(
     'mockups/redesign/src/00-head.html',
   ).readAsStringSync();
-  final Map<String, String> dark = _properties(css, ':root');
+  final String rules = File('docs/design/RULES.md').readAsStringSync();
+  final RegExpMatch brand = RegExp(
+    r'Green `(#[\da-fA-F]{6})` is brand and success, '
+    r'blue `(#[\da-fA-F]{6})` is info and pending',
+  ).firstMatch(rules)!;
+  // The owner selected the rules for brand fills. Keep the original mockup
+  // source intact and retain its separate, theme-specific readable inks.
+  final Map<String, String> dark = <String, String>{
+    ..._properties(css, ':root'),
+    '--znn': brand.group(1)!,
+    '--znn-ink': brand.group(1)!,
+    '--qsr': brand.group(2)!,
+  };
   final Map<String, String> light = <String, String>{
     ...dark,
     ..._properties(css, ':root[data-theme="light"]'),
@@ -85,7 +97,7 @@ void main() {
     final Map<String, String> source = theme.key == 'dark' ? dark : light;
     final AppTokens tokens = theme.value;
 
-    group('${theme.key} mockup parity', () {
+    group('${theme.key} design tokens', () {
       test('every root property has a token', () {
         expect(source.keys.toSet(), <String>{
           ..._colors(tokens).keys,
@@ -98,7 +110,7 @@ void main() {
         });
       });
 
-      test('all surface and ink values match the source CSS', () {
+      test('surface and ink values follow the selected sources', () {
         for (final MapEntry<String, Color> token in _colors(tokens).entries) {
           expect(token.value, _color(source[token.key]!), reason: token.key);
         }

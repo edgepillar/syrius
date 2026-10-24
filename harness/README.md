@@ -51,10 +51,29 @@ PowerShell). Windows only for now.
 ```sh
 harness/h build                 # flutter build windows, entrypoint harness/app/main.dart
 harness/h start                 # launch in the profile .harness/default
-harness/h import --mnemonic "<24 words>" --password '<password>' --node ws://127.0.0.1:45998
+harness/h import --mnemonic "<24 words>" --password '<password>' --node ws://127.0.0.1:45998 --chain 321
 harness/h chain 321             # the chain identifier the wallet signs with
 harness/h stop
 ```
+
+Import requires an explicit positive `--chain` before entering any private
+input. It uses the current keyed importer, accepts one genuine node mismatch
+only when its original node and signing facts match that requested chain,
+opens the original Ready once, then saves the signing policy through Settings.
+Success requires both the SDK signing identifier and its saved effective policy,
+plus the original connected and saved node. `state.chainId` is the node's chain;
+`state.signingChainId` is the SDK's signing policy. An absent stored signing
+preference is reported only as the application's known default when its
+original preferences box is already open.
+
+The import, node and signing-policy recipes use a three-minute total budget,
+ten-second command limits and finite scroll and observation counts. Ambiguous
+or replaced controls, unknown policy, mismatched questions, transport errors
+and late acknowledgements stop the recipe without another action. A standalone
+`node` command never accepts a chain mismatch. Refusal retains any wallet or
+transition already created; it does not reset the profile. Recipe replies and
+diagnostics omit private field contents. Native import and signing acceptance
+still require execution against the intended isolated profile and node.
 
 Later runs find the wallet in the profile and start at the lock screen:
 

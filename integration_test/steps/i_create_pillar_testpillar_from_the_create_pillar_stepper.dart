@@ -9,6 +9,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dar
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+import '../support/devnet_deposit_confirmation.dart';
 import '../support/devnet_registration_host.dart';
 import '../support/devnet_test_context.dart';
 
@@ -34,7 +35,10 @@ Future<void> iCreatePillarTestpillarFromTheCreatePillarStepper(
   await tester.pumpAndSettle();
 
   await _tapAndSettle(tester, const Key('pillar_plasma_next_button'));
-  await _completeQsrStep(tester, context);
+  final DevnetDepositConfirmation? depositConfirmation = await _completeQsrStep(
+    tester,
+    context,
+  );
   await _tapAndSettle(tester, const Key('pillar_znn_next_button'));
 
   await _pumpUntilFound(tester, find.byKey(const Key('pillar_name_field')));
@@ -77,11 +81,17 @@ Future<void> iCreatePillarTestpillarFromTheCreatePillarStepper(
         if (state is DeployPillarDone && !completer.isCompleted) {
           completer.complete(state.accountBlock);
         } else if (state is DeployPillarFailure && !completer.isCompleted) {
-          completer.completeError(state.exception);
+          completer.completeError(
+            DevnetDepositFailure(
+              DevnetDepositFailureCode.registrationFailed,
+              originalError: state.error ?? state.exception,
+            ),
+          );
         }
       });
 
   try {
+    depositConfirmation?.requireCurrent();
     await tester.tap(registerButton);
     context.deployPillarBlock = await _pumpUntilComplete(
       tester,
@@ -93,7 +103,7 @@ Future<void> iCreatePillarTestpillarFromTheCreatePillarStepper(
   }
 }
 
-Future<void> _completeQsrStep(
+Future<DevnetDepositConfirmation?> _completeQsrStep(
   WidgetTester tester,
   DevnetTestContext context,
 ) async {
@@ -102,6 +112,7 @@ Future<void> _completeQsrStep(
     const Key('pillar_qsr_amount_field'),
   );
   await _pumpUntilAnyFound(tester, <Finder>[qsrNextButton, qsrAmountField]);
+  DevnetDepositConfirmation? confirmation;
 
   if (qsrAmountField.evaluate().isNotEmpty) {
     final TextFormField amountField = tester.widget<TextFormField>(
@@ -117,13 +128,53 @@ Future<void> _completeQsrStep(
     );
     await _pumpUntilFound(tester, depositButton);
     context.pillarQsrDepositAmount = depositAmount;
+    final PillarDepositQsrBloc depositBloc = tester
+        .element(depositButton)
+        .read<PillarDepositQsrBloc>();
+    final DevnetDepositConfirmation originalConfirmation =
+        DevnetDepositConfirmation.capture(
+          sender: tester.element(depositButton).read<SendTransactionBloc>(),
+          ownerAddress: DevnetTestContext.testPillarOwnerAddress,
+          expectedDeposit: app.zenon!.embedded.pillar.depositQsr(depositAmount),
+        );
+    confirmation = originalConfirmation;
+    final Completer<AccountBlockTemplate> completer =
+        Completer<AccountBlockTemplate>();
+    final StreamSubscription<PillarDepositQsrState> subscription = depositBloc
+        .stream
+        .listen((PillarDepositQsrState state) {
+          if (state is PillarDepositQsrDone && !completer.isCompleted) {
+            completer.complete(state.accountBlock);
+          } else if (state is PillarDepositQsrFailure &&
+              !completer.isCompleted) {
+            completer.completeError(
+              DevnetDepositFailure(
+                DevnetDepositFailureCode.depositFailed,
+                originalError: state.exception,
+              ),
+            );
+          }
+        });
 
-    await tester.tap(depositButton);
-    await tester.pump();
-    await _pumpUntilFound(tester, qsrNextButton);
+    try {
+      await tester.tap(depositButton);
+      final AccountBlockTemplate original = await _pumpUntilComplete(
+        tester,
+        completer.future,
+        'pillar QSR deposit success',
+      );
+      context.pillarQsrDepositBlock = original;
+      await originalConfirmation.confirm(tester, reportedBlock: original);
+      await _pumpUntilFound(tester, qsrNextButton);
+    } finally {
+      await subscription.cancel();
+      await originalConfirmation.close(tester);
+    }
   }
 
+  confirmation?.requireCurrent();
   await _tapAndSettle(tester, const Key('pillar_qsr_next_button'));
+  return confirmation;
 }
 
 Future<void> _tapAndSettle(WidgetTester tester, Key key) async {

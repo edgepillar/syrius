@@ -48,7 +48,7 @@ abstract affair idle position alien fluid board ordinary exist afraid chapter wo
 
 ```sh
 harness/h start --fresh
-harness/h import --mnemonic "<the devnet mnemonic>" --password '<password>' --node ws://127.0.0.1:45998
+harness/h import --mnemonic "<the devnet mnemonic>" --password '<password>' --node ws://127.0.0.1:45998 --chain 321
 harness/h chain 321
 ```
 

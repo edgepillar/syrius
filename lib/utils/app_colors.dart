@@ -1,12 +1,12 @@
 import 'package:material_ui/material_ui.dart';
 
-/// The mockup palette and compatibility colours used during migration.
+/// The selected design-rule palette and compatibility colours.
 class AppColors {
-  /// The ZNN fill shared by both mockup themes.
-  static const Color znnColor = Color(0xFF4FD166);
+  /// The brand and success green shared by both themes.
+  static const Color znnColor = Color(0xFF00D557);
 
-  /// The QSR fill shared by both mockup themes.
-  static const Color qsrColor = Color(0xFF006AFF);
+  /// The information and pending blue shared by both themes.
+  static const Color qsrColor = Color(0xFF0061EB);
 
   /// The legacy token ink, separate from the plasma accent.
   static const Color ztsColor = Color(0xFFFC54AE);

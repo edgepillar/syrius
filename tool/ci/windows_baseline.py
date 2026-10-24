@@ -316,6 +316,9 @@ def doctor_status(output):
     sections = {"windows_version": "unknown", "visual_studio": "unknown"}
     seen = set()
     for line in clean_text(output).splitlines():
+        # Flutter's pinned VerboseLogger adds this finite timing prefix when
+        # global flags precede doctor. The status marker still decides proof.
+        line = re.sub(r"^\s*\[(?: {8}| *\+[1-9][0-9]{0,11} ms)\] ", "", line, count=1)
         match = re.match(r"^\s*\[([^\]]+)\]\s+(Windows Version|Visual Studio)(?:\s|$)", line)
         if match:
             key = "windows_version" if match[2] == "Windows Version" else "visual_studio"

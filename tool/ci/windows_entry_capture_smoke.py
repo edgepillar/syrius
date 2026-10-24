@@ -49,6 +49,17 @@ CODES = bounded.CODES | frozenset((
 ))
 LIMITS = bounded.Limits(total=150, ready=45, request=20,
                         response_bytes=MAX_BASE64 + 65536)
+CLEANUP_PHASES = frozenset(("window_restore", "entry_verify", "close"))
+COMMAND_PHASES = (frozenset(("readiness_ping", "auth_refusal", "entry_state",
+                            "window_observe", "window_show_resize"))
+                  | CLEANUP_PHASES
+                  | frozenset(f"capture_{screen}_{theme}" for screen, theme in SCENES))
+RESIZE_ERRORS = {
+    "the requested client area was not observed": "CLIENT_RESIZE_UNOBSERVED",
+    "client dimensions changed before reporting": "CLIENT_METRICS_CHANGED",
+}
+FAILURE_CATEGORIES = (frozenset(("REMOTE_ERROR", "EXCHANGE_FAILED", "GUARD_FAILED"))
+                      | frozenset(RESIZE_ERRORS.values()))
 
 
 class Failure(bounded.SmokeFailure):
@@ -64,6 +75,8 @@ class Report(bounded.Report):
         self.checks = dict.fromkeys(CHECKS, False)
         self.captures = []
         self.output_bytes = 0
+        self.first_command_failure = None
+        self.cleanup_failures = []
 
     def fail(self, code, original=None):
         code = code if code in CODES else "INTERNAL_ERROR"
@@ -72,7 +85,26 @@ class Report(bounded.Report):
         if original is not None:
             self.original_errors.append(original)
 
+    def command_failed(self, failure, *, cleanup=False):
+        failure = failure_projection(failure)
+        if failure is None:
+            return
+        if self.first_command_failure is None:
+            self.first_command_failure = failure
+        if cleanup and failure["phase"] in CLEANUP_PHASES and len(self.cleanup_failures) < 2:
+            self.cleanup_failures.append(failure)
+
     def public(self):
+        first_failure = failure_projection(self.first_command_failure)
+        cleanup_failures = []
+        seen = set()
+        if isinstance(self.cleanup_failures, list):
+            for failure in self.cleanup_failures[:2]:
+                failure = failure_projection(failure)
+                if (failure is not None and failure["phase"] in CLEANUP_PHASES
+                        and failure["phase"] not in seen):
+                    seen.add(failure["phase"])
+                    cleanup_failures.append(failure)
         captures = []
         for name in FILES:
             for item in self.captures:
@@ -86,9 +118,10 @@ class Report(bounded.Report):
             and len(captures) == 4 and self.exit_observed and self.exit_code == 0
             and self.output_complete and not self.output_overflow
             and not self.forced_kill and not self.errors
+            and first_failure is None and not cleanup_failures
         )
         return {
-            "schema": 1,
+            "schema": 2,
             "source_sha": self.source_sha if bounded.valid_sha(self.source_sha) else None,
             "source_tree": self.source_tree if bounded.valid_sha(self.source_tree) else None,
             "run_id": anonymous_number(self.run_id),
@@ -107,6 +140,8 @@ class Report(bounded.Report):
             "complete": complete, "success": complete,
             "status": "SUCCESS" if complete else "UNKNOWN",
             "error_codes": [code for code in self.errors if code in CODES],
+            "first_command_failure": first_failure,
+            "cleanup_failures": cleanup_failures,
         }
 
 
@@ -124,7 +159,7 @@ def require_ci(parent, expected, *, platform):
     return parent, expected
 
 
-def source_tree(repo, parent, *, run=bounded.fixed_command):
+def source_tree(repo, parent, *, run=bounded.fixed_command, observe_tree=None):
     env = {key: value for key, value in parent.items() if not key.upper().startswith("GIT_")}
     env.update(GIT_CONFIG_NOSYSTEM="1", GIT_CONFIG_GLOBAL=os.devnull)
     code, output = run(["git", "-C", str(repo), "rev-parse", "HEAD^{tree}"],
@@ -137,6 +172,8 @@ def source_tree(repo, parent, *, run=bounded.fixed_command):
         (tree + "\n").encode(), (tree + "\r\n").encode(),
     ):
         raise Failure("SOURCE_REFUSED")
+    if observe_tree is not None:
+        observe_tree(tree)  # The observed commit tree does not assert a clean worktree.
     code, _ = run(["git", "-C", str(repo), "diff", "--quiet", "HEAD", "--"],
                   cwd=repo, env=env)
     if code != 0:
@@ -257,6 +294,62 @@ def vector(value, length, *, positive=False):
             and all(number(item, positive=positive) for item in value))
 
 
+def resize_projection(value):
+    """Project only the known resize reply's finite numeric facts, never raw detail."""
+    if not isinstance(value, dict):
+        return None
+    result = {}
+    for name, maximum in (("requestedClient", 16384), ("client", 32768),
+                          ("physical", 524288), ("outer", 32768)):
+        items = value.get(name)
+        if not vector(items, 2, positive=True) or any(item > maximum for item in items):
+            return None
+        result[name] = list(items)
+    ratio, attempts, matched = (value.get(name) for name in (
+        "devicePixelRatio", "resizeAttempts", "clientMatched"))
+    if (not number(ratio, positive=True) or ratio > 16
+            or type(attempts) is not int or not 0 <= attempts <= 5
+            or type(matched) is not bool
+            or result["requestedClient"] != [1280, 780]
+            or any(abs(physical - logical * ratio) >= .01
+                   for physical, logical in zip(result["physical"], result["client"]))
+            or matched is not all(abs(actual - expected) < .01 for actual, expected
+                                  in zip(result["client"], result["requestedClient"]))):
+        return None
+    result.update(devicePixelRatio=ratio, resizeAttempts=attempts, clientMatched=matched)
+    return result
+
+
+def failure_projection(value):
+    """The only failure shape allowed into the manifest; no error text survives."""
+    if (not isinstance(value, dict)
+            or set(value) != {"phase", "code", "http_status", "category", "resize"}
+            or any(type(value[name]) is not str for name in ("phase", "code", "category"))
+            or value["phase"] not in COMMAND_PHASES or value["code"] not in CODES
+            or value["category"] not in FAILURE_CATEGORIES):
+        return None
+    category = value["category"]
+    known_resize = category in RESIZE_ERRORS.values()
+    if known_resize and value["phase"] != "window_show_resize":
+        return None
+    status = value["http_status"]
+    status = status if type(status) is int and 100 <= status <= 599 else None
+    return {"phase": value["phase"], "code": value["code"], "http_status": status,
+            "category": category,
+            "resize": resize_projection(value["resize"]) if known_resize else None}
+
+
+def command_failure(phase, code, status, *, category, body=None):
+    error = body.get("error") if isinstance(body, dict) else None
+    if category == "REMOTE_ERROR" and phase == "window_show_resize" and type(error) is str:
+        category = RESIZE_ERRORS.get(error, category)
+    return failure_projection({
+        "phase": phase, "code": code, "http_status": status, "category": category,
+        "resize": body.get("detail") if isinstance(body, dict)
+                  and category in RESIZE_ERRORS.values() else None,
+    })
+
+
 def capture_bytes(body, screen, theme):
     keys = {"ok", "screen", "theme", "width", "height", "scale", "client",
             "physical", "devicePixelRatio", "png", "harnessMode", "captureMode",
@@ -335,10 +428,42 @@ class EntrySmoke(bounded.PresentationSmoke):
         self.artifacts = artifacts
         self.original_window = None
         self.window_changed = self.authenticated = False
+        self._command_phase = self._command_status = self._command_failure = None
 
-    def _positive(self, command, *, allow_exit=False):
-        status, body = self._exchange(command, allow_exit=allow_exit)
+    def _retain_failure(self, code, *, category="GUARD_FAILED", body=None, cleanup=False):
+        failure = self._command_failure
+        if failure is None:
+            failure = command_failure(self._command_phase, code, self._command_status,
+                                      category=category, body=body)
+        else:
+            failure = {**failure, "code": code}
+        self._command_failure = failure
+        self.report.command_failed(failure, cleanup=cleanup)
+
+    def _exchange_at(self, phase, command, *, allow_exit=False, until=None,
+                     poll_refused=False):
+        self._command_phase, self._command_status, self._command_failure = phase, None, None
+        try:
+            status, body = self._exchange(command, allow_exit=allow_exit, until=until)
+        except ConnectionRefusedError:
+            if not poll_refused:
+                self._retain_failure("INTERNAL_ERROR", category="EXCHANGE_FAILED")
+            raise
+        except bounded.SmokeFailure as error:
+            self._retain_failure(error.code, category="EXCHANGE_FAILED")
+            raise
+        except (Exception, KeyboardInterrupt):
+            self._retain_failure("INTERNAL_ERROR", category="EXCHANGE_FAILED")
+            raise
+        self._command_status = status
+        return status, body
+
+    def _positive(self, command, *, phase, allow_exit=False, until=None,
+                  poll_refused=False):
+        status, body = self._exchange_at(phase, command, allow_exit=allow_exit,
+                                         until=until, poll_refused=poll_refused)
         if status != 200 or body["ok"] is not True:
+            self._retain_failure("COMMAND_FAILED", category="REMOTE_ERROR", body=body)
             raise Failure("COMMAND_FAILED")
         return body
 
@@ -357,12 +482,11 @@ class EntrySmoke(bounded.PresentationSmoke):
         until = min(self.deadline, self.clock() + self.limits.ready)
         while self.clock() < until:
             try:
-                status, body = self._exchange({"cmd": "ping"}, until=until)
+                body = self._positive({"cmd": "ping"}, phase="readiness_ping", until=until,
+                                      poll_refused=True)
             except ConnectionRefusedError:
                 body = None
             if body is not None:
-                if status != 200 or body["ok"] is not True:
-                    raise Failure("COMMAND_FAILED")
                 if type(body.get("pid")) is not int or body["pid"] != self.process.pid:
                     raise Failure("IDENTITY_REFUSED")
                 if body.get("harnessMode") != "wallet":
@@ -375,14 +499,21 @@ class EntrySmoke(bounded.PresentationSmoke):
             self.sleep(min(self.limits.poll, max(0, until - self.clock())))
         else:
             raise Failure("READINESS_TIMEOUT")
-        status, body = self._exchange({"cmd": "ping"}, token="invalid-entry-smoke-token", until=until)
+        self._command_phase, self._command_status, self._command_failure = "auth_refusal", None, None
+        try:
+            status, body = self._exchange({"cmd": "ping"}, token="invalid-entry-smoke-token", until=until)
+        except bounded.SmokeFailure as error:
+            self._retain_failure(error.code, category="EXCHANGE_FAILED")
+            raise
+        except (Exception, KeyboardInterrupt):
+            self._retain_failure("INTERNAL_ERROR", category="EXCHANGE_FAILED")
+            raise
+        self._command_status = status
         if status != 400 or body != {"ok": False, "error": "bad token"}:
             raise Failure("AUTH_REFUSAL_INVALID")
         self.authenticated = self.report.checks["auth"] = True
         while self.clock() < until:
-            status, body = self._exchange({"cmd": "entry-state"}, until=until)
-            if status != 200 or body["ok"] is not True:
-                raise Failure("COMMAND_FAILED")
+            body = self._positive({"cmd": "entry-state"}, phase="entry_state", until=until)
             if self._entry(body, count=0):
                 self.report.checks["entry_ready"] = True
                 return
@@ -404,7 +535,8 @@ class EntrySmoke(bounded.PresentationSmoke):
 
     def _restore(self):
         if self.window_changed:
-            restored = self._positive({"cmd": "window", "restoreState": self.original_window})
+            restored = self._positive({"cmd": "window", "restoreState": self.original_window},
+                                      phase="window_restore")
             actual = self._window(restored)
             if restored.get("restored") is not True:
                 raise Failure("WINDOW_RESTORE_FAILED")
@@ -415,7 +547,7 @@ class EntrySmoke(bounded.PresentationSmoke):
                 if not same:
                     raise Failure("WINDOW_RESTORE_FAILED")
             self.report.checks["window_restored"] = True
-            body = self._positive({"cmd": "entry-check"})
+            body = self._positive({"cmd": "entry-check"}, phase="entry_verify")
             if (not self._entry(body, count=4) or body.get("frameReady") is not True
                     or body.get("restorationVerified") is not True):
                 raise Failure("RESTORATION_INVALID")
@@ -424,7 +556,7 @@ class EntrySmoke(bounded.PresentationSmoke):
     def _quit(self):
         self.quit_sent = True
         try:
-            body = self._positive({"cmd": "quit"}, allow_exit=True)
+            body = self._positive({"cmd": "quit"}, phase="close", allow_exit=True)
         except Exception as error:
             self.report.original_errors.append(error)
             raise Failure("CLOSE_UNCERTAIN") from None
@@ -440,21 +572,25 @@ class EntrySmoke(bounded.PresentationSmoke):
             raise Failure("EXIT_FAILED")
         self.report.checks["exit"] = True
 
-    def _record(self, action):
+    def _record(self, action, *, cleanup=False):
         try:
             action()
         except bounded.SmokeFailure as error:
+            self._retain_failure(error.code, cleanup=cleanup)
             self.report.fail(error.code, error)
         except (Exception, KeyboardInterrupt) as error:
+            self._retain_failure("INTERNAL_ERROR", cleanup=cleanup)
             self.report.fail("INTERNAL_ERROR", error)
 
     def run(self):
         def capture():
             self._ready()
-            self.original_window = self._window(self._positive({"cmd": "window"}))
+            self.original_window = self._window(self._positive(
+                {"cmd": "window"}, phase="window_observe"))
             self.report.checks["window_saved"] = True
             self.window_changed = True  # Reserve before the mutating RPC.
-            body = self._positive({"cmd": "window", "do": "show", "width": 1280, "height": 780})
+            body = self._positive({"cmd": "window", "do": "show", "width": 1280, "height": 780},
+                                  phase="window_show_resize")
             actual = self._window(body)
             if (body.get("clientMatched") is not True or actual["minimized"]
                     or actual["maximized"] or any(abs(a - b) >= .01 for a, b in zip(
@@ -462,15 +598,16 @@ class EntrySmoke(bounded.PresentationSmoke):
                 raise Failure("WINDOW_INVALID")
             self.report.checks["client_matched"] = True
             for screen, theme in SCENES:
-                body = self._positive({"cmd": "entry-capture", "screen": screen, "theme": theme})
+                body = self._positive({"cmd": "entry-capture", "screen": screen, "theme": theme},
+                                      phase=f"capture_{screen}_{theme}")
                 self.artifacts.png(f"{screen}-{theme}.png", capture_bytes(body, screen, theme))
                 self.report.checks[f"{screen}_{theme}"] = True
         try:
             self._record(capture)
         finally:
             if self.authenticated and self.process.poll() is None:
-                self._record(self._restore)
-                self._record(self._quit)
+                self._record(self._restore, cleanup=True)
+                self._record(self._quit, cleanup=True)
             grace = min(self.limits.exit, max(0, self.deadline - self.clock())) if self.quit_sent else 0
             bounded.finish_original(self.process, self.drain, self.report, self.limits, grace=grace)
             self.report.output_bytes = getattr(self.drain, "count", 0)
@@ -496,7 +633,8 @@ def main(arguments=None):
         report.run_attempt = parent["GITHUB_RUN_ATTEMPT"]
         artifacts = Artifacts(repo)
         bounded.verify_source(repo, expected, parent)
-        report.source_tree = source_tree(repo, parent)
+        report.source_tree = source_tree(
+            repo, parent, observe_tree=lambda tree: setattr(report, "source_tree", tree))
         report.checks["source"] = True
         binary, report.runner_sha256, identity = bounded.binary_hash(repo)
         kernel, report.dart_kernel_sha256, kernel_identity = bounded.binary_hash(repo, bounded.KERNEL)
