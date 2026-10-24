@@ -1107,13 +1107,44 @@ selector after the real interface became a four-step form. The interrupted
 local log lifecycle remains FAILURE, with transport exit and completeness
 UNKNOWN; this diagnosis does not qualify the complete log or token issuance.
 
-A held three-file correction navigates the original details, supply, options
+Anonymous commit `bff78c818167dcb8d02f86ed89e2a1b74dd3eedd` contains the three-file
+correction. It navigates the original details, supply, options
 and issue frames using enabled controls and one finite deadline. It returns
 the original Issue control without tapping it. The original subscription
 still precedes the single submission, and the original result Future, returned
 block, success observation, 90-second wait and downstream token assertions
-remain intact. Five offline cases and one loader are source expectations;
-application, analysis, execution and fresh hosted devnet results are pending.
+remain intact. All 31 raw inputs match the commit after style publication at
+`6fae076f0e28`. Fresh five-gate qualification passes formatting,
+zero-diagnostic strict analysis, all five offline cases plus one loader, root
+analysis with zero errors, zero warnings and 1296 infos, and the whitespace
+check. No test errors, failures or skips occur.
+
+The original command exits zero with complete 249361-byte stdout, SHA-256
+`d6e0e1ce3cce9e96ffbb1df5cb9ed7e0787cafa99d1ca90c5b92da39890e02da`,
+and empty stderr. Independent replay verifies genuine CLOSED/SUCCESS, original
+command and CAS streams, free lease, absent original process group and exact
+outcome and cleanup receipts. Analyzer scratch remains HOLD without cleanup.
+The 512 MiB expected allocation and task cap do not establish a measured peak;
+shared policy and the 10 GiB floor remain unchanged. This is offline fixture
+qualification; fresh hosted devnet and actual issuance results remain pending.
+
+The first source admission refuses before application or SDK execution because
+the historical patch and preparation report retain mode 0644. Their original
+bytes and modes are preserved. A reviewed read path now requires those exact
+modes, SHA-256 values, owner, single-link regular files and stable descriptor
+and path identities. All other preparation and source guards remain intact;
+the original refusal is retained separately.
+
+### UI and style full-suite CI
+
+Fresh fork Fast run 40086450027 attempt 1 executes published head
+`6fae076f0e285bd387525b96ec95d2ca775f4cc4`. The later bounded read-only API
+observation reports job 120850271842 completed successfully, with all thirteen
+steps successful: controller tests, both analyses, unit/widget tests, generated
+correspondence and every post-step. Original complete-log transport and
+retention closure remain pending, so no new retained terminal counts are
+asserted here. This result keeps its UI/style source scope and does not qualify
+the later token or caption candidates.
 
 ### Target CI observation refresh
 
