@@ -558,3 +558,322 @@ Independent source, argv, output and closure checks passed; the task closed
 and all 22 final selected raw source inputs. The ten selected Dart files
 remain unchanged by this workflow-only commit. This semantic check runs no
 tests or hosted CI; the fresh hosted cache post-step remains pending.
+
+## Follow-up qualification on 2026-10-24
+
+At `87228af165671e8471250db19f85ea871d5addce`,
+[fork Fast Validation 40058695755](https://github.com/edgepillar/syrius/actions/runs/40058695755)
+attempt 1 passes all 183 Python cases, both analysis steps, 4,176 unit/widget
+tests with one existing skip, and generation consistency. Root analysis has
+zero errors, zero warnings and 1,313 infos; vendored analysis has zero
+diagnostics. The complete retained job log has 1,091,081 bytes and SHA-256
+`8b847693e141cb22e0c32ff9c1a4a8d221439d90f2760e6ab504521194c044a3`.
+Its original transport exits 0 with complete output; independent source,
+CAS, genuine `CLOSED/SUCCESS` and positive owned-cleanup checks pass.
+
+In [scoped run 40058701466](https://github.com/edgepillar/syrius/actions/runs/40058701466)
+attempt 1, the complete Windows baseline job succeeds, including all cache
+post-steps. Its retained log has 39,299 bytes and SHA-256
+`7bac9ddf59b38e45a5a6136b005dceb348ecfdaf7c3bc61db713c1eb1dab2c3e`.
+All twelve controller checks pass: Windows desktop doctor, locked dependency
+restoration, root and vendored analysis, unit/widget tests, generated-file
+correspondence, Debug and Release builds, and source/Debug/Release library
+hash and map/export checks. Every required child exits 0 with complete
+bounded output, without overflow or forced termination. There are 4,175
+visible passed tests, two existing skips, 497 hidden terminal events and
+4,674 total terminal events, with no failures or error events. Root analysis
+retains 1,313 infos and zero errors or warnings; vendored analysis has zero
+diagnostics. All three library digests remain
+`f1f79ee184b9c0e3cd92d2f5c49e52c68e7a4670357a0cf1df95a0ac6de8973a`.
+The original retained command, object ledger, free task lease, genuine
+`CLOSED/SUCCESS` and owned cleanup were independently verified. This
+qualifies the cache follow-up's hosted post-steps; the earlier failure's
+directory-walk cause remains unproven. Library mapping and export lookup do
+not establish node ABI invocation, wallet startup or owner-machine behavior.
+
+That same scoped run fails ordinary entry capture and devnet integration.
+The six-build matrix and isolated presentation lane are disabled by input.
+The complete entry log has 48,905 bytes and SHA-256
+`8b8998014a4e33f129cc5bafd707dbfee5c2e7bfd5b7a239dcc1ecfe0dfd01f0`.
+The retained source/run/attempt-bound artifact contains only its finite
+manifest: requested client matching, original window-geometry restoration,
+original exit 0 and complete output are positive. The first capture is
+refused as `PNG_INVALID`; no image is retained and entry restoration remains
+unproven. A later `ENTRY_INVALID` response is consistent with the incomplete
+capture count; it does not independently prove a restoration defect. The
+complete devnet log has 329,410 bytes and SHA-256
+`b9eefa81ff2ae892bdc081fd33c88dc1966f5ae3429a2f7fcd2eb395ef1c77a1`.
+Its first stake fixture lacks `SelectedAddressNotifier`, before stake
+submission; source review also identifies its removed dropdown selector.
+Both log-retention tasks closed `SUCCESS` with positive owned cleanup. These
+failures establish no new Pillar or Sentinel confirmation outcome.
+
+Target Fast 40058610232, builder 40058610245 and blockchain 40058610231
+remain `action_required` with zero jobs, observed at 03:33Z. Fork execution
+does not satisfy that maintainer gate. The owner has no Windows test session
+available at present. All 94 actual screen/theme comparisons, independent
+visual review, owned lab checkpoints, motion, frame-time and seam acceptance
+remain pending.
+
+### Bounded PNG channel precision
+
+Published anonymous commit `edecd9b3465feea6dd9a0bf47904a6902fcdc76a` admits
+exactly one standard pre-IDAT `sBIT` chunk, with three RGB or four RGBA channel
+values in 1..8. CRC, dimensions, bounded decompression, scanline validation
+and text/profile/unknown-metadata refusals remain enforced. Six new test
+methods cover 55 variants; all 189 Python CI cases pass without skips,
+errors or contradictory verdicts. The original command exits 0 with complete
+output; its 289-byte stderr digest is
+`c8547c2584f926b354a721564274a885e07f0a86962a0a0b6e4e0ff610376853`.
+Independent replay verifies all 21 pinned raw inputs, genuine
+`CLOSED/SUCCESS`, owned cleanup and the preserved original checkout.
+
+The pinned Flutter framework
+[`abaf9c523780a608bd46686fd5e53740a07077f8` PNG encoder](https://raw.githubusercontent.com/flutter/flutter/abaf9c523780a608bd46686fd5e53740a07077f8/engine/src/flutter/lib/ui/painting/image_encoding.cc)
+uses Skia's default PNG encoding options. Its
+[`DEPS` pin](https://raw.githubusercontent.com/flutter/flutter/abaf9c523780a608bd46686fd5e53740a07077f8/DEPS)
+selects Skia `8df24be66531469e576a806749a0202ae26b8d08`, whose
+[`SkPngEncoderImpl.cpp`](https://raw.githubusercontent.com/google/skia/8df24be66531469e576a806749a0202ae26b8d08/src/encode/SkPngEncoderImpl.cpp)
+emits channel precision through `png_set_sBIT`. The admitted shape and
+placement follow the [PNG specification](https://www.w3.org/TR/png-3/).
+These pinned sources establish a producer/consumer compatibility mismatch;
+the rejected hosted image bytes were not retained, so their exact failing
+chunk remains unproven. The fresh native outcome is recorded below.
+
+The normal push independently verifies the exact two-file commit delta,
+all 21 qualification inputs, anonymous UTC author and committer headers,
+unchanged original checkout, fork permissions and Draft PR target. Pending
+Dart repairs are excluded from the published tree. Entry-only fork
+[run 40062851700](https://github.com/edgepillar/syrius/actions/runs/40062851700)
+attempt 1 succeeds at that exact head; all other scoped qualification lanes
+are disabled. Its complete 48,293-byte log has SHA-256
+`79b9237b3b5639e987cbc50087c7e35a934e2102cb345bd0536df42ce4a49dc1`.
+The original retention exits 0 with complete output and genuine
+`CLOSED/SUCCESS/CLEANED`. The finite schema-2 report passes all 18 checks,
+including exact client matching, both window and entry restoration, and
+original exit 0 without overflow or forced termination.
+
+Artifact 12547993546 contains four genuine 1280 by 780 PNGs and one finite
+manifest. Its 2,295,836-byte archive has SHA-256
+`512dcca850d0e54dcda47131da29d6ba4271a9734f4ce40d760546ac6da062c0`;
+the 1,530-byte manifest has SHA-256
+`9b91f5b18fec715011a2008a7eb213769e65d1e0d50fed598f9c15d3721147a9`.
+Independent verification checks fresh GitHub artifact identity and digest,
+all explicit archive members, each individual retained image, the bounded
+PNG parser, exact agreement between the manifest and complete job log, and
+the original source, task, object ledger, free lease and absent process
+group. That retention also genuinely closes `SUCCESS` with owned cleanup.
+No archive is repackaged and no build binary is downloaded.
+
+Limited independent inspection of the four entry pairs identifies a
+source-confirmed entry backdrop mismatch, the reference's separate 32px
+client titlebar contract, and Import component geometry/border differences.
+These are tracked as X163-X165. The shorter truthful Welcome import hint,
+empty seed example data, approved brand accents and possible font hinting
+are distinguished from defects. The globe continues rotating; a different
+pose alone establishes no animation defect. Four retained captures do not
+qualify the complete compare page, motion, frame-time or native controls;
+90 other actual captures and all 94 visual matches remain pending.
+
+### GeneralStats disposal candidate
+
+The first candidate preserves the four original SDK reads while preventing
+their late completion from restarting polling after disposal. Its ten offline
+regressions and one loading check pass without skips, errors or failures;
+formatting and the diff check pass. The candidate fails strict analysis with
+seven infos in the new test. Root analysis has zero errors, zero warnings and
+1,316 infos. The original worker exits 1 with complete retained output:
+253,045 bytes, SHA-256
+`b18d297e31392cbb2c30cdebd35485158c75902ef2b257dfeb4e6e46a253fd10`.
+Independent replay verifies those stage results and source preservation.
+The task genuinely closes `FAILURE`; isolated analyzer state remains under
+storage `HOLD`, so the original overall closure stays `UNKNOWN`. No cleanup
+is claimed. Six tearoff changes and one brace fix are applied only to the
+new fixture as inputs to a fresh second qualification.
+
+The fresh second attempt qualifies local anonymous commit
+`f5b503afd2644cb7fe486dbc7e497db6229efbf9`. All ten GeneralStats regressions
+and one loading check pass without skips or errors. Both changed files have
+zero strict diagnostics; root analysis has zero errors, zero warnings and
+1,309 infos. Formatting and the diff check pass. All five original stages
+exit 0, and the complete 250,523-byte output has SHA-256
+`07398f6f72a6ce1275fb1b258fce045b1bcaf9cd8a66d38013f5ff44f9527c44`.
+Independent replay verifies the ten raw source pins, original command and
+streams, genuine `CLOSED/SUCCESS`, a free task lease, and absence of the
+original process group. Isolated analyzer state remains under storage
+`HOLD`; it is preserved and no cleanup is claimed. The anonymous two-file
+commit preserves the original checkout. The first failure and its original
+`UNKNOWN` closure remain unchanged. This scoped result does not qualify the
+full suite or native acceptance.
+
+### Original wallet signing fixture compatibility
+
+The first original wallet signing candidate reaches all five finite stages,
+but the new fixture uses a `group` timeout argument unsupported by Flutter's
+compatibility API. Strict and root analysis each report that one error; the
+34 regression cases do not execute because the file fails to compile.
+Root analysis retains 1,301 infos and zero warnings. The original command
+exits 1 with complete 245,923-byte output, SHA-256
+`6b6ece2df067ad19b96e265696cf568e4c1fb1c6817949df0581202a3ffde1f5`.
+Independent replay verifies the source pins, all recorded stage outcomes,
+genuine `CLOSED/FAILURE`, free lease and absent original process group.
+Isolated analyzer state remains under storage `HOLD` without cleanup.
+Only the unsupported group argument is removed for the fresh second
+attempt; the original CLI timeout remains. The failed source is exactly
+reconstructable from the preserved delta.
+
+The second attempt qualifies local anonymous commit
+`8f22be1456767e0dc85e86d9abb939f0103c149a`. All 34 offline signing
+regressions and one loading check pass without skips or errors. The three
+changed files have zero strict diagnostics, and root analysis has zero
+errors, zero warnings and 1,301 infos. Formatting and the diff check pass.
+All five original stages exit 0; complete 259,669-byte output has SHA-256
+`65b43f60b85ef29b2ffd87ab991a5a551713f4b69f22b462ebdcd739a4e41ec7`.
+Independent replay verifies all eleven raw source pins, the original
+command, complete streams, genuine `CLOSED/SUCCESS`, a free lease and
+absence of the original process group. Isolated analyzer state remains
+under storage `HOLD`; no cleanup is claimed. The exact three-file commit
+has anonymous UTC headers and preserves the original checkout. It retains
+original wallet and account ownership, immutable message bytes, acquired
+file closure and settled results across delayed operations. These offline
+results do not qualify hardware, live wallet signing or delivery; retaining
+a result does not authorize a replacement signature or retry.
+
+### Stake fixture scoped analysis
+
+The first provider and Segment-duration repair passes all three offline
+ownership/render regressions and one loading check. Strict analysis finds
+three infos: two long BDD comment lines and one test-only error-catching
+lint. There are no scoped errors or warnings; root analysis has zero errors,
+zero warnings and 1,300 infos. Formatting and the diff check pass. The
+original command exits 1 with complete 246,574-byte output, SHA-256
+`1e2abc8dc9937351f0f2b797f14c5ba3c6d4ec2d6f5633c90a7215562b85f1af`.
+Independent replay verifies all eleven raw pins, the five original stage
+results, genuine `CLOSED/FAILURE`, a free lease and absence of the original
+process group. Isolated analyzer state remains under storage `HOLD`
+without cleanup. Two comment wraps and an equivalent exact-error matcher
+prepare a fresh second attempt. The failed source and complete evidence
+remain preserved; these passing offline cases do not qualify hosted
+devnet behavior or a real stake.
+
+The second attempt qualifies local anonymous commit
+`71143c49b3e418e776061776196e22d7c857ce7b`. All three regressions and one
+loading check pass without skips or errors. The three scoped files have
+zero diagnostics; root analysis has zero errors, zero warnings and 1,297
+infos. Formatting and the diff check pass. All five original stages exit 0
+with complete 245,134-byte output, SHA-256
+`c74cfebd2290c662d3f8444c7a8863ee7220201af7bb722e89db1ccbe64ab74b`.
+Independent replay verifies all eleven source pins, original command and
+streams, genuine `CLOSED/SUCCESS`, a free lease and absence of the original
+process group. Isolated analyzer state remains under storage `HOLD`
+without cleanup. Original balance and transaction assertions remain intact;
+this local fixture result does not qualify hosted devnet behavior.
+
+### Entry and desktop geometry source follow-up
+
+The held Windows frame candidate preserves the existing window manager,
+Navigator, modal subtree and shutdown owner. It adds a genuine 32px client
+caption with 44px accessible controls; macOS and Linux retain their native
+caption and existing body layout. Its 32 authored offline cases have not
+executed. Generated localization parity, source analysis, test results,
+native controls, DPI behavior and fresh captures remain separate gates.
+
+Pinned button-resolution source also shows that desktop compact density
+subtracts 8px from ordinary `PrimaryPill` minimum heights. Existing measured
+tests use the default Android test platform, so those results do not cover
+that desktop reduction. Tight external Lock and Send constraints preserve
+their requested height. Held shared-component, Receive and Home secondary
+candidates add measured compact desktop cases. Receive's companion keeps
+both actions at the reference's 38px ordinary height and 30px QR-expanded
+height; Home's companion retains 38px secondary controls. These companions
+must accompany the shared change. Further local repairs target explicit
+26px chips and secondary controls and the 30px Collect all action. Shared
+modal and Accelerator height differences remain separate decisions. No
+screenshot match or runtime result is inferred from this source inventory.
+
+### WalletConnect text-policy admission
+
+The first offline qualification attempt was refused by shared scratch
+capacity before a task or command was created. No tests ran and no passing
+result exists for that attempt. Its UNKNOWN record and unchanged source
+remain preserved. Read-only sizing of comparable completed narrow batches
+measures approximately 96-130MiB of final logical scratch; these figures do
+not measure peak allocation. A fresh scoped attempt uses a 1GiB task limit,
+over seven times the largest comparable final size, with the same existing
+SDK, packages and bounded output. Shared quotas, the physical free-space
+floor, original tasks and storage runtime remain unchanged. The manager
+still enforces admission and the complete allocation limit; no cleanup or
+quota increase is inferred from the new plan.
+
+The fresh attempt qualifies local anonymous commit
+`555ed3d0ca461c02617a0270aa1e40301422d4c6`. All 13 regressions and three
+loading checks pass without skips, failures or errors. The test file has
+zero diagnostics; the production file retains its exact 44 inherited
+infos. Root analysis has zero errors, zero warnings and 1,297 infos.
+All six original gates exit 0 with complete 259,903-byte output, SHA-256
+`d7c3ba2ca0d9215e5ab9d69949dc37e7feafd4a9be3ec767c073119ab4bb6267`.
+Independent replay verifies ten raw source pins, the original record and
+streams, genuine `CLOSED/SUCCESS`, a free lease and absence of the original
+process group. The task's actual expected and quota limits are both 1GiB.
+Isolated analyzer state remains under storage `HOLD` without cleanup. The
+first admission's UNKNOWN evidence remains intact. These offline results
+do not establish live wallet signing or hosted behavior.
+
+### Combined repair-suite qualification
+
+The combined local source at
+`555ed3d0ca461c02617a0270aa1e40301422d4c6` passes the complete serial
+Flutter test suite: 4,226 visible successes, 500 hidden successes, one
+existing skip, and no failures or error events. Independent event replay
+verifies the exact skipped receive-block case in
+`test/dapp_bridge/dapp_bridge_parity_test.dart`; no new skip is accepted.
+Formatting, strict analysis of the nine repaired Dart files, root analysis
+and the diff check also pass. Strict analysis has zero diagnostics; root
+analysis has zero errors, zero warnings and 1,297 infos.
+
+All five original stages and the original producer exit 0 with complete
+output. The retained 2,724,670-byte stdout has SHA-256
+`b59bfa4652c03634dcb5af37f753a6fc71afa2f8428521c7d4793aaec71f13a5`;
+stderr is empty. Independent replay verifies all 24 immutable source pins,
+the original command, complete streams, intent and preclose records,
+genuine `CLOSED/SUCCESS`, a free lease and absence of the original process
+group. The existing checkout and all earlier failures remain preserved.
+Analyzer state remains under storage `HOLD`; no cleanup is claimed.
+
+The new task's expected and quota limits are both 1,536MiB. This was an
+explicit unproven allocation candidate, not a measured peak. The shared
+storage policy, 10GiB free-space floor and historical tasks are unchanged.
+The manager admitted the new task and enforced its allocation limit.
+These local results do not establish fresh hosted devnet behavior, native
+Windows integration, live wallet signing or a visual match. The four
+verified ordinary entry captures remain pinned to `edecd9b3465f`.
+
+### Held UI follow-ups
+
+The first held UI group combines 37 paths for the entry background, Import
+component geometry, genuine Windows client caption and local compact
+button sizing. Exact source composition and overlap checks are complete;
+formatting, generation parity, analysis and its selected tests remain
+pending. Its shared PrimaryPill change includes Receive and Home
+companions for qualification with their actual desktop callers.
+
+A later disjoint 21-path group aligns shared ordinary, small and xs
+neutral styles, Staking and Plasma Close, Plasma Cancel, Accelerator,
+Node Update and the remaining Transfer controls. It preserves original
+callbacks, warnings, busy and ownership guards, and the legacy explicit
+LoadingButton minimum. Its one known inherited import-order info has a
+mechanical prepared repair. The expected 117 visible cases and ten hidden
+checks are source-derived inventories, not executed results. Whole-Plasma
+page appearance and native reference matching remain unqualified.
+
+The separate held entry-caption observer adds four original-action
+observations after the four ordinary captures. It preserves the original
+eighteen checks, original operation Futures, one absolute deadline and
+one ordinary quit. Maximize and caption restore wait for the next retained
+control to become enabled; minimized observation never requires a painted
+frame. Fifteen Dart cases and thirteen additional Python methods remain
+unexecuted. An artifact's preclose evidence-contract acceptance is kept
+separate from genuine retention closure; a positive independent post-run
+receipt is required before any publication claim. None of these held
+candidates qualifies native motion, frame times or the complete 94-pair
+visual acceptance.
