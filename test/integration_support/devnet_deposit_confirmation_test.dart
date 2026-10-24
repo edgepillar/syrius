@@ -28,6 +28,8 @@ class _Node extends Mock implements Zenon {}
 
 class _Ledger extends Mock implements LedgerApi {}
 
+class _AccountInfo extends Mock implements AccountInfo {}
+
 class _Stats extends Mock implements StatsApi {}
 
 class _Socket extends Mock implements WsClient {}
@@ -113,6 +115,9 @@ void main() {
   late Future<AccountBlock?> Function(Hash) read;
   late Future<BigInt> Function(Address) effectRead;
   late List<Address> effectReads;
+  late AccountInfo accountInfo;
+  late Future<AccountInfo> Function(Address) accountRead;
+  late List<Address> accountReads;
   final List<DevnetDepositConfirmation> observers =
       <DevnetDepositConfirmation>[];
 
@@ -184,6 +189,16 @@ void main() {
     published = <AccountBlockTemplate>[];
     reads = <Hash>[];
     effectReads = <Address>[];
+    accountInfo = _AccountInfo();
+    accountReads = <Address>[];
+    accountRead = (_) async => accountInfo;
+    when(() => ledger.getAccountInfoByAddress(any())).thenAnswer((
+      Invocation call,
+    ) {
+      final Address owner = call.positionalArguments.single as Address;
+      accountReads.add(owner);
+      return accountRead(owner);
+    });
     effectRead = (_) async => sentinelRegisterQsrAmount;
     when(() => sentinelApi.getDepositedQsr(any())).thenAnswer((
       Invocation call,
@@ -922,4 +937,400 @@ void main() {
       await closeOwned(tester);
     }
   }, timeout: const Timeout(Duration(seconds: 60)));
+
+  Future<DevnetDepositFailure> preflightFailure(Future<Object> original) async {
+    try {
+      await original;
+    } on DevnetDepositFailure catch (error) {
+      return error;
+    }
+    throw StateError('Expected permanent preflight refusal');
+  }
+
+  Future<AccountBlockTemplate> advanceAfterPreflight(
+    DevnetSentinelPreflight preflight,
+    List<String> actions,
+  ) async {
+    preflight.requireReady();
+    actions.add('Next');
+    preflight.requireReady();
+    final AccountBlockTemplate result = await submit(SentinelApi().register());
+    actions.add('Register');
+    return result;
+  }
+
+  testWidgets('funded Sentinel preflight works before any host is mounted', (
+    WidgetTester tester,
+  ) async {
+    final List<String> actions = <String>[];
+    try {
+      final DevnetSentinelPreflight preflight = DevnetSentinelPreflight.capture(
+        owner,
+      );
+      final AccountInfo originalAccount = await preflight.readAccountInfo(
+        tester,
+      );
+      final BigInt originalDeposit = await preflight.readDepositedQsr(tester);
+      expect(originalAccount, same(accountInfo));
+      expect(originalDeposit, sentinelRegisterQsrAmount);
+      expect(accountReads, <Address>[Address.parse(owner)]);
+      expect(effectReads, <Address>[Address.parse(owner)]);
+      expect(published, isEmpty);
+      await _finish(tester, advanceAfterPreflight(preflight, actions));
+      expect(actions, <String>['Next', 'Register']);
+      expect(published, hasLength(1));
+    } finally {
+      await closeOwned(tester);
+    }
+  }, timeout: const Timeout(Duration(seconds: 60)));
+
+  testWidgets('Sentinel preflight returns one original partial deposit', (
+    WidgetTester tester,
+  ) async {
+    try {
+      final BigInt originalAmount = BigInt.from(13);
+      effectRead = (_) async => originalAmount;
+      final DevnetSentinelPreflight preflight = DevnetSentinelPreflight.capture(
+        owner,
+      );
+      await preflight.readAccountInfo(tester);
+      expect(await preflight.readDepositedQsr(tester), same(originalAmount));
+      preflight.requireReady();
+      expect(accountReads, hasLength(1));
+      expect(effectReads, hasLength(1));
+      expect(published, isEmpty);
+    } finally {
+      await closeOwned(tester);
+    }
+  }, timeout: const Timeout(Duration(seconds: 60)));
+
+  for (final bool accountStage in <bool>[true, false]) {
+    for (final String lateOutcome in <String>['success', 'error']) {
+      final String stage = accountStage ? 'account' : 'deposit';
+      testWidgets(
+        'stalled Sentinel $stage preflight retains late $lateOutcome',
+        (WidgetTester tester) async {
+          final Completer<AccountInfo> accountOriginal =
+              Completer<AccountInfo>();
+          final Completer<BigInt> depositOriginal = Completer<BigInt>();
+          final List<String> actions = <String>[];
+          try {
+            final DevnetSentinelPreflight preflight =
+                DevnetSentinelPreflight.capture(owner);
+            if (accountStage) {
+              accountRead = (_) => accountOriginal.future;
+            } else {
+              await preflight.readAccountInfo(tester);
+              effectRead = (_) => depositOriginal.future;
+            }
+            final Future<Object> original = accountStage
+                ? preflight.readAccountInfo(
+                    tester,
+                    timeout: const Duration(milliseconds: 200),
+                  )
+                : preflight.readDepositedQsr(
+                    tester,
+                    timeout: const Duration(milliseconds: 200),
+                  );
+            final DevnetDepositFailure held = await preflightFailure(original);
+            expect(held.code, DevnetDepositFailureCode.deadline);
+            final StateError lateError = StateError('private-preflight-late');
+            if (accountStage) {
+              if (lateOutcome == 'error') {
+                accountOriginal.completeError(lateError);
+                await expectLater(
+                  _finish(tester, accountOriginal.future),
+                  throwsA(same(lateError)),
+                );
+              } else {
+                accountOriginal.complete(accountInfo);
+                expect(
+                  await _finish(tester, accountOriginal.future),
+                  same(accountInfo),
+                );
+              }
+            } else if (lateOutcome == 'error') {
+              depositOriginal.completeError(lateError);
+              await expectLater(
+                _finish(tester, depositOriginal.future),
+                throwsA(same(lateError)),
+              );
+            } else {
+              depositOriginal.complete(sentinelRegisterQsrAmount);
+              expect(
+                await _finish(tester, depositOriginal.future),
+                sentinelRegisterQsrAmount,
+              );
+            }
+            expect(preflight.requireReady, throwsA(same(held)));
+            await expectLater(
+              preflight.readAccountInfo(tester),
+              throwsA(same(held)),
+            );
+            await expectLater(
+              preflight.readDepositedQsr(tester),
+              throwsA(same(held)),
+            );
+            await expectLater(
+              advanceAfterPreflight(preflight, actions),
+              throwsA(same(held)),
+            );
+            expect(accountReads, hasLength(1));
+            expect(effectReads, hasLength(accountStage ? 0 : 1));
+            expect(actions, isEmpty);
+            expect(published, isEmpty);
+            expect(tester.takeException(), isNull);
+          } finally {
+            if (!accountOriginal.isCompleted) {
+              accountOriginal.complete(accountInfo);
+            }
+            if (!depositOriginal.isCompleted) {
+              depositOriginal.complete(BigInt.zero);
+            }
+            await closeOwned(tester);
+          }
+        },
+        timeout: const Timeout(Duration(seconds: 60)),
+      );
+    }
+  }
+
+  for (final bool accountStage in <bool>[true, false]) {
+    for (final bool typedFailure in <bool>[false, true]) {
+      final String stage = accountStage ? 'account' : 'deposit';
+      final String kind = typedFailure ? 'typed' : 'SDK';
+      testWidgets(
+        'Sentinel $stage preflight preserves original $kind error identity',
+        (WidgetTester tester) async {
+          final List<String> actions = <String>[];
+          try {
+            final Object original = typedFailure
+                ? DevnetDepositFailure(
+                    DevnetDepositFailureCode.readFailed,
+                    originalError: StateError('private-preflight-error'),
+                  )
+                : StateError('private-preflight-error');
+            final DevnetSentinelPreflight preflight =
+                DevnetSentinelPreflight.capture(owner);
+            if (accountStage) {
+              accountRead = (_) => Future<AccountInfo>.error(original);
+            } else {
+              await preflight.readAccountInfo(tester);
+              effectRead = (_) => Future<BigInt>.error(original);
+            }
+            final DevnetDepositFailure held = await preflightFailure(
+              accountStage
+                  ? preflight.readAccountInfo(tester)
+                  : preflight.readDepositedQsr(tester),
+            );
+            if (typedFailure) {
+              expect(held, same(original));
+            } else {
+              expect(held.originalError, same(original));
+            }
+            expect(held.toString(), isNot(contains('private-preflight-error')));
+            expect(preflight.requireReady, throwsA(same(held)));
+            await expectLater(
+              preflight.readAccountInfo(tester),
+              throwsA(same(held)),
+            );
+            await expectLater(
+              preflight.readDepositedQsr(tester),
+              throwsA(same(held)),
+            );
+            await expectLater(
+              advanceAfterPreflight(preflight, actions),
+              throwsA(same(held)),
+            );
+            expect(accountReads, hasLength(1));
+            expect(effectReads, hasLength(accountStage ? 0 : 1));
+            expect(actions, isEmpty);
+            expect(published, isEmpty);
+          } finally {
+            await closeOwned(tester);
+          }
+        },
+        timeout: const Timeout(Duration(seconds: 60)),
+      );
+    }
+  }
+
+  testWidgets(
+    'Sentinel preflight rejects transport loss before its first read',
+    (
+      WidgetTester tester,
+    ) async {
+      final List<String> actions = <String>[];
+      try {
+        final DevnetSentinelPreflight preflight =
+            DevnetSentinelPreflight.capture(owner);
+        when(() => ledger.client).thenReturn(_Socket());
+        final DevnetDepositFailure held = await preflightFailure(
+          preflight.readAccountInfo(tester),
+        );
+        expect(held.code, DevnetDepositFailureCode.contextChanged);
+        when(() => ledger.client).thenReturn(socket);
+        expect(preflight.requireCurrent, throwsA(same(held)));
+        await expectLater(
+          preflight.readAccountInfo(tester),
+          throwsA(same(held)),
+        );
+        await expectLater(
+          advanceAfterPreflight(preflight, actions),
+          throwsA(same(held)),
+        );
+        expect(accountReads, isEmpty);
+        expect(effectReads, isEmpty);
+        expect(actions, isEmpty);
+        expect(published, isEmpty);
+      } finally {
+        await closeOwned(tester);
+      }
+    },
+    timeout: const Timeout(Duration(seconds: 60)),
+  );
+
+  testWidgets('an original account read cannot survive a wallet round trip', (
+    WidgetTester tester,
+  ) async {
+    final Completer<AccountInfo> original = Completer<AccountInfo>();
+    final List<String> actions = <String>[];
+    try {
+      final DevnetSentinelPreflight preflight = DevnetSentinelPreflight.capture(
+        owner,
+      );
+      accountRead = (_) {
+        WalletContextRevision.invalidate();
+        WalletContextRevision.invalidate();
+        return original.future;
+      };
+      final DevnetDepositFailure held = await preflightFailure(
+        preflight.readAccountInfo(tester),
+      );
+      expect(held.code, DevnetDepositFailureCode.contextChanged);
+      original.complete(accountInfo);
+      await _finish(tester, original.future);
+      expect(WalletActionContext.capture(owner)?.isCurrent, isTrue);
+      expect(preflight.requireReady, throwsA(same(held)));
+      await expectLater(
+        advanceAfterPreflight(preflight, actions),
+        throwsA(same(held)),
+      );
+      expect(accountReads, hasLength(1));
+      expect(effectReads, isEmpty);
+      expect(actions, isEmpty);
+      expect(published, isEmpty);
+    } finally {
+      if (!original.isCompleted) original.complete(accountInfo);
+      await closeOwned(tester);
+    }
+  }, timeout: const Timeout(Duration(seconds: 60)));
+
+  testWidgets(
+    'funded Sentinel preflight stays refused after chain restoration',
+    (
+      WidgetTester tester,
+    ) async {
+      final List<String> actions = <String>[];
+      try {
+        final DevnetSentinelPreflight preflight =
+            DevnetSentinelPreflight.capture(owner);
+        await preflight.readAccountInfo(tester);
+        await preflight.readDepositedQsr(tester);
+        preflight.requireReady();
+        kNodeChainId = 70;
+        DevnetDepositFailure? held;
+        expect(
+          preflight.requireReady,
+          throwsA(
+            isA<DevnetDepositFailure>().having(
+              (DevnetDepositFailure error) {
+                held = error;
+                return error.code;
+              },
+              'original chain refusal',
+              DevnetDepositFailureCode.contextChanged,
+            ),
+          ),
+        );
+        kNodeChainId = DevnetTestContext.chainId;
+        await expectLater(
+          advanceAfterPreflight(preflight, actions),
+          throwsA(same(held)),
+        );
+        expect(preflight.requireReady, throwsA(same(held)));
+        expect(accountReads, hasLength(1));
+        expect(effectReads, hasLength(1));
+        expect(actions, isEmpty);
+        expect(published, isEmpty);
+      } finally {
+        await closeOwned(tester);
+      }
+    },
+    timeout: const Timeout(Duration(seconds: 60)),
+  );
+
+  for (final bool repeatAccount in <bool>[true, false]) {
+    final String stage = repeatAccount ? 'account' : 'deposit';
+    testWidgets('successful Sentinel $stage preflight never invokes a retry', (
+      WidgetTester tester,
+    ) async {
+      final List<String> actions = <String>[];
+      try {
+        final DevnetSentinelPreflight preflight =
+            DevnetSentinelPreflight.capture(owner);
+        await preflight.readAccountInfo(tester);
+        if (!repeatAccount) await preflight.readDepositedQsr(tester);
+        final DevnetDepositFailure held = await preflightFailure(
+          repeatAccount
+              ? preflight.readAccountInfo(tester)
+              : preflight.readDepositedQsr(tester),
+        );
+        expect(held.code, DevnetDepositFailureCode.closed);
+        await expectLater(
+          advanceAfterPreflight(preflight, actions),
+          throwsA(same(held)),
+        );
+        expect(preflight.requireReady, throwsA(same(held)));
+        expect(accountReads, hasLength(1));
+        expect(effectReads, hasLength(repeatAccount ? 0 : 1));
+        expect(actions, isEmpty);
+        expect(published, isEmpty);
+      } finally {
+        await closeOwned(tester);
+      }
+    }, timeout: const Timeout(Duration(seconds: 60)));
+  }
+
+  testWidgets(
+    'Sentinel deposit preflight requires the original account result',
+    (
+      WidgetTester tester,
+    ) async {
+      final List<String> actions = <String>[];
+      try {
+        final DevnetSentinelPreflight preflight =
+            DevnetSentinelPreflight.capture(owner);
+        final DevnetDepositFailure held = await preflightFailure(
+          preflight.readDepositedQsr(tester),
+        );
+        expect(held.code, DevnetDepositFailureCode.originalMissing);
+        await expectLater(
+          preflight.readAccountInfo(tester),
+          throwsA(same(held)),
+        );
+        await expectLater(
+          advanceAfterPreflight(preflight, actions),
+          throwsA(same(held)),
+        );
+        expect(accountReads, isEmpty);
+        expect(effectReads, isEmpty);
+        expect(actions, isEmpty);
+        expect(published, isEmpty);
+      } finally {
+        await closeOwned(tester);
+      }
+    },
+    timeout: const Timeout(Duration(seconds: 60)),
+  );
 }

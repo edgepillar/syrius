@@ -61,6 +61,134 @@ class DevnetDepositFailure implements Exception {
   String toString() => 'Devnet deposit confirmation refused: ${code.name}';
 }
 
+/// Retains the two original Sentinel pre-deposit reads and their authority.
+class DevnetSentinelPreflight {
+  /// Captures the genuine selected wallet and node before mounting the host.
+  DevnetSentinelPreflight.capture(String owner)
+    : _authority = _DepositAuthority.capture(owner, sentinelAddress) {
+    if (_authority.sentinel == null) {
+      throw const DevnetDepositFailure(
+        DevnetDepositFailureCode.sourceUnavailable,
+      );
+    }
+  }
+
+  final _DepositAuthority _authority;
+  final List<_PrivateRead> _originalReads = <_PrivateRead>[];
+  DevnetDepositFailure? _failure;
+  bool _accountAttempted = false;
+  bool _accountReady = false;
+  bool _depositAttempted = false;
+  bool _depositReady = false;
+
+  DevnetDepositFailure _remember(DevnetDepositFailure original) =>
+      _failure ??= original;
+
+  /// Refuses permanently if the captured wallet or transport has changed.
+  void requireCurrent() {
+    final DevnetDepositFailure? failure = _failure;
+    if (failure != null) throw failure;
+    try {
+      _authority.requireCurrent();
+    } on DevnetDepositFailure catch (error) {
+      throw _remember(error);
+    }
+  }
+
+  /// Both original reads must finish before deposit, Next or Register.
+  void requireReady() {
+    requireCurrent();
+    if (!_accountReady || !_depositReady) {
+      throw _remember(
+        const DevnetDepositFailure(DevnetDepositFailureCode.originalMissing),
+      );
+    }
+  }
+
+  /// Reads the captured owner's account once, without acquiring a signer.
+  Future<AccountInfo> readAccountInfo(
+    WidgetTester tester, {
+    Duration timeout = const Duration(seconds: 5),
+  }) async {
+    requireCurrent();
+    if (_accountAttempted) {
+      throw _remember(
+        const DevnetDepositFailure(DevnetDepositFailureCode.closed),
+      );
+    }
+    _accountAttempted = true;
+    final AccountInfo result = await _read(
+      tester,
+      () => _authority.ledger.getAccountInfoByAddress(
+        Address.parse(_authority.owner),
+      ),
+      timeout,
+    );
+    requireCurrent();
+    _accountReady = true;
+    return result;
+  }
+
+  /// Reads the captured Sentinel deposit once after the account read.
+  Future<BigInt> readDepositedQsr(
+    WidgetTester tester, {
+    Duration timeout = const Duration(seconds: 5),
+  }) async {
+    requireCurrent();
+    if (!_accountReady || _depositAttempted) {
+      throw _remember(
+        DevnetDepositFailure(
+          _depositAttempted
+              ? DevnetDepositFailureCode.closed
+              : DevnetDepositFailureCode.originalMissing,
+        ),
+      );
+    }
+    _depositAttempted = true;
+    final BigInt result = await _read(
+      tester,
+      () => _authority.sentinel!.getDepositedQsr(
+        Address.parse(_authority.owner),
+      ),
+      timeout,
+    );
+    requireCurrent();
+    _depositReady = true;
+    return result;
+  }
+
+  Future<T> _read<T>(
+    WidgetTester tester,
+    Future<T> Function() read,
+    Duration timeout,
+  ) async {
+    try {
+      requireCurrent();
+      if (timeout <= Duration.zero || timeout > const Duration(seconds: 5)) {
+        throw const DevnetDepositFailure(DevnetDepositFailureCode.deadline);
+      }
+      final _DepositBudget budget = _DepositBudget(tester, timeout);
+      final Future<T> original = read();
+      _originalReads.add(_PrivateReadOf<T>(original));
+      return await _pumpOriginal(
+        tester,
+        () => original,
+        budget,
+        timeout,
+        requireCurrent,
+      );
+    } on Object catch (error) {
+      if (error is DevnetDepositFailure) throw _remember(error);
+      throw _remember(
+        DevnetDepositFailure(
+          DevnetDepositFailureCode.readFailed,
+          originalError: error,
+        ),
+      );
+    }
+  }
+}
+
 /// Observes one real host-sender request; it cannot submit or retry a request.
 class DevnetDepositConfirmation {
   /// Captures source authority and attaches before the single deposit tap.

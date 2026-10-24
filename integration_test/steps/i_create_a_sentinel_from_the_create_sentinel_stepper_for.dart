@@ -20,8 +20,11 @@ Future<void> iCreateASentinelFromTheCreateSentinelStepperFor(
   String owner,
 ) async {
   selectDevnetSender(owner);
-  final AccountInfo accountInfo = await app.zenon!.ledger
-      .getAccountInfoByAddress(Address.parse(owner));
+  final DevnetSentinelPreflight preflight = DevnetSentinelPreflight.capture(
+    owner,
+  );
+  final AccountInfo accountInfo = await preflight.readAccountInfo(tester);
+  preflight.requireCurrent();
 
   await tester.pumpWidget(
     MaterialApp(
@@ -37,13 +40,22 @@ Future<void> iCreateASentinelFromTheCreateSentinelStepperFor(
   );
   await tester.pumpAndSettle();
 
-  await _tapAndSettle(tester, const Key('sentinel_plasma_next_button'));
+  await _tapAndSettle(
+    tester,
+    const Key('sentinel_plasma_next_button'),
+    beforeTap: preflight.requireCurrent,
+  );
   final DevnetDepositConfirmation? depositConfirmation = await _completeQsrStep(
     tester,
     owner,
     accountInfo,
+    preflight,
   );
-  await _tapAndSettle(tester, const Key('sentinel_znn_next_button'));
+  await _tapAndSettle(
+    tester,
+    const Key('sentinel_znn_next_button'),
+    beforeTap: preflight.requireReady,
+  );
 
   final Finder registerButton = find.byKey(
     const Key('sentinel_register_button'),
@@ -70,6 +82,7 @@ Future<void> iCreateASentinelFromTheCreateSentinelStepperFor(
       });
 
   try {
+    preflight.requireReady();
     depositConfirmation?.requireCurrent();
     await tester.tap(registerButton);
     await _pumpUntilComplete(
@@ -86,8 +99,8 @@ Future<DevnetDepositConfirmation?> _completeQsrStep(
   WidgetTester tester,
   String owner,
   AccountInfo accountInfo,
+  DevnetSentinelPreflight preflight,
 ) async {
-  final Address ownerAddress = Address.parse(owner);
   final Finder qsrNextButton = find.byKey(
     const Key('sentinel_qsr_next_button'),
   );
@@ -97,8 +110,7 @@ Future<DevnetDepositConfirmation?> _completeQsrStep(
   await _pumpUntilAnyFound(tester, <Finder>[qsrNextButton, qsrAmountField]);
   DevnetDepositConfirmation? confirmation;
 
-  final BigInt depositedQsr = await app.zenon!.embedded.sentinel
-      .getDepositedQsr(ownerAddress);
+  final BigInt depositedQsr = await preflight.readDepositedQsr(tester);
   final BigInt remainingQsr = sentinelRegisterQsrAmount > depositedQsr
       ? sentinelRegisterQsrAmount - depositedQsr
       : BigInt.zero;
@@ -153,6 +165,7 @@ Future<DevnetDepositConfirmation?> _completeQsrStep(
         });
 
     try {
+      preflight.requireReady();
       await tester.tap(depositButton);
       await _pumpUntilComplete(
         tester,
@@ -176,15 +189,24 @@ Future<DevnetDepositConfirmation?> _completeQsrStep(
   }
 
   confirmation?.requireCurrent();
-  await _tapAndSettle(tester, const Key('sentinel_qsr_next_button'));
+  await _tapAndSettle(
+    tester,
+    const Key('sentinel_qsr_next_button'),
+    beforeTap: preflight.requireReady,
+  );
   return confirmation;
 }
 
-Future<void> _tapAndSettle(WidgetTester tester, Key key) async {
+Future<void> _tapAndSettle(
+  WidgetTester tester,
+  Key key, {
+  required VoidCallback beforeTap,
+}) async {
   final Finder finder = find.byKey(key);
   await _pumpUntilFound(tester, finder);
   await tester.ensureVisible(finder);
   await tester.pumpAndSettle();
+  beforeTap();
   await tester.tap(finder);
   await tester.pumpAndSettle();
 }
