@@ -44,6 +44,15 @@ PNG = (b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", HEADER)
 ENCODED = base64.b64encode(PNG).decode("ascii")
 
 
+def color_png(colors):
+    if colors == 6:
+        return PNG
+    header = struct.pack(">IIBBBBB", 1280, 780, 8, 2, 0, 0, 0)
+    pixels = (b"\0" + bytes(1280 * 3)) * 780
+    return (b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", header)
+            + chunk(b"IDAT", zlib.compress(pixels)) + chunk(b"IEND", b""))
+
+
 def reply(body, status=200):
     return smoke.bounded.Reply(status, json.dumps(body).encode())
 
@@ -606,6 +615,82 @@ class ParserTests(unittest.TestCase):
     def test_real_structured_png_and_logical_dimensions_are_admitted(self):
         self.assertEqual(smoke.png_bytes(ENCODED), PNG)
         self.assertEqual(smoke.capture_bytes(capture_reply(), "welcome", "dark"), PNG)
+
+    def test_rgb_and_rgba_significant_bits_preserve_original_capture_png(self):
+        for colors, significance in ((2, b"\x08\x08\x08"), (2, b"\x01\x01\x01"),
+                                      (2, b"\x01\x04\x08"), (6, b"\x08\x08\x08\x08"),
+                                      (6, b"\x01\x01\x01\x01"), (6, b"\x01\x03\x05\x08")):
+            with self.subTest(colors=colors, significance=tuple(significance)):
+                original = color_png(colors)
+                data = original[:33] + chunk(b"sBIT", significance) + original[33:]
+                encoded = base64.b64encode(data).decode("ascii")
+                self.assertEqual(smoke.png_bytes(encoded), data)
+                self.assertEqual(smoke.capture_bytes(
+                    {**capture_reply(), "png": encoded}, "welcome", "dark"), data)
+
+    def test_significant_bits_length_must_match_rgb_or_rgba_channels(self):
+        for colors, channels in ((2, 3), (6, 4)):
+            original = color_png(colors)
+            for length in range(6):
+                if length == channels:
+                    continue
+                with self.subTest(colors=colors, length=length):
+                    data = original[:33] + chunk(b"sBIT", b"\x08" * length) + original[33:]
+                    with self.assertRaises(smoke.Failure) as caught:
+                        smoke.png_bytes(base64.b64encode(data).decode("ascii"))
+                    self.assertEqual(caught.exception.code, "PNG_INVALID")
+
+    def test_significant_bits_each_channel_requires_one_through_eight(self):
+        for colors, channels in ((2, 3), (6, 4)):
+            original = color_png(colors)
+            for channel in range(channels):
+                for value in (0, 9, 255):
+                    with self.subTest(colors=colors, channel=channel, value=value):
+                        significance = bytearray(b"\x08" * channels)
+                        significance[channel] = value
+                        data = original[:33] + chunk(b"sBIT", bytes(significance)) + original[33:]
+                        with self.assertRaises(smoke.Failure) as caught:
+                            smoke.png_bytes(base64.b64encode(data).decode("ascii"))
+                        self.assertEqual(caught.exception.code, "PNG_INVALID")
+
+    def test_significant_bits_duplicate_or_after_idat_is_refused(self):
+        for colors, channels in ((2, 3), (6, 4)):
+            original = color_png(colors)
+            significance = chunk(b"sBIT", b"\x08" * channels)
+            variants = (
+                original[:33] + significance * 2 + original[33:],
+                original[:33] + significance + chunk(b"sRGB", b"\0")
+                + significance + original[33:],
+                original[:-12] + significance + original[-12:],
+            )
+            for index, data in enumerate(variants):
+                with self.subTest(colors=colors, variant=index):
+                    with self.assertRaises(smoke.Failure) as caught:
+                        smoke.png_bytes(base64.b64encode(data).decode("ascii"))
+                    self.assertEqual(caught.exception.code, "PNG_INVALID")
+
+    def test_significant_bits_cannot_bypass_its_original_chunk_crc(self):
+        for colors, channels in ((2, 3), (6, 4)):
+            with self.subTest(colors=colors):
+                original = color_png(colors)
+                significance = chunk(b"sBIT", b"\x08" * channels)
+                broken = significance[:-1] + bytes([significance[-1] ^ 1])
+                data = original[:33] + broken + original[33:]
+                with self.assertRaises(smoke.Failure) as caught:
+                    smoke.png_bytes(base64.b64encode(data).decode("ascii"))
+                self.assertEqual(caught.exception.code, "PNG_INVALID")
+
+    def test_significant_bits_does_not_admit_text_profiles_or_unknown_metadata(self):
+        for colors, channels in ((2, 3), (6, 4)):
+            original = color_png(colors)
+            significance = chunk(b"sBIT", b"\x08" * channels)
+            for kind in (b"tEXt", b"zTXt", b"iTXt", b"iCCP", b"zABC"):
+                with self.subTest(colors=colors, kind=kind):
+                    data = (original[:33] + significance
+                            + chunk(kind, b"private-profile-data") + original[33:])
+                    with self.assertRaises(smoke.Failure) as caught:
+                        smoke.png_bytes(base64.b64encode(data).decode("ascii"))
+                    self.assertEqual(caught.exception.code, "PNG_INVALID")
 
     def test_base64_must_be_strict_canonical_and_bounded(self):
         for encoded in ("", ENCODED + "\n", "????", ENCODED[:-1], 42):

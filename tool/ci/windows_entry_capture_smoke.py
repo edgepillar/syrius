@@ -259,6 +259,11 @@ def png_bytes(encoded):
                 if length or not compressed:
                     raise ValueError()
                 ended = True
+            # Skia emits this fixed-size channel precision before pixel data.
+            elif kind == b"sBIT" and not idat and kind not in seen:
+                if (length != (4 if colors == 6 else 3)
+                        or any(value < 1 or value > 8 for value in payload)):
+                    raise ValueError()
             elif (kind in (b"sRGB", b"gAMA", b"cHRM") and not idat
                   and kind not in seen):
                 if (kind == b"sRGB" and (length != 1 or payload[0] > 3)
