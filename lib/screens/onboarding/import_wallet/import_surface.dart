@@ -207,8 +207,13 @@ class ImportSurface extends StatelessWidget {
           color: fileRefused || pickerFailed ? tokens.error : tokens.faint,
           strokeWidth: tokens.importDropLineWidth,
           dashPattern: tokens.importDropDashPattern,
-          radius: Radius.circular(tokens.dialogRadius),
-          padding: EdgeInsets.zero,
+          // The centered stroke overflowed the CSS box and omitted its layout
+          // space. Keep its thickness inside the box and reserve that space.
+          radius: Radius.circular(
+            tokens.dialogRadius - tokens.importDropLineWidth / 2,
+          ),
+          borderPadding: EdgeInsets.all(tokens.importDropLineWidth / 2),
+          padding: EdgeInsets.all(tokens.importDropLineWidth),
         ),
         child: Padding(
           padding: EdgeInsets.all(tokens.importDropPadding),
