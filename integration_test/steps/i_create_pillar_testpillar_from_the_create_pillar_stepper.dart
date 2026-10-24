@@ -10,6 +10,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../support/devnet_deposit_confirmation.dart';
+import '../support/devnet_pillar_observation.dart';
 import '../support/devnet_registration_host.dart';
 import '../support/devnet_test_context.dart';
 
@@ -73,6 +74,18 @@ Future<void> iCreatePillarTestpillarFromTheCreatePillarStepper(
   final DeployPillarBloc deployPillarBloc = tester
       .element(registerButton)
       .read<DeployPillarBloc>();
+  final DevnetPillarObservation observation = DevnetPillarObservation.capture(
+    scenario: context,
+    sender: tester.element(registerButton).read<SendTransactionBloc>(),
+    ownerAddress: DevnetTestContext.testPillarOwnerAddress,
+    expectedRegistration: app.zenon!.embedded.pillar.register(
+      DevnetTestContext.testPillarName,
+      Address.parse(DevnetTestContext.testPillarProducerAddress),
+      Address.parse(DevnetTestContext.testPillarRewardAddress),
+      DevnetTestContext.testPillarMomentumReward,
+      DevnetTestContext.testPillarDelegationReward,
+    ),
+  );
   final Completer<AccountBlockTemplate> completer =
       Completer<AccountBlockTemplate>();
   final StreamSubscription<DeployPillarState> subscription = deployPillarBloc
@@ -92,12 +105,15 @@ Future<void> iCreatePillarTestpillarFromTheCreatePillarStepper(
 
   try {
     depositConfirmation?.requireCurrent();
+    observation.requireCurrent();
     await tester.tap(registerButton);
-    context.deployPillarBlock = await _pumpUntilComplete(
+    final AccountBlockTemplate original = await _pumpUntilComplete(
       tester,
       completer.future,
       'pillar registration success',
     );
+    observation.retain(original);
+    context.deployPillarBlock = original;
   } finally {
     await subscription.cancel();
   }
