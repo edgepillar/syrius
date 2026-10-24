@@ -6,6 +6,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/blocs/fetch_bloc/fetch_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -138,6 +139,9 @@ Future<DevnetDepositConfirmation?> _completeQsrStep(
     final SentinelDepositQsrBloc depositBloc = tester
         .element(depositButton)
         .read<SentinelDepositQsrBloc>();
+    final CreateSentinelQsrInfoBloc originalQsrInfo = tester
+        .element(depositButton)
+        .read<CreateSentinelQsrInfoBloc>();
     final DevnetDepositConfirmation originalConfirmation =
         DevnetDepositConfirmation.capture(
           sender: tester.element(depositButton).read<SendTransactionBloc>(),
@@ -176,6 +180,11 @@ Future<DevnetDepositConfirmation?> _completeQsrStep(
       final BigInt completedDeposit = await originalConfirmation
           .waitForSentinelDeposit(tester);
       expect(completedDeposit, sentinelRegisterQsrAmount);
+      originalConfirmation.requireCurrent();
+      preflight.requireReady();
+      // The publication-time read can precede the confirmed contract effect.
+      // Refresh the retained view once; never repeat the deposit operation.
+      originalQsrInfo.add(FetchRequestData(address: Address.parse(owner)));
     } finally {
       await subscription.cancel();
       await originalConfirmation.close(tester);
