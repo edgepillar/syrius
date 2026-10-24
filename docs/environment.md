@@ -418,3 +418,143 @@ generated-source behavior. Its original command exited 0 with complete,
 rehashed output, genuine `SUCCESS` closure and positive owned cleanup.
 All 34 selected raw inputs match that commit. This is workflow semantic
 qualification; no new hosted execution is claimed here.
+
+At publication head `423e9e02299fbfc280fe6f3fd977c0682213b585`, fork Fast
+Validation 40050561068 attempt 1 completed successfully: Python, both analysis
+steps, all 183 Python checks, 4,116 unit/widget tests with one existing skip,
+and generation consistency passed. Its complete retained log has 1,081,265
+bytes and SHA-256
+`27a1cadede49de66a2029db96d40a8c59c7f9b0842273592bbfc4b043aa83700`.
+The retention task closed `SUCCESS` with positive owned cleanup. In scoped
+run 40050598248, the ordinary Windows harness Debug build and finite
+controller tests passed, then real entry capture failed. Devnet also failed.
+The complete retained Windows baseline log has 38,319 bytes and SHA-256
+`530f5a74b2e2a834462838535534deca5672e8f31c145db6f9f4ba42280e1a98`;
+its retention task closed `SUCCESS` with positive owned cleanup. All 12
+baseline checks passed: Windows desktop doctor, locked restoration,
+Debug/Release builds, root and vendored analysis, 4,115 unit/widget tests
+with two skips, generated correspondence, and separate source/Debug/Release
+DLL map/export probes. Each required child exited 0 with complete bounded
+output and no forced termination. Root analysis retains 1,314 infos and no
+error or warning; vendored analysis has zero diagnostics. All three DLL
+digests equal
+`f1f79ee184b9c0e3cd92d2f5c49e52c68e7a4670357a0cf1df95a0ac6de8973a`.
+Mapping and export lookup establish no wallet loader call, node startup or
+ABI behavior.
+
+The overall baseline job still failed afterward: the executed Flutter action
+`1a449444c387b1966244ae4d4f8c696479add0b2` failed while evaluating its
+recursive pub-cache lockfile hash in the post-step. The locally qualified
+follow-up `8861f95eb1f3` retains SDK caching and uses one explicit pub-cache
+step keyed by the two committed lockfiles. It addresses the observed failure
+point; its hosted behavior and the underlying directory-walk cause remain
+unqualified.
+Target Fast 40050516638, builder 40050516614 and
+blockchain 40050516655 require maintainer approval and have zero jobs, as
+observed at 01:38Z. Fork results remain separate from that target gate.
+
+The source/run/attempt-bound entry artifact and complete job log are retained.
+The first entry failure is `CLIENT_RESIZE_UNOBSERVED`: after five attempts,
+the requested 1280x780 client remains 1184x749, with physical 1184x749,
+outer 1200x788 and device-pixel ratio 1. There are zero captures. The original
+process exit 0, output completeness and original window-geometry restoration
+were observed; entry restoration and native capture acceptance remain
+unproven. The small retained archive has SHA-256
+`894209080b2edf5a9d020a0247ac694939f6c8af2a47cda6b47f715853854c70`.
+A harness-only tracking-bound change and its six new offline fixture cases
+are qualified in local commit `40466630ead4`, as detailed below. Windows
+tracking limits are a candidate explanation;
+the actual desktop cause is not established.
+
+The complete devnet log reaches the exact original submitted pillar hash,
+then times out while polling that hash, before block-field or registry
+assertions. This establishes neither confirmation nor rejection. The
+original operation and hash remain preserved; there is no resend or new
+signing attempt. A finite observer using the captured original context is
+applied under separate local qualification. Its actual hosted behavior is not
+qualified by this log.
+
+The first separate X153 qualification task closed `FAILURE` with `UNKNOWN`
+boundary evidence and no launched qualification command. Its original
+negative result and owned cleanup are preserved. The fresh reviewed batch
+passed the same five gates in one managed command, freezing 11 source inputs
+immediately after formatting: strict analysis has zero diagnostics; all 47
+confirmation cases pass with zero skips, failures or errors; root analysis
+has zero errors or warnings and 1,314 infos; the diff check is clean.
+The original worker exited 0 with complete retained output, SHA-256
+`53e6c8f933aa4b787debfaed5892bf1920fda7e94531f1c6a4c7bbe2ec8db620`
+and 272,518 bytes. Independent replay, genuine `SUCCESS` closure and positive
+owned cleanup were verified. Local anonymous commit
+`e39e8ed4d99dbd9087ed1b3a4524bd9426f5923c` carries all 11 exact raw inputs;
+these local results do not claim a new hosted or native result.
+
+The first separate tracking batch completed all five gates and closed
+`FAILURE` with positive owned cleanup. Formatting, zero-diagnostic strict
+analysis, root analysis and the diff check passed; seven visible cases and
+two hidden loading checks passed, while four new refusal cases hit a Flutter
+`pump`/`expectLater` guarded-API conflict. Their original negative evidence
+remains preserved. The corrected fixture awaits the original command before
+matching its retained error. The fresh source-bound batch passed all eleven
+visible cases and two hidden loading checks, zero-diagnostic strict analysis,
+root analysis with zero errors or warnings and 1,314 infos, formatting and the
+diff check. Its original worker exited 0 with complete retained output:
+252,536 bytes, SHA-256
+`7f894e8e8c9810326cc11d899f6e88e1db590cf1b9deea916d6decd83a697ff3`.
+The task closed `SUCCESS` with positive owned cleanup. Local anonymous commit
+`40466630ead4646834eb127848d1bb2f329ff0bf` carries all twelve exact raw
+inputs. These offline fixtures establish no native Windows cause or capture.
+
+The first separate Pillar-observer batch completed all five gates and closed
+`FAILURE` with positive owned cleanup. All 38 visible cases and three hidden
+checks passed without skips, failures or errors; formatting and the diff
+check also passed. Strict analysis reported eleven infos, and root analysis
+reported zero errors or warnings and 1,324 infos. The complete original
+output is retained: 272,614 bytes, SHA-256
+`451a6e10ea908536db9e46c80d762098c987cf39df40bb4bb8bb2200afebc227`.
+The second separate batch again passed all 38 cases and three hidden checks,
+formatting and diff, but strict analysis retained two infos: the existing
+BDD ignore needed its explanation restored, and a fixture cascade needed to
+join its original initializer. Root analysis reported zero errors or
+warnings and 1,315 infos. Its complete original output is retained: 268,424
+bytes, SHA-256
+`a2dac3ce68f3833590a460ff36d88f3f79322f5753998aa23f3f34a7029bac7a`.
+It closed `FAILURE` with positive owned cleanup. After these two failures,
+the remaining two-file lint cleanup was split into X157. The scoped
+batch below formatted only those two files and kept the other ten inputs
+unchanged even during formatting. It required four-file strict analysis and
+all 38 regressions. Both earlier results remain negative evidence.
+
+The fresh X157 batch passed two-file formatting, four-file strict analysis
+with zero diagnostics, all 38 observer cases and three hidden checks with
+zero skips or errors, root analysis with zero errors or warnings and 1,313
+infos, and the diff check. The other ten source hashes remained unchanged
+even during formatting. Its original worker exited 0 with complete retained
+output: 267,524 bytes, SHA-256
+`a394bc3bcb9c3ea4dfbfa44530fce49d574f9faad0341a17c248d8c70cec247c`.
+Independent replay, genuine `SUCCESS` closure and positive owned cleanup
+were verified. Local anonymous commit
+`584428b0e15aa805fd8449e93887d2f6366bd221` contains the four changed paths
+and all twelve exact qualification inputs. The following workflow-only cache
+change has separate semantic qualification; no new hosted outcome is
+inferred from these offline observer results.
+
+The first cache qualification was refused before any task or command was
+created because its private project identifier exceeded the storage
+manager's length limit. Its `UNKNOWN` record is preserved; no successful
+closure or cleanup is claimed for that refused admission. All 22 source
+hashes still match its admission snapshot. A separately reviewed attempt
+uses a shorter identifier and retains the same Ruby semantics, source pins,
+quotas and free-space floor.
+
+That fresh attempt passed the real Ruby comparison of all five workflow
+documents. Only the baseline cache steps changed: SDK caching remains
+enabled, pub dependencies use the two explicit committed lockfiles, and the
+qualification commands and `dev` PR filter are preserved. The original
+command exited 0 with complete retained output: 268 bytes, SHA-256
+`ea7e7656f18bd35dd181e340d2dde1afda6b01de6c7f73c5acb5a8543a5ce295`.
+Independent source, argv, output and closure checks passed; the task closed
+`SUCCESS` with positive owned cleanup. Local anonymous commit
+`8861f95eb1f30a1fbedc931df2ccf1431e5749d5` contains only that workflow delta
+and all 22 final selected raw source inputs. The ten selected Dart files
+remain unchanged by this workflow-only commit. This semantic check runs no
+tests or hosted CI; the fresh hosted cache post-step remains pending.
