@@ -993,7 +993,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
   double get importDropLineWidth => 1.5;
 
   /// Measured alternating lengths of the file drop boundary.
-  List<double> get importDropDashPattern => const <double>[6, 4];
+  List<double> get importDropDashPattern => const <double>[3, 2];
 
   /// Minimum seed entry area height before text scaling.
   double get importSeedMinHeight => 72;
