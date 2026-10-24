@@ -162,6 +162,21 @@ void selectDevnetSender(String senderAddress) {
   kSelectedAddress = senderAddress;
 }
 
+/// Selects Transfer only for the original verified in-memory devnet owner.
+void selectDevnetTransfer() {
+  final DevnetWalletBinding? binding = _walletBinding;
+  if (binding == null ||
+      _devnetClient == null ||
+      _devnetSocket == null ||
+      _devnetSocketUrl == null ||
+      !identical(app.zenon, _devnetClient) ||
+      !identical(_devnetClient?.wsClient, _devnetSocket) ||
+      _devnetSocket?.url != _devnetSocketUrl) {
+    throw StateError('The original devnet Transfer owner is unavailable');
+  }
+  binding.selectTransfer();
+}
+
 Future<void> disposeDevnetIntegrationTests() async {
   if (_devnetClient == null &&
       _walletBinding == null &&
@@ -293,7 +308,10 @@ class DevnetWalletBinding {
         NodeTransitions.pending) {
       throw StateError('The verified devnet wallet source is unavailable');
     }
-    final DevnetWalletBinding binding = DevnetWalletBinding._(walletFile);
+    final DevnetWalletBinding binding = DevnetWalletBinding._(
+      walletFile,
+      nodeUrl,
+    );
     kWalletFile = walletFile;
     kWalletPath = walletFile.walletPath;
     kDefaultAddressList = List<String?>.of(addresses);
@@ -310,8 +328,9 @@ class DevnetWalletBinding {
     return binding;
   }
 
-  DevnetWalletBinding._(this._walletFile)
-    : _previousWalletFile = kWalletFile,
+  DevnetWalletBinding._(this._walletFile, this._nodeUrl)
+    : _client = app.zenon,
+      _previousWalletFile = kWalletFile,
       _previousWalletPath = kWalletPath,
       _previousAddresses = kDefaultAddressList,
       _previousLabels = kAddressLabelMap,
@@ -323,6 +342,8 @@ class DevnetWalletBinding {
       _previousInitialized = kWalletInitCompleted;
 
   final DevnetWalletFile _walletFile;
+  final Zenon? _client;
+  final String _nodeUrl;
   final WalletFile? _previousWalletFile;
   final String? _previousWalletPath;
   final List<String?> _previousAddresses;
@@ -334,6 +355,29 @@ class DevnetWalletBinding {
   final Tabs? _previousPage;
   final bool _previousInitialized;
   bool _restored = false;
+
+  /// Enters the actual Send page without replacing its production admission.
+  void selectTransfer() {
+    if (_restored ||
+        _client == null ||
+        !identical(app.zenon, _client) ||
+        !identical(kWalletFile, _walletFile) ||
+        _walletFile.isOpen ||
+        kWalletPath != _walletFile.walletPath ||
+        kCurrentNode != _nodeUrl ||
+        kNodeChainId != DevnetTestContext.chainId ||
+        getChainIdentifier() != DevnetTestContext.chainId ||
+        !kWalletInitCompleted ||
+        kCurrentPage == Tabs.lock ||
+        !kDefaultAddressList.contains(kSelectedAddress) ||
+        NodeTransitions.pending) {
+      throw StateError('The original devnet Transfer binding changed');
+    }
+    if (kCurrentPage != Tabs.transfer) {
+      kCurrentPage = Tabs.transfer;
+      WalletContextRevision.invalidate();
+    }
+  }
 
   /// Restores original values and collection identities, never a foreign file.
   void restore() {

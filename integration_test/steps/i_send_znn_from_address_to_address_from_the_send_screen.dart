@@ -23,6 +23,7 @@ Future<void> iSendZnnFromAddressToAddressFromTheSendScreen(
 ) async {
   final DevnetTestContext context = app.sl<DevnetTestContext>();
   selectDevnetSender(sender);
+  selectDevnetTransfer();
   final Address expectedSenderAddress = Address.parse(sender);
   final BigInt blockchainAmount = amount.extractDecimals(coinDecimals);
   final SendTransactionBloc sendTransactionBloc = SendTransactionBloc();
@@ -60,7 +61,10 @@ Future<void> iSendZnnFromAddressToAddressFromTheSendScreen(
   await tester.enterText(find.byKey(const Key('send_amount_field')), amount);
   await tester.pumpAndSettle();
 
-  await tester.tap(find.byKey(const Key('send_submit_button')));
+  final Finder submit = find.byKey(const Key('send_submit_button'));
+  expect(submit, findsOneWidget);
+  await tester.ensureVisible(submit);
+  await tester.tap(submit);
   await tester.pumpAndSettle();
 
   final Completer<AccountBlockTemplate> completer =
