@@ -198,40 +198,49 @@ void main() {
     BalanceVisibility.debugReset();
   });
 
-  Widget host({bool light = false, bool rtl = false, ContactsStore? book}) =>
-      MaterialApp(
-        theme: light ? AppTheme.lightTheme : AppTheme.darkTheme,
-        navigatorObservers: <NavigatorObserver>[routes],
-        localizationsDelegates: appLocalizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: MultiBlocProvider(
-          providers: <SingleChildWidget>[
-            BlocProvider<SendTransactionBloc>.value(value: sender),
-            BlocProvider<SendDraftCubit>.value(value: draft),
-          ],
-          child: Directionality(
-            textDirection: rtl ? TextDirection.rtl : TextDirection.ltr,
-            child: Scaffold(
-              body: Align(
-                alignment: Alignment.topCenter,
-                child: SizedBox(
-                  width: 640,
-                  child: SingleChildScrollView(
-                    child: ValueListenableBuilder<bool>(
-                      valueListenable: visible,
-                      builder: (_, bool active, _) => TickerMode(
-                        enabled: active,
-                        child: SendPopulated(
-                          balances: <String, AccountInfo>{
-                            _from: _balance(_from),
-                            _otherFrom: _balance(_otherFrom),
-                          },
-                          showSender: false,
-                          contacts: book ?? contacts,
-                          priceFeed: prices,
-                          syncCubit: sync,
-                        ),
-                      ),
+  Widget host({
+    ThemeData? theme,
+    bool light = false,
+    bool rtl = false,
+    ContactsStore? book,
+    double scale = 1,
+  }) => MaterialApp(
+    theme: theme ?? (light ? AppTheme.lightTheme : AppTheme.darkTheme),
+    builder: (BuildContext context, Widget? child) => MediaQuery(
+      data: MediaQuery.of(context).copyWith(
+        textScaler: TextScaler.linear(scale),
+      ),
+      child: child!,
+    ),
+    navigatorObservers: <NavigatorObserver>[routes],
+    localizationsDelegates: appLocalizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    home: MultiBlocProvider(
+      providers: <SingleChildWidget>[
+        BlocProvider<SendTransactionBloc>.value(value: sender),
+        BlocProvider<SendDraftCubit>.value(value: draft),
+      ],
+      child: Directionality(
+        textDirection: rtl ? TextDirection.rtl : TextDirection.ltr,
+        child: Scaffold(
+          body: Align(
+            alignment: Alignment.topCenter,
+            child: SizedBox(
+              width: 640,
+              child: SingleChildScrollView(
+                child: ValueListenableBuilder<bool>(
+                  valueListenable: visible,
+                  builder: (_, bool active, _) => TickerMode(
+                    enabled: active,
+                    child: SendPopulated(
+                      balances: <String, AccountInfo>{
+                        _from: _balance(_from),
+                        _otherFrom: _balance(_otherFrom),
+                      },
+                      showSender: false,
+                      contacts: book ?? contacts,
+                      priceFeed: prices,
+                      syncCubit: sync,
                     ),
                   ),
                 ),
@@ -239,10 +248,13 @@ void main() {
             ),
           ),
         ),
-      );
+      ),
+    ),
+  );
 
   Future<void> show(
     WidgetTester tester, {
+    ThemeData? theme,
     bool light = false,
     bool rtl = false,
     ContactsStore? book,
@@ -251,7 +263,9 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    await tester.pumpWidget(host(light: light, rtl: rtl, book: book));
+    await tester.pumpWidget(
+      host(theme: theme, light: light, rtl: rtl, book: book),
+    );
     await tester.pump();
     addTearDown(() async {
       await tester.pumpWidget(const SizedBox.shrink());
@@ -374,6 +388,68 @@ void main() {
       expect(contacts.recent(_from).single.address, _alice);
       expect(contacts.recent(_otherFrom).single.address, _bob);
     });
+
+    for (final bool light in <bool>[false, true]) {
+      testWidgets(
+        'Recent keeps 26 px and busy guards in compact density, $light',
+        (WidgetTester tester) async {
+          final ThemeData theme =
+              (light ? AppTheme.lightTheme : AppTheme.darkTheme).copyWith(
+                visualDensity: VisualDensity.compact,
+              );
+          final Finder chip = find.byKey(
+            ValueKey<String>('send_recent_$_alice'),
+          );
+          await show(tester, theme: theme);
+          await fill(tester, recipient: _typed, amount: '7.00000001');
+          expect(
+            Theme.of(tester.element(chip)).visualDensity,
+            VisualDensity.compact,
+          );
+          expect(tester.getSize(chip).height, 26);
+          final VoidCallback retained = tester
+              .widget<OutlinedButton>(chip)
+              .onPressed!;
+
+          busy.value = true;
+          await tester.pump();
+          expect(tester.getSize(chip).height, 26);
+          expect(tester.widget<OutlinedButton>(chip).onPressed, isNull);
+          retained();
+          await tester.tap(chip, warnIfMissed: false);
+          await tester.pump();
+          expect(recipient(tester), _typed);
+          expect(draft.state.recipient, _typed);
+          expect(amount(tester), '7.00000001');
+
+          busy.value = false;
+          await tester.pump();
+          await tester.tap(chip);
+          await tester.pump();
+          expect(recipient(tester), _alice);
+          expect(draft.state.recipient, _alice);
+          expect(amount(tester), '7.00000001');
+
+          await tester.pumpWidget(host(theme: theme, scale: 1.75));
+          await tester.pump();
+          final Rect bounds = tester.getRect(chip);
+          final Rect label = tester.getRect(
+            find.descendant(of: chip, matching: find.text('Alice')),
+          );
+          expect(bounds.height, greaterThan(26));
+          expect(label.top, greaterThanOrEqualTo(bounds.top));
+          expect(label.bottom, lessThanOrEqualTo(bounds.bottom));
+          busy.value = true;
+          await tester.pump();
+          expect(tester.getSize(chip).height, greaterThan(26));
+          expect(tester.widget<OutlinedButton>(chip).onPressed, isNull);
+          expect(draft.state.recipient, _alice);
+          expect(amount(tester), '7.00000001');
+          verifyNever(() => sender.add(any()));
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
 
     testWidgets(
       'recent chips are scoped to sender and preserve the amount',

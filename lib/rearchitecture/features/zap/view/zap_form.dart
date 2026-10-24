@@ -421,6 +421,7 @@ class _ZapFormState extends State<ZapForm> {
         ),
         label: Text(context.l10n.zapPickAnother),
         style: OutlinedButton.styleFrom(
+          visualDensity: VisualDensity.standard,
           minimumSize: Size(0, tokens.fieldHeight),
           padding: EdgeInsetsDirectional.symmetric(
             horizontal: tokens.cardPadding.left,

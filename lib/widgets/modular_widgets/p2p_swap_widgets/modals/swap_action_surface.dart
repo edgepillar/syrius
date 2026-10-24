@@ -276,6 +276,7 @@ class SwapChoice extends StatelessWidget {
         key: key,
         style: OutlinedButton.styleFrom(
           animationDuration: tokens.swapActionStateDuration,
+          visualDensity: VisualDensity.standard,
           minimumSize: Size(0, tokens.swapActionTokenHeight),
           padding: tokens.transferChipPadding,
           shape: const StadiumBorder(),

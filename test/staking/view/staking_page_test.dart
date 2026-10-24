@@ -166,7 +166,10 @@ void main() {
   }
 
   Widget host({bool light = false}) => MaterialApp(
-    theme: light ? AppTheme.lightTheme : AppTheme.darkTheme,
+    theme: (light ? AppTheme.lightTheme : AppTheme.darkTheme).copyWith(
+      visualDensity: VisualDensity.compact,
+      materialTapTargetSize: MaterialTapTargetSize.padded,
+    ),
     localizationsDelegates: appLocalizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
     home: MultiProvider(
@@ -216,6 +219,25 @@ void main() {
         expect(find.byKey(const Key('staking_collect_button')), findsNothing);
         expect(find.byKey(const Key('staking_chart_button')), findsNothing);
         expect(find.byKey(const Key('staking_stake_button')), findsOneWidget);
+        final Finder action = find.descendant(
+          of: find.byKey(const Key('staking_stake_button')),
+          matching: find.byType(OutlinedButton),
+        );
+        expect(tester.getSize(action).height, 38);
+        await tester.tap(action);
+        await tester.pump(const Duration(milliseconds: 300));
+        final OutlinedButton close = tester.widget<OutlinedButton>(action);
+        expect(tester.getSize(action).height, 38);
+        expect(
+          close.style!.textStyle!.resolve(<WidgetState>{})!.fontSize,
+          14,
+        );
+        expect(find.text('Close'), findsOneWidget);
+        await tester.tap(action);
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(find.text('Close'), findsNothing);
+        expect(find.text('Stake'), findsOneWidget);
+        expect(tester.getSize(action).height, 38);
         expect(tester.takeException(), isNull);
         await tester.pumpWidget(const SizedBox.shrink());
       },

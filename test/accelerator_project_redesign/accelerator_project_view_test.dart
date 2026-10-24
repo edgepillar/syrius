@@ -13,7 +13,10 @@ import 'support.dart';
 
 Widget host(Widget child, {bool light = false, double scale = 1}) =>
     MaterialApp(
-      theme: light ? AppTheme.lightTheme : AppTheme.darkTheme,
+      theme: (light ? AppTheme.lightTheme : AppTheme.darkTheme).copyWith(
+        visualDensity: VisualDensity.compact,
+        materialTapTargetSize: MaterialTapTargetSize.padded,
+      ),
       localizationsDelegates: appLocalizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: MediaQuery(
@@ -39,6 +42,7 @@ void main() {
             phases: <int>[2, 3],
             name: 'Synthetic project',
           );
+        int backs = 0;
         final AcceleratorProjectPresenter presenter =
             AcceleratorProjectPresenter(
               projectId: listHash(1),
@@ -51,7 +55,7 @@ void main() {
               AcceleratorProjectView(
                 presenter: presenter,
                 title: 'Original project',
-                onBack: () {},
+                onBack: () => backs++,
                 onRefresh: () {},
               ),
               light: light,
@@ -76,10 +80,35 @@ void main() {
           expect(find.text('Unknown'), findsOneWidget);
           expect(find.text('28 of 33'), findsNothing);
           expect(find.text('Your vote'), findsOneWidget);
+          for (final Key key in <Key>[
+            const Key('project_details_back'),
+            const Key('acc_create_phase'),
+          ]) {
+            final Finder control = find.byKey(key);
+            final ButtonStyle style = tester
+                .widget<ButtonStyleButton>(control)
+                .style!;
+            expect(tester.getSize(control).height, 26);
+            expect(
+              style.textStyle!.resolve(<WidgetState>{})!.fontSize,
+              12,
+            );
+            expect(
+              style.padding!
+                  .resolve(<WidgetState>{})!
+                  .resolve(
+                    TextDirection.ltr,
+                  ),
+              const EdgeInsets.symmetric(horizontal: 10),
+            );
+          }
           expect(
             find.text('Phase voting has no fixed deadline.'),
             findsNothing,
           );
+          await tester.tap(find.byKey(const Key('project_details_back')));
+          expect(backs, 1);
+          expect(source.publications, 0);
           expect(tester.takeException(), isNull);
         } finally {
           await tester.pumpWidget(const SizedBox.shrink());

@@ -63,6 +63,7 @@ class _Fixture {
     bool active = true,
     bool busy = false,
     bool light = false,
+    ThemeData? theme,
     double scale = 1,
     Size size = const Size(1280, 780),
     TextDirection direction = TextDirection.ltr,
@@ -80,7 +81,7 @@ class _Fixture {
     tester.view.devicePixelRatio = 1;
     await tester.pumpWidget(
       MaterialApp(
-        theme: light ? AppTheme.lightTheme : AppTheme.darkTheme,
+        theme: theme ?? (light ? AppTheme.lightTheme : AppTheme.darkTheme),
         locale: const Locale('en'),
         supportedLocales: AppLocalizations.supportedLocales,
         localizationsDelegates: appLocalizationsDelegates,
@@ -170,6 +171,79 @@ void main() {
         await fixture.close(tester);
       }
     });
+  }
+
+  for (final bool light in <bool>[false, true]) {
+    testWidgets(
+      'Pick another keeps 42 px and its seam in compact density, $light',
+      (WidgetTester tester) async {
+        final _Fixture fixture = _Fixture();
+        final ThemeData theme =
+            (light ? AppTheme.lightTheme : AppTheme.darkTheme).copyWith(
+              visualDensity: VisualDensity.compact,
+            );
+        final SemanticsHandle semantics = tester.ensureSemantics();
+        try {
+          await fixture.show(tester, theme: theme);
+          final Finder pick = _key('zap_pick_another');
+          final Finder gate = find
+              .ancestor(of: pick, matching: find.byType(SeamGate))
+              .first;
+          final ZapDraft original = fixture.draft.state;
+          final VoidCallback refused = tester
+              .widget<OutlinedButton>(pick)
+              .onPressed!;
+          expect(
+            Theme.of(tester.element(pick)).visualDensity,
+            VisualDensity.compact,
+          );
+          expect(tester.getSize(pick).height, 42);
+          expect(
+            tester.getSemantics(gate),
+            isSemantics(
+              label: 'Not yet',
+              hasEnabledState: true,
+              isEnabled: false,
+            ),
+          );
+          await tester.ensureVisible(pick);
+          await tester.tap(pick, warnIfMissed: false);
+          refused();
+          await tester.pump();
+          expect(fixture.draft.state, original);
+          expect(find.byType(AlertDialog), findsNothing);
+
+          await fixture.show(tester, theme: theme, busy: true);
+          expect(tester.getSize(pick).height, 42);
+          expect(_field(tester, 'zap_znn_amount').readOnly, isTrue);
+          refused();
+          expect(fixture.draft.state, original);
+
+          await fixture.show(tester, theme: theme, scale: 2.5);
+          final Rect bounds = tester.getRect(pick);
+          final Rect label = tester.getRect(
+            find.descendant(of: pick, matching: find.text('Pick another')),
+          );
+          expect(bounds.height, greaterThan(42));
+          expect(label.top, greaterThanOrEqualTo(bounds.top));
+          expect(label.bottom, lessThanOrEqualTo(bounds.bottom));
+          await fixture.show(
+            tester,
+            theme: theme,
+            scale: 2.5,
+            busy: true,
+          );
+          expect(tester.getSize(pick).height, greaterThan(42));
+          expect(_field(tester, 'zap_znn_amount').readOnly, isTrue);
+          expect(fixture.draft.state, original);
+          expect(fixture.requests, 1);
+          expect(tester.takeException(), isNull);
+        } finally {
+          await fixture.close(tester);
+          semantics.dispose();
+        }
+      },
+    );
   }
 
   testWidgets('known-empty discovery is separate from unavailable discovery', (

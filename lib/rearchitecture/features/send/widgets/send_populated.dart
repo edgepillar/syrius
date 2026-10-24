@@ -659,6 +659,7 @@ class _SendPopulatedState extends State<SendPopulated> {
             child: OutlinedButton(
               key: ValueKey<String>('send_recent_${recent.address}'),
               style: OutlinedButton.styleFrom(
+                visualDensity: VisualDensity.standard,
                 minimumSize: Size(0, tokens.smallButtonHeight),
                 padding: tokens.transferChipPadding,
                 foregroundColor: _recipient == recent.address

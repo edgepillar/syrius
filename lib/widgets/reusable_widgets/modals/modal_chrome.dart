@@ -38,9 +38,11 @@ ButtonStyle quietButtonStyle(BuildContext context) {
   return TextButton.styleFrom(
     backgroundColor: Colors.transparent,
     shape: const StadiumBorder(),
-    minimumSize: const Size(64, 40),
+    minimumSize: Size(64, AppTokens.of(context).buttonHeight),
     padding: const EdgeInsets.symmetric(horizontal: 16),
     textStyle: kOutlinedButtonTextStyle,
+    visualDensity: VisualDensity.standard,
+    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
   ).copyWith(
     foregroundColor: WidgetStateProperty.resolveWith(
       (Set<WidgetState> states) => states.contains(WidgetState.disabled)
@@ -80,9 +82,11 @@ ButtonStyle secondaryButtonStyle(BuildContext context) {
   final Color line = lineColorOf(context);
   return OutlinedButton.styleFrom(
     shape: const StadiumBorder(),
-    minimumSize: const Size(64, 40),
-    padding: const EdgeInsets.symmetric(horizontal: 18),
+    minimumSize: Size(64, AppTokens.of(context).buttonHeight),
+    padding: const EdgeInsets.symmetric(horizontal: 16),
     textStyle: kOutlinedButtonTextStyle,
+    visualDensity: VisualDensity.standard,
+    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
   ).copyWith(
     backgroundColor: WidgetStatePropertyAll<Color>(
       theme.colorScheme.primaryContainer,

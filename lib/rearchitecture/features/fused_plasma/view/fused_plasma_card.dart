@@ -125,7 +125,7 @@ class _FusedPlasmaCardState extends State<FusedPlasmaCard> {
               SizedBox(width: tokens.cardGap),
               OutlinedButton(
                 key: const Key('plasma_cancel_selected'),
-                style: cardSecondaryButtonStyle(context),
+                style: _cancelButtonStyle(context),
                 onPressed: enabled ? () => unawaited(_confirm()) : null,
                 child: Text(
                   context.l10n.plasmaPageCancelFuses(owner.selected.length),
@@ -284,7 +284,7 @@ class _FusedPlasmaCardState extends State<FusedPlasmaCard> {
             message: entry.hash,
             child: OutlinedButton(
               key: ValueKey<String>('plasma_cancel_${entry.hash}'),
-              style: cardSecondaryButtonStyle(context),
+              style: _cancelButtonStyle(context),
               onPressed: eligible
                   ? () => unawaited(_confirm(entry.hash))
                   : null,
@@ -529,3 +529,16 @@ class _Expiry extends StatelessWidget {
     );
   }
 }
+
+ButtonStyle _cancelButtonStyle(BuildContext context) =>
+    cardSecondaryButtonStyle(context).copyWith(
+      minimumSize: WidgetStatePropertyAll<Size>(
+        Size(0, AppTokens.of(context).smallButtonHeight),
+      ),
+      padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(
+        EdgeInsets.symmetric(horizontal: 10),
+      ),
+      textStyle: WidgetStatePropertyAll<TextStyle>(
+        kTextButtonTextStyle.copyWith(fontSize: 12),
+      ),
+    );

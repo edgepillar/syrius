@@ -416,7 +416,18 @@ class _Strip extends StatelessWidget {
               key: const Key('staking_stake_button'),
               child: form.isOpen
                   ? OutlinedButton.icon(
-                      style: cardSecondaryButtonStyle(context),
+                      style: cardSecondaryButtonStyle(context).copyWith(
+                        minimumSize: WidgetStatePropertyAll<Size>(
+                          Size(0, tokens.buttonHeight),
+                        ),
+                        padding:
+                            const WidgetStatePropertyAll<EdgeInsetsGeometry>(
+                              EdgeInsets.symmetric(horizontal: 16),
+                            ),
+                        textStyle: const WidgetStatePropertyAll<TextStyle>(
+                          kOutlinedButtonTextStyle,
+                        ),
+                      ),
                       onPressed: form.close,
                       icon: const Icon(Icons.close, size: 16),
                       label: Text(context.l10n.commonClose),

@@ -86,6 +86,119 @@ void main() {
     );
   }
 
+  for (final bool light in <bool>[false, true]) {
+    testWidgets(
+      'token choice keeps 34 px and ownership in compact density, $light',
+      (WidgetTester tester) async {
+        prepareSwapViewport(tester);
+        final TextEditingController amount = TextEditingController(
+          text: '7.00000001',
+        );
+        addTearDown(amount.dispose);
+        final ThemeData theme =
+            (light ? AppTheme.lightTheme : AppTheme.darkTheme).copyWith(
+              visualDensity: VisualDensity.compact,
+            );
+        final List<String> selected = <String>[];
+        final String qsr = kQsrCoin.tokenStandard.toString();
+        bool editable = true;
+        bool current = true;
+
+        Future<void> show({double scale = 1}) async {
+          await tester.pumpWidget(
+            swapHost(
+              Theme(
+                data: theme,
+                child: SizedBox(
+                  width: 480,
+                  child: SwapAmountPane(
+                    label: 'You send',
+                    token: kZnnCoin,
+                    visible: false,
+                    controller: amount,
+                    choices: <Token>[kZnnCoin, kQsrCoin],
+                    onChanged: editable ? (String _) {} : null,
+                    onToken: editable ? selected.add : null,
+                    canInteract: () => current,
+                    dollars: fixtureDollars,
+                  ),
+                ),
+              ),
+              light: light,
+              scale: scale,
+            ),
+          );
+          await tester.pump();
+        }
+
+        final Finder button = find.descendant(
+          of: find.byType(SwapChoice),
+          matching: find.byType(OutlinedButton),
+        );
+        final Finder qsrItem = find.widgetWithText(MenuItemButton, 'QSR');
+        await show();
+        expect(
+          Theme.of(tester.element(button)).visualDensity,
+          VisualDensity.compact,
+        );
+        expect(tester.getSize(button).height, 34);
+        expect(tester.widget<OutlinedButton>(button).onPressed, isNotNull);
+        await tester.tap(button);
+        await tester.pump();
+        expect(qsrItem, findsOneWidget);
+        final VoidCallback retained = tester
+            .widget<MenuItemButton>(qsrItem)
+            .onPressed!;
+        await tester.tap(qsrItem);
+        await tester.pump(const Duration(milliseconds: 241));
+        expect(selected, <String>[qsr]);
+        expect(amount.text, '7.00000001');
+
+        await tester.tap(button);
+        await tester.pump();
+        current = false;
+        await tester.tap(qsrItem);
+        await tester.pump(const Duration(milliseconds: 241));
+        retained();
+        await tester.tap(button);
+        await tester.pump();
+        expect(selected, <String>[qsr]);
+        expect(find.byType(MenuItemButton), findsNothing);
+
+        editable = false;
+        await show();
+        expect(tester.getSize(button).height, 34);
+        expect(tester.widget<OutlinedButton>(button).onPressed, isNull);
+        expect(
+          tester.widget<TextField>(find.byType(TextField)).enabled,
+          isFalse,
+        );
+        await tester.tap(button, warnIfMissed: false);
+        await tester.pump();
+        expect(find.byType(MenuItemButton), findsNothing);
+        expect(selected, <String>[qsr]);
+
+        current = true;
+        editable = true;
+        await show(scale: 2);
+        final Rect bounds = tester.getRect(button);
+        final Rect label = tester.getRect(
+          find.descendant(of: button, matching: find.text('ZNN')),
+        );
+        expect(bounds.height, greaterThan(34));
+        expect(label.top, greaterThanOrEqualTo(bounds.top));
+        expect(label.bottom, lessThanOrEqualTo(bounds.bottom));
+        editable = false;
+        await show(scale: 2);
+        expect(tester.getSize(button).height, greaterThan(34));
+        expect(tester.widget<OutlinedButton>(button).onPressed, isNull);
+        expect(amount.text, '7.00000001');
+        expect(selected, <String>[qsr]);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
+
   testWidgets('scaled narrow RTL remains scrollable without overflowing', (
     WidgetTester tester,
   ) async {

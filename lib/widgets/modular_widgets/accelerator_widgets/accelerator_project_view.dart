@@ -238,7 +238,17 @@ class _AcceleratorProjectViewState extends State<AcceleratorProjectView> {
     );
     final Widget back = TextButton.icon(
       key: const Key('project_details_back'),
-      style: quietButtonStyle(context),
+      style: quietButtonStyle(context).copyWith(
+        minimumSize: WidgetStatePropertyAll<Size>(
+          Size(0, tokens.smallButtonHeight),
+        ),
+        padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(
+          EdgeInsets.symmetric(horizontal: 10),
+        ),
+        textStyle: WidgetStatePropertyAll<TextStyle>(
+          kTextButtonTextStyle.copyWith(fontSize: 12),
+        ),
+      ),
       onPressed: () {
         if (_onPage) widget.onBack();
       },
@@ -475,7 +485,17 @@ class _AcceleratorProjectViewState extends State<AcceleratorProjectView> {
                   const Spacer(),
                   OutlinedButton(
                     key: const Key('acc_create_phase'),
-                    style: accCompactQuietStyle(context),
+                    style: accCompactQuietStyle(context).copyWith(
+                      minimumSize: WidgetStatePropertyAll<Size>(
+                        Size(0, tokens.smallButtonHeight),
+                      ),
+                      padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(
+                        EdgeInsets.symmetric(horizontal: 10),
+                      ),
+                      textStyle: WidgetStatePropertyAll<TextStyle>(
+                        kTextButtonTextStyle.copyWith(fontSize: 12),
+                      ),
+                    ),
                     onPressed: canCreate && widget.onCreatePhase != null
                         ? () {
                             if (_can(source, epoch)) {

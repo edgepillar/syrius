@@ -13,7 +13,10 @@ import '../helpers/hydrated_bloc.dart';
 import 'support.dart';
 
 Widget _host(PlasmaFixture fixture, ThemeData theme) => MaterialApp(
-  theme: theme,
+  theme: theme.copyWith(
+    visualDensity: VisualDensity.compact,
+    materialTapTargetSize: MaterialTapTargetSize.padded,
+  ),
   locale: const Locale('en'),
   localizationsDelegates: appLocalizationsDelegates,
   supportedLocales: AppLocalizations.supportedLocales,
@@ -202,6 +205,25 @@ void main() {
           );
           expect(tester.widget<Checkbox>(eligible).onChanged, isNotNull);
           expect(tester.widget<Checkbox>(locked).onChanged, isNull);
+          for (final int id in <int>[1, 2]) {
+            final Finder cancel = find.byKey(
+              ValueKey<String>('plasma_cancel_${plasmaTestHash(id)}'),
+            );
+            final OutlinedButton button = tester.widget<OutlinedButton>(
+              cancel,
+            );
+            expect(tester.getSize(cancel).height, 26);
+            expect(
+              button.style!.textStyle!.resolve(<WidgetState>{})!.fontSize,
+              12,
+            );
+            expect(
+              button.style!.padding!
+                  .resolve(<WidgetState>{})!
+                  .resolve(TextDirection.ltr),
+              const EdgeInsets.symmetric(horizontal: 10),
+            );
+          }
           await tester.tap(eligible);
           await tester.pump();
           expect(fixture.owner.selected, <String>{plasmaTestHash(1)});
@@ -210,6 +232,12 @@ void main() {
             findsOneWidget,
           );
           expect(find.text('1 selected'), findsOneWidget);
+          expect(
+            tester
+                .getSize(find.byKey(const Key('plasma_cancel_selected')))
+                .height,
+            26,
+          );
           expect(fixture.transport.calls, isEmpty);
           expect(tester.takeException(), isNull);
         });

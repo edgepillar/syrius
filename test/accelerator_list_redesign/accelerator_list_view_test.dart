@@ -26,7 +26,10 @@ Widget host(
   double scale = 1,
   NavigatorObserver? observer,
 }) => MaterialApp(
-  theme: light ? AppTheme.lightTheme : AppTheme.darkTheme,
+  theme: (light ? AppTheme.lightTheme : AppTheme.darkTheme).copyWith(
+    visualDensity: VisualDensity.compact,
+    materialTapTargetSize: MaterialTapTargetSize.padded,
+  ),
   localizationsDelegates: appLocalizationsDelegates,
   supportedLocales: AppLocalizations.supportedLocales,
   navigatorObservers: <NavigatorObserver>[?observer],
@@ -119,6 +122,10 @@ void main() {
           );
           expect(quorum.data, 'Unknown');
           expect(find.text('Your vote'), findsNWidgets(2));
+          expect(
+            tester.getSize(find.byKey(const Key('accelerator_sort'))).height,
+            30,
+          );
           expect(find.text('28 of 33'), findsNothing);
           expect(tester.takeException(), isNull);
         } finally {

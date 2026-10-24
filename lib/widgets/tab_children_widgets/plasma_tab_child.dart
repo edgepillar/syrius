@@ -280,7 +280,18 @@ class _PlasmaStrip extends StatelessWidget {
                   if (form.isOpen)
                     OutlinedButton.icon(
                       key: const Key('plasma_close_fuse'),
-                      style: cardSecondaryButtonStyle(context),
+                      style: cardSecondaryButtonStyle(context).copyWith(
+                        minimumSize: WidgetStatePropertyAll<Size>(
+                          Size(0, tokens.buttonHeight),
+                        ),
+                        padding:
+                            const WidgetStatePropertyAll<EdgeInsetsGeometry>(
+                              EdgeInsets.symmetric(horizontal: 16),
+                            ),
+                        textStyle: const WidgetStatePropertyAll<TextStyle>(
+                          kOutlinedButtonTextStyle,
+                        ),
+                      ),
                       onPressed: form.close,
                       icon: Icon(Icons.close, size: tokens.heroIconSize),
                       label: Text(context.l10n.commonClose),
