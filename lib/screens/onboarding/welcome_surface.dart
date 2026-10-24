@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/hero_field.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/entry_field.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/list_entrance.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/app_lottie.dart';
@@ -40,7 +40,7 @@ const Map<String, String> _symbols = <String, String>{
 ///
 /// The caller receives a destination only after this route and the source
 /// that drew the row are still current. Artwork can be supplied by finite
-/// offline fixtures without mounting the original animation or shader.
+/// offline fixtures without mounting the original animation or field.
 class WelcomeSurface extends StatefulWidget {
   /// Draws the original globe and the three owned entry actions.
   const WelcomeSurface({
@@ -212,7 +212,7 @@ class _WelcomeSurfaceState extends State<WelcomeSurface>
                 key: const Key('welcome_screen_marker'),
                 fit: StackFit.expand,
                 children: <Widget>[
-                  widget.background ?? const HeroField(),
+                  widget.background ?? const EntryField(),
                   SafeArea(
                     child: ListEntrance(
                       itemKeys: _rowKeys,

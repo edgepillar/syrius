@@ -248,6 +248,31 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The fixed component measures in `00-head.html`, in logical pixels.
   double get pageGap => 12;
 
+  /// The genuine Windows client caption, shared by every production route.
+  double get windowCaptionHeight => 32;
+
+  /// Each native action has the mockup's fixed target width.
+  double get windowControlWidth => 44;
+
+  /// The compact caption glyph edge.
+  double get windowControlIconSize => 12;
+
+  /// Caption placement stays physical left to right on Windows.
+  EdgeInsets get windowCaptionPadding => const EdgeInsets.fromLTRB(14, 0, 4, 0);
+
+  /// The frame follows the active theme without painting a second surface.
+  Color get windowCaptionBackground => background;
+
+  /// The close hover uses the semantic error colour.
+  Color get windowCloseHover => error.withValues(alpha: 0.12);
+
+  /// The mockup's quiet tracked wordmark; the native window title stays intact.
+  TextStyle get windowTitleText => bodyText.copyWith(
+    fontSize: 12,
+    letterSpacing: 4.08,
+    color: faint,
+  );
+
   /// The icon-only rail's width.
   double get railCollapsedWidth => 56;
 
@@ -950,6 +975,10 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Numeric onboarding position uses the data role.
   TextStyle get entryStepNumberText =>
       dataText.copyWith(fontSize: 11, fontWeight: FontWeight.w500);
+
+  /// Horizontal inset of Import's ordinary primary action.
+  EdgeInsetsDirectional get importContinuePadding =>
+      const EdgeInsetsDirectional.symmetric(horizontal: 16);
 
   /// Inset of the import file drop area.
   double get importDropPadding => 22;

@@ -441,6 +441,7 @@ class _DelegateCell extends StatelessWidget {
       key: ValueKey<String>('pillar_${name}_delegate'),
       onPressed: delegated ? null : onPressed,
       style: cardSecondaryButtonStyle(context).copyWith(
+        visualDensity: VisualDensity.standard,
         minimumSize: WidgetStatePropertyAll<Size>(
           Size(0, tokens.pillarActionHeight),
         ),

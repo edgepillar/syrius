@@ -364,6 +364,7 @@ class _Action extends StatelessWidget {
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
     final ButtonStyle style = cardSecondaryButtonStyle(context).copyWith(
+      visualDensity: VisualDensity.standard,
       minimumSize: WidgetStatePropertyAll<Size>(
         Size(0, tokens.smallButtonHeight),
       ),

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart' as foundation show TargetPlatform;
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -95,6 +96,7 @@ void main() {
   });
 
   Widget host({
+    ThemeData? theme,
     HomeSnapshot? snapshot,
     bool noSnapshot = false,
     bool failed = false,
@@ -104,7 +106,7 @@ void main() {
     bool reduced = false,
     Stream<PowGenerationState>? status,
   }) => MaterialApp(
-    theme: light ? AppTheme.lightTheme : AppTheme.darkTheme,
+    theme: theme ?? (light ? AppTheme.lightTheme : AppTheme.darkTheme),
     locale: const Locale('en'),
     supportedLocales: AppLocalizations.supportedLocales,
     localizationsDelegates: appLocalizationsDelegates,
@@ -140,6 +142,7 @@ void main() {
 
   Future<void> show(
     WidgetTester tester, {
+    ThemeData? theme,
     HomeSnapshot? snapshot,
     bool noSnapshot = false,
     bool failed = false,
@@ -157,6 +160,7 @@ void main() {
     addTearDown(() => tester.pumpWidget(const SizedBox.shrink()));
     await tester.pumpWidget(
       host(
+        theme: theme,
         snapshot: snapshot,
         noSnapshot: noSnapshot,
         failed: failed,
@@ -169,6 +173,23 @@ void main() {
     );
     await tester.pump();
     await tester.pump();
+  }
+
+  void expectSecondaryGeometry(WidgetTester tester) {
+    for (final String name in const <String>['home_receive', 'home_zap']) {
+      final Finder action = find.byKey(Key(name));
+      final Finder button = find.descendant(
+        of: action,
+        matching: find.byType(OutlinedButton),
+      );
+      expect(button, findsOneWidget);
+      expect(
+        Theme.of(tester.element(action)).visualDensity,
+        VisualDensity.compact,
+      );
+      expect(tester.getSize(action).height, 38);
+      expect(tester.getSize(button).height, 38);
+    }
   }
 
   for (final bool light in <bool>[false, true]) {
@@ -208,6 +229,131 @@ void main() {
       expect(meter.right, lessThan(send.left));
       expect(tester.takeException(), isNull);
     });
+
+    testWidgets(
+      'desktop secondary pills keep 38 px through hover and focus, $light',
+      (WidgetTester tester) async {
+        await show(
+          tester,
+          light: light,
+          theme: (light ? AppTheme.lightTheme : AppTheme.darkTheme).copyWith(
+            platform: foundation.TargetPlatform.windows,
+            visualDensity: VisualDensity.compact,
+          ),
+        );
+        expectSecondaryGeometry(tester);
+        final Finder receive = find.byKey(const Key('home_receive'));
+        final Rect original = tester.getRect(receive);
+        final TestGesture mouse = await tester.createGesture(
+          kind: ui.PointerDeviceKind.mouse,
+        );
+        addTearDown(mouse.removePointer);
+        await mouse.addPointer(location: Offset.zero);
+        await mouse.moveTo(tester.getCenter(receive));
+        await tester.pump(const Duration(milliseconds: 250));
+        expectSecondaryGeometry(tester);
+        expect(tester.getRect(receive), original);
+        final FocusNode focus = Focus.of(
+          tester.element(
+            find.descendant(of: receive, matching: find.byType(Text)),
+          ),
+        )..requestFocus();
+        await tester.pump();
+        expect(focus.hasFocus, isTrue);
+        expectSecondaryGeometry(tester);
+        expect(tester.getRect(receive), original);
+        expect(opened, isEmpty);
+        expect(tester.takeException(), isNull);
+      },
+      timeout: const Timeout(Duration(seconds: 30)),
+    );
+
+    testWidgets(
+      'desktop secondary sizing retains Receive routes and Zap refusal, '
+      '$light',
+      (WidgetTester tester) async {
+        final SemanticsHandle semantics = tester.ensureSemantics();
+        try {
+          await show(
+            tester,
+            light: light,
+            theme: (light ? AppTheme.lightTheme : AppTheme.darkTheme).copyWith(
+              platform: foundation.TargetPlatform.windows,
+              visualDensity: VisualDensity.compact,
+            ),
+          );
+          expectSecondaryGeometry(tester);
+          final Finder receive = find.byKey(const Key('home_receive'));
+          final Finder receiveButton = find.descendant(
+            of: receive,
+            matching: find.byType(OutlinedButton),
+          );
+          expect(
+            tester
+                .getSemantics(receiveButton)
+                .getSemanticsData()
+                .hasAction(ui.SemanticsAction.tap),
+            isTrue,
+          );
+          await tester.tap(receive);
+          await tester.pump();
+          final FocusNode focus = Focus.of(
+            tester.element(
+              find.descendant(of: receive, matching: find.byType(Text)),
+            ),
+          )..requestFocus();
+          await tester.pump();
+          expect(focus.hasFocus, isTrue);
+          await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+          await tester.pump();
+          await tester.tap(find.byKey(const Key('home_send')));
+          await tester.pump();
+          expect(opened, <TransferMode>[
+            TransferMode.receive,
+            TransferMode.receive,
+            TransferMode.send,
+          ]);
+          FocusManager.instance.primaryFocus?.unfocus();
+          await tester.pump();
+          final Finder zap = find.byKey(const Key('home_zap'));
+          final Finder zapButton = find.descendant(
+            of: zap,
+            matching: find.byType(OutlinedButton),
+          );
+          await tester.tapAt(tester.getCenter(zap));
+          tester.widget<OutlinedButton>(zapButton).onPressed!();
+          final FocusNode blocked = Focus.of(
+            tester.element(
+              find.descendant(of: zap, matching: find.byType(Text)),
+            ),
+          )..requestFocus();
+          await tester.pump();
+          expect(blocked.hasFocus, isFalse);
+          await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+          await tester.sendKeyEvent(LogicalKeyboardKey.space);
+          await tester.pump();
+          final SemanticsNode refusal = tester.getSemantics(
+            find.byType(SeamGate),
+          );
+          expect(
+            refusal.getSemanticsData().hasAction(ui.SemanticsAction.tap),
+            isFalse,
+          );
+          refusal.owner!.performAction(refusal.id, ui.SemanticsAction.tap);
+          await tester.pump();
+          expectSecondaryGeometry(tester);
+          expect(opened, <TransferMode>[
+            TransferMode.receive,
+            TransferMode.receive,
+            TransferMode.send,
+          ]);
+          expect(tester.takeException(), isNull);
+        } finally {
+          semantics.dispose();
+        }
+      },
+      timeout: const Timeout(Duration(seconds: 30)),
+    );
   }
 
   testWidgets('a value beyond double precision keeps its last base unit', (

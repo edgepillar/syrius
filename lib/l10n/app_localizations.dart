@@ -3121,6 +3121,24 @@ abstract class AppLocalizations {
   /// **'Close'**
   String get commonClose;
 
+  /// Tooltip of the button that minimizes the original application window.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimize'**
+  String get windowMinimize;
+
+  /// Tooltip of the button that maximizes the original application window.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximize'**
+  String get windowMaximize;
+
+  /// Tooltip of the button that restores a maximized application window.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get windowRestore;
+
   /// Button on the notification banner that removes the banner. A verb.
   ///
   /// In en, this message translates to:

@@ -42,7 +42,9 @@ import 'package:zenon_syrius_wallet_flutter/utils/font_licences.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/functions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/motion_binding.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/window_chrome.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/window_frame.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// The current process SDK; owned operations retain their original instance.
@@ -115,6 +117,7 @@ Future<void> main() async {
   });
 
   await windowManager.ensureInitialized();
+  await configureAppWindowChrome();
   await windowManager.setPreventClose(true);
 
   web3WalletService = Web3WalletService();
@@ -467,7 +470,9 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
                                           // the SDK theme via this bridge.
                                           // ignore: deprecated_member_use
                                           MaterialUiCompatibilityBridge(
-                                            child: child!,
+                                            child: AppWindowFrame(
+                                              child: child!,
+                                            ),
                                           ),
                                   // Null follows the system; the callback maps
                                   // either to one of the five, else English.

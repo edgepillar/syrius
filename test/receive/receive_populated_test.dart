@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' as foundation show TargetPlatform;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/receive/widgets/receive_populated.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/receive_qr_image.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/page_dismiss.dart';
@@ -49,6 +51,57 @@ Future<void> _toggleRequest(WidgetTester tester) async {
   await receiveTestReveal(tester);
 }
 
+Widget _desktopForm(ReceivePopulated form, {required bool light}) => Theme(
+  data: (light ? AppTheme.lightTheme : AppTheme.darkTheme).copyWith(
+    platform: foundation.TargetPlatform.windows,
+    visualDensity: VisualDensity.compact,
+  ),
+  child: form,
+);
+
+void _expectActionGeometry(WidgetTester tester, {required bool compact}) {
+  for (final Key key in const <Key>[
+    Key('receive_copy_address'),
+    Key('receive_qr_toggle'),
+  ]) {
+    final Finder action = find.byKey(key);
+    final Finder label = find.descendant(
+      of: action,
+      matching: find.byType(Text),
+    );
+    final Finder button = find.ancestor(
+      of: label,
+      matching: find.byType(OutlinedButton),
+    );
+    expect(label, findsOneWidget);
+    expect(button, findsOneWidget);
+    expect(
+      Theme.of(tester.element(action)).visualDensity,
+      VisualDensity.compact,
+    );
+    expect(tester.getSize(action).height, compact ? 30 : 38);
+    expect(tester.getSize(button).height, compact ? 30 : 38);
+    final TextStyle text = DefaultTextStyle.of(tester.element(label)).style;
+    expect(text.fontSize, compact ? 13 : 14);
+    expect(text.fontWeight, compact ? FontWeight.w500 : FontWeight.w600);
+    final OutlinedButton control = tester.widget<OutlinedButton>(button);
+    expect(
+      control.style!.padding!
+          .resolve(const <WidgetState>{})!
+          .resolve(
+            TextDirection.ltr,
+          ),
+      EdgeInsets.symmetric(horizontal: compact ? 12 : 16),
+    );
+  }
+  for (final IconData icon in const <IconData>[
+    Icons.copy_rounded,
+    Icons.qr_code_rounded,
+  ]) {
+    expect(tester.getSize(find.byIcon(icon)), Size.square(compact ? 14 : 18));
+  }
+}
+
 void main() {
   for (final bool light in <bool>[false, true]) {
     testWidgets('full address at rest with optional controls closed, $light', (
@@ -76,6 +129,101 @@ void main() {
       expect(find.text('Copy image'), findsNothing);
       await receiveTestDispose(tester);
     });
+
+    testWidgets(
+      'desktop actions follow ordinary and compact QR states, $light',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(
+          receiveTestHost(
+            _desktopForm(_form(), light: light),
+            light: light,
+          ),
+        );
+        _expectActionGeometry(tester, compact: false);
+        await tester.tap(find.byKey(const Key('receive_qr_toggle')));
+        await tester.pump();
+        _expectActionGeometry(tester, compact: true);
+        await tester.pump(const Duration(milliseconds: 120));
+        _expectActionGeometry(tester, compact: true);
+        await receiveTestReveal(tester);
+        expect(find.text('Hide QR'), findsOneWidget);
+        _expectActionGeometry(tester, compact: true);
+        await tester.tap(find.byKey(const Key('receive_qr_toggle')));
+        await tester.pump();
+        expect(find.text('Show QR'), findsOneWidget);
+        _expectActionGeometry(tester, compact: true);
+        await receiveTestReveal(tester);
+        expect(find.byType(ReceiveQrImage), findsNothing);
+        _expectActionGeometry(tester, compact: false);
+        await receiveTestDispose(tester);
+      },
+      timeout: const Timeout(Duration(seconds: 30)),
+    );
+
+    testWidgets(
+      'desktop action resizing retains pending copy and request ownership, '
+      '$light',
+      (WidgetTester tester) async {
+        final Completer<void> pending = Completer<void>();
+        final List<String> copies = <String>[];
+        await tester.pumpWidget(
+          receiveTestHost(
+            _desktopForm(
+              _form(
+                copy: (String address) {
+                  copies.add(address);
+                  return copies.length == 1
+                      ? pending.future
+                      : Future<void>.value();
+                },
+              ),
+              light: light,
+            ),
+            light: light,
+          ),
+        );
+        await tester.tap(find.byKey(const Key('receive_copy_address')));
+        await tester.pump();
+        expect(copies, <String>[_first]);
+        _expectActionGeometry(tester, compact: false);
+        await _showQr(tester);
+        _expectActionGeometry(tester, compact: true);
+        await tester.tap(find.byKey(const Key('receive_copy_address')));
+        await tester.pump();
+        expect(copies, <String>[_first]);
+        await _toggleRequest(tester);
+        final Finder amount = find.byKey(const Key('receive_amount_field'));
+        await tester.enterText(amount, '12.5');
+        tester
+            .widget<DropdownMenu<String>>(
+              find.byKey(const Key('receive_address_picker')),
+            )
+            .onSelected!(_second);
+        await tester.pump();
+        expect(
+          _payload(tester),
+          'znn:$_second?zts=${kZnnCoin.tokenStandard}&amount=1250000000',
+        );
+        await tester.ensureVisible(find.byKey(const Key('receive_qr_toggle')));
+        await _showQr(tester);
+        _expectActionGeometry(tester, compact: false);
+        pending.complete();
+        await tester.pump();
+        expect(copies, <String>[_first]);
+        expect(tester.widget<TextField>(amount).controller!.text, '12.5');
+        await tester.tap(find.byKey(const Key('receive_copy_address')));
+        await tester.pump();
+        expect(copies, <String>[_first, _second]);
+        await _showQr(tester);
+        _expectActionGeometry(tester, compact: true);
+        expect(
+          _payload(tester),
+          'znn:$_second?zts=${kZnnCoin.tokenStandard}&amount=1250000000',
+        );
+        await receiveTestDispose(tester);
+      },
+      timeout: const Timeout(Duration(seconds: 30)),
+    );
   }
 
   testWidgets('copies the complete selected address without direction marks', (

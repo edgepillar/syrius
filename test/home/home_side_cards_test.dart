@@ -127,6 +127,7 @@ void main() {
   });
 
   Widget host({
+    ThemeData? theme,
     HomeSnapshot? snapshot,
     bool noSnapshot = false,
     bool failed = false,
@@ -143,7 +144,7 @@ void main() {
     double width = 500,
     Key? cardsKey,
   }) => MaterialApp(
-    theme: light ? AppTheme.lightTheme : AppTheme.darkTheme,
+    theme: theme ?? (light ? AppTheme.lightTheme : AppTheme.darkTheme),
     locale: const Locale('en'),
     supportedLocales: AppLocalizations.supportedLocales,
     localizationsDelegates: appLocalizationsDelegates,
@@ -184,6 +185,7 @@ void main() {
 
   Future<void> show(
     WidgetTester tester, {
+    ThemeData? theme,
     HomeSnapshot? snapshot,
     bool noSnapshot = false,
     bool failed = false,
@@ -201,6 +203,7 @@ void main() {
   }) async {
     await tester.pumpWidget(
       host(
+        theme: theme,
         snapshot: snapshot,
         noSnapshot: noSnapshot,
         failed: failed,
@@ -225,6 +228,56 @@ void main() {
     await tester.tap(find.byKey(_toggle));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 240));
+  }
+
+  for (final bool light in <bool>[false, true]) {
+    testWidgets(
+      'Collect all keeps 30 px and its busy guard in compact density, $light',
+      (WidgetTester tester) async {
+        final ThemeData theme =
+            (light ? AppTheme.lightTheme : AppTheme.darkTheme).copyWith(
+              visualDensity: VisualDensity.compact,
+            );
+        final Finder button = find.byKey(_collect);
+        await show(tester, theme: theme);
+        expect(
+          Theme.of(tester.element(button)).visualDensity,
+          VisualDensity.compact,
+        );
+        expect(tester.getSize(button).height, 30);
+        expect(tester.widget<OutlinedButton>(button).onPressed, isNotNull);
+        await tester.tap(button);
+        expect(collections, 1);
+
+        await show(tester, theme: theme, busy: true);
+        expect(tester.getSize(button).height, 30);
+        expect(tester.widget<OutlinedButton>(button).onPressed, isNull);
+        expect(
+          find.descendant(
+            of: button,
+            matching: find.byType(CircularProgressIndicator),
+          ),
+          findsOneWidget,
+        );
+        await tester.tap(button);
+        expect(collections, 1);
+
+        await show(tester, theme: theme, enabled: false);
+        expect(tester.getSize(button).height, 30);
+        expect(tester.widget<OutlinedButton>(button).onPressed, isNull);
+        await tester.tap(button);
+        expect(collections, 1);
+
+        await show(tester, theme: theme, textScale: 1.75);
+        expect(tester.getSize(button).height, greaterThan(30));
+        expect(tester.widget<OutlinedButton>(button).onPressed, isNotNull);
+        await tester.tap(button);
+        expect(collections, 2);
+        expect(flight.value, isEmpty);
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox.shrink());
+      },
+    );
   }
 
   testWidgets('adds exact rewards and shared dollars on one compact line', (

@@ -194,6 +194,7 @@ class _SeedChoice extends StatelessWidget {
     return OutlinedButton(
       onPressed: onPressed,
       style: OutlinedButton.styleFrom(
+        visualDensity: VisualDensity.standard,
         minimumSize: Size(0, tokens.seedQuizChoiceHeight),
         padding: tokens.seedQuizChoicePadding,
         foregroundColor: selected ? tokens.foreground : tokens.dim,

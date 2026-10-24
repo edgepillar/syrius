@@ -192,6 +192,7 @@ class _CollectCard extends StatelessWidget {
         key: const Key('home_collect_all'),
         onPressed: canCollect ? onCollect : null,
         style: OutlinedButton.styleFrom(
+          visualDensity: VisualDensity.standard,
           minimumSize: Size(0, tokens.compactButtonHeight),
           padding: tokens.homeSideButtonPadding,
           textStyle: tokens.compactText,

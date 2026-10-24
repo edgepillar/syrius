@@ -1259,6 +1259,18 @@
   "@commonClose": {
     "description": "Tooltip of the x button in the corner of a modal, which closes it. A verb."
   },
+  "windowMinimize": "Minimize",
+  "@windowMinimize": {
+    "description": "Tooltip of the button that minimizes the original application window."
+  },
+  "windowMaximize": "Maximize",
+  "@windowMaximize": {
+    "description": "Tooltip of the button that maximizes the original application window."
+  },
+  "windowRestore": "Restore",
+  "@windowRestore": {
+    "description": "Tooltip of the button that restores a maximized application window."
+  },
   "commonDismiss": "Dismiss",
   "@commonDismiss": {
     "description": "Button on the notification banner that removes the banner. A verb."

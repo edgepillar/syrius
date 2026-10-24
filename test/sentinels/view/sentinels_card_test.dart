@@ -66,16 +66,24 @@ void main() {
   });
 
   Widget host({
+    ThemeData? theme,
+    double textScale = 1,
     bool light = false,
     bool rtl = false,
     String? selected,
     VoidCallback? onSpawn,
     VoidCallback? onOpenOwner,
   }) => MaterialApp(
-    theme: light ? AppTheme.lightTheme : AppTheme.darkTheme,
+    theme: theme ?? (light ? AppTheme.lightTheme : AppTheme.darkTheme),
     localizationsDelegates: appLocalizationsDelegates,
     supportedLocales: const <Locale>[Locale('en'), Locale('ar')],
     locale: rtl ? const Locale('ar') : const Locale('en'),
+    builder: (BuildContext context, Widget? child) => MediaQuery(
+      data: MediaQuery.of(context).copyWith(
+        textScaler: TextScaler.linear(textScale),
+      ),
+      child: child!,
+    ),
     home: Scaffold(
       body: SentinelsCard(
         bloc: reader,
@@ -89,6 +97,7 @@ void main() {
   Future<void> show(
     WidgetTester tester,
     InfiniteListState<SentinelInfo> initial, {
+    ThemeData? theme,
     bool light = false,
     bool rtl = false,
     String? selected,
@@ -102,6 +111,7 @@ void main() {
     whenListen(reader, states.stream, initialState: initial);
     await tester.pumpWidget(
       host(
+        theme: theme,
         light: light,
         rtl: rtl,
         selected: selected,
@@ -143,6 +153,54 @@ void main() {
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox.shrink());
     });
+  }
+
+  for (final bool light in <bool>[false, true]) {
+    testWidgets(
+      'Spawn keeps 26 px and caller enablement in compact density, $light',
+      (WidgetTester tester) async {
+        final ThemeData theme =
+            (light ? AppTheme.lightTheme : AppTheme.darkTheme).copyWith(
+              visualDensity: VisualDensity.compact,
+            );
+        int spawned = 0;
+        await show(
+          tester,
+          _populated(<SentinelInfo>[sentinelFixture(1)]),
+          theme: theme,
+          onSpawn: () => spawned++,
+        );
+        await tester.pump(const Duration(milliseconds: 450));
+        final Finder button = find.byKey(const Key('sentinels_spawn'));
+        expect(
+          Theme.of(tester.element(button)).visualDensity,
+          VisualDensity.compact,
+        );
+        expect(tester.getSize(button).height, 26);
+        expect(tester.widget<TextButton>(button).onPressed, isNotNull);
+        await tester.tap(button);
+        expect(spawned, 1);
+
+        await tester.pumpWidget(host(theme: theme));
+        await tester.pump();
+        expect(tester.getSize(button).height, 26);
+        expect(tester.widget<TextButton>(button).onPressed, isNull);
+        await tester.tap(button);
+        expect(spawned, 1);
+
+        await tester.pumpWidget(
+          host(theme: theme, textScale: 1.75, onSpawn: () => spawned++),
+        );
+        await tester.pump();
+        expect(tester.getSize(button).height, greaterThan(26));
+        expect(tester.widget<TextButton>(button).onPressed, isNotNull);
+        await tester.tap(button);
+        expect(spawned, 2);
+        verifyNever(() => reader.add(any()));
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox.shrink());
+      },
+    );
   }
 
   testWidgets(

@@ -148,37 +148,48 @@ void main() {
     AppLottie.debugClear();
   });
 
-  Widget host({bool light = false, bool rtl = false, bool blocked = false}) =>
-      MaterialApp(
-        theme: light ? AppTheme.lightTheme : AppTheme.darkTheme,
-        localizationsDelegates: appLocalizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        builder: (BuildContext context, Widget? child) => Directionality(
-          textDirection: rtl ? TextDirection.rtl : TextDirection.ltr,
-          child: child!,
-        ),
-        home: MultiBlocProvider(
-          providers: <SingleChildWidget>[
-            BlocProvider<PillarsBloc>.value(value: pillars),
-            BlocProvider<DelegationStatsBloc>.value(value: stats),
-            BlocProvider<MultipleBalanceBloc>.value(value: balances),
-          ],
-          child: Scaffold(
-            body: Padding(
-              padding: const EdgeInsets.all(16),
-              child: PillarsCard(
-                delegationBloc: delegate,
-                delegationBlocked: blocked,
-              ),
-            ),
+  Widget host({
+    ThemeData? theme,
+    bool light = false,
+    bool rtl = false,
+    bool blocked = false,
+    double textScale = 1,
+  }) => MaterialApp(
+    theme: theme ?? (light ? AppTheme.lightTheme : AppTheme.darkTheme),
+    localizationsDelegates: appLocalizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    builder: (BuildContext context, Widget? child) => MediaQuery(
+      data: MediaQuery.of(context).copyWith(
+        textScaler: TextScaler.linear(textScale),
+      ),
+      child: Directionality(
+        textDirection: rtl ? TextDirection.rtl : TextDirection.ltr,
+        child: child!,
+      ),
+    ),
+    home: MultiBlocProvider(
+      providers: <SingleChildWidget>[
+        BlocProvider<PillarsBloc>.value(value: pillars),
+        BlocProvider<DelegationStatsBloc>.value(value: stats),
+        BlocProvider<MultipleBalanceBloc>.value(value: balances),
+      ],
+      child: Scaffold(
+        body: Padding(
+          padding: const EdgeInsets.all(16),
+          child: PillarsCard(
+            delegationBloc: delegate,
+            delegationBlocked: blocked,
           ),
         ),
-      );
+      ),
+    ),
+  );
 
   Future<void> show(
     WidgetTester tester,
     List<PillarInfo> items, {
     bool complete = true,
+    ThemeData? theme,
     bool light = false,
     bool rtl = false,
     bool blocked = false,
@@ -192,7 +203,9 @@ void main() {
       pillarStates.stream,
       initialState: _loaded(items, complete: complete),
     );
-    await tester.pumpWidget(host(light: light, rtl: rtl, blocked: blocked));
+    await tester.pumpWidget(
+      host(theme: theme, light: light, rtl: rtl, blocked: blocked),
+    );
   }
 
   for (final bool light in <bool>[false, true]) {
@@ -230,6 +243,68 @@ void main() {
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox.shrink());
     });
+  }
+
+  for (final bool light in <bool>[false, true]) {
+    testWidgets(
+      'Delegate keeps 26 px and the original pending guard '
+      'in compact density, $light',
+      (WidgetTester tester) async {
+        final ThemeData theme =
+            (light ? AppTheme.lightTheme : AppTheme.darkTheme).copyWith(
+              visualDensity: VisualDensity.compact,
+            );
+        await show(tester, <PillarInfo>[
+          _pillar('alpha'),
+          _pillar('beta'),
+        ], theme: theme);
+        await _frames(tester);
+        final Finder alpha = find.byKey(const Key('pillar_alpha_delegate'));
+        final Finder beta = find.byKey(const Key('pillar_beta_delegate'));
+        expect(
+          Theme.of(tester.element(alpha)).visualDensity,
+          VisualDensity.compact,
+        );
+        expect(tester.getSize(alpha).height, 26);
+        expect(tester.getSize(beta).height, 26);
+        final VoidCallback original = tester
+            .widget<OutlinedButton>(alpha)
+            .onPressed!;
+        await tester.tap(alpha);
+        await tester.pump();
+        expect(tester.getSize(alpha).height, 26);
+        expect(tester.getSize(beta).height, 26);
+        expect(tester.widget<OutlinedButton>(alpha).onPressed, isNull);
+        expect(tester.widget<OutlinedButton>(beta).onPressed, isNull);
+        expect(
+          find.descendant(
+            of: alpha,
+            matching: find.byType(CircularProgressIndicator),
+          ),
+          findsOneWidget,
+        );
+        original();
+        verify(
+          () => delegate.add(
+            DelegationRequested(address: emptyAddress, pillarName: 'alpha'),
+          ),
+        ).called(1);
+        expect(find.byKey(const Key('pillar_alpha_detail')), findsNothing);
+
+        delegateStates.add(DelegationFailure(exception: _Problem()));
+        await tester.pump();
+        expect(tester.widget<OutlinedButton>(alpha).onPressed, isNotNull);
+        await tester.pumpWidget(host(theme: theme, textScale: 1.75));
+        await _frames(tester);
+        expect(tester.getSize(alpha).height, greaterThan(26));
+        expect(tester.getSize(beta).height, greaterThan(26));
+        expect(tester.widget<OutlinedButton>(alpha).onPressed, isNotNull);
+        verifyNever(() => stats.add(any()));
+        verifyNever(() => delegate.close());
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox.shrink());
+      },
+    );
   }
 
   testWidgets('an empty filter still loads the next original page once', (

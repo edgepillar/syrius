@@ -1,11 +1,13 @@
 import 'dart:math';
 
+import 'package:flutter/foundation.dart' as foundation show TargetPlatform;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/entry_action_boundary.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/new_wallet/seed_quiz.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/new_wallet/seed_quiz_surface.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
 
 import '../import_redesign/support.dart';
@@ -18,10 +20,15 @@ SeedQuiz _quiz() => SeedQuiz(
 );
 
 class _Fixture extends StatefulWidget {
-  const _Fixture({required this.quiz, required this.onContinue});
+  const _Fixture({
+    required this.quiz,
+    required this.onContinue,
+    this.onBack,
+  });
 
   final SeedQuiz quiz;
   final VoidCallback onContinue;
+  final VoidCallback? onBack;
 
   @override
   State<_Fixture> createState() => _FixtureState();
@@ -46,7 +53,7 @@ class _FixtureState extends State<_Fixture> {
           setState(() => _source = Object());
         }
       },
-      onBack: lease.guard(() {}),
+      onBack: lease.guard(widget.onBack ?? () {}),
       onContinue: widget.quiz.complete ? lease.guard(widget.onContinue) : null,
       background: const SizedBox.expand(),
     ),
@@ -57,6 +64,24 @@ Finder _choice(SeedQuiz quiz, int question, String word) => find.byKey(
   ValueKey<String>(
     'seed_quiz_${question}_${quiz.questions[question].choices.indexOf(word)}',
   ),
+);
+
+Widget _desktopHost(
+  Widget child, {
+  required bool light,
+  double scale = 1,
+  Size size = const Size(1280, 780),
+}) => entryHost(
+  Theme(
+    data: (light ? AppTheme.lightTheme : AppTheme.darkTheme).copyWith(
+      platform: foundation.TargetPlatform.windows,
+      visualDensity: VisualDensity.compact,
+    ),
+    child: child,
+  ),
+  light: light,
+  scale: scale,
+  size: size,
 );
 
 void main() {
@@ -94,6 +119,131 @@ void main() {
         expect(find.text('1 of 3 done.'), findsOneWidget);
         expect(tester.takeException(), isNull);
       },
+    );
+
+    testWidgets(
+      '${light ? 'light' : 'dark'} desktop Back and choices keep 26 px',
+      (WidgetTester tester) async {
+        prepareEntryViewport(tester);
+        final SeedQuiz quiz = _quiz();
+        int backs = 0;
+        int continuations = 0;
+        await tester.pumpWidget(
+          _desktopHost(
+            _Fixture(
+              quiz: quiz,
+              onBack: () => backs++,
+              onContinue: () => continuations++,
+            ),
+            light: light,
+          ),
+        );
+        final Finder back = find.byKey(const Key('entry_back'));
+        final Rect originalBack = tester.getRect(back);
+        final ThemeData theme = Theme.of(tester.element(back));
+        expect(theme.platform, foundation.TargetPlatform.windows);
+        expect(theme.visualDensity, VisualDensity.compact);
+        expect(originalBack.height, 26);
+        for (final String word in quiz.questions.first.choices) {
+          expect(tester.getSize(_choice(quiz, 0, word)).height, 26);
+        }
+        final FocusNode backFocus = Focus.of(
+          tester.element(
+            find.descendant(of: back, matching: find.byType(Text)),
+          ),
+        )..requestFocus();
+        await tester.pump();
+        expect(backFocus.hasFocus, isTrue);
+        expect(tester.getRect(back), originalBack);
+        await tester.sendKeyEvent(LogicalKeyboardKey.space);
+        await tester.pump();
+        expect(backs, 1);
+        expect(quiz.selected(0), isNull);
+        await tester.tap(_choice(quiz, 0, quiz.questions[0].answer));
+        await tester.pump();
+        expect(quiz.selected(0), quiz.questions[0].answer);
+        expect(quiz.correct, 1);
+        for (int question = 0; question < 2; question++) {
+          for (final String word in quiz.questions[question].choices) {
+            expect(tester.getSize(_choice(quiz, question, word)).height, 26);
+          }
+        }
+        expect(tester.getSize(back).height, 26);
+        expect(continuations, 0);
+        expect(tester.takeException(), isNull);
+      },
+      timeout: const Timeout(Duration(seconds: 30)),
+    );
+
+    testWidgets(
+      '${light ? 'light' : 'dark'} scaled desktop choices grow and wrap',
+      (WidgetTester tester) async {
+        const Size size = Size(540, 600);
+        prepareEntryViewport(tester, size: size);
+        final SeedQuiz quiz = _quiz();
+        int backs = 0;
+        int continuations = 0;
+        await tester.pumpWidget(
+          _desktopHost(
+            _Fixture(
+              quiz: quiz,
+              onBack: () => backs++,
+              onContinue: () => continuations++,
+            ),
+            light: light,
+            scale: 2.5,
+            size: size,
+          ),
+        );
+        final Finder back = find.byKey(const Key('entry_back'));
+        final ThemeData theme = Theme.of(tester.element(back));
+        expect(theme.platform, foundation.TargetPlatform.windows);
+        expect(theme.visualDensity, VisualDensity.compact);
+        final Rect backBounds = tester.getRect(back);
+        final Rect backLabel = tester.getRect(
+          find.descendant(of: back, matching: find.byType(Text)),
+        );
+        expect(backBounds.height, greaterThan(26));
+        expect(backBounds.top, lessThanOrEqualTo(backLabel.top));
+        expect(backBounds.bottom, greaterThanOrEqualTo(backLabel.bottom));
+        final List<Rect> choices = <Rect>[];
+        for (final String word in quiz.questions.first.choices) {
+          final Finder choice = _choice(quiz, 0, word);
+          final Rect bounds = tester.getRect(choice);
+          final Rect label = tester.getRect(
+            find.descendant(of: choice, matching: find.byType(Text)),
+          );
+          expect(bounds.height, greaterThan(26));
+          expect(bounds.top, lessThanOrEqualTo(label.top));
+          expect(bounds.bottom, greaterThanOrEqualTo(label.bottom));
+          choices.add(bounds);
+        }
+        expect(
+          choices.any((Rect bounds) => bounds.top > choices.first.top),
+          isTrue,
+        );
+        for (int question = 0; question < 3; question++) {
+          final Finder answer = _choice(
+            quiz,
+            question,
+            quiz.questions[question].answer,
+          );
+          await tester.ensureVisible(answer);
+          await tester.pump();
+          expect(tester.getSize(answer).height, greaterThan(26));
+          await tester.tap(answer);
+          await tester.pump();
+          expect(quiz.selected(question), quiz.questions[question].answer);
+        }
+        expect(quiz.correct, 3);
+        await tester.ensureVisible(back);
+        await tester.pump();
+        await tester.tap(back);
+        expect(backs, 1);
+        expect(continuations, 0);
+        expect(tester.takeException(), isNull);
+      },
+      timeout: const Timeout(Duration(seconds: 30)),
     );
   }
 

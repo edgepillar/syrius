@@ -50,25 +50,28 @@ class CancelStakeButton extends StatelessWidget {
         mainAxisAlignment: .center,
         mainAxisSize: .min,
         children: <Widget>[
-          BlocConsumer<CancelStakeBloc, CancelStakeState>(
-            listener: (BuildContext context, CancelStakeState state) {
-              if (state is CancelStakeDone) {
-                onCancelled();
-              } else if (state is CancelStakeFailure) {
-                unawaited(
-                  NotificationUtils.sendNotificationError(
-                    state.exception,
-                    context.l10n.errorWhileCancellingStake,
-                  ),
-                );
-              }
-            },
-            builder: (BuildContext context, CancelStakeState state) {
-              return switch (state) {
-                CancelStakeLoading() => const SyriusLoadingWidget(size: 25),
-                _ => _buildButton(context),
-              };
-            },
+          // Keep the original control within its cell as text grows.
+          Flexible(
+            child: BlocConsumer<CancelStakeBloc, CancelStakeState>(
+              listener: (BuildContext context, CancelStakeState state) {
+                if (state is CancelStakeDone) {
+                  onCancelled();
+                } else if (state is CancelStakeFailure) {
+                  unawaited(
+                    NotificationUtils.sendNotificationError(
+                      state.exception,
+                      context.l10n.errorWhileCancellingStake,
+                    ),
+                  );
+                }
+              },
+              builder: (BuildContext context, CancelStakeState state) {
+                return switch (state) {
+                  CancelStakeLoading() => const SyriusLoadingWidget(size: 25),
+                  _ => _buildButton(context),
+                };
+              },
+            ),
           ),
         ],
       ),

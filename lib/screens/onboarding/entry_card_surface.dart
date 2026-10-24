@@ -1,6 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/hero_field.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/entry_field.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
 
@@ -55,7 +55,7 @@ class EntryCardSurface extends StatelessWidget {
       body: Stack(
         fit: StackFit.expand,
         children: <Widget>[
-          background ?? const HeroField(),
+          background ?? const EntryField(),
           SafeArea(
             child: LayoutBuilder(
               builder: (BuildContext context, BoxConstraints constraints) =>
@@ -90,6 +90,7 @@ class EntryCardSurface extends StatelessWidget {
                                     TextButton.icon(
                                       key: const Key('entry_back'),
                                       style: quietButtonStyle(context).copyWith(
+                                        visualDensity: VisualDensity.standard,
                                         minimumSize:
                                             WidgetStatePropertyAll<Size>(
                                               Size(0, tokens.smallButtonHeight),

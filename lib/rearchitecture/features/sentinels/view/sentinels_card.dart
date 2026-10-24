@@ -100,6 +100,7 @@ class _View extends StatelessWidget {
               TextButton.icon(
                 key: const Key('sentinels_spawn'),
                 style: secondaryButtonStyle(context).copyWith(
+                  visualDensity: VisualDensity.standard,
                   minimumSize: WidgetStatePropertyAll<Size>(
                     Size(0, tokens.pillarActionHeight),
                   ),

@@ -42,7 +42,9 @@ import 'package:zenon_syrius_wallet_flutter/utils/font_licences.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/functions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/motion_binding.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/window_chrome.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/window_frame.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// Optional development password supplied through the existing build define.
@@ -98,6 +100,7 @@ Future<void> main() async {
   });
 
   await windowManager.ensureInitialized();
+  await configureAppWindowChrome();
   await windowManager.setPreventClose(true);
 
   web3WalletService = Web3WalletService();
@@ -437,7 +440,9 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
                                           // theme during their migration.
                                           // ignore: deprecated_member_use
                                           MaterialUiCompatibilityBridge(
-                                            child: child!,
+                                            child: AppWindowFrame(
+                                              child: child!,
+                                            ),
                                           ),
                                   locale: localeNotifier.locale,
                                   localeListResolutionCallback:

@@ -91,6 +91,7 @@ class ImportSurface extends StatelessWidget {
                 SegmentItem<int>(
                   value: count,
                   label: context.l10n.seedChoiceWordsLabel(count),
+                  labelStyle: tokens.compactText,
                 ),
             ],
             selected: draft.expectedWords,
@@ -99,6 +100,12 @@ class ImportSurface extends StatelessWidget {
           PrimaryPill(
             key: const Key('import_continue'),
             onPressed: onContinue,
+            style: ButtonStyle(
+              visualDensity: VisualDensity.standard,
+              padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(
+                tokens.importContinuePadding,
+              ),
+            ),
             child: Text(context.l10n.continueText),
           ),
         ],
@@ -108,51 +115,72 @@ class ImportSurface extends StatelessWidget {
         spacing: tokens.entryGap,
         children: <Widget>[
           wrapDrop?.call(drop) ?? drop,
-          Container(
-            constraints: BoxConstraints(minHeight: tokens.importSeedMinHeight),
-            padding: tokens.transferFieldPadding,
-            decoration: BoxDecoration(
-              color: tokens.card2,
-              border: Border.all(color: tokens.line),
-              borderRadius: BorderRadius.circular(tokens.cardRadius),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                Semantics(
-                  label: context.l10n.importSeedOrFile,
-                  child: TextField(
-                    key: const Key('import_seed_field'),
-                    controller: seedController,
-                    maxLines: null,
-                    autocorrect: false,
-                    enableSuggestions: false,
-                    textDirection: TextDirection.ltr,
-                    style: tokens.dataText,
-                    inputFormatters: <TextInputFormatter>[
-                      LengthLimitingTextInputFormatter(512),
+          Focus(
+            canRequestFocus: false,
+            skipTraversal: true,
+            includeSemantics: false,
+            child: Builder(
+              builder: (BuildContext context) {
+                final bool focused = Focus.of(context).hasFocus;
+                return Container(
+                  key: const Key('import_seed_panel'),
+                  constraints: BoxConstraints(
+                    minHeight: tokens.importSeedMinHeight,
+                  ),
+                  padding: tokens.transferFieldPadding,
+                  decoration: BoxDecoration(
+                    color: tokens.card2,
+                    border: Border.all(
+                      color: focused ? tokens.faint : tokens.line,
+                    ),
+                    borderRadius: BorderRadius.circular(tokens.cardRadius),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      Semantics(
+                        label: context.l10n.importSeedOrFile,
+                        child: TextField(
+                          key: const Key('import_seed_field'),
+                          controller: seedController,
+                          maxLines: null,
+                          autocorrect: false,
+                          enableSuggestions: false,
+                          textDirection: TextDirection.ltr,
+                          style: tokens.dataText,
+                          inputFormatters: <TextInputFormatter>[
+                            LengthLimitingTextInputFormatter(512),
+                          ],
+                          decoration: const InputDecoration(
+                            isDense: true,
+                            filled: false,
+                            border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            disabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            errorBorder: InputBorder.none,
+                            focusedErrorBorder: InputBorder.none,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          onChanged: onSeedChanged,
+                        ),
+                      ),
+                      Align(
+                        alignment: AlignmentDirectional.centerEnd,
+                        child: Text(
+                          context.l10n.importWordCount(
+                            draft.words.length,
+                            draft.expectedWords,
+                          ),
+                          style: tokens.entryFooterText.copyWith(
+                            fontFamily: tokens.monoFontFamily,
+                          ),
+                        ),
+                      ),
                     ],
-                    decoration: const InputDecoration(
-                      isDense: true,
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                    onChanged: onSeedChanged,
                   ),
-                ),
-                Align(
-                  alignment: AlignmentDirectional.centerEnd,
-                  child: Text(
-                    context.l10n.importWordCount(
-                      draft.words.length,
-                      draft.expectedWords,
-                    ),
-                    style: tokens.entryFooterText.copyWith(
-                      fontFamily: tokens.monoFontFamily,
-                    ),
-                  ),
-                ),
-              ],
+                );
+              },
             ),
           ),
           if (draft.words.length == draft.expectedWords && !draft.valid)
@@ -171,6 +199,7 @@ class ImportSurface extends StatelessWidget {
     child: InkWell(
       key: const Key('import_file_zone'),
       borderRadius: BorderRadius.circular(tokens.dialogRadius),
+      hoverColor: Colors.transparent,
       onTap: onBrowse,
       mouseCursor: SystemMouseCursors.click,
       child: DottedBorder(

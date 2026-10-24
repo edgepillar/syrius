@@ -1865,6 +1865,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get commonClose => 'Close';
 
   @override
+  String get windowMinimize => 'Minimize';
+
+  @override
+  String get windowMaximize => 'Maximize';
+
+  @override
+  String get windowRestore => 'Restore';
+
+  @override
   String get commonDismiss => 'Dismiss';
 
   @override

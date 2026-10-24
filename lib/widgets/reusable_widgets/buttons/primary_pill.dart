@@ -33,7 +33,8 @@ class PrimaryPill extends StatelessWidget {
   final SheenController? sheen;
 
   /// Merged over the theme's pill. It must keep the stadium shape and the
-  /// shrink-wrapped tap target, which the sheen's clip relies on.
+  /// shrink-wrapped tap target, which the sheen's clip relies on. Explicit
+  /// density overrides remain owned by the caller.
   final ButtonStyle? style;
 
   @override
@@ -43,6 +44,7 @@ class PrimaryPill extends StatelessWidget {
     final ButtonStyle pillStyle = (style ?? const ButtonStyle())
         .merge(
           ButtonStyle(
+            visualDensity: VisualDensity.standard,
             minimumSize: WidgetStatePropertyAll<Size>(
               Size(0, tokens.buttonHeight),
             ),

@@ -400,7 +400,23 @@ class _ReceivePopulatedState extends State<ReceivePopulated>
             onPressed: _selectedAddress == null || _copying
                 ? null
                 : () => unawaited(_copyAddress()),
-            icon: const Icon(Icons.copy_rounded),
+            style: OutlinedButton.styleFrom(
+              visualDensity: VisualDensity.standard,
+              minimumSize: Size(
+                0,
+                centered ? tokens.buttonHeight : tokens.compactButtonHeight,
+              ),
+              padding: centered
+                  ? tokens.heroActionPadding
+                  : tokens.homeSideButtonPadding,
+              textStyle: centered
+                  ? tokens.buttonText
+                  : tokens.compactText.copyWith(fontWeight: FontWeight.w500),
+            ),
+            icon: Icon(
+              Icons.copy_rounded,
+              size: centered ? tokens.heroIconSize : tokens.heroCopyIconSize,
+            ),
             child: Text(context.l10n.receiveCopyAddress),
           ),
           OutlinedButton.icon(
@@ -410,13 +426,25 @@ class _ReceivePopulatedState extends State<ReceivePopulated>
               backgroundColor: tokens.card2,
               side: BorderSide(color: tokens.line),
               shape: const StadiumBorder(),
-              minimumSize: Size(0, tokens.buttonHeight),
-              textStyle: tokens.buttonText,
+              visualDensity: VisualDensity.standard,
+              minimumSize: Size(
+                0,
+                centered ? tokens.buttonHeight : tokens.compactButtonHeight,
+              ),
+              padding: centered
+                  ? tokens.heroActionPadding
+                  : tokens.homeSideButtonPadding,
+              textStyle: centered
+                  ? tokens.buttonText
+                  : tokens.compactText.copyWith(fontWeight: FontWeight.w500),
             ),
             onPressed: _selectedAddress == null
                 ? null
                 : () => _setShowQr(!_showQr),
-            icon: const Icon(Icons.qr_code_rounded),
+            icon: Icon(
+              Icons.qr_code_rounded,
+              size: centered ? tokens.heroIconSize : tokens.heroCopyIconSize,
+            ),
             label: Text(
               _showQr ? context.l10n.receiveHideQr : context.l10n.receiveShowQr,
             ),

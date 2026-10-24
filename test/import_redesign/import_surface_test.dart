@@ -1,9 +1,15 @@
+import 'dart:ui' as ui;
+
+import 'package:dotted_border/dotted_border.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/hero_field.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/segment.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/import_wallet/import_draft.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/import_wallet/import_surface.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
 
 import 'support.dart';
@@ -23,19 +29,59 @@ ImportSurface _surface(
   bool pickerFailed = false,
   VoidCallback? onContinue,
   VoidCallback? onBrowse,
+  ValueChanged<String>? onSeedChanged,
+  ValueChanged<int>? onWordCountChanged,
 }) => ImportSurface(
   seedController: controller,
   draft: _draft(controller.text),
   fileSelected: file,
   fileRefused: refused,
   pickerFailed: pickerFailed,
-  onSeedChanged: (_) {},
-  onWordCountChanged: (_) {},
+  onSeedChanged: onSeedChanged ?? (_) {},
+  onWordCountChanged: onWordCountChanged ?? (_) {},
   onBack: () {},
   onContinue: onContinue,
   onBrowse: onBrowse ?? () {},
   background: const SizedBox.expand(),
 );
+
+const Key _paintBoundary = Key('import_paint_boundary');
+
+Widget _compactEntry(Widget child, {required bool light}) => entryHost(
+  Theme(
+    data: (light ? AppTheme.lightTheme : AppTheme.darkTheme).copyWith(
+      visualDensity: VisualDensity.compact,
+    ),
+    child: child,
+  ),
+  light: light,
+);
+
+Future<Color> _paintedColor(
+  WidgetTester tester,
+  Offset global,
+) async {
+  final RenderRepaintBoundary layer = tester
+      .renderObject<RenderRepaintBoundary>(find.byKey(_paintBoundary));
+  final Offset local = layer.globalToLocal(global);
+  final Color? color = await tester.runAsync<Color>(() async {
+    final ui.Image image = await layer.toImage();
+    try {
+      final ByteData pixels = (await image.toByteData())!;
+      final int offset =
+          (local.dy.floor() * image.width + local.dx.floor()) * 4;
+      return Color.fromARGB(
+        pixels.getUint8(offset + 3),
+        pixels.getUint8(offset),
+        pixels.getUint8(offset + 1),
+        pixels.getUint8(offset + 2),
+      );
+    } finally {
+      image.dispose();
+    }
+  });
+  return color!;
+}
 
 void main() {
   for (final bool light in <bool>[false, true]) {
@@ -68,6 +114,172 @@ void main() {
         );
         expect(tester.takeException(), isNull);
       },
+    );
+
+    testWidgets(
+      'the ${light ? 'light' : 'dark'} import footer keeps reference measures',
+      (WidgetTester tester) async {
+        prepareEntryViewport(tester);
+        final TextEditingController controller = TextEditingController();
+        disposeEntryControllers(tester, <TextEditingController>[controller]);
+        int continues = 0;
+        await tester.pumpWidget(
+          _compactEntry(
+            _surface(
+              controller,
+              file: true,
+              onContinue: () => continues++,
+            ),
+            light: light,
+          ),
+        );
+        await tester.pump(const Duration(milliseconds: 401));
+        final Finder action = find.byKey(const Key('import_continue'));
+        final Finder label = find.descendant(
+          of: action,
+          matching: find.text('Continue'),
+        );
+        expect(tester.getSize(action).height, 38);
+        expect(
+          tester.getSize(action).width,
+          closeTo(tester.getSize(label).width + 32, 0.01),
+        );
+        final Finder words12 = find.text('12 words');
+        final Finder words24 = find.text('24 words');
+        for (final Finder choice in <Finder>[words12, words24]) {
+          final TextStyle style = tester.widget<Text>(choice).style!;
+          expect(style.fontSize, 13);
+          expect(style.fontWeight, FontWeight.w400);
+        }
+        // Two 14px label insets per choice, plus the track's 1px + 3px.
+        final double segmentWidth =
+            tester.getSize(words12).width + tester.getSize(words24).width + 64;
+        expect(
+          tester.getSize(find.byType(Segment<int>)).width,
+          closeTo(segmentWidth, 0.01),
+        );
+        await tester.tap(action);
+        expect(continues, 1);
+        expect(tester.takeException(), isNull);
+      },
+      timeout: const Timeout(Duration(seconds: 30)),
+    );
+
+    testWidgets(
+      'the ${light ? 'light' : 'dark'} seed uses one stable focus boundary',
+      (WidgetTester tester) async {
+        prepareEntryViewport(tester);
+        final TextEditingController controller = TextEditingController();
+        disposeEntryControllers(tester, <TextEditingController>[controller]);
+        final List<String> edits = <String>[];
+        final List<int> choices = <int>[];
+        await tester.pumpWidget(
+          entryHost(
+            _surface(
+              controller,
+              onSeedChanged: edits.add,
+              onWordCountChanged: choices.add,
+            ),
+            light: light,
+          ),
+        );
+        final AppTokens tokens = light ? AppTokens.light : AppTokens.dark;
+        final Finder panel = find.byKey(const Key('import_seed_panel'));
+        final Finder field = find.byKey(const Key('import_seed_field'));
+        BorderSide outline() =>
+            (tester.widget<Container>(panel).decoration! as BoxDecoration)
+                .border!
+                .top;
+        final Rect before = tester.getRect(panel);
+        expect(before.height, 72);
+        expect(outline().color, tokens.line);
+        await tester.tap(field);
+        await tester.pump();
+        expect(tester.getRect(panel), before);
+        expect(outline().color, tokens.faint);
+        expect(outline().width, 1);
+        final InputDecoration decoration = tester
+            .widget<InputDecorator>(
+              find.descendant(of: field, matching: find.byType(InputDecorator)),
+            )
+            .decoration;
+        expect(decoration.filled, isFalse);
+        for (final InputBorder? border in <InputBorder?>[
+          decoration.border,
+          decoration.enabledBorder,
+          decoration.disabledBorder,
+          decoration.focusedBorder,
+          decoration.errorBorder,
+          decoration.focusedErrorBorder,
+        ]) {
+          expect(border, InputBorder.none);
+        }
+        await tester.enterText(field, ' fixture  words ');
+        expect(edits, <String>[' fixture  words ']);
+        await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+        await tester.pump();
+        expect(
+          Focus.of(
+            tester.element(find.byKey(Segment.keyOf('import_words', 12))),
+          ).hasPrimaryFocus,
+          isTrue,
+        );
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+        await tester.pump();
+        expect(choices, <int>[24]);
+        expect(outline().color, tokens.line);
+        expect(tester.getRect(panel), before);
+        expect(tester.takeException(), isNull);
+      },
+      timeout: const Timeout(Duration(seconds: 30)),
+    );
+
+    testWidgets(
+      'the ${light ? 'light' : 'dark'} drop keeps its fill under pointer hover',
+      (WidgetTester tester) async {
+        prepareEntryViewport(tester);
+        final TextEditingController controller = TextEditingController();
+        disposeEntryControllers(tester, <TextEditingController>[controller]);
+        int browses = 0;
+        await tester.pumpWidget(
+          entryHost(
+            RepaintBoundary(
+              key: _paintBoundary,
+              child: _surface(controller, onBrowse: () => browses++),
+            ),
+            light: light,
+          ),
+        );
+        await tester.pump(const Duration(milliseconds: 401));
+        final AppTokens tokens = light ? AppTokens.light : AppTokens.dark;
+        final Finder zone = find.byKey(const Key('import_file_zone'));
+        final Offset sample = tester.getTopLeft(zone) + const Offset(30, 30);
+        expect(await _paintedColor(tester, sample), tokens.card2);
+        final TestGesture pointer = await tester.createGesture(
+          kind: ui.PointerDeviceKind.mouse,
+        );
+        addTearDown(pointer.removePointer);
+        await pointer.addPointer(location: sample);
+        await tester.pump(const Duration(milliseconds: 201));
+        expect(await _paintedColor(tester, sample), tokens.card2);
+        expect(browses, 0);
+        final Finder dashed = find.descendant(
+          of: zone,
+          matching: find.byType(DottedBorder),
+        );
+        expect(
+          find.descendant(of: dashed, matching: find.byType(CustomPaint)),
+          paints..path(
+            color: tokens.faint,
+            strokeWidth: 1.5,
+            style: PaintingStyle.stroke,
+          ),
+        );
+        await tester.tap(zone);
+        expect(browses, 1);
+        expect(tester.takeException(), isNull);
+      },
+      timeout: const Timeout(Duration(seconds: 30)),
     );
   }
 

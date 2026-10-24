@@ -147,6 +147,7 @@ class _HomeHeroSecondaryPill extends StatelessWidget {
       label: Text(label),
       style:
           OutlinedButton.styleFrom(
+            visualDensity: VisualDensity.standard,
             minimumSize: Size(0, tokens.buttonHeight),
             padding: tokens.heroActionPadding,
             foregroundColor: tokens.foreground,

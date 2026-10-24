@@ -86,10 +86,20 @@ void main() {
     AppLottie.debugClear();
   });
 
-  Widget host({bool light = false}) => MaterialApp(
-    theme: light ? AppTheme.lightTheme : AppTheme.darkTheme,
+  Widget host({
+    ThemeData? theme,
+    bool light = false,
+    double textScale = 1,
+  }) => MaterialApp(
+    theme: theme ?? (light ? AppTheme.lightTheme : AppTheme.darkTheme),
     localizationsDelegates: appLocalizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
+    builder: (BuildContext context, Widget? child) => MediaQuery(
+      data: MediaQuery.of(context).copyWith(
+        textScaler: TextScaler.linear(textScale),
+      ),
+      child: child!,
+    ),
     home: BlocProvider<StakesBloc>.value(
       value: stakes,
       child: const Scaffold(
@@ -104,6 +114,7 @@ void main() {
   Future<void> show(
     WidgetTester tester,
     List<StakeEntry> entries, {
+    ThemeData? theme,
     bool light = false,
   }) async {
     tester.view.physicalSize = const Size(1280, 780);
@@ -111,7 +122,7 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     whenListen(stakes, states.stream, initialState: _populated(entries));
-    await tester.pumpWidget(host(light: light));
+    await tester.pumpWidget(host(theme: theme, light: light));
   }
 
   for (final bool light in <bool>[false, true]) {
@@ -148,6 +159,99 @@ void main() {
               .data,
           '2',
         );
+        verifyNever(() => stakes.add(any()));
+        expect(tester.takeException(), isNull);
+        await tester.pumpWidget(const SizedBox.shrink());
+      },
+    );
+  }
+
+  for (final bool light in <bool>[false, true]) {
+    testWidgets(
+      'stake Cancel keeps 26 px and confirmation in compact density, $light',
+      (WidgetTester tester) async {
+        final ThemeData theme =
+            (light ? AppTheme.lightTheme : AppTheme.darkTheme).copyWith(
+              visualDensity: VisualDensity.compact,
+            );
+        await show(tester, <StakeEntry>[
+          _entry(1),
+          _entry(2, unlocked: true),
+        ], theme: theme);
+        await tester.pump(const Duration(milliseconds: 450));
+        final Finder locked = find.byKey(
+          ValueKey<String>('staking_cancel_locked_${_hash(1)}'),
+        );
+        final Finder unlocked = find.descendant(
+          of: find.byKey(
+            ValueKey<String>('staking_withdraw_${_hash(2)}'),
+          ),
+          matching: find.byType(OutlinedButton),
+        );
+        expect(unlocked, findsOneWidget);
+        final CancelStakeBloc originalCancellation = tester
+            .element(unlocked)
+            .read<CancelStakeBloc>();
+        expect(
+          Theme.of(tester.element(locked)).visualDensity,
+          VisualDensity.compact,
+        );
+        expect(tester.getSize(locked).height, 26);
+        expect(tester.getSize(unlocked).height, 26);
+        expect(tester.widget<OutlinedButton>(locked).onPressed, isNull);
+        expect(tester.widget<OutlinedButton>(unlocked).onPressed, isNotNull);
+        await tester.tap(locked);
+        await tester.pump();
+        expect(find.byKey(const Key('dialog_no_button')), findsNothing);
+
+        await tester.tap(unlocked);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 240));
+        expect(find.byKey(const Key('dialog_no_button')), findsOneWidget);
+        await tester.tap(find.byKey(const Key('dialog_no_button')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 240));
+        expect(find.byKey(const Key('dialog_no_button')), findsNothing);
+        expect(tester.widget<OutlinedButton>(unlocked).onPressed, isNotNull);
+        expect(tester.getSize(unlocked).height, 26);
+        verifyNever(() => app.zenon!.embedded);
+        verifyNever(() => stakes.add(any()));
+
+        await tester.pumpWidget(host(theme: theme, textScale: 1.75));
+        await tester.pump();
+        expect(tester.getSize(locked).height, greaterThan(26));
+        expect(tester.getSize(unlocked).height, greaterThan(26));
+        expect(
+          tester.element(unlocked).read<CancelStakeBloc>(),
+          same(originalCancellation),
+        );
+        final Finder actionCell = find.ancestor(
+          of: unlocked,
+          matching: find.byType(InfiniteScrollTableCell),
+        );
+        expect(actionCell, findsOneWidget);
+        final Rect cellBounds = tester.getRect(actionCell);
+        final Rect buttonBounds = tester.getRect(unlocked);
+        expect(buttonBounds.left, greaterThanOrEqualTo(cellBounds.left));
+        expect(buttonBounds.right, lessThanOrEqualTo(cellBounds.right));
+        expect(tester.widget<OutlinedButton>(locked).onPressed, isNull);
+        expect(tester.widget<OutlinedButton>(unlocked).onPressed, isNotNull);
+        expect(tester.takeException(), isNull);
+
+        await tester.tap(unlocked);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 240));
+        expect(find.text('Cancel the stake of 200 ZNN?'), findsOneWidget);
+        await tester.tap(find.byKey(const Key('dialog_no_button')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 240));
+        expect(find.byKey(const Key('dialog_no_button')), findsNothing);
+        expect(
+          tester.element(unlocked).read<CancelStakeBloc>(),
+          same(originalCancellation),
+        );
+        expect(tester.widget<OutlinedButton>(unlocked).onPressed, isNotNull);
+        verifyNever(() => app.zenon!.embedded);
         verifyNever(() => stakes.add(any()));
         expect(tester.takeException(), isNull);
         await tester.pumpWidget(const SizedBox.shrink());
