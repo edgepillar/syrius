@@ -1138,13 +1138,107 @@ the original refusal is retained separately.
 ### UI and style full-suite CI
 
 Fresh fork Fast run 40086450027 attempt 1 executes published head
-`6fae076f0e285bd387525b96ec95d2ca775f4cc4`. The later bounded read-only API
-observation reports job 120850271842 completed successfully, with all thirteen
-steps successful: controller tests, both analyses, unit/widget tests, generated
-correspondence and every post-step. Original complete-log transport and
-retention closure remain pending, so no new retained terminal counts are
-asserted here. This result keeps its UI/style source scope and does not qualify
-the later token or caption candidates.
+`6fae076f0e285bd387525b96ec95d2ca775f4cc4`. Job 120850271842 completes all
+thirteen steps successfully, including every post-step. Its complete retained
+log qualifies all 189 Python methods and 4327 unit/widget successes with the
+exact one existing receive-block skip. The terminal test count matches 4327
+individual success records; no hidden-count claim is made. Root analysis has
+zero errors, zero warnings and 1296 infos, vendored analysis has zero
+diagnostics, and generated correspondence passes.
+
+Original transport exit zero and complete 1113092-byte stdout, SHA-256
+`8ed2d45548ee0108691fde73a72871882a97bd0e1dad2c1d28ee4cefe41d1d45`,
+empty stderr, source/run/attempt and before/after API metadata are replayed.
+Independent verification establishes genuine CLOSED/SUCCESS with owned CLEANED
+scratch, original command and CAS ownership, free task/artifact leases and an
+absent original process group. This result keeps its UI/style source scope and
+does not qualify the later token or caption candidates.
+
+### Caption observation qualification
+
+After normal token publication through anonymous `9392878d07da`, the separate
+five-file caption observer is applied with 29 raw input pins. The first fresh
+six-gate attempt reports six informational diagnostics in the new observer and
+one error in the real PointerUp fixture; fourteen other Dart cases plus one
+loader pass. Formatting, all 202 Python controller methods, root analysis with
+zero errors, zero warnings and 1302 infos, and whitespace checks pass. The
+original command exits one with complete 258825-byte stdout, SHA-256
+`742cee900e61a9c2d354fa8c1d07a1c3406ebad8dfb7b17a49e191f1399c35a6`,
+and empty stderr. Independent replay verifies all 29 raw inputs, stage and CAS
+streams, genuine CLOSED/FAILURE, matching outcome and HOLD cleanup, a free
+original lease and absent original group. This is a preserved failed attempt.
+
+A reviewed two-file diagnostic correction retains the public constructor API
+through an initializing-formal private target, keeps the original assigned
+Futures in non-null late fields, and checks the captured original pointer
+failure before the release assertion. Every existing pointer, completion and
+teardown assertion remains. The original failure stack and release-callback
+entry are also retained. The first isolated case genuinely closes
+CLOSED/FAILURE/HOLD, retaining original exit one, complete 8105-byte stdout,
+SHA-256 `33ed8c0cf70fdfd73434a5dc7d294439fd9cf15e6925a35ed7e300b58881436a`,
+empty stderr, one visible error and one successful loader. Independent replay
+verifies original command/CAS, source equality, closure/outcome/cleanup, free
+lease and absent original group. It exposes Flutter's guarded `expect` being
+called from a pointer callback while `tester.pump` is active.
+
+Both original callbacks now use SDK-supported `expectSync`, with identical
+actual values and Boolean matchers. The corrected single case passes against
+29 raw pins under a 256 MiB expected allocation and task cap. Original exit
+zero and complete 1406-byte stdout, SHA-256
+`f626a9b6c15f19d0b83f1a2dab7e1008d38e2205f0eee8e02d92430c3d40cdb6`,
+empty stderr, one visible success and one successful loader are independently
+replayed. Genuine CLOSED/SUCCESS, matching outcome and HOLD cleanup, a free
+original lease, absent original process group and unchanged source are
+verified. This narrow run performs no formatting or Python202, root-analysis
+or all-fifteen repeat.
+
+The second full six-gate attempt passes all 15 Dart cases plus one loader,
+all 202 Python methods, formatting, root analysis and whitespace checks.
+Strict analysis rejects two diagnostic strings over 80 characters; root
+analysis has zero errors, zero warnings and 1298 infos. Original exit one,
+complete 255131-byte stdout, SHA-256
+`0ff32dc3ed7327f8a5192a99bbdcec95b5cd23d735a24abf9fbb6facdbe8ffdc`,
+empty stderr, all six stage frames, genuine CLOSED/FAILURE, matching outcome
+and HOLD cleanup, free lease, absent original group and all 29 raw pins are
+independently replayed. Only those diagnostics change afterward: the same
+conditional cause moves outside interpolation and the same release message
+uses adjacent string literals. Every actual matcher and original operation
+remains. The next admission is refused before any task or SDK command is
+created. Its original result remains UNKNOWN, with no exit, complete output
+or closure claimed. The original producer does not retain the refusal text.
+A separate read-only calculation identifies only the current shared-scratch
+condition as failing. Metadata, task count, free space and reservation
+conditions pass in that observation. The user subsequently approves increasing
+only shared scratch from 10 GiB to 12 GiB. Original policy bytes are preserved;
+the exact one-field atomic change is verified by readback under the original
+metadata lock after all task leases are exclusively available and original open
+process groups are absent. The 10 GiB free-space floor and every other quota
+remain unchanged. No historical data is cleaned. Operational capacity details
+remain private.
+The original UNKNOWN remains preserved, and the current calculation is not
+presented as the lost original refusal message.
+
+The corrected full six-gate qualification passes at anonymous code commit
+`96f08a6c888da9a3b00e9c412ff5bf68ef17f318`. All 202 Python methods and 15 Dart
+cases plus one loader pass without skips or errors. Strict analysis of all three
+Dart paths has zero diagnostics; root analysis has zero errors, zero warnings
+and 1296 infos. Formatting and whitespace checks pass. Original exit zero,
+complete 254357-byte stdout, SHA-256
+`16f515b62b28197c8c9bafc2d377525c6b41d8257946b11a9e099e7fcfc4494d`,
+empty stderr, all six stage frames and 29 post-format raw inputs are replayed
+independently against original command and CAS records. Genuine CLOSED/SUCCESS,
+matching outcome and HOLD cleanup, a free original lease and absent original
+process group are verified. All earlier negative and UNKNOWN outcomes remain
+unchanged. Analyzer scratch remains HOLD without cleanup. Native acceptance
+and a measured peak remain unproven.
+
+The observer retains the original controls and Futures for maximize, caption
+restore, minimize and ordinary native restore under one finite budget.
+Minimized observation requires no painted frame. The original eighteen native
+checks and four caption checks still need fresh hosted execution, original
+complete output and independent genuine retention-closure verification. The
+512 MiB expected allocation and task cap are not a measured peak. The approved
+12 GiB shared limit preserves the 10 GiB floor and all other quotas.
 
 ### Target CI observation refresh
 
@@ -1157,4 +1251,11 @@ zero-job approval-gate observations remain historical records.
 This refresh dispatches no workflow or retry and qualifies no artifact.
 Original complete logs, source/run/platform correspondence and independent
 retention verification remain pending. These results cover the published
-repair head; the current uncommitted UI candidate is outside their scope.
+repair head; the later uncommitted caption candidate is outside their scope.
+
+At 11:45Z, one bounded read-only API observation of published token head
+`9392878d07da8bf04f42dd3e4f22b0f122b9ffbb` reports target attempt 1 Fast
+40088055089, blockchain 40088055078 and builder 40088055082 completed with
+`action_required`. This is an approval gate, with no test verdict or job-count
+claim. The observation performs no workflow dispatch, retry or artifact
+qualification and does not qualify the uncommitted caption source.
