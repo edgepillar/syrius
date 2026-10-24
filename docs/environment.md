@@ -1506,3 +1506,52 @@ the full fresh-agent comparison; 90 actual captures and all 94 visual matches
 remain pending. Reporter totals and individual rendered success lines are
 also reconciled separately above. Original logs and earlier receipts remain
 preserved; no new execution is inferred from that reconciliation.
+
+
+### Original Transfer context for devnet Send
+
+At `193f3ad437ebbff6bec12efeee17b411c49aabf8`, devnet job 120938832837 in
+40116523103 attempt 1 reports five passing scenarios: Pillar, Sentinel,
+stake, token issuance and Plasma fusion. Send then fails because its actual
+confirmation control is absent. The complete 346783-byte original log has
+SHA-256
+`5f1b5fc5a37ceb83ba8c3022898d6539a1443db6831d76dbb723e5d980564311`.
+The source/run/job binding, all eighteen terminal step outcomes, original
+exit zero, complete streams, owned CAS, genuine CLOSED/SUCCESS/CLEANED,
+free leases and absent original group are independently verified. The
+retention was initially provisional while API step metadata lagged; that
+metadata is now reconciled from the retained original evidence. No transport
+is repeated. The earlier batch refusal retains its pre-task STEPS_REFUSED
+outcome with no task or download. Fast 40116467804 and earlier 40112488091
+are observed successful with all thirteen steps; original Fast log retention
+remains queued.
+
+Source review finds that the fixture installs Dashboard while the real
+Send session requires Transfer. Anonymous
+`b2b25f1bd9ccb01aba5627de8b0791760c1018e0` selects Transfer only through the
+original verified in-memory devnet binding. It retains SDK/socket, wallet,
+path, node, chain-69, membership, idle-wallet and transition checks. Selection
+invalidates the context once, is idempotent while already on Transfer, and
+the existing teardown restores the previous page. Production session
+admission remains unchanged. The original sender, one submit and acceptance,
+subscription, completion Future and on-chain assertions remain intact.
+
+The real Send widget regression refuses the Dashboard context, opens the
+actual confirmation after Transfer selection and cancels it without signer
+acquisition or RPC. Ownership/page restoration and changed-node refusal also
+pass. All six fresh gates pass: 205 Python methods, 84 Dart cases plus seven
+hidden successes, zero strict diagnostics across all three changed files,
+root zero errors and warnings with 1295 infos, formatting and whitespace
+checks. Original exit zero, complete 290032-byte stdout, SHA-256
+`447e647d28b7f9b09508f3eaad4b7a88abcf7b984ca69a5a13561bb4eb8fe98d`,
+empty stderr, all stage ranges/summaries, all 60 raw inputs, original
+command/CAS, genuine CLOSED/SUCCESS, a free lease and absent original group
+are independently verified. Analyzer scratch remains HOLD; 512 MiB is a cap,
+not a measured peak. The first attempt preserves CLOSED/FAILURE/HOLD for one
+unnecessary import, while all 84 cases already passed. That import is removed
+before this fresh complete qualification.
+
+Fresh hosted Send behavior remains pending. Native entry/caption runtime
+inputs and baseline application/platform/dependency inputs remain unchanged,
+with their exact earlier scopes retained. No real-wallet or production
+acceptance is established, and all 94 visual matches remain pending.
