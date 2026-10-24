@@ -1392,3 +1392,57 @@ At 11:45Z, one bounded read-only API observation of published token head
 `action_required`. This is an approval gate, with no test verdict or job-count
 claim. The observation performs no workflow dispatch, retry or artifact
 qualification and does not qualify the uncommitted caption source.
+
+### Caption layout and Send confirmation follow-up
+
+At `4c7213663d5359486efd49aba90ba803ce5f93e6`, Fast 40107940859 attempt 1
+passes all thirteen job steps, 205 Python methods, generation correspondence
+and zero-diagnostic vendored analysis. Its terminal reports 4351 successes and
+one exact existing receive-block skip; the retained reporter separately has
+4321 individual success lines. Root analysis has zero errors, zero warnings
+and 1296 infos. The complete 1117641-byte log has SHA-256
+`56ed03ed6401d84c6d1b9eabfd236f0476b9b6f2d64f6f1d766cb5bc5cf2102d`.
+
+Scoped 40108000278 attempt 1 passes original tree binding and native maximize,
+then refuses `caption_restore` with the fixed `CAPTION_CONTROL_REFUSED` code.
+The four captures remain valid; complete native restoration is unqualified.
+Original exit zero and complete output are observed. The complete 48049-byte
+entry log has SHA-256
+`c59da1f588014c1872c6e15b36b4101656477861197114ca47a11dd7bad210c2`.
+The 561580-byte archive has SHA-256
+`ca31dece5bdf324b76329c95091466fb856ca17c1300b2a0aad0fe4269a1b72e`.
+Its negative contract, original command, archive members, individual PNG CAS
+and genuine CLOSED/SUCCESS/CLEANED retention are independently verified.
+
+Devnet job 120913607514 completes five scenarios: Pillar registration,
+Sentinel registration, stake creation, token issuance and Plasma fusion.
+The Send scenario then fails at its former `dialog_yes_button`, before
+acceptance. Its complete 367640-byte log has SHA-256
+`590136de168ac0ba301a1eba8bb57ad877f472bb31963ee56249126d32f2c560`.
+All three logs have independently verified complete original transport,
+source/run/job metadata, owned CAS, genuine CLOSED/SUCCESS/CLEANED retention,
+free leases and absent original groups. These chain-69 results qualify
+neither the separate chain-321 lab nor real-wallet acceptance.
+
+Anonymous `ee3c9f2cb469856ecf52f617bbf38e98184d0b2c` waits for the visible
+caption layout before choosing its pointer target, retaining the exact
+original control and checking admission before and after the wait. A queued
+resize regression places the previous caption outside the new view and
+requires genuine pointer delivery with immediate pending observation. No
+paint is awaited after minimize. The Send fixture uses the actual redesigned
+confirmation key, preserving the original subscription, one acceptance tap,
+original completion Future and on-chain assertions.
+
+All six fresh local gates pass: 205 Python methods, 39 Dart cases plus five
+loaders, zero strict diagnostics across all three changed paths, root zero
+errors and warnings with 1295 infos, formatting and whitespace checks.
+Original exit zero, complete 263438-byte stdout, SHA-256
+`4a44d09073d521469313ecccd1335a264ee23dec9da282721c87a535be01e70f`,
+empty stderr, all stage ranges and summaries, all 36 raw source pins, original
+command/CAS and genuine CLOSED/SUCCESS are independently verified. The lease
+is free and the original group absent. Analyzer scratch remains HOLD; the
+512 MiB cap is not a measured peak. The first strict-analysis failure retains
+its genuine CLOSED/FAILURE/HOLD outcome and complete output. Its 39 Dart and
+205 Python cases passed; only three style diagnostics failed, then were
+repaired. No historical cleanup is claimed. Fresh hosted caption and Send
+results for this follow-up remain pending.
