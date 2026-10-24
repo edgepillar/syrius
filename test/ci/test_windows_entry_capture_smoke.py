@@ -254,6 +254,43 @@ class ControllerTests(unittest.TestCase):
         return [command for command, _, _ in self.host.calls
                 if name is None or command["cmd"] == name]
 
+    def test_caption_bind_retains_fixed_first_refusal_without_replaying_actions(self):
+        for code in sorted(smoke.CAPTION_REFUSALS):
+            with self.subTest(code=code):
+                self.setUp()
+                self.host.hook = lambda command, token: reply({
+                    "ok": False, "error": code, "stack": TOKEN,
+                }, 400) if command["cmd"] == "entry-caption" else None
+                result = self.run_smoke()
+                self.assertEqual(result["first_command_failure"], {
+                    "phase": "caption_bind", "code": code, "http_status": 400,
+                    "category": "REMOTE_ERROR", "resize": None})
+                self.assertEqual(self.commands("entry-caption"), [
+                    {"cmd": "entry-caption", "do": "bind"}])
+                self.assertFalse(result["success"])
+                self.assertFalse(result["checks"]["window_restored"])
+                self.assertEqual(result["exit_code"], 0)
+                self.assertNotIn(TOKEN, json.dumps(result))
+
+    def test_unknown_caption_errors_cannot_enter_public_failure_codes(self):
+        for error in (TOKEN, {"private": TOKEN}, [TOKEN], None):
+            with self.subTest(error=error):
+                self.setUp()
+                self.host.hook = lambda command, token: reply({
+                    "ok": False, "error": error, "stack": TOKEN,
+                }, 400) if command["cmd"] == "entry-caption" else None
+                result = self.run_smoke()
+                self.assertEqual(result["first_command_failure"]["code"], "COMMAND_FAILED")
+                self.assertNotIn(TOKEN, json.dumps(result))
+
+    def test_caption_refusal_code_is_not_accepted_outside_caption_phases(self):
+        self.host.hook = lambda command, token: reply({
+            "ok": False, "error": "CAPTION_TREE_REFUSED",
+        }, 400) if command["cmd"] == "entry-capture" else None
+        result = self.run_smoke()
+        self.assertEqual(result["first_command_failure"]["phase"], "capture_welcome_dark")
+        self.assertEqual(result["first_command_failure"]["code"], "COMMAND_FAILED")
+
     def test_four_actual_byte_artifacts_outer_restore_then_original_zero_exit(self):
         result = self.run_smoke()
         self.assertTrue(result["success"])

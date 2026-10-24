@@ -66,6 +66,30 @@ final class EntryCaptionObserver {
   @visibleForTesting
   Future<void>? get originalRestoreForTest => _restoreOriginal;
 
+  /// Only fixed refusal codes cross the harness boundary; originals stay held.
+  String get publicFailureCode {
+    const Map<String, String> codes = <String, String>{
+      'caption-baseline-refused': 'CAPTION_BASELINE_REFUSED',
+      'caption-control-changed': 'CAPTION_CONTROL_CHANGED',
+      'caption-control-refused': 'CAPTION_CONTROL_REFUSED',
+      'caption-entry-refused': 'CAPTION_ENTRY_REFUSED',
+      'caption-native-invalid': 'CAPTION_NATIVE_INVALID',
+      'caption-native-pending': 'CAPTION_NATIVE_PENDING',
+      'caption-original-changed': 'CAPTION_ORIGINAL_CHANGED',
+      'caption-pending': 'CAPTION_PENDING',
+      'caption-pending-unobserved': 'CAPTION_PENDING_UNOBSERVED',
+      'caption-replay-refused': 'CAPTION_REPLAY_REFUSED',
+      'caption-restore-refused': 'CAPTION_RESTORE_REFUSED',
+      'caption-timeout': 'CAPTION_TIMEOUT',
+      'caption-tree-refused': 'CAPTION_TREE_REFUSED',
+      'caption-unavailable': 'CAPTION_UNAVAILABLE',
+    };
+    final Object? original = _failure;
+    return original is CaptionRefused
+        ? codes[original.code] ?? 'CAPTION_HELD'
+        : 'CAPTION_HELD';
+  }
+
   /// Keep a private original failure permanently without granting recovery.
   void hold(Object original) {
     _failure ??= original;

@@ -43,12 +43,23 @@ CHECKS = (
     "entry_restored", "close_ack", "exit", "payload_stable",
 )
 CAPTION_CHECKS = ("maximized", "caption_restored", "minimized", "native_restored")
+CAPTION_REFUSALS = frozenset((
+    "CAPTION_BASELINE_REFUSED", "CAPTION_CONTROL_CHANGED", "CAPTION_CONTROL_REFUSED",
+    "CAPTION_ENTRY_REFUSED", "CAPTION_NATIVE_INVALID", "CAPTION_NATIVE_PENDING",
+    "CAPTION_ORIGINAL_CHANGED", "CAPTION_PENDING", "CAPTION_PENDING_UNOBSERVED",
+    "CAPTION_REPLAY_REFUSED", "CAPTION_RESTORE_REFUSED", "CAPTION_TIMEOUT",
+    "CAPTION_TREE_REFUSED", "CAPTION_UNAVAILABLE", "CAPTION_HELD",
+))
+CAPTION_PHASES = frozenset((
+    "caption_bind", "caption_maximize", "caption_restore", "caption_minimize",
+    "caption_observe", "caption_native_restore", "window_restore",
+))
 CODES = bounded.CODES | frozenset((
     "OUTPUT_REFUSED", "ARTIFACT_FAILED", "ENTRY_UNAVAILABLE", "ENTRY_HELD",
     "ENTRY_INVALID", "WINDOW_INVALID", "WINDOW_RESTORE_FAILED",
     "CAPTURE_INVALID", "PNG_INVALID", "RESTORATION_INVALID",
     "CAPTION_INVALID", "CAPTION_HELD", "CAPTION_TIMEOUT", "CAPTION_NATIVE_MISMATCH",
-))
+)) | CAPTION_REFUSALS
 LIMITS = bounded.Limits(total=150, ready=45, request=20,
                         response_bytes=MAX_BASE64 + 65536)
 CLEANUP_PHASES = frozenset(("window_restore", "entry_verify", "close"))
@@ -478,8 +489,13 @@ class EntrySmoke(bounded.PresentationSmoke):
         status, body = self._exchange_at(phase, command, allow_exit=allow_exit,
                                          until=until, poll_refused=poll_refused)
         if status != 200 or body["ok"] is not True:
-            self._retain_failure("COMMAND_FAILED", category="REMOTE_ERROR", body=body)
-            raise Failure("COMMAND_FAILED")
+            # Retain the first finite refusal instead of collapsing every bind
+            # failure. Never echo arbitrary remote errors, paths or stacks.
+            remote = body.get("error")
+            code = (remote if phase in CAPTION_PHASES and type(remote) is str
+                    and remote in CAPTION_REFUSALS else "COMMAND_FAILED")
+            self._retain_failure(code, category="REMOTE_ERROR", body=body)
+            raise Failure(code)
         return body
 
     def _entry(self, body, *, count):

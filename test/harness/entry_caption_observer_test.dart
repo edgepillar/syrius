@@ -221,6 +221,31 @@ void main() {
     );
   });
 
+  test(
+    'public refusal retains the first finite cause without native reads',
+    () {
+      final EntryCaptionObserver original = observer()
+        ..hold(const CaptionRefused('caption-tree-refused'))
+        ..hold(StateError('private-native-diagnostic'));
+      expect(original.publicFailureCode, 'CAPTION_TREE_REFUSED');
+      expect(native.calls, isEmpty);
+    },
+  );
+
+  test(
+    'public refusal never exposes private or unrecognized original errors',
+    () {
+      for (final Object failure in <Object>[
+        StateError('private-native-diagnostic'),
+        const CaptionRefused('private-native-diagnostic'),
+      ]) {
+        final EntryCaptionObserver original = observer()..hold(failure);
+        expect(original.publicFailureCode, 'CAPTION_HELD');
+      }
+      expect(native.calls, isEmpty);
+    },
+  );
+
   testWidgets('synthetic four observations retain the original frame owner', (
     WidgetTester tester,
   ) async {

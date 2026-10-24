@@ -896,7 +896,7 @@ class HarnessAgent {
       return await original.tap(action! as String);
     } on Object catch (error) {
       _entryCaption?.hold(error);
-      throw HarnessError('caption-refused');
+      throw HarnessError(_entryCaption?.publicFailureCode ?? 'CAPTION_HELD');
     }
   }
 
@@ -2702,7 +2702,7 @@ class HarnessAgent {
         }
       } on Object catch (error) {
         caption.hold(error);
-        throw HarnessError('caption-refused');
+        throw HarnessError(caption.publicFailureCode);
       }
     }
     if (original is Map<String, dynamic>) {

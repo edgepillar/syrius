@@ -41,6 +41,9 @@ Future<void> iFuseQsrToFromTheFusePlasmaCard(
         ],
         child: MultiBlocProvider(
           providers: <SingleChildWidget>[
+            BlocProvider<SendTransactionBloc>(
+              create: (_) => SendTransactionBloc(),
+            ),
             BlocProvider<MultipleBalanceBloc>.value(
               value: app.sl<MultipleBalanceBloc>(),
             ),
