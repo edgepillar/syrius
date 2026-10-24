@@ -251,11 +251,10 @@ class _AppWallet implements DappBridgeWallet {
     String address,
     String message,
   ) async {
-    // The service has just checked that [address] is still the selected one
-    // and the wallet unlocked. The signer reads the selected address after
-    // it has opened the key file, which takes a while. Whatever happened
-    // meanwhile, a signature leaves the wallet only if its key is the
-    // approved address's.
+    // The service has checked the selected address and unlocked session.
+    // The signer retains that original wallet and account across acquisition
+    // and release. This final check keeps a signature inside the wallet
+    // unless its key belongs to the address approved by the caller.
     final Signature signed = await walletSignMessage(message);
     final String signer = Address.fromPublicKey(
       HEX.decode(signed.publicKey),
