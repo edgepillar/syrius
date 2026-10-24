@@ -1141,8 +1141,9 @@ Fresh fork Fast run 40086450027 attempt 1 executes published head
 `6fae076f0e285bd387525b96ec95d2ca775f4cc4`. Job 120850271842 completes all
 thirteen steps successfully, including every post-step. Its complete retained
 log qualifies all 189 Python methods and 4327 unit/widget successes with the
-exact one existing receive-block skip. The terminal test count matches 4327
-individual success records; no hidden-count claim is made. Root analysis has
+exact one existing receive-block skip. The terminal reports 4327 successes;
+the retained reporter separately has 4297 individual success lines. These
+counts are distinct; no hidden-count claim is made. Root analysis has
 zero errors, zero warnings and 1296 infos, vendored analysis has zero
 diagnostics, and generated correspondence passes.
 
@@ -1244,8 +1245,9 @@ complete output and independent genuine retention-closure verification. The
 
 Published source `bcc26fee2ca52bb4a1abdbe21f502c78679e88d4` completes fork
 Fast run 40098246659 attempt 1 with all thirteen job steps successful. The
-terminal 4347 unit/widget successes match 4347 independent success records,
-with the one exact existing receive-block skip. All 202 Python methods,
+terminal reports 4347 unit/widget successes; the retained reporter separately
+has 4317 individual success lines, with one exact existing receive-block skip.
+All 202 Python methods,
 vendored zero-diagnostic analysis and generation consistency pass. Root
 analysis retains 1296 infos with zero errors or warnings. The complete
 1116753-byte job log has SHA-256
@@ -1320,8 +1322,9 @@ peak. Fresh hosted caption diagnosis and fusion execution remain pending.
 
 At publication `e19c5bdf53f9eb9f56d9b16d9d744fcf758b77a9`, fork Fast
 40103609283 attempt 1 passes all thirteen steps, 4349 unit/widget successes
-and the exact one existing receive-block skip. The terminal count matches
-4349 independent success records. All 205 Python methods, zero-diagnostic
+and the exact one existing receive-block skip. The terminal reports 4349
+successes; the retained reporter separately has 4319 individual success lines.
+All 205 Python methods, zero-diagnostic
 vendored analysis and generation consistency pass; root analysis has zero
 errors, zero warnings and 1296 infos. Its complete 1117793-byte log has SHA-256
 `b265c7aefa7b68229de9231014c8d209ec129dbe0aa0660db6eeabf88b9ee643`.
@@ -1446,3 +1449,60 @@ its genuine CLOSED/FAILURE/HOLD outcome and complete output. Its 39 Dart and
 205 Python cases passed; only three style diagnostics failed, then were
 repaired. No historical cleanup is claimed. Fresh hosted caption and Send
 results for this follow-up remain pending.
+
+
+### Positive native caption contract and confirmed Sentinel view refresh
+
+At `efeca119cf2f9b43962a22aba091bc48e0b2b6bb`, ordinary Windows entry job
+120927304304 in scoped 40112608635 attempt 1 passes all thirteen job steps,
+all eighteen original checks and all four caption checks. Maximize, caption
+restore, minimize and native restoration all pass. Four genuine 1280x780
+captures, original exit zero, complete output, no overflow or forced kill,
+source/run/attempt binding and bounded PNG parsing are independently verified.
+The complete 49824-byte job log has SHA-256
+`360fd5cf22717769d5c1e84e94d410d5d3f0e4e90033631bcdf0cdd8c9d7ec9a`.
+The 560308-byte archive has SHA-256
+`7226345edd9bafcb39de5b04e1ca1d47d69917971d3d99ee4025a3cb781b4b68`.
+Original transport/CAS, archive members, genuine CLOSED/SUCCESS/CLEANED,
+free leases and absence of the original process group are independently
+verified. This qualifies the finite ordinary entry/caption contract only.
+
+Devnet job 120927304710 passes Pillar registration, then fails finding the
+Sentinel QSR Next control after the deposit preconditions. It does not reach
+Send. The complete 294236-byte log has SHA-256
+`9d2a0e22c1604aa7592683b9c3488314c84d4f9323bfb7973350a897dcc4d48f`.
+Both completed job logs have independently verified complete original
+transport, source/run/job metadata, owned CAS and genuine
+CLOSED/SUCCESS/CLEANED retention. Fast 40112488091 is observed successful
+with all thirteen steps; its original log retention remains queued.
+
+Anonymous `514586d4bda3955722d9fe2e3cfa54230a508c8a` retains the original QSR
+information bloc before deposit. After the existing original confirmation
+and exact full contract amount have passed, it checks current authority and
+requests one read-only refresh from that retained bloc. The publication-time
+view read can precede the contract effect. The repair preserves the original
+sender, transaction hash, deposit operation, confirmation and subscription;
+it does not re-sign or repeat a deposit.
+
+All six fresh local gates pass: 205 Python methods, 53 Dart cases plus nine
+hidden successes, zero strict diagnostics, root zero errors and warnings
+with 1295 infos, formatting and whitespace checks. Original exit zero,
+complete 275411-byte stdout, SHA-256
+`649d431f5bc0311dcc8a54f73ad5f743fd362c045784dea72ec71febff1b4b17`,
+empty stderr, stage ranges/summaries, all 48 raw pins, original command/CAS,
+genuine CLOSED/SUCCESS, a free lease and absent original group are
+independently verified. Analyzer scratch remains HOLD; the 512 MiB cap is
+not a measured peak. Earlier failures and UNKNOWN outcomes remain preserved.
+Fresh hosted Sentinel and Send results remain pending. Entry/caption runtime
+inputs and baseline application/platform/dependency inputs are unchanged;
+the earlier exact source scopes remain explicit.
+
+Limited inspection of the four current entry pairs finds close main layout
+and no apparent earlier caption displacement. Globe timing, Import input
+and focus state, helper wording and some typography extents differ from the
+retained references. Both sources specify a 1.5 px drop stroke, which is
+retained. No image, wallet input or capture contract is changed. This is not
+the full fresh-agent comparison; 90 actual captures and all 94 visual matches
+remain pending. Reporter totals and individual rendered success lines are
+also reconciled separately above. Original logs and earlier receipts remain
+preserved; no new execution is inferred from that reconciliation.
