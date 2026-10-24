@@ -1316,6 +1316,63 @@ cascade initialization changes before the successful batch. All prior outcomes
 remain preserved. The 512 MiB expected allocation and cap are not a measured
 peak. Fresh hosted caption diagnosis and fusion execution remain pending.
 
+### Bounded tree traversal and original beneficiary selection
+
+At publication `e19c5bdf53f9eb9f56d9b16d9d744fcf758b77a9`, fork Fast
+40103609283 attempt 1 passes all thirteen steps, 4349 unit/widget successes
+and the exact one existing receive-block skip. The terminal count matches
+4349 independent success records. All 205 Python methods, zero-diagnostic
+vendored analysis and generation consistency pass; root analysis has zero
+errors, zero warnings and 1296 infos. Its complete 1117793-byte log has SHA-256
+`b265c7aefa7b68229de9231014c8d209ec129dbe0aa0660db6eeabf88b9ee643`.
+
+Scoped 40103626385 attempt 1 fails entry job 120900677718 with the first
+fixed `CAPTION_TREE_REFUSED` at `caption_bind`. All four genuine captures
+precede the refusal; caption actions and window/entry restoration remain
+unqualified. Original exit zero and complete output are retained. The complete
+47475-byte log has SHA-256
+`b164b17b910289d40d1dd93476b6e611e268def953a25594991aac50bcaa276a`.
+The 559924-byte archive has SHA-256
+`9e1b519a4d859c51aa535c5cfb9a69077134c65ea5a151da53c4a78d7394d4b3`.
+Its negative contract, archive members, individual PNG CAS, original command,
+closed successful retention, owned CLEANED scratch, free task/artifact leases
+and absent original group are independently verified. Native acceptance
+remains false.
+
+Devnet job 120900677907 passes the former missing-sender point and fails
+`WidgetTester.enterText` on the beneficiary field at fixture line 73, before
+this scenario subscribes or submits. A selected known beneficiary displays a
+selector; the separate Another address field is not yet mounted. Its complete
+324647-byte log has SHA-256
+`c754f04ed40de9f7272530a55b471f77d1354c3957e27140088fa227f669bc9f`.
+All three logs have independently replayed complete original transport,
+source/run/job and before/after metadata, owned CAS, genuine
+CLOSED/SUCCESS/CLEANED retention, free leases and absent original groups.
+Baseline is deliberately disabled; its earlier exact source scope is retained.
+
+Anonymous follow-up `3058e5f9fb8924a33eda1add40407c91b3e43656` uses an explicit
+widget work list. Total visited plus pending storage stays within 8192
+elements, every mounted check remains, and original frame/control identities
+and duplicate-key refusal remain. The iterative traversal supports deep
+provider/theme/route ancestry. Capacity and unmounted refusal use separate
+fixed codes; original private diagnostics remain held. The fixture opens the
+real beneficiary selector and Another address control only when the field is
+hidden, then enters the original address. Sender ownership, subscription,
+one submit tap and original completion checks remain unchanged.
+
+All six fresh local gates pass against 31 raw inputs: 205 Python methods,
+22 Dart cases plus two loaders, zero strict diagnostics across three Dart
+paths, root zero errors and warnings with 1296 infos, formatting and whitespace
+checks. This includes a 300-level original body that retains its frame owner
+and a capacity overflow that refuses before native caption observation.
+Original exit zero, complete 252704-byte stdout, SHA-256
+`6828d0e86a0a30b5121d3560abdb63d1ede7bf2a8aed8fe3258315e3a039acbf`,
+empty stderr, stage ranges/summaries, original command/CAS, all source pins and
+genuine CLOSED/SUCCESS are independently verified. Original lease and process
+group checks pass; analyzer scratch remains HOLD without cleanup. Earlier
+failures remain unchanged. The 512 MiB expected allocation and cap are not a
+measured peak. Fresh hosted caption and fusion results remain pending.
+
 ### Target CI observation refresh
 
 At 08:45Z, bounded read-only API queries report target attempt 2 Fast
