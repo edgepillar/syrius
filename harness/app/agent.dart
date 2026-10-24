@@ -45,6 +45,7 @@ import '../seed/seed_recipe.dart' show requireSeedTokenPreparation;
 import 'capture_frame.dart';
 import 'capture_protocol.dart' show CaptureRefused;
 import 'client_window.dart';
+import 'entry_caption_observer.dart';
 import 'fixtures/seed_commands.dart';
 import 'fixtures/seed_policy.dart';
 import 'logical_capture.dart';
@@ -399,6 +400,7 @@ class HarnessAgent {
   final SeedCommands _seeds = SeedCommands();
   HarnessPresentationController? _presentation;
   NativeEntryCapture? _nativeEntry;
+  EntryCaptionObserver? _entryCaption;
   bool Function()? _presentationIsCurrent;
   BuildContext? Function()? _presentationContext;
   Element? _presentationElement;
@@ -737,6 +739,8 @@ class HarnessAgent {
         return _state();
       case 'wallet-recipe':
         return _walletRecipeCommand(c);
+      case 'entry-caption':
+        return _entryCaptionCommand(c);
       case 'entry-state':
       case 'entry-check':
       case 'entry-capture':
@@ -846,6 +850,109 @@ class HarnessAgent {
       throw HarnessError('original native entry window is unavailable');
     }
   }
+
+  Future<Map<String, Object?>> _entryCaptionCommand(
+    Map<String, dynamic> command,
+  ) async {
+    final Object? action = command['do'];
+    if (command.keys.any(
+          (String key) => !<String>{'cmd', 'do'}.contains(key),
+        ) ||
+        !<String>{
+          'bind',
+          'maximize',
+          'restore',
+          'minimize',
+          'observe',
+        }.contains(action)) {
+      _entryCaption?.hold(const CaptionRefused('caption-input-refused'));
+      throw HarnessError('caption-input-refused');
+    }
+    final NativeEntryCapture? entry = _nativeEntry;
+    if (entry == null) {
+      throw HarnessError('caption-entry-unavailable');
+    }
+    _requireCaptureFrameIdle();
+    try {
+      if (action == 'bind') {
+        if (_entryCaption != null) {
+          throw const CaptionRefused('caption-replay-refused');
+        }
+        final EntryCaptionObserver original = EntryCaptionObserver(
+          readEntry: entry.snapshot,
+          readWindow: _captionWindowSnapshot,
+          tap: _tapCaptionControl,
+        );
+        _entryCaption = original; // Retain before any native observation.
+        return await original.bind();
+      }
+      final EntryCaptionObserver? original = _entryCaption;
+      if (original == null) {
+        throw const CaptionRefused('caption-unavailable');
+      }
+      if (action == 'observe') {
+        return await original.observe();
+      }
+      return await original.tap(action! as String);
+    } on Object catch (error) {
+      _entryCaption?.hold(error);
+      throw HarnessError('caption-refused');
+    }
+  }
+
+  Future<Map<String, Object?>> _captionWindowSnapshot({
+    required bool geometry,
+  }) async {
+    final bool minimized = await windowManager.isMinimized();
+    final bool maximized = await windowManager.isMaximized();
+    if (!geometry || minimized || maximized) {
+      return <String, Object?>{'minimized': minimized, 'maximized': maximized};
+    }
+    return _windowSnapshot();
+  }
+
+  Future<void> _tapCaptionControl(
+    Element original,
+    VoidCallback admission,
+    VoidCallback released,
+  ) async {
+    _Node control() {
+      final List<_Node> hits = _snapshot()
+          .where(
+            (_Node node) =>
+                node.kind == 'button' && identical(node.element, original),
+          )
+          .toList();
+      if (hits.length != 1 ||
+          !hits.single.enabled ||
+          !_reachable(hits.single, hits.single.center)) {
+        throw const CaptionRefused('caption-control-refused');
+      }
+      return hits.single;
+    }
+
+    final _Node before = control();
+    await _click(
+      before.center,
+      requireAdmission: () {
+        admission();
+        final _Node current = control();
+        if (current.center != before.center) {
+          throw const CaptionRefused('caption-control-changed');
+        }
+      },
+      afterRelease: released,
+    );
+    // Minimize must not wait for a painted frame or generic settle afterward.
+  }
+
+  /// Exercises original pointer dispatch without granting native entry proof.
+  @visibleForTesting
+  Future<void> tapCaptionForTest(
+    Element original,
+    VoidCallback admission,
+    VoidCallback released,
+  ) => _tapCaptionControl(original, admission, released);
 
   Map<String, Object?> _state() {
     String? route;
@@ -1838,6 +1945,7 @@ class HarnessAgent {
     int buttons = kPrimaryButton,
     int holdMs = 50,
     void Function()? requireAdmission,
+    VoidCallback? afterRelease,
   }) async {
     await _moveTo(p);
     requireAdmission?.call();
@@ -1873,6 +1981,7 @@ class HarnessAgent {
         device: _device,
       ),
     );
+    afterRelease?.call(); // Same dispatch turn; no await or paint intervenes.
   }
 
   Future<Map<String, Object?>> _tap(
@@ -2575,6 +2684,27 @@ class HarnessAgent {
 
   Future<Map<String, Object?>> _window(Map<String, dynamic> c) async {
     final Object? original = c['restoreState'];
+    final EntryCaptionObserver? caption = _entryCaption;
+    if (caption != null) {
+      try {
+        if (original is Map<String, dynamic> && c.length == 2) {
+          caption.requireGeometryRestore();
+          return await _restoreWindow(original);
+        }
+        if (c.length == 2 && c['do'] == 'restore') {
+          return await caption.ordinaryRestore(windowManager.restore);
+        }
+        if (original != null ||
+            c['do'] != null ||
+            c['width'] != null ||
+            c['height'] != null) {
+          throw const CaptionRefused('caption-restore-refused');
+        }
+      } on Object catch (error) {
+        caption.hold(error);
+        throw HarnessError('caption-refused');
+      }
+    }
     if (original is Map<String, dynamic>) {
       return _restoreWindow(original);
     }

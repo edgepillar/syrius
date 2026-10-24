@@ -150,6 +150,9 @@ class Host:
         self.pid = process.pid
         self.mode = "wallet"
         self.captures = 0
+        self.caption_stage = self.caption_observations = 0
+        self.caption_baseline = None
+        self.minimized = self.maximized = False
         self.window = [17, 23, 1240, 850]
         self.client = [1224, 811]
         self.original_window = self.snapshot()
@@ -157,12 +160,19 @@ class Host:
     def snapshot(self):
         return {"window": list(self.window), "client": list(self.client),
                 "physical": list(self.client), "devicePixelRatio": 1,
-                "minimized": False, "maximized": False}
+                "minimized": self.minimized, "maximized": self.maximized}
 
     def entry(self):
         return {"ok": True, "available": True, "nativeWindowReady": self.entry_ready,
                 "startupReady": self.entry_ready, "welcomeReady": self.entry_ready,
                 "held": self.held, "captures": self.captures}
+
+    def caption_state(self):
+        native = ({"minimized": self.minimized, "maximized": self.maximized}
+                  if self.caption_stage in (1, 3) else self.snapshot())
+        return {"ok": True, "captionVersion": 1, "stage": self.caption_stage,
+                "observations": self.caption_observations, "original": True,
+                "held": False, "pending": False, "settled": True, "window": native}
 
     def exchange(self, command, token, timeout):
         self.calls.append((copy.deepcopy(command), token, timeout))
@@ -178,15 +188,38 @@ class Host:
                           "harnessMode": self.mode})
         if name == "entry-state":
             return reply(self.entry())
+        if name == "entry-caption":
+            action = command["do"]
+            if set(command) != {"cmd", "do"} or self.captures != 4:
+                raise AssertionError("unexpected caption input")
+            if action == "bind":
+                self.caption_baseline = copy.deepcopy(self.snapshot())
+                return reply(self.caption_state())
+            if action == "observe":
+                self.caption_observations = self.caption_stage
+                return reply(self.caption_state())
+            stage = {"maximize": 1, "restore": 2, "minimize": 3}[action]
+            if self.caption_stage != stage - 1 or self.caption_observations != stage - 1:
+                raise AssertionError("caption replay")
+            self.caption_stage = stage
+            self.maximized, self.minimized = stage == 1, stage == 3
+            return reply({"ok": True, "captionVersion": 1, "stage": stage,
+                          "admitted": True, "pendingObserved": True})
         if name == "window":
             extra = {}
             if "restoreState" in command:
                 original = command["restoreState"]
                 self.window, self.client = original["window"], original["client"]
+                self.minimized, self.maximized = original["minimized"], original["maximized"]
                 extra["restored"] = True
             elif command.get("do") == "show":
                 self.window, self.client = [17, 23, 1296, 819], [1280, 780]
                 extra["clientMatched"] = True
+            elif command.get("do") == "restore":
+                if self.caption_stage != 3 or self.caption_observations != 3:
+                    raise AssertionError("restore before original minimize completion")
+                self.caption_stage = 4
+                self.minimized = self.maximized = False
             return reply({"ok": True, **self.snapshot(), **extra})
         if name == "entry-capture":
             if set(command) != {"cmd", "screen", "theme"}:
@@ -240,6 +273,177 @@ class ControllerTests(unittest.TestCase):
         self.assertTrue(result["output_complete"])
         self.assertEqual(self.process.kill_count, 0)
         self.assertTrue(all(0 < timeout <= LIMITS.request for _, _, timeout in self.host.calls))
+
+    def test_caption_extension_preserves_all_eighteen_checks_and_one_quit(self):
+        self.assertEqual(smoke.CHECKS, (
+            "environment", "source", "profile", "preflight", "identity", "auth",
+            "entry_ready", "window_saved", "client_matched", "welcome_dark",
+            "welcome_light", "import_dark", "import_light", "window_restored",
+            "entry_restored", "close_ack", "exit", "payload_stable"))
+        result = self.run_smoke()
+        self.assertTrue(result["success"])
+        self.assertTrue(all(result["checks"].values()))
+        self.assertEqual(result["caption"], {"schema": 1, "observations": {
+            name: True for name in smoke.CAPTION_CHECKS}})
+        actions = [c["do"] for c in self.commands("entry-caption")]
+        self.assertEqual(actions, ["bind", "maximize", "observe", "restore",
+                                   "observe", "minimize", "observe", "observe"])
+        self.assertEqual(len([c for c in self.commands("window")
+                              if c.get("do") == "restore"]), 1)
+        self.assertEqual(len(self.commands("quit")), 1)
+        self.assertTrue(result["exit_observed"])
+        self.assertEqual(result["exit_code"], 0)
+
+    def test_old_check_pass_cannot_qualify_without_every_caption_observation(self):
+        self.assertTrue(self.run_smoke()["success"])
+        for name in smoke.CAPTION_CHECKS:
+            with self.subTest(name=name):
+                self.report.caption_checks[name] = False
+                result = self.report.public()
+                self.assertTrue(all(result["checks"].values()))
+                self.assertFalse(result["complete"])
+                self.assertEqual(result["status"], "UNKNOWN")
+                self.report.caption_checks[name] = True
+
+    def assert_caption_hold_cleanup(self, result):
+        self.assertFalse(result["success"])
+        self.assertEqual(result["capture_count"], 4)
+        self.assertEqual(len(self.commands("quit")), 1)
+        self.assertEqual(result["exit_code"], 0)
+        self.assertFalse([c for c in self.commands("window") if "restoreState" in c])
+        self.assertFalse(self.commands("entry-check"))
+        self.assertFalse(result["checks"]["window_restored"])
+
+    def test_pending_caption_polls_are_finite_and_never_replay_the_action(self):
+        def pending(command, token):
+            if command == {"cmd": "entry-caption", "do": "observe"}:
+                return reply({**self.host.caption_state(), "settled": False,
+                              "pending": True, "window": None})
+        self.host.hook = pending
+        result = self.run_smoke()
+        self.assert_caption_hold_cleanup(result)
+        self.assertIn("CAPTION_TIMEOUT", result["error_codes"])
+        self.assertEqual(len([c for c in self.commands("entry-caption")
+                              if c["do"] == "maximize"]), 1)
+        self.assertLessEqual(len([c for c in self.commands("entry-caption")
+                                  if c["do"] == "observe"]), 4)
+        self.assertFalse([c for c in self.commands("window") if c.get("do") == "restore"])
+
+    def test_lost_caption_tap_response_retains_images_and_forbids_geometry_cleanup(self):
+        def lost(command, token):
+            if command == {"cmd": "entry-caption", "do": "maximize"}:
+                self.host.maximized = True
+                raise TimeoutError(TOKEN + " original caption reply lost")
+        self.host.hook = lost
+        result = self.run_smoke()
+        self.assert_caption_hold_cleanup(result)
+        self.assertEqual([c["do"] for c in self.commands("entry-caption")],
+                         ["bind", "maximize"])
+        self.assertNotIn(TOKEN, json.dumps(result))
+        self.assertEqual(self.process.kill_count, 0)
+
+    def test_ack_without_immediate_original_pending_is_not_completion(self):
+        self.host.hook = lambda c, t: reply({
+            "ok": True, "captionVersion": 1, "stage": 1,
+            "admitted": True, "pendingObserved": False,
+        }) if c == {"cmd": "entry-caption", "do": "maximize"} else None
+        result = self.run_smoke()
+        self.assert_caption_hold_cleanup(result)
+        self.assertIn("CAPTION_INVALID", result["error_codes"])
+        self.assertFalse([c for c in self.commands("entry-caption") if c["do"] == "observe"])
+
+    def test_caption_owner_replacement_or_hold_never_authorizes_another_action(self):
+        for field, value in (("original", False), ("held", True)):
+            with self.subTest(field=field):
+                self.setUp()
+                self.host.hook = lambda c, t: reply({
+                    **self.host.caption_state(), "settled": False, field: value,
+                }) if c == {"cmd": "entry-caption", "do": "observe"} else None
+                result = self.run_smoke()
+                self.assert_caption_hold_cleanup(result)
+                self.assertIn("CAPTION_HELD", result["error_codes"])
+
+    def test_duplicate_disabled_or_missing_pending_refusal_is_not_retried(self):
+        for error in ("caption-control-changed", "caption-control-refused",
+                      "caption-pending-unobserved"):
+            with self.subTest(error=error):
+                self.setUp()
+                self.host.hook = lambda c, t: reply({"ok": False, "error": error}, 400) \
+                    if c == {"cmd": "entry-caption", "do": "maximize"} else None
+                result = self.run_smoke()
+                self.assert_caption_hold_cleanup(result)
+                self.assertEqual(len([c for c in self.commands("entry-caption")
+                                      if c["do"] == "maximize"]), 1)
+
+    def test_caption_settled_ack_cannot_substitute_for_native_mode(self):
+        def wrong(command, token):
+            if command == {"cmd": "entry-caption", "do": "observe"}:
+                return reply({**self.host.caption_state(), "observations": 1,
+                              "window": {"minimized": False, "maximized": False}})
+        self.host.hook = wrong
+        result = self.run_smoke()
+        self.assert_caption_hold_cleanup(result)
+        self.assertIn("CAPTION_NATIVE_MISMATCH", result["error_codes"])
+
+    def test_caption_restore_requires_original_baseline_geometry(self):
+        def wrong(command, token):
+            if command == {"cmd": "entry-caption", "do": "observe"} and self.host.caption_stage == 2:
+                window = self.host.snapshot()
+                window["window"][0] += 1
+                return reply({**self.host.caption_state(), "observations": 2, "window": window})
+        self.host.hook = wrong
+        result = self.run_smoke()
+        self.assert_caption_hold_cleanup(result)
+        self.assertTrue(result["caption"]["observations"]["maximized"])
+        self.assertFalse(result["caption"]["observations"]["caption_restored"])
+
+    def test_lost_ordinary_restore_response_preserves_three_prior_observations(self):
+        def lost(command, token):
+            if command == {"cmd": "window", "do": "restore"}:
+                self.host.minimized = False
+                raise TimeoutError("original restore reply lost")
+        self.host.hook = lost
+        result = self.run_smoke()
+        self.assert_caption_hold_cleanup(result)
+        self.assertEqual(result["caption"]["observations"], {
+            "maximized": True, "caption_restored": True,
+            "minimized": True, "native_restored": False})
+        self.assertEqual(len([c for c in self.commands("window")
+                              if c.get("do") == "restore"]), 1)
+
+    def test_late_caption_response_does_not_reset_absolute_budget(self):
+        def late(command, token):
+            if command == {"cmd": "entry-caption", "do": "observe"}:
+                self.clock.now += LIMITS.total + 1
+                return reply(self.host.caption_state())
+        self.host.hook = late
+        result = self.run_smoke()
+        self.assertFalse(result["success"])
+        self.assertFalse(any(result["caption"]["observations"].values()))
+        self.assertEqual(len([c for c in self.commands("entry-caption")
+                              if c["do"] == "maximize"]), 1)
+        self.assertFalse([c for c in self.commands("window") if "restoreState" in c])
+
+    def test_native_restore_observation_cannot_adopt_wrong_mode(self):
+        def wrong(command, token):
+            if command == {"cmd": "entry-caption", "do": "observe"} and self.host.caption_stage == 4:
+                return reply({**self.host.caption_state(), "observations": 4,
+                              "window": {**self.host.snapshot(), "minimized": True}})
+        self.host.hook = wrong
+        result = self.run_smoke()
+        self.assert_caption_hold_cleanup(result)
+        self.assertFalse(result["caption"]["observations"]["native_restored"])
+
+    def test_caption_projection_contains_only_fixed_boolean_observations(self):
+        self.assertTrue(self.run_smoke()["success"])
+        self.report.caption_checks[TOKEN] = TOKEN
+        self.report.caption_checks["maximized"] = TOKEN
+        result = self.report.public()
+        self.assertEqual(set(result["caption"]), {"schema", "observations"})
+        self.assertEqual(set(result["caption"]["observations"]), set(smoke.CAPTION_CHECKS))
+        self.assertIs(result["caption"]["observations"]["maximized"], False)
+        self.assertNotIn(TOKEN, json.dumps(result))
+        self.assertFalse(result["success"])
 
     def test_original_identity_or_mode_failure_never_changes_a_window(self):
         for field, value, code in (("pid", 9191, "IDENTITY_REFUSED"),
@@ -516,7 +720,7 @@ class ControllerTests(unittest.TestCase):
                          "run_attempt", "runner_sha256", "dart_kernel_sha256", "checks",
                          "captures", "capture_count", "exit_code", "exit_observed", "forced_kill",
                          "output_bytes", "output_complete", "output_overflow", "complete", "success",
-                         "status", "error_codes", "first_command_failure", "cleanup_failures"})
+                         "status", "error_codes", "first_command_failure", "cleanup_failures", "caption"})
         self.assertEqual(result["schema"], 2)
 
 

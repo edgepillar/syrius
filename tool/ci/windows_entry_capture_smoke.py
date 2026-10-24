@@ -42,10 +42,12 @@ CHECKS = (
     "welcome_light", "import_dark", "import_light", "window_restored",
     "entry_restored", "close_ack", "exit", "payload_stable",
 )
+CAPTION_CHECKS = ("maximized", "caption_restored", "minimized", "native_restored")
 CODES = bounded.CODES | frozenset((
     "OUTPUT_REFUSED", "ARTIFACT_FAILED", "ENTRY_UNAVAILABLE", "ENTRY_HELD",
     "ENTRY_INVALID", "WINDOW_INVALID", "WINDOW_RESTORE_FAILED",
     "CAPTURE_INVALID", "PNG_INVALID", "RESTORATION_INVALID",
+    "CAPTION_INVALID", "CAPTION_HELD", "CAPTION_TIMEOUT", "CAPTION_NATIVE_MISMATCH",
 ))
 LIMITS = bounded.Limits(total=150, ready=45, request=20,
                         response_bytes=MAX_BASE64 + 65536)
@@ -53,6 +55,8 @@ CLEANUP_PHASES = frozenset(("window_restore", "entry_verify", "close"))
 COMMAND_PHASES = (frozenset(("readiness_ping", "auth_refusal", "entry_state",
                             "window_observe", "window_show_resize"))
                   | CLEANUP_PHASES
+                  | frozenset(("caption_bind", "caption_maximize", "caption_restore",
+                               "caption_minimize", "caption_observe", "caption_native_restore"))
                   | frozenset(f"capture_{screen}_{theme}" for screen, theme in SCENES))
 RESIZE_ERRORS = {
     "the requested client area was not observed": "CLIENT_RESIZE_UNOBSERVED",
@@ -74,6 +78,7 @@ class Report(bounded.Report):
         self.source_tree = self.run_id = self.run_attempt = None
         self.checks = dict.fromkeys(CHECKS, False)
         self.captures = []
+        self.caption_checks = dict.fromkeys(CAPTION_CHECKS, False)
         self.output_bytes = 0
         self.first_command_failure = None
         self.cleanup_failures = []
@@ -115,6 +120,7 @@ class Report(bounded.Report):
                     break
         complete = (
             all(self.checks.get(name) is True for name in CHECKS)
+            and all(self.caption_checks.get(name) is True for name in CAPTION_CHECKS)
             and len(captures) == 4 and self.exit_observed and self.exit_code == 0
             and self.output_complete and not self.output_overflow
             and not self.forced_kill and not self.errors
@@ -129,6 +135,8 @@ class Report(bounded.Report):
             "runner_sha256": bounded.safe_digest(self.runner_sha256),
             "dart_kernel_sha256": bounded.safe_digest(self.dart_kernel_sha256),
             "checks": {name: self.checks.get(name) is True for name in CHECKS},
+            "caption": {"schema": 1, "observations": {
+                name: self.caption_checks.get(name) is True for name in CAPTION_CHECKS}},
             "captures": captures, "capture_count": len(captures),
             "exit_code": self.exit_code if type(self.exit_code) is int else None,
             "exit_observed": self.exit_observed is True,
@@ -433,6 +441,8 @@ class EntrySmoke(bounded.PresentationSmoke):
         self.artifacts = artifacts
         self.original_window = None
         self.window_changed = self.authenticated = False
+        self.caption_attempted = self.caption_complete = False
+        self.caption_baseline = None
         self._command_phase = self._command_status = self._command_failure = None
 
     def _retain_failure(self, code, *, category="GUARD_FAILED", body=None, cleanup=False):
@@ -538,7 +548,88 @@ class EntrySmoke(bounded.PresentationSmoke):
             "window", "client", "physical", "devicePixelRatio", "minimized", "maximized",
         )}
 
+    @staticmethod
+    def _same_window(actual, expected):
+        return all(
+            all(abs(a - b) < .01 for a, b in zip(actual[key], value))
+            if isinstance(value, list) else actual[key] == value
+            for key, value in expected.items()
+        )
+
+    def _caption_state(self, body, stage):
+        keys = {"ok", "captionVersion", "stage", "observations", "original",
+                "held", "pending", "settled", "window"}
+        if (set(body) != keys or type(body.get("captionVersion")) is not int
+                or body["captionVersion"] != 1 or type(body.get("stage")) is not int
+                or body["stage"] != stage or type(body.get("observations")) is not int
+                or not max(0, stage - 1) <= body["observations"] <= stage
+                or any(type(body.get(name)) is not bool for name in (
+                    "original", "held", "pending", "settled"))):
+            raise Failure("CAPTION_INVALID")
+        if body["original"] is not True or body["held"] is not False:
+            raise Failure("CAPTION_HELD")
+        if not body["settled"]:
+            return False
+        if body["pending"] or body["observations"] != stage or not isinstance(body["window"], dict):
+            raise Failure("CAPTION_INVALID")
+        if stage in (1, 3):
+            actual = body["window"]
+            if (set(actual) != {"minimized", "maximized"}
+                    or any(type(actual.get(name)) is not bool
+                           for name in ("minimized", "maximized"))):
+                raise Failure("CAPTION_INVALID")
+        else:
+            actual = self._window(body["window"])
+        if actual["maximized"] != (stage == 1) or actual["minimized"] != (stage == 3):
+            raise Failure("CAPTION_NATIVE_MISMATCH")
+        if stage in (2, 4) and (self.caption_baseline is None
+                                or not self._same_window(actual, self.caption_baseline)):
+            raise Failure("CAPTION_NATIVE_MISMATCH")
+        return True
+
+    def _caption_poll(self, stage, until):
+        while self.clock() < until:
+            body = self._positive({"cmd": "entry-caption", "do": "observe"},
+                                  phase="caption_observe", until=until)
+            if self._caption_state(body, stage):
+                return
+            self.sleep(min(self.limits.poll, max(0, until - self.clock())))
+        raise Failure("CAPTION_TIMEOUT")
+
+    def _caption(self):
+        # Reserve before bind/tap: a lost response never authorizes geometry cleanup.
+        self.caption_attempted = True
+        until = min(self.deadline, self.clock() + min(20, self.limits.ready))
+        body = self._positive({"cmd": "entry-caption", "do": "bind"},
+                              phase="caption_bind", until=until)
+        if not self._caption_state(body, 0):
+            raise Failure("CAPTION_INVALID")
+        self.caption_baseline = self._window(body["window"])
+        if any(abs(a - b) >= .01 for a, b in zip(
+                self.caption_baseline["client"], (1280, 780))):
+            raise Failure("CAPTION_NATIVE_MISMATCH")
+        for stage, action, check in ((1, "maximize", "maximized"),
+                                     (2, "restore", "caption_restored"),
+                                     (3, "minimize", "minimized")):
+            body = self._positive({"cmd": "entry-caption", "do": action},
+                                  phase=f"caption_{action}", until=until)
+            if (set(body) != {"ok", "captionVersion", "stage", "admitted", "pendingObserved"}
+                    or type(body.get("captionVersion")) is not int or body["captionVersion"] != 1
+                    or type(body.get("stage")) is not int or body["stage"] != stage
+                    or body.get("admitted") is not True or body.get("pendingObserved") is not True):
+                raise Failure("CAPTION_INVALID")
+            self._caption_poll(stage, until)
+            self.report.caption_checks[check] = True
+        self._positive({"cmd": "window", "do": "restore"},
+                       phase="caption_native_restore", until=until)
+        self._caption_poll(4, until)
+        self.report.caption_checks["native_restored"] = True
+        self.caption_complete = True
+
     def _restore(self):
+        if self.caption_attempted and not self.caption_complete:
+            self._command_phase, self._command_status, self._command_failure = "window_restore", None, None
+            raise Failure("CAPTION_HELD")
         if self.window_changed:
             restored = self._positive({"cmd": "window", "restoreState": self.original_window},
                                       phase="window_restore")
@@ -607,6 +698,7 @@ class EntrySmoke(bounded.PresentationSmoke):
                                       phase=f"capture_{screen}_{theme}")
                 self.artifacts.png(f"{screen}-{theme}.png", capture_bytes(body, screen, theme))
                 self.report.checks[f"{screen}_{theme}"] = True
+            self._caption()
         try:
             self._record(capture)
         finally:
