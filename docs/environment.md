@@ -1728,3 +1728,88 @@ All 94 visual matches, the owned chain-321 lab, full wallet/node lifecycle and
 running-build motion, seam, frame-time and minimum-window/RTL acceptance remain
 pending. Public output remains English and excludes profiles, raw local
 diagnostics, credentials and personal identity.
+
+### Current native entry and Import dash spacing
+
+At `ad52f6b99fdd893b5617fc0596020e9e782e7076`,
+[Fast 40138136852](https://github.com/edgepillar/syrius/actions/runs/40138136852),
+attempt 1, job 121003951999, passes all thirteen job steps, 211 Python methods,
+vendored analysis, root analysis with zero errors, zero warnings and 1295 infos,
+locked restoration and generated-source correspondence. Its terminal reporter
+records 4355 passing tests and the existing receive-block skip; 4325 individual
+success lines are a separate measure. The complete 1118123-byte original log
+has SHA-256 `5367c0ef84265b4a02598c3e45d3e8b3e08f6b04934d125692c117a6906f1a3b`.
+
+At the same source,
+[ordinary Windows entry 40138167426](https://github.com/edgepillar/syrius/actions/runs/40138167426),
+attempt 1, job 121004042865, passes all thirteen steps and 61 finite controller
+methods. Its original report passes eighteen entry checks and four caption
+checks: maximize, caption restore, minimize and native restore. It retains four
+genuine 1280x780 captures, observes original exit zero and complete output, and
+records no overflow, forced kill, command failure or cleanup failure. The complete
+48314-byte log has SHA-256
+`a5ccdc8cc5f783cacb8d71b7d0a17d34ab5060c32111f982a2987d44721a2fef`.
+The 557696-byte
+[artifact 12577063084](https://github.com/edgepillar/syrius/actions/runs/40138167426/artifacts/12577063084)
+has SHA-256 `dd1d5ae0468b84a418a5cc22421173eafabac50057ebbaa3b8c88c20a32762dd`.
+Both complete original job logs and the native artifact have independently
+verified exact source/run/job/step bindings, original bounded transport, owned
+CAS bytes, genuine CLOSED/SUCCESS/CLEANED retention, free original leases and
+absent original groups. No completed transport or test is repeated for this proof.
+
+The preceding Import source `85a7a1a141f131265f17e24d2942dc7309de35cf` now also
+has complete source-bound Fast and Windows baseline verification. Fast
+40135062207 passes all thirteen steps, 205 Python methods, 4355 terminal-reported
+tests with one existing skip and 4325 individual success lines. Its complete
+1117586-byte log has SHA-256
+`86bb030ba7b31790a5ce33a7b84efb92260c2a0bb446475f77b3470d17404d73`.
+Baseline job 120994851674 in 40135102175 passes all ten job steps and twelve
+controller checks, including locked restoration, generation correspondence,
+Debug/Release builds and three DLL map/export probes. Its JSON test report has
+4354 visible successes, 506 hidden successes and two existing skips, for 4862
+terminal events with no failure or error event. The complete 38922-byte log
+has SHA-256 `32878925b8e291c20bdd130627f7a274e3ac477e925035f7c8b4c929cdf2e9ac`.
+Its optional Windows inventory helper is forcibly stopped at its 30-second
+timeout; several detailed inventory fields remain unknown. Optional Pillow
+inspection reports absence. These outcomes are preserved separately from the
+positive Windows desktop doctor and twelve required baseline checks. Mapping
+and export lookup establish neither node ABI invocation nor full wallet startup.
+
+The baseline and current log-retention tasks have genuine successful closure.
+An earlier new log-batch admission with an overlong project identifier retains
+its original UNKNOWN result: it creates no task and performs no transport.
+A fresh bounded identifier corrects that local admission. The first independent
+baseline parser also retains its refusal because it incorrectly required every
+optional inventory stage to be unforced. Read-only source correction preserves
+both actual optional negative outcomes and verifies the same retained bytes;
+it repeats no CI, native test or artifact transport. The older failed entry
+preflight remains a separate negative contract.
+
+Limited inspection of the two new Import pairs finds the principal box geometry
+close to the references. Actual input remains empty; reference sample text and
+focus differ. A read-only straight-edge scan, at row 312 across columns 400..879
+in both themes, measures median native dash/gap runs of 6/4 pixels and reference
+runs of 3/2 pixels. The original 1.5 px stroke is retained. Anonymous
+`1a540b182e075f9b7522f58a1f1edba5303a0743` changes the single Import dash token to
+3/2. It does not establish a complete visual match.
+
+All five local gates for that token pass: formatting, strict analysis with zero
+diagnostics, thirteen existing presentation cases plus one loader with no
+failure/error/skip, root analysis with zero errors, zero warnings and 1295 infos,
+and whitespace checks. Both themes retain their geometry, stable focus,
+hover/fill and 1.5 px paint checks. The complete 251303-byte original stdout
+has SHA-256 `15e76b27bba753900c9a4118d6491543a819eb9600c4dc17a51b485f224bc766`.
+All 69 raw inputs, original command and streams, source correspondence,
+CLOSED/SUCCESS, free lease and absent original group are independently verified.
+Analyzer scratch remains HOLD. The 512 MiB task cap is a declared limit, not
+a measured physical peak; the shared 12 GiB cap and 10 GiB floor remain.
+
+The dash token changes a runtime input after ad52f6b99fdd, so fresh Fast,
+Windows baseline and ordinary-entry qualification are next. The new comparison
+is deferred until the final captures, avoiding an intermediate portable copy;
+the earlier default report remains untouched. At ad52f6b99fdd the three target
+PR workflows are action_required with zero jobs and await maintainer approval.
+The PR remains Draft. All 94 visual matches, 90 other actual captures, full
+formal review, running-build motion/frame-time and seam checks, minimum-window
+and Arabic layout, owned chain-321 lab, wallet/node lifecycle and production
+acceptance remain pending.
