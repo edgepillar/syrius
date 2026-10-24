@@ -18,6 +18,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Test bounded controllers and lab policy
+        timeout-minutes: 3
+        run: |
+          python3 --version
+          python3 -B -m unittest discover -s test/ci
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
