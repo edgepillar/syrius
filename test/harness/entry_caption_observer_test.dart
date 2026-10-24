@@ -99,25 +99,26 @@ Map<String, Object?> _entry() => <String, Object?>{
   'welcomeReady': true,
 };
 
-Widget _host({Key? frameKey, bool duplicate = false}) => MaterialApp(
-  theme: AppTheme.darkTheme,
-  locale: const Locale('en'),
-  localizationsDelegates: appLocalizationsDelegates,
-  supportedLocales: AppLocalizations.supportedLocales,
-  builder: (BuildContext context, Widget? child) =>
-      AppWindowFrame(key: frameKey, child: child!),
-  home: Scaffold(
-    body: duplicate
-        ? Center(
-            child: IconButton(
-              key: const ValueKey<String>('window-maximize'),
-              onPressed: () {},
-              icon: const Icon(Icons.add),
-            ),
-          )
-        : const SizedBox.expand(),
-  ),
-);
+Widget _host({Key? frameKey, bool duplicate = false, Widget? body}) =>
+    MaterialApp(
+      theme: AppTheme.darkTheme,
+      locale: const Locale('en'),
+      localizationsDelegates: appLocalizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      builder: (BuildContext context, Widget? child) =>
+          AppWindowFrame(key: frameKey, child: child!),
+      home: Scaffold(
+        body: duplicate
+            ? Center(
+                child: IconButton(
+                  key: const ValueKey<String>('window-maximize'),
+                  onPressed: () {},
+                  icon: const Icon(Icons.add),
+                ),
+              )
+            : body ?? const SizedBox.expand(),
+      ),
+    );
 
 Future<void> _microtasks() async {
   for (int i = 0; i < 16; i++) {
@@ -159,12 +160,16 @@ void main() {
         .setMockMethodCallHandler(_channel, null);
   });
 
-  Future<void> mount(WidgetTester tester, {bool duplicate = false}) async {
+  Future<void> mount(
+    WidgetTester tester, {
+    bool duplicate = false,
+    Widget? body,
+  }) async {
     tester.view
       ..physicalSize = const Size(1280, 780)
       ..devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    await tester.pumpWidget(_host(duplicate: duplicate));
+    await tester.pumpWidget(_host(duplicate: duplicate, body: body));
     await tester.pump();
     await _microtasks();
   }
@@ -245,6 +250,41 @@ void main() {
       expect(native.calls, isEmpty);
     },
   );
+
+  testWidgets('deep body ancestry retains the original caption owner', (
+    WidgetTester tester,
+  ) async {
+    Widget body = const SizedBox.shrink();
+    for (int depth = 0; depth < 300; depth++) {
+      body = KeyedSubtree(child: body);
+    }
+    await mount(tester, body: body);
+    final AppWindowFrameState frame = tester.state<AppWindowFrameState>(
+      find.byType(AppWindowFrame),
+    );
+    final Object owner = frame.windowStatus!.owner;
+    final Map<String, Object?> result = await observer().bind();
+    expect(result['original'], isTrue);
+    expect(result['settled'], isTrue);
+    expect(result['stage'], 0);
+    expect(frame.windowStatus!.owner, same(owner));
+  }, variant: _windows);
+
+  testWidgets('total tree capacity refuses before native caption observation', (
+    WidgetTester tester,
+  ) async {
+    await mount(
+      tester,
+      body: Stack(
+        children: List<Widget>.filled(8192, const SizedBox.shrink()),
+      ),
+    );
+    native.calls.clear();
+    final EntryCaptionObserver original = observer();
+    await _refusal<CaptionRefused>(original.bind());
+    expect(original.publicFailureCode, 'CAPTION_TREE_CAPACITY_REFUSED');
+    expect(native.calls, isEmpty);
+  }, variant: _windows);
 
   testWidgets('synthetic four observations retain the original frame owner', (
     WidgetTester tester,

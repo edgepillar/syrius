@@ -70,8 +70,25 @@ Future<void> iFuseQsrToFromTheFusePlasmaCard(
     find.byKey(const Key('fuse_plasma_amount_field')),
     fuseAmount,
   );
+  final Finder beneficiaryField = find.byKey(
+    const Key('fuse_plasma_beneficiary_address_field'),
+  );
+  if (beneficiaryField.evaluate().isEmpty) {
+    final Finder selector = find.byKey(
+      const Key('fuse_plasma_beneficiary_selector'),
+    );
+    expect(selector, findsOneWidget);
+    await tester.tap(selector);
+    await tester.pumpAndSettle();
+    final Finder another = find.byKey(
+      const Key('fuse_plasma_another_address_option'),
+    );
+    expect(another, findsOneWidget);
+    await tester.tap(another);
+    await tester.pumpAndSettle();
+  }
   await tester.enterText(
-    find.byKey(const Key('fuse_plasma_beneficiary_address_field')),
+    beneficiaryField,
     fuseAddress,
   );
   await tester.pumpAndSettle();

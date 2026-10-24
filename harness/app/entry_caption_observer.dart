@@ -81,7 +81,9 @@ final class EntryCaptionObserver {
       'caption-replay-refused': 'CAPTION_REPLAY_REFUSED',
       'caption-restore-refused': 'CAPTION_RESTORE_REFUSED',
       'caption-timeout': 'CAPTION_TIMEOUT',
+      'caption-tree-capacity-refused': 'CAPTION_TREE_CAPACITY_REFUSED',
       'caption-tree-refused': 'CAPTION_TREE_REFUSED',
+      'caption-tree-unmounted': 'CAPTION_TREE_UNMOUNTED',
       'caption-unavailable': 'CAPTION_UNAVAILABLE',
     };
     final Object? original = _failure;
@@ -138,15 +140,27 @@ final class EntryCaptionObserver {
       _refuse('caption-unavailable');
     }
     final List<Element> all = <Element>[];
-    void visit(Element element, int depth) {
-      if (depth > 256 || all.length >= 8192 || !element.mounted) {
-        _refuse('caption-tree-refused');
+    final List<Element> pending = <Element>[root];
+    // The application's provider, theme and route ancestry can exceed a
+    // recursive depth limit. Bound total work and pending storage explicitly.
+    while (pending.isNotEmpty) {
+      final Element element = pending.removeLast();
+      if (all.length >= 8192) {
+        _refuse('caption-tree-capacity-refused');
+      }
+      if (!element.mounted) {
+        _refuse('caption-tree-unmounted');
       }
       all.add(element);
-      element.visitChildElements((Element child) => visit(child, depth + 1));
+      final List<Element> children = <Element>[];
+      element.visitChildElements((Element child) {
+        if (all.length + pending.length + children.length >= 8192) {
+          _refuse('caption-tree-capacity-refused');
+        }
+        children.add(child);
+      });
+      pending.addAll(children.reversed);
     }
-
-    visit(root, 0);
     return all;
   }
 
