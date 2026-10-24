@@ -1,5 +1,19 @@
 import 'dart:ui';
 
+import 'package:window_manager/window_manager.dart';
+
+/// One finite logical outer bound for native tracking and client correction.
+const double harnessMaximumOuterExtent = 32768;
+
+/// Configure only the fresh ordinary Windows harness, before app startup and
+/// its original geometry snapshot. Measured client matching remains mandatory.
+Future<void> configureHarnessWindowTracking() async {
+  await windowManager.ensureInitialized();
+  await windowManager.setMaximumSize(
+    const Size(harnessMaximumOuterExtent, harnessMaximumOuterExtent),
+  );
+}
+
 /// Flutter's view metrics are the client area. Native window sizes can also
 /// include a title bar and borders, so they cannot establish screenshot size.
 class ClientMetrics {
@@ -103,8 +117,8 @@ Future<ClientResizeResult> resizeClientArea({
         !next.height.isFinite ||
         next.width <= 0 ||
         next.height <= 0 ||
-        next.width > 32768 ||
-        next.height > 32768) {
+        next.width > harnessMaximumOuterExtent ||
+        next.height > harnessMaximumOuterExtent) {
       throw ClientResizeError(result);
     }
     await setOuter(next);

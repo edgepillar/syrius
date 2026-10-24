@@ -11,6 +11,7 @@ import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
 import 'package:zenon_syrius_wallet_flutter/utils/motion_binding.dart';
 
 import 'agent.dart';
+import 'client_window.dart';
 import 'native_window_owner.dart';
 import 'presentation_host.dart';
 import 'presentation_mode.dart';
@@ -86,6 +87,7 @@ Future<void> main() async {
   }
   if (Platform.isWindows) {
     HarnessAgent.instance.useNativeEntry(window: NativeWindowOwner.process());
+    await configureHarnessWindowTracking();
   }
   await HarnessAgent.start(port: port, token: token);
 
