@@ -862,7 +862,7 @@ neutral styles, Staking and Plasma Close, Plasma Cancel, Accelerator,
 Node Update and the remaining Transfer controls. It preserves original
 callbacks, warnings, busy and ownership guards, and the legacy explicit
 LoadingButton minimum. Its one known inherited import-order info has a
-mechanical prepared repair. The expected 117 visible cases and ten hidden
+mechanical prepared repair. The expected 117 visible cases and eleven hidden
 checks are source-derived inventories, not executed results. Whole-Plasma
 page appearance and native reference matching remain unqualified.
 
@@ -877,3 +877,216 @@ separate from genuine retention closure; a positive independent post-run
 receipt is required before any publication claim. None of these held
 candidates qualifies native motion, frame times or the complete 94-pair
 visual acceptance.
+
+### First combined UI qualification
+
+The first exact 37-file candidate on publication parent
+`da402c9b44a4442b26396c0ec4a7dca7c3b0c19d` has a verified negative
+closure. The index remains unchanged; all 54 post-format raw inputs and a
+reconstructable source patch are preserved with the complete original
+output. The managed task is genuinely closed with FAILURE and the known
+analyzer scratch HOLD; the lease is free and the original process group
+is absent. No held scratch was cleaned.
+
+Formatting exits 65 because one window fixture contains nullable-void
+Future syntax. Strict analysis reports fourteen errors, two warnings and
+67 infos, including a second fixture's incorrect cascade receiver. The
+test stream records 148 visible and sixteen hidden successes, two window
+loader errors and two light/dark scaled stake Cancel overflows of 14px.
+Its terminal result is invalid, so this is a failed qualification.
+Localization generation parity and the diff check pass. Root analysis
+reports fourteen errors, two warnings and 1364 infos.
+
+Narrow source corrections and the hidden lifecycle inventory are being
+reviewed before a fresh attempt. The original fifteen-hidden expectation
+is retained as part of the failed evidence and will not be rewritten.
+The actual 1GiB task limits preserve existing policy and historical tasks;
+they are not a measured peak. No UI publication or native match is claimed.
+
+At 07:22Z, the current-head GitHub API reports Fast 40072506196 successful
+and devnet-only 40072557304 failed at its integration step, both attempt 1.
+Complete-log retention and independent verification remain pending.
+
+The reviewed window and stake corrections are now applied with exact raw
+hash equality and an unchanged index. The corrected candidate has 38 changed
+paths, including the additional CancelStakeButton constraint companion,
+36 Dart files, six new files and seventeen protected inputs: 55 raw pins.
+Its existing scaled stake cases additionally assert the same cancellation
+provider, actual horizontal cell bounds and the declined original amount
+confirmation with no SDK access or refresh replay.
+
+Pinned runner source explains the corrected expected inventory of 182
+visible and eighteen hidden successes: twelve loaders, three setup-all
+hooks and three synthetic teardown-all hooks. The original failed
+expectation and results are preserved. A fresh managed six-stage attempt
+is prepared with the same 1GiB candidate, output/time limits and production
+floor. Admission is pending while another active process holds the shared
+metadata lock; that process and all historical data remain untouched.
+
+The first two private log-retention wrappers lose their capture records
+because their caller incorrectly unpacks a two-value return as three.
+Subsequent reconciliation retains the exact registered bytes under their
+original task and artifact leases. Both tasks are independently verified
+CLOSED with FAILURE and CLEANED scratch. Original command receipts remain
+unchanged: Fast records exit 0 and complete output, while devnet transport
+exit and completeness remain UNKNOWN. Neither failed local lifecycle is
+converted to success from observed CI. No transport is repeated.
+
+### Second combined UI qualification
+
+The corrected 38-path candidate has a verified negative closure with all
+55 post-format raw inputs and complete original output preserved. Formatting,
+localization parity, strict analysis and diff checks pass. Strict analysis
+has zero diagnostics; root analysis has zero errors, zero warnings and
+1297 infos. The task is genuinely CLOSED with FAILURE and the known analyzer
+scratch HOLD. Its lease is free and its original process group is absent.
+
+Tests report 167 visible and eighteen hidden successes, fifteen frame errors
+and no skips. All seventeen controller cases, scaled stake cases and other
+UI cases pass within that failed group. Four frame cases report platform
+override lifetime violations. Eleven mounted Windows cases report missing
+caption Tooltip Overlay ancestry; production has the same frame-above-
+Navigator topology. Three additional assertion failures remain preserved
+without assuming that an Overlay repair resolves them.
+
+Separate platform-lifetime and production Overlay repairs are in review.
+After two failed combined attempts, the next qualification separates the
+32 window cases plus two loaders from the remaining 150 UI cases plus
+sixteen hidden lifecycle checks. Both gates retain their original assertions
+and share one managed allocation. Metadata-intensive operations are queued
+until original log promotion and task closure finish. No fresh qualification,
+native behavior, visual match or UI publication is claimed.
+
+### Split UI qualification
+
+The third attempt preserves all 55 raw inputs and complete 371887-byte
+output with a genuine CLOSED/FAILURE outcome and analyzer scratch HOLD.
+Independent replay verifies its free lease and absent original process
+group. Formatting, localization, the remaining-UI gate, root analysis and
+diff checks pass. Strict analysis reports only one redundant import;
+root analysis has zero errors, zero warnings and 1298 infos.
+
+The separate remaining-UI gate passes all 150 visible tests and sixteen
+hidden lifecycle checks. The window gate passes 29 visible tests and two
+loaders, with three errors and no skips. Retained output identifies a real
+text-input regression: LookupBoundary hides the inherited View from the
+original body. The other two failures identify a tooltip assertion on an
+outer semantics node and an undrained original 40 ms double-tap timer.
+
+A separate caption Overlay that is a sibling of the original body is being
+prepared. It must retain body View identity, root Overlay bounds, original
+Navigator and modal ownership, pointer delivery and all original actions.
+The fixture correction must preserve every accessibility requirement on
+its actual semantics node and drain the original finite gesture timer.
+The three failed attempts remain preserved; no successful combined UI
+qualification, native match or publication is claimed from them.
+
+### Fourth UI qualification and keyboard focus correction
+
+The fourth attempt preserves all 55 raw inputs and complete 358102-byte
+output with a genuine CLOSED/FAILURE outcome and analyzer scratch HOLD.
+Independent replay verifies the original closed task, retained streams, free
+lease and absent original process group. Strict analysis has zero diagnostics;
+root analysis has zero errors, zero warnings and 1297 infos. The remaining-UI
+gate passes 150 visible tests and sixteen hidden checks. The window gate passes
+31 visible tests and two loaders with one error and no skips.
+
+The body-first Stack and sibling caption Overlay retain original View identity,
+root body Overlay bounds, text input, pointer delivery, Navigator and modal
+ownership. Tooltip assertions now inspect the actual annotation node, and one
+finite gesture-clock pump drains the original timer. The sole remaining error
+assumes that initial Tab must focus Minimize even while the body Navigator
+owns initial focus. A fixture-only correction establishes focus through the
+original supported semantic focus action, then requires Tab and Shift+Tab to
+round-trip before the unchanged Enter, Space and native operation assertions.
+All four negative attempts remain unchanged. This correction enters a fresh
+seven-gate qualification; no positive result or native match is inferred.
+
+### Isolated keyboard follow-up
+
+The fifth UI attempt also closes FAILURE with retained analyzer scratch HOLD.
+All 55 source inputs and complete 358181-byte output are independently verified;
+stdout SHA-256 is `db69d9dba5e52b25bc6e13f4010871542019d87adbb65600e0cccc73e1b5afe4`.
+Strict analysis remains at zero diagnostics, the remaining-UI gate passes
+150 visible plus sixteen hidden checks, and the window gate passes 31 visible
+plus two loaders with one error. Root analysis has zero errors, zero warnings
+and 1297 infos. The original task, free lease and absent process group are
+verified without repeating tests or changing its outcome.
+
+The actual failure is the first focused-state assertion after the supported
+semantic focus action, before Tab or native activation. A separate one-case
+probe replaces the three single focus pumps with the fixture's existing finite
+settle and requires the original Minimize FocusNode and semantics to agree.
+Every original accessibility, traversal and native operation assertion remains.
+The first probe's result is described below. All five negative full attempts
+remain preserved.
+
+The first one-case probe reaches framework end-of-test verification after the
+original focus, traversal, Enter, Space and native call-count assertions. Its
+only reported error is an active SemanticsHandle: the registered addTearDown
+disposal occurs too late for that verification. This remains a genuine
+CLOSED/FAILURE with complete 2961-byte stdout, SHA-256
+`e4618f364a23b26b3b02c3e47d982fa2af5bef2dfe7fff0d00a2d625a35f34a9`,
+a free lease, absent original process group and retained scratch HOLD.
+
+The separate correction disposes that same handle in a test-body finally block.
+Every original statement and assertion is preserved except the late disposal
+registration. The second one-case probe passes one visible case and one loader
+with zero errors, failures or skips, actual exit zero and complete output.
+Its CLOSED/SUCCESS outcome, free lease, absent original process group,
+unchanged 55 raw source inputs and retained scratch HOLD are verified. The
+1384-byte stdout has SHA-256
+`b3cb063526a12ec65f532986005977ccb4f816dfe81731514b827f1c02a83f6f`.
+This fixture correction has no production-code delta. The later full UI group
+has its own independent result, described below.
+
+### Qualified UI surfaces and original window controls
+
+Anonymous commit `579ce016618a79439bcb42ea9289399bb1ab266e` contains the 38
+qualified UI paths. Its fresh seven-gate group passes formatting, localization
+parity, zero-diagnostic strict analysis, all 32 window cases plus two loaders,
+all 150 other UI cases plus sixteen hidden checks, root analysis with zero
+errors, zero warnings and 1297 infos, and the whitespace check. There are no
+test errors, failures or skips.
+
+All 55 raw source inputs match the commit. The original command exits zero
+with complete 356429-byte stdout, SHA-256
+`108c715fec0d3221674684aa7c16bf605c8b5962a7978273e80f65f2c93877c2`,
+and empty stderr. Independent replay verifies actual CLOSED/SUCCESS, the
+original command and retained streams, a free lease, absent original process
+group and exact outcome and cleanup receipts. Analyzer scratch remains HOLD;
+no extra cleanup occurs. The 1 GiB task limit is configured capacity, not a
+measured peak. All earlier negative evidence remains unchanged.
+
+This is offline widget and source qualification. The earlier full-suite and
+native captures retain their earlier source scope; they do not qualify this
+commit. Fresh hosted Fast, Windows baseline and entry capture remain pending,
+as do all 94 visual matches, motion, frame-time and owned lab acceptance.
+
+### Token form fixture follow-up
+
+Retained diagnostics from devnet-only 40072557304 identify a stale token-form
+selector after the real interface became a four-step form. The interrupted
+local log lifecycle remains FAILURE, with transport exit and completeness
+UNKNOWN; this diagnosis does not qualify the complete log or token issuance.
+
+A held three-file correction navigates the original details, supply, options
+and issue frames using enabled controls and one finite deadline. It returns
+the original Issue control without tapping it. The original subscription
+still precedes the single submission, and the original result Future, returned
+block, success observation, 90-second wait and downstream token assertions
+remain intact. Five offline cases and one loader are source expectations;
+application, analysis, execution and fresh hosted devnet results are pending.
+
+### Target CI observation refresh
+
+At 08:45Z, bounded read-only API queries report target attempt 2 Fast
+40072431054 successful, all Linux/Windows/macOS jobs in builder 40072430810
+successful, release skipped and blockchain 40072430963 failed. Each run
+reports head da402c9b44a4442b26396c0ec4a7dca7c3b0c19d. Their earlier
+zero-job approval-gate observations remain historical records.
+
+This refresh dispatches no workflow or retry and qualifies no artifact.
+Original complete logs, source/run/platform correspondence and independent
+retention verification remain pending. These results cover the published
+repair head; the current uncommitted UI candidate is outside their scope.
