@@ -1672,3 +1672,59 @@ earlier ordinary-entry screenshots and Windows application builds do not
 qualify it. Fresh Fast, Windows baseline and native entry qualification are
 next. All 94 visual matches and the separate owned lab, full wallet lifecycle,
 motion/frame-time, seam and minimum-window/RTL acceptance remain pending.
+
+### Bounded Windows process preflight
+
+At `85a7a1a141f131265f17e24d2942dc7309de35cf`, Fast run
+[40135062207](https://github.com/edgepillar/syrius/actions/runs/40135062207)
+and Windows baseline job 120994851674 in
+[40135102175](https://github.com/edgepillar/syrius/actions/runs/40135102175)
+complete with successful terminal job metadata. Their complete original log
+verification is pending. The same Windows run fails its separate ordinary-entry
+job 120994851794 before application launch: `PREFLIGHT_FAILED`, zero captures,
+no observed application exit, no authenticated control and no window action.
+It establishes no fresh Import geometry or caption result.
+
+The original complete 47669-byte entry log has SHA-256
+`8ff5597bbd6975b45ae1f0d5ca075e845fe2bff5693b82775d47fe8361726140`.
+The 1254-byte
+[artifact 12576548269](https://github.com/edgepillar/syrius/actions/runs/40135102175/artifacts/12576548269)
+has SHA-256 `36ce884abf96e5d4bfbbfdf0debc53263dddf515543e16daf0c1e8c5779b229b`
+and contains only the 1114-byte finite failure manifest, SHA-256
+`0732a0001af40a376cd2d8833ffe02b268e498f13b18ca3ab0a10baf1a4dd9ef`.
+Both original transports, owned CAS bytes, exact source/run/job/artifact pins,
+original command and complete streams, free leases and absent original groups
+have independently verified CLOSED/SUCCESS/CLEANED retention. The native
+contract remains negative; successful retention does not relabel the CI failure.
+
+The old controller gives every admission helper five seconds and collapses
+timeout, output and helper failure into one code. Its approximately 5.7-second
+preflight interval is consistent with a timeout, but the old report cannot
+prove that cause. Anonymous `a60f4b1fc0319c708da22f0d62c18058b9c109b8`
+allows a bounded fifteen-second cold PowerShell process query and separately
+reports `PREFLIGHT_TIMEOUT` and `PREFLIGHT_OUTPUT_REFUSED`. Read-only Git queries
+retain five seconds. The process query, existing-process refusal, original
+helper handle, finite kill/wait/drain cleanup and private diagnostics remain.
+Uncertain cleanup still reports `CLEANUP_FAILED` and never permits a wallet launch.
+
+All 211 Python methods pass without failures, errors or skips, including three
+local AF_UNIX mechanics cases and seven explicit preflight regression methods.
+They cover a helper completing after five seconds, the fifteen-second refusal,
+the unchanged default helper limit, output overflow, incomplete final drain,
+uncertain cleanup and stopping entry before profile or wallet launch. These are
+offline controller tests, not native Windows observations. The original complete
+24934-byte test stream has SHA-256
+`d754fd149b440c292cf61d6ba035e3e7a7ea33d5061b3e7781f9aea50e943df8`.
+Independent replay verifies all 26 raw source inputs, original exit zero,
+CLOSED/SUCCESS/CLEANED, free lease and absence of the original group. The
+64 MiB task cap is a declared budget, not a measured physical peak. No SDK,
+dependency, reference image or archive copy is downloaded for this follow-up.
+
+Fresh Fast and ordinary-entry execution are next for the changed controller.
+Application, platform and dependency files remain unchanged from the completed
+85a7a1a141f1 baseline; that result retains its own source scope. The previous
+failed entry attempt and earlier positive four-capture contract remain separate.
+All 94 visual matches, the owned chain-321 lab, full wallet/node lifecycle and
+running-build motion, seam, frame-time and minimum-window/RTL acceptance remain
+pending. Public output remains English and excludes profiles, raw local
+diagnostics, credentials and personal identity.
