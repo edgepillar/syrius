@@ -1063,6 +1063,43 @@ native captures retain their earlier source scope; they do not qualify this
 commit. Fresh hosted Fast, Windows baseline and entry capture remain pending,
 as do all 94 visual matches, motion, frame-time and owned lab acceptance.
 
+### Shared style qualification
+
+The separate 21-path shared-style group is qualified in anonymous commit
+`b2af047763a090e4f3a39d14caa13b544151936d`, after UI publication at
+`408e4cb04767`. Shared quiet and secondary controls use the theme button height
+and stable density; explicit compact transfer controls retain their geometry.
+Callbacks, warnings, confirmation and transaction guards remain intact.
+Its initial source admission applies the
+reviewed style patch and refuses before task creation because one inherited
+fixture uses a user-directory-shaped path. A single neutral fixture path
+preserves its filename and all original assertions. The original refusal and
+unbound bytes remain preserved; no SDK execution, task, quota change or cleanup
+precedes the correction. All 41 current raw inputs are then rechecked. The
+subsequent 1 GiB candidate is refused by the unchanged 10 GiB shared scratch
+limit before task creation or SDK execution. Its recorded result remains
+UNKNOWN, with no test or analyzer result.
+
+A serialized read-only inventory observes 9720086217 logical shared scratch
+bytes. The latest successful UI task is genuinely CLOSED and retains
+136384120 logical scratch bytes; this closing observation is not its peak.
+A fresh task with both expected allocation and task cap set to 512 MiB passes
+all five original gates: formatting, zero-diagnostic strict analysis, all 117
+visible regressions plus eleven hidden checks, root analysis with zero errors,
+zero warnings and 1296 infos, and the whitespace check. There are no test
+errors, failures or skips. All 41 raw inputs match the commit. The original
+command exits zero with complete 320340-byte stdout, SHA-256
+`6033bf2acbc3c0d6017a15f590a4c8e4215d5ef77b1097506a95aab8fe3524a5`,
+and empty stderr. Independent replay verifies genuine CLOSED/SUCCESS, retained
+streams and CAS ownership, free lease, absent original process group and exact
+outcome and cleanup receipts. Analyzer scratch remains HOLD without cleanup.
+
+The 10 GiB shared scratch limit, 10 GiB free-space floor, safety margin and
+other policy fields remain unchanged. The configured 512 MiB cap is not a
+measured peak or a promise about future capacity. The unused capacity-increase
+proposal is not applied, and no historical cleanup occurs. These are offline
+results; fresh complete-suite CI and native acceptance remain separate.
+
 ### Token form fixture follow-up
 
 Retained diagnostics from devnet-only 40072557304 identify a stale token-form
