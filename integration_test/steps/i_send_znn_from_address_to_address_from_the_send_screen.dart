@@ -3,9 +3,9 @@
 
 import 'dart:async';
 
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
@@ -80,7 +80,12 @@ Future<void> iSendZnnFromAddressToAddressFromTheSendScreen(
       });
 
   try {
-    await tester.tap(find.byKey(const Key('dialog_yes_button')));
+    final Finder confirmation = find.byKey(
+      const Key('send_confirmation_accept'),
+    );
+    expect(confirmation, findsOneWidget);
+    await tester.ensureVisible(confirmation);
+    await tester.tap(confirmation);
     context.sentBlock = await _pumpUntilComplete(
       tester,
       completer.future,

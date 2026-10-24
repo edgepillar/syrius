@@ -916,6 +916,11 @@ class HarnessAgent {
     VoidCallback admission,
     VoidCallback released,
   ) async {
+    admission();
+    // Native resize completion can precede the next visible layout. Choose the
+    // pointer target after that frame, while retaining the original control.
+    await _frame();
+    admission();
     _Node control() {
       final List<_Node> hits = _snapshot()
           .where(

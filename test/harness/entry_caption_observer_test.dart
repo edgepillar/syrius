@@ -586,74 +586,88 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
   }, variant: _windows);
 
-  testWidgets('real PointerUp wiring observes pending before another paint', (
-    WidgetTester tester,
-  ) async {
-    await mount(tester);
-    native.holdMaximize = Completer<void>();
-    final HarnessAgent agent = HarnessAgent.forTest();
-    final Element button = tester.element(
-      find.descendant(
-        of: find.byKey(const ValueKey<String>('window-maximize')),
-        matching: find.byType(IconButton),
-      ),
-    );
-    final AppWindowFrameState frame = tester.state<AppWindowFrameState>(
-      find.byType(AppWindowFrame),
-    );
-    bool released = false;
-    bool releaseEntered = false;
-    bool complete = false;
-    Object? failure;
-    StackTrace? failureStack;
-    final Future<void> original = agent.tapCaptionForTest(
-      button,
-      () {
-        expectSync(frame.windowStatus!.actionPending, isFalse);
+  for (final bool resized in <bool>[false, true]) {
+    testWidgets(
+      resized
+          ? 'real caption pointer waits for resized layout before targeting'
+          : 'real PointerUp wiring observes pending before another paint',
+      (
+        WidgetTester tester,
+      ) async {
+        await mount(tester);
+        native.holdMaximize = Completer<void>();
+        final HarnessAgent agent = HarnessAgent.forTest();
+        final Element button = tester.element(
+          find.descendant(
+            of: find.byKey(const ValueKey<String>('window-maximize')),
+            matching: find.byType(IconButton),
+          ),
+        );
+        final AppWindowFrameState frame = tester.state<AppWindowFrameState>(
+          find.byType(AppWindowFrame),
+        );
+        if (resized) {
+          // Queue metrics without a paint; the old caption is outside the view.
+          tester.view.physicalSize = const Size(960, 780);
+        }
+        bool released = false;
+        bool releaseEntered = false;
+        bool complete = false;
+        Object? failure;
+        StackTrace? failureStack;
+        final Future<void> original = agent.tapCaptionForTest(
+          button,
+          () {
+            expectSync(frame.windowStatus!.actionPending, isFalse);
+          },
+          () {
+            releaseEntered = true;
+            expectSync(frame.windowStatus!.actionPending, isTrue);
+            released = true;
+          },
+        );
+        unawaited(
+          original.then<void>(
+            (_) {
+              complete = true;
+            },
+            onError: (Object error, StackTrace stack) {
+              failure = error;
+              failureStack = stack;
+              complete = true;
+            },
+          ),
+        );
+        for (int i = 0; i < 80 && !released && !complete; i++) {
+          await tester.pump(const Duration(milliseconds: 20));
+        }
+        final Object? beforeReleaseFailure = failure;
+        final Object? beforeReleaseCause =
+            beforeReleaseFailure is CaptionRefused
+            ? beforeReleaseFailure.code
+            : beforeReleaseFailure;
+        expect(
+          beforeReleaseFailure,
+          isNull,
+          reason: '$beforeReleaseCause\n$failureStack',
+        );
+        expect(
+          released,
+          isTrue,
+          reason:
+              'Release entered: $releaseEntered; '
+              'original completion: $complete; native calls: ${native.calls}',
+        );
+        // Supply no frame after observing the original release.
+        await _microtasks();
+        expect(complete, isTrue);
+        expect(failure, isNull);
+        native.holdMaximize!.complete();
+        await _microtasks();
+        await tester.pumpWidget(const SizedBox.shrink());
+        expect(tester.takeException(), isNull);
       },
-      () {
-        releaseEntered = true;
-        expectSync(frame.windowStatus!.actionPending, isTrue);
-        released = true;
-      },
+      variant: _windows,
     );
-    unawaited(
-      original.then<void>(
-        (_) {
-          complete = true;
-        },
-        onError: (Object error, StackTrace stack) {
-          failure = error;
-          failureStack = stack;
-          complete = true;
-        },
-      ),
-    );
-    for (int i = 0; i < 80 && !released && !complete; i++) {
-      await tester.pump(const Duration(milliseconds: 20));
-    }
-    final Object? beforeReleaseFailure = failure;
-    final Object? beforeReleaseCause = beforeReleaseFailure is CaptionRefused
-        ? beforeReleaseFailure.code
-        : beforeReleaseFailure;
-    expect(
-      beforeReleaseFailure,
-      isNull,
-      reason: '$beforeReleaseCause\n$failureStack',
-    );
-    expect(
-      released,
-      isTrue,
-      reason:
-          'Release entered: $releaseEntered; '
-          'original completion: $complete; native calls: ${native.calls}',
-    );
-    await _microtasks(); // No frame is supplied after the release observation.
-    expect(complete, isTrue);
-    expect(failure, isNull);
-    native.holdMaximize!.complete();
-    await _microtasks();
-    await tester.pumpWidget(const SizedBox.shrink());
-    expect(tester.takeException(), isNull);
-  }, variant: _windows);
+  }
 }
