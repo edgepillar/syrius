@@ -41,6 +41,7 @@ CHECKS = (
 CODES = frozenset((
     "ARGUMENTS_REFUSED", "ENVIRONMENT_REFUSED", "SOURCE_REFUSED",
     "BINARY_REFUSED", "PROFILE_REFUSED", "PREFLIGHT_FAILED",
+    "PREFLIGHT_TIMEOUT", "PREFLIGHT_OUTPUT_REFUSED",
     "EXISTING_PROCESS", "LAUNCH_FAILED", "READINESS_TIMEOUT",
     "PROCESS_EXITED", "IDENTITY_REFUSED", "MODE_REFUSED",
     "HTTP_FAILED", "RESPONSE_INVALID", "AUTH_REFUSAL_INVALID",
@@ -512,7 +513,7 @@ class PresentationSmoke:
         return self.report.public()
 
 
-def fixed_command(arguments, *, cwd, env, cap=0):
+def fixed_command(arguments, *, cwd, env, cap=0, timeout=5):
     """Bounded admission helpers also retain their own original Popen handles."""
     process = drain = None
     try:
@@ -522,11 +523,14 @@ def fixed_command(arguments, *, cwd, env, cap=0):
             stderr=subprocess.DEVNULL,
         )
         drain = OutputDrain(process.stdout, cap, retain=True) if cap else None
-        code = process.wait(timeout=5)
+        code = process.wait(timeout=timeout)
         if drain is not None and (not drain.finish(1) or drain.overflow.is_set()):
-            raise SmokeFailure("PREFLIGHT_FAILED")
+            raise SmokeFailure("PREFLIGHT_OUTPUT_REFUSED")
         return code, bytes(drain.data) if drain is not None else b""
-    except (Exception, KeyboardInterrupt):
+    except (Exception, KeyboardInterrupt) as error:
+        failure = (error.code if isinstance(error, SmokeFailure)
+                   else "PREFLIGHT_TIMEOUT" if isinstance(error, subprocess.TimeoutExpired)
+                   else "PREFLIGHT_FAILED")
         if process is not None:
             try:
                 if process.poll() is None:
@@ -536,7 +540,7 @@ def fixed_command(arguments, *, cwd, env, cap=0):
                 raise SmokeFailure("CLEANUP_FAILED") from None
         if drain is not None and not drain.finish(1):
             raise SmokeFailure("CLEANUP_FAILED") from None
-        raise SmokeFailure("PREFLIGHT_FAILED") from None
+        raise SmokeFailure(failure) from None
 
 
 def verify_source(repo, expected, parent, *, run=fixed_command):
@@ -572,7 +576,8 @@ def check_no_existing(repo, parent, *, run=fixed_command):
     powershell = Path(parent["SYSTEMROOT"]) / "System32/WindowsPowerShell/v1.0/powershell.exe"
     code, _ = run(
         [str(powershell), "-NoLogo", "-NoProfile", "-NonInteractive", "-Command", PREFLIGHT],
-        cwd=repo, env=parent,
+        # Allow bounded cold PowerShell startup without changing Git helper limits.
+        cwd=repo, env=parent, timeout=15,
     )
     if code == 23:
         raise SmokeFailure("EXISTING_PROCESS")

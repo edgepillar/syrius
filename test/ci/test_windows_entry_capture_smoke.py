@@ -4,6 +4,7 @@ import base64
 import copy
 import hashlib
 import importlib.util
+import io
 import json
 from pathlib import Path, PureWindowsPath
 import struct
@@ -1025,6 +1026,36 @@ class AdmissionArtifactTests(unittest.TestCase):
         self.assertNotIn("inherited-private", env.values())
         for key in ("GITHUB_TOKEN", "HTTP_PROXY", "SYRIUS_HARNESS_PRESENTATION", "SYRIUS_HARNESS_SEED"):
             self.assertNotIn(key, env)
+
+    def test_preflight_diagnostics_stop_before_profile_or_wallet_launch(self):
+        for code in ("PREFLIGHT_TIMEOUT", "PREFLIGHT_OUTPUT_REFUSED"):
+            with self.subTest(code=code), tempfile.TemporaryDirectory() as location:
+                repo = Path(location)
+                parent = {"GITHUB_WORKSPACE": str(repo), "GITHUB_RUN_ID": "4001",
+                          "GITHUB_RUN_ATTEMPT": "2"}
+                with patch.object(smoke, "require_ci", return_value=(parent, SOURCE)), \
+                        patch.object(smoke.Path, "cwd", return_value=repo), \
+                        patch.object(smoke.bounded, "verify_source"), \
+                        patch.object(smoke, "source_tree", return_value=TREE), \
+                        patch.object(smoke.bounded, "binary_hash", return_value=(repo, "2" * 64, (1, 2, 3, 4))), \
+                        patch.object(smoke.bounded, "check_no_existing", side_effect=smoke.bounded.SmokeFailure(code)), \
+                        patch.object(smoke, "new_profile") as profile, \
+                        patch.object(smoke.subprocess, "Popen") as launch, \
+                        patch("sys.stdout", new_callable=io.StringIO) as output:
+                    result = smoke.main([])
+                self.assertEqual(result, 1)
+                public = json.loads(output.getvalue())
+                self.assertEqual(public["error_codes"], [code])
+                self.assertFalse(public["success"])
+                self.assertFalse(public["checks"]["preflight"])
+                self.assertEqual(public["captures"], [])
+                self.assertFalse(public["exit_observed"])
+                profile.assert_not_called()
+                launch.assert_not_called()
+                self.assertNotIn(location, output.getvalue())
+                self.assertNotIn(TOKEN, output.getvalue())
+                manifest = json.loads((repo / smoke.OUTPUT / "manifest.json").read_bytes())
+                self.assertEqual(manifest, public)
 
     def test_source_tree_is_exact_bounded_and_dirty_source_is_rejected(self):
         calls = []

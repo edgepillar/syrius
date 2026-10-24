@@ -497,10 +497,81 @@ class AdmissionTests(unittest.TestCase):
         with patch.object(smoke.subprocess, "Popen", return_value=original), \
                 self.assertRaises(smoke.SmokeFailure) as failure:
             smoke.fixed_command(["fixed-helper"], cwd=Path("checkout"), env={})
-        self.assertEqual(failure.exception.code, "PREFLIGHT_FAILED")
+        self.assertEqual(failure.exception.code, "PREFLIGHT_TIMEOUT")
         self.assertEqual(original.kill_count, 1)
         self.assertEqual(unrelated.kill_count, 0)
         self.assertEqual(original.waits, [5, 5])
+
+    def test_process_preflight_allows_a_bounded_slow_powershell_start(self):
+        original = OriginalProcess()
+
+        def wait(timeout):
+            original.waits.append(timeout)
+            if timeout < 6:
+                raise subprocess.TimeoutExpired(TOKEN, timeout)
+            original.returncode = 0
+            return 0
+
+        original.wait = wait
+        parent = {"SYSTEMROOT": "system-root"}
+        with patch.object(smoke.subprocess, "Popen", return_value=original) as launch:
+            smoke.check_no_existing(Path("checkout"), parent)
+        self.assertEqual(original.waits, [15])
+        self.assertEqual(original.kill_count, 0)
+        self.assertEqual(launch.call_args.args[0][-1], smoke.PREFLIGHT)
+        self.assertFalse(launch.call_args.kwargs["shell"])
+        self.assertEqual(launch.call_args.kwargs["stdout"], subprocess.DEVNULL)
+        self.assertEqual(launch.call_args.kwargs["stderr"], subprocess.DEVNULL)
+
+    def test_process_preflight_timeout_keeps_the_original_helper_and_deadline(self):
+        original = OriginalProcess()
+        unrelated = OriginalProcess()
+        with patch.object(smoke.subprocess, "Popen", return_value=original), \
+                self.assertRaises(smoke.SmokeFailure) as failure:
+            smoke.check_no_existing(Path("checkout"), {"SYSTEMROOT": "system-root"})
+        self.assertEqual(failure.exception.code, "PREFLIGHT_TIMEOUT")
+        self.assertEqual(original.waits, [15, 5])
+        self.assertEqual(original.kill_count, 1)
+        self.assertEqual(unrelated.kill_count, 0)
+
+    def test_helper_output_overflow_is_distinct_from_a_timeout(self):
+        original = OriginalProcess()
+        original.close_requested = True
+        original.stdout = io.BytesIO(TOKEN.encode())
+        with patch.object(smoke.subprocess, "Popen", return_value=original), \
+                self.assertRaises(smoke.SmokeFailure) as failure:
+            smoke.fixed_command(["fixed-helper"], cwd=Path("checkout"), env={}, cap=2)
+        self.assertEqual(failure.exception.code, "PREFLIGHT_OUTPUT_REFUSED")
+        self.assertEqual(original.kill_count, 0)
+        self.assertEqual(original.waits, [5, 5])
+
+    def test_incomplete_helper_output_requires_a_positive_final_drain(self):
+        original = OriginalProcess()
+        original.close_requested = True
+        original.stdout = io.BytesIO()
+        drain = Drain()
+        for final, expected in ((True, "PREFLIGHT_OUTPUT_REFUSED"), (False, "CLEANUP_FAILED")):
+            with self.subTest(final_drain=final), \
+                    patch.object(smoke.subprocess, "Popen", return_value=original), \
+                    patch.object(smoke, "OutputDrain", return_value=drain), \
+                    patch.object(drain, "finish", side_effect=[False, final]), \
+                    self.assertRaises(smoke.SmokeFailure) as failure:
+                smoke.fixed_command(["fixed-helper"], cwd=Path("checkout"), env={}, cap=2)
+            self.assertEqual(failure.exception.code, expected)
+        self.assertEqual(original.kill_count, 0)
+
+    def test_uncertain_helper_cleanup_overrides_timeout_without_exposing_detail(self):
+        original = OriginalProcess()
+        original.kill_error = RuntimeError(TOKEN)
+        with patch.object(smoke.subprocess, "Popen", return_value=original), \
+                self.assertRaises(smoke.SmokeFailure) as failure:
+            smoke.fixed_command(["fixed-helper"], cwd=Path("checkout"), env={})
+        self.assertEqual(failure.exception.code, "CLEANUP_FAILED")
+        report = smoke.Report()
+        report.fail(failure.exception.code, original.kill_error)
+        public = json.dumps(report.public())
+        self.assertNotIn(TOKEN, public)
+        self.assertEqual(report.public()["error_codes"], ["CLEANUP_FAILED"])
 
     def test_selected_runner_and_debug_kernel_have_separate_hashes(self):
         with tempfile.TemporaryDirectory() as temporary:
