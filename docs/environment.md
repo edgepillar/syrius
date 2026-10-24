@@ -1240,6 +1240,82 @@ complete output and independent genuine retention-closure verification. The
 512 MiB expected allocation and task cap are not a measured peak. The approved
 12 GiB shared limit preserves the 10 GiB floor and all other quotas.
 
+### Caption-head hosted qualification and follow-up
+
+Published source `bcc26fee2ca52bb4a1abdbe21f502c78679e88d4` completes fork
+Fast run 40098246659 attempt 1 with all thirteen job steps successful. The
+terminal 4347 unit/widget successes match 4347 independent success records,
+with the one exact existing receive-block skip. All 202 Python methods,
+vendored zero-diagnostic analysis and generation consistency pass. Root
+analysis retains 1296 infos with zero errors or warnings. The complete
+1116753-byte job log has SHA-256
+`702cb155c509ab8f6c304cc754cbb11c2c59a2ac250a2a6f27362b9120c3365d`.
+
+At the same source, scoped run 40098338600 attempt 1 passes baseline job
+120885182241, including every cache post-step and all twelve controller
+checks. It retains 4346 visible and 506 hidden successes, two existing skips,
+4854 terminal events and no test error events. Locked restoration, generation
+and localization correspondence, Debug/Release builds, Windows doctor and all
+three DLL map/export probes pass. Root analysis retains zero errors, zero
+warnings and 1296 infos; vendored analysis has zero diagnostics. The complete
+40036-byte job log has SHA-256
+`b36fc6c1730b623b7305c17370251ec3d9fcbda92b006d80b9dce0b875503610`.
+Optional inventory includes a Windows inventory timeout and unavailable Pillow;
+full owner installation, DLL ABI invocation, node and wallet startup remain
+unqualified.
+
+Both logs have independently replayed source/run/attempt and before/after API
+metadata, original transport exit zero and complete streams, owned CAS,
+genuine CLOSED/SUCCESS/CLEANED retention, free task/artifact leases and absent
+original groups. This qualifies their exact source, not the subsequent edits.
+
+The same scoped run fails entry job 120885182389 at `caption_bind`, before any
+caption action. Four actual 1280x780 captures have valid bounded PNG records.
+Original process exit zero and complete output are observed; original window
+and entry restoration remain unqualified. The first refusal is collapsed to
+`COMMAND_FAILED`, and subsequent restoration is held. The complete 48895-byte
+job log has SHA-256
+`a897d76f1d58e05a958a9fa3a02401e6c1f85175e4e162ed75a7257151ec3b21`.
+The 561228-byte archive has SHA-256
+`c12e3f831f0ed8cae719fe50da6b397de170f034578ed680419ecda5a97def0a`.
+Its negative contract is independently replayed against archive members,
+individual PNG CAS and original command, genuine CLOSED/SUCCESS/CLEANED
+retention, free original leases and an absent original transport group. This
+successful retention does not convert the native failure into acceptance.
+An initial local retainer launch fails to locate `gh` before any task or
+transport; that failure is preserved separately from the corrected launch.
+
+Devnet job 120885182372 fails its first Fuse Plasma UI scenario because its
+fixture omits `SendTransactionBloc`. It stops while rendering, before this
+scenario submits a transaction. The original 360192-byte log has SHA-256
+`3718e75b7e78fa7d5f7749c0eb2206bd7ca7dc59adf1ff8311ee28db479b3033`.
+Both failed-job logs have independently verified original complete transport,
+matching source/job metadata, owned CAS and CLOSED/SUCCESS/CLEANED retention.
+No transport is repeated, and the failures keep their original outcomes.
+
+Anonymous follow-up `4c0de7a7def2994ecdaa31b45788f12f8b0b70b6` preserves the
+first fixed caption refusal across the harness boundary. Arbitrary remote
+errors, original diagnostics and stacks are excluded; unknown values remain
+`CAPTION_HELD` or `COMMAND_FAILED`. Caption codes are admitted only in their
+finite command phases. Original holds, controls, Futures, budgets and refusal
+of replay remain. The Fuse Plasma test host owns its missing sender; original
+borrowed balances, subscription, submission and completion assertions remain.
+
+All six fresh local gates pass against 31 raw inputs: 205 Python methods,
+20 Dart cases plus two loaders, zero strict diagnostics across four Dart
+paths, root zero errors and warnings with 1296 infos, formatting and whitespace
+checks. Original exit zero, complete 251666-byte stdout, SHA-256
+`750dfc107a669882c7ad6962ae7ad828a3d5c5abd21488c730a59b80be29cc18`,
+empty stderr, every stage range and summary, original command/CAS and exact
+source are replayed independently. Genuine CLOSED/SUCCESS, free lease and
+absent original group are verified; analyzer scratch remains HOLD. The first
+admission refuses an overlong task identifier before task/SDK creation. The
+next full attempt passes tests but fails one test-only cascade diagnostic,
+retaining genuine CLOSED/FAILURE/HOLD and complete original output. Only the
+cascade initialization changes before the successful batch. All prior outcomes
+remain preserved. The 512 MiB expected allocation and cap are not a measured
+peak. Fresh hosted caption diagnosis and fusion execution remain pending.
+
 ### Target CI observation refresh
 
 At 08:45Z, bounded read-only API queries report target attempt 2 Fast
