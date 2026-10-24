@@ -1517,7 +1517,7 @@ confirmation control is absent. The complete 346783-byte original log has
 SHA-256
 `5f1b5fc5a37ceb83ba8c3022898d6539a1443db6831d76dbb723e5d980564311`.
 The source/run/job binding, all eighteen terminal step outcomes, original
-exit zero, complete streams, owned CAS, genuine CLOSED/SUCCESS/CLEANED,
+log transport exit zero, complete streams, owned CAS, genuine CLOSED/SUCCESS/CLEANED,
 free leases and absent original group are independently verified. The
 retention was initially provisional while API step metadata lagged; that
 metadata is now reconciled from the retained original evidence. No transport
@@ -1555,3 +1555,66 @@ Fresh hosted Send behavior remains pending. Native entry/caption runtime
 inputs and baseline application/platform/dependency inputs remain unchanged,
 with their exact earlier scopes retained. No real-wallet or production
 acceptance is established, and all 94 visual matches remain pending.
+
+
+### Complete hosted qualification of the Transfer repair
+
+At `27938b9bc54613bbe4e28fa1253b21f0dcf271e7`, tree
+`b47ee0488379202cd99e3c2102458278625056dc`, both fresh workflows complete
+successfully at attempt 1. This is the documentation carry of the repaired
+code in `b2b25f1bd9ccb01aba5627de8b0791760c1018e0`.
+
+[Fast 40122053184](https://github.com/edgepillar/syrius/actions/runs/40122053184),
+job 120955556893, passes all thirteen steps, including every post-step,
+205 Python methods, zero-diagnostic vendored analysis, application and
+integration analysis with zero errors, zero warnings and 1295 infos, locked
+dependency installation and generation correspondence. Its terminal
+reporter records 4355 passing tests and the one existing receive-block
+skip; the original log separately contains 4325 individual success
+lines. These are separate reporter measures. The complete 1117553-byte
+original log has SHA-256 `73cd3e354f9754303a234337ff1a46831b9cfdb338c29d55502322f9600e8b94`.
+
+[Devnet 40122141453](https://github.com/edgepillar/syrius/actions/runs/40122141453),
+job 120955822285, passes all six feature files: Pillar registration, Sentinel
+registration, stake, token issuance, Plasma fusion and Send. Each reports
+one passing test with no failed or skipped scenario. All eighteen job steps
+have terminal outcomes: seventeen succeed and the conditional failure-only
+log dump is skipped. Original transaction, amount, subscription, confirmation
+and on-chain assertions remain intact. The complete 258482-byte
+original log has SHA-256 `110bd8e3007d95cb12b184c163cfb25771adb7cccd50af4949dfa12804b218df`. This is chain-69 devnet evidence;
+the separate owned chain-321 lab and real-wallet acceptance remain unqualified.
+
+Previously queued Fast logs are now retained at their original sources.
+At `efeca119cf2f9b43962a22aba091bc48e0b2b6bb`, job 120926938527 in
+40112488091 passes all thirteen steps; its terminal reports 4352
+passing tests with one existing skip and 4322 individual success
+lines. The 1117841-byte log has SHA-256 `9072d9d097b26678d3cab30eb679179374d80786a58bef809c11d324b2a29d4c`.
+At `193f3ad437ebbff6bec12efeee17b411c49aabf8`, job 120938667501 in
+40116467804 passes all thirteen steps; its terminal reports 4352
+passing tests with one existing skip and 4322 individual success
+lines. The 1116219-byte log has SHA-256 `a967b1a6f12ec23c91418bdf54da9d435d4b18b4bf212caaad736f8681396bfa`.
+
+All four original transports exit zero with complete bounded streams and
+empty stderr. Source/run/attempt/workflow/job/step metadata, original command
+receipts, rehashed CAS objects, genuine CLOSED/SUCCESS/CLEANED retention,
+free task and artifact leases, and absence of the original process groups
+are independently verified. Earlier failures and UNKNOWN attempts keep
+their actual outcomes. Completed transports, native tests and CI are not
+repeated to produce this reconciliation.
+
+The accepted entry/caption contract remains pinned to `efeca119cf2f`, with
+eighteen original checks, four caption checks and four genuine captures.
+Only documentation, integration fixtures and their offline test change
+between that source and this qualification; native runtime inputs are
+unchanged. Application, platform, dependencies and the baseline controller
+also remain unchanged from the qualified `bcc26fee2ca5` Windows baseline.
+The final publication tail changes these two progress documents only.
+No unchanged CI retry is used for that tail.
+
+All 94 visual matches, 90 other actual captures, the complete formal pair
+review, running-build motion/shader/frame-time and seam checks, minimum-window
+and Arabic-layout acceptance, owned lab checkpoints, complete wallet/node
+startup and production acceptance remain pending. Password migration and
+full two-sided Swap terms remain seamed. The inherited informational
+analysis backlog remains. No match or full acceptance is inferred from
+these positive finite results.
