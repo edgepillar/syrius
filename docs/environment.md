@@ -2918,3 +2918,46 @@ list without a shell. The package configuration must already exist after SDK
 setup; it is not generated or replaced by the controller. This argument
 correspondence is checked before another hosted attempt, rather than repeating
 the earlier source unchanged.
+
+### First owned debug startup and typed-client correction
+
+Source `0f0bb628d12d41cba9ef2add505c2661cb76f707`, tree
+`2e7e6b20d9038af420bbf4f3129c1c590f533dbd`, run `40240816505`, attempt one,
+job `121312004458`, passes thirty Python and eight frontend policy cases on
+Windows. Dart analysis exits zero with zero errors, zero warnings and nine
+infos. The actual SDK run starts the ordinary application. Its private
+harness identity, original executable and membership in the owned Windows
+job are verified. The tool reports a VM service and DevTools availability.
+
+The typed probe fails before VM/root binding. Its exit is one; 136 output
+bytes are complete without overflow, SHA-256
+`98e0cc9992cb0d08c0fb19c93c9d188c62ea60a72baab24c614de1b0bad8c50d`.
+Raw probe output has not been inspected. The parent records forced cleanup;
+its zero bootstrap exit cannot establish successful application or tool exit.
+No breakpoint, reload, restart, frontend connection or wallet acceptance is
+established. The manifest is uploaded separately; no local artifact transport
+or retention is claimed.
+
+The candidate launches the typed client directly in the Dart VM with the
+existing application package configuration. This removes implicit package
+resolution from `dart run`; the original output's cause remains unclassified.
+Any new nonprotocol startup line records only a fixed shape code, byte count
+and SHA-256. It cannot complete or replay the reserved bind request. The
+candidate also addresses the nine newly introduced analyzer infos, including
+the counter return, typed callback and long lines; a fresh analysis is required
+before calling those diagnostics resolved.
+
+Shutdown requests the ordinary harness's existing `quit` operation once and
+requires its exact acknowledgement, original application zero exit, observed
+tool stop event and original tool zero exit. A missing acknowledgement is
+uncertain and is never retried. This uses the application's normal window-close
+path: the pinned Flutter [desktop stop implementation](https://github.com/flutter/flutter/blob/3.47.7/packages/flutter_tools/lib/src/desktop_device.dart)
+calls process termination, which cannot substitute for a graceful close.
+This close path was not reached by the failed attempt.
+
+All thirty-six controller cases pass locally in memory, including startup
+projection/privacy, a reserved failed bind and positive, invalid or uncertain
+ordinary-close acknowledgements. Frontend code retains its unchanged eight
+hosted cases. Static Python/frontend gates now precede Flutter setup to avoid
+SDK allocation when those gates fail. Analysis still runs independently after
+successful SDK/dependency setup; native execution requires all earlier gates.

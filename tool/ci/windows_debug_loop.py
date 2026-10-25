@@ -39,12 +39,13 @@ CHECKS = ('environment', 'source', 'profile', 'preflight', 'job_owned',
           'breakpoint_hit', 'hot_reload', 'reload_state_preserved', 'hot_restart',
           'restart_state_reset', 'devtools_available', 'probe_closed',
           'frontend_job_owned', 'frontend_attached', 'frontend_exit',
-          'application_exit', 'tool_exit', 'output_complete', 'source_unchanged')
+          'close_ack', 'application_exit', 'tool_exit', 'output_complete', 'source_unchanged')
 CODES = protocol.CODES | frozenset(('ENVIRONMENT_REFUSED', 'PROFILE_REFUSED',
     'SOURCE_REFUSED', 'TOOL_REFUSED', 'JOB_REFUSED', 'PROCESS_REFUSED',
     'APPLICATION_EXIT_UNCONFIRMED', 'TOOL_EXIT_UNCONFIRMED', 'PROBE_REFUSED',
     'PROBE_EXIT_UNCONFIRMED', 'ENTRY_REFUSED', 'READINESS_TIMEOUT', 'TOTAL_DEADLINE',
-    'APPLICATION_EXIT_FAILED', 'INTERNAL_ERROR', 'FORCED_CLEANUP', 'ANALYSIS_FAILED'))
+    'APPLICATION_EXIT_FAILED', 'INTERNAL_ERROR', 'FORCED_CLEANUP', 'ANALYSIS_FAILED',
+    'CLOSE_UNCONFIRMED'))
 DART_CODES = frozenset(('PID_REFUSED', 'ISOLATE_REFUSED', 'MARKER_REFUSED',
     'BREAKPOINT_REFUSED', 'SERVICE_OUTPUT_REFUSED', 'SERVICE_IO_REFUSED',
     'INPUT_REFUSED', 'CLOSE_UNCONFIRMED'))
@@ -194,11 +195,16 @@ class Tool:
 
 class Probe:
     def __init__(self, dart, repo, env):
-        self.original = subprocess.Popen([str(dart), 'run',
+        packages = repo / '.dart_tool/package_config.json'
+        need(packages.is_file(), 'TOOL_REFUSED')
+        bounded.plain(packages)
+        self.original = subprocess.Popen([str(dart), '--disable-dart-dev',
+            '--packages=' + str(packages),
             'tool/ci/windows_debug_service_probe.dart'], cwd=repo, env=env, shell=False,
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=0)
         self.lines = Lines(self.original.stdout)
         self.reserved = set()
+        self.failure = None
 
     def command(self, action, tool, **values):
         need(action in ('bind', 'breakpoint', 'reload', 'restart', 'close')
@@ -216,6 +222,7 @@ class Probe:
             try:
                 value = json.loads(raw)
             except (ValueError, UnicodeError):
+                self.failure = probe_line_observation(raw)
                 raise ProcessRefused('PROBE_REFUSED') from None
             phase = 'bound' if action == 'bind' else 'closed' if action == 'close' else action
             if type(value) is dict and value.get('ok') is False and value.get('code') in CODES:
@@ -231,6 +238,33 @@ class Probe:
                 need(value == dict(ok=True, phase=phase, debugLoopQualified=False), 'PROBE_REFUSED')
             return
         raise ProcessRefused('PROBE_REFUSED')
+
+
+def probe_line_observation(raw):
+    """Classify only fixed startup shapes; preserve no line or private detail."""
+    code = 'UNCLASSIFIED_OUTPUT'
+    if raw.startswith((b'Resolving dependencies', b'Downloading packages')):
+        code = 'PUB_RESOLUTION'
+    elif raw.startswith(b'Building package executable'):
+        code = 'PUB_EXECUTABLE_BUILD'
+    elif raw.startswith(b'Unhandled exception:'):
+        code = 'UNHANDLED_EXCEPTION'
+    elif re.search(rb'\bError:', raw):
+        code = 'COMPILE_OR_USAGE_ERROR'
+    elif raw.startswith(b'The Dart VM service is listening'):
+        code = 'VM_SERVICE_LISTENER'
+    return dict(code=code, bytes=len(raw), sha256=hashlib.sha256(raw).hexdigest())
+
+
+def request_close(transport, token):
+    """One ordinary close request; a lost acknowledgement is never retried."""
+    try:
+        reply = transport.exchange(dict(cmd='quit'), token, 5)
+        value = json.loads(reply.body)
+        need(reply.status == 200 and type(value) is dict and set(value) == {'ok'}
+             and value['ok'] is True, 'CLOSE_UNCONFIRMED')
+    except Exception:
+        raise ProcessRefused('CLOSE_UNCONFIRMED') from None
 
 
 class Frontend:
@@ -323,7 +357,7 @@ def analyze(parent, repo):
                         if (re.fullmatch(r'[A-Z][A-Z0-9_]{0,95}', code)
                                 and line.isascii() and line.isdigit()
                                 and column.isascii() and column.isdigit()):
-                            relative = fields[3].replace('\\', '/').casefold()
+                            relative = re.sub('/+', '/', fields[3].replace('\\', '/')).casefold()
                             selected = ('service_probe' if relative.endswith('/tool/ci/windows_debug_service_probe.dart')
                                         else 'harness_entry' if relative.endswith('/harness/app/main.dart') else 'other')
                             locations.append(dict(source=selected, code=code,
@@ -427,7 +461,9 @@ def main(arguments=None):
         frontend.attach(tool, pid)
         checks['frontend_attached'] = checks['frontend_exit'] = True
         report['devtools_attached'] = True
-        tool.command('app.stop', seconds=30)
+        report['close_attempted'] = True
+        request_close(transport, token)
+        checks['close_ack'] = True
         need(job.application_exit() == 0, 'APPLICATION_EXIT_FAILED')
         checks['application_exit'] = True
         tool.until(lambda: tool.exit is not None and tool.protocol._stopped, 20)
@@ -461,6 +497,7 @@ def main(arguments=None):
             probe.lines.finish()
             report['probe_output'] = probe.lines.public()
             report['probe_exit'] = probe.original.returncode
+            report['probe_failure'] = probe.failure
         if job is not None:
             job.close()
             report['forced_cleanup'] |= job.forced

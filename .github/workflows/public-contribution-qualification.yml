@@ -284,24 +284,6 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: stable
-          cache: true
-
-      - name: Restore locked dependencies
-        run: |
-          flutter pub get --enforce-lockfile
-          git diff --exit-code -- pubspec.lock analysis_options.yaml
-
-      - name: Generate source metadata
-        run: dart run tool/generate_git_metadata.dart
-
-      - name: Enable Windows desktop
-        run: flutter config --enable-windows-desktop
-
       - name: Test finite debug protocol and controller boundaries
         run: python -B -m tool.ci.run_debug_tests
 
@@ -313,8 +295,28 @@ jobs:
       - name: Test frontend socket and request bindings in memory
         run: node --test --test-isolation=none test/ci/windows_devtools_frontend.test.mjs
 
+      - name: Set up Flutter
+        id: debug_flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Restore locked dependencies
+        id: debug_dependencies
+        run: |
+          flutter pub get --enforce-lockfile
+          git diff --exit-code -- pubspec.lock analysis_options.yaml
+
+      - name: Generate source metadata
+        run: dart run tool/generate_git_metadata.dart
+
+      - name: Enable Windows desktop
+        run: flutter config --enable-windows-desktop
+
       - name: Analyze the debug service client and harness entry
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.debug_flutter.outcome == 'success' && steps.debug_dependencies.outcome == 'success' }}
         timeout-minutes: 5
         run: python -B tool/ci/windows_debug_loop.py --analyze
 

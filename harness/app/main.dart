@@ -28,8 +28,7 @@ int harnessDebugLoopMarker() {
       Platform.environment['GITHUB_ACTIONS'] != 'true') {
     throw StateError('debug marker requires the isolated CI profile');
   }
-  _debugLoopVisits += 1; // SYRIUS_DEBUG_BREAKPOINT
-  return _debugLoopVisits;
+  return _debugLoopVisits += 1; // SYRIUS_DEBUG_BREAKPOINT
 }
 
 Future<void> main() async {

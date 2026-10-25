@@ -162,12 +162,12 @@ final class _OriginalService {
         _need(utf8.encode(message).length <= 32768, 'SERVICE_OUTPUT_REFUSED');
         socket.add(message);
       },
-      disposeHandler: () => socket.close(),
+      disposeHandler: socket.close,
       streamClosed: closed.future,
       wsUri: address,
     );
     _service = service;
-    _pid = requestedPid as int;
+    _pid = requestedPid! as int;
     await _root();
     _bound = true;
     _phase = 'bound';
@@ -212,18 +212,29 @@ final class _OriginalService {
     try {
       final Future<vm.Response> invocation = _invoke();
       // Consume a failed invocation while waiting for its corresponding event.
-      unawaited(invocation.then<void>((_) {}, onError: (Object _, StackTrace __) {
-        if (!hit.isCompleted) hit.completeError(const _Refused('BREAKPOINT_REFUSED'));
-      }));
+      unawaited(
+        invocation.then<void>(
+          (_) {},
+          onError: (Object error, StackTrace stackTrace) {
+            if (!hit.isCompleted) {
+              hit.completeError(const _Refused('BREAKPOINT_REFUSED'));
+            }
+          },
+        ),
+      );
       await hit.future.timeout(_requestLimit);
-      await service.removeBreakpoint(_isolate!, point.id!).timeout(_requestLimit);
+      await service
+          .removeBreakpoint(_isolate!, point.id!)
+          .timeout(_requestLimit);
       await service.resume(_isolate!).timeout(_requestLimit);
       resumed = true;
       _value(await invocation, '1');
       _phase = 'breakpoint';
     } finally {
       if (!resumed) {
-        final vm.Isolate isolate = await service.getIsolate(_isolate!).timeout(_requestLimit);
+        final vm.Isolate isolate = await service
+            .getIsolate(_isolate!)
+            .timeout(_requestLimit);
         if (isolate.pauseEvent?.kind == 'PauseBreakpoint') {
           await service.resume(_isolate!).timeout(_requestLimit);
         }
@@ -301,7 +312,9 @@ Future<void> main(List<String> arguments) async {
         _need(original._bound, 'SEQUENCE_REFUSED');
         await original.close();
         closed = true;
-        stdout.writeln(jsonEncode(<String, Object>{'ok': true, 'phase': 'closed'}));
+        stdout.writeln(
+          jsonEncode(<String, Object>{'ok': true, 'phase': 'closed'}),
+        );
         break;
       } else {
         throw const _Refused('INPUT_REFUSED');

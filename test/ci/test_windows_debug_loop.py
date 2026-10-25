@@ -200,5 +200,56 @@ class FrontendTests(unittest.TestCase):
         self.assertEqual(len(worker.original.stdin.getvalue().splitlines()), 2)
 
 
+class ProbeStartupTests(unittest.TestCase):
+    def test_known_startup_shape_projects_only_finite_code_size_and_hash(self):
+        value = debug.probe_line_observation(b'Resolving dependencies... private-context\n')
+        self.assertEqual(value['code'], 'PUB_RESOLUTION')
+        self.assertEqual(set(value), {'code', 'bytes', 'sha256'})
+        self.assertNotIn('private', json.dumps(value))
+
+    def test_unknown_startup_text_is_hashed_without_exposing_it(self):
+        value = debug.probe_line_observation(b'private-auth-address and private-source-path\n')
+        self.assertEqual(value['code'], 'UNCLASSIFIED_OUTPUT')
+        self.assertNotIn('private', json.dumps(value))
+
+    def test_failed_original_bind_is_reserved_and_cannot_be_reissued(self):
+        probe = debug.Probe.__new__(debug.Probe)
+        probe.original, probe.reserved, probe.failure = Process(), set(), None
+        probe.lines = debug.Lines(io.BytesIO(b'Resolving dependencies...\n'))
+        probe.lines.thread.join(1)
+        tool = mock.Mock()
+        for _ in range(2):
+            with self.assertRaises(debug.ProcessRefused):
+                probe.command('bind', tool, pid=1234, wsUri=VM)
+        self.assertEqual(probe.failure['code'], 'PUB_RESOLUTION')
+        self.assertEqual(len(probe.original.stdin.getvalue().splitlines()), 1)
+
+
+class OrdinaryCloseTests(unittest.TestCase):
+    def test_close_ack_is_separate_from_original_process_exit(self):
+        transport = mock.Mock()
+        transport.exchange.return_value = types.SimpleNamespace(status=200, body=b'{"ok":true}')
+        self.assertIsNone(debug.request_close(transport, 'fixture-token'))
+        transport.exchange.assert_called_once_with(dict(cmd='quit'), 'fixture-token', 5)
+
+    def test_invalid_or_extra_close_reply_does_not_trigger_another_request(self):
+        for status, body in ((400, b'{"ok":true}'), (200, b'{"ok":1}'),
+                             (200, b'{"ok":false}'), (200, b'{"ok":true,"extra":"private"}'),
+                             (200, b'private-invalid-json')):
+            transport = mock.Mock()
+            transport.exchange.return_value = types.SimpleNamespace(status=status, body=body)
+            with self.subTest(status=status, body=body), self.assertRaises(debug.ProcessRefused):
+                debug.request_close(transport, 'fixture-token')
+            self.assertEqual(transport.exchange.call_count, 1)
+
+    def test_lost_ack_stays_uncertain_without_replay_or_exception_text(self):
+        transport = mock.Mock()
+        transport.exchange.side_effect = TimeoutError('private socket context')
+        with self.assertRaises(debug.ProcessRefused) as raised:
+            debug.request_close(transport, 'fixture-token')
+        self.assertEqual(str(raised.exception), 'CLOSE_UNCONFIRMED')
+        self.assertEqual(transport.exchange.call_count, 1)
+
+
 if __name__ == '__main__':
     unittest.main()
