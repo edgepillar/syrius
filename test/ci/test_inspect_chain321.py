@@ -27,6 +27,25 @@ def manifest():
 
 
 class InspectionTests(unittest.TestCase):
+    def test_backend_selection_is_explicit_and_cannot_name_another_target(self):
+        self.assertEqual(inspect.selected_backends("both"), ("docker", "native"))
+        self.assertEqual(inspect.selected_backends("native"), ("native",))
+        self.assertEqual(inspect.selected_backends("docker"), ("docker",))
+        with self.assertRaises(inspect.Refused):
+            inspect.selected_backends("https://example.invalid")
+
+    def test_positive_momentum_observations_require_real_progress_fields(self):
+        report = manifest()
+        report["checks"]["production"] = True
+        report["observations"] = dict(chain=321, genesis_hash="b" * 64, first_height=1,
+            last_height=3, first_timestamp=1, last_timestamp=30, samples=2, cross_transport_hash_equal=True)
+        result = inspect.project(report, "native", "a" * 40, 123)
+        self.assertEqual(result["observations"]["last_height"], 3)
+        self.assertFalse(result["runtime_started"])
+        report["observations"]["last_height"] = 1
+        with self.assertRaises(inspect.Refused):
+            inspect.project(report, "native", "a" * 40, 123)
+
     def test_artifact_request_never_receives_the_api_token(self):
         api = inspect.request_for(inspect.API + "/actions/runs/123", "fixture-token")
         blob = inspect.request_for("https://fixture.blob.core.windows.net/data?sig=fixture")

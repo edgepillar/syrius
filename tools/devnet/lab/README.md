@@ -162,3 +162,10 @@ origins. Both direct ports and current resource ownership must pass first.
 Destinations are fixed; there is no DNS, external listener, daemon change or
 published host port. Byte/buffer/time/connection limits and positive original
 socket/thread closure are separate from node shutdown and chain production.
+
+Use the manual chain321_backend choice to select both backends (the default),
+native Windows only or Linux Docker only. The same choice selects which
+original manifest archives a read-only inspection requires. Native shutdown
+requests all five original peer handles before waiting; each signal remains
+one-attempt, and zero/complete/unforced exit is still mandatory. Saved
+momentum observations and successful jobs never authorize wallet or seed use.

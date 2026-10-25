@@ -44,6 +44,11 @@ def sha(raw):
     return hashlib.sha256(raw).hexdigest()
 
 
+def selected_backends(value):
+    need(value in ("both", "native", "docker"))
+    return ("docker", "native") if value == "both" else (value,)
+
+
 def artifact_location(value):
     need(type(value) is str and len(value) <= 8192
          and all(32 < ord(char) < 127 for char in value))
@@ -215,6 +220,20 @@ def project(report, backend, head, run_id):
                      for key in ("listeners", "accepted", "completed", "bytes", "active", "workers_alive"))
              and relay["listeners"] <= 2 and relay["completed"] <= relay["accepted"] <= 256
              and relay["active"] <= 4 and relay["workers_alive"] <= 258)
+    observations = report.get("observations")
+    if observations is not None:
+        need(type(observations) is dict and set(observations) == {"chain", "genesis_hash", "first_height",
+            "last_height", "first_timestamp", "last_timestamp", "samples", "cross_transport_hash_equal"}
+             and checks["production"] is True and type(observations["chain"]) is int
+             and observations["chain"] == 321 and observations["cross_transport_hash_equal"] is True
+             and type(observations["genesis_hash"]) is str
+             and re.fullmatch(r"[a-f0-9]{64}", observations["genesis_hash"])
+             and all(type(observations[key]) is int and 0 < observations[key] < 2**63 for key in
+                     ("first_height", "last_height", "first_timestamp", "last_timestamp", "samples"))
+             and observations["last_height"] > observations["first_height"]
+             and observations["last_timestamp"] > observations["first_timestamp"]
+             and observations["samples"] <= 36)
+    need(not checks["production"] or observations is not None)
     return dict(scope="retained_chain321_observation", backend=backend,
         source_head=head, source_run_id=run_id, source_attempt=1,
         artifact_reported_success=report["success"], checks=checks, error_codes=errors,
@@ -224,6 +243,7 @@ def project(report, backend, head, run_id):
         docker_state_counts=state_counts, first_unhealthy_docker_state=first_unhealthy,
         node_exits=projected_exits, c_compiler=c_compiler, **counts,
         direct_rpc_ready=direct_ready, loopback_relay=relay,
+        observations=observations,
         inspection_only=True, runtime_started=False, seed_admitted=False)
 
 
@@ -237,6 +257,7 @@ def main():
     need(re.fullmatch(r"[1-9][0-9]{0,19}", run_text) is not None
          and re.fullmatch(r"[a-f0-9]{40}", head) is not None)
     run_id = int(run_text)
+    backends = selected_backends(parent.get("LAB_INSPECT_BACKEND", "both"))
     client = Client(parent.get("GH_TOKEN"))
     PHASE = "source_metadata"
     run = client.json("/actions/runs/" + run_text)
@@ -246,7 +267,7 @@ def main():
     PHASE = "artifact_metadata"
     listing = client.json("/actions/runs/" + run_text + "/artifacts?per_page=20")
     need(listing["total_count"] == len(listing["artifacts"]) <= 20)
-    for backend in ("docker", "native"):
+    for backend in backends:
         name = "chain321-" + backend + "-" + head + "-" + run_text + "-1"
         selected = [item for item in listing["artifacts"] if item["name"] == name]
         need(len(selected) == 1)

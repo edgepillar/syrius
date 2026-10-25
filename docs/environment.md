@@ -2163,3 +2163,44 @@ Eight injected relay cases and twelve inspector cases pass locally without a
 real listener, thread or node. Actual direct readiness, byte forwarding,
 shutdown and chain production require hosted execution. The translated native
 Windows-status correction retains its separate 43-case local evidence.
+
+### Positive Linux lab and targeted native shutdown
+
+Qualifying source is `f594478bbd399e6f8f30b068db9de32e40a8e307`, tree
+`85d3eada24aedca3f4f118f35ccb0cb020464a07`. In
+[40191648994](https://github.com/edgepillar/syrius/actions/runs/40191648994),
+attempt one, Linux job 121163711694 passes both the full controller-suite step
+and every lab gate. It proves five original containers, direct RPC readiness,
+matching HTTP/WS genesis and frontier hashes, advancing height/timestamp,
+unchanged source/binary/configuration/deployed fixture bytes and five zero
+container exits without OOM. The two original relays close, all twelve accepted
+sessions finish, and active sockets/workers return to zero. Their finite
+completed-pump byte count is 19271; this is not a physical storage measurement.
+
+Windows job 121163711844 passes source, build, assets, port preflight, startup,
+real RPC advancement and unchanged-input gates. Its RPC node receives shutdown
+but exceeds the thirty-second wait and is forced; the other four exit zero.
+Its overall result remains failed.
+[Inspection 40192456767](https://github.com/edgepillar/syrius/actions/runs/40192456767)
+verifies both exact original manifest archives and complete bounded summaries.
+These outcomes admit no wallet, seed recipe, checkpoint or visual match.
+
+The native follow-up signals every retained original peer handle once before
+waiting for any member. The pinned [peer shutdown contract](https://github.com/zenon-network/go-zenon/blob/590f43ca7a24dccd8e883bc8903a0cb02e54528a/p2p/server.go)
+blocks until its peer goroutines finish; coordinated requests avoid leaving the
+other four active while the RPC node drains. This is a proposed controller
+correction, not a claim that the exact internal delay has been reproduced.
+The thirty-second wait and positive zero/complete/unforced criteria remain.
+The injected peer-dependent case first fails under the old order; all nine
+original-handle cases now pass, including retained one-attempt signal failure.
+Actual coordinated native shutdown requires hosted execution.
+
+The manual workflow now accepts `chain321_backend=both|native|docker`, default
+`both`, for execution and finite manifest inspection. The matrix contains only
+fixed runner/backend literals. A native-only follow-up avoids rebuilding the
+already qualified Linux source for a Windows-only shutdown change. Retained
+momentum observations preserve exact first/last heights and timestamps; they
+remain data and cannot adopt a runtime. Fourteen inspector cases and workflow
+YAML/static matrix parsing pass locally. The Linux result retains its exact
+qualifying source scope; target approval and complete wallet acceptance remain
+separate.

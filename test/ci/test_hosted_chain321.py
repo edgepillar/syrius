@@ -226,6 +226,36 @@ class ConfigurationTests(unittest.TestCase):
 
 
 class OriginalHandleTests(unittest.TestCase):
+    def test_failed_original_signal_is_retained_and_never_reissued(self):
+        process = mock.Mock()
+        process.poll.side_effect = [None, 0]
+        process.send_signal.side_effect = OSError(5, "fixture signal refusal")
+        original = self.original(process, [self.drain(), self.drain()])
+        with self.assertRaises(OSError):
+            original.request_stop()
+        with self.assertRaises(lab.Failure):
+            original.stop()
+        process.send_signal.assert_called_once()
+        process.kill.assert_called_once_with()
+        self.assertEqual(original.receipt["stop_code"], "SIGNAL_OS_ERROR")
+        self.assertTrue(original.receipt["forced"])
+
+    def test_native_signals_all_original_peers_before_waiting_for_any(self):
+        events = []
+        originals = []
+        for index in range(5):
+            item = mock.Mock(receipt=dict(exit_code=0, output_complete=True, forced=False), drains=[])
+            item.request_stop.side_effect = lambda index=index: events.append(("signal", index))
+            def finish(index=index):
+                self.assertEqual(sum(kind == "signal" for kind, _ in events), 5)
+                events.append(("wait", index))
+            item.stop.side_effect = finish
+            originals.append(item)
+        runtime = lab.Native(mock.Mock(), Path("fixture"), {})
+        runtime.originals = originals
+        runtime.stop()
+        self.assertEqual([kind for kind, _ in events], ["signal"] * 5 + ["wait"] * 5)
+
     def original(self, process, drains):
         value = object.__new__(lab.Original)
         value.process, value.drains = process, drains

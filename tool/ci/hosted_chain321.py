@@ -257,21 +257,39 @@ class Original:
             need(code == 0 and not self.forced, "COMMAND_FAILED")
         return bytes(self.drains[0].data)
 
-    def stop(self):
+    def request_stop(self):
         if self.receipt is not None:
             return
+        if getattr(self, "stop_requested", False):
+            if getattr(self, "signal_error", None) is not None:
+                raise self.signal_error
+            return
+        self.stop_requested = True
         if self.process.poll() is None:
             try:
                 self.process.send_signal(signal.CTRL_BREAK_EVENT if sys.platform == "win32"
                                          else signal.SIGINT)
+            except OSError as error:
+                self.signal_error = error
+                self.stop_code = "SIGNAL_OS_ERROR"
+                self.stop_os_error = getattr(error, "winerror", getattr(error, "errno", None))
+                raise
+
+    def stop(self):
+        if self.receipt is not None:
+            return
+        try:
+            self.request_stop()
+            if self.process.poll() is None:
                 self.process.wait(timeout=30)
-            except (OSError, subprocess.TimeoutExpired) as error:
+        except (OSError, subprocess.TimeoutExpired) as error:
+            if getattr(self, "stop_code", None) is None:
                 self.stop_code = "SIGNAL_OS_ERROR" if isinstance(error, OSError) else "WAIT_TIMEOUT"
                 number = getattr(error, "winerror", getattr(error, "errno", None))
                 self.stop_os_error = number if type(number) is int else None
-                self.forced = True
-                self.process.kill()
-                self.process.wait(timeout=10)
+            self.forced = True
+            self.process.kill()
+            self.process.wait(timeout=10)
         self.finish()
 
 
@@ -395,6 +413,13 @@ class Native:
 
     def stop(self):
         failed = False
+        # Signal the whole original peer set before waiting for any member.
+        # Peer shutdown can wait for remote read loops to finish.
+        for original in reversed(self.originals):
+            try:
+                original.request_stop()
+            except Exception:
+                failed = True
         for original in reversed(self.originals):
             try:
                 original.stop()

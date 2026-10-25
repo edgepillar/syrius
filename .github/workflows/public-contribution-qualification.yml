@@ -28,6 +28,14 @@ on:
         description: Qualify isolated chain-321 production on Linux Docker and native Windows
         type: boolean
         default: false
+      chain321_backend:
+        description: Select chain-321 execution or retained-manifest inspection backends
+        type: choice
+        default: both
+        options:
+          - both
+          - native
+          - docker
       inspect_chain321_run:
         description: Inspect an original completed chain-321 run without repeating builds
         type: string
@@ -254,11 +262,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - runner: ubuntu-24.04
-            backend: docker
-          - runner: windows-latest
-            backend: native
+        include: ${{ fromJSON(inputs.chain321_backend == 'native' && '[{"runner":"windows-latest","backend":"native"}]' || inputs.chain321_backend == 'docker' && '[{"runner":"ubuntu-24.04","backend":"docker"}]' || '[{"runner":"ubuntu-24.04","backend":"docker"},{"runner":"windows-latest","backend":"native"}]') }}
     env:
       GIT_CONFIG_COUNT: "1"
       GIT_CONFIG_KEY_0: core.autocrlf
@@ -326,4 +330,5 @@ jobs:
           SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
           LAB_INSPECT_RUN: ${{ inputs.inspect_chain321_run }}
           LAB_INSPECT_HEAD: ${{ inputs.inspect_chain321_head }}
+          LAB_INSPECT_BACKEND: ${{ inputs.chain321_backend }}
         run: python -B -m tool.ci.inspect_chain321
