@@ -16,7 +16,7 @@ import zipfile
 
 from tool.ci.hosted_chain321 import (CODES, NODE_DIAGNOSTICS, NODE_SHA, NODE_SOURCES,
                                    ROLES, SHUTDOWN_TESTS, UPSTREAM_NODE_SHA, selected_node_source)
-from tool.ci import native_stack_probe
+from tool.ci import native_stack_probe, node_panic_projection
 
 
 API = "https://api.github.com/repos/edgepillar/syrius"
@@ -202,7 +202,8 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA):
          and len(stop_order) <= len(ROLES) and stop_order == list(ROLES[:len(stop_order)])))
     stop_mode = report.get("native_shutdown_mode")
     need(stop_mode is None or (backend == "native" and stop_mode == "coordinated_requests_then_wait"))
-    for item in exits:
+    first_panic, panic_count = None, 0
+    for index, item in enumerate(exits):
         if item is None:
             projected_exits.append(dict(exit_code=None, output_complete=None, forced=None,
                                         stop_code=None, stop_os_error=None, node_diagnostics=[], node_log_status=None))
@@ -221,6 +222,28 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA):
         need(logs is None or (type(logs) is dict and logs.get("status") in
                              ("UNAVAILABLE", "READ", "MISSING", "REFUSED")))
         selected["node_log_status"] = None if logs is None else logs["status"]
+        panic = item.get("node_panic")
+        if panic is not None:
+            need(backend == "native" and type(panic) is dict
+                 and set(panic) == {"status", "kind", "bytes", "sha256", "frames"}
+                 and panic["status"] in node_panic_projection.STATUSES
+                 and panic["kind"] in node_panic_projection.KINDS
+                 and (panic["bytes"] is None or (type(panic["bytes"]) is int
+                      and 0 < panic["bytes"] <= node_panic_projection.MAX_BYTES))
+                 and (panic["sha256"] is None or (type(panic["sha256"]) is str
+                      and re.fullmatch(r"[a-f0-9]{64}", panic["sha256"])))
+                 and type(panic["frames"]) is list and len(panic["frames"]) <= 3)
+            for frame in panic["frames"]:
+                need(type(frame) is dict and set(frame) == {"package", "source_path_sha256", "line"}
+                     and frame["package"] in node_panic_projection.PACKAGES
+                     and type(frame["line"]) is int and 0 < frame["line"] < 1000000
+                     and type(frame["source_path_sha256"]) is str
+                     and re.fullmatch(r"[a-f0-9]{64}", frame["source_path_sha256"]))
+            need(panic["status"] != "CAPTURED" or
+                 (panic["bytes"] is not None and panic["sha256"] is not None))
+            panic_count += 1
+            if first_panic is None:
+                first_panic = dict(role=ROLES[index], **panic)
         probe = item.get("stack_probe")
         if probe is not None:
             need(stack_enabled and type(probe) is dict
@@ -271,7 +294,7 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA):
              and observations["last_timestamp"] > observations["first_timestamp"]
              and observations["samples"] <= 36)
     need(not checks["production"] or observations is not None)
-    return dict(scope="retained_chain321_observation", backend=backend,
+    result = dict(scope="retained_chain321_observation", backend=backend,
         source_head=head, source_run_id=run_id, source_attempt=1,
         node_sha=expected_node, node_tree=node_tree, upstream_stop_regressions=regressions,
         artifact_reported_success=report["success"], checks=checks, error_codes=errors,
@@ -286,6 +309,9 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA):
         native_shutdown_order=stop_order,
         native_shutdown_mode=stop_mode,
         inspection_only=True, runtime_started=False, seed_admitted=False)
+    if panic_count:
+        result.update(node_panic_count=panic_count, first_node_panic=first_panic)
+    return result
 
 
 def main():

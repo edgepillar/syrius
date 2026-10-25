@@ -25,7 +25,7 @@ import time
 
 from tool.ci.windows_presentation_smoke import OutputDrain
 from tool.ci.loopback_relay import PAIRS as RELAY_PAIRS, TARGET as RELAY_TARGET, Relay
-from tool.ci import native_stack_probe
+from tool.ci import native_stack_probe, node_panic_projection
 from tools.devnet.lab import owned_lab as wire_policy
 from tools.devnet.lab.socket_transport import make_transports
 
@@ -526,7 +526,11 @@ class Native:
             finally:
                 try:
                     if type(original.receipt) is dict:
-                        codes = node_diagnostics(b"\n".join(bytes(d.data) for d in original.drains))
+                        raw = b"\n".join(bytes(d.data) for d in original.drains)
+                        codes = node_diagnostics(raw)
+                        panic = node_panic_projection.project(raw)
+                        if panic is not None:
+                            original.receipt["node_panic"] = panic
                         if (index < len(ROLES) and ROLES[index] in self.configs
                                 and type(original.process.poll()) is int):
                             logs = native_log_projection(self.configs[ROLES[index]])

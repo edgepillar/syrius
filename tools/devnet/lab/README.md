@@ -200,3 +200,12 @@ the package pass, without skips, before starting the lab. Exact SHA/tree and
 regression outcomes remain separate from chain production and original exit.
 Retained-manifest inspection must select the same node source. The older
 default's failed native results and successful Linux result remain separate.
+
+An original native panic has a separate bounded projection after terminal
+exit. It records a fixed category, output byte count and digest, and up to
+three public package names with relative-source-path digests and line
+numbers from the crashing goroutine. A path digest hashes the relative path,
+not file contents. Unknown text is never echoed. Ambiguous or malformed
+stacks keep an explicit status. Inspection validates every panic receipt,
+then emits only the first detail and a count to keep its notice complete.
+These observations cannot change an original exit code or qualify shutdown.

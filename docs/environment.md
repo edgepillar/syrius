@@ -2358,3 +2358,37 @@ mode. One-attempt close, strict zero/complete/unforced outcomes and the
 thirty-second wait stay unchanged. The injected order case first rejects
 sequential retirement; fifty selected cases pass locally. Actual coordinated
 upstream-node closure still requires hosted execution.
+
+### Coordinated upstream closure exposes an actual producer panic
+
+At wallet source `c080b170f592e1eb9e12cbffe72c1bf3b1ec9ac3`, tree
+`0146116d89841d69746166173f5868da43b2f9eb`, native
+[40212552921](https://github.com/edgepillar/syrius/actions/runs/40212552921),
+attempt one, job 121226724378 passes its full Python controller-suite step,
+all seven actual upstream shutdown regressions and every functional lab gate.
+Node SHA remains `2d1b929cc3fa5269cf133757d4a6963821137984`, tree
+`4467fff960ea6a5409908d7c85497a68482e0edb`. With all five stop requests issued
+before waiting, every original exits without forced termination and with
+complete output. Four exit zero; pillar2 panics and exits two. The overall
+native result remains failed. This attempt has no wait timeout, which does
+not establish that later shutdowns are free of races.
+
+Chain 321 advances from height one to two over fourteen samples, with last
+timestamp 1792946400 and matching HTTP/WS hashes. Its upstream fixture genesis
+remains `58d0e20af45243b3246c2643eacd5e65f798b56fe68fb594d0507ff18ca360cd`.
+[Inspection 40214066086](https://github.com/edgepillar/syrius/actions/runs/40214066086)
+verifies archive `ce7ee60b2921ad755ae900300fb649a6f6ee58017eed71b9e200920ab11aa8aa`
+and manifest `efbacbe4bfb51e8b472ad7ad6e1fd9c13391af46b4998dc3d1b6d52c1b510f6d`.
+The panic message and its source location were not retained in that public
+manifest, so its cause remains unclassified.
+
+The next controller projects the original bounded output into fixed panic
+categories and at most three package, relative-path digest and line facts
+from the crashing goroutine. A path digest does not hash file contents.
+No raw message, address, local path or function arguments are uploaded.
+Inspection validates all panic records and keeps only the first detail plus
+count in its finite notice. Eighty-three selected injected cases pass
+locally; they include private-text rejection, a five-panic notice bound and
+preservation of the original exit-two failure. They do not establish a real
+panic cause or a successful native shutdown. Neither full wallet startup,
+seed admission nor visual acceptance is claimed.

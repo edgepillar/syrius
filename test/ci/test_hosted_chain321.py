@@ -290,6 +290,22 @@ class ConfigurationTests(unittest.TestCase):
 
 
 class OriginalHandleTests(unittest.TestCase):
+    def test_panic_observation_cannot_turn_original_exit_two_into_success(self):
+        runtime = lab.Native(mock.Mock(), Path("fixture"), {})
+        runtime.originals = [mock.Mock(receipt=dict(exit_code=0, output_complete=True, forced=False), drains=[])
+                             for _ in lab.ROLES]
+        original = runtime.originals[1]
+        original.receipt["exit_code"] = 2
+        original.drains = [self.drain(b"panic: private failure\n\ngoroutine 1 [running]:\n"
+            b"\tgithub.com/zenon-network/go-zenon/wallet/manager.go:257 +0x123\n")]
+        with self.assertRaises(lab.Failure):
+            runtime.stop()
+        self.assertEqual(original.receipt["node_panic"]["status"], "CAPTURED")
+        self.assertEqual(original.receipt["exit_code"], 2)
+        self.assertNotIn("private", json.dumps(original.receipt["node_panic"]))
+        for item in runtime.originals:
+            item.stop.assert_called_once_with()
+
     def test_failed_original_signal_is_retained_and_never_reissued(self):
         process = mock.Mock()
         process.poll.side_effect = [None, 0]

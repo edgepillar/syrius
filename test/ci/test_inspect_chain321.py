@@ -1,6 +1,7 @@
 """In-memory archive and credential-boundary cases; no network or disk scratch."""
 
 import io
+import copy
 import json
 import stat
 import unittest
@@ -28,6 +29,48 @@ def manifest():
 
 
 class InspectionTests(unittest.TestCase):
+    def test_all_panic_facts_are_validated_but_only_the_first_detail_is_projected(self):
+        report = manifest()
+        panic = dict(status="CAPTURED", kind="NIL_POINTER", bytes=200, sha256="a" * 64,
+            frames=[dict(package="wallet", source_path_sha256="b" * 64, line=257)])
+        report["node_exits"] = [dict(exit_code=2, output_complete=True, forced=False,
+            node_diagnostics=["NODE_PANIC"], node_panic=copy.deepcopy(panic)) for _ in inspect.ROLES]
+        result = inspect.project(report, "native", "a" * 40, 123)
+        self.assertEqual(result["node_panic_count"], 5)
+        self.assertEqual(result["first_node_panic"], dict(role="pillar", **panic))
+        self.assertFalse(result["artifact_reported_success"])
+        self.assertFalse(result["runtime_started"])
+        report["node_exits"][-1]["node_panic"]["frames"][0]["package"] = "private"
+        with self.assertRaises(inspect.Refused):
+            inspect.project(report, "native", "a" * 40, 123)
+
+    def test_panic_details_reject_raw_text_paths_boolean_lines_and_unknown_fields(self):
+        report = manifest()
+        panic = dict(status="CAPTURED", kind="OTHER", bytes=200, sha256="a" * 64,
+            frames=[dict(package="wallet", source_path_sha256="b" * 64, line=257)])
+        invalid = [dict(kind="private"), dict(status="private"), dict(raw="private"),
+            dict(sha256="private"), dict(frames=[dict(package="wallet", source_path_sha256="b" * 64, line=True)]),
+            dict(frames=[dict(package="wallet", source_path_sha256="private/path", line=257)])]
+        for change in invalid:
+            report["node_exits"] = [dict(exit_code=2, node_panic=dict(panic, **change))]
+            with self.subTest(change=change), self.assertRaises(inspect.Refused):
+                inspect.project(report, "native", "a" * 40, 123)
+
+    def test_five_panics_keep_a_single_complete_notice_with_three_location_hashes(self):
+        report = manifest()
+        report.update(node_sha=inspect.UPSTREAM_NODE_SHA, node_tree=inspect.NODE_SOURCES["upstream"][1],
+            upstream_stop_regressions=dict(passed=True, tests=list(inspect.SHUTDOWN_TESTS), skips=0),
+            native_shutdown_order=list(inspect.ROLES), native_shutdown_mode="coordinated_requests_then_wait")
+        report["node_exits"] = [dict(exit_code=2, output_complete=True, forced=False,
+            node_diagnostics=["NODE_SIGNAL_RECEIVED", "NODE_STOP_REQUESTED", "NODE_P2P_STOP_REQUESTED", "NODE_PANIC"],
+            private_log_projection=dict(status="READ"),
+            node_panic=dict(status="CAPTURED", kind="NIL_POINTER", bytes=100000, sha256="a" * 64,
+            frames=[dict(package="wallet", source_path_sha256="b" * 64, line=257+i) for i in range(3)]))
+            for _ in inspect.ROLES]
+        result = inspect.project(report, "native", "a" * 40, 123, inspect.UPSTREAM_NODE_SHA)
+        result.update(archive_sha256="a" * 64, manifest_sha256="b" * 64)
+        self.assertLess(len(json.dumps(result, separators=(",", ":")).encode()), 3800)
+
     def test_coordinated_shutdown_mode_is_fixed_finite_observation(self):
         report = manifest()
         report["native_shutdown_mode"] = "coordinated_requests_then_wait"
