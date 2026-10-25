@@ -200,6 +200,8 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA):
     stop_order = report.get("native_shutdown_order")
     need(stop_order is None or (backend == "native" and type(stop_order) is list
          and len(stop_order) <= len(ROLES) and stop_order == list(ROLES[:len(stop_order)])))
+    stop_mode = report.get("native_shutdown_mode")
+    need(stop_mode is None or (backend == "native" and stop_mode == "coordinated_requests_then_wait"))
     for item in exits:
         if item is None:
             projected_exits.append(dict(exit_code=None, output_complete=None, forced=None,
@@ -282,6 +284,7 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA):
         observations=observations,
         native_stack_diagnostic=stack_enabled,
         native_shutdown_order=stop_order,
+        native_shutdown_mode=stop_mode,
         inspection_only=True, runtime_started=False, seed_admitted=False)
 
 

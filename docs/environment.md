@@ -2329,3 +2329,32 @@ regression outcomes. Reports still cannot create runtime ownership.
 Forty-nine injected controller, selection and inspection cases pass locally,
 as does workflow YAML parsing. The actual upstream Go regressions and native
 lab remain pending; the older Linux pass is not transferred to this new pin.
+
+### Upstream regressions pass; joining peers need coordinated requests
+
+At wallet source `44e98f69ade57a149545d1bfa02c3f9204f83d83`, tree
+`6f6d3cf79d9a810d164c8ea15da5a00c4a73bb93`, native
+[40210898201](https://github.com/edgepillar/syrius/actions/runs/40210898201),
+attempt one, job 121221692366 passes its full Python controller-suite step,
+all seven actual upstream Go shutdown parent tests and the package, with
+zero skips. Node SHA is `2d1b929cc3fa5269cf133757d4a6963821137984` and tree
+`4467fff960ea6a5409908d7c85497a68482e0edb`. Build, assets, source, preflight,
+startup, real chain progression and unchanged-input gates all pass. Its
+chain-321 genesis hash is
+`58d0e20af45243b3246c2643eacd5e65f798b56fe68fb594d0507ff18ca360cd`;
+height advances one to two over twelve samples, last timestamp 1792945150.
+This genesis belongs to the selected upstream fixture and is not relabeled
+as the original pin's genesis.
+
+Under sequential retirement, pillar and pillar2 exceed the wait and are
+forced; pillar3, observer and RPC exit zero. The overall native result remains
+failed. [Inspection 40211411457](https://github.com/edgepillar/syrius/actions/runs/40211411457)
+verifies archive `659119a06494baaa35406083401cbb5d0deda1a1d095baa7037981fbc929e216`
+and manifest `180e5ea656384ccf3955046e2133e4f5f563bc12e4d0d378ef4206a6798d57d4`.
+The next controller requests all five original peers once in creation order
+before waiting for any member, because the selected peer server now joins
+its workers. It records both attempted role order and a fixed coordinated
+mode. One-attempt close, strict zero/complete/unforced outcomes and the
+thirty-second wait stay unchanged. The injected order case first rejects
+sequential retirement; fifty selected cases pass locally. Actual coordinated
+upstream-node closure still requires hosted execution.

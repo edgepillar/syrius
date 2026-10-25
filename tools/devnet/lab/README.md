@@ -184,11 +184,12 @@ forced cleanup. Only fixed codes from a single shutdown goroutine, byte count
 and hash are retained. No raw stack is uploaded, no external listener is opened
 and no diagnostic observation can turn a forced exit into success.
 
-Native retirement closes the original producers and observer in creation
-order, then requests RPC shutdown. This follows an observed protocol-group
-wait during simultaneous retirement. Each handle retains its one signal
-attempt and strict zero/complete/unforced exit requirement. The attempted
-role order is finite evidence only; any original failure keeps the lab failed.
+Native retirement requests all five original peers in creation order before
+waiting for any member. The upstream peer server joins workers, so retiring
+one member while its peers remain live can keep it pending. Each handle
+retains its one signal attempt and strict zero/complete/unforced exit
+requirement. Attempted role order and coordinated mode are finite evidence
+only; any original failure keeps the lab failed.
 
 The explicit chain321_node_source choice defaults to original. Selecting
 upstream uses only commit 2d1b929cc3fa5269cf133757d4a6963821137984, tree

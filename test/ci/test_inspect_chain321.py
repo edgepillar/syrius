@@ -28,6 +28,16 @@ def manifest():
 
 
 class InspectionTests(unittest.TestCase):
+    def test_coordinated_shutdown_mode_is_fixed_finite_observation(self):
+        report = manifest()
+        report["native_shutdown_mode"] = "coordinated_requests_then_wait"
+        result = inspect.project(report, "native", "a" * 40, 123)
+        self.assertEqual(result["native_shutdown_mode"], "coordinated_requests_then_wait")
+        self.assertFalse(result["runtime_started"])
+        report["native_shutdown_mode"] = "private-path"
+        with self.assertRaises(inspect.Refused):
+            inspect.project(report, "native", "a" * 40, 123)
+
     def test_upstream_pin_is_explicit_and_cannot_relabel_an_original_run(self):
         report = manifest()
         report["node_sha"] = inspect.UPSTREAM_NODE_SHA

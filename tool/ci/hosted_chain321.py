@@ -508,12 +508,17 @@ class Native:
         need(not self.stop_attempted, "STOP_UNKNOWN")
         self.stop_attempted = True
         failed = False
-        # RPC timed out in ProtocolManager.Stop while all peers were closing.
-        # Retire producers and the observer before requesting consumer shutdown.
+        # The upstream server joins its peer workers. A live peer can keep a
+        # joining member pending, so request the complete set before waiting.
         for index in range(len(self.originals)):
             original = self.originals[index]
             if index < len(ROLES):
                 self.stop_order.append(ROLES[index])
+            try:
+                original.request_stop()
+            except Exception:
+                failed = True
+        for index, original in enumerate(self.originals):
             try:
                 original.stop()
             except Exception:
@@ -876,6 +881,7 @@ def run(backend):
         if isinstance(runtime, Native):
             report["node_exits"] = [item.receipt for item in runtime.originals]
             report["native_shutdown_order"] = runtime.stop_order
+            report["native_shutdown_mode"] = "coordinated_requests_then_wait"
         elif isinstance(runtime, Docker):
             report["docker_image_id"] = runtime.image
             report["created_count"] = len(runtime.created)
