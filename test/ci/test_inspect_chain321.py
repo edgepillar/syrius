@@ -27,6 +27,18 @@ def manifest():
 
 
 class InspectionTests(unittest.TestCase):
+    def test_native_log_projection_keeps_status_and_finite_stages_only(self):
+        report = manifest()
+        report["node_exits"] = [dict(exit_code=1, output_complete=True, forced=True,
+            node_diagnostics=["NODE_P2P_STOP_REQUESTED"],
+            private_log_projection=dict(status="READ", files=[dict(private="fixture")], raw="private"))]
+        result = inspect.project(report, "native", "a" * 40, 123)
+        self.assertEqual(result["node_exits"][0]["node_log_status"], "READ")
+        self.assertNotIn("private", json.dumps(result))
+        report["node_exits"][0]["private_log_projection"]["status"] = "/fixture/private/path"
+        with self.assertRaises(inspect.Refused):
+            inspect.project(report, "native", "a" * 40, 123)
+
     def test_backend_selection_is_explicit_and_cannot_name_another_target(self):
         self.assertEqual(inspect.selected_backends("both"), ("docker", "native"))
         self.assertEqual(inspect.selected_backends("native"), ("native",))

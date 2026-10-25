@@ -42,6 +42,35 @@ class CompilerDiagnosticTests(unittest.TestCase):
 
 
 class RuntimeDiagnosticTests(unittest.TestCase):
+    def test_shutdown_projection_keeps_only_finite_stage_codes(self):
+        raw = (b'private-path msg="Stopping znnd ..."\n'
+               b'msg="stopping p2p server ..."\nmsg="HTTP server stopped" endpoint=private\n'
+               b'msg="releasing dataDir lock ..."\nmsg="Failed to stop node" reason=private')
+        result = lab.node_diagnostics(raw)
+        self.assertEqual(set(result), {"NODE_STOP_REQUESTED", "NODE_P2P_STOP_REQUESTED",
+            "NODE_HTTP_STOPPED", "NODE_DATA_LOCK_RELEASE_REQUESTED", "NODE_STOP_FAILED"})
+        self.assertNotIn("private", json.dumps(result))
+
+    def test_owned_log_files_are_bounded_and_never_returned_as_text(self):
+        calls = []
+        def read(path):
+            calls.append(path)
+            return b'private-path msg="stopping p2p server ..."'
+        with mock.patch.object(lab, "directories"), mock.patch.object(lab, "regular", side_effect=read):
+            result = lab.native_log_projection(Path("fixture"))
+        self.assertEqual(calls, [Path("fixture/log/zenon.log"), Path("fixture/log/error/zenon.error.log")])
+        self.assertEqual(result["status"], "READ")
+        self.assertEqual(result["codes"], ["NODE_P2P_STOP_REQUESTED"])
+        self.assertNotIn("private", json.dumps(result))
+        self.assertTrue(all(set(item) == {"kind", "bytes", "sha256"} for item in result["files"]))
+
+    def test_missing_and_refused_logs_keep_honest_distinct_status(self):
+        for error, status in ((FileNotFoundError(), "MISSING"), (lab.Failure("STORAGE_REFUSED"), "REFUSED")):
+            with mock.patch.object(lab, "directories"), mock.patch.object(lab, "regular", side_effect=error):
+                result = lab.native_log_projection(Path("fixture"))
+            self.assertEqual(result["status"], status)
+            self.assertEqual(result["codes"], [])
+
     def test_original_wire_codes_are_preserved_without_exception_text(self):
         for code in ("HTTP_REFUSED", "WS_REFUSED", "FRONTIER_REFUSED", "CLOSE_UNKNOWN"):
             self.assertEqual(lab.failure_code(lab.wire_policy.Refused(code)), code)

@@ -169,3 +169,10 @@ original manifest archives a read-only inspection requires. Native shutdown
 requests all five original peer handles before waiting; each signal remains
 one-attempt, and zero/complete/unforced exit is still mandatory. Saved
 momentum observations and successful jobs never authorize wallet or seed use.
+
+After each original native process has exited, the controller may inspect the
+pinned node's two fixed log files inside its owned data directory. Existing
+regular-file, ancestor, identity and one-MiB guards apply. The manifest retains
+finite shutdown-stage codes, missing/refused/read status, sizes and hashes;
+raw logs and paths are not uploaded. This projection cannot convert a timeout
+or forced exit into successful shutdown.

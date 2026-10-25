@@ -186,7 +186,7 @@ def project(report, backend, head, run_id):
     for item in exits:
         if item is None:
             projected_exits.append(dict(exit_code=None, output_complete=None, forced=None,
-                                        stop_code=None, stop_os_error=None, node_diagnostics=[]))
+                                        stop_code=None, stop_os_error=None, node_diagnostics=[], node_log_status=None))
             continue
         need(type(item) is dict)
         selected = {key: item.get(key) for key in ("exit_code", "output_complete", "forced", "stop_code", "stop_os_error")}
@@ -198,6 +198,10 @@ def project(report, backend, head, run_id):
         need(type(codes) is list and len(codes) <= len(NODE_DIAGNOSTICS)
              and all(code in NODE_DIAGNOSTICS for code in codes))
         selected["node_diagnostics"] = codes
+        logs = item.get("private_log_projection")
+        need(logs is None or (type(logs) is dict and logs.get("status") in
+                             ("UNAVAILABLE", "READ", "MISSING", "REFUSED")))
+        selected["node_log_status"] = None if logs is None else logs["status"]
         projected_exits.append(selected)
     counts = {key: report.get(key) for key in ("created_count", "started_count")}
     need(all(value is None or (type(value) is int and 0 <= value <= 5)

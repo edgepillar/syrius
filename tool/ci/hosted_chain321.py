@@ -50,6 +50,8 @@ NODE_DIAGNOSTICS = frozenset((
     "NODE_CLI_REFUSED", "NODE_STORAGE_REFUSED", "NODE_PANIC",
     "NODE_KEYSTORE_REFUSED", "NODE_GENESIS_REFUSED", "NODE_PORT_CONFLICT",
     "NODE_STARTUP_FAILED", "NODE_SIGNAL_RECEIVED",
+    "NODE_STOP_REQUESTED", "NODE_P2P_STOP_REQUESTED", "NODE_HTTP_STOPPED",
+    "NODE_DATA_LOCK_RELEASE_REQUESTED", "NODE_STOP_FAILED",
 ))
 
 
@@ -83,8 +85,13 @@ def node_diagnostics(raw):
         ("NODE_KEYSTORE_REFUSED", r"failed to start wallet|could not decrypt|invalid password|(?:failed|cannot|unable).*key file|key file.*not found"),
         ("NODE_GENESIS_REFUSED", r"genesis.*(?:invalid|error)|failed to.*genesis"),
         ("NODE_PORT_CONFLICT", r"address already in use|Only one usage of each socket"),
-        ("NODE_STARTUP_FAILED", r"failed to.*(?:node|zenon)|Fatal:"),
+        ("NODE_STARTUP_FAILED", r"failed to\s+(?!stop\b)[^\r\n]*(?:node|zenon)|Fatal:"),
         ("NODE_SIGNAL_RECEIVED", r"Got interrupt|Got signal|Shutting down"),
+        ("NODE_STOP_REQUESTED", r"Stopping znnd "),
+        ("NODE_P2P_STOP_REQUESTED", r"stopping p2p server"),
+        ("NODE_HTTP_STOPPED", r"HTTP server stopped"),
+        ("NODE_DATA_LOCK_RELEASE_REQUESTED", r"releasing dataDir lock"),
+        ("NODE_STOP_FAILED", r"failed to stop (?:node|wallet|zenon)"),
     )
     return [code for code, pattern in patterns if re.search(pattern, text, re.IGNORECASE)]
 
@@ -168,6 +175,29 @@ def directories(path):
         need(stat.S_ISDIR(info.st_mode) and not parent.is_symlink()
              and not (getattr(info, "st_file_attributes", 0) & 0x400),
              "STORAGE_REFUSED")
+
+
+def native_log_projection(data):
+    """Read only the pinned node's two log files after original process exit."""
+    result = dict(status="UNAVAILABLE", files=[], codes=[])
+    try:
+        directories(data)
+        for kind, relative in (("run", ("log", "zenon.log")),
+                               ("error", ("log", "error", "zenon.error.log"))):
+            path = data.joinpath(*relative)
+            try:
+                directories(path.parent)
+                raw = regular(path)
+            except FileNotFoundError:
+                continue
+            result["files"].append(dict(kind=kind, bytes=len(raw), sha256=digest(raw)))
+            result["codes"].extend(node_diagnostics(raw))
+        result["codes"] = sorted(set(result["codes"]))
+        result["status"] = "READ" if result["files"] else "MISSING"
+    except Exception:
+        # Log refusal never replaces an original shutdown result or leaks a path.
+        result["status"] = "REFUSED"
+    return result
 
 
 def child_environment(root, parent):
@@ -420,7 +450,8 @@ class Native:
                 original.request_stop()
             except Exception:
                 failed = True
-        for original in reversed(self.originals):
+        for index in reversed(range(len(self.originals))):
+            original = self.originals[index]
             try:
                 original.stop()
             except Exception:
@@ -428,8 +459,13 @@ class Native:
             finally:
                 try:
                     if type(original.receipt) is dict:
-                        original.receipt["node_diagnostics"] = node_diagnostics(
-                            b"\n".join(bytes(d.data) for d in original.drains))
+                        codes = node_diagnostics(b"\n".join(bytes(d.data) for d in original.drains))
+                        if (index < len(ROLES) and ROLES[index] in self.configs
+                                and type(original.process.poll()) is int):
+                            logs = native_log_projection(self.configs[ROLES[index]])
+                            original.receipt["private_log_projection"] = logs
+                            codes.extend(logs["codes"])
+                        original.receipt["node_diagnostics"] = sorted(set(codes))
                 except Exception:
                     failed = True
         need(not failed and len(self.originals) == 5

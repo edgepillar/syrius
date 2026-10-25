@@ -2204,3 +2204,31 @@ remain data and cannot adopt a runtime. Fourteen inspector cases and workflow
 YAML/static matrix parsing pass locally. The Linux result retains its exact
 qualifying source scope; target approval and complete wallet acceptance remain
 separate.
+
+### Coordinated native result and private shutdown projection
+
+At source `9bbc04b9b3b1d90e5aeb50abd3c837e3a3af9173`, tree
+`2244eb1c38aed01b7357928d958593a1be459c8d`, native-only
+[40194165893](https://github.com/edgepillar/syrius/actions/runs/40194165893),
+attempt one, job 121171329654 passes the full controller-suite step and every
+functional lab gate. Actual chain-321 height advances from one to two with
+matching HTTP/WS hashes, timestamp 1739923200 to 1792932130 and four samples.
+Four original nodes exit zero, complete and unforced. The RPC node again
+receives shutdown, exceeds thirty seconds and is forced with exit one. The
+overall result remains failed; coordinating peers did not resolve the delay.
+[Read-only inspection 40194826026](https://github.com/edgepillar/syrius/actions/runs/40194826026)
+verifies the single original native archive, SHA-256
+`415191e357f567e7e2b62f248fc470a52725ffbf46071b3f53f05ba49141acdc`,
+and manifest `a39fcfd15638cc173e8fedf82bdc94bfce64b2a6e230d4055fc76d3685208eb3`.
+The selected lane and finite momentum projection are qualified; successful
+Linux execution keeps its earlier source scope and is not repeated.
+
+The pinned [node logger](https://github.com/zenon-network/go-zenon/blob/590f43ca7a24dccd8e883bc8903a0cb02e54528a/common/logs.go)
+writes detailed stages to two files inside the owned data directory. The
+diagnostic follow-up reads only those fixed files after original process exit,
+using the existing one-MiB file cap, regular-file identity and ancestor guards.
+Only finite shutdown codes, read/refusal status, byte counts and hashes enter
+the manifest; raw text and paths are not uploaded. Missing or refused logs
+remain explicit and cannot replace shutdown failure. Thirty-one injected
+runtime, original-handle and inspector cases pass locally. No node source,
+stop deadline, signal retry or success gate changes in this follow-up.
