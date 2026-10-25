@@ -374,6 +374,33 @@ class SocketTransportPolicyTests(unittest.TestCase):
                 self.assertEqual(raw.connect_calls, 0)
                 self.assertEqual(raw.close_calls, 1)
 
+    def test_winsock_unbound_name_refusal_still_requires_one_loopback_bind(self):
+        raw = FakeSocket()
+        def unbound(original):
+            if original.local == ("0.0.0.0", 0):
+                raise OSError(10022, PRIVATE)
+        raw.hooks["getsockname"] = unbound
+        clock, factory, waiter, http, ws = self.fixture(raw)
+        wire = http.open(policy.HTTP_ORIGIN, clock() + 2)
+        self.assertEqual([event for event in raw.events if event[0] == "bind"],
+                         [("bind", ("127.0.0.1", 0))])
+        self.assertEqual(raw.connect_calls, 1)
+        wire.close(clock() + 1)
+        self.assertEqual(raw.close_calls, 1)
+
+    def test_other_name_errors_or_an_already_bound_winsock_socket_are_refused(self):
+        for code, already_bound in ((errno.EINVAL, False), (10022, True)):
+            with self.subTest(code=code, already_bound=already_bound):
+                raw = FakeSocket()
+                raw.hooks["getsockname"] = lambda *args: (_ for _ in ()).throw(OSError(code, PRIVATE))
+                if already_bound:
+                    raw.local = ("0.0.0.0", 55050)
+                    raw.hooks["bind"] = lambda *args: (_ for _ in ()).throw(OSError(10022, PRIVATE))
+                clock, factory, waiter, http, ws = self.fixture(raw)
+                self.refused("WIRE_REFUSED", http.open, policy.HTTP_ORIGIN, clock() + 2)
+                self.assertEqual(raw.connect_calls, 0)
+                self.assertEqual(raw.close_calls, 1)
+
     def test_exact_local_and_peer_endpoint_validation(self):
         cases = (("bind_local", ("0.0.0.0", 55050)),
                  ("bind_local", ("127.0.0.2", 55050)),

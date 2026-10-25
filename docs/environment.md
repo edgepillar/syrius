@@ -2038,3 +2038,15 @@ original resource identity, terminal projection and arbitrary data refusal.
 Together with the affected existing cases, 21 distinct in-memory cases pass
 locally; no native node, network listener or local qualification scratch is
 created. Hosted runtime qualification of this follow-up remains pending.
+
+### Winsock unbound socket portability
+
+Microsoft documents [WSAEINVAL before bind](https://learn.microsoft.com/en-us/windows/win32/api/winsock/nf-winsock-getsockname)
+for `getsockname`. The transport had required the Unix-style unbound address
+return. A new injected Winsock case first reproduced a refusal under that
+adapter. The correction accepts only error 10022 before the existing single
+loopback bind. A different name error or an already-bound socket still refuses;
+no existing connection can be adopted. All 41 injected policy cases pass,
+including two new portability/adoption cases. These are in-memory controls,
+with no actual socket listener or Windows node execution. Native qualification
+and the precise prior hosted wire failure remain separate.

@@ -297,9 +297,17 @@ class _SocketWire(_SocketIO):
     def connect(self, peer, end):
         self._prime(end)
         _require(self._socket.family == socket.AF_INET)
-        initial = self._call(end, self._socket.getsockname)
-        _require(type(initial) is tuple and initial == ("0.0.0.0", 0)
-                 and type(initial[1]) is int)
+        try:
+            initial = self._call(end, self._socket.getsockname)
+        except OSError as error:
+            # Winsock reports WSAEINVAL before bind. Only that exact status
+            # may proceed to the one explicit bind below; another existing
+            # binding still makes bind fail and can never be adopted.
+            _require(error.errno == 10022)
+            self._remaining(end)
+        else:
+            _require(type(initial) is tuple and initial == ("0.0.0.0", 0)
+                     and type(initial[1]) is int)
         try:
             self._call(end, self._socket.getpeername)
         except OSError as error:
