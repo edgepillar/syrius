@@ -2909,3 +2909,12 @@ local cases are unchanged. Dart analysis now has an independent non-cancelled
 step so a test-load failure cannot hide analysis evidence; native startup still
 requires every preceding gate to succeed. Actual hosted debug acceptance
 remains pending.
+
+The directly supervised SDK invocation also includes the Flutter tool's existing
+`packages/flutter_tools/.dart_tool/package_config.json`, matching the chosen
+tag's [Windows launcher](https://github.com/flutter/flutter/blob/3.47.7/bin/flutter.bat).
+It still runs the original Dart executable and tool snapshot as an argument
+list without a shell. The package configuration must already exist after SDK
+setup; it is not generated or replaced by the controller. This argument
+correspondence is checked before another hosted attempt, rather than repeating
+the earlier source unchanged.

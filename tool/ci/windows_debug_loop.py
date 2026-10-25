@@ -137,7 +137,13 @@ def sdk_child():
          and parent.get('HOME') == str(profile), 'PROFILE_REFUSED')
     need(os.read(0, 6) == b'START\n', 'JOB_REFUSED')
     dart, snapshot = sdk(parent)
-    original = subprocess.Popen([str(dart), str(snapshot), 'run', '--machine', '--no-pub',
+    packages = Path(parent['FLUTTER_ROOT']) / 'packages/flutter_tools/.dart_tool/package_config.json'
+    need(packages.is_file(), 'TOOL_REFUSED')
+    bounded.plain(packages)
+    # Match Flutter 3.47.7's Windows launcher while keeping the original SDK
+    # process supervised directly, without a command-shell intermediary.
+    original = subprocess.Popen([str(dart), '--packages=' + str(packages), str(snapshot),
+        'run', '--machine', '--no-pub',
         '-d', 'windows', '--target', 'harness/app/main.dart',
         '--dart-define-from-file=.dart_tool/git_metadata.json'],
         shell=False, stdin=sys.stdin.buffer, stdout=sys.stdout.buffer, stderr=sys.stdout.buffer,
