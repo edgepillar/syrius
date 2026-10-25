@@ -2435,3 +2435,49 @@ The main progress ledger has 65 of 80 rows marked done, or 81.25 percent,
 excluding corrective X rows. This is a count of recorded tasks, not a
 weighted completion estimate or independent acceptance of the end state.
 All 94 visual matches and fifteen main rows remain open.
+
+### Explicit isolated correction for the closed producer task
+
+The optional `chain321_node_source=lab-fix` choice retains base node
+`2d1b929cc3fa5269cf133757d4a6963821137984`, tree
+`4467fff960ea6a5409908d7c85497a68482e0edb`. It adds a focused test using the
+actual closed worker and producer supervisor. No task is mocked and the
+supervisor is called synchronously, so asynchronous test completion cannot
+hide its panic. No chain, wallet import or network is started by that test.
+
+The fresh hosted checkout must first fail the actual named test and package
+with the observed nil-pointer panic at the original supervisor line. The
+command must exit one with complete output and no forced termination.
+An unrelated crash, compiler failure, empty filter or skip is refused.
+Only then may the controller apply the four-line nil-task guard and require
+the same test and package to pass with exit zero. The original failing
+command receipt remains present and explicitly expected; it is not rewritten
+as a zero exit. A cold compilation has a 600-second parent bound, the patched
+test has 180 seconds, and both Go test runtimes remain capped at 30 seconds.
+
+Patch SHA-256 is
+`ce0d51dbd7791933a25864a9a03e897ac1120a0a8543150367e66bd31af8d764`;
+test-fixture SHA-256 is
+`22ae33b7fb4f9809352bd634bae7799c245e68f02fadc9d8c0d7d4afbb660643`.
+The entire compiled tree is
+`a9262cce18190bfc01e85ac903558500379d014f`, independently calculated from the
+verified public base tree, changed manager blob and added regression blob.
+After the change, staged-tree identity, unchanged worktree and absence of
+untracked source files are required. The built binary, configuration and
+deployed public fixture checks remain. All seven actual upstream shutdown
+regressions still precede lab startup. Native exit requirements and waits
+are unchanged.
+
+Retained-manifest inspection must explicitly select the corrected source.
+It validates both regression phases and compiled-tree provenance without
+creating runtime ownership. Corrected results cannot be relabeled as
+pristine upstream or original results. The default remains `original`;
+neither wallet dependencies nor embedded binaries change.
+
+Ninety-seven selected local Python controller cases pass, including fourteen
+new source/regression/inspection checks, and workflow YAML parsing verifies
+eleven inputs and the three fixed source choices. Ninety-five cases are
+memory-only; two existing cases use small temporary filesystem fixtures.
+No local Go execution or corrected-node lab outcome is claimed. Actual
+hosted red/green reproduction, corrected native shutdown, both-platform lab
+qualification and all wallet/checkpoint/seed/visual acceptance remain pending.

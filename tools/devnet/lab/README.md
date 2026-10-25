@@ -194,8 +194,8 @@ only; any original failure keeps the lab failed.
 The explicit chain321_node_source choice defaults to original. Selecting
 upstream uses only commit 2d1b929cc3fa5269cf133757d4a6963821137984, tree
 4467fff960ea6a5409908d7c85497a68482e0edb, which joins the legacy run loop and
-protocol workers during shutdown. No moving branch or local node patch is
-accepted. This path requires all seven named upstream Go shutdown tests and
+protocol workers during shutdown. These two choices reject moving branches
+and unrecorded source changes. This path requires all seven named upstream Go shutdown tests and
 the package pass, without skips, before starting the lab. Exact SHA/tree and
 regression outcomes remain separate from chain production and original exit.
 Retained-manifest inspection must select the same node source. The older
@@ -209,3 +209,24 @@ not file contents. Unknown text is never echoed. Ambiguous or malformed
 stacks keep an explicit status. Inspection validates every panic receipt,
 then emits only the first detail and a count to keep its notice complete.
 These observations cannot change an original exit code or qualify shutdown.
+
+The separate lab-fix choice starts from that exact upstream SHA/tree and
+applies only the checked-in closed-producer-task correction. Before applying
+it, the controller copies a pinned Go regression into the fresh node checkout
+and requires the actual named test to fail with the observed nil-task panic.
+A zero exit, empty test filter, unrelated crash, compiler failure or skipped
+test refuses the correction. It then applies the pinned patch, verifies the
+entire staged compiled tree, requires the same test and package to pass, and
+runs all seven upstream shutdown regressions before lab startup.
+
+The base tree remains 4467fff960ea6a5409908d7c85497a68482e0edb. The compiled
+lab-fix tree is a9262cce18190bfc01e85ac903558500379d014f. Patch and test-fixture
+SHA-256 values, both actual test exits and staged/worktree correspondence are
+checked. Source changes outside the two expected files are refused. A cold
+regression compile has a 600-second parent bound; its test runtime remains
+30 seconds. The patched test has a 180-second parent bound. Native shutdown
+still requires zero, complete, unforced original exits with the same wait.
+Neither pristine source choice, the wallet SDK nor embedded binaries change.
+Inspection requires lab-fix explicitly and cannot relabel its result as an
+unmodified node result. All wallet, checkpoint, seed and visual gates remain
+separate from this isolated node correction.

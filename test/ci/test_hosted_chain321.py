@@ -42,9 +42,10 @@ class CompilerDiagnosticTests(unittest.TestCase):
 
 
 class NodeSourceTests(unittest.TestCase):
-    def test_only_two_exact_source_pins_are_admitted(self):
+    def test_only_explicit_source_choices_are_admitted(self):
         self.assertEqual(lab.selected_node_source("original")[0], lab.NODE_SHA)
         self.assertEqual(lab.selected_node_source("upstream")[0], lab.UPSTREAM_NODE_SHA)
+        self.assertEqual(lab.selected_node_source("lab-fix"), lab.NODE_SOURCES["upstream"])
         for offered in ("dev", "master", "https://example.invalid", "a" * 40, None):
             with self.subTest(offered=offered), self.assertRaises(lab.Failure):
                 lab.selected_node_source(offered)

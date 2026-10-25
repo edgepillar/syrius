@@ -41,12 +41,13 @@ on:
         type: boolean
         default: false
       chain321_node_source:
-        description: Select the original node pin or the reviewed upstream shutdown commit
+        description: Select the original pin, upstream pin or explicit producer lab correction
         type: choice
         default: original
         options:
           - original
           - upstream
+          - lab-fix
       inspect_chain321_run:
         description: Inspect an original completed chain-321 run without repeating builds
         type: string
@@ -288,7 +289,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: zenon-network/go-zenon
-          ref: ${{ inputs.chain321_node_source == 'upstream' && '2d1b929cc3fa5269cf133757d4a6963821137984' || '590f43ca7a24dccd8e883bc8903a0cb02e54528a' }}
+          ref: ${{ (inputs.chain321_node_source == 'upstream' || inputs.chain321_node_source == 'lab-fix') && '2d1b929cc3fa5269cf133757d4a6963821137984' || '590f43ca7a24dccd8e883bc8903a0cb02e54528a' }}
           path: .harness/ci-node-source
           persist-credentials: false
 

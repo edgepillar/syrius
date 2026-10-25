@@ -25,7 +25,7 @@ import time
 
 from tool.ci.windows_presentation_smoke import OutputDrain
 from tool.ci.loopback_relay import PAIRS as RELAY_PAIRS, TARGET as RELAY_TARGET, Relay
-from tool.ci import native_stack_probe, node_panic_projection
+from tool.ci import native_stack_probe, node_panic_projection, producer_shutdown_patch
 from tools.devnet.lab import owned_lab as wire_policy
 from tools.devnet.lab.socket_transport import make_transports
 
@@ -35,6 +35,7 @@ UPSTREAM_NODE_SHA = "2d1b929cc3fa5269cf133757d4a6963821137984"
 NODE_SOURCES = {
     "original": (NODE_SHA, "3bedc2fde71035c983997451c2d7e76b66d2d210"),
     "upstream": (UPSTREAM_NODE_SHA, "4467fff960ea6a5409908d7c85497a68482e0edb"),
+    "lab-fix": (producer_shutdown_patch.BASE_SHA, producer_shutdown_patch.BASE_TREE),
 }
 SHUTDOWN_TESTS = (
     "TestStopWaitsForGatedRunPeer", "TestStopDoesNotStrandRunLoopOnCheckpoint",
@@ -115,6 +116,73 @@ def shutdown_test_result(raw):
                      "NODE_REGRESSIONS_REFUSED")
     need(package_passed and seen == set(SHUTDOWN_TESTS), "NODE_REGRESSIONS_REFUSED")
     return dict(passed=True, tests=list(SHUTDOWN_TESTS), skips=0)
+
+
+def source_matches(commands, source, head, base_tree, compiled_tree):
+    need(commands.git(source, "rev-parse", "HEAD") == head
+         and commands.git(source, "rev-parse", "HEAD^{tree}") == base_tree
+         and commands.git(source, "write-tree") == compiled_tree
+         and not commands.git(source, "diff", "--name-only")
+         and not commands.git(source, "ls-files", "--others", "--exclude-standard"),
+         "SOURCE_REFUSED")
+
+
+def prepare_producer_patch(commands, repo, source, report):
+    """Reproduce the actual closed-worker crash before changing its source."""
+    policy = producer_shutdown_patch
+    evidence = report["producer_task_patch"] = policy.pending()
+    patch = repo / "tool/ci/node_fixtures/closed_producer_task.patch"
+    fixture = repo / "tool/ci/node_fixtures/closed_producer_task_test.go"
+    manager = source / "pillar/manager.go"
+    destination = source / policy.TEST_PATH
+    directories(manager.parent)
+    need(digest(regular(patch)) == policy.PATCH_SHA256
+         and digest(regular(fixture)) == policy.FIXTURE_SHA256
+         and digest(regular(manager)) == policy.ORIGINAL_MANAGER_SHA256
+         and not destination.exists() and not destination.is_symlink(), "SOURCE_REFUSED")
+    need(commands.run(["gofmt", "-d", str(fixture)], cwd=source) == b"", "SOURCE_REFUSED")
+    with destination.open("xb") as stream:
+        stream.write(regular(fixture))
+    need(digest(regular(destination)) == policy.FIXTURE_SHA256, "SOURCE_REFUSED")
+    argv = ["go", "test", "-json", "-mod=readonly", "-count=1", "-run",
+            "^" + policy.TEST_NAME + "$", "-timeout", "30s", "./pillar"]
+    evidence["phase"] = "unpatched_test"
+    count = len(commands.originals)
+    try:
+        commands.run(argv, cwd=source, timeout=600)
+    except Failure as error:
+        need(error.code == "COMMAND_FAILED" and len(commands.originals) == count + 1,
+             "NODE_REGRESSIONS_REFUSED")
+        original = commands.originals[-1]
+        receipt = original.receipt
+        need(type(receipt) is dict and receipt["exit_code"] == 1
+             and receipt["output_complete"] is True and receipt["forced"] is False,
+             "NODE_REGRESSIONS_REFUSED")
+        try:
+            policy.result(bytes(original.drains[0].data), failing=True)
+        except policy.Refused:
+            raise Failure("NODE_REGRESSIONS_REFUSED") from None
+        receipt["expected_failure"] = "CLOSED_PRODUCER_NIL_TASK"
+        evidence.update(unpatched_exit=1, unpatched_expected_panic=True)
+    else:
+        raise Failure("NODE_REGRESSIONS_REFUSED")
+    evidence["phase"] = "apply"
+    commands.git(source, "add", "--", policy.TEST_PATH)
+    commands.git(source, "apply", "--index", "--whitespace=error-all", str(patch))
+    need(digest(regular(manager)) == policy.PATCHED_MANAGER_SHA256
+         and digest(regular(destination)) == policy.FIXTURE_SHA256, "SOURCE_REFUSED")
+    source_matches(commands, source, policy.BASE_SHA, policy.BASE_TREE, policy.COMPILED_TREE)
+    evidence.update(phase="patched_test", compiled_tree=policy.COMPILED_TREE)
+    need(commands.run(["gofmt", "-d", str(manager), str(destination)], cwd=source) == b"", "SOURCE_REFUSED")
+    raw = commands.run(argv, cwd=source, timeout=180)
+    try:
+        policy.result(raw, failing=False)
+    except policy.Refused:
+        raise Failure("NODE_REGRESSIONS_REFUSED") from None
+    evidence.update(phase="verified", patched_exit=0, patched_test_passed=True)
+    policy.validate(evidence, required=True)
+    source_matches(commands, source, policy.BASE_SHA, policy.BASE_TREE, policy.COMPILED_TREE)
+    return policy.COMPILED_TREE
 
 
 def failure_code(error):
@@ -760,7 +828,8 @@ def run(backend):
          or (backend == "native" and sys.platform == "win32"), "ENVIRONMENT_REFUSED")
     need(parent.get("SYRIUS_NATIVE_STACK_DIAGNOSTIC") in (None, "true", "false"), "ENVIRONMENT_REFUSED")
     stack_debug = backend == "native" and parent.get("SYRIUS_NATIVE_STACK_DIAGNOSTIC") == "true"
-    node_sha, node_tree = selected_node_source(parent.get("SYRIUS_LAB_NODE_SOURCE", "original"))
+    node_source = parent.get("SYRIUS_LAB_NODE_SOURCE", "original")
+    node_sha, node_tree = selected_node_source(node_source)
     directories(repo)
     temp = Path(parent["RUNNER_TEMP"])
     directories(temp)
@@ -771,7 +840,7 @@ def run(backend):
     env = child_environment(root, parent)
     commands = Commands(root, env)
     report = dict(schema=1, scope="hosted_chain321_lab", backend=backend,
-        application_sha=parent["GITHUB_SHA"], node_sha=node_sha,
+        application_sha=parent["GITHUB_SHA"], node_sha=node_sha, node_source=node_source,
         run_id=parent.get("GITHUB_RUN_ID"), attempt=parent.get("GITHUB_RUN_ATTEMPT"),
         success=False, error_codes=[], checks=dict.fromkeys(
             ("source", "build", "assets", "preflight", "started", "production", "stopped", "inputs_unchanged"), False),
@@ -801,6 +870,9 @@ def run(backend):
         need(target == ("x86_64-w64-mingw32" if backend == "native" else "x86_64-linux-gnu")
              and re.fullmatch(r"[0-9]+(?:\.[0-9]+){0,2}", c_version), "SOURCE_REFUSED")
         report["c_compiler"] = dict(target=target, version=c_version, cgo_enabled=True)
+        compiled_tree = (prepare_producer_patch(commands, repo, source, report)
+                         if node_source == "lab-fix" else node_tree)
+        report["compiled_node_tree"] = compiled_tree
         binary = root / ("znnd.exe" if backend == "native" else "znnd")
         commands.run(["go", "build", "-trimpath", "-buildvcs=false", "-mod=readonly",
                       "-tags=netgo,osusergo", "-ldflags=-linkmode=external -extldflags=-static",
@@ -816,7 +888,7 @@ def run(backend):
                 "-run", "^(" + "|".join(SHUTDOWN_TESTS) + ")$", "-timeout", "30s", "./p2p/legacy"],
                 cwd=source, timeout=180)
             report["upstream_stop_regressions"] = shutdown_test_result(result)
-            need(not commands.git(source, "status", "--porcelain=v1", "--untracked-files=all"), "SOURCE_REFUSED")
+            source_matches(commands, source, node_sha, node_tree, compiled_tree)
         assets = root / "assets"
         commands.run(["node", str(repo / "tools/devnet/lab/make-assets.js"),
                       str(source / "docker/devnet"), str(assets)], cwd=repo)
@@ -869,8 +941,8 @@ def run(backend):
                  and regular(configs[role] / "genesis.json") == genesis for role in ROLES)
              and all(digest(regular(path)) == expected for path, expected in keyfile_pins.items())
              and digest(regular(binary, 128 * MIB)) == report["binary_sha256"]
-             and not commands.git(repo, "status", "--porcelain=v1", "--untracked-files=all")
-             and not commands.git(source, "status", "--porcelain=v1", "--untracked-files=all"), "SOURCE_REFUSED")
+             and not commands.git(repo, "status", "--porcelain=v1", "--untracked-files=all"), "SOURCE_REFUSED")
+        source_matches(commands, source, node_sha, node_tree, compiled_tree)
         report["checks"]["inputs_unchanged"] = True
     except (Exception, KeyboardInterrupt) as error:
         report["error_codes"].append(failure_code(error))

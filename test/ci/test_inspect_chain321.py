@@ -8,6 +8,7 @@ import unittest
 import zipfile
 
 from tool.ci import inspect_chain321 as inspect
+from tool.ci import producer_shutdown_patch as producer_patch
 
 
 def packed(value, name="manifest.json", mode=stat.S_IFREG):
@@ -29,6 +30,81 @@ def manifest():
 
 
 class InspectionTests(unittest.TestCase):
+    @staticmethod
+    def corrected_manifest():
+        report = manifest()
+        report.update(node_source="lab-fix", node_sha=inspect.UPSTREAM_NODE_SHA,
+            node_tree=producer_patch.BASE_TREE, compiled_node_tree=producer_patch.COMPILED_TREE,
+            producer_task_patch=dict(producer_patch.pending(), phase="verified",
+                compiled_tree=producer_patch.COMPILED_TREE, unpatched_exit=1, patched_exit=0,
+                unpatched_expected_panic=True, patched_test_passed=True),
+            upstream_stop_regressions=dict(passed=True, tests=list(inspect.SHUTDOWN_TESTS), skips=0))
+        report["checks"].update(source=True, build=True)
+        return report
+
+    def test_corrected_node_requires_explicit_inspection_and_stays_separate(self):
+        report = self.corrected_manifest()
+        result = inspect.project(report, "native", "a" * 40, 123,
+            inspect.UPSTREAM_NODE_SHA, expected_patched=True)
+        self.assertEqual(result["node_source"], "lab-fix")
+        self.assertEqual(result["compiled_node_tree"], producer_patch.COMPILED_TREE)
+        self.assertEqual(result["producer_task_patch"]["unpatched_exit"], 1)
+        self.assertEqual(result["producer_task_patch"]["patched_exit"], 0)
+        self.assertEqual(result["upstream_stop_regressions"], dict(passed=True, count=7, skips=0))
+        self.assertFalse(result["runtime_started"])
+        self.assertFalse(result["seed_admitted"])
+        with self.assertRaises(inspect.Refused):
+            inspect.project(report, "native", "a" * 40, 123, inspect.UPSTREAM_NODE_SHA)
+
+    def test_plain_upstream_cannot_be_relabelled_as_corrected(self):
+        report = manifest()
+        report.update(node_source="upstream", node_sha=inspect.UPSTREAM_NODE_SHA,
+            node_tree=producer_patch.BASE_TREE)
+        with self.assertRaises(inspect.Refused):
+            inspect.project(report, "native", "a" * 40, 123,
+                inspect.UPSTREAM_NODE_SHA, expected_patched=True)
+
+    def test_corrected_build_cannot_hide_a_missing_or_changed_regression_proof(self):
+        for change in (dict(producer_task_patch=None), dict(compiled_node_tree="a" * 40),
+                       dict(node_source="upstream"), dict(producer_task_patch=producer_patch.pending())):
+            report = dict(self.corrected_manifest(), **change)
+            with self.subTest(change=change), self.assertRaises(inspect.Refused):
+                inspect.project(report, "native", "a" * 40, 123,
+                    inspect.UPSTREAM_NODE_SHA, expected_patched=True)
+
+    def test_early_correction_failure_is_observable_without_build_or_runtime_admission(self):
+        report = self.corrected_manifest()
+        report["checks"]["build"] = False
+        report.update(producer_task_patch=producer_patch.pending(), compiled_node_tree=None,
+                      upstream_stop_regressions=None, error_codes=["NODE_REGRESSIONS_REFUSED"])
+        result = inspect.project(report, "native", "a" * 40, 123,
+            inspect.UPSTREAM_NODE_SHA, expected_patched=True)
+        self.assertEqual(result["producer_task_patch"]["phase"], "fixture")
+        self.assertIsNone(result["compiled_node_tree"])
+        self.assertFalse(result["artifact_reported_success"])
+        self.assertFalse(result["runtime_started"])
+
+    def test_corrected_panic_notice_keeps_provenance_and_all_failures_in_its_cap(self):
+        report = self.corrected_manifest()
+        report["checks"]["production"] = True
+        report.update(native_shutdown_mode="coordinated_requests_then_wait",
+            native_shutdown_order=list(inspect.ROLES),
+            observations=dict(chain=321, genesis_hash="b" * 64, first_height=1,
+                last_height=2, first_timestamp=1, last_timestamp=30, samples=2,
+                cross_transport_hash_equal=True),
+            c_compiler=dict(target="x86_64-w64-mingw32", version="15.2.0", cgo_enabled=True))
+        report["node_exits"] = [dict(exit_code=2, output_complete=True, forced=False,
+            node_diagnostics=["NODE_SIGNAL_RECEIVED", "NODE_STOP_REQUESTED", "NODE_P2P_STOP_REQUESTED", "NODE_PANIC"],
+            private_log_projection=dict(status="READ"), node_panic=dict(status="CAPTURED", kind="NIL_POINTER",
+            bytes=10000, sha256="a" * 64, frames=[dict(package="pillar", source_path_sha256="b" * 64,
+            line=120+i) for i in range(3)])) for _ in inspect.ROLES]
+        result = inspect.project(report, "native", "a" * 40, 123,
+            inspect.UPSTREAM_NODE_SHA, expected_patched=True)
+        result.update(archive_sha256="a" * 64, manifest_sha256="b" * 64)
+        self.assertEqual(result["node_panic_count"], 5)
+        self.assertEqual(len(result["node_exits"]), 5)
+        self.assertLess(len(json.dumps(result, separators=(",", ":")).encode()), 3800)
+
     def test_all_panic_facts_are_validated_but_only_the_first_detail_is_projected(self):
         report = manifest()
         panic = dict(status="CAPTURED", kind="NIL_POINTER", bytes=200, sha256="a" * 64,
