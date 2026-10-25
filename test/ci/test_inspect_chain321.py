@@ -95,6 +95,28 @@ class InspectionTests(unittest.TestCase):
             with self.assertRaises(inspect.Refused):
                 inspect.project(report, "native", "a" * 40, 123)
 
+    def test_runtime_projection_keeps_terminal_facts_without_original_streams(self):
+        report = manifest()
+        report.update(runtime_phase="http_genesis", error_codes=["HTTP_REFUSED"],
+            node_exits=[dict(exit_code=1, forced=False, output_complete=True,
+                stop_code="SIGNAL_OS_ERROR", stop_os_error=6, node_diagnostics=["NODE_PANIC"],
+                private_profile="/fixture/private/profile", streams=dict(private="fixture"))])
+        result = inspect.project(report, "native", "a" * 40, 123)
+        self.assertEqual(result["runtime_phase"], "http_genesis")
+        self.assertEqual(result["node_exits"][0]["stop_os_error"], 6)
+        self.assertNotIn("private", json.dumps(result))
+        self.assertFalse(result["runtime_started"])
+
+    def test_arbitrary_runtime_strings_and_boolean_exit_codes_are_refused(self):
+        for change in (dict(runtime_phase="/fixture/private/profile"),
+                       dict(node_diagnostics=["/fixture/private/value"]),
+                       dict(created_count=True),
+                       dict(node_exits=[dict(exit_code=True)])):
+            report = manifest()
+            report.update(change)
+            with self.assertRaises(inspect.Refused):
+                inspect.project(report, "native", "a" * 40, 123)
+
 
 if __name__ == "__main__":
     unittest.main()

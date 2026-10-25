@@ -14,7 +14,7 @@ import urllib.parse
 import urllib.request
 import zipfile
 
-from tool.ci.hosted_chain321 import CODES, NODE_SHA
+from tool.ci.hosted_chain321 import CODES, NODE_DIAGNOSTICS, NODE_SHA, ROLES
 
 
 API = "https://api.github.com/repos/edgepillar/syrius"
@@ -156,10 +156,54 @@ def project(report, backend, head, run_id):
     compiler = report.get("compiler")
     need(compiler is None or (type(compiler) is str and
          re.fullmatch(r"go version go[0-9]+\.[0-9]+\.[0-9]+ (?:windows|linux)/amd64", compiler)))
+    phase = report.get("runtime_phase")
+    need(phase in (None, "rpc_readiness", "ws_handshake", "http_genesis", "ws_genesis",
+                   "first_frontier", "advancing_frontier"))
+    node_codes = report.get("node_diagnostics", [])
+    need(type(node_codes) is list and len(node_codes) <= len(NODE_DIAGNOSTICS)
+         and all(code in NODE_DIAGNOSTICS for code in node_codes))
+    states = report.get("docker_states", [])
+    need(type(states) is list and len(states) <= 512)
+    for state in states:
+        need(type(state) is dict and set(state) == {"phase", "role", "running", "exit_code", "oom_killed"}
+             and state["phase"] in ("health", "before_stop", "after_stop") and state["role"] in ROLES
+             and type(state["running"]) is bool and type(state["oom_killed"]) is bool
+             and type(state["exit_code"]) is int and -(2**63) <= state["exit_code"] < 2**63)
+    exits = report.get("node_exits", [])
+    need(type(exits) is list and len(exits) <= 5)
+    projected_exits = []
+    for item in exits:
+        if item is None:
+            projected_exits.append(dict(exit_code=None, output_complete=None, forced=None,
+                                        stop_code=None, stop_os_error=None, node_diagnostics=[]))
+            continue
+        need(type(item) is dict)
+        selected = {key: item.get(key) for key in ("exit_code", "output_complete", "forced", "stop_code", "stop_os_error")}
+        need(all(selected[key] is None or (type(selected[key]) is int and -(2**63) <= selected[key] < 2**63)
+                 for key in ("exit_code", "stop_os_error"))
+             and all(selected[key] is None or type(selected[key]) is bool for key in ("output_complete", "forced"))
+             and selected["stop_code"] in (None, "SIGNAL_OS_ERROR", "WAIT_TIMEOUT"))
+        codes = item.get("node_diagnostics", [])
+        need(type(codes) is list and len(codes) <= len(NODE_DIAGNOSTICS)
+             and all(code in NODE_DIAGNOSTICS for code in codes))
+        selected["node_diagnostics"] = codes
+        projected_exits.append(selected)
+    counts = {key: report.get(key) for key in ("created_count", "started_count")}
+    need(all(value is None or (type(value) is int and 0 <= value <= 5)
+             for value in counts.values()))
+    c_compiler = report.get("c_compiler")
+    need(c_compiler is None or (type(c_compiler) is dict
+         and set(c_compiler) == {"target", "version", "cgo_enabled"}
+         and c_compiler["target"] in ("x86_64-linux-gnu", "x86_64-w64-mingw32")
+         and type(c_compiler["version"]) is str
+         and re.fullmatch(r"[0-9]+(?:\.[0-9]+){0,2}", c_compiler["version"])
+         and c_compiler["cgo_enabled"] is True))
     return dict(scope="retained_chain321_observation", backend=backend,
         source_head=head, source_run_id=run_id, source_attempt=1,
         artifact_reported_success=report["success"], checks=checks, error_codes=errors,
         compiler=compiler, compiler_diagnostics=diagnostics,
+        runtime_phase=phase, node_diagnostics=node_codes, docker_states=states,
+        node_exits=projected_exits, c_compiler=c_compiler, **counts,
         inspection_only=True, runtime_started=False, seed_admitted=False)
 
 

@@ -136,3 +136,9 @@ platforms. Linux binaries must pass a bounded ELF64/AMD64 check with no
 interpreter or dynamic section before entering the scratch image. Compiler
 success and image checks are prerequisites, separate from advancing chain
 production and original shutdown.
+
+Runtime reports retain finite wire-policy codes and the first observation
+failure separately from close failure. Observation phase, original process
+exit/signal facts, created-resource Docker state and allowlisted node failure
+categories can be inspected without publishing raw node logs. These fields
+remain evidence only and cannot adopt a runtime or admit wallet preparation.

@@ -44,6 +44,11 @@ CODES = frozenset((
     "CONFIG_REFUSED", "PORT_CONFLICT", "NODE_EXITED", "RPC_UNAVAILABLE",
     "RPC_REFUSED", "GENESIS_MISMATCH", "PRODUCTION_UNPROVEN",
     "DOCKER_REFUSED", "RESOURCE_CHANGED", "INTERNAL_ERROR",
+)) | wire_policy.CODES
+NODE_DIAGNOSTICS = frozenset((
+    "NODE_CLI_REFUSED", "NODE_STORAGE_REFUSED", "NODE_PANIC",
+    "NODE_KEYSTORE_REFUSED", "NODE_GENESIS_REFUSED", "NODE_PORT_CONFLICT",
+    "NODE_STARTUP_FAILED", "NODE_SIGNAL_RECEIVED",
 ))
 
 
@@ -60,6 +65,27 @@ def need(value, code):
 
 def digest(data):
     return hashlib.sha256(data).hexdigest()
+
+
+def failure_code(error):
+    return (error.code if isinstance(error, (Failure, wire_policy.Refused))
+            and error.code in CODES else "INTERNAL_ERROR")
+
+
+def node_diagnostics(raw):
+    """Finite node failure categories; never include log text or paths."""
+    text = raw.decode("utf-8", "replace")
+    patterns = (
+        ("NODE_CLI_REFUSED", r"flag provided but not defined|Incorrect Usage"),
+        ("NODE_STORAGE_REFUSED", r"permission denied|access is denied|operation not permitted"),
+        ("NODE_PANIC", r"panic:|fatal error:"),
+        ("NODE_KEYSTORE_REFUSED", r"failed to start wallet|could not decrypt|invalid password|(?:failed|cannot|unable).*key file|key file.*not found"),
+        ("NODE_GENESIS_REFUSED", r"genesis.*(?:invalid|error)|failed to.*genesis"),
+        ("NODE_PORT_CONFLICT", r"address already in use|Only one usage of each socket"),
+        ("NODE_STARTUP_FAILED", r"failed to.*(?:node|zenon)|Fatal:"),
+        ("NODE_SIGNAL_RECEIVED", r"Got interrupt|Got signal|Shutting down"),
+    )
+    return [code for code, pattern in patterns if re.search(pattern, text, re.IGNORECASE)]
 
 
 def static_linux_binary(raw):
@@ -193,7 +219,9 @@ class Original:
         need(type(code) is int, "STOP_UNKNOWN")
         complete = all([d.finish(3) for d in self.drains])
         self.receipt = dict(exit_code=code, output_complete=complete,
-            forced=self.forced, streams={key: dict(bytes=d.count,
+            forced=self.forced, stop_code=getattr(self, "stop_code", None),
+            stop_os_error=getattr(self, "stop_os_error", None),
+            streams={key: dict(bytes=d.count,
                 retained_bytes=len(d.data), sha256=digest(bytes(d.data)),
                 overflow=d.overflow.is_set()) for key, d in zip(
                     ("stdout", "stderr"), self.drains)})
@@ -211,7 +239,10 @@ class Original:
                 self.process.send_signal(signal.CTRL_BREAK_EVENT if sys.platform == "win32"
                                          else signal.SIGINT)
                 self.process.wait(timeout=30)
-            except (OSError, subprocess.TimeoutExpired):
+            except (OSError, subprocess.TimeoutExpired) as error:
+                self.stop_code = "SIGNAL_OS_ERROR" if isinstance(error, OSError) else "WAIT_TIMEOUT"
+                number = getattr(error, "winerror", getattr(error, "errno", None))
+                self.stop_os_error = number if type(number) is int else None
                 self.forced = True
                 self.process.kill()
                 self.process.wait(timeout=10)
@@ -343,6 +374,13 @@ class Native:
                 original.stop()
             except Exception:
                 failed = True
+            finally:
+                try:
+                    if type(original.receipt) is dict:
+                        original.receipt["node_diagnostics"] = node_diagnostics(
+                            b"\n".join(bytes(d.data) for d in original.drains))
+                except Exception:
+                    failed = True
         need(not failed and len(self.originals) == 5
              and all(item.receipt is not None and item.receipt["exit_code"] == 0
                      and item.receipt["output_complete"] is True
@@ -356,6 +394,17 @@ class Docker:
         self.name, self.owner = "syrius-ci321-" + nonce, nonce
         self.image = self.network = None
         self.created, self.started = [], []
+        self.states, self.diagnostics = [], []
+
+    def record_state(self, item, phase):
+        state = item.get("State", {})
+        need(item.get("Id") in self.created
+             and type(state.get("Running")) is bool and type(state.get("ExitCode")) is int
+             and type(state.get("OOMKilled")) is bool and len(self.states) < 512,
+             "RESOURCE_CHANGED")
+        self.states.append(dict(phase=phase, role=ROLES[self.created.index(item["Id"])],
+            running=state["Running"],
+            exit_code=state["ExitCode"], oom_killed=state["OOMKilled"]))
 
     def call(self, *args, timeout=20):
         return self.commands.run(["docker", *args], cwd=self.binary.parent,
@@ -416,8 +465,10 @@ class Docker:
         for identifier in self.started:
             item = self.inspect("container", identifier)
             need(item["Id"] == identifier and item["Image"] == self.image
-                 and item["Config"]["Labels"].get("org.zenon.ci321.owner") == self.owner
-                 and item["State"]["Running"] is True and item["RestartCount"] == 0,
+                 and item["Config"]["Labels"].get("org.zenon.ci321.owner") == self.owner,
+                 "RESOURCE_CHANGED")
+            self.record_state(item, "health")
+            need(item["State"]["Running"] is True and item["RestartCount"] == 0,
                  "RESOURCE_CHANGED")
 
     def stop(self):
@@ -428,8 +479,19 @@ class Docker:
                 need(item["Id"] == identifier and item["Image"] == self.image
                      and item["Config"]["Labels"].get("org.zenon.ci321.owner") == self.owner,
                      "RESOURCE_CHANGED")
+                self.record_state(item, "before_stop")
+                # The exact created resource was just verified; logs remain
+                # private and only finite failure codes enter the manifest.
+                try:
+                    output = self.call("logs", "--tail", "80", identifier)
+                    stderr = bytes(self.commands.originals[-1].drains[1].data)
+                    self.diagnostics.extend(node_diagnostics(output + b"\n" + stderr))
+                except Exception:
+                    pass
                 self.call("stop", "--time", "20", identifier, timeout=30)
-                state = self.inspect("container", identifier)["State"]
+                item = self.inspect("container", identifier)
+                self.record_state(item, "after_stop")
+                state = item["State"]
                 need(state["Running"] is False and state["ExitCode"] == 0
                      and state.get("OOMKilled") is False, "STOP_UNKNOWN")
             except Exception:
@@ -437,7 +499,12 @@ class Docker:
         need(not failed and len(self.started) == len(self.created) == 5, "STOP_UNKNOWN")
 
 
-def observe(runtime, root):
+def observe(runtime, root, report=None):
+    def phase(name):
+        if report is not None:
+            report["runtime_phase"] = name
+
+    phase("rpc_readiness")
     end = time.monotonic() + 90
     while True:
         runtime.healthy()
@@ -452,16 +519,22 @@ def observe(runtime, root):
     deadline = wire_policy._Deadline(time.monotonic, time.monotonic() + 230)
     http = wire_policy.HttpRpc(http_wire, limits, deadline, secrets.token_bytes)
     ws = wire_policy.WsRpc(ws_wire, limits, deadline, secrets.token_bytes)
+    original_failed = False
     try:
+        phase("ws_handshake")
         ws.connect()
+        phase("http_genesis")
         genesis = http.call("ledger.getMomentumsByHeight", [1, 1])
         need(type(genesis) is dict and type(genesis.get("list")) is list
              and len(genesis["list"]) == 1, "GENESIS_MISMATCH")
         first_genesis = wire_policy.Momentum.parse(genesis["list"][0])
         need(first_genesis.height == 1, "GENESIS_MISMATCH")
+        phase("ws_genesis")
         need(wire_policy.Momentum.parse(ws.call("ledger.getMomentumByHash", [first_genesis.hash]))
              == first_genesis, "GENESIS_MISMATCH")
+        phase("first_frontier")
         first = previous = wire_policy.Momentum.parse(http.call("ledger.getFrontierMomentum", []))
+        phase("advancing_frontier")
         samples = 0
         for _ in range(36):
             runtime.healthy()
@@ -479,6 +552,9 @@ def observe(runtime, root):
             previous = current
             time.sleep(5)
         raise Failure("PRODUCTION_UNPROVEN")
+    except BaseException:
+        original_failed = True
+        raise
     finally:
         failed = False
         for original in (ws, http):
@@ -486,7 +562,11 @@ def observe(runtime, root):
                 original.close()
             except Exception:
                 failed = True
-        need(not failed, "RPC_REFUSED")
+        if failed:
+            if report is not None:
+                report["error_codes"].append("CLOSE_UNKNOWN")
+            if not original_failed:
+                raise Failure("CLOSE_UNKNOWN")
 
 
 def run(backend):
@@ -577,7 +657,7 @@ def run(backend):
                    else Native(commands, binary, configs))
         runtime.start()
         report["checks"]["started"] = True
-        report["observations"] = observe(runtime, root)
+        report["observations"] = observe(runtime, root, report)
         report["checks"]["production"] = True
         need(all(digest(regular(configs[role] / "config.json")) == pins[role]
                  and regular(configs[role] / "genesis.json") == genesis for role in ROLES)
@@ -586,8 +666,7 @@ def run(backend):
              and not commands.git(source, "status", "--porcelain=v1", "--untracked-files=all"), "SOURCE_REFUSED")
         report["checks"]["inputs_unchanged"] = True
     except (Exception, KeyboardInterrupt) as error:
-        report["error_codes"].append(error.code if isinstance(error, (Failure, wire_policy.Refused))
-                                      and error.code in CODES else "INTERNAL_ERROR")
+        report["error_codes"].append(failure_code(error))
     finally:
         if runtime is not None:
             try:
@@ -602,6 +681,8 @@ def run(backend):
             report["docker_image_id"] = runtime.image
             report["created_count"] = len(runtime.created)
             report["started_count"] = len(runtime.started)
+            report["docker_states"] = runtime.states
+            report["node_diagnostics"] = sorted(set(runtime.diagnostics))
         report["success"] = all(report["checks"].values()) and not report["error_codes"]
         output = repo / ".harness/ci-chain321"
         output.mkdir(mode=0o700)

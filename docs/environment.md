@@ -2011,3 +2011,30 @@ its bytes must hash to the original verified static binary before image build.
 This corrects a source-reviewed `copyfile` mode loss before the first successful
 node build reaches image creation. No earlier failed build is presented as
 evidence of container startup. Actual hosted startup remains pending.
+
+### Hosted runtime follow-up
+
+Source `a667b3ab1055595ae3c4ff13dba22031e32cf2c7` ran as
+[40182361862](https://github.com/edgepillar/syrius/actions/runs/40182361862),
+attempt one. Both full controller-suite steps and both Go/C builds succeed.
+Both asset and port-preflight stages pass. The native report launches five
+original handles and then fails during RPC observation with the old generic
+code; Docker fails its resource-health gate. Both report `STOP_UNKNOWN`.
+Read-only [inspection 40182680405](https://github.com/edgepillar/syrius/actions/runs/40182680405)
+verifies each original archive and manifest. Compiler success is established
+separately from chain production and positive shutdown, which remain unqualified.
+
+Source review found that unrecognized wire-policy codes were collapsed into
+`INTERNAL_ERROR`, and a close failure could replace the first observation
+failure. The follow-up preserves the finite original code and records close
+failure separately. It adds bounded observation phases, original native
+terminal/signal facts, exact-created Docker resource states and allowlisted
+node failure categories. Raw node logs, paths, keys and profile data remain
+private. Docker log reads require the retained created ID and just-verified
+image/owner labels. No log or saved summary can mint runtime ownership.
+
+Six new cases cover wire/close failure retention, private log projection,
+original resource identity, terminal projection and arbitrary data refusal.
+Together with the affected existing cases, 21 distinct in-memory cases pass
+locally; no native node, network listener or local qualification scratch is
+created. Hosted runtime qualification of this follow-up remains pending.

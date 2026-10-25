@@ -41,6 +41,46 @@ class CompilerDiagnosticTests(unittest.TestCase):
         self.assertNotIn("private", json.dumps(value))
 
 
+class RuntimeDiagnosticTests(unittest.TestCase):
+    def test_original_wire_codes_are_preserved_without_exception_text(self):
+        for code in ("HTTP_REFUSED", "WS_REFUSED", "FRONTIER_REFUSED", "CLOSE_UNKNOWN"):
+            self.assertEqual(lab.failure_code(lab.wire_policy.Refused(code)), code)
+        self.assertEqual(lab.failure_code(ValueError("/fixture/private/value")), "INTERNAL_ERROR")
+
+    def test_node_log_projection_keeps_categories_and_omits_private_text(self):
+        result = lab.node_diagnostics(b"/fixture/private/value: permission denied\npanic: fixture")
+        self.assertEqual(set(result), {"NODE_STORAGE_REFUSED", "NODE_PANIC"})
+        self.assertNotIn("private", json.dumps(result))
+        self.assertEqual(lab.node_diagnostics(b"using key file /fixture/private/value"), [])
+
+    def test_docker_state_requires_an_original_created_resource(self):
+        runtime = lab.Docker(mock.Mock(), Path("fixture"), {}, "fixture")
+        runtime.created = ["fixture-original"]
+        item = dict(Id="fixture-original", State=dict(Running=False, ExitCode=1, OOMKilled=False))
+        runtime.record_state(item, "before_stop")
+        self.assertEqual(runtime.states, [dict(phase="before_stop", role="pillar", running=False,
+                                               exit_code=1, oom_killed=False)])
+        item["Id"] = "unowned"
+        with self.assertRaises(lab.Failure):
+            runtime.record_state(item, "before_stop")
+
+    def test_wire_cleanup_cannot_replace_the_first_observed_failure(self):
+        http, ws = mock.Mock(), mock.Mock()
+        ws.connect.side_effect = lab.wire_policy.Refused("WS_REFUSED")
+        ws.close.side_effect = lab.wire_policy.Refused("CLOSE_UNKNOWN")
+        report = dict(error_codes=[])
+        with mock.patch.object(lab.socket, "create_connection", return_value=mock.MagicMock()), \
+                mock.patch.object(lab, "make_transports", return_value=(object(), object())), \
+                mock.patch.object(lab.wire_policy, "HttpRpc", return_value=http), \
+                mock.patch.object(lab.wire_policy, "WsRpc", return_value=ws), \
+                self.assertRaises(lab.wire_policy.Refused) as result:
+            lab.observe(mock.Mock(), Path("fixture"), report)
+        self.assertEqual(result.exception.code, "WS_REFUSED")
+        self.assertEqual(report["error_codes"], ["CLOSE_UNKNOWN"])
+        http.close.assert_called_once_with()
+        ws.close.assert_called_once_with()
+
+
 class StaticBinaryTests(unittest.TestCase):
     @staticmethod
     def elf(kinds=(1, 7)):
