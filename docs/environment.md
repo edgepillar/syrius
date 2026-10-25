@@ -1984,3 +1984,24 @@ The workflow now discovers `test_inspect_chain321.py` from `test/ci` directly.
 All eight in-memory cases pass locally with that exact command. A follow-up
 inspection consumes the existing finite lab manifests and starts no runtime.
 Its hosted outcome and any resulting runtime repair remain pending.
+
+### Cgo build correction from retained evidence
+
+Read-only inspection at `5b3a08d1783092f8267ebc65a356b9fd3230c623` passed
+in [40181786928](https://github.com/edgepillar/syrius/actions/runs/40181786928).
+Its eight test cases and both original archive validations succeed. The
+source-bound manifests show Go 1.24.1 failing at build on both platforms with
+undefined `secp256k1.RecoverPubkey`, `DecompressPubkey` and `CompressPubkey`.
+The lab had explicitly disabled Cgo. The pinned dependency defines these
+functions in its [Cgo implementation](https://github.com/ethereum/go-ethereum/blob/v1.10.22/crypto/secp256k1/secp256.go).
+No node, wallet or seed was admitted in either original failed run.
+
+The controller now enables Cgo and checks the hosted GCC target and version.
+The build retains the exact node and locked modules, requests external static
+linkage, and uses the standard `netgo,osusergo` tags. Before using the Linux
+scratch image, a bounded ELF64 check requires an AMD64 executable with load
+segments and refuses an interpreter, dynamic section or malformed header table.
+Four new in-memory ELF cases and the three existing diagnostic cases pass
+locally. This source repair still requires actual hosted compilation and the
+original five-node production and shutdown checks; it establishes no wallet,
+seed or visual acceptance.

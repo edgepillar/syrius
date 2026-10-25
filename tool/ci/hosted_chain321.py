@@ -18,6 +18,7 @@ import shutil
 import signal
 import socket
 import stat
+import struct
 import subprocess
 import sys
 import time
@@ -59,6 +60,21 @@ def need(value, code):
 
 def digest(data):
     return hashlib.sha256(data).hexdigest()
+
+
+def static_linux_binary(raw):
+    """Refuse ELF interpreters or dynamic sections before using FROM scratch."""
+    need(type(raw) is bytes and len(raw) >= 64
+         and raw[:7] == b"\x7fELF\x02\x01\x01", "SOURCE_REFUSED")
+    need(struct.unpack_from("<HHI", raw, 16) == (2, 62, 1), "SOURCE_REFUSED")
+    offset = struct.unpack_from("<Q", raw, 32)[0]
+    size, count = struct.unpack_from("<HH", raw, 54)
+    need(offset >= 64 and size == 56 and 1 <= count <= 128
+         and offset + size * count <= len(raw), "SOURCE_REFUSED")
+    kinds = {struct.unpack_from("<I", raw, offset + size * i)[0]
+             for i in range(count)}
+    need(1 in kinds and not kinds.intersection((2, 3)), "SOURCE_REFUSED")
+    return True
 
 
 def compiler_diagnostics(raw):
@@ -115,7 +131,7 @@ def child_environment(root, parent):
     env.update({key: str(root / "tmp") for key in ("TMP", "TEMP", "TMPDIR")})
     env.update(GOPATH=str(root / "go"), GOCACHE=str(root / "gocache"),
                GOMODCACHE=str(root / "gomodcache"), GOTMPDIR=str(root / "gotmp"),
-               GOTOOLCHAIN="local", CGO_ENABLED="0", USER="ci",
+               GOTOOLCHAIN="local", CGO_ENABLED="1", CC="gcc", USER="ci",
                GIT_CONFIG_NOSYSTEM="1", GIT_CONFIG_GLOBAL=os.devnull)
     return env
 
@@ -511,10 +527,20 @@ def run(backend):
         need(version == "go version go" + GO_VERSION + (" windows/amd64" if backend == "native" else " linux/amd64"),
              "SOURCE_REFUSED")
         report["compiler"] = version
+        target = commands.run(["gcc", "-dumpmachine"], cwd=source).decode("ascii").strip()
+        c_version = commands.run(["gcc", "-dumpfullversion"], cwd=source).decode("ascii").strip()
+        need(target == ("x86_64-w64-mingw32" if backend == "native" else "x86_64-linux-gnu")
+             and re.fullmatch(r"[0-9]+(?:\.[0-9]+){0,2}", c_version), "SOURCE_REFUSED")
+        report["c_compiler"] = dict(target=target, version=c_version, cgo_enabled=True)
         binary = root / ("znnd.exe" if backend == "native" else "znnd")
-        commands.run(["go", "build", "-trimpath", "-buildvcs=false", "-mod=readonly", "-o", str(binary), "./cmd/znnd"],
+        commands.run(["go", "build", "-trimpath", "-buildvcs=false", "-mod=readonly",
+                      "-tags=netgo,osusergo", "-ldflags=-linkmode=external -extldflags=-static",
+                      "-o", str(binary), "./cmd/znnd"],
                      cwd=source, timeout=1200)
-        report["binary_sha256"] = digest(regular(binary, 128 * MIB))
+        binary_bytes = regular(binary, 128 * MIB)
+        if backend == "docker":
+            report["static_linux_binary_verified"] = static_linux_binary(binary_bytes)
+        report["binary_sha256"] = digest(binary_bytes)
         report["checks"]["build"] = True
         assets = root / "assets"
         commands.run(["node", str(repo / "tools/devnet/lab/make-assets.js"),

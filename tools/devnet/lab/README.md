@@ -128,3 +128,11 @@ no node and repeats no build. The GitHub API credential is removed before the
 signed artifact request; redirects, hashes, ZIP member type, CRC, source/run
 bindings and size limits are checked. Saved reports remain observations and
 cannot authorize a wallet, seed recipe or new runtime.
+
+The hosted node build enables Cgo because the pinned secp256k1 dependency
+requires it. GCC target/version are recorded; node and module versions remain
+locked. External static linkage with `netgo,osusergo` is requested on both
+platforms. Linux binaries must pass a bounded ELF64/AMD64 check with no
+interpreter or dynamic section before entering the scratch image. Compiler
+success and image checks are prerequisites, separate from advancing chain
+production and original shutdown.

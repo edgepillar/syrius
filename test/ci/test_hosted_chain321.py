@@ -4,6 +4,7 @@ import copy
 import json
 import os
 from pathlib import Path
+import struct
 import tempfile
 import unittest
 from unittest import mock
@@ -38,6 +39,41 @@ class CompilerDiagnosticTests(unittest.TestCase):
         value = lab.compiler_diagnostics(b"/fixture/private/value: an unrecognized diagnostic\n")
         self.assertEqual(value, [dict(code="UNCLASSIFIED_BUILD_FAILURE")])
         self.assertNotIn("private", json.dumps(value))
+
+
+class StaticBinaryTests(unittest.TestCase):
+    @staticmethod
+    def elf(kinds=(1, 7)):
+        raw = bytearray(64 + 56 * len(kinds))
+        raw[:7] = b"\x7fELF\x02\x01\x01"
+        struct.pack_into("<HHI", raw, 16, 2, 62, 1)
+        struct.pack_into("<Q", raw, 32, 64)
+        struct.pack_into("<HH", raw, 54, 56, len(kinds))
+        for index, kind in enumerate(kinds):
+            struct.pack_into("<I", raw, 64 + 56 * index, kind)
+        return bytes(raw)
+
+    def test_static_amd64_executable_is_accepted_without_execution(self):
+        self.assertTrue(lab.static_linux_binary(self.elf()))
+
+    def test_interpreter_or_dynamic_section_cannot_enter_scratch_image(self):
+        for kind in (2, 3):
+            with self.subTest(kind=kind), self.assertRaises(lab.Failure):
+                lab.static_linux_binary(self.elf((1, kind)))
+
+    def test_wrong_architecture_or_shared_object_is_refused(self):
+        for offset, value in ((16, 3), (18, 183)):
+            raw = bytearray(self.elf())
+            struct.pack_into("<H", raw, offset, value)
+            with self.assertRaises(lab.Failure):
+                lab.static_linux_binary(bytes(raw))
+
+    def test_truncated_or_unbounded_program_headers_are_refused(self):
+        raw = bytearray(self.elf())
+        struct.pack_into("<H", raw, 56, 65535)
+        for value in (bytes(raw), self.elf()[:-1], b"MZ" + b"\0" * 70):
+            with self.assertRaises(lab.Failure):
+                lab.static_linux_binary(value)
 
 
 class ConfigurationTests(unittest.TestCase):
@@ -179,6 +215,8 @@ class IsolationTests(unittest.TestCase):
             self.assertNotIn("GITHUB_TOKEN", result)
             self.assertNotIn("ACTIONS_ID_TOKEN_REQUEST_TOKEN", result)
             self.assertNotIn("original", result.values())
+            self.assertEqual(result["CGO_ENABLED"], "1")
+            self.assertEqual(result["CC"], "gcc")
             for field in ("HOME", "USERPROFILE", "APPDATA", "LOCALAPPDATA", "TMP", "TEMP"):
                 self.assertTrue(Path(result[field]).is_relative_to(root))
 
