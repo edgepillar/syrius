@@ -303,7 +303,15 @@ jobs:
         run: flutter config --enable-windows-desktop
 
       - name: Test finite debug protocol and controller boundaries
-        run: python -B -m unittest test.ci.test_flutter_debug_protocol test.ci.test_windows_debug_loop
+        run: python -B -m tool.ci.run_debug_tests
+
+      - name: Set up the frontend controller runtime
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Test frontend socket and request bindings in memory
+        run: node --test --test-isolation=none test/ci/windows_devtools_frontend.test.mjs
 
       - name: Analyze the debug service client and harness entry
         timeout-minutes: 5

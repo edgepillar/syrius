@@ -14,6 +14,7 @@ from pathlib import Path
 import queue
 import re
 import secrets
+import shutil
 import socket
 import subprocess
 import sys
@@ -37,6 +38,7 @@ CHECKS = ('environment', 'source', 'profile', 'preflight', 'job_owned',
           'tool_started', 'application_owned', 'ordinary_entry', 'service_bound',
           'breakpoint_hit', 'hot_reload', 'reload_state_preserved', 'hot_restart',
           'restart_state_reset', 'devtools_available', 'probe_closed',
+          'frontend_job_owned', 'frontend_attached', 'frontend_exit',
           'application_exit', 'tool_exit', 'output_complete', 'source_unchanged')
 CODES = protocol.CODES | frozenset(('ENVIRONMENT_REFUSED', 'PROFILE_REFUSED',
     'SOURCE_REFUSED', 'TOOL_REFUSED', 'JOB_REFUSED', 'PROCESS_REFUSED',
@@ -47,6 +49,11 @@ DART_CODES = frozenset(('PID_REFUSED', 'ISOLATE_REFUSED', 'MARKER_REFUSED',
     'BREAKPOINT_REFUSED', 'SERVICE_OUTPUT_REFUSED', 'SERVICE_IO_REFUSED',
     'INPUT_REFUSED', 'CLOSE_UNCONFIRMED'))
 CODES |= DART_CODES
+FRONTEND_CODES = frozenset(('SOCKET_REPLACED', 'REQUEST_REFUSED', 'VM_REFUSED',
+    'CDP_OUTPUT_REFUSED', 'CDP_RESPONSE_REFUSED', 'CDP_IO_REFUSED', 'CDP_COMMAND_UNCERTAIN',
+    'BROWSER_REFUSED', 'BROWSER_TIMEOUT', 'FRONTEND_REFUSED', 'FRONTEND_UNCONFIRMED',
+    'BROWSER_EXIT_UNCONFIRMED', 'FRONTEND_EXIT_UNCONFIRMED'))
+CODES |= FRONTEND_CODES
 
 
 def need(value, code):
@@ -220,6 +227,52 @@ class Probe:
         raise ProcessRefused('PROBE_REFUSED')
 
 
+class Frontend:
+    def __init__(self, repo, env):
+        node = shutil.which('node', path=env.get('PATH'))
+        need(node is not None, 'BROWSER_REFUSED')
+        bounded.plain(Path(node))
+        self.original = subprocess.Popen([node, 'tool/ci/windows_devtools_frontend.mjs'],
+            cwd=repo, env=env, shell=False, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT, bufsize=0)
+        self.lines = Lines(self.original.stdout)
+        self.result = None
+
+    def attach(self, tool, pid):
+        data = json.dumps(dict(devtools=tool.protocol._devtools,
+                               service=tool.protocol._service, pid=pid)).encode()
+        need(len(data) <= 16378, 'ENDPOINT_REFUSED')
+        self.original.stdin.write(b'START\n' + data + b'\n')
+        self.original.stdin.flush()
+        deadline = time.monotonic() + 120
+        while time.monotonic() < deadline:
+            tool.observe(0)
+            raw = self.lines.take(.1)
+            if raw is None:
+                need(self.original.poll() is None or not self.lines.complete, 'FRONTEND_EXIT_UNCONFIRMED')
+                continue
+            value = json.loads(raw)
+            fields = {'schema', 'ok', 'scope', 'attached', 'headless', 'browserExit',
+                      'outputComplete', 'forced', 'code', 'outputBytes', 'outputSha256'}
+            need(type(value) is dict and set(value) == fields and type(value['schema']) is int and value['schema'] == 1
+                 and value['scope'] == 'owned_devtools_frontend'
+                 and all(type(value[name]) is bool for name in
+                         ('ok', 'attached', 'headless', 'outputComplete', 'forced'))
+                 and type(value['outputBytes']) is int and 0 <= value['outputBytes'] <= 1024**2
+                 and bounded.safe_digest(value['outputSha256'])
+                 and (value['browserExit'] is None or type(value['browserExit']) is int)
+                 and (value['code'] is None or value['code'] in CODES), 'FRONTEND_REFUSED')
+            self.result = value
+            if value['code'] is not None:
+                raise ProcessRefused(value['code'])
+            need(value['ok'] and value['attached'] and value['headless']
+                 and value['outputComplete'] and value['browserExit'] == 0 and not value['forced'],
+                 'FRONTEND_UNCONFIRMED')
+            need(self.original.wait(timeout=15) == 0 and self.lines.finish(), 'FRONTEND_EXIT_UNCONFIRMED')
+            return
+        raise ProcessRefused('FRONTEND_UNCONFIRMED')
+
+
 def ready(tool, transport, token, seconds=45):
     deadline = time.monotonic() + seconds
     while time.monotonic() < deadline:
@@ -259,7 +312,7 @@ def analyze(parent, repo):
                 if severity in counts:
                     counts[severity] += 1
                     fields = raw.decode('utf-8', errors='replace').rstrip('\r\n').split('|')
-                    if len(fields) >= 7 and len(locations) < 32:
+                    if len(fields) >= 7 and len(locations) < 16:
                         code, line, column = fields[2], fields[4], fields[5]
                         if (re.fullmatch(r'[A-Z][A-Z0-9_]{0,95}', code)
                                 and line.isascii() and line.isdigit()
@@ -280,8 +333,12 @@ def analyze(parent, repo):
         lines.finish()
         raise
     finally:
-        print(json.dumps(dict(scope='debug_probe_analysis', actual_exit=original.returncode,
-            diagnostics=counts, locations=locations, failed=failed, **lines.public()), sort_keys=True))
+        value = dict(scope='debug_probe_analysis', actual_exit=original.returncode,
+                     diagnostics=counts, locations=locations, failed=failed, **lines.public())
+        public = json.dumps(value, sort_keys=True, separators=(',', ':'))
+        print(public)
+        if len(public.encode()) <= 3800:
+            print('::notice title=Windows debug analysis::' + public)
     return 0
 
 
@@ -293,7 +350,7 @@ def main(arguments=None):
     report = dict(schema=1, scope='ordinary_entry_debug_loop', checks=checks, errors=[],
                   success=False, debug_loop_qualified=False, wallet_qualified=False,
                   devtools_attached=False, seed_admitted=False, forced_cleanup=False)
-    job = original = tool = probe = None
+    job = original = tool = probe = frontend = None
     output = None
     try:
         need(arguments in ([], ['--analyze']), 'ENVIRONMENT_REFUSED')
@@ -358,6 +415,12 @@ def main(arguments=None):
         probe.command('close', tool)
         need(probe.original.wait(timeout=15) == 0 and probe.lines.finish(), 'PROBE_EXIT_UNCONFIRMED')
         checks['probe_closed'] = True
+        frontend = Frontend(repo, env)
+        job.assign(frontend.original)
+        checks['frontend_job_owned'] = True
+        frontend.attach(tool, pid)
+        checks['frontend_attached'] = checks['frontend_exit'] = True
+        report['devtools_attached'] = True
         tool.command('app.stop', seconds=30)
         need(job.application_exit() == 0, 'APPLICATION_EXIT_FAILED')
         checks['application_exit'] = True
@@ -368,7 +431,6 @@ def main(arguments=None):
         bounded.verify_source(repo, expected, parent)
         need(entry.source_tree(repo, parent) == tree, 'SOURCE_REFUSED')
         checks['source_unchanged'] = True
-        # A running DevTools server does not establish a frontend connection.
         report['success'] = all(checks.values())
     except (protocol.Refused, ProcessRefused, bounded.SmokeFailure) as error:
         report['errors'].append(error.code if getattr(error, 'code', None) in CODES
@@ -376,6 +438,15 @@ def main(arguments=None):
     except (Exception, KeyboardInterrupt):
         report['errors'].append('INTERNAL_ERROR')
     finally:
+        if frontend is not None:
+            if frontend.original.poll() is None:
+                report['forced_cleanup'] = True
+                frontend.original.kill()
+                frontend.original.wait(timeout=10)
+            frontend.lines.finish()
+            report['frontend_output'] = frontend.lines.public()
+            report['frontend_exit'] = frontend.original.returncode
+            report['frontend'] = frontend.result
         if probe is not None and probe.original.poll() is None:
             report['forced_cleanup'] = True
             probe.original.kill()
@@ -399,13 +470,17 @@ def main(arguments=None):
             report['tool_exit'] = tool.exit
             report['protocol'] = tool.protocol.public()
         report['success'] &= not report['errors'] and not report['forced_cleanup']
+        report['debug_loop_qualified'] = report['success'] and report['devtools_attached']
         if output is not None:
             target = output / 'manifest.json'
             with target.open('x', encoding='utf-8') as stream:
                 json.dump(report, stream, sort_keys=True, separators=(',', ':'))
                 stream.write('\n')
     if arguments != ['--analyze']:
-        print(json.dumps(report, sort_keys=True, separators=(',', ':')))
+        public = json.dumps(report, sort_keys=True, separators=(',', ':'))
+        print(public)
+        if len(public.encode()) <= 3800:
+            print('::notice title=Windows debug outcome::' + public)
     return 0 if report['success'] else 1
 
 

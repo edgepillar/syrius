@@ -2,7 +2,7 @@
 
 import io
 import json
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 import unittest
 from unittest import mock
 
@@ -16,6 +16,10 @@ class Process:
         self.code = None
 
     def poll(self):
+        return self.code
+
+    def wait(self, timeout=None):
+        self.code = 0
         return self.code
 
 
@@ -106,16 +110,61 @@ class EnvironmentTests(unittest.TestCase):
         parent = dict(PATH='runtime', SYSTEMROOT='system', GITHUB_ACTIONS='true',
             GITHUB_TOKEN='private-token', GH_TOKEN='private-token', HTTPS_PROXY='private-proxy',
             SYRIUS_HARNESS_PRESENTATION='import', FLUTTER_ROOT='sdk', PUB_CACHE='packages')
-        env = debug.profile_environment(parent, Path('/fixture/profile'), 45000, 'private-agent-token')
-        self.assertFalse(set(env) & {'GITHUB_TOKEN', 'GH_TOKEN', 'HTTPS_PROXY', 'SYRIUS_HARNESS_PRESENTATION'})
-        self.assertEqual(env['USERPROFILE'], '/fixture/profile')
-        self.assertEqual(env['APPDATA'], '/fixture/profile/AppData/Roaming')
-        self.assertEqual(env['SYRIUS_WINDOWS_DEBUG_PROFILE'], '/fixture/profile')
-        self.assertEqual(env['FLUTTER_ROOT'], 'sdk')
+        for profile in (Path('/fixture/profile'), PureWindowsPath('Q:/fixture/profile')):
+            with self.subTest(path_type=type(profile).__name__):
+                env = debug.profile_environment(parent, profile, 45000, 'private-agent-token')
+                self.assertFalse(set(env) & {'GITHUB_TOKEN', 'GH_TOKEN', 'HTTPS_PROXY', 'SYRIUS_HARNESS_PRESENTATION'})
+                self.assertEqual(env['USERPROFILE'], str(profile))
+                self.assertEqual(env['APPDATA'], str(profile / 'AppData/Roaming'))
+                self.assertEqual(env['SYRIUS_WINDOWS_DEBUG_PROFILE'], str(profile))
+                self.assertEqual(env['FLUTTER_ROOT'], 'sdk')
 
     def test_job_refuses_native_execution_on_other_platforms(self):
         with mock.patch.object(debug.os, 'name', 'posix'), self.assertRaises(debug.ProcessRefused):
             debug.WindowsJob()
+
+
+class FrontendTests(unittest.TestCase):
+    def worker(self, value):
+        worker = debug.Frontend.__new__(debug.Frontend)
+        worker.original, worker.result = Process(), None
+        worker.lines = debug.Lines(io.BytesIO(json.dumps(value).encode() + b'\n'))
+        worker.lines.thread.join(1)
+        tool = mock.Mock()
+        tool.protocol._service = VM
+        tool.protocol._devtools = 'private-linked-frontend'
+        return worker, tool
+
+    def receipt(self, **changes):
+        value = dict(schema=1, ok=True, scope='owned_devtools_frontend', attached=True,
+            headless=True, browserExit=0, outputComplete=True, forced=False, code=None,
+            outputBytes=0, outputSha256='0' * 64)
+        value.update(changes)
+        return value
+
+    def test_finite_frontend_receipt_keeps_private_command_out_of_its_result(self):
+        worker, tool = self.worker(self.receipt())
+        worker.attach(tool, 1234)
+        self.assertTrue(worker.result['attached'])
+        self.assertNotIn('private', json.dumps(worker.result))
+        command = worker.original.stdin.getvalue()
+        self.assertTrue(command.startswith(b'START\n'))
+        self.assertEqual(json.loads(command.splitlines()[1])['pid'], 1234)
+
+    def test_zero_exit_does_not_replace_required_attachment_or_complete_unforced_output(self):
+        for changes in (dict(attached=False), dict(outputComplete=False), dict(forced=True),
+                        dict(browserExit=False), dict(schema=True), dict(extra='private-field')):
+            worker, tool = self.worker(self.receipt(**changes))
+            with self.subTest(changes=changes), self.assertRaises(debug.ProcessRefused):
+                worker.attach(tool, 1234)
+
+    def test_known_frontend_failure_is_preserved_without_retry_or_raw_details(self):
+        worker, tool = self.worker(self.receipt(ok=False, attached=False, code='BROWSER_REFUSED'))
+        with self.assertRaises(debug.ProcessRefused) as raised:
+            worker.attach(tool, 1234)
+        self.assertEqual(str(raised.exception), 'BROWSER_REFUSED')
+        self.assertEqual(worker.result['code'], 'BROWSER_REFUSED')
+        self.assertEqual(len(worker.original.stdin.getvalue().splitlines()), 2)
 
 
 if __name__ == '__main__':

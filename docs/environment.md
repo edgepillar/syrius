@@ -2847,3 +2847,40 @@ controller therefore leaves `debug_loop_qualified` false and P07 open, even
 if its narrower runtime checks later pass. Earlier application and capture
 results retain their original source bindings; the new harness marker requires
 its own hosted evidence.
+
+### Debug controller portability and actual DevTools frontend candidate
+
+The first Windows debug run, `40237881988`, attempt one, job `121303253941`,
+at `f7e6d76e804cbdc41bd3ce77eda350220fdd39e4`, completes SDK setup, locked
+restoration, metadata generation and desktop enablement. Its Python test step
+fails; Dart analysis and native debug execution are skipped. The original
+failure remains recorded. A test's POSIX-only string expectations are corrected
+to compare the actual path representation and exercise an explicit
+`PureWindowsPath` as well. The exact original failure transcript has not been
+locally inspected, so this source correction is not claimed as a verified
+explanation of that CI failure.
+
+The new frontend controller uses Node 24 and a standard installed Chrome or
+Edge browser. A new Node child waits for START and private input until assigned
+to the same owned Windows job. Only then does it create a new browser profile
+and start the browser in headless mode. The SDK's exact DevTools address must
+target the original loopback service. Browser protocol observations must see
+that page send `getVM` on its own service socket and receive the correlated
+original application PID. Availability, an unsolicited VM reply, a replacement
+socket, another PID, an error or a late reply after closure cannot substitute
+for that exchange. The loaded page must also identify itself as DevTools.
+
+The browser closes through its protocol; its original zero exit and complete
+bounded output must be observed before application stop. Its disk-cache target
+is 16 MiB, no browser package is downloaded, and the existing application
+lockfile is unchanged. Only after every debug check, actual app/tool exit and
+unforced job closure succeeds can the manifest mark `debug_loop_qualified` true.
+This headless frontend check does not qualify wallet visuals or the full tour.
+
+All 29 Python and eight frontend policy cases pass locally in memory. They
+cover the corrected path representations, finite frontend receipts, original
+request/PID binding, held failures and WebSocket control frames. Actual Dart,
+browser and debug execution remain pending. CI now emits bounded finite test,
+analysis and runtime annotations so later read-only observations can distinguish
+these stages without transporting complete job logs. No earlier native test or
+successful node-lab run is repeated.
