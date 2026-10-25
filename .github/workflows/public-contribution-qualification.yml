@@ -314,6 +314,7 @@ jobs:
         run: node --test --test-isolation=none test/ci/windows_devtools_frontend.test.mjs
 
       - name: Analyze the debug service client and harness entry
+        if: ${{ !cancelled() }}
         timeout-minutes: 5
         run: python -B tool/ci/windows_debug_loop.py --analyze
 

@@ -3,11 +3,24 @@
 import io
 import json
 from pathlib import Path, PureWindowsPath
+import sys
+import types
 import unittest
 from unittest import mock
 
 from tool.ci import windows_debug_loop as debug
-from test.ci.test_flutter_debug_protocol import event, frame, VM
+from tool.ci import run_debug_tests
+
+
+VM = 'ws://127.0.0.1:43432/fixture-token=/ws'
+
+
+def frame(value):
+    return json.dumps([value]).encode()
+
+
+def event(name, **params):
+    return frame(dict(event=name, params=params))
 
 
 class Process:
@@ -106,6 +119,26 @@ class ToolTests(unittest.TestCase):
 
 
 class EnvironmentTests(unittest.TestCase):
+    def test_discovery_does_not_import_the_stdlib_test_namespace(self):
+        standard = types.ModuleType('test')
+        standard.__path__ = ['/fixture/stdlib-test']
+        with mock.patch.dict(sys.modules, {'test': standard}):
+            suite = run_debug_tests.load_suite()
+            self.assertGreaterEqual(suite.countTestCases(), 29)
+            cases = []
+
+            def collect(value):
+                for item in value:
+                    if isinstance(item, unittest.TestSuite):
+                        collect(item)
+                    else:
+                        cases.append(item.id())
+
+            collect(suite)
+            self.assertFalse(any('_FailedTest' in case for case in cases))
+            self.assertTrue(all(case.startswith(('test_flutter_debug_protocol.',
+                                                 'test_windows_debug_loop.')) for case in cases))
+
     def test_profile_environment_has_no_inherited_credentials_or_presentation_mode(self):
         parent = dict(PATH='runtime', SYSTEMROOT='system', GITHUB_ACTIONS='true',
             GITHUB_TOKEN='private-token', GH_TOKEN='private-token', HTTPS_PROXY='private-proxy',

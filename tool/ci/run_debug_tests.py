@@ -2,13 +2,24 @@
 
 import io
 import json
+from pathlib import Path
 import re
 import unittest
 
 
+def load_suite():
+    # CPython can include a regular stdlib `test` package.
+    # Discover these files directly instead of importing a colliding namespace.
+    directory = str(Path(__file__).absolute().parents[2] / 'test' / 'ci')
+    suite = unittest.TestSuite()
+    loader = unittest.TestLoader()
+    for pattern in ('test_flutter_debug_protocol.py', 'test_windows_debug_loop.py'):
+        suite.addTests(loader.discover(directory, pattern=pattern))
+    return suite
+
+
 def main():
-    suite = unittest.defaultTestLoader.loadTestsFromNames([
-        'test.ci.test_flutter_debug_protocol', 'test.ci.test_windows_debug_loop'])
+    suite = load_suite()
     result = unittest.TextTestRunner(stream=io.StringIO()).run(suite)
     names = []
     for case, _ in result.failures + result.errors:

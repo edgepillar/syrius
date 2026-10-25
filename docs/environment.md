@@ -2884,3 +2884,28 @@ browser and debug execution remain pending. CI now emits bounded finite test,
 analysis and runtime annotations so later read-only observations can distinguish
 these stages without transporting complete job logs. No earlier native test or
 successful node-lab run is repeated.
+
+### Direct debug-test discovery on hosted Python
+
+Source `f7568f4f5d25dde3f888dd90785c20e390349f16`, run `40239804863`, attempt
+one, job `121308980062`, completes setup and reaches the finite test runner.
+Its notice records two errors, both `unittest.loader._FailedTest.ci`, with
+zero actual debug cases, native executions or skips. Later Node, Dart and
+runtime steps are skipped. The first path correction therefore does not
+resolve test loading on that runner. This negative attempt is retained.
+
+The candidate now discovers the two test files directly under `test/ci`,
+using standalone module names. Its test fixtures no longer import through
+`test.ci`. A regular installed `test` package takes precedence over this
+repository's namespace portion under Python's import rules; direct discovery
+avoids that dependency. The notice alone does not identify the installed
+conflicting package, so its identity is not claimed as observed.
+See [Python's namespace-package specification](https://peps.python.org/pep-0420/#specification).
+
+A new in-memory regression control installs a regular `test` module in
+`sys.modules` and requires all discovered cases to remain loadable. All thirty
+debug-controller cases pass locally. The frontend source and its eight prior
+local cases are unchanged. Dart analysis now has an independent non-cancelled
+step so a test-load failure cannot hide analysis evidence; native startup still
+requires every preceding gate to succeed. Actual hosted debug acceptance
+remains pending.
