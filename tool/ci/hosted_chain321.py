@@ -44,7 +44,9 @@ SHUTDOWN_TESTS = (
     "TestSameIdentityReconnectDuringGatedCleanup",
 )
 GO_FAILURE_CODES = frozenset(("GO_TEST_TIMEOUT", "GO_TEST_PANIC", "GO_TEST_BUILD_FAILED",
-                              "GO_TEST_ASSERTION", "GO_TEST_UNCLASSIFIED"))
+    "GO_TEST_ASSERTION", "GO_TEST_UNCLASSIFIED", "GO_RECONNECT_RESET", "GO_RECONNECT_ABORTED",
+    "GO_RECONNECT_EOF", "GO_RECONNECT_TIMEOUT", "GO_RECONNECT_WRITE", "GO_RECONNECT_REASON",
+    "GO_RECONNECT_UNCLASSIFIED"))
 ROLES = ("pillar", "pillar2", "pillar3", "observer", "rpc")
 OCTETS = dict(zip(ROLES, (10, 12, 13, 14, 11)))
 NATIVE_PORTS = dict(zip(ROLES, (45991, 45992, 45993, 45994, 45995)))
@@ -120,6 +122,26 @@ def shutdown_test_result(raw):
     return dict(passed=True, tests=list(SHUTDOWN_TESTS), skips=0)
 
 
+def reconnect_failure_code(output):
+    """Classify the pinned public assertion without retaining its socket details."""
+    match = re.search(r"shutdown_test\.go:381: second attempt rejected with (.+), want [^\r\n]+", output)
+    if match is None:
+        return None
+    error = match[1].lower()
+    for code, patterns in (
+        ("RESET", ("connection reset", "forcibly closed")),
+        ("ABORTED", ("connection was aborted", "connection abort")),
+        ("EOF", ("eof",)),
+        ("TIMEOUT", ("i/o timeout", "deadline exceeded", "timed out")),
+        ("WRITE", ("write error:",)),
+        ("REASON", ("too many peers", "useless peer", "quitting", "incompatible", "identity")),
+    ):
+        if (any(pattern in error for pattern in patterns)
+                and (code != "EOF" or error.strip() in ("eof", "unexpected eof"))):
+            return "GO_RECONNECT_" + code
+    return "GO_RECONNECT_UNCLASSIFIED"
+
+
 def shutdown_failure_observation(raw, receipt, stderr=b""):
     """Retain failed named tests and public test-line numbers without logs."""
     result = dict(status="UNAVAILABLE", exit_code=None, output_complete=None, forced=None,
@@ -133,7 +155,7 @@ def shutdown_failure_observation(raw, receipt, stderr=b""):
             or type(stderr) is not bytes or len(stderr) > MIB):
         return result
     seen = {key: set() for key in ("run", "pass", "fail", "skip")}
-    output, build_failed = [], False
+    output, reconnect_output, build_failed = [], [], False
     try:
         for line in raw.splitlines():
             event = json.loads(line)
@@ -153,6 +175,8 @@ def shutdown_failure_observation(raw, receipt, stderr=b""):
             if action in ("output", "build-output"):
                 need(type(event.get("Output")) is str, "NODE_REGRESSIONS_REFUSED")
                 output.append(event["Output"])
+                if name == "TestSameIdentityReconnectDuringGatedCleanup":
+                    reconnect_output.append(event["Output"])
     except (Failure, ValueError, UnicodeError):
         return result
     text = "".join(output) + "\n" + stderr.decode("utf-8", "replace")
@@ -165,6 +189,10 @@ def shutdown_failure_observation(raw, receipt, stderr=b""):
         codes.append("GO_TEST_BUILD_FAILED")
     if seen["fail"] and not codes:
         codes.append("GO_TEST_ASSERTION")
+    if "TestSameIdentityReconnectDuringGatedCleanup" in seen["fail"]:
+        reconnect = reconnect_failure_code("".join(reconnect_output))
+        if reconnect is not None:
+            codes.append(reconnect)
     result.update(status="COMPLETE" if result["output_complete"] is True and result["forced"] is False else "PARTIAL",
         passed=sorted(seen["pass"]), failed=sorted(seen["fail"]), skipped=sorted(seen["skip"]),
         active=sorted(seen["run"] - seen["pass"] - seen["fail"] - seen["skip"]),

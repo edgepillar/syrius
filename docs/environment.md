@@ -2515,3 +2515,31 @@ observation is not a test pass or runtime admission. Six new checks and all
 filesystem-fixture cases are excluded from this local run. Actual diagnosis
 with the new observation remains pending. Main progress remains 65 of 80;
 all wallet, checkpoint, seed and visual acceptance gates remain open.
+
+### Reconnect regression identifies its failing public assertion
+
+At `4e6a8d2a2ccfc920a20c1b4eff8963465c822d9b`, tree
+`d890937c8b623d164ab763bf1b30cd27dc84da71`, native
+[40222359939](https://github.com/edgepillar/syrius/actions/runs/40222359939),
+attempt 1, job 121256478479, passes the full controller-suite step, actual
+producer red/green regression and corrected CLI build. Six upstream shutdown
+tests pass. `TestSameIdentityReconnectDuringGatedCleanup` fails at the pinned
+`shutdown_test.go:381` assertion with exit one, complete output and no forced
+termination. No test skips, assets or lab startup are reported.
+
+That assertion rejects a second-connection error other than
+`DiscAlreadyConnected`. Its exact error is not in this manifest; no socket
+failure or protocol cause is inferred.
+[Inspection 40222588929](https://github.com/edgepillar/syrius/actions/runs/40222588929)
+verifies archive SHA-256
+`84217f229d10d486e2c98f18700524a33be6504b039325cd3c758ecf07537a06`
+and manifest SHA-256
+`6689b6dbb64621081b27d67022bf0901e3858f5b89dac021ad3c893143c536f3`
+inside Actions. The overall native result remains failed.
+
+The next observer classifies only this exact assertion from its actual named
+failed parent into fixed reset, abort, EOF, timeout, write, protocol-reason
+or unclassified codes. No socket address, raw error, path or message is
+published. It changes no Go test, node tree, original command result or
+startup gate. Three new checks and all 104 selected memory-only controller
+cases pass; actual rejection classification remains pending.

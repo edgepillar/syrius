@@ -42,6 +42,36 @@ class CompilerDiagnosticTests(unittest.TestCase):
 
 
 class NodeSourceTests(unittest.TestCase):
+    def test_reconnect_failure_classifies_the_public_assertion_without_socket_details(self):
+        for error, suffix in (
+            ("read tcp private-endpoint: wsarecv: An existing connection was forcibly closed", "RESET"),
+            ("write tcp private-endpoint: An established connection was aborted", "ABORTED"),
+            ("EOF", "EOF"), ("read tcp private-endpoint: i/o timeout", "TIMEOUT"),
+            ("write error: private detail", "WRITE"), ("too many peers", "REASON"),
+            ("read tcp private-eof-endpoint: private detail", "UNCLASSIFIED"),
+            ("private unknown detail", "UNCLASSIFIED"),
+        ):
+            with self.subTest(suffix=suffix):
+                result = lab.reconnect_failure_code(
+                    "private-path/shutdown_test.go:381: second attempt rejected with " + error + ", want already connected\n")
+                self.assertEqual(result, "GO_RECONNECT_" + suffix)
+                self.assertNotIn("private", result)
+
+    def test_reconnect_failure_requires_the_exact_public_assertion(self):
+        for output in ("private EOF", "shutdown_test.go:380: second attempt rejected with EOF, want already connected",
+                       "shutdown_test.go:381: another assertion EOF"):
+            self.assertIsNone(lab.reconnect_failure_code(output))
+
+    def test_reconnect_category_requires_the_original_named_parent_failure(self):
+        name = "TestSameIdentityReconnectDuringGatedCleanup"
+        output = "shutdown_test.go:381: second attempt rejected with EOF, want already connected\n"
+        rows = [dict(Action="output", Package="github.com/zenon-network/go-zenon/p2p/legacy", Test=name, Output=output)]
+        receipt = dict(exit_code=1, output_complete=True, forced=False)
+        encode = lambda: b"\n".join(json.dumps(row).encode() for row in rows)
+        self.assertNotIn("GO_RECONNECT_EOF", lab.shutdown_failure_observation(encode(), receipt)["codes"])
+        rows.append(dict(Action="fail", Package="github.com/zenon-network/go-zenon/p2p/legacy", Test=name))
+        self.assertIn("GO_RECONNECT_EOF", lab.shutdown_failure_observation(encode(), receipt)["codes"])
+
     def test_failed_go_test_keeps_named_facts_without_private_output(self):
         name = lab.SHUTDOWN_TESTS[0]
         events = [dict(Action="run", Package="github.com/zenon-network/go-zenon/p2p/legacy", Test=name),

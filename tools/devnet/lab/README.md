@@ -238,3 +238,7 @@ skip or active states, public shutdown_test.go line numbers and fixed failure
 categories. It retains no raw paths or messages, retries nothing, and
 rethrows the original failure. Observation completeness cannot qualify a
 test pass or admit a lab, wallet or seed. The seven-test gate stays required.
+The pinned reconnect assertion can additionally report a fixed error
+category only after that original named parent fails. Unknown errors stay
+unclassified. The client error text and socket details are never emitted;
+the expected disconnect reason and all Go assertions remain unchanged.
