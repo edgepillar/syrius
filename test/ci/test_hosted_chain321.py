@@ -138,11 +138,19 @@ class KeyfileDeploymentTests(unittest.TestCase):
     def test_another_profile_address_or_unknown_field_cannot_be_adopted(self):
         name, value = self.source()
         for field, changed in (("Path", "/fixture/private/wallet/" + name),
-                               ("baseAddress", "z1" + "b" * 38), ("extra", "fixture")):
+                               ("baseAddress", "/fixture/private/value"), ("extra", "fixture")):
             source = dict(value)
             source[field] = changed
             with self.assertRaises(lab.Failure):
                 lab.relocated_keyfile(json.dumps(source).encode(), name, "/data/wallet/" + name)
+
+    def test_committed_filename_can_differ_from_the_preserved_base_address(self):
+        name, value = self.source()
+        value["baseAddress"] = "z1" + "b" * 38
+        result = json.loads(lab.relocated_keyfile(json.dumps(value).encode(), name, "/data/wallet/" + name))
+        self.assertEqual(result["baseAddress"], value["baseAddress"])
+        self.assertEqual(result["crypto"], value["crypto"])
+        self.assertEqual(result["Path"], "/data/wallet/" + name)
 
     def test_malformed_fixture_or_changed_version_is_refused(self):
         name, value = self.source()

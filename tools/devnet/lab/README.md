@@ -150,3 +150,8 @@ only that exact field to the new owned wallet path. Every encrypted and other
 non-path field is preserved, before/after hashes are recorded, and deployed
 fixture bytes are rechecked after production. This is deployment relocation,
 with no fixture decryption or re-encryption.
+
+A committed fixture filename may differ from its baseAddress metadata. The
+controller preserves that metadata independently and retains the exact source
+Path check; it does not invent an equality the node itself does not require.
+The node continues to validate the actual derived producer address.

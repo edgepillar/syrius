@@ -2082,3 +2082,23 @@ Three new fixture relocation/refusal cases and eight configuration cases pass
 in memory locally. No real wallet, listener or node is started by those tests.
 The source corrections require actual hosted production and shutdown before
 lab, wallet or seed acceptance can be claimed.
+
+### Committed fixture filename compatibility
+
+Run [40186222018](https://github.com/edgepillar/syrius/actions/runs/40186222018)
+at `0b69e6994c88b724dfdc3a08727bb40a3f5b8baa` passes both node builds, then
+refuses asset preparation with `CONFIG_REFUSED` before any node starts.
+[Inspection 40186644293](https://github.com/edgepillar/syrius/actions/runs/40186644293)
+verifies the two original finite manifests.
+
+The added controller guard incorrectly equated a fixture filename with its
+`baseAddress` metadata. Direct checks against the exact committed pillar2 and
+pillar3 blobs establish that every other guard passes, while these two fields
+legitimately differ. The node does not impose their equality. The correction
+preserves the address metadata independently of the filename and changes only
+the deployment Path. It retains the exact committed source-path, schema, version
+and crypto checks; the node retains its own producer derivation check.
+
+The new compatibility case and twelve selected fixture/configuration cases
+pass locally without native execution. Failed runs remain failed. Hosted
+startup, advancing production and positive shutdown still require execution.

@@ -136,7 +136,9 @@ def relocated_keyfile(raw, filename, node_path):
          "CONFIG_REFUSED")
     need(type(value) is dict and set(value) == {"Path", "baseAddress", "crypto", "version", "timestamp"}
          and value["Path"] == "/root/.znn/wallet/" + filename
-         and value["baseAddress"] == filename and type(value["version"]) is int
+         and type(value["baseAddress"]) is str
+         and re.fullmatch(r"z1[a-z0-9]{30,64}", value["baseAddress"])
+         and type(value["version"]) is int
          and value["version"] == 1 and type(value["timestamp"]) is int
          and type(value["crypto"]) is dict, "CONFIG_REFUSED")
     crypto = value["crypto"]
