@@ -2543,3 +2543,42 @@ or unclassified codes. No socket address, raw error, path or message is
 published. It changes no Go test, node tree, original command result or
 startup gate. Three new checks and all 104 selected memory-only controller
 cases pass; actual rejection classification remains pending.
+
+### Corrected native lab reaches production, then a producer times out
+
+At `07d8045939fc8d3498ef55b122a47b8ace2575d7`, tree
+`dbe2525a4d3fef3066f4c765e913712c84384559`, native
+[40223243672](https://github.com/edgepillar/syrius/actions/runs/40223243672),
+attempt 1, job 121259162560, passes the full controller-suite step, actual
+producer red/green regression, corrected CLI build and all seven upstream
+shutdown tests without skips. Thus this attempt does not exercise the
+reconnect classifier; its earlier failure remains unresolved. No Go source
+or assertion is changed between the two attempts.
+
+Every functional lab gate passes. Chain-321 advances from height one to two
+across eight samples with matching actual HTTP/WS hashes, genesis
+`58d0e20af45243b3246c2643eacd5e65f798b56fe68fb594d0507ff18ca360cd`
+and last momentum timestamp 1792954420. Original inputs remain unchanged.
+Four originals exit zero, complete and unforced. `pillar2` has an actual
+`WAIT_TIMEOUT`, is forced and exits one with complete output. Its finite
+private-log projection reaches the P2P stop request without data-lock release.
+No nil-task panic is recorded; overall native shutdown remains failed.
+
+[Inspection 40223625714](https://github.com/edgepillar/syrius/actions/runs/40223625714)
+verifies original archive SHA-256
+`d40442d2c1ab864374fe329cec33658fe17eeb1fe3c8ed8bc47475d4b8d7a1d3`
+and manifest SHA-256
+`fe87da24cd7506106129f378a1d4e894e3fe95b1e7cb8f7bece4d281c297464e`
+inside Actions. This transfers no wallet, seed or checkpoint authority.
+
+The next optional diagnostic gives each original role a fixed, separate
+preflighted loopback profiler port. A real stop timeout permits one bounded
+read from that original's bound role/port before its existing forced cleanup.
+It retains only fixed shutdown-frame codes, byte count and digest. Unknown
+bindings are refused. Inspection preserves every exit and per-role status,
+validates all probe records and emits one captured detail within its notice
+bound. Legacy RPC-only records retain their separate scope. Seven new checks
+and all 111 selected memory-only controller cases pass; actual producer
+frames remain pending. Waits, Go assertions, node source and default-off
+behaviour are unchanged. Main progress remains 65 of 80, with zero accepted
+visual matches.

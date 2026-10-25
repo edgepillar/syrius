@@ -7,6 +7,7 @@ import time
 
 
 PORT = 45999
+PORTS = {"rpc": PORT, "pillar": 46000, "pillar2": 46001, "pillar3": 46002, "observer": 46003}
 MAX_BYTES = 1024**2
 STATUSES = frozenset(("CAPTURED", "UNAVAILABLE", "REFUSED", "NO_SHUTDOWN_STACK", "AMBIGUOUS"))
 FUNCTIONS = {
@@ -18,6 +19,8 @@ FUNCTIONS = {
     "github.com/zenon-network/go-zenon/p2p/legacy.(*Server).Stop": "P2P_LEGACY_STOP",
     "github.com/zenon-network/go-zenon/protocol.(*ProtocolManager).Stop": "PROTOCOL_STOP",
     "github.com/zenon-network/go-zenon/zenon.(*zenon).Stop": "ZENON_STOP",
+    "github.com/zenon-network/go-zenon/pillar.(*manager).Stop": "PILLAR_MANAGER_STOP",
+    "github.com/zenon-network/go-zenon/pillar.(*worker).Stop": "PILLAR_WORKER_STOP",
     "github.com/zenon-network/go-zenon/rpc/api/subscribe.(*Server).Stop": "SUBSCRIBE_STOP",
     "sync.(*WaitGroup).Wait": "WAIT_GROUP",
     "sync.runtime_SemacquireWaitGroup": "WAIT_GROUP_SEMAPHORE",
@@ -62,8 +65,12 @@ def capture(original):
     result = dict(status="UNAVAILABLE", bytes=None, sha256=None, frames=[])
     if not getattr(original, "stack_debug", False) or original.process.poll() is not None:
         return result
+    role, port = getattr(original, "stack_role", None), getattr(original, "stack_port", None)
+    if type(role) is not str or role not in PORTS or type(port) is not int or port != PORTS[role]:
+        result["status"] = "REFUSED"
+        return result
     end = time.monotonic() + 3
-    connection = http.client.HTTPConnection("127.0.0.1", PORT, timeout=1)
+    connection = http.client.HTTPConnection("127.0.0.1", port, timeout=1)
     try:
         # http.client uses no proxy, credentials, DNS alias or redirect handler.
         connection.request("GET", "/debug/pprof/goroutine?debug=2",

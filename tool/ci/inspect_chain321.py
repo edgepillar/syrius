@@ -235,12 +235,14 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA, *, expected_p
     projected_exits = []
     stack_enabled = report.get("native_stack_diagnostic", False)
     need(type(stack_enabled) is bool and (not stack_enabled or backend == "native"))
+    stack_scope = report.get("native_stack_scope")
+    need(stack_scope is None or stack_scope == ("all_originals" if stack_enabled else "disabled"))
     stop_order = report.get("native_shutdown_order")
     need(stop_order is None or (backend == "native" and type(stop_order) is list
          and len(stop_order) <= len(ROLES) and stop_order == list(ROLES[:len(stop_order)])))
     stop_mode = report.get("native_shutdown_mode")
     need(stop_mode is None or (backend == "native" and stop_mode == "coordinated_requests_then_wait"))
-    first_panic, panic_count = None, 0
+    first_panic, panic_count, first_stack, stack_count = None, 0, None, 0
     for index, item in enumerate(exits):
         if item is None:
             projected_exits.append(dict(exit_code=None, output_complete=None, forced=None,
@@ -248,6 +250,11 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA, *, expected_p
             continue
         need(type(item) is dict)
         selected = {key: item.get(key) for key in ("exit_code", "output_complete", "forced", "stop_code", "stop_os_error")}
+        if stack_scope == "all_originals":
+            need(item.get("stack_role") == ROLES[index])
+            selected["stack_role"] = item["stack_role"]
+        else:
+            need("stack_role" not in item)
         need(all(selected[key] is None or (type(selected[key]) is int and -(2**63) <= selected[key] < 2**63)
                  for key in ("exit_code", "stop_os_error"))
              and all(selected[key] is None or type(selected[key]) is bool for key in ("output_complete", "forced"))
@@ -295,7 +302,13 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA, *, expected_p
                  and all(code in native_stack_probe.CODES for code in probe["frames"])
                  and (probe["status"] != "CAPTURED" or (probe["bytes"] is not None
                       and probe["sha256"] is not None and "NODE_STOP" in probe["frames"])))
-            selected["stack_probe"] = probe
+            if stack_scope == "all_originals":
+                stack_count += 1
+                selected["stack_probe_status"] = probe["status"]
+                if first_stack is None or (first_stack["status"] != "CAPTURED" and probe["status"] == "CAPTURED"):
+                    first_stack = dict(role=ROLES[index], **probe)
+            else:
+                selected["stack_probe"] = probe
         projected_exits.append(selected)
     counts = {key: report.get(key) for key in ("created_count", "started_count")}
     need(all(value is None or (type(value) is int and 0 <= value <= 5)
@@ -357,6 +370,10 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA, *, expected_p
                       producer_task_patch=patch_summary)
     if go_failure is not None:
         result["upstream_stop_failure"] = go_failure
+    if stack_scope is not None:
+        result["native_stack_scope"] = stack_scope
+    if stack_scope == "all_originals":
+        result.update(native_stack_probe_count=stack_count, native_stack_probe=first_stack)
     return result
 
 

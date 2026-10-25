@@ -30,6 +30,42 @@ def manifest():
 
 
 class InspectionTests(unittest.TestCase):
+    def test_five_failed_probes_keep_every_original_exit_and_one_bounded_detail(self):
+        report = self.corrected_manifest()
+        report.update(native_stack_diagnostic=True, native_stack_scope="all_originals",
+            node_exits=[dict(exit_code=1, output_complete=True, forced=True, stop_code="WAIT_TIMEOUT",
+                stack_role=role, stack_probe=dict(status="CAPTURED", bytes=100, sha256="b" * 64,
+                    frames=sorted(inspect.native_stack_probe.CODES))) for role in inspect.ROLES])
+        value = inspect.project(report, "native", "a" * 40, 123, inspect.UPSTREAM_NODE_SHA, expected_patched=True)
+        self.assertEqual(value["native_stack_probe_count"], 5)
+        self.assertEqual(value["native_stack_probe"]["role"], "pillar")
+        self.assertTrue(all(item["forced"] and item["stack_probe_status"] == "CAPTURED" for item in value["node_exits"]))
+        self.assertLessEqual(len(json.dumps(value, separators=(",", ":")).encode()), 3800)
+
+    def test_all_originals_probe_scope_keeps_the_original_role_and_failed_exit(self):
+        report = manifest()
+        report.update(native_stack_diagnostic=True, native_stack_scope="all_originals",
+            node_exits=[dict(exit_code=1, output_complete=True, forced=True, stop_code="WAIT_TIMEOUT",
+                stack_role="pillar", stack_probe=dict(status="CAPTURED", bytes=100, sha256="b" * 64,
+                    frames=["PILLAR_WORKER_STOP", "NODE_STOP"]))])
+        result = inspect.project(report, "native", "a" * 40, 123)
+        self.assertEqual(result["native_stack_scope"], "all_originals")
+        self.assertEqual(result["node_exits"][0]["stack_role"], "pillar")
+        self.assertTrue(result["node_exits"][0]["forced"])
+        report["node_exits"][0]["stack_role"] = "rpc"
+        with self.assertRaises(inspect.Refused):
+            inspect.project(report, "native", "a" * 40, 123)
+
+    def test_probe_scope_cannot_adopt_an_unknown_role_or_disabled_diagnostic(self):
+        for enabled, scope, role in ((False, "all_originals", "pillar"),
+                                    (True, "private", "pillar"), (True, "all_originals", "private"),
+                                    (True, None, "pillar")):
+            report = manifest()
+            report.update(native_stack_diagnostic=enabled, native_stack_scope=scope,
+                node_exits=[dict(exit_code=1, output_complete=True, forced=True, stack_role=role)])
+            with self.subTest(scope=scope, role=role), self.assertRaises(inspect.Refused):
+                inspect.project(report, "native", "a" * 40, 123)
+
     def test_go_failure_observation_does_not_qualify_a_runtime_or_test_pass(self):
         report = manifest()
         report.update(node_sha=inspect.UPSTREAM_NODE_SHA, node_tree=producer_patch.BASE_TREE,

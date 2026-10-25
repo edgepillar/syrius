@@ -497,6 +497,7 @@ class Original:
                     ("stdout", "stderr"), self.drains)})
         if getattr(self, "stack_debug", False):
             self.receipt["stack_probe"] = getattr(self, "stack_probe", None)
+            self.receipt["stack_role"] = getattr(self, "stack_role", None)
         need(complete and all(not d.overflow.is_set() and d.error is None
                               for d in self.drains), "OUTPUT_REFUSED")
         if success:
@@ -629,7 +630,7 @@ def configuration(value, role, data, backend):
 def preflight_ports(backend, *, stack_debug=False):
     ports = [45997, 45998] + (list(NATIVE_PORTS.values()) if backend == "native" else [])
     if backend == "native" and stack_debug:
-        ports.append(native_stack_probe.PORT)
+        ports.extend(native_stack_probe.PORTS.values())
     sockets = []
     try:
         for port in ports:
@@ -659,10 +660,12 @@ class Native:
             argv = [str(self.binary), "--data", str(data),
                 "--config", str(data / "config.json"), "--genesis", str(data / "genesis.json"),
                 "--wallet", str(data / "wallet")]
-            if self.stack_debug and role == "rpc":
-                argv += ["--pprof", "--pprof.addr", "127.0.0.1", "--pprof.port", str(native_stack_probe.PORT)]
+            if self.stack_debug:
+                argv += ["--pprof", "--pprof.addr", "127.0.0.1", "--pprof.port", str(native_stack_probe.PORTS[role])]
             original = Original(argv, cwd=data, env=self.commands.env)
-            original.stack_debug = self.stack_debug and role == "rpc"
+            original.stack_debug = self.stack_debug
+            if self.stack_debug:
+                original.stack_role, original.stack_port = role, native_stack_probe.PORTS[role]
             self.originals.append(original)
 
     def healthy(self):
@@ -945,6 +948,7 @@ def run(backend):
             ("source", "build", "assets", "preflight", "started", "production", "stopped", "inputs_unchanged"), False),
         wallet_qualified=False, seed_admitted=False, visual_matches=0,
         native_stack_diagnostic=stack_debug,
+        native_stack_scope="all_originals" if stack_debug else "disabled",
         min_free_bytes=FIXTURE_MIN_FREE, work_cap_bytes=MAX_WORK,
         storage_limit_scope="isolated_hosted_regression_fixture_cooperative_samples",
         cleanup="runner_lifecycle_not_qualified")

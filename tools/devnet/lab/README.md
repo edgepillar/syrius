@@ -178,11 +178,17 @@ raw logs and paths are not uploaded. This projection cannot convert a timeout
 or forced exit into successful shutdown.
 
 The separate native_stack_diagnostic input defaults off. It enables the pinned
-node's existing profiler only on the original RPC process at preflighted
-127.0.0.1:45999. A real shutdown timeout permits one bounded loopback read before
-forced cleanup. Only fixed codes from a single shutdown goroutine, byte count
-and hash are retained. No raw stack is uploaded, no external listener is opened
-and no diagnostic observation can turn a forced exit into success.
+node's existing profiler on original roles at separate preflighted loopback
+ports: RPC 45999, pillar 46000, pillar2 46001, pillar3 46002 and observer 46003.
+Each original handle retains its fixed role and port; a changed binding is
+refused before a connection. A real shutdown timeout permits one bounded
+loopback read before that original's existing forced cleanup. Only fixed
+codes from a single shutdown goroutine, byte count and hash are retained.
+Inspection validates every probe and retains per-role statuses plus one
+captured detail, or the first attempted detail if none was captured. Older
+RPC-only records retain their separate scope. No raw stack is uploaded, no
+external listener is opened and no diagnostic observation can turn a forced
+exit into success.
 
 Native retirement requests all five original peers in creation order before
 waiting for any member. The upstream peer server joins workers, so retiring

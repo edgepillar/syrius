@@ -37,7 +37,7 @@ on:
           - native
           - docker
       native_stack_diagnostic:
-        description: Observe one bounded loopback shutdown stack on native timeout
+        description: Observe bounded loopback shutdown frames after actual native stop timeouts
         type: boolean
         default: false
       chain321_node_source:
