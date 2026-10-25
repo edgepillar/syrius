@@ -2050,3 +2050,35 @@ no existing connection can be adopted. All 41 injected policy cases pass,
 including two new portability/adoption cases. These are in-memory controls,
 with no actual socket listener or Windows node execution. Native qualification
 and the precise prior hosted wire failure remain separate.
+
+### Node listener and fixture path correction
+
+Read-only [inspection 40185145365](https://github.com/edgepillar/syrius/actions/runs/40185145365)
+verifies the original `eb9d670b6546585c0527ae537109bc50fc62c55a` manifests
+from [40184395839](https://github.com/edgepillar/syrius/actions/runs/40184395839).
+The Windows report preserves `WIRE_REFUSED` at WS handshake and a real RPC
+port-conflict category. Docker records three producers exiting one; its
+observer and RPC resources stop zero without an OOM. Original failures remain
+negative. The Winsock correction at `22a1af0cf79392f249c54036e1e4c19e5bf12b4e`
+has separate 41-case injected evidence and has not yet qualified a native lab.
+
+The pinned [RPC startup](https://github.com/zenon-network/go-zenon/blob/590f43ca7a24dccd8e883bc8903a0cb02e54528a/node/rpc.go)
+selects listeners by nonempty host strings. The controller had disabled flags
+while retaining hosts, which allowed native roles to contend for the same
+HTTP/WS ports. Unused roles now have empty listen hosts; only the intended RPC
+node has the loopback endpoints.
+
+Source inspection also identifies a deployment mismatch in the public
+keystore fixtures. Each contains an embedded `Path` for the original container
+layout. The pinned [reader](https://github.com/zenon-network/go-zenon/blob/590f43ca7a24dccd8e883bc8903a0cb02e54528a/wallet/keyfile.go)
+unmarshals that field over the actual read path, and the manager indexes the
+result by that path. Relocating only the file leaves the producer unable to
+find its configured key. The correction rewrites only that exact committed
+fixture field to the actual owned deployment. It verifies every other field
+unchanged, records source/deployed hashes, and rechecks deployed files after
+production. It neither decrypts nor re-encrypts fixture material.
+
+Three new fixture relocation/refusal cases and eight configuration cases pass
+in memory locally. No real wallet, listener or node is started by those tests.
+The source corrections require actual hosted production and shutdown before
+lab, wallet or seed acceptance can be claimed.

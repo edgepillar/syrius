@@ -124,6 +124,29 @@ def compiler_diagnostics(raw):
     return found[:12] or [dict(code="UNCLASSIFIED_BUILD_FAILURE")]
 
 
+def relocated_keyfile(raw, filename, node_path):
+    """Move only the public fixture's embedded deployment path."""
+    try:
+        value = json.loads(raw)
+    except (ValueError, UnicodeError):
+        raise Failure("CONFIG_REFUSED") from None
+    need(type(filename) is str and re.fullmatch(r"z1[a-z0-9]{30,64}", filename)
+         and type(node_path) is str and 0 < len(node_path) <= 4096
+         and "\0" not in node_path and node_path.endswith(("/" + filename, "\\" + filename)),
+         "CONFIG_REFUSED")
+    need(type(value) is dict and set(value) == {"Path", "baseAddress", "crypto", "version", "timestamp"}
+         and value["Path"] == "/root/.znn/wallet/" + filename
+         and value["baseAddress"] == filename and type(value["version"]) is int
+         and value["version"] == 1 and type(value["timestamp"]) is int
+         and type(value["crypto"]) is dict, "CONFIG_REFUSED")
+    crypto = value["crypto"]
+    need(crypto.get("cipherName") == "aes-256-gcm" and crypto.get("kdf") == "argon2.IDKey"
+         and all(type(crypto.get(key)) is str for key in ("cipherData", "nonce"))
+         and type(crypto.get("argon2Params")) is dict, "CONFIG_REFUSED")
+    moved = dict(value, Path=node_path)
+    return (json.dumps(moved, sort_keys=True, separators=(",", ":")) + "\n").encode("ascii")
+
+
 def regular(path, cap=MIB):
     info = path.lstat()
     need(stat.S_ISREG(info.st_mode) and info.st_nlink == 1
@@ -323,9 +346,9 @@ def configuration(value, role, data, backend):
     base = "/data" if backend == "docker" else str(data)
     result.update(DataPath=base, GenesisFile=base + "/genesis.json",
                   WalletPath=base + "/wallet")
+    rpc_host = ("0.0.0.0" if backend == "docker" else "127.0.0.1") if role == "rpc" else ""
     rpc.update(EnableHTTP=role == "rpc", EnableWS=role == "rpc",
-        HTTPHost="0.0.0.0" if backend == "docker" else "127.0.0.1",
-        WSHost="0.0.0.0" if backend == "docker" else "127.0.0.1",
+        HTTPHost=rpc_host, WSHost=rpc_host,
         HTTPPort=35997 if backend == "docker" else 45997,
         WSPort=35998 if backend == "docker" else 45998)
     return result
@@ -632,7 +655,8 @@ def run(backend):
         genesis = regular(assets / "genesis.json")
         need(json.loads(genesis)["ChainIdentifier"] == 321, "CONFIG_REFUSED")
         report["genesis_sha256"] = digest(genesis)
-        configs, pins = {}, {}
+        configs, pins, keyfile_pins = {}, {}, {}
+        report["keyfile_relocations"] = []
         for role in ROLES:
             data = root / role
             data.mkdir(mode=0o700)
@@ -645,7 +669,21 @@ def run(backend):
                 if offered.is_dir():
                     (data / name).mkdir(mode=0o700)
                     for item in offered.iterdir():
-                        (data / name / item.name).write_bytes(regular(item))
+                        original_keyfile = regular(item)
+                        node_path = ("/data/wallet/" + item.name if backend == "docker"
+                                     else str(data / name / item.name))
+                        moved_keyfile = relocated_keyfile(original_keyfile, item.name, node_path)
+                        destination = data / name / item.name
+                        destination.write_bytes(moved_keyfile)
+                        keyfile_pins[destination] = digest(moved_keyfile)
+                        original_fields = json.loads(original_keyfile)
+                        moved_fields = json.loads(moved_keyfile)
+                        need({key: value for key, value in original_fields.items() if key != "Path"}
+                             == {key: value for key, value in moved_fields.items() if key != "Path"},
+                             "CONFIG_REFUSED")
+                        report["keyfile_relocations"].append(dict(role=role,
+                            source_sha256=digest(original_keyfile), deployed_sha256=digest(moved_keyfile),
+                            non_path_fields_unchanged=True))
                 elif offered.exists():
                     (data / name).write_bytes(regular(offered))
             pins[role] = digest(regular(data / "config.json"))
@@ -661,6 +699,7 @@ def run(backend):
         report["checks"]["production"] = True
         need(all(digest(regular(configs[role] / "config.json")) == pins[role]
                  and regular(configs[role] / "genesis.json") == genesis for role in ROLES)
+             and all(digest(regular(path)) == expected for path, expected in keyfile_pins.items())
              and digest(regular(binary, 128 * MIB)) == report["binary_sha256"]
              and not commands.git(repo, "status", "--porcelain=v1", "--untracked-files=all")
              and not commands.git(source, "status", "--porcelain=v1", "--untracked-files=all"), "SOURCE_REFUSED")

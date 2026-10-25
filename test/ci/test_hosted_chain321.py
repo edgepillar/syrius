@@ -116,6 +116,42 @@ class StaticBinaryTests(unittest.TestCase):
                 lab.static_linux_binary(value)
 
 
+class KeyfileDeploymentTests(unittest.TestCase):
+    @staticmethod
+    def source():
+        name = "z1" + "a" * 38
+        value = dict(Path="/root/.znn/wallet/" + name, baseAddress=name, version=1, timestamp=1,
+            crypto=dict(cipherName="aes-256-gcm", kdf="argon2.IDKey", cipherData="0xabcdef",
+                        nonce="0x123456", argon2Params=dict(salt="0x789abc")))
+        return name, value
+
+    def test_only_embedded_path_moves_and_crypto_bytes_remain_equal(self):
+        name, value = self.source()
+        raw = json.dumps(value).encode()
+        for parent in ("/data/wallet/", "C:\\fixture\\pillar\\wallet\\"):
+            result = json.loads(lab.relocated_keyfile(raw, name, parent + name))
+            self.assertEqual(result["Path"], parent + name)
+            self.assertEqual({k: v for k, v in result.items() if k != "Path"},
+                             {k: v for k, v in value.items() if k != "Path"})
+            self.assertEqual(json.dumps(value).encode(), raw)
+
+    def test_another_profile_address_or_unknown_field_cannot_be_adopted(self):
+        name, value = self.source()
+        for field, changed in (("Path", "/fixture/private/wallet/" + name),
+                               ("baseAddress", "z1" + "b" * 38), ("extra", "fixture")):
+            source = dict(value)
+            source[field] = changed
+            with self.assertRaises(lab.Failure):
+                lab.relocated_keyfile(json.dumps(source).encode(), name, "/data/wallet/" + name)
+
+    def test_malformed_fixture_or_changed_version_is_refused(self):
+        name, value = self.source()
+        value["version"] = 2
+        for raw in (b"not-json", json.dumps(value).encode()):
+            with self.assertRaises(lab.Failure):
+                lab.relocated_keyfile(raw, name, "/data/wallet/" + name)
+
+
 class ConfigurationTests(unittest.TestCase):
     def test_native_bootstrap_and_seeder_remain_on_loopback(self):
         result = lab.configuration(node_config(), "pillar", Path("fixture"), "native")
@@ -132,8 +168,8 @@ class ConfigurationTests(unittest.TestCase):
         for role in lab.ROLES:
             cfg = lab.configuration(node_config(), role, Path("fixture"), "native")
             self.assertEqual(cfg["Net"]["ListenHost"], "127.0.0.1")
-            self.assertEqual(cfg["RPC"]["HTTPHost"], "127.0.0.1")
-            self.assertEqual(cfg["RPC"]["WSHost"], "127.0.0.1")
+            self.assertEqual(cfg["RPC"]["HTTPHost"], "127.0.0.1" if role == "rpc" else "")
+            self.assertEqual(cfg["RPC"]["WSHost"], "127.0.0.1" if role == "rpc" else "")
 
     def test_only_rpc_role_exposes_http_and_websocket(self):
         for backend in ("native", "docker"):
@@ -141,6 +177,8 @@ class ConfigurationTests(unittest.TestCase):
                 cfg = lab.configuration(node_config(), role, Path("fixture"), backend)
                 self.assertIs(cfg["RPC"]["EnableHTTP"], role == "rpc")
                 self.assertIs(cfg["RPC"]["EnableWS"], role == "rpc")
+                self.assertEqual(bool(cfg["RPC"]["HTTPHost"]), role == "rpc")
+                self.assertEqual(bool(cfg["RPC"]["WSHost"]), role == "rpc")
 
     def test_docker_keeps_its_internal_ports_and_moves_the_subnet(self):
         cfg = lab.configuration(node_config(), "rpc", Path("fixture"), "docker")

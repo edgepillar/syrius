@@ -142,3 +142,11 @@ failure separately from close failure. Observation phase, original process
 exit/signal facts, created-resource Docker state and allowlisted node failure
 categories can be inspected without publishing raw node logs. These fields
 remain evidence only and cannot adopt a runtime or admit wallet preparation.
+
+The pinned node selects RPC listeners from nonempty host strings. Non-RPC roles
+therefore receive empty HTTP/WS hosts as well as disabled flags. Public
+keystore fixtures contain an embedded deployment Path; the controller moves
+only that exact field to the new owned wallet path. Every encrypted and other
+non-path field is preserved, before/after hashes are recorded, and deployed
+fixture bytes are rechecked after production. This is deployment relocation,
+with no fixture decryption or re-encryption.
