@@ -2762,3 +2762,40 @@ failed attempts retain their own scopes. Full native wallet startup and
 reversible owned chain/profile checkpoints are next. No wallet or seed
 recipe is admitted by these node-lab records; main progress remains 66 of
 80, with ninety missing actual captures and zero accepted visual matches.
+
+### Reconcile P05 and P06 with their written hosted requirements
+
+The retained source-bound Windows baseline at
+`1d663dc58b9ce6f2abdbe66898e85e2ef850a8c0`, run 40142185606 attempt 1,
+job 121016046890, already meets P05's locked dependency, generated source,
+localization and DLL loading requirements. Source, Debug and Release DLLs
+actually map and expose both expected symbols in separate isolated children.
+Their bytes share SHA-256
+`f1f79ee184b9c0e3cd92d2f5c49e52c68e7a4670357a0cf1df95a0ac6de8973a`.
+All thirteen localization files retain identical before/after digests.
+Loading and symbol lookup remain distinct from invoking either export.
+
+The same completed Windows run supplies P06's current baseline:
+
+| Original stage | Seconds | Result |
+| --- | ---: | --- |
+| Root analysis | 46.141 | 0 errors, 0 warnings, 1295 infos |
+| Vendored analysis | 19.234 | 0 diagnostics |
+| Unit/widget tests | 888.984 | 4354 passing events, 2 skips, 0 failures/errors; 506 hidden terminal events recorded separately |
+| Debug build | 141.703 | Passed |
+| Release build | 188.172 | Passed |
+
+Every listed command has original exit zero, complete output, no overflow
+and no forced termination. Read-only reconciliation verifies the retained
+source/run/log record and successful transport closure. Application,
+harness, assets, patched packages, dependencies, analysis options and
+baseline/probe sources remain unchanged. No build, native process, test or
+artifact transport is repeated. Fast's separate 4355/one-skip count retains
+its own platform scope.
+
+P05 and P06 therefore record their written loading and current-baseline
+requirements as complete for hosted Windows. Node ABI invocation, full
+wallet startup, the debug loop and old-build frame comparison remain
+unqualified in their respective gates. Optional inventory failures remain
+preserved. The latest main ledger is 68 of 80 rows, or 85 percent; twelve
+main rows and all 94 accepted visual matches remain open.
