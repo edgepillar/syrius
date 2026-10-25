@@ -31,6 +31,17 @@ from tools.devnet.lab.socket_transport import make_transports
 
 
 NODE_SHA = "590f43ca7a24dccd8e883bc8903a0cb02e54528a"
+UPSTREAM_NODE_SHA = "2d1b929cc3fa5269cf133757d4a6963821137984"
+NODE_SOURCES = {
+    "original": (NODE_SHA, "3bedc2fde71035c983997451c2d7e76b66d2d210"),
+    "upstream": (UPSTREAM_NODE_SHA, "4467fff960ea6a5409908d7c85497a68482e0edb"),
+}
+SHUTDOWN_TESTS = (
+    "TestStopWaitsForGatedRunPeer", "TestStopDoesNotStrandRunLoopOnCheckpoint",
+    "TestPeerRunJoinsProtocolGoroutines", "TestWaitExpireTaskReturnsOnQuit",
+    "TestProtoRWExposesPeerClose", "TestStopIsIdempotentAndConcurrent",
+    "TestSameIdentityReconnectDuringGatedCleanup",
+)
 ROLES = ("pillar", "pillar2", "pillar3", "observer", "rpc")
 OCTETS = dict(zip(ROLES, (10, 12, 13, 14, 11)))
 NATIVE_PORTS = dict(zip(ROLES, (45991, 45992, 45993, 45994, 45995)))
@@ -46,6 +57,7 @@ CODES = frozenset((
     "CONFIG_REFUSED", "PORT_CONFLICT", "NODE_EXITED", "RPC_UNAVAILABLE",
     "RPC_REFUSED", "GENESIS_MISMATCH", "PRODUCTION_UNPROVEN",
     "DOCKER_REFUSED", "RESOURCE_CHANGED", "INTERNAL_ERROR",
+    "NODE_REGRESSIONS_REFUSED",
 )) | wire_policy.CODES
 NODE_DIAGNOSTICS = frozenset((
     "NODE_CLI_REFUSED", "NODE_STORAGE_REFUSED", "NODE_PANIC",
@@ -69,6 +81,40 @@ def need(value, code):
 
 def digest(data):
     return hashlib.sha256(data).hexdigest()
+
+
+def selected_node_source(value):
+    need(type(value) is str and value in NODE_SOURCES, "SOURCE_REFUSED")
+    return NODE_SOURCES[value]
+
+
+def shutdown_test_result(raw):
+    """A zero Go exit alone cannot qualify an empty or skipped test filter."""
+    need(type(raw) is bytes and 0 < len(raw) <= MIB, "NODE_REGRESSIONS_REFUSED")
+    seen, package_passed = set(), False
+    lines = raw.splitlines()
+    need(len(lines) <= 10000, "NODE_REGRESSIONS_REFUSED")
+    for line in lines:
+        try:
+            event = json.loads(line)
+        except (ValueError, UnicodeError):
+            raise Failure("NODE_REGRESSIONS_REFUSED") from None
+        need(type(event) is dict and event.get("Action") not in ("skip", "fail", "build-fail"),
+             "NODE_REGRESSIONS_REFUSED")
+        if event.get("Action") == "pass":
+            need(event.get("Package") == "github.com/zenon-network/go-zenon/p2p/legacy",
+                 "NODE_REGRESSIONS_REFUSED")
+            test = event.get("Test")
+            if test is None:
+                package_passed = True
+            elif test in SHUTDOWN_TESTS:
+                need(test not in seen, "NODE_REGRESSIONS_REFUSED")
+                seen.add(test)
+            else:
+                need(type(test) is str and any(test.startswith(name + "/") for name in SHUTDOWN_TESTS),
+                     "NODE_REGRESSIONS_REFUSED")
+    need(package_passed and seen == set(SHUTDOWN_TESTS), "NODE_REGRESSIONS_REFUSED")
+    return dict(passed=True, tests=list(SHUTDOWN_TESTS), skips=0)
 
 
 def failure_code(error):
@@ -705,6 +751,7 @@ def run(backend):
          or (backend == "native" and sys.platform == "win32"), "ENVIRONMENT_REFUSED")
     need(parent.get("SYRIUS_NATIVE_STACK_DIAGNOSTIC") in (None, "true", "false"), "ENVIRONMENT_REFUSED")
     stack_debug = backend == "native" and parent.get("SYRIUS_NATIVE_STACK_DIAGNOSTIC") == "true"
+    node_sha, node_tree = selected_node_source(parent.get("SYRIUS_LAB_NODE_SOURCE", "original"))
     directories(repo)
     temp = Path(parent["RUNNER_TEMP"])
     directories(temp)
@@ -715,7 +762,7 @@ def run(backend):
     env = child_environment(root, parent)
     commands = Commands(root, env)
     report = dict(schema=1, scope="hosted_chain321_lab", backend=backend,
-        application_sha=parent["GITHUB_SHA"], node_sha=NODE_SHA,
+        application_sha=parent["GITHUB_SHA"], node_sha=node_sha,
         run_id=parent.get("GITHUB_RUN_ID"), attempt=parent.get("GITHUB_RUN_ATTEMPT"),
         success=False, error_codes=[], checks=dict.fromkeys(
             ("source", "build", "assets", "preflight", "started", "production", "stopped", "inputs_unchanged"), False),
@@ -730,10 +777,11 @@ def run(backend):
         directories(source)
         need(commands.git(repo, "rev-parse", "HEAD") == parent["GITHUB_SHA"]
              and not commands.git(repo, "status", "--porcelain=v1", "--untracked-files=all")
-             and commands.git(source, "rev-parse", "HEAD") == NODE_SHA
+             and commands.git(source, "rev-parse", "HEAD") == node_sha
              and not commands.git(source, "status", "--porcelain=v1", "--untracked-files=all"), "SOURCE_REFUSED")
         report["application_tree"] = commands.git(repo, "rev-parse", "HEAD^{tree}")
         report["node_tree"] = commands.git(source, "rev-parse", "HEAD^{tree}")
+        need(report["node_tree"] == node_tree, "SOURCE_REFUSED")
         report["checks"]["source"] = True
         version = commands.run(["go", "version"], cwd=source).decode("ascii").strip()
         need(version == "go version go" + GO_VERSION + (" windows/amd64" if backend == "native" else " linux/amd64"),
@@ -754,6 +802,12 @@ def run(backend):
             report["static_linux_binary_verified"] = static_linux_binary(binary_bytes)
         report["binary_sha256"] = digest(binary_bytes)
         report["checks"]["build"] = True
+        if node_sha == UPSTREAM_NODE_SHA:
+            result = commands.run(["go", "test", "-json", "-mod=readonly", "-count=1",
+                "-run", "^(" + "|".join(SHUTDOWN_TESTS) + ")$", "-timeout", "30s", "./p2p/legacy"],
+                cwd=source, timeout=180)
+            report["upstream_stop_regressions"] = shutdown_test_result(result)
+            need(not commands.git(source, "status", "--porcelain=v1", "--untracked-files=all"), "SOURCE_REFUSED")
         assets = root / "assets"
         commands.run(["node", str(repo / "tools/devnet/lab/make-assets.js"),
                       str(source / "docker/devnet"), str(assets)], cwd=repo)

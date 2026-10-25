@@ -41,6 +41,41 @@ class CompilerDiagnosticTests(unittest.TestCase):
         self.assertNotIn("private", json.dumps(value))
 
 
+class NodeSourceTests(unittest.TestCase):
+    def test_only_two_exact_source_pins_are_admitted(self):
+        self.assertEqual(lab.selected_node_source("original")[0], lab.NODE_SHA)
+        self.assertEqual(lab.selected_node_source("upstream")[0], lab.UPSTREAM_NODE_SHA)
+        for offered in ("dev", "master", "https://example.invalid", "a" * 40, None):
+            with self.subTest(offered=offered), self.assertRaises(lab.Failure):
+                lab.selected_node_source(offered)
+
+    @staticmethod
+    def events():
+        package = "github.com/zenon-network/go-zenon/p2p/legacy"
+        return [dict(Action="pass", Package=package, Test=name) for name in lab.SHUTDOWN_TESTS] + [dict(Action="pass", Package=package)]
+
+    def test_all_seven_original_go_tests_and_package_pass_are_required(self):
+        raw = b"\n".join(json.dumps(event).encode() for event in self.events())
+        result = lab.shutdown_test_result(raw)
+        self.assertEqual(result, dict(passed=True, tests=list(lab.SHUTDOWN_TESTS), skips=0))
+
+    def test_empty_missing_duplicate_skipped_or_failed_go_results_are_refused(self):
+        events = self.events()
+        invalid = [[], events[1:], events[:-1], events + [events[0]],
+            events + [dict(Action="skip")], events + [dict(Action="fail")]]
+        for offered in invalid:
+            raw = b"\n".join(json.dumps(event).encode() for event in offered)
+            with self.subTest(events=len(offered)), self.assertRaises(lab.Failure):
+                lab.shutdown_test_result(raw)
+        with self.assertRaises(lab.Failure):
+            lab.shutdown_test_result(b"private-path: not a Go JSON event")
+
+    def test_raw_test_output_is_ignored_in_the_finite_projection(self):
+        events = [dict(Action="output", Output="private-path and private-input")] + self.events()
+        result = lab.shutdown_test_result(b"\n".join(json.dumps(event).encode() for event in events))
+        self.assertNotIn("private", json.dumps(result))
+
+
 class RuntimeDiagnosticTests(unittest.TestCase):
     def test_shutdown_projection_keeps_only_finite_stage_codes(self):
         raw = (b'private-path msg="Stopping znnd ..."\n'

@@ -89,7 +89,7 @@ The manual `Public Contribution Qualification` workflow has a default-off
   data directory. Docker Desktop and a personal Windows computer are unnecessary
   for this native backend.
 
-Both use go-zenon `590f43ca7a24dccd8e883bc8903a0cb02e54528a`, Go 1.24.1,
+By default both use go-zenon `590f43ca7a24dccd8e883bc8903a0cb02e54528a`, Go 1.24.1,
 the repository's chain-321 genesis generator and the original public devnet
 keys. Native configuration changes only deployment paths, listen addresses
 and peer ports. The Docker image contains the source-built static node command;
@@ -189,3 +189,13 @@ order, then requests RPC shutdown. This follows an observed protocol-group
 wait during simultaneous retirement. Each handle retains its one signal
 attempt and strict zero/complete/unforced exit requirement. The attempted
 role order is finite evidence only; any original failure keeps the lab failed.
+
+The explicit chain321_node_source choice defaults to original. Selecting
+upstream uses only commit 2d1b929cc3fa5269cf133757d4a6963821137984, tree
+4467fff960ea6a5409908d7c85497a68482e0edb, which joins the legacy run loop and
+protocol workers during shutdown. No moving branch or local node patch is
+accepted. This path requires all seven named upstream Go shutdown tests and
+the package pass, without skips, before starting the lab. Exact SHA/tree and
+regression outcomes remain separate from chain production and original exit.
+Retained-manifest inspection must select the same node source. The older
+default's failed native results and successful Linux result remain separate.

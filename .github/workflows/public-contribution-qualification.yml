@@ -40,6 +40,13 @@ on:
         description: Observe one bounded loopback shutdown stack on native timeout
         type: boolean
         default: false
+      chain321_node_source:
+        description: Select the original node pin or the reviewed upstream shutdown commit
+        type: choice
+        default: original
+        options:
+          - original
+          - upstream
       inspect_chain321_run:
         description: Inspect an original completed chain-321 run without repeating builds
         type: string
@@ -281,7 +288,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: zenon-network/go-zenon
-          ref: 590f43ca7a24dccd8e883bc8903a0cb02e54528a
+          ref: ${{ inputs.chain321_node_source == 'upstream' && '2d1b929cc3fa5269cf133757d4a6963821137984' || '590f43ca7a24dccd8e883bc8903a0cb02e54528a' }}
           path: .harness/ci-node-source
           persist-credentials: false
 
@@ -298,6 +305,7 @@ jobs:
         env:
           SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
           SYRIUS_NATIVE_STACK_DIAGNOSTIC: ${{ matrix.backend == 'native' && inputs.native_stack_diagnostic }}
+          SYRIUS_LAB_NODE_SOURCE: ${{ inputs.chain321_node_source }}
         run: python -B -m tool.ci.hosted_chain321 --backend ${{ matrix.backend }}
 
       # No node data, keys, profile, private command output or source archive.
@@ -336,4 +344,5 @@ jobs:
           LAB_INSPECT_RUN: ${{ inputs.inspect_chain321_run }}
           LAB_INSPECT_HEAD: ${{ inputs.inspect_chain321_head }}
           LAB_INSPECT_BACKEND: ${{ inputs.chain321_backend }}
+          LAB_INSPECT_NODE_SOURCE: ${{ inputs.chain321_node_source }}
         run: python -B -m tool.ci.inspect_chain321

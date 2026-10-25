@@ -2292,3 +2292,40 @@ the actual attempted role order is retained. There is no timeout increase,
 node patch, synthetic exit or retry. New injected order and retirement cases
 first reject the former behavior; forty-three selected cases pass locally.
 Actual qualification must use the normal profiler-disabled native path.
+
+### Explicit upstream shutdown source
+
+At wallet source `63e0a1282c1fe314ae6de9e72c948b6f7500929e`, tree
+`232b178f551cbe9196a5e85460cf535153333c7f`, profiler-disabled native
+[40203975794](https://github.com/edgepillar/syrius/actions/runs/40203975794),
+attempt one, job 121200867357 passes its full controller-suite step and all
+functional gates. Height advances one to two in seven samples, with last
+timestamp 1792939840. The attempted retirement order is pillar, pillar2,
+pillar3, observer, RPC. RPC, pillar2 and observer exit zero; pillar and pillar3
+exceed the unchanged wait and are forced. Ordering alone does not qualify
+shutdown. [Inspection 40204414977](https://github.com/edgepillar/syrius/actions/runs/40204414977)
+verifies archive `5ecc6fc8af06f16d00bfcf4fabdbd43a10eaa775dad7c000ef9c2e743b2f3d06`
+and manifest `bda1edb1c8743989293fb9dbc905c52411bc835f4e8757ecb651985217094c32`.
+All prior negative results retain their original source scope.
+
+The original node pin is dated 2026-08-20. Upstream published
+[2d1b929cc3fa5269cf133757d4a6963821137984](https://github.com/zenon-network/go-zenon/commit/2d1b929cc3fa5269cf133757d4a6963821137984)
+on 2026-10-23 to join the legacy run loop and protocol goroutines during
+shutdown. Its exact Git tree is `4467fff960ea6a5409908d7c85497a68482e0edb`.
+The manual workflow therefore adds `chain321_node_source=original|upstream`,
+defaulting to original. Upstream selects only that reviewed commit, rather
+than a moving branch or the latest development tip. No node source patch or
+application dependency change is applied. The original `lab.sh` default stays
+unchanged; its existing explicit revision override remains available.
+
+The upstream path runs the seven named tests from its
+[shutdown regression file](https://github.com/zenon-network/go-zenon/blob/2d1b929cc3fa5269cf133757d4a6963821137984/p2p/legacy/shutdown_test.go)
+after the source build and before lab startup. A zero exit is insufficient:
+bounded Go JSON must contain all seven exact parent passes and the package
+pass, with no skip or failure. Module restoration stays read-only, and source
+cleanliness is checked after the tests. Saved inspection requires the same
+explicit node-source selection and publishes its exact SHA/tree and finite
+regression outcomes. Reports still cannot create runtime ownership.
+Forty-nine injected controller, selection and inspection cases pass locally,
+as does workflow YAML parsing. The actual upstream Go regressions and native
+lab remain pending; the older Linux pass is not transferred to this new pin.

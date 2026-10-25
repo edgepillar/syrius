@@ -21,12 +21,35 @@ def packed(value, name="manifest.json", mode=stat.S_IFREG):
 def manifest():
     return dict(scope="hosted_chain321_lab", application_sha="a" * 40,
         node_sha=inspect.NODE_SHA, run_id="123", attempt="1", backend="native",
+        node_tree=inspect.NODE_SOURCES["original"][1],
         success=False, checks=dict.fromkeys(inspect.CHECKS, False),
         error_codes=["COMMAND_FAILED"], commands=[dict(compiler_diagnostics=[dict(code="LOCKED_MODULE_CHANGED")])],
         compiler="go version go1.24.1 windows/amd64", private_profile="/fixture/private/profile")
 
 
 class InspectionTests(unittest.TestCase):
+    def test_upstream_pin_is_explicit_and_cannot_relabel_an_original_run(self):
+        report = manifest()
+        report["node_sha"] = inspect.UPSTREAM_NODE_SHA
+        report["node_tree"] = inspect.NODE_SOURCES["upstream"][1]
+        report["upstream_stop_regressions"] = dict(passed=True, tests=list(inspect.SHUTDOWN_TESTS), skips=0)
+        result = inspect.project(report, "native", "a" * 40, 123, inspect.UPSTREAM_NODE_SHA)
+        self.assertEqual(result["node_sha"], inspect.UPSTREAM_NODE_SHA)
+        self.assertFalse(result["runtime_started"])
+        with self.assertRaises(inspect.Refused):
+            inspect.project(report, "native", "a" * 40, 123)
+        report["node_tree"] = inspect.NODE_SOURCES["original"][1]
+        with self.assertRaises(inspect.Refused):
+            inspect.project(report, "native", "a" * 40, 123, inspect.UPSTREAM_NODE_SHA)
+
+    def test_upstream_success_cannot_hide_missing_or_skipped_stop_regressions(self):
+        report = manifest()
+        report.update(node_sha=inspect.UPSTREAM_NODE_SHA, node_tree=inspect.NODE_SOURCES["upstream"][1], success=True)
+        for regressions in (None, dict(passed=True, tests=list(inspect.SHUTDOWN_TESTS), skips=1)):
+            report["upstream_stop_regressions"] = regressions
+            with self.assertRaises(inspect.Refused):
+                inspect.project(report, "native", "a" * 40, 123, inspect.UPSTREAM_NODE_SHA)
+
     def test_native_shutdown_order_is_finite_and_cannot_adopt_another_scope(self):
         report = manifest()
         report["native_shutdown_order"] = list(inspect.ROLES)

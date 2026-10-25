@@ -14,7 +14,8 @@ import urllib.parse
 import urllib.request
 import zipfile
 
-from tool.ci.hosted_chain321 import CODES, NODE_DIAGNOSTICS, NODE_SHA, ROLES
+from tool.ci.hosted_chain321 import (CODES, NODE_DIAGNOSTICS, NODE_SHA, NODE_SOURCES,
+                                   ROLES, SHUTDOWN_TESTS, UPSTREAM_NODE_SHA, selected_node_source)
 from tool.ci import native_stack_probe
 
 
@@ -133,13 +134,23 @@ def unpack(raw, expected_sha, expected_size):
     return value, sha(data)
 
 
-def project(report, backend, head, run_id):
+def project(report, backend, head, run_id, expected_node=NODE_SHA):
+    pins = {value[0]: value[1] for value in NODE_SOURCES.values()}
+    need(expected_node in pins)
     need(backend in ("docker", "native") and report.get("scope") == "hosted_chain321_lab"
-         and report.get("application_sha") == head and report.get("node_sha") == NODE_SHA
+         and report.get("application_sha") == head and report.get("node_sha") == expected_node
          and report.get("run_id") == str(run_id) and report.get("attempt") == "1"
          and report.get("backend") == backend and type(report.get("success")) is bool)
     checks, errors, commands = report.get("checks"), report.get("error_codes"), report.get("commands")
     need(type(checks) is dict and set(checks) == CHECKS and all(type(v) is bool for v in checks.values()))
+    node_tree = report.get("node_tree")
+    need((node_tree is None and not checks["source"]) or node_tree == pins[expected_node])
+    regressions = report.get("upstream_stop_regressions")
+    need(regressions is None or (expected_node == UPSTREAM_NODE_SHA and type(regressions) is dict
+         and set(regressions) == {"passed", "tests", "skips"} and regressions["passed"] is True
+         and regressions["tests"] == list(SHUTDOWN_TESTS) and type(regressions["skips"]) is int
+         and regressions["skips"] == 0))
+    need(not (report["success"] and expected_node == UPSTREAM_NODE_SHA) or regressions is not None)
     need(type(errors) is list and len(errors) <= 16 and all(code in CODES for code in errors))
     need(type(commands) is list and len(commands) <= 1024)
     diagnostics = []
@@ -260,6 +271,7 @@ def project(report, backend, head, run_id):
     need(not checks["production"] or observations is not None)
     return dict(scope="retained_chain321_observation", backend=backend,
         source_head=head, source_run_id=run_id, source_attempt=1,
+        node_sha=expected_node, node_tree=node_tree, upstream_stop_regressions=regressions,
         artifact_reported_success=report["success"], checks=checks, error_codes=errors,
         compiler=compiler, compiler_diagnostics=diagnostics,
         runtime_phase=phase, node_diagnostics=node_codes,
@@ -284,6 +296,7 @@ def main():
          and re.fullmatch(r"[a-f0-9]{40}", head) is not None)
     run_id = int(run_text)
     backends = selected_backends(parent.get("LAB_INSPECT_BACKEND", "both"))
+    expected_node, _ = selected_node_source(parent.get("LAB_INSPECT_NODE_SOURCE", "original"))
     client = Client(parent.get("GH_TOKEN"))
     PHASE = "source_metadata"
     run = client.json("/actions/runs/" + run_text)
@@ -306,7 +319,7 @@ def main():
         raw = client.read(location, authenticated=False, cap=MAX_ARCHIVE)
         PHASE = "parse_" + backend
         report, manifest_sha = unpack(raw, item["digest"][7:], item["size_in_bytes"])
-        summary = project(report, backend, head, run_id)
+        summary = project(report, backend, head, run_id, expected_node)
         summary.update(archive_sha256=sha(raw), manifest_sha256=manifest_sha)
         encoded = json.dumps(summary, sort_keys=True, separators=(",", ":"))
         # Actions annotations truncate long messages. Refuse rather than
