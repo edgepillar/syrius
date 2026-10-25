@@ -2582,3 +2582,54 @@ and all 111 selected memory-only controller cases pass; actual producer
 frames remain pending. Waits, Go assertions, node source and default-off
 behaviour are unchanged. Main progress remains 65 of 80, with zero accepted
 visual matches.
+
+### Actual producer shutdown waits in the protocol manager
+
+At `a0e0b2a7375bd28e2697f43b68c82d76f807471e`, tree
+`a8b982119fe471c462c5c5ae8123fecda00bfdf6`, native
+[40224595496](https://github.com/edgepillar/syrius/actions/runs/40224595496),
+attempt 1, job 121263177846, passes the full controller-suite step, actual
+producer red/green regression, corrected CLI build, all seven upstream tests
+and every functional chain-321 gate. Eleven samples verify height one to two,
+matching HTTP/WS hashes, unchanged inputs and last timestamp 1792955470.
+
+With the explicit diagnostic enabled for original roles, `pillar` actually
+times out during stop. One bounded read before its existing forced cleanup
+captures 18798 bytes, SHA-256
+`618ade1eef094719678088c837a59ceb94c7e7d9aea6d493d0265cfa330ea6fc`.
+Its fixed shutdown frames are `WAIT_GROUP_SEMAPHORE`, `WAIT_GROUP`,
+`PROTOCOL_STOP`, `ZENON_STOP` and `NODE_STOP`. This locates the wait in
+`ProtocolManager.Stop`; it does not identify which joined worker remains.
+The original forced exit one and failed overall result remain. The other
+four originals exit zero with complete output and no forced termination.
+
+[Inspection 40225084926](https://github.com/edgepillar/syrius/actions/runs/40225084926)
+passes its controller-suite step and verifies archive SHA-256
+`28f46f167b6efd7d8d018172d1a0428b9265285b9f822ea2473b232028c4ce82`
+and manifest SHA-256
+`6bc3e62384acbe1dcc0e4f318931e6cfaf8bcf2e0ca7daf4b2cb6d1bf1611ba5`
+inside Actions. Raw stack text is not uploaded. Protocol-worker diagnosis
+and full corrected lab acceptance remain pending.
+
+### Hosted Windows desktop setup reconciles P04
+
+The retained qualification at application source
+`1d663dc58b9ce6f2abdbe66898e85e2ef850a8c0`, tree
+`9a8eec6320aa5cf1be0cad89f4bf9b4e8e979d18`, Windows
+[40142185606](https://github.com/edgepillar/syrius/actions/runs/40142185606),
+attempt 1, job 121016046890, already executes desktop enablement and doctor
+with exit zero, complete output and no forced termination. Their durations
+are 0.844 and 29.515 seconds. The Windows and Visual Studio doctor sections
+pass, which satisfies P04 in the requested hosted Windows desktop scope.
+This is not a claim that every unrelated platform doctor section passes.
+
+The original 39669-byte job log is pinned to SHA-256
+`6d5b128bf3ee657ba78b7c36e54b12e631e6c954dc282bd376ffe425c8fa40df`.
+Read-only reconciliation verifies the retained source/run/log record and
+successful transport closure, then confirms unchanged application, harness,
+assets, patched packages, dependency files and baseline controller/tests.
+No build, test, native process or artifact transport is repeated. Optional
+inventory timeout, missing Pillow and unavailable Docker daemon remain
+negative records; the personal machine and full wallet startup remain
+unqualified. The latest main ledger therefore has 66 of 80 rows done,
+or 82.5 percent, with fourteen main rows and all 94 visual matches open.
