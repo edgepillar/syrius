@@ -1897,7 +1897,7 @@ fresh hosted runners rather than on an owner's computer.
 
 The default-off `chain321_lab` input adds Linux Docker and native Windows jobs.
 Each checks out the same pinned go-zenon source and builds its node command with
-Go 1.23.12 and CGO disabled. The generated chain identifier remains 321. Linux
+Go 1.24.1 and CGO disabled. The generated chain identifier remains 321. Linux
 uses five owned containers on an internal network; Windows uses five original
 native process handles and distinct loopback peer ports. HTTP and WS remain at
 the exact existing loopback origins. This avoids a public RPC endpoint, a tunnel
@@ -1915,11 +1915,28 @@ Actual process shutdown is separate from the runner's later destruction; no
 qualified filesystem cleanup is claimed. No SDK or binary artifact is copied
 to the local qualification store for this source preparation.
 
-This source adds twenty offline isolation regressions and runs the complete
+The initial source `bc8c95fcda6ac5ebbc75b57f3e3280de55956c97` ran both jobs in
+[40174967274](https://github.com/edgepillar/syrius/actions/runs/40174967274),
+attempt 1. Both Python-suite steps pass: Linux has 231 successes without skips;
+Windows has 228 successes and three platform skips. Both original
+node builds exit one before assets, node startup or wallet work. Complete
+original logs have independently verified successful retention and cleanup;
+their original negative lab results are preserved. This is not lab execution
+success. The compiler's private output is not projected into the public report.
+
+The follow-up aligns Go 1.24.1 and `-buildvcs=false` with the pinned node source's
+own release workflow and checks the actual compiler version. The read-only
+module constraint remains. Three additional cases verify finite compiler failure
+codes and public-symbol projection without paths or raw diagnostics. This does
+not attribute the original failure to a single cause; fresh execution is needed.
+All three pure diagnostic cases pass locally in memory, without qualification
+scratch, native process launch or wallet execution.
+
+The current source has twenty-three offline isolation regressions and runs the complete
 Python controller suite on each hosted runner before starting a lab. Local
 syntax and whitespace checks are complete; the new suite has not executed
 locally because storage-policy admission refused before task creation. Existing
-evidence keeps its original scope. Hosted execution, original logs and manifest
+evidence keeps its original scope. Updated hosted execution, original logs and manifest
 verification are pending; authored workflow and source are not execution proof.
 
 The new lab jobs do not import a wallet or admit seed recipes. Full native

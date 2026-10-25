@@ -21,6 +21,25 @@ def node_config():
                  WSHost="0.0.0.0", HTTPPort=35997, WSPort=35998))
 
 
+class CompilerDiagnosticTests(unittest.TestCase):
+    def test_version_requirement_and_locked_modules_have_distinct_codes(self):
+        self.assertEqual(lab.compiler_diagnostics(b"dependency requires go >= 1.24.0"),
+                         [dict(code="GO_VERSION_REQUIRED")])
+        self.assertEqual(lab.compiler_diagnostics(b"go: updates to go.mod needed"),
+                         [dict(code="LOCKED_MODULE_CHANGED")])
+
+    def test_linker_reference_retains_only_the_public_symbol(self):
+        for symbol in ("runtime.stopTheWorld", "crypto/tls.cipherSuiteTLS13"):
+            value = lab.compiler_diagnostics(("/fixture/private/compiler/link: invalid reference to " + symbol + "\n").encode())
+            self.assertEqual(value, [dict(code="GO_LINKNAME_REFUSED", symbol=symbol)])
+            self.assertNotIn("/fixture/", json.dumps(value))
+
+    def test_unclassified_private_text_is_never_echoed(self):
+        value = lab.compiler_diagnostics(b"/fixture/private/value: an unrecognized diagnostic\n")
+        self.assertEqual(value, [dict(code="UNCLASSIFIED_BUILD_FAILURE")])
+        self.assertNotIn("private", json.dumps(value))
+
+
 class ConfigurationTests(unittest.TestCase):
     def test_native_bootstrap_and_seeder_remain_on_loopback(self):
         result = lab.configuration(node_config(), "pillar", Path("fixture"), "native")

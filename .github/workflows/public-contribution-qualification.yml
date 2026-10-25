@@ -272,7 +272,7 @@ jobs:
       - name: Set up the pinned node compiler
         uses: actions/setup-go@v6
         with:
-          go-version: '1.23.12'
+          go-version: '1.24.1'
           cache: false
 
       - name: Test hosted lab isolation and original-handle rules

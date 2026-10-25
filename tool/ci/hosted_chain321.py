@@ -36,6 +36,7 @@ MAX_WORK = 4 * GIB
 # Only fresh, non-secret hosted regression VMs use this floor. Local and
 # production storage retain their separate 10 GiB policy.
 FIXTURE_MIN_FREE = 2 * GIB
+GO_VERSION = "1.24.1"
 CODES = frozenset((
     "ENVIRONMENT_REFUSED", "SOURCE_REFUSED", "STORAGE_REFUSED",
     "COMMAND_FAILED", "COMMAND_TIMEOUT", "OUTPUT_REFUSED", "STOP_UNKNOWN",
@@ -58,6 +59,27 @@ def need(value, code):
 
 def digest(data):
     return hashlib.sha256(data).hexdigest()
+
+
+def compiler_diagnostics(raw):
+    """Project known compiler failures to codes, never paths or raw output."""
+    text = raw.decode("utf-8", "replace")
+    patterns = (
+        ("GO_VERSION_REQUIRED", r"requires go >=|requires Go [0-9]"),
+        ("BUILD_TAGS_REQUIRED", r"build constraints exclude all Go files"),
+        ("LOCKED_MODULE_CHANGED", r"updates to go\.mod needed"),
+        ("VCS_STATUS_REFUSED", r"error obtaining VCS status|detected dubious ownership"),
+        ("DEPENDENCY_TLS_REFUSED", r"x509:|TLS handshake timeout"),
+        ("DEPENDENCY_NETWORK_FAILED", r"dial tcp|network is unreachable|no such host"),
+        ("DEPENDENCY_MISSING", r"no required module provides package|cannot find module"),
+        ("C_TOOLCHAIN_FAILED", r"C compiler .* not found|gcc: error:|exec: .gcc."),
+    )
+    found = [dict(code=code) for code, pattern in patterns if re.search(pattern, text)]
+    for symbol in re.findall(r"invalid reference to ([A-Za-z_][A-Za-z0-9_./]{0,95})(?:\s|$)", text)[:4]:
+        found.append(dict(code="GO_LINKNAME_REFUSED", symbol=symbol))
+    for symbol in re.findall(r"undefined: ([A-Za-z_][A-Za-z0-9_.]{0,95})(?:\s|$)", text)[:4]:
+        found.append(dict(code="COMPILER_UNDEFINED_SYMBOL", symbol=symbol))
+    return found[:12] or [dict(code="UNCLASSIFIED_BUILD_FAILURE")]
 
 
 def regular(path, cap=MIB):
@@ -206,6 +228,9 @@ class Commands:
                 original.process.wait(timeout=10)
             if original.receipt is None:
                 original.finish(success=False)
+            if argv[:2] == ["go", "build"]:
+                original.receipt["compiler_diagnostics"] = compiler_diagnostics(
+                    bytes(original.drains[1].data))
             raise
 
     def git(self, path, *args):
@@ -482,8 +507,12 @@ def run(backend):
         report["application_tree"] = commands.git(repo, "rev-parse", "HEAD^{tree}")
         report["node_tree"] = commands.git(source, "rev-parse", "HEAD^{tree}")
         report["checks"]["source"] = True
+        version = commands.run(["go", "version"], cwd=source).decode("ascii").strip()
+        need(version == "go version go" + GO_VERSION + (" windows/amd64" if backend == "native" else " linux/amd64"),
+             "SOURCE_REFUSED")
+        report["compiler"] = version
         binary = root / ("znnd.exe" if backend == "native" else "znnd")
-        commands.run(["go", "build", "-trimpath", "-mod=readonly", "-o", str(binary), "./cmd/znnd"],
+        commands.run(["go", "build", "-trimpath", "-buildvcs=false", "-mod=readonly", "-o", str(binary), "./cmd/znnd"],
                      cwd=source, timeout=1200)
         report["binary_sha256"] = digest(regular(binary, 128 * MIB))
         report["checks"]["build"] = True

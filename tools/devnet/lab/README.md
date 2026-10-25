@@ -89,11 +89,16 @@ The manual `Public Contribution Qualification` workflow has a default-off
   data directory. Docker Desktop and a personal Windows computer are unnecessary
   for this native backend.
 
-Both use go-zenon `590f43ca7a24dccd8e883bc8903a0cb02e54528a`, Go 1.23.12,
+Both use go-zenon `590f43ca7a24dccd8e883bc8903a0cb02e54528a`, Go 1.24.1,
 the repository's chain-321 genesis generator and the original public devnet
 keys. Native configuration changes only deployment paths, listen addresses
 and peer ports. The Docker image contains the source-built static node command;
 its image ID is recorded. No node binary, source archive or SDK is uploaded.
+The compiler version and `-buildvcs=false` follow the
+[pinned node release workflow](https://github.com/zenon-network/go-zenon/blob/590f43ca7a24dccd8e883bc8903a0cb02e54528a/.github/workflows/znn_builder.yml);
+source provenance is checked independently. Module restoration
+remains read-only. Compiler failures expose allowlisted codes and public symbols,
+with no raw command output or private paths.
 
 The Python suite runs before either lab starts. The controller requires a clean
 source, exact source and binary hashes, fresh private directories, free ports,
