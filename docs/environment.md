@@ -2102,3 +2102,33 @@ and crypto checks; the node retains its own producer derivation check.
 The new compatibility case and twelve selected fixture/configuration cases
 pass locally without native execution. Failed runs remain failed. Hosted
 startup, advancing production and positive shutdown still require execution.
+
+### Native status and bounded observation follow-up
+
+Run [40187539825](https://github.com/edgepillar/syrius/actions/runs/40187539825)
+at `6dbe9a94994e61b2aa78962fa42ed5d8ec3602eb` passes both controller-suite
+steps. The complete Windows manifest passes source, build, assets, preflight,
+start and stop gates. Every original node exits zero with complete output and
+no forced termination. WS admission still reports `WIRE_REFUSED`; production
+is unqualified.
+
+[Inspection 40188077234](https://github.com/edgepillar/syrius/actions/runs/40188077234)
+verifies the original archives. Its Windows annotation is complete. The Docker
+annotation is truncated at 4096 characters and the initial local JSON read fails.
+The original API output and truncated text are preserved. Its complete prefix
+contains positive start/stop gates and negative production, but is not treated
+as the full report. No original failure is changed into success.
+
+Python documents that [native Windows status and POSIX errno can differ](https://docs.python.org/3.13/library/exceptions.html#OSError.winerror).
+The socket guard now prefers exact native status 10022 and only uses numeric
+errno 10022 when native status is absent. A conflicting native status refuses.
+The translated-status case first reproduces a refusal under the old guard;
+all 43 injected transport-policy cases now pass locally. Actual Windows wire
+admission remains separate.
+
+The inspector validates every retained Docker state, then emits the latest
+state per role, phase counts and the first unhealthy event. It enforces a
+3800-byte annotation bound, so oversized output refuses before emitting partial
+JSON. All eleven inspector cases pass locally, including a 186-event repeated
+health history. A further read-only inspection can consume the same original
+archives without recompiling or starting a node.

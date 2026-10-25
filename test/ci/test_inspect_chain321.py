@@ -117,6 +117,24 @@ class InspectionTests(unittest.TestCase):
             with self.assertRaises(inspect.Refused):
                 inspect.project(report, "native", "a" * 40, 123)
 
+    def test_repeated_health_events_fit_one_notice_and_keep_original_failure(self):
+        report = manifest()
+        report["backend"] = "docker"
+        report["compiler"] = "go version go1.24.1 linux/amd64"
+        states = [dict(phase="health", role=role, running=True, exit_code=0, oom_killed=False)
+                  for _ in range(36) for role in inspect.ROLES]
+        failed = dict(phase="health", role="pillar", running=False, exit_code=1, oom_killed=False)
+        states.insert(5, failed)
+        states.extend(dict(phase="after_stop", role=role, running=False, exit_code=0, oom_killed=False)
+                      for role in inspect.ROLES)
+        report["docker_states"] = states
+        result = inspect.project(report, "docker", "a" * 40, 123)
+        self.assertEqual(len(result["docker_states"]), 5)
+        self.assertEqual(result["docker_state_counts"], dict(health=181, after_stop=5))
+        self.assertEqual(result["first_unhealthy_docker_state"], failed)
+        result.update(archive_sha256="a" * 64, manifest_sha256="b" * 64)
+        self.assertLess(len(json.dumps(result, separators=(",", ":")).encode()), 3800)
+
 
 if __name__ == "__main__":
     unittest.main()

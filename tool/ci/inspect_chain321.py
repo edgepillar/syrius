@@ -164,11 +164,17 @@ def project(report, backend, head, run_id):
          and all(code in NODE_DIAGNOSTICS for code in node_codes))
     states = report.get("docker_states", [])
     need(type(states) is list and len(states) <= 512)
+    latest_states, state_counts, first_unhealthy = {}, {}, None
     for state in states:
         need(type(state) is dict and set(state) == {"phase", "role", "running", "exit_code", "oom_killed"}
              and state["phase"] in ("health", "before_stop", "after_stop") and state["role"] in ROLES
              and type(state["running"]) is bool and type(state["oom_killed"]) is bool
              and type(state["exit_code"]) is int and -(2**63) <= state["exit_code"] < 2**63)
+        latest_states[state["role"]] = state
+        state_counts[state["phase"]] = state_counts.get(state["phase"], 0) + 1
+        if first_unhealthy is None and (state["exit_code"] != 0 or state["oom_killed"]
+                or (state["phase"] == "health" and not state["running"])):
+            first_unhealthy = state
     exits = report.get("node_exits", [])
     need(type(exits) is list and len(exits) <= 5)
     projected_exits = []
@@ -202,7 +208,9 @@ def project(report, backend, head, run_id):
         source_head=head, source_run_id=run_id, source_attempt=1,
         artifact_reported_success=report["success"], checks=checks, error_codes=errors,
         compiler=compiler, compiler_diagnostics=diagnostics,
-        runtime_phase=phase, node_diagnostics=node_codes, docker_states=states,
+        runtime_phase=phase, node_diagnostics=node_codes,
+        docker_states=[latest_states[role] for role in ROLES if role in latest_states],
+        docker_state_counts=state_counts, first_unhealthy_docker_state=first_unhealthy,
         node_exits=projected_exits, c_compiler=c_compiler, **counts,
         inspection_only=True, runtime_started=False, seed_admitted=False)
 
@@ -242,6 +250,9 @@ def main():
         summary = project(report, backend, head, run_id)
         summary.update(archive_sha256=sha(raw), manifest_sha256=manifest_sha)
         encoded = json.dumps(summary, sort_keys=True, separators=(",", ":"))
+        # Actions annotations truncate long messages. Refuse rather than
+        # emit a partial JSON result that a reader could mistake for complete.
+        need(len(encoded.encode("ascii")) <= 3800)
         escaped = encoded.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
         print("::notice title=Retained chain-321 observation::" + escaped, flush=True)
     PHASE = "source_metadata_after"

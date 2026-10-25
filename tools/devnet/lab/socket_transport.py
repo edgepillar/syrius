@@ -303,7 +303,8 @@ class _SocketWire(_SocketIO):
             # Winsock reports WSAEINVAL before bind. Only that exact status
             # may proceed to the one explicit bind below; another existing
             # binding still makes bind fail and can never be adopted.
-            _require(error.errno == 10022)
+            native = getattr(error, "winerror", None)
+            _require(native == 10022 or (native is None and error.errno == 10022))
             self._remaining(end)
         else:
             _require(type(initial) is tuple and initial == ("0.0.0.0", 0)

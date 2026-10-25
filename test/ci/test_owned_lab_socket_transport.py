@@ -401,6 +401,32 @@ class SocketTransportPolicyTests(unittest.TestCase):
                 self.assertEqual(raw.connect_calls, 0)
                 self.assertEqual(raw.close_calls, 1)
 
+    def test_translated_winsock_name_error_uses_the_native_status(self):
+        raw = FakeSocket()
+        def unbound(original):
+            if original.local == ("0.0.0.0", 0):
+                error = OSError(errno.EINVAL, PRIVATE)
+                error.winerror = 10022
+                raise error
+        raw.hooks["getsockname"] = unbound
+        clock, factory, waiter, http, ws = self.fixture(raw)
+        wire = http.open(policy.HTTP_ORIGIN, clock() + 2)
+        self.assertEqual(raw.connect_calls, 1)
+        wire.close(clock() + 1)
+        self.assertEqual(raw.close_calls, 1)
+
+    def test_conflicting_native_status_cannot_use_the_errno_exception(self):
+        raw = FakeSocket()
+        def denied(*args):
+            error = OSError(10022, PRIVATE)
+            error.winerror = 5
+            raise error
+        raw.hooks["getsockname"] = denied
+        clock, factory, waiter, http, ws = self.fixture(raw)
+        self.refused("WIRE_REFUSED", http.open, policy.HTTP_ORIGIN, clock() + 2)
+        self.assertEqual(raw.connect_calls, 0)
+        self.assertEqual(raw.close_calls, 1)
+
     def test_exact_local_and_peer_endpoint_validation(self):
         cases = (("bind_local", ("0.0.0.0", 55050)),
                  ("bind_local", ("127.0.0.2", 55050)),
