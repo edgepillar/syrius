@@ -24,6 +24,10 @@ on:
         description: Capture genuine Welcome and empty Import on isolated hosted Windows
         type: boolean
         default: false
+      windows_debug_loop:
+        description: Exercise an owned ordinary Windows debug process without a wallet
+        type: boolean
+        default: false
       chain321_lab:
         description: Qualify isolated chain-321 production on Linux Docker and native Windows
         type: boolean
@@ -261,6 +265,63 @@ jobs:
             .harness/ci-entry-capture/import-dark.png
             .harness/ci-entry-capture/import-light.png
             .harness/ci-entry-capture/manifest.json
+
+  windows-debug-loop:
+    if: inputs.windows_debug_loop
+    name: Hosted Windows debug loop
+    runs-on: windows-latest
+    timeout-minutes: 35
+    env:
+      GIT_CONFIG_COUNT: "1"
+      GIT_CONFIG_KEY_0: core.autocrlf
+      GIT_CONFIG_VALUE_0: "false"
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout the dispatched source
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Restore locked dependencies
+        run: |
+          flutter pub get --enforce-lockfile
+          git diff --exit-code -- pubspec.lock analysis_options.yaml
+
+      - name: Generate source metadata
+        run: dart run tool/generate_git_metadata.dart
+
+      - name: Enable Windows desktop
+        run: flutter config --enable-windows-desktop
+
+      - name: Test finite debug protocol and controller boundaries
+        run: python -B -m unittest test.ci.test_flutter_debug_protocol test.ci.test_windows_debug_loop
+
+      - name: Analyze the debug service client and harness entry
+        timeout-minutes: 5
+        run: python -B tool/ci/windows_debug_loop.py --analyze
+
+      - name: Observe breakpoint, reload, restart and original process exit
+        timeout-minutes: 25
+        run: python -B tool/ci/windows_debug_loop.py
+
+      - name: Retain only the finite debug manifest
+        if: always() && hashFiles('.harness/ci-windows-debug/manifest.json') != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-debug-loop-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          compression-level: 0
+          include-hidden-files: true
+          if-no-files-found: error
+          path: .harness/ci-windows-debug/manifest.json
 
   devnet-tests:
     if: inputs.devnet_tests

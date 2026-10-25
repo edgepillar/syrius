@@ -18,6 +18,20 @@ import 'presentation_mode.dart';
 
 const String _protocolKey = r'HKCU\Software\Classes\syrius';
 
+int _debugLoopVisits = 0;
+
+// The debug controller invokes only this marker. Its state distinguishes a
+// reload from a restart without creating a wallet or changing application data.
+@pragma('vm:entry-point')
+int harnessDebugLoopMarker() {
+  if (Platform.environment['SYRIUS_WINDOWS_DEBUG_PROFILE'] == null ||
+      Platform.environment['GITHUB_ACTIONS'] != 'true') {
+    throw StateError('debug marker requires the isolated CI profile');
+  }
+  _debugLoopVisits += 1; // SYRIUS_DEBUG_BREAKPOINT
+  return _debugLoopVisits;
+}
+
 Future<void> main() async {
   final Map<String, String> env = Platform.environment;
   final String? home = env['SYRIUS_HARNESS_HOME'];

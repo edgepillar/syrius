@@ -2799,3 +2799,51 @@ wallet startup, the debug loop and old-build frame comparison remain
 unqualified in their respective gates. Optional inventory failures remain
 preserved. The latest main ledger is 68 of 80 rows, or 85 percent; twelve
 main rows and all 94 accepted visual matches remain open.
+
+### Optional hosted Windows debug loop: candidate preparation
+
+The manual Public Contribution Qualification workflow adds
+`windows_debug_loop`, false by default. Select it with the desktop builds,
+presentation, devnet, baseline, entry capture and chain-321 inputs false.
+This lane restores the existing lockfile, generates source metadata,
+enables Windows desktop, tests the finite controller and analyzes its typed
+Dart client before launching an ordinary harness entry. It adds no package
+dependency: `vm_service` 15.2.0 is already pinned in the existing lockfile.
+
+The controller creates a new profile under `.harness/`, redirects HOME,
+USERPROFILE, APPDATA, LOCALAPPDATA, TEMP, TMP and XDG storage, removes inherited
+credentials/proxies and refuses an existing Syrius process. A new Python child
+waits for START before launching the SDK. The controller assigns that original
+child to a private Windows job before releasing it. The SDK runs the exact
+equivalent of:
+
+```sh
+flutter run --machine --no-pub -d windows --target harness/app/main.dart \
+  --dart-define-from-file=.dart_tool/git_metadata.json
+```
+
+The private harness ping, OS job membership, original executable path and
+typed `getVM` PID must identify the same application. Only its ordinary root
+isolate is admitted. The harness adds a CI-gated counter marker outside shipped
+`lib/` sources. The client sets a breakpoint at that marker, observes the
+matching pause, resumes and checks the result. Serialized Flutter machine
+commands then request hot reload and hot restart. The client requires preserved
+counter/isolate state after reload and a new isolate with reset counter state
+after restart. No source edit, wallet import, seed or chain operation is part
+of this recipe.
+
+One uncertain command holds the session; no command retry or replacement app
+is admitted. Explicit app-stop, actual original app/tool exits and complete
+bounded output are recorded separately. Closing a nonempty job is forced
+cleanup and fails qualification. Only the finite manifest is uploaded; no
+profile, token, service authentication URL, process ID, raw output or local
+path is an artifact.
+
+All 26 protocol/controller cases pass locally using in-memory streams and fake
+processes. Native job ownership, Dart analysis, breakpoint/reload/restart and
+actual process exits have not yet executed for this candidate. A DevTools URL
+establishes availability only; frontend attachment is still pending. The
+controller therefore leaves `debug_loop_qualified` false and P07 open, even
+if its narrower runtime checks later pass. Earlier application and capture
+results retain their original source bindings; the new harness marker requires
+its own hosted evidence.
