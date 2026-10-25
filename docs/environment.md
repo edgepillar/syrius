@@ -2727,3 +2727,38 @@ selection. Runtime jobs keep their existing checkout. Source/run binding,
 original archive verification and finite projection remain unchanged.
 Workflow parsing confirms eleven inputs and unchanged defaults. Hosted
 sparse execution and actual byte or disk savings remain unmeasured.
+
+### Corrected Docker batch shutdown completes all original exits
+
+At `15f324953f2b79d4b1073538c4c80e43a42ea0c1`, tree
+`3caffb5d47c4dbc27ef39d888a9f31ae0ede47e6`, Docker
+[40229022991](https://github.com/edgepillar/syrius/actions/runs/40229022991),
+attempt 1, job 121276555950, passes every job step and lab gate. Static Cgo
+build, actual producer red/green regression and all seven upstream tests
+pass with compiled node `a9262cce18190bfc01e85ac903558500379d014f`.
+Eleven samples verify chain-321 height two to three, matching HTTP/WS hashes,
+unchanged inputs and last timestamp 1792959070. The original batch-stop
+command exits zero with complete output and no forced termination, using
+roles RPC, observer, pillar3, pillar2 and pillar. All five containers exit
+zero without OOM. Both relays close with all fifteen accepted sessions
+completed, zero active sessions and no worker alive.
+
+[Inspection 40229841780](https://github.com/edgepillar/syrius/actions/runs/40229841780)
+verifies archive SHA-256
+`9b44bb376bda31cf48b6371ab0b151088540b03fa05a8dd26c1386e3852c484d`
+and manifest SHA-256
+`753b0f995f69ce7162f6a9c6a51083f520ac8eb7b360042012b4a7408d9a7fec`
+inside Actions. Its sparse checkout, controller-suite step and original
+archive inspection all pass. This qualifies the limited source selection;
+actual download bytes and disk savings are not measured. No local archive
+transport, cache cleanup or successful storage-task closure is implied.
+
+Together with the separately pinned Windows result at `64b269f8cfdf`, this
+provides positive corrected-node lab attempts on both backends. Windows
+uses the explicit per-role profiler configuration. It does not establish
+that the earlier intermittent Windows protocol wait or reconnect assertion
+is resolved. The original default node, unmodified upstream node and prior
+failed attempts retain their own scopes. Full native wallet startup and
+reversible owned chain/profile checkpoints are next. No wallet or seed
+recipe is admitted by these node-lab records; main progress remains 66 of
+80, with ninety missing actual captures and zero accepted visual matches.
