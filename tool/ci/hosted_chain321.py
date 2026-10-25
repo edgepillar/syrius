@@ -725,6 +725,9 @@ class Docker:
         self.states, self.diagnostics = [], []
         self.relay = None
         self.direct_rpc_ready = False
+        self.stop_attempted = False
+        self.shutdown = dict(mode="single_verified_stop_command", roles=[],
+                             exit_code=None, output_complete=None, forced=None)
 
     def record_state(self, item, phase):
         state = item.get("State", {})
@@ -817,12 +820,15 @@ class Docker:
                  "RESOURCE_CHANGED")
 
     def stop(self):
+        need(not self.stop_attempted, "STOP_UNKNOWN")
+        self.stop_attempted = True
         failed = False
         if self.relay is not None:
             try:
                 self.relay.stop()
             except Exception:
                 failed = True
+        verified = []
         for identifier in reversed(self.created):
             try:
                 item = self.inspect("container", identifier)
@@ -838,15 +844,39 @@ class Docker:
                     self.diagnostics.extend(node_diagnostics(output + b"\n" + stderr))
                 except Exception:
                     pass
-                self.call("stop", "--time", "20", identifier, timeout=30)
+                verified.append(identifier)
+            except Exception:
+                failed = True
+        if verified:
+            self.shutdown["roles"] = [ROLES[self.created.index(identifier)] for identifier in verified]
+            count = len(self.commands.originals)
+            try:
+                # The first sequential RPC stop timed out before its peers
+                # received a request. Submit the verified set in one command.
+                self.call("stop", "--time", "20", *verified, timeout=30)
+            except Exception:
+                failed = True
+            finally:
+                if len(self.commands.originals) == count + 1:
+                    receipt = self.commands.originals[-1].receipt
+                    if type(receipt) is dict:
+                        self.shutdown.update({key: receipt.get(key) for key in
+                                              ("exit_code", "output_complete", "forced")})
+        for identifier in verified:
+            try:
                 item = self.inspect("container", identifier)
+                need(item["Id"] == identifier and item["Image"] == self.image
+                     and item["Config"]["Labels"].get("org.zenon.ci321.owner") == self.owner,
+                     "RESOURCE_CHANGED")
                 self.record_state(item, "after_stop")
                 state = item["State"]
                 need(state["Running"] is False and state["ExitCode"] == 0
                      and state.get("OOMKilled") is False, "STOP_UNKNOWN")
             except Exception:
                 failed = True
-        need(not failed and len(self.started) == len(self.created) == 5, "STOP_UNKNOWN")
+        need(not failed and len(self.started) == len(self.created) == len(verified) == 5
+             and self.shutdown["exit_code"] == 0 and self.shutdown["output_complete"] is True
+             and self.shutdown["forced"] is False, "STOP_UNKNOWN")
 
 
 def observe(runtime, root, report=None):
@@ -1063,6 +1093,7 @@ def run(backend):
             report["created_count"] = len(runtime.created)
             report["started_count"] = len(runtime.started)
             report["docker_states"] = runtime.states
+            report["docker_shutdown"] = runtime.shutdown
             report["node_diagnostics"] = sorted(set(runtime.diagnostics))
             report["direct_rpc_ready"] = runtime.direct_rpc_ready
             report["loopback_relay"] = None if runtime.relay is None else runtime.relay.summary()

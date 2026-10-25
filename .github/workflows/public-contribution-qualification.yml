@@ -333,6 +333,10 @@ jobs:
         uses: actions/checkout@v6
         with:
           persist-credentials: false
+          sparse-checkout: |
+            tool/ci
+            test/ci
+            tools/devnet/lab
 
       - name: Test archive and credential boundaries in memory
         run: python -B -m unittest discover -s test/ci -p test_inspect_chain321.py -v

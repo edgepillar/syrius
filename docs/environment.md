@@ -2662,3 +2662,68 @@ controller cases pass. The 35 inspector cases pass after the final compact
 projection change. A retained native-notice size check includes two source
 sites without starting a process. Actual worker locations remain pending;
 no Go source, assertion, timeout, wallet or seed admission changes.
+
+### Corrected Windows lab completes all original exits
+
+At `64b269f8cfdfab920762cf1770ddac8ef5a12532`, tree
+`46b67eff147dbd3a262e5e88c5bef81786b2f09a`, native
+[40226727980](https://github.com/edgepillar/syrius/actions/runs/40226727980),
+attempt 1, job 121269562394, passes every job step and lab gate. The actual
+producer red/green regression, corrected CLI build and all seven upstream
+Go tests pass without skips. Compiled node tree remains
+`a9262cce18190bfc01e85ac903558500379d014f`. Chain-321 advances one to two
+across eleven samples with matching actual HTTP/WS hashes, unchanged inputs
+and last timestamp 1792957080. All five originals exit zero with complete
+output and no forced termination.
+
+[Inspection 40227385030](https://github.com/edgepillar/syrius/actions/runs/40227385030)
+verifies archive SHA-256
+`005f819bbeac410ff8672318a4dfa1ec1ebbc419f615e3d152187062735020d2`
+and manifest SHA-256
+`a29398bf465a07a451a1b957d16ee1c029a17a6671b8c84d6160c4a8f35e5c4d`
+inside Actions. This positive result uses the explicit per-role profiler
+configuration. No timeout occurs and zero stack probes are captured, so the
+new protocol-worker projection is not exercised. Earlier intermittent
+reconnect and protocol-stop failures remain unresolved. This is a bounded
+node-lab result, with no wallet, checkpoint, seed or visual acceptance.
+
+### Corrected Linux production passes before sequential RPC stop fails
+
+At the same source, Docker
+[40227495431](https://github.com/edgepillar/syrius/actions/runs/40227495431),
+attempt 1, job 121271889337, passes its controller-suite step, static Cgo
+build with GCC 13.3.0, actual producer red/green regression, all seven Go
+tests and every functional lab gate. Five samples verify height one to two,
+matching HTTP/WS hashes, unchanged inputs and last timestamp 1792957600.
+Both original loopback relays close with all nine sessions completed, zero
+active sessions and no worker alive. Four containers exit zero; RPC exits
+137 without OOM during the first sequential stop. Overall qualification
+remains failed.
+
+[Inspection 40227913257](https://github.com/edgepillar/syrius/actions/runs/40227913257)
+verifies archive SHA-256
+`4c60fd71ee32deac4e0a0d785553810907cd33626361517cc7ebb6e9fbc9a614`
+and manifest SHA-256
+`79790d0aad783e7973c4a2dc651dd8ff8ccb9d0525c9bb821589773b71e66b19`
+inside Actions. The controller had not requested the other four stops
+while waiting for RPC. This does not prove the cause of the node's wait.
+
+The next controller first verifies the entire owned set, then supplies all
+verified original identities to one [Docker stop invocation](https://docs.docker.com/reference/cli/docker/container/stop/).
+The twenty-second daemon grace and thirty-second parent bound remain.
+It preserves the actual command exit/completeness/forced receipt, observes
+every original afterward, rechecks identities and refuses a second stop.
+Any original nonzero exit, OOM, changed identity or failed/incomplete/forced
+command keeps qualification failed. Seven new checks and all 126 selected
+memory-only controller cases pass. Actual corrected Docker closure remains
+pending; no node source, Go assertion or wait limit changes.
+
+### Limit the read-only inspector checkout
+
+The inspector materializes only `tool/ci`, `test/ci` and `tools/devnet/lab`
+through the existing checkout action's [sparse checkout](https://github.com/actions/checkout/tree/v6#fetch-only-the-root-files-and-github-and-src-folder).
+Credentials remain disabled and no explicit filter overrides the sparse
+selection. Runtime jobs keep their existing checkout. Source/run binding,
+original archive verification and finite projection remain unchanged.
+Workflow parsing confirms eleven inputs and unchanged defaults. Hosted
+sparse execution and actual byte or disk savings remain unmeasured.

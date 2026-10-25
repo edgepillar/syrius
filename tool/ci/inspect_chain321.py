@@ -190,6 +190,21 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA, *, expected_p
              and (go_failure["status"] != "COMPLETE" or
                   (go_failure["output_complete"] is True and go_failure["forced"] is False)))
     need(type(errors) is list and len(errors) <= 16 and all(code in CODES for code in errors))
+    docker_shutdown = report.get("docker_shutdown")
+    if docker_shutdown is not None:
+        need(backend == "docker" and type(docker_shutdown) is dict
+             and set(docker_shutdown) == {"mode", "roles", "exit_code", "output_complete", "forced"}
+             and docker_shutdown["mode"] == "single_verified_stop_command"
+             and type(docker_shutdown["roles"]) is list and len(docker_shutdown["roles"]) <= 5
+             and all(type(role) is str and role in ROLES for role in docker_shutdown["roles"])
+             and docker_shutdown["roles"] == [role for role in reversed(ROLES) if role in docker_shutdown["roles"]]
+             and (docker_shutdown["exit_code"] is None or (type(docker_shutdown["exit_code"]) is int
+                  and -(2**63) <= docker_shutdown["exit_code"] < 2**63))
+             and all(docker_shutdown[key] is None or type(docker_shutdown[key]) is bool
+                     for key in ("output_complete", "forced")))
+        need(not (report["success"] or checks["stopped"]) or
+             (docker_shutdown["roles"] == list(reversed(ROLES)) and docker_shutdown["exit_code"] == 0
+              and docker_shutdown["output_complete"] is True and docker_shutdown["forced"] is False))
     need(type(commands) is list and len(commands) <= 1024)
     diagnostics = []
     for command in commands:
@@ -390,6 +405,8 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA, *, expected_p
                       producer_task_patch=patch_summary)
     if go_failure is not None:
         result["upstream_stop_failure"] = go_failure
+    if docker_shutdown is not None:
+        result["docker_shutdown"] = docker_shutdown
     if stack_scope is not None:
         result["native_stack_scope"] = stack_scope
     if stack_scope == "all_originals":

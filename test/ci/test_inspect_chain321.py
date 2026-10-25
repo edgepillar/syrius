@@ -30,6 +30,28 @@ def manifest():
 
 
 class InspectionTests(unittest.TestCase):
+    def test_docker_stop_receipt_preserves_original_command_failure(self):
+        report = manifest()
+        report.update(backend="docker", compiler="go version go1.24.1 linux/amd64",
+            docker_shutdown=dict(mode="single_verified_stop_command", roles=list(reversed(inspect.ROLES)),
+                exit_code=1, output_complete=True, forced=False))
+        value = inspect.project(report, "docker", "a" * 40, 123)
+        self.assertEqual(value["docker_shutdown"]["exit_code"], 1)
+        report["checks"]["stopped"] = True
+        with self.assertRaises(inspect.Refused):
+            inspect.project(report, "docker", "a" * 40, 123)
+
+    def test_docker_stop_receipt_rejects_unknown_roles_raw_fields_and_false_success(self):
+        for change in (dict(roles=["private"]), dict(raw="private"), dict(exit_code=True),
+                       dict(roles=["rpc", "rpc"]), dict(mode="private")):
+            report = manifest()
+            report.update(backend="docker", compiler="go version go1.24.1 linux/amd64",
+                docker_shutdown=dict(mode="single_verified_stop_command", roles=list(reversed(inspect.ROLES)),
+                    exit_code=0, output_complete=True, forced=False))
+            report["docker_shutdown"].update(change)
+            with self.subTest(change=change), self.assertRaises(inspect.Refused):
+                inspect.project(report, "docker", "a" * 40, 123)
+
     @staticmethod
     def worker_probe_report():
         report = manifest()

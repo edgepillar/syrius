@@ -200,6 +200,14 @@ refuses partial worker facts. Raw paths, arguments and goroutine identifiers
 remain private. These locations do not change any original exit or admit a
 wallet, seed, checkpoint or recovered process.
 
+Docker shutdown verifies the original container set before submitting all
+verified identities in one stop command. Daemon grace remains twenty seconds
+and the original parent command remains bounded at thirty seconds. Its actual
+exit, output-completeness and forced facts are retained. Every original is
+reinspected with its image and owner before exit-zero/no-OOM admission.
+Changed identities are excluded and keep the result failed. A failed first
+attempt cannot be replaced by another stop or later successful observation.
+
 Native retirement requests all five original peers in creation order before
 waiting for any member. The upstream peer server joins workers, so retiring
 one member while its peers remain live can keep it pending. Each handle

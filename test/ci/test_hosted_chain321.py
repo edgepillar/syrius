@@ -373,6 +373,79 @@ class ConfigurationTests(unittest.TestCase):
             lab.configuration(source, "rpc", Path("fixture"), "native")
 
 
+class DockerShutdownTests(unittest.TestCase):
+    def runtime(self, *, changed=None, exit_137=False, command_failed=False, receipt=None):
+        commands = mock.Mock(originals=[])
+        runtime = lab.Docker(commands, Path("fixture/znnd"), {}, "fixture")
+        runtime.image = "original-image"
+        runtime.created = [format(index + 1, "064x") for index in range(5)]
+        runtime.started = list(runtime.created)
+        events, stopped = [], False
+        def inspect(kind, identifier):
+            events.append(("inspect", identifier, stopped))
+            return dict(Id=identifier, Image="changed-image" if identifier == changed else runtime.image,
+                Config=dict(Labels={"org.zenon.ci321.owner": runtime.owner}),
+                State=dict(Running=not stopped, ExitCode=137 if exit_137 and identifier == runtime.created[-1] else 0,
+                           OOMKilled=False))
+        def call(*args, **kwargs):
+            nonlocal stopped
+            events.append((args[0], args, kwargs))
+            terminal = dict(exit_code=1 if command_failed else 0, output_complete=True, forced=False)
+            if receipt is not None and args[0] == "stop":
+                terminal.update(receipt)
+            commands.originals.append(mock.Mock(receipt=terminal,
+                drains=[mock.Mock(data=bytearray()), mock.Mock(data=bytearray())]))
+            if args[0] == "stop":
+                stopped = True
+                if command_failed:
+                    raise lab.Failure("COMMAND_FAILED")
+            return b""
+        runtime.inspect, runtime.call = inspect, call
+        return runtime, events
+
+    def test_every_original_is_verified_before_one_stop_command_with_unchanged_limits(self):
+        runtime, events = self.runtime()
+        runtime.stop()
+        stop = next(index for index, event in enumerate(events) if event[0] == "stop")
+        self.assertEqual([event[1] for event in events[:stop] if event[0] == "inspect"], list(reversed(runtime.created)))
+        self.assertEqual(events[stop], ("stop", ("stop", "--time", "20", *reversed(runtime.created)), dict(timeout=30)))
+        self.assertEqual(sum(event[0] == "stop" for event in events), 1)
+        self.assertEqual(len([event for event in events[stop + 1:] if event[0] == "inspect"]), 5)
+        self.assertEqual(runtime.shutdown, dict(mode="single_verified_stop_command", roles=list(reversed(lab.ROLES)),
+            exit_code=0, output_complete=True, forced=False))
+
+    def test_original_exit_137_stays_failed_and_a_second_stop_is_refused(self):
+        runtime, events = self.runtime(exit_137=True)
+        for _ in range(2):
+            with self.assertRaises(lab.Failure):
+                runtime.stop()
+        self.assertEqual(sum(event[0] == "stop" for event in events), 1)
+        self.assertIn(137, [item["exit_code"] for item in runtime.states if item["phase"] == "after_stop"])
+
+    def test_changed_resource_is_excluded_from_the_batch_and_keeps_failure(self):
+        changed = format(5, "064x")
+        runtime, events = self.runtime(changed=changed)
+        with self.assertRaises(lab.Failure):
+            runtime.stop()
+        stop = next(event for event in events if event[0] == "stop")
+        self.assertNotIn(changed, stop[1])
+        self.assertEqual(len(runtime.shutdown["roles"]), 4)
+
+    def test_failed_stop_command_keeps_its_receipt_and_still_observes_each_original(self):
+        runtime, events = self.runtime(command_failed=True)
+        with self.assertRaises(lab.Failure):
+            runtime.stop()
+        self.assertEqual(runtime.shutdown["exit_code"], 1)
+        self.assertEqual(sum(item["phase"] == "after_stop" for item in runtime.states), 5)
+        self.assertEqual(sum(event[0] == "stop" for event in events), 1)
+
+    def test_incomplete_or_forced_command_cannot_qualify_five_zero_exits(self):
+        for receipt in (dict(output_complete=False), dict(forced=True)):
+            runtime, _ = self.runtime(receipt=receipt)
+            with self.subTest(receipt=receipt), self.assertRaises(lab.Failure):
+                runtime.stop()
+
+
 class OriginalHandleTests(unittest.TestCase):
     def test_panic_observation_cannot_turn_original_exit_two_into_success(self):
         runtime = lab.Native(mock.Mock(), Path("fixture"), {})
