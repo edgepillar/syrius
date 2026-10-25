@@ -30,6 +30,39 @@ def manifest():
 
 
 class InspectionTests(unittest.TestCase):
+    @staticmethod
+    def worker_probe_report():
+        report = manifest()
+        report.update(native_stack_diagnostic=True, native_stack_scope="all_originals",
+            node_exits=[dict(exit_code=1, output_complete=True, forced=True, stop_code="WAIT_TIMEOUT",
+                stack_role="pillar", stack_probe=dict(status="CAPTURED", bytes=100, sha256="b" * 64,
+                    frames=["WAIT_GROUP", "PROTOCOL_STOP", "NODE_STOP"],
+                    protocol_workers=dict(status="CAPTURED", count=4, items=[dict(kind="SYNCER", state="CHAN_RECEIVE",
+                        package="protocol/downloader", source_path_sha256="c" * 64, line=line) for line in range(1, 5)])))])
+        return report
+
+    def test_all_worker_sites_are_validated_but_only_two_fit_the_finite_notice(self):
+        report = self.worker_probe_report()
+        value = inspect.project(report, "native", "a" * 40, 123)
+        workers = value["native_stack_probe"]["protocol_workers"]
+        self.assertEqual(workers["count"], 4)
+        self.assertEqual(len(workers["items"]), 2)
+        self.assertEqual(len(report["node_exits"][0]["stack_probe"]["protocol_workers"]["items"]), 4)
+        self.assertTrue(value["node_exits"][0]["forced"])
+        self.assertLessEqual(len(json.dumps(value, separators=(",", ":")).encode()), 3800)
+
+    def test_worker_projection_rejects_raw_fields_unknown_codes_and_boolean_facts(self):
+        for change in (dict(raw="private"), dict(kind="private"), dict(state="private"),
+                       dict(package="private"), dict(source_path_sha256="private"), dict(line=True)):
+            report = self.worker_probe_report()
+            report["node_exits"][0]["stack_probe"]["protocol_workers"]["items"][-1].update(change)
+            with self.subTest(change=change), self.assertRaises(inspect.Refused):
+                inspect.project(report, "native", "a" * 40, 123)
+        report = self.worker_probe_report()
+        report["node_exits"][0]["stack_probe"]["protocol_workers"]["count"] = True
+        with self.assertRaises(inspect.Refused):
+            inspect.project(report, "native", "a" * 40, 123)
+
     def test_five_failed_probes_keep_every_original_exit_and_one_bounded_detail(self):
         report = self.corrected_manifest()
         report.update(native_stack_diagnostic=True, native_stack_scope="all_originals",

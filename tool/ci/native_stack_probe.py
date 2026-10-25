@@ -30,6 +30,53 @@ FUNCTIONS = {
 }
 CODES = frozenset(FUNCTIONS.values())
 OWNER = b"github.com/zenon-network/go-zenon/node.(*Node).Stop("
+WORKER_KINDS = frozenset(("SYNCER", "MESSAGE_HANDLER"))
+WORKER_PACKAGES = frozenset(("protocol", "protocol/downloader", "protocol/fetcher"))
+WORKER_STATES = frozenset(("SELECT", "CHAN_RECEIVE", "CHAN_SEND", "SEMAPHORE", "IO_WAIT", "RUNNING", "OTHER"))
+
+
+def protocol_workers(raw):
+    """Locate the two public worker paths counted by the protocol stop wait."""
+    refused = dict(status="REFUSED", count=None, items=[])
+    if type(raw) is not bytes or not 0 < len(raw) <= MAX_BYTES:
+        return refused
+    blocks = raw.split(b"\n\n")
+    if len(blocks) > 4096:
+        return refused
+    count, items = 0, []
+    markers = ((b"github.com/zenon-network/go-zenon/protocol.(*ProtocolManager).Start.func1(", "SYNCER"),
+               (b"github.com/zenon-network/go-zenon/protocol.(*ProtocolManager).handleMsg(", "MESSAGE_HANDLER"))
+    states = {b"select": "SELECT", b"chan receive": "CHAN_RECEIVE", b"chan send": "CHAN_SEND",
+              b"semacquire": "SEMAPHORE", b"IO wait": "IO_WAIT", b"running": "RUNNING", b"runnable": "RUNNING"}
+    for block in blocks:
+        lines = block.splitlines()
+        kind = next((kind for marker, kind in markers if any(line.startswith(marker) for line in lines)), None)
+        if kind is None:
+            continue
+        header = re.fullmatch(rb"goroutine [0-9]+ \[([^\r\n\]]{1,128})\]:", lines[0])
+        if header is None:
+            return refused
+        site = None
+        for index, line in enumerate(lines[:-1]):
+            function = re.match(rb"github.com/zenon-network/go-zenon/(protocol(?:/(?:downloader|fetcher))?)\.", line)
+            if function is None:
+                continue
+            package = function[1]
+            location = re.search(rb"(?:^|/)(" + re.escape(package)
+                + rb"/[A-Za-z0-9_]+\.go):([1-9][0-9]{0,5})(?:\s|$)", lines[index + 1].replace(b"\\", b"/"))
+            if location is None:
+                return refused
+            site = dict(kind=kind, state=states.get(header[1].split(b",", 1)[0], "OTHER"),
+                package=package.decode("ascii"), source_path_sha256=hashlib.sha256(location[1]).hexdigest(),
+                line=int(location[2]))
+            break
+        if site is None:
+            return refused
+        count += 1
+        if site not in items:
+            items.append(site)
+    items.sort(key=lambda item: (item["kind"] != "SYNCER", item["state"] == "IO_WAIT"))
+    return dict(status="CAPTURED" if count else "EMPTY", count=count, items=items[:4])
 
 
 def project(raw):
@@ -57,6 +104,8 @@ def project(raw):
             if line.startswith(name.encode("ascii") + b"(") and code not in result["frames"]:
                 result["frames"].append(code)
     result["status"] = "CAPTURED" if "NODE_STOP" in result["frames"] else "REFUSED"
+    if result["status"] == "CAPTURED":
+        result["protocol_workers"] = protocol_workers(raw)
     return result
 
 

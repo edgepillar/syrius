@@ -190,6 +190,16 @@ RPC-only records retain their separate scope. No raw stack is uploaded, no
 external listener is opened and no diagnostic observation can turn a forced
 exit into success.
 
+After an original shutdown stack is captured, a bounded worker projection
+can locate its protocol syncer and message-handler paths. It keeps only
+fixed kind/wait-state codes, a public protocol package, relative-source-path
+digest and line number. Actual matching-worker count is retained with at
+most four unique sites; inspection validates all sites and projects two,
+prioritizing the syncer. Unknown waits become OTHER and malformed data
+refuses partial worker facts. Raw paths, arguments and goroutine identifiers
+remain private. These locations do not change any original exit or admit a
+wallet, seed, checkpoint or recovered process.
+
 Native retirement requests all five original peers in creation order before
 waiting for any member. The upstream peer server joins workers, so retiring
 one member while its peers remain live can keep it pending. Each handle

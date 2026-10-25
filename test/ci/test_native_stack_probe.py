@@ -2,6 +2,7 @@
 
 from pathlib import Path
 import subprocess
+import hashlib
 import unittest
 from unittest import mock
 
@@ -17,6 +18,55 @@ def stack():
 
 
 class StackProbeTests(unittest.TestCase):
+    @staticmethod
+    def syncer_worker(path=b"/private/root/protocol/downloader/downloader.go", line=321, header=b"chan receive, 1 minutes"):
+        return (b"goroutine 20 [" + header + b"]:\n"
+            b"github.com/zenon-network/go-zenon/protocol/downloader.(*Downloader).cancel(0xprivate)\n"
+            + path + b":" + str(line).encode() + b" +0xprivate\n"
+            b"github.com/zenon-network/go-zenon/protocol.(*ProtocolManager).Start.func1()\n"
+            b"/private/root/protocol/handler.go:160 +0xprivate\n")
+
+    def test_syncer_site_contains_only_public_path_digest_and_finite_facts(self):
+        result = probe.project(stack() + b"\n" + self.syncer_worker())
+        workers = result["protocol_workers"]
+        self.assertEqual(workers["status"], "CAPTURED")
+        self.assertEqual(workers["count"], 1)
+        self.assertEqual(workers["items"], [dict(kind="SYNCER", state="CHAN_RECEIVE",
+            package="protocol/downloader", source_path_sha256=hashlib.sha256(
+                b"protocol/downloader/downloader.go").hexdigest(), line=321)])
+        self.assertNotIn("private", str(result))
+
+    def test_windows_prefix_cannot_change_the_public_source_path_digest(self):
+        windows = self.syncer_worker(path=b"D:\\private\\root\\protocol\\downloader\\downloader.go")
+        self.assertEqual(probe.protocol_workers(windows), probe.protocol_workers(self.syncer_worker()))
+
+    def test_duplicate_worker_sites_keep_actual_count_and_bounded_unique_sites(self):
+        raw = b"\n".join([self.syncer_worker()] * 2 + [self.syncer_worker(line=line) for line in range(400, 410)])
+        result = probe.protocol_workers(raw)
+        self.assertEqual(result["count"], 12)
+        self.assertEqual(len(result["items"]), 4)
+
+    def test_unknown_worker_source_or_header_refuses_all_partial_worker_facts(self):
+        for raw in (self.syncer_worker(header=b"private] bad"),
+                    self.syncer_worker(path=b"/private/root/other/downloader.go"),
+                    self.syncer_worker(line=0), b"x" * (probe.MAX_BYTES + 1)):
+            self.assertEqual(probe.protocol_workers(raw), dict(status="REFUSED", count=None, items=[]))
+
+    def test_unrelated_frames_and_creation_notes_do_not_create_joined_worker_evidence(self):
+        raw = (b"goroutine 20 [select]:\nprivate(0xprivate)\n"
+            b"created by github.com/zenon-network/go-zenon/protocol.(*ProtocolManager).Start.func1()\n")
+        self.assertEqual(probe.protocol_workers(raw), dict(status="EMPTY", count=0, items=[]))
+        self.assertNotIn("protocol_workers", probe.project(self.syncer_worker()))
+
+    def test_message_handler_has_its_own_kind_and_unknown_wait_is_not_echoed(self):
+        raw = (b"goroutine 21 [private wait]:\n"
+            b"github.com/zenon-network/go-zenon/protocol.(*ProtocolManager).handleMsg(0xprivate)\n"
+            b"/private/root/protocol/handler.go:509 +0xprivate\n")
+        result = probe.protocol_workers(raw)
+        self.assertEqual(result["items"][0]["kind"], "MESSAGE_HANDLER")
+        self.assertEqual(result["items"][0]["state"], "OTHER")
+        self.assertNotIn("private", str(result))
+
     def test_pillar_shutdown_frames_remain_finite_without_other_goroutines(self):
         raw = (b"goroutine 10 [select]:\n"
             b"github.com/zenon-network/go-zenon/pillar.(*worker).Stop(0xprivate)\nprivate.go:1\n"

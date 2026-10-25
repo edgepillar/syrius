@@ -292,7 +292,8 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA, *, expected_p
         probe = item.get("stack_probe")
         if probe is not None:
             need(stack_enabled and type(probe) is dict
-                 and set(probe) == {"status", "bytes", "sha256", "frames"}
+                 and {"status", "bytes", "sha256", "frames"} <= set(probe)
+                 and set(probe) <= {"status", "bytes", "sha256", "frames", "protocol_workers"}
                  and probe["status"] in native_stack_probe.STATUSES
                  and (probe["bytes"] is None or (type(probe["bytes"]) is int
                       and 0 < probe["bytes"] <= native_stack_probe.MAX_BYTES))
@@ -302,6 +303,25 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA, *, expected_p
                  and all(code in native_stack_probe.CODES for code in probe["frames"])
                  and (probe["status"] != "CAPTURED" or (probe["bytes"] is not None
                       and probe["sha256"] is not None and "NODE_STOP" in probe["frames"])))
+            workers = probe.get("protocol_workers")
+            if workers is not None:
+                need(probe["status"] == "CAPTURED" and type(workers) is dict
+                     and set(workers) == {"status", "count", "items"}
+                     and workers["status"] in ("CAPTURED", "EMPTY", "REFUSED")
+                     and type(workers["items"]) is list and len(workers["items"]) <= 4)
+                need((workers["status"] == "REFUSED" and workers["count"] is None and not workers["items"])
+                     or (type(workers["count"]) is int and 0 <= workers["count"] <= 4096
+                         and ((workers["status"] == "EMPTY" and workers["count"] == 0 and not workers["items"])
+                              or (workers["status"] == "CAPTURED" and 0 < len(workers["items"]) <= workers["count"]))))
+                for site in workers["items"]:
+                    need(type(site) is dict and set(site) == {"kind", "state", "package", "source_path_sha256", "line"}
+                         and site["kind"] in native_stack_probe.WORKER_KINDS
+                         and site["state"] in native_stack_probe.WORKER_STATES
+                         and site["package"] in native_stack_probe.WORKER_PACKAGES
+                         and type(site["source_path_sha256"]) is str
+                         and re.fullmatch(r"[a-f0-9]{64}", site["source_path_sha256"])
+                         and type(site["line"]) is int and 0 < site["line"] < 1000000)
+                probe = dict(probe, protocol_workers=dict(workers, items=workers["items"][:2]))
             if stack_scope == "all_originals":
                 stack_count += 1
                 selected["stack_probe_status"] = probe["status"]
@@ -374,6 +394,15 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA, *, expected_p
         result["native_stack_scope"] = stack_scope
     if stack_scope == "all_originals":
         result.update(native_stack_probe_count=stack_count, native_stack_probe=first_stack)
+        # Native reports have no Docker resources or host relay. Omit their
+        # empty fields so the bounded worker sites fit the complete notice.
+        for key in ("created_count", "started_count", "direct_rpc_ready", "loopback_relay",
+                    "docker_state_counts", "docker_states", "first_unhealthy_docker_state"):
+            need(not result[key])
+            del result[key]
+        for key in ("compiler_diagnostics", "node_diagnostics"):
+            if not result[key]:
+                del result[key]
     return result
 
 

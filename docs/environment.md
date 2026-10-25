@@ -2633,3 +2633,32 @@ inventory timeout, missing Pillow and unavailable Docker daemon remain
 negative records; the personal machine and full wallet startup remain
 unqualified. The latest main ledger therefore has 66 of 80 rows done,
 or 82.5 percent, with fourteen main rows and all 94 visual matches open.
+
+### Bound the protocol worker source locations before changing shutdown
+
+The pinned `protocol/handler.go` blob
+`fc18700d7a09175ea23f2fe7f1b7fd81df3a2522` counts the syncer wrapper and
+account-block processing in the wait group observed during stop. Its
+`protocol/sync.go` blob is `3a9580d9a33b0340debb1d1364444a75c3f86635`.
+The actual stopped-owner stack does not identify which of these worker
+paths remains; a source hypothesis alone does not justify a node correction.
+
+The next bounded projection selects only actual syncer-wrapper and
+message-handler goroutines from the same captured original shutdown output.
+It emits fixed kind and wait-state codes, a public protocol package name,
+the SHA-256 of its relative source path and a positive source line number.
+The path hash does not hash source contents. Raw function arguments, absolute
+paths, goroutine identifiers and arbitrary wait text are not emitted.
+Unknown waits become `OTHER`; malformed headers or source locations refuse
+all partial worker facts. An absent original shutdown owner admits no worker
+projection. Counts retain actual matching workers; at most four unique sites
+are retained and two projected, with the syncer first.
+
+Inspection validates every retained site before compaction. Native notices
+omit empty Docker and diagnostic fields to preserve the complete 3800-byte
+bound; nonempty failure diagnostics remain. Existing four-field probe
+records remain readable. Eight new checks and all 119 selected memory-only
+controller cases pass. The 35 inspector cases pass after the final compact
+projection change. A retained native-notice size check includes two source
+sites without starting a process. Actual worker locations remain pending;
+no Go source, assertion, timeout, wallet or seed admission changes.
