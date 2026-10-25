@@ -1804,12 +1804,85 @@ CLOSED/SUCCESS, free lease and absent original group are independently verified.
 Analyzer scratch remains HOLD. The 512 MiB task cap is a declared limit, not
 a measured physical peak; the shared 12 GiB cap and 10 GiB floor remain.
 
-The dash token changes a runtime input after ad52f6b99fdd, so fresh Fast,
-Windows baseline and ordinary-entry qualification are next. The new comparison
-is deferred until the final captures, avoiding an intermediate portable copy;
-the earlier default report remains untouched. At ad52f6b99fdd the three target
-PR workflows are action_required with zero jobs and await maintainer approval.
-The PR remains Draft. All 94 visual matches, 90 other actual captures, full
-formal review, running-build motion/frame-time and seam checks, minimum-window
-and Arabic layout, owned chain-321 lab, wallet/node lifecycle and production
-acceptance remain pending.
+The dash token changes a runtime input after ad52f6b99fdd. Its fresh qualification
+and comparison are recorded below. At ad52f6b99fdd the three target PR workflows
+are action_required with zero jobs and await maintainer approval. That historical
+target state is separate from the subsequent fork qualification.
+
+### Final Import captures and source-bound qualification
+
+Updated 2026-10-25T00:05Z. Qualifying source is
+`1d663dc58b9ce6f2abdbe66898e85e2ef850a8c0`, tree
+`9a8eec6320aa5cf1be0cad89f4bf9b4e8e979d18`. The final publication tail changes
+only this document and the progress log. No qualified application, controller,
+platform, dependency or workflow input changes in that tail.
+
+[Fast 40142173583](https://github.com/edgepillar/syrius/actions/runs/40142173583),
+attempt 1, job 121016012480, passes all thirteen job steps and 211 Python methods.
+Vendored analysis has zero diagnostics; root analysis has zero errors, zero
+warnings and 1295 infos. Locked restoration and generation correspondence pass.
+The terminal reporter records 4355 passing tests and one existing receive-block
+skip; 4325 individual success lines are recorded separately. The complete
+1118299-byte original log has SHA-256
+`db44619ef5db01b2356d66f46c2eeeb47f9eff7a1d7cacb87a4d2310b0c6d134`.
+
+[Windows 40142185606](https://github.com/edgepillar/syrius/actions/runs/40142185606),
+attempt 1, baseline job 121016046890, passes all ten job steps and twelve
+controller checks. Locked restoration, source and localization generation
+correspondence, desktop doctor, analyses, tests, Debug/Release builds and three
+DLL map/export probes pass. The JSON test report records 4354 visible and 506
+hidden successes, two existing skips and 4862 terminal events, with no failure
+or error event. The complete 39669-byte original log has SHA-256
+`6d5b128bf3ee657ba78b7c36e54b12e631e6c954dc282bd376ffe425c8fa40df`.
+Optional Windows inventory times out after 30.031 seconds with its helper
+forcibly stopped; several detailed inventory fields remain unknown. Optional
+Docker daemon inspection exits one and Pillow inspection reports absence.
+These negative outcomes remain separate from the twelve positive required
+checks. DLL mapping and export lookup do not invoke the node ABI or wallet loader.
+
+In the same Windows run, entry job 121016046846 passes all thirteen job steps,
+61 finite controller methods, eighteen original entry checks and four caption
+checks. Maximize, caption restore, minimize and native restore pass. Four genuine
+1280x780 Welcome/Import PNGs are bound to the original source, process and window.
+The original process exits zero with complete output and no overflow or forced
+kill. The complete 49053-byte log has SHA-256
+`92452734d11259e3f29aa88b81301bdaeddcda13bcad874acb84b39f210ef9e0`.
+The 562301-byte
+[artifact 12579640614](https://github.com/edgepillar/syrius/actions/runs/40142185606/artifacts/12579640614)
+has SHA-256 `20b721e5a343cb5837c5231a8a1c7bfce520a014deefded48dcd625e8f5c6ff2`.
+All three complete original job logs and this artifact have independently
+verified exact source/run/job/step bindings, bounded original transport, rehashed
+owned CAS, genuine CLOSED/SUCCESS/CLEANED retention, free original leases and
+absent original process groups. The earlier prelaunch failure retains its
+original negative outcome. No unchanged CI, completed native execution or
+artifact transport is repeated for this verification.
+
+Read-only straight-edge scans of both final Import captures and both references,
+at row 312 across columns 400..879, measure matching median dash/gap runs of
+3/2 pixels. The 1.5 px stroke remains. Actual inputs remain empty while references
+contain sample words and focus; text rasterization and globe animation phase
+also differ. This finite measurement establishes no complete visual match.
+
+The new private comparison reads all 94 existing references in place and uses
+four verified final captures. It performs no new download and creates no
+reference-image copy. All eleven explicitly exported report files, source pins,
+PNG bytes, original zero exit, complete output and genuine CLOSED/SUCCESS/CLEANED
+retention are independently verified. Every one of the eleven earlier report
+files retains its original path identity and SHA-256, including the earlier
+bookkeeping failure. The new export is 1473703 bytes; combined logical accounting
+is 3507563 bytes against a 64 MiB task and 16 MiB export cap. These are explicit
+logical measurements and budgets, not a measured physical peak. The shared
+12 GiB scratch cap and 10 GiB floor remain. The report records 47 screens and
+94 pairs: four unreviewed, 90 missing actual captures and zero verified matches.
+The earlier browser file-preview refusal remains preserved; static files and
+PNG content are verified, while browser rendering remains unverified.
+
+The PR remains Draft. Fork results do not establish target-repository approval,
+full wallet/node startup, node ABI behaviour or an owned operator environment.
+All 94 visual matches, 90 other actual captures, complete formal review,
+running-build motion/shaders/frame-time and seam checks, minimum-window and
+Arabic layout, owned chain-321 lab and checkpoints, real-wallet behaviour and
+production acceptance remain pending. The six passing chain-69 feature files
+retain their earlier 27938b9bc546 source scope. Password migration and full
+two-sided Swap terms remain seamed. Public output remains English and excludes
+private paths, profiles, raw local diagnostics, credentials and personal identity.
