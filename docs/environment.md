@@ -1969,3 +1969,18 @@ An inspection is a replay of retained evidence. It establishes no fresh node
 execution, live resource ownership, seed admission, wallet preparation or
 visual match. Actual hosted inspection and any resulting runtime correction
 remain pending.
+
+### Portable inspector test discovery
+
+The initial inspector source `707a478e29e0299705872fb8b2c287b07e06eac4`
+ran as [40181142128](https://github.com/edgepillar/syrius/actions/runs/40181142128).
+Its test step failed with `ModuleNotFoundError: No module named test.ci`
+before it read a manifest. The runner resolved another `test` package.
+The original 16322-byte log is hash-verified and its retention task is
+CLOSED/SUCCESS/CLEANED. This is an inspector failure, separate from the two
+original lab failures.
+
+The workflow now discovers `test_inspect_chain321.py` from `test/ci` directly.
+All eight in-memory cases pass locally with that exact command. A follow-up
+inspection consumes the existing finite lab manifests and starts no runtime.
+Its hosted outcome and any resulting runtime repair remain pending.

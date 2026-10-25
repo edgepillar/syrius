@@ -317,7 +317,7 @@ jobs:
           persist-credentials: false
 
       - name: Test archive and credential boundaries in memory
-        run: python -B -m unittest test.ci.test_inspect_chain321 -v
+        run: python -B -m unittest discover -s test/ci -p test_inspect_chain321.py -v
 
       - name: Inspect only the original finite manifests
         timeout-minutes: 3
