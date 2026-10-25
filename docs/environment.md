@@ -1944,3 +1944,28 @@ wallet preparation, reversible checkpoints, the remaining ninety captures,
 all ninety-four visual matches and running-build motion, frame-time, seam and
 Arabic-layout acceptance remain pending. Those steps will use actual owned
 runtime evidence rather than saved reports or synthetic Ready state.
+
+### Read-only hosted evidence inspection
+
+The compiler follow-up at `a9f7936dbb7b755c83d13d2532b531003da26fd8`
+ran as [40177753051](https://github.com/edgepillar/syrius/actions/runs/40177753051),
+attempt 1. Both Python-suite steps pass and both bounded lab steps fail. The
+precise failing stage is not inferred from the job name. The finite manifests
+retain the source-bound stage results and allowlisted compiler diagnoses.
+
+A separate default-off inspection path consumes those original manifests
+inside a fresh hosted Linux job. This avoids repeating node builds and keeps
+local payload storage independent of evidence inspection. The inspector checks
+the original repository, workflow, completed run, source SHA, attempt, artifact
+names and SHA-256, archive size, sole regular ZIP member and CRC. It reads bounded
+bytes in memory and extracts no files. API authorization is never forwarded to
+the artifact host; plaintext, lookalike hosts, userinfo and extra redirects are
+refused. Only explicit stages, compiler codes and public symbols become job
+annotations. Eight in-memory regression cases pass locally without network,
+SDK, profile or qualification scratch. An initial local syntax refusal was
+corrected before these cases executed; no failed native result is relabelled.
+
+An inspection is a replay of retained evidence. It establishes no fresh node
+execution, live resource ownership, seed admission, wallet preparation or
+visual match. Actual hosted inspection and any resulting runtime correction
+remain pending.

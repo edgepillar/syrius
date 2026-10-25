@@ -28,6 +28,14 @@ on:
         description: Qualify isolated chain-321 production on Linux Docker and native Windows
         type: boolean
         default: false
+      inspect_chain321_run:
+        description: Inspect an original completed chain-321 run without repeating builds
+        type: string
+        default: ''
+      inspect_chain321_head:
+        description: Exact source SHA required for the retained lab inspection
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -293,3 +301,29 @@ jobs:
           include-hidden-files: true
           if-no-files-found: error
           path: .harness/ci-chain321/manifest.json
+
+  inspect-chain321:
+    if: inputs.inspect_chain321_run != ''
+    name: Inspect retained chain-321 evidence
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Checkout the dispatched inspector source
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Test archive and credential boundaries in memory
+        run: python -B -m unittest test.ci.test_inspect_chain321 -v
+
+      - name: Inspect only the original finite manifests
+        timeout-minutes: 3
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
+          LAB_INSPECT_RUN: ${{ inputs.inspect_chain321_run }}
+          LAB_INSPECT_HEAD: ${{ inputs.inspect_chain321_head }}
+        run: python -B -m tool.ci.inspect_chain321

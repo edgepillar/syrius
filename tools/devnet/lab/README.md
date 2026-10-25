@@ -119,3 +119,12 @@ prove any screen match. Full native wallet preparation, captures and motion
 acceptance must consume actual owned runtime evidence in a later integration;
 the existing recipe and entry guards stay in force. Execution status and exact
 run/source bindings are recorded in `docs/environment.md` and the progress log.
+
+The same workflow can inspect a completed lab run by supplying
+`inspect_chain321_run` and its exact `inspect_chain321_head`, with other inputs
+disabled. This read-only job verifies the two finite manifest archives in memory
+and emits only allowed stages and compiler codes as job annotations. It starts
+no node and repeats no build. The GitHub API credential is removed before the
+signed artifact request; redirects, hashes, ZIP member type, CRC, source/run
+bindings and size limits are checked. Saved reports remain observations and
+cannot authorize a wallet, seed recipe or new runtime.
