@@ -36,6 +36,10 @@ on:
           - both
           - native
           - docker
+      native_stack_diagnostic:
+        description: Observe one bounded loopback shutdown stack on native timeout
+        type: boolean
+        default: false
       inspect_chain321_run:
         description: Inspect an original completed chain-321 run without repeating builds
         type: string
@@ -293,6 +297,7 @@ jobs:
       - name: Build, observe and stop the original isolated lab
         env:
           SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
+          SYRIUS_NATIVE_STACK_DIAGNOSTIC: ${{ matrix.backend == 'native' && inputs.native_stack_diagnostic }}
         run: python -B -m tool.ci.hosted_chain321 --backend ${{ matrix.backend }}
 
       # No node data, keys, profile, private command output or source archive.

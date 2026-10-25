@@ -1,0 +1,95 @@
+"""Optional loopback-only observations; never runtime or shutdown authority."""
+
+import hashlib
+import http.client
+import re
+import time
+
+
+PORT = 45999
+MAX_BYTES = 1024**2
+STATUSES = frozenset(("CAPTURED", "UNAVAILABLE", "REFUSED", "NO_SHUTDOWN_STACK", "AMBIGUOUS"))
+FUNCTIONS = {
+    "github.com/zenon-network/go-zenon/node.(*Node).Stop": "NODE_STOP",
+    "github.com/zenon-network/go-zenon/node.(*httpServer).stop": "NODE_HTTP_STOP",
+    "github.com/zenon-network/go-zenon/node.(*httpServer).doStop": "NODE_HTTP_DO_STOP",
+    "net/http.(*Server).Shutdown": "HTTP_SERVER_SHUTDOWN",
+    "github.com/zenon-network/go-zenon/p2p/switcher.(*Server).Stop": "P2P_SWITCHER_STOP",
+    "github.com/zenon-network/go-zenon/p2p/legacy.(*Server).Stop": "P2P_LEGACY_STOP",
+    "github.com/zenon-network/go-zenon/protocol.(*ProtocolManager).Stop": "PROTOCOL_STOP",
+    "github.com/zenon-network/go-zenon/zenon.(*zenon).Stop": "ZENON_STOP",
+    "github.com/zenon-network/go-zenon/rpc/api/subscribe.(*Server).Stop": "SUBSCRIBE_STOP",
+    "sync.(*WaitGroup).Wait": "WAIT_GROUP",
+    "sync.runtime_SemacquireWaitGroup": "WAIT_GROUP_SEMAPHORE",
+    "sync.(*Mutex).Lock": "MUTEX_LOCK",
+    "sync.(*RWMutex).Lock": "RW_MUTEX_LOCK",
+    "sync.runtime_SemacquireMutex": "MUTEX_SEMAPHORE",
+}
+CODES = frozenset(FUNCTIONS.values())
+OWNER = b"github.com/zenon-network/go-zenon/node.(*Node).Stop("
+
+
+def project(raw):
+    """Project one actual shutdown goroutine without echoing frames or paths."""
+    if type(raw) is not bytes or not 0 < len(raw) <= MAX_BYTES:
+        return dict(status="REFUSED", bytes=None, sha256=None, frames=[])
+    result = dict(status="NO_SHUTDOWN_STACK", bytes=len(raw),
+                  sha256=hashlib.sha256(raw).hexdigest(), frames=[])
+    blocks = raw.split(b"\n\n")
+    if len(blocks) > 4096:
+        result["status"] = "REFUSED"
+        return result
+    selected = [block for block in blocks if OWNER in block]
+    if not selected:
+        return result
+    if len(selected) != 1:
+        result["status"] = "AMBIGUOUS"
+        return result
+    lines = selected[0].splitlines()
+    if not lines or re.fullmatch(rb"goroutine [0-9]+ \[[^\r\n\]]{1,128}\]:", lines[0]) is None:
+        result["status"] = "REFUSED"
+        return result
+    for line in lines[1:]:
+        for name, code in FUNCTIONS.items():
+            if line.startswith(name.encode("ascii") + b"(") and code not in result["frames"]:
+                result["frames"].append(code)
+    result["status"] = "CAPTURED" if "NODE_STOP" in result["frames"] else "REFUSED"
+    return result
+
+
+def capture(original):
+    """One bounded read before forced cleanup, after an actual stop timeout."""
+    result = dict(status="UNAVAILABLE", bytes=None, sha256=None, frames=[])
+    if not getattr(original, "stack_debug", False) or original.process.poll() is not None:
+        return result
+    end = time.monotonic() + 3
+    connection = http.client.HTTPConnection("127.0.0.1", PORT, timeout=1)
+    try:
+        # http.client uses no proxy, credentials, DNS alias or redirect handler.
+        connection.request("GET", "/debug/pprof/goroutine?debug=2",
+                           headers={"Connection": "close", "Accept-Encoding": "identity"})
+        response = connection.getresponse()
+        if response.status != 200 or response.getheader("Content-Encoding", "identity") != "identity":
+            result["status"] = "REFUSED"
+            return result
+        raw = bytearray()
+        while time.monotonic() < end:
+            chunk = response.read1(min(65536, MAX_BYTES + 1 - len(raw)))
+            if time.monotonic() >= end:
+                return result
+            if not chunk:
+                if original.process.poll() is None:
+                    result.update(project(bytes(raw)))
+                return result
+            raw.extend(chunk)
+            if len(raw) > MAX_BYTES:
+                result["status"] = "REFUSED"
+                return result
+    except Exception:
+        return result
+    finally:
+        try:
+            connection.close()
+        except Exception:
+            result.update(status="REFUSED", frames=[])
+    return result

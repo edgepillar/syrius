@@ -15,6 +15,7 @@ import urllib.request
 import zipfile
 
 from tool.ci.hosted_chain321 import CODES, NODE_DIAGNOSTICS, NODE_SHA, ROLES
+from tool.ci import native_stack_probe
 
 
 API = "https://api.github.com/repos/edgepillar/syrius"
@@ -183,6 +184,8 @@ def project(report, backend, head, run_id):
     exits = report.get("node_exits", [])
     need(type(exits) is list and len(exits) <= 5)
     projected_exits = []
+    stack_enabled = report.get("native_stack_diagnostic", False)
+    need(type(stack_enabled) is bool and (not stack_enabled or backend == "native"))
     for item in exits:
         if item is None:
             projected_exits.append(dict(exit_code=None, output_complete=None, forced=None,
@@ -202,6 +205,20 @@ def project(report, backend, head, run_id):
         need(logs is None or (type(logs) is dict and logs.get("status") in
                              ("UNAVAILABLE", "READ", "MISSING", "REFUSED")))
         selected["node_log_status"] = None if logs is None else logs["status"]
+        probe = item.get("stack_probe")
+        if probe is not None:
+            need(stack_enabled and type(probe) is dict
+                 and set(probe) == {"status", "bytes", "sha256", "frames"}
+                 and probe["status"] in native_stack_probe.STATUSES
+                 and (probe["bytes"] is None or (type(probe["bytes"]) is int
+                      and 0 < probe["bytes"] <= native_stack_probe.MAX_BYTES))
+                 and (probe["sha256"] is None or (type(probe["sha256"]) is str
+                      and re.fullmatch(r"[a-f0-9]{64}", probe["sha256"]))))
+            need(type(probe["frames"]) is list and len(probe["frames"]) <= len(native_stack_probe.CODES)
+                 and all(code in native_stack_probe.CODES for code in probe["frames"])
+                 and (probe["status"] != "CAPTURED" or (probe["bytes"] is not None
+                      and probe["sha256"] is not None and "NODE_STOP" in probe["frames"])))
+            selected["stack_probe"] = probe
         projected_exits.append(selected)
     counts = {key: report.get(key) for key in ("created_count", "started_count")}
     need(all(value is None or (type(value) is int and 0 <= value <= 5)
@@ -248,6 +265,7 @@ def project(report, backend, head, run_id):
         node_exits=projected_exits, c_compiler=c_compiler, **counts,
         direct_rpc_ready=direct_ready, loopback_relay=relay,
         observations=observations,
+        native_stack_diagnostic=stack_enabled,
         inspection_only=True, runtime_started=False, seed_admitted=False)
 
 

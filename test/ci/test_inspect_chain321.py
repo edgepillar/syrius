@@ -27,6 +27,23 @@ def manifest():
 
 
 class InspectionTests(unittest.TestCase):
+    def test_stack_probe_requires_explicit_diagnostic_scope_and_finite_frames(self):
+        report = manifest()
+        report["native_stack_diagnostic"] = True
+        report["node_exits"] = [dict(exit_code=1, forced=True, output_complete=True,
+            stack_probe=dict(status="CAPTURED", bytes=100, sha256="b" * 64,
+                             frames=["HTTP_SERVER_SHUTDOWN", "NODE_STOP"]))]
+        result = inspect.project(report, "native", "a" * 40, 123)
+        self.assertEqual(result["node_exits"][0]["stack_probe"]["frames"], ["HTTP_SERVER_SHUTDOWN", "NODE_STOP"])
+        self.assertFalse(result["runtime_started"])
+        report["native_stack_diagnostic"] = False
+        with self.assertRaises(inspect.Refused):
+            inspect.project(report, "native", "a" * 40, 123)
+        report["native_stack_diagnostic"] = True
+        report["node_exits"][0]["stack_probe"]["frames"] = ["private-frame"]
+        with self.assertRaises(inspect.Refused):
+            inspect.project(report, "native", "a" * 40, 123)
+
     def test_native_log_projection_keeps_status_and_finite_stages_only(self):
         report = manifest()
         report["node_exits"] = [dict(exit_code=1, output_complete=True, forced=True,

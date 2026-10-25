@@ -25,6 +25,7 @@ import time
 
 from tool.ci.windows_presentation_smoke import OutputDrain
 from tool.ci.loopback_relay import PAIRS as RELAY_PAIRS, TARGET as RELAY_TARGET, Relay
+from tool.ci import native_stack_probe
 from tools.devnet.lab import owned_lab as wire_policy
 from tools.devnet.lab.socket_transport import make_transports
 
@@ -281,6 +282,8 @@ class Original:
                 retained_bytes=len(d.data), sha256=digest(bytes(d.data)),
                 overflow=d.overflow.is_set()) for key, d in zip(
                     ("stdout", "stderr"), self.drains)})
+        if getattr(self, "stack_debug", False):
+            self.receipt["stack_probe"] = getattr(self, "stack_probe", None)
         need(complete and all(not d.overflow.is_set() and d.error is None
                               for d in self.drains), "OUTPUT_REFUSED")
         if success:
@@ -313,6 +316,11 @@ class Original:
             if self.process.poll() is None:
                 self.process.wait(timeout=30)
         except (OSError, subprocess.TimeoutExpired) as error:
+            if isinstance(error, subprocess.TimeoutExpired) and getattr(self, "stack_debug", False):
+                try:
+                    self.stack_probe = native_stack_probe.capture(self)
+                except Exception:
+                    self.stack_probe = dict(status="UNAVAILABLE", bytes=None, sha256=None, frames=[])
             if getattr(self, "stop_code", None) is None:
                 self.stop_code = "SIGNAL_OS_ERROR" if isinstance(error, OSError) else "WAIT_TIMEOUT"
                 number = getattr(error, "winerror", getattr(error, "errno", None))
@@ -405,8 +413,10 @@ def configuration(value, role, data, backend):
     return result
 
 
-def preflight_ports(backend):
+def preflight_ports(backend, *, stack_debug=False):
     ports = [45997, 45998] + (list(NATIVE_PORTS.values()) if backend == "native" else [])
+    if backend == "native" and stack_debug:
+        ports.append(native_stack_probe.PORT)
     sockets = []
     try:
         for port in ports:
@@ -423,16 +433,21 @@ def preflight_ports(backend):
 
 
 class Native:
-    def __init__(self, commands, binary, configs):
+    def __init__(self, commands, binary, configs, *, stack_debug=False):
         self.commands, self.binary, self.configs = commands, binary, configs
         self.originals = []
+        self.stack_debug = stack_debug
 
     def start(self):
         for role in ROLES:
             data = self.configs[role]
-            original = Original([str(self.binary), "--data", str(data),
+            argv = [str(self.binary), "--data", str(data),
                 "--config", str(data / "config.json"), "--genesis", str(data / "genesis.json"),
-                "--wallet", str(data / "wallet")], cwd=data, env=self.commands.env)
+                "--wallet", str(data / "wallet")]
+            if self.stack_debug and role == "rpc":
+                argv += ["--pprof", "--pprof.addr", "127.0.0.1", "--pprof.port", str(native_stack_probe.PORT)]
+            original = Original(argv, cwd=data, env=self.commands.env)
+            original.stack_debug = self.stack_debug and role == "rpc"
             self.originals.append(original)
 
     def healthy(self):
@@ -687,6 +702,8 @@ def run(backend):
          and re.fullmatch("[a-f0-9]{40}", parent.get("GITHUB_SHA", "")), "ENVIRONMENT_REFUSED")
     need((backend == "docker" and sys.platform == "linux")
          or (backend == "native" and sys.platform == "win32"), "ENVIRONMENT_REFUSED")
+    need(parent.get("SYRIUS_NATIVE_STACK_DIAGNOSTIC") in (None, "true", "false"), "ENVIRONMENT_REFUSED")
+    stack_debug = backend == "native" and parent.get("SYRIUS_NATIVE_STACK_DIAGNOSTIC") == "true"
     directories(repo)
     temp = Path(parent["RUNNER_TEMP"])
     directories(temp)
@@ -702,6 +719,7 @@ def run(backend):
         success=False, error_codes=[], checks=dict.fromkeys(
             ("source", "build", "assets", "preflight", "started", "production", "stopped", "inputs_unchanged"), False),
         wallet_qualified=False, seed_admitted=False, visual_matches=0,
+        native_stack_diagnostic=stack_debug,
         min_free_bytes=FIXTURE_MIN_FREE, work_cap_bytes=MAX_WORK,
         storage_limit_scope="isolated_hosted_regression_fixture_cooperative_samples",
         cleanup="runner_lifecycle_not_qualified")
@@ -775,10 +793,10 @@ def run(backend):
             pins[role] = digest(regular(data / "config.json"))
         report["config_sha256"] = pins
         report["checks"]["assets"] = True
-        preflight_ports(backend)
+        preflight_ports(backend, stack_debug=stack_debug)
         report["checks"]["preflight"] = True
         runtime = (Docker(commands, binary, configs, nonce) if backend == "docker"
-                   else Native(commands, binary, configs))
+                   else Native(commands, binary, configs, stack_debug=stack_debug))
         runtime.start()
         report["checks"]["started"] = True
         report["observations"] = observe(runtime, root, report)

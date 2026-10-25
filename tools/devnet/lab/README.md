@@ -176,3 +176,10 @@ regular-file, ancestor, identity and one-MiB guards apply. The manifest retains
 finite shutdown-stage codes, missing/refused/read status, sizes and hashes;
 raw logs and paths are not uploaded. This projection cannot convert a timeout
 or forced exit into successful shutdown.
+
+The separate native_stack_diagnostic input defaults off. It enables the pinned
+node's existing profiler only on the original RPC process at preflighted
+127.0.0.1:45999. A real shutdown timeout permits one bounded loopback read before
+forced cleanup. Only fixed codes from a single shutdown goroutine, byte count
+and hash are retained. No raw stack is uploaded, no external listener is opened
+and no diagnostic observation can turn a forced exit into success.

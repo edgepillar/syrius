@@ -2232,3 +2232,31 @@ the manifest; raw text and paths are not uploaded. Missing or refused logs
 remain explicit and cannot replace shutdown failure. Thirty-one injected
 runtime, original-handle and inspector cases pass locally. No node source,
 stop deadline, signal retry or success gate changes in this follow-up.
+
+At `9b899609d900f9308610f61a31bf14fe5a55c4a7`, tree
+`cc24061887d01f3d96d05c4194be12cb5ac6ae32`, native
+[40195739913](https://github.com/edgepillar/syrius/actions/runs/40195739913),
+attempt one, job 121176061168 passes its full controller-suite step and every
+functional lab gate. Chain height advances one to two with nine samples and
+last timestamp 1792933390. RPC shutdown still times out; four peers exit zero.
+[Inspection 40196078603](https://github.com/edgepillar/syrius/actions/runs/40196078603)
+verifies archive `77657fd5b5c381b723fd335b87f488ccccb3a8ff115a8156993bd03d70904248`
+and manifest `204ceff2f0bad996c6dc8282a61ffac79375c7eb42246cf63f44ae8c278e3ab5`.
+All five private file projections have READ status. Four nodes reach data-lock
+release; RPC records a P2P stop request without HTTP-stop or lock-release
+completion. Those stages do not yet identify the exact internal wait.
+
+The next diagnostic input, `native_stack_diagnostic`, defaults off. When
+explicitly selected, only the original RPC node receives the pinned
+[pprof flags](https://github.com/zenon-network/go-zenon/blob/590f43ca7a24dccd8e883bc8903a0cb02e54528a/app/flags.go)
+on preflighted `127.0.0.1:45999`. After an actual thirty-second stop timeout,
+the retained process permits one bounded read of its loopback goroutine
+endpoint before forced cleanup. No proxy, redirect, credential, configurable
+URL or external listener is used. The read has a one-MiB cap, one-second socket
+timeouts and a cooperative three-second budget. Projection selects exactly
+one node-shutdown goroutine and emits fixed function codes, byte count and
+hash only. Missing, ambiguous, late, refused and failed-close observations
+remain negative. Raw stacks, memory addresses and paths are not uploaded;
+the observation never creates process ownership or successful shutdown.
+Forty-one injected controller, projection and inspector cases pass locally,
+as does workflow YAML parsing. Actual diagnostic execution remains pending.
