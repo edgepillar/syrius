@@ -14,7 +14,7 @@ import urllib.parse
 import urllib.request
 import zipfile
 
-from tool.ci.hosted_chain321 import (CODES, NODE_DIAGNOSTICS, NODE_SHA, NODE_SOURCES,
+from tool.ci.hosted_chain321 import (CODES, GO_FAILURE_CODES, NODE_DIAGNOSTICS, NODE_SHA, NODE_SOURCES,
                                    ROLES, SHUTDOWN_TESTS, UPSTREAM_NODE_SHA, selected_node_source)
 from tool.ci import native_stack_probe, node_panic_projection, producer_shutdown_patch
 
@@ -167,6 +167,28 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA, *, expected_p
          and regressions["tests"] == list(SHUTDOWN_TESTS) and type(regressions["skips"]) is int
          and regressions["skips"] == 0))
     need(not (report["success"] and expected_node == UPSTREAM_NODE_SHA) or regressions is not None)
+    go_failure = report.get("upstream_stop_failure")
+    if go_failure is not None:
+        need(expected_node == UPSTREAM_NODE_SHA and regressions is None
+             and not report["success"] and not checks["started"]
+             and type(go_failure) is dict
+             and set(go_failure) == {"status", "exit_code", "output_complete", "forced", "passed", "failed",
+                                    "skipped", "active", "locations", "codes"}
+             and go_failure["status"] in ("UNAVAILABLE", "REFUSED", "COMPLETE", "PARTIAL")
+             and (go_failure["exit_code"] is None or (type(go_failure["exit_code"]) is int
+                  and -(2**63) <= go_failure["exit_code"] < 2**63))
+             and all(go_failure[key] is None or type(go_failure[key]) is bool
+                     for key in ("output_complete", "forced")))
+        for key in ("passed", "failed", "skipped", "active"):
+            need(type(go_failure[key]) is list and len(go_failure[key]) <= len(SHUTDOWN_TESTS)
+                 and all(name in SHUTDOWN_TESTS for name in go_failure[key])
+                 and go_failure[key] == sorted(set(go_failure[key])))
+        need(type(go_failure["locations"]) is list and len(go_failure["locations"]) <= 8
+             and all(type(line) is int and 0 < line < 1000000 for line in go_failure["locations"])
+             and type(go_failure["codes"]) is list and len(go_failure["codes"]) <= len(GO_FAILURE_CODES)
+             and all(code in GO_FAILURE_CODES for code in go_failure["codes"])
+             and (go_failure["status"] != "COMPLETE" or
+                  (go_failure["output_complete"] is True and go_failure["forced"] is False)))
     need(type(errors) is list and len(errors) <= 16 and all(code in CODES for code in errors))
     need(type(commands) is list and len(commands) <= 1024)
     diagnostics = []
@@ -333,6 +355,8 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA, *, expected_p
     if expected_patched:
         result.update(node_source="lab-fix", compiled_node_tree=compiled_tree,
                       producer_task_patch=patch_summary)
+    if go_failure is not None:
+        result["upstream_stop_failure"] = go_failure
     return result
 
 

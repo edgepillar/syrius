@@ -30,6 +30,35 @@ def manifest():
 
 
 class InspectionTests(unittest.TestCase):
+    def test_go_failure_observation_does_not_qualify_a_runtime_or_test_pass(self):
+        report = manifest()
+        report.update(node_sha=inspect.UPSTREAM_NODE_SHA, node_tree=producer_patch.BASE_TREE,
+            upstream_stop_failure=dict(status="COMPLETE", exit_code=1, output_complete=True, forced=False,
+                passed=[], failed=[inspect.SHUTDOWN_TESTS[0]], skipped=[], active=[], locations=[123],
+                codes=["GO_TEST_ASSERTION"]))
+        value = inspect.project(report, "native", "a" * 40, 123, inspect.UPSTREAM_NODE_SHA)
+        self.assertEqual(value["upstream_stop_failure"]["exit_code"], 1)
+        self.assertFalse(value["runtime_started"])
+        self.assertIsNone(value["upstream_stop_regressions"])
+        report["upstream_stop_failure"]["failed"] = ["private"]
+        with self.assertRaises(inspect.Refused):
+            inspect.project(report, "native", "a" * 40, 123, inspect.UPSTREAM_NODE_SHA)
+
+    def test_go_failure_projection_rejects_raw_fields_and_contradictory_success(self):
+        report = manifest()
+        report.update(node_sha=inspect.UPSTREAM_NODE_SHA, node_tree=producer_patch.BASE_TREE,
+            upstream_stop_failure=dict(status="COMPLETE", exit_code=1, output_complete=True, forced=False,
+                passed=[], failed=[], skipped=[], active=[], locations=[], codes=["GO_TEST_UNCLASSIFIED"]))
+        for change in (dict(raw="private"), dict(exit_code=True), dict(locations=[True]),
+                       dict(codes=["private"]), dict(output_complete=False)):
+            changed = copy.deepcopy(report)
+            changed["upstream_stop_failure"].update(change)
+            with self.subTest(change=change), self.assertRaises(inspect.Refused):
+                inspect.project(changed, "native", "a" * 40, 123, inspect.UPSTREAM_NODE_SHA)
+        report["checks"]["started"] = True
+        with self.assertRaises(inspect.Refused):
+            inspect.project(report, "native", "a" * 40, 123, inspect.UPSTREAM_NODE_SHA)
+
     @staticmethod
     def corrected_manifest():
         report = manifest()

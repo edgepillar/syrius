@@ -42,6 +42,59 @@ class CompilerDiagnosticTests(unittest.TestCase):
 
 
 class NodeSourceTests(unittest.TestCase):
+    def test_failed_go_test_keeps_named_facts_without_private_output(self):
+        name = lab.SHUTDOWN_TESTS[0]
+        events = [dict(Action="run", Package="github.com/zenon-network/go-zenon/p2p/legacy", Test=name),
+            dict(Action="output", Package="github.com/zenon-network/go-zenon/p2p/legacy", Test=name,
+                 Output="private-path/shutdown_test.go:123: private failure\n"),
+            dict(Action="fail", Package="github.com/zenon-network/go-zenon/p2p/legacy", Test=name)]
+        raw = b"\n".join(json.dumps(event).encode() for event in events)
+        result = lab.shutdown_failure_observation(raw, dict(exit_code=1, output_complete=True, forced=False))
+        self.assertEqual(result["status"], "COMPLETE")
+        self.assertEqual(result["failed"], [name])
+        self.assertEqual(result["locations"], [123])
+        self.assertEqual(result["codes"], ["GO_TEST_ASSERTION"])
+        self.assertNotIn("private", json.dumps(result))
+
+    def test_go_timeout_keeps_the_active_parent_and_actual_forced_state(self):
+        name = lab.SHUTDOWN_TESTS[1]
+        rows = [dict(Action="run", Package="github.com/zenon-network/go-zenon/p2p/legacy", Test=name),
+            dict(Action="output", Package="github.com/zenon-network/go-zenon/p2p/legacy",
+                 Output="panic: test timed out after 30s\nC:\\private\\shutdown_test.go:81 +0x123\n")]
+        result = lab.shutdown_failure_observation(b"\n".join(json.dumps(row).encode() for row in rows),
+            dict(exit_code=1, output_complete=True, forced=True))
+        self.assertEqual(result["status"], "PARTIAL")
+        self.assertEqual(result["active"], [name])
+        self.assertEqual(result["locations"], [81])
+        self.assertTrue(result["forced"])
+        self.assertIn("GO_TEST_TIMEOUT", result["codes"])
+
+    def test_malformed_go_output_cannot_create_named_test_evidence(self):
+        for raw in (b"private raw text", b'{"Action":[]}', b"x" * (lab.MIB + 1)):
+            value = lab.shutdown_failure_observation(raw, dict(exit_code=1, output_complete=True, forced=False))
+            self.assertEqual(value["status"], "REFUSED")
+            self.assertEqual(value["passed"], [])
+            self.assertEqual(value["failed"], [])
+
+    def test_failed_go_command_is_preserved_and_never_retried_by_observation(self):
+        name = lab.SHUTDOWN_TESTS[0]
+        raw = json.dumps(dict(Action="fail", Package="github.com/zenon-network/go-zenon/p2p/legacy", Test=name)).encode()
+        original = mock.Mock(receipt=dict(exit_code=1, output_complete=True, forced=False),
+            drains=[mock.Mock(data=bytearray(raw)), mock.Mock(data=bytearray())])
+        commands = mock.Mock(originals=[])
+        failure = lab.Failure("COMMAND_FAILED")
+        def run(*args, **kwargs):
+            commands.originals.append(original)
+            raise failure
+        commands.run.side_effect = run
+        report = {}
+        with self.assertRaises(lab.Failure) as raised:
+            lab.run_shutdown_tests(commands, Path("fixture"), report)
+        self.assertIs(raised.exception, failure)
+        commands.run.assert_called_once()
+        self.assertEqual(original.receipt["exit_code"], 1)
+        self.assertEqual(report["upstream_stop_failure"]["failed"], [name])
+
     def test_only_explicit_source_choices_are_admitted(self):
         self.assertEqual(lab.selected_node_source("original")[0], lab.NODE_SHA)
         self.assertEqual(lab.selected_node_source("upstream")[0], lab.UPSTREAM_NODE_SHA)

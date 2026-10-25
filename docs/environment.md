@@ -2478,6 +2478,40 @@ Ninety-seven selected local Python controller cases pass, including fourteen
 new source/regression/inspection checks, and workflow YAML parsing verifies
 eleven inputs and the three fixed source choices. Ninety-five cases are
 memory-only; two existing cases use small temporary filesystem fixtures.
-No local Go execution or corrected-node lab outcome is claimed. Actual
-hosted red/green reproduction, corrected native shutdown, both-platform lab
+No local Go execution is claimed. Hosted reproduction and the next failed
+gate are recorded below; corrected native shutdown, both-platform lab
 qualification and all wallet/checkpoint/seed/visual acceptance remain pending.
+
+### Actual closed-task regression passes after correction
+
+At source `4749f3ae920fe58d6a4875e7ed0c32ea86ef15c5`, tree
+`b650b9f0205a96570de34025ddb80a6b87065f46`, native
+[40220180835](https://github.com/edgepillar/syrius/actions/runs/40220180835),
+attempt 1, job 121249862341, passes the full Python controller-suite step.
+The actual focused Go test first exits one with the required nil-task panic,
+then the same test and package exit zero after the pinned four-line patch.
+Both original command outputs are complete and unforced. The compiled tree
+is verified as `a9262cce18190bfc01e85ac903558500379d014f`, and its CLI build
+passes. This qualifies the focused correction, not overall lab shutdown.
+
+The next command, containing all seven upstream shutdown regressions, fails
+with `COMMAND_FAILED` before assets, preflight or any node process starts.
+The prior finite manifest does not identify the failed test or assertion.
+No timeout, assertion cause or runtime outcome is inferred from that absence.
+[Inspection 40220758306](https://github.com/edgepillar/syrius/actions/runs/40220758306)
+verifies original archive SHA-256
+`fc8f61f839ba9c80c80ea6c30323a6427e74736979c59ca55aaf649fcfdf348d`
+and manifest SHA-256
+`e05185e7763990c74805d0e430606b9ee10288e725c897b94d34e781c1ee343a`
+inside Actions. No local artifact transport is implied.
+
+The next observer retains only known parent-test names and their actual
+pass/fail/skip/active states, public `shutdown_test.go` line numbers, fixed
+failure categories and original command exit/output/forced facts. Raw logs,
+paths and messages remain private. It rethrows the same failure and makes
+no retry; all seven tests must still pass before any lab startup. A complete
+observation is not a test pass or runtime admission. Six new checks and all
+101 selected memory-only controller cases pass locally; the two existing
+filesystem-fixture cases are excluded from this local run. Actual diagnosis
+with the new observation remains pending. Main progress remains 65 of 80;
+all wallet, checkpoint, seed and visual acceptance gates remain open.

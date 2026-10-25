@@ -230,3 +230,11 @@ Neither pristine source choice, the wallet SDK nor embedded binaries change.
 Inspection requires lab-fix explicitly and cannot relabel its result as an
 unmodified node result. All wallet, checkpoint, seed and visual gates remain
 separate from this isolated node correction.
+
+If the seven upstream shutdown tests fail before startup, the manifest keeps
+the original command exit, output-completeness and forced-termination facts.
+Its bounded observer emits only known parent names and their pass, fail,
+skip or active states, public shutdown_test.go line numbers and fixed failure
+categories. It retains no raw paths or messages, retries nothing, and
+rethrows the original failure. Observation completeness cannot qualify a
+test pass or admit a lab, wallet or seed. The seven-test gate stays required.

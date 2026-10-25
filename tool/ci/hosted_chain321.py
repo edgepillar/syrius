@@ -43,6 +43,8 @@ SHUTDOWN_TESTS = (
     "TestProtoRWExposesPeerClose", "TestStopIsIdempotentAndConcurrent",
     "TestSameIdentityReconnectDuringGatedCleanup",
 )
+GO_FAILURE_CODES = frozenset(("GO_TEST_TIMEOUT", "GO_TEST_PANIC", "GO_TEST_BUILD_FAILED",
+                              "GO_TEST_ASSERTION", "GO_TEST_UNCLASSIFIED"))
 ROLES = ("pillar", "pillar2", "pillar3", "observer", "rpc")
 OCTETS = dict(zip(ROLES, (10, 12, 13, 14, 11)))
 NATIVE_PORTS = dict(zip(ROLES, (45991, 45992, 45993, 45994, 45995)))
@@ -116,6 +118,75 @@ def shutdown_test_result(raw):
                      "NODE_REGRESSIONS_REFUSED")
     need(package_passed and seen == set(SHUTDOWN_TESTS), "NODE_REGRESSIONS_REFUSED")
     return dict(passed=True, tests=list(SHUTDOWN_TESTS), skips=0)
+
+
+def shutdown_failure_observation(raw, receipt, stderr=b""):
+    """Retain failed named tests and public test-line numbers without logs."""
+    result = dict(status="UNAVAILABLE", exit_code=None, output_complete=None, forced=None,
+                  passed=[], failed=[], skipped=[], active=[], locations=[], codes=[])
+    if type(receipt) is not dict:
+        return result
+    result.update(exit_code=receipt.get("exit_code"), output_complete=receipt.get("output_complete"),
+                  forced=receipt.get("forced"))
+    result["status"] = "REFUSED"
+    if (type(raw) is not bytes or len(raw) > MIB or len(raw.splitlines()) > 10000
+            or type(stderr) is not bytes or len(stderr) > MIB):
+        return result
+    seen = {key: set() for key in ("run", "pass", "fail", "skip")}
+    output, build_failed = [], False
+    try:
+        for line in raw.splitlines():
+            event = json.loads(line)
+            need(type(event) is dict, "NODE_REGRESSIONS_REFUSED")
+            action, name = event.get("Action"), event.get("Test")
+            need(type(action) is str, "NODE_REGRESSIONS_REFUSED")
+            if action in ("build-output", "build-fail"):
+                build_failed |= action == "build-fail"
+            else:
+                need(event.get("Package") == "github.com/zenon-network/go-zenon/p2p/legacy",
+                     "NODE_REGRESSIONS_REFUSED")
+            if name is not None:
+                need(type(name) is str and name.split("/", 1)[0] in SHUTDOWN_TESTS,
+                     "NODE_REGRESSIONS_REFUSED")
+                if name in SHUTDOWN_TESTS and action in seen:
+                    seen[action].add(name)
+            if action in ("output", "build-output"):
+                need(type(event.get("Output")) is str, "NODE_REGRESSIONS_REFUSED")
+                output.append(event["Output"])
+    except (Failure, ValueError, UnicodeError):
+        return result
+    text = "".join(output) + "\n" + stderr.decode("utf-8", "replace")
+    codes = []
+    if "panic: test timed out after" in text:
+        codes.append("GO_TEST_TIMEOUT")
+    if "panic:" in text or "fatal error:" in text:
+        codes.append("GO_TEST_PANIC")
+    if build_failed or "[build failed]" in text:
+        codes.append("GO_TEST_BUILD_FAILED")
+    if seen["fail"] and not codes:
+        codes.append("GO_TEST_ASSERTION")
+    result.update(status="COMPLETE" if result["output_complete"] is True and result["forced"] is False else "PARTIAL",
+        passed=sorted(seen["pass"]), failed=sorted(seen["fail"]), skipped=sorted(seen["skip"]),
+        active=sorted(seen["run"] - seen["pass"] - seen["fail"] - seen["skip"]),
+        locations=sorted({int(line) for line in re.findall(
+            r"(?:^|[/\\\s])shutdown_test\.go:([1-9][0-9]{0,5})(?:[:\s]|$)", text)})[:8],
+        codes=codes or ["GO_TEST_UNCLASSIFIED"])
+    return result
+
+
+def run_shutdown_tests(commands, source, report):
+    count = len(commands.originals)
+    try:
+        raw = commands.run(["go", "test", "-json", "-mod=readonly", "-count=1",
+            "-run", "^(" + "|".join(SHUTDOWN_TESTS) + ")$", "-timeout", "30s", "./p2p/legacy"],
+            cwd=source, timeout=180)
+        report["upstream_stop_regressions"] = shutdown_test_result(raw)
+    except Failure:
+        if len(commands.originals) == count + 1:
+            original = commands.originals[-1]
+            raw, stderr = (bytes(d.data) for d in original.drains)
+            report["upstream_stop_failure"] = shutdown_failure_observation(raw, original.receipt, stderr)
+        raise
 
 
 def source_matches(commands, source, head, base_tree, compiled_tree):
@@ -884,10 +955,7 @@ def run(backend):
         report["binary_sha256"] = digest(binary_bytes)
         report["checks"]["build"] = True
         if node_sha == UPSTREAM_NODE_SHA:
-            result = commands.run(["go", "test", "-json", "-mod=readonly", "-count=1",
-                "-run", "^(" + "|".join(SHUTDOWN_TESTS) + ")$", "-timeout", "30s", "./p2p/legacy"],
-                cwd=source, timeout=180)
-            report["upstream_stop_regressions"] = shutdown_test_result(result)
+            run_shutdown_tests(commands, source, report)
             source_matches(commands, source, node_sha, node_tree, compiled_tree)
         assets = root / "assets"
         commands.run(["node", str(repo / "tools/devnet/lab/make-assets.js"),
