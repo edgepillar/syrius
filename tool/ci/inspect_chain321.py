@@ -204,6 +204,17 @@ def project(report, backend, head, run_id):
          and type(c_compiler["version"]) is str
          and re.fullmatch(r"[0-9]+(?:\.[0-9]+){0,2}", c_compiler["version"])
          and c_compiler["cgo_enabled"] is True))
+    direct_ready, relay = report.get("direct_rpc_ready"), report.get("loopback_relay")
+    need(direct_ready is None or type(direct_ready) is bool)
+    need(relay is None or backend == "docker")
+    if relay is not None:
+        need(type(relay) is dict and set(relay) == {"started", "closed", "listeners", "accepted", "completed",
+                                                   "bytes", "active", "workers_alive"}
+             and all(type(relay[key]) is bool for key in ("started", "closed"))
+             and all(type(relay[key]) is int and 0 <= relay[key] < 2**63
+                     for key in ("listeners", "accepted", "completed", "bytes", "active", "workers_alive"))
+             and relay["listeners"] <= 2 and relay["completed"] <= relay["accepted"] <= 256
+             and relay["active"] <= 4 and relay["workers_alive"] <= 258)
     return dict(scope="retained_chain321_observation", backend=backend,
         source_head=head, source_run_id=run_id, source_attempt=1,
         artifact_reported_success=report["success"], checks=checks, error_codes=errors,
@@ -212,6 +223,7 @@ def project(report, backend, head, run_id):
         docker_states=[latest_states[role] for role in ROLES if role in latest_states],
         docker_state_counts=state_counts, first_unhealthy_docker_state=first_unhealthy,
         node_exits=projected_exits, c_compiler=c_compiler, **counts,
+        direct_rpc_ready=direct_ready, loopback_relay=relay,
         inspection_only=True, runtime_started=False, seed_admitted=False)
 
 

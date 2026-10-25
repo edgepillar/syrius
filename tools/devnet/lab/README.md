@@ -83,7 +83,7 @@ The manual `Public Contribution Qualification` workflow has a default-off
 `chain321_lab` input. It prepares two independent fresh runners:
 
 - Linux builds the pinned node command and runs five containers on an internal
-  Docker network, publishing HTTP and WS on loopback only.
+  Docker network, exposing HTTP and WS through owned loopback relays only.
 - Windows builds the same pinned node command and runs five native processes.
   Peer addresses and RPC bind to loopback; each original process has a separate
   data directory. Docker Desktop and a personal Windows computer are unnecessary
@@ -155,3 +155,10 @@ A committed fixture filename may differ from its baseAddress metadata. The
 controller preserves that metadata independently and retains the exact source
 Path check; it does not invent an equality the node itself does not require.
 The node continues to validate the actual derived producer address.
+
+On hosted Linux, the controller probes the exact RPC member on its internal
+bridge, then binds two owned loopback relays to the existing fixed HTTP/WS
+origins. Both direct ports and current resource ownership must pass first.
+Destinations are fixed; there is no DNS, external listener, daemon change or
+published host port. Byte/buffer/time/connection limits and positive original
+socket/thread closure are separate from node shutdown and chain production.

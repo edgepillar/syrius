@@ -24,6 +24,7 @@ import sys
 import time
 
 from tool.ci.windows_presentation_smoke import OutputDrain
+from tool.ci.loopback_relay import PAIRS as RELAY_PAIRS, TARGET as RELAY_TARGET, Relay
 from tools.devnet.lab import owned_lab as wire_policy
 from tools.devnet.lab.socket_transport import make_transports
 
@@ -420,6 +421,8 @@ class Docker:
         self.image = self.network = None
         self.created, self.started = [], []
         self.states, self.diagnostics = [], []
+        self.relay = None
+        self.direct_rpc_ready = False
 
     def record_state(self, item, phase):
         state = item.get("State", {})
@@ -461,6 +464,7 @@ class Docker:
              "DOCKER_REFUSED")
         self.image = image["Id"]
         self.network = self.call("network", "create", "--internal", "--subnet", "172.37.0.0/24",
+            "--gateway", "172.37.0.1",
             "--label", "org.zenon.ci321.owner=" + self.owner, self.name).decode().strip()
         need(re.fullmatch("[a-f0-9]{64}", self.network), "DOCKER_REFUSED")
         for role in ROLES:
@@ -471,8 +475,6 @@ class Docker:
                 "--log-opt=max-size=1m", "--log-opt=max-file=2", "--tmpfs", "/tmp:size=32m",
                 "--user", str(os.getuid()) + ":" + str(os.getgid()), "--env", "HOME=/data",
                 "--env", "USER=ci", "--mount", "type=bind,src=" + str(self.configs[role]) + ",dst=/data"]
-            if role == "rpc":
-                args += ["-p", "127.0.0.1:45997:35997", "-p", "127.0.0.1:45998:35998"]
             args += [self.image, "--data", "/data", "--config", "/data/config.json",
                      "--genesis", "/data/genesis.json", "--wallet", "/data/wallet"]
             identifier = self.call(*args).decode().strip()
@@ -481,6 +483,22 @@ class Docker:
             self.call("start", identifier)
             self.started.append(identifier)
         self.healthy()
+        # Internal bridges remain isolated. Reach only the exact RPC member
+        # from the host, then expose two original loopback byte relays.
+        end = time.monotonic() + 90
+        while True:
+            try:
+                for _, port in RELAY_PAIRS:
+                    with socket.create_connection((RELAY_TARGET, port), timeout=1):
+                        pass
+                break
+            except OSError:
+                need(time.monotonic() < end, "RPC_UNAVAILABLE")
+                time.sleep(2)
+        self.direct_rpc_ready = True
+        self.healthy()
+        self.relay = Relay()
+        self.relay.start()
 
     def healthy(self):
         need(len(self.created) == len(self.started) == 5, "RESOURCE_CHANGED")
@@ -498,6 +516,11 @@ class Docker:
 
     def stop(self):
         failed = False
+        if self.relay is not None:
+            try:
+                self.relay.stop()
+            except Exception:
+                failed = True
         for identifier in reversed(self.created):
             try:
                 item = self.inspect("container", identifier)
@@ -724,6 +747,8 @@ def run(backend):
             report["started_count"] = len(runtime.started)
             report["docker_states"] = runtime.states
             report["node_diagnostics"] = sorted(set(runtime.diagnostics))
+            report["direct_rpc_ready"] = runtime.direct_rpc_ready
+            report["loopback_relay"] = None if runtime.relay is None else runtime.relay.summary()
         report["success"] = all(report["checks"].values()) and not report["error_codes"]
         output = repo / ".harness/ci-chain321"
         output.mkdir(mode=0o700)

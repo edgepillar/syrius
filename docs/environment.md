@@ -2132,3 +2132,34 @@ state per role, phase counts and the first unhealthy event. It enforces a
 JSON. All eleven inspector cases pass locally, including a 186-event repeated
 health history. A further read-only inspection can consume the same original
 archives without recompiling or starting a node.
+
+### Internal bridge RPC access
+
+[Inspection 40189022267](https://github.com/edgepillar/syrius/actions/runs/40189022267)
+at `5495beae3a031d0dec615596b181269bb028e21b` successfully reads both complete
+bounded summaries of original run 40187539825. Docker records 95 healthy
+resource events, no unhealthy event and five zero exits, but host RPC readiness
+times out with `RPC_UNAVAILABLE`. The network remains internal. The complete
+Windows observation retains five zero, complete, unforced exits and WS refusal.
+Production remains unqualified on both backends.
+
+Docker documents [host access to an internal bridge](https://docs.docker.com/engine/network/port-publishing/#gateway-modes).
+The next controller uses that scoped route: after checking its original network
+and five created members, it probes only the fixed RPC member and its two
+ports. Only after both direct ports answer and ownership is rechecked does it
+create two original loopback relay listeners. No published host port or daemon
+configuration change is used. The existing HTTP/WS clients still use their
+exact loopback origins and validate real RPC responses and hashes. If direct
+readiness fails, no relay is admitted and the lab still refuses.
+
+The relay has no CLI, DNS lookup or configurable destination. It forwards bytes
+with bounded buffers, session byte/time limits, active connections and accepts.
+It retains original sockets and threads, propagates EOF, preserves unsent
+prefixes and joins/closes originals before node shutdown. An unknown stop is
+terminal. Raw stream contents and exceptions are never published. Finite relay
+lifecycle counts can be inspected as data and never mint a runtime owner.
+
+Eight injected relay cases and twelve inspector cases pass locally without a
+real listener, thread or node. Actual direct readiness, byte forwarding,
+shutdown and chain production require hosted execution. The translated native
+Windows-status correction retains its separate 43-case local evidence.

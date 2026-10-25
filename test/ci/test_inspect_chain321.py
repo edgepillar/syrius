@@ -135,6 +135,18 @@ class InspectionTests(unittest.TestCase):
         result.update(archive_sha256="a" * 64, manifest_sha256="b" * 64)
         self.assertLess(len(json.dumps(result, separators=(",", ":")).encode()), 3800)
 
+    def test_relay_projection_is_finite_data_and_never_an_owner(self):
+        report = manifest()
+        report.update(backend="docker", compiler="go version go1.24.1 linux/amd64",
+            direct_rpc_ready=True, loopback_relay=dict(started=True, closed=True,
+            listeners=2, accepted=3, completed=3, bytes=12, active=0, workers_alive=0))
+        result = inspect.project(report, "docker", "a" * 40, 123)
+        self.assertTrue(result["loopback_relay"]["closed"])
+        self.assertFalse(result["runtime_started"])
+        report["loopback_relay"]["private_profile"] = "/fixture/private/profile"
+        with self.assertRaises(inspect.Refused):
+            inspect.project(report, "docker", "a" * 40, 123)
+
 
 if __name__ == "__main__":
     unittest.main()
