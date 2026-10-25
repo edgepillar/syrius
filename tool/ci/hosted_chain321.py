@@ -372,7 +372,11 @@ class Docker:
              ("x86_64", "amd64"), "DOCKER_REFUSED")
         context = self.binary.parent / "image"
         context.mkdir(mode=0o700)
-        shutil.copyfile(self.binary, context / "znnd")
+        image_binary = context / "znnd"
+        shutil.copyfile(self.binary, image_binary)
+        image_binary.chmod(0o555)
+        need(digest(regular(image_binary, 128 * MIB)) == digest(regular(self.binary, 128 * MIB))
+             and stat.S_IMODE(image_binary.stat().st_mode) == 0o555, "SOURCE_REFUSED")
         (context / "Dockerfile").write_text('FROM scratch\nCOPY znnd /znnd\nENTRYPOINT ["/znnd"]\n')
         tag = self.name + ":source"
         self.call("build", "--network=none", "--pull=false", "--label",

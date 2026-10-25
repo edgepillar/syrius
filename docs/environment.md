@@ -2005,3 +2005,9 @@ Four new in-memory ELF cases and the three existing diagnostic cases pass
 locally. This source repair still requires actual hosted compilation and the
 original five-node production and shutdown checks; it establishes no wallet,
 seed or visual acceptance.
+
+The independent Docker build-context copy explicitly receives mode 0555;
+its bytes must hash to the original verified static binary before image build.
+This corrects a source-reviewed `copyfile` mode loss before the first successful
+node build reaches image creation. No earlier failed build is presented as
+evidence of container startup. Actual hosted startup remains pending.
