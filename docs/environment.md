@@ -2392,3 +2392,46 @@ locally; they include private-text rejection, a five-panic notice bound and
 preservation of the original exit-two failure. They do not establish a real
 panic cause or a successful native shutdown. Neither full wallet startup,
 seed admission nor visual acceptance is claimed.
+
+### Actual panic resolves to the closed producer task
+
+At wallet source `cef655cca3eca4fef05f0f3ab57337a50617ca13`, tree
+`7b22ebaef4c5c55cdd5fec4a8aece6128dff6a24`, native
+[40215188497](https://github.com/edgepillar/syrius/actions/runs/40215188497),
+attempt one, job 121234686592 passes the full controller-suite step, all seven
+actual upstream shutdown regressions and every functional lab gate. Chain
+321 advances from height one to two over ten samples, with last timestamp
+1792948370 and matching HTTP/WS hashes. Exact upstream node SHA/tree and its
+fixture genesis remain unchanged from the preceding attempt.
+
+All five originals exit with complete output and no forced termination.
+Pillar exits two with an actual NIL_POINTER panic; the other four exit zero.
+[Inspection 40215620218](https://github.com/edgepillar/syrius/actions/runs/40215620218)
+verifies archive `0e1ff2b4d89971b13bdcbf83023c50dbb46dc3803f7bd46c9bc1554f493e29ff`
+and manifest `842d16b3af986679d13744ba340f5b2963af2eb9e9c069ad774f44c38492d829`.
+The finite panic observation covers 3270 output bytes with digest
+`8308fc54db020405479856a6c773e77523d4b388e9d391d8f75e387d64ef188d`.
+Its relative-source-path digest
+`3bbf31c838faabed6ba1630c4568a69fb066be9dfb9f671c03d04ae7fc029fd9`
+resolves to the public `pillar/manager.go`, at lines 120 and 85 in exact node
+`2d1b929cc3fa5269cf133757d4a6963821137984`. Raw panic text, arguments,
+addresses and local paths are not uploaded.
+
+The pinned [supervisor](https://github.com/zenon-network/go-zenon/blob/2d1b929cc3fa5269cf133757d4a6963821137984/pillar/manager.go#L117)
+calls `task.Finished()` without checking the task returned by the worker.
+The pinned [worker](https://github.com/zenon-network/go-zenon/blob/2d1b929cc3fa5269cf133757d4a6963821137984/pillar/worker.go#L73)
+explicitly returns nil when already closed. The actual crash is consistent
+with that late-event path. The public manager blob is
+`c19c5c4e7c3146617397ced7307e803a16f4723a`; it is also unchanged at the
+separately inspected `ac16bfd7c083e0b808a17014c38a5a77cc0141f1` revision.
+A focused real Go regression must reproduce this condition before any lab
+source correction. A corrected lab source needs explicit base, patch and
+compiled-tree identities; it cannot qualify the unmodified node by proxy.
+The overall native result remains failed. Eighty-three local injected cases
+and the hosted controller-suite step qualify the observation mechanism,
+not successful shutdown, wallet startup, checkpoints, seed or visual matches.
+
+The main progress ledger has 65 of 80 rows marked done, or 81.25 percent,
+excluding corrective X rows. This is a count of recorded tasks, not a
+weighted completion estimate or independent acceptance of the end state.
+All 94 visual matches and fifteen main rows remain open.
