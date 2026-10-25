@@ -24,6 +24,10 @@ on:
         description: Capture genuine Welcome and empty Import on isolated hosted Windows
         type: boolean
         default: false
+      chain321_lab:
+        description: Qualify isolated chain-321 production on Linux Docker and native Windows
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -233,3 +237,59 @@ jobs:
   devnet-tests:
     if: inputs.devnet_tests
     uses: ./.github/workflows/blockchain-integration-tests.yml
+
+  chain321-lab:
+    if: inputs.chain321_lab
+    name: Chain-321 ${{ matrix.backend }} lab
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            backend: docker
+          - runner: windows-latest
+            backend: native
+    env:
+      GIT_CONFIG_COUNT: "1"
+      GIT_CONFIG_KEY_0: core.autocrlf
+      GIT_CONFIG_VALUE_0: "false"
+    steps:
+      - name: Checkout the dispatched wallet source
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Checkout the exact lab node source
+        uses: actions/checkout@v6
+        with:
+          repository: zenon-network/go-zenon
+          ref: 590f43ca7a24dccd8e883bc8903a0cb02e54528a
+          path: .harness/ci-node-source
+          persist-credentials: false
+
+      - name: Set up the pinned node compiler
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.23.12'
+          cache: false
+
+      - name: Test hosted lab isolation and original-handle rules
+        run: python -B -m unittest discover -s test/ci -v
+
+      - name: Build, observe and stop the original isolated lab
+        env:
+          SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
+        run: python -B -m tool.ci.hosted_chain321 --backend ${{ matrix.backend }}
+
+      # No node data, keys, profile, private command output or source archive.
+      - name: Retain the finite chain-321 manifest
+        if: always() && hashFiles('.harness/ci-chain321/manifest.json') != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: chain321-${{ matrix.backend }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          compression-level: 0
+          include-hidden-files: true
+          if-no-files-found: error
+          path: .harness/ci-chain321/manifest.json

@@ -1886,3 +1886,44 @@ production acceptance remain pending. The six passing chain-69 feature files
 retain their earlier 27938b9bc546 source scope. Password migration and full
 two-sided Swap terms remain seamed. Public output remains English and excludes
 private paths, profiles, raw local diagnostics, credentials and personal identity.
+
+### Hosted chain-321 execution path
+
+A personal Windows machine is not a prerequisite for hosted native acceptance.
+The existing hosted Windows builds and ordinary entry captures already establish
+that Actions can execute this app's finite native checks. The remaining work
+needs an owned runtime and a producing isolated chain, which can be created on
+fresh hosted runners rather than on an owner's computer.
+
+The default-off `chain321_lab` input adds Linux Docker and native Windows jobs.
+Each checks out the same pinned go-zenon source and builds its node command with
+Go 1.23.12 and CGO disabled. The generated chain identifier remains 321. Linux
+uses five owned containers on an internal network; Windows uses five original
+native process handles and distinct loopback peer ports. HTTP and WS remain at
+the exact existing loopback origins. This avoids a public RPC endpoint, a tunnel
+between jobs, and a Windows Docker Desktop requirement. Both instances keep
+independent source, genesis, binary, configuration and original-exit evidence.
+
+The controller requires advancing height and timestamp, exact HTTP/WS momentum
+hash correspondence, unchanged inputs and positive shutdown. Its explicit
+allowlisted manifest contains no node data, wallet profile, keys, tokens,
+private paths or raw command diagnostics. A sampled 4 GiB work cap and a separate
+2 GiB floor plus declared allocation bound the fresh non-secret hosted regression
+fixture. Self-hosted execution is refused; local production storage retains its
+10 GiB floor and existing quotas.
+Actual process shutdown is separate from the runner's later destruction; no
+qualified filesystem cleanup is claimed. No SDK or binary artifact is copied
+to the local qualification store for this source preparation.
+
+This source adds twenty offline isolation regressions and runs the complete
+Python controller suite on each hosted runner before starting a lab. Local
+syntax and whitespace checks are complete; the new suite has not executed
+locally because storage-policy admission refused before task creation. Existing
+evidence keeps its original scope. Hosted execution, original logs and manifest
+verification are pending; authored workflow and source are not execution proof.
+
+The new lab jobs do not import a wallet or admit seed recipes. Full native
+wallet preparation, reversible checkpoints, the remaining ninety captures,
+all ninety-four visual matches and running-build motion, frame-time, seam and
+Arabic-layout acceptance remain pending. Those steps will use actual owned
+runtime evidence rather than saved reports or synthetic Ready state.

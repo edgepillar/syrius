@@ -76,3 +76,41 @@ index through the wallet and select that index.
   znnd that no devnet key holds.
 - The Sporks page is read-only here: the wallet knows the spork administrator
   of chains 1 and 69 only. Do not activate a spork as a test on any chain.
+
+## Hosted qualification
+
+The manual `Public Contribution Qualification` workflow has a default-off
+`chain321_lab` input. It prepares two independent fresh runners:
+
+- Linux builds the pinned node command and runs five containers on an internal
+  Docker network, publishing HTTP and WS on loopback only.
+- Windows builds the same pinned node command and runs five native processes.
+  Peer addresses and RPC bind to loopback; each original process has a separate
+  data directory. Docker Desktop and a personal Windows computer are unnecessary
+  for this native backend.
+
+Both use go-zenon `590f43ca7a24dccd8e883bc8903a0cb02e54528a`, Go 1.23.12,
+the repository's chain-321 genesis generator and the original public devnet
+keys. Native configuration changes only deployment paths, listen addresses
+and peer ports. The Docker image contains the source-built static node command;
+its image ID is recorded. No node binary, source archive or SDK is uploaded.
+
+The Python suite runs before either lab starts. The controller requires a clean
+source, exact source and binary hashes, fresh private directories, free ports,
+five live original resources, matching HTTP/WS genesis and momentum observations,
+positive height/timestamp progression and positive original shutdown. Command
+output stays private; the explicit artifact is a finite allowlisted manifest.
+No public RPC listener, external tunnel, real wallet or public-chain send is used.
+The 4 GiB working cap uses cooperative samples rather than an OS disk quota.
+Fresh non-secret hosted regression VMs use an explicitly separate 2 GiB floor
+plus the 4 GiB declared reserve. The controller refuses self-hosted execution.
+The local production store keeps its 10 GiB floor and existing quotas.
+Ephemeral-runner destruction is separate from verified process shutdown and is
+not claimed as qualified storage cleanup.
+
+These jobs qualify two independent lab instances. They do not connect a Windows
+runner to the Linux runner, admit a seed recipe, create a wallet checkpoint or
+prove any screen match. Full native wallet preparation, captures and motion
+acceptance must consume actual owned runtime evidence in a later integration;
+the existing recipe and entry guards stay in force. Execution status and exact
+run/source bindings are recorded in `docs/environment.md` and the progress log.
