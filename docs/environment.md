@@ -2260,3 +2260,35 @@ remain negative. Raw stacks, memory addresses and paths are not uploaded;
 the observation never creates process ownership or successful shutdown.
 Forty-one injected controller, projection and inspector cases pass locally,
 as does workflow YAML parsing. Actual diagnostic execution remains pending.
+
+### Actual protocol shutdown wait and staged consumer retirement
+
+At `c85a45be3dbe690fe4dc26ef0aa7c99be2d59d9c`, tree
+`e10ae90c554a7606757abe9262a43716521ef71d`, diagnostic native
+[40202470014](https://github.com/edgepillar/syrius/actions/runs/40202470014),
+attempt one, job 121196360676 passes its full controller-suite step and every
+functional lab gate. Chain height advances one to two in ten samples, with
+last timestamp 1792938690. Shutdown remains failed: RPC times out and is
+forced; the first producer exits two with `NODE_PANIC`; three other nodes
+exit zero. The producer's precise panic cause remains unclassified.
+[Read-only inspection 40202967814](https://github.com/edgepillar/syrius/actions/runs/40202967814)
+verifies archive `d9569ede0efd2ab82fc0be842002dd7e035132f4127a72d99a2e0051550aa0ca`
+and manifest `3a47542ec4e0fd1a68cb8f74178f9d3ab8b965dd1844c4bab98534fb50246601`.
+The exact 20403-byte stack response has SHA-256
+`90e5991a6ef71053f53faaa0c7d2f601c7e9191eccc9ad4259ac01ba79524404`.
+Its single shutdown goroutine projects `WAIT_GROUP_SEMAPHORE`, `WAIT_GROUP`,
+`PROTOCOL_STOP`, `ZENON_STOP` and `NODE_STOP`. This identifies the observed
+wait inside the pinned protocol shutdown path, rather than HTTP shutdown;
+it does not establish which child synchronization task is holding the group.
+
+The next controller retires the original producers and observer in creation
+order before requesting RPC consumer shutdown. The pinned
+[protocol stop](https://github.com/zenon-network/go-zenon/blob/590f43ca7a24dccd8e883bc8903a0cb02e54528a/protocol/handler.go)
+waits for its synchronization group. Keeping RPC alive while its peers retire
+is a controller candidate, not a reproduced fix for that internal node wait.
+Every original is still attempted after any failure, and all five must exit
+zero with complete output and no forced kill. Native closure is one-attempt;
+the actual attempted role order is retained. There is no timeout increase,
+node patch, synthetic exit or retry. New injected order and retirement cases
+first reject the former behavior; forty-three selected cases pass locally.
+Actual qualification must use the normal profiler-disabled native path.

@@ -269,21 +269,33 @@ class OriginalHandleTests(unittest.TestCase):
         self.assertEqual(original.receipt["stop_code"], "SIGNAL_OS_ERROR")
         self.assertTrue(original.receipt["forced"])
 
-    def test_native_signals_all_original_peers_before_waiting_for_any(self):
+    def test_native_keeps_rpc_running_until_producers_and_observer_have_finished(self):
         events = []
         originals = []
         for index in range(5):
             item = mock.Mock(receipt=dict(exit_code=0, output_complete=True, forced=False), drains=[])
-            item.request_stop.side_effect = lambda index=index: events.append(("signal", index))
             def finish(index=index):
-                self.assertEqual(sum(kind == "signal" for kind, _ in events), 5)
-                events.append(("wait", index))
+                self.assertEqual(index, len(events))
+                events.append(index)
             item.stop.side_effect = finish
             originals.append(item)
         runtime = lab.Native(mock.Mock(), Path("fixture"), {})
         runtime.originals = originals
         runtime.stop()
-        self.assertEqual([kind for kind, _ in events], ["signal"] * 5 + ["wait"] * 5)
+        self.assertEqual(events, list(range(5)))
+        self.assertEqual(runtime.stop_order, list(lab.ROLES))
+        for item in originals:
+            item.request_stop.assert_not_called()
+
+    def test_native_stop_is_one_attempt_even_after_all_originals_exit_zero(self):
+        runtime = lab.Native(mock.Mock(), Path("fixture"), {})
+        runtime.originals = [mock.Mock(receipt=dict(exit_code=0, output_complete=True, forced=False), drains=[])
+                             for _ in lab.ROLES]
+        runtime.stop()
+        with self.assertRaises(lab.Failure):
+            runtime.stop()
+        for item in runtime.originals:
+            item.stop.assert_called_once_with()
 
     def original(self, process, drains):
         value = object.__new__(lab.Original)

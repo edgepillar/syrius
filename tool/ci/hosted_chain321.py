@@ -437,6 +437,8 @@ class Native:
         self.commands, self.binary, self.configs = commands, binary, configs
         self.originals = []
         self.stack_debug = stack_debug
+        self.stop_attempted = False
+        self.stop_order = []
 
     def start(self):
         for role in ROLES:
@@ -457,16 +459,15 @@ class Native:
             need(original.process.poll() is None, "NODE_EXITED")
 
     def stop(self):
+        need(not self.stop_attempted, "STOP_UNKNOWN")
+        self.stop_attempted = True
         failed = False
-        # Signal the whole original peer set before waiting for any member.
-        # Peer shutdown can wait for remote read loops to finish.
-        for original in reversed(self.originals):
-            try:
-                original.request_stop()
-            except Exception:
-                failed = True
-        for index in reversed(range(len(self.originals))):
+        # RPC timed out in ProtocolManager.Stop while all peers were closing.
+        # Retire producers and the observer before requesting consumer shutdown.
+        for index in range(len(self.originals)):
             original = self.originals[index]
+            if index < len(ROLES):
+                self.stop_order.append(ROLES[index])
             try:
                 original.stop()
             except Exception:
@@ -820,6 +821,7 @@ def run(backend):
         report["commands"] = [item.receipt for item in commands.originals]
         if isinstance(runtime, Native):
             report["node_exits"] = [item.receipt for item in runtime.originals]
+            report["native_shutdown_order"] = runtime.stop_order
         elif isinstance(runtime, Docker):
             report["docker_image_id"] = runtime.image
             report["created_count"] = len(runtime.created)

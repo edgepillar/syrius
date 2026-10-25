@@ -183,3 +183,9 @@ node's existing profiler only on the original RPC process at preflighted
 forced cleanup. Only fixed codes from a single shutdown goroutine, byte count
 and hash are retained. No raw stack is uploaded, no external listener is opened
 and no diagnostic observation can turn a forced exit into success.
+
+Native retirement closes the original producers and observer in creation
+order, then requests RPC shutdown. This follows an observed protocol-group
+wait during simultaneous retirement. Each handle retains its one signal
+attempt and strict zero/complete/unforced exit requirement. The attempted
+role order is finite evidence only; any original failure keeps the lab failed.

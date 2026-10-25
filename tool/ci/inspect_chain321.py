@@ -186,6 +186,9 @@ def project(report, backend, head, run_id):
     projected_exits = []
     stack_enabled = report.get("native_stack_diagnostic", False)
     need(type(stack_enabled) is bool and (not stack_enabled or backend == "native"))
+    stop_order = report.get("native_shutdown_order")
+    need(stop_order is None or (backend == "native" and type(stop_order) is list
+         and len(stop_order) <= len(ROLES) and stop_order == list(ROLES[:len(stop_order)])))
     for item in exits:
         if item is None:
             projected_exits.append(dict(exit_code=None, output_complete=None, forced=None,
@@ -266,6 +269,7 @@ def project(report, backend, head, run_id):
         direct_rpc_ready=direct_ready, loopback_relay=relay,
         observations=observations,
         native_stack_diagnostic=stack_enabled,
+        native_shutdown_order=stop_order,
         inspection_only=True, runtime_started=False, seed_admitted=False)
 
 

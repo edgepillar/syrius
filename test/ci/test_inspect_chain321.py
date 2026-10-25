@@ -27,6 +27,17 @@ def manifest():
 
 
 class InspectionTests(unittest.TestCase):
+    def test_native_shutdown_order_is_finite_and_cannot_adopt_another_scope(self):
+        report = manifest()
+        report["native_shutdown_order"] = list(inspect.ROLES)
+        result = inspect.project(report, "native", "a" * 40, 123)
+        self.assertEqual(result["native_shutdown_order"], list(inspect.ROLES))
+        self.assertFalse(result["runtime_started"])
+        for value in (["rpc"], list(inspect.ROLES) * 2, ["private-path"]):
+            report["native_shutdown_order"] = value
+            with self.assertRaises(inspect.Refused):
+                inspect.project(report, "native", "a" * 40, 123)
+
     def test_stack_probe_requires_explicit_diagnostic_scope_and_finite_frames(self):
         report = manifest()
         report["native_stack_diagnostic"] = True
