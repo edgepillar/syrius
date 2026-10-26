@@ -25,7 +25,8 @@ class _TourInstance extends cli.Instance {
     switch (command['cmd']) {
       case 'state':
         return <String, dynamic>{
-          'ok': true, 'harnessMode': 'wallet', 'booted': true, 'walletUnlocked': true,
+          'ok': true, 'harnessMode': 'wallet', 'booted': true,
+          'walletUnlocked': true,
           'walletInitCompleted': true, 'tab': tab, 'tabs': tabs,
           'address': 'synthetic-address', 'walletPath': 'synthetic-profile',
           'node': 'ws://127.0.0.1:45998', 'chainId': chain,
@@ -34,7 +35,9 @@ class _TourInstance extends cli.Instance {
       case 'tap':
         if (unavailable != null &&
             (command['tab'] == unavailable || command['key'] == unavailable)) {
-          return <String, dynamic>{'ok': false, 'error': 'synthetic-unavailable'};
+          return <String, dynamic>{
+            'ok': false, 'error': 'synthetic-unavailable',
+          };
         }
         if (command['tab'] case final String value) tab = value;
         if (command['key'] case final String key) sections.add(key);
@@ -79,10 +82,12 @@ class _TourInstance extends cli.Instance {
 }
 
 void main() {
-  test('tour covers every page and reaches merged subpages through their UI', () async {
+  test('tour covers every page and reaches merged subpages', () async {
     final _TourInstance instance = _TourInstance();
     await instance.run();
-    expect(instance.captured, <String>[...cli.walletTourPages, 'walletConnect']);
+    expect(instance.captured, <String>[
+      ...cli.walletTourPages, 'walletConnect',
+    ]);
     expect(instance.sections, <String>[
       'nodes_tab_pillars', 'nodes_tab_sentinels', 'settings_apps',
     ]);
@@ -90,17 +95,20 @@ void main() {
     expect(instance.outcome?['complete'], isTrue);
     final List<Map<String, Object?>> visited =
         instance.outcome!['visited']! as List<Map<String, Object?>>;
-    expect(visited.every((Map<String, Object?> page) => page['captured'] == true), isTrue);
+    expect(
+      visited.every((Map<String, Object?> page) => page['captured'] == true),
+      isTrue,
+    );
   });
 
-  test('an unavailable page fails and cannot silently become complete', () async {
+  test('an unavailable page cannot silently become complete', () async {
     final _TourInstance instance = _TourInstance()..unavailable = 'transfer';
     await expectLater(instance.run(), throwsA(isA<cli.Fail>()));
     expect(instance.captured, <String>['dashboard']);
     expect(instance.outcome?['complete'], isFalse);
   });
 
-  test('a missing merged section fails even when the main rail page opens', () async {
+  test('a missing merged section fails after its rail page opens', () async {
     final _TourInstance instance = _TourInstance()
       ..unavailable = 'nodes_tab_sentinels';
     await expectLater(instance.run(), throwsA(isA<cli.Fail>()));
@@ -108,7 +116,7 @@ void main() {
     expect(instance.outcome?['complete'], isFalse);
   });
 
-  test('missing duplicate and unknown catalogs are rejected before navigation', () async {
+  test('invalid catalogs are rejected before navigation', () async {
     for (final List<String> tabs in <List<String>>[
       <String>[],
       <String>[...cli.walletTourPages, 'dashboard'],
@@ -122,7 +130,7 @@ void main() {
     }
   });
 
-  test('widget and severe errors fail with finite counts and no raw diagnostics', () async {
+  test('widget and severe errors fail without raw diagnostics', () async {
     for (final bool widgetError in <bool>[true, false]) {
       final _TourInstance instance = _TourInstance()
         ..widgetError = widgetError
@@ -136,7 +144,9 @@ void main() {
 
   test('wallet context changes stop the tour before the next page', () async {
     final _TourInstance instance = _TourInstance();
-    await expectLater(instance.run(changeContext: true), throwsA(isA<cli.Fail>()));
+    await expectLater(
+      instance.run(changeContext: true), throwsA(isA<cli.Fail>()),
+    );
     expect(instance.captured, <String>['dashboard']);
     expect(instance.outcome?['complete'], isFalse);
   });

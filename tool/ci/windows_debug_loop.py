@@ -132,12 +132,19 @@ def debug_complete(report):
             and report.get('forced_cleanup') is cleanup['forced'])
 
 
+def compiler_metadata_version(name):
+    # Visual Studio distributes CMake with vendor version suffixes.
+    return (type(name) is str and len(name) <= 64
+            and re.fullmatch(r'[0-9]+(?:\.[0-9]+){1,3}(?:-[A-Za-z][A-Za-z0-9_.-]{0,31})?', name)
+            is not None)
+
+
 def compiler_telemetry_image(repo):
     root = repo / 'build/windows/x64/CMakeFiles'
     bounded.plain(root)
     candidates = []
     for directory in root.iterdir():
-        if re.fullmatch(r'[0-9]+(?:\.[0-9]+){1,3}', directory.name):
+        if compiler_metadata_version(directory.name):
             bounded.plain(directory)
             offered = directory / 'CMakeCXXCompiler.cmake'
             if offered.is_file():
@@ -439,7 +446,8 @@ def analyze(parent, repo):
     dart, _ = sdk(parent)
     original = subprocess.Popen([str(dart), 'analyze', '--format', 'machine',
         'tool/ci/windows_debug_service_probe.dart', 'harness/app/main.dart',
-        'harness/bin/harness.dart', 'test/harness/wallet_tour_test.dart'],
+        'harness/bin/harness.dart', 'test/harness/wallet_tour_test.dart',
+        'harness/bin/ci_wallet_tour.dart'],
         cwd=repo, env=parent, shell=False, stdin=subprocess.DEVNULL,
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=0)
     lines = Lines(original.stdout)
@@ -465,7 +473,8 @@ def analyze(parent, repo):
                             selected = ('service_probe' if relative.endswith('/tool/ci/windows_debug_service_probe.dart')
                                         else 'harness_entry' if relative.endswith('/harness/app/main.dart')
                                         else 'harness_cli' if relative.endswith('/harness/bin/harness.dart')
-                                        else 'tour_test' if relative.endswith('/test/harness/wallet_tour_test.dart') else 'other')
+                                        else 'tour_test' if relative.endswith('/test/harness/wallet_tour_test.dart')
+                                        else 'harness_ci' if relative.endswith('/harness/bin/ci_wallet_tour.dart') else 'other')
                             locations.append(dict(source=selected, code=code,
                                                   line=int(line), column=int(column)))
         code = original.wait(timeout=5)

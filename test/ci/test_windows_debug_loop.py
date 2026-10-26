@@ -282,6 +282,14 @@ class OrdinaryCloseTests(unittest.TestCase):
 
 
 class CompilerHelperTests(unittest.TestCase):
+    def test_cmake_vendor_versions_are_admitted_without_accepting_paths(self):
+        for value in ('4.4.4', '3.11.18033000-MSVC_2', '4.1.0-msvc1', '4.2.0-rc1'):
+            with self.subTest(value=value):
+                self.assertTrue(debug.compiler_metadata_version(value))
+        for value in ('../4.4.4', '4.4.4/other', 'Q:/4.4.4', 'vendor', '4.4.4-' + 'a'*65):
+            with self.subTest(value=value):
+                self.assertFalse(debug.compiler_metadata_version(value))
+
     def test_helper_is_the_sibling_of_the_recorded_absolute_msvc_compiler(self):
         text = 'set(CMAKE_CXX_COMPILER "Q:/fixture/MSVC/14.50/bin/Hostx64/x64/cl.exe")\n'
         self.assertEqual(debug.compiler_helper_path(text),

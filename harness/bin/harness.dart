@@ -78,6 +78,7 @@ class Args {
     'http',
     'counterparty',
     'presentation',
+    'metadata',
   };
 
   final Map<String, String> flags = <String, String>{};
@@ -224,7 +225,11 @@ Future<void> build(Args a) async {
   final String mode = a['mode'] ?? 'release';
   final Process p = await Process.start(
     'flutter',
-    <String>['build', 'windows', '--$mode', '-t', 'harness/app/main.dart'],
+    <String>[
+      'build', 'windows', '--$mode', '-t', 'harness/app/main.dart',
+      if (a.has('no-pub')) '--no-pub',
+      if (a['metadata'] != null) '--dart-define-from-file=${a['metadata']}',
+    ],
     workingDirectory: repo,
     runInShell: true,
     mode: ProcessStartMode.inheritStdio,
@@ -1116,7 +1121,9 @@ Future<void> _tourContext(
     'address', 'walletPath', 'node', 'chainId', 'signingChainId',
     'savedSigningChainId',
   ]) {
-    if (current[key] != original[key]) throw Fail('tour: wallet context changed');
+    if (current[key] != original[key]) {
+      throw Fail('tour: wallet context changed');
+    }
   }
 }
 
@@ -1141,7 +1148,9 @@ Future<void> tour(
     for (final String page in pages) {
       await _tourContext(inst, s);
       await _tourPage(inst, page);
-      await (settle ?? Future<void>.delayed)(const Duration(milliseconds: 2500));
+      await (settle ?? Future<void>.delayed)(
+        const Duration(milliseconds: 2500),
+      );
       final List<dynamic> nodes =
           (await call(inst, <String, Object?>{'cmd': 'tree'}))['nodes']
               as List<dynamic>;
@@ -1176,7 +1185,9 @@ Future<void> tour(
         if (bytes.length < 33 || bytes.length > 8 * 1024 * 1024 ||
             !signature.asMap().entries.every(
               (MapEntry<int, int> entry) => bytes[entry.key] == entry.value,
-            )) throw Fail('tour: invalid capture');
+            )) {
+          throw Fail('tour: invalid capture');
+        }
         final File file = File('$dir${Platform.pathSeparator}$page.png');
         Directory parent = file.parent.absolute;
         while (true) {
@@ -1191,7 +1202,9 @@ Future<void> tour(
           parent = parent.parent;
         }
         if (FileSystemEntity.typeSync(file.path, followLinks: false) !=
-            FileSystemEntityType.notFound) throw Fail('tour: capture already exists');
+            FileSystemEntityType.notFound) {
+          throw Fail('tour: capture already exists');
+        }
         file.parent.createSync(recursive: true);
         file.writeAsBytesSync(bytes, flush: true);
       }

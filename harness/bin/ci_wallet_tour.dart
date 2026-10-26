@@ -1,0 +1,87 @@
+// Manual hosted regression only. Private input travels over the gated stdin.
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+
+import 'harness.dart' as cli;
+
+Future<void> main() async {
+  final StreamIterator<String> input = StreamIterator<String>(
+    stdin.transform(utf8.decoder).transform(const LineSplitter()),
+  );
+  try {
+    final Map<String, String> env = Platform.environment;
+    final String name = env['SYRIUS_CI_WALLET_INSTANCE'] ?? '';
+    if (!Platform.isWindows || env['GITHUB_ACTIONS'] != 'true' ||
+        env['SYRIUS_CI_WALLET_TOUR'] != 'true' ||
+        !RegExp(r'^ci-wallet-[a-f0-9]{24}$').hasMatch(name) ||
+        !await input.moveNext() || input.current != 'START') {
+      throw StateError('admission');
+    }
+    final cli.Instance instance = cli.Instance(name);
+    if (FileSystemEntity.typeSync(instance.home, followLinks: false) !=
+            FileSystemEntityType.notFound ||
+        FileSystemEntity.typeSync('${cli.stateRoot}/app', followLinks: false) !=
+            FileSystemEntityType.notFound) {
+      throw StateError('unused destinations required');
+    }
+    await cli.build(cli.Args(<String>[
+      '--mode', 'release', '--no-pub', '--metadata',
+      '${cli.repo}/.dart_tool/git_metadata.json',
+    ]));
+    await cli.start(
+      instance, cli.Args(<String>['--fresh', '--mode', 'release']),
+    );
+    stdout.writeln('CI_WALLET_READY');
+    await stdout.flush();
+    // The parent binds the original native handle and the owned lab first.
+    if (!await input.moveNext() || input.current.length > 4096) {
+      throw StateError('private input unavailable');
+    }
+    final Object? decoded = jsonDecode(input.current);
+    if (decoded is! Map<String, dynamic> || decoded.length != 4 ||
+        decoded['chain'] != '321' ||
+        decoded['node'] != 'ws://127.0.0.1:45998' ||
+        decoded['mnemonic'] is! String || decoded['password'] is! String) {
+      throw StateError('private input refused');
+    }
+    await cli.importWallet(instance, cli.Args(<String>[
+      '--chain', decoded['chain'] as String,
+      '--node', decoded['node'] as String,
+      '--mnemonic', decoded['mnemonic'] as String,
+      '--password', decoded['password'] as String,
+    ]));
+    final Map<String, dynamic> state = await cli.stateOf(instance);
+    if (state['node'] != 'ws://127.0.0.1:45998' || state['chainId'] != 321 ||
+        state['signingChainId'] != 321 || state['savedSigningChainId'] != 321 ||
+        state['walletUnlocked'] != true ||
+        state['walletInitCompleted'] != true ||
+        state['embeddedNode'] != false) {
+      throw StateError('wallet policy unconfirmed');
+    }
+    final Map<String, dynamic> logs = await cli.call(
+      instance,
+      <String, Object?>{
+        'cmd': 'logs', 'since': 0, 'limit': 500,
+        'levels': <String>['SEVERE', 'SHOUT', 'FLUTTER'],
+      },
+    );
+    if (logs['logs'] is! List || (logs['logs'] as List<dynamic>).isNotEmpty) {
+      throw StateError('onboarding errors');
+    }
+    await cli.run(instance, 'window', cli.Args(<String>['1280', '780']));
+    await cli.tour(instance, cli.Args(<String>[]));
+    stdout.writeln('CI_WALLET_DONE');
+    await stdout.flush();
+    if (!await input.moveNext() || input.current != 'FINISH') {
+      throw StateError('closure unconfirmed');
+    }
+  } on Object {
+    // The parent retains the actual exit and complete bounded output.
+    // Neither exception text nor private UI replies are printed.
+    stdout.writeln('CI_WALLET_ERROR');
+    exitCode = 1;
+  } finally {
+    await input.cancel();
+  }
+}

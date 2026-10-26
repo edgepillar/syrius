@@ -3152,3 +3152,37 @@ selected tests before allocating a native debug build and analyzes the changed
 CLI as well. All 49 Python controller cases pass locally; the unchanged ten
 frontend cases retain their preceding Windows evidence. This preparation does
 not complete P07, P08, a chain-321 wallet send or any visual match.
+
+### Hosted tour regressions pass; CMake metadata lookup is narrowed
+
+Source `e1d4431a53e10819124168cd6d74794585dc510f`, tree
+`7f430946a3c9e6b3f892ccae4ac0fe20df28d833`, run `40277412548`, attempt one,
+job `121422979571`, passes all six tour regressions with no skip/error event,
+49 controller cases and ten frontend cases. The selected Dart analysis has
+zero errors, zero warnings and 15 formatting infos. All 24 native debug checks
+again pass with original normal zero exits. Helper admission fails at
+`compiler_metadata` for VCTIP, before a path match, image pin or signal. The
+two-member forced fallback remains a failed result.
+
+The source matcher accepts only plain numeric CMake directories. Microsoft
+documents [CMake builds with vendor suffixes](https://learn.microsoft.com/en-us/cpp/build/get-started-linux-cmake?view=msvc-170),
+including `3.11.18033000-MSVC_2`. The next candidate admits bounded vendor
+version suffixes and adds a regression for these names while rejecting paths
+and oversized labels. The exact recorded absolute MSVC compiler, sibling
+VCTIP image, original job handle and immutable image requirements remain.
+The particular generated directory name from this hosted run was not retained;
+this correction is not yet a proven explanation of that original refusal.
+All 50 controller cases pass locally. The 15 new Dart infos are corrected in
+source; a fresh hosted analysis remains required.
+
+A separate gated Dart entry prepares the actual P08 build/start/import/tour
+sequence. It requires an explicit hosted opt-in, a new instance and unused
+build destination. It waits before build and again before receiving private
+input, allowing its future parent to bind the original app and lab first.
+The public lab input travels over stdin. Its profiles and captures stay private.
+This entry is not yet connected to the owned lab controller and cannot establish
+native wallet qualification. A negative control requires missing opt-in to exit
+with the fixed refusal marker before any build destination exists. Both that
+control and the new entry's selected analysis await hosted execution. Application
+dependencies, published application sources and the Windows workflow's input
+defaults remain unchanged.

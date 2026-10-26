@@ -12,7 +12,7 @@ from windows_baseline import fresh_environment, run_bounded, test_counts
 def main():
     report = dict(schema=1, scope='wallet_tour_controller_tests', success=False,
                   wallet_qualified=False, native_wallet_executions=0, counts=None,
-                  command=None, code=None)
+                  command=None, entry_refusal=None, code=None)
     try:
         parent, source = debug.entry.require_ci(os.environ, None, platform=os.name)
         repo = Path(parent['GITHUB_WORKSPACE'])
@@ -22,6 +22,18 @@ def main():
         report.update(source_sha=source, source_tree=tree,
                       run_id=parent['GITHUB_RUN_ID'], run_attempt=parent['GITHUB_RUN_ATTEMPT'])
         dart, snapshot = debug.sdk(parent)
+        app = repo / '.harness/app'
+        debug.need(not app.exists(), 'PROFILE_REFUSED')
+        refused = run_bounded([str(dart), '--disable-dart-dev',
+            '--packages=' + str(repo / '.dart_tool/package_config.json'),
+            'harness/bin/ci_wallet_tour.dart'], cwd=repo,
+            env=fresh_environment(repo, parent), timeout=30, cap=65536)
+        report['entry_refusal'] = dict(**refused.public(),
+            output_sha256=hashlib.sha256(refused.output).hexdigest(),
+            refused_before_build=(not app.exists() and refused.exit_code == 1
+                and refused.transport_complete
+                and refused.output.replace(b'\r\n', b'\n') == b'CI_WALLET_ERROR\n'))
+        debug.need(report['entry_refusal']['refused_before_build'], 'TESTS_FAILED')
         packages = Path(parent['FLUTTER_ROOT']) / 'packages/flutter_tools/.dart_tool/package_config.json'
         outcome = run_bounded([str(dart), '--packages=' + str(packages), str(snapshot),
             'test', '--no-pub', '--reporter', 'json', '--concurrency=1',
