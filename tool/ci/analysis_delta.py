@@ -33,10 +33,9 @@ INPUTS = ('pubspec.yaml', 'pubspec.lock', 'analysis_options.yaml',
           'patched_packages/reown_core-1.3.8/pubspec.lock')
 CODES = frozenset(('ENVIRONMENT_REFUSED', 'SOURCE_REFUSED', 'TOOL_REFUSED',
     'SPACE_REFUSED', 'COMMAND_FAILED', 'ANALYSIS_INVALID', 'ANALYSIS_FAILED',
+    'ANALYSIS_MACHINE_SHAPE', 'ANALYSIS_MACHINE_COUNTS',
+    'ANALYSIS_PATH_OUTSIDE', 'ANALYSIS_PATH_UNTRACKED',
     'INPUTS_CHANGED', 'INTERNAL_ERROR'))
-DIAGNOSTIC = re.compile(
-    r'^\s*(error|warning|info)\s+[\u2022-]\s+.+\s+[\u2022-]\s+'
-    r'(.+):(\d+):(\d+)\s+[\u2022-]\s+([a-z][a-z0-9_]{0,99})\s*$')
 PATH = re.compile(r'[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\.dart')
 MAX_OUTPUT = 8 * 1024**2
 FREE_FLOOR = 10 * 1024**3
@@ -64,32 +63,46 @@ def relative_dart(offered, root, tracked):
         try:
             path = path.relative_to(cls(root))
         except ValueError:
-            raise Refused('ANALYSIS_INVALID') from None
+            raise Refused('ANALYSIS_PATH_OUTSIDE') from None
     value = path.as_posix()
-    need(PATH.fullmatch(value) is not None and value in tracked, 'ANALYSIS_INVALID')
+    need(PATH.fullmatch(value) is not None, 'ANALYSIS_INVALID')
+    need(value in tracked, 'ANALYSIS_PATH_UNTRACKED')
     return value
 
 
-def diagnostics(raw, root, tracked):
+def diagnostics(raw, root, tracked, expected):
+    """Read machine fields only; private messages are never decoded or emitted.
+
+    The independently framed Flutter summary must account for every severity.
+    This uses the same machine protocol as the existing hosted debug analysis.
+    """
     need(type(raw) is bytes and len(raw) <= MAX_OUTPUT, 'ANALYSIS_INVALID')
-    try:
-        raw.decode('utf-8', 'strict')
-        counts = baseline.analysis_counts(raw)
-    except (UnicodeError, baseline.BaselineFailure):
-        raise Refused('ANALYSIS_INVALID') from None
+    need(type(expected) is dict and set(expected) == {'errors', 'warnings', 'infos'}
+        and all(type(value) is int and 0 <= value <= 20000 for value in expected.values()),
+        'ANALYSIS_MACHINE_COUNTS')
     rows = []
-    for line in baseline.clean_text(raw).splitlines():
-        if not re.match(r'^\s*(error|warning|info)\s+[\u2022-]\s+', line):
+    for line in raw.splitlines():
+        fields = line.split(b'|', 7)
+        if fields[0] not in (b'ERROR', b'WARNING', b'INFO'):
             continue
-        match = DIAGNOSTIC.fullmatch(line)
-        need(match is not None, 'ANALYSIS_INVALID')
-        level, offered, row, column, code = match.groups()
-        row, column = int(row), int(column)
-        need(0 < row <= 10**7 and 0 < column <= 10**7, 'ANALYSIS_INVALID')
-        rows.append((level, relative_dart(offered, root, tracked), code, row, column))
+        need(len(fields) == 8, 'ANALYSIS_MACHINE_SHAPE')
+        try:
+            level, kind, code, offered, row, column, length = (
+                value.decode('ascii', 'strict') for value in fields[:7])
+        except UnicodeError:
+            raise Refused('ANALYSIS_MACHINE_SHAPE') from None
+        need(re.fullmatch('[A-Z][A-Z0-9_]{0,99}', code) is not None
+            and re.fullmatch('[A-Z][A-Z0-9_]{0,63}', kind) is not None
+            and all(value.isdecimal() for value in (row, column, length)),
+            'ANALYSIS_MACHINE_SHAPE')
+        row, column, length = int(row), int(column), int(length)
+        need(0 < row <= 10**7 and 0 < column <= 10**7 and 0 <= length <= 10**7,
+             'ANALYSIS_MACHINE_SHAPE')
+        rows.append((level.lower(), relative_dart(offered, root, tracked),
+                     code.lower(), row, column))
     levels = Counter(row[0] for row in rows)
-    need(counts == dict(errors=levels['error'], warnings=levels['warning'],
-                        infos=levels['info']) and len(rows) <= 20000, 'ANALYSIS_INVALID')
+    counts = dict(errors=levels['error'], warnings=levels['warning'], infos=levels['info'])
+    need(counts == expected and len(rows) <= 20000, 'ANALYSIS_MACHINE_COUNTS')
     return counts, rows
 
 
@@ -217,13 +230,18 @@ def main():
                     timeout=600, cap=4 * 1024**2)
             raw = command(label + '_analysis', flutter + ['analyze', '--no-pub', '--no-fatal-infos'],
                           target, child_env=child_env, timeout=300, cap=MAX_OUTPUT, required=False)
-            counts, rows = diagnostics(raw, target, tracked)
+            counts = baseline.analysis_counts(raw)
+            need(not counts['errors'] and not counts['warnings']
+                and report['commands'][-1]['success'], 'ANALYSIS_FAILED')
             report['sources'].append(dict(label=label, head=source, tree=actual,
                 counts=counts, tracked_dart_files=len(tracked),
                 inputs_sha256=hashlib.sha256(json.dumps(inputs, sort_keys=True,
-                    separators=(',', ':')).encode()).hexdigest()))
-            need(not counts['errors'] and not counts['warnings']
-                and report['commands'][-1]['success'], 'ANALYSIS_FAILED')
+                    separators=(',', ':')).encode()).hexdigest(), locations_complete=False))
+            raw = command(label + '_locations', [str(dart), 'analyze', '--format', 'machine'],
+                          target, child_env=child_env, timeout=300, cap=MAX_OUTPUT, required=False)
+            _, rows = diagnostics(raw, target, tracked, counts)
+            need(report['commands'][-1]['success'], 'ANALYSIS_FAILED')
+            report['sources'][-1]['locations_complete'] = True
             debug.bounded.verify_source(target, source, parent)
             need(debug.entry.source_tree(target, parent) == expected_tree, 'SOURCE_REFUSED')
             comparisons.append(rows)
@@ -237,8 +255,10 @@ def main():
         report['code'] = code if code in CODES else 'INTERNAL_ERROR'
     print(json.dumps(report, sort_keys=True, separators=(',', ':')))
     summary = {key: value for key, value in report.items() if key != 'commands'}
-    summary['analysis_commands'] = [row for row in report['commands']
-        if row['stage'] in ('before_analysis', 'reported_analysis', 'current_analysis')]
+    fields = ('stage', 'exit_code', 'exit_observed', 'output_complete', 'forced_kill',
+              'output_overflow', 'output_sha256', 'seconds', 'success')
+    summary['analysis_commands'] = [{key: row[key] for key in fields}
+        for row in report['commands'] if row['stage'].endswith(('_analysis', '_locations'))]
     print('::notice title=Hosted analysis delta::' + json.dumps(summary, sort_keys=True, separators=(',', ':')))
     for title, start, end in (('Historical analysis locations', 0, 1),
                               ('Current analysis locations', 1, 2)):

@@ -4421,3 +4421,23 @@ nine selected cases, and captures test prints/tracebacks privately. A
 memory-only control with an already loaded regular `test` package verifies
 discovery still reaches the intended nine cases. The original failed
 attempt remains negative; actual hosted attribution is still pending.
+
+At `c994bf720bda6cd643e8daf8fdf33c15571daff1`, run `40397920632`,
+job `121835801041`, all nine controller cases and SDK setup pass. The
+original before-analysis command exits zero normally after 32.390 seconds,
+with 224309 complete output bytes and no overflow/forced kill, SHA-256
+`596eb9a2e0f07d44344c76cfcbacdf36e48154d25550966af630ae6c3a0df1e5`.
+The new human-location parser refuses this output as `ANALYSIS_INVALID`;
+no source locations or successful attribution are inferred from that exit.
+
+The candidate keeps the mature Flutter summary parser for severity totals
+and uses `dart analyze --format machine`, already exercised by the hosted
+debug analysis, for location fields. It validates the fixed machine
+header, public tracked path, code and coordinates without decoding or
+publishing the private message. Machine totals must exactly equal Flutter
+totals for the same unchanged source. Both original command receipts and
+output hashes remain explicit. The nine controls now cover the machine
+protocol, malformed headers, duplicate/mismatched counts and private
+message bytes. Path admission and terminal refusal are not relaxed. This
+adds a bounded location analysis per source, sharing the same SDK and
+dependency cache; it repeats no build, wallet or node operation.

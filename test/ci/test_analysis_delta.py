@@ -9,8 +9,11 @@ from tool.ci import analysis_delta as delta
 
 
 def output(path='lib/view.dart', *, code='prefer_const_constructors', line=10):
-    return (' info - synthetic private message - ' + path + ':' + str(line)
-            + ':3 - ' + code + '\n1 issue found. (ran in 1.0s)\n').encode()
+    return ('INFO|LINT|' + code.upper() + '|' + path + '|' + str(line)
+            + '|3|1|synthetic private message\n').encode()
+
+
+INFO = dict(errors=0, warnings=0, infos=1)
 
 
 class AnalysisDeltaTests(unittest.TestCase):
@@ -29,8 +32,9 @@ class AnalysisDeltaTests(unittest.TestCase):
         self.assertNotIn('credential', out.getvalue())
 
     def test_projection_never_contains_message_or_absolute_source_root(self):
-        counts, rows = delta.diagnostics(output('C:\\fixture\\lib\\view.dart'),
-                                        'C:/fixture', {'lib/view.dart'})
+        raw = output('C:\\fixture\\lib\\view.dart').replace(b'message', b'message\xff')
+        counts, rows = delta.diagnostics(raw,
+                                        'C:/fixture', {'lib/view.dart'}, INFO)
         self.assertEqual(counts, dict(errors=0, warnings=0, infos=1))
         self.assertEqual(rows, [('info', 'lib/view.dart', 'prefer_const_constructors', 10, 3)])
         value = json.dumps(delta.changes([], rows))
@@ -42,14 +46,13 @@ class AnalysisDeltaTests(unittest.TestCase):
                      'lib/other.dart', 'https://fixture.invalid/lib/view.dart',
                      '//host/private.dart'):
             with self.subTest(path=path), self.assertRaises(delta.Refused):
-                delta.diagnostics(output(path), 'C:/fixture', {'lib/view.dart'})
+                delta.diagnostics(output(path), 'C:/fixture', {'lib/view.dart'}, INFO)
 
     def test_incomplete_duplicate_and_malformed_output_is_not_attributed(self):
-        for raw in (output().replace(b'1 issue', b'2 issues'),
-                    output() + b'No issues found!\n',
-                    output(code='private/invalid'), output()[:-30], b'\xff'):
+        for raw in (output().replace(b'INFO', b'WARNING'), output() + output(),
+                    output(code='private/invalid'), b'INFO|LINT|INCOMPLETE', b'\xff'):
             with self.subTest(size=len(raw)), self.assertRaises(delta.Refused):
-                delta.diagnostics(raw, '/fixture', {'lib/view.dart'})
+                delta.diagnostics(raw, '/fixture', {'lib/view.dart'}, INFO)
 
     def test_shifted_locations_do_not_invent_new_findings(self):
         before = [('info', 'lib/view.dart', 'lint', 1, 2)]
@@ -81,8 +84,8 @@ class AnalysisDeltaTests(unittest.TestCase):
         self.assertTrue(group['locations_truncated'])
 
     def test_clean_analysis_is_an_empty_observation(self):
-        self.assertEqual(delta.diagnostics(b'No issues found! (ran in 1.0s)\n',
-            '/fixture', {'lib/view.dart'}), (dict(errors=0, warnings=0, infos=0), []))
+        self.assertEqual(delta.diagnostics(b'', '/fixture', {'lib/view.dart'},
+            dict(errors=0, warnings=0, infos=0)), (dict(errors=0, warnings=0, infos=0), []))
 
 
 if __name__ == '__main__':
