@@ -352,6 +352,10 @@ The manual Public Contribution Qualification workflow has a default-off
 to run the isolated controller suite, locked dependency restoration, selected
 analysis and the 70-case harness gate on a fresh Windows runner. It uses one
 pinned Flutter SDK and does not build a native wallet or allocate lab nodes.
+Before SDK allocation, it also observes the unchanged original in-memory asset
+byte controls through a bounded command wrapper. Only runtime version, actual
+exit/completeness, output digests and fixed failure labels are public; raw
+output remains private. Missing tools or failed controls stop before the SDK.
 
 Startup observation can include `opening`, `first-frame-pending`,
 `frame-visible`, `last-frame`, `ended`, `frames-suspended` or `ticker-muted`.

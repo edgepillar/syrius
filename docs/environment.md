@@ -4627,3 +4627,45 @@ in progress. It adds runtime observation justified by the new fixed labels;
 it does not retry the unchanged failed source. No new initialization, tour,
 capture, lab-send or visual-acceptance result is claimed before its actual
 outcome. The previous native failure remains negative and X218/P08 stay open.
+
+### Native lane stops before SDK allocation (2026-10-26)
+
+Run `40413709105` at `b326c72ef08c8ec38587af1d76141eed0db23076`, job
+`121890583514`, completes with failure at the asset byte-control step. All
+subsequent Flutter setup, dependency, controller-test, compiler, lab and wallet
+steps are skipped. Its sole failure annotation reports only process exit code
+one. This does not establish whether Node launched, which control failed or
+why. No new startup-film state, initialization, tour or capture result exists.
+
+The unchanged original byte-control script passes separately under local
+Node 26.5.0 with normal exit zero, complete output, four cases, identical asset
+bytes, zero filesystem scratch and no wallet/node execution. This memory-only
+result does not qualify Windows behavior. Original command evidence and the
+failed hosted result remain retained. The next gate is a bounded fixed-category
+observation of that early command; no unchanged native retry is admitted.
+
+### Bounded original asset-command observer candidate (2026-10-26)
+
+The candidate replaces the direct asset-test invocation with a hosted-only
+controller for the same unchanged original script. It validates the dispatched
+fork/ref, run identifiers, workspace and source before locating Node. Bounded
+version and control commands retain their actual exits, completeness,
+overflow/forced status and combined-output digests. Only a validated numeric
+Node version, fixed failure category, known source alias and numeric line may
+be projected. Raw output, paths, exception messages and environment values stay
+private. An unavailable runtime fails before a test; a failed or incomplete
+command cannot be replaced by a success notice.
+
+The original finite four-case result is admitted with exact fields and types,
+then reencoded only after normal successful exit and source revalidation.
+Unknown fields, duplicate fields or notices, false results and incomplete
+transport are refused. The original asset helper, four byte controls, 1000 ms
+VM limit and one-minute workflow step are unchanged. The focused Windows lane
+now observes this command after its Python suite and before SDK allocation;
+the native/Docker lab lane uses the same controller at its original early step.
+Neither the controller nor its memory fixtures create a scratch directory.
+
+All six new admission, finite-disclosure and original-command outcome controls
+pass in memory with no SDK, wallet/node execution or scratch. Hosted evidence
+for this new observer is pending; the earlier Windows failure remains unknown
+and no original startup result is inferred from these controls.

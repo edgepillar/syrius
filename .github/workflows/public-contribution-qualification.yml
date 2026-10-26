@@ -126,6 +126,12 @@ jobs:
           SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
         run: python -B -m tool.ci.run_wallet_tour_tests --all-controllers
 
+      - name: Observe original asset controls before SDK allocation
+        timeout-minutes: 1
+        env:
+          SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
+        run: python -B -m tool.ci.run_asset_tests
+
       - name: Set up the single pinned Flutter SDK
         id: harness_flutter
         uses: subosito/flutter-action@v2
@@ -495,7 +501,9 @@ jobs:
 
       - name: Check asset bytes and opt-in phases in memory
         timeout-minutes: 1
-        run: node test/ci/lab_asset_progress_test.js
+        env:
+          SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
+        run: python -B -m tool.ci.run_asset_tests
 
       - name: Test all isolated controllers before SDK allocation
         if: inputs.windows_wallet_tour
