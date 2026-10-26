@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {FrontendExchange, Refused, frontendAddress, serviceKey} from '../../tool/ci/windows_devtools_frontend.mjs';
+import vm from 'node:vm';
+import {FrontendExchange, Refused, frontendAddress, frontendPageExpression, serviceKey} from '../../tool/ci/windows_devtools_frontend.mjs';
 
 const service = 'ws://127.0.0.1:45123/fixture=/ws';
 const frontend = `http://127.0.0.1:9100/?uri=${encodeURIComponent(service)}`;
@@ -88,4 +89,17 @@ test('unrelated sockets are counted without retaining their address or request i
   assert.equal(value.public().otherSockets, 1);
   assert.doesNotMatch(JSON.stringify(value.public()), /private|45678/);
   assert.equal(value.public().frontendGetVmMatched, false);
+});
+test('page identity binds the SDK origin while allowing its connected-app title', () => {
+  const expression = frontendPageExpression(frontend);
+  assert.doesNotMatch(expression, /fixture|45123/);
+  const state = vm.runInNewContext(expression, {document: {readyState: 'complete', title: 'Connected application'},
+    location: {origin: 'http://127.0.0.1:9100'}});
+  assert.equal(state.ready, true);
+  assert.equal(state.devtools, false);
+  assert.equal(state.sourceMatched, true);
+  for (const origin of ['http://127.0.0.1:9101', 'http://example.invalid:9100', 'https://127.0.0.1:9100']) {
+    const changed = vm.runInNewContext(expression, {document: {readyState: 'complete', title: 'DevTools'}, location: {origin}});
+    assert.equal(changed.sourceMatched, false);
+  }
 });

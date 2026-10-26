@@ -48,6 +48,18 @@ export function frontendAddress(raw, service) {
   return raw;
 }
 
+export function frontendPageExpression(raw) {
+  let address;
+  try { address = new URL(raw); } catch { throw new Refused('ENDPOINT_REFUSED'); }
+  need(address.protocol === 'http:' && address.hostname === '127.0.0.1' &&
+    +address.port >= 1024 && +address.port <= 65535 && !address.username && !address.password,
+  'ENDPOINT_REFUSED');
+  // DevTools can change its document title to describe the connected app.
+  // Identity comes from the SDK server origin and the actual frontend VM reply.
+  return "({ready: document.readyState === 'complete', devtools: document.title.toLowerCase().includes('devtools'), sourceMatched: location.origin === " +
+    JSON.stringify(address.origin) + '})';
+}
+
 export class FrontendExchange {
   constructor(service, pid) {
     need(Number.isSafeInteger(pid) && pid > 0 && pid < 0x100000000, 'PID_REFUSED');
@@ -218,6 +230,7 @@ export async function main() {
     headless: true, browserExit: null, outputComplete: false, forced: false, code: null,
     phase: 'new'};
   const observations = {pageLoaded: false, documentReady: false, devtoolsTitle: false,
+    frontendSourceMatched: false,
     runtimeExceptions: 0, webglIssue: false, wasmIssue: false, networkFailures: 0, workerTargets: 0};
   let original, cdp, exchange;
   let exited = false, completed = 0, outputBytes = 0, overflow = false;
@@ -313,30 +326,32 @@ export async function main() {
       await sleep(100);
     }
     const initialPage = await cdp.send('Runtime.evaluate', {
-      expression: "({ready: document.readyState === 'complete', devtools: document.title.toLowerCase().includes('devtools')})",
+      expression: frontendPageExpression(address),
       returnByValue: true,
     }, cdp.session);
     const initial = initialPage.result?.value;
     need(plainObject(initial) && !initialPage.exceptionDetails && typeof initial.ready === 'boolean' &&
-      typeof initial.devtools === 'boolean', 'FRONTEND_UNCONFIRMED');
+      typeof initial.devtools === 'boolean' && typeof initial.sourceMatched === 'boolean', 'FRONTEND_UNCONFIRMED');
     observations.documentReady = initial.ready;
     observations.devtoolsTitle = initial.devtools;
+    observations.frontendSourceMatched = initial.sourceMatched;
     need(exchange.attached && !exchange.closed, 'FRONTEND_UNCONFIRMED');
     result.phase = 'vm_matched';
     for (let attempt = 0; attempt < 20 && Date.now() < deadline; attempt++) {
       const visible = await cdp.send('Runtime.evaluate', {
-        expression: "({ready: document.readyState === 'complete', devtools: document.title.toLowerCase().includes('devtools')})",
+        expression: frontendPageExpression(address),
         returnByValue: true,
       }, cdp.session);
       const value = visible.result?.value;
       need(plainObject(value) && !visible.exceptionDetails && typeof value.ready === 'boolean' &&
-        typeof value.devtools === 'boolean', 'FRONTEND_UNCONFIRMED');
+        typeof value.devtools === 'boolean' && typeof value.sourceMatched === 'boolean', 'FRONTEND_UNCONFIRMED');
       observations.documentReady = value.ready;
       observations.devtoolsTitle = value.devtools;
-      if (value.ready && value.devtools) break;
+      observations.frontendSourceMatched = value.sourceMatched;
+      if (value.ready && value.sourceMatched) break;
       await sleep(500);
     }
-    need(observations.documentReady && observations.devtoolsTitle && !exchange.closed, 'FRONTEND_UNCONFIRMED');
+    need(observations.documentReady && observations.frontendSourceMatched && !exchange.closed, 'FRONTEND_UNCONFIRMED');
     result.attached = true;
     result.phase = 'ui_ready';
     result.phase = 'close_requested';

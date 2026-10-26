@@ -175,7 +175,8 @@ class FrontendTests(unittest.TestCase):
             observations=dict.fromkeys(debug.FRONTEND_FLAGS, False))
         value['observations'].update(dict.fromkeys(debug.FRONTEND_COUNTS, 0))
         value['observations'].update(documentReady=True, devtoolsTitle=True,
-            frontendGetVmMatched=True, serviceSocketSeen=True, getVmRequests=1, getVmReplies=1)
+            frontendSourceMatched=True, frontendGetVmMatched=True, serviceSocketSeen=True,
+            getVmRequests=1, getVmReplies=1)
         value.update(changes)
         return value
 
@@ -214,6 +215,17 @@ class FrontendTests(unittest.TestCase):
             worker, tool = self.worker(self.receipt(**change))
             with self.subTest(change=change), self.assertRaises(debug.ProcessRefused):
                 worker.attach(tool, 1234)
+
+    def test_title_change_preserves_source_identity_and_wrong_origin_still_refuses(self):
+        observations = self.receipt()['observations']
+        observations['devtoolsTitle'] = False
+        worker, tool = self.worker(self.receipt(observations=observations))
+        worker.attach(tool, 1234)
+        observations = self.receipt()['observations']
+        observations['frontendSourceMatched'] = False
+        worker, tool = self.worker(self.receipt(observations=observations))
+        with self.assertRaises(debug.ProcessRefused):
+            worker.attach(tool, 1234)
 
 
 class ProbeStartupTests(unittest.TestCase):

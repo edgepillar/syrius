@@ -3000,3 +3000,32 @@ execution for the new observations is pending. Application, harness and typed
 Dart client sources remain unchanged from the preceding native attempt. The
 remaining complete-debug, full-wallet, checkpoint, seed and visual gates stay
 open, with every earlier failure preserved.
+
+### Frontend title guard corrected to SDK-origin identity
+
+Source `af930ac44d55f0d40a78846f92817c1d2af3f20c`, tree
+`aa7be39f4c705988f59886dbd6b70511fe7db314`, run `40268791052`, attempt one,
+job `121396902811`, passes 37 Windows controller/nine frontend cases and clean
+Dart analysis. Native breakpoint, reload and restart checks pass again. The
+frontend reaches `vm_matched`: its original service socket sends one `getVM`
+and receives the correlated original application PID. The page is loaded and
+ready, without runtime exceptions or observed WebGL/Wasm issues. One worker,
+one other socket and two failed network requests are finite observations.
+
+The guard rejects the ready page because its title does not contain the word
+DevTools. The title text itself is not read into the report. Requiring that
+presentation string was an extra constraint, not the specified attachment
+proof. The candidate retains the exact SDK-issued frontend address for
+navigation and requires the current document's origin to match that SDK
+server. A correlated frontend VM reply for the original application, ready
+document and actual browser zero exit remain mandatory. The title is observed
+without deciding identity. A different origin still refuses acceptance even
+when its title says DevTools.
+
+All 38 Python and ten frontend cases pass locally, including title changes,
+wrong scheme/host/port and contradictory receiver facts. The controller also
+records the actual application exit code and remaining owned-job process
+count before closure. Current application, harness and typed Dart sources
+remain unchanged. The prior attempt is still failed with forced cleanup;
+normal application/tool closure was not reached, and complete P07 remains
+pending fresh native execution.

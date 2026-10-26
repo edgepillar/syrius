@@ -57,7 +57,7 @@ FRONTEND_CODES = frozenset(('SOCKET_REPLACED', 'REQUEST_REFUSED', 'VM_REFUSED',
 CODES |= FRONTEND_CODES
 FRONTEND_PHASES = frozenset(('new', 'admitted', 'browser_started', 'browser_socket_bound',
     'page_navigated', 'vm_matched', 'ui_ready', 'close_requested', 'browser_exited'))
-FRONTEND_FLAGS = ('pageLoaded', 'documentReady', 'devtoolsTitle', 'webglIssue', 'wasmIssue',
+FRONTEND_FLAGS = ('pageLoaded', 'documentReady', 'devtoolsTitle', 'frontendSourceMatched', 'webglIssue', 'wasmIssue',
     'frontendGetVmMatched', 'frontendSocketClosed', 'held', 'serviceSocketSeen')
 FRONTEND_COUNTS = ('runtimeExceptions', 'networkFailures', 'workerTargets',
     'getVmRequests', 'getVmReplies', 'otherSockets')
@@ -322,7 +322,7 @@ class Frontend:
                  and value['outputComplete'] and value['browserExit'] == 0 and not value['forced'],
                  'FRONTEND_UNCONFIRMED')
             need(value['phase'] == 'browser_exited' and not observations['held']
-                 and all(observations[key] for key in ('documentReady', 'devtoolsTitle',
+                 and all(observations[key] for key in ('documentReady', 'frontendSourceMatched',
                          'frontendGetVmMatched', 'serviceSocketSeen'))
                  and observations['getVmRequests'] >= observations['getVmReplies'] >= 1,
                  'FRONTEND_UNCONFIRMED')
@@ -482,7 +482,8 @@ def main(arguments=None):
         report['close_attempted'] = True
         request_close(transport, token)
         checks['close_ack'] = True
-        need(job.application_exit() == 0, 'APPLICATION_EXIT_FAILED')
+        report['application_exit'] = job.application_exit()
+        need(report['application_exit'] == 0, 'APPLICATION_EXIT_FAILED')
         checks['application_exit'] = True
         tool.until(lambda: tool.exit is not None and tool.protocol._stopped, 20)
         need(original.wait(timeout=10) == 0 and tool.exit == 0, 'TOOL_EXIT_UNCONFIRMED')
@@ -519,6 +520,7 @@ def main(arguments=None):
         if job is not None:
             job.close()
             report['forced_cleanup'] |= job.forced
+            report['owned_job_active_at_close'] = job.active_at_close
         if original is not None:
             if original.poll() is None:
                 report['forced_cleanup'] = True

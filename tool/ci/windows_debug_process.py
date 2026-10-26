@@ -70,6 +70,7 @@ class WindowsJob:
             function.argtypes, function.restype = arguments, result
         self.kernel, self.handle, self.application = kernel, None, None
         self.forced = False
+        self.active_at_close = None
         self.handle = kernel.CreateJobObjectW(None, None)
         if not self.handle:
             raise ProcessRefused("JOB_REFUSED")
@@ -128,7 +129,8 @@ class WindowsJob:
     def close(self):
         if self.handle is not None:
             try:
-                self.forced = self.forced or self.active() != 0
+                self.active_at_close = self.active()
+                self.forced = self.forced or self.active_at_close != 0
             except ProcessRefused:
                 self.forced = True
             self.kernel.CloseHandle(self.handle)
