@@ -326,6 +326,17 @@ class _StartupStageState extends State<_StartupStage>
   void initState() {
     super.initState();
     widget.session.addListener(_changed);
+    final StartupStageSession original = widget.session;
+    // This overlay is outside the route's focus scope. Autofocus does not
+    // replace that scope's focused route, so reserve the first skip receiver.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted &&
+          identical(widget.session, original) &&
+          !original.isClosed &&
+          !original._done) {
+        _focus.requestFocus();
+      }
+    });
   }
 
   void _changed() {

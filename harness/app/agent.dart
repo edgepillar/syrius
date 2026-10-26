@@ -2407,15 +2407,13 @@ class HarnessAgent {
   };
 
   bool _dispatchKey(KeyEvent e) {
-    HardwareKeyboard.instance.handleKeyEvent(e);
-    // The pinned Flutter FocusManager still registers only this bridge.
-    // HardwareKeyboard alone would update pressed keys but skip Shortcuts,
-    // focus traversal and text editing. Retain it until Flutter migrates.
-    // The pinned FocusManager bridge preserves Shortcuts, editing and the
-    // original handled result.
+    final bool handled = HardwareKeyboard.instance.handleKeyEvent(e);
+    if (handled) return true;
+    // Older bindings register Focus through this bridge. Use it only when
+    // the hardware path has not already handled the event.
     // ignore: deprecated_member_use
     final KeyMessageHandler? h =
-        // The pinned FocusManager still installs this key-message handler.
+        // Retain compatibility with the legacy Focus message registration.
         // ignore: deprecated_member_use
         ServicesBinding.instance.keyEventManager.keyMessageHandler;
     // This pinned bridge returns the actual Shortcuts and editing result.

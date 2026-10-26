@@ -4066,3 +4066,39 @@ to 88; all pass. A three-item notice is 2291 bytes, within the unchanged
 bounds are retained. Hosted diagnosis remains pending; no assertion or native
 result is relabelled by the improved reader. No local SDK/native execution,
 artifact download or disk scratch is added. Full acceptance remains open.
+
+### Initial overlay focus, 2026-10-26T17:08Z
+
+At source `1cefefd9289c144f16bb870778a69f4caa5a4e31`, tree
+`4ea4dcae137c31015e4a32ff946bc9a000b7e30a`, run `40363854054` attempt one,
+job `121716129644`, four Node byte controls and 466 Python cases complete
+with three platform skips and zero Python failures/errors. Selected analysis
+has zero errors/warnings/infos. Dart still records 54 passes and one failure.
+The complete filtered framework print now identifies an expected-true
+assertion at `wallet_recipe_startup_test.dart:101`: the original startup hint
+is not offered by the recipe. This precedes keyboard input and decoder waiting.
+Native allocation is skipped; the failed attempt remains negative.
+
+The installed Flutter focus implementation applies autofocus only when the
+enclosing scope has no focused child. The startup overlay is outside the
+already focused route's scope. The candidate therefore requests its own first
+keyboard focus after mounting, only while the same original session is still
+mounted, open and unfinished. A closed, replaced or already completed owner
+cannot request that focus. It is a one-time initial request, not a focus loop
+on rebuild or a harness override. The existing primary-receiver admission
+guard is retained. Hosted verification must establish the resulting behavior.
+
+The harness also preserves `HardwareKeyboard.handleKeyEvent`'s handled result.
+The legacy Focus bridge runs only for an unhandled event, preventing a second
+dispatch after a hardware handler has already consumed it. Two added Dart
+regressions check the hardware and fallback paths, complete key pairs and
+released pressed-key state. All prior cases remain, for a selection of 57.
+Eighty-eight memory-only Python cases pass; no Dart/Flutter/native code runs
+locally. Existing time, turn, storage and privacy bounds remain unchanged.
+
+This is the first shipped application change after the retained
+`1d663dc58b9ce6f2abdbe66898e85e2ef850a8c0` baseline. Its results and four
+captures remain historical source-scoped evidence. A new full Windows
+baseline is required after the focused gate passes; no prior application
+success is rebound to this candidate. Full native entry, send, seed, motion
+and all 94 visual matches remain pending.

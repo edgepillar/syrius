@@ -129,6 +129,7 @@ def main():
             'test/harness/wallet_tour_test.dart', 'test/harness/build_output_test.dart',
             'test/harness/wallet_recipe_failure_test.dart',
             'test/harness/wallet_recipe_startup_test.dart',
+            'test/harness/key_dispatch_test.dart',
             'test/harness/wallet_recipe_test.dart'], cwd=repo,
             env=fresh_environment(repo, parent), timeout=240, cap=4 * 1024**2)
         report['command'] = dict(**outcome.public(),
@@ -139,7 +140,7 @@ def main():
         counts = test_counts(outcome.output)
         report['counts'] = counts
         debug.need(outcome.success and counts['terminal_success'] is True
-            and counts['passed'] == 55 and counts['skipped'] == counts['failed'] == counts['error_events'] == 0,
+            and counts['passed'] == 57 and counts['skipped'] == counts['failed'] == counts['error_events'] == 0,
             'TESTS_FAILED')
         debug.bounded.verify_source(repo, source, parent)
         debug.need(debug.entry.source_tree(repo, parent) == tree, 'SOURCE_REFUSED')
