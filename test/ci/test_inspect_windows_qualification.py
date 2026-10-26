@@ -93,7 +93,8 @@ class WindowsQualificationTests(unittest.TestCase):
         self.assertFalse(value['runtime_started'])
         self.assertFalse(value['wallet_qualified'])
         self.assertNotIn('synthetic-private-context', json.dumps(value))
-        inspect.emit('Hosted baseline inspection', value)
+        with contextlib.redirect_stdout(io.StringIO()):
+            inspect.emit('Hosted baseline inspection', value)
 
     def test_original_failed_test_and_forced_exit_stay_negative(self):
         report = baseline()
@@ -139,7 +140,8 @@ class WindowsQualificationTests(unittest.TestCase):
         self.assertEqual(value['capture_count'], 4)
         self.assertEqual(value['visual_matches'], 0)
         self.assertFalse(value['runtime_started'])
-        inspect.emit('Hosted entry inspection', value)
+        with contextlib.redirect_stdout(io.StringIO()):
+            inspect.emit('Hosted entry inspection', value)
 
     def test_entry_digest_missing_extra_and_invalid_pixels_are_refused(self):
         data = pixels()
