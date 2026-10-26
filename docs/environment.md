@@ -4580,3 +4580,13 @@ instead carries the fixed code as its message. The fixture now checks the same
 fixed code through either existing representation. The failed result is retained;
 no admission requirement is relaxed. Native startup, full tour and all visual
 acceptance remain open.
+
+The first focused dispatch at `ab4830f665da395c3c068aeabe0ab451d1c96e3d`
+is refused before execution. The API exits one normally with complete 293-byte
+stdout and 178-byte stderr and HTTP 422: `runner.environment` is unavailable in
+the job-level `env` context. A bounded source-pinned run query observes no run.
+The follow-up moves this value to the three consuming steps' `env` contexts,
+matching the existing qualified workflow pattern. No harness, dependency,
+SDK, wallet or lab command is reported as executed by that refused request.
+The original refusal remains retained; source/tests and admission rules are
+unchanged and corrected hosted execution is pending.

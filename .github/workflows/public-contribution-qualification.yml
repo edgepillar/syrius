@@ -109,7 +109,6 @@ jobs:
       GIT_CONFIG_COUNT: "1"
       GIT_CONFIG_KEY_0: core.autocrlf
       GIT_CONFIG_VALUE_0: "false"
-      SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
       SYRIUS_HARNESS_TESTS_ONLY: "true"
     steps:
       - name: Checkout the dispatched harness source
@@ -118,9 +117,13 @@ jobs:
           persist-credentials: false
 
       - name: Admit the isolated test lane before SDK allocation
+        env:
+          SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
         run: python -B -m tool.ci.prepare_harness_tests --admission-only
 
       - name: Test all isolated controllers before SDK allocation
+        env:
+          SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
         run: python -B -m tool.ci.run_wallet_tour_tests --all-controllers
 
       - name: Set up the single pinned Flutter SDK
@@ -134,6 +137,7 @@ jobs:
 
       - name: Restore unchanged locked harness dependencies
         env:
+          SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
           PUB_CACHE: ${{ steps.harness_flutter.outputs['PUB-CACHE-PATH'] }}
         run: python -B -m tool.ci.prepare_harness_tests
 
