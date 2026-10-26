@@ -3186,3 +3186,38 @@ with the fixed refusal marker before any build destination exists. Both that
 control and the new entry's selected analysis await hosted execution. Application
 dependencies, published application sources and the Windows workflow's input
 defaults remain unchanged.
+
+### Hosted Windows debug loop qualified
+
+Source `fc6515e8ffbc6d86db720f02846598fea9847109`, tree
+`6157da75da60acfc32c5726e0ae51d246e507630`,
+[run 40279392842](https://github.com/edgepillar/syrius/actions/runs/40279392842),
+attempt one, job `121429091241`, passes every selected job step. All 50
+controller cases, ten frontend cases and six tour regressions pass. Selected
+analysis of the typed client, harness entry, CLI, CI entry and tour tests has
+zero errors, warnings and infos, with actual exit zero and complete output.
+The existing application-wide informational backlog retains its earlier scope.
+
+All 24 native checks pass, including the same original app/VM/root binding,
+breakpoint hit/resume, reload with preserved counter/isolate, restart with new
+isolate and reset counter, actual SDK-origin frontend getVM exchange, ordinary
+close acknowledgement and unchanged source. Browser, frontend controller,
+typed probe, original application, tool and bootstrap all exit zero normally.
+Their captured output is complete and no required actor is forcibly stopped.
+
+The corrected metadata lookup admits the actual compiler-associated VCTIP and
+exact SDK Dart images. Both owned auxiliary processes receive their single
+explicit termination request, with observed nonzero marker `0xE000D007` and
+retained image digests. Their standard streams are not claimed captured.
+Aggregate forced cleanup remains true, required-actor forced cleanup is false,
+and the job has zero members at close. Schema 2 reports this scoped auxiliary
+teardown honestly and sets debug-loop qualification true. Earlier failed
+attempts are not reclassified. This completes the written P07 debug recipe.
+
+The gated wallet entry's negative control also passes: missing opt-in produces
+the fixed 16-byte refusal, actual exit one and complete unforced output before
+a build destination exists. This is an expected refusal control, with zero
+native wallet executions. P08 still needs its owned lab/controller connection
+and actual full onboarding/tour; P09, checkpoints, seeds and visual acceptance
+remain open. The main ledger is now 69/80 done, or 86.25 percent; this is a row
+count rather than weighted effort or final acceptance.
