@@ -83,7 +83,9 @@ Map<String, String> walletRecipeDiagnostic(
 
 /// Recheck even a typed exception before adding its labels to a CI marker.
 Map<String, String>? walletRecipePublicDiagnostic(Object? value) {
-  const Set<String> fields = <String>{'action', 'control', 'reason', 'entry', 'startup'};
+  const Set<String> fields = <String>{
+    'action', 'control', 'reason', 'entry', 'startup',
+  };
   if (value is! Map<Object?, Object?> ||
       value.length < 3 || value.length > 5 ||
       value.keys.any((Object? key) => !fields.contains(key))) {

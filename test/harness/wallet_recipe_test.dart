@@ -287,7 +287,7 @@ void main() {
   });
 
   for (final bool retainControls in <bool>[false, true]) {
-    test('an unsettled first entry waits for startup $retainControls', () async {
+    test('first unsettled entry waits for startup $retainControls', () async {
       final _WalletUi ui = _WalletUi()
         ..phase = 'startup'
         ..unsettledStartupObservations = 2

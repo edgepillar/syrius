@@ -4268,7 +4268,7 @@ independently verified `f024e78bf777` focus source.
 At `4a21e088779fda13b30d47de9ad16a266b3b9dca`, original run
 `40379047583` attempt one, job `121769975293`, passes all 63 selected
 Dart cases, 477 Python cases with three platform skips, four Node byte
-controls and selected analysis with zero errors/warnings/infos. Actual
+controls and selected analysis with zero errors/warnings and two infos. Actual
 execution advances beyond the earlier Welcome wait and now refuses at
 `nav_settings`, with entry `unknown` and original startup decision
 `natural-welcome`. No tour page is visited or captured. All fourteen asset
@@ -4305,7 +4305,7 @@ execution, artifact download or filesystem scratch is added.
 
 At `88fcdb9b8773`, run `40385521617` passes all 66 selected Dart
 cases, 477 Python cases with three platform skips, four Node byte controls
-and selected analysis with zero errors, warnings or infos. Native startup
+and selected analysis with zero errors/warnings and two infos. Native startup
 records `key-confirmed`, then refuses `welcome_import` with
 `wallet-recipe-original-control-changed`. No tour page is accepted. This
 failure remains retained and is not retried against unchanged source.
@@ -4328,3 +4328,85 @@ complete successfully at application source `88fcdb9b8773`. Independent
 inspection of their original receipts and captures remains pending. This
 harness-only correction does not repeat that application baseline. Earlier
 qualified `f024e78bf777` evidence retains its original source binding.
+
+### Reconciled original application receipts (2026-10-26)
+
+Inspector source `639be8318e1bab90a3a73ebdf65cdf8d054084fa`, original
+run `40392833465` attempt one, job `121818023469`, independently inspects
+application `88fcdb9b8773cef1822611eb68cbf301fa9d799d`, tree
+`8e641df36065aaffffcc06d0f317cff0491e2eb1`, run `40386781145`.
+The initial private reader omitted this job name. Its retained original
+jobs query and one bounded annotations query reconcile the result without
+a CI retry, runtime repeat or local artifact download.
+
+Baseline job `121797065751` passes all twelve checks, 4386 non-chain test
+events and two skips, with no failures/errors, 512 hidden events and 4900
+terminal events. Root analysis has zero errors/warnings and 1313 infos;
+vendored analysis has zero findings. Root/vendored analysis takes
+34.578/15.422 seconds, tests 655.156 seconds and Debug/Release builds
+95.844/117.016 seconds. All five selected original commands exit zero
+normally with complete unforced output. Source/generation/localization
+correspondence and three matching DLL map/export probes pass, retaining
+SHA-256 `f1f79ee184b9c0e3cd92d2f5c49e52c68e7a4670357a0cf1df95a0ac6de8973a`.
+Original log: 39570 bytes, SHA-256
+`85de8a27393ff5f448a815ed6f0c1e07e030c8a1720e0e871feae7d676cd9dc4`.
+
+Ordinary entry job `121797066209` passes all eighteen original checks and
+four caption/restoration checks. Its original exit is zero with 2255
+complete output bytes and no overflow or forced kill. The inspector
+verifies the original archive/member hashes, CRCs, dimensions and pixels
+of four genuine 1280x780 Welcome/empty-Import PNGs. Archive SHA-256 is
+`0ba21a6732dfe342389c23a5fb5be35c1b6c25980854040c02078e7a9413e885`;
+manifest SHA-256 is
+`515bea03f8aa0257dd01e2d04f53b88c978e2a1c1af6af9a525291430d60cf9d`.
+These current application captures still have zero accepted visual matches.
+Earlier f024 receipts and comparison exports retain their historical pins.
+
+### Original native startup refusal and analysis correction (2026-10-26)
+
+At `639be8318e1b`, native job `121818022965` in run `40392833465`
+passes all 69 selected Dart cases, 477 Python cases with three platform
+skips and four Node byte controls. Actual selected analysis has zero
+errors/warnings and two `LINES_LONGER_THAN_80_CHARS` infos, in
+`harness/wallet_recipe_failure.dart` and
+`test/harness/wallet_recipe_test.dart`. Earlier zero-info summaries for
+4a21/88fc were incorrect: the retained original receipts contain the same
+two findings. The candidate wraps the fixed-label field set and shortens
+one test description without changing behavior or suppressing analysis.
+
+Original startup records `key-confirmed`, but observation remains
+`startup-before-initialization` without `welcome_import`, then retires with
+`wallet-recipe-stage-unsettled`. No tour page or capture is accepted. All
+fourteen asset phases complete, seven unchanged Go bodies pass with
+production source restored, and five original lab nodes stop normally
+with complete zero exits. App cleanup exits zero; entry exits one with
+907 complete output bytes, SHA-256
+`265e35d375dd20c077f919844afd6db5fdcd5ed669c53a477d44cbcaf1de233d`.
+One remaining VCTIP image retains required-actor forced cleanup. Overall
+wallet/lab acceptance remains failed. A handled-key receipt does not prove
+initialization. This failure is not retried for unrelated formatting or
+analyzer-controller changes; original bounds and owner guards remain.
+
+### Bounded analyzer attribution lane (2026-10-26)
+
+The default-off `analysis_delta` input compares fixed sources
+`1d663dc58b9ce6f2abdbe66898e85e2ef850a8c0` and
+`f024e78bf777d9b16d9e4a81c295ef092c9bf79d` with the dispatched current
+source. One pinned Flutter SDK is shared; two historical worktrees are
+created and the current checkout is reused. All dependency/analysis input
+digests must match. Each analyzer command retains its actual exit,
+completeness/overflow/forced status, duration and output digest. Original
+raw output stays in capped runner memory. Only tracked relative Dart
+paths, lint codes, numeric locations and signed per-file/code count
+changes reach finite annotations. Shifted line numbers alone do not count
+as new findings; truncated group/location output remains explicit.
+
+Nine memory-only controls pass, including refusal before any child/SDK in
+an unqualified environment, private/outside/untracked path refusal,
+summary completeness, multiplicity and bounded projection. YAML parsing
+confirms nineteen inputs with this lane off by default. Each analysis is
+bounded to 300 seconds/eight MiB; a ten GiB free-space floor plus four GiB
+expected allocation is required before owned runner work begins. There
+are no builds, wallet/node executions, local SDK runs, local downloads,
+extracted evidence files or raw public diagnostics. Actual hosted
+attribution of the 1295-to-1304-to-1313 root-info increase is pending.

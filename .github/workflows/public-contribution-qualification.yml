@@ -84,6 +84,10 @@ on:
         description: Exact source SHA required for the retained Windows qualification
         type: string
         default: ''
+      analysis_delta:
+        description: Attribute analyzer changes on fixed sources without builds or wallet execution
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -92,6 +96,38 @@ env:
   FLUTTER_VERSION: "3.47.7"
 
 jobs:
+  analysis-delta:
+    if: inputs.analysis_delta
+    name: Attribute source-bound analyzer changes
+    runs-on: windows-latest
+    timeout-minutes: 45
+    env:
+      GIT_CONFIG_COUNT: "1"
+      GIT_CONFIG_KEY_0: core.autocrlf
+      GIT_CONFIG_VALUE_0: "false"
+    steps:
+      - name: Checkout the dispatched analyzer controller
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Test finite analysis location controls in memory
+        run: python -B -m unittest test.ci.test_analysis_delta -v
+
+      - name: Set up the single pinned Flutter SDK
+        id: analysis_flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+          pub-cache: 'false'
+
+      - name: Attribute fixed historical and current analyzer changes
+        env:
+          PUB_CACHE: ${{ steps.analysis_flutter.outputs['PUB-CACHE-PATH'] }}
+        run: python -B -m tool.ci.analysis_delta
+
   desktop-builds:
     if: inputs.desktop_builds
     name: ${{ matrix.target }} Debug and Release
