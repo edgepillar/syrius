@@ -44,6 +44,7 @@ PROFILE_PARTS = {name.casefold(): name.replace(' ', '_').lower() for name in
     ('AppData', 'Local', 'Roaming', 'Temp', 'Application Data', 'Local Settings',
      'Microsoft', 'VSCommon', 'VisualStudio', 'Telemetry', '.dotnet', '.nuget',
      'NuGet', 'Packages', 'Pub', 'Cache', 'Dart')}
+ALIAS_LIMIT = 16
 
 
 class Refused(Exception):
@@ -114,8 +115,41 @@ def completed(report):
         return False
 
 
-def reparse_observation(path, profile, before):
-    """Read one refused link's metadata; never follow its target or admit it."""
+def directory_identity(info):
+    fields = (getattr(info, 'st_dev', None), getattr(info, 'st_ino', None), getattr(info, 'st_mode', None),
+              getattr(info, 'st_file_attributes', 0), getattr(info, 'st_reparse_tag', 0))
+    if (not all(type(value) is int for value in fields) or info.st_ino <= 0
+            or not stat.S_ISDIR(info.st_mode) or fields[3] & 0x400 or fields[4] != 0):
+        return None
+    return (fields[0], fields[1], stat.S_IFMT(fields[2]), fields[3] & 0x400, fields[4])
+
+
+def plain_profile_target(profile, target, expected_profile):
+    """Check canonical directories in order; never cross a reparse ancestor."""
+    if expected_profile is None:
+        return False
+    try:
+        target = type(profile)(target)
+        relative = target.relative_to(profile)
+        need(len(relative.parts) <= 12 and all(part not in ('.','..') for part in relative.parts),
+             'STORAGE_REFUSED')
+        chain = [profile] + [profile.joinpath(*relative.parts[:index])
+                             for index in range(1, len(relative.parts)+1)]
+        observed = []
+        for index, path in enumerate(chain):
+            identity = directory_identity(os.lstat(path))
+            if (identity is None or identity[0] != expected_profile[0]
+                    or index == 0 and identity != expected_profile):
+                return False
+            observed.append((path, identity))
+        return all(directory_identity(os.lstat(path)) == identity
+                   for path, identity in reversed(observed))
+    except (Exception, KeyboardInterrupt):
+        return False
+
+
+def reparse_observation(path, profile, before, *, expected_profile=None):
+    """Read link metadata without traversal; optionally check its owned canonical target."""
     result = dict(status='UNKNOWN', observation='readlink_metadata_only')
     fields = ('st_dev', 'st_ino', 'st_mode', 'st_size', 'st_mtime_ns',
               'st_file_attributes', 'st_reparse_tag')
@@ -150,22 +184,35 @@ def reparse_observation(path, profile, before):
             parts = ntpath.relpath(target, root).split(separator)
             need(len(parts) <= 12, 'STORAGE_REFUSED')
             result['target_parts'] = [PROFILE_PARTS.get(part.casefold(), 'other') for part in parts]
+            result['target_profile_verified'] = (before.st_reparse_tag == 0xA0000003
+                and stat.S_ISDIR(before.st_mode)
+                and plain_profile_target(profile, target, expected_profile))
+            final = os.lstat(path)
+            if tuple(getattr(final, key) for key in fields) != identity:
+                return dict(status='CHANGED', observation='readlink_metadata_only')
     except (Exception, KeyboardInterrupt):
         result = dict(status='UNKNOWN', observation='readlink_metadata_only')
     return result
 
 
-def sample_workspace(paths, *, receipt=None):
+def sample_workspace(paths, *, receipt=None, expected_profile=None):
     """Sample only this attempt's explicit new output paths on its fresh runner."""
     need(len(paths) == len(STORAGE_ROLES), 'STORAGE_REFUSED')
     sample = {} if receipt is None else receipt
     sample.update(status='SAMPLING', reason=None, role=None, logical_bytes=0, entries=0,
-        by_role=dict.fromkeys(STORAGE_ROLES, 0))
+        by_role=dict.fromkeys(STORAGE_ROLES, 0), verified_aliases=0, alias_metadata=[])
 
     def refuse(reason, role):
         sample.update(status='REFUSED', reason=reason, role=role)
         raise Refused('STORAGE_REFUSED')
 
+    if expected_profile is not None:
+        try:
+            valid = directory_identity(paths[3].lstat()) == expected_profile
+        except (OSError, AttributeError):
+            valid = False
+        if not valid:
+            refuse('profile_identity_changed', 'tool_profile')
     pending = [(role, path) for role, path in zip(STORAGE_ROLES, paths)
                if path.exists() or path.is_symlink()]
     while pending:
@@ -180,8 +227,25 @@ def sample_workspace(paths, *, receipt=None):
         if stat.S_ISLNK(info.st_mode):
             refuse('linked_entry', role)
         if getattr(info, 'st_file_attributes', 0) & 0x400:
-            sample['reparse'] = (reparse_observation(path, paths[3], info)
+            sample['reparse'] = (reparse_observation(path, paths[3], info, expected_profile=expected_profile)
                 if role == 'tool_profile' else dict(status='NOT_INSPECTED'))
+            observed = sample['reparse']
+            if (role == 'tool_profile' and observed.get('status') == 'OBSERVED'
+                    and observed.get('target_profile_verified') is True):
+                sample['verified_aliases'] += 1
+                if sample['verified_aliases'] > ALIAS_LIMIT:
+                    refuse('alias_limit', role)
+                if not sample['alias_metadata']:
+                    sample['alias_metadata'].append(dict(tag=observed['tag'], stable_metadata=True,
+                        target_profile_verified=True, observation='contained_alias_not_traversed'))
+                del sample['reparse']
+                sample['logical_bytes'] += info.st_size
+                sample['by_role'][role] += info.st_size
+                if sample['logical_bytes'] > WORK_CAP:
+                    refuse('workspace_cap', role)
+                # Its canonical target is already inside this same tree walk.
+                # Count the metadata once, without walking through the alias.
+                continue
             refuse('reparse_entry', role)
         if stat.S_ISDIR(info.st_mode):
             try:
@@ -195,6 +259,13 @@ def sample_workspace(paths, *, receipt=None):
             sample['by_role'][role] += info.st_size
             if sample['logical_bytes'] > WORK_CAP:
                 refuse('workspace_cap', role)
+    if expected_profile is not None:
+        try:
+            valid = directory_identity(paths[3].lstat()) == expected_profile
+        except (OSError, AttributeError):
+            valid = False
+        if not valid:
+            refuse('profile_identity_changed', 'tool_profile')
     sample['status'] = 'COMPLETE'
     return sample['logical_bytes']
 
@@ -241,6 +312,8 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
              'PROFILE_REFUSED')
         report['checks']['unused_destinations'] = True
         tool_profile = debug.entry.new_profile(repo)
+        profile_identity = directory_identity(tool_profile.lstat())
+        need(profile_identity is not None, 'PROFILE_REFUSED')
         env = debug.profile_environment(parent, tool_profile, 1, secrets.token_hex(16))
         env.update(SYRIUS_CI_WALLET_TOUR='true', SYRIUS_CI_WALLET_INSTANCE=name)
         dart, _ = debug.sdk(parent)
@@ -273,7 +346,8 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
                     storage['last_sample'] = sample
                     storage['samples'] += 1
                     try:
-                        sample_workspace((home, app, native_build, tool_profile), receipt=sample)
+                        sample_workspace((home, app, native_build, tool_profile), receipt=sample,
+                                         expected_profile=profile_identity)
                     finally:
                         storage['peak_logical_bytes'] = max(storage['peak_logical_bytes'],
                                                            sample.get('logical_bytes', 0))

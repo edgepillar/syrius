@@ -112,7 +112,7 @@ try {
       $tools = [IO.Path]::Combine($vs, 'VC\Auxiliary\Build\Microsoft.VCToolsVersion.default.txt')
       Put-Version 'msvc' ([IO.File]::ReadAllText($tools)).Trim() 'standard_install'
       Mark-Inventory 'vswhere_workload'
-      $workloads = & $vswhere -latest -products '*' -requiresAny Microsoft.VisualStudio.Workload.NativeDesktop Microsoft.VisualStudio.Workload.VCTools -property installationVersion
+      $workloads = & $vswhere -latest -products '*' -requiresAny -requires Microsoft.VisualStudio.Workload.NativeDesktop Microsoft.VisualStudio.Workload.VCTools -property installationVersion
       if ($LASTEXITCODE -ne 0) { throw 'query failed' }
       $state = if ($workloads) { 'present' } else { 'absent' }
       $result['native_desktop_workload'] = @{status=$state; version=$workloads; scope='standard_install'}

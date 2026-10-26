@@ -175,6 +175,85 @@ class CoverageTests(unittest.TestCase):
 
 class StorageTests(unittest.TestCase):
     @staticmethod
+    def plain_info(identifier, *, device=1, attributes=0):
+        return types.SimpleNamespace(st_dev=device, st_ino=identifier, st_mode=stat.S_IFDIR,
+            st_size=0, st_mtime_ns=1, st_file_attributes=attributes,
+            st_reparse_tag=0xA0000003 if attributes else 0)
+
+    def test_profile_target_requires_the_original_root_and_plain_same_volume_chain(self):
+        root = PureWindowsPath('C:/synthetic-profile')
+        target = root / 'AppData/Local/Microsoft'
+        info = self.plain_info(10)
+        expected = tour.directory_identity(info)
+        observed = {root:info}
+        for index in range(1, 4):
+            observed[root.joinpath(*target.relative_to(root).parts[:index])] = self.plain_info(10+index)
+        with mock.patch.object(tour.os, 'lstat', side_effect=lambda path: observed[path]):
+            self.assertTrue(tour.plain_profile_target(root, str(target), expected))
+            observed[root] = self.plain_info(99)
+            self.assertFalse(tour.plain_profile_target(root, str(target), expected))
+
+    def test_reparse_ancestor_or_cross_volume_target_is_not_followed(self):
+        root = PureWindowsPath('C:/synthetic-profile')
+        parent, target = root / 'AppData', root / 'AppData/Local'
+        expected = tour.directory_identity(self.plain_info(10))
+        for attributes, device in ((0x400, 1), (0, 2)):
+            calls = []
+            def info(path):
+                calls.append(path)
+                return self.plain_info(10) if path == root else self.plain_info(11, device=device, attributes=attributes)
+            with self.subTest(attributes=attributes, device=device), \
+                    mock.patch.object(tour.os, 'lstat', side_effect=info):
+                self.assertFalse(tour.plain_profile_target(root, str(target), expected))
+            self.assertEqual(calls, [root, parent])
+        with mock.patch.object(tour.os,'lstat') as query:
+            self.assertFalse(tour.plain_profile_target(root,str(root/'../external'),expected))
+        query.assert_not_called()
+
+    def test_changed_canonical_directory_identity_stays_unverified(self):
+        root = PureWindowsPath('C:/synthetic-profile')
+        target = root / 'AppData'
+        root_info = self.plain_info(10)
+        with mock.patch.object(tour.os, 'lstat', side_effect=[root_info,self.plain_info(11),self.plain_info(12)]):
+            self.assertFalse(tour.plain_profile_target(root, str(target), tour.directory_identity(root_info)))
+
+    def test_verified_internal_junction_counts_metadata_without_another_walk(self):
+        root, alias, file = self.path(mode=stat.S_IFDIR), self.path(mode=stat.S_IFDIR, attributes=0x400), self.path(10)
+        root.lstat.return_value = self.plain_info(10)
+        root.iterdir.return_value = [file, alias]
+        observed = dict(status='OBSERVED', tag=0xA0000003, target_profile_verified=True)
+        sample = {}
+        with mock.patch.object(tour, 'reparse_observation', return_value=observed):
+            self.assertEqual(tour.sample_workspace((self.path(exists=False), self.path(exists=False),
+                self.path(exists=False), root), receipt=sample, expected_profile=(1,10,stat.S_IFDIR,0,0)),10)
+        self.assertEqual(sample['verified_aliases'],1)
+        self.assertEqual(sample['status'],'COMPLETE')
+        alias.iterdir.assert_not_called()
+        self.assertEqual(sample['by_role']['tool_profile'],10)
+        root.iterdir.reset_mock()
+        with self.assertRaises(tour.Refused):
+            tour.sample_workspace((self.path(exists=False),self.path(exists=False),
+                self.path(exists=False),root), expected_profile=(1,99,stat.S_IFDIR,0,0))
+        root.iterdir.assert_not_called()
+
+    def test_reparse_proof_binds_the_canonical_chain_to_the_owned_profile(self):
+        root = PureWindowsPath('C:/synthetic-private-profile')
+        path = root / 'AppData/Local/Microsoft/Alias'
+        target = root / 'AppData/Local/Microsoft/Canonical'
+        info = self.reparse_info()
+        entries = {path:info, root:self.plain_info(10)}
+        parts = target.relative_to(root).parts
+        for index in range(1,len(parts)+1):
+            entries[root.joinpath(*parts[:index])] = self.plain_info(10+index)
+        with mock.patch.object(tour.os,'readlink',return_value=str(target)), \
+                mock.patch.object(tour.os,'lstat',side_effect=lambda value: entries[value]):
+            observed = tour.reparse_observation(path,root,info,
+                expected_profile=tour.directory_identity(entries[root]))
+        self.assertTrue(observed['target_profile_verified'])
+        self.assertTrue(observed['stable_metadata'])
+        self.assertNotIn('synthetic-private-profile',json.dumps(observed))
+
+    @staticmethod
     def reparse_info():
         return types.SimpleNamespace(st_dev=1, st_ino=2, st_mode=stat.S_IFDIR,
             st_size=0, st_mtime_ns=1, st_file_attributes=0x400, st_reparse_tag=0xA0000003)
@@ -191,7 +270,7 @@ class StorageTests(unittest.TestCase):
         self.assertEqual(value['target_parts'], ['appdata', 'local'])
         self.assertTrue(value['target_lexically_inside_profile'])
         self.assertNotIn('synthetic-private-profile', json.dumps(value))
-        lstat.assert_called_once_with(path)
+        self.assertEqual(lstat.call_args_list, [mock.call(path), mock.call(path)])
 
     def test_changed_or_external_reparse_targets_cannot_become_profile_ownership(self):
         root = PureWindowsPath('C:/synthetic-private-profile')

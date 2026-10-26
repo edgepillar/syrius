@@ -3584,3 +3584,63 @@ All seven existing protocol cases pass locally with the new exact encoded
 script. Actual installed versions and P01/P03 remain unqualified until the
 independent hosted inventory runs. This change does not repeat the separate
 Windows wallet qualification or alter its test client, node or production tree.
+
+### Read-first client passes the actual Windows seven-test gate
+
+Run `40319698922`, attempt one, job `121562807468`, at
+`70ad939d313017c8d6694f3c95303eb0609c8e80`, tree
+`70409cedd8ba30f5553e71a4049fb25c391e5142`, passes all 438 controller
+cases with three platform skips and zero failures/errors, all eight Dart
+cases, both owned startup probes and zero-diagnostic selected analysis.
+The explicit client fixture passes all seven Go tests with complete unforced
+exit zero. All seven bodies stay exact, and restoration of the original file
+and complete production tree is verified before assets. This qualifies that
+test input; the earlier unmodified-client reset remains a negative attempt.
+
+The full run remains failed. The lab produces and the wallet reaches build,
+then a tool-profile mount-point junction is refused. Its metadata is stable,
+tag `2684354563`, with a lexical target inside the same profile. Four samples
+record 72467 peak logical bytes and 155758481408 minimum free bytes. Thirteen
+owned wallet-job members require forced closure; the entry's later exit zero
+is not normal success and no private input or capture is released. Pillar2
+also times out and is forced to exit one; the other four original nodes exit
+zero, complete and unforced. Overall wallet/lab qualification remains failed.
+
+### Bound canonical SDK aliases without traversing a junction
+
+The new sampler captures the original SDK profile's directory identity
+before launch and rechecks it around each sample. Only a directory mount-point
+junction in that tool profile can qualify as internal metadata. The literal
+target must normalize inside the same root, its canonical ancestor chain must
+contain only plain same-volume directories, and every identity is rechecked.
+The junction metadata is checked again after the chain. No junction traversal
+or second walk occurs: its canonical target is already inside the ordinary
+tree walk. Metadata bytes count once, with at most sixteen verified aliases.
+Wallet/app profiles, other tags, external targets, changed roots, reparse
+ancestors and unknown targets remain refused. The byte cap and free floor
+are unchanged; this remains cooperative accounting rather than an OS quota.
+
+All 27 selected memory-only wallet-policy cases pass, including original-root
+binding, cross-volume/reparse-ancestor refusal, changed directory identities,
+literal parent traversal refusal and counting a verified alias without another
+walk. Actual native alias accounting and the complete wallet tour await the
+new source. The original pillar2 manifest is selected for independent read-only
+inspection rather than an unchanged runtime retry.
+
+### Native inventory reaches one unknown workload field
+
+Run `40322634019`, attempt one, job `121571177249`, at
+`13f7bd84f5fe183baf66b2d34ac727a8e3a62567`, tree
+`a47ddf7beeecd98127d2ad362d83180b5f37bd0f`, completes native inventory
+normally in 2.937 seconds with 919 complete bytes, all phases and one valid
+JSON frame. MSVC `14.51.36231`, SDK `10.0.26100.0`, Chrome `156.0.8078.48`,
+Edge `155.0.4283.62` and enabled Developer Mode are recorded. Pillow and
+Docker Desktop are absent; Docker daemon `29.7.2` is present. Only the native
+desktop-workload version is unknown, so the inventory remains failed.
+
+The workload query supplied IDs after `-requiresAny` without `-requires`.
+The candidate adds the required list option, matching the documented
+[vswhere component-query syntax](https://github.com/microsoft/vswhere/wiki/Examples).
+It does not turn an unknown field into a positive result; actual workload
+observation on the new source is still required. No deadline or source gate
+is relaxed, and the original unknown-field outcome remains preserved.
