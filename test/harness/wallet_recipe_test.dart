@@ -155,6 +155,10 @@ class _WalletUi {
     commands.add(Map<String, Object?>.of(command));
     final Object? key = command['key'];
     if (command['action'] == 'observe') {
+      if (phase == 'startup' && naturalStartup) {
+        if (startupObserved) phase = 'welcome';
+        startupObserved = true;
+      }
       if (unsettledStartupObservations > 0) {
         unsettledStartupObservations--;
         return <String, dynamic>{
@@ -162,10 +166,6 @@ class _WalletUi {
           'entryPhase': 'unknown',
           if (!retainUnsettledControls) 'controls': <Map<String, dynamic>>[],
         };
-      }
-      if (phase == 'startup' && naturalStartup) {
-        if (startupObserved) phase = 'welcome';
-        startupObserved = true;
       }
       // The agent authenticates the current dialog's actual facts before the
       // CLI receives them.
