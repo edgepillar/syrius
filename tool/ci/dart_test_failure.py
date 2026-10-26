@@ -5,7 +5,29 @@ import re
 
 FILES = ('wallet_tour_test.dart', 'build_output_test.dart',
     'wallet_recipe_failure_test.dart', 'wallet_recipe_startup_test.dart',
-    'wallet_recipe_test.dart')
+    'wallet_recipe_test.dart', 'agent.dart', 'launch_film.dart', 'startup_stage.dart')
+CATEGORIES = (
+    (r'Failed to load', 'LOAD_ERROR'),
+    (r'MissingPluginException', 'MISSING_PLUGIN'),
+    (r'Null check operator used on a null value', 'NULL_CHECK'),
+    (r'TypeError|is not a subtype', 'TYPE_ERROR'),
+    (r'TimeoutException|[Tt]est timed out', 'TIMEOUT'),
+    (r'A RenderFlex overflowed|RenderBox was not laid out|BoxConstraints forces', 'LAYOUT'),
+    (r'[Tt]imer is still pending|Pending timers:', 'PENDING_TIMER'),
+    (r'used after being disposed', 'DISPOSED'),
+    (r'TestFailure|Expected:|assertion was thrown|Assertion failed:', 'ASSERTION'),
+    (r'EXCEPTION CAUGHT', 'FRAMEWORK'),
+)
+
+
+def location(text):
+    found = []
+    for name in FILES:
+        match = re.search(r'(?<![A-Za-z0-9_.-])' + re.escape(name)
+            + r'(?::|\s+)([1-9][0-9]{0,5})(?::[0-9]+)?', text)
+        if match:
+            found.append((match.start(), name, int(match[1])))
+    return min(found) if found else None
 
 
 def project(raw):
@@ -15,7 +37,7 @@ def project(raw):
     lines = raw.splitlines()
     if len(lines) > 20000:
         return refused
-    total, items = 0, []
+    total, items, prints = 0, [], {}
     try:
         for line in lines:
             if not line.strip():
@@ -23,6 +45,15 @@ def project(raw):
             event = json.loads(line)
             if type(event) is not dict:
                 return refused
+            if event.get('type') == 'print':
+                identity, message = event.get('testID'), event.get('message')
+                if type(identity) is int and identity >= 0 and event.get('messageType', 'print') == 'print':
+                    if type(message) is not str:
+                        return refused
+                    if identity not in prints and len(prints) >= 256:
+                        return refused
+                    prints[identity] = (prints.get(identity, '') + '\n' + message)[-16384:]
+                continue
             if event.get('type') != 'error':
                 continue
             error, stack = event.get('error'), event.get('stackTrace')
@@ -32,23 +63,28 @@ def project(raw):
             total += 1
             if len(items) == 3:
                 continue
-            locations = []
-            for name in FILES:
-                match = re.search(r'(?<![A-Za-z0-9_.-])' + re.escape(name)
-                    + r'(?::|\s+)([1-9][0-9]{0,5})(?::[0-9]+)?', stack)
-                if match:
-                    locations.append((match.start(), name, int(match[1])))
-            location = min(locations) if locations else None
+            identity = event.get('testID')
+            context = prints.get(identity, '') if type(identity) is int else ''
+            details = error + '\n' + context
+            source, selected = 'NONE', None
+            for label, text in (('STACK', stack), ('ERROR', error), ('PRINT', context)):
+                selected = location(text)
+                if selected:
+                    source = label
+                    break
             expectation = 'OTHER'
             for pattern, label in ((r'Expected:\s*true\b', 'TRUE'),
                                    (r'Expected:\s*false\b', 'FALSE'),
                                    (r'Expected:\s*<1>(?:\s|$)', 'ONE')):
-                if re.search(pattern, error):
+                if re.search(pattern, details):
                     expectation = label
                     break
-            items.append(dict(file=location[1] if location else None,
-                line=location[2] if location else None,
-                kind='ASSERTION' if failure else 'UNHANDLED', expectation=expectation))
+            category = next((label for pattern, label in CATEGORIES
+                if re.search(pattern, details)), 'OTHER')
+            items.append(dict(file=selected[1] if selected else None,
+                line=selected[2] if selected else None, location_source=source,
+                kind='ASSERTION' if failure else 'UNHANDLED',
+                expectation=expectation, category=category))
     except (ValueError, UnicodeError, TypeError):
         return refused
     return dict(status='OBSERVED' if total else 'NO_ERROR_EVENTS', total=total, items=items)

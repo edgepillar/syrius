@@ -19,7 +19,8 @@ class DartFailureTests(unittest.TestCase):
     def test_known_source_location_never_exports_error_stack_or_host_path(self):
         value = failure.project(encode([event()]))
         self.assertEqual(value, dict(status='OBSERVED', total=1, items=[dict(
-            file='wallet_recipe_startup_test.dart', line=129, kind='ASSERTION', expectation='TRUE')]))
+            file='wallet_recipe_startup_test.dart', line=129, kind='ASSERTION', expectation='TRUE',
+            category='ASSERTION', location_source='STACK')]))
         self.assertNotIn('private', json.dumps(value))
 
     def test_unknown_locations_and_unhandled_payloads_stay_unattributed(self):
@@ -27,7 +28,7 @@ class DartFailureTests(unittest.TestCase):
             error='private input', isFailure=False)
         value = failure.project(encode([row]))
         self.assertEqual(value['items'], [dict(file=None, line=None,
-            kind='UNHANDLED', expectation='OTHER')])
+            kind='UNHANDLED', expectation='OTHER', category='OTHER', location_source='NONE')])
         self.assertNotIn('private', json.dumps(value))
 
     def test_invalid_or_incomplete_event_shapes_cannot_invent_a_location(self):
@@ -45,3 +46,26 @@ class DartFailureTests(unittest.TestCase):
         self.assertEqual(value['items'][0]['expectation'], 'ONE')
         self.assertEqual(value['items'][0]['line'], 88)
         self.assertEqual(failure.project(b'')['status'], 'NO_ERROR_EVENTS')
+
+    def test_generic_framework_error_uses_only_its_own_preceding_print_context(self):
+        rows = [dict(type='print', testID=7, messageType='print',
+            message='Expected: true\nActual: false\n/fixture/private/wallet_recipe_startup_test.dart:101:5'),
+            dict(type='error', testID=7, isFailure=False,
+                error='Test failed. See exception logs above.', stackTrace='')]
+        value = failure.project(encode(rows))
+        self.assertEqual(value['items'], [dict(file='wallet_recipe_startup_test.dart', line=101,
+            kind='UNHANDLED', expectation='TRUE', category='ASSERTION', location_source='PRINT')])
+        self.assertNotIn('private', json.dumps(value))
+        self.assertNotIn('Actual', json.dumps(value))
+
+    def test_foreign_prints_cannot_supply_a_location_and_loading_errors_use_known_text(self):
+        rows = [dict(type='print', testID=99, message='MissingPluginException private agent.dart:444:1'),
+            dict(type='error', testID=7, isFailure=False, stackTrace='',
+                error='Failed to load /fixture/private/wallet_recipe_startup_test.dart:81:5')]
+        value = failure.project(encode(rows))['items'][0]
+        self.assertEqual((value['category'], value['location_source'], value['line']),
+            ('LOAD_ERROR', 'ERROR', 81))
+        rows[-1]['error'] = 'Test failed. See exception logs above.'
+        value = failure.project(encode(rows))['items'][0]
+        self.assertEqual((value['file'], value['category'], value['location_source']),
+            (None, 'OTHER', 'NONE'))

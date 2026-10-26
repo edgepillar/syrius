@@ -4032,3 +4032,37 @@ The largest three-item failure notice measured against the retained command
 facts is 2144 bytes, within the unchanged 3800-byte limit. No local SDK or
 native execution, artifact download or disk scratch is added. Full acceptance
 and all 94 visual matches remain pending.
+
+### Framework failure context, 2026-10-26T16:53Z
+
+At source `dd7599132c00c8fe1aa67df52a177905c3f729c0`, tree
+`d68a3ea2e8b54d34bc63f737d33def5b96e03b50`, run `40360124951` attempt one,
+job `121702999604`, four Node byte controls and 464 Python cases complete
+with three platform skips and zero Python failures/errors. Selected analysis
+has zero errors, warnings and infos. Dart again records 54 passes, one failure,
+one error event and five hidden loading events among 60 terminal events.
+The original command exits one normally in 26.016 seconds with 26462 complete
+bytes, no overflow/forced termination and SHA-256
+`6ac824e1c059484b8b9e714d10c7cf4cf371c32638c253edce946a4ced8e670e`.
+Its filtered event is unhandled with unknown location and expectation. Both
+startup probes remain normal complete zero exits; native allocation is skipped.
+The earlier failures remain negative, and the failed case/cause is not assumed.
+
+Read-only inspection of the installed Flutter test exception reporter confirms
+that it writes framework error details to the console before registering a
+generic exception with an empty stack. The candidate therefore associates a
+bounded preceding print context only by the same integer test identity. A
+different test's context cannot supply a location or category. Known locations
+may come from the original stack, error text or that preceding context; their
+source is identified explicitly. At most three records expose only whitelisted
+basenames/positive lines and fixed kind, category and expectation labels.
+Raw messages, descriptions, stacks, host paths and values are not published.
+
+Print contexts are limited to 16384 characters per test and 256 identities,
+within the existing four-MiB stream cap. Malformed input remains refused.
+Two new association/privacy cases bring the selected memory-only Python total
+to 88; all pass. A three-item notice is 2291 bytes, within the unchanged
+3800-byte limit. All 55 Dart cases, their existing control flow and production
+bounds are retained. Hosted diagnosis remains pending; no assertion or native
+result is relabelled by the improved reader. No local SDK/native execution,
+artifact download or disk scratch is added. Full acceptance remains open.
