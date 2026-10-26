@@ -30,15 +30,15 @@ PRIVATE = "private-value-not-for-public-output"
 
 class InventoryOnlyTests(unittest.TestCase):
     def test_git_bash_discovery_handles_cmd_bin_and_mingw_layouts(self):
-        expected = '/fixture/Git/bin/bash.exe'
+        expected = Path('/fixture/Git/bin/bash.exe')
         for offered in ('/fixture/Git/cmd/git.exe', '/fixture/Git/bin/git.exe',
                         '/fixture/Git/mingw64/bin/git.exe'):
             probes = []
             def present(path):
                 probes.append(str(path))
-                return str(path) == expected
+                return path == expected
             with patch.object(Path, 'is_file', autospec=True, side_effect=present):
-                self.assertEqual(baseline.find_git_bash(offered), expected)
+                self.assertEqual(baseline.find_git_bash(offered), str(expected))
             self.assertLessEqual(len(probes), 8)
 
     def test_inventory_mode_never_runs_build_tests_doctor_or_dependency_resolution(self):

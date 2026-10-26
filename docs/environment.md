@@ -3342,3 +3342,18 @@ records its installation version. Three in-memory cases cover that lookup,
 mode isolation and refusal of an unknown required inventory field. P01 and
 P03 remain open until a complete actual hosted inventory and any necessary
 provisioning are reconciled. The workflow now has fourteen inputs.
+
+Run `40307669329`, attempt one, at
+`e02c2b6a8e66263ea4f26c5c601d3e19dd0fd9c2`, tree
+`609ca9e23398004601ba3166e3a4d9a1c34fbb18`, fails before the wallet
+SDK step. Job `121520708717` reports 421 controller cases, three platform
+skips, one failure and no errors. The finite failed identifier selects the
+new synthetic Git Bash discovery case. Its fake file predicate compares
+Windows-normalized paths to slash-only text, so it rejects the intended
+fixture on Windows despite passing locally. The correction compares Path
+objects and converts only the expected return value to the native string.
+The discovery implementation and startup probes are unchanged. Inventory
+job `121520709448` also stops at its controller-test step before collecting
+inventory. Neither positive startup probe, new Dart case, node or wallet
+executes in this attempt; the prior deadline cause remains unknown. This
+negative attempt is retained and will not be retried at unchanged source.
