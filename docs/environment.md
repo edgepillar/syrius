@@ -2834,8 +2834,8 @@ of this recipe.
 
 One uncertain command holds the session; no command retry or replacement app
 is admitted. Explicit app-stop, actual original app/tool exits and complete
-bounded output are recorded separately. Closing a nonempty job is forced
-cleanup and fails qualification. Only the finite manifest is uploaded; no
+bounded output are recorded separately. In this first candidate, closing a
+nonempty job is forced cleanup and fails qualification. Only the finite manifest is uploaded; no
 profile, token, service authentication URL, process ID, raw output or local
 path is an artifact.
 
@@ -2874,7 +2874,7 @@ The browser closes through its protocol; its original zero exit and complete
 bounded output must be observed before application stop. Its disk-cache target
 is 16 MiB, no browser package is downloaded, and the existing application
 lockfile is unchanged. Only after every debug check, actual app/tool exit and
-unforced job closure succeeds can the manifest mark `debug_loop_qualified` true.
+unforced job closure succeeds can this candidate mark `debug_loop_qualified` true.
 This headless frontend check does not qualify wallet visuals or the full tour.
 
 All 29 Python and eight frontend policy cases pass locally in memory. They
@@ -3069,3 +3069,49 @@ have their own source-bound proof. P01/P03 remain open for complete inventory
 and installation reconciliation; they no longer describe the hosted Windows
 environment as unavailable. No original test or artifact transport is repeated
 for this documentation correction.
+
+### Observed helper images and scoped teardown candidate
+
+Source `649a9ec2760f682ea6ac76700d6a19e25983c8db`, tree
+`b51da36c9f73771b9d080a5d52302791a46ed799`, run `40272151250`, attempt one,
+job `121407079542`, again passes all 24 runtime checks, 38 Windows controller
+cases, ten frontend cases and zero-diagnostic analysis. The original app,
+tool, bootstrap, typed probe, frontend controller and browser all exit zero
+normally, with complete captured output. The final owned-job observation is
+complete and identifies one DART image and one VCTIP image. Closing that
+nonempty job sets forced cleanup and the attempt remains failed. An image
+class alone does not identify the Dart helper's specific service.
+
+The next candidate separates required debug actors from auxiliary teardown.
+Every required check, unchanged source, original zero exit, complete output,
+unheld stopped protocol and absence of pending commands must be established
+before helper teardown is admitted. At most one helper using the exact pinned
+SDK Dart image and one using the VCTIP image beside the CMake-recorded MSVC
+compiler are allowed. All original handles, membership, image paths and image
+digests are bound before the first termination request. Unknown, duplicate,
+changed or partially observed members refuse admission.
+
+An active admitted helper receives one termination request through its retained
+handle. Windows termination is asynchronous, so the controller waits for the
+original handle and checks its actual exit value, following the
+[Windows API contract](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-terminateprocess).
+The explicit nonzero marker `0xE000D007`, image digest, request/result and exit
+observation are retained. Helper standard streams are not claimed captured.
+No signal is retried. A helper that already exited must have actual exit zero;
+an earlier nonzero exit cannot be converted into success.
+
+Manifest schema 2 preserves aggregate `forced_cleanup` and adds
+`required_actor_forced_cleanup` and `auxiliary_cleanup`. It permits qualification
+with explicitly recorded forced auxiliary teardown only after all required
+actors passed and the owned job is empty. Any forced required actor, unknown
+member, unconfirmed helper exit or remaining member still fails. This is an
+explicit change to the controller's auxiliary cleanup policy; it does not
+reclassify either earlier failed run or report a forced helper as a normal exit.
+
+All 49 controller cases pass locally in memory, including mixed/duplicate
+member refusal before any signal, binding both original handles before
+termination, unconfirmed termination without retry, and rejection of failed
+required actors. The ten unchanged frontend cases retain their preceding
+Windows result. Native execution of this new cleanup policy remains pending;
+P07 stays open. The full wallet tour, chain-321 wallet send, captures, visual
+matches and final acceptance retain their separate requirements.

@@ -2,6 +2,7 @@
 
 import io
 import json
+import copy
 from pathlib import Path, PureWindowsPath
 import sys
 import types
@@ -9,6 +10,7 @@ import unittest
 from unittest import mock
 
 from tool.ci import windows_debug_loop as debug
+from tool.ci import windows_debug_process as owned
 from tool.ci import run_debug_tests
 
 
@@ -277,6 +279,176 @@ class OrdinaryCloseTests(unittest.TestCase):
             debug.request_close(transport, 'fixture-token')
         self.assertEqual(str(raised.exception), 'CLOSE_UNCONFIRMED')
         self.assertEqual(transport.exchange.call_count, 1)
+
+
+class CompilerHelperTests(unittest.TestCase):
+    def test_helper_is_the_sibling_of_the_recorded_absolute_msvc_compiler(self):
+        text = 'set(CMAKE_CXX_COMPILER "Q:/fixture/MSVC/14.50/bin/Hostx64/x64/cl.exe")\n'
+        self.assertEqual(debug.compiler_helper_path(text),
+            PureWindowsPath('Q:/fixture/MSVC/14.50/bin/Hostx64/x64/vctip.exe'))
+
+    def test_ambiguous_relative_remote_or_other_compiler_is_refused(self):
+        values = ['cl.exe', 'Q:/fixture/../cl.exe', '//fixture.invalid/share/cl.exe',
+                  'Q:/fixture/clang-cl.exe', 'Q:/fixture/\x00cl.exe']
+        for value in values:
+            with self.subTest(value=value), self.assertRaises(debug.ProcessRefused):
+                debug.compiler_helper_path('set(CMAKE_CXX_COMPILER "' + value + '")\n')
+        with self.assertRaises(debug.ProcessRefused):
+            debug.compiler_helper_path('set(CMAKE_CXX_COMPILER "Q:/fixture/cl.exe")\n' * 2)
+
+
+class HelperAdmissionTests(unittest.TestCase):
+    def report(self):
+        receipt = dict(role='sdk_dart', image_sha256='a' * 64, forced=True,
+            termination_requested=True, termination_succeeded=True,
+            actual_exit=debug.HELPER_EXIT_MARKER, exit_observed=True, stdio_captured=False)
+        report = dict(checks=dict.fromkeys(debug.CHECKS, True), errors=[],
+            required_actor_forced_cleanup=False, devtools_attached=True,
+            frontend=dict(ok=True, browserExit=0, forced=False, outputComplete=True),
+            protocol=dict(held=False, app_stopped=True, pending_commands=0),
+            auxiliary_cleanup=dict(scope=debug.HELPER_SCOPE, status='PASSED', code=None,
+                forced=True, remaining=0, receipts=[receipt]),
+            owned_job_active_at_close=0, forced_cleanup=True)
+        for key in ('application_exit','bootstrap_exit','tool_exit','probe_exit','frontend_exit'):
+            report[key] = 0
+        for key in ('tool_output','probe_output','frontend_output'):
+            report[key] = dict(output_complete=True, overflow=False)
+        return report
+
+    def test_helper_teardown_keeps_its_forced_marker_separate_from_normal_actor_exits(self):
+        report = self.report()
+        self.assertTrue(debug.required_actors_complete(report))
+        self.assertTrue(debug.debug_complete(report))
+        self.assertTrue(report['forced_cleanup'])
+        self.assertEqual(report['auxiliary_cleanup']['receipts'][0]['actual_exit'], debug.HELPER_EXIT_MARKER)
+        self.assertEqual(report['application_exit'], 0)
+
+    def test_any_nonzero_unobserved_or_boolean_original_exit_refuses_helper_admission(self):
+        for key in ('application_exit','bootstrap_exit','tool_exit','probe_exit','frontend_exit'):
+            for value in (1, None, False):
+                report = self.report();report[key] = value
+                with self.subTest(key=key, value=value):
+                    self.assertFalse(debug.required_actors_complete(report))
+                    self.assertFalse(debug.debug_complete(report))
+
+    def test_held_failed_source_or_incomplete_output_cannot_be_healed_by_helper_cleanup(self):
+        for change in ('error','held','source','output','forced'):
+            report = self.report()
+            if change == 'error':report['errors'] = ['COMMAND_UNCERTAIN']
+            elif change == 'held':report['protocol']['held'] = True
+            elif change == 'source':report['checks']['source_unchanged'] = False
+            elif change == 'output':report['tool_output']['output_complete'] = False
+            else:report['required_actor_forced_cleanup'] = True
+            with self.subTest(change=change):
+                self.assertFalse(debug.required_actors_complete(report))
+                self.assertFalse(debug.debug_complete(report))
+
+    def test_unknown_duplicate_or_unobserved_helper_receipts_refuse_qualification(self):
+        for change in ('role','duplicate','exit','signal','digest','remaining','status'):
+            report = self.report();cleanup=report['auxiliary_cleanup'];receipt=cleanup['receipts'][0]
+            if change == 'role':receipt['role'] = 'other'
+            elif change == 'duplicate':cleanup['receipts'].append(copy.deepcopy(receipt))
+            elif change == 'exit':receipt['exit_observed'] = False
+            elif change == 'signal':receipt['termination_succeeded'] = False
+            elif change == 'digest':receipt['image_sha256'] = 'private-invalid'
+            elif change == 'remaining':report['owned_job_active_at_close'] = 1
+            else:cleanup['status'] = 'FAILED'
+            with self.subTest(change=change):self.assertFalse(debug.debug_complete(report))
+
+    def test_natural_helper_exit_zero_and_empty_job_need_no_forced_marker(self):
+        report=self.report();cleanup=report['auxiliary_cleanup'];receipt=cleanup['receipts'][0]
+        cleanup['forced']=report['forced_cleanup']=False
+        receipt.update(forced=False,termination_requested=False,termination_succeeded=False,actual_exit=0)
+        self.assertTrue(debug.debug_complete(report))
+        cleanup['receipts']=[]
+        self.assertTrue(debug.debug_complete(report))
+
+    def test_wrong_helper_exit_or_hidden_force_is_not_accepted(self):
+        report=self.report();report['auxiliary_cleanup']['receipts'][0]['actual_exit']=0
+        self.assertFalse(debug.debug_complete(report))
+        report=self.report();report['forced_cleanup']=False
+        self.assertFalse(debug.debug_complete(report))
+
+
+class OwnedHelperTests(unittest.TestCase):
+    class Kernel:
+        def __init__(self, names, timeout=False):
+            self.names = dict(enumerate(names, 1))
+            self.exits, self.signals, self.closed, self.opened = {}, [], [], []
+            self.timeout = timeout
+
+        def QueryInformationJobObject(self, job, kind, pointer, size, returned):
+            active = [pid for pid in self.names if pid not in self.exits]
+            value = pointer._obj
+            if kind == 3:
+                value.assigned = value.listed = len(active)
+                for index, pid in enumerate(active):
+                    value.identifiers[index] = pid
+            else:
+                value.active = len(active)
+            return True
+
+        def OpenProcess(self, rights, inherit, pid):
+            self.opened.append(pid)
+            return pid
+
+        def IsProcessInJob(self, handle, job, pointer):
+            pointer._obj.value = handle in self.names
+            return True
+
+        def QueryFullProcessImageNameW(self, handle, flags, image, size):
+            image.value = str(Path('/fixture') / self.names[handle])
+            return True
+
+        def WaitForSingleObject(self, handle, milliseconds):
+            return 0 if handle in self.exits and not self.timeout else 0x102
+
+        def TerminateProcess(self, handle, marker):
+            self.signals.append((handle, marker, tuple(self.opened)))
+            self.exits[handle] = marker
+            return True
+
+        def GetExitCodeProcess(self, handle, pointer):
+            pointer._obj.value = self.exits[handle]
+            return True
+
+        def CloseHandle(self, handle):
+            self.closed.append(handle)
+            return True
+
+    def finish(self, names, timeout=False):
+        job = owned.WindowsJob.__new__(owned.WindowsJob)
+        job.handle, job.kernel = 99, self.Kernel(names, timeout)
+        with mock.patch.object(owned, 'image_pin', return_value=('a' * 64, (1, 2, 3, 4))):
+            result = job.finish_known_helpers(Path('/fixture/sdk/dart.exe'),
+                lambda: Path('/fixture/compiler/vctip.exe'))
+        return result, job.kernel
+
+    def test_all_original_handles_are_bound_before_signalling_known_helpers(self):
+        result, kernel = self.finish(['sdk/dart.exe', 'compiler/vctip.exe'])
+        self.assertTrue(debug.helper_cleanup_complete(result))
+        self.assertEqual(result['remaining'], 0)
+        self.assertEqual(kernel.signals, [(1, owned.HELPER_EXIT_MARKER, (1, 2)),
+                                          (2, owned.HELPER_EXIT_MARKER, (1, 2))])
+        self.assertEqual(kernel.closed, [1, 2])
+
+    def test_unknown_or_duplicate_member_prevents_any_signal(self):
+        for names in (['sdk/dart.exe', 'other/tool.exe'], ['sdk/dart.exe'] * 2):
+            result, kernel = self.finish(names)
+            with self.subTest(names=names):
+                self.assertEqual(result['status'], 'FAILED')
+                self.assertFalse(result['forced'])
+                self.assertEqual(kernel.signals, [])
+                self.assertEqual(kernel.closed, [1, 2])
+
+    def test_unobserved_termination_is_failed_without_a_second_signal(self):
+        result, kernel = self.finish(['sdk/dart.exe'], timeout=True)
+        self.assertEqual(result['status'], 'FAILED')
+        self.assertEqual(result['code'], 'HELPER_CLOSE_UNCONFIRMED')
+        self.assertTrue(result['forced'])
+        self.assertFalse(result['receipts'][0]['exit_observed'])
+        self.assertEqual(kernel.signals, [(1, owned.HELPER_EXIT_MARKER, (1,))])
+        self.assertEqual(kernel.closed, [1])
 
 
 if __name__ == '__main__':

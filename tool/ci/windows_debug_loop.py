@@ -24,11 +24,13 @@ import time
 try:
     from . import flutter_debug_protocol as protocol
     from . import windows_entry_capture_smoke as entry
-    from .windows_debug_process import WindowsJob, ProcessRefused
+    from .windows_debug_process import (WindowsJob, ProcessRefused, compiler_helper_path,
+                                       HELPER_EXIT_MARKER, HELPER_SCOPE)
 except ImportError:
     import flutter_debug_protocol as protocol
     import windows_entry_capture_smoke as entry
-    from windows_debug_process import WindowsJob, ProcessRefused
+    from windows_debug_process import (WindowsJob, ProcessRefused, compiler_helper_path,
+                                      HELPER_EXIT_MARKER, HELPER_SCOPE)
 
 
 bounded = entry.bounded
@@ -55,12 +57,95 @@ FRONTEND_CODES = frozenset(('SOCKET_REPLACED', 'REQUEST_REFUSED', 'VM_REFUSED',
     'BROWSER_REFUSED', 'BROWSER_TIMEOUT', 'FRONTEND_REFUSED', 'FRONTEND_UNCONFIRMED',
     'BROWSER_EXIT_UNCONFIRMED', 'FRONTEND_EXIT_UNCONFIRMED'))
 CODES |= FRONTEND_CODES
+CODES |= frozenset(('HELPER_IMAGE_REFUSED', 'HELPER_IDENTITY_REFUSED', 'HELPER_CLOSE_UNCONFIRMED'))
 FRONTEND_PHASES = frozenset(('new', 'admitted', 'browser_started', 'browser_socket_bound',
     'page_navigated', 'vm_matched', 'ui_ready', 'close_requested', 'browser_exited'))
 FRONTEND_FLAGS = ('pageLoaded', 'documentReady', 'devtoolsTitle', 'frontendSourceMatched', 'webglIssue', 'wasmIssue',
     'frontendGetVmMatched', 'frontendSocketClosed', 'held', 'serviceSocketSeen')
 FRONTEND_COUNTS = ('runtimeExceptions', 'networkFailures', 'workerTargets',
     'getVmRequests', 'getVmReplies', 'otherSockets')
+
+
+def required_actors_complete(report):
+    """Helpers cannot be signalled until every required original actor passed."""
+    checks = report.get('checks')
+    if (type(checks) is not dict or set(checks) != set(CHECKS)
+            or not all(value is True for value in checks.values())
+            or report.get('errors') != [] or report.get('required_actor_forced_cleanup') is not False
+            or report.get('devtools_attached') is not True):
+        return False
+    if not all(type(report.get(key)) is int and report[key] == 0 for key in
+               ('application_exit', 'bootstrap_exit', 'tool_exit', 'probe_exit', 'frontend_exit')):
+        return False
+    frontend = report.get('frontend')
+    if (type(frontend) is not dict or frontend.get('ok') is not True
+            or type(frontend.get('browserExit')) is not int or frontend['browserExit'] != 0
+            or frontend.get('forced') is not False or frontend.get('outputComplete') is not True):
+        return False
+    for key in ('tool_output', 'probe_output', 'frontend_output'):
+        output = report.get(key)
+        if (type(output) is not dict or output.get('output_complete') is not True
+                or output.get('overflow') is not False):
+            return False
+    protocol_state = report.get('protocol')
+    return (type(protocol_state) is dict and protocol_state.get('held') is False
+            and protocol_state.get('app_stopped') is True
+            and type(protocol_state.get('pending_commands')) is int
+            and protocol_state['pending_commands'] == 0)
+
+
+def helper_cleanup_complete(value):
+    if (type(value) is not dict or value.get('scope') != HELPER_SCOPE
+            or value.get('status') != 'PASSED' or value.get('code') is not None
+            or type(value.get('remaining')) is not int or value['remaining'] != 0
+            or type(value.get('forced')) is not bool or type(value.get('receipts')) is not list
+            or len(value['receipts']) > 2):
+        return False
+    seen, forced = set(), False
+    for receipt in value['receipts']:
+        if (type(receipt) is not dict or set(receipt) != {'role', 'image_sha256', 'forced',
+                'termination_requested', 'termination_succeeded', 'actual_exit', 'exit_observed', 'stdio_captured'}
+                or receipt['role'] not in ('sdk_dart', 'msvc_telemetry') or receipt['role'] in seen
+                or not bounded.safe_digest(receipt['image_sha256'])
+                or any(type(receipt[key]) is not bool for key in ('forced', 'termination_requested',
+                        'termination_succeeded', 'exit_observed', 'stdio_captured'))
+                or not receipt['exit_observed'] or receipt['stdio_captured']
+                or type(receipt['actual_exit']) is not int):
+            return False
+        seen.add(receipt['role'])
+        if receipt['forced']:
+            if (not receipt['termination_requested'] or not receipt['termination_succeeded']
+                    or receipt['actual_exit'] != HELPER_EXIT_MARKER):
+                return False
+            forced = True
+        elif (receipt['termination_requested'] or receipt['termination_succeeded']
+              or receipt['actual_exit'] != 0):
+            return False
+    return value['forced'] is forced
+
+
+def debug_complete(report):
+    cleanup = report.get('auxiliary_cleanup')
+    return (required_actors_complete(report) and helper_cleanup_complete(cleanup)
+            and type(report.get('owned_job_active_at_close')) is int
+            and report['owned_job_active_at_close'] == 0
+            and report.get('forced_cleanup') is cleanup['forced'])
+
+
+def compiler_telemetry_image(repo):
+    root = repo / 'build/windows/x64/CMakeFiles'
+    bounded.plain(root)
+    candidates = []
+    for directory in root.iterdir():
+        if re.fullmatch(r'[0-9]+(?:\.[0-9]+){1,3}', directory.name):
+            bounded.plain(directory)
+            offered = directory / 'CMakeCXXCompiler.cmake'
+            if offered.is_file():
+                info = bounded.plain(offered)
+                need(0 < info.st_size <= 128 * 1024, 'HELPER_IMAGE_REFUSED')
+                candidates.append(offered)
+    need(len(candidates) == 1, 'HELPER_IMAGE_REFUSED')
+    return Path(compiler_helper_path(candidates[0].read_text(encoding='utf-8')))
 
 
 def need(value, code):
@@ -405,9 +490,10 @@ def main(arguments=None):
     if arguments == ['--sdk-child']:
         return sdk_child()
     checks = dict.fromkeys(CHECKS, False)
-    report = dict(schema=1, scope='ordinary_entry_debug_loop', checks=checks, errors=[],
+    report = dict(schema=2, scope='ordinary_entry_debug_loop', checks=checks, errors=[],
                   success=False, debug_loop_qualified=False, wallet_qualified=False,
-                  devtools_attached=False, seed_admitted=False, forced_cleanup=False)
+                  devtools_attached=False, seed_admitted=False, forced_cleanup=False,
+                  required_actor_forced_cleanup=False, auxiliary_cleanup=None)
     job = original = tool = probe = frontend = None
     output = None
     try:
@@ -502,6 +588,7 @@ def main(arguments=None):
         if frontend is not None:
             if frontend.original.poll() is None:
                 report['forced_cleanup'] = True
+                report['required_actor_forced_cleanup'] = True
                 frontend.original.kill()
                 frontend.original.wait(timeout=10)
             frontend.lines.finish()
@@ -510,6 +597,7 @@ def main(arguments=None):
             report['frontend'] = frontend.result
         if probe is not None and probe.original.poll() is None:
             report['forced_cleanup'] = True
+            report['required_actor_forced_cleanup'] = True
             probe.original.kill()
             probe.original.wait(timeout=10)
         if probe is not None:
@@ -518,17 +606,32 @@ def main(arguments=None):
             report['probe_exit'] = probe.original.returncode
             report['probe_failure'] = probe.failure
         if job is not None:
+            if original is not None:
+                report['bootstrap_exit'] = original.poll()
+            if tool is not None:
+                report['tool_output'] = tool.lines.public()
+                report['tool_exit'] = tool.exit
+                report['protocol'] = tool.protocol.public()
             try:
                 report['owned_job_images_before_close'] = job.remaining_images()
             except Exception:
                 report['owned_job_images_before_close'] = dict(
                     status='UNKNOWN', listed=0, observed=0, counts={})
+            if required_actors_complete(report):
+                cleanup = job.finish_known_helpers(dart, lambda: compiler_telemetry_image(repo))
+                report['auxiliary_cleanup'] = cleanup
+                report['forced_cleanup'] |= cleanup['forced']
+                if not helper_cleanup_complete(cleanup):
+                    report['errors'].append(cleanup['code'] if cleanup['code'] in CODES
+                                             else 'HELPER_CLOSE_UNCONFIRMED')
             job.close()
             report['forced_cleanup'] |= job.forced
+            report['required_actor_forced_cleanup'] |= job.forced
             report['owned_job_active_at_close'] = job.active_at_close
         if original is not None:
             if original.poll() is None:
                 report['forced_cleanup'] = True
+                report['required_actor_forced_cleanup'] = True
                 original.kill()
             original.wait(timeout=10)
             report['bootstrap_exit'] = original.returncode
@@ -537,8 +640,7 @@ def main(arguments=None):
             report['tool_output'] = tool.lines.public()
             report['tool_exit'] = tool.exit
             report['protocol'] = tool.protocol.public()
-        report['success'] &= not report['errors'] and not report['forced_cleanup']
-        report['debug_loop_qualified'] = report['success'] and report['devtools_attached']
+        report['success'] = report['debug_loop_qualified'] = debug_complete(report)
         if output is not None:
             target = output / 'manifest.json'
             with target.open('x', encoding='utf-8') as stream:

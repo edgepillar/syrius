@@ -7,12 +7,57 @@ is established. Closing the job is forced cleanup, never a successful app exit.
 
 import ctypes
 from ctypes import wintypes
+import hashlib
 import os
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
+import re
+import stat
+import time
 
 
 class ProcessRefused(Exception):
     pass
+
+
+HELPER_EXIT_MARKER = 0xE000D007
+HELPER_SCOPE = 'owned_helpers_after_completed_debug_actors'
+
+
+def compiler_helper_path(text):
+    """Bind telemetry to the compiler recorded by this fresh CMake build."""
+    values = re.findall(r'^set\(CMAKE_CXX_COMPILER "([^"\r\n]+)"\)', text, re.M)
+    if len(values) != 1:
+        raise ProcessRefused('HELPER_IMAGE_REFUSED')
+    if len(values[0]) > 4096 or any(ord(char) < 32 for char in values[0]):
+        raise ProcessRefused('HELPER_IMAGE_REFUSED')
+    path = PureWindowsPath(values[0])
+    if (not re.fullmatch(r'[A-Za-z]:', path.drive) or not path.is_absolute()
+            or path.name.lower() != 'cl.exe' or '..' in path.parts):
+        raise ProcessRefused('HELPER_IMAGE_REFUSED')
+    return path.parent / 'vctip.exe'
+
+
+def image_pin(path):
+    before = path.lstat()
+    if (not stat.S_ISREG(before.st_mode) or getattr(before, 'st_file_attributes', 0) & 0x400
+            or not 0 < before.st_size <= 64 * 1024**2):
+        raise ProcessRefused('HELPER_IMAGE_REFUSED')
+    identity = lambda info: (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns)
+    digest = hashlib.sha256()
+    with path.open('rb') as stream:
+        if identity(os.fstat(stream.fileno())) != identity(before):
+            raise ProcessRefused('HELPER_IMAGE_REFUSED')
+        total = 0
+        for chunk in iter(lambda: stream.read(1024**2), b''):
+            total += len(chunk)
+            if total > before.st_size:
+                raise ProcessRefused('HELPER_IMAGE_REFUSED')
+            digest.update(chunk)
+        if total != before.st_size or identity(os.fstat(stream.fileno())) != identity(before):
+            raise ProcessRefused('HELPER_IMAGE_REFUSED')
+    if identity(path.lstat()) != identity(before):
+        raise ProcessRefused('HELPER_IMAGE_REFUSED')
+    return digest.hexdigest(), identity(before)
 
 
 class _Basic(ctypes.Structure):
@@ -77,6 +122,7 @@ class WindowsJob:
                                               ctypes.POINTER(wintypes.DWORD)], wintypes.BOOL),
             "GetExitCodeProcess": ([wintypes.HANDLE, ctypes.POINTER(wintypes.DWORD)], wintypes.BOOL),
             "WaitForSingleObject": ([wintypes.HANDLE, wintypes.DWORD], wintypes.DWORD),
+            "TerminateProcess": ([wintypes.HANDLE, wintypes.DWORD], wintypes.BOOL),
             "CloseHandle": ([wintypes.HANDLE], wintypes.BOOL),
         }
         for name, (arguments, result) in declarations.items():
@@ -168,6 +214,99 @@ class WindowsJob:
             finally:
                 self.kernel.CloseHandle(handle)
         result['status'] = 'OBSERVED'
+        return result
+
+    def finish_known_helpers(self, dart, compiler_resolver):
+        """Stop at most one exact SDK and compiler helper after actor success.
+
+        All members are bound before any signal. Handles, membership, image path
+        and immutable image bytes are retained and rechecked. Interrupted helper
+        exits keep their explicit marker; they are never normal application exits.
+        """
+        result = dict(scope=HELPER_SCOPE, status='FAILED', code=None,
+                      forced=False, remaining=None, receipts=[])
+        retained = []
+        try:
+            values = _Members()
+            if (self.handle is None or not self.kernel.QueryInformationJobObject(
+                    self.handle, 3, ctypes.byref(values), ctypes.sizeof(values), None)
+                    or values.assigned != values.listed or values.listed > 2):
+                raise ProcessRefused('HELPER_IDENTITY_REFUSED')
+            roles = set()
+            for identifier in values.identifiers[:values.listed]:
+                if not 0 < identifier < 0x100000000:
+                    raise ProcessRefused('HELPER_IDENTITY_REFUSED')
+                handle = self.kernel.OpenProcess(0x1000 | 0x100000 | 1, False, identifier)
+                if not handle:
+                    raise ProcessRefused('HELPER_IDENTITY_REFUSED')
+                item = dict(handle=handle)
+                retained.append(item)
+                member = wintypes.BOOL()
+                size = wintypes.DWORD(32768)
+                image = ctypes.create_unicode_buffer(size.value)
+                if (not self.kernel.IsProcessInJob(handle, self.handle, ctypes.byref(member))
+                        or not member.value or not self.kernel.QueryFullProcessImageNameW(
+                            handle, 0, image, ctypes.byref(size))):
+                    raise ProcessRefused('HELPER_IDENTITY_REFUSED')
+                actual = Path(image.value).resolve()
+                if os.path.normcase(str(actual)) == os.path.normcase(str(dart.resolve())):
+                    role, expected = 'sdk_dart', dart.resolve()
+                elif actual.name.lower() == 'vctip.exe':
+                    role, expected = 'msvc_telemetry', compiler_resolver().resolve()
+                    if os.path.normcase(str(actual)) != os.path.normcase(str(expected)):
+                        raise ProcessRefused('HELPER_IMAGE_REFUSED')
+                else:
+                    raise ProcessRefused('HELPER_IMAGE_REFUSED')
+                if role in roles:
+                    raise ProcessRefused('HELPER_IDENTITY_REFUSED')
+                roles.add(role)
+                pin = image_pin(expected)
+                receipt = dict(role=role, image_sha256=pin[0], forced=False,
+                    termination_requested=False, termination_succeeded=False,
+                    actual_exit=None, exit_observed=False, stdio_captured=False)
+                item.update(expected=expected, pin=pin, receipt=receipt)
+                result['receipts'].append(receipt)
+            # The complete observed member set must still be the same size.
+            if self.active() != len(retained):
+                raise ProcessRefused('HELPER_IDENTITY_REFUSED')
+            for item in retained:
+                handle, receipt = item['handle'], item['receipt']
+                member = wintypes.BOOL()
+                if (not self.kernel.IsProcessInJob(handle, self.handle, ctypes.byref(member))
+                        or not member.value or image_pin(item['expected']) != item['pin']):
+                    raise ProcessRefused('HELPER_IDENTITY_REFUSED')
+                state = self.kernel.WaitForSingleObject(handle, 0)
+                if state == 0x102:
+                    receipt['termination_requested'] = receipt['forced'] = True
+                    result['forced'] = True
+                    if not self.kernel.TerminateProcess(handle, HELPER_EXIT_MARKER):
+                        raise ProcessRefused('HELPER_CLOSE_UNCONFIRMED')
+                    receipt['termination_succeeded'] = True
+                    if self.kernel.WaitForSingleObject(handle, 10000) != 0:
+                        raise ProcessRefused('HELPER_CLOSE_UNCONFIRMED')
+                elif state != 0:
+                    raise ProcessRefused('HELPER_CLOSE_UNCONFIRMED')
+                code = wintypes.DWORD()
+                if not self.kernel.GetExitCodeProcess(handle, ctypes.byref(code)):
+                    raise ProcessRefused('HELPER_CLOSE_UNCONFIRMED')
+                receipt.update(actual_exit=code.value, exit_observed=True)
+                expected_exit = HELPER_EXIT_MARKER if receipt['forced'] else 0
+                if code.value != expected_exit or image_pin(item['expected']) != item['pin']:
+                    raise ProcessRefused('HELPER_CLOSE_UNCONFIRMED')
+            deadline = time.monotonic() + 1
+            while self.active() and time.monotonic() < deadline:
+                time.sleep(.05)
+            result['remaining'] = self.active()
+            if result['remaining'] != 0:
+                raise ProcessRefused('HELPER_CLOSE_UNCONFIRMED')
+            result['status'] = 'PASSED'
+        except ProcessRefused as error:
+            result['code'] = str(error)
+        except Exception:
+            result['code'] = 'HELPER_CLOSE_UNCONFIRMED'
+        finally:
+            for item in retained:
+                self.kernel.CloseHandle(item['handle'])
         return result
 
     def close(self):
