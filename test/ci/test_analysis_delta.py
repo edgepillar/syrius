@@ -9,6 +9,8 @@ from tool.ci import analysis_delta as delta
 
 
 def output(path='lib/view.dart', *, code='prefer_const_constructors', line=10):
+    path = path.replace('\\', '\\\\').replace('|', '\\|')
+    path = path.replace('\n', '\\n').replace('\r', '\\r')
     return ('INFO|LINT|' + code.upper() + '|' + path + '|' + str(line)
             + '|3|1|synthetic private message\n').encode()
 
@@ -17,6 +19,17 @@ INFO = dict(errors=0, warnings=0, infos=1)
 
 
 class AnalysisDeltaTests(unittest.TestCase):
+    def test_source_declaration_infos_use_the_same_tracked_path_guard(self):
+        for path in ('pubspec.yaml', 'analysis_options.yaml',
+                     'patched_packages/reown_core-1.3.8/pubspec.yaml'):
+            with self.subTest(path=path):
+                counts, rows = delta.diagnostics(output(path, code='sort_pub_dependencies'),
+                                                '/fixture', {path}, INFO)
+                self.assertEqual(counts, INFO)
+                self.assertEqual(rows, [('info', path, 'sort_pub_dependencies', 10, 3)])
+        with self.assertRaises(delta.Refused):
+            delta.diagnostics(output('credentials.yaml'), '/fixture', {'credentials.yaml'}, INFO)
+
     def test_unqualified_environment_refuses_before_any_child_or_sdk(self):
         out = io.StringIO()
         with patch.dict(delta.os.environ, {'GH_TOKEN': 'synthetic private credential'}, clear=True), \

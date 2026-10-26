@@ -4441,3 +4441,35 @@ protocol, malformed headers, duplicate/mismatched counts and private
 message bytes. Path admission and terminal refusal are not relaxed. This
 adds a bounded location analysis per source, sharing the same SDK and
 dependency cache; it repeats no build, wallet or node operation.
+
+At `27a9c11a1267c2cbe6b35be2074b1ad2b8738aa0`, run `40400074529`,
+job `121843244560`, nine controls and SDK setup pass. The original Flutter
+command for `1d663dc58b9c` reproduces 1295 infos with zero errors/warnings,
+exiting zero normally after 39.797 seconds with complete output, SHA-256
+`868642679d3323dccab130a08e308519539275b28666c48b67e85d83e5ba1a90`.
+The machine command also exits zero normally after 31.297 seconds, with
+complete output, SHA-256
+`d4b99d44a56ab61512fb1f68a1090ddcc97dbcdb2d8e3284a87793554f38c7d2`.
+The reader still returns `ANALYSIS_INVALID` in path admission. Locations
+remain incomplete; a normal command exit is not successful attribution.
+
+Source review identifies an admission gap: analyzer diagnostics also apply
+to source declarations such as `pubspec.yaml`, while the candidate had
+admitted only Dart files. The official
+[sort_pub_dependencies rule](https://dart.dev/tools/linter-rules/sort_pub_dependencies)
+documents a pubspec diagnostic. The pinned
+[Dart 3.13.5 machine formatter](https://github.com/dart-lang/sdk/blob/3.13.5/pkg/dartdev/lib/src/commands/analyze.dart)
+also defines escaped backslashes and pipes in file paths. The candidate
+decodes that fixed path protocol, admits only tracked Dart files or the
+exact `pubspec.yaml`/`analysis_options.yaml` basenames, and includes all
+five tracked declarations in the cross-source input-digest comparison.
+Their contents are unchanged between the historical and current sources.
+Arbitrary YAML and parent, UNC, URI, outside-root or untracked paths remain
+refused with finite reason codes. This fixes a source-proven reader gap;
+the original rejected path was not retained or disclosed.
+
+Ten memory-only controls pass, including declaration diagnostics, a
+tracked but unsupported YAML refusal and correctly escaped Windows path
+fields. Private messages stay undecoded. Actual hosted attribution is
+still pending; no existing failed qualification is relabelled or retried
+against unchanged source.

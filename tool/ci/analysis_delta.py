@@ -1,6 +1,6 @@
 """Attribute analyzer changes on fixed sources without builds or wallet execution.
 
-Only tracked relative Dart paths, lint codes and numeric locations are public.
+Only tracked relative source paths, lint codes and numeric locations are public.
 Original analyzer/dependency output remains in bounded runner memory. The two
 historical worktrees and profiles belong to this fresh hosted job and are preserved.
 """
@@ -35,8 +35,12 @@ CODES = frozenset(('ENVIRONMENT_REFUSED', 'SOURCE_REFUSED', 'TOOL_REFUSED',
     'SPACE_REFUSED', 'COMMAND_FAILED', 'ANALYSIS_INVALID', 'ANALYSIS_FAILED',
     'ANALYSIS_MACHINE_SHAPE', 'ANALYSIS_MACHINE_COUNTS',
     'ANALYSIS_PATH_OUTSIDE', 'ANALYSIS_PATH_UNTRACKED',
+    'ANALYSIS_PATH_PARENT', 'ANALYSIS_PATH_UNC', 'ANALYSIS_PATH_SYNTAX',
+    'ANALYSIS_PATH_URI',
     'INPUTS_CHANGED', 'INTERNAL_ERROR'))
-PATH = re.compile(r'[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\.dart')
+DART_PATH = re.compile(r'[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\.dart')
+SOURCE_PATH = re.compile(
+    r'(?:[A-Za-z0-9_.-]+/)*(?:[A-Za-z0-9_.-]+\.dart|pubspec\.yaml|analysis_options\.yaml)')
 MAX_OUTPUT = 8 * 1024**2
 FREE_FLOOR = 10 * 1024**3
 RESERVATION = 4 * 1024**3
@@ -51,21 +55,41 @@ def need(value, code):
         raise Refused(code)
 
 
-def relative_dart(offered, root, tracked):
+def decode_machine_path(offered):
+    """Decode only the path's documented machine escapes, never its message."""
+    need(len(offered) <= 16384, 'ANALYSIS_MACHINE_SHAPE')
+    result = []
+    index = 0
+    while index < len(offered):
+        character = offered[index]
+        if character == '\\':
+            index += 1
+            need(index < len(offered) and offered[index] in '\\|nr',
+                 'ANALYSIS_MACHINE_SHAPE')
+            character = {'n': '\n', 'r': '\r'}.get(offered[index], offered[index])
+        result.append(character)
+        index += 1
+    return ''.join(result)
+
+
+def relative_source(offered, root, tracked):
     """Reject private or untracked paths rather than trimming them for output."""
     offered = offered.replace('\\', '/')
     root = str(root).replace('\\', '/')
     windows = bool(re.match(r'^[A-Za-z]:/', root))
     cls = PureWindowsPath if windows else PurePosixPath
     path = cls(offered)
-    need('..' not in path.parts and not offered.startswith('//'), 'ANALYSIS_INVALID')
+    need('..' not in path.parts, 'ANALYSIS_PATH_PARENT')
+    need(not offered.startswith('//'), 'ANALYSIS_PATH_UNC')
+    need(re.match(r'^[A-Za-z][A-Za-z0-9+.-]+://', offered) is None,
+         'ANALYSIS_PATH_URI')
     if path.is_absolute():
         try:
             path = path.relative_to(cls(root))
         except ValueError:
             raise Refused('ANALYSIS_PATH_OUTSIDE') from None
     value = path.as_posix()
-    need(PATH.fullmatch(value) is not None, 'ANALYSIS_INVALID')
+    need(SOURCE_PATH.fullmatch(value) is not None, 'ANALYSIS_PATH_SYNTAX')
     need(value in tracked, 'ANALYSIS_PATH_UNTRACKED')
     return value
 
@@ -93,12 +117,13 @@ def diagnostics(raw, root, tracked, expected):
             raise Refused('ANALYSIS_MACHINE_SHAPE') from None
         need(re.fullmatch('[A-Z][A-Z0-9_]{0,99}', code) is not None
             and re.fullmatch('[A-Z][A-Z0-9_]{0,63}', kind) is not None
-            and all(value.isdecimal() for value in (row, column, length)),
+            and all(0 < len(value) <= 8 and value.isdecimal()
+                    for value in (row, column, length)),
             'ANALYSIS_MACHINE_SHAPE')
         row, column, length = int(row), int(column), int(length)
         need(0 < row <= 10**7 and 0 < column <= 10**7 and 0 <= length <= 10**7,
              'ANALYSIS_MACHINE_SHAPE')
-        rows.append((level.lower(), relative_dart(offered, root, tracked),
+        rows.append((level.lower(), relative_source(decode_machine_path(offered), root, tracked),
                      code.lower(), row, column))
     levels = Counter(row[0] for row in rows)
     counts = dict(errors=levels['error'], warnings=levels['warning'], infos=levels['info'])
@@ -143,7 +168,7 @@ def load_controls():
 
 def run_controls():
     suite = load_controls()
-    if suite.countTestCases() != 9:
+    if suite.countTestCases() != 10:
         print(json.dumps(dict(scope='analysis_delta_inmemory_cases',
             success=False, code='CONTROLS_REFUSED', tests=suite.countTestCases(),
             native_wallet_executions=0, native_node_executions=0)))
@@ -214,14 +239,16 @@ def main():
             actual = command(label + '_tree', [git, 'rev-parse', 'HEAD^{tree}'],
                              target, cap=128).decode('ascii').strip()
             need(actual == expected_tree, 'SOURCE_REFUSED')
-            inputs = {name: hashlib.sha256((target / name).read_bytes()).hexdigest()
-                      for name in INPUTS}
-            need(not declarations or inputs == declarations[0], 'INPUTS_CHANGED')
-            declarations.append(inputs)
-            tracked_raw = command(label + '_tracked', [git, 'ls-files', '-z', '--', '*.dart'],
+            tracked_raw = command(label + '_tracked', [git, 'ls-files', '-z', '--',
+                '*.dart', '*pubspec.yaml', '*analysis_options.yaml'],
                                   target, cap=1024**2)
             tracked = set(tracked_raw.decode('utf-8').rstrip('\0').split('\0'))
-            need(tracked and all(PATH.fullmatch(name) for name in tracked), 'SOURCE_REFUSED')
+            need(tracked and all(SOURCE_PATH.fullmatch(name) for name in tracked), 'SOURCE_REFUSED')
+            configs = {name for name in tracked if DART_PATH.fullmatch(name) is None}
+            inputs = {name: hashlib.sha256((target / name).read_bytes()).hexdigest()
+                      for name in set(INPUTS) | configs}
+            need(not declarations or inputs == declarations[0], 'INPUTS_CHANGED')
+            declarations.append(inputs)
             child_env = baseline.fresh_environment(target, parent)
             command(label + '_restore', flutter + ['pub', 'get', '--enforce-lockfile'],
                     target, child_env=child_env, timeout=600, cap=4 * 1024**2)
@@ -234,7 +261,8 @@ def main():
             need(not counts['errors'] and not counts['warnings']
                 and report['commands'][-1]['success'], 'ANALYSIS_FAILED')
             report['sources'].append(dict(label=label, head=source, tree=actual,
-                counts=counts, tracked_dart_files=len(tracked),
+                counts=counts, tracked_dart_files=len(tracked) - len(configs),
+                tracked_config_files=len(configs),
                 inputs_sha256=hashlib.sha256(json.dumps(inputs, sort_keys=True,
                     separators=(',', ':')).encode()).hexdigest(), locations_complete=False))
             raw = command(label + '_locations', [str(dart), 'analyze', '--format', 'machine'],
