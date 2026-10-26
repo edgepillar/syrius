@@ -3357,3 +3357,56 @@ job `121520709448` also stops at its controller-test step before collecting
 inventory. Neither positive startup probe, new Dart case, node or wallet
 executes in this attempt; the prior deadline cause remains unknown. This
 negative attempt is retained and will not be retried at unchanged source.
+
+### Owned startup probes pass; storage refusal needs a finite cause
+
+Run `40308403749`, attempt one, at
+`86b536a0f33cd44a8a6d9c1c02839a6293a96bf4`, tree
+`eb5a884cc66a4d661662c82da559e1b9919ea497`, has 421 controller cases,
+three platform skips and zero failures/errors. All eight Dart cases pass
+without skips or errors. The negative opt-in control retains its normal
+exit one and exact sixteen-byte refusal. Both positive startup probes pass:
+the gate and SDK originals exit zero with complete output, the controller
+stdin remains open, neither job is forced and both jobs are empty at close.
+Selected analysis has zero errors/warnings and three infos: two import-order
+notices and one stream-iteration preference. The candidate corrects all three.
+
+Wallet job `121523173102` reaches the gate and build milestones, retaining
+107 complete output bytes, then fails with `STORAGE_REFUSED`. Readiness,
+application binding, private-input release, pages and captures are unobserved.
+The receipt classifies all thirteen remaining owned members before forced
+closure; the original entry's subsequent exit zero is not normal success.
+All five original lab nodes reach production and exit zero, complete and
+unforced. The unchanged-input gate is not reached after the wallet failure.
+Neither the wallet nor overall lab is qualified by these partial positives.
+
+The old storage code uses the same refusal code for logical bytes, free
+space, entry count, links, reparse entries and unsupported file types. The
+receipt cannot identify which one occurred. The new candidate retains its
+four-GiB workspace cap, two-GiB isolated fixture floor and strict identity
+checks. It records only fixed role labels, logical-byte totals, entry count,
+minimum free bytes and a finite refusal reason. Symlinks and reparse entries
+are still refused before traversal; no cleanup or limit increase is added.
+Three in-memory cases cover attribution, partial totals on cap refusal and
+the distinct link/type/entry-limit refusals. Logical bytes are not measured
+physical allocation or reclaimed disk space.
+
+### Inspect the existing inventory before repeating a query
+
+Inventory job `121523172669` in the same run passes its controller step,
+collects Git Bash `5.3.15`, confirms absent Pillow and retains its finite
+manifest. Source and unchanged-source checks pass. Native workload/MSVC,
+Windows SDK, Chrome/Edge, Docker Desktop and Developer Mode remain unknown;
+the inventory reports `INVENTORY_INCOMPLETE`. The annotation omits individual
+query outcomes, so no exact query failure is claimed yet.
+
+The new default-off inspector reads that existing original manifest inside
+Actions. It binds exact run/head/tree/attempt and artifact name, verifies
+archive size/digest and the sole manifest member, then projects only three
+finite command outcomes and the unknown-field names. It reuses the existing
+bounded transport and credential boundaries; no archive is downloaded locally.
+No tool query, SDK setup, node, wallet or build repeats in the inspector.
+Original failures and forced exits remain negative even if inspection itself
+succeeds. Three in-memory cases cover the original timeout projection,
+source/exit/refusal integrity and local admission before any API client.
+The workflow has sixteen inputs; P01/P03 remain open.

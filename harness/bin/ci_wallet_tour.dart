@@ -3,9 +3,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'build_output.dart';
 import 'harness.dart' as cli;
 import 'wallet_recipe.dart' show WalletRecipeRefused;
-import 'build_output.dart';
 
 Future<void> main() async {
   final StreamIterator<String> input = StreamIterator<String>(

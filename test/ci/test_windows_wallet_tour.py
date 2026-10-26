@@ -5,7 +5,9 @@ import copy
 import io
 import json
 from pathlib import Path
+import stat
 import sys
+import types
 import unittest
 from unittest import mock
 
@@ -169,6 +171,54 @@ class CoverageTests(unittest.TestCase):
             value = receipt();value['visited'][0][key] = offered
             with self.subTest(key=key):
                 self.assertFalse(tour.tour_complete(tour.tour_receipt(value)))
+
+
+class StorageTests(unittest.TestCase):
+    @staticmethod
+    def path(size=0, mode=stat.S_IFREG, attributes=0, exists=True):
+        path = mock.Mock(name='synthetic-private-output')
+        path.exists.return_value = exists
+        path.is_symlink.return_value = False
+        path.lstat.return_value = types.SimpleNamespace(
+            st_size=size, st_mode=mode, st_file_attributes=attributes)
+        return path
+
+    def paths(self, *offered):
+        return (*offered, *(self.path(exists=False) for _ in range(4-len(offered))))
+
+    def test_logical_bytes_are_attributed_to_only_the_owned_roles(self):
+        sample = {}
+        self.assertEqual(tour.sample_workspace(self.paths(self.path(10), self.path(20)),
+                                               receipt=sample), 30)
+        self.assertEqual(sample['by_role']['wallet_profile'], 10)
+        self.assertEqual(sample['by_role']['application'], 20)
+        self.assertEqual(sample['entries'], 2)
+        self.assertEqual(sample['status'], 'COMPLETE')
+
+    def test_cap_refusal_retains_the_actual_partial_total(self):
+        sample = {}
+        with mock.patch.object(tour, 'WORK_CAP', 10), self.assertRaises(tour.Refused):
+            tour.sample_workspace(self.paths(self.path(8), self.path(8)), receipt=sample)
+        self.assertEqual(sample['logical_bytes'], 16)
+        self.assertEqual(sum(sample['by_role'].values()), 16)
+        self.assertEqual(sample['reason'], 'workspace_cap')
+        self.assertEqual(sample['status'], 'REFUSED')
+
+    def test_links_reparse_entries_special_files_and_entry_limits_stay_refused(self):
+        for mode, attributes, limit, reason in (
+                (stat.S_IFLNK, 0, 100000, 'linked_entry'),
+                (stat.S_IFREG, 0x400, 100000, 'reparse_entry'),
+                (stat.S_IFIFO, 0, 100000, 'non_regular_entry'),
+                (stat.S_IFREG, 0, 0, 'entry_limit')):
+            path = self.path(mode=mode, attributes=attributes)
+            sample = {}
+            with self.subTest(reason=reason), mock.patch.object(tour, 'ENTRY_LIMIT', limit), \
+                    self.assertRaises(tour.Refused):
+                tour.sample_workspace(self.paths(path), receipt=sample)
+            self.assertEqual(sample['reason'], reason)
+            path.iterdir.assert_not_called()
+            path.resolve.assert_not_called()
+            self.assertNotIn('synthetic-private-output', json.dumps(sample))
 
 
 class CompletionTests(unittest.TestCase):

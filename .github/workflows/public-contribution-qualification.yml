@@ -68,6 +68,14 @@ on:
         description: Exact source SHA required for the retained lab inspection
         type: string
         default: ''
+      inspect_windows_inventory_run:
+        description: Inspect a completed inventory without repeating tool queries
+        type: string
+        default: ''
+      inspect_windows_inventory_head:
+        description: Exact source SHA required for the retained inventory inspection
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -465,6 +473,36 @@ jobs:
           include-hidden-files: true
           if-no-files-found: error
           path: .harness/ci-wallet-tour/manifest.json
+
+  inspect-windows-inventory:
+    if: inputs.inspect_windows_inventory_run != ''
+    name: Inspect retained Windows inventory
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Checkout the dispatched inspector source
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            tool/ci
+            test/ci
+            tools/devnet/lab
+
+      - name: Test finite inventory projection in memory
+        run: python -B -m unittest discover -s test/ci -p test_inspect_windows_inventory.py -v
+
+      - name: Inspect the original finite inventory manifest
+        timeout-minutes: 3
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
+          INVENTORY_INSPECT_RUN: ${{ inputs.inspect_windows_inventory_run }}
+          INVENTORY_INSPECT_HEAD: ${{ inputs.inspect_windows_inventory_head }}
+        run: python -B -m tool.ci.inspect_windows_inventory
 
   inspect-chain321:
     if: inputs.inspect_chain321_run != ''

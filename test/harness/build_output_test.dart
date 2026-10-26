@@ -11,9 +11,7 @@ class _Bytes implements StreamConsumer<List<int>> {
 
   @override
   Future<void> addStream(Stream<List<int>> stream) async {
-    await for (final List<int> value in stream) {
-      bytes.addAll(value);
-    }
+    await stream.forEach(bytes.addAll);
   }
 
   @override

@@ -37,6 +37,8 @@ CODES = frozenset(('ENVIRONMENT_REFUSED', 'SOURCE_REFUSED', 'PROFILE_REFUSED',
     'HELPER_CLOSE_UNCONFIRMED', 'INTERNAL_ERROR'))
 WORK_CAP = 4 * 1024**3
 FIXTURE_FLOOR = 2 * 1024**3
+ENTRY_LIMIT = 100000
+STORAGE_ROLES = ('wallet_profile', 'application', 'native_build', 'tool_profile')
 
 
 class Refused(Exception):
@@ -107,29 +109,46 @@ def completed(report):
         return False
 
 
-def sample_workspace(paths):
+def sample_workspace(paths, *, receipt=None):
     """Sample only this attempt's explicit new output paths on its fresh runner."""
-    total, count = 0, 0
-    pending = [path for path in paths if path.exists() or path.is_symlink()]
+    need(len(paths) == len(STORAGE_ROLES), 'STORAGE_REFUSED')
+    sample = {} if receipt is None else receipt
+    sample.update(status='SAMPLING', reason=None, role=None, logical_bytes=0, entries=0,
+        by_role=dict.fromkeys(STORAGE_ROLES, 0))
+
+    def refuse(reason, role):
+        sample.update(status='REFUSED', reason=reason, role=role)
+        raise Refused('STORAGE_REFUSED')
+
+    pending = [(role, path) for role, path in zip(STORAGE_ROLES, paths)
+               if path.exists() or path.is_symlink()]
     while pending:
-        path = pending.pop()
+        role, path = pending.pop()
         try:
             info = path.lstat()
         except FileNotFoundError:
             continue
-        count += 1
-        need(count <= 100000 and not stat.S_ISLNK(info.st_mode)
-             and not getattr(info, 'st_file_attributes', 0) & 0x400, 'STORAGE_REFUSED')
+        sample['entries'] += 1
+        if sample['entries'] > ENTRY_LIMIT:
+            refuse('entry_limit', role)
+        if stat.S_ISLNK(info.st_mode):
+            refuse('linked_entry', role)
+        if getattr(info, 'st_file_attributes', 0) & 0x400:
+            refuse('reparse_entry', role)
         if stat.S_ISDIR(info.st_mode):
             try:
-                pending.extend(path.iterdir())
+                pending.extend((role, child) for child in path.iterdir())
             except FileNotFoundError:
                 continue
         else:
-            need(stat.S_ISREG(info.st_mode), 'STORAGE_REFUSED')
-            total += info.st_size
-            need(total <= WORK_CAP, 'STORAGE_REFUSED')
-    return total
+            if not stat.S_ISREG(info.st_mode):
+                refuse('non_regular_entry', role)
+            sample['logical_bytes'] += info.st_size
+            sample['by_role'][role] += info.st_size
+            if sample['logical_bytes'] > WORK_CAP:
+                refuse('workspace_cap', role)
+    sample['status'] = 'COMPLETE'
+    return sample['logical_bytes']
 
 
 def run(repo, parent, runtime, lab_root, observation, revalidate):
@@ -139,6 +158,8 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
         forced_cleanup=False, required_actor_forced_cleanup=False,
         auxiliary_cleanup=None, phase='admission', min_free_bytes=FIXTURE_FLOOR,
         workspace_cap_bytes=WORK_CAP,
+        storage=dict(samples=0, peak_logical_bytes=0, minimum_free_bytes=None,
+                     last_sample=None, refusal=None),
         storage_scope='isolated_hosted_regression_fixture_cooperative_samples',
         cleanup='runner_lifecycle_not_qualified')
     original = lines = job = output = transport = None
@@ -159,7 +180,11 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
         root = debug.entry.private_root(repo)
         output = root / 'ci-wallet-tour'
         output.mkdir(mode=0o700)
-        need(shutil.disk_usage(repo).free >= FIXTURE_FLOOR + WORK_CAP, 'STORAGE_REFUSED')
+        free = shutil.disk_usage(repo).free
+        report['storage']['minimum_free_bytes'] = free
+        if free < FIXTURE_FLOOR + WORK_CAP:
+            report['storage']['refusal'] = 'admission_free_space'
+            raise Refused('STORAGE_REFUSED')
         debug.bounded.check_no_existing(repo, parent)
         name = 'ci-wallet-' + secrets.token_hex(12)
         home, app = root / name, root / 'app'
@@ -195,8 +220,22 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
                 now = time.monotonic()
                 need(now < limit, 'TOTAL_DEADLINE')
                 if now >= next_sample:
-                    sample_workspace((home, app, native_build, tool_profile))
-                    need(shutil.disk_usage(repo).free >= FIXTURE_FLOOR, 'STORAGE_REFUSED')
+                    storage = report['storage']
+                    sample = {}
+                    storage['last_sample'] = sample
+                    storage['samples'] += 1
+                    try:
+                        sample_workspace((home, app, native_build, tool_profile), receipt=sample)
+                    finally:
+                        storage['peak_logical_bytes'] = max(storage['peak_logical_bytes'],
+                                                           sample.get('logical_bytes', 0))
+                        if sample.get('status') == 'REFUSED':
+                            storage['refusal'] = sample['reason']
+                    free = shutil.disk_usage(repo).free
+                    storage['minimum_free_bytes'] = min(storage['minimum_free_bytes'], free)
+                    if free < FIXTURE_FLOOR:
+                        storage['refusal'] = 'runtime_free_space'
+                        raise Refused('STORAGE_REFUSED')
                     next_sample = now + 5
                 raw = lines.take(.1)
                 if raw is None:

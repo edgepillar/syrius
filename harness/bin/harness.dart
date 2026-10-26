@@ -13,9 +13,9 @@ import 'dart:math';
 import '../app/fixtures/seed_policy.dart';
 import '../app/presentation_mode.dart';
 import '../seed/seed_recipe.dart';
+import 'build_output.dart';
 import 'screen_capture.dart';
 import 'wallet_recipe.dart';
-import 'build_output.dart';
 
 final String repo = File.fromUri(Platform.script).parent.parent.parent.path;
 final String stateRoot = '$repo${Platform.pathSeparator}.harness';
