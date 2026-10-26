@@ -4181,3 +4181,50 @@ skip from a natural handoff decision; neither source-level race correction
 is declared the sole runtime cause. The retained-reader refusal path now
 emits only its fixed inspection phase as an Actions notice, allowing a
 bounded API observation without fetching raw diagnostics locally.
+
+
+### Fresh application baseline and ordinary entry independently inspected
+
+Read-only inspector source `443d0e9c6577379da08ae8b44b6417a9b25e2ce1`,
+run `40376130619` attempt one, job `121759565325`, succeeds. It inspects
+original application source `f024e78bf777d9b16d9e4a81c295ef092c9bf79d`,
+run `40368833678` attempt one, baseline job `121733764905` and entry
+job `121733765522`. All three selected producer files match the original
+source. The inspector starts no application/node and extracts no files.
+
+All twelve original baseline checks pass. The non-chain unit/widget suite
+has 4377 passing events, two skips, 511 hidden events and 4890 terminal
+events, with no failures/errors. Root analysis has zero errors/warnings
+and 1304 infos; vendored analysis has none. Analysis takes 48.343/20.000s,
+tests 924.187s and Debug/Release builds 139.328/189.406s. All five selected
+commands have actual exit zero, observed exit, complete output and no
+forced kill or overflow. Generation/localization/source correspondence
+and all three matching DLL map/export probes pass. No node ABI is invoked.
+The 39402-byte original job log has SHA-256
+`a9fc1ad72a013256698a74c9b05f0d1229da15779dc29de3738a91915e55d15a`.
+Root infos increase from the earlier 1295 to 1304. This retained summary
+does not attribute the nine additional findings to source locations; that
+analysis follow-up remains open. No full-wallet or production result
+follows from this baseline.
+
+All eighteen original entry checks and four caption checks pass. The
+original exit is zero, observed, complete and unforced, with 2255 output
+bytes and no overflow. The exact entry archive has SHA-256
+`9758e706f5d9050f640609030070b1d018a09787b2c7d40b85250a0fbf066496`;
+its manifest has SHA-256
+`33ca0ca651da5055d9bd6a68cf027f1f0bf4218d2fb9eb849079ece8bcffec16`.
+All four genuine PNGs are 1280 by 780; the reader verifies their hashes,
+CRCs, dimensions and pixel payloads without a local artifact download.
+
+| Capture | Bytes | SHA-256 |
+| --- | ---: | --- |
+| welcome-dark.png | 165908 | `5af1dbe5a6530b11b075f59f55b6596d6fb3e7aaf4658b64b720da51500f2a85` |
+| welcome-light.png | 192060 | `c4d98e6ae820e016fccc74171f5a16234996e973291298f8b0cc29cd9a882ca3` |
+| import-dark.png | 89944 | `f2453f147af0546244f84b0a4b7424ed0302294083bd87a74fa2098f240306cc` |
+| import-light.png | 110105 | `ee160da5f1b65e69b8aec5528478c746ccb06d417367b0ebdfab95a0e00851c8` |
+
+These four captures are current for that application source. They are
+unreviewed against the mockups; the earlier comparison report stays pinned
+to its original source. Ninety other actual captures and all 94 visual
+matches remain open. The later recipe/inspector changes do not modify
+application code or rebind this baseline to a different source.
