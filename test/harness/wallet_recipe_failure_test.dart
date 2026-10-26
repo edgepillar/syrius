@@ -2,7 +2,10 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/disclosure.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/welcome_surface.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/settings_frame.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/settings_parts.dart';
 
 import '../../harness/app/agent.dart';
 import '../../harness/bin/wallet_recipe.dart';
@@ -21,6 +24,61 @@ Future<Map<String, Object?>> _importControl(HarnessAgent agent) async {
 }
 
 void main() {
+  for (final bool disableAnimations in <bool>[false, true]) {
+    testWidgets('chain recipe waits for Settings motion $disableAnimations', (
+      WidgetTester tester,
+    ) async {
+      prepareWelcomeViewport(tester);
+      final HarnessAgent agent = HarnessAgent.forTest()..booted = true;
+      int toggled = 0;
+      Widget frame(SettingsSectionId selected) => welcomeHost(
+        SettingsFrame(
+          selected: selected,
+          onSelected: (SettingsSectionId _) {},
+          child: selected == SettingsSectionId.addresses
+              ? const SizedBox.expand()
+              : SettingsSection(children: <Widget>[
+                  Disclosure(
+                    title: 'Client chain',
+                    keyPrefix: 'node_settings_chain',
+                    onChanged: (bool _) => toggled++,
+                    child: const SizedBox(height: 60),
+                  ),
+                ]),
+        ),
+        disableAnimations: disableAnimations,
+      );
+      Future<Map<String, Object?>> control() async {
+        final Map<String, Object?> view = await agent.commandForTest(
+          <String, dynamic>{'cmd': 'wallet-recipe', 'action': 'observe'},
+        );
+        final List<Map<String, Object?>> controls =
+            view['controls']! as List<Map<String, Object?>>;
+        return controls.singleWhere((Map<String, Object?> row) =>
+            row['key'] == 'node_settings_chain_toggle');
+      }
+      await tester.pumpWidget(frame(SettingsSectionId.addresses));
+      await tester.pumpWidget(frame(SettingsSectionId.node));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 150));
+      final Finder toggle = find.byKey(
+        const Key('node_settings_chain_toggle'),
+      );
+      final Element original = tester.element(toggle);
+      final Offset movingCenter = tester.getCenter(toggle);
+      expect(toggle.hitTestable(), findsOneWidget);
+      expect((await control())['enabled'], isFalse);
+      // Ordinary input keeps the transition's original interactive boundary.
+      await tester.tap(toggle);
+      expect(toggled, 1);
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(tester.element(toggle), same(original));
+      expect(tester.getCenter(toggle), isNot(movingCenter));
+      expect((await control())['enabled'], isTrue);
+      expect(toggled, 1);
+    });
+  }
+
   for (final bool disableAnimations in <bool>[false, true]) {
     testWidgets('Welcome recipe waits for its entrance $disableAnimations', (
       WidgetTester tester,

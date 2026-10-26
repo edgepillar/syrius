@@ -4705,3 +4705,39 @@ still pending. The earlier direct Windows asset-step failure remains unknown;
 the new successful command does not explain or replace that negative result.
 No local SDK execution, joblog/artifact download or unchanged native retry
 occurs. Full startup, P08/P09/F06 and all visual acceptance remain open.
+
+### Native Settings control refusal and readiness reproduction (2026-10-26)
+
+Native run `40419297725` at `d56e04299bdb5c5982a1eb0d89736e4829569bac`,
+job `121909420634`, completes with failure after startup, import, original
+Ready opening and navigation to the client-chain Settings control. The
+`node_settings_chain_toggle` tap is refused with
+`wallet-recipe-original-control-changed` and `key-confirmed` startup decision.
+That guard compares both the original Element and its exact center, so this
+receipt alone does not identify which changed. No toggle retry is admitted.
+
+All 499 Python cases with three platform skips, all 70 Dart cases, selected
+analysis with zero findings and all four original byte controls pass. Windows
+Node 22.23.4 is observed and its original control command has normal complete
+zero exit. All fourteen asset phases complete, the corrected node produces,
+the seven unchanged upstream tests pass with original source restored, and
+all five lab nodes exit zero normally with complete unforced output. Overall
+lab acceptance is still false, including its inputs-unchanged gate, because
+the wallet tour fails. No tour page or capture is accepted.
+
+Entry has actual exit one and 885 complete output bytes, SHA-256
+`f8c0333746878ca02a841fb3d0234787f6afd72f97aa774f67b240f9920241df`.
+Cleanup application exit is zero, but close acknowledgement, ordinary exit
+and full lifecycle closure remain unqualified. One remaining VCTIP actor
+retains required-actor forced cleanup. Earlier startup and direct asset-step
+failures keep their original negative scope.
+
+Source review identifies a separate readiness gap: the real SettingsFrame
+uses RiseSwitcher, whose original incoming page accepts ordinary input after
+30 percent while its fade/rise continues. The recipe's current readiness
+reads ListEntrance only. Two real SettingsFrame/Disclosure widget regressions
+now expect recipe readiness to stay false at 150 ms, retain ordinary input,
+and keep the original Element through actual completion. Both motion-setting
+variants are included. The focused gate is 72 cases; hosted red reproduction
+is pending and the agent is deliberately unchanged until that result. This
+does not yet prove the sole cause of the native control refusal.
