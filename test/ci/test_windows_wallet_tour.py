@@ -87,6 +87,15 @@ class FixtureTests(unittest.TestCase):
 
 
 class DiagnosticTests(unittest.TestCase):
+    def test_startup_key_labels_cannot_add_key_text_or_private_fields(self):
+        value = dict(stage='onboarding', code='wallet-recipe-command-refused',
+            diagnostic=dict(action='key', control='launch_skip_hint',
+                reason='wallet-recipe-original-owner-changed'))
+        self.assertEqual(tour.entry_failure(value), value)
+        for change in (dict(control='space'), dict(key='space'), dict(value='private')):
+            with self.subTest(change=change), self.assertRaises(tour.Refused):
+                tour.entry_failure(dict(value,diagnostic=dict(value['diagnostic'],**change)))
+
     def test_fixed_onboarding_labels_preserve_the_original_failure(self):
         legacy = dict(stage='onboarding', code='wallet-recipe-command-refused')
         self.assertEqual(tour.entry_failure(legacy), legacy)

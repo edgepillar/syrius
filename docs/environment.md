@@ -3951,3 +3951,48 @@ genesis refusal and interruption at the second role. Those JavaScript cases
 and the changed-source native run remain unexecuted at this source-writing
 checkpoint. No local SDK, wallet, node, binary download or disk scratch is
 added. Full wallet, send, seed and visual acceptance remain pending.
+
+### Ordinary startup wait identified, 2026-10-26T16:07Z
+
+At source `abc671d0627014531309b6e996c636b5e15165d3`, tree
+`d354347d33903da7c9dbb27757c8365ccfdfd755`, run `40351356568` attempt one,
+job `121671964177`, all four Node VM controls pass, including unchanged asset
+bytes. All 459 Python controller cases complete with three platform skips
+and zero failures/errors. All 50 Dart cases pass without failures or skips.
+Selected analysis exits zero with complete empty output: no errors, warnings
+or infos. The qualification client passes all seven exact Go test bodies and
+restores production source.
+
+All fourteen asset-helper phases complete under the unchanged timeout. Lab
+source, build, assets, preflight, start and production checks pass; all five
+original nodes exit zero normally with complete output. The final unchanged
+input gate is not reached. Ordinary application ownership, lab revalidation
+and one input-envelope release pass. The first `welcome_import` wait fails
+with `startup-before-initialization`: the real startup has not invoked its
+initializer. No page is visited or captured. Application cleanup exits zero;
+entry exits one with 881 complete bytes and SHA-256
+`799b958cd222bf37ff3e5d19c3267482094053c41b92cfae673169fc2e67d501`.
+A VCTIP helper remains at job close; forced/required-actor cleanup remain true.
+Storage completes 57 samples with one verified untraversed SDK alias, peak
+266276251 logical bytes and minimum free 154947239936 bytes. Overall wallet/lab
+acceptance remains failed. The earlier preparation timeout is preserved.
+
+The candidate includes the existing startup hint in the recipe only while
+the original registered startup is current, unheld, open and not initializing.
+The hint and the original film's GlobalKey/controller must share the same
+primary keyboard receiver. Foreign hints/overlays cannot substitute that
+owner. Admission rechecks original receipt, element, geometry and wallet
+context, then dispatches only the existing Space key pair in one turn. It
+never calls initialization, routes, film completion or a controller skip
+directly. Normal initialization already in progress receives no skip.
+The same original turn/time limits and terminal retirement remain in place.
+
+Eighty-two selected Python cases pass locally and all four cross-language
+label sets agree. Four actor cases and one actual StartupStage/keyboard-view
+case are added to the hosted Dart selection, now 55. The view fixture owns no
+wallet, process, SDK, profile or network and reads only the committed tiny
+movie. Its foreign-overlay and real keyboard checks do not substitute for
+the pending native authenticated recipe. No local Dart/Flutter execution,
+artifact download or disk scratch is added. This exercises the normal user
+skip; unskipped animation, motion/shader/frame-time checks and all 94 visual
+matches remain pending. Shipped application source is unchanged.

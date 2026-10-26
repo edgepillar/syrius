@@ -18,6 +18,9 @@ String _seed(int count) => List<String>.filled(count, 'synthetic').join(' ');
 
 class _WalletUi {
   String phase = 'welcome';
+  String? entryPhase;
+  bool naturalStartup = false;
+  bool startupObserved = false;
   String? selectedNode;
   int signing = 1;
   int saved = 1;
@@ -61,6 +64,7 @@ class _WalletUi {
 
   Map<String, dynamic> observation() {
     final List<String> keys = switch (phase) {
+      'startup' => <String>['launch_skip_hint'],
       'welcome' => <String>['welcome_import'],
       'seed' => <String>[
         'import_words_12',
@@ -98,6 +102,8 @@ class _WalletUi {
     };
     return <String, dynamic>{
       'ok': true,
+      'entryPhase': entryPhase ??
+          (phase == 'startup' ? 'startup-before-initialization' : phase),
       'harnessMode': 'wallet',
       'booted': true,
       'owner': owner,
@@ -147,6 +153,10 @@ class _WalletUi {
     commands.add(Map<String, Object?>.of(command));
     final Object? key = command['key'];
     if (command['action'] == 'observe') {
+      if (phase == 'startup' && naturalStartup) {
+        if (startupObserved) phase = 'welcome';
+        startupObserved = true;
+      }
       // The agent authenticates the current dialog's actual facts before the
       // CLI receives them.
       if (phase == 'question' &&
@@ -169,6 +179,8 @@ class _WalletUi {
       return <String, dynamic>{'ok': true, 'acted': true};
     }
     switch (key) {
+      case 'launch_skip_hint':
+        phase = 'welcome';
       case 'welcome_import':
         phase = 'seed';
       case 'import_continue':
@@ -234,6 +246,59 @@ Future<void> _import(
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  test('startup uses one fixed key before Welcome import', () async {
+    final _WalletUi ui = _WalletUi()..phase = 'startup';
+    await _import(ui.driver());
+    final List<Map<String, Object?>> skips = ui.commands.where(
+      (Map<String, Object?> row) => row['key'] == 'launch_skip_hint',
+    ).toList();
+    expect(skips, hasLength(1));
+    expect(skips.single['action'], 'key');
+    expect(skips.single.containsKey('value'), isFalse);
+    expect(ui.taps.first, 'welcome_import');
+    expect(ui.opens, 1);
+    final _WalletUi natural = _WalletUi()
+      ..phase = 'startup'
+      ..naturalStartup = true;
+    await _import(natural.driver());
+    expect(natural.commands.any(
+      (Map<String, Object?> row) => row['action'] == 'key',
+    ), isFalse);
+    expect(natural.opens, 1);
+  });
+
+  for (final bool disabled in <bool>[false, true]) {
+    test('an unavailable startup hint retires the recipe $disabled', () async {
+      final _WalletUi ui = _WalletUi()
+        ..phase = 'startup'
+        ..disabled = disabled ? 'launch_skip_hint' : null;
+      if (!disabled) ui.phase = 'unavailable';
+      ui.entryPhase = 'startup-before-initialization';
+      final WalletRecipe driver = ui.driver();
+      await expectLater(_import(driver), throwsA(isA<WalletRecipeRefused>()));
+      expect(ui.taps, isEmpty);
+      expect(ui.typed, isEmpty);
+      expect(ui.commands.every(
+        (Map<String, Object?> row) => row['action'] == 'observe',
+      ), isTrue);
+      final int original = ui.commands.length;
+      await expectLater(_import(driver), throwsA(isA<WalletRecipeRefused>()));
+      expect(ui.commands, hasLength(original));
+    });
+  }
+
+  test('initialization already in progress cannot receive a skip', () async {
+    final _WalletUi ui = _WalletUi()
+      ..phase = 'startup'
+      ..entryPhase = 'startup-initialization-started';
+    await expectLater(
+      _import(ui.driver()), throwsA(isA<WalletRecipeRefused>()),
+    );
+    expect(ui.commands.any(
+      (Map<String, Object?> row) => row['action'] == 'key',
+    ), isFalse);
+  });
+
   for (final String? chain in <String?>[null, '', 'true', '0', '-1', '0x141']) {
     test(
       'invalid explicit chain $chain sends no command or private input',

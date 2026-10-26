@@ -45,9 +45,9 @@ PROFILE_PARTS = {name.casefold(): name.replace(' ', '_').lower() for name in
      'Microsoft', 'VSCommon', 'VisualStudio', 'Telemetry', '.dotnet', '.nuget',
      'NuGet', 'Packages', 'Pub', 'Cache', 'Dart')}
 ALIAS_LIMIT = 16
-RECIPE_ACTIONS = frozenset(('observe', 'tap', 'type', 'scroll', 'unknown'))
+RECIPE_ACTIONS = frozenset(('observe', 'tap', 'type', 'scroll', 'key', 'unknown'))
 RECIPE_CONTROLS = frozenset((
-    'none', 'unknown', 'welcome_import', 'import_words_12', 'import_words_24',
+    'none', 'unknown', 'launch_skip_hint', 'welcome_import', 'import_words_12', 'import_words_24',
     'import_seed_field', 'import_continue', 'import_new_password',
     'import_confirm_password', 'import_password_continue', 'node_settings_add',
     'node_settings_endpoint', 'node_settings_endpoint_save', 'node_settings_select',

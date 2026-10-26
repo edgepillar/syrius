@@ -197,7 +197,12 @@ class WalletRecipe {
   }) async {
     if (!reveal) {
       return _until(
-        (Map<String, dynamic> view) => _control(view, key)?['enabled'] == true,
+        (Map<String, dynamic> view) =>
+            _control(view, key)?['enabled'] == true ||
+            key == 'launch_skip_hint' &&
+                <String>{
+                  'startup-initialization-started', 'welcome',
+                }.contains(view['entryPhase']),
         waitingFor: key,
       );
     }
@@ -226,12 +231,18 @@ class WalletRecipe {
     int? question,
   }) async {
     final Map<String, dynamic> view = await _visible(key, reveal: reveal);
+    if (key == 'launch_skip_hint' &&
+        view['entryPhase'] != 'startup-before-initialization') {
+      return;
+    }
     if (_originalSigningChain != null &&
         view['signingChainId'] != _originalSigningChain) {
       _refuse('wallet-recipe-original-signing-policy-changed');
     }
     await _command(<String, Object?>{
-      'action': value == null ? 'tap' : 'type',
+      'action': key == 'launch_skip_hint'
+          ? 'key'
+          : value == null ? 'tap' : 'type',
       'key': key,
       'owner': view['owner'],
       'revision': view['revision'],
@@ -279,6 +290,9 @@ class WalletRecipe {
     if (start['walletPresent'] != false ||
         start['transitionPending'] != false) {
       _refuse('wallet-recipe-empty-profile-required');
+    }
+    if (start['entryPhase'] == 'startup-before-initialization') {
+      await _act('launch_skip_hint');
     }
     await _act('welcome_import');
     await _act('import_words_${words.length}');

@@ -41,8 +41,10 @@ import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_wid
     show NodeSettingsEntry;
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/node_settings_view.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/launch_film.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/startup_stage.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/tabs.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart'
     show WebsocketStatus, getChainIdentifier;
@@ -1022,6 +1024,7 @@ class HarnessAgent {
   static bool _recipeKey(String? key) =>
       key != null &&
       (<String>{
+            'launch_skip_hint',
             'welcome_import',
             'import_words_12',
             'import_words_24',
@@ -1093,6 +1096,54 @@ class HarnessAgent {
           : 'startup-before-initialization';
     }
     return phases.single;
+  }
+
+  _Node? _recipeStartupHint(List<_Node> nodes) {
+    final EntryCaptureRegistry registry = EntryCaptureRegistry.instance;
+    final EntryStartupReceipt? startup = registry.startup;
+    if (registry.held ||
+        startup == null ||
+        !startup.isCurrent ||
+        startup.initializationStarted) {
+      return null;
+    }
+    final Object owner = startup.startupOwner;
+    if (owner is! StartupStageSession || owner.isClosed || owner.film.isDone) {
+      return null;
+    }
+    final BuildContext? film = owner.filmKey.currentContext;
+    if (film is! Element || !film.mounted) return null;
+    final Widget movie = film.widget;
+    if (movie is! LaunchFilm || !identical(movie.controller, owner.film)) {
+      return null;
+    }
+    final List<_Node> hints = nodes.where(
+      (_Node node) =>
+          node.key == 'launch_skip_hint' && node.kind == 'text',
+    ).toList();
+    if (hints.length != 1) return null;
+    Element? receiver(Element element) {
+      Element? found;
+      element.visitAncestorElements((Element ancestor) {
+        final Widget widget = ancestor.widget;
+        if (widget is Focus &&
+            widget.onKeyEvent != null &&
+            widget.focusNode?.hasPrimaryFocus == true) {
+          found = ancestor;
+          return false;
+        }
+        return true;
+      });
+      return found;
+    }
+    final Element? original = receiver(film);
+    final _Node hint = hints.single;
+    if (original == null ||
+        !identical(receiver(hint.element), original) ||
+        !_reachable(hint, hint.center)) {
+      return null;
+    }
+    return hint;
   }
 
   bool _recipeReady(_Node node) {
@@ -1197,6 +1248,7 @@ class HarnessAgent {
       _recipeOwner++;
     }
     final List<_Node> nodes = _snapshot();
+    final _Node? startupHint = _recipeStartupHint(nodes);
     final Set<String> entryPhases = <String>{};
     final List<Element> views = _recipeNodeViews(entryPhases: entryPhases);
     final NodeSettingsView? view = views.isEmpty
@@ -1241,6 +1293,8 @@ class HarnessAgent {
           nodes.any((_Node node) => node.kind == 'error') ||
           view?.presenter.state.failure != null,
       'controls': <Map<String, Object?>>[
+        if (startupHint != null)
+          <String, Object?>{'key': 'launch_skip_hint', 'enabled': true},
         for (final _Node node in controls)
           <String, Object?>{
             'key': node.key,
@@ -1267,6 +1321,11 @@ class HarnessAgent {
     final List<_Node> nodes = _snapshot();
     if (nodes.any((_Node node) => node.kind == 'error')) {
       throw HarnessError('wallet-recipe-visible-error');
+    }
+    if (key == 'launch_skip_hint' && !field) {
+      final _Node? hint = _recipeStartupHint(nodes);
+      if (hint == null) throw HarnessError('wallet-recipe-control-refused');
+      return hint;
     }
     final List<_Node> hits = nodes
         .where(
@@ -1337,7 +1396,9 @@ class HarnessAgent {
       final Object? key = command['key'];
       if (key is! String ||
           !_recipeKey(key) ||
-          (action != 'tap' && action != 'type')) {
+          (key == 'launch_skip_hint'
+              ? action != 'key'
+              : action != 'tap' && action != 'type')) {
         throw HarnessError('wallet-recipe-action-refused');
       }
       if (NodeTransitions.pending && key != 'node_settings_question_accept') {
@@ -1345,6 +1406,9 @@ class HarnessAgent {
       }
       final bool field = action == 'type';
       final _Node original = _recipeControl(key, field: field);
+      final EntryStartupReceipt? startup = key == 'launch_skip_hint'
+          ? EntryCaptureRegistry.instance.startup
+          : null;
       if (key.startsWith('node_settings_select_') ||
           key == 'node_onboarding_continue') {
         final List<Element> views = _recipeNodeViews();
@@ -1394,6 +1458,10 @@ class HarnessAgent {
       }
       void admission() {
         current();
+        if (key == 'launch_skip_hint' &&
+            !identical(EntryCaptureRegistry.instance.startup, startup)) {
+          throw HarnessError('wallet-recipe-original-owner-changed');
+        }
         final _Node fresh = _recipeControl(key, field: field);
         if (!identical(fresh.element, original.element) ||
             fresh.center != original.center) {
@@ -1412,7 +1480,18 @@ class HarnessAgent {
       }
 
       final Map<String, dynamic> input = <String, dynamic>{'key': key};
-      if (field) {
+      if (action == 'key') {
+        // The owned startup receiver consumes Space on key-down. Dispatch
+        // the complete key pair in one turn so its ordinary handoff does not
+        // become a second pointer admission against the retired hint.
+        admission();
+        final Map<String, Object?> reply = await _key(
+          <String, dynamic>{'key': 'space', 'settleMs': 0},
+        );
+        if (reply['handled'] != true) {
+          throw HarnessError('wallet-recipe-control-refused');
+        }
+      } else if (field) {
         final Object? value = command['value'];
         if (value is! String || value.length > 512) {
           throw HarnessError('wallet-recipe-private-input-refused');

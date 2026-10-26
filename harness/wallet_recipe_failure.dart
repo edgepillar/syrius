@@ -1,11 +1,12 @@
 /// Only fixed recipe labels may leave the private command exchange.
 const Set<String> walletRecipeActions = <String>{
-  'observe', 'tap', 'type', 'scroll', 'unknown',
+  'observe', 'tap', 'type', 'scroll', 'key', 'unknown',
 };
 
 /// Dynamic node-selection keys collapse to one label without an endpoint.
 const Set<String> walletRecipeControls = <String>{
-  'none', 'unknown', 'welcome_import', 'import_words_12', 'import_words_24',
+  'none', 'unknown', 'launch_skip_hint', 'welcome_import',
+  'import_words_12', 'import_words_24',
   'import_seed_field', 'import_continue', 'import_new_password',
   'import_confirm_password', 'import_password_continue', 'node_settings_add',
   'node_settings_endpoint', 'node_settings_endpoint_save',
