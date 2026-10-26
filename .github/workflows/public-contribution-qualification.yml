@@ -315,10 +315,14 @@ jobs:
       - name: Enable Windows desktop
         run: flutter config --enable-windows-desktop
 
-      - name: Analyze the debug service client and harness entry
+      - name: Analyze the debug client and harness entry and tour
         if: ${{ !cancelled() && steps.debug_flutter.outcome == 'success' && steps.debug_dependencies.outcome == 'success' }}
         timeout-minutes: 5
         run: python -B tool/ci/windows_debug_loop.py --analyze
+
+      - name: Test full tour coverage and unreachable page refusal
+        timeout-minutes: 5
+        run: python -B tool/ci/run_harness_tour_tests.py
 
       - name: Observe breakpoint, reload, restart and original process exit
         timeout-minutes: 25

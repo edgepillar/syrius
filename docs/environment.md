@@ -3115,3 +3115,40 @@ required actors. The ten unchanged frontend cases retain their preceding
 Windows result. Native execution of this new cleanup policy remains pending;
 P07 stays open. The full wallet tour, chain-321 wallet send, captures, visual
 matches and final acceptance retain their separate requirements.
+
+### Helper admission refusal and strict full-tour coverage
+
+At source `9ef271a0dc721442dca8a07bec944e5a4130810f`, tree
+`460b7a0a40ffcbbe49d77be7dbbdf171e19ea5f5`, run `40275203482`, attempt one,
+job `121416384186`, all 49 controller cases, ten frontend cases, clean Dart
+analysis and all 24 original debug checks pass. The six required original
+actors have actual normal zero exits and complete captured output. The helper
+admission returns `HELPER_IMAGE_REFUSED` before recording any admitted helper
+or requesting termination. Fallback job closure observes two remaining members,
+DART and VCTIP, and preserves the overall failure. The precise image-admission
+cause is still unknown; the original result does not justify relaxing its checks.
+
+The next candidate retains those checks and records only a fixed admission
+stage, image class, executable byte count and path-match boolean. It exposes
+neither process IDs nor executable paths. This distinguishes compiler-metadata,
+path and image-pin failures without transporting raw logs or rerunning an
+unchanged artifact download.
+
+The full-wallet tour also had a source-level false-success path: a failed
+navigation printed a warning and continued without counting a problem. It now
+requires the complete current page catalog and visits all eleven main pages
+plus Apps. Sentinels is reached through Nodes, and Apps through Settings even
+when a WalletConnect project ID is absent. Each page needs successful navigation,
+zero error widgets, zero SEVERE/SHOUT/FLUTTER logs and a capture. Existing captures
+are refused, raw log/widget details are not printed, and changed wallet context
+stops further navigation. A finite final receipt retains requested and actually
+visited pages; a partial tour cannot report complete.
+
+Six new regressions exercise complete coverage, both merged sections,
+unreachable pages, incomplete/duplicate/unknown catalogs, widget/log failures
+and changed wallet context without a native wallet or filesystem capture.
+Their hosted Dart execution is pending. The Windows debug lane runs these
+selected tests before allocating a native debug build and analyzes the changed
+CLI as well. All 49 Python controller cases pass locally; the unchanged ten
+frontend cases retain their preceding Windows evidence. This preparation does
+not complete P07, P08, a chain-321 wallet send or any visual match.

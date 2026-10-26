@@ -419,7 +419,8 @@ class OwnedHelperTests(unittest.TestCase):
     def finish(self, names, timeout=False):
         job = owned.WindowsJob.__new__(owned.WindowsJob)
         job.handle, job.kernel = 99, self.Kernel(names, timeout)
-        with mock.patch.object(owned, 'image_pin', return_value=('a' * 64, (1, 2, 3, 4))):
+        with mock.patch.object(owned, 'image_pin', return_value=('a' * 64, (1, 2, 3, 4))), \
+                mock.patch.object(owned.Path, 'lstat', return_value=types.SimpleNamespace(st_size=1024)):
             result = job.finish_known_helpers(Path('/fixture/sdk/dart.exe'),
                 lambda: Path('/fixture/compiler/vctip.exe'))
         return result, job.kernel
@@ -428,6 +429,7 @@ class OwnedHelperTests(unittest.TestCase):
         result, kernel = self.finish(['sdk/dart.exe', 'compiler/vctip.exe'])
         self.assertTrue(debug.helper_cleanup_complete(result))
         self.assertEqual(result['remaining'], 0)
+        self.assertEqual(result['observation']['stage'], 'complete')
         self.assertEqual(kernel.signals, [(1, owned.HELPER_EXIT_MARKER, (1, 2)),
                                           (2, owned.HELPER_EXIT_MARKER, (1, 2))])
         self.assertEqual(kernel.closed, [1, 2])
@@ -445,6 +447,7 @@ class OwnedHelperTests(unittest.TestCase):
         result, kernel = self.finish(['sdk/dart.exe'], timeout=True)
         self.assertEqual(result['status'], 'FAILED')
         self.assertEqual(result['code'], 'HELPER_CLOSE_UNCONFIRMED')
+        self.assertEqual(result['observation']['stage'], 'termination')
         self.assertTrue(result['forced'])
         self.assertFalse(result['receipts'][0]['exit_observed'])
         self.assertEqual(kernel.signals, [(1, owned.HELPER_EXIT_MARKER, (1,))])

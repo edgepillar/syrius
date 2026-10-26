@@ -438,7 +438,8 @@ def ready(tool, transport, token, seconds=45):
 def analyze(parent, repo):
     dart, _ = sdk(parent)
     original = subprocess.Popen([str(dart), 'analyze', '--format', 'machine',
-        'tool/ci/windows_debug_service_probe.dart', 'harness/app/main.dart'],
+        'tool/ci/windows_debug_service_probe.dart', 'harness/app/main.dart',
+        'harness/bin/harness.dart', 'test/harness/wallet_tour_test.dart'],
         cwd=repo, env=parent, shell=False, stdin=subprocess.DEVNULL,
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=0)
     lines = Lines(original.stdout)
@@ -462,7 +463,9 @@ def analyze(parent, repo):
                                 and column.isascii() and column.isdigit()):
                             relative = re.sub('/+', '/', fields[3].replace('\\', '/')).casefold()
                             selected = ('service_probe' if relative.endswith('/tool/ci/windows_debug_service_probe.dart')
-                                        else 'harness_entry' if relative.endswith('/harness/app/main.dart') else 'other')
+                                        else 'harness_entry' if relative.endswith('/harness/app/main.dart')
+                                        else 'harness_cli' if relative.endswith('/harness/bin/harness.dart')
+                                        else 'tour_test' if relative.endswith('/test/harness/wallet_tour_test.dart') else 'other')
                             locations.append(dict(source=selected, code=code,
                                                   line=int(line), column=int(column)))
         code = original.wait(timeout=5)

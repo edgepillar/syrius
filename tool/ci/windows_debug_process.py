@@ -224,7 +224,10 @@ class WindowsJob:
         exits keep their explicit marker; they are never normal application exits.
         """
         result = dict(scope=HELPER_SCOPE, status='FAILED', code=None,
-                      forced=False, remaining=None, receipts=[])
+                      forced=False, remaining=None, receipts=[],
+                      observation=dict(stage='members', image_class=None,
+                                       image_bytes=None, path_match=None))
+        observation = result['observation']
         retained = []
         try:
             values = _Members()
@@ -234,6 +237,8 @@ class WindowsJob:
                 raise ProcessRefused('HELPER_IDENTITY_REFUSED')
             roles = set()
             for identifier in values.identifiers[:values.listed]:
+                observation.update(stage='member', image_class=None,
+                                   image_bytes=None, path_match=None)
                 if not 0 < identifier < 0x100000000:
                     raise ProcessRefused('HELPER_IDENTITY_REFUSED')
                 handle = self.kernel.OpenProcess(0x1000 | 0x100000 | 1, False, identifier)
@@ -249,17 +254,24 @@ class WindowsJob:
                             handle, 0, image, ctypes.byref(size))):
                     raise ProcessRefused('HELPER_IDENTITY_REFUSED')
                 actual = Path(image.value).resolve()
+                observation['image_class'] = IMAGE_NAMES.get(actual.name.lower(), 'OTHER')
                 if os.path.normcase(str(actual)) == os.path.normcase(str(dart.resolve())):
                     role, expected = 'sdk_dart', dart.resolve()
+                    observation.update(stage='sdk_image', path_match=True)
                 elif actual.name.lower() == 'vctip.exe':
+                    observation['stage'] = 'compiler_metadata'
                     role, expected = 'msvc_telemetry', compiler_resolver().resolve()
-                    if os.path.normcase(str(actual)) != os.path.normcase(str(expected)):
+                    observation['stage'] = 'compiler_image'
+                    observation['path_match'] = os.path.normcase(str(actual)) == os.path.normcase(str(expected))
+                    if not observation['path_match']:
                         raise ProcessRefused('HELPER_IMAGE_REFUSED')
                 else:
                     raise ProcessRefused('HELPER_IMAGE_REFUSED')
                 if role in roles:
                     raise ProcessRefused('HELPER_IDENTITY_REFUSED')
                 roles.add(role)
+                observation['stage'] = 'image_pin'
+                observation['image_bytes'] = expected.lstat().st_size
                 pin = image_pin(expected)
                 receipt = dict(role=role, image_sha256=pin[0], forced=False,
                     termination_requested=False, termination_succeeded=False,
@@ -267,9 +279,11 @@ class WindowsJob:
                 item.update(expected=expected, pin=pin, receipt=receipt)
                 result['receipts'].append(receipt)
             # The complete observed member set must still be the same size.
+            observation['stage'] = 'membership_recheck'
             if self.active() != len(retained):
                 raise ProcessRefused('HELPER_IDENTITY_REFUSED')
             for item in retained:
+                observation['stage'] = 'image_recheck'
                 handle, receipt = item['handle'], item['receipt']
                 member = wintypes.BOOL()
                 if (not self.kernel.IsProcessInJob(handle, self.handle, ctypes.byref(member))
@@ -277,6 +291,7 @@ class WindowsJob:
                     raise ProcessRefused('HELPER_IDENTITY_REFUSED')
                 state = self.kernel.WaitForSingleObject(handle, 0)
                 if state == 0x102:
+                    observation['stage'] = 'termination'
                     receipt['termination_requested'] = receipt['forced'] = True
                     result['forced'] = True
                     if not self.kernel.TerminateProcess(handle, HELPER_EXIT_MARKER):
@@ -287,6 +302,7 @@ class WindowsJob:
                 elif state != 0:
                     raise ProcessRefused('HELPER_CLOSE_UNCONFIRMED')
                 code = wintypes.DWORD()
+                observation['stage'] = 'exit_observation'
                 if not self.kernel.GetExitCodeProcess(handle, ctypes.byref(code)):
                     raise ProcessRefused('HELPER_CLOSE_UNCONFIRMED')
                 receipt.update(actual_exit=code.value, exit_observed=True)
@@ -294,12 +310,14 @@ class WindowsJob:
                 if code.value != expected_exit or image_pin(item['expected']) != item['pin']:
                     raise ProcessRefused('HELPER_CLOSE_UNCONFIRMED')
             deadline = time.monotonic() + 1
+            observation['stage'] = 'empty_job'
             while self.active() and time.monotonic() < deadline:
                 time.sleep(.05)
             result['remaining'] = self.active()
             if result['remaining'] != 0:
                 raise ProcessRefused('HELPER_CLOSE_UNCONFIRMED')
             result['status'] = 'PASSED'
+            observation['stage'] = 'complete'
         except ProcessRefused as error:
             result['code'] = str(error)
         except Exception:

@@ -1055,68 +1055,162 @@ Future<void> clientChain(Instance inst, int id) async {
   await walletRecipe(inst).changeClientChain(id);
 }
 
-/// Opens every tab in turn, takes a screenshot of each and lists what looks
-/// wrong: error widgets, and SEVERE or Flutter errors logged while there.
-Future<void> tour(Instance inst, Args a) async {
-  final Map<String, dynamic> s = await stateOf(inst);
-  if (s['tab'] == 'lock') {
-    throw Fail('tour: the wallet is locked; `unlock` first');
+const List<String> walletTourPages = <String>[
+  'dashboard', 'transfer', 'pillars', 'sentinels', 'staking', 'plasma',
+  'tokens', 'p2pSwap', 'accelerator', 'notifications', 'settings',
+];
+
+/// Require every current page. Status icons cannot substitute for a page.
+List<String> walletTourPlan(Map<String, dynamic> state) {
+  final Object? offered = state['tabs'];
+  if (state['harnessMode'] != 'wallet' ||
+      state['booted'] != true || state['walletUnlocked'] != true ||
+      state['walletInitCompleted'] != true || state['tab'] == 'lock' ||
+      offered is! List || offered.length > 16 ||
+      offered.any((dynamic value) => value is! String)) {
+    throw Fail('tour: an initialized unlocked wallet is required');
   }
+  final Set<String> tabs = offered.cast<String>().toSet();
+  const Set<String> known = <String>{
+    ...walletTourPages, 'walletConnect', 'generation', 'sync', 'lock',
+  };
+  if (tabs.length != offered.length || !known.containsAll(tabs) ||
+      !tabs.containsAll(walletTourPages) || !tabs.contains(state['tab'])) {
+    throw Fail('tour: the complete page catalog was not observed');
+  }
+  // Apps is available through Settings even without a WalletConnect project ID.
+  return <String>[...walletTourPages, 'walletConnect'];
+}
+
+Future<void> _tourPage(Instance inst, String page) async {
+  final String rail = switch (page) {
+    'sentinels' => 'pillars',
+    'walletConnect' => 'settings',
+    _ => page,
+  };
+  await goto(inst, rail);
+  final (String, String)? section = switch (page) {
+    'pillars' => ('nodes_tab_pillars', 'nodes_pillars_strip'),
+    'sentinels' => ('nodes_tab_sentinels', 'nodes_sentinels_strip'),
+    'walletConnect' => ('settings_apps', 'apps_settings_page'),
+    _ => null,
+  };
+  if (section != null) {
+    await call(inst, <String, Object?>{
+      'cmd': 'wait', 'key': section.$1, 'timeoutMs': 5000,
+    });
+    await call(inst, <String, Object?>{'cmd': 'tap', 'key': section.$1});
+    await call(inst, <String, Object?>{
+      'cmd': 'wait', 'key': section.$2, 'timeoutMs': 5000,
+    });
+  }
+}
+
+Future<void> _tourContext(
+  Instance inst,
+  Map<String, dynamic> original,
+) async {
+  final Map<String, dynamic> current = await stateOf(inst);
+  walletTourPlan(current);
+  for (final String key in <String>[
+    'address', 'walletPath', 'node', 'chainId', 'signingChainId',
+    'savedSigningChainId',
+  ]) {
+    if (current[key] != original[key]) throw Fail('tour: wallet context changed');
+  }
+}
+
+/// Visits every page, including merged subpages, and retains finite coverage.
+/// An unreachable page or uncertain command fails the tour immediately.
+Future<void> tour(
+  Instance inst,
+  Args a, {
+  Future<void> Function(String, Map<String, dynamic>)? capture,
+  Future<void> Function(Duration)? settle,
+  void Function(Map<String, Object?>)? publish,
+}) async {
+  final Map<String, dynamic> s = await stateOf(inst);
+  final List<String> pages = walletTourPlan(s);
   final String dir = a['dir'] ?? '${inst.home}${Platform.pathSeparator}tour';
-  // generation and sync are status icons, not pages; lock would end the tour.
-  const Set<String> skipped = <String>{'generation', 'sync', 'lock'};
-  int problems = 0;
+  final List<Map<String, Object?>> visited = <Map<String, Object?>>[];
+  bool complete = false;
   int seq =
       (await call(inst, <String, Object?>{'cmd': 'logs', 'limit': 0}))['seq']
           as int;
-  for (final String tab in (s['tabs'] as List<dynamic>).cast<String>()) {
-    if (skipped.contains(tab)) continue;
-    // A tab can outlive its rail entry (Help, merged into Settings); say so
-    // and go on, so one missing entry does not hide the pages after it.
-    try {
-      await goto(inst, tab);
-    } on Fail catch (e) {
-      stdout.writeln('${tab.padRight(14)} not reachable from the rail ($e)');
-      continue;
+  try {
+    for (final String page in pages) {
+      await _tourContext(inst, s);
+      await _tourPage(inst, page);
+      await (settle ?? Future<void>.delayed)(const Duration(milliseconds: 2500));
+      final List<dynamic> nodes =
+          (await call(inst, <String, Object?>{'cmd': 'tree'}))['nodes']
+              as List<dynamic>;
+      final int errors = nodes.where(
+        (dynamic node) => (node as Map<String, dynamic>)['kind'] == 'error',
+      ).length;
+      final Map<String, dynamic> logs = await call(inst, <String, Object?>{
+        'cmd': 'logs', 'since': seq,
+        'levels': <String>['SEVERE', 'SHOUT', 'FLUTTER'],
+      });
+      final int nextSeq = logs['seq'] as int;
+      if (nextSeq < seq) throw Fail('tour: log sequence changed');
+      seq = nextSeq;
+      final int severe = (logs['logs'] as List<dynamic>).length;
+      visited.add(<String, Object?>{
+        'page': page, 'nodes': nodes.length, 'error_widgets': errors,
+        'severe_logs': severe, 'captured': false,
+      });
+      if (errors != 0 || severe != 0) throw Fail('tour: page errors observed');
+      final Map<String, dynamic> shot = await call(inst, <String, Object?>{
+        'cmd': 'shot',
+      });
+      if (capture != null) {
+        await capture(page, shot);
+      } else {
+        final Object? png = shot['png'];
+        if (png is! String || png.length > 12 * 1024 * 1024) {
+          throw Fail('tour: missing or oversized capture');
+        }
+        final List<int> bytes = base64Decode(png);
+        const List<int> signature = <int>[137, 80, 78, 71, 13, 10, 26, 10];
+        if (bytes.length < 33 || bytes.length > 8 * 1024 * 1024 ||
+            !signature.asMap().entries.every(
+              (MapEntry<int, int> entry) => bytes[entry.key] == entry.value,
+            )) throw Fail('tour: invalid capture');
+        final File file = File('$dir${Platform.pathSeparator}$page.png');
+        Directory parent = file.parent.absolute;
+        while (true) {
+          final FileSystemEntityType type = FileSystemEntity.typeSync(
+            parent.path, followLinks: false,
+          );
+          if (type != FileSystemEntityType.directory &&
+              type != FileSystemEntityType.notFound) {
+            throw Fail('tour: capture parent is not a plain directory');
+          }
+          if (parent.parent.path == parent.path) break;
+          parent = parent.parent;
+        }
+        if (FileSystemEntity.typeSync(file.path, followLinks: false) !=
+            FileSystemEntityType.notFound) throw Fail('tour: capture already exists');
+        file.parent.createSync(recursive: true);
+        file.writeAsBytesSync(bytes, flush: true);
+      }
+      visited.last['captured'] = true;
+      await _tourContext(inst, s);
     }
-    await Future<void>.delayed(const Duration(milliseconds: 2500));
-    final Map<String, dynamic> shot = await call(inst, <String, Object?>{
-      'cmd': 'shot',
-    });
-    File('$dir${Platform.pathSeparator}$tab.png')
-      ..parent.createSync(recursive: true)
-      ..writeAsBytesSync(base64Decode(shot['png'] as String));
-    final List<dynamic> nodes =
-        (await call(inst, <String, Object?>{'cmd': 'tree'}))['nodes']
-            as List<dynamic>;
-    final List<dynamic> errors = nodes
-        .where((dynamic n) => (n as Map<String, dynamic>)['kind'] == 'error')
-        .toList();
-    final Map<String, dynamic> logs = await call(inst, <String, Object?>{
-      'cmd': 'logs',
-      'since': seq,
-      'levels': <String>['SEVERE', 'SHOUT', 'FLUTTER'],
-    });
-    seq = logs['seq'] as int;
-    final List<dynamic> bad = logs['logs'] as List<dynamic>;
-    problems += errors.length + bad.length;
-    stdout.writeln(
-      '${tab.padRight(14)} ${nodes.length.toString().padLeft(4)} nodes  '
-      '${errors.length} error widgets  ${bad.length} errors logged',
-    );
-    for (final Map<String, dynamic> e in errors.cast<Map<String, dynamic>>()) {
-      stdout.writeln('    widget: ${e['label']}');
-    }
-    for (final Map<String, dynamic> l in bad.cast<Map<String, dynamic>>()) {
-      stdout.writeln(
-        '    ${l['level']} ${l['logger']}: ${l['message']}'
-        '${l['error'] == null ? '' : ' | ${l['error']}'}',
-      );
+    await goto(inst, 'dashboard');
+    complete = true;
+  } finally {
+    final Map<String, Object?> result = <String, Object?>{
+      'schema': 1, 'scope': 'wallet_page_tour', 'complete': complete,
+      'requested': pages, 'visited': visited,
+    };
+    if (publish != null) {
+      publish(result);
+    } else {
+      stdout.writeln('SYRIUS_WALLET_TOUR:${jsonEncode(result)}');
     }
   }
-  await goto(inst, 'dashboard');
-  stdout.writeln('screenshots in $dir');
-  if (problems > 0) throw Fail('tour: $problems problems');
 }
 
 Future<bool> recipe(Instance inst, String command, Args a) async {
