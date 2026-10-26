@@ -359,7 +359,6 @@ jobs:
       GIT_CONFIG_COUNT: "1"
       GIT_CONFIG_KEY_0: core.autocrlf
       GIT_CONFIG_VALUE_0: "false"
-      SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
       SYRIUS_NATIVE_STACK_DIAGNOSTIC: ${{ matrix.backend == 'native' && inputs.native_stack_diagnostic }}
       SYRIUS_LAB_NODE_SOURCE: ${{ inputs.chain321_node_source }}
       SYRIUS_WINDOWS_WALLET_TOUR: ${{ inputs.windows_wallet_tour }}
@@ -370,6 +369,8 @@ jobs:
           persist-credentials: false
 
       - name: Validate hosted lab admission before SDK allocation
+        env:
+          SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
         run: python -B -m tool.ci.hosted_chain321 --backend ${{ matrix.backend }} --admission-only
 
       - name: Test wallet ownership and finite tour rules in memory

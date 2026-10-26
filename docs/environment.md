@@ -3260,3 +3260,12 @@ coverage, original exit/output requirements and failed cleanup. The workflow's
 thirteen inputs fit GitHub's documented [25-input dispatch limit](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#onworkflow_dispatchinputs).
 Actual hosted wallet execution remains pending. No send, checkpoint, seed or
 visual match is established by this candidate.
+
+The first dispatch at `2a576b48e9a4e01c5693cb4477c255de7ccbabc7` is rejected
+with HTTP 422 before a run is created: GitHub cannot resolve `runner.environment`
+inside job-level environment configuration. The complete original failed
+request and a read-only no-run observation are retained. The correction moves
+that value to the admission step; the runtime step already uses step context.
+This is a workflow-source correction, with no repeated native execution or
+artifact transport. The YAML parser result established syntax only, and did
+not establish GitHub context validity or wallet qualification.
