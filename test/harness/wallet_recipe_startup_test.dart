@@ -114,8 +114,9 @@ void main() {
     await tester.pump();
     expect(await available(), isFalse);
     expect(done, 0);
-    foreign.remove();
-    foreign.dispose();
+    foreign
+      ..remove()
+      ..dispose();
     await tester.pump();
     expect(await available(), isTrue);
     final Map<String, Object?> key = await agent.commandForTest(

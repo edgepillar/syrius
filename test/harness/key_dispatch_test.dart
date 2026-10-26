@@ -7,18 +7,21 @@ import '../../harness/app/agent.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('handled hardware keys still enter the Focus bridge exactly once', () async {
+  test('handled keys still reach the Focus bridge exactly once', () async {
     final HardwareKeyboard keyboard = HardwareKeyboard.instance;
     final List<Type> events = <Type>[];
     bool handler(KeyEvent event) {
       events.add(event.runtimeType);
       return true;
     }
+    // The pinned framework still uses this type for its Focus bridge.
     // ignore: deprecated_member_use
     final KeyMessageHandler? original =
+        // Preserve the exact SDK handler for restoration after the test.
         // ignore: deprecated_member_use
         ServicesBinding.instance.keyEventManager.keyMessageHandler;
     int legacyCalls = 0;
+    // Count bridge delivery while the hardware handler consumes the key.
     // ignore: deprecated_member_use
     ServicesBinding.instance.keyEventManager.keyMessageHandler = (_) {
       legacyCalls++;
@@ -37,6 +40,7 @@ void main() {
         isFalse);
     } finally {
       keyboard.removeHandler(handler);
+      // Restore the original bridge even when a dispatch assertion fails.
       // ignore: deprecated_member_use
       ServicesBinding.instance.keyEventManager.keyMessageHandler = original;
     }
@@ -46,11 +50,14 @@ void main() {
     () async {
       final HardwareKeyboard keyboard = HardwareKeyboard.instance;
       bool handler(KeyEvent _) => false;
+      // The pinned framework still uses this type for its Focus bridge.
       // ignore: deprecated_member_use
       final KeyMessageHandler? original =
+          // Preserve the exact SDK handler for restoration after the test.
           // ignore: deprecated_member_use
           ServicesBinding.instance.keyEventManager.keyMessageHandler;
       int legacyCalls = 0;
+      // Return the bridge's result when the hardware handler ignores a key.
       // ignore: deprecated_member_use
       ServicesBinding.instance.keyEventManager.keyMessageHandler = (_) {
         legacyCalls++;
@@ -68,6 +75,7 @@ void main() {
           isFalse);
       } finally {
         keyboard.removeHandler(handler);
+        // Restore the original bridge even when a dispatch assertion fails.
         // ignore: deprecated_member_use
         ServicesBinding.instance.keyEventManager.keyMessageHandler = original;
       }
@@ -77,11 +85,14 @@ void main() {
   test('a key ignored by both destinations remains unhandled', () async {
     final HardwareKeyboard keyboard = HardwareKeyboard.instance;
     bool handler(KeyEvent _) => false;
+    // The pinned framework still uses this type for its Focus bridge.
     // ignore: deprecated_member_use
     final KeyMessageHandler? original =
+        // Preserve the exact SDK handler for restoration after the test.
         // ignore: deprecated_member_use
         ServicesBinding.instance.keyEventManager.keyMessageHandler;
     int calls = 0;
+    // Keep the real bridge callable while both destinations ignore the key.
     // ignore: deprecated_member_use
     ServicesBinding.instance.keyEventManager.keyMessageHandler = (_) {
       calls++;
@@ -99,12 +110,13 @@ void main() {
         isFalse);
     } finally {
       keyboard.removeHandler(handler);
+      // Restore the original bridge even when a dispatch assertion fails.
       // ignore: deprecated_member_use
       ServicesBinding.instance.keyEventManager.keyMessageHandler = original;
     }
   });
 
-  testWidgets('a hardware consumer cannot starve the original focused receiver', (
+  testWidgets('a hardware consumer still reaches the focused receiver', (
     WidgetTester tester,
   ) async {
     final HardwareKeyboard keyboard = HardwareKeyboard.instance;

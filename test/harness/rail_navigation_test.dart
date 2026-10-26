@@ -84,7 +84,9 @@ void main() {
           error = value;
         },
       );
-      for (int frame = 0; frame < 8 && reply == null && error == null; frame++) {
+      for (int frame = 0;
+          frame < 8 && reply == null && error == null;
+          frame++) {
         await tester.pump(const Duration(milliseconds: 60));
       }
       expect(error, isNull);

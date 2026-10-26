@@ -4473,3 +4473,44 @@ tracked but unsupported YAML refusal and correctly escaped Windows path
 fields. Private messages stay undecoded. Actual hosted attribution is
 still pending; no existing failed qualification is relabelled or retried
 against unchanged source.
+
+### Source-bound analyzer attribution qualified (2026-10-26)
+
+At `64899a0e31e8688807e801d8291691bba7cbddaa`, tree
+`72a247ebb6671fde11c7a3dcc38f83323a0ba7f3`, run `40402639381`
+attempt one, job `121852234999`, the attribution lane succeeds. All ten
+controller cases pass. All six original full-source Flutter/machine
+commands exit zero normally with complete output and no overflow or
+forced kill. Both analyzers agree exactly at every pin:
+
+| Source | Root infos | Errors | Warnings |
+| --- | ---: | ---: | ---: |
+| `1d663dc58b9ce6f2abdbe66898e85e2ef850a8c0` | 1295 | 0 | 0 |
+| `f024e78bf777d9b16d9e4a81c295ef092c9bf79d` | 1304 | 0 | 0 |
+| `64899a0e31e8688807e801d8291691bba7cbddaa` | 1311 | 0 | 0 |
+
+The common input-map SHA-256, including all five tracked source
+declarations and locked dependencies, is
+`75f82252486207848f95424142f9838358d964ca1341d59ed3d0a71827d53c6d`.
+Every original source remains unchanged. Historical growth is eight
+`document_ignores` findings in `test/harness/key_dispatch_test.dart` and
+one `cascade_invocations` in `test/harness/wallet_recipe_startup_test.dart`.
+The current delta adds four more undocumented ignores, two long key-test
+descriptions and one long loop in `test/harness/rail_navigation_test.dart`.
+Both group projections are complete. Individual sample-location lists
+are explicitly capped; all twelve existing directives are checked in
+source before editing.
+
+The sixteen remaining additional findings are corrected in the candidate
+by documenting why each existing SDK bridge ignore is required, shortening
+two test descriptions, wrapping the exact same bounded loop and cascading
+the same original overlay's remove/dispose calls in order. The twelve
+ignore directives themselves are unchanged; no assertion, timing bound,
+handler identity or production behavior changes. All added lines remain
+within eighty columns. No new tests mirror these style edits. Hosted
+analysis must still verify the expected return to 1295 infos; the legacy
+baseline is not described as zero-info.
+
+This qualification repeats no build, wallet or node runtime and downloads
+no artifact locally. It closes analyzer attribution only. Native startup,
+all 94 visual matches and the other full-acceptance gates remain open.
