@@ -275,6 +275,15 @@ void main() {
       (Map<String, Object?> row) => row['action'] == 'key',
     ), isFalse);
     expect(natural.opens, 1);
+    final _WalletUi stalledWelcome = _WalletUi()
+      ..phase = 'startup'
+      ..failKey = 'welcome_import';
+    await expectLater(_import(stalledWelcome.driver()), throwsA(
+      isA<WalletRecipeRefused>().having(
+        (WalletRecipeRefused value) => value.diagnostic?['startup'],
+        'original startup decision', 'key-confirmed',
+      ),
+    ));
   });
 
   for (final bool retainControls in <bool>[false, true]) {

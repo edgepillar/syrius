@@ -47,6 +47,15 @@ void main() {
     expect(walletRecipeDiagnostic(<String, Object?>{'action': 'observe'},
       'wallet-recipe-control-absent', entryPhase: 'synthetic private data',
     ).containsKey('entry'), isFalse);
+    for (final String handoff in walletRecipeStartupHandoffs) {
+      final Map<String, String> traced = <String, String>{
+        ...value, 'startup': handoff,
+      };
+      expect(walletRecipePublicDiagnostic(traced), traced);
+    }
+    expect(walletRecipePublicDiagnostic(<String, String>{
+      ...value, 'startup': 'synthetic private input',
+    }), isNull);
   });
 
   for (final bool disabled in <bool>[false, true]) {
@@ -86,6 +95,7 @@ void main() {
       expect(failure?.diagnostic, <String, String>{
         'action': 'observe', 'control': 'welcome_import',
         'entry': 'welcome',
+        'startup': 'natural-welcome',
         'reason': disabled
             ? 'wallet-recipe-control-disabled'
             : 'wallet-recipe-control-absent',

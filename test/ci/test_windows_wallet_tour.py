@@ -87,6 +87,17 @@ class FixtureTests(unittest.TestCase):
 
 
 class DiagnosticTests(unittest.TestCase):
+    def test_startup_handoff_retains_only_fixed_original_decisions(self):
+        value = dict(stage='onboarding', code='wallet-recipe-stage-unsettled',
+            diagnostic=dict(action='observe', control='welcome_import',
+                reason='wallet-recipe-control-absent', entry='startup-before-initialization'))
+        for handoff in tour.RECIPE_STARTUP_HANDOFFS:
+            traced = dict(value, diagnostic=dict(value['diagnostic'], startup=handoff))
+            self.assertEqual(tour.entry_failure(traced), traced)
+        for handoff in ('synthetic private input', 'space', True, None):
+            with self.subTest(handoff=handoff), self.assertRaises(tour.Refused):
+                tour.entry_failure(dict(value, diagnostic=dict(value['diagnostic'], startup=handoff)))
+
     def test_startup_key_labels_cannot_add_key_text_or_private_fields(self):
         value = dict(stage='onboarding', code='wallet-recipe-command-refused',
             diagnostic=dict(action='key', control='launch_skip_hint',

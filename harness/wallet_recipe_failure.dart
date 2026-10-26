@@ -44,6 +44,12 @@ const Set<String> walletRecipeEntryPhases = <String>{
   'startup-platform-error', 'startup-hive-error', 'startup-other-error',
 };
 
+/// This records only the original startup decision, never a key or payload.
+const Set<String> walletRecipeStartupHandoffs = <String>{
+  'observing', 'key-sent', 'key-confirmed',
+  'natural-welcome', 'natural-initialization',
+};
+
 /// Values, endpoints, exception text and reply details are never projected.
 Map<String, String> walletRecipeDiagnostic(
   Map<String, Object?> command,
@@ -77,9 +83,9 @@ Map<String, String> walletRecipeDiagnostic(
 
 /// Recheck even a typed exception before adding its labels to a CI marker.
 Map<String, String>? walletRecipePublicDiagnostic(Object? value) {
-  const Set<String> fields = <String>{'action', 'control', 'reason', 'entry'};
+  const Set<String> fields = <String>{'action', 'control', 'reason', 'entry', 'startup'};
   if (value is! Map<Object?, Object?> ||
-      (value.length != 3 && value.length != 4) ||
+      value.length < 3 || value.length > 5 ||
       value.keys.any((Object? key) => !fields.contains(key))) {
     return null;
   }
@@ -87,6 +93,7 @@ Map<String, String>? walletRecipePublicDiagnostic(Object? value) {
   final Object? control = value['control'];
   final Object? reason = value['reason'];
   final Object? entry = value['entry'];
+  final Object? startup = value['startup'];
   if (action is! String ||
       control is! String ||
       reason is! String ||
@@ -99,9 +106,15 @@ Map<String, String>? walletRecipePublicDiagnostic(Object? value) {
       (entry is! String || !walletRecipeEntryPhases.contains(entry))) {
     return null;
   }
+  if (value.containsKey('startup') &&
+      (startup is! String || !walletRecipeStartupHandoffs.contains(startup))) {
+    return null;
+  }
   final String? phase = entry is String ? entry : null;
+  final String? handoff = startup is String ? startup : null;
   return Map<String, String>.unmodifiable(<String, String>{
     'action': action, 'control': control, 'reason': reason,
     'entry': ?phase,
+    'startup': ?handoff,
   });
 }

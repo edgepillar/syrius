@@ -81,12 +81,18 @@ class WalletRecipe {
   String? _selectionOriginNode;
   int? _selectionOriginRevision;
   String? _policyNode;
+  String? _startupHandoff;
 
   Duration get _remaining => budget - (_elapsed?.call() ?? _clock.elapsed);
 
   Never _refuse(String code, {Map<String, String>? diagnostic}) {
     _retired = true;
-    throw WalletRecipeRefused(code, diagnostic: diagnostic);
+    throw WalletRecipeRefused(code, diagnostic: diagnostic == null
+        ? null
+        : Map<String, String>.unmodifiable(<String, String>{
+            ...diagnostic,
+            'startup': ?_startupHandoff,
+          }));
   }
 
   Future<Map<String, dynamic>> _command(Map<String, Object?> command) async {
@@ -236,12 +242,16 @@ class WalletRecipe {
     final Map<String, dynamic> view = await _visible(key, reveal: reveal);
     if (key == 'launch_skip_hint' &&
         view['entryPhase'] != 'startup-before-initialization') {
+      _startupHandoff = view['entryPhase'] == 'welcome'
+          ? 'natural-welcome'
+          : 'natural-initialization';
       return;
     }
     if (_originalSigningChain != null &&
         view['signingChainId'] != _originalSigningChain) {
       _refuse('wallet-recipe-original-signing-policy-changed');
     }
+    if (key == 'launch_skip_hint') _startupHandoff = 'key-sent';
     await _command(<String, Object?>{
       'action': key == 'launch_skip_hint'
           ? 'key'
@@ -260,6 +270,7 @@ class WalletRecipe {
         'originRevision': _selectionOriginRevision,
       },
     });
+    if (key == 'launch_skip_hint') _startupHandoff = 'key-confirmed';
   }
 
   void _policy(Map<String, dynamic> view) {
@@ -296,6 +307,7 @@ class WalletRecipe {
     }
     // The first observation may precede the original startup receipt. Wait
     // for its authenticated hint or a natural handoff before Welcome.
+    _startupHandoff = 'observing';
     await _act('launch_skip_hint');
     await _act('welcome_import');
     await _act('import_words_${words.length}');

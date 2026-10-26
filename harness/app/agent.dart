@@ -2408,9 +2408,8 @@ class HarnessAgent {
 
   bool _dispatchKey(KeyEvent e) {
     final bool handled = HardwareKeyboard.instance.handleKeyEvent(e);
-    if (handled) return true;
-    // Older bindings register Focus through this bridge. Use it only when
-    // the hardware path has not already handled the event.
+    // Flutter 3.47 delivers to both destinations before combining results.
+    // Focus is registered through the message bridge in this pinned SDK.
     // ignore: deprecated_member_use
     final KeyMessageHandler? h =
         // Retain compatibility with the legacy Focus message registration.
@@ -2418,7 +2417,8 @@ class HarnessAgent {
         ServicesBinding.instance.keyEventManager.keyMessageHandler;
     // This pinned bridge returns the actual Shortcuts and editing result.
     // ignore: deprecated_member_use
-    return h?.call(KeyMessage(<KeyEvent>[e], null)) ?? false;
+    final bool focusHandled = h?.call(KeyMessage(<KeyEvent>[e], null)) ?? false;
+    return handled || focusHandled;
   }
 
   /// `key` is a chord such as `enter`, `escape`, `shift+tab` or `ctrl+a`.

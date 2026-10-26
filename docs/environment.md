@@ -4228,3 +4228,36 @@ unreviewed against the mockups; the earlier comparison report stays pinned
 to its original source. Ninety other actual captures and all 94 visual
 matches remain open. The later recipe/inspector changes do not modify
 application code or rebind this baseline to a different source.
+
+
+### Preserve the pinned Flutter hardware and Focus delivery contract
+
+Read-only verification of the already installed Flutter 3.47.7 checkout
+pins revision `abaf9c523780a608bd46686fd5e53740a07077f8`. Both keyboard
+and focus source files exactly match their Git objects. No SDK is run
+or downloaded. In that revision, `KeyEventManager.handleRawKeyMessage`
+delivers to the hardware handlers and then the key-message handler even
+when an earlier result is handled. `FocusManager.registerGlobalHandlers`
+registers Focus through that bridge. See the original [keyboard source](https://github.com/flutter/flutter/blob/abaf9c523780a608bd46686fd5e53740a07077f8/packages/flutter/lib/src/services/hardware_keyboard.dart)
+and [Focus registration](https://github.com/flutter/flutter/blob/abaf9c523780a608bd46686fd5e53740a07077f8/packages/flutter/lib/src/widgets/focus_manager.dart).
+
+The earlier harness change incorrectly returned after a handled hardware
+event. The candidate now delivers once to each relevant destination and
+combines their actual results after both calls. The original two cases
+remain, with the hardware-consumed case corrected to the pinned framework
+contract. Two new cases check an event ignored by both destinations and
+an actual focused widget receiving exactly one down/up pair despite a
+hardware consumer. Pressed-key state is released in every case. This
+corrects a source-proven delivery bug; its role in the observed native
+startup failure still needs original runtime evidence.
+
+A refusal can additionally retain one `startup` label: `observing`,
+`key-sent`, `key-confirmed`, `natural-welcome` or `natural-initialization`.
+The driver changes this label only at its original decision/command
+boundary. Dart and Python both revalidate the fixed set; key text, input,
+endpoints and arbitrary diagnostic fields remain refused. The label
+changes no input decision, context/owner check, timeout or retirement.
+Thirty-one selected memory-only Python cases pass. The next mandatory
+Dart gate is exactly 63, including the two new keyboard cases; no native
+allocation precedes it. Application code remains unchanged from the
+independently verified `f024e78bf777` focus source.
