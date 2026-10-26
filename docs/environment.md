@@ -3761,3 +3761,14 @@ evidence. Other backends, absent wallet selection, missing client proof and
 non-producing reports stay refused. The complete synthetic stop report now
 uses this actual producer phase; corrected retained inspection remains pending.
 No inspection starts a runtime or qualifies the original failed attempt.
+
+### Include the existing recipe contract in hosted qualification
+
+The next candidate selects all 34 existing `wallet_recipe_test.dart` cases
+with the four new failure-label cases and eight tour/build-output cases,
+requiring 46 successful cases, no skips and a successful complete terminal
+event. This checks the existing owner, consent, signing and retirement
+contracts after changing refusal propagation. Their source is also included
+in selected analysis. No test body, expected outcome, deadline or runtime
+admission is relaxed; the complete suite runs before the native lab/wallet.
+This selection change has no new local Dart execution.
