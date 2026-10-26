@@ -22,6 +22,39 @@ def node_config():
                  WSHost="0.0.0.0", HTTPPort=35997, WSPort=35998))
 
 
+class AssetGenerationTests(unittest.TestCase):
+    def test_original_helper_success_keeps_the_same_timeout_and_complete_phase(self):
+        raw = b''.join(lab.lab_asset_progress.PREFIX + phase.encode() + b'\n'
+                       for phase in lab.lab_asset_progress.PHASES)
+        commands = mock.Mock(originals=[])
+        def run(*args, **kwargs):
+            commands.originals.append(mock.Mock(drains=[mock.Mock(), mock.Mock(data=raw)]))
+        commands.run.side_effect = run
+        report = {}
+        lab.make_assets(commands, Path('fixture/repo'), Path('fixture/source'), Path('fixture/out'), report)
+        commands.run.assert_called_once_with(['node', str(Path('fixture/repo/tools/devnet/lab/make-assets.js')),
+            str(Path('fixture/source/docker/devnet')), str(Path('fixture/out')), '--progress'],
+            cwd=Path('fixture/repo'), timeout=20)
+        self.assertTrue(report['asset_generation']['script_complete'])
+
+    def test_original_timeout_is_preserved_without_retry_or_a_longer_deadline(self):
+        commands = mock.Mock(originals=[])
+        failure = lab.Failure('COMMAND_TIMEOUT')
+        def run(*args, **kwargs):
+            raw = lab.lab_asset_progress.PREFIX + b'STARTED\n'
+            commands.originals.append(mock.Mock(drains=[mock.Mock(), mock.Mock(data=raw)]))
+            raise failure
+        commands.run.side_effect = run
+        report = {}
+        with self.assertRaises(lab.Failure) as raised:
+            lab.make_assets(commands, Path('fixture/repo'), Path('fixture/source'), Path('fixture/out'), report)
+        self.assertIs(raised.exception, failure)
+        commands.run.assert_called_once()
+        self.assertEqual(commands.run.call_args.kwargs['timeout'], 20)
+        self.assertEqual(report['asset_generation']['phase'], 'STARTED')
+        self.assertFalse(report['asset_generation']['script_complete'])
+
+
 class CompilerDiagnosticTests(unittest.TestCase):
     def test_version_requirement_and_locked_modules_have_distinct_codes(self):
         self.assertEqual(lab.compiler_diagnostics(b"dependency requires go >= 1.24.0"),

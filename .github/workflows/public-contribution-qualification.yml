@@ -396,6 +396,10 @@ jobs:
           SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
         run: python -B -m tool.ci.hosted_chain321 --backend ${{ matrix.backend }} --admission-only
 
+      - name: Check asset bytes and opt-in phases in memory
+        timeout-minutes: 1
+        run: node test/ci/lab_asset_progress_test.js
+
       - name: Test all isolated controllers before SDK allocation
         if: inputs.windows_wallet_tour
         env:

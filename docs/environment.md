@@ -3914,3 +3914,40 @@ and does not start a runtime or admit seed material. Seventy-three selected
 memory-only Python cases pass, including three added privacy and outcome
 cases. Hosted inspection of this exact failed run remains pending. Existing
 deadlines, application source and local storage limits are unchanged.
+
+### Asset-helper command identified, 2026-10-26T15:34Z
+
+At inspector source `ef03c1d33cba31a5eb6fa4c727a37cf0dace4410`, tree
+`ea9dba9a4c0dd8ad790d44577bef82b75ca3d690`, run `40348664138` attempt one,
+job `121662408010`, the boundary-test step and retained inspection succeed.
+The original failed source/run remain `d95f51bd24f3af3976fcd1423460468d9a2ee2e0`
+and `40345162301`. The original archive SHA-256 is
+`154e3e6df2c14dee08dd629312123daa926f973eb4e03761e3a6d5c34299416d`;
+its manifest SHA-256 is
+`e699536af2af98d43c7d6d9f1704b827513e4e05a944ad2fe010ceb6151a2907`.
+
+There are 49 original commands. Commands 47 and 48 exit zero normally with
+complete empty streams; command 49 is forced, exits one and has complete
+empty streams. The pinned source sequence identifies command 49 as
+`node tools/devnet/lab/make-assets.js`. This locates the failed process;
+its internal stall site and root cause remain unknown. No node or wallet is
+started by this read-only inspection, and the failed attempt is preserved.
+
+The candidate adds an explicit `--progress` option to that same helper.
+Fourteen ordered fixed labels cover JavaScript entry, genesis and each role's
+copy/config completion. The ordinary two-argument path retains its output
+behavior. No generated asset transform changes. The parent observes the
+original process and its bounded stderr even on failure, retaining the same
+20-second timeout and actual exit/forced/completeness facts. Unknown, duplicate
+or reordered phase labels are refused; raw text and paths never enter the
+public projection. Retained inspection validates the full phase record and
+exports one fixed label so all five original exits still fit the notice.
+
+Eighty-one selected memory-only Python cases pass. A separate hosted Node VM
+control runs the real helper against an in-memory filesystem before SDK
+allocation. Its four cases compare legacy/progress bytes, exact genesis and
+config changes, unchanged nested binary inputs, invalid arguments, existing
+genesis refusal and interruption at the second role. Those JavaScript cases
+and the changed-source native run remain unexecuted at this source-writing
+checkpoint. No local SDK, wallet, node, binary download or disk scratch is
+added. Full wallet, send, seed and visual acceptance remain pending.

@@ -17,6 +17,7 @@ import zipfile
 from tool.ci.hosted_chain321 import (CODES, GO_FAILURE_CODES, NODE_DIAGNOSTICS, NODE_SHA, NODE_SOURCES,
                                    ROLES, SHUTDOWN_TESTS, UPSTREAM_NODE_SHA, selected_node_source)
 from tool.ci import native_stack_probe, node_panic_projection, producer_shutdown_patch, read_first_client_fixture
+from tool.ci import lab_asset_progress
 
 
 API = "https://api.github.com/repos/edgepillar/syrius"
@@ -450,6 +451,15 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA, *, expected_p
         result['upstream_client_fixture'] = client_fixture
     if go_failure is not None:
         result["upstream_stop_failure"] = go_failure
+    if report.get('asset_generation') is not None:
+        try:
+            progress = lab_asset_progress.validate(report['asset_generation'])
+        except ValueError:
+            raise Refused('INSPECTION_REFUSED') from None
+        need(not checks['assets'] or progress['script_complete'])
+        # The validated prefix length is implied by its fixed phase. One label
+        # leaves room for all five original exits in the bounded notice.
+        result['asset_phase'] = progress['phase'] if progress['status'] == 'OBSERVED' else progress['status']
     if "COMMAND_TIMEOUT" in errors and not checks["started"]:
         result["preparation_commands"] = preparation_command_tail(commands)
     if docker_shutdown is not None:

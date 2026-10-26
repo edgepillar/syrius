@@ -31,6 +31,37 @@ def manifest():
 
 
 class InspectionTests(unittest.TestCase):
+    def test_asset_progress_keeps_the_fixed_phase_and_original_failure_separate(self):
+        report = manifest()
+        report['asset_generation'] = dict(status='OBSERVED', phase='STARTED', events=1,
+            script_complete=False)
+        value = inspect.project(report, 'native', 'a' * 40, 123)
+        self.assertEqual(value['asset_phase'], 'STARTED')
+        self.assertFalse(value['artifact_reported_success'])
+        self.assertFalse(value['runtime_started'])
+        report = self.wallet_stop_report()
+        report['asset_generation'] = dict(status='OBSERVED', phase='COMPLETE', events=14,
+            script_complete=True)
+        value = inspect.project(report, 'native', 'a' * 40, 40319698922,
+            inspect.UPSTREAM_NODE_SHA, expected_patched=True)
+        value.update(archive_sha256='e' * 64, manifest_sha256='f' * 64)
+        self.assertEqual(value['asset_phase'], 'COMPLETE')
+        self.assertEqual(len(value['node_exits']), 5)
+        self.assertLessEqual(len(json.dumps(value, separators=(',', ':')).encode()), 3800)
+
+    def test_asset_progress_rejects_private_fields_and_incomplete_accepted_assets(self):
+        report = manifest()
+        report['asset_generation'] = dict(status='OBSERVED', phase='STARTED', events=1,
+            script_complete=False)
+        for change in (dict(raw='private'), dict(events=True), dict(phase='private')):
+            changed = copy.deepcopy(report)
+            changed['asset_generation'].update(change)
+            with self.subTest(change=change), self.assertRaises(inspect.Refused):
+                inspect.project(changed, 'native', 'a' * 40, 123)
+        report['checks']['assets'] = True
+        with self.assertRaises(inspect.Refused):
+            inspect.project(report, 'native', 'a' * 40, 123)
+
     @staticmethod
     def preparation_timeout_report():
         report = manifest()

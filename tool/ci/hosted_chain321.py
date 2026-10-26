@@ -27,6 +27,7 @@ import time
 from tool.ci.windows_presentation_smoke import OutputDrain
 from tool.ci.loopback_relay import PAIRS as RELAY_PAIRS, TARGET as RELAY_TARGET, Relay
 from tool.ci import native_stack_probe, node_panic_projection, producer_shutdown_patch, read_first_client_fixture
+from tool.ci import lab_asset_progress
 from tools.devnet.lab import owned_lab as wire_policy
 from tools.devnet.lab.socket_transport import make_transports
 
@@ -293,6 +294,23 @@ def run_wallet_shutdown_tests(commands, repo, source, report):
         policy.validate(evidence, required=True)
     except policy.Refused:
         raise Failure('NODE_REGRESSIONS_REFUSED') from None
+
+
+def make_assets(commands, repo, source, assets, report):
+    """Observe the original helper without changing its bytes or timeout."""
+    index = len(commands.originals)
+    try:
+        commands.run(['node', str(repo / 'tools/devnet/lab/make-assets.js'),
+            str(source / 'docker/devnet'), str(assets), '--progress'], cwd=repo, timeout=20)
+    finally:
+        progress = lab_asset_progress.project(None)
+        if len(commands.originals) == index + 1:
+            try:
+                progress = lab_asset_progress.project(bytes(commands.originals[index].drains[1].data))
+            except Exception:
+                pass
+        report['asset_generation'] = progress
+    need(progress['script_complete'], 'CONFIG_REFUSED')
 
 
 def prepare_producer_patch(commands, repo, source, report):
@@ -1087,8 +1105,7 @@ def run(backend):
                 run_shutdown_tests(commands, source, report)
             source_matches(commands, source, node_sha, node_tree, compiled_tree)
         assets = root / "assets"
-        commands.run(["node", str(repo / "tools/devnet/lab/make-assets.js"),
-                      str(source / "docker/devnet"), str(assets)], cwd=repo)
+        make_assets(commands, repo, source, assets, report)
         genesis = regular(assets / "genesis.json")
         need(json.loads(genesis)["ChainIdentifier"] == 321, "CONFIG_REFUSED")
         report["genesis_sha256"] = digest(genesis)
@@ -1193,6 +1210,7 @@ def run(backend):
                 wallet_qualified=False, seed_admitted=False, checks=report['checks'],
                 errors=report['error_codes'], node_sha=report['node_sha'],
                 compiled_node_tree=report.get('compiled_node_tree'),
+                asset_generation=report.get('asset_generation'),
                 upstream_client_fixture=(read_first_client_fixture.validate(
                     report.get('upstream_client_fixture'), required=report['checks']['started'])
                     if report.get('upstream_client_fixture') is not None else None),
