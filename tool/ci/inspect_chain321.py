@@ -16,7 +16,7 @@ import zipfile
 
 from tool.ci.hosted_chain321 import (CODES, GO_FAILURE_CODES, NODE_DIAGNOSTICS, NODE_SHA, NODE_SOURCES,
                                    ROLES, SHUTDOWN_TESTS, UPSTREAM_NODE_SHA, selected_node_source)
-from tool.ci import native_stack_probe, node_panic_projection, producer_shutdown_patch
+from tool.ci import native_stack_probe, node_panic_projection, producer_shutdown_patch, read_first_client_fixture
 
 
 API = "https://api.github.com/repos/edgepillar/syrius"
@@ -162,6 +162,14 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA, *, expected_p
              and compiled_tree in (None, pins[expected_node]))
         patch_summary = None
     regressions = report.get("upstream_stop_regressions")
+    client_fixture = report.get('upstream_client_fixture')
+    if client_fixture is not None:
+        need(backend == 'native' and expected_patched and report.get('wallet_tour_requested') is True)
+        try:
+            client_fixture = read_first_client_fixture.validate(client_fixture,
+                required=any(checks[key] for key in ('assets', 'started', 'production')) or report['success'])
+        except read_first_client_fixture.Refused:
+            raise Refused('INSPECTION_REFUSED') from None
     need(regressions is None or (expected_node == UPSTREAM_NODE_SHA and type(regressions) is dict
          and set(regressions) == {"passed", "tests", "skips"} and regressions["passed"] is True
          and regressions["tests"] == list(SHUTDOWN_TESTS) and type(regressions["skips"]) is int
@@ -403,6 +411,8 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA, *, expected_p
     if expected_patched:
         result.update(node_source="lab-fix", compiled_node_tree=compiled_tree,
                       producer_task_patch=patch_summary)
+    if client_fixture is not None:
+        result['upstream_client_fixture'] = client_fixture
     if go_failure is not None:
         result["upstream_stop_failure"] = go_failure
     if docker_shutdown is not None:

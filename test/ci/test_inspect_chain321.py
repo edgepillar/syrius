@@ -9,6 +9,7 @@ import zipfile
 
 from tool.ci import inspect_chain321 as inspect
 from tool.ci import producer_shutdown_patch as producer_patch
+from tool.ci import read_first_client_fixture as client_fixture
 
 
 def packed(value, name="manifest.json", mode=stat.S_IFREG):
@@ -30,6 +31,22 @@ def manifest():
 
 
 class InspectionTests(unittest.TestCase):
+    def test_wallet_client_fixture_must_restore_before_assets_can_be_admitted(self):
+        report = self.corrected_manifest()
+        report['wallet_tour_requested'] = True
+        report['checks']['assets'] = True
+        value = client_fixture.pending()
+        value.update(phase='restored', all_seven_test_bodies_unchanged=True,
+            original_restored=True, test_exit=0, test_output_complete=True, test_forced=False)
+        report['upstream_client_fixture'] = value
+        projected = inspect.project(report, 'native', 'a'*40, 123,
+            inspect.UPSTREAM_NODE_SHA, expected_patched=True)
+        self.assertTrue(projected['upstream_client_fixture']['original_restored'])
+        value.update(phase='held', original_restored=False)
+        with self.assertRaises(inspect.Refused):
+            inspect.project(report, 'native', 'a'*40, 123,
+                inspect.UPSTREAM_NODE_SHA, expected_patched=True)
+
     def test_docker_stop_receipt_preserves_original_command_failure(self):
         report = manifest()
         report.update(backend="docker", compiler="go version go1.24.1 linux/amd64",

@@ -3511,3 +3511,52 @@ for the existing read-only chain-321 inspector; no exact failed command is
 claimed until that original manifest is inspected. Earlier node/runtime
 failures remain separate negative attempts. The new dispatch selects inventory
 and retained-manifest inspection only, repeating no Go build, node or wallet.
+
+### Actual reconnect reset and qualification-only client ordering
+
+Inspection job `121545606607` in run `40315101485`, at
+`cbf2f2f3fdb50ae6ed0c025ea5a725bb4df7321a`, verifies the original
+`40313052065` archive
+`5101bf280794041da144893e6985776fdfb7fa66ce022584ea5259c6279811df`
+and manifest
+`f4c52b8494f9408fc7bb649ee5ee697d9a803fde7d90c84c5751ccad18881490`.
+`TestSameIdentityReconnectDuringGatedCleanup` fails at line 381 with
+`GO_RECONNECT_RESET`. The other six tests pass without skips. The original
+exit one is complete and unforced; inspection repeats no Go, node or wallet.
+The inventory job in that run remains failed after a 30.032-second timeout
+before the first Visual Studio detail or JSON frame; it is not repeated by
+the following wallet candidate.
+
+Read-only source verification binds the original test file through the pinned
+root, p2p and legacy Git trees. The test client concurrently sends and reads
+the protocol handshake; the server may reject the duplicate identity before
+that handshake. The candidate reads that early rejection before writing.
+It does not replace the required disconnect reason with a reset or alter
+production transport code. Its native effect is not claimed before execution.
+
+Only the Windows wallet lane applies the fixture, after the original CLI
+build. Original test-file SHA-256 is
+`532c7bd18d746bc1457d49b9b16420220d7a0f3a97462fc3101d96310516a8b5`;
+adapted file is
+`7e92c04318641610ba5e288299846ee7f3a6988b1dfec3e92034ea2b832eb6ac`.
+The complete suffix containing all seven test bodies remains byte-identical,
+SHA-256 `c4cb203af516459ab6e3224ef13ca23bbd1480a044e4f0ecf3dadb5279ee77b3`.
+The effective test input is production tree `a9262cce1819` plus fixed patch
+`88360342c36f591dad99f2442c7c1a0cd6fe5ec6ea5b534db1ab9a7e70dc540c`;
+it is distinct from an unmodified upstream test-client result.
+
+After a confirmed complete unforced test command, the controller restores
+only the exact adapted file and rechecks the original complete production
+tree before assets or runtime. Normal test failure is restored and rethrown.
+An uncertain launch, forced/incomplete command or changed input stays held
+without reverse application. The production CLI tree and ordinary node-only
+qualification paths remain unchanged. Explicit fixture receipts retain the
+original test exit and restoration facts; inspector admission requires
+successful restoration before assets or runtime can be qualified.
+
+All 64 selected memory-only fixture, inspector and wallet-policy cases pass
+locally. They include preservation of a normal failure, refusal to restore
+over changed input, forced-command holds and strict inspector gates. The
+complete controller suite, actual seven Go tests, reparse observation and
+full wallet tour await the new hosted source. No native process or filesystem
+scratch is used locally, and prior negative attempts are not retried unchanged.

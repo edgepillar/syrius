@@ -266,3 +266,20 @@ The pinned reconnect assertion can additionally report a fixed error
 category only after that original named parent fails. Unknown errors stay
 unclassified. The client error text and socket details are never emitted;
 the expected disconnect reason and all Go assertions remain unchanged.
+
+The Windows wallet-tour lane uses an explicit qualification-only client
+fixture after building the node. It changes only `dialHandshake` in the
+pinned test file: read the server's early protocol rejection before sending
+the client protocol message. The seven test bodies are byte-identical,
+including the required `DiscAlreadyConnected` assertion. No reset error is
+accepted as a replacement disconnect reason.
+
+The original file, patch, adapted file and complete test-body suffix have
+fixed digests. The CLI remains built from producer-corrected tree
+`a9262cce18190bfc01e85ac903558500379d014f`. The fixture applies only to
+the seven-test command, then restores the exact original test file and
+rechecks the complete production tree before asset creation. A normal
+failed test is restored but remains failed; a forced, incomplete or unknown
+command or changed file is held without reverse application. Source-only
+validation and local policy cases do not qualify Windows runtime behaviour.
+The ordinary native and Docker node-only lanes keep their original client.

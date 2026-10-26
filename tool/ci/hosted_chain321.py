@@ -26,7 +26,7 @@ import time
 
 from tool.ci.windows_presentation_smoke import OutputDrain
 from tool.ci.loopback_relay import PAIRS as RELAY_PAIRS, TARGET as RELAY_TARGET, Relay
-from tool.ci import native_stack_probe, node_panic_projection, producer_shutdown_patch
+from tool.ci import native_stack_probe, node_panic_projection, producer_shutdown_patch, read_first_client_fixture
 from tools.devnet.lab import owned_lab as wire_policy
 from tools.devnet.lab.socket_transport import make_transports
 
@@ -246,6 +246,53 @@ def source_matches(commands, source, head, base_tree, compiled_tree):
          and not commands.git(source, "diff", "--name-only")
          and not commands.git(source, "ls-files", "--others", "--exclude-standard"),
          "SOURCE_REFUSED")
+
+
+def run_wallet_shutdown_tests(commands, repo, source, report):
+    """Adapt only the test client, then restore the exact compiled production tree."""
+    policy = read_first_client_fixture
+    evidence = report['upstream_client_fixture'] = policy.pending()
+    patch = repo / 'tool/ci/node_fixtures/read_first_test_client.patch'
+    target = source / policy.TEST_PATH
+    original = regular(target)
+    try:
+        adapted = policy.patched(original, regular(patch))
+    except policy.Refused:
+        raise Failure('NODE_REGRESSIONS_REFUSED') from None
+    source_matches(commands, source, producer_shutdown_patch.BASE_SHA,
+                   producer_shutdown_patch.BASE_TREE, producer_shutdown_patch.COMPILED_TREE)
+    commands.git(source, 'apply', '--check', '--whitespace=error-all', str(patch))
+    evidence['phase'] = 'held'
+    commands.git(source, 'apply', '--whitespace=error-all', str(patch))
+    need(regular(target) == adapted
+         and commands.git(source, 'diff', '--name-only') == policy.TEST_PATH,
+         'SOURCE_REFUSED')
+    evidence.update(phase='applied', all_seven_test_bodies_unchanged=True)
+    need(commands.run(['gofmt', '-d', str(target)], cwd=source) == b'', 'SOURCE_REFUSED')
+    index = len(commands.originals)
+    try:
+        run_shutdown_tests(commands, source, report)
+    finally:
+        evidence['phase'] = 'held'
+        if len(commands.originals) == index + 1:
+            receipt = commands.originals[index].receipt
+            if type(receipt) is dict:
+                evidence.update(test_exit=receipt.get('exit_code'),
+                    test_output_complete=receipt.get('output_complete'), test_forced=receipt.get('forced'))
+        # Never restore over an unknown launch, interrupted command or changed input.
+        if (type(evidence['test_exit']) is int and evidence['test_output_complete'] is True
+                and evidence['test_forced'] is False):
+            need(regular(target) == adapted, 'SOURCE_REFUSED')
+            commands.git(source, 'apply', '--reverse', '--check', '--whitespace=error-all', str(patch))
+            commands.git(source, 'apply', '--reverse', '--whitespace=error-all', str(patch))
+            need(regular(target) == original, 'SOURCE_REFUSED')
+            source_matches(commands, source, producer_shutdown_patch.BASE_SHA,
+                           producer_shutdown_patch.BASE_TREE, producer_shutdown_patch.COMPILED_TREE)
+            evidence.update(phase='restored', original_restored=True)
+    try:
+        policy.validate(evidence, required=True)
+    except policy.Refused:
+        raise Failure('NODE_REGRESSIONS_REFUSED') from None
 
 
 def prepare_producer_patch(commands, repo, source, report):
@@ -1034,7 +1081,10 @@ def run(backend):
         report["binary_sha256"] = digest(binary_bytes)
         report["checks"]["build"] = True
         if node_sha == UPSTREAM_NODE_SHA:
-            run_shutdown_tests(commands, source, report)
+            if wallet_tour:
+                run_wallet_shutdown_tests(commands, repo, source, report)
+            else:
+                run_shutdown_tests(commands, source, report)
             source_matches(commands, source, node_sha, node_tree, compiled_tree)
         assets = root / "assets"
         commands.run(["node", str(repo / "tools/devnet/lab/make-assets.js"),
@@ -1143,6 +1193,9 @@ def run(backend):
                 wallet_qualified=False, seed_admitted=False, checks=report['checks'],
                 errors=report['error_codes'], node_sha=report['node_sha'],
                 compiled_node_tree=report.get('compiled_node_tree'),
+                upstream_client_fixture=(read_first_client_fixture.validate(
+                    report.get('upstream_client_fixture'), required=report['checks']['started'])
+                    if report.get('upstream_client_fixture') is not None else None),
                 nodes=[dict(role=role, exit_code=original.receipt.get('exit_code'),
                     output_complete=original.receipt.get('output_complete'),
                     forced=original.receipt.get('forced'))
