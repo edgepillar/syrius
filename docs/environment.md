@@ -3433,3 +3433,49 @@ raw output and paths remain private. The thirty-second bound, source checks
 and incomplete-inventory requirement are unchanged. Five focused in-memory
 cases pass, including refusal of partial, duplicate, unknown or private output.
 Actual encoded-query execution and P01/P03 qualification remain pending.
+
+### Actual storage refusal is a tool-profile reparse entry
+
+Wallet job `121529697559` in `40310356121` finishes with failure at exact
+source `ce3beb9c29cfb161f50e723f04a274d0508e1313`, tree
+`ec3836bf2d7ce4c836345a409afa8f7905abe489`. All 427 controller cases have
+zero failures/errors and three platform skips. All eight Dart cases and both
+owned startup probes pass, and selected analysis now has zero diagnostics.
+The lab reaches production and all five original nodes exit zero, complete
+and unforced. The wallet has no observed readiness or released private input.
+
+The fifth storage sample refuses a reparse entry in the fresh SDK tool profile.
+At refusal it has counted 24 entries and 29559 logical bytes in that role.
+The peak across all five samples is 72499 logical bytes; minimum observed
+free space is 233983049728 bytes. The native-build role has zero counted bytes
+in the refused partial traversal. These partial counts do not prove that
+uncounted output paths are empty. The original thirteen job members and forced
+closure remain explicit, and the subsequent entry exit zero is not normal
+success. The byte and free-space limits are unchanged.
+
+The candidate reads only that refused entry's link metadata in the tool
+profile, checks the metadata before and after, and emits a reparse tag and
+fixed segment classes. Unknown names are masked. Target containment is labelled
+lexical only; the target is never traversed or admitted, and a changed entry
+remains unknown. Two new in-memory cases cover masked observation and changed
+or external targets. All 22 selected wallet policy cases pass locally.
+
+### Native inventory timeout narrows to Visual Studio discovery
+
+Inventory run `40311330396`, attempt one, job `121532967722`, at
+`468522e32685b12d199c9e9a41c75bf9463c6b8b`, tree
+`46efbe73ec44e16f9d00fd6691658d1189f6eef1`, passes its controller step.
+The encoded command reaches `entry` and `visual_studio`, then retains
+`COMMAND_TIMEOUT`, 30.031 seconds, 68 complete output bytes and forced exit
+one. No JSON is observed. Docker daemon `29.7.2` is present on this fresh
+runner; native Windows fields remain unknown and the inventory remains failed.
+
+The next candidate adds exact installation-query, MSVC-file and workload-query
+markers. Only read-only installed-tool discovery may use the actual Windows
+profile of a fresh GitHub-hosted runner. Admission requires this fork's manual
+workflow, the inventory-only mode and the fixed native stage. The environment
+uses an explicit allowlist with credentials excluded; it is never available
+for a wallet or SDK command. The Windows setup API's behaviour in the private
+SDK profile is a hypothesis, not a proven timeout cause. The same thirty-second
+bound and strict source/complete-query gates remain. Six focused in-memory
+cases pass, including scope refusal before launch and credential exclusion.

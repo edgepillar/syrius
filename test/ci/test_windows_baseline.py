@@ -30,15 +30,39 @@ PRIVATE = "private-value-not-for-public-output"
 
 
 class InventoryOnlyTests(unittest.TestCase):
+    def test_hosted_native_inventory_environment_is_scoped_and_strips_credentials(self):
+        parent = dict(GITHUB_ACTIONS='true', RUNNER_ENVIRONMENT='github-hosted',
+            GITHUB_EVENT_NAME='workflow_dispatch', GITHUB_REPOSITORY='edgepillar/syrius',
+            HOME='synthetic-runner-profile', GH_TOKEN='synthetic-private-token', PATH='synthetic-path')
+        report = baseline.Baseline(Path('/fixture'), parent, SOURCE)
+        report.inventory_only = True
+        with patch.object(baseline, 'run_bounded', return_value=baseline.Outcome()) as run, \
+                patch.object(baseline, 'fresh_environment') as profile:
+            report.command('inventory_windows', ['synthetic-powershell'], hosted_inventory=True, required=False)
+        env = run.call_args.kwargs['env']
+        self.assertEqual(env['HOME'], 'synthetic-runner-profile')
+        self.assertNotIn('GH_TOKEN', env)
+        profile.assert_not_called()
+        for field, value in (('GITHUB_REPOSITORY', 'other/repo'), ('RUNNER_ENVIRONMENT', 'self-hosted')):
+            refused = baseline.Baseline(Path('/fixture'), {**parent, field:value}, SOURCE)
+            refused.inventory_only = True
+            with self.subTest(field=field), patch.object(baseline, 'run_bounded') as launch, \
+                    self.assertRaises(baseline.BaselineFailure):
+                refused.command('inventory_windows', ['synthetic'], hosted_inventory=True)
+            launch.assert_not_called()
+
     def test_native_query_uses_exact_encoded_script_and_complete_ordered_progress(self):
         command = baseline.native_inventory_command('synthetic-powershell')
         self.assertEqual(command[-2], '-EncodedCommand')
         self.assertEqual(base64.b64decode(command[-1]).decode('utf-16-le'), baseline.WINDOWS_INVENTORY)
         values = dict(chrome=dict(status='present', version='1.2.3.4', scope='standard_install'))
-        lines = ['SYRIUS_INVENTORY_STAGE:' + stage for stage in baseline.NATIVE_INVENTORY_STAGES]
+        stages = list(baseline.NATIVE_INVENTORY_STAGES)
+        stages[2:2] = baseline.NATIVE_INVENTORY_DETAILS
+        lines = ['SYRIUS_INVENTORY_STAGE:' + stage for stage in stages]
         parsed, receipt = baseline.native_inventory_reply(('\n'.join(lines) + '\n' + json.dumps(values)).encode())
         self.assertEqual(parsed, values)
         self.assertTrue(receipt['complete'])
+        self.assertEqual(receipt['details'], list(baseline.NATIVE_INVENTORY_DETAILS))
 
     def test_partial_duplicate_unknown_and_private_output_never_complete_a_query(self):
         for raw in (b'', b'SYRIUS_INVENTORY_STAGE:entry\n',

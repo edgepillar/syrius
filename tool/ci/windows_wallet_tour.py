@@ -9,6 +9,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+import ntpath
 import os
 from pathlib import Path
 import re
@@ -39,6 +40,10 @@ WORK_CAP = 4 * 1024**3
 FIXTURE_FLOOR = 2 * 1024**3
 ENTRY_LIMIT = 100000
 STORAGE_ROLES = ('wallet_profile', 'application', 'native_build', 'tool_profile')
+PROFILE_PARTS = {name.casefold(): name.replace(' ', '_').lower() for name in
+    ('AppData', 'Local', 'Roaming', 'Temp', 'Application Data', 'Local Settings',
+     'Microsoft', 'VSCommon', 'VisualStudio', 'Telemetry', '.dotnet', '.nuget',
+     'NuGet', 'Packages', 'Pub', 'Cache', 'Dart')}
 
 
 class Refused(Exception):
@@ -109,6 +114,47 @@ def completed(report):
         return False
 
 
+def reparse_observation(path, profile, before):
+    """Read one refused link's metadata; never follow its target or admit it."""
+    result = dict(status='UNKNOWN', observation='readlink_metadata_only')
+    fields = ('st_dev', 'st_ino', 'st_mode', 'st_size', 'st_mtime_ns',
+              'st_file_attributes', 'st_reparse_tag')
+    try:
+        identity = tuple(getattr(before, key) for key in fields)
+        need(all(type(item) is int for item in identity) and before.st_ino > 0,
+             'STORAGE_REFUSED')
+        relative = path.relative_to(profile)
+        need(0 < len(relative.parts) <= 12, 'STORAGE_REFUSED')
+        target = os.readlink(path)
+        after = os.lstat(path)
+        if tuple(getattr(after, key) for key in fields) != identity:
+            result['status'] = 'CHANGED'
+            return result
+        separator = chr(92)
+        for prefix in (separator * 2 + '?' + separator, separator + '??' + separator):
+            if target.startswith(prefix):
+                target = target[len(prefix):]
+                break
+        if before.st_reparse_tag == 0xA0000003:
+            need(ntpath.isabs(target) and bool(ntpath.splitdrive(target)[0]), 'STORAGE_REFUSED')
+        target = ntpath.normcase(ntpath.normpath(ntpath.join(str(path.parent), target)))
+        root = ntpath.normcase(ntpath.normpath(str(profile)))
+        try:
+            inside = ntpath.commonpath((root, target)) == root
+        except ValueError:
+            inside = False
+        result.update(status='OBSERVED', stable_metadata=True, tag=before.st_reparse_tag,
+            entry_parts=[PROFILE_PARTS.get(part.casefold(), 'other') for part in relative.parts],
+            target_lexically_inside_profile=inside)
+        if inside:
+            parts = ntpath.relpath(target, root).split(separator)
+            need(len(parts) <= 12, 'STORAGE_REFUSED')
+            result['target_parts'] = [PROFILE_PARTS.get(part.casefold(), 'other') for part in parts]
+    except (Exception, KeyboardInterrupt):
+        result = dict(status='UNKNOWN', observation='readlink_metadata_only')
+    return result
+
+
 def sample_workspace(paths, *, receipt=None):
     """Sample only this attempt's explicit new output paths on its fresh runner."""
     need(len(paths) == len(STORAGE_ROLES), 'STORAGE_REFUSED')
@@ -134,6 +180,8 @@ def sample_workspace(paths, *, receipt=None):
         if stat.S_ISLNK(info.st_mode):
             refuse('linked_entry', role)
         if getattr(info, 'st_file_attributes', 0) & 0x400:
+            sample['reparse'] = (reparse_observation(path, paths[3], info)
+                if role == 'tool_profile' else dict(status='NOT_INSPECTED'))
             refuse('reparse_entry', role)
         if stat.S_ISDIR(info.st_mode):
             try:

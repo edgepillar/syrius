@@ -82,6 +82,9 @@ EXTRA_ENV = frozenset((
     "FLUTTER_ROOT", "PUB_CACHE", "JAVA_HOME", "ANDROID_HOME", "ANDROID_SDK_ROOT",
     "PROGRAMFILES", "PROGRAMFILES(X86)", "PROGRAMW6432",
 ))
+HOSTED_INVENTORY_PROFILE_ENV = frozenset((
+    'APPDATA', 'LOCALAPPDATA', 'TEMP', 'TMP', 'HOME', 'USERPROFILE', 'HOMEDRIVE', 'HOMEPATH',
+))
 
 # Read installed versions only. Paths and PowerShell diagnostics remain private.
 WINDOWS_INVENTORY = r"""
@@ -100,11 +103,14 @@ Mark-Inventory 'visual_studio'
 $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
 try {
   if (Test-Path -LiteralPath $vswhere -PathType Leaf) {
+    Mark-Inventory 'vswhere_installation'
     $vs = & $vswhere -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
     if ($LASTEXITCODE -ne 0) { throw 'query failed' }
     if ($vs) {
+      Mark-Inventory 'msvc_version'
       $tools = Join-Path $vs 'VC\Auxiliary\Build\Microsoft.VCToolsVersion.default.txt'
       Put-Version 'msvc' (Get-Content -LiteralPath $tools -Raw).Trim() 'standard_install'
+      Mark-Inventory 'vswhere_workload'
       $workloads = & $vswhere -latest -products '*' -requiresAny Microsoft.VisualStudio.Workload.NativeDesktop Microsoft.VisualStudio.Workload.VCTools -property installationVersion
       if ($LASTEXITCODE -ne 0) { throw 'query failed' }
       $state = if ($workloads) { 'present' } else { 'absent' }
@@ -156,6 +162,7 @@ $result | ConvertTo-Json -Compress -Depth 3
 """
 NATIVE_INVENTORY_STAGES = ('entry', 'visual_studio', 'windows_sdk', 'browsers',
                            'developer_mode', 'complete')
+NATIVE_INVENTORY_DETAILS = ('vswhere_installation', 'msvc_version', 'vswhere_workload')
 
 
 class BaselineFailure(Exception):
@@ -338,11 +345,18 @@ def native_inventory_command(powershell):
 
 
 def native_inventory_reply(output):
-    markers, content, valid = [], [], True
+    markers, details, content, valid = [], [], [], True
     for line in clean_text(output).splitlines():
         if line.startswith('SYRIUS_INVENTORY_STAGE:'):
             stage = line.partition(':')[2]
-            if len(markers) < len(NATIVE_INVENTORY_STAGES) and stage == NATIVE_INVENTORY_STAGES[len(markers)]:
+            if stage in NATIVE_INVENTORY_DETAILS:
+                if (markers and markers[-1] == 'visual_studio'
+                        and len(details) < len(NATIVE_INVENTORY_DETAILS)
+                        and stage == NATIVE_INVENTORY_DETAILS[len(details)]):
+                    details.append(stage)
+                else:
+                    valid = False
+            elif len(markers) < len(NATIVE_INVENTORY_STAGES) and stage == NATIVE_INVENTORY_STAGES[len(markers)]:
                 markers.append(stage)
             else:
                 valid = False
@@ -353,7 +367,7 @@ def native_inventory_reply(output):
     except (ValueError, UnicodeError):
         values = None
     complete = valid and tuple(markers) == NATIVE_INVENTORY_STAGES and type(values) is dict
-    receipt = dict(milestones=markers, protocol_valid=valid, json_observed=type(values) is dict,
+    receipt = dict(milestones=markers, details=details, protocol_valid=valid, json_observed=type(values) is dict,
                    complete=complete)
     return values if complete else None, receipt
 
@@ -493,15 +507,27 @@ class Baseline:
         self.deadline = time.monotonic() + 90 * 60
 
     def command(self, name, arguments, *, required=True, cwd=None, timeout=30,
-                cap=262144, fresh=False):
+                cap=262144, fresh=False, hosted_inventory=False):
         if name not in STAGES or name in self.stages:
             raise BaselineFailure("COMMAND_REFUSED")
         remaining = self.deadline - time.monotonic()
         if remaining <= 0:
             raise BaselineFailure("COMMAND_TIMEOUT")
-        if self.tool_env is None:
-            self.tool_env = fresh_environment(self.repo, self.parent)
-        env = fresh_environment(self.repo, self.parent) if fresh else self.tool_env
+        if hosted_inventory:
+            if (not self.inventory_only or name != 'inventory_windows'
+                    or self.parent.get('GITHUB_ACTIONS') != 'true'
+                    or self.parent.get('RUNNER_ENVIRONMENT') != 'github-hosted'
+                    or self.parent.get('GITHUB_EVENT_NAME') != 'workflow_dispatch'
+                    or self.parent.get('GITHUB_REPOSITORY') != 'edgepillar/syrius'):
+                raise BaselineFailure('ENVIRONMENT_REFUSED')
+            # Installed-tool COM/registry discovery uses this fresh runner's
+            # actual Windows profile. SDK and wallet commands stay isolated.
+            env = {key: value for key, value in self.parent.items()
+                   if key in RUNTIME_ENV | EXTRA_ENV | HOSTED_INVENTORY_PROFILE_ENV}
+        else:
+            if self.tool_env is None:
+                self.tool_env = fresh_environment(self.repo, self.parent)
+            env = fresh_environment(self.repo, self.parent) if fresh else self.tool_env
         outcome = run_bounded(command_line(arguments, env), cwd=cwd or self.repo,
                               env=env, timeout=min(timeout, remaining), cap=cap)
         self.stages[name] = {"required": required, **outcome.public()}
@@ -530,9 +556,12 @@ class Baseline:
             "status": "present" if architecture else "unknown", "version": architecture, "scope": "platform",
         }
         powershell = Path(self.parent["SYSTEMROOT"]) / "System32/WindowsPowerShell/v1.0/powershell.exe"
-        native = self.command('inventory_windows', native_inventory_command(powershell), required=False)
+        native = self.command('inventory_windows', native_inventory_command(powershell), required=False,
+                              hosted_inventory=self.inventory_only)
         values, progress = native_inventory_reply(native.output)
-        self.native_probe = dict(command=native.public(), **progress)
+        self.native_probe = dict(command=native.public(),
+            environment_scope=('fresh_hosted_runner_readonly_inventory' if self.inventory_only
+                               else 'isolated_sdk_profile'), **progress)
         if native.success and values is not None:
             for key in ('msvc', 'native_desktop_workload', 'windows_sdk', 'chrome', 'edge',
                         'docker_desktop', 'developer_mode'):

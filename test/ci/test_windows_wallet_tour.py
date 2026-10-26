@@ -4,7 +4,7 @@ import contextlib
 import copy
 import io
 import json
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 import stat
 import sys
 import types
@@ -174,6 +174,42 @@ class CoverageTests(unittest.TestCase):
 
 
 class StorageTests(unittest.TestCase):
+    @staticmethod
+    def reparse_info():
+        return types.SimpleNamespace(st_dev=1, st_ino=2, st_mode=stat.S_IFDIR,
+            st_size=0, st_mtime_ns=1, st_file_attributes=0x400, st_reparse_tag=0xA0000003)
+
+    def test_reparse_observation_masks_paths_and_never_follows_the_target(self):
+        root = PureWindowsPath('C:/synthetic-private-profile')
+        path = root / 'AppData/Local/Application Data'
+        info = self.reparse_info()
+        with mock.patch.object(tour.os, 'readlink', return_value=str(root / 'AppData/Local')), \
+                mock.patch.object(tour.os, 'lstat', return_value=info) as lstat:
+            value = tour.reparse_observation(path, root, info)
+        self.assertEqual(value['status'], 'OBSERVED')
+        self.assertEqual(value['entry_parts'], ['appdata', 'local', 'application_data'])
+        self.assertEqual(value['target_parts'], ['appdata', 'local'])
+        self.assertTrue(value['target_lexically_inside_profile'])
+        self.assertNotIn('synthetic-private-profile', json.dumps(value))
+        lstat.assert_called_once_with(path)
+
+    def test_changed_or_external_reparse_targets_cannot_become_profile_ownership(self):
+        root = PureWindowsPath('C:/synthetic-private-profile')
+        path = root / 'AppData/Local/Application Data'
+        for changed in (True, False):
+            before, after = self.reparse_info(), self.reparse_info()
+            if changed:after.st_ino += 1
+            with self.subTest(changed=changed), \
+                    mock.patch.object(tour.os, 'readlink', return_value='D:/synthetic-private-external'), \
+                    mock.patch.object(tour.os, 'lstat', return_value=after):
+                value = tour.reparse_observation(path, root, before)
+            if changed:
+                self.assertEqual(value['status'], 'CHANGED')
+            else:
+                self.assertFalse(value['target_lexically_inside_profile'])
+                self.assertNotIn('target_parts', value)
+            self.assertNotIn('synthetic-private', json.dumps(value))
+
     @staticmethod
     def path(size=0, mode=stat.S_IFREG, attributes=0, exists=True):
         path = mock.Mock(name='synthetic-private-output')
