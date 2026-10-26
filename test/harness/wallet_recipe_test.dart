@@ -19,6 +19,7 @@ String _seed(int count) => List<String>.filled(count, 'synthetic').join(' ');
 class _WalletUi {
   String phase = 'welcome';
   String? entryPhase;
+  String? filmState;
   bool naturalStartup = false;
   bool startupObserved = false;
   int unsettledStartupObservations = 0;
@@ -106,6 +107,7 @@ class _WalletUi {
       'ok': true,
       'entryPhase': entryPhase ??
           (phase == 'startup' ? 'startup-before-initialization' : phase),
+      'startupFilmState': ?filmState,
       'harnessMode': 'wallet',
       'booted': true,
       'owner': owner,
@@ -284,6 +286,30 @@ void main() {
         'original startup decision', 'key-confirmed',
       ),
     ));
+  });
+
+  test('startup failures retain only valid film labels', () async {
+    final _WalletUi ui = _WalletUi()
+      ..phase = 'startup'
+      ..entryPhase = 'startup-before-initialization'
+      ..filmState = 'first-frame-pending'
+      ..failKey = 'welcome_import';
+    await expectLater(_import(ui.driver()), throwsA(
+      isA<WalletRecipeRefused>().having(
+        (WalletRecipeRefused value) => value.diagnostic?['film'],
+        'original film observation', 'first-frame-pending',
+      ),
+    ));
+    final _WalletUi invalid = _WalletUi()
+      ..phase = 'startup'
+      ..filmState = 'synthetic private asset';
+    await expectLater(_import(invalid.driver()), throwsA(
+      isA<WalletRecipeRefused>().having(
+        (WalletRecipeRefused value) => value.code,
+        'unknown film state', 'wallet-recipe-observation-refused',
+      ),
+    ));
+    expect(invalid.commands, hasLength(1));
   });
 
   for (final bool retainControls in <bool>[false, true]) {

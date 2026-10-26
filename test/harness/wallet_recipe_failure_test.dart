@@ -114,6 +114,19 @@ void main() {
     expect(walletRecipePublicDiagnostic(<String, String>{
       ...value, 'startup': 'synthetic private input',
     }), isNull);
+    for (final String film in walletRecipeStartupFilmStates) {
+      final Map<String, String> traced = <String, String>{
+        ...value, 'startup': 'key-confirmed', 'film': film,
+      };
+      expect(walletRecipePublicDiagnostic(traced), traced);
+    }
+    for (final Object? film in <Object?>[
+      'synthetic private asset', 1, true, null,
+    ]) {
+      expect(walletRecipePublicDiagnostic(<String, Object?>{
+        ...value, 'film': film,
+      }), isNull);
+    }
   });
 
   for (final bool disabled in <bool>[false, true]) {

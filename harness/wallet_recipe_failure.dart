@@ -50,6 +50,12 @@ const Set<String> walletRecipeStartupHandoffs = <String>{
   'natural-welcome', 'natural-initialization',
 };
 
+/// Read-only states of the original film disclose no asset or frame payload.
+const Set<String> walletRecipeStartupFilmStates = <String>{
+  'opening', 'first-frame-pending', 'frame-visible', 'last-frame', 'ended',
+  'frames-suspended', 'ticker-muted',
+};
+
 /// Values, endpoints, exception text and reply details are never projected.
 Map<String, String> walletRecipeDiagnostic(
   Map<String, Object?> command,
@@ -84,10 +90,10 @@ Map<String, String> walletRecipeDiagnostic(
 /// Recheck even a typed exception before adding its labels to a CI marker.
 Map<String, String>? walletRecipePublicDiagnostic(Object? value) {
   const Set<String> fields = <String>{
-    'action', 'control', 'reason', 'entry', 'startup',
+    'action', 'control', 'reason', 'entry', 'startup', 'film',
   };
   if (value is! Map<Object?, Object?> ||
-      value.length < 3 || value.length > 5 ||
+      value.length < 3 || value.length > 6 ||
       value.keys.any((Object? key) => !fields.contains(key))) {
     return null;
   }
@@ -96,6 +102,7 @@ Map<String, String>? walletRecipePublicDiagnostic(Object? value) {
   final Object? reason = value['reason'];
   final Object? entry = value['entry'];
   final Object? startup = value['startup'];
+  final Object? film = value['film'];
   if (action is! String ||
       control is! String ||
       reason is! String ||
@@ -112,11 +119,17 @@ Map<String, String>? walletRecipePublicDiagnostic(Object? value) {
       (startup is! String || !walletRecipeStartupHandoffs.contains(startup))) {
     return null;
   }
+  if (value.containsKey('film') &&
+      (film is! String || !walletRecipeStartupFilmStates.contains(film))) {
+    return null;
+  }
   final String? phase = entry is String ? entry : null;
   final String? handoff = startup is String ? startup : null;
+  final String? filmState = film is String ? film : null;
   return Map<String, String>.unmodifiable(<String, String>{
     'action': action, 'control': control, 'reason': reason,
     'entry': ?phase,
     'startup': ?handoff,
+    'film': ?filmState,
   });
 }

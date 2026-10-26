@@ -1123,6 +1123,33 @@ class HarnessAgent {
     return phases.single;
   }
 
+  String? _recipeStartupFilmState() {
+    final EntryCaptureRegistry registry = EntryCaptureRegistry.instance;
+    final EntryStartupReceipt? startup = registry.startup;
+    if (registry.held || startup == null || !startup.isCurrent) return null;
+    final Object owner = startup.startupOwner;
+    if (owner is! StartupStageSession ||
+        owner.isClosed || owner.film.cleanupOwnerReplaced) {
+      return null;
+    }
+    final BuildContext? film = owner.filmKey.currentContext;
+    if (film is! Element || !film.mounted) return null;
+    final Widget movie = film.widget;
+    if (movie is! LaunchFilm || !identical(movie.controller, owner.film)) {
+      return null;
+    }
+    if (owner.film.isDone) return 'ended';
+    final TickerModeData mode = TickerMode.getValuesNotifier(film).value;
+    if (!mode.enabled) return 'ticker-muted';
+    if (!SchedulerBinding.instance.framesEnabled && !mode.forceFrames) {
+      return 'frames-suspended';
+    }
+    if (owner.film.frameCount == 0) return 'opening';
+    if (owner.film.frame < 0) return 'first-frame-pending';
+    if (owner.film.frame >= owner.film.frameCount - 1) return 'last-frame';
+    return 'frame-visible';
+  }
+
   _Node? _recipeStartupHint(List<_Node> nodes) {
     final EntryCaptureRegistry registry = EntryCaptureRegistry.instance;
     final EntryStartupReceipt? startup = registry.startup;
@@ -1290,6 +1317,7 @@ class HarnessAgent {
       'harnessMode': 'wallet',
       'booted': booted,
       'entryPhase': _recipeEntryPhase(entryPhases),
+      'startupFilmState': ?_recipeStartupFilmState(),
       'owner': _recipeOwner,
       'revision': WalletContextRevision.value,
       'walletPresent': kWalletFile != null,

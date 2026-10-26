@@ -4544,3 +4544,39 @@ This closes X220 and confirms X224. The baseline still contains 1295
 legacy infos; this is not a zero-info or wallet-runtime result. No build,
 wallet/node execution or local artifact download repeats for these style
 changes. Full native/visual acceptance remains open.
+
+### Original film observation and focused harness lane (2026-10-26)
+
+The candidate reads the current registered startup owner's original mounted
+LaunchFilm and identical controller. Seven fixed labels distinguish opening,
+first-frame wait, a visible intermediate/last frame, the existing ended bit,
+suspended scheduler frames and muted tickers. TickerMode values are read through
+the pinned SDK's dependency-free `getValuesNotifier`; this adds no listener,
+rebuild, frame request or startup action. Closed, held, replaced or unmounted
+owners supply no label. Existing entry phases and startup decision labels remain
+unchanged. An ended film alone does not prove successful initialization.
+
+Dart validates the optional observation before retaining it and resets it when
+absent. Both Dart's public diagnostic projection and Python's entry-failure
+admission reject unknown labels or extra private fields. The real widget fixture
+retains its pending asset bytes, checks opening and muted states, releases the
+original bytes, and checks actual completion and closed-owner omission. One new
+recipe case checks fixed-label retention and unknown-value refusal, bringing the
+focused gate to 70 cases. Hosted execution is pending.
+
+The manual `harness_tests_only` input is default-off. Its fresh hosted Windows
+job verifies admission and all isolated controller tests before SDK allocation,
+restores root and vendored dependencies with enforced lockfiles using one pinned
+Flutter SDK, checks input/source equality, analyzes the focused sources and runs
+the existing bounded harness gate. Commands retain actual exit, completeness,
+overflow/forced status and output digests; raw dependency output stays private.
+The dependency phase reserves 3 GiB above the 10 GiB free-space floor. No native
+wallet build, node compiler, lab asset preparation or wallet/node startup occurs.
+
+Ten selected Python controls pass in memory with no SDK, native execution or
+scratch. The first local run has seven subtest failures because the new fixture
+expected every existing exception to expose `.code`; the original ProcessRefused
+instead carries the fixed code as its message. The fixture now checks the same
+fixed code through either existing representation. The failed result is retained;
+no admission requirement is relaxed. Native startup, full tour and all visual
+acceptance remain open.

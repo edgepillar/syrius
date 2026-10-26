@@ -87,6 +87,20 @@ class FixtureTests(unittest.TestCase):
 
 
 class DiagnosticTests(unittest.TestCase):
+    def test_film_observation_accepts_only_fixed_labels_without_private_fields(self):
+        value = dict(stage='onboarding', code='wallet-recipe-stage-unsettled',
+            diagnostic=dict(action='observe', control='welcome_import',
+                reason='wallet-recipe-control-absent', entry='startup-before-initialization',
+                startup='key-confirmed'))
+        for film in tour.RECIPE_STARTUP_FILM_STATES:
+            offered = dict(value, diagnostic=dict(value['diagnostic'], film=film))
+            self.assertEqual(tour.entry_failure(offered), offered)
+        for change in (dict(film='synthetic private asset'), dict(film=1),
+                       dict(film=True), dict(film=None), dict(asset='private'),
+                       dict(frame=1), dict(path='private')):
+            with self.subTest(change=change), self.assertRaises(tour.Refused):
+                tour.entry_failure(dict(value, diagnostic=dict(value['diagnostic'], **change)))
+
     def test_startup_handoff_retains_only_fixed_original_decisions(self):
         value = dict(stage='onboarding', code='wallet-recipe-stage-unsettled',
             diagnostic=dict(action='observe', control='welcome_import',

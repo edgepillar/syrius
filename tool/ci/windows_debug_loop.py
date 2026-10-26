@@ -450,6 +450,8 @@ def analyze(parent, repo):
         'harness/bin/build_output.dart', 'test/harness/build_output_test.dart',
         'harness/bin/ci_wallet_tour.dart', 'harness/bin/wallet_recipe.dart',
         'harness/app/agent.dart', 'harness/wallet_recipe_failure.dart',
+        'test/harness/wallet_recipe_startup_test.dart',
+        'test/harness/key_dispatch_test.dart', 'test/harness/rail_navigation_test.dart',
         'test/harness/wallet_recipe_failure_test.dart', 'test/harness/wallet_recipe_test.dart'],
         cwd=repo, env=parent, shell=False, stdin=subprocess.DEVNULL,
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=0)
@@ -483,6 +485,9 @@ def analyze(parent, repo):
                                         else 'wallet_recipe' if relative.endswith('/harness/bin/wallet_recipe.dart')
                                         else 'harness_agent' if relative.endswith('/harness/app/agent.dart')
                                         else 'recipe_failure' if relative.endswith('/harness/wallet_recipe_failure.dart')
+                                        else 'recipe_startup_test' if relative.endswith('/test/harness/wallet_recipe_startup_test.dart')
+                                        else 'key_dispatch_test' if relative.endswith('/test/harness/key_dispatch_test.dart')
+                                        else 'rail_navigation_test' if relative.endswith('/test/harness/rail_navigation_test.dart')
                                         else 'recipe_failure_test' if relative.endswith('/test/harness/wallet_recipe_failure_test.dart')
                                         else 'wallet_recipe_test' if relative.endswith('/test/harness/wallet_recipe_test.dart') else 'other')
                             locations.append(dict(source=selected, code=code,

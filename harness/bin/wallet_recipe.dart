@@ -82,6 +82,7 @@ class WalletRecipe {
   int? _selectionOriginRevision;
   String? _policyNode;
   String? _startupHandoff;
+  String? _startupFilmState;
 
   Duration get _remaining => budget - (_elapsed?.call() ?? _clock.elapsed);
 
@@ -92,6 +93,7 @@ class WalletRecipe {
         : Map<String, String>.unmodifiable(<String, String>{
             ...diagnostic,
             'startup': ?_startupHandoff,
+            'film': ?_startupFilmState,
           }));
   }
 
@@ -148,10 +150,15 @@ class WalletRecipe {
         value['owner'] is! int ||
         value['revision'] is! int ||
         value['hasError'] != false ||
+        (value.containsKey('startupFilmState') &&
+            !walletRecipeStartupFilmStates.contains(
+              value['startupFilmState'],
+            )) ||
         (_owner != null && value['owner'] != _owner) ||
         (_policyNode != null && value['node'] != _policyNode)) {
       _refuse('wallet-recipe-observation-refused');
     }
+    _startupFilmState = value['startupFilmState'] as String?;
     return value;
   }
 

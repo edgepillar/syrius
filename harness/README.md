@@ -344,3 +344,19 @@ up.
 (`tools/devnet/lab/lab.sh up`; its README has the mnemonic). The devnet mnemonic's index 1 is funded:
 import it, `chain 321`, add a second address in Settings and select it. Do not
 activate a spork there as a test.
+
+## Focused hosted harness checks
+
+The manual Public Contribution Qualification workflow has a default-off
+`harness_tests_only` input. Select it with the other execution lanes disabled
+to run the isolated controller suite, locked dependency restoration, selected
+analysis and the 70-case harness gate on a fresh Windows runner. It uses one
+pinned Flutter SDK and does not build a native wallet or allocate lab nodes.
+
+Startup observation can include `opening`, `first-frame-pending`,
+`frame-visible`, `last-frame`, `ended`, `frames-suspended` or `ticker-muted`.
+These labels read the current registered original film and controller; held,
+closed or unmounted owners expose none. `ended` records the controller's
+existing completion bit, including its existing error path. It does not prove
+wallet initialization. A refusal retains only the latest valid label; asset
+names, frame payloads, exception text and private input are never projected.

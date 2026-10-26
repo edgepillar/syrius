@@ -88,6 +88,10 @@ on:
         description: Attribute analyzer changes on fixed sources without builds or wallet execution
         type: boolean
         default: false
+      harness_tests_only:
+        description: Test the Windows harness without building a native wallet or lab
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -96,6 +100,51 @@ env:
   FLUTTER_VERSION: "3.47.7"
 
 jobs:
+  harness-tests-only:
+    if: inputs.harness_tests_only
+    name: Test harness without native wallet or lab
+    runs-on: windows-latest
+    timeout-minutes: 25
+    env:
+      GIT_CONFIG_COUNT: "1"
+      GIT_CONFIG_KEY_0: core.autocrlf
+      GIT_CONFIG_VALUE_0: "false"
+      SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
+      SYRIUS_HARNESS_TESTS_ONLY: "true"
+    steps:
+      - name: Checkout the dispatched harness source
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Admit the isolated test lane before SDK allocation
+        run: python -B -m tool.ci.prepare_harness_tests --admission-only
+
+      - name: Test all isolated controllers before SDK allocation
+        run: python -B -m tool.ci.run_wallet_tour_tests --all-controllers
+
+      - name: Set up the single pinned Flutter SDK
+        id: harness_flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+          pub-cache: 'false'
+
+      - name: Restore unchanged locked harness dependencies
+        env:
+          PUB_CACHE: ${{ steps.harness_flutter.outputs['PUB-CACHE-PATH'] }}
+        run: python -B -m tool.ci.prepare_harness_tests
+
+      - name: Analyze the original harness and focused tests
+        run: python -B -m tool.ci.windows_debug_loop --analyze
+
+      - name: Test original startup ownership and recipe diagnostics
+        env:
+          PUB_CACHE: ${{ steps.harness_flutter.outputs['PUB-CACHE-PATH'] }}
+        run: python -B -m tool.ci.run_harness_tour_tests
+
   analysis-delta:
     if: inputs.analysis_delta
     name: Attribute source-bound analyzer changes

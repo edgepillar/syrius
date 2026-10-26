@@ -85,13 +85,15 @@ void main() {
       await tester.pump();
     });
     final HarnessAgent agent = HarnessAgent.forTest()..booted = true;
-    await tester.pumpWidget(welcomeHost(_ReceiptHost(session)));
+    final Widget host = welcomeHost(_ReceiptHost(session));
+    await tester.pumpWidget(TickerMode(enabled: true, child: host));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 16));
+    Future<Map<String, Object?>> observation() => agent.commandForTest(
+      <String, dynamic>{'cmd': 'wallet-recipe', 'action': 'observe'},
+    );
     Future<bool> available() async {
-      final Map<String, Object?> view = await agent.commandForTest(
-        <String, dynamic>{'cmd': 'wallet-recipe', 'action': 'observe'},
-      );
+      final Map<String, Object?> view = await observation();
       final List<Map<String, Object?>> controls =
           view['controls']! as List<Map<String, Object?>>;
       return controls.any(
@@ -99,6 +101,11 @@ void main() {
       );
     }
     expect(await available(), isTrue);
+    expect((await observation())['startupFilmState'], 'opening');
+    await tester.pumpWidget(TickerMode(enabled: false, child: host));
+    expect((await observation())['startupFilmState'], 'ticker-muted');
+    await tester.pumpWidget(TickerMode(enabled: true, child: host));
+    expect((await observation())['startupFilmState'], 'opening');
     expect(done, 0);
     final BuildContext context = tester.element(find.byType(_ReceiptHost));
     final OverlayEntry foreign = OverlayEntry(
@@ -133,5 +140,8 @@ void main() {
     expect(done, 1);
     expect(session.film.isDone, isTrue);
     expect(await available(), isFalse);
+    expect((await observation())['startupFilmState'], 'ended');
+    session.dispose();
+    expect((await observation()).containsKey('startupFilmState'), isFalse);
   });
 }
