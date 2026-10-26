@@ -4669,3 +4669,39 @@ All six new admission, finite-disclosure and original-command outcome controls
 pass in memory with no SDK, wallet/node execution or scratch. Hosted evidence
 for this new observer is pending; the earlier Windows failure remains unknown
 and no original startup result is inferred from these controls.
+
+### Original asset-command observer qualified on Windows (2026-10-26)
+
+At `d56e04299bdb5c5982a1eb0d89736e4829569bac`, tree
+`a194892ef322235a67cc454bd50962918d92a5b1`, run `40417348466` attempt one,
+job `121902872686`, succeeds. Windows Node 22.23.4 is observed with normal
+complete zero exit. The unchanged original asset controls exit zero normally
+in 2.187 seconds with 196 complete bytes, no overflow/forced kill and SHA-256
+`92412e73458bf347b028f1e834e2d82a417b262a46000799f5e80534c2e417d2`.
+This finite result is byte-identical to the retained local Node 26.5 result;
+all four original controls and their generated-byte equality assertions pass.
+The original helper, VM limit and workflow step limit remain unchanged.
+
+All 499 Python cases have zero failures/errors and three platform skips. All
+70 Dart cases pass without skips/failures/error events; their command exits
+zero normally in 29.141 seconds with 32318 complete bytes and SHA-256
+`d4bf63671d8ef672bfe343af55d932a4e4a5b4e208dda02647685c66216562ad`.
+Selected analysis exits zero with no findings and complete empty output.
+Both original startup probes retain normal zero exits, open input, complete
+output and zero owned actors at close; the expected pre-build refusal retains
+its original exit one. Root/vendor locked restores succeed normally, source
+and inputs are unchanged, and the five-file digest remains
+`749a3290dc6fda66f5dbf04d3e622b13c8c36492a834573ff599242d1e171fa7`.
+The SDK stays at `abaf9c523780a608bd46686fd5e53740a07077f8`.
+No native wallet build, wallet or lab node executes in this focused job.
+
+The first native dispatch admission read is UNKNOWN before any POST, intent
+or payload exists. A retained successful owner query and source-pinned no-run
+query reconcile that state before one accepted dispatch. Native run
+`40419297725` attempt one, job `121909420634`, is confirmed in progress at
+the qualified source; early asset, Python, restoration, analysis and focused
+Dart steps pass. Its actual original-film, wallet/tour and lab outcomes are
+still pending. The earlier direct Windows asset-step failure remains unknown;
+the new successful command does not explain or replace that negative result.
+No local SDK execution, joblog/artifact download or unchanged native retry
+occurs. Full startup, P08/P09/F06 and all visual acceptance remain open.
