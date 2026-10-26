@@ -3292,3 +3292,53 @@ discovery. Fourteen policy cases, fifty debug cases and the existing read-only
 contract pass locally. The full suite has not been rerun locally. A new hosted
 result is required before any native wallet result is claimed; no unchanged
 native node, wallet execution or artifact transport has been repeated.
+
+### Wallet startup deadline and bounded preflight candidate
+
+Run `40300161709`, attempt one, job `121495783273`, at
+`bb546c3e7fc973c9086e5d823361140629efe166`, tree
+`b73aa71e464a9f361c44f540bd70833cf959fafb`, passes all 415 controller
+cases with three platform skips, all six Dart tour cases and selected analysis
+with zero errors, warnings or infos. The negative opt-in control exits one
+normally with exactly 16 refusal bytes. All five original lab nodes reach
+advancing production and later exit zero with complete unforced output.
+
+The wallet callback fails with `TOTAL_DEADLINE` during its build/start phase.
+It observes zero entry-output bytes and no readiness, application binding,
+private-input release, visited page or capture. Six owned-job members remain
+at closure. The entry's observed exit zero occurs after forced job closure;
+it is not a normal successful entry exit. The exact inner stage and cause
+are unknown. The lab's unchanged-input gate is not reached after the wallet
+failure. This attempt qualifies neither P08 nor the overall wallet lab, and
+does not replace earlier failures or the separate positive node-only runs.
+
+The new candidate emits flushed gate, build and start milestones. Before Go
+or node allocation, two separate owned processes test the entry gate and a
+lightweight Flutter version command. Each has a thirty-second bound and a
+new private SDK profile. Assignment to the private Windows job precedes
+`START`; the controller input stays open while waiting for the original exit.
+Success requires its exact markers, original exit zero, complete output and
+an empty unforced job. Fixed image classes identify any remaining owned
+members without publishing paths or process IDs. Neither probe builds or
+starts a wallet or receives wallet material.
+
+The CI build now closes only its child stdin and drains both original output
+streams to EOF along with the original exit. Ordinary manual harness builds
+keep their existing default. Two new in-memory Dart cases test EOF ownership
+and rejection of an output error despite exit zero; they await hosted SDK
+execution. Seventeen Python policy cases, fifty debug cases and four selected
+inventory/workflow cases pass locally without native execution or filesystem
+scratch. The full controller suite remains hosted-only. This is a diagnostic
+candidate; the old timeout cause is not claimed as resolved.
+
+### Inventory-only hosted candidate
+
+The default-off `windows_inventory_only` input uses the existing baseline
+source checks and version projection without dependency restoration, doctor,
+analysis, tests, builds or DLL mapping. Its finite manifest always keeps
+`baseline_qualified` and `wallet_qualified` false. Git Bash lookup covers the
+bounded Git `cmd`, `bin` and `mingw64/bin` layouts, and the native workload
+records its installation version. Three in-memory cases cover that lookup,
+mode isolation and refusal of an unknown required inventory field. P01 and
+P03 remain open until a complete actual hosted inventory and any necessary
+provisioning are reconciled. The workflow now has fourteen inputs.

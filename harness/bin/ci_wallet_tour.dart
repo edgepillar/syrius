@@ -5,6 +5,7 @@ import 'dart:io';
 
 import 'harness.dart' as cli;
 import 'wallet_recipe.dart' show WalletRecipeRefused;
+import 'build_output.dart';
 
 Future<void> main() async {
   final StreamIterator<String> input = StreamIterator<String>(
@@ -20,6 +21,28 @@ Future<void> main() async {
         !await input.moveNext() || input.current != 'START') {
       throw StateError('admission');
     }
+    Future<void> marker(String text) async {
+      stdout.writeln(text);
+      await stdout.flush();
+    }
+    await marker('CI_WALLET_STAGE:gate');
+    final String? check = env['SYRIUS_CI_WALLET_CHECK'];
+    if (check == 'gate') {
+      await marker('CI_WALLET_GATE_PASSED');
+      return;
+    }
+    if (check == 'sdk') {
+      final Process sdk = await Process.start(
+        'flutter', <String>['--version', '--machine'], runInShell: true,
+      );
+      if (await finishIsolatedBuild(sdk) != 0) {
+        throw StateError('SDK check');
+      }
+      stdout.writeln();
+      await marker('CI_WALLET_SDK_PASSED');
+      return;
+    }
+    if (check != null) throw StateError('unsupported check');
     final cli.Instance instance = cli.Instance(name);
     stage = 'unused_destinations';
     if (FileSystemEntity.typeSync(instance.home, followLinks: false) !=
@@ -29,11 +52,13 @@ Future<void> main() async {
       throw StateError('unused destinations required');
     }
     stage = 'build';
+    await marker('CI_WALLET_STAGE:build');
     await cli.build(cli.Args(<String>[
       '--mode', 'release', '--no-pub', '--metadata',
       '${cli.repo}/.dart_tool/git_metadata.json',
-    ]));
+    ]), isolatedInput: true);
     stage = 'start';
+    await marker('CI_WALLET_STAGE:start');
     await cli.start(
       instance, cli.Args(<String>['--fresh', '--mode', 'release']),
     );

@@ -20,6 +20,10 @@ on:
         description: Record hosted Windows tools, Dart baseline and DLL map/export checks
         type: boolean
         default: false
+      windows_inventory_only:
+        description: Record hosted Windows tools without repeating builds or wallet tests
+        type: boolean
+        default: false
       entry_capture_smoke:
         description: Capture genuine Welcome and empty Import on isolated hosted Windows
         type: boolean
@@ -161,10 +165,10 @@ jobs:
   # This lane can run with desktop_builds=false without repeating Linux or
   # macOS. It qualifies this hosted runner, not the owner's Windows machine.
   windows-baseline:
-    if: inputs.windows_baseline
-    name: Hosted Windows baseline
+    if: inputs.windows_baseline || inputs.windows_inventory_only
+    name: ${{ inputs.windows_inventory_only && 'Hosted Windows inventory' || 'Hosted Windows baseline' }}
     runs-on: windows-latest
-    timeout-minutes: 100
+    timeout-minutes: ${{ inputs.windows_inventory_only && 15 || 100 }}
     # Match the controllers' explicit isolation from system/global Git config.
     # Apply this before checkout so CRLF conversion cannot create a false diff.
     env:
@@ -190,6 +194,7 @@ jobs:
           pub-cache: 'false'
 
       - name: Cache locked pub dependencies
+        if: ${{ !inputs.windows_inventory_only }}
         uses: actions/cache@v5
         with:
           path: ${{ steps.baseline_flutter.outputs['PUB-CACHE-PATH'] }}
@@ -203,7 +208,17 @@ jobs:
       # memory. Only allowlisted observations reach the Actions transcript.
       # DLL mapping can initialize its runtime. No export is called here.
       - name: Qualify the hosted Windows baseline
-        run: python -B tool/ci/windows_baseline.py
+        run: python -B tool/ci/windows_baseline.py ${{ inputs.windows_inventory_only && '--inventory-only' || '' }}
+
+      - name: Retain the finite inventory manifest
+        if: always() && inputs.windows_inventory_only && hashFiles('.harness/ci-windows-inventory/manifest.json') != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-inventory-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          compression-level: 0
+          include-hidden-files: true
+          if-no-files-found: error
+          path: .harness/ci-windows-inventory/manifest.json
 
   # This independent lane admits only genuine ordinary startup and empty entry
   # captures. It establishes neither mockup matches nor wallet/chain readiness.

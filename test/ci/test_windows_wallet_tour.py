@@ -12,6 +12,7 @@ from unittest import mock
 from tool.ci import hosted_chain321 as lab
 from tool.ci import windows_wallet_tour as tour
 from tool.ci import run_wallet_tour_tests
+from tool.ci import run_harness_tour_tests as harness
 
 
 def receipt():
@@ -83,6 +84,61 @@ class FixtureTests(unittest.TestCase):
                 tour.public_fixture(text)
 
 
+class StartupTests(unittest.TestCase):
+    def check(self, *, remaining=0, marker=True):
+        events = []
+        process = mock.Mock()
+        process.poll.return_value = 0
+        process.wait.return_value = 0
+        process.stdin = io.BytesIO()
+        job = mock.Mock(active_at_close=remaining, forced=bool(remaining))
+        job.assign.side_effect = lambda original: events.append(
+            ('assigned', original is process, process.stdin.getvalue()))
+        lines = mock.Mock(complete=True)
+        offered = [b'CI_WALLET_STAGE:gate\n']
+        if marker:
+            offered.append(b'CI_WALLET_GATE_PASSED\n')
+        lines.items.empty.side_effect = lambda: not offered
+        lines.take.side_effect = lambda _: offered.pop(0)
+        lines.finish.return_value = True
+        lines.public.return_value = dict(bytes=50, sha256='a' * 64,
+            output_complete=True, overflow=False)
+        with mock.patch.object(harness, 'fresh_environment', return_value={}), \
+                mock.patch.object(Path, 'exists', return_value=False), \
+                mock.patch.object(Path, 'is_symlink', return_value=False), \
+                mock.patch.object(harness.debug, 'WindowsJob', return_value=job), \
+                mock.patch.object(harness.subprocess, 'Popen', return_value=process), \
+                mock.patch.object(harness.debug, 'Lines', return_value=lines):
+            value = harness.startup_check(Path('/fixture'), {}, Path('/sdk/dart'), 'gate')
+        self.assertEqual(events, [('assigned', True, b'')])
+        self.assertTrue(process.stdin.closed)
+        process.kill.assert_not_called()
+        return value
+
+    def test_queued_markers_and_original_exit_pass_with_controller_input_open(self):
+        value = self.check()
+        self.assertTrue(value['passed'])
+        self.assertTrue(value['stdin_open_at_exit'])
+        self.assertEqual(value['actual_exit'], 0)
+
+    def test_markers_or_zero_exit_cannot_heal_missing_proof_or_forced_members(self):
+        for change in (dict(marker=False), dict(remaining=1)):
+            with self.subTest(change=change):
+                self.assertFalse(self.check(**change)['passed'])
+
+    def test_local_wrapper_admission_refuses_before_sdk_or_profile_creation(self):
+        with mock.patch.dict(harness.os.environ, {}, clear=True), \
+                mock.patch.object(harness.debug, 'sdk') as sdk, \
+                mock.patch.object(harness, 'fresh_environment') as profile, \
+                contextlib.redirect_stdout(io.StringIO()) as output:
+            result = harness.main()
+        sdk.assert_not_called()
+        profile.assert_not_called()
+        self.assertEqual(result, 1)
+        self.assertEqual(json.loads(output.getvalue().splitlines()[0])['code'],
+                         'ENVIRONMENT_REFUSED')
+
+
 class CoverageTests(unittest.TestCase):
     def test_complete_original_order_is_required(self):
         value = receipt()
@@ -136,12 +192,13 @@ class CompletionTests(unittest.TestCase):
         self.assertFalse(tour.completed(report))
 
     def test_helper_receipts_cannot_heal_an_error_or_forced_required_actor(self):
-        for change in ('error', 'forced', 'helper', 'capture', 'check'):
+        for change in ('error', 'forced', 'helper', 'capture', 'check', 'gate'):
             report = self.report()
             if change == 'error':report['errors'] = ['ENTRY_FAILED']
             elif change == 'forced':report['required_actor_forced_cleanup'] = True
             elif change == 'helper':report['auxiliary_cleanup']['status'] = 'FAILED'
             elif change == 'capture':report['captures'].pop()
+            elif change == 'gate':report['checks']['entry_gate'] = False
             else:report['checks']['lab_revalidated'] = False
             with self.subTest(change=change):self.assertFalse(tour.completed(report))
 

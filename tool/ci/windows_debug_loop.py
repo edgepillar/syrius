@@ -447,6 +447,7 @@ def analyze(parent, repo):
     original = subprocess.Popen([str(dart), 'analyze', '--format', 'machine',
         'tool/ci/windows_debug_service_probe.dart', 'harness/app/main.dart',
         'harness/bin/harness.dart', 'test/harness/wallet_tour_test.dart',
+        'harness/bin/build_output.dart', 'test/harness/build_output_test.dart',
         'harness/bin/ci_wallet_tour.dart'],
         cwd=repo, env=parent, shell=False, stdin=subprocess.DEVNULL,
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=0)
@@ -474,6 +475,8 @@ def analyze(parent, repo):
                                         else 'harness_entry' if relative.endswith('/harness/app/main.dart')
                                         else 'harness_cli' if relative.endswith('/harness/bin/harness.dart')
                                         else 'tour_test' if relative.endswith('/test/harness/wallet_tour_test.dart')
+                                        else 'build_output' if relative.endswith('/harness/bin/build_output.dart')
+                                        else 'build_output_test' if relative.endswith('/test/harness/build_output_test.dart')
                                         else 'harness_ci' if relative.endswith('/harness/bin/ci_wallet_tour.dart') else 'other')
                             locations.append(dict(source=selected, code=code,
                                                   line=int(line), column=int(column)))

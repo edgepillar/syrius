@@ -15,6 +15,7 @@ import '../app/presentation_mode.dart';
 import '../seed/seed_recipe.dart';
 import 'screen_capture.dart';
 import 'wallet_recipe.dart';
+import 'build_output.dart';
 
 final String repo = File.fromUri(Platform.script).parent.parent.parent.path;
 final String stateRoot = '$repo${Platform.pathSeparator}.harness';
@@ -221,7 +222,7 @@ void printTree(Map<String, dynamic> t) {
 
 // ------------------------------------------------------------------- commands
 
-Future<void> build(Args a) async {
+Future<void> build(Args a, {bool isolatedInput = false}) async {
   final String mode = a['mode'] ?? 'release';
   final Process p = await Process.start(
     'flutter',
@@ -232,9 +233,14 @@ Future<void> build(Args a) async {
     ],
     workingDirectory: repo,
     runInShell: true,
-    mode: ProcessStartMode.inheritStdio,
+    mode: isolatedInput
+        ? ProcessStartMode.normal
+        : ProcessStartMode.inheritStdio,
   );
-  if (await p.exitCode != 0) throw Fail('flutter build failed');
+  final int code = isolatedInput
+      ? await finishIsolatedBuild(p)
+      : await p.exitCode;
+  if (code != 0) throw Fail('flutter build failed');
   final String cap = mode[0].toUpperCase() + mode.substring(1);
   final Directory from = Directory('$repo/build/windows/x64/runner/$cap');
   final Directory to = Directory('$stateRoot/app/$mode');

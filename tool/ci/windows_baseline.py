@@ -23,10 +23,16 @@ import sys
 import time
 from dataclasses import dataclass
 
-from windows_presentation_smoke import (
-    OutputDrain, RUNTIME_ENV, SmokeFailure, binary_hash, plain, require_ci,
-    valid_sha,
-)
+try:
+    from .windows_presentation_smoke import (
+        OutputDrain, RUNTIME_ENV, SmokeFailure, binary_hash, plain, require_ci,
+        valid_sha,
+    )
+except ImportError:
+    from windows_presentation_smoke import (
+        OutputDrain, RUNTIME_ENV, SmokeFailure, binary_hash, plain, require_ci,
+        valid_sha,
+    )
 
 
 VERSION = re.compile(r"[0-9]+(?:\.[0-9]+){1,3}")
@@ -47,7 +53,8 @@ CODES = frozenset((
     "PROFILE_REFUSED", "REQUIRED_TOOL_MISSING", "COMMAND_REFUSED",
     "LAUNCH_FAILED", "COMMAND_TIMEOUT", "OUTPUT_OVERFLOW",
     "OUTPUT_INCOMPLETE", "CLEANUP_FAILED", "REQUIRED_COMMAND_FAILED",
-    "DOCTOR_UNPROVEN", "ANALYSIS_INVALID", "ANALYSIS_FAILED",
+    "DOCTOR_UNPROVEN", "ANALYSIS_INVALID", "ANALYSIS_FAILED", "INVENTORY_INCOMPLETE",
+    "INVENTORY_REPORT_FAILED",
     "TEST_EVENTS_INVALID", "TESTS_FAILED", "SOURCE_CHANGED",
     "LIBRARY_CHANGED", "LIBRARY_PROBE_INVALID", "INTERNAL_ERROR",
 ))
@@ -94,7 +101,7 @@ try {
       $workloads = & $vswhere -latest -products '*' -requiresAny Microsoft.VisualStudio.Workload.NativeDesktop Microsoft.VisualStudio.Workload.VCTools -property installationVersion
       if ($LASTEXITCODE -ne 0) { throw 'query failed' }
       $state = if ($workloads) { 'present' } else { 'absent' }
-      $result['native_desktop_workload'] = @{status=$state; version=$null; scope='standard_install'}
+      $result['native_desktop_workload'] = @{status=$state; version=$workloads; scope='standard_install'}
     } else {
       $result['msvc'] = @{status='absent'; version=$null; scope='standard_install'}
       $result['native_desktop_workload'] = @{status='absent'; version=$null; scope='standard_install'}
@@ -312,6 +319,17 @@ def inventory_projection(values):
     return result
 
 
+def find_git_bash(git):
+    """Git can be exposed from cmd, bin or mingw64/bin on a hosted runner."""
+    if git:
+        for parent in list(Path(git).parents)[:4]:
+            for relative in ('bin/bash.exe', 'usr/bin/bash.exe'):
+                candidate = parent / relative
+                if candidate.is_file():
+                    return str(candidate)
+    return None
+
+
 def doctor_status(output):
     sections = {"windows_version": "unknown", "visual_studio": "unknown"}
     seen = set()
@@ -431,6 +449,7 @@ class Baseline:
         self.localization, self.libraries, self.tools = {}, {}, {}
         self.checks = dict.fromkeys(CHECKS, False)
         self.errors = []
+        self.inventory_only = False
         self.deadline = time.monotonic() + 90 * 60
 
     def command(self, name, arguments, *, required=True, cwd=None, timeout=30,
@@ -494,12 +513,7 @@ class Baseline:
         ):
             self.observe_version(key, [executable, *arguments] if executable else None, expression)
         git = found("git")
-        bash = None
-        if git:
-            for candidate in (Path(git).parent.parent / "bin/bash.exe", Path(git).parent / "bash.exe"):
-                if candidate.is_file():
-                    bash = str(candidate)
-                    break
+        bash = find_git_bash(git)
         self.observe_version("git_bash", [bash, "--version"] if bash else None,
                              r"^GNU bash, version ([0-9.]+)", scope="git_install")
         docker = found("docker")
@@ -540,6 +554,15 @@ class Baseline:
             raise BaselineFailure("REQUIRED_TOOL_MISSING")
         self.tools.update(flutter=flutter, dart=str(dart))
         self.collect_inventory()
+        if self.inventory_only:
+            after = self.command('source_clean_after', [git, 'status', '--porcelain=v1', '--untracked-files=all'])
+            if after.output:
+                raise BaselineFailure('SOURCE_CHANGED')
+            self.checks['source_unchanged'] = True
+            if any(item['status'] == 'unknown' for key, item in inventory_projection(self.inventory).items()
+                   if key != 'docker_daemon'):
+                raise BaselineFailure('INVENTORY_INCOMPLETE')
+            return
         self.flutter("enable_windows", ["config", "--enable-windows-desktop"])
         doctor = self.flutter("doctor", ["doctor", "-v"], required=False, timeout=180, cap=524288)
         if not doctor.transport_complete:
@@ -627,6 +650,17 @@ class Baseline:
         for key, environment in (("id", "GITHUB_RUN_ID"), ("attempt", "GITHUB_RUN_ATTEMPT")):
             value = self.parent.get(environment)
             run[key] = value if isinstance(value, str) and re.fullmatch(r"[1-9][0-9]{0,19}", value) else None
+        if self.inventory_only:
+            inventory = inventory_projection(self.inventory)
+            checks = dict(source=self.checks['source'], source_unchanged=self.checks['source_unchanged'],
+                inventory=all(item['status'] != 'unknown' for key, item in inventory.items() if key != 'docker_daemon'))
+            return dict(schema=1, source_sha=self.source if valid_sha(self.source) else None,
+                source_tree=self.tree if valid_sha(self.tree) else None, run=run,
+                scope='github_hosted_windows_inventory', inventory=inventory,
+                stages={name: self.stages[name] for name in sorted(self.stages) if name in STAGES},
+                checks=checks, success=all(checks.values()) and not self.errors,
+                error_codes=[code for code in self.errors if code in CODES],
+                baseline_qualified=False, wallet_qualified=False)
         return {
             "schema": 1, "source_sha": self.source if valid_sha(self.source) else None,
             "source_tree": self.tree if valid_sha(self.tree) else None,
@@ -654,7 +688,7 @@ def main(arguments=None):
     report = Baseline(Path("."), {}, None)
     try:
         arguments = sys.argv[1:] if arguments is None else arguments
-        if arguments:
+        if arguments not in ([], ['--inventory-only']):
             raise BaselineFailure("ARGUMENTS_REFUSED")
         parent, source = require_ci(os.environ, None, platform=os.name)
         repo = Path(parent["GITHUB_WORKSPACE"])
@@ -662,12 +696,30 @@ def main(arguments=None):
         if repo.resolve() != Path.cwd().resolve():
             raise BaselineFailure("ENVIRONMENT_REFUSED")
         report = Baseline(repo, parent, source)
+        report.inventory_only = arguments == ['--inventory-only']
         report.run()
     except (BaselineFailure, SmokeFailure) as error:
         report.errors.append(error.code if error.code in CODES else "INTERNAL_ERROR")
     except (Exception, KeyboardInterrupt):
         report.errors.append("INTERNAL_ERROR")
     public = report.public()
+    if report.inventory_only:
+        try:
+            if report.checks['source']:
+                root = report.repo / '.harness'
+                plain(root)
+                output = root / 'ci-windows-inventory'
+                output.mkdir(mode=0o700)
+                with (output / 'manifest.json').open('x', encoding='ascii') as stream:
+                    json.dump(public, stream, sort_keys=True, separators=(',', ':'))
+                    stream.write('\n')
+        except Exception:
+            public['success'] = False
+            public['error_codes'].append('INVENTORY_REPORT_FAILED')
+        notice = json.dumps({key: value for key, value in public.items() if key != 'stages'},
+                            sort_keys=True, separators=(',', ':'))
+        if len(notice.encode()) <= 3800:
+            print('::notice title=Hosted Windows inventory::' + notice)
     print(json.dumps(public, sort_keys=True, separators=(",", ":")))
     return 0 if public["success"] else 1
 

@@ -9,6 +9,7 @@ import subprocess
 import sys
 import tempfile
 import threading
+import types
 import unittest
 from unittest.mock import patch
 
@@ -25,6 +26,53 @@ finally:
 
 SOURCE = "1" * 40
 PRIVATE = "private-value-not-for-public-output"
+
+
+class InventoryOnlyTests(unittest.TestCase):
+    def test_git_bash_discovery_handles_cmd_bin_and_mingw_layouts(self):
+        expected = '/fixture/Git/bin/bash.exe'
+        for offered in ('/fixture/Git/cmd/git.exe', '/fixture/Git/bin/git.exe',
+                        '/fixture/Git/mingw64/bin/git.exe'):
+            probes = []
+            def present(path):
+                probes.append(str(path))
+                return str(path) == expected
+            with patch.object(Path, 'is_file', autospec=True, side_effect=present):
+                self.assertEqual(baseline.find_git_bash(offered), expected)
+            self.assertLessEqual(len(probes), 8)
+
+    def test_inventory_mode_never_runs_build_tests_doctor_or_dependency_resolution(self):
+        report = baseline.Baseline(Path('/fixture'), dict(PATH='fixture'), SOURCE)
+        report.inventory_only = True
+        replies = dict(source_head=SOURCE.encode(), source_tree=b'2'*40,
+                       source_clean_before=b'', source_clean_after=b'')
+        def command(name, *args, **kwargs):
+            self.assertIn(name, replies)
+            return types.SimpleNamespace(output=replies[name])
+        def collect():
+            report.inventory = {key: baseline.version_record('1.2', 'path')
+                                for key in baseline.INVENTORY if key != 'docker_daemon'}
+        def found(name, **kwargs):
+            return '/fixture/' + name + ('.bat' if name == 'flutter' else '.exe')
+        with patch.object(report, 'command', side_effect=command) as calls, \
+                patch.object(report, 'collect_inventory', side_effect=collect), \
+                patch.object(baseline.shutil, 'which', side_effect=found), \
+                patch.object(Path, 'is_file', return_value=True):
+            report.run()
+        self.assertEqual([call.args[0] for call in calls.call_args_list],
+            ['source_head', 'source_tree', 'source_clean_before', 'source_clean_after'])
+        public = report.public()
+        self.assertTrue(public['success'])
+        self.assertEqual(public['scope'], 'github_hosted_windows_inventory')
+        self.assertFalse(public['baseline_qualified'])
+        self.assertFalse(public['wallet_qualified'])
+
+    def test_unknown_inventory_cannot_become_complete_from_source_checks_alone(self):
+        report = baseline.Baseline(Path('/fixture'), {}, SOURCE)
+        report.inventory_only = True
+        report.checks['source'] = report.checks['source_unchanged'] = True
+        self.assertFalse(report.public()['success'])
+        self.assertFalse(report.public()['checks']['inventory'])
 
 
 def events(*values):

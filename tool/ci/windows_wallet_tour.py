@@ -23,7 +23,7 @@ from . import windows_debug_loop as debug
 
 PAGES = ('dashboard', 'transfer', 'pillars', 'sentinels', 'staking', 'plasma',
          'tokens', 'p2pSwap', 'accelerator', 'notifications', 'settings', 'walletConnect')
-CHECKS = ('environment', 'source', 'unused_destinations', 'job_owned', 'entry_ready',
+CHECKS = ('environment', 'source', 'unused_destinations', 'job_owned', 'entry_gate', 'entry_ready',
           'application_owned', 'lab_revalidated', 'input_released', 'tour_complete',
           'captures', 'close_ack', 'application_exit', 'entry_exit', 'output_complete',
           'source_unchanged', 'auxiliary_cleanup')
@@ -187,12 +187,13 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
             original.stdin.write(data)
             original.stdin.flush()
 
-        def wait(marker):
+        def wait(marker, seconds=None):
             nonlocal next_sample
+            limit = deadline if seconds is None else min(deadline, time.monotonic() + seconds)
             while True:
                 runtime.healthy()
                 now = time.monotonic()
-                need(now < deadline, 'TOTAL_DEADLINE')
+                need(now < limit, 'TOTAL_DEADLINE')
                 if now >= next_sample:
                     sample_workspace((home, app, native_build, tool_profile))
                     need(shutil.disk_usage(repo).free >= FIXTURE_FLOOR, 'STORAGE_REFUSED')
@@ -202,7 +203,14 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
                     need(original.poll() is None or not lines.complete, 'ENTRY_FAILED')
                     continue
                 line = raw.rstrip(b'\r\n')
-                if line.startswith(b'SYRIUS_WALLET_TOUR:'):
+                if line.startswith(b'CI_WALLET_STAGE:'):
+                    stage = line.partition(b':')[2]
+                    need(stage in (b'gate', b'build', b'start') and line not in used, 'ENTRY_REFUSED')
+                    used.add(line)
+                    report['entry_stage'] = stage.decode('ascii')
+                    if line == marker:
+                        return
+                elif line.startswith(b'SYRIUS_WALLET_TOUR:'):
                     need('tour' not in used and marker == b'CI_WALLET_DONE', 'TOUR_REFUSED')
                     used.add('tour')
                     report['tour'] = tour_receipt(json.loads(line.partition(b':')[2]))
@@ -224,6 +232,8 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
 
         report['phase'] = 'build_and_start'
         write(b'START\n')
+        wait(b'CI_WALLET_STAGE:gate', seconds=30)
+        report['checks']['entry_gate'] = True
         wait(b'CI_WALLET_READY')
         report['checks']['entry_ready'] = True
         instance = home / 'instance.json'
@@ -307,6 +317,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
                     report['cleanup_application_exit'] = job.application_exit()
                 except Exception:
                     report['errors'].append('CLOSE_UNCONFIRMED')
+            report['owned_job_images_before_close'] = job.remaining_images()
             job.close()
             report['owned_job_active_at_close'] = job.active_at_close
             report['forced_cleanup'] |= job.forced
