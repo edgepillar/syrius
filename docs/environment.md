@@ -3886,3 +3886,31 @@ classification remain pending. Installed Flutter framework, Overlay and
 Offstage traversal source was inspected read-only; those methods visit their
 onstage children in release as well as debug. The harness remains a Release
 build. No local SDK execution or source download is added.
+
+### Retained preparation timeout, 2026-10-26T15:18Z
+
+At source `d95f51bd24f3af3976fcd1423460468d9a2ee2e0`, tree
+`d764fa90bdeb66136157b71862d83c296cc67b8c`, run `40345162301` attempt one,
+job `121650033274`, all 50 selected Dart cases pass with no skips or failures.
+This includes observation of the actual Welcome component. Its original
+command exits zero with 22165 complete bytes, no forced termination and SHA-256
+`b26d685b2eab231748b27de58d9f0624b011ba1fbd4c7ce61adf010a2ac26629`.
+All 448 controller cases complete with three platform skips and zero failures
+or errors. Selected analysis exits zero with complete empty output: zero
+errors, warnings and infos.
+
+The compiled node tree is unchanged. All seven Go test bodies pass, the
+qualification client is restored and the production source is restored.
+Preparation then reports `COMMAND_TIMEOUT`; assets, preflight and node start
+are false. No node or wallet execution is established by this run. The fixed
+native entry diagnostic is therefore not reached. This is a failed run,
+preserved independently of its passing test gates.
+
+The retained-manifest inspector now selects only the final three command
+ordinals, original exits, completeness/forced flags, byte counts and stream
+digests when preparation times out before node start. Unknown receipts remain
+explicitly unknown. It does not copy argv, output text, host paths or profiles,
+and does not start a runtime or admit seed material. Seventy-three selected
+memory-only Python cases pass, including three added privacy and outcome
+cases. Hosted inspection of this exact failed run remains pending. Existing
+deadlines, application source and local storage limits are unchanged.

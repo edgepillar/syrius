@@ -32,6 +32,51 @@ def manifest():
 
 class InspectionTests(unittest.TestCase):
     @staticmethod
+    def preparation_timeout_report():
+        report = manifest()
+        report["error_codes"] = ["COMMAND_TIMEOUT"]
+        stream = dict(bytes=0, retained_bytes=0, sha256=inspect.sha(b""), overflow=False)
+        report["commands"] = [dict(exit_code=0, output_complete=True, forced=False,
+            streams=dict(stdout=copy.deepcopy(stream), stderr=copy.deepcopy(stream)),
+            argv=["/fixture/private/tool"], raw="private") for _ in range(5)]
+        report["commands"][-1].update(exit_code=1, forced=True)
+        return report
+
+    def test_preparation_timeout_keeps_original_ordinals_and_finite_outcomes_only(self):
+        report = self.preparation_timeout_report()
+        value = inspect.project(report, "native", "a" * 40, 123)
+        selected = value["preparation_commands"]
+        self.assertEqual(selected["count"], 5)
+        self.assertEqual([item["ordinal"] for item in selected["tail"]], [3, 4, 5])
+        self.assertTrue(selected["tail"][-1]["forced"])
+        self.assertEqual(selected["tail"][-1]["exit_code"], 1)
+        self.assertFalse(value["artifact_reported_success"])
+        self.assertFalse(value["runtime_started"])
+        self.assertNotIn("private", json.dumps(value))
+        value.update(archive_sha256="e" * 64, manifest_sha256="f" * 64)
+        self.assertLessEqual(len(json.dumps(value, separators=(",", ":")).encode()), 3800)
+
+    def test_preparation_timeout_preserves_an_unknown_original_receipt(self):
+        report = self.preparation_timeout_report()
+        report["commands"][-1] = None
+        value = inspect.project(report, "native", "a" * 40, 123)
+        self.assertEqual(value["preparation_commands"]["tail"][-1],
+            dict(ordinal=5, status="UNKNOWN"))
+
+    def test_preparation_timeout_rejects_boolean_counts_and_non_digest_text(self):
+        for change in (dict(exit_code=True), dict(output_complete=1), dict(forced=1)):
+            report = self.preparation_timeout_report()
+            report["commands"][-1].update(change)
+            with self.subTest(change=change), self.assertRaises(inspect.Refused):
+                inspect.project(report, "native", "a" * 40, 123)
+        for change in (dict(bytes=True), dict(retained_bytes=1), dict(overflow=1),
+                       dict(sha256="/fixture/private/output")):
+            report = self.preparation_timeout_report()
+            report["commands"][-1]["streams"]["stdout"].update(change)
+            with self.subTest(change=change), self.assertRaises(inspect.Refused):
+                inspect.project(report, "native", "a" * 40, 123)
+
+    @staticmethod
     def wallet_stop_report():
         report = InspectionTests.corrected_manifest()
         report.update(run_id="40319698922", wallet_tour_requested=True, native_stack_diagnostic=True,

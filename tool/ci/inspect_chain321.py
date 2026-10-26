@@ -134,6 +134,38 @@ def unpack(raw, expected_sha, expected_size):
     return value, sha(data)
 
 
+def preparation_command_tail(commands):
+    """Keep bounded original outcomes without argv, output text or host paths."""
+    tail = []
+    for index in range(max(0, len(commands) - 3), len(commands)):
+        command = commands[index]
+        item = dict(ordinal=index + 1, status="UNKNOWN")
+        if command is not None:
+            need(type(command) is dict)
+            code = command.get("exit_code")
+            need(type(code) is int and -(2**63) <= code < 2**63
+                 and type(command.get("output_complete")) is bool
+                 and type(command.get("forced")) is bool)
+            streams = command.get("streams")
+            need(type(streams) is dict and set(streams) == {"stdout", "stderr"})
+            selected = {}
+            for name, stream in streams.items():
+                need(type(stream) is dict
+                     and all(type(stream.get(key)) is int and 0 <= stream[key] < 2**63
+                             for key in ("bytes", "retained_bytes"))
+                     and stream["retained_bytes"] <= min(stream["bytes"], MAX_ARCHIVE)
+                     and type(stream.get("overflow")) is bool
+                     and type(stream.get("sha256")) is str
+                     and re.fullmatch(r"[a-f0-9]{64}", stream["sha256"]) is not None)
+                selected[name] = {key: stream[key] for key in
+                    ("bytes", "retained_bytes", "sha256", "overflow")}
+            item.update(status="OBSERVED", exit_code=code,
+                output_complete=command["output_complete"], forced=command["forced"],
+                streams=selected)
+        tail.append(item)
+    return dict(count=len(commands), tail=tail)
+
+
 def project(report, backend, head, run_id, expected_node=NODE_SHA, *, expected_patched=False):
     pins = {value[0]: value[1] for value in NODE_SOURCES.values()}
     need(expected_node in pins)
@@ -418,6 +450,8 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA, *, expected_p
         result['upstream_client_fixture'] = client_fixture
     if go_failure is not None:
         result["upstream_stop_failure"] = go_failure
+    if "COMMAND_TIMEOUT" in errors and not checks["started"]:
+        result["preparation_commands"] = preparation_command_tail(commands)
     if docker_shutdown is not None:
         result["docker_shutdown"] = docker_shutdown
     if stack_scope is not None:
