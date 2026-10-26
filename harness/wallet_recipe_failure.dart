@@ -35,11 +35,20 @@ const Set<String> walletRecipeFailureCodes = <String>{
   'wallet-recipe-control-disabled',
 };
 
+/// Entry types and failure families disclose no displayed text or error detail.
+const Set<String> walletRecipeEntryPhases = <String>{
+  'startup', 'welcome', 'import', 'ready', 'node', 'error', 'unknown',
+  'startup-before-initialization', 'startup-initialization-started',
+  'startup-initialization-refused', 'startup-filesystem-error',
+  'startup-platform-error', 'startup-hive-error', 'startup-other-error',
+};
+
 /// Values, endpoints, exception text and reply details are never projected.
 Map<String, String> walletRecipeDiagnostic(
   Map<String, Object?> command,
-  Object? reason,
-) {
+  Object? reason, {
+  Object? entryPhase,
+}) {
   final Object? action = command['action'];
   final Object? key = command['key'];
   String control = 'unknown';
@@ -60,15 +69,23 @@ Map<String, String> walletRecipeDiagnostic(
     'reason': reason is String && walletRecipeFailureCodes.contains(reason)
         ? reason
         : 'wallet-recipe-refused',
+    if (entryPhase is String && walletRecipeEntryPhases.contains(entryPhase))
+      'entry': entryPhase,
   });
 }
 
 /// Recheck even a typed exception before adding its labels to a CI marker.
 Map<String, String>? walletRecipePublicDiagnostic(Object? value) {
-  if (value is! Map<Object?, Object?> || value.length != 3) return null;
+  const Set<String> fields = <String>{'action', 'control', 'reason', 'entry'};
+  if (value is! Map<Object?, Object?> ||
+      (value.length != 3 && value.length != 4) ||
+      value.keys.any((Object? key) => !fields.contains(key))) {
+    return null;
+  }
   final Object? action = value['action'];
   final Object? control = value['control'];
   final Object? reason = value['reason'];
+  final Object? entry = value['entry'];
   if (action is! String ||
       control is! String ||
       reason is! String ||
@@ -77,7 +94,13 @@ Map<String, String>? walletRecipePublicDiagnostic(Object? value) {
       !walletRecipeFailureCodes.contains(reason)) {
     return null;
   }
+  if (value.containsKey('entry') &&
+      (entry is! String || !walletRecipeEntryPhases.contains(entry))) {
+    return null;
+  }
+  final String? phase = entry is String ? entry : null;
   return Map<String, String>.unmodifiable(<String, String>{
     'action': action, 'control': control, 'reason': reason,
+    'entry': ?phase,
   });
 }

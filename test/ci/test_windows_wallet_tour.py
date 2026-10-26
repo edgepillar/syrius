@@ -97,6 +97,9 @@ class DiagnosticTests(unittest.TestCase):
             diagnostic=dict(action='observe',control='welcome_import',
                 reason='wallet-recipe-control-absent'))
         self.assertEqual(tour.entry_failure(waiting),waiting)
+        self.assertEqual(tour.entry_failure(dict(waiting,diagnostic=dict(
+            waiting['diagnostic'],entry='startup-platform-error')))['diagnostic']['entry'],
+            'startup-platform-error')
         self.assertEqual(tour.entry_failure(dict(stage='build',code=None)),dict(stage='build',code=None))
 
     def test_private_fields_dynamic_controls_and_unknown_labels_are_refused(self):
@@ -104,7 +107,8 @@ class DiagnosticTests(unittest.TestCase):
             diagnostic=dict(action='tap',control='node_settings_select',
                 reason='wallet-recipe-selection-origin-refused'))
         changes = [dict(action='/private/action'), dict(control='node_settings_select_wss://private.invalid'),
-                   dict(reason='wallet-recipe-private-value'), dict(detail='private payload'),dict(action=True)]
+                   dict(reason='wallet-recipe-private-value'), dict(detail='private payload'),
+                   dict(entry='private payload'), dict(action=True)]
         for change in changes:
             with self.subTest(change=change), self.assertRaises(tour.Refused):
                 tour.entry_failure(dict(value,diagnostic=dict(value['diagnostic'],**change)))

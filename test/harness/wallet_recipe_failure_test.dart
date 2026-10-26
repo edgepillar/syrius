@@ -2,12 +2,53 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/onboarding/welcome_surface.dart';
 
 import '../../harness/app/agent.dart';
 import '../../harness/bin/wallet_recipe.dart';
 import '../../harness/wallet_recipe_failure.dart';
+import '../welcome/support.dart';
 
 void main() {
+  testWidgets('the actual Welcome view exposes its original import control', (
+    WidgetTester tester,
+  ) async {
+    prepareWelcomeViewport(tester);
+    final HarnessAgent agent = HarnessAgent.forTest()..booted = true;
+    int selected = 0;
+    await tester.pumpWidget(welcomeHost(welcomeFixture(
+      source: Object(), onSelected: (WelcomeDestination _) => selected++,
+    )));
+    await finishWelcomeEntrance(tester);
+    final Map<String, Object?> view = await agent.commandForTest(
+      <String, dynamic>{'cmd': 'wallet-recipe', 'action': 'observe'},
+    );
+    expect(view['entryPhase'], 'welcome');
+    final List<Map<String, Object?>> controls =
+        view['controls']! as List<Map<String, Object?>>;
+    final List<Map<String, Object?>> imports = controls.where(
+      (Map<String, Object?> row) => row['key'] == 'welcome_import',
+    ).toList();
+    expect(imports, hasLength(1));
+    expect(imports.single['enabled'], isTrue);
+    expect(selected, 0);
+  });
+
+  test('entry labels reject raw text and keep only known view families', () {
+    final Map<String, String> value = walletRecipeDiagnostic(
+      <String, Object?>{'action': 'observe', 'key': 'welcome_import'},
+      'wallet-recipe-control-absent', entryPhase: 'startup-platform-error',
+    );
+    expect(value['entry'], 'startup-platform-error');
+    expect(walletRecipePublicDiagnostic(value), value);
+    expect(walletRecipePublicDiagnostic(<String, String>{
+      ...value, 'entry': 'synthetic private exception text',
+    }), isNull);
+    expect(walletRecipeDiagnostic(<String, Object?>{'action': 'observe'},
+      'wallet-recipe-control-absent', entryPhase: 'synthetic private data',
+    ).containsKey('entry'), isFalse);
+  });
+
   for (final bool disabled in <bool>[false, true]) {
     test('wait labels identify the unavailable control $disabled', () async {
       int calls = 0;
@@ -21,6 +62,7 @@ void main() {
             'ok': true, 'harnessMode': 'wallet', 'booted': true,
             'owner': 1, 'revision': 1, 'hasError': false,
             'walletPresent': false, 'transitionPending': false,
+            'entryPhase': 'welcome',
             'signingPolicyReady': true,
             'signingChainId': 1, 'savedSigningChainId': 1,
             'controls': <Map<String, dynamic>>[
@@ -43,6 +85,7 @@ void main() {
       expect(failure?.code, 'wallet-recipe-stage-unsettled');
       expect(failure?.diagnostic, <String, String>{
         'action': 'observe', 'control': 'welcome_import',
+        'entry': 'welcome',
         'reason': disabled
             ? 'wallet-recipe-control-disabled'
             : 'wallet-recipe-control-absent',

@@ -3835,3 +3835,54 @@ root cause. The full source file's SHA-256 is
 No native runtime, source download or artifact transport is repeated locally;
 the existing cached Git response and the complete hosted projection are reused.
 Original failures remain negative and X212 stays open.
+
+### Native wait identifies an absent first Welcome control
+
+At `3fccb33dd66c8d407763787e1b7347f618908ac1`, tree
+`7f6e691b801ba2bff8d924e0ad32afede13f6466`,
+[run 40338226701](https://github.com/edgepillar/syrius/actions/runs/40338226701),
+attempt one, Windows job `121625469509` passes 448 controller cases with three
+platform skips and no failures/errors. All 48 Dart cases pass without skips,
+failed/error events, with four loading events and a successful terminal record.
+Selected analysis has zero errors/warnings and one `LINES_LONGER_THAN_80_CHARS`
+info in `wallet_recipe.dart`, line 453. The candidate wraps that line; no
+analyzer rule is suppressed.
+
+The existing verified show/resize request completes before onboarding. Its
+first `welcome_import` wait still reports `wallet-recipe-control-absent`,
+followed by the original terminal `wallet-recipe-stage-unsettled`. Geometry
+ordering alone did not resolve the missing control. The callback visits and
+captures no page. Original app ownership, lab revalidation and the single
+input-envelope release pass. The original entry exits one with 841 complete
+bytes; app cleanup exits zero and a remaining VCTIP helper is forced. All five
+nodes exit zero, complete and unforced. Overall wallet/lab acceptance remains
+failed and final source/input checks are not reached.
+
+All seven Go bodies stay exact and pass with restored production source. The
+58 storage samples complete with one verified non-traversed SDK alias, peak
+266243615 logical bytes and minimum free 154946871296 bytes. Resource bounds
+and failure retention remain unchanged.
+
+### Observe the actual entry view before another native attempt
+
+The candidate adds a regression using the actual `WelcomeSurface`, original
+keys and harness observation at 1280 by 780. Only artwork is replaced by the
+existing deterministic view fixture; no wallet owner, process or network is
+constructed. This checks the source component rather than a lookalike button.
+
+The existing onstage traversal also collects fixed entry widget types. A
+terminal wait may include one optional enumerated entry label. Known startup
+exceptions contribute only their fixed family; displayed text, raw messages,
+stacks, paths and service identities remain private. This observation never
+grants an action or changes startup, route ownership or refusal policy.
+Both Dart and the parent reject unknown labels and extra fields. Legacy
+three-field diagnostics remain supported. The original wait bounds, retired
+driver and absence of follow-up commands are preserved.
+
+Seventy selected Python cases pass locally and all four fixed-label sets match
+Dart. Two added Dart cases bring the hosted selection to 50, including actual
+Welcome observation and entry-label privacy. Their execution and native entry
+classification remain pending. Installed Flutter framework, Overlay and
+Offstage traversal source was inspected read-only; those methods visit their
+onstage children in release as well as debug. The harness remains a Release
+build. No local SDK execution or source download is added.

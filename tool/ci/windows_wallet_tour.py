@@ -69,6 +69,12 @@ RECIPE_FAILURE_CODES = frozenset((
     'wallet-recipe-stage-unsettled', 'wallet-recipe-control-absent',
     'wallet-recipe-control-disabled',
 ))
+RECIPE_ENTRY_PHASES = frozenset((
+    'startup', 'welcome', 'import', 'ready', 'node', 'error', 'unknown',
+    'startup-before-initialization', 'startup-initialization-started',
+    'startup-initialization-refused', 'startup-filesystem-error',
+    'startup-platform-error', 'startup-hive-error', 'startup-other-error',
+))
 
 
 class Refused(Exception):
@@ -93,10 +99,12 @@ def entry_failure(value):
         diagnostic = value['diagnostic']
         need(value['stage'] == 'onboarding'
              and value['code'] in ('wallet-recipe-command-refused', 'wallet-recipe-stage-unsettled')
-             and type(diagnostic) is dict and set(diagnostic) == {'action', 'control', 'reason'}
+             and type(diagnostic) is dict and set(diagnostic) in
+                 ({'action', 'control', 'reason'}, {'action', 'control', 'reason', 'entry'})
              and all(type(item) is str for item in diagnostic.values())
              and diagnostic['action'] in RECIPE_ACTIONS and diagnostic['control'] in RECIPE_CONTROLS
-             and diagnostic['reason'] in RECIPE_FAILURE_CODES, 'ENTRY_REFUSED')
+             and diagnostic['reason'] in RECIPE_FAILURE_CODES
+             and ('entry' not in diagnostic or diagnostic['entry'] in RECIPE_ENTRY_PHASES), 'ENTRY_REFUSED')
     return value
 
 

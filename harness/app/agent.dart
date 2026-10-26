@@ -25,16 +25,22 @@ import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_token_stepper/widgets/token_create_frame.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/widgets/send_confirmation.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/onboarding/import_wallet/import_wallet_seed_choice_screen.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/wallet_ready_surface.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/wallet_success_screen.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/onboarding/welcome_surface.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/splash_screen.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/entry_capture_source.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/node_transition.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_context_revision.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/wallet_initialization.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/node_settings_presenter.dart'
     show NodeSettingsEntry;
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/node_settings_view.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/tabs.dart';
@@ -1044,10 +1050,19 @@ class HarnessAgent {
     return node.enabled && (widget is! Radio || widget.enabled != false);
   }
 
-  List<Element> _recipeNodeViews() {
+  List<Element> _recipeNodeViews({Set<String>? entryPhases}) {
     final List<Element> views = <Element>[];
     void visit(Element element) {
-      if (element.widget is NodeSettingsView) views.add(element);
+      final Widget widget = element.widget;
+      if (widget is NodeSettingsView) views.add(element);
+      if (entryPhases != null) {
+        if (widget is SplashScreen) entryPhases.add('startup');
+        if (widget is WelcomeSurface) entryPhases.add('welcome');
+        if (widget is ImportWalletSeedChoiceScreen) entryPhases.add('import');
+        if (widget is WalletSuccessScreen) entryPhases.add('ready');
+        if (widget is NodeSettingsView) entryPhases.add('node');
+        if (widget is SyriusErrorWidget) entryPhases.add('error');
+      }
       element.debugVisitOnstageChildren(visit);
     }
 
@@ -1056,6 +1071,28 @@ class HarnessAgent {
       throw HarnessError('wallet-recipe-node-view-ambiguous');
     }
     return views;
+  }
+
+  String _recipeEntryPhase(Set<String> phases) {
+    final EntryStartupReceipt? startup = EntryCaptureRegistry.instance.startup;
+    final Object? error = startup?.initializationError;
+    if (error != null &&
+        (phases.contains('startup') || phases.contains('error'))) {
+      if (error is WalletInitializationRefused) {
+        return 'startup-initialization-refused';
+      }
+      if (error is FileSystemException) return 'startup-filesystem-error';
+      if (error is PlatformException) return 'startup-platform-error';
+      if (error is HiveError) return 'startup-hive-error';
+      return 'startup-other-error';
+    }
+    if (phases.length != 1) return 'unknown';
+    if (phases.single == 'startup' && startup != null) {
+      return startup.initializationStarted
+          ? 'startup-initialization-started'
+          : 'startup-before-initialization';
+    }
+    return phases.single;
   }
 
   bool _recipeReady(_Node node) {
@@ -1160,7 +1197,8 @@ class HarnessAgent {
       _recipeOwner++;
     }
     final List<_Node> nodes = _snapshot();
-    final List<Element> views = _recipeNodeViews();
+    final Set<String> entryPhases = <String>{};
+    final List<Element> views = _recipeNodeViews(entryPhases: entryPhases);
     final NodeSettingsView? view = views.isEmpty
         ? null
         : views.single.widget as NodeSettingsView;
@@ -1174,6 +1212,7 @@ class HarnessAgent {
     return <String, Object?>{
       'harnessMode': 'wallet',
       'booted': booted,
+      'entryPhase': _recipeEntryPhase(entryPhases),
       'owner': _recipeOwner,
       'revision': WalletContextRevision.value,
       'walletPresent': kWalletFile != null,

@@ -187,7 +187,7 @@ class WalletRecipe {
       'wallet-recipe-stage-unsettled',
       diagnostic: walletRecipeDiagnostic(<String, Object?>{
         'action': 'observe', 'key': waitingFor,
-      }, reason),
+      }, reason, entryPhase: last?['entryPhase']),
     );
   }
 
@@ -450,7 +450,9 @@ class WalletRecipe {
     await _act('node_settings_chain_save', reveal: true);
     await _until(
       (Map<String, dynamic> view) {
-        if (view['node'] != node) _refuse('wallet-recipe-original-node-changed');
+        if (view['node'] != node) {
+          _refuse('wallet-recipe-original-node-changed');
+        }
         return view['signingPolicyReady'] == true &&
             view['signingChainId'] == chain &&
             view['savedSigningChainId'] == chain &&
