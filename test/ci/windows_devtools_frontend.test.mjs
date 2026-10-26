@@ -39,6 +39,9 @@ test('only the correlated frontend getVM response with the original PID qualifie
   frame(value, 'Sent', {jsonrpc: '2.0', id: 'original', method: 'getVM'});
   frame(value, 'Received', {jsonrpc: '2.0', id: 'original', result: {type: 'VM', pid: 1234}});
   assert.equal(value.public().frontendGetVmMatched, true);
+  assert.equal(value.public().getVmRequests, 1);
+  assert.equal(value.public().getVmReplies, 1);
+  assert.equal(value.public().serviceSocketSeen, true);
   assert.doesNotMatch(JSON.stringify(value.public()), /private|127\.0|1234|fixture/);
 });
 test('another socket or PID does not complete the original request', () => {
@@ -77,4 +80,12 @@ test('WebSocket control frames carry no application reply or attachment evidence
   }
   assert.equal(value.public().frontendGetVmMatched, false);
   assert.equal(value.public().held, false);
+  assert.equal(value.public().frontendSocketClosed, true);
+});
+test('unrelated sockets are counted without retaining their address or request identity', () => {
+  const value = exchange();
+  value.event('Network.webSocketCreated', {requestId: 'private-other', url: 'ws://127.0.0.1:45678/private-other/ws'});
+  assert.equal(value.public().otherSockets, 1);
+  assert.doesNotMatch(JSON.stringify(value.public()), /private|45678/);
+  assert.equal(value.public().frontendGetVmMatched, false);
 });

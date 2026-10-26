@@ -58,6 +58,9 @@ export class FrontendExchange {
     this.attached = false;
     this.closed = false;
     this.held = false;
+    this.getVmRequests = 0;
+    this.getVmReplies = 0;
+    this.otherSockets = 0;
   }
   event(method, params) {
     need(!this.held, 'REQUEST_REFUSED');
@@ -71,10 +74,13 @@ export class FrontendExchange {
     if (!plainObject(params)) return;
     if (method === 'Network.webSocketCreated') {
       let matches = false;
-      try { matches = serviceKey(params.url) === this.service; } catch { return; }
+      try { matches = serviceKey(params.url) === this.service; } catch { /* another socket */ }
       if (matches) {
         need(this.socket === null && typeof params.requestId === 'string', 'SOCKET_REPLACED');
         this.socket = params.requestId;
+      } else {
+        need(this.otherSockets < 64, 'FRAME_REFUSED');
+        this.otherSockets++;
       }
       return;
     }
@@ -82,7 +88,10 @@ export class FrontendExchange {
     if (method === 'Network.webSocketClosed') { this.closed = true; return; }
     if (!['Network.webSocketFrameSent', 'Network.webSocketFrameReceived'].includes(method)) return;
     const response = params.response;
-    if (plainObject(response) && [8, 9, 10].includes(response.opcode)) return;
+    if (plainObject(response) && [8, 9, 10].includes(response.opcode)) {
+      if (response.opcode === 8) this.closed = true;
+      return;
+    }
     need(plainObject(response) && response.opcode === 1 &&
       typeof response.payloadData === 'string' && Buffer.byteLength(response.payloadData) <= 2 * 1024**2,
     'FRAME_REFUSED');
@@ -92,21 +101,26 @@ export class FrontendExchange {
     const id = message.id;
     const identifier = typeof id === 'string' && id.length > 0 && id.length <= 128 || Number.isSafeInteger(id);
     if (method.endsWith('Sent') && message.method === 'getVM') {
-      need(identifier && !this.requests.has(id) && this.requests.size < 32 && !this.closed, 'REQUEST_REFUSED');
+      need(identifier && !this.requests.has(id) && this.requests.size < 32 &&
+        this.getVmRequests < 1000 && !this.closed, 'REQUEST_REFUSED');
       this.requests.add(id);
+      this.getVmRequests++;
     } else if (method.endsWith('Received') && this.requests.has(id)) {
       need(!this.closed && message.error === undefined && plainObject(message.result) &&
         message.result.type === 'VM' && message.result.pid === this.pid, 'VM_REFUSED');
       this.requests.delete(id);
+      this.getVmReplies++;
       this.attached = true;
     }
   }
   public() { return {frontendGetVmMatched: this.attached && !this.held,
-    frontendSocketClosed: this.closed, held: this.held}; }
+    frontendSocketClosed: this.closed, held: this.held,
+    serviceSocketSeen: this.socket !== null, getVmRequests: this.getVmRequests,
+    getVmReplies: this.getVmReplies, otherSockets: this.otherSockets}; }
 }
 
 class Cdp {
-  constructor(socket) {
+  constructor(socket, observations) {
     this.socket = socket;
     this.next = 1;
     this.pending = new Map();
@@ -114,6 +128,7 @@ class Cdp {
     this.failed = null;
     this.session = null;
     this.exchange = null;
+    this.observations = observations;
     socket.addEventListener('message', event => {
       try {
         need(typeof event.data === 'string', 'CDP_OUTPUT_REFUSED');
@@ -128,8 +143,15 @@ class Cdp {
           clearTimeout(request.timer);
           this.pending.delete(message.id);
           request.resolve(message.result);
-        } else if (this.exchange && message.sessionId === this.session) {
-          this.exchange.event(message.method, message.params);
+        } else {
+          if (message.method === 'Target.targetCreated' &&
+              ['worker', 'shared_worker', 'service_worker'].includes(message.params?.targetInfo?.type)) {
+            this.observations.workerTargets = Math.min(64, this.observations.workerTargets + 1);
+          }
+          if (this.exchange && message.sessionId === this.session) {
+            this.exchange.event(message.method, message.params);
+            this.observe(message.method, message.params);
+          }
         }
       } catch (error) { this.fail(error instanceof Refused ? error : new Refused('CDP_OUTPUT_REFUSED')); }
     });
@@ -137,6 +159,23 @@ class Cdp {
     socket.addEventListener('close', () => {
       if (this.pending.size) this.fail(new Refused('CDP_COMMAND_UNCERTAIN'));
     });
+  }
+  observe(method, params) {
+    if (method === 'Page.loadEventFired') this.observations.pageLoaded = true;
+    if (method === 'Network.loadingFailed') {
+      this.observations.networkFailures = Math.min(1000, this.observations.networkFailures + 1);
+    }
+    let text = '';
+    if (method === 'Runtime.exceptionThrown') {
+      this.observations.runtimeExceptions = Math.min(1000, this.observations.runtimeExceptions + 1);
+      const detail = params?.exceptionDetails;
+      text = [detail?.text, detail?.exception?.description].filter(value => typeof value === 'string').join(' ');
+    } else if (method === 'Runtime.consoleAPICalled') {
+      text = (params?.args ?? []).slice(0, 8).map(value => value?.value)
+        .filter(value => typeof value === 'string' && value.length <= 16384).join(' ');
+    }
+    this.observations.webglIssue ||= /webgl|canvaskit|swiftshader/i.test(text);
+    this.observations.wasmIssue ||= /webassembly|wasm.*(?:fail|error|unsupported)/i.test(text);
   }
   fail(error) {
     this.failed ??= error;
@@ -176,8 +215,11 @@ async function gate() {
 
 export async function main() {
   const result = {schema: 1, ok: false, scope: 'owned_devtools_frontend', attached: false,
-    headless: true, browserExit: null, outputComplete: false, forced: false, code: null};
-  let original, cdp;
+    headless: true, browserExit: null, outputComplete: false, forced: false, code: null,
+    phase: 'new'};
+  const observations = {pageLoaded: false, documentReady: false, devtoolsTitle: false,
+    runtimeExceptions: 0, webglIssue: false, wasmIssue: false, networkFailures: 0, workerTargets: 0};
+  let original, cdp, exchange;
   let exited = false, completed = 0, outputBytes = 0, overflow = false;
   const digest = createHash('sha256');
   try {
@@ -192,7 +234,8 @@ export async function main() {
     const command = await gate();
     need(plainObject(command), 'INPUT_REFUSED');
     const address = frontendAddress(command.devtools, command.service);
-    const exchange = new FrontendExchange(command.service, command.pid);
+    exchange = new FrontendExchange(command.service, command.pid);
+    result.phase = 'admitted';
     const candidates = [];
     for (const name of ['PROGRAMFILES', 'PROGRAMFILES(X86)', 'PROGRAMW6432']) {
       if (process.env[name]) {
@@ -221,6 +264,7 @@ export async function main() {
       original.once('exit', (code, signal) => { exited = true; result.browserExit = code; resolve({code, signal}); });
     });
     ended.catch(() => {});
+    result.phase = 'browser_started';
     for (const stream of [original.stdout, original.stderr]) {
       stream.on('data', bytes => { outputBytes += bytes.length; digest.update(bytes); overflow ||= outputBytes > 1024**2; });
       stream.on('end', () => { completed++; });
@@ -250,27 +294,52 @@ export async function main() {
       connection.addEventListener('open', () => { clearTimeout(timer); resolve(); }, {once: true});
       connection.addEventListener('error', () => { clearTimeout(timer); reject(new Refused('CDP_IO_REFUSED')); }, {once: true});
     });
-    cdp = new Cdp(connection);
+    cdp = new Cdp(connection, observations);
+    result.phase = 'browser_socket_bound';
+    await cdp.send('Target.setDiscoverTargets', {discover: true});
     const target = await cdp.send('Target.createTarget', {url: 'about:blank'});
     const attached = await cdp.send('Target.attachToTarget', {targetId: target.targetId, flatten: true});
     cdp.session = attached.sessionId;
     cdp.exchange = exchange;
     await cdp.send('Network.enable', {maxTotalBufferSize: 2 * 1024**2}, cdp.session);
     await cdp.send('Page.enable', {}, cdp.session);
+    await cdp.send('Runtime.enable', {}, cdp.session);
     const navigation = await cdp.send('Page.navigate', {url: address}, cdp.session);
     need(!navigation.errorText, 'FRONTEND_REFUSED');
+    result.phase = 'page_navigated';
     while (!exchange.attached && Date.now() < deadline) {
       if (cdp.failed) throw cdp.failed;
       need(!exited && !overflow, 'BROWSER_REFUSED');
       await sleep(100);
     }
-    need(exchange.attached && !exchange.closed, 'FRONTEND_UNCONFIRMED');
-    const visible = await cdp.send('Runtime.evaluate', {
-      expression: "document.readyState === 'complete' && document.title.toLowerCase().includes('devtools')",
+    const initialPage = await cdp.send('Runtime.evaluate', {
+      expression: "({ready: document.readyState === 'complete', devtools: document.title.toLowerCase().includes('devtools')})",
       returnByValue: true,
     }, cdp.session);
-    need(visible.result?.value === true && !visible.exceptionDetails, 'FRONTEND_UNCONFIRMED');
+    const initial = initialPage.result?.value;
+    need(plainObject(initial) && !initialPage.exceptionDetails && typeof initial.ready === 'boolean' &&
+      typeof initial.devtools === 'boolean', 'FRONTEND_UNCONFIRMED');
+    observations.documentReady = initial.ready;
+    observations.devtoolsTitle = initial.devtools;
+    need(exchange.attached && !exchange.closed, 'FRONTEND_UNCONFIRMED');
+    result.phase = 'vm_matched';
+    for (let attempt = 0; attempt < 20 && Date.now() < deadline; attempt++) {
+      const visible = await cdp.send('Runtime.evaluate', {
+        expression: "({ready: document.readyState === 'complete', devtools: document.title.toLowerCase().includes('devtools')})",
+        returnByValue: true,
+      }, cdp.session);
+      const value = visible.result?.value;
+      need(plainObject(value) && !visible.exceptionDetails && typeof value.ready === 'boolean' &&
+        typeof value.devtools === 'boolean', 'FRONTEND_UNCONFIRMED');
+      observations.documentReady = value.ready;
+      observations.devtoolsTitle = value.devtools;
+      if (value.ready && value.devtools) break;
+      await sleep(500);
+    }
+    need(observations.documentReady && observations.devtoolsTitle && !exchange.closed, 'FRONTEND_UNCONFIRMED');
     result.attached = true;
+    result.phase = 'ui_ready';
+    result.phase = 'close_requested';
     await cdp.send('Browser.close');
     let exitTimer;
     let exit;
@@ -280,6 +349,7 @@ export async function main() {
       })]);
     } finally { clearTimeout(exitTimer); }
     need(exit.code === 0 && exit.signal === null, 'BROWSER_EXIT_UNCONFIRMED');
+    result.phase = 'browser_exited';
     for (let index = 0; completed !== 2 && index < 100; index++) await sleep(20);
     result.outputComplete = completed === 2 && !overflow;
     result.ok = result.attached && result.outputComplete;
@@ -290,6 +360,10 @@ export async function main() {
     if (original && !exited) { result.forced = true; original.kill(); }
     result.outputBytes = outputBytes;
     result.outputSha256 = digest.digest('hex');
+    result.observations = {...observations, ...(exchange?.public() ?? {
+      frontendGetVmMatched: false, frontendSocketClosed: false, held: false,
+      serviceSocketSeen: false, getVmRequests: 0, getVmReplies: 0, otherSockets: 0,
+    })};
     result.ok &&= !result.forced && result.code === null;
   }
   process.stdout.write(`${JSON.stringify(result)}\n`);

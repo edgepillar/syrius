@@ -171,7 +171,11 @@ class FrontendTests(unittest.TestCase):
     def receipt(self, **changes):
         value = dict(schema=1, ok=True, scope='owned_devtools_frontend', attached=True,
             headless=True, browserExit=0, outputComplete=True, forced=False, code=None,
-            outputBytes=0, outputSha256='0' * 64)
+            outputBytes=0, outputSha256='0' * 64, phase='browser_exited',
+            observations=dict.fromkeys(debug.FRONTEND_FLAGS, False))
+        value['observations'].update(dict.fromkeys(debug.FRONTEND_COUNTS, 0))
+        value['observations'].update(documentReady=True, devtoolsTitle=True,
+            frontendGetVmMatched=True, serviceSocketSeen=True, getVmRequests=1, getVmReplies=1)
         value.update(changes)
         return value
 
@@ -198,6 +202,18 @@ class FrontendTests(unittest.TestCase):
         self.assertEqual(str(raised.exception), 'BROWSER_REFUSED')
         self.assertEqual(worker.result['code'], 'BROWSER_REFUSED')
         self.assertEqual(len(worker.original.stdin.getvalue().splitlines()), 2)
+
+    def test_frontend_positive_bit_cannot_override_missing_or_malformed_observations(self):
+        changes = [dict(phase='page_navigated'), dict(phase='private-phase')]
+        for key, value in (('getVmReplies', 0), ('getVmRequests', True),
+                           ('documentReady', False), ('held', True), ('otherSockets', 'private')):
+            observations = self.receipt()['observations']
+            observations[key] = value
+            changes.append(dict(observations=observations))
+        for change in changes:
+            worker, tool = self.worker(self.receipt(**change))
+            with self.subTest(change=change), self.assertRaises(debug.ProcessRefused):
+                worker.attach(tool, 1234)
 
 
 class ProbeStartupTests(unittest.TestCase):

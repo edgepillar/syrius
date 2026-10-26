@@ -55,6 +55,12 @@ FRONTEND_CODES = frozenset(('SOCKET_REPLACED', 'REQUEST_REFUSED', 'VM_REFUSED',
     'BROWSER_REFUSED', 'BROWSER_TIMEOUT', 'FRONTEND_REFUSED', 'FRONTEND_UNCONFIRMED',
     'BROWSER_EXIT_UNCONFIRMED', 'FRONTEND_EXIT_UNCONFIRMED'))
 CODES |= FRONTEND_CODES
+FRONTEND_PHASES = frozenset(('new', 'admitted', 'browser_started', 'browser_socket_bound',
+    'page_navigated', 'vm_matched', 'ui_ready', 'close_requested', 'browser_exited'))
+FRONTEND_FLAGS = ('pageLoaded', 'documentReady', 'devtoolsTitle', 'webglIssue', 'wasmIssue',
+    'frontendGetVmMatched', 'frontendSocketClosed', 'held', 'serviceSocketSeen')
+FRONTEND_COUNTS = ('runtimeExceptions', 'networkFailures', 'workerTargets',
+    'getVmRequests', 'getVmReplies', 'otherSockets')
 
 
 def need(value, code):
@@ -293,7 +299,8 @@ class Frontend:
                 continue
             value = json.loads(raw)
             fields = {'schema', 'ok', 'scope', 'attached', 'headless', 'browserExit',
-                      'outputComplete', 'forced', 'code', 'outputBytes', 'outputSha256'}
+                      'outputComplete', 'forced', 'code', 'outputBytes', 'outputSha256',
+                      'phase', 'observations'}
             need(type(value) is dict and set(value) == fields and type(value['schema']) is int and value['schema'] == 1
                  and value['scope'] == 'owned_devtools_frontend'
                  and all(type(value[name]) is bool for name in
@@ -301,12 +308,23 @@ class Frontend:
                  and type(value['outputBytes']) is int and 0 <= value['outputBytes'] <= 1024**2
                  and bounded.safe_digest(value['outputSha256'])
                  and (value['browserExit'] is None or type(value['browserExit']) is int)
-                 and (value['code'] is None or value['code'] in CODES), 'FRONTEND_REFUSED')
+                 and (value['code'] is None or value['code'] in CODES)
+                 and value['phase'] in FRONTEND_PHASES, 'FRONTEND_REFUSED')
+            observations = value['observations']
+            need(type(observations) is dict and set(observations) == set(FRONTEND_FLAGS + FRONTEND_COUNTS)
+                 and all(type(observations[key]) is bool for key in FRONTEND_FLAGS)
+                 and all(type(observations[key]) is int and 0 <= observations[key] <= 1000
+                         for key in FRONTEND_COUNTS), 'FRONTEND_REFUSED')
             self.result = value
             if value['code'] is not None:
                 raise ProcessRefused(value['code'])
             need(value['ok'] and value['attached'] and value['headless']
                  and value['outputComplete'] and value['browserExit'] == 0 and not value['forced'],
+                 'FRONTEND_UNCONFIRMED')
+            need(value['phase'] == 'browser_exited' and not observations['held']
+                 and all(observations[key] for key in ('documentReady', 'devtoolsTitle',
+                         'frontendGetVmMatched', 'serviceSocketSeen'))
+                 and observations['getVmRequests'] >= observations['getVmReplies'] >= 1,
                  'FRONTEND_UNCONFIRMED')
             need(self.original.wait(timeout=15) == 0 and self.lines.finish(), 'FRONTEND_EXIT_UNCONFIRMED')
             return

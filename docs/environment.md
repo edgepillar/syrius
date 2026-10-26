@@ -2961,3 +2961,42 @@ ordinary-close acknowledgements. Frontend code retains its unchanged eight
 hosted cases. Static Python/frontend gates now precede Flutter setup to avoid
 SDK allocation when those gates fail. Analysis still runs independently after
 successful SDK/dependency setup; native execution requires all earlier gates.
+
+### Verified native breakpoint, reload and restart; frontend remains open
+
+Source `2f57967ec07e9edf6e2e00fe911fb804fc403fe7`, tree
+`d258e6dd81c901a859ad519f3ba2f562a3c191d9`, run `40266663441`, attempt one,
+job `121390457623`, passes 36 Windows controller and eight frontend cases.
+Static cases execute before SDK setup. Dart analysis of the client and harness
+entry exits zero with no errors, warnings or infos, complete empty output and
+no overflow. The nine new infos are resolved for these two inputs; the earlier
+application-wide informational backlog retains its own scope.
+
+The original ordinary app starts within the owned job. Its VM PID and single
+root isolate match. The actual source breakpoint is hit and resumed, returning
+counter one. Hot reload succeeds with the same isolate and counter two; hot
+restart succeeds with a new isolate and counter one. The original typed probe
+then closes with exit zero and complete output. These are real Windows runtime
+facts, not results inferred from the in-memory protocol cases.
+
+The real frontend process exits one with `FRONTEND_UNCONFIRMED`. Its browser
+is force-closed; ordinary app/tool close is not reached. Parent forced cleanup
+remains negative, and the zero bootstrap exit is not positive shutdown proof.
+The earlier frontend notice lacks the intermediate request/page observations,
+so neither a missing VM exchange nor premature page readiness is asserted as
+the cause. The original finite manifest remains separately uploaded.
+
+The candidate records only fixed frontend phases, original service-socket
+presence, correlated getVM request/reply counts, other-socket/worker counts and
+page/runtime booleans. Console messages, addresses, IDs and page text remain
+private. After a verified frontend VM reply, page readiness may be observed
+within a bounded read-only interval; availability, a title or another socket
+still cannot establish attachment. Close frames retain their actual closed
+state. The receiver refuses contradictory, malformed or incomplete observations
+even when a frontend's positive bit is set.
+
+All 37 Python and nine frontend cases pass locally in memory; native frontend
+execution for the new observations is pending. Application, harness and typed
+Dart client sources remain unchanged from the preceding native attempt. The
+remaining complete-debug, full-wallet, checkpoint, seed and visual gates stay
+open, with every earlier failure preserved.
