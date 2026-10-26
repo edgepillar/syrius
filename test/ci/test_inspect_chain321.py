@@ -31,6 +31,62 @@ def manifest():
 
 
 class InspectionTests(unittest.TestCase):
+    @staticmethod
+    def wallet_stop_report():
+        report = InspectionTests.corrected_manifest()
+        report.update(run_id="40319698922", wallet_tour_requested=True, native_stack_diagnostic=True,
+            native_stack_scope="all_originals", native_shutdown_order=list(inspect.ROLES),
+            native_shutdown_mode="coordinated_requests_then_wait", runtime_phase="advancing_frontier",
+            c_compiler=dict(target="x86_64-w64-mingw32", version="15.2.0", cgo_enabled=True),
+            observations=dict(chain=321, genesis_hash="d"*64, first_height=1, last_height=2,
+                first_timestamp=1739923200, last_timestamp=1792957080, samples=11,
+                cross_transport_hash_equal=True), error_codes=["WALLET_TOUR_FAILED", "STOP_UNKNOWN"])
+        report["checks"].update(assets=True, preflight=True, started=True, production=True)
+        fixture = client_fixture.pending()
+        fixture.update(phase="restored", all_seven_test_bodies_unchanged=True,
+            original_restored=True, test_exit=0, test_output_complete=True, test_forced=False)
+        report["upstream_client_fixture"] = fixture
+        codes = ["NODE_DATA_LOCK_RELEASE_REQUESTED", "NODE_P2P_STOP_REQUESTED",
+                 "NODE_SIGNAL_RECEIVED", "NODE_STOP_REQUESTED"]
+        report["node_exits"] = [dict(exit_code=0, output_complete=True, forced=False,
+            stack_role=role, node_diagnostics=list(codes), private_log_projection=dict(status="READ"))
+            for role in inspect.ROLES]
+        report["node_exits"][-1]["node_diagnostics"].append("NODE_HTTP_STOPPED")
+        report["node_exits"][1].update(exit_code=1, forced=True, stop_code="WAIT_TIMEOUT",
+            stack_probe=dict(status="CAPTURED", bytes=123456, sha256="b"*64,
+                frames=["WAIT_GROUP", "PROTOCOL_STOP", "NODE_STOP"],
+                protocol_workers=dict(status="CAPTURED", count=4,
+                    items=[dict(kind="SYNCER", state="CHAN_RECEIVE", package="protocol/downloader",
+                        source_path_sha256="c"*64, line=line) for line in range(100,104)])))
+        return report
+
+    def test_wallet_stop_notice_keeps_source_client_workers_and_all_original_exits(self):
+        report = self.wallet_stop_report()
+        value = inspect.project(report, "native", "a"*40, 40319698922,
+            inspect.UPSTREAM_NODE_SHA, expected_patched=True)
+        value.update(archive_sha256="e"*64, manifest_sha256="f"*64)
+        self.assertLessEqual(len(json.dumps(value, sort_keys=True, separators=(",", ":")).encode()),3800)
+        self.assertEqual(value["error_codes"], ["WALLET_TOUR_FAILED", "STOP_UNKNOWN"])
+        self.assertFalse(value["artifact_reported_success"])
+        self.assertEqual(len(value["node_exits"]),5)
+        for original, selected in zip(report["node_exits"], value["node_exits"]):
+            self.assertEqual([value["node_diagnostics_catalog"][index]
+                              for index in selected["diagnostic_indices"]],original["node_diagnostics"])
+            for key in ("exit_code", "output_complete", "forced", "stack_role"):
+                self.assertEqual(selected[key],original[key])
+        self.assertEqual(len(value["node_diagnostics_catalog"]),5)
+        self.assertTrue(value["upstream_client_fixture"]["original_restored"])
+        self.assertEqual(value["native_stack_probe"]["role"],"pillar2")
+        self.assertEqual(value["native_stack_probe"]["protocol_workers"]["count"],4)
+        self.assertEqual(len(value["native_stack_probe"]["protocol_workers"]["items"]),2)
+
+    def test_shared_stop_milestones_still_reject_a_private_category_in_any_original(self):
+        report = self.wallet_stop_report()
+        report["node_exits"][-1]["node_diagnostics"].append("/fixture/private")
+        with self.assertRaises(inspect.Refused):
+            inspect.project(report, "native", "a"*40, 40319698922,
+                inspect.UPSTREAM_NODE_SHA, expected_patched=True)
+
     def test_wallet_client_fixture_must_restore_before_assets_can_be_admitted(self):
         report = self.corrected_manifest()
         report['wallet_tour_requested'] = True

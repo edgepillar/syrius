@@ -421,6 +421,18 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA, *, expected_p
         result["native_stack_scope"] = stack_scope
     if stack_scope == "all_originals":
         result.update(native_stack_probe_count=stack_count, native_stack_probe=first_stack)
+        # The five nodes repeat stop milestones. Share the validated labels
+        # so client-restoration and worker details still fit the notice.
+        catalog = []
+        for item in projected_exits:
+            codes = item.pop("node_diagnostics")
+            indices = []
+            for code in codes:
+                if code not in catalog:
+                    catalog.append(code)
+                indices.append(catalog.index(code))
+            item["diagnostic_indices"] = indices
+        result["node_diagnostics_catalog"] = catalog
         # Native reports have no Docker resources or host relay. Omit their
         # empty fields so the bounded worker sites fit the complete notice.
         for key in ("created_count", "started_count", "direct_rpc_ready", "loopback_relay",
@@ -466,11 +478,13 @@ def main():
         PHASE = "download_" + backend
         location = client.read(API + "/actions/artifacts/" + str(item["id"]) + "/zip", redirect=True)
         raw = client.read(location, authenticated=False, cap=MAX_ARCHIVE)
-        PHASE = "parse_" + backend
+        PHASE = "unpack_" + backend
         report, manifest_sha = unpack(raw, item["digest"][7:], item["size_in_bytes"])
+        PHASE = "projection_" + backend
         summary = project(report, backend, head, run_id, expected_node,
                           expected_patched=expected_choice == "lab-fix")
         summary.update(archive_sha256=sha(raw), manifest_sha256=manifest_sha)
+        PHASE = "notice_" + backend
         encoded = json.dumps(summary, sort_keys=True, separators=(",", ":"))
         # Actions annotations truncate long messages. Refuse rather than
         # emit a partial JSON result that a reader could mistake for complete.

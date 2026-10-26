@@ -71,6 +71,39 @@ cd ../..
 Local follow-up qualification reuses the existing cache with `--offline` for
 the vendored restoration. The lockfiles and analyzer rules remain unchanged.
 
+### Complete hosted Windows inventory
+
+At `08fdf0ab62e8258c1e9efe8b1e334c1bc3a54fc4`, tree
+`7b17a14bb7928845ab0714e5f2b44563824b39f2`,
+[run 40325850769](https://github.com/edgepillar/syrius/actions/runs/40325850769),
+attempt one, inventory job `121584678066` succeeds. All nineteen fields are
+known, including explicit absences. The native query exits zero normally in
+2.656 seconds with 932 complete bytes, all six ordered phases, three Visual
+Studio details and one valid JSON frame. No query is forced or truncated;
+source and tree checks pass before and after observation.
+
+| Tool or setting | Observed version or state | Provisioning origin |
+| --- | --- | --- |
+| Windows x64 | 10.0.26100 | GitHub-hosted runner image |
+| Git / Git Bash | 2.56.0 / 5.3.15 | Runner image |
+| Native desktop workload | 18.11.12315.225 | Runner image's Visual Studio installation |
+| MSVC | 14.51.36231 | Same Visual Studio installation |
+| CMake | 4.4.4 | Runner image |
+| Windows SDK | 10.0.26100.0 | Runner image; installed registry and include directories |
+| Flutter / Dart | 3.47.7 / 3.13.5 | Pinned stable tag via the workflow's Flutter setup action/cache |
+| Python | 3.12.10 | Runner image |
+| Pillow | Absent | Installation remains pending |
+| Node | 22.23.4 | Runner image |
+| Chrome / Edge | 156.0.8078.48 / 155.0.4283.62 | Runner image |
+| Docker client / daemon | 29.7.2 / 29.7.2 | Runner image |
+| Docker Desktop | Absent | Installation remains pending |
+| Developer Mode | Enabled | Existing runner registry setting; no elevation requested |
+
+This completes P01's inventory requirement. It records what the fresh runner
+provides and what is missing. P03's installation reconciliation, the separate
+Linux Docker route and full wallet acceptance retain their own requirements.
+The earlier incomplete inventories and their original failures are preserved.
+
 ## Local checks
 
 | Check | Observed result |
@@ -3644,3 +3677,35 @@ The candidate adds the required list option, matching the documented
 It does not turn an unknown field into a positive result; actual workload
 observation on the new source is still required. No deadline or source gate
 is relaxed, and the original unknown-field outcome remains preserved.
+
+### Bound retained wallet-stop notices without losing node milestones
+
+Run `40325850769` at `08fdf0ab62e8` fails its independent retained-manifest
+inspection at `parse_native`; that broad phase does not identify its precise
+substep. A complete synthetic report combining restored client evidence,
+five original exits, advancing-chain observations and worker details exceeds
+the existing notice limit before compaction. The candidate shares validated
+node milestone labels in `node_diagnostics_catalog`; each node's ordered
+`diagnostic_indices` reconstructs its exact original labels. Original exits,
+forced/output facts, role bindings, client restoration and worker sites remain
+present. Validation still examines every original category before sharing it.
+
+All forty memory-only inspector cases pass. The complete five-node synthetic
+wallet-stop notice is 3776 bytes including archive and manifest digests,
+within the unchanged 3800-byte bound. Separate unpack, projection and notice
+phases identify any next refusal. The original report is not available
+locally, so the exact cause and corrected actual inspection remain pending;
+no node, build or wallet is repeated by this inspector.
+
+### Reconcile the two completed Windows wire-admission corrections
+
+Retained native run `40226727980` at `64b269f8cfdf`, attempt one, job
+`121269562394`, and its independent archive inspection verify advancing
+matching HTTP/WS chain-321 observations and five complete unforced zero
+exits. Its `tools/devnet/lab/socket_transport.py` bytes are identical to the
+current `08fdf0ab62e8` file, SHA-256
+`48b869148eb38f6fb29b30ba9e1a184adad051bb5a808a1ae18ee35e3757ea3d`.
+This completes the actual wire-admission follow-up in X193/X196. Their
+injected status/precedence cases remain separately scoped; no individual
+error branch is declared observed from the successful chain result, and
+earlier negative attempts retain their original outcomes.
