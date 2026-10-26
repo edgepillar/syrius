@@ -89,6 +89,7 @@ HOSTED_INVENTORY_PROFILE_ENV = frozenset((
 # Read installed versions only. Paths and PowerShell diagnostics remain private.
 WINDOWS_INVENTORY = r"""
 $ErrorActionPreference = 'Stop'
+$ProgressPreference = 'SilentlyContinue'
 $result = @{}
 function Mark-Inventory($value) {
   [Console]::Out.WriteLine('SYRIUS_INVENTORY_STAGE:' + $value)
@@ -158,7 +159,8 @@ try {
   $result['developer_mode'] = @{status=$state; version=$null; scope='registry'}
 } catch {}
 Mark-Inventory 'complete'
-$result | ConvertTo-Json -Compress -Depth 3
+[Console]::Out.WriteLine('SYRIUS_INVENTORY_JSON:' + ($result | ConvertTo-Json -Compress -Depth 3))
+[Console]::Out.Flush()
 """
 NATIVE_INVENTORY_STAGES = ('entry', 'visual_studio', 'windows_sdk', 'browsers',
                            'developer_mode', 'complete')
@@ -341,11 +343,12 @@ def inventory_projection(values):
 
 def native_inventory_command(powershell):
     encoded = base64.b64encode(WINDOWS_INVENTORY.encode('utf-16-le')).decode('ascii')
-    return [str(powershell), '-NoLogo', '-NoProfile', '-NonInteractive', '-EncodedCommand', encoded]
+    return [str(powershell), '-NoLogo', '-NoProfile', '-NonInteractive', '-OutputFormat', 'Text',
+            '-EncodedCommand', encoded]
 
 
 def native_inventory_reply(output):
-    markers, details, content, valid = [], [], [], True
+    markers, details, frames, valid, unframed = [], [], [], True, 0
     for line in clean_text(output).splitlines():
         if line.startswith('SYRIUS_INVENTORY_STAGE:'):
             stage = line.partition(':')[2]
@@ -360,15 +363,18 @@ def native_inventory_reply(output):
                 markers.append(stage)
             else:
                 valid = False
+        elif line.startswith('SYRIUS_INVENTORY_JSON:'):
+            frames.append(line.partition(':')[2])
         elif line.strip():
-            content.append(line)
+            unframed += 1
     try:
-        values = json.loads('\n'.join(content))
+        values = json.loads(frames[0]) if len(frames) == 1 else None
     except (ValueError, UnicodeError):
         values = None
-    complete = valid and tuple(markers) == NATIVE_INVENTORY_STAGES and type(values) is dict
+    complete = (valid and unframed == 0 and tuple(markers) == NATIVE_INVENTORY_STAGES
+                and type(values) is dict)
     receipt = dict(milestones=markers, details=details, protocol_valid=valid, json_observed=type(values) is dict,
-                   complete=complete)
+                   frame_count=len(frames), unframed_lines=unframed, complete=complete)
     return values if complete else None, receipt
 
 

@@ -59,10 +59,22 @@ class InventoryOnlyTests(unittest.TestCase):
         stages = list(baseline.NATIVE_INVENTORY_STAGES)
         stages[2:2] = baseline.NATIVE_INVENTORY_DETAILS
         lines = ['SYRIUS_INVENTORY_STAGE:' + stage for stage in stages]
-        parsed, receipt = baseline.native_inventory_reply(('\n'.join(lines) + '\n' + json.dumps(values)).encode())
+        parsed, receipt = baseline.native_inventory_reply(('\n'.join(lines) + '\nSYRIUS_INVENTORY_JSON:' + json.dumps(values)).encode())
         self.assertEqual(parsed, values)
         self.assertTrue(receipt['complete'])
         self.assertEqual(receipt['details'], list(baseline.NATIVE_INVENTORY_DETAILS))
+        self.assertEqual(receipt['frame_count'], 1)
+        self.assertEqual(receipt['unframed_lines'], 0)
+
+    def test_unframed_or_duplicate_json_cannot_qualify_native_tool_discovery(self):
+        prefix = '\n'.join('SYRIUS_INVENTORY_STAGE:' + stage for stage in baseline.NATIVE_INVENTORY_STAGES)
+        for suffix in ('{}', 'SYRIUS_INVENTORY_JSON:{}\nsynthetic-private-diagnostic',
+                       'SYRIUS_INVENTORY_JSON:{}\nSYRIUS_INVENTORY_JSON:{}'):
+            with self.subTest(bytes=len(suffix)):
+                values, receipt = baseline.native_inventory_reply((prefix+'\n'+suffix).encode())
+                self.assertIsNone(values)
+                self.assertFalse(receipt['complete'])
+                self.assertNotIn('synthetic-private-diagnostic', json.dumps(receipt))
 
     def test_partial_duplicate_unknown_and_private_output_never_complete_a_query(self):
         for raw in (b'', b'SYRIUS_INVENTORY_STAGE:entry\n',

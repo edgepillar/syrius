@@ -3479,3 +3479,35 @@ for a wallet or SDK command. The Windows setup API's behaviour in the private
 SDK profile is a hypothesis, not a proven timeout cause. The same thirty-second
 bound and strict source/complete-query gates remain. Six focused in-memory
 cases pass, including scope refusal before launch and credential exclusion.
+
+### Native inventory exits normally; explicit JSON framing remains pending
+
+Run `40313052065`, attempt one, at
+`043d0844003f41c57620898c194ddf29b0930739`, tree
+`9f380bca7410898b6951bbf11ad9a3b8e6243b6b`, inventory job `121538722922`,
+completes the native query in 25.234 seconds with normal original exit zero,
+1424 complete bytes and no forced termination. All six top-level phases and
+all three Visual Studio details are observed. The decoder does not observe a
+JSON object, so native fields remain unknown and the inventory stays failed.
+No exact cause for that combined output is claimed from the finite receipt.
+
+The next candidate writes exactly one prefixed JSON line directly through
+Console output, requests text output and suppresses progress. It records only
+frame/unframed-line counts and accepts native values only with one valid frame,
+no unframed output, complete ordered markers and normal original command
+success. Unexpected or duplicate records remain rejected. All seven focused
+in-memory cases pass, including unframed, private and duplicate data refusal.
+The fresh-hosted read-only scope and thirty-second bound remain unchanged.
+
+### Original lab command failure precedes the wallet callback
+
+Wallet job `121538722511` in the same run has 432 controller cases, three
+platform skips and no failures/errors. All eight Dart cases and both owned
+startup probes pass; selected analysis has zero diagnostics. The node build
+passes, then the lab controller reports `COMMAND_FAILED` before asset creation,
+preflight, node startup or any wallet callback. No reparse observation or new
+wallet process is established by this attempt. The finite manifest is retained
+for the existing read-only chain-321 inspector; no exact failed command is
+claimed until that original manifest is inspected. Earlier node/runtime
+failures remain separate negative attempts. The new dispatch selects inventory
+and retained-manifest inspection only, repeating no Go build, node or wallet.
