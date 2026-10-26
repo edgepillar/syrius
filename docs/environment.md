@@ -4102,3 +4102,38 @@ captures remain historical source-scoped evidence. A new full Windows
 baseline is required after the focused gate passes; no prior application
 success is rebound to this candidate. Full native entry, send, seed, motion
 and all 94 visual matches remain pending.
+
+
+### Startup recipe after an unsettled first observation
+
+At source `f024e78bf777d9b16d9e4a81c295ef092c9bf79d`, run
+`40367360833` attempt one, job `121728581279`, passes all 57 selected
+Dart cases, four Node byte controls, 466 Python cases with three platform
+skips and selected analysis with zero errors, warnings and infos. All fourteen
+asset phases complete; all seven original Go bodies pass with production
+source restored. Five original lab nodes stop normally with complete zero
+exits. The actual wallet still fails during onboarding: `welcome_import` is
+absent and the last phase is `startup-before-initialization`. No page is
+visited or captured. Entry exits one with 881 complete bytes, SHA-256
+`fbbaed04b3f8a960079d464bc42bf38893000b2a850f6eeedd2e7c1316b5dd29`.
+Application cleanup exits zero; a remaining VCTIP helper retains forced and
+required-actor cleanup. Overall wallet acceptance stays failed.
+
+The first recipe observation can arrive before the original startup receipt
+settles. Previously the skip decision was made only from that first phase;
+a later startup-before-initialization phase was then ignored while waiting
+for Welcome. The candidate always enters the existing bounded startup wait.
+It sends the fixed Space action only with the authenticated enabled hint
+and the startup-before-initialization phase. Initialization already started
+or a natural Welcome handoff needs no key. Four actor regressions cover
+unsettled observations with absent or present controls, natural handoff,
+and permanent uncertainty that retires without input or follow-up. All
+previous cases and production limits remain; the next exact gate is 61.
+This closes a source-level race; the original run does not expose its first
+phase, so the race is not declared the sole observed runtime cause.
+
+Fresh application qualification remains source-bound to `f024e78bf777` in
+run `40368833678`: the full Windows baseline is observed in progress and
+the ordinary-entry job `121733765522` is green. Detailed receipts, retained
+artifacts and new captures remain unqualified. The driver-only candidate
+does not change application code again or rebind older baseline results.

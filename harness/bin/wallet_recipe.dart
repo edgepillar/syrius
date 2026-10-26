@@ -197,12 +197,15 @@ class WalletRecipe {
   }) async {
     if (!reveal) {
       return _until(
-        (Map<String, dynamic> view) =>
-            _control(view, key)?['enabled'] == true ||
-            key == 'launch_skip_hint' &&
-                <String>{
-                  'startup-initialization-started', 'welcome',
-                }.contains(view['entryPhase']),
+        (Map<String, dynamic> view) {
+          final bool enabled = _control(view, key)?['enabled'] == true;
+          if (key != 'launch_skip_hint') return enabled;
+          return view['entryPhase'] == 'startup-before-initialization' &&
+                  enabled ||
+              <String>{
+                'startup-initialization-started', 'welcome',
+              }.contains(view['entryPhase']);
+        },
         waitingFor: key,
       );
     }
@@ -291,9 +294,9 @@ class WalletRecipe {
         start['transitionPending'] != false) {
       _refuse('wallet-recipe-empty-profile-required');
     }
-    if (start['entryPhase'] == 'startup-before-initialization') {
-      await _act('launch_skip_hint');
-    }
+    // The first observation may precede the original startup receipt. Wait
+    // for its authenticated hint or a natural handoff before Welcome.
+    await _act('launch_skip_hint');
     await _act('welcome_import');
     await _act('import_words_${words.length}');
     await _act('import_seed_field', value: words.join(' '));

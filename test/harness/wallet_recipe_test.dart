@@ -21,6 +21,8 @@ class _WalletUi {
   String? entryPhase;
   bool naturalStartup = false;
   bool startupObserved = false;
+  int unsettledStartupObservations = 0;
+  bool retainUnsettledControls = false;
   String? selectedNode;
   int signing = 1;
   int saved = 1;
@@ -153,6 +155,14 @@ class _WalletUi {
     commands.add(Map<String, Object?>.of(command));
     final Object? key = command['key'];
     if (command['action'] == 'observe') {
+      if (unsettledStartupObservations > 0) {
+        unsettledStartupObservations--;
+        return <String, dynamic>{
+          ...observation(),
+          'entryPhase': 'unknown',
+          if (!retainUnsettledControls) 'controls': <Map<String, dynamic>>[],
+        };
+      }
       if (phase == 'startup' && naturalStartup) {
         if (startupObserved) phase = 'welcome';
         startupObserved = true;
@@ -265,6 +275,55 @@ void main() {
       (Map<String, Object?> row) => row['action'] == 'key',
     ), isFalse);
     expect(natural.opens, 1);
+  });
+
+  for (final bool retainControls in <bool>[false, true]) {
+    test('an unsettled first entry waits for startup $retainControls', () async {
+      final _WalletUi ui = _WalletUi()
+        ..phase = 'startup'
+        ..unsettledStartupObservations = 2
+        ..retainUnsettledControls = retainControls;
+      await _import(ui.driver());
+      final List<Map<String, Object?>> skips = ui.commands.where(
+        (Map<String, Object?> row) => row['key'] == 'launch_skip_hint',
+      ).toList();
+      expect(skips, hasLength(1));
+      expect(skips.single['action'], 'key');
+      expect(ui.commands.take(3).every(
+        (Map<String, Object?> row) => row['action'] == 'observe',
+      ), isTrue);
+      expect(ui.taps.first, 'welcome_import');
+      expect(ui.opens, 1);
+    });
+  }
+
+  test('an unsettled entry can hand off naturally without a key', () async {
+    final _WalletUi ui = _WalletUi()
+      ..phase = 'startup'
+      ..unsettledStartupObservations = 2
+      ..naturalStartup = true;
+    await _import(ui.driver());
+    expect(ui.commands.any(
+      (Map<String, Object?> row) => row['action'] == 'key',
+    ), isFalse);
+    expect(ui.taps.first, 'welcome_import');
+    expect(ui.opens, 1);
+  });
+
+  test('an entry that never settles retires without input', () async {
+    final _WalletUi ui = _WalletUi()
+      ..phase = 'startup'
+      ..unsettledStartupObservations = 300;
+    final WalletRecipe driver = ui.driver();
+    await expectLater(_import(driver), throwsA(isA<WalletRecipeRefused>()));
+    expect(ui.commands.every(
+      (Map<String, Object?> row) => row['action'] == 'observe',
+    ), isTrue);
+    expect(ui.taps, isEmpty);
+    expect(ui.typed, isEmpty);
+    final int original = ui.commands.length;
+    await expectLater(_import(driver), throwsA(isA<WalletRecipeRefused>()));
+    expect(ui.commands, hasLength(original));
   });
 
   for (final bool disabled in <bool>[false, true]) {
