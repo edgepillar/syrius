@@ -3029,3 +3029,43 @@ count before closure. Current application, harness and typed Dart sources
 remain unchanged. The prior attempt is still failed with forced cleanup;
 normal application/tool closure was not reached, and complete P07 remains
 pending fresh native execution.
+
+### Complete debug actions and original exits; two owned helpers remain
+
+Source `68134d201468d396f7761ba5cef18a4edab308c7`, tree
+`4a2d0cb5b14275ecf6783f0b3de2b5c7fa841046`, run `40270096163`, attempt one,
+job `121400837937`, passes 38 Windows controller/ten frontend cases and clean
+Dart analysis. All 24 runtime checks pass: original application/VM binding,
+breakpoint, reload/state preservation, restart/state reset, actual frontend
+SDK-origin/getVM binding and ready document, normal browser exit zero,
+typed-probe exit zero, ordinary-close acknowledgement, original application
+exit zero, tool/bootstrap exit zero, complete output and unchanged source.
+The frontend still has a nonmatching presentation title; its actual origin
+and VM reply now establish the required identity correctly.
+
+The owned job reports two active members after those original actors exit.
+Closing it is forced cleanup, so the attempt remains failed with
+`debug_loop_qualified` false. The remaining images have not been observed;
+no Dart, browser or compiler role is guessed. The pinned Flutter
+[DevTools launcher](https://github.com/flutter/flutter/blob/3.47.7/packages/flutter_tools/lib/src/devtools_launcher.dart)
+starts a separate process and terminates it on close, but this source fact
+does not identify the two remaining processes in this particular run.
+
+The candidate queries only its original private Windows job, with at most
+64 returned members. Each temporary read-only process handle must still
+belong to that job before its image is examined. Only fixed executable-name
+classes and counts are reported, without process IDs or paths. A changed,
+partial or failed query remains UNKNOWN. This observation cannot change a
+failed result or prevent the existing owned cleanup. It does not alter the
+application, typed client, frontend policy or any shutdown grace period.
+
+The provisioning ledger also reconciles the retained Windows inventory at
+source `1d663dc58b9ce6f2abdbe66898e85e2ef850a8c0`: Windows 10.0.26100 x64,
+Git 2.56.0, CMake 4.4.4, Flutter 3.47.7, Dart 3.13.5, Python 3.12.10,
+Node 22.23.4 and Docker client 29.7.2. The original scoped Git Bash/Pillow
+queries did not locate those tools, and optional Windows inventory timeout
+leaves several fields unknown. Later builds and actual browser/debug actions
+have their own source-bound proof. P01/P03 remain open for complete inventory
+and installation reconciliation; they no longer describe the hosted Windows
+environment as unavailable. No original test or artifact transport is repeated
+for this documentation correction.

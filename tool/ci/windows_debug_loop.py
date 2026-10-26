@@ -518,6 +518,11 @@ def main(arguments=None):
             report['probe_exit'] = probe.original.returncode
             report['probe_failure'] = probe.failure
         if job is not None:
+            try:
+                report['owned_job_images_before_close'] = job.remaining_images()
+            except Exception:
+                report['owned_job_images_before_close'] = dict(
+                    status='UNKNOWN', listed=0, observed=0, counts={})
             job.close()
             report['forced_cleanup'] |= job.forced
             report['owned_job_active_at_close'] = job.active_at_close

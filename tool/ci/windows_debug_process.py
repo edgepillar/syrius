@@ -41,6 +41,20 @@ class _Accounting(ctypes.Structure):
                 ("faults", "total", "active", "terminated")]
 
 
+class _Members(ctypes.Structure):
+    _fields_ = [("assigned", wintypes.DWORD), ("listed", wintypes.DWORD),
+                ("identifiers", ctypes.c_size_t * 64)]
+
+
+IMAGE_NAMES = {
+    'dart.exe': 'DART', 'chrome.exe': 'CHROME', 'msedge.exe': 'EDGE',
+    'msbuild.exe': 'MSBUILD', 'vctip.exe': 'VCTIP', 'csc.exe': 'COMPILER',
+    'vbc.exe': 'COMPILER', 'cmake.exe': 'CMAKE', 'ninja.exe': 'NINJA',
+    'conhost.exe': 'CONHOST', 'node.exe': 'NODE', 'python.exe': 'PYTHON',
+    'syrius.exe': 'APPLICATION', 'crashpad_handler.exe': 'CRASHPAD',
+}
+
+
 class WindowsJob:
     def __init__(self):
         if os.name != "nt":
@@ -125,6 +139,36 @@ class WindowsJob:
         if not self.kernel.QueryInformationJobObject(self.handle, 1, ctypes.byref(value), ctypes.sizeof(value), None):
             raise ProcessRefused("JOB_REFUSED")
         return value.active
+
+    def remaining_images(self):
+        """Read only this job's current members; expose fixed image classes."""
+        result = dict(status='UNKNOWN', listed=0, observed=0, counts={})
+        values = _Members()
+        if (self.handle is None or not self.kernel.QueryInformationJobObject(
+                self.handle, 3, ctypes.byref(values), ctypes.sizeof(values), None)
+                or values.assigned != values.listed or values.listed > 64):
+            return result
+        result['listed'] = int(values.listed)
+        for identifier in values.identifiers[:values.listed]:
+            handle = self.kernel.OpenProcess(0x1000 | 0x100000, False, identifier)
+            if not handle:
+                return result
+            try:
+                member = wintypes.BOOL()
+                if (not self.kernel.IsProcessInJob(handle, self.handle, ctypes.byref(member))
+                        or not member.value):
+                    return result
+                size = wintypes.DWORD(32768)
+                image = ctypes.create_unicode_buffer(size.value)
+                if not self.kernel.QueryFullProcessImageNameW(handle, 0, image, ctypes.byref(size)):
+                    return result
+                label = IMAGE_NAMES.get(Path(image.value).name.lower(), 'OTHER')
+                result['counts'][label] = result['counts'].get(label, 0) + 1
+                result['observed'] += 1
+            finally:
+                self.kernel.CloseHandle(handle)
+        result['status'] = 'OBSERVED'
+        return result
 
     def close(self):
         if self.handle is not None:
