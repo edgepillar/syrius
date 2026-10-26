@@ -9,6 +9,7 @@ while being mapped; that behavior remains outside the map/export lookup proof.
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import json
 import os
@@ -86,10 +87,16 @@ EXTRA_ENV = frozenset((
 WINDOWS_INVENTORY = r"""
 $ErrorActionPreference = 'Stop'
 $result = @{}
+function Mark-Inventory($value) {
+  [Console]::Out.WriteLine('SYRIUS_INVENTORY_STAGE:' + $value)
+  [Console]::Out.Flush()
+}
+Mark-Inventory 'entry'
 function Put-Version($key, $value, $scope) {
   $status = if ([string]::IsNullOrWhiteSpace($value)) { 'unknown' } else { 'present' }
   $result[$key] = @{ status = $status; version = $value; scope = $scope }
 }
+Mark-Inventory 'visual_studio'
 $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
 try {
   if (Test-Path -LiteralPath $vswhere -PathType Leaf) {
@@ -108,6 +115,7 @@ try {
     }
   }
 } catch {}
+Mark-Inventory 'windows_sdk'
 try {
   $kits = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows Kits\Installed Roots').KitsRoot10
   $sdk = Get-ChildItem -LiteralPath (Join-Path $kits 'Include') -Directory |
@@ -115,6 +123,7 @@ try {
     Sort-Object { [version]$_.Name } -Descending | Select-Object -First 1
   Put-Version 'windows_sdk' $sdk.Name 'registry'
 } catch {}
+Mark-Inventory 'browsers'
 foreach ($item in @(
   @('chrome', 'Google\Chrome\Application\chrome.exe'),
   @('edge', 'Microsoft\Edge\Application\msedge.exe'),
@@ -135,14 +144,18 @@ foreach ($item in @(
     }
   } catch {}
 }
+Mark-Inventory 'developer_mode'
 try {
   $mode = Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock'
   $state = if ($mode.AllowDevelopmentWithoutDevLicense -eq 1) { 'enabled' }
     elseif ($mode.AllowDevelopmentWithoutDevLicense -eq 0) { 'disabled' } else { 'unknown' }
   $result['developer_mode'] = @{status=$state; version=$null; scope='registry'}
 } catch {}
+Mark-Inventory 'complete'
 $result | ConvertTo-Json -Compress -Depth 3
 """
+NATIVE_INVENTORY_STAGES = ('entry', 'visual_studio', 'windows_sdk', 'browsers',
+                           'developer_mode', 'complete')
 
 
 class BaselineFailure(Exception):
@@ -319,6 +332,32 @@ def inventory_projection(values):
     return result
 
 
+def native_inventory_command(powershell):
+    encoded = base64.b64encode(WINDOWS_INVENTORY.encode('utf-16-le')).decode('ascii')
+    return [str(powershell), '-NoLogo', '-NoProfile', '-NonInteractive', '-EncodedCommand', encoded]
+
+
+def native_inventory_reply(output):
+    markers, content, valid = [], [], True
+    for line in clean_text(output).splitlines():
+        if line.startswith('SYRIUS_INVENTORY_STAGE:'):
+            stage = line.partition(':')[2]
+            if len(markers) < len(NATIVE_INVENTORY_STAGES) and stage == NATIVE_INVENTORY_STAGES[len(markers)]:
+                markers.append(stage)
+            else:
+                valid = False
+        elif line.strip():
+            content.append(line)
+    try:
+        values = json.loads('\n'.join(content))
+    except (ValueError, UnicodeError):
+        values = None
+    complete = valid and tuple(markers) == NATIVE_INVENTORY_STAGES and type(values) is dict
+    receipt = dict(milestones=markers, protocol_valid=valid, json_observed=type(values) is dict,
+                   complete=complete)
+    return values if complete else None, receipt
+
+
 def find_git_bash(git):
     """Git can be exposed from cmd, bin or mingw64/bin on a hosted runner."""
     if git:
@@ -450,6 +489,7 @@ class Baseline:
         self.checks = dict.fromkeys(CHECKS, False)
         self.errors = []
         self.inventory_only = False
+        self.native_probe = None
         self.deadline = time.monotonic() + 90 * 60
 
     def command(self, name, arguments, *, required=True, cwd=None, timeout=30,
@@ -490,18 +530,14 @@ class Baseline:
             "status": "present" if architecture else "unknown", "version": architecture, "scope": "platform",
         }
         powershell = Path(self.parent["SYSTEMROOT"]) / "System32/WindowsPowerShell/v1.0/powershell.exe"
-        native = self.command("inventory_windows", [
-            str(powershell), "-NoLogo", "-NoProfile", "-NonInteractive", "-Command", WINDOWS_INVENTORY,
-        ], required=False)
-        if native.success:
-            try:
-                values = json.loads(native.output)
-                for key in ("msvc", "native_desktop_workload", "windows_sdk", "chrome", "edge",
-                            "docker_desktop", "developer_mode"):
-                    if isinstance(values.get(key), dict):
-                        self.inventory[key] = values[key]
-            except (ValueError, UnicodeError, AttributeError):
-                pass
+        native = self.command('inventory_windows', native_inventory_command(powershell), required=False)
+        values, progress = native_inventory_reply(native.output)
+        self.native_probe = dict(command=native.public(), **progress)
+        if native.success and values is not None:
+            for key in ('msvc', 'native_desktop_workload', 'windows_sdk', 'chrome', 'edge',
+                        'docker_desktop', 'developer_mode'):
+                if isinstance(values.get(key), dict):
+                    self.inventory[key] = values[key]
         def found(name):
             return shutil.which(name, path=self.parent.get("PATH", ""))
         for key, executable, arguments, expression in (
@@ -656,7 +692,7 @@ class Baseline:
                 inventory=all(item['status'] != 'unknown' for key, item in inventory.items() if key != 'docker_daemon'))
             return dict(schema=1, source_sha=self.source if valid_sha(self.source) else None,
                 source_tree=self.tree if valid_sha(self.tree) else None, run=run,
-                scope='github_hosted_windows_inventory', inventory=inventory,
+                scope='github_hosted_windows_inventory', inventory=inventory, native_probe=self.native_probe,
                 stages={name: self.stages[name] for name in sorted(self.stages) if name in STAGES},
                 checks=checks, success=all(checks.values()) and not self.errors,
                 error_codes=[code for code in self.errors if code in CODES],

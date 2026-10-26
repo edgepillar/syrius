@@ -3410,3 +3410,26 @@ Original failures and forced exits remain negative even if inspection itself
 succeeds. Three in-memory cases cover the original timeout projection,
 source/exit/refusal integrity and local admission before any API client.
 The workflow has sixteen inputs; P01/P03 remain open.
+
+Inspection job `121529697686` in run `40310356121` at
+`ce3beb9c29cfb161f50e723f04a274d0508e1313` succeeds and verifies the
+original `40308403749` inventory archive
+`47b1e7616e49f2c4e2406818c7da2bca610ae2e6765a87787ff48ecb7bfa825a`
+and manifest
+`fe07a649df59a5bc02ee7c568e5b63517f96f90d1fd0647fdd3a7aa527a894db`.
+The original native query reports `COMMAND_TIMEOUT`, 30.031 seconds, zero
+output bytes, complete output and forced exit one. Git Bash exits zero
+normally; the Pillow metadata query exits three normally with zero bytes.
+The original incomplete inventory remains negative. No exact inner native
+query site was recorded, and no local archive is transported.
+
+The next inventory candidate passes the exact script through PowerShell's
+encoded-command argument, with UTF-16LE bytes verified in memory. It emits
+flushed fixed markers for entry, Visual Studio, SDK, browsers, Developer Mode
+and completion. Only a complete ordered marker sequence plus a JSON object
+and normal original command success may populate native inventory fields.
+Finite progress and the original command outcome are included in the notice;
+raw output and paths remain private. The thirty-second bound, source checks
+and incomplete-inventory requirement are unchanged. Five focused in-memory
+cases pass, including refusal of partial, duplicate, unknown or private output.
+Actual encoded-query execution and P01/P03 qualification remain pending.

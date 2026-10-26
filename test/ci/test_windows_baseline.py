@@ -1,6 +1,7 @@
 """Finite parser and ownership regressions. No native or network execution."""
 
 import importlib.util
+import base64
 import io
 import json
 import os
@@ -29,6 +30,27 @@ PRIVATE = "private-value-not-for-public-output"
 
 
 class InventoryOnlyTests(unittest.TestCase):
+    def test_native_query_uses_exact_encoded_script_and_complete_ordered_progress(self):
+        command = baseline.native_inventory_command('synthetic-powershell')
+        self.assertEqual(command[-2], '-EncodedCommand')
+        self.assertEqual(base64.b64decode(command[-1]).decode('utf-16-le'), baseline.WINDOWS_INVENTORY)
+        values = dict(chrome=dict(status='present', version='1.2.3.4', scope='standard_install'))
+        lines = ['SYRIUS_INVENTORY_STAGE:' + stage for stage in baseline.NATIVE_INVENTORY_STAGES]
+        parsed, receipt = baseline.native_inventory_reply(('\n'.join(lines) + '\n' + json.dumps(values)).encode())
+        self.assertEqual(parsed, values)
+        self.assertTrue(receipt['complete'])
+
+    def test_partial_duplicate_unknown_and_private_output_never_complete_a_query(self):
+        for raw in (b'', b'SYRIUS_INVENTORY_STAGE:entry\n',
+                    b'SYRIUS_INVENTORY_STAGE:entry\nSYRIUS_INVENTORY_STAGE:entry\n{}',
+                    b'SYRIUS_INVENTORY_STAGE:private\n{}',
+                    b'synthetic-private-output\n'):
+            with self.subTest(bytes=len(raw)):
+                values, receipt = baseline.native_inventory_reply(raw)
+                self.assertIsNone(values)
+                self.assertFalse(receipt['complete'])
+                self.assertNotIn('synthetic-private-output', json.dumps(receipt))
+
     def test_git_bash_discovery_handles_cmd_bin_and_mingw_layouts(self):
         expected = Path('/fixture/Git/bin/bash.exe')
         for offered in ('/fixture/Git/cmd/git.exe', '/fixture/Git/bin/git.exe',
