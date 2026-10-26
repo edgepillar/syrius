@@ -1,5 +1,6 @@
 """Finite CI test facts without tracebacks, private paths or exception text."""
 
+import contextlib
 import io
 import json
 from pathlib import Path
@@ -19,8 +20,10 @@ def load_suite():
 
 
 def execute_suite(suite, *, scope='debug_controller_inmemory_cases',
-                  title='Windows debug controller tests'):
-    result = unittest.TextTestRunner(stream=io.StringIO()).run(suite)
+                  title='Windows debug controller tests', wallet_node_scope=False):
+    # Test bodies can print as well as the unittest runner. Keep both private.
+    with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+        result = unittest.TextTestRunner(stream=io.StringIO()).run(suite)
     names = []
     for case, _ in result.failures + result.errors:
         identifier = case.id()
@@ -29,7 +32,11 @@ def execute_suite(suite, *, scope='debug_controller_inmemory_cases',
     value = dict(scope=scope, tests=result.testsRun,
                  failures=len(result.failures), errors=len(result.errors),
                  skips=len(result.skipped), failed_cases=names[:8],
-                 success=result.wasSuccessful(), native_executions=0)
+                 success=result.wasSuccessful())
+    if wallet_node_scope:
+        value.update(native_wallet_executions=0, native_node_executions=0)
+    else:
+        value['native_executions'] = 0
     public = json.dumps(value, sort_keys=True, separators=(',', ':'))
     print(public)
     if len(public.encode()) <= 3800:

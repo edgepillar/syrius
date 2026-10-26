@@ -3269,3 +3269,26 @@ that value to the admission step; the runtime step already uses step context.
 This is a workflow-source correction, with no repeated native execution or
 artifact transport. The YAML parser result established syntax only, and did
 not establish GitHub context validity or wallet qualification.
+
+Run `40297424584`, attempt one, job `121486780811`, at
+`409cda9f74b6e253941ee331f01747ddbef34cae`, tree
+`f193d9b5c53b8e892553714232ac3db11f71f805`, passes hosted admission,
+thirteen policy cases, all six Dart tour regressions and zero-diagnostic
+selected analysis. The existing full controller-suite step fails. Node build,
+lab startup and native wallet execution are skipped, and the failure is retained.
+
+An existing entry-artifact contract still delimits its job at the later devnet
+job. Since the intervening debug job was added, its file-list assertion also
+consumes that following job. A read-only local execution reproduces the actual
+assertion failure, and the corrected next-job boundary passes the same case.
+It still requires exactly the original five explicit entry artifacts. This
+reproduced defect does not by itself prove that no other hosted case failed.
+
+The wallet lane now runs every controller test before SDK allocation through
+the finite reporter. Failed test IDs and counts are exposed without traceback,
+test-body stdout or stderr. The full suite's filesystem/socket mechanics remain
+restricted to fresh hosted Windows, with an explicit local refusal before test
+discovery. Fourteen policy cases, fifty debug cases and the existing read-only
+contract pass locally. The full suite has not been rerun locally. A new hosted
+result is required before any native wallet result is claimed; no unchanged
+native node, wallet execution or artifact transport has been repeated.

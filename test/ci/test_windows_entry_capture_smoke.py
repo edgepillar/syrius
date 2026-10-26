@@ -7,6 +7,7 @@ import importlib.util
 import io
 import json
 from pathlib import Path, PureWindowsPath
+import re
 import struct
 import subprocess
 import sys
@@ -1135,7 +1136,8 @@ class AdmissionArtifactTests(unittest.TestCase):
         self.assertIn("entry_capture_smoke:", workflow)
         option = workflow.split("      entry_capture_smoke:\n", 1)[1].split("\npermissions:", 1)[0]
         self.assertIn("default: false", option)
-        lane = workflow.split("  windows-entry-capture:\n", 1)[1].split("\n  devnet-tests:", 1)[0]
+        tail = workflow.split("  windows-entry-capture:\n", 1)[1]
+        lane = re.split(r"\n  [A-Za-z0-9_-]+:\n", tail, maxsplit=1)[0]
         self.assertIn("if: inputs.entry_capture_smoke", lane)
         self.assertIn("runs-on: windows-latest", lane)
         self.assertNotIn("needs:", lane)

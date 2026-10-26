@@ -373,9 +373,11 @@ jobs:
           SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
         run: python -B -m tool.ci.hosted_chain321 --backend ${{ matrix.backend }} --admission-only
 
-      - name: Test wallet ownership and finite tour rules in memory
+      - name: Test all isolated controllers before SDK allocation
         if: inputs.windows_wallet_tour
-        run: python -B -m tool.ci.run_wallet_tour_tests
+        env:
+          SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
+        run: python -B -m tool.ci.run_wallet_tour_tests --all-controllers
 
       - name: Set up Flutter for the owned wallet tour
         if: inputs.windows_wallet_tour
@@ -417,6 +419,7 @@ jobs:
           cache: false
 
       - name: Test hosted lab isolation and original-handle rules
+        if: ${{ !inputs.windows_wallet_tour }}
         run: python -B -m unittest discover -s test/ci -v
 
       - name: Build, observe and stop the original isolated lab

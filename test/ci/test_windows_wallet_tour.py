@@ -5,11 +5,13 @@ import copy
 import io
 import json
 from pathlib import Path
+import sys
 import unittest
 from unittest import mock
 
 from tool.ci import hosted_chain321 as lab
 from tool.ci import windows_wallet_tour as tour
+from tool.ci import run_wallet_tour_tests
 
 
 def receipt():
@@ -19,6 +21,16 @@ def receipt():
 
 
 class AdmissionTests(unittest.TestCase):
+    def test_full_controller_fixtures_refuse_local_execution_before_discovery(self):
+        with mock.patch.object(sys, 'argv', ['policy-tests', '--all-controllers']), \
+                mock.patch.dict(tour.os.environ, {}, clear=True), \
+                mock.patch.object(unittest.TestLoader, 'discover') as discover, \
+                contextlib.redirect_stdout(io.StringIO()) as output:
+            result = run_wallet_tour_tests.main()
+        self.assertEqual(result, 1)
+        discover.assert_not_called()
+        self.assertEqual(json.loads(output.getvalue())['code'], 'ENVIRONMENT_REFUSED')
+
     def test_hosted_native_admission_is_checked_before_storage_allocation(self):
         parent = dict(GITHUB_ACTIONS='true', GITHUB_EVENT_NAME='workflow_dispatch',
             SYRIUS_HOSTED_RUNNER='github-hosted', GITHUB_REPOSITORY='edgepillar/syrius',
