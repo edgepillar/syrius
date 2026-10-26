@@ -76,6 +76,14 @@ on:
         description: Exact source SHA required for the retained inventory inspection
         type: string
         default: ''
+      inspect_windows_run:
+        description: Inspect original baseline and entry receipts without repeating runtime
+        type: string
+        default: ''
+      inspect_windows_head:
+        description: Exact source SHA required for the retained Windows qualification
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -507,6 +515,36 @@ jobs:
           INVENTORY_INSPECT_RUN: ${{ inputs.inspect_windows_inventory_run }}
           INVENTORY_INSPECT_HEAD: ${{ inputs.inspect_windows_inventory_head }}
         run: python -B -m tool.ci.inspect_windows_inventory
+
+  inspect-windows-qualification:
+    if: inputs.inspect_windows_run != ''
+    name: Inspect retained Windows qualification
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Checkout the dispatched inspector source
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            tool/ci
+            test/ci
+            tools/devnet/lab
+
+      - name: Test retained Windows receipt controls in memory
+        run: python -B -m unittest discover -s test/ci -p test_inspect_windows_qualification.py -v
+
+      - name: Inspect original baseline log and entry archive in memory
+        timeout-minutes: 3
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
+          WINDOWS_INSPECT_RUN: ${{ inputs.inspect_windows_run }}
+          WINDOWS_INSPECT_HEAD: ${{ inputs.inspect_windows_head }}
+        run: python -B -m tool.ci.inspect_windows_qualification
 
   inspect-chain321:
     if: inputs.inspect_chain321_run != ''

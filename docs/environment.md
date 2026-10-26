@@ -4137,3 +4137,35 @@ run `40368833678`: the full Windows baseline is observed in progress and
 the ordinary-entry job `121733765522` is green. Detailed receipts, retained
 artifacts and new captures remain unqualified. The driver-only candidate
 does not change application code again or rebind older baseline results.
+
+
+### Retained full Windows qualification without another runtime
+
+Application source `f024e78bf777d9b16d9e4a81c295ef092c9bf79d` finishes
+run `40368833678` attempt one with baseline job `121733764905` and entry
+job `121733765522` green. This metadata is distinct from independent
+inspection of their detailed original receipts and new captures. The
+`efdb2deac022dd018d40968d7671e2345571d12d` wallet run `40372647485`
+passes its mandatory 61-case Dart gate step and enters the original
+isolated lab; its native result remains pending at this observation.
+
+The new `inspect_windows_run` and `inspect_windows_head` inputs select
+only a default-off Ubuntu read-only lane. It requires a completed original
+run, exact source and attempt, two original job identities and unchanged
+baseline/entry producer files. The original baseline job log is capped at
+4 MiB and inspected in memory for exactly one timestamped producer frame.
+Only fixed original checks, analysis/test counts, command exits, timings,
+correspondence digests and finite errors reach its notice. The original
+entry artifact is fetched once with its API size and SHA-256, checked for
+an exact manifest/capture member set and verified against its recorded
+PNG hashes, dimensions, CRCs and pixel payloads. Explicit caps apply to
+archive and member bytes. No files are extracted or written by the reader.
+
+The two scopes retain separate notices. A successful inspection can
+preserve a failed original result; it never heals a nonzero or forced
+exit, starts an application or node, or establishes a visual match.
+Thirteen selected memory-only controls pass, including negative original
+outcomes, source/process substitutions, missing stages, duplicate frames,
+invalid archive members/pixels and local admission before networking.
+The existing inventory reader is unchanged. Local SDK/native executions,
+artifact downloads and filesystem scratch remain zero.
