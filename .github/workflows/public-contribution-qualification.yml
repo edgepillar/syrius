@@ -28,6 +28,10 @@ on:
         description: Exercise an owned ordinary Windows debug process without a wallet
         type: boolean
         default: false
+      windows_wallet_tour:
+        description: Run a fresh Windows wallet tour against the corrected owned chain-321 lab
+        type: boolean
+        default: false
       chain321_lab:
         description: Qualify isolated chain-321 production on Linux Docker and native Windows
         type: boolean
@@ -343,23 +347,59 @@ jobs:
     uses: ./.github/workflows/blockchain-integration-tests.yml
 
   chain321-lab:
-    if: inputs.chain321_lab
-    name: Chain-321 ${{ matrix.backend }} lab
+    if: inputs.chain321_lab || inputs.windows_wallet_tour
+    name: ${{ inputs.windows_wallet_tour && 'Windows wallet tour with owned chain-321' || format('Chain-321 {0} lab', matrix.backend) }}
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 40
+    timeout-minutes: ${{ inputs.windows_wallet_tour && 65 || 40 }}
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJSON(inputs.chain321_backend == 'native' && '[{"runner":"windows-latest","backend":"native"}]' || inputs.chain321_backend == 'docker' && '[{"runner":"ubuntu-24.04","backend":"docker"}]' || '[{"runner":"ubuntu-24.04","backend":"docker"},{"runner":"windows-latest","backend":"native"}]') }}
+        include: ${{ fromJSON((inputs.windows_wallet_tour || inputs.chain321_backend == 'native') && '[{"runner":"windows-latest","backend":"native"}]' || inputs.chain321_backend == 'docker' && '[{"runner":"ubuntu-24.04","backend":"docker"}]' || '[{"runner":"ubuntu-24.04","backend":"docker"},{"runner":"windows-latest","backend":"native"}]') }}
     env:
       GIT_CONFIG_COUNT: "1"
       GIT_CONFIG_KEY_0: core.autocrlf
       GIT_CONFIG_VALUE_0: "false"
+      SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
+      SYRIUS_NATIVE_STACK_DIAGNOSTIC: ${{ matrix.backend == 'native' && inputs.native_stack_diagnostic }}
+      SYRIUS_LAB_NODE_SOURCE: ${{ inputs.chain321_node_source }}
+      SYRIUS_WINDOWS_WALLET_TOUR: ${{ inputs.windows_wallet_tour }}
     steps:
       - name: Checkout the dispatched wallet source
         uses: actions/checkout@v6
         with:
           persist-credentials: false
+
+      - name: Validate hosted lab admission before SDK allocation
+        run: python -B -m tool.ci.hosted_chain321 --backend ${{ matrix.backend }} --admission-only
+
+      - name: Test wallet ownership and finite tour rules in memory
+        if: inputs.windows_wallet_tour
+        run: python -B -m tool.ci.run_wallet_tour_tests
+
+      - name: Set up Flutter for the owned wallet tour
+        if: inputs.windows_wallet_tour
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Restore locked wallet dependencies
+        if: inputs.windows_wallet_tour
+        shell: bash
+        run: |
+          flutter pub get --enforce-lockfile
+          git diff --exit-code -- pubspec.lock analysis_options.yaml
+          dart run tool/generate_git_metadata.dart
+          flutter config --enable-windows-desktop
+
+      - name: Analyze the gated wallet entry and tour
+        if: inputs.windows_wallet_tour
+        run: python -B tool/ci/windows_debug_loop.py --analyze
+
+      - name: Test page coverage and refusal before wallet build
+        if: inputs.windows_wallet_tour
+        run: python -B tool/ci/run_harness_tour_tests.py
 
       - name: Checkout the exact lab node source
         uses: actions/checkout@v6
@@ -395,6 +435,17 @@ jobs:
           include-hidden-files: true
           if-no-files-found: error
           path: .harness/ci-chain321/manifest.json
+
+      # Wallet material and page pixels stay in the private fresh runner.
+      - name: Retain only the finite wallet tour manifest
+        if: always() && inputs.windows_wallet_tour && hashFiles('.harness/ci-wallet-tour/manifest.json') != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: wallet-tour-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          compression-level: 0
+          include-hidden-files: true
+          if-no-files-found: error
+          path: .harness/ci-wallet-tour/manifest.json
 
   inspect-chain321:
     if: inputs.inspect_chain321_run != ''

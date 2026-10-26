@@ -1,8 +1,9 @@
 """Source-bound chain-321 labs in fresh hosted runners, without public RPC.
 
 Linux uses five owned Docker containers. Windows uses five original native
-process handles and the same genesis. This is lab execution evidence; importing
-this module starts nothing and no wallet, signer or seed recipe is admitted.
+process handles and the same genesis. Importing this module starts nothing.
+The default node-only lane admits no wallet or seed. An explicit native-wallet
+opt-in runs a fresh public-fixture profile while those original nodes are owned.
 """
 
 from __future__ import annotations
@@ -62,7 +63,7 @@ CODES = frozenset((
     "CONFIG_REFUSED", "PORT_CONFLICT", "NODE_EXITED", "RPC_UNAVAILABLE",
     "RPC_REFUSED", "GENESIS_MISMATCH", "PRODUCTION_UNPROVEN",
     "DOCKER_REFUSED", "RESOURCE_CHANGED", "INTERNAL_ERROR",
-    "NODE_REGRESSIONS_REFUSED",
+    "NODE_REGRESSIONS_REFUSED", "WALLET_TOUR_FAILED",
 )) | wire_policy.CODES
 NODE_DIAGNOSTICS = frozenset((
     "NODE_CLI_REFUSED", "NODE_STORAGE_REFUSED", "NODE_PANIC",
@@ -91,6 +92,27 @@ def digest(data):
 def selected_node_source(value):
     need(type(value) is str and value in NODE_SOURCES, "SOURCE_REFUSED")
     return NODE_SOURCES[value]
+
+
+def wallet_tour_requested(backend, parent):
+    value = parent.get('SYRIUS_WINDOWS_WALLET_TOUR', 'false')
+    need(value in ('true', 'false'), 'ENVIRONMENT_REFUSED')
+    if value == 'true':
+        need(backend == 'native' and parent.get('SYRIUS_LAB_NODE_SOURCE') == 'lab-fix'
+             and parent.get('SYRIUS_NATIVE_STACK_DIAGNOSTIC') == 'true', 'ENVIRONMENT_REFUSED')
+    return value == 'true'
+
+
+def require_environment(backend, parent):
+    need(parent.get("GITHUB_ACTIONS") == "true" and parent.get("GITHUB_EVENT_NAME") == "workflow_dispatch"
+         and parent.get("SYRIUS_HOSTED_RUNNER") == "github-hosted"
+         and parent.get("GITHUB_REPOSITORY") in ("edgepillar/syrius", "sol-znn/syrius")
+         and re.fullmatch("[a-f0-9]{40}", parent.get("GITHUB_SHA", "")), "ENVIRONMENT_REFUSED")
+    need((backend == "docker" and sys.platform == "linux")
+         or (backend == "native" and sys.platform == "win32"), "ENVIRONMENT_REFUSED")
+    need(parent.get("SYRIUS_NATIVE_STACK_DIAGNOSTIC") in (None, "true", "false"), "ENVIRONMENT_REFUSED")
+    selected_node_source(parent.get("SYRIUS_LAB_NODE_SOURCE", "original"))
+    return wallet_tour_requested(backend, parent)
 
 
 def shutdown_test_result(raw):
@@ -952,13 +974,7 @@ def observe(runtime, root, report=None):
 def run(backend):
     repo = Path(__file__).absolute().parents[2]
     parent = os.environ
-    need(parent.get("GITHUB_ACTIONS") == "true" and parent.get("GITHUB_EVENT_NAME") == "workflow_dispatch"
-         and parent.get("SYRIUS_HOSTED_RUNNER") == "github-hosted"
-         and parent.get("GITHUB_REPOSITORY") in ("edgepillar/syrius", "sol-znn/syrius")
-         and re.fullmatch("[a-f0-9]{40}", parent.get("GITHUB_SHA", "")), "ENVIRONMENT_REFUSED")
-    need((backend == "docker" and sys.platform == "linux")
-         or (backend == "native" and sys.platform == "win32"), "ENVIRONMENT_REFUSED")
-    need(parent.get("SYRIUS_NATIVE_STACK_DIAGNOSTIC") in (None, "true", "false"), "ENVIRONMENT_REFUSED")
+    wallet_tour = require_environment(backend, parent)
     stack_debug = backend == "native" and parent.get("SYRIUS_NATIVE_STACK_DIAGNOSTIC") == "true"
     node_source = parent.get("SYRIUS_LAB_NODE_SOURCE", "original")
     node_sha, node_tree = selected_node_source(node_source)
@@ -977,6 +993,7 @@ def run(backend):
         success=False, error_codes=[], checks=dict.fromkeys(
             ("source", "build", "assets", "preflight", "started", "production", "stopped", "inputs_unchanged"), False),
         wallet_qualified=False, seed_admitted=False, visual_matches=0,
+        wallet_tour_requested=wallet_tour, wallet_tour=None,
         native_stack_diagnostic=stack_debug,
         native_stack_scope="all_originals" if stack_debug else "disabled",
         min_free_bytes=FIXTURE_MIN_FREE, work_cap_bytes=MAX_WORK,
@@ -1067,6 +1084,18 @@ def run(backend):
         report["checks"]["started"] = True
         report["observations"] = observe(runtime, root, report)
         report["checks"]["production"] = True
+        if wallet_tour:
+            from tool.ci import windows_wallet_tour
+            report['runtime_phase'] = 'wallet_tour'
+            outcome = windows_wallet_tour.run(repo, parent, runtime, root,
+                report['observations'], lambda: observe(runtime, root))
+            manifest = regular(repo / '.harness/ci-wallet-tour/manifest.json')
+            report['wallet_tour'] = dict(success=outcome['success'],
+                phase=outcome['phase'], checks=outcome['checks'], errors=outcome['errors'],
+                captured_pages=len(outcome['captures']),
+                visited_pages=0 if outcome['tour'] is None else len(outcome['tour']['visited']),
+                manifest_sha256=digest(manifest))
+            need(outcome['success'], 'WALLET_TOUR_FAILED')
         need(all(digest(regular(configs[role] / "config.json")) == pins[role]
                  and regular(configs[role] / "genesis.json") == genesis for role in ROLES)
              and all(digest(regular(path)) == expected for path, expected in keyfile_pins.items())
@@ -1098,20 +1127,45 @@ def run(backend):
             report["direct_rpc_ready"] = runtime.direct_rpc_ready
             report["loopback_relay"] = None if runtime.relay is None else runtime.relay.summary()
         report["success"] = all(report["checks"].values()) and not report["error_codes"]
+        report['wallet_tour_qualified'] = bool(wallet_tour and report['success']
+            and report['wallet_tour'] is not None and report['wallet_tour']['success'])
         output = repo / ".harness/ci-chain321"
         output.mkdir(mode=0o700)
         with (output / "manifest.json").open("x", encoding="ascii") as stream:
             json.dump(report, stream, sort_keys=True, separators=(",", ":"))
             stream.write("\n")
         print(json.dumps(report, sort_keys=True))
+        if wallet_tour:
+            summary = dict(schema=1, scope='owned_wallet_tour_lab',
+                source_sha=report['application_sha'], source_tree=report.get('application_tree'),
+                run_id=report['run_id'], run_attempt=report['attempt'],
+                success=report['success'], wallet_tour_qualified=report['wallet_tour_qualified'],
+                wallet_qualified=False, seed_admitted=False, checks=report['checks'],
+                errors=report['error_codes'], node_sha=report['node_sha'],
+                compiled_node_tree=report.get('compiled_node_tree'),
+                nodes=[dict(role=role, exit_code=original.receipt.get('exit_code'),
+                    output_complete=original.receipt.get('output_complete'),
+                    forced=original.receipt.get('forced'))
+                    for role, original in zip(ROLES, runtime.originals)
+                    if type(original.receipt) is dict] if isinstance(runtime, Native) else [])
+            text = json.dumps(summary, sort_keys=True, separators=(',', ':'))
+            print(text)
+            if len(text.encode()) <= 3800:
+                print('::notice title=Windows wallet tour lab::' + text)
     return 0 if report["success"] else 1
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Isolated hosted chain-321 lab")
     parser.add_argument("--backend", required=True, choices=("docker", "native"))
+    parser.add_argument('--admission-only', action='store_true')
     options = parser.parse_args()
     try:
+        if options.admission_only:
+            requested = require_environment(options.backend, os.environ)
+            print(json.dumps(dict(schema=1, scope='hosted_lab_admission',
+                success=True, wallet_tour_requested=requested)))
+            sys.exit(0)
         sys.exit(run(options.backend))
     except (Exception, KeyboardInterrupt) as error:
         print(json.dumps(dict(schema=1, success=False,

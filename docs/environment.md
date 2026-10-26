@@ -3221,3 +3221,42 @@ native wallet executions. P08 still needs its owned lab/controller connection
 and actual full onboarding/tour; P09, checkpoints, seeds and visual acceptance
 remain open. The main ledger is now 69/80 done, or 86.25 percent; this is a row
 count rather than weighted effort or final acceptance.
+
+### Owned chain-321 wallet tour candidate
+
+The manual workflow adds `windows_wallet_tour`, false by default. Select only
+that lane, with `chain321_backend=native`, `chain321_node_source=lab-fix` and
+`native_stack_diagnostic=true`. Admission rejects other wallet/lab combinations
+before SDK allocation. The existing five-node controller retains its source,
+compiler, red/green producer regression, seven upstream tests, genesis and
+production checks. A wallet callback runs while those original nodes are alive.
+
+The callback creates a gated SDK child in a private Windows job. The Dart entry
+uses the actual harness build and fresh-start commands, with locked dependencies
+and source metadata. It refuses existing build/profile destinations. The parent
+binds the original native app handle, executable and private harness ping, then
+revalidates advancing HTTP/WS chain-321 observations before a single stdin write
+of the explicitly committed public lab fixture. No private input is placed in
+command arguments or public output, and no uncertain write is retried.
+
+The entry imports through the wallet UI, verifies the selected loopback node and
+saved signing chain, checks onboarding logs, sizes the client to 1280 by 780 and
+runs the strict twelve-page tour. The parent validates finite page coverage and
+each private PNG, requires an ordinary-close acknowledgement and actual app exit
+zero, releases the entry's final gate and observes its actual zero exit and
+complete output. Known auxiliary teardown retains explicit nonzero receipts.
+The five original nodes must then close with their existing normal-exit gates.
+
+Only two explicit finite manifests are uploaded. Profiles, fixture/password
+input, PNG pixels, process IDs, paths and raw output remain private. Workspace
+sampling has a separate 4 GiB cap and 2 GiB free-space floor only on fresh hosted
+regression VMs; it is cooperative sampling, not an OS quota. The local 12 GiB
+scratch limit, 10 GiB floor and prior transport refusal are unchanged.
+
+All thirteen new policy cases and fifty existing debug controller cases pass
+locally without a native wallet, process, network or filesystem scratch. They
+cover opt-in admission, ownership refusal, fixture selection, complete ordered
+coverage, original exit/output requirements and failed cleanup. The workflow's
+thirteen inputs fit GitHub's documented [25-input dispatch limit](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#onworkflow_dispatchinputs).
+Actual hosted wallet execution remains pending. No send, checkpoint, seed or
+visual match is established by this candidate.
