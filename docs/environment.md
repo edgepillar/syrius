@@ -3709,3 +3709,55 @@ This completes the actual wire-admission follow-up in X193/X196. Their
 injected status/precedence cases remain separately scoped; no individual
 error branch is declared observed from the successful chain result, and
 earlier negative attempts retain their original outcomes.
+
+### SDK accounting reaches the actual owned wallet onboarding
+
+At `08fdf0ab62e8`, run `40325850769`, attempt one, Windows wallet job
+`121584678158` passes all 443 controller cases with three platform skips and
+no failures/errors, eight Dart cases, both owned startup probes and selected
+analysis with zero diagnostics and a complete normal original exit zero.
+All seven Go tests pass with their exact bodies; the original test file and
+production node tree are restored before assets.
+
+The wallet builds and starts. Original app ownership and owned chain-321
+revalidation pass before the single private-input release. All 57 storage
+samples complete; one stable, same-profile canonical SDK junction is counted
+without traversal. Peak logical bytes are 266243491 and minimum free bytes
+155037913088. No storage refusal occurs and both resource limits are unchanged.
+
+Onboarding then reports `wallet-recipe-command-refused`; no page is visited
+or captured. The app's cleanup exit is zero, the original entry exits one
+with 489 complete output bytes, and a remaining VCTIP helper requires forced
+closure. Aggregate and required-actor forced flags remain true. Every original
+node exits zero, complete and unforced. Final source/input gates are not
+reached, and the overall wallet/lab result remains failed.
+
+### Identify a refused recipe without disclosing its private exchange
+
+The server previously collapsed every recipe error to one refusal, and the
+client collapsed that reply again. The candidate preserves only enumerated
+server codes without detail payloads. A failed client command keeps the same
+terminal refusal and retires its driver, with optional immutable action,
+control and reason labels. Dynamic node-selection keys collapse to one fixed
+label. Values, endpoints, exception text and reply details are omitted.
+The CI entry independently rechecks all labels; its parent rejects extra
+fields, unknown labels and diagnostics outside the original onboarding failure.
+These labels convey no permission to repeat or continue a failed action.
+
+All seventy selected Python cases pass in memory: 41 inspector and 29 wallet
+policy cases. Four new Dart regressions cover private-data omission, dynamic
+key masking, terminal retirement and the server's original owner refusal.
+They are selected with the eight existing cases for hosted execution and
+have not run locally. The selected analyzer also includes their exact source.
+
+### Admit the producer's explicit wallet phase in retained inspection
+
+At `23d0aa546328`, read-only run `40328798543` fails at `projection_native`.
+The finer phase distinguishes this from archive unpacking and notice length.
+The producer enters `wallet_tour` before calling the wallet, but the reader's
+phase list omitted it. The candidate accepts that phase only for an explicit
+native corrected-node wallet run with verified production and restored client
+evidence. Other backends, absent wallet selection, missing client proof and
+non-producing reports stay refused. The complete synthetic stop report now
+uses this actual producer phase; corrected retained inspection remains pending.
+No inspection starts a runtime or qualifies the original failed attempt.

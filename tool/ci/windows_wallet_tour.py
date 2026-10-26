@@ -45,6 +45,28 @@ PROFILE_PARTS = {name.casefold(): name.replace(' ', '_').lower() for name in
      'Microsoft', 'VSCommon', 'VisualStudio', 'Telemetry', '.dotnet', '.nuget',
      'NuGet', 'Packages', 'Pub', 'Cache', 'Dart')}
 ALIAS_LIMIT = 16
+RECIPE_ACTIONS = frozenset(('observe', 'tap', 'type', 'scroll', 'unknown'))
+RECIPE_CONTROLS = frozenset((
+    'none', 'unknown', 'welcome_import', 'import_words_12', 'import_words_24',
+    'import_seed_field', 'import_continue', 'import_new_password',
+    'import_confirm_password', 'import_password_continue', 'node_settings_add',
+    'node_settings_endpoint', 'node_settings_endpoint_save', 'node_settings_select',
+    'node_onboarding_continue', 'node_settings_question_accept',
+    'node_settings_chain_toggle', 'node_settings_client_chain', 'node_settings_chain_save',
+    'wallet_ready_open', 'nav_settings', 'nav_dashboard', 'settings_node',
+))
+RECIPE_FAILURE_CODES = frozenset((
+    'wallet-recipe-action-refused', 'wallet-recipe-control-refused',
+    'wallet-recipe-input-refused', 'wallet-recipe-node-view-ambiguous',
+    'wallet-recipe-original-control-changed', 'wallet-recipe-original-owner-changed',
+    'wallet-recipe-original-question-changed', 'wallet-recipe-original-ready-changed',
+    'wallet-recipe-original-ready-unavailable', 'wallet-recipe-private-input-refused',
+    'wallet-recipe-question-already-used', 'wallet-recipe-question-facts-refused',
+    'wallet-recipe-question-replaced', 'wallet-recipe-question-unowned',
+    'wallet-recipe-refused', 'wallet-recipe-scroll-refused',
+    'wallet-recipe-selection-origin-refused', 'wallet-recipe-transition-held',
+    'wallet-recipe-visible-error',
+))
 
 
 class Refused(Exception):
@@ -56,6 +78,23 @@ class Refused(Exception):
 def need(value, code):
     if not value:
         raise Refused(code)
+
+
+def entry_failure(value):
+    """Keep fixed onboarding labels; reject raw reply fields before recording."""
+    need(type(value) is dict and set(value) in ({'stage', 'code'}, {'stage', 'code', 'diagnostic'})
+         and value['stage'] in ('unused_destinations', 'build', 'start', 'input', 'onboarding',
+             'signing_policy', 'onboarding_logs', 'window', 'tour', 'finish')
+         and (value['code'] is None or type(value['code']) is str
+              and re.fullmatch('wallet-recipe-[a-z-]{1,80}', value['code'])), 'ENTRY_REFUSED')
+    if 'diagnostic' in value:
+        diagnostic = value['diagnostic']
+        need(value['stage'] == 'onboarding' and value['code'] == 'wallet-recipe-command-refused'
+             and type(diagnostic) is dict and set(diagnostic) == {'action', 'control', 'reason'}
+             and all(type(item) is str for item in diagnostic.values())
+             and diagnostic['action'] in RECIPE_ACTIONS and diagnostic['control'] in RECIPE_CONTROLS
+             and diagnostic['reason'] in RECIPE_FAILURE_CODES, 'ENTRY_REFUSED')
+    return value
 
 
 def public_fixture(text):
@@ -376,14 +415,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
                     used.add('tour')
                     report['tour'] = tour_receipt(json.loads(line.partition(b':')[2]))
                 elif line.startswith(b'CI_WALLET_ERROR:'):
-                    failure = json.loads(line.partition(b':')[2])
-                    need(type(failure) is dict and set(failure) == {'stage', 'code'}
-                         and failure['stage'] in ('unused_destinations', 'build', 'start',
-                             'input', 'onboarding', 'signing_policy', 'onboarding_logs',
-                             'window', 'tour', 'finish')
-                         and (failure['code'] is None or type(failure['code']) is str
-                              and re.fullmatch('wallet-recipe-[a-z-]{1,80}', failure['code'])),
-                         'ENTRY_REFUSED')
+                    failure = entry_failure(json.loads(line.partition(b':')[2]))
                     report['entry_failure'] = failure
                     raise Refused('ENTRY_FAILED')
                 elif line in (b'CI_WALLET_READY', b'CI_WALLET_DONE', b'CI_WALLET_ERROR'):

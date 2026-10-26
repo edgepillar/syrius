@@ -1,3 +1,5 @@
+import '../wallet_recipe_failure.dart';
+
 /// Transport and clocks are supplied so offline recipes never need a wallet.
 typedef WalletRecipeSend =
     Future<Map<String, dynamic>> Function(
@@ -8,10 +10,13 @@ typedef WalletRecipeSend =
 /// A safe refusal code. Private input and transport diagnostics stay private.
 class WalletRecipeRefused implements Exception {
   /// Records only a fixed code, never a command or its response.
-  const WalletRecipeRefused(this.code);
+  const WalletRecipeRefused(this.code, {this.diagnostic});
 
   /// The stage that could not establish its required original facts.
   final String code;
+
+  /// Fixed labels retain a refused command's stage without its private data.
+  final Map<String, String>? diagnostic;
 
   @override
   String toString() => code;
@@ -79,9 +84,9 @@ class WalletRecipe {
 
   Duration get _remaining => budget - (_elapsed?.call() ?? _clock.elapsed);
 
-  Never _refuse(String code) {
+  Never _refuse(String code, {Map<String, String>? diagnostic}) {
     _retired = true;
-    throw WalletRecipeRefused(code);
+    throw WalletRecipeRefused(code, diagnostic: diagnostic);
   }
 
   Future<Map<String, dynamic>> _command(Map<String, Object?> command) async {
@@ -96,7 +101,12 @@ class WalletRecipe {
         <String, Object?>{'cmd': 'wallet-recipe', ...command},
         limit,
       ).timeout(limit);
-      if (reply['ok'] != true) _refuse('wallet-recipe-command-refused');
+      if (reply['ok'] != true) {
+        _refuse(
+          'wallet-recipe-command-refused',
+          diagnostic: walletRecipeDiagnostic(command, reply['error']),
+        );
+      }
       if (command['action'] != 'observe' && reply['acted'] != true) {
         _refuse('wallet-recipe-action-unconfirmed');
       }

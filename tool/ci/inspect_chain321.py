@@ -236,7 +236,10 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA, *, expected_p
          re.fullmatch(r"go version go[0-9]+\.[0-9]+\.[0-9]+ (?:windows|linux)/amd64", compiler)))
     phase = report.get("runtime_phase")
     need(phase in (None, "rpc_readiness", "ws_handshake", "http_genesis", "ws_genesis",
-                   "first_frontier", "advancing_frontier"))
+                   "first_frontier", "advancing_frontier")
+         or (phase == "wallet_tour" and backend == "native" and expected_patched
+             and report.get("wallet_tour_requested") is True and checks["production"]
+             and client_fixture is not None))
     node_codes = report.get("node_diagnostics", [])
     need(type(node_codes) is list and len(node_codes) <= len(NODE_DIAGNOSTICS)
          and all(code in NODE_DIAGNOSTICS for code in node_codes))

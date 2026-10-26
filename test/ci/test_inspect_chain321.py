@@ -36,7 +36,7 @@ class InspectionTests(unittest.TestCase):
         report = InspectionTests.corrected_manifest()
         report.update(run_id="40319698922", wallet_tour_requested=True, native_stack_diagnostic=True,
             native_stack_scope="all_originals", native_shutdown_order=list(inspect.ROLES),
-            native_shutdown_mode="coordinated_requests_then_wait", runtime_phase="advancing_frontier",
+            native_shutdown_mode="coordinated_requests_then_wait", runtime_phase="wallet_tour",
             c_compiler=dict(target="x86_64-w64-mingw32", version="15.2.0", cgo_enabled=True),
             observations=dict(chain=321, genesis_hash="d"*64, first_height=1, last_height=2,
                 first_timestamp=1739923200, last_timestamp=1792957080, samples=11,
@@ -79,6 +79,21 @@ class InspectionTests(unittest.TestCase):
         self.assertEqual(value["native_stack_probe"]["role"],"pillar2")
         self.assertEqual(value["native_stack_probe"]["protocol_workers"]["count"],4)
         self.assertEqual(len(value["native_stack_probe"]["protocol_workers"]["items"]),2)
+
+    def test_wallet_phase_requires_the_explicit_producing_native_client_fixture(self):
+        for change in (dict(wallet_tour_requested=False), dict(upstream_client_fixture=None),
+                       dict(backend="docker")):
+            report = self.wallet_stop_report()
+            report.update(change)
+            with self.subTest(change=change), self.assertRaises(inspect.Refused):
+                inspect.project(report, report["backend"], "a"*40,40319698922,
+                    inspect.UPSTREAM_NODE_SHA, expected_patched=True)
+        report = self.wallet_stop_report()
+        report["checks"]["production"] = False
+        report["observations"] = None
+        with self.assertRaises(inspect.Refused):
+            inspect.project(report,"native","a"*40,40319698922,
+                inspect.UPSTREAM_NODE_SHA,expected_patched=True)
 
     def test_shared_stop_milestones_still_reject_a_private_category_in_any_original(self):
         report = self.wallet_stop_report()

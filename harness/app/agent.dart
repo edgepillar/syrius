@@ -42,6 +42,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart'
     show WebsocketStatus, getChainIdentifier;
 
 import '../seed/seed_recipe.dart' show requireSeedTokenPreparation;
+import '../wallet_recipe_failure.dart' show walletRecipeFailureCodes;
 import 'capture_frame.dart';
 import 'capture_protocol.dart' show CaptureRefused;
 import 'client_window.dart';
@@ -1387,6 +1388,12 @@ class HarnessAgent {
       // Generic type/tree replies can contain private field data. Recipe
       // commands return only the fact that their original action completed.
       return <String, Object?>{'acted': true};
+    } on HarnessError catch (error) {
+      if (error.detail == null &&
+          walletRecipeFailureCodes.contains(error.message)) {
+        rethrow;
+      }
+      throw HarnessError('wallet-recipe-refused');
     } on Object {
       throw HarnessError('wallet-recipe-refused');
     }

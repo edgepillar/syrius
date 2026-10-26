@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import '../wallet_recipe_failure.dart' show walletRecipePublicDiagnostic;
 import 'build_output.dart';
 import 'harness.dart' as cli;
 import 'wallet_recipe.dart' show WalletRecipeRefused;
@@ -125,8 +126,11 @@ Future<void> main() async {
               RegExp(r'^wallet-recipe-[a-z-]{1,80}$').hasMatch(error.code)
           ? error.code
           : null;
+      final Map<String, String>? diagnostic = error is WalletRecipeRefused
+          ? walletRecipePublicDiagnostic(error.diagnostic)
+          : null;
       stdout.writeln('CI_WALLET_ERROR:${jsonEncode(<String, Object?>{
-        'stage': stage, 'code': code,
+        'stage': stage, 'code': code, 'diagnostic': ?diagnostic,
       })}');
     }
     exitCode = 1;
