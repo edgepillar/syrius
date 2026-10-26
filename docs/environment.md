@@ -3772,3 +3772,66 @@ contracts after changing refusal propagation. Their source is also included
 in selected analysis. No test body, expected outcome, deadline or runtime
 admission is relaxed; the complete suite runs before the native lab/wallet.
 This selection change has no new local Dart execution.
+
+### Complete recipe regression gate reaches an unsettled onboarding wait
+
+At `cee4dcb5e2bed5902859f49a181af1d873497ac8`, tree
+`461b18d7f360b75c5c1e2414388ddb777618a67a`,
+[run 40332088622](https://github.com/edgepillar/syrius/actions/runs/40332088622),
+attempt one, Windows job `121608239447` passes all 448 controller cases with
+three platform skips and zero failures/errors. All 46 Dart cases pass, with
+four loading events, no skipped/failed/error events and a successful terminal
+record. Both owned startup probes retain normal complete zero exits.
+
+Selected analysis exits zero with no errors/warnings and three
+`CAST_NULLABLE_TO_NON_NULLABLE` infos in `wallet_recipe_failure.dart`, lines
+73-75. The candidate replaces those casts with explicit string checks and
+promoted local values. Unknown or non-string labels remain refused; no rule
+is suppressed. Actual zero-info qualification on the new source is pending.
+
+The seven exact Go test bodies pass and production source is restored. The
+wallet builds/starts and its ownership, lab revalidation and single input
+release pass. All 64 storage samples complete with one verified SDK alias,
+peak 266243535 logical bytes and minimum free 154947973120 bytes. Onboarding
+then reports `wallet-recipe-stage-unsettled`; no page is visited or captured.
+The app's cleanup exit is zero, the entry exits one with 489 complete bytes,
+and a VCTIP helper is forced. All five original nodes exit zero normally.
+Overall wallet/lab acceptance and final source/input gates remain unqualified.
+
+The candidate attaches the expected fixed control and its last observed
+absent/disabled state to this terminal wait refusal. It keeps the same total
+budget, turn bounds and retired driver. No new command or retry follows the
+failure, and no raw observation, value or endpoint is published. Two new Dart
+cases cover both unavailable-control states without offering a private action;
+all 48 selected Dart cases await the next hosted run. Seventy selected Python
+cases pass locally and their fixed-label sets match Dart.
+
+Fresh app startup has a 1200 by 600 fallback, while the CI entry previously
+first requested the specified 1280 by 780 client area after onboarding. The
+candidate moves that existing verified show/resize request before keyed
+onboarding actions, after the parent has bound the original app and lab and
+released its single input envelope. The prior native geometry was not recorded,
+so this ordering correction is not declared the cause of the original wait.
+Actual onboarding at the requested client area remains pending.
+
+### Retained original pillar2 wait is now source-bound
+
+The same run's independent read-only job `121608240087` succeeds at the
+current inspector source. It verifies original run `40319698922`, attempt
+one, at `70ad939d313017c8d6694f3c95303eb0609c8e80`, archive SHA-256
+`9d41409f2d35b5827850f190b078c693f90f154cf20bc3eff7fa6f5ed28915cd`
+and manifest SHA-256
+`a340bf3d57899fe09499d8edc60587e950ca18a82a518646b7b1d97c0a1e7335`.
+The original client restoration and seven-test gate pass; pillar2 still has
+its original forced exit one and `WAIT_TIMEOUT`. Other originals exit normally.
+
+One captured `SYNCER` site is `protocol/downloader/downloader.go`, line 414.
+Its path digest and cached commit-bound blob
+`dd30f482860e3a52a44860309884940e5a719f03` identify
+`Downloader.Terminate()` waiting on its work group. This locates the outer
+wait and does not identify the inner processing goroutine or establish a
+root cause. The full source file's SHA-256 is
+`4e318cf2872f621d492fdeeb1419bb194c729febec0334e3d91e9d356c0eab9d`.
+No native runtime, source download or artifact transport is repeated locally;
+the existing cached Git response and the complete hosted projection are reused.
+Original failures remain negative and X212 stays open.

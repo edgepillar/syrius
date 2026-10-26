@@ -66,6 +66,8 @@ RECIPE_FAILURE_CODES = frozenset((
     'wallet-recipe-refused', 'wallet-recipe-scroll-refused',
     'wallet-recipe-selection-origin-refused', 'wallet-recipe-transition-held',
     'wallet-recipe-visible-error',
+    'wallet-recipe-stage-unsettled', 'wallet-recipe-control-absent',
+    'wallet-recipe-control-disabled',
 ))
 
 
@@ -89,7 +91,8 @@ def entry_failure(value):
               and re.fullmatch('wallet-recipe-[a-z-]{1,80}', value['code'])), 'ENTRY_REFUSED')
     if 'diagnostic' in value:
         diagnostic = value['diagnostic']
-        need(value['stage'] == 'onboarding' and value['code'] == 'wallet-recipe-command-refused'
+        need(value['stage'] == 'onboarding'
+             and value['code'] in ('wallet-recipe-command-refused', 'wallet-recipe-stage-unsettled')
              and type(diagnostic) is dict and set(diagnostic) == {'action', 'control', 'reason'}
              and all(type(item) is str for item in diagnostic.values())
              and diagnostic['action'] in RECIPE_ACTIONS and diagnostic['control'] in RECIPE_CONTROLS

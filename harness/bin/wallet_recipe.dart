@@ -165,13 +165,30 @@ class WalletRecipe {
   Future<Map<String, dynamic>> _until(
     bool Function(Map<String, dynamic>) ready, {
     int turns = 200,
+    String? waitingFor,
   }) async {
+    Map<String, dynamic>? last;
     for (int turn = 0; turn < turns; turn++) {
       final Map<String, dynamic> value = await _observe();
+      last = value;
       if (ready(value)) return value;
       await _tick();
     }
-    _refuse('wallet-recipe-stage-unsettled');
+    String reason = 'wallet-recipe-stage-unsettled';
+    if (waitingFor != null && last != null) {
+      final Map<String, dynamic>? control = _control(last, waitingFor);
+      if (control == null) {
+        reason = 'wallet-recipe-control-absent';
+      } else if (control['enabled'] == false) {
+        reason = 'wallet-recipe-control-disabled';
+      }
+    }
+    _refuse(
+      'wallet-recipe-stage-unsettled',
+      diagnostic: walletRecipeDiagnostic(<String, Object?>{
+        'action': 'observe', 'key': waitingFor,
+      }, reason),
+    );
   }
 
   Future<Map<String, dynamic>> _visible(
@@ -181,6 +198,7 @@ class WalletRecipe {
     if (!reveal) {
       return _until(
         (Map<String, dynamic> view) => _control(view, key)?['enabled'] == true,
+        waitingFor: key,
       );
     }
     for (final int direction in <int>[-300, 300]) {
@@ -273,6 +291,7 @@ class WalletRecipe {
       (Map<String, dynamic> view) =>
           view['nodePicker'] == true || view['readyOriginal'] == true,
       turns: 400,
+      waitingFor: 'node_settings_add',
     );
     if (picker['nodePicker'] != true ||
         picker['walletPresent'] != true ||
@@ -291,6 +310,7 @@ class WalletRecipe {
           view['walletInitCompleted'] == true &&
           view['transitionPending'] == false &&
           view['readyOriginal'] == false,
+      waitingFor: 'nav_dashboard',
     );
     await changeClientChain(requested);
     await _act('nav_dashboard');
@@ -302,6 +322,7 @@ class WalletRecipe {
           view['signingChainId'] == requested &&
           view['savedSigningChainId'] == requested &&
           view['transitionPending'] == false,
+      waitingFor: 'nav_dashboard',
     );
   }
 
@@ -317,6 +338,7 @@ class WalletRecipe {
     }
     final Map<String, dynamic> origin = await _until(
       (Map<String, dynamic> view) => view['nodePicker'] == true,
+      waitingFor: 'node_settings_add',
     );
     _policy(origin);
     if (origin['transitionPending'] != false || origin['nodeBusy'] != false) {
@@ -338,6 +360,7 @@ class WalletRecipe {
       await _until(
         (Map<String, dynamic> view) =>
             (view['nodeCatalog'] as List<dynamic>?)?.contains(node) == true,
+        waitingFor: 'node_settings_endpoint_save',
       );
     }
     if (origin['node'] == node && !onboarding) {
@@ -406,7 +429,10 @@ class WalletRecipe {
     if (origin['signingChainId'] == chain) return;
     if (origin['tab'] != 'settings') {
       await _act('nav_settings');
-      await _until((Map<String, dynamic> view) => view['tab'] == 'settings');
+      await _until(
+        (Map<String, dynamic> view) => view['tab'] == 'settings',
+        waitingFor: 'settings_node',
+      );
     }
     final Map<String, dynamic> settings = await _observe();
     if (settings['nodePicker'] != true) await _act('settings_node');
@@ -422,16 +448,19 @@ class WalletRecipe {
     if (!expanded) await _act('node_settings_chain_toggle');
     await _act('node_settings_client_chain', value: '$chain', reveal: true);
     await _act('node_settings_chain_save', reveal: true);
-    await _until((Map<String, dynamic> view) {
-      if (view['node'] != node) _refuse('wallet-recipe-original-node-changed');
-      return view['signingPolicyReady'] == true &&
-          view['signingChainId'] == chain &&
-          view['savedSigningChainId'] == chain &&
-          view['nodeConnected'] == true &&
-          view['nodeSelectionSaved'] == true &&
-          view['transitionPending'] == false &&
-          view['nodeBusy'] == false;
-    });
+    await _until(
+      (Map<String, dynamic> view) {
+        if (view['node'] != node) _refuse('wallet-recipe-original-node-changed');
+        return view['signingPolicyReady'] == true &&
+            view['signingChainId'] == chain &&
+            view['savedSigningChainId'] == chain &&
+            view['nodeConnected'] == true &&
+            view['nodeSelectionSaved'] == true &&
+            view['transitionPending'] == false &&
+            view['nodeBusy'] == false;
+      },
+      waitingFor: 'node_settings_chain_save',
+    );
     _originalSigningChain = chain;
   }
 }

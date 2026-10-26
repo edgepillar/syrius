@@ -93,6 +93,10 @@ class DiagnosticTests(unittest.TestCase):
         value = dict(legacy, diagnostic=dict(action='type', control='import_seed_field',
             reason='wallet-recipe-original-owner-changed'))
         self.assertEqual(tour.entry_failure(value), value)
+        waiting = dict(stage='onboarding', code='wallet-recipe-stage-unsettled',
+            diagnostic=dict(action='observe',control='welcome_import',
+                reason='wallet-recipe-control-absent'))
+        self.assertEqual(tour.entry_failure(waiting),waiting)
         self.assertEqual(tour.entry_failure(dict(stage='build',code=None)),dict(stage='build',code=None))
 
     def test_private_fields_dynamic_controls_and_unknown_labels_are_refused(self):

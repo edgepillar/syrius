@@ -8,6 +8,52 @@ import '../../harness/bin/wallet_recipe.dart';
 import '../../harness/wallet_recipe_failure.dart';
 
 void main() {
+  for (final bool disabled in <bool>[false, true]) {
+    test('wait labels identify the unavailable control $disabled', () async {
+      int calls = 0;
+      bool acted = false;
+      final WalletRecipe recipe = WalletRecipe(
+        wait: (Duration _) async {},
+        send: (Map<String, Object?> command, Duration timeout) async {
+          calls++;
+          acted |= command['action'] != 'observe';
+          return <String, dynamic>{
+            'ok': true, 'harnessMode': 'wallet', 'booted': true,
+            'owner': 1, 'revision': 1, 'hasError': false,
+            'walletPresent': false, 'transitionPending': false,
+            'signingPolicyReady': true,
+            'signingChainId': 1, 'savedSigningChainId': 1,
+            'controls': <Map<String, dynamic>>[
+              if (disabled)
+                <String, dynamic>{'key': 'welcome_import', 'enabled': false},
+            ],
+          };
+        },
+      );
+      Future<void> run() => recipe.importWallet(
+        chain: '321', mnemonic: List<String>.filled(12, 'synthetic').join(' '),
+        password: 'Synthetic fixture A1!',
+      );
+      WalletRecipeRefused? failure;
+      try {
+        await run();
+      } on WalletRecipeRefused catch (error) {
+        failure = error;
+      }
+      expect(failure?.code, 'wallet-recipe-stage-unsettled');
+      expect(failure?.diagnostic, <String, String>{
+        'action': 'observe', 'control': 'welcome_import',
+        'reason': disabled
+            ? 'wallet-recipe-control-disabled'
+            : 'wallet-recipe-control-absent',
+      });
+      expect(acted, isFalse);
+      final int originalCalls = calls;
+      await expectLater(run(), throwsA(isA<WalletRecipeRefused>()));
+      expect(calls, originalCalls);
+    });
+  }
+
   test('a refused field retains fixed labels without its value or reply', () {
     final Map<String, String> value = walletRecipeDiagnostic(
       <String, Object?>{

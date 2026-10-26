@@ -77,6 +77,11 @@ Future<void> main() async {
         decoded['mnemonic'] is! String || decoded['password'] is! String) {
       throw StateError('private input refused');
     }
+    // Keyed onboarding needs the same client area as the later screen tour.
+    stage = 'window';
+    await cli.run(instance, 'window', cli.Args(<String>[
+      'show', '--width', '1280', '--height', '780',
+    ]));
     stage = 'onboarding';
     await cli.importWallet(instance, cli.Args(<String>[
       '--chain', decoded['chain'] as String,
@@ -104,10 +109,6 @@ Future<void> main() async {
     if (logs['logs'] is! List || (logs['logs'] as List<dynamic>).isNotEmpty) {
       throw StateError('onboarding errors');
     }
-    stage = 'window';
-    await cli.run(instance, 'window', cli.Args(<String>[
-      'show', '--width', '1280', '--height', '780',
-    ]));
     stage = 'tour';
     await cli.tour(instance, cli.Args(<String>[]));
     stdout.writeln('CI_WALLET_DONE');

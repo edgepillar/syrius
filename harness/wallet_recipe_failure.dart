@@ -15,7 +15,7 @@ const Set<String> walletRecipeControls = <String>{
   'nav_settings', 'nav_dashboard', 'settings_node',
 };
 
-/// These server refusals carry no exception text or detail payload.
+/// Fixed server and observation refusals carry no exception text or payload.
 const Set<String> walletRecipeFailureCodes = <String>{
   'wallet-recipe-action-refused', 'wallet-recipe-control-refused',
   'wallet-recipe-input-refused', 'wallet-recipe-node-view-ambiguous',
@@ -30,6 +30,9 @@ const Set<String> walletRecipeFailureCodes = <String>{
   'wallet-recipe-refused', 'wallet-recipe-scroll-refused',
   'wallet-recipe-selection-origin-refused', 'wallet-recipe-transition-held',
   'wallet-recipe-visible-error',
+  'wallet-recipe-stage-unsettled',
+  'wallet-recipe-control-absent',
+  'wallet-recipe-control-disabled',
 };
 
 /// Values, endpoints, exception text and reply details are never projected.
@@ -62,16 +65,19 @@ Map<String, String> walletRecipeDiagnostic(
 
 /// Recheck even a typed exception before adding its labels to a CI marker.
 Map<String, String>? walletRecipePublicDiagnostic(Object? value) {
-  if (value is! Map<Object?, Object?> ||
-      value.length != 3 ||
-      !walletRecipeActions.contains(value['action']) ||
-      !walletRecipeControls.contains(value['control']) ||
-      !walletRecipeFailureCodes.contains(value['reason'])) {
+  if (value is! Map<Object?, Object?> || value.length != 3) return null;
+  final Object? action = value['action'];
+  final Object? control = value['control'];
+  final Object? reason = value['reason'];
+  if (action is! String ||
+      control is! String ||
+      reason is! String ||
+      !walletRecipeActions.contains(action) ||
+      !walletRecipeControls.contains(control) ||
+      !walletRecipeFailureCodes.contains(reason)) {
     return null;
   }
   return Map<String, String>.unmodifiable(<String, String>{
-    'action': value['action'] as String,
-    'control': value['control'] as String,
-    'reason': value['reason'] as String,
+    'action': action, 'control': control, 'reason': reason,
   });
 }
