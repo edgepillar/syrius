@@ -4410,3 +4410,14 @@ expected allocation is required before owned runner work begins. There
 are no builds, wallet/node executions, local SDK runs, local downloads,
 extracted evidence files or raw public diagnostics. Actual hosted
 attribution of the 1295-to-1304-to-1313 root-info increase is pending.
+
+The first hosted attempt at `87c77bcd6acaff6bd57c5b3ef16be486e2e46d87`,
+run `40396591519`, job `121831157706`, fails its test-invocation step.
+Flutter setup and all analyzer commands are skipped. The repository's
+existing finite test runner documents CPython's regular stdlib `test`
+package colliding with a repository namespace. The candidate uses direct
+file discovery and that same finite result projection, requires exactly
+nine selected cases, and captures test prints/tracebacks privately. A
+memory-only control with an already loaded regular `test` package verifies
+discovery still reaches the intended nine cases. The original failed
+attempt remains negative; actual hosted attribution is still pending.

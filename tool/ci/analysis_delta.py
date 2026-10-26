@@ -13,7 +13,10 @@ from pathlib import Path, PurePosixPath, PureWindowsPath
 import re
 import secrets
 import shutil
+import sys
+import unittest
 
+from .run_debug_tests import execute_suite
 from . import windows_baseline as baseline
 from . import windows_debug_loop as debug
 
@@ -116,6 +119,24 @@ def notice_projection(value, groups, *, cap=3800):
             break
         result = candidate
     return result
+
+
+def load_controls():
+    # A regular CPython stdlib test package can shadow this repository's
+    # namespace. Reuse direct discovery and the finite result projection.
+    directory = str(Path(__file__).absolute().parents[2] / 'test/ci')
+    return unittest.TestLoader().discover(directory, pattern='test_analysis_delta.py')
+
+
+def run_controls():
+    suite = load_controls()
+    if suite.countTestCases() != 9:
+        print(json.dumps(dict(scope='analysis_delta_inmemory_cases',
+            success=False, code='CONTROLS_REFUSED', tests=suite.countTestCases(),
+            native_wallet_executions=0, native_node_executions=0)))
+        return 1
+    return execute_suite(suite, scope='analysis_delta_inmemory_cases',
+        title='Analyzer location controller tests', wallet_node_scope=True)
 
 
 def main():
@@ -231,4 +252,10 @@ def main():
 
 
 if __name__ == '__main__':
+    if sys.argv[1:] == ['--controls-only']:
+        raise SystemExit(run_controls())
+    if sys.argv[1:]:
+        print(json.dumps(dict(scope='source_bound_analysis_delta', success=False,
+                              code='ARGUMENTS_REFUSED')))
+        raise SystemExit(1)
     raise SystemExit(main())

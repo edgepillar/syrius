@@ -112,7 +112,7 @@ jobs:
           persist-credentials: false
 
       - name: Test finite analysis location controls in memory
-        run: python -B -m unittest test.ci.test_analysis_delta -v
+        run: python -B -m tool.ci.analysis_delta --controls-only
 
       - name: Set up the single pinned Flutter SDK
         id: analysis_flutter
