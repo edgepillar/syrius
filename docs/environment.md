@@ -4590,3 +4590,40 @@ matching the existing qualified workflow pattern. No harness, dependency,
 SDK, wallet or lab command is reported as executed by that refused request.
 The original refusal remains retained; source/tests and admission rules are
 unchanged and corrected hosted execution is pending.
+
+### Focused hosted harness gate qualified (2026-10-26)
+
+At `b326c72ef08c8ec38587af1d76141eed0db23076`, tree
+`ab00f368a93390675ec3396610e9399df2890a95`, run `40412564278` attempt one,
+job `121886691043`, succeeds. All 493 Python cases have zero failures/errors
+and three platform skips; all 70 Dart cases pass with zero skips/failures/error
+events, seven hidden events and 77 total terminal events. The original Dart
+command exits zero normally in 40.516 seconds with 32318 complete bytes,
+SHA-256 `b6aa8f03cd8449f355f115499c8899891f9d6315c153c0bfc1f72ca7796a70b1`,
+and no overflow or forced kill. The actual original-film fixture's opening,
+muted, ended and closed-owner observations are included.
+
+Selected analysis exits zero normally with zero errors, warnings and infos,
+complete empty output and SHA-256
+`e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`.
+This is the selected harness scope; the full application legacy baseline
+remains 1295 infos. Both original startup probes exit zero with input still
+open, complete output, no overflow/forced cleanup and zero owned actors at
+close. The expected ordinary entry refusal before a build has actual exit one
+and 16 complete bytes. It retains its original negative-control meaning.
+
+One SDK at `abaf9c523780a608bd46686fd5e53740a07077f8` is used. Root/vendor
+locked restoration exits zero normally in 63.266 and 10.687 seconds, with
+complete bounded output and no overflow/forced kill. The five-file input-map
+digest is `749a3290dc6fda66f5dbf04d3e622b13c8c36492a834573ff599242d1e171fa7`;
+input and source equality hold. All other execution jobs are skipped. No native
+wallet build, native wallet or lab node executes in this focused job, and no
+local SDK execution or artifact download occurs. The earlier HTTP 422 refusal
+remains preserved with its original source and no-run observation.
+
+Native original-film observation run `40413709105` attempt one, job
+`121890583514`, is dispatched once at that same tested source and confirmed
+in progress. It adds runtime observation justified by the new fixed labels;
+it does not retry the unchanged failed source. No new initialization, tour,
+capture, lab-send or visual-acceptance result is claimed before its actual
+outcome. The previous native failure remains negative and X218/P08 stay open.
