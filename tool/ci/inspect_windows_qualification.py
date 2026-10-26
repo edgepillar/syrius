@@ -301,9 +301,11 @@ def main():
         emit('Hosted entry inspection', summary)
         return 0
     except (Exception, KeyboardInterrupt):
-        print(json.dumps(dict(scope='retained_windows_qualification_observation',
+        encoded = json.dumps(dict(scope='retained_windows_qualification_observation',
             inspection_success=False, code='INSPECTION_REFUSED', phase=PHASE,
-            runtime_started=False, wallet_qualified=False), sort_keys=True))
+            runtime_started=False, wallet_qualified=False), sort_keys=True)
+        print(encoded)
+        print('::notice title=Hosted Windows inspection refusal::' + encoded)
         return 1
 
 

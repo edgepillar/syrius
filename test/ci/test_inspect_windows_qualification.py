@@ -187,7 +187,9 @@ class WindowsQualificationTests(unittest.TestCase):
                 contextlib.redirect_stdout(io.StringIO()) as output:
             self.assertEqual(inspect.main(), 1)
         client.assert_not_called()
-        self.assertEqual(json.loads(output.getvalue())['phase'], 'environment')
+        lines = output.getvalue().splitlines()
+        self.assertEqual(json.loads(lines[0])['phase'], 'environment')
+        self.assertEqual(lines[1], '::notice title=Hosted Windows inspection refusal::' + lines[0])
 
     def test_complete_reader_uses_only_original_metadata_and_bounded_memory_reads(self):
         data = pixels()

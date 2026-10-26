@@ -4169,3 +4169,15 @@ outcomes, source/process substitutions, missing stages, duplicate frames,
 invalid archive members/pixels and local admission before networking.
 The existing inventory reader is unchanged. Local SDK/native executions,
 artifact downloads and filesystem scratch remain zero.
+
+
+The completed `efdb2deac022` run `40372647485`, job `121747181548`,
+reports all 61 selected Dart cases passing, 466 Python cases with three
+platform skips, four Node byte controls and selected analysis with zero
+errors, warnings and infos. Actual onboarding still waits for
+`welcome_import` at `startup-before-initialization`, with zero visited or
+captured pages. The retained diagnostic does not distinguish an attempted
+skip from a natural handoff decision; neither source-level race correction
+is declared the sole runtime cause. The retained-reader refusal path now
+emits only its fixed inspection phase as an Actions notice, allowing a
+bounded API observation without fetching raw diagnostics locally.
