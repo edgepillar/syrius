@@ -124,6 +124,9 @@ void main() {
     expect(key['handled'], isTrue);
     bundle.bytes.complete(bytes);
     for (int frame = 0; frame < 120 && done == 0; frame++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 10)),
+      );
       await tester.pump(const Duration(milliseconds: 20));
     }
     expect(done, 1);

@@ -9,9 +9,11 @@ import subprocess
 import time
 
 try:
+    from . import dart_test_failure
     from . import windows_debug_loop as debug
     from .windows_baseline import fresh_environment, run_bounded, test_counts
 except ImportError:
+    import dart_test_failure
     import windows_debug_loop as debug
     from windows_baseline import fresh_environment, run_bounded, test_counts
 
@@ -131,6 +133,8 @@ def main():
             env=fresh_environment(repo, parent), timeout=240, cap=4 * 1024**2)
         report['command'] = dict(**outcome.public(),
             output_sha256=hashlib.sha256(outcome.output).hexdigest())
+        if not outcome.success:
+            report['test_failures'] = dart_test_failure.project(outcome.output)
         debug.need(outcome.transport_complete, 'OUTPUT_REFUSED')
         counts = test_counts(outcome.output)
         report['counts'] = counts

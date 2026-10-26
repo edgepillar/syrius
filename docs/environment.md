@@ -3996,3 +3996,39 @@ the pending native authenticated recipe. No local Dart/Flutter execution,
 artifact download or disk scratch is added. This exercises the normal user
 skip; unskipped animation, motion/shader/frame-time checks and all 94 visual
 matches remain pending. Shipped application source is unchanged.
+
+### Dart gate failure preserved, 2026-10-26T16:26Z
+
+At source `9222e7e2b69a0d04fbe30db79062e61d778e90a1`, tree
+`598ebda95ab7ec33ef644a9eefa273a711289f74`, run `40357181470` attempt one,
+job `121692687315`, four Node byte controls and 460 Python controller cases
+pass, with three platform skips and zero Python failures/errors. Selected
+analysis exits zero with complete empty output: no errors, warnings or infos.
+Both original startup probes complete normally with zero exits and empty
+owned jobs; the negative opt-in control remains an expected original exit one.
+
+The Dart gate records 54 passing cases, one failed case, one error event and
+five hidden loading events, with an unsuccessful terminal event. Its original
+command exits one normally in 32.469 seconds, without forced termination or
+overflow, with 26462 complete bytes and SHA-256
+`a9c26e9584a81d45937fd6cf15d93cdc5c16d3d57f612c133f318266cceeb8af`.
+Native lab/wallet allocation is skipped. That report does not expose the
+failed assertion's location; it cannot establish its cause. The failure is
+preserved independently of passing earlier 50-case sources.
+
+The candidate's movie view test now yields to the real decoder before each
+fake-clock pump, matching the existing startup fixture method. Its 120-frame
+bound remains; production code, timeouts and turn limits are unchanged.
+This change awaits hosted verification and is not a diagnosis of the earlier
+unavailable assertion.
+
+Failed Dart commands also gain a bounded projection of at most three error
+events: a whitelisted test basename, a positive source line if present, and
+fixed assertion/unhandled and expected-value labels. Total error count is
+retained independently. Raw test names, error text, stack text, paths and
+values are not exported. Malformed or oversized input is refused. Four added
+memory-only privacy cases bring the selected Python total to 86; all pass.
+The largest three-item failure notice measured against the retained command
+facts is 2144 bytes, within the unchanged 3800-byte limit. No local SDK or
+native execution, artifact download or disk scratch is added. Full acceptance
+and all 94 visual matches remain pending.
