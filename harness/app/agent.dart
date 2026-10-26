@@ -25,6 +25,7 @@ import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_token_stepper/widgets/token_create_frame.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/widgets/send_confirmation.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/list_entrance.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/import_wallet/import_wallet_seed_choice_screen.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/wallet_ready_surface.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/wallet_success_screen.dart';
@@ -1050,7 +1051,31 @@ class HarnessAgent {
 
   bool _recipeEnabled(_Node node) {
     final Widget widget = node.element.widget;
-    return node.enabled && (widget is! Radio || widget.enabled != false);
+    return node.enabled &&
+        (widget is! Radio || widget.enabled != false) &&
+        _recipeEntranceSettled(node.element);
+  }
+
+  bool _recipeEntranceSettled(Element element) {
+    // A visible entrance row still rises between pointer admissions. Read
+    // its own controller before declaring the control ready, without
+    // changing ordinary input or waiting on unrelated hover animations.
+    Element child = element;
+    bool settled = true;
+    element.visitAncestorElements((Element ancestor) {
+      if (ancestor.widget is ListEntranceItem) {
+        final Widget built = child.widget;
+        final Listenable? animation =
+            built is AnimatedBuilder ? built.animation : null;
+        if (animation is! Animation<double> || !animation.isCompleted) {
+          settled = false;
+          return false;
+        }
+      }
+      child = ancestor;
+      return true;
+    });
+    return settled;
   }
 
   List<Element> _recipeNodeViews({Set<String>? entryPhases}) {

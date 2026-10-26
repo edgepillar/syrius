@@ -4300,3 +4300,31 @@ without raw paths or diagnostics. Because this changes application code,
 a fresh full Windows baseline and ordinary-entry qualification must
 follow the focused gate; f024 evidence is not rebound. No local SDK/native
 execution, artifact download or filesystem scratch is added.
+
+### Original Welcome entrance readiness (2026-10-26)
+
+At `88fcdb9b8773`, run `40385521617` passes all 66 selected Dart
+cases, 477 Python cases with three platform skips, four Node byte controls
+and selected analysis with zero errors, warnings or infos. Native startup
+records `key-confirmed`, then refuses `welcome_import` with
+`wallet-recipe-original-control-changed`. No tour page is accepted. This
+failure remains retained and is not retried against unchanged source.
+
+The original Welcome row is visible and accepts ordinary input before its
+ListEntranceItem stops rising. The harness-only candidate reads that
+item's own AnimatedBuilder animation before reporting recipe readiness.
+It requires completion, including when the OS requests reduced motion,
+without changing application behavior, unrelated animations, pointer
+timing, command bounds or the exact element/center admission guard.
+
+Three real Welcome cases check that a reachable moving control is not
+recipe-ready, the same element becomes ready after its center settles,
+and ordinary pointer input still invokes its original callback during
+entrance. No wallet, profile or network client is created. These cases
+extend the mandatory focused gate to 69; hosted execution is pending.
+
+Fresh full Windows baseline and ordinary entry run `40386781145` both
+complete successfully at application source `88fcdb9b8773`. Independent
+inspection of their original receipts and captures remains pending. This
+harness-only correction does not repeat that application baseline. Earlier
+qualified `f024e78bf777` evidence retains its original source binding.

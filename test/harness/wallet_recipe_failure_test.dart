@@ -9,7 +9,65 @@ import '../../harness/bin/wallet_recipe.dart';
 import '../../harness/wallet_recipe_failure.dart';
 import '../welcome/support.dart';
 
+Future<Map<String, Object?>> _importControl(HarnessAgent agent) async {
+  final Map<String, Object?> view = await agent.commandForTest(
+    <String, dynamic>{'cmd': 'wallet-recipe', 'action': 'observe'},
+  );
+  final List<Map<String, Object?>> controls =
+      view['controls']! as List<Map<String, Object?>>;
+  return controls.singleWhere(
+    (Map<String, Object?> row) => row['key'] == 'welcome_import',
+  );
+}
+
 void main() {
+  for (final bool disableAnimations in <bool>[false, true]) {
+    testWidgets('Welcome recipe waits for its entrance $disableAnimations', (
+      WidgetTester tester,
+    ) async {
+      prepareWelcomeViewport(tester);
+      final HarnessAgent agent = HarnessAgent.forTest()..booted = true;
+      int selected = 0;
+      await tester.pumpWidget(welcomeHost(
+        welcomeFixture(
+          source: Object(), onSelected: (WelcomeDestination _) => selected++,
+        ),
+        disableAnimations: disableAnimations,
+      ));
+      await tester.pump(const Duration(milliseconds: 150));
+      final Finder importControl = find.byKey(const Key('welcome_import'));
+      final Element original = tester.element(importControl);
+      final Offset movingCenter = tester.getCenter(importControl);
+      expect(importControl.hitTestable(), findsOneWidget);
+      expect((await _importControl(agent))['enabled'], isFalse);
+      expect(selected, 0);
+
+      await finishWelcomeEntrance(tester);
+      expect(tester.element(importControl), same(original));
+      expect(tester.getCenter(importControl), isNot(movingCenter));
+      expect((await _importControl(agent))['enabled'], isTrue);
+      expect(selected, 0);
+    });
+  }
+
+  testWidgets('ordinary Welcome input remains available during entrance', (
+    WidgetTester tester,
+  ) async {
+    prepareWelcomeViewport(tester);
+    final HarnessAgent agent = HarnessAgent.forTest()..booted = true;
+    final List<WelcomeDestination> selected = <WelcomeDestination>[];
+    await tester.pumpWidget(welcomeHost(welcomeFixture(
+      source: Object(), onSelected: selected.add,
+    )));
+    await tester.pump(const Duration(milliseconds: 150));
+    expect((await _importControl(agent))['enabled'], isFalse);
+    await tester.tap(find.byKey(const Key('welcome_import')));
+    expect(selected, <WelcomeDestination>[WelcomeDestination.importWallet]);
+    await finishWelcomeEntrance(tester);
+    expect((await _importControl(agent))['enabled'], isTrue);
+    expect(selected, <WelcomeDestination>[WelcomeDestination.importWallet]);
+  });
+
   testWidgets('the actual Welcome view exposes its original import control', (
     WidgetTester tester,
   ) async {
