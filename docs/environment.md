@@ -4514,3 +4514,33 @@ baseline is not described as zero-info.
 This qualification repeats no build, wallet or node runtime and downloads
 no artifact locally. It closes analyzer attribution only. Native startup,
 all 94 visual matches and the other full-acceptance gates remain open.
+
+### Introduced analyzer findings eliminated (2026-10-26)
+
+At `f8e1480f3895bd2c9a67224452239b190ad9e62d`, tree
+`16f0e7d2704a5c61f50eef605455399dc45d5ca7`, run `40405798867`
+attempt one, job `121863106192`, the fresh attribution lane succeeds.
+Ten controls pass. All six original full-source Flutter/machine commands
+exit zero normally with complete output and no overflow/forced kill.
+Exact source-bound totals are 1295 at `1d663dc58b9c`, 1304 at
+`f024e78bf777` and 1295 at the corrected source, all with zero
+errors/warnings. The common input-map digest remains
+`75f82252486207848f95424142f9838358d964ca1341d59ed3d0a71827d53c6d`;
+all source and declaration/dependency bindings remain unchanged.
+
+The current delta removes the historical eight `document_ignores` and
+one `cascade_invocations` finding exactly. Combined with the complete
+prior attribution at 64899a0e31e8, all sixteen remaining additional infos
+are removed. The same twelve ignore directives, test assertions, handler
+identities, cleanup order and timing bounds are retained. No new
+suppression or application behavior change is introduced.
+
+Original current Flutter analysis takes 39.562 seconds, output SHA-256
+`d6ca10334022108ee235a1d0f932db23d0d68286bdb836d7978ac62ae1f5af69`;
+current machine locations take 32.016 seconds, output SHA-256
+`1f48d7b8505d22b3dbc757c051ea22caafec6fd03fa6b726a2bba5f16c308862`.
+All historical receipts and failed reader attempts stay preserved.
+This closes X220 and confirms X224. The baseline still contains 1295
+legacy infos; this is not a zero-info or wallet-runtime result. No build,
+wallet/node execution or local artifact download repeats for these style
+changes. Full native/visual acceptance remains open.
