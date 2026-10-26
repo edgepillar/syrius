@@ -3560,3 +3560,27 @@ over changed input, forced-command holds and strict inspector gates. The
 complete controller suite, actual seven Go tests, reparse observation and
 full wallet tour await the new hosted source. No native process or filesystem
 scratch is used locally, and prior negative attempts are not retried unchanged.
+
+### Direct system APIs for native inventory
+
+The inventory candidate replaces metadata cmdlets with direct .NET file,
+directory, version-resource and registry APIs already available to Windows
+PowerShell. It retains the exact two `vswhere` queries and their ordered
+markers. No PowerShell module import or general JSON serializer is needed
+for these installed-tool reads. Module initialization remains a hypothesis
+for the earlier pre-query delay; its exact cause is not claimed as proven.
+SDK lookup reads both registry views and bounds the direct version-directory
+listing. Registry keys are closed explicitly; no user-folder scan is added.
+
+The seven native fields have fixed keys. The frame emitter admits only known
+state/scope labels and numeric version strings; a present item with no valid
+version becomes unknown. A missing Developer Mode registry value is recorded
+as absent, without inferring that the mode is enabled. Access/query exceptions
+remain unknown. The Python decoder still requires one complete frame, no
+unframed output, complete phase order and a normal complete original exit.
+The thirty-second deadline and fresh-hosted read-only scope are unchanged.
+
+All seven existing protocol cases pass locally with the new exact encoded
+script. Actual installed versions and P01/P03 remain unqualified until the
+independent hosted inventory runs. This change does not repeat the separate
+Windows wallet qualification or alter its test client, node or production tree.

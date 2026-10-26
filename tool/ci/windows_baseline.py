@@ -101,16 +101,16 @@ function Put-Version($key, $value, $scope) {
   $result[$key] = @{ status = $status; version = $value; scope = $scope }
 }
 Mark-Inventory 'visual_studio'
-$vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+$vswhere = [IO.Path]::Combine(${env:ProgramFiles(x86)}, 'Microsoft Visual Studio\Installer\vswhere.exe')
 try {
-  if (Test-Path -LiteralPath $vswhere -PathType Leaf) {
+  if ([IO.File]::Exists($vswhere)) {
     Mark-Inventory 'vswhere_installation'
     $vs = & $vswhere -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
     if ($LASTEXITCODE -ne 0) { throw 'query failed' }
     if ($vs) {
       Mark-Inventory 'msvc_version'
-      $tools = Join-Path $vs 'VC\Auxiliary\Build\Microsoft.VCToolsVersion.default.txt'
-      Put-Version 'msvc' (Get-Content -LiteralPath $tools -Raw).Trim() 'standard_install'
+      $tools = [IO.Path]::Combine($vs, 'VC\Auxiliary\Build\Microsoft.VCToolsVersion.default.txt')
+      Put-Version 'msvc' ([IO.File]::ReadAllText($tools)).Trim() 'standard_install'
       Mark-Inventory 'vswhere_workload'
       $workloads = & $vswhere -latest -products '*' -requiresAny Microsoft.VisualStudio.Workload.NativeDesktop Microsoft.VisualStudio.Workload.VCTools -property installationVersion
       if ($LASTEXITCODE -ne 0) { throw 'query failed' }
@@ -124,11 +124,32 @@ try {
 } catch {}
 Mark-Inventory 'windows_sdk'
 try {
-  $kits = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows Kits\Installed Roots').KitsRoot10
-  $sdk = Get-ChildItem -LiteralPath (Join-Path $kits 'Include') -Directory |
-    Where-Object { $_.Name -match '^\d+\.\d+\.\d+\.\d+$' } |
-    Sort-Object { [version]$_.Name } -Descending | Select-Object -First 1
-  Put-Version 'windows_sdk' $sdk.Name 'registry'
+  $roots = @()
+  foreach ($view in @([Microsoft.Win32.RegistryView]::Registry64, [Microsoft.Win32.RegistryView]::Registry32)) {
+    $base = $null; $key = $null
+    try {
+      $base = [Microsoft.Win32.RegistryKey]::OpenBaseKey([Microsoft.Win32.RegistryHive]::LocalMachine, $view)
+      $key = $base.OpenSubKey('SOFTWARE\Microsoft\Windows Kits\Installed Roots')
+      if ($key) {
+        $kits = $key.GetValue('KitsRoot10', $null)
+        if ($kits -and $roots -notcontains $kits) { $roots += $kits }
+      }
+    } finally { if ($key) { $key.Dispose() }; if ($base) { $base.Dispose() } }
+  }
+  $best = $null
+  foreach ($kits in $roots) {
+    $include = [IO.Path]::Combine($kits, 'Include')
+    if ([IO.Directory]::Exists($include)) {
+      $directories = [IO.Directory]::GetDirectories($include)
+      if ($directories.Length -gt 128) { throw 'SDK inventory bound' }
+      foreach ($directory in $directories) {
+        $name = [IO.Path]::GetFileName($directory)
+        if ($name -match '^\d+\.\d+\.\d+\.\d+$' -and (!$best -or [version]$name -gt [version]$best)) { $best = $name }
+      }
+    }
+  }
+  if ($best) { Put-Version 'windows_sdk' $best 'registry' }
+  else { $result['windows_sdk'] = @{status='absent'; version=$null; scope='registry'} }
 } catch {}
 Mark-Inventory 'browsers'
 foreach ($item in @(
@@ -140,12 +161,12 @@ foreach ($item in @(
     $found = $null
     foreach ($root in @($env:ProgramFiles, ${env:ProgramFiles(x86)})) {
       if ($root) {
-        $candidate = Join-Path $root $item[1]
-        if (Test-Path -LiteralPath $candidate -PathType Leaf) { $found = $candidate; break }
+        $candidate = [IO.Path]::Combine($root, $item[1])
+        if ([IO.File]::Exists($candidate)) { $found = $candidate; break }
       }
     }
     if ($found) {
-      Put-Version $item[0] (Get-Item -LiteralPath $found).VersionInfo.ProductVersion 'standard_install'
+      Put-Version $item[0] ([Diagnostics.FileVersionInfo]::GetVersionInfo($found)).ProductVersion 'standard_install'
     } else {
       $result[$item[0]] = @{status='absent'; version=$null; scope='standard_install'}
     }
@@ -153,13 +174,25 @@ foreach ($item in @(
 }
 Mark-Inventory 'developer_mode'
 try {
-  $mode = Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock'
-  $state = if ($mode.AllowDevelopmentWithoutDevLicense -eq 1) { 'enabled' }
-    elseif ($mode.AllowDevelopmentWithoutDevLicense -eq 0) { 'disabled' } else { 'unknown' }
+  $mode = [Microsoft.Win32.Registry]::GetValue('HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock', 'AllowDevelopmentWithoutDevLicense', $null)
+  $state = if ($null -eq $mode) { 'absent' } elseif ($mode -eq 1) { 'enabled' }
+    elseif ($mode -eq 0) { 'disabled' } else { 'unknown' }
   $result['developer_mode'] = @{status=$state; version=$null; scope='registry'}
 } catch {}
 Mark-Inventory 'complete'
-[Console]::Out.WriteLine('SYRIUS_INVENTORY_JSON:' + ($result | ConvertTo-Json -Compress -Depth 3))
+$parts = @()
+foreach ($key in @('msvc', 'native_desktop_workload', 'windows_sdk', 'chrome', 'edge', 'docker_desktop', 'developer_mode')) {
+  $row = $result[$key]
+  $state = [string]$row.status
+  if ($state -notmatch '^(present|absent|unknown|enabled|disabled)$') { $state = 'unknown' }
+  $scope = [string]$row.scope
+  if ($scope -notmatch '^(standard_install|registry)$') { $scope = 'standard_install' }
+  $version = $row.version
+  if (($version -is [string]) -and $version -match '^[0-9]+(?:\.[0-9]+){1,3}$') { $version = '"' + $version + '"' }
+  else { $version = 'null'; if ($state -eq 'present') { $state = 'unknown' } }
+  $parts += '"' + $key + '":{"status":"' + $state + '","version":' + $version + ',"scope":"' + $scope + '"}'
+}
+[Console]::Out.WriteLine('SYRIUS_INVENTORY_JSON:{' + [string]::Join(',', [string[]]$parts) + '}')
 [Console]::Out.Flush()
 """
 NATIVE_INVENTORY_STAGES = ('entry', 'visual_studio', 'windows_sdk', 'browsers',
