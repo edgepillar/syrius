@@ -5,7 +5,7 @@ import re
 
 FILES = ('wallet_tour_test.dart', 'build_output_test.dart',
     'wallet_recipe_failure_test.dart', 'wallet_recipe_startup_test.dart',
-    'wallet_recipe_test.dart', 'key_dispatch_test.dart', 'agent.dart',
+    'wallet_recipe_test.dart', 'key_dispatch_test.dart', 'rail_navigation_test.dart', 'agent.dart',
     'launch_film.dart', 'startup_stage.dart')
 CATEGORIES = (
     (r'Failed to load', 'LOAD_ERROR'),

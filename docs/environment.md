@@ -4261,3 +4261,42 @@ Thirty-one selected memory-only Python cases pass. The next mandatory
 Dart gate is exactly 63, including the two new keyboard cases; no native
 allocation precedes it. Application code remains unchanged from the
 independently verified `f024e78bf777` focus source.
+
+
+### Bind rail navigation keys to their actual input owner
+
+At `4a21e088779fda13b30d47de9ad16a266b3b9dca`, original run
+`40379047583` attempt one, job `121769975293`, passes all 63 selected
+Dart cases, 477 Python cases with three platform skips, four Node byte
+controls and selected analysis with zero errors/warnings/infos. Actual
+execution advances beyond the earlier Welcome wait and now refuses at
+`nav_settings`, with entry `unknown` and original startup decision
+`natural-welcome`. No tour page is visited or captured. All fourteen asset
+phases complete; seven exact original Go bodies pass with production
+source restored and five original lab nodes stop normally with complete
+zero exits. App cleanup exits zero and entry exits one with 885 complete
+bytes, SHA-256
+`1623d6f17eb4cb81f577cc927413d73844c04ca7dc8034fabbe054f6c0d2729d`.
+A remaining VCTIP helper retains forced/required-actor cleanup. Overall
+wallet acceptance remains failed; natural progress does not establish
+the sole cause of the earlier startup refusal.
+
+The actual rail assigned `nav_<tab>` to a decorative child inside its
+InkWell. The snapshot classifies that button before visiting descendants,
+so its recipe key was missing even though tab metadata reached its parent.
+The candidate places the existing key on the original InkWell. The
+snapshot retains tab metadata on directly keyed buttons as well as its
+existing descendant-key path. Geometry, decoration, callbacks, locking
+and owner/context admission are unchanged. The existing focus-border test
+still reads the same decoration and retains its exact paint assertion.
+
+Three new real ShellRail cases cover collapsed and expanded Settings
+navigation through the original harness pointer path, unique enabled
+Dashboard/Settings controls, retained tab metadata, one original callback
+and locked refusal without a callback. They create no wallet, profile or
+network client. All previous selected cases remain, making the next
+mandatory gate 66. The finite failure reader admits this test basename
+without raw paths or diagnostics. Because this changes application code,
+a fresh full Windows baseline and ordinary-entry qualification must
+follow the focused gate; f024 evidence is not rebound. No local SDK/native
+execution, artifact download or filesystem scratch is added.

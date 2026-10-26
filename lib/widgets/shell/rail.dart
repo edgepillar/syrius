@@ -667,6 +667,7 @@ class _RailButtonState extends State<_RailButton>
               child: Material(
                 type: MaterialType.transparency,
                 child: InkWell(
+                  key: widget.hitKey,
                   borderRadius: BorderRadius.circular(tokens.cardRadius),
                   hoverColor: Colors.transparent,
                   focusColor: Colors.transparent,
@@ -682,7 +683,6 @@ class _RailButtonState extends State<_RailButton>
                   child: DecoratedBox(
                     // A decoration makes the whole row hittable, including
                     // the empty middle of a row that shows only an icon.
-                    key: widget.hitKey,
                     position: DecorationPosition.foreground,
                     decoration: BoxDecoration(
                       border: _focused

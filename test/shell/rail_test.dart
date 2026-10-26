@@ -563,7 +563,9 @@ void main() {
       await tester.pump();
       final FocusNode? toggleFocus = primaryFocus;
       final BoxDecoration decoration =
-          tester.widget<DecoratedBox>(find.byKey(_toggle)).decoration
+          tester.widget<DecoratedBox>(find.descendant(
+            of: find.byKey(_toggle), matching: find.byType(DecoratedBox),
+          ).first).decoration
               as BoxDecoration;
       expect(
         decoration.border,

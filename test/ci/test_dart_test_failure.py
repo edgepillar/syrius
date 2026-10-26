@@ -17,11 +17,14 @@ def encode(rows):
 
 class DartFailureTests(unittest.TestCase):
     def test_known_source_location_never_exports_error_stack_or_host_path(self):
-        value = failure.project(encode([event()]))
-        self.assertEqual(value, dict(status='OBSERVED', total=1, items=[dict(
-            file='wallet_recipe_startup_test.dart', line=129, kind='ASSERTION', expectation='TRUE',
-            category='ASSERTION', location_source='STACK')]))
-        self.assertNotIn('private', json.dumps(value))
+        for name in ('wallet_recipe_startup_test.dart', 'rail_navigation_test.dart'):
+            row = event();row['stackTrace'] = '/fixture/private/' + name + ':129:5\nprivate'
+            value = failure.project(encode([row]))
+            with self.subTest(name=name):
+                self.assertEqual(value, dict(status='OBSERVED', total=1, items=[dict(
+                    file=name, line=129, kind='ASSERTION', expectation='TRUE',
+                    category='ASSERTION', location_source='STACK')]))
+                self.assertNotIn('private', json.dumps(value))
 
     def test_unknown_locations_and_unhandled_payloads_stay_unattributed(self):
         row = event();row.update(stackTrace='/fixture/private.dart:123',

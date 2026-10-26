@@ -1710,6 +1710,12 @@ class HarnessAgent {
 
     if (made != null) {
       made.key = n.key;
+      final String? selector = made.key;
+      if (made.kind == 'button' &&
+          selector != null &&
+          selector.startsWith('nav_')) {
+        made.extra['tab'] = selector.substring(4);
+      }
       out.add(made);
       n = n.copy(clearKey: true, clearTip: true);
       if (made.kind != 'text' && made.kind != 'field') {
