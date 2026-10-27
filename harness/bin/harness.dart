@@ -1024,6 +1024,11 @@ Future<void> goto(Instance inst, String tab) async {
 Future<void> unlock(Instance inst, String password) async {
   final Map<String, dynamic> s = await stateOf(inst);
   if (s['tab'] != 'lock') {
+    if (s['walletUnlocked'] != true) {
+      throw Fail(
+        'unlock requires the wallet lock screen or a confirmed unlocked state',
+      );
+    }
     stdout.writeln('already unlocked');
     return;
   }

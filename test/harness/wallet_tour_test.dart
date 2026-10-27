@@ -109,7 +109,74 @@ class _TourInstance extends cli.Instance {
   );
 }
 
+class _UnlockInstance extends cli.Instance {
+  _UnlockInstance(this.states) : super('synthetic-unlock');
+
+  final List<Map<String, dynamic>> states;
+  final List<Map<String, Object?>> commands = <Map<String, Object?>>[];
+
+  @override
+  Future<Map<String, dynamic>> send(
+    Map<String, Object?> command, {
+    Duration timeout = const Duration(seconds: 120),
+  }) async {
+    commands.add(Map<String, Object?>.of(command));
+    if (command['cmd'] == 'state') {
+      if (states.isEmpty) throw StateError('synthetic state exhausted');
+      return <String, dynamic>{'ok': true, ...states.removeAt(0)};
+    }
+    if (command['cmd'] == 'type' || command['cmd'] == 'tap') {
+      return <String, dynamic>{'ok': true};
+    }
+    throw StateError('unexpected synthetic unlock command');
+  }
+}
+
 void main() {
+  test('unlock refuses unconfirmed non-lock states before password input',
+      () async {
+    for (final Object? tab in <Object?>['startup', 'welcome', 'dashboard', null]) {
+      for (final Object? unlocked in <Object?>[false, null, 'true', 1]) {
+        final _UnlockInstance instance = _UnlockInstance(<Map<String, dynamic>>[
+          <String, dynamic>{'tab': tab, 'walletUnlocked': unlocked},
+        ]);
+        await expectLater(cli.unlock(instance, 'synthetic-password'),
+          throwsA(isA<cli.Fail>()));
+        expect(instance.commands, <Map<String, Object?>>[
+          <String, Object?>{'cmd': 'state'},
+        ]);
+      }
+    }
+  });
+
+  test('unlock accepts an already observed unlocked state without input',
+      () async {
+    final _UnlockInstance instance = _UnlockInstance(<Map<String, dynamic>>[
+      <String, dynamic>{'tab': 'dashboard', 'walletUnlocked': true},
+    ]);
+    await cli.unlock(instance, 'synthetic-password');
+    expect(instance.commands, <Map<String, Object?>>[
+      <String, Object?>{'cmd': 'state'},
+    ]);
+  });
+
+  test('unlock retains the ordinary password field, button and state check',
+      () async {
+    final _UnlockInstance instance = _UnlockInstance(<Map<String, dynamic>>[
+      <String, dynamic>{'tab': 'lock', 'walletUnlocked': false},
+      <String, dynamic>{'tab': 'dashboard', 'walletUnlocked': true},
+    ]);
+    await cli.unlock(instance, 'synthetic-password');
+    expect(instance.commands, <Map<String, Object?>>[
+      <String, Object?>{'cmd': 'state'},
+      <String, Object?>{'cmd': 'type', 'key': 'wallet_password_field',
+        'value': 'synthetic-password'},
+      <String, Object?>{'cmd': 'tap', 'key': 'wallet_unlock_button'},
+      <String, Object?>{'cmd': 'state'},
+    ]);
+    expect(instance.states, isEmpty);
+  });
+
   test('tour covers every page and reaches merged subpages', () async {
     final _TourInstance instance = _TourInstance();
     await instance.run();

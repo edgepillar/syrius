@@ -6753,3 +6753,43 @@ memory-only cases cover these boundaries; all 37 selected cases pass without
 SDK/native execution or scratch. All 218 Dart cases, 555 Python cases and
 zero-finding analysis remain required before independent native allocation.
 Earlier native review/startup refusals and UNKNOWN originals remain preserved.
+
+
+### Original native UI send and guarded ordinary reopen
+
+At 103e37479ab45257d866e0355f9032b02bef018c, combined
+[40550772652](https://github.com/edgepillar/syrius/actions/runs/40550772652),
+attempt one, job 122353583105, passes all 218 Dart cases, 555 Python cases/
+three original platform skips and zero-finding selected analysis. Dart exits
+zero in 84.313 seconds with 107338 complete, unforced bytes. The late-dialog
+clock regression and finite caller-context cases qualify at this source.
+
+Actual onboarding and persisted index-1 selection reach one ordinary original
+UI send of exactly 1 ZNN to owned index 0, positively confirmed on chain 321.
+All twelve tour destinations and producer PNG checks pass. App and entry exit
+zero normally, with 2209 complete entry bytes and an empty owned job. All five
+nodes exit zero normally with complete output after seven unchanged upstream
+test bodies pass and their source is restored. All source/input checks pass.
+One exact owned MSVC telemetry helper has a separate forced termination receipt;
+no required actor is forced. This is original native send evidence. The written
+Docker installation/lab.sh image-command route remains separately unqualified.
+
+Eighty-three cooperative samples peak at 267608412 logical bytes across the
+four declared wallet/app/build/tool roles, with minimum observed free space
+154942132224 bytes. These samples do not measure the complete SDK, node or
+runner footprint. No current archive is independently transported or inspected,
+no checkpoint is made, and the runner's private profile is not qualified for
+later restoration. Earlier native42/native56 UNKNOWN originals stay UNKNOWN.
+Twelve producer-checked tour PNGs establish no catalog visual match.
+
+The existing CLI unlock fast return accepted every non-lock tab as already
+unlocked. It now requires a positively true walletUnlocked value before that
+return; other non-lock states refuse before any password field or button input.
+The original locked path and its positive post-state check retain their bytes.
+Three new synthetic transport cases cover unconfirmed and malformed non-lock
+states, confirmed unlocked state with no input, and the exact ordinary password
+field/button/state sequence. All 218 existing case bodies remain. The gate now
+requires all 221 Dart cases and all 555 Python cases with clean analysis; all
+37 selected memory controls pass. This narrow qualification uses the existing
+harness-only lane without another native wallet/node build. Reversible closed
+checkpoints, exact restored ownership and real F06 seed effects remain open.
