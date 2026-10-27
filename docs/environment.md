@@ -6196,3 +6196,31 @@ successful output. No local Flutter/native command, artifact transport,
 storage policy change or cleanup occurs. P09/F06, real reversible checkpoints
 and all 94 visual matches remain unqualified. The failed native chain/profile
 is preserved without retry.
+
+### Actual-header fixture clocks, preserving the original selector
+
+At 8187f948e1bc47ab384c8d376f144e713888c940, focused run 40498982472,
+attempt one, job 122171586636, exits one after 77.938 seconds with complete,
+unforced 97082-byte Dart output, SHA-256
+8c48511205782b8ae039253de1e8c13ddc27f16799fb560d7e9756685fec795c.
+The original 181 cases pass and all three new real-header cases fail. The
+first two stop at the driver's completion assertion; the third reaches the
+final assertion that the original menu items have detached. All 536 Python
+cases pass with three existing platform skips; selected analysis is clean.
+The failed run remains negative and is not retried.
+
+The actual TransferPage includes its original continuously ticking HeroField.
+The harness settle loop reads a real Stopwatch and exits at its ordinary cap
+when those frames never go quiet. The new test driver had advanced only its
+fake clock. It now yields twenty milliseconds to the actual event loop per
+original forty-millisecond test frame, retaining its eighty-frame bound,
+original command and every assertion. The open-menu case adds one zero-time
+frame after its same 300 ms reverse animation, so the ordinary overlay can
+complete its detach. These fixture changes do not alter the production or
+harness source, input, waits, selection, callbacks or publication guards.
+
+The 18-case memory-only protocol proof retains identical inputs and is reused
+without another execution. The complete 184-Dart/536-Python focused gate is
+pending. No new native wallet/lab execution is dispatched from the failed
+result, and the actual native45 missing-choice cause remains unproven. P09,
+F06, real closed-resource checkpoints and all 94 visual matches stay open.

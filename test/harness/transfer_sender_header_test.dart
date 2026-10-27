@@ -124,7 +124,10 @@ Future<T> _drive<T>(WidgetTester tester, Future<T> command) async {
     done = true;
   }));
   for (int frame = 0; frame < 80 && !done; frame++) {
-    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    // Transfer's original shader keeps frames scheduled. Let the agent's
+    // unchanged wall-clock settle cap elapse alongside the test frame clock.
+    await tester.runAsync(() =>
+      Future<void>.delayed(const Duration(milliseconds: 20)));
     await tester.pump(const Duration(milliseconds: 40));
   }
   expect(done, isTrue, reason: 'The actual header command must settle');
@@ -376,6 +379,7 @@ void main() {
     await tester.tapAt(const Offset(10, 10));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump();
     expect(find.byType(PopupMenuItem<String>), findsNothing);
     expect(tester.takeException(), isNull);
   });
