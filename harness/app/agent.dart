@@ -25,9 +25,12 @@ import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_token_stepper/widgets/token_create_frame.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/node_update/node_update.dart'
+    show NodeUpdateCard;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/widgets/send_confirmation.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/list_entrance.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/motion/rise_switcher.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/motion/state_switcher.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/import_wallet/import_wallet_seed_choice_screen.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/wallet_ready_surface.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/wallet_success_screen.dart';
@@ -43,6 +46,8 @@ import 'package:zenon_syrius_wallet_flutter/utils/wallet_initialization.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/node_settings_presenter.dart'
     show NodeSettingsEntry;
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/node_settings_view.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/settings_parts.dart'
+    show SettingsSection;
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/launch_film.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
@@ -1056,7 +1061,80 @@ class HarnessAgent {
     final Widget widget = node.element.widget;
     return node.enabled &&
         (widget is! Radio || widget.enabled != false) &&
-        _recipeEntranceSettled(node.element);
+        _recipeEntranceSettled(node.element) &&
+        _recipeSettingsLayoutSettled(node);
+  }
+
+  bool _recipeSettingsLayoutSettled(_Node node) {
+    const Set<String> controls = <String>{
+      'node_settings_chain_toggle',
+      'node_settings_client_chain',
+      'node_settings_chain_save',
+    };
+    if (!controls.contains(node.key)) return true;
+    Element? section;
+    bool settled = true;
+    node.element.visitAncestorElements((Element ancestor) {
+      if (ancestor is StatefulElement) {
+        final State<StatefulWidget> state = ancestor.state;
+        if (state is ScrollableState &&
+            state.position.isScrollingNotifier.value) {
+          settled = false;
+          return false;
+        }
+      }
+      if (ancestor.widget is SettingsSection) {
+        section = ancestor;
+        return false;
+      }
+      return true;
+    });
+    if (!settled || section == null) return settled;
+    const Set<String> loadKeys = <String>{
+      'node_update_loading', 'node_update_ready', 'node_update_failed',
+    };
+    String? loadKey(Key? key) => key is ValueKey<String> &&
+            loadKeys.contains(key.value) ? key.value : null;
+    int cards = 0;
+    void card(Element element, {bool loadTransition = false}) {
+      if (!settled) return;
+      final Widget widget = element.widget;
+      if (widget is StateSwitcher && loadKey(widget.child.key) != null) {
+        if (loadKey(widget.child.key) == 'node_update_loading') {
+          settled = false;
+          return;
+        }
+        loadTransition = true;
+      }
+      if (loadTransition &&
+          widget is FadeTransition && !widget.opacity.isCompleted) {
+        settled = false;
+        return;
+      }
+      if (loadKey(widget.key) != null) loadTransition = false;
+      if (element is RenderObjectElement) {
+        final RenderObject render = element.renderObject;
+        if (render is RenderAnimatedSize && render.isAnimating) {
+          settled = false;
+          return;
+        }
+      }
+      element.debugVisitOnstageChildren((Element child) =>
+          card(child, loadTransition: loadTransition));
+    }
+    void visit(Element element) {
+      if (!settled) return;
+      if (element.widget is NodeUpdateCard) {
+        cards++;
+        card(element);
+      } else {
+        element.debugVisitOnstageChildren(visit);
+      }
+    }
+    // The sibling updater can resize this section after its entrance ends.
+    // Read its original state/fade/size clocks, never its data or callbacks.
+    section!.debugVisitOnstageChildren(visit);
+    return settled && cards <= 1;
   }
 
   bool _recipeEntranceSettled(Element element) {

@@ -4937,3 +4937,42 @@ unchanged until the expected red 82-case gate is observed. This reproduction
 does not yet establish the sole cause of native movement. No local SDK,
 joblog or artifact download occurs; P08/P09/F06 and visual acceptance remain
 open, and the PR stays Draft.
+
+### Updater sibling-layout red gate and original-activity correction (2026-10-27)
+
+Source `4cfa3435f97aef00aad4e0f35431e758eb69b8ce`, tree
+`a68968c3f9b5cf050d3eca7df2178c8faed8bf08`, focused run `40431472926`
+attempt one, job `121949929573`, completes with the expected failed gate.
+The unchanged agent reports 78 passed, four failed, zero skipped, four error
+events, eight hidden and 90 terminal events. The bounded projection retains
+three wrapped ASSERTION/FALSE errors at the new updater readiness line 113.
+The fourth error detail is capped; its location is not claimed. This proves
+a real sibling-layout readiness gap without attributing every capped event.
+
+The original Dart command exits one normally in 44.937 seconds, with 44971
+complete output bytes, no overflow or forced kill and SHA-256
+`de635e466d3f7df8d1dbb44bbdb6463178975e479948eccd9d20fdcd38fd9ba4`.
+All 500 Python cases with three platform skips, four original asset controls,
+root/vendor locked restores, source/input checks, expected pre-build refusal
+and original open-input startup probes pass. Selected analysis exits zero
+with complete empty output and zero errors, warnings or infos. No native
+wallet build, wallet or blockchain node executes in this focused job.
+
+After that red result, chain-control readiness reads the original nearest
+SettingsSection's Scrollable activity and its actual NodeUpdateCard sibling.
+It holds while the owned scroller is moving, the updater's loading state is
+current, its own load-state FadeTransitions are incomplete, or its original
+RenderAnimatedSize is animating. Only public read-only getters and known
+state keys are read. Multiple updater cards refuse readiness. Unrelated
+surface controls retain their existing readiness behaviour.
+
+No timer, listener, callback, frame request, data replacement or updater action
+is introduced. The four updater reproduction bodies remain unchanged. Two
+additional real scrolling cases, for both motion settings, retain the same
+header through a driven scroll, require readiness false while moving and
+true when idle, and keep the ordinary callback intact. The expanded gate now
+expects 84 Dart cases and the same 500 Python cases. Exact original Element
+and center admission, ownership, signing policy, key release, budgets and
+retirement are unchanged. The native cause remains to be qualified by the
+changed-source run after the green gate; passing widgets do not replace
+P08/P09/F06, original lifecycle closure or any of the 94 visual matches.

@@ -138,6 +138,58 @@ void main() {
     });
   }
 
+  for (final bool disableAnimations in <bool>[false, true]) {
+    testWidgets('chain recipe waits for its own scroll $disableAnimations', (
+      WidgetTester tester,
+    ) async {
+      prepareWelcomeViewport(tester);
+      final HarnessAgent agent = HarnessAgent.forTest()..booted = true;
+      int toggled = 0;
+      await tester.pumpWidget(welcomeHost(
+        SettingsFrame(
+          selected: SettingsSectionId.node,
+          onSelected: (SettingsSectionId _) {},
+          child: SettingsSection(children: <Widget>[
+            const SizedBox(height: 240),
+            Disclosure(
+              title: 'Client chain',
+              keyPrefix: 'node_settings_chain',
+              onChanged: (bool _) => toggled++,
+              child: const SizedBox(height: 60),
+            ),
+            const SizedBox(height: 1800),
+          ]),
+        ),
+        disableAnimations: disableAnimations,
+      ));
+      final Finder toggle = find.byKey(
+        const Key('node_settings_chain_toggle'),
+      );
+      final Element original = tester.element(toggle);
+      final Offset originalCenter = tester.getCenter(toggle);
+      final ScrollableState scroll = Scrollable.of(original);
+      final Future<void> moving = scroll.position.animateTo(
+        120, duration: const Duration(milliseconds: 200), curve: Curves.linear,
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(scroll.position.isScrollingNotifier.value, isTrue);
+      expect(toggle.hitTestable(), findsOneWidget);
+      expect(await _chainReady(agent), isFalse);
+      for (int frame = 0; frame < 30; frame++) {
+        await tester.pump(const Duration(milliseconds: 10));
+      }
+      await moving;
+      expect(tester.element(toggle), same(original));
+      expect(tester.getCenter(toggle), isNot(originalCenter));
+      expect(scroll.position.isScrollingNotifier.value, isFalse);
+      expect(await _chainReady(agent), isTrue);
+      expect(toggled, 0);
+      await tester.tap(toggle);
+      expect(toggled, 1);
+    });
+  }
+
   test('control change labels stay private and retire the original driver',
       () async {
     for (final String reason in <String>[
