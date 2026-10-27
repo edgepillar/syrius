@@ -4864,3 +4864,36 @@ The expanded gate expects 78 Dart cases and 500 Python controller cases.
 Hosted qualification precedes any changed-source native observation. The
 same failed native source is not retried; P08/P09/F06 and all 94 visual
 matches remain open.
+
+### Qualified original-control labels and changed-source native observation (2026-10-27)
+
+Source `90a24802ad2569a5fa2f1a8b7df2a5ddb9023326`, tree
+`867d81ee66c1b30221275d3187fa43f75c19a65a`, qualifies in focused run
+`40427748319` attempt one, job `121937661775`. All 78 Dart cases pass with
+zero skips, failures or error events, eight hidden and 86 terminal events.
+The original command exits zero normally in 43.5 seconds, with 36623
+complete output bytes, no overflow or forced kill and SHA-256
+`78d2411de9c6334a08177267bd7fdeac876f35fd9c1c8b83468c39f04c793c8b`.
+The five real render-tree/hover cases and private-label retirement case pass.
+Classification retains the original exact Element/center predicate; every
+changed center remains refused, including the subpixel fixture. No raw
+geometry or object identifier is projected.
+
+All 500 Python cases pass with three platform skips. Selected analysis exits
+zero with complete empty output and zero errors, warnings or infos. Windows
+Node 22.23.4 is observed; four unchanged asset controls exit zero normally in
+2.156 seconds with 196 complete bytes and the retained finite-output hash.
+Root/vendor lockfile restoration, the original input digest and unchanged
+source pass with the same pinned SDK. Expected pre-build refusal and both
+original open-input startup probes pass with empty owned jobs. This focused
+job performs no native wallet build, wallet or blockchain-node execution.
+
+Only after that qualified gate, one changed-source native wallet tour is
+accepted: run `40428495388` attempt one, job `121940136889`, at the same
+source. It is confirmed in progress with admission and original asset checks
+passed. The actual original-control change category, Settings selection,
+full tour/captures, lab outcome and ordinary lifecycle closure are pending.
+The earlier native `40425151229` failure remains source-bound and unchanged;
+passing classifier cases do not replace that negative outcome or establish
+the cause of its refusal. No local SDK, joblog or artifact download occurs.
+P08/P09/F06 and all 94 visual matches remain open; the PR stays Draft.
