@@ -7075,3 +7075,31 @@ pending. Actual native checkpoint use and coordinator binding, ordinary
 restored app/node opening, continuity of the original chain and original send,
 all six F06 effects and all 94 visual matches remain unqualified. Earlier
 UNKNOWN originals keep their status and immutable evidence.
+
+
+### Copied Hive controls and exact original path spelling
+
+At `9014c524641cffc6165d84f4c1351592bd0a7b21`, tree
+`9138042cdbc40eaead7d6587b602b5071837826a`,
+[40596833955](https://github.com/edgepillar/syrius/actions/runs/40596833955),
+attempt one, job 122514768703, passes all 255 Dart cases, 648 Python cases
+with three original platform skips and zero-finding selected analysis.
+The original Dart exits zero in 87.687 seconds with 123827 complete, unforced
+bytes, SHA-256
+`108a69e4f501819e198684d6def34180173f99fab7807f17849bc84d1537adde`.
+The five real Hive filesystem fixtures and continuous-parent-input cases
+pass. Original `bdef4c038dc9` / 40595830355 retains four long-line infos,
+zero errors/warnings and its skipped Dart step. Only line wraps and equivalent
+bracing corrected that source; no check or diagnostic was suppressed.
+
+The next candidate keeps the exact captured wallet-path string after using
+normalized paths only for containment validation. A valid Windows path with
+mixed separators or a different drive-letter case must remain byte-exact for
+the copied Hive value comparison. The copy destination still maps from its
+validated relative path; no foreign, parent, default or original home is
+admitted. The new pure regression covers this distinction. All 113 selected
+memory controls pass without local scratch, SDK, native or network execution.
+Hosted qualification of 649 Python cases and the unchanged 255 Dart cases
+remains pending. Actual native checkpoint/Hive execution, ordinary restored
+app/node ownership, original chain/send/journal continuity and all F06 effects
+remain unqualified. Earlier UNKNOWN originals remain held.

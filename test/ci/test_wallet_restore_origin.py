@@ -54,6 +54,16 @@ class OriginPolicyTests(unittest.TestCase):
         with self.assertRaises(FrozenInstanceError):
             parsed.send_hash = 'b' * 64
 
+    def test_mixed_separator_wallet_spelling_stays_exact_for_the_hive_comparison(self):
+        wallet = (HOME.replace('C:', 'c:').replace('\\', '/')
+                  + '/AppData\\Roaming/fixture\\wallet/one.json')
+        parsed = self.parse(wallet=wallet)
+        self.assertEqual(parsed.wallet, wallet)
+        self.assertNotEqual(parsed.wallet, ntpath.normpath(wallet))
+        copied, _ = parsed.copied_paths(RESTORED)
+        self.assertEqual(copied, ntpath.join(RESTORED,
+            'AppData', 'Roaming', 'fixture', 'wallet', 'one.json'))
+
     def test_rendering_never_contains_private_observations(self):
         parsed = self.parse()
         self.assertEqual(repr(parsed), '<private original wallet observations>')

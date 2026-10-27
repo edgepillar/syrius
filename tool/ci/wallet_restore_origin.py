@@ -95,7 +95,10 @@ def parse(value, expected_home):
              and re.fullmatch('[a-f0-9]{64}', value['send_hash']) is not None
              and value['send_hash'] != '0' * 64
              and value['send_token'] == 'zts1znnxxxxxxxxxxxxx9z4ulx')
-        return Origin(value['profile'], home, wallet, cache, tuple(members),
+        # Validate containment with normalized paths, but retain the exact Hive
+        # value. The child compares the original stored string before claiming
+        # its write; valid mixed separators must not change that string.
+        return Origin(value['profile'], home, value['wallet'], cache, tuple(members),
                       value['selected'], value['saved'], value['send_hash'], value['send_token'])
     except (KeyError, TypeError, ValueError, Refused):
         raise Refused() from None
