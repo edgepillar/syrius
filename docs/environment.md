@@ -5433,3 +5433,42 @@ one extended memory-only failure-location privacy case passes locally with no
 scratch, SDK, signer, wallet or node execution. P09 selection/send, actual F06
 preparation and all visual acceptance remain open. P08's earlier independent
 source binding remains intact and the PR stays Draft.
+
+### Original selection revision RED and correction (2026-10-27)
+
+At source `2bae61c4814d935274dcb087cd889f6de3baea40`, tree
+`5ec7f025270b3d9fc99fae995333aa6ef2ca5cc1`, focused run
+[40452328286](https://github.com/edgepillar/syrius/actions/runs/40452328286),
+attempt one, job `122017684930`, reproduces the defect. Of the 113 original
+Dart bodies, 111 pass and exactly two fail, with zero skips and two assertion
+events. Both original stack locations identify
+`selection_context_revision_test.dart`, lines 70 and 89. They require the
+actual notifier's one generation to survive the actual shell subscription's
+owned-work invalidation. The command exits one normally in 35.562 seconds
+with 55203 complete bytes, without overflow or forced kill; output SHA-256
+`928e5cb731755b11f13d92724378c41254c352ad44f03fb7becd200987ea4b0a`.
+All ten independent transfer-witness bodies pass. The 508 Python cases retain
+three platform skips, pinned SDK/locked source and inputs remain equal, both
+original startup probes pass and all four unchanged asset controls pass.
+No native wallet or node runs in this reproduction job.
+
+Analysis has zero errors/warnings and four infos: two private initializing
+formals, one fixture method tear-off and an unnecessary async import. The
+767 complete bytes have SHA-256
+`ebfee3dc5ef2bd8c732129bbe79ec4b138cbb4aa88d7aa920b7199c4c547244c`.
+The correction uses the pinned SDK's private initializing formals, the same
+fixture tear-off and no redundant import. It adds no suppression.
+
+The behavioral correction is confined to the original selected-source
+subscription: it tells the shell `contextAlreadyInvalidated: true` because
+the real notifier already revoked before announcing this selection. The
+shell still invalidates its original collection controllers; notifier-owned
+read/PoW invalidation remains before notification. Subscription capture,
+idempotent selection, owned detachment, all original callbacks, test bodies,
+single-generation assertions and exact harness context/pointer guards are
+retained. No tolerance, direct selection/preference mutation, signer or
+replacement controller is introduced. The same 113-case GREEN gate and
+actual corrected Windows selection still require execution. The earlier
+native receipt's particular refused field remains unprojected; this RED
+establishes the duplicate generation independently. No original UI send,
+F06 checkpoint/seed state or visual match is qualified, and the PR stays Draft.

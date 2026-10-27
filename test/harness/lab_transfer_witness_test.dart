@@ -29,7 +29,7 @@ class _Sender extends SendTransactionBloc {
 
 class _Fixture {
   _Fixture() {
-    when(() => addresses.refreshBalance()).thenAnswer((_) {});
+    when(addresses.refreshBalance).thenAnswer((_) {});
     when(() => publish.createAccountBlock(
       any(), any(), address: any(named: 'address'),
       waitForRequiredPlasma: any(named: 'waitForRequiredPlasma'),

@@ -38,10 +38,9 @@ class SelectedAddressNotifier extends ChangeNotifier {
 final class SelectedAddressContextListener {
   /// Captures the current selection before attaching to the original source.
   SelectedAddressContextListener({
-    required SelectedAddressNotifier source,
-    required void Function({required bool contextAlreadyInvalidated}) onChanged,
-  }) : _source = source, _onChanged = onChanged,
-       _selected = kSelectedAddress {
+    required this._source,
+    required this._onChanged,
+  }) : _selected = kSelectedAddress {
     _source.addListener(_changed);
   }
 
@@ -53,7 +52,8 @@ final class SelectedAddressContextListener {
   void _changed() {
     if (_closed || _selected == kSelectedAddress) return;
     _selected = kSelectedAddress;
-    _onChanged(contextAlreadyInvalidated: false);
+    // The original notifier already revoked before announcing this choice.
+    _onChanged(contextAlreadyInvalidated: true);
   }
 
   /// Detaches this subscription once without disposing the original notifier.
