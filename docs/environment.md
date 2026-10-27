@@ -5345,3 +5345,39 @@ analysis and the same 101-case gate are required before native admission.
 The successful test command does not establish actual index-1 selection, an
 original confirmed UI send, F06 preparation or visual parity. The PR remains
 Draft, and every earlier result retains its original source binding.
+
+### Clean P09 preparation gate and fresh native admission (2026-10-27)
+
+At source `b72ac956e8f131942393fbc1ec172c6c945b41a0`, tree
+`a13018f7e375481d0ad4d4be87c9c42746275d64`, focused run
+[40448575254](https://github.com/edgepillar/syrius/actions/runs/40448575254),
+attempt one, job `122005641725`, succeeds with the exact same 101 passing Dart
+bodies, zero skips/failures/error events, ten hidden successes and 111 terminal
+events. Its original normal zero exit takes 38.765 seconds with 47796 complete
+bytes, no overflow or forced kill; output SHA-256
+`87511918f56b82507ea091477c33395a91c15e4e312dcb9e860926e07398f472`.
+All 508 Python cases pass with three platform skips. Selected analysis has
+zero errors, warnings and infos, a normal complete zero exit and empty output.
+All twelve introduced infos are removed without a suppression or changed
+assertion. Pinned SDK, locked source/inputs, both original open-input startup
+probes, pre-build refusal, Windows Node 22.23.4 and all four unchanged asset
+controls pass. No native wallet or node runs in this focused gate.
+
+One fresh default-off original Windows wallet/lab execution at that exact
+source is admitted as
+[40449074122](https://github.com/edgepillar/syrius/actions/runs/40449074122),
+attempt one, job `122007248811`. It is in progress when observed. This is the
+first native execution of the new original address preparation, not a retry
+of an unchanged native source. The actual import, chain-321 signing policy,
+one missing-address derivation, persisted index-1 selection, twelve-destination
+tour, source/input equality and original exits remain mandatory. No direct
+address/global preference mutation, replacement controller or signing shortcut
+is introduced. Earlier negative outcomes retain their own scope.
+
+Neither actual index selection nor an original confirmed UI send is yet
+qualified. P09 remains open, as do F06's real reversible chain/profile
+preparation and wallet-created states. P08 retains its independently inspected
+original source binding; the twelve private tour probes establish none of
+the 94 catalog matches. No local SDK, joblog, archive or image is downloaded,
+the production free-space floor and historical HOLD data stay unchanged, and
+the PR remains Draft.
