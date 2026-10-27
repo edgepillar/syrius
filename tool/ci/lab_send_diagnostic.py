@@ -86,7 +86,24 @@ REASONS = frozenset((
 ))
 
 
+ORIGINAL_STATES = frozenset((
+    'not_started',
+    'pending',
+    'sender_failed',
+    'witness_invalid',
+    'owner_revoked',
+    'detached',
+    'result_observed',
+))
+
+
 def valid(value):
-    return (type(value) is dict and set(value) == {'phase', 'reason'}
+    return (type(value) is dict and set(value) in (
+                {'phase', 'reason'}, {'phase', 'reason', 'original'})
             and type(value['phase']) is type(value['reason']) is str
-            and value['phase'] in PHASES and value['reason'] in REASONS)
+            and value['phase'] in PHASES and value['reason'] in REASONS
+            and ('original' not in value or (
+                value['phase'] == 'confirmation'
+                and value['reason'] == 'original-outcome-unknown'
+                and type(value['original']) is str
+                and value['original'] in ORIGINAL_STATES)))

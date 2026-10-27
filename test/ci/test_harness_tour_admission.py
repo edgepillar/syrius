@@ -12,13 +12,14 @@ from tool.ci import run_harness_tour_tests as harness
 
 
 class HarnessAdmissionTests(unittest.TestCase):
-    def run_case(self, *, passed=191, terminal=True, skipped=0, failed=0,
+    def run_case(self, *, passed=196, terminal=True, skipped=0, failed=0,
                  error_events=0, command_success=True, complete=True,
                  source_changed=False):
         parent = dict(GITHUB_WORKSPACE=str(Path.cwd()), FLUTTER_ROOT='/sdk',
                       GITHUB_RUN_ID='1', GITHUB_RUN_ATTEMPT='1')
         counts = dict(passed=passed, failed=failed, skipped=skipped, hidden=27,
-                      error_events=error_events, terminal_events=218,
+                      error_events=error_events,
+                      terminal_events=passed + skipped + failed + 27,
                       terminal_success=terminal)
         refused = SimpleNamespace(output=b'CI_WALLET_ERROR\n', exit_code=1,
                                   transport_complete=True, public=lambda: {})
@@ -55,11 +56,11 @@ class HarnessAdmissionTests(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertTrue(report['success'])
         self.assertIsNone(report['code'])
-        self.assertEqual(report['counts']['passed'], 191)
+        self.assertEqual(report['counts']['passed'], 196)
         self.assertEqual((source_checks, tree_checks), (2, 2))
 
     def test_stale_short_or_extra_suite_counts_are_refused(self):
-        for passed in (0, 184, 190, 192):
+        for passed in (0, 184, 191, 195, 197):
             with self.subTest(passed=passed):
                 code, report, source_checks, tree_checks = self.run_case(
                     passed=passed)

@@ -114,6 +114,65 @@ void main() {
     expect(witness.failed, isFalse);
   });
 
+  test('passive labels distinguish no dispatch, pending and sender failure',
+      () async {
+    final _Fixture fixture = _Fixture();
+    final LabTransferWitness witness = fixture.witness();
+    fixture.current = false;
+    expect(witness.observedState, 'not_started');
+    fixture.current = true;
+    witness.requireReady();
+    final SendRequestHandle handle = fixture.sender.trySubmitTransfer(
+      fixture.intent.toEvent(),
+    )!;
+    await Future<void>.delayed(Duration.zero);
+    expect(witness.observedState, 'pending');
+    expect(witness.started, isTrue);
+    expect(witness.settled, isFalse);
+    expect(fixture.calls, 1);
+    fixture.answer.completeError(StateError('synthetic private failure'));
+    expect((await handle.result).accepted, isFalse);
+    await Future<void>.delayed(Duration.zero);
+    expect(witness.observedState, 'sender_failed');
+    expect(witness.acceptedHash, isNull);
+    expect(witness.error, isNotNull);
+    expect(witness.settled, isTrue);
+    expect(fixture.calls, 1);
+  });
+
+  test('passive labels cannot revive a revoked or detached original', () async {
+    final _Fixture fixture = _Fixture();
+    final LabTransferWitness witness = fixture.witness();
+    fixture.current = false;
+    expect(witness.isCurrent, isFalse);
+    fixture.current = true;
+    await fixture.emitResult(fixture.response());
+    expect(witness.observedState, 'owner_revoked');
+    expect(witness.acceptedHash, fixtureHash(9));
+    expect(witness.isCurrent, isFalse);
+    await witness.close();
+    expect(witness.observedState, 'detached');
+    expect(witness.failed, isTrue);
+    expect(witness.acceptedHash, fixtureHash(9));
+    expect(fixture.calls, 0);
+  });
+
+  test('an observed result label never replaces original mutation checks',
+      () async {
+    final _Fixture fixture = _Fixture();
+    final LabTransferWitness witness = fixture.witness();
+    final AccountBlockTemplate original = fixture.response();
+    await fixture.emitResult(original);
+    expect(witness.observedState, 'result_observed');
+    expect(witness.result, same(original));
+    original.amount = BigInt.one;
+    expect(witness.failed, isTrue);
+    expect(witness.observedState, 'witness_invalid');
+    expect(witness.result, same(original));
+    expect(witness.acceptedHash, fixtureHash(9));
+    expect(fixture.calls, 0);
+  });
+
   test('a matching-looking automatic receive has a different identity',
       () async {
     final _Fixture fixture = _Fixture();

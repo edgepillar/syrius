@@ -1127,8 +1127,17 @@ class HarnessAgent {
   Future<Map<String, Object?>> _labSend(Map<String, dynamic> command) async {
     String phase = 'admission';
     Map<String, Object?>? detail(String reason) {
+      final Map<String, String> labels = <String, String>{
+        'phase': phase, 'reason': reason,
+      };
+      final LabSendUiReview? review = _labSendReview;
+      if (phase == 'confirmation' && reason == 'original-outcome-unknown' &&
+          review != null &&
+          identical(_labSendGuard?.original, review.witness)) {
+        labels['original'] = review.witness.observedState;
+      }
       final Map<String, String>? diagnostic = labSendPublicDiagnostic(
-        <String, String>{'phase': phase, 'reason': reason},
+        labels,
       );
       return diagnostic == null ? null :
           <String, Object?>{'labSend': diagnostic};

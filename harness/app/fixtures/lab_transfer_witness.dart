@@ -90,6 +90,18 @@ final class LabTransferWitness implements SeedOriginal {
   /// Whether the same live request has entered the original sender.
   bool get started => _started;
 
+  /// One passive label from already retained facts, never new authority.
+  /// Reading it cannot revoke, revive, submit or alter the original request.
+  String get observedState {
+    if (_detached) return 'detached';
+    if (_revoked) return 'owner_revoked';
+    if (_error != null) return 'sender_failed';
+    if (_invalid) return 'witness_invalid';
+    if (!_started) return 'not_started';
+    if (!_terminal) return 'pending';
+    return 'result_observed';
+  }
+
   /// Recheck before pointer down/up, never after normal confirmation closure.
   void requireReady() {
     if (!isCurrent || _started || _terminal || sender.busy.value) {

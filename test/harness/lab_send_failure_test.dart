@@ -70,4 +70,47 @@ void main() {
     expect(failure.diagnostic, isNull);
     expect(failure.toString(), 'Original lab send refused');
   });
+
+  test('original state is optional, copied and scoped to unknown confirmation',
+      () {
+    for (final String state in labSendFailureOriginalStates) {
+      final Map<String, Object> input = <String, Object>{
+        'phase': 'confirmation', 'reason': 'original-outcome-unknown',
+        'original': state,
+      };
+      final Map<String, String> result = labSendPublicDiagnostic(input)!;
+      input['original'] = 'private';
+      expect(result['original'], state);
+      expect(() => result['original'] = 'pending', throwsUnsupportedError);
+      final LabSendDiagnosticFailure failure = LabSendDiagnosticFailure(result);
+      expect(failure.diagnostic, result);
+      expect(failure.toString(), 'Original lab send refused');
+    }
+    expect(labSendPublicDiagnostic(_labels()), _labels());
+  });
+
+  test('unknown, private or misplaced original state refuses the whole payload',
+      () {
+    final Map<String, Object?> value = <String, Object?>{
+      'phase': 'confirmation', 'reason': 'original-outcome-unknown',
+      'original': 'not_started',
+    };
+    for (final Object? state in <Object?>[
+      null, true, 1, '', 'private-path', 'pending\n', _PrivateValue(),
+    ]) {
+      expect(labSendPublicDiagnostic(<String, Object?>{
+        ...value, 'original': state,
+      }), isNull);
+    }
+    for (final Map<String, Object?> change in <Map<String, Object?>>[
+      <String, Object?>{'phase': 'admission'},
+      <String, Object?>{'reason': 'exact-confirmation-pending'},
+      <String, Object?>{'hash': 'private'},
+      <String, Object?>{'confirmed': true},
+    ]) {
+      expect(labSendPublicDiagnostic(<String, Object?>{
+        ...value, ...change,
+      }), isNull);
+    }
+  });
 }

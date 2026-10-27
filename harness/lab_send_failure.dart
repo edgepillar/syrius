@@ -86,16 +86,35 @@ const Set<String> labSendFailureReasons = <String>{
   'unlocked-wallet-required',
 };
 
+/// Passive original-request facts, without any publication or receipt claim.
+const Set<String> labSendFailureOriginalStates = <String>{
+  'not_started',
+  'pending',
+  'sender_failed',
+  'witness_invalid',
+  'owner_revoked',
+  'detached',
+  'result_observed',
+};
+
 /// Returns an independent immutable projection, or refuses the whole payload.
 Map<String, String>? labSendPublicDiagnostic(Object? value) {
-  if (value is! Map || value.length != 2 ||
+  if (value is! Map || (value.length != 2 && value.length != 3) ||
       !value.keys.toSet().containsAll(<String>{'phase', 'reason'}) ||
       !labSendFailurePhases.contains(value['phase']) ||
       !labSendFailureReasons.contains(value['reason'])) {
     return null;
   }
+  if (value.length == 3 &&
+      (!value.containsKey('original') || value['phase'] != 'confirmation' ||
+          value['reason'] != 'original-outcome-unknown' ||
+          value['original'] is! String ||
+          !labSendFailureOriginalStates.contains(value['original']))) {
+    return null;
+  }
   return Map<String, String>.unmodifiable(<String, String>{
     'phase': value['phase'] as String, 'reason': value['reason'] as String,
+    if (value.containsKey('original')) 'original': value['original'] as String,
   });
 }
 

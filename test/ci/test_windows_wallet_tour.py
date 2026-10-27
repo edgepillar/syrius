@@ -142,13 +142,45 @@ class LabSendDiagnosticTests(unittest.TestCase):
         source = (Path(__file__).absolute().parents[2] /
                   'harness/lab_send_failure.dart').read_text(encoding='utf-8')
         for name, expected in (('Phases', tour.lab_send_diagnostic.PHASES),
-                               ('Reasons', tour.lab_send_diagnostic.REASONS)):
+                               ('Reasons', tour.lab_send_diagnostic.REASONS),
+                               ('OriginalStates', tour.lab_send_diagnostic.ORIGINAL_STATES)):
             match = re.search(r'const Set<String> labSendFailure' + name +
                               r' = <String>\{(.*?)\};', source, re.S)
             self.assertIsNotNone(match)
             actual = re.findall(r"'([a-z0-9_-]+)'", match[1])
             self.assertEqual(set(actual), expected)
             self.assertEqual(len(actual), len(expected))
+
+    def test_optional_original_state_is_finite_and_only_for_unknown_confirmation(self):
+        for state in tour.lab_send_diagnostic.ORIGINAL_STATES:
+            value = dict(stage='lab_send', code=None, diagnostic=dict(
+                phase='confirmation', reason='original-outcome-unknown', original=state))
+            self.assertIs(tour.entry_failure(value), value)
+            for change in (dict(phase='accept'), dict(reason='exact-confirmation-pending')):
+                with self.subTest(state=state, change=change), self.assertRaises(tour.Refused):
+                    tour.entry_failure(dict(value, diagnostic=dict(value['diagnostic'], **change)))
+            with self.assertRaises(tour.Refused):
+                tour.entry_failure(dict(value, stage='onboarding'))
+
+    def test_unknown_private_or_coerced_original_states_are_refused(self):
+        original = dict(phase='confirmation', reason='original-outcome-unknown', original='pending')
+        for state in (None, True, 1, '', 'pending\n', 'private', {'hash': 'private'}):
+            with self.subTest(state=state), self.assertRaises(tour.Refused):
+                tour.entry_failure(dict(stage='lab_send', code=None,
+                    diagnostic=dict(original, original=state)))
+        for change in (dict(hash='private'), dict(address='private'), dict(confirmed=True)):
+            with self.subTest(change=change), self.assertRaises(tour.Refused):
+                tour.entry_failure(dict(stage='lab_send', code=None,
+                    diagnostic=dict(original, **change)))
+
+    def test_a_result_observation_cannot_establish_a_confirmed_send_or_closure(self):
+        report = CompletionTests().report()
+        report.update(lab_send=None, entry_exit=1, entry_failure=dict(stage='lab_send',
+            code=None, diagnostic=dict(phase='confirmation', reason='original-outcome-unknown',
+                original='result_observed')))
+        self.assertFalse(tour.completed(report))
+        report['lab_send'] = OriginalSendTests.receipt()
+        self.assertFalse(tour.completed(report))
 
 
 class StartupVocabularyTests(unittest.TestCase):

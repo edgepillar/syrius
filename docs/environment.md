@@ -6583,3 +6583,41 @@ existing memory controls. Short and extra counts, skips, failures, errors,
 missing terminal success, failed/incomplete processes and changed source still
 refuse. Current 191-Dart/549-Python and strict clean-analysis gates remain
 required before native allocation; original-send and full acceptance stay open.
+
+### Observe the original request after unknown confirmation
+
+At 283ba90edc0d7ee93b73b40394cec582860309de, original combined
+[40530271055](https://github.com/edgepillar/syrius/actions/runs/40530271055),
+attempt one, job 122280844771, positively qualifies all 191 Dart cases, 549
+Python cases/three original skips and strict clean selected analysis. The
+original Dart process exits zero in 60.531 seconds with 94497 complete,
+unforced bytes. Native onboarding and persisted index-1 selection reach the
+original form, exact review and UI Accept admission, then confirmation refuses
+original-outcome-unknown without a positive send receipt. The result remains
+UNKNOWN; sender dispatch and hash acceptance are not inferred.
+
+All five nodes exit zero normally with complete output. All seven upstream
+test bodies pass and their original source is restored. Entry exits one with
+920 complete bytes; application cleanup exits zero, but one VCTIP needs forced
+cleanup. Normal actor closure and source/input postchecks remain unqualified.
+Neither the original chain/profile nor its unknown publication is retried.
+
+The retained witness now exposes one of seven fixed labels from already
+latched fields: not_started, pending, sender_failed, witness_invalid,
+owner_revoked, detached or result_observed. Reading it performs no new
+authority check and cannot mutate, revive or publish a request. Only the
+identical guard original may supply the optional label, and only for the
+existing confirmation/original-outcome-unknown diagnostic. Legacy two-field
+diagnostics remain valid; private, unknown, coerced, misplaced or extra values
+refuse. No error text, block hash, address, object identity or wallet path is
+exported. A result observation never establishes positive confirmation.
+
+Five new Dart cases cover passive original-state observation, revocation,
+retained hashes, mutation checks and immutable projection. Three new Python
+cases cover the finite label/context contract and failed-closure separation.
+All 34 selected memory cases pass without SDK/native execution or scratch.
+The exact suite count and mocked count fixtures now require 196 Dart cases;
+all 552 Python cases and strict clean analysis remain required before native
+allocation. Guard policy, journal, original UI/signing/publication path,
+timing, dependency and workflow bytes are unchanged. New runtime qualification
+remains pending; the original unknown outcome is preserved.
