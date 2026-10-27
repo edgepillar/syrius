@@ -29,6 +29,10 @@ import '../helpers/hydrated_bloc.dart';
 class _Balances extends MockBloc<MultipleBalanceEvent, MultipleBalanceState>
     implements MultipleBalanceBloc {}
 
+class _Zenon extends Mock implements Zenon {}
+
+class _Ledger extends Mock implements LedgerApi {}
+
 class _Tokens extends MockBloc<AllTokensEvent, AllTokensState>
     implements AllTokensBloc {}
 
@@ -156,6 +160,7 @@ void main() {
   late SharedPrefsService? previousPreferences;
 
   setUpAll(() {
+    registerFallbackValue(emptyAddress);
     registerFallbackValue(const MultipleBalanceFetch(addresses: <String>[]));
     registerFallbackValue(const AllTokensRequested());
     registerFallbackValue(const InfiniteListRequested());
@@ -261,7 +266,11 @@ void main() {
     AppLottie.debugClear();
   });
 
-  Widget host({bool light = false, bool reduced = false}) => MaterialApp(
+  Widget host({
+    bool light = false,
+    bool reduced = false,
+    MultipleBalanceBloc? balanceSource,
+  }) => MaterialApp(
     theme: light ? AppTheme.lightTheme : AppTheme.darkTheme,
     localizationsDelegates: appLocalizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
@@ -271,7 +280,7 @@ void main() {
     ),
     home: MultiBlocProvider(
       providers: <SingleChildWidget>[
-        BlocProvider<MultipleBalanceBloc>.value(value: balances),
+        BlocProvider<MultipleBalanceBloc>.value(value: balanceSource ?? balances),
         BlocProvider<AllTokensBloc>.value(value: tokens),
         BlocProvider<SendTransactionBloc>.value(value: transactions),
         BlocProvider<PendingTransactionsBloc>.value(value: pending),
@@ -323,6 +332,81 @@ void main() {
     ));
     return second;
   }
+
+  testWidgets('Transfer refreshes a derived member through the real balance bloc',
+      (WidgetTester tester) async {
+    final String first = kSelectedAddress!;
+    final String second = Address(
+      'z', <int>[0, 2, ...List<int>.filled(18, 3)],
+    ).toString();
+    final _Zenon sdk = _Zenon();
+    final _Ledger ledger = _Ledger();
+    final List<String> reads = <String>[];
+    final Completer<AccountInfo> secondReply = Completer<AccountInfo>();
+    final AccountInfo derived = AccountInfo(
+      address: second,
+      blockCount: 1,
+      balanceInfoList: <BalanceInfoListItem>[
+        BalanceInfoListItem(
+          token: kZnnCoin, balance: BigInt.from(2500000000),
+        ),
+      ],
+    );
+    when(() => sdk.ledger).thenReturn(ledger);
+    when(() => ledger.getAccountInfoByAddress(any())).thenAnswer(
+      (Invocation invocation) async {
+        final String address =
+            (invocation.positionalArguments.single as Address).toString();
+        reads.add(address);
+        if (address == second) return secondReply.future;
+        expect(address, first);
+        return balances.state.data![first]!;
+      },
+    );
+    final MultipleBalanceBloc source = MultipleBalanceBloc(zenon: sdk);
+    addTearDown(() async {
+      if (!secondReply.isCompleted) secondReply.complete(derived);
+      source.cancelStreamSubscription();
+      await source.close();
+    });
+    source.add(MultipleBalanceFetch(addresses: <String>[first]));
+    await source.stream.firstWhere((MultipleBalanceState state) =>
+        state.status == MultipleBalanceStatus.success);
+    expect(source.state.data!.keys, <String>[first]);
+    kDefaultAddressList = <String?>[first, second];
+    kSelectedAddress = second;
+    kAddressLabelMap[second] = 'Address 2';
+    tester.view.physicalSize = const Size(1280, 780);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(host(balanceSource: source));
+    await tester.pump();
+    expect(reads, <String>[first, first, second]);
+    expect(source.state.status, MultipleBalanceStatus.loading);
+    expect(find.byType(SendPopulated), findsNothing);
+    secondReply.complete(derived);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    final StatefulElement form =
+        tester.element(find.byType(SendPopulated)) as StatefulElement;
+    expect((form.widget as SendPopulated).balances.keys, <String>[first, second]);
+    expect((form.state as SendFormOrigin).draftSender, second);
+    await tester.tap(find.byKey(const Key('transfer_sender')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byWidgetPredicate((Widget widget) =>
+        widget is PopupMenuItem<String> && widget.value == second), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Transfer retains a complete cached balance without another fetch',
+      (WidgetTester tester) async {
+    await show(tester);
+    verifyNever(() => balances.add(any()));
+    expect(find.byType(SendPopulated), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 
   for (final bool light in <bool>[false, true]) {
     testWidgets('actual Transfer header selects its typed owner $light',

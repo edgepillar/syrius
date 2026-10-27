@@ -6299,3 +6299,37 @@ dependency, ordinary wallet source, harness input/signing/publication guard,
 local SDK/native execution, artifact download, storage policy or cleanup
 changes. Native45's actual missing-choice cause and original confirmed send,
 P03/F06, real reversible checkpoints and all 94 visual matches remain open.
+
+
+### Derived-member balance refresh at Transfer entry
+
+At cf842f3603675e73873d3977d13a5c397569664e, original combined Windows
+[40506095906](https://github.com/edgepillar/syrius/actions/runs/40506095906),
+attempt one, job 122195674511, passes all 184 Dart cases and 540 Python
+cases with three original platform skips. Strict selected analysis exits zero
+with complete output and zero errors, warnings or infos. The previous real
+header boundary and analysis-admission regressions pass in that job.
+
+Native46 completes actual onboarding, derivation and persisted selection of
+index 1. Before original-send admission it refuses with the closed reason
+`original-lab-sender-form-choice-missing`: the original form has no balance
+entry for the selected member. No original-send receipt or capture exists.
+The five original lab nodes exit zero normally; failure cleanup is separately
+unqualified, with one remaining compiler helper. Native42 publication remains
+UNKNOWN; this later pre-admission refusal does not resolve that outcome.
+
+Transfer now requests balances for current wallet members on entry when an
+already successful cached balance omits a member. An already complete cache
+keeps its existing path. Two regression cases use the actual Transfer page:
+one drives the real balance bloc through a delayed SDK-mocked new-member read
+and checks the loading state, populated owner and typed menu entry; the other
+checks that a complete cache causes no additional request. The existing 184
+Dart bodies remain unchanged. The new 186-Dart/540-Python combined gate and
+actual original-send qualification are pending. The SDK is set up once after
+controller checks, with strict analysis and all Dart cases required before
+node allocation and native build.
+
+No harness pointer path, sender/draft/intent guard, signing rule, original
+publication journal, F06 checkpoint policy, workflow, dependency, storage
+policy or local native execution changes. P03/F06, the actual confirmed send,
+real reversible checkpoints and all 94 visual matches remain open.
