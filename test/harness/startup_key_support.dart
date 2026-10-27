@@ -3,9 +3,14 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive_ce/hive_ce.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
+import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/entry_capture_source.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/startup_stage.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart' show getChainIdentifier;
 
 import '../../harness/app/agent.dart';
 import '../welcome/support.dart';
@@ -79,6 +84,22 @@ class StartupKeyFixture {
   /// Mounts the original focus receiver with its input image still pending.
   Future<void> mount(WidgetTester tester) async {
     prepareWelcomeViewport(tester);
+    final SharedPrefsService? previousPreferences = app.sharedPrefsService;
+    expect(Hive.isBoxOpen(kSharedPrefsBox), isFalse);
+    Hive.init('startup-key-preferences');
+    final Box<dynamic> preferences = await Hive.openBox<dynamic>(
+      kSharedPrefsBox,
+      bytes: Uint8List(0),
+    );
+    addTearDown(() async {
+      try {
+        await preferences.close();
+      } finally {
+        app.sharedPrefsService = previousPreferences;
+      }
+    });
+    await preferences.put(kChainIdKey, getChainIdentifier());
+    app.sharedPrefsService = await SharedPrefsService.getInstance();
     EntryCaptureRegistry.instance.observeHarnessEntry();
     addTearDown(() async {
       releaseBytes();
@@ -97,6 +118,9 @@ class StartupKeyFixture {
     await tester.pumpWidget(welcomeHost(_StartupHost(session)));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 16));
+    final Map<String, Object?> view = await observe();
+    expect(view['signingPolicyReady'], isTrue);
+    expect(view['savedSigningChainId'], view['signingChainId']);
   }
 
   /// Supplies the existing tiny fixture to the same pending decoder.

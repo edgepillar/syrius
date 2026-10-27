@@ -6117,3 +6117,30 @@ same 20 inputs and unchanged bytes. A future explicit checkpoint/seed lane
 can have its own input without repurposing the existing ones, but this source
 adds no lane, checkpoint or seed authority. No local SDK/native execution,
 artifact download, storage policy change or cleanup occurs.
+
+### Original startup-key fixture prerequisite correction
+
+At d2b3f38829b6, focused run 40492771630 fails normally with original exit
+one after 75.204 seconds. Its complete, unforced 95953-byte Dart output has
+SHA-256 43a8e5902c8e8e3dddc92def99fdecc428fac5266b4d41075a06fff0f206643a.
+All original 179 Dart cases pass; only the two new startup cases fail, both
+at the original signing-policy admission guard. The 24 hidden terminal
+events are not additional passing cases. All 536 Python cases pass with
+three existing platform skips, and selected analysis has zero findings.
+This failed run remains negative and is not retried or relabeled clean.
+
+The new shared fixture had no preference service or open saved-chain box,
+so the authenticated startup-key path correctly refused before input.
+The fixture now opens its own byte-backed in-memory box, explicitly stores
+the unchanged current SDK signing chain, initializes the ordinary service,
+and verifies the finite observation reports a matching known saved chain.
+Teardown closes only that owned box and restores the previous service.
+Neither production code nor either new test body changes. Ownership,
+revision, saved-signing-chain and original-film-effect guards stay intact;
+no secret, wallet, filesystem profile or chain fixture is added.
+
+The original 18-case memory-only diagnostic proof retains its exact inputs
+and is reused without another execution. A fresh source-bound 181-Dart and
+536-Python focused gate remains pending; no new native wallet or lab run is
+authorized by this failed result alone. Earlier native44 failure and all
+P09/F06, checkpoint and visual-acceptance limits remain unchanged.
