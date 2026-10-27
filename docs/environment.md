@@ -4998,3 +4998,35 @@ through another native run; one combined focused gate covers the complete
 correction before any next native observation. No local SDK executes and no
 joblog or artifact download occurs. All original Element/center, ownership,
 signing-policy, key-release, deadline and retirement guards remain in place.
+
+### Combined gate fixture repair and lint correction (2026-10-27)
+
+Source `7486fc8645394136de049fa2b97301ebbd3a5598`, tree
+`cbc2db1990c4f0533646391359e9dadb0ca003dd`, focused run `40434369969`
+attempt one, job `121959410218`, records 82 passed, four failed, zero skipped,
+four error events, eight hidden and 94 terminal events. The projection keeps
+two new scroll hit-test locations at line 177 and one new field-build
+location at line 219; the fourth detail remains capped. The original command
+exits one normally in 45.75 seconds with 67867 complete bytes, no overflow
+or forced kill and SHA-256
+`55c224438a6a46cae289bba61f8a06ac20fb3f2cdc0202029f6e0da45c5816fb`.
+All 500 Python cases with three platform skips and original asset controls
+pass. Selected analysis has zero errors/warnings and two parameter-assignment
+infos at the new traversal flag assignments; output is complete and unforced.
+
+The pinned SDK's DrivenScrollActivity explicitly ignores pointers while it
+is scrolling. The fixture therefore retains its mounted original control,
+requires readiness false during movement, then checks ordinary hit testing
+and the callback after idle. Its earlier during-scroll hit-test expectation
+was incorrect. The pinned TextField build also requires a Material ancestor;
+the field fixture now uses the same real Panel as production. Its reveal,
+same-Element, changed-center, false/true readiness and input assertions remain.
+Neither repair changes application input or relaxes original admission.
+
+The traversal now copies the inherited load-transition flag into a local
+variable instead of assigning to its parameter. This preserves its logic
+without new suppression. The four original updater reproduction bodies are
+unchanged. The repaired combined gate still expects all 86 Dart cases and
+500 Python cases before any next native run. Earlier failed gates and the
+native movement receipt stay negative and source-bound. No local SDK,
+joblog or artifact download occurs; full acceptance remains open.

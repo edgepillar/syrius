@@ -6,6 +6,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/embedded_node/node_library.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/node_update/node_update.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/disclosure.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/page_widgets.dart'
+    show Panel;
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/welcome_surface.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/settings_frame.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/settings_parts.dart';
@@ -174,7 +176,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50));
       expect(scroll.position.isScrollingNotifier.value, isTrue);
-      expect(toggle.hitTestable(), findsOneWidget);
+      expect(toggle, findsOneWidget);
       expect(await _chainReady(agent), isFalse);
       for (int frame = 0; frame < 30; frame++) {
         await tester.pump(const Duration(milliseconds: 10));
@@ -184,6 +186,7 @@ void main() {
       expect(tester.getCenter(toggle), isNot(originalCenter));
       expect(scroll.position.isScrollingNotifier.value, isFalse);
       expect(await _chainReady(agent), isTrue);
+      expect(toggle.hitTestable(), findsOneWidget);
       expect(toggled, 0);
       await tester.tap(toggle);
       expect(toggled, 1);
@@ -203,12 +206,14 @@ void main() {
             selected: SettingsSectionId.node,
             onSelected: (SettingsSectionId _) {},
             child: SettingsSection(children: <Widget>[
-              Disclosure(
-                title: 'Client chain',
-                keyPrefix: 'node_settings_chain',
-                child: TextField(
-                  key: const Key('node_settings_client_chain'),
-                  controller: input,
+              Panel(
+                child: Disclosure(
+                  title: 'Client chain',
+                  keyPrefix: 'node_settings_chain',
+                  child: TextField(
+                    key: const Key('node_settings_client_chain'),
+                    controller: input,
+                  ),
                 ),
               ),
             ]),

@@ -1097,8 +1097,9 @@ class HarnessAgent {
     String? loadKey(Key? key) => key is ValueKey<String> &&
             loadKeys.contains(key.value) ? key.value : null;
     int cards = 0;
-    void card(Element element, {bool loadTransition = false}) {
+    void card(Element element, {bool inheritedLoadTransition = false}) {
       if (!settled) return;
+      bool loadTransition = inheritedLoadTransition;
       final Widget widget = element.widget;
       if (widget is StateSwitcher && loadKey(widget.child.key) != null) {
         if (loadKey(widget.child.key) == 'node_update_loading') {
@@ -1121,7 +1122,7 @@ class HarnessAgent {
         }
       }
       element.debugVisitOnstageChildren((Element child) =>
-          card(child, loadTransition: loadTransition));
+          card(child, inheritedLoadTransition: loadTransition));
     }
     void visit(Element element) {
       if (!settled) return;
