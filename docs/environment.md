@@ -5080,3 +5080,45 @@ commits already use the requested identity. Upstream authors and historical
 runtime evidence keep their original bindings. No additional history rewrite,
 CI retry, runtime execution or artifact download is performed for this
 inspection, and the PR remains Draft and unmerged.
+
+### Actual Settings readiness passes; partial tour remains failed (2026-10-27)
+
+At source `2c56e24bdda7a419964139352b8847a7515f49ea`, tree
+`69618258fa13c34e67a58d1fcafc7d104dddde6f`, native run
+[40436918378](https://github.com/edgepillar/syrius/actions/runs/40436918378),
+attempt one, job `121967690171`, completes actual onboarding, original Ready
+opening and the explicit chain-321 signing-policy checks. It then reaches the
+tour and records nine visited destinations. The original entry failure is
+stage `tour`, code null. Entry exits one with 1718 complete bytes, no overflow
+and SHA-256 `5f2275a80fbbe11f7478f6682ceb3a908fea4676c46b03bb06a38a26fe2ad268`.
+No specific page cause is inferred from that aggregate receipt.
+
+All 86 Dart cases pass with zero skips, failures or error events, eight hidden
+and 94 terminal events. The original command exits zero normally in 46.203
+seconds with 40322 complete bytes and SHA-256
+`6cf20440e87fc0827565986379bc9d70451480f57c1cb4fb5b9997872f0bb0d4`.
+All 500 Python cases pass with three platform skips, selected analysis has no
+findings, and all four original asset controls pass on actual Node 22.23.4.
+Seven original upstream test bodies pass with their source restored. All
+five lab nodes exit zero normally with complete output. One VCTIP actor still
+requires forced cleanup; ordinary application closure and the full tour stay
+unqualified. The failed overall wallet/lab result remains negative.
+
+The retained wallet manifest is 2968 archive bytes, with API SHA-256
+`ef98c8c62bfb1519d297ae5957b137848a48f5dcfd0083176a440c8a02e51dd8`.
+The separate native lab archive is 27352 bytes, with API SHA-256
+`128fd24f86d15354275ef6433076b99a715c77ecfe5dd529aea8d794518b84e9`.
+Only their metadata is read locally. No archive, SDK, joblog or image is
+downloaded locally and no runtime is repeated.
+
+The existing retained-lab inspector now reads a wallet manifest when the
+original lab retained one. It keeps the one-file, bounded, digest-verified
+in-memory archive contract, binds the original source/run/tree and compares
+the wallet manifest's exact digest with the original lab record. Its separate
+finite notice contains original page names, counts, capture flags and failure
+facts only. Private replies, profile paths and pixels are omitted. A partial
+page flag is not an independently accepted PNG, and complete pages cannot
+heal a failed exit or forced cleanup. Five new in-memory controls pass with
+no network, filesystem scratch or native process. Actual hosted inspection
+of these two original archives is pending. The actual Settings correction is
+qualified; P08/P09/F06 and all 94 visual matches remain open.

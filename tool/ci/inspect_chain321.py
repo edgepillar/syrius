@@ -492,6 +492,61 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA, *, expected_p
     return result
 
 
+def project_wallet_tour(report, lab, head, run_id, tree, manifest_sha):
+    """Read original page coverage without exporting pixels or private replies."""
+    from tool.ci import windows_wallet_tour as wallet
+
+    need(type(report) is dict and type(lab) is dict
+         and lab.get("wallet_tour_requested") is True
+         and lab.get("application_sha") == head and lab.get("application_tree") == tree
+         and re.fullmatch(r"[a-f0-9]{40}", tree) is not None
+         and report.get("schema") == 1 and type(report.get("schema")) is int
+         and report.get("scope") == "owned_chain321_wallet_tour"
+         and report.get("source_sha") == head and report.get("source_tree") == tree
+         and report.get("run_id") == str(run_id) and report.get("run_attempt") == "1"
+         and type(report.get("success")) is bool
+         and report.get("wallet_qualified") is report.get("seed_admitted") is False
+         and type(report.get("visual_matches")) is int and report["visual_matches"] == 0)
+    original = lab.get("wallet_tour")
+    need(type(original) is dict and original.get("manifest_sha256") == manifest_sha
+         and re.fullmatch(r"[a-f0-9]{64}", manifest_sha) is not None)
+    checks, errors, captures = report.get("checks"), report.get("errors"), report.get("captures")
+    need(type(checks) is dict and set(checks) == set(wallet.CHECKS)
+         and all(type(value) is bool for value in checks.values())
+         and type(errors) is list and len(errors) <= 16
+         and all(value in wallet.CODES for value in errors)
+         and type(captures) is list and len(captures) <= len(wallet.PAGES)
+         and "tour" in report)
+    for index, capture in enumerate(captures):
+        need(type(capture) is dict and set(capture) == {"page", "bytes", "sha256", "width", "height"}
+             and capture["page"] == wallet.PAGES[index]
+             and type(capture["bytes"]) is int and 0 < capture["bytes"] <= wallet.debug.entry.MAX_PNG
+             and re.fullmatch(r"[a-f0-9]{64}", capture["sha256"]) is not None
+             and type(capture["width"]) is type(capture["height"]) is int
+             and capture["width"] == 1280 and capture["height"] == 780)
+    try:
+        tour = None if report["tour"] is None else wallet.tour_receipt(report["tour"])
+        failure = None if report.get("entry_failure") is None else wallet.entry_failure(report["entry_failure"])
+    except wallet.Refused:
+        raise Refused("INSPECTION_REFUSED") from None
+    visited = 0 if tour is None else len(tour["visited"])
+    need(original.get("success") is report["success"] and original.get("checks") == checks
+         and original.get("errors") == errors
+         and type(original.get("visited_pages")) is int and original["visited_pages"] == visited
+         and type(original.get("captured_pages")) is int and original["captured_pages"] == len(captures)
+         and (not report["success"] or wallet.completed(report)))
+    exit_code, forced = report.get("entry_exit"), report.get("required_actor_forced_cleanup")
+    need((exit_code is None or type(exit_code) is int and -(2**63) <= exit_code < 2**63)
+         and type(forced) is bool)
+    return dict(schema=1, scope="retained_wallet_tour_observation", source_head=head,
+        source_tree=tree, source_run_id=run_id, source_attempt=1,
+        artifact_reported_success=report["success"], original_checks=checks,
+        original_error_codes=errors, entry_failure=failure, entry_exit=exit_code,
+        required_actor_forced_cleanup=forced, tour=tour, captured_pages=len(captures),
+        inspection_only=True, runtime_started=False, wallet_qualified=False,
+        seed_admitted=False, visual_matches=0)
+
+
 def main():
     global PHASE
     parent = os.environ
@@ -514,6 +569,7 @@ def main():
     PHASE = "artifact_metadata"
     listing = client.json("/actions/runs/" + run_text + "/artifacts?per_page=20")
     need(listing["total_count"] == len(listing["artifacts"]) <= 20)
+    wallet_lab = None
     for backend in backends:
         name = "chain321-" + backend + "-" + head + "-" + run_text + "-1"
         selected = [item for item in listing["artifacts"] if item["name"] == name]
@@ -530,6 +586,8 @@ def main():
         PHASE = "projection_" + backend
         summary = project(report, backend, head, run_id, expected_node,
                           expected_patched=expected_choice == "lab-fix")
+        if backend == "native" and report.get("wallet_tour") is not None:
+            wallet_lab = report
         summary.update(archive_sha256=sha(raw), manifest_sha256=manifest_sha)
         PHASE = "notice_" + backend
         encoded = json.dumps(summary, sort_keys=True, separators=(",", ":"))
@@ -538,6 +596,29 @@ def main():
         need(len(encoded.encode("ascii")) <= 3800)
         escaped = encoded.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
         print("::notice title=Retained chain-321 observation::" + escaped, flush=True)
+    if wallet_lab is not None:
+        PHASE = "wallet_artifact_metadata"
+        name = "wallet-tour-" + head + "-" + run_text + "-1"
+        selected = [item for item in listing["artifacts"] if item["name"] == name]
+        need(len(selected) == 1)
+        item = selected[0]
+        need(item["expired"] is False and item["workflow_run"]["id"] == run_id
+             and item["workflow_run"]["head_sha"] == head
+             and re.fullmatch(r"sha256:[a-f0-9]{64}", item.get("digest", "")) is not None)
+        commit = client.json("/git/commits/" + head)
+        need(commit["sha"] == head)
+        PHASE = "download_wallet"
+        location = client.read(API + "/actions/artifacts/" + str(item["id"]) + "/zip", redirect=True)
+        raw = client.read(location, authenticated=False, cap=MAX_ARCHIVE)
+        PHASE = "unpack_wallet"
+        report, manifest_sha = unpack(raw, item["digest"][7:], item["size_in_bytes"])
+        PHASE = "projection_wallet"
+        summary = project_wallet_tour(report, wallet_lab, head, run_id, commit["tree"]["sha"], manifest_sha)
+        summary.update(archive_sha256=sha(raw), manifest_sha256=manifest_sha)
+        encoded = json.dumps(summary, sort_keys=True, separators=(",", ":"))
+        need(len(encoded.encode("ascii")) <= 3800)
+        escaped = encoded.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+        print("::notice title=Retained wallet tour observation::" + escaped, flush=True)
     PHASE = "source_metadata_after"
     after = client.json("/actions/runs/" + run_text)
     need(all(after[key] == run[key] for key in ("id", "head_sha", "run_attempt", "workflow_id", "status", "conclusion")))

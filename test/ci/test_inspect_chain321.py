@@ -630,6 +630,85 @@ class InspectionTests(unittest.TestCase):
         result.update(archive_sha256="a" * 64, manifest_sha256="b" * 64)
         self.assertLess(len(json.dumps(result, separators=(",", ":")).encode()), 3800)
 
+    @staticmethod
+    def partial_wallet_report():
+        from tool.ci import windows_wallet_tour as wallet
+        report = dict(schema=1, scope="owned_chain321_wallet_tour", source_sha="a" * 40,
+            source_tree="b" * 40, run_id="123", run_attempt="1", success=False,
+            wallet_qualified=False, seed_admitted=False, visual_matches=0,
+            checks=dict.fromkeys(wallet.CHECKS, False), errors=["ENTRY_FAILED"], captures=[],
+            entry_failure=dict(stage="tour", code=None), entry_exit=1,
+            required_actor_forced_cleanup=True,
+            tour=dict(schema=1, scope="wallet_page_tour", complete=False,
+                requested=list(wallet.PAGES), visited=[dict(page=page, nodes=10,
+                    error_widgets=0, severe_logs=0, captured=True) for page in wallet.PAGES[:9]]),
+            private_profile="/fixture/private/profile", private_reply="synthetic private reply")
+        lab = manifest()
+        lab.update(application_tree="b" * 40, wallet_tour_requested=True,
+            wallet_tour=dict(success=False, checks=copy.deepcopy(report["checks"]),
+                errors=report["errors"][:], captured_pages=0, visited_pages=9,
+                manifest_sha256="c" * 64))
+        return report, lab
+
+    def test_wallet_projection_keeps_partial_pages_and_original_failure(self):
+        report, lab = self.partial_wallet_report()
+        value = inspect.project_wallet_tour(report, lab, "a" * 40, 123, "b" * 40, "c" * 64)
+        self.assertEqual(len(value["tour"]["visited"]), 9)
+        self.assertEqual(value["tour"]["visited"][-1]["page"], "accelerator")
+        self.assertEqual(value["captured_pages"], 0)
+        self.assertFalse(value["artifact_reported_success"])
+        self.assertTrue(value["required_actor_forced_cleanup"])
+        self.assertEqual(value["entry_exit"], 1)
+        self.assertNotIn("private", json.dumps(value))
+        self.assertFalse(value["runtime_started"])
+        value.update(archive_sha256="d" * 64, manifest_sha256="c" * 64)
+        self.assertLessEqual(len(json.dumps(value, separators=(",", ":")).encode()), 3800)
+
+    def test_wallet_projection_rejects_cross_manifest_and_source_mismatch(self):
+        for change in (dict(manifest_sha256="d" * 64), dict(visited_pages=8),
+                       dict(captured_pages=True), dict(success=True)):
+            report, lab = self.partial_wallet_report()
+            lab["wallet_tour"].update(change)
+            with self.subTest(change=change), self.assertRaises(inspect.Refused):
+                inspect.project_wallet_tour(report, lab, "a" * 40, 123, "b" * 40, "c" * 64)
+        for change in (dict(source_sha="d" * 40), dict(source_tree="d" * 40),
+                       dict(run_id="124"), dict(run_attempt="2")):
+            report, lab = self.partial_wallet_report()
+            report.update(change)
+            with self.subTest(change=change), self.assertRaises(inspect.Refused):
+                inspect.project_wallet_tour(report, lab, "a" * 40, 123, "b" * 40, "c" * 64)
+
+    def test_wallet_projection_rejects_private_or_invalid_page_fields(self):
+        for change in (dict(raw="synthetic private diagnostic"),
+                       dict(page="private-page"), dict(error_widgets=True)):
+            report, lab = self.partial_wallet_report()
+            report["tour"]["visited"][-1].update(change)
+            with self.subTest(change=change), self.assertRaises(inspect.Refused):
+                inspect.project_wallet_tour(report, lab, "a" * 40, 123, "b" * 40, "c" * 64)
+
+    def test_wallet_projection_cannot_heal_failed_closure_with_complete_pages(self):
+        from tool.ci import windows_wallet_tour as wallet
+        report, lab = self.partial_wallet_report()
+        report["tour"]["visited"] = [dict(page=page, nodes=10, error_widgets=0,
+            severe_logs=0, captured=True) for page in wallet.PAGES]
+        report["tour"]["complete"] = True
+        lab["wallet_tour"]["visited_pages"] = len(wallet.PAGES)
+        value = inspect.project_wallet_tour(report, lab, "a" * 40, 123, "b" * 40, "c" * 64)
+        self.assertFalse(value["artifact_reported_success"])
+        self.assertFalse(value["original_checks"]["close_ack"])
+        report["success"] = lab["wallet_tour"]["success"] = True
+        with self.assertRaises(inspect.Refused):
+            inspect.project_wallet_tour(report, lab, "a" * 40, 123, "b" * 40, "c" * 64)
+
+    def test_wallet_projection_preserves_absent_pre_tour_coverage(self):
+        report, lab = self.partial_wallet_report()
+        report["tour"] = None
+        report["entry_failure"] = dict(stage="start", code=None)
+        lab["wallet_tour"]["visited_pages"] = 0
+        value = inspect.project_wallet_tour(report, lab, "a" * 40, 123, "b" * 40, "c" * 64)
+        self.assertIsNone(value["tour"])
+        self.assertFalse(value["artifact_reported_success"])
+
     def test_relay_projection_is_finite_data_and_never_an_owner(self):
         report = manifest()
         report.update(backend="docker", compiler="go version go1.24.1 linux/amd64",
