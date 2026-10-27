@@ -33,6 +33,39 @@ CATEGORIES = (
     (r'EXCEPTION CAUGHT', 'FRAMEWORK'),
 )
 
+FRAMEWORK_ASSERTIONS = {
+    'package:flutter/src/widgets/framework.dart': 'flutter_framework',
+    'package:flutter/src/rendering/object.dart': 'flutter_render_object',
+    'package:flutter/src/rendering/box.dart': 'flutter_box',
+    'package:flutter/src/material/dropdown.dart': 'flutter_dropdown',
+    'package:flutter/src/material/dropdown_menu.dart': 'flutter_dropdown_menu',
+    'package:flutter/src/foundation/change_notifier.dart': 'flutter_notifier',
+    'package:flutter/src/widgets/scroll_controller.dart': 'flutter_scroll',
+    'package:flutter/src/widgets/binding.dart': 'flutter_widgets_binding',
+    'package:flutter/src/scheduler/binding.dart': 'flutter_scheduler_binding',
+    'package:provider/src/provider.dart': 'provider_core',
+    'package:provider/src/inherited_provider.dart': 'provider_inherited',
+    'package:flutter_bloc/src/bloc_builder.dart': 'flutter_bloc_builder',
+    'package:flutter_bloc/src/bloc_provider.dart': 'flutter_bloc_provider',
+    'package:bloc/src/emitter.dart': 'bloc_emitter',
+    'package:get_it/get_it_impl.dart': 'get_it_registry',
+}
+
+
+def framework_assertion(text):
+    """Keep only an allowlisted package label and bounded numeric position."""
+    found = []
+    for path, label in FRAMEWORK_ASSERTIONS.items():
+        match = re.search(r'''['"]''' + re.escape(path)
+            + r'''['"]:\s*Failed assertion:\s*line\s+([1-9][0-9]{0,5})'''
+            + r'\s+pos\s+([1-9][0-9]{0,5})(?![0-9])', text)
+        if match:
+            found.append((match.start(), label, int(match[1]), int(match[2])))
+    if not found:
+        return None
+    _, source, line, column = min(found)
+    return dict(source=source, line=line, column=column)
+
 
 def location(text):
     found = []
@@ -95,10 +128,14 @@ def project(raw):
                     break
             category = next((label for pattern, label in CATEGORIES
                 if re.search(pattern, details)), 'OTHER')
-            items.append(dict(file=selected[1] if selected else None,
+            item = dict(file=selected[1] if selected else None,
                 line=selected[2] if selected else None, location_source=source,
                 kind='ASSERTION' if failure else 'UNHANDLED',
-                expectation=expectation, category=category))
+                expectation=expectation, category=category)
+            assertion = framework_assertion(details)
+            if assertion is not None:
+                item['framework_assertion'] = assertion
+            items.append(item)
     except (ValueError, UnicodeError, TypeError):
         return refused
     return dict(status='OBSERVED' if total else 'NO_ERROR_EVENTS', total=total, items=items)

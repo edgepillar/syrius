@@ -85,3 +85,47 @@ class DartFailureTests(unittest.TestCase):
         value = failure.project(encode(rows))['items'][0]
         self.assertEqual((value['file'], value['category'], value['location_source']),
             (None, 'OTHER', 'NONE'))
+
+    def test_framework_assertions_keep_only_known_labels_and_numeric_positions(self):
+        for path, label in (
+                ('package:flutter/src/widgets/framework.dart', 'flutter_framework'),
+                ('package:provider/src/provider.dart', 'provider_core'),
+                ('package:bloc/src/emitter.dart', 'bloc_emitter'),
+                ('package:get_it/get_it_impl.dart', 'get_it_registry')):
+            rows = [dict(type='print', testID=7, messageType='print',
+                message="'" + path + "': Failed assertion: line 123 pos 9: "
+                    "'private expression': private details\n"
+                    '/fixture/private/transfer_sender_header_test.dart:386:5'),
+                dict(type='error', testID=7, isFailure=False, stackTrace='',
+                    error='Test failed. See exception logs above.')]
+            with self.subTest(source=label):
+                value = failure.project(encode(rows))['items'][0]
+                self.assertEqual(value['framework_assertion'],
+                    dict(source=label, line=123, column=9))
+                self.assertEqual((value['file'], value['line']),
+                    ('transfer_sender_header_test.dart', 386))
+                public = json.dumps(value)
+                self.assertNotIn(path, public)
+                self.assertNotIn('private', public)
+                self.assertNotIn('expression', public)
+
+    def test_unknown_assertion_paths_and_foreign_context_cannot_add_framework_data(self):
+        for path, position in (
+                ('/fixture/private/framework.dart', 'line 123 pos 9'),
+                ('package:private/framework.dart', 'line 123 pos 9'),
+                ('package:flutter/src/widgets/framework.dart', 'line 0 pos 9'),
+                ('package:flutter/src/widgets/framework.dart', 'line 123 pos 0'),
+                ('package:flutter/src/widgets/framework.dart', 'line 1234567 pos 9'),
+                ('package:flutter/src/widgets/framework.dart', 'line 123 pos 1234567')):
+            row = event()
+            row['error'] = "'" + path + "': Failed assertion: " + position
+            with self.subTest(path=path, position=position):
+                value = failure.project(encode([row]))['items'][0]
+                self.assertNotIn('framework_assertion', value)
+                self.assertNotIn('private', json.dumps(value))
+        rows = [dict(type='print', testID=99, messageType='print',
+            message="'package:flutter/src/widgets/framework.dart': "
+                'Failed assertion: line 123 pos 9: private'),
+            dict(type='error', testID=7, isFailure=False, stackTrace='',
+                error='Test failed. See exception logs above.')]
+        self.assertNotIn('framework_assertion', failure.project(encode(rows))['items'][0])

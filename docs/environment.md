@@ -6358,3 +6358,32 @@ The missing-member balance refresh, normal complete-cache path, original
 input/signing/publication guards, workflow, dependencies and storage policy
 remain unchanged. Native46 and native42 retain their failure/UNKNOWN records.
 Current original-send, F06 checkpoint and visual qualification remain open.
+
+
+### First-frame assertion source projection
+
+At 379eed606b47e0b84ce5c187899f65fede96a4cd, combined Windows
+[40510380416](https://github.com/edgepillar/syrius/actions/runs/40510380416),
+attempt one, job 122210430046, passes strict selected analysis with complete
+original exit zero and no findings. All 540 Python cases pass with three
+original platform skips. Dart has 185 passes and one failed case, with two
+framework error events during the new real balance fixture's first pumpWidget
+at transfer_sender_header_test.dart:386. Its original process exits one
+normally with 99277 complete, unforced output bytes. Native/node steps are
+skipped. The retained finite report does not identify the framework assertion.
+
+The failure-only projection now optionally maps an exact allowlisted package
+source to a fixed label and bounded numeric line/column. It exports no raw
+error, expression, message, stack, host path or wallet value. Unknown package
+paths and positions outside the bounds add no field; another test's prints
+cannot supply it. Two independent privacy/adversarial cases cover this new
+projection. All 24 selected memory-only cases pass with no failures, errors
+or skips and no filesystem scratch or native execution. All existing 540
+controller bodies and all 186 Dart cases remain unchanged. The full hosted
+controller suite now has 542 cases.
+
+The actual first-frame failure is retained. No application behavior, fixture
+assertion, SDK dependency, timing, workflow, storage policy, signing, original
+input/publication or checkpoint guard changes. The next same-source combined
+186-Dart/542-Python and clean-analysis gates precede node allocation; their
+results, original send, F06 checkpoints and visual acceptance remain pending.
