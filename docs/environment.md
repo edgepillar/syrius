@@ -5686,3 +5686,42 @@ execution or filesystem scratch. The Dart gate is still pending. No ordinary
 application, signing API, dependency, workflow or F06 UI recipe is changed.
 These components are not wired to an app confirmation yet, and no native UI
 send, checkpoint, seed state or visual match is claimed.
+
+
+### Original-send policy cases pass; style qualification remains open (2026-10-27)
+
+At source `43793721d1df13dcc5410b2d64bbd302d874815c`, tree
+`68cb1f884d45885244b312062a669594967e8d3c`, focused run
+[40462550922](https://github.com/edgepillar/syrius/actions/runs/40462550922),
+attempt one, job `122050301878`, passes all 153 Dart bodies with zero skips,
+failures or error events, seventeen hidden successes and 170 terminal events.
+This includes all 21 new policy/journal bodies, nineteen unchanged default
+F06 policy bodies and the original 113 focused bodies. Normal original Dart
+exit is zero, with 72158 complete bytes in 53.75 seconds, no overflow or forced
+kill; SHA-256
+`f45bc78f0ff423bf944a8b5cc21fc068395c118eed902886a69a350c16c72319`.
+All 524 Python cases pass with three existing platform skips. Pinned SDK/locked
+inputs, both original open-input startup probes, pre-build refusal and four
+unchanged Windows asset controls pass. No wallet/node runtime executes.
+
+Selected analysis exits zero normally with 6376 complete bytes and zero
+errors/warnings but forty infos; SHA-256
+`6e91e5c4d47d27817182203a52411853bfc35bcf528e2784df76e69ef25ee009`.
+The original finite projection retains sixteen locations including line-length
+and a local setup-cascade finding; it does not project every individual
+location. The strict zero-finding gate remains unqualified. The correction
+wraps the long code lines in four changed Dart files and uses the equivalent
+local test setup cascade. Normalized source tokens, excluding whitespace,
+comments and trailing commas and accounting for that reviewed cascade, match;
+adjacent test-label literals retain their exact text. All original labels,
+assertions, evaluation order, context/pointer guards and journal semantics
+remain. This comparison is not a Dart AST or execution claim. No suppression,
+removed assertion or changed application behavior is introduced. The analyzer
+now gives the new files fixed finite source labels instead of `other`, without
+exporting host paths or raw messages. A fresh clean hosted gate is required.
+
+Original native `40457786491` keeps its successful index-1 preparation and
+complete tour/closure at its own source. The original send policy is still
+unwired to app confirmation; one exact confirmed native UI send, reversible
+F06 preparation, all 94 visual matches and full acceptance remain open. No
+local SDK/native execution, artifact download, quota change or cleanup occurs.

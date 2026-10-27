@@ -601,16 +601,19 @@ final class ProfileSeedJournal implements SeedJournal {
     if (value is! Map<String, dynamic> || value.length != _reviewKeys.length ||
         !value.keys.toSet().containsAll(_reviewKeys) ||
         value['profile'] is! String || value['profile'] == 'default' ||
-        !RegExp(r'^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$').hasMatch(value['profile'] as String) ||
+        !RegExp(r'^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$')
+            .hasMatch(value['profile'] as String) ||
         value['from'] is! String || value['to'] is! String ||
-        value['from'] == value['to'] || value['recipientInput'] != value['to'] ||
+        value['from'] == value['to'] ||
+        value['recipientInput'] != value['to'] ||
         value['amountInput'] != '1' || value['amount'] != '100000000' ||
         value['token'] != znnZts.toString() || value['decimals'] != 8 ||
         value['symbol'] != 'ZNN' || value['chain'] != 321) {
       return false;
     }
     try {
-      return Address.parse(value['from'] as String).toString() == value['from'] &&
+      return Address.parse(value['from'] as String).toString() ==
+              value['from'] &&
           Address.parse(value['to'] as String).toString() == value['to'] &&
           value['from'] != emptyAddress.toString() &&
           value['to'] != emptyAddress.toString();
@@ -656,7 +659,9 @@ final class ProfileSeedJournal implements SeedJournal {
     }
     if (recipe == labSendRecipeId &&
         (_labSendReview == null || state != 'attempt' &&
-            !_sameReview(_read(recipe, 'attempt')?['review'], _labSendReview))) {
+            !_sameReview(
+              _read(recipe, 'attempt')?['review'], _labSendReview,
+            ))) {
       throw const SeedRefused('original-transfer-review-required');
     }
     _file(recipe, state)
@@ -680,8 +685,10 @@ final class ProfileSeedJournal implements SeedJournal {
       final Map<String, dynamic>? accepted = _read(id, 'accepted');
       final Map<String, dynamic>? confirmed = _read(id, 'confirmed');
       if (id == labSendRecipeId && attempt != null &&
-          (accepted != null && !_sameReview(attempt['review'], accepted['review']) ||
-              confirmed != null && !_sameReview(attempt['review'], confirmed['review']))) {
+          (accepted != null &&
+                  !_sameReview(attempt['review'], accepted['review']) ||
+              confirmed != null &&
+                  !_sameReview(attempt['review'], confirmed['review']))) {
         throw const SeedRefused('seed-journal-held');
       }
       if (attempt == null && (accepted != null || confirmed != null) ||

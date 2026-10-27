@@ -134,7 +134,8 @@ final class _Case {
       ..settled = true;
   }
 
-  Future<String> run({Future<void> Function(void Function())? tap}) => guard.publish(
+  Future<String> run({Future<void> Function(void Function())? tap}) =>
+      guard.publish(
     original: original, requireOriginalReady: ready, tapOnce: tap ?? complete,
   );
 }
@@ -142,11 +143,14 @@ final class _Case {
 void main() {
   test('the fixed P09 purpose cannot use generic F06 publication', () async {
     final _Case value = _Case();
-    final SeedGuard ordinary = SeedGuard(source: value.source, journal: value.journal,
+    final SeedGuard ordinary = SeedGuard(
+      source: value.source, journal: value.journal,
       delay: value.source.delay);
     final SeedGuard p09 = SeedGuard.forLabSend(source: value.source,
       journal: value.journal, delay: value.source.delay);
-    await expectLater(ordinary.admit(labSendRecipeId), throwsA(isA<SeedRefused>()));
+    await expectLater(
+      ordinary.admit(labSendRecipeId), throwsA(isA<SeedRefused>()),
+    );
     await expectLater(p09.admit('stake'), throwsA(isA<SeedRefused>()));
     await expectLater(p09.publish(labSendRecipeId, () async { value.taps++; }),
       throwsA(isA<SeedRefused>()));
@@ -156,122 +160,153 @@ void main() {
     expect(seedRecipeIds, isNot(contains(labSendRecipeId)));
   });
 
-  test('one original confirmation has one claim, input and exact confirmed hash', () async {
-    final _Case value = _Case();
-    expect(await value.run(), _hash(9));
-    expect(value.taps, 1);
-    expect(value.readyChecks, 4);
-    expect(value.guard.original, same(value.original));
-    expect(value.journal.hashes[labSendRecipeId], _hash(9));
-    expect(value.journal.confirmations[labSendRecipeId], _hash(9));
-    expect(value.source.effects, 0);
-  });
-
-  test('unrelated receives after admission cannot replace the target request', () async {
-    final _Case value = _Case();
-    expect(await value.run(tap: (void Function() admission) async {
-      await value.complete(admission);
-      value.source.publications.add(_Original()..failed = true);
-    }), _hash(9));
-    expect(value.taps, 1);
-    expect(value.guard.original, same(value.original));
-  });
-
-  test('an earlier unresolved publication refuses before the input claim', () async {
-    final _Case value = _Case();
-    value.source.publications.add(_Original());
-    await expectLater(value.run(), throwsA(isA<SeedRefused>()));
-    expect(value.taps, 0);
-    expect(value.journal.attempts, isEmpty);
-  });
-
-  test('a request changed during frontier admission never receives input', () async {
-    final _Case value = _Case();
-    value.source.onDelay = () => value.original.identity = Object();
-    await expectLater(value.run(), throwsA(isA<SeedRefused>()));
-    expect(value.taps, 0);
-    expect(value.journal.attempts, isEmpty);
-  });
-
-  test('unfunded or nonadvancing endpoints refuse before UI publication', () async {
-    for (final bool funded in <bool>[false, true]) {
+  test(
+    'one original confirmation has one claim, input and exact confirmed hash',
+    () async {
       final _Case value = _Case();
-      value.source
-        ..funded = funded
-        ..advancing = !funded;
+      expect(await value.run(), _hash(9));
+      expect(value.taps, 1);
+      expect(value.readyChecks, 4);
+      expect(value.guard.original, same(value.original));
+      expect(value.journal.hashes[labSendRecipeId], _hash(9));
+      expect(value.journal.confirmations[labSendRecipeId], _hash(9));
+      expect(value.source.effects, 0);
+    },
+  );
+
+  test(
+    'unrelated receives after admission cannot replace the target request',
+    () async {
+      final _Case value = _Case();
+      expect(await value.run(tap: (void Function() admission) async {
+        await value.complete(admission);
+        value.source.publications.add(_Original()..failed = true);
+      }), _hash(9));
+      expect(value.taps, 1);
+      expect(value.guard.original, same(value.original));
+    },
+  );
+
+  test(
+    'an earlier unresolved publication refuses before the input claim',
+    () async {
+      final _Case value = _Case();
+      value.source.publications.add(_Original());
       await expectLater(value.run(), throwsA(isA<SeedRefused>()));
       expect(value.taps, 0);
       expect(value.journal.attempts, isEmpty);
-    }
-  });
+    },
+  );
 
-  test('a pointer failure retains the original hash and cannot be retried', () async {
-    final _Case value = _Case();
-    final Object originalError = StateError('original-pointer-failure');
-    await expectLater(value.run(tap: (void Function() admission) async {
-      await value.complete(admission);
-      throw originalError;
-    }), throwsA(same(originalError)));
-    expect(value.guard.failures.single, same(originalError));
-    expect(value.guard.acceptedHash, _hash(9));
-    expect(value.journal.hashes[labSendRecipeId], _hash(9));
-    await expectLater(value.run(), throwsA(isA<SeedRefused>()));
-    expect(value.taps, 1);
-  });
+  test(
+    'a request changed during frontier admission never receives input',
+    () async {
+      final _Case value = _Case();
+      value.source.onDelay = () => value.original.identity = Object();
+      await expectLater(value.run(), throwsA(isA<SeedRefused>()));
+      expect(value.taps, 0);
+      expect(value.journal.attempts, isEmpty);
+    },
+  );
 
-  test('failure or release uncertainty preserves accepted identity without confirmation', () async {
-    for (final bool release in <bool>[false, true]) {
+  test(
+    'unfunded or nonadvancing endpoints refuse before UI publication',
+    () async {
+      for (final bool funded in <bool>[false, true]) {
+        final _Case value = _Case();
+        value.source
+          ..funded = funded
+          ..advancing = !funded;
+        await expectLater(value.run(), throwsA(isA<SeedRefused>()));
+        expect(value.taps, 0);
+        expect(value.journal.attempts, isEmpty);
+      }
+    },
+  );
+
+  test(
+    'a pointer failure retains the original hash and cannot be retried',
+    () async {
+      final _Case value = _Case();
+      final Object originalError = StateError('original-pointer-failure');
+      await expectLater(value.run(tap: (void Function() admission) async {
+        await value.complete(admission);
+        throw originalError;
+      }), throwsA(same(originalError)));
+      expect(value.guard.failures.single, same(originalError));
+      expect(value.guard.acceptedHash, _hash(9));
+      expect(value.journal.hashes[labSendRecipeId], _hash(9));
+      await expectLater(value.run(), throwsA(isA<SeedRefused>()));
+      expect(value.taps, 1);
+    },
+  );
+
+  test(
+    'failure or release uncertainty preserves accepted identity '
+    'without confirmation',
+    () async {
+      for (final bool release in <bool>[false, true]) {
+        final _Case value = _Case();
+        await expectLater(value.run(tap: (void Function() admission) async {
+          await value.complete(admission);
+          value.original
+            ..failed = !release
+            ..releaseFailed = release;
+        }), throwsA(isA<SeedRefused>()));
+        expect(value.guard.acceptedHash, _hash(9));
+        expect(value.journal.confirmations, isEmpty);
+        expect(value.taps, 1);
+      }
+    },
+  );
+
+  test(
+    'owner loss retains a late original answer and cannot be revived',
+    () async {
       final _Case value = _Case();
       await expectLater(value.run(tap: (void Function() admission) async {
         await value.complete(admission);
-        value.original
-          ..failed = !release
-          ..releaseFailed = release;
+        value.source.isCurrent = false;
       }), throwsA(isA<SeedRefused>()));
       expect(value.guard.acceptedHash, _hash(9));
+      value.source.isCurrent = true;
+      expect(value.guard.requireCurrent, throwsA(isA<SeedRefused>()));
       expect(value.journal.confirmations, isEmpty);
-      expect(value.taps, 1);
-    }
-  });
+    },
+  );
 
-  test('owner loss retains a late original answer and cannot be revived', () async {
-    final _Case value = _Case();
-    await expectLater(value.run(tap: (void Function() admission) async {
-      await value.complete(admission);
-      value.source.isCurrent = false;
-    }), throwsA(isA<SeedRefused>()));
-    expect(value.guard.acceptedHash, _hash(9));
-    value.source.isCurrent = true;
-    expect(value.guard.requireCurrent, throwsA(isA<SeedRefused>()));
-    expect(value.journal.confirmations, isEmpty);
-  });
+  test(
+    'a changed original hash cannot overwrite the first accepted answer',
+    () async {
+      for (final String? changed in <String?>[null, _hash(10)]) {
+        final _Case value = _Case();
+        value.source.onConfirmation = (String hash) async {
+          value.original.acceptedHash = changed;
+          return value.source.receipt(hash);
+        };
+        await expectLater(value.run(), throwsA(isA<SeedRefused>()));
+        expect(value.guard.acceptedHash, _hash(9));
+        expect(value.journal.hashes[labSendRecipeId], _hash(9));
+        expect(value.journal.confirmations, isEmpty);
+      }
+    },
+  );
 
-  test('a changed original hash cannot overwrite the first accepted answer', () async {
-    for (final String? changed in <String?>[null, _hash(10)]) {
-      final _Case value = _Case();
-      value.source.onConfirmation = (String hash) async {
-        value.original.acceptedHash = changed;
-        return value.source.receipt(hash);
-      };
-      await expectLater(value.run(), throwsA(isA<SeedRefused>()));
-      expect(value.guard.acceptedHash, _hash(9));
-      expect(value.journal.hashes[labSendRecipeId], _hash(9));
-      expect(value.journal.confirmations, isEmpty);
-    }
-  });
-
-  test('hash, owner, chain or exact transfer mismatch cannot confirm', () async {
-    for (int field = 0; field < 4; field++) {
-      final _Case value = _Case();
-      if (field == 0) value.source.returnedHash = _hash(10);
-      if (field == 1) value.source.returnedOwner = 'replacement';
-      if (field == 2) value.source.returnedChain = 1;
-      if (field == 3) value.source.matches = false;
-      await expectLater(value.run(), throwsA(isA<SeedRefused>()));
-      expect(value.journal.confirmations, isEmpty);
-      expect(value.taps, 1);
-    }
-  });
+  test(
+    'hash, owner, chain or exact transfer mismatch cannot confirm',
+    () async {
+      for (int field = 0; field < 4; field++) {
+        final _Case value = _Case();
+        if (field == 0) value.source.returnedHash = _hash(10);
+        if (field == 1) value.source.returnedOwner = 'replacement';
+        if (field == 2) value.source.returnedChain = 1;
+        if (field == 3) value.source.matches = false;
+        await expectLater(value.run(), throwsA(isA<SeedRefused>()));
+        expect(value.journal.confirmations, isEmpty);
+        expect(value.taps, 1);
+      }
+    },
+  );
 
   test('an unconfirmed answer stays held without another input', () async {
     final _Case value = _Case();

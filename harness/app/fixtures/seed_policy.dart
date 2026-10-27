@@ -220,7 +220,9 @@ final class SeedGuard {
 
   /// Both original endpoints must positively advance during this admission.
   Future<void> admit(String recipe) async {
-    if (!(_labSend ? recipe == labSendRecipeId : seedRecipeIds.contains(recipe))) {
+    if (!(_labSend
+        ? recipe == labSendRecipeId
+        : seedRecipeIds.contains(recipe))) {
       throw const SeedRefused('unknown-recipe');
     }
     requireCurrent();

@@ -13,17 +13,21 @@ SeedEnvironment _environment() => SeedEnvironment(
   profile: 'lab-send-fixture', isolated: true, unlocked: true,
   initialized: true, booted: true, ws: seedWsOrigin, http: seedHttpOrigin,
   nodeChain: 321, signingChain: 321, selectedIndex: 1,
-  owner: fixtureAddress(2), members: <String>[fixtureAddress(1), fixtureAddress(2)],
+  owner: fixtureAddress(2),
+  members: <String>[fixtureAddress(1), fixtureAddress(2)],
 );
 
 SendIntent _intent({String? owner, String? recipient, String amount = '1'}) =>
     SendIntent.capture(fromAddress: owner ?? fixtureAddress(2),
-      recipient: recipient ?? fixtureAddress(1), amount: amount, token: kZnnCoin);
+      recipient: recipient ?? fixtureAddress(1),
+      amount: amount, token: kZnnCoin,
+    );
 
 void main() {
   late Directory home;
   late ProfileSeedJournal journal;
-  File record(String state) => File('${home.path}/seed-$labSendRecipeId-$state.json');
+  File record(String state) =>
+      File('${home.path}/seed-$labSendRecipeId-$state.json');
   setUp(() async {
     // Small, newly owned controller-test files only; no wallet is opened.
     home = await Directory.systemTemp.createTemp('lab-send-journal-');
@@ -34,11 +38,14 @@ void main() {
 
   test('the exclusive attempt retains the exact immutable fixed review', () {
     journal.claim(labSendRecipeId);
-    final Map<String, dynamic> value = jsonDecode(record('attempt').readAsStringSync()) as Map<String, dynamic>;
+    final Map<String, dynamic> value =
+        jsonDecode(record('attempt').readAsStringSync())
+            as Map<String, dynamic>;
     expect(value['recipe'], labSendRecipeId);
     expect(value['chain'], 321);
     expect(value['review'], <String, Object>{
-      'profile': 'lab-send-fixture', 'from': fixtureAddress(2), 'to': fixtureAddress(1),
+      'profile': 'lab-send-fixture',
+      'from': fixtureAddress(2), 'to': fixtureAddress(1),
       'recipientInput': fixtureAddress(1), 'amountInput': '1',
       'token': kZnnCoin.tokenStandard.toString(), 'amount': '100000000',
       'decimals': 8, 'symbol': 'ZNN', 'chain': 321,
@@ -50,9 +57,14 @@ void main() {
     journal.claim(labSendRecipeId);
     final ProfileSeedJournal restarted = ProfileSeedJournal(home.path);
     for (final String recipe in seedRecipeIds) {
-      expect(() => restarted.requireAvailable(recipe), throwsA(isA<SeedRefused>()));
+      expect(
+        () => restarted.requireAvailable(recipe), throwsA(isA<SeedRefused>()),
+      );
     }
-    expect(() => restarted.requireAvailable(labSendRecipeId), throwsA(isA<SeedRefused>()));
+    expect(
+      () => restarted.requireAvailable(labSendRecipeId),
+      throwsA(isA<SeedRefused>()),
+    );
     expect(record('attempt').existsSync(), isTrue);
   });
 
@@ -68,10 +80,15 @@ void main() {
       ..claim(labSendRecipeId)
       ..accepted(labSendRecipeId, hash)
       ..confirmed(labSendRecipeId, hash);
-    final ProfileSeedJournal restarted = ProfileSeedJournal(home.path);
-    restarted.requireAvailable('stake');
-    expect(() => restarted.requireAvailable(labSendRecipeId), throwsA(isA<SeedRefused>()));
-    final Map<String, dynamic> confirmed = jsonDecode(record('confirmed').readAsStringSync()) as Map<String, dynamic>;
+    final ProfileSeedJournal restarted = ProfileSeedJournal(home.path)
+      ..requireAvailable('stake');
+    expect(
+      () => restarted.requireAvailable(labSendRecipeId),
+      throwsA(isA<SeedRefused>()),
+    );
+    final Map<String, dynamic> confirmed =
+        jsonDecode(record('confirmed').readAsStringSync())
+            as Map<String, dynamic>;
     expect(confirmed['hash'], hash);
   });
 
@@ -80,25 +97,46 @@ void main() {
       ..claim(labSendRecipeId)
       ..accepted(labSendRecipeId, fixtureHash(9));
     final String original = record('accepted').readAsStringSync();
-    expect(() => journal.accepted(labSendRecipeId, fixtureHash(10)), throwsA(isA<SeedRefused>()));
+    expect(
+      () => journal.accepted(labSendRecipeId, fixtureHash(10)),
+      throwsA(isA<SeedRefused>()),
+    );
     expect(record('accepted').readAsStringSync(), original);
-    expect(() => ProfileSeedJournal(home.path).requireAvailable('stake'), throwsA(isA<SeedRefused>()));
+    expect(
+      () => ProfileSeedJournal(home.path).requireAvailable('stake'),
+      throwsA(isA<SeedRefused>()),
+    );
   });
 
-  test('review mutation or unknown fields cannot release a claimed attempt', () {
-    journal
-      ..claim(labSendRecipeId)
-      ..accepted(labSendRecipeId, fixtureHash(9));
-    final Map<String, dynamic> accepted = jsonDecode(record('accepted').readAsStringSync()) as Map<String, dynamic>;
-    final Map<String, dynamic> changed = Map<String, dynamic>.of(accepted);
-    changed['review'] = <String, dynamic>{...accepted['review'] as Map<String, dynamic>,
-      'from': fixtureAddress(3)};
-    record('accepted').writeAsStringSync(jsonEncode(changed), flush: true);
-    expect(() => ProfileSeedJournal(home.path).requireAvailable('stake'), throwsA(isA<SeedRefused>()));
-    changed['review'] = <String, dynamic>{...accepted['review'] as Map<String, dynamic>, 'unexpected': true};
-    record('accepted').writeAsStringSync(jsonEncode(changed), flush: true);
-    expect(() => ProfileSeedJournal(home.path).requireAvailable('stake'), throwsA(isA<SeedRefused>()));
-  });
+  test(
+    'review mutation or unknown fields cannot release a claimed attempt',
+    () {
+      journal
+        ..claim(labSendRecipeId)
+        ..accepted(labSendRecipeId, fixtureHash(9));
+      final Map<String, dynamic> accepted =
+          jsonDecode(record('accepted').readAsStringSync())
+              as Map<String, dynamic>;
+      final Map<String, dynamic> changed = Map<String, dynamic>.of(accepted);
+      changed['review'] = <String, dynamic>{
+        ...accepted['review'] as Map<String, dynamic>,
+        'from': fixtureAddress(3),
+      };
+      record('accepted').writeAsStringSync(jsonEncode(changed), flush: true);
+      expect(
+        () => ProfileSeedJournal(home.path).requireAvailable('stake'),
+        throwsA(isA<SeedRefused>()),
+      );
+      changed['review'] = <String, dynamic>{
+        ...accepted['review'] as Map<String, dynamic>, 'unexpected': true,
+      };
+      record('accepted').writeAsStringSync(jsonEncode(changed), flush: true);
+      expect(
+        () => ProfileSeedJournal(home.path).requireAvailable('stake'),
+        throwsA(isA<SeedRefused>()),
+      );
+    },
+  );
 
   test('the fixed journal refuses a different owner, recipient or amount', () {
     for (final SendIntent intent in <SendIntent>[
@@ -106,13 +144,17 @@ void main() {
       _intent(amount: '2'), _intent(amount: '1.0'),
     ]) {
       expect(() => ProfileSeedJournal.forLabSend(home.path,
-        environment: _environment(), intent: intent), throwsA(isA<SeedRefused>()));
+        environment: _environment(), intent: intent,
+      ), throwsA(isA<SeedRefused>()));
     }
     expect(home.listSync(), isEmpty);
   });
 
   test('an ordinary seed journal cannot create or replace a P09 review', () {
-    expect(() => ProfileSeedJournal(home.path).claim(labSendRecipeId), throwsA(isA<SeedRefused>()));
+    expect(
+      () => ProfileSeedJournal(home.path).claim(labSendRecipeId),
+      throwsA(isA<SeedRefused>()),
+    );
     expect(record('attempt').existsSync(), isFalse);
     journal.claim(labSendRecipeId);
     final String original = record('attempt').readAsStringSync();
