@@ -157,3 +157,23 @@ class DartFailureTests(unittest.TestCase):
             dict(type='error', testID=7, isFailure=False, stackTrace='',
                 error='Test failed. See exception logs above.')]
         self.assertNotIn('framework_assertion', failure.project(encode(rows))['items'][0])
+
+    def test_failure_kind_requires_a_closed_marker_from_the_same_test(self):
+        for kind in ('FLUTTER_ERROR', 'ASSERTION_ERROR', 'STATE_ERROR',
+                     'TYPE_ERROR', 'NO_SUCH_METHOD', 'FORMAT_ERROR', 'OTHER'):
+            rows = [dict(type='print', testID=7, messageType='print',
+                message='CI_FRAMEWORK_FAILURE_KIND:' + kind),
+                dict(type='error', testID=7, isFailure=False,
+                    error='private error', stackTrace='private stack')]
+            with self.subTest(kind=kind):
+                value = failure.project(encode(rows))['items'][0]
+                self.assertEqual(value['framework_failure_kind'], kind)
+                self.assertNotIn('private', json.dumps(value))
+        for marker in ('CI_FRAMEWORK_FAILURE_KIND:private',
+                       'CI_FRAMEWORK_FAILURE_KIND:STATE_ERROR private'):
+            rows[0]['message'] = marker
+            self.assertNotIn('framework_failure_kind',
+                failure.project(encode(rows))['items'][0])
+        rows[0].update(testID=99, message='CI_FRAMEWORK_FAILURE_KIND:STATE_ERROR')
+        self.assertNotIn('framework_failure_kind',
+            failure.project(encode(rows))['items'][0])

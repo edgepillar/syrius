@@ -49,7 +49,13 @@ FRAMEWORK_ASSERTIONS = {
     'package:flutter_bloc/src/bloc_provider.dart': 'flutter_bloc_provider',
     'package:bloc/src/emitter.dart': 'bloc_emitter',
     'package:get_it/get_it_impl.dart': 'get_it_registry',
+    'package:flutter_test/src/binding.dart': 'flutter_test_binding',
+    'package:flutter_test/src/widget_tester.dart': 'flutter_widget_tester',
+    'package:flutter_test/src/test_async_utils.dart': 'flutter_test_async',
+    'package:flutter_test/src/async_matchers.dart': 'flutter_test_matchers',
 }
+FRAMEWORK_FAILURE_KINDS = ('FLUTTER_ERROR', 'ASSERTION_ERROR', 'STATE_ERROR',
+    'TYPE_ERROR', 'NO_SUCH_METHOD', 'FORMAT_ERROR', 'OTHER')
 
 
 def framework_assertion(text, stack=''):
@@ -146,6 +152,10 @@ def project(raw):
             assertion = framework_assertion(details, stack)
             if assertion is not None:
                 item['framework_assertion'] = assertion
+            marker = re.search(r'(?m)^CI_FRAMEWORK_FAILURE_KIND:('
+                + '|'.join(FRAMEWORK_FAILURE_KINDS) + r')\r?$', context)
+            if marker:
+                item['framework_failure_kind'] = marker[1]
             items.append(item)
     except (ValueError, UnicodeError, TypeError):
         return refused

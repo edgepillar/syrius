@@ -6466,3 +6466,35 @@ they do not substitute for actual analyzer or Dart execution. The unchanged
 combined 188-Dart/543-Python and strict clean-analysis gates are still required
 before native allocation. The original first-frame cause, original confirmed
 send, F06 checkpoints and visual qualification remain open.
+
+
+### Preserve both original Flutter test error channels
+
+At e1fe255a10dd7ed4c82e403f2750de3f5e1c0b49, original combined
+[40519420655](https://github.com/edgepillar/syrius/actions/runs/40519420655),
+attempt one, job 122242124716, passes clean strict selected analysis and all
+543 Python cases with three original platform skips. Dart has 187/188 passes;
+both original-error observer regressions pass. The actual balance fixture
+retains two first-frame errors at test line 524 with no projected framework
+position. Original test exit one is normal and unforced, with 100073 complete
+output bytes in 77.125 seconds. Node/compiler/native work is skipped.
+
+Pinned SDK source also exposes the public reportTestException channel. The
+test-only observer now covers that channel as well as FlutterError.onError.
+It always forwards identical original details and the untouched description
+to the original reporter in finally, and restores only its own hook. Existing
+frame bounds and package checks remain. Four explicit Flutter-test package
+labels cover binding, tester, async utilities and matchers. A seven-value
+error-type marker is selected by type checks, never error text. Only a closed
+marker from the same test may add that optional failure field. Unknown values,
+extra text and foreign-test context cannot supply it. No raw exception, stack,
+expression, host path, description or wallet data is emitted by the observer.
+
+Two new Dart cases cover exact details/description forwarding and continued
+original delivery when diagnostic output fails. Existing observer tests and
+every actual fixture assertion, input and timing remain. One Python privacy
+and context case is added; all existing 543 controller bodies stay unchanged.
+All 26 selected memory cases pass without failures, errors, skips, scratch or
+local SDK/native execution. New 190-Dart/544-Python and strict clean-analysis
+gates remain required before node allocation. App/harness production source,
+signing/publication guards, workflow and storage policy remain unchanged.

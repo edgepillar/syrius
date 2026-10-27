@@ -51,40 +51,79 @@ const Set<String> _frameworkSources = <String>{
   'package:flutter_bloc/src/bloc_provider.dart',
   'package:bloc/src/emitter.dart',
   'package:get_it/get_it_impl.dart',
+  'package:flutter_test/src/binding.dart',
+  'package:flutter_test/src/widget_tester.dart',
+  'package:flutter_test/src/test_async_utils.dart',
+  'package:flutter_test/src/async_matchers.dart',
 };
 
-VoidCallback _observeFrameworkErrors({void Function(String)? report}) {
+void _reportFrameworkMessage(String message, void Function(String)? report) {
+  if (report != null) {
+    report(message);
+  } else {
+    // Only fixed markers, allowed package names and numbers reach this sink.
+    // ignore: avoid_print
+    print(message);
+  }
+}
+
+void _reportFrameworkKind(
+  FlutterErrorDetails details,
+  void Function(String)? report,
+) {
+  final Object exception = details.exception;
+  String kind = 'OTHER';
+  if (exception is FlutterError) {
+    kind = 'FLUTTER_ERROR';
+  } else if (exception is AssertionError) {
+    kind = 'ASSERTION_ERROR';
+  } else if (exception is StateError) {
+    kind = 'STATE_ERROR';
+  } else if (exception is NoSuchMethodError) {
+    kind = 'NO_SUCH_METHOD';
+  } else if (exception is TypeError) {
+    kind = 'TYPE_ERROR';
+  } else if (exception is FormatException) {
+    kind = 'FORMAT_ERROR';
+  }
+  _reportFrameworkMessage('CI_FRAMEWORK_FAILURE_KIND:$kind', report);
+}
+
+void _reportFrameworkPosition(
+  FlutterErrorDetails details,
+  void Function(String)? report,
+) {
+  final StackTrace? original = details.stack;
+  if (original == null) return;
+  final String text = FlutterError.demangleStackTrace(original).toString();
+  if (text.length > 65536) return;
+  final List<StackFrame> frames = StackFrame.fromStackString(text);
+  for (final StackFrame frame in frames.take(128)) {
+    final String source =
+        '${frame.packageScheme}:${frame.package}/${frame.packagePath}';
+    if (_frameworkSources.contains(source) &&
+        frame.line > 0 && frame.line <= 999999 &&
+        frame.column > 0 && frame.column <= 999999) {
+      _reportFrameworkMessage(
+        'CI_FRAMEWORK_CONTEXT ($source:${frame.line}:${frame.column})',
+        report,
+      );
+      break;
+    }
+  }
+}
+
+VoidCallback _observeFrameworkErrors({
+  void Function(String)? report,
+  bool includeKind = false,
+}) {
   final FlutterExceptionHandler? previous = FlutterError.onError;
   if (previous == null) throw StateError('Original error handler required');
   void observe(FlutterErrorDetails details) {
     try {
-      final StackTrace? original = details.stack;
-      if (original != null) {
-        final String text =
-            FlutterError.demangleStackTrace(original).toString();
-        if (text.length > 65536) return;
-        final List<StackFrame> frames = StackFrame.fromStackString(text);
-        for (final StackFrame frame in frames.take(128)) {
-          final String source =
-              '${frame.packageScheme}:${frame.package}/${frame.packagePath}';
-          if (_frameworkSources.contains(source) &&
-              frame.line > 0 && frame.line <= 999999 &&
-              frame.column > 0 && frame.column <= 999999) {
-            final String message = 'CI_FRAMEWORK_CONTEXT '
-                '($source:${frame.line}:${frame.column})';
-            if (report != null) {
-              report(message);
-            } else {
-              // The fixed source set and numeric bounds exclude raw details.
-              // ignore: avoid_print
-              print(message);
-            }
-            break;
-          }
-        }
-      }
+      if (includeKind) _reportFrameworkKind(details, report);
+      _reportFrameworkPosition(details, report);
     } on Object {
-      // Diagnostic failure cannot change the original error delivery.
       return;
     } finally {
       previous(details);
@@ -95,6 +134,27 @@ VoidCallback _observeFrameworkErrors({void Function(String)? report}) {
   return () {
     if (identical(FlutterError.onError, observe)) {
       FlutterError.onError = previous;
+    }
+  };
+}
+
+VoidCallback _observeTestExceptions({void Function(String)? report}) {
+  final TestExceptionReporter previous = reportTestException;
+  void observe(FlutterErrorDetails details, String description) {
+    try {
+      _reportFrameworkKind(details, report);
+      _reportFrameworkPosition(details, report);
+    } on Object {
+      return;
+    } finally {
+      previous(details, description);
+    }
+  }
+
+  reportTestException = observe;
+  return () {
+    if (identical(reportTestException, observe)) {
+      reportTestException = previous;
     }
   };
 }
@@ -472,6 +532,64 @@ void main() {
     }
   });
 
+  test('test reporter forwards the original error and description', () {
+    final TestExceptionReporter before = reportTestException;
+    final List<(FlutterErrorDetails, String)> received =
+        <(FlutterErrorDetails, String)>[];
+    final List<String> reports = <String>[];
+    reportTestException = (FlutterErrorDetails details, String description) {
+      received.add((details, description));
+    };
+    final VoidCallback restore = _observeTestExceptions(report: reports.add);
+    try {
+      final FlutterErrorDetails details = FlutterErrorDetails(
+        exception: StateError('private test details'),
+        stack: StackTrace.fromString(
+          '#0 private (package:flutter_test/src/binding.dart:123:9)',
+        ),
+      );
+      const String description = 'private test description';
+      reportTestException(details, description);
+      expect(received, hasLength(1));
+      expect(identical(received.single.$1, details), isTrue);
+      expect(identical(received.single.$2, description), isTrue);
+      const String position = 'CI_FRAMEWORK_CONTEXT '
+          '(package:flutter_test/src/binding.dart:123:9)';
+      expect(reports, <String>[
+        'CI_FRAMEWORK_FAILURE_KIND:STATE_ERROR', position,
+      ]);
+      expect(reports.any((String value) => value.contains('private')), isFalse);
+    } finally {
+      restore();
+      reportTestException = before;
+    }
+  });
+
+  test('test reporter diagnostic failure preserves original delivery', () {
+    final TestExceptionReporter before = reportTestException;
+    final List<(FlutterErrorDetails, String)> received =
+        <(FlutterErrorDetails, String)>[];
+    reportTestException = (FlutterErrorDetails details, String description) {
+      received.add((details, description));
+    };
+    final VoidCallback restore = _observeTestExceptions(report: (_) {
+      throw StateError('private diagnostic failure');
+    });
+    try {
+      final FlutterErrorDetails details = FlutterErrorDetails(
+        exception: StateError('private test details'),
+      );
+      const String description = 'private test description';
+      reportTestException(details, description);
+      expect(received, hasLength(1));
+      expect(identical(received.single.$1, details), isTrue);
+      expect(identical(received.single.$2, description), isTrue);
+    } finally {
+      restore();
+      reportTestException = before;
+    }
+  });
+
   testWidgets(
       'Transfer refreshes a derived member through the real balance bloc',
       (WidgetTester tester) async {
@@ -520,7 +638,8 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    addTearDown(_observeFrameworkErrors());
+    addTearDown(_observeFrameworkErrors(includeKind: true));
+    addTearDown(_observeTestExceptions());
     await tester.pumpWidget(host(balanceSource: source));
     await tester.pump();
     expect(reads, <String>[first, first, second]);
