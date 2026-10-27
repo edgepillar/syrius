@@ -103,7 +103,8 @@ def entry_failure(value):
     """Keep fixed onboarding labels; reject raw reply fields before recording."""
     need(type(value) is dict and set(value) in ({'stage', 'code'}, {'stage', 'code', 'diagnostic'})
          and value['stage'] in ('unused_destinations', 'build', 'start', 'input', 'onboarding',
-             'signing_policy', 'onboarding_logs', 'window', 'address_selection', 'tour', 'finish')
+             'signing_policy', 'onboarding_logs', 'window', 'address_selection',
+             'lab_send', 'tour', 'finish')
          and (value['code'] is None or type(value['code']) is str
               and re.fullmatch('wallet-recipe-[a-z-]{1,80}', value['code'])), 'ENTRY_REFUSED')
     if 'diagnostic' in value:
@@ -140,6 +141,17 @@ def public_fixture(text):
     return offered[0]
 
 
+def lab_send_receipt(value):
+    """Accept only finite original P09 send facts, with no address/hash fields."""
+    expected = dict(schema=1, scope='original_lab_ui_send', chain=321,
+        from_index=1, to_index=0, amount='100000000', token='ZNN',
+        original_request=True, confirmed=True)
+    need(type(value) is dict and set(value) == set(expected)
+         and all(type(value[key]) is type(item) and value[key] == item
+                 for key, item in expected.items()), 'ENTRY_REFUSED')
+    return value
+
+
 def tour_receipt(value):
     need(type(value) is dict and set(value) == {'schema', 'scope', 'complete', 'requested', 'visited'}
          and type(value['schema']) is int and value['schema'] == 1
@@ -165,6 +177,8 @@ def completed(report):
     try:
         if 'address_selection' in report:
             address_selection_receipt(report['address_selection'])
+        if 'lab_send' in report:
+            lab_send_receipt(report['lab_send'])
         checks = report['checks']
         if (type(checks) is not dict or set(checks) != set(CHECKS)
                 or not all(value is True for value in checks.values())
@@ -350,7 +364,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
     report = dict(schema=1, scope='owned_chain321_wallet_tour', success=False,
         wallet_qualified=False, seed_admitted=False, visual_matches=0,
         checks=dict.fromkeys(CHECKS, False), errors=[], captures=[], tour=None,
-        address_selection=None,
+        address_selection=None, lab_send=None,
         forced_cleanup=False, required_actor_forced_cleanup=False,
         auxiliary_cleanup=None, phase='admission', min_free_bytes=FIXTURE_FLOOR,
         workspace_cap_bytes=WORK_CAP,
@@ -454,6 +468,13 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
                     used.add('address')
                     report['address_selection'] = address_selection_receipt(
                         json.loads(line.partition(b':')[2]))
+                elif line.startswith(b'SYRIUS_LAB_SEND:'):
+                    need('address' in used and 'send' not in used
+                         and 'tour' not in used and marker == b'CI_WALLET_DONE',
+                         'ENTRY_REFUSED')
+                    used.add('send')
+                    report['lab_send'] = lab_send_receipt(
+                        json.loads(line.partition(b':')[2]))
                 elif line.startswith(b'SYRIUS_WALLET_TOUR:'):
                     need('tour' not in used and marker == b'CI_WALLET_DONE', 'TOUR_REFUSED')
                     used.add('tour')
@@ -509,6 +530,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
         report['checks']['input_released'] = True
         wait(b'CI_WALLET_DONE')
         address_selection_receipt(report['address_selection'])
+        lab_send_receipt(report['lab_send'])
         need(report['tour'] is not None and tour_complete(report['tour']), 'TOUR_REFUSED')
         report['checks']['tour_complete'] = True
         for page in PAGES:

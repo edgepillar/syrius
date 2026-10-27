@@ -5758,3 +5758,69 @@ remain preserved. No further rewrite occurs. Native index-1 qualification
 retains its original source; original UI send, F06 preparation and all 94
 visual matches remain open. No local SDK/native execution, artifact download,
 quota change or cleanup occurs.
+
+
+### Fixed original UI-send wiring (2026-10-27)
+
+The previous policy source `dec83f5bff4dd7b2dd0a70683a9417dadf10af9c`,
+tree `1de18c9652c0a7ddbb0d283317066578b298b74f`, is cleanly qualified by
+[40466775108](https://github.com/edgepillar/syrius/actions/runs/40466775108),
+attempt one, job `122063976712`: all 153 Dart bodies, 524 Python cases with
+three existing platform skips, original open-input startup/refusal/asset
+controls and zero selected errors/warnings/infos. Original Dart exits zero
+in 45.859 seconds with 72159 complete bytes, no overflow or forced kill;
+SHA-256 `2b1e0c5e5bd3a66cddae38639cd53235251bd75b976400c89fc0ccea9b1e3cff`.
+The earlier forty-info and one-info gates remain unchanged.
+
+The new authenticated serial `lab-send` accepts only an explicit owned
+profile and the exact lab WS/HTTP origins. It reserves one command, checks
+cross-purpose journal holds before UI preparation, uses ordinary Transfer
+navigation/input, and prepares exactly one ZNN from index 1 to owned index 0.
+No amount, recipient or retry option is accepted. Normal sender/token controls
+handle a different retained draft; fixed terms are verified again on the
+actual review. Actual layout/route/entrance/scroll clocks and hit testing gate
+input, and every changed original center remains refused without tolerance.
+
+The production form exposes only read-only original sender/current draft and
+actual-review identity. Its private State keeps the sender captured at init,
+so a later provider or the root dialog provider cannot substitute for it. The
+actual intent created by that form is retained only while confirmation is
+open; normal signing and submission behavior is unchanged. The harness binds
+that exact State, original worker lease, SDK transports, immutable intent,
+request identity, confirmation Element and Accept Element/center. The same
+admission is checked before normal pointer down and up. It never invokes an
+accept callback, signing method or sender submit API directly.
+
+The supplied witness and durable attempt journal feed the qualified fixed
+send policy. The active witness now samples its original owner/worker lease
+while reading failure, preserving the first original result/hash on owner
+loss without requiring an earlier explicit isCurrent read. Normal dialog or
+form closure after input does not replace or cancel the SDK Future. No unknown
+attempt is retried, re-signed, replaced or matched to unrelated receives.
+Only the exact original positive chain confirmation completes the command.
+
+Fourteen new Dart bodies cover the actual form/dialog with a different root
+provider, one ordinary pointer input and original result, post-input lease
+loss, same-State provider replacement, reconstructed or replaced reviews,
+changed centers, mid-pointer revocation/cancellation, source/lease revival,
+draft edits, fixed terms, Cancel and untrusted command options. They join all
+153 previous bodies for 167. Seven new Python cases bring the controller
+suite to 531, preserving three original platform skips. Thirteen selected
+memory-only receipt/projection/privacy controls pass; no Dart body or full
+controller suite executes locally. Hosted analysis covers every changed Dart
+source and the new cases.
+
+The original native entry now requires a finite original-send receipt between
+address selection and its unchanged page tour. It exports fixed indices,
+one-ZNN terms and positive original-request/confirmation facts, with no
+addresses, hash, profile or raw replies. Present new send scopes are mandatory
+for completion; legacy reports retain their original no-send scope. The
+independent inspector preserves finite preparation/send facts without turning
+a later page receipt or confirmed send into successful original closure.
+
+The new code and Dart cases require hosted qualification before one new
+original native execution. Prior native index-1/tour evidence remains bound
+to its original source. P09 send, actual F06 reversible checkpoints/states and
+all 94 visual matches remain open. The six F06 IDs, checkpoint requirements,
+workflow, dependencies, signing paths and historical evidence are preserved.
+No local SDK/native execution, artifact download, quota change or cleanup occurs.

@@ -664,6 +664,34 @@ class InspectionTests(unittest.TestCase):
         value.update(archive_sha256="d" * 64, manifest_sha256="c" * 64)
         self.assertLessEqual(len(json.dumps(value, separators=(",", ":")).encode()), 3800)
 
+    def test_original_send_projection_is_finite_and_cannot_heal_failed_closure(self):
+        report, lab = self.partial_wallet_report()
+        report['lab_send'] = dict(schema=1, scope='original_lab_ui_send', chain=321,
+            from_index=1, to_index=0, amount='100000000', token='ZNN',
+            original_request=True, confirmed=True)
+        value = inspect.project_wallet_tour(report, lab, 'a'*40, 123, 'b'*40, 'c'*64)
+        self.assertEqual(value['lab_send'], report['lab_send'])
+        self.assertFalse(value['artifact_reported_success'])
+        self.assertFalse(value['runtime_started'])
+        self.assertFalse(value['seed_admitted'])
+        report['lab_send']['hash'] = 'private'
+        with self.assertRaises(inspect.Refused):
+            inspect.project_wallet_tour(report, lab, 'a'*40, 123, 'b'*40, 'c'*64)
+
+    def test_new_projection_preserves_legacy_absence_and_explicit_unknown(self):
+        report, lab = self.partial_wallet_report()
+        value = inspect.project_wallet_tour(report, lab, 'a'*40, 123, 'b'*40, 'c'*64)
+        self.assertNotIn('lab_send', value)
+        report['lab_send'] = None
+        report['address_selection'] = dict(index=1, members=2, generated=True,
+            selected=True, persisted=True)
+        value = inspect.project_wallet_tour(report, lab, 'a'*40, 123, 'b'*40, 'c'*64)
+        self.assertIsNone(value['lab_send'])
+        self.assertEqual(value['address_selection'], report['address_selection'])
+        report['address_selection']['members_raw'] = ['private']
+        with self.assertRaises(inspect.Refused):
+            inspect.project_wallet_tour(report, lab, 'a'*40, 123, 'b'*40, 'c'*64)
+
     def test_wallet_projection_rejects_cross_manifest_and_source_mismatch(self):
         for change in (dict(manifest_sha256="d" * 64), dict(visited_pages=8),
                        dict(captured_pages=True), dict(success=True)):

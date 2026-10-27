@@ -104,6 +104,52 @@ class AddressSelectionTests(unittest.TestCase):
                     diagnostic=dict(value['diagnostic'], **{field: 'private'})))
 
 
+class OriginalSendTests(unittest.TestCase):
+    @staticmethod
+    def receipt():
+        return dict(schema=1, scope='original_lab_ui_send', chain=321,
+            from_index=1, to_index=0, amount='100000000', token='ZNN',
+            original_request=True, confirmed=True)
+
+    def test_only_exact_fixed_original_send_facts_are_retained(self):
+        value = self.receipt()
+        self.assertIs(tour.lab_send_receipt(value), value)
+        for field in ('hash', 'from', 'to', 'walletPath', 'diagnostic'):
+            with self.subTest(field=field), self.assertRaises(tour.Refused):
+                tour.lab_send_receipt(dict(value, **{field:'private'}))
+
+    def test_unknown_or_unconfirmed_send_never_becomes_positive(self):
+        for field, wrong in (('schema', True), ('chain', 321.0),
+                ('from_index', True), ('to_index', False), ('amount', 100000000),
+                ('token', 'QSR'), ('original_request', False), ('confirmed', False)):
+            with self.subTest(field=field), self.assertRaises(tour.Refused):
+                tour.lab_send_receipt(dict(self.receipt(), **{field:wrong}))
+
+    def test_missing_or_extra_fields_are_not_original_send_evidence(self):
+        for value in (None, {}, [], dict(self.receipt(), confirmed=1)):
+            with self.assertRaises(tour.Refused):
+                tour.lab_send_receipt(value)
+        for field in self.receipt():
+            value = self.receipt();del value[field]
+            with self.subTest(field=field), self.assertRaises(tour.Refused):
+                tour.lab_send_receipt(value)
+
+    def test_present_send_scope_is_mandatory_without_changing_legacy_scope(self):
+        report = CompletionTests().report()
+        self.assertTrue(tour.completed(report))
+        for value in (None, {}, dict(self.receipt(), confirmed=False)):
+            self.assertFalse(tour.completed(dict(report, lab_send=value)))
+        self.assertTrue(tour.completed(dict(report, lab_send=self.receipt())))
+        report['entry_exit'] = 1
+        self.assertFalse(tour.completed(dict(report, lab_send=self.receipt())))
+
+    def test_send_stage_keeps_only_the_fixed_failure_label(self):
+        value = dict(stage='lab_send', code=None)
+        self.assertIs(tour.entry_failure(value), value)
+        with self.assertRaises(tour.Refused):
+            tour.entry_failure(dict(value, hash='private'))
+
+
 class FixtureTests(unittest.TestCase):
     def test_only_one_explicit_fenced_public_fixture_is_selected(self):
         for count in (12, 24):

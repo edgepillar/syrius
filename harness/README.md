@@ -227,6 +227,7 @@ decide. `type` looks at fields only.
 | `import`, `node <ws url>`, `chain <id>` | onboarding, node selection, client chain identifier |
 | `lab-address` | original UI derivation and persisted index-1 selection on the isolated chain-321 lab |
 | `seed <id>`, `seed fixture <kind>` | guarded isolated lab recipes and read-only fixtures; see [seed preparation](seed/README.md) for required profile, origins and checkpoint evidence |
+| `lab-send --ws ws://127.0.0.1:45998 --http http://127.0.0.1:45997` | one fixed original index-1 to owned index-0 UI send in an explicit isolated profile; no custom amount, recipient or retry |
 | `tour [--dir <dir>]` | every page in turn |
 | `screens <id>\|all [--dir .harness/<fresh-directory>]` | runs each catalog screen script in dark and light, verifies state and 1280 by 780 client dimensions, then saves actual app captures |
 | `run <file>` | a script of the above |
@@ -377,3 +378,19 @@ closed or unmounted owners expose none. `ended` records the controller's
 existing completion bit, including its existing error path. It does not prove
 wallet initialization. A refusal retains only the latest valid label; asset
 names, frame payloads, exception text and private input are never projected.
+
+### Fixed P09 send qualification
+
+`lab-send` requires an explicitly selected isolated instance with the public
+chain-321 lab fixture unlocked, actual index 1 selected and exact original
+loopback transports. The default profile is refused. The authenticated serial
+command uses normal Transfer inputs and the actual one-ZNN confirmation,
+retaining the original form sender, worker lease, review request and Accept
+Element/center. It checks the same admission at pointer down/up and observes
+only that original request and its exact positive chain confirmation.
+
+Unknown original outcomes remain held across restart and also block F06. No
+retry or custom transfer terms are accepted. The ordinary app has no harness
+command. This command does not create an F06 checkpoint or qualify visuals.
+Its source and new UI regressions need hosted qualification before native
+original-send acceptance can be claimed.

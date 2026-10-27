@@ -21,6 +21,8 @@ class DartFailureTests(unittest.TestCase):
                      'wallet_address_recipe_test.dart', 'addresses_selection_test.dart',
                      'lab_transfer_witness_test.dart', 'lab_transfer_witness.dart',
                      'lab_send_policy_test.dart', 'lab_send_journal_test.dart',
+                     'lab_send_ui_binding.dart', 'lab_send_ui_binding_test.dart',
+                     'send_populated.dart',
                      'lab_send_policy.dart', 'seed_policy_test.dart', 'seed_policy.dart',
                      'lab_seed_binding.dart',
                      'selection_context_revision_test.dart', 'default_address_notifier.dart',

@@ -527,6 +527,11 @@ def project_wallet_tour(report, lab, head, run_id, tree, manifest_sha):
     try:
         tour = None if report["tour"] is None else wallet.tour_receipt(report["tour"])
         failure = None if report.get("entry_failure") is None else wallet.entry_failure(report["entry_failure"])
+        extra = {}
+        for key, validate in (("lab_send", wallet.lab_send_receipt),
+                              ("address_selection", wallet.address_selection_receipt)):
+            if key in report:
+                extra[key] = None if report[key] is None else validate(report[key])
     except wallet.Refused:
         raise Refused("INSPECTION_REFUSED") from None
     visited = 0 if tour is None else len(tour["visited"])
@@ -544,7 +549,7 @@ def project_wallet_tour(report, lab, head, run_id, tree, manifest_sha):
         original_error_codes=errors, entry_failure=failure, entry_exit=exit_code,
         required_actor_forced_cleanup=forced, tour=tour, captured_pages=len(captures),
         inspection_only=True, runtime_started=False, wallet_qualified=False,
-        seed_admitted=False, visual_matches=0)
+        seed_admitted=False, visual_matches=0, **extra)
 
 
 def main():

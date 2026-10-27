@@ -70,6 +70,19 @@ String sentNotificationTitle({
   symbol,
 );
 
+/// Read-only ownership of the original form and its actual open review.
+abstract interface class SendFormOrigin {
+  /// The sender captured by this form's State, before any provider replacement.
+  SendTransactionBloc get originalSender;
+
+  /// Current draft facts; reading them performs no wallet operation.
+  String get draftSender;
+  String get draftToken;
+
+  /// Requires this form's identical review and unchanged draft.
+  bool matchesOriginalReview(SendIntent intent);
+}
+
 /// A widget with multiple [DropdownMenu] and [TextField] that allow the user
 /// to select and input the information needed for sending a transaction
 class SendPopulated extends StatefulWidget {
@@ -118,7 +131,8 @@ class SendPopulated extends StatefulWidget {
   State<SendPopulated> createState() => _SendPopulatedState();
 }
 
-class _SendPopulatedState extends State<SendPopulated> {
+class _SendPopulatedState extends State<SendPopulated>
+    implements SendFormOrigin {
   final TextEditingController _recipientController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
 
@@ -139,6 +153,22 @@ class _SendPopulatedState extends State<SendPopulated> {
   (String, String)? _acceptedLookAlike;
   String _lastRecipient = '';
   bool _confirming = false;
+  SendIntent? _originalReview;
+
+  @override
+  SendTransactionBloc get originalSender => _sender;
+  @override
+  String get draftSender => _selectedSenderAddress;
+  @override
+  String get draftToken => _selectedToken.tokenStandard.toString();
+  @override
+  bool matchesOriginalReview(SendIntent intent) =>
+      mounted && identical(_originalReview, intent) && intent.matches(
+        fromAddress: _selectedSenderAddress,
+        recipient: _recipient,
+        amount: _amount,
+        token: _selectedToken,
+      );
 
   // The amount as inputted by the user
   String get _amount => _amountController.text;
@@ -789,7 +819,10 @@ class _SendPopulatedState extends State<SendPopulated> {
         Navigator.pop(dialogContext, accepted);
       }
 
-      setState(() => _confirming = true);
+      setState(() {
+        _confirming = true;
+        _originalReview = intent;
+      });
       final bool accepted = widget.confirm != null
           ? await widget.confirm!(intent, session)
           : (await showFrostedDialog<bool>(
@@ -840,7 +873,10 @@ class _SendPopulatedState extends State<SendPopulated> {
       // An admitted result is handled independently by _observeOriginal.
     } finally {
       if (mounted) {
-        setState(() => _confirming = false);
+        setState(() {
+          _confirming = false;
+          _originalReview = null;
+        });
         if (!_sender.busy.value && draftOwner != null && !draftOwner.isClosed) {
           _applyDraft(draftOwner.state);
         }

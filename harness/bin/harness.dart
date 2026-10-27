@@ -759,6 +759,17 @@ Future<void> run(Instance inst, String command, Args a) async {
       await script(inst, arg(0) ?? (throw Fail('run <file>')), a);
     case 'seed':
       await seed(inst, a);
+    case 'lab-send':
+      const Set<String> allowed = <String>{'instance', 'ws', 'http', 'json'};
+      if (a.rest.isNotEmpty ||
+          !a.flags.keys.every(allowed.contains) ||
+          a['ws'] != seedWsOrigin || a['http'] != seedHttpOrigin) {
+        throw Fail('lab-send requires the exact explicit owned lab origins');
+      }
+      report(await call(inst, <String, Object?>{
+        'cmd': 'lab-send', 'profile': inst.name,
+        'ws': seedWsOrigin, 'http': seedHttpOrigin,
+      }), a);
     default:
       if (!await recipe(inst, command, a)) {
         throw Fail('unknown command "$command"; see harness/README.md');

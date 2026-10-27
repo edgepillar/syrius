@@ -24,10 +24,13 @@ import 'package:material_ui/material_ui.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
+import 'package:zenon_syrius_wallet_flutter/blocs/auto_receive_tx_worker.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/receive_origin.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_token_stepper/widgets/token_create_frame.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/node_update/node_update.dart'
     show NodeUpdateCard;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/widgets/send_confirmation.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/widgets/send_populated.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/disclosure.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/list_entrance.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/motion/rise_switcher.dart';
@@ -59,7 +62,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/moda
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/startup_stage.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/tabs.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart'
-    show WebsocketStatus, getChainIdentifier;
+    show WebsocketStatus, WsClient, getChainIdentifier, znnZts;
 
 import '../seed/seed_recipe.dart' show requireSeedTokenPreparation;
 import '../wallet_address_context.dart';
@@ -69,6 +72,9 @@ import 'capture_protocol.dart' show CaptureRefused;
 import 'client_window.dart';
 import 'entry_caption_observer.dart';
 import 'fixtures/seed_commands.dart';
+import 'fixtures/lab_seed_binding.dart';
+import 'fixtures/lab_send_policy.dart';
+import 'fixtures/lab_send_ui_binding.dart';
 import 'fixtures/seed_policy.dart';
 import 'logical_capture.dart';
 import 'native_entry_capture.dart';
@@ -421,6 +427,9 @@ class HarnessAgent {
   _RecipeSelection? _recipeSelection;
   bool _recipeReadyOpening = false;
   final SeedCommands _seeds = SeedCommands();
+  bool _labSendReserved = false;
+  LabSendGuard? _labSendGuard;
+  LabSendUiReview? _labSendReview;
   HarnessPresentationController? _presentation;
   NativeEntryCapture? _nativeEntry;
   EntryCaptionObserver? _entryCaption;
@@ -780,6 +789,8 @@ class HarnessAgent {
         } on SeedRefused catch (error) {
           throw HarnessError(error.code);
         }
+      case 'lab-send':
+        return _labSend(c);
       case 'tree':
         return _tree(c);
       case 'tap':
@@ -932,6 +943,226 @@ class HarnessAgent {
       return <String, Object?>{'minimized': minimized, 'maximized': maximized};
     }
     return _windowSnapshot();
+  }
+
+  bool _labNodeReady(_Node node) {
+    if (!node.enabled || !_recipeEntranceSettled(node.element) ||
+        !_reachable(node, node.center)) return false;
+    final ModalRoute<dynamic>? route = ModalRoute.of(node.element);
+    if (route?.isCurrent != true ||
+        route?.animation?.isCompleted == false ||
+        route?.secondaryAnimation?.isDismissed == false) return false;
+    bool scrolling = false;
+    node.element.visitAncestorElements((Element ancestor) {
+      if (ancestor is StatefulElement && ancestor.state is ScrollableState) {
+        final ScrollableState state = ancestor.state as ScrollableState;
+        scrolling = scrolling || state.position.isScrollingNotifier.value;
+      }
+      return !scrolling;
+    });
+    return !scrolling;
+  }
+
+  _Node _labNode(String key, String kind) {
+    final List<_Node> matches = _matches(
+      <String, dynamic>{'key': key, 'exact': true},
+      kinds: <String>[kind], only: true,
+    );
+    if (matches.length != 1 || !_labNodeReady(matches.single)) {
+      throw const SeedRefused('original-lab-control-unsettled');
+    }
+    return matches.single;
+  }
+
+  Future<_Node> _labControl(
+    String key, String kind, void Function() requireCurrent,
+  ) async {
+    final Stopwatch deadline = Stopwatch()..start();
+    while (deadline.elapsed < const Duration(seconds: 15)) {
+      requireCurrent();
+      try {
+        return _labNode(key, kind);
+      } on SeedRefused {
+        // Observe the real route, entrance and scroll clocks. A delay alone
+        // cannot make a control ready or authorize replacement input.
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 40));
+    }
+    throw const SeedRefused('original-lab-control-unsettled');
+  }
+
+  void _labSame(_Node original, void Function() requireCurrent) {
+    requireCurrent();
+    final List<_Node> matches = _snapshot().where(
+      (_Node node) => identical(node.element, original.element) &&
+          node.kind == original.kind,
+    ).toList();
+    if (matches.length != 1 || matches.single.center != original.center ||
+        !_labNodeReady(matches.single)) {
+      throw const SeedRefused('original-lab-control-changed');
+    }
+  }
+
+  Future<void> _labTapKey(
+    String key, void Function() requireCurrent,
+  ) async {
+    final _Node original = await _labControl(key, 'button', requireCurrent);
+    await _tap(<String, dynamic>{'key': key},
+      requireAdmission: () => _labSame(original, requireCurrent));
+  }
+
+  Future<void> _labInput(
+    String key, String value, void Function() requireCurrent,
+  ) async {
+    final _Node original = await _labControl(key, 'field', requireCurrent);
+    await _type(<String, dynamic>{'key': key, 'value': value},
+      requireAdmission: () => _labSame(original, requireCurrent));
+  }
+
+  void _requireLabReview(LabSendUiReview review) {
+    final _Node current = _labNode('send_confirmation_accept', 'button');
+    review.requireReady(current.element, center: current.center);
+  }
+
+  Future<void> _acceptLabReview(
+    LabSendUiReview review, void Function() admission,
+  ) async {
+    await _tap(<String, dynamic>{
+      'key': 'send_confirmation_accept', 'settleMs': 0,
+    }, requireAdmission: () {
+      admission();
+      _requireLabReview(review);
+    });
+  }
+
+  /// The same original pointer path used after durable lab-send admission.
+  @visibleForTesting
+  Future<void> acceptLabReviewForTest(LabSendUiReview review) =>
+      _acceptLabReview(review, () {});
+
+  @visibleForTesting
+  LabSendUiReview captureLabReviewForTest(LabSendUiBinding binding) {
+    final _Node accept = _labNode('send_confirmation_accept', 'button');
+    return binding.captureReview(accept.element, center: accept.center);
+  }
+
+  Future<Map<String, Object?>> _labSend(Map<String, dynamic> command) async {
+    try {
+      if (command.length != 4 ||
+          !command.keys.toSet().containsAll(
+            <String>{'cmd', 'profile', 'ws', 'http'},
+          ) || command['profile'] is! String ||
+          command['ws'] != seedWsOrigin || command['http'] != seedHttpOrigin ||
+          _labSendReserved || _labSendGuard != null || _labSendReview != null ||
+          _seeds.fixtureName != null) {
+        throw const SeedRefused('fixed-original-lab-send-required');
+      }
+      final LabSeedBinding source = LabSeedBinding.capture(
+        profile: command['profile'] as String, ws: seedWsOrigin,
+        http: seedHttpOrigin, booted: booted,
+      );
+      _labSendReserved = true;
+      void sourceCurrent() {
+        if (!source.isCurrent || _seeds.fixtureName != null) {
+          throw const SeedRefused('original-lab-send-context-changed');
+        }
+      }
+      // Before any UI input, a prior uncertain purpose must remain held.
+      ProfileSeedJournal(source.home).requireAvailable(labSendRecipeId);
+      await _labTapKey('nav_transfer', sourceCurrent);
+      void pageCurrent() {
+        sourceCurrent();
+        if (kCurrentPage != Tabs.transfer) {
+          throw const SeedRefused('original-lab-send-context-changed');
+        }
+      }
+      final _Node field = await _labControl(
+        'send_recipient_field', 'field', pageCurrent,
+      );
+      Element? form;
+      field.element.visitAncestorElements((Element ancestor) {
+        if (ancestor.widget is SendPopulated) {
+          form = ancestor;
+          return false;
+        }
+        return true;
+      });
+      if (form == null || !app.sl.isRegistered<AutoReceiveTxWorker>()) {
+        throw const SeedRefused('original-send-form-required');
+      }
+      final ReceiveOrigin? origin = app.sl<AutoReceiveTxWorker>().captureOrigin(
+        sourceIsCurrent: () => source.isCurrent &&
+            kCurrentPage == Tabs.transfer && _seeds.fixtureName == null,
+      );
+      if (origin == null ||
+          !identical(origin.ledger.client, source.originalSdk.ledger.client) ||
+          origin.stats.client is! WsClient ||
+          (origin.stats.client as WsClient).url != seedWsOrigin) {
+        throw const SeedRefused('original-lab-send-transport-required');
+      }
+      final LabSendUiBinding binding = LabSendUiBinding.capture(
+        form: form!, source: source, origin: origin,
+      );
+      final String owner = source.environment.owner;
+      if (binding.owner.draftSender != owner) {
+        await _labTapKey('transfer_sender', binding.requireForm);
+        final List<_Node> choices = _snapshot().where((_Node node) {
+          bool matches = false;
+          node.element.visitAncestorElements((Element ancestor) {
+            if (ancestor.widget case final PopupMenuItem<String> item) {
+              matches = item.value == owner;
+              return false;
+            }
+            return true;
+          });
+          return node.kind == 'button' && matches && _labNodeReady(node);
+        }).toList();
+        if (choices.length != 1) {
+          throw const SeedRefused('original-lab-sender-choice-required');
+        }
+        final _Node choice = choices.single;
+        await _tap(<String, dynamic>{'ref': choice.ref},
+          requireAdmission: () => _labSame(choice, binding.requireForm));
+      }
+      if (binding.owner.draftToken != znnZts.toString()) {
+        await _tap(<String, dynamic>{'key': 'send_token_field'},
+          requireAdmission: binding.requireForm);
+        await _tap(<String, dynamic>{
+          'text': 'ZNN', 'kind': 'button', 'exact': true,
+        }, requireAdmission: binding.requireForm);
+      }
+      await _labInput('send_recipient_field', source.environment.members[0],
+        binding.requireForm);
+      await _labInput('send_amount_field', '1', binding.requireForm);
+      await _labTapKey('send_submit_button', binding.requireForm);
+      final _Node accept = await _labControl(
+        'send_confirmation_accept', 'button', binding.requireForm,
+      );
+      final LabSendUiReview review = binding.captureReview(
+        accept.element, center: accept.center,
+      );
+      // Retain the identical witness under uncertainty.
+      _labSendReview = review;
+      final ProfileSeedJournal journal = ProfileSeedJournal.forLabSend(
+        source.home, environment: source.environment, intent: review.intent,
+      );
+      final LabSendGuard guard = LabSendGuard(source: source, journal: journal);
+      _labSendGuard = guard;
+      await guard.publish(original: review.witness,
+        requireOriginalReady: () => _requireLabReview(review),
+        tapOnce: (void Function() admission) =>
+            _acceptLabReview(review, admission));
+      return <String, Object?>{'receipt': <String, Object>{
+        'schema': 1, 'scope': 'original_lab_ui_send', 'chain': 321,
+        'from_index': 1, 'to_index': 0, 'amount': '100000000', 'token': 'ZNN',
+        'original_request': true, 'confirmed': true,
+      }};
+    } on SeedRefused catch (error) {
+      throw HarnessError(error.code);
+    } on Object {
+      // Neither a raw widget reply nor a private transport error is exported.
+      throw HarnessError('original-lab-send-ui-or-read-failed');
+    }
   }
 
   Future<void> _tapCaptionControl(

@@ -113,6 +113,25 @@ Future<void> main() async {
     final Map<String, Object> selection = await cli.walletRecipe(instance)
         .selectLabAddress();
     await marker('SYRIUS_LAB_ADDRESS:${jsonEncode(selection)}');
+    stage = 'lab_send';
+    final Map<String, dynamic> sent = await cli.call(instance, <String, Object>{
+      'cmd': 'lab-send', 'profile': name,
+      'ws': 'ws://127.0.0.1:45998', 'http': 'http://127.0.0.1:45997',
+    });
+    const Map<String, Object> expectedSend = <String, Object>{
+      'schema': 1, 'scope': 'original_lab_ui_send', 'chain': 321,
+      'from_index': 1, 'to_index': 0, 'amount': '100000000', 'token': 'ZNN',
+      'original_request': true, 'confirmed': true,
+    };
+    final Object? receipt = sent['receipt'];
+    if (receipt is! Map<String, dynamic> ||
+        receipt.length != expectedSend.length ||
+        !expectedSend.entries.every((MapEntry<String, Object> entry) =>
+            receipt[entry.key] == entry.value &&
+            receipt[entry.key].runtimeType == entry.value.runtimeType)) {
+      throw StateError('original UI send receipt unconfirmed');
+    }
+    await marker('SYRIUS_LAB_SEND:${jsonEncode(expectedSend)}');
     stage = 'tour';
     await cli.tour(instance, cli.Args(<String>[]));
     stdout.writeln('CI_WALLET_DONE');
