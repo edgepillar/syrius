@@ -62,8 +62,8 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart'
     show WebsocketStatus, getChainIdentifier;
 
 import '../seed/seed_recipe.dart' show requireSeedTokenPreparation;
-import '../wallet_recipe_failure.dart' show walletRecipeFailureCodes;
 import '../wallet_address_context.dart';
+import '../wallet_recipe_failure.dart' show walletRecipeFailureCodes;
 import 'capture_frame.dart';
 import 'capture_protocol.dart' show CaptureRefused;
 import 'client_window.dart';
@@ -1087,8 +1087,11 @@ class HarnessAgent {
             app.sharedPrefsService, members, preferences,
           ];
           if (resources.length != _recipeAddressResources.length ||
-              Iterable<int>.generate(resources.length).any((int index) =>
-                  !identical(resources[index], _recipeAddressResources[index]))) {
+              Iterable<int>.generate(resources.length).any(
+                (int index) => !identical(
+                  resources[index], _recipeAddressResources[index],
+                ),
+              )) {
             _recipeAddressResources = resources;
             _recipeAddressOwner++;
           }
@@ -1626,7 +1629,9 @@ class HarnessAgent {
               throw const FormatException('Address owner changed');
             }
           } on Object {
-            throw HarnessError('wallet-recipe-original-address-context-changed');
+            throw HarnessError(
+              'wallet-recipe-original-address-context-changed',
+            );
           }
         }
       }

@@ -5316,3 +5316,32 @@ or native proof. Fresh Windows Dart/analysis qualification and actual index-1
 selection are pending. P09's exact confirmed original UI send, F06 checkpoint
 and seed states, and all visual acceptance remain open. No checkpoint
 acknowledgement or signing shortcut is added.
+
+### P09 preparation tests and analyzer correction (2026-10-27)
+
+At source `b3107cab5258a3a1c193d82b7a0e19b6e3017421`, tree
+`55f09177201353d5e5645aa66d21f61f99992489`, focused run
+[40447700040](https://github.com/edgepillar/syrius/actions/runs/40447700040),
+attempt one, job `122002797461`, completes successfully. All 101 Dart bodies
+pass with zero skipped/failed/error events, ten hidden successes and 111
+terminal events. The original command exits zero normally in 40.203 seconds
+with 47796 complete bytes, no overflow or forced kill; output SHA-256
+`4a518db5bae034e10b3eb8c3a23a6e4f2221ff08146fa6ce2cf22cf3e8c1a087`.
+All 508 Python cases pass with the same three platform skips. Pinned SDK,
+locked inputs, both original open-input startup probes, pre-build refusal,
+Windows Node 22.23.4 and four unchanged asset controls pass. No native wallet
+or blockchain node runs in this focused job.
+
+Analysis exits zero with no errors/warnings and twelve introduced infos. Its
+1870 complete bytes have SHA-256
+`b9f3c965a11c6d8e642073cd1aab1e5538777b7169164dd07d22c89f9a5b64ad`.
+The original finite locations identify one import-order finding, ten long
+lines and one collection-if preference across the new address preparation
+code and fixture. The follow-up only orders that import, wraps those lines
+and expresses the fixture's identical two-member choice with a collection if.
+It adds no suppression, removes no test or assertion, and changes no wallet
+selection, ownership, input, signing or timeout behavior. Fresh clean selected
+analysis and the same 101-case gate are required before native admission.
+The successful test command does not establish actual index-1 selection, an
+original confirmed UI send, F06 preparation or visual parity. The PR remains
+Draft, and every earlier result retains its original source binding.

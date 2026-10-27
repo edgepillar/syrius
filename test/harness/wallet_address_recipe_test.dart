@@ -16,7 +16,8 @@ Map<String, dynamic> _context({
   int revision = 20,
   int owner = 1,
 }) => <String, dynamic>{
-  'members': members, 'selected': selected, 'saved': saved, 'revision': revision,
+  'members': members, 'selected': selected, 'saved': saved,
+  'revision': revision,
   'owner': owner,
 };
 
@@ -81,7 +82,8 @@ class _AddressUi {
       case 'settings_add_address':
         if (stallDerivation) await stalled.future;
         context = _context(members: <String>[
-          wrongDerivation ? 'synthetic-replaced-member' : _first, _second,
+          if (wrongDerivation) 'synthetic-replaced-member' else _first,
+          _second,
         ], revision: 21);
       case 'addresses_select_$_second':
         context = _context(members: <String>[_first, _second],
@@ -107,7 +109,9 @@ void main() {
   });
 
   test('derivation retains the original prefix and exactly one revision', () {
-    final WalletAddressContext original = WalletAddressContext.parse(_context());
+    final WalletAddressContext original = WalletAddressContext.parse(
+      _context(),
+    );
     expect(WalletAddressContext.parse(_context(
       members: <String>[_first, _second], revision: 21,
     )).derivedFrom(original), isTrue);
@@ -137,7 +141,8 @@ void main() {
     )).selectedFrom(original, 1), isTrue);
   });
 
-  test('the original controls derive once then select index one once', () async {
+  test('the original controls derive once then select index one once',
+      () async {
     final _AddressUi ui = _AddressUi();
     expect(await ui.driver().selectLabAddress(), <String, Object>{
       'index': 1, 'members': 2, 'generated': true,
@@ -167,7 +172,8 @@ void main() {
     expect(ui.taps, isEmpty);
   });
 
-  test('foreign lab and unresolved original selection receive no input', () async {
+  test('foreign lab and unresolved original selection receive no input',
+      () async {
     for (final _AddressUi ui in <_AddressUi>[
       _AddressUi()..node = 'ws://127.0.0.1:55998',
       _AddressUi()..chain = 1,
@@ -182,7 +188,8 @@ void main() {
     }
   });
 
-  test('replaced derivation retires without selecting or deriving again', () async {
+  test('replaced derivation retires without selecting or deriving again',
+      () async {
     final _AddressUi ui = _AddressUi()..wrongDerivation = true;
     final WalletRecipe driver = ui.driver();
     await expectLater(driver.selectLabAddress(),

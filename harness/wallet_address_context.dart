@@ -77,7 +77,8 @@ final class WalletAddressContext {
   /// A preference write can precede the original notifier's one revision.
   /// Neither that intermediate state nor a timeout authorizes another tap.
   bool selectionPending(WalletAddressContext original, int index) =>
-      owner == original.owner && index >= 0 && index < original.members.length &&
+      owner == original.owner && index >= 0 &&
+      index < original.members.length &&
       _sameMembers(original) &&
       ((selected == original.selected && revision == original.revision &&
           (saved == original.saved || saved == original.members[index])) ||

@@ -336,7 +336,9 @@ class WalletRecipe {
       if ((await _observe())['addressesReady'] != true) {
         await _act('settings_addresses');
       }
-      await _until((Map<String, dynamic> view) => view['addressesReady'] == true);
+      await _until(
+        (Map<String, dynamic> view) => view['addressesReady'] == true,
+      );
       if (origin.members.length == 1) {
         await _act('settings_add_address');
         generated = true;
@@ -381,7 +383,8 @@ class WalletRecipe {
       _refuse('wallet-recipe-address-selection-unsettled');
     }
     return <String, Object>{
-      'index': 1, 'members': finalContext.members.length, 'generated': generated,
+      'index': 1, 'members': finalContext.members.length,
+      'generated': generated,
       'selected': true, 'persisted': true,
     };
   }
