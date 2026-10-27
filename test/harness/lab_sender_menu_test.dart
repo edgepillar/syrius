@@ -103,7 +103,8 @@ class _Fixture {
 
 void main() {
   for (final bool light in <bool>[false, true]) {
-    testWidgets('typed sender value selects once despite identical labels $light',
+    testWidgets(
+      'typed sender value selects once despite identical labels $light',
         (WidgetTester tester) async {
       final _Fixture fixture = _Fixture();
       await fixture.mount(tester, light: light);

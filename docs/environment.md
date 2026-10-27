@@ -6014,3 +6014,34 @@ pass; the expanded 179-Dart/535-Python hosted gate remains pending. The
 original failed chain/profile will not be retried. P09, reversible F06
 checkpoints, actual seed states and all 94 visual matches remain open. No
 local SDK/native execution, artifact download, quota change or cleanup occurs.
+
+### Sender-menu regressions and one-line analysis correction
+
+At source `b5d585273d01e3d905d40d1ff8ec8598bd42a44a`, tree
+`e3e98e48a3cbd9bea53bafa13852d7b9bc931c54`, focused run `40484376744`,
+attempt one, job `122122373495`, exits successfully and passes all 179 Dart
+cases with no skips/failures/error events, 22 hidden successes and 201 terminal
+events. This includes all six new physical sender-menu regressions. The
+original Dart process exits zero normally in 61.844 seconds with 86467 complete
+bytes and digest
+`b6f5b408762ffa56aae40f22f9ae66491c0a8ece9269a58ba2b50a500d0ff3c5`.
+All 535 Python cases report zero failures/errors and three original platform
+skips. Original startup/refusal/asset controls and unchanged SDK/inputs/source
+checks pass. No native wallet or lab node is started by this lane.
+
+Selected analysis exits zero with no errors/warnings, but its finite report
+retains one `LINES_LONGER_THAN_80_CHARS` info at line 106, column 81 of
+`lab_sender_menu_test`. Its complete 158-byte output has digest
+`c8f7015e32ccab8f168ff55cc7415e43c2ff5d99b2aca5ac68dab8635cf8851a`.
+The strict clean-analysis qualification remains false despite workflow success;
+this result does not admit a native original-send execution.
+
+The correction splits exactly that test declaration over two lines. Its test
+label, callback body, assertions and timing bounds remain identical. Every
+functional application/harness/controller blob and all memory-control inputs
+are unchanged; no passing Python or memory case is repeated locally. Only
+this line break and progress/evidence text differ. The clean hosted gate and
+actual original native confirmed send remain pending. No test is removed or
+suppressed, no local SDK/native execution or artifact download occurs, and
+all earlier source-bound failures and the original native-42 unknown outcome
+remain preserved. P09/F06 and all 94 visual matches stay open.
