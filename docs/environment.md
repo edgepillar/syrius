@@ -6914,3 +6914,65 @@ claimed; its retention would be limited to the isolated runner lifecycle.
 The positive native61 request and earlier UNKNOWN originals retain their
 independent source bindings. No new native build or original send is needed
 for the focused source/filesystem gate.
+
+### Canonical restored homes and copied deployment metadata
+
+At a474458f3f64d1d6501c9052c33556da1b84a478, harness-only
+[40569503418](https://github.com/edgepillar/syrius/actions/runs/40569503418),
+attempt one, job 122419632287, qualifies all 221 Dart cases, 588 Python
+cases/three original platform skips and zero-finding selected analysis.
+All ten closed-data filesystem controls pass on the hosted Windows runner.
+Original Dart exits zero in 90.39 seconds with 108500 complete, unforced
+bytes, SHA-256
+379a6596b9355369954293c26a713a6b4ec44a521319bda3874f2c93f6dd4dac.
+
+The next source places the wallet's independent restore directly in a fresh
+canonical `ci-wallet-` home under the same `.harness` parent. Existing,
+default, foreign, nested or identical destinations refuse. The checkpoint
+and canonical target must share the admitted allocation volume. This avoids
+a third wallet copy. Declared aggregate accounting adds the independently
+measured copied-home bytes to the original lab and four wallet work roles.
+
+`tool/ci/restored_lab_paths.py` binds only copied deployment metadata after
+current original closure. Each original config/keyfile must retain its pinned
+digest and the copied file must still match those exact bytes. Only DataPath,
+GenesisFile and WalletPath change in configs; only Path changes in copied
+keyfiles. Every encrypted and other non-path value remains identical. Source
+files, target identities and directory identities are rechecked. The copied
+files remain closed while binding; no node or SDK publication is invoked.
+
+An exclusive claim outside the immutable baseline precedes metadata writes.
+Partial changes are held without rollback or retry. Expected growth and
+bounded evidence are reserved under the existing aggregate cap/free-space
+floor, with 64-KiB metadata inputs, at most 64 keyfiles and a finite deadline.
+The producer and retained reader expose only closed finite binding facts.
+A binding receipt cannot supply a missing checkpoint or heal failed closure.
+
+`harness/bin/copied_wallet_pointer.dart` is a plain-Dart component using the
+already pinned public hive_ce/path APIs. It opens only an existing copied
+key_store_box at an explicit copied cache path. An already open backend is
+refused because Hive would otherwise ignore that supplied path. Crash repair
+and compaction are disabled. The box must contain only integer key zero,
+pointing inside the original named home. After the caller's write claim, the
+component rechecks ownership and changes only that copied pointer to the
+same relative encrypted file in the canonical home. Cipher bytes, unrelated
+stores and originals remain unchanged. All owned backend closes are awaited;
+errors expose one fixed phase rather than paths or private values.
+
+Seventy-three selected Python memory controls pass without local filesystem,
+SDK or native execution. The batch adds twenty-one Python cases and seven
+Dart cases. The full gate now requires exactly 228 Dart and 609 Python cases;
+old 221-case output refuses. Eighteen Python filesystem fixtures and four
+new real-Hive filesystem fixtures are included. Current hosted execution and
+clean selected analysis for these additions remain pending. All existing
+visible Dart bodies and admission conditions remain; only the owned suite
+count, selected files and fixed failure-location labels are extended.
+
+The Hive component still needs an owned coordinator protocol and ordinary
+restored app/node opening. Before enabling that path, establish original
+publication/receive quiescence and preserve exact original outcome witnesses
+outside restorable data. OriginalPublicationDrain.completed and normal
+process exit alone do not prove that an uncertain original was never sent.
+No actual native checkpoint use, restored ownership or F06 seed effect is
+claimed here. Earlier UNKNOWN originals remain held and the independently
+positive native61 request keeps its original source binding.

@@ -1212,7 +1212,7 @@ def run(backend):
         if wallet_tour and all(report['checks'].values()) and not report['error_codes']:
             report['checkpoint'] = dict(schema=1, scope='closed_owned_lab_checkpoint', complete=False)
             try:
-                from tool.ci import closed_lab_checkpoint as checkpoint
+                from tool.ci import closed_lab_checkpoint as checkpoint, restored_lab_paths
                 need(isinstance(runtime, Native) and len(closed_wallets) == 1,
                      'CHECKPOINT_REFUSED')
                 wallet = closed_wallets[0]
@@ -1231,17 +1231,32 @@ def run(backend):
                     source_tree=report['application_tree'], node_sha=node_sha,
                     node_tree=compiled_tree, genesis_sha256=report['genesis_sha256'],
                     run_id=report['run_id'], attempt=int(report['attempt']))
-                _, report['checkpoint'] = checkpoint.capture_restore(roots,
-                    root / ('closed-checkpoint-' + secrets.token_hex(12)), closed,
-                    base_bytes=sample_storage(root) + wallet.measured_bytes(), binding=binding)
+                restored_home = wallet.home.parent / ('ci-wallet-' + secrets.token_hex(12))
+                checkpoint_home = root / ('closed-checkpoint-' + secrets.token_hex(12))
+                restored_roots, report['checkpoint'] = checkpoint.capture_restore(roots,
+                    checkpoint_home, closed,
+                    base_bytes=sample_storage(root) + wallet.measured_bytes(), binding=binding,
+                    wallet_home=restored_home)
+
+                def measured():
+                    return (sample_storage(root) + wallet.measured_bytes()
+                            + wallet.copied_home_bytes(restored_home))
+
+                report['path_binding'] = dict(schema=1, scope='closed_node_path_binding', complete=False)
+                report['path_binding'] = restored_lab_paths.bind_nodes(runtime.configs,
+                    {role: restored_roots[role] for role in ROLES}, checkpoint_home, closed,
+                    config_sha256=pins, keyfile_sha256=keyfile_pins, measure=measured)
                 source_matches(commands, source, node_sha, node_tree, compiled_tree)
                 need(not commands.git(repo, 'status', '--porcelain=v1', '--untracked-files=all')
-                     and sample_storage(root) + wallet.measured_bytes() <= MAX_WORK,
+                     and measured() <= MAX_WORK,
                      'SOURCE_REFUSED')
             except (Exception, KeyboardInterrupt):
                 report['error_codes'].append('CHECKPOINT_REFUSED')
                 report['checkpoint'] = dict(schema=1,
                     scope='closed_owned_lab_checkpoint', complete=False)
+                if 'path_binding' in report:
+                    report['path_binding'] = dict(schema=1,
+                        scope='closed_node_path_binding', complete=False)
         report['commands'] = [item.receipt for item in commands.originals]
         report["success"] = all(report["checks"].values()) and not report["error_codes"]
         report['wallet_tour_qualified'] = bool(wallet_tour and report['success']
@@ -1261,6 +1276,7 @@ def run(backend):
                 errors=report['error_codes'], node_sha=report['node_sha'],
                 compiled_node_tree=report.get('compiled_node_tree'),
                 checkpoint=report.get('checkpoint'),
+                path_binding=report.get('path_binding'),
                 asset_generation=report.get('asset_generation'),
                 upstream_client_fixture=(read_first_client_fixture.validate(
                     report.get('upstream_client_fixture'), required=report['checks']['started'])

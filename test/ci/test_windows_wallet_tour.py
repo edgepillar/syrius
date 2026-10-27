@@ -118,6 +118,20 @@ class ClosedHandoffTests(unittest.TestCase):
                 handoff.claim_checkpoint()
             closed.assert_called_once()
 
+    def test_copied_home_accounting_adds_only_the_new_named_wallet_role(self):
+        handoff = self.handoff()
+        home = handoff.home.parent / ('ci-wallet-'+'2'*24)
+        with mock.patch.object(handoff, 'closed', return_value=True), \
+                mock.patch.object(tour, 'sample_workspace',
+                    return_value=dict(by_role=dict(wallet_profile=456))) as sample:
+            self.assertEqual(handoff.copied_home_bytes(home), 456)
+            sample.assert_called_once_with((home, *handoff._paths[1:]), expected_profile=(3, 4))
+        with mock.patch.object(handoff, 'closed', return_value=True), \
+                mock.patch.object(tour, 'sample_workspace') as sample:
+            with self.assertRaises(tour.Refused):
+                handoff.copied_home_bytes(home.parent / 'default')
+            sample.assert_not_called()
+
 
 class AddressSelectionTests(unittest.TestCase):
     def test_preparation_receipt_accepts_only_finite_index_one_facts(self):

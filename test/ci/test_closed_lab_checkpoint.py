@@ -27,6 +27,20 @@ def observation():
 
 
 class PolicyTests(unittest.TestCase):
+    def test_canonical_restore_is_a_new_named_instance_under_the_original_parent(self):
+        parent = Path('/fixture/.harness')
+        original, offered = parent / ('ci-wallet-'+'1'*24), parent / ('ci-wallet-'+'2'*24)
+        self.assertEqual(checkpoint.canonical_target(original, offered), offered.absolute())
+
+    def test_canonical_restore_refuses_stale_default_nested_or_foreign_targets(self):
+        parent = Path('/fixture/.harness')
+        original = parent / ('ci-wallet-'+'1'*24)
+        for offered in (original, parent / 'default', parent / 'ci-wallet-short',
+                        parent / 'nested' / ('ci-wallet-'+'2'*24),
+                        parent.parent / ('ci-wallet-'+'2'*24)):
+            with self.subTest(name=offered.name), self.assertRaises(checkpoint.Refused):
+                checkpoint.canonical_target(original, offered)
+
     def test_copy_projection_retains_absence_refusal_and_finite_positive_facts(self):
         self.assertIsNone(checkpoint.project(None))
         refused = dict(schema=1, scope='closed_owned_lab_checkpoint', complete=False)
@@ -128,6 +142,34 @@ class FilesystemTests(unittest.TestCase):
         return checkpoint.capture_restore(self.roots, self.destination,
             changes.pop('closed', lambda: True), base_bytes=changes.pop('base_bytes', self.base),
             binding=changes.pop('binding', binding()), **changes)
+
+    def canonical_source(self):
+        original = self.roots['wallet_profile']
+        parent = self.parent / '.harness'
+        parent.mkdir()
+        named = parent / ('ci-wallet-'+'1'*24)
+        original.rename(named)
+        self.roots['wallet_profile'] = named
+        return parent / ('ci-wallet-'+'2'*24)
+
+    def test_wallet_is_restored_directly_to_its_canonical_home_without_a_third_copy(self):
+        offered = self.canonical_source()
+        restored, result = self.capture(wallet_home=offered)
+        self.assertEqual(restored['wallet_profile'], offered)
+        self.assertTrue(result['canonical_wallet_home'])
+        self.assertEqual(result['external_wallet_bytes'], len(b'synthetic shared bytes'))
+        self.assertFalse((self.destination / 'restored/wallet_profile').exists())
+        self.assertEqual((offered / 'same.bin').read_bytes(), b'synthetic shared bytes')
+        self.assertTrue((self.roots['wallet_profile'] / 'same.bin').exists())
+
+    def test_preexisting_canonical_home_is_held_before_any_checkpoint_allocation(self):
+        offered = self.canonical_source()
+        offered.mkdir()
+        (offered / 'held.bin').write_bytes(b'held fixture')
+        with self.assertRaises(checkpoint.Refused):
+            self.capture(wallet_home=offered)
+        self.assertFalse(self.destination.exists())
+        self.assertEqual((offered / 'held.bin').read_bytes(), b'held fixture')
 
     def test_bytewise_restore_deduplicates_objects_and_keeps_independent_files(self):
         restored, result = self.capture()

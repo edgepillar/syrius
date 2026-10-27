@@ -395,6 +395,12 @@ class _ClosedWallet:
         need(not self._checkpoint_claimed and self.closed(), 'CLOSE_UNCONFIRMED')
         self._checkpoint_claimed = True
 
+    def copied_home_bytes(self, home):
+        need(self.closed() and home.parent == self.home.parent and home != self.home
+             and re.fullmatch('ci-wallet-[a-f0-9]{24}', home.name), 'PROFILE_REFUSED')
+        return sample_workspace((home, *self._paths[1:]),
+            expected_profile=self._tool_identity)['by_role']['wallet_profile']
+
 
 def run(repo, parent, runtime, lab_root, observation, revalidate, *, retain_closed=None):
     report = dict(schema=1, scope='owned_chain321_wallet_tour', success=False,

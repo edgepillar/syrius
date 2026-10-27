@@ -57,8 +57,15 @@ def project(value):
     integers = {'roots', 'files', 'entries', 'source_bytes', 'object_bytes',
                 'restored_bytes', 'objects', 'reserved_bytes', 'manifest_bytes'}
     flags = {'independent_copies', 'source_unchanged', 'single_restore_claim'}
-    need(set(value) == common | integers | flags | {'manifest_sha256', 'retention',
-         'native_reopen_qualified', 'seed_admitted'})
+    optional = {'canonical_wallet_home', 'external_wallet_bytes'}
+    required = common | integers | flags | {'manifest_sha256', 'retention',
+                                          'native_reopen_qualified', 'seed_admitted'}
+    need(set(value) in (required, required | optional))
+    if optional <= set(value):
+        need(value['canonical_wallet_home'] is True
+             and type(value['external_wallet_bytes']) is int
+             and type(value['source_bytes']) is int
+             and 0 <= value['external_wallet_bytes'] <= value['source_bytes'])
     need(all(type(value[key]) is int and 0 <= value[key] <= CAP for key in integers)
          and all(value[key] is True for key in flags)
          and value['native_reopen_qualified'] is value['seed_admitted'] is False
@@ -204,7 +211,17 @@ def copy_file(source, destination, expected, digest, deadline, guard):
     need(guard() is True)
 
 
-def capture_restore(roots, destination, closed, *, base_bytes, binding):
+def canonical_target(original, offered):
+    original, offered = Path(original).absolute(), Path(offered).absolute()
+    need(original.parent == offered.parent and original.parent.name == '.harness'
+         and original != offered
+         and all('..' not in path.parts
+                 and re.fullmatch('ci-wallet-[a-f0-9]{24}', path.name)
+                 for path in (original, offered)))
+    return offered
+
+
+def capture_restore(roots, destination, closed, *, base_bytes, binding, wallet_home=None):
     """Use current original-process closure authority, never a saved receipt.
 
     The caller owns all six data roots and the fresh destination's parent.
@@ -213,12 +230,12 @@ def capture_restore(roots, destination, closed, *, base_bytes, binding):
     """
     try:
         return _capture_restore(roots, destination, closed,
-                                base_bytes=base_bytes, binding=binding)
+                                base_bytes=base_bytes, binding=binding, wallet_home=wallet_home)
     except (OSError, ValueError, TypeError, OverflowError):
         raise Refused() from None
 
 
-def _capture_restore(roots, destination, closed, *, base_bytes, binding):
+def _capture_restore(roots, destination, closed, *, base_bytes, binding, wallet_home):
     need(callable(closed) and closed() is True)
     need(type(roots) is dict and set(roots) == set(ROLES)
          and type(base_bytes) is int and 0 <= base_bytes <= CAP)
@@ -234,11 +251,17 @@ def _capture_restore(roots, destination, closed, *, base_bytes, binding):
     roots = {role: Path(path).absolute() for role, path in roots.items()}
     destination = Path(destination).absolute()
     paths = [*roots.values(), destination]
+    if wallet_home is not None:
+        wallet_home = canonical_target(roots['wallet_profile'], wallet_home)
+        need(not os.path.lexists(wallet_home))
+        paths.append(wallet_home)
     need(all('..' not in path.parts for path in paths))
     need(all(left != right and left not in right.parents and right not in left.parents
              for i, left in enumerate(paths) for right in paths[i+1:]))
     pins = {path: ancestors(path) for path in roots.values()}
     parent_pins = ancestors(destination.parent)
+    if wallet_home is not None:
+        need(directory(wallet_home.parent)[0] == directory(destination.parent)[0])
     need(not os.path.lexists(destination))
     deadline = time.monotonic() + SECONDS
     rows, files, directories, source_bytes = catalog(roots, deadline)
@@ -304,8 +327,11 @@ def _capture_restore(roots, destination, closed, *, base_bytes, binding):
     # A partial restore is held; no entry point can load a manifest and retry it.
     write_record(destination / 'restore-claim.json', encode(dict(schema=1, binding=binding)),
                  guard=record_guard)
+    restored_roots = {role: restored / role for role in ROLES}
+    if wallet_home is not None:
+        restored_roots['wallet_profile'] = wallet_home
     for row in rows:
-        target = restored / row['role']
+        target = restored_roots[row['role']]
         if row['path']:
             target = target.joinpath(*row['path'].split('/'))
         if row['kind'] == 'directory':
@@ -319,7 +345,6 @@ def _capture_restore(roots, destination, closed, *, base_bytes, binding):
             copy_file(original, target, object_pins[row['sha256']][1], row['sha256'], deadline,
                       lambda: parents_intact(original, target))
     stable()
-    restored_roots = {role: restored / role for role in ROLES}
     need(catalog(restored_roots, deadline)[0] == rows
          and catalog(roots, deadline)[0] == rows)
     stable()
@@ -331,6 +356,10 @@ def _capture_restore(roots, destination, closed, *, base_bytes, binding):
         independent_copies=True, source_unchanged=True, single_restore_claim=True,
         retention='isolated_runner_lifecycle',
         native_reopen_qualified=False, seed_admitted=False)
+    if wallet_home is not None:
+        summary.update(canonical_wallet_home=True,
+            external_wallet_bytes=sum(row['bytes'] for row in rows
+                if row['role'] == 'wallet_profile' and row['kind'] == 'file'))
     need(project(summary) == summary)
     write_record(destination / 'complete.json', encode(summary), guard=record_guard)
     return restored_roots, summary

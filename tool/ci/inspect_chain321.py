@@ -17,7 +17,7 @@ import zipfile
 from tool.ci.hosted_chain321 import (CODES, GO_FAILURE_CODES, NODE_DIAGNOSTICS, NODE_SHA, NODE_SOURCES,
                                    ROLES, SHUTDOWN_TESTS, UPSTREAM_NODE_SHA, selected_node_source)
 from tool.ci import native_stack_probe, node_panic_projection, producer_shutdown_patch, read_first_client_fixture
-from tool.ci import lab_asset_progress, closed_lab_checkpoint
+from tool.ci import lab_asset_progress, closed_lab_checkpoint, restored_lab_paths
 
 
 API = "https://api.github.com/repos/edgepillar/syrius"
@@ -454,6 +454,15 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA, *, expected_p
                  and all(item['exit_code'] == 0 and item['output_complete'] is True
                          and item['forced'] is False for item in projected_exits))
         result['checkpoint'] = checkpoint
+    if 'path_binding' in report:
+        try:
+            paths = restored_lab_paths.project(report['path_binding'])
+        except closed_lab_checkpoint.Refused:
+            raise Refused('INSPECTION_REFUSED') from None
+        if paths is not None and paths['complete']:
+            need(result.get('checkpoint') is not None and result['checkpoint']['complete'] is True
+                 and report['success'] is True)
+        result['path_binding'] = paths
     if panic_count:
         result.update(node_panic_count=panic_count, first_node_panic=first_panic)
     if expected_patched:

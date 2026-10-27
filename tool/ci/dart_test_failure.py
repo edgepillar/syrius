@@ -4,6 +4,7 @@ import json
 import re
 
 FILES = ('wallet_tour_test.dart', 'build_output_test.dart',
+    'copied_wallet_pointer.dart', 'copied_wallet_pointer_test.dart',
     'wallet_address_recipe_test.dart', 'addresses_selection_test.dart',
     'lab_transfer_witness_test.dart', 'lab_transfer_witness.dart',
     'lab_send_policy_test.dart', 'lab_send_journal_test.dart',

@@ -31,6 +31,27 @@ def manifest():
 
 
 class InspectionTests(unittest.TestCase):
+    def test_path_binding_absence_and_refusal_do_not_invent_runtime_authority(self):
+        report = manifest()
+        value = inspect.project(report, 'native', 'a'*40, 123)
+        self.assertNotIn('path_binding', value)
+        report['path_binding'] = dict(schema=1, scope='closed_node_path_binding', complete=False)
+        value = inspect.project(report, 'native', 'a'*40, 123)
+        self.assertFalse(value['path_binding']['complete'])
+        self.assertFalse(value['runtime_started'])
+        report['path_binding']['private_path'] = 'private fixture'
+        with self.assertRaises(inspect.Refused):
+            inspect.project(report, 'native', 'a'*40, 123)
+
+    def test_complete_path_binding_cannot_supply_a_missing_closed_checkpoint(self):
+        report = manifest()
+        report['path_binding'] = dict(schema=1, scope='closed_node_path_binding', complete=True,
+            configs=5, keyfiles=5, originals_unchanged=True, non_path_values_unchanged=True,
+            claim_once=True, private_manifest_sha256='a'*64,
+            native_reopen_qualified=False, seed_admitted=False)
+        with self.assertRaises(inspect.Refused):
+            inspect.project(report, 'native', 'a'*40, 123)
+
     def test_checkpoint_absence_and_refusal_do_not_invent_a_restored_runtime(self):
         report = manifest()
         value = inspect.project(report, 'native', 'a'*40, 123)

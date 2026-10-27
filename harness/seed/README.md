@@ -30,6 +30,14 @@ not establish actual native checkpoint use, copied path rebinding, ordinary
 reopen or seed admission. `--checkpoint-ready` remains an acknowledgement;
 this adapter does not bypass that boundary or authorize a retry.
 
+Canonical restore and path-binding components additionally preserve every
+original config/keyfile and all non-path values. A standalone plain-Dart Hive
+component binds copied key zero only, refusing backend adoption, repair,
+foreign paths, extra entries and lost closure. Coordinator integration and
+ordinary restored app/node opening remain unqualified. Publication/receive
+quiescence and exact original outcomes must be established before that path
+can admit seed; a settled Future or normal process exit is insufficient.
+
 The mounted runtime/storage admission and the profile's sole process ownership
 must be qualified separately. The source writes at most three small JSON
 records per recipe into that existing isolated profile. It creates no cache,
