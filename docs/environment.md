@@ -6333,3 +6333,28 @@ No harness pointer path, sender/draft/intent guard, signing rule, original
 publication journal, F06 checkpoint policy, workflow, dependency, storage
 policy or local native execution changes. P03/F06, the actual confirmed send,
 real reversible checkpoints and all 94 visual matches remain open.
+
+
+### Strict analysis stops before native allocation
+
+At 2f127fe9499c2e0d262fb0f7a2a97519c48cf04d, combined Windows
+[40508995676](https://github.com/edgepillar/syrius/actions/runs/40508995676),
+attempt one, job 122205621395, passes all 540 Python cases with three original
+platform skips. Selected analysis has complete original exit zero and no
+errors or warnings, but five long-line infos in the added Transfer fixture.
+The strict gate refuses those findings. Dart tests, node checkout, compiler
+setup and native build are skipped; this run has no wallet or node execution.
+
+The five new fixture lines and the Transfer helper declaration are wrapped.
+Test labels, assertions, inputs and executable tokens are retained apart from
+optional trailing commas. A source-only local check now requires non-import
+lines in both changed Dart files to fit eighty columns before publication.
+It allocates no SDK and is separate from real analyzer qualification. All
+186 Dart cases, 540 Python cases and complete clean selected analysis remain
+required in the next combined job before native allocation. The unchanged
+22-case memory-only controller proof is reused with every input rehashed.
+
+The missing-member balance refresh, normal complete-cache path, original
+input/signing/publication guards, workflow, dependencies and storage policy
+remain unchanged. Native46 and native42 retain their failure/UNKNOWN records.
+Current original-send, F06 checkpoint and visual qualification remain open.

@@ -280,7 +280,9 @@ void main() {
     ),
     home: MultiBlocProvider(
       providers: <SingleChildWidget>[
-        BlocProvider<MultipleBalanceBloc>.value(value: balanceSource ?? balances),
+        BlocProvider<MultipleBalanceBloc>.value(
+          value: balanceSource ?? balances,
+        ),
         BlocProvider<AllTokensBloc>.value(value: tokens),
         BlocProvider<SendTransactionBloc>.value(value: transactions),
         BlocProvider<PendingTransactionsBloc>.value(value: pending),
@@ -333,7 +335,8 @@ void main() {
     return second;
   }
 
-  testWidgets('Transfer refreshes a derived member through the real balance bloc',
+  testWidgets(
+      'Transfer refreshes a derived member through the real balance bloc',
       (WidgetTester tester) async {
     final String first = kSelectedAddress!;
     final String second = Address(
@@ -390,17 +393,24 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
     final StatefulElement form =
         tester.element(find.byType(SendPopulated)) as StatefulElement;
-    expect((form.widget as SendPopulated).balances.keys, <String>[first, second]);
+    expect(
+      (form.widget as SendPopulated).balances.keys,
+      <String>[first, second],
+    );
     expect((form.state as SendFormOrigin).draftSender, second);
     await tester.tap(find.byKey(const Key('transfer_sender')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.byWidgetPredicate((Widget widget) =>
-        widget is PopupMenuItem<String> && widget.value == second), findsOneWidget);
+    expect(
+      find.byWidgetPredicate((Widget widget) =>
+          widget is PopupMenuItem<String> && widget.value == second),
+      findsOneWidget,
+    );
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('Transfer retains a complete cached balance without another fetch',
+  testWidgets(
+      'Transfer retains a complete cached balance without another fetch',
       (WidgetTester tester) async {
     await show(tester);
     verifyNever(() => balances.add(any()));

@@ -98,7 +98,8 @@ class _TransferPageState extends State<TransferPage> {
   void _refreshMissingMembers() {
     final MultipleBalanceBloc balances = context.read<MultipleBalanceBloc>();
     final MultipleBalanceState state = balances.state;
-    final List<String> members = kDefaultAddressList.whereType<String>().toList();
+    final List<String> members =
+        kDefaultAddressList.whereType<String>().toList();
     if (state.status == MultipleBalanceStatus.success &&
         members.any((String address) =>
             !(state.data?.containsKey(address) ?? false))) {
