@@ -5618,3 +5618,71 @@ first observed. This documentation repair does not repeat that execution,
 alter a source-bound result or qualify P09. The original edit and all earlier
 evidence remain in history; only an ordinary forward documentation correction
 is made.
+
+
+### Original index-one preparation and complete native tour (2026-10-27)
+
+At source `163a82f67060de16dc526028f051f8512dffe1aa`, tree
+`ad378bc361ca8f93095a4084d434a5400a5af654`, original native
+[40457786491](https://github.com/edgepillar/syrius/actions/runs/40457786491),
+attempt one, job `122035053494`, succeeds. The actual Add address control
+derives index 1 once; its original selection control selects it, with two
+members and saved preference/notifier agreement. All seventeen wallet checks
+pass, including twelve destinations and twelve PNG checks, unchanged inputs
+and source, normal original app/entry zero exits and an empty owned job. Entry
+output is 2033 complete bytes, no overflow; SHA-256
+`735cd65d3c9be2e9ff897f2733789f483572391cc6303d45dbe687d20b876aae`.
+No required actor is forced. The exact 514528-byte MSVC telemetry helper is
+terminated separately after completed actors, with its original marker and
+SHA-256 `41fe46f8a0b41f6dd94c68c85fba20a10aacb662a9ef04784a632e37f3692371`.
+Whole-runner lifecycle remains unqualified.
+
+All five original lab nodes exit zero normally with complete output. All
+fourteen asset phases and seven original upstream test bodies pass with
+source restored. Cooperative wallet-workspace sampling observes a 267394686
+byte logical peak across 58 samples, with minimum free space 233177350144
+bytes. This is not a total runner/SDK measurement. The same 113 Dart/524
+Python gates pass with three existing platform skips and clean selected
+analysis. The original failed runs keep their source-bound negative outcomes.
+
+The first private notice reader lacked its repository import root after all
+original API streams had already completed. A reconciliation preparation also
+assumed three total jobs instead of eleven including ten skipped jobs. Both
+refusals are retained. The same unchanged validator is then applied to those
+original complete retained streams with the correct import root and job count;
+no API request, native runtime, retry or artifact download is repeated. This
+qualifies the original notice facts. The two archives are not independently
+inspected at this source. The twelve tour probes still qualify no catalog
+visual match. P09 remains open because no original UI send has occurred.
+
+### Distinct fixed original-send policy and durable attempt hold (2026-10-27)
+
+A separate fixed `lab-send` purpose uses the existing owned chain-321, selected
+index-1, advancing WS/HTTP frontier, funding and prior-unresolved-publication
+admission. The six F06 recipe IDs remain unchanged. Generic seed publication
+refuses this purpose: the new guard requires the actual original confirmation
+witness and its readiness check, retains its request identity before awaiting
+admission, claims once before ordinary pointer input and polls only that
+original. Unrelated automatic receives cannot supply or replace its hash.
+The first original hash is retained even under owner loss or pointer failure;
+changed answers, unknown release, timeout and context revocation never admit
+a second input. Only the exact confirmed original send on chain 321 succeeds;
+P09 does not substitute an F06 recipient-state effect.
+
+The private profile journal captures the immutable fixed review: index 1 to
+owned index 0, one ZNN, exact token/precision/display text and chain 321. Small
+exclusive attempt/accepted/confirmed records preserve that context and first
+hash. Unknown P09 work blocks every F06 recipe across restart; unresolved
+F06 work blocks P09. A consistent confirmed P09 record can release F06 but
+never a second P09 send in that profile. A missing, changed, malformed or
+inconsistent review stays held. This is not a checkpoint acknowledgement and
+does not create or verify reversible F06 preparation.
+
+Twenty-one new policy/journal bodies and nineteen unchanged default F06 policy
+bodies join the original 113-case gate, for 153 Dart bodies and unchanged 524
+Python cases. Six existing memory-only failure-projection/privacy controls
+pass with the extended finite source labels, without local SDK/native
+execution or filesystem scratch. The Dart gate is still pending. No ordinary
+application, signing API, dependency, workflow or F06 UI recipe is changed.
+These components are not wired to an app confirmation yet, and no native UI
+send, checkpoint, seed state or visual match is claimed.

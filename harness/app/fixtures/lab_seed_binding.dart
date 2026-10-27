@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/model/send_intent.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/token_balance/token_balance_snapshot.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
@@ -389,6 +390,13 @@ final class LabSeedBinding implements SeedSource {
         null,
         null,
       ),
+      labSendRecipeId => (
+        Address.parse(environment.members[0]),
+        znnZts,
+        BigInt.from(100000000),
+        null,
+        null,
+      ),
       _ => throw const SeedRefused('recipe-prerequisite-missing'),
     };
     return SeedConfirmed(
@@ -546,8 +554,75 @@ final class _Original implements SeedOriginal {
 /// Three exclusive records at most per recipe; no duplicate binary payloads.
 /// The isolated profile must remain under one process's sole ownership.
 final class ProfileSeedJournal implements SeedJournal {
-  ProfileSeedJournal(this.home);
+  ProfileSeedJournal(this.home) : _labSendReview = null;
+
+  /// Records the identical fixed P09 review before the single ordinary accept.
+  ProfileSeedJournal.forLabSend(
+    this.home, {
+    required SeedEnvironment environment,
+    required SendIntent intent,
+  }) : _labSendReview = _captureLabSendReview(environment, intent);
+
   final String home;
+  final Map<String, Object>? _labSendReview;
+  static const Set<String> _reviewKeys = <String>{
+    'profile', 'from', 'to', 'recipientInput', 'amountInput',
+    'token', 'amount', 'decimals', 'symbol', 'chain',
+  };
+
+  static Map<String, Object> _captureLabSendReview(
+    SeedEnvironment environment,
+    SendIntent intent,
+  ) {
+    environment.requireLab();
+    if (intent.fromAddress != environment.owner ||
+        intent.toAddress != environment.members[0]) {
+      throw const SeedRefused('original-transfer-review-required');
+    }
+    final Map<String, Object> review = <String, Object>{
+      'profile': environment.profile,
+      'from': intent.fromAddress,
+      'to': intent.toAddress,
+      'recipientInput': intent.recipientInput,
+      'amountInput': intent.amountInput,
+      'token': intent.tokenStandard,
+      'amount': intent.amount.toString(),
+      'decimals': intent.decimals,
+      'symbol': intent.symbol,
+      'chain': 321,
+    };
+    if (!_validReview(review)) {
+      throw const SeedRefused('original-transfer-review-required');
+    }
+    return Map<String, Object>.unmodifiable(review);
+  }
+
+  static bool _validReview(Object? value) {
+    if (value is! Map<String, dynamic> || value.length != _reviewKeys.length ||
+        !value.keys.toSet().containsAll(_reviewKeys) ||
+        value['profile'] is! String || value['profile'] == 'default' ||
+        !RegExp(r'^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$').hasMatch(value['profile'] as String) ||
+        value['from'] is! String || value['to'] is! String ||
+        value['from'] == value['to'] || value['recipientInput'] != value['to'] ||
+        value['amountInput'] != '1' || value['amount'] != '100000000' ||
+        value['token'] != znnZts.toString() || value['decimals'] != 8 ||
+        value['symbol'] != 'ZNN' || value['chain'] != 321) {
+      return false;
+    }
+    try {
+      return Address.parse(value['from'] as String).toString() == value['from'] &&
+          Address.parse(value['to'] as String).toString() == value['to'] &&
+          value['from'] != emptyAddress.toString() &&
+          value['to'] != emptyAddress.toString();
+    } on Object {
+      return false;
+    }
+  }
+
+  static bool _sameReview(Object? left, Object? right) =>
+      left is Map<String, dynamic> && right is Map<String, dynamic> &&
+      _reviewKeys.every((String key) => left[key] == right[key]);
+
   File _file(String recipe, String state) =>
       File(path.join(home, 'seed-$recipe-$state.json'));
   Map<String, dynamic>? _read(String recipe, String state) {
@@ -569,12 +644,20 @@ final class ProfileSeedJournal implements SeedJournal {
             (value['hash'] is! String || !seedHash(value['hash'] as String))) {
       throw const SeedRefused('seed-journal-held');
     }
+    if (recipe == labSendRecipeId && !_validReview(value['review'])) {
+      throw const SeedRefused('seed-journal-held');
+    }
     return value;
   }
 
   void _write(String recipe, String state, {String? hash}) {
-    if (!seedRecipeIds.contains(recipe)) {
+    if (!seedRecipeIds.contains(recipe) && recipe != labSendRecipeId) {
       throw const SeedRefused('unknown-recipe');
+    }
+    if (recipe == labSendRecipeId &&
+        (_labSendReview == null || state != 'attempt' &&
+            !_sameReview(_read(recipe, 'attempt')?['review'], _labSendReview))) {
+      throw const SeedRefused('original-transfer-review-required');
     }
     _file(recipe, state)
       ..createSync(exclusive: true)
@@ -584,6 +667,7 @@ final class ProfileSeedJournal implements SeedJournal {
           'chain': 321,
           'state': state,
           'hash': ?hash,
+          if (recipe == labSendRecipeId) 'review': _labSendReview!,
         }),
         flush: true,
       );
@@ -591,10 +675,15 @@ final class ProfileSeedJournal implements SeedJournal {
 
   @override
   void requireAvailable(String recipe) {
-    for (final String id in seedRecipeIds) {
+    for (final String id in <String>{...seedRecipeIds, labSendRecipeId}) {
       final Map<String, dynamic>? attempt = _read(id, 'attempt');
       final Map<String, dynamic>? accepted = _read(id, 'accepted');
       final Map<String, dynamic>? confirmed = _read(id, 'confirmed');
+      if (id == labSendRecipeId && attempt != null &&
+          (accepted != null && !_sameReview(attempt['review'], accepted['review']) ||
+              confirmed != null && !_sameReview(attempt['review'], confirmed['review']))) {
+        throw const SeedRefused('seed-journal-held');
+      }
       if (attempt == null && (accepted != null || confirmed != null) ||
           confirmed != null &&
               (accepted == null ||
@@ -620,7 +709,9 @@ final class ProfileSeedJournal implements SeedJournal {
     final Map<String, dynamic>? existing = _read(recipe, 'accepted');
     if (existing == null) {
       _write(recipe, 'accepted', hash: hash);
-    } else if (existing['hash'] != hash) {
+    } else if (existing['hash'] != hash ||
+        recipe == labSendRecipeId &&
+            !_sameReview(existing['review'], _labSendReview)) {
       throw const SeedRefused('original-hash-changed');
     }
   }

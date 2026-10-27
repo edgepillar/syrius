@@ -135,6 +135,9 @@ def main():
             'test/harness/wallet_address_recipe_test.dart',
             'test/harness/addresses_selection_test.dart',
             'test/harness/lab_transfer_witness_test.dart',
+            'test/harness/seed_policy_test.dart',
+            'test/harness/lab_send_policy_test.dart',
+            'test/harness/lab_send_journal_test.dart',
             'test/harness/selection_context_revision_test.dart',
             'test/harness/wallet_recipe_test.dart'], cwd=repo,
             env=fresh_environment(repo, parent), timeout=240, cap=4 * 1024**2)
@@ -146,7 +149,7 @@ def main():
         counts = test_counts(outcome.output)
         report['counts'] = counts
         debug.need(outcome.success and counts['terminal_success'] is True
-            and counts['passed'] == 113 and counts['skipped'] == counts['failed'] == counts['error_events'] == 0,
+            and counts['passed'] == 153 and counts['skipped'] == counts['failed'] == counts['error_events'] == 0,
             'TESTS_FAILED')
         debug.bounded.verify_source(repo, source, parent)
         debug.need(debug.entry.source_tree(repo, parent) == tree, 'SOURCE_REFUSED')

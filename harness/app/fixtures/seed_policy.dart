@@ -3,6 +3,8 @@ import 'dart:async';
 /// Harness-only policy. This file has no wallet, signer, filesystem or client.
 const String seedWsOrigin = 'ws://127.0.0.1:45998';
 const String seedHttpOrigin = 'http://127.0.0.1:45997';
+/// The single P09 send is separate from the six checkpointed F06 recipes.
+const String labSendRecipeId = 'lab-send';
 const Set<String> seedRecipeIds = <String>{
   'stake',
   'fuse',
@@ -158,11 +160,22 @@ final class SeedGuard {
     required this.journal,
     Future<void> Function(Duration)? delay,
     this.readTimeout = const Duration(seconds: 3),
-  }) : _delay = delay ?? Future<void>.delayed;
+  }) : _delay = delay ?? Future<void>.delayed,
+       _labSend = false;
+
+  /// Read admission for one original P09 request; never a generic seed publish.
+  SeedGuard.forLabSend({
+    required this.source,
+    required this.journal,
+    Future<void> Function(Duration)? delay,
+    this.readTimeout = const Duration(seconds: 3),
+  }) : _delay = delay ?? Future<void>.delayed,
+       _labSend = true;
   final SeedSource source;
   final SeedJournal journal;
   final Future<void> Function(Duration) _delay;
   final Duration readTimeout;
+  final bool _labSend;
   bool _revoked = false;
   bool _attempted = false;
   SeedOriginal? _original;
@@ -207,7 +220,7 @@ final class SeedGuard {
 
   /// Both original endpoints must positively advance during this admission.
   Future<void> admit(String recipe) async {
-    if (!seedRecipeIds.contains(recipe)) {
+    if (!(_labSend ? recipe == labSendRecipeId : seedRecipeIds.contains(recipe))) {
       throw const SeedRefused('unknown-recipe');
     }
     requireCurrent();
@@ -256,6 +269,9 @@ final class SeedGuard {
 
   /// [tapOnce] is the real pointer path. No API here signs or sends a block.
   Future<String> publish(String recipe, Future<void> Function() tapOnce) async {
+    if (_labSend) {
+      throw const SeedRefused('original-transfer-witness-required');
+    }
     if (_attempted) throw const SeedRefused('original-attempt-held');
     await admit(recipe);
     final Set<Object> before = source

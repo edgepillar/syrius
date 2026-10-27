@@ -20,6 +20,9 @@ class DartFailureTests(unittest.TestCase):
         for name in ('wallet_recipe_startup_test.dart', 'rail_navigation_test.dart',
                      'wallet_address_recipe_test.dart', 'addresses_selection_test.dart',
                      'lab_transfer_witness_test.dart', 'lab_transfer_witness.dart',
+                     'lab_send_policy_test.dart', 'lab_send_journal_test.dart',
+                     'lab_send_policy.dart', 'seed_policy_test.dart', 'seed_policy.dart',
+                     'lab_seed_binding.dart',
                      'selection_context_revision_test.dart', 'default_address_notifier.dart',
                      'recipe_control_admission_test.dart', 'recipe_control_admission.dart'):
             row = event();row['stackTrace'] = '/fixture/private/' + name + ':129:5\nprivate'
