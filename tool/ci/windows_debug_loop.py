@@ -452,6 +452,11 @@ def analyze(parent, repo):
         'harness/wallet_address_context.dart',
         'test/harness/wallet_address_recipe_test.dart',
         'test/harness/addresses_selection_test.dart',
+        'harness/app/fixtures/lab_transfer_witness.dart',
+        'test/harness/lab_transfer_witness_test.dart',
+        'test/harness/selection_context_revision_test.dart',
+        'lib/utils/notifiers/default_address_notifier.dart',
+        'lib/widgets/main_app_container.dart',
         'lib/widgets/modular_widgets/settings_widgets/addresses_settings_view.dart',
         'harness/app/agent.dart', 'harness/wallet_recipe_failure.dart',
         'harness/app/recipe_control_admission.dart',
@@ -492,6 +497,11 @@ def analyze(parent, repo):
                                         else 'address_context' if relative.endswith('/harness/wallet_address_context.dart')
                                         else 'address_recipe_test' if relative.endswith('/test/harness/wallet_address_recipe_test.dart')
                                         else 'addresses_selection_test' if relative.endswith('/test/harness/addresses_selection_test.dart')
+                                        else 'transfer_witness' if relative.endswith('/harness/app/fixtures/lab_transfer_witness.dart')
+                                        else 'transfer_witness_test' if relative.endswith('/test/harness/lab_transfer_witness_test.dart')
+                                        else 'selection_revision_test' if relative.endswith('/test/harness/selection_context_revision_test.dart')
+                                        else 'selection_notifier' if relative.endswith('/lib/utils/notifiers/default_address_notifier.dart')
+                                        else 'wallet_shell' if relative.endswith('/lib/widgets/main_app_container.dart')
                                         else 'addresses_view' if relative.endswith('/lib/widgets/modular_widgets/settings_widgets/addresses_settings_view.dart')
                                         else 'harness_agent' if relative.endswith('/harness/app/agent.dart')
                                         else 'control_admission' if relative.endswith('/harness/app/recipe_control_admission.dart')

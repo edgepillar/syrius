@@ -32,3 +32,34 @@ class SelectedAddressNotifier extends ChangeNotifier {
     notifyListeners();
   }
 }
+
+/// Owns only the shell's original selection subscription.
+/// Closing it leaves the provider's notifier and original actions untouched.
+final class SelectedAddressContextListener {
+  /// Captures the current selection before attaching to the original source.
+  SelectedAddressContextListener({
+    required SelectedAddressNotifier source,
+    required void Function({required bool contextAlreadyInvalidated}) onChanged,
+  }) : _source = source, _onChanged = onChanged,
+       _selected = kSelectedAddress {
+    _source.addListener(_changed);
+  }
+
+  final SelectedAddressNotifier _source;
+  final void Function({required bool contextAlreadyInvalidated}) _onChanged;
+  String? _selected;
+  bool _closed = false;
+
+  void _changed() {
+    if (_closed || _selected == kSelectedAddress) return;
+    _selected = kSelectedAddress;
+    _onChanged(contextAlreadyInvalidated: false);
+  }
+
+  /// Detaches this subscription once without disposing the original notifier.
+  void close() {
+    if (_closed) return;
+    _closed = true;
+    _source.removeListener(_changed);
+  }
+}

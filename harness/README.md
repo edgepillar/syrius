@@ -363,7 +363,7 @@ activate a spork there as a test.
 The manual Public Contribution Qualification workflow has a default-off
 `harness_tests_only` input. Select it with the other execution lanes disabled
 to run the isolated controller suite, locked dependency restoration, selected
-analysis and the 101-case harness gate on a fresh Windows runner. It uses one
+analysis and the 113-case harness gate on a fresh Windows runner. It uses one
 pinned Flutter SDK and does not build a native wallet or allocate lab nodes.
 Before SDK allocation, it also observes the unchanged original in-memory asset
 byte controls through a bounded command wrapper. Only runtime version, actual

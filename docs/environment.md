@@ -5381,3 +5381,55 @@ original source binding; the twelve private tour probes establish none of
 the 94 catalog matches. No local SDK, joblog, archive or image is downloaded,
 the production free-space floor and historical HOLD data stay unchanged, and
 the PR remains Draft.
+
+### Original P09 preparation failure and revision reproduction (2026-10-27)
+
+Source `b72ac956e8f131942393fbc1ec172c6c945b41a0`, tree
+`a13018f7e375481d0ad4d4be87c9c42746275d64`, native run
+[40449074122](https://github.com/edgepillar/syrius/actions/runs/40449074122),
+attempt one, job `122007248811`, is completed/failed. Its original 101 Dart
+bodies pass with zero skipped/failed/error events, 508 Python cases have three
+platform skips and selected analysis has zero errors/warnings/infos. The Dart
+command exits zero normally in 49.282 seconds with 47795 complete bytes,
+SHA-256 `0bcf85cddc62938ee77e8c405599de23511a38ff323e222bf3127a4cac0f848d`.
+The seven original upstream test bodies pass and are restored. Asset generation
+completes all fourteen phases; all five lab nodes exit zero normally with
+complete output. The compiled node tree remains
+`a9262cce18190bfc01e85ac903558500379d014f`.
+
+The actual wallet import and signing policy reach address preparation. Entry
+then exits one at `address_selection`, code
+`wallet-recipe-original-address-context-changed`, with 806 complete bytes,
+SHA-256 `edf81cb56e159cfc0b8488dd5db76134a6c4c712a37d73aaa5c4b7b9ed10b1dd`.
+The finite receipt does not identify the particular changed context field or
+action. No address-selection receipt, tour page or capture is accepted. The
+application's cleanup exit is zero, but ordinary closure is not qualified;
+one VCTIP actor remains and is forced during owned-job cleanup. The unchanged
+source/input checks are not reached, rather than evidence of input mutation.
+The failed result stays negative and this unchanged native source is retired.
+
+Separate source inspection identifies a reproducible candidate in the normal
+selection path: `SelectedAddressNotifier` invalidates the context before
+notifying its listeners, then the shell's selected-source listener invalidates
+it again. The original Addresses handoff and harness require exactly one
+generation. The shell listener is extracted faithfully into its owned
+subscription with the existing second invalidation retained. Two tests use
+the real notifier and that actual shell subscription to require one original
+generation, preserve prior revocation, verify idempotent selection and detach
+without disposing the provider's notifier. Their RED outcome is still pending;
+the generic native receipt alone does not prove this is its exact refused
+field. No generation tolerance or weakened context/pointer guard is added.
+
+Ten separate cases prepare a harness-only `LabTransferWitness`. It observes
+the exact immutable confirmation request on its identical shared sender,
+ignores unrelated receive identities and retains the original response and
+first accepted hash. Changed answers, mutable SDK result data, revocation,
+unknown stream closure and original publication failure cannot authorize
+success or another submission. Detaching the observer leaves the original
+publisher running. The witness performs no publication and is not yet wired
+to an app input or economic action. Its qualification is pending too. The
+focused gate now expects 113 Dart bodies and the unchanged 508 Python cases;
+one extended memory-only failure-location privacy case passes locally with no
+scratch, SDK, signer, wallet or node execution. P09 selection/send, actual F06
+preparation and all visual acceptance remain open. P08's earlier independent
+source binding remains intact and the PR stays Draft.

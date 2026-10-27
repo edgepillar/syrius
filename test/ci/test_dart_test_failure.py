@@ -19,6 +19,8 @@ class DartFailureTests(unittest.TestCase):
     def test_known_source_location_never_exports_error_stack_or_host_path(self):
         for name in ('wallet_recipe_startup_test.dart', 'rail_navigation_test.dart',
                      'wallet_address_recipe_test.dart', 'addresses_selection_test.dart',
+                     'lab_transfer_witness_test.dart', 'lab_transfer_witness.dart',
+                     'selection_context_revision_test.dart', 'default_address_notifier.dart',
                      'recipe_control_admission_test.dart', 'recipe_control_admission.dart'):
             row = event();row['stackTrace'] = '/fixture/private/' + name + ':129:5\nprivate'
             value = failure.project(encode([row]))

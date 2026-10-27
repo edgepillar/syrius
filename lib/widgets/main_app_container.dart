@@ -141,8 +141,7 @@ class _MainAppContainerState extends State<MainAppContainer>
   int _pageEpoch = 0;
   final Map<(int, String, String), HomeCollectionController> _collections =
       <(int, String, String), HomeCollectionController>{};
-  late final SelectedAddressNotifier _selectedSource;
-  String? _lastSelectedSource = kSelectedAddress;
+  SelectedAddressContextListener? _selectionContext;
   final PageCommandController<NodesCommand> _nodesCommands =
       PageCommandController<NodesCommand>();
   final Map<Tabs, PageRefreshController> _pageRefresh =
@@ -168,10 +167,10 @@ class _MainAppContainerState extends State<MainAppContainer>
   @override
   void initState() {
     _invalidateOwnedWork();
-    _selectedSource = Provider.of<SelectedAddressNotifier>(
-      context,
-      listen: false,
-    )..addListener(_selectedSourceChanged);
+    _selectionContext = SelectedAddressContextListener(
+      source: Provider.of<SelectedAddressNotifier>(context, listen: false),
+      onChanged: _invalidateOwnedWork,
+    );
     clipboardWatcher.addListener(this);
     windowManager.addListener(this);
 
@@ -740,13 +739,6 @@ class _MainAppContainerState extends State<MainAppContainer>
     _syncBell();
   }
 
-  void _selectedSourceChanged() {
-    if (_lastSelectedSource != kSelectedAddress) {
-      _lastSelectedSource = kSelectedAddress;
-      _invalidateOwnedWork();
-    }
-  }
-
   void _receiveContextChanged() {
     _receiveFeed?.revoke();
     if (_receiveRearmQueued) return;
@@ -1010,7 +1002,7 @@ class _MainAppContainerState extends State<MainAppContainer>
     final Object? receiveLease = _receiveSenderLease;
     if (receiveLease != null) _receiveWorker?.detachSender(receiveLease);
     _closeStartup();
-    _selectedSource.removeListener(_selectedSourceChanged);
+    _selectionContext?.close();
     _maintenanceOwner.beforeDispose();
     _invalidateOwnedWork();
     _maintenanceOwner.afterDispose();
