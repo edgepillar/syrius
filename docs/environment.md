@@ -6793,3 +6793,26 @@ requires all 221 Dart cases and all 555 Python cases with clean analysis; all
 37 selected memory controls pass. This narrow qualification uses the existing
 harness-only lane without another native wallet/node build. Reversible closed
 checkpoints, exact restored ownership and real F06 seed effects remain open.
+
+
+### Preserve the unlock cases after a formatting refusal
+
+At e9c40404d0ac70ff611b1fc9b4a2127465ad1444, harness-only
+[40555727151](https://github.com/edgepillar/syrius/actions/runs/40555727151),
+attempt one, job 122371163969, passes all 555 Python cases/three original
+skips and unchanged locked dependency restoration. No native build runs.
+Selected analysis exits zero with 154 complete bytes, zero errors/warnings
+and one LINES_LONGER_THAN_80_CHARS info at wallet_tour_test.dart:138:81.
+The strict zero-finding rule refuses that result and Dart tests are skipped.
+
+The one loop line now wraps the same four tab values in their original order.
+Every statement, assertion and other Dart test byte remains. Both Dart files
+changed by the unlock feature are checked in memory against the 80-character
+limit, with no remaining long line. All runtime/harness/controller bytes,
+221-case admission and the original unlocked/locked semantics are unchanged.
+The thirteen inputs to the retained 37-case memory proof have identical hashes;
+that proof is reused without another execution. Fresh complete 221-Dart/
+555-Python and zero-finding analysis qualification remain required. No test
+or lint is removed or suppressed, no local SDK/native execution or transport
+occurs, and the positive native61 original send and earlier UNKNOWN originals
+retain their exact independent source bindings.

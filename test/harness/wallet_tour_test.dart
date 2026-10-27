@@ -135,7 +135,9 @@ class _UnlockInstance extends cli.Instance {
 void main() {
   test('unlock refuses unconfirmed non-lock states before password input',
       () async {
-    for (final Object? tab in <Object?>['startup', 'welcome', 'dashboard', null]) {
+    for (final Object? tab in <Object?>[
+      'startup', 'welcome', 'dashboard', null,
+    ]) {
       for (final Object? unlocked in <Object?>[false, null, 'true', 1]) {
         final _UnlockInstance instance = _UnlockInstance(<Map<String, dynamic>>[
           <String, dynamic>{'tab': tab, 'walletUnlocked': unlocked},
