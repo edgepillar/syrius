@@ -44,6 +44,9 @@ import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/node_transition.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_context_revision.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_initialization.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/addresses_settings_presenter.dart'
+    show AddressesSettingsBinding;
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/addresses_settings_view.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/node_settings_presenter.dart'
     show NodeSettingsEntry;
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/node_settings_view.dart';
@@ -60,6 +63,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart'
 
 import '../seed/seed_recipe.dart' show requireSeedTokenPreparation;
 import '../wallet_recipe_failure.dart' show walletRecipeFailureCodes;
+import '../wallet_address_context.dart';
 import 'capture_frame.dart';
 import 'capture_protocol.dart' show CaptureRefused;
 import 'client_window.dart';
@@ -1055,8 +1059,71 @@ class HarnessAgent {
             'nav_settings',
             'nav_dashboard',
             'settings_node',
+            'settings_addresses',
+            'settings_add_address',
           }.contains(key) ||
+          kDefaultAddressList.any(
+            (String? address) => address != null &&
+                key == 'addresses_select_$address',
+          ) ||
           key.startsWith('node_settings_select_'));
+
+  List<Object?> _recipeAddressResources = const <Object?>[];
+  int _recipeAddressOwner = 0;
+
+  Map<String, Object?> _recipeAddressObservation() {
+    Map<String, Object>? context;
+    bool ready = false;
+    try {
+      if (kWalletFile != null && kWalletInitCompleted &&
+          Hive.isBoxOpen(kAddressesBox) && Hive.isBoxOpen(kSharedPrefsBox)) {
+        final Box<dynamic> members = Hive.box<dynamic>(kAddressesBox);
+        final Box<dynamic> preferences = Hive.box<dynamic>(kSharedPrefsBox);
+        if (members.isOpen && preferences.isOpen &&
+            listEquals(kDefaultAddressList, members.values.toList())) {
+          final List<Object?> resources = <Object?>[
+            kWalletFile, app.zenon, app.zenon?.wsClient,
+            app.zenon?.ledger, app.zenon?.ledger.client,
+            app.sharedPrefsService, members, preferences,
+          ];
+          if (resources.length != _recipeAddressResources.length ||
+              Iterable<int>.generate(resources.length).any((int index) =>
+                  !identical(resources[index], _recipeAddressResources[index]))) {
+            _recipeAddressResources = resources;
+            _recipeAddressOwner++;
+          }
+          context = WalletAddressContext.parse(<String, dynamic>{
+            'members': List<String?>.of(kDefaultAddressList),
+            'selected': kSelectedAddress,
+            'saved': preferences.get(kDefaultAddressKey),
+            'revision': WalletContextRevision.value,
+            'owner': _recipeAddressOwner,
+          }).toJson();
+        }
+      }
+      final List<AddressesSettingsView> views = <AddressesSettingsView>[];
+      void visit(Element element) {
+        if (element.widget case final AddressesSettingsView value) {
+          views.add(value);
+        }
+        element.debugVisitOnstageChildren(visit);
+      }
+      WidgetsBinding.instance.rootElement?.debugVisitOnstageChildren(visit);
+      if (views.length == 1 && context != null) {
+        final AddressesSettingsView view = views.single;
+        final AddressesSettingsBinding? binding = view.presenter.binding;
+        ready = view.isCurrent() && binding != null && binding.ownsResources &&
+            !binding.busy && view.presenter.state.available &&
+            binding.selected == kSelectedAddress &&
+            listEquals(binding.members, kDefaultAddressList);
+      }
+    } on Object {
+      // Unknown persisted state grants neither derivation nor selection.
+    }
+    return <String, Object?>{
+      'addressContext': context, 'addressesReady': ready,
+    };
+  }
 
   bool _recipeEnabled(_Node node) {
     final Widget widget = node.element.widget;
@@ -1437,6 +1504,7 @@ class HarnessAgent {
           app.zenon?.wsClient.url == kCurrentNode,
       ..._recipeSigningPolicy(),
       'transitionPending': NodeTransitions.pending,
+      ..._recipeAddressObservation(),
       'nodeBusy': view?.presenter.state.busy ?? false,
       'nodePicker': view != null,
       'nodeCatalog': <String>[
@@ -1522,6 +1590,7 @@ class HarnessAgent {
           'originNode',
           'originRevision',
           'question',
+          'addressContext',
         }.contains(key),
       )) {
         throw HarnessError('wallet-recipe-input-refused');
@@ -1539,6 +1608,26 @@ class HarnessAgent {
             fresh['signingPolicyReady'] != true ||
             fresh['signingChainId'] != fresh['savedSigningChainId']) {
           throw HarnessError('wallet-recipe-original-owner-changed');
+        }
+        if (command.containsKey('addressContext')) {
+          try {
+            final WalletAddressContext expected = WalletAddressContext.parse(
+              command['addressContext'],
+            );
+            final WalletAddressContext actual = WalletAddressContext.parse(
+              fresh['addressContext'],
+            );
+            if (!expected.consistent || !expected.same(actual) ||
+                fresh['node'] != 'ws://127.0.0.1:45998' ||
+                fresh['chainId'] != 321 || fresh['signingChainId'] != 321 ||
+                fresh['nodeConnected'] != true ||
+                fresh['nodeSelectionSaved'] != true ||
+                fresh['transitionPending'] != false) {
+              throw const FormatException('Address owner changed');
+            }
+          } on Object {
+            throw HarnessError('wallet-recipe-original-address-context-changed');
+          }
         }
       }
 
@@ -1562,6 +1651,11 @@ class HarnessAgent {
       }
       if (NodeTransitions.pending && key != 'node_settings_question_accept') {
         throw HarnessError('wallet-recipe-transition-held');
+      }
+      if ((key == 'settings_addresses' || key == 'settings_add_address' ||
+              key.startsWith('addresses_select_')) &&
+          !command.containsKey('addressContext')) {
+        throw HarnessError('wallet-recipe-original-address-context-changed');
       }
       final bool field = action == 'type';
       final _Node original = _recipeControl(key, field: field);

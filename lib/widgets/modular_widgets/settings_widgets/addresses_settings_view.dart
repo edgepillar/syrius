@@ -635,6 +635,7 @@ class _AddressesSettingsViewState extends State<AddressesSettingsView>
                 checked: selected,
                 inMutuallyExclusiveGroup: true,
                 child: IconButton(
+                  key: ValueKey<String>('addresses_select_$address'),
                   tooltip: label,
                   onPressed: enabled && !selected
                       ? () => unawaited(_select(address, current))

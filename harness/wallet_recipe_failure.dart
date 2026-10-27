@@ -13,7 +13,8 @@ const Set<String> walletRecipeControls = <String>{
   'node_settings_select', 'node_onboarding_continue',
   'node_settings_question_accept', 'node_settings_chain_toggle',
   'node_settings_client_chain', 'node_settings_chain_save', 'wallet_ready_open',
-  'nav_settings', 'nav_dashboard', 'settings_node',
+  'nav_settings', 'nav_dashboard', 'settings_node', 'settings_addresses',
+  'settings_add_address', 'addresses_select',
 };
 
 /// Fixed server and observation refusals carry no exception text or payload.
@@ -26,6 +27,7 @@ const Set<String> walletRecipeFailureCodes = <String>{
   'wallet-recipe-original-control-moved-subpixel',
   'wallet-recipe-original-control-resized',
   'wallet-recipe-original-owner-changed',
+  'wallet-recipe-original-address-context-changed',
   'wallet-recipe-original-question-changed',
   'wallet-recipe-original-ready-changed',
   'wallet-recipe-original-ready-unavailable',
@@ -76,6 +78,8 @@ Map<String, String> walletRecipeDiagnostic(
       control = key;
     } else if (key.startsWith('node_settings_select_')) {
       control = 'node_settings_select';
+    } else if (key.startsWith('addresses_select_')) {
+      control = 'addresses_select';
     }
   }
   return Map<String, String>.unmodifiable(<String, String>{

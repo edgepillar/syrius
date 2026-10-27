@@ -1,0 +1,227 @@
+import 'dart:async';
+
+import 'package:flutter_test/flutter_test.dart';
+
+import '../../harness/bin/wallet_recipe.dart';
+import '../../harness/wallet_address_context.dart';
+
+// Deliberately invalid member strings: no SDK, signer, wallet or filesystem.
+const String _first = 'synthetic-first-member';
+const String _second = 'synthetic-second-member';
+
+Map<String, dynamic> _context({
+  List<String> members = const <String>[_first],
+  String selected = _first,
+  String saved = _first,
+  int revision = 20,
+  int owner = 1,
+}) => <String, dynamic>{
+  'members': members, 'selected': selected, 'saved': saved, 'revision': revision,
+  'owner': owner,
+};
+
+class _AddressUi {
+  Map<String, dynamic>? context = _context();
+  String node = 'ws://127.0.0.1:45998';
+  int chain = 321;
+  String tab = 'dashboard';
+  bool addresses = false;
+  bool wrongDerivation = false;
+  bool selectionUnsettled = false;
+  bool stallDerivation = false;
+  final Completer<void> stalled = Completer<void>();
+  final List<Map<String, Object?>> commands = <Map<String, Object?>>[];
+  Duration elapsed = Duration.zero;
+
+  WalletRecipe driver() => WalletRecipe(
+    send: send, elapsed: () => elapsed,
+    commandTimeout: const Duration(milliseconds: 10),
+    wait: (Duration value) async { elapsed += value; },
+  );
+
+  List<String> get taps => commands
+      .where((Map<String, Object?> value) => value['action'] == 'tap')
+      .map((Map<String, Object?> value) => value['key']! as String).toList();
+
+  Map<String, dynamic> observe() => <String, dynamic>{
+    'ok': true, 'harnessMode': 'wallet', 'booted': true, 'owner': 1,
+    'revision': context?['revision'] ?? 20,
+    'walletPresent': true, 'walletInitCompleted': true, 'hasError': false,
+    'tab': tab, 'node': node, 'chainId': chain, 'nodeConnected': true,
+    'nodeSelectionSaved': true, 'signingChainId': chain,
+    'savedSigningChainId': chain, 'signingPolicyReady': true,
+    'transitionPending': false, 'question': null,
+    'addressContext': context, 'addressesReady': addresses,
+    'controls': <Map<String, dynamic>>[
+      for (final String key in <String>[
+        'nav_settings', 'settings_addresses',
+        if (addresses) ...<String>[
+          'settings_add_address', 'addresses_select_$_second',
+        ],
+      ]) <String, dynamic>{'key': key, 'enabled': true},
+    ],
+  };
+
+  Future<Map<String, dynamic>> send(
+    Map<String, Object?> command, Duration timeout,
+  ) async {
+    commands.add(Map<String, Object?>.of(command));
+    if (command['action'] == 'observe') return observe();
+    if (!WalletAddressContext.parse(command['addressContext']).same(
+          WalletAddressContext.parse(context),
+        )) {
+      return <String, dynamic>{'ok': false,
+        'error': 'wallet-recipe-original-address-context-changed'};
+    }
+    switch (command['key']) {
+      case 'nav_settings':
+        tab = 'settings';
+      case 'settings_addresses':
+        addresses = true;
+      case 'settings_add_address':
+        if (stallDerivation) await stalled.future;
+        context = _context(members: <String>[
+          wrongDerivation ? 'synthetic-replaced-member' : _first, _second,
+        ], revision: 21);
+      case 'addresses_select_$_second':
+        context = _context(members: <String>[_first, _second],
+          selected: selectionUnsettled ? _first : _second, saved: _second,
+          revision: selectionUnsettled ? 21 : 22);
+    }
+    return <String, dynamic>{'ok': true, 'acted': true};
+  }
+}
+
+void main() {
+  test('membership refuses unknown, duplicate, missing and private fields', () {
+    for (final Object? value in <Object?>[
+      null, <String, dynamic>{},
+      <String, dynamic>{..._context(), 'private': 'never projected'},
+      _context(members: <String>[_first, _first]),
+      _context(selected: _second), _context(saved: _second),
+      _context(revision: -1),
+      _context(owner: 0),
+    ]) {
+      expect(() => WalletAddressContext.parse(value), throwsFormatException);
+    }
+  });
+
+  test('derivation retains the original prefix and exactly one revision', () {
+    final WalletAddressContext original = WalletAddressContext.parse(_context());
+    expect(WalletAddressContext.parse(_context(
+      members: <String>[_first, _second], revision: 21,
+    )).derivedFrom(original), isTrue);
+    for (final Map<String, dynamic> value in <Map<String, dynamic>>[
+      _context(members: <String>[_second, _first], revision: 21),
+      _context(members: <String>[_first, _second], revision: 22),
+      _context(members: <String>[_first, _second], revision: 21, owner: 2),
+      _context(members: <String>[_first, _second], selected: _second,
+        saved: _second, revision: 21),
+    ]) {
+      expect(WalletAddressContext.parse(value).derivedFrom(original), isFalse);
+    }
+  });
+
+  test('a committed preference alone cannot prove selection', () {
+    final WalletAddressContext original = WalletAddressContext.parse(
+      _context(members: <String>[_first, _second]),
+    );
+    final WalletAddressContext pending = WalletAddressContext.parse(_context(
+      members: <String>[_first, _second], saved: _second,
+    ));
+    expect(pending.selectionPending(original, 1), isTrue);
+    expect(pending.selectedFrom(original, 1), isFalse);
+    expect(WalletAddressContext.parse(_context(
+      members: <String>[_first, _second], selected: _second,
+      saved: _second, revision: 21,
+    )).selectedFrom(original, 1), isTrue);
+  });
+
+  test('the original controls derive once then select index one once', () async {
+    final _AddressUi ui = _AddressUi();
+    expect(await ui.driver().selectLabAddress(), <String, Object>{
+      'index': 1, 'members': 2, 'generated': true,
+      'selected': true, 'persisted': true,
+    });
+    expect(ui.taps, <String>['nav_settings', 'settings_addresses',
+      'settings_add_address', 'addresses_select_$_second']);
+    expect(ui.commands.where((Map<String, Object?> value) =>
+      value['action'] != 'observe').every((Map<String, Object?> value) =>
+        value['addressContext'] != null), isTrue);
+  });
+
+  test('an existing second member is never derived again', () async {
+    final _AddressUi ui = _AddressUi()
+      ..context = _context(members: <String>[_first, _second], revision: 21);
+    expect((await ui.driver().selectLabAddress())['generated'], isFalse);
+    expect(ui.taps, isNot(contains('settings_add_address')));
+    expect(ui.taps.where((String key) => key.startsWith('addresses_select_')),
+      hasLength(1));
+  });
+
+  test('an already persisted index one needs no new input', () async {
+    final _AddressUi ui = _AddressUi()
+      ..context = _context(members: <String>[_first, _second],
+        selected: _second, saved: _second);
+    expect((await ui.driver().selectLabAddress())['persisted'], isTrue);
+    expect(ui.taps, isEmpty);
+  });
+
+  test('foreign lab and unresolved original selection receive no input', () async {
+    for (final _AddressUi ui in <_AddressUi>[
+      _AddressUi()..node = 'ws://127.0.0.1:55998',
+      _AddressUi()..chain = 1,
+      _AddressUi()..context = null,
+      _AddressUi()..context = _context(
+        members: <String>[_first, _second], saved: _second,
+      ),
+    ]) {
+      await expectLater(ui.driver().selectLabAddress(),
+        throwsA(isA<WalletRecipeRefused>()));
+      expect(ui.taps, isEmpty);
+    }
+  });
+
+  test('replaced derivation retires without selecting or deriving again', () async {
+    final _AddressUi ui = _AddressUi()..wrongDerivation = true;
+    final WalletRecipe driver = ui.driver();
+    await expectLater(driver.selectLabAddress(),
+      throwsA(isA<WalletRecipeRefused>()));
+    final int original = ui.commands.length;
+    await expectLater(driver.selectLabAddress(),
+      throwsA(isA<WalletRecipeRefused>()));
+    expect(ui.commands, hasLength(original));
+    expect(ui.taps.where((String key) => key == 'settings_add_address'),
+      hasLength(1));
+    expect(ui.taps.any((String key) => key.startsWith('addresses_select_')),
+      isFalse);
+  });
+
+  test('a late original derivation is never retried after timeout', () async {
+    final _AddressUi ui = _AddressUi()..stallDerivation = true;
+    final WalletRecipe driver = ui.driver();
+    await expectLater(driver.selectLabAddress(),
+      throwsA(isA<WalletRecipeRefused>()));
+    ui.stalled.complete();
+    await Future<void>.delayed(Duration.zero);
+    final int original = ui.commands.length;
+    await expectLater(driver.selectLabAddress(),
+      throwsA(isA<WalletRecipeRefused>()));
+    expect(ui.commands, hasLength(original));
+    expect(ui.taps.where((String key) => key == 'settings_add_address'),
+      hasLength(1));
+  });
+
+  test('pending selection cannot receive a second selection tap', () async {
+    final _AddressUi ui = _AddressUi()..selectionUnsettled = true;
+    final WalletRecipe driver = ui.driver();
+    await expectLater(driver.selectLabAddress(),
+      throwsA(isA<WalletRecipeRefused>()));
+    final int original = ui.commands.length;
+    await expectLater(driver.selectLabAddress(),
+      throwsA(isA<WalletRecipeRefused>()));
+    expect(ui.commands, hasLength(original));
+    expect(ui.taps.where((String key) => key.startsWith('addresses_select_')),
+      hasLength(1));
+  });
+}

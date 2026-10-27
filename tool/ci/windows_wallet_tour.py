@@ -54,11 +54,13 @@ RECIPE_CONTROLS = frozenset((
     'node_onboarding_continue', 'node_settings_question_accept',
     'node_settings_chain_toggle', 'node_settings_client_chain', 'node_settings_chain_save',
     'wallet_ready_open', 'nav_settings', 'nav_dashboard', 'settings_node',
+    'settings_addresses', 'settings_add_address', 'addresses_select',
 ))
 RECIPE_FAILURE_CODES = frozenset((
     'wallet-recipe-action-refused', 'wallet-recipe-control-refused',
     'wallet-recipe-input-refused', 'wallet-recipe-node-view-ambiguous',
     'wallet-recipe-original-control-changed', 'wallet-recipe-original-owner-changed',
+    'wallet-recipe-original-address-context-changed',
     'wallet-recipe-original-control-replaced', 'wallet-recipe-original-control-moved',
     'wallet-recipe-original-control-moved-subpixel', 'wallet-recipe-original-control-resized',
     'wallet-recipe-original-question-changed', 'wallet-recipe-original-ready-changed',
@@ -101,12 +103,12 @@ def entry_failure(value):
     """Keep fixed onboarding labels; reject raw reply fields before recording."""
     need(type(value) is dict and set(value) in ({'stage', 'code'}, {'stage', 'code', 'diagnostic'})
          and value['stage'] in ('unused_destinations', 'build', 'start', 'input', 'onboarding',
-             'signing_policy', 'onboarding_logs', 'window', 'tour', 'finish')
+             'signing_policy', 'onboarding_logs', 'window', 'address_selection', 'tour', 'finish')
          and (value['code'] is None or type(value['code']) is str
               and re.fullmatch('wallet-recipe-[a-z-]{1,80}', value['code'])), 'ENTRY_REFUSED')
     if 'diagnostic' in value:
         diagnostic = value['diagnostic']
-        need(value['stage'] == 'onboarding'
+        need(value['stage'] in ('onboarding', 'address_selection')
              and value['code'] in ('wallet-recipe-command-refused', 'wallet-recipe-stage-unsettled')
              and type(diagnostic) is dict and {'action', 'control', 'reason'} <= set(diagnostic)
              and set(diagnostic) <= {'action', 'control', 'reason', 'entry', 'startup', 'film'}
@@ -116,6 +118,17 @@ def entry_failure(value):
              and ('entry' not in diagnostic or diagnostic['entry'] in RECIPE_ENTRY_PHASES)
              and ('startup' not in diagnostic or diagnostic['startup'] in RECIPE_STARTUP_HANDOFFS)
              and ('film' not in diagnostic or diagnostic['film'] in RECIPE_STARTUP_FILM_STATES), 'ENTRY_REFUSED')
+    return value
+
+
+def address_selection_receipt(value):
+    """Keep only finite P09 preparation facts, never members or addresses."""
+    need(type(value) is dict and set(value) ==
+         {'index', 'members', 'generated', 'selected', 'persisted'}
+         and type(value['index']) is int and value['index'] == 1
+         and type(value['members']) is int and 2 <= value['members'] <= 128
+         and type(value['generated']) is bool
+         and value['selected'] is value['persisted'] is True, 'ENTRY_REFUSED')
     return value
 
 
@@ -150,6 +163,8 @@ def tour_complete(value):
 def completed(report):
     """A good page receipt cannot heal uncertain original exits or cleanup."""
     try:
+        if 'address_selection' in report:
+            address_selection_receipt(report['address_selection'])
         checks = report['checks']
         if (type(checks) is not dict or set(checks) != set(CHECKS)
                 or not all(value is True for value in checks.values())
@@ -335,6 +350,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
     report = dict(schema=1, scope='owned_chain321_wallet_tour', success=False,
         wallet_qualified=False, seed_admitted=False, visual_matches=0,
         checks=dict.fromkeys(CHECKS, False), errors=[], captures=[], tour=None,
+        address_selection=None,
         forced_cleanup=False, required_actor_forced_cleanup=False,
         auxiliary_cleanup=None, phase='admission', min_free_bytes=FIXTURE_FLOOR,
         workspace_cap_bytes=WORK_CAP,
@@ -432,6 +448,12 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
                     report['entry_stage'] = stage.decode('ascii')
                     if line == marker:
                         return
+                elif line.startswith(b'SYRIUS_LAB_ADDRESS:'):
+                    need('address' not in used and 'tour' not in used
+                         and marker == b'CI_WALLET_DONE', 'ENTRY_REFUSED')
+                    used.add('address')
+                    report['address_selection'] = address_selection_receipt(
+                        json.loads(line.partition(b':')[2]))
                 elif line.startswith(b'SYRIUS_WALLET_TOUR:'):
                     need('tour' not in used and marker == b'CI_WALLET_DONE', 'TOUR_REFUSED')
                     used.add('tour')
@@ -486,6 +508,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
             mnemonic=fixture, password=secrets.token_hex(16) + 'A!1')) + '\n').encode())
         report['checks']['input_released'] = True
         wait(b'CI_WALLET_DONE')
+        address_selection_receipt(report['address_selection'])
         need(report['tour'] is not None and tour_complete(report['tour']), 'TOUR_REFUSED')
         report['checks']['tour_complete'] = True
         for page in PAGES:

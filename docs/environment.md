@@ -5291,3 +5291,28 @@ P09 work; actual reversible chain/profile preparation and wallet-created seed
 states remain F06 work. A checkpoint acknowledgement still does not create
 or verify that checkpoint. No local SDK, joblog, archive or image is
 downloaded, historical HOLD data is unchanged and the PR remains Draft.
+
+### P09 original address preparation source (2026-10-27)
+
+The harness now has `lab-address`, also called after the hosted importer and
+signing-policy checks. The ordinary initial import derives only index 0. This
+recipe opens the actual Settings/Addresses controls, derives one missing member
+once through Add address and selects index 1 through its original choice
+button. The button receives a stable key; its callback and presentation remain
+unchanged. Every action retains the exact original file/client, connected and
+saved loopback endpoint, chain-321 signing policy, member order, original open
+Boxes and transports, and wallet context generation. A committed preference
+alone cannot establish a completed selection. Replacement, extra derivation,
+unrelated generation changes and late outcomes retire the driver without retry.
+
+Twelve new Dart cases cover the exact context transitions, original real-view
+choice and revoked callback, normal derivation/selection, existing/idempotent
+selection, foreign or pending origins, replacement, late derivation and pending
+selection. The focused gate expects 101 original Dart bodies and 508 Python
+cases with the same three platform skips. Four selected memory-only Python
+controls pass with zero failures/errors and no scratch, SDK, wallet or node
+execution; six changed Python files parse. These local controls are not hosted
+or native proof. Fresh Windows Dart/analysis qualification and actual index-1
+selection are pending. P09's exact confirmed original UI send, F06 checkpoint
+and seed states, and all visual acceptance remain open. No checkpoint
+acknowledgement or signing shortcut is added.

@@ -449,6 +449,10 @@ def analyze(parent, repo):
         'harness/bin/harness.dart', 'test/harness/wallet_tour_test.dart',
         'harness/bin/build_output.dart', 'test/harness/build_output_test.dart',
         'harness/bin/ci_wallet_tour.dart', 'harness/bin/wallet_recipe.dart',
+        'harness/wallet_address_context.dart',
+        'test/harness/wallet_address_recipe_test.dart',
+        'test/harness/addresses_selection_test.dart',
+        'lib/widgets/modular_widgets/settings_widgets/addresses_settings_view.dart',
         'harness/app/agent.dart', 'harness/wallet_recipe_failure.dart',
         'harness/app/recipe_control_admission.dart',
         'test/harness/recipe_control_admission_test.dart',
@@ -485,6 +489,10 @@ def analyze(parent, repo):
                                         else 'build_output_test' if relative.endswith('/test/harness/build_output_test.dart')
                                         else 'harness_ci' if relative.endswith('/harness/bin/ci_wallet_tour.dart')
                                         else 'wallet_recipe' if relative.endswith('/harness/bin/wallet_recipe.dart')
+                                        else 'address_context' if relative.endswith('/harness/wallet_address_context.dart')
+                                        else 'address_recipe_test' if relative.endswith('/test/harness/wallet_address_recipe_test.dart')
+                                        else 'addresses_selection_test' if relative.endswith('/test/harness/addresses_selection_test.dart')
+                                        else 'addresses_view' if relative.endswith('/lib/widgets/modular_widgets/settings_widgets/addresses_settings_view.dart')
                                         else 'harness_agent' if relative.endswith('/harness/app/agent.dart')
                                         else 'control_admission' if relative.endswith('/harness/app/recipe_control_admission.dart')
                                         else 'control_admission_test' if relative.endswith('/test/harness/recipe_control_admission_test.dart')

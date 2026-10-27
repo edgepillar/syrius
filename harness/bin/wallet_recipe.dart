@@ -1,3 +1,4 @@
+import '../wallet_address_context.dart';
 import '../wallet_recipe_failure.dart';
 
 /// Transport and clocks are supplied so offline recipes never need a wallet.
@@ -83,6 +84,7 @@ class WalletRecipe {
   String? _policyNode;
   String? _startupHandoff;
   String? _startupFilmState;
+  WalletAddressContext? _addressOrigin;
 
   Duration get _remaining => budget - (_elapsed?.call() ?? _clock.elapsed);
 
@@ -258,6 +260,11 @@ class WalletRecipe {
         view['signingChainId'] != _originalSigningChain) {
       _refuse('wallet-recipe-original-signing-policy-changed');
     }
+    final WalletAddressContext? addressOrigin = _addressOrigin;
+    if (addressOrigin != null &&
+        !addressOrigin.same(_addressContext(view))) {
+      _refuse('wallet-recipe-original-address-context-changed');
+    }
     if (key == 'launch_skip_hint') _startupHandoff = 'key-sent';
     await _command(<String, Object?>{
       'action': key == 'launch_skip_hint'
@@ -268,6 +275,7 @@ class WalletRecipe {
       'revision': view['revision'],
       'value': ?value,
       'question': ?question,
+      if (addressOrigin != null) 'addressContext': addressOrigin.toJson(),
       if (_expectedNode != null) 'expectedNode': _expectedNode,
       if (_expectedChain != null) 'expectedNodeChain': _expectedChain,
       if (_originalSigningChain != null)
@@ -287,6 +295,95 @@ class WalletRecipe {
         view['signingChainId'] != view['savedSigningChainId']) {
       _refuse('wallet-recipe-signing-policy-unavailable');
     }
+  }
+
+  WalletAddressContext _addressContext(Map<String, dynamic> view) {
+    try {
+      return WalletAddressContext.parse(view['addressContext']);
+    } on FormatException {
+      _refuse('wallet-recipe-address-context-unavailable');
+    }
+  }
+
+  /// P09 preparation uses only the original Settings controls on chain 321.
+  /// One missing index is derived once; uncertain writes retire this driver.
+  Future<Map<String, Object>> selectLabAddress() async {
+    final Map<String, dynamic> start = await _observe();
+    _policy(start);
+    if (start['walletPresent'] != true ||
+        start['walletInitCompleted'] != true ||
+        start['node'] != 'ws://127.0.0.1:45998' ||
+        start['chainId'] != 321 || start['signingChainId'] != 321 ||
+        start['nodeConnected'] != true ||
+        start['nodeSelectionSaved'] != true ||
+        start['transitionPending'] != false) {
+      _refuse('wallet-recipe-owned-lab-required');
+    }
+    _owner = start['owner'] as int;
+    _policyNode = start['node'] as String;
+    _originalSigningChain = 321;
+    WalletAddressContext origin = _addressContext(start);
+    if (!origin.consistent) {
+      _refuse('wallet-recipe-address-selection-unsettled');
+    }
+    _addressOrigin = origin;
+    bool generated = false;
+    if (origin.members.length < 2 || origin.selected != origin.members[1]) {
+      if (start['tab'] != 'settings') {
+        await _act('nav_settings');
+        await _until((Map<String, dynamic> view) => view['tab'] == 'settings');
+      }
+      if ((await _observe())['addressesReady'] != true) {
+        await _act('settings_addresses');
+      }
+      await _until((Map<String, dynamic> view) => view['addressesReady'] == true);
+      if (origin.members.length == 1) {
+        await _act('settings_add_address');
+        generated = true;
+        final Map<String, dynamic> extended = await _until(
+          (Map<String, dynamic> view) {
+            if (view['addressContext'] == null) return false;
+            final WalletAddressContext current = _addressContext(view);
+            if (current.same(origin)) return false;
+            if (!current.derivedFrom(origin)) {
+              _refuse('wallet-recipe-original-address-context-changed');
+            }
+            return view['addressesReady'] == true;
+          },
+        );
+        origin = _addressContext(extended);
+        _addressOrigin = origin;
+      }
+      await _act('addresses_select_${origin.members[1]}', reveal: true);
+      final Map<String, dynamic> selected = await _until(
+        (Map<String, dynamic> view) {
+          if (view['addressContext'] == null) return false;
+          final WalletAddressContext current = _addressContext(view);
+          if (!current.selectionPending(origin, 1)) {
+            _refuse('wallet-recipe-original-address-context-changed');
+          }
+          return current.selectedFrom(origin, 1) &&
+              view['addressesReady'] == true;
+        },
+      );
+      _addressOrigin = _addressContext(selected);
+    }
+    final Map<String, dynamic> finalView = await _observe();
+    final WalletAddressContext finalContext = _addressContext(finalView);
+    _policy(finalView);
+    if (!finalContext.same(_addressOrigin!) || !finalContext.consistent ||
+        finalContext.members.length < 2 ||
+        finalContext.selected != finalContext.members[1] ||
+        finalView['chainId'] != 321 || finalView['signingChainId'] != 321 ||
+        finalView['nodeConnected'] != true ||
+        finalView['nodeSelectionSaved'] != true ||
+        finalView['transitionPending'] != false) {
+      _refuse('wallet-recipe-address-selection-unsettled');
+    }
+    return <String, Object>{
+      'index': 1, 'members': finalContext.members.length, 'generated': generated,
+      'selected': true, 'persisted': true,
+    };
   }
 
   /// Imports once, opens the original Ready once, then commits signing policy.

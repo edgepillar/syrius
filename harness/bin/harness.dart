@@ -1284,6 +1284,14 @@ Future<bool> recipe(Instance inst, String command, Args a) async {
         walletRecipeChain(a.rest.isEmpty ? null : a.rest.single),
       );
       stdout.writeln('ok');
+    case 'lab-address':
+      if (a.rest.isNotEmpty ||
+          a.flags.keys.any((String key) => key != 'instance')) {
+        throw Fail('lab-address takes no options');
+      }
+      final Map<String, Object> selected = await walletRecipe(inst)
+          .selectLabAddress();
+      stdout.writeln('SYRIUS_LAB_ADDRESS:${jsonEncode(selected)}');
     case 'reveal':
       await reveal(
         inst,

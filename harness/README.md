@@ -53,6 +53,7 @@ harness/h build                 # flutter build windows, entrypoint harness/app/
 harness/h start                 # launch in the profile .harness/default
 harness/h import --mnemonic "<24 words>" --password '<password>' --node ws://127.0.0.1:45998 --chain 321
 harness/h chain 321             # the chain identifier the wallet signs with
+harness/h lab-address           # derive once if needed; select and verify index 1
 harness/h stop
 ```
 
@@ -74,6 +75,16 @@ and late acknowledgements stop the recipe without another action. A standalone
 transition already created; it does not reset the profile. Recipe replies and
 diagnostics omit private field contents. Native import and signing acceptance
 still require execution against the intended isolated profile and node.
+
+`lab-address` requires the exact connected and saved loopback lab endpoint,
+node/signing chain 321 and a consistent original wallet selection. It opens
+Settings and Addresses through the normal controls, derives one missing member
+through Add address, and selects index 1 through its actual choice button.
+The original member order, Boxes, transports, wallet and context generations
+are retained. Success independently requires the original notifier and saved
+preference to agree. Unknown writes retire the driver; no derivation or
+selection is retried. Its finite receipt omits member strings and paths.
+This prepares P09; it submits no account block and proves no send or seed state.
 
 Later runs find the wallet in the profile and start at the lock screen:
 
@@ -214,6 +225,7 @@ decide. `type` looks at fields only.
 | `window [show\|minimize\|maximize\|restore] [--width <w> --height <h>]` | sizes the Flutter client in logical pixels; reports requested and observed client dimensions, physical pixels, DPR and outer window geometry |
 | `goto <tab>`, `lock`, `unlock <password>` | the main tabs and the lock screen |
 | `import`, `node <ws url>`, `chain <id>` | onboarding, node selection, client chain identifier |
+| `lab-address` | original UI derivation and persisted index-1 selection on the isolated chain-321 lab |
 | `seed <id>`, `seed fixture <kind>` | guarded isolated lab recipes and read-only fixtures; see [seed preparation](seed/README.md) for required profile, origins and checkpoint evidence |
 | `tour [--dir <dir>]` | every page in turn |
 | `screens <id>\|all [--dir .harness/<fresh-directory>]` | runs each catalog screen script in dark and light, verifies state and 1280 by 780 client dimensions, then saves actual app captures |
@@ -342,7 +354,8 @@ up.
 
 `tools/devnet/lab` is a go-zenon devnet on `ws://127.0.0.1:45998`, chain 321
 (`tools/devnet/lab/lab.sh up`; its README has the mnemonic). The devnet mnemonic's index 1 is funded:
-import it, `chain 321`, add a second address in Settings and select it. Do not
+import it, `chain 321`, then `lab-address` to add and select the second address
+through Settings. A confirmed UI send remains a separate prerequisite. Do not
 activate a spork there as a test.
 
 ## Focused hosted harness checks

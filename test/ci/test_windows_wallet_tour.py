@@ -72,6 +72,38 @@ class AdmissionTests(unittest.TestCase):
         self.assertNotIn('/fixture', output.getvalue())
 
 
+class AddressSelectionTests(unittest.TestCase):
+    def test_preparation_receipt_accepts_only_finite_index_one_facts(self):
+        for generated in (False, True):
+            value = dict(index=1, members=2, generated=generated,
+                         selected=True, persisted=True)
+            self.assertEqual(tour.address_selection_receipt(value), value)
+            for field in ('address', 'walletPath', 'members_raw', 'diagnostic'):
+                with self.subTest(field=field), self.assertRaises(tour.Refused):
+                    tour.address_selection_receipt(dict(value, **{field: 'private'}))
+
+    def test_unconfirmed_or_malformed_selection_is_never_preparation_success(self):
+        value = dict(index=1, members=2, generated=True, selected=True, persisted=True)
+        for field, wrong in (('index', True), ('index', 0), ('members', True),
+                             ('members', 1), ('members', 129), ('generated', 1),
+                             ('selected', False), ('persisted', False)):
+            with self.subTest(field=field, wrong=wrong), self.assertRaises(tour.Refused):
+                tour.address_selection_receipt(dict(value, **{field: wrong}))
+        for offered in (None, {}, dict(value, selected='true')):
+            with self.assertRaises(tour.Refused):
+                tour.address_selection_receipt(offered)
+
+    def test_selection_failures_keep_fixed_labels_without_member_material(self):
+        value = dict(stage='address_selection', code='wallet-recipe-command-refused',
+            diagnostic=dict(action='tap', control='addresses_select',
+                reason='wallet-recipe-original-address-context-changed'))
+        self.assertEqual(tour.entry_failure(value), value)
+        for field in ('address', 'members', 'saved', 'revision', 'private'):
+            with self.subTest(field=field), self.assertRaises(tour.Refused):
+                tour.entry_failure(dict(value,
+                    diagnostic=dict(value['diagnostic'], **{field: 'private'})))
+
+
 class FixtureTests(unittest.TestCase):
     def test_only_one_explicit_fenced_public_fixture_is_selected(self):
         for count in (12, 24):

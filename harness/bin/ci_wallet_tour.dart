@@ -109,6 +109,10 @@ Future<void> main() async {
     if (logs['logs'] is! List || (logs['logs'] as List<dynamic>).isNotEmpty) {
       throw StateError('onboarding errors');
     }
+    stage = 'address_selection';
+    final Map<String, Object> selection = await cli.walletRecipe(instance)
+        .selectLabAddress();
+    await marker('SYRIUS_LAB_ADDRESS:${jsonEncode(selection)}');
     stage = 'tour';
     await cli.tour(instance, cli.Args(<String>[]));
     stdout.writeln('CI_WALLET_DONE');
