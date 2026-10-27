@@ -63,7 +63,9 @@ void main() {
   test('a partial record followed by EOF never becomes a command', () async {
     final StreamController<List<int>> source = StreamController<List<int>>();
     final CopiedPointerInput input = CopiedPointerInput(source.stream);
-    final Future<void> refused = expectLater(input.read(), throwsFormatException);
+    final Future<void> refused = expectLater(
+      input.read(), throwsFormatException,
+    );
     source.add(utf8.encode('APPRO'));
     await source.close();
     await refused;
@@ -73,7 +75,9 @@ void main() {
   test('oversized unterminated private input retires the listener', () async {
     final StreamController<List<int>> source = StreamController<List<int>>();
     final CopiedPointerInput input = CopiedPointerInput(source.stream);
-    final Future<void> refused = expectLater(input.read(), throwsFormatException);
+    final Future<void> refused = expectLater(
+      input.read(), throwsFormatException,
+    );
     source.add(List<int>.filled(32769, 65));
     await refused;
     expect(input.alive, isFalse);
@@ -84,7 +88,9 @@ void main() {
   test('invalid UTF-8 cannot supply a private record', () async {
     final StreamController<List<int>> source = StreamController<List<int>>();
     final CopiedPointerInput input = CopiedPointerInput(source.stream);
-    final Future<void> refused = expectLater(input.read(), throwsFormatException);
+    final Future<void> refused = expectLater(
+      input.read(), throwsFormatException,
+    );
     source.add(<int>[0xff, 10]);
     await refused;
     await input.close();

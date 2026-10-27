@@ -64,7 +64,9 @@ final class CopiedPointerInput {
   }
 
   Future<String> read() async {
-    if (!alive || _reading) throw const FormatException('private input refused');
+    if (!alive || _reading) {
+      throw const FormatException('private input refused');
+    }
     _reading = true;
     try {
       while (alive && _lines.isEmpty) {
