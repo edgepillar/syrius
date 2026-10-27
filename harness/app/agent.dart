@@ -28,6 +28,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_token
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/node_update/node_update.dart'
     show NodeUpdateCard;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/widgets/send_confirmation.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/disclosure.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/list_entrance.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/motion/rise_switcher.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/motion/state_switcher.dart';
@@ -1138,14 +1139,24 @@ class HarnessAgent {
   }
 
   bool _recipeEntranceSettled(Element element) {
-    // Visible rows and incoming Settings pages can still rise between
-    // pointer admissions. Read each original entrance clock without
+    // Rows, incoming pages and opening disclosure bodies can still move
+    // between pointer admissions. Read each original entrance clock without
     // changing ordinary input or waiting on unrelated hover animations.
     Element child = element;
     FadeThroughTransition? switchEntrance;
+    Animation<double>? disclosureReveal;
     bool settled = true;
     element.visitAncestorElements((Element ancestor) {
       final Widget widget = ancestor.widget;
+      if (widget is FadeTransition) disclosureReveal = widget.opacity;
+      final Animation<double>? reveal = disclosureReveal;
+      if (widget is Disclosure && reveal != null) {
+        if (!reveal.isCompleted) {
+          settled = false;
+          return false;
+        }
+        disclosureReveal = null;
+      }
       if (widget is FadeThroughTransition) switchEntrance = widget;
       if (widget is RiseSwitcher) {
         final FadeThroughTransition? transition = switchEntrance;

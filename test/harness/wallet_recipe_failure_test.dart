@@ -190,6 +190,64 @@ void main() {
     });
   }
 
+  for (final bool disableAnimations in <bool>[false, true]) {
+    testWidgets('chain field waits for its reveal $disableAnimations', (
+      WidgetTester tester,
+    ) async {
+      prepareWelcomeViewport(tester);
+      final TextEditingController input = TextEditingController(text: '1');
+      final HarnessAgent agent = HarnessAgent.forTest()..booted = true;
+      try {
+        await tester.pumpWidget(welcomeHost(
+          SettingsFrame(
+            selected: SettingsSectionId.node,
+            onSelected: (SettingsSectionId _) {},
+            child: SettingsSection(children: <Widget>[
+              Disclosure(
+                title: 'Client chain',
+                keyPrefix: 'node_settings_chain',
+                child: TextField(
+                  key: const Key('node_settings_client_chain'),
+                  controller: input,
+                ),
+              ),
+            ]),
+          ),
+          disableAnimations: disableAnimations,
+        ));
+        await tester.tap(find.byKey(const Key('node_settings_chain_toggle')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
+        final Finder field = find.byKey(
+          const Key('node_settings_client_chain'),
+        );
+        final Element original = tester.element(field);
+        final Offset movingCenter = tester.getCenter(field);
+        Future<bool> ready() async {
+          final Map<String, Object?> view = await agent.commandForTest(
+            <String, dynamic>{'cmd': 'wallet-recipe', 'action': 'observe'},
+          );
+          final List<Map<String, Object?>> controls =
+              view['controls']! as List<Map<String, Object?>>;
+          return controls.singleWhere((Map<String, Object?> row) =>
+              row['key'] == 'node_settings_client_chain')['enabled']! as bool;
+        }
+        expect(field.hitTestable(), findsOneWidget);
+        expect(await ready(), isFalse);
+        await tester.pump(const Duration(milliseconds: 400));
+        expect(tester.element(field), same(original));
+        expect(tester.getCenter(field), isNot(movingCenter));
+        expect(await ready(), isTrue);
+        expect(input.text, '1');
+        await tester.enterText(field, '321');
+        expect(input.text, '321');
+      } finally {
+        await tester.pumpWidget(const SizedBox.shrink());
+        input.dispose();
+      }
+    });
+  }
+
   test('control change labels stay private and retire the original driver',
       () async {
     for (final String reason in <String>[

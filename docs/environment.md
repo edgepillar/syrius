@@ -4976,3 +4976,25 @@ and center admission, ownership, signing policy, key release, budgets and
 retirement are unchanged. The native cause remains to be qualified by the
 changed-source run after the green gate; passing widgets do not replace
 P08/P09/F06, original lifecycle closure or any of the 94 visual matches.
+
+### Combined disclosure, updater and scroll readiness candidate (2026-10-27)
+
+The original disclosure body also fades and translates into place while its
+field is already ordinarily hit-testable. The candidate now reads that
+actual FadeTransition's animation at its owning Disclosure ancestor, as it
+already does for the original ListEntrance and RiseSwitcher clocks. A header
+does not wait on its own chevron or on body motion below it; a field inside
+the revealing body waits for that original reveal to complete. Nested
+disclosures retain independent original clocks. No input, duration, callback,
+listener, frame request or controller is changed.
+
+Two additional field cases use the actual Disclosure and TextField, both
+motion settings, the same Element through the reveal, unchanged input during
+observation and ordinary entry after completion. The four updater red-case
+bodies remain unchanged, alongside the two real scrolling cases. The final
+combined candidate therefore expects 86 Dart cases and the same 500 Python
+cases. The intermediate 84-case source is not separately qualified or sent
+through another native run; one combined focused gate covers the complete
+correction before any next native observation. No local SDK executes and no
+joblog or artifact download occurs. All original Element/center, ownership,
+signing-policy, key-release, deadline and retirement guards remain in place.
