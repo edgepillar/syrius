@@ -10,7 +10,7 @@ Map<String, dynamic> _view({
   'ok': true, 'harnessMode': 'wallet', 'booted': true,
   'owner': 1, 'revision': 1, 'hasError': false,
   'tab': tab, 'entryPhase': phase,
-  if (film != null) 'startupFilmState': film,
+  'startupFilmState': ?film,
   'controls': <Map<String, Object>>[
     if (hint) <String, Object>{'key': 'launch_skip_hint', 'enabled': true},
   ],
@@ -66,7 +66,7 @@ void main() {
     final WalletRecipe driver = WalletRecipe(
       send: (Map<String, Object?> command, Duration _) async {
         if (command['action'] == 'observe') {
-          return skipped ? _view() : _view(tab: 'lock',
+          return skipped ? _view() : _view(
             phase: 'startup-before-initialization', film: 'opening',
             hint: true);
         }
@@ -89,7 +89,7 @@ void main() {
     final WalletRecipe driver = WalletRecipe(
       send: (Map<String, Object?> command, Duration _) async {
         if (command['action'] != 'observe') inputs.add(command);
-        return observations++ < 2 ? _view(tab: 'lock',
+        return observations++ < 2 ? _view(
           phase: 'startup-initialization-started', film: 'ended') : _view();
       },
       wait: (Duration _) async {},
@@ -106,7 +106,7 @@ void main() {
     final WalletRecipe driver = WalletRecipe(
       send: (Map<String, Object?> command, Duration _) async {
         if (command['action'] != 'observe') inputs.add(command);
-        return observations++ == 0 ? _view(tab: 'lock',
+        return observations++ == 0 ? _view(
           phase: 'startup-before-initialization', film: 'opening', hint: true)
           : _view();
       },

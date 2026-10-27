@@ -70,8 +70,7 @@ Future<void> main() async {
     phase = 'unlock';
     await cli.unlock(instance, decoded['password'] as String);
     phase = 'observe';
-    await cli.until(instance, restoredWalletReady, 'restored readiness',
-      seconds: 30);
+    await cli.until(instance, restoredWalletReady, 'restored readiness');
     final Map<String, dynamic> state = await cli.stateOf(instance);
     if (!restoredWalletReady(state) || !originalInput.alive) {
       throw const FormatException('restored policy refused');

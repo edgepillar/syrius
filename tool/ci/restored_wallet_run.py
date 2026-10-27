@@ -255,7 +255,8 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
         for name in ('config.json', 'genesis.json', 'network-private-key'):
             path = Path(restored[role]) / name
             identity = checkpoint.file_identity(path.lstat())
-            checkpoint.need(0 < identity[2] <= 64 * 1024)
+            cap = 1024**2 if name == 'genesis.json' else 64 * 1024
+            checkpoint.need(0 < identity[2] <= cap)
             snapshot[path] = identity, checkpoint.digest_file(path, identity, deadline)
         config = json.loads(bounded_read(Path(restored[role]) / 'config.json', 64 * 1024))
         checkpoint.need(config.get('DataPath') == str(restored[role])
@@ -387,6 +388,7 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
             and type(body.get('pid')) is int and body['pid'] == pid
             and body.get('harnessMode') == 'wallet')
         chain_read(runtime, anchor)
+        unchanged()
         record['phase'] = 'unlock_and_observe'
         write(checkpoint.encode(wallet.reopen_input(copied_home)))
         record['wallet'] = wait(b'CI_REOPEN_DONE')
