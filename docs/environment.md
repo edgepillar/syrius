@@ -7103,3 +7103,64 @@ Hosted qualification of 649 Python cases and the unchanged 255 Dart cases
 remains pending. Actual native checkpoint/Hive execution, ordinary restored
 app/node ownership, original chain/send/journal continuity and all F06 effects
 remain unqualified. Earlier UNKNOWN originals remain held.
+
+
+### Ordinary opening of the owned closed copies
+
+At `92592429c397348efd96a71607d10d53ca6ef412`, tree
+`587ea4e4b7cb343827a8ba54a01439fceab3c372`,
+[40598015959](https://github.com/edgepillar/syrius/actions/runs/40598015959),
+attempt one, job 122518775012, passes all 255 Dart cases, 649 Python cases
+with three original platform skips and zero-finding selected analysis.
+Dart exits zero in 87.281 seconds with 123827 complete, unforced bytes,
+SHA-256 `00746438efe6ba8a2d4c0be75ef0a6260d50dad7d6f6fe4cfa2e4dcd02f0ec29`.
+The exact captured Windows wallet-path spelling is preserved, including mixed
+separators, while normalized paths establish containment and copy mapping.
+
+The candidate now connects ordinary restored ownership to the closed-copy
+coordinator. After original wallet quiescence and normal application closure,
+a private anchor captures the exact genesis and latest momentum through both
+owned loopback transports. Its owner remains the identical original Native
+instance. All five original nodes must then exit normally before checkpoint,
+path binding, Hive binding or any reopen claim can proceed.
+
+One exclusive reopen claim retires only the verified copied instance receipt
+to an unused sibling name; its bytes and file identity and the original receipt
+remain preserved. Original and copied journal and cipher bytes are pinned.
+The node copy paths must be canonical, the copied config paths explicit and
+the listen ports unused. Five new Native process objects start from the copies;
+no old stop flag, receipt, handle or data directory is reset or reused. The
+same genesis and old momentum hash must still resolve through HTTP and WS,
+and the new frontier must advance. Aggregate storage sampling covers this
+readiness and production wait as well as the later wallet stages.
+
+A new gated Dart child starts the existing Release application normally,
+without build, `--fresh`, import, address derivation or original-send replay.
+The parent binds the new application handle to its own Windows job and actual
+executable, authenticates its fresh private token and rechecks chain continuity
+before consuming the retained password once over stdin. The original startup
+film either settles naturally or receives one ordinary Space input. Welcome
+and initialization failures refuse. The normal lock controls perform one
+unlock. The existing decryptor takes its path from the copied pointer; no
+cipher content or ordinary global SDK is replaced.
+
+A harness-only read observes the same ordered members, saved index-one
+selection, mapped wallet path, stable new-process owner/revision, chain policy,
+exact original send hash and positive confirmation. Copied journal records
+must retain the original profile and review and contain no F06 attempt. This
+read grants no publication or replay authority. Original and copied journal
+and cipher bytes must still match after normal app/entry closure. The five new
+node originals then need their own complete, unforced exit-zero receipts.
+Failures preserve their claim, metadata, actual exits and bounded private
+output prefix. The output cap is reserved before launch; nothing is silently
+truncated into successful evidence. Large finite observations use separately
+bounded component notices tied to the same source/run and parent-notice hash.
+
+All 143 selected Python memory controls pass with no local scratch, SDK,
+native or network execution. Ten new Dart and thirty-three Python cases
+expand the focused gate to 265 Dart and 682 Python cases. Three new copied
+metadata filesystem fixtures and three new restored-journal fixtures run
+only on hosted CI. Current hosted qualification and all actual native
+quiescence/checkpoint/Hive/reopen execution remain pending. All six F06 effects,
+full two-sided Swap terms, 94 visual matches and full acceptance remain open.
+Earlier UNKNOWN original attempts retain their exact status and evidence.

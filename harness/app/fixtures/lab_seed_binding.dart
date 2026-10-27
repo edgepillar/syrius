@@ -749,6 +749,30 @@ final class ProfileSeedJournal implements SeedJournal {
     if (_labSendReview == null || !seedHash(hash)) {
       throw const SeedRefused('original-transfer-review-required');
     }
+    _requireConfirmedReview(_labSendReview, hash);
+  }
+
+  /// Reads copied records without constructing a publication or live review.
+  /// The coordinator separately retains the original process and copy owner.
+  void requireRestoredLabSend({
+    required String originalProfile,
+    required String owner,
+    required String recipient,
+    required String hash,
+  }) {
+    final Map<String, Object> review = <String, Object>{
+      'profile': originalProfile, 'from': owner, 'to': recipient,
+      'recipientInput': recipient, 'amountInput': '1',
+      'token': znnZts.toString(), 'amount': '100000000',
+      'decimals': 8, 'symbol': 'ZNN', 'chain': 321,
+    };
+    if (!_validReview(review) || !seedHash(hash)) {
+      throw const SeedRefused('original-transfer-review-required');
+    }
+    _requireConfirmedReview(review, hash);
+  }
+
+  void _requireConfirmedReview(Map<String, Object> review, String hash) {
     for (final String state in <String>['attempt', 'accepted', 'confirmed']) {
       final Map<String, dynamic>? value = _read(labSendRecipeId, state);
       final Set<String> keys = <String>{
@@ -756,7 +780,7 @@ final class ProfileSeedJournal implements SeedJournal {
       };
       if (value == null || value.length != keys.length ||
           !value.keys.toSet().containsAll(keys) ||
-          !_sameReview(value['review'], _labSendReview) ||
+          !_sameReview(value['review'], review) ||
           state != 'attempt' && value['hash'] != hash) {
         throw const SeedRefused('seed-journal-held');
       }

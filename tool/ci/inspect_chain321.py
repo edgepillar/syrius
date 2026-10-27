@@ -17,7 +17,7 @@ import zipfile
 from tool.ci.hosted_chain321 import (CODES, GO_FAILURE_CODES, NODE_DIAGNOSTICS, NODE_SHA, NODE_SOURCES,
                                    ROLES, SHUTDOWN_TESTS, UPSTREAM_NODE_SHA, selected_node_source)
 from tool.ci import native_stack_probe, node_panic_projection, producer_shutdown_patch, read_first_client_fixture
-from tool.ci import lab_asset_progress, closed_lab_checkpoint, restored_lab_paths, closed_wallet_pointer
+from tool.ci import lab_asset_progress, closed_lab_checkpoint, restored_lab_paths, closed_wallet_pointer, restored_wallet_run
 
 
 API = "https://api.github.com/repos/edgepillar/syrius"
@@ -473,6 +473,16 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA, *, expected_p
                  and result.get('path_binding') is not None
                  and result['path_binding']['complete'] is True and report['success'] is True)
         result['wallet_pointer_binding'] = pointer
+    if 'wallet_reopen' in report:
+        try:
+            reopened = restored_wallet_run.project(report['wallet_reopen'])
+        except closed_lab_checkpoint.Refused:
+            raise Refused('INSPECTION_REFUSED') from None
+        if reopened is not None and reopened['complete']:
+            need(result.get('wallet_pointer_binding') is not None
+                 and result['wallet_pointer_binding']['complete'] is True
+                 and report['success'] is True)
+        result['wallet_reopen'] = reopened
     if panic_count:
         result.update(node_panic_count=panic_count, first_node_panic=first_panic)
     if expected_patched:
@@ -633,12 +643,11 @@ def main():
             wallet_lab = report
         summary.update(archive_sha256=sha(raw), manifest_sha256=manifest_sha)
         PHASE = "notice_" + backend
-        encoded = json.dumps(summary, sort_keys=True, separators=(",", ":"))
-        # Actions annotations truncate long messages. Refuse rather than
-        # emit a partial JSON result that a reader could mistake for complete.
-        need(len(encoded.encode("ascii")) <= 3800)
-        escaped = encoded.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
-        print("::notice title=Retained chain-321 observation::" + escaped, flush=True)
+        for component, frame in restored_wallet_run.notice_frames(summary):
+            encoded = json.dumps(frame, sort_keys=True, separators=(",", ":"))
+            title = 'Retained chain-321 observation' if not component else 'Retained closed copy ' + component
+            escaped = encoded.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+            print('::notice title=' + title + '::' + escaped, flush=True)
     if wallet_lab is not None:
         PHASE = "wallet_artifact_metadata"
         name = "wallet-tour-" + head + "-" + run_text + "-1"

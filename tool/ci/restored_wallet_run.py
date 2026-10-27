@@ -1,0 +1,491 @@
+"""Open the owned closed copies normally, retaining every original attempt."""
+
+import hashlib
+import json
+import os
+from pathlib import Path
+import re
+import secrets
+import shutil
+import subprocess
+import time
+
+from . import closed_lab_checkpoint as checkpoint
+from . import windows_debug_loop as debug
+
+
+SCOPE = 'owned_restored_lab_reopen'
+OUTPUT_CAP = 2 * 1024**2
+OBSERVATION = {'schema', 'scope', 'chain', 'members', 'selected_index',
+    'membership_same', 'selection_saved', 'wallet_path_mapped',
+    'original_send_confirmed', 'journal_consistent', 'observation_stable'}
+
+
+def wallet_observation(value):
+    checkpoint.need(type(value) is dict and set(value) == OBSERVATION
+        and type(value['schema']) is int and value['schema'] == 1
+        and value['scope'] == 'restored_lab_wallet_observation'
+        and type(value['chain']) is int and value['chain'] == 321
+        and type(value['members']) is int and 2 <= value['members'] <= 128
+        and type(value['selected_index']) is int and value['selected_index'] == 1
+        and all(value[key] is True for key in OBSERVATION -
+            {'schema', 'scope', 'chain', 'members', 'selected_index'}))
+    return dict(value)
+
+
+def bounded_read(path, cap):
+    identity = checkpoint.file_identity(path.lstat())
+    checkpoint.need(0 < identity[2] <= cap)
+    flags = os.O_RDONLY | getattr(os, 'O_BINARY', 0) | getattr(os, 'O_NOFOLLOW', 0)
+    with os.fdopen(os.open(path, flags), 'rb') as stream:
+        checkpoint.need(checkpoint.file_identity(os.fstat(stream.fileno())) == identity)
+        raw = stream.read(cap + 1)
+        checkpoint.need(len(raw) == identity[2]
+            and checkpoint.file_identity(os.fstat(stream.fileno())) == identity)
+    checkpoint.need(checkpoint.file_identity(path.lstat()) == identity)
+    return raw
+
+
+class _CapturedOutput:
+    """One pipe reader, with a capped private prefix retained on failure."""
+    def __init__(self, stream, write, cap=OUTPUT_CAP):
+        checkpoint.need(type(cap) is int and 0 < cap <= OUTPUT_CAP and callable(write))
+        self.stream, self.write, self.cap = stream, write, cap
+        self.bytes = 0
+        self.digest = hashlib.sha256()
+        self.overflow = False
+
+    def readline(self, limit):
+        raw = self.stream.readline(limit)
+        part = raw[:max(0, self.cap-self.bytes)]
+        if part:
+            checkpoint.need(self.write(part) == len(part))
+            self.bytes += len(part)
+            self.digest.update(part)
+        self.overflow |= len(part) != len(raw)
+        return raw
+
+
+def project(value):
+    if value is None:
+        return None
+    common = {'schema', 'scope', 'complete'}
+    checkpoint.need(type(value) is dict and common <= set(value)
+        and type(value['schema']) is int and value['schema'] == 1
+        and value['scope'] == SCOPE and type(value['complete']) is bool)
+    if not value['complete']:
+        checkpoint.need(set(value) == common)
+        return dict(value)
+    checkpoint.need(set(value) == common | {'claim_once', 'originals_closed',
+        'chain_continuity', 'journal_unchanged', 'cipher_unchanged', 'wallet',
+        'application_exit', 'entry_exit', 'output', 'job_empty', 'forced',
+        'nodes', 'private_manifest_sha256', 'seed_admitted'}
+        and all(value[key] is True for key in ('claim_once', 'originals_closed',
+            'chain_continuity', 'journal_unchanged', 'cipher_unchanged', 'job_empty'))
+        and value['forced'] is value['seed_admitted'] is False
+        and all(type(value[key]) is int and value[key] == 0
+                for key in ('application_exit', 'entry_exit')))
+    wallet_observation(value['wallet'])
+    output = value['output']
+    checkpoint.need(type(output) is dict and set(output) ==
+        {'bytes', 'sha256', 'output_complete', 'overflow'}
+        and type(output['bytes']) is int and 0 < output['bytes'] <= 2 * 1024**2
+        and output['output_complete'] is True and output['overflow'] is False
+        and all(type(item) is str and re.fullmatch('[a-f0-9]{64}', item)
+                for item in (output['sha256'], value['private_manifest_sha256'])))
+    nodes = value['nodes']
+    checkpoint.need(type(nodes) is list and len(nodes) == 5)
+    for role, node in zip(checkpoint.ROLES[1:], nodes):
+        checkpoint.need(type(node) is dict and set(node) ==
+            {'role', 'exit_code', 'output_complete', 'forced'}
+            and node['role'] == role and type(node['exit_code']) is int
+            and node['exit_code'] == 0 and node['output_complete'] is True
+            and node['forced'] is False)
+    return dict(value)
+
+
+def notice_frames(summary):
+    """Preserve all closed-copy facts in bounded, parent-bound notice frames."""
+    from . import restored_lab_paths, closed_wallet_pointer
+    validators = {'checkpoint': checkpoint.project, 'path_binding': restored_lab_paths.project,
+        'wallet_pointer_binding': closed_wallet_pointer.project, 'wallet_reopen': project}
+    value = dict(summary)
+    for key, validate in validators.items():
+        if key in value:
+            value[key] = validate(value[key])
+    encode = lambda item: json.dumps(item, sort_keys=True, separators=(',', ':')).encode('ascii')
+    if len(encode(value)) <= 3800:
+        return [('', value)]
+    components = {key: value.pop(key) for key in validators if value.get(key) is not None}
+    checkpoint.need(components and len(encode(value)) <= 3800)
+    parent_sha = hashlib.sha256(encode(value)).hexdigest()
+    header = {key: value[key] for key in ('source_sha', 'source_head', 'source_tree',
+        'run_id', 'run_attempt', 'backend', 'archive_sha256', 'manifest_sha256') if key in value}
+    frames = [('', value)]
+    for key, facts in components.items():
+        frame = dict(schema=1, scope='closed_copy_observation_component',
+            parent_scope=value['scope'], parent_notice_sha256=parent_sha,
+            components=list(components), component=key, facts=facts, **header)
+        checkpoint.need(len(encode(frame)) <= 3800)
+        frames.append((key, frame))
+    return frames
+
+
+class _ChainAnchor:
+    def __init__(self, owner, genesis, frontier):
+        self.owner, self.genesis, self.frontier = owner, genesis, frontier
+
+    def __repr__(self):
+        return '<original owned chain anchor>'
+
+
+def chain_read(runtime, original=None):
+    """Read both owned loopback transports; no publication endpoint is used."""
+    from . import hosted_chain321 as lab
+    checkpoint.need(isinstance(runtime, lab.Native))
+    checkpoint.need(original is None or
+        type(original) is _ChainAnchor and original.owner is not runtime)
+    runtime.healthy()
+    http_wire, ws_wire = lab.make_transports()
+    policy = lab.wire_policy
+    deadline = policy._Deadline(time.monotonic, time.monotonic() + 60)
+    http = policy.HttpRpc(http_wire, policy.Limits(), deadline, secrets.token_bytes)
+    ws = policy.WsRpc(ws_wire, policy.Limits(), deadline, secrets.token_bytes)
+    failed_original = False
+    try:
+        ws.connect()
+        def at(height):
+            reply = http.call('ledger.getMomentumsByHeight', [height, 1])
+            checkpoint.need(type(reply) is dict and type(reply.get('list')) is list
+                            and len(reply['list']) == 1)
+            return policy.Momentum.parse(reply['list'][0])
+        genesis = at(1)
+        frontier = policy.Momentum.parse(http.call('ledger.getFrontierMomentum', []))
+        checkpoint.need(genesis.height == 1
+            and policy.Momentum.parse(ws.call('ledger.getMomentumByHash', [genesis.hash])) == genesis
+            and policy.Momentum.parse(ws.call('ledger.getMomentumByHash', [frontier.hash])) == frontier)
+        if original is not None:
+            checkpoint.need(type(original) is _ChainAnchor
+                and original.owner is not runtime and genesis == original.genesis
+                and at(original.frontier.height) == original.frontier
+                and policy.Momentum.parse(ws.call('ledger.getMomentumByHash',
+                    [original.frontier.hash])) == original.frontier
+                and frontier.height > original.frontier.height
+                and frontier.timestamp > original.frontier.timestamp)
+        runtime.healthy()
+        return _ChainAnchor(runtime, genesis, frontier)
+    except BaseException:
+        failed_original = True
+        raise
+    finally:
+        # A failed close is a failed observation, including after a good reply.
+        failed = False
+        for transport in (ws, http):
+            try:
+                transport.close()
+            except Exception:
+                failed = True
+        if failed and not failed_original:
+            raise checkpoint.Refused()
+
+
+def retire_metadata(original, copied, retained, closed, deadline):
+    """Preserve the verified copied instance receipt under an unused name."""
+    checkpoint.need(closed() is True and not retained.exists() and not retained.is_symlink())
+    original_id = checkpoint.file_identity(original.lstat())
+    copied_id = checkpoint.file_identity(copied.lstat())
+    checkpoint.need(0 < copied_id[2] <= 4096 and original_id[2] == copied_id[2]
+                    and original_id[:2] != copied_id[:2])
+    original_sha = checkpoint.digest_file(original, original_id, deadline)
+    checkpoint.need(checkpoint.digest_file(copied, copied_id, deadline) == original_sha)
+    raw = bounded_read(copied, 4096)
+    checkpoint.need(len(raw) == copied_id[2] and hashlib.sha256(raw).hexdigest() == original_sha
+                    and checkpoint.file_identity(copied.lstat()) == copied_id)
+    value = json.loads(raw)
+    checkpoint.need(type(value) is dict and value.get('mode') == 'release'
+        and value.get('harnessMode') == 'wallet' and value.get('presentationScreen') is None
+        and type(value.get('token')) is str and re.fullmatch('[a-f0-9]{32}', value['token'])
+        and closed() is True)
+    copied.rename(retained)
+    checkpoint.need(closed() is True and checkpoint.file_identity(retained.lstat()) == copied_id
+        and checkpoint.digest_file(retained, copied_id, deadline) == original_sha
+        and not copied.exists() and not copied.is_symlink()
+        and checkpoint.file_identity(original.lstat()) == original_id
+        and checkpoint.digest_file(original, original_id, deadline) == original_sha)
+    return value, (original_id, original_sha), (copied_id, original_sha)
+
+
+def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, measure):
+    from . import hosted_chain321 as lab, windows_wallet_tour as tour
+    parent, source = debug.entry.require_ci(parent, None, platform=os.name)
+    checkpoint.need(parent.get('GITHUB_EVENT_NAME') == 'workflow_dispatch'
+        and parent.get('SYRIUS_HOSTED_RUNNER') == 'github-hosted'
+        and type(wallet) is tour._ClosedWallet and type(anchor) is _ChainAnchor
+        and anchor.owner is original_runtime and closed() is True
+        and lab.checkpoint_closed(original_runtime, wallet) is True
+        and set(restored) == set(checkpoint.ROLES))
+    origin = wallet.restoration_origin()
+    home, repo = Path(home), Path(repo)
+    copied_home = Path(restored['wallet_profile'])
+    checkpoint.need(all(Path(restored[role]) == home / 'restored' / role
+        and Path(restored[role]) != original_runtime.configs[role]
+        for role in checkpoint.ROLES[1:]))
+    copied_wallet, _ = origin.copied_paths(str(copied_home))
+    deadline = time.monotonic() + 600
+    pins = dict(checkpoint.ancestors(home))
+    report_pins = dict(pins)
+    for root in (wallet.home, *restored.values()):
+        pins.update(checkpoint.ancestors(Path(root)))
+    snapshot = {}
+    for name in ('seed-lab-send-attempt.json', 'seed-lab-send-accepted.json',
+                 'seed-lab-send-confirmed.json'):
+        for path in (wallet.home / name, copied_home / name):
+            identity = checkpoint.file_identity(path.lstat())
+            checkpoint.need(0 < identity[2] <= 2048)
+            snapshot[path] = identity, checkpoint.digest_file(path, identity, deadline)
+        checkpoint.need(snapshot[wallet.home / name][1] == snapshot[copied_home / name][1]
+            and snapshot[wallet.home / name][0][:2] != snapshot[copied_home / name][0][:2])
+    for path in (Path(origin.wallet), Path(copied_wallet)):
+        pins.update(checkpoint.ancestors(path.parent))
+        identity = checkpoint.file_identity(path.lstat())
+        checkpoint.need(0 < identity[2] <= 64 * 1024)
+        snapshot[path] = identity, checkpoint.digest_file(path, identity, deadline)
+    checkpoint.need(snapshot[Path(origin.wallet)][1] == snapshot[Path(copied_wallet)][1])
+    for role in checkpoint.ROLES[1:]:
+        for name in ('config.json', 'genesis.json', 'network-private-key'):
+            path = Path(restored[role]) / name
+            identity = checkpoint.file_identity(path.lstat())
+            checkpoint.need(0 < identity[2] <= 64 * 1024)
+            snapshot[path] = identity, checkpoint.digest_file(path, identity, deadline)
+        config = json.loads(bounded_read(Path(restored[role]) / 'config.json', 64 * 1024))
+        checkpoint.need(config.get('DataPath') == str(restored[role])
+            and config.get('GenesisFile') == str(Path(restored[role]) / 'genesis.json')
+            and config.get('WalletPath') == str(Path(restored[role]) / 'wallet'))
+
+    def guard():
+        return (time.monotonic() < deadline and closed() is True
+            and lab.checkpoint_closed(original_runtime, wallet) is True
+            and all(checkpoint.directory(path) == identity for path, identity in pins.items()))
+
+    def unchanged():
+        checkpoint.need(guard())
+        for path, (identity, digest) in snapshot.items():
+            checkpoint.need(checkpoint.file_identity(path.lstat()) == identity
+                and checkpoint.digest_file(path, identity, deadline) == digest)
+
+    def sample():
+        checkpoint.need(guard())
+        used = measure()
+        checkpoint.need(type(used) is int and 0 <= used <= checkpoint.CAP - OUTPUT_CAP - 64 * 1024
+                        and shutil.disk_usage(repo).free >= checkpoint.FLOOR + OUTPUT_CAP + 64 * 1024)
+
+    debug.bounded.verify_source(repo, source, parent)
+    tree = debug.entry.source_tree(repo, parent)
+    sample()
+    old_metadata = copied_home / 'instance.json'
+    retained_metadata = copied_home / 'instance-before-reopen.json'
+    wallet.claim_reopen()
+    claim = home / 'wallet-reopen-claim.json'
+    transport_record = home / 'wallet-reopen-transport.json'
+    complete = home / 'wallet-reopen-complete.json'
+    private_output = home / 'wallet-reopen-output.private'
+    checkpoint.need(all(not path.exists() and not path.is_symlink()
+                        for path in (claim, transport_record, complete, private_output)))
+    claim_raw = checkpoint.encode(dict(schema=1, scope=SCOPE,
+        source=source, tree=tree, original_profile=origin.profile,
+        run_id=parent['GITHUB_RUN_ID'], run_attempt=parent['GITHUB_RUN_ATTEMPT'],
+        copied_profile=copied_home.name,
+        anchor_height=anchor.frontier.height, anchor_hash=anchor.frontier.hash))
+    checkpoint.write_record(claim, claim_raw, guard=guard)
+    snapshot[claim] = (checkpoint.file_identity(claim.lstat()), hashlib.sha256(claim_raw).hexdigest())
+    prior, original_meta_pin, retained_meta_pin = retire_metadata(
+        wallet.home / 'instance.json', old_metadata, retained_metadata, guard, deadline)
+    snapshot[wallet.home / 'instance.json'] = original_meta_pin
+    snapshot[retained_metadata] = retained_meta_pin
+    runtime = lab.Native(original_runtime.commands, original_runtime.binary,
+        {role: Path(restored[role]) for role in lab.ROLES}, stack_debug=original_runtime.stack_debug)
+    original = lines = job = transport = None
+    output_file = captured = None
+    token = None
+    close_attempted = False
+    record = dict(schema=1, scope=SCOPE, phase='nodes', complete=False,
+        source_sha=source, source_tree=tree, run_id=parent['GITHUB_RUN_ID'],
+        run_attempt=parent['GITHUB_RUN_ATTEMPT'], platform='windows',
+        claim_sha256=hashlib.sha256(claim_raw).hexdigest(),
+        application_exit=None, entry_exit=None, output=None, job_empty=False,
+        forced=False, wallet=None, nodes=[])
+    try:
+        lab.preflight_ports('native', stack_debug=original_runtime.stack_debug)
+        runtime.start()
+        lab.observe(runtime, home, measure=sample)
+        chain_read(runtime, anchor)
+        sample()
+        env = debug.profile_environment(parent, wallet._paths[3], 1, secrets.token_hex(16))
+        env.update(SYRIUS_CI_WALLET_REOPEN='true', SYRIUS_CI_REOPEN_INSTANCE=copied_home.name,
+            GITHUB_EVENT_NAME=parent['GITHUB_EVENT_NAME'],
+            GITHUB_REPOSITORY=parent['GITHUB_REPOSITORY'],
+            SYRIUS_HOSTED_RUNNER=parent['SYRIUS_HOSTED_RUNNER'])
+        dart, _ = debug.sdk(parent)
+        job = debug.WindowsJob()
+        original = subprocess.Popen([str(dart), '--disable-dart-dev',
+            '--packages=' + str(repo / '.dart_tool/package_config.json'),
+            'harness/bin/ci_wallet_reopen.dart'], cwd=repo, env=env, shell=False,
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=0)
+        job.assign(original)
+        checkpoint.need(guard())
+        flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, 'O_BINARY', 0)
+        descriptor = os.open(private_output, flags | getattr(os, 'O_NOFOLLOW', 0), 0o600)
+        output_file = os.fdopen(descriptor, 'wb')
+        captured = _CapturedOutput(original.stdout, output_file.write)
+        lines = debug.Lines(captured)
+
+        def write(raw):
+            checkpoint.need(guard() and original.poll() is None and len(raw) <= 32768)
+            runtime.healthy()
+            original.stdin.write(raw)
+            original.stdin.flush()
+
+        def wait(marker):
+            next_sample = 0.0
+            while time.monotonic() < deadline:
+                checkpoint.need(guard())
+                runtime.healthy()
+                if time.monotonic() >= next_sample:
+                    sample()
+                    next_sample = time.monotonic() + 5
+                raw = lines.take(.1)
+                if raw is None:
+                    checkpoint.need(original.poll() is None or not lines.complete)
+                    continue
+                line = raw.rstrip(b'\r\n')
+                checkpoint.need(not line.startswith(b'CI_REOPEN_ERROR:'))
+                if marker == b'CI_REOPEN_DONE' and line.startswith(marker + b':'):
+                    return wallet_observation(json.loads(line.partition(b':')[2]))
+                if line == marker:
+                    return None
+                checkpoint.need(not line.startswith(b'CI_REOPEN_'))
+            raise checkpoint.Refused()
+
+        record['phase'] = 'start'
+        write(b'START\n')
+        wait(b'CI_REOPEN_READY')
+        metadata = debug.bounded.plain(old_metadata)
+        checkpoint.need(0 < metadata.st_size <= 4096)
+        private = json.loads(bounded_read(old_metadata, 4096))
+        pid, port, token = private.get('pid'), private.get('port'), private.get('token')
+        checkpoint.need(type(pid) is int and 0 < pid < 2**32 and type(port) is int
+            and 1024 <= port <= 65535 and type(token) is str
+            and re.fullmatch('[a-f0-9]{32}', token) and token != prior['token']
+            and private.get('mode') == 'release' and private.get('harnessMode') == 'wallet'
+            and private.get('presentationScreen') is None)
+        job.bind_application(pid, wallet._paths[1] / 'release/syrius.exe')
+        transport = debug.bounded.LoopbackTransport(port, 32768)
+        reply = transport.exchange(dict(cmd='ping'), token, 5)
+        body = json.loads(reply.body)
+        checkpoint.need(reply.status == 200 and type(body) is dict
+            and body.get('ok') is True and body.get('booted') is True
+            and type(body.get('pid')) is int and body['pid'] == pid
+            and body.get('harnessMode') == 'wallet')
+        chain_read(runtime, anchor)
+        record['phase'] = 'unlock_and_observe'
+        write(checkpoint.encode(wallet.reopen_input(copied_home)))
+        record['wallet'] = wait(b'CI_REOPEN_DONE')
+        unchanged()
+        chain_read(runtime, anchor)
+        record['phase'] = 'ordinary_close'
+        close_attempted = True
+        debug.request_close(transport, token)
+        record['application_exit'] = job.application_exit()
+        checkpoint.need(type(record['application_exit']) is int and record['application_exit'] == 0)
+        write(b'FINISH\n')
+        record['entry_exit'] = original.wait(timeout=15)
+        checkpoint.need(type(record['entry_exit']) is int and record['entry_exit'] == 0
+            and lines.finish() and lines.take(0) is None and job.active() == 0)
+        unchanged()
+        debug.bounded.verify_source(repo, source, parent)
+        checkpoint.need(debug.entry.source_tree(repo, parent) == tree)
+        record.update(phase='complete', complete=True, job_empty=True)
+    finally:
+        if not close_attempted and transport is not None and token is not None:
+            close_attempted = True
+            try:
+                debug.request_close(transport, token)
+                record['application_exit'] = job.application_exit()
+            except Exception:
+                record['complete'] = False
+        if job is not None:
+            try:
+                record['forced'] = job.close()
+            except Exception:
+                record['forced'] = None
+        if original is not None:
+            if original.poll() is None:
+                try:
+                    original.wait(timeout=10)
+                except subprocess.TimeoutExpired:
+                    pass
+            record['entry_exit'] = original.poll()
+            try:
+                original.stdin.close()
+            except OSError:
+                record['complete'] = False
+        if lines is not None:
+            drained = lines.finish()
+            record['output'] = lines.public()
+            if not drained:
+                record['complete'] = False
+        if output_file is not None:
+            try:
+                output_file.flush()
+                os.fsync(output_file.fileno())
+                identity = checkpoint.file_identity(os.fstat(output_file.fileno()))
+                checkpoint.need(lines is not None and not lines.thread.is_alive()
+                    and identity[2] == captured.bytes)
+                output_file.close()
+                private_output.chmod(0o400)
+                digest = captured.digest.hexdigest()
+                checkpoint.need(checkpoint.digest_file(private_output, identity,
+                    time.monotonic()+15) == digest)
+                record['private_output'] = dict(bytes=captured.bytes,
+                    sha256=digest, overflow=captured.overflow,
+                    complete=lines.complete and not captured.overflow)
+                if captured.overflow or not lines.complete:
+                    record['complete'] = False
+            except Exception:
+                record['private_output'] = dict(status='UNKNOWN')
+                record['complete'] = False
+            finally:
+                try:
+                    output_file.close()
+                except Exception:
+                    record['complete'] = False
+        if transport is not None:
+            try:
+                transport.close()
+            except Exception:
+                record['complete'] = False
+        try:
+            runtime.stop()
+        except Exception:
+            record['complete'] = False
+        record['nodes'] = [dict(role=role, exit_code=item.receipt.get('exit_code'),
+            output_complete=item.receipt.get('output_complete'), forced=item.receipt.get('forced'))
+            for role, item in zip(lab.ROLES, runtime.originals) if type(item.receipt) is dict]
+        record['node_originals'] = [dict(role=role, pid=item.process.pid, receipt=item.receipt)
+            for role, item in zip(lab.ROLES, runtime.originals)]
+        if record['forced'] is not False:
+            record['complete'] = False
+        checkpoint.write_record(transport_record, checkpoint.encode(record),
+            guard=lambda: all(checkpoint.directory(path) == identity
+                              for path, identity in report_pins.items()))
+    checkpoint.need(record['complete'])
+    unchanged()
+    sample()
+    raw = checkpoint.encode(record)
+    checkpoint.write_record(complete, raw, guard=guard)
+    return project(dict(schema=1, scope=SCOPE, complete=True, claim_once=True,
+        originals_closed=True, chain_continuity=True, journal_unchanged=True,
+        cipher_unchanged=True, wallet=record['wallet'],
+        application_exit=record['application_exit'], entry_exit=record['entry_exit'],
+        output=record['output'], job_empty=True, forced=False, nodes=record['nodes'],
+        private_manifest_sha256=hashlib.sha256(raw).hexdigest(), seed_admitted=False))

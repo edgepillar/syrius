@@ -36,6 +36,60 @@ void main() {
   });
   tearDown(() => home.delete(recursive: true));
 
+  test('restored records match the old profile and exact original hash', () {
+    final String hash = fixtureHash(9);
+    journal
+      ..claim(labSendRecipeId)
+      ..accepted(labSendRecipeId, hash)
+      ..confirmed(labSendRecipeId, hash);
+    final List<List<int>> before = <List<int>>[
+      for (final String state in <String>['attempt', 'accepted', 'confirmed'])
+        record(state).readAsBytesSync(),
+    ];
+    ProfileSeedJournal(home.path).requireRestoredLabSend(
+      originalProfile: 'lab-send-fixture', owner: fixtureAddress(2),
+      recipient: fixtureAddress(1), hash: hash,
+    );
+    expect(<List<int>>[
+      for (final String state in <String>['attempt', 'accepted', 'confirmed'])
+        record(state).readAsBytesSync(),
+    ], before);
+    expect(() => ProfileSeedJournal(home.path).requireLabSendConfirmed(hash),
+      throwsA(isA<SeedRefused>()));
+  });
+
+  test('a restored profile cannot borrow another hash or review owner', () {
+    final String hash = fixtureHash(9);
+    journal
+      ..claim(labSendRecipeId)
+      ..accepted(labSendRecipeId, hash)
+      ..confirmed(labSendRecipeId, hash);
+    for (final (String, String, String) values in <(String, String, String)>[
+      ('another-profile', fixtureAddress(2), hash),
+      ('lab-send-fixture', fixtureAddress(3), hash),
+      ('lab-send-fixture', fixtureAddress(2), fixtureHash(8)),
+    ]) {
+      expect(() => ProfileSeedJournal(home.path).requireRestoredLabSend(
+        originalProfile: values.$1, owner: values.$2,
+        recipient: fixtureAddress(1), hash: values.$3,
+      ), throwsA(isA<SeedRefused>()));
+    }
+  });
+
+  test('restored observation keeps unknown send and F06 attempts held', () {
+    journal.claim(labSendRecipeId);
+    void observe() => ProfileSeedJournal(home.path).requireRestoredLabSend(
+      originalProfile: 'lab-send-fixture', owner: fixtureAddress(2),
+      recipient: fixtureAddress(1), hash: fixtureHash(9),
+    );
+    expect(observe, throwsA(isA<SeedRefused>()));
+    journal
+      ..accepted(labSendRecipeId, fixtureHash(9))
+      ..confirmed(labSendRecipeId, fixtureHash(9));
+    ProfileSeedJournal(home.path).claim('stake');
+    expect(observe, throwsA(isA<SeedRefused>()));
+  });
+
   test('the exclusive attempt retains the exact immutable fixed review', () {
     journal.claim(labSendRecipeId);
     final Map<String, dynamic> value =

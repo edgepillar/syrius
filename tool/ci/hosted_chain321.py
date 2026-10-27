@@ -982,7 +982,7 @@ class Docker:
              and self.shutdown["forced"] is False, "STOP_UNKNOWN")
 
 
-def observe(runtime, root, report=None):
+def observe(runtime, root, report=None, *, measure=None):
     def phase(name):
         if report is not None:
             report["runtime_phase"] = name
@@ -991,6 +991,8 @@ def observe(runtime, root, report=None):
     end = time.monotonic() + 90
     while True:
         runtime.healthy()
+        if measure is not None:
+            measure()
         try:
             with socket.create_connection(("127.0.0.1", 45997), timeout=1):
                 break
@@ -1021,7 +1023,10 @@ def observe(runtime, root, report=None):
         samples = 0
         for _ in range(36):
             runtime.healthy()
-            sample_storage(root)
+            if measure is None:
+                sample_storage(root)
+            else:
+                measure()
             current = wire_policy.Momentum.parse(http.call("ledger.getFrontierMomentum", []))
             current.follows(previous)
             peer = wire_policy.Momentum.parse(ws.call("ledger.getMomentumByHash", [current.hash]))
@@ -1082,6 +1087,7 @@ def run(backend):
         cleanup="runner_lifecycle_not_qualified")
     runtime = None
     closed_wallets = []
+    reopen_anchor = None
     try:
         source = repo / ".harness/ci-node-source"
         directories(source)
@@ -1181,6 +1187,10 @@ def run(backend):
                 visited_pages=0 if outcome['tour'] is None else len(outcome['tour']['visited']),
                 manifest_sha256=digest(manifest))
             need(outcome['success'], 'WALLET_TOUR_FAILED')
+            from tool.ci import restored_wallet_run
+            need(len(closed_wallets) == 1 and closed_wallets[0].closed()
+                 and closed_wallets[0].quiescent(), 'CHECKPOINT_REFUSED')
+            reopen_anchor = restored_wallet_run.chain_read(runtime)
         need(all(digest(regular(configs[role] / "config.json")) == pins[role]
                  and regular(configs[role] / "genesis.json") == genesis for role in ROLES)
              and all(digest(regular(path)) == expected for path, expected in keyfile_pins.items())
@@ -1213,7 +1223,7 @@ def run(backend):
         if wallet_tour and all(report['checks'].values()) and not report['error_codes']:
             report['checkpoint'] = dict(schema=1, scope='closed_owned_lab_checkpoint', complete=False)
             try:
-                from tool.ci import closed_lab_checkpoint as checkpoint, restored_lab_paths, closed_wallet_pointer
+                from tool.ci import closed_lab_checkpoint as checkpoint, restored_lab_paths, closed_wallet_pointer, restored_wallet_run
                 need(isinstance(runtime, Native) and len(closed_wallets) == 1,
                      'CHECKPOINT_REFUSED')
                 wallet = closed_wallets[0]
@@ -1251,6 +1261,10 @@ def run(backend):
                     scope=closed_wallet_pointer.SCOPE, complete=False)
                 report['wallet_pointer_binding'] = closed_wallet_pointer.run(repo, parent,
                     wallet, restored_home, checkpoint_home, closed, measured)
+                report['wallet_reopen'] = dict(schema=1,
+                    scope=restored_wallet_run.SCOPE, complete=False)
+                report['wallet_reopen'] = restored_wallet_run.run(repo, parent, wallet,
+                    runtime, reopen_anchor, restored_roots, checkpoint_home, closed, measured)
                 source_matches(commands, source, node_sha, node_tree, compiled_tree)
                 need(not commands.git(repo, 'status', '--porcelain=v1', '--untracked-files=all')
                      and measured() <= MAX_WORK,
@@ -1265,6 +1279,9 @@ def run(backend):
                 if 'wallet_pointer_binding' in report:
                     report['wallet_pointer_binding'] = dict(schema=1,
                         scope='closed_wallet_pointer_binding', complete=False)
+                if 'wallet_reopen' in report:
+                    report['wallet_reopen'] = dict(schema=1,
+                        scope='owned_restored_lab_reopen', complete=False)
         report['commands'] = [item.receipt for item in commands.originals]
         report["success"] = all(report["checks"].values()) and not report["error_codes"]
         report['wallet_tour_qualified'] = bool(wallet_tour and report['success']
@@ -1286,6 +1303,7 @@ def run(backend):
                 checkpoint=report.get('checkpoint'),
                 path_binding=report.get('path_binding'),
                 wallet_pointer_binding=report.get('wallet_pointer_binding'),
+                wallet_reopen=report.get('wallet_reopen'),
                 asset_generation=report.get('asset_generation'),
                 upstream_client_fixture=(read_first_client_fixture.validate(
                     report.get('upstream_client_fixture'), required=report['checks']['started'])
@@ -1297,8 +1315,12 @@ def run(backend):
                     if type(original.receipt) is dict] if isinstance(runtime, Native) else [])
             text = json.dumps(summary, sort_keys=True, separators=(',', ':'))
             print(text)
-            if len(text.encode()) <= 3800:
-                print('::notice title=Windows wallet tour lab::' + text)
+            from tool.ci import restored_wallet_run
+            for component, frame in restored_wallet_run.notice_frames(summary):
+                title = 'Windows wallet tour lab' if not component else 'Closed copy ' + component
+                text = json.dumps(frame, sort_keys=True, separators=(',', ':'))
+                escaped = text.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+                print('::notice title=' + title + '::' + escaped)
     return 0 if report["success"] else 1
 
 

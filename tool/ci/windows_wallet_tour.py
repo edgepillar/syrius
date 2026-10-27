@@ -431,6 +431,8 @@ class _ClosedWallet:
         self.home, self._entry, self._identity = home, original, identity
         self._password, self._paths, self._tool_identity = password, paths, tool_identity
         self._checkpoint_claimed = False
+        self._reopen_claimed = False
+        self._reopen_input_claimed = False
         self._quiescence = quiescence
 
     def __repr__(self):
@@ -462,6 +464,23 @@ class _ClosedWallet:
         need(self.closed() and self.quiescent()
              and isinstance(self._quiescence, _QuiescenceHandoff), 'CLOSE_UNCONFIRMED')
         return self._quiescence.origin_for(self._entry, self.home)
+
+    def claim_reopen(self):
+        need(self._checkpoint_claimed and not self._reopen_claimed,
+             'CLOSE_UNCONFIRMED')
+        self.restoration_origin()
+        self._reopen_claimed = True
+
+    def reopen_input(self, home):
+        need(self._reopen_claimed and not self._reopen_input_claimed,
+             'CLOSE_UNCONFIRMED')
+        self._reopen_input_claimed = True
+        origin = self.restoration_origin()
+        wallet, _ = origin.copied_paths(str(home))
+        need(type(self._password) is str and 0 < len(self._password) <= 512,
+             'INPUT_REFUSED')
+        return dict(password=self._password, originalProfile=origin.profile,
+            wallet=wallet, members=list(origin.members), hash=origin.send_hash)
 
     def copied_home_bytes(self, home):
         need(self.closed() and home.parent == self.home.parent and home != self.home

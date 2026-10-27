@@ -175,3 +175,17 @@ exit zero, complete output and an empty owned job. Failures retain the claim
 and private transport record; they cannot admit a retry or seed operation.
 This source integration still needs actual hosted native qualification and
 ordinary restored app/node opening before it can admit any F06 recipe.
+
+
+The next hosted coordinator stage opens the independent node and wallet copies
+normally. Original process objects stay closed. A captured original momentum,
+current dual-transport reads, the same confirmed send hash, copied journal bytes,
+ordered membership and committed index-one selection must all agree. Only one
+new application handle and token may receive the retained password. No fresh
+profile, import, derivation, replacement or original-send replay is performed.
+
+The read-only `lab-reopen-observe` command checks those facts against current
+owned resources; a saved receipt cannot construct or activate that owner.
+New app, entry and five-node exits are recorded separately from the originals.
+This source path still needs actual hosted native qualification. The six real
+F06 recipe effects remain pending, and this observation does not admit seed.

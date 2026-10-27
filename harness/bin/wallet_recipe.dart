@@ -84,6 +84,7 @@ class WalletRecipe {
   String? _policyNode;
   String? _startupHandoff;
   String? _startupFilmState;
+  bool _restoredStartup = false;
   WalletAddressContext? _addressOrigin;
 
   Duration get _remaining => budget - (_elapsed?.call() ?? _clock.elapsed);
@@ -215,6 +216,11 @@ class WalletRecipe {
         (Map<String, dynamic> view) {
           final bool enabled = _control(view, key)?['enabled'] == true;
           if (key != 'launch_skip_hint') return enabled;
+          if (_restoredStartup && view['tab'] == 'lock' &&
+              view['startupFilmState'] == null &&
+              !(view['entryPhase'] as String? ?? '').startsWith('startup')) {
+            return true;
+          }
           return view['entryPhase'] == 'startup-before-initialization' &&
                   enabled ||
               <String>{
@@ -303,6 +309,44 @@ class WalletRecipe {
     } on FormatException {
       _refuse('wallet-recipe-address-context-unavailable');
     }
+  }
+
+  /// Let the original startup film reach the copied wallet's ordinary lock.
+  /// This path admits no Welcome, import, derivation or password input.
+  Future<void> settleRestoredStartup() async {
+    if (_restoredStartup) _refuse('wallet-recipe-restored-lock-required');
+    _restoredStartup = true;
+    try {
+      await _awaitRestoredLock();
+    } finally {
+      _restoredStartup = false;
+    }
+  }
+
+  Future<void> _awaitRestoredLock() async {
+    bool skipped = false;
+    for (int turn = 0; turn < 400; turn++) {
+      final Map<String, dynamic> view = await _observe();
+      final String phase = view['entryPhase'] as String? ?? 'unknown';
+      if (view['tab'] == 'lock' && !phase.startsWith('startup') &&
+          view['startupFilmState'] == null) {
+        return;
+      }
+      if (view['entryPhase'] == 'welcome' ||
+          view['entryPhase'] == 'import' || view['entryPhase'] == 'ready' ||
+          view['hasError'] != false || phase.contains('error') ||
+          phase.contains('refused')) {
+        _refuse('wallet-recipe-restored-lock-required');
+      }
+      if (!skipped && view['entryPhase'] == 'startup-before-initialization' &&
+          _control(view, 'launch_skip_hint')?['enabled'] == true) {
+        skipped = true;
+        await _act('launch_skip_hint');
+      } else {
+        await _tick();
+      }
+    }
+    _refuse('wallet-recipe-restored-lock-required');
   }
 
   /// P09 preparation uses only the original Settings controls on chain 321.

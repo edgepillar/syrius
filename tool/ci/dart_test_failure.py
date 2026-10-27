@@ -6,6 +6,7 @@ import re
 FILES = ('wallet_tour_test.dart', 'build_output_test.dart',
     'copied_wallet_pointer.dart', 'copied_wallet_pointer_test.dart',
     'ci_copied_wallet_pointer.dart', 'copied_pointer_input_test.dart',
+    'ci_wallet_reopen.dart', 'restored_startup_test.dart',
     'lab_quiescence.dart', 'lab_quiescence_test.dart',
     'wallet_address_recipe_test.dart', 'addresses_selection_test.dart',
     'lab_transfer_witness_test.dart', 'lab_transfer_witness.dart',

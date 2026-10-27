@@ -1,0 +1,395 @@
+"""Memory policies and separate tiny hosted filesystem fixtures, without signing."""
+
+import json
+import hashlib
+import io
+from pathlib import Path, PureWindowsPath
+import tempfile
+import time
+import unittest
+from unittest import mock
+
+from tool.ci import hosted_chain321 as lab
+from tool.ci import restored_wallet_run as restored
+from tool.ci import wallet_restore_origin as origin
+from tool.ci import windows_wallet_tour as tour
+
+
+def wallet_observation():
+    return dict(schema=1, scope='restored_lab_wallet_observation', chain=321,
+        members=2, selected_index=1, membership_same=True, selection_saved=True,
+        wallet_path_mapped=True, original_send_confirmed=True,
+        journal_consistent=True, observation_stable=True)
+
+
+def completed():
+    return dict(schema=1, scope=restored.SCOPE, complete=True, claim_once=True,
+        originals_closed=True, chain_continuity=True, journal_unchanged=True,
+        cipher_unchanged=True, wallet=wallet_observation(), application_exit=0,
+        entry_exit=0, output=dict(bytes=123, sha256='a'*64,
+            output_complete=True, overflow=False), job_empty=True, forced=False,
+        nodes=[dict(role=role, exit_code=0, output_complete=True, forced=False)
+               for role in restored.checkpoint.ROLES[1:]],
+        private_manifest_sha256='b'*64, seed_admitted=False)
+
+
+class PolicyTests(unittest.TestCase):
+    def test_only_complete_finite_reopen_facts_are_projected(self):
+        value = completed()
+        self.assertEqual(restored.project(value), value)
+        self.assertFalse(restored.project(value)['seed_admitted'])
+
+    def test_absence_and_incomplete_reopen_never_supply_a_wallet(self):
+        self.assertIsNone(restored.project(None))
+        value = dict(schema=1, scope=restored.SCOPE, complete=False)
+        self.assertEqual(restored.project(value), value)
+        with self.assertRaises(restored.checkpoint.Refused):
+            restored.project(dict(value, wallet=wallet_observation()))
+
+    def test_private_or_missing_observation_fields_are_refused(self):
+        for candidate in (dict(wallet_observation(), walletPath='private'),
+                {key: value for key, value in wallet_observation().items() if key != 'chain'}):
+            with self.subTest(fields=len(candidate)), self.assertRaises(restored.checkpoint.Refused):
+                restored.wallet_observation(candidate)
+
+    def test_every_wallet_observation_must_be_positive_and_well_typed(self):
+        for field, value in (('schema', True), ('chain', 1), ('chain', 321.0),
+                ('members', True), ('members', 129), ('members', 1),
+                ('selected_index', 0), ('selected_index', True),
+                ('membership_same', False), ('selection_saved', 1),
+                ('wallet_path_mapped', False), ('original_send_confirmed', False),
+                ('journal_consistent', False), ('observation_stable', False)):
+            with self.subTest(field=field), self.assertRaises(restored.checkpoint.Refused):
+                restored.wallet_observation(dict(wallet_observation(), **{field: value}))
+
+    def test_failed_forced_or_unclosed_actors_cannot_be_healed(self):
+        for change in (dict(application_exit=None), dict(application_exit=False),
+                dict(entry_exit=1), dict(forced=True), dict(job_empty=False),
+                dict(originals_closed=False), dict(chain_continuity=False),
+                dict(journal_unchanged=False), dict(cipher_unchanged=False),
+                dict(claim_once=False), dict(seed_admitted=True)):
+            with self.subTest(change=change), self.assertRaises(restored.checkpoint.Refused):
+                restored.project(dict(completed(), **change))
+
+    def test_each_new_original_node_requires_its_own_normal_complete_exit(self):
+        for change in (dict(exit_code=1), dict(exit_code=False),
+                       dict(forced=True), dict(output_complete=False), dict(role='foreign')):
+            value = completed()
+            value['nodes'][2].update(change)
+            with self.subTest(change=change), self.assertRaises(restored.checkpoint.Refused):
+                restored.project(value)
+        value = completed()
+        value['nodes'].pop()
+        with self.assertRaises(restored.checkpoint.Refused):
+            restored.project(value)
+
+    def test_incomplete_overflowed_or_private_output_cannot_be_published(self):
+        for change in (dict(bytes=True), dict(bytes=0), dict(output_complete=False),
+                       dict(overflow=True), dict(sha256='private'), dict(raw='private')):
+            value = completed()
+            value['output'].update(change)
+            with self.subTest(change=change), self.assertRaises(restored.checkpoint.Refused):
+                restored.project(value)
+
+    def test_unowned_local_entry_refuses_before_files_or_processes(self):
+        with mock.patch.object(restored.subprocess, 'Popen') as launch, \
+                mock.patch.object(restored.checkpoint, 'ancestors') as discover:
+            with self.assertRaises(Exception):
+                restored.run(Path('/fixture'), {}, mock.Mock(), mock.Mock(),
+                    {}, {}, Path('/checkpoint'), lambda: True, lambda: 0)
+        launch.assert_not_called()
+        discover.assert_not_called()
+
+
+class NoticeTests(unittest.TestCase):
+    def test_small_legacy_notices_keep_their_exact_facts(self):
+        value = dict(scope='synthetic_observation', source_sha='a'*40,
+                     success=False, wallet_reopen=None)
+        self.assertEqual(restored.notice_frames(value), [('', value)])
+
+    def test_large_notices_keep_every_component_in_parent_bound_finite_frames(self):
+        value = dict(scope='synthetic_observation', source_sha='a'*40, run_id=123,
+                     codes=['SYNTHETIC_FINITE']*175, wallet_reopen=completed())
+        self.assertGreater(len(json.dumps(value, separators=(',', ':')).encode()), 3800)
+        frames = restored.notice_frames(value)
+        self.assertEqual(len(frames), 2)
+        primary = frames[0][1]
+        child = frames[1][1]
+        digest = hashlib.sha256(json.dumps(primary, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+        self.assertEqual(child['parent_notice_sha256'], digest)
+        self.assertEqual(child['components'], ['wallet_reopen'])
+        self.assertEqual(dict(primary, wallet_reopen=child['facts']), value)
+        self.assertTrue(all(len(json.dumps(frame, sort_keys=True, separators=(',', ':')).encode()) <= 3800
+                            for _, frame in frames))
+
+    def test_private_component_fields_refuse_even_in_a_short_notice(self):
+        value = dict(scope='synthetic_observation', wallet_reopen=dict(completed(), path='private'))
+        with self.assertRaises(restored.checkpoint.Refused):
+            restored.notice_frames(value)
+
+    def test_an_oversized_primary_refuses_without_truncating_its_facts(self):
+        value = dict(scope='synthetic_observation', codes=['SYNTHETIC_FINITE']*300,
+                     wallet_reopen=completed())
+        with self.assertRaises(restored.checkpoint.Refused):
+            restored.notice_frames(value)
+
+
+class OutputTests(unittest.TestCase):
+    def test_one_original_pipe_is_preserved_exactly_without_public_text(self):
+        raw = b'synthetic private path\nfinite marker\n'
+        target = io.BytesIO()
+        capture = restored._CapturedOutput(io.BytesIO(raw), target.write)
+        result = bytearray()
+        while True:
+            part = capture.readline(7)
+            if not part:
+                break
+            result.extend(part)
+        self.assertEqual(bytes(result), raw)
+        self.assertEqual(target.getvalue(), raw)
+        self.assertEqual(capture.digest.hexdigest(), hashlib.sha256(raw).hexdigest())
+        self.assertFalse(capture.overflow)
+
+    def test_overflow_retains_the_exact_bounded_prefix_and_drains_the_original(self):
+        raw = b'synthetic full original\n'
+        target = io.BytesIO()
+        capture = restored._CapturedOutput(io.BytesIO(raw), target.write, cap=8)
+        observed = bytearray()
+        while True:
+            part = capture.readline(5)
+            if not part:
+                break
+            observed.extend(part)
+        self.assertEqual(bytes(observed), raw)
+        self.assertEqual(target.getvalue(), raw[:8])
+        self.assertEqual(capture.bytes, 8)
+        self.assertTrue(capture.overflow)
+
+    def test_failed_capture_write_refuses_without_a_second_reader_or_retry(self):
+        source = io.BytesIO(b'original\n')
+        write = mock.Mock(return_value=0)
+        capture = restored._CapturedOutput(source, write)
+        with self.assertRaises(restored.checkpoint.Refused):
+            capture.readline(20)
+        write.assert_called_once_with(b'original\n')
+        self.assertEqual(capture.bytes, 0)
+
+
+def momentum(height, stamp, digit):
+    return dict(chainIdentifier=321, height=height, timestamp=stamp, hash=digit*64)
+
+
+class ChainPolicyTests(unittest.TestCase):
+    def test_advancing_reopened_observation_uses_the_aggregate_sampler(self):
+        http, ws = mock.Mock(), mock.Mock()
+        genesis, first, last = momentum(1, 10, '1'), momentum(10, 100, '2'), momentum(11, 110, '3')
+        http.call.side_effect = [dict(list=[genesis]), first, last]
+        ws.call.side_effect = [genesis, last]
+        measure = mock.Mock()
+        with mock.patch.object(lab.socket, 'create_connection', return_value=mock.MagicMock()), \
+                mock.patch.object(lab, 'make_transports', return_value=(object(), object())), \
+                mock.patch.object(lab.wire_policy, 'HttpRpc', return_value=http), \
+                mock.patch.object(lab.wire_policy, 'WsRpc', return_value=ws), \
+                mock.patch.object(lab, 'sample_storage', side_effect=AssertionError('partial sample')):
+            result = lab.observe(mock.Mock(), Path('/fixture'), measure=measure)
+        self.assertEqual(measure.call_count, 2)
+        self.assertEqual(result['last_height'], 11)
+
+    def test_a_refused_aggregate_sample_stops_before_new_rpc_allocation(self):
+        with mock.patch.object(lab, 'make_transports') as allocate:
+            with self.assertRaises(lab.Failure):
+                lab.observe(mock.Mock(), Path('/fixture'),
+                    measure=mock.Mock(side_effect=lab.Failure('STORAGE_REFUSED')))
+        allocate.assert_not_called()
+
+    def run_read(self, *, expected=True, changed=None, ws_wrong=False,
+                 close_error=False, original_error=False):
+        original_runtime = lab.Native(mock.Mock(), Path('/fixture/node'), {})
+        runtime = lab.Native(mock.Mock(), Path('/fixture/node'), {})
+        genesis, anchor, frontier = momentum(1, 10, '1'), momentum(10, 100, '2'), momentum(11, 110, '3')
+        witness = restored._ChainAnchor(original_runtime,
+            lab.wire_policy.Momentum.parse(genesis), lab.wire_policy.Momentum.parse(anchor))
+        values = dict(genesis=genesis, anchor=anchor, frontier=frontier)
+        if changed:
+            for key, value in changed.items():
+                values[key] = dict(values[key], **value)
+        http, ws = mock.Mock(), mock.Mock()
+        def http_call(method, params):
+            if method == 'ledger.getFrontierMomentum':
+                return values['frontier']
+            self.assertEqual(method, 'ledger.getMomentumsByHeight')
+            return dict(list=[values['genesis'] if params[0] == 1 else values['anchor']])
+        def ws_call(method, params):
+            self.assertEqual(method, 'ledger.getMomentumByHash')
+            value = next((item for item in values.values() if item['hash'] == params[0]), None)
+            return dict(value, timestamp=999) if ws_wrong and value is not None else value
+        http.call.side_effect, ws.call.side_effect = http_call, ws_call
+        first_error = lab.wire_policy.Refused('WS_REFUSED')
+        if original_error:
+            ws.connect.side_effect = first_error
+        if close_error:
+            ws.close.side_effect = lab.wire_policy.Refused('CLOSE_UNKNOWN')
+        with mock.patch.object(runtime, 'healthy'), \
+                mock.patch.object(lab, 'make_transports', return_value=(object(), object())), \
+                mock.patch.object(lab.wire_policy, 'HttpRpc', return_value=http), \
+                mock.patch.object(lab.wire_policy, 'WsRpc', return_value=ws):
+            try:
+                result = restored.chain_read(runtime, witness if expected else None)
+            except Exception as error:
+                result = error
+        ws.close.assert_called_once_with()
+        http.close.assert_called_once_with()
+        return result, runtime, first_error, http, ws
+
+    def test_the_exact_old_momentum_and_genesis_survive_in_a_new_advancing_chain(self):
+        value, runtime, _, http, ws = self.run_read()
+        self.assertIsInstance(value, restored._ChainAnchor)
+        self.assertIs(value.owner, runtime)
+        self.assertEqual(value.frontier.height, 11)
+        self.assertTrue(all(call.args[0].startswith('ledger.get')
+                            for call in http.call.call_args_list + ws.call.call_args_list))
+
+    def test_initial_anchor_is_captured_without_a_prior_report(self):
+        value, runtime, _, _, _ = self.run_read(expected=False)
+        self.assertIs(value.owner, runtime)
+
+    def test_matching_heights_or_new_frontiers_cannot_replace_the_original_hash(self):
+        for changes in (dict(anchor=dict(hash='4'*64)), dict(genesis=dict(hash='5'*64)),
+                        dict(frontier=dict(height=9, timestamp=90)),
+                        dict(frontier=dict(height=10, timestamp=100, hash='2'*64)),
+                        dict(frontier=dict(timestamp=99))):
+            with self.subTest(changes=changes):
+                value, *_ = self.run_read(changed=changes)
+                self.assertIsInstance(value, Exception)
+
+    def test_cross_transport_disagreement_is_not_continuity(self):
+        value, *_ = self.run_read(ws_wrong=True)
+        self.assertIsInstance(value, Exception)
+
+    def test_a_failed_transport_close_refuses_after_good_rpc_replies(self):
+        value, *_ = self.run_read(close_error=True)
+        self.assertIsInstance(value, restored.checkpoint.Refused)
+
+    def test_cleanup_keeps_the_first_original_rpc_failure(self):
+        value, _, original_error, _, _ = self.run_read(close_error=True, original_error=True)
+        self.assertIs(value, original_error)
+
+    def test_saved_data_refuses_before_new_rpc_transport_creation(self):
+        runtime = lab.Native(mock.Mock(), Path('/fixture/node'), {})
+        with mock.patch.object(runtime, 'healthy'), \
+                mock.patch.object(lab, 'make_transports') as create:
+            with self.assertRaises(restored.checkpoint.Refused):
+                restored.chain_read(runtime, dict(hash='2'*64, height=10))
+        create.assert_not_called()
+
+
+class HandoffTests(unittest.TestCase):
+    def wallet(self):
+        home = PureWindowsPath(r'C:\fixture\.harness') / ('ci-wallet-'+'1'*24)
+        value = dict(schema=1, scope='private_owned_wallet_origin',
+            profile=home.name, home=str(home), wallet=str(home / 'wallet/one.json'),
+            cache=str(home / 'cache'), members=['synthetic-zero', 'synthetic-one'],
+            selected='synthetic-one', saved='synthetic-one', send_hash='a'*64,
+            send_token='zts1znnxxxxxxxxxxxxx9z4ulx', send_amount='100000000',
+            node='ws://127.0.0.1:45998', chain=321)
+        parsed = origin.parse(value, str(home))
+        entry = mock.Mock(poll=mock.Mock(return_value=None))
+        quiet = dict(schema=1, scope='owned_lab_quiescence', chain=321, complete=True,
+            admission_closed=True, original_send_confirmed=True, originals_positive=True,
+            file_operations=1, sdk_publications=1, receive_reads=0, receive_publications=0)
+        handoff = tour._QuiescenceHandoff(entry, quiet, parsed)
+        entry.poll.return_value = 0
+        return tour._ClosedWallet(home, entry, (1, 2), 'synthetic-private-input',
+                                 (), (3, 4), handoff)
+
+    def test_only_one_reopen_claim_follows_the_original_checkpoint_claim(self):
+        wallet = self.wallet()
+        with mock.patch.object(wallet, 'closed', return_value=True):
+            with self.assertRaises(tour.Refused):
+                wallet.claim_reopen()
+            wallet.claim_checkpoint()
+            wallet.claim_reopen()
+            with self.assertRaises(tour.Refused):
+                wallet.claim_reopen()
+
+    def test_private_input_is_one_attempt_and_retains_the_exact_original_hash(self):
+        wallet = self.wallet()
+        home = wallet.home.parent / ('ci-wallet-'+'2'*24)
+        with mock.patch.object(wallet, 'closed', return_value=True):
+            wallet.claim_checkpoint()
+            wallet.claim_reopen()
+            value = wallet.reopen_input(home)
+            self.assertEqual(set(value), {'password', 'originalProfile', 'wallet', 'members', 'hash'})
+            self.assertEqual(value['hash'], 'a'*64)
+            self.assertEqual(value['originalProfile'], wallet.home.name)
+            with self.assertRaises(tour.Refused):
+                wallet.reopen_input(home)
+        self.assertNotIn('synthetic', repr(wallet))
+
+    def test_invalid_or_lost_owned_input_is_held_without_a_second_attempt(self):
+        wallet = self.wallet()
+        with mock.patch.object(wallet, 'closed', return_value=True):
+            wallet.claim_checkpoint()
+            wallet.claim_reopen()
+            with self.assertRaises(origin.Refused):
+                wallet.reopen_input(wallet.home)
+            with self.assertRaises(tour.Refused):
+                wallet.reopen_input(wallet.home.parent / ('ci-wallet-'+'2'*24))
+
+    def test_legacy_observations_cannot_claim_reopened_ownership(self):
+        wallet = self.wallet()
+        wallet._quiescence._origin = None
+        wallet._checkpoint_claimed = True
+        with mock.patch.object(wallet, 'closed', return_value=True):
+            with self.assertRaises(tour.Refused):
+                wallet.claim_reopen()
+        self.assertFalse(wallet._reopen_claimed)
+
+
+class FilesystemTests(unittest.TestCase):
+    def fixture(self, root):
+        source, copied, retained = (Path(root) / name for name in ('original.json', 'copy.json', 'retained.json'))
+        raw = json.dumps(dict(mode='release', harnessMode='wallet', token='a'*32,
+                              pid=123, port=12345)).encode()
+        source.write_bytes(raw)
+        copied.write_bytes(raw)
+        return source, copied, retained, raw
+
+    def test_retirement_preserves_original_and_exact_copied_metadata_identity(self):
+        with tempfile.TemporaryDirectory(prefix='syrius-reopen-metadata-') as root:
+            source, copied, retained, raw = self.fixture(root)
+            old = restored.checkpoint.file_identity(copied.lstat())
+            value, original_pin, copied_pin = restored.retire_metadata(
+                source, copied, retained, lambda: True, time.monotonic()+10)
+            self.assertEqual(value['token'], 'a'*32)
+            self.assertEqual(source.read_bytes(), raw)
+            self.assertEqual(retained.read_bytes(), raw)
+            self.assertEqual(copied_pin[0], old)
+            self.assertEqual(original_pin[1], copied_pin[1])
+            self.assertFalse(copied.exists())
+
+    def test_existing_retained_or_changed_metadata_refuses_without_overwrite(self):
+        with tempfile.TemporaryDirectory(prefix='syrius-reopen-metadata-') as root:
+            source, copied, retained, raw = self.fixture(root)
+            retained.write_bytes(b'synthetic held metadata')
+            with self.assertRaises(restored.checkpoint.Refused):
+                restored.retire_metadata(source, copied, retained, lambda: True, time.monotonic()+10)
+            self.assertEqual(copied.read_bytes(), raw)
+            self.assertEqual(retained.read_bytes(), b'synthetic held metadata')
+            retained.unlink()
+            copied.write_bytes(raw+b' ')
+            with self.assertRaises(restored.checkpoint.Refused):
+                restored.retire_metadata(source, copied, retained, lambda: True, time.monotonic()+10)
+
+    def test_lost_closure_refuses_before_the_metadata_is_moved(self):
+        with tempfile.TemporaryDirectory(prefix='syrius-reopen-metadata-') as root:
+            source, copied, retained, raw = self.fixture(root)
+            with self.assertRaises(restored.checkpoint.Refused):
+                restored.retire_metadata(source, copied, retained, lambda: False, time.monotonic()+10)
+            self.assertEqual(source.read_bytes(), raw)
+            self.assertEqual(copied.read_bytes(), raw)
+            self.assertFalse(retained.exists())
+
+
+if __name__ == '__main__':
+    unittest.main()

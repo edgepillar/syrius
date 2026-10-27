@@ -31,6 +31,37 @@ def manifest():
 
 
 class InspectionTests(unittest.TestCase):
+    def test_missing_or_incomplete_reopen_does_not_grant_live_ownership(self):
+        report = manifest()
+        self.assertNotIn('wallet_reopen', inspect.project(report, 'native', 'a'*40, 123))
+        report['wallet_reopen'] = dict(schema=1, scope='owned_restored_lab_reopen', complete=False)
+        value = inspect.project(report, 'native', 'a'*40, 123)
+        self.assertFalse(value['wallet_reopen']['complete'])
+        self.assertFalse(value['runtime_started'])
+        self.assertFalse(value['seed_admitted'])
+        report['wallet_reopen']['path'] = 'private'
+        with self.assertRaises(inspect.Refused):
+            inspect.project(report, 'native', 'a'*40, 123)
+
+    def test_complete_reopen_cannot_borrow_missing_checkpoint_or_failed_old_actors(self):
+        from tool.ci import restored_wallet_run
+        report = self.wallet_stop_report()
+        report['wallet_reopen'] = dict(schema=1, scope=restored_wallet_run.SCOPE,
+            complete=True, claim_once=True, originals_closed=True, chain_continuity=True,
+            journal_unchanged=True, cipher_unchanged=True,
+            wallet=dict(schema=1, scope='restored_lab_wallet_observation', chain=321,
+                members=2, selected_index=1, membership_same=True, selection_saved=True,
+                wallet_path_mapped=True, original_send_confirmed=True,
+                journal_consistent=True, observation_stable=True),
+            application_exit=0, entry_exit=0, output=dict(bytes=123, sha256='a'*64,
+                output_complete=True, overflow=False), job_empty=True, forced=False,
+            nodes=[dict(role=role, exit_code=0, output_complete=True, forced=False)
+                   for role in restored_wallet_run.checkpoint.ROLES[1:]],
+            private_manifest_sha256='b'*64, seed_admitted=False)
+        with self.assertRaises(inspect.Refused):
+            inspect.project(report, 'native', 'a'*40, 40319698922,
+                inspect.UPSTREAM_NODE_SHA, expected_patched=True)
+
     def test_wallet_pointer_absence_and_incomplete_binding_do_not_invent_reopen(self):
         report = manifest()
         self.assertNotIn('wallet_pointer_binding', inspect.project(report, 'native', 'a'*40, 123))

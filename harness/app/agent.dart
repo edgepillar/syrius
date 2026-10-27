@@ -435,6 +435,7 @@ class HarnessAgent {
   LabQuiescence Function()? _labQuiescenceSource;
   String? _labQuiescenceProfile;
   bool _labQuiescenceAttempted = false;
+  bool _labRestoredReadAttempted = false;
   HarnessPresentationController? _presentation;
   NativeEntryCapture? _nativeEntry;
   EntryCaptionObserver? _entryCaption;
@@ -798,6 +799,8 @@ class HarnessAgent {
         return _labSend(c);
       case 'lab-quiesce':
         return _labQuiesce(c);
+      case 'lab-reopen-observe':
+        return _labRestoredObserve(c);
       case 'tree':
         return _tree(c);
       case 'tap':
@@ -1346,6 +1349,77 @@ class HarnessAgent {
       }};
     } on LabQuiescenceRefused catch (error) {
       throw HarnessError('original-lab-quiescence-${error.phase.name}-refused');
+    }
+  }
+
+  Future<Map<String, Object?>> _labRestoredObserve(
+    Map<String, dynamic> command,
+  ) async {
+    const Set<String> keys = <String>{
+      'cmd', 'profile', 'originalProfile', 'wallet', 'members', 'hash',
+    };
+    final RegExp named = RegExp(r'^ci-wallet-[a-f0-9]{24}$');
+    if (_labRestoredReadAttempted || command.length != keys.length ||
+        !command.keys.toSet().containsAll(keys) ||
+        command['profile'] is! String ||
+        command['originalProfile'] is! String ||
+        !named.hasMatch(command['profile'] as String) ||
+        !named.hasMatch(command['originalProfile'] as String) ||
+        command['profile'] == command['originalProfile'] ||
+        command['wallet'] is! String || command['hash'] is! String ||
+        !seedHash(command['hash'] as String) || command['members'] is! List ||
+        _seeds.fixtureName != null) {
+      throw HarnessError('restored-lab-observation-required');
+    }
+    _labRestoredReadAttempted = true;
+    try {
+      final LabSeedBinding source = LabSeedBinding.capture(
+        profile: command['profile'] as String,
+        ws: seedWsOrigin, http: seedHttpOrigin, booted: booted,
+      );
+      final WalletAddressContext before = WalletAddressContext.parse(
+        _recipeAddressObservation()['addressContext'],
+      );
+      final ProfileSeedJournal journal = ProfileSeedJournal(source.home);
+      void current() {
+        final WalletAddressContext now = WalletAddressContext.parse(
+          _recipeAddressObservation()['addressContext'],
+        );
+        final Map<String, Object?> policy = _recipeSigningPolicy();
+        if (!source.isCurrent || !before.same(now) || !now.consistent ||
+            now.members.length < 2 || now.members.length > 128 ||
+            !listEquals(now.members, command['members'] as List<dynamic>) ||
+            now.selected != now.members[1] ||
+            kWalletPath != command['wallet'] ||
+            policy['savedSigningChainId'] != 321 ||
+            policy['nodeSelectionSaved'] != true) {
+          throw const SeedRefused('restored-context-changed');
+        }
+        journal.requireRestoredLabSend(
+          originalProfile: command['originalProfile'] as String,
+          owner: now.members[1], recipient: now.members[0],
+          hash: command['hash'] as String,
+        );
+      }
+      current();
+      final SeedConfirmed? confirmed = await source.confirmed(
+        labSendRecipeId, command['hash'] as String,
+      );
+      current();
+      if (confirmed == null || confirmed.hash != command['hash'] ||
+          confirmed.owner != before.members[1] || confirmed.chain != 321 ||
+          !confirmed.positiveConfirmation || !confirmed.matchesRecipe) {
+        throw const SeedRefused('restored-original-send-unconfirmed');
+      }
+      return <String, Object?>{'receipt': <String, Object>{
+        'schema': 1, 'scope': 'restored_lab_wallet_observation', 'chain': 321,
+        'members': before.members.length, 'selected_index': 1,
+        'membership_same': true, 'selection_saved': true,
+        'wallet_path_mapped': true, 'original_send_confirmed': true,
+        'journal_consistent': true, 'observation_stable': true,
+      }};
+    } on Object {
+      throw HarnessError('restored-lab-observation-refused');
     }
   }
 
