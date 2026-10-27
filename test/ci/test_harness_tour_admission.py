@@ -1,0 +1,96 @@
+"""Exercise the real admission controller without SDK or native execution."""
+
+import contextlib
+import io
+import json
+from pathlib import Path
+from types import SimpleNamespace
+import unittest
+from unittest import mock
+
+from tool.ci import run_harness_tour_tests as harness
+
+
+class HarnessAdmissionTests(unittest.TestCase):
+    def run_case(self, *, passed=191, terminal=True, skipped=0, failed=0,
+                 error_events=0, command_success=True, complete=True,
+                 source_changed=False):
+        parent = dict(GITHUB_WORKSPACE=str(Path.cwd()), FLUTTER_ROOT='/sdk',
+                      GITHUB_RUN_ID='1', GITHUB_RUN_ATTEMPT='1')
+        counts = dict(passed=passed, failed=failed, skipped=skipped, hidden=27,
+                      error_events=error_events, terminal_events=218,
+                      terminal_success=terminal)
+        refused = SimpleNamespace(output=b'CI_WALLET_ERROR\n', exit_code=1,
+                                  transport_complete=True, public=lambda: {})
+        outcome = SimpleNamespace(output=b'{}\n', success=command_success,
+            transport_complete=complete, public=lambda: dict(
+                exit_code=0 if command_success else 1,
+                output_complete=complete, success=command_success))
+        trees = ['b' * 40, ('c' if source_changed else 'b') * 40]
+        with mock.patch.object(harness.debug.entry, 'require_ci',
+                return_value=(parent, 'a' * 40)), \
+                mock.patch.object(harness.debug.bounded, 'verify_source') as source, \
+                mock.patch.object(harness.debug.entry, 'source_tree',
+                    side_effect=trees) as tree, \
+                mock.patch.object(harness.debug, 'sdk',
+                    return_value=(Path('/sdk/dart'), Path('/sdk/snapshot'))), \
+                mock.patch.object(Path, 'exists', return_value=False), \
+                mock.patch.object(harness, 'fresh_environment', return_value={}), \
+                mock.patch.object(harness, 'startup_check',
+                    side_effect=lambda _repo, _parent, _dart, kind:
+                        dict(kind=kind, passed=True)), \
+                mock.patch.object(harness, 'run_bounded',
+                    side_effect=[refused, outcome]) as command, \
+                mock.patch.object(harness, 'test_counts', return_value=counts), \
+                mock.patch.object(harness.subprocess, 'Popen',
+                    side_effect=AssertionError('Native execution forbidden')), \
+                contextlib.redirect_stdout(io.StringIO()) as output:
+            code = harness.main()
+        report = json.loads(output.getvalue().splitlines()[0])
+        self.assertEqual(command.call_count, 2)
+        return code, report, source.call_count, tree.call_count
+
+    def test_complete_current_suite_is_admitted_then_source_is_revalidated(self):
+        code, report, source_checks, tree_checks = self.run_case()
+        self.assertEqual(code, 0)
+        self.assertTrue(report['success'])
+        self.assertIsNone(report['code'])
+        self.assertEqual(report['counts']['passed'], 191)
+        self.assertEqual((source_checks, tree_checks), (2, 2))
+
+    def test_stale_short_or_extra_suite_counts_are_refused(self):
+        for passed in (0, 184, 190, 192):
+            with self.subTest(passed=passed):
+                code, report, source_checks, tree_checks = self.run_case(
+                    passed=passed)
+                self.assertEqual(code, 1)
+                self.assertFalse(report['success'])
+                self.assertEqual(report['code'], 'TESTS_FAILED')
+                self.assertEqual((source_checks, tree_checks), (1, 1))
+
+    def test_skips_errors_failures_or_missing_terminal_success_refuse(self):
+        for change in (dict(skipped=1), dict(failed=1), dict(error_events=1),
+                       dict(terminal=False)):
+            with self.subTest(change=change):
+                code, report, source_checks, _ = self.run_case(**change)
+                self.assertEqual(code, 1)
+                self.assertFalse(report['success'])
+                self.assertEqual(report['code'], 'TESTS_FAILED')
+                self.assertEqual(source_checks, 1)
+
+    def test_original_process_failure_or_incomplete_output_cannot_be_admitted(self):
+        for change, expected in ((dict(command_success=False), 'TESTS_FAILED'),
+                                 (dict(complete=False), 'OUTPUT_REFUSED')):
+            with self.subTest(change=change):
+                code, report, source_checks, _ = self.run_case(**change)
+                self.assertEqual(code, 1)
+                self.assertFalse(report['success'])
+                self.assertEqual(report['code'], expected)
+                self.assertEqual(source_checks, 1)
+
+    def test_passing_current_suite_cannot_hide_changed_source(self):
+        code, report, source_checks, tree_checks = self.run_case(source_changed=True)
+        self.assertEqual(code, 1)
+        self.assertFalse(report['success'])
+        self.assertEqual(report['code'], 'SOURCE_REFUSED')
+        self.assertEqual((source_checks, tree_checks), (2, 2))

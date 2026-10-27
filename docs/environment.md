@@ -6556,3 +6556,30 @@ identical rehashed inputs. Current 191-Dart/544-Python and strict clean-analysis
 gates remain required before node allocation. There is no application,
 controller, workflow, dependency, checkpoint or signing/publication change.
 Local SDK/native executions remain zero; full runtime acceptance remains open.
+
+### Align the exact harness-suite admission count
+
+At 81df376fc45ef69e933c0a95c575a08a9061e7d2, original combined
+[40528089317](https://github.com/edgepillar/syrius/actions/runs/40528089317),
+attempt one, job 122273061105, passes all 191 Dart cases with zero errors or
+skips, strict clean selected analysis and 544 Python cases/three original
+platform skips. The original Dart process exits zero normally in 65.594
+seconds with 94497 complete, unforced output bytes. Both startup probes and
+the original pre-build refusal pass. This positively qualifies the observer
+lifetime fix and actual Transfer fixture at that source.
+
+The wrapper still refuses because its exact expected Dart count remains 184.
+That single literal now becomes 191. The selected test list, complete original
+process success, terminal success, zero skip/failure/error conditions and
+source revalidation are unchanged. No Dart, application, workflow or original
+signing/publication input changes. The failed wrapper result remains retained;
+neither node checkout nor native work ran.
+
+Five new tests exercise the actual main controller using mocked processes,
+without SDK, filesystem scratch or native execution. Three red failures
+reproduce the false current-suite refusal, stale-count acceptance and missed
+source-postcheck path. After the correction, all five pass alongside the 26
+existing memory controls. Short and extra counts, skips, failures, errors,
+missing terminal success, failed/incomplete processes and changed source still
+refuse. Current 191-Dart/549-Python and strict clean-analysis gates remain
+required before native allocation; original-send and full acceptance stay open.
