@@ -417,10 +417,9 @@ void main() {
       FlutterError.onError!(details);
       expect(received, hasLength(1));
       expect(identical(received.single, details), isTrue);
-      expect(reports, <String>[
-        'CI_FRAMEWORK_CONTEXT '
-            '(package:flutter/src/widgets/framework.dart:123:9)',
-      ]);
+      const String expected = 'CI_FRAMEWORK_CONTEXT '
+          '(package:flutter/src/widgets/framework.dart:123:9)';
+      expect(reports, <String>[expected]);
       expect(reports.single, isNot(contains('private')));
     } finally {
       restore();

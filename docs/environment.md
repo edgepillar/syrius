@@ -6445,3 +6445,24 @@ identical rehashed inputs and their original passing proof. The next combined
 188-Dart/543-Python and strict clean-analysis gates remain required before
 node allocation. The original first-frame failure, confirmed send, real F06
 checkpoints and all 94 visual matches remain open.
+
+
+### Preserve the expected observer marker outside its list
+
+At bf10f4d9445f1e0f3e63dfa3fa4d7afbeb7685f0, original combined
+[40517414532](https://github.com/edgepillar/syrius/actions/runs/40517414532),
+attempt one, job 122234578112, passes all 543 Python cases with three original
+platform skips. Complete selected analyzer exit zero has one
+NO_ADJACENT_STRINGS_IN_LIST info at fixture line 421, so strict admission
+refuses. Its 164 output bytes are complete; Dart tests, node/compiler setup
+and native work are skipped. The workflow and owned job both end in failure.
+
+The expected canonical observer marker is now assigned to a const String
+outside its list. Its exact joined bytes are unchanged. All observer logic,
+error forwarding, assertions, inputs, timers and app/harness behavior remain.
+Local source-only literal-equivalence, eighty-column and privacy checks pass;
+they do not substitute for actual analyzer or Dart execution. The unchanged
+25-case memory proof retains every rehashed input and is reused. The next
+combined 188-Dart/543-Python and strict clean-analysis gates are still required
+before native allocation. The original first-frame cause, original confirmed
+send, F06 checkpoints and visual qualification remain open.
