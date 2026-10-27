@@ -247,15 +247,17 @@ void main() {
   });
 
   test('a changed original hash cannot overwrite the first accepted answer', () async {
-    final _Case value = _Case();
-    value.source.onConfirmation = (String hash) async {
-      value.original.acceptedHash = _hash(10);
-      return value.source.receipt(hash);
-    };
-    await expectLater(value.run(), throwsA(isA<SeedRefused>()));
-    expect(value.guard.acceptedHash, _hash(9));
-    expect(value.journal.hashes[labSendRecipeId], _hash(9));
-    expect(value.journal.confirmations, isEmpty);
+    for (final String? changed in <String?>[null, _hash(10)]) {
+      final _Case value = _Case();
+      value.source.onConfirmation = (String hash) async {
+        value.original.acceptedHash = changed;
+        return value.source.receipt(hash);
+      };
+      await expectLater(value.run(), throwsA(isA<SeedRefused>()));
+      expect(value.guard.acceptedHash, _hash(9));
+      expect(value.journal.hashes[labSendRecipeId], _hash(9));
+      expect(value.journal.confirmations, isEmpty);
+    }
   });
 
   test('hash, owner, chain or exact transfer mismatch cannot confirm', () async {

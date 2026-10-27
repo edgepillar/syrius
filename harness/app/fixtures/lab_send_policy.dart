@@ -46,7 +46,10 @@ final class LabSendGuard {
       throw const SeedRefused('original-publication-replaced');
     }
     final String? accepted = value.acceptedHash;
-    if (accepted == null) return;
+    if (accepted == null) {
+      if (_hash != null) throw const SeedRefused('invalid-original-hash');
+      return;
+    }
     if (!seedHash(accepted) || _hash != null && _hash != accepted) {
       throw const SeedRefused('invalid-original-hash');
     }
