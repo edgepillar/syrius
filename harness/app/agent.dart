@@ -61,7 +61,8 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/moda
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/startup_stage.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/tabs.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart'
-    show WebsocketStatus, WsClient, getChainIdentifier, znnZts;
+    show AccountBlockTemplate, WebsocketStatus, WsClient,
+        getChainIdentifier, znnZts;
 
 import '../lab_send_failure.dart';
 import '../seed/seed_recipe.dart' show requireSeedTokenPreparation;
@@ -71,6 +72,7 @@ import 'capture_frame.dart';
 import 'capture_protocol.dart' show CaptureRefused;
 import 'client_window.dart';
 import 'entry_caption_observer.dart';
+import 'fixtures/lab_quiescence.dart';
 import 'fixtures/lab_seed_binding.dart';
 import 'fixtures/lab_send_policy.dart';
 import 'fixtures/lab_send_ui_binding.dart';
@@ -430,6 +432,9 @@ class HarnessAgent {
   bool _labSendReserved = false;
   LabSendGuard? _labSendGuard;
   LabSendUiReview? _labSendReview;
+  LabQuiescence Function()? _labQuiescenceSource;
+  String? _labQuiescenceProfile;
+  bool _labQuiescenceAttempted = false;
   HarnessPresentationController? _presentation;
   NativeEntryCapture? _nativeEntry;
   EntryCaptionObserver? _entryCaption;
@@ -791,6 +796,8 @@ class HarnessAgent {
         }
       case 'lab-send':
         return _labSend(c);
+      case 'lab-quiesce':
+        return _labQuiesce(c);
       case 'tree':
         return _tree(c);
       case 'tap':
@@ -1191,7 +1198,8 @@ class HarnessAgent {
         throw const SeedRefused('original-send-form-required');
       }
       phase = 'transport';
-      final ReceiveOrigin? origin = app.sl<AutoReceiveTxWorker>().captureOrigin(
+      final AutoReceiveTxWorker worker = app.sl<AutoReceiveTxWorker>();
+      final ReceiveOrigin? origin = worker.captureOrigin(
         sourceIsCurrent: () => source.isCurrent &&
             kCurrentPage == Tabs.transfer && _seeds.fixtureName == null,
       );
@@ -1257,13 +1265,31 @@ class HarnessAgent {
       final LabSendGuard guard = LabSendGuard(source: source, journal: journal);
       _labSendGuard = guard;
       phase = 'preflight';
-      await guard.publish(original: review.witness,
+      final String confirmedHash = await guard.publish(original: review.witness,
         requireOriginalReady: () => _requireLabReview(review),
         tapOnce: (void Function() admission) async {
           phase = 'accept';
           await _acceptLabReview(review, admission);
           phase = 'confirmation';
         });
+      final AccountBlockTemplate? original = review.witness.result;
+      _labQuiescenceProfile = source.environment.profile;
+      _labQuiescenceSource = () => LabQuiescence(
+        walletOwner: source.walletOwner, sdkOwner: source.originalSdk,
+        worker: worker, environment: source.environment,
+        originalSend: original ?? (throw const LabQuiescenceRefused(
+          LabQuiescencePhase.capture)), confirmedHash: confirmedHash,
+        requireCurrent: () {
+          if (!source.isCurrent || _seeds.fixtureName != null ||
+              !identical(_labSendGuard, guard) ||
+              !identical(_labSendReview, review) ||
+              !app.sl.isRegistered<AutoReceiveTxWorker>() ||
+              !identical(app.sl<AutoReceiveTxWorker>(), worker)) {
+            throw const SeedRefused('original-context-changed');
+          }
+        },
+        requireJournal: () => journal.requireLabSendConfirmed(confirmedHash),
+      );
       return <String, Object?>{'receipt': <String, Object>{
         'schema': 1, 'scope': 'original_lab_ui_send', 'chain': 321,
         'from_index': 1, 'to_index': 0, 'amount': '100000000', 'token': 'ZNN',
@@ -1275,6 +1301,23 @@ class HarnessAgent {
       // Neither a raw widget reply nor a private transport error is exported.
       throw HarnessError('original-lab-send-ui-or-read-failed',
         detail('original-lab-send-ui-or-read-failed'));
+    }
+  }
+
+  Future<Map<String, Object?>> _labQuiesce(Map<String, dynamic> command) async {
+    final LabQuiescence Function()? source = _labQuiescenceSource;
+    if (command.length != 2 ||
+        !command.keys.toSet().containsAll(<String>{'cmd', 'profile'}) ||
+        source == null || command['profile'] != _labQuiescenceProfile ||
+        _labQuiescenceAttempted) {
+      throw HarnessError('original-lab-quiescence-required');
+    }
+    _labQuiescenceAttempted = true;
+    try {
+      final LabQuiescence original = source();
+      return <String, Object?>{'receipt': await original.drain()};
+    } on LabQuiescenceRefused catch (error) {
+      throw HarnessError('original-lab-quiescence-${error.phase.name}-refused');
     }
   }
 

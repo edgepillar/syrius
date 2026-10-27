@@ -521,7 +521,7 @@ def project_wallet_tour(report, lab, head, run_id, tree, manifest_sha):
          and lab.get("wallet_tour_requested") is True
          and lab.get("application_sha") == head and lab.get("application_tree") == tree
          and re.fullmatch(r"[a-f0-9]{40}", tree) is not None
-         and report.get("schema") == 1 and type(report.get("schema")) is int
+          and type(report.get("schema")) is int and report["schema"] in (1, 2)
          and report.get("scope") == "owned_chain321_wallet_tour"
          and report.get("source_sha") == head and report.get("source_tree") == tree
          and report.get("run_id") == str(run_id) and report.get("run_attempt") == "1"
@@ -532,7 +532,8 @@ def project_wallet_tour(report, lab, head, run_id, tree, manifest_sha):
     need(type(original) is dict and original.get("manifest_sha256") == manifest_sha
          and re.fullmatch(r"[a-f0-9]{64}", manifest_sha) is not None)
     checks, errors, captures = report.get("checks"), report.get("errors"), report.get("captures")
-    need(type(checks) is dict and set(checks) == set(wallet.CHECKS)
+    expected_checks = wallet.CHECKS if report['schema'] == 1 else wallet.CURRENT_CHECKS
+    need(type(checks) is dict and set(checks) == set(expected_checks)
          and all(type(value) is bool for value in checks.values())
          and type(errors) is list and len(errors) <= 16
          and all(value in wallet.CODES for value in errors)
@@ -553,6 +554,12 @@ def project_wallet_tour(report, lab, head, run_id, tree, manifest_sha):
                               ("address_selection", wallet.address_selection_receipt)):
             if key in report:
                 extra[key] = None if report[key] is None else validate(report[key])
+        if report['schema'] == 2:
+            need('quiescence' in report)
+            extra['quiescence'] = (None if report['quiescence'] is None
+                                   else wallet.quiescence_receipt(report['quiescence']))
+        else:
+            need('quiescence' not in report)
     except wallet.Refused:
         raise Refused("INSPECTION_REFUSED") from None
     visited = 0 if tour is None else len(tour["visited"])

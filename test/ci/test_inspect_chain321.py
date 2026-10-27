@@ -740,6 +740,40 @@ class InspectionTests(unittest.TestCase):
         with self.assertRaises(inspect.Refused):
             inspect.project_wallet_tour(report, lab, 'a'*40, 123, 'b'*40, 'c'*64)
 
+    def test_current_quiescence_projection_stays_finite_and_keeps_the_actor_failure(self):
+        report, lab = self.partial_wallet_report()
+        report.update(schema=2, quiescence=None)
+        report['checks']['quiescence'] = False
+        lab['wallet_tour']['checks'] = dict(report['checks'])
+        value = inspect.project_wallet_tour(report, lab, 'a'*40, 123, 'b'*40, 'c'*64)
+        self.assertIsNone(value['quiescence'])
+        report['quiescence'] = dict(schema=1, scope='owned_lab_quiescence', chain=321,
+            complete=True, admission_closed=True, original_send_confirmed=True,
+            originals_positive=True, file_operations=2, sdk_publications=1,
+            receive_reads=0, receive_publications=0)
+        report['checks']['quiescence'] = True
+        lab['wallet_tour']['checks'] = dict(report['checks'])
+        value = inspect.project_wallet_tour(report, lab, 'a'*40, 123, 'b'*40, 'c'*64)
+        self.assertEqual(value['quiescence'], report['quiescence'])
+        self.assertFalse(value['artifact_reported_success'])
+        self.assertFalse(value['seed_admitted'])
+        self.assertFalse(value['runtime_started'])
+        report['quiescence']['diagnostic'] = 'synthetic private reply'
+        with self.assertRaises(inspect.Refused):
+            inspect.project_wallet_tour(report, lab, 'a'*40, 123, 'b'*40, 'c'*64)
+
+    def test_legacy_reports_cannot_borrow_or_downgrade_current_quiescence(self):
+        report, lab = self.partial_wallet_report()
+        report['quiescence'] = None
+        with self.assertRaises(inspect.Refused):
+            inspect.project_wallet_tour(report, lab, 'a'*40, 123, 'b'*40, 'c'*64)
+        report['schema'] = 2
+        report['checks']['quiescence'] = False
+        lab['wallet_tour']['checks'] = dict(report['checks'])
+        del report['quiescence']
+        with self.assertRaises(inspect.Refused):
+            inspect.project_wallet_tour(report, lab, 'a'*40, 123, 'b'*40, 'c'*64)
+
     def test_wallet_projection_rejects_cross_manifest_and_source_mismatch(self):
         for change in (dict(manifest_sha256="d" * 64), dict(visited_pages=8),
                        dict(captured_pages=True), dict(success=True)):

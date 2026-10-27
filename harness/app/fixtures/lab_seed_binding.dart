@@ -742,4 +742,31 @@ final class ProfileSeedJournal implements SeedJournal {
     accepted(recipe, hash);
     _write(recipe, 'confirmed', hash: hash);
   }
+
+  /// This original live review must already have its exact confirmation.
+  /// Records alone never supply the in-memory sender or publication owner.
+  void requireLabSendConfirmed(String hash) {
+    if (_labSendReview == null || !seedHash(hash)) {
+      throw const SeedRefused('original-transfer-review-required');
+    }
+    for (final String state in <String>['attempt', 'accepted', 'confirmed']) {
+      final Map<String, dynamic>? value = _read(labSendRecipeId, state);
+      final Set<String> keys = <String>{
+        'recipe', 'chain', 'state', 'review', if (state != 'attempt') 'hash',
+      };
+      if (value == null || value.length != keys.length ||
+          !value.keys.toSet().containsAll(keys) ||
+          !_sameReview(value['review'], _labSendReview) ||
+          state != 'attempt' && value['hash'] != hash) {
+        throw const SeedRefused('seed-journal-held');
+      }
+    }
+    for (final String recipe in seedRecipeIds) {
+      for (final String state in <String>['attempt', 'accepted', 'confirmed']) {
+        if (_read(recipe, state) != null) {
+          throw const SeedRefused('earlier-seed-attempt-held');
+        }
+      }
+    }
+  }
 }

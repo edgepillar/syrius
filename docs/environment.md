@@ -6976,3 +6976,50 @@ process exit alone do not prove that an uncertain original was never sent.
 No actual native checkpoint use, restored ownership or F06 seed effect is
 claimed here. Earlier UNKNOWN originals remain held and the independently
 positive native61 request keeps its original source binding.
+
+### Copied metadata qualification and original publication quiescence
+
+At `2585d79241be2b70e28f1c95b6ac8392484d0231`, tree
+`1ea862e2f1f518a84199ac07e890d825a360a7c9`,
+[40582231419](https://github.com/edgepillar/syrius/actions/runs/40582231419),
+attempt one, job 122464366489, qualifies all 228 Dart cases, 609 Python
+cases/three original platform skips and zero-finding selected analysis. The
+original Dart exits zero in 56.782 seconds with 111925 complete, unforced bytes,
+SHA-256 `3c47a473916a769bfee665a9e77a5983395c1b063eef27913800a02f9680fb97`.
+The admitted suites include eighteen Python filesystem and four real Hive
+filesystem fixtures. No native wallet or node is built or run in that lane.
+
+The preceding source `66bf0f5211feb09a970c224876311c14a74d97ce`, run
+[40580786634](https://github.com/edgepillar/syrius/actions/runs/40580786634),
+retains its 227 Dart passes and one failed exact-string expectation. A valid
+mixed Windows root was compared with an unnormalized expected path. Only that
+expectation was normalized; the component, suite size and strict gates remain.
+
+The next source connects an original quiescence check to the real harnessed
+wallet after its confirmed UI send and completed tour. It retains the exact
+SDK result object and its original file and SDK publication record. File,
+SDK and shared receive-worker admission close before the first wait. Every
+original must settle positively; a settled SDK error or failed file release
+still refuses. Successful file-only initialization work may return void.
+
+The SDK result must remain the confirmed one-ZNN index-one send. Other
+publications must be identical accepted receive results from that worker,
+with their original inbound hashes and members. An accepted inbound hold is
+preserved; it is not confused with a still active drain. Unknown reads, holds,
+changed owners or journals and unaccounted publications prevent a checkpoint.
+The original three journal records are checked against the captured immutable
+review and exact confirmed hash, with no rewrite. F06 records must be absent.
+
+The controller's schema-two receipt contains only finite counts and positive
+flags. Its private handoff is created while the authenticated original entry
+is live and stays bound to that same process. It cannot be reconstructed from
+a saved report. Legacy schema-one observations retain their source contracts
+and cannot borrow the new receipt. A later closure error remains a failure.
+
+All 86 selected Python memory controls pass without local filesystem scratch,
+SDK or native execution. Thirteen new Python and eighteen new Dart cases expand
+the gate to exactly 622 Python and 246 Dart cases. Three new journal filesystem
+cases run only in the hosted suite. Current hosted tests and actual native
+quiescence remain pending. Copied Hive coordinator integration, ordinary
+restored app/node ownership, all six real F06 effects and full visual
+acceptance remain open. Earlier UNKNOWN originals keep their original status.

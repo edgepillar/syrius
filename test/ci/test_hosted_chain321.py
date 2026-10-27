@@ -29,7 +29,8 @@ class ClosedCheckpointAuthorityTests(unittest.TestCase):
         runtime.stop_attempted, runtime.stop_order = True, list(lab.ROLES)
         runtime.originals = [mock.Mock(process=mock.Mock(poll=mock.Mock(return_value=0)),
             receipt=dict(exit_code=0, output_complete=True, forced=False)) for _ in lab.ROLES]
-        return runtime, mock.Mock(closed=mock.Mock(return_value=True))
+        return runtime, mock.Mock(closed=mock.Mock(return_value=True),
+                                  quiescent=mock.Mock(return_value=True))
 
     def test_a_saved_public_report_never_authorizes_a_checkpoint(self):
         wallet = mock.Mock()
@@ -71,6 +72,12 @@ class ClosedCheckpointAuthorityTests(unittest.TestCase):
         runtime, wallet = self.originals()
         runtime.originals[-1].process.poll.side_effect = OSError('synthetic private diagnostic')
         self.assertFalse(lab.checkpoint_closed(runtime, wallet))
+
+    def test_normal_original_exits_cannot_replace_positive_quiescence(self):
+        for value in (False, None, 1, {'complete': True}):
+            runtime, wallet = self.originals()
+            wallet.quiescent.return_value = value
+            self.assertFalse(lab.checkpoint_closed(runtime, wallet))
 
 
 class AssetGenerationTests(unittest.TestCase):

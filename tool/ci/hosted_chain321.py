@@ -809,6 +809,7 @@ def checkpoint_closed(runtime, wallet):
         return (isinstance(runtime, Native) and runtime.stop_attempted is True
             and runtime.stop_order == list(ROLES) and set(runtime.configs) == set(ROLES)
             and len(runtime.originals) == len(ROLES) and wallet.closed() is True
+            and wallet.quiescent() is True
             and all(type(item.process.poll()) is int and item.process.poll() == 0
                 and type(item.receipt) is dict
                 and type(item.receipt.get('exit_code')) is int and item.receipt['exit_code'] == 0

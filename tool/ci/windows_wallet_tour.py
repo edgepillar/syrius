@@ -29,6 +29,7 @@ CHECKS = ('environment', 'source', 'unused_destinations', 'job_owned', 'entry_ga
           'application_owned', 'lab_revalidated', 'input_released', 'tour_complete',
           'captures', 'close_ack', 'application_exit', 'entry_exit', 'output_complete',
           'source_unchanged', 'auxiliary_cleanup')
+CURRENT_CHECKS = (*CHECKS, 'quiescence')
 CODES = frozenset(('ENVIRONMENT_REFUSED', 'SOURCE_REFUSED', 'PROFILE_REFUSED',
     'STORAGE_REFUSED', 'JOB_REFUSED', 'PROCESS_REFUSED', 'ENTRY_REFUSED',
     'ENTRY_FAILED', 'TOUR_REFUSED', 'CAPTURE_REFUSED', 'FIXTURE_REFUSED',
@@ -36,7 +37,7 @@ CODES = frozenset(('ENVIRONMENT_REFUSED', 'SOURCE_REFUSED', 'PROFILE_REFUSED',
     'EXISTING_PROCESS', 'PREFLIGHT_FAILED', 'PREFLIGHT_TIMEOUT', 'PREFLIGHT_OUTPUT_REFUSED',
     'APPLICATION_EXIT_UNCONFIRMED', 'PNG_INVALID', 'TOOL_REFUSED',
     'TOTAL_DEADLINE', 'HELPER_IMAGE_REFUSED', 'HELPER_IDENTITY_REFUSED',
-    'HELPER_CLOSE_UNCONFIRMED', 'INTERNAL_ERROR'))
+    'HELPER_CLOSE_UNCONFIRMED', 'QUIESCENCE_REFUSED', 'INTERNAL_ERROR'))
 WORK_CAP = 4 * 1024**3
 FIXTURE_FLOOR = 2 * 1024**3
 ENTRY_LIMIT = 100000
@@ -182,15 +183,43 @@ def tour_complete(value):
                     for page in value['visited']))
 
 
+def quiescence_receipt(value):
+    """A finite projection cannot supply the original process or wallet owner."""
+    need(type(value) is dict and set(value) == {'schema', 'scope', 'chain', 'complete',
+         'admission_closed', 'original_send_confirmed', 'originals_positive',
+         'file_operations', 'sdk_publications', 'receive_reads', 'receive_publications'}
+         and type(value['schema']) is int and value['schema'] == 1
+         and value['scope'] == 'owned_lab_quiescence'
+         and type(value['chain']) is int and value['chain'] == 321
+         and all(value[key] is True for key in ('complete', 'admission_closed',
+             'original_send_confirmed', 'originals_positive'))
+         and all(type(value[key]) is int and lower <= value[key] <= upper
+             for key, lower, upper in (('file_operations', 1, 512),
+                 ('sdk_publications', 1, 128), ('receive_reads', 0, 256),
+                 ('receive_publications', 0, 127)))
+         and value['sdk_publications'] == value['receive_publications'] + 1
+         and value['receive_reads'] >= value['receive_publications']
+         and value['file_operations'] >= value['sdk_publications'], 'QUIESCENCE_REFUSED')
+    return value
+
+
 def completed(report):
     """A good page receipt cannot heal uncertain original exits or cleanup."""
     try:
+        version = report.get('schema', 1)
+        if type(version) is not int or version not in (1, 2):
+            return False
+        if version == 2:
+            quiescence_receipt(report.get('quiescence'))
+        elif 'quiescence' in report:
+            return False
         if 'address_selection' in report:
             address_selection_receipt(report['address_selection'])
         if 'lab_send' in report:
             lab_send_receipt(report['lab_send'])
         checks = report['checks']
-        if (type(checks) is not dict or set(checks) != set(CHECKS)
+        expected = CHECKS if version == 1 else CURRENT_CHECKS
+        if (type(checks) is not dict or set(checks) != set(expected)
                 or not all(value is True for value in checks.values())
                 or report['errors'] != [] or report['required_actor_forced_cleanup'] is not False
                 or any(type(report.get(key)) is not int or report[key] != 0
@@ -370,13 +399,29 @@ def sample_workspace(paths, *, receipt=None, expected_profile=None):
     return sample['logical_bytes']
 
 
+class _QuiescenceHandoff:
+    """Created from one live authenticated reply, never loaded from a report."""
+
+    def __init__(self, entry, receipt):
+        need(callable(getattr(entry, 'poll', None)) and entry.poll() is None,
+             'QUIESCENCE_REFUSED')
+        self._entry = entry
+        self._facts = tuple(sorted(quiescence_receipt(receipt).items()))
+
+    def closed_for(self, entry):
+        return (entry is self._entry and type(entry.poll()) is int and entry.poll() == 0
+                and quiescence_receipt(dict(self._facts)) is not None)
+
+
 class _ClosedWallet:
     """An in-memory handoff created only by the original successful close path."""
 
-    def __init__(self, home, original, identity, password, paths, tool_identity):
+    def __init__(self, home, original, identity, password, paths, tool_identity,
+                 quiescence=None):
         self.home, self._entry, self._identity = home, original, identity
         self._password, self._paths, self._tool_identity = password, paths, tool_identity
         self._checkpoint_claimed = False
+        self._quiescence = quiescence
 
     def __repr__(self):
         return '<closed isolated hosted wallet>'
@@ -392,8 +437,16 @@ class _ClosedWallet:
             expected_profile=self._tool_identity)['logical_bytes']
 
     def claim_checkpoint(self):
-        need(not self._checkpoint_claimed and self.closed(), 'CLOSE_UNCONFIRMED')
+        need(not self._checkpoint_claimed and self.closed() and self.quiescent(),
+             'CLOSE_UNCONFIRMED')
         self._checkpoint_claimed = True
+
+    def quiescent(self):
+        try:
+            return (isinstance(self._quiescence, _QuiescenceHandoff)
+                    and self._quiescence.closed_for(self._entry))
+        except (Exception, KeyboardInterrupt):
+            return False
 
     def copied_home_bytes(self, home):
         need(self.closed() and home.parent == self.home.parent and home != self.home
@@ -403,10 +456,10 @@ class _ClosedWallet:
 
 
 def run(repo, parent, runtime, lab_root, observation, revalidate, *, retain_closed=None):
-    report = dict(schema=1, scope='owned_chain321_wallet_tour', success=False,
+    report = dict(schema=2, scope='owned_chain321_wallet_tour', success=False,
         wallet_qualified=False, seed_admitted=False, visual_matches=0,
-        checks=dict.fromkeys(CHECKS, False), errors=[], captures=[], tour=None,
-        address_selection=None, lab_send=None,
+        checks=dict.fromkeys(CURRENT_CHECKS, False), errors=[], captures=[], tour=None,
+        address_selection=None, lab_send=None, quiescence=None,
         forced_cleanup=False, required_actor_forced_cleanup=False,
         auxiliary_cleanup=None, phase='admission', min_free_bytes=FIXTURE_FLOOR,
         workspace_cap_bytes=WORK_CAP,
@@ -416,6 +469,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, retain_clos
         cleanup='runner_lifecycle_not_qualified')
     original = lines = job = output = transport = None
     token = password = wallet_identity = None
+    quiescence = None
     close_attempted = False
     try:
         parent, source = debug.entry.require_ci(parent, None, platform=os.name)
@@ -587,6 +641,17 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, retain_clos
             report['captures'].append(dict(page=page, bytes=len(raw),
                 sha256=hashlib.sha256(raw).hexdigest(), width=1280, height=780))
         report['checks']['captures'] = True
+        report['phase'] = 'publication_quiescence'
+        runtime.healthy()
+        need(original.poll() is None, 'ENTRY_FAILED')
+        reply = transport.exchange(dict(cmd='lab-quiesce', profile=name), token, 30)
+        value = json.loads(reply.body)
+        need(reply.status == 200 and type(value) is dict and set(value) == {'ok', 'receipt'}
+             and value['ok'] is True, 'QUIESCENCE_REFUSED')
+        report['quiescence'] = quiescence_receipt(value['receipt'])
+        quiescence = _QuiescenceHandoff(original, report['quiescence'])
+        runtime.healthy()
+        report['checks']['quiescence'] = True
         report['phase'] = 'ordinary_close'
         close_attempted = True
         debug.request_close(transport, token)
@@ -657,7 +722,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, retain_clos
         # The password stays only in this controller's owned runtime memory.
         need(callable(retain_closed) and password is not None, 'INPUT_REFUSED')
         handoff = _ClosedWallet(home, original, wallet_identity, password,
-            (home, app, native_build, tool_profile), profile_identity)
-        need(handoff.closed(), 'CLOSE_UNCONFIRMED')
+            (home, app, native_build, tool_profile), profile_identity, quiescence)
+        need(handoff.closed() and handoff.quiescent(), 'CLOSE_UNCONFIRMED')
         retain_closed(handoff)
     return report

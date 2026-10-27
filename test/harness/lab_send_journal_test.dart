@@ -161,4 +161,56 @@ void main() {
     expect(() => journal.claim(labSendRecipeId), throwsA(isA<SeedRefused>()));
     expect(record('attempt').readAsStringSync(), original);
   });
+
+  test('the original confirmed review can be checked without journal writes',
+      () {
+    final String hash = fixtureHash(9);
+    journal
+      ..claim(labSendRecipeId)
+      ..accepted(labSendRecipeId, hash)
+      ..confirmed(labSendRecipeId, hash);
+    final Map<String, String> before = <String, String>{
+      for (final String state in <String>['attempt', 'accepted', 'confirmed'])
+        state: record(state).readAsStringSync(),
+    };
+    journal.requireLabSendConfirmed(hash);
+    for (final String state in before.keys) {
+      expect(record(state).readAsStringSync(), before[state]);
+    }
+    expect(() => ProfileSeedJournal(home.path).requireLabSendConfirmed(hash),
+      throwsA(isA<SeedRefused>()));
+  });
+
+  test('a missing, different or extended confirmation stays held', () {
+    final String hash = fixtureHash(9);
+    journal.claim(labSendRecipeId);
+    expect(() => journal.requireLabSendConfirmed(hash),
+      throwsA(isA<SeedRefused>()));
+    journal.accepted(labSendRecipeId, hash);
+    expect(() => journal.requireLabSendConfirmed(hash),
+      throwsA(isA<SeedRefused>()));
+    journal.confirmed(labSendRecipeId, hash);
+    expect(() => journal.requireLabSendConfirmed(fixtureHash(10)),
+      throwsA(isA<SeedRefused>()));
+    final Map<String, dynamic> value =
+        jsonDecode(record('confirmed').readAsStringSync())
+            as Map<String, dynamic>;
+    value['unexpected'] = true;
+    record('confirmed').writeAsStringSync(jsonEncode(value), flush: true);
+    expect(() => journal.requireLabSendConfirmed(hash),
+      throwsA(isA<SeedRefused>()));
+  });
+
+  test('an existing F06 attempt cannot become the original-send baseline', () {
+    final String hash = fixtureHash(9);
+    journal
+      ..claim(labSendRecipeId)
+      ..accepted(labSendRecipeId, hash)
+      ..confirmed(labSendRecipeId, hash);
+    ProfileSeedJournal(home.path).claim('fuse');
+    expect(() => journal.requireLabSendConfirmed(hash),
+      throwsA(isA<SeedRefused>()));
+    expect(File('${home.path}/seed-fuse-attempt.json').existsSync(), isTrue);
+    expect(record('confirmed').existsSync(), isTrue);
+  });
 }

@@ -75,9 +75,12 @@ class AdmissionTests(unittest.TestCase):
 
 class ClosedHandoffTests(unittest.TestCase):
     def handoff(self, exit_code=0):
+        entry = mock.Mock(poll=mock.Mock(return_value=None))
+        witness = tour._QuiescenceHandoff(entry, quiescence())
+        entry.poll.return_value = exit_code
         return tour._ClosedWallet(Path('/fixture/profile'),
-            mock.Mock(poll=mock.Mock(return_value=exit_code)), (1, 2),
-            'synthetic-password', tuple(Path('/fixture') / str(i) for i in range(4)), (3, 4))
+            entry, (1, 2), 'synthetic-password',
+            tuple(Path('/fixture') / str(i) for i in range(4)), (3, 4), witness)
 
     def test_only_the_original_normal_entry_exit_keeps_the_handoff_closed(self):
         with mock.patch.object(tour, 'directory_identity', return_value=(1, 2)), \
@@ -702,6 +705,104 @@ class CompletionTests(unittest.TestCase):
             elif change == 'dimensions':report['captures'][0]['width'] = 1200
             else:report['captures'][0]['bytes'] = True
             with self.subTest(change=change):self.assertFalse(tour.completed(report))
+
+
+def quiescence():
+    return dict(schema=1, scope='owned_lab_quiescence', chain=321, complete=True,
+        admission_closed=True, original_send_confirmed=True, originals_positive=True,
+        file_operations=3, sdk_publications=2, receive_reads=2, receive_publications=1)
+
+
+class QuiescenceTests(unittest.TestCase):
+    def current_report(self):
+        value = CompletionTests().report()
+        value.update(schema=2, quiescence=quiescence(),
+                     checks=dict.fromkeys(tour.CURRENT_CHECKS, True))
+        return value
+
+    def test_only_the_exact_finite_positive_quiescence_shape_is_accepted(self):
+        value = quiescence()
+        self.assertIs(tour.quiescence_receipt(value), value)
+        for field in ('hash', 'walletPath', 'members', 'diagnostic'):
+            with self.subTest(field=field), self.assertRaises(tour.Refused):
+                tour.quiescence_receipt(dict(value, **{field: 'private'}))
+
+    def test_unconfirmed_and_coerced_quiescence_fields_are_refused(self):
+        value = quiescence()
+        for field, wrong in (('schema', True), ('chain', 321.0), ('chain', 1),
+                ('complete', False), ('admission_closed', 1),
+                ('original_send_confirmed', False), ('originals_positive', None),
+                ('file_operations', True), ('sdk_publications', 0),
+                ('receive_reads', 257), ('receive_publications', 128)):
+            with self.subTest(field=field, wrong=wrong), self.assertRaises(tour.Refused):
+                tour.quiescence_receipt(dict(value, **{field: wrong}))
+
+    def test_counts_cannot_claim_missing_originals_or_receive_reads(self):
+        value = quiescence()
+        for change in (dict(file_operations=1), dict(sdk_publications=3),
+                       dict(receive_reads=0), dict(receive_publications=0)):
+            with self.subTest(change=change), self.assertRaises(tour.Refused):
+                tour.quiescence_receipt(dict(value, **change))
+
+    def test_a_saved_mapping_or_already_exited_process_cannot_create_a_witness(self):
+        for entry in ({'pid': 1, 'closed': True},
+                      mock.Mock(poll=mock.Mock(return_value=0)),
+                      mock.Mock(poll=mock.Mock(return_value=False))):
+            with self.subTest(entry_type=type(entry).__name__), self.assertRaises(tour.Refused):
+                tour._QuiescenceHandoff(entry, quiescence())
+
+    def test_the_live_witness_stays_bound_to_its_identical_original_entry(self):
+        entry = mock.Mock(poll=mock.Mock(return_value=None))
+        witness = tour._QuiescenceHandoff(entry, quiescence())
+        self.assertFalse(witness.closed_for(entry))
+        entry.poll.return_value = 0
+        self.assertTrue(witness.closed_for(entry))
+        self.assertFalse(witness.closed_for(mock.Mock(poll=mock.Mock(return_value=0))))
+        for value in (None, 1, False):
+            entry.poll.return_value = value
+            self.assertFalse(witness.closed_for(entry))
+
+    def test_a_public_dictionary_mutation_cannot_replace_the_retained_reply(self):
+        entry = mock.Mock(poll=mock.Mock(return_value=None))
+        value = quiescence()
+        witness = tour._QuiescenceHandoff(entry, value)
+        value['originals_positive'] = False
+        entry.poll.return_value = 0
+        self.assertTrue(witness.closed_for(entry))
+
+    def test_a_closed_wallet_without_the_live_handoff_cannot_claim_a_checkpoint(self):
+        for evidence in (None, quiescence()):
+            handoff = ClosedHandoffTests().handoff()
+            handoff._quiescence = evidence
+            with mock.patch.object(handoff, 'closed', return_value=True):
+                self.assertFalse(handoff.quiescent())
+                with self.assertRaises(tour.Refused):
+                    handoff.claim_checkpoint()
+                self.assertFalse(handoff._checkpoint_claimed)
+
+    def test_current_completion_requires_its_positive_quiescence_and_check(self):
+        report = self.current_report()
+        self.assertTrue(tour.completed(report))
+        for value in (None, {}, dict(quiescence(), complete=False)):
+            with self.subTest(value=value):
+                self.assertFalse(tour.completed(dict(report, quiescence=value)))
+        del report['quiescence']
+        self.assertFalse(tour.completed(report))
+        report = self.current_report()
+        report['checks'].pop('quiescence')
+        self.assertFalse(tour.completed(report))
+
+    def test_legacy_completion_cannot_borrow_the_new_receipt(self):
+        original = CompletionTests().report()
+        self.assertTrue(tour.completed(original))
+        self.assertFalse(tour.completed(dict(original, schema=1, quiescence=quiescence())))
+        self.assertFalse(tour.completed(dict(original, schema=True)))
+
+    def test_positive_quiescence_does_not_heal_a_failed_or_forced_actor(self):
+        for change in (dict(errors=['ENTRY_FAILED']), dict(required_actor_forced_cleanup=True),
+                       dict(application_exit=None), dict(entry_exit=1)):
+            with self.subTest(change=change):
+                self.assertFalse(tour.completed(dict(self.current_report(), **change)))
 
 
 if __name__ == '__main__':

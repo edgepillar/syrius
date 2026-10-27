@@ -34,9 +34,19 @@ Canonical restore and path-binding components additionally preserve every
 original config/keyfile and all non-path values. A standalone plain-Dart Hive
 component binds copied key zero only, refusing backend adoption, repair,
 foreign paths, extra entries and lost closure. Coordinator integration and
-ordinary restored app/node opening remain unqualified. Publication/receive
-quiescence and exact original outcomes must be established before that path
-can admit seed; a settled Future or normal process exit is insufficient.
+ordinary restored app/node opening remain unqualified. The current source
+adds a one-attempt `lab-quiesce` command after the original confirmed UI send
+and tour. It closes admission on the identical file, SDK and receive worker,
+then awaits their original operations. SDK/read/release errors, an unaccounted
+publication or an unknown inbound hold refuse the checkpoint. Accepted receive
+holds remain intact. The exact positive send, result object and confirmation
+journal must still agree. A settled Future or normal exit is insufficient.
+
+The schema-two tour controller binds the finite quiescence reply to its live
+original entry before closing it. Only that same normally exited entry can
+supply the in-memory checkpoint handoff. Saved reports remain observations.
+Current native quiescence, checkpoint use and restored ownership require fresh
+qualification; source and synthetic cases do not admit any seed action.
 
 The mounted runtime/storage admission and the profile's sole process ownership
 must be qualified separately. The source writes at most three small JSON
