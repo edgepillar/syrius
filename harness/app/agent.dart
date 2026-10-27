@@ -63,6 +63,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/shell/tabs.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart'
     show WebsocketStatus, WsClient, getChainIdentifier, znnZts;
 
+import '../lab_send_failure.dart';
 import '../seed/seed_recipe.dart' show requireSeedTokenPreparation;
 import '../wallet_address_context.dart';
 import '../wallet_recipe_failure.dart' show walletRecipeFailureCodes;
@@ -1050,6 +1051,14 @@ class HarnessAgent {
   }
 
   Future<Map<String, Object?>> _labSend(Map<String, dynamic> command) async {
+    String phase = 'admission';
+    Map<String, Object?>? detail(String reason) {
+      final Map<String, String>? diagnostic = labSendPublicDiagnostic(
+        <String, String>{'phase': phase, 'reason': reason},
+      );
+      return diagnostic == null ? null :
+          <String, Object?>{'labSend': diagnostic};
+    }
     try {
       if (command.length != 4 ||
           !command.keys.toSet().containsAll(
@@ -1060,9 +1069,11 @@ class HarnessAgent {
           _seeds.fixtureName != null) {
         throw const SeedRefused('fixed-original-lab-send-required');
       }
+      phase = 'profile';
       final LabSeedBinding source = LabSeedBinding.capture(
         profile: command['profile'] as String, ws: seedWsOrigin,
         http: seedHttpOrigin, booted: booted,
+        observePhase: (String value) => phase = value,
       );
       _labSendReserved = true;
       void sourceCurrent() {
@@ -1071,7 +1082,9 @@ class HarnessAgent {
         }
       }
       // Before any UI input, a prior uncertain purpose must remain held.
+      phase = 'journal';
       ProfileSeedJournal(source.home).requireAvailable(labSendRecipeId);
+      phase = 'transfer';
       await _labTapKey('nav_transfer', sourceCurrent);
       void pageCurrent() {
         sourceCurrent();
@@ -1079,6 +1092,7 @@ class HarnessAgent {
           throw const SeedRefused('original-lab-send-context-changed');
         }
       }
+      phase = 'form';
       final _Node field = await _labControl(
         'send_recipient_field', 'field', pageCurrent,
       );
@@ -1093,6 +1107,7 @@ class HarnessAgent {
       if (form == null || !app.sl.isRegistered<AutoReceiveTxWorker>()) {
         throw const SeedRefused('original-send-form-required');
       }
+      phase = 'transport';
       final ReceiveOrigin? origin = app.sl<AutoReceiveTxWorker>().captureOrigin(
         sourceIsCurrent: () => source.isCurrent &&
             kCurrentPage == Tabs.transfer && _seeds.fixtureName == null,
@@ -1103,10 +1118,12 @@ class HarnessAgent {
           (origin.stats.client as WsClient).url != seedWsOrigin) {
         throw const SeedRefused('original-lab-send-transport-required');
       }
+      phase = 'form';
       final LabSendUiBinding binding = LabSendUiBinding.capture(
         form: form!, source: source, origin: origin,
       );
       final String owner = source.environment.owner;
+      phase = 'sender';
       if (binding.owner.draftSender != owner) {
         await _labTapKey('transfer_sender', binding.requireForm);
         final List<_Node> choices = _snapshot().where((_Node node) {
@@ -1127,6 +1144,7 @@ class HarnessAgent {
         await _tap(<String, dynamic>{'ref': choice.ref},
           requireAdmission: () => _labSame(choice, binding.requireForm));
       }
+      phase = 'token';
       if (binding.owner.draftToken != znnZts.toString()) {
         await _tap(<String, dynamic>{'key': 'send_token_field'},
           requireAdmission: binding.requireForm);
@@ -1134,37 +1152,47 @@ class HarnessAgent {
           'text': 'ZNN', 'kind': 'button', 'exact': true,
         }, requireAdmission: binding.requireForm);
       }
+      phase = 'recipient';
       await _labInput('send_recipient_field', source.environment.members[0],
         binding.requireForm);
+      phase = 'amount';
       await _labInput('send_amount_field', '1', binding.requireForm);
+      phase = 'review_open';
       await _labTapKey('send_submit_button', binding.requireForm);
       final _Node accept = await _labControl(
         'send_confirmation_accept', 'button', binding.requireForm,
       );
+      phase = 'review';
       final LabSendUiReview review = binding.captureReview(
         accept.element, center: accept.center,
       );
       // Retain the identical witness under uncertainty.
       _labSendReview = review;
+      phase = 'journal';
       final ProfileSeedJournal journal = ProfileSeedJournal.forLabSend(
         source.home, environment: source.environment, intent: review.intent,
       );
       final LabSendGuard guard = LabSendGuard(source: source, journal: journal);
       _labSendGuard = guard;
+      phase = 'preflight';
       await guard.publish(original: review.witness,
         requireOriginalReady: () => _requireLabReview(review),
-        tapOnce: (void Function() admission) =>
-            _acceptLabReview(review, admission));
+        tapOnce: (void Function() admission) async {
+          phase = 'accept';
+          await _acceptLabReview(review, admission);
+          phase = 'confirmation';
+        });
       return <String, Object?>{'receipt': <String, Object>{
         'schema': 1, 'scope': 'original_lab_ui_send', 'chain': 321,
         'from_index': 1, 'to_index': 0, 'amount': '100000000', 'token': 'ZNN',
         'original_request': true, 'confirmed': true,
       }};
     } on SeedRefused catch (error) {
-      throw HarnessError(error.code);
+      throw HarnessError(error.code, detail(error.code));
     } on Object {
       // Neither a raw widget reply nor a private transport error is exported.
-      throw HarnessError('original-lab-send-ui-or-read-failed');
+      throw HarnessError('original-lab-send-ui-or-read-failed',
+        detail('original-lab-send-ui-or-read-failed'));
     }
   }
 

@@ -459,6 +459,8 @@ def analyze(parent, repo):
         'harness/app/fixtures/lab_send_policy.dart',
         'harness/app/fixtures/lab_send_ui_binding.dart',
         'test/harness/lab_send_ui_binding_test.dart',
+        'harness/lab_send_failure.dart',
+        'test/harness/lab_send_failure_test.dart',
         'lib/rearchitecture/features/send/widgets/send_populated.dart',
         'test/harness/lab_send_policy_test.dart',
         'test/harness/lab_send_journal_test.dart',
@@ -512,6 +514,8 @@ def analyze(parent, repo):
                                         else 'lab_send_policy' if relative.endswith('/harness/app/fixtures/lab_send_policy.dart')
                                         else 'lab_send_ui_binding' if relative.endswith('/harness/app/fixtures/lab_send_ui_binding.dart')
                                         else 'lab_send_ui_binding_test' if relative.endswith('/test/harness/lab_send_ui_binding_test.dart')
+                                        else 'lab_send_failure' if relative.endswith('/harness/lab_send_failure.dart')
+                                        else 'lab_send_failure_test' if relative.endswith('/test/harness/lab_send_failure_test.dart')
                                         else 'send_form' if relative.endswith('/lib/rearchitecture/features/send/widgets/send_populated.dart')
                                         else 'lab_send_policy_test' if relative.endswith('/test/harness/lab_send_policy_test.dart')
                                         else 'lab_send_journal_test' if relative.endswith('/test/harness/lab_send_journal_test.dart')

@@ -37,10 +37,12 @@ final class LabSeedBinding implements SeedSource {
     required String http,
     required bool booted,
     String? counterparty,
+    void Function(String)? observePhase,
   }) {
     if (ws != seedWsOrigin || http != seedHttpOrigin) {
       throw const SeedRefused('explicit-lab-origins-required');
     }
+    observePhase?.call('profile_owner');
     final String? owner = kSelectedAddress;
     final WalletActionContext? context = owner == null
         ? null
@@ -50,6 +52,7 @@ final class LabSeedBinding implements SeedSource {
       throw const SeedRefused('unlocked-wallet-required');
     }
     final Zenon sdk = context.client;
+    observePhase?.call('profile_apis');
     final LedgerApi originalLedger = sdk.ledger;
     final StakeApi originalStake = sdk.embedded.stake;
     final PlasmaApi originalPlasma = sdk.embedded.plasma;
@@ -64,6 +67,7 @@ final class LabSeedBinding implements SeedSource {
       originalHtlc.client,
       originalAccelerator.client,
     ];
+    observePhase?.call('profile_transports');
     if (transports.any(
       (Client client) => client is! WsClient || client.url != seedWsOrigin,
     )) {
@@ -76,6 +80,7 @@ final class LabSeedBinding implements SeedSource {
     final HtlcApi htlc = HtlcApi()..setClient(transports[4]);
     final AcceleratorApi accelerator = AcceleratorApi()
       ..setClient(transports[5]);
+    observePhase?.call('profile_paths');
     final Map<String, String> env = <String, String>{
       for (final MapEntry<String, String> entry in Platform.environment.entries)
         entry.key.toUpperCase(): entry.value,
@@ -83,13 +88,22 @@ final class LabSeedBinding implements SeedSource {
     final String? home = env['SYRIUS_HARNESS_HOME'];
     final String? wallet = kWalletPath;
     final List<String?> rawMembers = List<String?>.of(kDefaultAddressList);
-    if (home == null ||
-        wallet == null ||
-        rawMembers.any((String? value) => value == null) ||
-        !_isolated(profile, home, env) ||
-        !path.isWithin(home, wallet)) {
+    if (home == null || wallet == null) {
       throw const SeedRefused('owned-isolated-profile-required');
     }
+    observePhase?.call('profile_members');
+    if (rawMembers.any((String? value) => value == null)) {
+      throw const SeedRefused('owned-isolated-profile-required');
+    }
+    observePhase?.call('profile_layout');
+    if (!_isolated(profile, home, env)) {
+      throw const SeedRefused('owned-isolated-profile-required');
+    }
+    observePhase?.call('profile_wallet');
+    if (!path.isWithin(home, wallet)) {
+      throw const SeedRefused('owned-isolated-profile-required');
+    }
+    observePhase?.call('profile_terms');
     final SeedEnvironment environment = SeedEnvironment(
       profile: profile,
       isolated: true,

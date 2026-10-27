@@ -364,7 +364,7 @@ activate a spork there as a test.
 The manual Public Contribution Qualification workflow has a default-off
 `harness_tests_only` input. Select it with the other execution lanes disabled
 to run the isolated controller suite, locked dependency restoration, selected
-analysis and the 167-case harness gate on a fresh Windows runner. It uses one
+analysis and the 173-case harness gate on a fresh Windows runner. It uses one
 pinned Flutter SDK and does not build a native wallet or allocate lab nodes.
 Before SDK allocation, it also observes the unchanged original in-memory asset
 byte controls through a bounded command wrapper. Only runtime version, actual
@@ -394,3 +394,9 @@ retry or custom transfer terms are accepted. The ordinary app has no harness
 command. This command does not create an F06 checkpoint or qualify visuals.
 Its source and new UI regressions need hosted qualification before native
 original-send acceptance can be claimed.
+
+Original-send failures expose only validated source-defined phase/reason
+labels. Native CI rejects unknown or extra diagnostic fields and never emits
+raw HTTP/SDK errors, paths, addresses or hashes. A failure diagnostic is not a
+send receipt or original actor-closure proof. Earlier null-code failures keep
+their original unknown scope.

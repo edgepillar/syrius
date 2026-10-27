@@ -22,6 +22,7 @@ class DartFailureTests(unittest.TestCase):
                      'lab_transfer_witness_test.dart', 'lab_transfer_witness.dart',
                      'lab_send_policy_test.dart', 'lab_send_journal_test.dart',
                      'lab_send_ui_binding.dart', 'lab_send_ui_binding_test.dart',
+                     'lab_send_failure.dart', 'lab_send_failure_test.dart',
                      'send_populated.dart',
                      'lab_send_policy.dart', 'seed_policy_test.dart', 'seed_policy.dart',
                      'lab_seed_binding.dart',

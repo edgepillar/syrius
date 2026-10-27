@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import '../lab_send_failure.dart';
 import '../wallet_recipe_failure.dart' show walletRecipePublicDiagnostic;
 import 'build_output.dart';
 import 'harness.dart' as cli;
@@ -114,10 +115,14 @@ Future<void> main() async {
         .selectLabAddress();
     await marker('SYRIUS_LAB_ADDRESS:${jsonEncode(selection)}');
     stage = 'lab_send';
-    final Map<String, dynamic> sent = await cli.call(instance, <String, Object>{
+    final Map<String, dynamic> sent = await instance.send(<String, Object>{
       'cmd': 'lab-send', 'profile': name,
       'ws': 'ws://127.0.0.1:45998', 'http': 'http://127.0.0.1:45997',
     });
+    if (sent['ok'] != true) {
+      final Object? detail = sent['detail'];
+      throw LabSendDiagnosticFailure(detail is Map ? detail['labSend'] : null);
+    }
     const Map<String, Object> expectedSend = <String, Object>{
       'schema': 1, 'scope': 'original_lab_ui_send', 'chain': 321,
       'from_index': 1, 'to_index': 0, 'amount': '100000000', 'token': 'ZNN',
@@ -129,7 +134,9 @@ Future<void> main() async {
         !expectedSend.entries.every((MapEntry<String, Object> entry) =>
             receipt[entry.key] == entry.value &&
             receipt[entry.key].runtimeType == entry.value.runtimeType)) {
-      throw StateError('original UI send receipt unconfirmed');
+      throw LabSendDiagnosticFailure(<String, String>{
+        'phase': 'receipt', 'reason': 'receipt-shape-refused',
+      });
     }
     await marker('SYRIUS_LAB_SEND:${jsonEncode(expectedSend)}');
     stage = 'tour';
@@ -150,7 +157,9 @@ Future<void> main() async {
               RegExp(r'^wallet-recipe-[a-z-]{1,80}$').hasMatch(error.code)
           ? error.code
           : null;
-      final Map<String, String>? diagnostic = error is WalletRecipeRefused
+      final Map<String, String>? diagnostic = error is LabSendDiagnosticFailure
+          ? error.diagnostic
+          : error is WalletRecipeRefused
           ? walletRecipePublicDiagnostic(error.diagnostic)
           : null;
       stdout.writeln('CI_WALLET_ERROR:${jsonEncode(<String, Object?>{

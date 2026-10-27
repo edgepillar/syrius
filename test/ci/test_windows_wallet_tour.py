@@ -4,6 +4,7 @@ import contextlib
 import copy
 import io
 import json
+import re
 from pathlib import Path, PureWindowsPath
 import stat
 import sys
@@ -102,6 +103,52 @@ class AddressSelectionTests(unittest.TestCase):
             with self.subTest(field=field), self.assertRaises(tour.Refused):
                 tour.entry_failure(dict(value,
                     diagnostic=dict(value['diagnostic'], **{field: 'private'})))
+
+
+class LabSendDiagnosticTests(unittest.TestCase):
+    def test_fixed_labels_are_accepted_only_in_the_original_send_stage(self):
+        for phase in tour.lab_send_diagnostic.PHASES:
+            value = dict(stage='lab_send', code=None, diagnostic=dict(
+                phase=phase, reason='owned-isolated-profile-required'))
+            self.assertIs(tour.entry_failure(value), value)
+            with self.subTest(phase=phase), self.assertRaises(tour.Refused):
+                tour.entry_failure(dict(value, stage='onboarding'))
+        self.assertEqual(tour.entry_failure(dict(stage='lab_send', code=None)),
+                         dict(stage='lab_send', code=None))
+
+    def test_private_unknown_or_coerced_labels_are_refused(self):
+        base = dict(phase='profile', reason='owned-isolated-profile-required')
+        for change in (dict(phase='/fixture/private'), dict(reason='private'),
+                       dict(phase=True), dict(reason=321), dict(hash='private'),
+                       dict(address='private'), dict(confirmed=True), dict(retry=True)):
+            value = dict(stage='lab_send', code=None, diagnostic=dict(base, **change))
+            with self.subTest(change=change), self.assertRaises(tour.Refused):
+                tour.entry_failure(value)
+
+    def test_a_refusal_diagnostic_never_establishes_success_or_closure(self):
+        value = dict(stage='lab_send', code=None,
+            diagnostic=dict(phase='confirmation', reason='original-outcome-unknown'))
+        self.assertIs(tour.entry_failure(value), value)
+        report = CompletionTests().report()
+        report['entry_exit'] = 1
+        report['entry_failure'] = value
+        report['lab_send'] = None
+        self.assertFalse(tour.completed(report))
+        for extra in (dict(hash='private'), dict(code='private-message')):
+            with self.subTest(extra=extra), self.assertRaises(tour.Refused):
+                tour.entry_failure(dict(value, **extra))
+
+    def test_dart_and_controller_closed_vocabularies_are_equal(self):
+        source = (Path(__file__).absolute().parents[2] /
+                  'harness/lab_send_failure.dart').read_text(encoding='utf-8')
+        for name, expected in (('Phases', tour.lab_send_diagnostic.PHASES),
+                               ('Reasons', tour.lab_send_diagnostic.REASONS)):
+            match = re.search(r'const Set<String> labSendFailure' + name +
+                              r' = <String>\{(.*?)\};', source, re.S)
+            self.assertIsNotNone(match)
+            actual = re.findall(r"'([a-z0-9_-]+)'", match[1])
+            self.assertEqual(set(actual), expected)
+            self.assertEqual(len(actual), len(expected))
 
 
 class OriginalSendTests(unittest.TestCase):

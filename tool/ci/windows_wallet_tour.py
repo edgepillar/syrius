@@ -19,6 +19,7 @@ import stat
 import subprocess
 import time
 
+from . import lab_send_diagnostic
 from . import windows_debug_loop as debug
 
 
@@ -109,6 +110,10 @@ def entry_failure(value):
               and re.fullmatch('wallet-recipe-[a-z-]{1,80}', value['code'])), 'ENTRY_REFUSED')
     if 'diagnostic' in value:
         diagnostic = value['diagnostic']
+        if value['stage'] == 'lab_send':
+            need(value['code'] is None and lab_send_diagnostic.valid(diagnostic),
+                 'ENTRY_REFUSED')
+            return value
         need(value['stage'] in ('onboarding', 'address_selection')
              and value['code'] in ('wallet-recipe-command-refused', 'wallet-recipe-stage-unsettled')
              and type(diagnostic) is dict and {'action', 'control', 'reason'} <= set(diagnostic)

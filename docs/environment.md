@@ -5902,3 +5902,63 @@ strengthen the fixture. The real event-loop yield remains. No current clean
 gate or native original-send success is inferred from these edits. P09, real
 F06 preparation and all 94 visual matches stay open. No local SDK/native
 execution, artifact download, quota change or cleanup occurs.
+
+
+### Original lab-send failure retains no subreason (2026-10-27)
+
+At `b0af1a76be5f24fef34b496aa60212c2b1c16fa2`, tree
+`e18968adabed4cd629d03e90fb714f717b567298`, original native
+[40473790264](https://github.com/edgepillar/syrius/actions/runs/40473790264),
+attempt one, job `122086959747`, fails. The same original job passes all 167
+Dart bodies, 531 Python cases with three existing platform skips and zero
+selected errors/warnings/infos. Its original Dart exit is zero in 58.344
+seconds, with 80010 complete bytes and no overflow/forced kill; SHA-256
+`f9c0a1bbbe5ddb3ed89cc384fd6ba9b6b73c53be2eb31126756cba18a241be54`.
+
+Actual index 1 is generated, selected and persisted with two members. Entry
+then exits one at `lab_send`, code null, without a diagnostic or accepted send
+receipt; zero tour destinations/captures are accepted. Entry output is 846
+complete bytes without overflow; SHA-256
+`e1f6385ed5d9fb9ba7f75b7f451050e4e9d69c593e3b2d7b694ed78c20cf904e`.
+The original publication attempt/outcome is not projected, so it remains
+unknown; no claim that publication did or did not occur is made.
+
+All five original lab nodes exit zero normally with complete output; fourteen
+asset phases and all seven unchanged original upstream test bodies pass with
+source restored. On the wallet failure path cleanup observes application exit
+zero, while normal close acknowledgement is unqualified. Helper separation is
+absent, one VCTIP image remains at owned-job close and forced cleanup marks
+required actor closure unqualified. Source/input postchecks are not reached;
+this does not establish mutation. Cooperative samples observe 266419158
+logical bytes at peak and 154943836160 minimum free bytes across 66 samples;
+this is not total runner/SDK storage. The declared lower floor applies only
+to that isolated regression fixture, with no local storage policy change.
+
+The new diagnostic boundary preserves only a copied pair of closed labels:
+24 phases and 50 source-defined refusal reasons. Profile capture can identify
+owner, original APIs/transports, paths-present, membership, isolated layout,
+wallet containment and chain/profile terms by fixed phase names. The same
+conditions keep their original order/refusal and optional observation defaults
+to absent. No path, address, hash, request payload or raw error is exported.
+Preparation, review, preflight, pointer acceptance and exact confirmation have
+distinct labels. No label establishes whether a send actually occurred.
+
+The authenticated agent projects a validated label pair into its existing
+error detail. Native entry reads the original HTTP response privately, copies
+only this finite diagnostic into its failure event and discards the raw
+response. It retains the same input, timeout, SDK Future and pointer path. The
+Python controller rejects unknown labels, extra fields, coercions and misplaced
+diagnostics; legacy null-code failures remain valid negative observations.
+Six new Dart cases cover copied immutable labels, private/opaque values and
+exception projection. Four Python cases cover the wire boundary, failure
+closure and equal Dart/Python vocabularies. Seventeen selected memory-only
+diagnostic/receipt/privacy cases pass; all 167 existing Dart bodies stay byte
+identical. The new 173-Dart/535-Python gate is pending.
+
+The original terminal native failure and its unknown outcome remain preserved.
+Only a new independent fresh owned chain/profile may qualify the diagnostic
+source after its gate; this does not retry the old chain/profile. No guard,
+center tolerance, timing bound, signing path or F06 checkpoint condition is
+weakened. P09, real F06 seed states and all 94 visual matches remain open. No
+local SDK/native execution, joblog/archive/image download, quota change or
+cleanup occurs.
