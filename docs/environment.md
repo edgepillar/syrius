@@ -5511,3 +5511,53 @@ checkpoint acknowledgement. P08 retains its independent original binding;
 all 94 visual matches and full visual/motion/seam/layout acceptance remain
 open. No SDK, joblog, archive or image is downloaded locally and the PR stays
 Draft.
+
+
+### Corrected-source native preparation stopped before wallet startup (2026-10-27)
+
+The original native run
+[40454377746](https://github.com/edgepillar/syrius/actions/runs/40454377746),
+attempt one, job `122024173849`, at corrected source
+`f45dd303e18fb1f56ff02adbaf3425eb7100a29d`, tree
+`2891de8d0e1ecc02896d66162473d76d61cb8afd`, is now terminal and failed.
+Its first observation above remains historical. The final wallet report
+records `PREFLIGHT_TIMEOUT` in `admission`, before private wallet destinations,
+entry readiness or application startup. No original index-selection receipt,
+tour page or capture is accepted. The report has zero workspace samples;
+no wallet allocation or lifecycle success is inferred. The fixed PowerShell
+existing-process check has a 15-second bound. Its underlying timeout cause
+is unknown; it does not reproduce or disprove the older address-context
+refusal, and no revision/input guard is relaxed.
+
+The same 113 Dart bodies pass with zero skips, failures or error events,
+fourteen hidden successes and 127 terminal events. Their original command
+exits zero normally in 52.375 seconds with 54574 complete bytes, no overflow
+or forced kill; SHA-256
+`d01d2b0d3cae050c18aa6cec352a3f2708d799e567752534f960275813b3a79a`.
+All 508 Python cases retain three platform skips and selected analysis has
+zero errors, warnings and infos. Original startup/refusal probes, pinned
+SDK/locked inputs and the four unchanged Windows asset controls pass.
+
+The lab reaches its original production check, all fourteen asset phases
+complete, and all seven original upstream test bodies pass with source
+restored. Pillar2 then requires forced cleanup and has complete output with
+exit one. Pillar, pillar3, observer and rpc each exit zero normally with
+complete output. `WALLET_TOUR_FAILED` and `STOP_UNKNOWN` remain failures.
+Source/input postchecks are not reached; their false checks do not establish
+mutation. Ordinary wallet/lab closure and the whole runner lifecycle remain
+unqualified. This terminal execution is retained without retry.
+
+P09 selected-index acceptance and an exact confirmed original UI send remain
+open. The passive witness is still unwired; F06 checkpoints/seed states and
+all 94 visual matches remain unqualified. P08 keeps its independent original
+source/run/inspection binding. No SDK, joblog, archive or image is downloaded
+locally; no local native execution, quota change or cleanup is performed.
+
+A fresh read-only GitHub verification of the complete 154-commit contribution
+range at documentation head `0a95943ba0d59ce3bd5c1baf800f03f864a12089`
+confirms both author and committer as `edgepillar`, linked to that account
+with its GitHub no-reply email and UTC dates. The initial 128 corrected
+commits preserve every tree, message and timestamp instant. Their original
+local branch, mapping and prior qualification evidence are preserved.
+Upstream authors retain their attribution. No further history rewrite is
+performed; later documentation commits continue the same pseudonymous identity.
