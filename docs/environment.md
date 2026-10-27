@@ -5232,3 +5232,62 @@ pre-SDK controller step pass. Actual complete tour, PNG verification and
 ordinary original lifecycle closure remain pending. No local SDK, joblog,
 archive or image is downloaded. P08/P09/F06 and all 94 visual matches remain
 open, and the PR remains Draft.
+
+### P08 complete native tour and original closure qualified (2026-10-27)
+
+At source `da809e850607561d7ea1e7c4f638683ca1a0787f`, tree
+`c0d57257edbce2c1cd9a7130608a4ba5eaf8bdc5`, native run
+[40442587592](https://github.com/edgepillar/syrius/actions/runs/40442587592),
+attempt one, job `121986172753`, succeeds. Fresh build/start and actual
+onboarding complete, the original chain-321 signing-policy checks pass and
+all twelve tour destinations have zero error widgets and zero severe logs.
+The original controller validates twelve 1280x780 PNGs. Application and entry
+exit zero normally, no required actor is forced and the owned job is empty.
+Original entry output is 1940 complete bytes without overflow, SHA-256
+`049d809f6513d1aa3c3d71d3d7ec523ee89422e82443591f83dc9ab306bd3169`.
+
+The exact MSVC telemetry helper is handled only after the original actors
+finish. Its verified path/image binding, observed termination marker
+`0xE000D007` and empty remainder are recorded separately. This helper is
+forced; the application and entry are not. The whole runner lifecycle remains
+outside this qualification. Source and inputs are unchanged. The isolated
+workspace's cooperative samples peak at 267378557 logical bytes across 1206
+entries and 69 samples, with minimum free space 154946088960 bytes. These are
+owned-scope observations, not total runner allocation or measured savings.
+
+All 89 Dart cases pass with zero skips/failures/error events. Their original
+command exits zero normally in 45.422 seconds with 41639 complete bytes and
+SHA-256 `c2d3df94b624500358ffc3e603d15833d626dbecfde08295c51c4475a5d4be1c`.
+All 505 Python cases pass with three platform skips; selected analysis is
+empty and complete with a normal zero exit. All four unchanged asset controls
+pass on actual Node 22.23.4. The seven original upstream test bodies pass
+with their source restored. Every lab check passes and all five original
+nodes exit zero normally with complete unforced output.
+
+Independent inspector source `a56f0b6c5ec6d8b78aaa7510802a157cbb7e2619`,
+tree `dcca37422f25ad5643f9b6164437b16ccf53579e`, run
+[40444377836](https://github.com/edgepillar/syrius/actions/runs/40444377836),
+attempt one, job `121992021448`, succeeds after all 51 archive/projection
+cases pass. It starts no wallet or node, and verifies both original archives
+inside Actions without a local download. The wallet archive is 5233 bytes,
+API SHA-256 `76d0eed6057302962de3f1efe861672d8d31d4f1c8d2868f9e4bf7a9db0a5ea9`;
+its manifest SHA-256 is
+`3039dc112e0217ca7c758cbd2fab2936fd4f3e71f7af7f7fedc607fb5163a165`,
+matching the exact digest retained by the original lab. The lab archive is
+29528 bytes, API SHA-256
+`5fbf108a3be92560a8f077751078c05f2888ac9a9a8568fe68318955f0699ce4`;
+its manifest SHA-256 is
+`43c6df22a162f341d3f23e35cbb4baed7246be710031c3d7a5993ab100a6b2ad`.
+Original source/run/tree pins, complete page coverage, original failure-free
+checks and all five normal node exits agree. No original test assertion or
+earlier failed result is changed.
+
+This meets P08's written build/start/onboarding/tour requirements. The ledger
+becomes 71 of 80 main rows done, or 88.75 percent by row count. This is not
+remaining effort, visual parity or production readiness. The twelve private
+tour probes do not replace the catalog's 94 mockup pairs: all 94 matches
+remain unqualified. Index-1 selection and an exact confirmed UI send remain
+P09 work; actual reversible chain/profile preparation and wallet-created seed
+states remain F06 work. A checkpoint acknowledgement still does not create
+or verify that checkpoint. No local SDK, joblog, archive or image is
+downloaded, historical HOLD data is unchanged and the PR remains Draft.
