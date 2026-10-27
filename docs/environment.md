@@ -6533,3 +6533,26 @@ and strict clean-analysis gates remain required before native allocation; no
 local SDK/native process runs. The test observers, input/signing/publication
 policy, F06 checkpoints, workflow and storage policy remain unchanged. Actual
 original-send, checkpoint and all 94 visual matches remain open.
+
+### Restore test observers before the SDK invariant
+
+At 4730e53b4b44578d1b48ff065c5540bd655e2a3c, original combined
+[40526001014](https://github.com/edgepillar/syrius/actions/runs/40526001014),
+attempt one, job 122265643771, passes clean strict selected analysis, all
+544 Python cases/three original skips and 190/191 Dart cases. Its remaining
+event identifies Flutter test binding line 2061. The original test process
+exits one normally in 77.625 seconds with 96162 complete, unforced output
+bytes; node allocation and native work are skipped.
+
+Pinned SDK source checks reportTestException immediately after the widget
+test body returns, before addTearDown removes the passive reporter observer.
+The actual test now restores both owned observers in its own finally block,
+including when an assertion fails. The original body, matcher values, pump
+durations, assertions and identical-error forwarding are unchanged. Existing
+observer regressions already use this restoration pattern.
+
+Source, privacy and line-length checks pass. The 26-case memory proof retains
+identical rehashed inputs. Current 191-Dart/544-Python and strict clean-analysis
+gates remain required before node allocation. There is no application,
+controller, workflow, dependency, checkpoint or signing/publication change.
+Local SDK/native executions remain zero; full runtime acceptance remains open.

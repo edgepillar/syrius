@@ -638,32 +638,38 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    addTearDown(_observeFrameworkErrors(includeKind: true));
-    addTearDown(_observeTestExceptions());
-    await tester.pumpWidget(host(balanceSource: source));
-    await tester.pump();
-    expect(reads, <String>[first, first, second]);
-    expect(source.state.status, MultipleBalanceStatus.loading);
-    expect(find.byType(SendPopulated), findsNothing);
-    secondReply.complete(derived);
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 500));
-    final StatefulElement form =
-        tester.element(find.byType(SendPopulated)) as StatefulElement;
-    expect(
-      (form.widget as SendPopulated).balances.keys,
-      <String>[first, second],
-    );
-    expect((form.state as SendFormOrigin).draftSender, second);
-    await tester.tap(find.byKey(const Key('transfer_sender')));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-    expect(
-      find.byWidgetPredicate((Widget widget) =>
-          widget is PopupMenuItem<String> && widget.value == second),
-      findsOneWidget,
-    );
-    expect(tester.takeException(), isNull);
+    final VoidCallback restoreErrors =
+        _observeFrameworkErrors(includeKind: true);
+    final VoidCallback restoreReporter = _observeTestExceptions();
+    try {
+      await tester.pumpWidget(host(balanceSource: source));
+      await tester.pump();
+      expect(reads, <String>[first, first, second]);
+      expect(source.state.status, MultipleBalanceStatus.loading);
+      expect(find.byType(SendPopulated), findsNothing);
+      secondReply.complete(derived);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      final StatefulElement form =
+          tester.element(find.byType(SendPopulated)) as StatefulElement;
+      expect(
+        (form.widget as SendPopulated).balances.keys,
+        <String>[first, second],
+      );
+      expect((form.state as SendFormOrigin).draftSender, second);
+      await tester.tap(find.byKey(const Key('transfer_sender')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(
+        find.byWidgetPredicate((Widget widget) =>
+            widget is PopupMenuItem<String> && widget.value == second),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    } finally {
+      restoreReporter();
+      restoreErrors();
+    }
   });
 
   testWidgets('embedded Transfer waits for every current member balance',
