@@ -6251,3 +6251,51 @@ protocol proof retains identical inputs and is reused without execution. The
 complete 184-Dart/536-Python gate remains pending; no new native run is
 admitted from the failed result. The actual native45 missing-choice cause,
 original confirmed send, F06 checkpoints and all visual acceptance stay open.
+
+### Strict selected analysis before combined native allocation
+
+At 6bf9f09a6c547e77535e1edf32fbcbaf30092a54, focused run 40502878415,
+attempt one, job 122184719506, retains 183/184 Dart passes and 536 Python
+cases with three existing platform skips. Its original Dart process exits
+one after 85.86 seconds with complete, unforced 93477-byte output, SHA-256
+99e0b432a34ece709ac3d0664baa6d087291f90ffa3d78ce6520f0c7583afda2.
+The final menu-detach assertion fails after its original barrier hit and
+reverse-animation-start assertions pass. Selected analysis reports two infos:
+UNNECESSARY_IMPORT and ALWAYS_SPECIFY_TYPES in the new test, with zero errors
+or warnings. The old controller returns zero despite those infos. This failed
+source-bound result remains preserved and unqualified.
+
+The fixture now uses the existing gestures import for explicit hit-test types,
+processes an ordinary one-microsecond tick beyond the same 300 ms animation
+boundary, and observes the original route-completed Future before requiring
+original animation dismissal and removal of the original menu items. It emits
+no extra tap, invokes no callback and replaces no completion Future. Both
+actual header selection bodies and all existing assertions remain.
+
+For strict selected-source qualification, the analyzer controller now requires
+complete original output, an actual integer exit zero, and zero findings of
+all three severities. Four memory-only cases call that real controller with
+mocked original processes and in-memory streams: clean success, each finding
+severity despite exit zero, nonzero exit with no parsed findings, and incomplete
+output. The corrected original negative control has exactly two failures and
+no errors. An earlier mock exception-accessor error remains separately retained.
+After the condition changes, all 22 selected controller/protocol/privacy cases
+pass with no failures, errors or skips. No SDK process or filesystem scratch
+is used by those controls. The full hosted controller suite grows to 540;
+root analysis and its older 1295 legacy infos remain a separate scope.
+
+The next manual qualification uses the existing combined Windows wallet-tour
+lane. Its unchanged source runs controllers before SDK setup, then strict
+selected analysis and all 184 Dart cases before node checkout, compiler setup
+and native lab build. The lane has one Flutter setup. No native step before
+the build uses a status override or continue-on-error. GitHub documents the
+[default success condition for subsequent steps](https://docs.github.com/en/actions/reference/workflows-and-actions/expressions#status-check-functions).
+Using those same-source gates in the combined job avoids an additional
+standalone SDK setup. This ordering is source evidence until the actual job
+reports its own gate and native outcomes; dispatch is not qualification.
+
+The workflow remains byte-identical with its same twenty inputs. No application
+dependency, ordinary wallet source, harness input/signing/publication guard,
+local SDK/native execution, artifact download, storage policy or cleanup
+changes. Native45's actual missing-choice cause and original confirmed send,
+P03/F06, real reversible checkpoints and all 94 visual matches remain open.

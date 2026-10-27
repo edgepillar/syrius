@@ -547,7 +547,8 @@ def analyze(parent, repo):
                             locations.append(dict(source=selected, code=code,
                                                   line=int(line), column=int(column)))
         code = original.wait(timeout=5)
-        need(lines.finish() and code in (0, 1) and counts['error'] == counts['warning'] == 0,
+        need(lines.finish() and type(code) is int and code == 0
+             and all(value == 0 for value in counts.values()),
              'ANALYSIS_FAILED')
     except Exception:
         failed = True

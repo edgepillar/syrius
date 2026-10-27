@@ -462,5 +462,69 @@ class OwnedHelperTests(unittest.TestCase):
         self.assertEqual(kernel.closed, [1])
 
 
+class AnalysisAdmissionTests(unittest.TestCase):
+    def analyze(self, raw=b'', code=0, *, incomplete=False):
+        process = mock.Mock(stdout=io.BytesIO(raw), returncode=code)
+        process.poll.return_value = code
+        process.wait.return_value = code
+        output = io.StringIO()
+        stream = None
+        if incomplete:
+            stream = mock.Mock(complete=True, failed=True)
+            stream.items.empty.return_value = True
+            stream.finish.return_value = False
+            stream.public.return_value = dict(bytes=0, sha256='0' * 64,
+                output_complete=False, overflow=False)
+        import contextlib
+        with mock.patch.object(debug, 'sdk', return_value=(Path('dart.exe'), None)), \
+             mock.patch.object(debug.subprocess, 'Popen', return_value=process) as start, \
+             contextlib.redirect_stdout(output):
+            with mock.patch.object(debug, 'Lines', return_value=stream) if incomplete else contextlib.nullcontext():
+                try:
+                    outcome = debug.analyze({}, Path.cwd())
+                except debug.ProcessRefused as error:
+                    outcome = str(error)
+        start.assert_called_once()
+        self.assertEqual(start.call_args.args[0][1:4], ['analyze', '--format', 'machine'])
+        process.wait.assert_called_once_with(timeout=5)
+        process.kill.assert_not_called()
+        value, = (json.loads(line) for line in output.getvalue().splitlines()
+                  if line.startswith('{'))
+        self.assertNotIn('private', json.dumps(value))
+        return outcome, value
+
+    def test_clean_original_analysis_is_admitted(self):
+        outcome, value = self.analyze()
+        self.assertEqual(outcome, 0)
+        self.assertFalse(value['failed'])
+        self.assertEqual(value['diagnostics'], dict(error=0, warning=0, info=0))
+        self.assertTrue(value['output_complete'])
+
+    def test_every_selected_finding_refuses_even_with_zero_process_exit(self):
+        for severity in ('INFO', 'WARNING', 'ERROR'):
+            with self.subTest(severity=severity):
+                raw = (severity + '|LINT|UNNECESSARY_IMPORT|/fixture/private/'
+                    'test/harness/transfer_sender_header_test.dart|7|3|1|'
+                    'private analyzer detail\n').encode()
+                outcome, value = self.analyze(raw)
+                self.assertEqual(outcome, 'ANALYSIS_FAILED')
+                self.assertTrue(value['failed'])
+                self.assertEqual(value['diagnostics'][severity.lower()], 1)
+                self.assertEqual(value['locations'][0]['source'],
+                                 'transfer_sender_header_test')
+
+    def test_nonzero_original_exit_cannot_be_hidden_by_empty_findings(self):
+        outcome, value = self.analyze(code=1)
+        self.assertEqual(outcome, 'ANALYSIS_FAILED')
+        self.assertTrue(value['failed'])
+        self.assertEqual(value['actual_exit'], 1)
+
+    def test_incomplete_original_stream_prevents_admission(self):
+        outcome, value = self.analyze(incomplete=True)
+        self.assertEqual(outcome, 'ANALYSIS_FAILED')
+        self.assertTrue(value['failed'])
+        self.assertFalse(value['output_complete'])
+
+
 if __name__ == '__main__':
     unittest.main()

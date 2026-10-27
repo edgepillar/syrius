@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
-import 'package:flutter/rendering.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -381,6 +381,8 @@ void main() {
       tester.element(find.byType(PopupMenuItem<String>).first),
     )!;
     final Animation<double> animation = route.animation!;
+    bool detached = false;
+    unawaited(route.completed.then<void>((_) { detached = true; }));
     expect(route.isCurrent, isTrue);
     expect(animation.isCompleted, isTrue);
     final List<Element> barriers = find.byType(ModalBarrier).evaluate()
@@ -394,7 +396,8 @@ void main() {
       const Offset(8, 8), Offset(size.width - 8, 8),
       Offset(8, size.height - 8), Offset(size.width - 8, size.height - 8),
     ]) {
-      final bool hitsBarrier = tester.hitTestOnBinding(point).path.any((entry) {
+      final bool hitsBarrier = tester.hitTestOnBinding(point).path.any(
+          (HitTestEntry<HitTestTarget> entry) {
         final Object target = entry.target;
         if (target is! RenderObject) return false;
         for (RenderObject? parent = target; parent != null;
@@ -413,7 +416,10 @@ void main() {
     await tester.pump();
     expect(animation.status, AnimationStatus.reverse);
     await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(microseconds: 1));
     await tester.pump();
+    expect(animation.isDismissed, isTrue);
+    expect(detached, isTrue);
     expect(find.byType(PopupMenuItem<String>), findsNothing);
     expect(tester.takeException(), isNull);
   });
