@@ -6412,3 +6412,36 @@ execution. All 186 Dart bodies and all existing 542 controller bodies remain
 unchanged. The next combined 186-Dart/543-Python and complete zero-finding
 analysis gates remain required before native work. No app, timing, input,
 signing, publication, checkpoint, workflow or storage policy changes.
+
+
+### Observe the original Flutter test error before reporting
+
+At be921a3cedb4c68426c5c43b25c31acc3edf0562, combined Windows
+[40514451326](https://github.com/edgepillar/syrius/actions/runs/40514451326),
+attempt one, job 122224615095, passes complete strict clean selected analysis
+and all 543 Python cases with three original platform skips. Dart has 185/186
+passes and two first-frame errors at fixture line 386. The original process
+exits one normally in 62.891 seconds with 99277 complete, unforced output
+bytes. No allowlisted header or package frame is projected. Node/native work
+is skipped; the absence of a position does not identify the cause.
+
+The pinned Flutter test reporter first dumps error details and then registers
+a generic failure with an empty stack. A test-only passive observer now reads
+the original FlutterErrorDetails before that reporting path. It demangles the
+original stack with the existing Flutter function and emits at most one
+position from an exact package allowlist with bounded line/column. It always
+forwards the identical details object to the original handler in finally,
+including when its own diagnostic fails. Cleanup restores only its own
+handler. The Python failure projection and every ordinary app/harness blob
+remain unchanged. No raw error, expression, message, stack, host path or
+wallet value is printed by the observer.
+
+Two added Dart cases cover identical original-error forwarding, omission of
+unknown packages and continued forwarding when diagnostic output fails. They
+await real SDK execution; no local Flutter/Dart process is run. The failed
+fixture retains every original assertion, input and timing, adding only the
+passive observer registration. All 25 existing memory-only cases retain
+identical rehashed inputs and their original passing proof. The next combined
+188-Dart/543-Python and strict clean-analysis gates remain required before
+node allocation. The original first-frame failure, confirmed send, real F06
+checkpoints and all 94 visual matches remain open.

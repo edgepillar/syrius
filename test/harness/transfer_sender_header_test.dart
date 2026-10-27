@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
+import 'package:flutter/foundation.dart'
+    show FlutterError, FlutterErrorDetails, FlutterExceptionHandler, StackFrame;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -32,6 +34,70 @@ class _Balances extends MockBloc<MultipleBalanceEvent, MultipleBalanceState>
 class _Zenon extends Mock implements Zenon {}
 
 class _Ledger extends Mock implements LedgerApi {}
+
+const Set<String> _frameworkSources = <String>{
+  'package:flutter/src/widgets/framework.dart',
+  'package:flutter/src/rendering/object.dart',
+  'package:flutter/src/rendering/box.dart',
+  'package:flutter/src/material/dropdown.dart',
+  'package:flutter/src/material/dropdown_menu.dart',
+  'package:flutter/src/foundation/change_notifier.dart',
+  'package:flutter/src/widgets/scroll_controller.dart',
+  'package:flutter/src/widgets/binding.dart',
+  'package:flutter/src/scheduler/binding.dart',
+  'package:provider/src/provider.dart',
+  'package:provider/src/inherited_provider.dart',
+  'package:flutter_bloc/src/bloc_builder.dart',
+  'package:flutter_bloc/src/bloc_provider.dart',
+  'package:bloc/src/emitter.dart',
+  'package:get_it/get_it_impl.dart',
+};
+
+VoidCallback _observeFrameworkErrors({void Function(String)? report}) {
+  final FlutterExceptionHandler? previous = FlutterError.onError;
+  if (previous == null) throw StateError('Original error handler required');
+  void observe(FlutterErrorDetails details) {
+    try {
+      final StackTrace? original = details.stack;
+      if (original != null) {
+        final String text =
+            FlutterError.demangleStackTrace(original).toString();
+        if (text.length > 65536) return;
+        final List<StackFrame> frames = StackFrame.fromStackString(text);
+        for (final StackFrame frame in frames.take(128)) {
+          final String source =
+              '${frame.packageScheme}:${frame.package}/${frame.packagePath}';
+          if (_frameworkSources.contains(source) &&
+              frame.line > 0 && frame.line <= 999999 &&
+              frame.column > 0 && frame.column <= 999999) {
+            final String message = 'CI_FRAMEWORK_CONTEXT '
+                '($source:${frame.line}:${frame.column})';
+            if (report != null) {
+              report(message);
+            } else {
+              // The fixed source set and numeric bounds exclude raw details.
+              // ignore: avoid_print
+              print(message);
+            }
+            break;
+          }
+        }
+      }
+    } on Object {
+      // Diagnostic failure cannot change the original error delivery.
+      return;
+    } finally {
+      previous(details);
+    }
+  }
+
+  FlutterError.onError = observe;
+  return () {
+    if (identical(FlutterError.onError, observe)) {
+      FlutterError.onError = previous;
+    }
+  };
+}
 
 class _Tokens extends MockBloc<AllTokensEvent, AllTokensState>
     implements AllTokensBloc {}
@@ -335,6 +401,78 @@ void main() {
     return second;
   }
 
+  test('framework observation preserves the exact original error', () {
+    final FlutterExceptionHandler? before = FlutterError.onError;
+    final List<FlutterErrorDetails> received = <FlutterErrorDetails>[];
+    final List<String> reports = <String>[];
+    FlutterError.onError = received.add;
+    final VoidCallback restore = _observeFrameworkErrors(report: reports.add);
+    try {
+      final FlutterErrorDetails details = FlutterErrorDetails(
+        exception: StateError('private test details'),
+        stack: StackTrace.fromString(
+          '#0 private (package:flutter/src/widgets/framework.dart:123:9)',
+        ),
+      );
+      FlutterError.onError!(details);
+      expect(received, hasLength(1));
+      expect(identical(received.single, details), isTrue);
+      expect(reports, <String>[
+        'CI_FRAMEWORK_CONTEXT '
+            '(package:flutter/src/widgets/framework.dart:123:9)',
+      ]);
+      expect(reports.single, isNot(contains('private')));
+    } finally {
+      restore();
+      FlutterError.onError = before;
+    }
+  });
+
+  test('diagnostic failure and unknown sources still forward original errors',
+      () {
+    final FlutterExceptionHandler? before = FlutterError.onError;
+    final List<FlutterErrorDetails> received = <FlutterErrorDetails>[];
+    int reports = 0;
+    FlutterError.onError = received.add;
+    final VoidCallback restore = _observeFrameworkErrors(report: (_) {
+      reports++;
+      throw StateError('private observer failure');
+    });
+    try {
+      final FlutterErrorDetails unknown = FlutterErrorDetails(
+        exception: StateError('private test details'),
+        stack: StackTrace.fromString(
+          '#0 private (package:private/framework.dart:123:9)',
+        ),
+      );
+      FlutterError.onError!(unknown);
+      expect(reports, 0);
+      final FlutterErrorDetails oversized = FlutterErrorDetails(
+        exception: StateError('private test details'),
+        stack: StackTrace.fromString(
+          String.fromCharCodes(List<int>.filled(65537, 120)),
+        ),
+      );
+      FlutterError.onError!(oversized);
+      expect(reports, 0);
+      final FlutterErrorDetails known = FlutterErrorDetails(
+        exception: StateError('private test details'),
+        stack: StackTrace.fromString(
+          '#0 private (package:flutter/src/widgets/framework.dart:123:9)',
+        ),
+      );
+      FlutterError.onError!(known);
+      expect(reports, 1);
+      expect(received, hasLength(3));
+      expect(identical(received[0], unknown), isTrue);
+      expect(identical(received[1], oversized), isTrue);
+      expect(identical(received[2], known), isTrue);
+    } finally {
+      restore();
+      FlutterError.onError = before;
+    }
+  });
+
   testWidgets(
       'Transfer refreshes a derived member through the real balance bloc',
       (WidgetTester tester) async {
@@ -383,6 +521,7 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(_observeFrameworkErrors());
     await tester.pumpWidget(host(balanceSource: source));
     await tester.pump();
     expect(reads, <String>[first, first, second]);
