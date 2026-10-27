@@ -1667,8 +1667,17 @@ class HarnessAgent {
     if (owner.film.frameCount == 0) return 'opening';
     if (owner.film.skipRequested) {
       if (!owner.film.clockTicking) return 'skip-ticker-stopped';
-      return owner.film.framePending
-          ? 'skip-display-pending' : 'skip-next-pending';
+      if (owner.film.framePending) return 'skip-display-pending';
+      return switch (owner.film.decodeStage) {
+        LaunchFilmDecodeStage.previous => 'skip-previous-pending',
+        LaunchFilmDecodeStage.asset => 'skip-asset-pending',
+        LaunchFilmDecodeStage.codec => 'skip-codec-pending',
+        LaunchFilmDecodeStage.frame => 'skip-frame-pending',
+        LaunchFilmDecodeStage.resize => 'skip-resize-pending',
+        LaunchFilmDecodeStage.display => 'skip-display-wait-pending',
+        LaunchFilmDecodeStage.disposing => 'skip-dispose-pending',
+        _ => 'skip-next-pending',
+      };
     }
     if (owner.film.frame < 0) return 'first-frame-pending';
     if (owner.film.frame >= owner.film.frameCount - 1) return 'last-frame';

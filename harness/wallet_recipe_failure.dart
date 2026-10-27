@@ -62,6 +62,9 @@ const Set<String> walletRecipeStartupFilmStates = <String>{
   'opening', 'first-frame-pending', 'frame-visible', 'last-frame', 'ended',
   'frames-suspended', 'ticker-muted',
   'skip-ticker-stopped', 'skip-display-pending', 'skip-next-pending',
+  'skip-previous-pending', 'skip-asset-pending', 'skip-codec-pending',
+  'skip-frame-pending', 'skip-resize-pending',
+  'skip-display-wait-pending', 'skip-dispose-pending',
 };
 
 /// Values, endpoints, exception text and reply details are never projected.

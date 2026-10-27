@@ -6621,3 +6621,43 @@ all 552 Python cases and strict clean analysis remain required before native
 allocation. Guard policy, journal, original UI/signing/publication path,
 timing, dependency and workflow bytes are unchanged. New runtime qualification
 remains pending; the original unknown outcome is preserved.
+
+### Locate the original startup decoder wait
+
+At b264deeb41a7eb3e837e07992da0437462fb5d79, combined
+[40534816604](https://github.com/edgepillar/syrius/actions/runs/40534816604),
+attempt one, job 122297100897, passes all 196 Dart cases, 552 Python cases/
+three original skips and strict clean selected analysis. The original Dart
+process exits zero in 76.218 seconds with 96479 complete, unforced bytes.
+All five passive original-state regressions pass. Native onboarding instead
+refuses startup-before-initialization with key-confirmed/skip-next-pending;
+address selection and the lab-send command are not reached. This run cannot
+resolve native56's earlier unknown original.
+
+Entry exits one with 934 complete bytes and app cleanup exits zero. All five
+nodes exit zero normally; seven unchanged upstream test bodies pass and their
+source is restored. One VCTIP needs forced cleanup. Normal actor closure and
+source/input postchecks remain unqualified, without implying mutation.
+
+LaunchFilm now latches the stage of its original predecessor, asset buffer,
+codec, next frame, resize or display Future, plus final codec cleanup. Its
+synchronous metadata helper returns the identical original Future; it creates
+no wrapper, listener, ticker, timeout or completion path. Every stage write is
+bound to the original run, so a retiring predecessor cannot overwrite its
+successor's wait. Removing the metadata restores exactly the original film
+operation tokens, including decoding, display, skip, end and cleanup.
+
+Seven closed wait labels refine the existing pending observation without
+exporting asset paths, pixels, frame values, errors or private payloads. This
+does not identify the native root cause until the original wait is observed.
+No asset, renderer, key delivery or runtime timing changes. Existing sender,
+journal, signing, original-result and checkpoint guards retain their bytes.
+
+Two new widget cases use the original codec and a held asset Future to check
+skip completion and predecessor/successor ownership. All eighteen unchanged
+LaunchFilm clock, pixel, replay and cleanup cases join the same SDK gate;
+their selected basename has the existing finite failure projection. All 34
+selected memory controls pass without SDK/native execution or scratch. The
+strict gate now requires all 216 Dart cases and all 552 Python cases before
+native allocation; original timeout and zero-finding analysis rules remain.
+New hosted decoder and native qualification remain pending.

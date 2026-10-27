@@ -6,6 +6,36 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/entry_capture_source.dart';
 
+/// The original decoder's current wait, without asset or frame payloads.
+enum LaunchFilmDecodeStage {
+  /// No run has started.
+  idle,
+
+  /// A replacement run still awaits its original predecessor.
+  previous,
+
+  /// The original asset buffer has not returned.
+  asset,
+
+  /// The original codec has not opened.
+  codec,
+
+  /// The original next-frame Future has not returned.
+  frame,
+
+  /// The original frame's smaller image has not returned.
+  resize,
+
+  /// The original display acknowledgement has not returned.
+  display,
+
+  /// The original codec is being disposed.
+  disposing,
+
+  /// The original decoder's final cleanup has returned.
+  complete,
+}
+
 /// The launch animation, played from one animated image a frame at a time.
 ///
 /// It was a Lottie file: 56 JPEG frames of 2560 x 1440 in JSON, every one
@@ -128,6 +158,9 @@ class LaunchFilmController extends ChangeNotifier {
 
   /// Whether the original decoder has a frame waiting for its display tick.
   bool get framePending => _state?._next != null;
+
+  /// Reads the attached decoder's latched wait without advancing any clock.
+  LaunchFilmDecodeStage? get decodeStage => _state?._decodeStage;
 
   /// Reads an already-created original ticker without creating or starting it.
   bool get clockTicking {
@@ -260,6 +293,7 @@ class _LaunchFilmState extends State<LaunchFilm>
   /// The decoder of the last run started. The next run waits for it, so
   /// there is one codec at a time and its frame in flight is not a third.
   Future<void> _decoder = Future<void>.value();
+  LaunchFilmDecodeStage _decodeStage = LaunchFilmDecodeStage.idle;
 
   bool _started = false;
   bool _running = false;
@@ -383,6 +417,15 @@ class _LaunchFilmState extends State<LaunchFilm>
     }
   }
 
+  Future<T> _observeDecode<T>(
+    int run,
+    LaunchFilmDecodeStage stage,
+    Future<T> original,
+  ) {
+    if (run == _run) _decodeStage = stage;
+    return original;
+  }
+
   Future<void> _decode(
     int run,
     int from,
@@ -391,18 +434,23 @@ class _LaunchFilmState extends State<LaunchFilm>
     int? width,
     Future<void> before,
   ) async {
-    await before;
+    await _observeDecode(run, LaunchFilmDecodeStage.previous, before);
     if (run != _run) {
       return;
     }
     ui.Codec? codec;
     try {
-      codec = await ui.instantiateImageCodecFromBuffer(
-        await bundle.loadBuffer(asset),
-        // Ignored today for a file of more than one frame. Asked for all
-        // the same, so that an engine which learns to will decode small.
-        targetWidth: width,
-        allowUpscaling: false,
+      codec = await _observeDecode(
+        run, LaunchFilmDecodeStage.codec,
+        ui.instantiateImageCodecFromBuffer(
+          await _observeDecode(
+            run, LaunchFilmDecodeStage.asset, bundle.loadBuffer(asset),
+          ),
+          // Ignored today for a file of more than one frame. Asked for all
+          // the same, so that an engine which learns to will decode small.
+          targetWidth: width,
+          allowUpscaling: false,
+        ),
       );
       final int count = codec.frameCount;
       final int first = math.min(from, count - 1);
@@ -414,7 +462,9 @@ class _LaunchFilmState extends State<LaunchFilm>
       for (int index = 0; index < count && run == _run; index += 1) {
         // Never disposed with this pending: the engine then leaves the
         // future uncompleted and the frame it was decoding with no owner.
-        final ui.FrameInfo info = await codec.getNextFrame();
+        final ui.FrameInfo info = await _observeDecode(
+          run, LaunchFilmDecodeStage.frame, codec.getNextFrame(),
+        );
         final bool last = index == count - 1;
         ui.Image image = info.image;
         if (_unwanted(run, index, first, last: last)) {
@@ -422,7 +472,9 @@ class _LaunchFilmState extends State<LaunchFilm>
           continue;
         }
         if (width != null && image.width > width) {
-          image = await _shrink(image, width);
+          image = await _observeDecode(
+            run, LaunchFilmDecodeStage.resize, _shrink(image, width),
+          );
           // The skip may have come while it was being drawn down.
           if (_unwanted(run, index, first, last: last)) {
             image.dispose();
@@ -432,7 +484,7 @@ class _LaunchFilmState extends State<LaunchFilm>
         final Completer<void> taken = Completer<void>();
         _next = _Frame(index, image, info.duration, last: last);
         _taken = taken;
-        await taken.future;
+        await _observeDecode(run, LaunchFilmDecodeStage.display, taken.future);
       }
     } on Object catch (error, stack) {
       _cleanup._failed(error, stack);
@@ -440,7 +492,9 @@ class _LaunchFilmState extends State<LaunchFilm>
         _fail(error, stack, asset);
       }
     } finally {
+      if (run == _run) _decodeStage = LaunchFilmDecodeStage.disposing;
       codec?.dispose();
+      if (run == _run) _decodeStage = LaunchFilmDecodeStage.complete;
     }
   }
 
