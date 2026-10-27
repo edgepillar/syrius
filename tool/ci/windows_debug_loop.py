@@ -473,6 +473,10 @@ def analyze(parent, repo):
         'harness/app/recipe_control_admission.dart',
         'test/harness/recipe_control_admission_test.dart',
         'test/harness/wallet_recipe_startup_test.dart',
+        'test/harness/startup_key_confirm_test.dart',
+        'test/harness/startup_key_refusal_test.dart',
+        'test/harness/startup_key_support.dart',
+        'lib/widgets/reusable_widgets/launch_film.dart',
         'test/harness/key_dispatch_test.dart', 'test/harness/rail_navigation_test.dart',
         'test/harness/wallet_recipe_failure_test.dart', 'test/harness/wallet_recipe_test.dart'],
         cwd=repo, env=parent, shell=False, stdin=subprocess.DEVNULL,
@@ -530,6 +534,10 @@ def analyze(parent, repo):
                                         else 'control_admission_test' if relative.endswith('/test/harness/recipe_control_admission_test.dart')
                                         else 'recipe_failure' if relative.endswith('/harness/wallet_recipe_failure.dart')
                                         else 'recipe_startup_test' if relative.endswith('/test/harness/wallet_recipe_startup_test.dart')
+                                        else 'startup_key_confirm_test' if relative.endswith('/test/harness/startup_key_confirm_test.dart')
+                                        else 'startup_key_refusal_test' if relative.endswith('/test/harness/startup_key_refusal_test.dart')
+                                        else 'startup_key_support' if relative.endswith('/test/harness/startup_key_support.dart')
+                                        else 'launch_film' if relative.endswith('/lib/widgets/reusable_widgets/launch_film.dart')
                                         else 'key_dispatch_test' if relative.endswith('/test/harness/key_dispatch_test.dart')
                                         else 'rail_navigation_test' if relative.endswith('/test/harness/rail_navigation_test.dart')
                                         else 'recipe_failure_test' if relative.endswith('/test/harness/wallet_recipe_failure_test.dart')

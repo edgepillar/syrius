@@ -73,6 +73,7 @@ RECIPE_FAILURE_CODES = frozenset((
     'wallet-recipe-visible-error',
     'wallet-recipe-stage-unsettled', 'wallet-recipe-control-absent',
     'wallet-recipe-control-disabled',
+    'wallet-recipe-startup-key-unconfirmed',
 ))
 RECIPE_ENTRY_PHASES = frozenset((
     'startup', 'welcome', 'import', 'ready', 'node', 'error', 'unknown',
@@ -86,6 +87,7 @@ RECIPE_STARTUP_HANDOFFS = frozenset((
 RECIPE_STARTUP_FILM_STATES = frozenset((
     'opening', 'first-frame-pending', 'frame-visible', 'last-frame', 'ended',
     'frames-suspended', 'ticker-muted',
+    'skip-ticker-stopped', 'skip-display-pending', 'skip-next-pending',
 ))
 
 

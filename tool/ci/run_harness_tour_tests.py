@@ -130,6 +130,8 @@ def main():
             'test/harness/wallet_recipe_failure_test.dart',
             'test/harness/recipe_control_admission_test.dart',
             'test/harness/wallet_recipe_startup_test.dart',
+            'test/harness/startup_key_confirm_test.dart',
+            'test/harness/startup_key_refusal_test.dart',
             'test/harness/key_dispatch_test.dart',
             'test/harness/rail_navigation_test.dart',
             'test/harness/wallet_address_recipe_test.dart',
@@ -152,7 +154,7 @@ def main():
         counts = test_counts(outcome.output)
         report['counts'] = counts
         debug.need(outcome.success and counts['terminal_success'] is True
-            and counts['passed'] == 179 and counts['skipped'] == counts['failed'] == counts['error_events'] == 0,
+            and counts['passed'] == 181 and counts['skipped'] == counts['failed'] == counts['error_events'] == 0,
             'TESTS_FAILED')
         debug.bounded.verify_source(repo, source, parent)
         debug.need(debug.entry.source_tree(repo, parent) == tree, 'SOURCE_REFUSED')

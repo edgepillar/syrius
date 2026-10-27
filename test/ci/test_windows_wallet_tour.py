@@ -151,6 +151,22 @@ class LabSendDiagnosticTests(unittest.TestCase):
             self.assertEqual(len(actual), len(expected))
 
 
+class StartupVocabularyTests(unittest.TestCase):
+    def test_original_startup_vocabularies_match_the_dart_producer(self):
+        source = Path('harness/wallet_recipe_failure.dart').read_text()
+        for dart, expected in (
+                ('walletRecipeFailureCodes', tour.RECIPE_FAILURE_CODES),
+                ('walletRecipeEntryPhases', tour.RECIPE_ENTRY_PHASES),
+                ('walletRecipeStartupHandoffs', tour.RECIPE_STARTUP_HANDOFFS),
+                ('walletRecipeStartupFilmStates', tour.RECIPE_STARTUP_FILM_STATES)):
+            match = re.search(r'const Set<String> ' + dart
+                + r' = <String>\{(.*?)\};', source, re.S)
+            self.assertIsNotNone(match)
+            values = re.findall(r"'([a-z0-9_-]+)'", match[1])
+            self.assertEqual(set(values), expected)
+            self.assertEqual(len(values), len(expected))
+
+
 class OriginalSendTests(unittest.TestCase):
     @staticmethod
     def receipt():

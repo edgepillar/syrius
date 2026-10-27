@@ -6045,3 +6045,75 @@ actual original native confirmed send remain pending. No test is removed or
 suppressed, no local SDK/native execution or artifact download occurs, and
 all earlier source-bound failures and the original native-42 unknown outcome
 remain preserved. P09/F06 and all 94 visual matches stay open.
+
+### Native44 original startup refusal and effect-bound key acknowledgement
+
+At source `52eb2efab1abcd2e72706a10e3b59082617b48d2`, tree
+`65d1e554eb54145cf59bcac8f5baece8c6b482c6`, focused `40485885651` and native
+`40486771500` pass all 179 Dart cases, 535 Python cases with three original
+platform skips and zero selected analyzer findings. Native attempt one, job
+`122130408335`, retains original Dart exit zero in 66.859 seconds, 86468
+complete bytes, no overflow/forced kill and digest
+`78dabd8cb500cc85afb5f8c4ec89361943537c2de4b09b690f11fe73f64dc82e`.
+
+The actual native entry exits one during onboarding, before import or address
+selection. Its finite failure is `wallet-recipe-stage-unsettled`, with control
+`welcome_import`, entry `startup-before-initialization`, startup `key-confirmed`
+and film `frame-visible`. The original complete 930-byte entry output has
+digest `6680c4f96ecd94ae60d2dc090b962ecbe57965eeef3be7a37e2cd25a94e4add6`.
+No index-1 preparation, typed sender selection, original send receipt, tour or
+capture is reached. This run neither qualifies nor disproves the typed sender
+path's native behavior. The earlier native-42 publication outcome remains
+UNKNOWN, and native-43 keeps its separate sender-menu refusal.
+
+All five original lab nodes exit zero normally with complete output. Fourteen
+asset phases and seven unchanged upstream test bodies pass with source
+restored. Failure cleanup observes app exit zero, while normal close
+acknowledgement, helper separation and original actor closure remain
+unqualified. One VCTIP helper remains at owned-job close and is forcibly
+cleaned up. Source/input postchecks are not reached; missing checks do not
+imply mutation. Cooperative samples observe 266407503 peak logical bytes and
+154943848448 minimum free bytes across 56 samples, not total runner/SDK use.
+
+Source inspection identifies an acknowledgement gap: a handled keyboard event
+can have been consumed by another early handler. It does not establish that
+the original startup film accepted its skip. The new startup branch applies
+pending normal focus changes, revalidates the original receipt/receiver and
+sends the same single ordinary Space pair in one turn. It acknowledges only
+original skip, completion or initialization facts. An unrelated handled bit
+refuses with a new closed code; no original callback is invoked directly and
+no decoder completion or initialization flag is forced.
+
+The existing film exposes read-only skip, pending-frame and ticking facts.
+A private readiness bit prevents a read from creating the lazy ticker. Three
+closed observations distinguish a skipped film awaiting its next frame,
+a frame awaiting display and a stopped ticker. They disclose no asset, frame
+number, path, image or exception. Decode/display/skip/end algorithms and
+ordinary time limits stay unchanged. These observations do not establish the
+native failure's full cause.
+
+Two new test-file isolates retain independent first startup owners, rather
+than resetting the registry. Real normal key input acknowledges the original
+film effect; a foreign early keyboard handler must refuse without skipping
+or retaining Space as pressed. The original 179 Dart test files are unchanged.
+One Python case checks all original startup vocabularies against the producer.
+Eighteen selected memory-only diagnostic/receipt/privacy cases pass; the
+181-Dart/536-Python hosted gate and a new independent native execution remain
+pending. No failed chain/profile is retried and P09/F06, real checkpoints and
+all 94 visual matches remain open.
+
+### Hosted provision constraints checked against primary documentation
+
+Checked 2026-10-27: [Docker's Windows installation requirements](https://docs.docker.com/desktop/setup/install/windows-install/)
+exclude Windows Server, and [GitHub's runner documentation](https://docs.github.com/en/actions/concepts/runners/github-hosted-runners)
+classifies nested virtualization as technically possible but unsupported.
+The separate Windows-native and Linux-Docker qualifications do not establish
+that Docker Desktop is installed or working on this Windows runner. P03 stays
+open; no new paid environment or offload service is provisioned.
+
+[GitHub's dispatch-input reference](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#onworkflow_dispatchinputs)
+now documents up to 25 top-level inputs. The current workflow still has its
+same 20 inputs and unchanged bytes. A future explicit checkpoint/seed lane
+can have its own input without repurposing the existing ones, but this source
+adds no lane, checkpoint or seed authority. No local SDK/native execution,
+artifact download, storage policy change or cleanup occurs.

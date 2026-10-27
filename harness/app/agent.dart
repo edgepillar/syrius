@@ -1642,6 +1642,11 @@ class HarnessAgent {
       return 'frames-suspended';
     }
     if (owner.film.frameCount == 0) return 'opening';
+    if (owner.film.skipRequested) {
+      if (!owner.film.clockTicking) return 'skip-ticker-stopped';
+      return owner.film.framePending
+          ? 'skip-display-pending' : 'skip-next-pending';
+    }
     if (owner.film.frame < 0) return 'first-frame-pending';
     if (owner.film.frame >= owner.film.frameCount - 1) return 'last-frame';
     return 'frame-visible';
@@ -2068,12 +2073,23 @@ class HarnessAgent {
         // The owned startup receiver consumes Space on key-down. Dispatch
         // the complete key pair in one turn so its ordinary handoff does not
         // become a second pointer admission against the retired hint.
+        FocusManager.instance.applyFocusChangesIfNeeded();
         admission();
+        final Object? owner = startup?.startupOwner;
+        if (owner is! StartupStageSession || owner.isClosed) {
+          throw HarnessError('wallet-recipe-original-owner-changed');
+        }
         final Map<String, Object?> reply = await _key(
           <String, dynamic>{'key': 'space', 'settleMs': 0},
         );
         if (reply['handled'] != true) {
           throw HarnessError('wallet-recipe-control-refused');
+        }
+        // Another early keyboard handler may consume the event. A handled
+        // bit alone cannot acknowledge an action by this original film.
+        if (!owner.film.skipRequested && !owner.film.isDone &&
+            startup?.initializationStarted != true) {
+          throw HarnessError('wallet-recipe-startup-key-unconfirmed');
         }
       } else if (field) {
         final Object? value = command['value'];

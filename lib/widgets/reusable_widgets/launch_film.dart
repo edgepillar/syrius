@@ -123,6 +123,18 @@ class LaunchFilmController extends ChangeNotifier {
   /// [play] is called again.
   bool get isDone => _isDone;
 
+  /// Whether the attached original decoder has accepted a skip request.
+  bool get skipRequested => _state?._skipping ?? false;
+
+  /// Whether the original decoder has a frame waiting for its display tick.
+  bool get framePending => _state?._next != null;
+
+  /// Reads an already-created original ticker without creating or starting it.
+  bool get clockTicking {
+    final _LaunchFilmState? state = _state;
+    return state != null && state._tickerReady && state._ticker.isTicking;
+  }
+
   /// Plays from frame [from] to the end, in place of any run under way.
   ///
   /// The frames before [from] are decoded and thrown away unseen, and the
@@ -251,6 +263,7 @@ class _LaunchFilmState extends State<LaunchFilm>
 
   bool _started = false;
   bool _running = false;
+  bool _tickerReady = false;
   bool _skipping = false;
   bool _onLast = false;
 
@@ -333,6 +346,7 @@ class _LaunchFilmState extends State<LaunchFilm>
     _ticker
       ..stop()
       ..start();
+    _tickerReady = true;
     _decoder = _decode(
       run,
       from,

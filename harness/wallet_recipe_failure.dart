@@ -40,6 +40,7 @@ const Set<String> walletRecipeFailureCodes = <String>{
   'wallet-recipe-stage-unsettled',
   'wallet-recipe-control-absent',
   'wallet-recipe-control-disabled',
+  'wallet-recipe-startup-key-unconfirmed',
 };
 
 /// Entry types and failure families disclose no displayed text or error detail.
@@ -60,6 +61,7 @@ const Set<String> walletRecipeStartupHandoffs = <String>{
 const Set<String> walletRecipeStartupFilmStates = <String>{
   'opening', 'first-frame-pending', 'frame-visible', 'last-frame', 'ended',
   'frames-suspended', 'ticker-muted',
+  'skip-ticker-stopped', 'skip-display-pending', 'skip-next-pending',
 };
 
 /// Values, endpoints, exception text and reply details are never projected.
