@@ -6224,3 +6224,30 @@ without another execution. The complete 184-Dart/536-Python focused gate is
 pending. No new native wallet/lab execution is dispatched from the failed
 result, and the actual native45 missing-choice cause remains unproven. P09,
 F06, real closed-resource checkpoints and all 94 visual matches stay open.
+
+### Actual outside-barrier input qualification
+
+At 781ec36925b49a2e951d7623e08ef7fdb6b72b67, focused run 40500792826,
+attempt one, job 122177683084, passes 183 of 184 Dart cases. Both actual
+Transfer-header owner selections now pass. Only the open-menu case fails
+its final detach assertion. The original Dart process exits one after
+77.469 seconds with complete, unforced 93459-byte output, SHA-256
+31656b56c423c5f7e7df9efb555ea6308cc1dc66b78c42d2ced74bfca1dcb49c.
+All 536 Python cases pass with three existing platform skips and selected
+analysis has zero findings. This source-bound failed result is preserved.
+
+The remaining test assumed a fixed point was outside the actual popup. It
+now retains the original current route and completed animation, requires one
+actual dismissible barrier, and checks four bounded viewport points through
+the real hit-test path to that exact barrier's RenderObject. Only one ordinary
+tap is emitted at a positively qualified barrier point. The original animation
+must begin reversing before its same 300 ms clock and zero-time detach frame.
+Existing choice-identity, underlying-form and final-detach assertions remain.
+This tightens input qualification rather than calling a dismiss callback or
+replacing the ordinary outside-click action with another control.
+
+No production or harness behavior changes. The original 18-case memory-only
+protocol proof retains identical inputs and is reused without execution. The
+complete 184-Dart/536-Python gate remains pending; no new native run is
+admitted from the failed result. The actual native45 missing-choice cause,
+original confirmed send, F06 checkpoints and all visual acceptance stay open.

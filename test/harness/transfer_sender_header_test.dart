@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -376,8 +377,41 @@ void main() {
       find.byType(SendPopulated),
     );
     expect(form.balances.containsKey(owner), isTrue);
-    await tester.tapAt(const Offset(10, 10));
+    final ModalRoute<dynamic> route = ModalRoute.of(
+      tester.element(find.byType(PopupMenuItem<String>).first),
+    )!;
+    final Animation<double> animation = route.animation!;
+    expect(route.isCurrent, isTrue);
+    expect(animation.isCompleted, isTrue);
+    final List<Element> barriers = find.byType(ModalBarrier).evaluate()
+        .where((Element item) => (item.widget as ModalBarrier).dismissible)
+        .toList();
+    expect(barriers, hasLength(1));
+    final RenderObject barrier = barriers.single.renderObject!;
+    final Size size = tester.view.physicalSize / tester.view.devicePixelRatio;
+    Offset? outside;
+    for (final Offset point in <Offset>[
+      const Offset(8, 8), Offset(size.width - 8, 8),
+      Offset(8, size.height - 8), Offset(size.width - 8, size.height - 8),
+    ]) {
+      final bool hitsBarrier = tester.hitTestOnBinding(point).path.any((entry) {
+        final Object target = entry.target;
+        if (target is! RenderObject) return false;
+        for (RenderObject? parent = target; parent != null;
+            parent = parent.parent) {
+          if (identical(parent, barrier)) return true;
+        }
+        return false;
+      });
+      if (hitsBarrier) {
+        outside = point;
+        break;
+      }
+    }
+    expect(outside, isNotNull, reason: 'The original barrier must be hit');
+    await tester.tapAt(outside!);
     await tester.pump();
+    expect(animation.status, AnimationStatus.reverse);
     await tester.pump(const Duration(milliseconds: 300));
     await tester.pump();
     expect(find.byType(PopupMenuItem<String>), findsNothing);
