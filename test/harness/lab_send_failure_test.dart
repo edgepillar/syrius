@@ -12,6 +12,20 @@ Map<String, Object> _labels() => <String, Object>{
 };
 
 void main() {
+  test('review refusals expose only the fixed failed binding label', () {
+    for (final String part in <String>[
+      'center', 'button', 'dialog', 'intent', 'draft',
+    ]) {
+      final Map<String, Object> value = <String, Object>{
+        'phase': 'preflight', 'reason': 'original-send-review-$part-changed',
+      };
+      expect(labSendPublicDiagnostic(value), value);
+      expect(labSendPublicDiagnostic(<String, Object>{
+        ...value, part: 'private',
+      }), isNull);
+    }
+  });
+
   test('every fixed phase preserves the exact source-defined reason', () {
     for (final String phase in labSendFailurePhases) {
       final Map<String, Object> value = _labels()..['phase'] = phase;

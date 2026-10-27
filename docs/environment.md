@@ -6685,3 +6685,39 @@ startup failure remains preserved; native56's original send outcome remains
 UNKNOWN. Neither old chain/profile is retried. P09/F06, reversible closed
 checkpoints and all 94 visual matches remain unqualified. No local SDK/native
 execution, binary transport, quota change or cleanup occurs.
+
+### Original dialog readiness after review preflight refusal
+
+At d7573a01168ab381ba006f2da2b5b4d3e0b9fec9, combined
+[40543262824](https://github.com/edgepillar/syrius/actions/runs/40543262824),
+attempt one, job 122326997788, passes all 216 Dart cases, 552 Python cases/
+three original skips and strict clean selected analysis. Dart exits zero in
+90.218 seconds with 106468 complete, unforced bytes. The explicit codec type,
+both new lifecycle cases and all eighteen original film regressions pass.
+
+Native onboarding and actual persisted index-1 selection complete. Preflight
+then refuses original-send-review-changed before entering the Accept callback
+or claiming the lab publication. That label does not identify which original
+binding condition failed. Entry exits one with 921 complete bytes and app
+cleanup exits zero. All five nodes exit zero normally after seven unchanged
+upstream bodies pass and source is restored. One VCTIP needs forced cleanup;
+normal actor closure and source/input postchecks remain unqualified. Earlier
+native57 startup failure and native56 UNKNOWN original remain preserved.
+
+The harness already checks the original route, page, disclosure and row clocks,
+but a dialog's own RiseIn may start after its route finishes. Readiness now
+checks that original fade too. No new clock, listener, timeout, animation or
+center tolerance is introduced. A widget regression inserts the real original
+DialogCard after route completion, refuses capture midway through its unchanged
+240 ms rise, then uses the ordinary pointer path only after the rise completes.
+The six strict review conditions retain their order. Five fixed reasons
+distinguish changed center, button, dialog, intent/request or draft; the legacy
+generic reason remains accepted. No coordinate, widget identity, address, hash,
+path, error text or raw reply is exported.
+
+Two new Dart cases and one Python case expand the unchanged lane to 218/553.
+All 35 selected memory controls pass without SDK/native execution or scratch;
+the initial import-only adapter failure is retained separately. Fresh complete
+zero-finding analysis and all cases remain required before a new independent
+native lab. No old chain/profile is retried, no signing or journal guard is
+weakened, and P09/F06 and all 94 visual matches remain unqualified.

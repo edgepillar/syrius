@@ -66,7 +66,8 @@ Future<T> _drive<T>(WidgetTester tester, Future<T> command) async {
 }
 
 class _Fixture {
-  _Fixture({this.customReview = false, this.amount = '1'}) {
+  _Fixture({this.customReview = false, this.deferReview = false,
+    this.amount = '1'}) {
     source = _Source(SeedEnvironment(
       profile: 'fixture-ui', isolated: true, unlocked: true,
       initialized: true, booted: true, ws: seedWsOrigin, http: seedHttpOrigin,
@@ -94,6 +95,7 @@ class _Fixture {
   final String to = fixtureAddress(1);
   final String amount;
   final bool customReview;
+  final bool deferReview;
   final _Blocks blocks = _Blocks();
   final _Balances balances = _Balances();
   final _Sync sync = _Sync();
@@ -104,6 +106,7 @@ class _Fixture {
   final Completer<AccountBlockTemplate> publication =
       Completer<AccountBlockTemplate>();
   final ValueNotifier<int> replacement = ValueNotifier<int>(0);
+  final ValueNotifier<bool> reviewVisible = ValueNotifier<bool>(false);
   final HarnessAgent agent = HarnessAgent.forTest();
   late final SendTransactionBloc sender;
   late final SendTransactionBloc otherSender;
@@ -180,8 +183,8 @@ class _Fixture {
                       (SendIntent intent, SendSession _) async =>
                         await showFrostedDialog<bool>(
                           context: testerContext!, barrierDismissible: false,
-                          builder: (BuildContext context) =>
-                            ValueListenableBuilder<int>(
+                          builder: (BuildContext context) {
+                            final Widget original = ValueListenableBuilder<int>(
                               valueListenable: replacement,
                               builder: (_, int changed, _) => SendConfirmation(
                                 key: ValueKey<int>(changed == 2 ? 2 : 0),
@@ -189,7 +192,16 @@ class _Fixture {
                                 onConfirm: () => Navigator.pop(context, true),
                                 onCancel: () => Navigator.pop(context, false),
                               ),
-                            ),
+                            );
+                            if (!deferReview) return original;
+                            return ValueListenableBuilder<bool>(
+                              valueListenable: reviewVisible,
+                              child: original,
+                              builder: (_, bool visible, Widget? child) =>
+                                visible ? child! :
+                                  const SizedBox(width: 440, height: 240),
+                            );
+                          },
                         ) ?? false,
                   ),
                 )),
@@ -219,7 +231,7 @@ class _Fixture {
       await _drive(tester, otherSender.close());
       await _drive(tester, draft.close());
       await _drive(tester, syncStates.close());
-      provided.dispose();replacement.dispose();
+      provided.dispose();replacement.dispose();reviewVisible.dispose();
       contacts.dispose();prices.dispose();
       kSelectedAddress = saved;kDefaultAddressList = members;
       tester.view.reset();
@@ -310,6 +322,38 @@ void main() {
     expect(() => f.binding(tester, captured: f.origin(attached: f.otherSender)),
       throwsA(isA<SeedRefused>()));
     expect(f.publications, 0);
+  });
+
+  testWidgets('a late original dialog rise waits after its route completes', (
+    WidgetTester tester,
+  ) async {
+    final _Fixture f = _Fixture(customReview: true, deferReview: true);
+    await f.mount(tester);
+    final LabSendUiBinding binding = f.binding(tester);
+    final Finder submit = find.byKey(const Key('send_submit_button'));
+    await tester.ensureVisible(submit);
+    await tester.tap(submit);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 700));
+    expect(find.byType(SendConfirmation), findsNothing);
+    f.reviewVisible.value = true;
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 120));
+    final Finder confirmation = find.byType(SendConfirmation);
+    expect(ModalRoute.of(tester.element(confirmation))!.animation!.isCompleted,
+      isTrue);
+    expect(() => f.capture(binding), throwsA(isA<SeedRefused>().having(
+      (SeedRefused value) => value.code, 'code',
+      'original-lab-control-unsettled',
+    )));
+    expect(f.publications, 0);
+    await tester.pump(const Duration(milliseconds: 120));
+    final LabSendUiReview review = f.capture(binding);
+    expect(review.intent, same(tester.widget<SendConfirmation>(
+      confirmation).intent));
+    await _drive(tester, f.agent.acceptLabReviewForTest(review));
+    expect(f.publications, 1);
+    expect(review.witness.started, isTrue);
   });
 
   testWidgets('scalar-matching reconstructed review is not form authority', (

@@ -106,6 +106,16 @@ class AddressSelectionTests(unittest.TestCase):
 
 
 class LabSendDiagnosticTests(unittest.TestCase):
+    def test_review_refusals_keep_only_the_fixed_failed_binding_label(self):
+        for part in ('center', 'button', 'dialog', 'intent', 'draft'):
+            diagnostic = dict(phase='preflight',
+                reason='original-send-review-' + part + '-changed')
+            value = dict(stage='lab_send', code=None, diagnostic=diagnostic)
+            self.assertIs(tour.entry_failure(value), value)
+            with self.subTest(part=part), self.assertRaises(tour.Refused):
+                tour.entry_failure(dict(value,
+                    diagnostic=dict(diagnostic, **{part: 'private'})))
+
     def test_fixed_labels_are_accepted_only_in_the_original_send_stage(self):
         for phase in tour.lab_send_diagnostic.PHASES:
             value = dict(stage='lab_send', code=None, diagnostic=dict(

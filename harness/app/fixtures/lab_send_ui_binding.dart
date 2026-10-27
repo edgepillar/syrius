@@ -144,12 +144,21 @@ final class LabSendUiReview {
     binding.requireForm();
     final (Element currentDialog, SendConfirmation shown) =
         _shown(currentButton);
-    if (center != this.center || !identical(currentButton, button) ||
-        !identical(currentDialog, dialog) ||
-        !identical(shown.intent, intent) ||
-        !identical(shown.intent.requestId, requestId) ||
-        !binding.owner.matchesOriginalReview(intent)) {
-      throw const SeedRefused('original-send-review-changed');
+    if (center != this.center) {
+      throw const SeedRefused('original-send-review-center-changed');
+    }
+    if (!identical(currentButton, button)) {
+      throw const SeedRefused('original-send-review-button-changed');
+    }
+    if (!identical(currentDialog, dialog)) {
+      throw const SeedRefused('original-send-review-dialog-changed');
+    }
+    if (!identical(shown.intent, intent) ||
+        !identical(shown.intent.requestId, requestId)) {
+      throw const SeedRefused('original-send-review-intent-changed');
+    }
+    if (!binding.owner.matchesOriginalReview(intent)) {
+      throw const SeedRefused('original-send-review-draft-changed');
     }
     witness.requireReady();
   }

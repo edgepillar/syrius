@@ -1559,18 +1559,27 @@ class HarnessAgent {
     // changing ordinary input or waiting on unrelated hover animations.
     Element child = element;
     FadeThroughTransition? switchEntrance;
-    Animation<double>? disclosureReveal;
+    Animation<double>? entranceFade;
     bool settled = true;
     element.visitAncestorElements((Element ancestor) {
       final Widget widget = ancestor.widget;
-      if (widget is FadeTransition) disclosureReveal = widget.opacity;
-      final Animation<double>? reveal = disclosureReveal;
+      if (widget is FadeTransition) entranceFade = widget.opacity;
+      final Animation<double>? reveal = entranceFade;
+      // A dialog can first build after its route has already completed.
+      // Its own original rise still moves the eventual pointer center.
+      if (widget is RiseIn) {
+        if (reveal == null || !reveal.isCompleted) {
+          settled = false;
+          return false;
+        }
+        entranceFade = null;
+      }
       if (widget is Disclosure && reveal != null) {
         if (!reveal.isCompleted) {
           settled = false;
           return false;
         }
-        disclosureReveal = null;
+        entranceFade = null;
       }
       if (widget is FadeThroughTransition) switchEntrance = widget;
       if (widget is RiseSwitcher) {
