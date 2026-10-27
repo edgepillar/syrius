@@ -5561,3 +5561,39 @@ commits preserve every tree, message and timestamp instant. Their original
 local branch, mapping and prior qualification evidence are preserved.
 Upstream authors retain their attribution. No further history rewrite is
 performed; later documentation commits continue the same pseudonymous identity.
+
+
+### Bounded native process preflight (2026-10-27)
+
+Original native `40454377746` remains failed with `PREFLIGHT_TIMEOUT` before
+wallet startup, plus forced pillar2 cleanup and `STOP_UNKNOWN`. The underlying
+timeout cause remains unknown. The concrete CI-only correction removes the
+PowerShell startup dependency from the existing-process check. It uses one
+read-only [Windows process snapshot](https://learn.microsoft.com/en-us/windows/win32/api/tlhelp32/nf-tlhelp32-createtoolhelp32snapshot),
+with only the process-list flag, original snapshot handle, complete enumeration
+and checked handle closure. It never opens, adopts or terminates a listed
+process, and exports only a fixed exit status. Empty/partial snapshots, missing
+self, invalid/duplicate rows, failed API calls and uncertain closure refuse
+admission. The exact case-insensitive process-name refusal is preserved.
+
+The original supervisor still owns one retained Popen handle, a 15-second
+preflight deadline and unchanged timeout/cleanup behavior. The helper runs the
+current Python executable with isolated mode, no site initialization and no
+bytecode writes. Only the existing OS runtime environment allowlist is inherited;
+CI credentials and Python module-path overrides are excluded. No raw image
+names, PIDs, paths, process lists or OS errors reach public output. Generic Git
+helper bounds, the ordinary application, selected-address generation and every
+exact wallet/input/closure guard remain unchanged.
+
+Fourteen new pure snapshot cases and four retained supervisor cases pass in
+memory with no failures, errors, skips, unexpected stdout/stderr, filesystem
+scratch or native execution. An initial private test-selection preparation
+used the wrong existing test class and refused before any body executed; it
+is preserved separately. Sixteen new full-suite bodies include two further
+Windows-only checks of the original native API and isolated helper. Those
+actual checks and the 113-Dart/524-Python focused hosted gate are still pending;
+no local SDK or native process is executed and no native wallet/lab is admitted
+from the memory-only result. The workflow and dependency/SDK pins are unchanged.
+A fresh native execution requires this concrete correction to pass its original
+focused gate first. P09 selection/send, F06, all 94 visual matches and full
+acceptance remain open; P08 keeps its independent original source binding.

@@ -51,11 +51,6 @@ CODES = frozenset((
     "FORCED_TERMINATION", "CLEANUP_FAILED", "OUTPUT_OVERFLOW",
     "OUTPUT_INCOMPLETE", "INTERNAL_ERROR",
 ))
-PREFLIGHT = (
-    "$ErrorActionPreference='Stop'; "
-    "if (@(Get-Process -ErrorAction Stop | Where-Object { "
-    "$_.ProcessName -ieq 'syrius' }).Count -ne 0) { exit 23 }; exit 0"
-)
 REFUSED = "read-only presentation refuses this command"
 REPLACED = frozenset((
     "APPDATA", "LOCALAPPDATA", "TEMP", "TMP", "HOME", "USERPROFILE",
@@ -573,11 +568,14 @@ def require_ci(parent, expected, *, platform):
 
 
 def check_no_existing(repo, parent, *, run=fixed_command):
-    powershell = Path(parent["SYSTEMROOT"]) / "System32/WindowsPowerShell/v1.0/powershell.exe"
+    helper = Path(__file__).absolute().with_name('windows_process_preflight.py')
+    if not stat.S_ISREG(plain(helper).st_mode):
+        raise SmokeFailure("PREFLIGHT_FAILED")
+    env = {key: value for key, value in parent.items() if key.upper() in RUNTIME_ENV}
     code, _ = run(
-        [str(powershell), "-NoLogo", "-NoProfile", "-NonInteractive", "-Command", PREFLIGHT],
-        # Allow bounded cold PowerShell startup without changing Git helper limits.
-        cwd=repo, env=parent, timeout=15,
+        [sys.executable, '-I', '-S', '-B', str(helper)],
+        # Keep the original deadline and retained Popen handle; no shell startup.
+        cwd=repo, env=env, timeout=15,
     )
     if code == 23:
         raise SmokeFailure("EXISTING_PROCESS")

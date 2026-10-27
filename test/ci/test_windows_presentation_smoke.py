@@ -502,7 +502,7 @@ class AdmissionTests(unittest.TestCase):
         self.assertEqual(unrelated.kill_count, 0)
         self.assertEqual(original.waits, [5, 5])
 
-    def test_process_preflight_allows_a_bounded_slow_powershell_start(self):
+    def test_process_preflight_allows_a_bounded_slow_native_helper(self):
         original = OriginalProcess()
 
         def wait(timeout):
@@ -513,12 +513,15 @@ class AdmissionTests(unittest.TestCase):
             return 0
 
         original.wait = wait
-        parent = {"SYSTEMROOT": "system-root"}
+        parent = {"SYSTEMROOT": "system-root", "GITHUB_TOKEN": TOKEN,
+                  "PYTHONPATH": "untrusted-module-path"}
         with patch.object(smoke.subprocess, "Popen", return_value=original) as launch:
             smoke.check_no_existing(Path("checkout"), parent)
         self.assertEqual(original.waits, [15])
         self.assertEqual(original.kill_count, 0)
-        self.assertEqual(launch.call_args.args[0][-1], smoke.PREFLIGHT)
+        self.assertEqual(launch.call_args.args[0], [sys.executable, '-I', '-S', '-B',
+            str(CONTROLLER.with_name('windows_process_preflight.py'))])
+        self.assertEqual(launch.call_args.kwargs['env'], {'SYSTEMROOT': 'system-root'})
         self.assertFalse(launch.call_args.kwargs["shell"])
         self.assertEqual(launch.call_args.kwargs["stdout"], subprocess.DEVNULL)
         self.assertEqual(launch.call_args.kwargs["stderr"], subprocess.DEVNULL)
