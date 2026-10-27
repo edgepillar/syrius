@@ -4897,3 +4897,43 @@ The earlier native `40425151229` failure remains source-bound and unchanged;
 passing classifier cases do not replace that negative outcome or establish
 the cause of its refusal. No local SDK, joblog or artifact download occurs.
 P08/P09/F06 and all 94 visual matches remain open; the PR stays Draft.
+
+### Native movement category and updater sibling-layout reproduction (2026-10-27)
+
+Native source `90a24802ad2569a5fa2f1a8b7df2a5ddb9023326`, tree
+`867d81ee66c1b30221275d3187fa43f75c19a65a`, run `40428495388` attempt one,
+job `121940136889`, completes with failure at `node_settings_chain_toggle`.
+Its diagnostic now records `wallet-recipe-original-control-moved`, tap and
+key-confirmed. In the pinned classifier, this means the original Element
+and visible extent are preserved while the exact center changes. The native
+causal layout or scroll source is still unproven; no guard is relaxed.
+
+All 78 Dart cases, 500 Python cases with three platform skips, zero-diagnostic
+selected analysis and four original asset controls pass. Entry exits one
+with 883 complete output bytes, no overflow and SHA-256
+`b310949625b2f5ba6bfab2063a89e3fc1a168b982eabccd2b864ace5ce18c75d`.
+Cleanup application exit is zero, but ordinary closure remains unqualified
+and one VCTIP actor retains required-actor forced cleanup. No tour page or
+capture is accepted. All fourteen asset phases complete; the seven unchanged
+upstream tests pass with production source restored, and five lab nodes exit
+zero normally with complete unforced output. Overall wallet/lab acceptance
+remains failed. The completed original run is not polled or retried again.
+
+Source review identifies a sibling layout candidate: the real NodeUpdateCard
+above the chain Disclosure reads its library asynchronously, then replaces
+loading content through StateSwitcher and AnimatedSize. This can move the
+same header outside its existing RiseSwitcher/ListEntrance ancestry. Four
+new widget cases use the real updater, SettingsFrame, SettingsSection and
+Disclosure with an explicitly held in-memory library source. They cover both
+ready/failed outcomes and both motion settings. No library file is opened;
+no updater factory/action, save operation, file picker or network is used.
+
+The cases require recipe readiness false during loading and at 50 ms of the
+original fade/size transition, keep ordinary header input available, retain
+the same Element while its center changes, and require readiness again after
+the original motions complete. Their 1280x1600 fixture is a geometry test,
+not a screenshot or visual acceptance claim. The agent deliberately remains
+unchanged until the expected red 82-case gate is observed. This reproduction
+does not yet establish the sole cause of native movement. No local SDK,
+joblog or artifact download occurs; P08/P09/F06 and visual acceptance remain
+open, and the PR stays Draft.

@@ -1,7 +1,10 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/embedded_node/node_library.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/node_update/node_update.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/disclosure.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/welcome_surface.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/settings_frame.dart';
@@ -10,7 +13,29 @@ import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_wid
 import '../../harness/app/agent.dart';
 import '../../harness/bin/wallet_recipe.dart';
 import '../../harness/wallet_recipe_failure.dart';
+import '../node_update/support.dart' as node_fixture;
 import '../welcome/support.dart';
+
+class _HeldNodeLibrary extends node_fixture.FakeNodeLibrary {
+  final Completer<NodeLibraryStatus> answer = Completer<NodeLibraryStatus>();
+  int statusCalls = 0;
+
+  @override
+  Future<NodeLibraryStatus> status() {
+    statusCalls++;
+    return answer.future;
+  }
+}
+
+Future<bool> _chainReady(HarnessAgent agent) async {
+  final Map<String, Object?> view = await agent.commandForTest(
+    <String, dynamic>{'cmd': 'wallet-recipe', 'action': 'observe'},
+  );
+  final List<Map<String, Object?>> controls =
+      view['controls']! as List<Map<String, Object?>>;
+  return controls.singleWhere((Map<String, Object?> row) =>
+      row['key'] == 'node_settings_chain_toggle')['enabled']! as bool;
+}
 
 Future<Map<String, Object?>> _importControl(HarnessAgent agent) async {
   final Map<String, Object?> view = await agent.commandForTest(
@@ -24,6 +49,95 @@ Future<Map<String, Object?>> _importControl(HarnessAgent agent) async {
 }
 
 void main() {
+  for (final (bool disableAnimations, bool failLoad) in <(bool, bool)>[
+    (false, false), (true, false), (false, true), (true, true),
+  ]) {
+    testWidgets('chain recipe waits for updater $failLoad $disableAnimations', (
+      WidgetTester tester,
+    ) async {
+      const Size viewport = Size(1280, 1600);
+      prepareWelcomeViewport(tester, size: viewport);
+      final _HeldNodeLibrary library = _HeldNodeLibrary();
+      final node_fixture.FakeNodeUpdater updater =
+          node_fixture.FakeNodeUpdater(library);
+      final HarnessAgent agent = HarnessAgent.forTest()..booted = true;
+      int factories = 0;
+      int saved = 0;
+      int picked = 0;
+      int toggled = 0;
+      addTearDown(() {
+        if (!library.answer.isCompleted) {
+          library.answer.complete(library.current);
+        }
+      });
+      await tester.pumpWidget(welcomeHost(
+        SettingsFrame(
+          selected: SettingsSectionId.node,
+          onSelected: (SettingsSectionId _) {},
+          child: SettingsSection(children: <Widget>[
+            NodeUpdateCard(
+              library: library,
+              repository: node_fixture.kRepo,
+              updaterFor: (_) {
+                factories++;
+                return updater;
+              },
+              saveRepository: (String _) async {
+                saved++;
+              },
+              pickFile: () async {
+                picked++;
+                return null;
+              },
+            ),
+            Disclosure(
+              title: 'Client chain',
+              keyPrefix: 'node_settings_chain',
+              onChanged: (bool _) => toggled++,
+              child: const SizedBox(height: 60),
+            ),
+          ]),
+        ),
+        size: viewport,
+        disableAnimations: disableAnimations,
+      ));
+      await tester.pump();
+      final Finder toggle = find.byKey(
+        const Key('node_settings_chain_toggle'),
+      );
+      final Element original = tester.element(toggle);
+      final Offset loadingCenter = tester.getCenter(toggle);
+      expect(find.byKey(const Key('node_update_loading')), findsOneWidget);
+      expect(toggle.hitTestable(), findsOneWidget);
+      expect(library.statusCalls, 1);
+      expect(await _chainReady(agent), isFalse);
+      // Ordinary input stays available while the sibling reads its source.
+      await tester.tap(toggle);
+      expect(toggled, 1);
+      if (failLoad) {
+        library.answer.completeError(Exception('Synthetic disk read failure'));
+      } else {
+        library.answer.complete(library.current);
+      }
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(await _chainReady(agent), isFalse);
+      for (int frame = 0; frame < 80; frame++) {
+        await tester.pump(const Duration(milliseconds: 10));
+      }
+      expect(find.byKey(Key(failLoad
+          ? 'node_update_failed' : 'node_update_ready')), findsOneWidget);
+      expect(tester.element(toggle), same(original));
+      expect(tester.getCenter(toggle), isNot(loadingCenter));
+      expect(await _chainReady(agent), isTrue);
+      expect(toggled, 1);
+      expect(library.statusCalls, 1);
+      expect(library.calls, isEmpty);
+      expect(updater.calls, isEmpty);
+      expect(<int>[factories, saved, picked], <int>[0, 0, 0]);
+    });
+  }
+
   test('control change labels stay private and retire the original driver',
       () async {
     for (final String reason in <String>[
