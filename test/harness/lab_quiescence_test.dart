@@ -60,7 +60,8 @@ final class _Case {
     if (ownsWorker) addTearDown(worker.dispose);
     await OriginalPublications.run<void>(file, (_) async {});
     final AccountBlockTemplate result = await OriginalPublications
-        .runForOwners<AccountBlockTemplate>(<Object>[file, sdk], (operation) {
+        .runForOwners<AccountBlockTemplate>(<Object>[file, sdk],
+          (OriginalPublication<AccountBlockTemplate> operation) {
       original = operation;
       operation.retainPublicationHash(sent.hash.toString());
       return Future<AccountBlockTemplate>.value(sent);
@@ -71,7 +72,8 @@ final class _Case {
 
   Future<AccountBlockTemplate> track(AccountBlockTemplate block) =>
       OriginalPublications.runForOwners<AccountBlockTemplate>(
-        <Object>[file, sdk], (operation) {
+        <Object>[file, sdk],
+        (OriginalPublication<AccountBlockTemplate> operation) {
           operation.retainPublicationHash(block.hash.toString());
           return Future<AccountBlockTemplate>.value(block);
         });
@@ -104,7 +106,7 @@ void main() {
       expect(() => OriginalPublications.run<void>(owner, (_) async {}),
         throwsA(isA<OriginalPublicationRefused>()));
     }
-    expect(() => receipt.clear(), throwsUnsupportedError);
+    expect(receipt.clear, throwsUnsupportedError);
   });
 
   test('actual pending file work settles before a receipt can complete',
@@ -255,10 +257,11 @@ void main() {
     addTearDown(receive.close);
     final _Case fixture = _Case(receiving: receive.worker);
     await fixture.prepare();
-    receive.addresses = fixture.environment.members;
-    receive.selectedAddress = fixture.environment.owner;
-    receive.readInbound = (Hash hash) async => receiveInbound(hash,
-      destination: _address(2));
+    receive
+      ..addresses = fixture.environment.members
+      ..selectedAddress = fixture.environment.owner
+      ..readInbound = (Hash hash) async => receiveInbound(hash,
+        destination: _address(2));
     final List<Future<AccountBlockTemplate>> originals =
         <Future<AccountBlockTemplate>>[];
     receive.transport.reply = (ReceiveCall call) {
@@ -285,10 +288,11 @@ void main() {
     addTearDown(receive.close);
     final _Case fixture = _Case(receiving: receive.worker);
     await fixture.prepare();
-    receive.addresses = fixture.environment.members;
-    receive.selectedAddress = fixture.environment.owner;
-    receive.readInbound = (Hash hash) async => receiveInbound(hash,
-      destination: _address(2));
+    receive
+      ..addresses = fixture.environment.members
+      ..selectedAddress = fixture.environment.owner
+      ..readInbound = (Hash hash) async => receiveInbound(hash,
+        destination: _address(2));
     final StateError failure = StateError('synthetic receive outcome');
     receive.transport.failure = failure;
     await expectLater(receive.worker.autoReceiveTransactionHash(receiveHash(1)),
@@ -307,8 +311,9 @@ void main() {
     addTearDown(receive.close);
     final _Case fixture = _Case(receiving: receive.worker);
     await fixture.prepare();
-    receive.addresses = fixture.environment.members;
-    receive.selectedAddress = fixture.environment.owner;
+    receive
+      ..addresses = fixture.environment.members
+      ..selectedAddress = fixture.environment.owner;
     final Completer<AccountBlock?> proof = Completer<AccountBlock?>();
     receive.readInbound = (_) => proof.future;
     final StateError failure = StateError('synthetic inbound outcome');

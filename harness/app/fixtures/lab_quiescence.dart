@@ -31,11 +31,9 @@ final class LabQuiescence {
     required this.environment,
     required this.originalSend,
     required String confirmedHash,
-    required void Function() requireCurrent,
-    required void Function() requireJournal,
-  }) : _hash = confirmedHash,
-       _requireCurrent = requireCurrent,
-       _requireJournal = requireJournal {
+    required this._requireCurrent,
+    required this._requireJournal,
+  }) : _hash = confirmedHash {
     try {
       environment.requireLab();
       _requireCurrent();
