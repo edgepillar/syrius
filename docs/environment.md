@@ -5195,3 +5195,40 @@ changed. The exact same 89 test bodies remain for the green gate, alongside
 the same 505 Python cases. Green and fresh native acceptance remain pending;
 the original negative runs and all 94 unqualified visual matches retain
 their original scope. No local SDK or artifact download occurs.
+
+### Original Bell navigation and close gate qualified (2026-10-27)
+
+Source `da809e850607561d7ea1e7c4f638683ca1a0787f`, tree
+`c0d57257edbce2c1cd9a7130608a4ba5eaf8bdc5`, focused run
+[40441827960](https://github.com/edgepillar/syrius/actions/runs/40441827960),
+attempt one, job `121983725506`, passes the exact same 89 Dart cases with
+zero skips, failures or error events, eight hidden and 97 terminal events.
+The original command exits zero normally in 45.25 seconds with 41639 complete
+bytes, no overflow or forced kill and SHA-256
+`1ac195d851c26f56232a7765904c58f5b408548aa9df3a0e69f5f485f2715ce5`.
+All 505 Python cases pass with three platform skips. Selected analysis exits
+zero normally with complete empty output and no diagnostics. The original
+pre-build refusal and both open-input startup probes pass with normal
+complete exits and empty owned jobs.
+
+The actual Windows Node version remains 22.23.4. All four unchanged asset
+controls exit zero normally in 2.328 seconds with 196 complete bytes and
+SHA-256 `92412e73458bf347b028f1e834e2d82a417b262a46000799f5e80534c2e417d2`.
+Root/vendor enforced-lockfile restoration exits zero normally in 81.25 and
+10.015 seconds. The original Flutter revision is
+`abaf9c523780a608bd46686fd5e53740a07077f8`; unchanged declaration inputs retain
+SHA-256 `749a3290dc6fda66f5dbf04d3e622b13c8c36492a834573ff599242d1e171fa7`.
+No native application build, wallet or blockchain node executes in this
+focused gate. The red receipt keeps its two unlocated error events; no
+previous failure is overwritten or assigned an unobserved test identity.
+All test bodies, twelve tour destinations and original context/exit/cleanup
+guards remain unchanged.
+
+After that gate, fresh native run
+[40442587592](https://github.com/edgepillar/syrius/actions/runs/40442587592),
+at the same source/tree, attempt one, job `121986172753`, is dispatched once
+and confirmed in progress. Admission, original asset checks and the
+pre-SDK controller step pass. Actual complete tour, PNG verification and
+ordinary original lifecycle closure remain pending. No local SDK, joblog,
+archive or image is downloaded. P08/P09/F06 and all 94 visual matches remain
+open, and the PR remains Draft.
