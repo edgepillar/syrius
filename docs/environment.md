@@ -5030,3 +5030,53 @@ unchanged. The repaired combined gate still expects all 86 Dart cases and
 500 Python cases before any next native run. Earlier failed gates and the
 native movement receipt stay negative and source-bound. No local SDK,
 joblog or artifact download occurs; full acceptance remains open.
+
+### Combined Settings readiness qualified (2026-10-27)
+
+Source `2c56e24bdda7a419964139352b8847a7515f49ea`, tree
+`69618258fa13c34e67a58d1fcafc7d104dddde6f`, focused run
+[40436338792](https://github.com/edgepillar/syrius/actions/runs/40436338792),
+attempt one, job `121965782421`, passes all 86 Dart cases with zero skips,
+failures or error events, eight hidden and 94 terminal events. The original
+command exits zero normally in 52.25 seconds with 40331 complete bytes, no
+overflow or forced kill and SHA-256
+`bc7426b50d0b80918fb840701a12f823f86305561ff859a2f14e3244091a80ff`.
+All 500 Python cases pass with three platform skips. Selected analysis exits
+zero normally with no diagnostics and complete empty output. Both original
+startup probes retain open input, complete zero exits and empty owned jobs;
+the expected entry refusal occurs before any build.
+
+The actual Windows Node version is 22.23.4. All four unchanged asset controls
+exit zero normally in 1.937 seconds with 196 complete bytes and SHA-256
+`92412e73458bf347b028f1e834e2d82a417b262a46000799f5e80534c2e417d2`.
+Root and vendor locked restoration exit zero normally in 69.438 and 11.125
+seconds. The original Flutter revision is
+`abaf9c523780a608bd46686fd5e53740a07077f8`; unchanged declaration inputs retain
+SHA-256 `749a3290dc6fda66f5dbf04d3e622b13c8c36492a834573ff599242d1e171fa7`.
+No native wallet build, wallet or blockchain node executes in this focused
+job. The four original updater reproduction bodies remain unchanged; the
+fixture repairs retain readiness, same-Element, geometry and callback
+assertions without new suppression or relaxed admission. Earlier failed
+gates remain negative and retain their original source bindings.
+
+After this gate, fresh native run
+[40436918378](https://github.com/edgepillar/syrius/actions/runs/40436918378),
+at the same source/tree, attempt one, job `121967690171`, is dispatched once
+and confirmed in progress. Original admission and asset checks pass. Actual
+Settings chain selection, the tour, captures, lab outcome and ordinary
+lifecycle closure remain pending. No local SDK, joblog or artifact download
+is repeated. P08/P09/F06 and all 94 visual matches remain open.
+
+### Published pseudonymous attribution verified (2026-10-27)
+
+At source `2c56e24bdda7a419964139352b8847a7515f49ea`, independent bounded
+GitHub reads verify all 142 contribution commits in Draft PR 6. Both author
+and committer link to `edgepillar` and use
+`179010287+edgepillar@users.noreply.github.com`; all timestamps retain UTC
+offsets. The initial 128-commit correction preserves every original file
+tree, message and timestamp instant. Its original local branch, old-to-new
+SHA mapping and verification reports remain preserved. The fourteen later
+commits already use the requested identity. Upstream authors and historical
+runtime evidence keep their original bindings. No additional history rewrite,
+CI retry, runtime execution or artifact download is performed for this
+inspection, and the PR remains Draft and unmerged.
