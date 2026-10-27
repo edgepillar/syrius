@@ -5472,3 +5472,42 @@ actual corrected Windows selection still require execution. The earlier
 native receipt's particular refused field remains unprojected; this RED
 establishes the duplicate generation independently. No original UI send,
 F06 checkpoint/seed state or visual match is qualified, and the PR stays Draft.
+
+
+### Single original selection revision GREEN (2026-10-27)
+
+At source `f45dd303e18fb1f56ff02adbaf3425eb7100a29d`, tree
+`2891de8d0e1ecc02896d66162473d76d61cb8afd`, focused run
+[40453555686](https://github.com/edgepillar/syrius/actions/runs/40453555686),
+attempt one, job `122021570501`, passes all 113 original Dart bodies with zero
+skips, failures or error events, fourteen hidden successes and 127 terminal
+events. The same two real-notifier generation assertions that fail at RED
+`2bae61c4814d935274dcb087cd889f6de3baea40` now pass without any changed test
+body, removed assertion, revision tolerance or suppression. All ten original
+transfer-witness cases pass too. The original command exits zero normally
+in 49.516 seconds with 54574 complete bytes, no overflow or forced kill;
+output SHA-256
+`6f126948b91582ab2291bb872dfbe0002234230c1a5640c7b312628e5984bd0e`.
+
+All 508 Python cases retain three platform skips. Selected analysis has zero
+errors, warnings and infos with a normal complete zero exit and empty output.
+Pinned SDK, unchanged locked source/inputs, both original open-input startup
+probes, pre-build refusal, Windows Node 22.23.4 and all four unchanged asset
+controls pass. No native wallet or node runs in this focused gate.
+
+One fresh actual Windows wallet/lab execution at that exact corrected source,
+[40454377746](https://github.com/edgepillar/syrius/actions/runs/40454377746),
+attempt one, job `122024173849`, is in progress when observed. It must complete
+the real import, chain-321 policy, original Add address/index-1 selection,
+notifier/preference agreement, all twelve tour destinations, unchanged inputs
+and original exits. It is not a retry of native `40449074122`, whose failed
+original address-context refusal and forced cleanup remain negative. The
+specific field of that old native refusal is still unprojected.
+
+P09 remains open until actual index selection and one original confirmed UI
+send are qualified. The passive witness is not wired to publication. F06
+requires actual reversible preparation and wallet-created states, not a
+checkpoint acknowledgement. P08 retains its independent original binding;
+all 94 visual matches and full visual/motion/seam/layout acceptance remain
+open. No SDK, joblog, archive or image is downloaded locally and the PR stays
+Draft.
