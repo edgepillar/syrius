@@ -991,6 +991,17 @@ Future<void> goto(Instance inst, String tab) async {
     throw Fail('no tab "$tab"; tabs are ${tabs.join(', ')}');
   }
   await call(inst, <String, Object?>{'cmd': 'tap', 'tab': tab});
+  if (tab == 'notifications') {
+    // The real rail opens a panel over the original page, not another tab.
+    await call(inst, <String, Object?>{
+      'cmd': 'wait', 'key': 'bell_panel', 'timeoutMs': 5000,
+    });
+    final Map<String, dynamic> current = await stateOf(inst);
+    if (current['tab'] != s['tab']) {
+      throw Fail('goto notifications: original page changed');
+    }
+    return;
+  }
   await until(
     inst,
     (Map<String, dynamic> s) => s['tab'] == tab,
@@ -1216,6 +1227,14 @@ Future<void> tour(
       }
       visited.last['captured'] = true;
       await _tourContext(inst, s);
+      if (page == 'notifications') {
+        // Close through the same ordinary panel control before another page.
+        await call(inst, <String, Object?>{'cmd': 'tap', 'key': 'bell_close'});
+        await call(inst, <String, Object?>{
+          'cmd': 'wait', 'key': 'bell_panel', 'gone': true, 'timeoutMs': 5000,
+        });
+        await _tourContext(inst, s);
+      }
     }
     await goto(inst, 'dashboard');
     complete = true;

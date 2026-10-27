@@ -5164,3 +5164,34 @@ now expects 89 Dart cases and 505 Python cases; no local SDK executes and no
 test is removed or skipped. This is preparation for the original navigation
 correction, not a claim that the actual full tour or normal closure succeeds.
 P08/P09/F06 and all 94 visual matches remain open.
+
+### Notifications red counts and original-panel correction (2026-10-27)
+
+With original CLI blob `8a2ce92efa3ad285d8cee68d0e056fdd9c7eea79`, source
+`7dfc67337260e22ba5a678623a7b02e92a8fb91e`, tree
+`503faec3adacd115cdc28873e955893ce615cc0a`, focused run
+[40440502091](https://github.com/edgepillar/syrius/actions/runs/40440502091),
+attempt one, job `121979449167`, records 87 passed, two failed, zero skipped,
+two error events, eight hidden and 97 terminal events. Both projected events
+are UNHANDLED/OTHER with no source or line. The receipt does not identify
+their exact test cases or source locations. Its original command exits one
+normally in 56.016 seconds with 41973 complete bytes, no overflow or forced
+kill and SHA-256
+`3394cea828256583cec6d278541460773a84e175e41652f0c3da6c2209f53766`.
+All 505 Python cases pass with three platform skips, selected analysis has
+zero findings, and the original dependency/asset/startup checks pass. No
+native wallet or blockchain node executes in this red gate.
+
+The candidate follows the independently inspected original UI contract.
+After normal Notifications navigation input, `goto` waits for the actual
+`bell_panel` and requires the previously selected page to remain selected.
+It does not wait for a tab the original rail does not select. After the
+Notifications capture and original context check, the tour closes through
+the actual `bell_close` control, waits for that panel to leave the tree and
+checks the same wallet context again before later destinations. All twelve
+destinations remain mandatory. No application callback, panel implementation,
+wallet state, signing policy, pointer admission, timeout or cleanup rule is
+changed. The exact same 89 test bodies remain for the green gate, alongside
+the same 505 Python cases. Green and fresh native acceptance remain pending;
+the original negative runs and all 94 unqualified visual matches retain
+their original scope. No local SDK or artifact download occurs.
