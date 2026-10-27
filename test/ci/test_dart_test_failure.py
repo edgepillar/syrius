@@ -23,7 +23,7 @@ class DartFailureTests(unittest.TestCase):
                      'lab_send_policy_test.dart', 'lab_send_journal_test.dart',
                      'lab_send_ui_binding.dart', 'lab_send_ui_binding_test.dart',
                      'lab_send_failure.dart', 'lab_send_failure_test.dart',
-                     'lab_sender_menu_test.dart',
+                     'lab_sender_menu_test.dart', 'transfer_sender_header_test.dart',
                      'startup_key_confirm_test.dart', 'startup_key_refusal_test.dart',
                      'startup_key_support.dart',
                      'send_populated.dart',

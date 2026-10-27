@@ -1015,11 +1015,12 @@ class HarnessAgent {
       requireAdmission: () => _labSame(original, requireCurrent));
   }
 
-  List<_Node> _labSenderItems(String owner) {
+  List<_Node> _labSenderItems([String? owner]) {
     final List<_Node> items = <_Node>[];
     void visit(Element element) {
       final Widget widget = element.widget;
-      if (widget is PopupMenuItem<String> && widget.value == owner &&
+      if (widget is PopupMenuItem<String> &&
+          (owner == null || widget.value == owner) &&
           ModalRoute.of(element)?.isCurrent == true) {
         final Rect? rect = _rectOf(element);
         if (rect != null) {
@@ -1198,7 +1199,20 @@ class HarnessAgent {
       final String owner = source.environment.owner;
       phase = 'sender';
       if (binding.owner.draftSender != owner) {
-        await _selectLabSender(owner, binding.requireForm);
+        try {
+          await _selectLabSender(owner, binding.requireForm);
+        } on SeedRefused catch (error) {
+          if (error.code != 'original-lab-sender-choice-missing') rethrow;
+          binding.requireForm();
+          final SendPopulated current = binding.form.widget as SendPopulated;
+          if (!current.balances.containsKey(owner)) {
+            throw const SeedRefused('original-lab-sender-form-choice-missing');
+          }
+          if (_labSenderItems().isEmpty) {
+            throw const SeedRefused('original-lab-sender-menu-missing');
+          }
+          throw const SeedRefused('original-lab-sender-menu-choice-missing');
+        }
         if (binding.owner.draftSender != owner) {
           throw const SeedRefused('original-lab-sender-choice-required');
         }

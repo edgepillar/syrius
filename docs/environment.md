@@ -6144,3 +6144,55 @@ and is reused without another execution. A fresh source-bound 181-Dart and
 536-Python focused gate remains pending; no new native wallet or lab run is
 authorized by this failed result alone. Earlier native44 failure and all
 P09/F06, checkpoint and visual-acceptance limits remain unchanged.
+
+### Actual Transfer-header coverage after native45
+
+Source 07660199e5871ce063e58529227d26b7f395039e has qualified focused run
+40494682494 and failed independent native run 40495287178, attempt one,
+job 122159086648. Both pass all 181 Dart cases, 536 Python cases with three
+original platform skips and zero selected analyzer findings. Native Dart
+exits normally at zero after 55.969 seconds with complete, unforced
+88730-byte output, SHA-256
+7d84a3350557d0ddd11faf16573756955c598771bbd05a8e1529920e00361e1a.
+
+Native45 completes actual onboarding and generates, selects and persists
+index 1 with two wallet members. The fixed send command stops at sender /
+original-lab-sender-choice-missing, before its original-send admission.
+It produces no positive send receipt or tour/capture result. This known
+pre-admission refusal does not resolve native42's earlier UNKNOWN outcome.
+The complete 924-byte entry output has SHA-256
+bdc495139036bde3ab5c10f5e4d6fcf9e29d821e117a6e7f73590f84e1b968d3.
+
+All five original nodes exit normally at zero with complete output. Fourteen
+asset phases and seven unchanged upstream tests pass with source restoration.
+Failure cleanup observes app exit zero, while ordinary close acknowledgement,
+required actor closure, helper separation and source/input postchecks remain
+unqualified. One VCTIP helper remains at owned-job close and requires forced
+cleanup. Missing postchecks do not imply mutation. Cooperative samples report
+266420138 peak logical bytes and 233176461312 minimum free bytes across
+56 samples; this is not total runner, SDK or lab-node storage use.
+
+The six earlier sender-selector cases use isolated real PopupMenuButtons.
+The new three cases use the actual TransferPage/header, original draft and
+balance bloc, with ordinary pointer input. Both themes must select the typed
+owner while retaining the actual form. Another case checks the production
+menu retains its opening choice widgets even after the balance bloc and
+underlying form gain a second address. This is a possible boundary, not proof
+that stale balances caused the native refusal. No balance event, SDK method,
+draft mutation or menu callback is invoked by the harness to bypass input.
+
+Only after the existing missing-choice refusal, read-only observations of
+the current original form and rendered typed menu refine its reason into
+three closed labels. Existing owner/Element/center/input readiness, menu
+opening and observation clocks stay unchanged. The ordinary application has
+no source change. The earlier 181 Dart bodies remain byte-identical; the
+three new real-header cases await the complete 184-Dart/536-Python gate.
+
+Eighteen selected memory-only diagnostic/receipt/privacy cases pass with zero
+failures, errors or skips and the exact expanded producer/reader vocabulary.
+The first local controller invocation did not retain its assertion result and
+remains UNKNOWN; a corrected package namespace supplies the retained original
+successful output. No local Flutter/native command, artifact transport,
+storage policy change or cleanup occurs. P09/F06, real reversible checkpoints
+and all 94 visual matches remain unqualified. The failed native chain/profile
+is preserved without retry.
