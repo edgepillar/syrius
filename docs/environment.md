@@ -5962,3 +5962,55 @@ center tolerance, timing bound, signing path or F06 checkpoint condition is
 weakened. P09, real F06 seed states and all 94 visual matches remain open. No
 local SDK/native execution, joblog/archive/image download, quota change or
 cleanup occurs.
+
+### Original sender-menu refusal and typed entry input
+
+At source `64695138719672e66bd70b1908e7c9f438168d29`, tree
+`05c6ba865b27a4a90a3b2bb14733da4d42311730`, focused run `40479685330`,
+attempt one, job `122106575933`, qualifies all 173 Dart cases and 535 Python
+cases with three original platform skips and zero selected analyzer findings.
+Native run `40480418594`, attempt one, job `122109025337`, also passes those
+gates. Its original Dart process exits zero normally in 62.453 seconds with
+82984 complete bytes, no overflow/forced kill, and digest
+`bd61f929cd402950a9ec9686281d3dc89c456f8e5779a1d609dc36d9401f0eda`.
+
+The actual index-1 preparation is generated, selected and persisted. Entry
+then exits one at `lab_send`, carrying only the closed diagnostic
+`sender` / `original-lab-sender-choice-required`. The original complete
+925-byte entry output has digest
+`1b9915ce7f4c4a0a51a79c1e3e6ec680957f65ddf37fb5d0e7fb8197dc8569f6`.
+This locates the refusal at the single expected menu choice; it does not
+identify whether the old general snapshot omitted, duplicated or rejected
+that choice. The source-bound fixed command has not opened its send review or
+reached original-send admission. It has no accepted send receipt, tour or
+capture. The earlier native-42 publication outcome remains UNKNOWN.
+
+All five original lab nodes exit zero normally with complete output. Fourteen
+asset phases and seven unchanged upstream test bodies pass with source
+restored. Failure cleanup observes application exit zero; normal close
+acknowledgement, helper separation and required actor closure are unqualified.
+One VCTIP helper remains at owned-job close and is forcibly cleaned up.
+Source/input postchecks are not reached; missing checks do not imply mutation.
+Cooperative samples observe 266418624 peak logical bytes and 154945638400
+minimum free bytes across 57 samples, rather than total SDK/runner storage.
+
+The new selector reads actual current-route `PopupMenuItem<String>` Elements
+by their exact original owner value. General snapshot folding or detector
+deduplication cannot choose a different control. It waits for the existing
+route/entrance/scroll/hit-test readiness, retains one enabled Element and exact
+center, and rechecks these plus the original owner at both pointer admissions.
+Input uses the same ordinary mouse primitive. No callback, draft setter,
+signer or SDK submit method is invoked directly. A selected draft must name
+the original owner before preparation continues. Ambiguous or disabled
+entries refuse; missing/unsettled entries never gain authority by elapsed
+time. Three added fixed reasons make 53 closed reasons across the same 24
+phases, without exporting labels, addresses or snapshot data.
+
+Six new Dart regressions cover both themes with identical visible labels,
+a longer original opening animation, duplicate/disabled owner entries and
+owner loss between pointer down/up. All 173 previous Dart test files stay
+unchanged. Seventeen selected memory-only diagnostic/receipt/privacy cases
+pass; the expanded 179-Dart/535-Python hosted gate remains pending. The
+original failed chain/profile will not be retried. P09, reversible F06
+checkpoints, actual seed states and all 94 visual matches remain open. No
+local SDK/native execution, artifact download, quota change or cleanup occurs.

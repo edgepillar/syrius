@@ -1015,6 +1015,79 @@ class HarnessAgent {
       requireAdmission: () => _labSame(original, requireCurrent));
   }
 
+  List<_Node> _labSenderItems(String owner) {
+    final List<_Node> items = <_Node>[];
+    void visit(Element element) {
+      final Widget widget = element.widget;
+      if (widget is PopupMenuItem<String> && widget.value == owner &&
+          ModalRoute.of(element)?.isCurrent == true) {
+        final Rect? rect = _rectOf(element);
+        if (rect != null) {
+          items.add(_Node('button', widget.runtimeType.toString(), element,
+            rect, const <String>[])..enabled = widget.enabled);
+        }
+      }
+      element.debugVisitOnstageChildren(visit);
+    }
+    WidgetsBinding.instance.rootElement?.debugVisitOnstageChildren(visit);
+    return items;
+  }
+
+  void _labSenderSame(
+    String owner, _Node original, void Function() requireCurrent,
+  ) {
+    requireCurrent();
+    final List<_Node> current = _labSenderItems(owner);
+    if (current.length != 1 ||
+        !identical(current.single.element, original.element) ||
+        current.single.center != original.center ||
+        !_labNodeReady(current.single)) {
+      throw const SeedRefused('original-lab-control-changed');
+    }
+  }
+
+  Future<void> _selectLabSender(
+    String owner, void Function() requireCurrent,
+  ) async {
+    await _labTapKey('transfer_sender', requireCurrent);
+    final Stopwatch deadline = Stopwatch()..start();
+    bool seen = false;
+    while (deadline.elapsed < const Duration(seconds: 15)) {
+      requireCurrent();
+      // Menu entries are the actual typed controls, rather than the general
+      // snapshot's folded and deduplicated gesture-detector descendants.
+      final List<_Node> items = _labSenderItems(owner);
+      if (items.length > 1) {
+        throw const SeedRefused('original-lab-sender-choice-ambiguous');
+      }
+      if (items.length == 1) {
+        seen = true;
+        final _Node original = items.single;
+        if (!original.enabled) {
+          throw const SeedRefused('original-lab-sender-choice-required');
+        }
+        if (_labNodeReady(original)) {
+          await _click(original.center, requireAdmission: () =>
+            _labSenderSame(owner, original, requireCurrent));
+          await _settle();
+          requireCurrent();
+          return;
+        }
+      }
+      // Observe the original route and hit test; elapsed time never grants
+      // permission to click a missing, covered or still-moving menu entry.
+      await Future<void>.delayed(const Duration(milliseconds: 40));
+    }
+    throw SeedRefused(seen ? 'original-lab-sender-choice-unsettled' :
+      'original-lab-sender-choice-missing');
+  }
+
+  /// Exercises the normal sender-menu input without a wallet publication.
+  @visibleForTesting
+  Future<void> selectLabSenderForTest(
+    String owner, void Function() requireCurrent,
+  ) => _selectLabSender(owner, requireCurrent);
+
   Future<void> _labInput(
     String key, String value, void Function() requireCurrent,
   ) async {
@@ -1125,24 +1198,10 @@ class HarnessAgent {
       final String owner = source.environment.owner;
       phase = 'sender';
       if (binding.owner.draftSender != owner) {
-        await _labTapKey('transfer_sender', binding.requireForm);
-        final List<_Node> choices = _snapshot().where((_Node node) {
-          bool matches = false;
-          node.element.visitAncestorElements((Element ancestor) {
-            if (ancestor.widget case final PopupMenuItem<String> item) {
-              matches = item.value == owner;
-              return false;
-            }
-            return true;
-          });
-          return node.kind == 'button' && matches && _labNodeReady(node);
-        }).toList();
-        if (choices.length != 1) {
+        await _selectLabSender(owner, binding.requireForm);
+        if (binding.owner.draftSender != owner) {
           throw const SeedRefused('original-lab-sender-choice-required');
         }
-        final _Node choice = choices.single;
-        await _tap(<String, dynamic>{'ref': choice.ref},
-          requireAdmission: () => _labSame(choice, binding.requireForm));
       }
       phase = 'token';
       if (binding.owner.draftToken != znnZts.toString()) {
