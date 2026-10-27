@@ -95,7 +95,8 @@ void main() {
       final String restored = paths.join(base, _name('2'));
       expect(mapCopiedWalletPath(originalHome: original,
         restoredHome: restored, savedPath: paths.join(original, 'wallet', 'a'),
-        context: paths), paths.join(restored, 'wallet', 'a'));
+        context: paths),
+        paths.normalize(paths.join(restored, 'wallet', 'a')));
     }
   });
 
