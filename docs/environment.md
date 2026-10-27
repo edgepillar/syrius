@@ -4785,3 +4785,40 @@ unchanged. The identical 72-case hosted gate is pending for the correction.
 The native changed-control reason still combines replacement and movement;
 red reproduction alone does not establish the sole cause of that refusal.
 P08/P09/F06, complete lifecycle closure and all visual acceptance remain open.
+
+
+### Settings original-clock green gate and fresh native observation (2026-10-27)
+
+Source `5939d844c46f45e1031fab790932ee51d51e01bb`, tree
+`a871228d3de9e88784c72c73b7cbe042f24d6d7d`, qualifies in focused run
+`40424505447` attempt one, job `121926800130`. All 72 unchanged Dart test
+bodies pass, with zero skips, failures or error events, seven hidden and 79
+terminal events. The original command has complete normal zero exit in
+41.078 seconds, no overflow or forced kill, 33246 output bytes and SHA-256
+`3daa7ea7303c799f319dfe40050f0b38c7ced2c1d993c6aa4058b7b54fb9c53d`.
+Both Settings motion-setting variants now complete their ordinary-input,
+original Element, changed-center and readiness assertions. The earlier exact
+two-case red result remains failed and source-bound; its test bodies are not
+modified to obtain this green result.
+
+All 499 Python cases pass with three platform skips. Selected analysis exits
+zero with complete empty output and zero errors, warnings or infos. Windows
+Node 22.23.4 is observed; the original four asset controls exit zero normally
+in 2.672 seconds with 196 complete bytes and unchanged finite-output hash.
+One pinned SDK and root/vendor enforced-lockfile restores pass, with equal
+inputs and unchanged source. Expected pre-build refusal and both original
+open-input startup probes pass with empty owned jobs. A failed metadata read
+is retained separately and reconciled by observation of this same original
+run; no test, SDK restore or workflow retry is performed. The focused job
+executes no native wallet build, wallet or blockchain node.
+
+Only after that qualified gate, one new isolated native wallet tour is
+accepted at the same source: run `40425151229` attempt one, job
+`121928936525`. It is confirmed in progress, with pre-SDK admission, asset
+controls and Python tests passed and SDK preparation underway. Native
+startup, actual Settings chain selection, full tour, captures, lab outcome
+and original lifecycle closure remain pending. Earlier native run
+`40419297725` remains failed with its changed-control refusal and required
+actor cleanup. No unchanged native source is repeated, and no local SDK,
+joblog or artifact download occurs. P08/P09/F06 and all visual acceptance
+remain open; the PR stays Draft.
