@@ -5725,3 +5725,36 @@ complete tour/closure at its own source. The original send policy is still
 unwired to app confirmation; one exact confirmed native UI send, reversible
 F06 preparation, all 94 visual matches and full acceptance remain open. No
 local SDK/native execution, artifact download, quota change or cleanup occurs.
+
+
+### Original pointer-failure type correction (2026-10-27)
+
+At source `54c2615d05b8eec36835c9ada2aa6ba2342d9d4f`, tree
+`eaa6f95abea3257b0119a2ff3d5b3c76fab81179`, focused
+[40465119830](https://github.com/edgepillar/syrius/actions/runs/40465119830),
+attempt one, job `122058545642`, passes all 153 Dart bodies, with zero
+skips/failures/error events, seventeen hidden successes and 170 terminal events.
+Normal original Dart exit is zero in 34.438 seconds, with 72159 complete bytes,
+no overflow or forced kill; SHA-256
+`81e782217ddf08010691dda5cc10172ca6a06871f650c6159a864854e4a402b9`.
+All 524 Python cases pass with three existing platform skips. Original startup,
+pre-build refusal, pinned inputs and four unchanged asset controls pass.
+
+Selected analysis exits zero normally, with 184 complete bytes, no overflow,
+zero errors/warnings and one `ONLY_THROW_ERRORS` info in the pointer-failure
+test; SHA-256
+`d329b0c59ee2c050bffcca236a2afb6e58423189616fa7318995704d8e2b32eb`.
+The strict gate remains unqualified. Its correction narrows the existing
+`originalError` variable from `Object` to `StateError`. The same StateError
+instance is created, thrown, retained and compared by identity; every existing
+assertion and ordinary application/guard byte remains unchanged. No suppression
+or new case is added. A clean source-bound hosted gate is still required.
+
+The current contribution history is also rechecked: all 160 commit objects
+have edgepillar author and committer with the GitHub no-reply address and UTC
+dates, and the remote Draft head matches. All 128 original trees, messages and
+timestamp instants, the private old-to-new mapping and original local history
+remain preserved. No further rewrite occurs. Native index-1 qualification
+retains its original source; original UI send, F06 preparation and all 94
+visual matches remain open. No local SDK/native execution, artifact download,
+quota change or cleanup occurs.

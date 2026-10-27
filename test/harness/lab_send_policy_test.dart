@@ -228,7 +228,7 @@ void main() {
     'a pointer failure retains the original hash and cannot be retried',
     () async {
       final _Case value = _Case();
-      final Object originalError = StateError('original-pointer-failure');
+      final StateError originalError = StateError('original-pointer-failure');
       await expectLater(value.run(tap: (void Function() admission) async {
         await value.complete(admission);
         throw originalError;
