@@ -6834,7 +6834,7 @@ not exported; this source observation is a candidate cause. Two pure-memory
 controls exercise the unchanged parser: valid complete JSON events pass and
 the same events preceded by that plain line refuse. The fixture now owns an
 IOOverrides stdout zone through the real asynchronous unlock call, using the
-existing mocktail dependency. It asserts exactly that one success line, or
+Fake class exported by flutter_test. It asserts exactly that one success line, or
 empty output for refused and ordinary locked cases, while retaining every
 original command/state assertion. Application, CLI, parser, workflow and
 exact 221-case admission remain unchanged. All thirteen inputs to the retained
@@ -6842,3 +6842,21 @@ exact 221-case admission remain unchanged. All thirteen inputs to the retained
 Fresh hosted analysis and complete 221/555 qualification remain required.
 The native61 original send and earlier UNKNOWN originals retain their source
 bindings; no checkpoint, restored profile or F06 effect is inferred.
+
+### Reuse the test framework's existing Fake export
+
+At f62e45e0eebe70aedd9bd3650120fd21eccee0cc, harness-only
+[40562280234](https://github.com/edgepillar/syrius/actions/runs/40562280234),
+attempt one, job 122394206786, passes all 555 Python cases/three original
+skips and locked dependency restoration. Strict analysis exits zero with
+268 complete bytes but one UNNECESSARY_IMPORT info at
+wallet_tour_test.dart:4:8; the Dart step is skipped and no native build runs.
+
+Pinned Flutter source exports test_api's Fake through flutter_test's
+test_compat module. Removing the redundant mocktail import leaves the same
+class, every fixture statement and every assertion. Application, CLI,
+controllers, strict event parsing and exact 221-case admission remain.
+The retained 37-case proof and two parser controls have identical inputs and
+are reused without execution. Fresh complete hosted 221/555 qualification
+and zero-finding selected analysis remain required. Original failures and
+the independently positive native61 request keep their source bindings.
