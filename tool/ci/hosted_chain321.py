@@ -64,7 +64,7 @@ CODES = frozenset((
     "CONFIG_REFUSED", "PORT_CONFLICT", "NODE_EXITED", "RPC_UNAVAILABLE",
     "RPC_REFUSED", "GENESIS_MISMATCH", "PRODUCTION_UNPROVEN",
     "DOCKER_REFUSED", "RESOURCE_CHANGED", "INTERNAL_ERROR",
-    "NODE_REGRESSIONS_REFUSED", "WALLET_TOUR_FAILED",
+    "NODE_REGRESSIONS_REFUSED", "WALLET_TOUR_FAILED", "CHECKPOINT_REFUSED",
 )) | wire_policy.CODES
 NODE_DIAGNOSTICS = frozenset((
     "NODE_CLI_REFUSED", "NODE_STORAGE_REFUSED", "NODE_PANIC",
@@ -803,6 +803,21 @@ class Native:
              "STOP_UNKNOWN")
 
 
+def checkpoint_closed(runtime, wallet):
+    """A saved exit receipt cannot replace the current original process handles."""
+    try:
+        return (isinstance(runtime, Native) and runtime.stop_attempted is True
+            and runtime.stop_order == list(ROLES) and set(runtime.configs) == set(ROLES)
+            and len(runtime.originals) == len(ROLES) and wallet.closed() is True
+            and all(type(item.process.poll()) is int and item.process.poll() == 0
+                and type(item.receipt) is dict
+                and type(item.receipt.get('exit_code')) is int and item.receipt['exit_code'] == 0
+                and item.receipt.get('output_complete') is True
+                and item.receipt.get('forced') is False for item in runtime.originals))
+    except (Exception, KeyboardInterrupt):
+        return False
+
+
 class Docker:
     def __init__(self, commands, binary, configs, nonce):
         self.commands, self.binary, self.configs = commands, binary, configs
@@ -1065,6 +1080,7 @@ def run(backend):
         storage_limit_scope="isolated_hosted_regression_fixture_cooperative_samples",
         cleanup="runner_lifecycle_not_qualified")
     runtime = None
+    closed_wallets = []
     try:
         source = repo / ".harness/ci-node-source"
         directories(source)
@@ -1155,7 +1171,8 @@ def run(backend):
             from tool.ci import windows_wallet_tour
             report['runtime_phase'] = 'wallet_tour'
             outcome = windows_wallet_tour.run(repo, parent, runtime, root,
-                report['observations'], lambda: observe(runtime, root))
+                report['observations'], lambda: observe(runtime, root),
+                retain_closed=closed_wallets.append)
             manifest = regular(repo / '.harness/ci-wallet-tour/manifest.json')
             report['wallet_tour'] = dict(success=outcome['success'],
                 phase=outcome['phase'], checks=outcome['checks'], errors=outcome['errors'],
@@ -1179,7 +1196,6 @@ def run(backend):
                 report["checks"]["stopped"] = True
             except Exception:
                 report["error_codes"].append("STOP_UNKNOWN")
-        report["commands"] = [item.receipt for item in commands.originals]
         if isinstance(runtime, Native):
             report["node_exits"] = [item.receipt for item in runtime.originals]
             report["native_shutdown_order"] = runtime.stop_order
@@ -1193,6 +1209,40 @@ def run(backend):
             report["node_diagnostics"] = sorted(set(runtime.diagnostics))
             report["direct_rpc_ready"] = runtime.direct_rpc_ready
             report["loopback_relay"] = None if runtime.relay is None else runtime.relay.summary()
+        if wallet_tour and all(report['checks'].values()) and not report['error_codes']:
+            report['checkpoint'] = dict(schema=1, scope='closed_owned_lab_checkpoint', complete=False)
+            try:
+                from tool.ci import closed_lab_checkpoint as checkpoint
+                need(isinstance(runtime, Native) and len(closed_wallets) == 1,
+                     'CHECKPOINT_REFUSED')
+                wallet = closed_wallets[0]
+
+                def closed():
+                    return checkpoint_closed(runtime, wallet)
+
+                need(closed(), 'CHECKPOINT_REFUSED')
+                wallet.claim_checkpoint()
+                source_matches(commands, source, node_sha, node_tree, compiled_tree)
+                need(commands.git(repo, 'rev-parse', 'HEAD') == parent['GITHUB_SHA']
+                     and not commands.git(repo, 'status', '--porcelain=v1', '--untracked-files=all'),
+                     'SOURCE_REFUSED')
+                roots = dict(wallet_profile=wallet.home, **runtime.configs)
+                binding = dict(source_sha=report['application_sha'],
+                    source_tree=report['application_tree'], node_sha=node_sha,
+                    node_tree=compiled_tree, genesis_sha256=report['genesis_sha256'],
+                    run_id=report['run_id'], attempt=int(report['attempt']))
+                _, report['checkpoint'] = checkpoint.capture_restore(roots,
+                    root / ('closed-checkpoint-' + secrets.token_hex(12)), closed,
+                    base_bytes=sample_storage(root) + wallet.measured_bytes(), binding=binding)
+                source_matches(commands, source, node_sha, node_tree, compiled_tree)
+                need(not commands.git(repo, 'status', '--porcelain=v1', '--untracked-files=all')
+                     and sample_storage(root) + wallet.measured_bytes() <= MAX_WORK,
+                     'SOURCE_REFUSED')
+            except (Exception, KeyboardInterrupt):
+                report['error_codes'].append('CHECKPOINT_REFUSED')
+                report['checkpoint'] = dict(schema=1,
+                    scope='closed_owned_lab_checkpoint', complete=False)
+        report['commands'] = [item.receipt for item in commands.originals]
         report["success"] = all(report["checks"].values()) and not report["error_codes"]
         report['wallet_tour_qualified'] = bool(wallet_tour and report['success']
             and report['wallet_tour'] is not None and report['wallet_tour']['success'])
@@ -1210,6 +1260,7 @@ def run(backend):
                 wallet_qualified=False, seed_admitted=False, checks=report['checks'],
                 errors=report['error_codes'], node_sha=report['node_sha'],
                 compiled_node_tree=report.get('compiled_node_tree'),
+                checkpoint=report.get('checkpoint'),
                 asset_generation=report.get('asset_generation'),
                 upstream_client_fixture=(read_first_client_fixture.validate(
                     report.get('upstream_client_fixture'), required=report['checks']['started'])

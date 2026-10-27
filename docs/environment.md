@@ -6860,3 +6860,57 @@ The retained 37-case proof and two parser controls have identical inputs and
 are reused without execution. Fresh complete hosted 221/555 qualification
 and zero-finding selected analysis remain required. Original failures and
 the independently positive native61 request keep their source bindings.
+
+### Guarded unlock qualification and closed data checkpoint preparation
+
+At 31b4210ce5ba3f71752c216cc02aa8fa8e880888, harness-only
+[40563512632](https://github.com/edgepillar/syrius/actions/runs/40563512632),
+attempt one, job 122398546675, qualifies all 221 Dart cases with zero
+skips/failures/errors and terminal success. Original Dart exits zero in
+91.61 seconds with 108501 complete, unforced bytes, SHA-256
+e31621261651fb7c808ca6ce0d42b30e7a757c5128d47432f04e8fcc65113fa9.
+All 555 Python cases/three original platform skips and zero-finding selected
+analysis pass. The exact captured unlock output and every command/state
+assertion pass. Earlier invalid-event and import refusals remain negative.
+
+The next source change adds a closed-data adapter in
+`tool/ci/closed_lab_checkpoint.py`. The native coordinator calls it only after
+the original wallet tour, source/input postchecks and all five original node
+closures succeed. A private in-memory wallet handoff retains the original
+entry process, profile identity and RAM-only password. It can claim one
+checkpoint attempt. Saved JSON reports cannot replace current original
+process closure; partial, failed, forced or unobservable originals refuse.
+
+Only the wallet data home and five node data directories are copied. The
+compiler/tool profile, including its separately verified contained junction,
+is excluded. Both the originals and the immutable checkpoint objects are
+preserved. Each digest has one streamed object and each restored file is an
+independent portable copy. File names and data stay private on the runner;
+the public result contains finite counts, byte accounting and a manifest
+digest. There is no recursive archive, hard link, cleanup or manifest replay.
+Source and output identities, contents and catalogs are rechecked. A partial
+restore retains its exclusive claim outside the immutable baseline objects.
+
+The adapter reserves existing declared work bytes, unique objects, a full
+independent restore and bounded metadata under the same four-GiB fixture cap.
+It retains the existing two-GiB floor only for fresh isolated hosted
+regression VMs; local production policy remains ten GiB. Metadata is bounded
+at eight MiB, entries at 20000 and streaming chunks at 64 KiB, with a finite
+180-second copy deadline. This is cooperative accounting for the declared
+lab root and four wallet work roles, not the whole SDK or runner footprint.
+
+All sixty selected memory-only controls pass without local filesystem
+scratch, SDK or native execution. The expanded controller suite adds 33
+cases, including ten small hosted filesystem fixtures for exact restoration,
+deduplication, independent identities, allocation refusal, source changes,
+corrupt objects and replaced output directories. Complete current 221-Dart/
+588-Python and clean selected analysis qualification remain pending.
+
+This bytewise restore is inert. The copied wallet's Hive pointer and node
+deployment paths still need explicit rebinding to their verified copies,
+followed by ordinary native reopen, exact positive wallet/node/owner/journal
+checks and all actual F06 seed effects. No current native checkpoint is
+claimed; its retention would be limited to the isolated runner lifecycle.
+The positive native61 request and earlier UNKNOWN originals retain their
+independent source bindings. No new native build or original send is needed
+for the focused source/filesystem gate.

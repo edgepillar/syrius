@@ -22,6 +22,57 @@ def node_config():
                  WSHost="0.0.0.0", HTTPPort=35997, WSPort=35998))
 
 
+class ClosedCheckpointAuthorityTests(unittest.TestCase):
+    def originals(self):
+        runtime = lab.Native(mock.Mock(), Path('/fixture/binary'),
+                             {role: Path('/fixture') / role for role in lab.ROLES})
+        runtime.stop_attempted, runtime.stop_order = True, list(lab.ROLES)
+        runtime.originals = [mock.Mock(process=mock.Mock(poll=mock.Mock(return_value=0)),
+            receipt=dict(exit_code=0, output_complete=True, forced=False)) for _ in lab.ROLES]
+        return runtime, mock.Mock(closed=mock.Mock(return_value=True))
+
+    def test_a_saved_public_report_never_authorizes_a_checkpoint(self):
+        wallet = mock.Mock()
+        self.assertFalse(lab.checkpoint_closed(dict(stopped=True), wallet))
+        wallet.closed.assert_not_called()
+
+    def test_all_original_handles_and_the_closed_wallet_are_required(self):
+        runtime, wallet = self.originals()
+        self.assertTrue(lab.checkpoint_closed(runtime, wallet))
+        wallet.closed.assert_called_once()
+        self.assertTrue(all(original.process.poll.called for original in runtime.originals))
+
+    def test_receipts_cannot_heal_live_failed_incomplete_or_forced_originals(self):
+        for poll in (None, 1, False):
+            runtime, wallet = self.originals()
+            runtime.originals[-1].process.poll.return_value = poll
+            self.assertFalse(lab.checkpoint_closed(runtime, wallet))
+        for key, value in (('exit_code', None), ('exit_code', False),
+                           ('output_complete', False), ('forced', True)):
+            runtime, wallet = self.originals()
+            runtime.originals[-1].receipt[key] = value
+            self.assertFalse(lab.checkpoint_closed(runtime, wallet))
+
+    def test_partial_or_reordered_runtime_closure_is_not_reusable(self):
+        for field, value in (('stop_attempted', False), ('stop_attempted', 1),
+                             ('stop_order', list(reversed(lab.ROLES))), ('originals', []),
+                             ('configs', {})):
+            runtime, wallet = self.originals()
+            setattr(runtime, field, value)
+            self.assertFalse(lab.checkpoint_closed(runtime, wallet))
+
+    def test_wallet_closure_requires_positive_identity_and_normal_exit(self):
+        for value in (False, None, 1, {'closed': True}):
+            runtime, wallet = self.originals()
+            wallet.closed.return_value = value
+            self.assertFalse(lab.checkpoint_closed(runtime, wallet))
+
+    def test_unobservable_originals_hold_the_checkpoint_without_private_details(self):
+        runtime, wallet = self.originals()
+        runtime.originals[-1].process.poll.side_effect = OSError('synthetic private diagnostic')
+        self.assertFalse(lab.checkpoint_closed(runtime, wallet))
+
+
 class AssetGenerationTests(unittest.TestCase):
     def test_original_helper_success_keeps_the_same_timeout_and_complete_phase(self):
         raw = b''.join(lab.lab_asset_progress.PREFIX + phase.encode() + b'\n'

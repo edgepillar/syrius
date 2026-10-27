@@ -17,7 +17,7 @@ import zipfile
 from tool.ci.hosted_chain321 import (CODES, GO_FAILURE_CODES, NODE_DIAGNOSTICS, NODE_SHA, NODE_SOURCES,
                                    ROLES, SHUTDOWN_TESTS, UPSTREAM_NODE_SHA, selected_node_source)
 from tool.ci import native_stack_probe, node_panic_projection, producer_shutdown_patch, read_first_client_fixture
-from tool.ci import lab_asset_progress
+from tool.ci import lab_asset_progress, closed_lab_checkpoint
 
 
 API = "https://api.github.com/repos/edgepillar/syrius"
@@ -442,6 +442,18 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA, *, expected_p
         native_shutdown_order=stop_order,
         native_shutdown_mode=stop_mode,
         inspection_only=True, runtime_started=False, seed_admitted=False)
+    if 'checkpoint' in report:
+        try:
+            checkpoint = closed_lab_checkpoint.project(report['checkpoint'])
+        except closed_lab_checkpoint.Refused:
+            raise Refused('INSPECTION_REFUSED') from None
+        if checkpoint is not None and checkpoint['complete']:
+            need(backend == 'native' and report.get('wallet_tour_requested') is True
+                 and report.get('wallet_tour_qualified') is True and report['success'] is True
+                 and all(checks.values()) and not errors and len(projected_exits) == len(ROLES)
+                 and all(item['exit_code'] == 0 and item['output_complete'] is True
+                         and item['forced'] is False for item in projected_exits))
+        result['checkpoint'] = checkpoint
     if panic_count:
         result.update(node_panic_count=panic_count, first_node_panic=first_panic)
     if expected_patched:

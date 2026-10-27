@@ -370,7 +370,33 @@ def sample_workspace(paths, *, receipt=None, expected_profile=None):
     return sample['logical_bytes']
 
 
-def run(repo, parent, runtime, lab_root, observation, revalidate):
+class _ClosedWallet:
+    """An in-memory handoff created only by the original successful close path."""
+
+    def __init__(self, home, original, identity, password, paths, tool_identity):
+        self.home, self._entry, self._identity = home, original, identity
+        self._password, self._paths, self._tool_identity = password, paths, tool_identity
+        self._checkpoint_claimed = False
+
+    def __repr__(self):
+        return '<closed isolated hosted wallet>'
+
+    def closed(self):
+        return (type(self._entry.poll()) is int and self._entry.poll() == 0
+                and self._identity is not None
+                and directory_identity(self.home.lstat()) == self._identity)
+
+    def measured_bytes(self):
+        need(self.closed(), 'CLOSE_UNCONFIRMED')
+        return sample_workspace(self._paths,
+            expected_profile=self._tool_identity)['logical_bytes']
+
+    def claim_checkpoint(self):
+        need(not self._checkpoint_claimed and self.closed(), 'CLOSE_UNCONFIRMED')
+        self._checkpoint_claimed = True
+
+
+def run(repo, parent, runtime, lab_root, observation, revalidate, *, retain_closed=None):
     report = dict(schema=1, scope='owned_chain321_wallet_tour', success=False,
         wallet_qualified=False, seed_admitted=False, visual_matches=0,
         checks=dict.fromkeys(CHECKS, False), errors=[], captures=[], tour=None,
@@ -383,7 +409,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
         storage_scope='isolated_hosted_regression_fixture_cooperative_samples',
         cleanup='runner_lifecycle_not_qualified')
     original = lines = job = output = transport = None
-    token = None
+    token = password = wallet_identity = None
     close_attempted = False
     try:
         parent, source = debug.entry.require_ci(parent, None, platform=os.name)
@@ -522,6 +548,8 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
              and type(body.get('pid')) is int and body['pid'] == pid
              and body.get('harnessMode') == 'wallet', 'ENTRY_REFUSED')
         report['checks']['application_owned'] = True
+        wallet_identity = directory_identity(home.lstat())
+        need(wallet_identity is not None, 'PROFILE_REFUSED')
         report['phase'] = 'lab_revalidation'
         runtime.healthy()
         current = revalidate()
@@ -535,8 +563,9 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
         report['phase'] = 'onboarding_and_tour'
         # Reserve before the single private-input write; no retry is admitted.
         report['input_attempted'] = True
+        password = secrets.token_hex(16) + 'A!1'
         write((json.dumps(dict(chain='321', node='ws://127.0.0.1:45998',
-            mnemonic=fixture, password=secrets.token_hex(16) + 'A!1')) + '\n').encode())
+            mnemonic=fixture, password=password)) + '\n').encode())
         report['checks']['input_released'] = True
         wait(b'CI_WALLET_DONE')
         address_selection_receipt(report['address_selection'])
@@ -617,4 +646,12 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
         print(text)
         if len(text.encode()) <= 3800:
             print('::notice title=Windows wallet tour outcome::' + text)
+    if retain_closed is not None and report['success']:
+        # This callback is never reconstructed from the public report or disk.
+        # The password stays only in this controller's owned runtime memory.
+        need(callable(retain_closed) and password is not None, 'INPUT_REFUSED')
+        handoff = _ClosedWallet(home, original, wallet_identity, password,
+            (home, app, native_build, tool_profile), profile_identity)
+        need(handoff.closed(), 'CLOSE_UNCONFIRMED')
+        retain_closed(handoff)
     return report

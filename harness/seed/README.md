@@ -2,9 +2,10 @@
 
 These F06 recipes, policy cases and presentation routes have finite offline
 fixtures. Current executed scope is recorded in
-[`docs/environment.md`](../../docs/environment.md). Native execution remains
-unqualified: P08/P09, a producing owned lab, profile preparation and reversible
-checkpoint evidence remain prerequisites. No fixture here establishes a live
+[`docs/environment.md`](../../docs/environment.md). The original native P09
+send and normal required-actor closure are qualified at their recorded source.
+Native seed execution, verified checkpoint restoration and ordinary reopened
+ownership remain separate prerequisites. No fixture here establishes a live
 deployment or a visual match.
 
 The recipes use real wallet fields and pointer input. They do not import a
@@ -20,6 +21,14 @@ that prerequisite; it does not create or verify a checkpoint. Restoration is
 an owner operation on those exact retained inputs, after owned processes are
 stopped. There is no automatic undo: stakes and deposits may remain locked,
 and token/project registration cannot be undone by another wallet send.
+
+The hosted closed-data adapter in `tool/ci/closed_lab_checkpoint.py` creates
+one deduplicated checkpoint and an independent bytewise restore only after
+the current original wallet and five nodes close normally. It preserves all
+originals and holds failed or partial output. Current source/memory tests do
+not establish actual native checkpoint use, copied path rebinding, ordinary
+reopen or seed admission. `--checkpoint-ready` remains an acknowledgement;
+this adapter does not bypass that boundary or authorize a retry.
 
 The mounted runtime/storage admission and the profile's sole process ownership
 must be qualified separately. The source writes at most three small JSON

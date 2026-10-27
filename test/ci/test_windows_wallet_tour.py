@@ -73,6 +73,52 @@ class AdmissionTests(unittest.TestCase):
         self.assertNotIn('/fixture', output.getvalue())
 
 
+class ClosedHandoffTests(unittest.TestCase):
+    def handoff(self, exit_code=0):
+        return tour._ClosedWallet(Path('/fixture/profile'),
+            mock.Mock(poll=mock.Mock(return_value=exit_code)), (1, 2),
+            'synthetic-password', tuple(Path('/fixture') / str(i) for i in range(4)), (3, 4))
+
+    def test_only_the_original_normal_entry_exit_keeps_the_handoff_closed(self):
+        with mock.patch.object(tour, 'directory_identity', return_value=(1, 2)), \
+                mock.patch.object(Path, 'lstat'):
+            self.assertTrue(self.handoff().closed())
+            for exit_code in (None, 1, False):
+                self.assertFalse(self.handoff(exit_code).closed())
+
+    def test_a_replaced_profile_cannot_reuse_a_good_original_exit(self):
+        with mock.patch.object(tour, 'directory_identity', return_value=(1, 99)), \
+                mock.patch.object(Path, 'lstat'):
+            self.assertFalse(self.handoff().closed())
+
+    def test_storage_measurement_uses_only_the_original_four_paths_and_tool_identity(self):
+        handoff = self.handoff()
+        with mock.patch.object(handoff, 'closed', return_value=True), \
+                mock.patch.object(tour, 'sample_workspace',
+                                  return_value=dict(logical_bytes=123)) as sample:
+            self.assertEqual(handoff.measured_bytes(), 123)
+            sample.assert_called_once_with(handoff._paths, expected_profile=(3, 4))
+        with mock.patch.object(handoff, 'closed', return_value=False), \
+                mock.patch.object(tour, 'sample_workspace') as sample:
+            with self.assertRaises(tour.Refused):
+                handoff.measured_bytes()
+            sample.assert_not_called()
+
+    def test_a_private_handoff_never_formats_its_password_or_profile(self):
+        value = repr(self.handoff())
+        self.assertEqual(value, '<closed isolated hosted wallet>')
+        self.assertNotIn('synthetic-password', value)
+        self.assertNotIn('/fixture', value)
+
+    def test_a_closed_handoff_can_claim_only_one_checkpoint_attempt(self):
+        handoff = self.handoff()
+        with mock.patch.object(handoff, 'closed', return_value=True) as closed:
+            handoff.claim_checkpoint()
+            with self.assertRaises(tour.Refused):
+                handoff.claim_checkpoint()
+            closed.assert_called_once()
+
+
 class AddressSelectionTests(unittest.TestCase):
     def test_preparation_receipt_accepts_only_finite_index_one_facts(self):
         for generated in (False, True):

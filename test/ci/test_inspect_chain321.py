@@ -31,6 +31,33 @@ def manifest():
 
 
 class InspectionTests(unittest.TestCase):
+    def test_checkpoint_absence_and_refusal_do_not_invent_a_restored_runtime(self):
+        report = manifest()
+        value = inspect.project(report, 'native', 'a'*40, 123)
+        self.assertNotIn('checkpoint', value)
+        report['checkpoint'] = dict(schema=1, scope='closed_owned_lab_checkpoint', complete=False)
+        value = inspect.project(report, 'native', 'a'*40, 123)
+        self.assertFalse(value['checkpoint']['complete'])
+        self.assertFalse(value['runtime_started'])
+        self.assertFalse(value['seed_admitted'])
+        report['checkpoint']['private_path'] = 'private fixture'
+        with self.assertRaises(inspect.Refused):
+            inspect.project(report, 'native', 'a'*40, 123)
+
+    def test_a_complete_checkpoint_cannot_heal_failed_original_actor_closure(self):
+        report = self.wallet_stop_report()
+        report['checkpoint'] = dict(schema=1, scope='closed_owned_lab_checkpoint', complete=True,
+            roots=6, files=6, entries=12, source_bytes=6, object_bytes=1,
+            restored_bytes=6, objects=1,
+            reserved_bytes=7+inspect.closed_lab_checkpoint.METADATA_CAP,
+            manifest_bytes=2000, manifest_sha256='a'*64, independent_copies=True,
+            source_unchanged=True, single_restore_claim=True,
+            retention='isolated_runner_lifecycle', native_reopen_qualified=False,
+            seed_admitted=False)
+        with self.assertRaises(inspect.Refused):
+            inspect.project(report, 'native', 'a'*40, 40319698922,
+                inspect.UPSTREAM_NODE_SHA, expected_patched=True)
+
     def test_asset_progress_keeps_the_fixed_phase_and_original_failure_separate(self):
         report = manifest()
         report['asset_generation'] = dict(status='OBSERVED', phase='STARTED', events=1,
