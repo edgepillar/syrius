@@ -17,7 +17,8 @@ def encode(rows):
 
 class DartFailureTests(unittest.TestCase):
     def test_known_source_location_never_exports_error_stack_or_host_path(self):
-        for name in ('wallet_recipe_startup_test.dart', 'rail_navigation_test.dart'):
+        for name in ('wallet_recipe_startup_test.dart', 'rail_navigation_test.dart',
+                     'recipe_control_admission_test.dart', 'recipe_control_admission.dart'):
             row = event();row['stackTrace'] = '/fixture/private/' + name + ':129:5\nprivate'
             value = failure.project(encode([row]))
             with self.subTest(name=name):

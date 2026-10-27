@@ -4822,3 +4822,45 @@ and original lifecycle closure remain pending. Earlier native run
 actor cleanup. No unchanged native source is repeated, and no local SDK,
 joblog or artifact download occurs. P08/P09/F06 and all visual acceptance
 remain open; the PR stays Draft.
+
+### Native control refusal retained after the original-clock correction (2026-10-27)
+
+Native source `5939d844c46f45e1031fab790932ee51d51e01bb`, tree
+`a871228d3de9e88784c72c73b7cbe042f24d6d7d`, run `40425151229` attempt one,
+job `121928936525`, completes with failure at `node_settings_chain_toggle`.
+The onboarding diagnostic still records tap, key-confirmed and
+`wallet-recipe-original-control-changed`. All 72 Dart cases, 499 Python cases
+with three platform skips, clean selected analysis and four original asset
+controls pass. The native outcome therefore does not establish that the
+Settings entrance-clock correction resolves the actual control refusal.
+
+Entry exits one with 885 complete output bytes, no overflow and SHA-256
+`408e64ac292481357dc39f5eb7138951217bdc01c3b4f9bdb106b81058a32905`.
+Cleanup application exit is zero; ordinary closure and close acknowledgement
+remain unqualified. One VCTIP actor retains required-actor forced cleanup.
+No tour page or capture is accepted. All fourteen asset phases complete,
+the corrected node produces, seven unchanged upstream tests pass with
+production source restored, and five lab nodes exit zero normally with
+complete unforced output. Overall wallet/lab acceptance remains false.
+
+The next source preserves the original Element/center predicate exactly but
+reports fixed change categories: replaced Element, moved center, subpixel
+movement or resized bounds. A subpixel difference is still refused; the
+label is descriptive and introduces no tolerance. No coordinates, object
+identifiers, widget payload, endpoint, input or exception text is exported.
+Legacy combined refusals remain accepted as historical evidence. Owner,
+policy, reachability, readiness, pointer down/up, key release, deadline and
+retirement checks remain unchanged.
+
+Five widget cases use real InkWells, mouse hover, retained/replaced Elements
+and original render rectangles to exercise unchanged geometry, replacement,
+full/subpixel translation and resizing. A separate recipe case preserves
+each fixed label, excludes private reply details and refuses another call
+after retirement. New Python coverage admits only the fixed labels and
+rejects geometry/object/private fields and unknown labels. All twelve
+selected Python diagnostic/projection cases pass in memory with zero
+failures, errors or skips; no filesystem scratch or local SDK executes.
+The expanded gate expects 78 Dart cases and 500 Python controller cases.
+Hosted qualification precedes any changed-source native observation. The
+same failed native source is not retried; P08/P09/F06 and all 94 visual
+matches remain open.

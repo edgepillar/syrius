@@ -24,6 +24,44 @@ Future<Map<String, Object?>> _importControl(HarnessAgent agent) async {
 }
 
 void main() {
+  test('control change labels stay private and retire the original driver',
+      () async {
+    for (final String reason in <String>[
+      'wallet-recipe-original-control-replaced',
+      'wallet-recipe-original-control-moved',
+      'wallet-recipe-original-control-moved-subpixel',
+      'wallet-recipe-original-control-resized',
+    ]) {
+      int calls = 0;
+      final WalletRecipe recipe = WalletRecipe(
+        send: (Map<String, Object?> command, Duration timeout) async {
+          calls++;
+          return <String, dynamic>{
+            'ok': false, 'error': reason,
+            'detail': 'synthetic private geometry',
+          };
+        },
+      );
+      Future<void> run() => recipe.importWallet(
+        chain: '321', mnemonic: List<String>.filled(12, 'synthetic').join(' '),
+        password: 'Synthetic fixture A1!',
+      );
+      WalletRecipeRefused? failure;
+      try {
+        await run();
+      } on WalletRecipeRefused catch (error) {
+        failure = error;
+      }
+      expect(failure?.diagnostic?['reason'], reason);
+      expect(walletRecipePublicDiagnostic(failure?.diagnostic),
+          failure?.diagnostic);
+      expect(jsonEncode(failure?.diagnostic),
+          isNot(contains('synthetic private')));
+      await expectLater(run(), throwsA(isA<WalletRecipeRefused>()));
+      expect(calls, 1);
+    }
+  });
+
   for (final bool disableAnimations in <bool>[false, true]) {
     testWidgets('chain recipe waits for Settings motion $disableAnimations', (
       WidgetTester tester,

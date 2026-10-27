@@ -87,6 +87,25 @@ class FixtureTests(unittest.TestCase):
 
 
 class DiagnosticTests(unittest.TestCase):
+    def test_control_change_labels_refuse_geometry_or_private_reply_fields(self):
+        value = dict(stage='onboarding', code='wallet-recipe-command-refused',
+            diagnostic=dict(action='tap', control='node_settings_chain_toggle',
+                reason='wallet-recipe-original-control-changed'))
+        for reason in ('wallet-recipe-original-control-changed',
+                       'wallet-recipe-original-control-replaced',
+                       'wallet-recipe-original-control-moved',
+                       'wallet-recipe-original-control-moved-subpixel',
+                       'wallet-recipe-original-control-resized'):
+            offered = dict(value, diagnostic=dict(value['diagnostic'], reason=reason))
+            self.assertEqual(tour.entry_failure(offered), offered)
+            for field in ('rect', 'center', 'dx', 'dy', 'element', 'detail'):
+                with self.subTest(reason=reason, field=field), self.assertRaises(tour.Refused):
+                    tour.entry_failure(dict(offered,
+                        diagnostic=dict(offered['diagnostic'], **{field: 'private'})))
+        with self.assertRaises(tour.Refused):
+            tour.entry_failure(dict(value,
+                diagnostic=dict(value['diagnostic'], reason='private geometry')))
+
     def test_film_observation_accepts_only_fixed_labels_without_private_fields(self):
         value = dict(stage='onboarding', code='wallet-recipe-stage-unsettled',
             diagnostic=dict(action='observe', control='welcome_import',

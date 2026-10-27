@@ -450,6 +450,8 @@ def analyze(parent, repo):
         'harness/bin/build_output.dart', 'test/harness/build_output_test.dart',
         'harness/bin/ci_wallet_tour.dart', 'harness/bin/wallet_recipe.dart',
         'harness/app/agent.dart', 'harness/wallet_recipe_failure.dart',
+        'harness/app/recipe_control_admission.dart',
+        'test/harness/recipe_control_admission_test.dart',
         'test/harness/wallet_recipe_startup_test.dart',
         'test/harness/key_dispatch_test.dart', 'test/harness/rail_navigation_test.dart',
         'test/harness/wallet_recipe_failure_test.dart', 'test/harness/wallet_recipe_test.dart'],
@@ -484,6 +486,8 @@ def analyze(parent, repo):
                                         else 'harness_ci' if relative.endswith('/harness/bin/ci_wallet_tour.dart')
                                         else 'wallet_recipe' if relative.endswith('/harness/bin/wallet_recipe.dart')
                                         else 'harness_agent' if relative.endswith('/harness/app/agent.dart')
+                                        else 'control_admission' if relative.endswith('/harness/app/recipe_control_admission.dart')
+                                        else 'control_admission_test' if relative.endswith('/test/harness/recipe_control_admission_test.dart')
                                         else 'recipe_failure' if relative.endswith('/harness/wallet_recipe_failure.dart')
                                         else 'recipe_startup_test' if relative.endswith('/test/harness/wallet_recipe_startup_test.dart')
                                         else 'key_dispatch_test' if relative.endswith('/test/harness/key_dispatch_test.dart')

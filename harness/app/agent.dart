@@ -66,6 +66,7 @@ import 'native_window_owner.dart';
 import 'presentation_close.dart';
 import 'presentation_host.dart';
 import 'presentation_mode.dart';
+import 'recipe_control_admission.dart';
 import 'theme_control.dart';
 
 /// Widgets that say nothing about where a node sits; left out of `path`.
@@ -1531,9 +1532,14 @@ class HarnessAgent {
           throw HarnessError('wallet-recipe-original-owner-changed');
         }
         final _Node fresh = _recipeControl(key, field: field);
-        if (!identical(fresh.element, original.element) ||
-            fresh.center != original.center) {
-          throw HarnessError('wallet-recipe-original-control-changed');
+        final String? change = recipeControlChange(
+          original: original.element,
+          current: fresh.element,
+          originalRect: original.rect,
+          currentRect: fresh.rect,
+        );
+        if (change != null) {
+          throw HarnessError(change);
         }
         if (key == 'node_settings_question_accept') {
           if (!identical(selection, _recipeSelection) ||

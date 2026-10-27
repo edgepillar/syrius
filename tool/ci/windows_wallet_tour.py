@@ -59,6 +59,8 @@ RECIPE_FAILURE_CODES = frozenset((
     'wallet-recipe-action-refused', 'wallet-recipe-control-refused',
     'wallet-recipe-input-refused', 'wallet-recipe-node-view-ambiguous',
     'wallet-recipe-original-control-changed', 'wallet-recipe-original-owner-changed',
+    'wallet-recipe-original-control-replaced', 'wallet-recipe-original-control-moved',
+    'wallet-recipe-original-control-moved-subpixel', 'wallet-recipe-original-control-resized',
     'wallet-recipe-original-question-changed', 'wallet-recipe-original-ready-changed',
     'wallet-recipe-original-ready-unavailable', 'wallet-recipe-private-input-refused',
     'wallet-recipe-question-already-used', 'wallet-recipe-question-facts-refused',
