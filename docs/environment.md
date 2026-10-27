@@ -5597,3 +5597,24 @@ from the memory-only result. The workflow and dependency/SDK pins are unchanged.
 A fresh native execution requires this concrete correction to pass its original
 focused gate first. P09 selection/send, F06, all 94 visual matches and full
 acceptance remain open; P08 keeps its independent original source binding.
+
+
+### P09 requirement restored at the documentation boundary (2026-10-27)
+
+The source-bound P09 progress update at documentation source
+`f147b936978b9adfbad3632a7fcc159e9d277b04` accidentally replaced the
+requirements-table row as well as its Progress row. The original upstream
+P09 requirement is restored byte for byte. The complete document prefix
+before `Progress` again matches retained source
+`0a95943ba0d59ce3bd5c1baf800f03f864a12089`; the existing Progress content
+is unchanged by this repair. P09 still requires the producing chain-321 lab,
+imported public lab fixture, selected index 1 and one confirmed send. No
+acceptance requirement is replaced by a test or status summary.
+
+Every program and test blob remains equal to process-preflight source
+`6cc35d208f5b5a54e2bea71f701999d0c5b3e743`, whose original focused
+run `40457171318`, attempt one, job `122033079001`, is in progress when
+first observed. This documentation repair does not repeat that execution,
+alter a source-bound result or qualify P09. The original edit and all earlier
+evidence remain in history; only an ordinary forward documentation correction
+is made.
