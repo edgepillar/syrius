@@ -440,7 +440,7 @@ class _LaunchFilmState extends State<LaunchFilm>
     }
     ui.Codec? codec;
     try {
-      codec = await _observeDecode(
+      codec = await _observeDecode<ui.Codec>(
         run, LaunchFilmDecodeStage.codec,
         ui.instantiateImageCodecFromBuffer(
           await _observeDecode(

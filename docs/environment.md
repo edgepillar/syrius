@@ -6661,3 +6661,27 @@ selected memory controls pass without SDK/native execution or scratch. The
 strict gate now requires all 216 Dart cases and all 552 Python cases before
 native allocation; original timeout and zero-finding analysis rules remain.
 New hosted decoder and native qualification remain pending.
+
+### Explicit original codec type after analysis refusal
+
+At 9202d11f0fbe7990f5052ea7f6fd87cb358678c8, combined
+[40540779242](https://github.com/edgepillar/syrius/actions/runs/40540779242),
+attempt one, job 122318251797, passes all 552 Python cases with three original
+platform skips. Strict selected analysis exits three with 469 complete bytes,
+two errors, zero warnings and zero infos. Both errors are unchecked nullable
+codec uses in LaunchFilm. Dart tests, node checkout and native work are skipped.
+
+The original codec observation now explicitly selects ui.Codec. This single
+type argument prevents nullable inference at the cleanup variable while the
+observer returns the identical original Future. Every other film byte remains;
+no cast, assertion, timeout, clock, renderer or cleanup operation is added.
+All thirteen inputs to the retained 34-case memory proof are rehashed and
+unchanged, so that proof is reused without another execution. No test,
+controller, workflow, dependency or original acceptance requirement changes.
+
+Fresh zero-finding analysis and all 216 Dart/552 Python cases remain required
+before native allocation in the same job with one SDK setup. Native57's earlier
+startup failure remains preserved; native56's original send outcome remains
+UNKNOWN. Neither old chain/profile is retried. P09/F06, reversible closed
+checkpoints and all 94 visual matches remain unqualified. No local SDK/native
+execution, binary transport, quota change or cleanup occurs.
