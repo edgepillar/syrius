@@ -6498,3 +6498,38 @@ All 26 selected memory cases pass without failures, errors, skips, scratch or
 local SDK/native execution. New 190-Dart/544-Python and strict clean-analysis
 gates remain required before node allocation. App/harness production source,
 signing/publication guards, workflow and storage policy remain unchanged.
+
+
+### Guard the callback assertion and incomplete Transfer cache
+
+At beef03d81cbe6698cc8ed8e2ef6a7abe53613382, original combined
+[40522712598](https://github.com/edgepillar/syrius/actions/runs/40522712598),
+attempt one, job 122253832781, passes strict clean selected analysis, all
+544 Python cases/three original skips and 189/190 Dart cases. All four error
+forwarding regressions pass. The remaining real-balance fixture projects
+FLUTTER_ERROR and the TestAsyncUtils.guardSync line-312 context while first
+pumping at test line 643. Its original process exits one normally in 63.657
+seconds with 101668 complete, unforced output bytes; native work is skipped.
+
+The ledger mock callback was registered before pumpWidget and used guarded
+expect when the page initiated another balance request inside that pump.
+Pinned SDK source documents expectSync for callbacks during guarded build or
+layout and forwards it to the same matcher implementation. That one callback
+now uses expectSync with the identical address and matcher. Assertions outside
+the callback and all original inputs, timing, ownership and send guards remain.
+
+The embedded Send card also keeps its loading state while any current wallet
+member is absent from an otherwise successful cache. It constructs the actual
+form only after complete member data arrives, avoiding exposure of a stale
+fallback sender during the pending refresh. A new actual Transfer case holds
+the partial cache, checks that no form is constructed, checks the existing
+draft stays empty and verifies the exact member refresh request. The complete
+cache case is unchanged. The real balance-bloc regression retains its original
+address, loading, eventual owner, menu and error assertions.
+
+Local source/privacy/eighty-column checks pass. The unchanged 26-case memory
+proof retains identical rehashed inputs and is reused. New 191-Dart/544-Python
+and strict clean-analysis gates remain required before native allocation; no
+local SDK/native process runs. The test observers, input/signing/publication
+policy, F06 checkpoints, workflow and storage policy remain unchanged. Actual
+original-send, checkpoint and all 94 visual matches remain open.

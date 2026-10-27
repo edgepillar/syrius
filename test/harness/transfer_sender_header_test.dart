@@ -617,7 +617,7 @@ void main() {
             (invocation.positionalArguments.single as Address).toString();
         reads.add(address);
         if (address == second) return secondReply.future;
-        expect(address, first);
+        expectSync(address, first);
         return balances.state.data![first]!;
       },
     );
@@ -663,6 +663,26 @@ void main() {
           widget is PopupMenuItem<String> && widget.value == second),
       findsOneWidget,
     );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('embedded Transfer waits for every current member balance',
+      (WidgetTester tester) async {
+    final String first = kSelectedAddress!;
+    final String second = Address(
+      'z', <int>[0, 2, ...List<int>.filled(18, 3)],
+    ).toString();
+    kDefaultAddressList = <String?>[first, second];
+    kSelectedAddress = second;
+    kAddressLabelMap[second] = 'Address 2';
+    await show(tester);
+    expect(find.byType(SendPopulated), findsNothing);
+    expect(find.byType(SendLoading), findsOneWidget);
+    expect(draft.state.isEmpty, isTrue);
+    final MultipleBalanceFetch request =
+        verify(() => balances.add(captureAny())).captured.single
+            as MultipleBalanceFetch;
+    expect(request.addresses, <String>[first, second]);
     expect(tester.takeException(), isNull);
   });
 

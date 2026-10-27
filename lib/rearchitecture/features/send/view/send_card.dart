@@ -45,6 +45,13 @@ class SendCard extends StatelessWidget {
         MultipleBalanceStatus.failure => SendError(error: state.error!),
         MultipleBalanceStatus.initial => const SendEmpty(),
         MultipleBalanceStatus.loading => const SendLoading(),
+        MultipleBalanceStatus.success
+            when embedded &&
+                kDefaultAddressList.whereType<String>().any(
+                  (String address) =>
+                      !(state.data?.containsKey(address) ?? false),
+                ) =>
+          const SendLoading(),
         MultipleBalanceStatus.success when state.data?.isNotEmpty ?? false =>
           SendPopulated(
             key: const Key('send_form_ready'),
