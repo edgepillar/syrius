@@ -28,8 +28,7 @@ final class LabSendUiBinding {
     }
     final LabSendUiBinding binding = LabSendUiBinding._(
       form, form.state as SendFormOrigin, source, origin,
-    );
-    binding.requireForm();
+    )..requireForm();
     return binding;
   }
 

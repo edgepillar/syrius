@@ -5824,3 +5824,39 @@ to its original source. P09 send, actual F06 reversible checkpoints/states and
 all 94 visual matches remain open. The six F06 IDs, checkpoint requirements,
 workflow, dependencies, signing paths and historical evidence are preserved.
 No local SDK/native execution, artifact download, quota change or cleanup occurs.
+
+
+### Original UI binding gate retains four failures (2026-10-27)
+
+At `d02e678c9116033fa26ea04543c77bda8d1fe190`, tree
+`6c32cb205ba73daeeeb75f2ed310dec99720001f`, focused
+[40469738596](https://github.com/edgepillar/syrius/actions/runs/40469738596),
+attempt one, job `122073700664`, fails: 163 Dart bodies pass, four fail, six
+error events occur, with zero skips, twenty hidden events and 187 terminal
+events. Original normal exit is one in 65.718 seconds, 93646 complete bytes,
+no overflow/forced kill; SHA-256
+`afafdd929d51c6385e82372126207a8666dffc3bcff33c1d36edc90b323e4aa2`.
+All 531 Python cases pass with the three original platform skips; unchanged
+SDK/locked inputs, original open-input startup/refusal/asset controls pass.
+
+Selected analysis has zero errors/warnings and eight infos in 1394 complete
+bytes, with normal zero exit and no overflow; SHA-256
+`ec081c92e496c137e25283aba9c0bd03e0c011ac1f25c83292dfc3b369577df4`.
+All eight finite locations identify import ordering/redundancy, three required
+control-body braces, one equivalent setup cascade and one missing getter doc.
+The correction addresses exactly those findings, with no suppression or
+production guard/animation/input timing change.
+
+The bounded failure projection retains three items at the new fixture's
+completion assertion for six actual error events; it does not establish each
+failed body or a complete causal attribution. The helper previously advanced
+only Flutter's fake clock. Existing successful Send form tests also yield a
+zero-duration real event-loop turn before pumping owned asynchronous work.
+The new helper adopts that same yield, keeping every original assertion,
+all eighty 40ms pumps, test labels, simulated revocations and product guards.
+A fresh source-bound gate is required; no success is inferred from the fix.
+The README's focused-case count is updated from the old 113 to 167.
+
+The failed execution is terminal and retained without retry. P09's original
+confirmed UI send, actual F06 preparation/states and all 94 visual matches
+remain unqualified. No local SDK/native job or artifact download occurs.

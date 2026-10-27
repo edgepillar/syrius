@@ -77,6 +77,8 @@ abstract interface class SendFormOrigin {
 
   /// Current draft facts; reading them performs no wallet operation.
   String get draftSender;
+
+  /// The draft's current asset identifier, without exposing a mutable token.
   String get draftToken;
 
   /// Requires this form's identical review and unchanged draft.

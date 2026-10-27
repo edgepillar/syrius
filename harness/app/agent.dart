@@ -22,10 +22,9 @@ import 'package:hive_ce/hive_ce.dart';
 import 'package:logging/logging.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/auto_receive_tx_worker.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
-import 'package:zenon_syrius_wallet_flutter/blocs/auto_receive_tx_worker.dart';
-import 'package:zenon_syrius_wallet_flutter/blocs/receive_origin.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_token_stepper/widgets/token_create_frame.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/node_update/node_update.dart'
     show NodeUpdateCard;
@@ -71,10 +70,10 @@ import 'capture_frame.dart';
 import 'capture_protocol.dart' show CaptureRefused;
 import 'client_window.dart';
 import 'entry_caption_observer.dart';
-import 'fixtures/seed_commands.dart';
 import 'fixtures/lab_seed_binding.dart';
 import 'fixtures/lab_send_policy.dart';
 import 'fixtures/lab_send_ui_binding.dart';
+import 'fixtures/seed_commands.dart';
 import 'fixtures/seed_policy.dart';
 import 'logical_capture.dart';
 import 'native_entry_capture.dart';
@@ -947,11 +946,15 @@ class HarnessAgent {
 
   bool _labNodeReady(_Node node) {
     if (!node.enabled || !_recipeEntranceSettled(node.element) ||
-        !_reachable(node, node.center)) return false;
+        !_reachable(node, node.center)) {
+      return false;
+    }
     final ModalRoute<dynamic>? route = ModalRoute.of(node.element);
     if (route?.isCurrent != true ||
         route?.animation?.isCompleted == false ||
-        route?.secondaryAnimation?.isDismissed == false) return false;
+        route?.secondaryAnimation?.isDismissed == false) {
+      return false;
+    }
     bool scrolling = false;
     node.element.visitAncestorElements((Element ancestor) {
       if (ancestor is StatefulElement && ancestor.state is ScrollableState) {

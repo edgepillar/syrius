@@ -104,7 +104,9 @@ final class LabTransferWitness implements SeedOriginal {
   @override
   bool get failed {
     if (_invalid || _error != null || _revoked ||
-        !_detached && !isCurrent) return true;
+        !_detached && !isCurrent) {
+      return true;
+    }
     final AccountBlockTemplate? original = _result;
     try {
       if (original != null &&

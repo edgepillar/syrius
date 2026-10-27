@@ -57,6 +57,7 @@ Future<T> _drive<T>(WidgetTester tester, Future<T> command) async {
     done = true;
   }));
   for (int frame = 0; frame < 80 && !done; frame++) {
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
     await tester.pump(const Duration(milliseconds: 40));
   }
   expect(done, isTrue, reason: 'The original UI command must settle');
