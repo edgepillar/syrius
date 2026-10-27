@@ -6816,3 +6816,29 @@ that proof is reused without another execution. Fresh complete 221-Dart/
 or lint is removed or suppressed, no local SDK/native execution or transport
 occurs, and the positive native61 original send and earlier UNKNOWN originals
 retain their exact independent source bindings.
+
+### Capture CLI stdout inside the unlock fixture
+
+At 74f16bb68d295511d8817d0d640de7cd87845f9d, harness-only
+[40559071947](https://github.com/edgepillar/syrius/actions/runs/40559071947),
+attempt one, job 122382892919, passes all 555 Python cases/three original
+skips and strict selected analysis with zero findings. The original Dart
+process exits zero in 88.953 seconds with 108524 complete, unforced bytes,
+SHA-256 27c40aef29c6065546b70bcef73c92558f12541a6d638329f67c2378142cd6d8.
+The strict event parser refuses TEST_EVENTS_INVALID; counts remain unknown.
+This process result does not qualify all 221 tests. No native build runs.
+
+The new confirmed-unlocked fixture calls the real CLI path that writes
+already unlocked directly to stdout. The original offending stream line was
+not exported; this source observation is a candidate cause. Two pure-memory
+controls exercise the unchanged parser: valid complete JSON events pass and
+the same events preceded by that plain line refuse. The fixture now owns an
+IOOverrides stdout zone through the real asynchronous unlock call, using the
+existing mocktail dependency. It asserts exactly that one success line, or
+empty output for refused and ordinary locked cases, while retaining every
+original command/state assertion. Application, CLI, parser, workflow and
+exact 221-case admission remain unchanged. All thirteen inputs to the retained
+37-case memory proof are unchanged, so it is reused without execution.
+Fresh hosted analysis and complete 221/555 qualification remain required.
+The native61 original send and earlier UNKNOWN originals retain their source
+bindings; no checkpoint, restored profile or F06 effect is inferred.

@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 
 import '../../harness/bin/harness.dart' as cli;
 
@@ -109,11 +112,24 @@ class _TourInstance extends cli.Instance {
   );
 }
 
+class _UnlockStdout extends Fake implements Stdout {
+  final List<Object?> lines = <Object?>[];
+
+  @override
+  void writeln([Object? object = '']) => lines.add(object);
+}
+
 class _UnlockInstance extends cli.Instance {
   _UnlockInstance(this.states) : super('synthetic-unlock');
 
   final List<Map<String, dynamic>> states;
   final List<Map<String, Object?>> commands = <Map<String, Object?>>[];
+  final _UnlockStdout output = _UnlockStdout();
+
+  Future<void> runUnlock() => IOOverrides.runZoned<Future<void>>(
+    () => cli.unlock(this, 'synthetic-password'),
+    stdout: () => output,
+  );
 
   @override
   Future<Map<String, dynamic>> send(
@@ -142,11 +158,12 @@ void main() {
         final _UnlockInstance instance = _UnlockInstance(<Map<String, dynamic>>[
           <String, dynamic>{'tab': tab, 'walletUnlocked': unlocked},
         ]);
-        await expectLater(cli.unlock(instance, 'synthetic-password'),
+        await expectLater(instance.runUnlock(),
           throwsA(isA<cli.Fail>()));
         expect(instance.commands, <Map<String, Object?>>[
           <String, Object?>{'cmd': 'state'},
         ]);
+        expect(instance.output.lines, isEmpty);
       }
     }
   });
@@ -156,10 +173,11 @@ void main() {
     final _UnlockInstance instance = _UnlockInstance(<Map<String, dynamic>>[
       <String, dynamic>{'tab': 'dashboard', 'walletUnlocked': true},
     ]);
-    await cli.unlock(instance, 'synthetic-password');
+    await instance.runUnlock();
     expect(instance.commands, <Map<String, Object?>>[
       <String, Object?>{'cmd': 'state'},
     ]);
+    expect(instance.output.lines, <Object?>['already unlocked']);
   });
 
   test('unlock retains the ordinary password field, button and state check',
@@ -168,7 +186,7 @@ void main() {
       <String, dynamic>{'tab': 'lock', 'walletUnlocked': false},
       <String, dynamic>{'tab': 'dashboard', 'walletUnlocked': true},
     ]);
-    await cli.unlock(instance, 'synthetic-password');
+    await instance.runUnlock();
     expect(instance.commands, <Map<String, Object?>>[
       <String, Object?>{'cmd': 'state'},
       <String, Object?>{'cmd': 'type', 'key': 'wallet_password_field',
@@ -177,6 +195,7 @@ void main() {
       <String, Object?>{'cmd': 'state'},
     ]);
     expect(instance.states, isEmpty);
+    expect(instance.output.lines, isEmpty);
   });
 
   test('tour covers every page and reaches merged subpages', () async {
