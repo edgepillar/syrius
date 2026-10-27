@@ -52,7 +52,7 @@ FRAMEWORK_ASSERTIONS = {
 }
 
 
-def framework_assertion(text):
+def framework_assertion(text, stack=''):
     """Keep only an allowlisted package label and bounded numeric position."""
     found = []
     for path, label in FRAMEWORK_ASSERTIONS.items():
@@ -61,10 +61,21 @@ def framework_assertion(text):
             + r'\s+pos\s+([1-9][0-9]{0,5})(?![0-9])', text)
         if match:
             found.append((match.start(), label, int(match[1]), int(match[2])))
-    if not found:
-        return None
-    _, source, line, column = min(found)
-    return dict(source=source, line=line, column=column)
+    if found:
+        _, source, line, column = min(found)
+        return dict(source=source, line=line, column=column)
+    # FlutterError.fromParts may have no native assertion header. An owned
+    # package frame is context, not proof of the exact assertion origin.
+    context = stack + '\n' + text
+    for path, label in FRAMEWORK_ASSERTIONS.items():
+        match = re.search(r'\(' + re.escape(path)
+            + r':([1-9][0-9]{0,5}):([1-9][0-9]{0,5})\)', context)
+        if match:
+            found.append((match.start(), label, int(match[1]), int(match[2])))
+    if found:
+        _, source, line, column = min(found)
+        return dict(source=source, line=line, column=column, kind='STACK_FRAME')
+    return None
 
 
 def location(text):
@@ -132,7 +143,7 @@ def project(raw):
                 line=selected[2] if selected else None, location_source=source,
                 kind='ASSERTION' if failure else 'UNHANDLED',
                 expectation=expectation, category=category)
-            assertion = framework_assertion(details)
+            assertion = framework_assertion(details, stack)
             if assertion is not None:
                 item['framework_assertion'] = assertion
             items.append(item)

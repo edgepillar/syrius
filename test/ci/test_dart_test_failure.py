@@ -129,3 +129,31 @@ class DartFailureTests(unittest.TestCase):
             dict(type='error', testID=7, isFailure=False, stackTrace='',
                 error='Test failed. See exception logs above.')]
         self.assertNotIn('framework_assertion', failure.project(encode(rows))['items'][0])
+
+    def test_owned_package_frame_is_context_and_cannot_claim_an_assertion_origin(self):
+        for use_print in (False, True):
+            frame = ('#0 private (package:flutter/src/widgets/framework.dart:123:9)\n'
+                '#1 private (package:provider/src/provider.dart:456:7)\n'
+                '/fixture/private/transfer_sender_header_test.dart:386:5')
+            rows = [dict(type='error', testID=7, isFailure=False,
+                error='Test failed. See exception logs above.',
+                stackTrace='' if use_print else frame)]
+            if use_print:
+                rows.insert(0, dict(type='print', testID=7, messageType='print',
+                    message=frame))
+            with self.subTest(use_print=use_print):
+                value = failure.project(encode(rows))['items'][0]
+                self.assertEqual(value['framework_assertion'], dict(
+                    source='flutter_framework', line=123, column=9,
+                    kind='STACK_FRAME'))
+                self.assertNotIn('private', json.dumps(value))
+                self.assertNotIn('package:', json.dumps(value))
+        for position in ('0:9', '123:0', '1234567:9', '123:1234567'):
+            row = event()
+            row['stackTrace'] = '(package:flutter/src/widgets/framework.dart:' + position + ')'
+            self.assertNotIn('framework_assertion',
+                failure.project(encode([row]))['items'][0])
+        rows = [dict(type='print', testID=99, messageType='print', message=frame),
+            dict(type='error', testID=7, isFailure=False, stackTrace='',
+                error='Test failed. See exception logs above.')]
+        self.assertNotIn('framework_assertion', failure.project(encode(rows))['items'][0])

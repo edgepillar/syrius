@@ -6387,3 +6387,28 @@ assertion, SDK dependency, timing, workflow, storage policy, signing, original
 input/publication or checkpoint guard changes. The next same-source combined
 186-Dart/542-Python and clean-analysis gates precede node allocation; their
 results, original send, F06 checkpoints and visual acceptance remain pending.
+
+
+### Owned framework stack context
+
+At ccef1e2fedcd32caae8618d6bde56fecdb513f95, original combined
+[40512803394](https://github.com/edgepillar/syrius/actions/runs/40512803394),
+attempt one, job 122218693689, passes complete strict clean selected analysis
+and all 542 Python cases with three original platform skips. Dart retains
+185/186 passes and two first-frame error events at fixture line 386. Its
+original process exits one normally in 54.672 seconds with 99276 complete,
+unforced output bytes. No allowlisted assertion-header position is projected;
+this absence does not establish the cause. Node/native work is skipped.
+
+The failure projection can now also retain the first exact allowlisted package
+frame from that error stack or its own preceding print context. The same
+closed source label and bounded numeric position are marked STACK_FRAME,
+which is context rather than proof of an assertion origin. Native assertion
+headers retain their prior distinct shape. No expression, raw path, message,
+stack or wallet value is exported. A new case covers stack/own-print lookup,
+position bounds and refusal of foreign-test context. All 25 selected
+memory-only cases pass without failures, errors, skips, scratch or SDK/native
+execution. All 186 Dart bodies and all existing 542 controller bodies remain
+unchanged. The next combined 186-Dart/543-Python and complete zero-finding
+analysis gates remain required before native work. No app, timing, input,
+signing, publication, checkpoint, workflow or storage policy changes.
