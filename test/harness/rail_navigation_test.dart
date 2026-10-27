@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/bell_panel.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/tabs.dart';
 
 import '../../harness/app/agent.dart';
+import '../shell/bell/support.dart' as bell_fixture;
 import '../welcome/support.dart';
 
 Future<void> _mount(
@@ -11,6 +15,8 @@ Future<void> _mount(
   required bool collapsed,
   required bool locked,
   required ValueChanged<Tabs> onSelected,
+  Tabs selected = Tabs.dashboard,
+  BellController? bell,
 }) async {
   prepareWelcomeViewport(tester);
   final RailCollapse collapse = RailCollapse()
@@ -25,11 +31,16 @@ Future<void> _mount(
         body: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            ShellRail(
-              collapse: collapse,
-              selected: Tabs.dashboard,
-              locked: locked,
-              onSelected: onSelected,
+            Builder(
+              builder: (BuildContext context) => ShellRail(
+                collapse: collapse,
+                selected: selected,
+                locked: locked,
+                onSelected: onSelected,
+                onNotifications: bell == null ? null : () => unawaited(
+                  showBellPanel(context: context, controller: bell),
+                ),
+              ),
             ),
             const Expanded(child: SizedBox.expand()),
           ],
@@ -48,6 +59,46 @@ Future<List<Map<String, Object?>>> _controls(HarnessAgent agent) async {
 }
 
 void main() {
+  for (final bool collapsed in <bool>[true, false]) {
+    testWidgets('the real bell retains the selected rail page $collapsed', (
+      WidgetTester tester,
+    ) async {
+      final bell_fixture.MemoryBellHistory history =
+          bell_fixture.MemoryBellHistory();
+      final BellController controller = bell_fixture.bell(history)
+        ..setPrivate(value: false);
+      final List<Tabs> selected = <Tabs>[];
+      addTearDown(() async {
+        await tester.pumpWidget(const SizedBox.shrink());
+        bool finished = false;
+        final Future<void> closing = controller.close().whenComplete(
+          () => finished = true,
+        );
+        for (int turn = 0; turn < 20 && !finished; turn++) {
+          await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+          await tester.pump();
+        }
+        expect(finished, isTrue);
+        await closing;
+        await history.close();
+      });
+      await _mount(tester, collapsed: collapsed, locked: false,
+        selected: Tabs.accelerator, bell: controller, onSelected: selected.add);
+      await tester.tap(find.byKey(const Key('nav_notifications')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.byKey(const Key('bell_panel')).hitTestable(), findsOneWidget);
+      expect(tester.widget<ShellRail>(find.byType(ShellRail)).selected,
+        Tabs.accelerator);
+      expect(selected, isEmpty);
+      await tester.tap(find.byKey(const Key('bell_close')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.byKey(const Key('bell_panel')), findsNothing);
+      expect(selected, isEmpty);
+    });
+  }
+
   for (final bool collapsed in <bool>[true, false]) {
     testWidgets('the real rail exposes reachable navigation $collapsed', (
       WidgetTester tester,

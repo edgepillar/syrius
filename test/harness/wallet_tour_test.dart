@@ -6,6 +6,7 @@ class _TourInstance extends cli.Instance {
   _TourInstance() : super('synthetic-tour');
 
   String tab = 'dashboard';
+  bool bellOpen = false;
   String? unavailable;
   bool widgetError = false;
   bool severe = false;
@@ -39,10 +40,37 @@ class _TourInstance extends cli.Instance {
             'ok': false, 'error': 'synthetic-unavailable',
           };
         }
-        if (command['tab'] case final String value) tab = value;
-        if (command['key'] case final String key) sections.add(key);
+        if (command['tab'] case final String value) {
+          if (bellOpen) {
+            return <String, dynamic>{
+              'ok': false, 'error': 'synthetic-covered-navigation',
+            };
+          }
+          if (value == 'notifications') {
+            bellOpen = true;
+          } else {
+            tab = value;
+          }
+        }
+        if (command['key'] case final String key) {
+          if (key == 'bell_close') {
+            if (!bellOpen) {
+              return <String, dynamic>{
+                'ok': false, 'error': 'synthetic-bell-not-open',
+              };
+            }
+            bellOpen = false;
+          }
+          sections.add(key);
+        }
         return <String, dynamic>{'ok': true};
       case 'wait':
+        if (command['key'] == 'bell_panel' &&
+            bellOpen == (command['gone'] == true)) {
+          return <String, dynamic>{
+            'ok': false, 'error': 'synthetic-bell-state-unavailable',
+          };
+        }
         return <String, dynamic>{'ok': true};
       case 'logs':
         return <String, dynamic>{
@@ -89,9 +117,10 @@ void main() {
       ...cli.walletTourPages, 'walletConnect',
     ]);
     expect(instance.sections, <String>[
-      'nodes_tab_pillars', 'nodes_tab_sentinels', 'settings_apps',
+      'nodes_tab_pillars', 'nodes_tab_sentinels', 'bell_close', 'settings_apps',
     ]);
     expect(instance.tab, 'dashboard');
+    expect(instance.bellOpen, isFalse);
     expect(instance.outcome?['complete'], isTrue);
     final List<Map<String, Object?>> visited =
         instance.outcome!['visited']! as List<Map<String, Object?>>;
@@ -99,6 +128,15 @@ void main() {
       visited.every((Map<String, Object?> page) => page['captured'] == true),
       isTrue,
     );
+  });
+
+  test('notifications opens the bell while retaining its original page',
+      () async {
+    final _TourInstance instance = _TourInstance()..tab = 'accelerator';
+    await cli.goto(instance, 'notifications');
+    expect(instance.tab, 'accelerator');
+    expect(instance.bellOpen, isTrue);
+    expect(instance.outcome, isNull);
   });
 
   test('an unavailable page cannot silently become complete', () async {

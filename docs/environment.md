@@ -5122,3 +5122,45 @@ heal a failed exit or forced cleanup. Five new in-memory controls pass with
 no network, filesystem scratch or native process. Actual hosted inspection
 of these two original archives is pending. The actual Settings correction is
 qualified; P08/P09/F06 and all 94 visual matches remain open.
+
+### Original partial tour independently inspected (2026-10-27)
+
+Inspector source `676d8627b1aa5486bcc5529edaa25f33bcf4cc1b`, tree
+`6ac42cd1c3188c7c254f9f4868170778a4704d6e`, run
+[40439564896](https://github.com/edgepillar/syrius/actions/runs/40439564896),
+attempt one, job `121976369979`, succeeds. All 51 archive/projection cases
+pass before the original two archives are verified inside Actions. The
+original wallet manifest SHA-256 is
+`31ff00935ad4607ac514849d2e3183290f8230578817ca0ab099901105247117`,
+matching the digest retained by the original lab. Its lab manifest SHA-256 is
+`6762e60e250f592eefacd6114a193eefc286dd21f546b49ebe40ffa9d6fa13cb`.
+Both archives retain their independent API digests, source/run/tree pins and
+single-file bounded unpacking. The inspector starts no wallet or node and
+downloads no archive, joblog, SDK or image locally.
+
+Original native source `2c56e24bdda7a419964139352b8847a7515f49ea`, run
+`40436918378`, records clean page receipts for Home, Transfer, Pillars,
+Sentinels, Staking, Plasma, Tokens, Swap and Accelerator. Each has zero error
+widgets and zero severe logs, with its original captured flag true. These
+flags do not independently qualify the pixels: the controller accepts zero
+captures because the whole tour fails before its PNG verification phase.
+The next requested destination is Notifications. The original entry exit
+one, incomplete tour and required-actor forced cleanup remain negative;
+five lab nodes still retain their normal complete zero exits.
+
+Source inspection identifies a distinct overlay contract. The actual rail's
+Notifications control opens `showBellPanel` over the selected page, without
+selecting a notifications tab. The CLI's generic `goto` still waits for
+`state.tab == notifications`. The earlier transport fixture instead selected
+that tab, masking the mismatch. The regression fixture now opens the bell
+without changing its page and refuses navigation behind the open panel.
+Two additional real ShellRail/BellPanel cases cover narrow and wide rails,
+ordinary opening, retained page selection and ordinary close input. One
+additional CLI case requires the same retained-page contract. The full tour
+case additionally requires the bell to close before later destinations.
+
+The original CLI remains unchanged for reproduction. The focused red gate
+now expects 89 Dart cases and 505 Python cases; no local SDK executes and no
+test is removed or skipped. This is preparation for the original navigation
+correction, not a claim that the actual full tour or normal closure succeeds.
+P08/P09/F06 and all 94 visual matches remain open.
