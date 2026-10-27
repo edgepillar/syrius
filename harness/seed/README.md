@@ -157,3 +157,21 @@ These card fixtures do not replace the whole shell or qualify the existing
 screen-capture prerequisites; native route preparation and shot comparison
 remain pending. Ordinary builds cannot reach these routes: only the harness
 entrypoint imports the agent and fixtures.
+
+
+The hosted closed-copy coordinator receives actual wallet/cache paths,
+ordered members, persisted selection and the original confirmed send hash
+only in the authenticated private reply after original publication and receive
+quiescence. These observations remain in memory and grant no write or process
+authority on their own. The identical original wallet entry and all five node
+processes must close normally before copying or rebinding.
+
+A separate gated Hive child changes only key zero in the copied pointer box.
+It requires the exact captured original path and the parent's exclusive
+one-attempt claim. The continuous private-input listener retires on parent
+EOF, errors, oversized or excess input. Original pointer/cipher files and
+copied cipher bytes remain unchanged. The coordinator requires original child
+exit zero, complete output and an empty owned job. Failures retain the claim
+and private transport record; they cannot admit a retry or seed operation.
+This source integration still needs actual hosted native qualification and
+ordinary restored app/node opening before it can admit any F06 recipe.

@@ -7023,3 +7023,55 @@ cases run only in the hosted suite. Current hosted tests and actual native
 quiescence remain pending. Copied Hive coordinator integration, ordinary
 restored app/node ownership, all six real F06 effects and full visual
 acceptance remain open. Earlier UNKNOWN originals keep their original status.
+
+
+### Original quiescence controls and the copied Hive coordinator
+
+At `a88d8eb2a0856b573be576dca4ee5370c70d3110`, tree
+`3b57dfac80de6b17f7210cb95a1ab6e8b65100a5`,
+[40589826885](https://github.com/edgepillar/syrius/actions/runs/40589826885),
+attempt one, job 122490851925, passes all 246 Dart cases and 622 Python
+cases with three original platform skips. Selected analysis has zero findings
+and complete original exit zero. Dart exits zero in 62.735 seconds with
+119618 complete, unforced bytes, SHA-256
+`0643cd02478d05a71da81f5b3094e69f5dd7419b9f2db49f1cf7aa8545631779`.
+The earlier `f6ff06e2f414` / 40588198877 retains its eight style findings and
+skipped Dart step. The fixes changed private named formals, explicit callback
+types, a tear-off and cascades without suppressing analysis or changing the
+original publication and receive behavior.
+
+The new candidate obtains private restoration observations only after the
+actual original quiescence succeeds. They include the actual SDK cache and
+wallet path, ordered members, persisted index-one selection, chain policy and
+exact confirmed original send hash. The authenticated live reply is retained
+in memory and bound to the identical original entry. A saved public receipt
+cannot supply these facts or original process ownership. Public manifests
+contain none of those paths, members or the send hash.
+
+After the original wallet and five nodes close normally, the coordinator
+checks the independent copies and launches one gated Dart child in a new
+owned Windows job. No wallet or node is opened by this child. It opens only
+the copied Hive pointer box using the existing locked dependencies. Key zero
+must equal the exact captured original wallet path before any write claim.
+The parent rechecks actual original closure, source, directory identities,
+file digests and aggregate storage before creating one exclusive claim.
+Only then may the child change that pointer, flush and close the owned box.
+
+The child listens continuously for parent EOF and input errors, including
+while Hive awaits a write or flush. Queued approval cannot survive EOF.
+Private input is bounded; output uses fixed markers. Completion requires the
+actual original child exit zero, complete bounded output, an empty owned job,
+unchanged original pointer and cipher bytes, unchanged copied cipher bytes
+and unchanged source. Failed claims and transport records stay in the owned
+checkpoint directory; no retry, cleanup or replacement is provided. A finite
+reader projection cannot turn a failed parent checkpoint or actor into a
+successful binding.
+
+All 112 selected Python memory controls pass without local scratch, SDK,
+native or network execution. Nine additional Dart and twenty-six Python cases
+expand the focused gate to exactly 255 Dart and 648 Python cases, including
+five actual Hive filesystem fixtures. Current hosted qualification remains
+pending. Actual native checkpoint use and coordinator binding, ordinary
+restored app/node opening, continuity of the original chain and original send,
+all six F06 effects and all 94 visual matches remain unqualified. Earlier
+UNKNOWN originals keep their status and immutable evidence.

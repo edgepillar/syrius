@@ -62,7 +62,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/startup_sta
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/tabs.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart'
     show AccountBlockTemplate, WebsocketStatus, WsClient,
-        getChainIdentifier, znnZts;
+        getChainIdentifier, znnDefaultPaths, znnZts;
 
 import '../lab_send_failure.dart';
 import '../seed/seed_recipe.dart' show requireSeedTokenPreparation;
@@ -1315,7 +1315,35 @@ class HarnessAgent {
     _labQuiescenceAttempted = true;
     try {
       final LabQuiescence original = source();
-      return <String, Object?>{'receipt': await original.drain()};
+      final Map<String, Object> receipt = await original.drain();
+      final WalletAddressContext addresses = WalletAddressContext.parse(
+        _recipeAddressObservation()['addressContext'],
+      );
+      final Map<String, Object?> policy = _recipeSigningPolicy();
+      final String? home = Platform.environment['SYRIUS_HARNESS_HOME'];
+      final String? wallet = kWalletPath;
+      if (home == null || wallet == null || !addresses.consistent ||
+          !listEquals(addresses.members, original.environment.members) ||
+          addresses.selected != original.environment.owner ||
+          policy['signingChainId'] != 321 ||
+          policy['savedSigningChainId'] != 321 ||
+          policy['signingPolicyReady'] != true ||
+          policy['nodeSelectionSaved'] != true ||
+          kCurrentNode != seedWsOrigin || kNodeChainId != 321) {
+        throw const LabQuiescenceRefused(LabQuiescencePhase.current);
+      }
+      // Only the live coordinator receives these observations. The finite
+      // public quiescence receipt never contains paths, members or hashes.
+      return <String, Object?>{'receipt': receipt, 'origin': <String, Object>{
+        'schema': 1, 'scope': 'private_owned_wallet_origin',
+        'profile': original.environment.profile, 'home': home,
+        'wallet': wallet, 'cache': znnDefaultPaths.cache.path,
+        'members': addresses.members, 'selected': addresses.selected,
+        'saved': addresses.saved, 'node': seedWsOrigin, 'chain': 321,
+        'send_hash': original.originalSend.hash.toString(),
+        'send_token': original.originalSend.tokenStandard.toString(),
+        'send_amount': original.originalSend.amount.toString(),
+      }};
     } on LabQuiescenceRefused catch (error) {
       throw HarnessError('original-lab-quiescence-${error.phase.name}-refused');
     }

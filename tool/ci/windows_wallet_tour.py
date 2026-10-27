@@ -20,6 +20,7 @@ import subprocess
 import time
 
 from . import lab_send_diagnostic
+from . import wallet_restore_origin
 from . import windows_debug_loop as debug
 
 
@@ -402,15 +403,24 @@ def sample_workspace(paths, *, receipt=None, expected_profile=None):
 class _QuiescenceHandoff:
     """Created from one live authenticated reply, never loaded from a report."""
 
-    def __init__(self, entry, receipt):
+    def __init__(self, entry, receipt, origin=None):
         need(callable(getattr(entry, 'poll', None)) and entry.poll() is None,
              'QUIESCENCE_REFUSED')
         self._entry = entry
         self._facts = tuple(sorted(quiescence_receipt(receipt).items()))
+        need(origin is None or type(origin) is wallet_restore_origin.Origin,
+             'QUIESCENCE_REFUSED')
+        self._origin = origin
 
     def closed_for(self, entry):
         return (entry is self._entry and type(entry.poll()) is int and entry.poll() == 0
                 and quiescence_receipt(dict(self._facts)) is not None)
+
+    def origin_for(self, entry, home):
+        need(self.closed_for(entry) and type(self._origin) is wallet_restore_origin.Origin
+             and ntpath.normcase(self._origin.home) == ntpath.normcase(str(home)),
+             'QUIESCENCE_REFUSED')
+        return self._origin
 
 
 class _ClosedWallet:
@@ -447,6 +457,11 @@ class _ClosedWallet:
                     and self._quiescence.closed_for(self._entry))
         except (Exception, KeyboardInterrupt):
             return False
+
+    def restoration_origin(self):
+        need(self.closed() and self.quiescent()
+             and isinstance(self._quiescence, _QuiescenceHandoff), 'CLOSE_UNCONFIRMED')
+        return self._quiescence.origin_for(self._entry, self.home)
 
     def copied_home_bytes(self, home):
         need(self.closed() and home.parent == self.home.parent and home != self.home
@@ -646,10 +661,14 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, retain_clos
         need(original.poll() is None, 'ENTRY_FAILED')
         reply = transport.exchange(dict(cmd='lab-quiesce', profile=name), token, 30)
         value = json.loads(reply.body)
-        need(reply.status == 200 and type(value) is dict and set(value) == {'ok', 'receipt'}
+        need(reply.status == 200 and type(value) is dict and set(value) == {'ok', 'receipt', 'origin'}
              and value['ok'] is True, 'QUIESCENCE_REFUSED')
         report['quiescence'] = quiescence_receipt(value['receipt'])
-        quiescence = _QuiescenceHandoff(original, report['quiescence'])
+        try:
+            origin = wallet_restore_origin.parse(value['origin'], str(home))
+        except wallet_restore_origin.Refused:
+            raise Refused('QUIESCENCE_REFUSED') from None
+        quiescence = _QuiescenceHandoff(original, report['quiescence'], origin)
         runtime.healthy()
         report['checks']['quiescence'] = True
         report['phase'] = 'ordinary_close'

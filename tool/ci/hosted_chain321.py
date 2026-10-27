@@ -1213,7 +1213,7 @@ def run(backend):
         if wallet_tour and all(report['checks'].values()) and not report['error_codes']:
             report['checkpoint'] = dict(schema=1, scope='closed_owned_lab_checkpoint', complete=False)
             try:
-                from tool.ci import closed_lab_checkpoint as checkpoint, restored_lab_paths
+                from tool.ci import closed_lab_checkpoint as checkpoint, restored_lab_paths, closed_wallet_pointer
                 need(isinstance(runtime, Native) and len(closed_wallets) == 1,
                      'CHECKPOINT_REFUSED')
                 wallet = closed_wallets[0]
@@ -1247,6 +1247,10 @@ def run(backend):
                 report['path_binding'] = restored_lab_paths.bind_nodes(runtime.configs,
                     {role: restored_roots[role] for role in ROLES}, checkpoint_home, closed,
                     config_sha256=pins, keyfile_sha256=keyfile_pins, measure=measured)
+                report['wallet_pointer_binding'] = dict(schema=1,
+                    scope=closed_wallet_pointer.SCOPE, complete=False)
+                report['wallet_pointer_binding'] = closed_wallet_pointer.run(repo, parent,
+                    wallet, restored_home, checkpoint_home, closed, measured)
                 source_matches(commands, source, node_sha, node_tree, compiled_tree)
                 need(not commands.git(repo, 'status', '--porcelain=v1', '--untracked-files=all')
                      and measured() <= MAX_WORK,
@@ -1258,6 +1262,9 @@ def run(backend):
                 if 'path_binding' in report:
                     report['path_binding'] = dict(schema=1,
                         scope='closed_node_path_binding', complete=False)
+                if 'wallet_pointer_binding' in report:
+                    report['wallet_pointer_binding'] = dict(schema=1,
+                        scope='closed_wallet_pointer_binding', complete=False)
         report['commands'] = [item.receipt for item in commands.originals]
         report["success"] = all(report["checks"].values()) and not report["error_codes"]
         report['wallet_tour_qualified'] = bool(wallet_tour and report['success']
@@ -1278,6 +1285,7 @@ def run(backend):
                 compiled_node_tree=report.get('compiled_node_tree'),
                 checkpoint=report.get('checkpoint'),
                 path_binding=report.get('path_binding'),
+                wallet_pointer_binding=report.get('wallet_pointer_binding'),
                 asset_generation=report.get('asset_generation'),
                 upstream_client_fixture=(read_first_client_fixture.validate(
                     report.get('upstream_client_fixture'), required=report['checks']['started'])

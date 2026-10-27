@@ -101,6 +101,7 @@ Future<String> bindCopiedWalletPointer({
   required String originalHome,
   required String restoredHome,
   required String cacheRelative,
+  required String originalWallet,
   required bool Function() closed,
   required Future<void> Function() claim,
 }) async {
@@ -112,8 +113,8 @@ Future<String> bindCopiedWalletPointer({
         p.rootPrefix(cacheRelative).isEmpty &&
         !cacheRelative.contains('\u0000') &&
         !p.split(cacheRelative).contains('..'), phase);
-    mapCopiedWalletPath(originalHome: originalHome, restoredHome: restoredHome,
-      savedPath: p.join(originalHome, 'binding-owner-check'));
+    final String expected = mapCopiedWalletPath(originalHome: originalHome,
+      restoredHome: restoredHome, savedPath: originalWallet);
     final String home = p.normalize(restoredHome);
     final String cache = p.normalize(p.join(home, cacheRelative));
     _plainDirectory(home, cache);
@@ -136,8 +137,10 @@ Future<String> bindCopiedWalletPointer({
         original.path != null && p.equals(original.path!, pointer), phase);
     final Object? saved = original.get(0);
     if (saved is! String) throw CopiedWalletPointerRefused(phase);
+    _need(saved == originalWallet, phase);
     final String copied = mapCopiedWalletPath(originalHome: originalHome,
       restoredHome: home, savedPath: saved);
+    _need(p.equals(copied, expected), phase);
     final List<int> encrypted = _cipherBytes(home, copied);
     phase = CopiedPointerPhase.claim;
     await claim();

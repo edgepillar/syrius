@@ -138,6 +138,7 @@ void main() {
       int claims = 0;
       final String rebound = await bindCopiedWalletPointer(hive: Hive,
         originalHome: fixture.original, restoredHome: fixture.restored,
+        originalWallet: fixture.originalWallet.path,
         cacheRelative: fixture.cacheRelative, closed: () => true,
         claim: () async { claims++; });
       expect(rebound, fixture.copiedWallet.path);
@@ -168,6 +169,7 @@ void main() {
       int claims = 0;
       await expectLater(bindCopiedWalletPointer(hive: Hive,
         originalHome: fixture.original, restoredHome: fixture.restored,
+        originalWallet: fixture.originalWallet.path,
         cacheRelative: fixture.cacheRelative, closed: () => true,
         claim: () async { claims++; }),
         throwsA(isA<CopiedWalletPointerRefused>()));
@@ -187,6 +189,7 @@ void main() {
       int claims = 0;
       await expectLater(bindCopiedWalletPointer(hive: Hive,
         originalHome: fixture.original, restoredHome: fixture.restored,
+        originalWallet: fixture.originalWallet.path,
         cacheRelative: fixture.cacheRelative, closed: () => true,
         claim: () async { claims++; }),
         throwsA(isA<CopiedWalletPointerRefused>()));
@@ -210,9 +213,36 @@ void main() {
       bool closed = true;
       await expectLater(bindCopiedWalletPointer(hive: Hive,
         originalHome: fixture.original, restoredHome: fixture.restored,
+        originalWallet: fixture.originalWallet.path,
         cacheRelative: fixture.cacheRelative, closed: () => closed,
         claim: () async { closed = false; }),
         throwsA(isA<CopiedWalletPointerRefused>()));
+      final Box<dynamic> box = await Hive.openBox<dynamic>(
+        copiedWalletPointerBox, path: fixture.cache, crashRecovery: false,
+      );
+      expect(box.toMap(), <int, String>{0: fixture.originalWallet.path});
+      await box.close();
+    } finally {
+      await fixture.dispose();
+    }
+  });
+
+  test('a different valid original wallet refuses before a write claim',
+      () async {
+    final _Copy fixture = await _copy();
+    try {
+      final List<int> source = await fixture.originalPointer.readAsBytes();
+      final List<int> encrypted = await fixture.copiedWallet.readAsBytes();
+      int claims = 0;
+      await expectLater(bindCopiedWalletPointer(hive: Hive,
+        originalHome: fixture.original, restoredHome: fixture.restored,
+        originalWallet: p.join(fixture.original, 'wallet', 'different.json'),
+        cacheRelative: fixture.cacheRelative, closed: () => true,
+        claim: () async { claims++; }),
+        throwsA(isA<CopiedWalletPointerRefused>()));
+      expect(claims, 0);
+      expect(await fixture.originalPointer.readAsBytes(), source);
+      expect(await fixture.copiedWallet.readAsBytes(), encrypted);
       final Box<dynamic> box = await Hive.openBox<dynamic>(
         copiedWalletPointerBox, path: fixture.cache, crashRecovery: false,
       );

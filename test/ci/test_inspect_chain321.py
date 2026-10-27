@@ -31,6 +31,32 @@ def manifest():
 
 
 class InspectionTests(unittest.TestCase):
+    def test_wallet_pointer_absence_and_incomplete_binding_do_not_invent_reopen(self):
+        report = manifest()
+        self.assertNotIn('wallet_pointer_binding', inspect.project(report, 'native', 'a'*40, 123))
+        report['wallet_pointer_binding'] = dict(schema=1,
+            scope='closed_wallet_pointer_binding', complete=False)
+        value = inspect.project(report, 'native', 'a'*40, 123)
+        self.assertFalse(value['wallet_pointer_binding']['complete'])
+        self.assertFalse(value['runtime_started'])
+        self.assertFalse(value['seed_admitted'])
+        report['wallet_pointer_binding']['wallet'] = 'private fixture'
+        with self.assertRaises(inspect.Refused):
+            inspect.project(report, 'native', 'a'*40, 123)
+
+    def test_a_complete_wallet_pointer_cannot_heal_missing_parent_or_failed_actors(self):
+        report = self.wallet_stop_report()
+        report['wallet_pointer_binding'] = dict(schema=1,
+            scope='closed_wallet_pointer_binding', complete=True, claim_once=True,
+            originals_unchanged=True, cipher_unchanged=True, pointer_bound=True,
+            child_exit=0, output_bytes=52, output_sha256='a'*64,
+            output_complete=True, forced=False, job_empty=True,
+            private_manifest_sha256='b'*64, native_reopen_qualified=False,
+            seed_admitted=False)
+        with self.assertRaises(inspect.Refused):
+            inspect.project(report, 'native', 'a'*40, 40319698922,
+                inspect.UPSTREAM_NODE_SHA, expected_patched=True)
+
     def test_path_binding_absence_and_refusal_do_not_invent_runtime_authority(self):
         report = manifest()
         value = inspect.project(report, 'native', 'a'*40, 123)
