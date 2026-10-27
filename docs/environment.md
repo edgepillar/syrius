@@ -5860,3 +5860,45 @@ The README's focused-case count is updated from the old 113 to 167.
 The failed execution is terminal and retained without retry. P09's original
 confirmed UI send, actual F06 preparation/states and all 94 visual matches
 remain unqualified. No local SDK/native job or artifact download occurs.
+
+
+### Exact original draft and applied provider fault (2026-10-27)
+
+At source `9e200085528e83ef15e6a1b32ecf61a3a2d5413b`, tree
+`b40734b0be3cc9c2abe03fe16c1b32df102fc710`, focused
+[40470927059](https://github.com/edgepillar/syrius/actions/runs/40470927059),
+attempt one, job `122077600781`, retains 165 Dart bodies passed, two failed,
+two error events, zero skips, twenty hidden events and 187 terminal events.
+Normal original exit is one in 59.109 seconds with 83452 complete bytes, no
+overflow/forced kill; SHA-256
+`178d9a73bb39a861bf785b64bca21db0cf8db9c6cb98cc128cf35968737a0d3b`.
+All 531 Python cases pass with the three original platform skips. Original
+startup/refusal/asset controls and pinned inputs pass. Selected analysis now
+exits zero with no output and zero errors/warnings/infos. The earlier failed
+execution remains terminal and negative.
+
+Both bounded projected locations are assertions in the new UI fixture: its
+mid-pointer provider-loss expectation and pending-draft readiness expectation.
+The provider fixture scheduled a replacement and advanced the pointer timer
+in the same pump. The correction first rebuilds with zero time advancement
+and verifies the form's actual provider is the replacement, then advances the
+unchanged 60ms step. The original down-count, refusal, zero-publication and
+permanent-revocation assertions remain. This verifies the injected dependency
+change before pointer up; no input timing or guard is loosened.
+
+While confirmation is open the amount field is disabled, so a normal text
+input cannot establish the intended changed draft. The stronger fixture now
+asserts that disabled state, updates the actual ordinary header/palette draft
+owner, and verifies a new draft state/amount while the form still displays its
+original text. Read-only review readiness now captures and checks the exact
+original draft owner/state, in addition to the actual intent and visible
+scalar fields. This mirrors the original post-dialog check already enforced
+before ordinary submission. The signing/submission path and its existing
+check are unchanged.
+
+All 167 case labels, original assertions, eighty 40ms helper pumps and product
+route/entrance/scroll/center/request guards remain; additional fault assertions
+strengthen the fixture. The real event-loop yield remains. No current clean
+gate or native original-send success is inferred from these edits. P09, real
+F06 preparation and all 94 visual matches stay open. No local SDK/native
+execution, artifact download, quota change or cleanup occurs.

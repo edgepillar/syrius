@@ -156,6 +156,8 @@ class _SendPopulatedState extends State<SendPopulated>
   String _lastRecipient = '';
   bool _confirming = false;
   SendIntent? _originalReview;
+  SendDraftCubit? _originalReviewDraftOwner;
+  SendDraft? _originalReviewDraft;
 
   @override
   SendTransactionBloc get originalSender => _sender;
@@ -165,7 +167,9 @@ class _SendPopulatedState extends State<SendPopulated>
   String get draftToken => _selectedToken.tokenStandard.toString();
   @override
   bool matchesOriginalReview(SendIntent intent) =>
-      mounted && identical(_originalReview, intent) && intent.matches(
+      mounted && identical(_originalReview, intent) &&
+      identical(_draft, _originalReviewDraftOwner) &&
+      identical(_draft?.state, _originalReviewDraft) && intent.matches(
         fromAddress: _selectedSenderAddress,
         recipient: _recipient,
         amount: _amount,
@@ -824,6 +828,8 @@ class _SendPopulatedState extends State<SendPopulated>
       setState(() {
         _confirming = true;
         _originalReview = intent;
+        _originalReviewDraftOwner = draftOwner;
+        _originalReviewDraft = originalDraft;
       });
       final bool accepted = widget.confirm != null
           ? await widget.confirm!(intent, session)
@@ -878,6 +884,8 @@ class _SendPopulatedState extends State<SendPopulated>
         setState(() {
           _confirming = false;
           _originalReview = null;
+          _originalReviewDraftOwner = null;
+          _originalReviewDraft = null;
         });
         if (!_sender.busy.value && draftOwner != null && !draftOwner.isClosed) {
           _applyDraft(draftOwner.state);

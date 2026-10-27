@@ -363,6 +363,10 @@ void main() {
     }
     expect(f.down, 1);
     f.provided.value = f.otherSender;
+    // Apply the replacement before advancing the pending pointer-up timer.
+    await tester.pump();
+    expect(tester.element(find.byType(SendPopulated))
+      .read<SendTransactionBloc>(), same(f.otherSender));
     await tester.pump(const Duration(milliseconds: 60));
     await _drive(tester, command);
     expect(error, isA<SeedRefused>());
@@ -394,7 +398,20 @@ void main() {
     final _Fixture f = _Fixture();await f.mount(tester);
     final LabSendUiBinding binding = f.binding(tester);
     await f.open(tester);final LabSendUiReview review = f.capture(binding);
-    await tester.enterText(find.byKey(const Key('send_amount_field')), '2');
+    final TextField field = tester.widget(
+      find.byKey(const Key('send_amount_field')),
+    );
+    expect(field.enabled, isFalse);
+    expect(field.controller!.text, '1');
+    final SendDraft original = f.draft.state;
+    // The ordinary header/palette updates this owner while review fields are
+    // disabled; the form retains its old text until the operation is idle.
+    f.draft.save(fromAddress: f.from, tokenStandard: znnZts.toString(),
+      recipient: f.to, amount: '2');
+    await tester.pump();
+    expect(f.draft.state, isNot(same(original)));
+    expect(f.draft.state.amount, '2');
+    expect(field.controller!.text, '1');
     expect(() => review.requireReady(review.button, center: review.center),
       throwsA(isA<SeedRefused>()));
     expect(f.publications, 0);
