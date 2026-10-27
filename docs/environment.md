@@ -4741,3 +4741,47 @@ and keep the original Element through actual completion. Both motion-setting
 variants are included. The focused gate is 72 cases; hosted red reproduction
 is pending and the agent is deliberately unchanged until that result. This
 does not yet prove the sole cause of the native control refusal.
+
+
+### Settings motion red reproduction and original-clock correction (2026-10-27)
+
+Focused source `1aa412a86ef7316ca4251c30ae6a695249630cee`, tree
+`f74ed5eb9522c1cdbfa385bcd1ec6b4cbf458c30`, run `40423527377` attempt one,
+job `121923509353`, completes with the expected failed harness gate. The
+original 70 cases pass. Exactly the two new SettingsFrame/Disclosure cases
+fail their false-readiness assertion at line 70, for both platform motion
+settings. The framework wraps both as unhandled assertion events; the finite
+projection records ASSERTION/FALSE at that exact known source location. The
+initial private observer expected direct assertion events and therefore did
+not label the red result positive. A separate source-bound reconciliation
+verifies the two actual wrapped assertions without changing that original
+record, downloading raw logs, editing the tests or repeating the runtime.
+
+The original Dart command exits one normally in 40.984 seconds, with 36501
+complete output bytes, no overflow or forced kill and SHA-256
+`f7c4a8d9315e133437632e4446e9655e5c5bf4656e6bb040f770c9f123af0f4e`.
+Counts are 70 passed, two failed, zero skipped, two error events, seven hidden
+and 79 terminal events. All 499 Python cases with three platform skips and
+all four original asset controls pass. Selected analysis exits zero with
+zero diagnostics and complete empty output. Root/vendor locked restores and
+source/input checks pass with the same pinned SDK. Pre-build refusal and
+both original open-input startup probes pass. No native wallet build,
+wallet execution or blockchain-node execution occurs in the focused job.
+
+After that red result, the candidate extends recipe readiness to the actual
+FadeThroughTransition belonging to every enclosing original RiseSwitcher.
+The incoming animation must be completed and its secondary exit dismissed.
+Nested switchers are checked independently. The existing ListEntrance clock
+check remains. This reads the original widget's controllers without adding
+listeners, replacing an owner, requesting frames, altering ordinary input,
+waiting on unrelated hover animation or increasing any deadline.
+
+Both new regression bodies and all existing harness tests remain unchanged.
+They require ordinary input to remain available at 150 ms, preserve the same
+Element/callback through actual completion, and admit recipe readiness only
+after the original motion settles. Exact original element/center admission,
+owner/session checks, key release, failure handling and retirement are
+unchanged. The identical 72-case hosted gate is pending for the correction.
+The native changed-control reason still combines replacement and movement;
+red reproduction alone does not establish the sole cause of that refusal.
+P08/P09/F06, complete lifecycle closure and all visual acceptance remain open.

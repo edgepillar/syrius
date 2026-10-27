@@ -11,6 +11,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'package:animations/animations.dart' show FadeThroughTransition;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
@@ -26,6 +27,7 @@ import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_token_stepper/widgets/token_create_frame.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/widgets/send_confirmation.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/list_entrance.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/motion/rise_switcher.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/import_wallet/import_wallet_seed_choice_screen.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/wallet_ready_surface.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/wallet_success_screen.dart';
@@ -1057,13 +1059,26 @@ class HarnessAgent {
   }
 
   bool _recipeEntranceSettled(Element element) {
-    // A visible entrance row still rises between pointer admissions. Read
-    // its own controller before declaring the control ready, without
+    // Visible rows and incoming Settings pages can still rise between
+    // pointer admissions. Read each original entrance clock without
     // changing ordinary input or waiting on unrelated hover animations.
     Element child = element;
+    FadeThroughTransition? switchEntrance;
     bool settled = true;
     element.visitAncestorElements((Element ancestor) {
-      if (ancestor.widget is ListEntranceItem) {
+      final Widget widget = ancestor.widget;
+      if (widget is FadeThroughTransition) switchEntrance = widget;
+      if (widget is RiseSwitcher) {
+        final FadeThroughTransition? transition = switchEntrance;
+        if (transition == null ||
+            !transition.animation.isCompleted ||
+            !transition.secondaryAnimation.isDismissed) {
+          settled = false;
+          return false;
+        }
+        switchEntrance = null;
+      }
+      if (widget is ListEntranceItem) {
         final Widget built = child.widget;
         final Listenable? animation =
             built is AnimatedBuilder ? built.animation : null;
