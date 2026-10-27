@@ -6721,3 +6721,35 @@ the initial import-only adapter failure is retained separately. Fresh complete
 zero-finding analysis and all cases remain required before a new independent
 native lab. No old chain/profile is retried, no signing or journal guard is
 weakened, and P09/F06 and all 94 visual matches remain unqualified.
+
+### Observe the original test clock and caller after control refusal
+
+At 31199fa0f2c70cb47fdf79ddda90e7f927b2942f, combined
+[40547861703](https://github.com/edgepillar/syrius/actions/runs/40547861703),
+attempt one, job 122343257330, passes strict selected analysis with zero
+findings and all 553 Python cases/three original skips. Dart exits one in
+84.594 seconds with 109163 complete, unforced bytes: 217 passed cases, one
+failed case and one error event. The finite result locates an unhandled
+control refusal at agent.dart:976 but exports no test caller. The exact failing
+test is not established from that helper location. Node checkout, compiler
+and native work are skipped; no new chain/profile or send is inferred.
+
+The late-review widget case previously assumed its second fixed pump completed
+the independently inserted DialogCard rise. It now reads that original fade,
+requires it incomplete while capture refuses, advances at most eight 40 ms
+test frames until completion, and requires that completion before capture.
+The ordinary pointer, original intent and exactly-one-publication assertions
+remain. Every other byte in that Dart test file and all lib/ and harness/
+files are unchanged.
+No animation duration, production wait, center tolerance or authority changes.
+
+An optional failure context keeps the first known test frame separate from an
+earlier helper frame. Only a source-defined test basename, a positive bounded
+line and STACK/ERROR/PRINT source may leave the original failure context.
+Foreign test prints, unknown or prefixed basenames and oversized line numbers
+cannot supply it. No test name, raw path, function, error or stack is exported.
+The original primary location and framework-context rules remain. Two new
+memory-only cases cover these boundaries; all 37 selected cases pass without
+SDK/native execution or scratch. All 218 Dart cases, 555 Python cases and
+zero-finding analysis remain required before independent native allocation.
+Earlier native review/startup refusals and UNKNOWN originals remain preserved.

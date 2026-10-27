@@ -16,6 +16,39 @@ def encode(rows):
 
 
 class DartFailureTests(unittest.TestCase):
+    def test_original_test_caller_is_separate_from_the_first_helper_location(self):
+        frame = ('#0 private (/fixture/private/agent.dart:976:7)\n'
+            '#1 private (/fixture/private/lab_send_ui_binding_test.dart:371:5)')
+        for use_print in (False, True):
+            row = dict(type='error', testID=7, isFailure=False,
+                error='private error', stackTrace='' if use_print else frame)
+            rows = [row]
+            if use_print:
+                rows.insert(0, dict(type='print', testID=7, message=frame))
+            value = failure.project(encode(rows))['items'][0]
+            with self.subTest(use_print=use_print):
+                self.assertEqual((value['file'], value['line']), ('agent.dart', 976))
+                self.assertEqual(value['test_context'], dict(
+                    file='lab_send_ui_binding_test.dart', line=371,
+                    location_source='PRINT' if use_print else 'STACK'))
+                self.assertNotIn('private', json.dumps(value))
+                self.assertNotIn('/fixture', json.dumps(value))
+
+    def test_foreign_or_unknown_test_frames_cannot_supply_caller_context(self):
+        for caller in ('unknown_test.dart:371:5',
+                       'private_lab_send_ui_binding_test.dart:371:5',
+                       'lab_send_ui_binding_test.dart:0:5',
+                       'lab_send_ui_binding_test.dart:1234567:5'):
+            row = dict(type='error', testID=7, isFailure=False,
+                error='private error', stackTrace='agent.dart:976:7\n' + caller)
+            value = failure.project(encode([row]))['items'][0]
+            self.assertNotIn('test_context', value)
+        rows = [dict(type='print', testID=99,
+            message='lab_send_ui_binding_test.dart:371:5'),
+            dict(type='error', testID=7, isFailure=False,
+                error='private error', stackTrace='agent.dart:976:7')]
+        self.assertNotIn('test_context', failure.project(encode(rows))['items'][0])
+
     def test_known_source_location_never_exports_error_stack_or_host_path(self):
         for name in ('wallet_recipe_startup_test.dart', 'rail_navigation_test.dart',
                      'wallet_address_recipe_test.dart', 'addresses_selection_test.dart',

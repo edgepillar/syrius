@@ -340,14 +340,24 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 120));
     final Finder confirmation = find.byType(SendConfirmation);
+    final Animation<double> originalRise = tester.widget<FadeTransition>(
+      find.descendant(
+        of: find.byKey(const Key('send_confirmation_marker')),
+        matching: find.byType(FadeTransition),
+      ).first,
+    ).opacity;
     expect(ModalRoute.of(tester.element(confirmation))!.animation!.isCompleted,
       isTrue);
+    expect(originalRise.isCompleted, isFalse);
     expect(() => f.capture(binding), throwsA(isA<SeedRefused>().having(
       (SeedRefused value) => value.code, 'code',
       'original-lab-control-unsettled',
     )));
     expect(f.publications, 0);
-    await tester.pump(const Duration(milliseconds: 120));
+    for (int frame = 0; frame < 8 && !originalRise.isCompleted; frame++) {
+      await tester.pump(const Duration(milliseconds: 40));
+    }
+    expect(originalRise.isCompleted, isTrue);
     final LabSendUiReview review = f.capture(binding);
     expect(review.intent, same(tester.widget<SendConfirmation>(
       confirmation).intent));

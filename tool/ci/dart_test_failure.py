@@ -84,11 +84,13 @@ def framework_assertion(text, stack=''):
     return None
 
 
-def location(text):
+def location(text, *, tests_only=False):
     found = []
     for name in FILES:
+        if tests_only and not name.endswith('_test.dart'):
+            continue
         match = re.search(r'(?<![A-Za-z0-9_.-])' + re.escape(name)
-            + r'(?::|\s+)([1-9][0-9]{0,5})(?::[0-9]+)?', text)
+            + r'(?::|\s+)([1-9][0-9]{0,5})(?![0-9])(?::[0-9]+)?', text)
         if match:
             found.append((match.start(), name, int(match[1])))
     return min(found) if found else None
@@ -149,6 +151,13 @@ def project(raw):
                 line=selected[2] if selected else None, location_source=source,
                 kind='ASSERTION' if failure else 'UNHANDLED',
                 expectation=expectation, category=category)
+            for label, text in (('STACK', stack), ('ERROR', error), ('PRINT', context)):
+                caller = location(text, tests_only=True)
+                if caller is not None:
+                    if selected is not None and caller[1:] != selected[1:]:
+                        item['test_context'] = dict(file=caller[1], line=caller[2],
+                            location_source=label)
+                    break
             assertion = framework_assertion(details, stack)
             if assertion is not None:
                 item['framework_assertion'] = assertion
