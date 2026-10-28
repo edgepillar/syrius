@@ -89,3 +89,48 @@ class AssetCommandTests(unittest.TestCase):
             self.assertEqual(value['code'], expected)
             self.assertEqual(value['commands'][-1]['exit_code'], exit_code)
             self.assertNotIn(asset.PREFIX.decode(), output.getvalue())
+
+    def test_one_cold_version_observation_stays_bounded_and_never_retries(self):
+        parent = dict(GITHUB_SHA='a'*40, GITHUB_RUN_ID='123', GITHUB_RUN_ATTEMPT='1')
+        for timed_out in (False, True):
+            calls = []
+
+            def child(arguments, *, cwd, env, timeout, cap):
+                calls.append((arguments, timeout, cap))
+                if arguments == ['/node', '--version']:
+                    complete = not timed_out and timeout >= 6
+                    return asset.baseline.Outcome(
+                        output=b'v26.5.0\n' if complete else b'',
+                        exit_code=0 if complete else 1, exit_observed=True,
+                        forced_kill=not complete, output_complete=True,
+                        output_bytes=8 if complete else 0,
+                        seconds=6 if complete else timeout,
+                        errors=() if complete else ('COMMAND_TIMEOUT',))
+                self.assertEqual(arguments, ['/node', 'test/ci/lab_asset_progress_test.js'])
+                return asset.baseline.Outcome(output=encoded(), exit_code=0,
+                    exit_observed=True, output_complete=True, output_bytes=len(encoded()))
+
+            with self.subTest(timed_out=timed_out), \
+                    mock.patch.object(asset, 'admit', return_value=(parent, Path('/fixture'))), \
+                    mock.patch.object(asset.source.bounded, 'verify_source'), \
+                    mock.patch.object(asset.source, 'source_tree', return_value='b'*40), \
+                    mock.patch.object(asset.shutil, 'which', return_value='/node'), \
+                    mock.patch.object(asset.baseline, 'run_bounded', side_effect=child), \
+                    contextlib.redirect_stdout(io.StringIO()) as output:
+                result = asset.main()
+            self.assertEqual(result, 1 if timed_out else 0)
+            self.assertEqual(calls[0][1:], (15, 256))
+            self.assertEqual(sum(arguments == ['/node', '--version']
+                for arguments, _, _ in calls), 1)
+            value = json.loads(output.getvalue().splitlines()[0])
+            if timed_out:
+                self.assertEqual(len(calls), 1)
+                self.assertEqual(value['code'], 'OUTPUT_REFUSED')
+                self.assertFalse(value['success'])
+                self.assertTrue(value['commands'][0]['forced_kill'])
+                self.assertNotIn(asset.PREFIX.decode(), output.getvalue())
+            else:
+                self.assertEqual(len(calls), 2)
+                self.assertEqual(calls[1][1:], (15, 65536))
+                self.assertTrue(value['success'])
+                self.assertFalse(value['commands'][0]['forced_kill'])

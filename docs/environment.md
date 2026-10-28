@@ -8240,3 +8240,30 @@ preserved and only its memory loader was corrected. Hosted 756-Python/323-Dart
 qualification is pending. This establishes no copied authentication, six-effect
 completion, full-root/build success or visual acceptance. Existing evidence,
 failed originals, skipped steps, history and UNKNOWN results remain preserved.
+
+
+## Source146 hosted tool-version timeout and bounded startup window
+
+Recorded at 2026-10-28T19:28Z: source146 `e96b84ca494b` / 40753149071 passes all
+756 Python cases with three existing skips, including both finite root-failure
+caller/reader controls and the original bounded inspection transport case.
+Its next original `node --version` command emits no bytes and is force-closed
+after the five-second boundary, with COMMAND_TIMEOUT and OUTPUT_REFUSED.
+Asset control execution, SDK setup, analysis and Dart are skipped. The hosted
+latency cause is unobserved; this is no wallet or lab authentication result.
+
+Only the version-observation budget changes from five to fifteen seconds,
+matching the existing asset-control window and remaining within the unchanged
+one-minute step. It still issues one original version command with a 256-byte
+cap, requires actual complete unforced exit zero and the same finite version
+reply, and never retries or replaces a refused command. Asset controls and
+all wallet input, attempt/signing/lifecycle guards and deadlines remain.
+
+A controlled six-second normal version observation refuses before the change
+and passes afterward. Its forced/incomplete variant still refuses before
+asset controls. All 246 current pure-memory controls pass with zero failures,
+errors, skips or native/network/scratch/shared-store attempts. The failed
+before-fix control and actual source146 command remain preserved. Current
+757-Python/323-Dart hosted qualification is pending. The source145 eleven
+style infos and skipped Dart, source144 unlocalized root failure, independent
+entry receipts and all UNKNOWN/original profile evidence remain unchanged.

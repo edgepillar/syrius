@@ -850,3 +850,20 @@ raw errors or private input. The independent reader validates the closed
 projection and exact producer parser. This does not retrospectively identify
 the source144 failed test, qualify copied authentication or supply six effects.
 The original failed copied profile/password is not retried.
+
+
+## Pre-SDK tool-version observation boundary
+
+Source146 40753149071 passes all 756 Python cases/three skips before the
+original Node version process reaches its five-second limit with no output
+and forced exit. Asset control execution, SDK setup, analysis and Dart are
+skipped. The candidate uses the existing fifteen-second asset-control budget
+for that one metadata command only; the single attempt, 256-byte output cap,
+complete unforced exit/version requirements and one-minute workflow step stay.
+No wallet, signing, attempt, lifecycle or twenty-second unlock deadline changes.
+
+The controlled before-fix refusal and actual original timeout remain negative.
+All 246 memory controls pass. The current hosted gate requires 757 Python
+cases and 323 ordinary Dart cases, or 325 startup cases. Actual copied reopen,
+six effects and original failed profile/password retry remain outside this
+tool-version observation and are not inferred.

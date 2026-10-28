@@ -111,7 +111,7 @@ def main():
             return outcome
 
         report['phase'] = 'node_version'
-        version = command('node_version', [node, '--version'], 5, 256)
+        version = command('node_version', [node, '--version'], 15, 256)
         need(version.success and re.fullmatch(rb'v[0-9]{1,3}[.][0-9]{1,3}[.][0-9]{1,3}\r?\n',
                                               version.output) is not None, 'VERSION_REFUSED')
         report['node_version'] = version.output.decode('ascii').strip()
