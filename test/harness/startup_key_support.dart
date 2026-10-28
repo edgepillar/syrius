@@ -9,6 +9,7 @@ import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/entry_capture_source.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/launch_film.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/startup_stage.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart' show getChainIdentifier;
 
@@ -19,7 +20,14 @@ class _PendingFilm extends CachingAssetBundle {
   final Completer<ByteData> bytes = Completer<ByteData>();
 
   @override
-  Future<ByteData> load(String key) => bytes.future;
+  Future<ByteData> load(String key) {
+    if (key == LaunchFilm.defaultLastFrameAsset) {
+      return Future<ByteData>.value(ByteData.sublistView(
+        File('test/launch_film/fixtures/film_end.webp').readAsBytesSync(),
+      ));
+    }
+    return bytes.future;
+  }
 }
 
 class _StartupHost extends StatefulWidget {

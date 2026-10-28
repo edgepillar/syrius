@@ -8030,3 +8030,20 @@ ending handoff. This corrects static access without changing any awaited
 operation, disposal order, frame, clock, test assertion, source asset,
 input/ownership guard or deadline. The same 297-case startup gate and actual
 native observation remain required.
+
+### Source137 engine fixture refusal
+
+At `de47eb36c003`, run `40712460421` passes all 752 Python cases with three
+existing skips and selected analysis with zero errors, warnings and infos.
+The Dart gate retains 295 passes, two failures and three error events with
+complete unforced original output. Build and native startup are skipped.
+No individual new-case pass or native performance result is inferred.
+
+Two existing tiny-film bundles serve their pending eight-frame movie for
+every requested name. The new ending name therefore also opens an animated
+codec, which the ending guard correctly refuses. The candidate maps only
+that name to the same tiny film's committed one-frame 16 by 9 ending. The
+original movie Future and every assertion remain. All product runtime,
+source assets, commands, ownership/signing guards and deadlines are byte
+equal to source137. The original red result stays preserved and the same
+297-case gate plus actual native startup remain required.

@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/entry_capture_source.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/launch_film.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/startup_stage.dart';
 
 import '../../harness/app/agent.dart';
@@ -14,7 +15,14 @@ class _PendingFilm extends CachingAssetBundle {
   final Completer<ByteData> bytes = Completer<ByteData>();
 
   @override
-  Future<ByteData> load(String key) => bytes.future;
+  Future<ByteData> load(String key) {
+    if (key == LaunchFilm.defaultLastFrameAsset) {
+      return Future<ByteData>.value(ByteData.sublistView(
+        File('test/launch_film/fixtures/film_end.webp').readAsBytesSync(),
+      ));
+    }
+    return bytes.future;
+  }
 }
 
 class _ReceiptHost extends StatefulWidget {

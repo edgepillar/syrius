@@ -679,3 +679,13 @@ separate from its nullable cleanup owner. Awaited operations, disposal
 order, assets, assertions, guards and deadlines remain unchanged. The
 original refusal stays preserved and no engine, startup or F06 acceptance
 is inferred before the same 297-case gate and actual native execution.
+
+At source137 `de47eb36c003`, `40712460421` passes all 752 Python cases/three
+existing skips and clean selected analysis. Its Dart gate retains 295
+passes, two failures and three error events; build/native steps are skipped.
+Two tiny-film bundles also serve their eight-frame movie for the ending
+name. Only that name is now bound to the same tiny film's one-frame ending,
+with the original pending movie Future and all assertions retained.
+Product runtime, assets, guards, deadlines and the strict 297-case gate
+remain unchanged. The original failure and absence of current native/F06
+proof stay preserved.
