@@ -6,7 +6,22 @@ import unittest
 
 from tool.ci import restored_seed_run as seeds
 from tool.ci import restored_wallet_run as restored
-from test.ci.test_restored_wallet_run import completed as completed_reopen
+
+
+def completed_reopen():
+    # Test discovery need not import the repository's namespace as `test`.
+    return dict(schema=1, scope=restored.SCOPE, complete=True, claim_once=True,
+        originals_closed=True, chain_continuity=True, journal_unchanged=True,
+        cipher_unchanged=True, wallet=dict(schema=1,
+            scope='restored_lab_wallet_observation', chain=321, members=2,
+            selected_index=1, membership_same=True, selection_saved=True,
+            wallet_path_mapped=True, original_send_confirmed=True,
+            journal_consistent=True, observation_stable=True),
+        application_exit=0, entry_exit=0, output=dict(bytes=123, sha256='a'*64,
+            output_complete=True, overflow=False), job_empty=True, forced=False,
+        nodes=[dict(role=role, exit_code=0, output_complete=True, forced=False)
+               for role in restored.checkpoint.ROLES[1:]],
+        private_manifest_sha256='b'*64, seed_admitted=False)
 
 
 def receipts():
