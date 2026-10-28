@@ -799,3 +799,19 @@ memory controls pass. Full Windows root/non-chain and vendored analysis,
 localization/source regeneration equality, Debug/Release builds and four
 original prepared entry captures remain required. No current pixel match,
 copied reopen, six-effect or final acceptance is inferred from this source.
+
+
+Source143 `02dc394f59f6` / `40739159280` passes all 752 Python cases/three
+existing skips, then selected analysis refuses one `UNNECESSARY_IMPORT`
+info in the new route test. Dart is skipped. The candidate removes that
+redundant typed-data import and preserves the original refusal.
+
+The retained cross_file 0.3.5+2 implementation constructs a File for XFile
+metadata and reads its path before any content open. The memory fixture
+therefore supplies File.path and allocates/counts a probe handle only on
+openSync, with read mode asserted. File metadata construction is not an
+actual probe. This contract gap is source-observed; the source143 route
+case did not execute. Every original route/privacy assertion, genuine
+owner, input callback and product runtime byte remains. All 234 memory
+controls pass. Clean analysis and the same 298/300 focused gate, followed
+by full Windows/root, generation, builds and entry captures remain required.

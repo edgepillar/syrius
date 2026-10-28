@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/services.dart';
@@ -115,12 +114,19 @@ Future<void> _finishRoute(
 // structural probe, DropTarget callback, Welcome/Import owners, navigation,
 // controller disposal and capture refusal are the genuine implementations.
 class _MemoryFile extends Fake implements File {
-  _MemoryFile(this.handle);
+  _MemoryFile(this._path, this._open);
 
-  final _MemoryHandle handle;
+  final String _path;
+  final _MemoryHandle Function() _open;
 
   @override
-  RandomAccessFile openSync({FileMode mode = FileMode.read}) => handle;
+  String get path => _path;
+
+  @override
+  RandomAccessFile openSync({FileMode mode = FileMode.read}) {
+    expect(mode, FileMode.read);
+    return _open();
+  }
 }
 
 class _MemoryHandle extends Fake implements RandomAccessFile {
@@ -213,8 +219,10 @@ void main() {
         ));
       }, createFile: (String requested) {
         expect(requested, path);
-        opens++;
-        return _MemoryFile(_MemoryHandle(bytes, () => closes++));
+        return _MemoryFile(requested, () {
+          opens++;
+          return _MemoryHandle(bytes, () => closes++);
+        });
       });
     }
     final MaterialPageRoute<void> cover = MaterialPageRoute<void>(
