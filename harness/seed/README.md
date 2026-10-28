@@ -564,3 +564,22 @@ new lines; original assertions, route receipts, commands, deadlines and
 case counts remain. The earlier source130 copied startup procedure returned
 before unlock; its retained diagnostic does not record whether a key or
 natural film completion led there. No specific copied Skip effect is claimed.
+
+
+### Original editable-render query correction
+
+At `b1dc75d37842`, run `40676239168` passes 740 Python cases with the three
+existing platform skips and selected analysis with zero errors, warnings or
+infos. The 290-case Dart run completes with 289 passes and one unhandled
+`TYPE_ERROR` in the new prepared-entry render query, at line 223; the framework
+location is the tester's generic render-object cast. Every original native
+allocation step is skipped. The other passing cases include the six isolated
+unlock-refusal vectors. No actual copied unlock or seed effect is claimed.
+
+The candidate obtains the same original EditableTextState from its existing
+field finder and reads that State's actual renderEditable. It retains the
+real renderer's family/tracking assertions, counter geometry, all original
+route/controller ownership assertions and the matching both-theme query.
+It does not replace the renderer or relax the expectations. All product
+runtime bytes, case counts and failure gates remain. The failed original is
+preserved and not retried; hosted correction and fresh-image proof are pending.

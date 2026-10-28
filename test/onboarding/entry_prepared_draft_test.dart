@@ -220,12 +220,12 @@ void main() {
       expect(view.draft.expectedWords, 12);
       expect(view.draft.valid, isFalse);
       expect(view.onContinue, isNull);
-      final RenderEditable seed = tester.renderObject<RenderEditable>(
+      final RenderEditable seed = tester.state<EditableTextState>(
         find.descendant(
           of: find.byKey(const Key('import_seed_field')),
           matching: find.byType(EditableText),
         ),
-      );
+      ).renderEditable;
       expect(seed.text!.style!.fontFamily, kSansFontFamily);
       expect(seed.text!.style!.letterSpacing, 0);
       final Finder counterLabel = find.text('8 of 12');

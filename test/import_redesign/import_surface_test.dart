@@ -107,9 +107,9 @@ void main() {
         expect(find.text('8 of 12'), findsOneWidget);
         final AppTokens tokens = light ? AppTokens.light : AppTokens.dark;
         final Finder field = find.byKey(const Key('import_seed_field'));
-        final RenderEditable seed = tester.renderObject<RenderEditable>(
+        final RenderEditable seed = tester.state<EditableTextState>(
           find.descendant(of: field, matching: find.byType(EditableText)),
-        );
+        ).renderEditable;
         expect(seed.text!.style!.fontFamily, tokens.sansFontFamily);
         expect(seed.text!.style!.letterSpacing, 0);
         final Finder count = find.text('8 of 12');
