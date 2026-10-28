@@ -12,7 +12,7 @@ from tool.ci import run_harness_tour_tests as harness
 
 
 class HarnessAdmissionTests(unittest.TestCase):
-    def run_case(self, *, passed=295, terminal=True, skipped=0, failed=0,
+    def run_case(self, *, passed=297, terminal=True, skipped=0, failed=0,
                  error_events=0, command_success=True, complete=True,
                  source_changed=False, asset_fidelity=False):
         parent = dict(GITHUB_WORKSPACE=str(Path.cwd()), FLUTTER_ROOT='/sdk',
@@ -60,11 +60,11 @@ class HarnessAdmissionTests(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertTrue(report['success'])
         self.assertIsNone(report['code'])
-        self.assertEqual(report['counts']['passed'], 295)
+        self.assertEqual(report['counts']['passed'], 297)
         self.assertEqual((source_checks, tree_checks), (2, 2))
 
     def test_stale_short_or_extra_suite_counts_are_refused(self):
-        for passed in (0, 184, 196, 216, 218, 220, 221, 222, 227, 228, 229, 245, 246, 247, 254, 255, 262, 263, 264, 265, 266, 278, 279, 280, 281, 282, 283, 284, 285, 286, 287, 288, 289, 290, 291, 292, 293, 294, 296, 297):
+        for passed in (0, 184, 196, 216, 218, 220, 221, 222, 227, 228, 229, 245, 246, 247, 254, 255, 262, 263, 264, 265, 266, 278, 279, 280, 281, 282, 283, 284, 285, 286, 287, 288, 289, 290, 291, 292, 293, 294, 295, 296, 298, 299):
             with self.subTest(passed=passed):
                 code, report, source_checks, tree_checks = self.run_case(
                     passed=passed)
@@ -85,12 +85,14 @@ class HarnessAdmissionTests(unittest.TestCase):
         self.assertEqual(self.command_argv.count(
             'test/launch_film/launch_decode_observation_test.dart'), 1)
         self.assertIn('--concurrency=1', self.command_argv)
-        code, report, _, _ = self.run_case(passed=297, asset_fidelity=True)
+        self.assertEqual(self.command_argv.count(
+            'test/harness/restored_unlock_ready_test.dart'), 1)
+        code, report, _, _ = self.run_case(passed=299, asset_fidelity=True)
         self.assertEqual(code, 0)
         self.assertTrue(report['launch_asset_fidelity'])
         self.assertEqual(self.command_argv.count(
             'test/launch_film/launch_asset_test.dart'), 1)
-        for passed in (290, 292, 295, 296, 298):
+        for passed in (290, 292, 295, 296, 297, 298, 300):
             code, report, _, _ = self.run_case(
                 passed=passed, asset_fidelity=True)
             self.assertEqual(code, 1)

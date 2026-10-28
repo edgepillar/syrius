@@ -689,3 +689,31 @@ with the original pending movie Future and all assertions retained.
 Product runtime, assets, guards, deadlines and the strict 297-case gate
 remain unchanged. The original failure and absence of current native/F06
 proof stay preserved.
+
+
+At source138 `7e851d350ac7`, startup `40715154449` passes all 752 Python
+cases/three existing skips, 297 Dart cases, clean selected analysis and
+Release build. Exact engine equality between the original final frame and
+the still passes. One confirmed original Skip reaches genuine Welcome at
+4250 ms within the unchanged twenty-second boundary. Thirteen checks and
+normal complete unforced original exit pass. This producer observation
+supplies no natural-playback, motion/frame-time or full-lab acceptance.
+
+Native80 `40717245830` and independent reader `40722889316` qualify original
+index-1 UI send of exactly one ZNN to index 0, twelve tour/capture checks,
+complete quiescence and normal required app/entry/five-node exits. Auxiliary
+force is separately recorded. The producer still fails at the copied
+password-field input request (`UNLOCK_TYPE_REFUSED`, `HARNESS_REFUSED`).
+This names an operation, not a Dart TypeError, wrong-password result or
+exact guard. Partial input effect remains unknown. All four copied
+components remain incomplete and six effects remain unqualified. The
+original profile/password is not retried; reader success preserves failure.
+
+Two new real LockCard/agent regressions require readiness before any
+password input while fields are absent, disabled or covered, and exactly
+one write/submit when reachable. A bounded covered-field ready wait must
+refuse without changing text. Runtime is unchanged for this controlled
+before-fix run. The strict gate selects all 297 ordinary cases, or 299 with
+both original asset cases. All 234 pure-memory controls pass without native,
+network, scratch or shared-store access. No readiness fix, copied reopen,
+six-effect or historical cause is inferred from these controls.
