@@ -6,14 +6,14 @@ The initial publication source commit is `e13abb38757726018481158f27a7ad72d62f81
 
 ## Publication and evidence binding
 
-This publication preserves the public base and adds anonymous contribution
-commits. The original local implementation history and private qualification
+This publication preserves the public base and adds pseudonymous edgepillar
+contribution commits. The original local implementation history and private qualification
 receipts are retained separately. Progress-row hashes identify the accessible
 publication source commit; row dates record the earlier implementation work.
 
 [Draft PR #6](https://github.com/sol-znn/syrius/pull/6) publishes
 `edgepillar/syrius:redesign` to `sol-znn/syrius:dev`. Follow-up commits retain
-anonymous contribution metadata and record their own qualification scope.
+the same edgepillar contribution metadata and record their own qualification scope.
 
 The separate local checkout is shallow at the exact public `dev` base above,
 matching the implementation checkout's boundary. It uses its own Git objects
@@ -7466,3 +7466,45 @@ selected memory controls pass. The next combined Windows job requires all
 726 Python cases before SDK allocation, unchanged 281 Dart cases and actual
 pointer/reopen/six-effect integration with one Flutter setup. F06, nineteen
 capture preparations, fixture acceptance and all 94 visual matches stay open.
+
+## Retained canonical momentum admission correction
+
+At `7c26b1f4c98f`, native run `40633782478` passes the 726 Python
+case gate with three original platform skips, all 281 Dart cases and clean
+selected analysis. Independent reader `40635674241` verifies the finite
+original archives. Original send, quiescence, twelve tour/capture checks and
+normal required app, entry and five-node closure remain positive. The
+producer still fails `CHECKPOINT_REFUSED`. Its finite active reopen diagnostic
+locates `initial_chain` with `OTHER_ERROR`, no observed domain code and no raw
+output. Conservative checkpoint, path, pointer and reopen summaries stay
+incomplete; entering reopen supplies no missing positive receipt.
+
+A separate memory control calls the actual continuity reader through actual
+RPC payload admission. The reader checks the original momentum at its
+canonical height; the old admission permits only `[1, 1]`. A synthetic
+retained-height request `[10, 1]` therefore refuses before any wire. The
+controlled `RPC_REFUSED` is not an observed native exception code.
+
+The HTTP reader now accepts an optional exact parsed original momentum. Its
+scope adds only that retained height and count one alongside genesis. The
+original canonical-by-height equality remains, as do genesis equality,
+WebSocket hash agreement, frontier advancement, owner binding, method list,
+query budget, response bounds, deadlines and exactly-once close checks.
+Default HTTP and WebSocket admission remain genesis-only. WebSocket has no
+retained-height option. The continuity caller supplies its original parsed
+frontier; no report or arbitrary height creates the scope.
+
+The chain fixture now invokes actual RPC admission before its synthetic
+replies. All existing test bodies and assertions remain. Seven new Python
+cases cover the scoped reader, unchanged defaults, malformed retained values,
+response/close refusal, caller integration and exact-class finite wire-error
+projection. Unknown exception text is never formatted or exported. All 215
+selected memory controls pass. A separate 1056-case in-memory comparison
+retains identical default HTTP/WebSocket payload bytes, refusals and query
+accounting. No local SDK, wallet, node, wire or filesystem fixture runs.
+
+Current combined Windows qualification requires all 733 Python cases before
+SDK allocation, unchanged 281 Dart cases and actual copied reopen/six-effect
+integration with one Flutter setup. Earlier failures and UNKNOWN originals
+remain. F06, nineteen capture preparations, current full-root qualification,
+fixture acceptance and all 94 visual matches stay open.

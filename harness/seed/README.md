@@ -298,3 +298,19 @@ a later failure cannot acquire a completed reopen diagnosis. Twelve new
 Python cases and all 195 selected memory cases pass. Current 726 Python/281
 Dart and actual pointer/reopen/six-effect qualification remain pending.
 Earlier failures, UNKNOWN originals and all visual/capture gaps remain.
+
+At 7c26b1f4c98f, native 40633782478 and independent reader 40635674241
+retain 726 Python cases/three original skips, 281 Dart passes, clean selected
+analysis and positive original wallet phases. Reopen remains incomplete at
+initial_chain with fixed OTHER_ERROR and no observed domain code. A separate
+actual-caller memory control reproduces a retained-height RPC admission
+mismatch; its controlled RPC_REFUSED is not a native exception observation.
+
+The candidate adds an HTTP-only scope for the one original parsed momentum
+height, count one, alongside genesis. Canonical-by-height equality, genesis,
+WebSocket hash agreement, advancement and all owner/wire/close limits remain.
+Default HTTP and WebSocket readers retain their original scope. The chain
+fixture now invokes actual payload admission. Seven new cases and all 215
+memory controls pass; 1056 comparisons retain default admission bytes and
+refusals. Current 733 Python/281 Dart and actual reopened ownership/six effects
+remain pending. Earlier failures, UNKNOWN originals and all visual gaps remain.

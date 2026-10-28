@@ -691,6 +691,70 @@ class AdmissionTests(unittest.TestCase):
 
 
 class WirePolicyTests(unittest.TestCase):
+    def test_retained_http_scope_adds_only_its_one_height_to_genesis_reads(self):
+        f = Fixture()
+        retained = lab.Momentum.parse(momentum(10))
+        def reply(request, response):
+            if request['method'] == 'ledger.getMomentumsByHeight' and request['params'] == [10, 1]:
+                return dict(response, result=dict(count=1, list=[momentum(10)]))
+            return response
+        f.http.server.hook = reply
+        rpc = lab.HttpRpc(f.http, LIMITS, lab._Deadline(f.clock, 10),
+            lambda size: b'a' * size, retained_momentum=retained)
+        self.assertEqual(rpc.call('ledger.getMomentumsByHeight', [10, 1])['list'], [momentum(10)])
+        self.assertEqual(rpc.call('ledger.getMomentumsByHeight', [1, 1])['list'], [GENESIS])
+        for method, params in (('ledger.getMomentumsByHeight', [11, 1]),
+                ('ledger.getMomentumsByHeight', [10, 2]),
+                ('ledger.getMomentumsByHeight', [True, 1]),
+                ('ledger.publishRawTransaction', [])):
+            with self.subTest(method=method, params=params), self.assertRaises(lab.Refused):
+                rpc.call(method, params)
+        self.assertEqual(len(f.http.wires), 2)
+        self.assertTrue(all(wire.close_count == 1 for wire in f.http.wires))
+        rpc.next_id = 256
+        with self.assertRaises(lab.Refused):
+            rpc.call('ledger.getMomentumsByHeight', [10, 1])
+        self.assertEqual(len(f.http.wires), 2)
+
+    def test_default_http_and_ws_keep_the_original_genesis_only_scope(self):
+        f = Fixture()
+        for cls, transport in ((lab.HttpRpc, f.http), (lab.WsRpc, f.ws)):
+            rpc = cls(transport, LIMITS, lab._Deadline(f.clock, 10), lambda size: b'a' * size)
+            self.assertIsInstance(rpc._payload('ledger.getMomentumsByHeight', [1, 1]), bytes)
+            with self.assertRaises(lab.Refused):
+                rpc._payload('ledger.getMomentumsByHeight', [10, 1])
+        self.assertEqual(f.http.wires, [])
+        self.assertEqual(f.ws.wires, [])
+        with self.assertRaises(TypeError):
+            lab.WsRpc(f.ws, LIMITS, lab._Deadline(f.clock, 10), lambda size: b'a' * size,
+                retained_momentum=lab.Momentum.parse(momentum(10)))
+
+    def test_retained_http_scope_requires_an_exact_valid_parsed_momentum(self):
+        f = Fixture()
+        valid = lab.Momentum.parse(momentum(10))
+        for value in (True, 10, dict(height=10), object(),
+                replace(valid, height=True), replace(valid, height=0),
+                replace(valid, height=2 ** 63), replace(valid, timestamp=0),
+                replace(valid, timestamp=True), replace(valid, hash='private')):
+            with self.subTest(kind=type(value).__name__), self.assertRaises(lab.Refused):
+                lab.HttpRpc(f.http, LIMITS, lab._Deadline(f.clock, 10), lambda size: b'a' * size,
+                    retained_momentum=value)
+        self.assertEqual(f.http.wires, [])
+
+    def test_retained_http_scope_keeps_response_and_close_failure_refusals(self):
+        for failure in ('response', 'close'):
+            f = Fixture()
+            if failure == 'response':
+                f.http.http_hook = lambda raw: raw.replace(b'200 OK', b'302 Found', 1)
+            else:
+                f.http.close_hook = lambda wire: lab.Closed(wire, False)
+            rpc = lab.HttpRpc(f.http, LIMITS, lab._Deadline(f.clock, 10), lambda size: b'a' * size,
+                retained_momentum=lab.Momentum.parse(momentum(10)))
+            with self.subTest(failure=failure), self.assertRaises(lab.Refused):
+                rpc.call('ledger.getMomentumsByHeight', [10, 1])
+            self.assertEqual(len(f.http.wires), 1)
+            self.assertEqual(f.http.wires[0].close_count, 1)
+
     def refused_probe(self, configure, code=None, limits=LIMITS):
         f = Fixture(limits)
         owner = f.launch()

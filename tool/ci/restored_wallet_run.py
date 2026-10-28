@@ -33,7 +33,7 @@ CHILD_PHASES = ('gate', 'start', 'input', 'startup', 'unlock', 'observe',
 OUTPUT_CODES = ('PUB_RESOLUTION', 'PUB_EXECUTABLE_BUILD', 'UNHANDLED_EXCEPTION',
     'COMPILE_OR_USAGE_ERROR', 'VM_SERVICE_LISTENER', 'UNCLASSIFIED_OUTPUT',
     'REOPEN_CHILD_REFUSED')
-ERRORS = ('CHECKPOINT_REFUSED', 'LAB_REFUSED', 'PROCESS_REFUSED', 'TYPE_ERROR',
+ERRORS = ('CHECKPOINT_REFUSED', 'LAB_REFUSED', 'WIRE_REFUSED', 'PROCESS_REFUSED', 'TYPE_ERROR',
     'KEY_ERROR', 'OS_ERROR', 'VALUE_ERROR', 'INTERRUPTED', 'OTHER_ERROR')
 
 
@@ -58,7 +58,8 @@ def diagnostic_projection(value):
         (output is not None and output['code'] == 'REOPEN_CHILD_REFUSED'))
     if value['code'] is not None:
         from . import hosted_chain321 as lab
-        allowed = {'LAB_REFUSED': lab.CODES, 'PROCESS_REFUSED': debug.CODES}
+        allowed = {'LAB_REFUSED': lab.CODES, 'WIRE_REFUSED': lab.wire_policy.CODES,
+                   'PROCESS_REFUSED': debug.CODES}
         checkpoint.need(type(value['code']) is str and value['error'] in allowed
             and value['code'] in allowed[value['error']])
     return dict(value, output=None if output is None else dict(output))
@@ -98,6 +99,10 @@ class ReopenDiagnostic:
         elif type(error) is lab.Failure:
             self.error = 'LAB_REFUSED'
             self.code = error.code if type(error.code) is str and error.code in lab.CODES else None
+        elif type(error) is lab.wire_policy.Refused:
+            self.error = 'WIRE_REFUSED'
+            self.code = (error.code if type(error.code) is str
+                         and error.code in lab.wire_policy.CODES else None)
         elif type(error) is debug.ProcessRefused:
             self.error = 'PROCESS_REFUSED'
             code = error.args[0] if len(error.args) == 1 else None
@@ -255,7 +260,8 @@ def chain_read(runtime, original=None):
     http_wire, ws_wire = lab.make_transports()
     policy = lab.wire_policy
     deadline = policy._Deadline(time.monotonic, time.monotonic() + 60)
-    http = policy.HttpRpc(http_wire, policy.Limits(), deadline, secrets.token_bytes)
+    http = policy.HttpRpc(http_wire, policy.Limits(), deadline, secrets.token_bytes,
+        retained_momentum=None if original is None else original.frontier)
     ws = policy.WsRpc(ws_wire, policy.Limits(), deadline, secrets.token_bytes)
     failed_original = False
     try:

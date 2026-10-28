@@ -204,6 +204,27 @@ class ReopenDiagnosticTests(unittest.TestCase):
             trace.at('start')
         self.assertEqual(trace.snapshot()['phase'], first['phase'])
 
+    def test_original_wire_refusals_keep_only_allowlisted_codes(self):
+        error = lab.wire_policy.Refused('RPC_REFUSED')
+        trace = restored.ReopenDiagnostic()
+        trace.failure(error)
+        self.assertEqual(trace.snapshot()['error'], 'WIRE_REFUSED')
+        self.assertEqual(trace.snapshot()['code'], 'RPC_REFUSED')
+        error.code = 'private'
+        trace = restored.ReopenDiagnostic()
+        trace.failure(error)
+        self.assertIsNone(trace.snapshot()['code'])
+        self.assertNotIn('private', json.dumps(trace.snapshot()))
+        class Foreign(lab.wire_policy.Refused):
+            pass
+        trace = restored.ReopenDiagnostic()
+        trace.failure(Foreign('RPC_REFUSED'))
+        self.assertEqual(trace.snapshot()['error'], 'OTHER_ERROR')
+        self.assertIsNone(trace.snapshot()['code'])
+        with self.assertRaises(restored.checkpoint.Refused):
+            restored.diagnostic_projection(dict(trace.snapshot(),
+                error='WIRE_REFUSED', code='private'))
+
     def test_an_incomplete_diagnostic_cannot_supply_reopen_or_seed_authority(self):
         value = dict(schema=1, scope=restored.SCOPE, complete=False,
                      diagnostic=self.trace().snapshot())
@@ -349,7 +370,17 @@ class ChainPolicyTests(unittest.TestCase):
             self.assertEqual(method, 'ledger.getMomentumByHash')
             value = next((item for item in values.values() if item['hash'] == params[0]), None)
             return dict(value, timestamp=999) if ws_wrong and value is not None else value
-        http.call.side_effect, ws.call.side_effect = http_call, ws_call
+        Http, Ws = lab.wire_policy.HttpRpc, lab.wire_policy.WsRpc
+        def admitted_factory(cls, target, respond):
+            def create(*args, **kwargs):
+                admission = cls(*args, **kwargs)
+                target.admission = admission
+                def call(method, params):
+                    admission._payload(method, params)
+                    return respond(method, params)
+                target.call.side_effect = call
+                return target
+            return create
         first_error = lab.wire_policy.Refused('WS_REFUSED')
         if original_error:
             ws.connect.side_effect = first_error
@@ -357,8 +388,10 @@ class ChainPolicyTests(unittest.TestCase):
             ws.close.side_effect = lab.wire_policy.Refused('CLOSE_UNKNOWN')
         with mock.patch.object(runtime, 'healthy'), \
                 mock.patch.object(lab, 'make_transports', return_value=(object(), object())), \
-                mock.patch.object(lab.wire_policy, 'HttpRpc', return_value=http), \
-                mock.patch.object(lab.wire_policy, 'WsRpc', return_value=ws):
+                mock.patch.object(lab.wire_policy, 'HttpRpc',
+                    side_effect=admitted_factory(Http, http, http_call)), \
+                mock.patch.object(lab.wire_policy, 'WsRpc',
+                    side_effect=admitted_factory(Ws, ws, ws_call)):
             try:
                 result = restored.chain_read(runtime, witness if expected else None)
             except Exception as error:
@@ -374,6 +407,24 @@ class ChainPolicyTests(unittest.TestCase):
         self.assertEqual(value.frontier.height, 11)
         self.assertTrue(all(call.args[0].startswith('ledger.get')
                             for call in http.call.call_args_list + ws.call.call_args_list))
+
+    def test_retained_continuity_uses_the_actual_admission_and_original_height(self):
+        value, runtime, _, http, ws = self.run_read()
+        self.assertIsInstance(value, restored._ChainAnchor)
+        self.assertIs(value.owner, runtime)
+        heights = [call.args[1] for call in http.call.call_args_list
+                   if call.args[0] == 'ledger.getMomentumsByHeight']
+        self.assertEqual(heights, [[1, 1], [10, 1]])
+        ws.call.assert_any_call('ledger.getMomentumByHash', ['2' * 64])
+
+    def test_retained_http_scope_does_not_admit_other_heights_counts_or_ws_scope(self):
+        value, _, _, http, ws = self.run_read()
+        self.assertIsInstance(value, restored._ChainAnchor)
+        for params in ([11, 1], [9, 1], [10, 2], [True, 1]):
+            with self.subTest(params=params), self.assertRaises(lab.wire_policy.Refused):
+                http.admission._payload('ledger.getMomentumsByHeight', params)
+        with self.assertRaises(lab.wire_policy.Refused):
+            ws.admission._payload('ledger.getMomentumsByHeight', [10, 1])
 
     def test_initial_anchor_is_captured_without_a_prior_report(self):
         value, runtime, _, _, _ = self.run_read(expected=False)

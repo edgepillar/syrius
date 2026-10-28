@@ -449,6 +449,9 @@ class _Rpc:
         if failure is not None:
             raise failure
 
+    def _height_allowed(self, height):
+        return height == 1
+
     def _payload(self, method, params):
         _require(type(method) is str and method in (
                             "ledger.getFrontierMomentum", "ledger.getMomentumsByHeight",
@@ -457,8 +460,9 @@ class _Rpc:
         if method == "ledger.getFrontierMomentum":
             _require(not params, "RPC_REFUSED")
         elif method == "ledger.getMomentumsByHeight":
-            _require(len(params) == 2 and all(type(value) is int and value == 1
-                                            for value in params), "RPC_REFUSED")
+            _require(len(params) == 2 and type(params[0]) is int
+                     and self._height_allowed(params[0])
+                     and type(params[1]) is int and params[1] == 1, "RPC_REFUSED")
         else:
             _require(len(params) == 1 and _hex(params[0], 64), "RPC_REFUSED")
         _require(self.next_id < 256, "RPC_REFUSED")
@@ -468,6 +472,20 @@ class _Rpc:
 
 
 class HttpRpc(_Rpc):
+    def __init__(self, transport, limits, deadline, entropy, seen_wires=None, *,
+                 retained_momentum=None):
+        _require(retained_momentum is None or
+                 type(retained_momentum) is Momentum
+                 and all(type(value) is int and 0 < value < 2 ** 63
+                         for value in (retained_momentum.height, retained_momentum.timestamp))
+                 and _hex(retained_momentum.hash, 64), "RPC_REFUSED")
+        super().__init__(transport, limits, deadline, entropy, seen_wires)
+        # The optional original parsed momentum admits only its one height.
+        self._retained_height = None if retained_momentum is None else retained_momentum.height
+
+    def _height_allowed(self, height):
+        return super()._height_allowed(height) or height == self._retained_height
+
     def call(self, method, params):
         deadline = self.deadline.child(self.limits.request)
         body = self._payload(method, params)
