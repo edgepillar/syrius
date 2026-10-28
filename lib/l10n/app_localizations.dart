@@ -7153,7 +7153,7 @@ abstract class AppLocalizations {
   /// No description provided for @welcomeImportHint.
   ///
   /// In en, this message translates to:
-  /// **'A seed or a wallet file'**
+  /// **'A seed, or a wallet file dropped here'**
   String get welcomeImportHint;
 
   /// No description provided for @welcomeHardware.

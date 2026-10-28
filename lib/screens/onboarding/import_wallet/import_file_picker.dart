@@ -10,7 +10,7 @@ import 'package:zenon_syrius_wallet_flutter/screens/onboarding/import_wallet/imp
 /// Adds the genuine file-drop adapter around the import presentation.
 typedef ImportDropWrapper = Widget Function(Widget);
 
-/// The platform adapter is mounted only by the genuine importer owner.
+/// Entry owners mount this adapter only with their genuine current lease.
 class ImportFilePicker extends StatelessWidget {
   /// Mounts platform picker and drop capabilities for the current import lease.
   const ImportFilePicker({

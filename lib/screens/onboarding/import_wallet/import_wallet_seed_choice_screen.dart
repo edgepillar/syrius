@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/access_wallet_screen.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/entry_action_boundary.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/import_wallet/import_draft.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/onboarding/import_wallet/import_file_offer.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/import_wallet/import_file_picker.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/import_wallet/import_surface.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/import_wallet/import_wallet_decrypt_screen.dart';
@@ -15,7 +16,10 @@ import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
 /// Owns one current mnemonic draft or bounded-probe file selection for import.
 class ImportWalletSeedChoiceScreen extends StatefulWidget {
   /// Mounts the genuine input owner only after the welcome action is admitted.
-  const ImportWalletSeedChoiceScreen({super.key});
+  const ImportWalletSeedChoiceScreen({this.fileOffer, super.key});
+
+  /// A Welcome drop already admitted by its current bounded content probe.
+  final ImportFileOffer? fileOffer;
 
   @override
   State<ImportWalletSeedChoiceScreen> createState() =>
@@ -47,6 +51,9 @@ class _ImportWalletSeedChoiceScreenState
   void initState() {
     super.initState();
     _seed.addListener(_observeSeed);
+    _fileOffered = widget.fileOffer != null;
+    _file = widget.fileOffer?.selection;
+    _fileRefused = _fileOffered && _file == null;
   }
 
   void _observeSeed() {

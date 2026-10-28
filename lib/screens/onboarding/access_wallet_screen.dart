@@ -1,10 +1,15 @@
 import 'dart:async';
 
 import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/onboarding/entry_action_boundary.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/onboarding/import_wallet/import_draft.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/onboarding/import_wallet/import_file_offer.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/onboarding/import_wallet/import_file_picker.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/welcome_surface.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/screens.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/entry_capture_source.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
 
 /// The welcome: the three ways into a wallet, one under the other, with
 /// creating a new one as the main action.
@@ -57,9 +62,24 @@ class _AccessWalletScreenState extends State<AccessWalletScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => WelcomeSurface(
+  Widget build(BuildContext context) => EntryActionBoundary(
     source: _source,
-    onSelected: _onSelected,
+    builder: (_, EntryActionLease lease) => ImportFilePicker(
+      lease: lease,
+      probe: WalletFile.isKeyStoreFile,
+      onSelected: (ImportFileSelection? selection) {
+        if (_canSelect && lease.isCurrent) {
+          _openImport(fileOffer: ImportFileOffer(selection));
+        }
+      },
+      // Welcome exposes only the drop adapter, never the browse callback.
+      onPickerFailed: () {},
+      builder: (_, _, ImportDropWrapper wrap) => WelcomeSurface(
+        source: _source,
+        onSelected: _onSelected,
+        wrapImportDrop: wrap,
+      ),
+    ),
   );
 
   void _onSelected(WelcomeDestination destination) {
@@ -73,25 +93,29 @@ class _AccessWalletScreenState extends State<AccessWalletScreen> {
           const NewWalletSeedChoiceScreen(),
         );
       case WelcomeDestination.importWallet:
-        // NavigationUtils uses this same ordinary MaterialPageRoute. Retain it
-        // before the push can mount the actual importer.
-        final MaterialPageRoute<void> route = MaterialPageRoute<void>(
-          builder: (_) => const ImportWalletSeedChoiceScreen(),
-        );
-        final EntryImportReceipt? receipt = EntryCaptureRegistry.instance
-            .openingImport(welcome: _capture, route: route);
-        try {
-          final Future<void> original = Navigator.push<void>(context, route);
-          receipt?.navigating(original);
-        } on Object catch (error, stack) {
-          receipt?.navigationFailed(error, stack);
-          rethrow;
-        }
+        _openImport();
       case WelcomeDestination.hardwareWallet:
         NavigationUtils.push(
           context,
           const HardwareWalletDeviceChoiceScreen(),
         );
+    }
+  }
+
+  void _openImport({ImportFileOffer? fileOffer}) {
+    if (!_canSelect) return;
+    // Both entry actions reserve the genuine route before its owner mounts.
+    final MaterialPageRoute<void> route = MaterialPageRoute<void>(
+      builder: (_) => ImportWalletSeedChoiceScreen(fileOffer: fileOffer),
+    );
+    final EntryImportReceipt? receipt = EntryCaptureRegistry.instance
+        .openingImport(welcome: _capture, route: route);
+    try {
+      final Future<void> original = Navigator.push<void>(context, route);
+      receipt?.navigating(original);
+    } on Object catch (error, stack) {
+      receipt?.navigationFailed(error, stack);
+      rethrow;
     }
   }
 

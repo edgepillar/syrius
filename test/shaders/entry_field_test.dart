@@ -230,7 +230,8 @@ void main() {
           child: WelcomeSurface(
             source: Object(),
             onSelected: destinations.add,
-            // Only the globe is inert. The backdrop is the production painter.
+            wrapImportDrop: (Widget child) => child,
+            // Art/drop fixtures are inert; the backdrop is production.
             globe: const SizedBox.expand(),
           ),
         ),
@@ -242,8 +243,11 @@ void main() {
       expect(destinations, <WelcomeDestination>[
         WelcomeDestination.importWallet,
       ]);
-      expect(find.text('A seed or a wallet file'), findsOneWidget);
-      expect(find.textContaining('dropped here'), findsNothing);
+      expect(
+        find.text('A seed, or a wallet file dropped here'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('dropped here'), findsOneWidget);
 
       int back = 0;
       await tester.pumpWidget(

@@ -4192,7 +4192,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get welcomeImport => 'Import wallet';
 
   @override
-  String get welcomeImportHint => 'A seed or a wallet file';
+  String get welcomeImportHint => 'A seed, or a wallet file dropped here';
 
   @override
   String get welcomeHardware => 'Hardware wallet';

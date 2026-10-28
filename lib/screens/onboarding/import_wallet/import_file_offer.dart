@@ -2,6 +2,15 @@ import 'dart:async';
 
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/import_wallet/import_draft.dart';
 
+/// One admitted entry offer; a null selection retains an explicit refusal.
+class ImportFileOffer {
+  /// Transfers the bounded probe outcome into the genuine import owner.
+  const ImportFileOffer(this.selection);
+
+  /// The private admitted source, never a presentation or diagnostic field.
+  final ImportFileSelection? selection;
+}
+
 /// Captures one picker capability and its source without a platform dependency.
 class ImportFileOfferSession {
   /// Captures picker, probe and selection owners before opening a platform UI.

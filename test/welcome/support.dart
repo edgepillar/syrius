@@ -12,6 +12,7 @@ WelcomeSurface welcomeFixture({
 }) => WelcomeSurface(
   source: source,
   onSelected: onSelected,
+  wrapImportDrop: (Widget child) => child,
   globe: const SizedBox.expand(key: Key('fixture_globe')),
   background: const SizedBox.expand(key: Key('fixture_field')),
 );

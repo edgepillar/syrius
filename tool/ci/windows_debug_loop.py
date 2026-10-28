@@ -454,6 +454,7 @@ def analyze(parent, repo):
         'harness/bin/ci_wallet_reopen.dart',
         'test/harness/restored_startup_test.dart',
         'test/harness/restored_unlock_ready_test.dart',
+        'test/onboarding/welcome_drop_route_test.dart',
         'harness/seed/restored_seed_workflow.dart',
         'test/harness/restored_seed_workflow_test.dart',
         'harness/app/fixtures/lab_quiescence.dart',

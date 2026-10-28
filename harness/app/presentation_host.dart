@@ -218,6 +218,7 @@ class _HarnessPresentationHostState extends State<HarnessPresentationHost> {
         return WelcomeSurface(
           source: _welcomeSource,
           onSelected: (WelcomeDestination _) => _refuse(),
+          wrapImportDrop: (Widget child) => child,
           background: widget.background,
           globe: widget.welcomeGlobe,
         );

@@ -2468,7 +2468,7 @@
   "welcomeCreate": "Create wallet",
   "welcomeCreateHint": "A new seed of 12 or 24 words",
   "welcomeImport": "Import wallet",
-  "welcomeImportHint": "A seed or a wallet file",
+  "welcomeImportHint": "A seed, or a wallet file dropped here",
   "welcomeHardware": "Hardware wallet",
   "welcomeHardwareHint": "Ledger, with the Zenon app open",
   "welcomeSettingsHint": "Node and chain can be changed later in Settings.",

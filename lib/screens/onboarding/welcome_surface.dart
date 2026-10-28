@@ -46,6 +46,7 @@ class WelcomeSurface extends StatefulWidget {
   const WelcomeSurface({
     required this.source,
     required this.onSelected,
+    required this.wrapImportDrop,
     this.globe,
     this.background,
     super.key,
@@ -56,6 +57,9 @@ class WelcomeSurface extends StatefulWidget {
 
   /// The owner constructs a genuine destination only after admission.
   final ValueChanged<WelcomeDestination> onSelected;
+
+  /// The current entry owner supplies the genuine guarded file-drop adapter.
+  final Widget Function(Widget) wrapImportDrop;
 
   /// Replaces the animation inside its measured original composition box.
   final Widget? globe;
@@ -337,12 +341,14 @@ class _WelcomeSurfaceState extends State<WelcomeSurface>
           ),
           ListEntranceItem(
             key: _rowKeys[1],
-            child: _WelcomeAction(
-              actionKey: const Key('welcome_import'),
-              label: context.l10n.welcomeImport,
-              hint: context.l10n.welcomeImportHint,
-              icon: 'file',
-              onTap: _capture(WelcomeDestination.importWallet),
+            child: widget.wrapImportDrop(
+              _WelcomeAction(
+                actionKey: const Key('welcome_import'),
+                label: context.l10n.welcomeImport,
+                hint: context.l10n.welcomeImportHint,
+                icon: 'file',
+                onTap: _capture(WelcomeDestination.importWallet),
+              ),
             ),
           ),
           ListEntranceItem(

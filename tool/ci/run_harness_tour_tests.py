@@ -146,6 +146,7 @@ def main():
             'test/onboarding/entry_capture_source_test.dart',
             'test/onboarding/entry_capture_opt_in_test.dart',
             'test/onboarding/entry_prepared_draft_test.dart',
+            'test/onboarding/welcome_drop_route_test.dart',
             'test/harness/key_dispatch_test.dart',
             'test/harness/rail_navigation_test.dart',
             'test/harness/wallet_address_recipe_test.dart',
@@ -170,7 +171,7 @@ def main():
         counts = test_counts(outcome.output)
         report['counts'] = counts
         debug.need(outcome.success and counts['terminal_success'] is True
-            and counts['passed'] == (299 if asset_fidelity else 297)
+            and counts['passed'] == (300 if asset_fidelity else 298)
             and counts['skipped'] == counts['failed'] == counts['error_events'] == 0,
             'TESTS_FAILED')
         if asset_fidelity:

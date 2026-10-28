@@ -766,3 +766,36 @@ original Future remains; all product runtime bytes, waits and guards are
 unchanged. All 234 current pure-memory controls pass. The same 297-case
 ordinary gate must pass before fresh native allocation; readiness, copied
 reopen, four components, six effects and final acceptance stay open.
+
+
+At source142 `37665e96f9d9`, Native82 `40732953625` passes all 297 ordinary
+Dart cases, all 752 Python cases/three skips and clean selected analysis.
+This includes the two genuine LockCard/agent readiness controls with both
+wall and frame clocks observed. Reader `40737067681` independently binds
+both finite archives and all four copied component frames. Original
+one-ZNN UI send, twelve tour/capture checks, complete quiescence and normal
+required app/entry/five-node exits pass; auxiliary force remains separate.
+The copied input and submit requests are acknowledged, then the unlock
+wait returns `UNLOCK_WAIT_REFUSED`. This establishes no authentication,
+timeout or wrong-password result. All four copied components and six
+effects stay incomplete. The original profile/password is not retried;
+reader success preserves the producer failure and every older UNKNOWN.
+
+The Welcome candidate mounts the existing drop adapter only on the Import
+row and only under its genuine current lease. Its bounded content probe
+transfers an admitted selection, or explicit refusal, into the original
+Import route and controller owner. No Continue or decryption runs on drop.
+An initial offer revokes untouched-empty capture admission, including an
+invalid or multiple-file offer. Private paths remain outside presentation.
+Pure component/shader fixtures use inert drop adapters.
+
+One new real route regression covers accepted, refused and multiple files,
+permanently stale callbacks after coverage/return, production structural
+probing through closed bounded memory handles, original navigation Futures,
+controller disposal and same Welcome owner/Element restoration. Only the
+startup policy and file handle are fixtures. The focused gate retains all
+298 ordinary cases, or 300 with both original engine asset cases. All 234
+memory controls pass. Full Windows root/non-chain and vendored analysis,
+localization/source regeneration equality, Debug/Release builds and four
+original prepared entry captures remain required. No current pixel match,
+copied reopen, six-effect or final acceptance is inferred from this source.

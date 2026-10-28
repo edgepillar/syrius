@@ -99,8 +99,10 @@ void main() {
               tester.getBottomLeft(_action('create')).dy,
           12,
         );
-        expect(find.text('A seed or a wallet file'), findsOneWidget);
-        expect(find.textContaining('dropped here'), findsNothing);
+        expect(
+          find.text('A seed, or a wallet file dropped here'),
+          findsOneWidget,
+        );
         expect(find.byType(AppLottie), findsNothing);
         expect(find.byType(HeroField), findsNothing);
         expect(calls, isEmpty);
