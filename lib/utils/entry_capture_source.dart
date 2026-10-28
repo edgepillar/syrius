@@ -234,6 +234,11 @@ class EntryImportReceipt {
   bool Function()? _empty;
   bool Function()? _unoffered;
   bool Function()? _pickerUntouched;
+  Object Function()? _liveSource;
+  bool Function()? _attached;
+  bool Function()? _incompleteDraft;
+  bool Function()? _originalDrawnCurrent;
+  EntryImportDraftReceipt? _preparedDraft;
 
   /// The actual Import State, retained after disposal.
   Object? get owner => _owner;
@@ -299,6 +304,159 @@ class EntryImportReceipt {
       (_navigation?.succeeded ?? false) &&
       routeCompleted.succeeded &&
       (_controllerDisposed?.succeeded ?? false);
+
+  /// Reserves one incomplete input while the original empty owner is ready.
+  /// An edited or replaced owner cannot be adopted by a later equal value.
+  EntryImportDraftReceipt? prepareIncompleteDraft() {
+    if (!ready ||
+        _preparedDraft != null ||
+        _liveSource == null ||
+        _attached == null ||
+        _incompleteDraft == null ||
+        !(_originalDrawnCurrent?.call() ?? false)) {
+      _registry._hold();
+      return null;
+    }
+    return _preparedDraft = EntryImportDraftReceipt._(this);
+  }
+
+  /// Called by the original controller listener, without retaining its text.
+  void controllerChanged(Object controller) =>
+      _preparedDraft?._controllerChanged(controller);
+
+  /// Records the exact source change inside the genuine onChanged callback.
+  void draftChanged({
+    required Object owner,
+    required Object controller,
+    required Object before,
+    required Object after,
+    required bool wasCurrent,
+  }) => _preparedDraft?._changed(owner, controller, before, after, wasCurrent);
+
+  /// Retains the first action generation that actually draws the new source.
+  void draftDrawn({
+    required Object owner,
+    required Object controller,
+    required Object source,
+    required bool Function() current,
+  }) {
+    if (identical(owner, _owner) &&
+        identical(controller, _controllerOwner) &&
+        identical(source, _source) &&
+        entryRouteReady(route) &&
+        current()) {
+      _originalDrawnCurrent ??= current;
+    }
+    _preparedDraft?._drawn(owner, controller, source, current);
+  }
+}
+
+/// One original empty-to-incomplete input transition, never an import permit.
+class EntryImportDraftReceipt {
+  EntryImportDraftReceipt._(this.imported)
+    : _beforeCurrent = imported._originalDrawnCurrent!;
+
+  /// Public incomplete mockup text, unrelated to any wallet or private input.
+  static const String sample =
+      'route tissue morning alien plasma stamp orbit velvet';
+
+  /// The exact original route, State, controller and disposal receipts.
+  final EntryImportReceipt imported;
+  final bool Function() _beforeCurrent;
+  Object? _after;
+  bool Function()? _drawnCurrent;
+  bool _edited = false;
+  bool _held = false;
+
+  /// The original empty source never changes or becomes ready again.
+  Object? get sourceBefore => imported.source;
+
+  /// Set only by the actual owner's original input callback.
+  Object? get sourceAfter => _after;
+
+  /// Admission for the single input; focus alone does not consume it.
+  bool get awaitingInput {
+    if (_held || _edited || _after != null) return false;
+    final bool valid = imported.ready && _beforeCurrent();
+    if (!valid) _held = true;
+    return valid;
+  }
+
+  void _controllerChanged(Object controller) {
+    if (_held) return;
+    if (_edited || !identical(controller, imported.controllerOwner)) {
+      _held = true;
+      return;
+    }
+    _edited = true;
+  }
+
+  void _changed(
+    Object owner,
+    Object controller,
+    Object before,
+    Object after,
+    bool wasCurrent,
+  ) {
+    if (_held) return;
+    if (!_edited ||
+        _after != null ||
+        !wasCurrent ||
+        !_beforeCurrent() ||
+        !identical(owner, imported.owner) ||
+        !identical(controller, imported.controllerOwner) ||
+        !identical(before, sourceBefore) ||
+        identical(before, after) ||
+        !identical(after, imported._liveSource?.call()) ||
+        !(imported._attached?.call() ?? false) ||
+        !(imported._incompleteDraft?.call() ?? false) ||
+        !imported.noOfferedFile ||
+        !imported.noPendingPickerOrProbe) {
+      _held = true;
+      return;
+    }
+    _after = after;
+  }
+
+  void _drawn(
+    Object owner,
+    Object controller,
+    Object source,
+    bool Function() current,
+  ) {
+    if (_held || _after == null) return;
+    if (!identical(owner, imported.owner) ||
+        !identical(controller, imported.controllerOwner) ||
+        !identical(source, _after)) {
+      _held = true;
+      return;
+    }
+    // Coverage revokes the retained first generation. A later build with the
+    // same source cannot replace it with a new, currently enabled lease.
+    _drawnCurrent ??= current;
+    if (!_drawnCurrent!()) _held = true;
+  }
+
+  /// Uses the actual first painted generation, without recapturing a source.
+  bool get isCurrent {
+    if (_held || _after == null || _drawnCurrent == null) return false;
+    final bool valid =
+        !imported._registry.held &&
+        identical(imported._liveSource?.call(), _after) &&
+        (imported._attached?.call() ?? false) &&
+        _drawnCurrent!() &&
+        (imported._incompleteDraft?.call() ?? false) &&
+        entryRouteReady(imported.route) &&
+        imported.noOfferedFile &&
+        imported.noPendingPickerOrProbe &&
+        (imported.welcome.startup?.ready ?? false) &&
+        imported.navigation?.status == EntryCaptureStatus.pending;
+    if (!valid) _held = true;
+    return valid;
+  }
+
+  /// A refused input can restore only its still-untouched original owner.
+  bool get canRestore => isCurrent || (awaitingInput && imported.isCurrent);
 }
 
 /// Reads the retained route's own entrance/return clocks without moving them.
@@ -478,6 +636,9 @@ class EntryCaptureRegistry {
     required bool Function() empty,
     required bool Function() noOfferedFile,
     required bool Function() noPendingPickerOrProbe,
+    required Object Function() liveSource,
+    required bool Function() attached,
+    required bool Function() incompleteDraft,
   }) {
     if (!_observeEntry()) return null;
     final EntryImportReceipt? receipt = _imports
@@ -501,7 +662,10 @@ class EntryCaptureRegistry {
       .._current = current
       .._empty = empty
       .._unoffered = noOfferedFile
-      .._pickerUntouched = noPendingPickerOrProbe;
+      .._pickerUntouched = noPendingPickerOrProbe
+      .._liveSource = liveSource
+      .._attached = attached
+      .._incompleteDraft = incompleteDraft;
     return receipt;
   }
 }

@@ -12,7 +12,7 @@ from tool.ci import run_harness_tour_tests as harness
 
 
 class HarnessAdmissionTests(unittest.TestCase):
-    def run_case(self, *, passed=281, terminal=True, skipped=0, failed=0,
+    def run_case(self, *, passed=286, terminal=True, skipped=0, failed=0,
                  error_events=0, command_success=True, complete=True,
                  source_changed=False):
         parent = dict(GITHUB_WORKSPACE=str(Path.cwd()), FLUTTER_ROOT='/sdk',
@@ -49,6 +49,7 @@ class HarnessAdmissionTests(unittest.TestCase):
             code = harness.main()
         report = json.loads(output.getvalue().splitlines()[0])
         self.assertEqual(command.call_count, 2)
+        self.command_argv = command.call_args.args[0]
         return code, report, source.call_count, tree.call_count
 
     def test_complete_current_suite_is_admitted_then_source_is_revalidated(self):
@@ -56,11 +57,11 @@ class HarnessAdmissionTests(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertTrue(report['success'])
         self.assertIsNone(report['code'])
-        self.assertEqual(report['counts']['passed'], 281)
+        self.assertEqual(report['counts']['passed'], 286)
         self.assertEqual((source_checks, tree_checks), (2, 2))
 
     def test_stale_short_or_extra_suite_counts_are_refused(self):
-        for passed in (0, 184, 196, 216, 218, 220, 221, 222, 227, 228, 229, 245, 246, 247, 254, 255, 262, 263, 264, 265, 266, 278, 279, 280, 282):
+        for passed in (0, 184, 196, 216, 218, 220, 221, 222, 227, 228, 229, 245, 246, 247, 254, 255, 262, 263, 264, 265, 266, 278, 279, 280, 281, 282, 283, 284, 285, 287):
             with self.subTest(passed=passed):
                 code, report, source_checks, tree_checks = self.run_case(
                     passed=passed)
@@ -68,6 +69,17 @@ class HarnessAdmissionTests(unittest.TestCase):
                 self.assertFalse(report['success'])
                 self.assertEqual(report['code'], 'TESTS_FAILED')
                 self.assertEqual((source_checks, tree_checks), (1, 1))
+
+    def test_original_and_prepared_entry_policies_are_in_the_actual_sdk_command(self):
+        code, _, _, _ = self.run_case()
+        self.assertEqual(code, 0)
+        for path in ('test/onboarding/entry_capture_source_test.dart',
+                     'test/onboarding/entry_capture_opt_in_test.dart',
+                     'test/onboarding/entry_prepared_draft_test.dart'):
+            self.assertEqual(self.command_argv.count(path), 1)
+        self.assertIn('test/harness/wallet_recipe_test.dart', self.command_argv)
+        self.assertIn('test/launch_film/launch_film_test.dart', self.command_argv)
+        self.assertIn('--concurrency=1', self.command_argv)
 
     def test_skips_errors_failures_or_missing_terminal_success_refuse(self):
         for change in (dict(skipped=1), dict(failed=1), dict(error_events=1),

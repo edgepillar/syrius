@@ -27,7 +27,7 @@ import 'client_window.dart';
 import 'native_window_owner.dart';
 import 'retained_renderer_frame.dart';
 
-/// Captures only the original no-wallet Welcome and untouched empty Import.
+/// Captures original Welcome and one reversible incomplete Import draft.
 /// Launch, Ready, existing wallets and other entry routes remain separate.
 final class NativeEntryCapture {
   /// Reserve native startup before ordinary app.main can draw a frame.
@@ -35,6 +35,7 @@ final class NativeEntryCapture {
     required this._window,
     required this._readView,
     required this._openImport,
+    required this._prepareImport,
   }) {
     EntryCaptureRegistry.instance.observeHarnessEntry();
     _startup = _window.startup();
@@ -45,6 +46,7 @@ final class NativeEntryCapture {
   final NativeWindowOwner _window;
   final RenderView Function() _readView;
   final Future<void> Function(VoidCallback admission) _openImport;
+  final Future<void> Function(EntryImportDraftReceipt receipt) _prepareImport;
   late final NativeWindowCall<NativeWindowStartupReceipt> _startup;
   late final CaptureProtocol<Map<String, Object?>> _protocol;
   final List<_EntryScope> _scopes = <_EntryScope>[];
@@ -453,6 +455,7 @@ final class _EntryScope {
   final int importsBefore;
   final List<_EntryEffect> effects = <_EntryEffect>[];
   EntryImportReceipt? imported;
+  EntryImportDraftReceipt? preparedImport;
   RetainedRendererFrame? image;
   Size? outerSize;
   Offset? position;
@@ -632,6 +635,18 @@ final class _EntryScope {
       if (!imported!.ready) {
         throw const CaptureRefused('original-empty-import-unproven');
       }
+      final EntryImportDraftReceipt? draft = imported!.prepareIncompleteDraft();
+      if (draft == null) {
+        throw const CaptureRefused('original-import-preparation-refused');
+      }
+      preparedImport = draft;
+      await effect<void>(
+        'original-incomplete-import-input',
+        () => host._prepareImport(draft),
+      );
+      if (!draft.isCurrent || imported!.ready || imported!.empty) {
+        throw const CaptureRefused('original-incomplete-import-unproven');
+      }
     } else {
       await waitRoute(owners.welcome.route);
     }
@@ -646,7 +661,8 @@ final class _EntryScope {
       () => RetainedRendererFrame.capture(
         view: owners.view,
         expectedSize: const Size(1280, 780),
-        sourceCurrent: () => owners.current && host._window.isCurrent(native),
+        sourceCurrent: () =>
+            owners.current && host._window.isCurrent(native) && expectedRoute,
       ),
     );
     return CapturePrepared(
@@ -656,7 +672,8 @@ final class _EntryScope {
     );
   }
 
-  bool get expectedRoute => imported?.ready ?? owners.welcome.ready;
+  bool get expectedRoute =>
+      preparedImport?.isCurrent ?? imported?.ready ?? owners.welcome.ready;
 
   Future<CaptureObservedFrame> observe(CaptureToken token) async {
     requireCurrent();
@@ -704,7 +721,7 @@ final class _EntryScope {
     restoring = true;
     final EntryImportReceipt? originalImport = imported;
     if (originalImport != null) {
-      if (!originalImport.isCurrent) {
+      if (!(preparedImport?.canRestore ?? originalImport.isCurrent)) {
         throw const CaptureRefused('original-import-cannot-pop');
       }
       owners.navigator.pop<void>();

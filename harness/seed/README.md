@@ -314,3 +314,19 @@ fixture now invokes actual payload admission. Seven new cases and all 215
 memory controls pass; 1056 comparisons retain default admission bytes and
 refusals. Current 733 Python/281 Dart and actual reopened ownership/six effects
 remain pending. Earlier failures, UNKNOWN originals and all visual gaps remain.
+
+Native 40637530459 at 2f6e94bd17da passes 733 Python/281 Dart gates and
+clean selected analysis. Independent 40639144206 preserves the earlier
+onboarding refusal with original codec frame pending, forced required-actor
+cleanup and no send/quiescence/reopen receipt. The original Future and failed
+session remain; the retained-height correction is not natively qualified.
+
+The next source candidate additionally prepares only the public incomplete
+Import draft, through the original EditableText input and exact source/action
+generations. Its separate preparation receipt never repairs the old empty
+receipt. Original navigation, controller disposal and Welcome restoration
+remain. Another input, picker, coverage or source replacement refuses. It
+performs no Continue/import/publication. All 216 Python memory controls pass;
+734 Python/286 Dart and actual both-theme capture/reopen/six-effect
+qualification remain pending. Earlier failures, UNKNOWN originals and all
+94 visual matches remain open.

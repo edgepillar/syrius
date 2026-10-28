@@ -41,6 +41,7 @@ class _ImportWalletSeedChoiceScreenState
   bool _controllerTouched = false;
   bool _disposing = false;
   bool _captureAttached = false;
+  EntryImportReceipt? _capture;
 
   @override
   void initState() {
@@ -51,6 +52,9 @@ class _ImportWalletSeedChoiceScreenState
   void _observeSeed() {
     // Keep only history, never the text. Clearing an edited controller cannot
     // turn its original receipt back into an untouched empty input owner.
+    if (_seed.text.isNotEmpty || _controllerTouched) {
+      _capture?.controllerChanged(_seed);
+    }
     if (_seed.text.isNotEmpty) _controllerTouched = true;
   }
 
@@ -62,7 +66,7 @@ class _ImportWalletSeedChoiceScreenState
     if (route == null) return;
     _captureAttached = true;
     final Object source = _source;
-    EntryCaptureRegistry.instance.attachImport(
+    _capture = EntryCaptureRegistry.instance.attachImport(
       owner: this,
       source: source,
       route: route,
@@ -86,6 +90,16 @@ class _ImportWalletSeedChoiceScreenState
       // cannot be inferred from a later empty controller or a visible route.
       noPendingPickerOrProbe: () =>
           !_pickerRequested && !_fileOffered && !_probing,
+      liveSource: () => _source,
+      attached: () =>
+          !_disposing && mounted && identical(route, ModalRoute.of(context)),
+      incompleteDraft: () =>
+          _controllerTouched &&
+          _seed.text == EntryImportDraftReceipt.sample &&
+          _draft.seed == EntryImportDraftReceipt.sample &&
+          _draft.words.length == 8 &&
+          _draft.expectedWords == 12 &&
+          !_draft.valid,
     );
   }
 
@@ -99,13 +113,24 @@ class _ImportWalletSeedChoiceScreenState
     }
   }
 
-  void _changed(String value) => setState(() {
-    _source = Object();
-    _file = null;
-    _fileRefused = false;
-    _pickerFailed = false;
-    _draft = ImportSeedDraft(value, expectedWords: _draft.expectedWords);
-  });
+  void _changed(String value) {
+    final Object before = _source;
+    final bool wasCurrent = _capture?.isCurrent ?? false;
+    setState(() {
+      _source = Object();
+      _file = null;
+      _fileRefused = false;
+      _pickerFailed = false;
+      _draft = ImportSeedDraft(value, expectedWords: _draft.expectedWords);
+      _capture?.draftChanged(
+        owner: this,
+        controller: _seed,
+        before: before,
+        after: _source,
+        wasCurrent: wasCurrent,
+      );
+    });
+  }
 
   void _wordCount(int count) => setState(() {
     _source = Object();
@@ -123,6 +148,12 @@ class _ImportWalletSeedChoiceScreenState
       final Object source = _source;
       final ImportSeedDraft draft = _draft;
       final ImportFileSelection? file = _file;
+      _capture?.draftDrawn(
+        owner: this,
+        controller: _seed,
+        source: source,
+        current: () => lease.isCurrent,
+      );
       return ImportFilePicker(
         lease: lease,
         probe: _probeFile,

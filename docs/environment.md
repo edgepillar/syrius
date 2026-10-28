@@ -7508,3 +7508,59 @@ SDK allocation, unchanged 281 Dart cases and actual copied reopen/six-effect
 integration with one Flutter setup. Earlier failures and UNKNOWN originals
 remain. F06, nineteen capture preparations, current full-root qualification,
 fixture acceptance and all 94 visual matches stay open.
+
+## Original incomplete Import preparation
+
+At `2f6e94bd17da`, native `40637530459` passes 733 Python cases with
+three original platform skips, all 281 Dart cases and clean selected analysis.
+Independent reader `40639144206` verifies both finite original manifests while
+preserving the producer failure. The original onboarding diagnostic records
+`startup-before-initialization`, `key-confirmed` and `skip-frame-pending`;
+the Welcome control is absent. Entry exits one and required-actor forced
+cleanup stays unqualified. No send, quiescence or copied reopen receipt is
+inferred. The original codec Future is neither replaced nor declared complete,
+and this session is not retried. The retained-height RPC correction passes its
+source gates but is not reached by this native integration.
+
+The next candidate prepares the reference Import state using only its public
+eight-word incomplete sample. It first reserves the original empty route,
+State, controller and admitted action generation after entrance completes.
+The harness focuses the exact original EditableText and uses its normal text
+input path, including formatters and onChanged. The driver reply is discarded.
+The genuine owner records its exact original-to-new source transition inside
+that callback; a later equal value cannot be recaptured as the original.
+
+A separate receipt retains the first action generation that draws the prepared
+source. The old empty receipt remains invalid. Another controller change,
+picker/probe, 12/24 source change, coverage before or after input, owner
+replacement or disposal prevents positive preparation. The receipt retains
+only source/controller identities and boolean observations, never input text.
+Ordinary entry observation remains opt-in, and ordinary import, file, Continue,
+Back and disposal effects remain. No Continue action, wallet import, key or
+publication is part of this capture preparation.
+
+Capture and restoration use the prepared receipt, including during raster
+readback/encoding. Restoration still waits for the actual original navigation,
+route completion and controller disposal before admitting the same Welcome
+owner. The original renderer image and native client/window ownership remain
+required. This adds no visual match or accepted current-source capture.
+
+The selected Dart gate now includes the original three entry receipt cases,
+the ordinary opt-in case and one new genuine-widget preparation scenario.
+The latter checks successful incomplete input/disposal, direct controller
+writes, wrong input, a second edit followed by equal text, coverage before and
+after input, a canceled picker, word-count changes and late reservation. Its
+startup alone is a policy fixture; the Welcome/Import widgets and their input,
+route and controller cleanup are genuine. None is a native acceptance result.
+The Python gate verifies those files occur in the actual SDK command and
+refuses stale, short or extra suite counts. All 216 selected Python memory
+controls pass. The current combined requirement is 734 Python cases and
+286 Dart cases; no local SDK, wallet, node, network or filesystem fixture runs.
+
+The retained static import graph is rebound to current source bytes with
+unchanged import/export/part directives. Its 943 reachable sources are the
+union of the retained roots, within 977 tracked library/harness Dart files.
+Ordinary entry roots still exclude harness imports. This is a source closure
+check, not native fixture acceptance. F06, the original startup wait, all
+nineteen catalog preparations, current full-root qualification and all
+94 visual matches remain open.

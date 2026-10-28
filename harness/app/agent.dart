@@ -480,6 +480,46 @@ class HarnessAgent {
           requireAdmission: admission,
         );
       },
+      prepareImport: (EntryImportDraftReceipt receipt) async {
+        final Map<String, dynamic> selector = <String, dynamic>{
+          'key': 'import_seed_field',
+          'exact': true,
+        };
+        final _Node original = _find(
+          selector,
+          kinds: const <String>['field'],
+          only: true,
+        );
+        void admission() {
+          final List<_Node> matches = _matches(
+            selector,
+            kinds: const <String>['field'],
+            only: true,
+          );
+          final Element element = original.element;
+          if (!receipt.awaitingInput ||
+              matches.length != 1 ||
+              !identical(matches.single.element, element) ||
+              element is! StatefulElement ||
+              element.state is! EditableTextState ||
+              !identical(
+                (element.state as EditableTextState).widget.controller,
+                receipt.imported.controllerOwner,
+              ) ||
+              !identical(ModalRoute.of(element), receipt.imported.route) ||
+              !_reachable(original, original.center)) {
+            throw const CaptureRefused('original-import-input-changed');
+          }
+        }
+
+        admission();
+        // Use genuine focus, formatters and onChanged. Discard the private
+        // driver reply; only the owner's retained transition admits capture.
+        await _type(
+          <String, dynamic>{...selector, 'value': EntryImportDraftReceipt.sample},
+          requireAdmission: admission,
+        );
+      },
     );
   }
 
