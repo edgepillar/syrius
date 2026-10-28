@@ -7724,3 +7724,44 @@ Debug image qualifications stay source-bound, with 1295 root infos and two
 existing non-chain skips. Fresh images remain visually unreviewed. Nineteen
 catalog preparations, copied reopen/six effects, ninety catalog outputs and
 all 94 matches remain open; the main ledger stays 71 of 80 done.
+
+
+### Original startup signing-policy baseline control
+
+At `bb211cfb2243`, native `40658883876` passes all 740 Python cases
+with three existing platform skips, all 290 selected Dart cases without
+failures/skips and selected analysis with zero findings. Independent reader
+`40661131808` validates original onboarding, index-1 send of exactly one ZNN
+to index 0 with original-request confirmation, all twelve tour/capture checks,
+complete quiescence and normal required app/entry/five-node exits. The overall
+lab still fails during copied startup. Its bounded child record reports
+RECIPE_REFUSED, launch_skip_hint key intent and original-owner-changed.
+The target-client acknowledgement completed first. No positive copied
+checkpoint/path/pointer/reopen or six-effect receipt is inferred.
+
+The independent retained lab notice exceeds the single-notice limit and
+therefore uses four existing parent-bound copy components. All four original
+annotations are validated and reassembled without another API query, artifact
+transport or runtime. They preserve the actual child refusal. The initial
+two-scope observer projection and all original receipts remain retained.
+
+The owner-refusal label covers several conditions, so it does not identify
+the exact native condition. A separate source-bound control tests a circular
+precondition: InitUtils restores the saved signing chain only after the launch
+film completes, but the recipe currently requires saved/live equality before
+its original Skip input. The actual registered StartupStageSession test keeps
+its pending original decoder, same owner/revision and known preference, sets
+saved chain 321 against initial SDK chain 1, and expects the unchanged owner
+refusal with no Skip effect or chain mutation. It then restores only that
+in-memory test preference and retains the original positive Skip, original
+codec completion and cleanup checks. No application or harness behavior,
+financial policy check, input/deadline, test count or existing gate changes.
+
+This controlled before-fix assertion still requires hosted SDK execution.
+The next focused harness lane requires the existing 740 Python/290 Dart
+cases, clean selected analysis and one Flutter setup, with no native wallet
+or node. The prior 222 pure-memory Python controls retain identical inputs
+and are reused; no new local SDK, native or filesystem qualification runs.
+Source126 root/build and four prepared Debug image receipts remain separate.
+Those images are unreviewed, nineteen catalog preparations remain literal
+refusals, and all 94 visual matches and copied reopen/six effects remain open.

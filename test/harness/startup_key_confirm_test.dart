@@ -4,8 +4,12 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive_ce/hive_ce.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/launch_film.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart' show getChainIdentifier;
 
+import '../../harness/app/agent.dart' show HarnessError;
 import 'startup_key_support.dart';
 
 class _DecodeBundle extends CachingAssetBundle {
@@ -61,6 +65,29 @@ void main() {
     await fixture.mount(tester);
     expect(fixture.session.film.skipRequested, isFalse);
     expect(fixture.done, 0);
+    // Before-fix control: the original initializer restores the saved chain
+    // only after this original film completes. No signing action is requested.
+    final Box<dynamic> preferences = Hive.box<dynamic>(kSharedPrefsBox);
+    final int originalChain = getChainIdentifier();
+    expect(originalChain, 1);
+    final Map<String, Object?> original = await fixture.observe();
+    await preferences.put(kChainIdKey, 321);
+    final Map<String, Object?> copied = await fixture.observe();
+    expect(copied['owner'], original['owner']);
+    expect(copied['revision'], original['revision']);
+    expect(copied['hasError'], isFalse);
+    expect(copied['signingPolicyReady'], isTrue);
+    expect(copied['signingChainId'], originalChain);
+    expect(copied['savedSigningChainId'], 321);
+    await expectLater(fixture.press(), throwsA(
+      isA<HarnessError>().having((HarnessError value) => value.message,
+        'before-fix refusal', 'wallet-recipe-original-owner-changed'),
+    ));
+    expect(fixture.session.film.skipRequested, isFalse);
+    expect(fixture.done, 0);
+    expect(getChainIdentifier(), originalChain);
+    expect(preferences.get(kChainIdKey), 321);
+    await preferences.put(kChainIdKey, originalChain);
     final Map<String, Object?> reply = await fixture.press();
     expect(reply['acted'], isTrue);
     expect(fixture.session.film.skipRequested, isTrue);
