@@ -8267,3 +8267,29 @@ before-fix control and actual source146 command remain preserved. Current
 757-Python/323-Dart hosted qualification is pending. The source145 eleven
 style infos and skipped Dart, source144 unlocalized root failure, independent
 entry receipts and all UNKNOWN/original profile evidence remain unchanged.
+
+
+## Source147 asset qualification and one fixture promotion correction
+
+Recorded at 2026-10-28T19:40Z: source147 `bafb17c0a99d` / 40755209257 passes all
+757 Python cases with three existing skips and both actual original asset
+commands. The Node version observation exits normally after 0.657 seconds;
+asset controls complete after 2.109 seconds. Output is complete and unforced,
+with source equality retained. The fifteen-second window and single-attempt
+contract qualify at that source. The source146 forced timeout remains failed;
+its underlying latency cause is not retrospectively assigned.
+
+Selected analysis has zero errors/warnings and one
+CAST_NULLABLE_TO_NON_NULLABLE info in the restored test fixture; Dart is
+skipped. Only that fixture reads its final field once into an Object? local,
+uses the same Map refusal and returns the identical copied Map after sound
+promotion. No cast, callback, control, assertion or product/harness change is
+introduced. The 323 ordinary / 325 startup counts and 757 Python gate remain.
+
+The preceding 246 pure-memory controls are retained against unchanged Python
+inputs. No local tests are repeated for this reversible type-only correction,
+and no SDK/native or artifact command runs locally. Original failures,
+skipped steps, source144 unlocalized root failure, independent prepared-entry
+receipts, UNKNOWNs and failed profile/password remain preserved. Current
+Dart, full-root/regeneration/build, copied reopen/six effects and visual
+acceptance are pending.

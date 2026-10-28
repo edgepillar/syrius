@@ -867,3 +867,16 @@ All 246 memory controls pass. The current hosted gate requires 757 Python
 cases and 323 ordinary Dart cases, or 325 startup cases. Actual copied reopen,
 six effects and original failed profile/password retry remain outside this
 tool-version observation and are not inferred.
+
+
+## Restored test fixture field promotion
+
+Source147 40755209257 qualifies 757 Python cases/three skips and actual
+original tool-version/asset controls. It then retains one selected nullable
+cast info and skipped Dart. The same final mock field is captured in a typed
+local and guarded before the identical Map copy; field values, refusal,
+commands, callbacks and assertions remain. Product/harness code and the
+323/325 case counts are unchanged. Previous 246 memory controls are reused
+for unchanged Python inputs; no extra local SDK/native test is run. Actual
+copied authentication, six effects and the failed original profile/password
+remain unqualified and unretried.

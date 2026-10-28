@@ -32,10 +32,11 @@ class _UnlockInstance extends cli.Instance {
     commands.add(name);
     bool refused = false;
     if (name == 'lock-view') {
-      if (lockView is! Map<String, dynamic>) throw _Unformattable();
+      final Object? original = lockView;
+      if (original is! Map<String, dynamic>) throw _Unformattable();
       expect(command['action'], anyOf('bind', 'observe'));
       expect(command.containsKey('value'), isFalse);
-      return Map<String, dynamic>.from(lockView as Map<String, dynamic>);
+      return Map<String, dynamic>.from(original);
     }
     if (name == 'state') {
       observations++;
