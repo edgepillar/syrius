@@ -338,11 +338,38 @@ class WalletLockAttempt {
   }
 }
 
+/// Fixed preparation boundaries; no input or backend data is observed.
+enum WalletLockCapturePhase {
+  /// The original preferences capture boundary.
+  preferences('capture_preferences'),
+  /// The original wallet context capture boundary.
+  walletContext('capture_wallet_context'),
+  /// The original sdk capture boundary.
+  sdk('capture_sdk'),
+  /// The original notifications capture boundary.
+  notifications('capture_notifications'),
+  /// The original resources capture boundary.
+  resources('capture_resources'),
+  /// The original initialization capture boundary.
+  initialization('capture_initialization'),
+  /// The original reset capture boundary.
+  reset('capture_reset'),
+  /// The original binding capture boundary.
+  binding('capture_binding');
+
+  const WalletLockCapturePhase(this.label);
+
+  /// A fixed public progress label, never a value from a private backend.
+  final String label;
+}
+
 /// Binds original preferences, error history and locked path before decrypt.
 WalletLockAttempt? captureWalletLockAttempt({
   required BuildContext context,
   required bool Function() sourceIsCurrent,
+  void Function(WalletLockCapturePhase)? observePhase,
 }) {
+  observePhase?.call(WalletLockCapturePhase.preferences);
   final String? path = kWalletPath;
   final SharedPrefsService? preferences = app.sharedPrefsService;
   if (path == null ||
@@ -365,6 +392,7 @@ WalletLockAttempt? captureWalletLockAttempt({
   final double? limit = kAutoEraseWalletLimit;
   final bool limitExists = box.containsKey(kAutoEraseNumAttemptsKey);
   final Object? storedLimit = box.get(kAutoEraseNumAttemptsKey);
+  observePhase?.call(WalletLockCapturePhase.walletContext);
   final Object? wallet = kWalletFile;
   final int revision = WalletContextRevision.value;
   final String? selected = kSelectedAddress;
@@ -373,6 +401,7 @@ WalletLockAttempt? captureWalletLockAttempt({
   final int? nodeChain = kNodeChainId;
   final int chain = getChainIdentifier();
   final bool initialized = kWalletInitCompleted;
+  observePhase?.call(WalletLockCapturePhase.sdk);
   final Zenon? client = app.zenon;
   final WsClient? socket = client?.wsClient;
   final LedgerApi? ledger = client?.ledger;
@@ -382,6 +411,7 @@ WalletLockAttempt? captureWalletLockAttempt({
   final String? url = socket?.url;
   final String? ledgerUrl = ledgerClient is WsClient ? ledgerClient.url : null;
   final String? statsUrl = statsClient is WsClient ? statsClient.url : null;
+  observePhase?.call(WalletLockCapturePhase.notifications);
   final NotificationsBloc? notifications =
       app.sl.isRegistered<NotificationsBloc>()
       ? app.sl<NotificationsBloc>()
@@ -390,6 +420,7 @@ WalletLockAttempt? captureWalletLockAttempt({
       ? Hive.box<dynamic>(kNotificationsBox)
       : null;
   final AppLocalizations messages = currentL10n;
+  observePhase?.call(WalletLockCapturePhase.resources);
   final WalletMaintenanceResources resources = WalletMaintenanceResources(
     originalIdentities: List<Object?>.unmodifiable(<Object?>[
       preferences,
@@ -460,6 +491,7 @@ WalletLockAttempt? captureWalletLockAttempt({
     ],
     ready: () => !NodeTransitions.pending && box.isOpen,
   );
+  observePhase?.call(WalletLockCapturePhase.initialization);
   final WalletInitializationBinding? initialization = initialized
       ? null
       : WalletInitializationSource.capture(
@@ -467,11 +499,13 @@ WalletLockAttempt? captureWalletLockAttempt({
           sourceIsCurrent: sourceIsCurrent,
         );
   if (!initialized && initialization == null) return null;
+  observePhase?.call(WalletLockCapturePhase.reset);
   final WalletMaintenanceRequest? reset =
       WalletMaintenanceOwner.forContext(context)?.capture(
         WalletMaintenanceKind.reset,
         sourceIsCurrent: sourceIsCurrent,
       );
+  observePhase?.call(WalletLockCapturePhase.binding);
   return WalletLockAttempt.bind(
     counterOwner: box,
     path: path,

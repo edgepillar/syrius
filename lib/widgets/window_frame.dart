@@ -86,6 +86,7 @@ class AppWindowFrameState extends State<AppWindowFrame> {
                     key: const ValueKey<String>('window-minimize'),
                     label: text.windowMinimize,
                     icon: Icons.remove,
+                    glyph: '\u2014',
                     onPressed: window.canMinimize
                         ? () => unawaited(window.minimize())
                         : null,
@@ -98,6 +99,7 @@ class AppWindowFrameState extends State<AppWindowFrame> {
                     icon: window.maximized == true
                         ? Icons.filter_none
                         : Icons.crop_square,
+                    glyph: window.maximized == true ? null : '\u25a1',
                     onPressed: window.canToggleMaximize
                         ? () => unawaited(window.toggleMaximize())
                         : null,
@@ -106,6 +108,7 @@ class AppWindowFrameState extends State<AppWindowFrame> {
                     key: const ValueKey<String>('window-close'),
                     label: text.commonClose,
                     icon: Icons.close,
+                    glyph: '\u2715',
                     isClose: true,
                     onPressed: window.canClose
                         ? () => unawaited(window.close())
@@ -165,10 +168,12 @@ class _CaptionButton extends StatelessWidget {
     required this.onPressed,
     super.key,
     this.isClose = false,
+    this.glyph,
   });
 
   final String label;
   final IconData icon;
+  final String? glyph;
   final VoidCallback? onPressed;
   final bool isClose;
 
@@ -182,7 +187,20 @@ class _CaptionButton extends StatelessWidget {
     return IconButton(
       tooltip: label,
       onPressed: onPressed,
-      icon: Icon(icon, size: tokens.windowControlIconSize),
+      icon: glyph == null
+          ? Icon(icon, size: tokens.windowControlIconSize)
+          : ExcludeSemantics(
+              child: Builder(
+                builder: (BuildContext context) => Text(
+                  glyph!,
+                  style: tokens.windowTitleText.copyWith(
+                    fontSize: tokens.windowControlIconSize,
+                    letterSpacing: 0,
+                    color: IconTheme.of(context).color,
+                  ),
+                ),
+              ),
+            ),
       style: ButtonStyle(
         fixedSize: WidgetStatePropertyAll<Size>(size),
         minimumSize: WidgetStatePropertyAll<Size>(size),

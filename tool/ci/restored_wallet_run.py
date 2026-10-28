@@ -55,7 +55,7 @@ LOCK_VIEW_BOOLEANS = frozenset(('mounted', 'current', 'window_active', 'visible'
 LOCK_VIEW_LIFECYCLES = frozenset(('resumed', 'inactive', 'hidden', 'paused',
     'detached', 'unknown'))
 LOCK_VIEW_STATUSES = frozenset(('observed', 'unavailable', 'replaced', 'retired'))
-LOCK_VIEW_UNLOCK_PHASES = frozenset(('idle', 'entered', 'preflight_refused', 'attempt_unavailable', 'decrypt_requested', 'decrypt_returned', 'view_revoked', 'reset_requested', 'reset_returned', 'reset_refused', 'result_guard_refused', 'init_requested', 'init_returned', 'session_assigned', 'callback_requested', 'callback_returned', 'password_exception', 'ledger_exception', 'other_exception', 'authenticated_exception'))
+LOCK_VIEW_UNLOCK_PHASES = frozenset(('capture_requested','capture_returned','attempt_bound','busy_mark_requested','input_clear_requested','capture_preferences','capture_wallet_context','capture_sdk','capture_notifications','capture_resources','capture_initialization','capture_reset','capture_binding','idle', 'entered', 'preflight_refused', 'attempt_unavailable', 'decrypt_requested', 'decrypt_returned', 'view_revoked', 'reset_requested', 'reset_returned', 'reset_refused', 'result_guard_refused', 'init_requested', 'init_returned', 'session_assigned', 'callback_requested', 'callback_returned', 'password_exception', 'ledger_exception', 'other_exception', 'authenticated_exception'))
 
 
 def lock_view_projection(value):

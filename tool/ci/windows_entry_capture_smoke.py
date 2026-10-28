@@ -375,13 +375,26 @@ def command_failure(phase, code, status, *, category, body=None):
     })
 
 
+def reference_artwork(value, screen):
+    if type(value) is not list or screen not in ('welcome', 'import'):
+        return False
+    expected = ([dict(kind='welcome_globe', frame=720, frame_count=1800)]
+                if screen == 'welcome' else [])
+    expected.append(dict(kind='entry_field', seconds=6))
+    return (value == expected and len(value) == len(expected)
+            and all(type(item) is dict and set(item) == set(original)
+                    and all(type(item[key]) is type(original[key]) for key in original)
+                    for item, original in zip(value, expected)))
+
+
 def capture_bytes(body, screen, theme):
     keys = {"ok", "screen", "theme", "width", "height", "scale", "client",
             "physical", "devicePixelRatio", "png", "harnessMode", "captureMode",
-            "restorationVerified"}
+            "restorationVerified", "referenceArtwork"}
     if (body.keys() != keys or body.get("harnessMode") != "wallet"
             or body.get("captureMode") != "entry" or body.get("screen") != screen
             or body.get("theme") != theme or body.get("restorationVerified") is not True
+            or not reference_artwork(body.get("referenceArtwork"), screen)
             or type(body.get("width")) is not int or body["width"] != 1280
             or type(body.get("height")) is not int or body["height"] != 780
             or not number(body.get("scale"), positive=True) or body["scale"] != 1

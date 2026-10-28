@@ -63,7 +63,10 @@ def capture_reply(screen="welcome", theme="dark"):
     return {"ok": True, "screen": screen, "theme": theme, "width": 1280,
             "height": 780, "scale": 1, "client": [1280, 780],
             "physical": [1920, 1170], "devicePixelRatio": 1.5, "png": ENCODED,
-            "harnessMode": "wallet", "captureMode": "entry", "restorationVerified": True}
+            "harnessMode": "wallet", "captureMode": "entry", "restorationVerified": True,
+            "referenceArtwork": ([dict(kind='welcome_globe', frame=720, frame_count=1800)]
+                                 if screen == 'welcome' else []) +
+                                [dict(kind='entry_field', seconds=6)]}
 
 
 def resize_detail(**changes):
@@ -855,6 +858,30 @@ class DiagnosticProjectionTests(unittest.TestCase):
 
 
 class ParserTests(unittest.TestCase):
+    def test_reference_artwork_requires_exact_original_kind_frame_and_time(self):
+        for screen in ('welcome', 'import'):
+            value = capture_reply(screen)
+            self.assertEqual(smoke.capture_bytes(value, screen, 'dark'), PNG)
+            for offered in (None, [], value['referenceArtwork'] * 2,
+                            [dict(kind='entry_field', seconds=6.0)],
+                            [dict(kind='entry_field', seconds='private')],
+                            [dict(kind='entry_field', seconds=6, owner='private')]):
+                with self.subTest(screen=screen, offered=offered), self.assertRaises(smoke.Failure):
+                    smoke.capture_bytes(dict(value, referenceArtwork=offered), screen, 'dark')
+
+    def test_welcome_frame_metadata_cannot_replace_wrong_mode_or_restore(self):
+        value = capture_reply()
+        for change in (dict(restorationVerified=False), dict(captureMode='presentation'),
+                       dict(harnessMode='presentation')):
+            with self.subTest(change=change), self.assertRaises(smoke.Failure):
+                smoke.capture_bytes(dict(value, **change), 'welcome', 'dark')
+        for change in (dict(frame=719), dict(frame=720.0), dict(frame_count=1799),
+                       dict(kind='private'), dict(owner='private')):
+            artwork = [dict(value['referenceArtwork'][0], **change),
+                       value['referenceArtwork'][1]]
+            with self.subTest(change=change), self.assertRaises(smoke.Failure):
+                smoke.capture_bytes(dict(value, referenceArtwork=artwork), 'welcome', 'dark')
+
     def test_real_structured_png_and_logical_dimensions_are_admitted(self):
         self.assertEqual(smoke.png_bytes(ENCODED), PNG)
         self.assertEqual(smoke.capture_bytes(capture_reply(), "welcome", "dark"), PNG)

@@ -583,7 +583,7 @@ void main() {
         expect(tooltipData.hasAction(SemanticsAction.tap), isTrue);
         final FocusNode originalMinimizeFocus = Focus.of(
           tester.element(
-            find.descendant(of: minimize, matching: find.byIcon(Icons.remove)),
+            find.descendant(of: minimize, matching: find.text('\u2014')),
           ),
         );
         expect(originalMinimizeFocus.canRequestFocus, isTrue);

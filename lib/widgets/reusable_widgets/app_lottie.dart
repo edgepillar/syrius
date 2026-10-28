@@ -6,6 +6,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:lottie/lottie.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/reference_artwork_source.dart';
 
 /// The animations the wallet ships, and every Lottie the wallet draws.
 ///
@@ -219,7 +220,8 @@ class _Player extends StatefulWidget {
 }
 
 class _PlayerState extends State<_Player>
-    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver
+    implements ReferenceArtworkSource {
   late final AnimationController _clock = AnimationController(
     vsync: this,
     // The composition keeps its own length even when platform animation
@@ -231,6 +233,74 @@ class _PlayerState extends State<_Player>
   bool _pageEnabled = false;
   bool _foreground = true;
   bool _looping = false;
+  ReferenceArtworkFrame? _referenceFrame;
+  Animation<double>? _referenceProgress;
+  Animation<double>? _paintedController;
+  int _referenceEpoch = 0;
+
+  @override
+  ReferenceArtworkKind get referenceArtworkKind =>
+      ReferenceArtworkKind.welcomeGlobe;
+
+  @override
+  Object get referenceArtworkGeneration => _entry ?? this;
+
+  @override
+  Future<Object?>? get referenceArtworkReadiness => _entry?.future;
+
+  @override
+  ReferenceArtworkFrame? captureReferenceArtwork() {
+    final _Entry? entry = _entry;
+    final LottieComposition? composition = _composition;
+    if (!mounted || !_active || !_clock.isAnimating || entry == null ||
+        composition == null || _referenceFrame != null ||
+        _configuration.asset != AppLottieAsset.globe ||
+        _configuration.controller != null) {
+      return null;
+    }
+    // The parser subtracts .01 from op. Match lottie-web's integer frame,
+    // then avoid the default composition-rate rounding during this sample.
+    final double duration = composition.durationFrames;
+    if (!duration.isFinite || duration <= 0) return null;
+    final int count = (duration + 0.01).floor();
+    final int index = (count * 0.4).floor();
+    final double progress = index / duration;
+    if (count <= 0 || count > 1000000 ||
+        !progress.isFinite || progress < 0 || progress > 1) {
+      return null;
+    }
+    final AnimationController original = _clock;
+    final int epoch = _referenceEpoch;
+    final Animation<double> sample = AlwaysStoppedAnimation<double>(progress);
+    bool originalCurrent() => mounted && _active &&
+        _referenceEpoch == epoch &&
+        identical(_entry, entry) && identical(_composition, composition) &&
+        identical(_clock, original) && _configuration.controller == null &&
+        _configuration.asset == AppLottieAsset.globe;
+    late final ReferenceArtworkFrame frame;
+    frame = ReferenceArtworkFrame(
+      owner: this, generation: entry, kind: referenceArtworkKind,
+      observation: <String, Object>{
+        'kind': 'welcome_globe', 'frame': index, 'frame_count': count,
+      },
+      current: () => originalCurrent() && original.isAnimating &&
+          identical(_referenceFrame, frame) &&
+          identical(_referenceProgress, sample),
+      observed: () => identical(_paintedController, sample),
+      restore: () => setState(() {
+        _referenceFrame = null;
+        _referenceProgress = null;
+      }),
+      restoration: () => originalCurrent() && _referenceFrame == null &&
+          _referenceProgress == null &&
+          identical(_paintedController, original),
+    );
+    setState(() {
+      _referenceFrame = frame;
+      _referenceProgress = sample;
+    });
+    return frame;
+  }
 
   AppLottie get _configuration => widget.configuration;
 
@@ -260,6 +330,9 @@ class _PlayerState extends State<_Player>
     final AppLottie old = oldWidget.configuration;
     if (old.asset != _configuration.asset ||
         !identical(old.controller, _configuration.controller)) {
+      _referenceEpoch++;
+      _referenceFrame = null;
+      _referenceProgress = null;
       _clock
         ..stop()
         ..value = 0;
@@ -367,9 +440,13 @@ class _PlayerState extends State<_Player>
     }
     // Lottie puts a RepaintBoundary round itself, so a frame of the
     // animation repaints this box and not the page.
+    final Animation<double> paintedController =
+        _referenceProgress ?? _configuration.controller ?? _clock;
+    _paintedController = paintedController;
     final Widget animation = Lottie(
       composition: composition,
-      controller: _configuration.controller ?? _clock,
+      controller: paintedController,
+      frameRate: _referenceProgress == null ? null : FrameRate.max,
       width: _configuration.size,
       height: _configuration.size,
       // Playback belongs to the preserving clock above. A second internal

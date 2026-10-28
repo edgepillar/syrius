@@ -966,3 +966,41 @@ run and no focused/native acceptance is inferred. The follow-up adds those
 braces and line breaks without changing any condition or test expectation.
 All 263 memory controls pass; hosted analysis and 328 ordinary/330 startup
 Dart cases remain pending. The actual failed source150 result stays retained.
+
+
+## Original artwork samples and synchronous capture progress
+
+Source151 focused 40776507918 passes 765 Python cases with three existing
+skips, all 328 ordinary Dart cases and clean selected analysis. Native85
+40777460991 and independent reader 40781229783 qualify original index-1 UI
+send of one ZNN to index 0, twelve-page tour, quiescence and normal required
+app/entry/five-node exits. Auxiliary force stays separate. The copied path
+retains UNLOCK_WAIT_REFUSED: the same original owner is current, visible,
+interactive and idle, with one callback request and last phase entered.
+Exact synchronous preparation, decryption and authentication remain unobserved.
+All four copied components and six seed effects remain incomplete. Reader
+success preserves producer failure; no original failed profile is retried.
+
+The new scoped sample changes only the actual original renderer binding:
+globe frame 720/1800 and entry field seconds 6. Existing clocks and Futures
+continue; no clock stop, reset or invented completion is used. A pending
+rebuild cannot establish observed sampling or positive live restoration.
+Configuration/owner loss retires an old lease, and Import restores before
+its original route is popped. Exact CSS elapsed time and visual parity remain
+unqualified. Four genuine-owner Dart cases cover the real controller/Future,
+same composition/renderer, stable field pixels, live restoration and retired
+replacement owners. Two closed metadata controls pass within 265 memory cases.
+
+Caption buttons use the reference em dash, square and multiplication glyphs
+with original state colors and decorative child semantics excluded. Original
+geometry, focus, labels and native callbacks remain; restore keeps its icon.
+Fixed capture labels separately locate original synchronous unlock preparation.
+Removing these diagnostic calls reconstructs the original capture and callback
+files exactly, preserving every original read, guard, catch and deadline.
+
+The candidate needs 767 hosted Python cases with three existing skips, 332
+ordinary or 334 startup Dart cases and clean selected analysis. None of the
+new Dart cases or current-source full/entry output is qualified yet. Main
+ledger remains 71/80; nineteen preparations, ninety catalog outputs and all
+94 matches remain open. Original requirements, assets, failures and UNKNOWNs
+remain preserved. No local Flutter/Dart, wallet or node execution is used.

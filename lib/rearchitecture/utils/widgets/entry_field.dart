@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/shaders/shader_clock.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/reference_artwork_source.dart';
 
 /// The entry mockup's soft light over the window background.
 ///
@@ -21,8 +22,55 @@ class EntryField extends StatefulWidget {
 }
 
 class _EntryFieldState extends State<EntryField>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin
+    implements ReferenceArtworkSource {
   late final ShaderClock _clock;
+  ReferenceArtworkFrame? _referenceFrame;
+  ValueListenable<double>? _referenceSeconds;
+  ValueListenable<double>? _paintedSeconds;
+
+  @override
+  ReferenceArtworkKind get referenceArtworkKind =>
+      ReferenceArtworkKind.entryField;
+
+  @override
+  Object get referenceArtworkGeneration => _clock;
+
+  @override
+  Future<Object?>? get referenceArtworkReadiness => null;
+
+  @override
+  ReferenceArtworkFrame? captureReferenceArtwork() {
+    if (!mounted || !_clock.isRunning || _referenceFrame != null ||
+        !(ModalRoute.of(context)?.isCurrent ?? true)) {
+      return null;
+    }
+    final ShaderClock original = _clock;
+    const Animation<double> sample = AlwaysStoppedAnimation<double>(6);
+    bool originalCurrent() => mounted && identical(_clock, original) &&
+        (ModalRoute.of(context)?.isCurrent ?? true);
+    late final ReferenceArtworkFrame frame;
+    frame = ReferenceArtworkFrame(
+      owner: this, generation: original, kind: referenceArtworkKind,
+      observation: <String, Object>{'kind': 'entry_field', 'seconds': 6},
+      current: () => originalCurrent() && original.isRunning &&
+          identical(_referenceFrame, frame) &&
+          identical(_referenceSeconds, sample),
+      observed: () => identical(_paintedSeconds, sample),
+      restore: () => setState(() {
+        _referenceFrame = null;
+        _referenceSeconds = null;
+      }),
+      restoration: () => originalCurrent() && _referenceFrame == null &&
+          _referenceSeconds == null &&
+          identical(_paintedSeconds, original),
+    );
+    setState(() {
+      _referenceFrame = frame;
+      _referenceSeconds = sample;
+    });
+    return frame;
+  }
 
   @override
   void initState() {
@@ -45,11 +93,13 @@ class _EntryFieldState extends State<EntryField>
   @override
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
+    final ValueListenable<double> paintedSeconds = _referenceSeconds ?? _clock;
+    _paintedSeconds = paintedSeconds;
     return RepaintBoundary(
       child: ClipRect(
         child: CustomPaint(
           painter: _EntryFieldPainter(
-            seconds: _clock,
+            seconds: paintedSeconds,
             background: tokens.background,
             green: tokens.znn,
             blue: tokens.qsr,

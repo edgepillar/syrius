@@ -17,6 +17,7 @@ import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart' show AppTheme;
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/entry_capture_source.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/reference_artwork_source.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/app_theme_notifier.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_initialization.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_initialization_source.dart';
@@ -454,6 +455,7 @@ final class _EntryScope {
   final Object? originalPreference;
   final int importsBefore;
   final List<_EntryEffect> effects = <_EntryEffect>[];
+  final List<ReferenceArtworkFrame> artwork = <ReferenceArtworkFrame>[];
   EntryImportReceipt? imported;
   EntryImportDraftReceipt? preparedImport;
   RetainedRendererFrame? image;
@@ -469,6 +471,8 @@ final class _EntryScope {
         owners.current &&
         host._window.isCurrent(native) &&
         identical(host._readView(), owners.view) &&
+        (restoring || artwork.every((ReferenceArtworkFrame frame) =>
+            frame.isCurrent)) &&
         (restoring || image == null || image!.isCurrent);
     if (!valid) held = true;
     return valid;
@@ -582,6 +586,69 @@ final class _EntryScope {
     }
   }
 
+  Future<void> prepareArtwork() async {
+    final Object? owner = imported?.owner ?? owners.welcome.owner;
+    if (owner is! State || !owner.mounted || !expectedRoute) {
+      throw const CaptureRefused('original-entry-artwork-owner-unavailable');
+    }
+    final List<ReferenceArtworkSource> sources = <ReferenceArtworkSource>[];
+    int visited = 0;
+    void visit(Element element) {
+      if (++visited > 16384) {
+        throw const CaptureRefused('original-entry-artwork-tree-limit');
+      }
+      if (element is StatefulElement) {
+        final State<StatefulWidget> state = element.state;
+        if (state is ReferenceArtworkSource) sources.add(state);
+      }
+      element.visitChildren(visit);
+    }
+    owner.context.visitChildElements(visit);
+    sources.sort((ReferenceArtworkSource a, ReferenceArtworkSource b) =>
+        a.referenceArtworkKind.index.compareTo(b.referenceArtworkKind.index));
+    final List<ReferenceArtworkKind> expected = <ReferenceArtworkKind>[
+      if (plan.screen == 'welcome') ReferenceArtworkKind.welcomeGlobe,
+      ReferenceArtworkKind.entryField,
+    ];
+    if (sources.length != expected.length || artwork.isNotEmpty) {
+      throw const CaptureRefused('original-entry-artwork-set-changed');
+    }
+    for (int index = 0; index < sources.length; index++) {
+      final ReferenceArtworkSource source = sources[index];
+      final Object generation = source.referenceArtworkGeneration;
+      if (source is! State || !source.mounted ||
+          source.referenceArtworkKind != expected[index]) {
+        throw const CaptureRefused('original-entry-artwork-source-changed');
+      }
+      final Future<Object?>? original = source.referenceArtworkReadiness;
+      if (source.referenceArtworkKind == ReferenceArtworkKind.welcomeGlobe &&
+          original == null) {
+        throw const CaptureRefused('original-entry-artwork-load-unavailable');
+      }
+      if (original != null) {
+        await effect<Object?>('original-entry-artwork-ready', () => original);
+      }
+      if (!source.mounted || !expectedRoute ||
+          !identical(source.referenceArtworkGeneration, generation)) {
+        throw const CaptureRefused('original-entry-artwork-generation-changed');
+      }
+      final ReferenceArtworkFrame? frame = source.captureReferenceArtwork();
+      if (frame == null) {
+        throw const CaptureRefused('original-entry-artwork-sample-refused');
+      }
+      artwork.add(frame);
+      if (!identical(frame.owner, source) ||
+          !identical(frame.generation, generation) ||
+          frame.kind != expected[index] || !frame.isCurrent) {
+        throw const CaptureRefused('original-entry-artwork-binding-changed');
+      }
+    }
+    await nativeFrame();
+    if (!artwork.every((ReferenceArtworkFrame frame) => frame.observed)) {
+      throw const CaptureRefused('original-entry-artwork-frame-unproven');
+    }
+  }
+
   Future<CapturePrepared> prepare(CaptureToken token) async {
     requireCurrent();
     if (!owners.welcome.ready ||
@@ -656,13 +723,16 @@ final class _EntryScope {
         Theme.of(owners.context).brightness.name != plan.theme) {
       throw const CaptureRefused('original-entry-theme-unproven');
     }
+    await prepareArtwork();
     image = await effect(
       'original-renderer-image',
       () => RetainedRendererFrame.capture(
         view: owners.view,
         expectedSize: const Size(1280, 780),
         sourceCurrent: () =>
-            owners.current && host._window.isCurrent(native) && expectedRoute,
+            owners.current && host._window.isCurrent(native) &&
+            expectedRoute && artwork.every((ReferenceArtworkFrame frame) =>
+                frame.observed),
       ),
     );
     return CapturePrepared(
@@ -712,6 +782,8 @@ final class _EntryScope {
       'height': retained.height,
       'scale': 1,
       ...retained.metrics.toJson(),
+      'referenceArtwork': artwork.map((ReferenceArtworkFrame frame) =>
+          frame.observation).toList(growable: false),
       'png': base64Encode(png),
     };
   }
@@ -719,6 +791,17 @@ final class _EntryScope {
   Future<CaptureRestored> restore(CaptureToken token) async {
     requireCurrent();
     restoring = true;
+    for (final ReferenceArtworkFrame frame in artwork) {
+      if (!frame.restore()) {
+        throw const CaptureRefused('original-entry-artwork-restore-refused');
+      }
+    }
+    if (artwork.isNotEmpty) {
+      await nativeFrame();
+      if (!artwork.every((ReferenceArtworkFrame frame) => frame.restored)) {
+        throw const CaptureRefused('original-entry-artwork-restore-unproven');
+      }
+    }
     final EntryImportReceipt? originalImport = imported;
     if (originalImport != null) {
       if (!(preparedImport?.canRestore ?? originalImport.isCurrent)) {
@@ -788,6 +871,7 @@ final class _EntryScope {
         actualSize == outerSize &&
         actualPosition == position &&
         !minimized &&
+        artwork.every((ReferenceArtworkFrame frame) => frame.restored) &&
         (retained == null || retained.released);
     if (!restored) {
       throw const CaptureRefused('original-entry-restoration-unproven');

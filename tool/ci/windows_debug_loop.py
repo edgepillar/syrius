@@ -498,6 +498,11 @@ def analyze(parent, repo):
         'lib/utils/entry_capture_source.dart',
         'lib/screens/onboarding/import_wallet/import_wallet_seed_choice_screen.dart',
         'harness/app/native_entry_capture.dart',
+        'lib/utils/reference_artwork_source.dart',
+        'test/harness/reference_artwork_owner_test.dart',
+        'lib/rearchitecture/utils/widgets/entry_field.dart',
+        'lib/widgets/reusable_widgets/app_lottie.dart',
+        'lib/widgets/window_frame.dart',
         'test/onboarding/entry_capture_source_test.dart',
         'test/onboarding/entry_capture_opt_in_test.dart',
         'test/onboarding/entry_prepared_draft_test.dart',
@@ -566,6 +571,11 @@ def analyze(parent, repo):
                                         else 'selection_notifier' if relative.endswith('/lib/utils/notifiers/default_address_notifier.dart')
                                         else 'wallet_shell' if relative.endswith('/lib/widgets/main_app_container.dart')
                                         else 'addresses_view' if relative.endswith('/lib/widgets/modular_widgets/settings_widgets/addresses_settings_view.dart')
+                                        else 'reference_artwork' if relative.endswith('/lib/utils/reference_artwork_source.dart')
+                                        else 'reference_artwork_test' if relative.endswith('/test/harness/reference_artwork_owner_test.dart')
+                                        else 'entry_field' if relative.endswith('/lib/rearchitecture/utils/widgets/entry_field.dart')
+                                        else 'app_lottie' if relative.endswith('/lib/widgets/reusable_widgets/app_lottie.dart')
+                                        else 'window_frame' if relative.endswith('/lib/widgets/window_frame.dart')
                                         else 'harness_agent' if relative.endswith('/harness/app/agent.dart')
                                         else 'control_admission' if relative.endswith('/harness/app/recipe_control_admission.dart')
                                         else 'control_admission_test' if relative.endswith('/test/harness/recipe_control_admission_test.dart')

@@ -262,15 +262,21 @@ class _LockTabChildState extends State<LockTabChild>
     }
     final int epoch = _epoch;
     bool sourceIsCurrent() => epoch == _epoch && _current;
+    _unlockViewPhase = 'capture_requested';
     final WalletLockAttempt? attempt = captureWalletLockAttempt(
       context: context,
       sourceIsCurrent: sourceIsCurrent,
+      observePhase: (WalletLockCapturePhase value) {
+        _unlockViewPhase = value.label;
+      },
     );
+    _unlockViewPhase = 'capture_returned';
     if (attempt == null) {
       _unlockViewPhase = 'attempt_unavailable';
       _showAttemptStorageFailure(incorrectPassword: false);
       return;
     }
+    _unlockViewPhase = 'attempt_bound';
     final String password = _passwordController.text;
     final WalletFile? lockedFile = kWalletFile;
     final WalletInitializationBinding? initialization = attempt.initialization;
@@ -279,6 +285,7 @@ class _LockTabChildState extends State<LockTabChild>
         needsInit && sl.isRegistered<MultipleBalanceBloc>()
         ? sl<MultipleBalanceBloc>()
         : null;
+    _unlockViewPhase = 'busy_mark_requested';
     bool authenticated = false;
     WalletFile? decryptedFile;
     setState(() {
@@ -289,6 +296,7 @@ class _LockTabChildState extends State<LockTabChild>
       _incorrectPassword = false;
       _errorToUser = null;
     });
+    _unlockViewPhase = 'input_clear_requested';
     _passwordController.clear();
     try {
       _unlockViewPhase = 'decrypt_requested';
