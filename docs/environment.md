@@ -8417,3 +8417,23 @@ new Dart cases or current-source full/entry output is qualified yet. Main
 ledger remains 71/80; nineteen preparations, ninety catalog outputs and all
 94 matches remain open. Original requirements, assets, failures and UNKNOWNs
 remain preserved. No local Flutter/Dart, wallet or node execution is used.
+
+
+## Explicit artwork owner types and initializing formals
+
+Source152 40784306480 passes all 767 Python cases with three existing skips
+and both normal complete asset commands. Analysis then refuses three errors
+from State/interface promotion and six infos. Dart is not run, and the failed
+source152 gate remains retained. Explicit Object references preserve the exact
+original State and artwork interface independently; owner, generation, route
+and renderer checks remain. Direct callback field formals, import order and
+the nonnullable original owner address the six infos. The analysis projection
+now identifies this entry source by a fixed label instead of other.
+
+All 265 memory controls pass. Hosted analysis and all 332 ordinary/334 startup
+Dart cases remain pending, including the four genuine artwork owner cases.
+Sampling, capture, restoration and authentication operations are unchanged.
+The source151 original Native85 success and its copied entered-once refusal
+retain their separate source binding. No full-root/build, copied reopen/six
+effects, new image or visual match is inferred. Original failed/UNKNOWN data,
+the main 71/80 ledger and all 94 open visual matches remain preserved.

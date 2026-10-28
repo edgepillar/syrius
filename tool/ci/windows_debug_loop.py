@@ -571,6 +571,7 @@ def analyze(parent, repo):
                                         else 'selection_notifier' if relative.endswith('/lib/utils/notifiers/default_address_notifier.dart')
                                         else 'wallet_shell' if relative.endswith('/lib/widgets/main_app_container.dart')
                                         else 'addresses_view' if relative.endswith('/lib/widgets/modular_widgets/settings_widgets/addresses_settings_view.dart')
+                                        else 'native_entry_capture' if relative.endswith('/harness/app/native_entry_capture.dart')
                                         else 'reference_artwork' if relative.endswith('/lib/utils/reference_artwork_source.dart')
                                         else 'reference_artwork_test' if relative.endswith('/test/harness/reference_artwork_owner_test.dart')
                                         else 'entry_field' if relative.endswith('/lib/rearchitecture/utils/widgets/entry_field.dart')

@@ -17,8 +17,8 @@ import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart' show AppTheme;
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/entry_capture_source.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/reference_artwork_source.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/app_theme_notifier.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/reference_artwork_source.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_initialization.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_initialization_source.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -587,10 +587,14 @@ final class _EntryScope {
   }
 
   Future<void> prepareArtwork() async {
-    final Object? owner = imported?.owner ?? owners.welcome.owner;
+    final Object owner = imported?.owner ?? owners.welcome.owner;
     if (owner is! State || !owner.mounted || !expectedRoute) {
       throw const CaptureRefused('original-entry-artwork-owner-unavailable');
     }
+    ReferenceArtworkSource? asArtwork(Object value) =>
+        value is ReferenceArtworkSource ? value : null;
+    State<StatefulWidget>? asState(Object value) =>
+        value is State<StatefulWidget> ? value : null;
     final List<ReferenceArtworkSource> sources = <ReferenceArtworkSource>[];
     int visited = 0;
     void visit(Element element) {
@@ -598,8 +602,8 @@ final class _EntryScope {
         throw const CaptureRefused('original-entry-artwork-tree-limit');
       }
       if (element is StatefulElement) {
-        final State<StatefulWidget> state = element.state;
-        if (state is ReferenceArtworkSource) sources.add(state);
+        final ReferenceArtworkSource? source = asArtwork(element.state);
+        if (source != null) sources.add(source);
       }
       element.visitChildren(visit);
     }
@@ -616,7 +620,8 @@ final class _EntryScope {
     for (int index = 0; index < sources.length; index++) {
       final ReferenceArtworkSource source = sources[index];
       final Object generation = source.referenceArtworkGeneration;
-      if (source is! State || !source.mounted ||
+      final State<StatefulWidget>? originalOwner = asState(source);
+      if (originalOwner == null || !originalOwner.mounted ||
           source.referenceArtworkKind != expected[index]) {
         throw const CaptureRefused('original-entry-artwork-source-changed');
       }
@@ -628,7 +633,7 @@ final class _EntryScope {
       if (original != null) {
         await effect<Object?>('original-entry-artwork-ready', () => original);
       }
-      if (!source.mounted || !expectedRoute ||
+      if (!originalOwner.mounted || !expectedRoute ||
           !identical(source.referenceArtworkGeneration, generation)) {
         throw const CaptureRefused('original-entry-artwork-generation-changed');
       }

@@ -30,15 +30,11 @@ final class ReferenceArtworkFrame {
     required this.generation,
     required this.kind,
     required Map<String, Object> observation,
-    required bool Function() current,
-    required bool Function() observed,
-    required void Function() restore,
-    required bool Function() restoration,
-  }) : observation = Map<String, Object>.unmodifiable(observation),
-       _current = current,
-       _observed = observed,
-       _restore = restore,
-       _restoration = restoration;
+    required this._current,
+    required this._observed,
+    required this._restore,
+    required this._restoration,
+  }) : observation = Map<String, Object>.unmodifiable(observation);
 
   /// The exact private State that returned this frame.
   final Object owner;
