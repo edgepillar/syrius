@@ -8437,3 +8437,20 @@ The source151 original Native85 success and its copied entered-once refusal
 retain their separate source binding. No full-root/build, copied reopen/six
 effects, new image or visual match is inferred. Original failed/UNKNOWN data,
 the main 71/80 ledger and all 94 open visual matches remain preserved.
+
+
+## Original artwork Future and test-frame coordination
+
+Source153 40786934163 passes 767 Python cases with three existing skips,
+both normal complete asset commands and analysis with zero findings. Its
+original 240-second Dart command times out and is forcibly closed. No complete
+Dart count or active case is qualified; absence of error events is not a pass.
+The failed command and its unobserved exact runtime cause remain preserved.
+
+The test helper now passively observes the same original Future while advancing
+at most 200 widget frames with five-millisecond real delays. It also gives the
+original forward ticker its first frame before measuring elapsed animation.
+All four cases, their assertions, production code and command budgets remain.
+All 265 memory controls pass; hosted validation is pending. No new native,
+copied reopen/six-effect, full-root/build or visual acceptance is inferred.
+The main ledger remains 71/80, with all 94 visual matches still open.

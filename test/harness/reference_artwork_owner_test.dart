@@ -10,6 +10,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/shaders/shader_clock.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/entry_field.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/entry_capture_source.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/reference_artwork_source.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/app_lottie.dart';
 
@@ -35,7 +36,15 @@ ReferenceArtworkSource _source(WidgetTester tester) =>
 Future<void> _loaded(WidgetTester tester) async {
   final Future<Object?>? original = _source(tester).referenceArtworkReadiness;
   expect(original, isNotNull);
-  await tester.runAsync<Object?>(() => original!);
+  final EntryCaptureCompletion observed = EntryCaptureCompletion(original!);
+  for (int frame = 0; frame < 200 &&
+      observed.status == EntryCaptureStatus.pending; frame++) {
+    await tester.runAsync<void>(
+      () => Future<void>.delayed(const Duration(milliseconds: 5)),
+    );
+    await tester.pump();
+  }
+  expect(observed.status, EntryCaptureStatus.succeeded);
   await tester.pump();
   expect(find.byType(Lottie), findsOneWidget);
 }
@@ -101,6 +110,8 @@ void main() {
       (_) { completed = true; },
       onError: (Object _) { canceled = true; },
     ));
+    // Give the original forward ticker its first frame before measuring it.
+    await tester.pump();
     final ReferenceArtworkFrame frame = source.captureReferenceArtwork()!;
     expect(frame.observed, isFalse);
     await tester.pump(const Duration(milliseconds: 250));
