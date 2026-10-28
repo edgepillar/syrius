@@ -749,3 +749,20 @@ the same 297-case ordinary gate must pass before a fresh owned native lab
 runs copied unlock/readiness, all four components and six effects. Both
 original asset cases remain selected in the 299-case startup variant.
 Source139's two-info analysis refusal and skipped Dart remain preserved.
+
+
+Source141 `b091e1df2a0f` / Native81 `40730222576` passes clean selected
+analysis, all 752 Python cases/three skips and all 295 original Dart cases.
+Both new cases retain an assertion at the observer's pending check, line
+95. Node checkout/compiler, lab build/runtime and both manifests are
+skipped. No positive completion of those synthetic original Futures is
+observed; the complete original failure and source pins remain retained.
+
+The agent uses real Stopwatch time as well as timer/frame Futures, while
+the helper advances only fake test time. The candidate advances wall time
+by ten milliseconds alongside every existing forty-millisecond frame pump,
+with a 300-iteration observation cap. Every genuine widget, assertion and
+original Future remains; all product runtime bytes, waits and guards are
+unchanged. All 234 current pure-memory controls pass. The same 297-case
+ordinary gate must pass before fresh native allocation; readiness, copied
+reopen, four components, six effects and final acceptance stay open.

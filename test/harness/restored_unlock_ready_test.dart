@@ -88,8 +88,13 @@ Future<void> _settle(
   WidgetTester tester,
   EntryCaptureCompletion completion,
 ) async {
-  for (int i = 0; i < 100 &&
+  for (int i = 0; i < 300 &&
       completion.status == EntryCaptureStatus.pending; i++) {
+    // The original agent uses Stopwatch as well as frame/timer Futures.
+    // Advance wall time and the test clock without replacing either wait.
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 10)),
+    );
     await tester.pump(const Duration(milliseconds: 40));
   }
   expect(completion.status, isNot(EntryCaptureStatus.pending));
