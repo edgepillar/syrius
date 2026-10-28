@@ -24,7 +24,10 @@ FILES = ('wallet_tour_test.dart', 'build_output_test.dart',
     'recipe_control_admission_test.dart', 'recipe_control_admission.dart',
     'wallet_recipe_failure_test.dart', 'wallet_recipe_startup_test.dart',
     'wallet_recipe_test.dart', 'key_dispatch_test.dart', 'rail_navigation_test.dart', 'agent.dart',
-    'launch_film.dart', 'startup_stage.dart')
+    'launch_film.dart', 'startup_stage.dart',
+    'entry_capture_source_test.dart', 'entry_capture_opt_in_test.dart',
+    'entry_prepared_draft_test.dart', 'entry_capture_source.dart',
+    'import_wallet_seed_choice_screen.dart', 'native_entry_capture.dart')
 CATEGORIES = (
     (r'Failed to load', 'LOAD_ERROR'),
     (r'MissingPluginException', 'MISSING_PLUGIN'),

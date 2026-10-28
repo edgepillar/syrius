@@ -16,6 +16,27 @@ def encode(rows):
 
 
 class DartFailureTests(unittest.TestCase):
+    def test_entry_locations_keep_only_exact_names_and_original_numeric_lines(self):
+        names = ('entry_capture_source_test.dart', 'entry_capture_opt_in_test.dart',
+                 'entry_prepared_draft_test.dart', 'entry_capture_source.dart',
+                 'import_wallet_seed_choice_screen.dart', 'native_entry_capture.dart')
+        for name in names:
+            row = dict(type='error', testID=7, isFailure=False,
+                error='Null check operator used on a null value: private text',
+                stackTrace='#0 private (/fixture/private/' + name + ':101:9)')
+            value = failure.project(encode([row]))['items'][0]
+            with self.subTest(name=name):
+                self.assertEqual((value['file'], value['line']), (name, 101))
+                self.assertEqual(value['category'], 'NULL_CHECK')
+                self.assertEqual(value['location_source'], 'STACK')
+                self.assertNotIn('private', json.dumps(value))
+                self.assertNotIn('/fixture', json.dumps(value))
+                self.assertNotIn('text', json.dumps(value))
+                row['stackTrace'] = '/fixture/private/private_' + name + ':101:9'
+                foreign = failure.project(encode([row]))['items'][0]
+                self.assertIsNone(foreign['file'])
+                self.assertIsNone(foreign['line'])
+
     def test_original_test_caller_is_separate_from_the_first_helper_location(self):
         frame = ('#0 private (/fixture/private/agent.dart:976:7)\n'
             '#1 private (/fixture/private/lab_send_ui_binding_test.dart:371:5)')

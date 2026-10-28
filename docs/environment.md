@@ -7583,3 +7583,38 @@ unchanged; no local tests or SDK are run again for formatting. Current clean
 selected analysis, 286 Dart cases, prepared entry capture and native reopen/
 six-effect qualification remain pending. Original style/startup/integration
 failures, UNKNOWN outcomes and all 94 visual matches remain open.
+
+## Original test-startup route and finite entry locations
+
+At `e5910159e1fb`, run `40641069870` passes 734 Python cases with three
+original platform skips and clean selected analysis. Its complete, unforced
+Dart command exits one after 285 passes and one unhandled `NULL_CHECK`.
+The original projection has no known test/source location. Its Flutter tester
+stack frame is context, not proof of the exact error origin. Native allocation
+is skipped. The earlier failure stays unlocalized; a later result cannot
+supply its missing line or a retrospective causal claim.
+
+The test startup fixture now retains the actual Welcome route before its
+Navigator push. The scenario awaits that original reservation and that same
+route's entrance before looking up the genuine Welcome receipt, then asserts
+their identity. It does not adopt a later latest route or assume one pump has
+mounted it. Positive draft reservation has an explicit non-null assertion.
+The production entry source, both action generations, all scenario requirements
+and positive-ready checks, and the 286-case Dart gate remain. This correction
+does not establish the earlier NULL_CHECK's exact cause.
+
+The failure projector recognizes exactly six additional entry basenames: the
+three selected entry test files, entry_capture_source.dart,
+import_wallet_seed_choice_screen.dart and native_entry_capture.dart. Only an
+allowlisted basename and its original bounded numeric line may be emitted.
+Private directories, error text and stacks remain omitted. Prefix variants
+and unknown files stay unattributed. Error counts, failure categories, raw
+output limits and original strict failure conditions remain unchanged.
+
+One new memory case covers all six names, null-check classification, private
+path/text omission and foreign-prefix refusal. All 217 selected memory cases
+pass. The next combined gate requires 735 Python cases, clean selected analysis
+and all 286 Dart cases before native allocation. No local SDK or native
+execution is performed. Actual entry captures, original animation phases,
+copied reopen/six effects, nineteen catalog preparations and all 94 visual
+matches remain open.

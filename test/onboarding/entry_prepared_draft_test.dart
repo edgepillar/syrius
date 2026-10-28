@@ -33,7 +33,9 @@ class _EntryBundle extends CachingAssetBundle {
 // Only this startup is a policy fixture. Welcome, Import, their routes,
 // controllers, input callbacks and disposal Futures are the genuine widgets.
 class _Startup extends StatefulWidget {
-  const _Startup();
+  const _Startup({required this.reserved});
+
+  final Completer<MaterialPageRoute<void>> reserved;
 
   @override
   State<_Startup> createState() => _StartupState();
@@ -70,15 +72,15 @@ class _StartupState extends State<_Startup> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       receipt.requestingWelcome();
-      Navigator.of(context).pushReplacement<void, void>(
-        MaterialPageRoute<void>(
-          settings: RouteSettings(
-            name: AccessWalletScreen.route,
-            arguments: receipt,
-          ),
-          builder: (_) => const AccessWalletScreen(),
+      final MaterialPageRoute<void> original = MaterialPageRoute<void>(
+        settings: RouteSettings(
+          name: AccessWalletScreen.route,
+          arguments: receipt,
         ),
+        builder: (_) => const AccessWalletScreen(),
       );
+      widget.reserved.complete(original);
+      Navigator.of(context).pushReplacement<void, void>(original);
     });
   }
 
@@ -114,6 +116,12 @@ Future<EntryImportReceipt> _open(WidgetTester tester) async {
   await _finishRoute(tester, receipt.route);
   expect(receipt.ready, isTrue);
   return receipt;
+}
+
+EntryImportDraftReceipt _prepare(EntryImportReceipt original) {
+  final EntryImportDraftReceipt? prepared = original.prepareIncompleteDraft();
+  expect(prepared, isNotNull);
+  return prepared!;
 }
 
 Future<void> _type(WidgetTester tester, String text) async {
@@ -161,6 +169,8 @@ void main() {
         tester.view.reset();
       });
       final GlobalKey<NavigatorState> navigator = GlobalKey<NavigatorState>();
+      final Completer<MaterialPageRoute<void>> welcomeRoute =
+          Completer<MaterialPageRoute<void>>();
       await tester.pumpWidget(
         MaterialApp(
           navigatorKey: navigator,
@@ -168,23 +178,25 @@ void main() {
           locale: const Locale('en'),
           localizationsDelegates: appLocalizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: const _Startup(),
+          home: _Startup(reserved: welcomeRoute),
           builder: (BuildContext context, Widget? child) => DefaultAssetBundle(
             bundle: _EntryBundle(),
             child: child!,
           ),
         ),
       );
+      final MaterialPageRoute<void> originalWelcome = await welcomeRoute.future;
       await tester.pump();
-      await _finishRoute(tester, registry.welcome!.route);
-      expect(registry.startup!.ready, isTrue);
-      expect(registry.welcome!.ready, isTrue);
+      await _finishRoute(tester, originalWelcome);
+      expect(registry.startup?.ready, isTrue);
+      expect(registry.welcome?.ready, isTrue);
+      expect(registry.welcome!.route, same(originalWelcome));
       final Object welcomeOwner = registry.welcome!.owner;
 
       final EntryImportReceipt imported = await _open(tester);
       final Object originalSource = imported.source!;
       final Object originalController = imported.controllerOwner!;
-      final EntryImportDraftReceipt draft = imported.prepareIncompleteDraft()!;
+      final EntryImportDraftReceipt draft = _prepare(imported);
       expect(draft.awaitingInput, isTrue);
       expect(draft.isCurrent, isFalse);
       expect(draft.canRestore, isTrue);
@@ -212,8 +224,7 @@ void main() {
       expect(() => view.seedController.addListener(() {}), throwsFlutterError);
 
       final EntryImportReceipt direct = await _open(tester);
-      final EntryImportDraftReceipt directDraft =
-          direct.prepareIncompleteDraft()!;
+      final EntryImportDraftReceipt directDraft = _prepare(direct);
       tester
           .widget<ImportSurface>(find.byType(ImportSurface))
           .seedController
@@ -226,8 +237,7 @@ void main() {
       await _back(tester, direct);
 
       final EntryImportReceipt wrong = await _open(tester);
-      final EntryImportDraftReceipt wrongDraft =
-          wrong.prepareIncompleteDraft()!;
+      final EntryImportDraftReceipt wrongDraft = _prepare(wrong);
       await _type(tester, 'Synthetic unrelated incomplete input');
       expect(wrongDraft.isCurrent, isFalse);
       expect(wrongDraft.sourceAfter, isNull);
@@ -235,8 +245,7 @@ void main() {
       await _back(tester, wrong);
 
       final EntryImportReceipt edited = await _open(tester);
-      final EntryImportDraftReceipt editedDraft =
-          edited.prepareIncompleteDraft()!;
+      final EntryImportDraftReceipt editedDraft = _prepare(edited);
       await _type(tester, EntryImportDraftReceipt.sample);
       expect(editedDraft.isCurrent, isTrue);
       final Object retainedAfter = editedDraft.sourceAfter!;
@@ -249,8 +258,7 @@ void main() {
       await _back(tester, edited);
 
       final EntryImportReceipt covered = await _open(tester);
-      final EntryImportDraftReceipt coveredDraft =
-          covered.prepareIncompleteDraft()!;
+      final EntryImportDraftReceipt coveredDraft = _prepare(covered);
       await _type(tester, EntryImportDraftReceipt.sample);
       expect(coveredDraft.isCurrent, isTrue);
       final MaterialPageRoute<void> cover = MaterialPageRoute<void>(
@@ -269,8 +277,7 @@ void main() {
       await _back(tester, covered);
 
       final EntryImportReceipt beforeInput = await _open(tester);
-      final EntryImportDraftReceipt beforeDraft =
-          beforeInput.prepareIncompleteDraft()!;
+      final EntryImportDraftReceipt beforeDraft = _prepare(beforeInput);
       final MaterialPageRoute<void> beforeCover = MaterialPageRoute<void>(
         builder: (_) => const SizedBox.shrink(),
       );
@@ -287,8 +294,7 @@ void main() {
       await _back(tester, beforeInput);
 
       final EntryImportReceipt browsed = await _open(tester);
-      final EntryImportDraftReceipt browseDraft =
-          browsed.prepareIncompleteDraft()!;
+      final EntryImportDraftReceipt browseDraft = _prepare(browsed);
       await _type(tester, EntryImportDraftReceipt.sample);
       expect(browseDraft.isCurrent, isTrue);
       final ImportFilePicker picker = tester.widget<ImportFilePicker>(
@@ -307,8 +313,7 @@ void main() {
       await _back(tester, browsed);
 
       final EntryImportReceipt count = await _open(tester);
-      final EntryImportDraftReceipt countDraft =
-          count.prepareIncompleteDraft()!;
+      final EntryImportDraftReceipt countDraft = _prepare(count);
       await _type(tester, EntryImportDraftReceipt.sample);
       expect(countDraft.isCurrent, isTrue);
       tester

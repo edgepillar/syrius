@@ -338,3 +338,12 @@ gates and 734/286 counts while applying line wraps and test-only cascades.
 The prior 216 memory controls are reused with unchanged Python inputs; no
 local SDK or tests are repeated. Actual entry/reopen/six effects and all
 94 visual matches remain pending.
+
+At e5910159e1fb, run 40641069870 passes 734 Python cases/three original
+skips and clean selected analysis. Dart reports 285 passes and one unlocated
+NULL_CHECK before native allocation. The next test fixture awaits its exact
+original Welcome route before receipt lookup. The finite projector adds only
+six fixed entry basenames/numeric lines. No old failure is reattributed, and
+no production guard or Dart case count is relaxed. All 217 memory cases pass;
+735 Python/286 Dart and actual entry/reopen/six-effect qualification remain
+pending. All 94 visual matches remain open.
