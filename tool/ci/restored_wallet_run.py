@@ -12,6 +12,7 @@ import time
 
 from . import closed_lab_checkpoint as checkpoint
 from . import windows_debug_loop as debug
+from . import restored_seed_run as seeds
 
 
 SCOPE = 'owned_restored_lab_reopen'
@@ -76,7 +77,8 @@ def project(value):
     if not value['complete']:
         checkpoint.need(set(value) == common)
         return dict(value)
-    checkpoint.need(set(value) == common | {'claim_once', 'originals_closed',
+    seed_fields = {'seed_workflow'} if 'seed_workflow' in value else set()
+    checkpoint.need(set(value) == common | seed_fields | {'claim_once', 'originals_closed',
         'chain_continuity', 'journal_unchanged', 'cipher_unchanged', 'wallet',
         'application_exit', 'entry_exit', 'output', 'job_empty', 'forced',
         'nodes', 'private_manifest_sha256', 'seed_admitted'}
@@ -86,6 +88,9 @@ def project(value):
         and all(type(value[key]) is int and value[key] == 0
                 for key in ('application_exit', 'entry_exit')))
     wallet_observation(value['wallet'])
+    if seed_fields:
+        seed_value = seeds.project(value['seed_workflow'])
+        checkpoint.need(type(seed_value) is dict and seed_value['complete'] is True)
     output = value['output']
     checkpoint.need(type(output) is dict and set(output) ==
         {'bytes', 'sha256', 'output_complete', 'overflow'}
@@ -231,7 +236,7 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
         and Path(restored[role]) != original_runtime.configs[role]
         for role in checkpoint.ROLES[1:]))
     copied_wallet, _ = origin.copied_paths(str(copied_home))
-    deadline = time.monotonic() + 600
+    deadline = time.monotonic() + 2400
     pins = dict(checkpoint.ancestors(home))
     report_pins = dict(pins)
     for root in (wallet.home, *restored.values()):
@@ -314,7 +319,7 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
         run_attempt=parent['GITHUB_RUN_ATTEMPT'], platform='windows',
         claim_sha256=hashlib.sha256(claim_raw).hexdigest(),
         application_exit=None, entry_exit=None, output=None, job_empty=False,
-        forced=False, wallet=None, nodes=[])
+        forced=False, wallet=None, seed_workflow=None, nodes=[])
     try:
         lab.preflight_ports('native', stack_debug=original_runtime.stack_debug)
         runtime.start()
@@ -362,9 +367,11 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
                 checkpoint.need(not line.startswith(b'CI_REOPEN_ERROR:'))
                 if marker == b'CI_REOPEN_DONE' and line.startswith(marker + b':'):
                     return wallet_observation(json.loads(line.partition(b':')[2]))
+                if marker == b'CI_SEED_DONE' and line.startswith(marker + b':'):
+                    return seeds.private_receipts(json.loads(line.partition(b':')[2]))
                 if line == marker:
                     return None
-                checkpoint.need(not line.startswith(b'CI_REOPEN_'))
+                checkpoint.need(not line.startswith((b'CI_REOPEN_', b'CI_SEED_')))
             raise checkpoint.Refused()
 
         record['phase'] = 'start'
@@ -392,6 +399,25 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
         record['phase'] = 'unlock_and_observe'
         write(checkpoint.encode(wallet.reopen_input(copied_home)))
         record['wallet'] = wait(b'CI_REOPEN_DONE')
+        unchanged()
+        chain_read(runtime, anchor)
+        record['phase'] = 'seed_workflow'
+        chosen = seeds.counterparty(json.loads(bounded_read(
+            Path(restored['rpc']) / 'genesis.json', 1024**2)), origin.members)
+        unchanged()
+        write(checkpoint.encode(dict(action='SEED', counterparty=chosen)))
+        seed_receipts = wait(b'CI_SEED_DONE')
+        unchanged()
+        for row in seed_receipts['receipts']:
+            for state in ('attempt', 'accepted', 'confirmed'):
+                path = copied_home / ('seed-' + row['recipe'] + '-' + state + '.json')
+                identity = checkpoint.file_identity(path.lstat())
+                raw = bounded_read(path, 2048)
+                seeds.journal_record(row['recipe'], state, raw, row['hash'])
+                checkpoint.need(checkpoint.file_identity(path.lstat()) == identity)
+                snapshot[path] = identity, hashlib.sha256(raw).hexdigest()
+        record['seed_private_receipts'] = seed_receipts
+        record['seed_workflow'] = seeds.completed(seed_receipts)
         unchanged()
         chain_read(runtime, anchor)
         record['phase'] = 'ordinary_close'
@@ -490,4 +516,5 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
         cipher_unchanged=True, wallet=record['wallet'],
         application_exit=record['application_exit'], entry_exit=record['entry_exit'],
         output=record['output'], job_empty=True, forced=False, nodes=record['nodes'],
-        private_manifest_sha256=hashlib.sha256(raw).hexdigest(), seed_admitted=False))
+        private_manifest_sha256=hashlib.sha256(raw).hexdigest(), seed_admitted=False,
+        seed_workflow=record['seed_workflow']))

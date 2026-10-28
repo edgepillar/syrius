@@ -7164,3 +7164,45 @@ only on hosted CI. Current hosted qualification and all actual native
 quiescence/checkpoint/Hive/reopen execution remain pending. All six F06 effects,
 full two-sided Swap terms, 94 visual matches and full acceptance remain open.
 Earlier UNKNOWN original attempts retain their exact status and evidence.
+
+### Six seed recipes in the owned restored session
+
+At source `2ae3f895d7209e14bf296ecf7eb16d4a07cb6e71`,
+[40606013255](https://github.com/edgepillar/syrius/actions/runs/40606013255),
+attempt one, job `122545600924`, passes all 265 Dart cases, 682 Python cases
+with three original platform skips and clean selected analysis. Original Dart
+exits zero, complete and unforced. This is harness-only qualification; no
+current native quiescence, checkpoint, Hive or reopened execution is inferred.
+
+The next source stage connects the six existing UI recipes to the same owned
+reopened app and nodes. A private parent admission follows the exact original
+send read and unchanged-file/chain checks. Normal Settings controls derive
+index 2 once, with the same original resource owner, member prefix, persisted
+index-one selection and exactly one generation change. Every later command
+requires that resulting original context and a live parent. The runner reuses
+the real recipe parser, preparation guards and publication pointer path. It
+calls no signing, send or confirmation callback directly.
+
+The public `dev2` fixture owner is selected from the already pinned lab genesis
+for the HTLC deposit. It must be outside the captured and derived membership;
+the existing SDK additionally parses its canonical address. No counterparty
+key, peer operation or full two-sided Swap terms are supplied. Each recipe
+requires its own distinct original hash, positive exact confirmation and
+specific effect. A failed or uncertain original ends the session without
+another recipe or a replacement request. Parent EOF and changed owners retire
+the session, including across late asynchronous completion.
+
+After the sixth result, the parent binds all eighteen small journal records to
+those exact originals and pins their identities and hashes through normal
+app/entry/node closure. Both original and copied cipher bytes and the original
+send records remain unchanged. The existing two-MiB private output cap and
+aggregate four-GiB fixture cap remain. An overall forty-minute reopen/seed
+deadline also bounds the six existing per-command timeouts. No binary, SDK,
+archive or new local filesystem fixture is allocated for this source batch.
+
+All 153 selected Python memory controls pass without local scratch, SDK,
+native or network execution. Fourteen new Dart and ten new Python cases expand
+the focused gate to 279 Dart and 692 Python cases. Current hosted qualification,
+actual six-recipe effects, full Swap terms, all 94 visual matches and complete
+F06 acceptance remain pending. Earlier failures and UNKNOWN originals retain
+their original status.

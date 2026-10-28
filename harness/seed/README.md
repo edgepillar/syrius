@@ -189,3 +189,29 @@ owned resources; a saved receipt cannot construct or activate that owner.
 New app, entry and five-node exits are recorded separately from the originals.
 This source path still needs actual hosted native qualification. The six real
 F06 recipe effects remain pending, and this observation does not admit seed.
+
+The hosted coordinator now continues that same live reopened session with one
+additional private admission record. Before any seed runs, the original
+Settings controls append exactly index 2 while the committed selection remains
+index 1. The original member prefix, Box/transport owner and one revision step
+must agree. No import, selected-address replacement or second derivation is
+used. The derivation stores address metadata; both encrypted wallet copies
+must retain their original bytes.
+
+All six existing recipes then run in their declared order. Every command
+checks parent liveness and the same committed address context. Each original
+must have its own distinct accepted hash, positive exact confirmation and
+recipe-specific effect before the next recipe begins. Unknown, failed, late or
+foreign results hold the session without another attempt. The deposit uses
+the `dev2` owner in the already verified chain-321 genesis, outside the wallet
+members. This fixture comes from the
+[pinned node genesis](https://github.com/zenon-network/go-zenon/blob/590f43ca7a24dccd8e883bc8903a0cb02e54528a/docker/devnet/genesis.json).
+It supplies no counterparty key or two-sided Swap coordinator.
+
+The parent compares all eighteen small attempt/accepted/confirmed records with
+the exact original results, pins their identities and bytes through normal
+closure, rechecks the original send/cipher/config files and reads the same
+chain again. Public observations contain only finite counts, recipe IDs and a
+receipt digest. Full hashes and transport output remain private. Reports
+cannot restart the session or admit a publication. Native execution and full
+F06 acceptance still need current hosted qualification.

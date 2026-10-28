@@ -433,6 +433,60 @@ class WalletRecipe {
     };
   }
 
+  /// Append index two once through Settings, retaining the committed index one.
+  Future<WalletAddressContext> prepareSeedAddress(
+    WalletAddressContext original,
+  ) async {
+    final Map<String, dynamic> start = await _observe();
+    _policy(start);
+    if (!original.same(_addressContext(start)) || !original.consistent ||
+        original.members.length != 2 ||
+        original.selected != original.members[1] ||
+        start['walletPresent'] != true ||
+        start['walletInitCompleted'] != true ||
+        start['node'] != 'ws://127.0.0.1:45998' ||
+        start['chainId'] != 321 || start['signingChainId'] != 321 ||
+        start['nodeConnected'] != true ||
+        start['nodeSelectionSaved'] != true ||
+        start['transitionPending'] != false) {
+      _refuse('wallet-recipe-owned-seed-lab-required');
+    }
+    _owner = start['owner'] as int;
+    _policyNode = start['node'] as String;
+    _originalSigningChain = 321;
+    _addressOrigin = original;
+    if (start['tab'] != 'settings') {
+      await _act('nav_settings');
+      await _until((Map<String, dynamic> view) => view['tab'] == 'settings');
+    }
+    if ((await _observe())['addressesReady'] != true) {
+      await _act('settings_addresses');
+    }
+    await _until((Map<String, dynamic> view) => view['addressesReady'] == true);
+    await _act('settings_add_address');
+    final Map<String, dynamic> extended = await _until(
+      (Map<String, dynamic> view) {
+        final WalletAddressContext now = _addressContext(view);
+        if (now.same(original)) return false;
+        if (!now.derivedFrom(original)) {
+          _refuse('wallet-recipe-original-address-context-changed');
+        }
+        return view['addressesReady'] == true;
+      },
+    );
+    final WalletAddressContext result = _addressContext(extended);
+    _addressOrigin = result;
+    _policy(extended);
+    if (extended['chainId'] != 321 ||
+        extended['signingChainId'] != 321 ||
+        extended['nodeConnected'] != true ||
+        extended['nodeSelectionSaved'] != true ||
+        extended['transitionPending'] != false) {
+      _refuse('wallet-recipe-owned-seed-lab-required');
+    }
+    return result;
+  }
+
   /// Imports once, opens the original Ready once, then commits signing policy.
   Future<void> importWallet({
     required String? chain,

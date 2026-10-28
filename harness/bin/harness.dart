@@ -781,7 +781,10 @@ Future<void> run(Instance inst, String command, Args a) async {
 }
 
 /// A fixed, preflighted source recipe; no nested script or lifecycle command.
-Future<void> seed(Instance inst, Args a) async {
+Future<Map<String, dynamic>> seed(
+  Instance inst, Args a, {
+  Future<void> Function()? requireOwner,
+}) async {
   const Set<String> allowed = <String>{
     'instance',
     'ws',
@@ -802,6 +805,7 @@ Future<void> seed(Instance inst, Args a) async {
     );
   }
   Future<Map<String, dynamic>> command(Map<String, Object?> fields) async {
+    await requireOwner?.call();
     final Map<String, dynamic> result = await inst
         .send(<String, Object?>{
           'cmd': 'seed',
@@ -817,18 +821,15 @@ Future<void> seed(Instance inst, Args a) async {
         !<String>{'sentinel', 'aged-fuse'}.contains(a.rest[1])) {
       throw Fail('seed fixture sentinel|aged-fuse');
     }
-    stdout.writeln(
-      jsonEncode(
-        await command(<String, Object?>{
-          'action': 'fixture',
-          'kind': a.rest[1],
-          'profile': inst.name,
-          'ws': a['ws'],
-          'http': a['http'],
-        }),
-      ),
-    );
-    return;
+    final Map<String, dynamic> result = await command(<String, Object?>{
+      'action': 'fixture',
+      'kind': a.rest[1],
+      'profile': inst.name,
+      'ws': a['ws'],
+      'http': a['http'],
+    });
+    stdout.writeln(jsonEncode(result));
+    return result;
   }
   if (a.rest.length != 1 ||
       !seedRecipeIds.contains(a.rest.single) ||
@@ -878,12 +879,15 @@ Future<void> seed(Instance inst, Args a) async {
       });
       stdout.writeln('ok');
     } else {
+      await requireOwner?.call();
       await run(inst, words.first, Args(words.sublist(1)));
     }
   }
-  stdout.writeln(
-    jsonEncode(await command(<String, Object?>{'action': 'finish'})),
-  );
+  final Map<String, dynamic> result = await command(<String, Object?>{
+    'action': 'finish',
+  });
+  stdout.writeln(jsonEncode(result));
+  return result;
 }
 
 /// Runs a file of harness command lines, stopping at the first that fails.

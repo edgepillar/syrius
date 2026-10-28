@@ -2,6 +2,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import '../seed/restored_seed_workflow.dart';
+import '../wallet_address_context.dart';
 import 'ci_copied_wallet_pointer.dart' show CopiedPointerInput;
 import 'harness.dart' as cli;
 
@@ -75,6 +77,20 @@ Future<void> main() async {
     if (!restoredWalletReady(state) || !originalInput.alive) {
       throw const FormatException('restored policy refused');
     }
+    Future<WalletAddressContext> context() async {
+      final Map<String, dynamic> state = await cli.stateOf(instance);
+      if (!restoredWalletReady(state)) {
+        throw const FormatException('seed policy changed');
+      }
+      final Map<String, dynamic> view = await instance.send(
+        <String, Object>{'cmd': 'wallet-recipe', 'action': 'observe'},
+      );
+      if (view['ok'] != true || view['hasError'] != false) {
+        throw const FormatException('seed owner unavailable');
+      }
+      return WalletAddressContext.parse(view['addressContext']);
+    }
+    final WalletAddressContext originalContext = await context();
     final Map<String, dynamic> result = await instance.send(<String, Object?>{
       'cmd': 'lab-reopen-observe', 'profile': name,
       for (final String key in <String>[
@@ -82,10 +98,34 @@ Future<void> main() async {
       ]) key: decoded[key],
     });
     if (result['ok'] != true || result['receipt'] is! Map ||
+        !originalContext.same(await context()) ||
         !originalInput.alive) {
       throw const FormatException('restored observation refused');
     }
     await marker('CI_REOPEN_DONE:${jsonEncode(result['receipt'])}');
+    phase = 'seed_admission';
+    final Object? seedInput = jsonDecode(await originalInput.read());
+    if (seedInput is! Map<String, dynamic> || seedInput.length != 2 ||
+        seedInput['action'] != 'SEED' || seedInput['counterparty'] is! String) {
+      throw const FormatException('seed admission refused');
+    }
+    final String counterparty = seedInput['counterparty'] as String;
+    final RestoredSeedWorkflow workflow = RestoredSeedWorkflow(
+      original: originalContext,
+      parentAlive: () => originalInput.alive,
+      observe: context,
+      prepareAddress: cli.walletRecipe(instance).prepareSeedAddress,
+      recipe: (String id, Future<void> Function() current) async {
+        phase = 'seed_$id';
+        return cli.seed(instance, cli.Args(<String>[
+          id, '--instance', name, '--ws', 'ws://127.0.0.1:45998',
+          '--http', 'http://127.0.0.1:45997', '--checkpoint-ready',
+          if (id == 'deposit') ...<String>['--counterparty', counterparty],
+        ]), requireOwner: current);
+      },
+    );
+    final Map<String, Object> seeds = await workflow.run(counterparty);
+    await marker('CI_SEED_DONE:${jsonEncode(seeds)}');
     phase = 'finish';
     if (await originalInput.read() != 'FINISH') {
       throw const FormatException('closure unconfirmed');

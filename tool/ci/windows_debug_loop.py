@@ -453,6 +453,8 @@ def analyze(parent, repo):
         'test/harness/copied_pointer_input_test.dart',
         'harness/bin/ci_wallet_reopen.dart',
         'test/harness/restored_startup_test.dart',
+        'harness/seed/restored_seed_workflow.dart',
+        'test/harness/restored_seed_workflow_test.dart',
         'harness/app/fixtures/lab_quiescence.dart',
         'test/harness/lab_quiescence_test.dart',
         'harness/bin/build_output.dart', 'test/harness/build_output_test.dart',
@@ -520,6 +522,8 @@ def analyze(parent, repo):
                                         else 'copied_pointer_input_test' if relative.endswith('/test/harness/copied_pointer_input_test.dart')
                                         else 'wallet_reopen_ci' if relative.endswith('/harness/bin/ci_wallet_reopen.dart')
                                         else 'restored_startup_test' if relative.endswith('/test/harness/restored_startup_test.dart')
+                                        else 'restored_seed' if relative.endswith('/harness/seed/restored_seed_workflow.dart')
+                                        else 'restored_seed_test' if relative.endswith('/test/harness/restored_seed_workflow_test.dart')
                                         else 'lab_quiescence' if relative.endswith('/harness/app/fixtures/lab_quiescence.dart')
                                         else 'lab_quiescence_test' if relative.endswith('/test/harness/lab_quiescence_test.dart')
                                         else 'build_output' if relative.endswith('/harness/bin/build_output.dart')

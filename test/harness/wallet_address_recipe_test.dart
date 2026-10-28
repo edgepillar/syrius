@@ -8,6 +8,7 @@ import '../../harness/wallet_address_context.dart';
 // Deliberately invalid member strings: no SDK, signer, wallet or filesystem.
 const String _first = 'synthetic-first-member';
 const String _second = 'synthetic-second-member';
+const String _third = 'synthetic-third-member';
 
 Map<String, dynamic> _context({
   List<String> members = const <String>[_first],
@@ -30,6 +31,7 @@ class _AddressUi {
   bool wrongDerivation = false;
   bool selectionUnsettled = false;
   bool stallDerivation = false;
+  bool seedSelectionUnsettled = false;
   final Completer<void> stalled = Completer<void>();
   final List<Map<String, Object?>> commands = <Map<String, Object?>>[];
   Duration elapsed = Duration.zero;
@@ -81,10 +83,18 @@ class _AddressUi {
         addresses = true;
       case 'settings_add_address':
         if (stallDerivation) await stalled.future;
-        context = _context(members: <String>[
-          if (wrongDerivation) 'synthetic-replaced-member' else _first,
-          _second,
-        ], revision: 21);
+        final WalletAddressContext before = WalletAddressContext.parse(context);
+        context = before.members.length == 2
+            ? _context(members: <String>[
+                if (wrongDerivation) 'synthetic-replaced-member' else _first,
+                _second, _third,
+              ], selected: _second,
+              saved: seedSelectionUnsettled ? _first : _second,
+              revision: before.revision + 1)
+            : _context(members: <String>[
+                if (wrongDerivation) 'synthetic-replaced-member' else _first,
+                _second,
+              ], revision: 21);
       case 'addresses_select_$_second':
         context = _context(members: <String>[_first, _second],
           selected: selectionUnsettled ? _first : _second, saved: _second,
@@ -95,6 +105,77 @@ class _AddressUi {
 }
 
 void main() {
+  _AddressUi seedUi() => _AddressUi()
+    ..context = _context(members: <String>[_first, _second],
+      selected: _second, saved: _second);
+
+  test('seed preparation appends index two without changing index one',
+      () async {
+    final _AddressUi ui = seedUi();
+    final WalletAddressContext original = WalletAddressContext.parse(ui.context);
+    final WalletAddressContext result = await ui.driver().prepareSeedAddress(
+      original,
+    );
+    expect(result.derivedFrom(original), isTrue);
+    expect(result.members, <String>[_first, _second, _third]);
+    expect(result.selected, _second);
+    expect(ui.taps, <String>[
+      'nav_settings', 'settings_addresses', 'settings_add_address',
+    ]);
+  });
+
+  test('seed preparation refuses existing index two and wrong selection',
+      () async {
+    for (final _AddressUi ui in <_AddressUi>[
+      seedUi()..context = _context(members: <String>[_first, _second, _third],
+        selected: _second, saved: _second),
+      seedUi()..context = _context(members: <String>[_first, _second]),
+    ]) {
+      await expectLater(ui.driver().prepareSeedAddress(
+        WalletAddressContext.parse(ui.context),
+      ), throwsA(isA<WalletRecipeRefused>()));
+      expect(ui.taps, isEmpty);
+    }
+  });
+
+  test('seed derivation with a changed prefix cannot be tried again',
+      () async {
+    final _AddressUi ui = seedUi()..wrongDerivation = true;
+    final WalletRecipe driver = ui.driver();
+    final WalletAddressContext original = WalletAddressContext.parse(ui.context);
+    await expectLater(driver.prepareSeedAddress(original),
+      throwsA(isA<WalletRecipeRefused>()));
+    await expectLater(driver.prepareSeedAddress(original),
+      throwsA(isA<WalletRecipeRefused>()));
+    expect(ui.taps.where((String key) => key == 'settings_add_address'),
+      hasLength(1));
+  });
+
+  test('uncertain seed derivation keeps its late original and never retaps',
+      () async {
+    final _AddressUi ui = seedUi()..stallDerivation = true;
+    final WalletRecipe driver = ui.driver();
+    final WalletAddressContext original = WalletAddressContext.parse(ui.context);
+    await expectLater(driver.prepareSeedAddress(original),
+      throwsA(isA<WalletRecipeRefused>()));
+    ui.stalled.complete();
+    await Future<void>.delayed(Duration.zero);
+    await expectLater(driver.prepareSeedAddress(original),
+      throwsA(isA<WalletRecipeRefused>()));
+    expect(ui.taps.where((String key) => key == 'settings_add_address'),
+      hasLength(1));
+  });
+
+  test('a changed committed selection cannot qualify seed derivation',
+      () async {
+    final _AddressUi ui = seedUi()..seedSelectionUnsettled = true;
+    await expectLater(ui.driver().prepareSeedAddress(
+      WalletAddressContext.parse(ui.context),
+    ), throwsA(isA<WalletRecipeRefused>()));
+    expect(ui.taps.where((String key) => key == 'settings_add_address'),
+      hasLength(1));
+  });
+
   test('membership refuses unknown, duplicate, missing and private fields', () {
     for (final Object? value in <Object?>[
       null, <String, dynamic>{},
