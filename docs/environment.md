@@ -7984,3 +7984,34 @@ positive wrong-frame controls and all prior assertions remain. All 234
 selected pure-memory Python cases pass without native/network/scratch or
 shared-store access. Current engine-fidelity, actual Release performance,
 copied reopen/six effects and complete visual acceptance remain pending.
+
+### Source135 result and direct Skip ending candidate
+
+At `5e23b2bf1caf`, run `40704899983` passes 752 Python cases with three
+existing skips, 292 Dart cases including both original engine fidelity
+cases, clean selected analysis and Release build. The compact annotation
+exactly matches the canonical digest and first/last samples of the complete
+67463-byte original log. Its 67 observations advance from index 3 to 21 of
+56 before the unchanged startup deadline. The single key is confirmed;
+startup stays failed while original exit zero, complete output and normal
+window/source/payload restoration pass. Different runners establish no
+comparative engine cause. The larger independent-frame experiment and its
+failed native result remain preserved.
+
+The candidate restores the exact 1130796-byte film and adds its independent
+9458-byte final still, using the original compressed payload. In-memory
+decoding gives exact equality with the film's final canvas. Only Skip uses
+the still, after the pending original frame has returned and its codec is
+disposed. The same original decoder run awaits the still and keeps its
+actual pending result/error through disposal. Natural playback retains
+every frame and clock. The master, well, renderer, recipe-owned key,
+signing/ownership guards and twenty-second deadline remain unchanged.
+
+Five genuine-engine regressions are added for direct Skip, natural frame
+order, pending ending success/error after disposal and refusal of animated
+or differently sized endings. The ordinary strict gate is now 295; startup
+also runs the two existing fidelity cases for 297. The original full-film
+case additionally requires exact engine pixel equality with the final still;
+no previous tolerance or wrong-frame control is relaxed. All 234 selected
+memory controls pass. Current engine, Release startup, copied reopen/six
+effects and full visual acceptance remain pending.

@@ -58,15 +58,16 @@ enum LaunchFilmDecodeStage {
 ///  * always moves. Nothing here reads the reduced-motion setting; see
 ///    `lib/utils/motion_binding.dart`.
 ///
-/// A codec only goes forwards. Starting at frame n, or jumping to the end,
-/// means decoding every frame before it and throwing it away, so a skip
-/// costs the decodes that are left, not nothing.
+/// A codec only goes forwards. Starting at frame n means decoding the frames
+/// before it. A verified [lastFrameAsset] lets a skip open that same ending
+/// directly, after the original pending frame has returned.
 class LaunchFilm extends StatefulWidget {
   /// Plays [asset] in all the room its parent gives it.
   const LaunchFilm({
     this.asset = defaultAsset,
     this.bundle,
     this.decodeWidth,
+    this.lastFrameAsset,
     this.fit = BoxFit.contain,
     this.autoplay = true,
     this.onDone,
@@ -76,6 +77,9 @@ class LaunchFilm extends StatefulWidget {
 
   /// The launch animation as the wallet ships it.
   static const String defaultAsset = 'assets/images/launch.webp';
+
+  /// The shipped film's independently stored, pixel-identical last frame.
+  static const String defaultLastFrameAsset = 'assets/images/launch_end.webp';
 
   /// The animated image to play. Read again at the start of every run, so
   /// its bytes are not held between two.
@@ -94,6 +98,13 @@ class LaunchFilm extends StatefulWidget {
   /// itself has to be smaller. While one frame is drawn down, the whole
   /// frame and its small copy both exist, beside the one on screen.
   final int? decodeWidth;
+
+  /// A verified still of this film's last frame, used only for a skip.
+  ///
+  /// Without it the original forward-only codec decodes the remaining frames.
+  /// Natural playback never reads it. A pending frame always returns before
+  /// its codec is disposed and this still is opened by the same decoder run.
+  final String? lastFrameAsset;
 
   /// How a frame fills the box.
   final BoxFit fit;
@@ -162,7 +173,8 @@ class LaunchFilmController extends ChangeNotifier {
   /// Reads the attached decoder's latched wait without advancing any clock.
   LaunchFilmDecodeStage? get decodeStage => _state?._decodeStage;
 
-  /// Index requested from this attached codec, without requesting a frame.
+  /// Film index whose image is awaited, without requesting another image.
+  /// A direct ending decode reports the film's last index.
   int? get decodingFrameIndex => _state?._decodingFrameIndex;
 
   /// Reads an already-created original ticker without creating or starting it.
@@ -182,8 +194,9 @@ class LaunchFilmController extends ChangeNotifier {
   }
 
   /// Goes to the last frame and holds it, without waiting out the frames
-  /// between: each is still decoded, since the codec has no other way to
-  /// the last one, but none is shown. Starts a run if none is under way;
+  /// between. With [LaunchFilm.lastFrameAsset] the same last picture is
+  /// decoded directly; otherwise the remaining frames are decoded unseen.
+  /// Starts a run if none is under way;
   /// does nothing once the attached film has finished. A new film can be
   /// skipped even when this controller still reports a previous one's end.
   void skipToEnd() {
@@ -392,6 +405,7 @@ class _LaunchFilmState extends State<LaunchFilm>
       widget.bundle ?? DefaultAssetBundle.of(context),
       widget.asset,
       widget.decodeWidth,
+      widget.lastFrameAsset,
       _decoder,
     );
   }
@@ -437,6 +451,7 @@ class _LaunchFilmState extends State<LaunchFilm>
     AssetBundle bundle,
     String asset,
     int? width,
+    String? lastFrameAsset,
     Future<void> before,
   ) async {
     await _observeDecode(run, LaunchFilmDecodeStage.previous, before);
@@ -471,8 +486,42 @@ class _LaunchFilmState extends State<LaunchFilm>
         final ui.FrameInfo info = await _observeDecode(
           run, LaunchFilmDecodeStage.frame, codec.getNextFrame(),
         );
-        final bool last = index == count - 1;
+        bool last = index == count - 1;
         ui.Image image = info.image;
+        if (run == _run && _skipping && !last && lastFrameAsset != null) {
+          final int fullWidth = image.width;
+          final int fullHeight = image.height;
+          image.dispose();
+          // getNextFrame has actually returned. Disposing earlier leaves
+          // that engine Future pending and would lose its cleanup owner.
+          codec.dispose();
+          codec = null;
+          _decodingFrameIndex = count - 1;
+          codec = await _observeDecode<ui.Codec>(
+            run, LaunchFilmDecodeStage.codec,
+            ui.instantiateImageCodecFromBuffer(
+              await _observeDecode(
+                run, LaunchFilmDecodeStage.asset,
+                bundle.loadBuffer(lastFrameAsset),
+              ),
+              // Keep the full source dimensions for the identity check;
+              // the existing shrink below still owns the displayed size.
+            ),
+          );
+          if (codec.frameCount != 1) {
+            throw StateError('The launch ending must be one still frame');
+          }
+          final ui.FrameInfo ending = await _observeDecode(
+            run, LaunchFilmDecodeStage.frame, codec.getNextFrame(),
+          );
+          image = ending.image;
+          if (image.width != fullWidth || image.height != fullHeight) {
+            image.dispose();
+            throw StateError('The launch ending dimensions changed');
+          }
+          index = count - 1;
+          last = true;
+        }
         if (_unwanted(run, index, first, last: last)) {
           image.dispose();
           continue;

@@ -649,3 +649,24 @@ improvement is unqualified. The startup-only gate opts into two existing
 engine asset-fidelity cases for 292 total, preserving every original
 expectation; ordinary wallet-tour admission remains 290. Native proof and
 all F06 effects remain pending.
+
+### Source135 result and the original Skip ending
+
+Run `40704899983` at `5e23b2bf1caf` passes 752 Python cases/three existing
+skips, all 292 Dart cases including both engine fidelity checks, clean
+selected analysis and Release build. The bounded notice exactly binds all
+67 samples in the complete original log. Decoder indices advance 3 to 21
+of 56, one key is confirmed and startup misses its unchanged deadline.
+Original exit zero, complete output and restoration do not heal that
+failure. No comparative runner cause, copied reopen or seed effect follows.
+
+The larger experiment is preserved in history and the smaller original
+film is restored exactly. Skip alone may use a 9458-byte independent still
+whose original compressed payload and final pixels are retained. The
+pending original frame returns before its codec is disposed; the same
+decoder run then awaits the actual still and retains its result/error
+through cleanup. Natural frame order and clocks, source master and well,
+recipe-owned key, signing/ownership guards and deadline remain unchanged.
+Five new engine regressions require 295 ordinary passes, or 297 in startup
+with both existing asset cases and exact final-pixel equality. All 234
+memory controls pass; current engine/native and all F06 proof remain open.

@@ -188,6 +188,9 @@ class StartupStageSession implements Listenable {
   Widget buildFilm() => LaunchFilm(
     key: filmKey,
     asset: _filmInWell ? wellAsset : asset,
+    lastFrameAsset: !_filmInWell && asset == LaunchFilm.defaultAsset
+        ? LaunchFilm.defaultLastFrameAsset
+        : null,
     bundle: bundle,
     controller: film,
     // The full stage crops like the original mockup; the final well keeps

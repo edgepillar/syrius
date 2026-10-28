@@ -1,8 +1,8 @@
-// The two launch files the wallet ships, opened by the engine's own codec.
+// The launch files the wallet ships, opened by the engine's own codec.
 //
 // tool/lottie_reencode.py writes their containers by hand. The full film
-// uses independent whole frames; the well stores changed rectangles without
-// blending or disposal, and its still ending is six frames of one pixel.
+// and the well store changed rectangles without blending or disposal, and
+// their still endings are six frames of one pixel.
 // Pillow reads that back correctly, but Pillow is not what plays it. A
 // decoder that cleared the canvas between frames, or blended, or dropped a
 // one pixel frame, would show black, stale boxes or a film that ends early,
@@ -20,6 +20,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 const String _fixtures = 'test/launch_film/fixtures';
@@ -127,6 +128,32 @@ Future<void> _decode(String path, int width, int height) async {
     total += info.duration.inMilliseconds;
     if (references.containsKey(index)) {
       decoded[index] = await _blockMeans(image);
+    }
+    if (path == 'assets/images/launch.webp' && index == _frameCount - 1) {
+      final ui.Codec ending = await ui.instantiateImageCodec(
+        File('assets/images/launch_end.webp').readAsBytesSync(),
+      );
+      try {
+        expect(ending.frameCount, 1);
+        final ui.Image still = (await ending.getNextFrame()).image;
+        try {
+          expect((still.width, still.height), (width, height));
+          final ByteData originalPixels = (await image.toByteData())!;
+          final ByteData endingPixels = (await still.toByteData())!;
+          expect(
+            listEquals(
+              originalPixels.buffer.asUint8List(),
+              endingPixels.buffer.asUint8List(),
+            ),
+            isTrue,
+            reason: 'Skip must show the original final pixels exactly',
+          );
+        } finally {
+          still.dispose();
+        }
+      } finally {
+        ending.dispose();
+      }
     }
     image.dispose();
   }
