@@ -229,3 +229,15 @@ The redesign draws unavailable services behind seams. The existing HTLC deposit
 provides the reachable Swap seed state; the missing two-sided offer/acceptance
 coordinator remains disabled under `Seam.swapTerms`. Visual and seam acceptance
 still require its drawn control and every activation route to be checked.
+
+The canonical CLI binding is qualified by original native 40616426810 and
+independent reader 40618093199, including all 279 Dart/696 Python gates,
+original send/quiescence and normal required-actor closure. Its checkpoint
+stage remains refused. The actual storage sampler returns an integer, while
+two closed-wallet callers expected a dictionary. Aggregate accounting now
+consumes that integer; additional-copy accounting uses the sampler's explicit
+receipt and only its wallet role. Shared app/build bytes remain charged once.
+Existing closure, profile, alias, quota and floor checks stay unchanged. Two
+actual-sampler regressions and all 159 selected memory cases pass. Current
+698-case Python and actual checkpoint/reopen/six-effect qualification remain
+pending. Earlier failures and unknown originals retain their original status.

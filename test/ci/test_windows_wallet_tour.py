@@ -98,7 +98,7 @@ class ClosedHandoffTests(unittest.TestCase):
         handoff = self.handoff()
         with mock.patch.object(handoff, 'closed', return_value=True), \
                 mock.patch.object(tour, 'sample_workspace',
-                                  return_value=dict(logical_bytes=123)) as sample:
+                                  return_value=123) as sample:
             self.assertEqual(handoff.measured_bytes(), 123)
             sample.assert_called_once_with(handoff._paths, expected_profile=(3, 4))
         with mock.patch.object(handoff, 'closed', return_value=False), \
@@ -124,16 +124,53 @@ class ClosedHandoffTests(unittest.TestCase):
     def test_copied_home_accounting_adds_only_the_new_named_wallet_role(self):
         handoff = self.handoff()
         home = handoff.home.parent / ('ci-wallet-'+'2'*24)
+        def measured(paths, *, receipt, expected_profile):
+            receipt.update(by_role=dict(wallet_profile=456))
+            return 789
         with mock.patch.object(handoff, 'closed', return_value=True), \
                 mock.patch.object(tour, 'sample_workspace',
-                    return_value=dict(by_role=dict(wallet_profile=456))) as sample:
+                                  side_effect=measured) as sample:
             self.assertEqual(handoff.copied_home_bytes(home), 456)
-            sample.assert_called_once_with((home, *handoff._paths[1:]), expected_profile=(3, 4))
+            sample.assert_called_once_with((home, *handoff._paths[1:]),
+                receipt=dict(by_role=dict(wallet_profile=456)), expected_profile=(3, 4))
         with mock.patch.object(handoff, 'closed', return_value=True), \
                 mock.patch.object(tour, 'sample_workspace') as sample:
             with self.assertRaises(tour.Refused):
                 handoff.copied_home_bytes(home.parent / 'default')
             sample.assert_not_called()
+
+    def sampled_handoff(self):
+        def file(size):
+            path = mock.Mock(name='inert-storage-entry')
+            path.exists.return_value = True
+            path.is_symlink.return_value = False
+            path.lstat.return_value = types.SimpleNamespace(
+                st_mode=stat.S_IFREG, st_size=size, st_file_attributes=0)
+            return path
+        handoff = self.handoff()
+        profile = file(0)
+        profile.lstat.return_value = types.SimpleNamespace(st_mode=stat.S_IFDIR,
+            st_dev=3, st_ino=4, st_size=0, st_file_attributes=0, st_reparse_tag=0)
+        profile.iterdir.return_value = []
+        handoff._tool_identity = tour.directory_identity(profile.lstat())
+        handoff._paths = (file(11), file(17), file(19), profile)
+        copied = file(0)
+        copied.parent = handoff.home.parent
+        copied.name = 'ci-wallet-'+'2'*24
+        copied.lstat.return_value = types.SimpleNamespace(
+            st_mode=stat.S_IFDIR, st_size=0, st_file_attributes=0)
+        copied.iterdir.return_value = [file(7)]
+        return handoff, copied
+
+    def test_closed_accounting_consumes_the_actual_samplers_integer_total(self):
+        handoff, _ = self.sampled_handoff()
+        with mock.patch.object(handoff, 'closed', return_value=True):
+            self.assertEqual(handoff.measured_bytes(), 47)
+
+    def test_copied_accounting_reads_only_the_actual_samplers_wallet_role(self):
+        handoff, copied = self.sampled_handoff()
+        with mock.patch.object(handoff, 'closed', return_value=True):
+            self.assertEqual(handoff.copied_home_bytes(copied), 7)
 
 
 class AddressSelectionTests(unittest.TestCase):

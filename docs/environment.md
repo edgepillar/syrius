@@ -7251,3 +7251,45 @@ offer/acceptance coordinator stays under `Seam.swapTerms`; redesign acceptance
 checks its appearance and blocked activation. No new Swap service is required
 by this redesign task. All 94 visual matches, motion/frame-time, full controls,
 minimum-window/Arabic review and final acceptance remain open.
+
+### Closed-wallet storage callers use the sampler's return contract
+
+At `18a8010779f248fcb99da2c71a65fea0a9a777a3`, native
+[40616426810](https://github.com/edgepillar/syrius/actions/runs/40616426810),
+attempt one, job `122579880828`, passes all 279 Dart cases, 696 Python cases
+with three original platform skips and clean selected analysis. Original send,
+all twelve tour checks, quiescence and normal app/entry/five-node closure pass.
+Both strict transport reads and the unchanged-input gate complete, qualifying
+the canonical CLI binding. The checkpoint stage retains `CHECKPOINT_REFUSED`.
+
+Independent reader
+[40618093199](https://github.com/edgepillar/syrius/actions/runs/40618093199),
+attempt one, job `122585223052`, verifies both finite original archives and
+source/run/cross-manifest bindings. It confirms the original positive wallet
+phases while preserving overall producer failure and incomplete checkpoint.
+It runs no wallet or node; copied Hive binding, reopen and six effects remain
+unqualified.
+
+The actual workspace sampler returns its integer logical-byte total and writes
+role details into an optional receipt. The closed-wallet aggregate and copied
+wallet callers instead indexed that integer as a dictionary. Two memory
+controls using the actual sampler reproduce `TypeError` in those callers.
+The hosted raw exception was not exported; its finite checkpoint refusal stays
+unchanged. The aggregate caller now returns the sampler total directly. The
+copied-wallet caller supplies a receipt and reads only its wallet role, keeping
+shared app/build bytes out of the additional-copy charge. Closure, original
+profile identity, contained alias, cap and floor guards are unchanged.
+
+Two earlier test doubles returned dictionaries, hiding this contract mismatch.
+Their fixtures now follow the real integer/receipt API and retain their
+assertions. Two new inert-path cases exercise the actual sampler through both
+callers. All 159 selected memory cases pass without scratch, SDK, native or
+network execution. The next combined Windows job requires all 698 Python cases
+before SDK allocation, then unchanged 279 Dart cases and native integration
+with one Flutter setup. Actual checkpoint/reopen/six effects remain pending.
+
+A source-bound import scan also follows 943 local Dart files. The two ordinary
+entry roots reach 914 files, none under the harness; the harness entry reaches
+the read-only sentinel/aged-fuse fixture route. This verifies source separation,
+not native fixture appearance or any visual match. All 94 matches and the
+remaining runtime acceptance requirements stay open.
