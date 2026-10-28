@@ -269,3 +269,16 @@ entry review also requires original globe/hero frames and a reversible
 synthetic incomplete Import draft. Those states must be prepared through
 their original UI owners; existing empty or differently timed captures do
 not qualify the corresponding reference state. No visual match is accepted.
+
+At fd7ff353ae6c, native 40627415772 and independent reader 40628977472 retain
+708 Python/281 Dart gates, clean selected analysis and positive original
+wallet phases. The pointer diagnostic reaches close without a child error;
+overall checkpoint qualification remains failed and reopen is not entered.
+A direct control invokes the actual WindowsJob.close method with memory-only
+accounting/handles. Its normal empty closure records forced false but returns
+null, while both copied-wallet callers require the returned flag to be false.
+The shared method now returns its retained forced flag after unchanged close
+effects. All caller, file, Hive, process, source, quota and floor checks remain.
+Six new direct-method cases fail before the fix; all 183 selected memory cases
+pass afterward. Current 714 Python/281 Dart and actual pointer/reopen/six-effect
+qualification remain pending. Earlier failures and UNKNOWN originals remain.

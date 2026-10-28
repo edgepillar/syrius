@@ -462,6 +462,91 @@ class OwnedHelperTests(unittest.TestCase):
         self.assertEqual(kernel.closed, [1])
 
 
+class WindowsJobCloseTests(unittest.TestCase):
+    class Kernel:
+        def __init__(self, active=0, query_success=True, close_error=False):
+            self.active = active
+            self.query_success = query_success
+            self.close_error = close_error
+            self.queries = []
+            self.closed = []
+
+        def QueryInformationJobObject(self, handle, kind, value, size, other):
+            self.queries.append((handle, kind))
+            if not self.query_success:
+                return False
+            value._obj.active = self.active
+            return True
+
+        def CloseHandle(self, handle):
+            self.closed.append(handle)
+            if self.close_error:
+                raise RuntimeError('fixture close unknown')
+            return True
+
+    def job(self, *, forced=False, **kwargs):
+        job = owned.WindowsJob.__new__(owned.WindowsJob)
+        job.handle, job.application = 91, 92
+        job.forced, job.active_at_close = forced, None
+        job.kernel = self.Kernel(**kwargs)
+        return job
+
+    def test_actual_close_returns_false_for_a_confirmed_empty_original_job(self):
+        job = self.job()
+        self.assertIs(job.close(), False)
+        self.assertIs(job.forced, False)
+        self.assertEqual(job.active_at_close, 0)
+        self.assertIsNone(job.handle)
+        self.assertIsNone(job.application)
+        self.assertEqual(job.kernel.queries, [(91, 1)])
+        self.assertEqual(job.kernel.closed, [91, 92])
+
+    def test_remaining_original_members_return_forced_instead_of_success(self):
+        for active in (1, 4, 64):
+            job = self.job(active=active)
+            with self.subTest(active=active):
+                self.assertIs(job.close(), True)
+                self.assertIs(job.forced, True)
+                self.assertEqual(job.active_at_close, active)
+                self.assertIsNone(job.handle)
+                self.assertIsNone(job.application)
+                self.assertEqual(job.kernel.closed, [91, 92])
+
+    def test_unconfirmed_accounting_returns_forced_with_unknown_count(self):
+        job = self.job(query_success=False)
+        self.assertIs(job.close(), True)
+        self.assertIs(job.forced, True)
+        self.assertIsNone(job.active_at_close)
+        self.assertIsNone(job.handle)
+        self.assertIsNone(job.application)
+        self.assertEqual(job.kernel.closed, [91, 92])
+
+    def test_prior_forced_status_cannot_be_cleared_by_later_empty_job(self):
+        job = self.job(forced=True)
+        self.assertIs(job.close(), True)
+        self.assertIs(job.forced, True)
+        self.assertEqual(job.active_at_close, 0)
+        self.assertEqual(job.kernel.closed, [91, 92])
+
+    def test_second_close_retains_original_result_without_another_query(self):
+        for active in (0, 1):
+            job = self.job(active=active)
+            with self.subTest(active=active):
+                self.assertIs(job.close(), bool(active))
+                self.assertIs(job.close(), bool(active))
+                self.assertEqual(job.active_at_close, active)
+                self.assertEqual(job.kernel.queries, [(91, 1)])
+                self.assertEqual(job.kernel.closed, [91, 92])
+
+    def test_handle_close_exception_cannot_return_a_positive_receipt(self):
+        job = self.job(close_error=True)
+        with self.assertRaisesRegex(RuntimeError, 'fixture close unknown'):
+            job.close()
+        self.assertEqual(job.handle, 91)
+        self.assertEqual(job.application, 92)
+        self.assertEqual(job.kernel.closed, [91])
+
+
 class AnalysisAdmissionTests(unittest.TestCase):
     def analyze(self, raw=b'', code=0, *, incomplete=False):
         process = mock.Mock(stdout=io.BytesIO(raw), returncode=code)

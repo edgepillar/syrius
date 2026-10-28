@@ -7372,3 +7372,44 @@ Subtitle differences need settled-copy review before changing wording. The
 original images and reports remain unchanged. This review accepts no match;
 all 94 visual matches, ninety missing actual captures and fresh independent
 full-pair review remain open.
+
+
+### Copied-wallet job close return contract
+
+At `fd7ff353ae6c8b5cbe8770592accf71f5dff5603`, native
+[40627415772](https://github.com/edgepillar/syrius/actions/runs/40627415772),
+attempt one, job `122615574428`, passes 708 Python cases with three original
+platform skips, all 281 Dart cases and clean selected analysis. Original send,
+twelve tour checks, quiescence and normal required-actor closure pass. The
+pointer diagnostic reaches `close`, without a child refusal or unexpected
+output. Overall checkpoint qualification remains failed and reopen is not
+entered. Independent reader
+[40628977472](https://github.com/edgepillar/syrius/actions/runs/40628977472),
+attempt one, job `122620621653`, verifies both original finite archives,
+source/run pins and cross-recorded manifest bindings. It preserves the
+incomplete checkpoint, path and pointer summaries and the producer failure.
+Control-flow progress supplies no missing positive binding receipt.
+
+A memory control invokes the actual `WindowsJob.close` method with a finite
+accounting/handle fixture. Normal closure records zero active members,
+`forced=False` and cleared handles, but the method returns `None`. Both
+copied-pointer and reopened-wallet callers assign this return to their forced
+flag and require an exact false value. Six direct-method regression cases
+produce eight failing subtests before the fix. No Windows API, process, SDK,
+wallet, node, filesystem fixture or network is executed by this control.
+
+The shared close method now returns its existing retained forced-cleanup
+flag after its unchanged effects. Both copied-wallet callers retain all their
+original guards. Remaining members or an unconfirmed count retain a true
+forced flag; a prior force cannot become normal later; repeated close retains
+its original result; exceptions still propagate without a positive receipt.
+No application-exit, Hive, input, file, cipher, source, quota or floor check is
+removed. Existing callers that observe the fields remain compatible.
+
+All 183 selected memory cases pass, including the six new close-contract
+cases, with all prior test bodies and assertions retained. The next combined
+Windows job requires 714 Python cases before SDK allocation, unchanged 281
+Dart cases and actual pointer/reopen/six-effect integration with one Flutter
+setup. This source correction does not establish native reopen, F06, capture
+preparation or any visual match. Earlier failures and UNKNOWN originals keep
+their original evidence and status.

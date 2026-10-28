@@ -328,6 +328,7 @@ class WindowsJob:
         return result
 
     def close(self):
+        """Close the owned handles and return the retained forced-cleanup flag."""
         if self.handle is not None:
             try:
                 self.active_at_close = self.active()
@@ -339,3 +340,4 @@ class WindowsJob:
         if self.application is not None:
             self.kernel.CloseHandle(self.application)
             self.application = None
+        return self.forced
