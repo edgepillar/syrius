@@ -7413,3 +7413,56 @@ Dart cases and actual pointer/reopen/six-effect integration with one Flutter
 setup. This source correction does not establish native reopen, F06, capture
 preparation or any visual match. Earlier failures and UNKNOWN originals keep
 their original evidence and status.
+
+
+### Native close results and finite reopened-wallet failure stages
+
+At `396f8b1cd5566e100d98aa5ed880dfe76fb356b4`, native
+[40629899975](https://github.com/edgepillar/syrius/actions/runs/40629899975),
+attempt one, job `122623601374`, passes all 714 Python cases with three
+original platform skips, all 281 Dart cases and clean selected analysis.
+Original send, twelve tour checks, quiescence and normal required-actor
+closure pass. The report reaches incomplete reopen; its failing substep is
+unknown. Independent reader
+[40631641773](https://github.com/edgepillar/syrius/actions/runs/40631641773),
+attempt one, job `122629143638`, verifies both finite original archives and
+source/run/cross-manifest bindings. It preserves the producer failure and
+incomplete checkpoint/path/pointer/reopen summaries. Source control flow
+requires the pointer call to have returned before reopen is entered; this
+inference supplies no missing positive binding receipt.
+
+Windows documents a zero [CloseHandle result](https://learn.microsoft.com/en-us/windows/win32/api/handleapi/nf-handleapi-closehandle)
+as failure. The wrapper ignored that result for both its owned job and
+application handles. Three direct-method memory cases reproduce four failing
+subtests before the guard. Both closes now require a nonzero result. Failure
+retains the original handle and raises fixed `CLOSE_UNCONFIRMED`; a later
+empty close cannot clear the retained forced status. All normal close effects
+remain, and exceptions still prevent a positive receipt. These memory-only
+controls execute no Windows API, process, SDK, wallet or node.
+
+A separate data-only diagnostic locates an active reopened-wallet failure.
+Parent phases distinguish inputs, reservation, original metadata retirement,
+node start/observation, original chain reads, application launch/binding,
+unlock, seed steps and ordinary closure. Child errors retain only their fixed
+phase and original line digest/byte count. Ordinary CLI output is ignored;
+known error output retains an existing category and digest without its text.
+Error kinds use fixed labels. Domain codes require the exact known exception
+class and its existing allowlist. Private exception text is never formatted.
+
+Only an incomplete active reopen may carry this diagnostic. A later failure
+cannot be attributed to an already completed call. Positive schemas and all
+original runtime, input, file, cipher, process-owner, source, quota, floor,
+retry and publication checks remain unchanged. A source-structure comparison
+removes only the data observations and recovers the identical original
+reopen/coordinator effects and guards. The native close checks add refusal
+paths while preserving normal effects. All earlier test bodies and assertions
+remain.
+
+Eight new diagnostic cases cover the actual child vocabulary, output bounds,
+privacy, finite error codes, retained first observations and refusal
+preservation. One inspection case retains the diagnostic without healing the
+producer failure. Together with the three close-result cases, all 195
+selected memory controls pass. The next combined Windows job requires all
+726 Python cases before SDK allocation, unchanged 281 Dart cases and actual
+pointer/reopen/six-effect integration with one Flutter setup. F06, nineteen
+capture preparations, fixture acceptance and all 94 visual matches stay open.

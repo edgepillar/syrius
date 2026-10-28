@@ -4,6 +4,7 @@ import json
 import hashlib
 import io
 from pathlib import Path, PureWindowsPath
+import re
 import tempfile
 import time
 import unittest
@@ -99,6 +100,131 @@ class PolicyTests(unittest.TestCase):
                     {}, {}, Path('/checkpoint'), lambda: True, lambda: 0)
         launch.assert_not_called()
         discover.assert_not_called()
+
+
+class ReopenDiagnosticTests(unittest.TestCase):
+    def trace(self, raw=b'CI_REOPEN_ERROR:unlock\r\n'):
+        trace = restored.ReopenDiagnostic()
+        trace.at('unlock_and_observe')
+        trace.observe_line(raw)
+        return trace
+
+    def test_child_phases_match_the_actual_entry_and_ordered_seed_recipes(self):
+        source = Path('harness/bin/ci_wallet_reopen.dart').read_text()
+        phases = set(re.findall(r"phase = '([a-z_]+)'", source))
+        phases.update('seed_' + name for name in restored.seeds.IDS)
+        self.assertEqual(set(restored.CHILD_PHASES), phases)
+        for phase in phases:
+            raw = ('CI_REOPEN_ERROR:' + phase + '\r\n').encode()
+            value = self.trace(raw).snapshot()
+            self.assertEqual(value['child_phase'], phase)
+            self.assertEqual(value['output'], dict(code='REOPEN_CHILD_REFUSED',
+                bytes=len(raw), sha256=hashlib.sha256(raw).hexdigest()))
+
+    def test_ordinary_output_is_ignored_and_error_text_is_only_classified_and_hashed(self):
+        trace = restored.ReopenDiagnostic()
+        trace.observe_line(b'started an isolated fixture\n')
+        self.assertIsNone(trace.snapshot()['output'])
+        raw = b'Unhandled exception: synthetic private password and path\n'
+        trace.observe_line(raw)
+        value = trace.snapshot()
+        self.assertEqual(value['output']['code'], 'UNHANDLED_EXCEPTION')
+        self.assertEqual(value['output']['sha256'], hashlib.sha256(raw).hexdigest())
+        self.assertIsNone(value['child_phase'])
+        self.assertNotIn('private', json.dumps(value))
+        self.assertNotIn('password', json.dumps(value))
+
+    def test_foreign_markers_fields_coercions_and_unknown_vocabulary_are_refused(self):
+        for raw in (b'CI_REOPEN_ERROR:private\n',
+                    b'CI_REOPEN_ERROR:unlock:private\n'):
+            value = self.trace(raw).snapshot()
+            self.assertIsNone(value['child_phase'])
+            self.assertEqual(value['output']['code'], 'UNCLASSIFIED_OUTPUT')
+        original = self.trace().snapshot()
+        changes = [dict(original, private='fixture'), dict(original, schema=True),
+            dict(original, phase='private'), dict(original, child_phase='private'),
+            dict(original, error='private'), dict(original, code='private'),
+            dict(original, output=dict(original['output'], bytes=True)),
+            dict(original, output=dict(original['output'], sha256='private')),
+            dict(original, output=dict(original['output'], raw='private'))]
+        for value in changes:
+            with self.subTest(fields=len(value)), self.assertRaises(restored.checkpoint.Refused):
+                restored.diagnostic_projection(value)
+
+    def test_error_categories_never_format_the_original_exception(self):
+        class Unformattable(Exception):
+            def __str__(self):
+                raise AssertionError('private error must not be formatted')
+        for error, expected in (
+                (restored.checkpoint.Refused(), 'CHECKPOINT_REFUSED'),
+                (TypeError('private'), 'TYPE_ERROR'),
+                (KeyError('private'), 'KEY_ERROR'),
+                (OSError('private'), 'OS_ERROR'),
+                (ValueError('private'), 'VALUE_ERROR'),
+                (KeyboardInterrupt('private'), 'INTERRUPTED'),
+                (Unformattable('private'), 'OTHER_ERROR')):
+            trace = restored.ReopenDiagnostic()
+            trace.failure(error)
+            self.assertEqual(trace.snapshot()['error'], expected)
+            self.assertIsNone(trace.snapshot()['code'])
+            self.assertNotIn('private', json.dumps(trace.snapshot()))
+
+    def test_domain_codes_require_the_exact_known_exception_and_allowlist(self):
+        for error, category, code in (
+                (lab.Failure('PORT_CONFLICT'), 'LAB_REFUSED', 'PORT_CONFLICT'),
+                (restored.debug.ProcessRefused('CLOSE_UNCONFIRMED'),
+                 'PROCESS_REFUSED', 'CLOSE_UNCONFIRMED')):
+            trace = restored.ReopenDiagnostic()
+            trace.failure(error)
+            self.assertEqual(trace.snapshot()['error'], category)
+            self.assertEqual(trace.snapshot()['code'], code)
+        error = lab.Failure('PORT_CONFLICT')
+        error.code = 'private'
+        for error in (error, restored.debug.ProcessRefused('private')):
+            trace = restored.ReopenDiagnostic()
+            trace.failure(error)
+            self.assertIsNone(trace.snapshot()['code'])
+            self.assertNotIn('private', json.dumps(trace.snapshot()))
+        value = self.trace().snapshot()
+        with self.assertRaises(restored.checkpoint.Refused):
+            restored.diagnostic_projection(dict(value, error='OS_ERROR',
+                code='CLOSE_UNCONFIRMED'))
+
+    def test_first_output_error_and_snapshots_keep_their_original_values(self):
+        trace = self.trace()
+        first = trace.snapshot()
+        edited = trace.snapshot()
+        edited['output']['bytes'] = 1
+        trace.observe_line(b'CI_REOPEN_ERROR:finish\n')
+        self.assertEqual(trace.snapshot(), first)
+        trace.failure(TypeError('private'))
+        trace.failure(KeyError('private'))
+        self.assertEqual(trace.snapshot()['error'], 'TYPE_ERROR')
+        with self.assertRaises(restored.checkpoint.Refused):
+            trace.at('start')
+        self.assertEqual(trace.snapshot()['phase'], first['phase'])
+
+    def test_an_incomplete_diagnostic_cannot_supply_reopen_or_seed_authority(self):
+        value = dict(schema=1, scope=restored.SCOPE, complete=False,
+                     diagnostic=self.trace().snapshot())
+        self.assertFalse(restored.project(value)['complete'])
+        self.assertNotIn('seed_admitted', restored.project(value))
+        with self.assertRaises(restored.checkpoint.Refused):
+            restored.project(dict(value, wallet=wallet_observation()))
+        with self.assertRaises(restored.checkpoint.Refused):
+            restored.project(dict(completed(), diagnostic=value['diagnostic']))
+
+    def test_output_bounds_and_invalid_phase_never_enter_a_snapshot(self):
+        for raw in (None, '', b'', bytearray(b'fixture'),
+                    b'a' * (restored.debug.protocol.MAX_LINE + 2)):
+            trace = restored.ReopenDiagnostic()
+            with self.subTest(kind=type(raw).__name__), self.assertRaises(restored.checkpoint.Refused):
+                trace.observe_line(raw)
+            self.assertIsNone(trace.snapshot()['output'])
+        trace = restored.ReopenDiagnostic()
+        with self.assertRaises(restored.checkpoint.Refused):
+            trace.at('private')
+        self.assertEqual(trace.snapshot()['phase'], 'admission')
 
 
 class NoticeTests(unittest.TestCase):

@@ -1093,6 +1093,8 @@ def run(backend):
     reopen_anchor = None
     pointer_diagnostic = None
     pointer_binding_completed = False
+    reopen_diagnostic = None
+    reopen_completed = False
     try:
         source = repo / ".harness/ci-node-source"
         directories(source)
@@ -1271,13 +1273,16 @@ def run(backend):
                 pointer_binding_completed = True
                 report['wallet_reopen'] = dict(schema=1,
                     scope=restored_wallet_run.SCOPE, complete=False)
+                reopen_diagnostic = restored_wallet_run.ReopenDiagnostic()
                 report['wallet_reopen'] = restored_wallet_run.run(repo, parent, wallet,
-                    runtime, reopen_anchor, restored_roots, checkpoint_home, closed, measured)
+                    runtime, reopen_anchor, restored_roots, checkpoint_home, closed, measured,
+                    diagnostic=reopen_diagnostic)
+                reopen_completed = True
                 source_matches(commands, source, node_sha, node_tree, compiled_tree)
                 need(not commands.git(repo, 'status', '--porcelain=v1', '--untracked-files=all')
                      and measured() <= MAX_WORK,
                      'SOURCE_REFUSED')
-            except (Exception, KeyboardInterrupt):
+            except (Exception, KeyboardInterrupt) as error:
                 report['error_codes'].append('CHECKPOINT_REFUSED')
                 report['checkpoint'] = dict(schema=1,
                     scope='closed_owned_lab_checkpoint', complete=False)
@@ -1292,6 +1297,9 @@ def run(backend):
                 if 'wallet_reopen' in report:
                     report['wallet_reopen'] = dict(schema=1,
                         scope='owned_restored_lab_reopen', complete=False)
+                    if reopen_diagnostic is not None and not reopen_completed:
+                        reopen_diagnostic.failure(error)
+                        report['wallet_reopen']['diagnostic'] = reopen_diagnostic.snapshot()
         report['commands'] = [item.receipt for item in commands.originals]
         report["success"] = all(report["checks"].values()) and not report["error_codes"]
         report['wallet_tour_qualified'] = bool(wallet_tour and report['success']

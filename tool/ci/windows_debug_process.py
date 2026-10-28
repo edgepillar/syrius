@@ -335,9 +335,13 @@ class WindowsJob:
                 self.forced = self.forced or self.active_at_close != 0
             except ProcessRefused:
                 self.forced = True
-            self.kernel.CloseHandle(self.handle)
+            if not self.kernel.CloseHandle(self.handle):
+                self.forced = True
+                raise ProcessRefused("CLOSE_UNCONFIRMED")
             self.handle = None
         if self.application is not None:
-            self.kernel.CloseHandle(self.application)
+            if not self.kernel.CloseHandle(self.application):
+                self.forced = True
+                raise ProcessRefused("CLOSE_UNCONFIRMED")
             self.application = None
         return self.forced

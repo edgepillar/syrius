@@ -20,6 +20,106 @@ OUTPUT_CAP = 2 * 1024**2
 OBSERVATION = {'schema', 'scope', 'chain', 'members', 'selected_index',
     'membership_same', 'selection_saved', 'wallet_path_mapped',
     'original_send_confirmed', 'journal_consistent', 'observation_stable'}
+PHASES = ('admission', 'origin', 'roots', 'journals', 'ciphers', 'node_inputs',
+    'source', 'reservation', 'claim', 'retire_metadata', 'runtime', 'node_ports',
+    'node_start', 'node_observe', 'initial_chain', 'profile', 'launch', 'output',
+    'start', 'entry_metadata', 'application', 'transport', 'pre_input',
+    'unlock_and_observe', 'post_observe', 'seed_workflow', 'seed_journals',
+    'ordinary_close', 'finish', 'source_closed', 'close', 'output_close',
+    'transport_close', 'nodes_stop', 'post_close', 'complete_record', 'projection')
+CHILD_PHASES = ('gate', 'start', 'input', 'startup', 'unlock', 'observe',
+    'seed_admission', 'seed_stake', 'seed_fuse', 'seed_token', 'seed_deposit',
+    'seed_project', 'seed_fund-address', 'finish')
+OUTPUT_CODES = ('PUB_RESOLUTION', 'PUB_EXECUTABLE_BUILD', 'UNHANDLED_EXCEPTION',
+    'COMPILE_OR_USAGE_ERROR', 'VM_SERVICE_LISTENER', 'UNCLASSIFIED_OUTPUT',
+    'REOPEN_CHILD_REFUSED')
+ERRORS = ('CHECKPOINT_REFUSED', 'LAB_REFUSED', 'PROCESS_REFUSED', 'TYPE_ERROR',
+    'KEY_ERROR', 'OS_ERROR', 'VALUE_ERROR', 'INTERRUPTED', 'OTHER_ERROR')
+
+
+def diagnostic_projection(value):
+    """Retain a finite active failure location without private error text."""
+    checkpoint.need(type(value) is dict and set(value) ==
+        {'schema', 'scope', 'phase', 'child_phase', 'output', 'error', 'code'}
+        and type(value['schema']) is int and value['schema'] == 1
+        and value['scope'] == 'owned_restored_lab_reopen_diagnostic'
+        and type(value['phase']) is str and value['phase'] in PHASES
+        and (value['child_phase'] is None or type(value['child_phase']) is str
+             and value['child_phase'] in CHILD_PHASES)
+        and (value['error'] is None or type(value['error']) is str
+             and value['error'] in ERRORS))
+    output = value['output']
+    if output is not None:
+        checkpoint.need(type(output) is dict and set(output) == {'code', 'bytes', 'sha256'}
+            and type(output['code']) is str and output['code'] in OUTPUT_CODES
+            and type(output['bytes']) is int and 0 < output['bytes'] <= debug.protocol.MAX_LINE + 1
+            and type(output['sha256']) is str and re.fullmatch('[a-f0-9]{64}', output['sha256']))
+    checkpoint.need((value['child_phase'] is not None) ==
+        (output is not None and output['code'] == 'REOPEN_CHILD_REFUSED'))
+    if value['code'] is not None:
+        from . import hosted_chain321 as lab
+        allowed = {'LAB_REFUSED': lab.CODES, 'PROCESS_REFUSED': debug.CODES}
+        checkpoint.need(type(value['code']) is str and value['error'] in allowed
+            and value['code'] in allowed[value['error']])
+    return dict(value, output=None if output is None else dict(output))
+
+
+class ReopenDiagnostic:
+    """Data-only observation; it supplies no process or wallet authority."""
+
+    def __init__(self):
+        self.phase = 'admission'
+        self.child_phase = self.output = self.error = self.code = None
+
+    def at(self, phase):
+        checkpoint.need(self.error is None and type(phase) is str and phase in PHASES)
+        self.phase = phase
+
+    def observe_line(self, raw):
+        checkpoint.need(type(raw) is bytes and 0 < len(raw) <= debug.protocol.MAX_LINE + 1)
+        if self.output is not None:
+            return
+        line = raw.replace(b'\r\n', b'\n')
+        match = re.fullmatch(rb'CI_REOPEN_ERROR:([a-z_-]+)\n', line)
+        observation = debug.probe_line_observation(raw)
+        if match is not None and match[1].decode('ascii') in CHILD_PHASES:
+            self.child_phase = match[1].decode('ascii')
+            observation['code'] = 'REOPEN_CHILD_REFUSED'
+        if (line.startswith(b'CI_REOPEN_ERROR:') or
+                observation['code'] != 'UNCLASSIFIED_OUTPUT'):
+            self.output = observation
+
+    def failure(self, error):
+        if self.error is not None:
+            return
+        from . import hosted_chain321 as lab
+        if type(error) is checkpoint.Refused:
+            self.error = 'CHECKPOINT_REFUSED'
+        elif type(error) is lab.Failure:
+            self.error = 'LAB_REFUSED'
+            self.code = error.code if type(error.code) is str and error.code in lab.CODES else None
+        elif type(error) is debug.ProcessRefused:
+            self.error = 'PROCESS_REFUSED'
+            code = error.args[0] if len(error.args) == 1 else None
+            self.code = code if type(code) is str and code in debug.CODES else None
+        elif type(error) is TypeError:
+            self.error = 'TYPE_ERROR'
+        elif type(error) is KeyError:
+            self.error = 'KEY_ERROR'
+        elif isinstance(error, OSError):
+            self.error = 'OS_ERROR'
+        elif type(error) is ValueError:
+            self.error = 'VALUE_ERROR'
+        elif type(error) is KeyboardInterrupt:
+            self.error = 'INTERRUPTED'
+        else:
+            self.error = 'OTHER_ERROR'
+
+    def snapshot(self):
+        return diagnostic_projection(dict(schema=1,
+            scope='owned_restored_lab_reopen_diagnostic', phase=self.phase,
+            child_phase=self.child_phase, output=self.output,
+            error=self.error, code=self.code))
 
 
 def wallet_observation(value):
@@ -75,8 +175,9 @@ def project(value):
         and type(value['schema']) is int and value['schema'] == 1
         and value['scope'] == SCOPE and type(value['complete']) is bool)
     if not value['complete']:
-        checkpoint.need(set(value) == common)
-        return dict(value)
+        checkpoint.need(set(value) in (common, common | {'diagnostic'}))
+        return (dict(value, diagnostic=diagnostic_projection(value['diagnostic']))
+                if 'diagnostic' in value else dict(value))
     seed_fields = {'seed_workflow'} if 'seed_workflow' in value else set()
     checkpoint.need(set(value) == common | seed_fields | {'claim_once', 'originals_closed',
         'chain_continuity', 'journal_unchanged', 'cipher_unchanged', 'wallet',
@@ -220,8 +321,11 @@ def retire_metadata(original, copied, retained, closed, deadline):
     return value, (original_id, original_sha), (copied_id, original_sha)
 
 
-def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, measure):
+def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, measure, *, diagnostic=None):
     from . import hosted_chain321 as lab, windows_wallet_tour as tour
+    trace = ReopenDiagnostic() if diagnostic is None else diagnostic
+    checkpoint.need(type(trace) is ReopenDiagnostic)
+    trace.at('admission')
     parent, source = debug.entry.require_ci(parent, None, platform=os.name)
     checkpoint.need(parent.get('GITHUB_EVENT_NAME') == 'workflow_dispatch'
         and parent.get('SYRIUS_HOSTED_RUNNER') == 'github-hosted'
@@ -229,7 +333,9 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
         and anchor.owner is original_runtime and closed() is True
         and lab.checkpoint_closed(original_runtime, wallet) is True
         and set(restored) == set(checkpoint.ROLES))
+    trace.at('origin')
     origin = wallet.restoration_origin()
+    trace.at('roots')
     home, repo = Path(home), Path(repo)
     copied_home = Path(restored['wallet_profile'])
     checkpoint.need(all(Path(restored[role]) == home / 'restored' / role
@@ -242,6 +348,7 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
     for root in (wallet.home, *restored.values()):
         pins.update(checkpoint.ancestors(Path(root)))
     snapshot = {}
+    trace.at('journals')
     for name in ('seed-lab-send-attempt.json', 'seed-lab-send-accepted.json',
                  'seed-lab-send-confirmed.json'):
         for path in (wallet.home / name, copied_home / name):
@@ -250,12 +357,14 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
             snapshot[path] = identity, checkpoint.digest_file(path, identity, deadline)
         checkpoint.need(snapshot[wallet.home / name][1] == snapshot[copied_home / name][1]
             and snapshot[wallet.home / name][0][:2] != snapshot[copied_home / name][0][:2])
+    trace.at('ciphers')
     for path in (Path(origin.wallet), Path(copied_wallet)):
         pins.update(checkpoint.ancestors(path.parent))
         identity = checkpoint.file_identity(path.lstat())
         checkpoint.need(0 < identity[2] <= 64 * 1024)
         snapshot[path] = identity, checkpoint.digest_file(path, identity, deadline)
     checkpoint.need(snapshot[Path(origin.wallet)][1] == snapshot[Path(copied_wallet)][1])
+    trace.at('node_inputs')
     for role in checkpoint.ROLES[1:]:
         for name in ('config.json', 'genesis.json', 'network-private-key'):
             path = Path(restored[role]) / name
@@ -285,11 +394,14 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
         checkpoint.need(type(used) is int and 0 <= used <= checkpoint.CAP - OUTPUT_CAP - 64 * 1024
                         and shutil.disk_usage(repo).free >= checkpoint.FLOOR + OUTPUT_CAP + 64 * 1024)
 
+    trace.at('source')
     debug.bounded.verify_source(repo, source, parent)
+    trace.at('reservation')
     tree = debug.entry.source_tree(repo, parent)
     sample()
     old_metadata = copied_home / 'instance.json'
     retained_metadata = copied_home / 'instance-before-reopen.json'
+    trace.at('claim')
     wallet.claim_reopen()
     claim = home / 'wallet-reopen-claim.json'
     transport_record = home / 'wallet-reopen-transport.json'
@@ -304,10 +416,12 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
         anchor_height=anchor.frontier.height, anchor_hash=anchor.frontier.hash))
     checkpoint.write_record(claim, claim_raw, guard=guard)
     snapshot[claim] = (checkpoint.file_identity(claim.lstat()), hashlib.sha256(claim_raw).hexdigest())
+    trace.at('retire_metadata')
     prior, original_meta_pin, retained_meta_pin = retire_metadata(
         wallet.home / 'instance.json', old_metadata, retained_metadata, guard, deadline)
     snapshot[wallet.home / 'instance.json'] = original_meta_pin
     snapshot[retained_metadata] = retained_meta_pin
+    trace.at('runtime')
     runtime = lab.Native(original_runtime.commands, original_runtime.binary,
         {role: Path(restored[role]) for role in lab.ROLES}, stack_debug=original_runtime.stack_debug)
     original = lines = job = transport = None
@@ -321,17 +435,23 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
         application_exit=None, entry_exit=None, output=None, job_empty=False,
         forced=False, wallet=None, seed_workflow=None, nodes=[])
     try:
+        trace.at('node_ports')
         lab.preflight_ports('native', stack_debug=original_runtime.stack_debug)
+        trace.at('node_start')
         runtime.start()
+        trace.at('node_observe')
         lab.observe(runtime, home, measure=sample)
+        trace.at('initial_chain')
         chain_read(runtime, anchor)
         sample()
+        trace.at('profile')
         env = debug.profile_environment(parent, wallet._paths[3], 1, secrets.token_hex(16))
         env.update(SYRIUS_CI_WALLET_REOPEN='true', SYRIUS_CI_REOPEN_INSTANCE=copied_home.name,
             GITHUB_EVENT_NAME=parent['GITHUB_EVENT_NAME'],
             GITHUB_REPOSITORY=parent['GITHUB_REPOSITORY'],
             SYRIUS_HOSTED_RUNNER=parent['SYRIUS_HOSTED_RUNNER'])
         dart, _ = debug.sdk(parent)
+        trace.at('launch')
         job = debug.WindowsJob()
         original = subprocess.Popen([str(dart), '--disable-dart-dev',
             '--packages=' + str(repo / '.dart_tool/package_config.json'),
@@ -339,6 +459,7 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=0)
         job.assign(original)
         checkpoint.need(guard())
+        trace.at('output')
         flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, 'O_BINARY', 0)
         descriptor = os.open(private_output, flags | getattr(os, 'O_NOFOLLOW', 0), 0o600)
         output_file = os.fdopen(descriptor, 'wb')
@@ -363,6 +484,7 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
                 if raw is None:
                     checkpoint.need(original.poll() is None or not lines.complete)
                     continue
+                trace.observe_line(raw)
                 line = raw.rstrip(b'\r\n')
                 checkpoint.need(not line.startswith(b'CI_REOPEN_ERROR:'))
                 if marker == b'CI_REOPEN_DONE' and line.startswith(marker + b':'):
@@ -374,9 +496,11 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
                 checkpoint.need(not line.startswith((b'CI_REOPEN_', b'CI_SEED_')))
             raise checkpoint.Refused()
 
+        trace.at('start')
         record['phase'] = 'start'
         write(b'START\n')
         wait(b'CI_REOPEN_READY')
+        trace.at('entry_metadata')
         metadata = debug.bounded.plain(old_metadata)
         checkpoint.need(0 < metadata.st_size <= 4096)
         private = json.loads(bounded_read(old_metadata, 4096))
@@ -386,7 +510,9 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
             and re.fullmatch('[a-f0-9]{32}', token) and token != prior['token']
             and private.get('mode') == 'release' and private.get('harnessMode') == 'wallet'
             and private.get('presentationScreen') is None)
+        trace.at('application')
         job.bind_application(pid, wallet._paths[1] / 'release/syrius.exe')
+        trace.at('transport')
         transport = debug.bounded.LoopbackTransport(port, 32768)
         reply = transport.exchange(dict(cmd='ping'), token, 5)
         body = json.loads(reply.body)
@@ -394,13 +520,17 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
             and body.get('ok') is True and body.get('booted') is True
             and type(body.get('pid')) is int and body['pid'] == pid
             and body.get('harnessMode') == 'wallet')
+        trace.at('pre_input')
         chain_read(runtime, anchor)
         unchanged()
+        trace.at('unlock_and_observe')
         record['phase'] = 'unlock_and_observe'
         write(checkpoint.encode(wallet.reopen_input(copied_home)))
         record['wallet'] = wait(b'CI_REOPEN_DONE')
+        trace.at('post_observe')
         unchanged()
         chain_read(runtime, anchor)
+        trace.at('seed_workflow')
         record['phase'] = 'seed_workflow'
         chosen = seeds.counterparty(json.loads(bounded_read(
             Path(restored['rpc']) / 'genesis.json', 1024**2)), origin.members)
@@ -408,6 +538,7 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
         write(checkpoint.encode(dict(action='SEED', counterparty=chosen)))
         seed_receipts = wait(b'CI_SEED_DONE')
         unchanged()
+        trace.at('seed_journals')
         for row in seed_receipts['receipts']:
             for state in ('attempt', 'accepted', 'confirmed'):
                 path = copied_home / ('seed-' + row['recipe'] + '-' + state + '.json')
@@ -420,15 +551,18 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
         record['seed_workflow'] = seeds.completed(seed_receipts)
         unchanged()
         chain_read(runtime, anchor)
+        trace.at('ordinary_close')
         record['phase'] = 'ordinary_close'
         close_attempted = True
         debug.request_close(transport, token)
         record['application_exit'] = job.application_exit()
         checkpoint.need(type(record['application_exit']) is int and record['application_exit'] == 0)
+        trace.at('finish')
         write(b'FINISH\n')
         record['entry_exit'] = original.wait(timeout=15)
         checkpoint.need(type(record['entry_exit']) is int and record['entry_exit'] == 0
             and lines.finish() and lines.take(0) is None and job.active() == 0)
+        trace.at('source_closed')
         unchanged()
         debug.bounded.verify_source(repo, source, parent)
         checkpoint.need(debug.entry.source_tree(repo, parent) == tree)
@@ -443,6 +577,8 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
                 record['complete'] = False
         if job is not None:
             try:
+                if record['complete']:
+                    trace.at('close')
                 record['forced'] = job.close()
             except Exception:
                 record['forced'] = None
@@ -464,6 +600,8 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
                 record['complete'] = False
         if output_file is not None:
             try:
+                if record['complete'] and record['forced'] is False:
+                    trace.at('output_close')
                 output_file.flush()
                 os.fsync(output_file.fileno())
                 identity = checkpoint.file_identity(os.fstat(output_file.fileno()))
@@ -489,10 +627,14 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
                     record['complete'] = False
         if transport is not None:
             try:
+                if record['complete'] and record['forced'] is False:
+                    trace.at('transport_close')
                 transport.close()
             except Exception:
                 record['complete'] = False
         try:
+            if record['complete'] and record['forced'] is False:
+                trace.at('nodes_stop')
             runtime.stop()
         except Exception:
             record['complete'] = False
@@ -507,10 +649,13 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
             guard=lambda: all(checkpoint.directory(path) == identity
                               for path, identity in report_pins.items()))
     checkpoint.need(record['complete'])
+    trace.at('post_close')
     unchanged()
     sample()
     raw = checkpoint.encode(record)
+    trace.at('complete_record')
     checkpoint.write_record(complete, raw, guard=guard)
+    trace.at('projection')
     return project(dict(schema=1, scope=SCOPE, complete=True, claim_once=True,
         originals_closed=True, chain_continuity=True, journal_unchanged=True,
         cipher_unchanged=True, wallet=record['wallet'],

@@ -547,6 +547,63 @@ class WindowsJobCloseTests(unittest.TestCase):
         self.assertEqual(job.kernel.closed, [91])
 
 
+class WindowsJobCloseRefusalTests(unittest.TestCase):
+    class Kernel:
+        def __init__(self, refused):
+            self.refused = refused
+            self.queries = []
+            self.closed = []
+
+        def QueryInformationJobObject(self, handle, kind, value, size, other):
+            self.queries.append((handle, kind))
+            value._obj.active = 0
+            return True
+
+        def CloseHandle(self, handle):
+            self.closed.append(handle)
+            return handle != self.refused
+
+    def job(self, refused):
+        job = owned.WindowsJob.__new__(owned.WindowsJob)
+        job.handle, job.application = 91, 92
+        job.forced, job.active_at_close = False, None
+        job.kernel = self.Kernel(refused)
+        return job
+
+    def test_failed_job_handle_close_keeps_original_handles_unconfirmed(self):
+        job = self.job(91)
+        with self.assertRaisesRegex(owned.ProcessRefused, '^CLOSE_UNCONFIRMED$'):
+            job.close()
+        self.assertEqual(job.handle, 91)
+        self.assertEqual(job.application, 92)
+        self.assertIs(job.forced, True)
+        self.assertEqual(job.active_at_close, 0)
+        self.assertEqual(job.kernel.closed, [91])
+
+    def test_failed_application_handle_close_keeps_its_original_handle(self):
+        job = self.job(92)
+        with self.assertRaisesRegex(owned.ProcessRefused, '^CLOSE_UNCONFIRMED$'):
+            job.close()
+        self.assertIsNone(job.handle)
+        self.assertEqual(job.application, 92)
+        self.assertIs(job.forced, True)
+        self.assertEqual(job.active_at_close, 0)
+        self.assertEqual(job.kernel.closed, [91, 92])
+
+    def test_later_empty_close_cannot_heal_the_original_handle_refusal(self):
+        for refused in (91, 92):
+            job = self.job(refused)
+            with self.subTest(refused=refused):
+                with self.assertRaisesRegex(owned.ProcessRefused,
+                        '^CLOSE_UNCONFIRMED$'):
+                    job.close()
+                job.kernel.refused = None
+                self.assertIs(job.close(), True)
+                self.assertIs(job.forced, True)
+                self.assertIsNone(job.handle)
+                self.assertIsNone(job.application)
+
+
 class AnalysisAdmissionTests(unittest.TestCase):
     def analyze(self, raw=b'', code=0, *, incomplete=False):
         process = mock.Mock(stdout=io.BytesIO(raw), returncode=code)

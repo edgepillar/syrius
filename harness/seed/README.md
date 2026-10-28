@@ -282,3 +282,19 @@ effects. All caller, file, Hive, process, source, quota and floor checks remain.
 Six new direct-method cases fail before the fix; all 183 selected memory cases
 pass afterward. Current 714 Python/281 Dart and actual pointer/reopen/six-effect
 qualification remain pending. Earlier failures and UNKNOWN originals remain.
+
+At 396f8b1cd556, native 40629899975 and independent reader 40631641773
+retain all 714 Python/281 Dart gates, clean selected analysis and positive
+original wallet phases. Reopen is entered but incomplete; its failing substep
+is unknown. Conservative failed summaries supply no positive binding receipt.
+
+Both owned native handle closes now require a nonzero CloseHandle result.
+Failure retains the original handle, raises fixed CLOSE_UNCONFIRMED and keeps
+the forced status sticky. A data-only active reopen diagnostic additionally
+records finite stages, fixed error kinds/allowlisted codes and bounded output
+categories/digests. It never formats private errors or exports output text.
+All original reopen guards, inputs, effects and positive schemas remain, and
+a later failure cannot acquire a completed reopen diagnosis. Twelve new
+Python cases and all 195 selected memory cases pass. Current 726 Python/281
+Dart and actual pointer/reopen/six-effect qualification remain pending.
+Earlier failures, UNKNOWN originals and all visual/capture gaps remain.
