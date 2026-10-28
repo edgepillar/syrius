@@ -10,6 +10,17 @@ const Set<String> lockViewLifecycles = <String>{
   'resumed', 'inactive', 'hidden', 'paused', 'detached', 'unknown',
 };
 
+/// Original callback progress contains fixed labels and no input data.
+const Set<String> lockViewUnlockPhases = <String>{
+  'idle', 'entered', 'preflight_refused',
+  'attempt_unavailable', 'decrypt_requested', 'decrypt_returned',
+  'view_revoked', 'reset_requested', 'reset_returned',
+  'reset_refused', 'result_guard_refused', 'init_requested',
+  'init_returned', 'session_assigned', 'callback_requested',
+  'callback_returned', 'password_exception', 'ledger_exception',
+  'other_exception', 'authenticated_exception',
+};
+
 /// Unavailable owners remain explicit and never become authentication.
 const Set<String> lockViewStatuses = <String>{
   'observed', 'unavailable', 'replaced', 'retired',
@@ -33,8 +44,11 @@ Map<String, Object?>? projectLockView(Object? value) {
   final Object? raw = value['view'];
   Map<String, Object?>? view;
   if (value['status'] == 'observed') {
+    final bool progress = raw is Map<String, dynamic> &&
+        raw.containsKey('unlock_phase');
     final Set<String> fields = <String>{
       ...lockViewBooleanFields, 'password_failures', 'lifecycle',
+      if (progress) ...<String>{'unlock_phase', 'unlock_requests'},
     };
     if (value['owner_same'] != true || raw is! Map<String, dynamic> ||
         raw.length != fields.length || !raw.keys.toSet().containsAll(fields) ||
@@ -43,7 +57,12 @@ Map<String, Object?>? projectLockView(Object? value) {
         (raw['password_failures'] as int) < 0 ||
         (raw['password_failures'] as int) > 255 ||
         raw['lifecycle'] is! String ||
-        !lockViewLifecycles.contains(raw['lifecycle'])) {
+        !lockViewLifecycles.contains(raw['lifecycle']) ||
+        (progress && (raw['unlock_phase'] is! String ||
+            !lockViewUnlockPhases.contains(raw['unlock_phase']) ||
+            raw['unlock_requests'] is! int ||
+            (raw['unlock_requests'] as int) < 0 ||
+            (raw['unlock_requests'] as int) > 255))) {
       return null;
     }
     view = Map<String, Object?>.from(raw);

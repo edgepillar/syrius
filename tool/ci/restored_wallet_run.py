@@ -55,6 +55,7 @@ LOCK_VIEW_BOOLEANS = frozenset(('mounted', 'current', 'window_active', 'visible'
 LOCK_VIEW_LIFECYCLES = frozenset(('resumed', 'inactive', 'hidden', 'paused',
     'detached', 'unknown'))
 LOCK_VIEW_STATUSES = frozenset(('observed', 'unavailable', 'replaced', 'retired'))
+LOCK_VIEW_UNLOCK_PHASES = frozenset(('idle', 'entered', 'preflight_refused', 'attempt_unavailable', 'decrypt_requested', 'decrypt_returned', 'view_revoked', 'reset_requested', 'reset_returned', 'reset_refused', 'result_guard_refused', 'init_requested', 'init_returned', 'session_assigned', 'callback_requested', 'callback_returned', 'password_exception', 'ledger_exception', 'other_exception', 'authenticated_exception'))
 
 
 def lock_view_projection(value):
@@ -67,12 +68,19 @@ def lock_view_projection(value):
     view = value['view']
     if value['status'] == 'observed':
         checkpoint.need(value['owner_same'] is True and type(view) is dict
-            and set(view) == LOCK_VIEW_BOOLEANS | {'password_failures', 'lifecycle'}
+            and set(view) in (LOCK_VIEW_BOOLEANS | {'password_failures', 'lifecycle'},
+                LOCK_VIEW_BOOLEANS | {'password_failures', 'lifecycle',
+                                     'unlock_phase', 'unlock_requests'})
             and all(type(view[key]) is bool for key in LOCK_VIEW_BOOLEANS)
             and type(view['password_failures']) is int
             and 0 <= view['password_failures'] <= 255
             and type(view['lifecycle']) is str
             and view['lifecycle'] in LOCK_VIEW_LIFECYCLES)
+        if 'unlock_phase' in view:
+            checkpoint.need(type(view['unlock_phase']) is str
+                and view['unlock_phase'] in LOCK_VIEW_UNLOCK_PHASES
+                and type(view['unlock_requests']) is int
+                and 0 <= view['unlock_requests'] <= 255)
     else:
         checkpoint.need(value['owner_same'] is False and view is None)
     return dict(value, view=None if view is None else dict(view))

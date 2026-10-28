@@ -6,7 +6,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
+import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/entry_capture_source.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/lock_card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/lock_tab_child.dart';
@@ -55,6 +57,21 @@ Future<Map<String, Object?>> _read(HarnessAgent agent, String action) async {
   return value;
 }
 
+Future<void> _settleCommand(
+  WidgetTester tester,
+  Future<Object?> command,
+) async {
+  final EntryCaptureCompletion original = EntryCaptureCompletion(command);
+  for (int i = 0; i < 300 &&
+      original.status == EntryCaptureStatus.pending; i++) {
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 10)),
+    );
+    await tester.pump(const Duration(milliseconds: 40));
+  }
+  expect(original.status, EntryCaptureStatus.succeeded);
+}
+
 void main() {
   const MethodChannel window = MethodChannel('window_manager');
 
@@ -99,6 +116,8 @@ void main() {
     expect(view['current'], isTrue);
     expect(view['busy'], isFalse);
     expect(view['password_failures'], 0);
+    expect(view['unlock_phase'], 'idle');
+    expect(view['unlock_requests'], 0);
     final bool frameBefore = tester.binding.hasScheduledFrame;
     for (int i = 0; i < 3; i++) {
       final Map<String, Object?> read = await _read(agent, 'observe');
@@ -159,4 +178,79 @@ void main() {
     expect((await _read(agent, 'observe'))['status'], 'retired');
     expect((await _read(agent, 'bind'))['status'], 'retired');
   });
+  testWidgets('original empty-input guard records a request without opening',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1280, 780);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final ValueNotifier<int> mode = ValueNotifier<int>(0);
+    addTearDown(() async {
+      await tester.pumpWidget(const SizedBox.shrink());
+      mode.dispose();
+    });
+    await tester.pumpWidget(_host(mode));
+    await tester.pump();
+    final HarnessAgent agent = HarnessAgent.forTest();
+    await _read(agent, 'bind');
+    final LockCard card = tester.widget<LockCard>(find.byType(LockCard));
+    expect(card.passwordController.text, isEmpty);
+    final bool frameBefore = tester.binding.hasScheduledFrame;
+    card.onUnlock();
+    final Map<String, Object?> observed = await _read(agent, 'observe');
+    final Map<String, Object?> view = Map<String, Object?>.from(
+      observed['view']! as Map<String, Object?>,
+    );
+    expect(view['unlock_phase'], 'preflight_refused');
+    expect(view['unlock_requests'], 1);
+    expect(view['busy'], isFalse);
+    expect(view['has_error_message'], isFalse);
+    expect(view['attempt_storage_failed'], isFalse);
+    expect(tester.binding.hasScheduledFrame, frameBefore);
+    expect(jsonEncode(observed), isNot(contains('synthetic-private')));
+  });
+
+  testWidgets('genuine typed input and tap reach the original capture guard',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1280, 780);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final String? originalPath = kWalletPath;
+    kWalletPath = 'synthetic-private-directory/qualification.wallet';
+    expect(app.sharedPrefsService, isNull);
+    final ValueNotifier<int> mode = ValueNotifier<int>(0);
+    addTearDown(() async {
+      await tester.pumpWidget(const SizedBox.shrink());
+      kWalletPath = originalPath;
+      mode.dispose();
+    });
+    await tester.pumpWidget(_host(mode));
+    await tester.pump();
+    final HarnessAgent agent = HarnessAgent.forTest();
+    await _read(agent, 'bind');
+    await _settleCommand(tester, agent.commandForTest(<String, dynamic>{
+      'cmd': 'type', 'key': 'wallet_password_field',
+      'value': 'synthetic-private-password',
+    }));
+    Map<String, Object?> observed = await _read(agent, 'observe');
+    Map<String, Object?> view = Map<String, Object?>.from(
+      observed['view']! as Map<String, Object?>,
+    );
+    expect(view['unlock_phase'], 'idle');
+    expect(view['unlock_requests'], 0);
+    await _settleCommand(tester, agent.commandForTest(<String, dynamic>{
+      'cmd': 'tap', 'key': 'wallet_unlock_button',
+    }));
+    observed = await _read(agent, 'observe');
+    view = Map<String, Object?>.from(observed['view']! as Map<String, Object?>);
+    expect(view['unlock_phase'], 'attempt_unavailable');
+    expect(view['unlock_requests'], 1);
+    expect(view['attempt_storage_failed'], isTrue);
+    expect(view['busy'], isFalse);
+    expect(view['incorrect_password'], isFalse);
+    expect(jsonEncode(observed), isNot(contains('synthetic-private')));
+    expect(app.sharedPrefsService, isNull);
+  });
+
 }

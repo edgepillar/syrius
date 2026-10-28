@@ -48,7 +48,8 @@ Future<void> unlockAfterLockReset({
 /// A passive view of the genuine lock owner for bounded qualification.
 ///
 /// The observation contains fixed booleans, a bounded visible failure count
-/// and lifecycle only. It never reads input, wallet data or error text.
+/// lifecycle and fixed request progress. It never reads input, wallet data
+/// or error text.
 abstract interface class LockViewSource {
   /// Reads stored view state without callbacks, input or wallet access.
   Map<String, Object?> get lockViewSnapshot;
@@ -96,6 +97,8 @@ class _LockTabChildState extends State<LockTabChild>
   String? _errorToUser;
   int _passwordFailures = 0;
   int _epoch = 0;
+  String _unlockViewPhase = 'idle';
+  int _unlockViewRequests = 0;
   bool _visible = true;
   bool _windowActive = true;
   ModalRoute<dynamic>? _route;
@@ -132,6 +135,8 @@ class _LockTabChildState extends State<LockTabChild>
         'attempt_storage_failed': _attemptStorageFailed,
         'has_error_message': _errorToUser != null,
         'password_failures': _passwordFailures.clamp(0, 255),
+        'unlock_phase': _unlockViewPhase,
+        'unlock_requests': _unlockViewRequests,
         'lifecycle': WidgetsBinding.instance.lifecycleState?.name ?? 'unknown',
       });
 
@@ -243,11 +248,16 @@ class _LockTabChildState extends State<LockTabChild>
   }
 
   Future<void> _onActionButtonPressed() async {
+    if (_unlockViewRequests < 255) {
+      _unlockViewRequests++;
+    }
+    _unlockViewPhase = 'entered';
     if (!_current ||
         !(widget.startup?.interactive ?? true) ||
         _busy ||
         _attemptStorageFailed ||
         _passwordController.text.isEmpty) {
+      _unlockViewPhase = 'preflight_refused';
       return;
     }
     final int epoch = _epoch;
@@ -257,6 +267,7 @@ class _LockTabChildState extends State<LockTabChild>
       sourceIsCurrent: sourceIsCurrent,
     );
     if (attempt == null) {
+      _unlockViewPhase = 'attempt_unavailable';
       _showAttemptStorageFailure(incorrectPassword: false);
       return;
     }
@@ -280,14 +291,17 @@ class _LockTabChildState extends State<LockTabChild>
     });
     _passwordController.clear();
     try {
+      _unlockViewPhase = 'decrypt_requested';
       final WalletFile decrypted = await attempt.decrypt<WalletFile>(
         (String originalPath) => WalletUtils.decryptWalletFile(
           originalPath,
           password,
         ),
       );
+      _unlockViewPhase = 'decrypt_returned';
       decryptedFile = decrypted;
       if (!attempt.isCurrent) {
+        _unlockViewPhase = 'view_revoked';
         await attempt.fail(
           const WalletMaintenanceRefused('lock-view'),
           currentL10n.walletSettingsUnavailable,
@@ -295,14 +309,18 @@ class _LockTabChildState extends State<LockTabChild>
         );
         return;
       }
+      _unlockViewPhase = 'reset_requested';
       final WalletLockAttemptOutcome reset = await attempt.resetAfterDecrypt();
+      _unlockViewPhase = 'reset_returned';
       if (!reset.committed || reset.error != null) {
+        _unlockViewPhase = 'reset_refused';
         if (attempt.isCurrent) {
           _showAttemptStorageFailure(incorrectPassword: false);
         }
         return;
       }
       if (!attempt.isCurrent || decrypted.walletPath != attempt.path) {
+        _unlockViewPhase = 'result_guard_refused';
         return;
       }
       authenticated = true;
@@ -312,11 +330,13 @@ class _LockTabChildState extends State<LockTabChild>
           kWalletPath == attempt.path;
       if (initialization != null) {
         setState(() => _opening = true);
+        _unlockViewPhase = 'init_requested';
         await InitUtils.initWalletAfterDecryption(
           Crypto.digest(utf8.encode(password)),
           originalFile: decrypted,
           binding: initialization,
         );
+        _unlockViewPhase = 'init_returned';
         if (!openedIsCurrent()) return;
         if (balances != null &&
             sl.isRegistered<MultipleBalanceBloc>() &&
@@ -329,13 +349,16 @@ class _LockTabChildState extends State<LockTabChild>
         }
       } else {
         kWalletFile = decrypted;
+        _unlockViewPhase = 'session_assigned';
       }
       if (!openedIsCurrent()) return;
+      _unlockViewPhase = 'callback_requested';
       if (needsInit) {
         widget.afterInitCallback();
       } else {
         await widget.afterUnlockCallback(password);
       }
+      _unlockViewPhase = 'callback_returned';
       if (openedIsCurrent()) {
         setState(() {
           _incorrectPassword = false;
@@ -343,14 +366,19 @@ class _LockTabChildState extends State<LockTabChild>
         });
       }
     } on IncorrectPasswordException catch (error) {
+      _unlockViewPhase = 'password_exception';
       if (!authenticated) {
         await _onError(kIncorrectPasswordNotificationTitle, error, attempt);
       }
     } on LedgerError catch (error) {
+      _unlockViewPhase = 'ledger_exception';
       if (!authenticated) {
         await _onError('Ledger: ${error.toFriendlyString()}', error, attempt);
       }
     } on Object catch (error) {
+      _unlockViewPhase = authenticated
+          ? 'authenticated_exception'
+          : 'other_exception';
       if (!authenticated) {
         await _onError(kUnlockFailedNotificationTitle, error, attempt);
       } else if (sourceIsCurrent() &&

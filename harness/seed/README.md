@@ -880,3 +880,38 @@ commands, callbacks and assertions remain. Product/harness code and the
 for unchanged Python inputs; no extra local SDK/native test is run. Actual
 copied authentication, six effects and the failed original profile/password
 remain unqualified and unretried.
+
+
+## Original lock progress and baseline-only inspection
+
+Source148 focused 40757196779 passes 757 Python cases/three skips, all 323
+ordinary Dart cases and zero selected findings. Native83 40759392257 and
+independent 40761639128 qualify original send/tour/quiescence and normal
+required app/entry/five-node exits. Copied unlock retains UNLOCK_WAIT_REFUSED.
+Its same original post-refusal owner is current, visible, input-enabled,
+startup-interactive and idle, without password/error/storage-failure signs.
+This does not establish earlier callback execution or authentication.
+
+The candidate stores only bounded request count and fixed callback phases.
+It reads no input or error text and invokes no callback, wallet I/O or frame.
+Removing diagnostic writes reconstructs the complete original callback.
+Original input, attempt, signing, lifecycle, path and deadline guards remain.
+Legacy views remain legacy observations; rich fields must be paired and
+closed. Two genuine-owner controls cover empty-input refusal and the original
+typed-input/pointer route reaching an unavailable capture guard. They open no
+wallet and still need hosted execution.
+
+Baseline-only inspection requires the exact completed skipped entry with
+zero steps, preserves the actual baseline outcome and emits an explicitly
+unqualified entry summary without fetching an entry artifact. Malformed or
+mismatched jobs still refuse and false success cannot replace a failed test.
+All 261 pure-memory controls pass without native/network/scratch/store access.
+The next gate requires 763 Python cases/three skips and 325 ordinary or 327
+startup Dart cases with zero selected findings.
+
+Source148 full Windows 40760650691 remains separately source-bound and is
+still being observed. Its entry job is deliberately skipped. Four verified
+source144 images remain queued after six metadata preflight refusals, before
+any local task or transport. Approved small-archive limits, policy and floor
+remain. Copied reopen/six effects, nineteen preparations, ninety outputs,
+all 94 matches and earlier failure/UNKNOWN evidence remain open.

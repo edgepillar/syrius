@@ -276,9 +276,13 @@ def main():
         jobs = {}
         for name in ('Hosted Windows baseline', 'Ordinary Windows entry captures'):
             selected = [job for job in listing['jobs'] if job['name'] == name]
+            outcomes = (('success', 'failure', 'skipped')
+                        if name == 'Ordinary Windows entry captures' else ('success', 'failure'))
             archive.need(len(selected) == 1 and selected[0]['head_sha'] == head
                 and selected[0]['run_id'] == run_id and selected[0]['status'] == 'completed'
-                and selected[0]['conclusion'] in ('success', 'failure'))
+                and selected[0]['conclusion'] in outcomes)
+            if selected[0]['conclusion'] == 'skipped':
+                archive.need(selected[0].get('steps') == [])
             jobs[name] = selected[0]
         PHASE = 'baseline_log'
         job = jobs['Hosted Windows baseline']
@@ -289,6 +293,14 @@ def main():
         summary.update(original_job_id=job['id'], original_job_conclusion=job['conclusion'],
                        log_sha256=archive.sha(raw), log_bytes=len(raw), producer_sources_equal=True)
         emit('Hosted baseline inspection', summary)
+        entry_job = jobs['Ordinary Windows entry captures']
+        if entry_job['conclusion'] == 'skipped':
+            emit('Hosted entry not selected', dict(scope='retained_windows_entry_not_selected',
+                inspection_only=True, runtime_started=False, wallet_qualified=False,
+                source_head=head, source_tree=tree, source_run_id=run_id, source_attempt=1,
+                original_job_id=entry_job['id'], original_job_conclusion='skipped',
+                entry_qualified=False, entry_artifacts_read=0))
+            return 0
         PHASE = 'entry_artifact'
         listing = client.json('/actions/runs/' + text + '/artifacts?per_page=20')
         archive.need(listing['total_count'] == len(listing['artifacts']) <= 20)

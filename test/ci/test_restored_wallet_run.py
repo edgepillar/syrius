@@ -313,7 +313,8 @@ class ReopenDiagnosticTests(unittest.TestCase):
         for name, expected in (
                 ('lockViewBooleanFields', restored.LOCK_VIEW_BOOLEANS),
                 ('lockViewLifecycles', restored.LOCK_VIEW_LIFECYCLES),
-                ('lockViewStatuses', restored.LOCK_VIEW_STATUSES)):
+                ('lockViewStatuses', restored.LOCK_VIEW_STATUSES),
+                ('lockViewUnlockPhases', restored.LOCK_VIEW_UNLOCK_PHASES)):
             match = re.search(r'const Set<String> ' + name
                 + r' = <String>\{(.*?)\};', source, re.S)
             self.assertIsNotNone(match)
@@ -356,6 +357,46 @@ class ReopenDiagnosticTests(unittest.TestCase):
             result = self.trace(raw).snapshot()
             self.assertNotIn('child_failure', result)
             self.assertEqual(result['output']['code'], 'UNCLASSIFIED_OUTPUT')
+            self.assertEqual(result['output']['sha256'], hashlib.sha256(raw).hexdigest())
+            self.assertNotIn('private', json.dumps(result))
+
+    def test_paired_unlock_progress_never_completes_original_authentication(self):
+        for phase in restored.LOCK_VIEW_UNLOCK_PHASES:
+            for count in (0, 1, 255):
+                observation = lock_view_observation()
+                observation['view'].update(unlock_phase=phase, unlock_requests=count)
+                child = dict(schema=1, scope='owned_reopen_child_failure', phase='unlock',
+                    kind='HARNESS_REFUSED', code='UNLOCK_WAIT_REFUSED', recipe=None,
+                    lock_view=observation)
+                raw = b'CI_REOPEN_FAILURE:' + json.dumps(child).encode() + b'\n'
+                with self.subTest(phase=phase, count=count):
+                    trace = self.trace(raw).snapshot()
+                    self.assertEqual(trace['child_failure'], child)
+                    result = restored.project(dict(schema=1, scope=restored.SCOPE,
+                        complete=False, diagnostic=trace))
+                    self.assertFalse(result['complete'])
+                    self.assertNotIn('wallet', result)
+                    self.assertNotIn('seed_admitted', result)
+
+    def test_unknown_partial_or_private_unlock_progress_is_only_hashed(self):
+        changes = [dict(unlock_phase='idle'), dict(unlock_requests=1),
+            dict(unlock_phase='private', unlock_requests=1),
+            dict(unlock_phase='entered', unlock_requests=True),
+            dict(unlock_phase='entered', unlock_requests=-1),
+            dict(unlock_phase='entered', unlock_requests=256),
+            dict(unlock_phase='entered', unlock_requests='private'),
+            dict(unlock_phase='entered', unlock_requests=1, password='private')]
+        for change in changes:
+            observation = lock_view_observation()
+            observation['view'].update(change)
+            child = dict(schema=1, scope='owned_reopen_child_failure', phase='unlock',
+                kind='HARNESS_REFUSED', code='UNLOCK_WAIT_REFUSED', recipe=None,
+                lock_view=observation)
+            with self.subTest(fields=set(change)), self.assertRaises(restored.checkpoint.Refused):
+                restored.child_failure_projection(child)
+            raw = b'CI_REOPEN_FAILURE:' + json.dumps(child).encode() + b'\n'
+            result = self.trace(raw).snapshot()
+            self.assertNotIn('child_failure', result)
             self.assertEqual(result['output']['sha256'], hashlib.sha256(raw).hexdigest())
             self.assertNotIn('private', json.dumps(result))
 

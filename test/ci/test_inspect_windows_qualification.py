@@ -221,10 +221,22 @@ class WindowsQualificationTests(unittest.TestCase):
         self.assertEqual(json.loads(lines[0])['phase'], 'environment')
         self.assertEqual(lines[1], '::notice title=Hosted Windows inspection refusal::' + lines[0])
 
-    def test_complete_reader_uses_only_original_metadata_and_bounded_memory_reads(self):
+    def _read_original(self, *, entry_change=None, entry_count=1, failed_root=False,
+                       baseline_conclusion='success'):
         data = pixels()
         raw = package(entry_report(data), data)
-        original_log = log(baseline())
+        original_report = baseline()
+        if failed_root:
+            original_report['success'] = False
+            original_report['error_codes'] = ['TESTS_FAILED']
+            original_report['checks']['unit_widget_tests'] = False
+            original_report['checks']['debug_build'] = False
+            original_report['checks']['release_build'] = False
+            original_report['tests'].update(passed=49, failed=1, error_events=1,
+                                            terminal_success=False)
+            original_report['stages']['unit_widget_tests'].update(exit_code=1,
+                success=False, error_codes=[])
+        original_log = log(original_report)
         calls = []
 
         class Client:
@@ -241,9 +253,14 @@ class WindowsQualificationTests(unittest.TestCase):
                     return dict(type='file', path='tool/ci/' + name, encoding='base64', size=len(body),
                                 content=base64.b64encode(body).decode('ascii'))
                 if path == '/actions/runs/123/attempts/1/jobs?per_page=20':
-                    return dict(total_count=2, jobs=[dict(id=index, name=name, run_id=RUN,
-                        head_sha=HEAD, status='completed', conclusion='success') for index, name in
-                        ((5, 'Hosted Windows baseline'), (6, 'Ordinary Windows entry captures'))])
+                    original_baseline = dict(id=5, name='Hosted Windows baseline', run_id=RUN,
+                        head_sha=HEAD, status='completed', conclusion=baseline_conclusion)
+                    original_entry = dict(id=6, name='Ordinary Windows entry captures', run_id=RUN,
+                        head_sha=HEAD, status='completed', conclusion='success', steps=[])
+                    if entry_change is not None:
+                        original_entry.update(entry_change)
+                    jobs = [original_baseline] + [dict(original_entry) for _ in range(entry_count)]
+                    return dict(total_count=len(jobs), jobs=jobs)
                 if path == '/actions/runs/123/artifacts?per_page=20':
                     return dict(total_count=1, artifacts=[dict(id=7, expired=False,
                         name='windows-entry-capture-' + HEAD + '-123-1',
@@ -272,12 +289,70 @@ class WindowsQualificationTests(unittest.TestCase):
         with mock.patch.dict(inspect.os.environ, environment, clear=True), \
                 mock.patch.object(inspect.archive, 'Client', return_value=Client()), \
                 contextlib.redirect_stdout(io.StringIO()) as output:
-            self.assertEqual(inspect.main(), 0)
+            status = inspect.main()
+        return status, calls, output.getvalue()
+
+    def test_complete_reader_uses_only_original_metadata_and_bounded_memory_reads(self):
+        status, calls, output = self._read_original()
+        self.assertEqual(status, 0)
         self.assertEqual(len(calls), 8 + len(inspect.PRODUCERS))
-        notices = [line for line in output.getvalue().splitlines() if line.startswith('::notice')]
+        notices = [line for line in output.splitlines() if line.startswith('::notice')]
         self.assertEqual(len(notices), 2)
         self.assertTrue(all(len(line.partition('::')[2].encode()) < 3900 for line in notices))
-        self.assertNotIn('synthetic-private-context', output.getvalue())
+        self.assertNotIn('synthetic-private-context', output)
+
+    def test_baseline_only_reader_keeps_original_result_without_entry_transport(self):
+        status, calls, output = self._read_original(entry_change=dict(conclusion='skipped'))
+        self.assertEqual(status, 0)
+        self.assertEqual(len(calls), 5 + len(inspect.PRODUCERS))
+        self.assertFalse(any('/artifacts' in call for call in calls))
+        notices = [line for line in output.splitlines() if line.startswith('::notice')]
+        self.assertEqual(len(notices), 2)
+        self.assertTrue(notices[0].startswith('::notice title=Hosted baseline inspection::'))
+        self.assertTrue(notices[1].startswith('::notice title=Hosted entry not selected::'))
+        skipped = json.loads(notices[1].split('::', 2)[2])
+        self.assertEqual(skipped, dict(scope='retained_windows_entry_not_selected',
+            inspection_only=True, runtime_started=False, wallet_qualified=False,
+            source_head=HEAD, source_tree=TREE, source_run_id=RUN, source_attempt=1,
+            original_job_id=6, original_job_conclusion='skipped',
+            entry_qualified=False, entry_artifacts_read=0))
+        self.assertNotIn('synthetic-private-context', output)
+
+    def test_skipped_entry_requires_one_original_completed_source_bound_job(self):
+        for options in (dict(entry_count=0), dict(entry_count=2),
+                dict(entry_change=dict(conclusion='skipped', head_sha='c' * 40)),
+                dict(entry_change=dict(conclusion='skipped', run_id=RUN + 1)),
+                dict(entry_change=dict(conclusion='skipped', status='in_progress')),
+                dict(entry_change=dict(conclusion='skipped', steps=[dict(name='Started')]))):
+            with self.subTest(options=options):
+                status, calls, output = self._read_original(**options)
+            self.assertEqual(status, 1)
+            self.assertFalse(any(call.endswith('/logs') for call in calls))
+            self.assertEqual(json.loads(output.splitlines()[0])['phase'], 'job_metadata')
+            self.assertNotIn('::notice title=Hosted baseline inspection::', output)
+
+    def test_baseline_only_reader_preserves_the_original_failed_suite(self):
+        status, calls, output = self._read_original(entry_change=dict(conclusion='skipped'),
+            failed_root=True, baseline_conclusion='failure')
+        self.assertEqual(status, 0)
+        self.assertFalse(any('/artifacts' in call for call in calls))
+        original = json.loads(output.splitlines()[0])
+        self.assertFalse(original['artifact_reported_success'])
+        self.assertEqual(original['original_job_conclusion'], 'failure')
+        self.assertEqual(original['original_error_codes'], ['TESTS_FAILED'])
+        self.assertEqual(original['tests']['failed'], 1)
+        self.assertEqual(original['tests']['error_events'], 1)
+        self.assertFalse(original['tests']['terminal_success'])
+        self.assertFalse(original['original_checks']['unit_widget_tests'])
+
+    def test_baseline_only_reader_cannot_accept_a_false_success_job(self):
+        status, calls, output = self._read_original(entry_change=dict(conclusion='skipped'),
+            failed_root=True, baseline_conclusion='success')
+        self.assertEqual(status, 1)
+        self.assertFalse(any('/artifacts' in call for call in calls))
+        self.assertEqual(json.loads(output.splitlines()[0])['phase'], 'baseline_log')
+        self.assertNotIn('::notice title=Hosted baseline inspection::', output)
+        self.assertNotIn('::notice title=Hosted entry not selected::', output)
 
 
 if __name__ == '__main__':
