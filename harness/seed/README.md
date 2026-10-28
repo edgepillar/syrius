@@ -330,3 +330,11 @@ performs no Continue/import/publication. All 216 Python memory controls pass;
 734 Python/286 Dart and actual both-theme capture/reopen/six-effect
 qualification remain pending. Earlier failures, UNKNOWN originals and all
 94 visual matches remain open.
+
+Run 40640236144 at 7369542364cd passes all 734 Python cases/three original
+skips. Strict analysis refuses sixteen style infos before Dart/native work.
+The follow-up preserves all literal inputs, assertions, startup call order,
+gates and 734/286 counts while applying line wraps and test-only cascades.
+The prior 216 memory controls are reused with unchanged Python inputs; no
+local SDK or tests are repeated. Actual entry/reopen/six effects and all
+94 visual matches remain pending.

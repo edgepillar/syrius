@@ -7564,3 +7564,22 @@ Ordinary entry roots still exclude harness imports. This is a source closure
 check, not native fixture acceptance. F06, the original startup wait, all
 nineteen catalog preparations, current full-root qualification and all
 94 visual matches remain open.
+
+## Strict entry style follow-up
+
+At `7369542364cd`, run `40640236144` passes all 734 Python cases with
+three original platform skips. Selected analysis has zero errors, zero
+warnings and sixteen infos: thirteen overlong lines and three cascade
+suggestions in the new entry test/helper. The strict analysis failure skips
+the 286-case Dart gate and all native wallet/node allocation. This is not an
+integration failure or a successful entry preparation.
+
+The follow-up wraps those lines and applies the three test-only cascades.
+Literal input, assertion order and startup fixture call order are retained.
+No production guard, analysis selection/rule, case count, deadline or native
+behavior changes. The original entry tests remain unchanged. The previous
+216 passing memory controls are reused after every Python input is verified
+unchanged; no local tests or SDK are run again for formatting. Current clean
+selected analysis, 286 Dart cases, prepared entry capture and native reopen/
+six-effect qualification remain pending. Original style/startup/integration
+failures, UNKNOWN outcomes and all 94 visual matches remain open.

@@ -61,11 +61,12 @@ class _StartupState extends State<_Startup> {
           detached: _detached.future,
           cleanup: _cleanup.future,
           current: () => mounted && route.isCurrent,
-        )!;
-    receipt.beginInitialization();
+        )!
+        ..beginInitialization();
     final Future<void> initialization = Future<void>.value();
-    receipt.initializing(initialization);
-    receipt.retainSplashOperation(initialization);
+    receipt
+      ..initializing(initialization)
+      ..retainSplashOperation(initialization);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       receipt.requestingWelcome();
@@ -108,7 +109,8 @@ Future<EntryImportReceipt> _open(WidgetTester tester) async {
     WelcomeDestination.importWallet,
   );
   await tester.pump();
-  final EntryImportReceipt receipt = EntryCaptureRegistry.instance.latestImport!;
+  final EntryImportReceipt receipt =
+      EntryCaptureRegistry.instance.latestImport!;
   await _finishRoute(tester, receipt.route);
   expect(receipt.ready, isTrue);
   return receipt;
@@ -119,14 +121,14 @@ Future<void> _type(WidgetTester tester, String text) async {
     of: find.byKey(const Key('import_seed_field')),
     matching: find.byType(EditableText),
   );
-  final EditableTextState original = tester.state<EditableTextState>(editable);
-  original.userUpdateTextEditingValue(
-    TextEditingValue(
-      text: text,
-      selection: TextSelection.collapsed(offset: text.length),
-    ),
-    SelectionChangedCause.keyboard,
-  );
+  final EditableTextState original = tester.state<EditableTextState>(editable)
+    ..userUpdateTextEditingValue(
+      TextEditingValue(
+        text: text,
+        selection: TextSelection.collapsed(offset: text.length),
+      ),
+      SelectionChangedCause.keyboard,
+    );
   await tester.pump();
   expect(tester.state<EditableTextState>(editable), same(original));
 }
@@ -146,7 +148,8 @@ Future<void> _back(WidgetTester tester, EntryImportReceipt imported) async {
 
 void main() {
   testWidgets(
-    'original incomplete input retains its transition and never adopts a replacement',
+    'original incomplete input retains its transition '
+    'and never adopts a replacement',
     (WidgetTester tester) async {
       final EntryCaptureRegistry registry = EntryCaptureRegistry.instance
         ..observeHarnessEntry();
@@ -209,9 +212,12 @@ void main() {
       expect(() => view.seedController.addListener(() {}), throwsFlutterError);
 
       final EntryImportReceipt direct = await _open(tester);
-      final EntryImportDraftReceipt directDraft = direct.prepareIncompleteDraft()!;
-      tester.widget<ImportSurface>(find.byType(ImportSurface)).seedController.text =
-          EntryImportDraftReceipt.sample;
+      final EntryImportDraftReceipt directDraft =
+          direct.prepareIncompleteDraft()!;
+      tester
+          .widget<ImportSurface>(find.byType(ImportSurface))
+          .seedController
+          .text = EntryImportDraftReceipt.sample;
       await tester.pump();
       expect(directDraft.sourceAfter, isNull);
       expect(directDraft.isCurrent, isFalse);
@@ -220,7 +226,8 @@ void main() {
       await _back(tester, direct);
 
       final EntryImportReceipt wrong = await _open(tester);
-      final EntryImportDraftReceipt wrongDraft = wrong.prepareIncompleteDraft()!;
+      final EntryImportDraftReceipt wrongDraft =
+          wrong.prepareIncompleteDraft()!;
       await _type(tester, 'Synthetic unrelated incomplete input');
       expect(wrongDraft.isCurrent, isFalse);
       expect(wrongDraft.sourceAfter, isNull);
@@ -228,7 +235,8 @@ void main() {
       await _back(tester, wrong);
 
       final EntryImportReceipt edited = await _open(tester);
-      final EntryImportDraftReceipt editedDraft = edited.prepareIncompleteDraft()!;
+      final EntryImportDraftReceipt editedDraft =
+          edited.prepareIncompleteDraft()!;
       await _type(tester, EntryImportDraftReceipt.sample);
       expect(editedDraft.isCurrent, isTrue);
       final Object retainedAfter = editedDraft.sourceAfter!;
@@ -241,7 +249,8 @@ void main() {
       await _back(tester, edited);
 
       final EntryImportReceipt covered = await _open(tester);
-      final EntryImportDraftReceipt coveredDraft = covered.prepareIncompleteDraft()!;
+      final EntryImportDraftReceipt coveredDraft =
+          covered.prepareIncompleteDraft()!;
       await _type(tester, EntryImportDraftReceipt.sample);
       expect(coveredDraft.isCurrent, isTrue);
       final MaterialPageRoute<void> cover = MaterialPageRoute<void>(
@@ -278,7 +287,8 @@ void main() {
       await _back(tester, beforeInput);
 
       final EntryImportReceipt browsed = await _open(tester);
-      final EntryImportDraftReceipt browseDraft = browsed.prepareIncompleteDraft()!;
+      final EntryImportDraftReceipt browseDraft =
+          browsed.prepareIncompleteDraft()!;
       await _type(tester, EntryImportDraftReceipt.sample);
       expect(browseDraft.isCurrent, isTrue);
       final ImportFilePicker picker = tester.widget<ImportFilePicker>(
@@ -297,12 +307,17 @@ void main() {
       await _back(tester, browsed);
 
       final EntryImportReceipt count = await _open(tester);
-      final EntryImportDraftReceipt countDraft = count.prepareIncompleteDraft()!;
+      final EntryImportDraftReceipt countDraft =
+          count.prepareIncompleteDraft()!;
       await _type(tester, EntryImportDraftReceipt.sample);
       expect(countDraft.isCurrent, isTrue);
-      tester.widget<ImportSurface>(find.byType(ImportSurface)).onWordCountChanged(24);
+      tester
+          .widget<ImportSurface>(find.byType(ImportSurface))
+          .onWordCountChanged(24);
       await tester.pump();
-      tester.widget<ImportSurface>(find.byType(ImportSurface)).onWordCountChanged(12);
+      tester
+          .widget<ImportSurface>(find.byType(ImportSurface))
+          .onWordCountChanged(12);
       await tester.pump();
       expect(countDraft.isCurrent, isFalse);
       expect(countDraft.canRestore, isFalse);
@@ -313,7 +328,10 @@ void main() {
       expect(late.prepareIncompleteDraft(), isNull);
       expect(registry.held, isTrue);
       expect(late.source, isNotNull);
-      expect(tester.widget<ImportSurface>(find.byType(ImportSurface)).onContinue, isNull);
+      expect(
+        tester.widget<ImportSurface>(find.byType(ImportSurface)).onContinue,
+        isNull,
+      );
       expect(tester.takeException(), isNull);
     },
     timeout: const Timeout(Duration(seconds: 60)),

@@ -516,7 +516,10 @@ class HarnessAgent {
         // Use genuine focus, formatters and onChanged. Discard the private
         // driver reply; only the owner's retained transition admits capture.
         await _type(
-          <String, dynamic>{...selector, 'value': EntryImportDraftReceipt.sample},
+          <String, dynamic>{
+            ...selector,
+            'value': EntryImportDraftReceipt.sample,
+          },
           requireAdmission: admission,
         );
       },
