@@ -102,13 +102,48 @@ ORIGINAL_STATES = frozenset((
 ))
 
 
+FRONTIER_NUMBERS = frozenset((
+    'ws_first_height', 'ws_last_height', 'ws_first_timestamp', 'ws_last_timestamp',
+    'http_first_height', 'http_last_height', 'http_first_timestamp', 'http_last_timestamp',
+))
+
+
+def _frontier(value):
+    if (type(value) is not dict or set(value) != FRONTIER_NUMBERS | {
+            'polls', 'ws_hash_changed', 'http_hash_changed'}
+            or type(value['polls']) is not int or value['polls'] != 6
+            or any(type(value[key]) is not int or not 0 < value[key] <= 9007199254740991
+                   for key in FRONTIER_NUMBERS)
+            or any(type(value[key]) is not bool for key in (
+                'ws_hash_changed', 'http_hash_changed'))):
+        return False
+    advancing = []
+    for endpoint in ('ws', 'http'):
+        first_height, last_height = (value[endpoint + '_' + label]
+                                     for label in ('first_height', 'last_height'))
+        first_time, last_time = (value[endpoint + '_' + label]
+                                 for label in ('first_timestamp', 'last_timestamp'))
+        changed = value[endpoint + '_hash_changed']
+        if last_height < first_height or last_height == first_height and (
+                last_time != first_time or changed):
+            return False
+        advancing.append(last_height > first_height and last_time > first_time and changed)
+    return not all(advancing)
+
+
 def valid(value):
-    return (type(value) is dict and set(value) in (
-                {'phase', 'reason'}, {'phase', 'reason', 'original'})
-            and type(value['phase']) is type(value['reason']) is str
-            and value['phase'] in PHASES and value['reason'] in REASONS
-            and ('original' not in value or (
-                value['phase'] == 'confirmation'
-                and value['reason'] == 'original-outcome-unknown'
-                and type(value['original']) is str
-                and value['original'] in ORIGINAL_STATES)))
+    if (type(value) is not dict or set(value) not in (
+            {'phase', 'reason'}, {'phase', 'reason', 'original'},
+            {'phase', 'reason', 'frontier'})
+            or type(value['phase']) is not str or type(value['reason']) is not str
+            or value['phase'] not in PHASES or value['reason'] not in REASONS):
+        return False
+    if 'frontier' in value:
+        return (value['phase'] == 'preflight'
+                and value['reason'] == 'advancing-momentum-required'
+                and _frontier(value['frontier']))
+    return ('original' not in value or (
+        value['phase'] == 'confirmation'
+        and value['reason'] == 'original-outcome-unknown'
+        and type(value['original']) is str
+        and value['original'] in ORIGINAL_STATES))

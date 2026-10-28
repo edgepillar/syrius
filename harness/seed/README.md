@@ -915,3 +915,43 @@ source144 images remain queued after six metadata preflight refusals, before
 any local task or transport. Approved small-archive limits, policy and floor
 remain. Copied reopen/six effects, nineteen preparations, ninety outputs,
 all 94 matches and earlier failure/UNKNOWN evidence remain open.
+
+
+## Source-bound frontier refusal and Windows baseline evidence
+
+Source149 focused 40764717662 passes 763 Python cases with three existing
+skips, all 325 ordinary Dart cases and clean selected analysis. Its genuine
+unlock progress cases pass. Source148 full producer 40760650691 and source149
+independent reader 40765466618 qualify 4582 root passes, two existing skips,
+zero failures/errors, root analysis with zero errors/warnings and 1295 existing
+infos, clean vendored analysis, regeneration and Debug/Release. Entry is
+deliberately skipped with zero steps; no entry transport was repeated.
+This remains source148 evidence rather than current-source full qualification.
+
+Native84 producer 40765999259 and independent reader 40770185246 retain an
+original lab_send/preflight refusal: advancing-momentum-required. The final
+error frame is authoritative; start is only the last general emitted marker.
+Exact failed frontier samples are unobserved. All five nodes exit normally,
+but required actor cleanup is forced and copied unlock is unreached. Earlier
+Native83 original send/tour/quiescence remains separately source-bound.
+
+The new finite observation retains only first/latest values from the same
+original seven frontier read pairs on six-poll exhaustion: lab heights,
+timestamps and hash-change booleans. It starts no extra read and preserves the
+original delays, timeouts, endpoint agreement, rollback, source identity,
+funding, signing and original-request guards. Neither hash bytes, wallet
+identity nor raw input/replies cross the boundary. Dart/Python schemas refuse
+coercion, extra fields, wrong phase and impossible successful exhaustion.
+All 263 pure-memory controls pass without SDK/native/network/scratch/store
+access. Hosted gates require 765 Python cases with three existing skips and
+328 ordinary or 330 startup Dart cases; those new results remain pending.
+
+Four retained source144 entry pairs were reviewed against original references:
+zero matches, with globe phase, animated background, selector width, draft
+decoration, caption style and lower-panel alignment still open. RULES colors
+and tabular figures remain authoritative; seed bytes and reference assets stay
+intact. One 565541-byte archive transport completed and its CAS object remains.
+The owned task closed FAILURE after a visual-review metadata lock refusal;
+the separate review is retained and 565211 logical scratch bytes were cleaned.
+No repeated transport or successful managed review is claimed. All earlier
+failures/UNKNOWNs, nineteen preparations, ninety outputs and 94 matches remain.

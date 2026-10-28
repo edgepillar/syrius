@@ -222,11 +222,44 @@ void main() {
   test(
     'both frontiers must positively advance within six bounded polls',
     () async {
-      source.advancingHttp = false;
-      await expectLater(guard.admit('stake'), throwsA(isA<SeedRefused>()));
-      expect(source.httpReads, 7);
-      expect(source.delays, 6);
-      expect(journal.attempts, isEmpty);
+      for (final (bool, bool) endpoints in <(bool, bool)>[
+        (true, false), (false, true), (false, false),
+      ]) {
+        source
+          ..advancingWs = endpoints.$1
+          ..advancingHttp = endpoints.$2
+          ..wsReads = 0
+          ..httpReads = 0
+          ..delays = 0;
+        SeedRefused? refusal;
+        try {
+          await guard.admit('stake');
+        } on SeedRefused catch (error) {
+          refusal = error;
+        }
+        expect(refusal?.code, 'advancing-momentum-required');
+        final Map<String, Object> facts = refusal!.frontier!.public;
+        expect(facts, <String, Object>{
+          'polls': 6,
+          'ws_first_height': endpoints.$1 ? 11 : 10,
+          'ws_last_height': endpoints.$1 ? 17 : 10,
+          'ws_first_timestamp': endpoints.$1 ? 101 : 100,
+          'ws_last_timestamp': endpoints.$1 ? 107 : 100,
+          'ws_hash_changed': endpoints.$1,
+          'http_first_height': endpoints.$2 ? 11 : 10,
+          'http_last_height': endpoints.$2 ? 17 : 10,
+          'http_first_timestamp': endpoints.$2 ? 101 : 100,
+          'http_last_timestamp': endpoints.$2 ? 107 : 100,
+          'http_hash_changed': endpoints.$2,
+        });
+        expect(() => facts['polls'] = 0, throwsUnsupportedError);
+        expect(source.wsReads, 7);
+        expect(source.httpReads, 7);
+        expect(source.delays, 6);
+        expect(source.confirmationReads, 0);
+        expect(source.effectReads, 0);
+        expect(journal.attempts, isEmpty);
+      }
     },
   );
 

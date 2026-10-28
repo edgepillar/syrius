@@ -1187,9 +1187,12 @@ class HarnessAgent {
 
   Future<Map<String, Object?>> _labSend(Map<String, dynamic> command) async {
     String phase = 'admission';
-    Map<String, Object?>? detail(String reason) {
-      final Map<String, String> labels = <String, String>{
+    Map<String, Object?>? detail(String reason, {
+      SeedAdvanceObservation? frontier,
+    }) {
+      final Map<String, Object> labels = <String, Object>{
         'phase': phase, 'reason': reason,
+        if (frontier != null) 'frontier': frontier.public,
       };
       final LabSendUiReview? review = _labSendReview;
       if (phase == 'confirmation' && reason == 'original-outcome-unknown' &&
@@ -1197,7 +1200,7 @@ class HarnessAgent {
           identical(_labSendGuard?.original, review.witness)) {
         labels['original'] = review.witness.observedState;
       }
-      final Map<String, String>? diagnostic = labSendPublicDiagnostic(
+      final Map<String, Object>? diagnostic = labSendPublicDiagnostic(
         labels,
       );
       return diagnostic == null ? null :
@@ -1350,7 +1353,8 @@ class HarnessAgent {
         'original_request': true, 'confirmed': true,
       }};
     } on SeedRefused catch (error) {
-      throw HarnessError(error.code, detail(error.code));
+      throw HarnessError(error.code, detail(error.code,
+        frontier: error.frontier));
     } on Object {
       // Neither a raw widget reply nor a private transport error is exported.
       throw HarnessError('original-lab-send-ui-or-read-failed',

@@ -157,7 +157,7 @@ Future<void> main() async {
               RegExp(r'^wallet-recipe-[a-z-]{1,80}$').hasMatch(error.code)
           ? error.code
           : null;
-      final Map<String, String>? diagnostic = error is LabSendDiagnosticFailure
+      final Map<String, Object>? diagnostic = error is LabSendDiagnosticFailure
           ? error.diagnostic
           : error is WalletRecipeRefused
           ? walletRecipePublicDiagnostic(error.diagnostic)

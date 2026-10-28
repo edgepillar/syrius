@@ -206,6 +206,44 @@ class AddressSelectionTests(unittest.TestCase):
 
 
 class LabSendDiagnosticTests(unittest.TestCase):
+    @staticmethod
+    def stalled():
+        return dict(stage='lab_send', code=None, diagnostic=dict(
+            phase='preflight', reason='advancing-momentum-required', frontier=dict(
+                polls=6, ws_first_height=10, ws_last_height=17,
+                ws_first_timestamp=100, ws_last_timestamp=107, ws_hash_changed=True,
+                http_first_height=10, http_last_height=10,
+                http_first_timestamp=100, http_last_timestamp=100, http_hash_changed=False)))
+
+    def test_bounded_original_frontier_values_do_not_grant_send_or_closure(self):
+        value = self.stalled()
+        self.assertIs(tour.entry_failure(value), value)
+        report = CompletionTests().report()
+        report.update(entry_exit=1, entry_failure=value, lab_send=None)
+        self.assertFalse(tour.completed(report))
+        for change in (dict(phase='accept'), dict(reason='original-outcome-unknown'),
+                       dict(original='pending'), dict(confirmed=True)):
+            with self.subTest(change=change), self.assertRaises(tour.Refused):
+                tour.entry_failure(dict(value, diagnostic=dict(value['diagnostic'], **change)))
+
+    def test_frontier_values_reject_private_coerced_incomplete_or_impossible_facts(self):
+        value = self.stalled()
+        original = value['diagnostic']['frontier']
+        for change in (dict(polls=True), dict(polls=5), dict(ws_last_height=0),
+                       dict(ws_last_height=9007199254740992), dict(ws_last_height=17.0),
+                       dict(ws_first_timestamp='private'), dict(http_hash_changed=0),
+                       dict(hash='private'), dict(http_last_height=9),
+                       dict(http_last_timestamp=101), dict(http_hash_changed=True),
+                       dict(http_last_height=17, http_last_timestamp=107, http_hash_changed=True)):
+            offered = dict(value, diagnostic=dict(value['diagnostic'],
+                           frontier=dict(original, **change)))
+            with self.subTest(change=change), self.assertRaises(tour.Refused):
+                tour.entry_failure(offered)
+        for key in original:
+            with self.subTest(missing=key), self.assertRaises(tour.Refused):
+                tour.entry_failure(dict(value, diagnostic=dict(value['diagnostic'],
+                    frontier={label: fact for label, fact in original.items() if label != key})))
+
     def test_review_refusals_keep_only_the_fixed_failed_binding_label(self):
         for part in ('center', 'button', 'dialog', 'intent', 'draft'):
             diagnostic = dict(phase='preflight',
@@ -253,7 +291,8 @@ class LabSendDiagnosticTests(unittest.TestCase):
                   'harness/lab_send_failure.dart').read_text(encoding='utf-8')
         for name, expected in (('Phases', tour.lab_send_diagnostic.PHASES),
                                ('Reasons', tour.lab_send_diagnostic.REASONS),
-                               ('OriginalStates', tour.lab_send_diagnostic.ORIGINAL_STATES)):
+                               ('OriginalStates', tour.lab_send_diagnostic.ORIGINAL_STATES),
+                               ('FrontierNumbers', tour.lab_send_diagnostic.FRONTIER_NUMBERS)):
             match = re.search(r'const Set<String> labSendFailure' + name +
                               r' = <String>\{(.*?)\};', source, re.S)
             self.assertIsNotNone(match)

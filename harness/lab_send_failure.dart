@@ -102,24 +102,82 @@ const Set<String> labSendFailureOriginalStates = <String>{
   'result_observed',
 };
 
+/// Numeric fields are finite original lab observations, never private input.
+const Set<String> labSendFailureFrontierNumbers = <String>{
+  'ws_first_height',
+  'ws_last_height',
+  'ws_first_timestamp',
+  'ws_last_timestamp',
+  'http_first_height',
+  'http_last_height',
+  'http_first_timestamp',
+  'http_last_timestamp',
+};
+
+Map<String, Object>? _frontierObservation(Object? value) {
+  if (value is! Map || value.length != 11 ||
+      !value.keys.toSet().containsAll(<String>{
+        ...labSendFailureFrontierNumbers,
+        'polls', 'ws_hash_changed', 'http_hash_changed',
+      }) || value['polls'] is! int || value['polls'] != 6 ||
+      value['ws_hash_changed'] is! bool ||
+      value['http_hash_changed'] is! bool ||
+      labSendFailureFrontierNumbers.any((String key) =>
+          value[key] is! int || (value[key] as int) <= 0 ||
+          (value[key] as int) > 9007199254740991)) {
+    return null;
+  }
+  bool advances(String endpoint) =>
+      (value['${endpoint}_last_height'] as int) >
+          (value['${endpoint}_first_height'] as int) &&
+      (value['${endpoint}_last_timestamp'] as int) >
+          (value['${endpoint}_first_timestamp'] as int) &&
+      value['${endpoint}_hash_changed'] == true;
+  for (final String endpoint in <String>['ws', 'http']) {
+    final int firstHeight = value['${endpoint}_first_height'] as int;
+    final int lastHeight = value['${endpoint}_last_height'] as int;
+    if (lastHeight < firstHeight || lastHeight == firstHeight &&
+        (value['${endpoint}_last_timestamp'] !=
+            value['${endpoint}_first_timestamp'] ||
+         value['${endpoint}_hash_changed'] != false)) {
+      return null;
+    }
+  }
+  if (advances('ws') && advances('http')) return null;
+  return Map<String, Object>.unmodifiable(<String, Object>{
+    'polls': 6,
+    for (final String key in labSendFailureFrontierNumbers)
+      key: value[key] as int,
+    'ws_hash_changed': value['ws_hash_changed'] as bool,
+    'http_hash_changed': value['http_hash_changed'] as bool,
+  });
+}
+
 /// Returns an independent immutable projection, or refuses the whole payload.
-Map<String, String>? labSendPublicDiagnostic(Object? value) {
+Map<String, Object>? labSendPublicDiagnostic(Object? value) {
   if (value is! Map || (value.length != 2 && value.length != 3) ||
       !value.keys.toSet().containsAll(<String>{'phase', 'reason'}) ||
       !labSendFailurePhases.contains(value['phase']) ||
       !labSendFailureReasons.contains(value['reason'])) {
     return null;
   }
-  if (value.length == 3 &&
+  final bool frontier = value.containsKey('frontier');
+  final Map<String, Object>? observation = frontier
+      ? _frontierObservation(value['frontier']) : null;
+  if (frontier && (value.length != 3 || value['phase'] != 'preflight' ||
+      value['reason'] != 'advancing-momentum-required' ||
+      observation == null)) return null;
+  if (value.length == 3 && !frontier &&
       (!value.containsKey('original') || value['phase'] != 'confirmation' ||
           value['reason'] != 'original-outcome-unknown' ||
           value['original'] is! String ||
           !labSendFailureOriginalStates.contains(value['original']))) {
     return null;
   }
-  return Map<String, String>.unmodifiable(<String, String>{
+  return Map<String, Object>.unmodifiable(<String, Object>{
     'phase': value['phase'] as String, 'reason': value['reason'] as String,
     if (value.containsKey('original')) 'original': value['original'] as String,
+    if (frontier) 'frontier': observation!,
   });
 }
 
@@ -130,7 +188,7 @@ final class LabSendDiagnosticFailure implements Exception {
     : diagnostic = labSendPublicDiagnostic(value);
 
   /// A copied, validated label pair; never the original HTTP response.
-  final Map<String, String>? diagnostic;
+  final Map<String, Object>? diagnostic;
 
   @override
   String toString() => 'Original lab send refused';

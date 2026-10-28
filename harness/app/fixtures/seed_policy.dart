@@ -15,8 +15,9 @@ const Set<String> seedRecipeIds = <String>{
 };
 
 final class SeedRefused implements Exception {
-  const SeedRefused(this.code);
+  const SeedRefused(this.code, {this.frontier});
   final String code;
+  final SeedAdvanceObservation? frontier;
   @override
   String toString() => 'Seed refused: $code';
 }
@@ -95,6 +96,39 @@ final class SeedFrontier {
       height > original.height &&
       timestamp > original.timestamp &&
       hash != original.hash;
+}
+
+/// Facts from the same completed admission reads; this starts no extra read.
+final class SeedAdvanceObservation {
+  const SeedAdvanceObservation({
+    required this.firstWs,
+    required this.firstHttp,
+    required this.lastWs,
+    required this.lastHttp,
+  });
+
+  final SeedFrontier firstWs;
+  final SeedFrontier firstHttp;
+  final SeedFrontier lastWs;
+  final SeedFrontier lastHttp;
+
+  /// Only isolated lab heights, timestamps and hash comparisons are public.
+  /// Hash bytes, transport replies and wallet identities never leave here.
+  Map<String, Object> get public => Map<String, Object>.unmodifiable(
+    <String, Object>{
+      'polls': 6,
+      'ws_first_height': firstWs.height,
+      'ws_last_height': lastWs.height,
+      'ws_first_timestamp': firstWs.timestamp,
+      'ws_last_timestamp': lastWs.timestamp,
+      'ws_hash_changed': firstWs.hash != lastWs.hash,
+      'http_first_height': firstHttp.height,
+      'http_last_height': lastHttp.height,
+      'http_first_timestamp': firstHttp.timestamp,
+      'http_last_timestamp': lastHttp.timestamp,
+      'http_hash_changed': firstHttp.hash != lastHttp.hash,
+    },
+  );
 }
 
 bool seedHash(String value) =>
@@ -252,7 +286,14 @@ final class SeedGuard {
       previousWs = ws;
       previousHttp = http;
     }
-    if (!advancing) throw const SeedRefused('advancing-momentum-required');
+    if (!advancing) {
+      throw SeedRefused('advancing-momentum-required',
+        frontier: SeedAdvanceObservation(
+          firstWs: firstWs, firstHttp: firstHttp,
+          lastWs: previousWs, lastHttp: previousHttp,
+        ),
+      );
+    }
     final SeedFunding funds = await _read(source.funding);
     final SeedFunding minimum = source.minimum(recipe);
     if (funds.znn <= BigInt.zero ||
