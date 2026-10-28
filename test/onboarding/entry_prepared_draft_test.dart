@@ -119,6 +119,7 @@ Future<EntryImportReceipt> _open(WidgetTester tester) async {
 }
 
 EntryImportDraftReceipt _prepare(EntryImportReceipt original) {
+  expect(original.ready, isTrue);
   final EntryImportDraftReceipt? prepared = original.prepareIncompleteDraft();
   expect(prepared, isNotNull);
   return prepared!;

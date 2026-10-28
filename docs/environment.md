@@ -7618,3 +7618,30 @@ and all 286 Dart cases before native allocation. No local SDK or native
 execution is performed. Actual entry captures, original animation phases,
 copied reopen/six effects, nineteen catalog preparations and all 94 visual
 matches remain open.
+
+## Active original generation at input reservation
+
+At `f2c8db2a416e`, run `40643013209` passes 735 Python cases with three
+original platform skips and clean selected analysis. The complete unforced
+Dart command exits one after 285 passes and one assertion at
+`entry_prepared_draft_test.dart:123`: the preparation receipt is null. Its
+exact internal refusal predicate is not exported. No native wallet or node
+is allocated. This known assertion does not reattribute the earlier
+unlocalized NULL_CHECK to a newly observed line.
+
+An early Import build can precede final route/focus readiness. Reservation
+now snapshots the actual original owner's active action lease at the time
+the untouched empty source is ready. That exact generation is frozen in the
+prepared receipt; no later getter or equal-value source can replace it. The
+original State, source, controller, route, startup and cleanup guards remain.
+Coverage before or after input, edits, direct writes, picker requests and
+word-count replacement still refuse. The actual input callback and first
+prepared-source generation remain required. All prior scenario assertions
+remain, with an additional positive-ready assertion before reservation.
+
+All 217 selected memory controls pass. The required 735 Python/286 Dart
+counts, strict selected analysis, workflow and dependencies are unchanged.
+No local SDK or native execution is performed. Current entry preparation,
+both-theme captures and restoration, original animation phases, copied
+reopen/six effects, nineteen catalog preparations and all 94 visual matches
+remain pending.

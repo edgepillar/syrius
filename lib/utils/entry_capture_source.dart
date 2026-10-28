@@ -237,7 +237,7 @@ class EntryImportReceipt {
   Object Function()? _liveSource;
   bool Function()? _attached;
   bool Function()? _incompleteDraft;
-  bool Function()? _originalDrawnCurrent;
+  bool Function() Function()? _captureGeneration;
   EntryImportDraftReceipt? _preparedDraft;
 
   /// The actual Import State, retained after disposal.
@@ -308,16 +308,24 @@ class EntryImportReceipt {
   /// Reserves one incomplete input while the original empty owner is ready.
   /// An edited or replaced owner cannot be adopted by a later equal value.
   EntryImportDraftReceipt? prepareIncompleteDraft() {
+    final bool Function() Function()? capture = _captureGeneration;
     if (!ready ||
         _preparedDraft != null ||
         _liveSource == null ||
         _attached == null ||
         _incompleteDraft == null ||
-        !(_originalDrawnCurrent?.call() ?? false)) {
+        capture == null) {
       _registry._hold();
       return null;
     }
-    return _preparedDraft = EntryImportDraftReceipt._(this);
+    // Capture the actual owner's active generation at reservation. An early
+    // build can precede its final route/focus readiness; it is not this input.
+    final bool Function() original = capture();
+    if (!original()) {
+      _registry._hold();
+      return null;
+    }
+    return _preparedDraft = EntryImportDraftReceipt._(this, original);
   }
 
   /// Called by the original controller listener, without retaining its text.
@@ -339,22 +347,12 @@ class EntryImportReceipt {
     required Object controller,
     required Object source,
     required bool Function() current,
-  }) {
-    if (identical(owner, _owner) &&
-        identical(controller, _controllerOwner) &&
-        identical(source, _source) &&
-        entryRouteReady(route) &&
-        current()) {
-      _originalDrawnCurrent ??= current;
-    }
-    _preparedDraft?._drawn(owner, controller, source, current);
-  }
+  }) => _preparedDraft?._drawn(owner, controller, source, current);
 }
 
 /// One original empty-to-incomplete input transition, never an import permit.
 class EntryImportDraftReceipt {
-  EntryImportDraftReceipt._(this.imported)
-    : _beforeCurrent = imported._originalDrawnCurrent!;
+  EntryImportDraftReceipt._(this.imported, this._beforeCurrent);
 
   /// Public incomplete mockup text, unrelated to any wallet or private input.
   static const String sample =
@@ -639,6 +637,7 @@ class EntryCaptureRegistry {
     required Object Function() liveSource,
     required bool Function() attached,
     required bool Function() incompleteDraft,
+    required bool Function() Function() captureGeneration,
   }) {
     if (!_observeEntry()) return null;
     final EntryImportReceipt? receipt = _imports
@@ -665,7 +664,8 @@ class EntryCaptureRegistry {
       .._pickerUntouched = noPendingPickerOrProbe
       .._liveSource = liveSource
       .._attached = attached
-      .._incompleteDraft = incompleteDraft;
+      .._incompleteDraft = incompleteDraft
+      .._captureGeneration = captureGeneration;
     return receipt;
   }
 }

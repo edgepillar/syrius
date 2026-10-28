@@ -100,6 +100,10 @@ class _ImportWalletSeedChoiceScreenState
           _draft.words.length == 8 &&
           _draft.expectedWords == 12 &&
           !_draft.valid,
+      captureGeneration: () {
+        final EntryActionLease? original = _captureLease;
+        return () => original?.isCurrent ?? false;
+      },
     );
   }
 

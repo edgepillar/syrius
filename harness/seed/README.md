@@ -347,3 +347,14 @@ six fixed entry basenames/numeric lines. No old failure is reattributed, and
 no production guard or Dart case count is relaxed. All 217 memory cases pass;
 735 Python/286 Dart and actual entry/reopen/six-effect qualification remain
 pending. All 94 visual matches remain open.
+
+At f2c8db2a416e, run 40643013209 passes 735 Python cases/three original
+skips and clean selected analysis. Dart records 285 passes and a preparation
+receipt assertion at entry_prepared_draft_test.dart:123 before native work.
+The exact internal refusal predicate remains unknown; the earlier
+unlocalized NULL_CHECK is not reattributed. The candidate captures the same
+original owner's active action generation at reservation, then freezes it.
+Original source/controller/route, first prepared-generation, disposal and
+negative-scenario requirements remain. All 217 memory controls pass; the
+unchanged 735/286 gate and actual entry/reopen/six effects remain pending.
+All 94 visual matches remain open.
