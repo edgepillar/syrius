@@ -112,7 +112,8 @@ void main() {
   test('seed preparation appends index two without changing index one',
       () async {
     final _AddressUi ui = seedUi();
-    final WalletAddressContext original = WalletAddressContext.parse(ui.context);
+    final WalletAddressContext original =
+        WalletAddressContext.parse(ui.context);
     final WalletAddressContext result = await ui.driver().prepareSeedAddress(
       original,
     );
@@ -142,7 +143,8 @@ void main() {
       () async {
     final _AddressUi ui = seedUi()..wrongDerivation = true;
     final WalletRecipe driver = ui.driver();
-    final WalletAddressContext original = WalletAddressContext.parse(ui.context);
+    final WalletAddressContext original =
+        WalletAddressContext.parse(ui.context);
     await expectLater(driver.prepareSeedAddress(original),
       throwsA(isA<WalletRecipeRefused>()));
     await expectLater(driver.prepareSeedAddress(original),
@@ -155,7 +157,8 @@ void main() {
       () async {
     final _AddressUi ui = seedUi()..stallDerivation = true;
     final WalletRecipe driver = ui.driver();
-    final WalletAddressContext original = WalletAddressContext.parse(ui.context);
+    final WalletAddressContext original =
+        WalletAddressContext.parse(ui.context);
     await expectLater(driver.prepareSeedAddress(original),
       throwsA(isA<WalletRecipeRefused>()));
     ui.stalled.complete();
