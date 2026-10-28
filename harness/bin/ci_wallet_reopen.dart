@@ -4,8 +4,101 @@ import 'dart:io';
 
 import '../seed/restored_seed_workflow.dart';
 import '../wallet_address_context.dart';
+import '../wallet_recipe_failure.dart';
 import 'ci_copied_wallet_pointer.dart' show CopiedPointerInput;
 import 'harness.dart' as cli;
+import 'wallet_recipe.dart' show WalletRecipeRefused;
+
+/// Fixed child locations, shared with the bounded parent projection.
+const Set<String> restoredChildPhases = <String>{
+  'gate', 'start', 'input', 'startup_window', 'startup', 'unlock', 'observe',
+  'seed_admission', 'seed_stake', 'seed_fuse', 'seed_token', 'seed_deposit',
+  'seed_project', 'seed_fund-address', 'finish',
+};
+
+/// Exception families disclose no messages, paths, replies or private input.
+const Set<String> restoredChildKinds = <String>{
+  'WINDOW_REFUSED', 'RECIPE_REFUSED', 'HARNESS_REFUSED', 'FORMAT_ERROR',
+  'TYPE_ERROR', 'STATE_ERROR', 'OS_ERROR', 'OTHER_ERROR',
+};
+
+/// Only the window acknowledgement's failed condition may leave the child.
+const Set<String> restoredWindowFailureCodes = <String>{
+  'WINDOW_RESPONSE_REFUSED', 'WINDOW_CLIENT_REFUSED', 'WINDOW_STATE_REFUSED',
+};
+
+/// Driver-only refusals extend the existing closed command vocabulary.
+const Set<String> restoredRecipeExtraCodes = <String>{
+  'wallet-recipe-restored-lock-required', 'wallet-recipe-observation-refused',
+  'wallet-recipe-controls-unavailable', 'wallet-recipe-control-ambiguous',
+  'wallet-recipe-command-uncertain', 'wallet-recipe-deadline',
+  'wallet-recipe-retired',
+};
+
+/// A fixed acknowledgement failure, never a retained native reply.
+class RestoredWindowRefused implements Exception {
+  const RestoredWindowRefused._(this._code);
+
+  final String _code;
+}
+
+/// Require the actual client before unlock, without printing its native reply.
+Future<void> showRestoredStartupWindow(
+  Future<Map<String, dynamic>> Function(Map<String, Object?>) request,
+) async {
+  final Map<String, dynamic> reply = await request(<String, Object?>{
+    'cmd': 'window', 'do': 'show', 'width': 1280, 'height': 780,
+  });
+  if (reply['ok'] != true) {
+    throw const RestoredWindowRefused._('WINDOW_RESPONSE_REFUSED');
+  }
+  final Object? client = reply['client'];
+  bool dimension(Object? value, int expected) =>
+      value is num && value.isFinite && (value - expected).abs() < 0.01;
+  if (reply['clientMatched'] != true || client is! List || client.length != 2 ||
+      !dimension(client[0], 1280) || !dimension(client[1], 780)) {
+    throw const RestoredWindowRefused._('WINDOW_CLIENT_REFUSED');
+  }
+  if (reply['minimized'] != false || reply['maximized'] != false) {
+    throw const RestoredWindowRefused._('WINDOW_STATE_REFUSED');
+  }
+}
+
+/// Only typed families and validated fixed labels enter the failure marker.
+Map<String, Object?>? restoredChildFailure(String phase, Object error) {
+  if (!restoredChildPhases.contains(phase)) return null;
+  String kind = 'OTHER_ERROR';
+  String? code;
+  Map<String, String>? recipe;
+  if (error.runtimeType == RestoredWindowRefused) {
+    if (phase != 'startup_window') return null;
+    kind = 'WINDOW_REFUSED';
+    final String value = (error as RestoredWindowRefused)._code;
+    if (restoredWindowFailureCodes.contains(value)) code = value;
+  } else if (error.runtimeType == WalletRecipeRefused) {
+    kind = 'RECIPE_REFUSED';
+    final WalletRecipeRefused original = error as WalletRecipeRefused;
+    if (walletRecipeFailureCodes.contains(original.code) ||
+        restoredRecipeExtraCodes.contains(original.code)) {
+      code = original.code;
+    }
+    recipe = walletRecipePublicDiagnostic(original.diagnostic);
+  } else if (error is cli.Fail) {
+    kind = 'HARNESS_REFUSED';
+  } else if (error is FormatException) {
+    kind = 'FORMAT_ERROR';
+  } else if (error is TypeError) {
+    kind = 'TYPE_ERROR';
+  } else if (error is StateError) {
+    kind = 'STATE_ERROR';
+  } else if (error is FileSystemException || error is SocketException) {
+    kind = 'OS_ERROR';
+  }
+  return <String, Object?>{
+    'schema': 1, 'scope': 'owned_reopen_child_failure', 'phase': phase,
+    'kind': kind, 'code': code, 'recipe': recipe,
+  };
+}
 
 /// Initialization and the persisted lab policy must settle before the read.
 bool restoredWalletReady(Map<String, dynamic> state) =>
@@ -61,10 +154,9 @@ Future<void> main() async {
         (decoded['password'] as String).length > 512) {
       throw const FormatException('private input refused');
     }
+    phase = 'startup_window';
+    await showRestoredStartupWindow(instance.send);
     phase = 'startup';
-    await cli.run(instance, 'window', cli.Args(<String>[
-      'show', '--width', '1280', '--height', '780',
-    ]));
     await cli.walletRecipe(instance).settleRestoredStartup();
     if (!originalInput.alive) {
       throw const FormatException('parent unavailable');
@@ -130,7 +222,11 @@ Future<void> main() async {
     if (await originalInput.read() != 'FINISH') {
       throw const FormatException('closure unconfirmed');
     }
-  } on Object {
+  } on Object catch (error) {
+    final Map<String, Object?>? failure = restoredChildFailure(phase, error);
+    if (failure != null) {
+      stdout.writeln('CI_REOPEN_FAILURE:${jsonEncode(failure)}');
+    }
     stdout.writeln('CI_REOPEN_ERROR:$phase');
     await stdout.flush();
     exitCode = 1;

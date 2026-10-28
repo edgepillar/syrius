@@ -7684,3 +7684,43 @@ controls pass. The strict next requirement is 736 Python cases, zero selected
 analysis findings and all 287 Dart cases. No local SDK, native execution or
 artifact download occurs. Actual entry phases, copied reopen/six effects,
 nineteen catalog preparations and all 94 matches remain open.
+
+
+### Copied startup acknowledgement and bounded child failure
+
+At `8bbc93b0c0a8`, producer `40650905349` passes all 736 Python
+cases with three existing platform skips, all 287 selected Dart cases
+without failures/skips, and selected analysis with zero findings. Independent
+reader `40653076744` qualifies original index-1 send of exactly one ZNN
+to index 0, original-request confirmation, twelve tour checks, complete
+quiescence and normal required app/entry/five-node exits. The wallet outcome
+is schema two; the complete quiescence receipt is schema one. Auxiliary
+telemetry termination does not replace required-actor closure.
+
+The overall lab remains failed: its copied child reports startup during
+unlock-and-observe. The old label spans window show and restored-lock wait.
+No exact window/lock/codec cause, positive copied binding, reopen or six-effect
+receipt is inferred. Earlier failed/UNKNOWN outcomes stay intact.
+
+The candidate sends the original show request once, requires an acknowledged
+finite 1280x780 client with neither minimized nor maximized state, and exports
+no native reply. Separate startup-window and startup labels locate a later
+original failure. Only fixed exception families/codes and validated recipe
+labels enter the bounded child record. Messages, stacks, paths, replies and
+private input are never formatted. The first failure remains a refusal and
+cannot grant positive reopen or seed authority. Legacy diagnostic shapes
+remain valid. The restored-lock refusal retains its last already-observed
+labels without extra observations or commands. Original single skip,
+deadlines, retirement, unlock/readiness checks, six-effect order and cleanup
+remain unchanged.
+
+Four new Python and three Dart cases raise the strict gate to 740 Python and
+290 Dart cases. All 222 selected pure-memory Python controls actually ran
+with zero failures/errors/skips and no filesystem scratch. No local SDK or
+native test ran. Workflow, analysis rules, application, renderer/codec, entry
+capture and existing test bodies remain; suite admission changes only for
+three actual added Dart cases. Source126 full-root/build and four prepared
+Debug image qualifications stay source-bound, with 1295 root infos and two
+existing non-chain skips. Fresh images remain visually unreviewed. Nineteen
+catalog preparations, copied reopen/six effects, ninety catalog outputs and
+all 94 matches remain open; the main ledger stays 71 of 80 done.

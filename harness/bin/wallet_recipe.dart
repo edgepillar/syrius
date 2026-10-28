@@ -325,8 +325,10 @@ class WalletRecipe {
 
   Future<void> _awaitRestoredLock() async {
     bool skipped = false;
+    Map<String, dynamic>? last;
     for (int turn = 0; turn < 400; turn++) {
       final Map<String, dynamic> view = await _observe();
+      last = view;
       final String phase = view['entryPhase'] as String? ?? 'unknown';
       if (view['tab'] == 'lock' && !phase.startsWith('startup') &&
           view['startupFilmState'] == null) {
@@ -336,7 +338,7 @@ class WalletRecipe {
           view['entryPhase'] == 'import' || view['entryPhase'] == 'ready' ||
           view['hasError'] != false || phase.contains('error') ||
           phase.contains('refused')) {
-        _refuse('wallet-recipe-restored-lock-required');
+        _refuseRestoredLock(view);
       }
       if (!skipped && view['entryPhase'] == 'startup-before-initialization' &&
           _control(view, 'launch_skip_hint')?['enabled'] == true) {
@@ -346,8 +348,19 @@ class WalletRecipe {
         await _tick();
       }
     }
-    _refuse('wallet-recipe-restored-lock-required');
+    _refuseRestoredLock(last);
   }
+
+  Never _refuseRestoredLock(Map<String, dynamic>? view) => _refuse(
+    'wallet-recipe-restored-lock-required',
+    diagnostic: walletRecipeDiagnostic(
+      <String, Object?>{'action': 'observe'},
+      view?['hasError'] == true
+          ? 'wallet-recipe-visible-error'
+          : 'wallet-recipe-refused',
+      entryPhase: view?['entryPhase'],
+    ),
+  );
 
   /// P09 preparation uses only the original Settings controls on chain 321.
   /// One missing index is derived once; uncertain writes retire this driver.

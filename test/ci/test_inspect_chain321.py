@@ -119,6 +119,25 @@ class InspectionTests(unittest.TestCase):
         self.assertFalse(value['runtime_started'])
         self.assertFalse(value['seed_admitted'])
 
+    def test_typed_child_refusal_survives_without_granting_reopen_authority(self):
+        from tool.ci import restored_wallet_run
+        child = dict(schema=1, scope='owned_reopen_child_failure',
+            phase='startup_window', kind='WINDOW_REFUSED',
+            code='WINDOW_CLIENT_REFUSED', recipe=None)
+        trace = restored_wallet_run.ReopenDiagnostic()
+        trace.at('unlock_and_observe')
+        trace.observe_line(b'CI_REOPEN_FAILURE:' + json.dumps(child).encode() + b'\n')
+        trace.failure(restored_wallet_run.checkpoint.Refused())
+        report = manifest()
+        report['wallet_reopen'] = dict(schema=1, scope=restored_wallet_run.SCOPE,
+            complete=False, diagnostic=trace.snapshot())
+        value = inspect.project(report, 'native', 'a'*40, 123)
+        self.assertEqual(value['wallet_reopen']['diagnostic']['child_failure'], child)
+        self.assertFalse(value['artifact_reported_success'])
+        self.assertFalse(value['wallet_reopen']['complete'])
+        self.assertFalse(value['runtime_started'])
+        self.assertFalse(value['seed_admitted'])
+
     def test_path_binding_absence_and_refusal_do_not_invent_runtime_authority(self):
         report = manifest()
         value = inspect.project(report, 'native', 'a'*40, 123)

@@ -247,6 +247,72 @@ class ReopenDiagnosticTests(unittest.TestCase):
             trace.at('private')
         self.assertEqual(trace.snapshot()['phase'], 'admission')
 
+    def test_closed_child_failure_vocabulary_matches_the_dart_formatter(self):
+        source = Path('harness/bin/ci_wallet_reopen.dart').read_text()
+        for name, expected in (
+                ('restoredChildPhases', set(restored.CHILD_PHASES)),
+                ('restoredChildKinds', restored.CHILD_FAILURE_KINDS),
+                ('restoredWindowFailureCodes', restored.WINDOW_FAILURE_CODES),
+                ('restoredRecipeExtraCodes', restored.CHILD_RECIPE_EXTRA_CODES)):
+            match = re.search(r'const Set<String> ' + name
+                + r' = <String>\{(.*?)\};', source, re.S)
+            self.assertIsNotNone(match)
+            values = re.findall(r"'([A-Za-z0-9_-]+)'", match[1])
+            self.assertEqual(set(values), expected)
+            self.assertEqual(len(values), len(expected))
+
+    def test_original_child_failure_is_bound_and_cannot_be_replaced(self):
+        child = dict(schema=1, scope='owned_reopen_child_failure', phase='startup',
+            kind='RECIPE_REFUSED', code='wallet-recipe-restored-lock-required',
+            recipe=dict(action='observe', control='none', reason='wallet-recipe-refused',
+                entry='startup-before-initialization', startup='key-confirmed',
+                film='skip-middle-frame-pending'))
+        raw = b'CI_REOPEN_FAILURE:' + json.dumps(child).encode() + b'\r\n'
+        trace = self.trace(raw)
+        first = trace.snapshot()
+        self.assertEqual(first['child_failure'], child)
+        self.assertEqual(first['child_phase'], 'startup')
+        self.assertEqual(first['output'], dict(code='REOPEN_CHILD_REFUSED',
+            bytes=len(raw), sha256=hashlib.sha256(raw).hexdigest()))
+        changed = trace.snapshot()
+        changed['child_failure']['recipe']['film'] = 'ended'
+        trace.observe_line(b'CI_REOPEN_ERROR:unlock\n')
+        self.assertEqual(trace.snapshot(), first)
+        trace.failure(restored.checkpoint.Refused())
+        value = dict(schema=1, scope=restored.SCOPE, complete=False,
+            diagnostic=trace.snapshot())
+        self.assertFalse(restored.project(value)['complete'])
+        self.assertNotIn('seed_admitted', restored.project(value))
+        with self.assertRaises(restored.checkpoint.Refused):
+            restored.project(dict(completed(), diagnostic=trace.snapshot()))
+        with self.assertRaises(restored.checkpoint.Refused):
+            restored.diagnostic_projection(dict(first, child_phase='unlock'))
+        self.assertNotIn('child_failure', self.trace().snapshot())
+
+    def test_private_or_unlisted_child_failure_fields_are_only_hashed(self):
+        child = dict(schema=1, scope='owned_reopen_child_failure',
+            phase='startup_window', kind='WINDOW_REFUSED',
+            code='WINDOW_CLIENT_REFUSED', recipe=None)
+        values = [dict(child, private='private'), dict(child, schema=True),
+            dict(child, phase='private'), dict(child, phase='startup'),
+            dict(child, kind='private'), dict(child, code='private'),
+            dict(child, code=None), dict(child, recipe=dict(private='private')),
+            dict(child, kind='FORMAT_ERROR', code='WINDOW_CLIENT_REFUSED'),
+            dict(child, kind='RECIPE_REFUSED', code='private'),
+            dict(child, kind='RECIPE_REFUSED', code=None,
+                recipe=dict(action='observe', control='none',
+                    reason='wallet-recipe-refused', private='private'))]
+        for value in values:
+            with self.subTest(kind=value['kind']), self.assertRaises(restored.checkpoint.Refused):
+                restored.child_failure_projection(value)
+            raw = b'CI_REOPEN_FAILURE:' + json.dumps(value).encode() + b'\n'
+            result = self.trace(raw).snapshot()
+            self.assertIsNone(result['child_phase'])
+            self.assertNotIn('child_failure', result)
+            self.assertEqual(result['output']['code'], 'UNCLASSIFIED_OUTPUT')
+            self.assertEqual(result['output']['sha256'], hashlib.sha256(raw).hexdigest())
+            self.assertNotIn('private', json.dumps(result))
+
 
 class NoticeTests(unittest.TestCase):
     def test_small_legacy_notices_keep_their_exact_facts(self):

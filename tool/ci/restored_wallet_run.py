@@ -27,7 +27,7 @@ PHASES = ('admission', 'origin', 'roots', 'journals', 'ciphers', 'node_inputs',
     'unlock_and_observe', 'post_observe', 'seed_workflow', 'seed_journals',
     'ordinary_close', 'finish', 'source_closed', 'close', 'output_close',
     'transport_close', 'nodes_stop', 'post_close', 'complete_record', 'projection')
-CHILD_PHASES = ('gate', 'start', 'input', 'startup', 'unlock', 'observe',
+CHILD_PHASES = ('gate', 'start', 'input', 'startup_window', 'startup', 'unlock', 'observe',
     'seed_admission', 'seed_stake', 'seed_fuse', 'seed_token', 'seed_deposit',
     'seed_project', 'seed_fund-address', 'finish')
 OUTPUT_CODES = ('PUB_RESOLUTION', 'PUB_EXECUTABLE_BUILD', 'UNHANDLED_EXCEPTION',
@@ -35,12 +35,49 @@ OUTPUT_CODES = ('PUB_RESOLUTION', 'PUB_EXECUTABLE_BUILD', 'UNHANDLED_EXCEPTION',
     'REOPEN_CHILD_REFUSED')
 ERRORS = ('CHECKPOINT_REFUSED', 'LAB_REFUSED', 'WIRE_REFUSED', 'PROCESS_REFUSED', 'TYPE_ERROR',
     'KEY_ERROR', 'OS_ERROR', 'VALUE_ERROR', 'INTERRUPTED', 'OTHER_ERROR')
+CHILD_FAILURE_KINDS = frozenset(('WINDOW_REFUSED', 'RECIPE_REFUSED', 'HARNESS_REFUSED',
+    'FORMAT_ERROR', 'TYPE_ERROR', 'STATE_ERROR', 'OS_ERROR', 'OTHER_ERROR'))
+WINDOW_FAILURE_CODES = frozenset(('WINDOW_RESPONSE_REFUSED', 'WINDOW_CLIENT_REFUSED',
+    'WINDOW_STATE_REFUSED'))
+CHILD_RECIPE_EXTRA_CODES = frozenset(('wallet-recipe-restored-lock-required',
+    'wallet-recipe-observation-refused', 'wallet-recipe-controls-unavailable',
+    'wallet-recipe-control-ambiguous', 'wallet-recipe-command-uncertain',
+    'wallet-recipe-deadline', 'wallet-recipe-retired'))
+
+
+def child_failure_projection(value):
+    """Validate data from the original child; it grants no runtime authority."""
+    checkpoint.need(type(value) is dict and set(value) ==
+        {'schema', 'scope', 'phase', 'kind', 'code', 'recipe'}
+        and type(value['schema']) is int and value['schema'] == 1
+        and value['scope'] == 'owned_reopen_child_failure'
+        and type(value['phase']) is str and value['phase'] in CHILD_PHASES
+        and type(value['kind']) is str and value['kind'] in CHILD_FAILURE_KINDS)
+    from . import windows_wallet_tour as tour
+    kind, code, recipe = value['kind'], value['code'], value['recipe']
+    if kind == 'WINDOW_REFUSED':
+        checkpoint.need(value['phase'] == 'startup_window'
+            and type(code) is str and code in WINDOW_FAILURE_CODES)
+    elif kind == 'RECIPE_REFUSED':
+        checkpoint.need(code is None or type(code) is str
+            and code in tour.RECIPE_FAILURE_CODES | CHILD_RECIPE_EXTRA_CODES)
+    else:
+        checkpoint.need(code is None)
+    if recipe is not None:
+        checkpoint.need(kind == 'RECIPE_REFUSED')
+        try:
+            tour.entry_failure(dict(stage='onboarding',
+                code='wallet-recipe-stage-unsettled', diagnostic=recipe))
+        except tour.Refused:
+            raise checkpoint.Refused() from None
+    return dict(value, recipe=None if recipe is None else dict(recipe))
 
 
 def diagnostic_projection(value):
     """Retain a finite active failure location without private error text."""
-    checkpoint.need(type(value) is dict and set(value) ==
-        {'schema', 'scope', 'phase', 'child_phase', 'output', 'error', 'code'}
+    fields = {'schema', 'scope', 'phase', 'child_phase', 'output', 'error', 'code'}
+    checkpoint.need(type(value) is dict and set(value) in
+        (fields, fields | {'child_failure'})
         and type(value['schema']) is int and value['schema'] == 1
         and value['scope'] == 'owned_restored_lab_reopen_diagnostic'
         and type(value['phase']) is str and value['phase'] in PHASES
@@ -62,7 +99,13 @@ def diagnostic_projection(value):
                    'PROCESS_REFUSED': debug.CODES}
         checkpoint.need(type(value['code']) is str and value['error'] in allowed
             and value['code'] in allowed[value['error']])
-    return dict(value, output=None if output is None else dict(output))
+    result = dict(value, output=None if output is None else dict(output))
+    if 'child_failure' in value:
+        child = child_failure_projection(value['child_failure'])
+        checkpoint.need(value['child_phase'] == child['phase']
+            and output is not None and output['code'] == 'REOPEN_CHILD_REFUSED')
+        result['child_failure'] = child
+    return result
 
 
 class ReopenDiagnostic:
@@ -71,6 +114,7 @@ class ReopenDiagnostic:
     def __init__(self):
         self.phase = 'admission'
         self.child_phase = self.output = self.error = self.code = None
+        self.child_failure = None
 
     def at(self, phase):
         checkpoint.need(self.error is None and type(phase) is str and phase in PHASES)
@@ -81,6 +125,19 @@ class ReopenDiagnostic:
         if self.output is not None:
             return
         line = raw.replace(b'\r\n', b'\n')
+        if line.startswith(b'CI_REOPEN_FAILURE:'):
+            observation = debug.probe_line_observation(raw)
+            try:
+                child = child_failure_projection(json.loads(
+                    line[len(b'CI_REOPEN_FAILURE:'):]))
+            except (ValueError, UnicodeError, RecursionError, checkpoint.Refused):
+                self.output = observation
+                return
+            self.child_failure = child
+            self.child_phase = child['phase']
+            observation['code'] = 'REOPEN_CHILD_REFUSED'
+            self.output = observation
+            return
         match = re.fullmatch(rb'CI_REOPEN_ERROR:([a-z_-]+)\n', line)
         observation = debug.probe_line_observation(raw)
         if match is not None and match[1].decode('ascii') in CHILD_PHASES:
@@ -121,10 +178,13 @@ class ReopenDiagnostic:
             self.error = 'OTHER_ERROR'
 
     def snapshot(self):
-        return diagnostic_projection(dict(schema=1,
+        value = dict(schema=1,
             scope='owned_restored_lab_reopen_diagnostic', phase=self.phase,
             child_phase=self.child_phase, output=self.output,
-            error=self.error, code=self.code))
+            error=self.error, code=self.code)
+        if self.child_failure is not None:
+            value['child_failure'] = self.child_failure
+        return diagnostic_projection(value)
 
 
 def wallet_observation(value):
@@ -492,7 +552,8 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
                     continue
                 trace.observe_line(raw)
                 line = raw.rstrip(b'\r\n')
-                checkpoint.need(not line.startswith(b'CI_REOPEN_ERROR:'))
+                checkpoint.need(not line.startswith((
+                    b'CI_REOPEN_ERROR:', b'CI_REOPEN_FAILURE:')))
                 if marker == b'CI_REOPEN_DONE' and line.startswith(marker + b':'):
                     return wallet_observation(json.loads(line.partition(b':')[2]))
                 if marker == b'CI_SEED_DONE' and line.startswith(marker + b':'):

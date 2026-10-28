@@ -1,7 +1,42 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../harness/bin/ci_wallet_reopen.dart' as entry;
+import '../../harness/bin/harness.dart' as cli;
 import '../../harness/bin/wallet_recipe.dart';
+
+class _Unformattable implements Exception {
+  @override
+  String toString() => throw StateError('The error must not be formatted');
+}
+
+Object _typeError() {
+  final Object value = Object();
+  try {
+    return value as int;
+  } on Object catch (error) {
+    return error;
+  }
+}
+
+Future<Map<String, Object?>> _failure(
+  Future<void> Function() action,
+  String phase,
+) async {
+  try {
+    await action();
+  } on Object catch (error) {
+    final Map<String, Object?>? result = entry.restoredChildFailure(
+      phase,
+      error,
+    );
+    expect(result, isNotNull);
+    return result!;
+  }
+  throw StateError('The original operation did not refuse');
+}
 
 Map<String, dynamic> _view({
   String tab = 'lock', String phase = 'unknown', String? film,
@@ -133,5 +168,132 @@ void main() {
       expect(commands.every((Map<String, Object?> command) =>
         command['action'] == 'observe'), isTrue);
     }
+  });
+
+  test('restored startup requires one acknowledged visible target client',
+      () async {
+    Map<String, dynamic> window() => <String, dynamic>{
+      'ok': true, 'clientMatched': true, 'client': <num>[1280, 780.0],
+      'minimized': false, 'maximized': false,
+    };
+    final List<Map<String, Object?>> commands = <Map<String, Object?>>[];
+    await entry.showRestoredStartupWindow((Map<String, Object?> command) async {
+      commands.add(command);
+      return window();
+    });
+    expect(commands, <Map<String, Object?>>[
+      <String, Object?>{
+        'cmd': 'window', 'do': 'show', 'width': 1280, 'height': 780,
+      },
+    ]);
+    final Map<String, List<Map<String, dynamic>>> invalid =
+        <String, List<Map<String, dynamic>>>{
+      'WINDOW_RESPONSE_REFUSED': <Map<String, dynamic>>[
+        <String, dynamic>{'ok': false}, <String, dynamic>{'ok': 'true'},
+      ],
+      'WINDOW_CLIENT_REFUSED': <Map<String, dynamic>>[
+        <String, dynamic>{'clientMatched': false},
+        <String, dynamic>{'client': null},
+        <String, dynamic>{'client': <num>[1280]},
+        <String, dynamic>{'client': <Object>[true, 780]},
+        <String, dynamic>{'client': <num>[double.nan, 780]},
+        <String, dynamic>{'client': <num>[1279, 780]},
+      ],
+      'WINDOW_STATE_REFUSED': <Map<String, dynamic>>[
+        <String, dynamic>{'minimized': true},
+        <String, dynamic>{'maximized': true},
+        <String, dynamic>{'minimized': null},
+      ],
+    };
+    for (final MapEntry<String, List<Map<String, dynamic>>> group
+        in invalid.entries) {
+      for (final Map<String, dynamic> change in group.value) {
+        int requests = 0;
+        final Map<String, Object?> failed = await _failure(
+          () => entry.showRestoredStartupWindow((_) async {
+            requests++;
+            return window()..addAll(change);
+          }),
+          'startup_window',
+        );
+        expect(requests, 1);
+        expect(failed['kind'], 'WINDOW_REFUSED');
+        expect(failed['code'], group.key);
+        expect(failed['recipe'], isNull);
+      }
+    }
+  });
+
+  test('child failures export fixed types and validated recipe labels only',
+      () {
+    final Map<String, String> diagnostic = <String, String>{
+      'action': 'observe', 'control': 'none',
+      'reason': 'wallet-recipe-refused',
+      'entry': 'startup-before-initialization',
+      'startup': 'key-confirmed', 'film': 'skip-middle-frame-pending',
+    };
+    final Map<String, Object?> original = entry.restoredChildFailure(
+      'startup',
+      WalletRecipeRefused('wallet-recipe-restored-lock-required',
+        diagnostic: diagnostic),
+    )!;
+    expect(original['code'], 'wallet-recipe-restored-lock-required');
+    expect(original['recipe'], diagnostic);
+    final Map<String, Object?> unknown = entry.restoredChildFailure(
+      'startup', WalletRecipeRefused('private',
+        diagnostic: <String, String>{...diagnostic, 'private': 'private'}),
+    )!;
+    expect(unknown['code'], isNull);
+    expect(unknown['recipe'], isNull);
+    final Map<String, Object> errors = <String, Object>{
+      'HARNESS_REFUSED': cli.Fail('private'),
+      'FORMAT_ERROR': const FormatException('private'),
+      'STATE_ERROR': StateError('private'),
+      'OS_ERROR': const FileSystemException('private', 'private'),
+      'TYPE_ERROR': _typeError(),
+      'OTHER_ERROR': _Unformattable(),
+    };
+    for (final MapEntry<String, Object> value in errors.entries) {
+      final Map<String, Object?> failure =
+          entry.restoredChildFailure('startup', value.value)!;
+      expect(failure['kind'], value.key);
+      expect(failure['code'], isNull);
+      expect(failure['recipe'], isNull);
+      expect(jsonEncode(failure), isNot(contains('private')));
+    }
+    expect(entry.restoredChildFailure('private', _Unformattable()), isNull);
+  });
+
+  test('failed restored wait retains its last labels and cannot adopt lock',
+      () async {
+    final List<Map<String, Object?>> commands = <Map<String, Object?>>[];
+    bool laterLock = false;
+    final WalletRecipe driver = WalletRecipe(
+      send: (Map<String, Object?> command, Duration _) async {
+        commands.add(command);
+        if (command['action'] != 'observe') {
+          return <String, dynamic>{'ok': true, 'acted': true};
+        }
+        return laterLock ? _view() : _view(
+          phase: 'startup-before-initialization',
+          film: 'skip-middle-frame-pending', hint: true);
+      },
+      wait: (Duration _) async {},
+    );
+    final Map<String, Object?> failed = await _failure(
+      driver.settleRestoredStartup, 'startup');
+    expect(failed['code'], 'wallet-recipe-restored-lock-required');
+    final Map<String, String> labels = failed['recipe']! as Map<String, String>;
+    expect(labels['entry'], 'startup-before-initialization');
+    expect(labels['film'], 'skip-middle-frame-pending');
+    expect(labels['startup'], 'key-confirmed');
+    expect(commands.where((Map<String, Object?> c) =>
+      c['action'] != 'observe').map((Map<String, Object?> c) => c['key']),
+      <String>['launch_skip_hint']);
+    final int originalRequests = commands.length;
+    laterLock = true;
+    expect((await _failure(driver.settleRestoredStartup, 'startup'))['code'],
+      'wallet-recipe-retired');
+    expect(commands.length, originalRequests);
   });
 }
