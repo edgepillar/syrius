@@ -174,7 +174,8 @@ void main() {
           expect(style.fontSize, 13);
           expect(style.fontWeight, FontWeight.w400);
           expect(
-            tester.renderObject<RenderParagraph>(choice).text.style!.letterSpacing,
+            tester.renderObject<RenderParagraph>(choice)
+                .text.style!.letterSpacing,
             0,
           );
         }

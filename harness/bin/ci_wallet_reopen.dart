@@ -40,11 +40,17 @@ class _RestoredUnlockRefused implements Exception {
 }
 
 /// Run the original unlock once, retaining no reply, password or error text.
-Future<void> unlockRestoredWallet(cli.Instance instance, String password) async {
+Future<void> unlockRestoredWallet(
+  cli.Instance instance,
+  String password,
+) async {
   cli.UnlockStep? originalStep;
   try {
-    await cli.unlock(instance, password,
-      observe: (cli.UnlockStep step) => originalStep = step);
+    await cli.unlock(
+      instance,
+      password,
+      observe: (cli.UnlockStep step) => originalStep = step,
+    );
   } on cli.Fail {
     final String code = switch (originalStep) {
       cli.UnlockStep.state => 'UNLOCK_STATE_REFUSED',

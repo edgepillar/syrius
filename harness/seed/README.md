@@ -512,8 +512,8 @@ At `3daccdd2fc0d`, producer `40667432677` and independent reader
 exactly one ZNN to index 0 with original-request confirmation, all twelve
 page/capture checks, complete quiescence and normal required app, entry and
 five-node exits. All 740 Python cases and 290 selected Dart cases pass;
-selected analysis has zero findings. The copied startup completes its Skip
-and reaches unlock. Its original diagnostic retains `HARNESS_REFUSED` with
+selected analysis has zero findings. The copied startup procedure returns
+and reaches unlock; its key-versus-natural completion path is not recorded. Its original diagnostic retains `HARNESS_REFUSED` with
 no operation code; the overall producer remains failed. All four copied
 checkpoint/path/pointer/reopen components remain incomplete and parent-bound.
 No copied reopen or six-effect qualification is inferred.
@@ -549,3 +549,18 @@ reopen/six effects and every remaining acceptance requirement remain open.
 All 222 selected pure-memory Python controls actually pass with zero
 failures, errors, skips, blocked native/scratch attempts or filesystem scratch.
 Current hosted Dart and native image qualification are still pending.
+
+
+### Current analysis gate correction
+
+At `9190011cf540`, run `40674595125` passes all 740 Python cases with the
+three existing platform skips. Selected analysis then refuses with three
+errors, one warning and two infos: a new counter-label variable reused the
+name of a later original route receipt, and two new lines exceeded eighty
+characters. Dart tests and all native allocation steps are skipped. No
+current SDK test or native result is inferred from that run, and it is not
+retried. The candidate renames only the new label variable and wraps the
+new lines; original assertions, route receipts, commands, deadlines and
+case counts remain. The earlier source130 copied startup procedure returned
+before unlock; its retained diagnostic does not record whether a key or
+natural film completion led there. No specific copied Skip effect is claimed.

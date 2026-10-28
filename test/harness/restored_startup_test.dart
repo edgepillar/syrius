@@ -328,7 +328,10 @@ void main() {
     for (final MapEntry<String, List<String>> item in expected.entries) {
       final _UnlockInstance instance = _UnlockInstance(item.key);
       final Map<String, Object?> failure = await _failure(
-        () => entry.unlockRestoredWallet(instance, 'synthetic-private-password'),
+        () => entry.unlockRestoredWallet(
+          instance,
+          'synthetic-private-password',
+        ),
         'unlock',
       );
       expect(instance.commands, item.value);

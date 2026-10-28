@@ -228,9 +228,9 @@ void main() {
       );
       expect(seed.text!.style!.fontFamily, kSansFontFamily);
       expect(seed.text!.style!.letterSpacing, 0);
-      final Finder count = find.text('8 of 12');
+      final Finder counterLabel = find.text('8 of 12');
       expect(
-        tester.getBottomLeft(count).dy,
+        tester.getBottomLeft(counterLabel).dy,
         closeTo(
           tester.getBottomLeft(
             find.byKey(const Key('import_seed_panel')),
