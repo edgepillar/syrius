@@ -27,6 +27,38 @@ const Set<String> restoredWindowFailureCodes = <String>{
   'WINDOW_RESPONSE_REFUSED', 'WINDOW_CLIENT_REFUSED', 'WINDOW_STATE_REFUSED',
 };
 
+/// Only the operation of an original unlock refusal is public.
+const Set<String> restoredUnlockFailureCodes = <String>{
+  'UNLOCK_STATE_REFUSED', 'UNLOCK_LOCK_REQUIRED', 'UNLOCK_TYPE_REFUSED',
+  'UNLOCK_TAP_REFUSED', 'UNLOCK_WAIT_REFUSED', 'UNLOCK_FAILURE_TREE_REFUSED',
+};
+
+class _RestoredUnlockRefused implements Exception {
+  const _RestoredUnlockRefused(this.code);
+
+  final String code;
+}
+
+/// Run the original unlock once, retaining no reply, password or error text.
+Future<void> unlockRestoredWallet(cli.Instance instance, String password) async {
+  cli.UnlockStep? originalStep;
+  try {
+    await cli.unlock(instance, password,
+      observe: (cli.UnlockStep step) => originalStep = step);
+  } on cli.Fail {
+    final String code = switch (originalStep) {
+      cli.UnlockStep.state => 'UNLOCK_STATE_REFUSED',
+      cli.UnlockStep.lock => 'UNLOCK_LOCK_REQUIRED',
+      cli.UnlockStep.typePassword => 'UNLOCK_TYPE_REFUSED',
+      cli.UnlockStep.submit => 'UNLOCK_TAP_REFUSED',
+      cli.UnlockStep.wait => 'UNLOCK_WAIT_REFUSED',
+      cli.UnlockStep.failureTree => 'UNLOCK_FAILURE_TREE_REFUSED',
+      null => throw StateError('Original unlock step was not observed'),
+    };
+    throw _RestoredUnlockRefused(code);
+  }
+}
+
 /// Driver-only refusals extend the existing closed command vocabulary.
 const Set<String> restoredRecipeExtraCodes = <String>{
   'wallet-recipe-restored-lock-required', 'wallet-recipe-observation-refused',
@@ -83,6 +115,12 @@ Map<String, Object?>? restoredChildFailure(String phase, Object error) {
       code = original.code;
     }
     recipe = walletRecipePublicDiagnostic(original.diagnostic);
+  } else if (error.runtimeType == _RestoredUnlockRefused) {
+    if (phase != 'unlock') return null;
+    kind = 'HARNESS_REFUSED';
+    final String value = (error as _RestoredUnlockRefused).code;
+    if (!restoredUnlockFailureCodes.contains(value)) return null;
+    code = value;
   } else if (error is cli.Fail) {
     kind = 'HARNESS_REFUSED';
   } else if (error is FormatException) {
@@ -162,7 +200,7 @@ Future<void> main() async {
       throw const FormatException('parent unavailable');
     }
     phase = 'unlock';
-    await cli.unlock(instance, decoded['password'] as String);
+    await unlockRestoredWallet(instance, decoded['password'] as String);
     phase = 'observe';
     await cli.until(instance, restoredWalletReady, 'restored readiness');
     final Map<String, dynamic> state = await cli.stateOf(instance);

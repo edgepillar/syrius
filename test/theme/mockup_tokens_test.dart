@@ -170,6 +170,7 @@ void main() {
         expect(tokens.bodyText.fontFamily, kSansFontFamily);
         expect(tokens.bodyText.fontSize, 14);
         expect(tokens.bodyText.height, 1.45);
+        expect(tokens.bodyText.letterSpacing, 0);
         expect(tokens.headingText.fontWeight, FontWeight.w600);
         expect(tokens.buttonText.fontWeight, FontWeight.w600);
         for (final TextStyle style in <TextStyle>[

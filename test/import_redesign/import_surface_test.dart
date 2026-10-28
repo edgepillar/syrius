@@ -105,6 +105,29 @@ void main() {
           620,
         );
         expect(find.text('8 of 12'), findsOneWidget);
+        final AppTokens tokens = light ? AppTokens.light : AppTokens.dark;
+        final Finder field = find.byKey(const Key('import_seed_field'));
+        final RenderEditable seed = tester.renderObject<RenderEditable>(
+          find.descendant(of: field, matching: find.byType(EditableText)),
+        );
+        expect(seed.text!.style!.fontFamily, tokens.sansFontFamily);
+        expect(seed.text!.style!.letterSpacing, 0);
+        final Finder count = find.text('8 of 12');
+        final RenderParagraph counter = tester.renderObject<RenderParagraph>(
+          count,
+        );
+        expect(counter.text.style!.fontFamily, tokens.monoFontFamily);
+        expect(counter.text.style!.fontSize, 12.5);
+        expect(counter.text.style!.letterSpacing, 0);
+        expect(
+          tester.getBottomLeft(count).dy,
+          closeTo(
+            tester.getBottomLeft(
+              find.byKey(const Key('import_seed_panel')),
+            ).dy - tokens.transferFieldPadding.bottom - 1,
+            0.01,
+          ),
+        );
         expect(find.byType(HeroField), findsNothing);
         expect(
           tester
@@ -150,6 +173,10 @@ void main() {
           final TextStyle style = tester.widget<Text>(choice).style!;
           expect(style.fontSize, 13);
           expect(style.fontWeight, FontWeight.w400);
+          expect(
+            tester.renderObject<RenderParagraph>(choice).text.style!.letterSpacing,
+            0,
+          );
         }
         // Two 14px label insets per choice, plus the track's 1px + 3px.
         final double segmentWidth =

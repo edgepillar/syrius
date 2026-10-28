@@ -7811,3 +7811,49 @@ remain intact. Source126 root/build and four prepared Debug image receipts
 remain separately bound. The four fresh images are unreviewed, nineteen
 catalog preparations remain literal refusals, and actual copied reopen/six
 effects and all 94 visual matches remain open. The main ledger stays 71/80.
+
+
+### Prepared entry review and copied unlock observation
+
+At `3daccdd2fc0d`, producer `40667432677` and independent reader
+`40672842001` qualify the original onboarding, persisted index-1 UI send of
+exactly one ZNN to index 0 with original-request confirmation, all twelve
+page/capture checks, complete quiescence and normal required app, entry and
+five-node exits. All 740 Python cases and 290 selected Dart cases pass;
+selected analysis has zero findings. The copied startup completes its Skip
+and reaches unlock. Its original diagnostic retains `HARNESS_REFUSED` with
+no operation code; the overall producer remains failed. All four copied
+checkpoint/path/pointer/reopen components remain incomplete and parent-bound.
+No copied reopen or six-effect qualification is inferred.
+
+The candidate adds passive operation observation to the original unlock.
+Only a genuine harness refusal from that one call is mapped to a fixed state,
+lock requirement, password-field, button, wait or failure-tree label. Unknown
+errors retain their original family and no new detail. The same commands,
+password/button attempt, twenty-second wait, original failure-tree read and
+cleanup remain. No retry, policy write, password logging or authentication
+change is introduced. Existing original positive command assertions remain, and all six
+command-refusal vectors are added to the isolated cases.
+
+All four prepared Debug images at source126 `d17b474b1362` have now been
+opened against their retained references. Both Welcome globe orientations
+differ. Both Import word-counter glyphs start at y496 instead of y507;
+seed input uses mono instead of reference sans, and word-selector extents
+measure 183/184 pixels versus 176. Font hinting is explicitly allowed by the
+acceptance requirement and is not itself a defect. These pairs stay unaccepted.
+The candidate uses sans for seed prose, bottom-aligns the existing counter
+and explicitly sets normal base tracking. Tabular figures, deliberate ledger
+and hero tracking, numeric font roles, callbacks, validation, controller
+ownership and original animation clocks are preserved. Real render styles
+and counter geometry are asserted within existing genuine-route and both-theme
+cases. SDK, fresh-image and current full-root qualification remain pending.
+
+Source129's before-fix control and all earlier failures/UNKNOWN attempts stay
+separate. No local SDK/native test runs. The main ledger remains 71/80,
+with zero of 94 visual matches accepted, ninety missing catalog outputs and
+nineteen literal preparation refusals. The written Docker/lab route, copied
+reopen/six effects and every remaining acceptance requirement remain open.
+
+All 222 selected pure-memory Python controls actually pass with zero
+failures, errors, skips, blocked native/scratch attempts or filesystem scratch.
+Current hosted Dart and native image qualification are still pending.

@@ -12,6 +12,58 @@ class _Unformattable implements Exception {
   String toString() => throw StateError('The error must not be formatted');
 }
 
+class _UnlockInstance extends cli.Instance {
+  _UnlockInstance(this.refusal) : super('synthetic-restored-unlock');
+
+  final String? refusal;
+  final List<String> commands = <String>[];
+  int observations = 0;
+
+  @override
+  Future<Map<String, dynamic>> send(
+    Map<String, Object?> command, {
+    Duration timeout = const Duration(seconds: 120),
+  }) async {
+    final String name = command['cmd']! as String;
+    commands.add(name);
+    bool refused = false;
+    if (name == 'state') {
+      observations++;
+      refused = observations == 1
+          ? refusal == 'UNLOCK_STATE_REFUSED'
+          : refusal == 'UNLOCK_WAIT_REFUSED' ||
+              refusal == 'UNLOCK_FAILURE_TREE_REFUSED';
+      if (!refused) {
+        return <String, dynamic>{
+          'ok': true,
+          'tab': refusal == 'UNLOCK_LOCK_REQUIRED'
+              ? 'startup' : observations == 1 ? 'lock' : 'dashboard',
+          'walletUnlocked': observations > 1,
+        };
+      }
+    } else if (name == 'type') {
+      expect(command['key'], 'wallet_password_field');
+      expect(command['value'], 'synthetic-private-password');
+      refused = refusal == 'UNLOCK_TYPE_REFUSED';
+    } else if (name == 'tap') {
+      expect(command['key'], 'wallet_unlock_button');
+      refused = refusal == 'UNLOCK_TAP_REFUSED';
+    } else if (name == 'tree') {
+      expect(command['kind'], 'text');
+      refused = refusal == 'UNLOCK_FAILURE_TREE_REFUSED';
+      if (!refused) return <String, dynamic>{'ok': true, 'nodes': <Object>[]};
+    } else {
+      throw StateError('Unexpected original unlock operation');
+    }
+    return <String, dynamic>{
+      'ok': !refused,
+      if (refused) 'error': 'synthetic-private-error',
+      if (refused) 'detail': <String, String>{'path': 'synthetic-private-path'},
+      if (refused) 'stack': 'synthetic-private-stack',
+    };
+  }
+}
+
 Object _typeError() {
   final Object value = Object();
   try {
@@ -225,7 +277,7 @@ void main() {
   });
 
   test('child failures export fixed types and validated recipe labels only',
-      () {
+      () async {
     final Map<String, String> diagnostic = <String, String>{
       'action': 'observe', 'control': 'none',
       'reason': 'wallet-recipe-refused',
@@ -262,6 +314,32 @@ void main() {
       expect(jsonEncode(failure), isNot(contains('private')));
     }
     expect(entry.restoredChildFailure('private', _Unformattable()), isNull);
+    final Map<String, List<String>> expected = <String, List<String>>{
+      'UNLOCK_STATE_REFUSED': <String>['state'],
+      'UNLOCK_LOCK_REQUIRED': <String>['state'],
+      'UNLOCK_TYPE_REFUSED': <String>['state', 'type'],
+      'UNLOCK_TAP_REFUSED': <String>['state', 'type', 'tap'],
+      'UNLOCK_WAIT_REFUSED': <String>['state', 'type', 'tap', 'state', 'tree'],
+      'UNLOCK_FAILURE_TREE_REFUSED': <String>[
+        'state', 'type', 'tap', 'state', 'tree',
+      ],
+    };
+    expect(expected.keys.toSet(), entry.restoredUnlockFailureCodes);
+    for (final MapEntry<String, List<String>> item in expected.entries) {
+      final _UnlockInstance instance = _UnlockInstance(item.key);
+      final Map<String, Object?> failure = await _failure(
+        () => entry.unlockRestoredWallet(instance, 'synthetic-private-password'),
+        'unlock',
+      );
+      expect(instance.commands, item.value);
+      expect(failure['kind'], 'HARNESS_REFUSED');
+      expect(failure['code'], item.key);
+      expect(failure['recipe'], isNull);
+      expect(jsonEncode(failure), isNot(contains('private')));
+    }
+    final _UnlockInstance positive = _UnlockInstance(null);
+    await entry.unlockRestoredWallet(positive, 'synthetic-private-password');
+    expect(positive.commands, <String>['state', 'type', 'tap', 'state']);
   });
 
   test('failed restored wait retains its last labels and cannot adopt lock',

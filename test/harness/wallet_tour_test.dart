@@ -124,9 +124,10 @@ class _UnlockInstance extends cli.Instance {
   final List<Map<String, dynamic>> states;
   final List<Map<String, Object?>> commands = <Map<String, Object?>>[];
   final _UnlockStdout output = _UnlockStdout();
+  final List<cli.UnlockStep> observedSteps = <cli.UnlockStep>[];
 
   Future<void> runUnlock() => IOOverrides.runZoned<Future<void>>(
-    () => cli.unlock(this, 'synthetic-password'),
+    () => cli.unlock(this, 'synthetic-password', observe: observedSteps.add),
     stdout: () => output,
   );
 
@@ -195,6 +196,10 @@ void main() {
     ]);
     expect(instance.states, isEmpty);
     expect(instance.output.lines, isEmpty);
+    expect(instance.observedSteps, <cli.UnlockStep>[
+      cli.UnlockStep.state, cli.UnlockStep.lock, cli.UnlockStep.typePassword,
+      cli.UnlockStep.submit, cli.UnlockStep.wait,
+    ]);
   });
 
   test('tour covers every page and reaches merged subpages', () async {

@@ -1025,8 +1025,17 @@ Future<void> goto(Instance inst, String tab) async {
   );
 }
 
-Future<void> unlock(Instance inst, String password) async {
+/// Original unlock operations; observation never changes their inputs or waits.
+enum UnlockStep { state, lock, typePassword, submit, wait, failureTree }
+
+Future<void> unlock(
+  Instance inst,
+  String password, {
+  void Function(UnlockStep step)? observe,
+}) async {
+  observe?.call(UnlockStep.state);
   final Map<String, dynamic> s = await stateOf(inst);
+  observe?.call(UnlockStep.lock);
   if (s['tab'] != 'lock') {
     if (s['walletUnlocked'] != true) {
       throw Fail(
@@ -1036,16 +1045,19 @@ Future<void> unlock(Instance inst, String password) async {
     stdout.writeln('already unlocked');
     return;
   }
+  observe?.call(UnlockStep.typePassword);
   await call(inst, <String, Object?>{
     'cmd': 'type',
     'key': 'wallet_password_field',
     'value': password,
   });
+  observe?.call(UnlockStep.submit);
   await call(inst, <String, Object?>{
     'cmd': 'tap',
     'key': 'wallet_unlock_button',
   });
   try {
+    observe?.call(UnlockStep.wait);
     await until(
       inst,
       (Map<String, dynamic> s) =>
@@ -1055,6 +1067,7 @@ Future<void> unlock(Instance inst, String password) async {
     );
   } on Fail {
     // A wrong password costs an attempt; the wallet erases itself at zero.
+    observe?.call(UnlockStep.failureTree);
     final Map<String, dynamic> t = await call(inst, <String, Object?>{
       'cmd': 'tree',
       'kind': 'text',
@@ -1064,6 +1077,7 @@ Future<void> unlock(Instance inst, String password) async {
           (dynamic n) => (n as Map<String, dynamic>)['label'] as String? ?? '',
         )
         .where((String l) => l.contains('attempt'));
+    observe?.call(UnlockStep.wait);
     throw Fail('unlock failed${left.isEmpty ? '' : ': ${left.first}'}');
   }
 }

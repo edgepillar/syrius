@@ -39,6 +39,9 @@ CHILD_FAILURE_KINDS = frozenset(('WINDOW_REFUSED', 'RECIPE_REFUSED', 'HARNESS_RE
     'FORMAT_ERROR', 'TYPE_ERROR', 'STATE_ERROR', 'OS_ERROR', 'OTHER_ERROR'))
 WINDOW_FAILURE_CODES = frozenset(('WINDOW_RESPONSE_REFUSED', 'WINDOW_CLIENT_REFUSED',
     'WINDOW_STATE_REFUSED'))
+UNLOCK_FAILURE_CODES = frozenset(('UNLOCK_STATE_REFUSED', 'UNLOCK_LOCK_REQUIRED',
+    'UNLOCK_TYPE_REFUSED', 'UNLOCK_TAP_REFUSED', 'UNLOCK_WAIT_REFUSED',
+    'UNLOCK_FAILURE_TREE_REFUSED'))
 CHILD_RECIPE_EXTRA_CODES = frozenset(('wallet-recipe-restored-lock-required',
     'wallet-recipe-observation-refused', 'wallet-recipe-controls-unavailable',
     'wallet-recipe-control-ambiguous', 'wallet-recipe-command-uncertain',
@@ -61,6 +64,9 @@ def child_failure_projection(value):
     elif kind == 'RECIPE_REFUSED':
         checkpoint.need(code is None or type(code) is str
             and code in tour.RECIPE_FAILURE_CODES | CHILD_RECIPE_EXTRA_CODES)
+    elif kind == 'HARNESS_REFUSED':
+        checkpoint.need(code is None or value['phase'] == 'unlock'
+            and type(code) is str and code in UNLOCK_FAILURE_CODES)
     else:
         checkpoint.need(code is None)
     if recipe is not None:

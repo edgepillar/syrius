@@ -137,6 +137,7 @@ class ImportSurface extends StatelessWidget {
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
                       Semantics(
                         label: context.l10n.importSeedOrFile,
@@ -147,7 +148,7 @@ class ImportSurface extends StatelessWidget {
                           autocorrect: false,
                           enableSuggestions: false,
                           textDirection: TextDirection.ltr,
-                          style: tokens.dataText,
+                          style: tokens.bodyText,
                           inputFormatters: <TextInputFormatter>[
                             LengthLimitingTextInputFormatter(512),
                           ],

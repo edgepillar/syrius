@@ -253,6 +253,7 @@ class ReopenDiagnosticTests(unittest.TestCase):
                 ('restoredChildPhases', set(restored.CHILD_PHASES)),
                 ('restoredChildKinds', restored.CHILD_FAILURE_KINDS),
                 ('restoredWindowFailureCodes', restored.WINDOW_FAILURE_CODES),
+                ('restoredUnlockFailureCodes', restored.UNLOCK_FAILURE_CODES),
                 ('restoredRecipeExtraCodes', restored.CHILD_RECIPE_EXTRA_CODES)):
             match = re.search(r'const Set<String> ' + name
                 + r' = <String>\{(.*?)\};', source, re.S)
@@ -288,6 +289,18 @@ class ReopenDiagnosticTests(unittest.TestCase):
         with self.assertRaises(restored.checkpoint.Refused):
             restored.diagnostic_projection(dict(first, child_phase='unlock'))
         self.assertNotIn('child_failure', self.trace().snapshot())
+        for code in restored.UNLOCK_FAILURE_CODES:
+            unlock = dict(schema=1, scope='owned_reopen_child_failure',
+                phase='unlock', kind='HARNESS_REFUSED', code=code, recipe=None)
+            self.assertEqual(restored.child_failure_projection(unlock), unlock)
+            raw = b'CI_REOPEN_FAILURE:' + json.dumps(unlock).encode() + b'\n'
+            trace = self.trace(raw)
+            self.assertEqual(trace.snapshot()['child_failure'], unlock)
+            for change in (dict(phase='startup'), dict(kind='FORMAT_ERROR'),
+                    dict(code='private'), dict(recipe=dict(private='private'))):
+                with self.subTest(code=code, change=change), \
+                        self.assertRaises(restored.checkpoint.Refused):
+                    restored.child_failure_projection(dict(unlock, **change))
 
     def test_private_or_unlisted_child_failure_fields_are_only_hashed(self):
         child = dict(schema=1, scope='owned_reopen_child_failure',

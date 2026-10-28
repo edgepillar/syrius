@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -219,6 +220,24 @@ void main() {
       expect(view.draft.expectedWords, 12);
       expect(view.draft.valid, isFalse);
       expect(view.onContinue, isNull);
+      final RenderEditable seed = tester.renderObject<RenderEditable>(
+        find.descendant(
+          of: find.byKey(const Key('import_seed_field')),
+          matching: find.byType(EditableText),
+        ),
+      );
+      expect(seed.text!.style!.fontFamily, kSansFontFamily);
+      expect(seed.text!.style!.letterSpacing, 0);
+      final Finder count = find.text('8 of 12');
+      expect(
+        tester.getBottomLeft(count).dy,
+        closeTo(
+          tester.getBottomLeft(
+            find.byKey(const Key('import_seed_panel')),
+          ).dy - AppTokens.dark.transferFieldPadding.bottom - 1,
+          0.01,
+        ),
+      );
       await _back(tester, imported);
       expect(draft.isCurrent, isFalse);
       expect(registry.welcome!.owner, same(welcomeOwner));

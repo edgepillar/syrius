@@ -1691,6 +1691,8 @@ class AppTokens extends ThemeExtension<AppTokens> {
     fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
     fontSize: 14,
     fontWeight: FontWeight.w400,
+    // CSS uses normal tracking. An omitted value inherits Material tracking.
+    letterSpacing: 0,
     height: 1.45,
     color: foreground,
   );
