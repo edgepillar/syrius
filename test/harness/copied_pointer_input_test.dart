@@ -4,8 +4,23 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../harness/bin/ci_copied_wallet_pointer.dart';
+import '../../harness/bin/copied_wallet_pointer.dart';
 
 void main() {
+  test('pointer markers retain the fixed phase and binding step', () {
+    for (final CopiedPointerPhase phase in CopiedPointerPhase.values) {
+      expect(copiedPointerFailureMarker(
+        'binding', CopiedWalletPointerRefused(phase)),
+        'CI_POINTER_ERROR:binding:${phase.name}');
+    }
+  });
+
+  test('pointer markers omit private errors and phase values', () {
+    expect(copiedPointerFailureMarker(
+      'private-phase', StateError('synthetic private path and password')),
+      'CI_POINTER_ERROR:unknown:unknown');
+  });
+
   test('private input preserves fragmented records and their exact order',
       () async {
     final StreamController<List<int>> source = StreamController<List<int>>();

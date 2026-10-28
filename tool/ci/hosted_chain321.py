@@ -1091,6 +1091,8 @@ def run(backend):
     runtime = None
     closed_wallets = []
     reopen_anchor = None
+    pointer_diagnostic = None
+    pointer_binding_completed = False
     try:
         source = repo / ".harness/ci-node-source"
         directories(source)
@@ -1262,8 +1264,11 @@ def run(backend):
                     config_sha256=pins, keyfile_sha256=keyfile_pins, measure=measured)
                 report['wallet_pointer_binding'] = dict(schema=1,
                     scope=closed_wallet_pointer.SCOPE, complete=False)
+                pointer_diagnostic = closed_wallet_pointer.PointerDiagnostic()
                 report['wallet_pointer_binding'] = closed_wallet_pointer.run(repo, parent,
-                    wallet, restored_home, checkpoint_home, closed, measured)
+                    wallet, restored_home, checkpoint_home, closed, measured,
+                    diagnostic=pointer_diagnostic)
+                pointer_binding_completed = True
                 report['wallet_reopen'] = dict(schema=1,
                     scope=restored_wallet_run.SCOPE, complete=False)
                 report['wallet_reopen'] = restored_wallet_run.run(repo, parent, wallet,
@@ -1282,6 +1287,8 @@ def run(backend):
                 if 'wallet_pointer_binding' in report:
                     report['wallet_pointer_binding'] = dict(schema=1,
                         scope='closed_wallet_pointer_binding', complete=False)
+                    if pointer_diagnostic is not None and not pointer_binding_completed:
+                        report['wallet_pointer_binding']['diagnostic'] = pointer_diagnostic.snapshot()
                 if 'wallet_reopen' in report:
                     report['wallet_reopen'] = dict(schema=1,
                         scope='owned_restored_lab_reopen', complete=False)

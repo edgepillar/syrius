@@ -87,6 +87,16 @@ final class CopiedPointerInput {
   }
 }
 
+/// Fixed labels retain the failing step without formatting private errors.
+String copiedPointerFailureMarker(String phase, Object error) {
+  const Set<String> phases = <String>{'gate', 'input', 'binding', 'finish'};
+  final String stage = phases.contains(phase) ? phase : 'unknown';
+  final String detail = error is CopiedWalletPointerRefused
+      ? error.phase.name
+      : 'unknown';
+  return 'CI_POINTER_ERROR:$stage:$detail';
+}
+
 Future<void> main() async {
   CopiedPointerInput? input;
   String phase = 'gate';
@@ -146,8 +156,8 @@ Future<void> main() async {
     if (await originalInput.read() != 'FINISH') {
       throw const FormatException('closure unconfirmed');
     }
-  } on Object {
-    stdout.writeln('CI_POINTER_ERROR:$phase');
+  } on Object catch (error) {
+    stdout.writeln(copiedPointerFailureMarker(phase, error));
     await stdout.flush();
     exitCode = 1;
   } finally {

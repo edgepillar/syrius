@@ -252,3 +252,20 @@ historical config, binder guard, encrypted field or original outcome changes.
 All 169 memory controls pass, including five-role factory/binder round trips.
 Current 700-case Python and native copy/Hive/reopen/six-effect qualification
 remain pending.
+
+At 1cb99b60d149, original 40621397904 and independent reader 40623745276
+retain all 700 Python/279 Dart gates, clean selected analysis and positive
+original wallet phases. Hive binding is incomplete; its substep is unknown.
+The candidate adds fixed parent/child phase labels and output category/digest
+only to an incomplete active pointer failure. It never projects raw errors or
+private paths, and a later reopen failure does not acquire a pointer diagnosis.
+Unexpected output still refuses, and all ownership, original-file, cipher,
+quota, floor and no-retry conditions remain. Eight new Python cases and all
+177 memory controls pass. Two new Dart marker cases, the current 281/708
+hosted gate and actual Hive/reopen/six effects remain pending.
+
+Nineteen catalog scripts still declare preparation prerequisites. Retained
+entry review also requires original globe/hero frames and a reversible
+synthetic incomplete Import draft. Those states must be prepared through
+their original UI owners; existing empty or differently timed captures do
+not qualify the corresponding reference state. No visual match is accepted.

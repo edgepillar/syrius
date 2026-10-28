@@ -7329,3 +7329,46 @@ without scratch, SDK, node, wallet or network execution. Current hosted
 qualification requires 700 Python cases before SDK allocation, unchanged
 279 Dart cases and actual checkpoint/path/Hive/reopen/six-effect integration
 with one Flutter setup. F06 and all 94 visual matches remain open.
+
+### Finite Hive binding failure stages and retained entry review
+
+At `1cb99b60d14947cc99d804c770c325b2ad0a4282`, native
+[40621397904](https://github.com/edgepillar/syrius/actions/runs/40621397904),
+attempt one, job `122596035714`, passes all 700 Python cases with three
+original platform skips, 279 Dart cases and clean selected analysis. Original
+send, twelve tour checks, quiescence and normal required-actor closure pass.
+The report advances to incomplete Hive binding; reopen is not entered.
+Independent reader
+[40623745276](https://github.com/edgepillar/syrius/actions/runs/40623745276),
+attempt one, job `122603634771`, verifies both finite original archives and
+source/run/cross-manifest bindings. It retains the overall checkpoint refusal;
+no positive copy/path/Hive summary is inferred from control-flow progress.
+The original Hive substep and raw exception remain unknown.
+
+The candidate records a finite pointer diagnostic only when the active binding
+call fails. It names the parent's phase, the child's fixed phase/binding step
+and one existing output category with the original line's byte count/digest.
+Unexpected output is still refused; its text is never projected. First-output
+evidence is retained once, snapshots do not share mutable output dictionaries
+and unknown labels cannot supply a child step. A later reopen failure cannot
+be attributed to an already completed pointer call. Only incomplete binding
+observations may carry this data. Every original success, process, file,
+parent-alive, cipher, quota and floor check remains. No retry is introduced.
+
+Eight new Python cases cover marker/privacy/coercion/inspection boundaries.
+Two new Dart cases exercise the actual fixed-label formatter without calling
+private errors' string representations. All 177 selected Python memory cases
+pass without scratch, SDK, native or network execution. The next combined
+Windows job runs all 708 Python cases before SDK allocation, then all 281
+Dart cases and native integration with one Flutter setup. The new Dart cases
+and actual failure localization still need hosted qualification.
+
+A read-only catalog inventory finds nineteen scripts with literal preparation
+refusals before any capture effect. First-pass review of four retained native
+Welcome/empty-Import images in both themes finds different globe/hero phases
+and an empty draft where the reference contains a synthetic incomplete draft.
+Original frame alignment and reversible input preparation remain required.
+Subtitle differences need settled-copy review before changing wording. The
+original images and reports remain unchanged. This review accepts no match;
+all 94 visual matches, ninety missing actual captures and fresh independent
+full-pair review remain open.

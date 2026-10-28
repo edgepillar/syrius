@@ -1,6 +1,8 @@
 """Finite protocol policies; actual Hive and owned-process execution are separate."""
 
 from pathlib import Path
+import hashlib
+import json
 import unittest
 from unittest import mock
 
@@ -64,6 +66,86 @@ class PointerPolicyTests(unittest.TestCase):
                             Path('/checkpoint'), lambda: True, lambda: 0)
         launch.assert_not_called()
         discover.assert_not_called()
+
+
+class PointerDiagnosticTests(unittest.TestCase):
+    def diagnostic(self, raw=b'CI_POINTER_ERROR:binding:read\r\n'):
+        trace = pointer.PointerDiagnostic()
+        trace.at('binding')
+        trace.unexpected_line(raw)
+        return trace
+
+    def test_fixed_child_markers_retain_only_stage_detail_and_original_line_digest(self):
+        for raw, phase, detail in (
+                (b'CI_POINTER_ERROR:binding:read\r\n', 'binding', 'read'),
+                (b'CI_POINTER_ERROR:gate\n', 'gate', None),
+                (b'CI_POINTER_ERROR:unknown:unknown\n', 'unknown', 'unknown')):
+            with self.subTest(phase=phase):
+                value = self.diagnostic(raw).snapshot()
+                self.assertEqual(value['child_phase'], phase)
+                self.assertEqual(value['child_detail'], detail)
+                self.assertEqual(value['output'], dict(code='POINTER_CHILD_REFUSED',
+                    bytes=len(raw), sha256=hashlib.sha256(raw).hexdigest()))
+
+    def test_private_unhandled_output_is_classified_and_hashed_without_text(self):
+        raw = b'Unhandled exception: synthetic private path and password\n'
+        value = self.diagnostic(raw).snapshot()
+        self.assertEqual(value['output']['code'], 'UNHANDLED_EXCEPTION')
+        self.assertEqual(value['output']['sha256'], hashlib.sha256(raw).hexdigest())
+        self.assertIsNone(value['child_phase'])
+        self.assertNotIn('private', json.dumps(value))
+        self.assertNotIn('password', json.dumps(value))
+
+    def test_foreign_child_labels_cannot_supply_an_observed_step(self):
+        for raw in (b'CI_POINTER_ERROR:private:read\n',
+                    b'CI_POINTER_ERROR:binding:private\n',
+                    b'CI_POINTER_ERROR:binding:read:private\n'):
+            with self.subTest(size=len(raw)):
+                value = self.diagnostic(raw).snapshot()
+                self.assertIsNone(value['child_phase'])
+                self.assertIsNone(value['child_detail'])
+                self.assertEqual(value['output']['code'], 'UNCLASSIFIED_OUTPUT')
+
+    def test_projection_refuses_private_fields_coercions_and_unknown_vocabulary(self):
+        original = self.diagnostic().snapshot()
+        changes = [dict(original, private='synthetic private'), dict(original, schema=True),
+            dict(original, phase='private'), dict(original, child_detail='private'),
+            dict(original, output=dict(original['output'], bytes=True)),
+            dict(original, output=dict(original['output'], code='private')),
+            dict(original, output=dict(original['output'], sha256='private'))]
+        for value in changes:
+            with self.subTest(fields=len(value)), self.assertRaises(pointer.checkpoint.Refused):
+                pointer.diagnostic_projection(value)
+
+    def test_diagnostic_cannot_promote_an_incomplete_binding_to_live_authority(self):
+        value = dict(schema=1, scope=pointer.SCOPE, complete=False,
+                     diagnostic=self.diagnostic().snapshot())
+        self.assertFalse(pointer.project(value)['complete'])
+        self.assertNotIn('seed_admitted', pointer.project(value))
+        with self.assertRaises(pointer.checkpoint.Refused):
+            pointer.project(dict(completed(), diagnostic=value['diagnostic']))
+        with self.assertRaises(pointer.checkpoint.Refused):
+            pointer.project(dict(value, pointer_bound=True))
+
+    def test_phase_and_first_output_are_retained_without_mutable_snapshot_aliases(self):
+        trace = self.diagnostic()
+        original = trace.snapshot()
+        copy = trace.snapshot()
+        copy['output']['bytes'] = 1
+        self.assertEqual(trace.snapshot(), original)
+        with self.assertRaises(pointer.checkpoint.Refused):
+            trace.unexpected_line(b'CI_POINTER_ERROR:binding:write\n')
+        with self.assertRaises(pointer.checkpoint.Refused):
+            trace.at('synthetic private phase')
+        self.assertEqual(trace.snapshot(), original)
+
+    def test_empty_nonbyte_and_oversized_output_cannot_enter_the_record(self):
+        for raw in (None, '', b'', bytearray(b'input'),
+                    b'a' * (pointer.debug.protocol.MAX_LINE + 2)):
+            trace = pointer.PointerDiagnostic()
+            with self.subTest(kind=type(raw).__name__), self.assertRaises(pointer.checkpoint.Refused):
+                trace.unexpected_line(raw)
+            self.assertIsNone(trace.snapshot()['output'])
 
 
 if __name__ == '__main__':

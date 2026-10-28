@@ -17,6 +17,68 @@ from . import windows_debug_loop as debug
 
 SCOPE = 'closed_wallet_pointer_binding'
 METADATA = 64 * 1024
+PHASES = ('admission', 'origin', 'source', 'paths', 'input_pins',
+          'reservation', 'launch', 'start', 'input', 'claim', 'binding',
+          'finish', 'close', 'complete')
+CHILD_PHASES = ('gate', 'input', 'binding', 'finish', 'unknown')
+CHILD_DETAILS = ('path', 'open', 'read', 'claim', 'write', 'flush', 'close', 'unknown')
+OUTPUT_CODES = ('PUB_RESOLUTION', 'PUB_EXECUTABLE_BUILD', 'UNHANDLED_EXCEPTION',
+                'COMPILE_OR_USAGE_ERROR', 'VM_SERVICE_LISTENER',
+                'UNCLASSIFIED_OUTPUT', 'POINTER_CHILD_REFUSED')
+
+
+def diagnostic_projection(value):
+    """Only finite failure location and original line digests leave the child."""
+    checkpoint.need(type(value) is dict and set(value) ==
+        {'schema', 'scope', 'phase', 'child_phase', 'child_detail', 'output'}
+        and type(value['schema']) is int and value['schema'] == 1
+        and value['scope'] == 'closed_wallet_pointer_diagnostic'
+        and value['phase'] in PHASES
+        and (value['child_phase'] is None or value['child_phase'] in CHILD_PHASES)
+        and (value['child_detail'] is None or value['child_detail'] in CHILD_DETAILS))
+    output = value['output']
+    if output is not None:
+        checkpoint.need(type(output) is dict and set(output) == {'code', 'bytes', 'sha256'}
+            and output['code'] in OUTPUT_CODES and type(output['bytes']) is int
+            and 0 < output['bytes'] <= debug.protocol.MAX_LINE + 1
+            and type(output['sha256']) is str
+            and re.fullmatch('[a-f0-9]{64}', output['sha256']))
+    checkpoint.need((value['child_phase'] is not None) ==
+        (output is not None and output['code'] == 'POINTER_CHILD_REFUSED')
+        and (value['child_phase'] is not None or value['child_detail'] is None))
+    return dict(value, output=None if output is None else dict(output))
+
+
+class PointerDiagnostic:
+    """Data-only progress; it creates no process, file or write authority."""
+
+    def __init__(self):
+        self.phase = 'admission'
+        self.child_phase = self.child_detail = self.output = None
+
+    def at(self, phase):
+        checkpoint.need(type(phase) is str and phase in PHASES)
+        self.phase = phase
+        return phase
+
+    def unexpected_line(self, raw):
+        checkpoint.need(self.output is None and type(raw) is bytes
+            and 0 < len(raw) <= debug.protocol.MAX_LINE + 1)
+        line = raw.replace(b'\r\n', b'\n')
+        match = re.fullmatch(rb'CI_POINTER_ERROR:([a-z_]+)(?::([a-z_]+))?\n', line)
+        if match is not None:
+            phase = match[1].decode('ascii')
+            detail = None if match[2] is None else match[2].decode('ascii')
+            if phase in CHILD_PHASES and (detail is None or detail in CHILD_DETAILS):
+                self.child_phase, self.child_detail = phase, detail
+        self.output = debug.probe_line_observation(raw)
+        if self.child_phase is not None:
+            self.output['code'] = 'POINTER_CHILD_REFUSED'
+
+    def snapshot(self):
+        return diagnostic_projection(dict(schema=1,
+            scope='closed_wallet_pointer_diagnostic', phase=self.phase,
+            child_phase=self.child_phase, child_detail=self.child_detail, output=self.output))
 
 
 def project(value):
@@ -27,8 +89,9 @@ def project(value):
         and type(value['schema']) is int and value['schema'] == 1
         and value['scope'] == SCOPE and type(value['complete']) is bool)
     if not value['complete']:
-        checkpoint.need(set(value) == common)
-        return dict(value)
+        checkpoint.need(set(value) in (common, common | {'diagnostic'}))
+        return (dict(value, diagnostic=diagnostic_projection(value['diagnostic']))
+                if 'diagnostic' in value else dict(value))
     checkpoint.need(set(value) == common | {'claim_once', 'originals_unchanged',
         'cipher_unchanged', 'pointer_bound', 'child_exit', 'output_bytes', 'output_sha256',
         'output_complete', 'forced', 'job_empty', 'private_manifest_sha256',
@@ -43,21 +106,27 @@ def project(value):
     return dict(value)
 
 
-def run(repo, parent, wallet, restored_home, home, closed, measure):
+def run(repo, parent, wallet, restored_home, home, closed, measure, *, diagnostic=None):
     """Saved observations never substitute for this attempt's original handles."""
+    trace = PointerDiagnostic() if diagnostic is None else diagnostic
+    checkpoint.need(type(trace) is PointerDiagnostic)
+    trace.at('admission')
     from . import windows_wallet_tour as tour
     parent, source = debug.entry.require_ci(parent, None, platform=os.name)
     checkpoint.need(parent.get('GITHUB_EVENT_NAME') == 'workflow_dispatch'
         and parent.get('SYRIUS_HOSTED_RUNNER') == 'github-hosted'
         and type(wallet) is tour._ClosedWallet and callable(closed) and closed() is True
         and callable(measure))
+    trace.at('origin')
     origin = wallet.restoration_origin()
     checkpoint.need(type(origin) is wallet_restore_origin.Origin)
     copied_wallet, copied_cache = origin.copied_paths(str(restored_home))
     repo, restored_home, home = Path(repo), Path(restored_home), Path(home)
+    trace.at('source')
     debug.bounded.verify_source(repo, source, parent)
     tree = debug.entry.source_tree(repo, parent)
     deadline = time.monotonic() + 180
+    trace.at('paths')
     pins = dict(checkpoint.ancestors(home))
     report_pins = dict(pins)
     for directory in (wallet.home, restored_home, Path(origin.cache), Path(copied_cache),
@@ -66,6 +135,7 @@ def run(repo, parent, wallet, restored_home, home, closed, measure):
     paths = {'original_pointer': Path(origin.cache) / 'key_store_box.hive',
              'copied_pointer': Path(copied_cache) / 'key_store_box.hive',
              'original_cipher': Path(origin.wallet), 'copied_cipher': Path(copied_wallet)}
+    trace.at('input_pins')
     snapshots = {}
     for role, path in paths.items():
         identity = checkpoint.file_identity(path.lstat())
@@ -93,6 +163,7 @@ def run(repo, parent, wallet, restored_home, home, closed, measure):
             checkpoint.need(checkpoint.file_identity(paths[role].lstat()) == identity
                 and checkpoint.digest_file(paths[role], identity, deadline) == digest)
 
+    trace.at('reservation')
     claim = home / 'wallet-pointer-claim.json'
     transport = home / 'wallet-pointer-transport.json'
     complete = home / 'wallet-pointer-complete.json'
@@ -109,6 +180,7 @@ def run(repo, parent, wallet, restored_home, home, closed, measure):
     record = dict(schema=1, scope=SCOPE, phase='launch', complete=False,
                   child_exit=None, forced=False, output=None, job_empty=False)
     try:
+        trace.at('launch')
         job = debug.WindowsJob()
         original = subprocess.Popen([str(dart), '--disable-dart-dev',
             '--packages=' + str(repo / '.dart_tool/package_config.json'),
@@ -131,18 +203,21 @@ def run(repo, parent, wallet, restored_home, home, closed, measure):
                     next_sample = time.monotonic() + 5
                 raw = lines.take(.1)
                 if raw is not None:
+                    if raw.replace(b'\r\n', b'\n') != marker:
+                        trace.unexpected_line(raw)
                     checkpoint.need(raw.replace(b'\r\n', b'\n') == marker)
                     return
                 checkpoint.need(original.poll() is None or not lines.complete)
             raise checkpoint.Refused()
 
+        record['phase'] = trace.at('start')
         write(b'START\n')
         wait(b'CI_POINTER_READY\n')
-        record['phase'] = 'input'
+        record['phase'] = trace.at('input')
         write(checkpoint.encode(dict(originalHome=origin.home, restoredHome=str(restored_home),
             originalWallet=origin.wallet, cacheRelative=ntpath.relpath(origin.cache, origin.home))))
         wait(b'CI_POINTER_CLAIM\n')
-        record['phase'] = 'claim'
+        record['phase'] = trace.at('claim')
         unchanged(paths)
         debug.bounded.verify_source(repo, source, parent)
         sample()
@@ -153,14 +228,14 @@ def run(repo, parent, wallet, restored_home, home, closed, measure):
         checkpoint.write_record(claim, claim_raw, guard=guard)
         claim_identity = checkpoint.file_identity(claim.lstat())
         write(b'APPROVE\n')
-        record['phase'] = 'binding'
+        record['phase'] = trace.at('binding')
         wait(b'CI_POINTER_DONE\n')
         unchanged(('original_pointer', 'original_cipher', 'copied_cipher'))
         pointer = checkpoint.file_identity(paths['copied_pointer'].lstat())
         checkpoint.need(pointer[:2] == snapshots['copied_pointer'][0][:2]
                         and 0 < pointer[2] <= 1024**2)
         write(b'FINISH\n')
-        record['phase'] = 'finish'
+        record['phase'] = trace.at('finish')
         record['child_exit'] = original.wait(timeout=15)
         checkpoint.need(type(record['child_exit']) is int and record['child_exit'] == 0
             and lines.finish() and lines.take(0) is None and job.active() == 0)
@@ -170,10 +245,12 @@ def run(repo, parent, wallet, restored_home, home, closed, measure):
         checkpoint.need(checkpoint.digest_file(claim, claim_identity, deadline)
                         == hashlib.sha256(claim_raw).hexdigest())
         sample()
-        record.update(phase='complete', complete=True, job_empty=True)
+        record.update(phase=trace.at('complete'), complete=True, job_empty=True)
     finally:
         if job is not None:
             try:
+                if record['complete']:
+                    trace.at('close')
                 record['forced'] = job.close()
             except Exception:
                 record['forced'] = None
@@ -203,6 +280,7 @@ def run(repo, parent, wallet, restored_home, home, closed, measure):
             guard=lambda: all(checkpoint.directory(path) == identity
                               for path, identity in report_pins.items()))
     checkpoint.need(record['complete'] and record['forced'] is False)
+    trace.at('complete')
     raw = checkpoint.encode(dict(schema=1, scope=SCOPE, complete=True,
         claim_sha256=hashlib.sha256(claim_raw).hexdigest(),
         transport_sha256=hashlib.sha256(transport_raw).hexdigest()))

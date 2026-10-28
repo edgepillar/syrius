@@ -75,6 +75,21 @@ class InspectionTests(unittest.TestCase):
         with self.assertRaises(inspect.Refused):
             inspect.project(report, 'native', 'a'*40, 123)
 
+    def test_pointer_failure_diagnostics_survive_inspection_without_healing_failure(self):
+        trace = inspect.closed_wallet_pointer.PointerDiagnostic()
+        trace.at('binding')
+        trace.unexpected_line(b'CI_POINTER_ERROR:binding:open\n')
+        report = manifest()
+        report['wallet_pointer_binding'] = dict(schema=1,
+            scope='closed_wallet_pointer_binding', complete=False,
+            diagnostic=trace.snapshot())
+        value = inspect.project(report, 'native', 'a'*40, 123)
+        self.assertEqual(value['wallet_pointer_binding']['diagnostic'], trace.snapshot())
+        self.assertFalse(value['artifact_reported_success'])
+        self.assertFalse(value['wallet_pointer_binding']['complete'])
+        self.assertFalse(value['runtime_started'])
+        self.assertFalse(value['seed_admitted'])
+
     def test_a_complete_wallet_pointer_cannot_heal_missing_parent_or_failed_actors(self):
         report = self.wallet_stop_report()
         report['wallet_pointer_binding'] = dict(schema=1,
