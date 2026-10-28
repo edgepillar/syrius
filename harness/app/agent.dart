@@ -60,11 +60,14 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/fros
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/startup_stage.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/tabs.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/lock_tab_child.dart'
+    show LockTabChild, LockViewSource;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart'
     show AccountBlockTemplate, WebsocketStatus, WsClient,
         getChainIdentifier, znnDefaultPaths, znnZts;
 
 import '../lab_send_failure.dart';
+import '../lock_view_observation.dart';
 import '../seed/seed_recipe.dart' show requireSeedTokenPreparation;
 import '../wallet_address_context.dart';
 import '../wallet_recipe_failure.dart' show walletRecipeFailureCodes;
@@ -438,6 +441,9 @@ class HarnessAgent {
   bool _labRestoredReadAttempted = false;
   HarnessPresentationController? _presentation;
   NativeEntryCapture? _nativeEntry;
+  StatefulElement? _lockViewOwner;
+  bool _lockViewBound = false;
+  bool _lockViewRetired = false;
   EntryCaptionObserver? _entryCaption;
   bool Function()? _presentationIsCurrent;
   BuildContext? Function()? _presentationContext;
@@ -818,6 +824,8 @@ class HarnessAgent {
         };
       case 'state':
         return _state();
+      case 'lock-view':
+        return _lockViewCommand(c);
       case 'wallet-recipe':
         return _walletRecipeCommand(c);
       case 'entry-caption':
@@ -1513,6 +1521,54 @@ class HarnessAgent {
     VoidCallback admission,
     VoidCallback released,
   ) => _tapCaptionControl(original, admission, released);
+
+  Map<String, Object?> _lockViewCommand(Map<String, dynamic> command) {
+    const Set<String> keys = <String>{'cmd', 'action'};
+    final Object? action = command['action'];
+    if (command.length != keys.length ||
+        !command.keys.toSet().containsAll(keys) ||
+        (action != 'bind' && action != 'observe')) {
+      throw HarnessError('lock-view-input-refused');
+    }
+    Map<String, Object?> unavailable(String status) => <String, Object?>{
+      'schema': 1, 'status': status, 'owner_same': false, 'view': null,
+    };
+    if (_lockViewRetired || action == 'bind' && _lockViewBound) {
+      _lockViewRetired = true;
+      return unavailable('retired');
+    }
+    if (action == 'observe' && !_lockViewBound) {
+      return unavailable('unavailable');
+    }
+    final List<StatefulElement> owners = <StatefulElement>[];
+    void visit(Element element) {
+      if (element is StatefulElement && element.widget is LockTabChild &&
+          element.state is LockViewSource) owners.add(element);
+      element.visitChildElements(visit);
+    }
+    WidgetsBinding.instance.rootElement?.visitChildElements(visit);
+    if (action == 'bind') {
+      _lockViewBound = true;
+      if (owners.length != 1) {
+        _lockViewRetired = true;
+        return unavailable('unavailable');
+      }
+      _lockViewOwner = owners.single;
+    }
+    final StatefulElement? original = _lockViewOwner;
+    if (original == null || !original.mounted || !original.state.mounted ||
+        owners.length != 1 || !identical(owners.single, original)) {
+      _lockViewRetired = true;
+      return unavailable('replaced');
+    }
+    final Map<String, Object?> value = <String, Object?>{
+      'schema': 1, 'status': 'observed', 'owner_same': true,
+      'view': (original.state as LockViewSource).lockViewSnapshot,
+    };
+    final Map<String, Object?>? projected = projectLockView(value);
+    if (projected == null) throw HarnessError('lock-view-shape-refused');
+    return projected;
+  }
 
   Map<String, Object?> _state() {
     String? route;

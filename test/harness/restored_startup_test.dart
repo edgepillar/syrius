@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import '../../harness/bin/ci_wallet_reopen.dart' as entry;
 import '../../harness/bin/harness.dart' as cli;
 import '../../harness/bin/wallet_recipe.dart';
+import '../../harness/lock_view_observation.dart';
 
 class _Unformattable implements Exception {
   @override
@@ -13,7 +14,10 @@ class _Unformattable implements Exception {
 }
 
 class _UnlockInstance extends cli.Instance {
-  _UnlockInstance(this.refusal) : super('synthetic-restored-unlock');
+  _UnlockInstance(this.refusal, {this.lockView})
+      : super('synthetic-restored-unlock');
+
+  final Object? lockView;
 
   final String? refusal;
   final List<String> commands = <String>[];
@@ -27,6 +31,12 @@ class _UnlockInstance extends cli.Instance {
     final String name = command['cmd']! as String;
     commands.add(name);
     bool refused = false;
+    if (name == 'lock-view') {
+      if (lockView is! Map<String, dynamic>) throw _Unformattable();
+      expect(command['action'], anyOf('bind', 'observe'));
+      expect(command.containsKey('value'), isFalse);
+      return Map<String, dynamic>.from(lockView! as Map);
+    }
     if (name == 'state') {
       observations++;
       refused = observations == 1
@@ -355,6 +365,76 @@ void main() {
     expect(positive.commands, <String>[
       'state', 'wait', 'type', 'tap', 'state',
     ]);
+  });
+
+  test('closed lock observations reject private fields and invalid values', () {
+    final Map<String, Object?> view = <String, Object?>{
+      for (final String key in lockViewBooleanFields) key: false,
+      'password_failures': 0, 'lifecycle': 'unknown',
+    };
+    final Map<String, Object?> value = <String, Object?>{
+      'schema': 1, 'status': 'observed', 'owner_same': true, 'view': view,
+    };
+    expect(projectLockView(value), value);
+    expect(projectLockView(<String, Object?>{...value, 'ok': true}), value);
+    for (final Map<String, Object?> change in <Map<String, Object?>>[
+      <String, Object?>{'private': 'private'},
+      <String, Object?>{'schema': true},
+      <String, Object?>{'status': 'private'},
+      <String, Object?>{'owner_same': false},
+      <String, Object?>{'ok': false},
+      <String, Object?>{'view': null},
+      for (final Map<String, Object?> invalid in <Map<String, Object?>>[
+        <String, Object?>{'private': 'private'},
+        <String, Object?>{'busy': 1},
+        <String, Object?>{'password_failures': true},
+        <String, Object?>{'password_failures': -1},
+        <String, Object?>{'password_failures': 256},
+        <String, Object?>{'lifecycle': 'private'},
+      ]) <String, Object?>{'view': <String, Object?>{...view, ...invalid}},
+    ]) {
+      expect(projectLockView(<String, Object?>{...value, ...change}), isNull);
+    }
+    for (final String status in lockViewStatuses.difference(
+      <String>{'observed'},
+    )) {
+      expect(projectLockView(<String, Object?>{
+        'schema': 1, 'status': status, 'owner_same': false, 'view': null,
+      }), isNotNull);
+    }
+  });
+
+  test('passive lock diagnostics cannot retry or replace an unlock refusal',
+      () async {
+    for (final Object? view in <Object?>[
+      null,
+      <String, Object?>{'ok': true, 'private': 'private'},
+      <String, Object?>{
+        'ok': true, 'schema': 1, 'status': 'observed', 'owner_same': true,
+        'view': <String, Object?>{
+          for (final String key in lockViewBooleanFields) key: false,
+          'password_failures': 0, 'lifecycle': 'inactive',
+        },
+      },
+    ]) {
+      final _UnlockInstance instance = _UnlockInstance(
+        'UNLOCK_WAIT_REFUSED', lockView: view,
+      );
+      final Map<String, Object?> failure = await _failure(
+        () => entry.unlockRestoredWallet(
+          instance, 'synthetic-private-password', observeView: true,
+        ), 'unlock',
+      );
+      expect(instance.commands, <String>[
+        'lock-view', 'state', 'wait', 'type', 'tap', 'state', 'tree',
+        'lock-view',
+      ]);
+      expect(failure['code'], 'UNLOCK_WAIT_REFUSED');
+      expect(failure['kind'], 'HARNESS_REFUSED');
+      expect(jsonEncode(failure), isNot(contains('private')));
+      final Map<String, Object?>? projected = projectLockView(view);
+      expect(failure['lock_view'], projected);
+    }
   });
 
   test('failed restored wait retains its last labels and cannot adopt lock',

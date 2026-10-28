@@ -34,6 +34,12 @@ def completed():
         private_manifest_sha256='b'*64, seed_admitted=False)
 
 
+def lock_view_observation():
+    return dict(schema=1, status='observed', owner_same=True,
+        view=dict({key: False for key in restored.LOCK_VIEW_BOOLEANS},
+            password_failures=0, lifecycle='inactive'))
+
+
 class PolicyTests(unittest.TestCase):
     def test_only_complete_finite_reopen_facts_are_projected(self):
         value = completed()
@@ -301,6 +307,57 @@ class ReopenDiagnosticTests(unittest.TestCase):
                 with self.subTest(code=code, change=change), \
                         self.assertRaises(restored.checkpoint.Refused):
                     restored.child_failure_projection(dict(unlock, **change))
+
+    def test_lock_view_vocabulary_and_original_failure_are_preserved(self):
+        source = Path('harness/lock_view_observation.dart').read_text()
+        for name, expected in (
+                ('lockViewBooleanFields', restored.LOCK_VIEW_BOOLEANS),
+                ('lockViewLifecycles', restored.LOCK_VIEW_LIFECYCLES),
+                ('lockViewStatuses', restored.LOCK_VIEW_STATUSES)):
+            match = re.search(r'const Set<String> ' + name
+                + r' = <String>\{(.*?)\};', source, re.S)
+            self.assertIsNotNone(match)
+            self.assertEqual(set(re.findall(r"'([a-z_]+)'", match[1])), expected)
+        child = dict(schema=1, scope='owned_reopen_child_failure', phase='unlock',
+            kind='HARNESS_REFUSED', code='UNLOCK_WAIT_REFUSED', recipe=None,
+            lock_view=lock_view_observation())
+        raw = b'CI_REOPEN_FAILURE:' + json.dumps(child).encode() + b'\n'
+        trace = self.trace(raw)
+        self.assertEqual(trace.snapshot()['child_failure'], child)
+        result = dict(schema=1, scope=restored.SCOPE, complete=False,
+            diagnostic=trace.snapshot())
+        self.assertFalse(restored.project(result)['complete'])
+        self.assertNotIn('wallet', restored.project(result))
+        for status in restored.LOCK_VIEW_STATUSES - {'observed'}:
+            observation = dict(schema=1, status=status, owner_same=False, view=None)
+            self.assertEqual(restored.lock_view_projection(observation), observation)
+
+    def test_private_or_invalid_lock_observations_are_only_hashed(self):
+        child = dict(schema=1, scope='owned_reopen_child_failure', phase='unlock',
+            kind='HARNESS_REFUSED', code='UNLOCK_WAIT_REFUSED', recipe=None,
+            lock_view=lock_view_observation())
+        values = [dict(child, phase='startup'), dict(child, kind='FORMAT_ERROR'),
+            dict(child, lock_view=dict(lock_view_observation(), private='private')),
+            dict(child, lock_view=dict(lock_view_observation(), schema=True)),
+            dict(child, lock_view=dict(lock_view_observation(), status='private')),
+            dict(child, lock_view=dict(lock_view_observation(), owner_same=False)),
+            dict(child, lock_view=dict(lock_view_observation(), view=None))]
+        for change in (dict(private='private'), dict(busy=1),
+                dict(password_failures=True), dict(password_failures=-1),
+                dict(password_failures=256), dict(lifecycle='private')):
+            observation = lock_view_observation()
+            observation['view'].update(change)
+            values.append(dict(child, lock_view=observation))
+        for value in values:
+            with self.subTest(fields=len(value)), \
+                    self.assertRaises(restored.checkpoint.Refused):
+                restored.child_failure_projection(value)
+            raw = b'CI_REOPEN_FAILURE:' + json.dumps(value).encode() + b'\n'
+            result = self.trace(raw).snapshot()
+            self.assertNotIn('child_failure', result)
+            self.assertEqual(result['output']['code'], 'UNCLASSIFIED_OUTPUT')
+            self.assertEqual(result['output']['sha256'], hashlib.sha256(raw).hexdigest())
+            self.assertNotIn('private', json.dumps(result))
 
     def test_private_or_unlisted_child_failure_fields_are_only_hashed(self):
         child = dict(schema=1, scope='owned_reopen_child_failure',

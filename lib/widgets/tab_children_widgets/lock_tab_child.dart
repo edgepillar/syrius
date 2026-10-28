@@ -45,6 +45,15 @@ Future<void> unlockAfterLockReset({
   await exposeSession();
 }
 
+/// A passive view of the genuine lock owner for bounded qualification.
+///
+/// The observation contains fixed booleans, a bounded visible failure count
+/// and lifecycle only. It never reads input, wallet data or error text.
+abstract interface class LockViewSource {
+  /// Reads stored view state without callbacks, input or wallet access.
+  Map<String, Object?> get lockViewSnapshot;
+}
+
 /// Owns single-wallet unlock and the existing global failed-password policy.
 ///
 /// The card receives display data and callbacks only. It cannot read a wallet
@@ -77,7 +86,8 @@ class LockTabChild extends StatefulWidget {
 }
 
 class _LockTabChildState extends State<LockTabChild>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver
+    implements LockViewSource {
   final TextEditingController _passwordController = TextEditingController();
   bool _busy = false;
   bool _opening = false;
@@ -101,6 +111,29 @@ class _LockTabChildState extends State<LockTabChild>
             (FocusNode node) => node.descendantsAreFocusable,
           ) ??
           true);
+
+  @override
+  Map<String, Object?> get lockViewSnapshot =>
+      Map<String, Object?>.unmodifiable(<String, Object?>{
+        'mounted': mounted,
+        'current': _current,
+        'window_active': _windowActive,
+        'visible': _visible,
+        'route_current': _route?.isCurrent ?? true,
+        'focus_allows_input':
+            (_parentFocus?.descendantsAreFocusable ?? true) &&
+            (_parentFocus?.ancestors.every(
+                  (FocusNode node) => node.descendantsAreFocusable,
+                ) ?? true),
+        'startup_interactive': widget.startup?.interactive ?? true,
+        'busy': _busy,
+        'opening': _opening,
+        'incorrect_password': _incorrectPassword,
+        'attempt_storage_failed': _attemptStorageFailed,
+        'has_error_message': _errorToUser != null,
+        'password_failures': _passwordFailures.clamp(0, 255),
+        'lifecycle': WidgetsBinding.instance.lifecycleState?.name ?? 'unknown',
+      });
 
   @override
   void initState() {

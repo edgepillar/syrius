@@ -815,3 +815,22 @@ case did not execute. Every original route/privacy assertion, genuine
 owner, input callback and product runtime byte remains. All 234 memory
 controls pass. Clean analysis and the same 298/300 focused gate, followed
 by full Windows/root, generation, builds and entry captures remain required.
+
+
+## Passive copied-lock owner observation candidate
+
+The Native82 copied input and submit requests are acknowledged before
+`UNLOCK_WAIT_REFUSED`; authentication and the exact wait condition are
+unobserved. The new candidate retains the original genuine lock Element before
+its ordinary unlock. It exports fixed view/route/focus/lifecycle booleans and
+a bounded visible failure count, with an explicit replaced/retired result
+instead of adopting a later owner. No input, wallet data, error text or stack
+is read. Both closed projections reject private or unknown fields.
+
+Original wallet callbacks, attempt storage, signing and lifecycle guards,
+one password/submit sequence, the twenty-second wait and cleanup remain.
+No decryption or callback is started by observation, and a failed observation
+never retries or replaces the original unlock refusal. Two genuine-owner and
+two closed-schema/driver cases join a pending 323-case ordinary gate. All 236
+current memory controls pass; actual copied reopen and six effects remain
+unqualified. The failed original profile/password is never retried.

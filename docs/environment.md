@@ -8173,3 +8173,44 @@ case did not execute. Every original route/privacy assertion, genuine
 owner, input callback and product runtime byte remains. All 234 memory
 controls pass. Clean analysis and the same 298/300 focused gate, followed
 by full Windows/root, generation, builds and entry captures remain required.
+
+
+## Source144 Windows result and passive copied-lock candidate
+
+Recorded at 2026-10-28T18:59Z on source144 `2a17b080fcfa`. Focused run
+40742982705 passes all 298 ordinary Dart cases, 752 Python cases with three
+existing skips and selected analysis with zero findings. Full Windows producer
+40745281205 and independent reader 40749261114 preserve 4576 non-chain passes,
+one failure/error event and two skips. Root analysis has zero errors/warnings
+and 1295 infos; vendored analysis has zero findings. Baseline regeneration and
+Debug/Release builds are skipped. The same reader independently qualifies all
+four prepared Debug entry outputs, original controller/route and window/caption
+restoration, and normal complete unforced process exit. This does not heal the
+failed producer or establish an image match.
+
+The failed root test name is unobserved. A separate source inspection finds the
+RTL Welcome assertion still expecting the former hint. Only that expectation
+changes; all twenty existing Welcome view cases join the focused gate.
+
+The candidate observes the original genuine lock owner using fixed booleans,
+a bounded visible failure count and lifecycle only. It reads no password,
+mnemonic, wallet path, address, node URL, error message or stack. Replacement
+retires the retained owner. Unknown/private fields are refused by both closed
+child projections. Original lock callbacks, lifecycle, attempt and signing
+guards, one original input/submit and the twenty-second wait remain unchanged.
+Two genuine-owner and two closed-schema/driver cases are prepared.
+
+Raw font tables show a 3.003-pixel combined unshaped tnum advance difference
+across the two thirteen-pixel numeric labels. The new real-font Segment control
+measures the two styles in both themes; production tabular figures, padding,
+text roles and exact references remain. Font-table advances alone do not
+qualify Windows raster output or its cause.
+
+All 236 current pure-memory controls pass with zero failures/errors/skips and
+no native, network, scratch or shared-store attempts. Five new Dart cases and
+twenty newly selected existing Welcome cases require 323 ordinary cases, or
+325 with the two existing startup asset cases, alongside 754 Python cases.
+Hosted qualification is pending. Earlier failures, skipped steps, UNKNOWN
+outputs and original history stay preserved. Native82 copied authentication
+and six effects remain unqualified; its original profile/password is not
+retried. All nine open main rows and all 94 visual matches remain open.

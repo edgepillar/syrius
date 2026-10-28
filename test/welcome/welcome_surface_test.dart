@@ -551,7 +551,7 @@ void main() {
     for (final String name in _actions) {
       expect(tester.getSize(_action(name)), const Size(400, 70));
     }
-    expect(find.text('A seed or a wallet file'), findsOneWidget);
+    expect(find.text('A seed, or a wallet file dropped here'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

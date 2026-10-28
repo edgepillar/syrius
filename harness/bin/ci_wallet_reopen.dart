@@ -2,6 +2,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import '../lock_view_observation.dart';
 import '../seed/restored_seed_workflow.dart';
 import '../wallet_address_context.dart';
 import '../wallet_recipe_failure.dart';
@@ -35,16 +36,29 @@ const Set<String> restoredUnlockFailureCodes = <String>{
 };
 
 class _RestoredUnlockRefused implements Exception {
-  const _RestoredUnlockRefused(this.code);
+  const _RestoredUnlockRefused(this.code, this.lockView);
 
   final String code;
+  final Map<String, Object?>? lockView;
 }
 
 /// Run the original unlock once, retaining no reply, password or error text.
 Future<void> unlockRestoredWallet(
   cli.Instance instance,
-  String password,
-) async {
+  String password, {
+  bool observeView = false,
+}) async {
+  Future<Map<String, Object?>?> read(String action) async {
+    try {
+      return projectLockView(await instance.send(<String, Object?>{
+        'cmd': 'lock-view', 'action': action,
+      }, timeout: const Duration(seconds: 2)));
+    } on Object {
+      // A failed observation never changes or retries the original unlock.
+      return null;
+    }
+  }
+  if (observeView) await read('bind');
   cli.UnlockStep? originalStep;
   try {
     await cli.unlock(
@@ -63,7 +77,9 @@ Future<void> unlockRestoredWallet(
       cli.UnlockStep.failureTree => 'UNLOCK_FAILURE_TREE_REFUSED',
       null => throw StateError('Original unlock step was not observed'),
     };
-    throw _RestoredUnlockRefused(code);
+    final Map<String, Object?>? view =
+        observeView ? await read('observe') : null;
+    throw _RestoredUnlockRefused(code, view);
   }
 }
 
@@ -110,6 +126,7 @@ Map<String, Object?>? restoredChildFailure(String phase, Object error) {
   String kind = 'OTHER_ERROR';
   String? code;
   Map<String, String>? recipe;
+  Map<String, Object?>? lockView;
   if (error.runtimeType == RestoredWindowRefused) {
     if (phase != 'startup_window') return null;
     kind = 'WINDOW_REFUSED';
@@ -126,9 +143,11 @@ Map<String, Object?>? restoredChildFailure(String phase, Object error) {
   } else if (error.runtimeType == _RestoredUnlockRefused) {
     if (phase != 'unlock') return null;
     kind = 'HARNESS_REFUSED';
-    final String value = (error as _RestoredUnlockRefused).code;
+    final _RestoredUnlockRefused original = error as _RestoredUnlockRefused;
+    final String value = original.code;
     if (!restoredUnlockFailureCodes.contains(value)) return null;
     code = value;
+    lockView = projectLockView(original.lockView);
   } else if (error is cli.Fail) {
     kind = 'HARNESS_REFUSED';
   } else if (error is FormatException) {
@@ -143,6 +162,7 @@ Map<String, Object?>? restoredChildFailure(String phase, Object error) {
   return <String, Object?>{
     'schema': 1, 'scope': 'owned_reopen_child_failure', 'phase': phase,
     'kind': kind, 'code': code, 'recipe': recipe,
+    if (lockView != null) 'lock_view': lockView,
   };
 }
 
@@ -208,7 +228,9 @@ Future<void> main() async {
       throw const FormatException('parent unavailable');
     }
     phase = 'unlock';
-    await unlockRestoredWallet(instance, decoded['password'] as String);
+    await unlockRestoredWallet(
+      instance, decoded['password'] as String, observeView: true,
+    );
     phase = 'observe';
     await cli.until(instance, restoredWalletReady, 'restored readiness');
     final Map<String, dynamic> state = await cli.stateOf(instance);

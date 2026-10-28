@@ -134,6 +134,8 @@ def main():
             'test/harness/copied_pointer_input_test.dart',
             'test/harness/restored_startup_test.dart',
             'test/harness/restored_unlock_ready_test.dart',
+            'test/harness/lock_view_observation_test.dart',
+            'test/harness/import_selector_metrics_test.dart',
             'test/harness/restored_seed_workflow_test.dart',
             'test/harness/lab_quiescence_test.dart',
             'test/harness/wallet_recipe_failure_test.dart',
@@ -147,6 +149,7 @@ def main():
             'test/onboarding/entry_capture_opt_in_test.dart',
             'test/onboarding/entry_prepared_draft_test.dart',
             'test/onboarding/welcome_drop_route_test.dart',
+            'test/welcome/welcome_surface_test.dart',
             'test/harness/key_dispatch_test.dart',
             'test/harness/rail_navigation_test.dart',
             'test/harness/wallet_address_recipe_test.dart',
@@ -171,7 +174,7 @@ def main():
         counts = test_counts(outcome.output)
         report['counts'] = counts
         debug.need(outcome.success and counts['terminal_success'] is True
-            and counts['passed'] == (300 if asset_fidelity else 298)
+            and counts['passed'] == (325 if asset_fidelity else 323)
             and counts['skipped'] == counts['failed'] == counts['error_events'] == 0,
             'TESTS_FAILED')
         if asset_fidelity:

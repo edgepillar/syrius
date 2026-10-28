@@ -49,10 +49,40 @@ CHILD_RECIPE_EXTRA_CODES = frozenset(('wallet-recipe-restored-lock-required',
     'wallet-recipe-deadline', 'wallet-recipe-retired'))
 
 
+LOCK_VIEW_BOOLEANS = frozenset(('mounted', 'current', 'window_active', 'visible',
+    'route_current', 'focus_allows_input', 'startup_interactive', 'busy', 'opening',
+    'incorrect_password', 'attempt_storage_failed', 'has_error_message'))
+LOCK_VIEW_LIFECYCLES = frozenset(('resumed', 'inactive', 'hidden', 'paused',
+    'detached', 'unknown'))
+LOCK_VIEW_STATUSES = frozenset(('observed', 'unavailable', 'replaced', 'retired'))
+
+
+def lock_view_projection(value):
+    """Accept only the fixed genuine-owner observation, never arbitrary state."""
+    checkpoint.need(type(value) is dict and set(value) ==
+        {'schema', 'status', 'owner_same', 'view'}
+        and type(value['schema']) is int and value['schema'] == 1
+        and type(value['status']) is str and value['status'] in LOCK_VIEW_STATUSES
+        and type(value['owner_same']) is bool)
+    view = value['view']
+    if value['status'] == 'observed':
+        checkpoint.need(value['owner_same'] is True and type(view) is dict
+            and set(view) == LOCK_VIEW_BOOLEANS | {'password_failures', 'lifecycle'}
+            and all(type(view[key]) is bool for key in LOCK_VIEW_BOOLEANS)
+            and type(view['password_failures']) is int
+            and 0 <= view['password_failures'] <= 255
+            and type(view['lifecycle']) is str
+            and view['lifecycle'] in LOCK_VIEW_LIFECYCLES)
+    else:
+        checkpoint.need(value['owner_same'] is False and view is None)
+    return dict(value, view=None if view is None else dict(view))
+
+
 def child_failure_projection(value):
     """Validate data from the original child; it grants no runtime authority."""
-    checkpoint.need(type(value) is dict and set(value) ==
-        {'schema', 'scope', 'phase', 'kind', 'code', 'recipe'}
+    fields = {'schema', 'scope', 'phase', 'kind', 'code', 'recipe'}
+    checkpoint.need(type(value) is dict and set(value) in
+        (fields, fields | {'lock_view'})
         and type(value['schema']) is int and value['schema'] == 1
         and value['scope'] == 'owned_reopen_child_failure'
         and type(value['phase']) is str and value['phase'] in CHILD_PHASES
@@ -77,7 +107,12 @@ def child_failure_projection(value):
                 code='wallet-recipe-stage-unsettled', diagnostic=recipe))
         except tour.Refused:
             raise checkpoint.Refused() from None
-    return dict(value, recipe=None if recipe is None else dict(recipe))
+    result = dict(value, recipe=None if recipe is None else dict(recipe))
+    if 'lock_view' in value:
+        checkpoint.need(value['phase'] == 'unlock' and kind == 'HARNESS_REFUSED'
+            and type(code) is str and code in UNLOCK_FAILURE_CODES)
+        result['lock_view'] = lock_view_projection(value['lock_view'])
+    return result
 
 
 def diagnostic_projection(value):
