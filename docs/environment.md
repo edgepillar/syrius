@@ -8086,3 +8086,24 @@ builder name and wraps the same command-list expectation. All original
 runtime bytes and test meanings remain unchanged. All 234 current memory
 controls pass; clean analysis and the same 297-case before-fix gate remain
 required before the runtime candidate is published.
+
+
+At source140 `d1208b5f8e85`, controlled `40728093871` has clean selected
+analysis, all 752 Python cases/three skips and all 295 original Dart passes.
+Exactly two new real LockCard/agent readiness assertions fail at lines 136
+and 182, with complete unforced original output and no native wallet run.
+The complete original log and fixed projections are retained. This
+reproduces the missing-field early input and covered-field presence-only
+wait without assigning Native80's unobserved exact refusal condition.
+
+The candidate retains that genuine regression file byte-for-byte. Unlock
+first makes a read-only five-second wait for one enabled, reachable field,
+then the unchanged original password write, submit and twenty-second
+post-submit wait. Existing presence waits and input guards remain. A
+readiness refusal exports only `UNLOCK_FIELD_READY_REFUSED`, alongside all
+six prior operation labels and privacy/refusal vectors. There is no input
+retry or formatted private reply. All 234 current memory controls pass;
+the same 297-case ordinary gate must pass before a fresh owned native lab
+runs copied unlock/readiness, all four components and six effects. Both
+original asset cases remain selected in the 299-case startup variant.
+Source139's two-info analysis refusal and skipped Dart remain preserved.

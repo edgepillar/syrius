@@ -1026,7 +1026,9 @@ Future<void> goto(Instance inst, String tab) async {
 }
 
 /// Original unlock operations; observation never changes their inputs or waits.
-enum UnlockStep { state, lock, typePassword, submit, wait, failureTree }
+enum UnlockStep {
+  state, lock, fieldReady, typePassword, submit, wait, failureTree,
+}
 
 Future<void> unlock(
   Instance inst,
@@ -1045,6 +1047,16 @@ Future<void> unlock(
     stdout.writeln('already unlocked');
     return;
   }
+  // The route can report lock before its cold-start input barrier is gone.
+  // This read-only wait never types, submits or retries a refused input.
+  observe?.call(UnlockStep.fieldReady);
+  await call(inst, <String, Object?>{
+    'cmd': 'wait',
+    'key': 'wallet_password_field',
+    'kind': 'field',
+    'ready': true,
+    'timeoutMs': 5000,
+  });
   observe?.call(UnlockStep.typePassword);
   await call(inst, <String, Object?>{
     'cmd': 'type',

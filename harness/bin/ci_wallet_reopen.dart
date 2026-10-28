@@ -30,6 +30,7 @@ const Set<String> restoredWindowFailureCodes = <String>{
 /// Only the operation of an original unlock refusal is public.
 const Set<String> restoredUnlockFailureCodes = <String>{
   'UNLOCK_STATE_REFUSED', 'UNLOCK_LOCK_REQUIRED', 'UNLOCK_TYPE_REFUSED',
+  'UNLOCK_FIELD_READY_REFUSED',
   'UNLOCK_TAP_REFUSED', 'UNLOCK_WAIT_REFUSED', 'UNLOCK_FAILURE_TREE_REFUSED',
 };
 
@@ -55,6 +56,7 @@ Future<void> unlockRestoredWallet(
     final String code = switch (originalStep) {
       cli.UnlockStep.state => 'UNLOCK_STATE_REFUSED',
       cli.UnlockStep.lock => 'UNLOCK_LOCK_REQUIRED',
+      cli.UnlockStep.fieldReady => 'UNLOCK_FIELD_READY_REFUSED',
       cli.UnlockStep.typePassword => 'UNLOCK_TYPE_REFUSED',
       cli.UnlockStep.submit => 'UNLOCK_TAP_REFUSED',
       cli.UnlockStep.wait => 'UNLOCK_WAIT_REFUSED',

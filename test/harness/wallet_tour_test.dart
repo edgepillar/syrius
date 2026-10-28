@@ -141,7 +141,8 @@ class _UnlockInstance extends cli.Instance {
       if (states.isEmpty) throw StateError('synthetic state exhausted');
       return <String, dynamic>{'ok': true, ...states.removeAt(0)};
     }
-    if (command['cmd'] == 'type' || command['cmd'] == 'tap') {
+    if (command['cmd'] == 'wait' || command['cmd'] == 'type' ||
+        command['cmd'] == 'tap') {
       return <String, dynamic>{'ok': true};
     }
     throw StateError('unexpected synthetic unlock command');
@@ -189,6 +190,8 @@ void main() {
     await instance.runUnlock();
     expect(instance.commands, <Map<String, Object?>>[
       <String, Object?>{'cmd': 'state'},
+      <String, Object?>{'cmd': 'wait', 'key': 'wallet_password_field',
+        'kind': 'field', 'ready': true, 'timeoutMs': 5000},
       <String, Object?>{'cmd': 'type', 'key': 'wallet_password_field',
         'value': 'synthetic-password'},
       <String, Object?>{'cmd': 'tap', 'key': 'wallet_unlock_button'},
@@ -197,7 +200,8 @@ void main() {
     expect(instance.states, isEmpty);
     expect(instance.output.lines, isEmpty);
     expect(instance.observedSteps, <cli.UnlockStep>[
-      cli.UnlockStep.state, cli.UnlockStep.lock, cli.UnlockStep.typePassword,
+      cli.UnlockStep.state, cli.UnlockStep.lock, cli.UnlockStep.fieldReady,
+      cli.UnlockStep.typePassword,
       cli.UnlockStep.submit, cli.UnlockStep.wait,
     ]);
   });

@@ -235,6 +235,14 @@ decide. `type` looks at fields only.
 UI commands take `--tree` to print the tree after them. Commands can select
 their isolated profile with `--instance`.
 
+Unlock first makes a read-only `wait` request with `ready: true` and a
+five-second timeout for the existing password field. This requires one
+enabled, reachable field; ordinary presence waits retain their meaning.
+The driver then makes one original write and one submit, retaining both
+input guards and the twenty-second post-submit wait. A readiness refusal
+exports only `UNLOCK_FIELD_READY_REFUSED`; it does not retry a password or
+profile, format private replies or diagnose an older refusal.
+
 ## Redesign captures
 
 F04 supplies the capture source and adapter tests. Native Windows P08 execution

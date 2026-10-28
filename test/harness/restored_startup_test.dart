@@ -41,6 +41,13 @@ class _UnlockInstance extends cli.Instance {
           'walletUnlocked': observations > 1,
         };
       }
+    } else if (name == 'wait') {
+      expect(command['key'], 'wallet_password_field');
+      expect(command['kind'], 'field');
+      expect(command['ready'], isTrue);
+      expect(command['timeoutMs'], 5000);
+      expect(command.containsKey('value'), isFalse);
+      refused = refusal == 'UNLOCK_FIELD_READY_REFUSED';
     } else if (name == 'type') {
       expect(command['key'], 'wallet_password_field');
       expect(command['value'], 'synthetic-private-password');
@@ -317,11 +324,14 @@ void main() {
     final Map<String, List<String>> expected = <String, List<String>>{
       'UNLOCK_STATE_REFUSED': <String>['state'],
       'UNLOCK_LOCK_REQUIRED': <String>['state'],
-      'UNLOCK_TYPE_REFUSED': <String>['state', 'type'],
-      'UNLOCK_TAP_REFUSED': <String>['state', 'type', 'tap'],
-      'UNLOCK_WAIT_REFUSED': <String>['state', 'type', 'tap', 'state', 'tree'],
+      'UNLOCK_FIELD_READY_REFUSED': <String>['state', 'wait'],
+      'UNLOCK_TYPE_REFUSED': <String>['state', 'wait', 'type'],
+      'UNLOCK_TAP_REFUSED': <String>['state', 'wait', 'type', 'tap'],
+      'UNLOCK_WAIT_REFUSED': <String>[
+        'state', 'wait', 'type', 'tap', 'state', 'tree',
+      ],
       'UNLOCK_FAILURE_TREE_REFUSED': <String>[
-        'state', 'type', 'tap', 'state', 'tree',
+        'state', 'wait', 'type', 'tap', 'state', 'tree',
       ],
     };
     expect(expected.keys.toSet(), entry.restoredUnlockFailureCodes);
@@ -342,7 +352,9 @@ void main() {
     }
     final _UnlockInstance positive = _UnlockInstance(null);
     await entry.unlockRestoredWallet(positive, 'synthetic-private-password');
-    expect(positive.commands, <String>['state', 'type', 'tap', 'state']);
+    expect(positive.commands, <String>[
+      'state', 'wait', 'type', 'tap', 'state',
+    ]);
   });
 
   test('failed restored wait retains its last labels and cannot adopt lock',

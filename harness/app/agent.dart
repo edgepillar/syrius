@@ -3357,6 +3357,10 @@ class HarnessAgent {
   Future<Map<String, Object?>> _wait(Map<String, dynamic> c) async {
     final int timeout = c['timeoutMs'] as int? ?? 10000;
     final bool gone = c['gone'] == true;
+    final bool ready = c['ready'] == true;
+    if (ready && gone) {
+      throw HarnessError('ready requires a positive selector');
+    }
     final Stopwatch sw = Stopwatch()..start();
     while (true) {
       final List<_Node> hits = _matches(
@@ -3371,7 +3375,13 @@ class HarnessAgent {
           'error',
         ],
       );
-      if (gone ? hits.isEmpty : hits.isNotEmpty) {
+      // Presence alone does not admit input through a disabled field or an
+      // overlay. Readiness observes the same unique hit and guards as type.
+      final bool found = ready
+          ? hits.length == 1 && hits.single.enabled &&
+              _reachable(hits.single, hits.single.center)
+          : hits.isNotEmpty;
+      if (gone ? hits.isEmpty : found) {
         return <String, Object?>{
           'ms': sw.elapsedMilliseconds,
           if (!gone) 'target': hits.first.toJson(),
@@ -3381,7 +3391,9 @@ class HarnessAgent {
         throw HarnessError(
           gone
               ? 'still there after $timeout ms'
-              : 'not there after $timeout ms',
+              : ready
+                  ? 'not ready after $timeout ms'
+                  : 'not there after $timeout ms',
           _describe(c),
         );
       }
