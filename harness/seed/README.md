@@ -215,3 +215,17 @@ chain again. Public observations contain only finite counts, recipe IDs and a
 receipt digest. Full hashes and transport output remain private. Reports
 cannot restart the session or admit a publication. Native execution and full
 F06 acceptance still need current hosted qualification.
+
+The original native send and quiescence now have independent source-bound
+qualification. The following copy stage refused because `python -m` loaded the
+controller as `__main__`, while a helper imported a second controller module.
+The strict Native class check therefore saw a different owner type. The CLI
+now registers its identical module under the canonical import before either
+admission or execution. An existing foreign module or parent alias refuses
+before work; it is never replaced. Runtime, original-handle and publication
+guards remain unchanged.
+
+The redesign draws unavailable services behind seams. The existing HTLC deposit
+provides the reachable Swap seed state; the missing two-sided offer/acceptance
+coordinator remains disabled under `Seam.swapTerms`. Visual and seam acceptance
+still require its drawn control and every activation route to be checked.

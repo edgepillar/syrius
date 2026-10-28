@@ -7206,3 +7206,48 @@ the focused gate to 279 Dart and 692 Python cases. Current hosted qualification,
 actual six-recipe effects, full Swap terms, all 94 visual matches and complete
 F06 acceptance remain pending. Earlier failures and UNKNOWN originals retain
 their original status.
+
+### Canonical controller identity for the literal module entry point
+
+At `a9363524a0bb7f1c46552761f39b041c91efba7a`, native
+[40611372882](https://github.com/edgepillar/syrius/actions/runs/40611372882),
+attempt one, job `122563439396`, passes all 279 Dart cases, 692 Python cases
+with three original platform skips and clean selected analysis. The original
+UI send, twelve tour/capture checks and schema-two quiescence pass. Four file
+operations, two SDK publications, two receive reads and one receive remain
+positive after admission closes. App, entry and all five nodes exit zero
+normally with complete output; auxiliary telemetry termination stays separate.
+
+Independent reader
+[40614436890](https://github.com/edgepillar/syrius/actions/runs/40614436890),
+attempt one, job `122573507796`, verifies both finite archive digests, ZIP/member
+boundaries, source/run pins, cross-recorded wallet manifest and original
+quiescence. It starts no wallet or node. The overall producer retains
+`INTERNAL_ERROR` before the input/checkpoint gate; checkpoint, Hive binding,
+ordinary reopen and six seed effects were not reached. Successful original
+phases do not change that overall failure.
+
+A memory control using literal `runpy.run_module` reproduces the controller
+loaded as `__main__` with a different Native class from the helper's canonical
+import. The strict ownership check refuses before transport allocation and
+projects the same finite error code. No hosted raw exception is exported.
+The candidate binds the identical CLI module into its canonical registry and
+parent package before either admission or execution. A pre-existing foreign
+module or parent alias refuses before work and remains untouched. Normal
+imports are idempotent. Existing classes, runtime bodies and ownership guards
+are unchanged.
+
+Four new literal-entry/registry cases and all 157 selected Python memory cases
+pass without local scratch, SDK, wallet, node or network execution. One earlier
+empty-original test fixture correctly hit the five-live-original guard; its
+failure is retained, and the final fixture supplies five inert originals.
+The next hosted Windows job runs all 696 Python cases before SDK allocation,
+then the unchanged 279 Dart cases and native integration with one Flutter
+setup. Current copied reopen and actual six-recipe effects remain pending.
+
+The original task requires missing services to stay behind disabled seams.
+The reachable Swap seed uses the existing HTLC deposit. The missing two-sided
+offer/acceptance coordinator stays under `Seam.swapTerms`; redesign acceptance
+checks its appearance and blocked activation. No new Swap service is required
+by this redesign task. All 94 visual matches, motion/frame-time, full controls,
+minimum-window/Arabic review and final acceptance remain open.

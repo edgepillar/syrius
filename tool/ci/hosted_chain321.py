@@ -1324,12 +1324,30 @@ def run(backend):
     return 0 if report["success"] else 1
 
 
+def _bind_runtime_module():
+    """Keep CLI owners identical to the controller imported by copy helpers."""
+    module = sys.modules.get(__name__)
+    package = sys.modules.get("tool.ci")
+    need(module is not None and package is not None
+         and getattr(module, "Native", None) is Native
+         and getattr(module, "Docker", None) is Docker, "ENVIRONMENT_REFUSED")
+    canonical = "tool.ci.hosted_chain321"
+    need(canonical not in sys.modules or sys.modules[canonical] is module,
+         "ENVIRONMENT_REFUSED")
+    previous = getattr(package, "hosted_chain321", None)
+    need(previous is None or previous is module, "ENVIRONMENT_REFUSED")
+    sys.modules[canonical] = module
+    setattr(package, "hosted_chain321", module)
+    return module
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Isolated hosted chain-321 lab")
     parser.add_argument("--backend", required=True, choices=("docker", "native"))
     parser.add_argument('--admission-only', action='store_true')
     options = parser.parse_args()
     try:
+        _bind_runtime_module()
         if options.admission_only:
             requested = require_environment(options.backend, os.environ)
             print(json.dumps(dict(schema=1, scope='hosted_lab_admission',
