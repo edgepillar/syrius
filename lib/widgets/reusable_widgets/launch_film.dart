@@ -162,6 +162,9 @@ class LaunchFilmController extends ChangeNotifier {
   /// Reads the attached decoder's latched wait without advancing any clock.
   LaunchFilmDecodeStage? get decodeStage => _state?._decodeStage;
 
+  /// Index requested from this attached codec, without requesting a frame.
+  int? get decodingFrameIndex => _state?._decodingFrameIndex;
+
   /// Reads an already-created original ticker without creating or starting it.
   bool get clockTicking {
     final _LaunchFilmState? state = _state;
@@ -294,6 +297,7 @@ class _LaunchFilmState extends State<LaunchFilm>
   /// there is one codec at a time and its frame in flight is not a third.
   Future<void> _decoder = Future<void>.value();
   LaunchFilmDecodeStage _decodeStage = LaunchFilmDecodeStage.idle;
+  int? _decodingFrameIndex;
 
   bool _started = false;
   bool _running = false;
@@ -370,6 +374,7 @@ class _LaunchFilmState extends State<LaunchFilm>
 
   void _play(int from, {bool skip = false}) {
     final int run = _run += 1;
+    _decodingFrameIndex = null;
     _dropNext();
     _running = true;
     _skipping = skip;
@@ -460,6 +465,7 @@ class _LaunchFilmState extends State<LaunchFilm>
       // The codec starts again from its first frame after its last, so the
       // count ends the run here, not the codec.
       for (int index = 0; index < count && run == _run; index += 1) {
+        _decodingFrameIndex = index;
         // Never disposed with this pending: the engine then leaves the
         // future uncompleted and the frame it was decoding with no owner.
         final ui.FrameInfo info = await _observeDecode(

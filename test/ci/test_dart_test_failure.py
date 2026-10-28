@@ -19,7 +19,8 @@ class DartFailureTests(unittest.TestCase):
     def test_entry_locations_keep_only_exact_names_and_original_numeric_lines(self):
         names = ('entry_capture_source_test.dart', 'entry_capture_opt_in_test.dart',
                  'entry_prepared_draft_test.dart', 'entry_capture_source.dart',
-                 'import_wallet_seed_choice_screen.dart', 'native_entry_capture.dart')
+                 'import_wallet_seed_choice_screen.dart', 'native_entry_capture.dart',
+                 'launch_decode_observation_test.dart')
         for name in names:
             row = dict(type='error', testID=7, isFailure=False,
                 error='Null check operator used on a null value: private text',

@@ -494,6 +494,7 @@ def analyze(parent, repo):
         'test/onboarding/entry_capture_opt_in_test.dart',
         'test/onboarding/entry_prepared_draft_test.dart',
         'lib/widgets/reusable_widgets/launch_film.dart',
+        'test/launch_film/launch_decode_observation_test.dart',
         'test/harness/key_dispatch_test.dart', 'test/harness/rail_navigation_test.dart',
         'test/harness/wallet_recipe_failure_test.dart', 'test/harness/wallet_recipe_test.dart'],
         cwd=repo, env=parent, shell=False, stdin=subprocess.DEVNULL,

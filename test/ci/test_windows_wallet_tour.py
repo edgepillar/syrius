@@ -308,6 +308,25 @@ class StartupVocabularyTests(unittest.TestCase):
             self.assertEqual(set(values), expected)
             self.assertEqual(len(values), len(expected))
 
+    def test_pending_frame_positions_keep_only_fixed_original_labels(self):
+        original = dict(stage='onboarding', code='wallet-recipe-stage-unsettled',
+            diagnostic=dict(action='observe', control='welcome_import',
+                reason='wallet-recipe-control-absent',
+                entry='startup-before-initialization', startup='key-confirmed'))
+        for label in ('skip-first-frame-pending', 'skip-middle-frame-pending',
+                      'skip-last-frame-pending', 'skip-frame-pending'):
+            value = dict(original, diagnostic=dict(original['diagnostic'], film=label))
+            self.assertEqual(tour.entry_failure(value), value)
+            self.assertFalse(tour.completed(dict(errors=['ENTRY_FAILED'])))
+        for label in ('skip-frame-17-pending', 'unlisted', 1, True, None):
+            value = dict(original, diagnostic=dict(original['diagnostic'], film=label))
+            with self.assertRaises(tour.Refused):
+                tour.entry_failure(value)
+        value = dict(original, diagnostic=dict(original['diagnostic'],
+            film='skip-first-frame-pending', frame_index=0))
+        with self.assertRaises(tour.Refused):
+            tour.entry_failure(value)
+
 
 class OriginalSendTests(unittest.TestCase):
     @staticmethod

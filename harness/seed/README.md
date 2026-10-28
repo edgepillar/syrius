@@ -358,3 +358,21 @@ Original source/controller/route, first prepared-generation, disposal and
 negative-scenario requirements remain. All 217 memory controls pass; the
 unchanged 735/286 gate and actual entry/reopen/six effects remain pending.
 All 94 visual matches remain open.
+
+At d17b474b1362, native 40644753061 passes 735 Python/286 Dart and
+clean selected analysis, then fails original onboarding with key-confirmed
+and skip-frame-pending. Independent 40647207996 preserves the original
+failure, forced required-actor cleanup and normal five-node exits. There is
+no send/quiescence/reopen receipt and no observed pending frame index.
+Producer 40645871645 and independent 40649202887 qualify 4565 non-chain
+passes/two original skips, root analysis zero errors/warnings and 1295 infos,
+Debug/Release builds and four genuine prepared Debug entry captures with
+normal original exit/restoration. Fresh images remain unreviewed and no
+visual match is accepted. The separate Release skip failure stays open.
+
+The candidate passively reads the index requested by the original codec and
+exports only fixed first/middle/last wait labels. Decoder operations, Futures,
+actions, assets, deadlines and cleanup remain. No failed session is retried
+or declared complete. All 218 memory controls pass; current 736 Python/287
+Dart and actual entry/reopen/six-effect qualification remain required.
+Nineteen catalog preparations and all 94 visual matches remain open.

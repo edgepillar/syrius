@@ -92,6 +92,8 @@ RECIPE_STARTUP_FILM_STATES = frozenset((
     'skip-ticker-stopped', 'skip-display-pending', 'skip-next-pending',
     'skip-previous-pending', 'skip-asset-pending', 'skip-codec-pending',
     'skip-frame-pending', 'skip-resize-pending',
+    'skip-first-frame-pending', 'skip-middle-frame-pending',
+    'skip-last-frame-pending',
     'skip-display-wait-pending', 'skip-dispose-pending',
 ))
 

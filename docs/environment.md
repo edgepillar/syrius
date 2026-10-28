@@ -7645,3 +7645,42 @@ No local SDK or native execution is performed. Current entry preparation,
 both-theme captures and restoration, original animation phases, copied
 reopen/six effects, nineteen catalog preparations and all 94 visual matches
 remain pending.
+
+## Original pending-frame observation
+
+At `d17b474b1362`, run `40644753061` passes all 735 Python cases with
+three original platform skips, clean selected analysis and all 286 Dart
+cases. The original command completes normally with zero failures or skips.
+The genuine incomplete-entry widget scenarios are source-bound positives.
+Native onboarding separately fails with `key-confirmed` and
+`skip-frame-pending`. Its original required actors need forced cleanup; the
+five nodes exit normally. Independent reader `40647207996` preserves the
+original finite manifests and failure. No send, quiescence, copied reopen or
+six-effect receipt exists. The pending frame index and cause are unknown.
+
+The same source's producer `40645871645` and independent reader
+`40649202887` qualify 4565 non-chain passes with two existing skips, zero
+root analysis errors/warnings and 1295 infos, clean vendored analysis,
+Debug/Release builds and four genuine prepared Debug entry captures. Normal
+original process exit, exact controller/route cleanup, window/caption
+restoration and archive/manifest/PNG digests are independently retained.
+The four fresh images remain unreviewed with zero accepted matches. The
+Debug capture result does not diagnose the separate Release skip failure.
+
+The candidate records the index already requested from the attached original
+codec. Reading it requests no frame. It resets only with an ordinary new
+play and detaches with the same original State. Only three fixed labels may
+leave the harness: `skip-first-frame-pending`, `skip-middle-frame-pending`
+and `skip-last-frame-pending`. The earlier generic label remains valid. No
+index, asset, image, private path or error text is exported. The original
+decode loop, Futures, skip input, scheduling, asset bytes, deadlines and
+resource cleanup are unchanged. Observation is not a decode fix or a later
+completion claim for the failed session.
+
+One real-codec widget case checks passive reads, skip, ordinary replay reset
+and original-State disposal. One memory case checks the finite labels and
+refuses extra frame fields or unlisted values. All 218 selected memory
+controls pass. The strict next requirement is 736 Python cases, zero selected
+analysis findings and all 287 Dart cases. No local SDK, native execution or
+artifact download occurs. Actual entry phases, copied reopen/six effects,
+nineteen catalog preparations and all 94 matches remain open.

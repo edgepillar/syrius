@@ -1869,7 +1869,7 @@ class HarnessAgent {
         LaunchFilmDecodeStage.previous => 'skip-previous-pending',
         LaunchFilmDecodeStage.asset => 'skip-asset-pending',
         LaunchFilmDecodeStage.codec => 'skip-codec-pending',
-        LaunchFilmDecodeStage.frame => 'skip-frame-pending',
+        LaunchFilmDecodeStage.frame => _recipePendingFilmFrame(owner.film),
         LaunchFilmDecodeStage.resize => 'skip-resize-pending',
         LaunchFilmDecodeStage.display => 'skip-display-wait-pending',
         LaunchFilmDecodeStage.disposing => 'skip-dispose-pending',
@@ -1879,6 +1879,18 @@ class HarnessAgent {
     if (owner.film.frame < 0) return 'first-frame-pending';
     if (owner.film.frame >= owner.film.frameCount - 1) return 'last-frame';
     return 'frame-visible';
+  }
+
+  String _recipePendingFilmFrame(LaunchFilmController film) {
+    final int? index = film.decodingFrameIndex;
+    if (index == 0) return 'skip-first-frame-pending';
+    if (index != null && index == film.frameCount - 1) {
+      return 'skip-last-frame-pending';
+    }
+    if (index != null && index > 0 && index < film.frameCount - 1) {
+      return 'skip-middle-frame-pending';
+    }
+    return 'skip-frame-pending';
   }
 
   _Node? _recipeStartupHint(List<_Node> nodes) {
