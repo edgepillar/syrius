@@ -670,3 +670,12 @@ recipe-owned key, signing/ownership guards and deadline remain unchanged.
 Five new engine regressions require 295 ordinary passes, or 297 in startup
 with both existing asset cases and exact final-pixel equality. All 234
 memory controls pass; current engine/native and all F06 proof remain open.
+
+Source136 `d1fe7944f439` / `40709856724` passes all 752 Python cases/three
+existing skips, then retains two selected nullable-access analysis errors
+at `launch_film.dart` lines 487 and 497. Dart, build and native steps are
+skipped. The candidate retains the first codec in a final non-null local,
+separate from its nullable cleanup owner. Awaited operations, disposal
+order, assets, assertions, guards and deadlines remain unchanged. The
+original refusal stays preserved and no engine, startup or F06 acceptance
+is inferred before the same 297-case gate and actual native execution.

@@ -8015,3 +8015,18 @@ case additionally requires exact engine pixel equality with the final still;
 no previous tolerance or wrong-frame control is relaxed. All 234 selected
 memory controls pass. Current engine, Release startup, copied reopen/six
 effects and full visual acceptance remain pending.
+
+### Source136 selected analysis refusal
+
+At `d1fe7944f439`, run `40709856724` passes all 752 Python cases with three
+existing skips, then analysis returns two `UNCHECKED_USE_OF_NULLABLE_VALUE`
+errors in `launch_film.dart`, at lines 487 and 497. Dart tests, Release
+build and actual startup are skipped. No new engine or performance result
+is inferred. The original failure is retained.
+
+The candidate names the original film codec with a final non-null local;
+the separate nullable cleanup reference owns the current codec during the
+ending handoff. This corrects static access without changing any awaited
+operation, disposal order, frame, clock, test assertion, source asset,
+input/ownership guard or deadline. The same 297-case startup gate and actual
+native observation remain required.

@@ -460,7 +460,7 @@ class _LaunchFilmState extends State<LaunchFilm>
     }
     ui.Codec? codec;
     try {
-      codec = await _observeDecode<ui.Codec>(
+      final ui.Codec filmCodec = await _observeDecode<ui.Codec>(
         run, LaunchFilmDecodeStage.codec,
         ui.instantiateImageCodecFromBuffer(
           await _observeDecode(
@@ -472,7 +472,8 @@ class _LaunchFilmState extends State<LaunchFilm>
           allowUpscaling: false,
         ),
       );
-      final int count = codec.frameCount;
+      codec = filmCodec;
+      final int count = filmCodec.frameCount;
       final int first = math.min(from, count - 1);
       if (run == _run) {
         _controller._report(frameCount: count);
@@ -484,7 +485,7 @@ class _LaunchFilmState extends State<LaunchFilm>
         // Never disposed with this pending: the engine then leaves the
         // future uncompleted and the frame it was decoding with no owner.
         final ui.FrameInfo info = await _observeDecode(
-          run, LaunchFilmDecodeStage.frame, codec.getNextFrame(),
+          run, LaunchFilmDecodeStage.frame, filmCodec.getNextFrame(),
         );
         bool last = index == count - 1;
         ui.Image image = info.image;
@@ -494,7 +495,7 @@ class _LaunchFilmState extends State<LaunchFilm>
           image.dispose();
           // getNextFrame has actually returned. Disposing earlier leaves
           // that engine Future pending and would lose its cleanup owner.
-          codec.dispose();
+          filmCodec.dispose();
           codec = null;
           _decodingFrameIndex = count - 1;
           codec = await _observeDecode<ui.Codec>(
