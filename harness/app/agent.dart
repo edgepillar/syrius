@@ -2167,16 +2167,30 @@ class HarnessAgent {
       }
       final Object? action = command['action'];
       if (action == 'observe') return _recipeObservation(command);
+      final EntryStartupReceipt? startup = command['key'] == 'launch_skip_hint'
+          ? EntryCaptureRegistry.instance.startup
+          : null;
       final Map<String, Object?> observed = _recipeObservation(command);
       void current() {
         final Map<String, Object?> fresh = _recipeObservation(command);
+        final Object? startupOwner = startup?.startupOwner;
+        // The original initializer applies the saved chain after launch.
+        // Only its still-current Skip key may precede that equality.
+        final bool originalStartupKey = action == 'key' &&
+            command['key'] == 'launch_skip_hint' && startup != null &&
+            !EntryCaptureRegistry.instance.held &&
+            identical(EntryCaptureRegistry.instance.startup, startup) &&
+            startup.isCurrent && !startup.initializationStarted &&
+            startupOwner is StartupStageSession && !startupOwner.isClosed &&
+            !startupOwner.film.isDone;
         if (!identical(_recipeFile, kWalletFile) ||
             !identical(_recipeClient, app.zenon) ||
             command['owner'] != _recipeOwner ||
             command['revision'] != WalletContextRevision.value ||
             fresh['hasError'] != false ||
             fresh['signingPolicyReady'] != true ||
-            fresh['signingChainId'] != fresh['savedSigningChainId']) {
+            (!originalStartupKey &&
+                fresh['signingChainId'] != fresh['savedSigningChainId'])) {
           throw HarnessError('wallet-recipe-original-owner-changed');
         }
         if (command.containsKey('addressContext')) {
@@ -2231,9 +2245,6 @@ class HarnessAgent {
       }
       final bool field = action == 'type';
       final _Node original = _recipeControl(key, field: field);
-      final EntryStartupReceipt? startup = key == 'launch_skip_hint'
-          ? EntryCaptureRegistry.instance.startup
-          : null;
       if (key.startsWith('node_settings_select_') ||
           key == 'node_onboarding_continue') {
         final List<Element> views = _recipeNodeViews();

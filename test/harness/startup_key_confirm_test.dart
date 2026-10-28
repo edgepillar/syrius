@@ -5,6 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive_ce.dart';
+import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
+import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/launch_film.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart' show getChainIdentifier;
@@ -65,8 +67,8 @@ void main() {
     await fixture.mount(tester);
     expect(fixture.session.film.skipRequested, isFalse);
     expect(fixture.done, 0);
-    // Before-fix control: the original initializer restores the saved chain
-    // only after this original film completes. No signing action is requested.
+    // The original initializer restores this known chain after launch.
+    // Its original Skip must neither sign nor apply the preference itself.
     final Box<dynamic> preferences = Hive.box<dynamic>(kSharedPrefsBox);
     final int originalChain = getChainIdentifier();
     expect(originalChain, 1);
@@ -79,17 +81,36 @@ void main() {
     expect(copied['signingPolicyReady'], isTrue);
     expect(copied['signingChainId'], originalChain);
     expect(copied['savedSigningChainId'], 321);
-    await expectLater(fixture.press(), throwsA(
-      isA<HarnessError>().having((HarnessError value) => value.message,
-        'before-fix refusal', 'wallet-recipe-original-owner-changed'),
-    ));
+    for (final Map<String, Object?> change in <Map<String, Object?>>[
+      <String, Object?>{'owner': (copied['owner']! as int) + 1},
+      <String, Object?>{'revision': (copied['revision']! as int) + 1},
+    ]) {
+      await expectLater(fixture.agent.commandForTest(<String, dynamic>{
+        'cmd': 'wallet-recipe', 'action': 'key', 'key': 'launch_skip_hint',
+        'owner': copied['owner'], 'revision': copied['revision'], ...change,
+      }), throwsA(isA<HarnessError>().having(
+        (HarnessError value) => value.message,
+        'stale startup owner', 'wallet-recipe-original-owner-changed',
+      )));
+    }
+    final SharedPrefsService? originalPreferences = app.sharedPrefsService;
+    try {
+      app.sharedPrefsService = null;
+      await expectLater(fixture.press(), throwsA(
+        isA<HarnessError>().having((HarnessError value) => value.message,
+          'unknown preference', 'wallet-recipe-original-owner-changed'),
+      ));
+    } finally {
+      app.sharedPrefsService = originalPreferences;
+    }
     expect(fixture.session.film.skipRequested, isFalse);
     expect(fixture.done, 0);
     expect(getChainIdentifier(), originalChain);
     expect(preferences.get(kChainIdKey), 321);
-    await preferences.put(kChainIdKey, originalChain);
     final Map<String, Object?> reply = await fixture.press();
     expect(reply['acted'], isTrue);
+    expect(getChainIdentifier(), originalChain);
+    expect(preferences.get(kChainIdKey), 321);
     expect(fixture.session.film.skipRequested, isTrue);
     expect(fixture.session.film.clockTicking, isTrue);
     expect(fixture.session.film.framePending, isFalse);

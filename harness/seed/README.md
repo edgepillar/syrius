@@ -457,3 +457,49 @@ and are reused; no new local SDK, native or filesystem qualification runs.
 Source126 root/build and four prepared Debug image receipts remain separate.
 Those images are unreviewed, nineteen catalog preparations remain literal
 refusals, and all 94 visual matches and copied reopen/six effects remain open.
+
+
+### Original Skip before the saved chain is applied
+
+At `db69aa709192`, focused run `40663038443` and job `122730539020`
+pass all 740 Python cases with three existing platform skips, all 290 selected
+Dart cases without failures/skips and selected analysis with zero findings.
+One Flutter setup is used and no native wallet or node is started. The actual
+registered StartupStageSession case retains its original pending codec,
+owner and revision, sets known saved chain 321 against initial SDK chain 1,
+and confirms the unchanged original-owner refusal with no Skip effect or
+SDK chain mutation. It then restores only its in-memory preference and retains
+the original positive Skip, original codec completion and cleanup assertions.
+This qualifies the separate before-fix control. The merged Native75 guard
+label still does not identify which individual condition failed in that run.
+
+The candidate binds the exact original startup receipt before observation.
+Only that same current receipt, before initialization, with its open original
+StartupStageSession and unfinished original film, may receive its existing
+Skip before saved/live signing-chain equality. A known positive saved
+preference remains mandatory. File/client identity, owner/revision, error,
+current receipt, original hint/focus/control geometry, one original Space
+pair and actual original-film effect confirmation are retained. Initialization
+or a finished/replaced/held owner cannot supply the exception. Financial
+tap/type/scroll actions retain the original signing equality. No signing,
+preference application, new input, retry, deadline or decoder change is added.
+The application's own initializer still applies the saved policy after launch.
+
+The same genuine case now requires the original Skip with saved chain 321
+while proving that the SDK remains 1 and the preference stays 321. Stale
+owner/revision and unknown preference still refuse before input. The original
+foreign-key-handler case now also keeps a pending saved policy: financial
+tap/type/scroll refuse, and an intercepted key cannot acknowledge an original
+film action. Every original positive key/decode/cleanup and negative handler
+assertion is retained. Test counts stay 740 Python/290 Dart; analysis rules,
+workflow and all other runtime bytes remain. All 222 selected pure-memory
+Python controls actually reran and passed without failures/errors/skips or
+filesystem scratch. No local SDK/native test ran; actual current runtime
+qualification remains pending.
+
+Source128 original UI/send/quiescence remains independently qualified by
+`40661131808`; its failed copied startup and all parent-bound notice components
+remain intact. Source126 root/build and four prepared Debug image receipts
+remain separately bound. The four fresh images are unreviewed, nineteen
+catalog preparations remain literal refusals, and actual copied reopen/six
+effects and all 94 visual matches remain open. The main ledger stays 71/80.
