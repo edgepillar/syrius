@@ -32,7 +32,8 @@ void main() {
     final Map<String, Object> input = _frontier();
     final Map<String, Object> value = _stalled(input);
     final Map<String, Object> result = labSendPublicDiagnostic(value)!;
-    final Map<String, Object> facts = result['frontier']! as Map<String, Object>;
+    final Map<String, Object> facts =
+        result['frontier']! as Map<String, Object>;
     input['http_last_height'] = 50;
     expect(facts, _frontier());
     expect(() => facts['polls'] = 0, throwsUnsupportedError);
@@ -40,7 +41,8 @@ void main() {
     expect(LabSendDiagnosticFailure(result).diagnostic, result);
   });
 
-  test('frontier facts reject coercion private extras and impossible exhaustion',
+  test(
+      'frontier facts reject coercion private extras and impossible exhaustion',
       () {
     for (final Map<String, Object?> change in <Map<String, Object?>>[
       <String, Object?>{'polls': true},

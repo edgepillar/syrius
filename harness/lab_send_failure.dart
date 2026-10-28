@@ -166,7 +166,9 @@ Map<String, Object>? labSendPublicDiagnostic(Object? value) {
       ? _frontierObservation(value['frontier']) : null;
   if (frontier && (value.length != 3 || value['phase'] != 'preflight' ||
       value['reason'] != 'advancing-momentum-required' ||
-      observation == null)) return null;
+      observation == null)) {
+    return null;
+  }
   if (value.length == 3 && !frontier &&
       (!value.containsKey('original') || value['phase'] != 'confirmation' ||
           value['reason'] != 'original-outcome-unknown' ||

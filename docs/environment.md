@@ -8368,3 +8368,14 @@ The owned task closed FAILURE after a visual-review metadata lock refusal;
 the separate review is retained and 565211 logical scratch bytes were cleaned.
 No repeated transport or successful managed review is claimed. All earlier
 failures/UNKNOWNs, nineteen preparations, ninety outputs and 94 matches remain.
+
+
+## Frontier observation analysis follow-up
+
+Source150 40775270148 passes 765 Python cases with three existing skips.
+Its analysis gate retains zero errors/warnings and three infos: a multiline
+guard needs braces and two new test lines exceed 80 characters. Dart is not
+run and no focused/native acceptance is inferred. The follow-up adds those
+braces and line breaks without changing any condition or test expectation.
+All 263 memory controls pass; hosted analysis and 328 ordinary/330 startup
+Dart cases remain pending. The actual failed source150 result stays retained.
