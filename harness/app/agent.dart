@@ -1543,7 +1543,9 @@ class HarnessAgent {
     final List<StatefulElement> owners = <StatefulElement>[];
     void visit(Element element) {
       if (element is StatefulElement && element.widget is LockTabChild &&
-          element.state is LockViewSource) owners.add(element);
+          element.state is LockViewSource) {
+        owners.add(element);
+      }
       element.visitChildElements(visit);
     }
     WidgetsBinding.instance.rootElement?.visitChildElements(visit);

@@ -834,3 +834,19 @@ never retries or replaces the original unlock refusal. Two genuine-owner and
 two closed-schema/driver cases join a pending 323-case ordinary gate. All 236
 current memory controls pass; actual copied reopen and six effects remain
 unqualified. The failed original profile/password is never retried.
+
+
+## Observed style correction and bounded root diagnostics
+
+Source145 40750664024 passes all 754 Python cases/three skips before eleven
+selected style infos refuse Dart. Only the observed brace/cascade/type and
+null-aware-map syntax changes; original owner identity, observations, input,
+assertions, attempt/signing/lifecycle guards and waits remain. All 239 memory
+controls pass. The current gate requires 756 Python and 323 ordinary Dart
+cases, or 325 with both existing startup asset cases.
+
+Future failed root suites retain at most three fixed source locations without
+raw errors or private input. The independent reader validates the closed
+projection and exact producer parser. This does not retrospectively identify
+the source144 failed test, qualify copied authentication or supply six effects.
+The original failed copied profile/password is not retried.

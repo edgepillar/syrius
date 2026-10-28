@@ -11,6 +11,7 @@ import zipfile
 
 from . import inspect_chain321 as archive
 from . import inspect_windows_inventory as inventory
+from . import dart_test_failure
 from . import windows_baseline as baseline
 from . import windows_entry_capture_smoke as entry
 
@@ -18,7 +19,7 @@ from . import windows_entry_capture_smoke as entry
 MAX_LOG = 4 * 1024**2
 MAX_ENTRY_ARCHIVE = 4 * entry.MAX_PNG + 1024**2
 PRODUCERS = ('windows_baseline.py', 'windows_entry_capture_smoke.py',
-             'windows_presentation_smoke.py')
+             'windows_presentation_smoke.py', 'dart_test_failure.py')
 PHASE = 'environment'
 CHECK_STAGES = {
     'source': ('source_head', 'source_tree', 'source_clean_before'),
@@ -140,11 +141,18 @@ def baseline_projection(report, head, tree, run_id):
         archive.need(all(value['map_exports'] for value in libraries.values()))
     archive.need(type(report.get('success')) is bool
                  and report['success'] is (all(original.values()) and not errors))
+    failures = None
+    if 'test_failures' in report:
+        failures = dart_test_failure.locations_projection(report['test_failures'])
+        archive.need(failures is not None and not original['unit_widget_tests']
+            and report['success'] is False)
     return dict(scope='retained_windows_baseline_observation', inspection_only=True,
         runtime_started=False, wallet_qualified=False, source_head=head, source_tree=tree,
         source_run_id=run_id, source_attempt=1, artifact_reported_success=report['success'],
         original_checks=original, original_error_codes=errors, analysis=projected_analysis,
-        tests=tests, doctor=doctor, localization_unchanged=(set(localization) == {'before', 'after'}
+        tests=tests, doctor=doctor,
+        **({'test_failures': failures} if failures is not None else {}),
+        localization_unchanged=(set(localization) == {'before', 'after'}
             and localization['before'] == localization['after']), libraries=libraries,
         commands={name: outcomes[name] for name in ('analyze_root', 'analyze_vendored',
             'unit_widget_tests', 'build_debug', 'build_release') if name in outcomes})

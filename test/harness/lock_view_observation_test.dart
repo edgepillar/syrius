@@ -88,13 +88,14 @@ void main() {
       find.byType(LockTabChild),
     );
     final TextEditingController password =
-        tester.widget<LockCard>(find.byType(LockCard)).passwordController;
-    password.text = 'synthetic-private-password';
+        tester.widget<LockCard>(find.byType(LockCard)).passwordController
+          ..text = 'synthetic-private-password';
     final HarnessAgent agent = HarnessAgent.forTest();
     final Map<String, Object?> bound = await _read(agent, 'bind');
     expect(bound['owner_same'], isTrue);
-    Map<String, Object?> view =
-        Map<String, Object?>.from(bound['view']! as Map);
+    Map<String, Object?> view = Map<String, Object?>.from(
+      bound['view']! as Map<String, Object?>,
+    );
     expect(view['current'], isTrue);
     expect(view['busy'], isFalse);
     expect(view['password_failures'], 0);
@@ -110,7 +111,7 @@ void main() {
       mode.value = value;
       await tester.pump();
       view = Map<String, Object?>.from(
-        (await _read(agent, 'observe'))['view']! as Map,
+        (await _read(agent, 'observe'))['view']! as Map<String, Object?>,
       );
       expect(view['focus_allows_input'], value != 1);
       expect(view['visible'], value != 2);
@@ -120,14 +121,14 @@ void main() {
     }
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
     view = Map<String, Object?>.from(
-      (await _read(agent, 'observe'))['view']! as Map,
+      (await _read(agent, 'observe'))['view']! as Map<String, Object?>,
     );
     expect(view['window_active'], isFalse);
     expect(view['current'], isFalse);
     expect(view['lifecycle'], 'inactive');
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     view = Map<String, Object?>.from(
-      (await _read(agent, 'observe'))['view']! as Map,
+      (await _read(agent, 'observe'))['view']! as Map<String, Object?>,
     );
     expect(view['current'], isTrue);
     expect(password.text, 'synthetic-private-password');

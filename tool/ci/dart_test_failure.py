@@ -183,3 +183,39 @@ def project(raw):
     except (ValueError, UnicodeError, TypeError):
         return refused
     return dict(status='OBSERVED' if total else 'NO_ERROR_EVENTS', total=total, items=items)
+
+
+
+def locations_projection(value):
+    """Validate only fixed source labels; no original error or test text."""
+    if not (type(value) is dict and set(value) == {'status', 'total', 'items'}
+            and type(value['status']) is str
+            and value['status'] in ('OBSERVED', 'NO_ERROR_EVENTS', 'REFUSED')
+            and type(value['total']) is int and 0 <= value['total'] <= 20000
+            and type(value['items']) is list):
+        return None
+    observed = value['status'] == 'OBSERVED'
+    if ((value['total'] > 0) != observed or
+            len(value['items']) != (min(value['total'], 3) if observed else 0)):
+        return None
+    result = []
+    for item in value['items']:
+        if not (type(item) is dict and set(item) == {'file', 'line', 'kind', 'category'}
+                and ((item['file'] is None and item['line'] is None) or
+                     type(item['file']) is str and item['file'] in FILES
+                     and type(item['line']) is int and 0 < item['line'] <= 999999)
+                and type(item['kind']) is str and item['kind'] in ('ASSERTION', 'UNHANDLED')
+                and type(item['category']) is str
+                and item['category'] in {label for _, label in CATEGORIES} | {'OTHER'}):
+            return None
+        result.append(dict(item))
+    return dict(status=value['status'], total=value['total'], items=result)
+
+
+def locations(raw):
+    """Project capped original JSON events to at most three source locations."""
+    value = project(raw)
+    compact = dict(value, items=[{key: item[key]
+        for key in ('file', 'line', 'kind', 'category')} for item in value['items']])
+    projected = locations_projection(compact)
+    return projected if projected is not None else dict(status='REFUSED', total=0, items=[])

@@ -27,7 +27,9 @@ Map<String, Object?>? projectLockView(Object? value) {
       value['schema'] is! int || value['schema'] != 1 ||
       value['status'] is! String ||
       !lockViewStatuses.contains(value['status']) ||
-      value['owner_same'] is! bool) return null;
+      value['owner_same'] is! bool) {
+    return null;
+  }
   final Object? raw = value['view'];
   Map<String, Object?>? view;
   if (value['status'] == 'observed') {
@@ -41,7 +43,9 @@ Map<String, Object?>? projectLockView(Object? value) {
         (raw['password_failures'] as int) < 0 ||
         (raw['password_failures'] as int) > 255 ||
         raw['lifecycle'] is! String ||
-        !lockViewLifecycles.contains(raw['lifecycle'])) return null;
+        !lockViewLifecycles.contains(raw['lifecycle'])) {
+      return null;
+    }
     view = Map<String, Object?>.from(raw);
   } else if (value['owner_same'] != false || raw != null) {
     return null;

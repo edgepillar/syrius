@@ -162,7 +162,7 @@ Map<String, Object?>? restoredChildFailure(String phase, Object error) {
   return <String, Object?>{
     'schema': 1, 'scope': 'owned_reopen_child_failure', 'phase': phase,
     'kind': kind, 'code': code, 'recipe': recipe,
-    if (lockView != null) 'lock_view': lockView,
+    'lock_view': ?lockView,
   };
 }
 

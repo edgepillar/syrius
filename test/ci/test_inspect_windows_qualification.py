@@ -110,6 +110,34 @@ class WindowsQualificationTests(unittest.TestCase):
         self.assertTrue(value['commands']['unit_widget_tests']['forced_kill'])
         self.assertEqual(value['tests']['failed'], 1)
 
+    def test_failed_root_locations_keep_the_failure_and_refuse_private_fields(self):
+        report = baseline()
+        report['checks'] = dict.fromkeys(inspect.baseline.CHECKS, False)
+        report['success'], report['error_codes'] = False, ['TESTS_FAILED']
+        report['tests'].update(passed=49, failed=1, error_events=1,
+            terminal_success=False)
+        locations = dict(status='OBSERVED', total=1,
+            items=[dict(file='welcome_surface_test.dart', line=554,
+                kind='ASSERTION', category='ASSERTION')])
+        report['test_failures'] = locations
+        value = inspect.baseline_projection(report, HEAD, TREE, RUN)
+        self.assertEqual(value['test_failures'], locations)
+        self.assertFalse(value['artifact_reported_success'])
+        self.assertEqual(value['tests']['failed'], 1)
+        invalid = [dict(locations, private='private'), dict(locations, total=True),
+            dict(locations, status='private'), dict(locations, total=0)]
+        for change in (dict(file='private'), dict(line=True), dict(line=0),
+                dict(line=1000000), dict(kind='private'), dict(category='private'),
+                dict(error='private'), dict(file=None)):
+            invalid.append(dict(locations, items=[dict(locations['items'][0], **change)]))
+        for item in invalid:
+            with self.subTest(fields=len(item)), self.assertRaises(inspect.archive.Refused):
+                inspect.baseline_projection(dict(report, test_failures=item), HEAD, TREE, RUN)
+        positive = baseline()
+        positive['test_failures'] = locations
+        with self.assertRaises(inspect.archive.Refused):
+            inspect.baseline_projection(positive, HEAD, TREE, RUN)
+
     def test_baseline_cannot_substitute_identity_exit_stage_or_correspondence(self):
         for change in ('source', 'attempt', 'exit', 'stage', 'analysis', 'library', 'localization'):
             report = baseline()
@@ -245,7 +273,7 @@ class WindowsQualificationTests(unittest.TestCase):
                 mock.patch.object(inspect.archive, 'Client', return_value=Client()), \
                 contextlib.redirect_stdout(io.StringIO()) as output:
             self.assertEqual(inspect.main(), 0)
-        self.assertEqual(len(calls), 11)
+        self.assertEqual(len(calls), 8 + len(inspect.PRODUCERS))
         notices = [line for line in output.getvalue().splitlines() if line.startswith('::notice')]
         self.assertEqual(len(notices), 2)
         self.assertTrue(all(len(line.partition('::')[2].encode()) < 3900 for line in notices))

@@ -25,11 +25,13 @@ import time
 from dataclasses import dataclass
 
 try:
+    from . import dart_test_failure
     from .windows_presentation_smoke import (
         OutputDrain, RUNTIME_ENV, SmokeFailure, binary_hash, plain, require_ci,
         valid_sha,
     )
 except ImportError:
+    import dart_test_failure
     from windows_presentation_smoke import (
         OutputDrain, RUNTIME_ENV, SmokeFailure, binary_hash, plain, require_ci,
         valid_sha,
@@ -538,6 +540,7 @@ class Baseline:
         self.stages, self.inventory, self.analysis = {}, {}, {}
         self.doctor = {"windows_version": "unknown", "visual_studio": "unknown"}
         self.tests = None
+        self.test_failures = None
         self.localization, self.libraries, self.tools = {}, {}, {}
         self.checks = dict.fromkeys(CHECKS, False)
         self.errors = []
@@ -699,6 +702,8 @@ class Baseline:
             "test", "--no-pub", "--reporter", "json", "--concurrency=1",
             "--timeout", "60s", "--exclude-tags", "chain", "test",
         ], required=False, timeout=2700, cap=67108864)
+        if not suite.success:
+            self.test_failures = dart_test_failure.locations(suite.output)
         if not suite.transport_complete:
             raise BaselineFailure("TESTS_FAILED")
         self.tests = test_counts(suite.output)
@@ -774,6 +779,8 @@ class Baseline:
             "stages": {name: self.stages[name] for name in sorted(self.stages) if name in STAGES},
             "doctor": {"scope": "windows_desktop_only", **self.doctor},
             "analysis": self.analysis, "tests": self.tests,
+            **({"test_failures": self.test_failures}
+               if self.test_failures is not None else {}),
             "localization_correspondence": self.localization, "libraries": self.libraries,
             "checks": {name: self.checks[name] is True for name in CHECKS},
             "success": all(self.checks.values()) and not self.errors,

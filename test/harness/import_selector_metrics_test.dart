@@ -27,8 +27,8 @@ Widget _selector(AppTokens tokens, {required bool tabular}) => Segment<int>(
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUpAll(() async {
-    final FontLoader fonts = FontLoader(kSansFontFamily);
-    fonts.addFont(rootBundle.load('assets/fonts/SpaceGrotesk-Regular.ttf'));
+    final FontLoader fonts = FontLoader(kSansFontFamily)
+      ..addFont(rootBundle.load('assets/fonts/SpaceGrotesk-Regular.ttf'));
     await fonts.load();
   });
 

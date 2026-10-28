@@ -576,6 +576,23 @@ class PipelineTests(unittest.TestCase):
                 self.assertFalse(report.checks["unit_widget_tests"])
                 self.assertNotIn("generate_sources", [name for name, _, _ in calls])
 
+    def test_original_root_failure_exports_only_a_closed_source_location(self):
+        failed = baseline.Outcome(output=events(
+            dict(type='error', testID=1, isFailure=True,
+                error='Expected: <1> private error and wallet text',
+                stackTrace='private-root/test/welcome/welcome_surface_test.dart:554:7'),
+            finished(1, result='error'), dict(type='done', success=False)),
+            exit_code=1, exit_observed=True, output_complete=True)
+        report, calls, failure = self.exercise(suite=failed)
+        self.assertEqual(failure, 'TESTS_FAILED')
+        self.assertFalse(report.checks['unit_widget_tests'])
+        self.assertNotIn('generate_sources', [name for name, _, _ in calls])
+        self.assertEqual(report.public()['test_failures'], dict(status='OBSERVED',
+            total=1, items=[dict(file='welcome_surface_test.dart', line=554,
+                kind='ASSERTION', category='ASSERTION')]))
+        self.assertNotIn('private', json.dumps(report.public()))
+        self.assertFalse(report.public()['success'])
+
     def test_restoration_or_generation_drift_refuses_later_builds(self):
         for name in ("source_clean_restored", "source_clean_generated"):
             with self.subTest(stage=name):

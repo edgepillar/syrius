@@ -8214,3 +8214,29 @@ Hosted qualification is pending. Earlier failures, skipped steps, UNKNOWN
 outputs and original history stay preserved. Native82 copied authentication
 and six effects remain unqualified; its original profile/password is not
 retried. All nine open main rows and all 94 visual matches remain open.
+
+
+## Source145 style refusal and finite original-root failure locations
+
+At 2026-10-28T19:13Z, source145 `81358c86de12` / 40750664024 retains all 754 Python
+cases with three existing skips, then eleven selected style infos with zero
+errors or warnings. Dart is skipped. The correction supplies braces, a
+null-aware map element, two cascades and explicit Map type arguments. Original
+observations, owners, input, assertions, attempt/signing/lifecycle guards and
+deadlines remain. The 323 ordinary / 325 startup Dart gates are unchanged.
+
+The source144 full-root failure still has no observed test name. Future
+original failed suites retain a bounded projection of at most three known
+source file/line/kind/category records. Raw test messages, paths, values and
+stacks stay private. The same independent reader validates this closed shape,
+retains failure and checks the exact producer parser source. Successful legacy
+reports retain their original projection shape.
+
+All 239 current pure-memory controls pass with zero failures/errors/skips or
+native, network, scratch or shared-store attempts. The two new caller/reader
+cases and existing bounded reader transport case pass. The first private
+control used the explicit original file loader; that failed control remains
+preserved and only its memory loader was corrected. Hosted 756-Python/323-Dart
+qualification is pending. This establishes no copied authentication, six-effect
+completion, full-root/build success or visual acceptance. Existing evidence,
+failed originals, skipped steps, history and UNKNOWN results remain preserved.

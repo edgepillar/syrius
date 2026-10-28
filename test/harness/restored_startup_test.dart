@@ -35,7 +35,7 @@ class _UnlockInstance extends cli.Instance {
       if (lockView is! Map<String, dynamic>) throw _Unformattable();
       expect(command['action'], anyOf('bind', 'observe'));
       expect(command.containsKey('value'), isFalse);
-      return Map<String, dynamic>.from(lockView! as Map);
+      return Map<String, dynamic>.from(lockView as Map<String, dynamic>);
     }
     if (name == 'state') {
       observations++;
