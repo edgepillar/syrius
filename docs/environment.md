@@ -8075,3 +8075,14 @@ before-fix run. The strict gate selects all 297 ordinary cases, or 299 with
 both original asset cases. All 234 pure-memory controls pass without native,
 network, scratch or shared-store access. No readiness fix, copied reopen,
 six-effect or historical cause is inferred from these controls.
+
+
+Source139 `25faff6d9fb2` / `40726560405` passes all 752 Python cases/three
+existing skips. Selected analysis retains zero errors/warnings and two
+infos in the new readiness test: an unnecessary underscore name and one
+long assertion line. The Dart step is skipped, so no actual readiness
+behavior result is inferred. The style-only candidate removes the unused
+builder name and wraps the same command-list expectation. All original
+runtime bytes and test meanings remain unchanged. All 234 current memory
+controls pass; clean analysis and the same 297-case before-fix gate remain
+required before the runtime candidate is published.

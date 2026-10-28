@@ -67,7 +67,7 @@ Widget _host(
       bundle: _PendingFilmBundle(),
       child: ValueListenableBuilder<int>(
         valueListenable: stage,
-        builder: (_, int value, __) => value == 0
+        builder: (_, int value, _) => value == 0
             ? const SizedBox.expand()
             : IgnorePointer(
                 ignoring: value == 2,
@@ -143,7 +143,9 @@ void main() {
     await tester.pump();
     await _settle(tester, original);
     expect(original.status, EntryCaptureStatus.succeeded);
-    expect(instance.commands, <String>['state', 'wait', 'type', 'tap', 'state']);
+    expect(instance.commands, <String>[
+      'state', 'wait', 'type', 'tap', 'state',
+    ]);
     expect(password.text, 'synthetic-private-password');
     expect(submissions, 1);
   });
