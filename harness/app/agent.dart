@@ -1893,6 +1893,46 @@ class HarnessAgent {
     return 'skip-frame-pending';
   }
 
+  Map<String, Object?>? _recipeStartupFilmProgress() {
+    final EntryCaptureRegistry registry = EntryCaptureRegistry.instance;
+    final EntryStartupReceipt? startup = registry.startup;
+    if (registry.held || startup == null || !startup.isCurrent) return null;
+    final Object owner = startup.startupOwner;
+    if (owner is! StartupStageSession || owner.isClosed ||
+        owner.film.cleanupOwnerReplaced) {
+      return null;
+    }
+    final BuildContext? element = owner.filmKey.currentContext;
+    if (element is! StatefulElement || !element.mounted) return null;
+    final Widget movie = element.widget;
+    final LaunchFilmController film = owner.film;
+    if (movie is! LaunchFilm || !identical(movie.controller, film) ||
+        !identical(film.cleanup?.owner, element.state)) {
+      return null;
+    }
+    final int count = film.frameCount;
+    final int shown = film.frame;
+    final int? decoding = film.decodingFrameIndex;
+    final LaunchFilmDecodeStage? stage = film.decodeStage;
+    if (stage == null || count < 0 || count > 4096 || shown < -1 ||
+        (count == 0 && shown != -1) ||
+        (count > 0 && shown >= count) ||
+        (decoding != null && (decoding < 0 || decoding >= count))) {
+      return null;
+    }
+    // These getters read the original State. No frame, Future or clock moves.
+    return <String, Object?>{
+      'frames': count,
+      'shown': shown,
+      'decoding': decoding,
+      'stage': stage.name,
+      'skip': film.skipRequested,
+      'pending': film.framePending,
+      'ticking': film.clockTicking,
+      'done': film.isDone,
+    };
+  }
+
   _Node? _recipeStartupHint(List<_Node> nodes) {
     final EntryCaptureRegistry registry = EntryCaptureRegistry.instance;
     final EntryStartupReceipt? startup = registry.startup;
@@ -2061,6 +2101,7 @@ class HarnessAgent {
       'booted': booted,
       'entryPhase': _recipeEntryPhase(entryPhases),
       'startupFilmState': ?_recipeStartupFilmState(),
+      'startupFilmProgress': ?_recipeStartupFilmProgress(),
       'owner': _recipeOwner,
       'revision': WalletContextRevision.value,
       'walletPresent': kWalletFile != null,

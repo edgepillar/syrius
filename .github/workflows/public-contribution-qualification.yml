@@ -92,6 +92,10 @@ on:
         description: Test the Windows harness without building a native wallet or lab
         type: boolean
         default: false
+      windows_startup_probe:
+        description: Observe one original Release startup without a node or wallet import
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -100,6 +104,74 @@ env:
   FLUTTER_VERSION: "3.47.7"
 
 jobs:
+  windows-startup-probe:
+    if: inputs.windows_startup_probe
+    name: Observe original Windows Release startup
+    runs-on: windows-latest
+    timeout-minutes: 30
+    env:
+      GIT_CONFIG_COUNT: "1"
+      GIT_CONFIG_KEY_0: core.autocrlf
+      GIT_CONFIG_VALUE_0: "false"
+      SYRIUS_WINDOWS_STARTUP_PROBE: "true"
+    steps:
+      - name: Checkout the dispatched source
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Test all isolated controllers before SDK allocation
+        env:
+          SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
+        run: python -B -m tool.ci.run_wallet_tour_tests --all-controllers
+
+      - name: Set up the single pinned Flutter SDK
+        id: startup_flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+          pub-cache: 'false'
+
+      - name: Restore unchanged locked harness dependencies
+        env:
+          SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
+          SYRIUS_HARNESS_TESTS_ONLY: "true"
+          PUB_CACHE: ${{ steps.startup_flutter.outputs['PUB-CACHE-PATH'] }}
+        run: python -B -m tool.ci.prepare_harness_tests
+
+      - name: Analyze the original entry and focused tests
+        run: python -B -m tool.ci.windows_debug_loop --analyze
+
+      - name: Test original startup ownership and finite diagnostics
+        env:
+          PUB_CACHE: ${{ steps.startup_flutter.outputs['PUB-CACHE-PATH'] }}
+        run: python -B -m tool.ci.run_harness_tour_tests
+
+      - name: Generate source metadata
+        run: dart run tool/generate_git_metadata.dart
+
+      - name: Enable Windows desktop
+        run: flutter config --enable-windows-desktop
+
+      - name: Build the ordinary Release harness target
+        run: flutter build windows --release --no-pub --target harness/app/main.dart --dart-define-from-file=.dart_tool/git_metadata.json
+
+      - name: Observe the original startup and normal process exit
+        timeout-minutes: 3
+        run: python -B -m tool.ci.windows_startup_probe
+
+      - name: Retain only finite startup observations
+        if: always() && hashFiles('.harness/ci-startup-probe/manifest.json') != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-startup-probe-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          compression-level: 0
+          include-hidden-files: true
+          if-no-files-found: error
+          path: .harness/ci-startup-probe/manifest.json
+
   harness-tests-only:
     if: inputs.harness_tests_only
     name: Test harness without native wallet or lab

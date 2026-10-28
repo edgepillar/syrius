@@ -102,6 +102,16 @@ void main() {
     }
     expect(await available(), isTrue);
     expect((await observation())['startupFilmState'], 'opening');
+    final Map<String, Object?> opening = <String, Object?>{
+      'frames': 0, 'shown': -1, 'decoding': null, 'stage': 'asset',
+      'skip': false, 'pending': false, 'ticking': true, 'done': false,
+    };
+    final Object? originalFilm = session.film.cleanup?.owner;
+    for (int read = 0; read < 5; read++) {
+      expect((await observation())['startupFilmProgress'], opening);
+      expect(session.film.cleanup?.owner, same(originalFilm));
+      expect(bundle.bytes.isCompleted, isFalse);
+    }
     await tester.pumpWidget(TickerMode(enabled: false, child: host));
     expect((await observation())['startupFilmState'], 'ticker-muted');
     await tester.pumpWidget(TickerMode(enabled: true, child: host));
@@ -141,7 +151,12 @@ void main() {
     expect(session.film.isDone, isTrue);
     expect(await available(), isFalse);
     expect((await observation())['startupFilmState'], 'ended');
+    expect((await observation())['startupFilmProgress'], <String, Object?>{
+      'frames': 8, 'shown': 7, 'decoding': 7, 'stage': 'complete',
+      'skip': true, 'pending': false, 'ticking': false, 'done': true,
+    });
     session.dispose();
     expect((await observation()).containsKey('startupFilmState'), isFalse);
+    expect((await observation()).containsKey('startupFilmProgress'), isFalse);
   });
 }

@@ -7891,3 +7891,61 @@ route/controller ownership assertions and the matching both-theme query.
 It does not replace the renderer or relax the expectations. All product
 runtime bytes, case counts and failure gates remain. The failed original is
 preserved and not retried; hosted correction and fresh-image proof are pending.
+
+### Source133 Windows qualification and original startup probe
+
+At `56681c8df91796a3dbe71149f508103fe430e328`, producer `40679712623`
+and independent reader `40684642736` qualify 4569 non-chain passes and two
+existing skips. Root analysis has zero errors/warnings and 1295 infos;
+vendored analysis is clean. Debug/Release builds and four prepared Debug
+entry captures retain their original source, archive, manifest and image
+digests, original route/controller restoration and normal process exit.
+This is separate from the unfiltered chain suite and Release startup Skip.
+
+All four current images have been opened against their exact references.
+The Import seed field now uses sans and its counter sits at the bottom.
+Counter glyph regions start at y508 versus reference y507; font hinting is
+allowed. Selector regions remain 179/180 pixels versus 176. The tabular
+number rule remains; no geometry is changed merely to conceal a possible
+font-feature difference. Welcome globe frames differ, and its reference
+drop hint describes a capability mounted only on the current Import route.
+The reference's continuation decoration is not inserted into the real
+eight-word input buffer. Zero of 94 matches are accepted; ninety outputs
+and nineteen literal preparation prerequisites remain missing.
+
+Separate native producer `40678579258`, independently inspected by
+`40681812731`, passes 740 Python cases with three original platform skips,
+all 290 Dart cases and selected analysis with zero findings. Its original
+Release startup then reaches `key-confirmed`, remains before initialization
+with `skip-middle-frame-pending` at the original deadline and requires
+forced required-actor cleanup. It reaches no page capture or copied unlock.
+All five lab nodes exit normally. The exact frame index, progress history
+and cause remain unknown. The source130 original UI/send/quiescence proof
+and separate copied unlock refusal remain source-bound historical results.
+
+The candidate adds an optional `windows_startup_probe` lane to the existing
+manual workflow. It builds the same ordinary Release harness with unchanged
+locked dependencies, a fresh empty profile and no node cluster. Original
+startup progress is read only while the registry, Element, State and
+controller still identify the same film. No frame is requested, no Future
+is replaced and no animation clock is stopped, sought or restarted.
+
+The lane sends at most one original recipe-owned Skip key, retains bounded
+finite progress samples and preserves a twenty-second startup deadline.
+Its failure cannot be healed by a later exit. Natural handoff is reported
+separately from confirmed Skip. The original process, source and Release
+payload are retained through restoration, exit and output checks. Only a
+finite manifest is exported; no profile, command reply, raw error, wallet
+material or page image is uploaded. New controller and hosted execution
+qualification remain pending. F06 and every remaining acceptance gate stay
+open.
+
+All twelve new protocol/projection cases now pass within 234 selected
+pure-memory Python controls, with zero failures, errors, skips, blocked
+native/network/scratch attempts or shared-store access. The controls also
+retain an actual RPC failure that coincides with the startup deadline and
+deny success when source/run/payload pins are absent. They do not execute
+the genuine Dart State assertions or a native startup; those hosted gates
+remain pending. The local image-review metadata refusal is retained as a
+failure. Its owned task is now closed with that failure outcome, the same
+verified archive retained and no repeated transport or runtime.

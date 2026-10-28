@@ -583,3 +583,44 @@ route/controller ownership assertions and the matching both-theme query.
 It does not replace the renderer or relax the expectations. All product
 runtime bytes, case counts and failure gates remain. The failed original is
 preserved and not retried; hosted correction and fresh-image proof are pending.
+
+### Source133 results and the optional startup observation lane
+
+Source `56681c8df917` passes all 740 Python cases with three existing skips,
+290 Dart cases and clean selected analysis in producer `40678579258`.
+Independent reader `40681812731` preserves its failed original Release
+startup: the key is confirmed, initialization has not started and an
+original middle-frame decode is pending at the deadline. Required actors
+need forced cleanup. Copied unlock and all six wallet-driven seed effects
+are not reached. Five original lab nodes exit normally; no current reopen,
+checkpoint or seed authority is inferred. The exact index/progress/cause
+was not recorded, and no original failed or UNKNOWN result is rewritten.
+
+Separate producer `40679712623` and reader `40684642736` qualify 4569
+non-chain passes/two existing skips, root analysis zero errors/warnings
+with 1295 infos, clean vendored analysis, Debug/Release builds and four
+prepared Debug entry captures/restoration/normal exit. Actual image review
+confirms the corrected sans field and bottom counter placement, while
+selector extents, original Welcome frame/drop behavior and incomplete-draft
+decoration remain open. There are zero accepted matches, ninety missing
+catalog outputs and nineteen literal preparation prerequisites.
+
+The candidate's default-off `windows_startup_probe` workflow input selects
+a bounded ordinary Release observation without a node cluster or wallet
+import. Existing recipe ownership and real key/effect confirmation still
+admit its single optional Skip. Finite samples read the same original
+registered film's count, shown/decoding indices, wait stage and booleans;
+they never request another frame or replace its original Future. A missed
+twenty-second deadline remains failed through later original-process cleanup.
+Natural startup does not become Skip qualification. Only a finite manifest
+is retained, and no wallet, chain, seed or visual acceptance is granted.
+New controller, genuine-State and hosted execution proof remain pending.
+
+The twelve new protocol/projection cases now pass within 234 selected
+pure-memory controls with zero failures/errors/skips or native, network,
+scratch and shared-store access. A deadline-coincident RPC failure remains
+recorded, missing source/run/payload pins deny success and natural handoff
+never grants Skip qualification. Current genuine-State and hosted execution
+remain pending. The local review task is closed with its original metadata
+failure preserved; the verified image archive is retained without a second
+transport or runtime.
