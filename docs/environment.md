@@ -7293,3 +7293,39 @@ entry roots reach 914 files, none under the harness; the harness entry reaches
 the read-only sentinel/aged-fuse fixture route. This verifies source separation,
 not native fixture appearance or any visual match. All 94 matches and the
 remaining runtime acceptance requirements stay open.
+
+### Native deployment paths agree with the closed-copy binder
+
+At `d45f5d85f070ed2d5c780b32218eb120004d6c63`, native
+[40618907222](https://github.com/edgepillar/syrius/actions/runs/40618907222),
+attempt one, job `122587846930`, passes all 698 Python cases with three
+original platform skips, 279 Dart cases and clean selected analysis. Original
+send, twelve tour checks, quiescence and normal app/entry/five-node closure
+pass. Its report includes incomplete node path binding and retains overall
+`CHECKPOINT_REFUSED`; copied Hive binding and reopen were not entered. The
+checkpoint summary remains incomplete, so source control-flow progress does
+not supply a missing positive snapshot receipt.
+
+Independent reader
+[40620632029](https://github.com/edgepillar/syrius/actions/runs/40620632029),
+attempt one, job `122593521813`, verifies both finite original archives and
+source/run/cross-manifest bindings. It confirms positive original wallet phases
+while preserving the producer's incomplete checkpoint/path-binding report. It
+starts no wallet or node and downloads no local artifact.
+
+A direct memory control connects the actual configuration factory to the
+actual closed-copy binder using lexical Windows paths. The factory appends
+forward slashes to a native root for two deployment fields; the strict binder
+requires native joined strings, so this control refuses. The hosted raw
+exception is not exported. The candidate uses native joins for `GenesisFile`
+and `WalletPath`, retaining the container's explicit POSIX paths. The binder,
+source/copy identities, encrypted key bytes, port policy and non-path values
+remain unchanged. Historical original configurations are not rewritten.
+
+Two new cases use the actual factory and validator: all five native roles
+round-trip through binding, and a Windows checkout still produces POSIX Docker
+paths. All prior assertions remain, and all 169 selected memory cases pass
+without scratch, SDK, node, wallet or network execution. Current hosted
+qualification requires 700 Python cases before SDK allocation, unchanged
+279 Dart cases and actual checkpoint/path/Hive/reopen/six-effect integration
+with one Flutter setup. F06 and all 94 visual matches remain open.

@@ -3,13 +3,21 @@
 import copy
 import json
 import os
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 import struct
 import tempfile
 import unittest
 from unittest import mock
 
 from tool.ci import hosted_chain321 as lab
+from tool.ci import restored_lab_paths
+
+
+class _WindowsLexicalPath(PureWindowsPath):
+    """Absolute Windows names without consulting the host filesystem."""
+
+    def absolute(self):
+        return self
 
 
 def node_config():
@@ -432,6 +440,28 @@ class ConfigurationTests(unittest.TestCase):
         self.assertIn("172.37.0.12/tcp/35995", cfg["Net"]["BootstrapPeers"][0])
         self.assertEqual((cfg["RPC"]["HTTPPort"], cfg["RPC"]["WSPort"]), (35997, 35998))
         self.assertEqual(cfg["GenesisFile"], "/data/genesis.json")
+
+    def test_windows_native_configs_round_trip_through_the_actual_copy_binder(self):
+        fields = ('DataPath', 'GenesisFile', 'WalletPath')
+        with mock.patch.object(restored_lab_paths, 'Path', _WindowsLexicalPath):
+            for role in lab.ROLES:
+                with self.subTest(role=role):
+                    original = _WindowsLexicalPath('C:/synthetic/original') / role
+                    restored = _WindowsLexicalPath('C:/synthetic/restored') / role
+                    deployed = lab.configuration(node_config(), role, original, 'native')
+                    raw = json.dumps(deployed).encode('ascii')
+                    result = json.loads(restored_lab_paths.config_bytes(raw, original, restored))
+                    self.assertEqual(tuple(result[field] for field in fields),
+                        (str(restored), str(restored / 'genesis.json'), str(restored / 'wallet')))
+                    self.assertEqual({k: v for k, v in result.items() if k not in fields},
+                        {k: v for k, v in deployed.items() if k not in fields})
+                    self.assertEqual(json.loads(raw), deployed)
+
+    def test_docker_paths_stay_posix_with_a_windows_checkout_path(self):
+        cfg = lab.configuration(node_config(), 'rpc',
+            _WindowsLexicalPath('C:/synthetic/checkout'), 'docker')
+        self.assertEqual((cfg['DataPath'], cfg['GenesisFile'], cfg['WalletPath']),
+            ('/data', '/data/genesis.json', '/data/wallet'))
 
     def test_input_configuration_is_not_mutated(self):
         source = node_config()

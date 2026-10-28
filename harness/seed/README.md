@@ -241,3 +241,14 @@ Existing closure, profile, alias, quota and floor checks stay unchanged. Two
 actual-sampler regressions and all 159 selected memory cases pass. Current
 698-case Python and actual checkpoint/reopen/six-effect qualification remain
 pending. Earlier failures and unknown originals retain their original status.
+
+At d45f5d85f070, native 40618907222 and independent reader 40620632029 retain
+all 279 Dart/698 Python gates, clean selected analysis, original send/quiescence
+and normal required actors. The report reaches incomplete node path binding.
+A direct Windows lexical control reproduces mixed deployment paths rejected
+by the strict binder. New configurations now join native GenesisFile and
+WalletPath names consistently; Docker keeps its explicit POSIX paths. No
+historical config, binder guard, encrypted field or original outcome changes.
+All 169 memory controls pass, including five-role factory/binder round trips.
+Current 700-case Python and native copy/Hive/reopen/six-effect qualification
+remain pending.

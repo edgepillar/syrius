@@ -704,8 +704,11 @@ def configuration(value, role, data, backend):
     net["ListenHost"] = "0.0.0.0" if backend == "docker" else "127.0.0.1"
     net["ListenPort"] = 35995 if backend == "docker" else NATIVE_PORTS[role]
     base = "/data" if backend == "docker" else str(data)
-    result.update(DataPath=base, GenesisFile=base + "/genesis.json",
-                  WalletPath=base + "/wallet")
+    result.update(DataPath=base,
+        GenesisFile=(base + "/genesis.json" if backend == "docker"
+                     else str(data / "genesis.json")),
+        WalletPath=(base + "/wallet" if backend == "docker"
+                    else str(data / "wallet")))
     rpc_host = ("0.0.0.0" if backend == "docker" else "127.0.0.1") if role == "rpc" else ""
     rpc.update(EnableHTTP=role == "rpc", EnableWS=role == "rpc",
         HTTPHost=rpc_host, WSHost=rpc_host,
