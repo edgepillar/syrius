@@ -100,6 +100,9 @@ def main():
                   command=None, entry_refusal=None, startup_checks=[], code=None)
     try:
         parent, source = debug.entry.require_ci(os.environ, None, platform=os.name)
+        asset_fidelity = parent.get('SYRIUS_STARTUP_ASSET_FIDELITY') == 'true'
+        debug.need(not asset_fidelity or
+            parent.get('SYRIUS_WINDOWS_STARTUP_PROBE') == 'true', 'ENVIRONMENT_REFUSED')
         repo = Path(parent['GITHUB_WORKSPACE'])
         debug.need(repo.resolve() == Path.cwd().resolve(), 'ENVIRONMENT_REFUSED')
         debug.bounded.verify_source(repo, source, parent)
@@ -155,7 +158,8 @@ def main():
             'test/harness/lab_sender_menu_test.dart',
             'test/harness/transfer_sender_header_test.dart',
             'test/harness/selection_context_revision_test.dart',
-            'test/harness/wallet_recipe_test.dart'], cwd=repo,
+            'test/harness/wallet_recipe_test.dart',
+            *(['test/launch_film/launch_asset_test.dart'] if asset_fidelity else [])], cwd=repo,
             env=fresh_environment(repo, parent), timeout=240, cap=4 * 1024**2)
         report['command'] = dict(**outcome.public(),
             output_sha256=hashlib.sha256(outcome.output).hexdigest())
@@ -165,8 +169,11 @@ def main():
         counts = test_counts(outcome.output)
         report['counts'] = counts
         debug.need(outcome.success and counts['terminal_success'] is True
-            and counts['passed'] == 290 and counts['skipped'] == counts['failed'] == counts['error_events'] == 0,
+            and counts['passed'] == (292 if asset_fidelity else 290)
+            and counts['skipped'] == counts['failed'] == counts['error_events'] == 0,
             'TESTS_FAILED')
+        if asset_fidelity:
+            report['launch_asset_fidelity'] = True
         debug.bounded.verify_source(repo, source, parent)
         debug.need(debug.entry.source_tree(repo, parent) == tree, 'SOURCE_REFUSED')
         report['success'] = True

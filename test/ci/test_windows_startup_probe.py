@@ -138,12 +138,37 @@ class ProjectionTests(unittest.TestCase):
 
 class ReportTests(unittest.TestCase):
     def test_complete_original_observation_is_not_chain_or_wallet_acceptance(self):
-        public = positive_report().public()
+        report = positive_report()
+        public = report.public()
         self.assertTrue(public['success'])
         self.assertTrue(public['original_skip_qualified'])
         self.assertFalse(public['wallet_qualified'])
         self.assertFalse(public['chain_qualified'])
         self.assertEqual(public['visual_matches'], 0)
+        report.samples = [sample(at_ms=at * 250) for at in range(96)]
+        full = report.public()
+        self.assertGreater(len(json.dumps(full)), 4096)
+        summary = report.summary()
+        self.assertLessEqual(len(json.dumps(summary).encode('ascii')), 3800)
+        self.assertEqual(summary['scope'], 'original_release_startup_summary')
+        self.assertEqual(summary['sample_count'], 96)
+        self.assertEqual(summary['first_sample'], full['samples'][0])
+        self.assertEqual(summary['last_sample'], full['samples'][-1])
+        self.assertEqual(len(summary['report_sha256']), 64)
+        self.assertNotIn('samples', summary)
+        self.assertEqual(report.public(), full)
+        report.samples[48] = sample(at_ms=48 * 250,
+                                    progress={**progress(), 'decoding': 13})
+        changed = report.summary()
+        self.assertEqual(changed['first_sample'], summary['first_sample'])
+        self.assertEqual(changed['last_sample'], summary['last_sample'])
+        self.assertNotEqual(changed['report_sha256'], summary['report_sha256'])
+        for code in probe.CODES:
+            report.fail(code)
+        summary = report.summary()
+        self.assertTrue(summary['errors_truncated'])
+        self.assertEqual(summary['error_count'], len(probe.CODES))
+        self.assertLessEqual(len(json.dumps(summary).encode('ascii')), 3800)
 
     def test_original_deadline_failure_cannot_be_healed_by_late_exit(self):
         report = positive_report()

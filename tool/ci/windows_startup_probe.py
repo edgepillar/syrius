@@ -7,6 +7,7 @@ the decoder for another frame. A missed deadline stays failed during cleanup.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -152,6 +153,23 @@ class Report(bounded.Report):
             wallet_qualified=False, chain_qualified=False, visual_matches=0,
             financial_actions_requested=0, node_cluster_started=False,
         )
+
+    def summary(self):
+        public = self.public()
+        encoded = json.dumps(public, sort_keys=True, separators=(',', ':')).encode('ascii')
+        samples = public['samples']
+        summary = {key: value for key, value in public.items() if key != 'samples'}
+        summary.update(
+            scope='original_release_startup_summary',
+            report_sha256=hashlib.sha256(encoded).hexdigest(),
+            sample_count=len(samples),
+            first_sample=samples[0] if samples else None,
+            last_sample=samples[-1] if samples else None,
+            error_count=len(public['error_codes']),
+            errors_truncated=len(public['error_codes']) > 16,
+            error_codes=public['error_codes'][:16],
+        )
+        return summary
 
 
 class StartupProbe(bounded.PresentationSmoke):
@@ -394,8 +412,9 @@ def main(arguments=None):
     public = report.public()
     text = json.dumps(public, sort_keys=True, separators=(',', ':'))
     print(text)
-    if len(text.encode('ascii')) <= 30000:
-        print('::notice title=Original Release startup observation::' + text)
+    summary = json.dumps(report.summary(), sort_keys=True, separators=(',', ':'))
+    if len(summary.encode('ascii')) <= 3800:
+        print('::notice title=Original Release startup summary::' + summary)
     return 0 if public['success'] else 1
 
 

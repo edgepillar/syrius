@@ -1,8 +1,8 @@
 // The two launch files the wallet ships, opened by the engine's own codec.
 //
-// tool/lottie_reencode.py writes their container by hand: every frame after
-// the first is only the box that changed, laid over the canvas without
-// blending or disposal, and the still ending is six frames of one pixel.
+// tool/lottie_reencode.py writes their containers by hand. The full film
+// uses independent whole frames; the well stores changed rectangles without
+// blending or disposal, and its still ending is six frames of one pixel.
 // Pillow reads that back correctly, but Pillow is not what plays it. A
 // decoder that cleared the canvas between frames, or blended, or dropped a
 // one pixel frame, would show black, stale boxes or a film that ends early,

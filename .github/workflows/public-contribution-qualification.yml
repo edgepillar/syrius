@@ -146,6 +146,7 @@ jobs:
 
       - name: Test original startup ownership and finite diagnostics
         env:
+          SYRIUS_STARTUP_ASSET_FIDELITY: "true"
           PUB_CACHE: ${{ steps.startup_flutter.outputs['PUB-CACHE-PATH'] }}
         run: python -B -m tool.ci.run_harness_tour_tests
 

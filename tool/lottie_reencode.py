@@ -67,9 +67,11 @@ The container is written here and not by Pillow's `save_all`. That goes
 through libwebp's animation encoder, which folds a frame that matches the one
 before into that one's duration; the film ends on six identical frames and
 came out as 50. The lock screen replays frames 14 to 56 by number, so all 56
-have to be there. Each frame after the first stores only the box that
-changed since the one before, coded on its own from the master's pixels, so
-nothing drifts from frame to frame and the still ending costs a few bytes.
+have to be there. The full-size film stores independent full-canvas frames
+from the same master pictures. This removes prior-canvas dependencies as a
+controlled candidate for the observed slow native decode; actual engine
+speed still needs qualification. The smaller well keeps changed rectangles,
+coded from the master's pixels, and its still ending costs a few bytes.
 """
 
 from __future__ import annotations
@@ -303,7 +305,9 @@ def _psnr(a: Image.Image, b: Image.Image) -> float:
     return 99.0 if mse == 0 else 10 * math.log10(255 * 255 / mse)
 
 
-def _launch(master: dict, width: int, options: dict) -> tuple[bytes, str]:
+def _launch(
+    master: dict, width: int, options: dict, *, independent_frames: bool = False,
+) -> tuple[bytes, str]:
     """The animated WebP at `width`, and a line on what is in it."""
     played = _play_order(master)
     height = round(master["h"] * width / master["w"])
@@ -326,7 +330,7 @@ def _launch(master: dict, width: int, options: dict) -> tuple[bytes, str]:
     previous = None
     for frame, (_, ms) in zip(frames, played):
         box = (0, 0, width, height)
-        if previous is not None:
+        if previous is not None and not independent_frames:
             # A frame equal to the last still has to exist, and the format
             # has no empty frame: one pixel is the smallest.
             box = ImageChops.difference(previous, frame).getbbox() or (0, 0, 1, 1)
@@ -397,7 +401,9 @@ def main() -> int:
             (LAUNCH_OUT, master["w"], LAUNCH_WEBP),
             (LAUNCH_WELL_OUT, LAUNCH_WELL_WIDTH, LAUNCH_WELL_WEBP),
         ):
-            data, note = _launch(master, width, options)
+            data, note = _launch(
+                master, width, options, independent_frames=path == LAUNCH_OUT,
+            )
             _write(path, data, args.check, LAUNCH_MASTER.stat().st_size, note)
     if args.only == "launch":
         return 0

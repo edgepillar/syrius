@@ -624,3 +624,28 @@ never grants Skip qualification. Current genuine-State and hosted execution
 remain pending. The local review task is closed with its original metadata
 failure preserved; the verified image archive is retained without a second
 transport or runtime.
+
+### Source134 original progress and the full-frame candidate
+
+Original run `40693805385` at `415b992ba5da` passes 752 Python cases/three
+existing skips, all 290 Dart cases, clean selected analysis and Release
+build. Seventy-one original samples advance from decoder index 2 to 42 of
+56 during the unchanged twenty-second boundary. One original recipe key
+is confirmed. Startup remains failed; the original process exits zero with
+complete output, no force and verified source/payload/window restoration.
+This supplies no copied reopen, seed effect or retrospective native cause.
+
+The full text report survives the 4096-byte annotation truncation. The
+candidate summary is bounded below 3800 bytes and binds every sample by a
+report digest; stdout and manifest retain the full history. Memory tests
+verify that changing a middle sample changes that binding.
+
+The independent-frame launch candidate retains the same master pictures,
+56 frames, 2560 by 1440 dimensions, durations and one loop. It changes only
+full-size encoding; the master, smaller well, original decoder/Futures,
+key flow, renderer and twenty-second deadline remain. Its 1501054-byte
+in-memory readback scores worst PSNR 40.39 dB, mean 49.81 dB. Performance
+improvement is unqualified. The startup-only gate opts into two existing
+engine asset-fidelity cases for 292 total, preserving every original
+expectation; ordinary wallet-tour admission remains 290. Native proof and
+all F06 effects remain pending.

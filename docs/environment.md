@@ -7949,3 +7949,38 @@ the genuine Dart State assertions or a native startup; those hosted gates
 remain pending. The local image-review metadata refusal is retained as a
 failure. Its owned task is now closed with that failure outcome, the same
 verified archive retained and no repeated transport or runtime.
+
+### Source134 startup result and independent-frame candidate
+
+At `415b992ba5da`, run `40693805385` passes 752 Python cases with three
+existing skips, all 290 Dart cases and selected analysis with zero findings,
+then builds Release. The original report contains 71 passive samples: the
+decoder index advances from 2 to 42 of 56 over the twenty-second startup
+boundary. The one recipe-owned key is confirmed. Startup stays failed,
+while the original process exits normally with code zero, complete output,
+window restoration and unchanged source/payload pins. Process exit alone
+does not establish the original decoder's successful completion. This
+observation does not retrospectively assign earlier native failure causes.
+
+The annotation was truncated at exactly 4096 bytes. The complete original
+65789-byte text log retains the full report. The candidate emits a bounded
+summary with first/last samples, sample/error totals and a digest of the
+entire report; stdout and the manifest keep every sample. A changed middle
+sample must change that digest, and the summary remains below 3800 bytes.
+
+The candidate re-encodes only the final tracked full-size launch source
+asset, from the unchanged master, as independent full-canvas frames.
+All 56 frames, 2560 by 1440 dimensions, 33/34 ms durations, 1867 ms total
+and one loop remain. The file is 1501054 bytes; in-memory master readback
+gives worst PSNR 40.39 dB and mean 49.81 dB. The smaller well is unchanged.
+No decoder, original Future, frame request, input guard, renderer or
+deadline changes. Removing prior-canvas dependencies is a hypothesis to
+test, not an assigned engine cause or measured speed improvement.
+
+Only the startup lane opts into the two existing engine asset-fidelity
+tests, making its strict Dart gate 292; the legacy wallet-tour gate stays
+290. Frame sizes, durations, loop count, original pixel-grid tolerances,
+positive wrong-frame controls and all prior assertions remain. All 234
+selected pure-memory Python cases pass without native/network/scratch or
+shared-store access. Current engine-fidelity, actual Release performance,
+copied reopen/six effects and complete visual acceptance remain pending.
