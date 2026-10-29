@@ -1239,3 +1239,27 @@ and clocks remain unchanged. All 310 memory controls pass; current hosted
 775 Python/345 ordinary Dart/347 startup qualification remains pending. Every
 prior failure, UNKNOWN and source158 full/image/native result stays separate.
 No local SDK/native execution, artifact transfer or storage task is started.
+
+
+## Finite original font metric observation
+
+Source162 focused 40826020613 retains 344 of 345 Dart passes, one final font
+contrast assertion failure, 775 Python cases with three existing skips, zero
+selected analysis findings and complete asset commands. All eight default/taller
+font model checks complete; no baseline separation exceeds half a pixel. Actual
+numeric metric values remain unretained, and the full suite remains failed.
+
+The original fixed fixture now reports only numeric font sizes, heights, widths,
+ascents, descents, baselines and leading-mode enums. Its controller projects one
+closed JSON print event, bound to the original command digest and source/run.
+Unknown fields/labels, booleans, nonfinite or unbounded numbers, duplicate or
+reordered reports and incomplete output refuse observation. Partial samples stay
+explicitly partial. No displayed text, font file path, exception, wallet value or
+private input enters this observation. The original assertion, command count and
+deadline stay unchanged; numeric observation cannot heal a failed test.
+
+Five Python projection/privacy cases and all 315 memory controls pass. Hosted
+780 Python/345 ordinary Dart/347 startup validation remains pending. All production
+code, input predicates, owners, signing and clocks remain unchanged. Every prior
+failure, UNKNOWN and source158 full/image/native result remains source-bound.
+No local SDK/native wallet/node execution, artifact transfer or storage task runs.

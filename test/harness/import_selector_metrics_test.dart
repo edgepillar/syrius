@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:ui' as ui;
 
 import 'package:flutter/services.dart';
@@ -88,6 +89,14 @@ void main() {
   });
 
   test('bundled font preserves width and height with CSS half-leading', () {
+    final List<Map<String, num>> samples = <Map<String, num>>[];
+    addTearDown(() {
+      // Only fixed fixture metrics reach the controller's numeric allowlist.
+      // ignore: avoid_print
+      print('CI_BUNDLED_FONT_METRICS:${jsonEncode(<String, Object>{
+        'schema': 1, 'font': 'bundled_interface', 'samples': samples,
+      })}');
+    });
     bool distinctDistributionObserved = false;
     for (final double size in <double>[12, 14, 28, 56]) {
       // The product's height is close to this font's natural height. A taller
@@ -106,9 +115,10 @@ void main() {
           height: ui.kTextHeightNone,
         ));
         final TextPainter even = painter(style);
-        final TextPainter proportional = painter(style.copyWith(
+        final TextStyle proportionalStyle = style.copyWith(
           leadingDistribution: TextLeadingDistribution.proportional,
-        ));
+        );
+        final TextPainter proportional = painter(proportionalStyle);
         try {
           expect(even.width, closeTo(proportional.width, 0.001));
           expect(even.height, closeTo(proportional.height, 0.001));
@@ -117,6 +127,17 @@ void main() {
           final double halfLeading =
               (targetHeight - font.ascent - font.descent) / 2;
           final double baseline = even.computeLineMetrics().single.baseline;
+          final ui.LineMetrics evenLine = even.computeLineMetrics().single;
+          samples.add(<String, num>{
+            'size': size, 'height': height, 'width': even.width,
+            'line_height': even.height, 'natural_ascent': font.ascent,
+            'natural_descent': font.descent, 'even_baseline': baseline,
+            'proportional_baseline':
+                proportional.computeLineMetrics().single.baseline,
+            'even_ascent': evenLine.ascent, 'even_descent': evenLine.descent,
+            'even_mode': style.leadingDistribution!.index,
+            'proportional_mode': proportionalStyle.leadingDistribution!.index,
+          });
           // Engine rounding may give small sizes the same baseline. Compare
           // Use measured font metrics without a baseline direction rule.
           expect(baseline, closeTo(font.ascent + halfLeading, 1));

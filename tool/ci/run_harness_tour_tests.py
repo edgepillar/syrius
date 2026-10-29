@@ -9,11 +9,12 @@ import subprocess
 import time
 
 try:
-    from . import dart_test_failure
+    from . import dart_test_failure, font_metrics_observation
     from . import windows_debug_loop as debug
     from .windows_baseline import fresh_environment, run_bounded, test_counts
 except ImportError:
     import dart_test_failure
+    import font_metrics_observation
     import windows_debug_loop as debug
     from windows_baseline import fresh_environment, run_bounded, test_counts
 
@@ -95,6 +96,7 @@ def startup_check(repo, parent, dart, kind):
 
 
 def main():
+    font_observation = None
     report = dict(schema=1, scope='wallet_tour_controller_tests', success=False,
                   wallet_qualified=False, native_wallet_executions=0, counts=None,
                   command=None, entry_refusal=None, startup_checks=[], code=None)
@@ -173,6 +175,13 @@ def main():
             output_sha256=hashlib.sha256(outcome.output).hexdigest())
         if not outcome.success:
             report['test_failures'] = dart_test_failure.project(outcome.output)
+        font_observation = font_metrics_observation.project(
+            outcome.output, complete=outcome.transport_complete)
+        if font_observation is not None:
+            font_observation.update(source_sha=source, source_tree=tree,
+                run_id=parent['GITHUB_RUN_ID'],
+                run_attempt=parent['GITHUB_RUN_ATTEMPT'],
+                test_output_sha256=hashlib.sha256(outcome.output).hexdigest())
         debug.need(outcome.transport_complete, 'OUTPUT_REFUSED')
         counts = test_counts(outcome.output)
         report['counts'] = counts
@@ -194,6 +203,10 @@ def main():
     print(public)
     if len(public.encode()) <= 3800:
         print('::notice title=Wallet tour controller tests::' + public)
+    if font_observation is not None:
+        observation = json.dumps(font_observation, sort_keys=True, separators=(',', ':'))
+        if len(observation.encode('ascii')) <= 3800:
+            print('::notice title=Bundled interface font metrics::' + observation)
     return 0 if report['success'] else 1
 
 
