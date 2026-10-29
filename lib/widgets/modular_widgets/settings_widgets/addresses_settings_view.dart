@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
@@ -106,6 +107,9 @@ class _AddressesSettingsViewState extends State<AddressesSettingsView>
   bool _sendHandedOff = false;
   FocusNode? _parentFocus;
   ModalRoute<dynamic>? _route;
+  List<FocusNode> _observedFocus = <FocusNode>[];
+  bool _ancestorFocusAllowed = true;
+  bool _focusUpdateQueued = false;
 
   AddressesInputGate _currentInputGate = AddressesInputGate.unknown;
   AddressesInputGate _visibilityInputGate = AddressesInputGate.unknown;
@@ -175,6 +179,49 @@ class _AddressesSettingsViewState extends State<AddressesSettingsView>
     super.didChangeDependencies();
     _parentFocus = Focus.maybeOf(context, scopeOk: true);
     _route = ModalRoute.of(context);
+    _observeFocusAncestors();
+    _syncVisibility();
+  }
+
+  void _observeFocusAncestors() {
+    final FocusNode? parent = _parentFocus;
+    final List<FocusNode> nodes = parent == null
+        ? <FocusNode>[] : <FocusNode>[parent, ...parent.ancestors];
+    _ancestorFocusAllowed = _focusAllowsInput;
+    if (listEquals(nodes, _observedFocus)) return;
+    for (final FocusNode node in _observedFocus) {
+      node.removeListener(_ancestorFocusChanged);
+    }
+    _observedFocus = nodes;
+    for (final FocusNode node in _observedFocus) {
+      node.addListener(_ancestorFocusChanged);
+    }
+  }
+
+  void _ancestorFocusChanged() {
+    if (!mounted) return;
+    final bool allowed = _focusAllowsInput;
+    if (allowed == _ancestorFocusAllowed) return;
+    _ancestorFocusAllowed = allowed;
+    if (!allowed) {
+      // Revoke old callbacks even when focus returns before the next frame.
+      _visibilityInputGate = AddressesInputGate.focus;
+      _setVisible(false);
+    }
+    if (_focusUpdateQueued) return;
+    _focusUpdateQueued = true;
+    scheduleMicrotask(() {
+      _focusUpdateQueued = false;
+      if (!mounted) return;
+      // An inner Focus only inherits its nearest node. Outer page arrivals
+      // must refresh visibility too, through all original input predicates.
+      _observeFocusAncestors();
+      _syncVisibility();
+      setState(() {});
+    });
+  }
+
+  void _syncVisibility() {
     _visibilityInputGate = AddressesInputGate.ready;
     _setVisible(
       _visibilityPredicate(AddressesInputGate.ticker,
@@ -252,6 +299,10 @@ class _AddressesSettingsViewState extends State<AddressesSettingsView>
   void dispose() {
     _epoch++;
     WidgetsBinding.instance.removeObserver(this);
+    for (final FocusNode node in _observedFocus) {
+      node.removeListener(_ancestorFocusChanged);
+    }
+    _observedFocus = <FocusNode>[];
     _label.dispose();
     _name.dispose();
     _contactAddress.dispose();

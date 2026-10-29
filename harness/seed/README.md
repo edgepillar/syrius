@@ -1305,3 +1305,42 @@ qualification remains pending. Production code, commands, counts, deadlines and
 all input, owner and clock behavior remain unchanged. Earlier failures, UNKNOWNs
 and source158 full/image/native results remain source-bound. No local SDK/native
 wallet/node execution, artifact transfer or storage task is started.
+
+
+## Original outer-focus recovery and bounded root test sources
+
+Source165 `3fa7a584c208` focused `40856002309` passes 780 Python cases with
+three existing skips, 345 ordinary Dart cases, zero selected findings and both
+original asset commands. Native89 `40857271008` and independent `40859691713`
+qualify original UI send, twelve-page tour, quiescence and required normal
+app/entry/five-node exits. Copied seed admission retains the original disabled
+widget with `wallet-recipe-address-focus-blocked`; its exact inner condition
+is now observed. Four copied components, six effects and F06 remain incomplete.
+
+The Addresses view observes its nearest and outer Focus nodes. A nested page
+arrival can change an outer node without notifying the nearest inherited Focus.
+Observed loss closes visibility and revokes old callbacks; recovery reruns all
+original ticker, window, section, focus and route predicates before refreshing
+the same presenter. No focus value, owner, callback authority or clock is forced.
+Two genuine widget cases cover nested RiseSwitcher arrival, an unchanged inner
+Focus, the same State/backend, current input and permanently revoked callbacks.
+
+Full Windows `40856919312`, independently inspected by `40860151904`, retains
+4602 non-chain passes, two assertion failures and two existing skips. The
+original test command exits one normally with complete output; generation,
+builds and library checks are unreached. Root analysis has zero errors/warnings
+and 1295 infos. Exact assertion locations and causes remain unobserved. A fixed
+catalog of versioned test basenames and bounded original suite/test IDs retains
+public source labels without raw errors, test names or host paths. Five new
+Python cases verify coverage, known/unknown locations, same-suite attribution,
+bounds, privacy and unchanged failure counts. No failed suite is relabelled.
+
+Four source165 entry PNGs are independently qualified. Welcome bytes equal
+the earlier source158 images; Import bytes differ after spacing corrections.
+Their 566166-byte archive fits the standing small-entry family authorization.
+A foreign metadata lease refused admission before a task or transport began;
+the active owner is preserved. Visual review remains pending. All 320 memory
+controls pass without native/network/scratch/store access. Hosted 785 Python/
+347 ordinary Dart qualification is pending. The main ledger remains 71/80;
+nineteen preparations, ninety catalog outputs and all 94 visual matches remain
+open. Earlier failures, UNKNOWNs and source158 full builds remain source-bound.

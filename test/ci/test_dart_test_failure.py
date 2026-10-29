@@ -232,3 +232,75 @@ class DartFailureTests(unittest.TestCase):
         rows[0].update(testID=99, message='CI_FRAMEWORK_FAILURE_KIND:STATE_ERROR')
         self.assertNotIn('framework_failure_kind',
             failure.project(encode(rows))['items'][0])
+
+
+class RootSuitePrivacyTests(unittest.TestCase):
+    def test_root_catalog_covers_public_test_files_without_unknown_names(self):
+        from pathlib import Path
+        root = Path(__file__).absolute().parents[2] / 'test'
+        expected = {p.name for p in root.rglob('*_test.dart') if p.is_file()}
+        self.assertEqual(set(failure.ROOT_TEST_FILES), expected)
+        self.assertEqual(len(failure.ROOT_TEST_FILES), len(expected))
+        self.assertEqual(list(failure.ROOT_TEST_FILES), sorted(expected))
+        self.assertTrue(all('/' not in n and '\\' not in n
+                            for n in failure.ROOT_TEST_FILES))
+
+    def test_root_failure_keeps_only_a_known_location_or_suite_label(self):
+        for path in ('/fixture/private/test/shell/strip_test.dart',
+                     r'C:\fixture\private\test\shell\strip_test.dart'):
+            rows = [dict(type='suite', suite=dict(id=2, path=path)),
+                dict(type='testStart', test=dict(id=7, suiteID=2,
+                    name='private test name')),
+                dict(type='error', testID=7, isFailure=False,
+                    error='Assertion failed: private input', stackTrace='')]
+            value = failure.locations(encode(rows))
+            self.assertEqual(value, dict(status='OBSERVED', total=1, items=[dict(
+                file=None, line=None, kind='UNHANDLED', category='ASSERTION',
+                suite_file='strip_test.dart')]))
+            self.assertNotIn('private', json.dumps(value))
+            self.assertNotIn('fixture', json.dumps(value))
+            rows[-1]['stackTrace'] = path + ':123:9'
+            located = failure.locations(encode(rows))['items'][0]
+            self.assertEqual((located['file'], located['line']),
+                             ('strip_test.dart', 123))
+
+    def test_unknown_suite_paths_and_foreign_test_ids_stay_unattributed(self):
+        for path, identity in (
+                ('/fixture/private/private_strip_test.dart', 7),
+                ('/fixture/private/strip_test.dart.extra', 7),
+                ('/fixture/private/unknown_test.dart', 7),
+                ('/fixture/private/strip_test.dart', 99)):
+            rows = [dict(type='suite', suite=dict(id=2, path=path)),
+                dict(type='testStart', test=dict(id=7, suiteID=2)),
+                dict(type='error', testID=identity, isFailure=False,
+                    error='private input', stackTrace='private stack')]
+            item = failure.locations(encode(rows))['items'][0]
+            self.assertNotIn('suite_file', item)
+            self.assertIsNone(item['file'])
+            self.assertNotIn('private', json.dumps(item))
+
+    def test_ambiguous_or_unbounded_event_ids_cannot_assign_a_suite(self):
+        suite = dict(type='suite', suite=dict(id=2, path='strip_test.dart'))
+        test = dict(type='testStart', test=dict(id=7, suiteID=2))
+        for rows in ([suite, suite], [suite, test, test],
+                [dict(type='suite', suite=dict(id=True, path='strip_test.dart'))],
+                [dict(type='suite', suite=dict(id=20001, path='strip_test.dart'))],
+                [dict(type='testStart', test=dict(id=7, suiteID=True))]):
+            self.assertEqual(failure.locations(encode(rows)),
+                dict(status='REFUSED', total=0, items=[]))
+
+    def test_compact_suite_fields_cannot_export_paths_or_hide_failure_counts(self):
+        rows = [dict(type='suite', suite=dict(id=2, path='strip_test.dart')),
+            dict(type='testStart', test=dict(id=7, suiteID=2))]
+        rows += [dict(type='error', testID=7, isFailure=False,
+            error='private input', stackTrace='')] * 5
+        value = failure.locations(encode(rows))
+        self.assertEqual(value['total'], 5)
+        self.assertEqual(len(value['items']), 3)
+        self.assertEqual(failure.locations_projection(value), value)
+        for name in ('/fixture/private/strip_test.dart', 'unknown_test.dart', True):
+            altered = json.loads(json.dumps(value))
+            altered['items'][0]['suite_file'] = name
+            self.assertIsNone(failure.locations_projection(altered))
+        value['items'][0]['private'] = 'private input'
+        self.assertIsNone(failure.locations_projection(value))
