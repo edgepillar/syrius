@@ -253,6 +253,10 @@ void main() {
     final Finder add = find.byKey(const Key('settings_add_address'));
     final VoidCallback old = tester.widget<OutlinedButton>(add).onPressed!;
     outer.descendantsAreFocusable = false;
+    old();
+    expect(captures, 0);
+    // The node notification queues the visibility refresh and its next paint.
+    await tester.pump();
     await tester.pump();
     expect(inner.descendantsAreFocusable, isTrue);
     expect(snapshot.paintedInputGate, AddressesInputGate.focus);
@@ -273,6 +277,7 @@ void main() {
     FocusManager.instance.applyFocusChangesIfNeeded();
     outer.descendantsAreFocusable = true;
     FocusManager.instance.applyFocusChangesIfNeeded();
+    await tester.pump();
     await tester.pump();
     returning();
     expect(captures, 0);

@@ -1357,3 +1357,22 @@ The existing 320 pure-memory controls are explicitly reused because their
 Python/controller inputs are unchanged. No new local test or SDK runs. Hosted
 785 Python/347 ordinary Dart qualification remains pending. The original failed
 run, source165 two unlocated assertions and all earlier UNKNOWNs stay preserved.
+
+
+## Original queued focus paint in the widget fixture
+
+Source167 `cac2bd9e1713` run `40863766812` passes 785 Python cases with
+three existing skips, zero selected findings and 346 of 347 ordinary Dart cases.
+The genuine nested RiseSwitcher arrival case passes. The other new case fails
+its last-painted focus assertion at `addresses_selection_test.dart` line 258;
+the exact original enum value remains unobserved. Its normal complete original
+test command exits one; the failed result is preserved.
+
+The fixture now awaits the original queued paint before reading that cached
+snapshot or taking a fresh callback. Every value assertion remains. It also
+requires the old original callback to refuse immediately while the outer node
+is unavailable. Product code, original owners, case identities, counts, command
+deadlines and clocks remain unchanged. Existing 320 memory controls are reused
+with unchanged Python/controller inputs; no new local tests or SDK run. Hosted
+785 Python/347 ordinary Dart qualification and actual native recovery remain
+pending. The two original source165 full-suite assertions remain separate.
