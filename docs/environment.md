@@ -9021,3 +9021,45 @@ last reads, late answers, immutable projection and closed scope. Those cases
 await hosted execution. Exact contracts become 804 Python, 376 ordinary Dart
 and 378 startup Dart. Current focused/native/full-root qualification, nineteen
 preparations, ninety catalog outputs and all 94 visual matches remain pending.
+
+
+### Stake rows after an accepted original publication
+
+Source176 `7e422e65eea5`, focused `40910217447`, qualifies 804 Python cases
+with three existing skips, 376 Dart passes, zero selected analysis findings,
+both original asset commands and final source revalidation. All seven original
+confirmation observation cases pass; they add no reads, delays or publication.
+
+Source176 Native93 `40911345792`, independently inspected by `40914501455`,
+qualifies the original index-one to index-zero 1 ZNN UI send, twelve-page tour,
+quiescence and normal complete zero exits for the required app, entry and five
+original nodes. The producer then fails with CHECKPOINT_REFUSED. The copied
+child reaches the first stake recipe, command nine: wait for
+staking_stakes_count with the existing thirty-second limit. Its finite record
+is command/execute, refused/unknown, with publication-call entry observed.
+That boundary and command progress do not qualify a final seed receipt or
+stake effect. All four copied components and six effects remain incomplete.
+The exact inner wait refusal remains unobserved, and every earlier failure
+and UNKNOWN keeps its original source and run binding.
+
+Source inspection exposes a list-refresh race: SendTransactionStatus.success
+is the accepted original result, and the form immediately refreshes the list.
+An empty answer can remain mounted while the separate total refreshes once a
+minute. This is a source-only explanation of the Native93 wait, pending a
+fresh native result. Retain the original callback and initial refresh, and
+observe the accepted block through an optional read-only callback. Copy its
+hash; do not mutate or replace the SDK result. While that exact row is missing,
+use the shell's existing positive height changes to refresh the original list
+reader. End the pending read when its exact row appears. Address, chain,
+context revision, provider replacement and disposal revoke the original page.
+No timer, subscription request, confirmation lookup, publication or pointer
+action is added. Additional list reads never authorize a send or seed receipt.
+
+Three widget cases cover early empty answers, immutable hash selection and
+permanent revocation. The existing keyboard case also proves an observer
+exception cannot change the original success callback, form reset or input
+count. Nine existing staking/form cases are newly selected. Exact contracts
+are 804 Python, 388 ordinary Dart and 390 startup Dart. All 339 selected Python
+memory controls pass without local SDK, native, network, scratch or shared-store
+access. Current Dart, focused/native and full-root qualification remain pending.
+The separate nested Welcome renderer experiment remains private and unapplied.

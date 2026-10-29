@@ -37,11 +37,15 @@ class CreateStakeCard extends StatelessWidget {
     required this.onStakeCreated,
     this.framed = true,
     this.createTransactionBloc,
+    this.onStakePublished,
     super.key,
   });
 
   /// Called after the stake block is created successfully.
   final VoidCallback onStakeCreated;
+
+  /// Observes the original accepted block without changing its result.
+  final ValueChanged<AccountBlockTemplate>? onStakePublished;
 
   /// Whether a title surrounds the form. The page disclosure supplies its own.
   final bool framed;
@@ -53,14 +57,25 @@ class CreateStakeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => BlocProvider<SendTransactionBloc>(
     create: (_) => createTransactionBloc?.call() ?? SendTransactionBloc(),
-    child: _View(onStakeCreated: onStakeCreated, framed: framed),
+    child: _View(
+      onStakeCreated: onStakeCreated,
+      onStakePublished: onStakePublished,
+      framed: framed,
+    ),
   );
 }
 
 class _View extends StatelessWidget {
-  const _View({required this.onStakeCreated, required this.framed});
+  const _View({
+    required this.onStakeCreated,
+    required this.framed,
+    this.onStakePublished,
+  });
 
   final VoidCallback onStakeCreated;
+
+  /// Observes the original accepted block without changing its result.
+  final ValueChanged<AccountBlockTemplate>? onStakePublished;
   final bool framed;
 
   @override
@@ -80,6 +95,7 @@ class _View extends StatelessWidget {
               key: ValueKey<String?>('form_$kSelectedAddress'),
               accountInfo: accountInfo,
               onStakeCreated: onStakeCreated,
+              onStakePublished: onStakePublished,
               framed: framed,
             ),
             _ => const _Loading(key: ValueKey<String>('loading')),
@@ -141,11 +157,15 @@ class _Populated extends StatefulWidget {
     required this.accountInfo,
     required this.onStakeCreated,
     required this.framed,
+    this.onStakePublished,
     super.key,
   });
 
   final AccountInfo accountInfo;
   final VoidCallback onStakeCreated;
+
+  /// Observes the original accepted block without changing its result.
+  final ValueChanged<AccountBlockTemplate>? onStakePublished;
   final bool framed;
 
   @override
@@ -502,6 +522,12 @@ class _PopulatedState extends State<_Populated> {
         _amountController.clear();
         _selectedStakeDuration = null;
       });
+      final AccountBlockTemplate? original = state.data;
+      try {
+        if (original != null) widget.onStakePublished?.call(original);
+      } on Object {
+        // A read-only observer cannot change the accepted result or form flow.
+      }
       widget.onStakeCreated();
       _fetchBalance();
     } else if (state.status == SendTransactionStatus.failure) {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,6 +14,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/services/price_feed.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/balance_visibility.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/wallet_context_revision.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/app_lottie.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/staking_tab_child.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -41,6 +44,43 @@ class _RewardList extends Mock implements RewardHistoryList {}
 
 class _RewardEntry extends Mock implements RewardHistoryEntry {}
 
+class _Sync extends Cubit<NodeSyncStatusState>
+    implements NodeSyncStatusCubit {
+  _Sync() : super(const NodeSyncStatusState());
+
+  void height(int value) => emit(NodeSyncStatusState(
+    status: TimerStatus.success,
+    data: Pair<SyncState, SyncInfo>(SyncState.syncDone,
+      SyncInfo.fromJson(<String, dynamic>{
+        'state': SyncState.syncDone.index,
+        'currentHeight': value, 'targetHeight': value,
+      })),
+  ));
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+Hash _stakeHash(int value) => Hash.parse(value.toString().padLeft(64, '0'));
+
+AccountBlockTemplate _published(int value) => AccountBlockTemplate(blockType: 1)
+  ..hash = _stakeHash(value)
+  ..address = emptyAddress
+  ..chainIdentifier = getChainIdentifier()
+  ..toAddress = stakeAddress
+  ..tokenStandard = znnZts
+  ..amount = _coins('300');
+
+StakeEntry _row(int value) => StakeEntry(
+  amount: _coins('300'), weightedAmount: BigInt.zero,
+  startTimestamp: 1, expirationTimestamp: 1000000000,
+  address: emptyAddress, id: _stakeHash(value),
+);
+
+InfiniteListState<StakeEntry> _rows(List<StakeEntry> rows) =>
+    InfiniteListState<StakeEntry>(status: InfiniteListStatus.success,
+      data: rows, hasReachedMax: true);
+
 BigInt _coins(String amount) => amount.extractDecimals(kZnnCoin.decimals);
 
 void main() {
@@ -53,7 +93,12 @@ void main() {
   late _Balances balances;
   late SelectedAddressNotifier selection;
   late PriceFeed prices;
+  late _Sync sync;
   late String? previousAddress;
+
+  setUpAll(() {
+    registerFallbackValue(InfiniteListRefreshRequested(address: emptyAddress));
+  });
 
   setUp(() {
     previousAddress = kSelectedAddress;
@@ -65,6 +110,8 @@ void main() {
     history = _History();
     transactions = _Transactions();
     balances = _Balances();
+    sync = _Sync();
+    when(() => staking.fetchDataPeriodically()).thenAnswer((_) async {});
     BalanceVisibility.debugReset();
     prices = PriceFeed(
       request: (_) async => '{"zenon-2":{"usd":0.62},"quasar":{"usd":0.031}}',
@@ -81,7 +128,8 @@ void main() {
     );
   });
 
-  tearDown(() {
+  tearDown(() async {
+    await sync.close();
     selection.dispose();
     prices.dispose();
     kSelectedAddress = previousAddress;
@@ -177,6 +225,7 @@ void main() {
         ChangeNotifierProvider<SelectedAddressNotifier>.value(value: selection),
         BlocProvider<StakesBloc>.value(value: stakes),
         BlocProvider<StakingCubit>.value(value: staking),
+        BlocProvider<NodeSyncStatusCubit>.value(value: sync),
         BlocProvider<UncollectedStakingRewardsBloc>.value(value: rewards),
         BlocProvider<StakingRewardsHistoryBloc>.value(value: history),
         BlocProvider<SendTransactionBloc>.value(value: transactions),
@@ -199,6 +248,110 @@ void main() {
     await tester.pumpWidget(host(light: light));
     await tester.pump(const Duration(milliseconds: 500));
   }
+
+  CreateStakeCard originalForm(WidgetTester tester) =>
+      tester.widget<CreateStakeCard>(
+        find.byType(CreateStakeCard, skipOffstage: false),
+      );
+
+  List<InfiniteListEvent> recordReads() {
+    final List<InfiniteListEvent> reads = <InfiniteListEvent>[];
+    when(() => stakes.add(any())).thenAnswer((Invocation call) {
+      reads.add(call.positionalArguments.single as InfiniteListEvent);
+    });
+    return reads;
+  }
+
+  testWidgets('an early empty refresh follows later height and exact row', (
+    WidgetTester tester,
+  ) async {
+    populate(empty: true);
+    final StreamController<InfiniteListState<StakeEntry>> answers =
+        StreamController<InfiniteListState<StakeEntry>>(sync: true);
+    addTearDown(answers.close);
+    whenListen(stakes, answers.stream, initialState: _rows(<StakeEntry>[]));
+    final List<InfiniteListEvent> reads = recordReads();
+    sync.height(100);
+    await show(tester);
+    final CreateStakeCard form = originalForm(tester);
+    form.onStakePublished!(_published(7));
+    form.onStakeCreated();
+    expect(reads, hasLength(1));
+    answers.add(_rows(<StakeEntry>[]));
+    await tester.pump();
+    reads.clear();
+    sync.height(101);
+    await tester.pump();
+    expect(reads, <InfiniteListEvent>[
+      InfiniteListRefreshRequested(address: emptyAddress),
+    ]);
+    sync.height(101);
+    await tester.pump();
+    expect(reads, hasLength(1));
+    answers.add(_rows(<StakeEntry>[_row(7)]));
+    await tester.pump(const Duration(milliseconds: 450));
+    expect(tester.widget<Text>(
+      find.byKey(const Key('staking_stakes_count'))).data, '1');
+    reads.clear();
+    sync.height(102);
+    await tester.pump();
+    expect(reads, isEmpty);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('a mutable response and unrelated row cannot replace the hash', (
+    WidgetTester tester,
+  ) async {
+    populate(empty: true);
+    final StreamController<InfiniteListState<StakeEntry>> answers =
+        StreamController<InfiniteListState<StakeEntry>>(sync: true);
+    addTearDown(answers.close);
+    whenListen(stakes, answers.stream, initialState: _rows(<StakeEntry>[]));
+    final List<InfiniteListEvent> reads = recordReads();
+    sync.height(100);
+    await show(tester);
+    final AccountBlockTemplate original = _published(7);
+    originalForm(tester).onStakePublished!(original);
+    original.hash = _stakeHash(8);
+    answers.add(_rows(<StakeEntry>[_row(8)]));
+    await tester.pump();
+    sync.height(101);
+    await tester.pump();
+    expect(reads, hasLength(1));
+    answers.add(_rows(<StakeEntry>[_row(7), _row(8)]));
+    await tester.pump();
+    reads.clear();
+    sync.height(102);
+    await tester.pump();
+    expect(reads, isEmpty);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('context revocation and disposal cannot revive pending reads', (
+    WidgetTester tester,
+  ) async {
+    populate(empty: true);
+    final List<InfiniteListEvent> reads = recordReads();
+    sync.height(100);
+    await show(tester);
+    final CreateStakeCard original = originalForm(tester);
+    original.onStakePublished!(_published(7));
+    WalletContextRevision.invalidate();
+    sync.height(101);
+    await tester.pump();
+    original.onStakePublished!(_published(7));
+    sync.height(102);
+    await tester.pump();
+    expect(reads, isEmpty);
+    await tester.pumpWidget(const SizedBox.shrink());
+    original.onStakePublished!(_published(7));
+    sync.height(103);
+    await tester.pump();
+    expect(reads, isEmpty);
+    expect(tester.takeException(), isNull);
+  });
 
   for (final bool light in <bool>[false, true]) {
     testWidgets(

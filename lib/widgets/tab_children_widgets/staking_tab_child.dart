@@ -17,6 +17,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/pa
 import 'package:zenon_syrius_wallet_flutter/services/price_feed.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/balance_visibility.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/wallet_context_revision.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/app_lottie.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -120,9 +121,69 @@ class StakingPage extends StatefulWidget {
 class _StakingPageState extends State<StakingPage> {
   final DisclosureController _form = DisclosureController();
   final DisclosureController _chart = DisclosureController();
+  final Set<String> _pendingStakeRows = <String>{};
+  late final String? _stakeReadAddress;
+  late final int _stakeReadChain;
+  late final int _stakeReadRevision;
+  late final StakesBloc _stakeReadBloc;
+  bool _stakeReadRevoked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _stakeReadAddress = kSelectedAddress;
+    _stakeReadChain = getChainIdentifier();
+    _stakeReadRevision = WalletContextRevision.value;
+    _stakeReadBloc = context.read<StakesBloc>();
+  }
+
+  bool get _stakeReadCurrent {
+    if (_stakeReadRevoked) return false;
+    final bool current = mounted && _stakeReadAddress != null &&
+        _stakeReadAddress == kSelectedAddress &&
+        _stakeReadChain == getChainIdentifier() &&
+        _stakeReadRevision == WalletContextRevision.value &&
+        identical(_stakeReadBloc, context.read<StakesBloc>());
+    if (!current) {
+      _stakeReadRevoked = true;
+      _pendingStakeRows.clear();
+    }
+    return current;
+  }
+
+  void _stakePublished(AccountBlockTemplate original) {
+    if (!_stakeReadCurrent || original.hash == emptyHash ||
+        original.address.toString() != _stakeReadAddress ||
+        original.chainIdentifier != _stakeReadChain ||
+        original.toAddress != stakeAddress ||
+        original.tokenStandard != znnZts ||
+        original.amount <= BigInt.zero) {
+      return;
+    }
+    // Copy the accepted hash before a mutable SDK response can change it.
+    _pendingStakeRows.add(original.hash.toString());
+    _observeStakeRows(_stakeReadBloc.state);
+  }
+
+  void _observeStakeRows(InfiniteListState<StakeEntry> state) {
+    if (!_stakeReadCurrent || state.status != InfiniteListStatus.success) {
+      return;
+    }
+    _pendingStakeRows.removeAll(
+      (state.data ?? const <StakeEntry>[])
+          .map((StakeEntry entry) => entry.id.toString()),
+    );
+  }
+
+  void _refreshPendingStakeRows() {
+    if (_stakeReadCurrent && _pendingStakeRows.isNotEmpty) _refreshStakes();
+  }
+
 
   @override
   void dispose() {
+    _stakeReadRevoked = true;
+    _pendingStakeRows.clear();
     _form.dispose();
     _chart.dispose();
     super.dispose();
@@ -148,20 +209,36 @@ class _StakingPageState extends State<StakingPage> {
   Widget build(BuildContext context) {
     final double gap = AppTokens.of(context).pageGap;
     final bool empty = _isEmptyStakingPage(context);
-    return BlocListener<StakesBloc, InfiniteListState<StakeEntry>>(
-      // The total follows the list: whatever reloads the rows (a new
-      // stake, a cancel, the refresh button) asks for the total again. The
-      // first load is not a change; the cubit asks for itself as it starts.
-      listenWhen:
-          (
+    return MultiBlocListener(
+      listeners: <SingleChildWidget>[
+        BlocListener<StakesBloc, InfiniteListState<StakeEntry>>(
+          // Retain the original list-to-total refresh direction.
+          listenWhen: (
             InfiniteListState<StakeEntry> before,
             InfiniteListState<StakeEntry> after,
-          ) =>
-              before.status != InfiniteListStatus.initial &&
+          ) => before.status != InfiniteListStatus.initial &&
               after.status == InfiniteListStatus.success &&
               before.data != after.data,
-      listener: (BuildContext context, _) =>
-          unawaited(context.read<StakingCubit>().fetchDataPeriodically()),
+          listener: (BuildContext context, _) =>
+              unawaited(context.read<StakingCubit>().fetchDataPeriodically()),
+        ),
+        BlocListener<StakesBloc, InfiniteListState<StakeEntry>>(
+          listener: (_, InfiniteListState<StakeEntry> state) =>
+              _observeStakeRows(state),
+        ),
+        BlocListener<NodeSyncStatusCubit, NodeSyncStatusState>(
+          listenWhen: (
+            NodeSyncStatusState before,
+            NodeSyncStatusState after,
+          ) => after.status == TimerStatus.success && after.data != null &&
+              after.data!.second.currentHeight > 0 &&
+              before.data?.second.currentHeight !=
+                  after.data!.second.currentHeight,
+          // Use the shell's existing height reads, without another timer,
+          // subscription request, publication or confirmation shortcut.
+          listener: (_, _) => _refreshPendingStakeRows(),
+        ),
+      ],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
@@ -196,6 +273,7 @@ class _StakingPageState extends State<StakingPage> {
                                 padding: EdgeInsetsDirectional.only(top: gap),
                                 child: CreateStakeCard(
                                   framed: false,
+                                  onStakePublished: _stakePublished,
                                   onStakeCreated: () {
                                     _form.close();
                                     _refreshStakes();

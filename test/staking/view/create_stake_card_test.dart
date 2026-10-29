@@ -121,11 +121,13 @@ void main() {
     double width = 1180,
     DisclosureController? disclosure,
     VoidCallback? onCreated,
+    ValueChanged<AccountBlockTemplate>? onPublished,
   }) {
     final Widget form = CreateStakeCard(
       framed: false,
       createTransactionBloc: () => transactions,
       onStakeCreated: onCreated ?? () {},
+      onStakePublished: onPublished,
     );
     return MaterialApp(
       theme: light ? AppTheme.lightTheme : AppTheme.darkTheme,
@@ -295,7 +297,12 @@ void main() {
         BigInt.from(300) * BigInt.from(10).pow(kZnnCoin.decimals);
     final AccountBlockTemplate block = AccountBlockTemplate(blockType: 1);
     when(() => stake.stake(6 * stakeTimeUnitSec, amount)).thenReturn(block);
-    await show(tester, host(onCreated: () => created++));
+    final List<AccountBlockTemplate> observed = <AccountBlockTemplate>[];
+    await show(tester, host(onCreated: () => created++,
+      onPublished: (AccountBlockTemplate original) {
+        observed.add(original);
+        throw StateError('Read observer refused');
+      }));
     await chooseSixMonths(tester);
     await tester.enterText(find.byKey(_amountKey), '300');
     await tester.pump();
@@ -330,6 +337,8 @@ void main() {
     );
     await tester.pump();
     expect(created, 1);
+    expect(observed, hasLength(1));
+    expect(observed.single, same(block));
     expect(
       tester.widget<TextField>(find.byKey(_amountKey)).controller!.text,
       isEmpty,
