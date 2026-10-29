@@ -1376,3 +1376,37 @@ deadlines and clocks remain unchanged. Existing 320 memory controls are reused
 with unchanged Python/controller inputs; no new local tests or SDK run. Hosted
 785 Python/347 ordinary Dart qualification and actual native recovery remain
 pending. The two original source165 full-suite assertions remain separate.
+
+
+## Strict count contract for the two original Addresses cases
+
+Source168 `67e3eb488c7b` run `40865584965` retains all 347 ordinary Dart
+events passing with zero failures/errors/skips and a normal complete unforced
+original command exit zero. All 785 Python cases with three existing skips and
+zero selected findings are also observed. The controller still expects 345,
+so its original `TESTS_FAILED` remains preserved and end-source revalidation
+is unreached. Align only the ordinary/startup contracts to 347/349 for the two
+genuine Addresses cases already added in source166. Existing admission fixtures
+retain strict refusal of old, short, extra, skipped, erroneous, incomplete and
+source-changing results. No Dart case, command path, deadline or product code
+changes. All 320 current memory controls pass; a current hosted gate is pending.
+
+Four source165 entry pairs are now viewed at original 1280 by 780 resolution.
+Dark Import heading threshold bounds exactly agree at [443,230,599,246]; its
+light horizontal bounds agree, with vertical ink still different. Selector
+support is one pixel wider at row 568, improved from four. Both panel flat
+columns retain y=200..611. Caption ink and globe meridians remain different,
+and original carets/illustrated ellipsis remain open. The original caption
+dimensions already agree at 32 by 44; no height offset is applied. Approved
+RULES palette differences and font hinting remain explicit exceptions. Zero
+complete matches are accepted; all 94 pairs remain open.
+
+The 566166-byte archive is transported once with actual zero complete exit and
+verified SHA-256. A later metadata lease refusal during review recording and
+close is preserved. After the original process group is absent and its lease
+is acquired, the exact owned task is closed FAILURE through the unchanged
+manager. Only its registered disposable scratch is collected; the verified
+archive and protected review remain. No transport is repeated, no unrelated
+task is interrupted and the 18 GiB policy/10 GiB floor are unchanged. Earlier
+failures, UNKNOWNs and source165 two unlocated full-suite assertions remain
+source-bound. No local SDK, wallet or node runs.
