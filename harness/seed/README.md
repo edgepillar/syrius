@@ -1218,3 +1218,24 @@ controls pass; current hosted 775 Python/345 ordinary Dart/347 startup validatio
 remains pending. Source159's analysis failure, source160's font assertion failure,
 earlier UNKNOWNs and source158 full/image/native evidence remain separate.
 No local SDK/native execution, artifact transfer or storage task is started.
+
+
+## Measurable font-leading contrast control
+
+Source161 focused 40824769011 passes 775 Python cases with three existing skips,
+zero selected analysis findings and both complete asset commands. The original
+Dart command records 344 of 345 passes and one final assertion/error event,
+with complete output and normal exit one. Product-font width, line-height and
+measured equal half-leading checks complete at sizes 12, 14, 28 and 56. The
+remaining failure is the final greater-than-half-pixel baseline contrast check;
+no default-height sample exceeds that threshold. Actual numeric deltas remain
+unretained, and the full suite is not declared green.
+
+The test retains every product-height case, its metric tolerances and the
+half-pixel contrast requirement. A taller line-height fixture makes the two
+leading distributions distinguishable, without applying that height to the UI.
+All production typography, input predicates, callbacks, fonts, numeric features
+and clocks remain unchanged. All 310 memory controls pass; current hosted
+775 Python/345 ordinary Dart/347 startup qualification remains pending. Every
+prior failure, UNKNOWN and source158 full/image/native result stays separate.
+No local SDK/native execution, artifact transfer or storage task is started.

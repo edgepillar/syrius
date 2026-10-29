@@ -90,37 +90,45 @@ void main() {
   test('bundled font preserves width and height with CSS half-leading', () {
     bool distinctDistributionObserved = false;
     for (final double size in <double>[12, 14, 28, 56]) {
-      final TextStyle style = AppTokens.dark.bodyText.copyWith(fontSize: size);
-      TextPainter painter(TextStyle value) => TextPainter(
-        text: TextSpan(text: 'Welcome to Syrius 123', style: value),
-        textDirection: TextDirection.ltr,
-      )..layout();
-      final TextPainter natural = painter(style.copyWith(
-        height: ui.kTextHeightNone,
-      ));
-      final TextPainter even = painter(style);
-      final TextPainter proportional = painter(style.copyWith(
-        leadingDistribution: TextLeadingDistribution.proportional,
-      ));
-      try {
-        expect(even.width, closeTo(proportional.width, 0.001));
-        expect(even.height, closeTo(proportional.height, 0.001));
-        final ui.LineMetrics font = natural.computeLineMetrics().single;
-        final double targetHeight = size * style.height!;
-        final double halfLeading =
-            (targetHeight - font.ascent - font.descent) / 2;
-        final double baseline = even.computeLineMetrics().single.baseline;
-        // Engine rounding may give small sizes the same baseline. Compare
-        // against the font's measured ascent/descent, without a direction rule.
-        expect(baseline, closeTo(font.ascent + halfLeading, 1));
-        if ((baseline - proportional.computeLineMetrics().single.baseline)
-            .abs() > 0.5) {
-          distinctDistributionObserved = true;
+      // The product's height is close to this font's natural height. A taller
+      // fixture distinguishes the two distributions without changing the UI.
+      for (final double height in <double>[
+        AppTokens.dark.bodyText.height!, 2,
+      ]) {
+        final TextStyle style = AppTokens.dark.bodyText.copyWith(
+          fontSize: size, height: height,
+        );
+        TextPainter painter(TextStyle value) => TextPainter(
+          text: TextSpan(text: 'Welcome to Syrius 123', style: value),
+          textDirection: TextDirection.ltr,
+        )..layout();
+        final TextPainter natural = painter(style.copyWith(
+          height: ui.kTextHeightNone,
+        ));
+        final TextPainter even = painter(style);
+        final TextPainter proportional = painter(style.copyWith(
+          leadingDistribution: TextLeadingDistribution.proportional,
+        ));
+        try {
+          expect(even.width, closeTo(proportional.width, 0.001));
+          expect(even.height, closeTo(proportional.height, 0.001));
+          final ui.LineMetrics font = natural.computeLineMetrics().single;
+          final double targetHeight = size * style.height!;
+          final double halfLeading =
+              (targetHeight - font.ascent - font.descent) / 2;
+          final double baseline = even.computeLineMetrics().single.baseline;
+          // Engine rounding may give small sizes the same baseline. Compare
+          // Use measured font metrics without a baseline direction rule.
+          expect(baseline, closeTo(font.ascent + halfLeading, 1));
+          if ((baseline - proportional.computeLineMetrics().single.baseline)
+              .abs() > 0.5) {
+            distinctDistributionObserved = true;
+          }
+        } finally {
+          natural.dispose();
+          even.dispose();
+          proportional.dispose();
         }
-      } finally {
-        natural.dispose();
-        even.dispose();
-        proportional.dispose();
       }
     }
     expect(distinctDistributionObserved, isTrue);
