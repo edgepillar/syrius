@@ -75,7 +75,7 @@ Map<String, Object>? homePreparationProjection(Object? value) {
   return Map<String, Object>.unmodifiable(<String, Object>{
     'stage': stage,
     if (target != null) 'target': target as String,
-    if (state != null) 'state': state,
+    'state': ?state,
   });
 }
 
@@ -119,8 +119,8 @@ final class HomePreparationTrace {
     if (stage == null) return null;
     return homePreparationProjection(<String, Object>{
       'stage': stage.name,
-      if (_target != null) 'target': _target!,
-      if (_state != null) 'state': _state!,
+      'target': ?_target,
+      'state': ?_state,
     });
   }
 }

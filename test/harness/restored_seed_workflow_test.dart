@@ -332,17 +332,19 @@ void main() {
     final Map<String, Object> home =
         first.diagnostic['home']! as Map<String, Object>;
     expect(home['stage'], 'initialReadiness');
-    trace.at(cli.SeedOperationAction.prepare, cli.SeedOperationStep.owner,
-        commandIndex: 1);
-    trace.homeObserved(HomePreparationStep.railWait);
+    trace
+      ..at(cli.SeedOperationAction.prepare, cli.SeedOperationStep.owner,
+          commandIndex: 1)
+      ..homeObserved(HomePreparationStep.railWait);
     expect(trace.failure(_UnprintableSeedError()).diagnostic,
         isNot(contains('home')));
     trace.at(cli.SeedOperationAction.home, cli.SeedOperationStep.navigation,
         commandIndex: 0);
     expect(trace.failure(_UnprintableSeedError()).diagnostic,
         isNot(contains('home')));
-    trace.publicationCallEntered();
-    trace.homeObserved(HomePreparationStep.railWait);
+    trace
+      ..publicationCallEntered()
+      ..homeObserved(HomePreparationStep.railWait);
     expect(trace.failure(_UnprintableSeedError()).diagnostic,
         isNot(contains('home')));
     final cli.SeedOperationTrace foreign = _homeTrace(recipe: 'private')

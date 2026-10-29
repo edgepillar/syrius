@@ -978,7 +978,7 @@ class SeedOperationTrace {
       'publication_call_entered': _publicationCallEntered,
       'kind': kind.name,
       'reason': reason,
-      if (homeObservation != null) 'home': homeObservation,
+      'home': ?homeObservation,
       if (kind == SeedOperationFailureKind.refused &&
           reason == 'exact-confirmation-or-effect-pending' &&
           _confirmation != null) 'confirmation': _confirmation!,

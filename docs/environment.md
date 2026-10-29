@@ -9409,3 +9409,30 @@ stays 71/80; all nine open rows, ninety missing outputs, nineteen preparations,
 all 94 matches, current full root, DLL initialization, unfiltered chain and
 Docker Desktop/lab.sh acceptance remain open. Every earlier FAILURE or UNKNOWN
 is retained independently of new control results.
+
+
+### Retain original Home observations and clear six analysis findings
+
+Source186 46ecd0b8a460 / focused 40973679671 retains producer failure. All 815
+Python cases pass with three existing skips and both original asset commands
+pass. Explicit analysis reports zero errors/warnings and six infos: four
+use-null-aware-elements findings in finite Home map entries and two cascade
+findings in the new scope/reset test. Normal complete zero process exit does
+not bypass strict admission; the Dart stage remains skipped. All previous
+source183/source184 analysis failures remain independent preserved outcomes.
+
+Use four equivalent null-aware map entries and two equivalent test cascades.
+Keep the same omitted-null schema, deep immutable copies, finite values,
+known-recipe Home/navigation/before-command-one scope, clear/reset behavior,
+original calls, input, predicates, waits, delays and timeouts. Add no tests or
+selection; contracts remain 815 Python and 413 ordinary/415 startup Dart. All
+350 exact memory controls pass without local SDK, native execution, network,
+scratch or shared-store access. Fresh hosted qualification remains pending.
+Source185 remains the last qualified 408-case engine baseline. Native96's
+original positive send/tour and copied Home refusal retain their exact source
+pins; the inner cause remains NOT_ESTABLISHED. No old operation is retried.
+
+The main ledger stays 71/80. All nine open rows, ninety outputs, nineteen
+preparations, all 94 visual matches, current full root, DLL initialization,
+unfiltered chain and Docker Desktop/lab.sh acceptance remain open. A new green
+result cannot relabel an old FAILURE or UNKNOWN.
