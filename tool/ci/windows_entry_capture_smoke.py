@@ -11,6 +11,7 @@ from __future__ import annotations
 import base64
 import binascii
 import hashlib
+import http.client
 import json
 import math
 import os
@@ -78,6 +79,93 @@ FAILURE_CATEGORIES = (frozenset(("REMOTE_ERROR", "EXCHANGE_FAILED", "GUARD_FAILE
                       | frozenset(RESIZE_ERRORS.values()))
 
 
+ENTRY_EFFECT_PHASES = frozenset((
+    'original-entry-artwork-ready', 'original-image-release',
+    'original-import-controller-end', 'original-import-navigation-end',
+    'original-import-route-end', 'original-incomplete-import-input',
+    'original-native-frame', 'original-png-encoding', 'original-renderer-image',
+    'original-restored-window-position', 'original-restored-window-size',
+    'original-restored-window-visibility', 'original-route-frame',
+    'original-route-transition', 'original-theme-flush', 'original-theme-frame',
+    'original-theme-write', 'original-welcome-import', 'original-window-position',
+    'original-window-size', 'original-window-visibility',
+))
+ENTRY_FUTURE_STATES = frozenset(('not_returned', 'pending', 'succeeded', 'failed'))
+HTTP_FAILURE_KINDS = frozenset((
+    'TIMEOUT', 'DISCONNECTED', 'RESET', 'INCOMPLETE', 'IO_ERROR', 'OTHER',
+))
+
+
+def _entry_effect_projection(value):
+    if (type(value) is not dict
+            or set(value) != {'phase', 'future', 'failed', 'milliseconds'}
+            or type(value['phase']) is not str or value['phase'] not in ENTRY_EFFECT_PHASES
+            or type(value['future']) is not str or value['future'] not in ENTRY_FUTURE_STATES
+            or type(value['failed']) is not bool
+            or type(value['milliseconds']) is not int
+            or not 0 <= value['milliseconds'] <= 0x7fffffff):
+        return None
+    return {key: value[key] for key in ('phase', 'future', 'failed', 'milliseconds')}
+
+
+def capture_progress_projection(value):
+    """Only existing finite receipts are observations; no owner is invoked."""
+    fields = {'schema', 'screen', 'theme', 'scopes', 'completedCaptures', 'effects',
+              'last', 'slowest', 'artworkCount', 'imageCreated', 'restoring', 'restored', 'held'}
+    if (type(value) is not dict or set(value) != fields
+            or type(value['schema']) is not int or value['schema'] != 1
+            or type(value['screen']) is not str or value['screen'] not in ('welcome', 'import')
+            or type(value['theme']) is not str or value['theme'] not in ('dark', 'light')
+            or type(value['scopes']) is not int or not 1 <= value['scopes'] <= 16
+            or type(value['completedCaptures']) is not int
+            or not 0 <= value['completedCaptures'] <= value['scopes']
+            or type(value['effects']) is not int or not 0 <= value['effects'] <= 192
+            or type(value['artworkCount']) is not int or not 0 <= value['artworkCount'] <= 2
+            or any(type(value[key]) is not bool for key in
+                   ('imageCreated', 'restoring', 'restored', 'held'))):
+        return None
+    last, slowest = value['last'], value['slowest']
+    if value['effects'] == 0:
+        if last is not None or slowest is not None:
+            return None
+    else:
+        last, slowest = _entry_effect_projection(last), _entry_effect_projection(slowest)
+        if (last is None or slowest is None
+                or slowest['milliseconds'] < last['milliseconds']
+                or value['effects'] == 1 and last != slowest):
+            return None
+    result = dict(value)
+    result.update(last=last, slowest=slowest)
+    return result
+
+
+def transport_failure_projection(value):
+    if (type(value) is not dict or set(value) != {'phase', 'kind'}
+            or type(value['phase']) is not str or value['phase'] not in COMMAND_PHASES
+            or type(value['kind']) is not str or value['kind'] not in HTTP_FAILURE_KINDS):
+        return None
+    return dict(value)
+
+
+def http_failure_observation(error, phase):
+    """Classify the actual exception without reading its message or arguments."""
+    if not isinstance(error, Exception):
+        return None
+    if isinstance(error, TimeoutError):
+        kind = 'TIMEOUT'
+    elif isinstance(error, http.client.RemoteDisconnected):
+        kind = 'DISCONNECTED'
+    elif isinstance(error, ConnectionResetError):
+        kind = 'RESET'
+    elif isinstance(error, http.client.IncompleteRead):
+        kind = 'INCOMPLETE'
+    elif isinstance(error, OSError):
+        kind = 'IO_ERROR'
+    else:
+        kind = 'OTHER'
+    return transport_failure_projection(dict(phase=phase, kind=kind))
+
+
 class Failure(bounded.SmokeFailure):
     def __init__(self, code):
         self.code = code if code in CODES else "INTERNAL_ERROR"
@@ -94,6 +182,8 @@ class Report(bounded.Report):
         self.output_bytes = 0
         self.first_command_failure = None
         self.cleanup_failures = []
+        self.capture_progress = None
+        self.transport_failure = None
 
     def fail(self, code, original=None):
         code = code if code in CODES else "INTERNAL_ERROR"
@@ -130,6 +220,8 @@ class Report(bounded.Report):
                     captures.append({"file": name, "sha256": item["sha256"],
                                      "bytes": item["bytes"], "width": 1280, "height": 780})
                     break
+        capture_progress = capture_progress_projection(self.capture_progress)
+        transport_failure = transport_failure_projection(self.transport_failure)
         complete = (
             all(self.checks.get(name) is True for name in CHECKS)
             and all(self.caption_checks.get(name) is True for name in CAPTION_CHECKS)
@@ -162,6 +254,8 @@ class Report(bounded.Report):
             "error_codes": [code for code in self.errors if code in CODES],
             "first_command_failure": first_failure,
             "cleanup_failures": cleanup_failures,
+            **({'capture_progress': capture_progress} if capture_progress is not None else {}),
+            **({'transport_failure': transport_failure} if transport_failure is not None else {}),
         }
 
 
@@ -490,6 +584,10 @@ class EntrySmoke(bounded.PresentationSmoke):
                 self._retain_failure("INTERNAL_ERROR", category="EXCHANGE_FAILED")
             raise
         except bounded.SmokeFailure as error:
+            if (error.code == "HTTP_FAILED" and self.report.original_errors
+                    and self.report.transport_failure is None):
+                self.report.transport_failure = http_failure_observation(
+                    self.report.original_errors[-1], phase)
             self._retain_failure(error.code, category="EXCHANGE_FAILED")
             raise
         except (Exception, KeyboardInterrupt):
@@ -502,6 +600,8 @@ class EntrySmoke(bounded.PresentationSmoke):
                   poll_refused=False):
         status, body = self._exchange_at(phase, command, allow_exit=allow_exit,
                                          until=until, poll_refused=poll_refused)
+        if phase in ("entry_state", "entry_verify") and "captureProgress" in body:
+            self.report.capture_progress = capture_progress_projection(body["captureProgress"])
         if status != 200 or body["ok"] is not True:
             # Retain the first finite refusal instead of collapsing every bind
             # failure. Never echo arbitrary remote errors, paths or stacks.

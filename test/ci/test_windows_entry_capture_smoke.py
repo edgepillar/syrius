@@ -1177,5 +1177,111 @@ class AdmissionArtifactTests(unittest.TestCase):
                          [f".harness/ci-entry-capture/{name}" for name in (*smoke.FILES, "manifest.json")])
 
 
+
+def progress_fixture():
+    effect = dict(phase='original-native-frame', future='succeeded',
+                  failed=False, milliseconds=21001)
+    return dict(schema=1, screen='welcome', theme='dark', scopes=1,
+        completedCaptures=1, effects=1, last=effect, slowest=dict(effect),
+        artworkCount=2, imageCreated=True, restoring=True, restored=True, held=False)
+
+
+class EntryProgressTests(unittest.TestCase):
+    def test_progress_copies_finite_receipts_and_keeps_host_counts_separate(self):
+        original = progress_fixture()
+        value = smoke.capture_progress_projection(original)
+        self.assertEqual(value, original)
+        original['last']['milliseconds'] = 1
+        self.assertEqual(value['last']['milliseconds'], 21001)
+        report = smoke.Report()
+        report.capture_progress = value
+        report.transport_failure = dict(phase='capture_welcome_dark', kind='TIMEOUT')
+        report.errors = ['HTTP_FAILED']
+        public = report.public()
+        self.assertEqual(public['capture_progress']['completedCaptures'], 1)
+        self.assertEqual(public['capture_count'], 0)
+        self.assertEqual(public['captures'], [])
+        self.assertFalse(public['success'])
+        self.assertEqual(public['status'], 'UNKNOWN')
+        self.assertEqual(public['error_codes'], ['HTTP_FAILED'])
+        self.assertEqual(public['transport_failure']['kind'], 'TIMEOUT')
+
+    def test_progress_refuses_private_fields_coercion_and_inconsistent_effects(self):
+        base = progress_fixture()
+        bad = [dict(base, schema=True), dict(base, scopes=True),
+            dict(base, scopes=0), dict(base, scopes=17), dict(base, completedCaptures=2),
+            dict(base, effects=193), dict(base, effects=False),
+            dict(base, artworkCount=3), dict(base, imageCreated=1),
+            dict(base, screen='private-input'), dict(base, theme='private-input'),
+            dict(base, owner='private-input'), dict(base, slowest=None),
+            dict(base, effects=0)]
+        for field in ('last', 'slowest'):
+            for change in (dict(phase='private-input'), dict(future='private-input'),
+                    dict(failed=1), dict(milliseconds=True), dict(milliseconds=-1),
+                    dict(milliseconds=0x80000000), dict(milliseconds=1.5),
+                    dict(error='private-input')):
+                bad.append(dict(base, **{field: dict(base[field], **change)}))
+        for value in bad:
+            with self.subTest(fields=len(value)):
+                self.assertIsNone(smoke.capture_progress_projection(value))
+        empty = dict(base, effects=0, last=None, slowest=None)
+        self.assertEqual(smoke.capture_progress_projection(empty), empty)
+
+    def test_http_exception_class_is_observed_without_message_or_capture_retry(self):
+        class OpaqueError(Exception):
+            def __str__(self):
+                raise AssertionError('Private error must not be rendered')
+        for error, kind in ((TimeoutError('private-context'), 'TIMEOUT'),
+                (smoke.http.client.RemoteDisconnected('private-context'), 'DISCONNECTED'),
+                (ConnectionResetError('private-context'), 'RESET'),
+                (smoke.http.client.IncompleteRead(b'private-context', 17), 'INCOMPLETE'),
+                (OSError('private-context'), 'IO_ERROR'), (OpaqueError(), 'OTHER')):
+            self.assertEqual(smoke.http_failure_observation(error, 'capture_welcome_dark'),
+                             dict(phase='capture_welcome_dark', kind=kind))
+        self.assertIsNone(smoke.http_failure_observation(None, 'capture_welcome_dark'))
+        self.assertIsNone(smoke.http_failure_observation(TimeoutError(), 'private-input'))
+        error = TimeoutError('private-transport-context')
+        class Transport:
+            calls = 0
+            def exchange(self, command, token, timeout):
+                self.calls += 1
+                raise error
+        clock, report, transport = Clock(), smoke.Report(), Transport()
+        session = smoke.EntrySmoke(OriginalProcess(), transport, TOKEN, Drain(), report,
+            artifacts=Artifacts(), limits=LIMITS, clock=clock, sleep=clock.sleep)
+        with self.assertRaises(smoke.bounded.SmokeFailure):
+            session._positive(dict(cmd='entry-capture', screen='welcome', theme='dark'),
+                              phase='capture_welcome_dark')
+        self.assertEqual(transport.calls, 1)
+        self.assertIs(report.original_errors[-1], error)
+        self.assertEqual(report.transport_failure,
+                         dict(phase='capture_welcome_dark', kind='TIMEOUT'))
+        self.assertEqual(report.first_command_failure['code'], 'HTTP_FAILED')
+        self.assertNotIn('private-transport-context', json.dumps(report.public()))
+
+    def test_dart_phase_catalog_and_existing_reply_observation_remain_passive(self):
+        root = CONTROLLER.parents[2]
+        source = (root / 'harness/app/native_entry_capture.dart').read_text()
+        model = (root / 'harness/app/entry_capture_progress.dart').read_text()
+        phases = set(re.findall(r"effect(?:<[^>]+>)?\(\s*'([^']+)'", source))
+        self.assertEqual(phases, smoke.ENTRY_EFFECT_PHASES)
+        self.assertEqual(set(re.findall(r"'(original-[a-z-]+)'", model)), phases)
+        progress = progress_fixture()
+        class Transport:
+            calls = 0
+            def exchange(self, command, token, timeout):
+                self.calls += 1
+                return reply(dict(ok=True, captureProgress=progress))
+        clock, report, transport = Clock(), smoke.Report(), Transport()
+        session = smoke.EntrySmoke(OriginalProcess(), transport, TOKEN, Drain(), report,
+            artifacts=Artifacts(), limits=LIMITS, clock=clock, sleep=clock.sleep)
+        body = session._positive(dict(cmd='entry-check'), phase='entry_verify')
+        self.assertEqual(body['captureProgress'], progress)
+        self.assertEqual(report.capture_progress, progress)
+        self.assertEqual(transport.calls, 1)
+        self.assertEqual(report.public()['capture_count'], 0)
+        self.assertFalse(report.public()['success'])
+
+
 if __name__ == "__main__":
     unittest.main()

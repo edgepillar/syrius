@@ -195,6 +195,14 @@ def entry_projection(report, head, tree, run_id):
         and all(type(value) is dict and entry.failure_projection(value) == value
                 and value['phase'] in entry.CLEANUP_PHASES
                 for value in cleanup))
+    capture_progress = transport_failure = None
+    if 'capture_progress' in report:
+        capture_progress = entry.capture_progress_projection(report['capture_progress'])
+        archive.need(capture_progress is not None and capture_progress == report['capture_progress'])
+    if 'transport_failure' in report:
+        transport_failure = entry.transport_failure_projection(report['transport_failure'])
+        archive.need(transport_failure is not None and transport_failure == report['transport_failure']
+                     and 'HTTP_FAILED' in errors)
     complete = (all(original.values()) and all(captions.values()) and count == 4
         and report['exit_observed'] and type(code) is int and code == 0
         and report['output_complete'] and not report['output_overflow'] and not report['forced_kill']
@@ -208,7 +216,9 @@ def entry_projection(report, head, tree, run_id):
         exit_code=code, exit_observed=report['exit_observed'], forced_kill=report['forced_kill'],
         output_complete=report['output_complete'], output_overflow=report['output_overflow'],
         output_bytes=report['output_bytes'], original_error_codes=errors, first_command_failure=first,
-        cleanup_failures=cleanup)
+        cleanup_failures=cleanup,
+        **({'capture_progress': capture_progress} if capture_progress is not None else {}),
+        **({'transport_failure': transport_failure} if transport_failure is not None else {}))
 
 
 def entry_archive(raw, expected_sha, expected_size, head, tree, run_id):

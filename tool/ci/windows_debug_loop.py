@@ -498,6 +498,8 @@ def analyze(parent, repo):
         'lib/utils/entry_capture_source.dart',
         'lib/screens/onboarding/import_wallet/import_wallet_seed_choice_screen.dart',
         'harness/app/native_entry_capture.dart',
+        'harness/app/entry_capture_progress.dart',
+        'test/harness/entry_capture_progress_test.dart',
         'lib/utils/reference_artwork_source.dart',
         'lib/utils/wallet_maintenance_binding.dart',
         'test/wallet_maintenance/wallet_maintenance_backend_capture_test.dart',
@@ -574,6 +576,8 @@ def analyze(parent, repo):
                                         else 'wallet_shell' if relative.endswith('/lib/widgets/main_app_container.dart')
                                         else 'addresses_view' if relative.endswith('/lib/widgets/modular_widgets/settings_widgets/addresses_settings_view.dart')
                                         else 'native_entry_capture' if relative.endswith('/harness/app/native_entry_capture.dart')
+                                        else 'entry_capture_progress' if relative.endswith('/harness/app/entry_capture_progress.dart')
+                                        else 'entry_capture_progress_test' if relative.endswith('/test/harness/entry_capture_progress_test.dart')
                                         else 'reference_artwork' if relative.endswith('/lib/utils/reference_artwork_source.dart')
                                         else 'maintenance_binding' if relative.endswith('/lib/utils/wallet_maintenance_binding.dart')
                                         else 'maintenance_backend_test' if relative.endswith('/test/wallet_maintenance/wallet_maintenance_backend_capture_test.dart')

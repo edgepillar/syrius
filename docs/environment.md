@@ -8490,3 +8490,38 @@ Current-source focused, full-root/build and native qualification remain separate
 Copied reopen/six effects, nineteen preparations and all 94 visual matches remain
 open. The main ledger stays 71/80. Earlier failures, UNKNOWNs and original history
 are retained; no failed profile/password or native experiment is retried.
+
+
+## Passive original entry-capture progress
+
+The source154 first Welcome-dark exchange retains HTTP_FAILED and zero received
+images; its exact transport class and pending internal effect remain unobserved.
+The current harness projects existing effect receipts, fixed phase/status labels,
+elapsed durations and restoration flags through already scheduled entry-state and
+verification replies. It separately classifies the actual retained HTTP exception
+without reading its message or arguments. There are no additional requests,
+entry reads, owner invocations, capture attempts or changed deadlines. Removing
+the instrumentation reconstructs the original native capture, controller and
+inspector acceptance paths. Diagnostic completion never substitutes for received
+PNG files. Six Python and three Dart regression cases cover closed projections,
+immutable snapshots, original pending/failing futures, a single transport failure,
+privacy refusals and zero-image acceptance boundaries. All 271 memory controls
+pass; hosted 773 Python/338 ordinary Dart/340 startup cases remain pending.
+
+At source155, focused 40794659226 qualifies 335 Dart and 767 Python cases with
+three existing Python skips, zero selected findings and normal complete asset
+commands. Native87 producer 40795507300 and independent reader 40799198321
+qualify the original index-1 one-ZNN UI send, twelve-page tour, quiescence and
+normal required app/entry/five-node exits. The copied child now reaches
+seed_admission after the original unlock and observation; settings_add_address
+remains disabled and its exact disabling predicate is unobserved. The producer
+failure, all four incomplete copied components and six incomplete effects remain.
+No disabled control is forced and no failed profile/password is retried.
+
+The source154 full Windows result remains separately bound: 4591 non-chain
+passes, two existing skips, root zero errors/warnings plus 1295 infos, vendored
+zero findings, original generation, Debug/Release and library checks. Current
+full-root/build, copied reopen, six effects, nineteen preparations and all 94
+visual matches remain unqualified. The main ledger stays 71/80. Original failures,
+UNKNOWNs, history and the reviewed source144 images remain preserved. No new
+local artifact transfer or shared-store task is started.

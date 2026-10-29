@@ -355,5 +355,58 @@ class WindowsQualificationTests(unittest.TestCase):
         self.assertNotIn('::notice title=Hosted entry not selected::', output)
 
 
+
+def failed_entry_progress_report():
+    report = entry_report(pixels())
+    report['checks'].update(welcome_dark=False, welcome_light=False,
+                           import_dark=False, import_light=False, entry_restored=False)
+    report['caption']['observations'] = dict.fromkeys(inspect.entry.CAPTION_CHECKS, False)
+    report.update(captures=[], capture_count=0, complete=False, success=False, status='UNKNOWN',
+        error_codes=['HTTP_FAILED', 'ENTRY_INVALID'],
+        first_command_failure=dict(category='EXCHANGE_FAILED', code='HTTP_FAILED',
+            http_status=None, phase='capture_welcome_dark', resize=None),
+        cleanup_failures=[dict(category='GUARD_FAILED', code='ENTRY_INVALID',
+            http_status=200, phase='entry_verify', resize=None)])
+    effect = dict(phase='original-native-frame', future='succeeded',
+                  failed=False, milliseconds=21001)
+    report['capture_progress'] = dict(schema=1, screen='welcome', theme='dark', scopes=1,
+        completedCaptures=1, effects=1, last=effect, slowest=dict(effect),
+        artworkCount=2, imageCreated=True, restoring=True, restored=True, held=False)
+    report['transport_failure'] = dict(phase='capture_welcome_dark', kind='TIMEOUT')
+    return report
+
+
+class EntryProgressInspectionTests(unittest.TestCase):
+    def test_diagnostics_cannot_replace_received_images_or_heal_original_failure(self):
+        report = failed_entry_progress_report()
+        value = inspect.entry_projection(report, HEAD, TREE, RUN)
+        self.assertEqual(value['capture_count'], 0)
+        self.assertEqual(value['capture_progress']['completedCaptures'], 1)
+        self.assertEqual(value['transport_failure']['kind'], 'TIMEOUT')
+        self.assertEqual(value['first_command_failure'], report['first_command_failure'])
+        self.assertEqual(value['original_error_codes'], ['HTTP_FAILED', 'ENTRY_INVALID'])
+        self.assertFalse(value['artifact_reported_success'])
+        self.assertEqual(value['visual_matches'], 0)
+        with contextlib.redirect_stdout(io.StringIO()):
+            inspect.emit('Hosted entry inspection', value)
+
+    def test_private_or_coerced_progress_and_unbound_transport_kinds_are_refused(self):
+        report = failed_entry_progress_report()
+        for field, change in (
+                ('capture_progress', dict(owner='private-context')),
+                ('capture_progress', dict(scopes=True)),
+                ('capture_progress', dict(completedCaptures=2)),
+                ('transport_failure', dict(kind='private-context')),
+                ('transport_failure', dict(kind=True)),
+                ('transport_failure', dict(phase='private-context')),
+                ('transport_failure', dict(error='private-context'))):
+            invalid = dict(report, **{field: dict(report[field], **change)})
+            with self.subTest(field=field), self.assertRaises(inspect.archive.Refused):
+                inspect.entry_projection(invalid, HEAD, TREE, RUN)
+        invalid = dict(report, error_codes=['ENTRY_INVALID'])
+        with self.assertRaises(inspect.archive.Refused):
+            inspect.entry_projection(invalid, HEAD, TREE, RUN)
+
+
 if __name__ == '__main__':
     unittest.main()

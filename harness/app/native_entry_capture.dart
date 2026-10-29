@@ -25,6 +25,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import 'capture_protocol.dart';
 import 'client_window.dart';
+import 'entry_capture_progress.dart';
 import 'native_window_owner.dart';
 import 'retained_renderer_frame.dart';
 
@@ -92,6 +93,7 @@ final class NativeEntryCapture {
           registry.held ||
           (_early != null && !_early!.current),
       'captures': _captures,
+      if (_scopes.isNotEmpty) 'captureProgress': _scopes.last.progress,
     };
   }
 
@@ -429,6 +431,7 @@ final class _EntryOwners {
 /// Each effect reserves a slot before invoking an original asynchronous call.
 final class _EntryEffect {
   _EntryEffect(this.name);
+  final Stopwatch elapsed = Stopwatch()..start();
   final String name;
   EntryCaptureCompletion? receipt;
   Object? error;
@@ -464,6 +467,22 @@ final class _EntryScope {
   bool restoring = false;
   bool restored = false;
   bool held = false;
+
+  // The last admitted scope is never replaced by requested values.
+  Map<String, Object?>? get progress => projectEntryCaptureProgress(
+    screen: plan.screen, theme: plan.theme, scopes: host._scopes.length,
+    completedCaptures: host._captures,
+    effects: <Map<String, Object?>>[
+      for (final _EntryEffect effect in effects) <String, Object?>{
+        'phase': effect.name,
+        'future': effect.receipt?.status.name ?? 'not_returned',
+        'failed': effect.error != null,
+        'milliseconds': effect.elapsed.elapsedMilliseconds,
+      },
+    ],
+    artworkCount: artwork.length, imageCreated: image != null,
+    restoring: restoring, restored: restored, held: held,
+  );
 
   bool current() {
     if (held) return false;
@@ -501,6 +520,8 @@ final class _EntryScope {
         ..error = error
         ..stack = stack;
       rethrow;
+    } finally {
+      effect.elapsed.stop();
     }
   }
 
