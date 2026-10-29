@@ -1500,3 +1500,16 @@ The exact focused contracts become 796 Python and 368 ordinary/370 startup
 Dart cases. Current hosted qualification remains pending. The main ledger
 stays 71 of 80, with nine open rows, nineteen literal preparations, ninety
 missing catalog outputs and zero of 94 accepted visual matches.
+
+
+### Original seed test cascade style
+
+Source172 `cdf1bd07ad71`, focused run `40888043736`, passes 796 Python
+cases with three existing skips and both original asset commands. Selected
+analysis has zero errors/warnings and five `CASCADE_INVOCATIONS` infos in
+`restored_seed_workflow_test.dart`; the strict gate refuses before Dart tests.
+Use cascades for those exact adjacent calls, retaining all original labels,
+inputs, snapshots, call order and assertions. The 796 Python and 368/370 Dart
+contracts stay exact. Unchanged Python/controller inputs reuse the 331 memory
+proof explicitly, with zero new local tests. Current engine and native
+qualification remain pending; the original source172 refusal is preserved.

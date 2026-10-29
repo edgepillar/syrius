@@ -164,9 +164,9 @@ void main() {
   });
 
   test('seed failure snapshots remain immutable after later observations', () {
-    final cli.SeedOperationTrace trace = cli.SeedOperationTrace('stake');
-    trace.at(cli.SeedOperationAction.check, cli.SeedOperationStep.owner,
-        commandIndex: 2);
+    final cli.SeedOperationTrace trace = cli.SeedOperationTrace('stake')
+      ..at(cli.SeedOperationAction.check, cli.SeedOperationStep.owner,
+          commandIndex: 2);
     final cli.SeedOperationFailure first = trace.failure(
       cli.Fail('synthetic-private-value'),
     );
@@ -205,9 +205,9 @@ void main() {
       () {
     final String code = cli.seedOperationReplyCodes.first;
     for (final String value in <String>[code, 'Seed refused: $code']) {
-      final cli.SeedOperationTrace trace = cli.SeedOperationTrace('stake');
-      trace.at(cli.SeedOperationAction.begin, cli.SeedOperationStep.reply);
-      trace.refusedReply(value);
+      final cli.SeedOperationTrace trace = cli.SeedOperationTrace('stake')
+        ..at(cli.SeedOperationAction.begin, cli.SeedOperationStep.reply)
+        ..refusedReply(value);
       expect(trace.failure(cli.Fail('synthetic-private-value'))
           .diagnostic['reason'], code);
     }
@@ -220,12 +220,13 @@ void main() {
   });
 
   test('publication entry describes the original call without acceptance', () {
-    final cli.SeedOperationTrace trace = cli.SeedOperationTrace('stake');
-    trace.at(cli.SeedOperationAction.publish, cli.SeedOperationStep.owner,
-        commandIndex: 7);
+    final cli.SeedOperationTrace trace = cli.SeedOperationTrace('stake')
+      ..at(cli.SeedOperationAction.publish, cli.SeedOperationStep.owner,
+          commandIndex: 7);
     final cli.SeedOperationFailure before = trace.failure(cli.Fail('private'));
-    trace.publicationCallEntered();
-    trace.at(cli.SeedOperationAction.publish, cli.SeedOperationStep.request);
+    trace
+      ..publicationCallEntered()
+      ..at(cli.SeedOperationAction.publish, cli.SeedOperationStep.request);
     final cli.SeedOperationFailure after = trace.failure(cli.Fail('private'));
     expect(before.diagnostic['publication_call_entered'], isFalse);
     expect(after.diagnostic['publication_call_entered'], isTrue);
@@ -250,9 +251,9 @@ void main() {
     expect(observed['recipe'], isNull);
     expect(observed['seed'], failure.diagnostic);
     expect(reopen.restoredChildFailure('unlock', failure), isNull);
-    final cli.SeedOperationTrace foreign = cli.SeedOperationTrace('private');
-    foreign.at(cli.SeedOperationAction.command, cli.SeedOperationStep.execute,
-        commandIndex: 100000);
+    final cli.SeedOperationTrace foreign = cli.SeedOperationTrace('private')
+      ..at(cli.SeedOperationAction.command, cli.SeedOperationStep.execute,
+          commandIndex: 100000);
     final cli.SeedOperationFailure held = foreign.failure(cli.Fail('private'));
     expect(held.diagnostic['recipe'], 'unknown');
     expect(held.diagnostic['command_index'], 0);
