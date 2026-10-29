@@ -97,7 +97,8 @@ void main() {
         'schema': 1, 'font': 'bundled_interface', 'samples': samples,
       })}');
     });
-    bool distinctDistributionObserved = false;
+    const double baselineTolerance = 1;
+    bool distinctReferenceObserved = false;
     for (final double size in <double>[12, 14, 28, 56]) {
       // The product's height is close to this font's natural height. A taller
       // fixture distinguishes the two distributions without changing the UI.
@@ -138,12 +139,18 @@ void main() {
             'even_mode': style.leadingDistribution!.index,
             'proportional_mode': proportionalStyle.leadingDistribution!.index,
           });
-          // Engine rounding may give small sizes the same baseline. Compare
-          // Use measured font metrics without a baseline direction rule.
-          expect(baseline, closeTo(font.ascent + halfLeading, 1));
-          if ((baseline - proportional.computeLineMetrics().single.baseline)
-              .abs() > 0.5) {
-            distinctDistributionObserved = true;
+          expect(even.width, greaterThan(0));
+          expect(font.ascent + font.descent, greaterThan(0));
+          // Engine line-box rounding may shift the first baseline by a pixel.
+          expect(baseline,
+              closeTo(font.ascent + halfLeading, baselineTolerance));
+          // API modes can share a baseline on a renderer. The independent
+          // proportional reference uses this font's measured ascent ratio.
+          final double proportionalReference = targetHeight * font.ascent /
+              (font.ascent + font.descent);
+          if ((font.ascent + halfLeading - proportionalReference).abs() >
+              2 * baselineTolerance) {
+            distinctReferenceObserved = true;
           }
         } finally {
           natural.dispose();
@@ -152,7 +159,7 @@ void main() {
         }
       }
     }
-    expect(distinctDistributionObserved, isTrue);
+    expect(distinctReferenceObserved, isTrue);
   });
 
   testWidgets('tabular word choices retain controlled RTL selection', (

@@ -8696,3 +8696,25 @@ Dart/347 startup observation and qualification remain pending. No production
 behavior, test count, deadline or input authority changes. Every previous failure,
 UNKNOWN and source158 full/image/native result remains separate. No local SDK or
 native wallet/node execution, artifact transfer or storage task is started.
+
+
+## Independent font reference after measured API equality
+
+Source164 focused 40828825090 retains 344 of 345 Dart passes, one final font
+API-contrast failure, 780 Python cases with three existing skips, zero selected
+findings and complete asset commands. Eight finite original samples bind to
+source, run and command output. Both API modes report equal baselines despite
+distinct mode properties; their underlying renderer equality cause is unobserved.
+Measured CSS half-leading agrees within the existing one-pixel rounding tolerance.
+
+The test retains actual width/height and CSS-baseline checks and requires positive
+width and natural font height. Its negative control uses the independent measured
+proportional ascent ratio, with references separated by more than twice the
+accepted tolerance. At size 12 and line height 2, the measured/CSS baseline is
+16.152 while the independent proportional reference is 18.5078. Original numeric
+observations remain unchanged; no renderer result is altered or relabelled.
+All 315 memory controls pass; hosted 780 Python/345 ordinary Dart/347 startup
+qualification remains pending. Production code, commands, counts, deadlines and
+all input, owner and clock behavior remain unchanged. Earlier failures, UNKNOWNs
+and source158 full/image/native results remain source-bound. No local SDK/native
+wallet/node execution, artifact transfer or storage task is started.
