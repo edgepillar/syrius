@@ -27,6 +27,81 @@ Map<String, Object> _stalled(Map<String, Object> frontier) => <String, Object>{
 };
 
 void main() {
+  Map<String, Object> pending(Map<String, Object> counts) =>
+      <String, Object>{
+        'phase': 'confirmation', 'reason': 'exact-confirmation-pending',
+        'confirmation': counts,
+      };
+  Map<String, Object> counts() => <String, Object>{
+    'polls': 18, 'absent': 7, 'unconfirmed': 11, 'last': 'unconfirmed',
+  };
+
+  test('completed confirmation counts are independently immutable', () {
+    for (final int absent in <int>[0, 7, 18]) {
+      final Map<String, Object> input = counts()
+        ..['absent'] = absent
+        ..['unconfirmed'] = 18 - absent
+        ..['last'] = absent == 18 ? 'absent' : 'unconfirmed';
+      final Map<String, Object> expected = Map<String, Object>.of(input);
+      final Map<String, Object> result =
+          labSendPublicDiagnostic(pending(input))!;
+      final Map<String, Object> observed =
+          result['confirmation']! as Map<String, Object>;
+      input['polls'] = 0;
+      expect(observed, expected);
+      expect(() => observed['polls'] = 0, throwsUnsupportedError);
+      expect(() => result['confirmation'] = counts(), throwsUnsupportedError);
+      expect(LabSendDiagnosticFailure(result).diagnostic, result);
+    }
+  });
+
+  test('confirmation counts reject private coercion and impossible totals', () {
+    for (final Map<String, Object?> change in <Map<String, Object?>>[
+      <String, Object?>{'polls': true},
+      <String, Object?>{'polls': 17},
+      <String, Object?>{'absent': 7.0},
+      <String, Object?>{'absent': -1},
+      <String, Object?>{'unconfirmed': 19},
+      <String, Object?>{'absent': 8},
+      <String, Object?>{'last': _PrivateValue()},
+      <String, Object?>{'last': 'confirmed'},
+      <String, Object?>{'last': 'absent\n'},
+      <String, Object?>{'hash': 'private'},
+      <String, Object?>{'absent': 18, 'unconfirmed': 0},
+    ]) {
+      expect(labSendPublicDiagnostic(<String, Object?>{
+        ...pending(counts()), 'confirmation': <String, Object?>{
+          ...counts(), ...change,
+        },
+      }), isNull);
+    }
+    for (final String key in counts().keys) {
+      expect(labSendPublicDiagnostic(pending(counts()..remove(key))), isNull);
+    }
+  });
+
+  test('confirmation exhaustion is scoped and legacy absence stays absent',
+      () {
+    for (final Map<String, Object> change in <Map<String, Object>>[
+      <String, Object>{'phase': 'preflight'},
+      <String, Object>{'reason': 'original-outcome-unknown'},
+      <String, Object>{'original': 'result_observed'},
+      <String, Object>{'frontier': _frontier()},
+      <String, Object>{'confirmed': true},
+      <String, Object>{'retry': true},
+    ]) {
+      expect(labSendPublicDiagnostic(<String, Object>{
+        ...pending(counts()), ...change,
+      }), isNull);
+    }
+    final Map<String, Object> legacy = <String, Object>{
+      'phase': 'confirmation', 'reason': 'exact-confirmation-pending',
+    };
+    expect(labSendPublicDiagnostic(legacy), legacy);
+    expect(labSendPublicDiagnostic(legacy)!.containsKey('confirmation'),
+        isFalse);
+  });
+
   test('stalled frontier facts are independent immutable original read values',
       () {
     final Map<String, Object> input = _frontier();

@@ -102,6 +102,9 @@ ORIGINAL_STATES = frozenset((
 ))
 
 
+CONFIRMATION_STATES = frozenset(('absent', 'unconfirmed'))
+
+
 FRONTIER_NUMBERS = frozenset((
     'ws_first_height', 'ws_last_height', 'ws_first_timestamp', 'ws_last_timestamp',
     'http_first_height', 'http_last_height', 'http_first_timestamp', 'http_last_timestamp',
@@ -131,13 +134,31 @@ def _frontier(value):
     return not all(advancing)
 
 
+def _confirmation(value):
+    if (type(value) is not dict or set(value) != {
+            'polls', 'absent', 'unconfirmed', 'last'}
+            or type(value['polls']) is not int or value['polls'] != 18
+            or any(type(value[key]) is not int or not 0 <= value[key] <= 18
+                   for key in ('absent', 'unconfirmed'))
+            or type(value['last']) is not str
+            or value['last'] not in CONFIRMATION_STATES):
+        return False
+    return (value['absent'] + value['unconfirmed'] == 18
+            and value[value['last']] > 0)
+
+
 def valid(value):
     if (type(value) is not dict or set(value) not in (
             {'phase', 'reason'}, {'phase', 'reason', 'original'},
-            {'phase', 'reason', 'frontier'})
+            {'phase', 'reason', 'frontier'},
+            {'phase', 'reason', 'confirmation'})
             or type(value['phase']) is not str or type(value['reason']) is not str
             or value['phase'] not in PHASES or value['reason'] not in REASONS):
         return False
+    if 'confirmation' in value:
+        return (value['phase'] == 'confirmation'
+                and value['reason'] == 'exact-confirmation-pending'
+                and _confirmation(value['confirmation']))
     if 'frontier' in value:
         return (value['phase'] == 'preflight'
                 and value['reason'] == 'advancing-momentum-required'

@@ -207,6 +207,54 @@ class AddressSelectionTests(unittest.TestCase):
 
 class LabSendDiagnosticTests(unittest.TestCase):
     @staticmethod
+    def confirmation():
+        return dict(stage='lab_send', code=None, diagnostic=dict(
+            phase='confirmation', reason='exact-confirmation-pending',
+            confirmation=dict(polls=18, absent=7, unconfirmed=11, last='unconfirmed')))
+
+    def test_completed_confirmation_counts_cannot_grant_send_or_closure(self):
+        for absent in (0, 7, 18):
+            value = self.confirmation()
+            value['diagnostic']['confirmation'].update(absent=absent,
+                unconfirmed=18 - absent, last='absent' if absent == 18 else 'unconfirmed')
+            self.assertIs(tour.entry_failure(value), value)
+            report = CompletionTests().report()
+            report.update(entry_exit=1, entry_failure=value, lab_send=None)
+            self.assertFalse(tour.completed(report))
+            report['lab_send'] = OriginalSendTests.receipt()
+            self.assertFalse(tour.completed(report))
+
+    def test_confirmation_counts_reject_private_coerced_missing_or_impossible_facts(self):
+        value = self.confirmation()
+        original = value['diagnostic']['confirmation']
+        for change in (dict(polls=True), dict(polls=17), dict(absent=7.0),
+                       dict(absent=-1), dict(unconfirmed=19), dict(absent=8),
+                       dict(last=None), dict(last=True), dict(last='confirmed'),
+                       dict(last='absent\n'), dict(hash='private'),
+                       dict(absent=18, unconfirmed=0)):
+            with self.subTest(change=change), self.assertRaises(tour.Refused):
+                tour.entry_failure(dict(value, diagnostic=dict(value['diagnostic'],
+                    confirmation=dict(original, **change))))
+        for key in original:
+            with self.subTest(missing=key), self.assertRaises(tour.Refused):
+                tour.entry_failure(dict(value, diagnostic=dict(value['diagnostic'],
+                    confirmation={label: fact for label, fact in original.items() if label != key})))
+
+    def test_confirmation_counts_are_scoped_without_reconstructing_legacy_reads(self):
+        value = self.confirmation()
+        for change in (dict(phase='preflight'), dict(reason='original-outcome-unknown'),
+                       dict(original='result_observed'), dict(frontier=self.stalled()['diagnostic']['frontier']),
+                       dict(confirmed=True), dict(retry=True)):
+            with self.subTest(change=change), self.assertRaises(tour.Refused):
+                tour.entry_failure(dict(value, diagnostic=dict(value['diagnostic'], **change)))
+        with self.assertRaises(tour.Refused):
+            tour.entry_failure(dict(value, stage='onboarding'))
+        legacy = dict(stage='lab_send', code=None, diagnostic=dict(
+            phase='confirmation', reason='exact-confirmation-pending'))
+        self.assertIs(tour.entry_failure(legacy), legacy)
+        self.assertNotIn('confirmation', legacy['diagnostic'])
+
+    @staticmethod
     def stalled():
         return dict(stage='lab_send', code=None, diagnostic=dict(
             phase='preflight', reason='advancing-momentum-required', frontier=dict(
@@ -292,7 +340,8 @@ class LabSendDiagnosticTests(unittest.TestCase):
         for name, expected in (('Phases', tour.lab_send_diagnostic.PHASES),
                                ('Reasons', tour.lab_send_diagnostic.REASONS),
                                ('OriginalStates', tour.lab_send_diagnostic.ORIGINAL_STATES),
-                               ('FrontierNumbers', tour.lab_send_diagnostic.FRONTIER_NUMBERS)):
+                               ('FrontierNumbers', tour.lab_send_diagnostic.FRONTIER_NUMBERS),
+                               ('ConfirmationStates', tour.lab_send_diagnostic.CONFIRMATION_STATES)):
             match = re.search(r'const Set<String> labSendFailure' + name +
                               r' = <String>\{(.*?)\};', source, re.S)
             self.assertIsNotNone(match)

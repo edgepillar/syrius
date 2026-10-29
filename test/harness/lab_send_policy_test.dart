@@ -74,7 +74,11 @@ final class _Source implements SeedSource {
   Future<SeedConfirmed?> Function(String hash)? onConfirmation;
   final List<SeedOriginal> publications = <SeedOriginal>[];
 
-  Future<void> delay(Duration duration) async => onDelay?.call();
+  final List<Duration> delays = <Duration>[];
+  Future<void> delay(Duration duration) async {
+    delays.add(duration);
+    onDelay?.call();
+  }
   @override
   Future<SeedFrontier> wsFrontier() async {
     reads++;
@@ -141,6 +145,104 @@ final class _Case {
 }
 
 void main() {
+  test('exhausted original reads expose only immutable finite counts',
+      () async {
+    for (final int mode in <int>[0, 18, 7, -9]) {
+      final _Case value = _Case();
+      value.source.positive = false;
+      expect(value.guard.pendingConfirmationObservation, isNull);
+      value.source.onConfirmation = (String hash) async {
+        expect(value.guard.pendingConfirmationObservation, isNull);
+        final int poll = value.source.confirmations;
+        final bool absent = mode < 0 ? poll.isEven : poll <= mode;
+        return absent ? null : value.source.receipt(hash);
+      };
+      await expectLater(value.run(), throwsA(isA<SeedRefused>()));
+      final int absent = mode < 0 ? 9 : mode;
+      final Map<String, Object> expected = <String, Object>{
+        'polls': 18, 'absent': absent, 'unconfirmed': 18 - absent,
+        'last': mode < 0 || mode == 18 ? 'absent' : 'unconfirmed',
+      };
+      final Map<String, Object> observed =
+          value.guard.pendingConfirmationObservation!;
+      expect(observed, expected);
+      expect(() => observed['polls'] = 0, throwsUnsupportedError);
+      expect(value.source.confirmations, 18);
+      expect(value.source.delays.where((Duration value) =>
+          value == const Duration(seconds: 2)), hasLength(18));
+      expect(value.guard.original, same(value.original));
+      expect(value.guard.acceptedHash, _hash(9));
+      expect(value.journal.confirmations, isEmpty);
+      final int reads = value.source.reads;
+      await expectLater(value.run(), throwsA(isA<SeedRefused>()));
+      expect(value.source.reads, reads);
+      expect(value.source.confirmations, 18);
+      expect(value.source.effects, 0);
+      expect(value.taps, 1);
+      expect(value.guard.pendingConfirmationObservation, expected);
+    }
+  });
+
+  test('a positive last original read does not export pending counts',
+      () async {
+    final _Case value = _Case();
+    value.source.onConfirmation = (String hash) async {
+      expect(value.guard.pendingConfirmationObservation, isNull);
+      return value.source.confirmations == 18
+          ? value.source.receipt(hash) : null;
+    };
+    expect(await value.run(), _hash(9));
+    expect(value.source.confirmations, 18);
+    expect(value.source.delays.where((Duration value) =>
+        value == const Duration(seconds: 2)), hasLength(17));
+    expect(value.guard.pendingConfirmationObservation, isNull);
+    expect(value.journal.confirmations[labSendRecipeId], _hash(9));
+    expect(value.taps, 1);
+  });
+
+  test('a refused last read cannot be counted as completed exhaustion',
+      () async {
+    for (final String failure in <String>['owner', 'receipt', 'original']) {
+      final _Case value = _Case();
+      value.source.onConfirmation = (String hash) async {
+        if (value.source.confirmations < 18) return null;
+        if (failure == 'owner') value.source.isCurrent = false;
+        if (failure == 'receipt') value.source.returnedHash = _hash(10);
+        if (failure == 'original') value.original.failed = true;
+        return value.source.receipt(hash);
+      };
+      await expectLater(value.run(), throwsA(isA<SeedRefused>()));
+      expect(value.source.confirmations, 18);
+      expect(value.guard.pendingConfirmationObservation, isNull);
+      expect(value.journal.confirmations, isEmpty);
+      expect(value.guard.acceptedHash, _hash(9));
+      expect(value.taps, 1);
+      await expectLater(value.run(), throwsA(isA<SeedRefused>()));
+      expect(value.source.confirmations, 18);
+    }
+  });
+
+  test('a timed out last read and its late answer add no completed sample',
+      () async {
+    final _Case value = _Case();
+    final Completer<SeedConfirmed?> answer = Completer<SeedConfirmed?>();
+    value.source.onConfirmation = (String hash) async {
+      if (value.source.confirmations < 18) return null;
+      return answer.future;
+    };
+    await expectLater(value.run(), throwsA(isA<TimeoutException>()));
+    expect(value.source.confirmations, 18);
+    expect(value.guard.pendingConfirmationObservation, isNull);
+    answer.complete(value.source.receipt(_hash(9)));
+    await Future<void>.delayed(Duration.zero);
+    expect(value.guard.pendingConfirmationObservation, isNull);
+    expect(value.journal.confirmations, isEmpty);
+    expect(value.guard.acceptedHash, _hash(9));
+    await expectLater(value.run(), throwsA(isA<SeedRefused>()));
+    expect(value.taps, 1);
+    expect(value.source.confirmations, 18);
+  });
+
   test('the fixed P09 purpose cannot use generic F06 publication', () async {
     final _Case value = _Case();
     final SeedGuard ordinary = SeedGuard(

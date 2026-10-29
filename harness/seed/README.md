@@ -1573,3 +1573,38 @@ clock or command deadline changes. Existing Python/controller inputs reuse the
 336 memory proof explicitly with zero new local tests. Exact 801 Python and
 369 ordinary/371 startup Dart contracts remain. Current engine qualification
 and the trim explanation stay pending; source174 original failure is retained.
+
+
+### Bounded original confirmation-read observations
+
+Source175 `bf55118f3f05`, focused `40900984533`, independently qualifies 801
+Python cases with three existing skips, 369 Dart passes, zero selected analysis
+findings and final source revalidation. The original and two-channel Welcome
+trim variant have equal mask-summary counts at thresholds 96 and 160 in both
+themes. This does not prove pixelwise equality, explain the remaining globe
+meridians, qualify normal playback or accept any visual match. The production
+asset, composition owner and clocks are unchanged. Source174's original
+three-info analysis refusal stays retained.
+
+Source173 Native92 `40891045480`, independently inspected by `40893406219`,
+ends at exact-confirmation-pending. No positive original receipt is observed;
+the original outcome remains UNKNOWN and the tour/copied components are
+unreached. The old report does not reveal whether its reads returned absent
+or unconfirmed blocks, and those values are not reconstructed retrospectively.
+
+Add passive counters after each existing nonpositive confirmation read. Only
+all eighteen completed reads may supply polls, absent, unconfirmed and the
+last closed result. The existing request-identity check binds the observation
+to its own original witness. There are no additional reads, delays, timeouts,
+publication calls or pointer actions. This observation grants no confirmation,
+retry, replacement or closure authority. Both Dart and Python refuse missing,
+private, coerced, misplaced or impossible values; nested Dart projections are
+independent and immutable. Legacy two-label diagnostics remain unchanged.
+
+Three Python cases join all 336 existing selected memory controls; all 339
+pass without native execution, network, scratch or shared-store access. Seven
+new Dart cases cover exhaustion, the positive last read, refused and timed-out
+last reads, late answers, immutable projection and closed scope. Those cases
+await hosted execution. Exact contracts become 804 Python, 376 ordinary Dart
+and 378 startup Dart. Current focused/native/full-root qualification, nineteen
+preparations, ninety catalog outputs and all 94 visual matches remain pending.

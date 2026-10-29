@@ -1200,6 +1200,13 @@ class HarnessAgent {
           identical(_labSendGuard?.original, review.witness)) {
         labels['original'] = review.witness.observedState;
       }
+      if (phase == 'confirmation' && reason == 'exact-confirmation-pending' &&
+          review != null &&
+          identical(_labSendGuard?.original, review.witness)) {
+        final Map<String, Object>? observation =
+            _labSendGuard?.pendingConfirmationObservation;
+        if (observation != null) labels['confirmation'] = observation;
+      }
       final Map<String, Object>? diagnostic = labSendPublicDiagnostic(
         labels,
       );

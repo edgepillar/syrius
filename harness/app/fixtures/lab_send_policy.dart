@@ -1,5 +1,7 @@
 import 'seed_policy.dart';
 
+enum LabSendConfirmationState { absent, unconfirmed }
+
 /// One P09 UI confirmation, observed through its identical original request.
 /// This policy never signs, submits, cancels or substitutes a wallet operation.
 final class LabSendGuard {
@@ -26,6 +28,20 @@ final class LabSendGuard {
   Object? _identity;
   String? _hash;
   final List<Object> _failures = <Object>[];
+  int _confirmationPolls = 0;
+  int _confirmationAbsent = 0;
+  int _confirmationUnconfirmed = 0;
+  LabSendConfirmationState? _confirmationLast;
+
+  /// Only completed original reads, with no receipt or retry authority.
+  Map<String, Object>? get pendingConfirmationObservation {
+    final LabSendConfirmationState? last = _confirmationLast;
+    if (_confirmationPolls != 18 || last == null) return null;
+    return Map<String, Object>.unmodifiable(<String, Object>{
+      'polls': _confirmationPolls, 'absent': _confirmationAbsent,
+      'unconfirmed': _confirmationUnconfirmed, 'last': last.name,
+    });
+  }
 
   String? get acceptedHash => _hash;
   SeedOriginal? get original => _original;
@@ -142,6 +158,14 @@ final class LabSendGuard {
         }
         journal.confirmed(labSendRecipeId, hash);
         return hash;
+      }
+      _confirmationPolls = poll + 1;
+      if (block == null) {
+        _confirmationAbsent++;
+        _confirmationLast = LabSendConfirmationState.absent;
+      } else {
+        _confirmationUnconfirmed++;
+        _confirmationLast = LabSendConfirmationState.unconfirmed;
       }
       await _delay(const Duration(seconds: 2));
     }

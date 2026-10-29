@@ -102,6 +102,12 @@ const Set<String> labSendFailureOriginalStates = <String>{
   'result_observed',
 };
 
+/// Closed results of completed reads, without a positive confirmation.
+const Set<String> labSendFailureConfirmationStates = <String>{
+  'absent',
+  'unconfirmed',
+};
+
 /// Numeric fields are finite original lab observations, never private input.
 const Set<String> labSendFailureFrontierNumbers = <String>{
   'ws_first_height',
@@ -153,6 +159,29 @@ Map<String, Object>? _frontierObservation(Object? value) {
   });
 }
 
+Map<String, Object>? _confirmationObservation(Object? value) {
+  if (value is! Map || value.length != 4 ||
+      !value.keys.toSet().containsAll(<String>{
+        'polls', 'absent', 'unconfirmed', 'last',
+      }) || value['polls'] is! int || value['polls'] != 18 ||
+      value['absent'] is! int || value['unconfirmed'] is! int ||
+      value['last'] is! String ||
+      !labSendFailureConfirmationStates.contains(value['last'])) {
+    return null;
+  }
+  final int absent = value['absent'] as int;
+  final int unconfirmed = value['unconfirmed'] as int;
+  final String last = value['last'] as String;
+  if (absent < 0 || absent > 18 || unconfirmed < 0 || unconfirmed > 18 ||
+      absent + unconfirmed != 18 ||
+      (last == 'absent' ? absent : unconfirmed) == 0) {
+    return null;
+  }
+  return Map<String, Object>.unmodifiable(<String, Object>{
+    'polls': 18, 'absent': absent, 'unconfirmed': unconfirmed, 'last': last,
+  });
+}
+
 /// Returns an independent immutable projection, or refuses the whole payload.
 Map<String, Object>? labSendPublicDiagnostic(Object? value) {
   if (value is! Map || (value.length != 2 && value.length != 3) ||
@@ -169,7 +198,16 @@ Map<String, Object>? labSendPublicDiagnostic(Object? value) {
       observation == null)) {
     return null;
   }
-  if (value.length == 3 && !frontier &&
+  final bool confirmation = value.containsKey('confirmation');
+  final Map<String, Object>? confirmationObservation = confirmation
+      ? _confirmationObservation(value['confirmation']) : null;
+  if (confirmation && (value.length != 3 ||
+      value['phase'] != 'confirmation' ||
+      value['reason'] != 'exact-confirmation-pending' ||
+      confirmationObservation == null)) {
+    return null;
+  }
+  if (value.length == 3 && !frontier && !confirmation &&
       (!value.containsKey('original') || value['phase'] != 'confirmation' ||
           value['reason'] != 'original-outcome-unknown' ||
           value['original'] is! String ||
@@ -180,6 +218,7 @@ Map<String, Object>? labSendPublicDiagnostic(Object? value) {
     'phase': value['phase'] as String, 'reason': value['reason'] as String,
     if (value.containsKey('original')) 'original': value['original'] as String,
     if (frontier) 'frontier': observation!,
+    if (confirmation) 'confirmation': confirmationObservation!,
   });
 }
 
