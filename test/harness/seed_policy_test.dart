@@ -743,7 +743,8 @@ void main() {
         route.complete(null);
       },
     );
-    SeedCommands commands(bool confirmed) => SeedCommands.withFixtureAdmission(
+    SeedCommands commands({required bool confirmed}) =>
+        SeedCommands.withFixtureAdmission(
       fixture: fixture, guard: guard, recipe: 'project',
       confirmed: confirmed, projectPresentation: presentation,
     );
@@ -752,10 +753,11 @@ void main() {
       ui: (_) async => throw StateError('Unexpected generic UI query'),
       tap: (_, _) async => throw StateError('Unexpected generic pointer'),
     );
-    await expectLater(finish(commands(false)), throwsA(isA<SeedRefused>()
+    await expectLater(finish(commands(confirmed: false)),
+      throwsA(isA<SeedRefused>()
         .having((SeedRefused error) => error.code,
             'code', 'exact-confirmation-required')));
-    final SeedCommands original = commands(true);
+    final SeedCommands original = commands(confirmed: true);
     await expectLater(finish(original), throwsA(isA<SeedRefused>()
         .having((SeedRefused error) => error.code,
             'code', 'close-current-fixture-first')));
@@ -764,7 +766,7 @@ void main() {
     final Object fixtureOwner = Object();
     fixture
       ..open(routeCompleted: Future<void>.value(),
-          push: () => Future<void>.value())
+          push: Future<void>.value)
       ..attach(fixtureOwner)
       ..dispose(owner: fixtureOwner, dispose: <void Function()>[],
           close: <Future<void> Function()>[], stateDisposed: () {});
@@ -799,7 +801,7 @@ void main() {
       final Object fixtureOwner = Object();
       fixture
         ..open(routeCompleted: Future<void>.value(),
-            push: () => Future<void>.value())
+            push: Future<void>.value)
         ..attach(fixtureOwner)
         ..dispose(owner: fixtureOwner, dispose: <void Function()>[],
             close: <Future<void> Function()>[], stateDisposed: () {});

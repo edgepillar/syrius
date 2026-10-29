@@ -25,17 +25,15 @@ abstract interface class AcceleratorActionPresentationSource {
 final class AcceleratorActionPresentation {
   /// Keeps opaque identities and a finite private copy of UI hashes.
   AcceleratorActionPresentation({
-    required Object owner,
-    required Object? source,
-    required Object? draft,
-    required int epoch,
-    required AcceleratorActionKind kind,
-    required bool current,
-    required bool submitted,
+    required this._owner,
+    required this._source,
+    required this._draft,
+    required this._epoch,
+    required this._kind,
+    required this._current,
+    required this._submitted,
     required List<String> hashes,
-  }) : _owner = owner, _source = source, _draft = draft, _epoch = epoch,
-       _kind = kind, _current = current, _submitted = submitted,
-       _hashes = List<String>.unmodifiable(hashes);
+  }) : _hashes = List<String>.unmodifiable(hashes);
 
   final Object _owner;
   final Object? _source;

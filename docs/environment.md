@@ -9329,3 +9329,35 @@ NOT_ESTABLISHED; no old profile, password, send or seed operation is retried.
 All nine main rows, ninety catalog outputs, nineteen preparations and all 94
 complete visual matches remain open. Earlier FAILURE and UNKNOWN evidence is
 not relabelled by the new source or future successful controls.
+
+
+### Preserve original Project initialization and clear explicit analysis findings
+
+Source184 755c42c4b5b4 / focused run 40962493382 retains its producer failure.
+All 812 Python cases pass with three existing skips and both original asset
+commands pass. The expanded analyzer observes zero errors/warnings and fourteen
+information findings: eleven prefer-initializing-formals findings in the
+original presentation policy and opaque view witness, one positional boolean
+in a test helper and two unnecessary test lambdas. Its normal complete zero
+process exit cannot bypass strict admission. The Dart stage remains skipped.
+The earlier source183 one-info refusal and all older outcomes remain preserved.
+
+Use initializing formals for the same eleven private original fields. Keep the
+same public named arguments, callback/owner/draft/route identities, timeout
+validation and immutable private UI hash copy. Make the existing test helper's
+boolean argument named and use two equivalent Future constructor tear-offs.
+No production action, UI callback, original guarded pointer, confirmation/effect
+predicate, chain read, publication, route or completed-receipt policy changes.
+Every explicit analysis path and zero-findings gate remains. No case is added
+or newly selected: contracts stay 812 Python and 408 ordinary/410 startup Dart.
+All 347 exact in-memory controls pass without local SDK, native wallet/node,
+network, scratch or shared-store access. Current engine, clean explicit analysis,
+fresh independent chain and full-root qualification remain pending.
+
+The last qualified engine baseline remains source182 with 400 Dart passes.
+Native95's original positive send/tour and copied deposit/Home refusal keep
+their exact source pins and NOT_ESTABLISHED inner cause. Source181 full Windows
+and all four reviewed entry pairs remain source181 evidence with zero accepted
+visual matches. No old profile/password/send/seed operation is retried. All
+nine main rows, ninety outputs, nineteen preparations and all 94 matches remain
+open. A future green result cannot relabel any earlier FAILURE or UNKNOWN.

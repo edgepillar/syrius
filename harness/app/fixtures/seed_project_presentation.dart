@@ -7,16 +7,12 @@ import 'seed_policy.dart';
 final class SeedProjectPresentation {
   /// Retains the original owner, exit and completed-route Future.
   SeedProjectPresentation({
-    required bool Function() originalCurrent,
-    required bool Function(String) submittedCurrent,
-    required Future<void> Function(void Function()) tapOriginalExit,
-    required Future<Object?> originalRouteCompleted,
+    required this._originalCurrent,
+    required this._submittedCurrent,
+    required this._tapOriginalExit,
+    required this._originalRouteCompleted,
     Duration closeTimeout = const Duration(seconds: 5),
-  }) : _originalCurrent = originalCurrent,
-       _submittedCurrent = submittedCurrent,
-       _tapOriginalExit = tapOriginalExit,
-       _originalRouteCompleted = originalRouteCompleted,
-       _closeTimeout = closeTimeout {
+  }) : _closeTimeout = closeTimeout {
     if (closeTimeout <= Duration.zero ||
         closeTimeout > const Duration(seconds: 5)) {
       throw ArgumentError('A bounded presentation close is required');
