@@ -9191,3 +9191,51 @@ the unmodified-input branch. All 344 selected memory controls pass against the
 changed exact ordinary/startup contracts of 391/393 Dart and 809 Python.
 Current production engine, native capture, natural motion, frame-time and
 full-root qualification remain pending. All 94 visual matches stay open.
+
+
+### Distinguish completed original seed confirmation and effect reads
+
+Source181 7a004f0f1b48 / focused run 40933703960 qualifies all 809 Python
+cases with three existing skips, 391 ordinary Dart cases, both original asset
+commands and zero selected analysis findings. The genuine production Welcome
+parse/cache/Future/clock case agrees with the independently measured nested-trim
+variant at frame 720 and improves all eight reference masks. It does not qualify
+natural motion, frame time or a complete visual pair.
+
+Full Windows run 40935310661, independently inspected by 40940311752, qualifies
+4628 non-chain passes with two existing skips, regeneration/localization
+correspondence, Debug and Release builds and identical mapped/exported libraries.
+Every original required command exits normally and completely with code zero.
+Root analysis has zero errors and warnings with 1295 existing information
+findings; vendored analysis has zero findings. Library initialization, the
+unfiltered chain suite and another source revision remain unqualified.
+
+The four new source181 entry captures are independently qualified; their local transfer and visual review remain queued. The earlier four source165 reviews retain zero accepted matches.
+
+Native94 retains its positive original UI send, twelve-page tour and normal
+quiescence/entry/five-node exits. Its copied child reaches fuse command seven
+and returns exact-confirmation-or-effect-pending. That old result contains no
+per-round distinction and remains unresolved; it is not reconstructed from a
+newer source and the old operation is not retried.
+
+Observe only the eighteen already scheduled original seed rounds. Count an
+absent original receipt, a matching but unconfirmed receipt, or a confirmed
+receipt whose existing effect read is still false. Export only a strict
+immutable five-field summary after all eighteen completed nonpositive rounds.
+Original success, receipt validation, effect predicates, journal, claims,
+publication, timeouts, delays and context guards remain. Incomplete reads or
+exceptions do not acquire an exhausted summary. The final positive round still
+returns the original success, and late completion cannot authorize another tap.
+
+Forward this optional summary only through the original publish/reply refusal
+for a known recipe after original call entry. Strict independent Dart and Python
+projections reject coerced, private, impossible or differently scoped payloads.
+Legacy diagnostics without counts retain their old shape. No new query,
+publication, signing, password input, retry or confirmation authority is added.
+Seven guard/projection and two trace cases are added, together with three Python
+projection cases. All 347 exact in-memory controls pass without local SDK,
+native wallet, node, network, scratch or shared-store access. The new hosted
+contracts are 812 Python cases and 400 ordinary/402 startup Dart cases; their
+engine and a fresh isolated chain-321 attempt remain pending. Full Windows and
+visual evidence above stay bound to source181. All nine main acceptance rows
+P03, P09, F06 and V01-V06 remain open: 71/80, or 88.75 percent by row count.

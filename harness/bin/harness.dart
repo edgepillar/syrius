@@ -905,6 +905,7 @@ class SeedOperationTrace {
   int _commandIndex = 0;
   bool _publicationCallEntered = false;
   String _replyCode = 'unknown';
+  Map<String, Object>? _confirmation;
 
   /// Marks a boundary without invoking, replacing or waiting on an operation.
   void at(SeedOperationAction action, SeedOperationStep step, {
@@ -914,14 +915,21 @@ class SeedOperationTrace {
     _step = step;
     if (commandIndex != null) _commandIndex = commandIndex;
     _replyCode = 'unknown';
+    _confirmation = null;
   }
 
   /// Marks entry to the original transport call, not delivery or acceptance.
   void publicationCallEntered() => _publicationCallEntered = true;
 
   /// Retains only an exact code from the already received original reply.
-  void refusedReply(Object? value) =>
-      _replyCode = seedOperationReplyCode(value);
+  void refusedReply(Object? value, {Object? confirmation}) {
+    _replyCode = seedOperationReplyCode(value);
+    _confirmation = seedRecipeIds.contains(_recipe) &&
+            _action == SeedOperationAction.publish &&
+            _step == SeedOperationStep.reply && _publicationCallEntered &&
+            _replyCode == 'exact-confirmation-or-effect-pending'
+        ? seedConfirmationProjection(confirmation) : null;
+  }
 
   /// Freezes metadata without reading the exception's message or stack.
   SeedOperationFailure failure(Object error) {
@@ -935,6 +943,8 @@ class SeedOperationTrace {
       StateError() => SeedOperationFailureKind.state,
       _ => SeedOperationFailureKind.other,
     };
+    final String reason = error is SeedRefused
+        ? seedOperationReplyCode(error.code) : _replyCode;
     return SeedOperationFailure._(<String, Object>{
       'schema': 1, 'scope': 'original_seed_operation_failure',
       'recipe': seedRecipeIds.contains(_recipe) ? _recipe : 'unknown',
@@ -943,8 +953,10 @@ class SeedOperationTrace {
           ? _commandIndex : 0,
       'publication_call_entered': _publicationCallEntered,
       'kind': kind.name,
-      'reason': error is SeedRefused
-          ? seedOperationReplyCode(error.code) : _replyCode,
+      'reason': reason,
+      if (kind == SeedOperationFailureKind.refused &&
+          reason == 'exact-confirmation-or-effect-pending' &&
+          _confirmation != null) 'confirmation': _confirmation!,
     });
   }
 }
@@ -997,7 +1009,10 @@ Future<Map<String, dynamic>> seed(
         .timeout(const Duration(seconds: 305));
     trace?.at(_seedOperationAction(fields['action']), SeedOperationStep.reply);
     if (result['ok'] != true) {
-      trace?.refusedReply(result['error']);
+      final Object? detail = result['detail'];
+      trace?.refusedReply(result['error'], confirmation:
+          detail is Map<String, dynamic> && detail.length == 1
+              ? detail['seedConfirmation'] : null);
       throw Fail('seed refused: ${result['error']}');
     }
     return result;

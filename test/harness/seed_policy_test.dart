@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../harness/app/fixtures/seed_policy.dart';
@@ -84,6 +86,8 @@ class _Source implements SeedSource {
   bool agreement = true;
   bool effectPresent = true;
   bool positiveConfirmation = true;
+  Future<SeedConfirmed?> Function()? onConfirmation;
+  Future<bool> Function()? onEffect;
   bool targetMatches = true;
   int wsReads = 0;
   int httpReads = 0;
@@ -134,6 +138,7 @@ class _Source implements SeedSource {
   @override
   Future<SeedConfirmed?> confirmed(String recipe, String hash) async {
     confirmationReads++;
+    if (onConfirmation != null) return onConfirmation!();
     return SeedConfirmed(
       hash: receiptHash ?? hash,
       owner: receiptOwner,
@@ -146,6 +151,7 @@ class _Source implements SeedSource {
   @override
   Future<bool> effect(String recipe, String hash) async {
     effectReads++;
+    if (onEffect != null) return onEffect!();
     return effectPresent;
   }
 }
@@ -543,4 +549,168 @@ void main() {
       expect(taps, 1);
     },
   );
+
+  test('eighteen absent seed reads retain one held original attempt', () async {
+    source.onConfirmation = () async => null;
+    int taps = 0;
+    Future<void> tap() async {
+      taps++;
+      source.operations.add(_Original());
+    }
+    SeedRefused? refusal;
+    try {
+      await guard.publish('fuse', tap);
+    } on SeedRefused catch (error) {
+      refusal = error;
+    }
+    expect(refusal?.code, 'exact-confirmation-or-effect-pending');
+    expect(refusal?.confirmation?.public, <String, Object>{
+      'polls': 18, 'absent': 18, 'unconfirmed': 0,
+      'effect_pending': 0, 'last': 'absent',
+    });
+    expect(source.confirmationReads, 18);
+    expect(source.effectReads, 0);
+    expect(source.delays, 19);
+    expect(taps, 1);
+    expect(journal.acceptedHashes, <String, String>{'fuse': _hash(9)});
+    expect(journal.confirmedHashes, isEmpty);
+    await expectLater(guard.publish('fuse', tap),
+        throwsA(isA<SeedRefused>()));
+    expect(taps, 1);
+    expect(source.confirmationReads, 18);
+  });
+
+  test('completed seed rounds distinguish absence confirmation and effect',
+      () async {
+    source
+      ..effectPresent = false
+      ..onConfirmation = () async {
+        if (source.confirmationReads <= 6) return null;
+        return SeedConfirmed(
+          hash: _hash(9), owner: 'owner', chain: 321, matchesRecipe: true,
+          positiveConfirmation: source.confirmationReads > 12,
+        );
+      };
+    SeedRefused? refusal;
+    try {
+      await guard.publish('fuse', () async {
+        source.operations.add(_Original());
+      });
+    } on SeedRefused catch (error) {
+      refusal = error;
+    }
+    final Map<String, Object> observed = refusal!.confirmation!.public;
+    expect(observed, <String, Object>{
+      'polls': 18, 'absent': 6, 'unconfirmed': 6,
+      'effect_pending': 6, 'last': 'effect_pending',
+    });
+    expect(() => observed['polls'] = 0, throwsUnsupportedError);
+    expect(source.confirmationReads, 18);
+    expect(source.effectReads, 6);
+    expect(source.delays, 19);
+    expect(journal.confirmedHashes, isEmpty);
+  });
+
+  test('a positive last seed round keeps its exact original success', () async {
+    source.onConfirmation = () async => source.confirmationReads == 18
+        ? SeedConfirmed(hash: _hash(9), owner: 'owner', chain: 321,
+            positiveConfirmation: true, matchesRecipe: true)
+        : null;
+    expect(await guard.publish('fuse', () async {
+      source.operations.add(_Original());
+    }), _hash(9));
+    expect(source.confirmationReads, 18);
+    expect(source.effectReads, 1);
+    expect(source.delays, 18);
+    expect(journal.confirmedHashes, <String, String>{'fuse': _hash(9)});
+  });
+
+  test('an incomplete last effect never produces exhausted seed counts',
+      () async {
+    final Completer<bool> late = Completer<bool>();
+    source.onEffect = () => source.effectReads == 18
+        ? late.future : Future<bool>.value(false);
+    final SeedGuard bounded = SeedGuard(source: source, journal: journal,
+      delay: source.delay, readTimeout: const Duration(milliseconds: 1));
+    await expectLater(bounded.publish('fuse', () async {
+      source.operations.add(_Original());
+    }), throwsA(isA<TimeoutException>()));
+    expect(source.confirmationReads, 18);
+    expect(source.effectReads, 18);
+    expect(source.delays, 18);
+    expect(journal.confirmedHashes, isEmpty);
+    late.complete(false);
+    await Future<void>.delayed(Duration.zero);
+    expect(journal.confirmedHashes, isEmpty);
+    expect(source.effectReads, 18);
+    await expectLater(bounded.publish('fuse', () async {
+      fail('An incomplete original must not be retried');
+    }), throwsA(isA<SeedRefused>()));
+    expect(source.effectReads, 18);
+  });
+
+  test('seed count projections retain bounded immutable completed rounds', () {
+    for (final String last in <String>[
+      'absent', 'unconfirmed', 'effect_pending',
+    ]) {
+      final Map<String, Object> offered = <String, Object>{
+        'polls': 18, 'absent': 6, 'unconfirmed': 6,
+        'effect_pending': 6, 'last': last,
+      };
+      final Map<String, Object> observed =
+          seedConfirmationProjection(offered)!;
+      expect(observed, offered);
+      offered['absent'] = 0;
+      expect(observed['absent'], 6);
+      expect(() => observed['polls'] = 0, throwsUnsupportedError);
+    }
+  });
+
+  test('seed count projections refuse coerced private and impossible data', () {
+    const Map<String, Object> valid = <String, Object>{
+      'polls': 18, 'absent': 6, 'unconfirmed': 6,
+      'effect_pending': 6, 'last': 'effect_pending',
+    };
+    for (final Map<String, Object?> change in <Map<String, Object?>>[
+      <String, Object?>{'polls': true}, <String, Object?>{'polls': 17},
+      <String, Object?>{'absent': -1}, <String, Object?>{'absent': 19},
+      <String, Object?>{'unconfirmed': 6.0},
+      <String, Object?>{'effect_pending': null},
+      <String, Object?>{'effect_pending': 5},
+      <String, Object?>{'last': 'synthetic-private-value'},
+      <String, Object?>{'hash': 'synthetic-private-value'},
+    ]) {
+      expect(seedConfirmationProjection(<String, Object?>{
+        ...valid, ...change,
+      }), isNull);
+    }
+    for (final String missing in valid.keys) {
+      expect(seedConfirmationProjection(<String, Object>{
+        for (final String key in valid.keys)
+          if (key != missing) key: valid[key]!,
+      }), isNull);
+    }
+    for (final Object? value in <Object?>[null, true, <Object>[], 'private']) {
+      expect(seedConfirmationProjection(value), isNull);
+    }
+  });
+
+  test('seed projections require a possible last result without authority', () {
+    expect(seedConfirmationProjection(<String, Object>{
+      'polls': 18, 'absent': 18, 'unconfirmed': 0,
+      'effect_pending': 0, 'last': 'effect_pending',
+    }), isNull);
+    final Map<String, Object> observed = seedConfirmationProjection(
+      <String, Object>{
+        'polls': 18, 'absent': 0, 'unconfirmed': 0,
+        'effect_pending': 18, 'last': 'effect_pending',
+      },
+    )!;
+    for (final String key in <String>[
+      'confirmed', 'complete', 'hash', 'retry', 'success', 'address',
+    ]) {
+      expect(observed.containsKey(key), isFalse);
+    }
+    expect(seedConfirmationProjection(null), isNull);
+  });
 }

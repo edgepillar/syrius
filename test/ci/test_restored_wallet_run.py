@@ -747,6 +747,69 @@ class FilesystemTests(unittest.TestCase):
 
 class SeedFailureProjectionTests(unittest.TestCase):
     @staticmethod
+    def counts(**changes):
+        value = dict(polls=18, absent=6, unconfirmed=6,
+                     effect_pending=6, last='effect_pending')
+        value.update(changes)
+        return value
+
+    def exhausted(self, **changes):
+        return self.seed(recipe='fuse', action='publish', step='reply',
+            command_index=7, publication_call_entered=True, kind='refused',
+            reason='exact-confirmation-or-effect-pending',
+            confirmation=self.counts(), **changes)
+
+    def test_exhausted_original_seed_rounds_remain_copied_observations(self):
+        for last in ('absent', 'unconfirmed', 'effect_pending'):
+            offered = self.exhausted()
+            offered['confirmation']['last'] = last
+            result = restored.seed_failure_projection(offered, 'seed_fuse')
+            self.assertEqual(result, offered)
+            self.assertIsNot(result['confirmation'], offered['confirmation'])
+            offered['confirmation']['absent'] = 0
+            self.assertEqual(result['confirmation']['absent'], 6)
+            child = self.child(result)
+            self.assertEqual(restored.child_failure_projection(child)['seed'], result)
+        legacy = self.seed()
+        self.assertNotIn('confirmation', restored.seed_failure_projection(legacy, 'seed_stake'))
+        for key in ('confirmed', 'complete', 'hash', 'retry', 'success', 'address'):
+            self.assertNotIn(key, result['confirmation'])
+
+    def test_seed_counts_refuse_unknown_coerced_missing_and_impossible_values(self):
+        changes = (dict(polls=True), dict(polls=17), dict(absent=-1),
+            dict(absent=19), dict(unconfirmed=6.0), dict(effect_pending=None),
+            dict(effect_pending=5), dict(last='private'), dict(hash='private'),
+            dict(path='private'), dict(absent=18, unconfirmed=0, effect_pending=0))
+        for change in changes:
+            offered = self.exhausted()
+            offered['confirmation'] = self.counts(**change)
+            with self.subTest(change=change), self.assertRaises(restored.checkpoint.Refused):
+                restored.seed_failure_projection(offered, 'seed_fuse')
+        for key in self.counts():
+            offered = self.exhausted()
+            del offered['confirmation'][key]
+            with self.assertRaises(restored.checkpoint.Refused):
+                restored.seed_failure_projection(offered, 'seed_fuse')
+        for value in (None, True, [], 'private'):
+            offered = self.exhausted()
+            offered['confirmation'] = value
+            with self.assertRaises(restored.checkpoint.Refused):
+                restored.seed_failure_projection(offered, 'seed_fuse')
+
+    def test_seed_counts_cannot_relabel_another_original_boundary(self):
+        for change in (dict(action='check', step='owner'),
+                dict(action='publish', step='request'), dict(reason='unknown'),
+                dict(kind='timeout'), dict(publication_call_entered=False)):
+            offered = self.exhausted()
+            offered.update(change)
+            with self.subTest(change=change), self.assertRaises(restored.checkpoint.Refused):
+                restored.seed_failure_projection(offered, 'seed_fuse')
+        offered = self.exhausted()
+        for phase in ('seed_stake', 'unlock', 'seed_admission'):
+            with self.assertRaises(restored.checkpoint.Refused):
+                restored.seed_failure_projection(offered, phase)
+
+    @staticmethod
     def seed(**changes):
         value = dict(schema=1, scope='original_seed_operation_failure',
             recipe='stake', action='begin', step='reply', command_index=0,

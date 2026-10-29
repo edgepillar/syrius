@@ -844,7 +844,12 @@ class HarnessAgent {
                 _tap(selector, requireAdmission: admission),
           );
         } on SeedRefused catch (error) {
-          throw HarnessError(error.code);
+          final Map<String, Object>? confirmation =
+              c['action'] == 'publish' &&
+                  error.code == 'exact-confirmation-or-effect-pending'
+              ? seedConfirmationProjection(error.confirmation?.public) : null;
+          throw HarnessError(error.code, confirmation == null ? null :
+              <String, Object>{'seedConfirmation': confirmation});
         }
       case 'lab-send':
         return _labSend(c);

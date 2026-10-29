@@ -267,4 +267,67 @@ void main() {
       'code': null, 'recipe': null,
     });
   });
+
+  test('original exhausted seed counts survive as an immutable failure', () {
+    final Map<String, Object> counts = <String, Object>{
+      'polls': 18, 'absent': 6, 'unconfirmed': 6,
+      'effect_pending': 6, 'last': 'effect_pending',
+    };
+    final cli.SeedOperationTrace trace = cli.SeedOperationTrace('fuse')
+      ..at(cli.SeedOperationAction.publish, cli.SeedOperationStep.reply,
+          commandIndex: 7)
+      ..publicationCallEntered()
+      ..refusedReply('exact-confirmation-or-effect-pending',
+          confirmation: counts);
+    final cli.SeedOperationFailure first = trace.failure(cli.Fail('private'));
+    final Map<String, Object> observed =
+        first.diagnostic['confirmation']! as Map<String, Object>;
+    counts['absent'] = 0;
+    expect(observed['absent'], 6);
+    expect(() => observed['polls'] = 0, throwsUnsupportedError);
+    expect(reopen.restoredChildFailure('seed_fuse', first)!['seed'],
+        first.diagnostic);
+    trace.at(cli.SeedOperationAction.check, cli.SeedOperationStep.owner);
+    expect(trace.failure(cli.Fail('private')).diagnostic
+        .containsKey('confirmation'), isFalse);
+    expect(observed['absent'], 6);
+    expect(reopen.restoredChildFailure('seed_stake', first), isNull);
+  });
+
+  test('seed count labels cannot move across original reply boundaries', () {
+    const Map<String, Object> counts = <String, Object>{
+      'polls': 18, 'absent': 6, 'unconfirmed': 6,
+      'effect_pending': 6, 'last': 'effect_pending',
+    };
+    for (final (cli.SeedOperationAction, cli.SeedOperationStep) boundary in
+        <(cli.SeedOperationAction, cli.SeedOperationStep)>[
+      (cli.SeedOperationAction.publish, cli.SeedOperationStep.owner),
+      (cli.SeedOperationAction.publish, cli.SeedOperationStep.request),
+      (cli.SeedOperationAction.command, cli.SeedOperationStep.execute),
+      (cli.SeedOperationAction.finish, cli.SeedOperationStep.reply),
+    ]) {
+      final cli.SeedOperationTrace trace = cli.SeedOperationTrace('fuse')
+        ..at(boundary.$1, boundary.$2, commandIndex: 7)
+        ..publicationCallEntered()
+        ..refusedReply('exact-confirmation-or-effect-pending',
+            confirmation: counts);
+      expect(trace.failure(cli.Fail('private')).diagnostic
+          .containsKey('confirmation'), isFalse);
+    }
+    final cli.SeedOperationTrace trace = cli.SeedOperationTrace('fuse')
+      ..at(cli.SeedOperationAction.publish, cli.SeedOperationStep.reply,
+          commandIndex: 7)
+      ..publicationCallEntered()
+      ..refusedReply('unknown', confirmation: counts);
+    expect(trace.failure(cli.Fail('private')).diagnostic
+        .containsKey('confirmation'), isFalse);
+    trace.refusedReply('exact-confirmation-or-effect-pending',
+        confirmation: <String, Object>{...counts, 'path': 'private'});
+    expect(trace.failure(cli.Fail('private')).diagnostic
+        .containsKey('confirmation'), isFalse);
+    trace.refusedReply('exact-confirmation-or-effect-pending',
+        confirmation: counts);
+    expect(trace.failure(TimeoutException('private')).diagnostic
+        .containsKey('confirmation'), isFalse);
+  });
 }

@@ -15,11 +15,74 @@ const Set<String> seedRecipeIds = <String>{
 };
 
 final class SeedRefused implements Exception {
-  const SeedRefused(this.code, {this.frontier});
+  const SeedRefused(this.code, {this.frontier, this.confirmation});
   final String code;
   final SeedAdvanceObservation? frontier;
+  final SeedConfirmationObservation? confirmation;
   @override
   String toString() => 'Seed refused: $code';
+}
+
+/// Completed nonpositive rounds from the original eighteen seed reads only.
+/// These counts contain no receipt, wallet identity or operation authority.
+final class SeedConfirmationObservation {
+  const SeedConfirmationObservation._({
+    required this.absent,
+    required this.unconfirmed,
+    required this.effectPending,
+    required this.last,
+  });
+
+  final int absent;
+  final int unconfirmed;
+  final int effectPending;
+  final SeedPendingResult last;
+
+  Map<String, Object> get public =>
+      Map<String, Object>.unmodifiable(<String, Object>{
+        'polls': absent + unconfirmed + effectPending,
+        'absent': absent, 'unconfirmed': unconfirmed,
+        'effect_pending': effectPending,
+        'last': switch (last) {
+          SeedPendingResult.absent => 'absent',
+          SeedPendingResult.unconfirmed => 'unconfirmed',
+          SeedPendingResult.effectPending => 'effect_pending',
+        },
+      });
+}
+
+enum SeedPendingResult { absent, unconfirmed, effectPending }
+
+/// A bounded copy of completed original negative reads, without authority.
+Map<String, Object>? seedConfirmationProjection(Object? value) {
+  const Set<String> fields = <String>{
+    'polls', 'absent', 'unconfirmed', 'effect_pending', 'last',
+  };
+  if (value is! Map<String, Object?> || value.length != fields.length ||
+      !value.keys.toSet().containsAll(fields)) {
+    return null;
+  }
+  final Object? polls = value['polls'];
+  final Object? absent = value['absent'];
+  final Object? unconfirmed = value['unconfirmed'];
+  final Object? pending = value['effect_pending'];
+  final Object? last = value['last'];
+  if (polls is! int || polls != 18 || absent is! int ||
+      unconfirmed is! int || pending is! int || last is! String ||
+      absent < 0 || absent > 18 || unconfirmed < 0 || unconfirmed > 18 ||
+      pending < 0 || pending > 18 || absent + unconfirmed + pending != 18 ||
+      !<String>{'absent', 'unconfirmed', 'effect_pending'}.contains(last)) {
+    return null;
+  }
+  if (last == 'absent' && absent == 0 ||
+      last == 'unconfirmed' && unconfirmed == 0 ||
+      last == 'effect_pending' && pending == 0) {
+    return null;
+  }
+  return Map<String, Object>.unmodifiable(<String, Object>{
+    'polls': 18, 'absent': absent, 'unconfirmed': unconfirmed,
+    'effect_pending': pending, 'last': last,
+  });
 }
 
 final class SeedEnvironment {
@@ -362,6 +425,10 @@ final class SeedGuard {
       throw const SeedRefused('original-outcome-unknown');
     }
     final String hash = _hash!;
+    int absent = 0;
+    int unconfirmed = 0;
+    int effectPending = 0;
+    SeedPendingResult last = SeedPendingResult.absent;
     for (int poll = 0; poll < 18; poll++) {
       final SeedConfirmed? block = await _read(
         () => source.confirmed(recipe, hash),
@@ -373,14 +440,28 @@ final class SeedGuard {
               !block.matchesRecipe)) {
         throw const SeedRefused('exact-original-receipt-mismatch');
       }
-      if (block?.positiveConfirmation == true &&
-          await _read(() => source.effect(recipe, hash))) {
-        requireCurrent();
-        journal.confirmed(recipe, hash);
-        return hash;
+      if (block?.positiveConfirmation == true) {
+        if (await _read(() => source.effect(recipe, hash))) {
+          requireCurrent();
+          journal.confirmed(recipe, hash);
+          return hash;
+        }
+        effectPending++;
+        last = SeedPendingResult.effectPending;
+      } else if (block == null) {
+        absent++;
+        last = SeedPendingResult.absent;
+      } else {
+        unconfirmed++;
+        last = SeedPendingResult.unconfirmed;
       }
       await _delay(const Duration(seconds: 2));
     }
-    throw const SeedRefused('exact-confirmation-or-effect-pending');
+    throw SeedRefused('exact-confirmation-or-effect-pending',
+      confirmation: SeedConfirmationObservation._(
+        absent: absent, unconfirmed: unconfirmed,
+        effectPending: effectPending, last: last,
+      ),
+    );
   }
 }

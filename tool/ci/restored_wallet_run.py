@@ -174,11 +174,25 @@ SEED_REPLY_CODES = frozenset((
 ))
 
 
+def seed_confirmation_projection(value):
+    """Only eighteen completed negative original rounds; no operation data."""
+    fields = {'polls', 'absent', 'unconfirmed', 'effect_pending', 'last'}
+    checkpoint.need(type(value) is dict and set(value) == fields
+        and type(value['polls']) is int and value['polls'] == 18
+        and all(type(value[key]) is int and 0 <= value[key] <= 18
+                for key in ('absent', 'unconfirmed', 'effect_pending'))
+        and value['absent'] + value['unconfirmed'] + value['effect_pending'] == 18
+        and type(value['last']) is str
+        and value['last'] in {'absent', 'unconfirmed', 'effect_pending'}
+        and value[value['last']] > 0)
+    return dict(value)
+
+
 def seed_failure_projection(value, phase):
     """Only the failed original operation is data; no input or authority."""
     fields = {'schema', 'scope', 'recipe', 'action', 'step', 'command_index',
               'publication_call_entered', 'kind', 'reason'}
-    checkpoint.need(type(value) is dict and set(value) == fields
+    checkpoint.need(type(value) is dict and set(value) in (fields, fields | {'confirmation'})
         and type(value['schema']) is int and value['schema'] == 1
         and type(value['scope']) is str
         and value['scope'] == 'original_seed_operation_failure'
@@ -208,7 +222,13 @@ def seed_failure_projection(value, phase):
         checkpoint.need(entered is True)
     if value['reason'] != 'unknown':
         checkpoint.need(value['kind'] == 'refused')
-    return dict(value)
+    result = dict(value)
+    if 'confirmation' in value:
+        checkpoint.need(action == 'publish' and step == 'reply' and entered
+            and value['kind'] == 'refused'
+            and value['reason'] == 'exact-confirmation-or-effect-pending')
+        result['confirmation'] = seed_confirmation_projection(value['confirmation'])
+    return result
 
 
 def child_failure_projection(value):
