@@ -8926,3 +8926,44 @@ inputs, snapshots, call order and assertions. The 796 Python and 368/370 Dart
 contracts stay exact. Unchanged Python/controller inputs reuse the 331 memory
 proof explicitly, with zero new local tests. Current engine and native
 qualification remain pending; the original source172 refusal is preserved.
+
+
+## Original confirmation refusal and bounded Welcome renderer measurement
+
+Source173 `ad0fcd275f18`, focused `40889631354`, qualifies 796 Python cases
+with three existing skips, all 368 ordinary Dart cases, zero selected findings,
+both original asset commands and final source revalidation. All five seed
+operation cases, six projection/privacy cases and the cascade style pass.
+Source172's original five-info refusal and skipped Dart stage remain preserved.
+
+Native92 `40891045480`, independently inspected by `40893406219`, passes those
+same test gates, then stops at original send confirmation with
+`exact-confirmation-pending`. No positive original confirmation or effect is
+qualified; its send outcome remains UNKNOWN. The entry exits one with complete
+retained output, required actor cleanup is forced and all five original nodes
+exit zero normally. Page tour and copied checkpoint/reopen/seed components are
+unreached. False end-source/input-preservation checks remain unqualified and
+are not interpreted as proof of source mutation. No failed profile, password
+or original send is retried. Source171's positive original tour and separate
+unobserved first seed refusal retain their own source binding.
+
+The new renderer case extends the existing artwork-owner suite. It reads the
+original pinned Welcome asset and both pinned reference PNGs, draws frame 720
+at the original 470-pixel viewport, and compares bounded green-pixel masks at
+two thresholds. A test-only deep clone swaps the two trim channels in the
+first original layer while retaining keyframe times and offsets. The shipped
+asset, application playback owner and clocks stay unchanged. Four numeric
+samples retain original and variant overlap, extra and missing counts. They
+prove no visual match and make no assumption that the variant improves it.
+
+Only exact finite fields cross the original test-command boundary. Duplicate
+JSON keys, private/unknown fields, coerced or unbounded values, impossible mask
+unions, reordered/duplicate samples and incomplete output are refused. Empty
+measurements remain numeric observations with nonempty false. Five genuine
+Python controls pass with the existing 331 controls: all 336, with no errors,
+failures, skips or blocked I/O. This proof binds the identical five runtime/test
+candidate files; documentation is checked separately. No local SDK or renderer
+runs. The exact new hosted contracts are 801 Python and 369 ordinary/371 startup
+Dart cases. Current engine results and the actual trim cause remain pending.
+The main ledger stays 71 of 80; all nine main open rows, nineteen preparations,
+ninety missing catalog outputs and zero of 94 accepted visual matches remain.
