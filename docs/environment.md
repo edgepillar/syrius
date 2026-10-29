@@ -9154,3 +9154,40 @@ reference, production widget or application clock. The unchanged Python inputs
 retain their source179 809-case hosted result and earlier 344 memory controls;
 those are prior evidence, not tests of this new revision. Current selected
 analysis and the 390 ordinary/392 startup Dart contracts remain pending.
+
+
+### Apply the measured original Welcome trim compatibility correction
+
+Source180 5d6a8d35541e / 40930522634 qualifies 809 Python cases with three
+existing skips, all 390 ordinary Dart cases, both original asset commands and
+zero selected findings. Its original font and Welcome measurements are bound
+to that source, run and actual complete command output. Source179's four-info
+analysis refusal and unexecuted renderer stage remain preserved.
+
+At frame 720 of 1800, simply swapping all four nested trim channels changes
+zero RGBA pixels. Moving the stroke into each nested trim group changes the
+render but removes too many wanted paths. The separately measured flattened
+and swapped variant improves every theme/threshold sample: the eight-sample
+sum of extra-plus-missing mask pixels falls from 19409 to 5313. This sum counts
+eight overlapping measurements, not unique pixels or accepted visual pairs.
+Six thousand five hundred nineteen actual RGBA pixels change at that frame.
+
+Scope the production correction to the exact original Welcome asset path,
+length and SHA-256 digest. All other asset inputs retain their original parser
+bytes. Check the known group types and eight static identity transforms, clone
+the existing stroke beside each of the four individual trims, flatten only
+the verified identity path groups and exchange those four original start/end
+channel payloads. Original asset files, image data, reference PNGs, dimensions,
+keyframe payloads and duration remain. The correction runs in the existing
+parse isolate and returns through the same cache entry and Future. Original
+playback, pause, visibility, sampling and restoration owners remain.
+
+One genuine new engine case loads through the production cache/isolate path,
+compares its RGBA result with the independently measured test-only variant,
+checks improvement against both original reference crops at all four thresholds,
+and observes the identical original Future, composition and running clock
+through sampling/restoration. Existing fake-asset ownership cases also retain
+the unmodified-input branch. All 344 selected memory controls pass against the
+changed exact ordinary/startup contracts of 391/393 Dart and 809 Python.
+Current production engine, native capture, natural motion, frame-time and
+full-root qualification remain pending. All 94 visual matches stay open.

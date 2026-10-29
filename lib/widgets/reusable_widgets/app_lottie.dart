@@ -3,8 +3,10 @@ import 'dart:convert';
 import 'dart:isolate';
 import 'dart:ui' as ui;
 
+import 'package:cryptography/dart.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:hex/hex.dart';
 import 'package:lottie/lottie.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/reference_artwork_source.dart';
 
@@ -470,6 +472,93 @@ class _PlayerState extends State<_Player>
   }
 }
 
+const String _welcomePath = 'assets/lottie/ic_anim_welcome.json';
+const String _welcomeOriginalSha =
+    'cb655bfa87969f8c91fd45f57fb03e1c592cc524f7e11bced97b03f4b69114af';
+
+bool _welcomeShapeTypes(List<dynamic> items, List<String> expected) {
+  if (items.length != expected.length) return false;
+  for (int index = 0; index < items.length; index++) {
+    final Object? item = items[index];
+    if (item is! Map<String, dynamic> || item['ty'] != expected[index]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool _welcomeIdentity(Map<String, dynamic> value) {
+  if (value['ty'] != 'tr') return false;
+  const Map<String, Object> identity = <String, Object>{
+    'p': <int>[0, 0], 'a': <int>[0, 0], 's': <int>[100, 100],
+    'r': 0, 'o': 100, 'sk': 0, 'sa': 0,
+  };
+  for (final MapEntry<String, Object> part in identity.entries) {
+    final Object? channel = value[part.key];
+    if (channel is! Map<String, dynamic> || channel['a'] != 0) return false;
+    final Object? actual = channel['k'];
+    final Object expected = part.value;
+    if (actual is List<Object?> && expected is List<Object?>) {
+      if (actual.length != expected.length) return false;
+      for (int index = 0; index < actual.length; index++) {
+        if (actual[index] != expected[index]) return false;
+      }
+    } else if (actual != expected) {
+      return false;
+    }
+  }
+  return true;
+}
+
+// The Dart renderer ignores these nested individual trims without a sibling
+// stroke. Scope compatibility to the exact bundled original. Its bytes, image
+// data, keyframe curves, duration and application playback owner stay intact.
+Uint8List _welcomeTrimCompatibility(Uint8List bytes, String path) {
+  if (path != _welcomePath || bytes.length != 2189249 ||
+      HEX.encode(const DartSha256().hashSync(bytes).bytes) !=
+          _welcomeOriginalSha) {
+    return bytes;
+  }
+  final Map<String, dynamic> value =
+      jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>;
+  final List<dynamic> layers = value['layers'] as List<dynamic>;
+  for (int layerIndex = 0; layerIndex < 2; layerIndex++) {
+    final Map<String, dynamic> layer =
+        layers[layerIndex] as Map<String, dynamic>;
+    final List<dynamic> shapes = layer['shapes'] as List<dynamic>;
+    final Map<String, dynamic> target =
+        shapes[layerIndex == 0 ? 1 : 0] as Map<String, dynamic>;
+    if (target['nm'] != 'animatred line') return bytes;
+    final List<dynamic> outer = target['it'] as List<dynamic>;
+    if (!_welcomeShapeTypes(outer, <String>['gr', 'gr', 'st', 'tr'])) {
+      return bytes;
+    }
+    final Map<String, dynamic> stroke = outer[2] as Map<String, dynamic>;
+    for (int index = 0; index < 2; index++) {
+      final Map<String, dynamic> group = outer[index] as Map<String, dynamic>;
+      final List<dynamic> items = group['it'] as List<dynamic>;
+      if (!_welcomeShapeTypes(items, <String>['gr', 'tm', 'tr'])) return bytes;
+      final Map<String, dynamic> inner = items[0] as Map<String, dynamic>;
+      final List<dynamic> paths = inner['it'] as List<dynamic>;
+      if (!_welcomeShapeTypes(paths, <String>['el', 'el', 'tr']) ||
+          !_welcomeIdentity(paths[2] as Map<String, dynamic>) ||
+          !_welcomeIdentity(items[2] as Map<String, dynamic>)) {
+        return bytes;
+      }
+      final Map<String, dynamic> trim = items[1] as Map<String, dynamic>;
+      if (trim['m'] != 2) return bytes;
+      final dynamic start = trim['s'];
+      trim['s'] = trim['e'];
+      trim['e'] = start;
+      group['it'] = <dynamic>[
+        ...paths.take(2), trim, jsonDecode(jsonEncode(stroke)), items[2],
+      ];
+    }
+    target['it'] = <dynamic>[outer[0], outer[1], outer[3]];
+  }
+  return Uint8List.fromList(utf8.encode(jsonEncode(value)));
+}
+
 /// One loaded file and who is showing it.
 class _Entry {
   _Entry._(this.path, this.keep, AssetBundle bundle) {
@@ -529,7 +618,7 @@ class _Entry {
       data.lengthInBytes,
     );
     final (LottieComposition composition, Map<String, Uint8List> frames) =
-        await Isolate.run(_parser(bytes), debugName: 'lottie-parse');
+        await Isolate.run(_parser(bytes, path), debugName: 'lottie-parse');
     // The engine decodes on its own threads, several at a time; waiting for
     // each before asking for the next made 46 frames take 46 turns.
     await Future.wait(<Future<void>>[
@@ -542,18 +631,20 @@ class _Entry {
   }
 
   // Built here, not inline in [_load], so the closure sent to the isolate
-  // holds the bytes and nothing else.
+  // holds the bytes and their original asset path, and nothing else.
   static (LottieComposition, Map<String, Uint8List>) Function() _parser(
-    Uint8List bytes,
+    Uint8List bytes, String path,
   ) =>
-      () => _parse(bytes);
+      () => _parse(bytes, path);
 
   /// The composition, and its embedded images as bytes. The images go into
   /// the composition without their base64 text, which is otherwise kept, a
   /// third larger than the image, for as long as the composition is.
-  static (LottieComposition, Map<String, Uint8List>) _parse(Uint8List bytes) {
+  static (LottieComposition, Map<String, Uint8List>) _parse(
+    Uint8List bytes, String path,
+  ) {
     final LottieComposition composition = LottieComposition.parseJsonBytes(
-      bytes,
+      _welcomeTrimCompatibility(bytes, path),
     );
     final Map<String, Uint8List> frames = <String, Uint8List>{};
     for (final LottieImageAsset image in composition.images.values.toList()) {

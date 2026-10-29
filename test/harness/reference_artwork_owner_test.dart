@@ -553,4 +553,70 @@ void main() {
       expect(before['expected'], greaterThan(0));
     }
   });
+  testWidgets('production Welcome retains its qualified paths and owner', (
+    WidgetTester tester,
+  ) async {
+    prepare(tester);
+    AppLottie.debugClear();
+    addTearDown(AppLottie.debugClear);
+    final ByteData asset = await rootBundle.load(_trimAsset);
+    final Uint8List bytes = asset.buffer.asUint8List(
+      asset.offsetInBytes, asset.lengthInBytes,
+    );
+    expect(_trimHash(bytes), _trimSha);
+    late final Future<LottieComposition> originalFuture;
+    final LottieComposition loaded = (await tester.runAsync(() async {
+      originalFuture = AppLottie.debugLoad(_trimAsset);
+      expect(AppLottie.debugLoad(_trimAsset), same(originalFuture));
+      return originalFuture;
+    }))!;
+    final LottieComposition original = LottieComposition.parseJsonBytes(bytes);
+    final LottieComposition measured = _pathVariant(bytes, 'flattened_sorted');
+    expect(loaded.bounds, original.bounds);
+    expect(loaded.durationFrames, original.durationFrames);
+    final List<Uint8List> rendered =
+        (await tester.runAsync(() async => <Uint8List>[
+      await _trimRender(original), await _trimRender(measured),
+      await _trimRender(loaded),
+    ]))!;
+    expect(_pathPixelDifference(rendered[1], rendered[2]), 0);
+    expect(_pathPixelDifference(rendered[0], rendered[2]), 6519);
+    for (final String theme in <String>['dark', 'light']) {
+      final Uint8List reference = (await tester.runAsync(
+        () => _trimReference(theme),
+      ))!;
+      for (final int threshold in <int>[32, 64, 96, 160]) {
+        final List<bool> mask = _trimGreen(reference, threshold);
+        final Map<String, int> before = _trimOverlap(
+          _trimGreen(rendered[0], threshold), mask,
+        );
+        final Map<String, int> after = _trimOverlap(
+          _trimGreen(rendered[2], threshold), mask,
+        );
+        expect(after['extra']! + after['missing']!,
+            lessThan(before['extra']! + before['missing']!));
+      }
+    }
+    await tester.pumpWidget(MaterialApp(theme: AppTheme.darkTheme,
+      home: const AppLottie(AppLottieAsset.globe, size: 128)));
+    await _loaded(tester);
+    final ReferenceArtworkSource source = _source(tester);
+    final Lottie before = tester.widget<Lottie>(find.byType(Lottie));
+    final AnimationController clock = before.controller! as AnimationController;
+    expect(before.composition, same(loaded));
+    expect(source.referenceArtworkReadiness, same(originalFuture));
+    expect(clock.isAnimating, isTrue);
+    final ReferenceArtworkFrame sampled = source.captureReferenceArtwork()!;
+    await tester.pump(const Duration(milliseconds: 250));
+    expect(sampled.observed, isTrue);
+    expect(sampled.restore(), isTrue);
+    await tester.pump(const Duration(milliseconds: 16));
+    expect(sampled.restored, isTrue);
+    final Lottie restored = tester.widget<Lottie>(find.byType(Lottie));
+    expect(restored.composition, same(loaded));
+    expect(restored.controller, same(clock));
+    expect(source.referenceArtworkReadiness, same(originalFuture));
+    expect(clock.isAnimating, isTrue);
+    expect(_trimHash(bytes), _trimSha);
+  });
 }
