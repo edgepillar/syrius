@@ -41,6 +41,15 @@ const Set<String> walletRecipeFailureCodes = <String>{
   'wallet-recipe-control-absent',
   'wallet-recipe-control-disabled',
   'wallet-recipe-control-widget-disabled',
+  'wallet-recipe-address-backend-blocked',
+  'wallet-recipe-address-mounted-blocked',
+  'wallet-recipe-address-hidden-blocked',
+  'wallet-recipe-address-window-blocked',
+  'wallet-recipe-address-section-blocked',
+  'wallet-recipe-address-focus-blocked',
+  'wallet-recipe-address-route-blocked',
+  'wallet-recipe-address-ticker-blocked',
+  'wallet-recipe-address-busy-blocked',
   'wallet-recipe-control-entrance-pending',
   'wallet-recipe-control-layout-pending',
   'wallet-recipe-control-not-reachable',
@@ -54,6 +63,20 @@ String walletRecipeControlFailure(Object? gate) => switch (gate) {
   'layout' => 'wallet-recipe-control-layout-pending',
   'hit_test' => 'wallet-recipe-control-not-reachable',
   _ => 'wallet-recipe-control-disabled',
+};
+
+/// Only the disabled Add address control may use its cached original predicate.
+String walletRecipeAddressFailure(Object? gate) => switch (gate) {
+  'backend' => 'wallet-recipe-address-backend-blocked',
+  'mounted' => 'wallet-recipe-address-mounted-blocked',
+  'hidden' => 'wallet-recipe-address-hidden-blocked',
+  'window' => 'wallet-recipe-address-window-blocked',
+  'section' => 'wallet-recipe-address-section-blocked',
+  'focus' => 'wallet-recipe-address-focus-blocked',
+  'route' => 'wallet-recipe-address-route-blocked',
+  'ticker' => 'wallet-recipe-address-ticker-blocked',
+  'busy' => 'wallet-recipe-address-busy-blocked',
+  _ => 'wallet-recipe-control-widget-disabled',
 };
 
 /// Entry types and failure families disclose no displayed text or error detail.

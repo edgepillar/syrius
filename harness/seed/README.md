@@ -1149,3 +1149,36 @@ pass; hosted 774 Python/340 ordinary Dart/342 startup cases remain pending.
 No disabled control is forced. Current copied reopen, six effects, nineteen
 preparations and all 94 visual matches remain open. No local SDK, native process,
 artifact transfer or shared-store task is started.
+
+
+## Cached input predicates and entry font metrics
+
+Source158 focused run 40801965340 qualifies 774 Python and 340 ordinary Dart
+cases with three existing Python skips and zero selected findings. Windows
+40802854555 and independent 40815771207 qualify 4599 non-chain passes, two existing
+skips, root zero errors/warnings plus 1295 infos, Debug/Release, original DLL checks
+and four genuine entry captures. Original-resolution review accepts zero matches;
+the measured flat panel column agrees, while globe wires, caption/heading ink,
+selector span, draft/caret presentation and the field composite remain open.
+
+Native88 40803103931 and independent 40816316502 retain the original successful
+index-1 one-ZNN send, twelve-page tour, quiescence and required normal app/entry/
+five-node exits. The producer remains failed at copied seed admission: the original
+settings_add_address widget predicate is false, with its inner condition unknown.
+The view now caches only the first failed original input predicate at build time.
+Observing it reads no callbacks, owners, routes or focus again. Original predicate
+order, short circuit, action guards, captured callback revocation, commands and
+deadlines remain. Fixed labels never contain wallet data or grant input authority.
+
+Entry text uses equal half-leading with unchanged font size, tracking, line height
+and tabular figures. Back spacing accounts for the reference transparent side
+borders without changing its heading gap or action. Import word-choice padding
+compensates measured numeric advances; other segments retain their default spacing.
+Three genuine address cases cover section, focus and lifecycle loss plus original
+State/backend retention and stale callback refusal. Two genuine bundled-font cases
+cover line metrics and controlled light/dark RTL choices. No decorative ellipsis is
+inserted into seed data, and original caret/artwork clocks remain. All 310 memory
+controls pass; hosted 775 Python/345 ordinary Dart/347 startup qualification and
+fresh images remain pending. Four copied components, six effects, F06, ninety
+catalog outputs and all 94 visual matches remain open. No local SDK or native
+wallet/node process runs. Earlier failures, UNKNOWNs and original evidence remain.

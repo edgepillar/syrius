@@ -109,6 +109,7 @@ class Segment<T> extends StatefulWidget {
     required this.selected,
     required this.onChanged,
     this.appearance = SegmentAppearance.pill,
+    this.pillPadding,
     this.keyPrefix,
     super.key,
   });
@@ -132,6 +133,9 @@ class Segment<T> extends StatefulWidget {
 
   /// The track and thumb's surface. Selection and keyboard behavior are shared.
   final SegmentAppearance appearance;
+
+  /// Optional pill label spacing; heading tabs keep their existing tokens.
+  final EdgeInsetsGeometry? pillPadding;
 
   /// When given, each segment carries [keyOf] of it and its value, which is
   /// how the UI harness finds one.
@@ -372,6 +376,7 @@ class _SegmentState<T> extends State<Segment<T>>
       selected: item.value == widget.selected,
       enabled: item.enabled && item.seam == null,
       labelStyle: item.labelStyle,
+      pillPadding: widget.pillPadding,
       slide: _slide,
       ink: () => _inkAt(item.value, widget.selected, _slide.value),
       onTap: () => _pick(item.value),
@@ -435,6 +440,7 @@ class _SegmentCell extends StatefulWidget {
     required this.selected,
     required this.enabled,
     required this.labelStyle,
+    required this.pillPadding,
     required this.slide,
     required this.ink,
     required this.onTap,
@@ -448,6 +454,7 @@ class _SegmentCell extends StatefulWidget {
   final bool selected;
   final bool enabled;
   final TextStyle? labelStyle;
+  final EdgeInsetsGeometry? pillPadding;
 
   /// Ticks while the thumb moves, which is when [ink] changes.
   final Listenable slide;
@@ -520,7 +527,7 @@ class _SegmentCellState extends State<_SegmentCell> {
                   ? tokens.tabPadding.add(
                       EdgeInsets.only(bottom: tokens.tabUnderlineThickness),
                     )
-                  : _kSegmentPadding,
+                  : widget.pillPadding ?? _kSegmentPadding,
               // Sized to the label when the row asks what it needs, centred
               // when the row hands it a taller or a narrower box.
               child: Align(

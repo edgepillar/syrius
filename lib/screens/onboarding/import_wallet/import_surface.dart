@@ -86,6 +86,7 @@ class ImportSurface extends StatelessWidget {
         children: <Widget>[
           Segment<int>(
             keyPrefix: 'import_words',
+            pillPadding: tokens.importWordChoicePadding,
             items: <SegmentItem<int>>[
               for (final int count in <int>[12, 24])
                 SegmentItem<int>(

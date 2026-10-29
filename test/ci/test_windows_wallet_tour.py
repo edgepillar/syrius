@@ -921,5 +921,22 @@ class ControlGateTests(unittest.TestCase):
                         diagnostic=dict(original['diagnostic'], **change)))
 
 
+    def test_cached_address_predicates_are_closed_failures_without_input_values(self):
+        gates = ('backend', 'mounted', 'hidden', 'window', 'section', 'focus',
+                 'route', 'ticker', 'busy')
+        for gate in gates:
+            reason = 'wallet-recipe-address-' + gate + '-blocked'
+            original = dict(stage='onboarding', code='wallet-recipe-stage-unsettled',
+                diagnostic=dict(action='observe', control='settings_add_address',
+                                reason=reason))
+            self.assertEqual(tour.entry_failure(original), original)
+            self.assertFalse(tour.completed(dict(errors=['ENTRY_FAILED'])))
+            for change in (dict(reason=reason+'-private-input'), dict(reason=gate),
+                           dict(inputGate=gate), dict(detail='private-input')):
+                with self.assertRaises(tour.Refused):
+                    tour.entry_failure(dict(original,
+                        diagnostic=dict(original['diagnostic'], **change)))
+
+
 if __name__ == '__main__':
     unittest.main()

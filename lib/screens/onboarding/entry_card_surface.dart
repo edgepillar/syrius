@@ -98,7 +98,7 @@ class EntryCardSurface extends StatelessWidget {
                                         padding:
                                             WidgetStatePropertyAll<
                                               EdgeInsetsGeometry
-                                            >(tokens.transferChipPadding),
+                                            >(tokens.entryBackPadding),
                                         textStyle:
                                             WidgetStatePropertyAll<TextStyle>(
                                               tokens.captionText.copyWith(

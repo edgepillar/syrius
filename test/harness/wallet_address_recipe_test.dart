@@ -30,6 +30,7 @@ class _AddressUi {
   bool addresses = false;
   bool blockAdd = false;
   Object? blockedBy;
+  Object? inputGate;
   bool wrongDerivation = false;
   bool selectionUnsettled = false;
   bool stallDerivation = false;
@@ -67,6 +68,8 @@ class _AddressUi {
         'key': key, 'enabled': !(key == 'settings_add_address' && blockAdd),
         if (key == 'settings_add_address' && blockAdd && blockedBy != null)
           'blockedBy': blockedBy,
+        if (key == 'settings_add_address' && blockAdd && inputGate != null)
+          'inputGate': inputGate,
       },
     ],
   };
@@ -144,6 +147,41 @@ void main() {
       final int commands = ui.commands.length;
       await expectLater(driver.prepareSeedAddress(original),
         throwsA(isA<WalletRecipeRefused>()));
+      expect(ui.commands, hasLength(commands));
+    }
+    // The real driver retains its refusal, deadline, no-tap and no-revival rules.
+    for (final (Object?, String) sample in <(Object?, String)>[
+      ('backend', 'wallet-recipe-address-backend-blocked'),
+      ('mounted', 'wallet-recipe-address-mounted-blocked'),
+      ('hidden', 'wallet-recipe-address-hidden-blocked'),
+      ('window', 'wallet-recipe-address-window-blocked'),
+      ('section', 'wallet-recipe-address-section-blocked'),
+      ('focus', 'wallet-recipe-address-focus-blocked'),
+      ('route', 'wallet-recipe-address-route-blocked'),
+      ('ticker', 'wallet-recipe-address-ticker-blocked'),
+      ('busy', 'wallet-recipe-address-busy-blocked'),
+      ('unknown', 'wallet-recipe-control-widget-disabled'),
+      ('ready', 'wallet-recipe-control-widget-disabled'),
+      (true, 'wallet-recipe-control-widget-disabled'),
+      ('synthetic-private-input', 'wallet-recipe-control-widget-disabled'),
+    ]) {
+      final Object? gate = sample.$1;
+      final _AddressUi ui = seedUi()
+        ..blockAdd = true ..blockedBy = 'widget' ..inputGate = gate;
+      final WalletRecipe driver = ui.driver();
+      final WalletAddressContext original = WalletAddressContext.parse(ui.context);
+      final String reason = sample.$2;
+      await expectLater(driver.prepareSeedAddress(original), throwsA(
+        isA<WalletRecipeRefused>().having(
+          (WalletRecipeRefused value) => value.diagnostic?['reason'],
+          'cached original input predicate', reason,
+        ),
+      ));
+      expect(ui.elapsed, const Duration(seconds: 30));
+      expect(ui.taps, isNot(contains('settings_add_address')));
+      final int commands = ui.commands.length;
+      await expectLater(driver.prepareSeedAddress(original),
+          throwsA(isA<WalletRecipeRefused>()));
       expect(ui.commands, hasLength(commands));
     }
   });

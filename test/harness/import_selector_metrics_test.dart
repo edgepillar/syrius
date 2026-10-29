@@ -6,10 +6,13 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 
 const Key _tabular = ValueKey<String>('tabular_track');
 const Key _proportional = ValueKey<String>('proportional_track');
+const Key _compensated = ValueKey<String>('compensated_track');
 
-Widget _selector(AppTokens tokens, {required bool tabular}) => Segment<int>(
-  key: tabular ? _tabular : _proportional,
-  keyPrefix: tabular ? 'tabular' : 'proportional',
+Widget _selector(AppTokens tokens, {required bool tabular,
+  bool compensated = false, ValueChanged<int>? onChanged}) => Segment<int>(
+  key: compensated ? _compensated : tabular ? _tabular : _proportional,
+  keyPrefix: compensated ? 'compensated' : tabular ? 'tabular' : 'proportional',
+  pillPadding: compensated ? tokens.importWordChoicePadding : null,
   items: <SegmentItem<int>>[
     for (final int count in <int>[12, 24]) SegmentItem<int>(
       value: count,
@@ -21,7 +24,7 @@ Widget _selector(AppTokens tokens, {required bool tabular}) => Segment<int>(
     ),
   ],
   selected: 12,
-  onChanged: (_) => throw StateError('Layout measurement must not select'),
+  onChanged: onChanged ?? (_) => throw StateError('Layout measurement must not select'),
 );
 
 void main() {
@@ -78,6 +81,75 @@ void main() {
             closeTo(cells + 8, 0.01));
       }
       expect(tester.takeException(), isNull);
+    }
+  });
+
+  test('the bundled font retains width and line height with CSS half-leading', () {
+    for (final double size in <double>[12, 14, 28]) {
+      final TextStyle style = AppTokens.dark.bodyText.copyWith(fontSize: size);
+      TextPainter painter(TextStyle value) => TextPainter(
+        text: TextSpan(text: 'Welcome to Syrius 123', style: value),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      final TextPainter even = painter(style);
+      final TextPainter proportional = painter(style.copyWith(
+        leadingDistribution: TextLeadingDistribution.proportional,
+      ));
+      try {
+        expect(even.width, closeTo(proportional.width, 0.001));
+        expect(even.height, closeTo(proportional.height, 0.001));
+        expect(even.computeLineMetrics().single.baseline,
+            lessThan(proportional.computeLineMetrics().single.baseline));
+      } finally { even.dispose(); proportional.dispose(); }
+    }
+  });
+
+  testWidgets('word choices retain tabular figures and controlled RTL selection', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(1280, 780);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(() => tester.pumpWidget(const SizedBox.shrink()));
+    for (final bool light in <bool>[false, true]) {
+      for (final TextDirection direction in TextDirection.values) {
+        final List<int> picks = <int>[];
+        await tester.pumpWidget(MaterialApp(
+          theme: light ? AppTheme.lightTheme : AppTheme.darkTheme,
+          home: Scaffold(body: Builder(builder: (BuildContext context) {
+            final AppTokens tokens = AppTokens.of(context);
+            return Directionality(textDirection: direction, child: Align(
+              alignment: Alignment.topLeft,
+              child: Column(mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  _selector(tokens, tabular: true),
+                  _selector(tokens, tabular: false),
+                  _selector(tokens, tabular: true, compensated: true,
+                      onChanged: picks.add),
+                ],
+              ),
+            ));
+          })),
+        ));
+        await tester.pump();
+        final double width = tester.getSize(find.byKey(_compensated)).width;
+        final double reference = tester.getSize(find.byKey(_proportional)).width;
+        expect(width, closeTo(reference, 0.6));
+        final Segment<int> product = tester.widget<Segment<int>>(
+          find.byKey(_compensated),
+        );
+        for (final SegmentItem<int> item in product.items) {
+          expect(item.labelStyle!.fontFeatures,
+              const <FontFeature>[FontFeature.tabularFigures()]);
+        }
+        await tester.tap(find.byKey(Segment.keyOf('compensated', 24)));
+        await tester.pump();
+        expect(picks, <int>[24]);
+        expect(tester.widget<Segment<int>>(find.byKey(_compensated)).selected, 12);
+        expect(tester.takeException(), isNull);
+      }
     }
   });
 }

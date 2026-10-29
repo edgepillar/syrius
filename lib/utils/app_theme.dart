@@ -949,6 +949,14 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Space between the entry back control and title.
   double get entryHeadingGap => 10;
 
+  /// Includes the reference ghost button's transparent one-pixel side borders.
+  EdgeInsetsDirectional get entryBackPadding =>
+      const EdgeInsetsDirectional.symmetric(horizontal: 11, vertical: 3);
+
+  /// Retains tabular digits while compensating their measured label advances.
+  EdgeInsets get importWordChoicePadding =>
+      const EdgeInsets.symmetric(horizontal: 13.25, vertical: 5);
+
   /// The compact onboarding card's title.
   TextStyle get entryHeadingText =>
       bodyText.copyWith(fontSize: 18, fontWeight: FontWeight.w600);
@@ -1694,6 +1702,8 @@ class AppTokens extends ThemeExtension<AppTokens> {
     // CSS uses normal tracking. An omitted value inherits Material tracking.
     letterSpacing: 0,
     height: 1.45,
+    // CSS line boxes distribute the extra leading equally above and below.
+    leadingDistribution: TextLeadingDistribution.even,
     color: foreground,
   );
 

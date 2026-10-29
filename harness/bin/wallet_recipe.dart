@@ -196,7 +196,10 @@ class WalletRecipe {
       if (control == null) {
         reason = 'wallet-recipe-control-absent';
       } else if (control['enabled'] == false) {
-        reason = walletRecipeControlFailure(control['blockedBy']);
+        reason = waitingFor == 'settings_add_address' &&
+                control['blockedBy'] == 'widget'
+            ? walletRecipeAddressFailure(control['inputGate'])
+            : walletRecipeControlFailure(control['blockedBy']);
       }
     }
     _refuse(

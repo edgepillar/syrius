@@ -1734,12 +1734,31 @@ class HarnessAgent {
     return null;
   }
 
+  String? _recipePaintedAddressGate(_Node node) {
+    String? result;
+    node.element.visitAncestorElements((Element ancestor) {
+      if (ancestor is StatefulElement) {
+        final Object source = ancestor.state;
+        if (source is AddressesInputSource) {
+          final AddressesInputGate gate = source.paintedInputGate;
+          if (gate != AddressesInputGate.unknown &&
+              gate != AddressesInputGate.ready) result = gate.name;
+          return false;
+        }
+      }
+      return true;
+    });
+    return result;
+  }
+
   Map<String, Object?> _recipeObservedControl(_Node node) {
     final String? block = _recipeControlBlock(node);
     final bool enabled = block == null && _reachable(node, node.center);
     return <String, Object?>{
       'key': node.key, 'enabled': enabled,
       if (!enabled) 'blockedBy': block ?? 'hit_test',
+      if (node.key == 'settings_add_address' && block == 'widget')
+        'inputGate': _recipePaintedAddressGate(node),
       if (node.key == 'node_settings_chain_toggle')
         'expanded': _recipeExpanded(node.element),
     };
