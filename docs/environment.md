@@ -8676,3 +8676,23 @@ Five Python projection/privacy cases and all 315 memory controls pass. Hosted
 code, input predicates, owners, signing and clocks remain unchanged. Every prior
 failure, UNKNOWN and source158 full/image/native result remains source-bound.
 No local SDK/native wallet/node execution, artifact transfer or storage task runs.
+
+
+## Font diagnostic failure states remain observable
+
+The latest actual focused result remains source162 40826020613: 344 of 345 Dart
+passes, one final font contrast failure, 775 Python cases with three existing
+skips, zero selected findings and complete asset commands. Source163 adds finite
+numeric observations; this controller dispatches no CI for it before correcting
+the observation model. Failed states must remain inspectable: zero dimensions and
+both valid leading-mode enum values are retained within the same fixed bounds.
+Field/label whitelists, finite numeric checks, ordering, uniqueness, completeness
+and original source/command binding remain. OBSERVED describes retained metrics;
+it grants neither font validity nor test success. The original assertion stays.
+
+The same five Python privacy/projection cases cover zero and alternate enum
+states. All 315 memory controls pass; current hosted 780 Python/345 ordinary
+Dart/347 startup observation and qualification remain pending. No production
+behavior, test count, deadline or input authority changes. Every previous failure,
+UNKNOWN and source158 full/image/native result remains separate. No local SDK or
+native wallet/node execution, artifact transfer or storage task is started.

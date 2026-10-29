@@ -46,9 +46,9 @@ def project(data, *, complete):
                         or not math.isfinite(value) or not 0 <= value <= 4096
                         for value in sample.values())
                     or (sample['size'], sample['height']) != ORDER[index]
-                    or sample['width'] <= 0 or not 0 < sample['line_height'] < 256
-                    or sample['natural_ascent'] + sample['natural_descent'] <= 0
-                    or sample['even_mode'] != 1 or sample['proportional_mode'] != 0):
+                    or not 0 <= sample['line_height'] < 256
+                    or sample['even_mode'] not in (0, 1)
+                    or sample['proportional_mode'] not in (0, 1)):
                 return refused
             samples.append(dict(sample))
         return dict(schema=1, scope='bundled_font_metrics', status='OBSERVED',

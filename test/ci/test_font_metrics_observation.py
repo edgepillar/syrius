@@ -34,6 +34,18 @@ class FontMetricsTests(unittest.TestCase):
         self.assertEqual(result['status'], 'OBSERVED')
         self.assertFalse(result['complete_cases'])
         self.assertEqual(result['sample_count'], 3)
+        # Observation includes failed/zero states and both enum values. It
+        # carries no test-success or font-validity authority.
+        for even_mode, proportional_mode in ((0, 0), (0, 1), (1, 0), (1, 1)):
+            failed = self.fixture()
+            failed['samples'][0].update(width=0, line_height=0,
+                natural_ascent=0, natural_descent=0, even_baseline=0,
+                proportional_baseline=0, even_ascent=0, even_descent=0,
+                even_mode=even_mode, proportional_mode=proportional_mode)
+            result = metrics.project(self.event(failed), complete=True)
+            self.assertEqual(result['status'], 'OBSERVED')
+            self.assertEqual(result['samples'][0], failed['samples'][0])
+            self.assertNotIn('success', result)
         self.assertEqual(original, self.fixture())
 
     def test_unknown_fields_labels_and_types_cannot_escape_the_projection(self):
@@ -50,7 +62,7 @@ class FontMetricsTests(unittest.TestCase):
         for key, value in (('width', True), ('width', float('nan')),
                           ('width', float('inf')), ('width', -1),
                           ('width', 4097), ('natural_ascent', 'private-input'),
-                          ('even_mode', 0), ('proportional_mode', 1),
+                          ('even_mode', 2), ('proportional_mode', 2),
                           ('detail', 'private-input')):
             original = self.fixture()
             original['samples'][0][key] = value
