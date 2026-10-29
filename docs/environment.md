@@ -9291,3 +9291,41 @@ baseline still has 4628 passes/two existing skips, normal Debug/Release and
 mapped/exported identical libraries; it does not qualify the new source.
 All nine main acceptance rows remain open: 71/80, or 88.75 percent by row count,
 with 90 catalog outputs, 19 preparations and all 94 complete visual matches open.
+
+
+### Analyze every changed original Project completion owner explicitly
+
+Source183 44fa6c2e6edf / focused run 40960902238 retains its original failure.
+All 812 Python cases pass with three existing skips and both original asset
+commands pass. The analyzer exits normally and completely with zero process
+status but reports one AVOID_REDUNDANT_ARGUMENT_VALUES information finding in
+the restored seed test. The strict zero-findings admission therefore refuses;
+the Dart engine stage is skipped. No eight-case completion result, native
+Project closure or later effect is inferred from that run.
+
+Remove only the redundant explicit null from the nullable Future constructor.
+Source inspection also shows that the genuine completed stepper intentionally
+retains and hides its Submitted body. The new UI test must check the same
+original state's read-only submitted hash and the visible original Projects
+button, rather than require a hidden label to be painted. The production
+retained-stepper layout and original completion controls remain unchanged.
+
+Explicitly analyze seed_commands.dart, the new one-shot presentation policy,
+its actual original UI binding, seed_policy_test.dart and the production
+Accelerator stepper. Preserve every earlier selected path and strict refusal
+for every information finding, warning or error. Only finite source labels,
+code and line/column cross the diagnostic boundary; private paths and analyzer
+messages remain excluded. Expand the existing clean-command and severity/privacy
+controls across these five paths without adding or newly selecting test cases.
+All 347 current in-memory controls pass with no local SDK, native wallet/node,
+network, scratch or shared-store access. Exact hosted contracts remain 812
+Python and 408 ordinary/410 startup Dart cases. Engine, explicit complete
+analysis coverage and a fresh independent isolated chain attempt remain pending.
+
+Source182 focused qualification, Native95's original positive send/tour and
+copied deposit/Home failure, source181 full Windows and the four reviewed entry
+pairs retain their own source pins. Native95's exact inner cause remains
+NOT_ESTABLISHED; no old profile, password, send or seed operation is retried.
+All nine main rows, ninety catalog outputs, nineteen preparations and all 94
+complete visual matches remain open. Earlier FAILURE and UNKNOWN evidence is
+not relabelled by the new source or future successful controls.

@@ -627,7 +627,8 @@ class AnalysisAdmissionTests(unittest.TestCase):
                 except debug.ProcessRefused as error:
                     outcome = str(error)
         start.assert_called_once()
-        self.assertEqual(start.call_args.args[0][1:4], ['analyze', '--format', 'machine'])
+        self.analysis_argv = start.call_args.args[0]
+        self.assertEqual(self.analysis_argv[1:4], ['analyze', '--format', 'machine'])
         process.wait.assert_called_once_with(timeout=5)
         process.kill.assert_not_called()
         value, = (json.loads(line) for line in output.getvalue().splitlines()
@@ -641,19 +642,34 @@ class AnalysisAdmissionTests(unittest.TestCase):
         self.assertFalse(value['failed'])
         self.assertEqual(value['diagnostics'], dict(error=0, warning=0, info=0))
         self.assertTrue(value['output_complete'])
+        for path in (
+            'harness/app/fixtures/seed_commands.dart',
+            'harness/app/fixtures/seed_project_presentation.dart',
+            'harness/app/seed_project_presentation_binding.dart',
+            'test/harness/seed_policy_test.dart',
+            'lib/widgets/modular_widgets/accelerator_widgets/accelerator_action_stepper.dart',
+        ):
+            self.assertEqual(self.analysis_argv.count(path), 1)
 
     def test_every_selected_finding_refuses_even_with_zero_process_exit(self):
+        sources = {
+            'test/harness/transfer_sender_header_test.dart': 'transfer_sender_header_test',
+            'harness/app/fixtures/seed_commands.dart': 'seed_commands',
+            'harness/app/fixtures/seed_project_presentation.dart': 'project_presentation',
+            'harness/app/seed_project_presentation_binding.dart': 'project_presentation_binding',
+            'test/harness/seed_policy_test.dart': 'seed_policy_test',
+            'lib/widgets/modular_widgets/accelerator_widgets/accelerator_action_stepper.dart': 'accelerator_stepper',
+        }
         for severity in ('INFO', 'WARNING', 'ERROR'):
-            with self.subTest(severity=severity):
-                raw = (severity + '|LINT|UNNECESSARY_IMPORT|/fixture/private/'
-                    'test/harness/transfer_sender_header_test.dart|7|3|1|'
-                    'private analyzer detail\n').encode()
-                outcome, value = self.analyze(raw)
-                self.assertEqual(outcome, 'ANALYSIS_FAILED')
-                self.assertTrue(value['failed'])
-                self.assertEqual(value['diagnostics'][severity.lower()], 1)
-                self.assertEqual(value['locations'][0]['source'],
-                                 'transfer_sender_header_test')
+            for source, label in sources.items():
+                with self.subTest(severity=severity, source=label):
+                    raw = (severity + '|LINT|UNNECESSARY_IMPORT|/fixture/private/'
+                        + source + '|7|3|1|private analyzer detail\n').encode()
+                    outcome, value = self.analyze(raw)
+                    self.assertEqual(outcome, 'ANALYSIS_FAILED')
+                    self.assertTrue(value['failed'])
+                    self.assertEqual(value['diagnostics'][severity.lower()], 1)
+                    self.assertEqual(value['locations'][0]['source'], label)
 
     def test_nonzero_original_exit_cannot_be_hidden_by_empty_findings(self):
         outcome, value = self.analyze(code=1)

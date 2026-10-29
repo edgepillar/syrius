@@ -474,6 +474,11 @@ def analyze(parent, repo):
         'harness/app/fixtures/lab_transfer_witness.dart',
         'test/harness/lab_transfer_witness_test.dart',
         'harness/app/fixtures/seed_policy.dart',
+        'harness/app/fixtures/seed_commands.dart',
+        'harness/app/fixtures/seed_project_presentation.dart',
+        'harness/app/seed_project_presentation_binding.dart',
+        'test/harness/seed_policy_test.dart',
+        'lib/widgets/modular_widgets/accelerator_widgets/accelerator_action_stepper.dart',
         'harness/app/fixtures/lab_seed_binding.dart',
         'harness/app/fixtures/lab_send_policy.dart',
         'harness/app/fixtures/lab_send_ui_binding.dart',
@@ -561,6 +566,11 @@ def analyze(parent, repo):
                                         else 'transfer_witness' if relative.endswith('/harness/app/fixtures/lab_transfer_witness.dart')
                                         else 'transfer_witness_test' if relative.endswith('/test/harness/lab_transfer_witness_test.dart')
                                         else 'seed_policy' if relative.endswith('/harness/app/fixtures/seed_policy.dart')
+                                        else 'seed_commands' if relative.endswith('/harness/app/fixtures/seed_commands.dart')
+                                        else 'project_presentation' if relative.endswith('/harness/app/fixtures/seed_project_presentation.dart')
+                                        else 'project_presentation_binding' if relative.endswith('/harness/app/seed_project_presentation_binding.dart')
+                                        else 'seed_policy_test' if relative.endswith('/test/harness/seed_policy_test.dart')
+                                        else 'accelerator_stepper' if relative.endswith('/lib/widgets/modular_widgets/accelerator_widgets/accelerator_action_stepper.dart')
                                         else 'lab_seed_binding' if relative.endswith('/harness/app/fixtures/lab_seed_binding.dart')
                                         else 'lab_send_policy' if relative.endswith('/harness/app/fixtures/lab_send_policy.dart')
                                         else 'lab_send_ui_binding' if relative.endswith('/harness/app/fixtures/lab_send_ui_binding.dart')

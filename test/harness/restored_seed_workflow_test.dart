@@ -210,8 +210,13 @@ Future<(SeedProjectPresentation, ModalRoute<dynamic>)> _submittedProject(
   await _projectFrame(tester);
   expect(source.publications, 1);
   expect(source.confirmedReads, isEmpty);
-  expect(find.text('Submitted'), findsOneWidget);
-  expect(find.byKey(const Key('acc_stepper_leave')), findsOneWidget);
+  final AcceleratorActionPresentationSource original = tester
+      .state<State<AcceleratorActionStepper>>(
+        find.byType(AcceleratorActionStepper),
+      ) as AcceleratorActionPresentationSource;
+  expect(original.actionPresentation.submittedWith(listHash(901)), isTrue);
+  expect(find.byKey(const Key('acc_stepper_leave')).hitTestable(),
+      findsOneWidget);
   return (presentation, originalRoute!);
 }
 
@@ -575,7 +580,7 @@ void main() {
       Duration.zero, const Duration(seconds: 6),
     ]) {
       expect(() => _projectPresentation(
-        route: Future<Object?>.value(null), timeout: timeout,
+        route: Future<Object?>.value(), timeout: timeout,
       ), throwsArgumentError);
     }
   });
