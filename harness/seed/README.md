@@ -1041,3 +1041,39 @@ All four cases, their assertions, production code and command budgets remain.
 All 265 memory controls pass; hosted validation is pending. No new native,
 copied reopen/six-effect, full-root/build or visual acceptance is inferred.
 The main ledger remains 71/80, with all 94 visual matches still open.
+
+
+## Typed original node registry during reset capture
+
+At source154, Native86 producer 40790295879 and independent reader 40792749220
+qualify the original one-ZNN UI send, twelve-page tour, quiescence and normal
+required app/entry/five-node exits. The producer remains failed: copied unlock
+records one original callback and last phase capture_reset before UNLOCK_WAIT_REFUSED.
+The exact reset substep and authentication outcome remain unobserved.
+
+The reset list includes the node registry, which production opens as String.
+Pinned Hive 2.19.3 requires that exact value type; a dynamic lookup throws even
+when that same original box is open. Capture and subsequent identity checks now
+read this original registry as String. Other lookups, cache/reset policies,
+actions, owner/revision checks, authentication, counters, signing, delays and
+deadlines remain. Three genuine memory-backed Hive cases retain the old lookup
+as a negative control, exercise the production factory without erasing data,
+refuse an equal replacement and preserve ordinary-cache exclusion of nodes.
+They remain pending hosted execution. All 265 memory controls pass after the
+admission fixtures are bound to 335 ordinary/337 startup cases; the first three
+fixture-count failures remain preserved.
+
+Source154 full Windows producer 40790191489 and independent reader 40793496388
+qualify 4591 non-chain passes with two existing skips and no failure/error events,
+root analysis zero errors/warnings plus 1295 infos, vendored zero findings,
+original generation/localization, Debug/Release builds and library hash/map/export
+checks with normal complete unforced command exits. Its entry job separately
+retains HTTP_FAILED at first Welcome-dark exchange and ENTRY_INVALID at cleanup,
+zero received images and normal app exit. Exact transport cause remains unobserved.
+The earlier four reviewed source144 images and their open findings stay bound
+to that source. No new local artifact transfer or shared-store task is started.
+
+Current-source focused, full-root/build and native qualification remain separate.
+Copied reopen/six effects, nineteen preparations and all 94 visual matches remain
+open. The main ledger stays 71/80. Earlier failures, UNKNOWNs and original history
+are retained; no failed profile/password or native experiment is retried.

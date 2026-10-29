@@ -499,6 +499,8 @@ def analyze(parent, repo):
         'lib/screens/onboarding/import_wallet/import_wallet_seed_choice_screen.dart',
         'harness/app/native_entry_capture.dart',
         'lib/utils/reference_artwork_source.dart',
+        'lib/utils/wallet_maintenance_binding.dart',
+        'test/wallet_maintenance/wallet_maintenance_backend_capture_test.dart',
         'test/harness/reference_artwork_owner_test.dart',
         'lib/rearchitecture/utils/widgets/entry_field.dart',
         'lib/widgets/reusable_widgets/app_lottie.dart',
@@ -573,6 +575,8 @@ def analyze(parent, repo):
                                         else 'addresses_view' if relative.endswith('/lib/widgets/modular_widgets/settings_widgets/addresses_settings_view.dart')
                                         else 'native_entry_capture' if relative.endswith('/harness/app/native_entry_capture.dart')
                                         else 'reference_artwork' if relative.endswith('/lib/utils/reference_artwork_source.dart')
+                                        else 'maintenance_binding' if relative.endswith('/lib/utils/wallet_maintenance_binding.dart')
+                                        else 'maintenance_backend_test' if relative.endswith('/test/wallet_maintenance/wallet_maintenance_backend_capture_test.dart')
                                         else 'reference_artwork_test' if relative.endswith('/test/harness/reference_artwork_owner_test.dart')
                                         else 'entry_field' if relative.endswith('/lib/rearchitecture/utils/widgets/entry_field.dart')
                                         else 'app_lottie' if relative.endswith('/lib/widgets/reusable_widgets/app_lottie.dart')

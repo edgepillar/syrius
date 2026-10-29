@@ -81,9 +81,14 @@ class _OriginalBox {
   bool deleted = false;
   Future<void>? _deletion;
 
+  // Hive requires the type used when the original node registry was opened.
+  static Box<dynamic> readOpened(String name) => name == kNodesBox
+      ? Hive.box<String>(name)
+      : Hive.box<dynamic>(name);
+
   bool get owns {
     if (Hive.isBoxOpen(name)) {
-      if (!identical(Hive.box<dynamic>(name), box)) {
+      if (!identical(readOpened(name), box)) {
         return false;
       }
     } else if (!deleting && !deleted) {
@@ -258,7 +263,8 @@ WalletMaintenanceSession? captureWalletMaintenanceSession({
       : <String>[...kCacheBoxesToBeDeleted, kKeyStoreBox];
   final List<_OriginalBox> boxes = <_OriginalBox>[
     for (final String name in names)
-      if (Hive.isBoxOpen(name)) _OriginalBox(name, Hive.box<dynamic>(name)),
+      if (Hive.isBoxOpen(name))
+        _OriginalBox(name, _OriginalBox.readOpened(name)),
   ];
   final WalletMaintenanceWriters writers = WalletMaintenanceWriters(
     sender: sender,

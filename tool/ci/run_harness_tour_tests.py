@@ -136,6 +136,7 @@ def main():
             'test/harness/restored_unlock_ready_test.dart',
             'test/harness/lock_view_observation_test.dart',
             'test/harness/reference_artwork_owner_test.dart',
+            'test/wallet_maintenance/wallet_maintenance_backend_capture_test.dart',
             'test/harness/import_selector_metrics_test.dart',
             'test/harness/restored_seed_workflow_test.dart',
             'test/harness/lab_quiescence_test.dart',
@@ -175,7 +176,7 @@ def main():
         counts = test_counts(outcome.output)
         report['counts'] = counts
         debug.need(outcome.success and counts['terminal_success'] is True
-            and counts['passed'] == (334 if asset_fidelity else 332)
+            and counts['passed'] == (337 if asset_fidelity else 335)
             and counts['skipped'] == counts['failed'] == counts['error_events'] == 0,
             'TESTS_FAILED')
         if asset_fidelity:
