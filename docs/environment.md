@@ -8757,3 +8757,16 @@ controls pass without native/network/scratch/store access. Hosted 785 Python/
 347 ordinary Dart qualification is pending. The main ledger remains 71/80;
 nineteen preparations, ninety catalog outputs and all 94 visual matches remain
 open. Earlier failures, UNKNOWNs and source158 full builds remain source-bound.
+
+
+## Addresses regression import ordering
+
+Source166 `8a28e110bc69` run `40862515287` retains 785 Python passes with
+three existing skips, zero analysis errors/warnings and one import-order info at
+`addresses_selection_test.dart` line 4. Dart tests are skipped. Reorder only the
+two adjacent package imports; product behavior, both new genuine widget cases,
+root source labels, counts, commands and deadlines remain byte-identical.
+The existing 320 pure-memory controls are explicitly reused because their
+Python/controller inputs are unchanged. No new local test or SDK runs. Hosted
+785 Python/347 ordinary Dart qualification remains pending. The original failed
+run, source165 two unlocated assertions and all earlier UNKNOWNs stay preserved.
