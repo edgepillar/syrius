@@ -287,7 +287,8 @@ void main() {
     expect(instance.outcome?['complete'], isFalse);
   });
 
-  test('a failed tour tap keeps its original page and operation once', () async {
+  test('a failed tour tap keeps its original page and operation once',
+      () async {
     final _TourInstance instance = _TourInstance()
       ..unavailable = 'nodes_tab_pillars';
     try {

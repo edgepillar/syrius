@@ -1451,3 +1451,14 @@ cases: thirteen newly selected existing Import cases plus three new tour
 cases. Python expects 790 cases. Current engine/native qualification remains
 pending; all nine main open rows, nineteen preparations, ninety catalog
 outputs and 94 visual matches retain their separate acceptance requirements.
+
+### Original tour test declaration line limit
+
+Source170 `9df20e19cb40`, run `40874690266`, passes all 790 Python cases
+with three existing skips and both original asset commands. Selected analysis
+has zero errors/warnings and one `LINES_LONGER_THAN_80_CHARS` info at
+`wallet_tour_test.dart:290`. The strict gate refuses; Dart tests are skipped.
+Split only that original declaration across two lines, retaining the exact
+test label, body and 363/365 contracts. Python/control inputs are unchanged;
+the 325 memory proof is reused explicitly, with zero new local tests.
+Current engine/native qualification and all open acceptance work stay pending.
