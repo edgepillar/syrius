@@ -8967,3 +8967,22 @@ runs. The exact new hosted contracts are 801 Python and 369 ordinary/371 startup
 Dart cases. Current engine results and the actual trim cause remain pending.
 The main ledger stays 71 of 80; all nine main open rows, nineteen preparations,
 ninety missing catalog outputs and zero of 94 accepted visual matches remain.
+
+
+### Original Welcome probe direct dependencies and visitor style
+
+Source174 `4e3da0bd19e4`, focused `40896641003`, passes all 801 Python cases
+with three existing skips and both original asset commands. Analysis has zero
+errors/warnings and three infos: the probe imports transitive crypto directly,
+and its two recursive visitor loops require forEach. The strict gate refuses
+before Dart execution; no numeric renderer result is qualified.
+
+Use the already declared cryptography 2.9.0 synchronous DartSha256 API and hex
+encoding, with the same SHA-256 algorithm and pinned expected digests. Public
+exports, the constant constructor and hashSync are verified in that pinned
+package source. Convert only the two identical visitor calls to forEach,
+retaining order and mutation. No dependency version, lock, asset, application
+clock or command deadline changes. Existing Python/controller inputs reuse the
+336 memory proof explicitly with zero new local tests. Exact 801 Python and
+369 ordinary/371 startup Dart contracts remain. Current engine qualification
+and the trim explanation stay pending; source174 original failure is retained.

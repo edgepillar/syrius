@@ -3,10 +3,11 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
 
-import 'package:crypto/crypto.dart';
+import 'package:cryptography/dart.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hex/hex.dart';
 import 'package:lottie/lottie.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/shaders/shader_clock.dart';
@@ -77,6 +78,9 @@ const String _trimSha =
 const int _trimEdge = 470;
 const int _trimFrame = 720;
 
+String _trimHash(Uint8List bytes) =>
+    HEX.encode(const DartSha256().hashSync(bytes).bytes);
+
 Future<Uint8List> _trimRender(LottieComposition composition) async {
   final LottieDrawable drawable = LottieDrawable(
     composition, frameRate: FrameRate.max,
@@ -111,7 +115,7 @@ Future<Uint8List> _trimReference(String theme) async {
   );
   expect(await original.length(), lessThan(1024 * 1024));
   final Uint8List encoded = await original.readAsBytes();
-  expect(sha256.convert(encoded).toString(), theme == 'dark'
+  expect(_trimHash(encoded), theme == 'dark'
       ? '4ffec4db314a53d10ea672cc57e7f7e931b0824bea34ca410522811b679c2181'
       : '4698832240fb65ae6880c1b0a38bbfd777e3670721239828a1738bbf6d91b08c');
   final ui.Codec codec = await ui.instantiateImageCodec(encoded);
@@ -311,7 +315,7 @@ void main() {
       asset.offsetInBytes, asset.lengthInBytes,
     );
     expect(bytes.length, 2189249);
-    expect(sha256.convert(bytes).toString(), _trimSha);
+    expect(_trimHash(bytes), _trimSha);
     final Map<String, dynamic> variant =
         jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>;
     final List<dynamic> layers = variant['layers'] as List<dynamic>;
@@ -327,13 +331,9 @@ void main() {
           value['e'] = start;
           swaps++;
         }
-        for (final dynamic child in value.values) {
-          visit(child);
-        }
+        value.values.forEach(visit);
       } else if (value is List<dynamic>) {
-        for (final dynamic child in value) {
-          visit(child);
-        }
+        value.forEach(visit);
       }
     }
     // This variant exists only in test memory. Swapping entire channels
@@ -366,7 +366,7 @@ void main() {
           'threshold': threshold, 'original': before, 'sorted': after});
       }
     }
-    expect(sha256.convert(bytes).toString(), _trimSha);
+    expect(_trimHash(bytes), _trimSha);
     // Numeric diagnostics cannot grant a visual match or establish the
     // normal application's animation-clock behaviour.
     // ignore: avoid_print
