@@ -12,7 +12,7 @@ from tool.ci import run_harness_tour_tests as harness
 
 
 class HarnessAdmissionTests(unittest.TestCase):
-    def run_case(self, *, passed=400, terminal=True, skipped=0, failed=0,
+    def run_case(self, *, passed=408, terminal=True, skipped=0, failed=0,
                  error_events=0, command_success=True, complete=True,
                  source_changed=False, asset_fidelity=False):
         parent = dict(GITHUB_WORKSPACE=str(Path.cwd()), FLUTTER_ROOT='/sdk',
@@ -60,11 +60,11 @@ class HarnessAdmissionTests(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertTrue(report['success'])
         self.assertIsNone(report['code'])
-        self.assertEqual(report['counts']['passed'], 400)
+        self.assertEqual(report['counts']['passed'], 408)
         self.assertEqual((source_checks, tree_checks), (2, 2))
 
     def test_stale_short_or_extra_suite_counts_are_refused(self):
-        for passed in (0, 184, 196, 216, 218, 220, 221, 222, 227, 228, 229, 245, 246, 247, 254, 255, 262, 263, 264, 265, 266, 278, 279, 280, 281, 282, 283, 284, 285, 286, 287, 288, 289, 290, 291, 292, 293, 294, 295, 296, 297, 298, 299, 300, 301, 302, 303, 304, 305, 322, 323, 324, 325, 326, 327, 328, 329, 330, 331, 332, 333, 334, 335, 336, 337, 338, 339, 340, 341, 342, 343, 344, 345, 346, 347, 348, 349, 350, 360, 362, 363, 364, 365, 366, 367, 368, 369, 370, 371, 372, 375, 376, 377, 378, 387, 388, 389, 390, 391, 392, 393, 399, 401, 402):
+        for passed in (0, 184, 196, 216, 218, 220, 221, 222, 227, 228, 229, 245, 246, 247, 254, 255, 262, 263, 264, 265, 266, 278, 279, 280, 281, 282, 283, 284, 285, 286, 287, 288, 289, 290, 291, 292, 293, 294, 295, 296, 297, 298, 299, 300, 301, 302, 303, 304, 305, 322, 323, 324, 325, 326, 327, 328, 329, 330, 331, 332, 333, 334, 335, 336, 337, 338, 339, 340, 341, 342, 343, 344, 345, 346, 347, 348, 349, 350, 360, 362, 363, 364, 365, 366, 367, 368, 369, 370, 371, 372, 375, 376, 377, 378, 387, 388, 389, 390, 391, 392, 393, 399, 400, 401, 402, 405, 407, 409, 410):
             with self.subTest(passed=passed):
                 code, report, source_checks, tree_checks = self.run_case(
                     passed=passed)
@@ -95,12 +95,12 @@ class HarnessAdmissionTests(unittest.TestCase):
             'test/harness/restored_unlock_ready_test.dart'), 1)
         self.assertEqual(self.command_argv.count(
             'test/onboarding/welcome_drop_route_test.dart'), 1)
-        code, report, _, _ = self.run_case(passed=402, asset_fidelity=True)
+        code, report, _, _ = self.run_case(passed=410, asset_fidelity=True)
         self.assertEqual(code, 0)
         self.assertTrue(report['launch_asset_fidelity'])
         self.assertEqual(self.command_argv.count(
             'test/launch_film/launch_asset_test.dart'), 1)
-        for passed in (290, 292, 295, 296, 297, 298, 299, 300, 301, 302, 303, 304, 305, 306, 323, 324, 325, 326, 327, 328, 329, 330, 331, 332, 333, 334, 335, 336, 337, 338, 339, 340, 341, 342, 343, 344, 345, 346, 347, 348, 349, 350, 362, 363, 364, 365, 366, 367, 368, 369, 370, 371, 372, 376, 377, 378, 379, 388, 389, 390, 391, 392, 393, 394, 400, 401, 403):
+        for passed in (290, 292, 295, 296, 297, 298, 299, 300, 301, 302, 303, 304, 305, 306, 323, 324, 325, 326, 327, 328, 329, 330, 331, 332, 333, 334, 335, 336, 337, 338, 339, 340, 341, 342, 343, 344, 345, 346, 347, 348, 349, 350, 362, 363, 364, 365, 366, 367, 368, 369, 370, 371, 372, 376, 377, 378, 379, 388, 389, 390, 391, 392, 393, 394, 400, 401, 402, 403, 408, 409, 411):
             code, report, _, _ = self.run_case(
                 passed=passed, asset_fidelity=True)
             self.assertEqual(code, 1)

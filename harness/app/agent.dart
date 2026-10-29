@@ -81,6 +81,7 @@ import 'fixtures/lab_send_policy.dart';
 import 'fixtures/lab_send_ui_binding.dart';
 import 'fixtures/seed_commands.dart';
 import 'fixtures/seed_policy.dart';
+import 'fixtures/seed_project_presentation.dart';
 import 'logical_capture.dart';
 import 'native_entry_capture.dart';
 import 'native_window_owner.dart';
@@ -88,6 +89,7 @@ import 'presentation_close.dart';
 import 'presentation_host.dart';
 import 'presentation_mode.dart';
 import 'recipe_control_admission.dart';
+import 'seed_project_presentation_binding.dart';
 import 'theme_control.dart';
 
 /// Widgets that say nothing about where a node sits; left out of `path`.
@@ -840,6 +842,7 @@ class HarnessAgent {
             c,
             booted: booted,
             ui: _run,
+            captureProjectPresentation: _captureSeedProjectPresentation,
             tap: (Map<String, dynamic> selector, void Function() admission) =>
                 _tap(selector, requireAdmission: admission),
           );
@@ -1488,6 +1491,27 @@ class HarnessAgent {
     } on Object {
       throw HarnessError('restored-lab-observation-refused');
     }
+  }
+
+  SeedProjectPresentation _captureSeedProjectPresentation(int reference) {
+    final _Node original = _find(
+      <String, dynamic>{'ref': reference},
+      kinds: const <String>['button'],
+    );
+    return captureSeedProjectPresentation(original.element,
+      tapOriginal: (Element element, VoidCallback admission) async {
+        admission();
+        final List<_Node> controls = _snapshot().where(
+          (_Node node) => node.kind == 'button' &&
+              identical(node.element, element),
+        ).toList();
+        if (controls.length != 1) {
+          throw const SeedRefused('original-project-presentation-changed');
+        }
+        await _tap(<String, dynamic>{'ref': controls.single.ref},
+            requireAdmission: admission);
+      },
+    );
   }
 
   Future<void> _tapCaptionControl(

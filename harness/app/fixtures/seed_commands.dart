@@ -7,6 +7,7 @@ import 'fixture_cleanup.dart';
 import 'lab_seed_binding.dart';
 import 'presentation_fixtures.dart';
 import 'seed_policy.dart';
+import 'seed_project_presentation.dart';
 
 /// Reached only through the harness's authenticated, serial command queue.
 final class SeedCommands {
@@ -20,9 +21,11 @@ final class SeedCommands {
     required SeedGuard this._guard,
     required String this._recipe,
     this._confirmed = false,
+    this._projectPresentation,
   }) : _source = _guard.source;
 
   SeedGuard? _guard;
+  SeedProjectPresentation? _projectPresentation;
   SeedSource? _source;
   String? _recipe;
   bool _confirmed = false;
@@ -38,6 +41,7 @@ final class SeedCommands {
       void Function(),
     )
     tap,
+    SeedProjectPresentation Function(int)? captureProjectPresentation,
   }) async {
     try {
       final String? action = command['action'] as String?;
@@ -70,6 +74,7 @@ final class SeedCommands {
         _source = source;
         _recipe = recipe;
         _confirmed = false;
+        _projectPresentation = null;
         _guard = SeedGuard(source: source, journal: journal);
         return <String, Object?>{
           'ready': true,
@@ -124,6 +129,22 @@ final class SeedCommands {
       }
       if (action == 'finish') {
         if (!_confirmed) throw const SeedRefused('exact-confirmation-required');
+        if (recipe == 'project') {
+          final SeedProjectPresentation? original = _projectPresentation;
+          final String? hash = guard.acceptedHash;
+          if (original == null || hash == null) {
+            throw const SeedRefused('original-project-presentation-required');
+          }
+          void requireOriginalCompletion() {
+            // A known completed exit is only a receipt read. An actual exit
+            // retains fixture admission before and after the original guard.
+            if (!original.closed) _requireFixtureClear();
+            guard.requireCurrent();
+            if (!original.closed) _requireFixtureClear();
+          }
+          requireOriginalCompletion();
+          await original.close(hash, requireOriginalCompletion);
+        }
         return <String, Object?>{
           'confirmed': true,
           'recipe': recipe,
@@ -136,6 +157,9 @@ final class SeedCommands {
       void requirePublication() {
         _requireFixtureClear();
         guard.requireCurrent();
+        if (recipe == 'project') {
+          _projectPresentation?.requireCaptured();
+        }
         _requireFixtureClear();
       }
 
@@ -168,6 +192,14 @@ final class SeedCommands {
       // This internal ref retains the actual asserted element across the
       // advancing-frontier wait. A similarly labelled replacement is refused.
       final int originalRef = target['ref'] as int;
+      if (recipe == 'project' && _projectPresentation == null) {
+        final SeedProjectPresentation Function(int)? capture =
+            captureProjectPresentation;
+        if (capture == null) {
+          throw const SeedRefused('original-project-presentation-required');
+        }
+        _projectPresentation = capture(originalRef);
+      }
       requirePublication();
       final String hash = await guard.publish(recipe, () async {
         requirePublication();

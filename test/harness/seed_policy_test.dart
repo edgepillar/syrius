@@ -2,7 +2,10 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../harness/app/fixtures/fixture_cleanup.dart';
+import '../../harness/app/fixtures/seed_commands.dart';
 import '../../harness/app/fixtures/seed_policy.dart';
+import '../../harness/app/fixtures/seed_project_presentation.dart';
 
 String _hash(int id) => id.toRadixString(16).padLeft(64, '0');
 SeedEnvironment _environment({
@@ -712,5 +715,183 @@ void main() {
       expect(observed.containsKey(key), isFalse);
     }
     expect(seedConfirmationProjection(null), isNull);
+  });
+
+  test('confirmed Project finish closes once and retains fixture admission',
+      () async {
+    expect(await guard.publish('project', () async {
+      source.operations.add(_Original());
+    }), _hash(9));
+    expect(journal.confirmedHashes, <String, String>{'project': _hash(9)});
+    final List<int> reads = <int>[
+      source.wsReads, source.httpReads,
+      source.confirmationReads, source.effectReads,
+    ];
+    final FixtureCleanup fixture = FixtureCleanup(name: 'sentinel');
+    final Completer<Object?> route = Completer<Object?>();
+    bool visible = true;
+    int exits = 0;
+    final SeedProjectPresentation presentation = SeedProjectPresentation(
+      originalCurrent: () => visible,
+      submittedCurrent: (String hash) => visible && hash == _hash(9),
+      originalRouteCompleted: route.future,
+      tapOriginalExit: (void Function() admission) async {
+        admission();
+        exits++;
+        admission();
+        visible = false;
+        route.complete(null);
+      },
+    );
+    SeedCommands commands(bool confirmed) => SeedCommands.withFixtureAdmission(
+      fixture: fixture, guard: guard, recipe: 'project',
+      confirmed: confirmed, projectPresentation: presentation,
+    );
+    Future<Map<String, Object?>> finish(SeedCommands original) => original.run(
+      <String, dynamic>{'action': 'finish'}, booted: false,
+      ui: (_) async => throw StateError('Unexpected generic UI query'),
+      tap: (_, _) async => throw StateError('Unexpected generic pointer'),
+    );
+    await expectLater(finish(commands(false)), throwsA(isA<SeedRefused>()
+        .having((SeedRefused error) => error.code,
+            'code', 'exact-confirmation-required')));
+    final SeedCommands original = commands(true);
+    await expectLater(finish(original), throwsA(isA<SeedRefused>()
+        .having((SeedRefused error) => error.code,
+            'code', 'close-current-fixture-first')));
+    expect(exits, 0);
+    expect(presentation.closed, isFalse);
+    final Object fixtureOwner = Object();
+    fixture
+      ..open(routeCompleted: Future<void>.value(),
+          push: () => Future<void>.value())
+      ..attach(fixtureOwner)
+      ..dispose(owner: fixtureOwner, dispose: <void Function()>[],
+          close: <Future<void> Function()>[], stateDisposed: () {});
+    await Future<void>.delayed(Duration.zero);
+    expect(fixture.heldName, isNull);
+    final Map<String, Object?> receipt = await finish(original);
+    expect(receipt, <String, Object?>{
+      'confirmed': true, 'recipe': 'project', 'hash': _hash(9),
+    });
+    expect(presentation.closed, isTrue);
+    expect(exits, 1);
+    expect(() => fixture.attach(Object()), throwsStateError);
+    expect(fixture.heldName, 'sentinel');
+    expect(await finish(original), receipt);
+    expect(exits, 1);
+    expect(source.operations, hasLength(1));
+    expect(<int>[source.wsReads, source.httpReads,
+      source.confirmationReads, source.effectReads], reads);
+    expect(journal.acceptedHashes, <String, String>{'project': _hash(9)});
+    expect(journal.confirmedHashes, <String, String>{'project': _hash(9)});
+  });
+
+  test('Project capture precedes only its original exclusive publication',
+      () async {
+    for (final String phase in <String>['missing', 'replaced', 'captured']) {
+      final _Source original = _Source();
+      final _Journal ledger = _Journal();
+      final SeedGuard scoped = SeedGuard(
+        source: original, journal: ledger, delay: original.delay,
+      );
+      final FixtureCleanup fixture = FixtureCleanup(name: 'sentinel');
+      final Object fixtureOwner = Object();
+      fixture
+        ..open(routeCompleted: Future<void>.value(),
+            push: () => Future<void>.value())
+        ..attach(fixtureOwner)
+        ..dispose(owner: fixtureOwner, dispose: <void Function()>[],
+            close: <Future<void> Function()>[], stateDisposed: () {});
+      await Future<void>.delayed(Duration.zero);
+      expect(fixture.heldName, isNull);
+      bool live = phase != 'replaced';
+      int captures = 0;
+      int publications = 0;
+      int exits = 0;
+      final Completer<Object?> route = Completer<Object?>();
+      final SeedProjectPresentation presentation = SeedProjectPresentation(
+        originalCurrent: () => live,
+        submittedCurrent: (String hash) => live && hash == _hash(9),
+        originalRouteCompleted: route.future,
+        tapOriginalExit: (void Function() admission) async {
+          admission();
+          exits++;
+          admission();
+          route.complete(null);
+        },
+      );
+      final SeedCommands commands = SeedCommands.withFixtureAdmission(
+        fixture: fixture, guard: scoped, recipe: 'project',
+      );
+      Future<Map<String, Object?>> publish() => commands.run(
+        <String, dynamic>{'action': 'publish'}, booted: false,
+        ui: (Map<String, dynamic> request) async {
+          expect(request, <String, dynamic>{
+            'cmd': 'assert', 'text': 'Submit',
+            'kind': 'button', 'exact': true,
+          });
+          return <String, Object?>{
+            'target': <String, Object?>{'ref': 7},
+          };
+        },
+        tap: (Map<String, dynamic> request,
+            void Function() admission) async {
+          admission();
+          admission();
+          expect(request, <String, dynamic>{'cmd': 'tap', 'ref': 7});
+          publications++;
+          original.operations.add(_Original());
+          return <String, Object?>{};
+        },
+        captureProjectPresentation: phase == 'missing' ? null : (int ref) {
+          captures++;
+          expect(ref, 7);
+          expect(original.operations, isEmpty);
+          expect(original.wsReads, 0);
+          expect(original.httpReads, 0);
+          expect(ledger.attempts, isEmpty);
+          return presentation;
+        },
+      );
+      if (phase != 'captured') {
+        await expectLater(publish(), throwsA(isA<SeedRefused>()));
+        expect(captures, phase == 'missing' ? 0 : 1);
+        expect(publications, 0);
+        expect(exits, 0);
+        expect(original.operations, isEmpty);
+        expect(ledger.attempts, isEmpty);
+        expect(original.wsReads, 0);
+        if (phase == 'replaced') {
+          live = true;
+          await expectLater(publish(), throwsA(isA<SeedRefused>()));
+          expect(captures, 1);
+          expect(publications, 0);
+        }
+        route.complete(null);
+        continue;
+      }
+      final Map<String, Object?> receipt = await publish();
+      expect(receipt, <String, Object?>{
+        'confirmed': true, 'recipe': 'project', 'hash': _hash(9),
+      });
+      expect(captures, 1);
+      expect(publications, 1);
+      expect(exits, 0);
+      final Map<String, Object?> finished = await commands.run(
+        <String, dynamic>{'action': 'finish'}, booted: false,
+        ui: (_) async => throw StateError('Unexpected generic UI query'),
+        tap: (_, _) async => throw StateError('Unexpected generic pointer'),
+      );
+      expect(finished, receipt);
+      expect(presentation.closed, isTrue);
+      expect(exits, 1);
+      await expectLater(publish(), throwsA(isA<SeedRefused>()));
+      expect(captures, 1);
+      expect(publications, 1);
+      expect(original.operations, hasLength(1));
+      expect(ledger.confirmedHashes,
+          <String, String>{'project': _hash(9)});
+    }
   });
 }

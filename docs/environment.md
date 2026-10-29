@@ -9239,3 +9239,55 @@ contracts are 812 Python cases and 400 ordinary/402 startup Dart cases; their
 engine and a fresh isolated chain-321 attempt remain pending. Full Windows and
 visual evidence above stay bound to source181. All nine main acceptance rows
 P03, P09, F06 and V01-V06 remain open: 71/80, or 88.75 percent by row count.
+
+
+### Complete only the confirmed original Project presentation
+
+Source182 cd883695f291 / focused run 40944375246 qualifies all 812 Python
+cases with three existing skips, 400 ordinary Dart cases, both original asset
+commands and zero selected analysis findings. This includes the original seed
+confirmation count boundaries; it is not a fresh native exhaustion observation.
+Native95 40945925400, independently inspected by 40949760834, retains its
+producer failure. Its original UI send, twelve-page tour, quiescence and normal
+app/entry/five-node exits are qualified. Its copied child refuses during the
+original deposit Home preparation, before command one or deposit publication.
+The specific inner Home step and cause remain NOT_ESTABLISHED. Progress through
+four earlier recipes does not export their final receipts or qualify effects.
+Native94's earlier fuse pending result is not reconstructed or retried.
+
+All four independently qualified source181 entry images were transferred once,
+reviewed against their exact references and closed with zero accepted matches.
+The original verified object remains retained. Only registered disposable
+scratch was removed; physical reclaim was not measured. The caption has an
+observed flat-band gradient discontinuity, alongside retained text/input
+presentation differences. Source181 images are not rebound to source182.
+RULES palette and font-rendering exceptions do not qualify a full visual pair.
+
+Source inspection finds that the Project recipe finishes on Submitted while
+its original Projects button remains available. This may obstruct later Home
+navigation, but it is not the observed root cause of Native95. Capture the exact
+original Project view, source, draft, epoch, route-completion Future and exit
+callback before the existing guarded publication. Read-only opaque view evidence
+changes no production action or callback. Only after the existing guard confirms
+the exact original hash and effect may finish match the same submitted UI hash,
+use the existing guarded pointer on the original Projects button once and await
+that original route completion with a bounded five-second wait. Retain fixture
+admission and original owner checks before and at pointer down/up and after the
+route completion. A changed owner/view, wrong hash, failed or pending close
+cannot revive or retry the exit. The same known completed receipt stays read-only.
+No direct Navigator pop, replacement view, new SDK publication/query, password
+input, profile reset, retry or confirmation authority is added. Other recipes
+and the original confirmation/effect predicates remain unchanged.
+
+Eight new Dart cases cover exact route completion, permanent revocation,
+late/failed closure, immutable opaque view evidence, fixture admission,
+pre-publication capture and two genuine original Project UI/route paths.
+The UI cases use an inert action source and do not prove chain confirmation.
+All 347 selected in-memory Python controls pass with zero native, SDK, network,
+scratch or shared-store access. The exact new hosted contracts are 812 Python
+cases and 408 ordinary/410 startup Dart cases; engine, fresh isolated chain and
+current full-root qualification remain pending. The source181 full Windows
+baseline still has 4628 passes/two existing skips, normal Debug/Release and
+mapped/exported identical libraries; it does not qualify the new source.
+All nine main acceptance rows remain open: 71/80, or 88.75 percent by row count,
+with 90 catalog outputs, 19 preparations and all 94 complete visual matches open.

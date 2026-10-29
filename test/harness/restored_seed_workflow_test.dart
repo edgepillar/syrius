@@ -1,14 +1,28 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui' show PointerDeviceKind;
 
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_action_controller.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_action_stepper.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/project_creation_stepper.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
 
 import '../../harness/app/fixtures/seed_policy.dart';
+import '../../harness/app/fixtures/seed_project_presentation.dart';
+import '../../harness/app/seed_project_presentation_binding.dart';
 import '../../harness/bin/ci_wallet_reopen.dart' as reopen;
 import '../../harness/bin/harness.dart' as cli;
 import '../../harness/seed/restored_seed_workflow.dart';
 import '../../harness/wallet_address_context.dart';
+import '../accelerator_project_redesign/support.dart';
 
 WalletAddressContext _context({
   int count = 2, int revision = 20, int owner = 1,
@@ -59,6 +73,146 @@ final class _Session {
 class _UnprintableSeedError implements Exception {
   @override
   String toString() => throw StateError('synthetic-private-value');
+}
+
+SeedProjectPresentation _projectPresentation({
+  required Future<Object?> route,
+  bool Function()? current,
+  bool Function(String)? submitted,
+  Future<void> Function(void Function())? tap,
+  Duration timeout = const Duration(seconds: 5),
+}) => SeedProjectPresentation(
+  originalCurrent: current ?? () => true,
+  submittedCurrent: submitted ?? (String hash) => hash == _hash(9),
+  tapOriginalExit: tap ?? (void Function() admission) async => admission(),
+  originalRouteCompleted: route, closeTimeout: timeout,
+);
+
+
+
+
+// Only decoration loading is held. The actual Project view, route, original
+// source controller and pointer input remain in use; artwork is not qualified.
+class _ProjectFilmBundle extends CachingAssetBundle {
+  final Completer<ByteData> _film = Completer<ByteData>();
+
+  @override
+  Future<ByteData> load(String key) =>
+      key.startsWith('assets/lottie/ic_anim_zts')
+          ? _film.future : rootBundle.load(key);
+}
+
+Future<void> _projectFrame(WidgetTester tester) async {
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 600));
+  await tester.pump();
+}
+
+Future<void> _projectClose(WidgetTester tester, Future<void> original) async {
+  bool settled = false;
+  Object? error;
+  StackTrace? trace;
+  unawaited(original.then((_) { settled = true; },
+    onError: (Object value, StackTrace stack) {
+      error = value;
+      trace = stack;
+      settled = true;
+    },
+  ));
+  for (int frame = 0; frame < 80 && !settled; frame++) {
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    await tester.pump(const Duration(milliseconds: 40));
+  }
+  expect(settled, isTrue);
+  if (error != null) Error.throwWithStackTrace(error!, trace!);
+}
+
+Future<(SeedProjectPresentation, ModalRoute<dynamic>)> _submittedProject(
+  WidgetTester tester, ActionSource source, VoidCallback exited,
+) async {
+  ModalRoute<dynamic>? originalRoute;
+  await tester.pumpWidget(DefaultAssetBundle(
+    bundle: _ProjectFilmBundle(),
+    child: MaterialApp(
+      locale: const Locale('en'), theme: AppTheme.darkTheme,
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: appLocalizationsDelegates,
+      home: Scaffold(body: Builder(builder: (BuildContext context) => Center(
+        child: OutlinedButton(
+          key: const Key('project_original_home'),
+          onPressed: () {
+            unawaited(showFrostedDialog<void>(context: context,
+              builder: (BuildContext dialog) {
+                originalRoute = ModalRoute.of(dialog);
+                return Center(child: SizedBox(width: 1000, height: 700,
+                  child: Material(child: ProjectCreationStepper(
+                    source: source,
+                  )),
+                ));
+              },
+            ));
+          },
+          child: const Text('Open original Project'),
+        ),
+      ))),
+    ),
+  ));
+  await tester.tap(find.byKey(const Key('project_original_home')));
+  await _projectFrame(tester);
+  expect(originalRoute, isA<FrostedDialogRoute<void>>());
+  expect(find.byKey(const Key('project_original_home')).hitTestable(),
+      findsNothing);
+  Future<void> continueOriginal() async {
+    final Finder button = find.widgetWithText(PrimaryPill, 'Continue');
+    await tester.ensureVisible(button);
+    await tester.tap(button);
+    await _projectFrame(tester);
+  }
+  await continueOriginal();
+  final Finder fields = find.byType(TextField);
+  expect(fields, findsNWidgets(5));
+  const List<String> values = <String>[
+    'Synthetic project', 'Synthetic project description',
+    'https://example.test/project', '1', '0',
+  ];
+  for (int index = 0; index < values.length; index++) {
+    await tester.ensureVisible(fields.at(index));
+    await tester.enterText(fields.at(index), values[index]);
+  }
+  await _projectFrame(tester);
+  await continueOriginal();
+  final Finder submit = find.widgetWithText(PrimaryPill, 'Submit');
+  await tester.ensureVisible(submit);
+  final SeedProjectPresentation presentation = captureSeedProjectPresentation(
+    tester.element(submit),
+    tapOriginal: (Element element, VoidCallback admission) async {
+      admission();
+      final Finder button = find.byElementPredicate(
+        (Element candidate) => identical(candidate, element),
+      );
+      expect(button.hitTestable(), findsOneWidget);
+      final Offset point = tester.getCenter(button);
+      final TestGesture pointer = await tester.createGesture(
+        kind: PointerDeviceKind.mouse,
+      );
+      await pointer.addPointer(location: point);
+      admission();
+      await pointer.down(point);
+      admission();
+      await pointer.up();
+      await pointer.removePointer();
+      exited();
+    },
+  );
+  expect(presentation.requireCaptured, returnsNormally);
+  expect(source.publications, 0);
+  await tester.tap(submit);
+  await _projectFrame(tester);
+  expect(source.publications, 1);
+  expect(source.confirmedReads, isEmpty);
+  expect(find.text('Submitted'), findsOneWidget);
+  expect(find.byKey(const Key('acc_stepper_leave')), findsOneWidget);
+  return (presentation, originalRoute!);
 }
 
 void main() {
@@ -329,5 +483,218 @@ void main() {
         confirmation: counts);
     expect(trace.failure(TimeoutException('private')).diagnostic
         .containsKey('confirmation'), isFalse);
+  });
+
+  test('the confirmed original Project exit awaits its actual route once',
+      () async {
+    final Completer<Object?> route = Completer<Object?>();
+    int exits = 0;
+    int owners = 0;
+    final SeedProjectPresentation presentation = _projectPresentation(
+      route: route.future,
+      tap: (void Function() admission) async {
+        admission();
+        exits++;
+        admission();
+      },
+    );
+    expect(presentation.requireCaptured, returnsNormally);
+    final Future<void> original = presentation.close(_hash(9), () => owners++);
+    await Future<void>.delayed(Duration.zero);
+    expect(exits, 1);
+    expect(presentation.closed, isFalse);
+    route.complete(null);
+    await original;
+    expect(presentation.closed, isTrue);
+    await presentation.close(_hash(9), () => owners++);
+    expect(exits, 1);
+    expect(owners, greaterThanOrEqualTo(3));
+    await expectLater(presentation.close(_hash(8), () {}),
+        throwsA(isA<SeedRefused>()));
+    expect(presentation.closed, isTrue);
+    expect(exits, 1);
+  });
+
+  test('a revoked Project view or owner cannot revive its original exit',
+      () async {
+    for (final String phase in <String>['before', 'release', 'owner']) {
+      final Completer<Object?> route = Completer<Object?>();
+      bool live = phase != 'before';
+      bool owner = phase != 'owner';
+      int exits = 0;
+      final SeedProjectPresentation presentation = _projectPresentation(
+        route: route.future, current: () => live,
+        tap: (void Function() admission) async {
+          admission();
+          if (phase == 'release') live = false;
+          admission();
+          exits++;
+        },
+      );
+      void current() {
+        if (!owner) throw const SeedRefused('original-context-changed');
+      }
+      await expectLater(presentation.close(_hash(9), current),
+          throwsA(isA<SeedRefused>()));
+      live = true;
+      owner = true;
+      await expectLater(presentation.close(_hash(9), current),
+          throwsA(isA<SeedRefused>()));
+      expect(exits, 0);
+      route.complete(null);
+      await Future<void>.delayed(Duration.zero);
+      expect(presentation.closed, isFalse);
+    }
+  });
+
+  test('pending or failed original Project closure never authorizes a retry',
+      () async {
+    for (final bool fail in <bool>[false, true]) {
+      final Completer<Object?> route = Completer<Object?>();
+      int exits = 0;
+      final SeedProjectPresentation presentation = _projectPresentation(
+        route: route.future, timeout: const Duration(milliseconds: 1),
+        tap: (void Function() admission) async {
+          admission();
+          exits++;
+          if (fail) throw StateError('synthetic private close failure');
+        },
+      );
+      await expectLater(presentation.close(_hash(9), () {}),
+          throwsA(fail ? isA<StateError>() : isA<SeedRefused>()));
+      expect(exits, 1);
+      expect(presentation.closed, isFalse);
+      route.complete(null);
+      await Future<void>.delayed(Duration.zero);
+      expect(presentation.closed, isFalse);
+      await expectLater(presentation.close(_hash(9), () {}),
+          throwsA(isA<SeedRefused>()));
+      expect(exits, 1);
+    }
+    for (final Duration timeout in <Duration>[
+      Duration.zero, const Duration(seconds: 6),
+    ]) {
+      expect(() => _projectPresentation(
+        route: Future<Object?>.value(null), timeout: timeout,
+      ), throwsArgumentError);
+    }
+  });
+
+  test('Project view evidence keeps opaque identities and immutable UI hashes',
+      () {
+    final Object owner = Object();
+    final Object source = Object();
+    final Object draft = Object();
+    AcceleratorActionPresentation view({
+      Object? ownerChange, Object? sourceChange, Object? draftChange,
+      int epoch = 1, bool current = true, bool submitted = false,
+      List<String> hashes = const <String>[],
+    }) => AcceleratorActionPresentation(
+      owner: ownerChange ?? owner, source: sourceChange ?? source,
+      draft: draftChange ?? draft, epoch: epoch,
+      kind: AcceleratorActionKind.createProject, current: current,
+      submitted: submitted, hashes: hashes,
+    );
+    final AcceleratorActionPresentation original = view();
+    expect(original.prepared, isTrue);
+    expect(original.current, isTrue);
+    expect(view(current: false).current, isFalse);
+    final List<String> hashes = <String>[_hash(9)];
+    final AcceleratorActionPresentation submitted = view(
+      submitted: true, hashes: hashes,
+    );
+    hashes[0] = _hash(8);
+    expect(submitted.sameOwner(original), isTrue);
+    expect(submitted.submittedWith(_hash(9)), isTrue);
+    expect(submitted.submittedWith(_hash(8)), isFalse);
+    expect(submitted.prepared, isFalse);
+    expect(submitted.toString(), isNot(contains(_hash(9))));
+    for (final AcceleratorActionPresentation replacement in
+        <AcceleratorActionPresentation>[
+      view(ownerChange: Object()), view(sourceChange: Object()),
+      view(draftChange: Object()), view(epoch: 2),
+    ]) {
+      expect(replacement.sameOwner(original), isFalse);
+    }
+    const Object first = ValueKey<String>('same synthetic value');
+    final Object second = ValueKey<String>(
+      String.fromCharCodes('same synthetic value'.codeUnits),
+    );
+    expect(first, second);
+    expect(identical(first, second), isFalse);
+    expect(view(draftChange: first).sameOwner(view(draftChange: second)),
+        isFalse);
+    expect(view(current: false, submitted: true,
+        hashes: <String>[_hash(9)]).submittedWith(_hash(9)), isFalse);
+    expect(view(submitted: true, hashes: <String>[_hash(9), _hash(8)])
+        .submittedWith(_hash(9)), isFalse);
+    for (final String code in <String>[
+      'confirmed-project-presentation-required',
+      'original-project-presentation-changed',
+      'original-project-presentation-close-pending',
+      'original-project-presentation-held',
+      'original-project-presentation-required',
+    ]) {
+      expect(cli.seedOperationReplyCode(code), code);
+    }
+  });
+
+  testWidgets('confirmed Project exits through its original view and route',
+      (WidgetTester tester) async {
+    await tester.binding.setSurfaceSize(const Size(1280, 780));
+    final ActionSource source = ActionSource(scope: Object());
+    int exits = 0;
+    try {
+      final (SeedProjectPresentation original, ModalRoute<dynamic> route) =
+          await _submittedProject(tester, source, () => exits++);
+      bool completed = false;
+      unawaited(route.completed.then((_) { completed = true; }));
+      expect(completed, isFalse);
+      await _projectClose(tester, original.close(listHash(901), () {}));
+      expect(original.closed, isTrue);
+      expect(completed, isTrue);
+      expect(exits, 1);
+      expect(find.byType(ProjectCreationStepper), findsNothing);
+      expect(find.byKey(const Key('project_original_home')).hitTestable(),
+          findsOneWidget);
+      await original.close(listHash(901), () {});
+      expect(exits, 1);
+      expect(source.publications, 1);
+      expect(source.builders, hasLength(1));
+      expect(source.confirmedReads, isEmpty);
+      expect(tester.takeException(), isNull);
+    } finally {
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(seconds: 1));
+      await tester.binding.setSurfaceSize(null);
+    }
+  });
+
+  testWidgets('a submitted Project UI hash alone cannot replace the original',
+      (WidgetTester tester) async {
+    await tester.binding.setSurfaceSize(const Size(1280, 780));
+    final ActionSource source = ActionSource(scope: Object());
+    int exits = 0;
+    try {
+      final (SeedProjectPresentation original, ModalRoute<dynamic> route) =
+          await _submittedProject(tester, source, () => exits++);
+      await expectLater(original.close(listHash(902), () {}),
+          throwsA(isA<SeedRefused>()));
+      await expectLater(original.close(listHash(901), () {}),
+          throwsA(isA<SeedRefused>()));
+      expect(original.closed, isFalse);
+      expect(route.isCurrent, isTrue);
+      expect(exits, 0);
+      expect(find.byKey(const Key('acc_stepper_leave')), findsOneWidget);
+      expect(find.byKey(const Key('project_original_home')).hitTestable(),
+          findsNothing);
+      expect(source.publications, 1);
+      expect(source.confirmedReads, isEmpty);
+      expect(tester.takeException(), isNull);
+    } finally {
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(seconds: 1));
+      await tester.binding.setSurfaceSize(null);
+    }
   });
 }

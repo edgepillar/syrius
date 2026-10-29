@@ -15,6 +15,58 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/custom_mate
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+/// Read-only original view evidence; it conveys no transaction authority.
+abstract interface class AcceleratorActionPresentationSource {
+  /// Copies only the current original view evidence.
+  AcceleratorActionPresentation get actionPresentation;
+}
+
+/// Private owner references are compared in memory and never serialized.
+final class AcceleratorActionPresentation {
+  /// Keeps opaque identities and a finite private copy of UI hashes.
+  AcceleratorActionPresentation({
+    required Object owner,
+    required Object? source,
+    required Object? draft,
+    required int epoch,
+    required AcceleratorActionKind kind,
+    required bool current,
+    required bool submitted,
+    required List<String> hashes,
+  }) : _owner = owner, _source = source, _draft = draft, _epoch = epoch,
+       _kind = kind, _current = current, _submitted = submitted,
+       _hashes = List<String>.unmodifiable(hashes);
+
+  final Object _owner;
+  final Object? _source;
+  final Object? _draft;
+  final int _epoch;
+  final AcceleratorActionKind _kind;
+  final bool _current;
+  final bool _submitted;
+  final List<String> _hashes;
+
+  /// The originally captured operation, without creating another one.
+  AcceleratorActionKind get kind => _kind;
+
+  /// The original view is available at its submit or result position.
+  bool get current => _current;
+
+  /// A fresh view draft, before its original publication is entered.
+  bool get prepared => _current && _source != null && _draft != null &&
+      !_submitted && _hashes.isEmpty;
+
+  /// Compares the captured view, source and draft by identity.
+  bool sameOwner(AcceleratorActionPresentation other) =>
+      identical(_owner, other._owner) && identical(_source, other._source) &&
+      identical(_draft, other._draft) && _epoch == other._epoch &&
+      _kind == other._kind;
+
+  /// This is a UI receipt match, independent of chain confirmation/effect.
+  bool submittedWith(String hash) => _current && _submitted &&
+      _hashes.length == 1 && _hashes.single == hash;
+}
+
 /// Existing Accelerator forms share one original draft and publication owner.
 class AcceleratorActionStepper extends StatefulWidget {
   /// Captures a draft under the originally supplied action and project scope.
@@ -42,7 +94,8 @@ class AcceleratorActionStepper extends StatefulWidget {
       _AcceleratorActionStepperState();
 }
 
-class _AcceleratorActionStepperState extends State<AcceleratorActionStepper> {
+class _AcceleratorActionStepperState extends State<AcceleratorActionStepper>
+    implements AcceleratorActionPresentationSource {
   final TextEditingController _name = TextEditingController();
   final TextEditingController _description = TextEditingController();
   final TextEditingController _url = TextEditingController();
@@ -63,6 +116,15 @@ class _AcceleratorActionStepperState extends State<AcceleratorActionStepper> {
   bool _preparing = false;
   bool _phaseHeld = false;
   bool _balanceFailed = false;
+
+  @override
+  AcceleratorActionPresentation get actionPresentation =>
+      AcceleratorActionPresentation(
+        owner: this, source: _source, draft: _draft, epoch: _epoch,
+        kind: widget.kind, current: _onPage && !_busy && _step == 2,
+        submitted: _outcome?.state == AcceleratorActionState.submitted,
+        hashes: _outcome?.hashes ?? <String>[],
+      );
 
   bool get _donation => widget.kind == AcceleratorActionKind.donate;
   bool get _current =>
