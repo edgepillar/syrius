@@ -1112,3 +1112,18 @@ full-root/build, copied reopen, six effects, nineteen preparations and all 94
 visual matches remain unqualified. The main ledger stays 71/80. Original failures,
 UNKNOWNs, history and the reviewed source144 images remain preserved. No new
 local artifact transfer or shared-store task is started.
+
+
+## Exact transport observation in the privacy fixture
+
+Source156 focused run 40799879401 stops before SDK allocation with one existing
+privacy-fixture schema failure among 773 Python cases and three existing skips.
+Its Dart, analysis and asset stages are not executed. The identical original
+case reproduces in the memory lane: the fixture's exact top-level key set does
+not yet include the new closed transport observation. The fixture now requires
+that exact field and the original readiness_ping/OTHER pair, retains HTTP_FAILED,
+requires capture_progress to remain absent and preserves every original private
+input and exclusion. No runtime or controller behavior changes. All 308 memory
+controls pass, including the complete 37-case entry controller class. Hosted
+773 Python/338 ordinary Dart validation remains pending. Source156's original
+failure, its skipped stages and all previous evidence remain retained.

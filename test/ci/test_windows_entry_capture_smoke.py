@@ -762,8 +762,13 @@ class ControllerTests(unittest.TestCase):
                          "run_attempt", "runner_sha256", "dart_kernel_sha256", "checks",
                          "captures", "capture_count", "exit_code", "exit_observed", "forced_kill",
                          "output_bytes", "output_complete", "output_overflow", "complete", "success",
-                         "status", "error_codes", "first_command_failure", "cleanup_failures", "caption"})
+                         "status", "error_codes", "first_command_failure", "cleanup_failures", "caption",
+                         "transport_failure"})
         self.assertEqual(result["schema"], 2)
+        self.assertEqual(result["transport_failure"],
+                         {"phase": "readiness_ping", "kind": "OTHER"})
+        self.assertEqual(result["first_command_failure"]["code"], "HTTP_FAILED")
+        self.assertNotIn("capture_progress", result)
 
 
 class DiagnosticProjectionTests(unittest.TestCase):
