@@ -196,7 +196,7 @@ class WalletRecipe {
       if (control == null) {
         reason = 'wallet-recipe-control-absent';
       } else if (control['enabled'] == false) {
-        reason = 'wallet-recipe-control-disabled';
+        reason = walletRecipeControlFailure(control['blockedBy']);
       }
     }
     _refuse(

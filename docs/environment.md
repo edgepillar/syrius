@@ -8540,3 +8540,25 @@ input and exclusion. No runtime or controller behavior changes. All 308 memory
 controls pass, including the complete 37-case entry controller class. Hosted
 773 Python/338 ordinary Dart validation remains pending. Source156's original
 failure, its skipped stages and all previous evidence remain retained.
+
+
+## Original control blocking predicates
+
+Source157 focused run 40800748147 qualifies 773 Python and 338 ordinary Dart
+cases with three existing Python skips, zero selected analysis findings and
+normal complete asset commands. Its passive entry progress and exact transport
+privacy fixture pass. Source156's original failure and skipped stages remain.
+
+Native87's copied seed admission still retains disabled settings_add_address;
+its exact blocking predicate remains unobserved. The harness now projects the
+first failed original widget, entrance, layout or center hit-test condition.
+Predicate order, short circuit, original action guards, commands, delays and
+deadlines remain; no extra guard or hit-test reads are made. Unknown/private
+labels retain the existing generic refusal. Two Dart and one Python cases cover
+real disabled callbacks and occluded centers, the actual Welcome entrance and
+updater layout, a disabled seed driver that never taps or revives, and a closed
+failure vocabulary that cannot heal the original refusal. All 309 memory controls
+pass; hosted 774 Python/340 ordinary Dart/342 startup cases remain pending.
+No disabled control is forced. Current copied reopen, six effects, nineteen
+preparations and all 94 visual matches remain open. No local SDK, native process,
+artifact transfer or shared-store task is started.

@@ -900,5 +900,26 @@ class QuiescenceTests(unittest.TestCase):
                 self.assertFalse(tour.completed(dict(self.current_report(), **change)))
 
 
+
+class ControlGateTests(unittest.TestCase):
+    def test_fixed_original_control_guards_cannot_heal_or_expand_a_refusal(self):
+        base = dict(stage='onboarding', code='wallet-recipe-stage-unsettled',
+            diagnostic=dict(action='observe', control='settings_add_address',
+                            reason='wallet-recipe-control-disabled'))
+        for reason in ('wallet-recipe-control-widget-disabled',
+                'wallet-recipe-control-entrance-pending',
+                'wallet-recipe-control-layout-pending',
+                'wallet-recipe-control-not-reachable'):
+            original = dict(base, diagnostic=dict(base['diagnostic'], reason=reason))
+            self.assertEqual(tour.entry_failure(original), original)
+            self.assertFalse(tour.completed(dict(errors=['ENTRY_FAILED'])))
+            for change in (dict(reason='private-input'), dict(reason=True),
+                    dict(reason=reason+'-private-input'), dict(blockedBy='widget'),
+                    dict(detail='private-input')):
+                with self.assertRaises(tour.Refused):
+                    tour.entry_failure(dict(original,
+                        diagnostic=dict(original['diagnostic'], **change)))
+
+
 if __name__ == '__main__':
     unittest.main()

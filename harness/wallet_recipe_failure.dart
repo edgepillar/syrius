@@ -40,7 +40,20 @@ const Set<String> walletRecipeFailureCodes = <String>{
   'wallet-recipe-stage-unsettled',
   'wallet-recipe-control-absent',
   'wallet-recipe-control-disabled',
+  'wallet-recipe-control-widget-disabled',
+  'wallet-recipe-control-entrance-pending',
+  'wallet-recipe-control-layout-pending',
+  'wallet-recipe-control-not-reachable',
   'wallet-recipe-startup-key-unconfirmed',
+};
+
+/// Only an observed original guard can select a more specific fixed refusal.
+String walletRecipeControlFailure(Object? gate) => switch (gate) {
+  'widget' => 'wallet-recipe-control-widget-disabled',
+  'entrance' => 'wallet-recipe-control-entrance-pending',
+  'layout' => 'wallet-recipe-control-layout-pending',
+  'hit_test' => 'wallet-recipe-control-not-reachable',
+  _ => 'wallet-recipe-control-disabled',
 };
 
 /// Entry types and failure families disclose no displayed text or error detail.

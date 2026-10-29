@@ -75,6 +75,10 @@ RECIPE_FAILURE_CODES = frozenset((
     'wallet-recipe-visible-error',
     'wallet-recipe-stage-unsettled', 'wallet-recipe-control-absent',
     'wallet-recipe-control-disabled',
+    'wallet-recipe-control-widget-disabled',
+    'wallet-recipe-control-entrance-pending',
+    'wallet-recipe-control-layout-pending',
+    'wallet-recipe-control-not-reachable',
     'wallet-recipe-startup-key-unconfirmed',
 ))
 RECIPE_ENTRY_PHASES = frozenset((

@@ -28,6 +28,8 @@ class _AddressUi {
   int chain = 321;
   String tab = 'dashboard';
   bool addresses = false;
+  bool blockAdd = false;
+  Object? blockedBy;
   bool wrongDerivation = false;
   bool selectionUnsettled = false;
   bool stallDerivation = false;
@@ -61,7 +63,11 @@ class _AddressUi {
         if (addresses) ...<String>[
           'settings_add_address', 'addresses_select_$_second',
         ],
-      ]) <String, dynamic>{'key': key, 'enabled': true},
+      ]) <String, dynamic>{
+        'key': key, 'enabled': !(key == 'settings_add_address' && blockAdd),
+        if (key == 'settings_add_address' && blockAdd && blockedBy != null)
+          'blockedBy': blockedBy,
+      },
     ],
   };
 
@@ -108,6 +114,39 @@ void main() {
   _AddressUi seedUi() => _AddressUi()
     ..context = _context(members: <String>[_first, _second],
       selected: _second, saved: _second);
+
+  test('blocked original seed controls retain their first fixed guard reason',
+      () async {
+    for (final (Object?, String) sample in <(Object?, String)>[
+      (null, 'wallet-recipe-control-disabled'),
+      ('widget', 'wallet-recipe-control-widget-disabled'),
+      ('entrance', 'wallet-recipe-control-entrance-pending'),
+      ('layout', 'wallet-recipe-control-layout-pending'),
+      ('hit_test', 'wallet-recipe-control-not-reachable'),
+      ('synthetic-private-input', 'wallet-recipe-control-disabled'),
+      (true, 'wallet-recipe-control-disabled'),
+    ]) {
+      final _AddressUi ui = seedUi()
+        ..blockAdd = true
+        ..blockedBy = sample.$1;
+      final WalletRecipe driver = ui.driver();
+      final WalletAddressContext original =
+          WalletAddressContext.parse(ui.context);
+      await expectLater(driver.prepareSeedAddress(original), throwsA(
+        isA<WalletRecipeRefused>().having(
+          (WalletRecipeRefused value) => value.diagnostic?['reason'],
+          'original blocking predicate', sample.$2,
+        ),
+      ));
+      expect(ui.elapsed, const Duration(seconds: 30));
+      expect(ui.taps.where((String key) => key == 'settings_add_address'),
+        isEmpty);
+      final int commands = ui.commands.length;
+      await expectLater(driver.prepareSeedAddress(original),
+        throwsA(isA<WalletRecipeRefused>()));
+      expect(ui.commands, hasLength(commands));
+    }
+  });
 
   test('seed preparation appends index two without changing index one',
       () async {

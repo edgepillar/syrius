@@ -29,15 +29,18 @@ class _HeldNodeLibrary extends node_fixture.FakeNodeLibrary {
   }
 }
 
-Future<bool> _chainReady(HarnessAgent agent) async {
+Future<Map<String, Object?>> _chainControl(HarnessAgent agent) async {
   final Map<String, Object?> view = await agent.commandForTest(
     <String, dynamic>{'cmd': 'wallet-recipe', 'action': 'observe'},
   );
   final List<Map<String, Object?>> controls =
       view['controls']! as List<Map<String, Object?>>;
   return controls.singleWhere((Map<String, Object?> row) =>
-      row['key'] == 'node_settings_chain_toggle')['enabled']! as bool;
+      row['key'] == 'node_settings_chain_toggle');
 }
+
+Future<bool> _chainReady(HarnessAgent agent) async =>
+    (await _chainControl(agent))['enabled']! as bool;
 
 Future<Map<String, Object?>> _importControl(HarnessAgent agent) async {
   final Map<String, Object?> view = await agent.commandForTest(
@@ -51,6 +54,60 @@ Future<Map<String, Object?>> _importControl(HarnessAgent agent) async {
 }
 
 void main() {
+  testWidgets('recipe keeps disabled callback and occluded center distinct', (
+    WidgetTester tester,
+  ) async {
+    prepareWelcomeViewport(tester);
+    final HarnessAgent agent = HarnessAgent.forTest()..booted = true;
+    bool enabled = false;
+    bool covered = false;
+    int actions = 0;
+    Widget host() => welcomeHost(Stack(
+      fit: StackFit.expand,
+      children: <Widget>[
+        Center(child: TextButton(
+          key: const Key('settings_add_address'),
+          onPressed: enabled ? () => actions++ : null,
+          child: const Text('Synthetic action'),
+        )),
+        if (covered) const Positioned.fill(
+          child: ColoredBox(color: Color(0xff000000)),
+        ),
+      ],
+    ));
+    Future<Map<String, Object?>> control() async {
+      final Map<String, Object?> view = await agent.commandForTest(
+        <String, dynamic>{'cmd': 'wallet-recipe', 'action': 'observe'},
+      );
+      final List<Map<String, Object?>> controls =
+          view['controls']! as List<Map<String, Object?>>;
+      return controls.singleWhere((Map<String, Object?> row) =>
+          row['key'] == 'settings_add_address');
+    }
+    await tester.pumpWidget(host());
+    final Finder button = find.byKey(const Key('settings_add_address'));
+    final Element original = tester.element(button);
+    expect((await control())['enabled'], isFalse);
+    expect((await control())['blockedBy'], 'widget');
+    enabled = true;
+    await tester.pumpWidget(host());
+    expect(tester.element(button), same(original));
+    expect((await control())['enabled'], isTrue);
+    expect((await control()).containsKey('blockedBy'), isFalse);
+    covered = true;
+    await tester.pumpWidget(host());
+    expect(tester.element(button), same(original));
+    expect(tester.widget<TextButton>(button).onPressed, isNotNull);
+    expect((await control())['enabled'], isFalse);
+    expect((await control())['blockedBy'], 'hit_test');
+    covered = false;
+    await tester.pumpWidget(host());
+    expect(tester.element(button), same(original));
+    expect((await control())['enabled'], isTrue);
+    expect(actions, 0);
+  });
+
+
   for (final (bool disableAnimations, bool failLoad) in <(bool, bool)>[
     (false, false), (true, false), (false, true), (true, true),
   ]) {
@@ -113,6 +170,10 @@ void main() {
       expect(toggle.hitTestable(), findsOneWidget);
       expect(library.statusCalls, 1);
       expect(await _chainReady(agent), isFalse);
+      for (int frame = 0; frame < 80; frame++) {
+        await tester.pump(const Duration(milliseconds: 10));
+      }
+      expect((await _chainControl(agent))['blockedBy'], 'layout');
       // Ordinary input stays available while the sibling reads its source.
       await tester.tap(toggle);
       expect(toggled, 1);
@@ -386,6 +447,7 @@ void main() {
     )));
     await tester.pump(const Duration(milliseconds: 150));
     expect((await _importControl(agent))['enabled'], isFalse);
+    expect((await _importControl(agent))['blockedBy'], 'entrance');
     await tester.tap(find.byKey(const Key('welcome_import')));
     expect(selected, <WelcomeDestination>[WelcomeDestination.importWallet]);
     await finishWelcomeEntrance(tester);

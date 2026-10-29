@@ -1722,12 +1722,27 @@ class HarnessAgent {
     };
   }
 
-  bool _recipeEnabled(_Node node) {
+  bool _recipeEnabled(_Node node) => _recipeControlBlock(node) == null;
+
+  String? _recipeControlBlock(_Node node) {
     final Widget widget = node.element.widget;
-    return node.enabled &&
-        (widget is! Radio || widget.enabled != false) &&
-        _recipeEntranceSettled(node.element) &&
-        _recipeSettingsLayoutSettled(node);
+    if (!node.enabled || (widget is Radio && widget.enabled == false)) {
+      return 'widget';
+    }
+    if (!_recipeEntranceSettled(node.element)) return 'entrance';
+    if (!_recipeSettingsLayoutSettled(node)) return 'layout';
+    return null;
+  }
+
+  Map<String, Object?> _recipeObservedControl(_Node node) {
+    final String? block = _recipeControlBlock(node);
+    final bool enabled = block == null && _reachable(node, node.center);
+    return <String, Object?>{
+      'key': node.key, 'enabled': enabled,
+      if (!enabled) 'blockedBy': block ?? 'hit_test',
+      if (node.key == 'node_settings_chain_toggle')
+        'expanded': _recipeExpanded(node.element),
+    };
   }
 
   bool _recipeSettingsLayoutSettled(_Node node) {
@@ -2195,13 +2210,7 @@ class HarnessAgent {
       'controls': <Map<String, Object?>>[
         if (startupHint != null)
           <String, Object?>{'key': 'launch_skip_hint', 'enabled': true},
-        for (final _Node node in controls)
-          <String, Object?>{
-            'key': node.key,
-            'enabled': _recipeEnabled(node) && _reachable(node, node.center),
-            if (node.key == 'node_settings_chain_toggle')
-              'expanded': _recipeExpanded(node.element),
-          },
+        for (final _Node node in controls) _recipeObservedControl(node),
       ],
     };
   }
