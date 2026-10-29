@@ -71,11 +71,14 @@ AccountBlockTemplate _published(int value) => AccountBlockTemplate(blockType: 1)
   ..tokenStandard = znnZts
   ..amount = _coins('300');
 
-StakeEntry _row(int value) => StakeEntry(
-  amount: _coins('300'), weightedAmount: BigInt.zero,
-  startTimestamp: 1, expirationTimestamp: 1000000000,
-  address: emptyAddress, id: _stakeHash(value),
-);
+StakeEntry _row(int value) {
+  final int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+  return StakeEntry(
+    amount: _coins('300'), weightedAmount: BigInt.zero,
+    startTimestamp: now, expirationTimestamp: now + 6 * stakeTimeUnitSec,
+    address: emptyAddress, id: _stakeHash(value),
+  );
+}
 
 InfiniteListState<StakeEntry> _rows(List<StakeEntry> rows) =>
     InfiniteListState<StakeEntry>(status: InfiniteListStatus.success,
@@ -351,6 +354,43 @@ void main() {
     await tester.pump();
     expect(reads, isEmpty);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('missing rows have bounded reads without resolving the hash', (
+    WidgetTester tester,
+  ) async {
+    populate(empty: true);
+    final StreamController<InfiniteListState<StakeEntry>> answers =
+        StreamController<InfiniteListState<StakeEntry>>(sync: true);
+    addTearDown(answers.close);
+    whenListen(stakes, answers.stream, initialState: _rows(<StakeEntry>[]));
+    final List<InfiniteListEvent> reads = recordReads();
+    sync.height(100);
+    await show(tester);
+    final CreateStakeCard form = originalForm(tester);
+    form.onStakePublished!(_published(7));
+    for (int height = 101; height <= 110; height++) {
+      sync.height(height);
+      await tester.pump();
+    }
+    expect(reads, hasLength(6));
+    form.onStakePublished!(_published(7));
+    sync.height(111);
+    await tester.pump();
+    expect(reads, hasLength(6));
+    // A different explicit accepted publication owns a new bounded read batch.
+    form.onStakePublished!(_published(8));
+    sync.height(112);
+    await tester.pump();
+    expect(reads, hasLength(7));
+    answers.add(_rows(<StakeEntry>[_row(7), _row(8)]));
+    await tester.pump(const Duration(milliseconds: 450));
+    reads.clear();
+    sync.height(113);
+    await tester.pump();
+    expect(reads, isEmpty);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
   });
 
   for (final bool light in <bool>[false, true]) {

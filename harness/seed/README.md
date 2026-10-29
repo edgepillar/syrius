@@ -1650,3 +1650,40 @@ are 804 Python, 388 ordinary Dart and 390 startup Dart. All 339 selected Python
 memory controls pass without local SDK, native, network, scratch or shared-store
 access. Current Dart, focused/native and full-root qualification remain pending.
 The separate nested Welcome renderer experiment remains private and unapplied.
+
+
+### Bounded stake-row reads and a locked test fixture
+
+Source177 `d4be6a83cf58`, focused `40919279250`, retains all 804 Python
+cases with three existing skips, both original asset zero exits and zero
+selected analysis findings. Its original Dart command exits one normally and
+completely: 385 passes, three failures and three error events. Closed failure
+locations in staking_page_test.dart are NULL_CHECK at line 299, then TYPE_ERROR
+and ASSERTION at line 323. The original run stays failed; neither the new row
+refresh nor its three widget cases is qualified by that result.
+
+The row fixture used an already expired timestamp. Source inspection shows
+that this enables the separate cancellation component, which needs an SDK
+owner absent from this read-only page fixture. Use the original six-month
+stake duration starting now; retain the actual row, hash, immutability and
+revocation assertions. The raw hosted error text is not exported and this
+source explanation does not retrospectively qualify the failed command.
+
+Bound the additional automatic list refreshes to six existing height changes
+per different accepted hash. Repeating the same accepted hash cannot reset
+that allowance. Exhaustion stops automatic reads while retaining unresolved
+hashes; it cannot establish confirmation, an effect or retry permission. A
+later actual row or original owner revocation still governs its state. The
+existing initial refresh, shell height source, original transaction callbacks,
+assets and clocks are unchanged. There is no new timer, subscription request,
+confirmation lookup, pointer action or publication. A new widget case observes
+the bound, duplicate-hash refusal and a different accepted hash's new batch.
+
+All 339 selected Python controls pass in memory without SDK, native, network,
+scratch or shared-store access. Exact hosted contracts are 804 Python, 389
+ordinary Dart and 391 startup Dart. Current Dart/focused/native/full-root
+qualification remains pending. Source176 Native93's positive original send,
+twelve-page tour and normal closure remain separately qualified, followed by
+the copied stake command-nine wait refusal. All prior failures and UNKNOWN
+outcomes, four incomplete copied components, six effects, nineteen preparations,
+ninety catalog outputs and all 94 visual matches retain their own limits.

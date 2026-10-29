@@ -29,6 +29,9 @@ const String _kChartStoreKey = 'staking.chart';
 /// open in a short window: its title row, the column names and two rows.
 const double _kListLeast = 170;
 
+/// Bounds automatic list reads; exhaustion cannot resolve an original hash.
+const int _kStakeRowReadLimit = 6;
+
 bool _isEmptyStakingPage(BuildContext context) {
   final InfiniteListState<StakeEntry> stakes = context
       .watch<StakesBloc>()
@@ -122,6 +125,7 @@ class _StakingPageState extends State<StakingPage> {
   final DisclosureController _form = DisclosureController();
   final DisclosureController _chart = DisclosureController();
   final Set<String> _pendingStakeRows = <String>{};
+  int _stakeRowReadsRemaining = 0;
   late final String? _stakeReadAddress;
   late final int _stakeReadChain;
   late final int _stakeReadRevision;
@@ -147,6 +151,7 @@ class _StakingPageState extends State<StakingPage> {
     if (!current) {
       _stakeReadRevoked = true;
       _pendingStakeRows.clear();
+      _stakeRowReadsRemaining = 0;
     }
     return current;
   }
@@ -161,7 +166,9 @@ class _StakingPageState extends State<StakingPage> {
       return;
     }
     // Copy the accepted hash before a mutable SDK response can change it.
-    _pendingStakeRows.add(original.hash.toString());
+    if (_pendingStakeRows.add(original.hash.toString())) {
+      _stakeRowReadsRemaining = _kStakeRowReadLimit;
+    }
     _observeStakeRows(_stakeReadBloc.state);
   }
 
@@ -173,10 +180,16 @@ class _StakingPageState extends State<StakingPage> {
       (state.data ?? const <StakeEntry>[])
           .map((StakeEntry entry) => entry.id.toString()),
     );
+    if (_pendingStakeRows.isEmpty) _stakeRowReadsRemaining = 0;
   }
 
   void _refreshPendingStakeRows() {
-    if (_stakeReadCurrent && _pendingStakeRows.isNotEmpty) _refreshStakes();
+    if (!_stakeReadCurrent || _pendingStakeRows.isEmpty ||
+        _stakeRowReadsRemaining == 0) {
+      return;
+    }
+    _stakeRowReadsRemaining--;
+    _refreshStakes();
   }
 
 
@@ -184,6 +197,7 @@ class _StakingPageState extends State<StakingPage> {
   void dispose() {
     _stakeReadRevoked = true;
     _pendingStakeRows.clear();
+    _stakeRowReadsRemaining = 0;
     _form.dispose();
     _chart.dispose();
     super.dispose();
