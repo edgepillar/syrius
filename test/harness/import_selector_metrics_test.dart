@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -86,12 +88,16 @@ void main() {
   });
 
   test('bundled font preserves width and height with CSS half-leading', () {
-    for (final double size in <double>[12, 14, 28]) {
+    bool distinctDistributionObserved = false;
+    for (final double size in <double>[12, 14, 28, 56]) {
       final TextStyle style = AppTokens.dark.bodyText.copyWith(fontSize: size);
       TextPainter painter(TextStyle value) => TextPainter(
         text: TextSpan(text: 'Welcome to Syrius 123', style: value),
         textDirection: TextDirection.ltr,
       )..layout();
+      final TextPainter natural = painter(style.copyWith(
+        height: ui.kTextHeightNone,
+      ));
       final TextPainter even = painter(style);
       final TextPainter proportional = painter(style.copyWith(
         leadingDistribution: TextLeadingDistribution.proportional,
@@ -99,10 +105,25 @@ void main() {
       try {
         expect(even.width, closeTo(proportional.width, 0.001));
         expect(even.height, closeTo(proportional.height, 0.001));
-        expect(even.computeLineMetrics().single.baseline,
-            lessThan(proportional.computeLineMetrics().single.baseline));
-      } finally { even.dispose(); proportional.dispose(); }
+        final ui.LineMetrics font = natural.computeLineMetrics().single;
+        final double targetHeight = size * style.height!;
+        final double halfLeading =
+            (targetHeight - font.ascent - font.descent) / 2;
+        final double baseline = even.computeLineMetrics().single.baseline;
+        // Engine rounding may give small sizes the same baseline. Compare
+        // against the font's measured ascent/descent, without a direction rule.
+        expect(baseline, closeTo(font.ascent + halfLeading, 1));
+        if ((baseline - proportional.computeLineMetrics().single.baseline)
+            .abs() > 0.5) {
+          distinctDistributionObserved = true;
+        }
+      } finally {
+        natural.dispose();
+        even.dispose();
+        proportional.dispose();
+      }
     }
+    expect(distinctDistributionObserved, isTrue);
   });
 
   testWidgets('tabular word choices retain controlled RTL selection', (

@@ -1198,3 +1198,23 @@ Source158 Windows 4599 non-chain passes, four unaccepted genuine entry pairs and
 Native88's original positive send plus copied seed refusal remain separate.
 No local SDK or native wallet/node runs, new artifact transfers or shared-store
 tasks are started. Every earlier failure, UNKNOWN and original input is retained.
+
+
+## Genuine bundled-font metric assertion
+
+Source160 focused 40823175735 passes 775 Python cases with three existing skips,
+zero selected analysis findings and both complete asset commands. Its original
+Dart command exits one normally after 344 of 345 passes and one assertion/error
+event, with complete output and no timeout or forced cleanup. The sole failure
+is the strict baseline direction in import_selector_metrics_test.dart. The
+actual numeric delta is not retained, and a complete green suite is not inferred.
+
+The test now computes equal half-leading from the same bundled font's natural
+ascent/descent, permits one pixel of engine rounding, preserves its exact width
+and line-height checks, and still requires a measurable distribution difference
+at larger sizes. Production code, original input predicates, captured callbacks,
+font choice, tabular/RTL selection and all clocks remain unchanged. All 310 memory
+controls pass; current hosted 775 Python/345 ordinary Dart/347 startup validation
+remains pending. Source159's analysis failure, source160's font assertion failure,
+earlier UNKNOWNs and source158 full/image/native evidence remain separate.
+No local SDK/native execution, artifact transfer or storage task is started.
