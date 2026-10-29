@@ -193,11 +193,53 @@ def seed_confirmation_projection(value):
     return dict(value)
 
 
+HOME_PREPARATION_STAGES = (
+    'initialState', 'initialReadiness', 'resolveTarget',
+    'gotoState', 'gotoTarget', 'gotoTap', 'gotoWait',
+    'railState', 'railReadiness', 'railTogglePresence', 'railLabelPresence',
+    'railToggle', 'railWait', 'finalState', 'finalReadiness',
+)
+HOME_STATE_STAGES = frozenset((
+    'initialReadiness', 'gotoTarget', 'gotoWait',
+    'railReadiness', 'finalReadiness',
+))
+
+
+def home_preparation_projection(value):
+    """Only finite observations of existing Home calls; no private state."""
+    fields = {'stage', 'state', 'target'}
+    checkpoint.need(type(value) is dict and 'stage' in value
+        and set(value) <= fields and type(value['stage']) is str
+        and value['stage'] in HOME_PREPARATION_STAGES)
+    stage = value['stage']
+    result = dict(stage=stage)
+    if 'target' in value:
+        checkpoint.need(type(value['target']) is str
+            and value['target'] in {'home', 'dashboard'}
+            and HOME_PREPARATION_STAGES.index(stage) >=
+                HOME_PREPARATION_STAGES.index('resolveTarget'))
+        result['target'] = value['target']
+    if 'state' in value:
+        state = value['state']
+        checkpoint.need(type(state) is dict
+            and set(state) == {'at', 'booted', 'unlocked', 'initialized', 'tab'}
+            and type(state['at']) is str and state['at'] in HOME_STATE_STAGES
+            and HOME_PREPARATION_STAGES.index(state['at']) <=
+                HOME_PREPARATION_STAGES.index(stage)
+            and all(type(state[key]) is str and state[key] in {'yes', 'no', 'unknown'}
+                    for key in ('booted', 'unlocked', 'initialized'))
+            and type(state['tab']) is str
+            and state['tab'] in {'home', 'dashboard', 'lock', 'other', 'unknown'})
+        result['state'] = dict(state)
+    return result
+
+
 def seed_failure_projection(value, phase):
     """Only the failed original operation is data; no input or authority."""
     fields = {'schema', 'scope', 'recipe', 'action', 'step', 'command_index',
               'publication_call_entered', 'kind', 'reason'}
-    checkpoint.need(type(value) is dict and set(value) in (fields, fields | {'confirmation'})
+    checkpoint.need(type(value) is dict and set(value) in
+        (fields, fields | {'confirmation'}, fields | {'home'})
         and type(value['schema']) is int and value['schema'] == 1
         and type(value['scope']) is str
         and value['scope'] == 'original_seed_operation_failure'
@@ -233,6 +275,10 @@ def seed_failure_projection(value, phase):
             and value['kind'] == 'refused'
             and value['reason'] == 'exact-confirmation-or-effect-pending')
         result['confirmation'] = seed_confirmation_projection(value['confirmation'])
+    if 'home' in value:
+        checkpoint.need(action == 'home' and step == 'navigation'
+            and value['command_index'] == 0 and entered is False)
+        result['home'] = home_preparation_projection(value['home'])
     return result
 
 

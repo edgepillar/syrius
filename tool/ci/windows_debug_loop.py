@@ -458,6 +458,7 @@ def analyze(parent, repo):
         'test/harness/import_selector_metrics_test.dart',
         'test/import_redesign/import_surface_test.dart',
         'harness/lock_view_observation.dart',
+        'harness/home_preparation_observation.dart',
         'lib/widgets/tab_children_widgets/lock_tab_child.dart',
         'test/onboarding/welcome_drop_route_test.dart',
         'test/welcome/welcome_surface_test.dart',
@@ -544,6 +545,7 @@ def analyze(parent, repo):
                             relative = re.sub('/+', '/', fields[3].replace('\\', '/')).casefold()
                             selected = ('service_probe' if relative.endswith('/tool/ci/windows_debug_service_probe.dart')
                                         else 'harness_entry' if relative.endswith('/harness/app/main.dart')
+                                        else 'home_observation' if relative.endswith('/harness/home_preparation_observation.dart')
                                         else 'harness_cli' if relative.endswith('/harness/bin/harness.dart')
                                         else 'tour_test' if relative.endswith('/test/harness/wallet_tour_test.dart')
                                         else 'copied_pointer' if relative.endswith('/harness/bin/copied_wallet_pointer.dart')

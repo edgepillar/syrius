@@ -747,6 +747,86 @@ class FilesystemTests(unittest.TestCase):
 
 class SeedFailureProjectionTests(unittest.TestCase):
     @staticmethod
+    def home(**changes):
+        value = dict(stage='railTogglePresence', target='home', state=dict(
+            at='railReadiness', booted='yes', unlocked='yes',
+            initialized='yes', tab='home'))
+        value.update(changes)
+        return value
+
+    def test_original_home_stages_are_finite_copied_observations(self):
+        source = Path('harness/home_preparation_observation.dart').read_text()
+        match = re.search(r'enum HomePreparationStep\s*\{([^}]+)\}', source)
+        self.assertIsNotNone(match)
+        self.assertEqual(tuple(re.findall(r'\b[A-Za-z][A-Za-z0-9]*\b', match[1])),
+                         restored.HOME_PREPARATION_STAGES)
+        for stage in restored.HOME_PREPARATION_STAGES:
+            offered = dict(stage=stage)
+            if stage != 'initialState':
+                offered['state'] = self.home()['state'] | dict(at='initialReadiness')
+            if restored.HOME_PREPARATION_STAGES.index(stage) >= 2:
+                offered['target'] = 'dashboard'
+            seed = self.seed(recipe='deposit', action='home', step='navigation',
+                             home=offered)
+            result = restored.seed_failure_projection(seed, 'seed_deposit')
+            self.assertEqual(result, seed)
+            self.assertIsNot(result['home'], offered)
+            if 'state' in offered:
+                self.assertIsNot(result['home']['state'], offered['state'])
+                offered['state']['tab'] = 'private'
+                self.assertEqual(result['home']['state']['tab'], 'home')
+            self.assertEqual(restored.child_failure_projection(
+                self.child(result))['seed'], result)
+        legacy = self.seed(action='home', step='navigation')
+        self.assertEqual(restored.seed_failure_projection(legacy, 'seed_stake'), legacy)
+        self.assertEqual(len(legacy), 9)
+        self.assertNotIn('home', legacy)
+
+    def test_home_projection_refuses_unknown_coerced_private_or_future_state(self):
+        values = [None, True, [], 'private', {},
+            self.home(stage='private'), self.home(stage=True),
+            self.home(target='private'), self.home(target=True),
+            self.home(stage='initialState'), self.home(path='private'),
+            self.home(state=True), self.home(state={'at': 'railReadiness'})]
+        for change in (dict(at='finalReadiness'), dict(at='railWait'),
+                dict(booted=True), dict(unlocked=1), dict(initialized=None),
+                dict(tab='private'), dict(tab=True), dict(path='private')):
+            values.append(self.home(state=self.home()['state'] | change))
+        for key in self.home()['state']:
+            values.append(self.home(state={name: value for name, value
+                in self.home()['state'].items() if name != key}))
+        for value in values:
+            with self.subTest(value=value), self.assertRaises(restored.checkpoint.Refused):
+                restored.home_preparation_projection(value)
+        for flag in ('yes', 'no', 'unknown'):
+            for tab in ('home', 'dashboard', 'lock', 'other', 'unknown'):
+                value = self.home(state=self.home()['state'] | dict(
+                    booted=flag, unlocked=flag, initialized=flag, tab=tab))
+                self.assertEqual(restored.home_preparation_projection(value), value)
+
+    def test_home_observations_cannot_relabel_a_later_operation_or_add_authority(self):
+        for recipe in restored.SEED_FAILURE_RECIPES:
+            value = self.seed(recipe=recipe, action='home', step='navigation',
+                              home=self.home())
+            self.assertEqual(restored.seed_failure_projection(value,
+                'seed_' + recipe), value)
+        for change in (dict(action='source', step='read'),
+                dict(action='begin', step='reply'),
+                dict(action='prepare', step='owner', command_index=1),
+                dict(action='publish', step='reply', command_index=7,
+                     publication_call_entered=True), dict(command_index=1),
+                dict(publication_call_entered=True), dict(confirmation=self.counts()),
+                dict(confirmed=True), dict(retry=True), dict(success=True)):
+            value = self.seed(action='home', step='navigation', home=self.home())
+            value.update(change)
+            with self.subTest(change=change), self.assertRaises(restored.checkpoint.Refused):
+                restored.seed_failure_projection(value, 'seed_stake')
+        value = self.seed(action='home', step='navigation', home=self.home())
+        for phase in ('seed_fuse', 'unlock', 'seed_admission'):
+            with self.assertRaises(restored.checkpoint.Refused):
+                restored.seed_failure_projection(value, phase)
+
+    @staticmethod
     def counts(**changes):
         value = dict(polls=18, absent=6, unconfirmed=6,
                      effect_pending=6, last='effect_pending')

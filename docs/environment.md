@@ -9361,3 +9361,51 @@ and all four reviewed entry pairs remain source181 evidence with zero accepted
 visual matches. No old profile/password/send/seed operation is retried. All
 nine main rows, ninety outputs, nineteen preparations and all 94 matches remain
 open. A future green result cannot relabel any earlier FAILURE or UNKNOWN.
+
+
+### Qualified original Project completion and passive Home substeps
+
+Source185 f971c7d097bd / focused 40964245611 qualifies 812 Python cases with
+three existing skips, 408 ordinary Dart passes without failures or skips, both
+original asset commands and explicit analysis with zero errors, warnings or
+infos. All prior selected cases remain. The eight Project cases include two
+genuine original view and completed-route tests. The initializing formals keep
+the same eleven fields, public arguments and immutable UI hash copy. Source183
+one-info and source184 fourteen-info failures retain their original outcomes
+and skipped Dart stages. The 410-case startup variant was not executed.
+
+Native96 40965833790 and independent inspector 40970220853 retain producer
+failure. The original chain-321 UI send, twelve-page tour, quiescence and normal
+app, entry and five-node exits qualify. The copied profile stops at deposit's
+Home navigation before command one or publication. Its 346-byte failure digest
+equals Native95. The inner Home step and cause remain NOT_ESTABLISHED. Project
+completion did not establish that cause; its native exit was not separately
+exported. Earlier recipe progress is not final receipt or effect evidence.
+
+Add optional passive labels around the existing Home state reads, readiness,
+target resolution, goto, rail presence/toggle/wait and final validation. Keep
+every original input, call, predicate, delay and timeout. Copy only the last
+completed original state's finite booted/unlocked/initialized flags and closed
+tab category, plus the known home/dashboard target. Record no private state,
+input, exception message, path, wallet identifier or action bytes. The detail
+belongs only to a known recipe's Home navigation before command one and before
+publication. Clear it at every original operation boundary. Legacy diagnostics
+without Home detail keep their exact shape. No observation grants confirmation,
+publication, retry, delivery or readiness authority.
+
+Five new Dart cases check immutable finite projection, scope/reset, the exact
+original eight/ten calls for both target names and rail states, each original
+transport refusal, and original validation failures. Three independent Python
+cases validate the closed projection, immutable copies and operation scope.
+The new module is explicitly analyzed with a finite source label. Contracts
+become 815 Python, 413 ordinary Dart and 415 startup Dart; every old selection
+remains. All 350 exact memory controls pass without SDK, native execution,
+network, scratch or shared-store access. New hosted and native evidence is
+pending. No old profile, password, send or seed operation is retried.
+
+Source181 full Windows and its four reviewed entry pairs remain independently
+qualified at their original source, with zero visual matches. The main ledger
+stays 71/80; all nine open rows, ninety missing outputs, nineteen preparations,
+all 94 matches, current full root, DLL initialization, unfiltered chain and
+Docker Desktop/lab.sh acceptance remain open. Every earlier FAILURE or UNKNOWN
+is retained independently of new control results.

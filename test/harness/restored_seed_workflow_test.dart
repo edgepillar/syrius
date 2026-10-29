@@ -20,6 +20,7 @@ import '../../harness/app/fixtures/seed_project_presentation.dart';
 import '../../harness/app/seed_project_presentation_binding.dart';
 import '../../harness/bin/ci_wallet_reopen.dart' as reopen;
 import '../../harness/bin/harness.dart' as cli;
+import '../../harness/home_preparation_observation.dart';
 import '../../harness/seed/restored_seed_workflow.dart';
 import '../../harness/wallet_address_context.dart';
 import '../accelerator_project_redesign/support.dart';
@@ -220,7 +221,227 @@ Future<(SeedProjectPresentation, ModalRoute<dynamic>)> _submittedProject(
   return (presentation, originalRoute!);
 }
 
+// Inert replies exercise the original CLI call sequence without a process,
+// filesystem, wallet, network, clock override or added navigation operation.
+final class _HomeReplies extends cli.Instance {
+  _HomeReplies(this._replies) : super('synthetic-home');
+
+  final List<Object> _replies;
+  final List<Map<String, Object?>> _commands = <Map<String, Object?>>[];
+
+  @override
+  Future<Map<String, dynamic>> send(Map<String, Object?> command, {
+    Duration timeout = const Duration(seconds: 120),
+  }) async {
+    _commands.add(Map<String, Object?>.unmodifiable(command));
+    final Object reply = _replies[_commands.length - 1];
+    if (reply is Map<String, dynamic>) return reply;
+    if (reply is Exception) throw reply;
+    throw StateError('synthetic reply type');
+  }
+}
+
+Map<String, dynamic> _homeState({String target = 'home'}) =>
+    <String, dynamic>{
+      'ok': true, 'booted': true, 'walletUnlocked': true,
+      'walletInitCompleted': true, 'tab': target, 'tabs': <String>[target],
+      'private': _UnprintableSeedError(),
+    };
+
+List<Object> _homeReplies({String target = 'home', bool expanded = false}) =>
+    <Object>[
+      _homeState(target: target), _homeState(target: target),
+      <String, dynamic>{'ok': true}, _homeState(target: target),
+      _homeState(target: target), <String, dynamic>{'ok': true},
+      <String, dynamic>{'ok': expanded},
+      if (expanded) ...<Map<String, dynamic>>[
+        <String, dynamic>{'ok': true}, <String, dynamic>{'ok': true},
+      ],
+      _homeState(target: target),
+    ];
+
+List<Map<String, Object?>> _homeCommands({
+  String target = 'home', bool expanded = false,
+}) => <Map<String, Object?>>[
+  <String, Object?>{'cmd': 'state'}, <String, Object?>{'cmd': 'state'},
+  <String, Object?>{'cmd': 'tap', 'tab': target},
+  <String, Object?>{'cmd': 'state'}, <String, Object?>{'cmd': 'state'},
+  <String, Object?>{'cmd': 'wait', 'key': 'rail_toggle', 'timeoutMs': 0},
+  <String, Object?>{
+    'cmd': 'wait', 'key': 'rail_label_dashboard', 'timeoutMs': 0,
+  },
+  if (expanded) ...<Map<String, Object?>>[
+    <String, Object?>{'cmd': 'tap', 'key': 'rail_toggle'},
+    <String, Object?>{
+      'cmd': 'wait', 'key': 'rail_label_dashboard', 'gone': true,
+    },
+  ],
+  <String, Object?>{'cmd': 'state'},
+];
+
+cli.SeedOperationTrace _homeTrace({String recipe = 'deposit'}) =>
+    cli.SeedOperationTrace(recipe)
+      ..at(cli.SeedOperationAction.home, cli.SeedOperationStep.navigation);
+
 void main() {
+  test('Home observations copy finite flags and freeze private input safely',
+      () {
+    final HomePreparationTrace trace = HomePreparationTrace();
+    final Map<String, dynamic> state = _homeState()
+      ..['booted'] = 1
+      ..['walletUnlocked'] = false
+      ..['tab'] = _UnprintableSeedError();
+    trace.observe(HomePreparationStep.initialReadiness, state: state);
+    final Map<String, Object> first = trace.snapshot!;
+    final Map<String, Object> copied = first['state']! as Map<String, Object>;
+    expect(copied, <String, Object>{
+      'at': 'initialReadiness', 'booted': 'unknown', 'unlocked': 'no',
+      'initialized': 'yes', 'tab': 'unknown',
+    });
+    state['booted'] = true;
+    trace.observe(HomePreparationStep.resolveTarget, target: 'home');
+    expect(copied['booted'], 'unknown');
+    expect(() => copied['tab'] = 'home', throwsUnsupportedError);
+    expect(() => first['stage'] = 'private', throwsUnsupportedError);
+    expect(jsonEncode(first), isNot(contains('private')));
+    for (final Object? offered in <Object?>[
+      null, true, <String, Object>{},
+      <String, Object>{'stage': 'private'},
+      <String, Object>{'stage': 'initialState', 'target': 'home'},
+      <String, Object>{'stage': 'initialState', 'state': copied},
+      <String, Object>{...first, 'path': 'private'},
+      <String, Object>{...first, 'state': <String, Object>{
+        ...copied, 'tab': 'private',
+      }},
+      <String, Object>{...first, 'state': <String, Object>{
+        ...copied, 'booted': true,
+      }},
+    ]) {
+      expect(homePreparationProjection(offered), isNull);
+    }
+    trace.clear();
+    expect(trace.snapshot, isNull);
+    expect(copied['booted'], 'unknown');
+  });
+
+  test('Home detail stays before command one and clears at each boundary', () {
+    final cli.SeedOperationTrace trace = _homeTrace()
+      ..homeObserved(HomePreparationStep.initialReadiness, state: _homeState());
+    final cli.SeedOperationFailure first =
+        trace.failure(_UnprintableSeedError());
+    final Map<String, Object> home =
+        first.diagnostic['home']! as Map<String, Object>;
+    expect(home['stage'], 'initialReadiness');
+    trace.at(cli.SeedOperationAction.prepare, cli.SeedOperationStep.owner,
+        commandIndex: 1);
+    trace.homeObserved(HomePreparationStep.railWait);
+    expect(trace.failure(_UnprintableSeedError()).diagnostic,
+        isNot(contains('home')));
+    trace.at(cli.SeedOperationAction.home, cli.SeedOperationStep.navigation,
+        commandIndex: 0);
+    expect(trace.failure(_UnprintableSeedError()).diagnostic,
+        isNot(contains('home')));
+    trace.publicationCallEntered();
+    trace.homeObserved(HomePreparationStep.railWait);
+    expect(trace.failure(_UnprintableSeedError()).diagnostic,
+        isNot(contains('home')));
+    final cli.SeedOperationTrace foreign = _homeTrace(recipe: 'private')
+      ..homeObserved(HomePreparationStep.railWait);
+    expect(foreign.failure(_UnprintableSeedError()).diagnostic,
+        isNot(contains('home')));
+    expect(home['stage'], 'initialReadiness');
+    expect(() => home['target'] = 'dashboard', throwsUnsupportedError);
+    expect(jsonEncode(first.diagnostic), isNot(contains('private')));
+  });
+
+  test('Home observer preserves both aliases and exact original rail calls',
+      () async {
+    for (final String target in <String>['home', 'dashboard']) {
+      for (final bool expanded in <bool>[false, true]) {
+        final _HomeReplies observed = _HomeReplies(
+          _homeReplies(target: target, expanded: expanded),
+        );
+        final _HomeReplies legacy = _HomeReplies(
+          _homeReplies(target: target, expanded: expanded),
+        );
+        final cli.SeedOperationTrace trace = _homeTrace();
+        await cli.prepareScreenHome(observed, observe: trace.homeObserved);
+        await cli.prepareScreenHome(legacy);
+        expect(observed._commands,
+          _homeCommands(target: target, expanded: expanded));
+        expect(observed._commands, legacy._commands);
+        final Map<String, Object> home = trace
+            .failure(_UnprintableSeedError()).diagnostic['home']!
+                as Map<String, Object>;
+        expect(home['stage'], 'finalReadiness');
+        expect(home['target'], target);
+        expect(home['state'], <String, Object>{
+          'at': 'finalReadiness', 'booted': 'yes', 'unlocked': 'yes',
+          'initialized': 'yes', 'tab': target,
+        });
+      }
+    }
+  });
+
+  test('Home transport failures identify only the original entered call',
+      () async {
+    const List<String> stages = <String>[
+      'initialState', 'gotoState', 'gotoTap', 'gotoWait', 'railState',
+      'railTogglePresence', 'railLabelPresence', 'railToggle', 'railWait',
+      'finalState',
+    ];
+    const List<String?> lastStates = <String?>[
+      null, 'initialReadiness', 'gotoTarget', 'gotoTarget', 'gotoWait',
+      'railReadiness', 'railReadiness', 'railReadiness', 'railReadiness',
+      'railReadiness',
+    ];
+    for (int index = 0; index < stages.length; index++) {
+      final List<Object> replies = _homeReplies(expanded: true);
+      replies[index] = _UnprintableSeedError();
+      final _HomeReplies original = _HomeReplies(replies);
+      final cli.SeedOperationTrace trace = _homeTrace();
+      await expectLater(cli.prepareScreenHome(original,
+        observe: trace.homeObserved), throwsA(isA<_UnprintableSeedError>()));
+      expect(original._commands,
+        _homeCommands(expanded: true).take(index + 1).toList());
+      final Map<String, Object> home = trace
+          .failure(_UnprintableSeedError()).diagnostic['home']!
+              as Map<String, Object>;
+      expect(home['stage'], stages[index]);
+      expect((home['state'] as Map<String, Object>?)?['at'], lastStates[index]);
+      expect(jsonEncode(home), isNot(contains('private')));
+    }
+  });
+
+  test('Home validation refusals preserve original state and stop immediately',
+      () async {
+    final List<(int, Map<String, dynamic>, String)> refusals =
+        <(int, Map<String, dynamic>, String)>[
+      (0, _homeState()..['walletUnlocked'] = false, 'initialReadiness'),
+      (0, _homeState()..['tabs'] = true, 'resolveTarget'),
+      (1, _homeState()..['tabs'] = <String>['staking'], 'gotoTarget'),
+      (4, _homeState()..['walletInitCompleted'] = false, 'railReadiness'),
+      (5, <String, dynamic>{'ok': false}, 'railTogglePresence'),
+      (7, _homeState()..['tab'] = 'staking', 'finalReadiness'),
+    ];
+    for (final (int index, Map<String, dynamic> reply, String stage)
+        in refusals) {
+      final List<Object> replies = _homeReplies();
+      replies[index] = reply;
+      final _HomeReplies original = _HomeReplies(replies);
+      final cli.SeedOperationTrace trace = _homeTrace();
+      await expectLater(cli.prepareScreenHome(original,
+        observe: trace.homeObserved), throwsA(stage == 'resolveTarget'
+          ? isA<TypeError>() : isA<cli.Fail>()));
+      expect(original._commands, _homeCommands().take(index + 1).toList());
+      final Map<String, Object> home = trace
+          .failure(_UnprintableSeedError()).diagnostic['home']!
+              as Map<String, Object>;
+      expect(home['stage'], stage);
+      expect(jsonEncode(home), isNot(contains('private')));
+    }
+  });
+
   test('one derived member precedes six exact ordered original receipts',
       () async {
     final _Session session = _Session();

@@ -12,6 +12,7 @@ import 'dart:math';
 
 import '../app/fixtures/seed_policy.dart';
 import '../app/presentation_mode.dart';
+import '../home_preparation_observation.dart';
 import '../seed/seed_recipe.dart';
 import 'build_output.dart';
 import 'screen_capture.dart';
@@ -911,6 +912,7 @@ class SeedOperationTrace {
   bool _publicationCallEntered = false;
   String _replyCode = 'unknown';
   Map<String, Object>? _confirmation;
+  final HomePreparationTrace _homeObservation = HomePreparationTrace();
 
   /// Marks a boundary without invoking, replacing or waiting on an operation.
   void at(SeedOperationAction action, SeedOperationStep step, {
@@ -921,6 +923,7 @@ class SeedOperationTrace {
     if (commandIndex != null) _commandIndex = commandIndex;
     _replyCode = 'unknown';
     _confirmation = null;
+    _homeObservation.clear();
   }
 
   /// Marks entry to the original transport call, not delivery or acceptance.
@@ -934,6 +937,20 @@ class SeedOperationTrace {
             _step == SeedOperationStep.reply && _publicationCallEntered &&
             _replyCode == 'exact-confirmation-or-effect-pending'
         ? seedConfirmationProjection(confirmation) : null;
+  }
+
+  bool get _homeScope => seedRecipeIds.contains(_recipe) &&
+      _action == SeedOperationAction.home &&
+      _step == SeedOperationStep.navigation && _commandIndex == 0 &&
+      !_publicationCallEntered;
+
+  /// Records only the current original Home call before recipe command one.
+  void homeObserved(HomePreparationStep step, {
+    Map<String, dynamic>? state, String? target,
+  }) {
+    if (_homeScope) {
+      _homeObservation.observe(step, state: state, target: target);
+    }
   }
 
   /// Freezes metadata without reading the exception's message or stack.
@@ -950,6 +967,8 @@ class SeedOperationTrace {
     };
     final String reason = error is SeedRefused
         ? seedOperationReplyCode(error.code) : _replyCode;
+    final Map<String, Object>? homeObservation =
+        _homeScope ? _homeObservation.snapshot : null;
     return SeedOperationFailure._(<String, Object>{
       'schema': 1, 'scope': 'original_seed_operation_failure',
       'recipe': seedRecipeIds.contains(_recipe) ? _recipe : 'unknown',
@@ -959,6 +978,7 @@ class SeedOperationTrace {
       'publication_call_entered': _publicationCallEntered,
       'kind': kind.name,
       'reason': reason,
+      if (homeObservation != null) 'home': homeObservation,
       if (kind == SeedOperationFailureKind.refused &&
           reason == 'exact-confirmation-or-effect-pending' &&
           _confirmation != null) 'confirmation': _confirmation!,
@@ -1079,7 +1099,7 @@ Future<Map<String, dynamic>> seed(
         .map((List<String> words) => plan.resolve(words, values))
         .toList();
     originalTrace.at(SeedOperationAction.home, SeedOperationStep.navigation);
-    await prepareScreenHome(inst);
+    await prepareScreenHome(inst, observe: originalTrace.homeObserved);
     int commandIndex = 0;
     for (final List<String> words in lines) {
       originalTrace.at(SeedOperationAction.check, SeedOperationStep.owner,
@@ -1140,8 +1160,12 @@ Future<void> script(Instance inst, String file, Args outer) async {
 Future<Map<String, dynamic>> stateOf(Instance inst) =>
     call(inst, <String, Object?>{'cmd': 'state'});
 
-Future<void> prepareScreenHome(Instance inst) async {
+Future<void> prepareScreenHome(Instance inst, {
+  HomePreparationObserver? observe,
+}) async {
+  observe?.call(HomePreparationStep.initialState);
   final Map<String, dynamic> state = await stateOf(inst);
+  observe?.call(HomePreparationStep.initialReadiness, state: state);
   if (state['booted'] != true ||
       state['walletUnlocked'] != true ||
       state['walletInitCompleted'] != true ||
@@ -1150,30 +1174,46 @@ Future<void> prepareScreenHome(Instance inst) async {
       'screens needs unlocked Home; entry preparation is pending F06/N',
     );
   }
+  observe?.call(HomePreparationStep.resolveTarget);
   final List<dynamic> tabs = state['tabs'] as List<dynamic>;
   final String home = tabs.contains('home') ? 'home' : 'dashboard';
-  await goto(inst, home);
-  await setScreenRail(inst, expanded: false);
+  observe?.call(HomePreparationStep.resolveTarget, target: home);
+  await goto(inst, home, observe: observe);
+  await setScreenRail(inst, expanded: false, observe: observe);
+  observe?.call(HomePreparationStep.finalState);
   final Map<String, dynamic> observed = await stateOf(inst);
+  observe?.call(HomePreparationStep.finalReadiness, state: observed);
   if (observed['tab'] != home || observed['walletUnlocked'] != true) {
     throw Fail('screens could not establish unlocked Home');
   }
 }
 
-Future<bool> screenRailExpanded(Instance inst) async {
+Future<bool> screenRailExpanded(Instance inst, {
+  HomePreparationObserver? observe,
+}) async {
+  observe?.call(HomePreparationStep.railState);
   final Map<String, dynamic> state = await stateOf(inst);
+  observe?.call(HomePreparationStep.railReadiness, state: state);
   if (state['walletUnlocked'] != true ||
       state['tab'] == 'lock' ||
-      state['walletInitCompleted'] != true ||
-      !await present(inst, <String, Object?>{'key': 'rail_toggle'})) {
+      state['walletInitCompleted'] != true) {
     throw Fail('screens rail is not ready in an unlocked profile');
   }
+  observe?.call(HomePreparationStep.railTogglePresence);
+  if (!await present(inst, <String, Object?>{'key': 'rail_toggle'})) {
+    throw Fail('screens rail is not ready in an unlocked profile');
+  }
+  observe?.call(HomePreparationStep.railLabelPresence);
   return present(inst, <String, Object?>{'key': 'rail_label_dashboard'});
 }
 
-Future<void> setScreenRail(Instance inst, {required bool expanded}) async {
-  if (await screenRailExpanded(inst) == expanded) return;
+Future<void> setScreenRail(Instance inst, {
+  required bool expanded, HomePreparationObserver? observe,
+}) async {
+  if (await screenRailExpanded(inst, observe: observe) == expanded) return;
+  observe?.call(HomePreparationStep.railToggle);
   await call(inst, <String, Object?>{'cmd': 'tap', 'key': 'rail_toggle'});
+  observe?.call(HomePreparationStep.railWait);
   await call(inst, <String, Object?>{
     'cmd': 'wait',
     'key': 'rail_label_dashboard',
@@ -1224,12 +1264,17 @@ Future<void> until(
   }
 }
 
-Future<void> goto(Instance inst, String tab) async {
+Future<void> goto(Instance inst, String tab, {
+  HomePreparationObserver? observe,
+}) async {
+  observe?.call(HomePreparationStep.gotoState);
   final Map<String, dynamic> s = await stateOf(inst);
+  observe?.call(HomePreparationStep.gotoTarget, state: s);
   final List<dynamic> tabs = s['tabs'] as List<dynamic>;
   if (!tabs.contains(tab)) {
     throw Fail('no tab "$tab"; tabs are ${tabs.join(', ')}');
   }
+  observe?.call(HomePreparationStep.gotoTap);
   await call(inst, <String, Object?>{'cmd': 'tap', 'tab': tab});
   if (tab == 'notifications') {
     // The real rail opens a panel over the original page, not another tab.
@@ -1242,9 +1287,13 @@ Future<void> goto(Instance inst, String tab) async {
     }
     return;
   }
+  observe?.call(HomePreparationStep.gotoWait);
   await until(
     inst,
-    (Map<String, dynamic> s) => s['tab'] == tab,
+    (Map<String, dynamic> s) {
+      observe?.call(HomePreparationStep.gotoWait, state: s);
+      return s['tab'] == tab;
+    },
     'goto $tab',
     seconds: 5,
   );
