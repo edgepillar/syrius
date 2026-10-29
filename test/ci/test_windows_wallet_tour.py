@@ -938,5 +938,74 @@ class ControlGateTests(unittest.TestCase):
                         diagnostic=dict(original['diagnostic'], **change)))
 
 
+class TourFailureDiagnosticTests(unittest.TestCase):
+    @staticmethod
+    def offered():
+        return dict(stage='tour', code=None, diagnostic=dict(schema=1,
+            scope='original_wallet_page_tour_failure', page='pillars',
+            step='sectionControlTap', kind='refused'))
+
+    def test_all_original_finite_labels_are_retained_without_authority(self):
+        value = self.offered()
+        for page in (*tour.PAGES, 'unknown'):
+            for step in tour.TOUR_FAILURE_STEPS:
+                for kind in tour.TOUR_FAILURE_KINDS:
+                    offered = dict(value, diagnostic=dict(value['diagnostic'],
+                        page=page, step=step, kind=kind))
+                    self.assertIs(tour.entry_failure(offered), offered)
+        self.assertEqual(tour.entry_failure(dict(stage='tour', code=None)),
+                         dict(stage='tour', code=None))
+
+    def test_private_unknown_or_coerced_fields_are_refused(self):
+        value = self.offered()
+        for change in (dict(schema=True), dict(schema=2), dict(scope='private'),
+                dict(page='private'), dict(page=True), dict(step='private'),
+                dict(step=True), dict(kind='private'), dict(kind=True),
+                dict(path='private'), dict(address='private'), dict(hash='private'),
+                dict(retry=True), dict(detail=dict(private='private'))):
+            with self.subTest(change=change), self.assertRaises(tour.Refused):
+                tour.entry_failure(dict(value,
+                    diagnostic=dict(value['diagnostic'], **change)))
+        for key in value['diagnostic']:
+            with self.subTest(missing=key), self.assertRaises(tour.Refused):
+                tour.entry_failure(dict(value, diagnostic={name: item
+                    for name, item in value['diagnostic'].items() if name != key}))
+        for offered in (None, [], 'private', True):
+            with self.assertRaises(tour.Refused):
+                tour.entry_failure(dict(value, diagnostic=offered))
+
+    def test_tour_metadata_cannot_enter_another_stage_or_a_recipe_code(self):
+        value = self.offered()
+        for stage in ('build', 'start', 'input', 'onboarding', 'lab_send', 'finish'):
+            with self.subTest(stage=stage), self.assertRaises(tour.Refused):
+                tour.entry_failure(dict(value, stage=stage))
+        for code in ('wallet-recipe-command-refused', 'private', True):
+            with self.subTest(code=code), self.assertRaises(tour.Refused):
+                tour.entry_failure(dict(value, code=code))
+
+    def test_an_original_diagnostic_cannot_heal_failed_incomplete_or_forced_exit(self):
+        value = self.offered()
+        before = json.dumps(value, sort_keys=True)
+        self.assertIs(tour.entry_failure(value), value)
+        self.assertEqual(json.dumps(value, sort_keys=True), before)
+        original = CompletionTests().report()
+        for change in (dict(entry_exit=1), dict(required_actor_forced_cleanup=True),
+                       dict(errors=['ENTRY_FAILED'])):
+            report = dict(original, entry_failure=value, **change)
+            self.assertFalse(tour.completed(report))
+        self.assertFalse(tour.completed(dict(original, entry_failure=value)))
+
+    def test_fixed_dart_enum_catalogs_match_the_privacy_projection(self):
+        import re
+        from pathlib import Path
+        source = Path('harness/bin/harness.dart').read_text()
+        for name, expected in (('WalletTourStep', tour.TOUR_FAILURE_STEPS),
+                ('WalletTourFailureKind', tour.TOUR_FAILURE_KINDS)):
+            body = re.search(r'enum ' + name + r'\s*\{([^}]+)\}', source)
+            self.assertIsNotNone(body)
+            labels = set(re.findall(r'\b[A-Za-z][A-Za-z0-9]*\b', body[1]))
+            self.assertEqual(labels, set(expected))
+
+
 if __name__ == '__main__':
     unittest.main()

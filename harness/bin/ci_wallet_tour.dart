@@ -161,6 +161,8 @@ Future<void> main() async {
           ? error.diagnostic
           : error is WalletRecipeRefused
           ? walletRecipePublicDiagnostic(error.diagnostic)
+          : error is cli.WalletTourFailure
+          ? error.diagnostic
           : null;
       stdout.writeln('CI_WALLET_ERROR:${jsonEncode(<String, Object?>{
         'stage': stage, 'code': code, 'diagnostic': ?diagnostic,

@@ -1150,12 +1150,50 @@ List<String> walletTourPlan(Map<String, dynamic> state) {
   return <String>[...walletTourPages, 'walletConnect'];
 }
 
-Future<void> _tourPage(Instance inst, String page) async {
+/// Finite original tour operations. Observation never repeats an operation.
+enum WalletTourStep {
+  beforePage, railNavigation, sectionControlWait, sectionControlTap,
+  sectionPageWait, settle, tree, logs, capture, afterPage,
+  bellClose, bellGone, afterBell, returnHome,
+}
+
+/// Fixed error categories, without response text, values or host locations.
+enum WalletTourFailureKind { refused, timeout, replyShape, filesystem, other }
+
+/// The first failed original operation, still a normal harness refusal.
+class WalletTourFailure extends Fail {
+  /// Stores only the selected catalog page and finite diagnostic labels.
+  WalletTourFailure({
+    required this.page, required this.step, required this.kind,
+  }) : super('tour: original operation refused');
+
+  /// A catalog page; unknown input is never copied into a public receipt.
+  final String page;
+
+  /// The operation attempted immediately before the original failure.
+  final WalletTourStep step;
+
+  /// The original exception's category, without its message or stack.
+  final WalletTourFailureKind kind;
+
+  /// This receipt provides no permission to retry or accept a failed tour.
+  Map<String, Object> get diagnostic => <String, Object>{
+    'schema': 1, 'scope': 'original_wallet_page_tour_failure',
+    'page': <String>[...walletTourPages, 'walletConnect'].contains(page)
+        ? page : 'unknown',
+    'step': step.name, 'kind': kind.name,
+  };
+}
+
+Future<void> _tourPage(Instance inst, String page, {
+  void Function(WalletTourStep step)? observe,
+}) async {
   final String rail = switch (page) {
     'sentinels' => 'pillars',
     'walletConnect' => 'settings',
     _ => page,
   };
+  observe?.call(WalletTourStep.railNavigation);
   await goto(inst, rail);
   final (String, String)? section = switch (page) {
     'pillars' => ('nodes_tab_pillars', 'nodes_pillars_strip'),
@@ -1164,10 +1202,13 @@ Future<void> _tourPage(Instance inst, String page) async {
     _ => null,
   };
   if (section != null) {
+    observe?.call(WalletTourStep.sectionControlWait);
     await call(inst, <String, Object?>{
       'cmd': 'wait', 'key': section.$1, 'timeoutMs': 5000,
     });
+    observe?.call(WalletTourStep.sectionControlTap);
     await call(inst, <String, Object?>{'cmd': 'tap', 'key': section.$1});
+    observe?.call(WalletTourStep.sectionPageWait);
     await call(inst, <String, Object?>{
       'cmd': 'wait', 'key': section.$2, 'timeoutMs': 5000,
     });
@@ -1204,22 +1245,30 @@ Future<void> tour(
   final String dir = a['dir'] ?? '${inst.home}${Platform.pathSeparator}tour';
   final List<Map<String, Object?>> visited = <Map<String, Object?>>[];
   bool complete = false;
+  String activePage = 'unknown';
+  WalletTourStep activeStep = WalletTourStep.beforePage;
   int seq =
       (await call(inst, <String, Object?>{'cmd': 'logs', 'limit': 0}))['seq']
           as int;
   try {
     for (final String page in pages) {
+      activePage = page;
+      activeStep = WalletTourStep.beforePage;
       await _tourContext(inst, s);
-      await _tourPage(inst, page);
+      await _tourPage(inst, page,
+          observe: (WalletTourStep step) => activeStep = step);
+      activeStep = WalletTourStep.settle;
       await (settle ?? Future<void>.delayed)(
         const Duration(milliseconds: 2500),
       );
+      activeStep = WalletTourStep.tree;
       final List<dynamic> nodes =
           (await call(inst, <String, Object?>{'cmd': 'tree'}))['nodes']
               as List<dynamic>;
       final int errors = nodes.where(
         (dynamic node) => (node as Map<String, dynamic>)['kind'] == 'error',
       ).length;
+      activeStep = WalletTourStep.logs;
       final Map<String, dynamic> logs = await call(inst, <String, Object?>{
         'cmd': 'logs', 'since': seq,
         'levels': <String>['SEVERE', 'SHOUT', 'FLUTTER'],
@@ -1233,6 +1282,7 @@ Future<void> tour(
         'severe_logs': severe, 'captured': false,
       });
       if (errors != 0 || severe != 0) throw Fail('tour: page errors observed');
+      activeStep = WalletTourStep.capture;
       final Map<String, dynamic> shot = await call(inst, <String, Object?>{
         'cmd': 'shot',
       });
@@ -1272,18 +1322,36 @@ Future<void> tour(
         file.writeAsBytesSync(bytes, flush: true);
       }
       visited.last['captured'] = true;
+      activeStep = WalletTourStep.afterPage;
       await _tourContext(inst, s);
       if (page == 'notifications') {
         // Close through the same ordinary panel control before another page.
+        activeStep = WalletTourStep.bellClose;
         await call(inst, <String, Object?>{'cmd': 'tap', 'key': 'bell_close'});
+        activeStep = WalletTourStep.bellGone;
         await call(inst, <String, Object?>{
           'cmd': 'wait', 'key': 'bell_panel', 'gone': true, 'timeoutMs': 5000,
         });
+        activeStep = WalletTourStep.afterBell;
         await _tourContext(inst, s);
       }
     }
+    activePage = 'dashboard';
+    activeStep = WalletTourStep.returnHome;
     await goto(inst, 'dashboard');
     complete = true;
+  } on Object catch (error, stack) {
+    final WalletTourFailureKind kind = switch (error) {
+      Fail() => WalletTourFailureKind.refused,
+      TimeoutException() => WalletTourFailureKind.timeout,
+      TypeError() || FormatException() || RangeError() =>
+          WalletTourFailureKind.replyShape,
+      FileSystemException() => WalletTourFailureKind.filesystem,
+      _ => WalletTourFailureKind.other,
+    };
+    Error.throwWithStackTrace(WalletTourFailure(
+      page: activePage, step: activeStep, kind: kind,
+    ), stack);
   } finally {
     final Map<String, Object?> result = <String, Object?>{
       'schema': 1, 'scope': 'wallet_page_tour', 'complete': complete,

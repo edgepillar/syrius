@@ -179,9 +179,15 @@ void main() {
             0,
           );
         }
-        // Two 14px label insets per choice, plus the track's 1px + 3px.
-        final double segmentWidth =
-            tester.getSize(words12).width + tester.getSize(words24).width + 64;
+        final AppTokens tokens = light ? AppTokens.light : AppTokens.dark;
+        expect(tokens.importWordChoicePadding,
+            const EdgeInsets.symmetric(horizontal: 13.25, vertical: 5));
+        expect(tester.widget<Segment<int>>(find.byType(Segment<int>))
+            .pillPadding, tokens.importWordChoicePadding);
+        // Two measured tabular-label insets, plus both 1px + 3px track sides.
+        final double segmentWidth = tester.getSize(words12).width +
+            tester.getSize(words24).width +
+            2 * tokens.importWordChoicePadding.horizontal + 8;
         expect(
           tester.getSize(find.byType(Segment<int>)).width,
           closeTo(segmentWidth, 0.01),

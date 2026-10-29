@@ -18,6 +18,7 @@ class _TourInstance extends cli.Instance {
   ];
   final List<String> sections = <String>[];
   final List<String> captured = <String>[];
+  final List<Map<String, Object?>> commands = <Map<String, Object?>>[];
   Map<String, Object?>? outcome;
 
   @override
@@ -25,6 +26,7 @@ class _TourInstance extends cli.Instance {
     Map<String, Object?> command, {
     Duration timeout = const Duration(seconds: 120),
   }) async {
+    commands.add(Map<String, Object?>.of(command));
     switch (command['cmd']) {
       case 'state':
         return <String, dynamic>{
@@ -283,5 +285,61 @@ void main() {
     );
     expect(instance.captured, <String>['dashboard']);
     expect(instance.outcome?['complete'], isFalse);
+  });
+
+  test('a failed tour tap keeps its original page and operation once', () async {
+    final _TourInstance instance = _TourInstance()
+      ..unavailable = 'nodes_tab_pillars';
+    try {
+      await instance.run();
+      fail('The original unavailable control must refuse');
+    } on cli.WalletTourFailure catch (error) {
+      expect(error.diagnostic, <String, Object>{
+        'schema': 1, 'scope': 'original_wallet_page_tour_failure',
+        'page': 'pillars', 'step': 'sectionControlTap', 'kind': 'refused',
+      });
+    }
+    expect(instance.captured, <String>['dashboard', 'transfer']);
+    expect(instance.commands.where((Map<String, Object?> command) =>
+        command['cmd'] == 'tap' &&
+        command['key'] == 'nodes_tab_pillars'), hasLength(1));
+    expect(instance.outcome?['complete'], isFalse);
+  });
+
+  test('tour page errors and context changes keep their original guards',
+      () async {
+    for (final bool contextChange in <bool>[false, true]) {
+      final _TourInstance instance = _TourInstance()
+        ..severe = !contextChange;
+      try {
+        await instance.run(changeContext: contextChange);
+        fail('The original failed guard must refuse');
+      } on cli.WalletTourFailure catch (error) {
+        expect(error.diagnostic, <String, Object>{
+          'schema': 1, 'scope': 'original_wallet_page_tour_failure',
+          'page': 'dashboard',
+          'step': contextChange ? 'afterPage' : 'logs', 'kind': 'refused',
+        });
+        expect(error.toString(), isNot(contains('private')));
+      }
+      expect(instance.captured,
+          contextChange ? <String>['dashboard'] : isEmpty);
+      expect(instance.outcome?['complete'], isFalse);
+    }
+  });
+
+  test('unknown tour input cannot enter diagnostics or replace a good tour',
+      () async {
+    final cli.WalletTourFailure foreign = cli.WalletTourFailure(
+      page: 'synthetic-private-value', step: cli.WalletTourStep.capture,
+      kind: cli.WalletTourFailureKind.other,
+    );
+    expect(foreign.diagnostic['page'], 'unknown');
+    expect(foreign.diagnostic.toString(), isNot(contains('private')));
+    final _TourInstance instance = _TourInstance();
+    await instance.run();
+    expect(instance.outcome?['complete'], isTrue);
+    expect(instance.captured,
+        <String>[...cli.walletTourPages, 'walletConnect']);
   });
 }

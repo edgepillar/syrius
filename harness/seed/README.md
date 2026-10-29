@@ -1410,3 +1410,44 @@ archive and protected review remain. No transport is repeated, no unrelated
 task is interrupted and the 18 GiB policy/10 GiB floor are unchanged. Earlier
 failures, UNKNOWNs and source165 two unlocated full-suite assertions remain
 source-bound. No local SDK, wallet or node runs.
+
+## Original Import footer assertion and tour failure operation
+
+Source169 `7573797efeb2`, focused run `40868505991`, qualifies 785 Python
+cases with three existing skips, 347 ordinary Dart cases, clean selected
+analysis and final source revalidation. Full Windows `40869975789` and
+independent inspection `40873129504` retain 4604 passes, two assertion
+failures and two skips. Both original failures are now source-labelled as
+`import_surface_test.dart:185`. The failed command exits one normally with
+complete output. Root analysis has zero errors/warnings and 1295 existing
+infos; generation, Debug/Release and library stages are unreached.
+
+The Import test still sums the former 14-pixel insets, 64 pixels including
+track sides. Production already uses the measured 13.25-pixel inset while
+retaining tabular digits, a 61-pixel sum. The test now explicitly binds that
+fixed padding and keeps its exact 0.01 tolerance. No production layout,
+font feature, reference image or action changes. All thirteen existing
+Import surface cases join the actual focused command.
+
+Native90 `40870352743` and independent inspection `40872446962` retain the
+confirmed original UI send and positive dashboard/transfer visits, followed
+by an incomplete tour. Its exact next operation and inner cause are not
+observed. Five original nodes exit zero normally; required application
+closure and copied checkpoint/reopen components are unqualified. The first
+private observer assumed copied fields existed in this earlier phase;
+completed original reads were reconciled offline without a producer retry.
+
+The next tour keeps its original requests, order, guards, delays and waits.
+On original failure, only a fixed catalog page, original operation and
+exception category cross the CI boundary. Private replies, text, paths,
+addresses and request identifiers cannot enter this diagnostic. Completion also rejects any retained entry failure beside contradictory
+positive fields. Original failed exits and cleanup remain failures. Three genuine Dart cases retain
+one failed action, context/error refusal and good-tour continuity; five
+Python cases bind privacy, source enums and refusal authority. No failed
+profile, password or send is retried.
+
+The current exact focused contracts are 363 ordinary or 365 startup Dart
+cases: thirteen newly selected existing Import cases plus three new tour
+cases. Python expects 790 cases. Current engine/native qualification remains
+pending; all nine main open rows, nineteen preparations, ninety catalog
+outputs and 94 visual matches retain their separate acceptance requirements.

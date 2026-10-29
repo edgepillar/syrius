@@ -122,6 +122,26 @@ def need(value, code):
         raise Refused(code)
 
 
+TOUR_FAILURE_STEPS = frozenset((
+    'beforePage', 'railNavigation', 'sectionControlWait', 'sectionControlTap',
+    'sectionPageWait', 'settle', 'tree', 'logs', 'capture', 'afterPage',
+    'bellClose', 'bellGone', 'afterBell', 'returnHome',
+))
+TOUR_FAILURE_KINDS = frozenset(('refused', 'timeout', 'replyShape', 'filesystem', 'other'))
+
+
+def tour_failure_diagnostic(value):
+    """Only catalog metadata survives an original failed tour operation."""
+    need(type(value) is dict and set(value) == {'schema', 'scope', 'page', 'step', 'kind'}
+         and type(value['schema']) is int and value['schema'] == 1
+         and value['scope'] == 'original_wallet_page_tour_failure'
+         and type(value['page']) is str and value['page'] in (*PAGES, 'unknown')
+         and type(value['step']) is str and value['step'] in TOUR_FAILURE_STEPS
+         and type(value['kind']) is str and value['kind'] in TOUR_FAILURE_KINDS,
+         'ENTRY_REFUSED')
+    return value
+
+
 def entry_failure(value):
     """Keep fixed onboarding labels; reject raw reply fields before recording."""
     need(type(value) is dict and set(value) in ({'stage', 'code'}, {'stage', 'code', 'diagnostic'})
@@ -132,6 +152,10 @@ def entry_failure(value):
               and re.fullmatch('wallet-recipe-[a-z-]{1,80}', value['code'])), 'ENTRY_REFUSED')
     if 'diagnostic' in value:
         diagnostic = value['diagnostic']
+        if value['stage'] == 'tour':
+            need(value['code'] is None, 'ENTRY_REFUSED')
+            tour_failure_diagnostic(diagnostic)
+            return value
         if value['stage'] == 'lab_send':
             need(value['code'] is None and lab_send_diagnostic.valid(diagnostic),
                  'ENTRY_REFUSED')
@@ -237,6 +261,7 @@ def completed(report):
         expected = CHECKS if version == 1 else CURRENT_CHECKS
         if (type(checks) is not dict or set(checks) != set(expected)
                 or not all(value is True for value in checks.values())
+                or report.get('entry_failure') is not None
                 or report['errors'] != [] or report['required_actor_forced_cleanup'] is not False
                 or any(type(report.get(key)) is not int or report[key] != 0
                        for key in ('application_exit', 'entry_exit', 'owned_job_active_at_close'))
