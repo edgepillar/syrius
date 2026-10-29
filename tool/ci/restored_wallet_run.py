@@ -86,11 +86,136 @@ def lock_view_projection(value):
     return dict(value, view=None if view is None else dict(view))
 
 
+SEED_FAILURE_RECIPES = frozenset(('stake', 'fuse', 'token', 'deposit',
+                                    'project', 'fund-address'))
+SEED_FAILURE_ACTIONS = frozenset(('source', 'begin', 'home', 'check',
+                                  'prepare', 'publish', 'command', 'finish'))
+SEED_FAILURE_STEPS = frozenset(('read', 'parse', 'resolve', 'owner',
+                                'request', 'reply', 'navigation', 'execute'))
+SEED_FAILURE_KINDS = frozenset(('refused', 'timeout', 'format', 'type',
+                                'filesystem', 'state', 'other'))
+SEED_REPLY_CODES = frozenset((
+    'advancing-momentum-required',
+    'ambiguous-original-publication',
+    'bounded-seed-wait-required',
+    'close-current-fixture-first',
+    'earlier-original-unresolved',
+    'earlier-seed-attempt-held',
+    'enabled-preparation-control-required',
+    'enabled-publication-control-required',
+    'exact-chain-321-lab-required',
+    'exact-confirmation-or-effect-pending',
+    'exact-confirmation-pending',
+    'exact-confirmation-required',
+    'exact-original-lab-transports-required',
+    'exact-original-receipt-mismatch',
+    'explicit-lab-origins-required',
+    'explicit-seed-begin-required',
+    'external-lab-counterparty-required',
+    'fixture-expired',
+    'fixture-publication-refused',
+    'fixture-route-changed',
+    'fixture-route-unavailable',
+    'funded-index-one-required',
+    'funded-selected-index-required',
+    'invalid-lab-frontier',
+    'invalid-original-hash',
+    'isolated-checkpoint-prerequisite-required',
+    'isolated-unlocked-profile-required',
+    'lab-endpoints-disagree',
+    'lab-frontier-regressed',
+    'lab-http-frontier-incomplete',
+    'lab-http-response-refused',
+    'lab-http-response-too-large',
+    'lab-http-rpc-refused',
+    'one-seed-publication-required',
+    'original-attempt-held',
+    'original-context-changed',
+    'original-hash-changed',
+    'original-outcome-unknown',
+    'original-publication-replaced',
+    'original-send-form-changed',
+    'original-send-form-required',
+    'original-send-review-already-captured',
+    'original-send-review-button-changed',
+    'original-send-review-center-changed',
+    'original-send-review-dialog-changed',
+    'original-send-review-draft-changed',
+    'original-send-review-intent-changed',
+    'original-send-review-required',
+    'original-transfer-attempt-held',
+    'original-transfer-review-mismatch',
+    'original-transfer-review-required',
+    'original-transfer-witness-required',
+    'owned-isolated-profile-required',
+    'recipe-prerequisite-missing',
+    'restored-seed-derivation-refused',
+    'restored-seed-exact-receipt-required',
+    'restored-seed-membership-required',
+    'restored-seed-owner-changed',
+    'restored-seed-parent-unavailable',
+    'restored-seed-session-held',
+    'seed-command-refused',
+    'seed-journal-held',
+    'seed-preparation-selector-refused',
+    'seed-prerequisite-or-read-failed',
+    'seed-publication-selector-refused',
+    'seed-recipe-prerequisite-missing',
+    'seed-script-after-publication-refused',
+    'seed-script-command-refused',
+    'seed-script-key-refused',
+    'seed-script-prerequisite-missing',
+    'seed-script-route-refused',
+    'seed-script-substitution-refused',
+    'token-publication-requires-guarded-publish',
+    'unknown-fixture',
+    'unknown-recipe',
+    'unlocked-wallet-required',
+))
+
+
+def seed_failure_projection(value, phase):
+    """Only the failed original operation is data; no input or authority."""
+    fields = {'schema', 'scope', 'recipe', 'action', 'step', 'command_index',
+              'publication_call_entered', 'kind', 'reason'}
+    checkpoint.need(type(value) is dict and set(value) == fields
+        and type(value['schema']) is int and value['schema'] == 1
+        and type(value['scope']) is str
+        and value['scope'] == 'original_seed_operation_failure'
+        and type(value['recipe']) is str and value['recipe'] in SEED_FAILURE_RECIPES
+        and type(phase) is str and phase == 'seed_' + value['recipe']
+        and type(value['action']) is str and value['action'] in SEED_FAILURE_ACTIONS
+        and type(value['step']) is str and value['step'] in SEED_FAILURE_STEPS
+        and type(value['command_index']) is int and 0 <= value['command_index'] <= 96
+        and type(value['publication_call_entered']) is bool
+        and type(value['kind']) is str and value['kind'] in SEED_FAILURE_KINDS
+        and type(value['reason']) is str
+        and value['reason'] in SEED_REPLY_CODES | {'unknown'})
+    action, step = value['action'], value['step']
+    pairs = ({'read', 'parse', 'resolve'} if action == 'source' else
+             {'navigation'} if action == 'home' else
+             {'owner', 'execute'} if action == 'command' else
+             {'owner', 'request', 'reply'})
+    checkpoint.need(step in pairs)
+    checkpoint.need((value['command_index'] == 0) is
+                    (action in ('source', 'begin', 'home', 'finish')))
+    entered = value['publication_call_entered']
+    if action in ('source', 'begin', 'home', 'prepare'):
+        checkpoint.need(entered is False)
+    elif action == 'publish':
+        checkpoint.need(entered is (step != 'owner'))
+    elif action == 'finish':
+        checkpoint.need(entered is True)
+    if value['reason'] != 'unknown':
+        checkpoint.need(value['kind'] == 'refused')
+    return dict(value)
+
+
 def child_failure_projection(value):
     """Validate data from the original child; it grants no runtime authority."""
     fields = {'schema', 'scope', 'phase', 'kind', 'code', 'recipe'}
     checkpoint.need(type(value) is dict and set(value) in
-        (fields, fields | {'lock_view'})
+        (fields, fields | {'lock_view'}, fields | {'seed'})
         and type(value['schema']) is int and value['schema'] == 1
         and value['scope'] == 'owned_reopen_child_failure'
         and type(value['phase']) is str and value['phase'] in CHILD_PHASES
@@ -116,6 +241,10 @@ def child_failure_projection(value):
         except tour.Refused:
             raise checkpoint.Refused() from None
     result = dict(value, recipe=None if recipe is None else dict(recipe))
+    if 'seed' in value:
+        checkpoint.need(kind == 'HARNESS_REFUSED' and code is None
+            and recipe is None and value['phase'].startswith('seed_'))
+        result['seed'] = seed_failure_projection(value['seed'], value['phase'])
     if 'lock_view' in value:
         checkpoint.need(value['phase'] == 'unlock' and kind == 'HARNESS_REFUSED'
             and type(code) is str and code in UNLOCK_FAILURE_CODES)

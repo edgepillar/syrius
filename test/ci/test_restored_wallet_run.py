@@ -745,5 +745,131 @@ class FilesystemTests(unittest.TestCase):
             self.assertFalse(retained.exists())
 
 
+class SeedFailureProjectionTests(unittest.TestCase):
+    @staticmethod
+    def seed(**changes):
+        value = dict(schema=1, scope='original_seed_operation_failure',
+            recipe='stake', action='begin', step='reply', command_index=0,
+            publication_call_entered=False, kind='refused', reason='unknown')
+        value.update(changes)
+        return value
+
+    @staticmethod
+    def child(seed, **changes):
+        value = dict(schema=1, scope='owned_reopen_child_failure',
+            phase='seed_' + seed['recipe'], kind='HARNESS_REFUSED',
+            code=None, recipe=None, seed=seed)
+        value.update(changes)
+        return value
+
+    def test_finite_original_boundaries_remain_observation_data(self):
+        for recipe in restored.SEED_FAILURE_RECIPES:
+            for action in restored.SEED_FAILURE_ACTIONS:
+                steps = ({'read', 'parse', 'resolve'} if action == 'source' else
+                         {'navigation'} if action == 'home' else
+                         {'owner', 'execute'} if action == 'command' else
+                         {'owner', 'request', 'reply'})
+                for step in steps:
+                    entered = action == 'finish' or action == 'publish' and step != 'owner'
+                    index = 0 if action in ('source', 'begin', 'home', 'finish') else 5
+                    offered = self.seed(recipe=recipe, action=action, step=step,
+                        command_index=index, publication_call_entered=entered)
+                    self.assertEqual(restored.seed_failure_projection(offered,
+                        'seed_' + recipe), offered)
+                    self.assertEqual(restored.child_failure_projection(
+                        self.child(offered))['seed'], offered)
+        for action in ('check', 'command'):
+            offered = self.seed(action=action, step='owner', command_index=5,
+                                publication_call_entered=True)
+            self.assertEqual(restored.seed_failure_projection(offered,
+                             'seed_stake'), offered)
+
+    def test_private_unknown_coerced_or_unbounded_metadata_is_refused(self):
+        for change in (dict(schema=True), dict(schema=2), dict(scope='private'),
+                dict(recipe='private'), dict(recipe=True), dict(action='private'),
+                dict(step='private'), dict(command_index=True), dict(command_index=-1),
+                dict(command_index=97), dict(publication_call_entered=1),
+                dict(kind='private'), dict(kind=True), dict(reason='private'),
+                dict(path='private'), dict(message='private'), dict(stack='private'),
+                dict(args=['private']), dict(address='private')):
+            with self.subTest(change=change), self.assertRaises(restored.checkpoint.Refused):
+                restored.seed_failure_projection(self.seed(**change), 'seed_stake')
+        original = self.seed()
+        for key in original:
+            with self.subTest(missing=key), self.assertRaises(restored.checkpoint.Refused):
+                restored.seed_failure_projection({name: value for name, value
+                    in original.items() if name != key}, 'seed_stake')
+        for value in (None, True, [], 'private'):
+            with self.assertRaises(restored.checkpoint.Refused):
+                restored.seed_failure_projection(value, 'seed_stake')
+
+    def test_recipe_phase_and_original_call_boundaries_cannot_be_relabelled(self):
+        for phase in ('unlock', 'seed_admission', 'seed_fuse', True, None):
+            with self.subTest(phase=phase), self.assertRaises(restored.checkpoint.Refused):
+                restored.seed_failure_projection(self.seed(), phase)
+        changes = (
+            dict(action='source', step='read', publication_call_entered=True),
+            dict(action='home', step='navigation', publication_call_entered=True),
+            dict(action='prepare', step='owner', command_index=5,
+                 publication_call_entered=True),
+            dict(action='publish', step='owner', command_index=5,
+                 publication_call_entered=True),
+            dict(action='publish', step='request', command_index=5),
+            dict(action='finish', step='request'),
+            dict(action='command', step='execute', command_index=0),
+            dict(action='source', step='read', command_index=1),
+            dict(action='begin', step='execute'),
+        )
+        for change in changes:
+            with self.subTest(change=change), self.assertRaises(restored.checkpoint.Refused):
+                restored.seed_failure_projection(self.seed(**change), 'seed_stake')
+
+    def test_only_canonical_source_codes_are_public_and_do_not_imply_success(self):
+        for code in (*restored.SEED_REPLY_CODES, 'unknown'):
+            value = self.seed(reason=code)
+            self.assertEqual(restored.seed_failure_projection(value,
+                             'seed_stake')['reason'], code)
+        code = sorted(restored.SEED_REPLY_CODES)[0]
+        for value in (code + ' ', code + '-private', 'Seed refused: ' + code):
+            with self.assertRaises(restored.checkpoint.Refused):
+                restored.seed_failure_projection(self.seed(reason=value), 'seed_stake')
+        with self.assertRaises(restored.checkpoint.Refused):
+            restored.seed_failure_projection(self.seed(reason=code, kind='type'),
+                                             'seed_stake')
+        for key in ('confirmed', 'complete', 'hash', 'retry', 'seed_admitted', 'success'):
+            with self.subTest(key=key), self.assertRaises(restored.checkpoint.Refused):
+                restored.seed_failure_projection(self.seed(**{key: True}), 'seed_stake')
+
+    def test_public_enum_and_reply_catalogs_match_the_actual_dart_source(self):
+        source = Path('harness/bin/harness.dart').read_text()
+        for name, expected in (
+                ('SeedOperationAction', restored.SEED_FAILURE_ACTIONS),
+                ('SeedOperationStep', restored.SEED_FAILURE_STEPS),
+                ('SeedOperationFailureKind', restored.SEED_FAILURE_KINDS)):
+            match = re.search(r'enum ' + name + r'\s*\{([^}]+)\}', source)
+            self.assertIsNotNone(match)
+            labels = set(re.findall(r'\b[A-Za-z][A-Za-z0-9]*\b', match[1]))
+            self.assertEqual(labels, set(expected))
+        match = re.search(r'seedOperationReplyCodes = <String>\{([^}]+)\}', source)
+        self.assertIsNotNone(match)
+        self.assertEqual(set(re.findall(r"'([a-z0-9-]+)'", match[1])),
+                         set(restored.SEED_REPLY_CODES))
+        self.assertIn('length > 96', Path('harness/seed/seed_recipe.dart').read_text())
+
+    def test_child_projection_preserves_legacy_refusals_and_copies_failure_data(self):
+        value = self.child(self.seed())
+        projected = restored.child_failure_projection(value)
+        value['seed']['reason'] = 'private'
+        self.assertEqual(projected['seed']['reason'], 'unknown')
+        for changes in (dict(phase='unlock'), dict(kind='TYPE_ERROR'),
+                dict(code='UNLOCK_TAP_REFUSED'), dict(recipe=dict(private='private')),
+                dict(lock_view=lock_view_observation()), dict(complete=True)):
+            with self.subTest(change=changes), self.assertRaises(restored.checkpoint.Refused):
+                restored.child_failure_projection(self.child(self.seed(), **changes))
+        legacy = self.child(self.seed())
+        del legacy['seed']
+        self.assertEqual(restored.child_failure_projection(legacy), legacy)
+
+
 if __name__ == '__main__':
     unittest.main()

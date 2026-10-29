@@ -1462,3 +1462,41 @@ Split only that original declaration across two lines, retaining the exact
 test label, body and 363/365 contracts. Python/control inputs are unchanged;
 the 325 memory proof is reused explicitly, with zero new local tests.
 Current engine/native qualification and all open acceptance work stay pending.
+
+
+## Original seed operation observations after source171 qualification
+
+Source171 `db12c9c9406d`, focused run `40876119769`, qualifies 790 Python
+cases with three existing skips, all 363 ordinary Dart cases, zero selected
+analysis findings, both original asset commands and final source revalidation.
+This includes all thirteen Import surface cases and the three tour failure
+cases. Full Windows `40877124897`, independently inspected by `40882081431`,
+qualifies 4609 passes with two existing skips, zero failures, regeneration,
+Debug/Release and the library map/export checks. Root analysis retains zero
+errors/warnings and 1295 existing infos. Library initialization and the
+unfiltered chain suite remain unqualified.
+
+Native91 `40877354798`, independently inspected by `40880417373`, qualifies
+the original index-one to index-zero 1 ZNN UI send, twelve-page tour,
+quiescence and normal complete zero exits for the required application,
+entry and five original nodes. The copied child reaches `seed_stake`, after
+original unlock, observation, third-member derivation and owner checks, then
+reports `HARNESS_REFUSED` with no code. The exact seed operation and whether
+any publication or effect occurred are unobserved. Its four copied components
+and six effects remain incomplete. This failure and Native90's earlier tour
+failure remain source-bound; neither old profile nor uncertain action is retried.
+
+The next fresh recipe records only fixed action, step, source command ordinal,
+exception family and an exact closed reply code. An immutable observation
+also records whether control entered the original publication transport call;
+that flag proves neither delivery, acceptance nor effect. Private inputs,
+addresses, paths, messages, stacks, request identifiers and unknown reply
+material are excluded. Original recipe source, owner guards, calls, order,
+waits and timeouts are preserved. Observation grants no retry permission.
+
+Five genuine Dart cases and six Python cases cover immutable snapshots,
+closed labels, unknown material, phase binding and impossible relationships.
+The exact focused contracts become 796 Python and 368 ordinary/370 startup
+Dart cases. Current hosted qualification remains pending. The main ledger
+stays 71 of 80, with nine open rows, nineteen literal preparations, ninety
+missing catalog outputs and zero of 94 accepted visual matches.

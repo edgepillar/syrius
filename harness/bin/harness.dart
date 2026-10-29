@@ -780,6 +780,184 @@ Future<void> run(Instance inst, String command, Args a) async {
   }
 }
 
+/// Only source-defined seed refusal labels may leave an original command.
+const Set<String> seedOperationReplyCodes = <String>{
+  'advancing-momentum-required',
+  'ambiguous-original-publication',
+  'bounded-seed-wait-required',
+  'close-current-fixture-first',
+  'earlier-original-unresolved',
+  'earlier-seed-attempt-held',
+  'enabled-preparation-control-required',
+  'enabled-publication-control-required',
+  'exact-chain-321-lab-required',
+  'exact-confirmation-or-effect-pending',
+  'exact-confirmation-pending',
+  'exact-confirmation-required',
+  'exact-original-lab-transports-required',
+  'exact-original-receipt-mismatch',
+  'explicit-lab-origins-required',
+  'explicit-seed-begin-required',
+  'external-lab-counterparty-required',
+  'fixture-expired',
+  'fixture-publication-refused',
+  'fixture-route-changed',
+  'fixture-route-unavailable',
+  'funded-index-one-required',
+  'funded-selected-index-required',
+  'invalid-lab-frontier',
+  'invalid-original-hash',
+  'isolated-checkpoint-prerequisite-required',
+  'isolated-unlocked-profile-required',
+  'lab-endpoints-disagree',
+  'lab-frontier-regressed',
+  'lab-http-frontier-incomplete',
+  'lab-http-response-refused',
+  'lab-http-response-too-large',
+  'lab-http-rpc-refused',
+  'one-seed-publication-required',
+  'original-attempt-held',
+  'original-context-changed',
+  'original-hash-changed',
+  'original-outcome-unknown',
+  'original-publication-replaced',
+  'original-send-form-changed',
+  'original-send-form-required',
+  'original-send-review-already-captured',
+  'original-send-review-button-changed',
+  'original-send-review-center-changed',
+  'original-send-review-dialog-changed',
+  'original-send-review-draft-changed',
+  'original-send-review-intent-changed',
+  'original-send-review-required',
+  'original-transfer-attempt-held',
+  'original-transfer-review-mismatch',
+  'original-transfer-review-required',
+  'original-transfer-witness-required',
+  'owned-isolated-profile-required',
+  'recipe-prerequisite-missing',
+  'restored-seed-derivation-refused',
+  'restored-seed-exact-receipt-required',
+  'restored-seed-membership-required',
+  'restored-seed-owner-changed',
+  'restored-seed-parent-unavailable',
+  'restored-seed-session-held',
+  'seed-command-refused',
+  'seed-journal-held',
+  'seed-preparation-selector-refused',
+  'seed-prerequisite-or-read-failed',
+  'seed-publication-selector-refused',
+  'seed-recipe-prerequisite-missing',
+  'seed-script-after-publication-refused',
+  'seed-script-command-refused',
+  'seed-script-key-refused',
+  'seed-script-prerequisite-missing',
+  'seed-script-route-refused',
+  'seed-script-substitution-refused',
+  'token-publication-requires-guarded-publish',
+  'unknown-fixture',
+  'unknown-recipe',
+  'unlocked-wallet-required',
+};
+
+/// Exact closed labels, without formatting or returning an unknown payload.
+String seedOperationReplyCode(Object? value) {
+  if (value is! String || value.length > 128) return 'unknown';
+  const String prefix = 'Seed refused: ';
+  final String code = value.startsWith(prefix)
+      ? value.substring(prefix.length) : value;
+  return seedOperationReplyCodes.contains(code) ? code : 'unknown';
+}
+
+/// Original seed operations; these labels cannot start or repeat an action.
+enum SeedOperationAction {
+  source, begin, home, check, prepare, publish, command, finish,
+}
+
+/// The last original boundary entered before its first refusal.
+enum SeedOperationStep {
+  read, parse, resolve, owner, request, reply, navigation, execute,
+}
+
+/// Exception families disclose no error text, paths or input material.
+enum SeedOperationFailureKind {
+  refused, timeout, format, type, filesystem, state, other,
+}
+
+/// The immutable finite observation of one original seed failure.
+class SeedOperationFailure extends Fail {
+  SeedOperationFailure._(Map<String, Object> value)
+      : diagnostic = Map<String, Object>.unmodifiable(value),
+        super('seed: original operation refused');
+
+  /// A failure receipt carries no publication or retry permission.
+  final Map<String, Object> diagnostic;
+}
+
+/// Passive state for the current original recipe, with no I/O or callbacks.
+class SeedOperationTrace {
+  /// Records the source recipe, independently of its private input values.
+  SeedOperationTrace(this._recipe);
+
+  final String _recipe;
+  SeedOperationAction _action = SeedOperationAction.source;
+  SeedOperationStep _step = SeedOperationStep.read;
+  int _commandIndex = 0;
+  bool _publicationCallEntered = false;
+  String _replyCode = 'unknown';
+
+  /// Marks a boundary without invoking, replacing or waiting on an operation.
+  void at(SeedOperationAction action, SeedOperationStep step, {
+    int? commandIndex,
+  }) {
+    _action = action;
+    _step = step;
+    if (commandIndex != null) _commandIndex = commandIndex;
+    _replyCode = 'unknown';
+  }
+
+  /// Marks entry to the original transport call, not delivery or acceptance.
+  void publicationCallEntered() => _publicationCallEntered = true;
+
+  /// Retains only an exact code from the already received original reply.
+  void refusedReply(Object? value) =>
+      _replyCode = seedOperationReplyCode(value);
+
+  /// Freezes metadata without reading the exception's message or stack.
+  SeedOperationFailure failure(Object error) {
+    final SeedOperationFailureKind kind = switch (error) {
+      Fail() || SeedRefused() => SeedOperationFailureKind.refused,
+      TimeoutException() => SeedOperationFailureKind.timeout,
+      FormatException() => SeedOperationFailureKind.format,
+      TypeError() || RangeError() => SeedOperationFailureKind.type,
+      FileSystemException() || SocketException() =>
+          SeedOperationFailureKind.filesystem,
+      StateError() => SeedOperationFailureKind.state,
+      _ => SeedOperationFailureKind.other,
+    };
+    return SeedOperationFailure._(<String, Object>{
+      'schema': 1, 'scope': 'original_seed_operation_failure',
+      'recipe': seedRecipeIds.contains(_recipe) ? _recipe : 'unknown',
+      'action': _action.name, 'step': _step.name,
+      'command_index': _commandIndex >= 0 && _commandIndex <= 96
+          ? _commandIndex : 0,
+      'publication_call_entered': _publicationCallEntered,
+      'kind': kind.name,
+      'reason': error is SeedRefused
+          ? seedOperationReplyCode(error.code) : _replyCode,
+    });
+  }
+}
+
+SeedOperationAction _seedOperationAction(Object? value) => switch (value) {
+  'begin' => SeedOperationAction.begin,
+  'check' => SeedOperationAction.check,
+  'prepare' => SeedOperationAction.prepare,
+  'publish' => SeedOperationAction.publish,
+  'finish' => SeedOperationAction.finish,
+  _ => SeedOperationAction.source,
+};
+
 /// A fixed, preflighted source recipe; no nested script or lifecycle command.
 Future<Map<String, dynamic>> seed(
   Instance inst, Args a, {
@@ -804,15 +982,24 @@ Future<Map<String, dynamic>> seed(
       'lab origins; see harness/seed/README.md',
     );
   }
+  SeedOperationTrace? trace;
   Future<Map<String, dynamic>> command(Map<String, Object?> fields) async {
+    trace?.at(_seedOperationAction(fields['action']), SeedOperationStep.owner);
     await requireOwner?.call();
+    trace?.at(_seedOperationAction(fields['action']),
+        SeedOperationStep.request);
+    if (fields['action'] == 'publish') trace?.publicationCallEntered();
     final Map<String, dynamic> result = await inst
         .send(<String, Object?>{
           'cmd': 'seed',
           ...fields,
         }, timeout: const Duration(seconds: 300))
         .timeout(const Duration(seconds: 305));
-    if (result['ok'] != true) throw Fail('seed refused: ${result['error']}');
+    trace?.at(_seedOperationAction(fields['action']), SeedOperationStep.reply);
+    if (result['ok'] != true) {
+      trace?.refusedReply(result['error']);
+      throw Fail('seed refused: ${result['error']}');
+    }
     return result;
   }
 
@@ -840,54 +1027,72 @@ Future<Map<String, dynamic>> seed(
     );
   }
   final String id = a.rest.single;
-  final File file = File('$repo/harness/seed/$id.txt');
-  if (FileSystemEntity.typeSync(file.path, followLinks: false) !=
-          FileSystemEntityType.file ||
-      file.lengthSync() > 8192) {
-    throw Fail('seed recipe source is missing or held');
-  }
-  final SeedRecipe plan = SeedRecipe.parse(id, file.readAsStringSync());
-  final Map<String, dynamic> ready = await command(<String, Object?>{
-    'action': 'begin',
-    'recipe': id,
-    'profile': inst.name,
-    'ws': a['ws'],
-    'http': a['http'],
-    'checkpointReady': true,
-    if (a['counterparty'] != null) 'counterparty': a['counterparty'],
-  });
-  final Map<String, String> values = <String, String>{
-    if (ready['secondaryAddress'] is String)
-      r'${secondaryAddress}': ready['secondaryAddress'] as String,
-    if (ready['counterparty'] is String)
-      r'${counterparty}': ready['counterparty'] as String,
-  };
-  final List<List<String>> lines = plan.lines
-      .map((List<String> words) => plan.resolve(words, values))
-      .toList();
-  await prepareScreenHome(inst);
-  for (final List<String> words in lines) {
-    await command(<String, Object?>{'action': 'check'});
-    if (words.first == 'publish') {
-      stdout.writeln(
-        jsonEncode(await command(<String, Object?>{'action': 'publish'})),
-      );
-    } else if (words.first == 'tap') {
-      await command(<String, Object?>{
-        'action': 'prepare',
-        'selector': words.sublist(1),
-      });
-      stdout.writeln('ok');
-    } else {
-      await requireOwner?.call();
-      await run(inst, words.first, Args(words.sublist(1)));
+  final SeedOperationTrace originalTrace = SeedOperationTrace(id);
+  trace = originalTrace;
+  try {
+    final File file = File('$repo/harness/seed/$id.txt');
+    if (FileSystemEntity.typeSync(file.path, followLinks: false) !=
+            FileSystemEntityType.file ||
+        file.lengthSync() > 8192) {
+      throw Fail('seed recipe source is missing or held');
     }
+    final String source = file.readAsStringSync();
+    originalTrace.at(SeedOperationAction.source, SeedOperationStep.parse);
+    final SeedRecipe plan = SeedRecipe.parse(id, source);
+    final Map<String, dynamic> ready = await command(<String, Object?>{
+      'action': 'begin',
+      'recipe': id,
+      'profile': inst.name,
+      'ws': a['ws'],
+      'http': a['http'],
+      'checkpointReady': true,
+      if (a['counterparty'] != null) 'counterparty': a['counterparty'],
+    });
+    originalTrace.at(SeedOperationAction.source, SeedOperationStep.resolve);
+    final Map<String, String> values = <String, String>{
+      if (ready['secondaryAddress'] is String)
+        r'${secondaryAddress}': ready['secondaryAddress'] as String,
+      if (ready['counterparty'] is String)
+        r'${counterparty}': ready['counterparty'] as String,
+    };
+    final List<List<String>> lines = plan.lines
+        .map((List<String> words) => plan.resolve(words, values))
+        .toList();
+    originalTrace.at(SeedOperationAction.home, SeedOperationStep.navigation);
+    await prepareScreenHome(inst);
+    int commandIndex = 0;
+    for (final List<String> words in lines) {
+      originalTrace.at(SeedOperationAction.check, SeedOperationStep.owner,
+          commandIndex: ++commandIndex);
+      await command(<String, Object?>{'action': 'check'});
+      if (words.first == 'publish') {
+        stdout.writeln(
+          jsonEncode(await command(<String, Object?>{'action': 'publish'})),
+        );
+      } else if (words.first == 'tap') {
+        await command(<String, Object?>{
+          'action': 'prepare',
+          'selector': words.sublist(1),
+        });
+        stdout.writeln('ok');
+      } else {
+        originalTrace.at(SeedOperationAction.command, SeedOperationStep.owner);
+        await requireOwner?.call();
+        originalTrace.at(SeedOperationAction.command,
+            SeedOperationStep.execute);
+        await run(inst, words.first, Args(words.sublist(1)));
+      }
+    }
+    originalTrace.at(SeedOperationAction.finish, SeedOperationStep.owner,
+        commandIndex: 0);
+    final Map<String, dynamic> result = await command(<String, Object?>{
+      'action': 'finish',
+    });
+    stdout.writeln(jsonEncode(result));
+    return result;
+  } on Object catch (error, stack) {
+    Error.throwWithStackTrace(originalTrace.failure(error), stack);
   }
-  final Map<String, dynamic> result = await command(<String, Object?>{
-    'action': 'finish',
-  });
-  stdout.writeln(jsonEncode(result));
-  return result;
 }
 
 /// Runs a file of harness command lines, stopping at the first that fails.

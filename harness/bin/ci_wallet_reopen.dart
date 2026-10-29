@@ -127,6 +127,7 @@ Map<String, Object?>? restoredChildFailure(String phase, Object error) {
   String? code;
   Map<String, String>? recipe;
   Map<String, Object?>? lockView;
+  Map<String, Object>? seed;
   if (error.runtimeType == RestoredWindowRefused) {
     if (phase != 'startup_window') return null;
     kind = 'WINDOW_REFUSED';
@@ -148,6 +149,11 @@ Map<String, Object?>? restoredChildFailure(String phase, Object error) {
     if (!restoredUnlockFailureCodes.contains(value)) return null;
     code = value;
     lockView = projectLockView(original.lockView);
+  } else if (error is cli.SeedOperationFailure) {
+    final Map<String, Object> value = error.diagnostic;
+    if (phase != 'seed_${value['recipe']}') return null;
+    kind = 'HARNESS_REFUSED';
+    seed = value;
   } else if (error is cli.Fail) {
     kind = 'HARNESS_REFUSED';
   } else if (error is FormatException) {
@@ -163,6 +169,7 @@ Map<String, Object?>? restoredChildFailure(String phase, Object error) {
     'schema': 1, 'scope': 'owned_reopen_child_failure', 'phase': phase,
     'kind': kind, 'code': code, 'recipe': recipe,
     'lock_view': ?lockView,
+    'seed': ?seed,
   };
 }
 
