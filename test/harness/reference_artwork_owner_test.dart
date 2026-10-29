@@ -167,6 +167,108 @@ Map<String, int> _trimOverlap(List<bool> actual, List<bool> reference) {
     'missing': expected - overlap};
 }
 
+const List<String> _pathModes = <String>[
+  'channels', 'nested', 'flattened', 'flattened_sorted',
+];
+
+void _pathIdentity(Map<String, dynamic> value) {
+  expect(value['ty'], 'tr');
+  final Map<String, Object> identity = <String, Object>{
+    'p': <int>[0, 0], 'a': <int>[0, 0], 's': <int>[100, 100],
+    'r': 0, 'o': 100, 'sk': 0, 'sa': 0,
+  };
+  for (final MapEntry<String, Object> part in identity.entries) {
+    final Map<String, dynamic> channel =
+        value[part.key] as Map<String, dynamic>;
+    expect(channel['a'], 0);
+    expect(channel['k'], part.value);
+  }
+}
+
+LottieComposition _pathVariant(Uint8List bytes, String mode) {
+  expect(_pathModes, contains(mode));
+  final Map<String, dynamic> value =
+      jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>;
+  final List<dynamic> layers = value['layers'] as List<dynamic>;
+  int promoted = 0;
+  int flattened = 0;
+  int swapped = 0;
+  for (int layerIndex = 0; layerIndex < 2; layerIndex++) {
+    final Map<String, dynamic> layer =
+        layers[layerIndex] as Map<String, dynamic>;
+    final List<dynamic> shapes = layer['shapes'] as List<dynamic>;
+    final Map<String, dynamic> target =
+        shapes[layerIndex == 0 ? 1 : 0] as Map<String, dynamic>;
+    expect(target['nm'], 'animatred line');
+    final List<dynamic> outer = target['it'] as List<dynamic>;
+    expect(outer.map((dynamic item) => item['ty']),
+        <String>['gr', 'gr', 'st', 'tr']);
+    final Map<String, dynamic> stroke = outer[2] as Map<String, dynamic>;
+    for (int index = 0; index < 2; index++) {
+      final Map<String, dynamic> group = outer[index] as Map<String, dynamic>;
+      final List<dynamic> items = group['it'] as List<dynamic>;
+      expect(items.map((dynamic item) => item['ty']),
+          <String>['gr', 'tm', 'tr']);
+      final Map<String, dynamic> trim = items[1] as Map<String, dynamic>;
+      expect(trim['m'], 2);
+      if (mode == 'channels' || mode == 'flattened_sorted') {
+        final dynamic start = trim['s'];
+        trim['s'] = trim['e'];
+        trim['e'] = start;
+        swapped++;
+      }
+      if (mode != 'channels') {
+        final Map<String, dynamic> inner =
+            items[0] as Map<String, dynamic>;
+        final List<dynamic> paths = inner['it'] as List<dynamic>;
+        expect(paths.map((dynamic item) => item['ty']),
+            <String>['el', 'el', 'tr']);
+        _pathIdentity(paths[2] as Map<String, dynamic>);
+        _pathIdentity(items[2] as Map<String, dynamic>);
+        final bool flatten = mode != 'nested';
+        group['it'] = <dynamic>[
+          if (flatten) ...paths.take(2) else items[0],
+          trim, jsonDecode(jsonEncode(stroke)), items[2],
+        ];
+        promoted++;
+        if (flatten) flattened++;
+      }
+    }
+    if (mode != 'channels') target['it'] = <dynamic>[
+      outer[0], outer[1], outer[3],
+    ];
+  }
+  expect(promoted, mode == 'channels' ? 0 : 4);
+  expect(flattened, mode == 'flattened' || mode == 'flattened_sorted' ? 4 : 0);
+  expect(swapped, mode == 'channels' || mode == 'flattened_sorted' ? 4 : 0);
+  return LottieComposition.parseJsonBytes(utf8.encode(jsonEncode(value)));
+}
+
+int _pathPixelDifference(Uint8List before, Uint8List after) {
+  expect(before.length, _trimEdge * _trimEdge * 4);
+  expect(after.length, before.length);
+  int changed = 0;
+  for (int offset = 0; offset < before.length; offset += 4) {
+    if (before[offset] != after[offset] ||
+        before[offset + 1] != after[offset + 1] ||
+        before[offset + 2] != after[offset + 2] ||
+        before[offset + 3] != after[offset + 3]) {
+      changed++;
+    }
+  }
+  return changed;
+}
+
+int _pathMaskDifference(List<bool> before, List<bool> after) {
+  expect(before.length, _trimEdge * _trimEdge);
+  expect(after.length, before.length);
+  int changed = 0;
+  for (int index = 0; index < before.length; index++) {
+    if (before[index] != after[index]) changed++;
+  }
+  return changed;
+}
+
 void main() {
   const MethodChannel window = MethodChannel('window_manager');
   setUp(() {
@@ -380,6 +482,69 @@ void main() {
       expect(before['present'], greaterThan(0));
       expect(before['expected'], greaterThan(0));
       expect(after['present'], greaterThan(0));
+    }
+  });
+  testWidgets('nested Welcome trim variants retain bounded pixel differences', (
+    WidgetTester tester,
+  ) async {
+    final ByteData asset = await rootBundle.load(_trimAsset);
+    final Uint8List bytes = asset.buffer.asUint8List(
+      asset.offsetInBytes, asset.lengthInBytes,
+    );
+    expect(_trimHash(bytes), _trimSha);
+    final LottieComposition original = LottieComposition.parseJsonBytes(bytes);
+    final Map<String, LottieComposition> variants = <String, LottieComposition>{
+      for (final String mode in _pathModes) mode: _pathVariant(bytes, mode),
+    };
+    for (final LottieComposition variant in variants.values) {
+      expect(variant.bounds, original.bounds);
+      expect(variant.durationFrames, original.durationFrames);
+    }
+    final Map<String, Uint8List> rendered = (await tester.runAsync(() async =>
+        <String, Uint8List>{
+          'original': await _trimRender(original),
+          for (final String mode in _pathModes)
+            mode: await _trimRender(variants[mode]!),
+        }))!;
+    final Map<String, int> changed = <String, int>{
+      for (final String mode in _pathModes)
+        mode: _pathPixelDifference(rendered['original']!, rendered[mode]!),
+    };
+    final List<Map<String, Object>> samples = <Map<String, Object>>[];
+    for (final String theme in <String>['dark', 'light']) {
+      final Uint8List reference = (await tester.runAsync(
+        () => _trimReference(theme),
+      ))!;
+      for (final int threshold in <int>[32, 64, 96, 160]) {
+        final List<bool> mask = _trimGreen(reference, threshold);
+        final List<bool> originalMask =
+            _trimGreen(rendered['original']!, threshold);
+        final Map<String, Object> measurements = <String, Object>{};
+        for (final String mode in _pathModes) {
+          final List<bool> variantMask = _trimGreen(rendered[mode]!, threshold);
+          measurements[mode] = <String, int>{
+            ..._trimOverlap(variantMask, mask),
+            'changed_mask': _pathMaskDifference(originalMask, variantMask),
+          };
+        }
+        samples.add(<String, Object>{
+          'theme': theme, 'threshold': threshold,
+          'original': _trimOverlap(originalMask, mask),
+          'variants': measurements,
+        });
+      }
+    }
+    expect(_trimHash(bytes), _trimSha);
+    // This is a renderer experiment, without production-clock or match claims.
+    // ignore: avoid_print
+    print('CI_WELCOME_PATH_METRICS:${jsonEncode(<String, Object>{
+      'schema': 1, 'frame': _trimFrame, 'frame_count': 1800, 'edge': _trimEdge,
+      'changed_pixels': changed, 'samples': samples,
+    })}');
+    for (final Map<String, Object> sample in samples) {
+      final Map<String, int> before = sample['original']! as Map<String, int>;
+      expect(before['present'], greaterThan(0));
+      expect(before['expected'], greaterThan(0));
     }
   });
 }

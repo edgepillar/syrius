@@ -10,12 +10,14 @@ import time
 
 try:
     from . import dart_test_failure, font_metrics_observation, welcome_trim_metrics
+    from . import welcome_path_metrics
     from . import windows_debug_loop as debug
     from .windows_baseline import fresh_environment, run_bounded, test_counts
 except ImportError:
     import dart_test_failure
     import font_metrics_observation
     import welcome_trim_metrics
+    import welcome_path_metrics
     import windows_debug_loop as debug
     from windows_baseline import fresh_environment, run_bounded, test_counts
 
@@ -99,6 +101,7 @@ def startup_check(repo, parent, dart, kind):
 def main():
     font_observation = None
     trim_observation = None
+    path_observation = None
     report = dict(schema=1, scope='wallet_tour_controller_tests', success=False,
                   wallet_qualified=False, native_wallet_executions=0, counts=None,
                   command=None, entry_refusal=None, startup_checks=[], code=None)
@@ -194,11 +197,18 @@ def main():
                 run_id=parent['GITHUB_RUN_ID'],
                 run_attempt=parent['GITHUB_RUN_ATTEMPT'],
                 test_output_sha256=hashlib.sha256(outcome.output).hexdigest())
+        path_observation = welcome_path_metrics.project(
+            outcome.output, complete=outcome.transport_complete)
+        if path_observation is not None:
+            path_observation.update(source_sha=source, source_tree=tree,
+                run_id=parent['GITHUB_RUN_ID'],
+                run_attempt=parent['GITHUB_RUN_ATTEMPT'],
+                test_output_sha256=hashlib.sha256(outcome.output).hexdigest())
         debug.need(outcome.transport_complete, 'OUTPUT_REFUSED')
         counts = test_counts(outcome.output)
         report['counts'] = counts
         debug.need(outcome.success and counts['terminal_success'] is True
-            and counts['passed'] == (391 if asset_fidelity else 389)
+            and counts['passed'] == (392 if asset_fidelity else 390)
             and counts['skipped'] == counts['failed'] == counts['error_events'] == 0,
             'TESTS_FAILED')
         if asset_fidelity:
@@ -223,6 +233,10 @@ def main():
         observation = json.dumps(trim_observation, sort_keys=True, separators=(',', ':'))
         if len(observation.encode('ascii')) <= 3800:
             print('::notice title=Original Welcome trim metrics::' + observation)
+    if path_observation is not None:
+        observation = json.dumps(path_observation, sort_keys=True, separators=(',', ':'))
+        if len(observation.encode('ascii')) <= 3800:
+            print('::notice title=Original Welcome path metrics::' + observation)
     return 0 if report['success'] else 1
 
 

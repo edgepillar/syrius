@@ -1687,3 +1687,12 @@ twelve-page tour and normal closure remain separately qualified, followed by
 the copied stake command-nine wait refusal. All prior failures and UNKNOWN
 outcomes, four incomplete copied components, six effects, nineteen preparations,
 ninety catalog outputs and all 94 visual matches retain their own limits.
+
+
+### Source178 stake-row and native result
+
+Source178 698b6aa6e146 / 40923449810 passes 804 Python cases with three existing skips, all 389 ordinary Dart cases, both original asset commands and zero selected findings. Four stake-row widget cases and nine newly selected existing staking/form cases qualify the original hash copy, exact-row matching, permanent owner revocation and six-read bound. Duplicate hashes cannot reset the allowance; exhaustion keeps unresolved hashes held. A throwing optional observer preserves the original form callback, reset and refreshes. Source177 retains its original 385-pass/three-failure result
+
+Source178 Native94 40924934871 and independent 40928315041 retain the original producer conclusion failure. Original UI send: qualified; twelve-page tour: qualified; copied reopen: unqualified; six seed effects: unqualified. No old profile, password, send or seed operation is retried. Earlier failures and UNKNOWN outcomes remain source-bound. The copied child advances past the earlier stake wait to fuse command seven, publish reply, then refuses with exact-confirmation-or-effect-pending. Completed confirmation versus effect subresults are not distinguished. Command progress is not an exported final stake receipt, fuse confirmation or six-effect qualification
+
+The additional list refresh is read-only. The original publication callback, initial refresh, six-height allowance and unresolved hashes remain. An observed count is not a final seed receipt or a substitute for all six independently qualified effects.

@@ -9100,3 +9100,38 @@ twelve-page tour and normal closure remain separately qualified, followed by
 the copied stake command-nine wait refusal. All prior failures and UNKNOWN
 outcomes, four incomplete copied components, six effects, nineteen preparations,
 ninety catalog outputs and all 94 visual matches retain their own limits.
+
+
+### Source178 stake-row qualification
+
+Source178 698b6aa6e146 / 40923449810 passes 804 Python cases with three existing skips, all 389 ordinary Dart cases, both original asset commands and zero selected findings. Four stake-row widget cases and nine newly selected existing staking/form cases qualify the original hash copy, exact-row matching, permanent owner revocation and six-read bound. Duplicate hashes cannot reset the allowance; exhaustion keeps unresolved hashes held. A throwing optional observer preserves the original form callback, reset and refreshes. Source177 retains its original 385-pass/three-failure result
+
+Source178 Native94 40924934871 and independent 40928315041 retain the original producer conclusion failure. Original UI send: qualified; twelve-page tour: qualified; copied reopen: unqualified; six seed effects: unqualified. No old profile, password, send or seed operation is retried. Earlier failures and UNKNOWN outcomes remain source-bound. The copied child advances past the earlier stake wait to fuse command seven, publish reply, then refuses with exact-confirmation-or-effect-pending. Completed confirmation versus effect subresults are not distinguished. Command progress is not an exported final stake receipt, fuse confirmation or six-effect qualification
+
+
+### Test-only nested Welcome trim measurements
+
+The original Welcome asset and application clock remain unchanged. A new
+renderer case uses the same pinned original asset, frame 720 of 1800, 470-pixel
+clip and two reference crops. It compares the original with four test-only
+variants: swapping all four nested trim channels, placing a stroke beside
+each nested trim, flattening only verified identity-transform path groups,
+and combining flattening with the channel swap. Every target group and eight
+static identity transforms are checked against the original JSON before use.
+Existing artwork cases are retained byte-for-byte around the added case.
+
+Five renders remain in engine memory. Export only bounded aggregate green-mask
+counts at four thresholds in both themes, plus whole-pixel and mask disagreement
+counts. An independent strict projector validates mode/order/column completeness,
+mask arithmetic, parity, caps, exact source/run bindings and original command
+output identity. Private, duplicate, coerced and impossible values are refused.
+It exports no PNG, raw pixel buffer, wallet data or visual-match acceptance.
+Identical or worse variants remain valid measurements and cannot force a fix.
+
+All 344 selected Python controls pass in memory without SDK, native, network,
+scratch or shared-store access. Five Python cases and one Dart renderer case
+are added; exact hosted contracts become 809 Python, 390 ordinary Dart and
+392 startup Dart. Current hosted renderer/analysis qualification is pending.
+No production transform or normal-playback change is made on this evidence.
+Ninety catalog outputs, nineteen literal preparations and all 94 visual matches
+retain their separate acceptance requirements.
