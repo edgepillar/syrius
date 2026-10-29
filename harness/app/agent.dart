@@ -1742,7 +1742,9 @@ class HarnessAgent {
         if (source is AddressesInputSource) {
           final AddressesInputGate gate = source.paintedInputGate;
           if (gate != AddressesInputGate.unknown &&
-              gate != AddressesInputGate.ready) result = gate.name;
+              gate != AddressesInputGate.ready) {
+            result = gate.name;
+          }
           return false;
         }
       }

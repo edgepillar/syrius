@@ -1182,3 +1182,19 @@ controls pass; hosted 775 Python/345 ordinary Dart/347 startup qualification and
 fresh images remain pending. Four copied components, six effects, F06, ninety
 catalog outputs and all 94 visual matches remain open. No local SDK or native
 wallet/node process runs. Earlier failures, UNKNOWNs and original evidence remain.
+
+
+## Original input observation analysis refusal
+
+Source159 focused run 40822120799 passes 775 Python cases with three existing
+skips and both complete asset commands. Its analyzer refuses eight errors,
+one warning and 28 infos; original Dart tests are skipped. A new input boolean
+collides with the pre-existing captured current callback. The repair renames only
+that boolean, preserves the captured callback and all predicate/action paths,
+documents the fixed enum values and resolves the observed new style findings.
+All 310 memory controls pass. Hosted 775 Python/345 ordinary Dart/347 startup
+validation remains pending; no Dart counts are inferred from the failed source.
+Source158 Windows 4599 non-chain passes, four unaccepted genuine entry pairs and
+Native88's original positive send plus copied seed refusal remain separate.
+No local SDK or native wallet/node runs, new artifact transfers or shared-store
+tasks are started. Every earlier failure, UNKNOWN and original input is retained.

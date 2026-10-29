@@ -17,13 +17,33 @@ import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/addresses_settings_presenter.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-/// Fixed results of the original input predicates; no wallet values are exposed.
+/// Fixed results of the original input predicates, without wallet values.
 enum AddressesInputGate {
-  unknown, ready, backend, mounted, hidden, window, section, focus, route,
-  ticker, busy,
+  /// No build has been observed.
+  unknown,
+  /// Every original input predicate passed.
+  ready,
+  /// The original backend is unavailable.
+  backend,
+  /// The original State is not mounted.
+  mounted,
+  /// The original view is hidden without a narrower retained condition.
+  hidden,
+  /// The original window is inactive.
+  window,
+  /// The original section callback refused input.
+  section,
+  /// The original focus ancestry refuses input.
+  focus,
+  /// The original route is not current.
+  route,
+  /// The original inherited ticker is disabled.
+  ticker,
+  /// The original backend is busy.
+  busy,
 }
 
-/// A passive snapshot of the last build, never another input authorization check.
+/// A passive snapshot of the last build, without another authorization check.
 abstract interface class AddressesInputSource {
   /// Reading this value does not evaluate callbacks, owners, routes or focus.
   AddressesInputGate get paintedInputGate;
@@ -160,9 +180,13 @@ class _AddressesSettingsViewState extends State<AddressesSettingsView>
       _visibilityPredicate(AddressesInputGate.ticker,
           TickerMode.valuesOf(context).enabled) &&
           _visibilityPredicate(AddressesInputGate.window, _windowActive) &&
-          _visibilityPredicate(AddressesInputGate.section, widget.isCurrent()) &&
+          _visibilityPredicate(
+            AddressesInputGate.section, widget.isCurrent(),
+          ) &&
           _visibilityPredicate(AddressesInputGate.focus, _focusAllowsInput) &&
-          _visibilityPredicate(AddressesInputGate.route, _route?.isCurrent ?? true),
+          _visibilityPredicate(
+            AddressesInputGate.route, _route?.isCurrent ?? true,
+          ),
     );
     if (_visible && !_attached) {
       _attached = true;
@@ -207,11 +231,15 @@ class _AddressesSettingsViewState extends State<AddressesSettingsView>
     _visibilityInputGate = AddressesInputGate.ready;
     _setVisible(
       _visibilityPredicate(AddressesInputGate.window, _windowActive) &&
-          _visibilityPredicate(AddressesInputGate.section, widget.isCurrent()) &&
+          _visibilityPredicate(
+            AddressesInputGate.section, widget.isCurrent(),
+          ) &&
           _visibilityPredicate(AddressesInputGate.ticker,
               TickerMode.valuesOf(context).enabled) &&
           _visibilityPredicate(AddressesInputGate.focus, _focusAllowsInput) &&
-          _visibilityPredicate(AddressesInputGate.route, _route?.isCurrent ?? true),
+          _visibilityPredicate(
+            AddressesInputGate.route, _route?.isCurrent ?? true,
+          ),
     );
     if (_visible && !_attached) {
       _attached = true;
@@ -450,10 +478,10 @@ class _AddressesSettingsViewState extends State<AddressesSettingsView>
       final AppTokens tokens = AppTokens.of(context);
       final AddressesSettingsBinding? owner = _binding;
       final bool available = state.available && (owner?.ownsResources ?? false);
-      final bool current = available && _current;
-      final bool enabled = current && !owner!.busy;
+      final bool inputCurrent = available && _current;
+      final bool enabled = inputCurrent && !owner!.busy;
       _paintedInputGate = !available ? AddressesInputGate.backend
-          : !current ? _currentInputGate
+          : !inputCurrent ? _currentInputGate
           : enabled ? AddressesInputGate.ready : AddressesInputGate.busy;
       final bool contactsAvailable = available && owner!.contactsAvailable;
       final List<Contact> contacts = contactsAvailable

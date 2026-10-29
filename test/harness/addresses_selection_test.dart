@@ -53,7 +53,9 @@ void main() {
     });
   }
   for (final AddressesInputGate gate in <AddressesInputGate>[
-    AddressesInputGate.section, AddressesInputGate.focus, AddressesInputGate.window,
+    AddressesInputGate.section,
+    AddressesInputGate.focus,
+    AddressesInputGate.window,
   ]) {
     testWidgets('painted input snapshot retains the original $gate guard', (
       WidgetTester tester,
@@ -93,9 +95,11 @@ void main() {
       await tester.pump(const Duration(milliseconds: 500));
       final Finder view = find.byType(AddressesSettingsView);
       final Object originalState = tester.state(view);
-      final AddressesInputSource snapshot = originalState as AddressesInputSource;
+      final AddressesInputSource snapshot =
+          originalState as AddressesInputSource;
       final Finder add = find.byKey(const Key('settings_add_address'));
-      final VoidCallback oldAction = tester.widget<OutlinedButton>(add).onPressed!;
+      final VoidCallback oldAction =
+          tester.widget<OutlinedButton>(add).onPressed!;
       expect(snapshot.paintedInputGate, AddressesInputGate.ready);
       final int reads = currentReads;
       for (int count = 0; count < 12; count++) {

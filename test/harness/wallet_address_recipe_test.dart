@@ -149,7 +149,7 @@ void main() {
         throwsA(isA<WalletRecipeRefused>()));
       expect(ui.commands, hasLength(commands));
     }
-    // The real driver retains its refusal, deadline, no-tap and no-revival rules.
+    // The real driver retains its refusal, deadline and input revocation.
     for (final (Object?, String) sample in <(Object?, String)>[
       ('backend', 'wallet-recipe-address-backend-blocked'),
       ('mounted', 'wallet-recipe-address-mounted-blocked'),
@@ -169,7 +169,8 @@ void main() {
       final _AddressUi ui = seedUi()
         ..blockAdd = true ..blockedBy = 'widget' ..inputGate = gate;
       final WalletRecipe driver = ui.driver();
-      final WalletAddressContext original = WalletAddressContext.parse(ui.context);
+      final WalletAddressContext original =
+          WalletAddressContext.parse(ui.context);
       final String reason = sample.$2;
       await expectLater(driver.prepareSeedAddress(original), throwsA(
         isA<WalletRecipeRefused>().having(

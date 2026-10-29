@@ -24,7 +24,8 @@ Widget _selector(AppTokens tokens, {required bool tabular,
     ),
   ],
   selected: 12,
-  onChanged: onChanged ?? (_) => throw StateError('Layout measurement must not select'),
+  onChanged: onChanged ??
+      (_) => throw StateError('Layout measurement must not select'),
 );
 
 void main() {
@@ -84,7 +85,7 @@ void main() {
     }
   });
 
-  test('the bundled font retains width and line height with CSS half-leading', () {
+  test('bundled font preserves width and height with CSS half-leading', () {
     for (final double size in <double>[12, 14, 28]) {
       final TextStyle style = AppTokens.dark.bodyText.copyWith(fontSize: size);
       TextPainter painter(TextStyle value) => TextPainter(
@@ -104,7 +105,7 @@ void main() {
     }
   });
 
-  testWidgets('word choices retain tabular figures and controlled RTL selection', (
+  testWidgets('tabular word choices retain controlled RTL selection', (
     WidgetTester tester,
   ) async {
     tester.view.physicalSize = const Size(1280, 780);
@@ -135,7 +136,8 @@ void main() {
         ));
         await tester.pump();
         final double width = tester.getSize(find.byKey(_compensated)).width;
-        final double reference = tester.getSize(find.byKey(_proportional)).width;
+        final double reference =
+            tester.getSize(find.byKey(_proportional)).width;
         expect(width, closeTo(reference, 0.6));
         final Segment<int> product = tester.widget<Segment<int>>(
           find.byKey(_compensated),
@@ -147,7 +149,9 @@ void main() {
         await tester.tap(find.byKey(Segment.keyOf('compensated', 24)));
         await tester.pump();
         expect(picks, <int>[24]);
-        expect(tester.widget<Segment<int>>(find.byKey(_compensated)).selected, 12);
+        expect(tester.widget<Segment<int>>(
+          find.byKey(_compensated),
+        ).selected, 12);
         expect(tester.takeException(), isNull);
       }
     }
