@@ -9135,3 +9135,22 @@ are added; exact hosted contracts become 809 Python, 390 ordinary Dart and
 No production transform or normal-playback change is made on this evidence.
 Ninety catalog outputs, nineteen literal preparations and all 94 visual matches
 retain their separate acceptance requirements.
+
+
+### Preserve the source179 analysis refusal and type the test visitors
+
+Source179 5703ce6b809b / 40929111860 passes all 809 Python cases with three
+existing skips and both original asset commands. The original analyzer exits
+zero with complete output and reports zero errors, zero warnings and four
+infos: three AVOID_DYNAMIC_CALLS locations in the new test-only shape visitors
+and one CURLY_BRACES_IN_FLOW_CONTROL_STRUCTURES location. The strict zero-finding
+gate refuses that command before the Dart renderer stage; no path measurement
+or new renderer success is inferred from it. The original run remains failed.
+
+Cast each known JSON map before reading its type, and brace the existing
+conditional assignment. These four edits reconstruct the original test file
+exactly when reversed. They change no shape operation, count, pinned asset,
+reference, production widget or application clock. The unchanged Python inputs
+retain their source179 809-case hosted result and earlier 344 memory controls;
+those are prior evidence, not tests of this new revision. Current selected
+analysis and the 390 ordinary/392 startup Dart contracts remain pending.

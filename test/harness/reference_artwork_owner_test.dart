@@ -201,14 +201,18 @@ LottieComposition _pathVariant(Uint8List bytes, String mode) {
         shapes[layerIndex == 0 ? 1 : 0] as Map<String, dynamic>;
     expect(target['nm'], 'animatred line');
     final List<dynamic> outer = target['it'] as List<dynamic>;
-    expect(outer.map((dynamic item) => item['ty']),
-        <String>['gr', 'gr', 'st', 'tr']);
+    expect(
+      outer.map((dynamic item) => (item as Map<String, dynamic>)['ty']),
+      <String>['gr', 'gr', 'st', 'tr'],
+    );
     final Map<String, dynamic> stroke = outer[2] as Map<String, dynamic>;
     for (int index = 0; index < 2; index++) {
       final Map<String, dynamic> group = outer[index] as Map<String, dynamic>;
       final List<dynamic> items = group['it'] as List<dynamic>;
-      expect(items.map((dynamic item) => item['ty']),
-          <String>['gr', 'tm', 'tr']);
+      expect(
+        items.map((dynamic item) => (item as Map<String, dynamic>)['ty']),
+        <String>['gr', 'tm', 'tr'],
+      );
       final Map<String, dynamic> trim = items[1] as Map<String, dynamic>;
       expect(trim['m'], 2);
       if (mode == 'channels' || mode == 'flattened_sorted') {
@@ -221,8 +225,10 @@ LottieComposition _pathVariant(Uint8List bytes, String mode) {
         final Map<String, dynamic> inner =
             items[0] as Map<String, dynamic>;
         final List<dynamic> paths = inner['it'] as List<dynamic>;
-        expect(paths.map((dynamic item) => item['ty']),
-            <String>['el', 'el', 'tr']);
+        expect(
+          paths.map((dynamic item) => (item as Map<String, dynamic>)['ty']),
+          <String>['el', 'el', 'tr'],
+        );
         _pathIdentity(paths[2] as Map<String, dynamic>);
         _pathIdentity(items[2] as Map<String, dynamic>);
         final bool flatten = mode != 'nested';
@@ -234,9 +240,9 @@ LottieComposition _pathVariant(Uint8List bytes, String mode) {
         if (flatten) flattened++;
       }
     }
-    if (mode != 'channels') target['it'] = <dynamic>[
-      outer[0], outer[1], outer[3],
-    ];
+    if (mode != 'channels') {
+      target['it'] = <dynamic>[outer[0], outer[1], outer[3]];
+    }
   }
   expect(promoted, mode == 'channels' ? 0 : 4);
   expect(flattened, mode == 'flattened' || mode == 'flattened_sorted' ? 4 : 0);
