@@ -9,6 +9,7 @@ This does not qualify the launch film, Ready, a wallet, chain 321 or mockups.
 from __future__ import annotations
 
 import base64
+from dataclasses import dataclass, replace
 import binascii
 import hashlib
 import http.client
@@ -52,6 +53,7 @@ CAPTION_REFUSALS = frozenset((
     "CAPTION_TREE_REFUSED", "CAPTION_UNAVAILABLE", "CAPTION_HELD",
     "CAPTION_TREE_CAPACITY_REFUSED", "CAPTION_TREE_UNMOUNTED",
 ))
+CAPTURE_PHASES = frozenset(f"capture_{screen}_{theme}" for screen, theme in SCENES)
 CAPTION_PHASES = frozenset((
     "caption_bind", "caption_maximize", "caption_restore", "caption_minimize",
     "caption_observe", "caption_native_restore", "window_restore",
@@ -62,7 +64,14 @@ CODES = bounded.CODES | frozenset((
     "CAPTURE_INVALID", "PNG_INVALID", "RESTORATION_INVALID",
     "CAPTION_INVALID", "CAPTION_HELD", "CAPTION_TIMEOUT", "CAPTION_NATIVE_MISMATCH",
 )) | CAPTION_REFUSALS
-LIMITS = bounded.Limits(total=150, ready=45, request=20,
+@dataclass(frozen=True)
+class EntryLimits(bounded.Limits):
+    # Original raster encoding is a bounded capture operation, separate from
+    # ordinary control requests and the unchanged total process deadline.
+    capture_request: float = 30.0
+
+
+LIMITS = EntryLimits(total=150, ready=45, request=20,
                         response_bytes=MAX_BASE64 + 65536)
 CLEANUP_PHASES = frozenset(("window_restore", "entry_verify", "close"))
 COMMAND_PHASES = (frozenset(("readiness_ping", "auth_refusal", "entry_state",
@@ -577,8 +586,16 @@ class EntrySmoke(bounded.PresentationSmoke):
     def _exchange_at(self, phase, command, *, allow_exit=False, until=None,
                      poll_refused=False):
         self._command_phase, self._command_status, self._command_failure = phase, None, None
+        original_limits = self.limits
         try:
-            status, body = self._exchange(command, allow_exit=allow_exit, until=until)
+            if (isinstance(original_limits, EntryLimits) and phase in CAPTURE_PHASES
+                    and command.get("cmd") == "entry-capture"
+                    and phase == f"capture_{command.get('screen')}_{command.get('theme')}"):
+                self.limits = replace(original_limits, request=original_limits.capture_request)
+            try:
+                status, body = self._exchange(command, allow_exit=allow_exit, until=until)
+            finally:
+                self.limits = original_limits
         except ConnectionRefusedError:
             if not poll_refused:
                 self._retain_failure("INTERNAL_ERROR", category="EXCHANGE_FAILED")

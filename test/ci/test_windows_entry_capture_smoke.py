@@ -296,6 +296,77 @@ class ControllerTests(unittest.TestCase):
         self.assertEqual(result["first_command_failure"]["phase"], "capture_welcome_dark")
         self.assertEqual(result["first_command_failure"]["code"], "COMMAND_FAILED")
 
+    def test_measured_slow_original_png_has_its_own_budget_without_capture_retry(self):
+        original = self.host.exchange
+        def exchange(command, token, timeout):
+            if command["cmd"] == "entry-capture":
+                elapsed = 21.451 if (command["screen"], command["theme"]) == ("welcome", "dark") else .01
+                self.clock.sleep(min(elapsed, timeout))
+                if elapsed >= timeout:
+                    self.host.calls.append((copy.deepcopy(command), token, timeout))
+                    raise TimeoutError("private-original-encoding")
+            return original(command, token, timeout)
+        self.host.exchange = exchange
+        session = smoke.EntrySmoke(self.process, self.host, TOKEN, self.drain, self.report,
+            artifacts=self.artifacts, limits=smoke.LIMITS,
+            clock=self.clock, sleep=self.clock.sleep)
+        result = session.run()
+        self.assertTrue(result["success"])
+        self.assertEqual(result["capture_count"], 4)
+        self.assertEqual(self.commands("entry-capture"), [
+            dict(cmd="entry-capture", screen=screen, theme=theme)
+            for screen, theme in smoke.SCENES])
+        self.assertTrue(all(timeout == 30 for command, _, timeout in self.host.calls
+                            if command["cmd"] == "entry-capture"))
+        self.assertTrue(all(timeout <= 20 for command, _, timeout in self.host.calls
+                            if command["cmd"] != "entry-capture"))
+        self.assertIs(session.limits, smoke.LIMITS)
+        self.assertEqual((session.limits.total, session.limits.ready,
+                          session.limits.request), (150, 45, 20))
+        self.assertEqual(self.process.kill_count, 0)
+        self.assertNotIn("private-original-encoding", json.dumps(result))
+
+    def test_capture_budget_keeps_original_total_control_bounds_and_timeout_uncertainty(self):
+        cases = (
+            (dict(cmd="entry-capture", screen="welcome", theme="dark"),
+             "capture_welcome_dark", 30.001, 0, 30),
+            (dict(cmd="entry-state"), "entry_state", 20.001, 0, 20),
+            (dict(cmd="entry-capture", screen="welcome", theme="dark"),
+             "capture_welcome_dark", .75, 149.5, .5),
+            (dict(cmd="ping"), "capture_welcome_dark", 20.001, 0, 20),
+        )
+        for command, phase, elapsed, start, cap in cases:
+            with self.subTest(phase=phase, start=start):
+                self.setUp()
+                clock = self.clock
+                class Delayed:
+                    calls = []
+                    def exchange(self, payload, token, timeout):
+                        self.calls.append((copy.deepcopy(payload), timeout))
+                        clock.sleep(min(elapsed, timeout))
+                        if elapsed >= timeout:
+                            raise TimeoutError("private-pending-image")
+                        return reply({"ok": True})
+                transport = Delayed()
+                session = smoke.EntrySmoke(self.process, transport, TOKEN,
+                    self.drain, self.report, artifacts=self.artifacts,
+                    limits=smoke.LIMITS, clock=clock, sleep=clock.sleep)
+                clock.now = start
+                with self.assertRaises(smoke.bounded.SmokeFailure) as failure:
+                    session._positive(command, phase=phase)
+                self.assertEqual(failure.exception.code, "HTTP_FAILED")
+                self.assertEqual(len(transport.calls), 1)
+                self.assertLessEqual(transport.calls[0][1], cap)
+                self.assertEqual(self.report.transport_failure,
+                                 dict(phase=phase, kind="TIMEOUT"))
+                self.assertIs(session.limits, smoke.LIMITS)
+                self.assertEqual(session.limits.request, 20)
+                self.assertEqual(self.artifacts.records, [])
+                public = self.report.public()
+                self.assertFalse(public["success"])
+                self.assertEqual(public["status"], "UNKNOWN")
+                self.assertNotIn("private-pending-image", json.dumps(public))
+
     def test_four_actual_byte_artifacts_outer_restore_then_original_zero_exit(self):
         result = self.run_smoke()
         self.assertTrue(result["success"])
