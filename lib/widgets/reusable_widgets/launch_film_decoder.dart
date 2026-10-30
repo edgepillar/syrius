@@ -199,12 +199,12 @@ class LaunchWebpFrames {
   /// A standalone RIFF wrapper around the original compressed frame chunk.
   Uint8List frameBytes(int index) {
     final LaunchWebpFrame frame = frames[index];
-    final Uint8List result = Uint8List(12 + frame._length);
-    result.setRange(0, 4, const <int>[82, 73, 70, 70]);
-    ByteData.sublistView(result).setUint32(4, result.length - 8, Endian.little);
-    result
+    final int length = 12 + frame._length;
+    final Uint8List result = Uint8List(length)
+      ..setRange(0, 4, const <int>[82, 73, 70, 70])
       ..setRange(8, 12, const <int>[87, 69, 66, 80])
-      ..setRange(12, result.length, _bytes, frame._offset);
+      ..setRange(12, length, _bytes, frame._offset);
+    ByteData.sublistView(result).setUint32(4, length - 8, Endian.little);
     return result;
   }
 }
@@ -287,13 +287,13 @@ class _RectangleDecoder extends LaunchFilmDecoder {
         patch = null;
       } else {
         final ui.PictureRecorder recorder = ui.PictureRecorder();
-        final ui.Canvas canvas = ui.Canvas(recorder);
-        canvas.drawImage(_canvas!, ui.Offset.zero, ui.Paint());
-        canvas.drawImage(
-          patch,
-          ui.Offset(frame.x.toDouble(), frame.y.toDouble()),
-          ui.Paint()..blendMode = ui.BlendMode.src,
-        );
+        ui.Canvas(recorder)
+          ..drawImage(_canvas!, ui.Offset.zero, ui.Paint())
+          ..drawImage(
+            patch,
+            ui.Offset(frame.x.toDouble(), frame.y.toDouble()),
+            ui.Paint()..blendMode = ui.BlendMode.src,
+          );
         picture = recorder.endRecording();
         output = await picture.toImage(frames.width, frames.height);
       }
