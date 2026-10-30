@@ -361,6 +361,7 @@ class _CaptionButton extends StatelessWidget {
                   widthFactor: 1,
                   heightFactor: 1,
                   child: CustomPaint(
+                    key: const ValueKey<String>('window-caption-mark'),
                     size: Size.square(tokens.windowControlIconSize),
                     painter: _CaptionGlyphPainter(
                       glyph!,

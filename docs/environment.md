@@ -1,5 +1,27 @@
 # Redesign build environment
 
+## Caption focus locator follow-up (2026-10-30T15:14Z)
+
+[Source216 3897e2fa2c1f / focused 41077192395](https://github.com/edgepillar/syrius/actions/runs/41077192395)
+passes all 858 Python cases with three existing skips, both original asset
+commands/fourteen phases and selected analysis with zero errors, warnings or
+infos. Its original complete unforced Dart command exits one: 516 cases pass,
+one fails with an error event and none is skipped. The finite projection locates
+window_frame_test line 585 in focus lookup; the exact inner framework exception
+and finder match count are NOT_ESTABLISHED. This original refusal is preserved.
+No source216 native entry capture was started.
+
+The existing finder is general to every CustomPaint under Minimize. The
+[Flutter element contract](https://api.flutter.dev/flutter/flutter_test/WidgetController/element.html)
+requires exactly one match. The follow-up gives the owned caption paint a local
+window-caption-mark key and finds that key inside the original button. Every
+original focus, tooltip, semantics, Tab/Shift-Tab, geometry and callback
+assertion remains. Painter geometry, colors, fonts, tokens, native callbacks,
+assets, clocks, test registrations and 517/519 selections are unchanged. Fresh
+393 memory controls and hosted 858 Python/517 Dart qualification are pending
+before the four genuine entry images. All earlier failures and financial
+UNKNOWN outcomes remain; Native104 is not admitted and the ledger stays 71/80.
+
 ## Original frame, current Windows baseline and caption follow-up (2026-10-30)
 
 At source `829960287475ca249b17bd6600f0d176193f25ea`,

@@ -583,7 +583,12 @@ void main() {
         expect(tooltipData.hasAction(SemanticsAction.tap), isTrue);
         final FocusNode originalMinimizeFocus = Focus.of(
           tester.element(
-            find.descendant(of: minimize, matching: find.byType(CustomPaint)),
+            find.descendant(
+              of: minimize,
+              matching: find.byKey(
+                const ValueKey<String>('window-caption-mark'),
+              ),
+            ),
           ),
         );
         expect(originalMinimizeFocus.canRequestFocus, isTrue);
