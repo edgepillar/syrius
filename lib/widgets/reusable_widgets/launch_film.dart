@@ -5,6 +5,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/entry_capture_source.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/launch_film_decoder.dart';
 
 /// The original decoder's current wait, without asset or frame payloads.
 enum LaunchFilmDecodeStage {
@@ -20,7 +21,7 @@ enum LaunchFilmDecodeStage {
   /// The original codec has not opened.
   codec,
 
-  /// The original next-frame Future has not returned.
+  /// The selected decoder's original frame Future has not returned.
   frame,
 
   /// The original frame's smaller image has not returned.
@@ -41,16 +42,17 @@ enum LaunchFilmDecodeStage {
 /// It was a Lottie file: 56 JPEG frames of 2560 x 1440 in JSON, every one
 /// decoded before the first was drawn and all held until the last, 826 MB
 /// for two seconds of a wordmark. The same pictures as an animated WebP are
-/// a tenth of the size on disk, and the engine's codec hands them over one
-/// by one. [Image] would play that file too, but it loops by the file's
-/// count, cannot start part way in or jump to the end, and stops on the
-/// platform's reduced-motion flag.
+/// a tenth of the size on disk. Its opaque changed rectangles are decoded
+/// individually and placed on the retained canvas; other containers use the
+/// engine's original animated codec. [Image] would also play that file, but
+/// it loops by the file's count, cannot start part way in or jump to the end,
+/// and stops on the platform's reduced-motion flag.
 ///
 /// So the launch goes through [LaunchFilm], which
 ///
-///  * holds two decoded frames at most: the one on screen and the one that
-///    replaces it. Each is disposed as it is replaced, and the codec when
-///    the run ends, so what is left is the last frame and nothing else;
+///  * keeps the displayed image and a retained composition canvas, with a
+///    temporary rectangle and replacement while the next image is composed.
+///    Replaced images and the decoder are disposed, leaving the last frame;
 ///  * keeps the file's own clock. A frame stays for its own duration; one
 ///    that decodes late is shown when it is ready, and nothing is dropped
 ///    to catch up;
@@ -92,11 +94,11 @@ class LaunchFilm extends StatefulWidget {
   /// are in the file. For the well on the lock card, which is a few hundred
   /// pixels wide and holds its last frame for as long as the card is up.
   ///
-  /// The engine ignores a target width for a file of more than one frame,
-  /// so each frame is still decoded whole and then drawn down to this. It
-  /// makes what is kept smaller, not the decode cheaper; for that the file
-  /// itself has to be smaller. While one frame is drawn down, the whole
-  /// frame and its small copy both exist, beside the one on screen.
+  /// Rectangle composition keeps the file's original canvas dimensions.
+  /// The engine fallback also ignores target width for animated images,
+  /// so each completed frame is drawn down to this width afterwards.
+  /// During that draw, the whole frame and its smaller copy both exist,
+  /// beside the one on screen.
   final int? decodeWidth;
 
   /// A verified still of this film's last frame, used only for a skip.
@@ -458,20 +460,22 @@ class _LaunchFilmState extends State<LaunchFilm>
     if (run != _run) {
       return;
     }
-    ui.Codec? codec;
+    LaunchFilmDecoder? codec;
     try {
-      final ui.Codec filmCodec = await _observeDecode<ui.Codec>(
-        run, LaunchFilmDecodeStage.codec,
-        ui.instantiateImageCodecFromBuffer(
-          await _observeDecode(
-            run, LaunchFilmDecodeStage.asset, bundle.loadBuffer(asset),
-          ),
-          // Ignored today for a file of more than one frame. Asked for all
-          // the same, so that an engine which learns to will decode small.
-          targetWidth: width,
-          allowUpscaling: false,
-        ),
-      );
+      final LaunchFilmDecoder filmCodec =
+          await _observeDecode<LaunchFilmDecoder>(
+            run,
+            LaunchFilmDecodeStage.codec,
+            LaunchFilmDecoder.fromData(
+              await _observeDecode(
+                run,
+                LaunchFilmDecodeStage.asset,
+                bundle.load(asset),
+              ),
+              // Keep the original canvas until the existing shrink.
+              targetWidth: width,
+            ),
+          );
       codec = filmCodec;
       final int count = filmCodec.frameCount;
       final int first = math.min(from, count - 1);
@@ -484,7 +488,7 @@ class _LaunchFilmState extends State<LaunchFilm>
         _decodingFrameIndex = index;
         // Never disposed with this pending: the engine then leaves the
         // future uncompleted and the frame it was decoding with no owner.
-        final ui.FrameInfo info = await _observeDecode(
+        final LaunchFilmFrame info = await _observeDecode(
           run, LaunchFilmDecodeStage.frame, filmCodec.getNextFrame(),
         );
         bool last = index == count - 1;
@@ -498,9 +502,9 @@ class _LaunchFilmState extends State<LaunchFilm>
           filmCodec.dispose();
           codec = null;
           _decodingFrameIndex = count - 1;
-          codec = await _observeDecode<ui.Codec>(
+          codec = await _observeDecode<LaunchFilmDecoder>(
             run, LaunchFilmDecodeStage.codec,
-            ui.instantiateImageCodecFromBuffer(
+            LaunchFilmDecoder.fromBuffer(
               await _observeDecode(
                 run, LaunchFilmDecodeStage.asset,
                 bundle.loadBuffer(lastFrameAsset),
@@ -512,7 +516,7 @@ class _LaunchFilmState extends State<LaunchFilm>
           if (codec.frameCount != 1) {
             throw StateError('The launch ending must be one still frame');
           }
-          final ui.FrameInfo ending = await _observeDecode(
+          final LaunchFilmFrame ending = await _observeDecode(
             run, LaunchFilmDecodeStage.frame, codec.getNextFrame(),
           );
           image = ending.image;

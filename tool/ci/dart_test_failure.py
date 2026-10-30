@@ -183,6 +183,7 @@ ROOT_TEST_FILES = (
     'launch_asset_test.dart',
     'launch_decode_observation_test.dart',
     'launch_film_test.dart',
+    'launch_webp_frames_test.dart',
     'legacy_guard_lifecycle_test.dart',
     'licences_test.dart',
     'list_entrance_test.dart',
