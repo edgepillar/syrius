@@ -15,8 +15,9 @@ class ReadonlyNativeCommands {
     required Future<Map<String, Object?>> Function(
       Map<String, dynamic> command,
     ) original,
-  }) : _isBooted = isBooted,
-       _original = original;
+  }) : this._(isBooted, original);
+
+  ReadonlyNativeCommands._(this._isBooted, this._original);
 
   static const Set<String> _allowed = <String>{
     'ping',

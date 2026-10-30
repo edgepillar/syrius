@@ -53,9 +53,10 @@ class ReadonlySdkAdmission {
         admission._refuse();
       }
       await disableAutomatic();
-      admission._requireOwners();
-      admission._ready = true;
-      admission.requireCurrent();
+      admission
+        .._requireOwners()
+        .._ready = true
+        ..requireCurrent();
       return admission;
     } on Object {
       admission._revoked = true;

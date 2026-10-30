@@ -6,10 +6,6 @@ import 'package:zenon_syrius_wallet_flutter/utils/original_publications.dart';
 import '../../harness/app/readonly_native_commands.dart';
 import '../../harness/app/readonly_sdk_admission.dart';
 
-typedef _Action = Future<Map<String, Object?>> Function(
-  Map<String, dynamic> command,
-);
-
 class _Lane {
   _Lane() {
     commands = ReadonlyNativeCommands(
@@ -27,8 +23,11 @@ class _Lane {
   bool disabled = false;
   int calls = 0;
   late final ReadonlyNativeCommands commands;
-  _Action action = (Map<String, dynamic> command) async =>
-      <String, Object?>{'original': true};
+  Future<Map<String, Object?>> Function(
+    Map<String, dynamic> command,
+  ) action =
+      (Map<String, dynamic> command) async =>
+          <String, Object?>{'original': true};
 
   Future<ReadonlySdkAdmission> seal() => ReadonlySdkAdmission.seal(
     sdkOwner: sdk,

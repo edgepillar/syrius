@@ -57,7 +57,7 @@ void main() {
     }
     if (root case final Directory owned) {
       if (!boxes.any((Box<dynamic> value) => value.isOpen) &&
-          await owned.exists()) {
+          owned.existsSync()) {
         await owned.delete(recursive: true);
       }
     }
