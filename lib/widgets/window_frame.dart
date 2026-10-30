@@ -199,9 +199,13 @@ class AppWindowFrameState extends State<AppWindowFrame> {
                               : null,
                           child: Align(
                             alignment: Alignment.centerLeft,
-                            child: Text(
-                              'SYRIUS',
-                              style: tokens.windowTitleText,
+                            child: Transform.translate(
+                              offset: tokens.windowWordmarkPaintOffset,
+                              transformHitTests: false,
+                              child: Text(
+                                'SYRIUS',
+                                style: tokens.windowTitleText,
+                              ),
                             ),
                           ),
                         ),

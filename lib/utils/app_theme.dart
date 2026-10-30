@@ -266,10 +266,18 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The close hover uses the semantic error colour.
   Color get windowCloseHover => error.withValues(alpha: 0.12);
 
+  /// The reference's .34em tracking at its 12 px caption size.
+  double get windowTitleTracking => 4.08;
+
+  /// Native captures place the ink 2 px right and its center 2.5 px low.
+  /// Move its paint toward the reference without moving caption hit targets.
+  Offset get windowWordmarkPaintOffset =>
+      Offset(-windowTitleTracking / 2, -2.5);
+
   /// The mockup's quiet tracked wordmark; the native window title stays intact.
   TextStyle get windowTitleText => bodyText.copyWith(
     fontSize: 12,
-    letterSpacing: 4.08,
+    letterSpacing: windowTitleTracking,
     color: faint,
   );
 

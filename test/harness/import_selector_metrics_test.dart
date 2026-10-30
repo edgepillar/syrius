@@ -186,9 +186,11 @@ void main() {
         )..layout();
         final ui.PictureRecorder recorder = ui.PictureRecorder();
         final Canvas canvas = Canvas(recorder);
-        final double x = tokens.windowCaptionPadding.left -
+        final double x = tokens.windowCaptionPadding.left +
+            tokens.windowWordmarkPaintOffset.dx -
             (variant == 1 ? style.letterSpacing! / 2 : 0);
-        final double y = (tokens.windowCaptionHeight - text.height) / 2;
+        final double y = (tokens.windowCaptionHeight - text.height) / 2 +
+            tokens.windowWordmarkPaintOffset.dy;
         text.paint(canvas, Offset(x, y));
         final ui.Picture picture = recorder.endRecording();
         ui.Image? image;
