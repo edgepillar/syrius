@@ -20,6 +20,10 @@ MAX_LOG = 4 * 1024**2
 MAX_ENTRY_ARCHIVE = 4 * entry.MAX_PNG + 1024**2
 PRODUCERS = ('windows_baseline.py', 'windows_entry_capture_smoke.py',
              'windows_presentation_smoke.py', 'dart_test_failure.py')
+# GitHub retains this exact unevaluated name when the job is skipped.
+SKIPPED_BASELINE_JOB = (
+    "inputs.windows_inventory_only && 'Hosted Windows inventory' "
+    "|| 'Hosted Windows baseline'")
 PHASE = 'environment'
 CHECK_STAGES = {
     'source': ('source_head', 'source_tree', 'source_clean_before'),
@@ -285,7 +289,11 @@ def main():
         archive.need(listing['total_count'] == len(listing['jobs']) <= 20)
         jobs = {}
         for name in ('Hosted Windows baseline', 'Ordinary Windows entry captures'):
-            selected = [job for job in listing['jobs'] if job['name'] == name]
+            selected = [job for job in listing['jobs']
+                        if job['name'] == name or (
+                            name == 'Hosted Windows baseline'
+                            and job['name'] == SKIPPED_BASELINE_JOB
+                            and job['conclusion'] == 'skipped')]
             outcomes = ('success', 'failure', 'skipped')
             archive.need(len(selected) == 1 and selected[0]['head_sha'] == head
                 and selected[0]['run_id'] == run_id and selected[0]['status'] == 'completed'

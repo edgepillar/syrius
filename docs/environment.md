@@ -9743,3 +9743,10 @@ Fresh hosted qualification and metadata-only inspection are separate from
 full current Windows/runtime acceptance. Main acceptance stays 71/80; ninety
 outputs, nineteen preparations, all 94 matches, current full root, DLL
 initialization, unfiltered chain and Docker Desktop/lab.sh remain open.
+
+
+### 2026-10-30T04:30Z - Retain the exact skipped Windows job identity
+
+Source `fdf92f34403f409108b19d8c6bac63e0a35e6071` passed 819 Python controls (three existing skips), 462 ordinary Dart cases and zero selected analyzer findings in [focused Actions run 41002324469](https://github.com/edgepillar/syrius/actions/runs/41002324469). The metadata-only Arm job in [run 41002393542](https://github.com/edgepillar/syrius/actions/runs/41002393542) observed enabled WSL and Hyper-V features, no Docker executable or standard Docker Desktop file, and no established nested-virtualization or Linux-container runtime. No installation, feature change, container, wallet or node start occurred in that Arm observation. P03 and P09 remain open.
+
+[Entry inspection run 41002447461](https://github.com/edgepillar/syrius/actions/runs/41002447461) failed at `job_metadata`; that original failure remains retained. The original source190 producer reports its skipped baseline under the exact unevaluated workflow name expression. The reader now accepts that exact expression only for a completed, skipped job with empty steps, the original source and run, and exactly one selected producer. Executed, changed, duplicate or inconsistent aliases remain refused. Two new Python cases cover this boundary. The source190 producer, profile and local archive transfer are not repeated. Current hosted archive inspection is pending. No application, Dart, asset, action or workflow bytes change. The main ledger remains 71/80, with 0/94 accepted visual matches, 90 missing catalog outputs and 19 literal preparation entries still open.

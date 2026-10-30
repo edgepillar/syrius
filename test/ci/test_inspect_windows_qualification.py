@@ -373,6 +373,37 @@ class WindowsQualificationTests(unittest.TestCase):
             self.assertNotIn('::notice title=Hosted baseline not selected::', output)
             self.assertNotIn('::notice title=Hosted entry inspection::', output)
 
+    def test_original_skipped_expression_name_keeps_entry_only_scope(self):
+        status, calls, output = self._read_original(baseline_conclusion='skipped',
+            baseline_change=dict(name=inspect.SKIPPED_BASELINE_JOB))
+        self.assertEqual(status, 0)
+        self.assertFalse(any('/logs' in call for call in calls))
+        notices = [line for line in output.splitlines() if line.startswith('::notice')]
+        self.assertEqual(len(notices), 2)
+        skipped = json.loads(notices[0].split('::', 2)[2])
+        self.assertFalse(skipped['baseline_qualified'])
+        self.assertEqual(skipped['baseline_logs_read'], 0)
+        self.assertEqual(skipped['original_job_conclusion'], 'skipped')
+        self.assertEqual(json.loads(notices[1].split('::', 2)[2])['capture_count'], 4)
+
+    def test_skipped_expression_cannot_alias_an_executed_or_ambiguous_job(self):
+        options = [dict(baseline_conclusion=value,
+            baseline_change=dict(name=inspect.SKIPPED_BASELINE_JOB))
+            for value in ('success', 'failure')]
+        options += [dict(baseline_conclusion='skipped', baseline_count=2,
+            baseline_change=dict(name=inspect.SKIPPED_BASELINE_JOB)),
+            dict(baseline_conclusion='skipped',
+                baseline_change=dict(name=inspect.SKIPPED_BASELINE_JOB + ' ')),
+            dict(baseline_conclusion='skipped',
+                baseline_change=dict(name=inspect.SKIPPED_BASELINE_JOB, steps=[{}]))]
+        for change in options:
+            with self.subTest(change=change):
+                status, calls, output = self._read_original(**change)
+            self.assertEqual(status, 1)
+            self.assertFalse(any('/artifacts' in call or '/logs' in call for call in calls))
+            self.assertEqual(json.loads(output.splitlines()[0])['phase'], 'job_metadata')
+            self.assertNotIn('::notice title=Hosted baseline not selected::', output)
+
     def test_baseline_only_reader_preserves_the_original_failed_suite(self):
         status, calls, output = self._read_original(entry_change=dict(conclusion='skipped'),
             failed_root=True, baseline_conclusion='failure')
