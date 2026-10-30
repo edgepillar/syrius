@@ -298,6 +298,7 @@ ROOT_TEST_FILES = (
     'security_settings_presenter_test.dart',
     'security_settings_view_test.dart',
     'seed_deposit_entry_test.dart',
+    'seed_deposit_presentation_test.dart',
     'seed_fixture_admission_test.dart',
     'seed_policy_test.dart',
     'seed_quiz_surface_test.dart',

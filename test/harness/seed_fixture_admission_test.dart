@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import '../../harness/app/fixtures/fixture_cleanup.dart';
 import '../../harness/app/fixtures/seed_commands.dart';
 import '../../harness/app/fixtures/seed_deposit_entry.dart';
+import '../../harness/app/fixtures/seed_deposit_presentation.dart';
 import '../../harness/app/fixtures/seed_policy.dart';
 
 String _hash(int value) => value.toRadixString(16).padLeft(64, '0');
@@ -620,6 +621,159 @@ void main() {
       expect(journal.claims, 0);
     },
   );
+
+  test('Deposit capture precedes its original exclusive publication',
+      () async {
+    for (final String phase in <String>['missing', 'replaced', 'captured']) {
+      final _Fixture fixture = _Fixture();
+      await fixture.allow();
+      final _Source source = _Source();
+      final _Journal journal = _Journal();
+      final SeedGuard guard = SeedGuard(
+        source: source, journal: journal, delay: source.delay,
+      );
+      final SeedCommands commands = SeedCommands.withFixtureAdmission(
+        fixture: fixture.cleanup, guard: guard, recipe: 'deposit',
+      );
+      int captures = 0;
+      int publications = 0;
+      int exits = 0;
+      final Completer<Object?> route = Completer<Object?>();
+      final SeedDepositPresentation presentation = SeedDepositPresentation(
+        originalCurrent: () => phase != 'replaced',
+        submittedCurrent: (String hash) => hash == _hash(9),
+        originalRouteCompleted: route.future,
+        tapOriginalExit: (void Function() admission) async {
+          admission();
+          exits++;
+          route.complete(null);
+        },
+      );
+      Future<Map<String, Object?>> publish() => commands.run(
+        <String, dynamic>{'action': 'publish'}, booted: false,
+        ui: (Map<String, dynamic> request) async {
+          expect(request, <String, dynamic>{
+            'cmd': 'assert', 'key': 'swap_create_deposit',
+            'kind': 'button', 'exact': true,
+          });
+          return _target();
+        },
+        tap: (Map<String, dynamic> request, void Function() admission) async {
+          expect(request, <String, dynamic>{'cmd': 'tap', 'ref': 7});
+          admission();
+          publications++;
+          source.operations.add(_Original());
+        },
+        captureDepositPresentation: phase == 'missing' ? null
+            : (int reference, String owner) {
+                captures++;
+                expect(reference, 7);
+                expect(owner, source.environment.owner);
+                return presentation;
+              },
+      );
+      if (phase != 'captured') {
+        await expectLater(publish(), throwsA(isA<SeedRefused>()));
+        expect(journal.claims, 0);
+        expect(publications, 0);
+        expect(exits, 0);
+        continue;
+      }
+      final Map<String, Object?> receipt = await publish();
+      expect(captures, 1);
+      expect(publications, 1);
+      expect(exits, 0);
+      final int reads = source.reads;
+      final int confirmations = source.confirmations;
+      expect(await _run(commands, 'finish'), receipt);
+      expect(presentation.closed, isTrue);
+      expect(exits, 1);
+      expect(source.reads, reads);
+      expect(source.confirmations, confirmations);
+      await expectLater(publish(), throwsA(isA<SeedRefused>()));
+      expect(captures, 1);
+      expect(publications, 1);
+    }
+  });
+
+  test('Deposit finish needs confirmation and preserves fixture admission',
+      () async {
+    final _Fixture fixture = _Fixture();
+    final _Source source = _Source();
+    final SeedGuard guard = SeedGuard(
+      source: source, journal: _Journal(), delay: source.delay,
+    );
+    await guard.publish('deposit', () async {
+      source.operations.add(_Original());
+    });
+    int exits = 0;
+    final Completer<Object?> route = Completer<Object?>();
+    final SeedDepositPresentation presentation = SeedDepositPresentation(
+      originalCurrent: () => true,
+      submittedCurrent: (String hash) => hash == _hash(9),
+      originalRouteCompleted: route.future,
+      tapOriginalExit: (void Function() admission) async {
+        admission(); exits++; route.complete(null);
+      },
+    );
+    SeedCommands commands(bool confirmed) => SeedCommands.withFixtureAdmission(
+      fixture: fixture.cleanup, guard: guard, recipe: 'deposit',
+      confirmed: confirmed, depositPresentation: presentation,
+    );
+    await expectLater(_run(commands(false), 'finish'),
+        _refused('exact-confirmation-required'));
+    final SeedCommands original = commands(true);
+    await expectLater(_run(original, 'finish'),
+        _refused('close-current-fixture-first'));
+    expect(exits, 0);
+    await fixture.allow();
+    final int reads = source.reads;
+    final int confirmations = source.confirmations;
+    final Map<String, Object?> receipt = await _run(original, 'finish');
+    fixture.holdAgain();
+    expect(await _run(original, 'finish'), receipt);
+    expect(exits, 1);
+    expect(source.reads, reads);
+    expect(source.confirmations, confirmations);
+  });
+
+  test('Deposit completion retains a changed owner before pointer release',
+      () async {
+    final _Fixture fixture = _Fixture();
+    await fixture.allow();
+    final _Source source = _Source();
+    final SeedGuard guard = SeedGuard(
+      source: source, journal: _Journal(), delay: source.delay,
+    );
+    await guard.publish('deposit', () async {
+      source.operations.add(_Original());
+    });
+    int exits = 0;
+    final SeedDepositPresentation presentation = SeedDepositPresentation(
+      originalCurrent: () => true,
+      submittedCurrent: (String hash) => hash == _hash(9),
+      originalRouteCompleted: Future<Object?>.value(),
+      tapOriginalExit: (void Function() admission) async {
+        admission();
+        source.isCurrent = false;
+        admission();
+        exits++;
+      },
+    );
+    final SeedCommands commands = SeedCommands.withFixtureAdmission(
+      fixture: fixture.cleanup, guard: guard, recipe: 'deposit',
+      confirmed: true, depositPresentation: presentation,
+    );
+    final int reads = source.reads;
+    await expectLater(_run(commands, 'finish'),
+        _refused('original-context-changed'));
+    source.isCurrent = true;
+    await expectLater(_run(commands, 'finish'),
+        _refused('original-context-changed'));
+    expect(exits, 0);
+    expect(source.reads, reads);
+    expect(presentation.closed, isFalse);
+  });
 
   test('a held fixture refuses Deposit entry before its observation', () async {
     final _Fixture fixture = _Fixture();

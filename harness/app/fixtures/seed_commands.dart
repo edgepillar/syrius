@@ -7,6 +7,7 @@ import 'fixture_cleanup.dart';
 import 'lab_seed_binding.dart';
 import 'presentation_fixtures.dart';
 import 'seed_deposit_entry.dart';
+import 'seed_deposit_presentation.dart';
 import 'seed_policy.dart';
 import 'seed_project_presentation.dart';
 import 'seed_token_presentation.dart';
@@ -25,11 +26,13 @@ final class SeedCommands {
     this._confirmed = false,
     this._projectPresentation,
     this._tokenPresentation,
+    this._depositPresentation,
   }) : _source = _guard.source;
 
   SeedGuard? _guard;
   SeedProjectPresentation? _projectPresentation;
   SeedTokenPresentation? _tokenPresentation;
+  SeedDepositPresentation? _depositPresentation;
   SeedSource? _source;
   String? _recipe;
   bool _confirmed = false;
@@ -49,6 +52,7 @@ final class SeedCommands {
     SeedDepositEntry Function(String)? captureDepositEntry,
     SeedProjectPresentation Function(int)? captureProjectPresentation,
     SeedTokenPresentation Function(int, String)? captureTokenPresentation,
+    SeedDepositPresentation Function(int, String)? captureDepositPresentation,
   }) async {
     try {
       final String? action = command['action'] as String?;
@@ -84,6 +88,7 @@ final class SeedCommands {
         _depositEntryAttempted = false;
         _projectPresentation = null;
         _tokenPresentation = null;
+        _depositPresentation = null;
         _guard = SeedGuard(source: source, journal: journal);
         return <String, Object?>{
           'ready': true,
@@ -153,6 +158,20 @@ final class SeedCommands {
       }
       if (action == 'finish') {
         if (!_confirmed) throw const SeedRefused('exact-confirmation-required');
+        if (recipe == 'deposit') {
+          final SeedDepositPresentation? original = _depositPresentation;
+          final String? hash = guard.acceptedHash;
+          if (original == null || hash == null) {
+            throw const SeedRefused('original-deposit-presentation-required');
+          }
+          void requireOriginalDepositCompletion() {
+            if (!original.closed) _requireFixtureClear();
+            guard.requireCurrent();
+            if (!original.closed) _requireFixtureClear();
+          }
+          requireOriginalDepositCompletion();
+          await original.close(hash, requireOriginalDepositCompletion);
+        }
         if (recipe == 'project') {
           final SeedProjectPresentation? original = _projectPresentation;
           final String? hash = guard.acceptedHash;
@@ -201,6 +220,9 @@ final class SeedCommands {
         if (recipe == 'token') {
           _tokenPresentation?.requireCaptured();
         }
+        if (recipe == 'deposit') {
+          _depositPresentation?.requireCaptured();
+        }
         _requireFixtureClear();
       }
 
@@ -248,6 +270,14 @@ final class SeedCommands {
           throw const SeedRefused('original-token-presentation-required');
         }
         _tokenPresentation = capture(originalRef, source.environment.owner);
+      }
+      if (recipe == 'deposit' && _depositPresentation == null) {
+        final SeedDepositPresentation Function(int, String)? capture =
+            captureDepositPresentation;
+        if (capture == null) {
+          throw const SeedRefused('original-deposit-presentation-required');
+        }
+        _depositPresentation = capture(originalRef, source.environment.owner);
       }
       requirePublication();
       final String hash = await guard.publish(recipe, () async {

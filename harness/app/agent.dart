@@ -81,6 +81,7 @@ import 'fixtures/lab_send_policy.dart';
 import 'fixtures/lab_send_ui_binding.dart';
 import 'fixtures/seed_commands.dart';
 import 'fixtures/seed_deposit_entry.dart';
+import 'fixtures/seed_deposit_presentation.dart';
 import 'fixtures/seed_policy.dart';
 import 'fixtures/seed_project_presentation.dart';
 import 'fixtures/seed_token_presentation.dart';
@@ -92,6 +93,7 @@ import 'presentation_host.dart';
 import 'presentation_mode.dart';
 import 'recipe_control_admission.dart';
 import 'seed_deposit_entry_binding.dart';
+import 'seed_deposit_presentation_binding.dart';
 import 'seed_project_presentation_binding.dart';
 import 'seed_token_presentation_binding.dart';
 import 'theme_control.dart';
@@ -847,6 +849,7 @@ class HarnessAgent {
             booted: booted,
             ui: _run,
             captureDepositEntry: _captureSeedDepositEntry,
+            captureDepositPresentation: _captureSeedDepositPresentation,
             captureProjectPresentation: _captureSeedProjectPresentation,
             captureTokenPresentation: _captureSeedTokenPresentation,
             tap: (Map<String, dynamic> selector, void Function() admission) =>
@@ -1511,6 +1514,30 @@ class HarnessAgent {
         ).toList();
         if (controls.length != 1) {
           throw const SeedRefused('original-deposit-entry-changed');
+        }
+        await _tap(<String, dynamic>{'ref': controls.single.ref},
+            requireAdmission: admission);
+      },
+    );
+  }
+
+  SeedDepositPresentation _captureSeedDepositPresentation(
+    int reference, String owner,
+  ) {
+    final _Node original = _find(
+      <String, dynamic>{'ref': reference},
+      kinds: const <String>['button'],
+    );
+    return captureSeedDepositPresentation(original.element,
+      expectedOwner: owner,
+      tapOriginal: (Element element, VoidCallback admission) async {
+        admission();
+        final List<_Node> controls = _snapshot().where(
+          (_Node node) => node.kind == 'button' &&
+              identical(node.element, element),
+        ).toList();
+        if (controls.length != 1) {
+          throw const SeedRefused('original-deposit-presentation-changed');
         }
         await _tap(<String, dynamic>{'ref': controls.single.ref},
             requireAdmission: admission);
