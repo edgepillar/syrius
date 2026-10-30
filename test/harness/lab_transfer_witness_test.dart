@@ -32,7 +32,8 @@ class _PrivateDisplayError extends SyriusException {
   _PrivateDisplayError() : super('Synthetic private diagnostic');
 
   @override
-  String toString() => throw StateError('Private display errors cannot be read');
+  String toString() =>
+      throw StateError('Private display errors cannot be read');
 }
 
 class _Fixture {
