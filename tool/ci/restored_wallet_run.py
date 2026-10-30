@@ -199,6 +199,9 @@ HOME_PREPARATION_STAGES = (
     'railState', 'railReadiness', 'railTogglePresence', 'railLabelPresence',
     'railToggle', 'railWait', 'finalState', 'finalReadiness',
 )
+HOME_TAP_REPLIES = frozenset((
+    'targetMissing', 'targetDisabled', 'targetCovered', 'viewAmbiguous', 'unknown',
+))
 HOME_STATE_STAGES = frozenset((
     'initialReadiness', 'gotoTarget', 'gotoWait',
     'railReadiness', 'finalReadiness',
@@ -207,7 +210,7 @@ HOME_STATE_STAGES = frozenset((
 
 def home_preparation_projection(value):
     """Only finite observations of existing Home calls; no private state."""
-    fields = {'stage', 'state', 'target'}
+    fields = {'stage', 'state', 'target', 'reply'}
     checkpoint.need(type(value) is dict and 'stage' in value
         and set(value) <= fields and type(value['stage']) is str
         and value['stage'] in HOME_PREPARATION_STAGES)
@@ -231,6 +234,11 @@ def home_preparation_projection(value):
             and type(state['tab']) is str
             and state['tab'] in {'home', 'dashboard', 'lock', 'other', 'unknown'})
         result['state'] = dict(state)
+    if 'reply' in value:
+        checkpoint.need(stage == 'gotoTap' and 'target' in result
+            and result.get('state', {}).get('at') == 'gotoTarget'
+            and type(value['reply']) is str and value['reply'] in HOME_TAP_REPLIES)
+        result['reply'] = value['reply']
     return result
 
 

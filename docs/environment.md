@@ -9436,3 +9436,61 @@ The main ledger stays 71/80. All nine open rows, ninety outputs, nineteen
 preparations, all 94 visual matches, current full root, DLL initialization,
 unfiltered chain and Docker Desktop/lab.sh acceptance remain open. A new green
 result cannot relabel an old FAILURE or UNKNOWN.
+
+
+### Original caption gradient and closed Home tap reply observations
+
+Source187 92b16dd2a54c / focused 40975080233 qualifies 815 Python cases with
+three existing skips, 413 ordinary Dart passes and explicit analysis with zero
+errors, warnings or infos. Both original asset commands and startup gate/SDK
+controls pass. Source186 six-info analysis failure and skipped Dart remain
+preserved independently of this correction. The startup 415-case contract was
+not executed. All original Project and Home cases remain selected.
+
+Native97 40976001919 and independent inspector 40978293958 retain producer
+failure. The original chain-321 UI send, twelve-page tour, quiescence and normal
+app, entry and five-node exits qualify. Copied deposit/Home fails at gotoTap
+with target dashboard, before command one or publication. The last completed
+state at gotoTarget reports booted, initialized and unlocked as yes, and the
+closed tab category other. This is state before the failed call. It establishes
+neither delivery nor an actual rejection reply. The exact reply and inner cause
+remain NOT_ESTABLISHED. Earlier Native95/96 causes are not reconstructed; four
+earlier final recipe receipts and the native Project exit are not separately
+exported. Reopen and six effects remain unqualified. No old operation is retried.
+
+Extend the original EntryField painter into the client caption using its same
+gradient function, original clock and actual frame/body geometry. Keep the
+original caption Material colour, title/control tokens, callbacks and supplied
+Navigator ancestry. Register only a unique eligible original entry owner;
+ambiguous or retired owners use the original base caption. Notify only the
+caption painter, with no ancestor rebuild, new ticker or delayed registration.
+Sample and restoration receipts require actual caption paint on the captured
+original delegate, together with the original body and clock. Owner or delegate
+loss permanently retires that frame. The original body gradient math remains.
+
+Classify only four literal errors from the already returned original failed
+call: missing target, disabled target, covered target and ambiguous view. An
+unknown reply remains unknown. Keep the original exception type/message; add
+only finite private metadata. Emit its closed reply label only for known-recipe
+Home/gotoTap before command one/publication, with the original gotoTarget state
+and known target. Preserve legacy diagnostics and every existing call, input,
+predicate, delay, timeout and owner guard. Add no query, tap or retry authority.
+An absent reply observation cannot be converted into a transport-cause claim.
+
+Expand the existing Home Dart/Python cases and add four original renderer
+registrations: both themes, resize/replacement and ambiguous owners. Select the
+existing fifteen frame and seventeen controller cases, including native-caption
+fallback on macOS/Linux, and explicitly analyze both test files with finite
+source aliases. Test sources and original assertions remain unchanged. No test
+basename is added. Contracts become 815 Python, 449 ordinary Dart and 451 startup
+Dart: four new registrations and 32 newly selected existing cases. All 350 exact
+memory controls pass without SDK, native wallet/node, network or scratch access.
+Hosted renderer, clean expanded analysis and fresh native evidence are pending.
+
+Source181 full Windows and four reviewed entry pairs remain at their original
+source with zero accepted complete matches. These preparations do not qualify
+natural motion, frame time or any complete pair. The main ledger stays 71/80;
+nine rows, ninety outputs, nineteen preparations and all 94 matches remain open.
+Current full root, DLL initialization, unfiltered chain and Docker Desktop/lab.sh
+acceptance remain separate. The private Windows Arm capability proposal is not
+included here; no installation, feature change or container start is performed.

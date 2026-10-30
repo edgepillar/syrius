@@ -760,6 +760,14 @@ class SeedFailureProjectionTests(unittest.TestCase):
         self.assertIsNotNone(match)
         self.assertEqual(tuple(re.findall(r'\b[A-Za-z][A-Za-z0-9]*\b', match[1])),
                          restored.HOME_PREPARATION_STAGES)
+        match = re.search(r'enum HomeTapReply\s*\{([^}]+)\}', source)
+        self.assertIsNotNone(match)
+        self.assertEqual(set(re.findall(r'\b[A-Za-z][A-Za-z0-9]*\b', match[1])),
+                         restored.HOME_TAP_REPLIES)
+        for code in restored.HOME_TAP_REPLIES:
+            offered = self.home(stage='gotoTap', reply=code,
+                state=self.home()['state'] | dict(at='gotoTarget'))
+            self.assertEqual(restored.home_preparation_projection(offered), offered)
         for stage in restored.HOME_PREPARATION_STAGES:
             offered = dict(stage=stage)
             if stage != 'initialState':
@@ -798,6 +806,16 @@ class SeedFailureProjectionTests(unittest.TestCase):
         for value in values:
             with self.subTest(value=value), self.assertRaises(restored.checkpoint.Refused):
                 restored.home_preparation_projection(value)
+        tap = self.home(stage='gotoTap', reply='targetCovered',
+            state=self.home()['state'] | dict(at='gotoTarget'))
+        for change in (dict(reply='private'), dict(reply=True), dict(reply=None),
+                dict(stage='gotoWait'), dict(state=self.home()['state'])):
+            with self.subTest(change=change), self.assertRaises(restored.checkpoint.Refused):
+                restored.home_preparation_projection(tap | change)
+        for missing in ('target', 'state'):
+            with self.assertRaises(restored.checkpoint.Refused):
+                restored.home_preparation_projection({key: value
+                    for key, value in tap.items() if key != missing})
         for flag in ('yes', 'no', 'unknown'):
             for tab in ('home', 'dashboard', 'lock', 'other', 'unknown'):
                 value = self.home(state=self.home()['state'] | dict(
@@ -808,6 +826,10 @@ class SeedFailureProjectionTests(unittest.TestCase):
         for recipe in restored.SEED_FAILURE_RECIPES:
             value = self.seed(recipe=recipe, action='home', step='navigation',
                               home=self.home())
+            self.assertEqual(restored.seed_failure_projection(value,
+                'seed_' + recipe), value)
+            value['home'] = self.home(stage='gotoTap', reply='targetCovered',
+                state=self.home()['state'] | dict(at='gotoTarget'))
             self.assertEqual(restored.seed_failure_projection(value,
                 'seed_' + recipe), value)
         for change in (dict(action='source', step='read'),

@@ -10,12 +10,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hex/hex.dart';
 import 'package:lottie/lottie.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/shaders/shader_clock.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/entry_field.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/entry_capture_source.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/reference_artwork_source.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/app_lottie.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/window_frame.dart';
 
 class _Bundle extends CachingAssetBundle {
   @override
@@ -275,12 +278,80 @@ int _pathMaskDifference(List<bool> before, List<bool> after) {
   return changed;
 }
 
+const ValueKey<String> _captionSnapshot =
+    ValueKey<String>('original-entry-caption-snapshot');
+const TargetPlatformVariant _captionWindows = TargetPlatformVariant(
+  <TargetPlatform>{TargetPlatform.windows},
+);
+
+Widget _captionHost(Widget child, {ThemeData? theme}) => RepaintBoundary(
+  key: _captionSnapshot,
+  child: MaterialApp(
+    theme: theme ?? AppTheme.darkTheme, locale: const Locale('en'),
+    supportedLocales: AppLocalizations.supportedLocales,
+    localizationsDelegates: appLocalizationsDelegates,
+    builder: (BuildContext context, Widget? original) =>
+        AppWindowFrame(child: original!),
+    home: child,
+  ),
+);
+
+Future<Uint8List> _captionPixels(WidgetTester tester) async {
+  final RenderRepaintBoundary original = tester
+      .renderObject<RenderRepaintBoundary>(find.byKey(_captionSnapshot));
+  return (await tester.runAsync<Uint8List>(() async {
+    final ui.Image image = await original.toImage();
+    try {
+      final ByteData? data = await image.toByteData();
+      if (data == null) throw StateError('Original caption pixels unavailable');
+      return Uint8List.fromList(data.buffer.asUint8List(
+        data.offsetInBytes, data.lengthInBytes,
+      ));
+    } finally {
+      image.dispose();
+    }
+  }))!;
+}
+
+List<int> _captionRgb(Uint8List rgba, int width, int x, int y) {
+  final int offset = (y * width + x) * 4;
+  expect(rgba[offset + 3], 255);
+  return <int>[rgba[offset], rgba[offset + 1], rgba[offset + 2]];
+}
+
+void _continuousCaption(Uint8List rgba, int width) {
+  for (final int x in <int>[0, width ~/ 4, width ~/ 2, width * 3 ~/ 4]) {
+    final List<int> top = _captionRgb(rgba, width, x, 31);
+    final List<int> body = _captionRgb(rgba, width, x, 32);
+    for (int channel = 0; channel < 3; channel++) {
+      expect((top[channel] - body[channel]).abs(), lessThanOrEqualTo(2));
+    }
+  }
+  expect(_captionRgb(rgba, width, 0, 31),
+      isNot(_captionRgb(rgba, width, width ~/ 2, 31)));
+}
+
+void _baseCaption(WidgetTester tester, Uint8List rgba, int width) {
+  final AppTokens tokens = AppTokens.of(
+    tester.element(find.byType(AppWindowFrame)),
+  );
+  final int argb = tokens.windowCaptionBackground.toARGB32();
+  final List<int> expected = <int>[
+    (argb >> 16) & 255, (argb >> 8) & 255, argb & 255,
+  ];
+  expect(_captionRgb(rgba, width, width ~/ 2, 16), expected);
+}
+
 void main() {
   const MethodChannel window = MethodChannel('window_manager');
   setUp(() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(window, (MethodCall call) async =>
-            call.method == 'isFocused' ? true : null);
+            switch (call.method) {
+              'isFocused' => true,
+              'isMaximized' || 'isFullScreen' => false,
+              _ => null,
+            });
   });
   tearDown(() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -297,6 +368,135 @@ void main() {
       tester.view.reset();
     });
   }
+
+  for (final Brightness brightness in <Brightness>[
+    Brightness.dark, Brightness.light,
+  ]) {
+    testWidgets('original caption and body share the ${brightness.name} field',
+        (WidgetTester tester) async {
+      prepare(tester);
+      tester.view.physicalSize = const Size(1280, 780);
+      await tester.pumpWidget(_captionHost(const EntryField(),
+        theme: brightness == Brightness.dark
+            ? AppTheme.darkTheme : AppTheme.lightTheme));
+      await tester.pump(const Duration(milliseconds: 400));
+      final ReferenceArtworkSource source = _source(tester);
+      final ShaderClock clock =
+          source.referenceArtworkGeneration as ShaderClock;
+      final AppWindowFrameState caption = tester
+          .state<AppWindowFrameState>(find.byType(AppWindowFrame));
+      expect(caption.hasClientCaption, isTrue);
+      final ReferenceArtworkFrame frame = source.captureReferenceArtwork()!;
+      expect(frame.observed, isFalse);
+      await tester.pump();
+      expect(frame.observed, isTrue);
+      final Uint8List first = await _captionPixels(tester);
+      expect(first.length, 1280 * 780 * 4);
+      _continuousCaption(first, 1280);
+      final String bodyHash = _trimHash(await _pixels(tester));
+      final String captionHash = _trimHash(
+        Uint8List.sublistView(first, 0, 1280 * 32 * 4),
+      );
+      final double before = clock.value;
+      await tester.pump(const Duration(seconds: 1));
+      expect(clock.value, greaterThan(before));
+      expect(clock.isRunning, isTrue);
+      expect(_source(tester), same(source));
+      expect(source.referenceArtworkGeneration, same(clock));
+      expect(_trimHash(await _pixels(tester)), bodyHash);
+      final Uint8List held = await _captionPixels(tester);
+      expect(_trimHash(Uint8List.sublistView(held, 0, 1280 * 32 * 4)),
+        captionHash);
+      expect(frame.restore(), isTrue);
+      expect(frame.restored, isFalse);
+      await tester.pump(const Duration(seconds: 10));
+      expect(frame.restored, isTrue);
+      expect(_trimHash(await _pixels(tester)), isNot(bodyHash));
+      _continuousCaption(await _captionPixels(tester), 1280);
+      expect(tester.state(find.byType(AppWindowFrame)), same(caption));
+      expect(source.referenceArtworkGeneration, same(clock));
+    }, variant: _captionWindows);
+  }
+
+  testWidgets('caption geometry follows its field and retires replacement',
+      (WidgetTester tester) async {
+    prepare(tester);
+    tester.view.physicalSize = const Size(1280, 780);
+    await tester.pumpWidget(_captionHost(
+      const EntryField(key: ValueKey<String>('original-entry-field')),
+    ));
+    await tester.pump(const Duration(milliseconds: 400));
+    final ReferenceArtworkSource source = _source(tester);
+    final ReferenceArtworkFrame frame = source.captureReferenceArtwork()!;
+    final AppWindowFrameState caption = tester
+        .state<AppWindowFrameState>(find.byType(AppWindowFrame));
+    await tester.pump();
+    expect(frame.observed, isTrue);
+    tester.view.physicalSize = const Size(1200, 600);
+    await tester.pump();
+    expect(frame.observed, isTrue);
+    expect(_source(tester), same(source));
+    expect(source.referenceArtworkGeneration, same(frame.generation));
+    final Uint8List resized = await _captionPixels(tester);
+    expect(resized.length, 1200 * 600 * 4);
+    _continuousCaption(resized, 1200);
+    await tester.pumpWidget(_captionHost(
+      const EntryField(key: ValueKey<String>('replacement-entry-field')),
+    ));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(frame.isCurrent, isFalse);
+    expect(frame.restore(), isFalse);
+    expect(frame.restored, isFalse);
+    expect(_source(tester), isNot(same(source)));
+    expect(_source(tester).referenceArtworkGeneration,
+      isNot(same(frame.generation)));
+    expect(tester.state(find.byType(AppWindowFrame)), same(caption));
+    await tester.pumpWidget(_captionHost(const SizedBox.expand()));
+    await tester.pump(const Duration(milliseconds: 400));
+    _baseCaption(tester, await _captionPixels(tester), 1200);
+    expect(tester.allStates.whereType<ReferenceArtworkSource>(), isEmpty);
+    expect(frame.restore(), isFalse);
+  }, variant: _captionWindows);
+
+  testWidgets('ambiguous fields cannot sample or revive an old caption',
+      (WidgetTester tester) async {
+    prepare(tester);
+    tester.view.physicalSize = const Size(1280, 780);
+    Widget fields({required bool duplicate}) => Stack(
+      fit: StackFit.expand,
+      children: <Widget>[
+        const EntryField(key: ValueKey<String>('original-entry-field')),
+        if (duplicate) const EntryField(
+          key: ValueKey<String>('other-original-entry-field'),
+        ),
+      ],
+    );
+    await tester.pumpWidget(_captionHost(fields(duplicate: false)));
+    await tester.pump(const Duration(milliseconds: 400));
+    final ReferenceArtworkSource source = _source(tester);
+    final ReferenceArtworkFrame frame = source.captureReferenceArtwork()!;
+    await tester.pump();
+    expect(frame.observed, isTrue);
+    await tester.pumpWidget(_captionHost(fields(duplicate: true)));
+    await tester.pump(const Duration(milliseconds: 400));
+    final List<ReferenceArtworkSource> ambiguous = tester.allStates
+        .whereType<ReferenceArtworkSource>().toList(growable: false);
+    expect(ambiguous, hasLength(2));
+    for (final ReferenceArtworkSource original in ambiguous) {
+      expect(original.captureReferenceArtwork(), isNull);
+    }
+    _baseCaption(tester, await _captionPixels(tester), 1280);
+    expect(frame.isCurrent, isFalse);
+    expect(frame.restore(), isFalse);
+    await tester.pumpWidget(_captionHost(fields(duplicate: false)));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(_source(tester), same(source));
+    expect(source.referenceArtworkGeneration, same(frame.generation));
+    expect(frame.isCurrent, isFalse);
+    expect(frame.restore(), isFalse);
+    expect(frame.restored, isFalse);
+    expect(source.captureReferenceArtwork(), isNull);
+  }, variant: _captionWindows);
 
   testWidgets('globe sampling preserves its original clock and Future', (
     WidgetTester tester,

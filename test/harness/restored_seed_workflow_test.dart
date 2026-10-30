@@ -319,6 +319,43 @@ void main() {
     ]) {
       expect(homePreparationProjection(offered), isNull);
     }
+    final Map<String, HomeTapReply> codes = <String, HomeTapReply>{
+      'nothing matches': HomeTapReply.targetMissing,
+      'disabled': HomeTapReply.targetDisabled,
+      'covered by something else': HomeTapReply.targetCovered,
+      'expected one owned Flutter view': HomeTapReply.viewAmbiguous,
+    };
+    for (final MapEntry<String, HomeTapReply> code in codes.entries) {
+      expect(classifyHomeTapReply(code.key), code.value);
+    }
+    for (final Object? private in <Object?>[
+      null, true, _UnprintableSeedError(), 'synthetic-private',
+    ]) {
+      expect(classifyHomeTapReply(private), HomeTapReply.unknown);
+    }
+    final Map<String, Object> tap = <String, Object>{
+      'stage': 'gotoTap', 'target': 'dashboard',
+      'state': <String, Object>{
+        'at': 'gotoTarget', 'booted': 'yes', 'unlocked': 'yes',
+        'initialized': 'yes', 'tab': 'other',
+      },
+    };
+    for (final HomeTapReply code in HomeTapReply.values) {
+      final Map<String, Object> observed = homePreparationProjection(
+        <String, Object>{...tap, 'reply': code.name},
+      )!;
+      expect(observed['reply'], code.name);
+      expect(() => observed['reply'] = 'private', throwsUnsupportedError);
+    }
+    for (final Map<String, Object> offered in <Map<String, Object>>[
+      <String, Object>{...tap, 'reply': 'private'},
+      <String, Object>{...tap, 'reply': true},
+      <String, Object>{...tap, 'reply': 'targetCovered', 'stage': 'gotoWait'},
+      <String, Object>{...first, 'reply': 'targetCovered'},
+      <String, Object>{'stage': 'gotoTap', 'reply': 'targetCovered'},
+    ]) {
+      expect(homePreparationProjection(offered), isNull);
+    }
     trace.clear();
     expect(trace.snapshot, isNull);
     expect(copied['booted'], 'unknown');
@@ -332,6 +369,8 @@ void main() {
     final Map<String, Object> home =
         first.diagnostic['home']! as Map<String, Object>;
     expect(home['stage'], 'initialReadiness');
+    expect(trace.failure(cli.Fail('synthetic-private',
+      homeTapReply: HomeTapReply.targetCovered)).diagnostic['home'], home);
     trace
       ..at(cli.SeedOperationAction.prepare, cli.SeedOperationStep.owner,
           commandIndex: 1)
@@ -352,6 +391,9 @@ void main() {
     expect(foreign.failure(_UnprintableSeedError()).diagnostic,
         isNot(contains('home')));
     expect(home['stage'], 'initialReadiness');
+    expect(trace.failure(cli.Fail('synthetic-private',
+      homeTapReply: HomeTapReply.targetCovered)).diagnostic,
+        isNot(contains('home')));
     expect(() => home['target'] = 'dashboard', throwsUnsupportedError);
     expect(jsonEncode(first.diagnostic), isNot(contains('private')));
   });
@@ -412,6 +454,48 @@ void main() {
       expect(home['stage'], stages[index]);
       expect((home['state'] as Map<String, Object>?)?['at'], lastStates[index]);
       expect(jsonEncode(home), isNot(contains('private')));
+    }
+    final Map<String, HomeTapReply> replies = <String, HomeTapReply>{
+      'nothing matches': HomeTapReply.targetMissing,
+      'disabled': HomeTapReply.targetDisabled,
+      'covered by something else': HomeTapReply.targetCovered,
+      'expected one owned Flutter view': HomeTapReply.viewAmbiguous,
+      'synthetic-private': HomeTapReply.unknown,
+    };
+    for (final MapEntry<String, HomeTapReply> reply in replies.entries) {
+      final List<Object> packets = _homeReplies();
+      packets[2] = <String, dynamic>{
+        'ok': false, 'error': reply.key,
+        'detail': <String, String>{'private': 'synthetic-private'},
+        'stack': 'synthetic-private',
+      };
+      final _HomeReplies original = _HomeReplies(packets);
+      final cli.SeedOperationTrace trace = _homeTrace();
+      cli.Fail? failed;
+      try {
+        await cli.prepareScreenHome(original, observe: trace.homeObserved);
+      } on cli.Fail catch (error) {
+        failed = error;
+      }
+      expect(failed, isNotNull);
+      final cli.Fail originalFailure = failed!;
+      expect(originalFailure.message,
+        'tap: ${reply.key} {"private":"synthetic-private"}'
+        '\nsynthetic-private');
+      expect(original._commands, _homeCommands().take(3).toList());
+      final cli.SeedOperationFailure observed = trace.failure(originalFailure);
+      final Map<String, Object> detail =
+          observed.diagnostic['home']! as Map<String, Object>;
+      expect(detail['stage'], 'gotoTap');
+      expect(detail['target'], 'home');
+      expect(detail['reply'], reply.value.name);
+      expect(jsonEncode(observed.diagnostic),
+        isNot(contains('synthetic-private')));
+      trace.at(cli.SeedOperationAction.prepare, cli.SeedOperationStep.owner,
+        commandIndex: 1);
+      expect(trace.failure(originalFailure).diagnostic,
+        isNot(contains('home')));
+      expect(detail['reply'], reply.value.name);
     }
   });
 

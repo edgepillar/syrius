@@ -643,6 +643,8 @@ class AnalysisAdmissionTests(unittest.TestCase):
         self.assertEqual(value['diagnostics'], dict(error=0, warning=0, info=0))
         self.assertTrue(value['output_complete'])
         for path in (
+            'test/window/window_frame_test.dart',
+            'test/window/window_chrome_test.dart',
             'harness/home_preparation_observation.dart',
             'harness/app/fixtures/seed_commands.dart',
             'harness/app/fixtures/seed_project_presentation.dart',
@@ -654,6 +656,8 @@ class AnalysisAdmissionTests(unittest.TestCase):
 
     def test_every_selected_finding_refuses_even_with_zero_process_exit(self):
         sources = {
+            'test/window/window_frame_test.dart': 'window_frame_test',
+            'test/window/window_chrome_test.dart': 'window_chrome_test',
             'harness/home_preparation_observation.dart': 'home_observation',
             'test/harness/transfer_sender_header_test.dart': 'transfer_sender_header_test',
             'harness/app/fixtures/seed_commands.dart': 'seed_commands',

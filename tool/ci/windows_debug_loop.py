@@ -514,6 +514,8 @@ def analyze(parent, repo):
         'lib/rearchitecture/utils/widgets/entry_field.dart',
         'lib/widgets/reusable_widgets/app_lottie.dart',
         'lib/widgets/window_frame.dart',
+        'test/window/window_frame_test.dart',
+        'test/window/window_chrome_test.dart',
         'test/onboarding/entry_capture_source_test.dart',
         'test/onboarding/entry_capture_opt_in_test.dart',
         'test/onboarding/entry_prepared_draft_test.dart',
@@ -597,6 +599,8 @@ def analyze(parent, repo):
                                         else 'reference_artwork_test' if relative.endswith('/test/harness/reference_artwork_owner_test.dart')
                                         else 'entry_field' if relative.endswith('/lib/rearchitecture/utils/widgets/entry_field.dart')
                                         else 'app_lottie' if relative.endswith('/lib/widgets/reusable_widgets/app_lottie.dart')
+                                        else 'window_frame_test' if relative.endswith('/test/window/window_frame_test.dart')
+                                        else 'window_chrome_test' if relative.endswith('/test/window/window_chrome_test.dart')
                                         else 'window_frame' if relative.endswith('/lib/widgets/window_frame.dart')
                                         else 'harness_agent' if relative.endswith('/harness/app/agent.dart')
                                         else 'control_admission' if relative.endswith('/harness/app/recipe_control_admission.dart')

@@ -5,6 +5,62 @@ import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/window_chrome.dart';
 
+/// The actual original body route's eligibility to paint its own backdrop.
+enum AppWindowEntryBackdropPhase {
+  /// The original entry body is no longer painted or its owner is gone.
+  hidden,
+
+  /// The original entry body remains visible under a non-opaque overlay.
+  covered,
+
+  /// The original entry body owns the current route.
+  current,
+}
+
+/// Paints only the original entry field inside this frame's caption bounds.
+typedef AppWindowEntryBackdropPaint = void Function(Canvas, Size);
+
+/// One original entry State's paint delegate; it creates no animation clock.
+/// The opaque owner, route checks and builder never leave this process.
+final class AppWindowEntryBackdrop {
+  AppWindowEntryBackdrop._(
+    this._frame, this._owner, this._phase, this._paint, this._repaint,
+  ) {
+    _repaint.addListener(_frame._entryBackdropChanged);
+  }
+
+  final AppWindowFrameState _frame;
+  final Object _owner;
+  final AppWindowEntryBackdropPhase Function() _phase;
+  final AppWindowEntryBackdropPaint _paint;
+  final Listenable _repaint;
+  bool _retired = false;
+
+  AppWindowEntryBackdropPhase get _originalPhase {
+    if (_retired || !_frame.mounted || _frame._entryBackdropDisposed) {
+      return AppWindowEntryBackdropPhase.hidden;
+    }
+    try {
+      return _phase();
+    } on Object {
+      return AppWindowEntryBackdropPhase.hidden;
+    }
+  }
+
+  /// Only the unique eligible original delegate is visible in this frame.
+  bool get isVisible => !_retired &&
+      identical(_frame._selectedEntryBackdrop(), this);
+
+  /// Retires only this original delegate; pending frame requests cannot revive.
+  void dispose() {
+    if (_retired) return;
+    _retired = true;
+    _repaint.removeListener(_frame._entryBackdropChanged);
+    _frame._entryBackdrops.remove(this);
+    _frame._entryBackdropChanged();
+  }
+}
+
 /// The production Windows client frame. Its body is the supplied Navigator,
 /// including that Navigator's routes, modal barriers and overlay ownership.
 /// Other platforms retain their native caption and the original child layout.
@@ -22,6 +78,58 @@ class AppWindowFrame extends StatefulWidget {
 /// Owns one production caption controller for this frame's entire lifetime.
 class AppWindowFrameState extends State<AppWindowFrame> {
   late final AppWindowController? _window;
+  final Set<AppWindowEntryBackdrop> _entryBackdrops =
+      <AppWindowEntryBackdrop>{};
+  final ChangeNotifier _entryBackdropChanges = ChangeNotifier();
+  bool _entryBackdropDisposed = false;
+
+  /// Whether this original frame owns a client caption to be painted.
+  bool get hasClientCaption => !_entryBackdropDisposed && _window != null;
+
+  /// Captures only an actual descendant entry body's original paint owner.
+  /// Only paint listeners are notified; registration rebuilds no ancestor.
+  AppWindowEntryBackdrop? attachEntryBackdrop({
+    required Object owner,
+    required AppWindowEntryBackdropPhase Function() phase,
+    required AppWindowEntryBackdropPaint paint,
+    required Listenable repaint,
+  }) {
+    if (!mounted || !hasClientCaption || _entryBackdrops.any(
+      (AppWindowEntryBackdrop value) => identical(value._owner, owner),
+    )) {
+      return null;
+    }
+    final AppWindowEntryBackdrop original = AppWindowEntryBackdrop._(
+      this, owner, phase, paint, repaint,
+    );
+    _entryBackdrops.add(original);
+    _entryBackdropChanged();
+    return original;
+  }
+
+  AppWindowEntryBackdrop? _selectedEntryBackdrop() {
+    if (!mounted || !hasClientCaption) return null;
+    final List<AppWindowEntryBackdrop> current = <AppWindowEntryBackdrop>[];
+    final List<AppWindowEntryBackdrop> covered = <AppWindowEntryBackdrop>[];
+    for (final AppWindowEntryBackdrop original in _entryBackdrops.toList()) {
+      switch (original._originalPhase) {
+        case AppWindowEntryBackdropPhase.current: current.add(original);
+        case AppWindowEntryBackdropPhase.covered: covered.add(original);
+        case AppWindowEntryBackdropPhase.hidden: break;
+      }
+    }
+    final List<AppWindowEntryBackdrop> eligible =
+        current.isNotEmpty ? current : covered;
+    return eligible.length == 1 ? eligible.single : null;
+  }
+
+  void _entryBackdropChanged() {
+    if (mounted && !_entryBackdropDisposed) {
+      // The only listener is the caption's RenderCustomPaint. The body can
+      // update its original field during layout without rebuilding a parent.
+      _entryBackdropChanges.notifyListeners();
+    }
+  }
 
   /// Read-only original-owner observation, independent of painted frame timing.
   AppWindowStatus? get windowStatus => _window?.status;
@@ -52,72 +160,86 @@ class AppWindowFrameState extends State<AppWindowFrame> {
       child: Material(
         key: const ValueKey<String>('window-caption'),
         color: tokens.windowCaptionBackground,
-        child: SizedBox(
-          height: tokens.windowCaptionHeight,
-          child: Padding(
-            padding: tokens.windowCaptionPadding,
-            child: FocusTraversalGroup(
-              policy: WidgetOrderTraversalPolicy(),
-              child: Row(
-                children: <Widget>[
-                  Expanded(
-                    child: GestureDetector(
-                      key: const ValueKey<String>('window-drag-region'),
-                      behavior: HitTestBehavior.opaque,
-                      onPanStart: window.canMinimize
-                          ? (_) => unawaited(window.startDragging())
-                          : null,
-                      onSecondaryTapDown: window.canMinimize
-                          ? (_) => unawaited(window.showMenu())
-                          : null,
-                      onDoubleTap: window.canToggleMaximize
-                          ? () => unawaited(window.toggleMaximize())
-                          : null,
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          'SYRIUS',
-                          style: tokens.windowTitleText,
+        child: Stack(
+          children: <Widget>[
+            Positioned.fill(
+              child: IgnorePointer(child: ExcludeSemantics(
+                child: CustomPaint(
+                  key: const ValueKey<String>('window-caption-backdrop'),
+                  painter: _AppWindowCaptionPainter(
+                    frame: this, background: tokens.windowCaptionBackground,
+                  ),
+                ),
+              )),
+            ),
+            SizedBox(
+              height: tokens.windowCaptionHeight,
+              child: Padding(
+                padding: tokens.windowCaptionPadding,
+                child: FocusTraversalGroup(
+                  policy: WidgetOrderTraversalPolicy(),
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: GestureDetector(
+                          key: const ValueKey<String>('window-drag-region'),
+                          behavior: HitTestBehavior.opaque,
+                          onPanStart: window.canMinimize
+                              ? (_) => unawaited(window.startDragging())
+                              : null,
+                          onSecondaryTapDown: window.canMinimize
+                              ? (_) => unawaited(window.showMenu())
+                              : null,
+                          onDoubleTap: window.canToggleMaximize
+                              ? () => unawaited(window.toggleMaximize())
+                              : null,
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              'SYRIUS',
+                              style: tokens.windowTitleText,
+                            ),
+                          ),
                         ),
                       ),
-                    ),
+                      _CaptionButton(
+                        key: const ValueKey<String>('window-minimize'),
+                        label: text.windowMinimize,
+                        icon: Icons.remove,
+                        glyph: '\u2014',
+                        onPressed: window.canMinimize
+                            ? () => unawaited(window.minimize())
+                            : null,
+                      ),
+                      _CaptionButton(
+                        key: const ValueKey<String>('window-maximize'),
+                        label: window.maximized == true
+                            ? text.windowRestore
+                            : text.windowMaximize,
+                        icon: window.maximized == true
+                            ? Icons.filter_none
+                            : Icons.crop_square,
+                        glyph: window.maximized == true ? null : '\u25a1',
+                        onPressed: window.canToggleMaximize
+                            ? () => unawaited(window.toggleMaximize())
+                            : null,
+                      ),
+                      _CaptionButton(
+                        key: const ValueKey<String>('window-close'),
+                        label: text.commonClose,
+                        icon: Icons.close,
+                        glyph: '\u2715',
+                        isClose: true,
+                        onPressed: window.canClose
+                            ? () => unawaited(window.close())
+                            : null,
+                      ),
+                    ],
                   ),
-                  _CaptionButton(
-                    key: const ValueKey<String>('window-minimize'),
-                    label: text.windowMinimize,
-                    icon: Icons.remove,
-                    glyph: '\u2014',
-                    onPressed: window.canMinimize
-                        ? () => unawaited(window.minimize())
-                        : null,
-                  ),
-                  _CaptionButton(
-                    key: const ValueKey<String>('window-maximize'),
-                    label: window.maximized == true
-                        ? text.windowRestore
-                        : text.windowMaximize,
-                    icon: window.maximized == true
-                        ? Icons.filter_none
-                        : Icons.crop_square,
-                    glyph: window.maximized == true ? null : '\u25a1',
-                    onPressed: window.canToggleMaximize
-                        ? () => unawaited(window.toggleMaximize())
-                        : null,
-                  ),
-                  _CaptionButton(
-                    key: const ValueKey<String>('window-close'),
-                    label: text.commonClose,
-                    icon: Icons.close,
-                    glyph: '\u2715',
-                    isClose: true,
-                    onPressed: window.canClose
-                        ? () => unawaited(window.close())
-                        : null,
-                  ),
-                ],
+                ),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -154,11 +276,43 @@ class AppWindowFrameState extends State<AppWindowFrame> {
 
   @override
   void dispose() {
+    _entryBackdropDisposed = true;
+    for (final AppWindowEntryBackdrop original in _entryBackdrops.toList()) {
+      original.dispose();
+    }
+    _entryBackdrops.clear();
+    _entryBackdropChanges.dispose();
     _window
       ?..removeListener(_changed)
       ..dispose();
     super.dispose();
   }
+}
+
+class _AppWindowCaptionPainter extends CustomPainter {
+  _AppWindowCaptionPainter({required this._frame, required this._background})
+      : super(repaint: _frame._entryBackdropChanges);
+
+  final AppWindowFrameState _frame;
+  final Color _background;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.isEmpty) return;
+    final Rect viewport = Offset.zero & size;
+    canvas.drawRect(viewport, Paint()..color = _background);
+    final AppWindowEntryBackdrop? original = _frame._selectedEntryBackdrop();
+    if (original == null) return;
+    canvas
+      ..save()
+      ..clipRect(viewport);
+    original._paint(canvas, size);
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(_AppWindowCaptionPainter old) =>
+      !identical(_frame, old._frame) || _background != old._background;
 }
 
 class _CaptionButton extends StatelessWidget {

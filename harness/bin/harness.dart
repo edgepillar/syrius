@@ -22,8 +22,9 @@ final String repo = File.fromUri(Platform.script).parent.parent.parent.path;
 final String stateRoot = '$repo${Platform.pathSeparator}.harness';
 
 class Fail implements Exception {
-  Fail(this.message);
+  Fail(this.message, {this._homeTapReply});
   final String message;
+  final HomeTapReply? _homeTapReply;
   @override
   String toString() => message;
 }
@@ -456,6 +457,7 @@ Future<Map<String, dynamic>> call(
       '${cmd['cmd']}: ${r['error']}'
       '${detail == null ? '' : ' ${jsonEncode(detail)}'}'
       '${r['stack'] == null ? '' : '\n${r['stack']}'}',
+      homeTapReply: classifyHomeTapReply(r['error']),
     );
   }
   return r;
@@ -968,7 +970,9 @@ class SeedOperationTrace {
     final String reason = error is SeedRefused
         ? seedOperationReplyCode(error.code) : _replyCode;
     final Map<String, Object>? homeObservation =
-        _homeScope ? _homeObservation.snapshot : null;
+        _homeScope ? _homeObservation.failureSnapshot(
+          error is Fail ? error._homeTapReply : null,
+        ) : null;
     return SeedOperationFailure._(<String, Object>{
       'schema': 1, 'scope': 'original_seed_operation_failure',
       'recipe': seedRecipeIds.contains(_recipe) ? _recipe : 'unknown',
