@@ -116,6 +116,50 @@ class Client:
 
 
 class StartupInspectionTests(unittest.TestCase):
+    def test_startup_pair_keeps_the_original_twelve_request_transport_bound(self):
+        class Response(io.BytesIO):
+            status = 200
+            headers = {'Content-Encoding': 'identity'}
+
+        for negative in (False, True):
+            with self.subTest(negative=negative):
+                fixture = Client(negative=negative)
+
+                class Opener:
+                    def open(inner, request, *, timeout):
+                        self.assertEqual(timeout, 15)
+                        url = request.full_url
+                        if url.startswith(inspect.archive.API + '/'):
+                            self.assertEqual(request.get_header('Authorization'),
+                                             'Bearer synthetic')
+                            path = url[len(inspect.archive.API):]
+                            if path.endswith('/zip'):
+                                number = path.split('/')[-2]
+                                raise inspect.archive.urllib.error.HTTPError(
+                                    url, 302, 'Found', {'Location':
+                                        'https://synthetic.blob.core.windows.net/' + number},
+                                    io.BytesIO(),
+                                )
+                            return Response(json.dumps(fixture.json(path)).encode())
+                        self.assertIsNone(request.get_header('Authorization'))
+                        return Response(fixture.read(url, authenticated=False,
+                                                     cap=inspect.MAX_ARCHIVE))
+
+                reader = inspect.archive.Client('synthetic')
+                with mock.patch.object(reader, 'opener', Opener()):
+                    status, output = self.read_windows(reader)
+                self.assertEqual(status, 0)
+                self.assertEqual(reader.calls, 12)
+                sources = [value.split('/')[-1].partition('?')[0]
+                           for value in fixture.calls
+                           if value.startswith('/contents/tool/ci/')]
+                self.assertEqual(sources, list(inspect.PRODUCERS))
+                self.assertNotIn('windows_baseline.py', sources)
+                self.assertNotIn('dart_test_failure.py', sources)
+                self.assertEqual(output.count('::notice'), 2)
+                self.assertNotIn('INSPECTION_REFUSED', output)
+                self.assertNotIn('Bearer synthetic', output)
+
     def test_fixture_import_does_not_require_an_external_test_package(self):
         original_import = builtins.__import__
         refused = []

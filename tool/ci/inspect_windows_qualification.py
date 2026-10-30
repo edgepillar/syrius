@@ -279,12 +279,6 @@ def main():
         commit = client.json('/git/commits/' + head)
         tree = commit['tree']['sha']
         archive.need(commit['sha'] == head and re.fullmatch('[a-f0-9]{40}', tree) is not None)
-        for name in PRODUCERS:
-            selected = client.json('/contents/tool/ci/' + name + '?ref=' + head)
-            archive.need(selected['type'] == 'file' and selected['encoding'] == 'base64'
-                         and selected['path'] == 'tool/ci/' + name)
-            data = base64.b64decode(selected['content'].replace('\n', ''), validate=True)
-            archive.need(len(data) == selected['size'] and data == Path(__file__).with_name(name).read_bytes())
         PHASE = 'job_metadata'
         listing = client.json('/actions/runs/' + text + '/attempts/1/jobs?per_page=20')
         archive.need(listing['total_count'] == len(listing['jobs']) <= 20)
@@ -303,6 +297,17 @@ def main():
                          else 'Hosted original startup inspection')
                 emit(title, summary)
             return 0
+        # The startup reader checks its own four producers. Checking the
+        # unselected baseline sources first exhausts the twelve-request bound
+        # before either original startup archive can be read.
+        PHASE = 'source_metadata'
+        for name in PRODUCERS:
+            selected = client.json('/contents/tool/ci/' + name + '?ref=' + head)
+            archive.need(selected['type'] == 'file' and selected['encoding'] == 'base64'
+                         and selected['path'] == 'tool/ci/' + name)
+            data = base64.b64decode(selected['content'].replace('\n', ''), validate=True)
+            archive.need(len(data) == selected['size'] and data == Path(__file__).with_name(name).read_bytes())
+        PHASE = 'job_metadata'
         jobs = {}
         for name in ('Hosted Windows baseline', 'Ordinary Windows entry captures'):
             selected = [job for job in listing['jobs']
