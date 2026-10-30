@@ -226,4 +226,143 @@ void main() {
       expect((await drain).completed, isTrue);
     },
   );
+
+  test('paused SDK refusals stay observable without starting work', () async {
+    final Object sdk = Object();
+    final Object file = Object();
+    final Future<OriginalPublicationDrain> drain =
+        OriginalPublications.pauseAndDrain(sdk);
+    await drain;
+    expect(OriginalPublications.hasRefusedAdmission(sdk), isFalse);
+    int calls = 0;
+    for (int attempt = 0; attempt < 2; attempt++) {
+      expect(
+        () => OriginalPublications.runForOwners<void>(
+          <Object>[file, sdk, file],
+          (_) async {
+            calls++;
+          },
+        ),
+        throwsA(isA<OriginalPublicationRefused>()),
+      );
+    }
+    expect(calls, 0);
+    expect(OriginalPublications.snapshot(file), isEmpty);
+    expect(OriginalPublications.snapshot(sdk), isEmpty);
+    expect(OriginalPublications.hasRefusedAdmission(sdk), isTrue);
+    expect(OriginalPublications.hasRefusedAdmission(file), isFalse);
+    expect(OriginalPublications.pauseAndDrain(sdk), same(drain));
+    expect(OriginalPublications.hasRefusedAdmission(sdk), isTrue);
+  });
+
+  test('all paused owners retain a mixed-owner refusal', () async {
+    final Object first = Object();
+    final Object second = Object();
+    final Object file = Object();
+    await OriginalPublications.pauseAndDrain(first);
+    await OriginalPublications.pauseAndDrain(second);
+    int calls = 0;
+    expect(
+      () => OriginalPublications.runForOwners<void>(
+        <Object>[file, first, second, first],
+        (_) async {
+          calls++;
+        },
+      ),
+      throwsA(isA<OriginalPublicationRefused>()),
+    );
+    expect(calls, 0);
+    for (final Object owner in <Object>[first, second]) {
+      expect(OriginalPublications.hasRefusedAdmission(owner), isTrue);
+      expect(OriginalPublications.snapshot(owner), isEmpty);
+    }
+    expect(OriginalPublications.hasRefusedAdmission(file), isFalse);
+    expect(OriginalPublications.snapshot(file), isEmpty);
+  });
+
+  test('a refusal preserves the pending original error and trace', () async {
+    final Object owner = Object();
+    final StateError error = StateError('Synthetic original failure');
+    final StackTrace trace = StackTrace.current;
+    final Completer<Object> reply = Completer<Object>();
+    addTearDown(() {
+      if (!reply.isCompleted) reply.completeError(error, trace);
+    });
+    final Future<Object> original = OriginalPublications.run<Object>(
+      owner,
+      (_) => reply.future,
+    );
+    final Future<void> observed = expectLater(
+      original,
+      throwsA(same(error)),
+    );
+    final Future<OriginalPublicationDrain> draining =
+        OriginalPublications.pauseAndDrain(owner);
+    expect(OriginalPublications.hasRefusedAdmission(owner), isFalse);
+    int calls = 0;
+    expect(
+      () => OriginalPublications.run<Object>(owner, (_) async {
+        calls++;
+        return Object();
+      }),
+      throwsA(isA<OriginalPublicationRefused>()),
+    );
+    expect(calls, 0);
+    expect(OriginalPublications.hasRefusedAdmission(owner), isTrue);
+    expect(
+      OriginalPublications.snapshot(owner).single.future,
+      same(original),
+    );
+    reply.completeError(error, trace);
+    await observed;
+    final OriginalPublicationDrain receipt = await draining;
+    expect(receipt.completed, isTrue);
+    expect(receipt.operations.single.error, same(error));
+    expect(receipt.operations.single.stackTrace, same(trace));
+    expect(receipt.operations.single.future, same(original));
+    expect(OriginalPublications.hasRefusedAdmission(owner), isTrue);
+  });
+
+  test('a reentrant refusal leaves a healthy original unchanged', () async {
+    final Object paused = Object();
+    final Object sdk = Object();
+    final Object file = Object();
+    final Object accepted = Object();
+    final Completer<Object> reply = Completer<Object>();
+    addTearDown(() {
+      if (!reply.isCompleted) reply.complete(accepted);
+    });
+    await OriginalPublications.pauseAndDrain(paused);
+    int originalCalls = 0;
+    int refusedCalls = 0;
+    final Future<Object> original = OriginalPublications.runForOwners<Object>(
+      <Object>[file, sdk],
+      (OriginalPublication<Object> operation) {
+        originalCalls++;
+        expect(
+          () => OriginalPublications.run<void>(paused, (_) async {
+            refusedCalls++;
+          }),
+          throwsA(isA<OriginalPublicationRefused>()),
+        );
+        operation.retainPublicationHash('original-hash');
+        return reply.future;
+      },
+    );
+    expect(original, same(reply.future));
+    expect(originalCalls, 1);
+    expect(refusedCalls, 0);
+    expect(OriginalPublications.hasRefusedAdmission(paused), isTrue);
+    expect(OriginalPublications.hasRefusedAdmission(file), isFalse);
+    expect(OriginalPublications.hasRefusedAdmission(sdk), isFalse);
+    reply.complete(accepted);
+    expect(await original, same(accepted));
+    final OriginalPublicationDrain receipt =
+        await OriginalPublications.pauseAndDrain(sdk);
+    expect(receipt.completed, isTrue);
+    expect(receipt.operations.single.result, same(accepted));
+    expect(receipt.operations.single.acceptedHash, 'original-hash');
+    expect(OriginalPublications.hasRefusedAdmission(sdk), isFalse);
+    expect(OriginalPublications.hasRefusedAdmission(paused), isTrue);
+  });
 }

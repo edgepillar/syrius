@@ -147,6 +147,10 @@ def main():
             'test/window/window_frame_test.dart',
             'test/window/window_chrome_test.dart',
             'test/harness/entry_capture_progress_test.dart',
+            'test/publication_session/original_publications_test.dart',
+            'test/harness/readonly_sdk_admission_test.dart',
+            'test/harness/readonly_sdk_binding_test.dart',
+            'test/harness/readonly_native_commands_test.dart',
             'test/harness/retained_renderer_frame_test.dart',
             'test/wallet_maintenance/wallet_maintenance_backend_capture_test.dart',
             'test/harness/import_selector_metrics_test.dart',
@@ -223,7 +227,7 @@ def main():
         counts = test_counts(outcome.output)
         report['counts'] = counts
         debug.need(outcome.success and counts['terminal_success'] is True
-            and counts['passed'] == (530 if asset_fidelity else 528)
+            and counts['passed'] == (569 if asset_fidelity else 567)
             and counts['skipped'] == counts['failed'] == counts['error_events'] == 0,
             'TESTS_FAILED')
         if asset_fidelity:

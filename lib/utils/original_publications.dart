@@ -103,6 +103,7 @@ class _OriginalPublicationLane {
   final List<OriginalPublication<dynamic>> operations =
       <OriginalPublication<dynamic>>[];
   bool paused = false;
+  bool refusedAdmission = false;
   Future<OriginalPublicationDrain>? draining;
 }
 
@@ -110,6 +111,10 @@ class _OriginalPublicationLane {
 abstract final class OriginalPublications {
   static final Expando<_OriginalPublicationLane> _lanes =
       Expando<_OriginalPublicationLane>();
+
+  /// Observes whether this owner's terminal lane refused a new admission.
+  static bool hasRefusedAdmission(Object owner) =>
+      _lanes[owner]?.refusedAdmission ?? false;
 
   /// Observes originals without pausing, admitting or publishing work.
   static List<OriginalPublication<dynamic>> snapshot(Object owner) =>
@@ -143,6 +148,9 @@ abstract final class OriginalPublications {
         )
         .toList();
     if (lanes.any((_OriginalPublicationLane lane) => lane.paused)) {
+      for (final _OriginalPublicationLane lane in lanes) {
+        if (lane.paused) lane.refusedAdmission = true;
+      }
       throw const OriginalPublicationRefused();
     }
     final OriginalPublication<T> operation = OriginalPublication<T>._();
