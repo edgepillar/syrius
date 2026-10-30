@@ -5,6 +5,10 @@ import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/window_chrome.dart';
 
+class _WindowCaptionRepaint extends ChangeNotifier {
+  void markPaint() => notifyListeners();
+}
+
 /// The actual original body route's eligibility to paint its own backdrop.
 enum AppWindowEntryBackdropPhase {
   /// The original entry body is no longer painted or its owner is gone.
@@ -80,7 +84,7 @@ class AppWindowFrameState extends State<AppWindowFrame> {
   late final AppWindowController? _window;
   final Set<AppWindowEntryBackdrop> _entryBackdrops =
       <AppWindowEntryBackdrop>{};
-  final ChangeNotifier _entryBackdropChanges = ChangeNotifier();
+  final _WindowCaptionRepaint _entryBackdropChanges = _WindowCaptionRepaint();
   bool _entryBackdropDisposed = false;
 
   /// Whether this original frame owns a client caption to be painted.
@@ -127,7 +131,7 @@ class AppWindowFrameState extends State<AppWindowFrame> {
     if (mounted && !_entryBackdropDisposed) {
       // The only listener is the caption's RenderCustomPaint. The body can
       // update its original field during layout without rebuilding a parent.
-      _entryBackdropChanges.notifyListeners();
+      _entryBackdropChanges.markPaint();
     }
   }
 

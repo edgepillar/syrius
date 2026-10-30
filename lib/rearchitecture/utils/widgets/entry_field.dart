@@ -8,6 +8,10 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/reference_artwork_source.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/window_frame.dart';
 
+class _EntryCaptionRepaint extends ChangeNotifier {
+  void markPaint() => notifyListeners();
+}
+
 typedef _EntryCaptionPaint = ({
   ValueListenable<double> seconds,
   Size body,
@@ -40,7 +44,7 @@ class _EntryFieldState extends State<EntryField>
   ReferenceArtworkFrame? _referenceFrame;
   ValueListenable<double>? _referenceSeconds;
   ValueListenable<double>? _paintedSeconds;
-  final ChangeNotifier _captionChanges = ChangeNotifier();
+  final _EntryCaptionRepaint _captionChanges = _EntryCaptionRepaint();
   late final Listenable _captionRepaint;
   AppWindowFrameState? _captionFrame;
   ModalRoute<dynamic>? _captionRoute;
@@ -144,7 +148,7 @@ class _EntryFieldState extends State<EntryField>
     _captionRequested = request;
     // This marks only the caption's original painter dirty, even in layout.
     // It never starts another clock or rebuilds the Navigator/frame ancestor.
-    _captionChanges.notifyListeners();
+    _captionChanges.markPaint();
   }
 
   bool _captionMatches(ValueListenable<double> seconds, {
@@ -240,7 +244,7 @@ class _EntryFieldState extends State<EntryField>
     _captionRoute = ModalRoute.of(context);
     _captionTickerEnabled = TickerMode.valuesOf(context).enabled;
     _bindCaption();
-    _captionChanges.notifyListeners();
+    _captionChanges.markPaint();
   }
 
   @override

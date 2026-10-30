@@ -9494,3 +9494,32 @@ nine rows, ninety outputs, nineteen preparations and all 94 matches remain open.
 Current full root, DLL initialization, unfiltered chain and Docker Desktop/lab.sh
 acceptance remain separate. The private Windows Arm capability proposal is not
 included here; no installation, feature change or container start is performed.
+
+
+### Preserve caption paint signals through the protected notifier API
+
+Source188 7b921a23d2ea / focused 40980675912 retains producer failure. All 815
+Python cases pass with three existing skips and both original asset commands
+pass. Explicit analysis observes zero errors/infos and six warnings: each of
+three direct ChangeNotifier.notifyListeners calls violates both protected and
+visible-for-testing annotations. Its normal complete process exits two. The
+Dart stage is skipped; neither the four new renderer cases nor the 32 newly
+selected existing frame/controller cases are declared executed.
+
+Use two private ChangeNotifier subclasses with a markPaint method that invokes
+the inherited protected method inside its own subclass. Keep all three original
+notification sites, order, listener identity/merge and disposal. The same entry
+clock, gradient math, captured geometry/delegate, actual-paint receipts, caption
+Material/control tokens, Navigator ancestry and Home reply classification remain.
+Add no timer, input, query, action, test, selection or lint suppression. Every
+analysis path and zero-findings gate is retained. Contracts remain 815 Python,
+449 ordinary Dart and 451 startup Dart. All 350 exact memory controls pass;
+fresh hosted analysis/renderer and native qualification remain pending.
+
+Source187 remains the qualified 413-case baseline. Native97 original positive
+send/tour/exits and independently observed dashboard gotoTap failure retain
+their exact source; its reply and inner cause remain NOT_ESTABLISHED. No old
+profile, password, send or seed operation is retried. Source181 full Windows and
+four reviewed zero-match entry pairs keep their original binding. All nine main
+rows, ninety outputs, nineteen preparations, all 94 matches, current full root,
+DLL initialization, unfiltered chain and Docker Desktop/lab.sh remain open.
