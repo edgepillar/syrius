@@ -9523,3 +9523,32 @@ profile, password, send or seed operation is retried. Source181 full Windows and
 four reviewed zero-match entry pairs keep their original binding. All nine main
 rows, ninety outputs, nineteen preparations, all 94 matches, current full root,
 DLL initialization, unfiltered chain and Docker Desktop/lab.sh remain open.
+
+
+### Settle original caption controls before fixed artwork sampling
+
+Source189 3071385be06d / focused 40982201829 completes with producer failure.
+Strict analysis now has zero errors, warnings and infos; all 815 Python cases
+pass with three existing skips and both original asset commands pass. Of 449
+ordinary Dart cases, 447 pass and two fail the same exact caption digest
+assertion. Their earlier body digest, continuous caption/body seam and live
+clock checks pass. The normal complete test process exits one. Source188's
+six-warning failure and skipped Dart remain preserved at their original source.
+
+The fixture now requires the original caption's completed, successful native
+mode query and enabled maximize control before it advances the test clock by
+400 milliseconds to settle the existing style transition. Only then does it
+request the original six-second artwork sample. Both theme cases retain exact
+caption digest equality, the unchanged RGB seam threshold, body digest, live
+clock/owner identity and actual restoration checks. Production widgets, inputs,
+clocks, callbacks, queries, routes, test registrations and selected paths remain
+unchanged. This is a source-supported fixture correction; the failure's root
+cause is not independently established. Fresh hosted renderer proof is pending.
+
+All 350 exact memory controls pass without local SDK/native/network or scratch
+execution. Contracts remain 815 Python, 449 ordinary Dart and 451 startup Dart;
+the startup variant and full current root remain unexecuted. Native97's source-
+bound original positive send/tour/exits and dashboard gotoTap failure retain
+their outcomes; exact reply and inner cause remain NOT_ESTABLISHED. No old
+profile, password, send or seed operation is retried. Main acceptance remains
+71/80, with ninety outputs, nineteen preparations and all 94 matches open.

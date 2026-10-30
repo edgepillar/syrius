@@ -386,6 +386,17 @@ void main() {
       final AppWindowFrameState caption = tester
           .state<AppWindowFrameState>(find.byType(AppWindowFrame));
       expect(caption.hasClientCaption, isTrue);
+      expect(caption.windowStatus?.queryPending, isFalse);
+      expect(caption.windowStatus?.queryFailed, isFalse);
+      expect(caption.windowStatus?.maximized, isFalse);
+      final Finder maximize = find.descendant(
+        of: find.byKey(const ValueKey<String>('window-maximize')),
+        matching: find.byType(IconButton),
+      );
+      expect(tester.widget<IconButton>(maximize).onPressed, isNotNull);
+      // The original native reply enables the control during the first pump.
+      // Let its existing style transition finish before sampling any pixels.
+      await tester.pump(const Duration(milliseconds: 400));
       final ReferenceArtworkFrame frame = source.captureReferenceArtwork()!;
       expect(frame.observed, isFalse);
       await tester.pump();
