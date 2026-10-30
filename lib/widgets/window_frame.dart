@@ -214,7 +214,7 @@ class AppWindowFrameState extends State<AppWindowFrame> {
                         key: const ValueKey<String>('window-minimize'),
                         label: text.windowMinimize,
                         icon: Icons.remove,
-                        glyph: '\u2014',
+                        glyph: _CaptionGlyph.minimize,
                         onPressed: window.canMinimize
                             ? () => unawaited(window.minimize())
                             : null,
@@ -227,7 +227,9 @@ class AppWindowFrameState extends State<AppWindowFrame> {
                         icon: window.maximized == true
                             ? Icons.filter_none
                             : Icons.crop_square,
-                        glyph: window.maximized == true ? null : '\u25a1',
+                        glyph: window.maximized == true
+                            ? null
+                            : _CaptionGlyph.maximize,
                         onPressed: window.canToggleMaximize
                             ? () => unawaited(window.toggleMaximize())
                             : null,
@@ -236,7 +238,7 @@ class AppWindowFrameState extends State<AppWindowFrame> {
                         key: const ValueKey<String>('window-close'),
                         label: text.commonClose,
                         icon: Icons.close,
-                        glyph: '\u2715',
+                        glyph: _CaptionGlyph.close,
                         isClose: true,
                         onPressed: window.canClose
                             ? () => unawaited(window.close())
@@ -323,6 +325,8 @@ class _AppWindowCaptionPainter extends CustomPainter {
       !identical(_frame, old._frame) || _background != old._background;
 }
 
+enum _CaptionGlyph { minimize, maximize, close }
+
 class _CaptionButton extends StatelessWidget {
   const _CaptionButton({
     required this.label,
@@ -335,7 +339,7 @@ class _CaptionButton extends StatelessWidget {
 
   final String label;
   final IconData icon;
-  final String? glyph;
+  final _CaptionGlyph? glyph;
   final VoidCallback? onPressed;
   final bool isClose;
 
@@ -353,12 +357,15 @@ class _CaptionButton extends StatelessWidget {
           ? Icon(icon, size: tokens.windowControlIconSize)
           : ExcludeSemantics(
               child: Builder(
-                builder: (BuildContext context) => Text(
-                  glyph!,
-                  style: tokens.windowTitleText.copyWith(
-                    fontSize: tokens.windowControlIconSize,
-                    letterSpacing: 0,
-                    color: IconTheme.of(context).color,
+                builder: (BuildContext context) => Center(
+                  widthFactor: 1,
+                  heightFactor: 1,
+                  child: CustomPaint(
+                    size: Size.square(tokens.windowControlIconSize),
+                    painter: _CaptionGlyphPainter(
+                      glyph!,
+                      IconTheme.of(context).color ?? tokens.faint,
+                    ),
                   ),
                 ),
               ),
@@ -395,4 +402,45 @@ class _CaptionButton extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The three reference caption marks on the original twelve-pixel canvas.
+/// Their geometry remains independent of platform symbol-font fallback.
+class _CaptionGlyphPainter extends CustomPainter {
+  const _CaptionGlyphPainter(this._glyph, this._color);
+
+  final _CaptionGlyph _glyph;
+  final Color _color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.isEmpty) return;
+    canvas.save();
+    try {
+      canvas.scale(size.width / 12, size.height / 12);
+      final Paint ink = Paint()
+        ..color = _color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1;
+      switch (_glyph) {
+        case _CaptionGlyph.minimize:
+          canvas.drawLine(const Offset(1, 6), const Offset(11, 6), ink);
+          return;
+        case _CaptionGlyph.maximize:
+          canvas.drawRect(const Rect.fromLTWH(3.5, 3.5, 5, 5), ink);
+          return;
+        case _CaptionGlyph.close:
+          canvas
+            ..drawLine(const Offset(1.5, 0.5), const Offset(10.5, 8.5), ink)
+            ..drawLine(const Offset(10.5, 0.5), const Offset(1.5, 8.5), ink);
+          return;
+      }
+    } finally {
+      canvas.restore();
+    }
+  }
+
+  @override
+  bool shouldRepaint(_CaptionGlyphPainter oldDelegate) =>
+      _glyph != oldDelegate._glyph || _color != oldDelegate._color;
 }

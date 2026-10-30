@@ -1,5 +1,48 @@
 # Redesign build environment
 
+## Original frame, current Windows baseline and caption follow-up (2026-10-30)
+
+At source `829960287475ca249b17bd6600f0d176193f25ea`,
+[focused 41067296433](https://github.com/edgepillar/syrius/actions/runs/41067296433)
+qualifies 858 Python cases with three existing skips, 517 ordinary Dart cases
+without skips, both original asset commands and zero selected findings. All
+393 memory controls pass. [Startup 41068209907](https://github.com/edgepillar/syrius/actions/runs/41068209907)
+and [independent inspection 41070142787](https://github.com/edgepillar/syrius/actions/runs/41070142787)
+qualify 519 Dart cases, exact RGBA/duration equality for all 112 original and
+composed frames, and retained ending ownership. Default startup reaches Welcome
+at 4640 ms with one Skip; the fresh natural process reaches it at 7828 ms with
+zero Skip. Both retain thirteen checks and normal complete unforced zero exits.
+One SDK setup and Release build serve the two fresh profiles. The original
+twenty-second deadline and all earlier failures remain; full V02 is separate.
+
+[Full Windows baseline 41071186050](https://github.com/edgepillar/syrius/actions/runs/41071186050)
+and [independent inspection 41076187301](https://github.com/edgepillar/syrius/actions/runs/41076187301)
+bind that same source and tree `b28ccd108ba93a8e6a828cca8b451ba9961f7a2c`.
+All twelve checks pass: 4711 non-chain tests pass with two skips, regeneration
+and localization correspond, and Debug/Release exit zero normally with complete
+output in 133.438/179.968 seconds. Root analysis has zero errors/warnings and
+1295 infos; vendored analysis is clean. Source, Debug and Release libraries
+share one digest and pass map/export probes. DLL initialization, the unfiltered
+chain suite and the written Docker Desktop/lab.sh route remain unqualified.
+
+All four actual/reference source212 entry pairs have now been viewed; none is
+accepted as a complete match. The once-transferred verified archive and reports
+remain after a later local metadata-lock failure; the exact owned task closed
+with FAILURE. Existing evidence and failed output were preserved. Neither the
+producer nor the completed transport was repeated.
+
+The caption follow-up replaces only three font-dependent marks with small
+vectors on a twelve-pixel canvas inside the existing 44 by 32 buttons. The
+primary application and reference fonts both lack the square and close
+codepoints; the actual platform fallback and pixel cause are NOT_ESTABLISHED.
+Button colors, accessible labels, focus, callbacks and the maximized restore
+icon remain. One existing focus-test locator follows the painted mark. No test
+registration, assertion, font, token, asset, clock or deadline changes. Fresh
+858 Python, 517 ordinary Dart, 393 memory controls, selected analysis and four
+native entry captures are pending for this caption source. The ledger remains
+71/80, with zero of 94 matches, ninety missing catalog outputs and nineteen
+unqualified preparations. Native103 remains UNKNOWN; Native104 is not admitted.
+
 Recorded on 2026-10-23 for the desktop redesign based on `sol-znn/syrius`
 `dev` at `add99a2cb7128d3e754733130394b9869b708f86`.
 The initial publication source commit is `e13abb38757726018481158f27a7ad72d62f8171` on `redesign`.
