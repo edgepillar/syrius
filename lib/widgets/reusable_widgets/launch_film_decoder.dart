@@ -3,33 +3,41 @@ import 'dart:ui' as ui;
 
 /// The caller owns this image, including after its decoder is disposed.
 class LaunchFilmFrame {
+  /// Keeps the caller's decoded image and its original display duration.
   const LaunchFilmFrame(this._image, this._duration);
 
   final ui.Image _image;
   final Duration _duration;
 
+  /// The caller disposes this handle after its last use.
   ui.Image get image => _image;
+  /// The duration recorded in the original container.
   Duration get duration => _duration;
 }
 
 /// One original forward-only film, with no playback clock or skipped frames.
 abstract class LaunchFilmDecoder {
+  /// The number of frames in the original film.
   int get frameCount;
+  /// Repeats after the first run, or minus one for an infinite loop.
   int get repetitionCount;
 
   /// Whether this decoder preserves opaque WebP rectangles on its own canvas.
   bool get usesFrameRectangles;
 
+  /// Decodes the next original frame and transfers its image to the caller.
   Future<LaunchFilmFrame> getNextFrame();
 
   /// Called only after the original getNextFrame Future has returned.
   void dispose();
 
+  /// Opens original asset data without changing its byte range.
   static Future<LaunchFilmDecoder> fromData(
     ByteData data, {
     int? targetWidth,
   }) => fromBytes(Uint8List.sublistView(data), targetWidth: targetWidth);
 
+  /// Selects rectangle composition only for the supported opaque subset.
   static Future<LaunchFilmDecoder> fromBytes(
     Uint8List bytes, {
     int? targetWidth,
@@ -42,6 +50,7 @@ abstract class LaunchFilmDecoder {
     );
   }
 
+  /// Opens an owned immutable buffer with the original engine codec.
   static Future<LaunchFilmDecoder> fromBuffer(
     ui.ImmutableBuffer buffer, {
     int? targetWidth,
@@ -99,9 +108,13 @@ class LaunchWebpFrames {
   final int _repetitionCount;
   final List<LaunchWebpFrame> _frames;
 
+  /// The original canvas or rectangle width in pixels.
   int get width => _width;
+  /// The original canvas or rectangle height in pixels.
   int get height => _height;
+  /// Repeats after the first run, or minus one for an infinite loop.
   int get repetitionCount => _repetitionCount;
+  /// Validated immutable frame metadata in the container's original order.
   List<LaunchWebpFrame> get frames => _frames;
 
   static int _u16(Uint8List b, int p) => b[p] | b[p + 1] << 8;
@@ -189,12 +202,14 @@ class LaunchWebpFrames {
     final Uint8List result = Uint8List(12 + frame._length);
     result.setRange(0, 4, const <int>[82, 73, 70, 70]);
     ByteData.sublistView(result).setUint32(4, result.length - 8, Endian.little);
-    result.setRange(8, 12, const <int>[87, 69, 66, 80]);
-    result.setRange(12, result.length, _bytes, frame._offset);
+    result
+      ..setRange(8, 12, const <int>[87, 69, 66, 80])
+      ..setRange(12, result.length, _bytes, frame._offset);
     return result;
   }
 }
 
+/// One original opaque rectangle and its unmodified display duration.
 class LaunchWebpFrame {
   const LaunchWebpFrame._(
     this._x, this._y, this._width, this._height, this._milliseconds,
@@ -209,10 +224,15 @@ class LaunchWebpFrame {
   final int _offset;
   final int _length;
 
+  /// The original horizontal canvas offset in pixels.
   int get x => _x;
+  /// The original vertical canvas offset in pixels.
   int get y => _y;
+  /// The original canvas or rectangle width in pixels.
   int get width => _width;
+  /// The original canvas or rectangle height in pixels.
   int get height => _height;
+  /// The original display duration in milliseconds.
   int get milliseconds => _milliseconds;
 }
 
@@ -234,6 +254,7 @@ class _RectangleDecoder extends LaunchFilmDecoder {
   int get frameCount => _frameCount;
 
   @override
+  /// Repeats after the first run, or minus one for an infinite loop.
   int get repetitionCount => _repetitionCount;
 
   @override

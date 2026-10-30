@@ -40,7 +40,7 @@ void main() {
       final typed.Uint8List ownedFirst = film.frameBytes(0);
       bytes.fillRange(0, bytes.length, 0);
       expect(foundation.listEquals(film.frameBytes(0), ownedFirst), isTrue);
-      expect(() => film.frames.clear(), throwsUnsupportedError);
+      expect(film.frames.clear, throwsUnsupportedError);
     }
   });
 
