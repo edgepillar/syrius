@@ -348,6 +348,25 @@ jobs:
 
   # This lane can run with desktop_builds=false without repeating Linux or
   # macOS. It qualifies this hosted runner, not the owner's Windows machine.
+  windows-container-capability:
+    if: inputs.windows_inventory_only
+    name: Observe Windows Arm container capability
+    runs-on: windows-11-arm
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Observe finite platform facts without installation
+        shell: pwsh -NoLogo -NoProfile -NonInteractive -File {0}
+        env:
+          SYRIUS_WINDOWS_CONTAINER_CAPABILITY: "true"
+        run: tool/ci/windows_container_capability.ps1
+
   windows-baseline:
     if: inputs.windows_baseline || inputs.windows_inventory_only
     name: ${{ inputs.windows_inventory_only && 'Hosted Windows inventory' || 'Hosted Windows baseline' }}

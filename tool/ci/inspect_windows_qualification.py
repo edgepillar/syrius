@@ -286,23 +286,30 @@ def main():
         jobs = {}
         for name in ('Hosted Windows baseline', 'Ordinary Windows entry captures'):
             selected = [job for job in listing['jobs'] if job['name'] == name]
-            outcomes = (('success', 'failure', 'skipped')
-                        if name == 'Ordinary Windows entry captures' else ('success', 'failure'))
+            outcomes = ('success', 'failure', 'skipped')
             archive.need(len(selected) == 1 and selected[0]['head_sha'] == head
                 and selected[0]['run_id'] == run_id and selected[0]['status'] == 'completed'
                 and selected[0]['conclusion'] in outcomes)
             if selected[0]['conclusion'] == 'skipped':
                 archive.need(selected[0].get('steps') == [])
             jobs[name] = selected[0]
-        PHASE = 'baseline_log'
+        archive.need(any(job['conclusion'] != 'skipped' for job in jobs.values()))
         job = jobs['Hosted Windows baseline']
-        location = client.read(archive.API + '/actions/jobs/' + str(job['id']) + '/logs', redirect=True)
-        raw = client.read(location, authenticated=False, cap=MAX_LOG)
-        summary = baseline_projection(log_report(raw, 'github_hosted_windows_baseline'), head, tree, run_id)
-        archive.need(job['conclusion'] != 'success' or summary['artifact_reported_success'])
-        summary.update(original_job_id=job['id'], original_job_conclusion=job['conclusion'],
-                       log_sha256=archive.sha(raw), log_bytes=len(raw), producer_sources_equal=True)
-        emit('Hosted baseline inspection', summary)
+        if job['conclusion'] == 'skipped':
+            emit('Hosted baseline not selected', dict(scope='retained_windows_baseline_not_selected',
+                inspection_only=True, runtime_started=False, wallet_qualified=False,
+                source_head=head, source_tree=tree, source_run_id=run_id, source_attempt=1,
+                original_job_id=job['id'], original_job_conclusion='skipped',
+                baseline_qualified=False, baseline_logs_read=0))
+        else:
+            PHASE = 'baseline_log'
+            location = client.read(archive.API + '/actions/jobs/' + str(job['id']) + '/logs', redirect=True)
+            raw = client.read(location, authenticated=False, cap=MAX_LOG)
+            summary = baseline_projection(log_report(raw, 'github_hosted_windows_baseline'), head, tree, run_id)
+            archive.need(job['conclusion'] != 'success' or summary['artifact_reported_success'])
+            summary.update(original_job_id=job['id'], original_job_conclusion=job['conclusion'],
+                           log_sha256=archive.sha(raw), log_bytes=len(raw), producer_sources_equal=True)
+            emit('Hosted baseline inspection', summary)
         entry_job = jobs['Ordinary Windows entry captures']
         if entry_job['conclusion'] == 'skipped':
             emit('Hosted entry not selected', dict(scope='retained_windows_entry_not_selected',

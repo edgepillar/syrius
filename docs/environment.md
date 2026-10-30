@@ -9682,3 +9682,64 @@ Home targetMissing failure and the seed-order correction remain separate.
 Main acceptance stays 71/80; ninety outputs, nineteen preparations and all
 94 matches, current Token engine/native, full-root, DLL initialization,
 unfiltered-chain and the Docker Desktop/lab.sh route remain open.
+
+
+### Native99 progress and readonly Windows capability inspection
+
+Source193 `374b7f5dd875`, focused run
+[40994477779](https://github.com/edgepillar/syrius/actions/runs/40994477779),
+qualifies 817 Python cases with three existing skips, all 462 ordinary Dart
+cases, both original asset commands and zero selected analysis findings. All
+thirteen Token controls pass, including seven actual Token views inside the
+production StepperScreen route. Source191's analysis refusal and source192's
+forced pre-SDK asset timeout remain preserved. Their original outcomes are
+not reinterpreted by the passing source193 observations.
+
+Native99 producer
+[40996560750](https://github.com/edgepillar/syrius/actions/runs/40996560750)
+and independent inspector
+[40998869177](https://github.com/edgepillar/syrius/actions/runs/40998869177)
+qualify the original positive index-one to index-zero chain-321 UI send,
+twelve-page tour, quiescence and normal application, entry and five-node
+exits. Producer failure is retained. The copied workflow now returns from
+Deposit/Home and reaches command four, `wait --key swap_start_screen_marker
+--timeout 30`, after its original Start preparation. It refuses before
+publication. The exact inner wait cause and warning, PoW or capture predicate
+states were not exported and remain NOT_ESTABLISHED. The first-use P2P warning
+is a source-supported path to investigate; it is not established as that
+native failure's cause. Three preceding recipes returned to the workflow,
+but their final receipts/effects were not separately exported. Project remains
+unreached, all four copied components incomplete and F06 unqualified. No old
+profile, password, send or seed operation is retried.
+
+A separate five-minute windows-11-arm job is selected by the existing
+windows_inventory_only input. Its checkout retains no credentials and its
+permission is contents read. It records 29 closed source/run/platform facts,
+bounded CIM observations and tool/feature presence. It installs or downloads
+nothing and starts no SDK, wallet, node, VM, container or Docker Desktop.
+Unknown fields remain null. Intel/AMD CPU virtualization flags do not qualify
+Arm nested virtualization; every runtime, Docker Linux mode, P03 and P09
+qualification remains false until independently established. No paid runner,
+subscription, repository setting or installation is selected. Hosted PowerShell
+execution and actual platform facts remain pending at publication.
+
+The Windows artifact inspector now admits an entry-only producer whose
+baseline job was skipped with no steps. It emits baseline_not_selected,
+does not request a baseline log and grants no baseline runtime qualification.
+Both jobs skipped, inconsistent skipped steps and all original baseline or
+archive refusals remain refused. Two meaningful Python controls cover the
+entry-only positive path with no baseline log request and invalid skipped
+selection. The existing source190 entry producer is not rerun and no local
+archive transport is added. All four source190 pairs remain reviewed with
+zero complete matches.
+
+All original 21 dispatch inputs and the chain321 job bytes remain unchanged;
+the new workflow hash requires a fresh source-bound gate-order proof before
+another native attempt. All 354 exact memory controls pass without local
+SDK/native/network or scratch operations. Contracts become 819 Python, 462
+ordinary Dart and 464 startup Dart. Dart sources, app assets, native actions,
+queries, callbacks, clocks and selected test arguments remain unchanged.
+Fresh hosted qualification and metadata-only inspection are separate from
+full current Windows/runtime acceptance. Main acceptance stays 71/80; ninety
+outputs, nineteen preparations, all 94 matches, current full root, DLL
+initialization, unfiltered chain and Docker Desktop/lab.sh remain open.
