@@ -9622,3 +9622,29 @@ extractions removed. No physical reclaim is claimed. Main acceptance remains
 71/80; ninety outputs, nineteen preparations, all 94 matches, the current full
 root, DLL initialization, unfiltered chain and Docker Desktop/lab.sh remain
 open. The separate Windows Arm/entry-inspector proposal is not included here.
+
+
+### Correct original Token lookup and fixture analysis findings
+
+Source191 `407c36830188`, run
+[40991840592](https://github.com/edgepillar/syrius/actions/runs/40991840592),
+passes all 815 Python cases with three existing skips and both asset commands.
+The original analysis process exits three normally with complete output, two
+errors, zero warnings and one info. Dart is skipped; no Token engine or native
+acceptance is inferred. This result remains preserved at its original source.
+
+The new Agent capture now uses the existing `_find` method with the same exact
+reference and button-kind guard. It had called an undefined `_resolve` method.
+The original `dart:ui show PointerDeviceKind` import, inadvertently omitted
+while ordering fixture directives, is restored for the unchanged original
+Project mouse-pointer test. The Token fixture retains its same Navigator.push
+route and callbacks, with only the unnecessary unawaited wrapper removed.
+All thirteen new Token cases, original assertions, registrations, selected
+files, strict zero-finding gates and 815 Python/462 ordinary/464 startup Dart
+contracts remain. No suppression, limit relaxation, new SDK query, publication,
+confirmation read or product action is added. Fresh hosted qualification must
+pass before a new isolated chain and profile is started. Source190's successful
+449-case result, Native98's original positive and copied targetMissing failure,
+the explicit seed-order correction and all earlier FAILURE/UNKNOWN outcomes
+retain their separate bindings. Full redesign acceptance remains 71/80, with
+ninety outputs, nineteen preparations and all 94 matches still open.

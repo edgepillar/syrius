@@ -1520,7 +1520,7 @@ class HarnessAgent {
   SeedTokenPresentation _captureSeedTokenPresentation(
     int reference, String owner,
   ) {
-    final _Node original = _resolve(
+    final _Node original = _find(
       <String, dynamic>{'ref': reference},
       kinds: const <String>['button'],
     );

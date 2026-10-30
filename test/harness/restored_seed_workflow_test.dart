@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui' show PointerDeviceKind;
 
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/services.dart';
@@ -413,7 +414,7 @@ class _TokenRoute {
                 Center(child: OutlinedButton(
                   key: const Key('open_original_token'),
                   onPressed: () {
-                    unawaited(Navigator.push<void>(context,
+                    Navigator.push<void>(context,
                       MaterialPageRoute<void>(builder: (BuildContext screen) {
                         route = ModalRoute.of(screen);
                         return ValueListenableBuilder<int>(
@@ -428,7 +429,7 @@ class _TokenRoute {
                           ),
                         );
                       }),
-                    ));
+                    );
                   },
                   child: const Text('Open original Token'),
                 )),
