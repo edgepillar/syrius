@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/services.dart';
@@ -195,9 +194,7 @@ void main() {
         ui.Image? image;
         try {
           image = await picture.toImage(128, 32);
-          final ByteData? bytes = await image.toByteData(
-            format: ui.ImageByteFormat.rawRgba,
-          );
+          final ByteData? bytes = await image.toByteData();
           expect(bytes, isNotNull);
           int left = 127;
           int top = 31;
