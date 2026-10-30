@@ -25,11 +25,21 @@ Future<void> _frames(WidgetTester tester) async {
 
 Future<void> _close(WidgetTester tester, Future<void> original) async {
   bool done = false;
-  final Future<void> observed = original.whenComplete(() => done = true);
-  for (int frame = 0; frame < 20 && !done; frame++) {
+  Object? error;
+  StackTrace? trace;
+  unawaited(original.then((_) { done = true; },
+    onError: (Object value, StackTrace stack) {
+      error = value;
+      trace = stack;
+      done = true;
+    },
+  ));
+  for (int frame = 0; frame < 120 && !done; frame++) {
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
     await tester.pump(const Duration(milliseconds: 50));
   }
-  await observed;
+  expect(done, isTrue);
+  if (error != null) Error.throwWithStackTrace(error!, trace!);
 }
 
 SeedDepositPresentation _presentation({
