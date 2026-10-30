@@ -14,6 +14,7 @@ from . import inspect_windows_inventory as inventory
 from . import dart_test_failure
 from . import windows_baseline as baseline
 from . import windows_entry_capture_smoke as entry
+from . import inspect_startup_qualification as startup
 
 
 MAX_LOG = 4 * 1024**2
@@ -287,6 +288,21 @@ def main():
         PHASE = 'job_metadata'
         listing = client.json('/actions/runs/' + text + '/attempts/1/jobs?per_page=20')
         archive.need(listing['total_count'] == len(listing['jobs']) <= 20)
+        startup_jobs = [job for job in listing['jobs'] if job['name'] == startup.JOB_NAME]
+        archive.need(len(startup_jobs) <= 1)
+        if startup_jobs and startup_jobs[0]['conclusion'] != 'skipped':
+            job = startup_jobs[0]
+            archive.need(all(other['head_sha'] == head and other['run_id'] == run_id
+                and other['status'] == 'completed' and other['conclusion'] == 'skipped'
+                for other in listing['jobs'] if other is not job))
+            PHASE = 'startup_artifacts'
+            for summary in startup.inspect_run(
+                    client, head=head, tree=tree, run_id=run_id, job=job):
+                title = ('Hosted natural startup inspection'
+                         if summary['scope'] == 'retained_natural_release_startup_observation'
+                         else 'Hosted original startup inspection')
+                emit(title, summary)
+            return 0
         jobs = {}
         for name in ('Hosted Windows baseline', 'Ordinary Windows entry captures'):
             selected = [job for job in listing['jobs']

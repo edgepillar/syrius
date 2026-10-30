@@ -163,6 +163,10 @@ jobs:
         timeout-minutes: 3
         run: python -B -m tool.ci.windows_startup_probe
 
+      - name: Observe natural startup in a fresh original process
+        timeout-minutes: 3
+        run: python -B -m tool.ci.windows_startup_probe --natural-only
+
       - name: Retain only finite startup observations
         if: always() && hashFiles('.harness/ci-startup-probe/manifest.json') != ''
         uses: actions/upload-artifact@v7
@@ -172,6 +176,16 @@ jobs:
           include-hidden-files: true
           if-no-files-found: error
           path: .harness/ci-startup-probe/manifest.json
+
+      - name: Retain only finite natural startup observations
+        if: always() && hashFiles('.harness/ci-natural-startup-probe/manifest.json') != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-natural-startup-probe-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          compression-level: 0
+          include-hidden-files: true
+          if-no-files-found: error
+          path: .harness/ci-natural-startup-probe/manifest.json
 
   harness-tests-only:
     if: inputs.harness_tests_only

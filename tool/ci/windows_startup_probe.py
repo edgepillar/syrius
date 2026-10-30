@@ -13,6 +13,7 @@ import os
 from pathlib import Path
 import secrets
 import socket
+import stat
 import subprocess
 import sys
 
@@ -24,6 +25,8 @@ from .windows_wallet_tour import RECIPE_ENTRY_PHASES, RECIPE_STARTUP_FILM_STATES
 BINARY = Path('build/windows/x64/runner/Release/syrius.exe')
 PAYLOAD = BINARY.parent / 'data/app.so'
 OUTPUT = Path('.harness/ci-startup-probe/manifest.json')
+NATURAL_OUTPUT = Path('.harness/ci-natural-startup-probe/manifest.json')
+MAX_MANIFEST = 128 * 1024
 LIMITS = bounded.Limits(total=90, ready=45, request=20, poll=.25)
 STARTUP_SECONDS = 20
 MAX_SAMPLES = 96
@@ -33,7 +36,7 @@ CHECKS = ('environment', 'source', 'profile', 'preflight', 'identity', 'auth',
 CODES = bounded.CODES | frozenset((
     'ENTRY_UNAVAILABLE', 'ENTRY_HELD', 'ENTRY_INVALID', 'WINDOW_INVALID',
     'WINDOW_RESTORE_FAILED', 'STARTUP_OBSERVATION_REFUSED', 'STARTUP_DEADLINE',
-    'PROGRESS_REFUSED', 'ARTIFACT_FAILED',
+    'PROGRESS_REFUSED', 'ARTIFACT_FAILED', 'PRIOR_STARTUP_REFUSED',
 ))
 STAGES = frozenset(('idle', 'previous', 'asset', 'codec', 'frame', 'resize',
                     'display', 'disposing', 'complete'))
@@ -88,8 +91,12 @@ def sample_projection(value):
 
 
 class Report(bounded.Report):
-    def __init__(self):
+    def __init__(self, *, natural_only=False):
+        if type(natural_only) is not bool:
+            raise Failure('ARGUMENTS_REFUSED')
         super().__init__()
+        self.natural_only = natural_only
+        self.prior_manifest_sha256 = None
         self.checks = dict.fromkeys(CHECKS, False)
         self.source_tree = self.run_id = self.run_attempt = None
         self.payload_sha256 = None
@@ -123,11 +130,16 @@ class Report(bounded.Report):
                     and self.handoff in ('key-confirmed', 'natural')
                     and integer(self.key_attempts, 0, 1)
                     and self.key_attempts == (self.handoff == 'key-confirmed')
+                    and (not self.natural_only or (
+                        self.handoff == 'natural' and self.key_attempts == 0
+                        and bounded.safe_digest(self.prior_manifest_sha256) is not None
+                        and all(not value.get('progress', {}).get('skip', False)
+                                for value in samples if value is not None)))
                     and not self.startup_deadline_expired and not self.errors
                     and self.exit_observed and type(self.exit_code) is int
                     and self.exit_code == 0 and not self.forced_kill
                     and self.output_complete and not self.output_overflow)
-        return dict(
+        public = dict(
             schema=1, scope='original_release_startup_observation',
             source_sha=self.source_sha if bounded.valid_sha(self.source_sha) else None,
             source_tree=self.source_tree if bounded.valid_sha(self.source_tree) else None,
@@ -153,6 +165,13 @@ class Report(bounded.Report):
             wallet_qualified=False, chain_qualified=False, visual_matches=0,
             financial_actions_requested=0, node_cluster_started=False,
         )
+        if self.natural_only:
+            public.update(
+                scope='original_release_natural_startup_observation',
+                prior_manifest_sha256=bounded.safe_digest(self.prior_manifest_sha256),
+                original_natural_qualified=complete,
+            )
+        return public
 
     def summary(self):
         public = self.public()
@@ -160,7 +179,8 @@ class Report(bounded.Report):
         samples = public['samples']
         summary = {key: value for key, value in public.items() if key != 'samples'}
         summary.update(
-            scope='original_release_startup_summary',
+            scope=('original_release_natural_startup_summary' if self.natural_only
+                   else 'original_release_startup_summary'),
             report_sha256=hashlib.sha256(encoded).hexdigest(),
             sample_count=len(samples),
             first_sample=samples[0] if samples else None,
@@ -172,9 +192,101 @@ class Report(bounded.Report):
         return summary
 
 
+def observation_projection(value, *, head, tree, run_id, run_attempt,
+                           runner_sha256, payload_sha256, natural_only=False,
+                           prior_manifest_sha256=None):
+    """Validate a closed original report without starting or polling anything."""
+    if type(natural_only) is not bool or type(value) is not dict:
+        return None
+    observed = Report(natural_only=natural_only)
+    if set(value) != set(observed.public()):
+        return None
+    boolean_fields = ('samples_valid', 'startup_deadline_expired', 'exit_observed',
+                      'forced_kill', 'output_complete', 'output_overflow',
+                      'complete', 'success', 'original_skip_qualified',
+                      'wallet_qualified', 'chain_qualified', 'node_cluster_started')
+    if (any(type(value[name]) is not bool for name in boolean_fields)
+            or (natural_only and type(value['original_natural_qualified']) is not bool)
+            or any(type(value[name]) is not int or value[name] != expected
+                   for name, expected in (('schema', 1),
+                       ('startup_deadline_seconds', STARTUP_SECONDS),
+                       ('visual_matches', 0), ('financial_actions_requested', 0)))
+            or type(value['checks']) is not dict or set(value['checks']) != set(CHECKS)
+            or any(type(flag) is not bool for flag in value['checks'].values())
+            or type(value['samples']) is not list or len(value['samples']) > MAX_SAMPLES
+            or type(value['error_codes']) is not list
+            or any(type(code) is not str or code not in CODES
+                   for code in value['error_codes'])
+            or len(value['error_codes']) != len(set(value['error_codes']))
+            or (value['key_attempts'] is not None
+                and not integer(value['key_attempts'], 0, 1))
+            or (value['exit_code'] is not None
+                and not integer(value['exit_code'], -(2 ** 31), 2 ** 32 - 1))):
+        return None
+    expected = dict(source_sha=head, source_tree=tree, run_id=run_id,
+                    run_attempt=run_attempt, runner_sha256=runner_sha256,
+                    payload_sha256=payload_sha256)
+    if (not bounded.valid_sha(head) or not bounded.valid_sha(tree)
+            or entry.anonymous_number(run_id) is None
+            or entry.anonymous_number(run_id) != run_id
+            or entry.anonymous_number(run_attempt, 6) is None
+            or entry.anonymous_number(run_attempt, 6) != run_attempt
+            or bounded.safe_digest(runner_sha256) is None
+            or bounded.safe_digest(runner_sha256) != runner_sha256
+            or bounded.safe_digest(payload_sha256) is None
+            or bounded.safe_digest(payload_sha256) != payload_sha256
+            or any(value[name] != item for name, item in expected.items())
+            or (natural_only and (
+                bounded.safe_digest(prior_manifest_sha256) is None
+                or value['prior_manifest_sha256'] != prior_manifest_sha256))):
+        return None
+    for name, item in expected.items():
+        setattr(observed, name, item)
+    for name in ('checks', 'samples', 'handoff', 'key_attempts',
+                 'startup_deadline_expired', 'exit_code', 'exit_observed',
+                 'forced_kill', 'output_complete', 'output_overflow'):
+        setattr(observed, name, value[name])
+    observed.errors = list(value['error_codes'])
+    observed.prior_manifest_sha256 = prior_manifest_sha256
+    projected = observed.public()
+    return projected if projected == value else None
+
+
+def require_prior_observation(repo, report):
+    """Bind the first normal complete exit before allocating a second profile."""
+    try:
+        for relative in (Path('.harness'), OUTPUT.parent):
+            if not stat.S_ISDIR(bounded.plain(repo / relative).st_mode):
+                raise Failure('PRIOR_STARTUP_REFUSED')
+        source = repo / OUTPUT
+        info = bounded.plain(source)
+        if not stat.S_ISREG(info.st_mode) or not 0 < info.st_size <= MAX_MANIFEST:
+            raise Failure('PRIOR_STARTUP_REFUSED')
+        with source.open('rb') as stream:
+            raw = stream.read(MAX_MANIFEST + 1)
+        if len(raw) != info.st_size:
+            raise Failure('PRIOR_STARTUP_REFUSED')
+        prior = observation_projection(
+            json.loads(raw), head=report.source_sha, tree=report.source_tree,
+            run_id=report.run_id, run_attempt=report.run_attempt,
+            runner_sha256=report.runner_sha256,
+            payload_sha256=report.payload_sha256,
+        )
+        if prior is None or prior['success'] is not True:
+            raise Failure('PRIOR_STARTUP_REFUSED')
+        return hashlib.sha256(raw).hexdigest()
+    except (Exception, KeyboardInterrupt):
+        raise Failure('PRIOR_STARTUP_REFUSED') from None
+
+
 class StartupProbe(bounded.PresentationSmoke):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, natural_only=False, **kwargs):
+        if type(natural_only) is not bool:
+            raise Failure('ARGUMENTS_REFUSED')
         super().__init__(*args, **kwargs)
+        if self.report.natural_only != natural_only:
+            raise Failure('ARGUMENTS_REFUSED')
+        self.natural_only = natural_only
         self.authenticated = self.window_changed = False
         self.original_window = None
         self.started = self.clock()
@@ -241,6 +353,10 @@ class StartupProbe(bounded.PresentationSmoke):
         try:
             while self.clock() < until:
                 view = self._observe(until)
+                progress = view.get('startupFilmProgress')
+                if (self.natural_only
+                        and type(progress) is dict and progress.get('skip') is True):
+                    raise Failure('STARTUP_OBSERVATION_REFUSED')
                 if self._entry_ready(until):
                     self.report.handoff = self.report.handoff or 'natural'
                     self.report.checks['startup_ready'] = True
@@ -252,7 +368,7 @@ class StartupProbe(bounded.PresentationSmoke):
                          and row.get('key') == 'launch_skip_hint']
                 if len(hints) > 1:
                     raise Failure('STARTUP_OBSERVATION_REFUSED')
-                if (self.report.key_attempts == 0
+                if (not self.natural_only and self.report.key_attempts == 0
                         and view['entryPhase'] == 'startup-before-initialization'
                         and type(view.get('startupFilmProgress')) is dict
                         and view['startupFilmProgress'].get('skip') is False
@@ -341,8 +457,10 @@ def main(arguments=None):
     process = drain = destination = None
     try:
         arguments = sys.argv[1:] if arguments is None else arguments
-        if arguments:
+        if type(arguments) is not list or arguments not in ([], ['--natural-only']):
             raise Failure('ARGUMENTS_REFUSED')
+        natural_only = arguments == ['--natural-only']
+        report = Report(natural_only=natural_only)
         parent, expected = entry.require_ci(os.environ, None, platform=os.name)
         if (parent.get('GITHUB_EVENT_NAME') != 'workflow_dispatch'
                 or parent.get('SYRIUS_WINDOWS_STARTUP_PROBE') != 'true'):
@@ -359,13 +477,16 @@ def main(arguments=None):
         report.checks['source'] = True
         binary, report.runner_sha256, binary_identity = bounded.binary_hash(repo, BINARY)
         payload, report.payload_sha256, payload_identity = bounded.binary_hash(repo, PAYLOAD)
+        if natural_only:
+            report.prior_manifest_sha256 = require_prior_observation(repo, report)
         bounded.check_no_existing(repo, parent)
         report.checks['preflight'] = True
         profile = entry.new_profile(repo)
         report.checks['profile'] = True
-        directory = repo / OUTPUT.parent
+        output = NATURAL_OUTPUT if natural_only else OUTPUT
+        directory = repo / output.parent
         directory.mkdir(mode=0o700)
-        destination = directory / OUTPUT.name
+        destination = directory / output.name
         token = secrets.token_urlsafe(32)
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as reservation:
             reservation.bind(('127.0.0.1', 0))
@@ -380,7 +501,8 @@ def main(arguments=None):
             stderr=subprocess.STDOUT, bufsize=0)
         drain = bounded.OutputDrain(process.stdout, LIMITS.output_bytes)
         session = StartupProbe(process, bounded.LoopbackTransport(
-            port, LIMITS.response_bytes), token, drain, report, limits=LIMITS)
+            port, LIMITS.response_bytes), token, drain, report, limits=LIMITS,
+            natural_only=natural_only)
         process = None  # The session keeps the original handle through cleanup.
         session.run()
         for relative, digest, original in (
@@ -414,7 +536,9 @@ def main(arguments=None):
     print(text)
     summary = json.dumps(report.summary(), sort_keys=True, separators=(',', ':'))
     if len(summary.encode('ascii')) <= 3800:
-        print('::notice title=Original Release startup summary::' + summary)
+        title = ('Original natural Release startup summary' if report.natural_only
+                 else 'Original Release startup summary')
+        print('::notice title=' + title + '::' + summary)
     return 0 if public['success'] else 1
 
 
