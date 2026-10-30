@@ -80,6 +80,7 @@ import 'fixtures/lab_seed_binding.dart';
 import 'fixtures/lab_send_policy.dart';
 import 'fixtures/lab_send_ui_binding.dart';
 import 'fixtures/seed_commands.dart';
+import 'fixtures/seed_deposit_entry.dart';
 import 'fixtures/seed_policy.dart';
 import 'fixtures/seed_project_presentation.dart';
 import 'fixtures/seed_token_presentation.dart';
@@ -90,6 +91,7 @@ import 'presentation_close.dart';
 import 'presentation_host.dart';
 import 'presentation_mode.dart';
 import 'recipe_control_admission.dart';
+import 'seed_deposit_entry_binding.dart';
 import 'seed_project_presentation_binding.dart';
 import 'seed_token_presentation_binding.dart';
 import 'theme_control.dart';
@@ -844,6 +846,7 @@ class HarnessAgent {
             c,
             booted: booted,
             ui: _run,
+            captureDepositEntry: _captureSeedDepositEntry,
             captureProjectPresentation: _captureSeedProjectPresentation,
             captureTokenPresentation: _captureSeedTokenPresentation,
             tap: (Map<String, dynamic> selector, void Function() admission) =>
@@ -1494,6 +1497,25 @@ class HarnessAgent {
     } on Object {
       throw HarnessError('restored-lab-observation-refused');
     }
+  }
+
+  SeedDepositEntry _captureSeedDepositEntry(String owner) {
+    final List<Element> visible = _snapshot()
+        .map((_Node node) => node.element).toList(growable: false);
+    return captureSeedDepositEntry(visible, expectedOwner: owner,
+      tapOriginal: (Element element, VoidCallback admission) async {
+        admission();
+        final List<_Node> controls = _snapshot().where(
+          (_Node node) => node.kind == 'button' &&
+              identical(node.element, element),
+        ).toList();
+        if (controls.length != 1) {
+          throw const SeedRefused('original-deposit-entry-changed');
+        }
+        await _tap(<String, dynamic>{'ref': controls.single.ref},
+            requireAdmission: admission);
+      },
+    );
   }
 
   SeedProjectPresentation _captureSeedProjectPresentation(int reference) {

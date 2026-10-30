@@ -171,6 +171,7 @@ def main():
             'test/harness/addresses_selection_test.dart',
             'test/harness/lab_transfer_witness_test.dart',
             'test/harness/seed_policy_test.dart',
+            'test/harness/seed_deposit_entry_test.dart',
             'test/harness/lab_send_policy_test.dart',
             'test/harness/lab_send_journal_test.dart',
             'test/harness/lab_send_ui_binding_test.dart',

@@ -1696,3 +1696,21 @@ Source178 698b6aa6e146 / 40923449810 passes 804 Python cases with three existing
 Source178 Native94 40924934871 and independent 40928315041 retain the original producer conclusion failure. Original UI send: qualified; twelve-page tour: qualified; copied reopen: unqualified; six seed effects: unqualified. No old profile, password, send or seed operation is retried. Earlier failures and UNKNOWN outcomes remain source-bound. The copied child advances past the earlier stake wait to fuse command seven, publish reply, then refuses with exact-confirmation-or-effect-pending. Completed confirmation versus effect subresults are not distinguished. Command progress is not an exported final stake receipt, fuse confirmation or six-effect qualification
 
 The additional list refresh is read-only. The original publication callback, initial refresh, six-height allowance and unresolved hashes remain. An observed count is not a final seed receipt or a substitute for all six independently qualified effects.
+
+
+### Original Deposit entry preparation
+
+The Deposit recipe observes one current entry after its original Start pointer.
+If the actual first-use warning is present, it uses that same warning owner,
+callback and Continue control once, through the normal guarded pointer path.
+If the owned real Start modal is already open, this preparation returns without
+a pointer. Missing, ambiguous, replaced or covered views and a changed chain or
+wallet context remain held. No preference is written by the harness and no
+Navigator call is added there. The existing warning callback owns consent and
+its existing preference write; the original 30-second Start-marker wait and
+publication/confirmation/effect gates remain unchanged. This preparation never
+publishes, reads a chain or authorizes a recipe retry.
+
+The new real-warning/Start-view cases use finite fixture routes. They do not
+qualify the production SwapListView preference handoff or a native seed effect.
+Those require a fresh, separately qualified isolated chain/profile attempt.

@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../../harness/app/fixtures/fixture_cleanup.dart';
 import '../../harness/app/fixtures/seed_commands.dart';
+import '../../harness/app/fixtures/seed_deposit_entry.dart';
 import '../../harness/app/fixtures/seed_policy.dart';
 
 String _hash(int value) => value.toRadixString(16).padLeft(64, '0');
@@ -541,4 +542,105 @@ void main() {
       await _turns();
     },
   );
+
+  test('Deposit warning preparation observes one owner without SDK or publication', () async {
+    final _Fixture fixture = _Fixture();
+    await fixture.allow();
+    final _Source source = _Source();
+    final _Journal journal = _Journal();
+    final SeedCommands commands = SeedCommands.withFixtureAdmission(
+      fixture: fixture.cleanup,
+      guard: SeedGuard(source: source, journal: journal, delay: source.delay),
+      recipe: 'deposit',
+    );
+    int captures = 0;
+    int pointers = 0;
+    Future<Map<String, Object?>> prepare() => commands.run(
+      <String, dynamic>{'action': 'prepare',
+        'selector': <String>['--key', 'p2p_warning_continue']},
+      booted: false,
+      ui: (_) async => throw StateError('No generic UI request'),
+      tap: (_, _) async => throw StateError('No generic pointer'),
+      captureDepositEntry: (String owner) {
+        captures++;
+        expect(owner, source.environment.owner);
+        return SeedDepositEntry.warning(originalCurrent: () => true,
+          tapOriginalContinue: (void Function() admission) async {
+            admission(); pointers++; admission();
+          },
+        );
+      },
+    );
+    expect(await prepare(), <String, Object?>{'prepared': true});
+    await expectLater(prepare(), _refused('original-deposit-entry-held'));
+    expect(captures, 1);
+    expect(pointers, 1);
+    expect(source.reads, 0);
+    expect(source.confirmations, 0);
+    expect(journal.claims, 0);
+    expect(source.operations, isEmpty);
+  });
+
+  test('Deposit entry refuses context replacement during its observation', () async {
+    final _Fixture fixture = _Fixture();
+    await fixture.allow();
+    final _Source source = _Source();
+    final _Journal journal = _Journal();
+    final SeedCommands commands = SeedCommands.withFixtureAdmission(
+      fixture: fixture.cleanup,
+      guard: SeedGuard(source: source, journal: journal, delay: source.delay),
+      recipe: 'deposit',
+    );
+    int captures = 0;
+    int pointers = 0;
+    Future<Map<String, Object?>> prepare() => commands.run(
+      <String, dynamic>{'action': 'prepare',
+        'selector': <String>['--key', 'p2p_warning_continue']},
+      booted: false,
+      ui: (_) async => throw StateError('No generic UI request'),
+      tap: (_, _) async => throw StateError('No generic pointer'),
+      captureDepositEntry: (_) {
+        captures++;
+        source.isCurrent = false;
+        return SeedDepositEntry.warning(originalCurrent: () => true,
+          tapOriginalContinue: (_) async { pointers++; });
+      },
+    );
+    await expectLater(prepare(), _refused('original-context-changed'));
+    source.isCurrent = true;
+    await expectLater(prepare(), _refused('original-context-changed'));
+    expect(captures, 1);
+    expect(pointers, 0);
+    expect(source.reads, 0);
+    expect(journal.claims, 0);
+  });
+
+  test('a held fixture refuses Deposit entry before its observation', () async {
+    final _Fixture fixture = _Fixture();
+    final _Source source = _Source();
+    final _Journal journal = _Journal();
+    final SeedCommands commands = SeedCommands.withFixtureAdmission(
+      fixture: fixture.cleanup,
+      guard: SeedGuard(source: source, journal: journal, delay: source.delay),
+      recipe: 'deposit',
+    );
+    int captures = 0;
+    await expectLater(commands.run(
+      <String, dynamic>{'action': 'prepare',
+        'selector': <String>['--key', 'p2p_warning_continue']},
+      booted: false,
+      ui: (_) async => throw StateError('No generic UI request'),
+      tap: (_, _) async => throw StateError('No generic pointer'),
+      captureDepositEntry: (_) {
+        captures++;
+        return SeedDepositEntry.ready(originalCurrent: () => true);
+      },
+    ), _refused('close-current-fixture-first'));
+    expect(captures, 0);
+    expect(source.reads, 0);
+    expect(journal.claims, 0);
+    fixture.retire();
+    fixture.close.complete();
+    await _turns();
+  });
 }

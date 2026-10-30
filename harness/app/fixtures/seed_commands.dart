@@ -6,6 +6,7 @@ import '../../seed/seed_recipe.dart';
 import 'fixture_cleanup.dart';
 import 'lab_seed_binding.dart';
 import 'presentation_fixtures.dart';
+import 'seed_deposit_entry.dart';
 import 'seed_policy.dart';
 import 'seed_project_presentation.dart';
 import 'seed_token_presentation.dart';
@@ -32,6 +33,7 @@ final class SeedCommands {
   SeedSource? _source;
   String? _recipe;
   bool _confirmed = false;
+  bool _depositEntryAttempted = false;
   FixtureCleanup? _fixture;
   String? get fixtureName => _fixture?.heldName;
 
@@ -44,6 +46,7 @@ final class SeedCommands {
       void Function(),
     )
     tap,
+    SeedDepositEntry Function(String)? captureDepositEntry,
     SeedProjectPresentation Function(int)? captureProjectPresentation,
     SeedTokenPresentation Function(int, String)? captureTokenPresentation,
   }) async {
@@ -78,6 +81,7 @@ final class SeedCommands {
         _source = source;
         _recipe = recipe;
         _confirmed = false;
+        _depositEntryAttempted = false;
         _projectPresentation = null;
         _tokenPresentation = null;
         _guard = SeedGuard(source: source, journal: journal);
@@ -113,6 +117,20 @@ final class SeedCommands {
           recipe,
           raw.cast<String>(),
         );
+        if (recipe == 'deposit' && exact['key'] == 'p2p_warning_continue') {
+          if (_depositEntryAttempted) {
+            throw const SeedRefused('original-deposit-entry-held');
+          }
+          _depositEntryAttempted = true;
+          final SeedDepositEntry Function(String)? capture = captureDepositEntry;
+          if (capture == null) {
+            throw const SeedRefused('original-deposit-entry-required');
+          }
+          final SeedDepositEntry original = capture(source.environment.owner);
+          requirePreparation();
+          await original.prepare(requirePreparation);
+          return <String, Object?>{'prepared': true};
+        }
         final Map<String, Object?> visible = await ui(<String, dynamic>{
           'cmd': 'assert',
           ...exact,

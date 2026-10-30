@@ -159,6 +159,7 @@ Map<String, Object> seedPreparationTarget(String recipe, List<String> words) {
     },
     'deposit' => const <String>{
       '--key p2p_start_swap',
+      '--key p2p_warning_continue',
       '--key swap_action_details_toggle',
     },
     'project' => const <String>{
