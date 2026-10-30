@@ -1,5 +1,6 @@
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/segment.dart';
@@ -7,6 +8,13 @@ import 'package:zenon_syrius_wallet_flutter/screens/onboarding/entry_card_surfac
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/import_wallet/import_draft.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
+
+// Draw the reference contour with the existing SVG renderer.
+const String _fileSymbol =
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" '
+    'fill="none" stroke="currentColor" stroke-width="1.8" '
+    'stroke-linecap="round" stroke-linejoin="round">'
+    '<path d="M6 2h8l6 6v14H6zM14 2v6h6"/></svg>';
 
 /// Only owner-supplied draft data and callbacks enter this import view.
 class ImportSurface extends StatelessWidget {
@@ -224,15 +232,24 @@ class ImportSurface extends StatelessWidget {
             child: Column(
               spacing: tokens.importDropGap,
               children: <Widget>[
-                Icon(
-                  fileRefused || pickerFailed
-                      ? Icons.error_outline
-                      : Icons.insert_drive_file_outlined,
-                  size: tokens.importDropIconSize,
-                  color: fileRefused || pickerFailed
-                      ? tokens.error
-                      : tokens.faint,
-                ),
+                if (fileRefused || pickerFailed)
+                  Icon(
+                    Icons.error_outline,
+                    size: tokens.importDropIconSize,
+                    color: tokens.error,
+                  )
+                else
+                  SvgPicture.string(
+                    _fileSymbol,
+                    key: const Key('import_file_symbol'),
+                    width: tokens.importDropIconSize,
+                    height: tokens.importDropIconSize,
+                    colorFilter: ColorFilter.mode(
+                      tokens.faint,
+                      BlendMode.srcIn,
+                    ),
+                    excludeFromSemantics: true,
+                  ),
                 Text(
                   pickerFailed
                       ? context.l10n.importFileOpenFailed

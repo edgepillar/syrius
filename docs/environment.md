@@ -1,5 +1,45 @@
 # Redesign build environment
 
+## Qualified caption focus and original Import symbol follow-up (2026-10-30T16:15Z)
+
+[Source217 c2cd55a6d61d / focused 41079289917](https://github.com/edgepillar/syrius/actions/runs/41079289917)
+qualifies 858 Python cases with three existing skips, all 517 ordinary Dart
+cases without skips, both original asset commands/fourteen phases and selected
+analysis with zero errors, warnings or infos. All 393 memory controls pass.
+Every existing focus, tooltip, semantics, Tab/Shift-Tab, geometry and callback
+assertion remains. Source216's original focus-lookup failure retains its 516
+passes, one error/failure and unexported inner exception; it is not rewritten.
+
+[Entry 41080724302](https://github.com/edgepillar/syrius/actions/runs/41080724302)
+and [independent inspection 41081926989](https://github.com/edgepillar/syrius/actions/runs/41081926989)
+bind four genuine 1280x780 PNGs, eighteen original checks, four native caption
+observations and normal complete unforced zero app exit with 2255 output bytes.
+Four capture scopes, 31 effects and one original artwork owner restore. The
+slowest original PNG encoding is 2440 ms; this establishes no cross-run speedup.
+All four actual/reference pairs are viewed with zero complete matches. Minimize
+and close bounds agree throughout; dark maximize agrees and light maximize has
+one differing right-edge pixel. Wordmark and remaining body geometry/rendering
+differences retain their scope and the approved palette/font-hinting exceptions.
+
+The 577352-byte archive transfers once with exact digest and normal complete
+zero exit. A later local metadata-lock failure during review receipt/closure
+is preserved. Its exact owned task closes with FAILURE after original process
+and command-group checks. The verified archive, original reports and all
+historical evidence remain; only owned reproducible extraction is removed.
+Neither transport nor runtime is repeated. The manager and storage policy are
+unchanged; its documented per-caller passive metadata wait completes closure.
+
+The Import document symbol is the next concrete difference. Original pixel
+coverage is [631,337,649,360] in dark and [630,337,649,360] in light; the
+reference is [632,336,650,361]. Its Material symbol differs from the canonical
+SVG path. The follow-up uses that exact path, its 1.8 stroke and the existing
+flutter_svg dependency at the same 28-pixel token size. The original error icon,
+private draft/file owners, callbacks and test registrations remain. Fresh 393
+memory controls, 858 Python/517 ordinary Dart, selected analysis and genuine
+entry geometry remain pending for this source. The main ledger stays 71/80;
+all nine original open rows, ninety missing outputs, nineteen preparations and
+all 94 matches remain open. Native103 stays UNKNOWN; Native104 is not admitted.
+
 ## Caption focus locator follow-up (2026-10-30T15:14Z)
 
 [Source216 3897e2fa2c1f / focused 41077192395](https://github.com/edgepillar/syrius/actions/runs/41077192395)
