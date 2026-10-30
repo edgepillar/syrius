@@ -372,7 +372,7 @@ activate a spork there as a test.
 The manual Public Contribution Qualification workflow has a default-off
 `harness_tests_only` input. Select it with the other execution lanes disabled
 to run the isolated controller suite, locked dependency restoration, selected
-analysis and the 184-case harness gate on a fresh Windows runner. It uses one
+analysis and the exact source-bound harness gate on a fresh Windows runner. It uses one
 pinned Flutter SDK and does not build a native wallet or allocate lab nodes.
 Before SDK allocation, it also observes the unchanged original in-memory asset
 byte controls through a bounded command wrapper. Only runtime version, actual
@@ -408,3 +408,24 @@ labels. Native CI rejects unknown or extra diagnostic fields and never emits
 raw HTTP/SDK errors, paths, addresses or hashes. A failure diagnostic is not a
 send receipt or original actor-closure proof. Earlier null-code failures keep
 their original unknown scope.
+
+
+## Native inspection startup
+
+The harness entrypoint recognizes `SYRIUS_CI_READONLY_INSPECTION=true` only
+on Windows GitHub Actions with presentation absent. Other supplied values
+refuse before native startup. The original agent reserves before `app.main`
+and reports only pending `ping` until the initialized process/registered SDK
+and original preference service/open Hive box have been sealed and attached.
+Publication admission pauses before the original automatic-receive preference
+write. Each later command checks the retained SDK scope before and after its
+original handler. Financial commands are unavailable in this mode.
+
+The receipt covers `readonly_native_sdk_admission`. Inspection can change
+local UI preferences inside its owned profile; the receipt does not prove
+wallet, client, socket, image or chain acceptance. Those owners need separate
+checks after wallet opening. Ordinary `harness/h start` strips inherited
+inspection flags and refuses to reuse an inspection host as an ordinary
+wallet. The mode is not an ordinary launcher option. A separately admitted
+fresh CI controller and actual native qualification remain pending; the
+original mandatory-send tour, seed recipes and F06 are unchanged.

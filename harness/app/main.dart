@@ -15,6 +15,8 @@ import 'client_window.dart';
 import 'native_window_owner.dart';
 import 'presentation_host.dart';
 import 'presentation_mode.dart';
+import 'readonly_native_mode.dart';
+import 'readonly_sdk_binding.dart';
 
 const String _protocolKey = r'HKCU\Software\Classes\syrius';
 
@@ -60,11 +62,23 @@ Future<void> main() async {
     exit(64);
   }
 
+  final bool readonlyNative;
+  try {
+    readonlyNative = harnessReadonlyNativeRequested(
+      env,
+      windows: Platform.isWindows,
+      presentation: presentation,
+    );
+  } on ReadonlyNativeModeRefused {
+    stderr.writeln('syrius harness: native inspection requires Windows CI');
+    exit(64);
+  }
   // The agent needs a binding before app.main() runs, and the first binding
   // created is the one the process keeps. A plain one here would switch the
   // app's own off, and the harness would then drive a wallet whose animations
   // shorten under reduced motion while the shipped one's do not.
   MotionBinding.ensureInitialized();
+  if (readonlyNative) HarnessAgent.instance.reserveReadonlyNative();
 
   if (presentation != null) {
     final HarnessPresentationController controller =
@@ -111,6 +125,9 @@ Future<void> main() async {
     await app.main();
   } finally {
     _restoreProtocolCommand(previous);
+  }
+  if (readonlyNative) {
+    HarnessAgent.instance.attachReadonlyNative(await sealReadonlyNativeSdk());
   }
   HarnessAgent.instance.booted = true;
 }

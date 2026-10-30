@@ -36,7 +36,7 @@ FILES = ('wallet_tour_test.dart', 'build_output_test.dart',
     'import_wallet_seed_choice_screen.dart', 'native_entry_capture.dart',
     'retained_png.dart', 'retained_renderer_frame.dart',
     'readonly_sdk_admission.dart', 'readonly_sdk_binding.dart',
-    'readonly_native_commands.dart',
+    'readonly_native_commands.dart', 'readonly_native_mode.dart',
     'launch_decode_observation_test.dart')
 # The root baseline also runs suites outside the focused harness. These
 # labels are versioned test basenames, never names taken from error text.
@@ -269,7 +269,9 @@ ROOT_TEST_FILES = (
     'rail_navigation_test.dart',
     'rail_test.dart',
     'read_ownership_test.dart',
+    'readonly_native_agent_test.dart',
     'readonly_native_commands_test.dart',
+    'readonly_native_mode_test.dart',
     'readonly_sdk_admission_test.dart',
     'readonly_sdk_binding_test.dart',
     'realtime_statistics_cubit_test.dart',

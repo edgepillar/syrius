@@ -92,6 +92,9 @@ import 'native_window_owner.dart';
 import 'presentation_close.dart';
 import 'presentation_host.dart';
 import 'presentation_mode.dart';
+import 'readonly_native_commands.dart';
+import 'readonly_native_mode.dart';
+import 'readonly_sdk_admission.dart';
 import 'recipe_control_admission.dart';
 import 'retained_png.dart';
 import 'seed_deposit_entry_binding.dart';
@@ -424,6 +427,12 @@ class HarnessAgent {
   Future<Map<String, Object?>> commandForTest(Map<String, dynamic> command) =>
       _run(command);
 
+  /// Exercises the actual authenticated transport with an owned test request.
+  /// Keeps the original command queue without creating a listening server.
+  @visibleForTesting
+  Future<void> serveForTest(HttpRequest request, String token) =>
+      _serve(request, token);
+
   static final HarnessAgent _instance = HarnessAgent._();
 
   static const int _device = 97;
@@ -454,6 +463,7 @@ class HarnessAgent {
   bool _labRestoredReadAttempted = false;
   HarnessPresentationController? _presentation;
   NativeEntryCapture? _nativeEntry;
+  ReadonlyNativeCommands? _readonlyNative;
   StatefulElement? _lockViewOwner;
   bool _lockViewBound = false;
   bool _lockViewRetired = false;
@@ -480,6 +490,30 @@ class HarnessAgent {
   CaptureFrameReceipt? get captureFrameForTest => _captureFrames.receipt;
 
   static HarnessAgent get instance => _instance;
+
+  /// Reserves before native entry, startup or any private remote command.
+  void reserveReadonlyNative() {
+    if (_modeSelected ||
+        booted ||
+        _readonlyNative != null ||
+        _presentation != null ||
+        _nativeEntry != null) {
+      throw HarnessError('the harness host mode is already reserved');
+    }
+    _readonlyNative = ReadonlyNativeCommands(
+      isBooted: () => booted,
+      original: _runWalletCommand,
+    );
+  }
+
+  /// Attaches the initialized original SDK before reporting app readiness.
+  void attachReadonlyNative(ReadonlySdkAdmission admission) {
+    final ReadonlyNativeCommands? original = _readonlyNative;
+    if (original == null) {
+      throw HarnessError('native inspection is not reserved');
+    }
+    original.attach(admission);
+  }
 
   /// The ordinary Windows process retains one native entry scope from startup.
   void useNativeEntry({required NativeWindowOwner window}) {
@@ -551,7 +585,10 @@ class HarnessAgent {
     required bool Function() isCurrent,
     required BuildContext? Function() context,
   }) {
-    if (_modeSelected || booted || _presentation != null) {
+    if (_modeSelected ||
+        booted ||
+        _presentation != null ||
+        _readonlyNative != null) {
       throw HarnessError('the harness host mode is already reserved');
     }
     _modeSelected = true;
@@ -603,12 +640,20 @@ class HarnessAgent {
         if (e.detail != null) 'detail': e.detail,
       };
     } on Object catch (e, st) {
-      status = 500;
-      out = <String, Object?>{
-        'ok': false,
-        'error': e.toString(),
-        'stack': st.toString(),
-      };
+      final String? refused = _readonlyNative == null
+          ? null
+          : readonlyNativeRefusalCode(e);
+      if (refused != null) {
+        status = 400;
+        out = <String, Object?>{'ok': false, 'error': refused};
+      } else {
+        status = 500;
+        out = <String, Object?>{
+          'ok': false,
+          'error': e.toString(),
+          'stack': st.toString(),
+        };
+      }
     }
     req.response
       ..statusCode = status
@@ -618,6 +663,8 @@ class HarnessAgent {
   }
 
   Future<Map<String, Object?>> _run(Map<String, dynamic> c) async {
+    final ReadonlyNativeCommands? readonlyNative = _readonlyNative;
+    if (readonlyNative != null) return readonlyNative.run(c);
     final HarnessPresentationController? presentation = _presentation;
     if (presentation != null) {
       return _runPresentation(presentation, c);

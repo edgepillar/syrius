@@ -1,3 +1,5 @@
+import 'readonly_native_mode.dart';
+
 /// Selects a separate read-only host before any production wallet startup.
 const String harnessPresentationEnvironment = 'SYRIUS_HARNESS_PRESENTATION';
 
@@ -69,6 +71,7 @@ Map<String, String> harnessLaunchEnvironment(
     'SYRIUS_HARNESS_PORT',
     'SYRIUS_HARNESS_TOKEN',
     harnessPresentationEnvironment,
+    harnessReadonlyNativeEnvironment,
   };
   return <String, String>{
     for (final MapEntry<String, String> entry in parent.entries)

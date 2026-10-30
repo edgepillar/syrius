@@ -1,0 +1,325 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/original_publications.dart';
+
+import '../../harness/app/agent.dart';
+import '../../harness/app/presentation_host.dart';
+import '../../harness/app/readonly_native_commands.dart';
+import '../../harness/app/readonly_sdk_admission.dart';
+
+class _Scope {
+  final Object sdk = Object();
+  final HarnessAgent agent = HarnessAgent.forTest();
+  bool current = true;
+  bool disabled = false;
+
+  Future<ReadonlySdkAdmission> seal() => ReadonlySdkAdmission.seal(
+    sdkOwner: sdk,
+    ownersCurrent: () => current,
+    automaticDisabled: () => disabled,
+    disableAutomatic: () async {
+      disabled = true;
+    },
+  );
+
+  Future<void> open() async {
+    agent.reserveReadonlyNative();
+    agent.attachReadonlyNative(await seal());
+    agent.booted = true;
+  }
+
+  Future<Map<String, Object?>> ping() =>
+      agent.commandForTest(<String, dynamic>{'cmd': 'ping'});
+}
+
+class _Headers extends Fake implements HttpHeaders {
+  _Headers([this._token]);
+
+  final String? _token;
+
+  @override
+  ContentType? contentType;
+
+  @override
+  String? value(String name) => name == 'x-harness-token' ? _token : null;
+}
+
+class _Response extends Fake implements HttpResponse {
+  final StringBuffer _output = StringBuffer();
+  bool _closed = false;
+
+  @override
+  final HttpHeaders headers = _Headers();
+
+  @override
+  int statusCode = 200;
+
+  bool get closed => _closed;
+
+  Map<String, dynamic> get body =>
+      jsonDecode(_output.toString()) as Map<String, dynamic>;
+
+  @override
+  void write(Object? value) => _output.write(value);
+
+  @override
+  Future<void> close() async {
+    _closed = true;
+  }
+}
+
+class _Request extends Stream<List<int>> implements HttpRequest {
+  _Request(Map<String, dynamic> command, {String token = 'fixture-token'})
+    : headers = _Headers(token),
+      _body = utf8.encode(jsonEncode(command));
+
+  final List<int> _body;
+
+  @override
+  final HttpHeaders headers;
+
+  @override
+  final _Response response = _Response();
+
+  @override
+  StreamSubscription<List<int>> listen(
+    void Function(List<int>)? onData, {
+    Function? onError,
+    void Function()? onDone,
+    bool? cancelOnError,
+  }) => Stream<List<int>>.value(_body).listen(
+    onData,
+    onError: onError,
+    onDone: onDone,
+    cancelOnError: cancelOnError,
+  );
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('Unexpected synthetic request member');
+}
+
+void main() {
+  test('ordinary original ping keeps the wallet mode without SDK sealing',
+      () async {
+    final HarnessAgent agent = HarnessAgent.forTest();
+    final Map<String, Object?> result =
+        await agent.commandForTest(<String, dynamic>{'cmd': 'ping'});
+    expect(result['harnessMode'], 'wallet');
+    expect(result['booted'], isFalse);
+    expect(result.containsKey('readonlyAdmission'), isFalse);
+  });
+
+  test('reserved startup exposes only pending ping before SDK admission',
+      () async {
+    final _Scope scope = _Scope();
+    scope.agent.reserveReadonlyNative();
+    final Map<String, Object?> pending = await scope.ping();
+    expect(pending['booted'], isFalse);
+    expect(pending['harnessMode'], 'readonly-native');
+    expect(pending.containsKey('pid'), isFalse);
+    for (final String command in <String>['state', 'type', 'readonly-state']) {
+      await expectLater(
+        scope.agent.commandForTest(<String, dynamic>{'cmd': command}),
+        throwsA(isA<ReadonlyNativeCommandRefused>()),
+      );
+    }
+    expect(OriginalPublications.snapshot(scope.sdk), isEmpty);
+  });
+
+  test('sealed readiness uses the original agent ping and fixed SDK scope',
+      () async {
+    final _Scope scope = _Scope();
+    await scope.open();
+    final Map<String, Object?> result = await scope.ping();
+    expect(result['pid'], pid);
+    expect(result['booted'], isTrue);
+    expect(result['harnessMode'], 'readonly-native');
+    expect(result['readonlyAdmission'], <String, Object>{
+      'schema': 1,
+      'scope': 'readonly_native_sdk_admission',
+      'status': 'CURRENT',
+      'publicationAdmissionPaused': true,
+      'automaticReceiveDisabled': true,
+    });
+    expect(scope.disabled, isTrue);
+  });
+
+  test('financial routes cannot bypass the original agent admission',
+      () async {
+    final _Scope scope = _Scope();
+    await scope.open();
+    for (final String command in <String>[
+      'seed', 'lab-send', 'lab-quiesce', 'lab-reopen-observe',
+      'wallet-recipe', 'clipboard',
+    ]) {
+      await expectLater(
+        scope.agent.commandForTest(<String, dynamic>{'cmd': command}),
+        throwsA(isA<ReadonlyNativeCommandRefused>()),
+      );
+    }
+    expect(OriginalPublications.snapshot(scope.sdk), isEmpty);
+    expect(OriginalPublications.hasRefusedAdmission(scope.sdk), isFalse);
+    expect((await scope.ping())['booted'], isTrue);
+  });
+
+  test('early readiness cannot attach an SDK after its failed observation',
+      () async {
+    final _Scope scope = _Scope();
+    scope.agent
+      ..reserveReadonlyNative()
+      ..booted = true;
+    await expectLater(scope.ping(),
+        throwsA(isA<ReadonlyNativeCommandRefused>()));
+    scope.agent.booted = false;
+    final ReadonlySdkAdmission sdk = await scope.seal();
+    expect(() => scope.agent.attachReadonlyNative(sdk),
+        throwsA(isA<ReadonlyNativeCommandRefused>()));
+  });
+
+  test('a used or booted ordinary agent cannot reserve inspection later',
+      () async {
+    final HarnessAgent used = HarnessAgent.forTest();
+    await used.commandForTest(<String, dynamic>{'cmd': 'ping'});
+    expect(used.reserveReadonlyNative, throwsA(isA<HarnessError>()));
+    final HarnessAgent booted = HarnessAgent.forTest()..booted = true;
+    expect(booted.reserveReadonlyNative, throwsA(isA<HarnessError>()));
+  });
+
+  test('presentation and original native inspection are mutually exclusive',
+      () {
+    final HarnessPresentationController controller =
+        HarnessPresentationController();
+    addTearDown(controller.dispose);
+    final HarnessAgent preview = HarnessAgent.forTest();
+    preview.usePresentation(
+      controller: controller,
+      isCurrent: () => true,
+      context: () => null,
+    );
+    expect(preview.reserveReadonlyNative, throwsA(isA<HarnessError>()));
+    final HarnessAgent native = HarnessAgent.forTest()
+      ..reserveReadonlyNative();
+    expect(
+      () => native.usePresentation(
+        controller: controller,
+        isCurrent: () => true,
+        context: () => null,
+      ),
+      throwsA(isA<HarnessError>()),
+    );
+  });
+
+  test('a changed SDK observation stays held after restoration', () async {
+    final _Scope scope = _Scope();
+    await scope.open();
+    scope.current = false;
+    await expectLater(scope.ping(),
+        throwsA(isA<ReadonlySdkAdmissionRefused>()));
+    scope.current = true;
+    await expectLater(scope.ping(),
+        throwsA(isA<ReadonlyNativeCommandRefused>()));
+  });
+
+  test('the actual original ping await cannot borrow changed SDK ownership',
+      () async {
+    final _Scope scope = _Scope();
+    await scope.open();
+    final Future<void> refused = expectLater(
+      scope.ping(),
+      throwsA(isA<ReadonlySdkAdmissionRefused>()),
+    );
+    scope.current = false;
+    await refused;
+  });
+
+  test('an original UI refusal stays exact while its SDK remains current',
+      () async {
+    final _Scope scope = _Scope();
+    await scope.open();
+    await expectLater(
+      scope.agent.commandForTest(<String, dynamic>{'cmd': 'entry-check'}),
+      throwsA(isA<HarnessError>().having(
+        (HarnessError error) => error.message,
+        'original error',
+        'native entry capture is unavailable',
+      )),
+    );
+    expect((await scope.ping())['booted'], isTrue);
+  });
+
+  test('duplicate attachment cannot supply a second positive SDK scope',
+      () async {
+    final _Scope scope = _Scope();
+    scope.agent.reserveReadonlyNative();
+    final ReadonlySdkAdmission sdk = await scope.seal();
+    scope.agent.attachReadonlyNative(sdk);
+    expect(() => scope.agent.attachReadonlyNative(sdk),
+        throwsA(isA<ReadonlyNativeCommandRefused>()));
+    scope.agent.booted = true;
+    await expectLater(scope.ping(),
+        throwsA(isA<ReadonlyNativeCommandRefused>()));
+  });
+
+  test('an unreserved agent cannot attach an inspection SDK', () async {
+    final _Scope scope = _Scope();
+    final ReadonlySdkAdmission sdk = await scope.seal();
+    expect(() => scope.agent.attachReadonlyNative(sdk),
+        throwsA(isA<HarnessError>()));
+  });
+
+  test('actual transport keeps pending refusals finite without raw errors',
+      () async {
+    final HarnessAgent agent = HarnessAgent.forTest()
+      ..reserveReadonlyNative();
+    final _Request request = _Request(<String, dynamic>{'cmd': 'type'});
+    await agent.serveForTest(request, 'fixture-token');
+    expect(request.response.statusCode, 400);
+    expect(request.response.closed, isTrue);
+    expect(request.response.body, <String, Object>{
+      'ok': false,
+      'error': 'READONLY_NATIVE_COMMAND_REFUSED',
+    });
+    expect(request.response.headers.contentType, ContentType.json);
+  });
+
+  test('actual transport projects a replaced SDK without private details',
+      () async {
+    final _Scope scope = _Scope();
+    await scope.open();
+    scope.current = false;
+    final _Request request = _Request(<String, dynamic>{'cmd': 'ping'});
+    await scope.agent.serveForTest(request, 'fixture-token');
+    expect(request.response.statusCode, 400);
+    expect(request.response.closed, isTrue);
+    expect(request.response.body, <String, Object>{
+      'ok': false,
+      'error': 'READONLY_NATIVE_SDK_REFUSED',
+    });
+  });
+
+  test('original authentication and ordinary transport errors stay intact',
+      () async {
+    final HarnessAgent agent = HarnessAgent.forTest();
+    final _Request wrong = _Request(
+      <String, dynamic>{'cmd': 'ping'},
+      token: 'another-fixture-token',
+    );
+    await agent.serveForTest(wrong, 'fixture-token');
+    expect(wrong.response.body, <String, Object>{
+      'ok': false,
+      'error': 'bad token',
+    });
+    final _Request unknown = _Request(<String, dynamic>{'cmd': 'unknown'});
+    await agent.serveForTest(unknown, 'fixture-token');
+    expect(unknown.response.statusCode, 400);
+    expect(unknown.response.closed, isTrue);
+    expect(unknown.response.body, <String, Object>{
+      'ok': false,
+      'error': 'unknown command unknown',
+    });
+  });
+}
