@@ -1,5 +1,29 @@
 # Redesign build environment
 
+## Trace initializer and test cascade follow-up (2026-10-30T17:30Z)
+
+[Source219 0e1587d1ea9a / focused 41097991599](https://github.com/edgepillar/syrius/actions/runs/41097991599)
+passes all 866 Python cases with three existing skips and both original asset
+commands/fourteen phases. Its original analyzer exits zero normally with
+complete output, zero errors/warnings and two infos: PREFER_INITIALIZING_FORMALS
+at entry_capture_progress line 86 and CASCADE_INVOCATIONS at its test line 160.
+The strict zero-info gate fails and Dart is skipped. Its 401 fresh memory
+controls pass. No source219 native capture is dispatched and the original
+analysis refusal is retained.
+
+The follow-up uses a positional initializing formal for the same private trace
+writer and adapts its three existing call sites. The negative sink test applies
+the same three calls directly to its construction cascade. Every callback,
+original Future, effect, assertion, clock, cap and 520/522 ordinary/startup
+selection remains. No dependency, workflow, RPC, retry, publication or timeout
+changes. Fresh current-source controls and hosted zero-info analysis/Dart
+execution are required before a new native admission. Source218's original
+first-Welcome TIMEOUT, zero captures, unavailable progress and forced close
+remain independently preserved. No original producer, profile or operation
+is retried. The main ledger remains 71/80 with zero accepted matches; all nine
+open gates, ninety missing outputs and nineteen preparations remain. Native103
+is UNKNOWN and Native104 is not admitted.
+
 ## Passive native effect observations (2026-10-30T17:09Z)
 
 [Source218 focused 41089818495](https://github.com/edgepillar/syrius/actions/runs/41089818495)

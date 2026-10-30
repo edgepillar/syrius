@@ -82,8 +82,7 @@ Map<String, Object?>? projectEntryEffectTrace(Map<String, Object?> value) {
 /// Writes bounded fixed observations without replacing an original outcome.
 final class EntryEffectTraceEmitter {
   /// The native host supplies its existing blocking stdout sink.
-  EntryEffectTraceEmitter({required void Function(String) write})
-    : _write = write;
+  EntryEffectTraceEmitter(this._write);
 
   final void Function(String) _write;
   int _events = 0;

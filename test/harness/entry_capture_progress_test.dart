@@ -151,13 +151,10 @@ void main() {
 
   test('failed diagnostic output stops without rendering its error', () {
     int calls = 0;
-    final EntryEffectTraceEmitter emitter = EntryEffectTraceEmitter(
-      write: (String _) {
-        calls++;
-        throw _PrivateError();
-      },
-    );
-    emitter
+    EntryEffectTraceEmitter((String _) {
+      calls++;
+      throw _PrivateError();
+    })
       ..add(<String, Object?>{..._trace(), 'error': _PrivateError()})
       ..add(_trace())
       ..add(_trace());
@@ -167,7 +164,7 @@ void main() {
   test('reentrant diagnostic writes reserve their bounded output first', () {
     final List<String> lines = <String>[];
     late final EntryEffectTraceEmitter emitter;
-    emitter = EntryEffectTraceEmitter(write: (String line) {
+    emitter = EntryEffectTraceEmitter((String line) {
       lines.add(line);
       if (lines.length == 1) emitter.add(_trace());
     });

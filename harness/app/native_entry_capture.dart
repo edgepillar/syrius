@@ -56,7 +56,7 @@ final class NativeEntryCapture {
   final EntryEffectTraceEmitter? _effectTrace =
       Platform.isWindows &&
           Platform.environment['SYRIUS_CI_ENTRY_EFFECT_TRACE'] == 'true'
-      ? EntryEffectTraceEmitter(write: stdout.writeln)
+      ? EntryEffectTraceEmitter(stdout.writeln)
       : null;
   _EntryOwners? _owners;
   _EarlyEntryOwners? _early;
