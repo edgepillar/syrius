@@ -59,12 +59,13 @@ class _DepositRoute {
           as CapturedSwapModal<StartNativeSwapModal>;
 
   Future<SeedDepositPresentation> submit(
-    WidgetTester tester, {bool light = false},
-  ) async {
+    WidgetTester tester, {
+    bool light = false,
+  }) async {
     await tester.pumpWidget(swapHost(Builder(
       builder: (BuildContext context) => OutlinedButton(
         key: const Key('fixture_home'),
-        onPressed: () => unawaited(showDialog<void>(
+        onPressed: () => showDialog<void>(
           context: context,
           builder: (_) => StatefulBuilder(
             builder: (_, StateSetter update) {
@@ -77,7 +78,7 @@ class _DepositRoute {
               );
             },
           ),
-        )),
+        ),
         child: const Text('Home'),
       ),
     ), navigator: navigator, light: light));
@@ -107,8 +108,7 @@ class _DepositRoute {
         exits++;
         await pointer.up();
       },
-    );
-    captured.requireCaptured();
+    )..requireCaptured();
     await tester.tap(button);
     await _frames(tester);
     expect(source.publications, 1);
@@ -124,8 +124,7 @@ void main() {
     final SeedDepositPresentation original = _presentation(
       route: route.future,
       tap: (VoidCallback admission) async { admission(); exits++; },
-    );
-    original.requireCaptured();
+    )..requireCaptured();
     final Future<void> pending = original.close(actionHash(1), () {});
     await Future<void>.value();
     expect(exits, 1);
@@ -256,9 +255,9 @@ void main() {
           fixture.redraw(() => fixture.revision++);
           await _frames(tester);
         case 'covered':
-          unawaited(fixture.navigator.currentState!.push<void>(
+          fixture.navigator.currentState!.push<void>(
             MaterialPageRoute<void>(builder: (_) => const Text('Covered')),
-          ));
+          );
           await _frames(tester);
         case 'result':
           state.shownResult = SwapActionResult(

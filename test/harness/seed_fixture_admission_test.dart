@@ -663,6 +663,7 @@ void main() {
           admission();
           publications++;
           source.operations.add(_Original());
+          return <String, Object?>{};
         },
         captureDepositPresentation: phase == 'missing' ? null
             : (int reference, String owner) {
@@ -716,13 +717,14 @@ void main() {
         admission(); exits++; route.complete(null);
       },
     );
-    SeedCommands commands(bool confirmed) => SeedCommands.withFixtureAdmission(
+    SeedCommands commands({required bool confirmed}) =>
+        SeedCommands.withFixtureAdmission(
       fixture: fixture.cleanup, guard: guard, recipe: 'deposit',
       confirmed: confirmed, depositPresentation: presentation,
     );
-    await expectLater(_run(commands(false), 'finish'),
+    await expectLater(_run(commands(confirmed: false), 'finish'),
         _refused('exact-confirmation-required'));
-    final SeedCommands original = commands(true);
+    final SeedCommands original = commands(confirmed: true);
     await expectLater(_run(original, 'finish'),
         _refused('close-current-fixture-first'));
     expect(exits, 0);
