@@ -482,6 +482,7 @@ def analyze(parent, repo):
         'harness/app/fixtures/seed_deposit_entry.dart',
         'harness/app/seed_deposit_entry_binding.dart',
         'test/harness/seed_deposit_entry_test.dart',
+        'test/harness/seed_fixture_admission_test.dart',
         'harness/app/seed_token_presentation_binding.dart',
         'lib/rearchitecture/features/registration_success/registration_confirmation.dart',
         'test/harness/seed_policy_test.dart',
@@ -582,6 +583,7 @@ def analyze(parent, repo):
                                         else 'deposit_entry' if relative.endswith('/harness/app/fixtures/seed_deposit_entry.dart')
                                         else 'deposit_entry_binding' if relative.endswith('/harness/app/seed_deposit_entry_binding.dart')
                                         else 'seed_deposit_entry_test' if relative.endswith('/test/harness/seed_deposit_entry_test.dart')
+                                        else 'seed_fixture_admission_test' if relative.endswith('/test/harness/seed_fixture_admission_test.dart')
                                         else 'token_presentation' if relative.endswith('/harness/app/fixtures/seed_token_presentation.dart')
                                         else 'token_presentation_binding' if relative.endswith('/harness/app/seed_token_presentation_binding.dart')
                                         else 'registration_confirmation' if relative.endswith('/lib/rearchitecture/features/registration_success/registration_confirmation.dart')

@@ -122,7 +122,8 @@ final class SeedCommands {
             throw const SeedRefused('original-deposit-entry-held');
           }
           _depositEntryAttempted = true;
-          final SeedDepositEntry Function(String)? capture = captureDepositEntry;
+          final SeedDepositEntry Function(String)? capture =
+              captureDepositEntry;
           if (capture == null) {
             throw const SeedRefused('original-deposit-entry-required');
           }
