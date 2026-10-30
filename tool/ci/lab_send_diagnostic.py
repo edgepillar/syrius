@@ -102,6 +102,9 @@ ORIGINAL_STATES = frozenset((
 ))
 
 
+DISPLAY_ERRORS = frozenset(('node_not_synced', 'generic_failure', 'other'))
+
+
 CONFIRMATION_STATES = frozenset(('absent', 'unconfirmed'))
 
 
@@ -150,6 +153,7 @@ def _confirmation(value):
 def valid(value):
     if (type(value) is not dict or set(value) not in (
             {'phase', 'reason'}, {'phase', 'reason', 'original'},
+            {'phase', 'reason', 'original', 'display_error'},
             {'phase', 'reason', 'frontier'},
             {'phase', 'reason', 'confirmation'})
             or type(value['phase']) is not str or type(value['reason']) is not str
@@ -163,6 +167,11 @@ def valid(value):
         return (value['phase'] == 'preflight'
                 and value['reason'] == 'advancing-momentum-required'
                 and _frontier(value['frontier']))
+    if 'display_error' in value and (
+            value['original'] != 'sender_failed'
+            or type(value['display_error']) is not str
+            or value['display_error'] not in DISPLAY_ERRORS):
+        return False
     return ('original' not in value or (
         value['phase'] == 'confirmation'
         and value['reason'] == 'original-outcome-unknown'

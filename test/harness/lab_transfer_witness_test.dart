@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/bloc/send_transaction/send_transaction_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/model/send_intent.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/address_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
@@ -25,6 +26,13 @@ class _Sender extends SendTransactionBloc {
   );
 
   void offer(SendTransactionState value) => emit(value);
+}
+
+class _PrivateDisplayError extends SyriusException {
+  _PrivateDisplayError() : super('Synthetic private diagnostic');
+
+  @override
+  String toString() => throw StateError('Private display errors cannot be read');
 }
 
 class _Fixture {
@@ -134,6 +142,7 @@ void main() {
     expect((await handle.result).accepted, isFalse);
     await Future<void>.delayed(Duration.zero);
     expect(witness.observedState, 'sender_failed');
+    expect(witness.observedDisplayError, 'generic_failure');
     expect(witness.acceptedHash, isNull);
     expect(witness.error, isNotNull);
     expect(witness.settled, isTrue);
@@ -320,5 +329,74 @@ void main() {
     expect(witness.failed, isTrue);
     expect(witness.result, isNull);
     expect(fixture.calls, 1);
+  });
+
+  test('a real request retains its typed display failure without retry',
+      () async {
+    final _Fixture fixture = _Fixture();
+    final LabTransferWitness witness = fixture.witness();
+    final NodeNotSyncedException original =
+        NodeNotSyncedException(message: 'Synthetic private diagnostic');
+    expect(witness.observedDisplayError, isNull);
+    final SendRequestHandle handle = fixture.sender.trySubmitTransfer(
+      fixture.intent.toEvent(),
+    )!;
+    await Future<void>.delayed(Duration.zero);
+    expect(witness.observedDisplayError, isNull);
+    fixture.answer.completeError(original);
+    final SendRequestResult result = await handle.result;
+    await Future<void>.delayed(Duration.zero);
+    expect(result.error, same(original));
+    expect(result.accepted, isFalse);
+    expect(witness.error, same(original));
+    for (int read = 0; read < 3; read++) {
+      expect(witness.observedDisplayError, 'node_not_synced');
+      expect(witness.observedState, 'sender_failed');
+      expect(witness.result, isNull);
+      expect(witness.acceptedHash, isNull);
+    }
+    expect(fixture.calls, 1);
+    await witness.close();
+    expect(witness.observedDisplayError, isNull);
+    expect(witness.failed, isTrue);
+    expect(fixture.calls, 1);
+  });
+
+  test('unclassified terminal display errors never invoke private text',
+      () async {
+    final _Fixture fixture = _Fixture();
+    final LabTransferWitness witness = fixture.witness();
+    final _PrivateDisplayError original = _PrivateDisplayError();
+    fixture.sender
+      ..offer(SendTransactionState(status: SendTransactionStatus.loading,
+        requestId: fixture.intent.requestId))
+      ..offer(SendTransactionState(status: SendTransactionStatus.failure,
+        requestId: fixture.intent.requestId, error: original));
+    await Future<void>.delayed(Duration.zero);
+    expect(witness.observedDisplayError, 'other');
+    expect(witness.error, same(original));
+    expect(witness.observedState, 'sender_failed');
+    expect(witness.result, isNull);
+    expect(witness.acceptedHash, isNull);
+    expect(fixture.calls, 0);
+  });
+
+  test('another request cannot supply this witness display failure', () async {
+    final _Fixture fixture = _Fixture();
+    final LabTransferWitness witness = fixture.witness();
+    final Object other = Object();
+    fixture.sender
+      ..offer(SendTransactionState(status: SendTransactionStatus.loading,
+        requestId: other))
+      ..offer(SendTransactionState(status: SendTransactionStatus.failure,
+        requestId: other,
+        error: NodeNotSyncedException(message: 'Synthetic other request')));
+    await Future<void>.delayed(Duration.zero);
+    expect(witness.started, isFalse);
+    expect(witness.observedDisplayError, isNull);
+    expect(witness.error, isNull);
+    expect(witness.result, isNull);
+    expect(witness.acceptedHash, isNull);
+    expect(fixture.calls, 0);
   });
 }

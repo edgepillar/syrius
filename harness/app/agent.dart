@@ -1216,6 +1216,10 @@ class HarnessAgent {
           review != null &&
           identical(_labSendGuard?.original, review.witness)) {
         labels['original'] = review.witness.observedState;
+        if (labels['original'] == 'sender_failed') {
+          final String? displayError = review.witness.observedDisplayError;
+          if (displayError != null) labels['display_error'] = displayError;
+        }
       }
       if (phase == 'confirmation' && reason == 'exact-confirmation-pending' &&
           review != null &&

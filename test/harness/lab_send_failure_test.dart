@@ -274,4 +274,52 @@ void main() {
       }), isNull);
     }
   });
+
+  test('display labels are copied only for the same failed original scope', () {
+    for (final String kind in labSendFailureDisplayErrors) {
+      final Map<String, Object> input = <String, Object>{
+        'phase': 'confirmation', 'reason': 'original-outcome-unknown',
+        'original': 'sender_failed', 'display_error': kind,
+      };
+      final Map<String, Object> result = labSendPublicDiagnostic(input)!;
+      input['display_error'] = 'private';
+      expect(result['display_error'], kind);
+      expect(result['original'], 'sender_failed');
+      expect(() => result['display_error'] = 'other', throwsUnsupportedError);
+      expect(LabSendDiagnosticFailure(result).diagnostic, result);
+    }
+  });
+
+  test('private display errors or misplaced labels refuse the whole payload',
+      () {
+    final Map<String, Object?> input = <String, Object?>{
+      'phase': 'confirmation', 'reason': 'original-outcome-unknown',
+      'original': 'sender_failed', 'display_error': 'node_not_synced',
+    };
+    for (final Object? value in <Object?>[
+      null, true, 1, '', 'private', 'node_not_synced\n', _PrivateValue(),
+    ]) {
+      expect(labSendPublicDiagnostic(<String, Object?>{
+        ...input, 'display_error': value,
+      }), isNull);
+    }
+    for (final String state in labSendFailureOriginalStates) {
+      if (state == 'sender_failed') continue;
+      expect(labSendPublicDiagnostic(<String, Object?>{
+        ...input, 'original': state,
+      }), isNull);
+    }
+    for (final Map<String, Object?> change in <Map<String, Object?>>[
+      <String, Object?>{'phase': 'accept'},
+      <String, Object?>{'reason': 'exact-confirmation-pending'},
+      <String, Object?>{'hash': 'private'},
+      <String, Object?>{'confirmed': true},
+    ]) {
+      expect(labSendPublicDiagnostic(<String, Object?>{
+        ...input, ...change,
+      }), isNull);
+    }
+    input.remove('original');
+    expect(labSendPublicDiagnostic(input), isNull);
+  });
 }

@@ -102,6 +102,13 @@ const Set<String> labSendFailureOriginalStates = <String>{
   'result_observed',
 };
 
+/// The already-retained display error, never a raw error or original cause.
+const Set<String> labSendFailureDisplayErrors = <String>{
+  'node_not_synced',
+  'generic_failure',
+  'other',
+};
+
 /// Closed results of completed reads, without a positive confirmation.
 const Set<String> labSendFailureConfirmationStates = <String>{
   'absent',
@@ -184,7 +191,7 @@ Map<String, Object>? _confirmationObservation(Object? value) {
 
 /// Returns an independent immutable projection, or refuses the whole payload.
 Map<String, Object>? labSendPublicDiagnostic(Object? value) {
-  if (value is! Map || (value.length != 2 && value.length != 3) ||
+  if (value is! Map || value.length < 2 || value.length > 4 ||
       !value.keys.toSet().containsAll(<String>{'phase', 'reason'}) ||
       !labSendFailurePhases.contains(value['phase']) ||
       !labSendFailureReasons.contains(value['reason'])) {
@@ -207,16 +214,28 @@ Map<String, Object>? labSendPublicDiagnostic(Object? value) {
       confirmationObservation == null)) {
     return null;
   }
-  if (value.length == 3 && !frontier && !confirmation &&
-      (!value.containsKey('original') || value['phase'] != 'confirmation' ||
-          value['reason'] != 'original-outcome-unknown' ||
-          value['original'] is! String ||
-          !labSendFailureOriginalStates.contains(value['original']))) {
+  final bool original = value.containsKey('original');
+  if (original && (value['phase'] != 'confirmation' ||
+      value['reason'] != 'original-outcome-unknown' ||
+      value['original'] is! String ||
+      !labSendFailureOriginalStates.contains(value['original']))) {
+    return null;
+  }
+  final bool displayError = value.containsKey('display_error');
+  if (displayError && (!original || value.length != 4 ||
+      value['original'] != 'sender_failed' ||
+      value['display_error'] is! String ||
+      !labSendFailureDisplayErrors.contains(value['display_error']))) {
+    return null;
+  }
+  if (value.length != 2 + (original ? 1 : 0) + (frontier ? 1 : 0) +
+      (confirmation ? 1 : 0) + (displayError ? 1 : 0)) {
     return null;
   }
   return Map<String, Object>.unmodifiable(<String, Object>{
     'phase': value['phase'] as String, 'reason': value['reason'] as String,
-    if (value.containsKey('original')) 'original': value['original'] as String,
+    if (original) 'original': value['original'] as String,
+    if (displayError) 'display_error': value['display_error'] as String,
     if (frontier) 'frontier': observation!,
     if (confirmation) 'confirmation': confirmationObservation!,
   });

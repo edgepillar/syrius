@@ -340,6 +340,7 @@ class LabSendDiagnosticTests(unittest.TestCase):
         for name, expected in (('Phases', tour.lab_send_diagnostic.PHASES),
                                ('Reasons', tour.lab_send_diagnostic.REASONS),
                                ('OriginalStates', tour.lab_send_diagnostic.ORIGINAL_STATES),
+                               ('DisplayErrors', tour.lab_send_diagnostic.DISPLAY_ERRORS),
                                ('FrontierNumbers', tour.lab_send_diagnostic.FRONTIER_NUMBERS),
                                ('ConfirmationStates', tour.lab_send_diagnostic.CONFIRMATION_STATES)):
             match = re.search(r'const Set<String> labSendFailure' + name +
@@ -379,6 +380,37 @@ class LabSendDiagnosticTests(unittest.TestCase):
         self.assertFalse(tour.completed(report))
         report['lab_send'] = OriginalSendTests.receipt()
         self.assertFalse(tour.completed(report))
+
+
+    def test_display_error_labels_cannot_establish_send_or_lifecycle_success(self):
+        for label in tour.lab_send_diagnostic.DISPLAY_ERRORS:
+            value = dict(stage='lab_send', code=None, diagnostic=dict(
+                phase='confirmation', reason='original-outcome-unknown',
+                original='sender_failed', display_error=label))
+            self.assertIs(tour.entry_failure(value), value)
+            report = CompletionTests().report()
+            report.update(lab_send=None, entry_exit=1, entry_failure=value)
+            self.assertFalse(tour.completed(report))
+            report['lab_send'] = OriginalSendTests.receipt()
+            self.assertFalse(tour.completed(report))
+
+    def test_display_error_labels_refuse_private_and_cross_request_shapes(self):
+        original = dict(phase='confirmation', reason='original-outcome-unknown',
+                        original='sender_failed', display_error='node_not_synced')
+        changes = [dict(display_error=value) for value in
+                   (None, True, 1, '', 'private', 'node_not_synced\n',
+                    {'message': 'private'})]
+        changes += [dict(original=state) for state in
+                    tour.lab_send_diagnostic.ORIGINAL_STATES if state != 'sender_failed']
+        changes += [dict(phase='accept'), dict(reason='exact-confirmation-pending'),
+                    dict(hash='private'), dict(confirmed=True)]
+        for change in changes:
+            with self.subTest(change=change), self.assertRaises(tour.Refused):
+                tour.entry_failure(dict(stage='lab_send', code=None,
+                    diagnostic=dict(original, **change)))
+        del original['original']
+        with self.assertRaises(tour.Refused):
+            tour.entry_failure(dict(stage='lab_send', code=None, diagnostic=original))
 
 
 class StartupVocabularyTests(unittest.TestCase):

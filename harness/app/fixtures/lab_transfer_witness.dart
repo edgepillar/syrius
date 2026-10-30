@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/bloc/send_transaction/send_transaction_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/model/send_intent.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/exceptions/exceptions.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import 'seed_policy.dart';
@@ -100,6 +101,20 @@ final class LabTransferWitness implements SeedOriginal {
     if (!_started) return 'not_started';
     if (!_terminal) return 'pending';
     return 'result_observed';
+  }
+
+  /// Classifies only the retained display error of this exact terminal request.
+  /// The sender can sanitize its original error to a generic failure. This
+  /// label cannot establish the original cause, rejection or publication state.
+  String? get observedDisplayError {
+    final Object? error = _error;
+    if (_detached || _revoked || !_started || !_terminal ||
+        _terminalStatus != SendTransactionStatus.failure || error == null) {
+      return null;
+    }
+    if (error is NodeNotSyncedException) return 'node_not_synced';
+    if (error is FailureException) return 'generic_failure';
+    return 'other';
   }
 
   /// Recheck before pointer down/up, never after normal confirmation closure.
