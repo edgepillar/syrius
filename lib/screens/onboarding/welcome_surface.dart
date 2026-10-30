@@ -20,6 +20,8 @@ enum WelcomeDestination {
   hardwareWallet,
 }
 
+const double _rowBorderWidth = 1;
+
 const List<LocalKey> _rowKeys = <LocalKey>[
   ValueKey<String>('welcome_create_entrance'),
   ValueKey<String>('welcome_import_entrance'),
@@ -416,12 +418,16 @@ class _WelcomeActionState extends State<_WelcomeAction> {
             child: AnimatedContainer(
               duration: tokens.welcomeStateDuration,
               curve: tokens.ease,
-              padding: tokens.welcomeRowPadding,
+              // The reference border occupies layout space as well as paint.
+              // Keep its inset fixed when the focus ring changes its width.
+              padding: tokens.welcomeRowPadding.add(
+                const EdgeInsets.all(_rowBorderWidth),
+              ),
               foregroundDecoration: BoxDecoration(
                 borderRadius: radius,
                 border: Border.all(
                   color: _focused ? tokens.focusRing : tokens.line,
-                  width: _focused ? tokens.focusWidth : 1,
+                  width: _focused ? tokens.focusWidth : _rowBorderWidth,
                 ),
               ),
               child: Row(

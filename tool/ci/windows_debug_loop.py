@@ -462,6 +462,7 @@ def analyze(parent, repo):
         'lib/widgets/tab_children_widgets/lock_tab_child.dart',
         'test/onboarding/welcome_drop_route_test.dart',
         'test/welcome/welcome_surface_test.dart',
+        'lib/screens/onboarding/welcome_surface.dart',
         'test/welcome/support.dart',
         'harness/seed/restored_seed_workflow.dart',
         'test/harness/restored_seed_workflow_test.dart',

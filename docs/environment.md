@@ -1,5 +1,46 @@
 # Redesign build environment
 
+## Qualified PNG capture and Welcome border inset follow-up (2026-10-30T19:37Z)
+
+[Source221 a9b63d649a4f / focused 41110062902](https://github.com/edgepillar/syrius/actions/runs/41110062902)
+qualifies 866 Python cases/three existing skips, 528 ordinary Dart cases with
+no failures/error events/skips, both assets/fourteen phases, zero selected
+findings and 401 memory controls. All eight renderer cases pass.
+[Entry 41112086293](https://github.com/edgepillar/syrius/actions/runs/41112086293)
+and [independent 41113297173](https://github.com/edgepillar/syrius/actions/runs/41113297173)
+qualify four genuine 1280x780 PNGs, eighteen original/four caption checks and
+normal complete unforced original exit zero with 65396 bytes/no overflow.
+All 318 fixed pipe events are valid; ownership is restored/not held. The
+slowest reported PNG call is 1410 ms, without a general performance claim.
+Full native readback/PNG equality and the 530-case startup variant stay open.
+
+The one 544816-byte archive is transferred once and retained as one CAS object.
+All four actual/reference pairs are viewed, with zero accepted matches. Both
+combined protected records complete; the exact owned task is CLOSED SUCCESS
+and only registered reproducible extraction is removed. Later coverage reads
+reuse the same verified object in memory, without transport or extraction.
+The initial metadata-owner refusal precedes task/transport creation. Old
+Source212/Source217 metadata failures remain FAILURE; historical data, limits
+and policy are preserved. This qualifies the completed bounded workflow and
+makes no general storage-performance claim.
+
+Welcome's HTML border consumes layout space; the existing Flutter foreground
+outline does not. The next source reserves the same fixed one-pixel border
+inset around its original directional padding. It retains foreground outline
+paint, independent focus width, minimum row height, hit targets, route/source
+admission, callbacks and clocks. Import outline coverage aligns, while edge
+pixels, Continue coverage and genuine draft/caret differences remain open.
+No real input is decorated to imitate the illustrative ellipsis.
+
+Fresh 866/528 controls, zero selected findings and native review are required.
+The main ledger remains 71/80: P03/P09/F06 and V01-V06, all 94 matches, ninety
+outputs and nineteen preparations remain open. Source220 terminal result and
+inner cause remain NOT_ESTABLISHED. Native101/Native103 remain UNKNOWN;
+Native104 is not admitted. The SDK/Hive and command drafts are unapplied and
+require rebase after this Welcome source. Existing sections below retain
+their original source and evidence scope.
+
+
 
 ## Retained RGBA and PNG worker follow-up (2026-10-30T18:33Z)
 
