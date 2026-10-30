@@ -12,6 +12,14 @@ from . import windows_entry_capture_smoke as source
 
 
 PREFIX = b'::notice title=Lab asset helper tests::'
+PROGRESS_PREFIX = b'SYRIUS_LAB_ASSET_CONTROL_PHASE:'
+CONTROL_PHASES = (
+    'STARTED', 'SOURCE_READ_STARTED', 'SOURCE_READ_FINISHED',
+    'LEGACY_STARTED', 'LEGACY_RETURNED', 'OBSERVED_STARTED',
+    'OBSERVED_RETURNED', 'INVALID_OPTION_STARTED', 'INVALID_OPTION_RETURNED',
+    'EXISTING_STARTED', 'EXISTING_RETURNED', 'INTERRUPTED_STARTED',
+    'INTERRUPTED_RETURNED', 'COMPLETE',
+)
 CODES = frozenset(('ENVIRONMENT_REFUSED', 'SOURCE_REFUSED', 'TOOL_REFUSED',
     'VERSION_REFUSED', 'CONTROL_FAILED', 'CONTROL_REPLY_REFUSED', 'OUTPUT_REFUSED',
     'INTERNAL_ERROR'))
@@ -86,9 +94,30 @@ def failure_labels(raw):
         line=int(match[2]) if match else None)
 
 
+def control_progress(raw):
+    """Disclose only an exact original phase prefix, independently of success."""
+    result = dict(schema=1, scope='lab_asset_control_progress', status='ABSENT',
+        observations=0, last=None, sequence_complete=False)
+    if raw is None:
+        return result
+    if type(raw) is not bytes or len(raw) > 65536:
+        return dict(result, status='REFUSED')
+    offered = [line[len(PROGRESS_PREFIX):] for line in raw.splitlines()
+               if line.startswith(PROGRESS_PREFIX)]
+    expected = [phase.encode('ascii') for phase in CONTROL_PHASES]
+    if len(offered) > len(expected) or offered != expected[:len(offered)]:
+        return dict(result, status='REFUSED')
+    if offered:
+        return dict(result, status='OBSERVED', observations=len(offered),
+            last=CONTROL_PHASES[len(offered)-1],
+            sequence_complete=len(offered) == len(expected))
+    return result
+
+
 def main():
     report = dict(schema=1, scope='lab_asset_helper_command', success=False,
         phase='environment', code=None, node_version=None, control_failure=None,
+        control_progress=control_progress(None),
         filesystem_scratch=0, native_wallet_executions=0, native_node_executions=0,
         commands=[])
     reply = None
@@ -107,6 +136,8 @@ def main():
                                            timeout=timeout, cap=cap)
             report['commands'].append(dict(stage=stage, **outcome.public(),
                 output_sha256=hashlib.sha256(outcome.output).hexdigest()))
+            if stage == 'asset_controls':
+                report['control_progress'] = control_progress(outcome.output)
             need(outcome.transport_complete, 'OUTPUT_REFUSED')
             return outcome
 

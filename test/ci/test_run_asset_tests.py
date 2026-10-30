@@ -4,6 +4,7 @@ import contextlib
 import io
 import json
 from pathlib import Path
+import re
 import unittest
 from unittest import mock
 
@@ -134,3 +135,63 @@ class AssetCommandTests(unittest.TestCase):
                 self.assertEqual(calls[1][1:], (15, 65536))
                 self.assertTrue(value['success'])
                 self.assertFalse(value['commands'][0]['forced_kill'])
+
+    def test_control_phase_projection_keeps_only_an_ordered_closed_prefix(self):
+        actual = re.findall(r"controlPhase\('([A-Z_]+)'\)",
+            Path('test/ci/lab_asset_progress_test.js').read_text())
+        self.assertEqual(actual, list(asset.CONTROL_PHASES))
+        for count in range(len(actual)+1):
+            raw = b'private diagnostic\n' + b''.join(
+                asset.PROGRESS_PREFIX + phase.encode() + b'\n'
+                for phase in actual[:count])
+            value = asset.control_progress(raw)
+            self.assertEqual(value['status'], 'OBSERVED' if count else 'ABSENT')
+            self.assertEqual(value['observations'], count)
+            self.assertEqual(value['last'], actual[count-1] if count else None)
+            self.assertEqual(value['sequence_complete'], count == len(actual))
+            self.assertNotIn('private', json.dumps(value))
+            self.assertTrue(set(value).isdisjoint({'success', 'retry', 'qualified'}))
+        for raw in (asset.PROGRESS_PREFIX + b'PRIVATE\n',
+                    (asset.PROGRESS_PREFIX + b'STARTED\n') * 2,
+                    asset.PROGRESS_PREFIX + b'COMPLETE\n',
+                    asset.PROGRESS_PREFIX + b'STARTED private\n',
+                    b'x'*65537, 'private'):
+            value = asset.control_progress(raw)
+            self.assertEqual(value['status'], 'REFUSED')
+            self.assertEqual(value['observations'], 0)
+            self.assertIsNone(value['last'])
+            self.assertFalse(value['sequence_complete'])
+            self.assertNotIn('private', json.dumps(value))
+
+    def test_original_asset_timeout_keeps_its_failure_and_observed_phase(self):
+        parent = dict(GITHUB_SHA='a'*40, GITHUB_RUN_ID='123', GITHUB_RUN_ATTEMPT='1')
+        raw = b'private warning\n' + b''.join(asset.PROGRESS_PREFIX +
+            phase.encode() + b'\n' for phase in asset.CONTROL_PHASES[:4]) + encoded()
+        version = asset.baseline.Outcome(output=b'v22.23.4\n', exit_code=0,
+            exit_observed=True, output_complete=True, output_bytes=10)
+        outcome = asset.baseline.Outcome(output=raw, exit_code=1,
+            exit_observed=True, forced_kill=True, output_complete=True,
+            output_bytes=len(raw), seconds=15.5, errors=('COMMAND_TIMEOUT',))
+        with mock.patch.object(asset, 'admit', return_value=(parent, Path('/fixture'))), \
+                mock.patch.object(asset.source.bounded, 'verify_source') as verify, \
+                mock.patch.object(asset.source, 'source_tree', return_value='b'*40), \
+                mock.patch.object(asset.shutil, 'which', return_value='/node'), \
+                mock.patch.object(asset.baseline, 'run_bounded',
+                    side_effect=[version, outcome]) as child, \
+                contextlib.redirect_stdout(io.StringIO()) as output:
+            result = asset.main()
+        self.assertEqual(result, 1)
+        value = json.loads(output.getvalue().splitlines()[0])
+        self.assertFalse(value['success'])
+        self.assertEqual(value['code'], 'OUTPUT_REFUSED')
+        self.assertEqual(value['control_progress']['last'], 'LEGACY_STARTED')
+        self.assertFalse(value['control_progress']['sequence_complete'])
+        self.assertEqual(value['commands'][-1]['error_codes'], ['COMMAND_TIMEOUT'])
+        self.assertTrue(value['commands'][-1]['forced_kill'])
+        self.assertEqual(value['commands'][-1]['exit_code'], 1)
+        self.assertEqual(child.call_count, 2)
+        self.assertEqual([(call.kwargs['timeout'], call.kwargs['cap'])
+            for call in child.call_args_list], [(15, 256), (15, 65536)])
+        verify.assert_called_once()
+        self.assertNotIn('private', output.getvalue())
+        self.assertNotIn(asset.PREFIX.decode(), output.getvalue())

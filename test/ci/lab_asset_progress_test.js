@@ -1,9 +1,13 @@
 // Execute the real helper against an in-memory filesystem before SDK allocation.
+const controlPhase = phase => process.stderr.write(`SYRIUS_LAB_ASSET_CONTROL_PHASE:${phase}\n`);
+controlPhase('STARTED');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path').posix;
 const vm = require('node:vm');
+controlPhase('SOURCE_READ_STARTED');
 const source = fs.readFileSync('tools/devnet/lab/make-assets.js', 'utf8');
+controlPhase('SOURCE_READ_FINISHED');
 const roles = ['pillar', 'pillar2', 'pillar3', 'observer', 'rpc'];
 const phases = ['STARTED', 'GENESIS_READ_STARTED', 'GENESIS_WRITTEN',
   ...roles.flatMap(role => [`${role.toUpperCase()}_COPY_STARTED`, `${role.toUpperCase()}_CONFIG_WRITTEN`]),
@@ -62,8 +66,12 @@ function execute(args, options = {}) {
 }
 
 const args = ['/fixture/source', '/fixture/output'];
+controlPhase('LEGACY_STARTED');
 const legacy = execute(args);
+controlPhase('LEGACY_RETURNED');
+controlPhase('OBSERVED_STARTED');
 const observed = execute([...args, '--progress']);
+controlPhase('OBSERVED_RETURNED');
 assert.equal(legacy.exit, 0);
 assert.equal(observed.exit, 0);
 assert.deepEqual(observed.files, legacy.files);
@@ -77,16 +85,23 @@ for (const role of roles) {
     '{"peer":"172.37.0.10","unchanged":true}\n');
   assert.deepEqual(generated.get(`/fixture/output/${role}/wallet/key`), Buffer.from([0, 1, 128, 255]));
 }
+controlPhase('INVALID_OPTION_STARTED');
 const bad = execute([...args, '--unknown']);
+controlPhase('INVALID_OPTION_RETURNED');
 assert.equal(bad.exit, 2);
 assert.equal(bad.files.length, 0);
+controlPhase('EXISTING_STARTED');
 const existing = execute([...args, '--progress'], { existing: true });
+controlPhase('EXISTING_RETURNED');
 assert.equal(existing.exit, 1);
 assert.equal(existing.files.length, 1);
 assert.equal(existing.files[0][1].toString(), 'existing');
+controlPhase('INTERRUPTED_STARTED');
 const interrupted = execute([...args, '--progress'], { failCopy: true });
+controlPhase('INTERRUPTED_RETURNED');
 assert.equal(interrupted.exit, 1);
 assert.equal(interrupted.stderr, phases.slice(0, 6).map(phase => `SYRIUS_LAB_ASSET_PHASE:${phase}\n`).join(''));
+controlPhase('COMPLETE');
 console.log('::notice title=Lab asset helper tests::' + JSON.stringify({ schema: 1,
   scope: 'lab_asset_helper_inmemory_cases', success: true, cases: 4,
   asset_bytes_equal: true, filesystem_scratch: 0, native_wallet_executions: 0 }));

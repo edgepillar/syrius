@@ -9648,3 +9648,37 @@ pass before a new isolated chain and profile is started. Source190's successful
 the explicit seed-order correction and all earlier FAILURE/UNKNOWN outcomes
 retain their separate bindings. Full redesign acceptance remains 71/80, with
 ninety outputs, nineteen preparations and all 94 matches still open.
+
+
+### Finite observations for the original asset-control timeout
+
+Source192 `5dbbfd29d19b`, run
+[40992910026](https://github.com/edgepillar/syrius/actions/runs/40992910026),
+passes 815 Python cases with three existing skips. The original Node version
+command succeeds normally and reports v22.23.4. Its original asset-control
+command then reaches the unchanged 15-second timeout with zero output bytes,
+observed forced exit one and COMMAND_TIMEOUT. SDK setup, dependency restore,
+analysis and Dart are skipped. This is not an asset assertion result. The
+inner cause remains NOT_ESTABLISHED; the original failure is preserved.
+
+Fourteen fixed phase labels now surround the original control script's source
+read and five existing memory-only helper invocations. The original helper,
+all byte-equality and refusal assertions, final four-case result notice,
+15-second process limits, one-second VM bounds and output caps remain. The
+controller records only an exact ordered phase prefix, including before a
+transport refusal. Unknown, duplicate, reordered or oversized observations
+are refused without copying raw diagnostics. Partial or complete phase labels
+grant no success, retry, SDK, wallet or chain authority; actual transport and
+the original positive result still govern the gate. No command is retried.
+
+Two new Python cases cover strict ordered disclosure and a forced original
+timeout with an observed phase and forged success notice. They retain the
+original failure, exact limits, two child calls, forced-exit evidence and
+single source check without raw private output. Contracts become 817 Python,
+462 ordinary Dart and 464 startup Dart. Fresh hosted qualification remains
+required. Source191's analysis refusal, the source192 timeout, Source190's
+qualified 449-case/caption result, Native98's original positive and copied
+Home targetMissing failure and the seed-order correction remain separate.
+Main acceptance stays 71/80; ninety outputs, nineteen preparations and all
+94 matches, current Token engine/native, full-root, DLL initialization,
+unfiltered-chain and the Docker Desktop/lab.sh route remain open.
