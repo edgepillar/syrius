@@ -569,7 +569,7 @@ def analyze(parent, repo):
                 if severity in counts:
                     counts[severity] += 1
                     fields = raw.decode('utf-8', errors='replace').rstrip('\r\n').split('|')
-                    if len(fields) >= 7 and len(locations) < 16:
+                    if len(fields) >= 7:
                         code, line, column = fields[2], fields[4], fields[5]
                         if (re.fullmatch(r'[A-Z][A-Z0-9_]{0,95}', code)
                                 and line.isascii() and line.isdigit()
@@ -656,8 +656,10 @@ def analyze(parent, repo):
                                         else 'rail_navigation_test' if relative.endswith('/test/harness/rail_navigation_test.dart')
                                         else 'recipe_failure_test' if relative.endswith('/test/harness/wallet_recipe_failure_test.dart')
                                         else 'wallet_recipe_test' if relative.endswith('/test/harness/wallet_recipe_test.dart') else 'other')
-                            locations.append(dict(source=selected, code=code,
-                                                  line=int(line), column=int(column)))
+                            location = dict(source=selected, code=code,
+                                            line=int(line), column=int(column))
+                            if location not in locations and len(locations) < 16:
+                                locations.append(location)
         code = original.wait(timeout=5)
         need(lines.finish() and type(code) is int and code == 0
              and all(value == 0 for value in counts.values()),

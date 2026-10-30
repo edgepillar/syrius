@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/original_publications.dart';
@@ -71,12 +72,12 @@ class _Response extends Fake implements HttpResponse {
   }
 }
 
-class _Request extends Stream<List<int>> implements HttpRequest {
+class _Request extends Stream<Uint8List> implements HttpRequest {
   _Request(Map<String, dynamic> command, {String token = 'fixture-token'})
     : headers = _Headers(token),
-      _body = utf8.encode(jsonEncode(command));
+      _body = Uint8List.fromList(utf8.encode(jsonEncode(command)));
 
-  final List<int> _body;
+  final Uint8List _body;
 
   @override
   final HttpHeaders headers;
@@ -85,12 +86,12 @@ class _Request extends Stream<List<int>> implements HttpRequest {
   final _Response response = _Response();
 
   @override
-  StreamSubscription<List<int>> listen(
-    void Function(List<int>)? onData, {
+  StreamSubscription<Uint8List> listen(
+    void Function(Uint8List)? onData, {
     Function? onError,
     void Function()? onDone,
     bool? cancelOnError,
-  }) => Stream<List<int>>.value(_body).listen(
+  }) => Stream<Uint8List>.value(_body).listen(
     onData,
     onError: onError,
     onDone: onDone,

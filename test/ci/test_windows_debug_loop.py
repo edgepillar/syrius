@@ -729,6 +729,36 @@ class AnalysisAdmissionTests(unittest.TestCase):
                     self.assertEqual(value['diagnostics'][severity.lower()], 1)
                     self.assertEqual(value['locations'][0]['source'], label)
 
+    def test_repeated_locations_keep_full_counts_and_later_finite_findings(self):
+        error = (b'ERROR|COMPILE_TIME_ERROR|INVALID_IMPLEMENTATION_OVERRIDE|'
+                 b'/fixture/private/request.dart|74|7|1|private detail\n')
+        info = (b'INFO|LINT|PREFER_CONST_CONSTRUCTORS|'
+                b'/fixture/private/request.dart|9|3|1|private detail\n')
+        outcome, value = self.analyze(error * 29 + info, code=3)
+        self.assertEqual(outcome, 'ANALYSIS_FAILED')
+        self.assertTrue(value['failed'])
+        self.assertEqual(value['actual_exit'], 3)
+        self.assertTrue(value['output_complete'])
+        self.assertEqual(value['diagnostics'], dict(error=29, warning=0, info=1))
+        self.assertEqual(value['locations'], [
+            dict(source='other', code='INVALID_IMPLEMENTATION_OVERRIDE',
+                 line=74, column=7),
+            dict(source='other', code='PREFER_CONST_CONSTRUCTORS',
+                 line=9, column=3),
+        ])
+        distinct = b''.join(
+            b'ERROR|COMPILE_TIME_ERROR|INVALID_IMPLEMENTATION_OVERRIDE|'
+            b'/fixture/private/request.dart|' + str(line).encode()
+            + b'|7|1|private detail\n' for line in range(1, 41)
+        )
+        outcome, capped = self.analyze(distinct + info, code=3)
+        self.assertEqual(outcome, 'ANALYSIS_FAILED')
+        self.assertTrue(capped['failed'])
+        self.assertEqual(capped['diagnostics'], dict(error=40, warning=0, info=1))
+        self.assertEqual(len(capped['locations']), 16)
+        self.assertEqual([row['line'] for row in capped['locations']],
+                         list(range(1, 17)))
+
     def test_nonzero_original_exit_cannot_be_hidden_by_empty_findings(self):
         outcome, value = self.analyze(code=1)
         self.assertEqual(outcome, 'ANALYSIS_FAILED')
