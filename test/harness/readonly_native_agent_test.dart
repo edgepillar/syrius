@@ -195,12 +195,12 @@ void main() {
     final HarnessPresentationController controller =
         HarnessPresentationController();
     addTearDown(controller.dispose);
-    final HarnessAgent preview = HarnessAgent.forTest();
-    preview.usePresentation(
-      controller: controller,
-      isCurrent: () => true,
-      context: () => null,
-    );
+    final HarnessAgent preview = HarnessAgent.forTest()
+      ..usePresentation(
+        controller: controller,
+        isCurrent: () => true,
+        context: () => null,
+      );
     expect(preview.reserveReadonlyNative, throwsA(isA<HarnessError>()));
     final HarnessAgent native = HarnessAgent.forTest()
       ..reserveReadonlyNative();
