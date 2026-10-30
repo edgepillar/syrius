@@ -7,6 +7,13 @@ import '../../harness/app/fixtures/seed_commands.dart';
 import '../../harness/app/fixtures/seed_deposit_entry.dart';
 import '../../harness/app/fixtures/seed_deposit_presentation.dart';
 import '../../harness/app/fixtures/seed_policy.dart';
+import '../../harness/seed_preparation_failure.dart';
+
+class _PrivatePreparationError implements Exception {
+  @override
+  String toString() =>
+      throw StateError('Private preparation errors cannot be formatted');
+}
 
 String _hash(int value) => value.toRadixString(16).padLeft(64, '0');
 
@@ -804,5 +811,134 @@ void main() {
     fixture.retire();
     fixture.close.complete();
     await _turns();
+  });
+
+  test('preparation labels accept only exact source messages', () {
+    const Map<String, String> labels = <String, String>{
+      'nothing matches': 'seed-preparation-target-missing',
+      'disabled': 'seed-preparation-target-disabled',
+      'covered by something else': 'seed-preparation-target-covered',
+      'assert target is covered': 'seed-preparation-target-covered',
+      'error widget on screen': 'seed-preparation-error-widget',
+    };
+    for (final MapEntry<String, String> entry in labels.entries) {
+      expect(seedPreparationUiFailureCode(entry.key), entry.value);
+    }
+    expect(labels.values.toSet(), seedPreparationUiFailureCodes);
+    for (final Object? value in <Object?>[
+      null, true, 1, '', 'private', 'disabled\n', 'disabled private',
+      _PrivatePreparationError(),
+    ]) {
+      expect(seedPreparationUiFailureCode(value), isNull);
+    }
+  });
+
+  test('successful preparation calls the original once without inspection',
+      () async {
+    final Completer<Object> answer = Completer<Object>();
+    final Object original = Object();
+    int calls = 0;
+    int classifications = 0;
+    final Future<Object> observed = observeSeedPreparation(
+      preparation: true,
+      original: () {
+        calls++;
+        return answer.future;
+      },
+      classify: (_) {
+        classifications++;
+        throw StateError('A successful result cannot inspect a failure');
+      },
+    );
+    await _turns();
+    expect(calls, 1);
+    expect(classifications, 0);
+    answer.complete(original);
+    expect(await observed, same(original));
+    expect(calls, 1);
+    expect(classifications, 0);
+  });
+
+  test('a failed original preparation exposes only a finite label once',
+      () async {
+    for (final String label in seedPreparationUiFailureCodes) {
+      final _PrivatePreparationError original = _PrivatePreparationError();
+      final Completer<Object> answer = Completer<Object>();
+      int calls = 0;
+      int classifications = 0;
+      final Future<Object> observed = observeSeedPreparation(
+        preparation: true,
+        original: () {
+          calls++;
+          return answer.future;
+        },
+        classify: (Object error) {
+          classifications++;
+          expect(error, same(original));
+          return label;
+        },
+      );
+      final Future<void> refused = expectLater(observed, _refused(label));
+      answer.completeError(original);
+      await refused;
+      expect(calls, 1);
+      expect(classifications, 1);
+    }
+  });
+
+  test('other actions and existing guards preserve the original error',
+      () async {
+    for (final bool preparation in <bool>[false, true]) {
+      final Object original = preparation
+          ? const SeedRefused('original-context-changed')
+          : _PrivatePreparationError();
+      int calls = 0;
+      int classifications = 0;
+      final Future<Object> observed = observeSeedPreparation(
+        preparation: preparation,
+        original: () {
+          calls++;
+          return Future<Object>.error(original);
+        },
+        classify: (_) {
+          classifications++;
+          return 'seed-preparation-target-covered';
+        },
+      );
+      await expectLater(observed, throwsA(same(original)));
+      expect(calls, 1);
+      expect(classifications, 0);
+    }
+  });
+
+  test('private or failing classifiers preserve the original failure',
+      () async {
+    final Object throwing = Object();
+    for (final Object? label in <Object?>[
+      null, true, 1, '', 'private', 'seed-preparation-target-covered ',
+      _PrivatePreparationError(), throwing,
+    ]) {
+      final _PrivatePreparationError original = _PrivatePreparationError();
+      int calls = 0;
+      int classifications = 0;
+      final Future<Object> observed = observeSeedPreparation(
+        preparation: true,
+        original: () {
+          calls++;
+          return Future<Object>.error(original);
+        },
+        classify: (Object error) {
+          classifications++;
+          expect(error, same(original));
+          if (identical(label, throwing)) {
+            throw StateError('Synthetic classifier failure');
+          }
+          return label;
+        },
+      );
+      await expectLater(observed, throwsA(same(original)));
+      expect(calls, 1);
+      expect(classifications, 1);
+    }
   });
 }

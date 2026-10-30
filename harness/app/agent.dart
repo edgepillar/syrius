@@ -69,6 +69,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart'
 import '../lab_send_failure.dart';
 import '../lock_view_observation.dart';
 import '../seed/seed_recipe.dart' show requireSeedTokenPreparation;
+import '../seed_preparation_failure.dart';
 import '../wallet_address_context.dart';
 import '../wallet_recipe_failure.dart' show walletRecipeFailureCodes;
 import 'capture_frame.dart';
@@ -352,6 +353,9 @@ class HarnessError implements Exception {
   @override
   String toString() => message;
 }
+
+String? _seedPreparationUiFailure(Object error) => error is HarnessError
+    ? seedPreparationUiFailureCode(error.message) : null;
 
 class _RecipeSelection {
   _RecipeSelection({
@@ -843,17 +847,26 @@ class HarnessAgent {
       case 'entry-capture':
         return _entryCommand(c);
       case 'seed':
+        final bool seedPreparation = c['action'] == 'prepare';
         try {
           return await _seeds.run(
             c,
             booted: booted,
-            ui: _run,
+            ui: (Map<String, dynamic> selector) => observeSeedPreparation(
+              preparation: seedPreparation,
+              original: () => _run(selector),
+              classify: _seedPreparationUiFailure,
+            ),
             captureDepositEntry: _captureSeedDepositEntry,
             captureDepositPresentation: _captureSeedDepositPresentation,
             captureProjectPresentation: _captureSeedProjectPresentation,
             captureTokenPresentation: _captureSeedTokenPresentation,
             tap: (Map<String, dynamic> selector, void Function() admission) =>
-                _tap(selector, requireAdmission: admission),
+                observeSeedPreparation(
+                  preparation: seedPreparation,
+                  original: () => _tap(selector, requireAdmission: admission),
+                  classify: _seedPreparationUiFailure,
+                ),
           );
         } on SeedRefused catch (error) {
           final Map<String, Object>? confirmation =

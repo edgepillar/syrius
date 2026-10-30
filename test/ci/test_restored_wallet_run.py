@@ -991,7 +991,9 @@ class SeedFailureProjectionTests(unittest.TestCase):
 
     def test_only_canonical_source_codes_are_public_and_do_not_imply_success(self):
         for code in (*restored.SEED_REPLY_CODES, 'unknown'):
-            value = self.seed(reason=code)
+            prepared = dict(action='prepare', command_index=3) if code in (
+                restored.SEED_PREPARATION_REPLY_CODES) else {}
+            value = self.seed(reason=code, **prepared)
             self.assertEqual(restored.seed_failure_projection(value,
                              'seed_stake')['reason'], code)
         code = sorted(restored.SEED_REPLY_CODES)[0]
@@ -1004,6 +1006,32 @@ class SeedFailureProjectionTests(unittest.TestCase):
         for key in ('confirmed', 'complete', 'hash', 'retry', 'seed_admitted', 'success'):
             with self.subTest(key=key), self.assertRaises(restored.checkpoint.Refused):
                 restored.seed_failure_projection(self.seed(**{key: True}), 'seed_stake')
+
+    def test_preparation_labels_preserve_only_original_negative_reply_scope(self):
+        for code in restored.SEED_PREPARATION_REPLY_CODES:
+            value = self.seed(action='prepare', command_index=3, reason=code)
+            self.assertEqual(restored.seed_failure_projection(value, 'seed_stake'), value)
+            child = restored.child_failure_projection(self.child(value))
+            self.assertEqual(child['seed'], value)
+            self.assertFalse(value['publication_call_entered'])
+        helper = Path('harness/seed_preparation_failure.dart').read_text()
+        match = re.search(r'seedPreparationUiFailureCodes = <String>\{([^}]+)\}', helper)
+        self.assertIsNotNone(match)
+        self.assertEqual(set(re.findall(r"'([a-z0-9-]+)'", match[1])),
+                         set(restored.SEED_PREPARATION_REPLY_CODES))
+
+    def test_preparation_labels_refuse_other_actions_input_or_private_fields(self):
+        for code in restored.SEED_PREPARATION_REPLY_CODES:
+            changes = (dict(action='begin', command_index=0),
+                dict(action='check'), dict(action='publish', publication_call_entered=True),
+                dict(action='finish', command_index=0, publication_call_entered=True),
+                dict(step='request'), dict(publication_call_entered=True),
+                dict(confirmed=True), dict(hash='private'), dict(message='private'))
+            for change in changes:
+                value = self.seed(action='prepare', command_index=3, reason=code)
+                value.update(change)
+                with self.subTest(change=change), self.assertRaises(restored.checkpoint.Refused):
+                    restored.seed_failure_projection(value, 'seed_stake')
 
     def test_public_enum_and_reply_catalogs_match_the_actual_dart_source(self):
         source = Path('harness/bin/harness.dart').read_text()

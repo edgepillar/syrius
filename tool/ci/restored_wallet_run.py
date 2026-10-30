@@ -176,6 +176,10 @@ SEED_REPLY_CODES = frozenset((
     'seed-command-refused',
     'seed-journal-held',
     'seed-preparation-selector-refused',
+    'seed-preparation-error-widget',
+    'seed-preparation-target-covered',
+    'seed-preparation-target-disabled',
+    'seed-preparation-target-missing',
     'seed-prerequisite-or-read-failed',
     'seed-publication-selector-refused',
     'seed-recipe-prerequisite-missing',
@@ -189,6 +193,14 @@ SEED_REPLY_CODES = frozenset((
     'unknown-fixture',
     'unknown-recipe',
     'unlocked-wallet-required',
+))
+
+
+SEED_PREPARATION_REPLY_CODES = frozenset((
+    'seed-preparation-error-widget',
+    'seed-preparation-target-covered',
+    'seed-preparation-target-disabled',
+    'seed-preparation-target-missing',
 ))
 
 
@@ -290,6 +302,8 @@ def seed_failure_projection(value, phase):
         checkpoint.need(entered is True)
     if value['reason'] != 'unknown':
         checkpoint.need(value['kind'] == 'refused')
+    if value['reason'] in SEED_PREPARATION_REPLY_CODES:
+        checkpoint.need(action == 'prepare' and step == 'reply' and not entered)
     result = dict(value)
     if 'confirmation' in value:
         checkpoint.need(action == 'publish' and step == 'reply' and entered

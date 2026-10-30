@@ -476,6 +476,7 @@ def analyze(parent, repo):
         'test/harness/lab_transfer_witness_test.dart',
         'harness/app/fixtures/seed_policy.dart',
         'harness/app/fixtures/seed_commands.dart',
+        'harness/seed_preparation_failure.dart',
         'harness/app/fixtures/seed_project_presentation.dart',
         'harness/app/seed_project_presentation_binding.dart',
         'harness/app/fixtures/seed_token_presentation.dart',
@@ -581,6 +582,7 @@ def analyze(parent, repo):
                                         else 'transfer_witness_test' if relative.endswith('/test/harness/lab_transfer_witness_test.dart')
                                         else 'seed_policy' if relative.endswith('/harness/app/fixtures/seed_policy.dart')
                                         else 'seed_commands' if relative.endswith('/harness/app/fixtures/seed_commands.dart')
+                                        else 'seed_preparation_failure' if relative.endswith('/harness/seed_preparation_failure.dart')
                                         else 'project_presentation' if relative.endswith('/harness/app/fixtures/seed_project_presentation.dart')
                                         else 'project_presentation_binding' if relative.endswith('/harness/app/seed_project_presentation_binding.dart')
                                         else 'deposit_entry' if relative.endswith('/harness/app/fixtures/seed_deposit_entry.dart')

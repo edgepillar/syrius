@@ -14,6 +14,7 @@ import '../app/fixtures/seed_policy.dart';
 import '../app/presentation_mode.dart';
 import '../home_preparation_observation.dart';
 import '../seed/seed_recipe.dart';
+import '../seed_preparation_failure.dart' show seedPreparationUiFailureCodes;
 import 'build_output.dart';
 import 'screen_capture.dart';
 import 'wallet_recipe.dart';
@@ -866,6 +867,10 @@ const Set<String> seedOperationReplyCodes = <String>{
   'seed-command-refused',
   'seed-journal-held',
   'seed-preparation-selector-refused',
+  'seed-preparation-error-widget',
+  'seed-preparation-target-covered',
+  'seed-preparation-target-disabled',
+  'seed-preparation-target-missing',
   'seed-prerequisite-or-read-failed',
   'seed-publication-selector-refused',
   'seed-recipe-prerequisite-missing',
@@ -980,8 +985,14 @@ class SeedOperationTrace {
       StateError() => SeedOperationFailureKind.state,
       _ => SeedOperationFailureKind.other,
     };
-    final String reason = error is SeedRefused
+    final String observedReason = error is SeedRefused
         ? seedOperationReplyCode(error.code) : _replyCode;
+    final bool misplacedPreparation =
+        seedPreparationUiFailureCodes.contains(observedReason) &&
+        (kind != SeedOperationFailureKind.refused ||
+            _action != SeedOperationAction.prepare ||
+            _step != SeedOperationStep.reply || _publicationCallEntered);
+    final String reason = misplacedPreparation ? 'unknown' : observedReason;
     final Map<String, Object>? homeObservation =
         _homeScope ? _homeObservation.failureSnapshot(
           error is Fail ? error._homeTapReply : null,

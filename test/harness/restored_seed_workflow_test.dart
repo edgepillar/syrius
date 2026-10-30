@@ -34,6 +34,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../../harness/app/agent.dart';
 import '../../harness/app/fixtures/seed_policy.dart';
+import '../../harness/seed_preparation_failure.dart';
 import '../../harness/app/fixtures/seed_project_presentation.dart';
 import '../../harness/app/fixtures/seed_token_presentation.dart';
 import '../../harness/app/seed_project_presentation_binding.dart';
@@ -1524,4 +1525,40 @@ void main() {
     });
   }
 
+
+  test('preparation UI labels remain bound to the original negative reply', () {
+    for (final String code in seedPreparationUiFailureCodes) {
+      final cli.SeedOperationTrace original = cli.SeedOperationTrace('stake')
+        ..at(cli.SeedOperationAction.prepare, cli.SeedOperationStep.reply,
+            commandIndex: 3)
+        ..refusedReply(code);
+      final Map<String, Object> data =
+          original.failure(cli.Fail('Synthetic private failure')).diagnostic;
+      expect(data['reason'], code);
+      expect(data['action'], 'prepare');
+      expect(data['publication_call_entered'], isFalse);
+      for (final cli.SeedOperationAction action in <cli.SeedOperationAction>[
+        cli.SeedOperationAction.begin,
+        cli.SeedOperationAction.check,
+        cli.SeedOperationAction.publish,
+        cli.SeedOperationAction.finish,
+      ]) {
+        final cli.SeedOperationTrace other = cli.SeedOperationTrace('stake')
+          ..at(action, cli.SeedOperationStep.reply, commandIndex: 3)
+          ..refusedReply(code);
+        expect(other.failure(cli.Fail('Synthetic private failure'))
+            .diagnostic['reason'], 'unknown');
+      }
+      for (final bool entered in <bool>[false, true]) {
+        final cli.SeedOperationTrace other = cli.SeedOperationTrace('stake')
+          ..at(cli.SeedOperationAction.prepare,
+              entered ? cli.SeedOperationStep.reply
+                  : cli.SeedOperationStep.request, commandIndex: 3)
+          ..refusedReply(code);
+        if (entered) other.publicationCallEntered();
+        expect(other.failure(cli.Fail('Synthetic private failure'))
+            .diagnostic['reason'], 'unknown');
+      }
+    }
+  });
 }
