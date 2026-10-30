@@ -50,6 +50,17 @@ Future<void> _pointer(
 }
 
 void main() {
+  test('a warning rejects a missing original Continue callback', () {
+    expect(() => Function.apply(
+      SeedDepositEntry.warning,
+      <Object?>[],
+      <Symbol, dynamic>{
+        #originalCurrent: () => true,
+        #tapOriginalContinue: null,
+      },
+    ), throwsA(anyOf(isA<TypeError>(), isA<NoSuchMethodError>())));
+  });
+
   test(
     'an original warning permits one guarded Continue and no replay',
     () async {

@@ -4,13 +4,15 @@ import 'seed_policy.dart';
 final class SeedDepositEntry {
   /// Retains the actual first-use warning and its original Continue pointer.
   SeedDepositEntry.warning({
-    required this._originalCurrent,
-    required this._tapOriginalContinue,
-  });
+    required bool Function() originalCurrent,
+    required Future<void> Function(void Function()) tapOriginalContinue,
+  }) : this._(originalCurrent, tapOriginalContinue);
 
   /// Observes an already-open real Start modal without dispatching a pointer.
   SeedDepositEntry.ready({required this._originalCurrent})
     : _tapOriginalContinue = null;
+
+  SeedDepositEntry._(this._originalCurrent, this._tapOriginalContinue);
 
   final bool Function() _originalCurrent;
   final Future<void> Function(void Function())? _tapOriginalContinue;

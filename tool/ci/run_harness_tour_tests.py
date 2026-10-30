@@ -172,6 +172,7 @@ def main():
             'test/harness/lab_transfer_witness_test.dart',
             'test/harness/seed_policy_test.dart',
             'test/harness/seed_deposit_entry_test.dart',
+            'test/harness/seed_fixture_admission_test.dart',
             'test/harness/lab_send_policy_test.dart',
             'test/harness/lab_send_journal_test.dart',
             'test/harness/lab_send_ui_binding_test.dart',
@@ -211,7 +212,7 @@ def main():
         counts = test_counts(outcome.output)
         report['counts'] = counts
         debug.need(outcome.success and counts['terminal_success'] is True
-            and counts['passed'] == (464 if asset_fidelity else 462)
+            and counts['passed'] == (490 if asset_fidelity else 488)
             and counts['skipped'] == counts['failed'] == counts['error_events'] == 0,
             'TESTS_FAILED')
         if asset_fidelity:
