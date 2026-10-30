@@ -1,6 +1,7 @@
 """Paired original-report controls using memory and bounded fake transport."""
 
 import base64
+import builtins
 import contextlib
 import io
 import json
@@ -11,10 +12,27 @@ import zipfile
 
 from tool.ci import inspect_startup_qualification as inspect
 from tool.ci import inspect_windows_qualification as windows
-from test.ci.test_windows_startup_probe import positive_report
 
 
 HEAD, TREE, RUN = 'a' * 40, 'b' * 40, 9
+
+
+def positive_report(*, natural_only=False):
+    """Keep fixture construction independent of any external test package."""
+    report = inspect.startup.Report(natural_only=natural_only)
+    report.source_sha, report.source_tree = HEAD, TREE
+    report.run_id, report.run_attempt = str(RUN), '1'
+    report.runner_sha256, report.payload_sha256 = 'c' * 64, 'd' * 64
+    report.checks = dict.fromkeys(inspect.startup.CHECKS, True)
+    report.handoff = 'natural' if natural_only else 'key-confirmed'
+    report.key_attempts = 0 if natural_only else 1
+    report.exit_observed, report.exit_code, report.output_complete = True, 0, True
+    report.samples = [dict(at_ms=1000, phase='startup-before-initialization',
+        progress=dict(frames=56, shown=0, decoding=12, stage='frame',
+                      skip=not natural_only, pending=False, ticking=True, done=False))]
+    if natural_only:
+        report.prior_manifest_sha256 = 'e' * 64
+    return report
 
 
 def package(report, *, extra=False):
@@ -98,6 +116,24 @@ class Client:
 
 
 class StartupInspectionTests(unittest.TestCase):
+    def test_fixture_import_does_not_require_an_external_test_package(self):
+        original_import = builtins.__import__
+        refused = []
+
+        def independent_import(name, *args, **kwargs):
+            if name == 'test' or name.startswith('test.'):
+                refused.append(name)
+                raise ModuleNotFoundError('External test package is unavailable')
+            return original_import(name, *args, **kwargs)
+
+        source = Path(__file__)
+        namespace = dict(__name__='isolated_startup_inspection_fixture',
+                         __file__=str(source))
+        with mock.patch.object(builtins, '__import__', side_effect=independent_import):
+            exec(compile(source.read_bytes(), str(source), 'exec'), namespace)
+        self.assertEqual(refused, [])
+        self.assertTrue(namespace['positive_report']().public()['success'])
+
     def test_original_pair_keeps_exact_manifest_binary_and_prior_binding(self):
         client = Client()
         values = inspect.inspect_run(client, head=HEAD, tree=TREE, run_id=RUN,
