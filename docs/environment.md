@@ -1,5 +1,53 @@
 # Redesign build environment
 
+
+## Retained RGBA and PNG worker follow-up (2026-10-30T18:33Z)
+
+[Source220 5940dc260cbd / focused 41100115860](https://github.com/edgepillar/syrius/actions/runs/41100115860)
+qualifies 866 Python cases with three existing skips, all 520 ordinary Dart
+cases without failures/error events/skips, both original assets/fourteen phases,
+zero selected findings and 401 memory controls. Source219's two-info refusal
+and skipped Dart remain preserved.
+
+[Entry 41103078633](https://github.com/edgepillar/syrius/actions/runs/41103078633),
+independently inspected by [41105580689](https://github.com/edgepillar/syrius/actions/runs/41105580689),
+retains zero PNGs and first-Welcome TIMEOUT. Restore/close exchanges fail; the
+original app is forced and exits one with complete 9148-byte output and no
+overflow. Its 35 fixed pipe records end at PNG effect twelve, returned/pending
+at 3 ms. Native-frame effect eleven ended successfully at 525 ms. No ended
+PNG record is observed. The original encoding's terminal answer and exact
+inner cause remain NOT_ESTABLISHED. These observations are distinct from
+an encoder-duration measurement. All three original runs are terminal; no
+producer, original profile or transport is repeated.
+
+The follow-up reads the same retained sRGB raster once as straight RGBA and
+encodes one owned byte snapshot with the existing image 4.9.1 package in a
+separate isolate. The closure is created outside renderer scope and receives
+only pixel bytes and dimensions. Both original Futures are retained, replay
+returns the identical result Future, and actual readback/worker settlement
+precedes image release. Ordinary harness screenshots share this encoder and
+retain all current geometry, theme, assertion and disposal checks. Unsupported
+color spaces and invalid byte counts/dimensions refuse; input is capped at
+4096 on either edge and sixteen million pixels. No image is scaled or changed.
+The capture/ordinary/total/readiness limits remain 30/20/150/45 seconds, and
+all source, ownership, restoration, close, output and numeric SDK policies
+remain. No dependency, asset, UI clock, workflow or financial operation changes.
+
+The [Flutter format contract](https://api.flutter.dev/flutter/dart-ui/ImageByteFormat.html)
+provides straight-alpha RGBA bytes. The [isolate contract](https://api.dart.dev/dart-isolate/Isolate/run.html)
+requires sendable state; no image, layer, widget, SDK or socket enters the worker.
+Five added cases exercise lossless channel/alpha/offset handling, input ownership,
+invalid inputs, source loss and pending release. Three existing renderer cases
+are newly selected with their assertions intact. Exact ordinary/startup totals
+are 528/530; expected Python/memory totals remain 866/401. Fresh source controls,
+strict zero findings, engine pixel equality and native performance/lifecycle
+remain required. The separate SDK/Hive candidate is unapplied and requires
+rebase; its source220 memory proof does not qualify this new PNG source.
+
+The main ledger remains 71/80 with zero accepted matches, ninety missing outputs
+and nineteen unqualified preparations. P03, P09, F06 and V01-V06 stay open;
+Native101 and Native103 retain UNKNOWN outcomes and Native104 is not admitted.
+
 ## Trace initializer and test cascade follow-up (2026-10-30T17:30Z)
 
 [Source219 0e1587d1ea9a / focused 41097991599](https://github.com/edgepillar/syrius/actions/runs/41097991599)

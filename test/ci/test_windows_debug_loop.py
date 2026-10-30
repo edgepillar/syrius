@@ -645,6 +645,9 @@ class AnalysisAdmissionTests(unittest.TestCase):
         for path in (
             'test/window/window_frame_test.dart',
             'test/window/window_chrome_test.dart',
+            'harness/app/retained_renderer_frame.dart',
+            'harness/app/retained_png.dart',
+            'test/harness/retained_renderer_frame_test.dart',
             'harness/home_preparation_observation.dart',
             'harness/app/fixtures/seed_commands.dart',
             'harness/app/fixtures/seed_project_presentation.dart',
@@ -668,6 +671,9 @@ class AnalysisAdmissionTests(unittest.TestCase):
         sources = {
             'test/window/window_frame_test.dart': 'window_frame_test',
             'test/window/window_chrome_test.dart': 'window_chrome_test',
+            'harness/app/retained_renderer_frame.dart': 'other',
+            'harness/app/retained_png.dart': 'other',
+            'test/harness/retained_renderer_frame_test.dart': 'other',
             'harness/home_preparation_observation.dart': 'home_observation',
             'test/harness/transfer_sender_header_test.dart': 'transfer_sender_header_test',
             'harness/app/fixtures/seed_commands.dart': 'seed_commands',

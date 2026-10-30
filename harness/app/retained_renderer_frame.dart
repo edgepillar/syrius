@@ -7,6 +7,7 @@ import 'package:flutter/rendering.dart';
 import 'capture_protocol.dart';
 import 'client_window.dart';
 import 'logical_capture.dart';
+import 'retained_png.dart';
 
 /// Owns an actual raster image while the original view keeps animating.
 /// The image, rather than two equal live observations, pins the encoded frame.
@@ -31,6 +32,7 @@ final class RetainedRendererFrame {
   final bool Function() _sourceCurrent;
   Future<Uint8List>? _encoding;
   Future<ByteData?>? _originalEncoding;
+  Future<Uint8List>? _originalPngEncoding;
   final Completer<void> _encodingSettled = Completer<void>();
   Future<void>? _releaseFuture;
   bool _held = false;
@@ -86,8 +88,11 @@ final class RetainedRendererFrame {
   int get width => _image.width;
   int get height => _image.height;
 
-  /// The actual original engine encoding Future is retained independently.
+  /// The actual engine readback Future retains straight RGBA bytes.
   Future<ByteData?>? get originalEncoding => _originalEncoding;
+
+  /// The one PNG worker Future, absent until the readback was admitted.
+  Future<Uint8List>? get originalPngEncoding => _originalPngEncoding;
 
   /// True only after the owned image and layer handle have been released.
   bool get released => _released;
@@ -133,15 +138,28 @@ final class RetainedRendererFrame {
       if (!isCurrent) {
         throw const CaptureRefused('original-frame-unavailable');
       }
+      if (_image.colorSpace != ui.ColorSpace.sRGB) {
+        throw const CaptureRefused('original-frame-color-space-unproven');
+      }
       final Future<ByteData?> original = _image.toByteData(
-        format: ui.ImageByteFormat.png,
+        format: ui.ImageByteFormat.rawStraightRgba,
       );
       _originalEncoding = original;
-      final ByteData? png = await original;
-      if (!isCurrent || png == null) {
+      final ByteData? rgba = await original;
+      if (!isCurrent || rgba == null) {
         throw const CaptureRefused('original-frame-encoding-unproven');
       }
-      return png.buffer.asUint8List(png.offsetInBytes, png.lengthInBytes);
+      final Future<Uint8List> encoded = encodeRetainedRgba(
+        rgba,
+        width: width,
+        height: height,
+      );
+      _originalPngEncoding = encoded;
+      final Uint8List png = await encoded;
+      if (!isCurrent) {
+        throw const CaptureRefused('original-frame-encoding-unproven');
+      }
+      return png;
     } on Object {
       _held = true;
       rethrow;
@@ -150,8 +168,8 @@ final class RetainedRendererFrame {
     }
   }
 
-  /// Disposal waits for the original encoding outcome; a deadline cannot
-  /// release an image still owned by that engine operation.
+  /// Disposal waits for the original readback and PNG worker outcomes.
+  /// A deadline cannot release an image while either operation remains pending.
   Future<void> release() {
     final Future<void>? retained = _releaseFuture;
     if (retained != null) return retained;

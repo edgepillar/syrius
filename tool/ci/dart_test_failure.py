@@ -34,6 +34,7 @@ FILES = ('wallet_tour_test.dart', 'build_output_test.dart',
     'entry_capture_source_test.dart', 'entry_capture_opt_in_test.dart',
     'entry_prepared_draft_test.dart', 'entry_capture_source.dart',
     'import_wallet_seed_choice_screen.dart', 'native_entry_capture.dart',
+    'retained_png.dart', 'retained_renderer_frame.dart',
     'launch_decode_observation_test.dart')
 # The root baseline also runs suites outside the focused harness. These
 # labels are versioned test basenames, never names taken from error text.

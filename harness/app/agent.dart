@@ -93,6 +93,7 @@ import 'presentation_close.dart';
 import 'presentation_host.dart';
 import 'presentation_mode.dart';
 import 'recipe_control_admission.dart';
+import 'retained_png.dart';
 import 'seed_deposit_entry_binding.dart';
 import 'seed_deposit_presentation_binding.dart';
 import 'seed_project_presentation_binding.dart';
@@ -3780,10 +3781,18 @@ class HarnessAgent {
     }
     final ui.Image image = await captureLogicalView(view, layer);
     try {
-      final ByteData? png = await image.toByteData(
-        format: ui.ImageByteFormat.png,
+      if (image.colorSpace != ui.ColorSpace.sRGB) {
+        throw HarnessError('capture color space is not sRGB');
+      }
+      final ByteData? rgba = await image.toByteData(
+        format: ui.ImageByteFormat.rawStraightRgba,
       );
-      if (png == null) throw HarnessError('the engine returned no image');
+      if (rgba == null) throw HarnessError('the engine returned no image');
+      final Uint8List png = await encodeRetainedRgba(
+        rgba,
+        width: image.width,
+        height: image.height,
+      );
       if (guarded &&
           (image.width != c['width'] || image.height != c['height'])) {
         throw HarnessError('captured PNG dimensions differ', <String, int>{
@@ -3814,9 +3823,7 @@ class HarnessAgent {
         ...metrics.toJson(),
         if (guarded) 'theme': theme,
         if (guarded) 'asserted': true,
-        'png': base64Encode(
-          png.buffer.asUint8List(png.offsetInBytes, png.lengthInBytes),
-        ),
+        'png': base64Encode(png),
       };
     } finally {
       image.dispose();

@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../harness/app/capture_protocol.dart';
+import '../../harness/app/retained_png.dart';
 import '../../harness/app/retained_renderer_frame.dart';
 
 void main() {
@@ -111,5 +112,147 @@ void main() {
         throwsA(isA<CaptureRefused>()),
       );
     });
+  });
+
+  Future<Uint8List> decodedRgba(Uint8List png) async {
+    final ui.Codec codec = await ui.instantiateImageCodec(png);
+    try {
+      final ui.FrameInfo frame = await codec.getNextFrame();
+      try {
+        final ByteData? rgba = await frame.image.toByteData(
+          format: ui.ImageByteFormat.rawStraightRgba,
+        );
+        expect(rgba, isNotNull);
+        return Uint8List.fromList(
+          rgba!.buffer.asUint8List(rgba.offsetInBytes, rgba.lengthInBytes),
+        );
+      } finally {
+        frame.image.dispose();
+      }
+    } finally {
+      codec.dispose();
+    }
+  }
+
+  testWidgets('PNG keeps offset RGBA channels and straight alpha', (
+    WidgetTester tester,
+  ) async {
+    await tester.runAsync(() async {
+      const List<int> pixels = <int>[
+        255, 0, 0, 255,
+        0, 255, 0, 255,
+        17, 23, 253, 255,
+        255, 0, 255, 128,
+        0, 255, 255, 64,
+        0, 0, 0, 0,
+      ];
+      final Uint8List storage = Uint8List(32)
+        ..fillRange(0, 32, 91)
+        ..setRange(4, 28, pixels);
+      final Uint8List png = await encodeRetainedRgba(
+        ByteData.view(storage.buffer, 4, 24),
+        width: 3,
+        height: 2,
+      );
+      expect(await decodedRgba(png), pixels);
+    });
+  });
+
+  testWidgets('the worker owns bytes before caller mutation', (
+    WidgetTester tester,
+  ) async {
+    await tester.runAsync(() async {
+      const List<int> expected = <int>[255, 0, 0, 255, 0, 255, 0, 255];
+      final Uint8List pixels = Uint8List.fromList(expected);
+      final Future<Uint8List> encoding = encodeRetainedRgba(
+        ByteData.sublistView(pixels),
+        width: 2,
+        height: 1,
+      );
+      pixels.fillRange(0, pixels.length, 0);
+      expect(await decodedRgba(await encoding), expected);
+    });
+  });
+
+  test('invalid retained frames refuse before worker startup', () {
+    const List<List<int>> cases = <List<int>>[
+      <int>[0, 1, 0],
+      <int>[-1, 1, 0],
+      <int>[1, 0, 0],
+      <int>[4097, 1, 0],
+      <int>[4001, 4000, 0],
+      <int>[1, 1, 3],
+      <int>[1, 1, 5],
+    ];
+    for (final List<int> sample in cases) {
+      expect(
+        () => encodeRetainedRgba(
+          ByteData(sample[2]),
+          width: sample[0],
+          height: sample[1],
+        ),
+        throwsFormatException,
+      );
+    }
+  });
+
+  testWidgets('source loss during raw readback cannot start PNG work', (
+    WidgetTester tester,
+  ) async {
+    size(tester);
+    await paint(tester, const Color(0xFF000000));
+    bool current = true;
+    final RetainedRendererFrame? captured = await tester.runAsync(
+      () => RetainedRendererFrame.capture(
+        view: tester.binding.renderViews.single,
+        expectedSize: const Size(64, 48),
+        sourceCurrent: () => current,
+      ),
+    );
+    expect(captured, isNotNull);
+    final RetainedRendererFrame frame = captured!;
+    await tester.runAsync(() async {
+      final Future<Uint8List> encoding = frame.encodePng();
+      expect(frame.originalEncoding, isNotNull);
+      current = false;
+      await expectLater(encoding, throwsA(isA<CaptureRefused>()));
+      expect(frame.originalPngEncoding, isNull);
+      current = true;
+      expect(frame.isCurrent, isFalse);
+      expect(frame.encodePng(), same(encoding));
+      await frame.release();
+    });
+    expect(frame.released, isTrue);
+  });
+
+  testWidgets('release waits for the original raw readback refusal', (
+    WidgetTester tester,
+  ) async {
+    size(tester);
+    await paint(tester, const Color(0xFF000000));
+    final RetainedRendererFrame? captured = await tester.runAsync(
+      () => RetainedRendererFrame.capture(
+        view: tester.binding.renderViews.single,
+        expectedSize: const Size(64, 48),
+        sourceCurrent: () => true,
+      ),
+    );
+    expect(captured, isNotNull);
+    final RetainedRendererFrame frame = captured!;
+    await tester.runAsync(() async {
+      final Future<Uint8List> encoding = frame.encodePng();
+      final Future<void> refused = expectLater(
+        encoding,
+        throwsA(isA<CaptureRefused>()),
+      );
+      final Future<void> release = frame.release();
+      expect(frame.released, isFalse);
+      await refused;
+      await release;
+      expect(frame.release(), same(release));
+      expect(frame.encodePng(), same(encoding));
+    });
+    expect(frame.released, isTrue);
+    expect(frame.isCurrent, isFalse);
   });
 }
