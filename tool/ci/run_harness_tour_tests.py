@@ -100,6 +100,7 @@ def startup_check(repo, parent, dart, kind):
 
 def main():
     font_observation = None
+    caption_observation = None
     trim_observation = None
     path_observation = None
     report = dict(schema=1, scope='wallet_tour_controller_tests', success=False,
@@ -195,6 +196,13 @@ def main():
                 run_id=parent['GITHUB_RUN_ID'],
                 run_attempt=parent['GITHUB_RUN_ATTEMPT'],
                 test_output_sha256=hashlib.sha256(outcome.output).hexdigest())
+        caption_observation = font_metrics_observation.project_caption(
+            outcome.output, complete=outcome.transport_complete)
+        if caption_observation is not None:
+            caption_observation.update(source_sha=source, source_tree=tree,
+                run_id=parent['GITHUB_RUN_ID'],
+                run_attempt=parent['GITHUB_RUN_ATTEMPT'],
+                test_output_sha256=hashlib.sha256(outcome.output).hexdigest())
         trim_observation = welcome_trim_metrics.project(
             outcome.output, complete=outcome.transport_complete)
         if trim_observation is not None:
@@ -213,7 +221,7 @@ def main():
         counts = test_counts(outcome.output)
         report['counts'] = counts
         debug.need(outcome.success and counts['terminal_success'] is True
-            and counts['passed'] == (516 if asset_fidelity else 514)
+            and counts['passed'] == (517 if asset_fidelity else 515)
             and counts['skipped'] == counts['failed'] == counts['error_events'] == 0,
             'TESTS_FAILED')
         if asset_fidelity:
@@ -234,6 +242,11 @@ def main():
         observation = json.dumps(font_observation, sort_keys=True, separators=(',', ':'))
         if len(observation.encode('ascii')) <= 3800:
             print('::notice title=Bundled interface font metrics::' + observation)
+    if caption_observation is not None:
+        observation = json.dumps(caption_observation, sort_keys=True, separators=(',', ':'))
+        if len(observation.encode('ascii')) <= 3800:
+            print('::notice title=Caption wordmark engine metrics::' + observation)
+
     if trim_observation is not None:
         observation = json.dumps(trim_observation, sort_keys=True, separators=(',', ':'))
         if len(observation.encode('ascii')) <= 3800:

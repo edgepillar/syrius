@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/services.dart';
@@ -160,6 +161,89 @@ void main() {
       }
     }
     expect(distinctReferenceObserved, isTrue);
+  });
+
+
+  test('caption wordmark measures original glyph ink and tracking', () async {
+    final List<Map<String, num>> samples = <Map<String, num>>[];
+    addTearDown(() {
+      // The fixed wordmark produces numeric bounds, never captured UI text.
+      // ignore: avoid_print
+      print('CI_CAPTION_WORDMARK_METRICS:${jsonEncode(<String, Object>{
+        'schema': 1, 'samples': samples,
+      })}');
+    });
+    for (final (int theme, AppTokens tokens) in <(int, AppTokens)>[
+      (0, AppTokens.dark), (1, AppTokens.light),
+    ]) {
+      final TextStyle style = tokens.windowTitleText.copyWith(
+        color: Colors.white,
+      );
+      final List<int> leftEdges = <int>[];
+      for (final int variant in <int>[0, 1]) {
+        final TextPainter text = TextPainter(
+          text: TextSpan(text: 'SYRIUS', style: style),
+          textDirection: TextDirection.ltr,
+        )..layout();
+        final ui.PictureRecorder recorder = ui.PictureRecorder();
+        final Canvas canvas = Canvas(recorder);
+        final double x = tokens.windowCaptionPadding.left -
+            (variant == 1 ? style.letterSpacing! / 2 : 0);
+        final double y = (tokens.windowCaptionHeight - text.height) / 2;
+        text.paint(canvas, Offset(x, y));
+        final ui.Picture picture = recorder.endRecording();
+        ui.Image? image;
+        try {
+          image = await picture.toImage(128, 32);
+          final ByteData? bytes = await image.toByteData(
+            format: ui.ImageByteFormat.rawRgba,
+          );
+          expect(bytes, isNotNull);
+          int left = 127;
+          int top = 31;
+          int right = 0;
+          int bottom = 0;
+          int pixels = 0;
+          for (int py = 0; py < 32; py++) {
+            for (int px = 0; px < 128; px++) {
+              if (bytes!.getUint8((py * 128 + px) * 4 + 3) < 32) continue;
+              if (px < left) left = px;
+              if (py < top) top = py;
+              if (px > right) right = px;
+              if (py > bottom) bottom = py;
+              pixels++;
+            }
+          }
+          samples.add(<String, num>{
+            'theme': theme, 'variant': variant,
+            'font_size': style.fontSize!, 'tracking': style.letterSpacing!,
+            'line_height': text.height, 'line_width': text.width,
+            'baseline': text.computeLineMetrics().single.baseline,
+            'origin_x': x, 'origin_y': y,
+            'ink_left': pixels == 0 ? 0 : left,
+            'ink_top': pixels == 0 ? 0 : top,
+            'ink_right': right, 'ink_bottom': bottom, 'ink_pixels': pixels,
+            'image_width': 128, 'image_height': 32,
+          });
+          expect(pixels, greaterThan(0));
+          expect(right, lessThan(128));
+          expect(bottom, lessThan(32));
+          leftEdges.add(left);
+        } finally {
+          image?.dispose();
+          picture.dispose();
+          text.dispose();
+        }
+      }
+      // A paint-only diagnostic variant cannot alter the original line metrics.
+      expect(leftEdges[0] - leftEdges[1], inInclusiveRange(1, 3));
+      final List<Map<String, num>> pair = samples.sublist(samples.length - 2);
+      for (final String key in <String>[
+        'line_height', 'line_width', 'baseline', 'origin_y',
+      ]) {
+        expect(pair[0][key], pair[1][key]);
+      }
+    }
   });
 
   testWidgets('tabular word choices retain controlled RTL selection', (

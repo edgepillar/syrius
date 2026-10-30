@@ -87,3 +87,98 @@ class FontMetricsTests(unittest.TestCase):
         for raw, complete in ((event, False), (event, None), (event.decode(), True),
                               (b' ' * (4 * 1024**2 + 1), True)):
             self.assertEqual(metrics.project(raw, complete=complete)['status'], 'REFUSED')
+
+
+class CaptionWordmarkMetricsTests(unittest.TestCase):
+    def fixture(self):
+        return dict(schema=1, samples=[dict(
+            theme=theme, variant=variant, font_size=12, tracking=4.08,
+            line_height=17, line_width=65, baseline=12.45,
+            origin_x=14 - variant * 2.04, origin_y=7.5,
+            ink_left=16 - variant * 2, ink_top=13,
+            ink_right=75 - variant * 2, ink_bottom=20, ink_pixels=240,
+            image_width=128, image_height=32,
+        ) for theme, variant in ((0, 0), (0, 1), (1, 0), (1, 1))])
+
+    def event(self, value):
+        return (json.dumps(dict(type='print',
+            message=metrics.CAPTION_PREFIX + json.dumps(value))) + '\n').encode()
+
+    def test_complete_partial_and_empty_ink_do_not_grant_visual_success(self):
+        source = self.fixture()
+        result = metrics.project_caption(self.event(source), complete=True)
+        self.assertEqual(result['status'], 'OBSERVED')
+        self.assertTrue(result['complete_cases'])
+        self.assertFalse(result['visual_match_qualified'])
+        self.assertNotIn('success', result)
+        self.assertEqual(result['samples'], source['samples'])
+        result['samples'][0]['ink_left'] = 0
+        self.assertEqual(source, self.fixture())
+        partial = dict(source, samples=source['samples'][:2])
+        result = metrics.project_caption(self.event(partial), complete=True)
+        self.assertFalse(result['complete_cases'])
+        empty = self.fixture()
+        empty['samples'][0].update(ink_left=0, ink_top=0, ink_right=0,
+                                  ink_bottom=0, ink_pixels=0)
+        result = metrics.project_caption(self.event(empty), complete=True)
+        self.assertEqual(result['status'], 'OBSERVED')
+        self.assertEqual(result['samples'][0]['ink_pixels'], 0)
+        self.assertFalse(result['visual_match_qualified'])
+
+    def test_unknown_or_private_fields_and_sample_types_are_refused(self):
+        for fields in (dict(schema=True), dict(schema=2), dict(text='private-input'),
+                       dict(samples=[]), dict(samples={})):
+            result = metrics.project_caption(self.event(dict(self.fixture(), **fields)),
+                                             complete=True)
+            self.assertEqual(result['status'], 'REFUSED')
+            self.assertNotIn('private-input', json.dumps(result))
+        for field, value in (('line_width', True), ('line_width', float('nan')),
+                             ('line_width', float('inf')), ('line_width', -1),
+                             ('line_width', 4097), ('ink_left', 2.5),
+                             ('theme', 0.0), ('variant', True),
+                             ('detail', 'private-input')):
+            record = self.fixture()
+            record['samples'][0][field] = value
+            result = metrics.project_caption(self.event(record), complete=True)
+            self.assertEqual(result['status'], 'REFUSED')
+            self.assertNotIn('private-input', json.dumps(result))
+
+    def test_wrong_raster_geometry_and_ink_bounds_are_refused(self):
+        for field, value in (('image_width', 127), ('image_height', 31),
+                             ('font_size', 14), ('tracking', 0),
+                             ('ink_left', 76), ('ink_right', 128),
+                             ('ink_top', 21), ('ink_bottom', 32),
+                             ('line_height', 33), ('baseline', 33),
+                             ('origin_x', 33), ('origin_y', 33)):
+            record = self.fixture()
+            record['samples'][0][field] = value
+            self.assertEqual(metrics.project_caption(self.event(record),
+                complete=True)['status'], 'REFUSED')
+
+    def test_order_duplicate_or_malformed_records_cannot_replace_the_original(self):
+        record = self.fixture()
+        record['samples'][0], record['samples'][1] = (
+            record['samples'][1], record['samples'][0])
+        event = self.event(self.fixture())
+        for raw in (self.event(record), event + event, b'not-json\n',
+                    event + b'\xff', self.event('private-input')):
+            self.assertEqual(metrics.project_caption(raw, complete=True)['status'],
+                             'REFUSED')
+
+    def test_incomplete_or_oversized_streams_are_refused(self):
+        event = self.event(self.fixture())
+        for data, complete in ((event, False), (event, None), (event.decode(), True),
+                               (b' ' * (4 * 1024**2 + 1), True)):
+            self.assertEqual(metrics.project_caption(data, complete=complete)['status'],
+                             'REFUSED')
+
+    def test_other_events_never_export_their_messages_or_test_authority(self):
+        private = (json.dumps(dict(type='print', message='private-input')) + '\n').encode()
+        self.assertIsNone(metrics.project_caption(private, complete=True))
+        terminal = b'{"type":"done","success":true}\n'
+        self.assertIsNone(metrics.project_caption(terminal, complete=True))
+        result = metrics.project_caption(private + self.event(self.fixture()) + terminal,
+                                         complete=True)
+        self.assertEqual(result['status'], 'OBSERVED')
+        self.assertNotIn('private-input', json.dumps(result))
+        self.assertNotIn('success', result)
