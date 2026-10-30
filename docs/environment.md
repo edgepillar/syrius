@@ -9552,3 +9552,73 @@ bound original positive send/tour/exits and dashboard gotoTap failure retain
 their outcomes; exact reply and inner cause remain NOT_ESTABLISHED. No old
 profile, password, send or seed operation is retried. Main acceptance remains
 71/80, with ninety outputs, nineteen preparations and all 94 matches open.
+
+
+### Original confirmed Token exit and corrected seed predecessor
+
+Source190 `7f91db75afe7`, focused run
+[40983608829](https://github.com/edgepillar/syrius/actions/runs/40983608829),
+passes all 815 Python cases with three existing skips, all 449 ordinary Dart
+cases with no failures or skips, both original asset commands and selected
+analysis with zero errors, warnings and infos. The original caption/body
+digest, seam, owner and restoration assertions remain exact. Source189's
+two failures and source188's six-warning refusal and skipped Dart are retained;
+passing the new fixture does not independently reconstruct their root causes.
+
+Source190 Native98
+[40984415734](https://github.com/edgepillar/syrius/actions/runs/40984415734)
+and independent inspection
+[40986585893](https://github.com/edgepillar/syrius/actions/runs/40986585893)
+retain producer failure. The original positive chain-321 UI send, twelve-page
+tour, quiescence and normal application, entry and five-node exits qualify.
+Copied Deposit/Home receives the original `targetMissing` reply at dashboard
+`gotoTap`, before command one, publication or `gotoWait`. The preceding state
+has booted, initialized and unlocked set to yes and tab other. It establishes
+no exact active page; the missing-target cause remains NOT_ESTABLISHED.
+
+The literal source order is `stake -> fuse -> token -> deposit -> project ->
+fund-address`. Deposit follows three earlier recipes, immediately after Token
+and before Project. Earlier statements about four predecessor receipts or
+Project causing this pre-Project failure are incorrect and superseded by this
+correction. Their original run outcomes and evidence remain preserved. Final
+receipts for the three predecessors were not separately exported and are not
+reconstructed. The existing Project policy controls retain their own scope.
+
+The Token script ends at `token_registration_confirmed`. Previously its finish
+receipt did not request the original Token exit. The new binding captures the
+actual view State, issue frame, preflight, confirmation attempt and current
+route before the publication pointer. Only that same owner's immutable,
+positively confirmed chain-321 hash can request the actual receipt's original
+Done control. One original guarded pointer and one bounded wait on the route's
+pre-captured completed Future are added. Changed owners, attempts, bindings,
+hashes or uncertain exits remain held without retry or reacquisition. The
+existing successful Another reset replaces one opaque attempt identity before
+its original notification. There are no added SDK queries, confirmation reads,
+publication calls, animation clocks or direct harness Navigator operations.
+
+Thirteen additional Dart cases cover the original one-shot policy, capture and
+finish integration, stable confirmation attempt and seven actual Token views
+inside the production StepperScreen MaterialPageRoute. They test Home target
+absence before Done, original route completion, restored rail access, wrong
+hash, owner/preflight/confirmation/State replacement and Another reusing the
+old hash. All previous test registrations, selection and zero-analysis gates
+remain; the new sources receive explicit analysis paths and finite aliases.
+All 350 exact memory controls pass. The first private memory failure, caused
+by an incomplete closed reply-code catalog, is preserved; both sides of that
+catalog now agree. Contracts become 815 Python, 462 ordinary Dart and 464
+startup Dart. These new engine cases and fresh isolated native evidence remain
+pending. No old profile, password, send or seed operation is retried.
+
+Source190 entry-only run
+[40984535925](https://github.com/edgepillar/syrius/actions/runs/40984535925)
+produces four genuine entry images. Their finite archive is independently
+validated and all four actual/reference pairs are visually reviewed. The
+caption/body step is at most one RGB level in every pair; wordmark/control
+alignment, typography, Welcome placement and real editable draft/caret
+differences remain. The approved RULES palette exception is retained. Zero
+complete matches are accepted. The managed review task is CLOSED SUCCESS,
+its verified original object retained and only registered disposable
+extractions removed. No physical reclaim is claimed. Main acceptance remains
+71/80; ninety outputs, nineteen preparations, all 94 matches, the current full
+root, DLL initialization, unfiltered chain and Docker Desktop/lab.sh remain
+open. The separate Windows Arm/entry-inspector proposal is not included here.

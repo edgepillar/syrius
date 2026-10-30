@@ -649,6 +649,9 @@ class AnalysisAdmissionTests(unittest.TestCase):
             'harness/app/fixtures/seed_commands.dart',
             'harness/app/fixtures/seed_project_presentation.dart',
             'harness/app/seed_project_presentation_binding.dart',
+            'harness/app/fixtures/seed_token_presentation.dart',
+            'harness/app/seed_token_presentation_binding.dart',
+            'lib/rearchitecture/features/registration_success/registration_confirmation.dart',
             'test/harness/seed_policy_test.dart',
             'lib/widgets/modular_widgets/accelerator_widgets/accelerator_action_stepper.dart',
         ):
@@ -663,6 +666,9 @@ class AnalysisAdmissionTests(unittest.TestCase):
             'harness/app/fixtures/seed_commands.dart': 'seed_commands',
             'harness/app/fixtures/seed_project_presentation.dart': 'project_presentation',
             'harness/app/seed_project_presentation_binding.dart': 'project_presentation_binding',
+            'harness/app/fixtures/seed_token_presentation.dart': 'token_presentation',
+            'harness/app/seed_token_presentation_binding.dart': 'token_presentation_binding',
+            'lib/rearchitecture/features/registration_success/registration_confirmation.dart': 'registration_confirmation',
             'test/harness/seed_policy_test.dart': 'seed_policy_test',
             'lib/widgets/modular_widgets/accelerator_widgets/accelerator_action_stepper.dart': 'accelerator_stepper',
         }

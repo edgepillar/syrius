@@ -478,6 +478,9 @@ def analyze(parent, repo):
         'harness/app/fixtures/seed_commands.dart',
         'harness/app/fixtures/seed_project_presentation.dart',
         'harness/app/seed_project_presentation_binding.dart',
+        'harness/app/fixtures/seed_token_presentation.dart',
+        'harness/app/seed_token_presentation_binding.dart',
+        'lib/rearchitecture/features/registration_success/registration_confirmation.dart',
         'test/harness/seed_policy_test.dart',
         'lib/widgets/modular_widgets/accelerator_widgets/accelerator_action_stepper.dart',
         'harness/app/fixtures/lab_seed_binding.dart',
@@ -573,6 +576,9 @@ def analyze(parent, repo):
                                         else 'seed_commands' if relative.endswith('/harness/app/fixtures/seed_commands.dart')
                                         else 'project_presentation' if relative.endswith('/harness/app/fixtures/seed_project_presentation.dart')
                                         else 'project_presentation_binding' if relative.endswith('/harness/app/seed_project_presentation_binding.dart')
+                                        else 'token_presentation' if relative.endswith('/harness/app/fixtures/seed_token_presentation.dart')
+                                        else 'token_presentation_binding' if relative.endswith('/harness/app/seed_token_presentation_binding.dart')
+                                        else 'registration_confirmation' if relative.endswith('/lib/rearchitecture/features/registration_success/registration_confirmation.dart')
                                         else 'seed_policy_test' if relative.endswith('/test/harness/seed_policy_test.dart')
                                         else 'accelerator_stepper' if relative.endswith('/lib/widgets/modular_widgets/accelerator_widgets/accelerator_action_stepper.dart')
                                         else 'lab_seed_binding' if relative.endswith('/harness/app/fixtures/lab_seed_binding.dart')

@@ -8,6 +8,7 @@ import 'lab_seed_binding.dart';
 import 'presentation_fixtures.dart';
 import 'seed_policy.dart';
 import 'seed_project_presentation.dart';
+import 'seed_token_presentation.dart';
 
 /// Reached only through the harness's authenticated, serial command queue.
 final class SeedCommands {
@@ -22,10 +23,12 @@ final class SeedCommands {
     required String this._recipe,
     this._confirmed = false,
     this._projectPresentation,
+    this._tokenPresentation,
   }) : _source = _guard.source;
 
   SeedGuard? _guard;
   SeedProjectPresentation? _projectPresentation;
+  SeedTokenPresentation? _tokenPresentation;
   SeedSource? _source;
   String? _recipe;
   bool _confirmed = false;
@@ -42,6 +45,7 @@ final class SeedCommands {
     )
     tap,
     SeedProjectPresentation Function(int)? captureProjectPresentation,
+    SeedTokenPresentation Function(int, String)? captureTokenPresentation,
   }) async {
     try {
       final String? action = command['action'] as String?;
@@ -75,6 +79,7 @@ final class SeedCommands {
         _recipe = recipe;
         _confirmed = false;
         _projectPresentation = null;
+        _tokenPresentation = null;
         _guard = SeedGuard(source: source, journal: journal);
         return <String, Object?>{
           'ready': true,
@@ -145,6 +150,20 @@ final class SeedCommands {
           requireOriginalCompletion();
           await original.close(hash, requireOriginalCompletion);
         }
+        if (recipe == 'token') {
+          final SeedTokenPresentation? original = _tokenPresentation;
+          final String? hash = guard.acceptedHash;
+          if (original == null || hash == null) {
+            throw const SeedRefused('original-token-presentation-required');
+          }
+          void requireOriginalTokenCompletion() {
+            if (!original.closed) _requireFixtureClear();
+            guard.requireCurrent();
+            if (!original.closed) _requireFixtureClear();
+          }
+          requireOriginalTokenCompletion();
+          await original.close(hash, requireOriginalTokenCompletion);
+        }
         return <String, Object?>{
           'confirmed': true,
           'recipe': recipe,
@@ -159,6 +178,9 @@ final class SeedCommands {
         guard.requireCurrent();
         if (recipe == 'project') {
           _projectPresentation?.requireCaptured();
+        }
+        if (recipe == 'token') {
+          _tokenPresentation?.requireCaptured();
         }
         _requireFixtureClear();
       }
@@ -199,6 +221,14 @@ final class SeedCommands {
           throw const SeedRefused('original-project-presentation-required');
         }
         _projectPresentation = capture(originalRef);
+      }
+      if (recipe == 'token' && _tokenPresentation == null) {
+        final SeedTokenPresentation Function(int, String)? capture =
+            captureTokenPresentation;
+        if (capture == null) {
+          throw const SeedRefused('original-token-presentation-required');
+        }
+        _tokenPresentation = capture(originalRef, source.environment.owner);
       }
       requirePublication();
       final String hash = await guard.publish(recipe, () async {

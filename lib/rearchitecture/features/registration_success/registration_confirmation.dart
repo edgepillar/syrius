@@ -84,6 +84,7 @@ class RegistrationConfirmation extends ChangeNotifier {
   final int _chainId;
   final List<String> _addresses;
   final WalletFlightRegistry _registry;
+  Object _originalAttempt = Object();
   RegistrationPublication? _publication;
   InFlightBlocks? _flights;
   Future<void>? _checking;
@@ -99,6 +100,10 @@ class RegistrationConfirmation extends ChangeNotifier {
 
   /// The original accepted result remains available after context revocation.
   RegistrationPublication? get publication => _publication;
+
+  /// Opaque identity of this original attempt, replaced only by Another.
+  /// Reading it cannot query a chain or grant publication authority.
+  Object get originalAttempt => _originalAttempt;
 
   /// A context that leaves cannot acquire confirmation authority on return.
   bool get isCurrent {
@@ -218,6 +223,7 @@ class RegistrationConfirmation extends ChangeNotifier {
     _flights?.removeListener(_observe);
     _flights = null;
     _publication = null;
+    _originalAttempt = Object();
     _confirmed = false;
     _notify();
     return true;

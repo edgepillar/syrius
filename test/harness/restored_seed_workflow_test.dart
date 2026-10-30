@@ -1,29 +1,49 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:ui' show PointerDeviceKind;
 
+import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:zenon_syrius_wallet_flutter/blocs/notifications_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
+import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
+import 'package:zenon_syrius_wallet_flutter/model/database/wallet_notification.dart';
+import 'package:zenon_syrius_wallet_flutter/model/new_token_data.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_token_stepper/create_token_stepper.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/registration_success/registration_confirmation.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/token_favorite/token_favorite.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/stepper_screen.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/wallet_action_context.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/wallet_flight_registry.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_action_controller.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_action_stepper.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/project_creation_stepper.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/tabs.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+import '../../harness/app/agent.dart';
 import '../../harness/app/fixtures/seed_policy.dart';
 import '../../harness/app/fixtures/seed_project_presentation.dart';
+import '../../harness/app/fixtures/seed_token_presentation.dart';
 import '../../harness/app/seed_project_presentation_binding.dart';
+import '../../harness/app/seed_token_presentation_binding.dart';
 import '../../harness/bin/ci_wallet_reopen.dart' as reopen;
 import '../../harness/bin/harness.dart' as cli;
 import '../../harness/home_preparation_observation.dart';
 import '../../harness/seed/restored_seed_workflow.dart';
 import '../../harness/wallet_address_context.dart';
 import '../accelerator_project_redesign/support.dart';
+import '../create_token_redesign/support.dart';
 
 WalletAddressContext _context({
   int count = 2, int revision = 20, int owner = 1,
@@ -83,6 +103,22 @@ SeedProjectPresentation _projectPresentation({
   Future<void> Function(void Function())? tap,
   Duration timeout = const Duration(seconds: 5),
 }) => SeedProjectPresentation(
+  originalCurrent: current ?? () => true,
+  submittedCurrent: submitted ?? (String hash) => hash == _hash(9),
+  tapOriginalExit: tap ?? (void Function() admission) async => admission(),
+  originalRouteCompleted: route, closeTimeout: timeout,
+);
+
+
+
+
+SeedTokenPresentation _tokenPresentation({
+  required Future<Object?> route,
+  bool Function()? current,
+  bool Function(String)? submitted,
+  Future<void> Function(void Function())? tap,
+  Duration timeout = const Duration(seconds: 5),
+}) => SeedTokenPresentation(
   originalCurrent: current ?? () => true,
   submittedCurrent: submitted ?? (String hash) => hash == _hash(9),
   tapOriginalExit: tap ?? (void Function() admission) async => admission(),
@@ -283,7 +319,225 @@ cli.SeedOperationTrace _homeTrace({String recipe = 'deposit'}) =>
     cli.SeedOperationTrace(recipe)
       ..at(cli.SeedOperationAction.home, cli.SeedOperationStep.navigation);
 
+
+class _TokenIssueBloc extends MockBloc<IssueTokenEvent, IssueTokenState>
+    implements IssueTokenBloc {}
+
+class _TokenFavorites extends Mock implements FavoriteTokensRepository {}
+
+class _TokenOwner extends Mock implements WalletActionContext {}
+
+/// Real Token listener, receipt, StepperScreen and route; all I/O is inert.
+class _TokenRoute {
+  _TokenRoute() {
+    when(() => owner.ownerAddress).thenReturn(emptyAddress.toString());
+    when(() => owner.isCurrent).thenAnswer((_) => ownerCurrent);
+    registry = WalletFlightRegistry(
+      currentChainId: () => 321,
+      lookup: (_, _) async { confirmationReads++; return true; },
+    );
+    confirmation = newConfirmation();
+    displayedConfirmation = confirmation;
+    displayedFixture = fixture;
+    when(() => bloc.state).thenReturn(const IssueTokenInitial());
+    when(() => bloc.stream).thenAnswer((_) => states.stream);
+    when(() => bloc.add(any())).thenAnswer((_) { issues++; });
+    when(() => favorites.add(znnZts)).thenAnswer((_) async {
+      favoritesSaved++;
+    });
+  }
+
+  final WalletNotification? previousNotification = kLastNotification;
+  final WalletNotification? previousDismissed = kLastDismissedNotification;
+  final TokenCreateFixture fixture = TokenCreateFixture();
+  final _TokenIssueBloc bloc = _TokenIssueBloc();
+  final _TokenFavorites favorites = _TokenFavorites();
+  final _TokenOwner owner = _TokenOwner();
+  final StreamController<IssueTokenState> states =
+      StreamController<IssueTokenState>.broadcast();
+  final RailCollapse collapse = RailCollapse();
+  final ValueNotifier<int> revision = ValueNotifier<int>(0);
+  final List<Tabs> opened = <Tabs>[];
+  final List<RegistrationConfirmation> replacements =
+      <RegistrationConfirmation>[];
+  final List<TokenCreateFixture> replacementFixtures = <TokenCreateFixture>[];
+  late final WalletFlightRegistry registry;
+  late final RegistrationConfirmation confirmation;
+  late RegistrationConfirmation displayedConfirmation;
+  late TokenCreateFixture displayedFixture;
+  ModalRoute<dynamic>? route;
+  Object viewKey = const ValueKey<String>('original_token_view');
+  bool ownerCurrent = true;
+  int issues = 0;
+  int favoritesSaved = 0;
+  int confirmationReads = 0;
+  int exits = 0;
+  int notificationCalls = 0;
+
+  late final NotificationsBloc notifications = NotificationsBloc(
+    openStore: () {
+      notificationCalls++;
+      throw StateError('Unexpected store');
+    },
+    ownsStore: (_) => false,
+    desktopNotificationsEnabled: false,
+    showDesktop: (_, _) async {
+      notificationCalls++; throw StateError('Unexpected native notification');
+    },
+  );
+
+  RegistrationConfirmation newConfirmation() => RegistrationConfirmation(
+    context: owner, chainId: 321,
+    walletAddresses: <String>[emptyAddress.toString()], registry: registry,
+  );
+
+  Future<void> mount(WidgetTester tester) async {
+    expect(app.sl.isRegistered<NotificationsBloc>(), isFalse);
+    app.sl.registerSingleton<NotificationsBloc>(notifications);
+    kLastNotification = null;
+    kLastDismissedNotification = null;
+    await tester.pumpWidget(DefaultAssetBundle(
+      bundle: _ProjectFilmBundle(),
+      child: RepositoryProvider<FavoriteTokensRepository>.value(
+        value: favorites,
+        child: BlocProvider<IssueTokenBloc>.value(
+          value: bloc,
+          child: MaterialApp(
+            locale: const Locale('en'), theme: AppTheme.darkTheme,
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: appLocalizationsDelegates,
+            home: Scaffold(body: Row(children: <Widget>[
+              ShellRail(collapse: collapse, selected: Tabs.tokens,
+                locked: false, onSelected: opened.add),
+              Expanded(child: Builder(builder: (BuildContext context) =>
+                Center(child: OutlinedButton(
+                  key: const Key('open_original_token'),
+                  onPressed: () {
+                    unawaited(Navigator.push<void>(context,
+                      MaterialPageRoute<void>(builder: (BuildContext screen) {
+                        route = ModalRoute.of(screen);
+                        return ValueListenableBuilder<int>(
+                          valueListenable: revision,
+                          builder: (_, _, _) => StepperScreen(
+                            onStepperNotificationSeeMorePressed: () {},
+                            stepper: CreateTokenStepperView(
+                              key: ValueKey<Object>(viewKey),
+                              preflight: displayedFixture.preflight,
+                              confirmation: displayedConfirmation,
+                            ),
+                          ),
+                        );
+                      }),
+                    ));
+                  },
+                  child: const Text('Open original Token'),
+                )),
+              )),
+            ])),
+          ),
+        ),
+      ),
+    ));
+    await _projectFrame(tester);
+    await tester.tap(find.byKey(const Key('open_original_token')));
+    await _projectFrame(tester);
+    expect(route, isA<MaterialPageRoute<void>>());
+    expect(find.byType(StepperScreen), findsOneWidget);
+  }
+
+  Future<SeedTokenPresentation> submit(WidgetTester tester) async {
+    await tester.enterText(find.byKey(const Key('token_name_field')),
+        'SyntheticToken');
+    await tester.enterText(find.byKey(const Key('token_symbol_field')), 'SYN');
+    await tester.pump();
+    Future<void> next(String step) async {
+      final Finder control = find.descendant(
+        of: find.byKey(Key('token_create_$step')),
+        matching: find.byType(OutlinedButton),
+      );
+      await tester.ensureVisible(control);
+      await tester.tap(control);
+      await _projectFrame(tester);
+    }
+    await next('details');
+    await tester.enterText(find.byKey(const Key('token_total_supply_field')),
+        '10');
+    await tester.pump();
+    await next('supply');
+    await next('options');
+    final Finder control = find.descendant(
+      of: find.byKey(const Key('token_create_issue')),
+      matching: find.byType(OutlinedButton),
+    );
+    await tester.ensureVisible(control);
+    final SeedTokenPresentation original = captureSeedTokenPresentation(
+      tester.element(control), expectedOwner: emptyAddress.toString(),
+      tapOriginal: (Element element, VoidCallback admission) async {
+        admission();
+        final Finder exact = find.byElementPredicate(
+          (Element observed) => identical(observed, element),
+        );
+        expect(exact.hitTestable(), findsOneWidget);
+        admission();
+        exits++;
+        await tester.tap(exact);
+      },
+    );
+    expect(issues, 0);
+    expect(confirmation.publication, isNull);
+    original.requireCaptured();
+    await tester.tap(control);
+    await _projectFrame(tester);
+    expect(issues, 1);
+    final AccountBlockTemplate accepted = AccountBlockTemplate(
+      blockType: BlockTypeEnum.userSend.index,
+    )..address = emptyAddress
+      ..chainIdentifier = 321
+      ..hash = Hash.parse(_hash(9));
+    states.add(IssueTokenDone(accountBlock: accepted,
+        newTokenStandard: znnZts));
+    await _projectFrame(tester);
+    expect(confirmation.isConfirmed, isTrue);
+    expect(find.byKey(const Key('token_registration_confirmed')),
+        findsOneWidget);
+    expect(favoritesSaved, 1);
+    expect(exits, 0);
+    return original;
+  }
+
+  Future<void> dispose(WidgetTester tester) async {
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(seconds: 1));
+    if (app.sl.isRegistered<NotificationsBloc>() &&
+        identical(app.sl<NotificationsBloc>(), notifications)) {
+      await app.sl.unregister<NotificationsBloc>(instance: notifications);
+    }
+    notifications.dispose();
+    kLastNotification = previousNotification;
+    kLastDismissedNotification = previousDismissed;
+    await states.close();
+    await bloc.close();
+    for (final RegistrationConfirmation value in replacements) {
+      value.dispose();
+    }
+    confirmation.dispose();
+    registry.dispose();
+    for (final TokenCreateFixture value in replacementFixtures) {
+      value.dispose();
+    }
+    fixture.dispose();
+    collapse.dispose();
+    revision.dispose();
+    expect(notificationCalls, 0);
+  }
+}
+
 void main() {
+  setUpAll(() {
+    registerFallbackValue(IssueTokenRequested(
+      tokenData: NewTokenData.initial(address: emptyAddress.toString()),
+    ));
+  });
   test('Home observations copy finite flags and freeze private input safely',
       () {
     final HomePreparationTrace trace = HomePreparationTrace();
@@ -1009,4 +1263,264 @@ void main() {
       await tester.binding.setSurfaceSize(null);
     }
   });
+  test('the confirmed original Token exit awaits its actual route once',
+      () async {
+    final Completer<Object?> route = Completer<Object?>();
+    int exits = 0;
+    int owners = 0;
+    final SeedTokenPresentation presentation = _tokenPresentation(
+      route: route.future,
+      tap: (void Function() admission) async {
+        admission();
+        exits++;
+        admission();
+      },
+    );
+    expect(presentation.requireCaptured, returnsNormally);
+    final Future<void> original = presentation.close(_hash(9), () => owners++);
+    await Future<void>.delayed(Duration.zero);
+    expect(exits, 1);
+    expect(presentation.closed, isFalse);
+    route.complete(null);
+    await original;
+    expect(presentation.closed, isTrue);
+    await presentation.close(_hash(9), () => owners++);
+    expect(exits, 1);
+    expect(owners, greaterThanOrEqualTo(3));
+    await expectLater(presentation.close(_hash(8), () {}),
+        throwsA(isA<SeedRefused>()));
+    expect(presentation.closed, isTrue);
+    expect(exits, 1);
+  });
+
+  test('a revoked Token view or owner cannot revive its original exit',
+      () async {
+    for (final String phase in <String>['before', 'release', 'owner']) {
+      final Completer<Object?> route = Completer<Object?>();
+      bool live = phase != 'before';
+      bool owner = phase != 'owner';
+      int exits = 0;
+      final SeedTokenPresentation presentation = _tokenPresentation(
+        route: route.future, current: () => live,
+        tap: (void Function() admission) async {
+          admission();
+          if (phase == 'release') live = false;
+          admission();
+          exits++;
+        },
+      );
+      void current() {
+        if (!owner) throw const SeedRefused('original-context-changed');
+      }
+      await expectLater(presentation.close(_hash(9), current),
+          throwsA(isA<SeedRefused>()));
+      live = true;
+      owner = true;
+      await expectLater(presentation.close(_hash(9), current),
+          throwsA(isA<SeedRefused>()));
+      expect(exits, 0);
+      route.complete(null);
+      await Future<void>.delayed(Duration.zero);
+      expect(presentation.closed, isFalse);
+    }
+  });
+
+  test('pending or failed original Token closure never authorizes a retry',
+      () async {
+    for (final bool fail in <bool>[false, true]) {
+      final Completer<Object?> route = Completer<Object?>();
+      int exits = 0;
+      final SeedTokenPresentation presentation = _tokenPresentation(
+        route: route.future, timeout: const Duration(milliseconds: 1),
+        tap: (void Function() admission) async {
+          admission();
+          exits++;
+          if (fail) throw StateError('synthetic private close failure');
+        },
+      );
+      await expectLater(presentation.close(_hash(9), () {}),
+          throwsA(fail ? isA<StateError>() : isA<SeedRefused>()));
+      expect(exits, 1);
+      expect(presentation.closed, isFalse);
+      route.complete(null);
+      await Future<void>.delayed(Duration.zero);
+      expect(presentation.closed, isFalse);
+      await expectLater(presentation.close(_hash(9), () {}),
+          throwsA(isA<SeedRefused>()));
+      expect(exits, 1);
+    }
+    for (final Duration timeout in <Duration>[
+      Duration.zero, const Duration(seconds: 6),
+    ]) {
+      expect(() => _tokenPresentation(
+        route: Future<Object?>.value(), timeout: timeout,
+      ), throwsArgumentError);
+    }
+  });
+
+
+  test('the original confirmation attempt changes only after confirmed Another',
+      () async {
+    final _TokenRoute fixture = _TokenRoute();
+    final RegistrationConfirmation confirmation = fixture.confirmation;
+    final Object attempt = confirmation.originalAttempt;
+    try {
+      expect(confirmation.resetForAnother(), isFalse);
+      expect(confirmation.originalAttempt, same(attempt));
+      final AccountBlockTemplate accepted = AccountBlockTemplate(
+        blockType: BlockTypeEnum.userSend.index,
+      )..address = emptyAddress
+        ..chainIdentifier = 321
+        ..hash = Hash.parse(_hash(9));
+      confirmation.accept(RegistrationPublication(accountBlock: accepted));
+      expect(confirmation.originalAttempt, same(attempt));
+      await confirmation.check();
+      expect(confirmation.isConfirmed, isTrue);
+      final int reads = fixture.confirmationReads;
+      expect(confirmation.originalAttempt, same(attempt));
+      expect(confirmation.resetForAnother(), isTrue);
+      final Object another = confirmation.originalAttempt;
+      expect(another, isNot(same(attempt)));
+      expect(confirmation.resetForAnother(), isFalse);
+      expect(confirmation.originalAttempt, same(another));
+      expect(fixture.confirmationReads, reads);
+      expect(fixture.issues, 0);
+    } finally {
+      confirmation.dispose();
+      fixture.registry.dispose();
+      fixture.fixture.dispose();
+      fixture.collapse.dispose();
+      fixture.revision.dispose();
+      await fixture.states.close();
+      await fixture.bloc.close();
+    }
+    for (final String code in <String>[
+      'confirmed-token-presentation-required',
+      'original-token-presentation-changed',
+      'original-token-presentation-close-pending',
+      'original-token-presentation-held',
+      'original-token-presentation-required',
+    ]) {
+      expect(cli.seedOperationReplyCode(code), code);
+    }
+  });
+
+  testWidgets('original Token Done completes StepperScreen and restores Home',
+      (WidgetTester tester) async {
+    await tester.binding.setSurfaceSize(const Size(1280, 780));
+    final _TokenRoute fixture = _TokenRoute();
+    try {
+      await fixture.mount(tester);
+      final SeedTokenPresentation original = await fixture.submit(tester);
+      final HarnessAgent agent = HarnessAgent.forTest()..booted = true;
+      await expectLater(agent.commandForTest(<String, dynamic>{
+        'cmd': 'tap', 'tab': 'dashboard',
+      }), throwsA(isA<HarnessError>().having(
+        (HarnessError error) => error.toString(),
+        'message', 'nothing matches')));
+      expect(fixture.opened, isEmpty);
+      expect(find.byKey(const Key('nav_dashboard')).hitTestable(),
+          findsNothing);
+      bool completed = false;
+      unawaited(fixture.route!.completed.then((_) { completed = true; }));
+      final int reads = fixture.confirmationReads;
+      await _projectClose(tester, original.close(_hash(9), () {}));
+      expect(completed, isTrue);
+      expect(original.closed, isTrue);
+      expect(find.byType(StepperScreen), findsNothing);
+      expect(find.byKey(const Key('nav_dashboard')).hitTestable(),
+          findsOneWidget);
+      await _projectClose(tester, agent.commandForTest(<String, dynamic>{
+        'cmd': 'tap', 'tab': 'dashboard', 'settleMs': 0,
+      }).then<void>((_) {}));
+      expect(fixture.opened, <Tabs>[Tabs.dashboard]);
+      await original.close(_hash(9), () {});
+      expect(fixture.exits, 1);
+      expect(fixture.issues, 1);
+      expect(fixture.confirmationReads, reads);
+      expect(tester.takeException(), isNull);
+    } finally {
+      await fixture.dispose(tester);
+      await tester.binding.setSurfaceSize(null);
+    }
+  });
+
+  for (final String reason in <String>[
+    'hash', 'owner', 'preflight', 'confirmation', 'state', 'another',
+  ]) {
+    testWidgets('an original Token exit cannot revive after $reason changes',
+        (WidgetTester tester) async {
+      await tester.binding.setSurfaceSize(const Size(1280, 780));
+      final _TokenRoute fixture = _TokenRoute();
+      try {
+        await fixture.mount(tester);
+        final SeedTokenPresentation original = await fixture.submit(tester);
+        final Object attempt = fixture.confirmation.originalAttempt;
+        final State originalState = tester.state(
+          find.byType(CreateTokenStepperView),
+        );
+        switch (reason) {
+          case 'owner':
+            fixture.ownerCurrent = false;
+          case 'preflight':
+            final TokenCreateFixture replacement = TokenCreateFixture();
+            fixture.replacementFixtures.add(replacement);
+            fixture.displayedFixture = replacement;
+            fixture.revision.value++;
+          case 'confirmation':
+            final RegistrationConfirmation replacement =
+                fixture.newConfirmation();
+            fixture.replacements.add(replacement);
+            fixture.displayedConfirmation = replacement;
+            fixture.revision.value++;
+          case 'state':
+            fixture.viewKey = Object();
+            fixture.revision.value++;
+          case 'another':
+            await tester.tap(find.byKey(const Key('registration_another')));
+            await _projectFrame(tester);
+            expect(tester.state(find.byType(CreateTokenStepperView)),
+                same(originalState));
+            expect(fixture.confirmation.originalAttempt,
+                isNot(same(attempt)));
+            final RegistrationPublication sameHash = RegistrationPublication(
+              accountBlock: AccountBlockTemplate(
+                blockType: BlockTypeEnum.userSend.index,
+              )..address = emptyAddress
+                ..chainIdentifier = 321
+                ..hash = Hash.parse(_hash(9)),
+            );
+            fixture.confirmation.accept(sameHash);
+            await fixture.confirmation.check();
+            expect(fixture.confirmation.isConfirmed, isTrue);
+          case 'hash':
+            break;
+        }
+        await _projectFrame(tester);
+        final int reads = fixture.confirmationReads;
+        await expectLater(original.close(
+          reason == 'hash' ? _hash(8) : _hash(9), () {},
+        ), throwsA(isA<SeedRefused>()));
+        fixture.ownerCurrent = true;
+        fixture.displayedFixture = fixture.fixture;
+        fixture.displayedConfirmation = fixture.confirmation;
+        fixture.revision.value++;
+        await _projectFrame(tester);
+        await expectLater(original.close(_hash(9), () {}),
+            throwsA(isA<SeedRefused>()));
+        expect(original.closed, isFalse);
+        expect(fixture.route!.isCurrent, isTrue);
+        expect(fixture.exits, 0);
+        expect(fixture.issues, 1);
+        expect(fixture.confirmationReads, reads);
+        expect(find.byKey(const Key('nav_dashboard')).hitTestable(),
+            findsNothing);
+        expect(tester.takeException(), isNull);
+      } finally {
+        await fixture.dispose(tester);
+        await tester.binding.setSurfaceSize(null);
+      }
+    });
+  }
+
 }
