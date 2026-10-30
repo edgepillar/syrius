@@ -19,6 +19,12 @@ Map<String, Object?>? _project(List<Map<String, Object?>> effects, {
   imageCreated: false, restoring: false, restored: false, held: false,
 );
 
+Map<String, Object?> _trace() => <String, Object?>{
+  'schema': 1, 'screen': 'welcome', 'theme': 'dark', 'scopes': 1,
+  'effects': 1, 'phase': 'original-native-frame', 'boundary': 'begin',
+  'future': 'not_returned', 'failed': false, 'milliseconds': 0,
+};
+
 void main() {
   test('progress keeps pending and completed original receipts separate',
       () async {
@@ -104,5 +110,79 @@ void main() {
     expect(empty['last'], isNull);
     expect(empty['slowest'], isNull);
     expect(empty['effects'], 0);
+  });
+
+  test('effect records copy fixed boundaries and refuse private values', () {
+    final Map<String, Object?> original = _trace();
+    final Map<String, Object?> fixed = projectEntryEffectTrace(original)!;
+    original['phase'] = _PrivateError();
+    expect(fixed['phase'], 'original-native-frame');
+    expect(() => fixed['phase'] = 'changed', throwsUnsupportedError);
+    for (final Map<String, Object?> change in <Map<String, Object?>>[
+      <String, Object?>{'schema': true},
+      <String, Object?>{'screen': _PrivateError()},
+      <String, Object?>{'theme': 'private-context'},
+      <String, Object?>{'scopes': 5},
+      <String, Object?>{'scopes': 2},
+      <String, Object?>{'effects': 0},
+      <String, Object?>{'effects': 193},
+      <String, Object?>{'phase': _PrivateError()},
+      <String, Object?>{'boundary': 'private-context'},
+      <String, Object?>{'future': 'private-context'},
+      <String, Object?>{'future': 'succeeded'},
+      <String, Object?>{'boundary': 'returned'},
+      <String, Object?>{'boundary': 'ended'},
+      <String, Object?>{'failed': 1},
+      <String, Object?>{'milliseconds': -1},
+      <String, Object?>{'milliseconds': 0x80000000},
+      <String, Object?>{'milliseconds': double.nan},
+      <String, Object?>{'error': _PrivateError()},
+    ]) {
+      expect(projectEntryEffectTrace(<String, Object?>{
+        ..._trace(), ...change,
+      }), isNull);
+    }
+    final Map<String, Object?> ended = <String, Object?>{
+      ..._trace(), 'boundary': 'ended', 'failed': true,
+    };
+    expect(projectEntryEffectTrace(ended), ended);
+    expect(jsonEncode(fixed), isNot(contains('Private')));
+  });
+
+  test('failed diagnostic output stops without rendering its error', () {
+    int calls = 0;
+    final EntryEffectTraceEmitter emitter = EntryEffectTraceEmitter(
+      write: (String _) {
+        calls++;
+        throw _PrivateError();
+      },
+    );
+    emitter
+      ..add(<String, Object?>{..._trace(), 'error': _PrivateError()})
+      ..add(_trace())
+      ..add(_trace());
+    expect(calls, 1);
+  });
+
+  test('reentrant diagnostic writes reserve their bounded output first', () {
+    final List<String> lines = <String>[];
+    late final EntryEffectTraceEmitter emitter;
+    emitter = EntryEffectTraceEmitter(write: (String line) {
+      lines.add(line);
+      if (lines.length == 1) emitter.add(_trace());
+    });
+    for (int index = 0; index < entryEffectTraceMaxEvents + 2; index++) {
+      emitter.add(_trace());
+    }
+    expect(lines, hasLength(entryEffectTraceMaxEvents + 1));
+    expect(lines.every((String line) =>
+        line.startsWith(entryEffectTracePrefix)), isTrue);
+    expect(jsonDecode(lines.last.substring(entryEffectTracePrefix.length)),
+        <String, Object?>{'schema': 1, 'capped': true});
+    expect(
+      lines.fold<int>(0, (int sum, String line) =>
+          sum + utf8.encode(line).length + 1),
+      lessThan(entryEffectTraceMaxBytes + 512),
+    );
   });
 }

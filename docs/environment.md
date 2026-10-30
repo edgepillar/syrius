@@ -1,5 +1,59 @@
 # Redesign build environment
 
+## Passive native effect observations (2026-10-30T17:09Z)
+
+[Source218 focused 41089818495](https://github.com/edgepillar/syrius/actions/runs/41089818495)
+qualifies 858 Python cases with three existing skips, all 517 ordinary Dart
+cases without failures, error events or skips, both original asset commands,
+fourteen phases, zero selected findings and 393 fresh memory controls. The
+exact reference Import SVG uses the existing dependency and 28-pixel token;
+its error branch, private file/draft owners and callbacks remain.
+
+[Entry 41091382863](https://github.com/edgepillar/syrius/actions/runs/41091382863),
+independently preserved by [41093168667](https://github.com/edgepillar/syrius/actions/runs/41093168667),
+remains failure. Its first Welcome capture has a TIMEOUT and receives zero
+PNGs. Window restoration and close exchanges also fail. The original app
+requires forced termination and returns one with complete 2255-byte output
+and no overflow. HTTP_FAILED, CLOSE_UNCERTAIN and FORCED_TERMINATION retain
+their original binding. The progress snapshot is absent; exact inner cause
+is NOT_ESTABLISHED. Import is unreached. All three original runs are terminal;
+neither producer, original profile nor artifact transport is repeated.
+
+The next source adds fixed effect observations to the original process pipe.
+The existing effect is reserved before its begin record, its original Future
+is retained before the returned record, and its existing elapsed measurement
+stops before the ended record. The existing owner check still applies, with
+an additional recheck after diagnostic output and before the original call.
+[Dart's Stdout API](https://api.dart.dev/dart-io/Stdout-class.html) documents
+blocking writes; the observation reaches that pipe before a later effect
+can stop the application's event loop. A failed diagnostic sink closes only
+the diagnostic writer and cannot replace the effect's outcome.
+
+The writer accepts only the original fixed phase catalog and four ordered
+entry scenes. It caps observations at 384 records and 96 KiB, then emits one
+fixed cap marker. The existing parent output limit stays 128 KiB. It drains
+the same pipe continuously, retaining only that bounded memory; no raw process
+log is added to the artifact. Only complete, ordered, closed records reach the
+manifest's optional effect_trace summary. Last observed and last ended effects
+remain distinct. Missing, capped, malformed, replayed, private, incomplete or
+overflowed output cannot create a positive image, restore, exit or wallet result.
+The original HTTP snapshot, failure fields and every acceptance gate remain.
+No additional RPC, capture, retry, timeout extension, timer, animation clock,
+asset, SDK, dependency, node or financial publication is introduced.
+
+Three new Dart cases and eight Python cases cover the observation boundaries,
+privacy, output caps, malformed/replayed records, original failed sessions and
+independent-reader refusal. Exact ordinary/startup gates become 520/522 and
+registered Python cases become 866. All 22 targeted memory controls pass.
+The first targeted run retains one test-fixture construction error; invalid
+fields now overwrite a valid fixture before the actual refusal check. No
+negative assertion is removed. The complete memory selection contains 401
+cases; fresh hosted analysis, engine and native qualification remain required.
+The separate SDK refusal-observation candidate remains unapplied. The main
+ledger remains 71/80 with zero accepted matches, ninety missing outputs and
+nineteen unqualified preparations. Native103 remains UNKNOWN and Native104
+is not admitted. The storage policy and all original evidence remain.
+
 ## Qualified caption focus and original Import symbol follow-up (2026-10-30T16:15Z)
 
 [Source217 c2cd55a6d61d / focused 41079289917](https://github.com/edgepillar/syrius/actions/runs/41079289917)

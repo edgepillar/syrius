@@ -1262,7 +1262,135 @@ def progress_fixture():
         artworkCount=2, imageCreated=True, restoring=True, restored=True, held=False)
 
 
+def effect_trace_fixture(boundary='begin', **changes):
+    value = dict(schema=1, screen='welcome', theme='dark', scopes=1, effects=1,
+        phase='original-native-frame', boundary=boundary, failed=False,
+        future='not_returned' if boundary == 'begin' else
+            'succeeded' if boundary == 'ended' else 'pending',
+        milliseconds={'begin': 0, 'returned': 1, 'ended': 2}[boundary])
+    return dict(value, **changes)
+
+
+def effect_trace_output(*values):
+    return b''.join(smoke.EFFECT_TRACE_PREFIX + json.dumps(value).encode() + b'\n'
+                    for value in values)
+
+
 class EntryProgressTests(unittest.TestCase):
+    def test_pipe_trace_keeps_last_admission_distinct_from_last_ended_effect(self):
+        values = [effect_trace_fixture(boundary) for boundary in ('begin', 'returned', 'ended')]
+        values += [effect_trace_fixture(boundary, effects=2,
+            phase='original-renderer-image') for boundary in ('begin', 'returned')]
+        raw = b'private unrelated process output\n' + effect_trace_output(*values)
+        trace = smoke.effect_trace_from_output(raw, complete=True, overflow=False)
+        self.assertEqual(trace['status'], 'OBSERVED')
+        self.assertEqual(trace['events'], 5)
+        self.assertEqual(trace['last']['phase'], 'original-renderer-image')
+        self.assertEqual(trace['last']['future'], 'pending')
+        self.assertEqual(trace['last_ended']['phase'], 'original-native-frame')
+        values[-1]['phase'] = 'private'
+        self.assertEqual(trace['last']['phase'], 'original-renderer-image')
+        report = smoke.Report()
+        report.effect_trace = trace
+        report.errors = ['HTTP_FAILED']
+        public = report.public()
+        self.assertEqual(public['effect_trace'], trace)
+        self.assertEqual(public['capture_count'], 0)
+        self.assertFalse(public['success'])
+        self.assertEqual(public['error_codes'], ['HTTP_FAILED'])
+        self.assertNotIn('private', json.dumps(public))
+
+    def test_pipe_trace_preserves_a_call_that_failed_before_returning_a_future(self):
+        raw = effect_trace_output(effect_trace_fixture(),
+            effect_trace_fixture('ended', future='not_returned', failed=True))
+        trace = smoke.effect_trace_from_output(raw, complete=True, overflow=False)
+        self.assertEqual(trace['status'], 'OBSERVED')
+        self.assertEqual(trace['events'], 2)
+        self.assertTrue(trace['last']['failed'])
+        self.assertEqual(trace['last']['future'], 'not_returned')
+        self.assertEqual(trace['last_ended'], trace['last'])
+
+    def test_pipe_trace_refuses_private_fields_coercion_and_malformed_records(self):
+        changes = [dict(schema=True), dict(screen='private'), dict(theme='private'),
+            dict(scopes=True), dict(scopes=5), dict(effects=0), dict(effects=193),
+            dict(phase='private'), dict(boundary='private'), dict(future='private'),
+            dict(failed=1), dict(milliseconds=True), dict(milliseconds=-1),
+            dict(milliseconds=0x80000000), dict(milliseconds=1.5),
+            dict(error='private'), dict(boundary='returned'), dict(boundary='ended')]
+        invalid = [effect_trace_output(dict(effect_trace_fixture(), **change))
+                   for change in changes]
+        valid = effect_trace_output(effect_trace_fixture())
+        invalid += [valid[:-1], smoke.EFFECT_TRACE_PREFIX + b'\xff\n',
+            valid.replace(b'"schema": 1', b'"schema":1,"schema":1'),
+            smoke.EFFECT_TRACE_PREFIX + b'{"schema":true,"capped":true}\n',
+            smoke.EFFECT_TRACE_PREFIX + b'x' * 513 + b'\n']
+        for raw in invalid:
+            with self.subTest(bytes=len(raw)):
+                trace = smoke.effect_trace_from_output(raw, complete=True, overflow=False)
+                self.assertEqual(trace, dict(schema=1, status='REFUSED',
+                    events=0, last=None, last_ended=None))
+                self.assertNotIn('private', json.dumps(trace))
+
+    def test_pipe_trace_refuses_replays_gaps_and_inconsistent_effect_order(self):
+        begin, returned, ended = [effect_trace_fixture(boundary)
+                                 for boundary in ('begin', 'returned', 'ended')]
+        invalid = [(returned,), (begin, begin), (begin, returned, returned),
+            (begin, dict(returned, phase='original-renderer-image')),
+            (dict(begin, milliseconds=5), returned),
+            (begin, effect_trace_fixture(effects=2)), (begin, ended),
+            (begin, returned, ended, effect_trace_fixture(effects=3)),
+            (begin, returned, ended, effect_trace_fixture(scopes=2)),
+            (begin, dict(schema=1, capped=True), returned)]
+        for values in invalid:
+            with self.subTest(records=len(values)):
+                trace = smoke.effect_trace_from_output(
+                    effect_trace_output(*values), complete=True, overflow=False)
+                self.assertEqual(trace['status'], 'REFUSED')
+
+    def test_pipe_trace_caps_and_original_output_limits_remain_explicit(self):
+        raw = effect_trace_output(effect_trace_fixture(), dict(schema=1, capped=True))
+        trace = smoke.effect_trace_from_output(raw, complete=True, overflow=False)
+        self.assertEqual(trace['status'], 'CAPPED')
+        self.assertEqual(trace['events'], 1)
+        self.assertIsNone(trace['last_ended'])
+        for complete, overflow in ((False, False), (True, True)):
+            self.assertEqual(smoke.effect_trace_from_output(
+                raw, complete=complete, overflow=overflow)['status'], 'REFUSED')
+        self.assertIsNone(smoke.effect_trace_from_output(
+            b'legacy private output\n', complete=True, overflow=False))
+        self.assertEqual(smoke.effect_trace_from_output(
+            b'x' * (smoke.LIMITS.output_bytes + 1),
+            complete=True, overflow=False)['status'], 'REFUSED')
+        self.assertEqual((smoke.LIMITS.total, smoke.LIMITS.ready, smoke.LIMITS.request,
+                          smoke.LIMITS.capture_request, smoke.LIMITS.output_bytes),
+                         (150, 45, 20, 30, 131072))
+        env = smoke.child_environment({}, Path('isolated'), 1234, TOKEN)
+        self.assertEqual(env['SYRIUS_CI_ENTRY_EFFECT_TRACE'], 'true')
+
+    def test_original_failed_session_projects_its_existing_pipe_without_another_request(self):
+        process, drain, report, clock = OriginalProcess(), Drain(), smoke.Report(), Clock()
+        class TimedOutHost(Host):
+            captures = 0
+            def exchange(self, command, token, timeout):
+                if command.get('cmd') == 'entry-capture':
+                    self.captures += 1
+                    raise TimeoutError('private original request')
+                return super().exchange(command, token, timeout)
+        host = TimedOutHost(process)
+        drain.data = effect_trace_output(effect_trace_fixture())
+        drain.count = len(drain.data)
+        session = smoke.EntrySmoke(process, host, TOKEN, drain, report,
+            artifacts=Artifacts(), limits=LIMITS, clock=clock, sleep=clock.sleep)
+        public = session.run()
+        self.assertEqual(host.captures, 1)
+        self.assertEqual(public['effect_trace']['last']['boundary'], 'begin')
+        self.assertEqual(public['capture_count'], 0)
+        self.assertFalse(public['success'])
+        self.assertIn('HTTP_FAILED', public['error_codes'])
+        self.assertEqual(public['transport_failure'],
+                         dict(phase='capture_welcome_dark', kind='TIMEOUT'))
+        self.assertNotIn('private original request', json.dumps(public))
+
     def test_progress_copies_finite_receipts_and_keeps_host_counts_separate(self):
         original = progress_fixture()
         value = smoke.capture_progress_projection(original)

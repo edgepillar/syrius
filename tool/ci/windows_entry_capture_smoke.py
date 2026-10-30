@@ -100,6 +100,9 @@ ENTRY_EFFECT_PHASES = frozenset((
     'original-window-size', 'original-window-visibility',
 ))
 ENTRY_FUTURE_STATES = frozenset(('not_returned', 'pending', 'succeeded', 'failed'))
+EFFECT_TRACE_PREFIX = b'SYRIUS_ENTRY_EFFECT:'
+EFFECT_TRACE_MAX_EVENTS = 384
+EFFECT_TRACE_MAX_BYTES = 98304
 HTTP_FAILURE_KINDS = frozenset((
     'TIMEOUT', 'DISCONNECTED', 'RESET', 'INCOMPLETE', 'IO_ERROR', 'OTHER',
 ))
@@ -115,6 +118,132 @@ def _entry_effect_projection(value):
             or not 0 <= value['milliseconds'] <= 0x7fffffff):
         return None
     return {key: value[key] for key in ('phase', 'future', 'failed', 'milliseconds')}
+
+
+def _effect_trace_event(value):
+    fields = ('schema', 'screen', 'theme', 'scopes', 'effects', 'phase',
+              'boundary', 'future', 'failed', 'milliseconds')
+    if (type(value) is not dict or set(value) != set(fields)
+            or type(value['schema']) is not int or value['schema'] != 1
+            or type(value['scopes']) is not int or not 1 <= value['scopes'] <= 4
+            or type(value['effects']) is not int or not 1 <= value['effects'] <= 192
+            or type(value['screen']) is not str or type(value['theme']) is not str
+            or (value['screen'], value['theme']) != SCENES[value['scopes'] - 1]
+            or type(value['boundary']) is not str
+            or value['boundary'] not in ('begin', 'returned', 'ended')
+            or _entry_effect_projection({key: value[key] for key in
+                ('phase', 'future', 'failed', 'milliseconds')}) is None):
+        return None
+    boundary, future, failed = value['boundary'], value['future'], value['failed']
+    if (boundary == 'begin' and (future != 'not_returned' or failed)
+            or boundary == 'returned' and (future == 'not_returned' or failed)
+            or boundary == 'ended' and future == 'not_returned' and not failed):
+        return None
+    return {key: value[key] for key in fields}
+
+
+def effect_trace_projection(value):
+    """A trace observes its original process; it never supplies a capture."""
+    fields = {'schema', 'status', 'events', 'last', 'last_ended'}
+    if (type(value) is not dict or set(value) != fields
+            or type(value['schema']) is not int or value['schema'] != 1
+            or type(value['status']) is not str
+            or value['status'] not in ('OBSERVED', 'CAPPED', 'REFUSED')
+            or type(value['events']) is not int
+            or not 0 <= value['events'] <= EFFECT_TRACE_MAX_EVENTS):
+        return None
+    if value['status'] == 'REFUSED':
+        return (dict(schema=1, status='REFUSED', events=0, last=None, last_ended=None)
+                if value['events'] == 0 and value['last'] is None
+                and value['last_ended'] is None else None)
+    last = _effect_trace_event(value['last'])
+    ended = _effect_trace_event(value['last_ended']) if value['last_ended'] is not None else None
+    if (not value['events'] or last is None
+            or value['last_ended'] is not None and (ended is None or ended['boundary'] != 'ended')
+            or last['boundary'] == 'ended' and ended != last):
+        return None
+    if ended is None:
+        expected = {'begin': 1, 'returned': 2}
+        if (last['boundary'] not in expected or value['events'] != expected[last['boundary']]
+                or (last['scopes'], last['effects']) != (1, 1)):
+            return None
+    elif last['boundary'] != 'ended':
+        position = (last['scopes'], last['effects'])
+        if position not in ((ended['scopes'], ended['effects'] + 1),
+                            (ended['scopes'] + 1, 1)):
+            return None
+    return dict(schema=1, status=value['status'], events=value['events'],
+                last=last, last_ended=ended)
+
+
+def effect_trace_from_output(data, *, complete, overflow):
+    """Project only fixed complete lines from the already-owned output pipe."""
+    refused = dict(schema=1, status='REFUSED', events=0, last=None, last_ended=None)
+    if (type(data) not in (bytes, bytearray) or type(complete) is not bool
+            or type(overflow) is not bool or len(data) > LIMITS.output_bytes):
+        return refused
+    lines = bytes(data).splitlines(keepends=True)
+    selected = [line for line in lines if line.startswith(EFFECT_TRACE_PREFIX)]
+    if not selected:
+        return None
+    if not complete or overflow:
+        return refused
+    previous = ended = None
+    events = size = 0
+    capped = False
+
+    def unique(pairs):
+        value = {}
+        for key, item in pairs:
+            if key in value:
+                raise ValueError()
+            value[key] = item
+        return value
+
+    try:
+        for line in selected:
+            if capped or not line.endswith(b'\n') or len(line) > 512:
+                return refused
+            size += len(line)
+            if size > EFFECT_TRACE_MAX_BYTES + 128:
+                return refused
+            value = json.loads(line[len(EFFECT_TRACE_PREFIX):].decode('ascii'),
+                               object_pairs_hook=unique)
+            if value == {'schema': 1, 'capped': True}:
+                if (type(value.get('schema')) is not int or not events
+                        or type(value.get('capped')) is not bool):
+                    return refused
+                capped = True
+                continue
+            value = _effect_trace_event(value)
+            if value is None or events >= EFFECT_TRACE_MAX_EVENTS:
+                return refused
+            position = (value['scopes'], value['effects'])
+            if previous is None:
+                valid = position == (1, 1) and value['boundary'] == 'begin'
+            elif position == (previous['scopes'], previous['effects']):
+                allowed = {'begin': ('returned', 'ended'), 'returned': ('ended',), 'ended': ()}
+                valid = (value['phase'] == previous['phase']
+                    and value['boundary'] in allowed[previous['boundary']]
+                    and value['milliseconds'] >= previous['milliseconds']
+                    and (previous['boundary'] != 'returned' or value['future'] != 'not_returned')
+                    and (previous['boundary'] != 'begin' or value['boundary'] != 'ended'
+                         or value['future'] == 'not_returned' and value['failed']))
+            else:
+                valid = (previous['boundary'] == 'ended' and value['boundary'] == 'begin'
+                    and (position == (previous['scopes'], previous['effects'] + 1)
+                         or position == (previous['scopes'] + 1, 1)))
+            if not valid:
+                return refused
+            events += 1
+            previous = value
+            if value['boundary'] == 'ended':
+                ended = value
+    except (ValueError, UnicodeError, TypeError, KeyError):
+        return refused
+    result = dict(schema=1, status='CAPPED' if capped else 'OBSERVED',
+                  events=events, last=previous, last_ended=ended)
+    return effect_trace_projection(result) or refused
 
 
 def capture_progress_projection(value):
@@ -192,6 +321,7 @@ class Report(bounded.Report):
         self.first_command_failure = None
         self.cleanup_failures = []
         self.capture_progress = None
+        self.effect_trace = None
         self.transport_failure = None
 
     def fail(self, code, original=None):
@@ -230,6 +360,7 @@ class Report(bounded.Report):
                                      "bytes": item["bytes"], "width": 1280, "height": 780})
                     break
         capture_progress = capture_progress_projection(self.capture_progress)
+        effect_trace = effect_trace_projection(self.effect_trace)
         transport_failure = transport_failure_projection(self.transport_failure)
         complete = (
             all(self.checks.get(name) is True for name in CHECKS)
@@ -264,6 +395,7 @@ class Report(bounded.Report):
             "first_command_failure": first_failure,
             "cleanup_failures": cleanup_failures,
             **({'capture_progress': capture_progress} if capture_progress is not None else {}),
+            **({'effect_trace': effect_trace} if effect_trace is not None else {}),
             **({'transport_failure': transport_failure} if transport_failure is not None else {}),
         }
 
@@ -335,6 +467,7 @@ def child_environment(parent, profile, port, token):
         "XDG_CACHE_HOME": str(profile / "Cache"),
         "SYRIUS_HARNESS_HOME": str(profile),
         "SYRIUS_HARNESS_PORT": str(port), "SYRIUS_HARNESS_TOKEN": token,
+        "SYRIUS_CI_ENTRY_EFFECT_TRACE": "true",
     })
     if profile.drive:
         env.update(HOMEDRIVE=profile.drive, HOMEPATH=str(profile)[len(profile.drive):])
@@ -855,6 +988,9 @@ class EntrySmoke(bounded.PresentationSmoke):
             grace = min(self.limits.exit, max(0, self.deadline - self.clock())) if self.quit_sent else 0
             bounded.finish_original(self.process, self.drain, self.report, self.limits, grace=grace)
             self.report.output_bytes = getattr(self.drain, "count", 0)
+            self.report.effect_trace = effect_trace_from_output(
+                getattr(self.drain, "data", b""), complete=self.report.output_complete,
+                overflow=self.report.output_overflow)
             self.report.captures = self.artifacts.records
         return self.report.public()
 
@@ -902,7 +1038,7 @@ def main(arguments=None):
         except Exception as error:
             report.fail("LAUNCH_FAILED", error)
             raise Failure("LAUNCH_FAILED") from None
-        drain = bounded.OutputDrain(process.stdout, LIMITS.output_bytes)
+        drain = bounded.OutputDrain(process.stdout, LIMITS.output_bytes, retain=True)
         session = EntrySmoke(process, bounded.LoopbackTransport(port, LIMITS.response_bytes),
                              token, drain, report, artifacts=artifacts, limits=LIMITS)
         process = None  # The session now owns the retained original object.

@@ -450,6 +450,36 @@ def failed_entry_progress_report():
 
 
 class EntryProgressInspectionTests(unittest.TestCase):
+    def test_fixed_pipe_trace_cannot_heal_the_original_failed_entry(self):
+        report = failed_entry_progress_report()
+        event = dict(schema=1, screen='welcome', theme='dark', scopes=1, effects=1,
+            phase='original-renderer-image', boundary='begin',
+            future='not_returned', failed=False, milliseconds=0)
+        report['effect_trace'] = dict(schema=1, status='OBSERVED', events=1,
+                                     last=event, last_ended=None)
+        value = inspect.entry_projection(report, HEAD, TREE, RUN)
+        self.assertEqual(value['effect_trace'], report['effect_trace'])
+        self.assertEqual(value['capture_count'], 0)
+        self.assertEqual(value['original_error_codes'], report['error_codes'])
+        self.assertFalse(value['artifact_reported_success'])
+        self.assertEqual(value['visual_matches'], 0)
+
+    def test_private_or_contradictory_pipe_summaries_are_refused(self):
+        report = failed_entry_progress_report()
+        event = dict(schema=1, screen='welcome', theme='dark', scopes=1, effects=1,
+            phase='original-renderer-image', boundary='begin',
+            future='not_returned', failed=False, milliseconds=0)
+        trace = dict(schema=1, status='OBSERVED', events=1, last=event, last_ended=None)
+        invalid = [dict(trace, private='private'), dict(trace, events=True),
+            dict(trace, events=2),
+            dict(trace, events=0), dict(trace, status='private'),
+            dict(trace, last=dict(event, error='private')),
+            dict(trace, last=dict(event, phase='private')),
+            dict(trace, last_ended=event)]
+        for value in invalid:
+            with self.subTest(fields=len(value)), self.assertRaises(inspect.archive.Refused):
+                inspect.entry_projection(dict(report, effect_trace=value), HEAD, TREE, RUN)
+
     def test_diagnostics_cannot_replace_received_images_or_heal_original_failure(self):
         report = failed_entry_progress_report()
         value = inspect.entry_projection(report, HEAD, TREE, RUN)

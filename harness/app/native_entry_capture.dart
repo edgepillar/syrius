@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:isolate';
 
 import 'package:flutter/rendering.dart';
@@ -52,6 +53,11 @@ final class NativeEntryCapture {
   late final NativeWindowCall<NativeWindowStartupReceipt> _startup;
   late final CaptureProtocol<Map<String, Object?>> _protocol;
   final List<_EntryScope> _scopes = <_EntryScope>[];
+  final EntryEffectTraceEmitter? _effectTrace =
+      Platform.isWindows &&
+          Platform.environment['SYRIUS_CI_ENTRY_EFFECT_TRACE'] == 'true'
+      ? EntryEffectTraceEmitter(write: stdout.writeln)
+      : null;
   _EntryOwners? _owners;
   _EarlyEntryOwners? _early;
   Object? _startupCaptureError;
@@ -484,6 +490,18 @@ final class _EntryScope {
     restoring: restoring, restored: restored, held: held,
   );
 
+  void _traceEffect(_EntryEffect effect, String boundary) {
+    host._effectTrace?.add(<String, Object?>{
+      'schema': 1, 'screen': plan.screen, 'theme': plan.theme,
+      'scopes': host._scopes.indexOf(this) + 1,
+      'effects': effects.indexOf(effect) + 1, 'phase': effect.name,
+      'boundary': boundary,
+      'future': effect.receipt?.status.name ?? 'not_returned',
+      'failed': effect.error != null,
+      'milliseconds': effect.elapsed.elapsedMilliseconds,
+    });
+  }
+
   bool current() {
     if (held) return false;
     final bool valid =
@@ -509,9 +527,12 @@ final class _EntryScope {
     }
     final _EntryEffect effect = _EntryEffect(name);
     effects.add(effect);
+    _traceEffect(effect, 'begin');
     try {
+      requireCurrent();
       final Future<T> original = call();
       effect.receipt = EntryCaptureCompletion(original);
+      _traceEffect(effect, 'returned');
       final T value = await original;
       requireCurrent();
       return value;
@@ -522,6 +543,7 @@ final class _EntryScope {
       rethrow;
     } finally {
       effect.elapsed.stop();
+      _traceEffect(effect, 'ended');
     }
   }
 
