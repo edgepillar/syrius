@@ -34,7 +34,6 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../../harness/app/agent.dart';
 import '../../harness/app/fixtures/seed_policy.dart';
-import '../../harness/seed_preparation_failure.dart';
 import '../../harness/app/fixtures/seed_project_presentation.dart';
 import '../../harness/app/fixtures/seed_token_presentation.dart';
 import '../../harness/app/seed_project_presentation_binding.dart';
@@ -43,6 +42,7 @@ import '../../harness/bin/ci_wallet_reopen.dart' as reopen;
 import '../../harness/bin/harness.dart' as cli;
 import '../../harness/home_preparation_observation.dart';
 import '../../harness/seed/restored_seed_workflow.dart';
+import '../../harness/seed_preparation_failure.dart';
 import '../../harness/wallet_address_context.dart';
 import '../accelerator_project_redesign/support.dart';
 import '../create_token_redesign/support.dart';
