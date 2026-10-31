@@ -1501,7 +1501,7 @@ List<String> walletTourPlan(
 /// Finite original tour operations. Observation never repeats an operation.
 enum WalletTourStep {
   beforePage, railNavigation, sectionControlWait, sectionControlTap,
-  sectionPageWait, settle, tree, logs, capture, afterPage,
+  sectionPageWait, pointerNeutral, settle, tree, logs, capture, afterPage,
   bellClose, bellGone, afterBell, returnHome,
 }
 
@@ -1615,6 +1615,13 @@ Future<void> tour(
       await _tourContext(inst, s, readonlyNativePid: readonlyNativePid);
       await _tourPage(inst, page,
           observe: (WalletTourStep step) => activeStep = step);
+      if (readonlyNativePid != null) {
+        // Keep resting captures clear of the preceding control's hover.
+        activeStep = WalletTourStep.pointerNeutral;
+        await call(inst, <String, Object?>{
+          'cmd': 'hover', 'at': <int>[0, 0], 'settleMs': 0,
+        });
+      }
       activeStep = WalletTourStep.settle;
       await (settle ?? Future<void>.delayed)(
         const Duration(milliseconds: 2500),

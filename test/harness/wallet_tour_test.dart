@@ -91,6 +91,14 @@ class _TourInstance extends cli.Instance {
           sections.add(key);
         }
         return <String, dynamic>{'ok': true};
+      case 'hover':
+        if (!inspection) throw StateError('unexpected ordinary hover');
+        if (unavailable == 'hover') {
+          return <String, dynamic>{
+            'ok': false, 'error': 'synthetic-unavailable',
+          };
+        }
+        return <String, dynamic>{'ok': true};
       case 'wait':
         if (command['key'] == 'bell_panel' &&
             bellOpen == (command['gone'] == true)) {
@@ -348,6 +356,23 @@ void main() {
         final int bell = tabs.indexOf('notifications');
         expect(bell, greaterThan(0));
         expect(tabs[bell - 1], 'dashboard');
+        final List<int> hovers = <int>[
+          for (int i = 0; i < commands.length; i++)
+            if (commands[i]['cmd'] == 'hover') i,
+        ];
+        final List<int> shots = <int>[
+          for (int i = 0; i < commands.length; i++)
+            if (commands[i]['cmd'] == 'shot') i,
+        ];
+        expect(hovers, hasLength(inspection ? shots.length : 0));
+        if (inspection) {
+          for (int i = 0; i < shots.length; i++) {
+            expect(hovers[i], lessThan(shots[i]));
+            if (i > 0) expect(hovers[i], greaterThan(shots[i - 1]));
+            expect(commands[hovers[i]]['at'], <int>[0, 0]);
+            expect(commands[hovers[i]]['settleMs'], 0);
+          }
+        }
       }
     });
   }
@@ -430,6 +455,21 @@ void main() {
         command['cmd'] == 'tap' &&
         command['key'] == 'nodes_tab_pillars'), hasLength(1));
     expect(instance.outcome?['complete'], isFalse);
+    final _TourInstance blocked = _TourInstance(inspection: true)
+      ..unavailable = 'hover';
+    try {
+      await blocked.run(readonlyNativePid: 44);
+      fail('The original unavailable hover must refuse');
+    } on cli.WalletTourFailure catch (error) {
+      expect(error.diagnostic, <String, Object>{
+        'schema': 1, 'scope': 'original_wallet_page_tour_failure',
+        'page': 'dashboard', 'step': 'pointerNeutral', 'kind': 'refused',
+      });
+    }
+    expect(blocked.captured, isEmpty);
+    expect(blocked.commands.where((Map<String, Object?> command) =>
+        command['cmd'] == 'hover'), hasLength(1));
+    expect(blocked.outcome?['complete'], isFalse);
   });
 
   test('tour page errors and context changes keep their original guards',
