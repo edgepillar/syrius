@@ -122,7 +122,7 @@ void main() {
       );
       expect(toggle['kind'], 'button');
       final List<int> rect = List<int>.from(toggle['rect']! as List<Object?>);
-      expect(rect.sublist(2), <int>[collapsed ? 40 : 184, 32]);
+      expect(rect.sublist(2), <int>[if (collapsed) 40 else 184, 32]);
       expect(nodes.where((Map<String, Object?> row) =>
           row['key'] == 'rail_label_dashboard'), isEmpty);
       expect(find.byKey(const ValueKey<String>('rail_label_dashboard')),

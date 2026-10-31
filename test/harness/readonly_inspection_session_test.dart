@@ -303,7 +303,7 @@ void main() {
             if (command['cmd'] == 'tree') 'nodes': <Object?>[
               <String, dynamic>{
                 'key': 'rail_toggle', 'kind': 'button',
-                'rect': <int>[8, 36, expanded ? 184 : 40, 32],
+                'rect': <int>[8, 36, if (expanded) 184 else 40, 32],
               },
               <String, dynamic>{'kind': 'text', 'label': 'Synthetic content'},
             ],
@@ -408,7 +408,7 @@ void main() {
             if (command['cmd'] == 'tree') 'nodes': <Object?>[
               <String, dynamic>{
                 'key': 'rail_toggle', 'kind': 'button',
-                'rect': <int>[8, 36, expanded ? 184 : 40, 32],
+                'rect': <int>[8, 36, if (expanded) 184 else 40, 32],
               },
             ],
           };
