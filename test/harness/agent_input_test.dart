@@ -40,9 +40,13 @@ Future<T> _drive<T>(WidgetTester tester, Future<T> command) async {
 }
 
 void main() {
-  testWidgets('an origin tap dismisses a tooltip retained by another mouse', (
+  testWidgets('a client edge tap clears another mouse tooltip without drag', (
     WidgetTester tester,
   ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(1280, 780);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
     final HarnessAgent agent = HarnessAgent.forTest();
     int drags = 0;
     const String message = 'Synthetic checksum tooltip';
@@ -89,11 +93,17 @@ void main() {
       await tester.pump(const Duration(milliseconds: 250));
       expect(find.text(message), findsOneWidget);
       await _drive(tester, agent.commandForTest(<String, dynamic>{
-        'cmd': 'tap', 'at': <int>[0, 0], 'settleMs': 0,
+        'cmd': 'tap', 'at': <int>[0, 779], 'settleMs': 0,
       }));
       await tester.pump(const Duration(milliseconds: 250));
       expect(find.text(message), findsNothing);
       expect(drags, 0);
+      // The original caption location is a non-inert negative control.
+      await _drive(tester, agent.commandForTest(<String, dynamic>{
+        'cmd': 'tap', 'at': <int>[0, 0], 'settleMs': 0,
+      }));
+      expect(drags, greaterThan(0));
+      drags = 0;
       await mouse.removePointer();
       await tester.pump();
     }

@@ -1624,10 +1624,10 @@ Future<void> tour(
         });
         if (page == 'settings') {
           // A separate mouse can retain a tooltip after this pointer leaves.
-          // The caption origin has no single-click action in the Node view.
+          // Keep the resting tap outside the caption and rail controls.
           activeStep = WalletTourStep.nodeRestingTap;
           await call(inst, <String, Object?>{
-            'cmd': 'tap', 'at': <int>[0, 0], 'settleMs': 0,
+            'cmd': 'tap', 'at': <int>[0, 779], 'settleMs': 0,
           });
         }
       }

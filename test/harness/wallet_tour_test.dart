@@ -60,7 +60,7 @@ class _TourInstance extends cli.Instance {
         };
       case 'tap':
         final Object? at = command['at'];
-        if (at is List && at.length == 2 && at[0] == 0 && at[1] == 0) {
+        if (at is List && at.length == 2 && at[0] == 0 && at[1] == 779) {
           if (!inspection || tab != 'settings' || section != 'node') {
             throw StateError('unexpected origin tap outside readonly Node');
           }
@@ -366,7 +366,7 @@ void main() {
         expect(restingTaps, hasLength(inspection ? 1 : 0));
         if (inspection) {
           expect(restingTaps.single, <String, Object?>{
-            'cmd': 'tap', 'at': <int>[0, 0], 'settleMs': 0,
+            'cmd': 'tap', 'at': <int>[0, 779], 'settleMs': 0,
           });
           final int at = commands.indexOf(restingTaps.single);
           expect(commands[at - 1]['cmd'], 'hover');
