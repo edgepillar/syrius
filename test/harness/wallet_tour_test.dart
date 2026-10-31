@@ -4,6 +4,35 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../../harness/bin/harness.dart' as cli;
 
+Map<String, dynamic> _layoutFixture() {
+  const List<String> keys = <String>[
+    'window-caption',
+    'window-body',
+    'home_hero',
+    'home_send',
+    'nodes_tab_pillars',
+    'nodes_tab_sentinels',
+    'staking_stake_button',
+    'plasma_open_fuse',
+    'tokens_filter_held',
+    'p2p_start_swap',
+    'node_settings_add',
+    'apps_settings_web_switch',
+    'transfer_card',
+    'accelerator_strip',
+    'bell_panel',
+  ];
+  List<Map<String, Object?>> snapshot() => <Map<String, Object?>>[
+    for (final String key in keys)
+      <String, Object?>{'key': key, 'status': 'MISSING'},
+  ];
+  return <String, dynamic>{
+    'schema': 1, 'scope': 'readonly_shot_layout_observation',
+    'boundaries': <String>['before_raster', 'after_encoding'],
+    'before': snapshot(), 'after': snapshot(), 'unchanged': true,
+  };
+}
+
 class _TourInstance extends cli.Instance {
   _TourInstance({this.inspection = false}) : super('synthetic-tour');
 
@@ -137,7 +166,11 @@ class _TourInstance extends cli.Instance {
           ],
         };
       case 'shot':
-        return <String, dynamic>{'ok': true, 'png': 'synthetic-frame'};
+        return <String, dynamic>{
+          'ok': true, 'png': 'synthetic-frame',
+          if (inspection && unavailable != 'layout')
+            'layoutObservation': _layoutFixture(),
+        };
       default:
         throw StateError('unexpected synthetic command');
     }
@@ -218,6 +251,22 @@ void main() {
         <String>[...cli.walletTourPages, 'walletConnect']);
     expect(instance.outcome!['scope'], 'readonly_native_page_tour');
     expect(instance.outcome!['complete'], isTrue);
+    final List<dynamic> visited = instance.outcome!['visited'] as List<dynamic>;
+    for (final dynamic page in visited) {
+      final Map<String, dynamic> layout =
+          (page as Map<String, dynamic>)['layout'] as Map<String, dynamic>;
+      expect(layout, _layoutFixture());
+    }
+    final _TourInstance missing = _TourInstance(inspection: true)
+      ..unavailable = 'layout';
+    await expectLater(missing.run(readonlyNativePid: 44),
+        throwsA(isA<cli.WalletTourFailure>()));
+    expect(missing.captured, isEmpty);
+    final List<dynamic> partial = missing.outcome!['visited'] as List<dynamic>;
+    final Map<String, dynamic> incomplete =
+        partial.single as Map<String, dynamic>;
+    expect(incomplete['captured'], isFalse);
+    expect(incomplete['layout'], isNull);
     expect(instance.sections, containsAll(<String>[
       'nodes_tab_pillars', 'nodes_tab_sentinels', 'settings_node',
       'settings_apps', 'bell_close',

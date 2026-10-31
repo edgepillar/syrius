@@ -28,10 +28,18 @@ def wallet():
         chain=321, selectedIndex=1, nativeFrameObserved=True)
 
 
+def layout():
+    rows = [dict(key=key, status='MISSING') for key in ('window-caption', 'window-body', 'home_hero', 'home_send', 'nodes_tab_pillars', 'nodes_tab_sentinels', 'staking_stake_button', 'plasma_open_fuse', 'tokens_filter_held', 'p2p_start_swap', 'node_settings_add', 'apps_settings_web_switch', 'transfer_card', 'accelerator_strip', 'bell_panel')]
+    return dict(schema=1, scope='readonly_shot_layout_observation',
+        boundaries=['before_raster', 'after_encoding'], before=rows,
+        after=copy.deepcopy(rows), unchanged=True)
+
+
 def tour(theme):
     return dict(theme=theme, tour=dict(schema=1, scope='readonly_native_page_tour',
         complete=True, requested=list(inspection.PAGES), visited=[dict(page=p,
-            nodes=1, error_widgets=0, severe_logs=0, captured=True) for p in inspection.PAGES]))
+            nodes=1, error_widgets=0, severe_logs=0, captured=True,
+            layout=layout()) for p in inspection.PAGES]))
 
 
 def report():
@@ -87,6 +95,39 @@ class InspectionTests(unittest.TestCase):
                     'motion_baseline_compared', 'arabic_or_minimum_window_qualified'):
             self.assertIs(value[key], False)
         self.assertEqual(value['visual_matches'], 0)
+        self.assertEqual(tuple(inspection.LAYOUT_KEYS), ('window-caption', 'window-body', 'home_hero', 'home_send', 'nodes_tab_pillars', 'nodes_tab_sentinels', 'staking_stake_button', 'plasma_open_fuse', 'tokens_filter_held', 'p2p_start_swap', 'node_settings_add', 'apps_settings_web_switch', 'transfer_card', 'accelerator_strip', 'bell_panel'))
+        observed = layout()
+        for boundary in ('before', 'after'):
+            observed[boundary][1] = dict(key='window-body', status='OBSERVED',
+                                        rect=[0, 32, 1280, 780])
+        self.assertIs(inspection.layout_observation(observed), observed)
+        changed = copy.deepcopy(observed)
+        changed['after'][1]['rect'][1] = 0
+        changed['unchanged'] = False
+        self.assertIs(inspection.layout_observation(changed), changed)
+        malformed = []
+        for change in ({'schema': True}, {'extra': 'Synthetic private data'},
+                       {'unchanged': False}, {'boundaries': ['tree', 'after_encoding']}):
+            malformed.append(dict(copy.deepcopy(observed), **change))
+        for change in ({'key': 'Synthetic private key'}, {'status': 'OTHER'},
+                       {'extra': 'Synthetic private value'}, {'status': 'LIMIT'},
+                       {'rect': [False, 32, 1280, 780]},
+                       {'rect': [0, 32, 32769, 780]}, {'rect': [2, 32, 1, 780]}):
+            bad = copy.deepcopy(observed)
+            bad['before'][1].update(change)
+            malformed.append(bad)
+        for bad in malformed:
+            with self.subTest(layout=bad), self.assertRaises(inspection.Refused):
+                inspection.layout_observation(bad)
+        partial = tour('dark')
+        partial['tour']['complete'] = False
+        page = partial['tour']['visited'][0]
+        page.update(captured=False, layout=None)
+        inspection.tour_receipt(partial)
+        page['captured'] = True
+        with self.assertRaises(inspection.Refused):
+            inspection.tour_receipt(partial)
+
 
     def test_sdk_and_wallet_receipts_refuse_expansion_coercion_and_old_scopes(self):
         for original, validate, changes in (

@@ -538,6 +538,9 @@ def analyze(parent, repo):
         'harness/app/readonly_sdk_binding.dart',
         'test/harness/readonly_sdk_binding_test.dart',
         'harness/app/readonly_native_commands.dart',
+        'harness/app/logical_capture.dart',
+        'harness/app/readonly_shot_layout.dart',
+        'test/harness/logical_capture_test.dart',
         'test/harness/readonly_native_commands_test.dart',
         'harness/app/readonly_native_mode.dart',
         'harness/app/presentation_mode.dart',
@@ -670,6 +673,9 @@ def analyze(parent, repo):
                                         else 'launch_film' if relative.endswith('/lib/widgets/reusable_widgets/launch_film.dart')
                                         else 'key_dispatch_test' if relative.endswith('/test/harness/key_dispatch_test.dart')
                                         else 'agent_input_test' if relative.endswith('/test/harness/agent_input_test.dart')
+                                        else 'logical_capture_test' if relative.endswith('/test/harness/logical_capture_test.dart')
+                                        else 'logical_capture' if relative.endswith('/harness/app/logical_capture.dart')
+                                        else 'readonly_shot_layout' if relative.endswith('/harness/app/readonly_shot_layout.dart')
                                         else 'rail_navigation_test' if relative.endswith('/test/harness/rail_navigation_test.dart')
                                         else 'recipe_failure_test' if relative.endswith('/test/harness/wallet_recipe_failure_test.dart')
                                         else 'wallet_recipe_test' if relative.endswith('/test/harness/wallet_recipe_test.dart') else 'other')

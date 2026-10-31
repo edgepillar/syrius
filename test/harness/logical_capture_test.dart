@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
@@ -6,6 +7,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../harness/app/logical_capture.dart';
+import '../../harness/app/readonly_shot_layout.dart';
 
 void main() {
   for (final double ratio in <double>[1, 1.25, 1.5, 2, 3]) {
@@ -92,6 +94,128 @@ void main() {
             image.dispose();
           }
         });
+
+        // Exercise the caption offset and retained nested page layers too.
+        // Existing direct capture and logical pointer assertions stay above.
+        await tester.pumpWidget(
+          Directionality(
+            textDirection: TextDirection.ltr,
+            child: ColoredBox(
+              color: const Color(0xFF000000),
+              child: Stack(
+                fit: StackFit.expand,
+                children: <Widget>[
+                  const Column(
+                    children: <Widget>[
+                      SizedBox(height: 32),
+                      Expanded(
+                        child: ClipRRect(
+                          key: const ValueKey<String>('window-body'),
+                          borderRadius: BorderRadius.all(Radius.circular(6)),
+                          child: RepaintBoundary(
+                            child: Stack(
+                              children: <Widget>[
+                                Positioned(
+                                  left: 8, top: 4, width: 80, height: 16,
+                                  child: ColoredBox(
+                                    key: ValueKey<String>('home_send'),
+                                    color: Color(0xFFFF0000),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Positioned.fill(
+                    child: Overlay.wrap(
+                      child: const Align(
+                        alignment: Alignment.topCenter,
+                        child: SizedBox(
+                          key: ValueKey<String>('window-caption'),
+                          height: 32, width: 1280,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+        final List<Map<String, Object?>> before = observeReadonlyShotLayout(
+          tester.binding.rootElement,
+        );
+        Map<String, Object?> row(String key) => before.singleWhere(
+          (Map<String, Object?> value) => value['key'] == key,
+        );
+        expect(row('window-caption')['rect'], <int>[0, 0, 1280, 32]);
+        expect(row('window-body')['rect'], <int>[0, 32, 1280, 780]);
+        expect(row('home_send')['rect'], <int>[8, 36, 88, 52]);
+        final RenderView nestedView = tester.binding.renderViews.single;
+        final OffsetLayer nestedLayer = nestedView.debugLayer! as OffsetLayer;
+        await tester.runAsync(() async {
+          final ui.Image image = await captureLogicalView(
+            nestedView, nestedLayer,
+          );
+          try {
+            expect(image.width, 1280);
+            expect(image.height, 780);
+            final ByteData? rgba = await image.toByteData();
+            expect(rgba, isNotNull);
+            List<int> pixel(int y) => rgba!.buffer.asUint8List(
+              rgba.offsetInBytes + (y * 1280 + 48) * 4, 4,
+            );
+            expect(pixel(44), <int>[255, 0, 0, 255]);
+            expect(pixel(12), <int>[0, 0, 0, 255]);
+          } finally {
+            image.dispose();
+          }
+        });
+        final List<Map<String, Object?>> after = observeReadonlyShotLayout(
+          tester.binding.rootElement,
+        );
+        expect(pairReadonlyShotLayout(before, after)['unchanged'], isTrue);
+        await tester.pumpWidget(
+          Directionality(
+            textDirection: TextDirection.ltr,
+            child: Row(
+              children: <Widget>[
+                for (int i = 0; i < 2; i++)
+                  const SizedBox(
+                    width: 20, height: 20,
+                    child: ColoredBox(
+                      key: ValueKey<String>('home_send'),
+                      color: Color(0xFFFF0000),
+                    ),
+                  ),
+                const Offstage(
+                  child: SizedBox(
+                    key: ValueKey<String>('node_settings_add'),
+                    child: Text('Synthetic private sentinel'),
+                  ),
+                ),
+                const SizedBox(key: ValueKey<String>('Synthetic private key')),
+              ],
+            ),
+          ),
+        );
+        final List<Map<String, Object?>> changed = observeReadonlyShotLayout(
+          tester.binding.rootElement,
+        );
+        expect(changed.singleWhere((Map<String, Object?> row) =>
+            row['key'] == 'home_send'), <String, Object?>{
+          'key': 'home_send', 'status': 'DUPLICATE',
+        });
+        expect(changed.singleWhere((Map<String, Object?> row) =>
+            row['key'] == 'node_settings_add'), <String, Object?>{
+          'key': 'node_settings_add', 'status': 'MISSING',
+        });
+        expect(jsonEncode(changed), isNot(contains('Synthetic private')));
+        expect(pairReadonlyShotLayout(before, changed)['unchanged'], isFalse);
       },
     );
   }

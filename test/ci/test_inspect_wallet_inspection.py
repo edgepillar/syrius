@@ -137,6 +137,42 @@ class ReaderTests(unittest.TestCase):
         self.assertFalse(value['financial_send_qualified'])
         self.assertEqual(value['visual_matches'], 0)
         self.assertEqual(value['visited_pages'], dict(dark=12, light=12))
+        observed = value['_layout_observation']
+        self.assertEqual(observed['scope'], 'retained_readonly_shot_layout_observation')
+        self.assertEqual(observed['pages'], list(reader.producer.PAGES))
+        self.assertEqual(observed['targets'], list(reader.LAYOUT_TARGETS))
+        self.assertEqual(observed['sample_count'], 24)
+        self.assertFalse(observed['atomic_frame_qualified'])
+        self.assertEqual(observed['visual_matches'], 0)
+        self.assertEqual(observed['original_layout_or_raster_cause'], 'NOT_ESTABLISHED')
+        self.assertEqual(observed['rows']['dark'][0], [0, None] * 6 + [True])
+        richer = child_report()
+        for theme in reader.producer.THEMES:
+            for page in richer['tours'][theme]['tour']['visited']:
+                for boundary in ('before', 'after'):
+                    for row in page['layout'][boundary]:
+                        row.update(status='OBSERVED', rect=[-32768, -32768, 32768, 32768])
+        measured = reader.layout_projection(richer, 'a' * 40, 'b' * 40, 1)
+        self.assertEqual(measured['rows']['dark'][0],
+            [1, -32768, 1, 32768, 1, -32768] * 2 + [True])
+        measured.update(archive_sha256='c' * 64, manifest_sha256='d' * 64,
+            producer_job_id=44, metadata_revalidated=True,
+            producer_source_files_verified=24, all_original_png_digests_verified=True)
+        self.assertLessEqual(len(encode(measured)), 3800)
+        for bad_head, bad_tree, bad_run in (('c' * 40, 'b' * 40, 1),
+                ('a' * 40, 'd' * 40, 1), ('a' * 40, 'b' * 40, 2)):
+            with self.assertRaises(reader.archive.Refused):
+                reader.layout_projection(richer, bad_head, bad_tree, bad_run)
+
+        for change in ({'extra': 'Synthetic private content'}, {'schema': True},
+                       {'unchanged': False}):
+            child, lab, files = pair()
+            child['tours']['dark']['tour']['visited'][0]['layout'].update(change)
+            bind(lab, child)
+            files[0] = ('manifest.json', encode(child), stat.S_IFREG)
+            with self.subTest(change=change), self.assertRaises(reader.producer.Refused):
+                self.inspect(child, lab, files)
+
 
     def test_failed_manifest_retains_partial_and_unknown_outcomes_without_pixels(self):
         child, lab, files = pair(positive=False)
@@ -355,6 +391,16 @@ class ReaderTests(unittest.TestCase):
                 self.assertEqual(value['verified_png_count'], 24)
                 self.assertEqual(value['producer_source_files_verified'], len(reader.SOURCE_FILES))
                 self.assertTrue(value['metadata_revalidated'])
+                messages = [line.split('::', 2)[-1] for line in text.splitlines()
+                            if line.startswith('::notice title=Retained readonly shot layout::')]
+                self.assertEqual(len(messages), 1)
+                measured = json.loads(messages[0])
+                self.assertEqual(measured['source_head'], 'a' * 40)
+                self.assertEqual(measured['producer_job_id'], 44)
+                self.assertTrue(measured['all_original_png_digests_verified'])
+                self.assertTrue(measured['metadata_revalidated'])
+                self.assertEqual(measured['producer_source_files_verified'], len(reader.SOURCE_FILES))
+
                 self.assertFalse(value['runtime_started'])
                 self.assertIs(value['forced_cleanup'], forced)
                 self.assertIs(value['required_actor_forced_cleanup'], False)

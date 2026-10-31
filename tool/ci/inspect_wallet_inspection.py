@@ -36,6 +36,7 @@ SOURCE_FILES = (
     'harness/app/readonly_sdk_admission.dart', 'harness/app/readonly_sdk_binding.dart',
     'harness/app/readonly_wallet_admission.dart',
     'harness/app/readonly_wallet_binding.dart', 'harness/app/native_window_owner.dart',
+    'harness/app/logical_capture.dart', 'harness/app/readonly_shot_layout.dart',
     'pubspec.yaml', 'pubspec.lock',
 )
 PHASE = 'environment'
@@ -146,6 +147,50 @@ def projection(report, lab, lab_summary, head, tree, run_id, manifest_sha):
         visual_matches=0)
 
 
+LAYOUT_STATUS_ORDER = ('MISSING', 'OBSERVED', 'DUPLICATE', 'UNAVAILABLE', 'LIMIT')
+LAYOUT_TARGETS = ('home_hero', 'transfer_card', 'nodes_tab_pillars',
+    'nodes_tab_sentinels', 'staking_stake_button', 'plasma_open_fuse',
+    'tokens_filter_held', 'p2p_start_swap', 'accelerator_strip', 'bell_panel',
+    'node_settings_add', 'apps_settings_web_switch')
+LAYOUT_COLUMNS = tuple(boundary + '_' + name
+    for boundary in ('before', 'after')
+    for name in ('body_status', 'body_top', 'caption_status', 'caption_bottom',
+                 'target_status', 'target_top')) + ('unchanged',)
+
+
+def layout_projection(report, head, tree, run_id):
+    """Finite coordinates from the retained archive, never original widget text."""
+    producer.public_manifest(report)
+    need(report['success'] and report['source_sha'] == head
+         and report['source_tree'] == tree and report['run_id'] == str(run_id)
+         and report['run_attempt'] == '1' and len(LAYOUT_TARGETS) == len(producer.PAGES))
+    rows = {}
+    for theme in producer.THEMES:
+        tour = report['tours'][theme]
+        need(producer.tour_complete(tour))
+        frames = []
+        for page, target in zip(tour['tour']['visited'], LAYOUT_TARGETS):
+            original = producer.layout_observation(page['layout'])
+            frame = []
+            for boundary in ('before', 'after'):
+                entries = {row['key']: row for row in original[boundary]}
+                for key, coordinate in (('window-body', 1), ('window-caption', 3),
+                                         (target, 1)):
+                    row = entries[key]
+                    frame.extend((LAYOUT_STATUS_ORDER.index(row['status']),
+                        row['rect'][coordinate] if row['status'] == 'OBSERVED' else None))
+            frame.append(original['unchanged'])
+            frames.append(frame)
+        rows[theme] = frames
+    return dict(schema=1, scope='retained_readonly_shot_layout_observation',
+        source_head=head, source_tree=tree, source_run_id=run_id, source_attempt=1,
+        pages=list(producer.PAGES), targets=list(LAYOUT_TARGETS),
+        statuses=list(LAYOUT_STATUS_ORDER), columns=list(LAYOUT_COLUMNS), rows=rows,
+        sample_count=24, boundaries=['before_raster', 'after_encoding'],
+        inspection_only=True, runtime_started=False, atomic_frame_qualified=False,
+        visual_matches=0, original_layout_or_raster_cause='NOT_ESTABLISHED')
+
+
 def unpack(raw, expected_sha, expected_size, head, tree, run_id, lab, lab_summary):
     need(type(raw) is bytes and type(expected_size) is int and digest(expected_sha)
          and 0 < len(raw) == expected_size <= MAX_ARCHIVE and archive.sha(raw) == expected_sha)
@@ -183,6 +228,7 @@ def unpack(raw, expected_sha, expected_size, head, tree, run_id, lab, lab_summar
                 need(len(image) == row['bytes'] and archive.sha(image) == row['sha256'])
                 producer.debug.entry.png_bytes(base64.b64encode(image).decode('ascii'))
             summary['verified_png_count'] = 24
+            summary['_layout_observation'] = layout_projection(report, head, tree, run_id)
         else:
             need(names == ['manifest.json'])
     summary.update(archive_sha256=archive.sha(raw), manifest_sha256=archive.sha(manifest))
@@ -320,11 +366,19 @@ def main(parent=None):
     after_job = selected_job(client.json('/actions/runs/' + text + '/attempts/1/jobs?per_page=50'), head, run_id)
     need(all(after_job.get(k) == job.get(k) for k in ('id', 'head_sha', 'run_id', 'run_attempt', 'status', 'conclusion')))
     PHASE = 'emit'
+    layout = summary.pop('_layout_observation', None)
     for component, frame in archive.restored_wallet_run.notice_frames(lab_summary):
         emit('Readonly inspection parent' + (' ' + component if component else ''), frame)
     summary.update(producer_job_id=job['id'], producer_conclusion=job['conclusion'],
         producer_source_files_verified=len(SOURCE_FILES), metadata_revalidated=True)
     emit('Retained readonly wallet inspection', summary)
+    if layout is not None and summary['native_inspection_qualified']:
+        layout.update(archive_sha256=summary['archive_sha256'],
+            manifest_sha256=summary['manifest_sha256'],
+            producer_job_id=job['id'], metadata_revalidated=True,
+            producer_source_files_verified=len(SOURCE_FILES),
+            all_original_png_digests_verified=True)
+        emit('Retained readonly shot layout', layout)
     return summary
 
 

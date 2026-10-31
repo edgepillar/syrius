@@ -110,6 +110,38 @@ def ready_receipt(value):
     return value
 
 
+LAYOUT_KEYS = ('window-caption', 'window-body', 'home_hero', 'home_send', 'nodes_tab_pillars', 'nodes_tab_sentinels', 'staking_stake_button', 'plasma_open_fuse', 'tokens_filter_held', 'p2p_start_swap', 'node_settings_add', 'apps_settings_web_switch', 'transfer_card', 'accelerator_strip', 'bell_panel')
+LAYOUT_STATUS = frozenset(('OBSERVED', 'MISSING', 'DUPLICATE', 'UNAVAILABLE', 'LIMIT'))
+
+
+def layout_observation(value):
+    """Only fixed keys and bounded numeric facts at two readback boundaries."""
+    need(type(value) is dict and set(value) ==
+         {'schema', 'scope', 'boundaries', 'before', 'after', 'unchanged'}
+         and type(value['schema']) is int and value['schema'] == 1
+         and value['scope'] == 'readonly_shot_layout_observation'
+         and value['boundaries'] == ['before_raster', 'after_encoding']
+         and type(value['unchanged']) is bool, 'CAPTURE_REFUSED')
+    for boundary in ('before', 'after'):
+        rows = value[boundary]
+        need(type(rows) is list and len(rows) == len(LAYOUT_KEYS), 'CAPTURE_REFUSED')
+        for row, key in zip(rows, LAYOUT_KEYS):
+            need(type(row) is dict and row.get('key') == key
+                 and type(row.get('status')) is str
+                 and row['status'] in LAYOUT_STATUS, 'CAPTURE_REFUSED')
+            need(set(row) == ({'key', 'status', 'rect'} if row['status'] == 'OBSERVED'
+                              else {'key', 'status'}), 'CAPTURE_REFUSED')
+            if row['status'] == 'OBSERVED':
+                rect = row['rect']
+                need(type(rect) is list and len(rect) == 4
+                     and all(type(x) is int and abs(x) <= 32768 for x in rect)
+                     and rect[2] >= rect[0] and rect[3] >= rect[1], 'CAPTURE_REFUSED')
+        if any(row['status'] == 'LIMIT' for row in rows):
+            need(all(row['status'] == 'LIMIT' for row in rows), 'CAPTURE_REFUSED')
+    need(value['unchanged'] is (value['before'] == value['after']), 'CAPTURE_REFUSED')
+    return value
+
+
 def tour_receipt(value):
     need(type(value) is dict and set(value) == {'theme', 'tour'}
          and value['theme'] in THEMES, 'TOUR_REFUSED')
@@ -123,10 +155,14 @@ def tour_receipt(value):
          'TOUR_REFUSED')
     for index, page in enumerate(tour['visited']):
         need(type(page) is dict and set(page) ==
-             {'page', 'nodes', 'error_widgets', 'severe_logs', 'captured'}
+             {'page', 'nodes', 'error_widgets', 'severe_logs', 'captured', 'layout'}
              and page['page'] == PAGES[index] and type(page['captured']) is bool
              and all(type(page[k]) is int and 0 <= page[k] <= 100000
                      for k in ('nodes', 'error_widgets', 'severe_logs')), 'TOUR_REFUSED')
+        if page['captured']:
+            layout_observation(page['layout'])
+        else:
+            need(page['layout'] is None, 'TOUR_REFUSED')
     return value
 
 

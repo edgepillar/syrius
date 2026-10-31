@@ -87,6 +87,7 @@ import 'fixtures/seed_policy.dart';
 import 'fixtures/seed_project_presentation.dart';
 import 'fixtures/seed_token_presentation.dart';
 import 'logical_capture.dart';
+import 'readonly_shot_layout.dart';
 import 'native_entry_capture.dart';
 import 'native_window_owner.dart';
 import 'presentation_close.dart';
@@ -3874,6 +3875,9 @@ class HarnessAgent {
     if (layer is! OffsetLayer) {
       throw HarnessError('the view has no image layer');
     }
+    final List<Map<String, Object?>>? layoutBefore = _readonlyNative == null
+        ? null
+        : observeReadonlyShotLayout(WidgetsBinding.instance.rootElement);
     final ui.Image image = await captureLogicalView(view, layer);
     try {
       if (image.colorSpace != ui.ColorSpace.sRGB) {
@@ -3918,6 +3922,11 @@ class HarnessAgent {
         ...metrics.toJson(),
         if (guarded) 'theme': theme,
         if (guarded) 'asserted': true,
+        if (layoutBefore != null)
+          'layoutObservation': pairReadonlyShotLayout(
+            layoutBefore,
+            observeReadonlyShotLayout(WidgetsBinding.instance.rootElement),
+          ),
         'png': base64Encode(png),
       };
     } finally {

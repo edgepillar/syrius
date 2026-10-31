@@ -1654,12 +1654,18 @@ Future<void> tour(
       visited.add(<String, Object?>{
         'page': page, 'nodes': nodes.length, 'error_widgets': errors,
         'severe_logs': severe, 'captured': false,
+        if (readonlyNativePid != null) 'layout': null,
       });
       if (errors != 0 || severe != 0) throw Fail('tour: page errors observed');
       activeStep = WalletTourStep.capture;
       final Map<String, dynamic> shot = await call(inst, <String, Object?>{
         'cmd': 'shot',
       });
+      final Object? layout = readonlyNativePid == null
+          ? null : shot['layoutObservation'];
+      if (readonlyNativePid != null && layout is! Map<String, dynamic>) {
+        throw Fail('tour: readonly layout observation is unavailable');
+      }
       if (capture != null) {
         await capture(page, shot);
       } else {
@@ -1695,6 +1701,7 @@ Future<void> tour(
         file.parent.createSync(recursive: true);
         file.writeAsBytesSync(bytes, flush: true);
       }
+      if (readonlyNativePid != null) visited.last['layout'] = layout;
       visited.last['captured'] = true;
       activeStep = WalletTourStep.afterPage;
       await _tourContext(inst, s, readonlyNativePid: readonlyNativePid);
