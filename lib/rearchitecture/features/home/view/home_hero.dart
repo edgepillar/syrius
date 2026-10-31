@@ -94,11 +94,13 @@ class HomeHero extends StatelessWidget {
                     balances,
                     prices,
                   );
+                  final double plasmaWidth = math.min(
+                    tokens.heroPlasmaWidth * scale,
+                    constraints.maxWidth,
+                  );
+                  final double actionsWidth = _actionsWidth(context);
                   final Widget plasma = SizedBox(
-                    width: math.min(
-                      tokens.heroPlasmaWidth * scale,
-                      constraints.maxWidth,
-                    ),
+                    width: plasmaWidth,
                     child: _HomeHeroPlasma(
                       snapshot: snapshot,
                       status:
@@ -114,7 +116,7 @@ class HomeHero extends StatelessWidget {
                   final double requiredWidth =
                       _balanceWidth(context, balances.hidden) +
                       tokens.heroPlasmaWidth * scale +
-                      _actionsWidth(context) +
+                      actionsWidth +
                       2 * tokens.heroGap;
                   if (constraints.maxWidth < requiredWidth) {
                     return Column(
@@ -134,10 +136,19 @@ class HomeHero extends StatelessWidget {
                   }
                   return Row(
                     children: <Widget>[
-                      Expanded(child: balancesColumn),
+                      // Keep the reference balance group at its natural
+                      // width, with unused space before the transfer actions.
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: constraints.maxWidth -
+                              plasmaWidth - actionsWidth - 2 * tokens.heroGap,
+                        ),
+                        child: balancesColumn,
+                      ),
                       SizedBox(width: tokens.heroGap),
                       plasma,
                       SizedBox(width: tokens.heroGap),
+                      const Spacer(),
                       actions,
                     ],
                   );
@@ -220,6 +231,7 @@ class HomeHero extends StatelessWidget {
     final HomeSnapshot? current = snapshot;
     final AppTokens tokens = AppTokens.of(context);
     return Column(
+      key: const Key('home_hero_balances'),
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[

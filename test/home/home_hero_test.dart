@@ -228,6 +228,34 @@ void main() {
       expect(balance.right, lessThan(meter.left));
       expect(meter.right, lessThan(send.left));
       expect(tester.takeException(), isNull);
+
+      for (final TextDirection direction in TextDirection.values) {
+        for (final double width in <double>[1280, 1200]) {
+          await show(tester, light: light, direction: direction,
+              size: Size(width, 780));
+          final bool ltr = direction == TextDirection.ltr;
+          final Rect group = tester.getRect(
+            find.byKey(const Key('home_hero_balances')),
+          );
+          final Rect plasma = tester.getRect(
+            find.byKey(const Key('home_plasma_meter')),
+          );
+          final Rect hero = tester.getRect(find.byKey(const Key('home_hero')));
+          final Rect last = tester.getRect(find.byKey(const Key('home_zap')));
+          // The reference gives balances a 36 px gap before 220 px plasma,
+          // and leaves flexible unused width before the end-aligned actions.
+          expect(ltr ? plasma.left - group.right : group.left - plasma.right,
+              closeTo(36, 1e-6));
+          expect(plasma.width, 220);
+          expect(ltr ? hero.right - last.right : last.left - hero.left,
+              closeTo(24, 1e-6));
+          expect(find.byKey(const Key('home_send')).hitTestable(),
+              findsOneWidget);
+          expect(find.byKey(const Key('home_receive')).hitTestable(),
+              findsOneWidget);
+          expect(tester.takeException(), isNull);
+        }
+      }
     });
 
     testWidgets(

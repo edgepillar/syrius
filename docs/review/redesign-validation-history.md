@@ -134,3 +134,12 @@ Its new source requires fresh hosted analysis, engine and original native
 capture qualification. The main ledger remains 71/80, with zero accepted
 matches, nineteen unqualified preparations and all 94 matches open.
 All prior failures and financial UNKNOWNs remain; Native104 is not admitted.
+
+
+## Source240 original explicit-context tour and actual image review (2026-10-31T11:26Z)
+
+Source240 `cd75998a9847` / [Windows run 41194887854](https://github.com/edgepillar/syrius/actions/runs/41194887854) passes 909 Python cases with three existing skips, all 661 ordinary Dart terminal passes without failures/errors/skips, zero selected findings, both asset commands/fourteen phases and 444 memory controls. All original entry refusals and three startup gates pass. [Independent reader 41195993859](https://github.com/edgepillar/syrius/actions/runs/41195993859) passes 89 controls and verifies 22 producer files, original manifests, 24 original 1280x780 PNGs and complete normal unforced required app/entry/five-node zero exits. Known VCTIP auxiliary termination remains separate. The 663-case startup-asset selection remains unexecuted.
+
+All 24 images are viewed. Notifications is over Home and Settings selects Node in both themes; Apps remains distinct. This sample has expected caption-relative page origins, while the earlier Source239 mixed-origin cause remains NOT_ESTABLISHED. Node frames retain a visible bundled-SHA tooltip. Home still places Plasma near x678. The one 1648460-byte archive is retained once and its owned task is CLOSED SUCCESS with registered reproducible scratch removed. The separate local controller exits one after closure because its report reader expects the wrong cleanup collection key. Read-only reconciliation verifies the original complete transport, actual task success and cleanup; that post-close reader failure is preserved. No transport, image extraction, CI or original operation is repeated. Policy, the production free-space floor and the prior ownership HOLD remain.
+
+Source241 prepares natural Home balance grouping. Its source still requires fresh analysis, engine and native qualification; Source240 images do not qualify an uncommitted or newer UI. All prior source/run scopes, failures and UNKNOWN outcomes remain. The main ledger stays 71/80 with zero accepted matches out of 94, nineteen unqualified preparations and ninety still-recorded missing catalog outputs.

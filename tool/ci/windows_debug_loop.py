@@ -511,6 +511,8 @@ def analyze(parent, repo):
         'lib/rearchitecture/features/transfer/view/transfer_page.dart',
         'test/shell/shell_frame_test.dart',
         'test/transfer/view/transfer_page_test.dart',
+        'lib/rearchitecture/features/home/view/home_hero.dart',
+        'test/home/home_hero_test.dart',
         'lib/widgets/modular_widgets/settings_widgets/addresses_settings_view.dart',
         'harness/app/agent.dart', 'harness/wallet_recipe_failure.dart',
         'harness/app/recipe_control_admission.dart',
