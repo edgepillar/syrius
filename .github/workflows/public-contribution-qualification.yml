@@ -800,7 +800,7 @@ jobs:
             harness
 
       - name: Test both retained lab and readonly archive boundaries in memory
-        run: python -B -m unittest test.ci.test_inspect_chain321 test.ci.test_inspect_wallet_inspection -v
+        run: python -B -m tool.ci.run_readonly_reader_tests
 
       - name: Inspect the original source-bound lab and wallet archives
         timeout-minutes: 3

@@ -13,8 +13,8 @@ import warnings
 import zipfile
 
 from tool.ci import inspect_wallet_inspection as reader
-from test.ci import test_inspect_chain321 as lab_fixtures
-from test.ci import test_windows_wallet_inspection as wallet_fixtures
+import test_inspect_chain321 as lab_fixtures
+import test_windows_wallet_inspection as wallet_fixtures
 
 
 def lab_report():
