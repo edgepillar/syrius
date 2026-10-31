@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -39,6 +40,65 @@ Future<T> _drive<T>(WidgetTester tester, Future<T> command) async {
 }
 
 void main() {
+  testWidgets('an origin tap dismisses a tooltip retained by another mouse', (
+    WidgetTester tester,
+  ) async {
+    final HarnessAgent agent = HarnessAgent.forTest();
+    int drags = 0;
+    const String message = 'Synthetic checksum tooltip';
+    for (final Brightness brightness in <Brightness>[
+      Brightness.dark, Brightness.light,
+    ]) {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(brightness: brightness),
+          home: Scaffold(
+            body: Stack(
+              children: <Widget>[
+                Positioned(
+                  top: 0, left: 0, right: 0, height: 32,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onPanStart: (_) => drags++,
+                    child: const SizedBox.expand(),
+                  ),
+                ),
+                const Center(
+                  child: Tooltip(
+                    message: message,
+                    child: Text('Synthetic hash target'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      final TestGesture mouse = await tester.createGesture(
+        kind: PointerDeviceKind.mouse, device: 7,
+      );
+      await mouse.addPointer(
+        location: tester.getCenter(find.text('Synthetic hash target')),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
+      expect(find.text(message), findsOneWidget);
+      await _drive(tester, agent.commandForTest(<String, dynamic>{
+        'cmd': 'hover', 'at': <int>[0, 0], 'settleMs': 0,
+      }));
+      await tester.pump(const Duration(milliseconds: 250));
+      expect(find.text(message), findsOneWidget);
+      await _drive(tester, agent.commandForTest(<String, dynamic>{
+        'cmd': 'tap', 'at': <int>[0, 0], 'settleMs': 0,
+      }));
+      await tester.pump(const Duration(milliseconds: 250));
+      expect(find.text(message), findsNothing);
+      expect(drags, 0);
+      await mouse.removePointer();
+      await tester.pump();
+    }
+  });
+
   testWidgets('chords reach focused Shortcuts exactly once and release keys', (
     WidgetTester tester,
   ) async {

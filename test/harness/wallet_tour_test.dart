@@ -59,6 +59,17 @@ class _TourInstance extends cli.Instance {
           'signingChainId': 321, 'savedSigningChainId': 321,
         };
       case 'tap':
+        final Object? at = command['at'];
+        if (at is List && at.length == 2 && at[0] == 0 && at[1] == 0) {
+          if (!inspection || tab != 'settings' || section != 'node') {
+            throw StateError('unexpected origin tap outside readonly Node');
+          }
+          if (unavailable == 'nodeRestingTap') {
+            return <String, dynamic>{
+              'ok': false, 'error': 'synthetic-unavailable',
+            };
+          }
+        }
         if (unavailable != null &&
             (command['tab'] == unavailable || command['key'] == unavailable)) {
           return <String, dynamic>{
@@ -348,6 +359,19 @@ void main() {
         expect(commands.where((Map<String, Object?> command) =>
             command['cmd'] == 'tap' &&
             command['key'] == 'settings_node'), hasLength(1));
+        final List<Map<String, Object?>> restingTaps = commands.where(
+          (Map<String, Object?> command) => command['cmd'] == 'tap' &&
+              command['at'] is List,
+        ).toList();
+        expect(restingTaps, hasLength(inspection ? 1 : 0));
+        if (inspection) {
+          expect(restingTaps.single, <String, Object?>{
+            'cmd': 'tap', 'at': <int>[0, 0], 'settleMs': 0,
+          });
+          final int at = commands.indexOf(restingTaps.single);
+          expect(commands[at - 1]['cmd'], 'hover');
+          expect(commands[at + 1]['cmd'], 'tree');
+        }
         final List<String> tabs = commands
             .where((Map<String, Object?> command) =>
                 command['cmd'] == 'tap' && command['tab'] is String)
@@ -470,6 +494,21 @@ void main() {
     expect(blocked.commands.where((Map<String, Object?> command) =>
         command['cmd'] == 'hover'), hasLength(1));
     expect(blocked.outcome?['complete'], isFalse);
+    final _TourInstance resting = _TourInstance(inspection: true)
+      ..unavailable = 'nodeRestingTap';
+    try {
+      await resting.run(readonlyNativePid: 44);
+      fail('The original unavailable origin tap must refuse');
+    } on cli.WalletTourFailure catch (error) {
+      expect(error.diagnostic, <String, Object>{
+        'schema': 1, 'scope': 'original_wallet_page_tour_failure',
+        'page': 'settings', 'step': 'nodeRestingTap', 'kind': 'refused',
+      });
+    }
+    expect(resting.captured, cli.walletTourPages.take(10).toList());
+    expect(resting.commands.where((Map<String, Object?> command) =>
+        command['cmd'] == 'tap' && command['at'] is List), hasLength(1));
+    expect(resting.outcome?['complete'], isFalse);
   });
 
   test('tour page errors and context changes keep their original guards',

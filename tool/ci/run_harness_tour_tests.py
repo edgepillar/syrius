@@ -157,6 +157,7 @@ def main():
         outcome = run_bounded([str(dart), '--packages=' + str(packages), str(snapshot),
             'test', '--no-pub', '--reporter', 'json', '--concurrency=1',
             'test/harness/wallet_tour_test.dart', 'test/harness/build_output_test.dart',
+            'test/harness/agent_input_test.dart',
             'test/harness/copied_wallet_pointer_test.dart',
             'test/harness/copied_pointer_input_test.dart',
             'test/harness/restored_startup_test.dart',
@@ -253,7 +254,7 @@ def main():
         counts = test_counts(outcome.output)
         report['counts'] = counts
         debug.need(outcome.success and counts['terminal_success'] is True
-            and counts['passed'] == (695 if asset_fidelity else 693)
+            and counts['passed'] == (701 if asset_fidelity else 699)
             and counts['skipped'] == counts['failed'] == counts['error_events'] == 0,
             'TESTS_FAILED')
         if asset_fidelity:

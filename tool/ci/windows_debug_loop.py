@@ -567,6 +567,7 @@ def analyze(parent, repo):
         'test/launch_film/launch_asset_test.dart',
         'test/launch_film/launch_decode_observation_test.dart',
         'test/harness/key_dispatch_test.dart', 'test/harness/rail_navigation_test.dart',
+        'test/harness/agent_input_test.dart',
         'test/harness/wallet_recipe_failure_test.dart', 'test/harness/wallet_recipe_test.dart'],
         cwd=repo, env=parent, shell=False, stdin=subprocess.DEVNULL,
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=0)
@@ -668,6 +669,7 @@ def analyze(parent, repo):
                                         else 'startup_key_support' if relative.endswith('/test/harness/startup_key_support.dart')
                                         else 'launch_film' if relative.endswith('/lib/widgets/reusable_widgets/launch_film.dart')
                                         else 'key_dispatch_test' if relative.endswith('/test/harness/key_dispatch_test.dart')
+                                        else 'agent_input_test' if relative.endswith('/test/harness/agent_input_test.dart')
                                         else 'rail_navigation_test' if relative.endswith('/test/harness/rail_navigation_test.dart')
                                         else 'recipe_failure_test' if relative.endswith('/test/harness/wallet_recipe_failure_test.dart')
                                         else 'wallet_recipe_test' if relative.endswith('/test/harness/wallet_recipe_test.dart') else 'other')

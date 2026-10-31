@@ -124,7 +124,8 @@ def need(value, code):
 
 TOUR_FAILURE_STEPS = frozenset((
     'beforePage', 'railNavigation', 'sectionControlWait', 'sectionControlTap',
-    'sectionPageWait', 'pointerNeutral', 'settle', 'tree', 'logs', 'capture', 'afterPage',
+    'sectionPageWait', 'pointerNeutral', 'nodeRestingTap', 'settle', 'tree',
+    'logs', 'capture', 'afterPage',
     'bellClose', 'bellGone', 'afterBell', 'returnHome',
 ))
 TOUR_FAILURE_KINDS = frozenset(('refused', 'timeout', 'replyShape', 'filesystem', 'other'))
