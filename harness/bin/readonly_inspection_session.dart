@@ -91,6 +91,77 @@ class ReadonlyInspectionSession {
     }
   }
 
+  /// Reads one completed rail width from the original positive tree reply.
+  /// Text is folded into buttons; it is not a separate label-key node.
+  Future<bool> railExpanded() async {
+    if (!_walletBound) _refuse(ReadonlyInspectionReason.binding);
+    final Map<String, dynamic> reply = await send(
+      <String, Object?>{'cmd': 'tree'}, const Duration(seconds: 30),
+    );
+    final Object? nodes = reply['nodes'];
+    if (reply['ok'] != true || nodes is! List || nodes.length > 16384) {
+      _refuse(ReadonlyInspectionReason.reply);
+    }
+    Map<String, dynamic>? toggle;
+    for (final Object? node in nodes) {
+      if (node is! Map<String, dynamic> || node['kind'] == 'error') {
+        _refuse(ReadonlyInspectionReason.reply);
+      }
+      if (node['key'] == 'rail_toggle') {
+        if (toggle != null || node['kind'] != 'button' ||
+            (node['enabled'] != null && node['enabled'] != true)) {
+          _refuse(ReadonlyInspectionReason.reply);
+        }
+        toggle = node;
+      }
+    }
+    if (toggle == null) _refuse(ReadonlyInspectionReason.reply);
+    final Object? rect = toggle['rect'];
+    // Original AppTokens widths 56/200, minus the two 8-pixel rail insets.
+    // The original agent emits logical [left, top, width, height] integers.
+    if (rect is! List || rect.length != 4 ||
+        rect.any((Object? value) => value is! int ||
+            value < 0 || value > 32768) ||
+        rect[3] != 32 || (rect[2] != 40 && rect[2] != 184)) {
+      _refuse(ReadonlyInspectionReason.reply);
+    }
+    return rect[2] == 184;
+  }
+
+  /// Prepares only the already opened Home in this bound native session.
+  Future<void> prepareScreenHome() => restoreScreenRail(expanded: false);
+
+  /// Restores the Home rail through positive replies from the same process.
+  /// A failed script on another page is held rather than navigated blindly.
+  Future<void> restoreScreenRail({required bool expanded}) async {
+    await _requireScreenHome();
+    if (await railExpanded() != expanded) {
+      await send(<String, Object?>{'cmd': 'tap', 'key': 'rail_toggle'},
+          const Duration(seconds: 30));
+      if (await railExpanded() != expanded) {
+        _refuse(ReadonlyInspectionReason.reply);
+      }
+    }
+    await _requireScreenHome();
+  }
+
+  Future<void> _requireScreenHome() async {
+    if (!_walletBound) _refuse(ReadonlyInspectionReason.binding);
+    final Map<String, dynamic> state = await send(
+      <String, Object?>{'cmd': 'state'}, const Duration(seconds: 30),
+    );
+    final Object? tabs = state['tabs'];
+    if (state['ok'] != true || state['walletUnlocked'] != true ||
+        state['walletInitCompleted'] != true ||
+        state['tab'] != 'dashboard' || state['locale'] != 'en' ||
+        state['direction'] != 'ltr' || tabs is! List ||
+        tabs.isEmpty || tabs.length > 16 ||
+        tabs.any((Object? value) => value is! String) ||
+        tabs.toSet().length != tabs.length || !tabs.contains('dashboard')) {
+      _refuse(ReadonlyInspectionReason.reply);
+    }
+  }
+
   /// Reserves one original native frame/wallet bind before any transport call.
   Future<Map<String, dynamic>> bindWallet() async {
     if (_held || _running || _bindingReserved) {

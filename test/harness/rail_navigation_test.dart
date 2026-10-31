@@ -112,6 +112,21 @@ void main() {
       );
       final HarnessAgent agent = HarnessAgent.forTest()..booted = true;
       final List<Map<String, Object?>> controls = await _controls(agent);
+      final Map<String, Object?> tree = await agent.commandForTest(
+        <String, dynamic>{'cmd': 'tree'},
+      );
+      final List<Map<String, Object?>> nodes =
+          tree['nodes']! as List<Map<String, Object?>>;
+      final Map<String, Object?> toggle = nodes.singleWhere(
+        (Map<String, Object?> row) => row['key'] == 'rail_toggle',
+      );
+      expect(toggle['kind'], 'button');
+      final List<int> rect = List<int>.from(toggle['rect']! as List<Object?>);
+      expect(rect.sublist(2), <int>[collapsed ? 40 : 184, 32]);
+      expect(nodes.where((Map<String, Object?> row) =>
+          row['key'] == 'rail_label_dashboard'), isEmpty);
+      expect(find.byKey(const ValueKey<String>('rail_label_dashboard')),
+          collapsed ? findsNothing : findsOneWidget);
       for (final String key in <String>['nav_dashboard', 'nav_settings']) {
         expect(
           tester.widget<Widget>(find.byKey(ValueKey<String>(key))),
