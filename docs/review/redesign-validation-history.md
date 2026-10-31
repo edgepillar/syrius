@@ -97,3 +97,25 @@ two redundant expressions, retaining every assertion, original image operation,
 required; the pass is not assumed from source inspection. The Source237 failure
 and every older FAILURE/UNKNOWN remain bound to their original source/run.
 Native101/Native103 remain UNKNOWN and Native104 is not admitted.
+
+## Source238 complete engine command and count refusal
+
+Source238 `688a2ad9b25d999a9c5ee2683e10978035799b45` /
+[Windows run 41190130606](https://github.com/edgepillar/syrius/actions/runs/41190130606)
+passes selected analysis with zero findings. Its original complete Dart command
+exits zero normally and unforced: 659 nonhidden terminal passes, zero failures,
+errors or skips, 191.859 seconds and 334537 output bytes without overflow. All
+909 Python cases with three existing skips and all fourteen asset phases pass.
+Both original entry refusals and three real startup checks pass; stdin stays
+open through normal zero exits and all owned startup jobs are empty.
+
+The strict controller expects 657 ordinary terminal passes and refuses the
+observed 659 count. Lab checkout/build and native wallet inspection are skipped.
+No new native image or visual match is qualified. Source239 aligns the exact
+ordinary expectation with the observed 659 and projects 661 for the separate
+two-case startup-asset file, whose execution remains pending. All selected
+paths, 22 explicit newly selected widget cases, event counting, assertions,
+source/refusal/startup checks, deadlines and output limits remain. The aggregate
+output did not export a per-file breakdown for two additional terminal events;
+their detailed origin is not claimed. The original Source238 failure remains
+failed, all older limitations remain, and Native104 is not admitted.
