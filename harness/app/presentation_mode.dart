@@ -41,12 +41,18 @@ bool harnessLaunchMatches(
   Map<String, dynamic> observed, {
   String? presentation,
   int? expectedPid,
-}) =>
-    (expectedPid == null || observed['pid'] == expectedPid) &&
-    (presentation == null
-        ? observed['harnessMode'] == 'wallet'
-        : observed['harnessMode'] == 'presentation' &&
-              observed['presentationScreen'] == presentation);
+  bool readonlyNative = false,
+}) {
+  if (readonlyNative) {
+    return presentation == null &&
+        harnessReadonlyNativeLaunchMatches(observed, expectedPid);
+  }
+  return (expectedPid == null || observed['pid'] == expectedPid) &&
+      (presentation == null
+          ? observed['harnessMode'] == 'wallet'
+          : observed['harnessMode'] == 'presentation' &&
+                observed['presentationScreen'] == presentation);
+}
 
 /// Replaces inherited profile and host controls without changing the parent.
 Map<String, String> harnessLaunchEnvironment(
@@ -58,8 +64,17 @@ Map<String, String> harnessLaunchEnvironment(
   required int port,
   required String token,
   String? presentation,
+  bool readonlyNative = false,
+  bool windows = false,
 }) {
   final String? surface = harnessPresentationSurface(presentation);
+  if (readonlyNative) {
+    harnessReadonlyNativeRequested(
+      <String, String>{...parent, harnessReadonlyNativeEnvironment: 'true'},
+      windows: windows,
+      presentation: surface,
+    );
+  }
   const Set<String> replaced = <String>{
     'APPDATA',
     'LOCALAPPDATA',
@@ -86,5 +101,6 @@ Map<String, String> harnessLaunchEnvironment(
     'SYRIUS_HARNESS_PORT': '$port',
     'SYRIUS_HARNESS_TOKEN': token,
     harnessPresentationEnvironment: ?surface,
+    if (readonlyNative) harnessReadonlyNativeEnvironment: 'true',
   };
 }

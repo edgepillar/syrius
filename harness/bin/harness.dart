@@ -12,6 +12,7 @@ import 'dart:math';
 
 import '../app/fixtures/seed_policy.dart';
 import '../app/presentation_mode.dart';
+import '../app/readonly_native_mode.dart';
 import '../home_preparation_observation.dart';
 import '../seed/seed_recipe.dart';
 import '../seed_preparation_failure.dart' show seedPreparationUiFailureCodes;
@@ -280,12 +281,43 @@ Future<int> freePort() async {
   return port;
 }
 
-Future<void> start(Instance inst, Args a) async {
+/// A separate CI controller may explicitly select a fresh inspection host.
+/// The ordinary command line always retains its default wallet startup.
+Future<void> start(
+  Instance inst,
+  Args a, {
+  bool readonlyNative = false,
+}) async {
   final String? presentation = harnessPresentationSurface(a['presentation']);
+  if (readonlyNative) {
+    try {
+      requireReadonlyNativeLaunch(
+        Platform.environment,
+        windows: Platform.isWindows,
+        instance: inst.name,
+        fresh: a.has('fresh'),
+        presentation: presentation,
+      );
+    } on ReadonlyNativeModeRefused {
+      throw Fail(
+        'native inspection requires an explicit unused Windows CI profile',
+      );
+    }
+    final FileSystemEntityType parent = FileSystemEntity.typeSync(
+      stateRoot,
+      followLinks: false,
+    );
+    if ((parent != FileSystemEntityType.directory &&
+            parent != FileSystemEntityType.notFound) ||
+        FileSystemEntity.typeSync(inst.home, followLinks: false) !=
+            FileSystemEntityType.notFound) {
+      throw Fail('native inspection needs an unused profile without links');
+    }
+  }
   if (presentation != null && (inst.name == 'default' || a.has('fresh'))) {
     throw Fail('presentation needs an explicit unused instance, without fresh');
   }
-  if (await inst.alive()) {
+  if (!readonlyNative && await inst.alive()) {
     final Map<String, dynamic> observed = await call(
       inst,
       <String, Object?>{'cmd': 'ping'},
@@ -296,6 +328,7 @@ Future<void> start(Instance inst, Args a) async {
           observed,
           presentation: presentation,
           expectedPid: expectedPid,
+          readonlyNative: readonlyNative,
         )) {
       throw Fail('the instance is already running another harness host');
     }
@@ -335,7 +368,9 @@ Future<void> start(Instance inst, Args a) async {
     );
   }
   final Directory home = Directory(inst.home);
-  if (a.has('fresh') && home.existsSync()) home.deleteSync(recursive: true);
+  if (!readonlyNative && a.has('fresh') && home.existsSync()) {
+    home.deleteSync(recursive: true);
+  }
   final String sep = Platform.pathSeparator;
   final String roaming = '${home.path}${sep}AppData${sep}Roaming';
   final String local = '${home.path}${sep}AppData${sep}Local';
@@ -361,6 +396,8 @@ Future<void> start(Instance inst, Args a) async {
     port: port,
     token: token,
     presentation: presentation,
+    readonlyNative: readonlyNative,
+    windows: Platform.isWindows,
   );
   final Process p = await Process.start(
     exe.path,
@@ -376,7 +413,9 @@ Future<void> start(Instance inst, Args a) async {
       'port': port,
       'token': token,
       'mode': mode,
-      'harnessMode': presentation == null ? 'wallet' : 'presentation',
+      'harnessMode': readonlyNative
+          ? 'readonly-native'
+          : presentation == null ? 'wallet' : 'presentation',
       'presentationScreen': ?presentation,
       'started': DateTime.now().toUtc().toIso8601String(),
     }),
@@ -398,6 +437,7 @@ Future<void> start(Instance inst, Args a) async {
         r,
         presentation: presentation,
         expectedPid: p.pid,
+        readonlyNative: readonlyNative,
       )) {
         throw Fail('the original process and harness host were not observed');
       }

@@ -36,3 +36,44 @@ String? readonlyNativeRefusalCode(Object error) => switch (error) {
   OriginalPublicationRefused() => 'READONLY_NATIVE_PUBLICATION_REFUSED',
   _ => null,
 };
+
+/// Programmatic inspection cannot reuse or delete an ordinary profile.
+void requireReadonlyNativeLaunch(
+  Map<String, String> environment, {
+  required bool windows,
+  required String instance,
+  required bool fresh,
+  required String? presentation,
+}) {
+  if (!windows ||
+      environment['GITHUB_ACTIONS'] != 'true' ||
+      presentation != null ||
+      fresh ||
+      !RegExp(r'^ci-inspect-[a-f0-9]{24}$').hasMatch(instance)) {
+    throw const ReadonlyNativeModeRefused();
+  }
+}
+
+/// Readiness binds the actual process and the finite SDK admission receipt.
+/// It supplies no wallet, client, socket, image or chain acceptance.
+bool harnessReadonlyNativeLaunchMatches(
+  Map<String, dynamic> observed,
+  int? expectedPid,
+) {
+  final Object? admission = observed['readonlyAdmission'];
+  return expectedPid != null &&
+      expectedPid > 0 &&
+      observed['pid'] is int &&
+      observed['pid'] == expectedPid &&
+      observed['harnessMode'] == 'readonly-native' &&
+      observed['booted'] == true &&
+      observed['readOnly'] == true &&
+      admission is Map<String, dynamic> &&
+      admission.length == 5 &&
+      admission['schema'] is int &&
+      admission['schema'] == 1 &&
+      admission['scope'] == 'readonly_native_sdk_admission' &&
+      admission['status'] == 'CURRENT' &&
+      admission['publicationAdmissionPaused'] == true &&
+      admission['automaticReceiveDisabled'] == true;
+}
