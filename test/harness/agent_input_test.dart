@@ -75,7 +75,7 @@ void main() {
         ),
       );
       final TestGesture mouse = await tester.createGesture(
-        kind: PointerDeviceKind.mouse, device: 7,
+        kind: PointerDeviceKind.mouse, pointer: 7,
       );
       await mouse.addPointer(
         location: tester.getCenter(find.text('Synthetic hash target')),
