@@ -6,7 +6,7 @@ import copy
 import hashlib
 import io
 import json
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 import stat
 import struct
 from types import SimpleNamespace
@@ -307,7 +307,10 @@ class InspectionTests(unittest.TestCase):
         value = report()
         value.update(success=False, inspection_qualified=False, errors=['ENTRY_FAILED'])
         paths, reads, output = self.artifact_case(value)
-        self.assertEqual(paths, [str(inspection.OUTPUT / 'manifest.json')])
+        self.assertEqual(paths, ['.harness/ci-wallet-inspection/manifest.json'])
+        for flavor in (PurePosixPath, PureWindowsPath):
+            expected = flavor(inspection.OUTPUT.as_posix()) / 'manifest.json'
+            self.assertEqual(str(expected).replace('\\', '/'), paths[0])
         self.assertEqual(len(reads), 1)
         self.assertNotIn('.png', output)
 
