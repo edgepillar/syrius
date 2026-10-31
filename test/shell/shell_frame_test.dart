@@ -75,6 +75,85 @@ void main() {
   );
 
   for (final TextDirection direction in TextDirection.values) {
+    for (final bool scrollable in <bool>[false, true]) {
+      testWidgets(
+        'working gutters match the reference in $direction, scroll $scrollable',
+        (WidgetTester tester) async {
+          tester.view.physicalSize = const Size(1280, 780);
+          tester.view.devicePixelRatio = 1;
+          addTearDown(tester.view.resetPhysicalSize);
+          addTearDown(tester.view.resetDevicePixelRatio);
+          final ValueNotifier<bool> locked = ValueNotifier<bool>(false);
+          addTearDown(locked.dispose);
+          const Key rail = ValueKey<String>('reference rail');
+          const Key page = ValueKey<String>('reference page');
+          const Key content = ValueKey<String>('reference first content');
+          const Key status = ValueKey<String>('reference status');
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Directionality(
+                textDirection: direction,
+                child: Scaffold(
+                  body: Column(
+                    children: <Widget>[
+                      const SizedBox(height: 32),
+                      Expanded(
+                        child: ShellFrame(
+                          locked: locked,
+                          rail: const SizedBox(key: rail, width: 56),
+                          page: SizedBox.expand(
+                            key: page,
+                            child: scrollable
+                                ? ListView(
+                                    children: const <Widget>[
+                                      SizedBox(key: content, height: 20),
+                                      SizedBox(height: 1000),
+                                    ],
+                                  )
+                                : const Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: <Widget>[
+                                      SizedBox(key: content, height: 20),
+                                      Expanded(child: SizedBox()),
+                                    ],
+                                  ),
+                          ),
+                          status: const SizedBox(
+                            key: status,
+                            width: double.infinity,
+                            height: 44,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+          final bool ltr = direction == TextDirection.ltr;
+          final double pageLeft = ltr ? 60 : 16;
+          expect(
+            tester.getRect(find.byKey(rail)),
+            Rect.fromLTWH(ltr ? 0 : 1224, 32, 56, 748),
+          );
+          expect(
+            tester.getRect(find.byKey(page)),
+            Rect.fromLTWH(pageLeft, 36, 1204, 674),
+          );
+          expect(tester.getTopLeft(find.byKey(content)).dy, 36);
+          expect(
+            tester.getRect(find.byKey(status)),
+            Rect.fromLTWH(pageLeft, 722, 1204, 44),
+          );
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
+  }
+
+  for (final TextDirection direction in TextDirection.values) {
     testWidgets(
       'entry fills the field and excludes its retained rail in $direction',
       (
@@ -113,7 +192,7 @@ void main() {
           ),
         );
         final Size viewport = tester.getSize(find.byType(Scaffold));
-        expect(tester.getSize(find.byKey(page)).width, viewport.width - 112);
+        expect(tester.getSize(find.byKey(page)).width, viewport.width - 96);
         railFocus.requestFocus();
         await tester.pump();
         expect(railFocus.hasFocus, isTrue);

@@ -722,15 +722,15 @@ class AppTokens extends ThemeExtension<AppTokens> {
   TextStyle get walletPickerAddressText =>
       dataText.copyWith(fontSize: 12, color: dim);
 
-  /// The working shell's directional outer margins.
+  /// The reference main column's directional page and status margins.
   EdgeInsetsDirectional get shellPadding =>
-      const EdgeInsetsDirectional.fromSTEB(10, 14, 18, 18);
+      const EdgeInsetsDirectional.fromSTEB(4, 4, 16, 14);
 
-  /// The page starts a small distance from the working rail.
-  double get shellRailGap => 8;
+  /// The rail sits beside the main column, which owns its content inset.
+  double get shellRailGap => 0;
 
   /// The status stays separate from the page surface.
-  double get shellStatusGap => 14;
+  double get shellStatusGap => 12;
 
   /// The entry field fills the page while its status keeps an outer inset.
   EdgeInsetsDirectional get lockedStatusPadding =>

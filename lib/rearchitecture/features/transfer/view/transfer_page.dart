@@ -11,13 +11,11 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dar
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/zap/zap.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/eye_toggle.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/hero_field.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/ltr.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/empty_note.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/segment.dart';
 import 'package:zenon_syrius_wallet_flutter/services/price_feed.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'transfer_pending.dart';
@@ -180,7 +178,6 @@ class _TransferPageState extends State<TransferPage> {
     final TransferMode mode = _controller.value;
     return Stack(
       children: <Widget>[
-        const Positioned.fill(child: IgnorePointer(child: HeroField())),
         Align(
           alignment: Alignment.topCenter,
           child: SizedBox(
@@ -337,24 +334,11 @@ class _TransferSurface extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
-    final BorderRadius radius = BorderRadius.circular(
-      tokens.transferCardRadius,
-    );
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: radius,
-        boxShadow: <BoxShadow>[tokens.dialogShadow],
-      ),
-      child: FrostedSurface(
-        borderRadius: radius,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            borderRadius: radius,
-            border: Border.all(color: tokens.line),
-          ),
-          child: Material(type: MaterialType.transparency, child: child),
-        ),
-      ),
+    return Material(
+      color: tokens.card,
+      borderRadius: BorderRadius.circular(tokens.cardRadius),
+      clipBehavior: Clip.antiAlias,
+      child: child,
     );
   }
 }

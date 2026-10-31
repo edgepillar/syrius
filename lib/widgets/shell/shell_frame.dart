@@ -30,29 +30,29 @@ class ShellFrame extends StatelessWidget {
     valueListenable: locked,
     builder: (BuildContext context, bool locked, _) {
       final AppTokens tokens = AppTokens.of(context);
-      return Padding(
-        padding: locked ? EdgeInsets.zero : tokens.shellPadding,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Offstage(
-              offstage: locked,
-              child: TickerMode(
-                enabled: !locked,
-                child: ExcludeFocus(
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Offstage(
+            offstage: locked,
+            child: TickerMode(
+              enabled: !locked,
+              child: ExcludeFocus(
+                excluding: locked,
+                child: ExcludeSemantics(
                   excluding: locked,
-                  child: ExcludeSemantics(
-                    excluding: locked,
-                    child: IgnorePointer(
-                      ignoring: locked,
-                      child: RepaintBoundary(child: rail),
-                    ),
+                  child: IgnorePointer(
+                    ignoring: locked,
+                    child: RepaintBoundary(child: rail),
                   ),
                 ),
               ),
             ),
-            SizedBox(width: locked ? 0 : tokens.shellRailGap),
-            Expanded(
+          ),
+          SizedBox(width: locked ? 0 : tokens.shellRailGap),
+          Expanded(
+            child: Padding(
+              padding: locked ? EdgeInsets.zero : tokens.shellPadding,
               child: Column(
                 children: <Widget>[
                   Expanded(
@@ -72,8 +72,8 @@ class ShellFrame extends StatelessWidget {
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       );
     },
   );

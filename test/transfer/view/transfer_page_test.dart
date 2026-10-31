@@ -1,6 +1,9 @@
 import 'dart:async';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:bloc_test/bloc_test.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -270,11 +273,14 @@ void main() {
         BlocProvider<PendingTransactionsBloc>.value(value: pending),
         BlocProvider<SendDraftCubit>.value(value: draft),
       ],
-      child: Scaffold(
-        body: TransferPage(
-          controller: controller,
-          receiveWorker: worker,
-          priceFeed: prices,
+      child: RepaintBoundary(
+        key: const Key('transfer_paint'),
+        child: Scaffold(
+          body: TransferPage(
+            controller: controller,
+            receiveWorker: worker,
+            priceFeed: prices,
+          ),
         ),
       ),
     ),
@@ -301,6 +307,37 @@ void main() {
     );
   }
 
+  Future<Map<String, Color>?> paintedSurface(
+    WidgetTester tester,
+    Rect card,
+  ) => tester.runAsync<Map<String, Color>>(() async {
+    final RenderRepaintBoundary boundary = tester
+        .renderObject<RenderRepaintBoundary>(
+          find.byKey(const Key('transfer_paint')),
+        );
+    final ui.Image image = await boundary.toImage();
+    try {
+      final ByteData bytes =
+          (await image.toByteData(format: ui.ImageByteFormat.rawRgba))!;
+      Color pixel(int x, int y) {
+        final int offset = (y * image.width + x) * 4;
+        return Color.fromARGB(
+          bytes.getUint8(offset + 3),
+          bytes.getUint8(offset),
+          bytes.getUint8(offset + 1),
+          bytes.getUint8(offset + 2),
+        );
+      }
+      return <String, Color>{
+        'field': pixel(100, 100),
+        'outside': pixel(card.left.round() - 12, card.top.round() + 30),
+        'corner': pixel(card.left.round() + 5, card.top.round() + 3),
+      };
+    } finally {
+      image.dispose();
+    }
+  });
+
   for (final bool light in <bool>[false, true]) {
     testWidgets(
       'one centered card and an established empty Receive line, light $light',
@@ -311,6 +348,12 @@ void main() {
         );
         expect(card.width, 640);
         expect(card.center.dx, 640);
+        final AppTokens paintTokens = light ? AppTokens.light : AppTokens.dark;
+        final Map<String, Color> painted =
+            (await paintedSurface(tester, card))!;
+        expect(painted['field'], paintTokens.background);
+        expect(painted['outside'], paintTokens.background);
+        expect(painted['corner'], paintTokens.card);
         expect(find.byKey(const Key('transfer_send_screen')), findsOneWidget);
         expect(find.byKey(const Key('transfer_receive_screen')), findsNothing);
         expect(find.byKey(const Key('transfer_pending')), findsNothing);
