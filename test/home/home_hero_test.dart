@@ -290,6 +290,8 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
       expect(menuNavigator.canPop(), isFalse);
+      // Tick beyond the duration endpoint to complete route removal.
+      await tester.pump(const Duration(milliseconds: 16));
       expect(find.byType(PopupMenuItem<String>), findsNothing);
       expect(opened, isEmpty);
       expect(tester.takeException(), isNull);
