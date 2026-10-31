@@ -256,8 +256,126 @@ Future<void> _import(
   node: _node,
 );
 
+WalletRecipe _inspection(
+  _WalletUi ui, {
+  Map<String, dynamic> Function(
+    Map<String, Object?> command,
+    Map<String, dynamic> reply,
+  )? transform,
+}) => WalletRecipe.inspection(
+  expectedPid: 42,
+  elapsed: () => ui.elapsed,
+  wait: (Duration time) async {
+    ui.elapsed += time;
+  },
+  send: (Map<String, Object?> command, Duration timeout) async {
+    expect(command['cmd'], 'readonly-entry');
+    final Map<String, dynamic> original = await ui.send(command, timeout);
+    // This isolated actor has no SDK or native process. Production responses
+    // come from the admitted agent, never from this synthetic projection.
+    final Map<String, dynamic> reply = <String, dynamic>{
+      ...original,
+      'pid': 42,
+      'booted': true,
+      'harnessMode': 'readonly-native',
+      'readOnly': true,
+      'readonlyAdmission': <String, dynamic>{
+        'schema': 1,
+        'scope': 'readonly_native_sdk_admission',
+        'status': 'CURRENT',
+        'publicationAdmissionPaused': true,
+        'automaticReceiveDisabled': true,
+      },
+    };
+    return transform?.call(command, reply) ?? reply;
+  },
+);
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  test('inspection imports through its own namespace with owned replies',
+      () async {
+    final _WalletUi ui = _WalletUi();
+    await _import(_inspection(ui));
+    expect(ui.phase, 'home');
+    expect(ui.opens, 1);
+    expect(ui.signing, 321);
+    expect(ui.saved, 321);
+    expect(ui.commands.every((Map<String, Object?> command) =>
+        command['cmd'] == 'readonly-entry'), isTrue);
+  });
+
+  test('inspection refuses foreign mode PID and SDK receipts before input',
+      () async {
+    for (final String fault in <String>[
+      'mode', 'pid', 'paused', 'pending', 'expanded', 'automatic',
+    ]) {
+      final _WalletUi ui = _WalletUi();
+      final WalletRecipe driver = _inspection(ui, transform: (_, reply) {
+        final Map<String, dynamic> sdk =
+            reply['readonlyAdmission'] as Map<String, dynamic>;
+        switch (fault) {
+          case 'mode': reply['harnessMode'] = 'wallet';
+          case 'pid': reply['pid'] = 43;
+          case 'paused': sdk['publicationAdmissionPaused'] = false;
+          case 'pending': sdk['status'] = 'PENDING';
+          case 'expanded': sdk['extra'] = true;
+          case 'automatic': sdk['automaticReceiveDisabled'] = false;
+        }
+        return reply;
+      });
+      await expectLater(_import(driver),
+          throwsA(isA<WalletRecipeRefused>()));
+      expect(ui.commands.length, 1);
+      expect(ui.typed, isEmpty);
+      await expectLater(_import(driver),
+          throwsA(isA<WalletRecipeRefused>()));
+      expect(ui.commands.length, 1);
+    }
+  });
+
+  test('an inspection action reply cannot borrow a different process',
+      () async {
+    final _WalletUi ui = _WalletUi();
+    final WalletRecipe driver = _inspection(ui, transform: (command, reply) {
+      if (command['action'] == 'type') reply['pid'] = 43;
+      return reply;
+    });
+    await expectLater(_import(driver),
+        throwsA(isA<WalletRecipeRefused>()));
+    final int commands = ui.commands.length;
+    expect(ui.typed.keys, <String>['import_seed_field']);
+    expect(ui.opens, 0);
+    await expectLater(_import(driver),
+        throwsA(isA<WalletRecipeRefused>()));
+    expect(ui.commands.length, commands);
+  });
+
+  test('inspection admits only explicit owned chain-321 import inputs',
+      () async {
+    for (final (String, String?) input in <(String, String?)>[
+      ('1', _node), ('321', null),
+      ('321', 'wss://example.invalid:443'),
+    ]) {
+      final _WalletUi ui = _WalletUi();
+      await expectLater(_inspection(ui).importWallet(
+        chain: input.$1, node: input.$2,
+        mnemonic: _seed(24), password: _password,
+      ), throwsA(isA<WalletRecipeRefused>()));
+      expect(ui.commands, isEmpty);
+    }
+  });
+
+  test('inspection needs an actual PID and cannot adopt restored startup',
+      () async {
+    final _WalletUi ui = _WalletUi();
+    expect(() => WalletRecipe.inspection(send: ui.send, expectedPid: 0),
+        throwsA(isA<WalletRecipeRefused>()));
+    await expectLater(_inspection(ui).settleRestoredStartup(),
+        throwsA(isA<WalletRecipeRefused>()));
+    expect(ui.commands, isEmpty);
+  });
   test('startup uses one fixed key before Welcome import', () async {
     final _WalletUi ui = _WalletUi()..phase = 'startup';
     await _import(ui.driver());

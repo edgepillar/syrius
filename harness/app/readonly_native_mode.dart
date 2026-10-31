@@ -2,6 +2,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/original_publications.dart';
 
 import 'readonly_native_commands.dart';
 import 'readonly_sdk_admission.dart';
+import 'readonly_wallet_admission.dart';
 
 /// Selects isolated native inspection explicitly, before any app owner starts.
 const String harnessReadonlyNativeEnvironment = 'SYRIUS_CI_READONLY_INSPECTION';
@@ -33,6 +34,7 @@ bool harnessReadonlyNativeRequested(
 String? readonlyNativeRefusalCode(Object error) => switch (error) {
   ReadonlyNativeCommandRefused() => 'READONLY_NATIVE_COMMAND_REFUSED',
   ReadonlySdkAdmissionRefused() => 'READONLY_NATIVE_SDK_REFUSED',
+  ReadonlyWalletAdmissionRefused() => 'READONLY_NATIVE_WALLET_REFUSED',
   OriginalPublicationRefused() => 'READONLY_NATIVE_PUBLICATION_REFUSED',
   _ => null,
 };

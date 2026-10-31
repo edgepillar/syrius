@@ -95,6 +95,7 @@ import 'presentation_mode.dart';
 import 'readonly_native_commands.dart';
 import 'readonly_native_mode.dart';
 import 'readonly_sdk_admission.dart';
+import 'readonly_wallet_binding.dart';
 import 'recipe_control_admission.dart';
 import 'retained_png.dart';
 import 'seed_deposit_entry_binding.dart';
@@ -463,6 +464,7 @@ class HarnessAgent {
   bool _labRestoredReadAttempted = false;
   HarnessPresentationController? _presentation;
   NativeEntryCapture? _nativeEntry;
+  NativeWindowOwner? _nativeWindow;
   ReadonlyNativeCommands? _readonlyNative;
   StatefulElement? _lockViewOwner;
   bool _lockViewBound = false;
@@ -502,7 +504,15 @@ class HarnessAgent {
     }
     _readonlyNative = ReadonlyNativeCommands(
       isBooted: () => booted,
-      original: _runWalletCommand,
+      original: _runReadonlyNativeCommand,
+      processId: pid,
+      bindWallet: () {
+        final NativeWindowOwner? window = _nativeWindow;
+        if (window == null) {
+          throw HarnessError('native inspection window is unavailable');
+        }
+        return bindReadonlyNativeWallet(window: window, readView: () => _view);
+      },
     );
   }
 
@@ -524,6 +534,7 @@ class HarnessAgent {
       throw HarnessError('the harness host mode is already reserved');
     }
     _modeSelected = true;
+    _nativeWindow = window;
     _nativeEntry = NativeEntryCapture(
       window: window,
       readView: () => _view,
@@ -671,6 +682,31 @@ class HarnessAgent {
     }
     _modeSelected = true;
     return _runWalletCommand(c);
+  }
+
+  Future<Map<String, Object?>> _runReadonlyNativeCommand(
+    Map<String, dynamic> command,
+  ) async {
+    if (command['cmd'] == 'readonly-entry') {
+      // The original UI-only recipe keeps its own exact owner, revision,
+      // control and await checks. Financial command names remain refused.
+      final Object? node = command['expectedNode'];
+      final Object? chain = command['expectedNodeChain'];
+      if ((node != null && node != 'ws://127.0.0.1:45998') ||
+          (chain != null && chain != 321) ||
+          (command['key'] is String &&
+              (command['key'] as String).startsWith('node_settings_select_') &&
+              command['key'] !=
+                  'node_settings_select_ws://127.0.0.1:45998') ||
+          (command['key'] == 'node_settings_endpoint' &&
+              command['value'] != 'ws://127.0.0.1:45998') ||
+          (command['key'] == 'node_settings_client_chain' &&
+              command['value'] != '321')) {
+        throw const ReadonlyNativeCommandRefused();
+      }
+      return _walletRecipeCommand(command);
+    }
+    return _runWalletCommand(command);
   }
 
   Element _requirePresentationCurrent() {

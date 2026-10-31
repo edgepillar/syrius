@@ -5,11 +5,14 @@ import 'package:zenon_syrius_wallet_flutter/utils/original_publications.dart';
 
 import '../../harness/app/readonly_native_commands.dart';
 import '../../harness/app/readonly_sdk_admission.dart';
+import '../../harness/app/readonly_wallet_admission.dart';
 
 class _Lane {
-  _Lane() {
+  _Lane({Future<ReadonlyWalletAdmission> Function()? bindWallet}) {
     commands = ReadonlyNativeCommands(
       isBooted: () => booted,
+      bindWallet: bindWallet,
+      processId: 42,
       original: (Map<String, dynamic> command) {
         calls++;
         return action(command);
@@ -280,5 +283,133 @@ void main() {
     expect(OriginalPublications.hasRefusedAdmission(lane.sdk), isFalse);
     await lane.receipt();
     expect(lane.calls, 0);
+  });
+
+  test('one actual wallet observation attaches a separate finite receipt',
+      () async {
+    int calls = 0;
+    final _Lane lane = _Lane(bindWallet: () {
+      calls++;
+      return ReadonlyWalletAdmission.seal(
+        ownersCurrent: () => true,
+        observeFrame: () async {},
+      );
+    });
+    await lane.open();
+    expect((await lane.receipt()).containsKey('readonlyWallet'), isFalse);
+    final Map<String, Object?> result = await lane.commands.run(
+      <String, dynamic>{'cmd': 'readonly-wallet-bind'},
+    );
+    expect(result['pid'], 42);
+    expect(result['readonlyWallet'], <String, Object>{
+      'schema': 1,
+      'scope': 'readonly_native_wallet_admission',
+      'status': 'CURRENT',
+      'chain': 321,
+      'selectedIndex': 1,
+      'nativeFrameObserved': true,
+    });
+    expect(calls, 1);
+    expect(lane.calls, 0);
+    await expectLater(
+      lane.commands.run(<String, dynamic>{'cmd': 'readonly-wallet-bind'}),
+      throwsA(isA<ReadonlyNativeCommandRefused>()),
+    );
+    await expectLater(lane.receipt(),
+        throwsA(isA<ReadonlyNativeCommandRefused>()));
+    expect(calls, 1);
+  });
+
+  test('wallet loss during an original UI await permanently holds the lane',
+      () async {
+    bool current = true;
+    final _Lane lane = _Lane(bindWallet: () => ReadonlyWalletAdmission.seal(
+      ownersCurrent: () => current,
+      observeFrame: () async {},
+    ));
+    await lane.open();
+    await lane.commands.run(<String, dynamic>{'cmd': 'readonly-wallet-bind'});
+    final Completer<Map<String, Object?>> original =
+        Completer<Map<String, Object?>>();
+    lane.action = (_) => original.future;
+    final Future<void> refused = expectLater(
+      lane.commands.run(<String, dynamic>{'cmd': 'tap'}),
+      throwsA(isA<ReadonlyWalletAdmissionRefused>()),
+    );
+    current = false;
+    original.complete(<String, Object?>{'acted': true});
+    await refused;
+    current = true;
+    await expectLater(lane.receipt(),
+        throwsA(isA<ReadonlyNativeCommandRefused>()));
+    expect(lane.calls, 1);
+  });
+
+  test('failed wallet binding retains its exact original error and trace',
+      () async {
+    final StateError error = StateError('Synthetic opened-wallet failure');
+    final StackTrace trace = StackTrace.current;
+    int calls = 0;
+    final _Lane lane = _Lane(bindWallet: () {
+      calls++;
+      return Future<ReadonlyWalletAdmission>.error(error, trace);
+    });
+    await lane.open();
+    Object? seen;
+    StackTrace? seenTrace;
+    await lane.commands.run(
+      <String, dynamic>{'cmd': 'readonly-wallet-bind'},
+    ).then<void>(
+      (_) => fail('A failed wallet cannot be bound'),
+      onError: (Object value, StackTrace originalTrace) {
+        seen = value;
+        seenTrace = originalTrace;
+      },
+    );
+    expect(seen, same(error));
+    expect(seenTrace, same(trace));
+    await expectLater(lane.receipt(),
+        throwsA(isA<ReadonlyNativeCommandRefused>()));
+    expect(calls, 1);
+  });
+
+  test('caught reentry while binding cannot admit the outer wallet receipt',
+      () async {
+    late _Lane lane;
+    lane = _Lane(bindWallet: () async {
+      await expectLater(lane.receipt(),
+          throwsA(isA<ReadonlyNativeCommandRefused>()));
+      return ReadonlyWalletAdmission.seal(
+        ownersCurrent: () => true,
+        observeFrame: () async {},
+      );
+    });
+    await lane.open();
+    await expectLater(
+      lane.commands.run(<String, dynamic>{'cmd': 'readonly-wallet-bind'}),
+      throwsA(isA<ReadonlyNativeCommandRefused>()),
+    );
+    expect(lane.calls, 0);
+  });
+
+  test('inspection entry uses one immutable original and keeps SDK admission',
+      () async {
+    final _Lane lane = _Lane();
+    await lane.open();
+    lane.action = (Map<String, dynamic> command) async {
+      expect(command['cmd'], 'readonly-entry');
+      expect(command['action'], 'observe');
+      expect(() => command['cmd'] = 'wallet-recipe', throwsUnsupportedError);
+      return <String, Object?>{'owner': 7};
+    };
+    final Map<String, Object?> result = await lane.commands.run(
+      <String, dynamic>{'cmd': 'readonly-entry', 'action': 'observe'},
+    );
+    expect(result['owner'], 7);
+    expect(result['harnessMode'], 'readonly-native');
+    expect(result['booted'], isTrue);
+    expect(result['pid'], 42);
+    expect(lane.calls, 1);
+    expect(OriginalPublications.snapshot(lane.sdk), isEmpty);
   });
 }

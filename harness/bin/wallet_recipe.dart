@@ -1,3 +1,5 @@
+import '../app/readonly_native_mode.dart'
+    show harnessReadonlyNativeLaunchMatches;
 import '../wallet_address_context.dart';
 import '../wallet_recipe_failure.dart';
 
@@ -61,7 +63,23 @@ class WalletRecipe {
     this._elapsed,
     this.budget = const Duration(minutes: 3),
     this.commandTimeout = const Duration(seconds: 10),
-  }) : _wait = wait ?? Future<void>.delayed;
+  }) : _inspectionPid = null,
+       _wait = wait ?? Future<void>.delayed;
+
+  /// The inspection namespace requires its actual owned process on every reply.
+  WalletRecipe.inspection({
+    required this.send,
+    required int expectedPid,
+    Future<void> Function(Duration)? wait,
+    this._elapsed,
+    this.budget = const Duration(minutes: 3),
+    this.commandTimeout = const Duration(seconds: 10),
+  }) : _inspectionPid = expectedPid,
+       _wait = wait ?? Future<void>.delayed {
+    if (expectedPid <= 0) {
+      throw const WalletRecipeRefused('wallet-recipe-inspection-pid-required');
+    }
+  }
 
   /// Replies retain the harness protocol's explicit success bit.
   final WalletRecipeSend send;
@@ -73,6 +91,7 @@ class WalletRecipe {
   final Duration commandTimeout;
   final Future<void> Function(Duration) _wait;
   final Duration Function()? _elapsed;
+  final int? _inspectionPid;
   final Stopwatch _clock = Stopwatch()..start();
   bool _retired = false;
   int? _owner;
@@ -109,7 +128,10 @@ class WalletRecipe {
         : commandTimeout;
     try {
       final Map<String, dynamic> reply = await send(
-        <String, Object?>{'cmd': 'wallet-recipe', ...command},
+        <String, Object?>{
+          'cmd': _inspectionPid == null ? 'wallet-recipe' : 'readonly-entry',
+          ...command,
+        },
         limit,
       ).timeout(limit);
       if (reply['ok'] != true) {
@@ -117,6 +139,10 @@ class WalletRecipe {
           'wallet-recipe-command-refused',
           diagnostic: walletRecipeDiagnostic(command, reply['error']),
         );
+      }
+      if (_inspectionPid != null &&
+          !harnessReadonlyNativeLaunchMatches(reply, _inspectionPid)) {
+        _refuse('wallet-recipe-inspection-owner-changed');
       }
       if (command['action'] != 'observe' && reply['acted'] != true) {
         _refuse('wallet-recipe-action-unconfirmed');
@@ -147,7 +173,8 @@ class WalletRecipe {
       if (_originalSigningChain != null)
         'originalSigningChain': _originalSigningChain,
     });
-    if (value['harnessMode'] != 'wallet' ||
+    if (value['harnessMode'] !=
+            (_inspectionPid == null ? 'wallet' : 'readonly-native') ||
         value['booted'] != true ||
         value['controls'] is! List ||
         value['owner'] is! int ||
@@ -317,6 +344,7 @@ class WalletRecipe {
   /// Let the original startup film reach the copied wallet's ordinary lock.
   /// This path admits no Welcome, import, derivation or password input.
   Future<void> settleRestoredStartup() async {
+    if (_inspectionPid != null) _refuse('wallet-recipe-fresh-inspection-only');
     if (_restoredStartup) _refuse('wallet-recipe-restored-lock-required');
     _restoredStartup = true;
     try {
@@ -453,6 +481,7 @@ class WalletRecipe {
   Future<WalletAddressContext> prepareSeedAddress(
     WalletAddressContext original,
   ) async {
+    if (_inspectionPid != null) _refuse('wallet-recipe-fresh-inspection-only');
     final Map<String, dynamic> start = await _observe();
     _policy(start);
     if (!original.same(_addressContext(start)) || !original.consistent ||
@@ -511,6 +540,10 @@ class WalletRecipe {
     String? node,
   }) async {
     final int requested = walletRecipeChain(chain);
+    if (_inspectionPid != null &&
+        (requested != 321 || node != 'ws://127.0.0.1:45998')) {
+      _refuse('wallet-recipe-owned-lab-required');
+    }
     final List<String> words = (mnemonic ?? '').trim().split(RegExp(r'\s+'));
     if ((words.length != 12 && words.length != 24) ||
         password == null ||
@@ -582,6 +615,10 @@ class WalletRecipe {
     bool onboarding = false,
     int? expectedChain,
   }) async {
+    if (_inspectionPid != null &&
+        (node != 'ws://127.0.0.1:45998' || expectedChain != 321)) {
+      _refuse('wallet-recipe-owned-lab-required');
+    }
     if (!walletRecipeNode(node) ||
         (expectedChain != null && expectedChain <= 0)) {
       _refuse('wallet-recipe-node-input-refused');
@@ -661,6 +698,9 @@ class WalletRecipe {
 
   /// Verifies SDK policy and the saved preference after using the real control.
   Future<void> changeClientChain(int chain) async {
+    if (_inspectionPid != null && chain != 321) {
+      _refuse('wallet-recipe-owned-lab-required');
+    }
     if (chain <= 0) _refuse('wallet-recipe-positive-chain-required');
     final Map<String, dynamic> origin = await _observe();
     _policy(origin);

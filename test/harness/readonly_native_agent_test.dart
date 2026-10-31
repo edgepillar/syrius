@@ -104,6 +104,43 @@ class _Request extends Stream<Uint8List> implements HttpRequest {
 }
 
 void main() {
+  test('inspection entry refuses foreign nodes and chains before UI access',
+      () async {
+    final _Scope scope = _Scope();
+    await scope.open();
+    for (final Map<String, dynamic> fields in <Map<String, dynamic>>[
+      <String, dynamic>{'expectedNode': 'wss://example.invalid:443'},
+      <String, dynamic>{'expectedNodeChain': 1},
+      <String, dynamic>{
+        'key': 'node_settings_endpoint', 'value': 'ws://127.0.0.1:45999',
+      },
+      <String, dynamic>{
+        'key': 'node_settings_client_chain', 'value': '1',
+      },
+      <String, dynamic>{
+        'key': 'node_settings_select_ws://127.0.0.1:45999',
+      },
+    ]) {
+      await expectLater(scope.agent.commandForTest(<String, dynamic>{
+        'cmd': 'readonly-entry', 'action': 'observe', ...fields,
+      }), throwsA(isA<ReadonlyNativeCommandRefused>()));
+    }
+    expect((await scope.ping())['pid'], pid);
+    expect(OriginalPublications.snapshot(scope.sdk), isEmpty);
+  });
+
+  test('binding without the original native window holds the actual agent',
+      () async {
+    final _Scope scope = _Scope();
+    await scope.open();
+    await expectLater(scope.agent.commandForTest(<String, dynamic>{
+      'cmd': 'readonly-wallet-bind',
+    }), throwsA(isA<HarnessError>()));
+    await expectLater(scope.ping(),
+        throwsA(isA<ReadonlyNativeCommandRefused>()));
+    expect(OriginalPublications.snapshot(scope.sdk), isEmpty);
+  });
+
   test('ordinary original ping keeps the wallet mode without SDK sealing',
       () async {
     final HarnessAgent agent = HarnessAgent.forTest();

@@ -1,4 +1,5 @@
 import 'readonly_sdk_admission.dart';
+import 'readonly_wallet_admission.dart';
 
 /// A native command cannot establish its original readonly SDK admission.
 class ReadonlyNativeCommandRefused implements Exception {
@@ -15,9 +16,13 @@ class ReadonlyNativeCommands {
     required Future<Map<String, Object?>> Function(
       Map<String, dynamic> command,
     ) original,
-  }) : this._(isBooted, original);
+    Future<ReadonlyWalletAdmission> Function()? bindWallet,
+    int? processId,
+  }) : this._(isBooted, original, bindWallet, processId);
 
-  ReadonlyNativeCommands._(this._isBooted, this._original);
+  ReadonlyNativeCommands._(
+    this._isBooted, this._original, this._bindWallet, this._processId,
+  );
 
   static const Set<String> _allowed = <String>{
     'ping',
@@ -43,13 +48,18 @@ class ReadonlyNativeCommands {
     'stalls',
     'window',
     'quit',
+    'readonly-entry',
   };
 
   final bool Function() _isBooted;
   final Future<Map<String, Object?>> Function(
     Map<String, dynamic> command,
   ) _original;
+  final Future<ReadonlyWalletAdmission> Function()? _bindWallet;
+  final int? _processId;
   ReadonlySdkAdmission? _admission;
+  ReadonlyWalletAdmission? _wallet;
+  bool _walletReserved = false;
   bool _attachReserved = false;
   bool _held = false;
   bool _running = false;
@@ -89,6 +99,23 @@ class ReadonlyNativeCommands {
       };
     }
     _requireReady();
+    if (name == 'readonly-wallet-bind') {
+      if (retained.keys.any((String key) => key != 'cmd') ||
+          _walletReserved || _bindWallet == null) _refuse();
+      _walletReserved = true;
+      _running = true;
+      try {
+        final ReadonlyWalletAdmission original = await _bindWallet();
+        _wallet = original;
+        _requireReady();
+        return _receipt();
+      } on Object {
+        _held = true;
+        rethrow;
+      } finally {
+        _running = false;
+      }
+    }
     if (name == 'readonly-state') {
       if (retained.keys.any((String key) => key != 'cmd')) {
         throw const ReadonlyNativeCommandRefused();
@@ -132,6 +159,12 @@ class ReadonlyNativeCommands {
   void _requireReady() {
     _requireSdk();
     if (!_booted()) _refuse();
+    try {
+      _wallet?.requireCurrent();
+    } on Object {
+      _held = true;
+      rethrow;
+    }
   }
 
   void _requireSdk() {
@@ -145,16 +178,27 @@ class ReadonlyNativeCommands {
     }
   }
 
-  Map<String, Object?> _receipt() => const <String, Object?>{
+  Map<String, Object?> _receipt() => <String, Object?>{
+    'booted': true,
+    if (_processId != null) 'pid': _processId,
     'harnessMode': 'readonly-native',
     'readOnly': true,
-    'readonlyAdmission': <String, Object>{
+    'readonlyAdmission': const <String, Object>{
       'schema': 1,
       'scope': 'readonly_native_sdk_admission',
       'status': 'CURRENT',
       'publicationAdmissionPaused': true,
       'automaticReceiveDisabled': true,
     },
+    if (_wallet != null)
+      'readonlyWallet': const <String, Object>{
+        'schema': 1,
+        'scope': 'readonly_native_wallet_admission',
+        'status': 'CURRENT',
+        'chain': 321,
+        'selectedIndex': 1,
+        'nativeFrameObserved': true,
+      },
   };
 
   Never _refuse() {

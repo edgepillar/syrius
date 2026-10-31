@@ -430,6 +430,23 @@ wallet. The mode is not an ordinary launcher option. A separately admitted
 fresh CI controller and actual native qualification remain pending; the
 original mandatory-send tour, seed recipes and F06 are unchanged.
 
+`WalletRecipe.inspection` drives `readonly-entry` through the original keyed
+onboarding and Settings callbacks. It requires explicit owned loopback
+chain-321 input and validates the actual PID and current SDK receipt on every
+reply. Ordinary `wallet-recipe`, financial commands and copied-profile paths
+remain unavailable in inspection.
+
+After opening and selecting index one, `readonly-wallet-bind` captures the
+actual file, stores, selected membership, SDK/API/WebSocket objects, native
+window and Flutter root/navigator/view. A fresh original native frame must
+complete. Subsequent commands check that same scope before/after their awaits;
+lost owners, duplicate binding and uncertain binding cannot be restored into
+success. Its finite `readonly_native_wallet_admission` receipt contains no
+private identity or path and supplies no screenshot or chain-effect proof.
+Fresh engine tests and actual native controller/runtime qualification remain
+required. The full visual, motion, seam, minimum-window and Arabic pass stays
+open.
+
 
 ### Retained native-agent request analysis failure (2026-10-30T21:20Z)
 
