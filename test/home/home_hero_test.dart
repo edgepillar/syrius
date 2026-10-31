@@ -273,6 +273,8 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
       expect(find.byType(PopupMenuItem<String>), findsNWidgets(2));
       await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      // Start the reverse ticker before advancing its duration.
+      await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
       expect(find.byType(PopupMenuItem<String>), findsNothing);
       expect(opened, isEmpty);
