@@ -141,7 +141,8 @@ Future<void> main() async {
     if (state['node'] != 'ws://127.0.0.1:45998' || state['chainId'] != 321 ||
         state['signingChainId'] != 321 || state['savedSigningChainId'] != 321 ||
         state['walletUnlocked'] != true ||
-        state['walletInitCompleted'] != true || state['embeddedNode'] != false ||
+        state['walletInitCompleted'] != true ||
+        state['embeddedNode'] != false ||
         state['locale'] != 'en' || state['direction'] != 'ltr') {
       throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.reply);
     }

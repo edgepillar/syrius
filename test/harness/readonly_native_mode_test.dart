@@ -47,7 +47,8 @@ Map<String, dynamic> _ready() => <String, dynamic>{
 Map<String, dynamic> _wallet() => <String, dynamic>{
   ..._ready(),
   'readonlyWallet': <String, dynamic>{
-    'schema': 1, 'scope': 'readonly_native_wallet_admission', 'status': 'CURRENT',
+    'schema': 1, 'scope': 'readonly_native_wallet_admission',
+    'status': 'CURRENT',
     'chain': 321, 'selectedIndex': 1, 'nativeFrameObserved': true,
   },
 };
