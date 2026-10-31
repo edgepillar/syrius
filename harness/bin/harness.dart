@@ -1471,9 +1471,15 @@ const List<String> walletTourPages = <String>[
 ];
 
 /// Require every current page. Status icons cannot substitute for a page.
-List<String> walletTourPlan(Map<String, dynamic> state) {
+List<String> walletTourPlan(
+  Map<String, dynamic> state, {
+  int? readonlyNativePid,
+}) {
   final Object? offered = state['tabs'];
-  if (state['harnessMode'] != 'wallet' ||
+  final bool modeCurrent = readonlyNativePid == null
+      ? state['harnessMode'] == 'wallet'
+      : harnessReadonlyNativeWalletMatches(state, readonlyNativePid);
+  if (!modeCurrent ||
       state['booted'] != true || state['walletUnlocked'] != true ||
       state['walletInitCompleted'] != true || state['tab'] == 'lock' ||
       offered is! List || offered.length > 16 ||
@@ -1559,10 +1565,11 @@ Future<void> _tourPage(Instance inst, String page, {
 
 Future<void> _tourContext(
   Instance inst,
-  Map<String, dynamic> original,
-) async {
+  Map<String, dynamic> original, {
+  int? readonlyNativePid,
+}) async {
   final Map<String, dynamic> current = await stateOf(inst);
-  walletTourPlan(current);
+  walletTourPlan(current, readonlyNativePid: readonlyNativePid);
   for (final String key in <String>[
     'address', 'walletPath', 'node', 'chainId', 'signingChainId',
     'savedSigningChainId',
@@ -1581,9 +1588,12 @@ Future<void> tour(
   Future<void> Function(String, Map<String, dynamic>)? capture,
   Future<void> Function(Duration)? settle,
   void Function(Map<String, Object?>)? publish,
+  int? readonlyNativePid,
 }) async {
   final Map<String, dynamic> s = await stateOf(inst);
-  final List<String> pages = walletTourPlan(s);
+  final List<String> pages = walletTourPlan(
+    s, readonlyNativePid: readonlyNativePid,
+  );
   final String dir = a['dir'] ?? '${inst.home}${Platform.pathSeparator}tour';
   final List<Map<String, Object?>> visited = <Map<String, Object?>>[];
   bool complete = false;
@@ -1596,7 +1606,7 @@ Future<void> tour(
     for (final String page in pages) {
       activePage = page;
       activeStep = WalletTourStep.beforePage;
-      await _tourContext(inst, s);
+      await _tourContext(inst, s, readonlyNativePid: readonlyNativePid);
       await _tourPage(inst, page,
           observe: (WalletTourStep step) => activeStep = step);
       activeStep = WalletTourStep.settle;
@@ -1665,7 +1675,7 @@ Future<void> tour(
       }
       visited.last['captured'] = true;
       activeStep = WalletTourStep.afterPage;
-      await _tourContext(inst, s);
+      await _tourContext(inst, s, readonlyNativePid: readonlyNativePid);
       if (page == 'notifications') {
         // Close through the same ordinary panel control before another page.
         activeStep = WalletTourStep.bellClose;
@@ -1675,7 +1685,7 @@ Future<void> tour(
           'cmd': 'wait', 'key': 'bell_panel', 'gone': true, 'timeoutMs': 5000,
         });
         activeStep = WalletTourStep.afterBell;
-        await _tourContext(inst, s);
+        await _tourContext(inst, s, readonlyNativePid: readonlyNativePid);
       }
     }
     activePage = 'dashboard';
@@ -1696,7 +1706,10 @@ Future<void> tour(
     ), stack);
   } finally {
     final Map<String, Object?> result = <String, Object?>{
-      'schema': 1, 'scope': 'wallet_page_tour', 'complete': complete,
+      'schema': 1,
+      'scope': readonlyNativePid == null
+          ? 'wallet_page_tour' : 'readonly_native_page_tour',
+      'complete': complete,
       'requested': pages, 'visited': visited,
     };
     if (publish != null) {

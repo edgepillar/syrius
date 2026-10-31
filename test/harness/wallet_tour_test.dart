@@ -5,8 +5,10 @@ import 'package:flutter_test/flutter_test.dart';
 import '../../harness/bin/harness.dart' as cli;
 
 class _TourInstance extends cli.Instance {
-  _TourInstance() : super('synthetic-tour');
+  _TourInstance({this.inspection = false}) : super('synthetic-tour');
 
+  final bool inspection;
+  bool walletProof = true;
   String tab = 'dashboard';
   bool bellOpen = false;
   String? unavailable;
@@ -30,7 +32,22 @@ class _TourInstance extends cli.Instance {
     switch (command['cmd']) {
       case 'state':
         return <String, dynamic>{
-          'ok': true, 'harnessMode': 'wallet', 'booted': true,
+          'ok': true,
+          'harnessMode': inspection ? 'readonly-native' : 'wallet',
+          'booted': true,
+          if (inspection) ...<String, dynamic>{
+            'pid': 44, 'readOnly': true,
+            'readonlyAdmission': <String, dynamic>{
+              'schema': 1, 'scope': 'readonly_native_sdk_admission',
+              'status': 'CURRENT', 'publicationAdmissionPaused': true,
+              'automaticReceiveDisabled': true,
+            },
+            if (walletProof) 'readonlyWallet': <String, dynamic>{
+              'schema': 1, 'scope': 'readonly_native_wallet_admission',
+              'status': 'CURRENT', 'chain': 321, 'selectedIndex': 1,
+              'nativeFrameObserved': true,
+            },
+          },
           'walletUnlocked': true,
           'walletInitCompleted': true, 'tab': tab, 'tabs': tabs,
           'address': 'synthetic-address', 'walletPath': 'synthetic-profile',
@@ -101,15 +118,21 @@ class _TourInstance extends cli.Instance {
     }
   }
 
-  Future<void> run({bool changeContext = false}) => cli.tour(
+  Future<void> run({
+    bool changeContext = false,
+    bool loseWalletProof = false,
+    int? readonlyNativePid,
+  }) => cli.tour(
     this,
     cli.Args(<String>[]),
     settle: (_) async {},
     capture: (String page, _) async {
       captured.add(page);
       if (changeContext) chain = 322;
+      if (loseWalletProof) walletProof = false;
     },
     publish: (Map<String, Object?> value) => outcome = value,
+    readonlyNativePid: readonlyNativePid,
   );
 }
 
@@ -152,6 +175,49 @@ class _UnlockInstance extends cli.Instance {
 }
 
 void main() {
+  test('ordinary tour cannot adopt an inspection host implicitly', () async {
+    final _TourInstance instance = _TourInstance(inspection: true);
+    await expectLater(instance.run(), throwsA(isA<cli.Fail>()));
+    expect(instance.captured, isEmpty);
+    expect(instance.commands.length, 1);
+  });
+
+  test('explicit inspection visits every original page with a separate scope',
+      () async {
+    final _TourInstance instance = _TourInstance(inspection: true);
+    await instance.run(readonlyNativePid: 44);
+    expect(instance.captured,
+        <String>[...cli.walletTourPages, 'walletConnect']);
+    expect(instance.outcome!['scope'], 'readonly_native_page_tour');
+    expect(instance.outcome!['complete'], isTrue);
+    expect(instance.sections, containsAll(<String>[
+      'nodes_tab_pillars', 'nodes_tab_sentinels', 'settings_apps', 'bell_close',
+    ]));
+  });
+
+  test('an explicit inspection cannot borrow ordinary or foreign-PID state',
+      () async {
+    for (final _TourInstance instance in <_TourInstance>[
+      _TourInstance(), _TourInstance(inspection: true),
+    ]) {
+      await expectLater(instance.run(readonlyNativePid: 45),
+          throwsA(isA<cli.Fail>()));
+      expect(instance.captured, isEmpty);
+      expect(instance.commands.length, 1);
+    }
+  });
+
+  test('lost wallet scope after one capture prevents further page traversal',
+      () async {
+    final _TourInstance instance = _TourInstance(inspection: true);
+    await expectLater(
+        instance.run(readonlyNativePid: 44, loseWalletProof: true),
+        throwsA(isA<cli.WalletTourFailure>()));
+    expect(instance.captured, <String>['dashboard']);
+    expect(instance.outcome!['scope'], 'readonly_native_page_tour');
+    expect(instance.outcome!['complete'], isFalse);
+  });
+
   test('unlock refuses unconfirmed non-lock states before password input',
       () async {
     for (final Object? tab in <Object?>[

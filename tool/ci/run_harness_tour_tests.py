@@ -23,43 +23,51 @@ except ImportError:
 
 
 def startup_check(repo, parent, dart, kind):
-    debug.need(kind in ('gate', 'sdk'), 'TESTS_FAILED')
+    debug.need(kind in ('gate', 'sdk', 'inspection'), 'TESTS_FAILED')
     value = dict(kind=kind, passed=False, gate_seen=False, marker_seen=False,
         actual_exit=None, stdin_open_at_exit=False, forced_cleanup=False,
         owned_job_active_at_close=None, output=None, code=None)
     job = original = lines = None
     try:
         env = fresh_environment(repo, parent)
-        name = 'ci-wallet-' + secrets.token_hex(12)
+        inspection = kind == 'inspection'
+        prefix = b'CI_INSPECT_' if inspection else b'CI_WALLET_'
+        name = ('ci-inspect-' if inspection else 'ci-wallet-') + secrets.token_hex(12)
         home, app = repo / '.harness' / name, repo / '.harness/app'
         debug.need(not any(path.exists() or path.is_symlink() for path in (home, app)),
                    'PROFILE_REFUSED')
-        env.update(SYRIUS_CI_WALLET_TOUR='true', SYRIUS_CI_WALLET_INSTANCE=name,
-                   SYRIUS_CI_WALLET_CHECK=kind)
+        if inspection:
+            env.pop('SYRIUS_CI_WALLET_TOUR', None)
+            env.update(SYRIUS_CI_WALLET_INSPECTION='true', SYRIUS_CI_INSPECTION_INSTANCE=name,
+                       SYRIUS_CI_INSPECTION_CHECK='gate')
+        else:
+            env.update(SYRIUS_CI_WALLET_TOUR='true', SYRIUS_CI_WALLET_INSTANCE=name,
+                       SYRIUS_CI_WALLET_CHECK=kind)
         job = debug.WindowsJob()
         original = subprocess.Popen([str(dart), '--disable-dart-dev',
             '--packages=' + str(repo / '.dart_tool/package_config.json'),
-            'harness/bin/ci_wallet_tour.dart'], cwd=repo, env=env, shell=False,
+            'harness/bin/ci_wallet_inspection.dart' if inspection else
+                'harness/bin/ci_wallet_tour.dart'], cwd=repo, env=env, shell=False,
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=0)
         job.assign(original)
         lines = debug.Lines(original.stdout)
         deadline = time.monotonic() + 30
         original.stdin.write(b'START\n')
         original.stdin.flush()
-        expected = b'CI_WALLET_' + kind.upper().encode('ascii') + b'_PASSED'
+        expected = prefix + (b'GATE' if inspection else kind.upper().encode('ascii')) + b'_PASSED'
         while original.poll() is None or not lines.complete or not lines.items.empty():
             debug.need(time.monotonic() < deadline, 'READINESS_TIMEOUT')
             raw = lines.take(.05)
             if raw is None:
                 continue
             line = raw.rstrip(b'\r\n')
-            if line == b'CI_WALLET_STAGE:gate':
+            if line == prefix + b'STAGE:gate':
                 debug.need(not value['gate_seen'], 'ENTRY_REFUSED')
                 value['gate_seen'] = True
             elif line == expected:
                 debug.need(value['gate_seen'] and not value['marker_seen'], 'ENTRY_REFUSED')
                 value['marker_seen'] = True
-            elif line.startswith(b'CI_WALLET_'):
+            elif line.startswith((b'CI_WALLET_', b'CI_INSPECT_')):
                 raise debug.ProcessRefused('ENTRY_REFUSED')
         # The same open controller input is used by the real private-input gate.
         value['stdin_open_at_exit'] = not original.stdin.closed
@@ -105,7 +113,8 @@ def main():
     path_observation = None
     report = dict(schema=1, scope='wallet_tour_controller_tests', success=False,
                   wallet_qualified=False, native_wallet_executions=0, counts=None,
-                  command=None, entry_refusal=None, startup_checks=[], code=None)
+                  command=None, entry_refusal=None, inspection_entry_refusal=None,
+                  startup_checks=[], code=None)
     try:
         parent, source = debug.entry.require_ci(os.environ, None, platform=os.name)
         asset_fidelity = parent.get('SYRIUS_STARTUP_ASSET_FIDELITY') == 'true'
@@ -130,7 +139,17 @@ def main():
                 and refused.transport_complete
                 and refused.output.replace(b'\r\n', b'\n') == b'CI_WALLET_ERROR\n'))
         debug.need(report['entry_refusal']['refused_before_build'], 'TESTS_FAILED')
-        for kind in ('gate', 'sdk'):
+        inspection_refused = run_bounded([str(dart), '--disable-dart-dev',
+            '--packages=' + str(repo / '.dart_tool/package_config.json'),
+            'harness/bin/ci_wallet_inspection.dart'], cwd=repo,
+            env=fresh_environment(repo, parent), timeout=30, cap=65536)
+        report['inspection_entry_refusal'] = dict(**inspection_refused.public(),
+            output_sha256=hashlib.sha256(inspection_refused.output).hexdigest(),
+            refused_before_build=(not app.exists() and inspection_refused.exit_code == 1
+                and inspection_refused.transport_complete
+                and inspection_refused.output.replace(b'\r\n', b'\n') == b'CI_INSPECT_ERROR\n'))
+        debug.need(report['inspection_entry_refusal']['refused_before_build'], 'TESTS_FAILED')
+        for kind in ('gate', 'sdk', 'inspection'):
             check = startup_check(repo, parent, dart, kind)
             report['startup_checks'].append(check)
             debug.need(check['passed'], 'TESTS_FAILED')
@@ -154,6 +173,7 @@ def main():
             'test/harness/readonly_native_mode_test.dart',
             'test/harness/readonly_native_agent_test.dart',
             'test/harness/readonly_wallet_admission_test.dart',
+            'test/harness/readonly_inspection_session_test.dart',
             'test/harness/retained_renderer_frame_test.dart',
             'test/wallet_maintenance/wallet_maintenance_backend_capture_test.dart',
             'test/harness/import_selector_metrics_test.dart',
@@ -230,7 +250,7 @@ def main():
         counts = test_counts(outcome.output)
         report['counts'] = counts
         debug.need(outcome.success and counts['terminal_success'] is True
-            and counts['passed'] == (617 if asset_fidelity else 615)
+            and counts['passed'] == (637 if asset_fidelity else 635)
             and counts['skipped'] == counts['failed'] == counts['error_events'] == 0,
             'TESTS_FAILED')
         if asset_fidelity:

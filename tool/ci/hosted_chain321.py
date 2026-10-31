@@ -64,7 +64,7 @@ CODES = frozenset((
     "CONFIG_REFUSED", "PORT_CONFLICT", "NODE_EXITED", "RPC_UNAVAILABLE",
     "RPC_REFUSED", "GENESIS_MISMATCH", "PRODUCTION_UNPROVEN",
     "DOCKER_REFUSED", "RESOURCE_CHANGED", "INTERNAL_ERROR",
-    "NODE_REGRESSIONS_REFUSED", "WALLET_TOUR_FAILED", "CHECKPOINT_REFUSED",
+    "NODE_REGRESSIONS_REFUSED", "WALLET_TOUR_FAILED", "WALLET_INSPECTION_FAILED", "CHECKPOINT_REFUSED",
 )) | wire_policy.CODES
 NODE_DIAGNOSTICS = frozenset((
     "NODE_CLI_REFUSED", "NODE_STORAGE_REFUSED", "NODE_PANIC",
@@ -104,6 +104,16 @@ def wallet_tour_requested(backend, parent):
     return value == 'true'
 
 
+def wallet_inspection_requested(backend, parent):
+    value = parent.get('SYRIUS_WINDOWS_WALLET_INSPECTION', 'false')
+    need(value in ('true', 'false'), 'ENVIRONMENT_REFUSED')
+    if value == 'true':
+        need(backend == 'native' and parent.get('SYRIUS_LAB_NODE_SOURCE') == 'lab-fix'
+             and parent.get('SYRIUS_NATIVE_STACK_DIAGNOSTIC') == 'true'
+             and parent.get('SYRIUS_WINDOWS_WALLET_TOUR', 'false') == 'false', 'ENVIRONMENT_REFUSED')
+    return value == 'true'
+
+
 def require_environment(backend, parent):
     need(parent.get("GITHUB_ACTIONS") == "true" and parent.get("GITHUB_EVENT_NAME") == "workflow_dispatch"
          and parent.get("SYRIUS_HOSTED_RUNNER") == "github-hosted"
@@ -113,6 +123,7 @@ def require_environment(backend, parent):
          or (backend == "native" and sys.platform == "win32"), "ENVIRONMENT_REFUSED")
     need(parent.get("SYRIUS_NATIVE_STACK_DIAGNOSTIC") in (None, "true", "false"), "ENVIRONMENT_REFUSED")
     selected_node_source(parent.get("SYRIUS_LAB_NODE_SOURCE", "original"))
+    wallet_inspection_requested(backend, parent)
     return wallet_tour_requested(backend, parent)
 
 
@@ -1064,6 +1075,7 @@ def run(backend):
     repo = Path(__file__).absolute().parents[2]
     parent = os.environ
     wallet_tour = require_environment(backend, parent)
+    inspection = wallet_inspection_requested(backend, parent)
     stack_debug = backend == "native" and parent.get("SYRIUS_NATIVE_STACK_DIAGNOSTIC") == "true"
     node_source = parent.get("SYRIUS_LAB_NODE_SOURCE", "original")
     node_sha, node_tree = selected_node_source(node_source)
@@ -1088,6 +1100,8 @@ def run(backend):
         min_free_bytes=FIXTURE_MIN_FREE, work_cap_bytes=MAX_WORK,
         storage_limit_scope="isolated_hosted_regression_fixture_cooperative_samples",
         cleanup="runner_lifecycle_not_qualified")
+    if inspection:
+        report.update(wallet_inspection_requested=True, wallet_inspection=None)
     runtime = None
     closed_wallets = []
     reopen_anchor = None
@@ -1129,7 +1143,7 @@ def run(backend):
         report["binary_sha256"] = digest(binary_bytes)
         report["checks"]["build"] = True
         if node_sha == UPSTREAM_NODE_SHA:
-            if wallet_tour:
+            if wallet_tour or inspection:
                 run_wallet_shutdown_tests(commands, repo, source, report)
             else:
                 run_shutdown_tests(commands, source, report)
@@ -1181,6 +1195,19 @@ def run(backend):
         report["checks"]["started"] = True
         report["observations"] = observe(runtime, root, report)
         report["checks"]["production"] = True
+        if inspection:
+            from tool.ci import windows_wallet_inspection
+            report['runtime_phase'] = 'wallet_inspection'
+            outcome = windows_wallet_inspection.run(repo, parent, runtime, root,
+                report['observations'], lambda: observe(runtime, root))
+            path = repo / windows_wallet_inspection.OUTPUT / 'manifest.json'
+            manifest_hash = digest(regular(path)) if path.exists() or path.is_symlink() else None
+            report['wallet_inspection'] = dict(success=outcome['success'],
+                phase=outcome['phase'], checks=outcome['checks'], errors=outcome['errors'],
+                captured_pages=len(outcome['captures']),
+                visited_pages=sum(len(t['tour']['visited']) for t in outcome['tours'].values()),
+                manifest_sha256=manifest_hash)
+            need(outcome['success'] and manifest_hash is not None, 'WALLET_INSPECTION_FAILED')
         if wallet_tour:
             from tool.ci import windows_wallet_tour
             report['runtime_phase'] = 'wallet_tour'

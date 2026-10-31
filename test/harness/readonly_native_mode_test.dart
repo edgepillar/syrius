@@ -44,7 +44,53 @@ Map<String, dynamic> _ready() => <String, dynamic>{
   },
 };
 
+Map<String, dynamic> _wallet() => <String, dynamic>{
+  ..._ready(),
+  'readonlyWallet': <String, dynamic>{
+    'schema': 1, 'scope': 'readonly_native_wallet_admission', 'status': 'CURRENT',
+    'chain': 321, 'selectedIndex': 1, 'nativeFrameObserved': true,
+  },
+};
+
 void main() {
+  test('opened-wallet admission requires its own exact current receipt', () {
+    expect(harnessReadonlyNativeWalletMatches(_wallet(), 44), isTrue);
+    expect(harnessReadonlyNativeWalletMatches(_ready(), 44), isFalse);
+  });
+
+  test('a wallet receipt cannot borrow another process or ordinary mode', () {
+    expect(harnessReadonlyNativeWalletMatches(_wallet(), 45), isFalse);
+    expect(harnessReadonlyNativeWalletMatches(_wallet(), null), isFalse);
+    final Map<String, dynamic> ordinary = _wallet()..['harnessMode'] = 'wallet';
+    expect(harnessReadonlyNativeWalletMatches(ordinary, 44), isFalse);
+  });
+
+  test('expanded coerced pending or non-native wallet proofs are refused', () {
+    for (final Map<String, Object?> change in <Map<String, Object?>>[
+      <String, Object?>{'schema': true},
+      <String, Object?>{'scope': 'wallet_page_tour'},
+      <String, Object?>{'status': 'PENDING'},
+      <String, Object?>{'chain': 321.0},
+      <String, Object?>{'selectedIndex': true},
+      <String, Object?>{'nativeFrameObserved': false},
+      <String, Object?>{'extra': true},
+    ]) {
+      final Map<String, dynamic> observed = _wallet();
+      (observed['readonlyWallet'] as Map<String, dynamic>).addAll(change);
+      expect(harnessReadonlyNativeWalletMatches(observed, 44), isFalse);
+    }
+  });
+
+  test('a wallet proof cannot replace missing current SDK admission', () {
+    for (final Object? admission in <Object?>[
+      null, <String, Object?>{'status': 'CURRENT'},
+    ]) {
+      final Map<String, dynamic> observed = _wallet()
+        ..['readonlyAdmission'] = admission;
+      expect(harnessReadonlyNativeWalletMatches(observed, 44), isFalse);
+    }
+  });
+
   test('absent inspection preserves ordinary and presentation startup', () {
     for (final bool windows in <bool>[false, true]) {
       for (final String? presentation in <String?>[null, 'welcome']) {

@@ -706,7 +706,19 @@ class HarnessAgent {
       }
       return _walletRecipeCommand(command);
     }
-    return _runWalletCommand(command);
+    final Map<String, Object?> result = await _runWalletCommand(command);
+    if (command['cmd'] == 'state') {
+      final BuildContext? context = app.globalNavigatorKey.currentContext;
+      if (context == null || !context.mounted) {
+        throw const ReadonlyNativeCommandRefused();
+      }
+      return <String, Object?>{
+        ...result,
+        'locale': Localizations.localeOf(context).languageCode,
+        'direction': Directionality.of(context).name,
+      };
+    }
+    return result;
   }
 
   Element _requirePresentationCurrent() {

@@ -79,3 +79,20 @@ bool harnessReadonlyNativeLaunchMatches(
       admission['publicationAdmissionPaused'] == true &&
       admission['automaticReceiveDisabled'] == true;
 }
+
+/// An opened-wallet reply must retain its actual process and separate scope.
+/// Native qualification also needs the original actors behind this receipt.
+bool harnessReadonlyNativeWalletMatches(
+  Map<String, dynamic> observed,
+  int? expectedPid,
+) {
+  final Object? wallet = observed['readonlyWallet'];
+  return harnessReadonlyNativeLaunchMatches(observed, expectedPid) &&
+      wallet is Map<String, dynamic> && wallet.length == 6 &&
+      wallet['schema'] is int && wallet['schema'] == 1 &&
+      wallet['scope'] == 'readonly_native_wallet_admission' &&
+      wallet['status'] == 'CURRENT' &&
+      wallet['chain'] is int && wallet['chain'] == 321 &&
+      wallet['selectedIndex'] is int && wallet['selectedIndex'] == 1 &&
+      wallet['nativeFrameObserved'] == true;
+}
