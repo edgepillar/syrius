@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:bloc_test/bloc_test.dart';
@@ -317,8 +316,7 @@ void main() {
         );
     final ui.Image image = await boundary.toImage();
     try {
-      final ByteData bytes =
-          (await image.toByteData(format: ui.ImageByteFormat.rawRgba))!;
+      final ByteData bytes = (await image.toByteData())!;
       Color pixel(int x, int y) {
         final int offset = (y * image.width + x) * 4;
         return Color.fromARGB(
