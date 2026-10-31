@@ -10,6 +10,7 @@ class _TourInstance extends cli.Instance {
   final bool inspection;
   bool walletProof = true;
   String tab = 'dashboard';
+  String section = 'addresses';
   bool bellOpen = false;
   String? unavailable;
   bool widgetError = false;
@@ -20,6 +21,9 @@ class _TourInstance extends cli.Instance {
   ];
   final List<String> sections = <String>[];
   final List<String> captured = <String>[];
+  final Map<String, String> capturedTabs = <String, String>{};
+  final Map<String, String> capturedSections = <String, String>{};
+  final Map<String, bool> capturedBells = <String, bool>{};
   final List<Map<String, Object?>> commands = <Map<String, Object?>>[];
   Map<String, Object?>? outcome;
 
@@ -82,6 +86,8 @@ class _TourInstance extends cli.Instance {
             }
             bellOpen = false;
           }
+          if (key == 'settings_node') section = 'node';
+          if (key == 'settings_apps') section = 'apps';
           sections.add(key);
         }
         return <String, dynamic>{'ok': true};
@@ -128,6 +134,9 @@ class _TourInstance extends cli.Instance {
     settle: (_) async {},
     capture: (String page, _) async {
       captured.add(page);
+      capturedTabs[page] = tab;
+      capturedSections[page] = section;
+      capturedBells[page] = bellOpen;
       if (changeContext) chain = 322;
       if (loseWalletProof) walletProof = false;
     },
@@ -191,7 +200,8 @@ void main() {
     expect(instance.outcome!['scope'], 'readonly_native_page_tour');
     expect(instance.outcome!['complete'], isTrue);
     expect(instance.sections, containsAll(<String>[
-      'nodes_tab_pillars', 'nodes_tab_sentinels', 'settings_apps', 'bell_close',
+      'nodes_tab_pillars', 'nodes_tab_sentinels', 'settings_node',
+      'settings_apps', 'bell_close',
     ]));
   });
 
@@ -281,7 +291,8 @@ void main() {
       ...cli.walletTourPages, 'walletConnect',
     ]);
     expect(instance.sections, <String>[
-      'nodes_tab_pillars', 'nodes_tab_sentinels', 'bell_close', 'settings_apps',
+      'nodes_tab_pillars', 'nodes_tab_sentinels', 'bell_close',
+      'settings_node', 'settings_apps',
     ]);
     expect(instance.tab, 'dashboard');
     expect(instance.bellOpen, isFalse);
@@ -303,6 +314,44 @@ void main() {
     expect(instance.outcome, isNull);
   });
 
+  for (final bool inspection in <bool>[false, true]) {
+    test(
+        'tour selects capture contexts across retained visits, '
+        'inspection $inspection', () async {
+      final _TourInstance instance = _TourInstance(inspection: inspection)
+        ..tab = 'accelerator'
+        ..section = 'apps';
+      for (final int visit in <int>[0, 1]) {
+        final int before = instance.commands.length;
+        await instance.run(readonlyNativePid: inspection ? 44 : null);
+        expect(instance.capturedTabs['notifications'], 'dashboard');
+        expect(instance.capturedBells['notifications'], isTrue);
+        expect(instance.capturedTabs['settings'], 'settings');
+        expect(instance.capturedSections['settings'], 'node');
+        expect(instance.capturedBells['settings'], isFalse);
+        expect(instance.capturedTabs['walletConnect'], 'settings');
+        expect(instance.capturedSections['walletConnect'], 'apps');
+        expect(instance.tab, 'dashboard');
+        expect(instance.section, 'apps');
+        expect(instance.outcome?['complete'], isTrue);
+        expect(instance.captured.length, (visit + 1) * 12);
+        final List<Map<String, Object?>> commands =
+            instance.commands.sublist(before);
+        expect(commands.where((Map<String, Object?> command) =>
+            command['cmd'] == 'tap' &&
+            command['key'] == 'settings_node'), hasLength(1));
+        final List<String> tabs = commands
+            .where((Map<String, Object?> command) =>
+                command['cmd'] == 'tap' && command['tab'] is String)
+            .map((Map<String, Object?> command) => command['tab']! as String)
+            .toList();
+        final int bell = tabs.indexOf('notifications');
+        expect(bell, greaterThan(0));
+        expect(tabs[bell - 1], 'dashboard');
+      }
+    });
+  }
+
   test('an unavailable page cannot silently become complete', () async {
     final _TourInstance instance = _TourInstance()..unavailable = 'transfer';
     await expectLater(instance.run(), throwsA(isA<cli.Fail>()));
@@ -311,11 +360,21 @@ void main() {
   });
 
   test('a missing merged section fails after its rail page opens', () async {
-    final _TourInstance instance = _TourInstance()
-      ..unavailable = 'nodes_tab_sentinels';
-    await expectLater(instance.run(), throwsA(isA<cli.Fail>()));
-    expect(instance.captured, <String>['dashboard', 'transfer', 'pillars']);
-    expect(instance.outcome?['complete'], isFalse);
+    for (final String key in <String>[
+      'nodes_tab_sentinels', 'settings_node',
+    ]) {
+      final _TourInstance instance = _TourInstance()..unavailable = key;
+      await expectLater(instance.run(), throwsA(isA<cli.Fail>()));
+      expect(instance.captured,
+          key == 'nodes_tab_sentinels'
+              ? <String>['dashboard', 'transfer', 'pillars']
+              : cli.walletTourPages
+                  .takeWhile((String page) => page != 'settings')
+                  .toList());
+      expect(instance.outcome?['complete'], isFalse);
+      expect(instance.commands.where((Map<String, Object?> command) =>
+          command['cmd'] == 'tap' && command['key'] == key), hasLength(1));
+    }
   });
 
   test('invalid catalogs are rejected before navigation', () async {

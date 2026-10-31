@@ -1542,10 +1542,16 @@ Future<void> _tourPage(Instance inst, String page, {
     _ => page,
   };
   observe?.call(WalletTourStep.railNavigation);
+  // The intended bell view belongs to Home. The ordinary goto operation
+  // still opens the panel over whichever page its caller actually owns.
+  if (page == 'notifications') {
+    await goto(inst, 'dashboard');
+  }
   await goto(inst, rail);
   final (String, String)? section = switch (page) {
     'pillars' => ('nodes_tab_pillars', 'nodes_pillars_strip'),
     'sentinels' => ('nodes_tab_sentinels', 'nodes_sentinels_strip'),
+    'settings' => ('settings_node', 'node_settings_page'),
     'walletConnect' => ('settings_apps', 'apps_settings_page'),
     _ => null,
   };

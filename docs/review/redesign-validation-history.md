@@ -119,3 +119,18 @@ source/refusal/startup checks, deadlines and output limits remain. The aggregate
 output did not export a per-file breakdown for two additional terminal events;
 their detailed origin is not claimed. The original Source238 failure remains
 failed, all older limitations remain, and Native104 is not admitted.
+
+
+## Source239 original readonly page tour and actual image survey
+
+Source239 `509724d138d9` / [Windows run 41190980225](https://github.com/edgepillar/syrius/actions/runs/41190980225) passes all 909 Python cases with three existing skips, 659 ordinary Dart terminal passes without failures/errors/skips, zero selected analysis findings, both asset commands/fourteen phases and 444 memory controls. All original entry refusals and three startup gates pass. [Independent reader 41191984658](https://github.com/edgepillar/syrius/actions/runs/41191984658) passes 89 controls and verifies the original source/tree, 22 producer files, original root/wallet manifests and every one of the 24 1280x780 PNGs. Required app/entry/five-node zero exits are complete, normal and unforced; the known auxiliary VCTIP termination remains explicit. This qualifies the original readonly SDK/opened-wallet page tour, not financial, seed, current full-root or general runner lifecycle acceptance. The separate 661-case startup-asset selection remains unexecuted.
+
+All 24 actual images are viewed. The first extraction task remains CLOSED FAILURE after a shared metadata-lock refusal despite complete successful original transport. Its reports and verified archive are retained. A new successful review reuses the same healthy object without another transport, native command or CI run; its exact owned task closes SUCCESS and only registered reproducible extraction is removed. Historical evidence, the earlier ownership HOLD, storage policy and production free-space floor remain unchanged. This is a survey with zero accepted matches, nineteen unqualified preparations and ninety still-recorded missing catalog outputs.
+
+The horizontal shell inset and ordinary Transfer surface changes are visible in both actual themes. Mixed 32-pixel caption origins remain observed with cause NOT_ESTABLISHED. The supplied Pillars/Sentinels references also use the existing underlined tabs; changing them to pill segments is not indicated. Home balance-column spacing and the light Plasma dark backing remain review work. Actual forms and lab data are not relabelled as literal prepared reference states. Notifications is observed over Accelerator, while Settings retains Addresses in dark and Apps in light.
+
+Source240 prepares explicit Home-bell and Settings-Node capture contexts.
+Its new source requires fresh hosted analysis, engine and original native
+capture qualification. The main ledger remains 71/80, with zero accepted
+matches, nineteen unqualified preparations and all 94 matches open.
+All prior failures and financial UNKNOWNs remain; Native104 is not admitted.

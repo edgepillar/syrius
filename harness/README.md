@@ -94,6 +94,14 @@ harness/h unlock '<password>'
 harness/h tour                  # every page: screenshot, error widgets, errors logged
 ```
 
+The page tour explicitly opens Notifications over Home and selects Node for
+Settings before capture. WalletConnect selects Apps through Settings. These
+choices are repeated on every visit, so a section retained from an earlier
+page or theme cannot substitute for the intended capture. Standalone
+`goto notifications` still opens the bell over its caller's current page; ordinary
+application section retention is unchanged. A missing Home or Node control
+fails the original tour operation without retry or relabelling an image.
+
 The loop for anything else is `tree`, act, `tree`:
 
 ```sh
@@ -561,3 +569,40 @@ Source238 `688a2ad9b25d` / [Windows run 41190130606](https://github.com/edgepill
 Source239 aligns the exact ordinary count with the observed complete 659 and projects 661 for the separate two-case startup-asset file. This changes one count expression and the corresponding existing Python fixtures, adding near/stale rejected counts. All selected paths, 22 explicit newly selected widget cases, every Dart assertion/product byte, the event counter, strict zero-skip/error rules, source/refusal/startup checks, output caps and deadlines remain unchanged. The original aggregate output did not export a per-file breakdown of two additional terminal events; their detailed source is not invented. No engine test is removed or suppressed. The 661-case startup variant remains unexecuted. Fresh current-source controls and a native image run are required.
 
 The exact prior PR body and all 74 historical links remain preserved in the validation history, with the Source238 count refusal appended separately. No catalog match is accepted. Main progress stays 71/80, nineteen literal preparations and all 94 matches remain open, Native101's original send and Native103's copied Token confirmation/effect remain UNKNOWN, and Native104 is not admitted.
+
+
+## Explicit readonly page capture contexts (2026-10-31T10:55Z)
+
+Source239 `509724d138d9` / [Windows run 41190980225](https://github.com/edgepillar/syrius/actions/runs/41190980225)
+passes 909 Python cases with three existing skips, all 659 ordinary Dart
+terminal passes without failures/errors/skips, zero selected analysis findings
+and both asset commands/fourteen phases. All original entry refusals and three
+startup checks pass. [Reader 41191984658](https://github.com/edgepillar/syrius/actions/runs/41191984658)
+passes all 89 controls and independently verifies the original source tree,
+22 producer files, root/wallet manifests and 24 original 1280x780 PNGs.
+Required app/entry/five-node exits are normal, complete and unforced zero;
+the known VCTIP auxiliary termination stays explicit. All 24 images are viewed.
+The first extraction task remains CLOSED FAILURE after a metadata-lock refusal.
+A separately closed successful review reuses the verified archive with no
+second transport, command or CI execution. Only its registered reproducible
+extraction is removed. Reports, the archive, policy and prior HOLD remain.
+
+The survey confirms the intended horizontal shell insets and ordinary Transfer
+surface, while mixed 32-pixel caption origins remain NOT_ESTABLISHED. Original
+Pillars/Sentinels references use the existing underlined heading tabs. Home
+balance spacing and light Plasma's dark backing remain review work. Actual
+blank forms and fresh lab data do not establish literal prepared catalog states.
+No image is renamed, accepted as a match or used to infer financial effects.
+
+Source240 prepares two synthetic repeated-visit cases across wallet and
+readonly-native modes. Notifications explicitly navigates to Home before the
+original bell operation; Settings explicitly waits for and selects Node. Apps,
+all other pages, existing context/failure guards and standalone navigation are
+retained. Exact ordinary/startup gates become 661/663; Python/memory totals
+remain 909/444. Hosted analysis, engine and new native capture qualification
+are pending. Product UI, caption/capture geometry, fonts, assets, SDK/numeric
+policy, original financial/send/seed/reopen paths, clocks and limits do not
+change. Main progress stays 71/80 with zero accepted matches, nineteen
+unqualified preparations and ninety still-recorded missing catalog outputs.
+P03/P09/F06/V01-V06, minimum/Arabic, seams and motion/shader/frame-time remain
+open. Native101/Native103 remain UNKNOWN and Native104 is not admitted.
