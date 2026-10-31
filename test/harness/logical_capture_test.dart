@@ -110,7 +110,7 @@ void main() {
                       SizedBox(height: 32),
                       Expanded(
                         child: ClipRRect(
-                          key: const ValueKey<String>('window-body'),
+                          key: ValueKey<String>('window-body'),
                           borderRadius: BorderRadius.all(Radius.circular(6)),
                           child: RepaintBoundary(
                             child: Stack(

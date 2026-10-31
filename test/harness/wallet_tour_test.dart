@@ -251,7 +251,8 @@ void main() {
         <String>[...cli.walletTourPages, 'walletConnect']);
     expect(instance.outcome!['scope'], 'readonly_native_page_tour');
     expect(instance.outcome!['complete'], isTrue);
-    final List<dynamic> visited = instance.outcome!['visited'] as List<dynamic>;
+    final List<dynamic> visited =
+        instance.outcome!['visited']! as List<dynamic>;
     for (final dynamic page in visited) {
       final Map<String, dynamic> layout =
           (page as Map<String, dynamic>)['layout'] as Map<String, dynamic>;
@@ -262,7 +263,7 @@ void main() {
     await expectLater(missing.run(readonlyNativePid: 44),
         throwsA(isA<cli.WalletTourFailure>()));
     expect(missing.captured, isEmpty);
-    final List<dynamic> partial = missing.outcome!['visited'] as List<dynamic>;
+    final List<dynamic> partial = missing.outcome!['visited']! as List<dynamic>;
     final Map<String, dynamic> incomplete =
         partial.single as Map<String, dynamic>;
     expect(incomplete['captured'], isFalse);
