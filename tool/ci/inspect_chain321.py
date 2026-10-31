@@ -167,13 +167,27 @@ def preparation_command_tail(commands):
     return dict(count=len(commands), tail=tail)
 
 
-def project(report, backend, head, run_id, expected_node=NODE_SHA, *, expected_patched=False):
+def project(report, backend, head, run_id, expected_node=NODE_SHA, *,
+            expected_patched=False, expected_inspection=False):
     pins = {value[0]: value[1] for value in NODE_SOURCES.values()}
     need(expected_node in pins)
     need(backend in ("docker", "native") and report.get("scope") == "hosted_chain321_lab"
          and report.get("application_sha") == head and report.get("node_sha") == expected_node
          and report.get("run_id") == str(run_id) and report.get("attempt") == "1"
          and report.get("backend") == backend and type(report.get("success")) is bool)
+    need(type(expected_inspection) is bool)
+    if expected_inspection:
+        need(backend == 'native' and expected_patched and expected_node == UPSTREAM_NODE_SHA
+             and report.get('wallet_inspection_requested') is True
+             and report.get('wallet_tour_requested') is False
+             and report.get('wallet_tour') is None
+             and report.get('wallet_qualified') is report.get('seed_admitted') is False
+             and report.get('native_stack_diagnostic') is True
+             and all(report.get(key) is None for key in
+                 ('checkpoint', 'path_binding', 'wallet_pointer_binding', 'wallet_reopen')))
+    else:
+        need(report.get('wallet_inspection_requested', False) is False
+             and 'wallet_inspection' not in report)
     checks, errors, commands = report.get("checks"), report.get("error_codes"), report.get("commands")
     need(type(checks) is dict and set(checks) == CHECKS and all(type(v) is bool for v in checks.values()))
     node_tree = report.get("node_tree")
@@ -197,7 +211,8 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA, *, expected_p
     regressions = report.get("upstream_stop_regressions")
     client_fixture = report.get('upstream_client_fixture')
     if client_fixture is not None:
-        need(backend == 'native' and expected_patched and report.get('wallet_tour_requested') is True)
+        need(backend == 'native' and expected_patched
+             and (report.get('wallet_tour_requested') is True or expected_inspection))
         try:
             client_fixture = read_first_client_fixture.validate(client_fixture,
                 required=any(checks[key] for key in ('assets', 'started', 'production')) or report['success'])
@@ -272,7 +287,9 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA, *, expected_p
                    "first_frontier", "advancing_frontier")
          or (phase == "wallet_tour" and backend == "native" and expected_patched
              and report.get("wallet_tour_requested") is True and checks["production"]
-             and client_fixture is not None))
+             and client_fixture is not None)
+         or (phase == 'wallet_inspection' and expected_inspection and backend == 'native'
+             and expected_patched and checks['production'] and client_fixture is not None))
     node_codes = report.get("node_diagnostics", [])
     need(type(node_codes) is list and len(node_codes) <= len(NODE_DIAGNOSTICS)
          and all(code in NODE_DIAGNOSTICS for code in node_codes))

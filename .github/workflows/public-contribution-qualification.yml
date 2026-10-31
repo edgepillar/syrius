@@ -72,6 +72,14 @@ on:
         description: Exact source SHA required for the retained lab inspection
         type: string
         default: ''
+      inspect_wallet_inspection_run:
+        description: Independently inspect a completed readonly wallet run without runtime replay
+        type: string
+        default: ''
+      inspect_wallet_inspection_head:
+        description: Exact producer source SHA required for the readonly wallet artifacts
+        type: string
+        default: ''
       inspect_windows_inventory_run:
         description: Inspect a completed inventory without repeating tool queries
         type: string
@@ -771,6 +779,37 @@ jobs:
           WINDOWS_INSPECT_RUN: ${{ inputs.inspect_windows_run }}
           WINDOWS_INSPECT_HEAD: ${{ inputs.inspect_windows_head }}
         run: python -B -m tool.ci.inspect_windows_qualification
+
+  inspect-wallet-inspection:
+    if: inputs.inspect_wallet_inspection_run != ''
+    name: Inspect retained readonly wallet inspection
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Checkout the dispatched independent reader source
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            tool/ci
+            test/ci
+            tools/devnet/lab
+            harness
+
+      - name: Test both retained lab and readonly archive boundaries in memory
+        run: python -B -m unittest test.ci.test_inspect_chain321 test.ci.test_inspect_wallet_inspection -v
+
+      - name: Inspect the original source-bound lab and wallet archives
+        timeout-minutes: 3
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
+          WALLET_INSPECT_RUN: ${{ inputs.inspect_wallet_inspection_run }}
+          WALLET_INSPECT_HEAD: ${{ inputs.inspect_wallet_inspection_head }}
+        run: python -B -m tool.ci.inspect_wallet_inspection
 
   inspect-chain321:
     if: inputs.inspect_chain321_run != ''
