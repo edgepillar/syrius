@@ -29,40 +29,48 @@ class _HomeHeroAddress extends StatelessWidget {
             ),
           ),
         ),
-        IconButton(
-          key: const Key('home_copy_address'),
-          tooltip: context.l10n.homeCopyAddress,
-          visualDensity: VisualDensity.compact,
-          iconSize: tokens.heroCopyIconSize,
-          onPressed: () => ClipboardUtils.copyToClipboard(address, context),
-          icon: Icon(Icons.copy_outlined, color: tokens.faint),
+        SizedBox.square(
+          dimension: tokens.heroAddressIconSize,
+          child: IconButton(
+            key: const Key('home_copy_address'),
+            tooltip: context.l10n.homeCopyAddress,
+            visualDensity: VisualDensity.compact,
+            padding: EdgeInsets.zero,
+            iconSize: tokens.heroCopyIconSize,
+            onPressed: () => ClipboardUtils.copyToClipboard(address, context),
+            icon: Icon(Icons.copy_outlined, color: tokens.faint),
+          ),
         ),
         if (kDefaultAddressList.whereType<String>().length > 1)
-          PopupMenuButton<String>(
-            key: const Key('home_switch_address'),
-            tooltip: context.l10n.homeSwitchAddress,
-            iconSize: tokens.heroIconSize,
-            icon: Icon(Icons.expand_more, color: tokens.faint),
-            onSelected: (String selected) =>
-                selectWalletAddress(context, selected),
-            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-              for (final String selected
-                  in kDefaultAddressList.whereType<String>())
-                PopupMenuItem<String>(
-                  value: selected,
-                  child: Text(
-                    kAddressLabelMap[selected] ?? selected,
-                    textDirection: ltrUnlessRtl(
+          SizedBox.square(
+            dimension: tokens.heroAddressIconSize,
+            child: PopupMenuButton<String>(
+              key: const Key('home_switch_address'),
+              tooltip: context.l10n.homeSwitchAddress,
+              padding: EdgeInsets.zero,
+              iconSize: tokens.heroAddressIconSize,
+              icon: Icon(Icons.expand_more, color: tokens.faint),
+              onSelected: (String selected) =>
+                  selectWalletAddress(context, selected),
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                for (final String selected
+                    in kDefaultAddressList.whereType<String>())
+                  PopupMenuItem<String>(
+                    value: selected,
+                    child: Text(
                       kAddressLabelMap[selected] ?? selected,
-                    ),
-                    style: monoStyle(
-                      TextStyle(
-                        color: selected == address ? tokens.znnInk : null,
+                      textDirection: ltrUnlessRtl(
+                        kAddressLabelMap[selected] ?? selected,
+                      ),
+                      style: monoStyle(
+                        TextStyle(
+                          color: selected == address ? tokens.znnInk : null,
+                        ),
                       ),
                     ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
         ListenableBuilder(
           listenable: visibility,
@@ -72,7 +80,8 @@ class _HomeHeroAddress extends StatelessWidget {
                 ? context.l10n.homeShowBalances
                 : context.l10n.displayHideBalances,
             visibility: visibility,
-            size: tokens.heroIconSize,
+            size: tokens.heroAddressIconSize,
+            padding: EdgeInsets.zero,
           ),
         ),
       ],

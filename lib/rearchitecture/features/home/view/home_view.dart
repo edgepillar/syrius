@@ -151,7 +151,7 @@ class _View extends StatelessWidget {
     },
     child: BlocBuilder<HomeCubit, HomeState>(
       builder: (BuildContext context, HomeState state) {
-        final double gap = AppTokens.of(context).panelGap;
+        final double gap = AppTokens.of(context).homePanelGap;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
@@ -168,7 +168,7 @@ class _View extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
                   Expanded(
-                    flex: 3,
+                    flex: 8,
                     child: LatestTransactionsCard(
                       type: CardType.latestTransactionsDashboard,
                       address: address,
@@ -176,7 +176,7 @@ class _View extends StatelessWidget {
                     ),
                   ),
                   SizedBox(width: gap),
-                  Expanded(flex: 2, child: _buildSideCards(context, state)),
+                  Expanded(flex: 5, child: _buildSideCards(context, state)),
                 ],
               ),
             ),

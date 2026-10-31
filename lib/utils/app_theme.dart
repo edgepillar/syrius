@@ -391,6 +391,12 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The quiet address-copy glyph size.
   double get heroCopyIconSize => 14;
 
+  /// Home's address controls follow the reference's small inline icons.
+  double get heroAddressIconSize => 14;
+
+  /// Home uses the reference's tighter gap around its body panels.
+  double get homePanelGap => 12;
+
   /// The compact side-card heading follows the mockup's table header.
   EdgeInsetsDirectional get homeSideHeaderPadding =>
       const EdgeInsetsDirectional.fromSTEB(16, 11, 16, 11);

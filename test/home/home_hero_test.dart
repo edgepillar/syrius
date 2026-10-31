@@ -229,6 +229,10 @@ void main() {
       expect(meter.right, lessThan(send.left));
       expect(tester.takeException(), isNull);
 
+      kDefaultAddressList = <String?>[
+        emptyAddress.toString(),
+        Address('z', <int>[0, ...List<int>.filled(19, 7)]).toString(),
+      ];
       for (final TextDirection direction in TextDirection.values) {
         for (final double width in <double>[1280, 1200]) {
           await show(tester, light: light, direction: direction,
@@ -253,9 +257,26 @@ void main() {
               findsOneWidget);
           expect(find.byKey(const Key('home_receive')).hitTestable(),
               findsOneWidget);
+          for (final String key in <String>[
+            'home_copy_address', 'home_switch_address', 'home_eye',
+          ]) {
+            final Finder control = find.byKey(Key(key));
+            expect(tester.getSize(control), const Size(14, 14));
+            expect(control.hitTestable(), findsOneWidget);
+          }
+          expect(hero.height, lessThan(160));
           expect(tester.takeException(), isNull);
         }
       }
+      await tester.tap(find.byKey(const Key('home_switch_address')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.byType(PopupMenuItem<String>), findsNWidgets(2));
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.byType(PopupMenuItem<String>), findsNothing);
+      expect(opened, isEmpty);
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets(
