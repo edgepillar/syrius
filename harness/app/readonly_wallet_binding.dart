@@ -84,7 +84,6 @@ Future<ReadonlyWalletAdmission> bindReadonlyNativeWallet({
       identical(htlcSource.client, socket) &&
       identical(sdk.subscribe, subscribeSource) &&
       identical(subscribeSource.client, socket) &&
-      identical(ledger.client, socket) &&
       root.mounted && identical(WidgetsBinding.instance.rootElement, root) &&
       navigator.mounted &&
       identical(app.globalNavigatorKey.currentState, navigator) &&

@@ -312,7 +312,9 @@ void main() {
       'mode', 'pid', 'paused', 'pending', 'expanded', 'automatic',
     ]) {
       final _WalletUi ui = _WalletUi();
-      final WalletRecipe driver = _inspection(ui, transform: (_, reply) {
+      final WalletRecipe driver = _inspection(ui, transform: (
+        Map<String, Object?> _, Map<String, dynamic> reply,
+      ) {
         final Map<String, dynamic> sdk =
             reply['readonlyAdmission'] as Map<String, dynamic>;
         switch (fault) {
@@ -338,7 +340,9 @@ void main() {
   test('an inspection action reply cannot borrow a different process',
       () async {
     final _WalletUi ui = _WalletUi();
-    final WalletRecipe driver = _inspection(ui, transform: (command, reply) {
+    final WalletRecipe driver = _inspection(ui, transform: (
+      Map<String, Object?> command, Map<String, dynamic> reply,
+    ) {
       if (command['action'] == 'type') reply['pid'] = 43;
       return reply;
     });

@@ -101,7 +101,9 @@ class ReadonlyNativeCommands {
     _requireReady();
     if (name == 'readonly-wallet-bind') {
       if (retained.keys.any((String key) => key != 'cmd') ||
-          _walletReserved || _bindWallet == null) _refuse();
+          _walletReserved || _bindWallet == null) {
+        _refuse();
+      }
       _walletReserved = true;
       _running = true;
       try {

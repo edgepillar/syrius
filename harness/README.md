@@ -447,6 +447,13 @@ Fresh engine tests and actual native controller/runtime qualification remain
 required. The full visual, motion, seam, minimum-window and Arabic pass stays
 open.
 
+Source229's first hosted analysis retains one undefined-identifier error and
+four style infos; Dart is skipped. The follow-up preserves actual SDK ledger
+identity/client checks while removing the invalid redundant local name, and
+adds equivalent braces/callback types. Exact 615/617 selections and every
+assertion remain; fresh engine/zero-findings and native qualification are
+required. No earlier failed or uncertain outcome is changed.
+
 
 ### Retained native-agent request analysis failure (2026-10-30T21:20Z)
 
