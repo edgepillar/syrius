@@ -1,0 +1,14 @@
+Compact Settings actions now retain their intended 26-pixel height under the app's visual density. Node keeps its original size token; Apps and Addresses use neutral secondary surfaces, and Wallet's existing cache TextButton receives the same compact outlined treatment. Original action widgets, callbacks, current-source guards, table height and genuine data are retained. No action is performed by the preparation.
+
+Current head: `62fe9d56ae81f68fc0b40cdbbdc5b32a8459b5e9`.
+Current tree: `1f1cd491394462ac02cb8a046e4dde76e792d3af`.
+
+The [Source335 hosted outcomes](https://github.com/edgepillar/syrius/blob/62fe9d56ae81f68fc0b40cdbbdc5b32a8459b5e9/docs/review/source335-hosted-and-historical-windows-outcomes.md) independently qualify 837 focused Dart cases, 940 Python controls with three existing skips, fourteen asset observations and zero selected analysis findings. Its new reader also independently qualifies the retained Source334 Windows baseline: 4,881 passes, one skip, all twelve checks and successful Debug/Release builds. Root analysis has zero errors/warnings and 1,297 infos; vendored analysis is clean. These full results belong to Source334. The original reader failure remains failed with its inner cause NOT_ESTABLISHED; neither original full tests nor the failed reader are repeated. Both Source335 runs and all eleven Source334 originals are terminal.
+
+The [Source336 preparation](https://github.com/edgepillar/syrius/blob/62fe9d56ae81f68fc0b40cdbbdc5b32a8459b5e9/docs/review/source336-compact-settings-actions.md) passes all 27 selected memory controls without a local SDK or native runtime. No test registrations, producer files, parser bounds, seam barriers, shared theme or dependencies change. Fresh current-source expectations remain 837 ordinary / 839 startup cases, 940 Python controls with three skips, 105 reader controls and 4,881 full passes with one skip. Strict analysis, focused tests, full Windows, all four native families, independent readers and affected-image review remain required.
+
+Both exact Apps references were reopened. Their Connected card also fills the available vertical region; the earlier stretched-table description is withdrawn as unsupported and table height is unchanged. Original review records remain. No new actual frame or match is inferred.
+
+Acceptance remains 72/80 rows, nineteen preparations, 50 literal outputs, 44 missing and zero of 94 accepted matches. Every original visual, motion, shader, frame-time, seam, fixture and Docker-route criterion remains. All earlier FAILURE/HOLD/UNKNOWN remain source-bound; Native101/103 stay UNKNOWN and Native104 stays unadmitted. The PR stays Draft.
+
+The [exact preceding body278](https://github.com/edgepillar/syrius/blob/62fe9d56ae81f68fc0b40cdbbdc5b32a8459b5e9/docs/review/pr-body-278.md) preserves all submitted bytes and three URLs. Public attribution remains edgepillar with GitHub no-reply addresses and UTC dates.

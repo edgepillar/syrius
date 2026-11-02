@@ -168,3 +168,7 @@ A prior successful run remains bound to its original source and scope.
 - [Source335 hosted and historical Windows outcomes](source335-hosted-and-historical-windows-outcomes.md): 837 current focused passes, clean selected analysis and independent qualification of the retained Source334 4,881-pass/one-skip Windows baseline; the original reader failure remains preserved.
 - [Source336 compact Settings actions](source336-compact-settings-actions.md): four neutral compact-action corrections, 27 memory passes, no action-owner changes and an explicit correction of the unsupported Apps height finding; fresh hosted and visual gates remain pending.
 - [Frozen PR body278](pr-body-278.md): exact 2700 bytes, SHA-256 0d5891768998dae73cf83b4aced0f2f7f243fa0fd618448e1a3c15b0695ae514; all three submitted URLs retained.
+
+- [Source336 closed hosted outcomes](source336-closed-hosted-outcomes.md): eleven terminal originals, 837 focused passes, the independently qualified 4,881-pass/one-skip full Windows baseline, three positive native catalog families and the retained original Home capture failure; zero new accepted matches.
+- [First delivery and deferred acceptance](fast-first-delivery.md): owner-selected core interface and basic functionality for Draft code review, with detailed visual and extended platform/lab acceptance deferred while the original ledger and key/signing guards remain.
+- [Frozen PR body279](pr-body-279.md): exact 2931 bytes, SHA-256 1edfa9a8f02a3ea6547b23868542812840166d9abeae9225edd578638b127e75; all three submitted URLs retained.
