@@ -164,3 +164,7 @@ A prior successful run remains bound to its original source and scope.
 - [Source334 Windows and catalog outcomes](source334-windows-and-catalog-outcomes.md): eleven terminal originals, 837 selected passes, three independently qualified native families, original Home and Windows-reader failures, and closed 24-frame/24-reference review with zero matches.
 - [Source335 layout and reader phases](source335-layout-and-reader-phases.md): Plasma sizing, known-empty Transfer visibility, Security control geometry and bounded refusal phases; 27 memory passes and fresh hosted gates pending.
 - [Frozen PR body277](pr-body-277.md): exact 2519 bytes, SHA-256 b90251a8b16eb4467742cd131db1e605d4c2bdab4bbd82032228688caa54f389; all three submitted URLs retained.
+
+- [Source335 hosted and historical Windows outcomes](source335-hosted-and-historical-windows-outcomes.md): 837 current focused passes, clean selected analysis and independent qualification of the retained Source334 4,881-pass/one-skip Windows baseline; the original reader failure remains preserved.
+- [Source336 compact Settings actions](source336-compact-settings-actions.md): four neutral compact-action corrections, 27 memory passes, no action-owner changes and an explicit correction of the unsupported Apps height finding; fresh hosted and visual gates remain pending.
+- [Frozen PR body278](pr-body-278.md): exact 2700 bytes, SHA-256 0d5891768998dae73cf83b4aced0f2f7f243fa0fd618448e1a3c15b0695ae514; all three submitted URLs retained.

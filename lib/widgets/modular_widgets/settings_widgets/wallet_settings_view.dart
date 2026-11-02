@@ -163,6 +163,7 @@ class _WalletSettingsViewState extends State<WalletSettingsView>
 
   @override
   Widget build(BuildContext context) {
+    final AppTokens tokens = AppTokens.of(context);
     final WalletSettingsPresenter owner = widget.presenter;
     final bool Function() external = widget.isCurrent;
     final int epoch = _epoch;
@@ -228,6 +229,26 @@ class _WalletSettingsViewState extends State<WalletSettingsView>
                       trailing: SecondaryAction(
                         child: TextButton(
                           key: const Key('wallet_settings_delete_cache'),
+                          style: TextButton.styleFrom(
+                            foregroundColor: tokens.foreground,
+                            backgroundColor: tokens.card2,
+                            disabledForegroundColor: tokens.faint,
+                            side: BorderSide(color: tokens.line),
+                            minimumSize: Size(
+                              0,
+                              tokens.securitySettingsButtonHeight,
+                            ),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: tokens.securitySettingsButtonInset,
+                            ),
+                            visualDensity: VisualDensity.standard,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            shape: const StadiumBorder(),
+                            textStyle: tokens.captionText.copyWith(
+                              color: tokens.foreground,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                           onPressed: current()
                               ? () {
                                   if (current()) {

@@ -33,6 +33,7 @@ class _NodeSettingsButton extends StatelessWidget {
         padding: EdgeInsets.symmetric(
           horizontal: tokens.nodeSettingsCompactButtonInset,
         ),
+        visualDensity: VisualDensity.standard,
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         textStyle: tokens.nodeSettingsSubtitleText.copyWith(
           fontFamily: tokens.sansFontFamily,

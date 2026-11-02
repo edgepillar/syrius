@@ -681,10 +681,13 @@ class _AddressesSettingsViewState extends State<AddressesSettingsView>
       key: key,
       onPressed: action,
       style: OutlinedButton.styleFrom(
+        backgroundColor: tokens.card2,
+        disabledForegroundColor: tokens.faint,
         minimumSize: Size(0, tokens.smallButtonHeight),
         padding: EdgeInsetsDirectional.symmetric(
           horizontal: tokens.securitySettingsButtonInset,
         ),
+        visualDensity: VisualDensity.standard,
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         foregroundColor: tokens.foreground,
         textStyle: tokens.compactText,

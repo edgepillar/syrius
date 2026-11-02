@@ -754,12 +754,19 @@ class _AppsButton extends StatelessWidget {
       onPressed: onPressed,
       style: OutlinedButton.styleFrom(
         foregroundColor: tokens.foreground,
+        backgroundColor: tokens.card2,
+        disabledForegroundColor: tokens.faint,
+        side: BorderSide(color: tokens.line),
         minimumSize: Size(0, tokens.nodeSettingsCompactButtonHeight),
         padding: EdgeInsets.symmetric(
           horizontal: tokens.nodeSettingsCompactButtonInset,
         ),
+        visualDensity: VisualDensity.standard,
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        textStyle: tokens.captionText.copyWith(color: tokens.foreground),
+        textStyle: tokens.captionText.copyWith(
+          color: tokens.foreground,
+          fontWeight: FontWeight.w500,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
