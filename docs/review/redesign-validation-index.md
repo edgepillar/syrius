@@ -156,3 +156,7 @@ A prior successful run remains bound to its original source and scope.
 - [Source332 Windows and family results](source332-windows-and-family-results.md): eleven closed runs, 837 focused passes, qualified Home/Navigation archives, and independently retained doctor, About-wrapper and production refusals; no new visual match.
 - [Source333 About observation and doctor outcomes](source333-about-observation-and-doctor-outcomes.md): one finite passive marker with real gate interaction refusals, closed environment-command projection and 26 memory passes; no new registrations and fresh hosted gates pending.
 - [Frozen PR body275](pr-body-275.md): exact 2904 bytes, SHA-256 b0aef80338f8d8894dd2723fb887c4440292a303ac542a0cfe6e1c92d07c60d0; all three submitted URLs retained.
+
+- [Source333 original analysis failure](source333-original-analysis-failure.md): one undefined fixture constructor after passing Python/asset gates, zero Dart cases, zero artifacts and unretried original outcome.
+- [Source334 fixture constructor correction](source334-fixture-constructor-correction.md): one constructor reuses an existing import while all gate and observation assertions remain; 26 memory controls pass and fresh hosted gates remain pending.
+- [Frozen PR body276](pr-body-276.md): exact 2916 bytes, SHA-256 c14c815fe16a6f0ad1f09aabee33367ae479ac4070f5a10ce5e566bb1dd65ae7; all three submitted URLs retained.

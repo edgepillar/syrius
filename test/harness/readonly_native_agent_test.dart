@@ -1394,7 +1394,7 @@ void main() {
           child: SeamGate(
             key: const Key('about_update_gate'),
             seam: Seam.walletUpdateNotice,
-            child: OutlinedButton(
+            child: TextButton(
               key: const Key('fixture_update_action'),
               onPressed: () => activations++,
               child: const Text('Synthetic update action'),
