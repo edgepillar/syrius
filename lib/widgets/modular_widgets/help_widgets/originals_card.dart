@@ -60,6 +60,7 @@ class _OriginalsDiscoveryState extends State<OriginalsDiscovery>
     with WidgetsBindingObserver {
   final TextEditingController _text = TextEditingController();
   int _epoch = 0;
+  int _inputRevision = 0;
   bool _active = true;
 
   @override
@@ -90,6 +91,13 @@ class _OriginalsDiscoveryState extends State<OriginalsDiscovery>
     final OriginalsController original = widget.controller;
     final int epoch = _epoch;
     final bool Function() source = widget.isCurrent;
+    bool current() => mounted &&
+        _active &&
+        epoch == _epoch &&
+        identical(original, widget.controller) &&
+        source() &&
+        TickerMode.valuesOf(context).enabled &&
+        (ModalRoute.of(context)?.isCurrent ?? true);
     return Padding(
       padding: tokens.originalsDiscoveryPadding,
       child: Align(
@@ -120,18 +128,17 @@ class _OriginalsDiscoveryState extends State<OriginalsDiscovery>
                   ),
                 ),
                 onChanged: (String value) {
-                  if (!mounted ||
-                      !_active ||
-                      epoch != _epoch ||
-                      !identical(original, widget.controller) ||
-                      !source() ||
-                      !TickerMode.valuesOf(context).enabled ||
-                      !(ModalRoute.of(context)?.isCurrent ?? true)) {
-                    return;
-                  }
+                  if (!current()) return;
+                  final int inputRevision = ++_inputRevision;
                   if (value == '321') {
                     _text.clear();
-                    original.reveal();
+                    // Let the cleared editable settle before resizing the list.
+                    WidgetsBinding.instance.addPostFrameCallback((Duration _) {
+                      if (current() && inputRevision == _inputRevision) {
+                        original.reveal();
+                      }
+                    });
+                    WidgetsBinding.instance.ensureVisualUpdate();
                   }
                 },
               ),

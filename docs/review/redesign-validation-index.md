@@ -144,3 +144,7 @@ A prior successful run remains bound to its original source and scope.
 - [Source329 original painted-footer failure](source329-original-painted-footer-failure.md): clean selected analysis, 407 first-group passes and one full painted-bottom failure, the passing Wallet focus regression, zero artifacts and unexecuted later scopes.
 - [Source330 visible trailing licence anchor](source330-visible-trailing-license-anchor.md): finite overlap admission for the actual trailing area and an existing-fixture positive-remaining-extent case, retaining all earlier guards and assertions; 25 memory controls pass with fresh hosted gates pending.
 - [Frozen PR body272](pr-body-272.md): exact 3073 bytes, SHA-256 d39f2b358e00670cd7dbefa3e0e1dd76ff169d4d524e45b6de6a1ca3f6f0f0f7; all three submitted URLs retained.
+
+- [Source330 original painted-footer failure](source330-original-painted-footer-failure.md): passing visible-trailing and Wallet cases, one genuine-trigger containment failure, clean analysis and unexecuted later scopes; the separate scaled assertion issue remains source-review evidence.
+- [Source331 discovery event order](source331-discovery-event-order.md): synchronous clearing and one-frame reveal with original ownership and newer-input revocation, extended existing cases and a scale-aware Plasma assertion; 25 memory controls pass with fresh hosted gates pending.
+- [Frozen PR body273](pr-body-273.md): exact 3078 bytes, SHA-256 e7bfa54dbb1ffd786160d54aa24dd93cdb90052042c8c9c0cdc2cce298134a1d; all three submitted URLs retained.

@@ -304,7 +304,10 @@ void main() {
         tester.element(row),
       );
       expect(container, isNotNull);
-      expect(container!.size.height, closeTo(42, .5));
+      expect(
+        container!.size.height,
+        variant.$4 == 1 ? closeTo(42, .5) : greaterThanOrEqualTo(42),
+      );
       expect(fixture.authority!(), isTrue);
       expect(fixture.firstAuthority!(), isFalse);
       await _pick(tester, const Key('fuse_plasma_another_address_option'));

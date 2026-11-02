@@ -62,11 +62,12 @@ void main() {
     prepareAboutViewport(tester);
     final OriginalsController source = OriginalsController();
     addTearDown(source.dispose);
+    bool current = true;
     await tester.pumpWidget(
       aboutHost(
         OriginalsDiscovery(
           controller: source,
-          isCurrent: () => true,
+          isCurrent: () => current,
         ),
       ),
     );
@@ -89,6 +90,18 @@ void main() {
       expect(widget.controller!.text, value);
       expect(tester.takeException(), isNull);
     }
+    await tester.enterText(field, '321');
+    expect(source.revealed, isFalse);
+    expect(widget.controller!.text, isEmpty);
+    current = false;
+    await tester.pump();
+    expect(source.revealed, isFalse);
+    current = true;
+    await tester.enterText(field, '321');
+    await tester.enterText(field, '3');
+    await tester.pump();
+    expect(source.revealed, isFalse);
+    expect(widget.controller!.text, '3');
     await tester.enterText(field, '321');
     await tester.pump();
     expect(source.revealed, isTrue);
@@ -116,6 +129,8 @@ void main() {
           find.byKey(const Key('originals_discovery_field')),
         )
         .onChanged!;
+    old('321');
+    expect(first.revealed, isFalse);
     await tester.pumpWidget(
       aboutHost(
         OriginalsDiscovery(
@@ -125,6 +140,7 @@ void main() {
       ),
     );
     old('321');
+    await tester.pump();
     expect(first.revealed, isFalse);
     expect(next.revealed, isFalse);
     final ValueChanged<String> saved = tester
@@ -132,8 +148,11 @@ void main() {
           find.byKey(const Key('originals_discovery_field')),
         )
         .onChanged!;
+    saved('321');
+    expect(next.revealed, isFalse);
     await tester.pumpWidget(const SizedBox.shrink());
     saved('321');
+    await tester.pump();
     expect(next.revealed, isFalse);
     expect(tester.takeException(), isNull);
   });
@@ -160,6 +179,13 @@ void main() {
     old('321');
     expect(source.revealed, isFalse);
     await tester.enterText(field, '321');
+    expect(source.revealed, isFalse);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    expect(source.revealed, isFalse);
+    await tester.enterText(field, '321');
+    await tester.pump();
     expect(source.revealed, isTrue);
   });
 
