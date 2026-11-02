@@ -100,3 +100,7 @@ A prior successful run remains bound to its original source and scope.
 - 2026-11-02: [Source317 Windows/catalog outcomes](source317-windows-and-catalog-outcomes.md) preserve eleven terminal runs and closed actual Details viewing. [Source318 Details layouts and readiness diagnostics](source318-details-layout-and-readiness.md) retain the original Settings failure and require fresh hosted qualification.
 
 - 2026-11-02: [Source319 line wrapping](source319-readiness-line-wrapping.md) preserves Source318's exact information-finding refusal and zero Dart execution. The original descriptions, assertions, behavior, counts and limits remain; fresh hosted qualification is pending.
+
+- [Source319 Windows and catalog outcomes](source319-windows-and-catalog-outcomes.md): eleven terminal runs, 821 focused and independently verified 4,875 full passes/one skip, three qualified native families, closed actual Details review and the preserved Settings targetDisabled failure.
+- [Source320 Node ancestor focus](source320-node-ancestor-focus.md): retained visibility predicate, one real nested-switcher regression in both themes and twenty passing memory controls; fresh hosted qualification remains pending.
+- [Frozen PR body262](pr-body-262.md): exact 4396 bytes, SHA-256 3120d25163ea1f8a2b3ff39d6f1a094dd2324e6a6f4a81ca7c5d4884c3545b6f; all four submitted URLs and historical scopes retained.

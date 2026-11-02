@@ -7,6 +7,7 @@ import 'package:flutter/widgets.dart';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart' show TextButton;
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/motion/rise_switcher.dart';
 import 'package:zenon_syrius_wallet_flutter/seams/seam.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/original_publications.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/help_widgets/about_card.dart';
@@ -158,6 +159,81 @@ class _InspectionInstance extends cli.Instance {
 }
 
 void main() {
+  testWidgets('nested page entrances restore Node focus authority', (
+    WidgetTester tester,
+  ) async {
+    about_fixture.prepareAboutViewport(tester);
+    for (final bool light in <bool>[false, true]) {
+      final node_fixture.FakeNodeSettingsSession source =
+          node_fixture.FakeNodeSettingsSession();
+      final NodeSettingsPresenter presenter =
+          node_fixture.nodePresenter(source);
+      final ValueNotifier<bool> show = ValueNotifier<bool>(false);
+      final Widget section = RiseSwitcher(
+        child: NodeSettingsView(
+          presenter: presenter,
+          isCurrent: () => true,
+          embeddedNode: const SizedBox(height: 80),
+        ),
+      );
+      TextButton add() => tester.widget<TextButton>(find.descendant(
+        of: find.byKey(const Key('node_settings_add')),
+        matching: find.byType(TextButton),
+      ).first);
+      try {
+        await tester.pumpWidget(about_fixture.aboutHost(
+          ValueListenableBuilder<bool>(
+            valueListenable: show,
+            builder: (BuildContext context, bool visible, Widget? _) =>
+                RiseSwitcher(
+                  child: KeyedSubtree(
+                    key: ValueKey<bool>(visible),
+                    child: visible ? section : const SizedBox.shrink(),
+                  ),
+                ),
+          ),
+          light: light, width: 992, height: 674,
+        ));
+        show.value = true;
+        await tester.pump();
+        final State<StatefulWidget> owner = tester.state(
+          find.byType(NodeSettingsView),
+        );
+        expect(find.byType(RiseSwitcher), findsNWidgets(2));
+        expect(presenter.currentNetwork, isNull);
+        expect(source.calls, isEmpty);
+        expect(add().onPressed, isNull);
+        await tester.pump(const Duration(milliseconds: 400));
+        for (int frame = 0;
+            frame < 100 && presenter.currentNetwork == null; frame++) {
+          await tester.pump(const Duration(milliseconds: 10));
+        }
+        expect(tester.state(find.byType(NodeSettingsView)), same(owner));
+        expect(presenter.currentNetwork, isNotNull);
+        expect(add().onPressed, isNotNull);
+        final VoidCallback retained = add().onPressed!;
+        final int epoch = presenter.authorityEpoch;
+        final List<String> before = List<String>.of(source.calls);
+        show.value = false;
+        await tester.pump();
+        await tester.pump();
+        expect(presenter.currentNetwork, isNull);
+        expect(presenter.authorityEpoch, greaterThan(epoch));
+        retained();
+        await tester.pump();
+        expect(find.byKey(const Key('node_settings_endpoint')), findsNothing);
+        expect(source.calls, before);
+        await tester.pump(const Duration(milliseconds: 400));
+        expect(find.byType(NodeSettingsView), findsNothing);
+        expect(tester.takeException(), isNull);
+      } finally {
+        await tester.pumpWidget(const SizedBox.shrink());
+        await presenter.close();
+        show.dispose();
+      }
+    }
+  });
+
   testWidgets('callback-only Node owners refresh and revoke retained Add', (
     WidgetTester tester,
   ) async {

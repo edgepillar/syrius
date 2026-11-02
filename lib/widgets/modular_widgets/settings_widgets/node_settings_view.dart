@@ -63,6 +63,7 @@ class _NodeSettingsViewState extends State<NodeSettingsView>
   bool _windowActive = true;
   bool _attached = false;
   FocusNode? _parentFocus;
+  final Set<FocusNode> _focusSources = Set<FocusNode>.identity();
   ModalRoute<dynamic>? _pageRoute;
   FrostedDialogRoute<bool>? _questionRoute;
   NavigatorState? _questionNavigator;
@@ -145,8 +146,35 @@ class _NodeSettingsViewState extends State<NodeSettingsView>
   void didChangeDependencies() {
     super.didChangeDependencies();
     _parentFocus = Focus.maybeOf(context, scopeOk: true);
+    _watchFocusSources();
     _pageRoute = ModalRoute.of(context);
     _synchronizeVisibility();
+  }
+
+  void _watchFocusSources() {
+    final Set<FocusNode> next = Set<FocusNode>.identity();
+    final FocusNode? focus = _parentFocus;
+    if (focus != null) {
+      next
+        ..add(focus)
+        ..addAll(focus.ancestors);
+    }
+    for (final FocusNode source in _focusSources.difference(next)) {
+      source.removeListener(_focusVisibilityChanged);
+    }
+    for (final FocusNode source in next.difference(_focusSources)) {
+      source.addListener(_focusVisibilityChanged);
+    }
+    _focusSources
+      ..clear()
+      ..addAll(next);
+  }
+
+  void _focusVisibilityChanged() {
+    if (!mounted) return;
+    _watchFocusSources();
+    _synchronizeVisibility();
+    _changed();
   }
 
   void _synchronizeVisibility({bool refresh = false}) {
@@ -706,6 +734,10 @@ class _NodeSettingsViewState extends State<NodeSettingsView>
 
   @override
   void dispose() {
+    for (final FocusNode source in _focusSources) {
+      source.removeListener(_focusVisibilityChanged);
+    }
+    _focusSources.clear();
     WidgetsBinding.instance.removeObserver(this);
     unawaited(_subscription?.cancel());
     _presenter.setVisible(visible: false);
