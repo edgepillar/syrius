@@ -249,6 +249,28 @@ void main() {
           expect(position.extentAfter, 0);
           expect(find.byKey(const Key('fixture_end')).hitTestable(),
               findsOneWidget);
+          revealed.value = false;
+          await tester.pump();
+          await tester.pump();
+          // Visible end content need not include all its trailing space.
+          position.jumpTo(position.maxScrollExtent - 16);
+          await tester.pump();
+          expect(position.extentAfter, greaterThan(0));
+          expect(find.byKey(const Key('fixture_end')).hitTestable(),
+              findsOneWidget);
+          revealed.value = true;
+          await tester.pump();
+          for (int frame = 0; frame < 5; frame++) {
+            await tester.pump();
+          }
+          expect(position.extentAfter, 0);
+          final Rect retained = tester.getRect(
+            find.byKey(const Key('fixture_end')),
+          );
+          final Rect viewport = tester.getRect(list);
+          expect(viewport.contains(retained.topLeft), isTrue);
+          expect(viewport.contains(retained.bottomRight - const Offset(1, 1)),
+              isTrue);
           final Finder first = find.byKey(
             const Key('about_licence_fixture-package-00_toggle'),
           );

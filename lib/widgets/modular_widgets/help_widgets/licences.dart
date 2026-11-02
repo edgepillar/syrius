@@ -26,7 +26,7 @@ class Licences extends StatefulWidget {
   /// Built after the final licence, following a complete registry read.
   final WidgetBuilder? trailingBuilder;
 
-  /// On the reveal transition, retain a previously reached real list end.
+  /// On reveal, retain a reached list end or already visible trailing area.
   final bool preserveEndOnReveal;
 
   @override
@@ -35,6 +35,8 @@ class Licences extends StatefulWidget {
 
 class _LicencesState extends State<Licences> {
   final ScrollController _scroll = ScrollController();
+  final GlobalKey _viewportKey = GlobalKey();
+  final GlobalKey _trailingKey = GlobalKey();
   StreamSubscription<LicenseEntry>? _subscription;
   List<_PackageLicence>? _packages;
   int _epoch = 0;
@@ -73,12 +75,43 @@ class _LicencesState extends State<Licences> {
     _rememberEnd();
   }
 
+  bool _trailingIsVisible() {
+    final RenderObject? viewport =
+        _viewportKey.currentContext?.findRenderObject();
+    final RenderObject? trailing =
+        _trailingKey.currentContext?.findRenderObject();
+    if (viewport is! RenderBox || trailing is! RenderBox ||
+        !viewport.attached || !trailing.attached ||
+        !viewport.hasSize || !trailing.hasSize) {
+      return false;
+    }
+    try {
+      final Rect viewportBounds = MatrixUtils.transformRect(
+        viewport.getTransformTo(null), Offset.zero & viewport.size,
+      );
+      final Rect trailingBounds = MatrixUtils.transformRect(
+        trailing.getTransformTo(null), Offset.zero & trailing.size,
+      );
+      for (final Rect bounds in <Rect>[viewportBounds, trailingBounds]) {
+        if (<double>[bounds.left, bounds.top, bounds.right, bounds.bottom]
+            .any((double value) => !value.isFinite)) {
+          return false;
+        }
+      }
+      final Rect overlap = viewportBounds.intersect(trailingBounds);
+      return overlap.width > 0 && overlap.height > 0;
+    } on Object {
+      return false;
+    }
+  }
+
   void _keepReachedEnd() {
     if (!_scroll.hasClients) return;
     final ScrollPosition position = _scroll.position;
+    // The discovery field can be visible before its trailing padding ends.
     if (!position.hasContentDimensions ||
-        !_wasAtEnd ||
-        position.isScrollingNotifier.value) {
+        position.isScrollingNotifier.value ||
+        (!_wasAtEnd && !_trailingIsVisible())) {
       return;
     }
     final int epoch = _epoch;
@@ -259,6 +292,7 @@ class _LicencesState extends State<Licences> {
         return false;
       },
       child: Scrollbar(
+        key: _viewportKey,
         controller: _scroll,
         thumbVisibility: true,
         child: ListView.builder(
@@ -270,9 +304,11 @@ class _LicencesState extends State<Licences> {
             if (index == packages.length) {
               return KeyedSubtree(
                 key: const Key('about_licences_end'),
-                child:
-                    widget.trailingBuilder?.call(context) ??
-                    SizedBox(height: tokens.cardGap),
+                child: KeyedSubtree(
+                  key: _trailingKey,
+                  child: widget.trailingBuilder?.call(context) ??
+                      SizedBox(height: tokens.cardGap),
+                ),
               );
             }
             final _PackageLicence package = packages[index];
