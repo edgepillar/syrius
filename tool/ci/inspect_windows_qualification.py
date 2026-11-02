@@ -159,7 +159,8 @@ def baseline_projection(report, head, tree, run_id):
         **({'test_failures': failures} if failures is not None else {}),
         localization_unchanged=(set(localization) == {'before', 'after'}
             and localization['before'] == localization['after']), libraries=libraries,
-        commands={name: outcomes[name] for name in ('analyze_root', 'analyze_vendored',
+        commands={name: outcomes[name] for name in ('enable_windows', 'doctor',
+            'analyze_root', 'analyze_vendored',
             'unit_widget_tests', 'build_debug', 'build_release') if name in outcomes})
 
 

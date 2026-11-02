@@ -1222,6 +1222,7 @@ void main() {
   testWidgets('readonly catalog regions preserve passive ancestor keys', (
     WidgetTester tester,
   ) async {
+    about_fixture.prepareAboutViewport(tester);
     final _Scope scope = _Scope();
     await scope.open();
     final HarnessAgent ordinary = HarnessAgent.forTest()..booted = true;
@@ -1255,6 +1256,7 @@ void main() {
       'apps_settings_count',
       'addresses_settings_page',
       'about_strip',
+      'about_update_gate',
       'about_version',
       'about_embedded_version',
       'about_build',
@@ -1382,6 +1384,50 @@ void main() {
       await refused(<String, dynamic>{'cmd': 'wait', 'key': key,
         'timeoutMs': 0, 'ready': true});
     }
+    int activations = 0;
+    await tester.pumpWidget(about_fixture.aboutHost(
+      Align(
+        alignment: Alignment.topLeft,
+        child: SizedBox(
+          width: 320,
+          height: 80,
+          child: SeamGate(
+            key: const Key('about_update_gate'),
+            seam: Seam.walletUpdateNotice,
+            child: OutlinedButton(
+              key: const Key('fixture_update_action'),
+              onPressed: () => activations++,
+              child: const Text('Synthetic update action'),
+            ),
+          ),
+        ),
+      ),
+    ));
+    await tester.pump();
+    for (final String command in <String>['assert', 'wait']) {
+      final Map<String, Object?> result =
+          await scope.agent.commandForTest(<String, dynamic>{
+        'cmd': command,
+        'key': 'about_update_gate',
+        if (command == 'wait') 'ready': true,
+        if (command == 'wait') 'timeoutMs': 0,
+      });
+      final Map<String, Object?> target =
+          result['target']! as Map<String, Object?>;
+      expect(target['key'], 'about_update_gate');
+      expect(target['kind'], 'region');
+    }
+    for (final String key in <String>[
+      'about_update_gate', 'fixture_update_action',
+    ]) {
+      await refused(<String, dynamic>{'cmd': 'tap', 'key': key});
+      await refused(<String, dynamic>{
+        'cmd': 'type', 'key': key, 'value': 'synthetic',
+      });
+    }
+    await tester.tap(find.byKey(const Key('fixture_update_action')),
+      warnIfMissed: false);
+    expect(activations, 0);
     expect((await scope.ping())['booted'], isTrue);
     expect(OriginalPublications.snapshot(scope.sdk), isEmpty);
   });

@@ -152,3 +152,7 @@ A prior successful run remains bound to its original source and scope.
 - [Source331 focused results](source331-focused-results.md): 827 independently qualified cases, passing genuine-trigger painted footer and clean analysis; direct Originals cases were unselected and broader scopes remain unexecuted.
 - [Source332 Originals selection](source332-originals-selection.md): the corrected same-frame driver, ten existing cases added to focused tests and analysis, 837/839 expectations and 25 memory passes while preserving all earlier paths and count-refusal domains.
 - [Frozen PR body274](pr-body-274.md): exact 3063 bytes, SHA-256 8beeb1d536f48bac6fb39cc8d9173b6134a0d7f1cf7b013e4cf1ee4e7ce2f516; all three submitted URLs retained.
+
+- [Source332 Windows and family results](source332-windows-and-family-results.md): eleven closed runs, 837 focused passes, qualified Home/Navigation archives, and independently retained doctor, About-wrapper and production refusals; no new visual match.
+- [Source333 About observation and doctor outcomes](source333-about-observation-and-doctor-outcomes.md): one finite passive marker with real gate interaction refusals, closed environment-command projection and 26 memory passes; no new registrations and fresh hosted gates pending.
+- [Frozen PR body275](pr-body-275.md): exact 2904 bytes, SHA-256 b0aef80338f8d8894dd2723fb887c4440292a303ac542a0cfe6e1c92d07c60d0; all three submitted URLs retained.

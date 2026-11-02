@@ -110,6 +110,33 @@ class WindowsQualificationTests(unittest.TestCase):
         self.assertTrue(value['commands']['unit_widget_tests']['forced_kill'])
         self.assertEqual(value['tests']['failed'], 1)
 
+        doctor = baseline()
+        doctor['checks'] = dict.fromkeys(inspect.baseline.CHECKS, False)
+        doctor['checks']['source'] = True
+        doctor['success'], doctor['error_codes'] = False, ['DOCTOR_UNPROVEN']
+        doctor['doctor'].update(windows_version='unknown', visual_studio='unknown')
+        doctor['stages'] = {name: receipt() for name in (
+            'source_head', 'source_tree', 'source_clean_before',
+            'enable_windows', 'doctor')}
+        doctor['analysis'], doctor['tests'] = {}, None
+        value = inspect.baseline_projection(doctor, HEAD, TREE, RUN)
+        self.assertFalse(value['artifact_reported_success'])
+        self.assertEqual(value['original_error_codes'], ['DOCTOR_UNPROVEN'])
+        self.assertEqual(value['commands']['enable_windows']['exit_code'], 0)
+        self.assertEqual(value['commands']['doctor']['exit_code'], 0)
+        self.assertIsNone(value['tests'])
+        self.assertEqual(value['analysis'], {})
+        self.assertFalse(value['original_checks']['windows_doctor'])
+        doctor['stages']['doctor'].update(exit_code=1, forced_kill=True,
+            output_complete=False, success=False, error_codes=['COMMAND_TIMEOUT'])
+        value = inspect.baseline_projection(doctor, HEAD, TREE, RUN)
+        self.assertFalse(value['artifact_reported_success'])
+        self.assertTrue(value['commands']['doctor']['forced_kill'])
+        self.assertFalse(value['commands']['doctor']['output_complete'])
+        self.assertFalse(value['runtime_started'])
+        self.assertFalse(value['wallet_qualified'])
+        self.assertNotIn('synthetic-private-context', json.dumps(value))
+
     def test_failed_root_locations_keep_the_failure_and_refuse_private_fields(self):
         report = baseline()
         report['checks'] = dict.fromkeys(inspect.baseline.CHECKS, False)

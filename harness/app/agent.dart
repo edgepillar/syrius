@@ -3786,6 +3786,7 @@ class HarnessAgent {
           'apps_settings_count',
           'addresses_settings_page',
           'about_strip',
+          'about_update_gate',
           'about_version',
           'about_embedded_version',
           'about_build',
