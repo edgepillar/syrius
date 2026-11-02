@@ -11,6 +11,36 @@ const List<String> _files = <String>[
   '01-home-rest-dark.png', '01-home-rest-light.png',
 ];
 
+/// Exports only the original step and a closed original-reply category.
+Map<String, Object>? readonlyHomeFailureDiagnostic(
+  ScreenCaptureObservation? observation, {
+  ScreenCaptureReplyCode? reply,
+}) {
+  if (observation == null) return null;
+  final String? screen = observation.screen;
+  final String? theme = observation.theme;
+  final int? line = observation.line;
+  const Set<String> screens = <String>{
+    'home-rest', 'home-open', 'home-hidden', 'home-goto',
+  };
+  final bool script = observation.step == ScreenCaptureStep.scriptLine ||
+      observation.step == ScreenCaptureStep.afterCaptureLine;
+  if ((screen == null) != (theme == null) ||
+      screen != null && !screens.contains(screen) ||
+      theme != null && theme != 'dark' && theme != 'light' ||
+      script && (screen == null || line == null) ||
+      line != null && (!script || line < 1 || line > 65535)) {
+    return null;
+  }
+  return <String, Object>{
+    'schema': reply == null ? 1 : 2,
+    'kind': 'readonly_home_capture_failure',
+    'last_entered_step': observation.step.name,
+    'screen': ?screen, 'theme': ?theme, 'line': ?line,
+    'reply': ?reply?.name,
+  };
+}
+
 class _CatalogInstance extends cli.Instance {
   _CatalogInstance(this._session) : super('readonly-home-catalog');
 
@@ -61,6 +91,7 @@ Future<Map<String, Object>> captureReadonlyHomeRest({
 ScreenCapture _homeCapture({
   required Directory repository,
   required ReadonlyInspectionSession session,
+  void Function(ScreenCaptureObservation step)? onStep,
 }) {
   final _CatalogInstance instance = _CatalogInstance(session);
   return ScreenCapture(
@@ -74,6 +105,7 @@ ScreenCapture _homeCapture({
         cli.assertionArgs(cli.Args(words.sublist(1))),
     readRailState: session.railExpanded,
     restoreRailState: session.restoreScreenRail,
+    onStep: onStep,
   );
 }
 
@@ -156,12 +188,13 @@ Future<Map<String, Object>> captureReadonlyHomeOpenStates({
 Future<Map<String, Object>> captureReadonlyHomeGotoStates({
   required Directory repository,
   required ReadonlyInspectionSession session,
+  void Function(ScreenCaptureObservation step)? onStep,
 }) async {
   if (!session.walletBound) {
     throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.binding);
   }
   final ScreenCapture capture = _homeCapture(
-    repository: repository, session: session,
+    repository: repository, session: session, onStep: onStep,
   );
   const List<String> files = <String>[
     '01-home-rest-dark.png', '01-home-rest-light.png',

@@ -108,3 +108,7 @@ A prior successful run remains bound to its original source and scope.
 - [Source320 nested Node test failure](source320-nested-node-test-failure.md): original 402-pass/one-failure first group, zero selected findings, unexecuted second group/full/native scope and no artifacts.
 - [Source321 widget readiness](source321-nested-node-widget-readiness.md): wait for both presenter and actual Add callback within the same bounded fixture loop; production code and all assertions remain unchanged.
 - [Frozen PR body263](pr-body-263.md): exact 3650 bytes, SHA-256 762bb06c3ec03c1eee7816603bbcbe7f620ed0b259649c5673ded9c5c11b638f; all three submitted URLs retained.
+
+- [Source321 Windows and catalog outcomes](source321-windows-and-catalog-outcomes.md): eleven terminal runs, 822 focused and independently verified 4,876 full passes/one skip, two positive native families, closed actual Details review and preserved Home/Security failures. The original light Node condition is not reached.
+- [Source322 Details and passive Settings](source322-details-and-passive-settings.md): reviewed Plasma/About/Originals changes, four passive keys, closed Home step/reply context and 21 passing memory controls; fresh full/four-family hosted qualification remains pending.
+- [Frozen PR body264](pr-body-264.md): exact 3677 bytes, SHA-256 25749a35114d5acf8cee4a194bbb4c447c74785c66e26def99a49ecbf95b1fee; all four submitted URLs retained.

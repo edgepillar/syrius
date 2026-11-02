@@ -94,36 +94,47 @@ class _OriginalsDiscoveryState extends State<OriginalsDiscovery>
       padding: tokens.originalsDiscoveryPadding,
       child: Align(
         alignment: AlignmentDirectional.centerStart,
-        child: SizedBox(
-          width: tokens.originalsDiscoveryWidth,
-          height: tokens.originalsDiscoveryHeight,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            minWidth: tokens.originalsDiscoveryWidth,
+            maxWidth: tokens.originalsDiscoveryWidth,
+            minHeight: tokens.originalsDiscoveryHeight,
+          ),
           child: Ltr(
-            child: TextField(
-              key: const Key('originals_discovery_field'),
-              controller: _text,
-              style: tokens.dataText,
-              decoration: InputDecoration(
-                isDense: true,
-                contentPadding: EdgeInsetsDirectional.symmetric(
-                  horizontal: tokens.originalsFieldInset,
-                  vertical: tokens.originalsFieldVerticalInset,
-                ),
+            child: Theme(
+              data: Theme.of(context).copyWith(
+                visualDensity: VisualDensity.standard,
               ),
-              onChanged: (String value) {
-                if (!mounted ||
-                    !_active ||
-                    epoch != _epoch ||
-                    !identical(original, widget.controller) ||
-                    !source() ||
-                    !TickerMode.valuesOf(context).enabled ||
-                    !(ModalRoute.of(context)?.isCurrent ?? true)) {
-                  return;
-                }
-                if (value == '321') {
-                  _text.clear();
-                  original.reveal();
-                }
-              },
+              child: TextField(
+                key: const Key('originals_discovery_field'),
+                controller: _text,
+                style: tokens.dataText,
+                decoration: InputDecoration(
+                  isDense: true,
+                  constraints: BoxConstraints(
+                    minHeight: tokens.originalsDiscoveryHeight,
+                  ),
+                  contentPadding: EdgeInsetsDirectional.symmetric(
+                    horizontal: tokens.originalsFieldInset,
+                    vertical: tokens.originalsFieldVerticalInset,
+                  ),
+                ),
+                onChanged: (String value) {
+                  if (!mounted ||
+                      !_active ||
+                      epoch != _epoch ||
+                      !identical(original, widget.controller) ||
+                      !source() ||
+                      !TickerMode.valuesOf(context).enabled ||
+                      !(ModalRoute.of(context)?.isCurrent ?? true)) {
+                    return;
+                  }
+                  if (value == '321') {
+                    _text.clear();
+                    original.reveal();
+                  }
+                },
+              ),
             ),
           ),
         ),

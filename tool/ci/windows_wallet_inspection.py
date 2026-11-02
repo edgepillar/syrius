@@ -448,6 +448,36 @@ def stalls_receipt(value):
     return value
 
 
+def home_failure_diagnostic(value):
+    """Keep only finite context from the failed original Home capture."""
+    required = {'schema', 'kind', 'last_entered_step'}
+    optional = {'screen', 'theme', 'line'}
+    need(type(value) is dict and type(value.get('schema')) is int,
+         'ENTRY_REFUSED')
+    if value['schema'] == 2:
+        required = required | {'reply'}
+        need(type(value.get('reply')) is str
+             and value['reply'] in settings.FAILURE_REPLIES, 'ENTRY_REFUSED')
+    else:
+        need(value['schema'] == 1, 'ENTRY_REFUSED')
+    need(required <= set(value) <= required | optional, 'ENTRY_REFUSED')
+    need(value['kind'] == 'readonly_home_capture_failure'
+         and type(value['last_entered_step']) is str
+         and value['last_entered_step'] in settings.FAILURE_STEPS,
+         'ENTRY_REFUSED')
+    need(('screen' in value) == ('theme' in value), 'ENTRY_REFUSED')
+    if 'screen' in value:
+        need(type(value['screen']) is str and value['screen'] in HOME_GOTO_SCREENS
+             and type(value['theme']) is str and value['theme'] in THEMES,
+             'ENTRY_REFUSED')
+    script = value['last_entered_step'] in ('scriptLine', 'afterCaptureLine')
+    need(not script or {'screen', 'theme', 'line'} <= set(value), 'ENTRY_REFUSED')
+    if 'line' in value:
+        need(script and type(value['line']) is int and 1 <= value['line'] <= 65535,
+             'ENTRY_REFUSED')
+    return value
+
+
 def entry_failure(value):
     need(type(value) is dict and set(value) in
          ({'stage', 'code'}, {'stage', 'code', 'diagnostic'})
@@ -459,6 +489,11 @@ def entry_failure(value):
     if 'diagnostic' in value:
         if value['stage'] in ('onboarding', 'address_selection'):
             shared.entry_failure(value)
+        elif value['stage'] == 'home_catalog':
+            need(value['code'] is None or value['code'] in {
+                'inspection-' + reason for reason in
+                ('process', 'retired', 'command', 'reply', 'binding')}, 'ENTRY_REFUSED')
+            home_failure_diagnostic(value['diagnostic'])
         elif value['stage'] == 'settings_catalog':
             need(value['code'] is None or value['code'] in {
                 'inspection-' + reason for reason in

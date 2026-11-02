@@ -12,6 +12,7 @@ import 'package:zenon_syrius_wallet_flutter/seams/seam.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/original_publications.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/help_widgets/about_card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/help_widgets/about_information.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/help_widgets/licences.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/help_widgets/originals_card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/node_settings_presenter.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/node_settings_view.dart';
@@ -159,6 +160,97 @@ class _InspectionInstance extends cli.Instance {
 }
 
 void main() {
+  testWidgets(
+    'revealed sibling retains the registry end and earlier complete text',
+    (WidgetTester tester) async {
+      about_fixture.prepareAboutViewport(tester);
+      Future<void> toggle(String key) async {
+        final Finder target = find.byKey(ValueKey<String>(key));
+        await tester.ensureVisible(target);
+        await tester.tap(target);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 240));
+      }
+      final Future<AboutInformation> Function() information =
+          () async => AboutInformation(version: 'fixture');
+      for (final bool light in <bool>[false, true]) {
+        final ValueNotifier<bool> revealed = ValueNotifier<bool>(false);
+        int reads = 0;
+        final AboutLicenceLoader load = () {
+          reads++;
+          return Stream<LicenseEntry>.fromIterable(<LicenseEntry>[
+            for (int index = 0; index < 30; index++)
+              about_fixture.FixtureLicence(
+                <String>[
+                  'fixture-package-${index.toString().padLeft(2, '0')}',
+                ],
+                <LicenseParagraph>[
+                  LicenseParagraph('Fixture terms $index', 0),
+                ],
+              ),
+          ]);
+        };
+        try {
+          await tester.pumpWidget(about_fixture.aboutHost(
+            ValueListenableBuilder<bool>(
+              valueListenable: revealed,
+              builder: (BuildContext context, bool visible, Widget? _) =>
+                  AboutCard(
+                    loadInformation: information,
+                    loadLicences: load,
+                    licencesTrailingBuilder: (_) => const SizedBox(
+                      height: 82,
+                      child: Text('Fixture end', key: Key('fixture_end')),
+                    ),
+                    afterLicences: visible
+                        ? const SizedBox(
+                            height: 300,
+                            child: Text('Fixture sibling'),
+                          )
+                        : null,
+                  ),
+            ),
+            light: light, width: 992, height: 674,
+          ));
+          await toggle('about_licences_toggle');
+          final Element listOwner = tester.element(find.byType(Licences));
+          final Finder list = find.byKey(const Key('about_licences_list'));
+          final Finder scrollable = find.descendant(
+            of: list, matching: find.byType(Scrollable),
+          ).first;
+          await tester.scrollUntilVisible(
+            find.byKey(const Key('fixture_end')), 250,
+            scrollable: scrollable, maxScrolls: 20,
+          );
+          await tester.pump();
+          expect(reads, 1);
+          expect(find.byKey(const Key('fixture_end')).hitTestable(),
+              findsOneWidget);
+          revealed.value = true;
+          await tester.pump();
+          await tester.pump();
+          expect(tester.element(find.byType(Licences)), same(listOwner));
+          expect(reads, 1);
+          expect(find.byKey(const Key('fixture_end')).hitTestable(),
+              findsOneWidget);
+          final Finder first = find.byKey(
+            const Key('about_licence_fixture-package-00_toggle'),
+          );
+          await tester.scrollUntilVisible(
+            first, -250, scrollable: scrollable, maxScrolls: 20,
+          );
+          await toggle('about_licence_fixture-package-00_toggle');
+          expect(find.text('Fixture terms 0'), findsOneWidget);
+          expect(reads, 1);
+          expect(tester.takeException(), isNull);
+        } finally {
+          await tester.pumpWidget(const SizedBox.shrink());
+          revealed.dispose();
+        }
+      }
+    },
+  );
+
   testWidgets('nested page entrances restore Node focus authority', (
     WidgetTester tester,
   ) async {
@@ -979,9 +1071,13 @@ void main() {
       'node_settings_sporks_gate',
       'security_settings_page',
       'security_settings_policies',
+      'security_settings_password_gate',
+      'security_settings_backup',
       'display_page',
       'wallet_settings_page',
       'wallet_settings_preferences',
+      'wallet_settings_modes_gate',
+      'wallet_settings_wallets_gate',
       'apps_settings_page',
       'apps_settings_connected',
       'apps_settings_count',
@@ -1116,6 +1212,75 @@ void main() {
     }
     expect((await scope.ping())['booted'], isTrue);
     expect(OriginalPublications.snapshot(scope.sdk), isEmpty);
+  });
+
+
+  testWidgets('readonly settings regions keep real seam gates inert', (
+    WidgetTester tester,
+  ) async {
+    final _Scope scope = _Scope();
+    await scope.open();
+    int activated = 0;
+    const Map<String, Seam> gates = <String, Seam>{
+      'security_settings_password_gate': Seam.passwordChangeMigration,
+      'wallet_settings_modes_gate': Seam.operatorModes,
+      'wallet_settings_wallets_gate': Seam.walletPicker,
+    };
+    for (final bool light in <bool>[false, true]) {
+      for (final MapEntry<String, Seam> entry in gates.entries) {
+        await tester.pumpWidget(about_fixture.aboutHost(
+          Align(
+            alignment: Alignment.topLeft,
+            child: SizedBox(width: 200, height: 80,
+              child: SeamGate(key: Key(entry.key), seam: entry.value,
+                child: TextButton(
+                  key: const Key('synthetic_gated_action'),
+                  onPressed: () => activated++,
+                  child: const Text('Synthetic gated action'),
+                ),
+              ),
+            ),
+          ),
+          light: light,
+        ));
+        await tester.pump();
+        for (final String command in <String>['assert', 'wait']) {
+          final Map<String, Object?> result =
+              await scope.agent.commandForTest(<String, dynamic>{
+            'cmd': command, 'key': entry.key,
+            if (command == 'wait') 'ready': true,
+            if (command == 'wait') 'timeoutMs': 0,
+          });
+          final Map<String, Object?> target =
+              result['target']! as Map<String, Object?>;
+          expect(target['key'], entry.key);
+          expect(target['kind'], 'region');
+          expect(target['ref'], 0);
+        }
+        await expectLater(scope.agent.commandForTest(<String, dynamic>{
+          'cmd': 'tap', 'key': entry.key,
+        }), throwsA(isA<HarnessError>()));
+        await expectLater(scope.agent.commandForTest(<String, dynamic>{
+          'cmd': 'type', 'key': entry.key, 'text': 'Synthetic input',
+        }), throwsA(isA<HarnessError>()));
+        await tester.tap(find.byKey(const Key('synthetic_gated_action')),
+          warnIfMissed: false,
+        );
+        await tester.pump();
+        expect(activated, 0);
+        final Map<String, Object?> tree = await scope.agent.commandForTest(
+          <String, dynamic>{'cmd': 'tree'},
+        );
+        expect((tree['nodes']! as List<Map<String, Object?>>).where(
+          (Map<String, Object?> node) => node['kind'] == 'region',
+        ), isEmpty);
+        expect(tester.takeException(), isNull);
+      }
+    }
+    expect(scope.disabled, isTrue);
+    expect(OriginalPublications.snapshot(scope.sdk), isEmpty);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
   });
 
 

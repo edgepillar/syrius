@@ -735,6 +735,8 @@ void main() {
       int shots = 0;
       final List<bool> observedAtShot = <bool>[];
       bool restoredWindow = false;
+      final List<ScreenCaptureObservation> observations =
+          <ScreenCaptureObservation>[];
       final List<Map<String, Object?>> commands = <Map<String, Object?>>[];
       final Map<String, dynamic> negative = <String, dynamic>{
         'ok': false, 'error': 'Synthetic capture refusal',
@@ -869,6 +871,7 @@ void main() {
           IOOverrides.runZoned<Future<Map<String, Object>>>(
         () => captureReadonlyHomeGotoStates(
           repository: repository, session: session,
+          onStep: observations.add,
         ),
         stdout: () => output,
       );
@@ -877,6 +880,7 @@ void main() {
             throwsA(isA<ReadonlyInspectionRefused>()));
         expect(commands, isEmpty);
         expect(output.lines, isEmpty);
+        expect(observations, isEmpty);
         continue;
       }
       await session.bindWallet();
@@ -884,6 +888,15 @@ void main() {
           fault == 'open-negative' || fault == 'open-restore-negative' ||
           fault == 'goto-negative' || fault == 'goto-restore-negative') {
         await expectLater(capture(), throwsA(isA<ScreenCaptureError>()));
+        final ScreenCaptureObservation last = observations.last;
+        expect(last.step, fault.endsWith('restore-negative')
+            ? ScreenCaptureStep.afterCaptureLine
+            : ScreenCaptureStep.shotRequest);
+        expect(last.screen, fault.startsWith('goto-') ? 'home-goto'
+            : fault.startsWith('open-') ? 'home-open'
+            : fault == 'hidden-negative' ? 'home-hidden' : 'home-rest');
+        expect(last.theme, 'dark');
+        expect(readonlyHomeFailureDiagnostic(last), isNotNull);
         expect(commands.last['cmd'],
             fault == 'open-restore-negative' ? 'tap' :
             fault == 'goto-restore-negative' ? 'key' : 'shot');
@@ -901,6 +914,7 @@ void main() {
         expect(receipt['scope'], 'readonly_native_home_catalog_capture');
         expect(receipt['capture_returned'], isTrue);
         expect(receipt['schema'], 4);
+        expect(observations.last.step, ScreenCaptureStep.complete);
         expect(receipt['screens'],
             <String>['home-rest', 'home-open', 'home-hidden', 'home-goto']);
         expect(receipt['files'], <String>[
@@ -1790,6 +1804,49 @@ void main() {
       }.contains(value['cmd'])), isTrue);
       expect(output.lines.every((Object? line) => line is String &&
           line.startsWith('ok')), isTrue);
+    }
+  });
+
+  test('Home capture diagnostics retain only a closed step and context',
+      () {
+    expect(readonlyHomeFailureDiagnostic(null), isNull);
+    expect(readonlyHomeFailureDiagnostic(const ScreenCaptureObservation(
+      ScreenCaptureStep.preflight,
+    )), <String, Object>{
+      'schema': 1, 'kind': 'readonly_home_capture_failure',
+      'last_entered_step': 'preflight',
+    });
+    for (final String screen in <String>[
+      'home-rest', 'home-open', 'home-hidden', 'home-goto',
+    ]) {
+      for (final ScreenCaptureReplyCode reply
+          in ScreenCaptureReplyCode.values) {
+        expect(readonlyHomeFailureDiagnostic(
+          ScreenCaptureObservation(ScreenCaptureStep.scriptLine,
+            screen: screen, theme: 'light', line: 10), reply: reply,
+        ), <String, Object>{
+          'schema': 2, 'kind': 'readonly_home_capture_failure',
+          'last_entered_step': 'scriptLine', 'screen': screen,
+          'theme': 'light', 'line': 10, 'reply': reply.name,
+        });
+      }
+    }
+    for (final ScreenCaptureObservation invalid in <ScreenCaptureObservation>[
+      const ScreenCaptureObservation(ScreenCaptureStep.homePreparation,
+        screen: 'Synthetic private path', theme: 'dark'),
+      const ScreenCaptureObservation(ScreenCaptureStep.homePreparation,
+        screen: 'home-rest', theme: 'Synthetic private locale'),
+      const ScreenCaptureObservation(ScreenCaptureStep.scriptLine,
+        screen: 'home-rest', theme: 'dark'),
+      const ScreenCaptureObservation(ScreenCaptureStep.scriptLine,
+        screen: 'home-rest', theme: 'dark', line: 0),
+      const ScreenCaptureObservation(ScreenCaptureStep.scriptLine,
+        screen: 'home-rest', theme: 'dark', line: 65536),
+      const ScreenCaptureObservation(ScreenCaptureStep.preflight, line: 5),
+      const ScreenCaptureObservation(ScreenCaptureStep.shotRequest,
+        screen: 'home-rest'),
+    ]) {
+      expect(readonlyHomeFailureDiagnostic(invalid), isNull);
     }
   });
 

@@ -728,6 +728,49 @@ class InspectionTests(unittest.TestCase):
             with self.assertRaises(inspection.Refused):
                 inspection.entry_failure(dict(value, **change))
 
+    def test_home_failure_diagnostic_keeps_only_closed_original_context(self):
+        base = dict(schema=1, kind='readonly_home_capture_failure',
+            last_entered_step='preflight')
+        self.assertIs(inspection.home_failure_diagnostic(base), base)
+        # Earlier failures remain valid without retroactively invented detail.
+        earlier = dict(stage='home_catalog', code=None)
+        self.assertIs(inspection.entry_failure(earlier), earlier)
+        valid = dict(base, last_entered_step='scriptLine',
+            screen='home-rest', theme='dark', line=5)
+        for screen in inspection.HOME_GOTO_SCREENS:
+            for theme in inspection.THEMES:
+                for reply in inspection.settings.FAILURE_REPLIES:
+                    observed = dict(valid, schema=2, screen=screen,
+                        theme=theme, reply=reply)
+                    self.assertIs(inspection.home_failure_diagnostic(observed), observed)
+                    self.assertIs(inspection.entry_failure(dict(stage='home_catalog',
+                        code=None, diagnostic=observed))['diagnostic'], observed)
+        for delta in (
+            dict(schema=True), dict(schema=3), dict(kind='other'),
+            dict(last_entered_step='Synthetic private step'),
+            dict(screen='Synthetic private path'), dict(theme='ar'),
+            dict(line=True), dict(line=0), dict(line=65536),
+            dict(last_entered_step='preflight'),
+            dict(command='Synthetic private command'),
+            dict(raw='Synthetic private reply'),
+            dict(schema=1, reply='unknown'), dict(schema=2),
+            dict(schema=2, reply=True), dict(schema=2, reply='Synthetic input'),
+        ):
+            with self.subTest(delta=delta), self.assertRaises(inspection.Refused):
+                inspection.entry_failure(dict(stage='home_catalog', code=None,
+                    diagnostic=dict(valid, **delta)))
+        for missing in ('screen', 'theme', 'line'):
+            broken = dict(valid)
+            broken.pop(missing)
+            with self.subTest(missing=missing), self.assertRaises(inspection.Refused):
+                inspection.home_failure_diagnostic(broken)
+        for delta in (dict(screen='home-rest'), dict(theme='dark'), dict(line=1)):
+            with self.subTest(delta=delta), self.assertRaises(inspection.Refused):
+                inspection.home_failure_diagnostic(dict(base, **delta))
+        with self.assertRaises(inspection.Refused):
+            inspection.entry_failure(dict(stage='home_catalog',
+                code='wallet-recipe-other', diagnostic=valid))
+
     def test_non_ci_admission_refuses_before_profile_sdk_or_process_allocation(self):
         with mock.patch.object(inspection.subprocess, 'Popen', side_effect=AssertionError('No process')) as process, \
                 mock.patch.object(Path, 'mkdir', side_effect=AssertionError('No scratch')) as mkdir, \

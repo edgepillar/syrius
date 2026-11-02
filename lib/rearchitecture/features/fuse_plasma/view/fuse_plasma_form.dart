@@ -303,30 +303,9 @@ class _FusePlasmaFormState extends State<FusePlasmaForm> {
                             order: const NumericFocusOrder(6),
                             child: KeyedSubtree(
                               key: const Key('fuse_plasma_submit_button'),
-                              child: Theme(
-                                data: theme.copyWith(
-                                  visualDensity: VisualDensity.standard,
-                                ),
-                                child: LoadingButton(
-                                  key: widget.buttonKey,
-                                  minimumSize: Size(
-                                    104,
-                                    tokens.plasmaFuseActionHeight,
-                                  ),
-                                  paddingAroundChild: EdgeInsets.symmetric(
-                                    horizontal:
-                                        tokens.plasmaFuseFormPadding
-                                            .horizontal / 2,
-                                  ),
-                                  circularBorderRadius: tokens.pillRadius,
-                                  onPressed: inputValid && isCurrent()
-                                      ? submit
-                                      : null,
-                                  child: _ActionAmount(
-                                    amount: widget.amount,
-                                    decimals: widget.decimals,
-                                  ),
-                                ),
+                              child: _buildSubmitButton(
+                                context,
+                                inputValid && isCurrent() ? submit : null,
                               ),
                             ),
                           ),
@@ -362,6 +341,53 @@ class _FusePlasmaFormState extends State<FusePlasmaForm> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubmitButton(
+    BuildContext context,
+    VoidCallback? onPressed,
+  ) {
+    final AppTokens tokens = AppTokens.of(context);
+    final ThemeData theme = Theme.of(context);
+    final ButtonStyle style =
+        (theme.outlinedButtonTheme.style ?? const ButtonStyle()).copyWith(
+          backgroundColor: const WidgetStatePropertyAll<Color>(
+            Colors.transparent,
+          ),
+        );
+    return Theme(
+      data: theme.copyWith(
+        visualDensity: VisualDensity.standard,
+        outlinedButtonTheme: OutlinedButtonThemeData(style: style),
+      ),
+      child: Opacity(
+        opacity: onPressed == null ? tokens.disabledOpacity : 1,
+        child: DecoratedBox(
+          decoration: ShapeDecoration(
+            gradient: tokens.plasma,
+            shape: const StadiumBorder(),
+          ),
+          child: LoadingButton(
+            key: widget.buttonKey,
+            minimumSize: Size(104, tokens.plasmaFuseActionHeight),
+            paddingAroundChild: EdgeInsets.symmetric(
+              horizontal: tokens.plasmaFuseFormPadding.horizontal / 2,
+            ),
+            circularBorderRadius: tokens.pillRadius,
+            borderWidth: 0,
+            outlineColor: Colors.transparent,
+            textStyle: tokens.buttonText.copyWith(
+              color: tokens.primaryButtonForeground,
+            ),
+            onPressed: onPressed,
+            child: _ActionAmount(
+              amount: widget.amount,
+              decimals: widget.decimals,
+            ),
+          ),
         ),
       ),
     );
@@ -423,29 +449,39 @@ class _FusePlasmaFormState extends State<FusePlasmaForm> {
       child: _buildMenu(
         context,
         isCurrent,
-        child: InputDecorator(
-          decoration: const InputDecoration(),
-          child: Row(
-            children: <Widget>[
-              Expanded(
-                child: Tooltip(
-                  message: chosen.address,
-                  child: Text(
-                    chosen.label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textDirection: chosen.isAddress ? TextDirection.ltr : null,
-                    style: chosen.isAddress ? tokens.dataText : tokens.bodyText,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            minHeight: tokens.plasmaFuseActionHeight,
+          ),
+          child: InputDecorator(
+            textAlignVertical: TextAlignVertical.center,
+            decoration: const InputDecoration(),
+            child: Row(
+              children: <Widget>[
+                Expanded(
+                  child: Tooltip(
+                    message: chosen.address,
+                    child: Text(
+                      chosen.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textDirection: chosen.isAddress
+                          ? TextDirection.ltr
+                          : null,
+                      style: chosen.isAddress
+                          ? tokens.dataText
+                          : tokens.bodyText,
+                    ),
                   ),
                 ),
-              ),
-              SizedBox(width: tokens.inlineGap),
-              Text(
-                context.l10n.plasmaFuseAnotherAddress,
-                style: tokens.plasmaFuseHintText,
-              ),
-              Icon(Icons.expand_more, size: tokens.heroIconSize),
-            ],
+                SizedBox(width: tokens.inlineGap),
+                Text(
+                  context.l10n.plasmaFuseAnotherAddress,
+                  style: tokens.plasmaFuseHintText,
+                ),
+                Icon(Icons.expand_more, size: tokens.heroIconSize),
+              ],
+            ),
           ),
         ),
       ),
@@ -525,6 +561,9 @@ class _ActionAmount extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
+    final TextStyle actionText = tokens.buttonText.copyWith(
+      color: tokens.primaryButtonForeground,
+    );
     const String marker = '\uFFFC';
     final String label = context.l10n.plasmaFuseAction(marker);
     final int index = label.indexOf(marker);
@@ -538,13 +577,13 @@ class _ActionAmount extends StatelessWidget {
             child: AmountText(
               amount,
               decimals: decimals,
-              style: monoStyle(tokens.buttonText),
+              style: monoStyle(actionText),
             ),
           ),
           TextSpan(text: label.substring(index + marker.length)),
         ],
       ),
-      style: tokens.buttonText,
+      style: actionText,
     );
   }
 }

@@ -13,13 +13,21 @@ typedef AboutLicenceLoader = Stream<LicenseEntry> Function();
 /// The actual licence registry, with one row per package or bundled font.
 class Licences extends StatefulWidget {
   /// The owner supplies a bounded height and optional end-of-list content.
-  const Licences({this.loadLicences, this.trailingBuilder, super.key});
+  const Licences({
+    this.loadLicences,
+    this.trailingBuilder,
+    this.preserveEndOnReveal = false,
+    super.key,
+  });
 
   /// Null uses Flutter's registry, including the startup font registrations.
   final AboutLicenceLoader? loadLicences;
 
   /// Built after the final licence, following a complete registry read.
   final WidgetBuilder? trailingBuilder;
+
+  /// On the reveal transition, retain a previously reached real list end.
+  final bool preserveEndOnReveal;
 
   @override
   State<Licences> createState() => _LicencesState();
@@ -43,7 +51,32 @@ class _LicencesState extends State<Licences> {
     super.didUpdateWidget(oldWidget);
     if (!identical(oldWidget.loadLicences, widget.loadLicences)) {
       _read();
+    } else if (widget.preserveEndOnReveal &&
+        !oldWidget.preserveEndOnReveal) {
+      _keepReachedEnd();
     }
+  }
+
+  void _keepReachedEnd() {
+    if (!_scroll.hasClients) return;
+    final ScrollPosition position = _scroll.position;
+    if (!position.hasContentDimensions ||
+        position.extentAfter > 0 ||
+        position.isScrollingNotifier.value) {
+      return;
+    }
+    final int epoch = _epoch;
+    final double offset = position.pixels;
+    WidgetsBinding.instance.addPostFrameCallback((Duration _) {
+      if (mounted &&
+          epoch == _epoch &&
+          _scroll.hasClients &&
+          identical(position, _scroll.position) &&
+          position.pixels == offset &&
+          !position.isScrollingNotifier.value) {
+        position.jumpTo(position.maxScrollExtent);
+      }
+    });
   }
 
   void _read() {
@@ -221,6 +254,7 @@ class _LicenceRow extends StatelessWidget {
               ? context.l10n.aboutUnknown
               : package.name,
           keyPrefix: 'about_licence_${package.name}',
+          headerMinHeight: tokens.aboutLicenceRowHeight,
           child: Padding(
             padding: tokens.cardPadding,
             child: Column(

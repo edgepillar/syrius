@@ -115,6 +115,7 @@ class Disclosure extends StatefulWidget {
     this.onChanged,
     this.controller,
     this.keyPrefix,
+    this.headerMinHeight = _kHeaderHeight,
     super.key,
   });
 
@@ -127,6 +128,7 @@ class Disclosure extends StatefulWidget {
     this.initiallyOpen = false,
     this.keepAlive = false,
     this.onChanged,
+    this.headerMinHeight = _kHeaderHeight,
     super.key,
   }) : title = null,
        count = null,
@@ -175,6 +177,9 @@ class Disclosure extends StatefulWidget {
 
   /// Gives the header `ValueKey('<keyPrefix>_toggle')`, for the UI harness.
   final String? keyPrefix;
+
+  /// The header can grow for text; other disclosures keep the default.
+  final double headerMinHeight;
 
   @override
   State<Disclosure> createState() => _DisclosureState();
@@ -333,6 +338,7 @@ class _DisclosureState extends State<Disclosure> with TickerProviderStateMixin {
                   ? null
                   : ValueKey<String>('${widget.keyPrefix}_toggle'),
               title: title,
+              minHeight: widget.headerMinHeight,
               count: widget.count,
               summary: widget.summary,
               turned: _turned,
@@ -396,6 +402,7 @@ class _DisclosureHeader extends StatefulWidget {
   const _DisclosureHeader({
     required this.toggleKey,
     required this.title,
+    required this.minHeight,
     required this.count,
     required this.summary,
     required this.turned,
@@ -404,6 +411,7 @@ class _DisclosureHeader extends StatefulWidget {
   });
 
   final Key? toggleKey;
+  final double minHeight;
   final String title;
   final int? count;
   final String? summary;
@@ -481,7 +489,7 @@ class _DisclosureHeaderState extends State<_DisclosureHeader> {
               borderRadius: BorderRadius.circular(tokens.cardRadius),
             ),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: _kHeaderHeight),
+              constraints: BoxConstraints(minHeight: widget.minHeight),
               child: Padding(
                 padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 12, 0),
                 child: Row(

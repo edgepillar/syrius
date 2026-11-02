@@ -56,7 +56,7 @@ class _InspectionInstance extends cli.Instance {
     void Function(ScreenCaptureObservation step)? onStep,
   }) => switch (family) {
     'home' => captureReadonlyHomeGotoStates(
-      repository: Directory(cli.repo), session: _session,
+      repository: Directory(cli.repo), session: _session, onStep: onStep,
     ),
     'settings' => captureReadonlySettingsDefaults(
       repository: Directory(cli.repo), session: _session, onStep: onStep,
@@ -284,7 +284,11 @@ Future<void> main() async {
       Map<String, Object>? diagnostic = error is WalletRecipeRefused
           ? walletRecipePublicDiagnostic(error.diagnostic)
           : error is cli.WalletTourFailure ? error.diagnostic : null;
-      if (stage == 'details_catalog') {
+      if (stage == 'home_catalog') {
+        diagnostic = readonlyHomeFailureDiagnostic(lastCatalogStep,
+          reply: screenCaptureReplyOf(error),
+        );
+      } else if (stage == 'details_catalog') {
         diagnostic = readonlyDetailsFailureDiagnostic(lastCatalogStep,
           reply: screenCaptureReplyOf(error),
         );

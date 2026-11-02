@@ -878,6 +878,15 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The licence registry remains scrollable in a short window.
   double get aboutLicencesMinHeight => 220;
 
+  /// A package disclosure keeps the reference table row's minimum.
+  double get aboutLicenceRowHeight => 40;
+
+  /// Two genuine final rows and the existing end hook precede Originals.
+  double get aboutOriginalsLicencesHeight =>
+      2 * aboutLicenceRowHeight +
+      originalsDiscoveryHeight +
+      originalsDiscoveryPadding.vertical;
+
   /// Separation between Apps rows and grouped connection facts.
   double get appsSettingsGap => 12;
 
@@ -905,7 +914,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
 
   /// Internal padding of the original artwork card.
   EdgeInsetsDirectional get originalsBodyPadding =>
-      const EdgeInsetsDirectional.all(16);
+      const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 12);
 
   /// Space between the six large originals.
   double get originalsTileGap => 12;

@@ -120,13 +120,17 @@ class _AboutCardState extends State<AboutCard> {
     final AppTokens tokens = AppTokens.of(context);
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
-        final double licencesHeight = math.max(
-          tokens.aboutLicencesMinHeight,
-          constraints.hasBoundedHeight
-              ? constraints.maxHeight -
-                    3 * (tokens.aboutGroupHeaderHeight + tokens.pageGap)
-              : tokens.aboutLicencesMinHeight,
-        );
+        final bool revealed = widget.afterLicences != null;
+        final double licencesHeight = revealed
+            ? tokens.aboutOriginalsLicencesHeight
+            : math.max(
+                tokens.aboutLicencesMinHeight,
+                constraints.hasBoundedHeight
+                    ? constraints.maxHeight -
+                          3 * tokens.aboutGroupHeaderHeight -
+                          2 * tokens.pageGap
+                    : tokens.aboutLicencesMinHeight,
+              );
         return SettingsSection(
           key: const Key('about_page'),
           children: <Widget>[
@@ -142,29 +146,47 @@ class _AboutCardState extends State<AboutCard> {
                 child: _buildComputer(tokens),
               ),
             ),
-            Panel(
-              key: const Key('about_licences'),
-              child: Disclosure(
-                title: context.l10n.aboutLicences,
-                keyPrefix: 'about_licences',
-                keepAlive: true,
-                onChanged: (bool open) {
-                  if (open && !_licencesOpened) {
-                    setState(() => _licencesOpened = true);
-                  }
-                },
-                child: _licencesOpened
-                    ? SizedBox(
-                        height: licencesHeight,
-                        child: Licences(
-                          loadLicences: widget.loadLicences,
-                          trailingBuilder: widget.licencesTrailingBuilder,
-                        ),
-                      )
-                    : const SizedBox.shrink(),
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: revealed && constraints.hasBoundedHeight
+                    ? constraints.maxHeight
+                    : 0,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Panel(
+                    key: const Key('about_licences'),
+                    child: Disclosure(
+                      title: context.l10n.aboutLicences,
+                      keyPrefix: 'about_licences',
+                      keepAlive: true,
+                      onChanged: (bool open) {
+                        if (open && !_licencesOpened) {
+                          setState(() => _licencesOpened = true);
+                        }
+                      },
+                      child: _licencesOpened
+                          ? SizedBox(
+                              height: licencesHeight,
+                              child: Licences(
+                                loadLicences: widget.loadLicences,
+                                trailingBuilder:
+                                    widget.licencesTrailingBuilder,
+                                preserveEndOnReveal: revealed,
+                              ),
+                            )
+                          : const SizedBox.shrink(),
+                    ),
+                  ),
+                  if (revealed) ...<Widget>[
+                    SizedBox(height: tokens.pageGap),
+                    widget.afterLicences!,
+                  ],
+                ],
               ),
             ),
-            if (widget.afterLicences != null) widget.afterLicences!,
           ],
         );
       },
