@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:material_ui/material_ui.dart' show TextButton;
+import 'package:material_ui/material_ui.dart' show InputDecorator, TextButton;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/motion/rise_switcher.dart';
 import 'package:zenon_syrius_wallet_flutter/seams/seam.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/original_publications.dart';
@@ -16,6 +16,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/help_widgets
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/help_widgets/originals_card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/node_settings_presenter.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/node_settings_view.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/settings_switch.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/wallet_settings_presenter.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/wallet_settings_view.dart';
 
@@ -29,6 +30,7 @@ import '../../harness/bin/screen_capture.dart';
 
 import '../settings_about_redesign/support.dart' as about_fixture;
 import '../settings_node_redesign/support.dart' as node_fixture;
+import '../settings_wallet_redesign/support.dart' as wallet_fixture;
 
 class _Scope {
   final Object sdk = Object();
@@ -358,6 +360,84 @@ void main() {
         expect(source.calls, before);
         await tester.pump(const Duration(milliseconds: 400));
         expect(find.byType(NodeSettingsView), findsNothing);
+        expect(tester.takeException(), isNull);
+      } finally {
+        await tester.pumpWidget(const SizedBox.shrink());
+        await presenter.close();
+        show.dispose();
+      }
+    }
+  });
+
+  testWidgets('nested page entrances restore Wallet focus authority', (
+    WidgetTester tester,
+  ) async {
+    about_fixture.prepareAboutViewport(tester);
+    final _Scope scope = _Scope();
+    await scope.open();
+    for (final bool light in <bool>[false, true]) {
+      final wallet_fixture.WalletSettingsFixture source =
+          wallet_fixture.WalletSettingsFixture();
+      final WalletSettingsPresenter presenter =
+          WalletSettingsPresenter(binding: source.bind());
+      final ValueNotifier<bool> show = ValueNotifier<bool>(false);
+      final Widget section = RiseSwitcher(
+        child: WalletSettingsView(
+          presenter: presenter,
+          isCurrent: () => true,
+          onDeleteCache: (_) => fail('No maintenance action is requested'),
+          onResetWallet: (_) => fail('No reset action is requested'),
+        ),
+      );
+      SettingsSwitch auto() => tester.widget<SettingsSwitch>(
+        find.byKey(const Key('wallet_settings_autoReceive')),
+      );
+      try {
+        await tester.pumpWidget(about_fixture.aboutHost(
+          ValueListenableBuilder<bool>(
+            valueListenable: show,
+            builder: (BuildContext context, bool visible, Widget? _) =>
+                RiseSwitcher(
+                  child: KeyedSubtree(
+                    key: ValueKey<bool>(visible),
+                    child: visible ? section : const SizedBox.shrink(),
+                  ),
+                ),
+          ),
+          light: light, width: 992, height: 674,
+        ));
+        show.value = true;
+        await tester.pump();
+        final State<StatefulWidget> owner = tester.state(
+          find.byType(WalletSettingsView),
+        );
+        expect(find.byType(RiseSwitcher), findsNWidgets(2));
+        expect(presenter.state.available, isTrue);
+        expect(auto().onChanged, isNull);
+        await tester.pump(const Duration(milliseconds: 400));
+        for (int frame = 0;
+            frame < 100 && auto().onChanged == null; frame++) {
+          await tester.pump(const Duration(milliseconds: 10));
+        }
+        expect(tester.state(find.byType(WalletSettingsView)), same(owner));
+        expect(auto().onChanged, isNotNull);
+        final Map<String, Object?> observed =
+            await scope.agent.commandForTest(<String, dynamic>{
+          'cmd': 'assert', 'key': 'wallet_settings_autoReceive',
+        });
+        expect(observed['asserted'], isTrue);
+        final ValueChanged<bool> retained = auto().onChanged!;
+        show.value = false;
+        await tester.pump();
+        await tester.pump();
+        retained(false);
+        await tester.pump();
+        expect(source.store.writes, isEmpty);
+        expect(source.effects, isEmpty);
+        expect(source.notices, isEmpty);
+        expect(OriginalPublications.snapshot(scope.sdk), isEmpty);
+        await tester.pump(const Duration(milliseconds: 400));
+        expect(find.byType(WalletSettingsView), findsNothing);
         expect(tester.takeException(), isNull);
       } finally {
         await tester.pumpWidget(const SizedBox.shrink());
@@ -925,6 +1005,23 @@ void main() {
         expect(registryReads, 1);
         await tester.pump();
         expect(find.byKey(const Key('originals_card')), findsOneWidget);
+        for (int frame = 0; frame < 4; frame++) {
+          await tester.pump();
+        }
+        final Finder discoveryEditable = find.descendant(
+          of: find.byKey(const Key('originals_discovery_field')),
+          matching: find.byType(EditableText),
+        );
+        final RenderBox? container = InputDecorator.containerOf(
+          tester.element(discoveryEditable),
+        );
+        expect(container, isNotNull);
+        final Rect painted = container!.localToGlobal(Offset.zero) &
+            container.size;
+        final Rect compactList = tester.getRect(list);
+        expect(compactList.contains(painted.topLeft), isTrue);
+        expect(compactList.contains(painted.bottomRight - const Offset(1, 1)),
+          isTrue);
         // Prepare a genuinely clipped card at the new compact geometry.
         viewportHeight.value = 500;
         await tester.pump();

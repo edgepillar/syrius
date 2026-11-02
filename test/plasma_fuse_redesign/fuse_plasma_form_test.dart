@@ -294,6 +294,17 @@ void main() {
         tester.getRect(find.byKey(_amount)).top,
         closeTo(tester.getRect(find.byKey(_menu)).top, 1),
       );
+      final Finder beneficiary = find.descendant(
+        of: find.byKey(_menu), matching: find.byType(InputDecorator),
+      );
+      final Finder row = find.descendant(
+        of: beneficiary, matching: find.byType(Row),
+      ).first;
+      final RenderBox? container = InputDecorator.containerOf(
+        tester.element(row),
+      );
+      expect(container, isNotNull);
+      expect(container!.size.height, closeTo(42, .5));
       expect(fixture.authority!(), isTrue);
       expect(fixture.firstAuthority!(), isFalse);
       await _pick(tester, const Key('fuse_plasma_another_address_option'));

@@ -582,11 +582,12 @@ class _ReceivePopulatedState extends State<ReceivePopulated>
           controller: _amountController,
           focusNode: _amountFocus,
           textAlignVertical: TextAlignVertical.center,
-          style: tokens.receiveAmountText,
+          style: tokens.receiveAmountText.copyWith(height: 1.2),
           textDirection: TextDirection.ltr,
           textAlign: ltrTextAlign(context),
           decoration: InputDecoration(
             hintText: context.l10n.amount,
+            contentPadding: tokens.transferFieldPadding,
             errorMaxLines: 3,
             errorText:
                 refusal ??
@@ -631,6 +632,13 @@ class _ReceivePopulatedState extends State<ReceivePopulated>
 
   Widget _buildTokenPicker(AppTokens tokens) => DropdownMenu<Token>(
     key: const Key('receive_token_picker'),
+    inputDecorationTheme: _buildInputTheme(tokens).copyWith(
+      contentPadding: tokens.transferFieldPadding,
+      suffixIconConstraints: BoxConstraints.tightFor(
+        width: 34,
+        height: tokens.fieldHeight,
+      ),
+    ),
     controller: _tokenController,
     initialSelection: _selectedToken,
     expandedInsets: EdgeInsets.zero,

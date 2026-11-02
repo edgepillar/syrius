@@ -102,8 +102,8 @@ class _LicencesState extends State<Licences> {
         finish();
         return;
       }
-      // Confirm after layout, when lazily measured extents may have changed.
-      if ((corrections > 0 && position.extentAfter == 0) || corrections == 4) {
+      // Keep the bounded observations: a lazy extent can look final early.
+      if (corrections == 4) {
         finish();
         return;
       }

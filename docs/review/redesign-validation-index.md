@@ -136,3 +136,7 @@ A prior successful run remains bound to its original source and scope.
 - [Source327 original reader-count failure](source327-original-reader-count-failure.md): one original discovery failure among 940 controls/three skips, before SDK setup and with zero artifacts; a local three-case negative control reproduces the 105/104 mismatch.
 - [Source328 reader correspondence](source328-reader-count-correspondence.md): only the gate and existing fixtures change to 105, with current-total acceptance, retained stale-count/privacy counterexamples and 25 memory passes. Source327 UI and every fresh hosted scope remain pending.
 - [Frozen PR body270](pr-body-270.md): exact 3488 bytes, SHA-256 09b25a1b78633530cb55f265cc9acfbb13419279cad492e1afdc2379ce9b64d7; all three submitted URLs retained.
+
+- [Source328 Windows and Details results](source328-windows-and-details-results.md): eleven terminal runs, 826 focused and 4,880 full passes/one skip, normal Debug/Release, two positive native families, preserved Home/Settings failures and a closed ten-image/ten-reference review with sixteen findings and zero matches.
+- [Source329 Wallet focus and painted fields](source329-wallet-focus-and-painted-fields.md): ancestor focus observation, actual decorated-container measurements and all four bounded licence observations, with one new real-view regression, 25 memory passes and fresh hosted qualification pending.
+- [Frozen PR body271](pr-body-271.md): exact 3313 bytes, SHA-256 ee74b5674b6da53f6a592029f38844e3fc4df465b7a9a35008936048cd6c2be8; all three submitted URLs retained.

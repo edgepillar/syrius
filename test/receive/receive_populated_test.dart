@@ -376,6 +376,19 @@ void main() {
         expect(copies, <String>[_first]);
         await _toggleRequest(tester);
         final Finder amount = find.byKey(const Key('receive_amount_field'));
+        for (final Finder control in <Finder>[
+          amount,
+          find.byKey(const Key('receive_token_picker')),
+        ]) {
+          final Finder editable = find.descendant(
+            of: control, matching: find.byType(EditableText),
+          ).first;
+          final RenderBox? container = InputDecorator.containerOf(
+            tester.element(editable),
+          );
+          expect(container, isNotNull);
+          expect(container!.size.height, closeTo(42, .5));
+        }
         await tester.enterText(amount, '12.5');
         tester
             .widget<DropdownMenu<String>>(

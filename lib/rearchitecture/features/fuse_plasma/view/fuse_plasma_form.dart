@@ -456,7 +456,11 @@ class _FusePlasmaFormState extends State<FusePlasmaForm> {
           ),
           child: InputDecorator(
             textAlignVertical: TextAlignVertical.center,
-            decoration: const InputDecoration(),
+            decoration: InputDecoration(
+              contentPadding: tokens.transferFieldPadding.add(
+                const EdgeInsetsDirectional.symmetric(vertical: 1),
+              ),
+            ),
             child: Row(
               children: <Widget>[
                 Expanded(

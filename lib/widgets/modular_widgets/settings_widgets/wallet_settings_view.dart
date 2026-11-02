@@ -48,6 +48,7 @@ class _WalletSettingsViewState extends State<WalletSettingsView>
   bool _visible = true;
   bool _windowActive = true;
   FocusNode? _parentFocus;
+  final Set<FocusNode> _focusSources = Set<FocusNode>.identity();
   ModalRoute<dynamic>? _route;
 
   bool get _focusAllowsInput =>
@@ -83,8 +84,36 @@ class _WalletSettingsViewState extends State<WalletSettingsView>
   void didChangeDependencies() {
     super.didChangeDependencies();
     _parentFocus = Focus.maybeOf(context, scopeOk: true);
+    _watchFocusSources();
     _route = ModalRoute.of(context);
     _setVisible(_sourceVisible && TickerMode.valuesOf(context).enabled);
+  }
+
+  void _watchFocusSources() {
+    final Set<FocusNode> next = Set<FocusNode>.identity();
+    final FocusNode? focus = _parentFocus;
+    if (focus != null) {
+      next
+        ..add(focus)
+        ..addAll(focus.ancestors);
+    }
+    for (final FocusNode source in _focusSources.difference(next)) {
+      source.removeListener(_focusVisibilityChanged);
+    }
+    for (final FocusNode source in next.difference(_focusSources)) {
+      source.addListener(_focusVisibilityChanged);
+    }
+    _focusSources
+      ..clear()
+      ..addAll(next);
+  }
+
+  void _focusVisibilityChanged() {
+    if (!mounted) return;
+    _watchFocusSources();
+    final bool visible =
+        _sourceVisible && TickerMode.valuesOf(context).enabled;
+    if (_visible != visible) setState(() => _setVisible(visible));
   }
 
   void _setVisible(bool visible) {
@@ -122,6 +151,10 @@ class _WalletSettingsViewState extends State<WalletSettingsView>
     _sourceEpoch++;
     _maintenanceEpoch++;
     WidgetsBinding.instance.removeObserver(this);
+    for (final FocusNode source in _focusSources) {
+      source.removeListener(_focusVisibilityChanged);
+    }
+    _focusSources.clear();
     _maintenance
       ..removeListener(_maintenanceChanged)
       ..dispose();
