@@ -236,6 +236,10 @@ void main() {
           revealed.value = true;
           await tester.pump();
           await tester.pump();
+          // Observe the bounded layout corrections without advancing clocks.
+          for (int frame = 0; frame < 4; frame++) {
+            await tester.pump();
+          }
           expect(tester.element(find.byType(Licences)), same(listOwner));
           expect(reads, 1);
           expect(position.extentAfter, 0);

@@ -40,6 +40,7 @@ class _LicencesState extends State<Licences> {
   int _epoch = 0;
   int _scrollRevision = 0;
   bool _wasAtEnd = false;
+  Object? _endRequest;
   bool _failed = false;
 
   @override
@@ -57,6 +58,8 @@ class _LicencesState extends State<Licences> {
     } else if (widget.preserveEndOnReveal &&
         !oldWidget.preserveEndOnReveal) {
       _keepReachedEnd();
+    } else if (!widget.preserveEndOnReveal) {
+      _endRequest = null;
     }
   }
 
@@ -79,21 +82,58 @@ class _LicencesState extends State<Licences> {
       return;
     }
     final int epoch = _epoch;
-    final int revision = _scrollRevision;
-    WidgetsBinding.instance.addPostFrameCallback((Duration _) {
-      if (mounted &&
+    final Object request = Object();
+    _endRequest = request;
+    int revision = _scrollRevision;
+    int corrections = 0;
+    bool current() => mounted &&
+          identical(_endRequest, request) &&
+          widget.preserveEndOnReveal &&
           epoch == _epoch &&
           _scroll.hasClients &&
           identical(position, _scroll.position) &&
           _scrollRevision == revision &&
-          !position.isScrollingNotifier.value) {
-        position.jumpTo(position.maxScrollExtent);
+          !position.isScrollingNotifier.value;
+    void finish() {
+      if (identical(_endRequest, request)) _endRequest = null;
+    }
+    void restore(Duration _) {
+      if (!current()) {
+        finish();
+        return;
       }
-    });
+      // Confirm after layout, when lazily measured extents may have changed.
+      if ((corrections > 0 && position.extentAfter == 0) || corrections == 4) {
+        finish();
+        return;
+      }
+      final double target = position.maxScrollExtent;
+      if (!target.isFinite) {
+        finish();
+        return;
+      }
+      final int expected = revision + (position.pixels == target ? 0 : 1);
+      position.jumpTo(target);
+      // Only this jump may advance the lease; a reentrant movement revokes it.
+      if (_scrollRevision != expected || position.pixels != target) {
+        finish();
+        return;
+      }
+      revision = expected;
+      corrections++;
+      if (!current()) {
+        finish();
+        return;
+      }
+      WidgetsBinding.instance.addPostFrameCallback(restore);
+      WidgetsBinding.instance.ensureVisualUpdate();
+    }
+    WidgetsBinding.instance.addPostFrameCallback(restore);
   }
 
   void _read() {
     _wasAtEnd = false;
+    _endRequest = null;
     final int epoch = ++_epoch;
     unawaited(_subscription?.cancel());
     _subscription = null;
@@ -161,6 +201,7 @@ class _LicencesState extends State<Licences> {
   @override
   void dispose() {
     _epoch++;
+    _endRequest = null;
     unawaited(_subscription?.cancel());
     _scroll.removeListener(_scrolled);
     _scroll.dispose();
