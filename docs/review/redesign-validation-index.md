@@ -148,3 +148,7 @@ A prior successful run remains bound to its original source and scope.
 - [Source330 original painted-footer failure](source330-original-painted-footer-failure.md): passing visible-trailing and Wallet cases, one genuine-trigger containment failure, clean analysis and unexecuted later scopes; the separate scaled assertion issue remains source-review evidence.
 - [Source331 discovery event order](source331-discovery-event-order.md): synchronous clearing and one-frame reveal with original ownership and newer-input revocation, extended existing cases and a scale-aware Plasma assertion; 25 memory controls pass with fresh hosted gates pending.
 - [Frozen PR body273](pr-body-273.md): exact 3078 bytes, SHA-256 e7bfa54dbb1ffd786160d54aa24dd93cdb90052042c8c9c0cdc2cce298134a1d; all three submitted URLs retained.
+
+- [Source331 focused results](source331-focused-results.md): 827 independently qualified cases, passing genuine-trigger painted footer and clean analysis; direct Originals cases were unselected and broader scopes remain unexecuted.
+- [Source332 Originals selection](source332-originals-selection.md): the corrected same-frame driver, ten existing cases added to focused tests and analysis, 837/839 expectations and 25 memory passes while preserving all earlier paths and count-refusal domains.
+- [Frozen PR body274](pr-body-274.md): exact 3063 bytes, SHA-256 8beeb1d536f48bac6fb39cc8d9173b6134a0d7f1cf7b013e4cf1ee4e7ce2f516; all three submitted URLs retained.

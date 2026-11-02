@@ -281,6 +281,7 @@ def main():
             'test/receive/receive_populated_test.dart',
             'test/harness/selection_context_revision_test.dart',
             'test/harness/wallet_recipe_test.dart',
+            'test/originals/originals_test.dart',
             *(['test/launch_film/launch_asset_test.dart'] if asset_fidelity else [])
         ]
         first = 1
@@ -320,7 +321,7 @@ def main():
                 debug.need(debug.entry.source_tree(repo, parent) == tree, 'SOURCE_REFUSED')
             first += len(group)
         counts = combined_counts(report['commands'], selected_tests)
-        debug.need(counts['passed'] == (829 if asset_fidelity else 827), 'TESTS_FAILED')
+        debug.need(counts['passed'] == (839 if asset_fidelity else 837), 'TESTS_FAILED')
         report['counts'] = counts
         if asset_fidelity:
             report['launch_asset_fidelity'] = True

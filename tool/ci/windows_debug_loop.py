@@ -551,6 +551,7 @@ def analyze(parent, repo):
         'harness/app/presentation_mode.dart',
         'test/harness/readonly_native_mode_test.dart',
         'test/harness/readonly_native_agent_test.dart',
+        'test/originals/originals_test.dart',
         'harness/app/readonly_wallet_admission.dart',
         'harness/app/readonly_wallet_binding.dart',
         'test/harness/readonly_wallet_admission_test.dart',

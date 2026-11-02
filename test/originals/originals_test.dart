@@ -98,7 +98,8 @@ void main() {
     expect(source.revealed, isFalse);
     current = true;
     await tester.enterText(field, '321');
-    await tester.enterText(field, '3');
+    tester.testTextInput.enterText('3');
+    await tester.idle();
     await tester.pump();
     expect(source.revealed, isFalse);
     expect(widget.controller!.text, '3');
