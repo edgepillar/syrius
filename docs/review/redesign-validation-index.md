@@ -178,3 +178,6 @@ A prior successful run remains bound to its original source and scope.
 
 - [Source337 analysis refusal and Source338 line wrap](source337-analysis-and-source338-line-wrap.md): the unretried original one-info failure, passing Python/asset gates, zero Dart execution and an exact assertion line wrap with fresh focused qualification pending.
 - [Frozen PR body281](pr-body-281.md): exact submitted description with the pinned first delivery, pending Source337 focused gate and all original acceptance boundaries retained.
+
+- [Source338 focused results](source338-focused-results.md): both complete groups independently qualify 837 passes, 940 Python controls with three existing skips, fourteen asset observations and zero strict analysis findings; the original Source337 failure and all final acceptance limits remain.
+- [Frozen PR body282](pr-body-282.md): exact submitted description of the retained Source337 refusal, corrected Source338 line wrap and pending focused run; original URLs retained.
