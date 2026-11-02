@@ -106,7 +106,7 @@ class _PageBody extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            const Expanded(child: _Mark()),
+            const Flexible(child: _Mark()),
             const Divider(),
             _OtherAddresses(
               maxHeight: height * tokens.plasmaOtherShare,
@@ -136,8 +136,11 @@ class _Mark extends StatelessWidget {
       builder: (BuildContext context, BoxConstraints constraints) {
         final AppTokens tokens = AppTokens.of(context);
         // The mark gives way before the figures do: they are what is read.
-        final double size = (constraints.maxHeight - tokens.plasmaFiguresHeight)
-            .clamp(tokens.plasmaMarkMinSize, tokens.plasmaMarkSize);
+        final double size =
+            (constraints.maxHeight -
+                    tokens.plasmaMarkPadding.vertical -
+                    tokens.plasmaFiguresHeight)
+                .clamp(tokens.plasmaMarkMinSize, tokens.plasmaMarkSize);
         // A scroll view that does not scroll: a card shorter than the least
         // mark and the figures cuts them instead of overflowing.
         return SingleChildScrollView(

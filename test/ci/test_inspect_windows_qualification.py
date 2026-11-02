@@ -249,7 +249,8 @@ class WindowsQualificationTests(unittest.TestCase):
         self.assertEqual(lines[1], '::notice title=Hosted Windows inspection refusal::' + lines[0])
 
     def _read_original(self, *, entry_change=None, entry_count=1, failed_root=False,
-                       baseline_conclusion='success', baseline_change=None, baseline_count=1):
+                       baseline_conclusion='success', baseline_change=None, baseline_count=1,
+                       log_failure=None):
         data = pixels()
         raw = package(entry_report(data), data)
         original_report = baseline()
@@ -300,6 +301,9 @@ class WindowsQualificationTests(unittest.TestCase):
 
             def read(self, url, *, redirect=False, authenticated=True, cap=262144):
                 calls.append(url)
+                if ((redirect and url.endswith('/jobs/5/logs') and log_failure == 'location')
+                        or (not redirect and url.endswith('/log') and log_failure == 'download')):
+                    raise inspect.archive.Refused('synthetic-private-context')
                 if redirect:
                     self_url = ('log' if url.endswith('/jobs/5/logs') else
                                 'entry' if url.endswith('/artifacts/7/zip') else None)
@@ -330,6 +334,26 @@ class WindowsQualificationTests(unittest.TestCase):
         self.assertEqual(len(notices), 2)
         self.assertTrue(all(len(line.partition('::')[2].encode()) < 3900 for line in notices))
         self.assertNotIn('synthetic-private-context', output)
+        for failure, phase in (('location', 'baseline_log_location'),
+                               ('download', 'baseline_log_download')):
+            with self.subTest(failure=failure):
+                status, calls, output = self._read_original(
+                    entry_change=dict(conclusion='skipped'), log_failure=failure)
+            self.assertEqual(status, 1)
+            self.assertEqual(json.loads(output.splitlines()[0])['phase'], phase)
+            self.assertFalse(any('/artifacts' in call for call in calls))
+            self.assertNotIn('synthetic-private-context', output)
+        for function, phase in (('log_report', 'baseline_log_frame'),
+                                ('baseline_projection', 'baseline_projection'),
+                                ('emit', 'baseline_notice')):
+            with self.subTest(function=function), mock.patch.object(inspect, function,
+                    side_effect=inspect.archive.Refused('synthetic-private-context')):
+                status, calls, output = self._read_original(
+                    entry_change=dict(conclusion='skipped'))
+            self.assertEqual(status, 1)
+            self.assertEqual(json.loads(output.splitlines()[0])['phase'], phase)
+            self.assertFalse(any('/artifacts' in call for call in calls))
+            self.assertNotIn('synthetic-private-context', output)
 
     def test_baseline_only_reader_keeps_original_result_without_entry_transport(self):
         status, calls, output = self._read_original(entry_change=dict(conclusion='skipped'))

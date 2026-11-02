@@ -56,7 +56,12 @@ class SecuritySettingRow extends StatelessWidget {
             children: <Widget>[
               Expanded(child: description),
               SizedBox(width: tokens.cardGap),
-              Flexible(flex: 2, child: control),
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: (constraints.maxWidth - tokens.cardGap) * 2 / 3,
+                ),
+                child: control,
+              ),
             ],
           );
         },
@@ -110,6 +115,7 @@ class SecuritySettingsButton extends StatelessWidget {
         padding: EdgeInsets.symmetric(
           horizontal: tokens.securitySettingsButtonInset,
         ),
+        visualDensity: VisualDensity.standard,
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         textStyle: data ? tokens.dataText : tokens.bodyText,
       ),

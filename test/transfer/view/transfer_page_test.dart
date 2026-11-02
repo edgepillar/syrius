@@ -372,7 +372,7 @@ void main() {
 
   for (final bool light in <bool>[false, true]) {
     testWidgets(
-      'one centered card and an established empty Receive line, light $light',
+      'one centered card shows pending only with rows, light $light',
       (WidgetTester tester) async {
         await show(tester, light: light);
         final Rect card = tester.getRect(
@@ -395,8 +395,24 @@ void main() {
           find.byKey(const Key('transfer_receive_screen')),
           findsOneWidget,
         );
+        expect(find.byKey(const Key('transfer_pending')), findsNothing);
+        expect(find.text('None yet'), findsNothing);
+        final AccountBlock incoming = _block(1);
+        pendingStates.add(_rows(<AccountBlock>[incoming]));
+        await tester.pump(const Duration(milliseconds: 300));
         expect(find.byKey(const Key('transfer_pending')), findsOneWidget);
-        expect(find.text('None yet'), findsOneWidget);
+        expect(_button(incoming), findsOneWidget);
+        expect(worker.calls, isEmpty);
+        pendingStates.add(_rows(<AccountBlock>[]));
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(find.byKey(const Key('transfer_pending')), findsNothing);
+        for (final TransferMode mode in <TransferMode>[
+          TransferMode.send, TransferMode.zap, TransferMode.receive,
+        ]) {
+          await select(tester, mode);
+          expect(find.byKey(const Key('transfer_pending')), findsNothing);
+        }
+        expect(worker.calls, isEmpty);
         expect(tester.takeException(), isNull);
       },
     );

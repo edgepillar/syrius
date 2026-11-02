@@ -170,6 +170,27 @@ void main() {
         expect(policies.width, scaled ? 500 : 992);
         expect(backup.width, policies.width);
         expect(backup.top - policies.bottom, 12);
+        final Rect action = tester.getRect(
+          find.descendant(
+            of: find.byKey(const Key('security_settings_password')),
+            matching: find.byType(TextButton),
+          ).first,
+        );
+        final AppTokens tokens = light ? AppTokens.light : AppTokens.dark;
+        if (scaled) {
+          expect(action.left, closeTo(
+            policies.left + tokens.settingsRowPadding.left, .5,
+          ));
+        } else {
+          expect(action.right, closeTo(
+            policies.right - tokens.settingsRowPadding.right, .5,
+          ));
+          expect(action.height, closeTo(
+            tokens.securitySettingsButtonHeight, .5,
+          ));
+        }
+        expect(action.height,
+          greaterThanOrEqualTo(tokens.securitySettingsButtonHeight));
         expect(source.target.calls, isEmpty);
         expect(crypto.calls, isEmpty);
         expect(find.byType(Slider), findsNothing);

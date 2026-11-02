@@ -160,3 +160,7 @@ A prior successful run remains bound to its original source and scope.
 - [Source333 original analysis failure](source333-original-analysis-failure.md): one undefined fixture constructor after passing Python/asset gates, zero Dart cases, zero artifacts and unretried original outcome.
 - [Source334 fixture constructor correction](source334-fixture-constructor-correction.md): one constructor reuses an existing import while all gate and observation assertions remain; 26 memory controls pass and fresh hosted gates remain pending.
 - [Frozen PR body276](pr-body-276.md): exact 2916 bytes, SHA-256 c14c815fe16a6f0ad1f09aabee33367ae479ac4070f5a10ce5e566bb1dd65ae7; all three submitted URLs retained.
+
+- [Source334 Windows and catalog outcomes](source334-windows-and-catalog-outcomes.md): eleven terminal originals, 837 selected passes, three independently qualified native families, original Home and Windows-reader failures, and closed 24-frame/24-reference review with zero matches.
+- [Source335 layout and reader phases](source335-layout-and-reader-phases.md): Plasma sizing, known-empty Transfer visibility, Security control geometry and bounded refusal phases; 27 memory passes and fresh hosted gates pending.
+- [Frozen PR body277](pr-body-277.md): exact 2519 bytes, SHA-256 b90251a8b16eb4467742cd131db1e605d4c2bdab4bbd82032228688caa54f389; all three submitted URLs retained.

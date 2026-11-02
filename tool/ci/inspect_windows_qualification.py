@@ -336,13 +336,19 @@ def main():
                 original_job_id=job['id'], original_job_conclusion='skipped',
                 baseline_qualified=False, baseline_logs_read=0))
         else:
-            PHASE = 'baseline_log'
+            PHASE = 'baseline_log_location'
             location = client.read(archive.API + '/actions/jobs/' + str(job['id']) + '/logs', redirect=True)
+            PHASE = 'baseline_log_download'
             raw = client.read(location, authenticated=False, cap=MAX_LOG)
-            summary = baseline_projection(log_report(raw, 'github_hosted_windows_baseline'), head, tree, run_id)
+            PHASE = 'baseline_log_frame'
+            report = log_report(raw, 'github_hosted_windows_baseline')
+            PHASE = 'baseline_projection'
+            summary = baseline_projection(report, head, tree, run_id)
+            PHASE = 'baseline_log'
             archive.need(job['conclusion'] != 'success' or summary['artifact_reported_success'])
             summary.update(original_job_id=job['id'], original_job_conclusion=job['conclusion'],
                            log_sha256=archive.sha(raw), log_bytes=len(raw), producer_sources_equal=True)
+            PHASE = 'baseline_notice'
             emit('Hosted baseline inspection', summary)
         entry_job = jobs['Ordinary Windows entry captures']
         if entry_job['conclusion'] == 'skipped':

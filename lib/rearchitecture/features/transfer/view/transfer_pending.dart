@@ -16,9 +16,7 @@ List<AccountBlock> _inboundRows(List<AccountBlock> blocks) {
 }
 
 class _TransferPending extends StatefulWidget {
-  const _TransferPending({required this.showEmpty, required this.worker});
-
-  final bool showEmpty;
+  const _TransferPending({required this.worker});
   final AutoReceiveTxWorker worker;
 
   @override
@@ -143,7 +141,7 @@ class _TransferPendingState extends State<_TransferPending> {
         );
         _rememberRows(rows);
         final bool empty = known && rows.isEmpty;
-        if (empty && !widget.showEmpty) return const SizedBox.shrink();
+        if (empty) return const SizedBox.shrink();
         final bool? autoReceive =
             sharedPrefsService?.get(
                   kAutoReceiveKey,
@@ -179,13 +177,7 @@ class _TransferPendingState extends State<_TransferPending> {
                       ],
                       SizedBox(width: tokens.cardGap),
                       const Spacer(),
-                      if (empty)
-                        Flexible(
-                          child: EmptyNote.line(
-                            text: context.l10n.noItemsFound,
-                          ),
-                        )
-                      else if (autoReceive != null)
+                      if (autoReceive != null)
                         Flexible(
                           child: DecoratedBox(
                             decoration: BoxDecoration(

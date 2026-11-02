@@ -13,7 +13,6 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/zap/zap.dart
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/eye_toggle.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/ltr.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/empty_note.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/segment.dart';
 import 'package:zenon_syrius_wallet_flutter/services/price_feed.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
@@ -276,7 +275,6 @@ class _TransferPageState extends State<TransferPage> {
                     ),
                   ),
                   _TransferPending(
-                    showEmpty: mode == TransferMode.receive,
                     worker: widget.receiveWorker ?? sl<AutoReceiveTxWorker>(),
                   ),
                 ],
