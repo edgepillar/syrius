@@ -120,3 +120,7 @@ A prior successful run remains bound to its original source and scope.
 - [Source323 original widget failures](source323-original-widget-failures.md): clean selected analysis, original 404-pass/two-failure first group, normal complete exit one and unexecuted later scope.
 - [Source324 explicit gallery and reached end](source324-explicit-gallery-and-reached-end.md): owner-supplied compact state, real idle end preparation and every prior assertion retained; 21 memory controls pass and fresh hosted qualification remains pending.
 - [Frozen PR body266](pr-body-266.md): exact 3454 bytes, SHA-256 252795e494e23231b6600a1b90164d1dcbd11710c1687a8abb124cce02b078ae; all four submitted URLs retained.
+
+- [Source324 original widget failures](source324-original-widget-failures.md): clean selected analysis, original 404-pass/two-failure first group, normal complete exit one and unexecuted later scope; exact framework pixel sequence remains unexported.
+- [Source325 scroll revision and real clipping](source325-scroll-revision-and-real-clip.md): end snapshot/revision ownership, away/intervening movement counterexamples and actual clipped fixture geometry; 21 memory controls pass and fresh hosted qualification is pending.
+- [Frozen PR body267](pr-body-267.md): exact 3765 bytes, SHA-256 2515be99c2cd6842e43cb79e8680413233211e9fcbbaad1be706f526f09d8933; all four submitted URLs retained.

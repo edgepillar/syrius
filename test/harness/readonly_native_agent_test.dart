@@ -250,6 +250,31 @@ void main() {
           await toggle('about_licence_fixture-package-00_toggle');
           expect(find.text('Fixture terms 0'), findsOneWidget);
           expect(reads, 1);
+          revealed.value = false;
+          await tester.pump();
+          await tester.pump();
+          final double awayFromEnd = position.pixels;
+          expect(position.extentAfter, greaterThan(0));
+          revealed.value = true;
+          await tester.pump();
+          await tester.pump();
+          expect(position.pixels, awayFromEnd);
+          expect(position.extentAfter, greaterThan(0));
+          revealed.value = false;
+          await tester.pump();
+          await tester.pump();
+          position.jumpTo(position.maxScrollExtent);
+          await tester.pump();
+          expect(position.extentAfter, 0);
+          // A movement after layout must revoke the earlier end request.
+          WidgetsBinding.instance.addPostFrameCallback((Duration _) {
+            position.jumpTo(0);
+          });
+          revealed.value = true;
+          await tester.pump();
+          await tester.pump();
+          expect(position.pixels, 0);
+          expect(position.extentAfter, greaterThan(0));
           expect(tester.takeException(), isNull);
         } finally {
           await tester.pumpWidget(const SizedBox.shrink());
@@ -788,8 +813,13 @@ void main() {
         final Future<AboutInformation> Function() loadInformation =
             readInformation;
         final Stream<LicenseEntry> Function() loadLicences = readLicences;
-        await tester.pumpWidget(about_fixture.aboutHost(
-          ListenableBuilder(
+        final ValueNotifier<double> viewportHeight = ValueNotifier<double>(674);
+        addTearDown(viewportHeight.dispose);
+        await tester.pumpWidget(ValueListenableBuilder<double>(
+          valueListenable: viewportHeight,
+          builder: (_, double height, Widget? child) =>
+              about_fixture.aboutHost(child!, light: light, height: height),
+          child: ListenableBuilder(
             listenable: discovery,
             builder: (BuildContext context, Widget? _) => AboutCard(
               loadInformation: loadInformation,
@@ -810,7 +840,6 @@ void main() {
                   : const SizedBox(height: 56),
             ),
           ),
-          light: light, height: 674,
         ));
         await tester.pump();
         await _driveCatalogCommand(tester, agent.commandForTest(
@@ -890,6 +919,9 @@ void main() {
         expect(registryReads, 1);
         await tester.pump();
         expect(find.byKey(const Key('originals_card')), findsOneWidget);
+        // Prepare a genuinely clipped card at the new compact geometry.
+        viewportHeight.value = 500;
+        await tester.pump();
         await expectLater(agent.commandForTest(<String, dynamic>{
           'cmd': 'wait', 'key': 'originals_card', 'timeoutMs': 0,
         }), throwsA(isA<HarnessError>()));
@@ -901,6 +933,12 @@ void main() {
         final Rect gallery = tester.getRect(
           find.byKey(const Key('originals_card')),
         );
+        final Rect currentSection = tester.getRect(
+          find.byKey(const Key('about_page')),
+        );
+        expect(currentSection.contains(gallery.topLeft), isTrue);
+        expect(currentSection.contains(
+          gallery.bottomRight - const Offset(1, 1)), isTrue);
         expect(section.contains(gallery.topLeft), isTrue);
         expect(section.contains(gallery.bottomRight - const Offset(1, 1)),
           isTrue);

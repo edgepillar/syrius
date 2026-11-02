@@ -38,11 +38,14 @@ class _LicencesState extends State<Licences> {
   StreamSubscription<LicenseEntry>? _subscription;
   List<_PackageLicence>? _packages;
   int _epoch = 0;
+  int _scrollRevision = 0;
+  bool _wasAtEnd = false;
   bool _failed = false;
 
   @override
   void initState() {
     super.initState();
+    _scroll.addListener(_scrolled);
     _read();
   }
 
@@ -57,22 +60,32 @@ class _LicencesState extends State<Licences> {
     }
   }
 
+  void _rememberEnd() {
+    if (!_scroll.hasClients || !_scroll.position.hasContentDimensions) return;
+    _wasAtEnd = _scroll.position.extentAfter == 0;
+  }
+
+  void _scrolled() {
+    _scrollRevision++;
+    _rememberEnd();
+  }
+
   void _keepReachedEnd() {
     if (!_scroll.hasClients) return;
     final ScrollPosition position = _scroll.position;
     if (!position.hasContentDimensions ||
-        position.extentAfter > 0 ||
+        !_wasAtEnd ||
         position.isScrollingNotifier.value) {
       return;
     }
     final int epoch = _epoch;
-    final double offset = position.pixels;
+    final int revision = _scrollRevision;
     WidgetsBinding.instance.addPostFrameCallback((Duration _) {
       if (mounted &&
           epoch == _epoch &&
           _scroll.hasClients &&
           identical(position, _scroll.position) &&
-          position.pixels == offset &&
+          _scrollRevision == revision &&
           !position.isScrollingNotifier.value) {
         position.jumpTo(position.maxScrollExtent);
       }
@@ -80,6 +93,7 @@ class _LicencesState extends State<Licences> {
   }
 
   void _read() {
+    _wasAtEnd = false;
     final int epoch = ++_epoch;
     unawaited(_subscription?.cancel());
     _subscription = null;
@@ -148,6 +162,7 @@ class _LicencesState extends State<Licences> {
   void dispose() {
     _epoch++;
     unawaited(_subscription?.cancel());
+    _scroll.removeListener(_scrolled);
     _scroll.dispose();
     super.dispose();
   }
@@ -197,29 +212,35 @@ class _LicencesState extends State<Licences> {
         key: const Key('about_licences_empty'),
       );
     }
-    return Scrollbar(
-      controller: _scroll,
-      thumbVisibility: true,
-      child: ListView.builder(
-        key: const Key('about_licences_list'),
+    return NotificationListener<ScrollMetricsNotification>(
+      onNotification: (ScrollMetricsNotification notification) {
+        if (notification.depth == 0) _rememberEnd();
+        return false;
+      },
+      child: Scrollbar(
         controller: _scroll,
-        primary: false,
-        itemCount: packages.length + 1,
-        itemBuilder: (BuildContext context, int index) {
-          if (index == packages.length) {
-            return KeyedSubtree(
-              key: const Key('about_licences_end'),
-              child:
-                  widget.trailingBuilder?.call(context) ??
-                  SizedBox(height: tokens.cardGap),
+        thumbVisibility: true,
+        child: ListView.builder(
+          key: const Key('about_licences_list'),
+          controller: _scroll,
+          primary: false,
+          itemCount: packages.length + 1,
+          itemBuilder: (BuildContext context, int index) {
+            if (index == packages.length) {
+              return KeyedSubtree(
+                key: const Key('about_licences_end'),
+                child:
+                    widget.trailingBuilder?.call(context) ??
+                    SizedBox(height: tokens.cardGap),
+              );
+            }
+            final _PackageLicence package = packages[index];
+            return _LicenceRow(
+              key: ValueKey<String>('about_licence_${package.name}'),
+              package: package,
             );
-          }
-          final _PackageLicence package = packages[index];
-          return _LicenceRow(
-            key: ValueKey<String>('about_licence_${package.name}'),
-            package: package,
-          );
-        },
+          },
+        ),
       ),
     );
   }
