@@ -813,7 +813,8 @@ void main() {
             'detail': <String, Object?>{'raw': 'Synthetic private diagnostic'},
           },
         );
-        await expectLater(cli.call(shotReplies, <String, Object?>{'cmd': 'shot'}),
+        await expectLater(
+          cli.call(shotReplies, <String, Object?>{'cmd': 'shot'}),
           throwsA(isA<cli.Fail>().having(screenCaptureReplyOf,
             'original shot reply', entry.value)),
         );

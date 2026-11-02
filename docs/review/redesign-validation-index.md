@@ -175,3 +175,6 @@ A prior successful run remains bound to its original source and scope.
 
 - [Source337 original capture reply categories](source337-capture-reply-categories.md): nine finite original-shot failure categories, existing schema and CLI forwarding checks, 29 passing Python memory controls and pending hosted Dart qualification; the first delivery stays pinned and the original Home cause remains unknown.
 - [Frozen PR body280](pr-body-280.md): exact 2812 bytes, SHA-256 98b8737e7f0a917379525697a7e275a9af97960473f1c6bb27397a77c3876852; all three submitted URLs retained.
+
+- [Source337 analysis refusal and Source338 line wrap](source337-analysis-and-source338-line-wrap.md): the unretried original one-info failure, passing Python/asset gates, zero Dart execution and an exact assertion line wrap with fresh focused qualification pending.
+- [Frozen PR body281](pr-body-281.md): exact submitted description with the pinned first delivery, pending Source337 focused gate and all original acceptance boundaries retained.
