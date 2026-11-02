@@ -214,7 +214,7 @@ class _LicenceRow extends StatelessWidget {
       ),
       child: Theme(
         data: theme.copyWith(
-          textTheme: theme.textTheme.copyWith(headlineSmall: tokens.dataText),
+          textTheme: theme.textTheme.copyWith(headlineSmall: tokens.bodyText),
         ),
         child: Disclosure(
           title: package.name.isEmpty

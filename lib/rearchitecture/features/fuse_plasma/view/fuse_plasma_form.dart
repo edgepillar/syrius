@@ -210,111 +210,127 @@ class _FusePlasmaFormState extends State<FusePlasmaForm> {
           children: <Widget>[
             Padding(
               padding: tokens.plasmaFuseFormPadding,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Expanded(
-                    flex: 10,
-                    child: _FieldGroup(
-                      label: context.l10n.amount,
-                      child: FocusTraversalOrder(
-                        order: const NumericFocusOrder(1),
-                        child: AmountRefusalScope(
-                          controller: widget.amountController,
-                          builder: (_, String? refusal) => TextField(
-                            key: const Key('fuse_plasma_amount_field'),
-                            controller: widget.amountController,
-                            focusNode: widget.amountFocusNode,
-                            enabled: widget.amountEnabled,
-                            style: tokens.plasmaFuseAmountText.copyWith(
-                              height: 1.2,
-                            ),
-                            textDirection: TextDirection.ltr,
-                            textAlign: ltrTextAlign(context, TextAlign.start),
-                            decoration: InputDecoration(
-                              errorText: refusal ?? widget.amountError,
-                              suffixIconConstraints: BoxConstraints(
-                                minHeight: tokens.fieldHeight,
-                              ),
-                              suffixIcon: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: <Widget>[
-                                  FocusTraversalOrder(
-                                    order: const NumericFocusOrder(3),
-                                    child: CardFieldAction(
-                                      label: context.l10n.max,
-                                      onPressed: widget.amountEnabled
-                                          ? () {
-                                              if (isCurrent()) widget.onMax();
-                                            }
-                                          : null,
-                                    ),
+              child: LayoutBuilder(
+                builder: (BuildContext context, BoxConstraints constraints) {
+                  final double availableWidth =
+                      (constraints.maxWidth - tokens.pageGap * 2)
+                          .clamp(0.0, constraints.maxWidth)
+                          .toDouble();
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Expanded(
+                        flex: 10,
+                        child: _FieldGroup(
+                          label: context.l10n.amount,
+                          child: FocusTraversalOrder(
+                            order: const NumericFocusOrder(1),
+                            child: AmountRefusalScope(
+                              controller: widget.amountController,
+                              builder: (_, String? refusal) => TextField(
+                                key: const Key('fuse_plasma_amount_field'),
+                                controller: widget.amountController,
+                                focusNode: widget.amountFocusNode,
+                                enabled: widget.amountEnabled,
+                                style: tokens.plasmaFuseAmountText.copyWith(
+                                  height: 1.2,
+                                ),
+                                textDirection: TextDirection.ltr,
+                                textAlign: ltrTextAlign(context, TextAlign.start),
+                                decoration: InputDecoration(
+                                  errorText: refusal ?? widget.amountError,
+                                  suffixIconConstraints: BoxConstraints(
+                                    minHeight: tokens.fieldHeight,
                                   ),
-                                  Padding(
-                                    padding: EdgeInsetsDirectional.only(
-                                      end: tokens.inlineGap,
-                                    ),
-                                    child: Text(
-                                      'QSR',
-                                      textDirection: TextDirection.ltr,
-                                      style: tokens.dataText.copyWith(
-                                        color: tokens.qsrInk,
+                                  suffixIcon: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: <Widget>[
+                                      FocusTraversalOrder(
+                                        order: const NumericFocusOrder(3),
+                                        child: CardFieldAction(
+                                          label: context.l10n.max,
+                                          onPressed: widget.amountEnabled
+                                              ? () {
+                                                  if (isCurrent()) widget.onMax();
+                                                }
+                                              : null,
+                                        ),
                                       ),
-                                    ),
+                                      Padding(
+                                        padding: EdgeInsetsDirectional.only(
+                                          end: tokens.inlineGap,
+                                        ),
+                                        child: Text(
+                                          'QSR',
+                                          textDirection: TextDirection.ltr,
+                                          style: tokens.dataText.copyWith(
+                                            color: tokens.qsrInk,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
+                                ),
+                                inputFormatters: const <TextInputFormatter>[
+                                  AmountInputFormatter(),
                                 ],
+                                onSubmitted: (_) => submit(),
                               ),
                             ),
-                            inputFormatters: const <TextInputFormatter>[
-                              AmountInputFormatter(),
-                            ],
-                            onSubmitted: (_) => submit(),
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                  SizedBox(width: tokens.pageGap),
-                  Expanded(
-                    flex: 14,
-                    child: _FieldGroup(
-                      label: context.l10n.plasmaFuseFor,
-                      child: _buildBeneficiary(context, isCurrent),
-                    ),
-                  ),
-                  SizedBox(width: tokens.pageGap),
-                  Flexible(
-                    flex: 12,
-                    child: _FieldGroup(
-                      label: '',
-                      child: FocusTraversalOrder(
-                        order: const NumericFocusOrder(6),
-                        child: KeyedSubtree(
-                          key: const Key('fuse_plasma_submit_button'),
-                          child: LoadingButton(
-                            key: widget.buttonKey,
-                            minimumSize: Size(
-                              104,
-                              tokens.plasmaFuseActionHeight,
-                            ),
-                            paddingAroundChild: EdgeInsets.symmetric(
-                              horizontal:
-                                  tokens.plasmaFuseFormPadding.horizontal / 2,
-                            ),
-                            circularBorderRadius: tokens.pillRadius,
-                            onPressed: inputValid && isCurrent()
-                                ? submit
-                                : null,
-                            child: _ActionAmount(
-                              amount: widget.amount,
-                              decimals: widget.decimals,
+                      SizedBox(width: tokens.pageGap),
+                      Expanded(
+                        flex: 14,
+                        child: _FieldGroup(
+                          label: context.l10n.plasmaFuseFor,
+                          child: _buildBeneficiary(context, isCurrent),
+                        ),
+                      ),
+                      SizedBox(width: tokens.pageGap),
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: availableWidth *
+                              tokens.plasmaFuseActionMaxShare,
+                        ),
+                        child: _FieldGroup(
+                          label: '',
+                          child: FocusTraversalOrder(
+                            order: const NumericFocusOrder(6),
+                            child: KeyedSubtree(
+                              key: const Key('fuse_plasma_submit_button'),
+                              child: Theme(
+                                data: theme.copyWith(
+                                  visualDensity: VisualDensity.standard,
+                                ),
+                                child: LoadingButton(
+                                  key: widget.buttonKey,
+                                  minimumSize: Size(
+                                    104,
+                                    tokens.plasmaFuseActionHeight,
+                                  ),
+                                  paddingAroundChild: EdgeInsets.symmetric(
+                                    horizontal:
+                                        tokens.plasmaFuseFormPadding.horizontal / 2,
+                                  ),
+                                  circularBorderRadius: tokens.pillRadius,
+                                  onPressed: inputValid && isCurrent()
+                                      ? submit
+                                      : null,
+                                  child: _ActionAmount(
+                                    amount: widget.amount,
+                                    decimals: widget.decimals,
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                ],
+                    ],
+                  );
+                },
               ),
             ),
             Padding(

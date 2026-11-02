@@ -40,6 +40,20 @@ ScreenCaptureReplyCode classifyScreenCaptureReply(
       _ => ScreenCaptureReplyCode.unknown,
     };
   }
+  // Only the original readonly Add wait exports these closed observations.
+  // A different selector, duration or reply keeps its unknown category.
+  if ((value == 'not ready after 0 ms' ||
+          value == 'not ready after 5000 ms') &&
+      detail is Map<Object?, Object?> &&
+      detail['key'] == 'node_settings_add' &&
+      detail.containsKey('readonly_readiness')) {
+    return switch (detail['readonly_readiness']) {
+      'missing' => ScreenCaptureReplyCode.targetMissing,
+      'disabled' => ScreenCaptureReplyCode.targetDisabled,
+      'covered' => ScreenCaptureReplyCode.targetCovered,
+      _ => ScreenCaptureReplyCode.unknown,
+    };
+  }
   return switch (value) {
     'nothing matches' || 'not there after 0 ms' =>
         ScreenCaptureReplyCode.targetMissing,

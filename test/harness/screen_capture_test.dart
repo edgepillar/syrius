@@ -705,6 +705,46 @@ void main() {
     },
   );
 
+  test('readonly Add readiness categories require the exact original reply', () {
+    final Object opaque = _OpaqueReply();
+    for (final String error in <String>[
+      'not ready after 0 ms', 'not ready after 5000 ms',
+    ]) {
+      for (final MapEntry<String, ScreenCaptureReplyCode> entry in
+          <String, ScreenCaptureReplyCode>{
+        'missing': ScreenCaptureReplyCode.targetMissing,
+        'disabled': ScreenCaptureReplyCode.targetDisabled,
+        'covered': ScreenCaptureReplyCode.targetCovered,
+        'ambiguous': ScreenCaptureReplyCode.unknown,
+        'synthetic private diagnostic': ScreenCaptureReplyCode.unknown,
+      }.entries) {
+        expect(classifyScreenCaptureReply(error, <String, Object?>{
+          'key': 'node_settings_add', 'readonly_readiness': entry.key,
+          'unrelated': opaque,
+        }), entry.value);
+      }
+    }
+    for (final Object? error in <Object?>[
+      'not ready after 1 ms', 'not ready after 5001 ms',
+      'not there after 5000 ms', opaque, null,
+    ]) {
+      expect(classifyScreenCaptureReply(error, <String, Object?>{
+        'key': 'node_settings_add', 'readonly_readiness': 'disabled',
+      }), ScreenCaptureReplyCode.unknown);
+    }
+    for (final Object? key in <Object?>['another_control', opaque, null]) {
+      expect(classifyScreenCaptureReply('not ready after 5000 ms',
+        <String, Object?>{'key': key, 'readonly_readiness': 'disabled'}),
+        ScreenCaptureReplyCode.unknown);
+    }
+    expect(classifyScreenCaptureReply('not ready after 5000 ms',
+      <String, Object?>{'key': 'node_settings_add',
+        'readonly_readiness': opaque}), ScreenCaptureReplyCode.unknown);
+    expect(classifyScreenCaptureReply('not ready after 5000 ms',
+      <String, Object?>{'key': 'node_settings_add'}),
+      ScreenCaptureReplyCode.unknown);
+  });
+
   test(
     'failure retains earlier captures and reports restore failures honestly',
     () async {

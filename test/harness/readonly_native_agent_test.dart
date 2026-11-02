@@ -292,6 +292,102 @@ void main() {
     }
   });
 
+  testWidgets('readonly Add timeouts retain their original refusal category', (
+    WidgetTester tester,
+  ) async {
+    about_fixture.prepareAboutViewport(tester);
+    final _Scope scope = _Scope();
+    await scope.open();
+    final node_fixture.FakeNodeSettingsSession source =
+        node_fixture.FakeNodeSettingsSession();
+    final NodeSettingsPresenter presenter = node_fixture.nodePresenter(source);
+    final ValueNotifier<int> phase = ValueNotifier<int>(0);
+    final Widget content = ValueListenableBuilder<int>(
+      valueListenable: phase,
+      builder: (BuildContext context, int value, Widget? _) => Stack(
+        fit: StackFit.expand,
+        children: <Widget>[
+          if (value != 3)
+            NodeSettingsView(
+              presenter: presenter,
+              isCurrent: () => value != 1,
+              embeddedNode: const SizedBox(height: 80),
+            ),
+          if (value == 2)
+            const Positioned.fill(child: AbsorbPointer(
+              child: SizedBox.expand(),
+            )),
+        ],
+      ),
+    );
+    try {
+      await tester.pumpWidget(about_fixture.aboutHost(
+        content, width: 992, height: 674,
+      ));
+      for (int frame = 0;
+          frame < 100 && presenter.currentNetwork == null; frame++) {
+        await tester.pump(const Duration(milliseconds: 10));
+      }
+      expect(presenter.currentNetwork, isNotNull);
+      await tester.pump();
+      final Map<String, Object?> ready = await scope.agent.commandForTest(
+        <String, dynamic>{'cmd': 'wait', 'key': 'node_settings_add',
+          'ready': true, 'timeoutMs': 0},
+      );
+      expect((ready['target']! as Map<String, Object?>)['key'],
+        'node_settings_add');
+      const List<ScreenCaptureReplyCode> expected = <ScreenCaptureReplyCode>[
+        ScreenCaptureReplyCode.targetDisabled,
+        ScreenCaptureReplyCode.targetCovered,
+        ScreenCaptureReplyCode.targetMissing,
+      ];
+      for (int value = 1; value <= 3; value++) {
+        phase.value = value;
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 20));
+        final List<String> before = List<String>.of(source.calls);
+        final List<Map<String, Object?>> commands = <Map<String, Object?>>[];
+        final _InspectionInstance instance = _InspectionInstance(
+          ReadonlyInspectionSession(
+            processId: pid,
+            original: (Map<String, Object?> command, Duration timeout) async {
+              commands.add(Map<String, Object?>.of(command));
+              try {
+                return <String, dynamic>{'ok': true,
+                  ...await scope.agent.commandForTest(
+                    Map<String, dynamic>.of(command),
+                  ),
+                };
+              } on HarnessError catch (error) {
+                expect(error.message, 'not ready after 0 ms');
+                return <String, dynamic>{'ok': false, 'error': error.message,
+                  'detail': ?error.detail,
+                };
+              }
+            },
+          ),
+        );
+        await expectLater(cli.waitForTarget(instance, cli.Args(<String>[
+          '--key', 'node_settings_add', '--ready', '--timeout', '0',
+        ])), throwsA(isA<cli.Fail>().having(screenCaptureReplyOf,
+          'original closed readiness category', expected[value - 1])));
+        expect(commands, <Map<String, Object?>>[
+          <String, Object?>{'cmd': 'wait', 'key': 'node_settings_add',
+            'ready': true, 'timeoutMs': 0},
+        ]);
+        await expectLater(instance.send(<String, Object?>{'cmd': 'ping'}),
+          throwsA(isA<ReadonlyInspectionRefused>()));
+        expect(commands.length, 1);
+        expect(source.calls, before);
+      }
+      expect(tester.takeException(), isNull);
+    } finally {
+      await tester.pumpWidget(const SizedBox.shrink());
+      await presenter.close();
+      phase.dispose();
+    }
+  });
+
   testWidgets('readonly observes the actual disabled Sporks card', (
     WidgetTester tester,
   ) async {

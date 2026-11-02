@@ -3919,6 +3919,11 @@ class HarnessAgent {
                   : 'not there after $timeout ms',
           <String, Object?>{
             ..._describe(c), 'readonly_region': ?regionRejection,
+            if (_readonlyNative != null && ready &&
+                c['key'] == 'node_settings_add')
+              'readonly_readiness': hits.isEmpty ? 'missing'
+                  : hits.length != 1 ? 'ambiguous'
+                  : !hits.single.enabled ? 'disabled' : 'covered',
           },
         );
       }

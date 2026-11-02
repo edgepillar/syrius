@@ -96,3 +96,5 @@ A prior successful run remains bound to its original source and scope.
 - 2026-11-02: [Source315 Windows/catalog outcomes](source315-windows-and-catalog-outcomes.md) and [Source316 Node/Details updates](source316-node-visibility-and-details.md) preserve all eleven terminal outcomes and closed actual viewing while leaving the new revision pending fresh qualification.
 
 - 2026-11-02: [Source317 fixture import](source317-node-fixture-import.md) preserves Source316's exact analysis failure and all earlier qualified scopes; current Dart/full/native execution remains pending.
+
+- 2026-11-02: [Source317 Windows/catalog outcomes](source317-windows-and-catalog-outcomes.md) preserve eleven terminal runs and closed actual Details viewing. [Source318 Details layouts and readiness diagnostics](source318-details-layout-and-readiness.md) retain the original Settings failure and require fresh hosted qualification.

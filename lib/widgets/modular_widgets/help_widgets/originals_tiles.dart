@@ -58,24 +58,32 @@ class _OriginalsTiles extends StatelessWidget {
         const Divider(height: 1),
         SizedBox(height: tokens.originalsBodyGap),
         Wrap(
+          alignment: WrapAlignment.spaceBetween,
           spacing: tokens.originalsMiniGroupGap,
           runSpacing: tokens.originalsTileGap,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: <Widget>[
-            _OriginalsMini(
-              asset: AppLottieAsset.plasmaGeneration,
-              label: context.l10n.originalsPlasma,
-              animate: artBuilder == null,
-            ),
-            _OriginalsMini(
-              asset: AppLottieAsset.eye,
-              label: context.l10n.originalsHidden,
-              animate: artBuilder == null,
-            ),
-            _OriginalsMini(
-              asset: AppLottieAsset.noData,
-              label: context.l10n.originalsEmpty,
-              animate: artBuilder == null,
+            Wrap(
+              spacing: tokens.originalsMiniGroupGap,
+              runSpacing: tokens.originalsTileGap,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: <Widget>[
+                _OriginalsMini(
+                  asset: AppLottieAsset.plasmaGeneration,
+                  label: context.l10n.originalsPlasma,
+                  animate: artBuilder == null,
+                ),
+                _OriginalsMini(
+                  asset: AppLottieAsset.eye,
+                  label: context.l10n.originalsHidden,
+                  animate: artBuilder == null,
+                ),
+                _OriginalsMini(
+                  asset: AppLottieAsset.noData,
+                  label: context.l10n.originalsEmpty,
+                  animate: artBuilder == null,
+                ),
+              ],
             ),
             Text(context.l10n.originalsHover, style: tokens.settingsHintText),
           ],

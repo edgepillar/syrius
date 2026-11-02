@@ -342,14 +342,15 @@ class _OriginalsCardState extends State<OriginalsCard>
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: <Widget>[
                           Text(
-                            context.l10n.originalsSince,
-                            style: tokens.settingsHintText,
+                            context.l10n.originalsSince.toUpperCase(),
+                            style: tokens.ledgerText,
                           ),
                           SecondaryAction(
                             child: OutlinedButton.icon(
                               key: const Key('originals_play_launch'),
                               style: OutlinedButton.styleFrom(
                                 minimumSize: Size(0, tokens.smallButtonHeight),
+                                visualDensity: VisualDensity.standard,
                                 padding: EdgeInsetsDirectional.symmetric(
                                   horizontal: tokens.receiveMicroGap,
                                 ),

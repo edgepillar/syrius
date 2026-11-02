@@ -155,8 +155,9 @@ class _ReceiveQrImageState extends State<ReceiveQrImage> {
                   backgroundColor: Colors.transparent,
                   textStyle: tokens.captionText,
                   minimumSize: Size(0, tokens.smallButtonHeight),
+                  visualDensity: VisualDensity.standard,
                   padding: EdgeInsetsDirectional.symmetric(
-                    horizontal: tokens.receiveMicroGap,
+                    horizontal: tokens.receiveQrActionInset,
                   ),
                 ),
                 onPressed: _exporting || !widget.enabled
@@ -178,8 +179,9 @@ class _ReceiveQrImageState extends State<ReceiveQrImage> {
                   backgroundColor: Colors.transparent,
                   textStyle: tokens.captionText,
                   minimumSize: Size(0, tokens.smallButtonHeight),
+                  visualDensity: VisualDensity.standard,
                   padding: EdgeInsetsDirectional.symmetric(
-                    horizontal: tokens.receiveMicroGap,
+                    horizontal: tokens.receiveQrActionInset,
                   ),
                 ),
                 onPressed: _exporting || !widget.enabled

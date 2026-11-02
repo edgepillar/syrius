@@ -657,6 +657,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The one Fuse action aligns with the compact fields.
   double get plasmaFuseActionHeight => 42;
 
+  /// The action keeps its prior one-third width cap without reserving slack.
+  double get plasmaFuseActionMaxShare => 1 / 3;
+
   /// Other-address meters do not compete with the beneficiary's main meter.
   double get plasmaOtherMeterWidth => 90;
 
@@ -1525,6 +1528,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
 
   /// The QR well leaves room for the existing image actions on one line.
   double get receiveQrWellWidth => 210;
+
+  /// Compact image actions may share the QR well and still wrap when needed.
+  double get receiveQrActionInset => receiveMicroGap / 2;
 
   /// QR pixels keep a clear border.
   double get receiveQrInset => 12;
