@@ -207,6 +207,7 @@ class _SettingsTabChildState extends State<SettingsTabChild> {
             afterLicences: _originals.revealed
                 ? OriginalsCard(isCurrent: aboutCurrent)
                 : null,
+            compactLicences: _originals.revealed,
           ),
         );
     }

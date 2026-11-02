@@ -116,3 +116,7 @@ A prior successful run remains bound to its original source and scope.
 - [Source322 original analysis failure](source322-original-analysis-failure.md): sole unretried run, two information findings, zero errors/warnings and zero executed Flutter cases; later prepared controls remain unexecuted.
 - [Source323 fixture declarations](source323-licence-fixture-declarations.md): two named local functions, unchanged production code and every assertion, with 21 passing memory controls and fresh hosted qualification pending.
 - [Frozen PR body265](pr-body-265.md): exact 3574 bytes, SHA-256 46c43be215bf67d702488340c2f3e024713174aeb0a0ce0193ba76a604776a34; all three submitted URLs retained.
+
+- [Source323 original widget failures](source323-original-widget-failures.md): clean selected analysis, original 404-pass/two-failure first group, normal complete exit one and unexecuted later scope.
+- [Source324 explicit gallery and reached end](source324-explicit-gallery-and-reached-end.md): owner-supplied compact state, real idle end preparation and every prior assertion retained; 21 memory controls pass and fresh hosted qualification remains pending.
+- [Frozen PR body266](pr-body-266.md): exact 3454 bytes, SHA-256 252795e494e23231b6600a1b90164d1dcbd11710c1687a8abb124cce02b078ae; all four submitted URLs retained.

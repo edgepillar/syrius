@@ -198,6 +198,7 @@ void main() {
                   AboutCard(
                     loadInformation: information,
                     loadLicences: load,
+                    compactLicences: visible,
                     licencesTrailingBuilder: (_) => const SizedBox(
                       height: 82,
                       child: Text('Fixture end', key: Key('fixture_end')),
@@ -222,7 +223,13 @@ void main() {
             find.byKey(const Key('fixture_end')), 250,
             scrollable: scrollable, maxScrolls: 20,
           );
+          // The contract retains an idle, reached end, beyond mere visibility.
+          final ScrollPosition position =
+              tester.state<ScrollableState>(scrollable).position;
+          position.jumpTo(position.maxScrollExtent);
           await tester.pump();
+          expect(position.extentAfter, 0);
+          expect(position.isScrollingNotifier.value, isFalse);
           expect(reads, 1);
           expect(find.byKey(const Key('fixture_end')).hitTestable(),
               findsOneWidget);
@@ -231,6 +238,7 @@ void main() {
           await tester.pump();
           expect(tester.element(find.byType(Licences)), same(listOwner));
           expect(reads, 1);
+          expect(position.extentAfter, 0);
           expect(find.byKey(const Key('fixture_end')).hitTestable(),
               findsOneWidget);
           final Finder first = find.byKey(
@@ -786,6 +794,7 @@ void main() {
             builder: (BuildContext context, Widget? _) => AboutCard(
               loadInformation: loadInformation,
               loadLicences: loadLicences,
+              compactLicences: discovery.revealed,
               licencesTrailingBuilder: (BuildContext context) =>
                   OriginalsDiscovery(
                     controller: discovery,

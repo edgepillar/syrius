@@ -7,6 +7,7 @@ class AboutSection extends StatelessWidget {
   const AboutSection({
     this.licencesTrailingBuilder,
     this.afterLicences,
+    this.compactLicences = false,
     super.key,
   });
 
@@ -16,9 +17,13 @@ class AboutSection extends StatelessWidget {
   /// Optional content on its own surface after the Licences group.
   final Widget? afterLicences;
 
+  /// Only the revealed Originals state requests the compact licence view.
+  final bool compactLicences;
+
   @override
   Widget build(BuildContext context) => AboutCard(
     licencesTrailingBuilder: licencesTrailingBuilder,
     afterLicences: afterLicences,
+    compactLicences: compactLicences,
   );
 }

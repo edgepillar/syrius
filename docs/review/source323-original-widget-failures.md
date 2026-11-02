@@ -1,0 +1,9 @@
+# Source323 original widget failures
+
+Source323 `b7ab00a38c4529d688d2ce1e60c976bf214e6cb6`, tree `b3f5966309cd621b81c046a0cd2467d8e2f5a76a`, has one terminal original [focused run 41423290838](https://github.com/edgepillar/syrius/actions/runs/41423290838), attempt one, job 125203750328. It is failed and unretried.
+
+All 939 Python registrations/three existing skips, fourteen asset controls and three startup checks pass. Selected analysis has zero errors, warnings and information findings. The first serial group reports 404 passes and two failures, with 42 hidden cases, 448 terminal events and no unfinished cases. Its original command exits one normally after 107.109 seconds with complete 215902-byte output, SHA-256 075ba50b41f0a9e88231d6926897b7d5981d1d453eb7c3ab284d79b246bd3930, no overflow and no forced termination. The second group does not start; full Windows, native producers, readers and artifacts remain unexecuted.
+
+Both assertion locations are in readonly_native_agent_test.dart. Line 234 checks that the genuine licence end remains hit-testable after a sibling reveal. Its fixture made the end label visible without explicitly establishing an idle list at its actual maximum. Line 813 is an existing counterexample requiring the initial licence list to extend below the viewport; a non-null placeholder sibling unintentionally activates the new compact layout before the actual gallery is revealed. These are source-based explanations for the next correction; the failures and their original assertions remain preserved.
+
+No original native failure is healed by this component result. Source321's earlier qualified baseline, original Home unknown/dark Security targetMissing failures and not-reached light Node condition retain their separate source limits. Acceptance stays 72/80 rows, 36 distinct literal outputs, 58 missing and zero accepted matches. Every earlier FAILURE/HOLD/UNKNOWN and every original criterion remains.

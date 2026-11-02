@@ -28,6 +28,7 @@ class AboutCard extends StatefulWidget {
     this.loadLicences,
     this.licencesTrailingBuilder,
     this.afterLicences,
+    this.compactLicences = false,
     super.key,
   });
 
@@ -48,6 +49,9 @@ class AboutCard extends StatefulWidget {
 
   /// A separately owned sibling after the Licences group.
   final Widget? afterLicences;
+
+  /// The Settings owner requests compact rows only for a revealed gallery.
+  final bool compactLicences;
 
   @override
   State<AboutCard> createState() => _AboutCardState();
@@ -120,7 +124,8 @@ class _AboutCardState extends State<AboutCard> {
     final AppTokens tokens = AppTokens.of(context);
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
-        final bool revealed = widget.afterLicences != null;
+        final bool revealed =
+            widget.compactLicences && widget.afterLicences != null;
         final double licencesHeight = revealed
             ? tokens.aboutOriginalsLicencesHeight
             : math.max(
@@ -180,7 +185,7 @@ class _AboutCardState extends State<AboutCard> {
                           : const SizedBox.shrink(),
                     ),
                   ),
-                  if (revealed) ...<Widget>[
+                  if (widget.afterLicences != null) ...<Widget>[
                     SizedBox(height: tokens.pageGap),
                     widget.afterLicences!,
                   ],
