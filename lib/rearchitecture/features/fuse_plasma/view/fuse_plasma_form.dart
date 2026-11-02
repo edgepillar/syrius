@@ -236,7 +236,8 @@ class _FusePlasmaFormState extends State<FusePlasmaForm> {
                                   height: 1.2,
                                 ),
                                 textDirection: TextDirection.ltr,
-                                textAlign: ltrTextAlign(context, TextAlign.start),
+                                textAlign:
+                                    ltrTextAlign(context, TextAlign.start),
                                 decoration: InputDecoration(
                                   errorText: refusal ?? widget.amountError,
                                   suffixIconConstraints: BoxConstraints(
@@ -251,7 +252,9 @@ class _FusePlasmaFormState extends State<FusePlasmaForm> {
                                           label: context.l10n.max,
                                           onPressed: widget.amountEnabled
                                               ? () {
-                                                  if (isCurrent()) widget.onMax();
+                                                  if (isCurrent()) {
+                                                    widget.onMax();
+                                                  }
                                                 }
                                               : null,
                                         ),
@@ -312,7 +315,8 @@ class _FusePlasmaFormState extends State<FusePlasmaForm> {
                                   ),
                                   paddingAroundChild: EdgeInsets.symmetric(
                                     horizontal:
-                                        tokens.plasmaFuseFormPadding.horizontal / 2,
+                                        tokens.plasmaFuseFormPadding
+                                            .horizontal / 2,
                                   ),
                                   circularBorderRadius: tokens.pillRadius,
                                   onPressed: inputValid && isCurrent()

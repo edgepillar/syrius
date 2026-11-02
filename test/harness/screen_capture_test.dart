@@ -705,7 +705,8 @@ void main() {
     },
   );
 
-  test('readonly Add readiness categories require the exact original reply', () {
+  test(
+    'readonly Add readiness categories require the exact original reply', () {
     final Object opaque = _OpaqueReply();
     for (final String error in <String>[
       'not ready after 0 ms', 'not ready after 5000 ms',
