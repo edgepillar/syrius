@@ -1,0 +1,11 @@
+# Source328 reader-count correspondence
+
+The [original Source327 failure](source327-original-reader-count-failure.md) exposes a stale reader count before SDK setup. This correction changes only the reader controller and its existing count/discovery fixtures. Their expected roster becomes 105. A clean 105-case synthetic suite is explicitly accepted; 104, 106 and the earlier stale totals are rejected. Original failure, error, skip, completeness, discovery and privacy requirements remain.
+
+All seven explicit reader filenames remain unchanged. No test is added, removed or skipped. The new Source327 Settings diagnostic case remains in the reader roster, and every archive/source/run/platform check remains required. The correction does not change product UI, input handling, the unavailable-marker observation, scripts, SDK/financial ownership or animation clocks.
+
+All 25 selected controls pass in memory after application: the existing 22 admission/progress/diagnostic controls and all three reader discovery/count/privacy controls. The original local three-case negative counterexample is preserved. The controller census remains 940 registrations. No scratch, shared-store access, network, local SDK or native runtime is used. This control pass does not compile Dart or qualify an artifact reader.
+
+Fresh hosted expectations are 826 ordinary and 828 startup Dart cases, 940 Python registrations with three existing skips, 105 independent reader controls, and 4,880 full passes with one existing skip. Both mandatory serial groups retain all 67 ordinary paths, one worker, 240 seconds/four MiB per child and the 480-second total. Strict selected analysis, full Windows, all four native/reader families and actual affected-image review remain required. Source327's later scopes remain unexecuted.
+
+Progress stays 72/80 rows, nineteen preparations, 36 distinct literal outputs, 58 missing and zero accepted matches. All original visual, motion, shader, frame-time, seam, Docker route and final requirements remain. Source326's native licence-footer clipping is still an open finding. Native101/103 remain UNKNOWN and Native104 stays unadmitted. The [exact preceding body270](pr-body-270.md) retains every submitted byte and URL. English, privacy-safe edgepillar no-reply/UTC attribution and the existing Draft PR continue.
