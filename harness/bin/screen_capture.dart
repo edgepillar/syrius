@@ -9,6 +9,9 @@ enum ScreenCaptureReplyCode {
   regionRootMissing, regionMissing, regionDuplicate, regionSearchLimit,
   regionUnmounted, regionBoundsUnavailable, regionBoundsRefused,
   regionRenderUnavailable, regionPaintClipCheckRefused, unknown,
+  frameUnavailable, captureClientMismatch, captureWindowMinimized,
+  captureThemeMismatch, captureLayerUnavailable, captureColorSpaceMismatch,
+  captureReadbackUnavailable, captureDimensionsMismatch, captureStateChanged,
 }
 
 abstract interface class ScreenCaptureReplyFailure {
@@ -71,6 +74,24 @@ ScreenCaptureReplyCode classifyScreenCaptureReply(
         : ScreenCaptureReplyCode.targetCovered,
     'error widget on screen' => ScreenCaptureReplyCode.errorWidget,
     'expected one owned Flutter view' => ScreenCaptureReplyCode.viewAmbiguous,
+    'the original capture frame is unavailable' =>
+        ScreenCaptureReplyCode.frameUnavailable,
+    'capture client dimensions differ' =>
+        ScreenCaptureReplyCode.captureClientMismatch,
+    'a minimized window cannot be captured' =>
+        ScreenCaptureReplyCode.captureWindowMinimized,
+    'capture theme differs' =>
+        ScreenCaptureReplyCode.captureThemeMismatch,
+    'the view has no image layer' =>
+        ScreenCaptureReplyCode.captureLayerUnavailable,
+    'capture color space is not sRGB' =>
+        ScreenCaptureReplyCode.captureColorSpaceMismatch,
+    'the engine returned no image' =>
+        ScreenCaptureReplyCode.captureReadbackUnavailable,
+    'captured PNG dimensions differ' =>
+        ScreenCaptureReplyCode.captureDimensionsMismatch,
+    'capture state changed while encoding' =>
+        ScreenCaptureReplyCode.captureStateChanged,
     _ => ScreenCaptureReplyCode.unknown,
   };
 }

@@ -172,3 +172,6 @@ A prior successful run remains bound to its original source and scope.
 - [Source336 closed hosted outcomes](source336-closed-hosted-outcomes.md): eleven terminal originals, 837 focused passes, the independently qualified 4,881-pass/one-skip full Windows baseline, three positive native catalog families and the retained original Home capture failure; zero new accepted matches.
 - [First delivery and deferred acceptance](fast-first-delivery.md): owner-selected core interface and basic functionality for Draft code review, with detailed visual and extended platform/lab acceptance deferred while the original ledger and key/signing guards remain.
 - [Frozen PR body279](pr-body-279.md): exact 2931 bytes, SHA-256 1edfa9a8f02a3ea6547b23868542812840166d9abeae9225edd578638b127e75; all three submitted URLs retained.
+
+- [Source337 original capture reply categories](source337-capture-reply-categories.md): nine finite original-shot failure categories, existing schema and CLI forwarding checks, 29 passing Python memory controls and pending hosted Dart qualification; the first delivery stays pinned and the original Home cause remains unknown.
+- [Frozen PR body280](pr-body-280.md): exact 2812 bytes, SHA-256 98b8737e7f0a917379525697a7e275a9af97960473f1c6bb27397a77c3876852; all three submitted URLs retained.

@@ -737,6 +737,32 @@ class InspectionTests(unittest.TestCase):
         self.assertIs(inspection.entry_failure(earlier), earlier)
         valid = dict(base, last_entered_step='scriptLine',
             screen='home-rest', theme='dark', line=5)
+        shot_replies = (
+            'frameUnavailable',
+            'captureClientMismatch',
+            'captureWindowMinimized',
+            'captureThemeMismatch',
+            'captureLayerUnavailable',
+            'captureColorSpaceMismatch',
+            'captureReadbackUnavailable',
+            'captureDimensionsMismatch',
+            'captureStateChanged',
+        )
+        for reply in shot_replies:
+            with self.subTest(shot_reply=reply):
+                self.assertIn(reply, inspection.settings.FAILURE_REPLIES)
+                shot = dict(schema=2, kind='readonly_home_capture_failure',
+                    last_entered_step='shotRequest', screen='home-goto',
+                    theme='light', reply=reply)
+                self.assertIs(inspection.entry_failure(dict(stage='home_catalog',
+                    code=None, diagnostic=shot))['diagnostic'], shot)
+                for changed in (reply + ' ', 'Synthetic ' + reply, reply.upper()):
+                    with self.assertRaises(inspection.Refused):
+                        inspection.home_failure_diagnostic(dict(shot, reply=changed))
+                for field in ('raw', 'stack', 'command'):
+                    with self.assertRaises(inspection.Refused):
+                        inspection.home_failure_diagnostic(dict(shot,
+                            **{field: 'Synthetic private diagnostic'}))
         for screen in inspection.HOME_GOTO_SCREENS:
             for theme in inspection.THEMES:
                 for reply in inspection.settings.FAILURE_REPLIES:

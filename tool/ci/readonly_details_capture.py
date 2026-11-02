@@ -72,6 +72,15 @@ FAILURE_REPLIES = (
     'regionRenderUnavailable',
     'regionPaintClipCheckRefused',
     'unknown',
+    'frameUnavailable',
+    'captureClientMismatch',
+    'captureWindowMinimized',
+    'captureThemeMismatch',
+    'captureLayerUnavailable',
+    'captureColorSpaceMismatch',
+    'captureReadbackUnavailable',
+    'captureDimensionsMismatch',
+    'captureStateChanged',
 )
 
 

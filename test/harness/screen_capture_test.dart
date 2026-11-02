@@ -778,6 +778,48 @@ void main() {
           <String, Object?>{'readonly_region': entry.key, 'selector': opaque}),
           entry.value);
       }
+      // The original shot rejects retain finite causes without reading detail.
+      for (final MapEntry<String, ScreenCaptureReplyCode> entry in
+          <String, ScreenCaptureReplyCode>{
+        'the original capture frame is unavailable':
+            ScreenCaptureReplyCode.frameUnavailable,
+        'capture client dimensions differ':
+            ScreenCaptureReplyCode.captureClientMismatch,
+        'a minimized window cannot be captured':
+            ScreenCaptureReplyCode.captureWindowMinimized,
+        'capture theme differs':
+            ScreenCaptureReplyCode.captureThemeMismatch,
+        'the view has no image layer':
+            ScreenCaptureReplyCode.captureLayerUnavailable,
+        'capture color space is not sRGB':
+            ScreenCaptureReplyCode.captureColorSpaceMismatch,
+        'the engine returned no image':
+            ScreenCaptureReplyCode.captureReadbackUnavailable,
+        'captured PNG dimensions differ':
+            ScreenCaptureReplyCode.captureDimensionsMismatch,
+        'capture state changed while encoding':
+            ScreenCaptureReplyCode.captureStateChanged,
+      }.entries) {
+        expect(classifyScreenCaptureReply(entry.key, opaque), entry.value);
+        for (final String changed in <String>[
+          '${entry.key} ', 'Synthetic ${entry.key}', entry.key.toUpperCase(),
+        ]) {
+          expect(classifyScreenCaptureReply(changed, opaque),
+            ScreenCaptureReplyCode.unknown);
+        }
+        final _Replies shotReplies = _Replies(
+          (Map<String, Object?> command) => <String, dynamic>{
+            'ok': false, 'error': entry.key,
+            'detail': <String, Object?>{'raw': 'Synthetic private diagnostic'},
+          },
+        );
+        await expectLater(cli.call(shotReplies, <String, Object?>{'cmd': 'shot'}),
+          throwsA(isA<cli.Fail>().having(screenCaptureReplyOf,
+            'original shot reply', entry.value)),
+        );
+        expect(shotReplies.commands,
+          <Map<String, Object?>>[<String, Object?>{'cmd': 'shot'}]);
+      }
       final _Replies replies = _Replies((Map<String, Object?> command) =>
         command['cmd'] == 'wait' ? <String, dynamic>{
           'ok': false, 'error': 'not there after 0 ms',
