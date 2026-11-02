@@ -205,7 +205,9 @@ void main() {
         expect(add().onPressed, isNull);
         await tester.pump(const Duration(milliseconds: 400));
         for (int frame = 0;
-            frame < 100 && presenter.currentNetwork == null; frame++) {
+            frame < 100 &&
+                (presenter.currentNetwork == null || add().onPressed == null);
+            frame++) {
           await tester.pump(const Duration(milliseconds: 10));
         }
         expect(tester.state(find.byType(NodeSettingsView)), same(owner));
