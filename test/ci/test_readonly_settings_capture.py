@@ -102,6 +102,21 @@ class SettingsCatalogTests(unittest.TestCase):
             with self.subTest(key=key), self.assertRaises(settings.Refused):
                 settings.public_catalog(dict(report, **{key: bad}))
 
+    def test_unavailable_preference_stays_a_closed_negative_diagnostic(self):
+        value = dict(schema=2, kind='readonly_settings_capture_failure',
+            last_entered_step='scriptLine', screen='set-wallet',
+            theme='light', line=8, reply='targetUnavailable')
+        self.assertIs(settings.failure_diagnostic(value), value)
+        failure = dict(stage='settings_catalog', code=None, diagnostic=value)
+        self.assertIs(legacy.entry_failure(failure)['diagnostic'], value)
+        for change in (
+            dict(reply='Synthetic private value'),
+            dict(preference=True), dict(stored_value=False),
+            dict(raw='Synthetic private input'), dict(command='assert'),
+        ):
+            with self.subTest(change=change), self.assertRaises(settings.Refused):
+                settings.failure_diagnostic(dict(value, **change))
+
     def test_failure_diagnostic_is_closed_and_cannot_disclose_commands_or_paths(self):
         base = dict(schema=1, kind='readonly_settings_capture_failure',
             last_entered_step='preflight')

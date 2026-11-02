@@ -16,6 +16,8 @@ import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/help_widgets
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/help_widgets/originals_card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/node_settings_presenter.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/node_settings_view.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/wallet_settings_presenter.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/wallet_settings_view.dart';
 
 import '../../harness/app/agent.dart';
 import '../../harness/app/presentation_host.dart';
@@ -1265,6 +1267,81 @@ void main() {
     expect(OriginalPublications.snapshot(scope.sdk), isEmpty);
   });
 
+
+  testWidgets('readonly unavailable preference stays an original refusal', (
+    WidgetTester tester,
+  ) async {
+    final _Scope scope = _Scope();
+    await scope.open();
+    final HarnessAgent ordinary = HarnessAgent.forTest()..booted = true;
+    for (final bool light in <bool>[false, true]) {
+      final WalletSettingsPresenter presenter = WalletSettingsPresenter(
+        binding: null,
+      );
+      for (final String mode in <String>[
+        'visible', 'covered', 'hidden', 'duplicate',
+      ]) {
+        final Widget view = WalletSettingsView(
+          presenter: presenter,
+          isCurrent: () => true,
+          onDeleteCache: (_) => fail('No maintenance may start'),
+          onResetWallet: (_) => fail('No reset may start'),
+        );
+        await tester.pumpWidget(about_fixture.aboutHost(
+          Stack(fit: StackFit.expand, children: <Widget>[
+            Offstage(offstage: mode == 'hidden', child: view),
+            if (mode == 'covered')
+              const Positioned.fill(
+                child: ColoredBox(color: Color(0xff222222)),
+              ),
+            if (mode == 'duplicate')
+              const Positioned(top: 0, right: 0, child: Text(
+                'Synthetic marker',
+                key: Key('wallet_settings_autoReceive_unavailable'),
+              )),
+          ]),
+          light: light,
+        ));
+        await tester.pump();
+        for (final HarnessAgent agent in <HarnessAgent>[
+          scope.agent, ordinary,
+        ]) {
+          HarnessError? rejected;
+          try {
+            await agent.commandForTest(<String, dynamic>{
+              'cmd': 'assert', 'key': 'wallet_settings_autoReceive',
+            });
+          } on HarnessError catch (error) {
+            rejected = error;
+          }
+          expect(rejected, isNotNull);
+          expect(rejected!.message, 'nothing matches');
+          expect(classifyScreenCaptureReply(
+            rejected.message, rejected.detail,
+          ), identical(agent, scope.agent) && mode == 'visible'
+              ? ScreenCaptureReplyCode.targetUnavailable
+              : ScreenCaptureReplyCode.targetMissing);
+        }
+        for (final String command in <String>['tap', 'type']) {
+          await expectLater(scope.agent.commandForTest(<String, dynamic>{
+            'cmd': command,
+            'key': 'wallet_settings_autoReceive',
+            if (command == 'type') 'text': 'Synthetic input',
+          }), throwsA(isA<HarnessError>()));
+        }
+        expect(presenter.state.available, isFalse);
+        expect(tester.takeException(), isNull);
+      }
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+      await presenter.close();
+    }
+    expect(classifyScreenCaptureReply('nothing matches', <String, Object?>{
+      'key': 'a_different_selector',
+      'readonly_wallet_preference': 'unavailable',
+    }), ScreenCaptureReplyCode.targetMissing);
+    expect(OriginalPublications.snapshot(scope.sdk), isEmpty);
+  });
 
   testWidgets('readonly settings regions keep real seam gates inert', (
     WidgetTester tester,

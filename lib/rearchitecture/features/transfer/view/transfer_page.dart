@@ -211,10 +211,7 @@ class _TransferPageState extends State<TransferPage> {
                       children: <Widget>[
                         if (mode == TransferMode.send) const SendSyncNotice(),
                         Padding(
-                          padding: EdgeInsetsDirectional.symmetric(
-                            horizontal: tokens.cardPadding.left,
-                            vertical: tokens.cardPadding.top,
-                          ),
+                          padding: tokens.transferHeaderPadding,
                           child: _TransferHeader(
                             mode: mode,
                             receiveHeader: _receiveHeader,
@@ -305,6 +302,7 @@ class _TransferHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppTokens tokens = AppTokens.of(context);
     final Widget segment = Segment<TransferMode>(
       keyPrefix: 'transfer_mode',
       selected: mode,
@@ -313,14 +311,17 @@ class _TransferHeader extends StatelessWidget {
         SegmentItem<TransferMode>(
           value: TransferMode.send,
           label: context.l10n.send,
+          labelStyle: tokens.transferSegmentText,
         ),
         SegmentItem<TransferMode>(
           value: TransferMode.receive,
           label: context.l10n.receive,
+          labelStyle: tokens.transferSegmentText,
         ),
         SegmentItem<TransferMode>(
           value: TransferMode.zap,
           label: context.l10n.transferZap,
+          labelStyle: tokens.transferSegmentText,
         ),
       ],
     );

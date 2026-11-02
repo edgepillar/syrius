@@ -1464,6 +1464,14 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The transfer shape's field and row radius.
   double get transferControlRadius => 14;
 
+  /// The shared Transfer header keeps the reference's 11/16-pixel inset.
+  EdgeInsetsDirectional get transferHeaderPadding =>
+      const EdgeInsetsDirectional.symmetric(horizontal: 16, vertical: 11);
+
+  /// Transfer's compact segment labels inherit the card header's weight.
+  TextStyle get transferSegmentText =>
+      compactText.copyWith(fontWeight: FontWeight.w600);
+
   /// Inner margins of the shared Transfer form.
   EdgeInsetsDirectional get transferFormPadding =>
       const EdgeInsetsDirectional.fromSTEB(20, 16, 20, 20);
@@ -1519,6 +1527,10 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Receive keeps room for the full address and optional request.
   EdgeInsetsDirectional get receiveFormPadding =>
       const EdgeInsetsDirectional.fromSTEB(20, 18, 20, 20);
+
+  /// The outlined Receive fields center text in their minimum height.
+  EdgeInsetsDirectional get receiveFieldPadding =>
+      const EdgeInsetsDirectional.symmetric(horizontal: 12);
 
   /// Space between Receive sections.
   double get receiveGap => 14;

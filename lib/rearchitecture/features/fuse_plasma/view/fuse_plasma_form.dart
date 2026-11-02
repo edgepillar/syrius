@@ -195,6 +195,7 @@ class _FusePlasmaFormState extends State<FusePlasmaForm> {
     final InputDecorationThemeData fields = theme.inputDecorationTheme.copyWith(
       filled: true,
       isDense: true,
+      visualDensity: VisualDensity.standard,
       contentPadding: tokens.transferFieldPadding,
       constraints: BoxConstraints(minHeight: tokens.fieldHeight),
       suffixIconColor: tokens.faint,

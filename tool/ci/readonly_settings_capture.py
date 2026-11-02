@@ -60,6 +60,7 @@ FAILURE_STEPS = ('preflight', 'outputPreflight', 'themeSnapshot', 'windowSnapsho
 
 FAILURE_REPLIES = (
     'targetMissing',
+    'targetUnavailable',
     'targetDisabled',
     'targetCovered',
     'errorWidget',

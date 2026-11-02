@@ -340,6 +340,7 @@ class _OriginalsCardState extends State<OriginalsCard>
                   padding: tokens.panelHeaderPadding,
                   child: Wrap(
                     alignment: WrapAlignment.spaceBetween,
+                    runAlignment: WrapAlignment.center,
                     crossAxisAlignment: WrapCrossAlignment.center,
                     spacing: tokens.settingsActionGap,
                     runSpacing: tokens.settingsActionGap,

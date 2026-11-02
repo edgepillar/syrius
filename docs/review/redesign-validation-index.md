@@ -128,3 +128,7 @@ A prior successful run remains bound to its original source and scope.
 - [Source325 original widget failure](source325-original-widget-failure.md): clean analysis, original 405-pass/one-failure first group and passing real gallery counterexample; later stages remain unexecuted.
 - [Source326 bounded licence layout](source326-bounded-licence-layout.md): finite owned extent reconciliation, exact own-jump revision guards and all assertions retained; 21 memory controls pass and fresh qualification remains pending.
 - [Frozen PR body268](pr-body-268.md): exact 3789 bytes, SHA-256 dc9e3c3da880f8a225f9f9c3e719b906086020bcddb6ae3a1fa8370192a777f7; all four submitted URLs retained.
+
+- [Source326 Windows and Details results](source326-windows-and-details-results.md): eleven terminal runs, 825 focused and 4,879 full passes/one skip, normal Debug/Release, three positive native families, the original light Wallet failure and a closed ten-image/ten-reference review. Native footer clipping and all remaining acceptance criteria stay open.
+- [Source327 input density and Wallet observation](source327-input-density-and-wallet-observation.md): measured Transfer/Receive/Plasma and Originals header corrections, a closed negative unavailable-marker observation and 22 memory passes; fresh hosted qualification remains pending.
+- [Frozen PR body269](pr-body-269.md): exact 3770 bytes, SHA-256 a6dc8cec96c5be19d365d69b94ecc99786c613e97dd0d6bd81f27a688a94fb2a; all four submitted URLs retained.

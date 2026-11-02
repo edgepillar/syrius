@@ -330,6 +330,10 @@ class _ReceivePopulatedState extends State<ReceivePopulated>
     );
     return Theme.of(context).inputDecorationTheme.copyWith(
       filled: true,
+      visualDensity: VisualDensity.standard,
+      isDense: true,
+      constraints: BoxConstraints(minHeight: tokens.fieldHeight),
+      contentPadding: tokens.receiveFieldPadding,
       fillColor: tokens.card2,
       border: border,
       enabledBorder: border,
@@ -577,6 +581,7 @@ class _ReceivePopulatedState extends State<ReceivePopulated>
           key: const Key('receive_amount_field'),
           controller: _amountController,
           focusNode: _amountFocus,
+          textAlignVertical: TextAlignVertical.center,
           style: tokens.receiveAmountText,
           textDirection: TextDirection.ltr,
           textAlign: ltrTextAlign(context),

@@ -277,6 +277,9 @@ class _WalletSettingsViewState extends State<WalletSettingsView>
       trailing: value == null
           ? Text(
               context.l10n.walletSettingsUnavailable,
+              key: ValueKey<String>(
+                'wallet_settings_${preference.name}_unavailable',
+              ),
               style: settingHintStyle(context),
             )
           : SettingsSwitch(

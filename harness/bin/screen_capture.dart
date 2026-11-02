@@ -4,7 +4,8 @@ import 'dart:typed_data';
 
 /// A finite category from an original rejected command, never response text.
 enum ScreenCaptureReplyCode {
-  targetMissing, targetDisabled, targetCovered, errorWidget, viewAmbiguous,
+  targetMissing, targetUnavailable, targetDisabled, targetCovered, errorWidget,
+  viewAmbiguous,
   regionRootMissing, regionMissing, regionDuplicate, regionSearchLimit,
   regionUnmounted, regionBoundsUnavailable, regionBoundsRefused,
   regionRenderUnavailable, regionPaintClipCheckRefused, unknown,
@@ -22,6 +23,12 @@ ScreenCaptureReplyCode classifyScreenCaptureReply(
   Object? value, Object? detail,
 ) {
   if (value is! String) return ScreenCaptureReplyCode.unknown;
+  if (value == 'nothing matches' && detail is Map<Object?, Object?> &&
+      detail.length == 2 &&
+      detail['key'] == 'wallet_settings_autoReceive' &&
+      detail['readonly_wallet_preference'] == 'unavailable') {
+    return ScreenCaptureReplyCode.targetUnavailable;
+  }
   if ((value == 'readonly region is not uniquely visible' ||
           value == 'not there after 0 ms' || value == 'not ready after 0 ms') &&
       detail is Map<Object?, Object?> &&

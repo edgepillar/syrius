@@ -3987,6 +3987,57 @@ class HarnessAgent {
     };
   }
 
+  // A failed original assertion may observe this fixed noninteractive marker.
+  // It cannot admit a control, create a ref or inspect preference contents.
+  bool _readonlyWalletPreferenceUnavailable() {
+    if (_readonlyNative == null) return false;
+    try {
+      final Element? root = WidgetsBinding.instance.rootElement;
+      if (root == null) return false;
+      final List<Element> matches = <Element>[];
+      int visited = 0;
+      bool overflow = false;
+      void visit(Element element) {
+        if (overflow || matches.length > 1) return;
+        if (++visited > 16384) {
+          overflow = true;
+          return;
+        }
+        final Widget widget = element.widget;
+        if (widget is Offstage && widget.offstage) return;
+        if (widget is Visibility && !widget.visible) return;
+        if (widget.key ==
+            const ValueKey<String>(
+              'wallet_settings_autoReceive_unavailable',
+            )) {
+          matches.add(element);
+        }
+        element.debugVisitOnstageChildren(visit);
+      }
+      visit(root);
+      if (overflow || matches.length != 1 || !matches.single.mounted) {
+        return false;
+      }
+      final Element element = matches.single;
+      final Rect? rect = _rectOf(element);
+      final RenderObject? region = element.renderObject;
+      if (rect == null || region == null ||
+          rect.width <= 0 || rect.height <= 0 ||
+          <double>[rect.left, rect.top, rect.right, rect.bottom].any(
+            (double value) => !value.isFinite || value.abs() > 32768,
+          ) || rect.intersect(Offset.zero & _viewSize()) != rect ||
+          !_readonlyRegionInsidePaintClips(region, rect)) {
+        return false;
+      }
+      final _Node marker = _Node(
+        'region', 'Unavailable', element, rect, const <String>[],
+      );
+      return _positiveObservationReachable(marker, marker.center);
+    } on Object {
+      return false;
+    }
+  }
+
   Map<String, Object?> _assert(Map<String, dynamic> c) {
     if (c['ref'] != null || c['at'] != null || c['gone'] == true) {
       throw HarnessError('assert needs a stable positive selector');
@@ -4006,9 +4057,22 @@ class HarnessAgent {
         <String, Object?>{'readonly_region': ?regionRejection},
       );
     }
-    final _Node node = regions == null
-        ? _find(<String, dynamic>{...c, 'exact': true})
-        : regions.single;
+    final _Node node;
+    try {
+      node = regions == null
+          ? _find(<String, dynamic>{...c, 'exact': true})
+          : regions.single;
+    } on HarnessError catch (error) {
+      if (regions == null && c['key'] == 'wallet_settings_autoReceive' &&
+          error.message == 'nothing matches' &&
+          _readonlyWalletPreferenceUnavailable()) {
+        throw HarnessError(error.message, <String, Object?>{
+          'key': 'wallet_settings_autoReceive',
+          'readonly_wallet_preference': 'unavailable',
+        });
+      }
+      rethrow;
+    }
     if (!_positiveObservationReachable(node, node.center)) {
       throw HarnessError('assert target is covered', node.toJson());
     }
