@@ -112,3 +112,7 @@ A prior successful run remains bound to its original source and scope.
 - [Source321 Windows and catalog outcomes](source321-windows-and-catalog-outcomes.md): eleven terminal runs, 822 focused and independently verified 4,876 full passes/one skip, two positive native families, closed actual Details review and preserved Home/Security failures. The original light Node condition is not reached.
 - [Source322 Details and passive Settings](source322-details-and-passive-settings.md): reviewed Plasma/About/Originals changes, four passive keys, closed Home step/reply context and 21 passing memory controls; fresh full/four-family hosted qualification remains pending.
 - [Frozen PR body264](pr-body-264.md): exact 3677 bytes, SHA-256 25749a35114d5acf8cee4a194bbb4c447c74785c66e26def99a49ecbf95b1fee; all four submitted URLs retained.
+
+- [Source322 original analysis failure](source322-original-analysis-failure.md): sole unretried run, two information findings, zero errors/warnings and zero executed Flutter cases; later prepared controls remain unexecuted.
+- [Source323 fixture declarations](source323-licence-fixture-declarations.md): two named local functions, unchanged production code and every assertion, with 21 passing memory controls and fresh hosted qualification pending.
+- [Frozen PR body265](pr-body-265.md): exact 3574 bytes, SHA-256 46c43be215bf67d702488340c2f3e024713174aeb0a0ce0193ba76a604776a34; all three submitted URLs retained.

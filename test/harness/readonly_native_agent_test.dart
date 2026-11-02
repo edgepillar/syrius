@@ -171,12 +171,12 @@ void main() {
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 240));
       }
-      final Future<AboutInformation> Function() information =
-          () async => AboutInformation(version: 'fixture');
+      Future<AboutInformation> information() async =>
+          AboutInformation(version: 'fixture');
       for (final bool light in <bool>[false, true]) {
         final ValueNotifier<bool> revealed = ValueNotifier<bool>(false);
         int reads = 0;
-        final AboutLicenceLoader load = () {
+        Stream<LicenseEntry> load() {
           reads++;
           return Stream<LicenseEntry>.fromIterable(<LicenseEntry>[
             for (int index = 0; index < 30; index++)
@@ -189,7 +189,7 @@ void main() {
                 ],
               ),
           ]);
-        };
+        }
         try {
           await tester.pumpWidget(about_fixture.aboutHost(
             ValueListenableBuilder<bool>(
