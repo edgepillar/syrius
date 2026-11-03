@@ -194,6 +194,72 @@ final class SeedAdvanceObservation {
   );
 }
 
+/// Copies the six completed original rounds, without hash bytes or authority.
+Map<String, Object>? seedAdvanceProjection(Object? value) {
+  const Set<String> fields = <String>{
+    'polls', 'ws_first_height', 'ws_last_height', 'ws_first_timestamp',
+    'ws_last_timestamp', 'ws_hash_changed', 'http_first_height',
+    'http_last_height', 'http_first_timestamp', 'http_last_timestamp',
+    'http_hash_changed',
+  };
+  if (value is! Map<String, Object?> || value.length != fields.length ||
+      !value.keys.toSet().containsAll(fields) || value['polls'] is! int ||
+      value['polls'] != 6) {
+    return null;
+  }
+  const int maximum = 9007199254740991;
+  final Map<String, Object> result = <String, Object>{'polls': 6};
+  bool bothAdvance = true;
+  for (final String endpoint in <String>['ws', 'http']) {
+    final Object? firstHeight = value['${endpoint}_first_height'];
+    final Object? lastHeight = value['${endpoint}_last_height'];
+    final Object? firstTime = value['${endpoint}_first_timestamp'];
+    final Object? lastTime = value['${endpoint}_last_timestamp'];
+    final Object? changed = value['${endpoint}_hash_changed'];
+    if (firstHeight is! int || lastHeight is! int || firstTime is! int ||
+        lastTime is! int || changed is! bool || firstHeight < 1 ||
+        firstHeight > maximum || lastHeight < firstHeight ||
+        lastHeight > maximum || firstTime < 1 || firstTime > maximum ||
+        lastTime < 1 || lastTime > maximum ||
+        lastHeight == firstHeight && (lastTime != firstTime || changed)) {
+      return null;
+    }
+    bothAdvance = bothAdvance && lastHeight > firstHeight &&
+        lastTime > firstTime && changed;
+    result.addAll(<String, Object>{
+      '${endpoint}_first_height': firstHeight,
+      '${endpoint}_last_height': lastHeight,
+      '${endpoint}_first_timestamp': firstTime,
+      '${endpoint}_last_timestamp': lastTime,
+      '${endpoint}_hash_changed': changed,
+    });
+  }
+  return bothAdvance ? null : Map<String, Object>.unmodifiable(result);
+}
+
+/// Only an original publish refusal can carry these fixed passive details.
+Map<String, Object>? seedRefusalDetail(
+  SeedRefused error, {
+  required Object? action,
+}) {
+  if (action != 'publish') return null;
+  final Map<String, Object>? confirmation =
+      error.code == 'exact-confirmation-or-effect-pending'
+      ? seedConfirmationProjection(error.confirmation?.public) : null;
+  if (confirmation != null) {
+    return Map<String, Object>.unmodifiable(<String, Object>{
+      'seedConfirmation': confirmation,
+    });
+  }
+  final Map<String, Object>? frontier =
+      error.code == 'advancing-momentum-required'
+      ? seedAdvanceProjection(error.frontier?.public) : null;
+  return frontier == null ? null :
+      Map<String, Object>.unmodifiable(<String, Object>{
+        'seedAdvance': frontier,
+      });
+}
+
 bool seedHash(String value) =>
     RegExp(r'^[0-9a-f]{64}$').hasMatch(value) &&
     value.contains(RegExp('[1-9a-f]'));

@@ -1200,6 +1200,64 @@ void main() {
         .containsKey('confirmation'), isFalse);
   });
 
+  test('only original frontier replies retain immutable negative samples', () {
+    const Map<String, Object> facts = <String, Object>{
+      'polls': 6, 'ws_first_height': 10, 'ws_last_height': 10,
+      'ws_first_timestamp': 100, 'ws_last_timestamp': 100,
+      'ws_hash_changed': false, 'http_first_height': 10,
+      'http_last_height': 11, 'http_first_timestamp': 100,
+      'http_last_timestamp': 101, 'http_hash_changed': true,
+    };
+    final Map<String, Object> offered = Map<String, Object>.of(facts);
+    final cli.SeedOperationTrace original = cli.SeedOperationTrace('stake')
+      ..at(cli.SeedOperationAction.publish, cli.SeedOperationStep.reply,
+          commandIndex: 8)
+      ..publicationCallEntered()
+      ..refusedReply('advancing-momentum-required', frontier: offered);
+    final Map<String, Object> observed =
+        original.failure(cli.Fail('Synthetic private failure')).diagnostic;
+    expect(observed['frontier'], facts);
+    offered['ws_first_height'] = 0;
+    expect(observed['frontier'], facts);
+    expect(() => (observed['frontier']! as Map<String, Object>).clear(),
+        throwsUnsupportedError);
+    for (final String field in <String>[
+      'hash', 'address', 'path', 'confirmed', 'retry', 'success',
+    ]) {
+      expect(observed.containsKey(field), isFalse);
+    }
+    for (final (cli.SeedOperationAction, cli.SeedOperationStep) boundary in
+        <(cli.SeedOperationAction, cli.SeedOperationStep)>[
+      (cli.SeedOperationAction.publish, cli.SeedOperationStep.owner),
+      (cli.SeedOperationAction.publish, cli.SeedOperationStep.request),
+      (cli.SeedOperationAction.command, cli.SeedOperationStep.execute),
+      (cli.SeedOperationAction.finish, cli.SeedOperationStep.reply),
+    ]) {
+      final cli.SeedOperationTrace other = cli.SeedOperationTrace('stake')
+        ..at(boundary.$1, boundary.$2, commandIndex: 8)
+        ..publicationCallEntered()
+        ..refusedReply('advancing-momentum-required', frontier: facts);
+      expect(other.failure(cli.Fail('Synthetic')).diagnostic
+          .containsKey('frontier'), isFalse);
+    }
+    original.refusedReply('unknown', frontier: facts);
+    expect(original.failure(cli.Fail('Synthetic')).diagnostic
+        .containsKey('frontier'), isFalse);
+    original.refusedReply('advancing-momentum-required', frontier:
+      <String, Object>{...facts, 'path': 'Synthetic private value'});
+    expect(original.failure(cli.Fail('Synthetic')).diagnostic
+        .containsKey('frontier'), isFalse);
+    original.refusedReply('advancing-momentum-required', frontier: facts);
+    expect(original.failure(TimeoutException('Synthetic')).diagnostic
+        .containsKey('frontier'), isFalse);
+    expect(original.failure(_UnprintableSeedError()).diagnostic
+        .containsKey('frontier'), isFalse);
+    original.at(cli.SeedOperationAction.publish, cli.SeedOperationStep.reply,
+      commandIndex: 8);
+    expect(original.failure(const SeedRefused('advancing-momentum-required'))
+        .diagnostic.containsKey('frontier'), isFalse);
+  });
+
   test('the confirmed original Project exit awaits its actual route once',
       () async {
     final Completer<Object?> route = Completer<Object?>();

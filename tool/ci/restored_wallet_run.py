@@ -218,6 +218,32 @@ def seed_confirmation_projection(value):
     return dict(value)
 
 
+def seed_advance_projection(value):
+    """Existing six-round samples only; no hash bytes or operation authority."""
+    fields = {'polls', 'ws_first_height', 'ws_last_height', 'ws_first_timestamp',
+        'ws_last_timestamp', 'ws_hash_changed', 'http_first_height',
+        'http_last_height', 'http_first_timestamp', 'http_last_timestamp',
+        'http_hash_changed'}
+    checkpoint.need(type(value) is dict and set(value) == fields
+        and type(value['polls']) is int and value['polls'] == 6)
+    maximum = 9007199254740991
+    both_advance = True
+    for endpoint in ('ws', 'http'):
+        first_height, last_height, first_time, last_time = (
+            value[endpoint + '_' + key] for key in ('first_height',
+                'last_height', 'first_timestamp', 'last_timestamp'))
+        changed = value[endpoint + '_hash_changed']
+        checkpoint.need(all(type(item) is int and 1 <= item <= maximum
+                for item in (first_height, last_height, first_time, last_time))
+            and type(changed) is bool and last_height >= first_height
+            and (last_height != first_height or
+                 last_time == first_time and not changed))
+        both_advance = (both_advance and last_height > first_height
+                        and last_time > first_time and changed)
+    checkpoint.need(not both_advance)
+    return dict(value)
+
+
 HOME_PREPARATION_STAGES = (
     'initialState', 'initialReadiness', 'resolveTarget',
     'gotoState', 'gotoTarget', 'gotoTap', 'gotoWait',
@@ -272,7 +298,8 @@ def seed_failure_projection(value, phase):
     fields = {'schema', 'scope', 'recipe', 'action', 'step', 'command_index',
               'publication_call_entered', 'kind', 'reason'}
     checkpoint.need(type(value) is dict and set(value) in
-        (fields, fields | {'confirmation'}, fields | {'home'})
+        (fields, fields | {'confirmation'}, fields | {'home'},
+         fields | {'frontier'})
         and type(value['schema']) is int and value['schema'] == 1
         and type(value['scope']) is str
         and value['scope'] == 'original_seed_operation_failure'
@@ -314,6 +341,11 @@ def seed_failure_projection(value, phase):
         checkpoint.need(action == 'home' and step == 'navigation'
             and value['command_index'] == 0 and entered is False)
         result['home'] = home_preparation_projection(value['home'])
+    if 'frontier' in value:
+        checkpoint.need(action == 'publish' and step == 'reply' and entered
+            and value['kind'] == 'refused'
+            and value['reason'] == 'advancing-momentum-required')
+        result['frontier'] = seed_advance_projection(value['frontier'])
     return result
 
 

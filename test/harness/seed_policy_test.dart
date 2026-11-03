@@ -423,7 +423,8 @@ void main() {
           refusal = error;
         }
         expect(refusal?.code, 'advancing-momentum-required');
-        final Map<String, Object> facts = refusal!.frontier!.public;
+        final SeedRefused original = refusal!;
+        final Map<String, Object> facts = original.frontier!.public;
         expect(facts, <String, Object>{
           'polls': 6,
           'ws_first_height': endpoints.$1 ? 11 : 10,
@@ -438,6 +439,57 @@ void main() {
           'http_hash_changed': endpoints.$2,
         });
         expect(() => facts['polls'] = 0, throwsUnsupportedError);
+        final Map<String, Object> offered = Map<String, Object>.of(facts);
+        final Map<String, Object> copied = seedAdvanceProjection(offered)!;
+        offered['ws_first_height'] = 0;
+        expect(copied, facts);
+        expect(() => copied['polls'] = 0, throwsUnsupportedError);
+        final Map<String, Object> detail =
+            seedRefusalDetail(original, action: 'publish')!;
+        expect(detail, <String, Object>{'seedAdvance': facts});
+        expect(() => detail.clear(), throwsUnsupportedError);
+        for (final Object? action in <Object?>[
+          'begin', 'check', 'prepare', 'finish', null, true,
+        ]) {
+          expect(seedRefusalDetail(original, action: action), isNull);
+        }
+        expect(seedRefusalDetail(SeedRefused('unknown',
+          frontier: original.frontier), action: 'publish'), isNull);
+        for (final Map<String, Object?> change in <Map<String, Object?>>[
+          <String, Object?>{'polls': 5}, <String, Object?>{'polls': true},
+          <String, Object?>{'ws_first_height': 0},
+          <String, Object?>{'ws_last_height': 9},
+          <String, Object?>{'http_last_height': 9007199254740992},
+          <String, Object?>{'ws_last_timestamp': 100.0},
+          <String, Object?>{'http_first_timestamp': null},
+          <String, Object?>{'ws_hash_changed': 1},
+          <String, Object?>{'hash': 'synthetic-private-value'},
+        ]) {
+          expect(seedAdvanceProjection(<String, Object?>{
+            ...facts, ...change,
+          }), isNull);
+        }
+        for (final String missing in facts.keys) {
+          expect(seedAdvanceProjection(<String, Object>{
+            for (final String key in facts.keys)
+              if (key != missing) key: facts[key]!,
+          }), isNull);
+        }
+        final String stationary = endpoints.$1 ? 'http' : 'ws';
+        expect(seedAdvanceProjection(<String, Object>{
+          ...facts, '${stationary}_hash_changed': true,
+        }), isNull);
+        expect(seedAdvanceProjection(<String, Object>{
+          'polls': 6,
+          for (final String endpoint in <String>['ws', 'http']) ...
+            <String, Object>{
+              '${endpoint}_first_height': 10,
+              '${endpoint}_last_height': 11,
+              '${endpoint}_first_timestamp': 100,
+              '${endpoint}_last_timestamp': 101,
+              '${endpoint}_hash_changed': true,
+            },
+        }), isNull);
         expect(source.wsReads, 7);
         expect(source.httpReads, 7);
         expect(source.delays, 6);

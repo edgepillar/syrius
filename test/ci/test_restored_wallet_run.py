@@ -1022,6 +1022,63 @@ class SeedFailureProjectionTests(unittest.TestCase):
         value.update(changes)
         return value
 
+    @staticmethod
+    def frontier(ws=True, http=False, **changes):
+        value = dict(polls=6)
+        for endpoint, advanced in (('ws', ws), ('http', http)):
+            value.update({endpoint + '_first_height': 11 if advanced else 10,
+                endpoint + '_last_height': 17 if advanced else 10,
+                endpoint + '_first_timestamp': 101 if advanced else 100,
+                endpoint + '_last_timestamp': 107 if advanced else 100,
+                endpoint + '_hash_changed': advanced})
+        value.update(changes)
+        return value
+
+    def test_original_frontier_samples_survive_child_projection_without_authority(self):
+        for ws, http in ((True, False), (False, True), (False, False)):
+            offered = self.seed(action='publish', step='reply', command_index=8,
+                publication_call_entered=True, reason='advancing-momentum-required',
+                frontier=self.frontier(ws, http))
+            result = restored.seed_failure_projection(offered, 'seed_stake')
+            self.assertEqual(result, offered)
+            self.assertIsNot(result['frontier'], offered['frontier'])
+            offered['frontier']['ws_first_height'] = 0
+            self.assertGreater(result['frontier']['ws_first_height'], 0)
+            self.assertEqual(restored.child_failure_projection(
+                self.child(result))['seed'], result)
+            for field in ('hash', 'address', 'path', 'confirmed', 'retry', 'success'):
+                self.assertNotIn(field, result)
+                self.assertNotIn(field, result['frontier'])
+
+    def test_frontier_samples_refuse_private_coerced_inconsistent_or_misplaced_data(self):
+        original = self.seed(action='publish', step='reply', command_index=8,
+            publication_call_entered=True, reason='advancing-momentum-required',
+            frontier=self.frontier())
+        changes = (dict(polls=True), dict(polls=5), dict(ws_first_height=0),
+            dict(ws_last_height=9), dict(http_last_height=9007199254740992),
+            dict(ws_last_timestamp=107.0), dict(http_first_timestamp=None),
+            dict(ws_hash_changed=1), dict(http_hash_changed=True),
+            dict(hash='Synthetic private value'), dict(path='Synthetic'),
+            dict(address='Synthetic'), dict(confirmed=True), dict(retry=True))
+        values = [original['frontier'] | change for change in changes]
+        values += [{key: value for key, value in original['frontier'].items()
+                    if key != missing} for missing in original['frontier']]
+        values += [None, True, [], 'Synthetic', self.frontier(True, True)]
+        for value in values:
+            with self.subTest(value=value), self.assertRaises(restored.checkpoint.Refused):
+                restored.seed_failure_projection(original | dict(frontier=value),
+                                                  'seed_stake')
+        for change in (dict(action='begin', command_index=0,
+                            publication_call_entered=False),
+                dict(action='command', step='execute'), dict(step='request'),
+                dict(publication_call_entered=False), dict(kind='timeout'),
+                dict(reason='unknown'), dict(reason='exact-confirmation-or-effect-pending'),
+                dict(confirmation=self.counts()), dict(home=self.home())):
+            with self.subTest(change=change), self.assertRaises(restored.checkpoint.Refused):
+                restored.seed_failure_projection(original | change, 'seed_stake')
+        with self.assertRaises(restored.checkpoint.Refused):
+            restored.seed_failure_projection(original, 'seed_fuse')
+
     def test_finite_original_boundaries_remain_observation_data(self):
         for recipe in restored.SEED_FAILURE_RECIPES:
             for action in restored.SEED_FAILURE_ACTIONS:
