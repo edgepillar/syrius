@@ -1,6 +1,6 @@
 # First delivery and deferred acceptance
 
-Updated: 2026-11-03T18:50Z.
+Updated: 2026-11-03T19:28Z.
 
 The owner selected a first delivery covering the core interface and existing
 basic functionality, with detailed visual and extended platform/lab acceptance
@@ -16,19 +16,20 @@ with one existing skip, 902 focused passes and zero selected analyzer findings.
 Root analysis has zero errors, zero warnings and 1,297 existing infos.
 These full Windows results remain bound to that exact source.
 
-The subsequent Source372 [Go To and shortcut follow-up](source372-goto-symbol-and-keycaps.md),
-`a69da8f51bbc754bcd980b47b97711241490c32b`, independently passes the unchanged 902-case focused
-selection, 955 Python controls with three existing skips and zero selected
-findings in [41695583014](https://github.com/edgepillar/syrius/actions/runs/41695583014).
-Its full-platform and visual acceptance remain in the second phase. The earlier
-Source370 [Home symbol result](source370-focused-results.md) remains source-bound.
+The latest focused result is Source375
+`059cfde641268689cb38524e9f7665aee7af987e`. Its [transfer symbol qualification](source374-transfer-control-symbols.md#fresh-source375-focused-result)
+in [41701569718](https://github.com/edgepillar/syrius/actions/runs/41701569718) passes both
+original streams, all 902 cases, 955 Python controls with three existing skips,
+fourteen assets and zero selected findings. Its application, test, workflow and
+dependency bytes equal Source374. Full-platform and visual acceptance remain
+in the second phase. Earlier [Source372 Go To](source372-goto-symbol-and-keycaps.md#focused-result)
+and [Source370 Home](source370-focused-results.md) results remain source-bound.
 
-Source374's [transfer-symbol follow-up](source374-transfer-control-symbols.md#original-focused-result)
-retains an original pre-SDK Node-version timeout in 41699376744. Its 955 Python
-controls pass with three existing skips; selected analysis and all Dart cases
-are skipped. These new UI bytes require fresh focused qualification. The
-timeout's exact cause is NOT_ESTABLISHED; no CI retry or weakened gate is used.
-The last successful focused source remains Source372 above.
+The [original Source374 preflight failure](source374-transfer-control-symbols.md#original-focused-result)
+in 41699376744 remains failed with its Node-version timeout, passing Python and
+skipped SDK/analysis/Dart. Its exact cause stays NOT_ESTABLISHED. The fresh
+Source375 result does not reconstruct or replace that original observation;
+timeout, output and failure gates remain unchanged.
 
 The original first-delivery pin remains `19c7b2af5e1c13cc0d567e8fe3378682c7b9b750`.
 The earlier Source336 baseline, `62fe9d56ae81f68fc0b40cdbbdc5b32a8459b5e9`,

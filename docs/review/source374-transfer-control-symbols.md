@@ -22,7 +22,7 @@ normal/compact scenarios and all clipboard/QR/export tests remain. No test
 registration or selected file changes. Home, Transfer, Receive, sender-menu and
 actual sender-header controls remain in the unchanged 72-file, 902-case focused
 selection. Python remains 955 controls with three existing hosted skips.
-The original focused result below retains its pre-SDK refusal; current-source engine and analysis remain pending.
+The original refusal remains below. Fresh Source375 qualification of the unchanged application bytes is recorded afterward.
 
 The [fast first-delivery plan](fast-first-delivery.md) remains. Only one existing
 nonnative focused gate is scheduled for this batch. New Windows builds, native
@@ -54,6 +54,33 @@ and timeout, output and failure gates are unchanged.
 All source-bound jobs are terminal. The documentation successor changes only
 reports and retains these unqualified application/test bytes. The preceding
 [Source372 result](source372-goto-symbol-and-keycaps.md#focused-result) remains
-the latest successful focused source. New focused engine/analysis evidence is
-still required for these transfer changes. Heavy Windows/lab, image transport
+the latest successful focused source at that point. Fresh Source375 evidence
+for the same application bytes is recorded below. Heavy Windows/lab, image transport
 and final acceptance stay deferred under the first-delivery plan.
+
+## Fresh Source375 focused result
+
+At 2026-11-03T19:28Z, [41701569718](https://github.com/edgepillar/syrius/actions/runs/41701569718),
+attempt one, job 126145905601, succeeds at Source375 `059cfde641268689cb38524e9f7665aee7af987e`, tree
+`6b9d444bda6e694f8abdbc66eddda1bd6375d693`. Both complete 36-file streams pass all 902 ordinary cases
+(442/460) with normal complete exits. All 955 Python controls have no failures
+or errors and retain three existing hosted skips. Fourteen asset observations
+succeed; selected analysis has zero errors, warnings and infos.
+
+Home, Transfer, Receive, sender-menu/header, Go To and genuine harness
+rail-navigation controls are selected. The standalone rail widget suite is
+outside this selection. Existing geometry, QR foreground, clipboard/export,
+input/owner, startup and entry-refusal checks remain. The 904 asset-fidelity
+count is a separate selection and is not claimed as this execution.
+
+Source375 preserves every application/test/workflow/dependency byte from
+Source374. This fresh success does not change original 41699376744's failure
+or establish its unknown timeout cause. The original run is unchanged; no
+timeout, output or failure gate is relaxed. All source-bound jobs are terminal
+with zero artifacts. No new full Windows build, native wallet/lab producer,
+image transport or local SDK execution accompanies this result.
+
+Source376 changes documentation only and retains the tested bytes. The earlier
+Source368 full Windows/Native108 outcomes and all previous FAILURE/HOLD/UNKNOWN
+boundaries retain their original scope. Fast first delivery and all deferred
+original acceptance criteria remain.
