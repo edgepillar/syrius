@@ -48,6 +48,18 @@ Windows/Home evidence above retains its original source. Native101/103 remain
 UNKNOWN, Native104 is unadmitted, and no original financial/profile flow is
 replayed for this preparation.
 
+## Source355 original analysis refusal and Source356 correction (2026-11-03T05:57Z)
+
+[The original result and correction](review/source355-analysis-and-source356-correction.md)
+retain the failed Source355 run 41585468265. All 953 Python controls pass with
+three existing skips and fourteen asset observations pass. Strict analysis
+refuses one long line and three nullable test casts, with zero errors/warnings
+and four infos. Startup and Dart execution are skipped; zero artifacts exist.
+Source356 wraps that line and restores explicit test null checks. Workflow
+behavior and all Python/marker/ordinary app/dependency bytes are unchanged.
+Fresh strict analysis and 888-case execution remain required. Native104 stays
+unadmitted; no old financial/profile flow or original run is replayed.
+
 ## Historical Source274 qualification snapshot (2026-11-01T02:34Z)
 
 Source274 has five successful exact-source runs. Selected controls qualify

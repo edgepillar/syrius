@@ -807,7 +807,7 @@ void main() {
       onConfirmedPrefix: (Map<String, Object> prefix) async {
         observed.add(prefix);
         final List<Map<String, String>> receipts =
-            prefix['receipts'] as List<Map<String, String>>;
+            prefix['receipts']! as List<Map<String, String>>;
         expect(receipts, hasLength(session.started.length));
         expect(() => prefix['scope'] = 'changed', throwsUnsupportedError);
         expect(receipts.clear, throwsUnsupportedError);
@@ -818,7 +818,7 @@ void main() {
     for (int index = 0; index < observed.length; index++) {
       expect(observed[index]['scope'], 'private_restored_seed_prefix');
       final List<Map<String, String>> receipts =
-          observed[index]['receipts'] as List<Map<String, String>>;
+          observed[index]['receipts']! as List<Map<String, String>>;
       expect(receipts.map((Map<String, String> row) => row['recipe']),
           seedRecipeIds.take(index + 1));
       expect(receipts.first['hash'], _hash(1));
@@ -833,7 +833,7 @@ void main() {
     final Completer<void> flushed = Completer<void>();
     final Future<Map<String, Object>> result = session.workflow(
       onConfirmedPrefix: (Map<String, Object> prefix) async {
-        if ((prefix['receipts'] as List<Map<String, String>>).length == 1) {
+        if ((prefix['receipts']! as List<Map<String, String>>).length == 1) {
           entered.complete();
           await flushed.future;
         }

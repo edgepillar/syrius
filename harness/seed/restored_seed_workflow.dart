@@ -74,7 +74,8 @@ final class RestoredSeedWorkflow {
         await observer(
           Map<String, Object>.unmodifiable(
             <String, Object>{
-              'schema': 1, 'scope': 'private_restored_seed_prefix', 'chain': 321,
+              'schema': 1, 'scope': 'private_restored_seed_prefix',
+              'chain': 321,
               'members': 3, 'selected_index': 1, 'derived_once': true,
               'owner_stable': true,
               'receipts': List<Map<String, String>>.unmodifiable(
