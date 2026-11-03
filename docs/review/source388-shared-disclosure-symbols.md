@@ -30,3 +30,30 @@ or a whole-image match. Original 72/80 main rows, 50/94 literal outputs,
 44 missing and zero accepted whole-image matches remain. Earlier results
 retain their exact source, scope and FAILURE/HOLD/UNKNOWN outcomes. The
 Deposit candidate remains unapplied. No local SDK execution is added.
+
+## Original Source388 result
+
+Original [41731264665](https://github.com/edgepillar/syrius/actions/runs/41731264665),
+attempt one, job 126248935494, fails at Source388
+`cc6d8d7ee56b651f0271fb06f8a2a8c84a2abbab`, tree
+`cd68e7400d5dee06afe71a7925ddf0ba9419ff60`. Python has 955 passing controls
+with three existing skips; fourteen assets and strict zero-finding analysis
+succeed. The first 41-file widget stream exits normally with 506 passes,
+one assertion failure/error, 51 hidden and 558 terminal events, complete
+bounded output and no forced termination. The second group is not executed;
+the aggregate is unqualified. All jobs are terminal with zero artifacts.
+
+The retained failure points to `disclosure_test.dart` line 123, the newly
+extended first case's color-filter assertion. Exact actual/expected color
+values were not retained. Theme interpolation between two pumps is a source
+inference, not a reconstructed runtime observation.
+
+## Source389 test-host correction
+
+Both test hosts now give each theme its own MaterialApp key so each initial
+sample starts in the requested theme. This keeps the existing first-frame
+no-animation assertion and all SVG, input, timing, RTL and state assertions.
+Only test-host construction changes; every application, controller, workflow,
+dependency and selected path byte stays equal to Source388. Case counts and
+process bounds stay unchanged. Fresh complete widget execution and strict
+analysis remain pending. The original failure is preserved and not retried.

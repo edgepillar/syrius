@@ -2,7 +2,7 @@
 
 Small versioned records extend the preserved original validation history.
 
-- [Source388 shared disclosure symbols](source388-shared-disclosure-symbols.md): original 14-pixel SVG in both common components, existing behavior and row size override retained, all 34 existing component cases added to the focused lane. Hosted engine/analysis remain pending; heavy phase-two work stays deferred. [Exact PR body317](pr-body-317.md) retains the previous source-bound results.
+- [Source388 original shared-chevron result](source388-shared-disclosure-symbols.md#original-source388-result): 955 Python controls/three existing skips, fourteen assets and zero findings, then 506 passes/one color-assertion failure; group two is not executed. Source389 isolates each themed test host while preserving all application bytes, assertions, paths and bounds; fresh hosted qualification is pending. Heavy phase-two work stays deferred. [Exact PR body317](pr-body-317.md) retains the previous source-bound results.
 
 - [History through Source275](https://github.com/edgepillar/syrius/blob/10028f9b404904a958ae457c9c69ef2e8a341ee8/docs/review/redesign-validation-history.md): unchanged 257648 bytes, SHA-256 dba698f4369799e28e4d1bf2229e81ef60aa18888c1b38c3a722657165d87b27; retains exact body214 and its links.
 - [Frozen PR body215](pr-body-215.md): exact 3175 bytes, SHA-256 173d8b968661b8c69eccf76c1d34dfde2966cff989b01a113bbfe3040ebca890. Its pending statements describe that historical update.

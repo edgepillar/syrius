@@ -2313,4 +2313,4 @@ See [the common disclosure and row correction](docs/review/source388-shared-disc
 
 | Row | Status | Updated | Evidence |
 | --- | --- | --- | --- |
-| X557 | todo | 2026-11-04 | Source388 prepares the original 14-pixel faint chevron in both shared components, preserving the row size override. Both-theme SVG assertions extend existing cases; all 34 existing disclosure/row cases join the full prior focused selection. Nineteen mocked local controls pass. Fresh complete 1,030-case engine execution and strict analysis remain pending. Native pixels and whole-image acceptance remain open. |
+| X557 | todo | 2026-11-04 | Source388 41731264665 retains 955 Python controls/three existing skips, fourteen assets and zero selected findings, then 506 passes/one first-group color-assertion failure with normal complete output; group two is not executed. Source389 gives each theme a fresh test-host identity while retaining every assertion and all application bytes. Fresh complete 1,030-case engine execution and strict analysis remain pending. Native pixels and whole-image acceptance remain open. |

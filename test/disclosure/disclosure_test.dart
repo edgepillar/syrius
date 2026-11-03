@@ -31,6 +31,8 @@ Widget _host(
   TextDirection direction = TextDirection.ltr,
   bool light = false,
 }) => MaterialApp(
+  // Each theme needs its own initial state for first-frame assertions.
+  key: ValueKey<bool>(light),
   theme: light ? AppTheme.lightTheme : AppTheme.darkTheme,
   home: Directionality(
     textDirection: direction,
