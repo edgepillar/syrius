@@ -2,6 +2,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/sheen.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show ShellSymbol;
 
 /// The full-width transfer action, with the shared plasma paint and sheen.
 class SendButton extends StatefulWidget {
@@ -70,7 +72,7 @@ class SendButtonState extends State<SendButton> {
                   color: tokens.primaryButtonForeground,
                 ),
               )
-            : const Icon(Icons.arrow_upward),
+            : const ShellSymbol('up'),
         child: Text(widget.text),
       ),
     );

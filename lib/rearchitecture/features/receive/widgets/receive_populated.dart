@@ -19,6 +19,8 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_field
     show AmountRefusalScope;
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/receive_qr_image.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/page_dismiss.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show ShellSymbol;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// The receiving address, with a QR and optional amount opened on demand.
@@ -518,8 +520,8 @@ class _ReceivePopulatedState extends State<ReceivePopulated>
                   ? tokens.buttonText
                   : tokens.compactText.copyWith(fontWeight: FontWeight.w500),
             ),
-            icon: Icon(
-              Icons.copy_rounded,
+            icon: ShellSymbol(
+              'copy',
               size: centered ? tokens.heroIconSize : tokens.heroCopyIconSize,
             ),
             child: Text(context.l10n.receiveCopyAddress),
@@ -547,8 +549,8 @@ class _ReceivePopulatedState extends State<ReceivePopulated>
             onPressed: _selectedAddress == null
                 ? null
                 : () => _setShowQr(!_showQr),
-            icon: Icon(
-              Icons.qr_code_rounded,
+            icon: ShellSymbol(
+              'qr',
               size: centered ? tokens.heroIconSize : tokens.heroCopyIconSize,
             ),
             label: Text(

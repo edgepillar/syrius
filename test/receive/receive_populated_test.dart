@@ -11,6 +11,8 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/receive_qr_image.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/page_dismiss.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show ShellSymbol;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import 'receive_test_support.dart';
@@ -65,6 +67,11 @@ Widget _desktopForm(ReceivePopulated form, {required bool light}) => Theme(
   child: form,
 );
 
+Finder _actionSymbol(Key key) => find.descendant(
+  of: find.byKey(key),
+  matching: find.byType(ShellSymbol),
+);
+
 void _expectActionGeometry(WidgetTester tester, {required bool compact}) {
   for (final Key key in const <Key>[
     Key('receive_copy_address'),
@@ -100,11 +107,11 @@ void _expectActionGeometry(WidgetTester tester, {required bool compact}) {
       EdgeInsets.symmetric(horizontal: compact ? 12 : 16),
     );
   }
-  for (final IconData icon in const <IconData>[
-    Icons.copy_rounded,
-    Icons.qr_code_rounded,
+  for (final Key key in const <Key>[
+    Key('receive_copy_address'),
+    Key('receive_qr_toggle'),
   ]) {
-    expect(tester.getSize(find.byIcon(icon)), Size.square(compact ? 14 : 18));
+    expect(tester.getSize(_actionSymbol(key)), Size.square(compact ? 14 : 18));
   }
 }
 
@@ -288,10 +295,10 @@ void main() {
       expect(address.textDirection, TextDirection.ltr);
       expect(find.text('Copy address'), findsOneWidget);
       expect(find.text('Show QR'), findsOneWidget);
+      final Finder qrSymbol = _actionSymbol(const Key('receive_qr_toggle'));
       expect(
-        IconTheme.of(tester.element(find.byIcon(Icons.qr_code_rounded))).color,
-        AppTokens.of(tester.element(find.byIcon(Icons.qr_code_rounded)))
-            .foreground,
+        IconTheme.of(tester.element(qrSymbol)).color,
+        AppTokens.of(tester.element(qrSymbol)).foreground,
       );
       expect(find.byType(ReceiveQrImage), findsNothing);
       expect(find.byKey(const Key('receive_amount_field')), findsNothing);
@@ -299,9 +306,8 @@ void main() {
       await _showQr(tester);
       expect(find.text('Hide QR'), findsOneWidget);
       expect(
-        IconTheme.of(tester.element(find.byIcon(Icons.qr_code_rounded))).color,
-        AppTokens.of(tester.element(find.byIcon(Icons.qr_code_rounded)))
-            .foreground,
+        IconTheme.of(tester.element(qrSymbol)).color,
+        AppTokens.of(tester.element(qrSymbol)).foreground,
       );
       expect(
         _payload(tester),

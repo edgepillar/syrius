@@ -16,6 +16,8 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/ltr.dar
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/segment.dart';
 import 'package:zenon_syrius_wallet_flutter/services/price_feed.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show ShellSymbol;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'transfer_pending.dart';

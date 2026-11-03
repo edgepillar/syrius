@@ -52,7 +52,7 @@ class _TransferReceiver extends StatelessWidget {
                 ),
               ),
               SizedBox(width: tokens.transferRecentGap),
-              Icon(Icons.expand_more, size: tokens.activityIconSize),
+              ShellSymbol('chev', size: tokens.activityIconSize),
             ],
           ),
         ),
@@ -168,8 +168,8 @@ class _TransferSender extends StatelessWidget {
                         ),
                       ),
                       Text(' ZNN', style: tokens.captionText),
-                      Icon(
-                        Icons.expand_more,
+                      ShellSymbol(
+                        'chev',
                         size: tokens.activityIconSize,
                         color: tokens.faint,
                       ),

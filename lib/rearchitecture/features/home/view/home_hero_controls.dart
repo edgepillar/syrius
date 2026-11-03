@@ -38,7 +38,7 @@ class _HomeHeroAddress extends StatelessWidget {
             padding: EdgeInsets.zero,
             iconSize: tokens.heroCopyIconSize,
             onPressed: () => ClipboardUtils.copyToClipboard(address, context),
-            icon: _HomeHeroSymbol(
+            icon: ShellSymbol(
               'copy', size: tokens.heroCopyIconSize, color: tokens.faint,
             ),
           ),
@@ -51,7 +51,7 @@ class _HomeHeroAddress extends StatelessWidget {
               tooltip: context.l10n.homeSwitchAddress,
               padding: EdgeInsets.zero,
               iconSize: tokens.heroAddressIconSize,
-              icon: _HomeHeroSymbol(
+              icon: ShellSymbol(
                 'chev', size: tokens.heroAddressIconSize, color: tokens.faint,
               ),
               onSelected: (String selected) =>
@@ -97,7 +97,7 @@ class _HomeHeroActions extends StatelessWidget {
         PrimaryPill(
           key: const Key('home_send'),
           onPressed: () => onOpenTransfer(TransferMode.send),
-          icon: _HomeHeroSymbol('up', size: tokens.heroIconSize),
+          icon: ShellSymbol('up', size: tokens.heroIconSize),
           style: OutlinedButton.styleFrom(
             padding: tokens.heroActionPadding,
           ),
@@ -145,7 +145,7 @@ class _HomeHeroSecondaryPill extends StatelessWidget {
     final AppTokens tokens = AppTokens.of(context);
     return OutlinedButton.icon(
       onPressed: onPressed,
-      icon: _HomeHeroSymbol(symbol, size: tokens.heroIconSize),
+      icon: ShellSymbol(symbol, size: tokens.heroIconSize),
       label: Text(label),
       style:
           OutlinedButton.styleFrom(
@@ -170,21 +170,4 @@ class _HomeHeroSecondaryPill extends StatelessWidget {
           ),
     );
   }
-}
-
-// Resolve color inside the button so its foreground state owns the symbol.
-class _HomeHeroSymbol extends StatelessWidget {
-  const _HomeHeroSymbol(this.symbol, {required this.size, this.color});
-
-  final String symbol;
-  final double size;
-  final Color? color;
-
-  @override
-  Widget build(BuildContext context) => buildShellSymbol(
-    context,
-    symbol,
-    color: color ?? IconTheme.of(context).color,
-    size: size,
-  );
 }

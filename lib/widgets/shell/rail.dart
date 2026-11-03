@@ -49,6 +49,11 @@ const Map<String, String> _symbols = <String, String>{
   'search':
       '<circle cx="11" cy="11" r="7"/>'
       '<path d="m20 20-3.5-3.5"/>',
+  'qr':
+      '<rect x="3" y="3" width="7" height="7"/>'
+      '<rect x="14" y="3" width="7" height="7"/>'
+      '<rect x="3" y="14" width="7" height="7"/>'
+      '<path d="M14 14h3v3M21 14v7h-7v-3M17 21h1"/>',
   'shield': '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
   'eye':
       '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
@@ -87,6 +92,30 @@ Widget buildShellSymbol(
 
 String get _chordName =>
     defaultTargetPlatform == TargetPlatform.macOS ? 'Cmd' : 'Ctrl';
+
+/// An original symbol that inherits its control's foreground and icon size.
+class ShellSymbol extends StatelessWidget {
+  /// Uses the control's icon theme unless [size] or [color] is supplied.
+  const ShellSymbol(String symbol, {double? size, Color? color, super.key})
+    : _symbol = symbol,
+      _size = size,
+      _color = color;
+
+  final String _symbol;
+  final double? _size;
+  final Color? _color;
+
+  @override
+  Widget build(BuildContext context) {
+    final IconThemeData inherited = IconTheme.of(context);
+    return buildShellSymbol(
+      context,
+      _symbol,
+      color: _color ?? inherited.color,
+      size: _size ?? inherited.size,
+    );
+  }
+}
 
 /// A tooltip beside its item, towards the page, avoids covering the next row.
 TooltipPositionDelegate _railTooltipBeside(

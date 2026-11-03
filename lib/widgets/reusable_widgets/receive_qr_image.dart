@@ -10,6 +10,8 @@ import 'package:share_plus/share_plus.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/color_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show ShellSymbol;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// Rasterizes one exact QR request for the existing image exports.
@@ -193,8 +195,8 @@ class _ReceiveQrImageState extends State<ReceiveQrImage> {
                           action: widget.onSaveImage ?? _saveImage,
                         ),
                       ),
-                icon: Icon(
-                  Icons.save_alt_rounded,
+                icon: ShellSymbol(
+                  'dl',
                   size: tokens.heroCopyIconSize,
                 ),
                 label: Text(context.l10n.saveQr),
