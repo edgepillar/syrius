@@ -34,3 +34,33 @@ visual/performance acceptance stay in phase two. The original 72/80 rows,
 All original FAILURE/HOLD/UNKNOWN evidence and the unapplied Deposit candidate
 retain their existing scope. No dependency, financial operation or local SDK
 execution is added.
+
+## Focused result
+
+Original [41717389503](https://github.com/edgepillar/syrius/actions/runs/41717389503),
+attempt one, job 126200884460, succeeds at Source381 `ef76a1c78073dc68982b7dd37add9e86dde51d8b`,
+tree `83d304f73f9a39cbfc93803f3b957805bf0f3e09`. Independent read-only qualification accounts for both
+complete original streams: 39/39 files, 475/501 passes, all 976 ordinary cases,
+102 hidden and 1078 total terminal events, zero failures/errors/skips.
+The 978 asset-fidelity count remains a separate selection.
+
+All fifteen existing theme cases pass. Both themes compare all five shadow
+tokens directly with the original CSS: actual painter sigma, color, offset,
+zero spread and normal blur style. Every previous test registration remains.
+This qualifies the source mapping and engine assertions; actual native pixels
+and the retained X527/X528 whole-image differences remain open.
+
+All 955 Python controls complete with zero failures/errors and three existing
+hosted skips. Fourteen asset observations succeed and selected analysis has
+zero errors, warnings or infos, including the explicitly selected theme file.
+Every earlier focused file, startup refusal, entry gate and command/output/
+deadline bound remains. All source-bound jobs are terminal with zero artifacts.
+There is no local SDK execution or artifact transport and no new full Windows
+build or native producer.
+
+Source382 changes documentation only; every application, test, workflow and
+dependency byte remains equal to tested Source381. The original first-delivery
+pin and 72/80-row, 50/94-output, zero-match acceptance boundaries remain.
+Source374 original Node-version failure, Source368 full Windows/Native108
+outcomes, earlier FAILURE/HOLD/UNKNOWN evidence and the unapplied Deposit
+candidate retain their original scope. Heavy qualification remains deferred.
