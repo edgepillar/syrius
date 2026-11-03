@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mocktail/mocktail.dart';
@@ -216,6 +217,24 @@ void main() {
         _pillar('alpha', weight: '9007199254740993'),
       ], light: light);
       await _frames(tester);
+      final AppTokens tokens = AppTokens.of(
+        tester.element(find.byType(PillarsCard)),
+      );
+      for (final (String, double, Color) control in <(String, double, Color)>[
+        ('pillars_search', 14, tokens.faint),
+        ('pillars_sort', 12, tokens.dim),
+      ]) {
+        final Finder original = find.descendant(
+          of: find.byKey(Key(control.$1)),
+          matching: find.byType(SvgPicture),
+        );
+        expect(original, findsOneWidget);
+        final SvgPicture mark = tester.widget<SvgPicture>(original);
+        expect(mark.width, control.$2);
+        expect(mark.height, control.$2);
+        expect(mark.colorFilter, ColorFilter.mode(control.$3, BlendMode.srcIn));
+        expect(mark.excludeFromSemantics, isTrue);
+      }
       for (final String heading in <String>[
         'NAME',
         'WEIGHT',

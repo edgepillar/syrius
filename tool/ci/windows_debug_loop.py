@@ -511,6 +511,8 @@ def analyze(parent, repo):
         'lib/widgets/shell/rail.dart',
         'lib/rearchitecture/features/latest_transactions/view/activity_row.dart',
         'test/latest_transactions/activity_row_test.dart',
+        'lib/rearchitecture/features/pillars/view/pillars_card.dart',
+        'test/pillars/view/pillars_card_test.dart',
         'lib/widgets/shell/shell_frame.dart',
         'lib/rearchitecture/features/transfer/view/transfer_page.dart',
         'lib/rearchitecture/features/receive/receive_header_controller.dart',

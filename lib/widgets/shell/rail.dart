@@ -51,6 +51,9 @@ const Map<String, String> _symbols = <String, String>{
   'chev': '<path d="m6 9 6 6 6-6"/>',
   'search':
       '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+  'sort':
+      '<path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 '
+      '3M17 4l3 3"/>',
   'qr':
       '<rect x="3" y="3" width="7" height="7"/><rect '
       'x="14" y="3" width="7" height="7"/><rect '

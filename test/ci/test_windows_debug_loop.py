@@ -644,7 +644,9 @@ class AnalysisAdmissionTests(unittest.TestCase):
         self.assertEqual(self.analysis_argv.count('test/theme/mockup_tokens_test.dart'), 1)
         for path in ('lib/widgets/shell/rail.dart',
                      'lib/rearchitecture/features/latest_transactions/view/activity_row.dart',
-                     'test/latest_transactions/activity_row_test.dart'):
+                     'test/latest_transactions/activity_row_test.dart',
+                     'lib/rearchitecture/features/pillars/view/pillars_card.dart',
+                     'test/pillars/view/pillars_card_test.dart'):
             self.assertEqual(self.analysis_argv.count(path), 1)
         self.assertTrue(value['output_complete'])
         for path in (

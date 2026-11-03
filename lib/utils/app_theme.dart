@@ -1677,6 +1677,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Compact search beside the Nodes tabs.
   double get pillarSearchHeight => 30;
 
+  /// The reference sort chip uses the extra-small original glyph.
+  double get pillarSortIconSize => 12;
+
   /// Node list values share the mockup's row inset.
   EdgeInsetsDirectional get pillarCellPadding =>
       const EdgeInsetsDirectional.symmetric(horizontal: 16, vertical: 9);

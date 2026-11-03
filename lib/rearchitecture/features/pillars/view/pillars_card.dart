@@ -13,6 +13,8 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/row_det
 import 'package:zenon_syrius_wallet_flutter/seams/seam.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/reusable_widgets.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show ShellSymbol;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 part 'pillars_table.dart';
@@ -251,9 +253,10 @@ class _ViewState extends State<_View> {
           contentPadding: EdgeInsetsDirectional.symmetric(
             horizontal: tokens.inlineGap,
           ),
-          prefixIcon: Icon(
-            Icons.search_rounded,
+          prefixIcon: ShellSymbol(
+            'search',
             size: tokens.settingsIconSize,
+            color: tokens.faint,
           ),
           prefixIconConstraints: BoxConstraints(
             minWidth: tokens.pillarSearchHeight,
@@ -311,7 +314,11 @@ class _ViewState extends State<_View> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              Icon(Icons.swap_vert_rounded, size: tokens.settingsIconSize),
+              ShellSymbol(
+                'sort',
+                size: tokens.pillarSortIconSize,
+                color: tokens.dim,
+              ),
               SizedBox(width: tokens.fieldLabelGap),
               Text(
                 _sort == PillarListSort.weight
