@@ -129,6 +129,20 @@ bool _focusWithin(WidgetTester tester, Key key) {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(() async {
+    final FontLoader fonts = FontLoader(kSansFontFamily);
+    for (final String asset in const <String>[
+      'assets/fonts/SpaceGrotesk-Regular.ttf',
+      'assets/fonts/SpaceGrotesk-Medium.ttf',
+      'assets/fonts/SpaceGrotesk-SemiBold.ttf',
+      'assets/fonts/SpaceGrotesk-Bold.ttf',
+    ]) {
+      fonts.addFont(rootBundle.load(asset));
+    }
+    await fonts.load();
+  });
+
   for (final (bool, bool, double) variant in <(bool, bool, double)>[
     (false, false, 1),
     (true, true, 1.5),

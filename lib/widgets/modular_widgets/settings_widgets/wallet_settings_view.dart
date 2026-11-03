@@ -402,7 +402,7 @@ class _WalletSettingsViewState extends State<WalletSettingsView>
             Row(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                Text(label),
+                Text(label, style: AppTokens.of(context).compactText),
                 SizedBox(width: AppTokens.of(context).walletModeLabelGap),
                 Segment<String>(
                   items: <SegmentItem<String>>[
@@ -413,6 +413,7 @@ class _WalletSettingsViewState extends State<WalletSettingsView>
                     ])
                       SegmentItem<String>(
                         value: mode,
+                        labelStyle: AppTokens.of(context).compactText,
                         label: switch (mode) {
                           'auto' => context.l10n.walletSettingsAuto,
                           'on' => context.l10n.walletSettingsOn,
