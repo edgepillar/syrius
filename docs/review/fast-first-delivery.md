@@ -23,6 +23,13 @@ findings in [41695583014](https://github.com/edgepillar/syrius/actions/runs/4169
 Its full-platform and visual acceptance remain in the second phase. The earlier
 Source370 [Home symbol result](source370-focused-results.md) remains source-bound.
 
+Source374's [transfer-symbol follow-up](source374-transfer-control-symbols.md#original-focused-result)
+retains an original pre-SDK Node-version timeout in 41699376744. Its 955 Python
+controls pass with three existing skips; selected analysis and all Dart cases
+are skipped. These new UI bytes require fresh focused qualification. The
+timeout's exact cause is NOT_ESTABLISHED; no CI retry or weakened gate is used.
+The last successful focused source remains Source372 above.
+
 The original first-delivery pin remains `19c7b2af5e1c13cc0d567e8fe3378682c7b9b750`.
 The earlier Source336 baseline, `62fe9d56ae81f68fc0b40cdbbdc5b32a8459b5e9`,
 tree `1f1cd491394462ac02cb8a046e4dde76e792d3af`, and its
