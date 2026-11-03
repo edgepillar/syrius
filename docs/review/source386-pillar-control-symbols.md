@@ -32,3 +32,46 @@ acceptance stay in phase two. Original 72/80 rows, 50/94 literal outputs,
 987-case result and original Source383 seven-info failure keep their source
 and scope, along with every earlier FAILURE/HOLD/UNKNOWN outcome. The Deposit
 candidate remains unapplied. No local SDK execution is added.
+
+## Focused result
+
+Original [41726668001](https://github.com/edgepillar/syrius/actions/runs/41726668001),
+attempt one, job 126233140980, succeeds at Source386
+`8592a40f8abe7e5aea4691fda33f412cfdbbd9a4`, tree
+`4da67f0e6e91267b26e4f224d37ba176f844f42e`. Independent read-only qualification
+accounts for both complete original streams: 40/40 files, 486/510 passes,
+all 996 ordinary cases, 106 hidden and 1102 terminal events, zero
+failures/errors/skips. The 998 asset-fidelity count is a separate selection.
+
+Both theme cases qualify actual SVG presence, 14/12-pixel dimensions,
+faint/dim foreground and excluded SVG semantics. All nine existing Pillars
+card cases pass, including original exact data/details, pending delegation,
+loaded-page filtering/sorting, arrival/detail retention, pagination and RTL
+assertions. All earlier focused paths and registrations remain.
+
+All 955 Python controls complete without failures/errors and retain three
+existing hosted skips. Fourteen assets succeed; selected analysis has zero
+errors, warnings and infos, including the Pillars library and its test. All
+source-bound jobs are terminal with zero artifacts. No new full Windows build,
+native producer, local SDK execution or artifact transport accompanies this
+result. Source387 changes documentation only and preserves every tested
+application, test, workflow and dependency byte.
+
+The original 72/80-row, 50/94-output, 44-missing and zero-match boundaries
+remain. Original Source383 seven-info refusal and all other source-bound
+FAILURE/HOLD/UNKNOWN outcomes remain. Native, full visual, platform, motion
+and lab acceptance stay deferred.
+
+## Deferred sort-chip chrome
+
+X556 records a separate source finding for the existing label and container.
+Reference text is 12-pixel dim, while the current label uses 13-pixel foreground
+`compactText`. Geometry needs a cascade review: the more-specific `.tabs span`
+rule also applies to this nested span and declares 12-pixel vertical padding
+and a two-pixel bottom border. Base `.chip` declares three-pixel vertical
+padding and 26-pixel height; those base rules must not be translated alone.
+The current Flutter container uses six-pixel vertical `fieldLabelGap` with
+no explicit height. Retain the qualified SVG mapping and resolve effective
+reference geometry during deferred visual polish before changing the chrome.
+Fresh native inspection remains required; no measured native chip dimensions
+or whole-image match are established.

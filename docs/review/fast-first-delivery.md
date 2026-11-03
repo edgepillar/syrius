@@ -1,20 +1,21 @@
 # First delivery and deferred acceptance
 
-Updated: 2026-11-03T21:44Z.
+Updated: 2026-11-03T22:08Z.
 
 The owner selected a first delivery covering the core interface and existing
 basic functionality, with detailed visual and extended platform/lab acceptance
 afterward. The first milestone is ready for Draft code review. Final acceptance
 of the complete redesign remains open.
 
-The latest focused source is Source384 `a08d8d67029bae7d8f3a94c2037a2b2613d5fbae`.
-Its [Activity symbol result](source384-renderer-analysis-cleanup.md#focused-result)
-in [41723211390](https://github.com/edgepillar/syrius/actions/runs/41723211390) passes all
-987 cases in complete 40/39-file streams (486/501), 955 Python controls with
-three existing skips, fourteen assets and zero selected findings. All eleven
-row cases pass, including actual SVG geometry/color/semantics alongside the
-original amount, privacy, explorer and seam assertions. Every earlier focused
-file remains. Source385 changes documentation only. The earlier
+The latest focused source is Source386 `8592a40f8abe7e5aea4691fda33f412cfdbbd9a4`.
+Its [Pillar header result](source386-pillar-control-symbols.md#focused-result)
+in [41726668001](https://github.com/edgepillar/syrius/actions/runs/41726668001) passes all
+996 cases in complete 40-file streams (486/510), 955 Python controls with
+three existing skips, fourteen assets and zero selected findings. Both themes
+qualify original header SVG geometry/foreground/semantics; all nine existing
+Pillars card cases and every earlier focused file pass. Source387 changes
+documentation only. Pillar sort-chip typography/chrome remains X556 for
+phase-two visual polish. The earlier [Activity result](source384-renderer-analysis-cleanup.md#focused-result),
 [shadow result](source381-css-shadow-sigma.md#focused-result),
 [token option result](source379-token-option-merge.md#focused-result) and
 [Activity scope result](source377-activity-scope-control.md#focused-result)
@@ -76,6 +77,7 @@ follow-up belongs to phase two and is not applied in this documentation update.
 | Work | Remaining acceptance |
 | --- | --- |
 | Visual catalog and polish | Obtain the 44 missing literal outputs, review all 94 pairs, resolve retained layout/type/spacing findings and accept each matching pair explicitly. Availability remains 50/94 and accepted matches remain 0/94. Repeated captures do not add distinct outputs. |
+| Pillar sort chip | X556 records label type/color and nested-tab selector interactions. Keep the qualified SVG mapping; resolve effective reference geometry before adjusting the remaining chrome and inspecting fresh native pixels. |
 | Home capture | The later Source353 Home producer and reader succeed with eight literal images. Its eight reference comparisons retain differences; current Home source still needs fresh native pixels. Earlier failed captures and their unknown causes remain preserved. |
 | Motion and performance | Complete running-build motion and shader observations and compare page-change, disclosure and launch frame times with the original baseline. Finite stall telemetry does not satisfy this gate. |
 | Seam interaction | Complete every original control, shortcut and Go To check in the running native wallet. Existing registry and widget checks remain useful partial evidence. |
