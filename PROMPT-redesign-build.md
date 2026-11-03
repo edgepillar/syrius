@@ -2314,3 +2314,11 @@ See [the common disclosure and row correction](docs/review/source388-shared-disc
 | Row | Status | Updated | Evidence |
 | --- | --- | --- | --- |
 | X557 | done | 2026-11-03T23:09Z | Source390 ab4740c7a457 / 41735184815, attempt one, job 126262450443 independently qualifies both complete 41-file streams: all 1030 cases (507/523), 955 Python controls/three existing skips, fourteen assets and zero selected findings. All 34 existing disclosure/row cases pass, including both-theme 14-pixel faint SVG geometry/semantics, the explicit 24-pixel override, closed-turn, timing, RTL, keyboard and retained-state assertions. Source388/389 original failures remain. Source391 changes documentation only. Native pixels and whole-image acceptance remain open. |
+
+## Source392 Send draft amount ownership
+
+See [the saved-quantity correction](docs/review/source392-send-draft-amount-binding.md). Restored or arriving drafts cannot carry a saved amount to an unavailable owner/asset fallback, and losing a mounted sender clears its quantity. Valid pairs retain exact amounts; confirmation, admission and publication logic retain their source. [Exact body318](docs/review/pr-body-318.md) preserves preceding results. Heavy phase-two work stays deferred.
+
+| Row | Status | Updated | Evidence |
+| --- | --- | --- | --- |
+| X558 | todo | 2026-11-04 | Source392 adds three real widget regressions for restoration, arriving drafts and balance-owner fallback, including positive exact QSR retention. All 21 Send form cases join every earlier focused path. Nineteen mocked local controls pass; fresh complete 1,051-case widget execution and strict analysis remain pending. No native financial operation is replayed; original final acceptance remains open. |

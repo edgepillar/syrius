@@ -264,6 +264,7 @@ class _SendPopulatedState extends State<SendPopulated>
       _selectedSenderAddress = widget.balances.keys.first;
       _selectedToken = kDualCoin.first;
       _acceptedLookAlike = null;
+      _amountController.clear();
     }
     _availableAssets.clear();
   }
@@ -316,7 +317,8 @@ class _SendPopulatedState extends State<SendPopulated>
             selection: TextSelection.collapsed(offset: next.recipient.length),
           );
         }
-        if (_amount != next.amount) _amountController.text = next.amount;
+        final String amount = _amountForDraft(next);
+        if (_amount != amount) _amountController.text = amount;
       });
     } finally {
       _applyingRecipient = false;
@@ -346,8 +348,15 @@ class _SendPopulatedState extends State<SendPopulated>
       }
     }
     _recipientController.text = draft.recipient;
-    _amountController.text = draft.amount;
+    _amountController.text = _amountForDraft(draft);
   }
+
+  // A fallback sender or asset cannot inherit another draft's quantity.
+  String _amountForDraft(SendDraft draft) =>
+      draft.fromAddress == _selectedSenderAddress &&
+          draft.tokenStandard == _selectedToken.tokenStandard.toString()
+      ? draft.amount
+      : '';
 
   void _saveDraft() {
     if (_applyingRecipient) return;

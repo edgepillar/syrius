@@ -501,6 +501,7 @@ def analyze(parent, repo):
         'test/harness/lab_sender_menu_test.dart',
         'test/harness/transfer_sender_header_test.dart',
         'lib/rearchitecture/features/send/widgets/send_populated.dart',
+        'test/send/widgets/send_form_test.dart',
         'test/harness/lab_send_policy_test.dart',
         'test/harness/lab_send_journal_test.dart',
         'test/harness/selection_context_revision_test.dart',

@@ -204,6 +204,7 @@ void main() {
     bool rtl = false,
     ContactsStore? book,
     double scale = 1,
+    Map<String, AccountInfo>? balances,
   }) => MaterialApp(
     theme: theme ?? (light ? AppTheme.lightTheme : AppTheme.darkTheme),
     builder: (BuildContext context, Widget? child) => MediaQuery(
@@ -233,10 +234,11 @@ void main() {
                   builder: (_, bool active, _) => TickerMode(
                     enabled: active,
                     child: SendPopulated(
-                      balances: <String, AccountInfo>{
-                        _from: _balance(_from),
-                        _otherFrom: _balance(_otherFrom),
-                      },
+                      balances: balances ??
+                          <String, AccountInfo>{
+                            _from: _balance(_from),
+                            _otherFrom: _balance(_otherFrom),
+                          },
                       showSender: false,
                       contacts: book ?? contacts,
                       priceFeed: prices,
@@ -309,6 +311,103 @@ void main() {
       )
       .controller!
       .text;
+
+  SendFormOrigin formOrigin(WidgetTester tester) =>
+      tester.state(find.byType(SendPopulated)) as SendFormOrigin;
+
+  testWidgets(
+    'restoring a draft keeps an amount only for its available owner and asset',
+    (WidgetTester tester) async {
+      await show(tester);
+      for (final (String, String, bool) choice in <(String, String, bool)>[
+        (_address(102), kZnnCoin.tokenStandard.toString(), false),
+        (_from, 'zts1zdl4pmr425t0j97v4eu0du', false),
+        (_otherFrom, kQsrCoin.tokenStandard.toString(), true),
+      ]) {
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pump();
+        draft.save(
+          fromAddress: choice.$1,
+          tokenStandard: choice.$2,
+          recipient: _bob,
+          amount: '7.00000001',
+        );
+        final SendDraft original = draft.state;
+        await tester.pumpWidget(host());
+        await tester.pump();
+        await tester.pump();
+        expect(recipient(tester), _bob);
+        expect(amount(tester), choice.$3 ? '7.00000001' : '');
+        expect(formOrigin(tester).draftSender, choice.$3 ? choice.$1 : _from);
+        expect(
+          formOrigin(tester).draftToken,
+          choice.$3 ? choice.$2 : kZnnCoin.tokenStandard.toString(),
+        );
+        expect(action(tester).onPressed != null, choice.$3);
+        expect(draft.state, same(original));
+        expect(tester.takeException(), isNull);
+      }
+      verifyNever(() => sender.add(any()));
+    },
+  );
+
+  testWidgets(
+    'an arriving unavailable draft cannot give its amount to a fallback',
+    (WidgetTester tester) async {
+      await show(tester);
+      await fill(tester, amount: '8.00000001');
+      for (final (String, String) choice in <(String, String)>[
+        (_address(102), kZnnCoin.tokenStandard.toString()),
+        (_from, 'zts1zdl4pmr425t0j97v4eu0du'),
+      ]) {
+        draft.save(
+          fromAddress: choice.$1,
+          tokenStandard: choice.$2,
+          recipient: _bob,
+          amount: '7.00000001',
+        );
+        final SendDraft original = draft.state;
+        await tester.pump();
+        await tester.pump();
+        expect(recipient(tester), _bob);
+        expect(amount(tester), isEmpty);
+        expect(formOrigin(tester).draftSender, _from);
+        expect(
+          formOrigin(tester).draftToken,
+          kZnnCoin.tokenStandard.toString(),
+        );
+        expect(action(tester).onPressed, isNull);
+        expect(draft.state, same(original));
+        expect(tester.takeException(), isNull);
+      }
+      verifyNever(() => sender.add(any()));
+    },
+  );
+
+  testWidgets(
+    'a balance update cannot carry an absent sender amount to the next sender',
+    (WidgetTester tester) async {
+      await show(tester);
+      await fill(tester, recipient: _bob, amount: '7.00000001');
+      final SendFormOrigin original = formOrigin(tester);
+      await tester.pumpWidget(
+        host(balances: <String, AccountInfo>{_otherFrom: _balance(_otherFrom)}),
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(formOrigin(tester), same(original));
+      expect(formOrigin(tester).draftSender, _otherFrom);
+      expect(recipient(tester), _bob);
+      expect(amount(tester), isEmpty);
+      expect(draft.state.fromAddress, _otherFrom);
+      expect(draft.state.tokenStandard, kZnnCoin.tokenStandard.toString());
+      expect(draft.state.recipient, _bob);
+      expect(draft.state.amount, isEmpty);
+      expect(action(tester).onPressed, isNull);
+      expect(tester.takeException(), isNull);
+      verifyNever(() => sender.add(any()));
+    },
+  );
 
   for (final bool light in <bool>[false, true]) {
     testWidgets(
