@@ -1,20 +1,26 @@
 # First delivery and deferred acceptance
 
-Updated: 2026-11-03T17:35Z.
+Updated: 2026-11-03T18:12Z.
 
 The owner selected a first delivery covering the core interface and existing
 basic functionality, with detailed visual and extended platform/lab acceptance
 afterward. The first milestone is ready for Draft code review. Final acceptance
 of the complete redesign remains open.
 
-The current implementation baseline is Source368,
+The latest full Windows baseline is Source368,
 `a06c9bfa5d6caa207f97f950cae6287bea3ec0f8`, tree
 `36fdab2c09082de239c562fb3e34c8f5628f36ed`. Its
 [closed Windows and lab outcomes](source368-windows-native108-and-fast-delivery.md)
 include successful Windows Debug/Release builds, 4,900 nonchain test passes
 with one existing skip, 902 focused passes and zero selected analyzer findings.
 Root analysis has zero errors, zero warnings and 1,297 existing infos.
-Documentation-only successors retain those exact runtime and test bytes.
+These full Windows results remain bound to that exact source.
+
+The subsequent Source370 [Home symbol follow-up](source370-focused-results.md),
+`6af0ab94f0a48a472c7e46c4d46acad2b1c7f237`, independently passes the unchanged
+902-case focused selection, 955 Python controls with three existing skips and
+zero selected findings. Its current-source full-platform and visual acceptance
+remain in the second phase.
 
 The original first-delivery pin remains `19c7b2af5e1c13cc0d567e8fe3378682c7b9b750`.
 The earlier Source336 baseline, `62fe9d56ae81f68fc0b40cdbbdc5b32a8459b5e9`,
