@@ -255,6 +255,18 @@ void main() {
     WidgetTester tester,
   ) async {
     final HarnessAgent agent = HarnessAgent.forTest();
+    // The Theme segment has its own genuine System button on this page.
+    const String themeSystemKey = 'display_theme_system';
+    Iterable<Map<String, Object?>> languageOptions(
+      Map<String, Object?> tree,
+      AppLanguage choice,
+    ) => (tree['nodes']! as List<dynamic>)
+        .whereType<Map<String, Object?>>()
+        .where((Map<String, Object?> node) =>
+            node['kind'] == 'button' &&
+            node['label'] == choice.nativeName &&
+            node['key'] != themeSystemKey);
+
     for (final double height in <double>[600, 540]) {
       for (final bool light in <bool>[false, true]) {
         theme.changeThemeMode(light ? ThemeMode.light : ThemeMode.dark);
@@ -268,14 +280,12 @@ void main() {
             tester,
             agent.commandForTest(<String, dynamic>{'cmd': 'tree'}),
           );
-          expect(
-            (closed['nodes']! as List<dynamic>)
-                .whereType<Map<String, Object?>>()
-                .where((Map<String, Object?> node) =>
-                    node['kind'] == 'button' &&
-                    node['label'] == next.nativeName),
-            isEmpty,
-          );
+          expect(languageOptions(closed, next), isEmpty);
+          expect((closed['nodes']! as List<dynamic>)
+              .whereType<Map<String, Object?>>()
+              .where((Map<String, Object?> node) =>
+                  node['kind'] == 'button' && node['key'] == themeSystemKey),
+              hasLength(1));
           await _driveHarness(
             tester,
             agent.commandForTest(<String, dynamic>{
@@ -293,18 +303,13 @@ void main() {
             tester,
             agent.commandForTest(<String, dynamic>{'cmd': 'tree'}),
           );
-          expect(
-            (opened['nodes']! as List<dynamic>)
-                .whereType<Map<String, Object?>>()
-                .where((Map<String, Object?> node) =>
-                    node['kind'] == 'button' &&
-                    node['label'] == next.nativeName),
-            hasLength(1),
-          );
+          final Iterable<Map<String, Object?>> options =
+              languageOptions(opened, next);
+          expect(options, hasLength(1));
           await _driveHarness(
             tester,
             agent.commandForTest(<String, dynamic>{
-              'cmd': 'tap', 'text': next.nativeName, 'exact': true,
+              'cmd': 'tap', 'ref': options.single['ref']! as int,
             }),
           );
           await tester.pumpAndSettle();
@@ -333,10 +338,16 @@ void main() {
       for (final AppLanguage next in <AppLanguage>[
         AppLanguage.arabic, AppLanguage.english,
       ]) {
-        final Finder chevron = find.descendant(
+        final Finder field = find.descendant(
           of: find.byKey(const Key('display_language_menu')),
+          matching: find.byType(TextField),
+        );
+        expect(field, findsOneWidget);
+        final Finder chevron = find.descendant(
+          of: field,
           matching: find.byIcon(Icons.keyboard_arrow_down_rounded),
         );
+        expect(chevron, findsOneWidget);
         await tester.tapAt(tester.getCenter(chevron));
         await tester.pumpAndSettle();
         await tester.tap(find.text(next.nativeName).last);
