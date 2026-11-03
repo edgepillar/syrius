@@ -394,9 +394,9 @@ macOS; Windows provision and acceptance remain pending. See
 
 - Updated: 2026-11-02
 - Delivery priority: The owner selected [core interface and basic functionality first](docs/review/fast-first-delivery.md), with detailed visual and extended platform/lab acceptance afterward. The first milestone is ready for Draft code review; no new heavy qualification or image transport is scheduled for it. Original final acceptance is preserved
-- Latest outcomes: [Source336](docs/review/source336-closed-hosted-outcomes.md) closes all eleven originals, ten successful and one failed Home producer. Independent readers qualify 837 focused passes with clean selected analysis, the full 4,881-pass/one-skip Windows baseline with successful Debug/Release builds and zero root errors/warnings with 1,297 infos, and Navigation/Settings/Details native archives. Home fails requesting its light Go To shot; its inner cause remains NOT_ESTABLISHED and required wallet actor cleanup is forced
-- Current implementation: The first delivery remains pinned to 19c7b2af5e1c. Source342 qualifies clean selected analysis, 940 Python/three skips and fourteen asset observations, then records 417 passes/two failures at the first direct Apps test drag, before final hit-testability. Source343 uses the existing bounded frame helper after fixture changes and adds thirty-count/list/scrollable preconditions. Application source and all prior assertions remain unchanged. Fresh exact 848-case hosted qualification is pending; all original failures remain failed
-- Actual review: All fourteen Source336 Settings frames and fourteen exact references were individually viewed in a closed owned review. Every pair retains differences and no match is accepted. The actual Apps pair review corrects the prior reference-only interpretation: its references are compact and its genuine empty table is stretched. Source340 adds content-sized short lists, bounded scrolling and the ordinary heading inset, with fresh focused hosted gates pending
+- Latest outcomes: [Source343](docs/review/source343-focused-results.md) independently qualifies all 848 focused Dart cases, zero selected analysis findings, 940 Python/three existing skips and fourteen asset observations. Original Source340-342 failures remain failed. [Source336](docs/review/source336-closed-hosted-outcomes.md) retains its historical full 4,881-pass/one-skip Windows baseline, Debug/Release builds and native Navigation/Settings/Details archives. Its failed Home light Go To cause stays NOT_ESTABLISHED
+- Current implementation: The first delivery remains pinned to 19c7b2af5e1c. Apps short lists now size to genuine content, empty state remains compact and long lists scroll in a bounded body; its plain heading uses the ordinary card inset. Source343 qualifies the existing dark/light populated/empty/thirty-row controls, last-action hit-testability and all prior checks with unchanged production code since Source341. The redundant conversion is removed; no original action, guard or registration is relaxed
+- Actual review: All fourteen Source336 Settings frames and fourteen exact references were individually viewed in a closed owned review. Every pair retains differences and no match is accepted. The actual Apps pair review corrects the prior reference-only interpretation: both PNG references are compact and the original genuine empty table is stretched. Source343 qualifies the bounded layout/widget follow-up; no new native image or visual match is inferred
 - Acceptance: 72/80 rows, 90 percent by original rows; nineteen preparations, 50 literal outputs, 44 missing and zero of 94 accepted matches. P03, P09, F06, V01-V03 and V05-V06 remain open and prioritized for the second phase. Earlier FAILURE/HOLD/UNKNOWN, including Native101/103 UNKNOWN and Native104 unadmitted, remain. English text, edgepillar no-reply/UTC attribution and Draft status continue
 
 ### Rows
@@ -482,7 +482,7 @@ macOS; Windows provision and acceptance remain pending. See
 | V03 | blocked | 2026-10-23T12:26Z | Seam registry and injected control checks are prepared; trying every control, shortcut and Go to entry in a running native wallet remains pending |
 | V04 | done | 2026-10-31T23:34Z | All four independently qualified Source265 minimum-window/Arabic originals were actually viewed in both themes. The owned review closes SUCCESS with actual controller exit zero; required original native closure stays source-bound. Minimum controls fit and RTL layout mirrors. English fallback/missing Arabic copy is retained as X414; exact saved locale preference and Arabic glyph quality remain separate unqualified observations |
 | V05 | blocked | 2026-10-28T12:48Z | The four source133 images and their exact references are now opened, with corrected Import family/counter placement and residual selector, Welcome frame/drop and draft-decoration differences. Font hinting and the selected brand colors remain allowed exceptions. No input buffer receives a decorative continuation mark. Complete independent review of all 94 pairs and the browser-rendered compare page remains pending; zero matches are accepted |
-| V06 | review | 2026-11-02T23:18Z | The first delivery stays pinned to 19c7b2af5e1c. Source338 independently qualifies 837 focused cases and clean analysis after the retained Source337 refusal; Source336 full builds/native archives remain source-bound. Original final acceptance stays 72/80 with nineteen preparations, 44 missing outputs and zero matches. Native101/103 remain UNKNOWN and Native104 remains unadmitted |
+| V06 | review | 2026-11-03T00:56Z | First delivery stays pinned to 19c7b2af5e1c. Source343 independently qualifies all 848 focused cases and clean analysis after retained Source340-342 failures. Source336 full/native evidence stays source-bound. Final acceptance remains 72/80, nineteen preparations, 44 missing outputs and zero matches; Native101/103 UNKNOWN and Native104 unadmitted |
 | X01 | done | 2026-10-21T23:26Z | e13abb387577 restores loading-list sweep ink in lib/rearchitecture/utils/widgets/motion/skeleton.dart; all 19 existing Skeleton tests pass unchanged |
 | X02 | done | 2026-10-21T23:57Z | e13abb387577 keeps the status-strip dot visible at narrow widths and fixes asynchronous visibility tests |
 | X03 | done | 2026-10-21T23:57Z | e13abb387577 parses the bridge test's HTTP head before binary frames; compression refusal assertions retained |
@@ -1968,7 +1968,7 @@ See [Source336 actual Settings review and Source340 preparation](docs/review/sou
 | Row | Status | Updated | Evidence |
 | --- | --- | --- | --- |
 | X508 | done | 2026-11-03T00:12Z | Fourteen original Source336 Settings frames and all fourteen exact references were individually viewed; the owned review closed successfully with the verified archive retained. All fourteen pairs remain differences, with zero accepted matches. Current-source native execution is not inferred |
-| X509 | review | 2026-11-03T00:12Z | Apps short lists now size to genuine content, empty state stays compact and long lists scroll within a bounded body. The heading uses the ordinary card inset. Existing dark/light cases cover two, zero and thirty synthetic connections; all original actions and owner guards remain. The focused selection retains all 68 original files and adds the existing eleven-case Apps file for 848 ordinary cases. Fresh hosted gates remain pending |
+| X509 | done | 2026-11-03T00:56Z | At 6f2dde7f00dd, Source343 original 41555286664 qualifies compact two/zero/thirty-connection layout, the ordinary heading inset and last-action reachability in the retained exact 848-case selection. Genuine data and production action/source guards remain. Native and visual acceptance stays open |
 
 
 ## Source341 strict-analysis correction
@@ -1977,7 +1977,7 @@ See [the original Source340 refusal and Source341 conversion correction](docs/re
 
 | Row | Status | Updated | Evidence |
 | --- | --- | --- | --- |
-| X510 | review | 2026-11-03T00:21Z | Removes the redundant conversion after the double-valued Apps height clamp. The original single-info Source340 refusal is preserved; Python and asset positives do not qualify its skipped Dart stage. Existing table bounds, controls, actions and exact 848-case focused gate remain, pending fresh hosted qualification |
+| X510 | done | 2026-11-03T00:56Z | Source343 original 41555286664 qualifies zero selected analysis findings and all 848 cases after removal of the redundant double conversion. Original Source340 remains failed with a skipped Dart stage; no failure is relabelled |
 
 
 ## Source342 bounded scroll fixture
@@ -1986,7 +1986,7 @@ See [the original Source341 engine failure and Source342 fixture correction](doc
 
 | Row | Status | Updated | Evidence |
 | --- | --- | --- | --- |
-| X511 | review | 2026-11-03T00:34Z | Replaces nested scroll-helper choreography with at most twenty direct list drags, retains the final disconnect-action availability assertion and adds hit-testability for the thirtieth row. Original Source341 stays 417 passes/two failures with clean analysis and an unexecuted second group. UI, guards, all previous tests and the exact 848-case gate remain; fresh hosted qualification is pending |
+| X511 | done | 2026-11-03T00:56Z | The final direct-gesture fixture passes in Source343 original 41555286664 together with bounded frame settling and explicit list preconditions. Final action availability and hit-testability remain required. Source341/342 originals stay failed; the original inner causes are not established |
 
 
 ## Source343 fixture publication frames
@@ -1995,4 +1995,9 @@ See [the original Source342 gesture failure and Source343 frame preparation](doc
 
 | Row | Status | Updated | Evidence |
 | --- | --- | --- | --- |
-| X512 | review | 2026-11-03T00:45Z | Existing eight-frame advances follow each Apps fixture change. Before the first drag, the same cases require thirty displayed connections, one list and one descendant scrollable. All earlier compact-size, inset, final action and hit-testability checks remain. The failed Source342 original, unchanged UI and exact 848-case gate are retained; fresh hosted gates remain pending |
+| X512 | done | 2026-11-03T00:56Z | Source343 original 41555286664 qualifies all 848 cases with the existing eight-frame advances and explicit thirty-count/list/scrollable preconditions. All prior compact-size, inset, last-action and owner assertions remain. Production code is unchanged since Source341; native/visual acceptance is not inferred |
+
+
+## Source344 qualified focused outcome record
+
+See [Source343 focused results](docs/review/source343-focused-results.md). This documentation-only tail retains the exact tested code and all original failures, with no repeated SDK, full build, native capture or image transport. Main progress and final acceptance remain unchanged.
