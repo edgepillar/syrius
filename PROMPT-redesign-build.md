@@ -395,7 +395,7 @@ macOS; Windows provision and acceptance remain pending. See
 - Updated: 2026-11-02
 - Delivery priority: The owner selected [core interface and basic functionality first](docs/review/fast-first-delivery.md), with detailed visual and extended platform/lab acceptance afterward. The first milestone is ready for Draft code review; no new heavy qualification or image transport is scheduled for it. Original final acceptance is preserved
 - Latest outcomes: [Source336](docs/review/source336-closed-hosted-outcomes.md) closes all eleven originals, ten successful and one failed Home producer. Independent readers qualify 837 focused passes with clean selected analysis, the full 4,881-pass/one-skip Windows baseline with successful Debug/Release builds and zero root errors/warnings with 1,297 infos, and Navigation/Settings/Details native archives. Home fails requesting its light Go To shot; its inner cause remains NOT_ESTABLISHED and required wallet actor cleanup is forced
-- Current implementation: The first delivery remains pinned to 19c7b2af5e1c. Source340 adds compact genuine-content Apps lists and the ordinary heading inset, with existing two/zero/thirty-connection controls included in the retained focused selection. Its original run 41551579763 passes 940 Python controls/three skips and fourteen asset observations, then strict analysis rejects one NOOP_PRIMITIVE_OPERATIONS info; Dart tests are skipped. Source341 removes only the redundant double conversion, with fresh hosted gates pending. Source338 prior 837-case success and all earlier failures remain source-bound
+- Current implementation: The first delivery remains pinned to 19c7b2af5e1c. Source341 removes the redundant Apps conversion and qualifies clean selected analysis, 940 Python/three skips and fourteen asset observations. Its original run 41552455171 then records 417 passes and two failures at the new dark/light scroll-helper call; the second group is not executed. Source342 changes only test scroll choreography, retains all prior assertions and adds actual last-action hit-testability. Fresh 848-case hosted qualification remains pending; prior failures stay failed
 - Actual review: All fourteen Source336 Settings frames and fourteen exact references were individually viewed in a closed owned review. Every pair retains differences and no match is accepted. The actual Apps pair review corrects the prior reference-only interpretation: its references are compact and its genuine empty table is stretched. Source340 adds content-sized short lists, bounded scrolling and the ordinary heading inset, with fresh focused hosted gates pending
 - Acceptance: 72/80 rows, 90 percent by original rows; nineteen preparations, 50 literal outputs, 44 missing and zero of 94 accepted matches. P03, P09, F06, V01-V03 and V05-V06 remain open and prioritized for the second phase. Earlier FAILURE/HOLD/UNKNOWN, including Native101/103 UNKNOWN and Native104 unadmitted, remain. English text, edgepillar no-reply/UTC attribution and Draft status continue
 
@@ -1978,3 +1978,12 @@ See [the original Source340 refusal and Source341 conversion correction](docs/re
 | Row | Status | Updated | Evidence |
 | --- | --- | --- | --- |
 | X510 | review | 2026-11-03T00:21Z | Removes the redundant conversion after the double-valued Apps height clamp. The original single-info Source340 refusal is preserved; Python and asset positives do not qualify its skipped Dart stage. Existing table bounds, controls, actions and exact 848-case focused gate remain, pending fresh hosted qualification |
+
+
+## Source342 bounded scroll fixture
+
+See [the original Source341 engine failure and Source342 fixture correction](docs/review/source341-engine-failure-and-source342-scroll.md). The application source and original failure remain unchanged.
+
+| Row | Status | Updated | Evidence |
+| --- | --- | --- | --- |
+| X511 | review | 2026-11-03T00:34Z | Replaces nested scroll-helper choreography with at most twenty direct list drags, retains the final disconnect-action availability assertion and adds hit-testability for the thirtieth row. Original Source341 stays 417 passes/two failures with clean analysis and an unexecuted second group. UI, guards, all previous tests and the exact 848-case gate remain; fresh hosted qualification is pending |

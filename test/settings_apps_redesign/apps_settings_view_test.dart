@@ -170,14 +170,22 @@ void main() {
         final Finder list = find.byKey(
           const PageStorageKey<String>('apps_connections'),
         );
-        await tester.scrollUntilVisible(
-          find.byKey(const Key('apps_disconnect_29')),
-          200,
-          scrollable: find.descendant(
-            of: list,
-            matching: find.byType(Scrollable),
-          ),
+        final Finder scrollable = find.descendant(
+          of: list,
+          matching: find.byType(Scrollable),
         );
+        final Finder lastAction = find.byKey(
+          const Key('apps_disconnect_29'),
+        );
+        for (
+          int step = 0;
+          step < 20 && lastAction.hitTestable().evaluate().isEmpty;
+          step++
+        ) {
+          await tester.drag(scrollable, const Offset(0, -200));
+          await tester.pump(const Duration(milliseconds: 50));
+        }
+        expect(lastAction.hitTestable(), findsOneWidget);
         expect(_action(tester, 'apps_disconnect_29').onPressed, isNotNull);
         expect(source.writes, isEmpty);
         expect(source.actions, isEmpty);

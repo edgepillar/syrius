@@ -185,3 +185,5 @@ A prior successful run remains bound to its original source and scope.
 - 2026-11-03T00:12Z: [Source336 actual Settings pair review and Source340 compact Apps preparation](source336-settings-visual-review.md) preserves all fourteen actual/reference differences, corrects the prior reference-only height interpretation and adds bounded genuine-content layout. [Exact PR body 283](pr-body-283.md) retains the previous text and links. Fresh hosted gates are pending.
 
 - 2026-11-03T00:21Z: [Source340 original analysis refusal and Source341 conversion correction](source340-analysis-and-source341-conversion.md) retain the failed original, 940 Python/three skips and fourteen asset observations, with zero executed Dart cases. Only the redundant Apps double conversion is removed; fresh gates remain pending.
+
+- 2026-11-03T00:34Z: [Source341 original engine failure and Source342 scroll fixture](source341-engine-failure-and-source342-scroll.md) preserve clean analysis, 417 passes/two failures and the unexecuted second group. Only scroll-test choreography changes, with last-action hit-testability added; the original application tree and all prior assertions remain.
