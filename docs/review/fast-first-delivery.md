@@ -1,19 +1,26 @@
 # First delivery and deferred acceptance
 
-Updated: 2026-11-02T22:19Z.
+Updated: 2026-11-03T17:35Z.
 
 The owner selected a first delivery covering the core interface and existing
 basic functionality, with detailed visual and extended platform/lab acceptance
 afterward. The first milestone is ready for Draft code review. Final acceptance
 of the complete redesign remains open.
 
-The implementation baseline is Source336,
-62fe9d56ae81f68fc0b40cdbbdc5b32a8459b5e9, tree
-1f1cd491394462ac02cb8a046e4dde76e792d3af. Its
-[closed hosted outcomes](source336-closed-hosted-outcomes.md) include successful
-Windows Debug/Release builds, 4,881 full-suite passes with one existing skip,
-837 focused passes and clean selected analysis. Documentation-only successors
-retain this tested application source; they do not acquire a new runtime result.
+The current implementation baseline is Source368,
+`a06c9bfa5d6caa207f97f950cae6287bea3ec0f8`, tree
+`36fdab2c09082de239c562fb3e34c8f5628f36ed`. Its
+[closed Windows and lab outcomes](source368-windows-native108-and-fast-delivery.md)
+include successful Windows Debug/Release builds, 4,900 nonchain test passes
+with one existing skip, 902 focused passes and zero selected analyzer findings.
+Root analysis has zero errors, zero warnings and 1,297 existing infos.
+Documentation-only successors retain those exact runtime and test bytes.
+
+The original first-delivery pin remains `19c7b2af5e1c13cc0d567e8fe3378682c7b9b750`.
+The earlier Source336 baseline, `62fe9d56ae81f68fc0b40cdbbdc5b32a8459b5e9`,
+tree `1f1cd491394462ac02cb8a046e4dde76e792d3af`, and its
+[original evidence](source336-closed-hosted-outcomes.md) remain historical
+results with their original scope.
 
 ## First delivery
 
@@ -29,16 +36,18 @@ retain this tested application source; they do not acquire a new runtime result.
 - Keep the existing PR Draft. This milestone does not declare release,
   live-chain, complete wallet-flow or final redesign acceptance.
 
+The owner reaffirmed fast delivery before further expensive qualification.
 No new heavy qualification or image transport is scheduled for this milestone.
-Existing outcomes are retained; optional CI lanes remain available for the
-second phase.
+Use the completed results for the Draft handoff and batch extended checks
+after implementation stabilizes. The prepared Deposit input-readiness
+follow-up belongs to phase two and is not applied in this documentation update.
 
 ## Second phase
 
 | Work | Remaining acceptance |
 | --- | --- |
 | Visual catalog and polish | Obtain the 44 missing literal outputs, review all 94 pairs, resolve retained layout/type/spacing findings and accept each matching pair explicitly. Availability remains 50/94 and accepted matches remain 0/94. Repeated captures do not add distinct outputs. |
-| Home capture | Investigate the original light-theme Go To capture refusal and required wallet-actor cleanup. Preserve its failed run and unknown inner cause; do not infer a failed ordinary user action from a capture failure. |
+| Home capture | The later Source353 Home producer and reader succeed with eight literal images. Its eight reference comparisons retain differences; current Home source still needs fresh native pixels. Earlier failed captures and their unknown causes remain preserved. |
 | Motion and performance | Complete running-build motion and shader observations and compare page-change, disclosure and launch frame times with the original baseline. Finite stall telemetry does not satisfy this gate. |
 | Seam interaction | Complete every original control, shortcut and Go To check in the running native wallet. Existing registry and widget checks remain useful partial evidence. |
 | Environment and lab | Complete the documented installation/Docker route, remaining fixture/effect/reopen requirements and extended platform checks. Source review and a passing nonchain Windows suite do not establish them. |
@@ -46,9 +55,12 @@ second phase.
 
 The original ledger remains 72/80 main rows. P03, P09, F06, V01-V03 and V05-V06
 remain open with their original criteria. Deferral changes priority, not their
-state. Nineteen preparations remain unqualified; Native101/103 remain UNKNOWN
-and Native104 remains unadmitted. No original financial/profile/password/seed,
-send or reopen flow is replayed by this delivery decision.
+state. Nineteen preparations remain unqualified. Native101/103/104 retain their
+original UNKNOWN outcomes. Native108 has three incomplete prefix observations
+before Deposit command six refuses before publication; Project and Fund address
+remain unreached. Full seeded workflow and copied lifecycle acceptance remain
+phase-two work. No original financial/profile/password/seed, send or reopen flow
+is replayed by this delivery decision.
 
 Public changes continue in English with edgepillar attribution and GitHub
 no-reply metadata. Existing evidence, failures and history are preserved.
