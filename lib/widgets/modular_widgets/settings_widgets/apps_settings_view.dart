@@ -207,8 +207,7 @@ class _AppsSettingsViewState extends State<AppsSettingsView>
                       .clamp(
                         tokens.appsSettingsTableMinHeight,
                         tokens.appsSettingsTableMaxHeight,
-                      )
-                      .toDouble();
+                      );
               return SingleChildScrollView(
                 key: const Key('apps_settings_page'),
                 child: Column(
