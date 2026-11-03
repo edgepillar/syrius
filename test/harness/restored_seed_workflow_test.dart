@@ -1408,7 +1408,9 @@ void main() {
             int typed = 0;
             for (final List<String> words in recipe.lines) {
               if (words.first == 'wait' &&
-                  words.contains('accelerator_action_name')) input = true;
+                  words.contains('accelerator_action_name')) {
+                input = true;
+              }
               if (!input) continue;
               if (words.first == 'tap') break;
               expect(<String>{'wait', 'type', 'scroll'}, contains(words.first));
