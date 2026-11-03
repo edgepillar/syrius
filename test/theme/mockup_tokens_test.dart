@@ -61,6 +61,23 @@ Curve _curve(String css) {
   return Cubic(points[0], points[1], points[2], points[3]);
 }
 
+void _expectCssShadow(String css, String selector, BoxShadow shadow) {
+  final String block = RegExp(
+    '${RegExp.escape(selector)}\\{([^}]+)\\}',
+  ).firstMatch(css)!.group(1)!;
+  final RegExpMatch source = RegExp(
+    r'box-shadow:([-\d.]+)(?:px)? ([-\d.]+)(?:px)? '
+    r'([\d.]+)px (rgba\([^)]+\))',
+  ).firstMatch(block)!;
+  expect(shadow.offset, Offset(
+    double.parse(source.group(1)!), double.parse(source.group(2)!),
+  ));
+  expect(shadow.color, _color(source.group(4)!));
+  expect(shadow.blurSigma, closeTo(double.parse(source.group(3)!) / 2, 1e-9));
+  expect(shadow.spreadRadius, 0);
+  expect(shadow.blurStyle, BlurStyle.normal);
+}
+
 void main() {
   final String css = File(
     'mockups/redesign/src/00-head.html',
@@ -224,11 +241,16 @@ void main() {
           const Color.fromRGBO(255, 255, 255, 0.06),
         );
         expect(tokens.dialogShadow.offset, const Offset(0, 20));
-        expect(tokens.dialogShadow.blurRadius, 60);
         expect(tokens.panelShadow.offset, const Offset(-20, 0));
-        expect(tokens.toastShadow.blurRadius, 36);
-        expect(tokens.menuShadow.blurRadius, 30);
-        expect(tokens.tooltipShadow.blurRadius, 18);
+        for (final MapEntry<String, BoxShadow> entry in <String, BoxShadow>{
+          '.dlg': tokens.dialogShadow,
+          '.panel': tokens.panelShadow,
+          '.toast': tokens.toastShadow,
+          '.sortmenu': tokens.menuShadow,
+          '.tip': tokens.tooltipShadow,
+        }.entries) {
+          _expectCssShadow(css, entry.key, entry.value);
+        }
         expect(tokens.primaryButtonForeground, const Color(0xFF04140A));
       });
     });

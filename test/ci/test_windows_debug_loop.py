@@ -641,6 +641,7 @@ class AnalysisAdmissionTests(unittest.TestCase):
         self.assertEqual(outcome, 0)
         self.assertFalse(value['failed'])
         self.assertEqual(value['diagnostics'], dict(error=0, warning=0, info=0))
+        self.assertEqual(self.analysis_argv.count('test/theme/mockup_tokens_test.dart'), 1)
         self.assertTrue(value['output_complete'])
         for path in (
             'test/window/window_frame_test.dart',

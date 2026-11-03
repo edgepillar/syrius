@@ -507,6 +507,7 @@ def analyze(parent, repo):
         'lib/utils/notifiers/default_address_notifier.dart',
         'lib/widgets/main_app_container.dart',
         'lib/utils/app_theme.dart',
+        'test/theme/mockup_tokens_test.dart',
         'lib/widgets/shell/shell_frame.dart',
         'lib/rearchitecture/features/transfer/view/transfer_page.dart',
         'lib/rearchitecture/features/receive/receive_header_controller.dart',

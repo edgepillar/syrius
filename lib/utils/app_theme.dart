@@ -1744,39 +1744,41 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The tint behind a dialog, over the blurred page.
   Color get overlayScrim => const Color.fromRGBO(0, 0, 0, 0.35);
 
+  // CSS box-shadow uses sigma = blur / 2. Invert Flutter's radius conversion
+  // so the original blur values reach the painter without a wider falloff.
   /// The outward drop below a dialog; the top edge is separate.
   BoxShadow get dialogShadow => const BoxShadow(
     color: Color.fromRGBO(0, 0, 0, 0.45),
     offset: Offset(0, 20),
-    blurRadius: 60,
+    blurRadius: (60 / 2 - 0.5) / 0.57735,
   );
 
   /// The inward-facing drop of the panel at the right window edge.
   BoxShadow get panelShadow => const BoxShadow(
     color: Color.fromRGBO(0, 0, 0, 0.35),
     offset: Offset(-20, 0),
-    blurRadius: 50,
+    blurRadius: (50 / 2 - 0.5) / 0.57735,
   );
 
   /// The drop beneath a floating event toast.
   BoxShadow get toastShadow => const BoxShadow(
     color: Color.fromRGBO(0, 0, 0, 0.4),
     offset: Offset(0, 12),
-    blurRadius: 36,
+    blurRadius: (36 / 2 - 0.5) / 0.57735,
   );
 
   /// The drop beneath a floating menu.
   BoxShadow get menuShadow => const BoxShadow(
     color: Color.fromRGBO(0, 0, 0, 0.4),
     offset: Offset(0, 10),
-    blurRadius: 30,
+    blurRadius: (30 / 2 - 0.5) / 0.57735,
   );
 
   /// The smaller drop beneath a rail tooltip.
   BoxShadow get tooltipShadow => const BoxShadow(
     color: Color.fromRGBO(0, 0, 0, 0.35),
     offset: Offset(0, 6),
-    blurRadius: 18,
+    blurRadius: (18 / 2 - 0.5) / 0.57735,
   );
 
   /// The wallet window's body is 14 px; the surrounding review page is 15.
