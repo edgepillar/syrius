@@ -42,6 +42,7 @@ import '../../harness/bin/ci_wallet_reopen.dart' as reopen;
 import '../../harness/bin/harness.dart' as cli;
 import '../../harness/home_preparation_observation.dart';
 import '../../harness/seed/restored_seed_workflow.dart';
+import '../../harness/seed/seed_recipe.dart';
 import '../../harness/seed_preparation_failure.dart';
 import '../../harness/wallet_address_context.dart';
 import '../accelerator_project_redesign/support.dart';
@@ -170,13 +171,18 @@ Future<void> _projectClose(WidgetTester tester, Future<void> original) async {
 }
 
 Future<(SeedProjectPresentation, ModalRoute<dynamic>)> _submittedProject(
-  WidgetTester tester, ActionSource source, VoidCallback exited,
-) async {
+  WidgetTester tester,
+  ActionSource source,
+  VoidCallback exited, {
+  bool light = false,
+  Future<void> Function(WidgetTester)? fillDetails,
+}) async {
   ModalRoute<dynamic>? originalRoute;
   await tester.pumpWidget(DefaultAssetBundle(
     bundle: _ProjectFilmBundle(),
     child: MaterialApp(
-      locale: const Locale('en'), theme: AppTheme.darkTheme,
+      locale: const Locale('en'),
+      theme: light ? AppTheme.lightTheme : AppTheme.darkTheme,
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: appLocalizationsDelegates,
       home: Scaffold(body: Builder(builder: (BuildContext context) => Center(
@@ -213,13 +219,17 @@ Future<(SeedProjectPresentation, ModalRoute<dynamic>)> _submittedProject(
   await continueOriginal();
   final Finder fields = find.byType(TextField);
   expect(fields, findsNWidgets(5));
-  const List<String> values = <String>[
-    'Synthetic project', 'Synthetic project description',
-    'https://example.test/project', '1', '0',
-  ];
-  for (int index = 0; index < values.length; index++) {
-    await tester.ensureVisible(fields.at(index));
-    await tester.enterText(fields.at(index), values[index]);
+  if (fillDetails == null) {
+    const List<String> values = <String>[
+      'Synthetic project', 'Synthetic project description',
+      'https://example.test/project', '1', '0',
+    ];
+    for (int index = 0; index < values.length; index++) {
+      await tester.ensureVisible(fields.at(index));
+      await tester.enterText(fields.at(index), values[index]);
+    }
+  } else {
+    await fillDetails(tester);
   }
   await _projectFrame(tester);
   await continueOriginal();
@@ -260,6 +270,29 @@ Future<(SeedProjectPresentation, ModalRoute<dynamic>)> _submittedProject(
   expect(find.byKey(const Key('acc_stepper_leave')).hitTestable(),
       findsOneWidget);
   return (presentation, originalRoute!);
+}
+
+/// The real CLI and agent share the original widget tree; no endpoint exists.
+final class _ProjectAgentInstance extends cli.Instance {
+  _ProjectAgentInstance(this._agent) : super('synthetic-project-fields');
+
+  final HarnessAgent _agent;
+
+  @override
+  Map<String, dynamic> read() =>
+      throw StateError('A synthetic instance has no profile');
+
+  @override
+  Future<Map<String, dynamic>> send(Map<String, Object?> command, {
+    Duration timeout = const Duration(seconds: 120),
+  }) async => <String, dynamic>{
+    'ok': true,
+    ...await _agent.commandForTest(<String, dynamic>{
+      ...command,
+      // The widget test drives frames; application clocks remain untouched.
+      'settleMs': 0,
+    }),
+  };
 }
 
 // Inert replies exercise the original CLI call sequence without a process,
@@ -1305,6 +1338,113 @@ void main() {
       expect(cli.seedOperationReplyCode(code), code);
     }
   });
+
+  test('Project scrolls stay fixed bounded and before its sole publication',
+      () {
+    final String text = File('harness/seed/project.txt').readAsStringSync();
+    final SeedRecipe recipe = SeedRecipe.parse('project', text);
+    expect(recipe.lines.where((List<String> line) => line.first == 'scroll')
+        .length, 2);
+    expect(recipe.lines.where((List<String> line) => line.first == 'publish')
+        .length, 1);
+    const String original =
+        'scroll --key accelerator_action_url --dy 320';
+    for (final String refused in <String>[
+      'scroll --key accelerator_action_name --dy 320',
+      'scroll --key accelerator_action_url --dy 321',
+      'scroll --key accelerator_action_url --dy -320',
+      'scroll --key accelerator_action_url --dy 320 --timeout 30',
+      'scroll --type EditableText --dy 320',
+      '$original\n$original',
+    ]) {
+      expect(() => SeedRecipe.parse('project',
+        text.replaceFirst(original, refused)), throwsA(isA<SeedRefused>()));
+    }
+    final String after = text.replaceFirst('$original\n', '').replaceFirst(
+        'assert Submitted --exact', '$original\nassert Submitted --exact');
+    expect(() => SeedRecipe.parse('project', after), throwsA(
+      isA<SeedRefused>().having((SeedRefused error) => error.code,
+        'code', 'seed-script-after-publication-refused'),
+    ));
+    final String stake = '# seed: stake\n'
+        '# prerequisite: isolated-chain-321-checkpoint\n'
+        '$original\n'
+        'publish ${seedPublishSelector('stake').join(' ')}\n'
+        'assert Submitted --exact\n';
+    expect(() => SeedRecipe.parse('stake', stake),
+        throwsA(isA<SeedRefused>()));
+    expect(() => SeedRecipe.parse('project', text.replaceFirst(
+      'type --key accelerator_action_name',
+      'type --key accelerator_action_name --dy 320',
+    )), throwsA(isA<SeedRefused>()));
+  });
+
+  for (final bool light in <bool>[false, true]) {
+    testWidgets('original Project agent fills keyed fields in '
+        '${light ? 'light' : 'dark'} mode', (WidgetTester tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(1280, 780);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPhysicalSize);
+      await tester.binding.setSurfaceSize(const Size(1280, 780));
+      final ActionSource source = ActionSource(scope: Object());
+      int exits = 0;
+      try {
+        final (SeedProjectPresentation original, _) = await _submittedProject(
+          tester, source, () => exits++, light: light,
+          fillDetails: (WidgetTester tester) async {
+            final HarnessAgent agent = HarnessAgent.forTest()..booted = true;
+            await expectLater(agent.commandForTest(<String, dynamic>{
+              'cmd': 'type', 'type': 'TextField', 'nth': 0,
+              'value': 'Lab Project', 'settleMs': 0,
+            }), throwsA(isA<HarnessError>().having(
+              (HarnessError error) => error.toString(),
+              'message', 'nothing matches',
+            )));
+            final _ProjectAgentInstance instance = _ProjectAgentInstance(agent);
+            final SeedRecipe recipe = SeedRecipe.parse('project',
+                File('harness/seed/project.txt').readAsStringSync());
+            bool input = false;
+            int typed = 0;
+            for (final List<String> words in recipe.lines) {
+              if (words.first == 'wait' &&
+                  words.contains('accelerator_action_name')) input = true;
+              if (!input) continue;
+              if (words.first == 'tap') break;
+              expect(<String>{'wait', 'type', 'scroll'}, contains(words.first));
+              await _projectClose(tester, cli.run(
+                instance, words.first, cli.Args(words.sublist(1)),
+              ));
+              if (words.first == 'type') typed++;
+            }
+            expect(typed, 5);
+            const Map<String, String> values = <String, String>{
+              'accelerator_action_name': 'Lab Project',
+              'accelerator_action_description': 'An isolated lab project',
+              'accelerator_action_url': 'https://example.test/project',
+              'accelerator_action_znn': '100',
+              'accelerator_action_qsr': '100',
+            };
+            for (final MapEntry<String, String> entry in values.entries) {
+              final TextField field = tester.widget<TextField>(
+                find.byKey(ValueKey<String>(entry.key)),
+              );
+              expect(field.controller!.text, entry.value);
+            }
+            expect(source.publications, 0);
+            expect(source.builders, isEmpty);
+          },
+        );
+        expect(source.publications, 1);
+        await _projectClose(tester, original.close(listHash(901), () {}));
+        expect(exits, 1);
+        expect(tester.takeException(), isNull);
+      } finally {
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.binding.setSurfaceSize(null);
+      }
+    });
+  }
 
   testWidgets('confirmed Project exits through its original view and route',
       (WidgetTester tester) async {

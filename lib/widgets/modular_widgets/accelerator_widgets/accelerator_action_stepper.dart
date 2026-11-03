@@ -495,6 +495,7 @@ class _AcceleratorActionStepperState extends State<AcceleratorActionStepper>
 
   Widget _buildDetails(BuildContext context) {
     Widget field(
+      String fieldKey,
       String label,
       TextEditingController controller, {
       bool amount = false,
@@ -503,6 +504,7 @@ class _AcceleratorActionStepperState extends State<AcceleratorActionStepper>
       child: AccField(
         label: label,
         child: TextField(
+          key: ValueKey<String>(fieldKey),
           controller: controller,
           enabled: !_busy,
           style: accFieldTextStyle(context, mono: amount),
@@ -516,11 +518,20 @@ class _AcceleratorActionStepperState extends State<AcceleratorActionStepper>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         if (!_donation) ...<Widget>[
-          field(context.l10n.acceleratorName, _name),
-          field(context.l10n.acceleratorDescription, _description),
-          field(context.l10n.acceleratorUrl, _url),
+          field(
+            'accelerator_action_name', context.l10n.acceleratorName, _name,
+          ),
+          field(
+            'accelerator_action_description',
+            context.l10n.acceleratorDescription,
+            _description,
+          ),
+          field(
+            'accelerator_action_url', context.l10n.acceleratorUrl, _url,
+          ),
         ],
         field(
+          'accelerator_action_znn',
           _donation
               ? context.l10n.acceleratorDonationZnn
               : context.l10n.acceleratorZnnBudget,
@@ -528,6 +539,7 @@ class _AcceleratorActionStepperState extends State<AcceleratorActionStepper>
           amount: true,
         ),
         field(
+          'accelerator_action_qsr',
           _donation
               ? context.l10n.acceleratorDonationQsr
               : context.l10n.acceleratorQsrBudget,

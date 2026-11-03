@@ -19,6 +19,7 @@ final class SeedRecipe {
       throw const SeedRefused('seed-script-prerequisite-missing');
     }
     final List<List<String>> lines = <List<String>>[];
+    final Set<String> projectScrolls = <String>{};
     int publications = 0;
     for (final String raw in text.split('\n')) {
       final String line = raw.trim();
@@ -29,6 +30,7 @@ final class SeedRecipe {
             'goto',
             'tap',
             'type',
+            'scroll',
             'key',
             'wait',
             'assert',
@@ -54,14 +56,15 @@ final class SeedRecipe {
           words.any(
             (String word) =>
                 word.startsWith('--') &&
-                !<String>{
+                !(<String>{
                   '--key',
                   '--type',
                   '--kind',
                   '--nth',
                   '--exact',
                   '--timeout',
-                }.contains(word),
+                }.contains(word) ||
+                    words.first == 'scroll' && word == '--dy'),
           )) {
         throw const SeedRefused('seed-script-command-refused');
       }
@@ -76,6 +79,17 @@ final class SeedRecipe {
                 'transfer',
               }.contains(words[1]))) {
         throw const SeedRefused('seed-script-route-refused');
+      }
+      if (words.first == 'scroll') {
+        final String scroll = words.join(' ');
+        if (id != 'project' ||
+            !const <String>{
+              'scroll --key accelerator_action_url --dy 320',
+              'scroll --key accelerator_action_znn --dy 160',
+            }.contains(scroll) ||
+            !projectScrolls.add(scroll)) {
+          throw const SeedRefused('seed-script-command-refused');
+        }
       }
       if (words.first == 'key' && (words.length != 2 || words[1] != 'escape')) {
         throw const SeedRefused('seed-script-key-refused');
