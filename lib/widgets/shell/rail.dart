@@ -44,6 +44,7 @@ const Map<String, String> _symbols = <String, String>{
       '<path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1M14 '
       '10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/>',
   'chevr': '<path d="m9 6 6 6-6 6"/>',
+  'chev': '<path d="m6 9 6 6 6-6"/>',
   'shield': '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
   'eye':
       '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
@@ -55,7 +56,7 @@ const Map<String, String> _symbols = <String, String>{
       '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
 };
 
-/// Draws an original shell symbol for the rail or Settings section menu.
+/// Draws the original symbols used by shell and page controls.
 Widget buildShellSymbol(
   BuildContext context,
   String symbol, {

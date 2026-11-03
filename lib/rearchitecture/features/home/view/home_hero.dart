@@ -25,6 +25,8 @@ import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/balance_visibility.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show buildShellSymbol;
 
 part 'home_hero_balances.dart';
 part 'home_hero_controls.dart';

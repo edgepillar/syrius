@@ -38,7 +38,9 @@ class _HomeHeroAddress extends StatelessWidget {
             padding: EdgeInsets.zero,
             iconSize: tokens.heroCopyIconSize,
             onPressed: () => ClipboardUtils.copyToClipboard(address, context),
-            icon: Icon(Icons.copy_outlined, color: tokens.faint),
+            icon: _HomeHeroSymbol(
+              'copy', size: tokens.heroCopyIconSize, color: tokens.faint,
+            ),
           ),
         ),
         if (kDefaultAddressList.whereType<String>().length > 1)
@@ -49,7 +51,9 @@ class _HomeHeroAddress extends StatelessWidget {
               tooltip: context.l10n.homeSwitchAddress,
               padding: EdgeInsets.zero,
               iconSize: tokens.heroAddressIconSize,
-              icon: Icon(Icons.expand_more, color: tokens.faint),
+              icon: _HomeHeroSymbol(
+                'chev', size: tokens.heroAddressIconSize, color: tokens.faint,
+              ),
               onSelected: (String selected) =>
                   selectWalletAddress(context, selected),
               itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
@@ -93,7 +97,7 @@ class _HomeHeroActions extends StatelessWidget {
         PrimaryPill(
           key: const Key('home_send'),
           onPressed: () => onOpenTransfer(TransferMode.send),
-          icon: Icon(Icons.arrow_upward, size: tokens.heroIconSize),
+          icon: _HomeHeroSymbol('up', size: tokens.heroIconSize),
           style: OutlinedButton.styleFrom(
             padding: tokens.heroActionPadding,
           ),
@@ -101,7 +105,7 @@ class _HomeHeroActions extends StatelessWidget {
         ),
         _HomeHeroSecondaryPill(
           key: const Key('home_receive'),
-          icon: Icons.arrow_downward,
+          symbol: 'down',
           label: context.l10n.receive,
           onPressed: () => onOpenTransfer(TransferMode.receive),
         ),
@@ -109,7 +113,7 @@ class _HomeHeroActions extends StatelessWidget {
           seam: Seam.zapSend,
           child: _HomeHeroSecondaryPill(
             key: const Key('home_zap'),
-            icon: Icons.bolt_outlined,
+            symbol: 'zap',
             label: context.l10n.transferZap,
             onPressed: () {
               runUnlessSeamed(
@@ -126,13 +130,13 @@ class _HomeHeroActions extends StatelessWidget {
 
 class _HomeHeroSecondaryPill extends StatelessWidget {
   const _HomeHeroSecondaryPill({
-    required this.icon,
+    required this.symbol,
     required this.label,
     required this.onPressed,
     super.key,
   });
 
-  final IconData icon;
+  final String symbol;
   final String label;
   final VoidCallback onPressed;
 
@@ -141,7 +145,7 @@ class _HomeHeroSecondaryPill extends StatelessWidget {
     final AppTokens tokens = AppTokens.of(context);
     return OutlinedButton.icon(
       onPressed: onPressed,
-      icon: Icon(icon, size: tokens.heroIconSize),
+      icon: _HomeHeroSymbol(symbol, size: tokens.heroIconSize),
       label: Text(label),
       style:
           OutlinedButton.styleFrom(
@@ -166,4 +170,21 @@ class _HomeHeroSecondaryPill extends StatelessWidget {
           ),
     );
   }
+}
+
+// Resolve color inside the button so its foreground state owns the symbol.
+class _HomeHeroSymbol extends StatelessWidget {
+  const _HomeHeroSymbol(this.symbol, {required this.size, this.color});
+
+  final String symbol;
+  final double size;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) => buildShellSymbol(
+    context,
+    symbol,
+    color: color ?? IconTheme.of(context).color,
+    size: size,
+  );
 }
