@@ -1441,10 +1441,12 @@ void main() {
                     command['cmd'] == 'scroll').toList();
             expect(scrolls.map((Map<String, Object?> command) => command['dy']),
                 orderedEquals(<num>[320, 160]));
-            expect(scrolls.map((Map<String, Object?> command) => command['key']),
-                orderedEquals(<String>[
-                  'accelerator_action_url', 'accelerator_action_znn',
-                ]));
+            expect(
+              scrolls.map((Map<String, Object?> command) => command['key']),
+              orderedEquals(<String>[
+                'accelerator_action_url', 'accelerator_action_znn',
+              ]),
+            );
             expect(output.lines, hasLength(instance.commands.length));
             expect(output.lines, everyElement(startsWith('ok')));
             const Map<String, String> values = <String, String>{
