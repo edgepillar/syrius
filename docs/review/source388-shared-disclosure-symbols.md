@@ -19,8 +19,8 @@ semantics, persistence and group cases remain. The 21 disclosure and 13 row
 cases join every prior focused file: 82 files in two 41-file streams, requiring
 1,030 ordinary passes (507/523). The separate asset-fidelity selection requires
 1,032. Both libraries and tests also join strict analysis. Nineteen local
-mocked controller/analysis controls pass; hosted widget execution and strict
-analysis remain pending. Python retains 955 controls and three existing
+mocked controller/analysis controls pass. The current focused result is
+recorded below. Python retains 955 controls and three existing
 hosted skips. Existing command, output, worker and deadline bounds remain.
 
 The [fast first-delivery scope](fast-first-delivery.md) continues. New full
@@ -78,3 +78,34 @@ exactly one owned rotation. The original closed-turn expectation remains.
 Every application, controller, workflow, dependency, selected path and other
 test byte stays equal to Source389. Case counts, process/output bounds and
 both original failures remain. Fresh complete hosted qualification is pending.
+
+## Fresh Source390 focused result
+
+Original [41735184815](https://github.com/edgepillar/syrius/actions/runs/41735184815),
+attempt one, job 126262450443, succeeds at Source390
+`ab4740c7a457290e913ecb12920674f124914725`, tree
+`7efecf0da66cda27d7934c58d1f5c603d54f850c`. Independent read-only qualification
+accounts for both complete 41-file streams: 507/523 passes, all 1,030 ordinary
+cases, 108 hidden and 1,138 terminal events, zero failures/errors/skips.
+Both processes finish normally with complete bounded output in
+168.859/149.735 seconds. All earlier paths and registrations remain.
+
+All 34 disclosure/row cases pass. Both themes qualify actual 14-pixel SVG
+dimensions, faint foreground and excluded semantics; the explicit 24-pixel
+override and owned closed-turn assertion pass. Existing timing, RTL, pointer,
+keyboard, semantics, preferences, lazy retention and group behavior cases
+also pass. The separate asset-fidelity selection remains 1,032 cases.
+
+Python completes 955 controls without failures/errors and retains three
+existing hosted skips. Fourteen assets succeed; selected analysis has zero
+errors, warnings and infos, including both shared libraries and tests. All
+source-bound jobs are terminal with zero artifacts. Source391 changes
+documentation only and preserves every tested application, test, workflow
+and dependency byte. No new full Windows build, native producer, local SDK
+execution or artifact transport accompanies this result.
+
+The Source388 color failure and Source389 framework failure remain original
+failed observations with their exact source and omitted-diagnostic limits.
+The original 72/80-row, 50/94-output, 44-missing and zero-accepted-match
+boundaries remain. Full visual, native, platform, motion and final acceptance
+stay in phase two.
