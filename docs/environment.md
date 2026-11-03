@@ -1,6 +1,41 @@
 # Redesign build environment
 
-## Current qualification status (2026-11-01T02:34Z)
+## Current qualification status (2026-11-03T04:53Z)
+
+[Source353 Windows and Home results](review/source353-windows-and-home-results.md)
+record the current tested source 54cd86c57ad125163c8cff61c3bb38d4e254f99f,
+tree eb1eb16abfb7b418082ef5691a3f7dbfd34fc624. Full Windows producer
+41572802101 and independent reader 41575402495 qualify 4,881 passing tests,
+one existing skip, twelve original checks, unchanged localization and successful
+Debug/Release builds. Root analysis has zero errors/warnings and 1,297 infos;
+vendored and strict selected-source analysis have zero errors/warnings/infos.
+Library hashes and map exports correspond; DLL initialization is not qualified.
+
+Readonly Home producer 41576343648 and independent reader 41578677853 qualify
+all 58 producer source files, 105 reader controls, 24 generic page PNGs, eight
+literal Home PNGs and four viewport PNGs. The producer's complete 883-case
+focused gate, 940 Python controls/three existing skips and fourteen asset
+observations pass. Required app, entry and all five nodes close normally with
+complete output, no forced termination and exit zero. Separate telemetry-helper
+cleanup remains recorded. All four original runs finish successfully on attempt
+one. The documented Docker route and writable F06 workflow remain unqualified.
+
+All eight actual Home and exact reference images were individually viewed in
+one successfully closed bounded review. X521-X528 retain layout/type/glyph and
+genuine data-coverage differences. One verified 1,199,043-byte archive is
+retained; only registered reproducible extraction is removed. Existing ownership
+holds, historical data, storage policy and the 10 GiB free-space floor remain.
+
+Main acceptance remains 72/80 rows, nineteen preparations, 50/94 available
+literal outputs, 44 missing and zero accepted visual matches. Source199-201
+already implement the original Deposit Close/route wait; that source fact does
+not resolve Native103's earlier Token confirmation/effect UNKNOWN. Native101/103
+remain UNKNOWN, Native104 is unadmitted, and all prior FAILURE/HOLD/UNKNOWN
+records remain source-bound. Current other-family, financial, reopen, motion,
+seam and final review acceptance are not inferred from the readonly capture.
+The PR stays Draft. The historical snapshots below retain their original scope.
+
+## Historical Source274 qualification snapshot (2026-11-01T02:34Z)
 
 Source274 has five successful exact-source runs. Selected controls qualify
 751 Dart passes/zero skips, 918 Python controls/three original skips, fourteen
