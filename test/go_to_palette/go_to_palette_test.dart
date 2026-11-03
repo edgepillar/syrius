@@ -179,8 +179,9 @@ void main() {
             final Rect hint = tester.getRect(find.descendant(
               of: _row(pair.key), matching: find.text(pair.value),
             ));
-            final EdgeInsets padding =
-                tokens.keyboardHintPadding.resolve(direction);
+            // CSS kbd adds a 1 px border outside its 1/6 px content padding.
+            const EdgeInsets padding =
+                EdgeInsets.symmetric(horizontal: 7, vertical: 2);
             if (direction == TextDirection.ltr) {
               expect(hint.right,
                   closeTo(row.right - tokens.goToRowInset - padding.right, 1));

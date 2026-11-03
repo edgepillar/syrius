@@ -8,6 +8,7 @@ import 'package:zenon_syrius_wallet_flutter/main.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/key_hint.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/tabs.dart';
 
 // Canonical symbol contents from 00-head.html. Their original paths keep
@@ -45,6 +46,9 @@ const Map<String, String> _symbols = <String, String>{
       '10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/>',
   'chevr': '<path d="m9 6 6 6-6 6"/>',
   'chev': '<path d="m6 9 6 6 6-6"/>',
+  'search':
+      '<circle cx="11" cy="11" r="7"/>'
+      '<path d="m20 20-3.5-3.5"/>',
   'shield': '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
   'eye':
       '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
@@ -630,24 +634,7 @@ class _RailButtonState extends State<_RailButton>
                         padding: EdgeInsetsDirectional.only(
                           start: tokens.inlineGap,
                         ),
-                        child: Directionality(
-                          textDirection: TextDirection.ltr,
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              border: Border.all(color: tokens.line),
-                              borderRadius: BorderRadius.circular(
-                                tokens.keyboardHintRadius,
-                              ),
-                            ),
-                            child: Padding(
-                              padding: tokens.keyboardHintPadding,
-                              child: Text(
-                                widget.shortcut!,
-                                style: tokens.keyboardHintText,
-                              ),
-                            ),
-                          ),
-                        ),
+                        child: AppKeyHint(widget.shortcut!),
                       ),
                     ),
                 ],

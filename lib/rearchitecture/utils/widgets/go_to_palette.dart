@@ -5,8 +5,11 @@ import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/seams/seam.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/key_hint.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show buildShellSymbol;
 
 /// The three groups in the palette. Contacts share the addresses group.
 enum GoToCategory {
@@ -343,7 +346,7 @@ class _GoToPaletteState<T> extends State<GoToPalette<T>> {
     padding: tokens.goToHeaderPadding,
     child: Row(
       children: <Widget>[
-        Icon(Icons.search, size: tokens.railIconSize, color: tokens.faint),
+        buildShellSymbol(context, 'search', color: tokens.faint),
         SizedBox(width: tokens.inlineGap),
         Expanded(
           child: TextField(
@@ -365,7 +368,7 @@ class _GoToPaletteState<T> extends State<GoToPalette<T>> {
           ),
         ),
         SizedBox(width: tokens.inlineGap),
-        const _KeyHint('Esc'),
+        const AppKeyHint('Esc'),
       ],
     ),
   );
@@ -435,12 +438,12 @@ class _GoToPaletteState<T> extends State<GoToPalette<T>> {
     child: LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         final List<Widget> move = <Widget>[
-          const _KeyHint('↑↓'),
+          const AppKeyHint('↑↓'),
           SizedBox(width: tokens.inlineGap),
           Text(context.l10n.goToPaletteMove, style: tokens.captionText),
         ];
         final List<Widget> open = <Widget>[
-          const _KeyHint('↵'),
+          const AppKeyHint('↵'),
           SizedBox(width: tokens.inlineGap),
           Text(context.l10n.goToPaletteOpen, style: tokens.captionText),
         ];
@@ -680,7 +683,7 @@ class _PaletteRowState<T> extends State<_PaletteRow<T>>
             ],
             if (entry.shortcut != null) ...<Widget>[
               SizedBox(width: tokens.inlineGap),
-              _KeyHint(entry.shortcut!),
+              AppKeyHint(entry.shortcut!),
             ],
           ],
         ),
@@ -780,31 +783,6 @@ class _MatchedText extends StatelessWidget {
   }
 }
 
-class _KeyHint extends StatelessWidget {
-  const _KeyHint(this.label);
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final AppTokens tokens = AppTokens.of(context);
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        border: Border.all(color: tokens.line),
-        borderRadius: BorderRadius.circular(tokens.keyboardHintRadius),
-      ),
-      child: Padding(
-        padding: tokens.keyboardHintPadding,
-        child: Text(
-          label,
-          style: tokens.keyboardHintText,
-          textDirection: TextDirection.ltr,
-        ),
-      ),
-    );
-  }
-}
-
 class _ShortcutSummary extends StatelessWidget {
   const _ShortcutSummary({required this.chordName});
 
@@ -834,7 +812,7 @@ class _ShortcutSummary extends StatelessWidget {
       spans.add(
         WidgetSpan(
           alignment: PlaceholderAlignment.middle,
-          child: _KeyHint(match.group(0)!),
+          child: AppKeyHint(match.group(0)!),
         ),
       );
       cursor = match.end;
