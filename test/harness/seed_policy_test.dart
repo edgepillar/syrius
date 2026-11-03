@@ -243,7 +243,11 @@ void main() {
     ]) {
       int owners = 0;
       await expectLater(readSeedDepositEntry(
-        read: () async { throw error; },
+        read: () async {
+          if (error is Exception) throw error;
+          if (error is Error) throw error;
+          fail('Synthetic failures must be errors or exceptions');
+        },
         requireCurrent: () { owners++; },
       ), throwsA(same(error)));
       expect(owners, 2);
