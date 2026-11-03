@@ -2,6 +2,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
@@ -57,6 +58,32 @@ String _number(WidgetTester tester) => tester
     .textSpan!
     .toPlainText();
 
+void _expectOriginalMarks(WidgetTester tester, {bool incoming = false}) {
+  final AppTokens tokens = AppTokens.of(
+    tester.element(find.byType(ActivityRow)),
+  );
+  final Finder symbols = find.descendant(
+    of: find.byType(ActivityRow),
+    matching: find.byType(SvgPicture),
+  );
+  expect(symbols, findsNWidgets(2));
+  final List<SvgPicture> marks = tester
+      .widgetList<SvgPicture>(symbols)
+      .toList();
+  for (final SvgPicture mark in marks) {
+    expect(mark.width, tokens.activityIconSize);
+    expect(mark.height, tokens.activityIconSize);
+    expect(mark.excludeFromSemantics, isTrue);
+  }
+  expect(marks.first.colorFilter, ColorFilter.mode(
+    incoming ? tokens.znnInk : tokens.dim, BlendMode.srcIn,
+  ));
+  expect(
+    marks.last.colorFilter,
+    ColorFilter.mode(tokens.faint, BlendMode.srcIn),
+  );
+}
+
 void main() {
   late SharedPrefsService? preferences;
   late BalanceVisibility visibility;
@@ -110,6 +137,7 @@ void main() {
           tester.widget<AmountText>(find.byType(AmountText)).style.color,
           tokens.foreground,
         );
+        _expectOriginalMarks(tester);
         expect(tester.takeException(), isNull);
       },
     );
@@ -122,6 +150,7 @@ void main() {
     await tester.pumpWidget(_host(row(block: receive)));
     expect(find.text('Received'), findsOneWidget);
     expect(find.text('+ '), findsOneWidget);
+    _expectOriginalMarks(tester, incoming: true);
     final Finder link = find.byKey(
       ValueKey<String>(
         'activity_explorer:${receive.hash}',
@@ -322,6 +351,7 @@ void main() {
       );
       expect(find.text('Staked'), findsOneWidget);
       expect(find.text('6 months'), findsOneWidget);
+      _expectOriginalMarks(tester);
       await tester.pumpWidget(
         _host(
           row(
@@ -337,6 +367,7 @@ void main() {
       );
       expect(find.text('Delegated'), findsOneWidget);
       expect(find.text('dev1'), findsOneWidget);
+      _expectOriginalMarks(tester);
       await tester.pumpWidget(
         _host(
           row(
@@ -352,6 +383,7 @@ void main() {
       );
       expect(find.text('Fused'), findsOneWidget);
       expect(find.text('Plasma, Alice'), findsOneWidget);
+      _expectOriginalMarks(tester);
     },
   );
 }

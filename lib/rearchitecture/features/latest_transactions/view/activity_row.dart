@@ -13,6 +13,8 @@ import 'package:zenon_syrius_wallet_flutter/utils/explorer_links.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/navigation_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notifiers/balance_visibility.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show ShellSymbol;
 
 /// One source-bound movement, with no background reads or transaction action.
 class ActivityRow extends StatefulWidget {
@@ -91,11 +93,7 @@ class _ActivityRowState extends State<ActivityRow>
               flex: 22,
               child: Row(
                 children: <Widget>[
-                  Icon(
-                    _icon(entry.kind),
-                    size: tokens.activityIconSize,
-                    color: actionInk,
-                  ),
+                  _buildMovementIcon(tokens, actionInk),
                   SizedBox(width: tokens.homeTokenRowGap),
                   Flexible(
                     child: Text(
@@ -120,6 +118,24 @@ class _ActivityRowState extends State<ActivityRow>
         ),
       ),
     );
+  }
+
+  Widget _buildMovementIcon(AppTokens tokens, Color color) {
+    final String? symbol = switch (widget.entry.kind) {
+      ActivityKind.received => 'down',
+      ActivityKind.sent => 'up',
+      ActivityKind.delegated => 'stack',
+      ActivityKind.fused || ActivityKind.zap => 'zap',
+      ActivityKind.reward || ActivityKind.staked => 'coins',
+      ActivityKind.other => null,
+    };
+    return symbol == null
+        ? Icon(
+            Icons.history_rounded,
+            size: tokens.activityIconSize,
+            color: color,
+          )
+        : ShellSymbol(symbol, size: tokens.activityIconSize, color: color);
   }
 
   Widget _buildCounterparty(BuildContext context) {
@@ -332,7 +348,7 @@ class _ActivityRowState extends State<ActivityRow>
           padding: EdgeInsets.zero,
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
-        icon: Icon(Icons.open_in_new_rounded, size: tokens.activityIconSize),
+        icon: ShellSymbol('ext', size: tokens.activityIconSize),
       ),
     );
   }
@@ -340,15 +356,6 @@ class _ActivityRowState extends State<ActivityRow>
   static String _short(String value) => value.length <= 12
       ? value
       : '${value.substring(0, 6)}…${value.substring(value.length - 4)}';
-
-  static IconData _icon(ActivityKind kind) => switch (kind) {
-    ActivityKind.received => Icons.south_rounded,
-    ActivityKind.sent => Icons.north_rounded,
-    ActivityKind.delegated => Icons.layers_outlined,
-    ActivityKind.fused || ActivityKind.zap => Icons.bolt_outlined,
-    ActivityKind.reward || ActivityKind.staked => Icons.bubble_chart_outlined,
-    ActivityKind.other => Icons.history_rounded,
-  };
 
   static String _label(BuildContext context, ActivityKind kind) =>
       switch (kind) {

@@ -21,6 +21,9 @@ const Map<String, String> _symbols = <String, String>{
   'down': '<path d="M12 5v14M19 12l-7 7-7-7"/>',
   'copy':
       '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>',
+  'ext':
+      '<path d="M14 4h6v6M20 4l-9 9M19 14v5'
+      'a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/>',
   'dl': '<path d="M12 3v12M7 10l5 5 5-5M4 21h16"/>',
   'refresh':
       '<path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 '
