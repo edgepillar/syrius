@@ -136,11 +136,13 @@ void main() {
       );
       expect(custom.width, 24);
       expect(custom.height, 24);
+      final Finder customTurn = find.descendant(
+        of: find.byType(RowDetailChevron),
+        matching: find.byType(RotationTransition),
+      );
+      expect(customTurn, findsOneWidget);
       expect(
-        tester
-            .widget<RotationTransition>(find.byType(RotationTransition))
-            .turns
-            .value,
+        tester.widget<RotationTransition>(customTurn).turns.value,
         -0.25,
       );
     });

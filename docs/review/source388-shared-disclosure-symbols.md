@@ -36,7 +36,7 @@ Deposit candidate remains unapplied. No local SDK execution is added.
 Original [41731264665](https://github.com/edgepillar/syrius/actions/runs/41731264665),
 attempt one, job 126248935494, fails at Source388
 `cc6d8d7ee56b651f0271fb06f8a2a8c84a2abbab`, tree
-`cd68e7400d5dee06afe71a7925ddf0ba9419ff60`. Python has 955 passing controls
+`cd68e7400d5dee06afe71a7925ddf0ba9419ff60`. Python completes 955 controls
 with three existing skips; fourteen assets and strict zero-finding analysis
 succeed. The first 41-file widget stream exits normally with 506 passes,
 one assertion failure/error, 51 hidden and 558 terminal events, complete
@@ -57,3 +57,24 @@ Only test-host construction changes; every application, controller, workflow,
 dependency and selected path byte stays equal to Source388. Case counts and
 process bounds stay unchanged. Fresh complete widget execution and strict
 analysis remain pending. The original failure is preserved and not retried.
+
+## Original Source389 result and Source390 selector correction
+
+Original [41732948836](https://github.com/edgepillar/syrius/actions/runs/41732948836),
+attempt one, job 126254723165, fails at Source389
+`be6ec7c668f91d092949636b492ddd8fbc86e83b`, tree
+`e335a8e8bfca880499ddd38c1aa6a8878c58d9c9`. All 507 first-group cases pass,
+including the complete disclosure suite. Group two has 522 passes and one
+framework failure/error at `row_detail_test.dart` line 141, the new explicit
+size case's global RotationTransition lookup. Both 41-file streams finish
+normally with complete bounded output in 172.907/151.843 seconds. Python
+completes 955 controls with three existing skips; fourteen assets and strict
+zero-finding analysis succeed. All jobs are terminal with zero artifacts.
+The aggregate remains unqualified. Exact framework text was not retained;
+the global-finder association is a source inference.
+
+Source390 scopes that lookup to the RowDetailChevron under test and requires
+exactly one owned rotation. The original closed-turn expectation remains.
+Every application, controller, workflow, dependency, selected path and other
+test byte stays equal to Source389. Case counts, process/output bounds and
+both original failures remain. Fresh complete hosted qualification is pending.
