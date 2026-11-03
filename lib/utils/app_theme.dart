@@ -826,6 +826,15 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The small outlined language and explorer choices in Settings.
   double get settingsMenuHeight => 30;
 
+  /// The reference's small chevron inside a compact Settings menu.
+  double get settingsMenuChevronSize => 12;
+
+  /// The chevron and its separation from the selected text.
+  double get settingsMenuChevronWidth => 20;
+
+  /// RenderEditable retains room after its selected, read-only text.
+  double get settingsMenuCaretInset => 4;
+
   /// Separation of actions that wrap when a Settings form is scaled.
   double get settingsActionGap => 10;
 

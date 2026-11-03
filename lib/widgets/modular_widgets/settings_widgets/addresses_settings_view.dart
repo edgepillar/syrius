@@ -654,14 +654,20 @@ class _AddressesSettingsViewState extends State<AddressesSettingsView>
   ) {
     final AppTokens tokens = AppTokens.of(context);
     return Panel(
-      heading: Row(
-        children: <Widget>[
-          Flexible(child: Text(title, style: tokens.headingText)),
-          if (count != null) ...<Widget>[
-            SizedBox(width: tokens.inlineGap),
-            Text('$count', style: tokens.ledgerText),
+      heading: Padding(
+        padding: EdgeInsetsDirectional.only(
+          start:
+              tokens.panelHeaderPadding.start - tokens.tabHeaderPadding.start,
+        ),
+        child: Row(
+          children: <Widget>[
+            Flexible(child: Text(title, style: tokens.headingText)),
+            if (count != null) ...<Widget>[
+              SizedBox(width: tokens.inlineGap),
+              Text('$count', style: tokens.ledgerText),
+            ],
           ],
-        ],
+        ),
       ),
       actions: <Widget>[action],
       shrinkWrap: true,

@@ -1,0 +1,17 @@
+The core interface and existing basic functionality remain available for staged Draft code review. The first delivery stays pinned to `19c7b2af5e1c13cc0d567e8fe3378682c7b9b750`; its [scope](https://github.com/edgepillar/syrius/blob/19c7b2af5e1c13cc0d567e8fe3378682c7b9b750/docs/review/fast-first-delivery.md) preserves detailed visual and extended platform/lab acceptance for phase two.
+
+Current head: `f859f24665a4d877573f657908d2824c9a4e2ab1`.
+Current tree: `e083012c6ec479957851dce059c5aa0f36b47d85`.
+This tail changes documentation only. Qualified application and tests remain `985d6c2776ca08742cfe94e99c122ec903acc0ef`, tree `a04fb9cba7811cd0dfc06980ccb3225774cbed0c`.
+
+Wallet mode choices now share the existing Segment tracks and reference 13-pixel interface text. All three controls stay unselected and disabled behind the original operator seam, including direct callbacks. Wallets and existing Maintenance gain standard card surfaces with original preference, controller, epoch, clipboard and cache/reset ownership preserved. Reference Wallets is drawn; Maintenance is retained as an existing feature. No illustrated count or effective mode is fabricated.
+
+The [Source346 result](https://github.com/edgepillar/syrius/blob/f859f24665a4d877573f657908d2824c9a4e2ab1/docs/review/source346-focused-results.md) independently qualifies original run 41559848303: all 856 Dart cases pass with zero failures/skips/errors, and selected analysis has zero errors/warnings/infos. All 940 Python controllers pass with three existing skips and fourteen asset observations pass. Both complete 35-file groups retain one worker and the original output/deadline/refusal gates. All 69 previous files remain plus the existing eight-case Wallet file, with no test registration removed or added. All other jobs are skipped and zero artifacts are produced.
+
+With authentic bundled Space Grotesk loaded, both normal-width same-row assertions pass, together with existing larger-text/RTL, keyboard, direct-callback, persistence and Maintenance/resource controls. Source345 remains failed with clean analysis, 421 passes/one row failure and an unexecuted second group. The corrected source combines authentic-font initialization and compact text; the old raw geometry and isolated cause remain NOT_ESTABLISHED. No original run is retried or relabelled.
+
+The [retained Settings review](https://github.com/edgepillar/syrius/blob/f859f24665a4d877573f657908d2824c9a4e2ab1/docs/review/source336-settings-visual-review.md) keeps all fourteen differences. No new native image or visual match is inferred. Source336's historical full Windows result remains source-bound: 4,881 passes/one skip, successful Debug/Release builds and zero root errors/warnings with 1,297 infos.
+
+Final acceptance remains 72/80 original rows, nineteen preparations, 50/94 available outputs, 44 missing and zero accepted matches. Visual, motion/performance, native seam, environment/Docker-route, fixture/effect/reopen and independent-review criteria stay open. Home light Go To cause remains NOT_ESTABLISHED; previous FAILURE/HOLD/UNKNOWN, Native101/103 UNKNOWN and Native104 unadmitted remain. No new full build, native/image producer, real preference/cache/reset or original financial flow runs. The PR stays Draft. Public content remains English-only with edgepillar no-reply/UTC attribution.
+
+The [exact preceding body284](https://github.com/edgepillar/syrius/blob/f859f24665a4d877573f657908d2824c9a4e2ab1/docs/review/pr-body-284.md) retains its submitted text and URLs.

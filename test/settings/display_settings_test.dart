@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show FontLoader, rootBundle;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive_ce.dart';
 import 'package:material_ui/material_ui.dart';
@@ -48,7 +49,42 @@ Future<T> _driveHarness<T>(WidgetTester tester, Future<T> command) async {
   return result as T;
 }
 
+void _expectSelectedLabelFits(WidgetTester tester, String key) {
+  final Finder horizontal = find.descendant(
+    of: find.byKey(Key(key)),
+    matching: find.byWidgetPredicate(
+      (Widget widget) =>
+          widget is Scrollable &&
+          (widget.axisDirection == AxisDirection.left ||
+              widget.axisDirection == AxisDirection.right),
+    ),
+  );
+  expect(horizontal, findsOneWidget);
+  expect(
+    tester.state<ScrollableState>(horizontal).position.maxScrollExtent,
+    0,
+  );
+}
+
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(() async {
+    for (final (String, List<String>) family in
+        const <(String, List<String>)>[
+      (kSansFontFamily, <String>['Regular', 'Medium', 'SemiBold', 'Bold']),
+      (kArabicFontFamily, <String>['Regular', 'Medium', 'Bold']),
+      (kDevanagariFontFamily, <String>['Regular', 'Medium', 'Bold']),
+    ]) {
+      final FontLoader fonts = FontLoader(family.$1);
+      for (final String weight in family.$2) {
+        fonts.addFont(
+          rootBundle.load('assets/fonts/${family.$1}-$weight.ttf'),
+        );
+      }
+      await fonts.load();
+    }
+  });
+
   late Directory scratch;
   late RailCollapse rail;
   late BalanceVisibility balances;
@@ -146,6 +182,8 @@ void main() {
     expect(find.textContaining('Confirm'), findsNothing);
     expect(control(tester, 'display_dollar_values').value, isTrue);
     expect(control(tester, 'display_hide_balances').value, isFalse);
+    _expectSelectedLabelFits(tester, 'display_language_menu');
+    _expectSelectedLabelFits(tester, 'display_explorer');
     expect(requests, 0);
     await tester.tap(find.byKey(const Key('display_dollar_values')));
     await tester.pumpAndSettle();
@@ -223,9 +261,7 @@ void main() {
         await show(tester);
         tester.view.physicalSize = Size(1200, height);
         await tester.pumpAndSettle();
-        for (final AppLanguage next in <AppLanguage>[
-          AppLanguage.arabic, AppLanguage.english,
-        ]) {
+        for (final AppLanguage next in AppLanguage.values) {
           // The widget retains layout-only labels while the menu is closed.
           expect(find.text(next.nativeName), findsWidgets);
           final Map<String, Object?> closed = await _driveHarness(
@@ -273,6 +309,7 @@ void main() {
           );
           await tester.pumpAndSettle();
           expect(language.currentLanguage, next);
+          _expectSelectedLabelFits(tester, 'display_language_menu');
           expect(
             Directionality.of(tester.element(find.byType(DisplayWidget))),
             next == AppLanguage.arabic
@@ -296,7 +333,11 @@ void main() {
       for (final AppLanguage next in <AppLanguage>[
         AppLanguage.arabic, AppLanguage.english,
       ]) {
-        await tester.tap(find.byKey(const Key('display_language_menu')));
+        final Finder chevron = find.descendant(
+          of: find.byKey(const Key('display_language_menu')),
+          matching: find.byIcon(Icons.keyboard_arrow_down_rounded),
+        );
+        await tester.tapAt(tester.getCenter(chevron));
         await tester.pumpAndSettle();
         await tester.tap(find.text(next.nativeName).last);
         await tester.pumpAndSettle();
@@ -304,6 +345,7 @@ void main() {
         expect(Directionality.of(tester.element(find.byType(DisplayWidget))),
             next == AppLanguage.arabic ? TextDirection.rtl : TextDirection.ltr);
         expect(app.sharedPrefsService!.get(kLanguageKey), next.toString());
+        _expectSelectedLabelFits(tester, 'display_language_menu');
         expect(tester.takeException(), isNull);
       }
       expect(requests, 0);
@@ -317,6 +359,7 @@ void main() {
       language.changeLanguage(AppLanguage.arabic);
       scale.changeTextScaling(TextScaling.huge);
       await show(tester, textScale: 2);
+      _expectSelectedLabelFits(tester, 'display_language_menu');
       expect(
         Directionality.of(tester.element(find.byType(DisplayWidget))),
         TextDirection.rtl,

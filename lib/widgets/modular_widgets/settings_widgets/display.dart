@@ -223,19 +223,27 @@ class _DisplayWidget extends State<DisplayWidget> {
                           SettingRow(
                             label: context.l10n.displayExplorer,
                             hint: context.l10n.displayExplorerHint,
-                            trailing: DropdownMenu<String>(
-                              key: const Key('display_explorer'),
-                              initialSelection: ExplorerLinks.providerHost,
-                              enabled: ExplorerLinks.available(kNodeChainId),
-                              selectOnly: true,
-                              textStyle: AppTokens.of(context).compactText,
-                              inputDecorationTheme: _menuDecoration(context),
-                              dropdownMenuEntries: <DropdownMenuEntry<String>>[
-                                DropdownMenuEntry<String>(
-                                  value: ExplorerLinks.providerHost,
-                                  label: ExplorerLinks.providerHost,
-                                ),
-                              ],
+                            trailing: SizedBox(
+                              width: _menuWidth(
+                                context,
+                                ExplorerLinks.providerHost,
+                              ),
+                              child: DropdownMenu<String>(
+                                key: const Key('display_explorer'),
+                                initialSelection: ExplorerLinks.providerHost,
+                                enabled: ExplorerLinks.available(kNodeChainId),
+                                selectOnly: true,
+                                textStyle: AppTokens.of(context).compactText,
+                                showTrailingIcon: false,
+                                decorationBuilder: _menuDecoration,
+                                dropdownMenuEntries:
+                                    <DropdownMenuEntry<String>>[
+                                  DropdownMenuEntry<String>(
+                                    value: ExplorerLinks.providerHost,
+                                    label: ExplorerLinks.providerHost,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                 ),
@@ -305,48 +313,76 @@ class _LanguageMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color faint = AppTokens.of(context).faint;
-    return DropdownMenu<AppLanguage>(
-      key: const Key('display_language_menu'),
-      initialSelection: selected,
-      textStyle: AppTokens.of(context).compactText,
-      inputDecorationTheme: _menuDecoration(context),
-      dropdownMenuEntries: <DropdownMenuEntry<AppLanguage>>[
-        for (final AppLanguage language in AppLanguage.values)
-          DropdownMenuEntry<AppLanguage>(
-            value: language,
-            label: language.nativeName,
-          ),
-      ],
-      onSelected: (AppLanguage? language) {
-        if (language != null && language != selected) {
-          onSelected(language);
-        }
-      },
-      selectOnly: true,
-      trailingIcon: Icon(Icons.keyboard_arrow_down_rounded, color: faint),
-      selectedTrailingIcon: Icon(
-        Icons.keyboard_arrow_up_rounded,
-        color: faint,
+    return SizedBox(
+      width: _menuWidth(context, selected.nativeName),
+      child: DropdownMenu<AppLanguage>(
+        key: const Key('display_language_menu'),
+        initialSelection: selected,
+        textStyle: AppTokens.of(context).compactText,
+        showTrailingIcon: false,
+        decorationBuilder: _menuDecoration,
+        dropdownMenuEntries: <DropdownMenuEntry<AppLanguage>>[
+          for (final AppLanguage language in AppLanguage.values)
+            DropdownMenuEntry<AppLanguage>(
+              value: language,
+              label: language.nativeName,
+            ),
+        ],
+        onSelected: (AppLanguage? language) {
+          if (language != null && language != selected) {
+            onSelected(language);
+          }
+        },
+        selectOnly: true,
       ),
     );
   }
 }
 
-InputDecorationThemeData _menuDecoration(BuildContext context) {
+double _menuWidth(BuildContext context, String label) {
+  final AppTokens tokens = AppTokens.of(context);
+  final TextPainter painter = TextPainter(
+    text: TextSpan(text: label, style: tokens.compactText),
+    textDirection: Directionality.of(context),
+    textScaler: MediaQuery.textScalerOf(context),
+    locale: Localizations.localeOf(context),
+    maxLines: 1,
+  )..layout();
+  final double width =
+      painter.width.ceilToDouble() +
+      2 * tokens.cardGap +
+      tokens.settingsMenuChevronWidth +
+      tokens.settingsMenuCaretInset;
+  painter.dispose();
+  return width;
+}
+
+InputDecoration _menuDecoration(
+  BuildContext context,
+  MenuController controller,
+) {
   final AppTokens tokens = AppTokens.of(context);
   final OutlineInputBorder border = OutlineInputBorder(
     borderRadius: BorderRadius.circular(tokens.pillRadius),
     borderSide: BorderSide(color: tokens.line),
   );
-  return InputDecorationThemeData(
+  return InputDecoration(
+    suffixIcon: IgnorePointer(
+      child: Icon(
+        controller.isOpen
+            ? Icons.keyboard_arrow_up_rounded
+            : Icons.keyboard_arrow_down_rounded,
+        size: tokens.settingsMenuChevronSize,
+        color: tokens.faint,
+      ),
+    ),
     isDense: true,
     isCollapsed: true,
     filled: true,
     fillColor: tokens.card2,
     constraints: BoxConstraints(minHeight: tokens.settingsMenuHeight),
     suffixIconConstraints: BoxConstraints.tightFor(
-      width: tokens.settingsMenuHeight,
+      width: tokens.settingsMenuChevronWidth,
       height: tokens.settingsMenuHeight,
     ),
     contentPadding: EdgeInsetsDirectional.symmetric(horizontal: tokens.cardGap),
