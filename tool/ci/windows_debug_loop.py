@@ -567,6 +567,8 @@ def analyze(parent, repo):
         'test/harness/screen_capture_test.dart',
         'test/settings/display_settings_test.dart',
         'lib/widgets/modular_widgets/settings_widgets/display.dart',
+        'lib/widgets/modular_widgets/settings_widgets/security_settings_view.dart',
+        'test/settings_security_redesign/security_settings_view_test.dart',
         'test/settings_addresses_redesign/addresses_view_test.dart',
         'lib/widgets/modular_widgets/settings_widgets/apps_settings_view.dart',
         'test/settings_apps_redesign/apps_settings_view_test.dart',

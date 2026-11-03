@@ -336,13 +336,14 @@ class _SecuritySettingsViewState extends State<SecuritySettingsView> {
             SegmentItem<String>(
               value: 'off',
               label: context.l10n.securitySettingsOff,
+              labelStyle: tokens.compactText,
               seam: Seam.wrongPasswordLimitOff,
             ),
           for (final int value in values)
             SegmentItem<String>(
               value: '$value',
               enabled: !state.busy,
-              labelStyle: tokens.dataText,
+              labelStyle: tokens.securitySettingsValueText,
               label: lock
                   ? value == 60
                         ? context.l10n.securitySettingsHour
@@ -353,6 +354,7 @@ class _SecuritySettingsViewState extends State<SecuritySettingsView> {
             SegmentItem<String>(
               value: 'close',
               label: context.l10n.securitySettingsOnClose,
+              labelStyle: tokens.compactText,
               seam: Seam.autoLockOnClose,
             ),
         ],

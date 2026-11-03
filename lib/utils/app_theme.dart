@@ -841,6 +841,10 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Compact actions beside Security rows.
   double get securitySettingsButtonHeight => 26;
 
+  /// Compact policy numbers retain the shared mono and tabular data role.
+  TextStyle get securitySettingsValueText =>
+      dataText.copyWith(fontSize: compactText.fontSize);
+
   /// The operator name precedes its grouped mode choices.
   double get walletModeLabelGap => 6;
 
