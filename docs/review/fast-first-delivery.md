@@ -1,19 +1,23 @@
 # First delivery and deferred acceptance
 
-Updated: 2026-11-03T20:10Z.
+Updated: 2026-11-03T20:47Z.
 
 The owner selected a first delivery covering the core interface and existing
 basic functionality, with detailed visual and extended platform/lab acceptance
 afterward. The first milestone is ready for Draft code review. Final acceptance
 of the complete redesign remains open.
 
-The latest focused source is Source377 `46ffd54ffd6d9f5910ead08dd7e1c7a62ce71111`.
-Its [Activity scope result](source377-activity-scope-control.md#focused-result)
-in [41708066035](https://github.com/edgepillar/syrius/actions/runs/41708066035) passes all
-940 cases in two 38-file streams, 955 Python controls/three existing skips,
-fourteen assets and zero selected findings. The existing selected-owner history
-remains available; wallet-wide aggregation is held by its explicit missing
-service boundary. Full native/visual acceptance stays in phase two.
+The latest focused source is Source379 `eb794d52ded0348b5a0e277fc3b3b4438ffce608`.
+Its [token option result](source379-token-option-merge.md#focused-result)
+in [41713962502](https://github.com/edgepillar/syrius/actions/runs/41713962502) passes all
+961 cases in complete 39/38-file streams (475/486), 955 Python controls with
+three existing skips, fourteen assets and zero selected findings. Both-theme
+regressions retain same-frame choices and reject inactive-step callbacks.
+Every earlier focused file remains selected. Source380 is documentation only.
+The preceding [Activity scope result](source377-activity-scope-control.md#focused-result)
+keeps the real selected-owner history available; wallet-wide aggregation remains
+held by its explicit missing service boundary. Full native/visual acceptance
+stays in phase two.
 
 The latest full Windows baseline is Source368,
 `a06c9bfa5d6caa207f97f950cae6287bea3ec0f8`, tree

@@ -30,3 +30,32 @@ builds, native lab producers, image transport and detailed visual/performance
 acceptance stay in phase two. Original 72/80 rows, 50/94 literal outputs,
 44 missing and zero accepted matches remain. Earlier failures and UNKNOWNs,
 including Native103 Token confirmation/effect, retain their original scope.
+
+## Focused result
+
+Original [41713962502](https://github.com/edgepillar/syrius/actions/runs/41713962502),
+attempt one, job 126188986414, succeeds at Source379 `eb794d52ded0348b5a0e277fc3b3b4438ffce608`,
+tree `b3d497b96b9f2f8d90d5f6969c6f1f6104ffd3c3`. Independent read-only qualification accounts for both
+complete original streams: 39/38 files, 475/486 passes, all 961 ordinary cases,
+101 hidden and 1062 total terminal events, zero failures/errors/skips.
+The 963 asset-fidelity count remains a separate selection.
+
+All nineteen prior create-token view cases and both new regressions pass.
+Each theme retains all three same-frame choices, refuses stale callbacks from
+the inactive Options step, and observes one exact 10/20 supply draft through
+the in-memory callback. These checks do not execute token issuance or establish
+native confirmation/effect. Native103 retains its original UNKNOWN outcome.
+
+All 955 Python controls complete with zero failures/errors and three existing
+hosted skips. Fourteen asset observations succeed and selected analysis has
+zero errors, warnings or infos. Every previous focused file, startup refusal,
+entry gate and command/output/deadline bound remains. All source-bound jobs are
+terminal with zero artifacts. There is no local SDK execution or artifact
+transport and no new full Windows build or native producer.
+
+Source380 changes documentation only; every application, test, workflow and
+dependency byte remains equal to tested Source379. The original first-delivery
+pin and full 72/80-row, 50/94-output, zero-match acceptance boundaries remain.
+Source374 original Node-version failure, Source368 full Windows/Native108
+outcomes, all earlier FAILURE/HOLD/UNKNOWN evidence and the unapplied Deposit
+candidate retain their original scope. Heavy qualification remains deferred.
