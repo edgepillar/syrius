@@ -38,3 +38,36 @@ performance acceptance stay in phase two. Original 72/80 rows, 50/94 literal
 outputs, 44 missing and zero accepted whole-image matches remain. Earlier
 FAILURE/HOLD/UNKNOWN evidence and the unapplied Deposit candidate retain their
 scope. No local SDK execution or financial operation is added.
+
+## Focused result
+
+Original [41723211390](https://github.com/edgepillar/syrius/actions/runs/41723211390),
+attempt one, job 126221097906, succeeds at Source384 `a08d8d67029bae7d8f3a94c2037a2b2613d5fbae`,
+tree `277c0f6a9f8d0cdc264ad55a22f2ac617c0ae43f`. Independent read-only qualification accounts for both
+complete original streams: 40/39 files, 486/501 passes, all 987 ordinary cases,
+103 hidden and 1090 total terminal events, zero failures/errors/skips.
+The 989 asset-fidelity count remains a separate selection.
+
+All eleven existing row cases pass. Both Send themes, incoming Receive and
+the existing Stake/Delegate/Fuse sequence qualify actual SVG dimensions,
+foreground and excluded SVG semantics. Original amount/sign/precision,
+privacy/semantics, exact explorer hash, source-chain refusal, Zap Message
+refusal, timestamps and RTL assertions remain and pass. Every previous test
+registration remains. This qualifies the source mapping and engine checks;
+actual native pixels and whole-image acceptance remain open.
+
+All 955 Python controls complete with zero failures/errors and three existing
+hosted skips. Fourteen asset observations succeed and selected analysis has
+zero errors, warnings or infos, including the explicitly selected Activity
+row/test and shared renderer. Every earlier focused file, startup refusal,
+entry gate and command/output/deadline bound remains. All source-bound jobs
+are terminal with zero artifacts. There is no local SDK execution or artifact
+transport and no new full Windows build or native producer.
+
+Source385 changes documentation only; every application, test, workflow and
+dependency byte remains equal to tested Source384. The original first-delivery
+pin and 72/80-row, 50/94-output, zero-match acceptance boundaries remain.
+Original Source383 seven-info refusal and skipped Dart, Source374 original
+Node-version failure, Source368 full Windows/Native108
+outcomes, earlier FAILURE/HOLD/UNKNOWN evidence and the unapplied Deposit
+candidate retain their original scope. Heavy qualification remains deferred.

@@ -1,22 +1,24 @@
 # First delivery and deferred acceptance
 
-Updated: 2026-11-03T21:07Z.
+Updated: 2026-11-03T21:44Z.
 
 The owner selected a first delivery covering the core interface and existing
 basic functionality, with detailed visual and extended platform/lab acceptance
 afterward. The first milestone is ready for Draft code review. Final acceptance
 of the complete redesign remains open.
 
-The latest focused source is Source381 `ef76a1c78073dc68982b7dd37add9e86dde51d8b`.
-Its [shared shadow result](source381-css-shadow-sigma.md#focused-result)
-in [41717389503](https://github.com/edgepillar/syrius/actions/runs/41717389503) passes all
-976 cases in complete 39-file streams (475/501), 955 Python controls with
-three existing skips, fourteen assets and zero selected findings. All fifteen
-theme cases pass; both themes bind five actual painter sigmas and their other
-shadow properties to the original CSS. Every earlier focused file remains.
-Source382 changes documentation only. The earlier [token option result](source379-token-option-merge.md#focused-result)
-and [Activity scope result](source377-activity-scope-control.md#focused-result)
-retain their source. Wallet-wide aggregation remains held by its explicit
+The latest focused source is Source384 `a08d8d67029bae7d8f3a94c2037a2b2613d5fbae`.
+Its [Activity symbol result](source384-renderer-analysis-cleanup.md#focused-result)
+in [41723211390](https://github.com/edgepillar/syrius/actions/runs/41723211390) passes all
+987 cases in complete 40/39-file streams (486/501), 955 Python controls with
+three existing skips, fourteen assets and zero selected findings. All eleven
+row cases pass, including actual SVG geometry/color/semantics alongside the
+original amount, privacy, explorer and seam assertions. Every earlier focused
+file remains. Source385 changes documentation only. The earlier
+[shadow result](source381-css-shadow-sigma.md#focused-result),
+[token option result](source379-token-option-merge.md#focused-result) and
+[Activity scope result](source377-activity-scope-control.md#focused-result)
+retain their source. Wallet-wide aggregation stays held by its explicit
 missing service boundary. Full native/visual acceptance stays in phase two.
 
 The latest full Windows baseline is Source368,
