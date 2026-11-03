@@ -200,20 +200,25 @@ class _HomeHeroState extends State<HomeHero> {
             : tokens.heroSecondaryAmountText.letterSpacing,
       ),
     );
-    final TextStyle symbol = tokens.heroSymbolText;
+    final TextStyle znnSymbol = _homeHeroSymbolStyle(
+      context, primary: true, hidden: hidden,
+    );
+    final TextStyle qsrSymbol = _homeHeroSymbolStyle(
+      context, primary: false, hidden: hidden,
+    );
     final double hiddenEyeWidth = hidden
         ? tokens.heroHiddenEyeGap + tokens.heroHiddenEyeSlotWidth
         : 0;
-    final double znnGap = hidden
-        ? _homeHiddenSymbolGap(context, tokens.heroAmountText)
-        : tokens.heroSymbolGap;
-    final double qsrGap = hidden
-        ? _homeHiddenSymbolGap(context, tokens.heroSecondaryAmountText)
-        : tokens.heroSymbolGap;
+    final double znnGap = _homeAmountSymbolGap(
+      context, tokens.heroAmountText, hidden: hidden,
+    );
+    final double qsrGap = _homeAmountSymbolGap(
+      context, tokens.heroSecondaryAmountText, hidden: hidden,
+    );
     return math.max(
-      znn + znnGap + _textWidth(context, kZnnCoin.symbol, symbol) +
+      znn + znnGap + _textWidth(context, kZnnCoin.symbol, znnSymbol) +
           hiddenEyeWidth,
-      qsr + qsrGap + _textWidth(context, kQsrCoin.symbol, symbol),
+      qsr + qsrGap + _textWidth(context, kQsrCoin.symbol, qsrSymbol),
     );
   }
 

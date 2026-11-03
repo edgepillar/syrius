@@ -1,15 +1,20 @@
 part of 'home_hero.dart';
 
-// Measure one interior mono space with the mask's tracking and text scale.
+// Measure an interior mono space with the visible or masked tracking.
 // The width never depends on the private amount or trailing-space trimming.
-double _homeHiddenSymbolGap(BuildContext context, TextStyle amountStyle) {
+double _homeAmountSymbolGap(
+  BuildContext context,
+  TextStyle amountStyle, {
+  required bool hidden,
+}) {
   final AppTokens tokens = AppTokens.of(context);
   final TextPainter painter = TextPainter(
     text: TextSpan(
       text: '0 0',
       style: monoStyle(amountStyle).copyWith(
-        letterSpacing:
-            amountStyle.fontSize! * tokens.hiddenAmountTrackingEm,
+        letterSpacing: hidden
+            ? amountStyle.fontSize! * tokens.hiddenAmountTrackingEm
+            : amountStyle.letterSpacing,
       ),
     ),
     textDirection: TextDirection.ltr,
@@ -21,6 +26,22 @@ double _homeHiddenSymbolGap(BuildContext context, TextStyle amountStyle) {
   final double width = space.right - space.left;
   painter.dispose();
   return width;
+}
+
+// Inline coin spans inherit the reference's mono face and row weight.
+TextStyle _homeHeroSymbolStyle(
+  BuildContext context, {
+  required bool primary,
+  required bool hidden,
+}) {
+  final AppTokens tokens = AppTokens.of(context);
+  return monoStyle(tokens.heroSymbolText).copyWith(
+    fontWeight: primary
+        ? tokens.heroAmountText.fontWeight
+        : tokens.heroSecondaryAmountText.fontWeight,
+    height: primary ? tokens.heroAmountText.height : tokens.bodyText.height,
+    letterSpacing: primary && !hidden ? tokens.heroAmountText.letterSpacing : 0,
+  );
 }
 
 class _HomeHeroBalances extends StatelessWidget {
@@ -172,14 +193,16 @@ class _HomeHeroBalanceLine extends StatelessWidget {
                 ),
               ),
               SizedBox(
-                width: visibility.hidden
-                    ? _homeHiddenSymbolGap(context, amountStyle)
-                    : tokens.heroSymbolGap,
+                width: _homeAmountSymbolGap(
+                  context, amountStyle, hidden: visibility.hidden,
+                ),
               ),
               Text(
                 symbol,
                 key: ValueKey<String>('${keyPrefix}_symbol'),
-                style: tokens.heroSymbolText.copyWith(color: symbolColor),
+                style: _homeHeroSymbolStyle(
+                  context, primary: primary, hidden: visibility.hidden,
+                ).copyWith(color: symbolColor),
               ),
             ],
           ),

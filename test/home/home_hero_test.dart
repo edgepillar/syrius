@@ -687,7 +687,13 @@ void main() {
                   const TextSpan(text: '•••• '),
                   TextSpan(
                     text: prefix == 'home_znn' ? 'ZNN' : 'QSR',
-                    style: tokens.heroSymbolText.copyWith(letterSpacing: 0),
+                    style: monoStyle(style).copyWith(
+                      fontSize: 18,
+                      letterSpacing: 0,
+                      height: prefix == 'home_znn' ? 1.1 : 1.45,
+                      fontWeight: prefix == 'home_znn'
+                          ? FontWeight.w500 : FontWeight.w400,
+                    ),
                   ),
                 ],
               ),
@@ -1107,4 +1113,70 @@ void main() {
       );
     },
   );
+
+  testWidgets('visible coin spans follow the bundled inline reference', (
+    WidgetTester tester,
+  ) async {
+    await tester.runAsync(() async {
+      final FontLoader fonts = FontLoader(kMonoFontFamily);
+      for (final String weight in <String>['Regular', 'Medium']) {
+        fonts.addFont(rootBundle.load(
+          'assets/fonts/JetBrainsMono-$weight.ttf',
+        ));
+      }
+      await fonts.load();
+    });
+    for (final bool light in <bool>[false, true]) {
+      for (final TextDirection direction in TextDirection.values) {
+        for (final double scale in <double>[1, 2]) {
+          await show(tester, light: light, direction: direction,
+            textScale: scale);
+          for (final bool primary in <bool>[true, false]) {
+            final String prefix = primary ? 'home_znn' : 'home_qsr';
+            final String digits = primary ? '1,204.5' : '12,880';
+            final String coin = primary ? 'ZNN' : 'QSR';
+            // Independent values from the reference's inherited .num/.big.
+            final TextStyle number = TextStyle(
+              fontFamily: kMonoFontFamily,
+              fontSize: primary ? 34 : 18,
+              fontWeight: primary ? FontWeight.w500 : FontWeight.w400,
+              letterSpacing: primary ? -0.34 : 0,
+              height: primary ? 1.1 : 1.45,
+              fontFeatures: const <ui.FontFeature>[
+                ui.FontFeature.tabularFigures(),
+              ],
+            );
+            final TextStyle symbolStyle = number.copyWith(fontSize: 18);
+            final Finder amount = find.byKey(ValueKey<String>(prefix));
+            final Finder symbol = find.byKey(
+              ValueKey<String>('${prefix}_symbol'),
+            );
+            final RichText numeric = tester.widget<RichText>(find.descendant(
+              of: amount, matching: find.byType(RichText),
+            ));
+            expect(numeric.text.toPlainText(), digits);
+            final TextStyle actual = tester.widget<Text>(symbol).style!;
+            expect(actual.fontFamily, kMonoFontFamily);
+            expect(actual.fontWeight, symbolStyle.fontWeight);
+            expect(actual.letterSpacing, symbolStyle.letterSpacing);
+            expect(actual.height, symbolStyle.height);
+            final TextPainter reference = TextPainter(
+              text: TextSpan(style: number, children: <InlineSpan>[
+                TextSpan(text: '$digits '),
+                TextSpan(text: coin, style: symbolStyle),
+              ]),
+              textDirection: TextDirection.ltr,
+              textScaler: TextScaler.linear(scale),
+            )..layout();
+            expect(tester.getRect(symbol).right - tester.getRect(amount).left,
+              closeTo(reference.width, 0.1));
+            reference.dispose();
+            expect(symbol.hitTestable(), findsOneWidget);
+          }
+          expect(visibility.hidden, isFalse);
+          expect(tester.takeException(), isNull);
+        }
+      }
+    }
+  });
 }
