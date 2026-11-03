@@ -1,21 +1,23 @@
 # First delivery and deferred acceptance
 
-Updated: 2026-11-03T23:09Z.
+Updated: 2026-11-03T23:41Z.
 
 The owner selected a first delivery covering the core interface and existing
 basic functionality, with detailed visual and extended platform/lab acceptance
 afterward. The first milestone is ready for Draft code review. Final acceptance
 of the complete redesign remains open.
 
-The latest focused source is Source390 `ab4740c7a457290e913ecb12920674f124914725`.
-Its [shared-chevron result](source388-shared-disclosure-symbols.md#fresh-source390-focused-result)
-in [41735184815](https://github.com/edgepillar/syrius/actions/runs/41735184815) passes all
-1,030 cases in complete 41-file streams (507/523), 955 Python controls with
-three existing skips, fourteen assets and zero selected findings. All 34
-disclosure/row cases qualify both-theme SVG geometry/foreground/semantics,
-the custom size and existing motion/input/state behavior. Every earlier
-focused path passes. Source391 changes documentation only. Source388/389
-retain their original assertion/framework failures. The earlier
+The latest focused source is Source392 `19e322e0c019ce986cca70db78ab189db060a1e8`.
+Its [Send draft result](source392-send-draft-amount-binding.md#focused-result)
+in [41739664927](https://github.com/edgepillar/syrius/actions/runs/41739664927) passes all
+1,051 cases in complete 42/41-file streams (528/523), 955 Python controls with
+three existing skips, fourteen assets and zero selected findings. All 21
+Send form cases pass, including restored/arriving unavailable pairs, a lost
+balance owner, exact valid QSR retention and disabled fallback submission.
+Every earlier focused path passes. Source393 changes documentation only.
+The earlier [shared-chevron result](source388-shared-disclosure-symbols.md#fresh-source390-focused-result)
+keeps its source. Source388/389 retain their original assertion/framework
+failures. The earlier
 [Pillar header result](source386-pillar-control-symbols.md#focused-result)
 keeps its source; Pillar sort-chip typography/chrome remains X556 for
 phase-two visual polish. The earlier [Activity result](source384-renderer-analysis-cleanup.md#focused-result),

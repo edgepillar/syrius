@@ -2,7 +2,7 @@
 
 Small versioned records extend the preserved original validation history.
 
-- [Source392 Send draft amount ownership](source392-send-draft-amount-binding.md): restored/arriving fallback pairs drop another pair's displayed quantity, and a lost balance owner clears its amount. Valid exact amounts and all confirmation/admission/publication code remain. Three new widget regressions and all 18 original form cases join every prior path; hosted qualification is pending. [Exact PR body318](pr-body-318.md) retains preceding results.
+- [Source392 Send draft amount qualification](source392-send-draft-amount-binding.md#focused-result): 41739664927 independently qualifies all 1,051 cases in complete 42/41-file streams (528/523), 955 Python controls/three existing skips, fourteen assets and zero findings. Three new regressions and all 18 original form cases pass; unavailable pairs drop another pair's displayed quantity, valid QSR keeps its exact amount and invalid fallbacks hold Send disabled. All earlier paths remain. Source393 preserves tested code. [Exact PR body318](pr-body-318.md) retains preceding results.
 
 - [Source390 shared-chevron qualification](source388-shared-disclosure-symbols.md#fresh-source390-focused-result): 41735184815 independently qualifies all 1,030 cases in complete 41-file streams (507/523), 955 Python controls/three existing skips, fourteen assets and zero findings. All 34 disclosure/row cases pass, including both-theme SVG geometry/foreground/semantics and the custom-size/owned-turn assertions. Source388/389 original failures remain. Source391 preserves tested code; heavy phase-two work stays deferred. [Exact PR body317](pr-body-317.md) retains preceding results.
 
