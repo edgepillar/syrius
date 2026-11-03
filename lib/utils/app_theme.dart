@@ -832,6 +832,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Compact actions beside Security rows.
   double get securitySettingsButtonHeight => 26;
 
+  /// The operator name precedes its grouped mode choices.
+  double get walletModeLabelGap => 6;
+
   /// Keeps exact account identifiers and balances readable when scrolled.
   double get addressesTableMinWidth => 920;
 

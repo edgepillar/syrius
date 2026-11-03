@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/disclosure.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/page_widgets.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/segment.dart';
 import 'package:zenon_syrius_wallet_flutter/seams/seam.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 
@@ -263,50 +264,54 @@ class _WalletSettingsViewState extends State<WalletSettingsView>
                   ],
                 ),
               ),
-              SeamGate(
-                key: const Key('wallet_settings_wallets_gate'),
-                seam: Seam.walletPicker,
-                child: Disclosure(
-                  title: context.l10n.walletSettingsWallets,
-                  summary: context.l10n.walletSettingsWalletsHint,
-                  keyPrefix: 'wallet_settings_wallets',
-                  child: const SizedBox.shrink(),
+              Panel(
+                child: SeamGate(
+                  key: const Key('wallet_settings_wallets_gate'),
+                  seam: Seam.walletPicker,
+                  child: Disclosure(
+                    title: context.l10n.walletSettingsWallets,
+                    summary: context.l10n.walletSettingsWalletsHint,
+                    keyPrefix: 'wallet_settings_wallets',
+                    child: const SizedBox.shrink(),
+                  ),
                 ),
               ),
-              Disclosure(
-                title: context.l10n.walletSettingsMaintenance,
-                controller: _maintenance,
-                keepAlive: true,
-                keyPrefix: 'wallet_settings_maintenance',
-                child: Panel(
-                  child: SettingsList(
-                    children: <Widget>[
-                      _buildPreference(
-                        state,
-                        WalletPreference.clipboard,
-                        context.l10n.walletSettingsClipboard,
-                        maintenanceCurrent,
-                        hint: context.l10n.walletSettingsClipboardHint,
-                      ),
-                      SettingRow(
-                        label: context.l10n.securitySettingsResetWallet,
-                        trailing: DangerAction(
-                          child: OutlinedButton(
-                            key: const Key('wallet_settings_reset_wallet'),
-                            onPressed: maintenanceCurrent()
-                                ? () {
-                                    if (maintenanceCurrent()) {
-                                      widget.onResetWallet(
-                                        maintenanceSourceIsCurrent,
-                                      );
+              Panel(
+                child: Disclosure(
+                  title: context.l10n.walletSettingsMaintenance,
+                  controller: _maintenance,
+                  keepAlive: true,
+                  keyPrefix: 'wallet_settings_maintenance',
+                  child: Panel(
+                    child: SettingsList(
+                      children: <Widget>[
+                        _buildPreference(
+                          state,
+                          WalletPreference.clipboard,
+                          context.l10n.walletSettingsClipboard,
+                          maintenanceCurrent,
+                          hint: context.l10n.walletSettingsClipboardHint,
+                        ),
+                        SettingRow(
+                          label: context.l10n.securitySettingsResetWallet,
+                          trailing: DangerAction(
+                            child: OutlinedButton(
+                              key: const Key('wallet_settings_reset_wallet'),
+                              onPressed: maintenanceCurrent()
+                                  ? () {
+                                      if (maintenanceCurrent()) {
+                                        widget.onResetWallet(
+                                          maintenanceSourceIsCurrent,
+                                        );
+                                      }
                                     }
-                                  }
-                                : null,
-                            child: Text(context.l10n.securitySettingsReset),
+                                  : null,
+                              child: Text(context.l10n.securitySettingsReset),
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -398,17 +403,27 @@ class _WalletSettingsViewState extends State<WalletSettingsView>
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 Text(label),
-                SizedBox(width: AppTokens.of(context).inlineGap),
-                ChoicePills<String>(
-                  values: const <String>['auto', 'on', 'off'],
+                SizedBox(width: AppTokens.of(context).walletModeLabelGap),
+                Segment<String>(
+                  items: <SegmentItem<String>>[
+                    for (final String mode in const <String>[
+                      'auto',
+                      'on',
+                      'off',
+                    ])
+                      SegmentItem<String>(
+                        value: mode,
+                        label: switch (mode) {
+                          'auto' => context.l10n.walletSettingsAuto,
+                          'on' => context.l10n.walletSettingsOn,
+                          _ => context.l10n.walletSettingsOff,
+                        },
+                        enabled: false,
+                      ),
+                  ],
                   // No backing policy exists, so no effective mode is claimed.
                   selected: null,
-                  labelOf: (String mode) => switch (mode) {
-                    'auto' => context.l10n.walletSettingsAuto,
-                    'on' => context.l10n.walletSettingsOn,
-                    _ => context.l10n.walletSettingsOff,
-                  },
-                  onSelected: (_) => runUnlessSeamed(
+                  onChanged: (_) => runUnlessSeamed(
                     seam: Seam.operatorModes,
                     action: () {},
                   ),

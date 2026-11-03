@@ -395,7 +395,7 @@ macOS; Windows provision and acceptance remain pending. See
 - Updated: 2026-11-02
 - Delivery priority: The owner selected [core interface and basic functionality first](docs/review/fast-first-delivery.md), with detailed visual and extended platform/lab acceptance afterward. The first milestone is ready for Draft code review; no new heavy qualification or image transport is scheduled for it. Original final acceptance is preserved
 - Latest outcomes: [Source343](docs/review/source343-focused-results.md) independently qualifies all 848 focused Dart cases, zero selected analysis findings, 940 Python/three existing skips and fourteen asset observations. Original Source340-342 failures remain failed. [Source336](docs/review/source336-closed-hosted-outcomes.md) retains its historical full 4,881-pass/one-skip Windows baseline, Debug/Release builds and native Navigation/Settings/Details archives. Its failed Home light Go To cause stays NOT_ESTABLISHED
-- Current implementation: The first delivery remains pinned to 19c7b2af5e1c. Apps short lists now size to genuine content, empty state remains compact and long lists scroll in a bounded body; its plain heading uses the ordinary card inset. Source343 qualifies the existing dark/light populated/empty/thirty-row controls, last-action hit-testability and all prior checks with unchanged production code since Source341. The redundant conversion is removed; no original action, guard or registration is relaxed
+- Current implementation: First delivery remains pinned to 19c7b2af5e1c, with Source343 848-case success retained. Source345 groups Wallet Auto/On/Off choices in existing Segment tracks, keeps every unavailable mode disabled/unselected and preserves direct callback seams. Wallets and existing Maintenance gain card surfaces. All sixty-nine prior focused files remain and the existing eight-case Wallet view file is included for 856 cases; fresh hosted analysis and engine gates are pending
 - Actual review: All fourteen Source336 Settings frames and fourteen exact references were individually viewed in a closed owned review. Every pair retains differences and no match is accepted. The actual Apps pair review corrects the prior reference-only interpretation: both PNG references are compact and the original genuine empty table is stretched. Source343 qualifies the bounded layout/widget follow-up; no new native image or visual match is inferred
 - Acceptance: 72/80 rows, 90 percent by original rows; nineteen preparations, 50 literal outputs, 44 missing and zero of 94 accepted matches. P03, P09, F06, V01-V03 and V05-V06 remain open and prioritized for the second phase. Earlier FAILURE/HOLD/UNKNOWN, including Native101/103 UNKNOWN and Native104 unadmitted, remain. English text, edgepillar no-reply/UTC attribution and Draft status continue
 
@@ -2001,3 +2001,13 @@ See [the original Source342 gesture failure and Source343 frame preparation](doc
 ## Source344 qualified focused outcome record
 
 See [Source343 focused results](docs/review/source343-focused-results.md). This documentation-only tail retains the exact tested code and all original failures, with no repeated SDK, full build, native capture or image transport. Main progress and final acceptance remain unchanged.
+
+
+## Source345 Wallet mode and surface preparation
+
+See [Source345 Wallet mode groups and card surfaces](docs/review/source345-wallet-mode-surfaces.md). The exact [prior PR body 284](docs/review/pr-body-284.md) is retained with all submitted URLs. No main acceptance state or original requirement changes.
+
+| Row | Status | Updated | Evidence |
+| --- | --- | --- | --- |
+| X513 | review | 2026-11-03T01:10Z | Existing shared Segment tracks replace separate Wallet mode pills, retaining null selection, disabled items, original operator seam and direct callback barrier. Existing normal-width and larger-text/RTL cases remain; the callback case requires three real controls. All 69 prior focused files and the existing eight Wallet cases form the exact 856-case gate, pending fresh hosted results |
+| X514 | review | 2026-11-03T01:10Z | Wallets and existing Maintenance disclosures gain standard Panel surfaces with original source/controller/epoch/clipboard/reset guards retained. Both exact references show Wallets but no Maintenance row; earlier reference wording is clarified without deleting the existing feature or adding an illustrated wallet count. Native image and visual acceptance stay open |

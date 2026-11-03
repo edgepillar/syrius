@@ -6,9 +6,9 @@ import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/disclosure.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/segment.dart';
 import 'package:zenon_syrius_wallet_flutter/seams/seam.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
-import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/settings_parts.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/settings_switch.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/wallet_options.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/wallet_settings_presenter.dart';
@@ -167,6 +167,11 @@ void main() {
         expect(find.text('3'), findsNothing);
         expect(source.store.writes, isEmpty);
         expect(source.effects, isEmpty);
+        if (!variant.$2) {
+          final double pillarY = tester.getTopLeft(find.text('Pillar')).dy;
+          expect(tester.getTopLeft(find.text('Sentinel')).dy, pillarY);
+          expect(tester.getTopLeft(find.text('Sporks')).dy, pillarY);
+        }
         await tester.ensureVisible(find.byKey(_maintenance));
         await tester.tap(find.byKey(_maintenance));
         await tester.pump();
@@ -240,12 +245,17 @@ void main() {
     await _until(tester, () => binding.outcomes.length == 1);
     await tester.pump(const Duration(milliseconds: 180));
     expect(_switch(tester, _auto).value, isFalse);
-    final Iterable<ChoicePills<String>> modes = tester
-        .widgetList<ChoicePills<String>>(
-          find.byType(ChoicePills<String>),
-        );
-    for (final ChoicePills<String> choices in modes) {
-      choices.onSelected('on');
+    final Iterable<Segment<String>> modes = tester.widgetList<Segment<String>>(
+      find.byType(Segment<String>),
+    );
+    expect(modes, hasLength(3));
+    for (final Segment<String> choices in modes) {
+      expect(choices.selected, isNull);
+      expect(
+        choices.items.every((SegmentItem<String> item) => !item.enabled),
+        isTrue,
+      );
+      choices.onChanged('on');
     }
     expect(source.store.writes, hasLength(1));
     expect(binding.outcomes, hasLength(1));

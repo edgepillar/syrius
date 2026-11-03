@@ -23,7 +23,7 @@ original producer into a native run of a later revision.
 | 30, Node | The heading and Add action are outside the retained frame. Embedded controls are taller and stacked; a hover tooltip is visible. Source and capture causes need separate review. |
 | 31, Security | Compact trailing actions are present. The duration selector is wider and row/label rhythm differs. |
 | 32, Display | Language and explorer selectors are wider and the card ends lower. Genuine saved locale, theme and explorer availability remain. |
-| 33, Wallet | Sporks wraps below the other modes; mode controls are separate outlined pills. Wallets and Maintenance disclosures lack the reference card surfaces. |
+| 33, Wallet | Sporks wraps below the other modes; mode controls are separate outlined pills. Wallets lacks its reference card surface. Existing Maintenance also lacks a surface, but is not depicted in the supplied reference. |
 | 34, Apps | The genuine empty table is substantially taller than the reference. Heading inset, column case and column positions also differ. |
 | 35, Addresses | Compact Add actions are present. Heading inset, selection marks and balance-column alignment differ. |
 | 36, About | The version strip and following rows sit slightly lower; update presentation and labels differ. Actual version and availability are retained. |
@@ -66,3 +66,8 @@ build, native capture or image acceptance is claimed.
 The first delivery remains pinned to 19c7b2af5e1c. Detailed visual and extended
 platform/lab acceptance stay in phase two. Original progress remains 72/80,
 nineteen preparations, 50/94 available outputs, 44 missing and zero matches.
+
+Source345 clarification: reopening both Wallet references confirms the Wallets
+card, with no depicted Maintenance row. The original closed review record is
+retained; the [source follow-up](source345-wallet-mode-surfaces.md) preserves
+the existing Maintenance feature rather than manufacturing a reference row.
