@@ -357,23 +357,21 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
             label: context.l10n.mintable,
             help: context.l10n.tokenMintableTooltip,
             value: data.isMintable,
-            onChanged: (bool value) =>
-                _option(data.copyWith(isMintable: value)),
+            onChanged: (bool value) => _option(isMintable: value),
           ),
           TokenStepToggle(
             checkboxKey: const Key('token_burnable_checkbox'),
             label: context.l10n.burnableToken,
             help: context.l10n.tokenBurnTooltip,
             value: data.isBurnable,
-            onChanged: (bool value) =>
-                _option(data.copyWith(isBurnable: value)),
+            onChanged: (bool value) => _option(isBurnable: value),
           ),
           TokenStepToggle(
             checkboxKey: const Key('token_utility_checkbox'),
             label: context.l10n.utilityToken,
             help: context.l10n.tokenStatusUtilityTooltip,
             value: data.isUtility,
-            onChanged: (bool value) => _option(data.copyWith(isUtility: value)),
+            onChanged: (bool value) => _option(isUtility: value),
           ),
         ],
       ),
@@ -525,8 +523,14 @@ class _CreateTokenStepperViewState extends State<CreateTokenStepperView> {
     setState(() => _step = 2);
   }
 
-  void _option(NewTokenData data) {
-    if (_step == 2 && _current && !_busy) _draft.value = data;
+  void _option({bool? isMintable, bool? isBurnable, bool? isUtility}) {
+    if (_step != 2 || !_current || _busy) return;
+    // Input events can share one frame; merge into the latest draft.
+    _draft.value = _draft.value.copyWith(
+      isMintable: isMintable,
+      isBurnable: isBurnable,
+      isUtility: isUtility,
+    );
   }
 
   void _continueOptions() {

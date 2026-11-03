@@ -102,6 +102,80 @@ void _viewport(WidgetTester tester, Size size) {
 
 void main() {
   for (final bool light in <bool>[false, true]) {
+    testWidgets('option events retain earlier choices in theme $light', (
+      WidgetTester tester,
+    ) async {
+      _viewport(tester, const Size(1100, 650));
+      final TokenCreateFixture fixture = TokenCreateFixture();
+      final List<NewTokenData> submissions = <NewTokenData>[];
+      try {
+        await tester.pumpWidget(_host(
+          CreateTokenStepperView(
+            preflight: fixture.preflight,
+            onIssue: submissions.add,
+          ),
+          light: light,
+        ));
+        await _clock(tester);
+        await _options(tester);
+        final ValueChanged<bool?> mint = tester
+            .widget<Checkbox>(_field('token_mintable_checkbox')).onChanged!;
+        final ValueChanged<bool?> burn = tester
+            .widget<Checkbox>(_field('token_burnable_checkbox')).onChanged!;
+        final ValueChanged<bool?> utility = tester
+            .widget<Checkbox>(_field('token_utility_checkbox')).onChanged!;
+        // All callbacks come from one rendered frame, in both event orders.
+        if (light) {
+          utility(false);
+          burn(true);
+          mint(true);
+        } else {
+          mint(true);
+          burn(true);
+          utility(false);
+        }
+        await tester.pump();
+        expect(tester.widget<Checkbox>(
+          _field('token_mintable_checkbox'),
+        ).value, isTrue);
+        expect(tester.widget<Checkbox>(
+          _field('token_burnable_checkbox'),
+        ).value, isTrue);
+        expect(tester.widget<Checkbox>(
+          _field('token_utility_checkbox'),
+        ).value, isFalse);
+        expect(find.text('Review supply'), findsOneWidget);
+        await tester.tap(_action('options'));
+        await _clock(tester);
+        expect(_active(tester, 'supply'), isTrue);
+        // Retained callbacks cannot alter an inactive Options step.
+        mint(false);
+        burn(false);
+        utility(true);
+        await tester.enterText(_field('token_max_supply_field'), '20');
+        await tester.pump();
+        await tester.tap(_action('supply'));
+        await _clock(tester);
+        await tester.tap(_action('options'));
+        await _clock(tester);
+        expect(_active(tester, 'issue'), isTrue);
+        await tester.tap(_action('issue'));
+        await _clock(tester);
+        expect(submissions, hasLength(1));
+        expect(submissions.single.isMintable, isTrue);
+        expect(submissions.single.isBurnable, isTrue);
+        expect(submissions.single.isUtility, isFalse);
+        expect(submissions.single.totalSupply, BigInt.from(10));
+        expect(submissions.single.maxSupply, BigInt.from(20));
+        expect(tester.takeException(), isNull);
+      } finally {
+        await tester.pumpWidget(const SizedBox.shrink());
+        fixture.dispose();
+      }
+    });
+  }
+
+  for (final bool light in <bool>[false, true]) {
     for (final TextDirection direction in TextDirection.values) {
       for (final double scale in <double>[1, 1.6]) {
         testWidgets(
