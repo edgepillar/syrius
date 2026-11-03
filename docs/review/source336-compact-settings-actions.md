@@ -21,6 +21,10 @@ timer, presenter or action owner changes.
 
 ## Correction to S334-P01
 
+Subsequent correction: the [actual Source336 pair review](source336-settings-visual-review.md)
+reinstates the compact-height finding. The reference interpretation below is
+retained as a superseded historical statement.
+
 Both exact Apps references, 34-set-apps-dark.png and 34-set-apps-light.png, were
 reopened individually. Their Connected card also fills the available vertical
 region, with WalletConnect beneath it. The previous description of a stretched

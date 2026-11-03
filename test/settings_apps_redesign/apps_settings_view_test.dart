@@ -127,6 +127,61 @@ void main() {
         expect(source.writes, isEmpty);
         expect(source.actions, isEmpty);
         expect(tester.takeException(), isNull);
+
+        final Finder connected = find.byKey(
+          const Key('apps_settings_connected'),
+        );
+        expect(tester.getSize(connected).height, lessThan(260));
+        expect(
+          tester.getTopLeft(find.byType(Disclosure)).dy,
+          greaterThan(tester.getBottomLeft(connected).dy),
+        );
+        expect(
+          tester.getTopLeft(find.text('Connected')).dx -
+              tester.getTopLeft(connected).dx,
+          16,
+        );
+
+        source.rows = <AppsConnection>[];
+        source.changes.add(null);
+        await tester.pump();
+        expect(
+          tester
+              .widget<Text>(find.byKey(const Key('apps_settings_count')))
+              .data,
+          '0',
+        );
+        expect(tester.getSize(connected).height, lessThan(260));
+        expect(find.byKey(const Key('apps_disconnect_0')), findsNothing);
+
+        source.rows = List<AppsConnection>.generate(
+          30,
+          (int index) => AppsConnection(
+            identity: 'https://list-$index.example',
+            incarnation: 'grant:$index',
+            kind: AppsConnectionKind.webApp,
+            site: 'List app $index',
+            accounts: const <String>[],
+          ),
+        );
+        source.changes.add(null);
+        await tester.pump();
+        expect(tester.getSize(connected).height, lessThan(400));
+        final Finder list = find.byKey(
+          const PageStorageKey<String>('apps_connections'),
+        );
+        await tester.scrollUntilVisible(
+          find.byKey(const Key('apps_disconnect_29')),
+          200,
+          scrollable: find.descendant(
+            of: list,
+            matching: find.byType(Scrollable),
+          ),
+        );
+        expect(_action(tester, 'apps_disconnect_29').onPressed, isNotNull);
+        expect(source.writes, isEmpty);
+        expect(source.actions, isEmpty);
+        expect(tester.takeException(), isNull);
       },
     );
   }

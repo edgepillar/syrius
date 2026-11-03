@@ -181,3 +181,5 @@ A prior successful run remains bound to its original source and scope.
 
 - [Source338 focused results](source338-focused-results.md): both complete groups independently qualify 837 passes, 940 Python controls with three existing skips, fourteen asset observations and zero strict analysis findings; the original Source337 failure and all final acceptance limits remain.
 - [Frozen PR body282](pr-body-282.md): exact submitted description of the retained Source337 refusal, corrected Source338 line wrap and pending focused run; original URLs retained.
+
+- 2026-11-03T00:12Z: [Source336 actual Settings pair review and Source340 compact Apps preparation](source336-settings-visual-review.md) preserves all fourteen actual/reference differences, corrects the prior reference-only height interpretation and adds bounded genuine-content layout. [Exact PR body 283](pr-body-283.md) retains the previous text and links. Fresh hosted gates are pending.

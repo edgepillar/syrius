@@ -896,6 +896,12 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Keeps site identifiers and connection actions readable in short windows.
   double get appsSettingsTableMinWidth => 640;
 
+  /// A compact empty connection table still has room for its explanation.
+  double get appsSettingsTableMinHeight => 128;
+
+  /// Long connection lists scroll without stretching the whole Settings page.
+  double get appsSettingsTableMaxHeight => 320;
+
   /// The quiet discovery field below the last licence.
   double get originalsDiscoveryWidth => 132;
 

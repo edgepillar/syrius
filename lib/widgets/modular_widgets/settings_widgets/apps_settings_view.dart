@@ -200,11 +200,15 @@ class _AppsSettingsViewState extends State<AppsSettingsView>
               : AppsSnapshot.unavailable();
           return LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) {
-              final double tableHeight = constraints.hasBoundedHeight
-                  ? (constraints.maxHeight - 132)
-                        .clamp(176, double.infinity)
-                        .toDouble()
-                  : 320;
+              final double tableMaxHeight =
+                  (constraints.hasBoundedHeight
+                          ? constraints.maxHeight
+                          : tokens.appsSettingsTableMaxHeight)
+                      .clamp(
+                        tokens.appsSettingsTableMinHeight,
+                        tokens.appsSettingsTableMaxHeight,
+                      )
+                      .toDouble();
               return SingleChildScrollView(
                 key: const Key('apps_settings_page'),
                 child: Column(
@@ -223,12 +227,17 @@ class _AppsSettingsViewState extends State<AppsSettingsView>
                       ),
                     ),
                     SizedBox(height: tokens.appsSettingsGap),
-                    SizedBox(
-                      height: tableHeight,
-                      child: Panel(
-                        key: const Key('apps_settings_connected'),
-                        title: context.l10n.appsSettingsConnected,
-                        heading: Row(
+                    Panel(
+                      key: const Key('apps_settings_connected'),
+                      title: context.l10n.appsSettingsConnected,
+                      shrinkWrap: true,
+                      heading: Padding(
+                        padding: EdgeInsetsDirectional.only(
+                          start:
+                              tokens.panelHeaderPadding.start -
+                              tokens.tabHeaderPadding.start,
+                        ),
+                        child: Row(
                           children: <Widget>[
                             Flexible(
                               child: Text(
@@ -247,23 +256,29 @@ class _AppsSettingsViewState extends State<AppsSettingsView>
                             ),
                           ],
                         ),
-                        actions: <Widget>[
-                          _AppsButton(
-                            key: const Key('apps_settings_connect'),
-                            label: context.l10n.appsSettingsConnectByLink,
-                            icon: Icons.add,
-                            onPressed:
-                                current &&
-                                    snapshot.walletConnectAvailable &&
-                                    !state.busy
-                                ? () {
-                                    if (sourceCurrent()) {
-                                      unawaited(_connectByLink());
-                                    }
+                      ),
+                      actions: <Widget>[
+                        _AppsButton(
+                          key: const Key('apps_settings_connect'),
+                          label: context.l10n.appsSettingsConnectByLink,
+                          icon: Icons.add,
+                          onPressed:
+                              current &&
+                                  snapshot.walletConnectAvailable &&
+                                  !state.busy
+                              ? () {
+                                  if (sourceCurrent()) {
+                                    unawaited(_connectByLink());
                                   }
-                                : null,
-                          ),
-                        ],
+                                }
+                              : null,
+                        ),
+                      ],
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: tokens.appsSettingsTableMinHeight,
+                          maxHeight: tableMaxHeight,
+                        ),
                         child: _ConnectionsTable(
                           snapshot: snapshot,
                           enabled: current && !state.busy,
@@ -438,6 +453,7 @@ class _ConnectionsTable extends StatelessWidget {
           child: SizedBox(
             width: width,
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 Padding(
                   padding: tokens.settingsRowPadding,
@@ -461,16 +477,19 @@ class _ConnectionsTable extends StatelessWidget {
                   ),
                 ),
                 Divider(height: 1, color: tokens.line),
-                Expanded(
+                Flexible(
                   child: snapshot.connections.isEmpty
-                      ? QuietNote(
-                          snapshot.webAppsAvailable ||
-                                  snapshot.walletConnectAvailable
-                              ? context.l10n.appsSettingsNone
-                              : context.l10n.appsSettingsUnavailable,
+                      ? IntrinsicHeight(
+                          child: QuietNote(
+                            snapshot.webAppsAvailable ||
+                                    snapshot.walletConnectAvailable
+                                ? context.l10n.appsSettingsNone
+                                : context.l10n.appsSettingsUnavailable,
+                          ),
                         )
                       : ListView.separated(
                           key: const PageStorageKey<String>('apps_connections'),
+                          shrinkWrap: true,
                           itemCount: snapshot.connections.length,
                           separatorBuilder: (_, _) =>
                               Divider(height: 1, color: tokens.line),
