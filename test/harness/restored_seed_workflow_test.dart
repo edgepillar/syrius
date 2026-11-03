@@ -1376,8 +1376,9 @@ void main() {
       expect(() => SeedRecipe.parse('project',
         text.replaceFirst(original, refused)), throwsA(isA<SeedRefused>()));
     }
+    const String completed = 'assert --key acc_stepper_leave --kind button';
     final String after = text.replaceFirst('$original\n', '').replaceFirst(
-        'assert Submitted --exact', '$original\nassert Submitted --exact');
+        completed, '$original\n$completed');
     expect(() => SeedRecipe.parse('project', after), throwsA(
       isA<SeedRefused>().having((SeedRefused error) => error.code,
         'code', 'seed-script-after-publication-refused'),
@@ -1482,8 +1483,9 @@ void main() {
             await tester.pump();
             expect(source.publications, 1);
             expect(find.text('Submitted'), findsNothing);
+            expect(find.byKey(const Key('acc_stepper_leave')), findsNothing);
             await expectLater(agent.commandForTest(<String, dynamic>{
-              'cmd': 'assert', 'text': 'Submitted', 'exact': true,
+              'cmd': 'assert', 'key': 'acc_stepper_leave', 'kind': 'button',
             }), throwsA(isA<HarnessError>().having(
               (HarnessError error) => error.toString(),
               'message', 'nothing matches',
@@ -1494,9 +1496,12 @@ void main() {
             final List<List<String>> tail = recipe.lines.sublist(published + 1);
             expect(tail, hasLength(2));
             expect(tail.first, <String>[
-              'wait', 'Submitted', '--exact', '--timeout', '30',
+              'wait', '--key', 'acc_stepper_leave', '--kind', 'button',
+              '--timeout', '30',
             ]);
-            expect(tail.last, <String>['assert', 'Submitted', '--exact']);
+            expect(tail.last, <String>[
+              'assert', '--key', 'acc_stepper_leave', '--kind', 'button',
+            ]);
             final Future<void> ready = IOOverrides.runZoned<Future<void>>(
               () => cli.run(instance, tail.first.first,
                 cli.Args(tail.first.sublist(1))),
@@ -1504,6 +1509,7 @@ void main() {
             );
             await tester.pump(const Duration(milliseconds: 80));
             expect(find.text('Submitted'), findsNothing);
+            expect(find.byKey(const Key('acc_stepper_leave')), findsNothing);
             expect(source.publications, 1);
             submission.complete(actionBlock(901));
             await _projectClose(tester, ready);
@@ -1512,7 +1518,11 @@ void main() {
                 cli.Args(tail.last.sublist(1))),
               stdout: () => output,
             ));
-            expect(find.text('Submitted'), findsOneWidget);
+            await _projectFrame(tester);
+            expect(find.text('Submitted'), findsNothing);
+            expect(find.text('Submitted', skipOffstage: false), findsOneWidget);
+            expect(find.byKey(const Key('acc_stepper_leave')).hitTestable(),
+                findsOneWidget);
             expect(source.publications, 1);
             expect(output.lines, hasLength(instance.commands.length));
             expect(output.lines, everyElement(startsWith('ok')));

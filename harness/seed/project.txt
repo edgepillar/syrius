@@ -18,5 +18,5 @@ type --key accelerator_action_qsr 100
 tap Continue --kind button --exact
 assert Submit --kind button --exact
 publish Submit --kind button --exact
-wait Submitted --exact --timeout 30
-assert Submitted --exact
+wait --key acc_stepper_leave --kind button --timeout 30
+assert --key acc_stepper_leave --kind button
