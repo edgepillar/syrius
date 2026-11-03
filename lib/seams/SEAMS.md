@@ -22,6 +22,7 @@ request and result models.
 | `wrongPasswordLimitOff` | `set-security` | `lib/seams/missing_services.dart`, `UnbuiltSecurityPolicyService.disableWrongPasswordLimit`; future disabled-limit policy beside the positive exhaustion limit | `docs/research/qol-ideas.md` |
 | `sporks` | `set-node` | `lib/seams/missing_services.dart`, `UnbuiltSporksService.load`; future Sporks feature behind the Node group | `docs/research/extension-parity.md` |
 | `pillarAprEstimate` | `pillars`, `pillar-mine` | `lib/seams/missing_services.dart`, `UnbuiltPillarAprService.load`; future qualified return model beside the Pillars list | `docs/research/qol-ideas.md` |
+| `activityAddressScope` | `home-rest`, `home-open`, `home-hidden`, `home-bell`, `home-zap`, `home-goto` | `lib/seams/missing_services.dart`, `UnbuiltActivityScopeService.open`; future wallet-owned aggregate reader beside `lib/rearchitecture/features/latest_transactions/` | `docs/research/activity-address-scope.md` |
 
 The update notice in `home-rest` represents the shared status strip on shell
 screens. It is a wallet release notice. The embedded-node updater already
@@ -54,6 +55,14 @@ activation as well as pointer, keyboard and semantic input.
 Sentinel ownership reads, registration, management and pages remain available.
 `zapReceive` covers Zap interpretation and celebration; ordinary receives
 remain available.
+
+`activityAddressScope` covers the missing all-address history aggregation and
+its filter. Source376 still reads and pages one exact address through
+`LatestTransactionsBloc`; other account-history callers do not provide a
+wallet-wide activity reader. The drawn scope chevron is gated while the
+existing selected-address label, rows, privacy and pagination remain available.
+No selected history is labelled All addresses. No palette action or shortcut
+currently opens this filter; the enum-wide indirect guards also refuse it.
 
 Ledger discovery, creation, unlock and signing already exist in
 `lib/screens/onboarding/hardware_wallet/` and `lib/utils/wallet_file.dart`.

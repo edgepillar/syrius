@@ -11,8 +11,11 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/models/card/car
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/list_entrance.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/motion/skeleton.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/empty_note.dart';
+import 'package:zenon_syrius_wallet_flutter/seams/seam.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show ShellSymbol;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// Compact, selected-address history with exact source-bound movements.
@@ -134,24 +137,58 @@ class _Header extends StatelessWidget {
               Expanded(
                 child: Align(
                   alignment: AlignmentDirectional.centerEnd,
-                  child: Tooltip(
-                    message: address ?? context.l10n.activitySelectedAddress,
-                    child: Container(
-                      key: const Key('activity_scope'),
-                      padding: tokens.activityMessagePadding,
-                      constraints: BoxConstraints(
-                        minHeight: tokens.smallButtonHeight,
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: tokens.line),
-                        borderRadius: BorderRadius.circular(tokens.pillRadius),
-                      ),
-                      child: Text(
-                        label ?? context.l10n.activitySelectedAddress,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: tokens.captionText.copyWith(color: tokens.dim),
-                      ),
+                  child: Container(
+                    key: const Key('activity_scope'),
+                    padding: tokens.activityScopePadding,
+                    constraints: BoxConstraints(
+                      minHeight: tokens.activityScopeHeight,
+                    ),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: tokens.line),
+                      borderRadius: BorderRadius.circular(tokens.pillRadius),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Flexible(
+                          child: Tooltip(
+                            message: address ??
+                                context.l10n.activitySelectedAddress,
+                            child: Text(
+                              label ?? context.l10n.activitySelectedAddress,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: tokens.captionText.copyWith(
+                                color: tokens.dim,
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: tokens.activityScopeGap),
+                        SeamGate(
+                          seam: Seam.activityAddressScope,
+                          child: IconButton(
+                            key: const Key('activity_scope_filter'),
+                            padding: EdgeInsets.zero,
+                            style: IconButton.styleFrom(
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            constraints: BoxConstraints.tightFor(
+                              width: tokens.activityScopeIconSize,
+                              height: tokens.activityScopeIconSize,
+                            ),
+                            onPressed: () => throw const SeamNotBuilt(
+                              Seam.activityAddressScope,
+                            ),
+                            icon: ShellSymbol(
+                              'chev',
+                              size: tokens.activityScopeIconSize,
+                              color: tokens.dim,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),

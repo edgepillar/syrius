@@ -1,5 +1,23 @@
 import 'package:zenon_syrius_wallet_flutter/seams/seam.dart';
 
+/// The missing all-address history scope and its filter.
+// The existing selected-address reader does not aggregate wallet history.
+// ignore: one_member_abstracts
+abstract interface class ActivityScopeService {
+  /// Opens scope choices after an owned aggregate history reader exists.
+  Future<void> open();
+}
+
+/// Refuses without reading another address or changing wallet selection.
+class UnbuiltActivityScopeService implements ActivityScopeService {
+  /// Creates a boundary with no wallet or network dependencies.
+  const UnbuiltActivityScopeService();
+
+  @override
+  Future<void> open() async =>
+      throw const SeamNotBuilt(Seam.activityAddressScope);
+}
+
 /// The missing two-sided offer, acceptance and quoted exchange terms.
 // Existing one-sided HTLC deposit creation and joining stay available.
 // ignore: one_member_abstracts

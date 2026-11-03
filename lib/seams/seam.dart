@@ -44,6 +44,9 @@ enum Seam {
 
   /// Estimating and sorting pillar annual returns from qualified inputs.
   pillarAprEstimate,
+
+  /// Aggregating wallet-owned activity for Home's address-scope filter.
+  activityAddressScope,
 }
 
 /// A missing service refuses explicitly instead of returning invented data.

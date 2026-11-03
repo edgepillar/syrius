@@ -445,6 +445,19 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The direction mark remains secondary to the data.
   double get activityIconSize => 14;
 
+  /// The Activity scope chip follows the reference's compact chrome.
+  double get activityScopeHeight => 26;
+
+  /// The scope chevron uses the reference's extra-small vector.
+  double get activityScopeIconSize => 12;
+
+  /// Space between the actual scope label and its unavailable picker.
+  double get activityScopeGap => 6;
+
+  /// The Activity chip's content inset, inside its one-pixel outline.
+  EdgeInsetsDirectional get activityScopePadding =>
+      const EdgeInsetsDirectional.symmetric(horizontal: 10, vertical: 3);
+
   /// Activity headings and rows can grow with scaled text.
   double get activityHeaderHeight => 44;
 

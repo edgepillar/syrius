@@ -14,6 +14,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/latest_trans
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/blocs/infinite_list/infinite_list_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/models/card/card_type.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/eye_toggle.dart';
+import 'package:zenon_syrius_wallet_flutter/seams/seam.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
@@ -121,6 +122,28 @@ void main() {
       expect(find.byTooltip('Refresh'), findsNothing);
       expect(find.text('Sender'), findsNothing);
       expect(find.byType(ActivityRow), findsOneWidget);
+      final Finder scope = find.byKey(const Key('activity_scope'));
+      expect(tester.getSize(scope).height, 26);
+      final Finder filter = find.byKey(const Key('activity_scope_filter'));
+      final Finder gate = find.ancestor(
+        of: filter,
+        matching: find.byType(SeamGate),
+      );
+      expect(gate, findsOneWidget);
+      expect(tester.widget<SeamGate>(gate).seam, Seam.activityAddressScope);
+      expect(
+        tester.widget<IconButton>(filter).onPressed,
+        throwsA(isA<SeamNotBuilt>().having(
+          (SeamNotBuilt error) => error.seam,
+          'seam',
+          Seam.activityAddressScope,
+        )),
+      );
+      await tester.tap(filter, warnIfMissed: false);
+      await tester.pump();
+      expect(find.byType(ActivityRow), findsOneWidget);
+      expect(find.text('All addresses'), findsNothing);
+      expect(kSelectedAddress, emptyAddress.toString());
       expect(tester.takeException(), isNull);
     });
   }

@@ -250,6 +250,10 @@ def main():
             'test/wallet_maintenance/wallet_maintenance_backend_capture_test.dart',
             'test/harness/import_selector_metrics_test.dart',
             'test/import_redesign/import_surface_test.dart',
+            'test/latest_transactions/latest_transactions_card_test.dart',
+            'test/seams/seams_document_test.dart',
+            'test/seams/missing_services_test.dart',
+            'test/seams/seam_gate_test.dart',
             'test/staking/view/staking_page_test.dart',
             'test/staking/view/create_stake_card_test.dart',
             'test/harness/restored_seed_workflow_test.dart',
@@ -325,7 +329,7 @@ def main():
                 debug.need(debug.entry.source_tree(repo, parent) == tree, 'SOURCE_REFUSED')
             first += len(group)
         counts = combined_counts(report['commands'], selected_tests)
-        debug.need(counts['passed'] == (904 if asset_fidelity else 902), 'TESTS_FAILED')
+        debug.need(counts['passed'] == (942 if asset_fidelity else 940), 'TESTS_FAILED')
         report['counts'] = counts
         if asset_fidelity:
             report['launch_asset_fidelity'] = True
