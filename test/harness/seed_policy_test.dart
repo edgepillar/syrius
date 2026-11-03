@@ -447,7 +447,7 @@ void main() {
         final Map<String, Object> detail =
             seedRefusalDetail(original, action: 'publish')!;
         expect(detail, <String, Object>{'seedAdvance': facts});
-        expect(() => detail.clear(), throwsUnsupportedError);
+        expect(detail.clear, throwsUnsupportedError);
         for (final Object? action in <Object?>[
           'begin', 'check', 'prepare', 'finish', null, true,
         ]) {
