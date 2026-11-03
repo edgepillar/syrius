@@ -122,3 +122,130 @@ class SeedObservationTests(unittest.TestCase):
             if kind == 'invalid':value['PillarConfig']['Pillars'][1]['RewardWithdrawAddress'] = 'private'
             with self.subTest(kind=kind), self.assertRaises(restored.checkpoint.Refused):
                 seeds.counterparty(value, ('first', 'second'))
+
+
+class SeedPrefixObservationTests(unittest.TestCase):
+    def prefix(self, count):
+        value = receipts()
+        value['scope'] = 'private_restored_seed_prefix'
+        value['receipts'] = value['receipts'][:count]
+        return value
+
+    def journal(self, recipe, state):
+        value = dict(recipe=recipe, state=state, chain=321)
+        if state != 'attempt':
+            value['hash'] = str(seeds.IDS.index(recipe) + 1) * 64
+        return json.dumps(value).encode()
+
+    def test_ordered_prefixes_read_only_the_three_new_journals(self):
+        previous = None
+        for count in range(1, 7):
+            calls = []
+            def read(recipe, state):
+                calls.append((recipe, state))
+                return self.journal(recipe, state)
+            value, public = seeds.retain_prefix(previous, self.prefix(count), read)
+            self.assertEqual(calls, [(seeds.IDS[count-1], state)
+                for state in ('attempt', 'accepted', 'confirmed')])
+            self.assertEqual(public['confirmed'], count)
+            self.assertEqual(public['recipes'], list(seeds.IDS[:count]))
+            self.assertEqual(public['receipts_sha256'], seeds.digest(value))
+            self.assertFalse(public['complete'])
+            self.assertFalse(public['seed_admitted'])
+            self.assertNotIn('receipts', public)
+            self.assertNotIn('1'*64, json.dumps(public))
+            previous = value
+
+    def test_replay_skipping_and_replaced_prior_hash_refuse_before_io(self):
+        previous = self.prefix(1)
+        changed = self.prefix(2)
+        changed['receipts'][0]['hash'] = 'a'*64
+        for value in (self.prefix(1), self.prefix(3), changed):
+            calls = []
+            with self.subTest(value=value), self.assertRaises(restored.checkpoint.Refused):
+                seeds.retain_prefix(previous, value,
+                    lambda *args: calls.append(args))
+            self.assertEqual(calls, [])
+        self.assertEqual(previous, self.prefix(1))
+
+    def test_empty_reordered_duplicate_and_oversized_prefixes_are_not_receipts(self):
+        empty = self.prefix(0)
+        reordered = self.prefix(2)
+        reordered['receipts'].reverse()
+        duplicate = self.prefix(2)
+        duplicate['receipts'][1]['hash'] = '1'*64
+        oversized = self.prefix(6)
+        oversized['receipts'].append(dict(recipe='extra', hash='a'*64))
+        for value in (empty, reordered, duplicate, oversized):
+            with self.subTest(value=value), self.assertRaises(restored.checkpoint.Refused):
+                seeds.private_prefix(value)
+
+    def test_foreign_scope_owner_state_or_extra_fields_cannot_form_a_prefix(self):
+        for change in (dict(scope='private_restored_seed_receipts'),
+                dict(owner_stable=False), dict(chain=True),
+                dict(selected_index=True), dict(wallet='private')):
+            with self.subTest(change=change), self.assertRaises(restored.checkpoint.Refused):
+                seeds.private_prefix(dict(self.prefix(1), **change))
+
+    def test_final_receipt_requires_the_identical_six_original_prefix(self):
+        final = receipts()
+        self.assertEqual(seeds.finish_prefix(self.prefix(6), final), final)
+        changed = self.prefix(6)
+        changed['receipts'][-1]['hash'] = 'a'*64
+        for previous in (None, self.prefix(1), self.prefix(5), changed):
+            with self.subTest(previous=previous), self.assertRaises(restored.checkpoint.Refused):
+                seeds.finish_prefix(previous, final)
+
+    def test_even_six_prefix_receipts_cannot_complete_or_admit_the_workflow(self):
+        value = self.prefix(6)
+        for validate in (seeds.private_receipts, seeds.completed, seeds.project):
+            with self.subTest(validate=validate), self.assertRaises(restored.checkpoint.Refused):
+                validate(value)
+        _, public = seeds.retain_prefix(self.prefix(5), value, self.journal)
+        with self.assertRaises(restored.checkpoint.Refused):
+            seeds.project(public)
+        with self.assertRaises(restored.checkpoint.Refused):
+            seeds.prefix_projection(dict(public, complete=True, seed_admitted=True))
+
+    def test_public_prefix_rejects_private_fields_coerced_counts_and_foreign_order(self):
+        _, public = seeds.retain_prefix(None, self.prefix(1), self.journal)
+        for change in (dict(receipts=self.prefix(1)['receipts']),
+                dict(confirmed=True), dict(confirmed=0), dict(confirmed=7),
+                dict(recipes=['fuse']), dict(recipes=('stake',)),
+                dict(journals_consistent=False), dict(receipts_sha256='private')):
+            with self.subTest(change=change), self.assertRaises(restored.checkpoint.Refused):
+                seeds.prefix_projection(dict(public, **change))
+
+    def test_retained_private_and_public_prefixes_do_not_alias_child_input(self):
+        source = self.prefix(1)
+        value, public = seeds.retain_prefix(None, source, self.journal)
+        source['receipts'][0]['hash'] = 'a'*64
+        self.assertEqual(value, self.prefix(1))
+        projected = seeds.prefix_projection(public)
+        projected['recipes'].clear()
+        self.assertEqual(public['recipes'], ['stake'])
+
+    def test_mismatched_new_journal_never_replaces_a_confirmed_predecessor(self):
+        previous = self.prefix(1)
+        calls = []
+        def read(recipe, state):
+            calls.append((recipe, state))
+            if state == 'confirmed':
+                return json.dumps(dict(recipe=recipe, state=state,
+                    chain=321, hash='a'*64)).encode()
+            return self.journal(recipe, state)
+        with self.assertRaises(restored.checkpoint.Refused):
+            seeds.retain_prefix(previous, self.prefix(2), read)
+        self.assertEqual(len(calls), 3)
+        self.assertEqual(previous, self.prefix(1))
+
+    def test_a_failed_new_journal_read_stops_without_fabricating_progress(self):
+        previous = self.prefix(1)
+        calls = []
+        def read(recipe, state):
+            calls.append((recipe, state))
+            raise OSError('Synthetic held journal')
+        with self.assertRaises(OSError):
+            seeds.retain_prefix(previous, self.prefix(2), read)
+        self.assertEqual(calls, [('fuse', 'attempt')])
+        self.assertEqual(previous, self.prefix(1))

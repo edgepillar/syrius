@@ -70,8 +70,11 @@ final class _Session {
   bool duplicateHash = false;
   Map<String, Object?> receiptChange = <String, Object?>{};
 
-  RestoredSeedWorkflow workflow() => RestoredSeedWorkflow(
+  RestoredSeedWorkflow workflow({
+    Future<void> Function(Map<String, Object>)? onConfirmedPrefix,
+  }) => RestoredSeedWorkflow(
     original: original, parentAlive: () => alive,
+    onConfirmedPrefix: onConfirmedPrefix,
     observe: () async => current,
     prepareAddress: (WalletAddressContext before) async {
       expect(before.same(original), isTrue);
@@ -795,6 +798,102 @@ void main() {
     expect(result['members'], 3);
     expect(result['receipts'], hasLength(6));
     expect(result.toString(), isNot(contains('synthetic-member')));
+  });
+
+  test('confirmed prefixes retain six immutable ordered snapshots', () async {
+    final _Session session = _Session();
+    final List<Map<String, Object>> observed = <Map<String, Object>>[];
+    final Map<String, Object> result = await session.workflow(
+      onConfirmedPrefix: (Map<String, Object> prefix) async {
+        observed.add(prefix);
+        final List<Map<String, String>> receipts =
+            prefix['receipts'] as List<Map<String, String>>;
+        expect(receipts, hasLength(session.started.length));
+        expect(() => prefix['scope'] = 'changed', throwsUnsupportedError);
+        expect(receipts.clear, throwsUnsupportedError);
+        expect(() => receipts.first['hash'] = _hash(9), throwsUnsupportedError);
+      },
+    ).run('synthetic-external-member');
+    expect(observed, hasLength(6));
+    for (int index = 0; index < observed.length; index++) {
+      expect(observed[index]['scope'], 'private_restored_seed_prefix');
+      final List<Map<String, String>> receipts =
+          observed[index]['receipts'] as List<Map<String, String>>;
+      expect(receipts.map((Map<String, String> row) => row['recipe']),
+          seedRecipeIds.take(index + 1));
+      expect(receipts.first['hash'], _hash(1));
+    }
+    expect(result['scope'], 'private_restored_seed_receipts');
+    expect(result['receipts'], observed.last['receipts']);
+  });
+
+  test('the next recipe waits for the original prefix sink', () async {
+    final _Session session = _Session();
+    final Completer<void> entered = Completer<void>();
+    final Completer<void> flushed = Completer<void>();
+    final Future<Map<String, Object>> result = session.workflow(
+      onConfirmedPrefix: (Map<String, Object> prefix) async {
+        if ((prefix['receipts'] as List<Map<String, String>>).length == 1) {
+          entered.complete();
+          await flushed.future;
+        }
+      },
+    ).run('synthetic-external-member');
+    await entered.future;
+    expect(session.started, <String>['stake']);
+    flushed.complete();
+    expect((await result)['receipts'], hasLength(6));
+  });
+
+  test('a later negative receipt retains only its two confirmed predecessors',
+      () async {
+    final _Session session = _Session();
+    final List<Map<String, Object>> observed = <Map<String, Object>>[];
+    await expectLater(session.workflow(
+      onConfirmedPrefix: (Map<String, Object> prefix) async {
+        observed.add(prefix);
+        if (observed.length == 2) {
+          session.receiptChange = <String, Object?>{'confirmed': false};
+        }
+      },
+    ).run('synthetic-external-member'), throwsA(isA<SeedRefused>()));
+    expect(session.started, <String>['stake', 'fuse', 'token']);
+    expect(observed, hasLength(2));
+    expect(observed.last['receipts'], <Map<String, String>>[
+      <String, String>{'recipe': 'stake', 'hash': _hash(1)},
+      <String, String>{'recipe': 'fuse', 'hash': _hash(2)},
+    ]);
+  });
+
+  test('owner replacement after a prefix cannot start another recipe',
+      () async {
+    final _Session session = _Session();
+    int observed = 0;
+    await expectLater(session.workflow(
+      onConfirmedPrefix: (Map<String, Object> prefix) async {
+        observed++;
+        if (observed == 2) session.current = _context(count: 3, revision: 22);
+      },
+    ).run('synthetic-external-member'), throwsA(isA<SeedRefused>()));
+    expect(observed, 2);
+    expect(session.started, <String>['stake', 'fuse']);
+  });
+
+  test('a failed prefix sink preserves the original attempt without replay',
+      () async {
+    final _Session session = _Session();
+    final RestoredSeedWorkflow workflow = session.workflow(
+      onConfirmedPrefix: (Map<String, Object> prefix) async {
+        throw StateError('Synthetic prefix sink failed');
+      },
+    );
+    await expectLater(workflow.run('synthetic-external-member'),
+        throwsA(isA<StateError>()));
+    await expectLater(workflow.run('synthetic-external-member'),
+        throwsA(isA<SeedRefused>().having((SeedRefused error) => error.code,
+            'code', 'restored-seed-session-held')));
+    expect(session.preparations, 1);
+    expect(session.started, <String>['stake']);
   });
 
   test('a replaced initial owner receives no Settings or recipe input',

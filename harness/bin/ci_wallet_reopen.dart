@@ -282,6 +282,8 @@ Future<void> main() async {
       parentAlive: () => originalInput.alive,
       observe: context,
       prepareAddress: cli.walletRecipe(instance).prepareSeedAddress,
+      onConfirmedPrefix: (Map<String, Object> prefix) =>
+          marker('CI_SEED_PROGRESS:${jsonEncode(prefix)}'),
       recipe: (String id, Future<void> Function() current) async {
         phase = 'seed_$id';
         return cli.seed(instance, cli.Args(<String>[

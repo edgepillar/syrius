@@ -361,8 +361,8 @@ def child_failure_projection(value):
 def diagnostic_projection(value):
     """Retain a finite active failure location without private error text."""
     fields = {'schema', 'scope', 'phase', 'child_phase', 'output', 'error', 'code'}
-    checkpoint.need(type(value) is dict and set(value) in
-        (fields, fields | {'child_failure'})
+    checkpoint.need(type(value) is dict and fields <= set(value)
+        and set(value) <= fields | {'child_failure', 'seed_prefix'}
         and type(value['schema']) is int and value['schema'] == 1
         and value['scope'] == 'owned_restored_lab_reopen_diagnostic'
         and type(value['phase']) is str and value['phase'] in PHASES
@@ -390,6 +390,9 @@ def diagnostic_projection(value):
         checkpoint.need(value['child_phase'] == child['phase']
             and output is not None and output['code'] == 'REOPEN_CHILD_REFUSED')
         result['child_failure'] = child
+    if 'seed_prefix' in value:
+        checkpoint.need(PHASES.index(value['phase']) >= PHASES.index('seed_workflow'))
+        result['seed_prefix'] = seeds.prefix_projection(value['seed_prefix'])
     return result
 
 
@@ -400,10 +403,18 @@ class ReopenDiagnostic:
         self.phase = 'admission'
         self.child_phase = self.output = self.error = self.code = None
         self.child_failure = None
+        self.seed_prefix = None
 
     def at(self, phase):
         checkpoint.need(self.error is None and type(phase) is str and phase in PHASES)
         self.phase = phase
+
+    def confirmed_prefix(self, value):
+        checkpoint.need(self.error is None and self.phase == 'seed_workflow')
+        value = seeds.prefix_projection(value)
+        previous = 0 if self.seed_prefix is None else self.seed_prefix['confirmed']
+        checkpoint.need(value['confirmed'] == previous + 1)
+        self.seed_prefix = value
 
     def observe_line(self, raw):
         checkpoint.need(type(raw) is bytes and 0 < len(raw) <= debug.protocol.MAX_LINE + 1)
@@ -469,6 +480,8 @@ class ReopenDiagnostic:
             error=self.error, code=self.code)
         if self.child_failure is not None:
             value['child_failure'] = self.child_failure
+        if self.seed_prefix is not None:
+            value['seed_prefix'] = self.seed_prefix
         return diagnostic_projection(value)
 
 
@@ -841,8 +854,27 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
                     b'CI_REOPEN_ERROR:', b'CI_REOPEN_FAILURE:')))
                 if marker == b'CI_REOPEN_DONE' and line.startswith(marker + b':'):
                     return wallet_observation(json.loads(line.partition(b':')[2]))
+                if line.startswith(b'CI_SEED_PROGRESS:'):
+                    checkpoint.need(marker == b'CI_SEED_DONE')
+                    unchanged()
+                    def read_journal(recipe, state):
+                        path = copied_home / ('seed-' + recipe + '-' + state + '.json')
+                        checkpoint.need(path not in snapshot)
+                        identity = checkpoint.file_identity(path.lstat())
+                        raw = bounded_read(path, 2048)
+                        checkpoint.need(checkpoint.file_identity(path.lstat()) == identity)
+                        snapshot[path] = identity, hashlib.sha256(raw).hexdigest()
+                        return raw
+                    prefix, observed = seeds.retain_prefix(
+                        record.get('seed_private_prefix'),
+                        json.loads(line.partition(b':')[2]), read_journal)
+                    unchanged()
+                    trace.confirmed_prefix(observed)
+                    record['seed_private_prefix'] = prefix
+                    continue
                 if marker == b'CI_SEED_DONE' and line.startswith(marker + b':'):
-                    return seeds.private_receipts(json.loads(line.partition(b':')[2]))
+                    return seeds.finish_prefix(record.get('seed_private_prefix'),
+                        json.loads(line.partition(b':')[2]))
                 if line == marker:
                     return None
                 checkpoint.need(not line.startswith((b'CI_REOPEN_', b'CI_SEED_')))
@@ -898,7 +930,8 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
                 raw = bounded_read(path, 2048)
                 seeds.journal_record(row['recipe'], state, raw, row['hash'])
                 checkpoint.need(checkpoint.file_identity(path.lstat()) == identity)
-                snapshot[path] = identity, hashlib.sha256(raw).hexdigest()
+                pin = identity, hashlib.sha256(raw).hexdigest()
+                checkpoint.need(snapshot.get(path) == pin)
         record['seed_private_receipts'] = seed_receipts
         record['seed_workflow'] = seeds.completed(seed_receipts)
         unchanged()

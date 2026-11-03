@@ -35,6 +35,19 @@ records remain source-bound. Current other-family, financial, reopen, motion,
 seam and final review acceptance are not inferred from the readonly capture.
 The PR stays Draft. The historical snapshots below retain their original scope.
 
+## Pending confirmed-prefix harness source (2026-11-03T05:35Z)
+
+[Source355](review/source355-confirmed-seed-prefix.md) retains earlier confirmed
+seed receipts when a later copied recipe fails. The prefix and its new journal
+trio are validated without new SDK queries or publications. Full completion
+still needs the six exact final receipts and original owner/closure checks.
+All 53 selected memory-only controls pass; fresh hosted strict analysis,
+888/890 Dart cases and 953 Python controls/three existing skips remain pending.
+The ordinary application and dependencies remain unchanged. Source353's full
+Windows/Home evidence above retains its original source. Native101/103 remain
+UNKNOWN, Native104 is unadmitted, and no original financial/profile flow is
+replayed for this preparation.
+
 ## Historical Source274 qualification snapshot (2026-11-01T02:34Z)
 
 Source274 has five successful exact-source runs. Selected controls qualify

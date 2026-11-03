@@ -9,6 +9,7 @@ final class RestoredSeedWorkflow {
     required this.prepareAddress,
     required this.recipe,
     required this.parentAlive,
+    this.onConfirmedPrefix,
   });
 
   final WalletAddressContext original;
@@ -18,6 +19,9 @@ final class RestoredSeedWorkflow {
   final Future<Map<String, dynamic>> Function(String, Future<void> Function())
       recipe;
   final bool Function() parentAlive;
+  /// Retains completed originals before a later recipe can fail.
+  /// A prefix never replaces the final receipt or admits another attempt.
+  final Future<void> Function(Map<String, Object>)? onConfirmedPrefix;
   bool _attempted = false;
 
   Future<Map<String, Object>> run(String counterparty) async {
@@ -64,6 +68,22 @@ final class RestoredSeedWorkflow {
         throw const SeedRefused('restored-seed-exact-receipt-required');
       }
       receipts.add(<String, String>{'recipe': id, 'hash': hash});
+      final Future<void> Function(Map<String, Object>)? observer =
+          onConfirmedPrefix;
+      if (observer != null) {
+        await observer(
+          Map<String, Object>.unmodifiable(
+            <String, Object>{
+              'schema': 1, 'scope': 'private_restored_seed_prefix', 'chain': 321,
+              'members': 3, 'selected_index': 1, 'derived_once': true,
+              'owner_stable': true,
+              'receipts': List<Map<String, String>>.unmodifiable(
+                receipts.map(Map<String, String>.unmodifiable),
+              ),
+            },
+          ),
+        );
+      }
     }
     await current();
     return <String, Object>{

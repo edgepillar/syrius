@@ -1,5 +1,6 @@
 """Memory policies and separate tiny hosted filesystem fixtures, without signing."""
 
+import ast
 import json
 import hashlib
 import io
@@ -109,6 +110,100 @@ class PolicyTests(unittest.TestCase):
 
 
 class ReopenDiagnosticTests(unittest.TestCase):
+    def test_actual_wait_retains_two_journal_prefixes_before_the_child_fails(self):
+        source = ast.parse(Path('tool/ci/restored_wallet_run.py').read_text())
+        run = next(node for node in source.body
+            if isinstance(node, ast.FunctionDef) and node.name == 'run')
+        waits = [node for node in ast.walk(run)
+            if isinstance(node, ast.FunctionDef) and node.name == 'wait']
+        self.assertEqual(len(waits), 1)
+        receipts = [dict(recipe=recipe, hash=str(index+1)*64)
+                    for index, recipe in enumerate(restored.seeds.IDS)]
+        prefixes = [dict(schema=1, scope='private_restored_seed_prefix', chain=321,
+            members=3, selected_index=1, derived_once=True, owner_stable=True,
+            receipts=receipts[:count]) for count in (1, 2)]
+        rows = [b'CI_SEED_PROGRESS:' + json.dumps(value).encode() + b'\n'
+                for value in prefixes] + [b'CI_REOPEN_ERROR:seed_token\n']
+        journals = {}
+        for row in receipts[:2]:
+            for state in ('attempt', 'accepted', 'confirmed'):
+                value = dict(recipe=row['recipe'], state=state, chain=321)
+                if state != 'attempt':
+                    value['hash'] = row['hash']
+                journals['seed-' + row['recipe'] + '-' + state + '.json'] = json.dumps(value).encode()
+        class Journal(str):
+            def lstat(self):
+                return None
+        class Home:
+            def __truediv__(self, name):
+                return Journal(name)
+        trace = restored.ReopenDiagnostic()
+        trace.at('seed_workflow')
+        record, snapshot = {}, {}
+        unchanged = mock.Mock()
+        def read(path, cap):
+            self.assertEqual(cap, 2048)
+            return journals[path]
+        namespace = dict(deadline=1, time=mock.Mock(monotonic=lambda: 0),
+            checkpoint=restored.checkpoint, runtime=mock.Mock(), sample=mock.Mock(),
+            guard=lambda: True, lines=mock.Mock(take=mock.Mock(side_effect=rows)),
+            original=mock.Mock(poll=lambda: None), trace=trace, json=json,
+            wallet_observation=restored.wallet_observation, seeds=restored.seeds,
+            unchanged=unchanged, copied_home=Home(), snapshot=snapshot,
+            record=record, bounded_read=read, hashlib=hashlib)
+        exec(compile(ast.Module(body=waits, type_ignores=[]),
+            '<original-restored-wait>', 'exec'), namespace)
+        with mock.patch.object(restored.checkpoint, 'file_identity',
+                return_value=(1, 2, 100)), self.assertRaises(restored.checkpoint.Refused):
+            namespace['wait'](b'CI_SEED_DONE')
+        trace.failure(ValueError('Synthetic later recipe failure'))
+        self.assertEqual(record['seed_private_prefix'], prefixes[-1])
+        self.assertEqual(len(snapshot), 6)
+        self.assertEqual(unchanged.call_count, 4)
+        self.assertEqual(trace.snapshot()['seed_prefix']['confirmed'], 2)
+        self.assertEqual(trace.snapshot()['child_phase'], 'seed_token')
+        self.assertFalse(trace.snapshot()['seed_prefix']['complete'])
+
+    def seed_prefix(self, count):
+        return dict(schema=1, scope='observed_restored_seed_prefix', complete=False,
+            confirmed=count, recipes=list(restored.seeds.IDS[:count]),
+            journals_consistent=True, receipts_sha256='a'*64, seed_admitted=False)
+
+    def test_confirmed_prefix_survives_a_later_failure_without_completing_reopen(self):
+        trace = restored.ReopenDiagnostic()
+        trace.at('seed_workflow')
+        trace.confirmed_prefix(self.seed_prefix(1))
+        trace.confirmed_prefix(self.seed_prefix(2))
+        trace.observe_line(b'CI_REOPEN_ERROR:seed_token\n')
+        trace.failure(ValueError('Synthetic later recipe failure'))
+        value = trace.snapshot()
+        self.assertEqual(value['seed_prefix'], self.seed_prefix(2))
+        self.assertEqual(value['child_phase'], 'seed_token')
+        partial = restored.project(dict(schema=1, scope=restored.SCOPE,
+            complete=False, diagnostic=value))
+        self.assertFalse(partial['complete'])
+        self.assertFalse(partial['diagnostic']['seed_prefix']['seed_admitted'])
+
+    def test_prefix_phase_order_and_failure_guards_do_not_grant_new_work(self):
+        trace = restored.ReopenDiagnostic()
+        with self.assertRaises(restored.checkpoint.Refused):
+            trace.confirmed_prefix(self.seed_prefix(1))
+        trace.at('seed_workflow')
+        trace.confirmed_prefix(self.seed_prefix(1))
+        for count in (1, 3):
+            with self.subTest(count=count), self.assertRaises(restored.checkpoint.Refused):
+                trace.confirmed_prefix(self.seed_prefix(count))
+        for change in (dict(phase='pre_input'),
+                dict(seed_prefix=dict(self.seed_prefix(1), wallet='private'))):
+            with self.subTest(change=change), self.assertRaises(restored.checkpoint.Refused):
+                restored.diagnostic_projection(dict(trace.snapshot(), **change))
+        trace.snapshot()['seed_prefix']['recipes'].clear()
+        self.assertEqual(trace.snapshot()['seed_prefix']['recipes'], ['stake'])
+        trace.failure(ValueError('Synthetic held observation'))
+        with self.assertRaises(restored.checkpoint.Refused):
+            trace.confirmed_prefix(self.seed_prefix(2))
+        self.assertEqual(trace.snapshot()['seed_prefix']['confirmed'], 1)
+
     def trace(self, raw=b'CI_REOPEN_ERROR:unlock\r\n'):
         trace = restored.ReopenDiagnostic()
         trace.at('unlock_and_observe')
