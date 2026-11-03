@@ -234,8 +234,12 @@ class _DisplayWidget extends State<DisplayWidget> {
                                 enabled: ExplorerLinks.available(kNodeChainId),
                                 selectOnly: true,
                                 textStyle: AppTokens.of(context).compactText,
-                                showTrailingIcon: false,
-                                decorationBuilder: _menuDecoration,
+                                inputDecorationTheme: _menuDecoration(context),
+                                trailingIcon: _buildMenuChevron(context),
+                                selectedTrailingIcon: _buildMenuChevron(
+                                  context,
+                                  open: true,
+                                ),
                                 dropdownMenuEntries:
                                     <DropdownMenuEntry<String>>[
                                   DropdownMenuEntry<String>(
@@ -319,8 +323,9 @@ class _LanguageMenu extends StatelessWidget {
         key: const Key('display_language_menu'),
         initialSelection: selected,
         textStyle: AppTokens.of(context).compactText,
-        showTrailingIcon: false,
-        decorationBuilder: _menuDecoration,
+        inputDecorationTheme: _menuDecoration(context),
+        trailingIcon: _buildMenuChevron(context),
+        selectedTrailingIcon: _buildMenuChevron(context, open: true),
         dropdownMenuEntries: <DropdownMenuEntry<AppLanguage>>[
           for (final AppLanguage language in AppLanguage.values)
             DropdownMenuEntry<AppLanguage>(
@@ -357,25 +362,22 @@ double _menuWidth(BuildContext context, String label) {
   return width;
 }
 
-InputDecoration _menuDecoration(
-  BuildContext context,
-  MenuController controller,
-) {
+Widget _buildMenuChevron(BuildContext context, {bool open = false}) {
+  final AppTokens tokens = AppTokens.of(context);
+  return Icon(
+    open ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+    size: tokens.settingsMenuChevronSize,
+    color: tokens.faint,
+  );
+}
+
+InputDecorationThemeData _menuDecoration(BuildContext context) {
   final AppTokens tokens = AppTokens.of(context);
   final OutlineInputBorder border = OutlineInputBorder(
     borderRadius: BorderRadius.circular(tokens.pillRadius),
     borderSide: BorderSide(color: tokens.line),
   );
-  return InputDecoration(
-    suffixIcon: IgnorePointer(
-      child: Icon(
-        controller.isOpen
-            ? Icons.keyboard_arrow_up_rounded
-            : Icons.keyboard_arrow_down_rounded,
-        size: tokens.settingsMenuChevronSize,
-        color: tokens.faint,
-      ),
-    ),
+  return InputDecorationThemeData(
     isDense: true,
     isCollapsed: true,
     filled: true,

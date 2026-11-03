@@ -286,6 +286,14 @@ void main() {
               .where((Map<String, Object?> node) =>
                   node['kind'] == 'button' && node['key'] == themeSystemKey),
               hasLength(1));
+          final Iterable<Map<String, Object?>> anchors =
+              (closed['nodes']! as List<dynamic>)
+                  .whereType<Map<String, Object?>>()
+                  .where((Map<String, Object?> node) =>
+                      node['kind'] == 'button' &&
+                      node['key'] == 'display_language_menu');
+          expect(anchors, hasLength(1));
+          expect(anchors.single['enabled'], isNot(false));
           await _driveHarness(
             tester,
             agent.commandForTest(<String, dynamic>{
