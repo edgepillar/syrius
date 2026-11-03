@@ -2306,3 +2306,11 @@ See [the complete original result](docs/review/source386-pillar-control-symbols.
 | Row | Status | Updated | Evidence |
 | --- | --- | --- | --- |
 | X556 | todo | 2026-11-03T22:08Z | Phase-two Pillar sort-chip source finding: reference text is 12-pixel dim; the current label uses 13-pixel foreground compactText. Container geometry also depends on the more-specific `.tabs span` rule, not only base `.chip` declarations. Review their combined effect against the reference before changing the current six-pixel vertical padding or unfixed height. The new 12-pixel SVG is qualified separately. No measured native geometry or whole-image match is established. |
+
+## Source388 shared disclosure chevrons
+
+See [the common disclosure and row correction](docs/review/source388-shared-disclosure-symbols.md). Both components now reuse the original small SVG and retain all existing motion, input, persistence and row behavior. [Exact body317](docs/review/pr-body-317.md) preserves prior results. Fast delivery continues with heavy platform, native lab, captures and full visual/performance acceptance deferred.
+
+| Row | Status | Updated | Evidence |
+| --- | --- | --- | --- |
+| X557 | todo | 2026-11-04 | Source388 prepares the original 14-pixel faint chevron in both shared components, preserving the row size override. Both-theme SVG assertions extend existing cases; all 34 existing disclosure/row cases join the full prior focused selection. Nineteen mocked local controls pass. Fresh complete 1,030-case engine execution and strict analysis remain pending. Native pixels and whole-image acceptance remain open. |

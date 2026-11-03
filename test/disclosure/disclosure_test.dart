@@ -3,12 +3,15 @@ import 'dart:ui' show PointerDeviceKind;
 
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive_ce.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/disclosure.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show ShellSymbol;
 
 const Key _disclosure = Key('disclosure');
 const Key _body = Key('body');
@@ -23,16 +26,19 @@ const String _prefix = 'disclosure_open_';
 const double _header = 44;
 const double _bodyHeight = 60;
 
-Widget _host(Widget child, {TextDirection direction = TextDirection.ltr}) =>
-    MaterialApp(
-      theme: AppTheme.darkTheme,
-      home: Directionality(
-        textDirection: direction,
-        child: Scaffold(
-          body: SizedBox(width: 400, height: 600, child: child),
-        ),
-      ),
-    );
+Widget _host(
+  Widget child, {
+  TextDirection direction = TextDirection.ltr,
+  bool light = false,
+}) => MaterialApp(
+  theme: light ? AppTheme.lightTheme : AppTheme.darkTheme,
+  home: Directionality(
+    textDirection: direction,
+    child: Scaffold(
+      body: SizedBox(width: 400, height: 600, child: child),
+    ),
+  ),
+);
 
 /// A disclosure above whatever takes the height it leaves, as a form sits
 /// above a list on a page.
@@ -69,7 +75,7 @@ Disclosure _plain({
   child: child,
 );
 
-Finder _chevron() => find.byIcon(Icons.expand_more);
+Finder _chevron() => find.byType(ShellSymbol);
 
 double _height(WidgetTester tester, Key key) =>
     tester.getSize(find.byKey(key)).height;
@@ -98,18 +104,33 @@ void main() {
     testWidgets('is closed by default: its header, and no body in the tree', (
       WidgetTester tester,
     ) async {
-      await tester.pumpWidget(_host(_stacked(_plain())));
+      for (final bool light in <bool>[false, true]) {
+        await tester.pumpWidget(_host(_stacked(_plain()), light: light));
 
-      expect(tester.takeException(), isNull);
-      expect(find.byKey(_body, skipOffstage: false), findsNothing);
-      expect(_height(tester, _disclosure), _header);
-      expect(_height(tester, _rest), 600 - _header);
-      // Sideways, pointing the way the text runs on.
-      expect(_turns(tester), -0.25);
-      expect(tester.getRect(find.text('New stake')).left, 16);
-      expect(tester.getRect(_chevron()).right, 400 - 12);
-      // It starts where it is: nothing moves as the page is shown.
-      expect(tester.binding.transientCallbackCount, 0);
+        expect(tester.takeException(), isNull);
+        expect(find.byKey(_body, skipOffstage: false), findsNothing);
+        expect(_height(tester, _disclosure), _header);
+        expect(_height(tester, _rest), 600 - _header);
+        // Sideways, pointing the way the text runs on.
+        expect(_turns(tester), -0.25);
+        expect(tester.getRect(find.text('New stake')).left, 16);
+        expect(tester.getRect(_chevron()).right, 400 - 12);
+        final SvgPicture mark = tester.widget<SvgPicture>(
+          find.descendant(of: _chevron(), matching: find.byType(SvgPicture)),
+        );
+        expect(mark.width, 14);
+        expect(mark.height, 14);
+        expect(
+          mark.colorFilter,
+          ColorFilter.mode(
+            (light ? AppTokens.light : AppTokens.dark).faint,
+            BlendMode.srcIn,
+          ),
+        );
+        expect(mark.excludeFromSemantics, isTrue);
+        // It starts where it is: nothing moves as the page is shown.
+        expect(tester.binding.transientCallbackCount, 0);
+      }
     });
 
     testWidgets('starts open with initiallyOpen, unclipped', (

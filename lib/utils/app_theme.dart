@@ -92,6 +92,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
     this.plasma = kPlasmaGradient,
   });
 
+  /// The original small vector shared by disclosure and row headers.
+  static const double disclosureChevronSize = 14;
+
   /// One qualified Zap receipt paints this many decorative sparks.
   static const int zapSparkCount = 28;
 

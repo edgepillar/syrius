@@ -254,6 +254,8 @@ def main():
             'test/latest_transactions/activity_row_test.dart',
             'test/seams/seams_document_test.dart',
             'test/create_token_redesign/token_create_view_test.dart',
+            'test/disclosure/disclosure_test.dart',
+            'test/row_detail/row_detail_test.dart',
             'test/pillars/view/pillars_card_test.dart',
             'test/theme/mockup_tokens_test.dart',
             'test/seams/missing_services_test.dart',
@@ -333,7 +335,7 @@ def main():
                 debug.need(debug.entry.source_tree(repo, parent) == tree, 'SOURCE_REFUSED')
             first += len(group)
         counts = combined_counts(report['commands'], selected_tests)
-        debug.need(counts['passed'] == (998 if asset_fidelity else 996), 'TESTS_FAILED')
+        debug.need(counts['passed'] == (1032 if asset_fidelity else 1030), 'TESTS_FAILED')
         report['counts'] = counts
         if asset_fidelity:
             report['launch_asset_fidelity'] = True

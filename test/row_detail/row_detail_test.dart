@@ -2,6 +2,7 @@ import 'dart:ui' show PointerDeviceKind;
 
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/row_detail.dart';
@@ -19,16 +20,19 @@ Key _detailKey(String name) => ValueKey<String>('${name}_detail');
 Key _boxKey(String name) => ValueKey<String>('${name}_box');
 Key _buttonKey(String name) => ValueKey<String>('${name}_button');
 
-Widget _host(Widget child, {TextDirection direction = TextDirection.ltr}) =>
-    MaterialApp(
-      theme: AppTheme.darkTheme,
-      home: Directionality(
-        textDirection: direction,
-        child: Scaffold(
-          body: SizedBox(width: 400, height: 600, child: child),
-        ),
-      ),
-    );
+Widget _host(
+  Widget child, {
+  TextDirection direction = TextDirection.ltr,
+  bool light = false,
+}) => MaterialApp(
+  theme: light ? AppTheme.lightTheme : AppTheme.darkTheme,
+  home: Directionality(
+    textDirection: direction,
+    child: Scaffold(
+      body: SizedBox(width: 400, height: 600, child: child),
+    ),
+  ),
+);
 
 /// A row as a table would hold one: a chevron, a name, and at the end a
 /// button when [button] is given.
@@ -97,14 +101,46 @@ void main() {
       WidgetTester tester,
     ) async {
       int built = 0;
-      await tester.pumpWidget(
-        _host(_column(<Widget>[_row('a', onDetailBuilt: () => built++)])),
-      );
+      for (final bool light in <bool>[false, true]) {
+        await tester.pumpWidget(
+          _host(
+            _column(<Widget>[_row('a', onDetailBuilt: () => built++)]),
+            light: light,
+          ),
+        );
 
-      expect(built, 0);
-      expect(find.byKey(_detailKey('a')), findsNothing);
-      expect(_height(tester, _boxKey('a')), _rowHeight);
-      expect(_turns(tester, 'a'), -0.25);
+        expect(built, 0);
+        expect(find.byKey(_detailKey('a')), findsNothing);
+        expect(_height(tester, _boxKey('a')), _rowHeight);
+        expect(_turns(tester, 'a'), -0.25);
+        final SvgPicture mark = tester.widget<SvgPicture>(
+          find.byType(SvgPicture),
+        );
+        expect(mark.width, 14);
+        expect(mark.height, 14);
+        expect(
+          mark.colorFilter,
+          ColorFilter.mode(
+            (light ? AppTokens.light : AppTokens.dark).faint,
+            BlendMode.srcIn,
+          ),
+        );
+        expect(mark.excludeFromSemantics, isTrue);
+      }
+
+      await tester.pumpWidget(_host(const RowDetailChevron(size: 24)));
+      final SvgPicture custom = tester.widget<SvgPicture>(
+        find.byType(SvgPicture),
+      );
+      expect(custom.width, 24);
+      expect(custom.height, 24);
+      expect(
+        tester
+            .widget<RotationTransition>(find.byType(RotationTransition))
+            .turns
+            .value,
+        -0.25,
+      );
     });
 
     testWidgets('a tap opens it, mid-height on the way, and another closes', (

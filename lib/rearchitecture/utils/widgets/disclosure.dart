@@ -8,6 +8,8 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart'
     show kSharedPrefsBox;
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/page_dismiss.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show ShellSymbol;
 
 /// How long the body takes to open or close.
 const Duration _kRevealDuration = Duration(milliseconds: 240);
@@ -554,9 +556,9 @@ class _DisclosureChevron extends StatelessWidget {
     final bool rtl = Directionality.of(context) == TextDirection.rtl;
     return RotationTransition(
       turns: Tween<double>(begin: rtl ? 0.25 : -0.25, end: 0).animate(turned),
-      child: Icon(
-        Icons.expand_more,
-        size: 20,
+      child: ShellSymbol(
+        'chev',
+        size: AppTokens.disclosureChevronSize,
         color: AppTokens.of(context).faint,
       ),
     );

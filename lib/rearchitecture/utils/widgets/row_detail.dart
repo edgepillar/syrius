@@ -1,5 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show ShellSymbol;
 
 /// How long the detail takes to open or close.
 const Duration _kRevealDuration = Duration(milliseconds: 240);
@@ -479,7 +481,10 @@ class _RowDetailReveal extends StatelessWidget {
 /// arrive at the same place. Outside a [RowDetail] it stays closed.
 class RowDetailChevron extends StatelessWidget {
   /// Creates the chevron.
-  const RowDetailChevron({this.size = 16, super.key});
+  const RowDetailChevron({
+    this.size = AppTokens.disclosureChevronSize,
+    super.key,
+  });
 
   /// The side of the icon's box.
   final double size;
@@ -492,8 +497,8 @@ class RowDetailChevron extends StatelessWidget {
     final bool rtl = Directionality.of(context) == TextDirection.rtl;
     return RotationTransition(
       turns: Tween<double>(begin: rtl ? 0.25 : -0.25, end: 0).animate(turned),
-      child: Icon(
-        Icons.expand_more,
+      child: ShellSymbol(
+        'chev',
         size: size,
         color: AppTokens.of(context).faint,
       ),
