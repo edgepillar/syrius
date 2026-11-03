@@ -64,6 +64,21 @@ class _Prices {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(() async {
+    for (final String family in const <String>[
+      kSansFontFamily, kMonoFontFamily,
+    ]) {
+      final FontLoader fonts = FontLoader(family);
+      for (final String weight in const <String>[
+        'Regular', 'Medium', 'SemiBold', 'Bold',
+      ]) {
+        fonts.addFont(rootBundle.load(
+          'assets/fonts/$family-$weight.ttf',
+        ));
+      }
+      await fonts.load();
+    }
+  });
   late _Prices source;
   late PriceFeed feed;
   late BalanceVisibility visibility;
@@ -1117,15 +1132,6 @@ void main() {
   testWidgets('visible coin spans follow the bundled inline reference', (
     WidgetTester tester,
   ) async {
-    await tester.runAsync(() async {
-      final FontLoader fonts = FontLoader(kMonoFontFamily);
-      for (final String weight in <String>['Regular', 'Medium']) {
-        fonts.addFont(rootBundle.load(
-          'assets/fonts/JetBrainsMono-$weight.ttf',
-        ));
-      }
-      await fonts.load();
-    });
     for (final bool light in <bool>[false, true]) {
       for (final TextDirection direction in TextDirection.values) {
         for (final double scale in <double>[1, 2]) {
