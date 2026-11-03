@@ -22,8 +22,8 @@ const Map<String, String> _symbols = <String, String>{
   'copy':
       '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>',
   'ext':
-      '<path d="M14 4h6v6M20 4l-9 9M19 14v5'
-      'a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/>',
+      '<path d="M14 4h6v6M20 4l-9 9M19 14v5a1 '
+      '1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/>',
   'dl': '<path d="M12 3v12M7 10l5 5 5-5M4 21h16"/>',
   'refresh':
       '<path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 '
@@ -50,13 +50,12 @@ const Map<String, String> _symbols = <String, String>{
   'chevr': '<path d="m9 6 6 6-6 6"/>',
   'chev': '<path d="m6 9 6 6 6-6"/>',
   'search':
-      '<circle cx="11" cy="11" r="7"/>'
-      '<path d="m20 20-3.5-3.5"/>',
+      '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
   'qr':
-      '<rect x="3" y="3" width="7" height="7"/>'
-      '<rect x="14" y="3" width="7" height="7"/>'
-      '<rect x="3" y="14" width="7" height="7"/>'
-      '<path d="M14 14h3v3M21 14v7h-7v-3M17 21h1"/>',
+      '<rect x="3" y="3" width="7" height="7"/><rect '
+      'x="14" y="3" width="7" height="7"/><rect '
+      'x="3" y="14" width="7" height="7"/><path '
+      'd="M14 14h3v3M21 14v7h-7v-3M17 21h1"/>',
   'shield': '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
   'eye':
       '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
@@ -98,11 +97,8 @@ String get _chordName =>
 
 /// An original symbol that inherits its control's foreground and icon size.
 class ShellSymbol extends StatelessWidget {
-  /// Uses the control's icon theme unless [size] or [color] is supplied.
-  const ShellSymbol(String symbol, {double? size, Color? color, super.key})
-    : _symbol = symbol,
-      _size = size,
-      _color = color;
+  /// Uses the control's icon theme unless a size or color is supplied.
+  const ShellSymbol(this._symbol, {this._size, this._color, super.key});
 
   final String _symbol;
   final double? _size;

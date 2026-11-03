@@ -34,3 +34,16 @@ acceptance remain phase two. Original 72/80 rows, 50/94 literal outputs,
 qualification and all previous FAILURE/HOLD/UNKNOWN outcomes retain their
 source and scope. The prepared Deposit candidate stays unapplied. No new
 dependency or financial operation is added.
+
+## Original focused result
+
+Original [41720925174](https://github.com/edgepillar/syrius/actions/runs/41720925174),
+attempt one, job 126213164441, fails at strict analysis: zero errors,
+zero warnings and seven infos, followed by skipped Dart execution. All 955
+Python controls/three existing skips and fourteen assets succeed. The original
+command exits normally with complete output and no overflow; all source-bound
+jobs are terminal with zero artifacts. The retained paths are categorized as
+`other`; their locations correspond to the shared renderer as a source-level
+inference. See [the narrow cleanup](source384-renderer-analysis-cleanup.md).
+The failed producer is preserved and not retried. It does not qualify the new
+SVG widget assertions or accept any native pixels.
