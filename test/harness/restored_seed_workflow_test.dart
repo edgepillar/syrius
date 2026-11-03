@@ -272,11 +272,19 @@ Future<(SeedProjectPresentation, ModalRoute<dynamic>)> _submittedProject(
   return (presentation, originalRoute!);
 }
 
+class _ProjectCommandStdout extends Fake implements Stdout {
+  final List<Object?> lines = <Object?>[];
+
+  @override
+  void writeln([Object? object = '']) => lines.add(object);
+}
+
 /// The real CLI and agent share the original widget tree; no endpoint exists.
 final class _ProjectAgentInstance extends cli.Instance {
   _ProjectAgentInstance(this._agent) : super('synthetic-project-fields');
 
   final HarnessAgent _agent;
+  final List<Map<String, Object?>> commands = <Map<String, Object?>>[];
 
   @override
   Map<String, dynamic> read() =>
@@ -285,14 +293,17 @@ final class _ProjectAgentInstance extends cli.Instance {
   @override
   Future<Map<String, dynamic>> send(Map<String, Object?> command, {
     Duration timeout = const Duration(seconds: 120),
-  }) async => <String, dynamic>{
-    'ok': true,
-    ...await _agent.commandForTest(<String, dynamic>{
-      ...command,
-      // The widget test drives frames; application clocks remain untouched.
-      'settleMs': 0,
-    }),
-  };
+  }) async {
+    commands.add(Map<String, Object?>.from(command));
+    return <String, dynamic>{
+      'ok': true,
+      ...await _agent.commandForTest(<String, dynamic>{
+        ...command,
+        // The widget test drives frames; application clocks remain untouched.
+        'settleMs': 0,
+      }),
+    };
+  }
 }
 
 // Inert replies exercise the original CLI call sequence without a process,
@@ -1348,13 +1359,14 @@ void main() {
     expect(recipe.lines.where((List<String> line) => line.first == 'publish')
         .length, 1);
     const String original =
-        'scroll --key accelerator_action_url --dy 320';
+        'scroll --key accelerator_action_url 320';
     for (final String refused in <String>[
-      'scroll --key accelerator_action_name --dy 320',
-      'scroll --key accelerator_action_url --dy 321',
-      'scroll --key accelerator_action_url --dy -320',
-      'scroll --key accelerator_action_url --dy 320 --timeout 30',
-      'scroll --type EditableText --dy 320',
+      'scroll --key accelerator_action_name 320',
+      'scroll --key accelerator_action_url 321',
+      'scroll --key accelerator_action_url -320',
+      'scroll --key accelerator_action_url 320 --timeout 30',
+      'scroll --type EditableText 320',
+      'scroll --key accelerator_action_url --dy 320',
       '$original\n$original',
     ]) {
       expect(() => SeedRecipe.parse('project',
@@ -1402,6 +1414,7 @@ void main() {
               'message', 'nothing matches',
             )));
             final _ProjectAgentInstance instance = _ProjectAgentInstance(agent);
+            final _ProjectCommandStdout output = _ProjectCommandStdout();
             final SeedRecipe recipe = SeedRecipe.parse('project',
                 File('harness/seed/project.txt').readAsStringSync());
             bool input = false;
@@ -1414,12 +1427,26 @@ void main() {
               if (!input) continue;
               if (words.first == 'tap') break;
               expect(<String>{'wait', 'type', 'scroll'}, contains(words.first));
-              await _projectClose(tester, cli.run(
-                instance, words.first, cli.Args(words.sublist(1)),
+              await _projectClose(tester, IOOverrides.runZoned<Future<void>>(
+                () => cli.run(
+                  instance, words.first, cli.Args(words.sublist(1)),
+                ),
+                stdout: () => output,
               ));
               if (words.first == 'type') typed++;
             }
             expect(typed, 5);
+            final List<Map<String, Object?>> scrolls = instance.commands
+                .where((Map<String, Object?> command) =>
+                    command['cmd'] == 'scroll').toList();
+            expect(scrolls.map((Map<String, Object?> command) => command['dy']),
+                orderedEquals(<num>[320, 160]));
+            expect(scrolls.map((Map<String, Object?> command) => command['key']),
+                orderedEquals(<String>[
+                  'accelerator_action_url', 'accelerator_action_znn',
+                ]));
+            expect(output.lines, hasLength(instance.commands.length));
+            expect(output.lines, everyElement(startsWith('ok')));
             const Map<String, String> values = <String, String>{
               'accelerator_action_name': 'Lab Project',
               'accelerator_action_description': 'An isolated lab project',

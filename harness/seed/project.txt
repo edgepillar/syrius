@@ -9,10 +9,10 @@ wait --key accelerator_action_name --timeout 30
 type --key accelerator_action_name "Lab Project"
 type --key accelerator_action_description "An isolated lab project"
 type --key accelerator_action_url https://example.test/project
-scroll --key accelerator_action_url --dy 320
+scroll --key accelerator_action_url 320
 wait --key accelerator_action_znn --timeout 30
 type --key accelerator_action_znn 100
-scroll --key accelerator_action_znn --dy 160
+scroll --key accelerator_action_znn 160
 wait --key accelerator_action_qsr --timeout 30
 type --key accelerator_action_qsr 100
 tap Continue --kind button --exact
