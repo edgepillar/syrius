@@ -176,6 +176,7 @@ Future<(SeedProjectPresentation, ModalRoute<dynamic>)> _submittedProject(
   VoidCallback exited, {
   bool light = false,
   Future<void> Function(WidgetTester)? fillDetails,
+  Future<void> Function(WidgetTester)? submittedProbe,
 }) async {
   ModalRoute<dynamic>? originalRoute;
   await tester.pumpWidget(DefaultAssetBundle(
@@ -259,6 +260,9 @@ Future<(SeedProjectPresentation, ModalRoute<dynamic>)> _submittedProject(
   expect(presentation.requireCaptured, returnsNormally);
   expect(source.publications, 0);
   await tester.tap(submit);
+  if (submittedProbe != null) {
+    await submittedProbe(tester);
+  }
   await _projectFrame(tester);
   expect(source.publications, 1);
   expect(source.confirmedReads, isEmpty);
@@ -1400,12 +1404,25 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       await tester.binding.setSurfaceSize(const Size(1280, 780));
       final ActionSource source = ActionSource(scope: Object());
+      final Completer<AccountBlockTemplate> submission =
+          Completer<AccountBlockTemplate>();
+      source.sender = (
+        AccountBlockTemplate template,
+        bool Function() canPublish,
+      ) {
+        expect(canPublish(), isTrue);
+        return submission.future;
+      };
+      final HarnessAgent agent = HarnessAgent.forTest()..booted = true;
+      final _ProjectAgentInstance instance = _ProjectAgentInstance(agent);
+      final _ProjectCommandStdout output = _ProjectCommandStdout();
+      final SeedRecipe recipe = SeedRecipe.parse('project',
+          File('harness/seed/project.txt').readAsStringSync());
       int exits = 0;
       try {
         final (SeedProjectPresentation original, _) = await _submittedProject(
           tester, source, () => exits++, light: light,
           fillDetails: (WidgetTester tester) async {
-            final HarnessAgent agent = HarnessAgent.forTest()..booted = true;
             await expectLater(agent.commandForTest(<String, dynamic>{
               'cmd': 'type', 'type': 'TextField', 'nth': 0,
               'value': 'Lab Project', 'settleMs': 0,
@@ -1413,10 +1430,6 @@ void main() {
               (HarnessError error) => error.toString(),
               'message', 'nothing matches',
             )));
-            final _ProjectAgentInstance instance = _ProjectAgentInstance(agent);
-            final _ProjectCommandStdout output = _ProjectCommandStdout();
-            final SeedRecipe recipe = SeedRecipe.parse('project',
-                File('harness/seed/project.txt').readAsStringSync());
             bool input = false;
             int typed = 0;
             for (final List<String> words in recipe.lines) {
@@ -1465,12 +1478,54 @@ void main() {
             expect(source.publications, 0);
             expect(source.builders, isEmpty);
           },
+          submittedProbe: (WidgetTester tester) async {
+            await tester.pump();
+            expect(source.publications, 1);
+            expect(find.text('Submitted'), findsNothing);
+            await expectLater(agent.commandForTest(<String, dynamic>{
+              'cmd': 'assert', 'text': 'Submitted', 'exact': true,
+            }), throwsA(isA<HarnessError>().having(
+              (HarnessError error) => error.toString(),
+              'message', 'nothing matches',
+            )));
+            final int published = recipe.lines.indexWhere(
+              (List<String> words) => words.first == 'publish',
+            );
+            final List<List<String>> tail = recipe.lines.sublist(published + 1);
+            expect(tail, hasLength(2));
+            expect(tail.first, <String>[
+              'wait', 'Submitted', '--exact', '--timeout', '30',
+            ]);
+            expect(tail.last, <String>['assert', 'Submitted', '--exact']);
+            final Future<void> ready = IOOverrides.runZoned<Future<void>>(
+              () => cli.run(instance, tail.first.first,
+                cli.Args(tail.first.sublist(1))),
+              stdout: () => output,
+            );
+            await tester.pump(const Duration(milliseconds: 80));
+            expect(find.text('Submitted'), findsNothing);
+            expect(source.publications, 1);
+            submission.complete(actionBlock(901));
+            await _projectClose(tester, ready);
+            await _projectClose(tester, IOOverrides.runZoned<Future<void>>(
+              () => cli.run(instance, tail.last.first,
+                cli.Args(tail.last.sublist(1))),
+              stdout: () => output,
+            ));
+            expect(find.text('Submitted'), findsOneWidget);
+            expect(source.publications, 1);
+            expect(output.lines, hasLength(instance.commands.length));
+            expect(output.lines, everyElement(startsWith('ok')));
+          },
         );
         expect(source.publications, 1);
         await _projectClose(tester, original.close(listHash(901), () {}));
         expect(exits, 1);
         expect(tester.takeException(), isNull);
       } finally {
+        if (!submission.isCompleted) {
+          submission.complete(actionBlock(901));
+        }
         await tester.pumpWidget(const SizedBox.shrink());
         await tester.binding.setSurfaceSize(null);
       }
