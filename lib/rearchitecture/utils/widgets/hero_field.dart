@@ -9,7 +9,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
 /// The asset the field is drawn by. Listed under `flutter: shaders:`.
 const String kHeroFieldShader = 'assets/shaders/hero_field.frag';
 
-/// A slow field of blue, pink and green light under the card colour: the
+/// A slow field of green, pink and blue light under the card colour: the
 /// surface behind the Home hero.
 ///
 /// It fills whatever box it is given and draws nothing until its shader has
@@ -109,9 +109,9 @@ class _HeroFieldPainter extends CustomPainter {
       ..setFloat(i++, size.height)
       ..setFloat(i++, seconds.value); // u_time
     rgb(base); // u_base
-    rgb(AppColors.qsrColor); // u_a
+    rgb(AppColors.znnColor); // u_a
     rgb(AppColors.plasmaPink); // u_b
-    rgb(AppColors.znnColor); // u_c
+    rgb(AppColors.qsrColor); // u_c
     shader.setFloat(i++, strength); // u_strength
     canvas.drawRect(Offset.zero & size, Paint()..shader = shader);
   }

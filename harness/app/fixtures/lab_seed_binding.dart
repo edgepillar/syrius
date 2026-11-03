@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
+import 'package:json_rpc_2/json_rpc_2.dart' as rpc;
 import 'package:path/path.dart' as path;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/model/send_intent.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/token_balance/token_balance_snapshot.dart';
@@ -11,6 +13,30 @@ import 'package:zenon_syrius_wallet_flutter/utils/wallet_action_context.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import 'seed_policy.dart';
+
+/// Reads one original HTLC entry without treating its absence as success.
+/// The pinned node returns this exact RPC error for a missing entry. Only
+/// that response is pending; every other error retains its original identity.
+@visibleForTesting
+Future<HtlcInfo?> readSeedDepositEntry({
+  required Future<HtlcInfo> Function() read,
+  required void Function() requireCurrent,
+}) async {
+  requireCurrent();
+  final HtlcInfo entry;
+  try {
+    entry = await read();
+  } on Object catch (error) {
+    requireCurrent();
+    if (error is rpc.RpcException && error.code == -32000 &&
+        error.message == 'data non existent' && error.data == null) {
+      return null;
+    }
+    rethrow;
+  }
+  requireCurrent();
+  return entry;
+}
 
 /// Every wrapper and transport below is captured before the first await.
 /// No fixture installs a client into the ordinary app's global SDK.
@@ -504,9 +530,11 @@ final class LabSeedBinding implements SeedSource {
       if (counterparty == null) {
         throw const SeedRefused('external-lab-counterparty-required');
       }
-      final HtlcInfo value = await _htlc.getById(Hash.parse(hash));
-      _requireCurrent();
-      return value.id.toString() == hash &&
+      final HtlcInfo? value = await readSeedDepositEntry(
+        read: () => _htlc.getById(Hash.parse(hash)),
+        requireCurrent: _requireCurrent,
+      );
+      return value != null && value.id.toString() == hash &&
           value.timeLocked == owner &&
           value.hashLocked.toString() == counterparty &&
           value.tokenStandard == znnZts &&

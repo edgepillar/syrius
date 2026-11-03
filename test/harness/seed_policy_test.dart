@@ -1,14 +1,30 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:json_rpc_2/json_rpc_2.dart' as rpc;
+import 'package:znn_sdk_dart/znn_sdk_dart.dart' as sdk;
 
 import '../../harness/app/fixtures/fixture_cleanup.dart';
+import '../../harness/app/fixtures/lab_seed_binding.dart';
 import '../../harness/app/fixtures/seed_commands.dart';
 import '../../harness/app/fixtures/seed_policy.dart';
 import '../../harness/app/fixtures/seed_project_presentation.dart';
 import '../../harness/app/fixtures/seed_token_presentation.dart';
 
 String _hash(int id) => id.toRadixString(16).padLeft(64, '0');
+
+sdk.HtlcInfo _depositEntry() => sdk.HtlcInfo(
+  id: sdk.Hash.parse(_hash(9)),
+  timeLocked: sdk.htlcAddress,
+  hashLocked: sdk.acceleratorAddress,
+  tokenStandard: sdk.znnZts,
+  amount: BigInt.from(100000000),
+  expirationTime: 100,
+  hashType: 0,
+  keyMaxSize: 32,
+  hashLock: List<int>.filled(32, 0),
+);
+
 SeedEnvironment _environment({
   String profile = 'lab-fixture',
   bool isolated = true,
@@ -168,6 +184,161 @@ void main() {
     source = _Source();
     journal = _Journal();
     guard = SeedGuard(source: source, journal: journal, delay: source.delay);
+  });
+
+  test('a current deposit entry retains its original result identity',
+      () async {
+    final sdk.HtlcInfo original = _depositEntry();
+    int reads = 0;
+    int owners = 0;
+    final sdk.HtlcInfo? result = await readSeedDepositEntry(
+      read: () async { reads++; return original; },
+      requireCurrent: () { owners++; },
+    );
+    expect(identical(result, original), isTrue);
+    expect(reads, 1);
+    expect(owners, 2);
+  });
+
+  test('the exact typed missing deposit reply remains pending', () async {
+    int reads = 0;
+    int owners = 0;
+    final sdk.HtlcInfo? result = await readSeedDepositEntry(
+      read: () async {
+        reads++;
+        throw rpc.RpcException(-32000, 'data non existent');
+      },
+      requireCurrent: () { owners++; },
+    );
+    expect(result, isNull);
+    expect(reads, 1);
+    expect(owners, 2);
+  });
+
+  test('other RPC codes messages and data retain the original error', () async {
+    for (final rpc.RpcException error in <rpc.RpcException>[
+      rpc.RpcException(-32601, 'data non existent'),
+      rpc.RpcException(-32000, 'contract does not exist'),
+      rpc.RpcException(-32000, 'data non existent', data: <String, Object>{
+        'unexpected': true,
+      }),
+    ]) {
+      int reads = 0;
+      int owners = 0;
+      await expectLater(readSeedDepositEntry(
+        read: () async { reads++; throw error; },
+        requireCurrent: () { owners++; },
+      ), throwsA(same(error)));
+      expect(reads, 1);
+      expect(owners, 2);
+    }
+  });
+
+  test('lookalike deposit errors and malformed replies are never pending',
+      () async {
+    for (final Object error in <Object>[
+      Exception('data non existent'),
+      const FormatException('Synthetic malformed entry'),
+      StateError('Synthetic missing transport'),
+    ]) {
+      int owners = 0;
+      await expectLater(readSeedDepositEntry(
+        read: () async { throw error; },
+        requireCurrent: () { owners++; },
+      ), throwsA(same(error)));
+      expect(owners, 2);
+    }
+  });
+
+  test('a refused deposit owner prevents the original read', () async {
+    final StateError error = StateError('Synthetic owner changed');
+    int reads = 0;
+    await expectLater(readSeedDepositEntry(
+      read: () async { reads++; return _depositEntry(); },
+      requireCurrent: () { throw error; },
+    ), throwsA(same(error)));
+    expect(reads, 0);
+  });
+
+  test('owner replacement after a deposit result refuses that result',
+      () async {
+    final StateError error = StateError('Synthetic owner changed');
+    bool current = true;
+    await expectLater(readSeedDepositEntry(
+      read: () async { current = false; return _depositEntry(); },
+      requireCurrent: () { if (!current) throw error; },
+    ), throwsA(same(error)));
+  });
+
+  test('owner replacement after a missing reply refuses pending admission',
+      () async {
+    final StateError error = StateError('Synthetic owner changed');
+    bool current = true;
+    await expectLater(readSeedDepositEntry(
+      read: () async {
+        current = false;
+        throw rpc.RpcException(-32000, 'data non existent');
+      },
+      requireCurrent: () { if (!current) throw error; },
+    ), throwsA(same(error)));
+  });
+
+  test('a pending deposit uses one publication before its later effect',
+      () async {
+    int reads = 0;
+    int publications = 0;
+    source.onEffect = () async {
+      final sdk.HtlcInfo? entry = await readSeedDepositEntry(
+        read: () async {
+          if (++reads == 1) {
+            throw rpc.RpcException(-32000, 'data non existent');
+          }
+          return _depositEntry();
+        },
+        requireCurrent: () {
+          if (!source.isCurrent) throw StateError('Synthetic owner changed');
+        },
+      );
+      return entry?.id.toString() == _hash(9);
+    };
+    final String result = await guard.publish('deposit', () async {
+      publications++;
+      source.operations.add(_Original());
+    });
+    expect(result, _hash(9));
+    expect(reads, 2);
+    expect(source.effectReads, 2);
+    expect(publications, 1);
+    expect(journal.attempts, <String>{'deposit'});
+    expect(journal.confirmedHashes, <String, String>{'deposit': _hash(9)});
+  });
+
+  test('a permanently missing deposit retains the original eighteen-read hold',
+      () async {
+    int publications = 0;
+    source.onEffect = () async {
+      final sdk.HtlcInfo? entry = await readSeedDepositEntry(
+        read: () async {
+          throw rpc.RpcException(-32000, 'data non existent');
+        },
+        requireCurrent: () {
+          if (!source.isCurrent) throw StateError('Synthetic owner changed');
+        },
+      );
+      return entry != null;
+    };
+    await expectLater(guard.publish('deposit', () async {
+      publications++;
+      source.operations.add(_Original());
+    }), throwsA(isA<SeedRefused>().having(
+      (SeedRefused error) => error.code,
+      'code', 'exact-confirmation-or-effect-pending',
+    )));
+    expect(source.confirmationReads, 18);
+    expect(source.effectReads, 18);
+    expect(publications, 1);
+    expect(journal.attempts, <String>{'deposit'});
+    expect(journal.confirmedHashes, isEmpty);
   });
 
   test('only an explicit isolated unlocked profile can admit', () async {
