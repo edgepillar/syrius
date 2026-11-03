@@ -1,6 +1,6 @@
 # First delivery and deferred acceptance
 
-Updated: 2026-11-03T18:12Z.
+Updated: 2026-11-03T18:50Z.
 
 The owner selected a first delivery covering the core interface and existing
 basic functionality, with detailed visual and extended platform/lab acceptance
@@ -16,11 +16,12 @@ with one existing skip, 902 focused passes and zero selected analyzer findings.
 Root analysis has zero errors, zero warnings and 1,297 existing infos.
 These full Windows results remain bound to that exact source.
 
-The subsequent Source370 [Home symbol follow-up](source370-focused-results.md),
-`6af0ab94f0a48a472c7e46c4d46acad2b1c7f237`, independently passes the unchanged
-902-case focused selection, 955 Python controls with three existing skips and
-zero selected findings. Its current-source full-platform and visual acceptance
-remain in the second phase.
+The subsequent Source372 [Go To and shortcut follow-up](source372-goto-symbol-and-keycaps.md),
+`a69da8f51bbc754bcd980b47b97711241490c32b`, independently passes the unchanged 902-case focused
+selection, 955 Python controls with three existing skips and zero selected
+findings in [41695583014](https://github.com/edgepillar/syrius/actions/runs/41695583014).
+Its full-platform and visual acceptance remain in the second phase. The earlier
+Source370 [Home symbol result](source370-focused-results.md) remains source-bound.
 
 The original first-delivery pin remains `19c7b2af5e1c13cc0d567e8fe3378682c7b9b750`.
 The earlier Source336 baseline, `62fe9d56ae81f68fc0b40cdbbdc5b32a8459b5e9`,
