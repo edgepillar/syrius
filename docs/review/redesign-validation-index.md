@@ -187,3 +187,5 @@ A prior successful run remains bound to its original source and scope.
 - 2026-11-03T00:21Z: [Source340 original analysis refusal and Source341 conversion correction](source340-analysis-and-source341-conversion.md) retain the failed original, 940 Python/three skips and fourteen asset observations, with zero executed Dart cases. Only the redundant Apps double conversion is removed; fresh gates remain pending.
 
 - 2026-11-03T00:34Z: [Source341 original engine failure and Source342 scroll fixture](source341-engine-failure-and-source342-scroll.md) preserve clean analysis, 417 passes/two failures and the unexecuted second group. Only scroll-test choreography changes, with last-action hit-testability added; the original application tree and all prior assertions remain.
+
+- 2026-11-03T00:45Z: [Source342 first-gesture failure and Source343 fixture frames](source342-gesture-failure-and-source343-frames.md) retain 417 passes/two failures, clean analysis and the unexecuted second group. Existing bounded frame advances and explicit thirty-count/list/scrollable preconditions precede unchanged direct gestures. Application source and all earlier checks remain.

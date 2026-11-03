@@ -395,7 +395,7 @@ macOS; Windows provision and acceptance remain pending. See
 - Updated: 2026-11-02
 - Delivery priority: The owner selected [core interface and basic functionality first](docs/review/fast-first-delivery.md), with detailed visual and extended platform/lab acceptance afterward. The first milestone is ready for Draft code review; no new heavy qualification or image transport is scheduled for it. Original final acceptance is preserved
 - Latest outcomes: [Source336](docs/review/source336-closed-hosted-outcomes.md) closes all eleven originals, ten successful and one failed Home producer. Independent readers qualify 837 focused passes with clean selected analysis, the full 4,881-pass/one-skip Windows baseline with successful Debug/Release builds and zero root errors/warnings with 1,297 infos, and Navigation/Settings/Details native archives. Home fails requesting its light Go To shot; its inner cause remains NOT_ESTABLISHED and required wallet actor cleanup is forced
-- Current implementation: The first delivery remains pinned to 19c7b2af5e1c. Source341 removes the redundant Apps conversion and qualifies clean selected analysis, 940 Python/three skips and fourteen asset observations. Its original run 41552455171 then records 417 passes and two failures at the new dark/light scroll-helper call; the second group is not executed. Source342 changes only test scroll choreography, retains all prior assertions and adds actual last-action hit-testability. Fresh 848-case hosted qualification remains pending; prior failures stay failed
+- Current implementation: The first delivery remains pinned to 19c7b2af5e1c. Source342 qualifies clean selected analysis, 940 Python/three skips and fourteen asset observations, then records 417 passes/two failures at the first direct Apps test drag, before final hit-testability. Source343 uses the existing bounded frame helper after fixture changes and adds thirty-count/list/scrollable preconditions. Application source and all prior assertions remain unchanged. Fresh exact 848-case hosted qualification is pending; all original failures remain failed
 - Actual review: All fourteen Source336 Settings frames and fourteen exact references were individually viewed in a closed owned review. Every pair retains differences and no match is accepted. The actual Apps pair review corrects the prior reference-only interpretation: its references are compact and its genuine empty table is stretched. Source340 adds content-sized short lists, bounded scrolling and the ordinary heading inset, with fresh focused hosted gates pending
 - Acceptance: 72/80 rows, 90 percent by original rows; nineteen preparations, 50 literal outputs, 44 missing and zero of 94 accepted matches. P03, P09, F06, V01-V03 and V05-V06 remain open and prioritized for the second phase. Earlier FAILURE/HOLD/UNKNOWN, including Native101/103 UNKNOWN and Native104 unadmitted, remain. English text, edgepillar no-reply/UTC attribution and Draft status continue
 
@@ -1987,3 +1987,12 @@ See [the original Source341 engine failure and Source342 fixture correction](doc
 | Row | Status | Updated | Evidence |
 | --- | --- | --- | --- |
 | X511 | review | 2026-11-03T00:34Z | Replaces nested scroll-helper choreography with at most twenty direct list drags, retains the final disconnect-action availability assertion and adds hit-testability for the thirtieth row. Original Source341 stays 417 passes/two failures with clean analysis and an unexecuted second group. UI, guards, all previous tests and the exact 848-case gate remain; fresh hosted qualification is pending |
+
+
+## Source343 fixture publication frames
+
+See [the original Source342 gesture failure and Source343 frame preparation](docs/review/source342-gesture-failure-and-source343-frames.md). The actual first-drag failure is retained; last-action behavior is not inferred from an unreached assertion.
+
+| Row | Status | Updated | Evidence |
+| --- | --- | --- | --- |
+| X512 | review | 2026-11-03T00:45Z | Existing eight-frame advances follow each Apps fixture change. Before the first drag, the same cases require thirty displayed connections, one list and one descendant scrollable. All earlier compact-size, inset, final action and hit-testability checks remain. The failed Source342 original, unchanged UI and exact 848-case gate are retained; fresh hosted gates remain pending |

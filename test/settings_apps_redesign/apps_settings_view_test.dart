@@ -144,7 +144,7 @@ void main() {
 
         source.rows = <AppsConnection>[];
         source.changes.add(null);
-        await tester.pump();
+        await _frames(tester);
         expect(
           tester
               .widget<Text>(find.byKey(const Key('apps_settings_count')))
@@ -165,15 +165,23 @@ void main() {
           ),
         );
         source.changes.add(null);
-        await tester.pump();
+        await _frames(tester);
+        expect(
+          tester
+              .widget<Text>(find.byKey(const Key('apps_settings_count')))
+              .data,
+          '30',
+        );
         expect(tester.getSize(connected).height, lessThan(400));
         final Finder list = find.byKey(
           const PageStorageKey<String>('apps_connections'),
         );
+        expect(list, findsOneWidget);
         final Finder scrollable = find.descendant(
           of: list,
           matching: find.byType(Scrollable),
         );
+        expect(scrollable, findsOneWidget);
         final Finder lastAction = find.byKey(
           const Key('apps_disconnect_29'),
         );
