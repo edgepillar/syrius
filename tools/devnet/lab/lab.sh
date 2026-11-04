@@ -62,6 +62,39 @@ do_assets() {
   node "$here/make-assets.js" "$build/src/docker/devnet" "$assets"
 }
 
+do_down() {
+  local offered id prior count=0
+  local ids=()
+  offered="$(compose ps -a -q)"
+  while IFS= read -r id; do
+    [ -n "$id" ] || continue
+    if [[ ! "$id" =~ ^[a-f0-9]{64}$ ]]; then
+      echo "Lab container identity refused." >&2
+      return 1
+    fi
+    if [ "$count" -gt 0 ]; then
+      for prior in "${ids[@]}"; do
+        if [ "$prior" = "$id" ]; then
+          echo "Lab container identity refused." >&2
+          return 1
+        fi
+      done
+    fi
+    if [ "$count" -ge 5 ]; then
+      echo "Lab container identity refused." >&2
+      return 1
+    fi
+    ids[$count]="$id"
+    count=$((count + 1))
+  done <<< "$offered"
+  if [ "$count" -gt 0 ]; then
+    # Compose retires dependants before their live peers. Submit the complete
+    # set together; keep its usual ten-second grace and retain any stop error.
+    docker stop --timeout 10 "${ids[@]}"
+  fi
+  compose down
+}
+
 case "${1:-}" in
   build)
     do_build
@@ -78,7 +111,7 @@ case "${1:-}" in
     node "$here/frontier.js" 30
     ;;
   down)
-    compose down
+    do_down
     ;;
   wipe)
     compose down -v

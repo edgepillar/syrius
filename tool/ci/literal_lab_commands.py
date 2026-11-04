@@ -1,4 +1,4 @@
-"""Observe the original lab.sh commands in a fresh, non-secret hosted fixture."""
+"""Observe the pinned lab.sh route in a fresh, non-secret hosted fixture."""
 
 import hashlib
 import json
@@ -19,7 +19,7 @@ NODE_TREE = '3bedc2fde71035c983997451c2d7e76b66d2d210'
 PROJECT = 'syrius-lab'
 ROLES = ('pillar', 'pillar2', 'pillar3', 'observer', 'rpc')
 PINS = {
-    'lab.sh': 'efb63da127bee3a9d5dc0b8f9abc0fb8beebe91afda38d066e215ae9da1dae8a',
+    'lab.sh': 'a7488a8ff366ca96b91e1ab88150253ee792632c06a19ea5916dcb25d7deb234',
     'docker-compose.yml': '0100e958abd79d03bd125ce7fd042b9f3bb78cda8b69a17502beadb99ed4cef9',
     'make-assets.js': 'bf2a2f20f780b384b2cd0d0e04cb8eff217b671373b0025435bded07b56fbebb',
     'frontier.js': 'd43aad19cf583b72f6615b96069c4e39e617587a5afaedc9ea07f6b2c2f1a76d',

@@ -13,6 +13,8 @@ on:
       - .github/workflows/literal-lab-commands.yml
       - tool/ci/literal_lab_commands.py
       - test/ci/test_literal_lab_commands.py
+      - test/ci/test_lab_shutdown.py
+      - tools/devnet/lab/lab.sh
 
 permissions:
   contents: read
@@ -33,6 +35,8 @@ jobs:
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           test -z "$(git status --porcelain=v1 --untracked-files=all)"
       - name: Test controller contracts without SDK or lab execution
+        env:
+          SYRIUS_LAB_SHELL_FIXTURE: 'true'
         run: >-
           python -B -c "import unittest; from tool.ci.run_debug_tests import execute_suite;
           raise SystemExit(execute_suite(unittest.TestLoader().discover('test/ci'),

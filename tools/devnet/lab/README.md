@@ -83,7 +83,13 @@ The separate **Original lab commands** workflow has a default-off `execute`
 input. Its manual Linux job runs this file's actual `lab.sh up`, `status` and
 `down` route, including the original pinned node's Dockerfile. Controller tests
 run before allocation; no Flutter SDK or wallet is selected. The four original
-lab inputs are pinned and remain unchanged. The final image ID is observed
+lab inputs are pinned to the tested recipe. Source453 changes only `lab.sh`
+among those inputs: down validates the current project IDs and submits one
+complete stop batch before Compose removal, retaining ten-second Linux grace.
+Any listing/identity/stop failure prevents removal and is not retried. The other
+three inputs and node pin remain unchanged. See the
+[coordinated retirement scope](../../../docs/review/source453-coordinated-lab-retirement.md).
+Fresh source/runtime qualification of this correction is pending. The final image ID is observed
 because the upstream Dockerfile's base-image tags can move.
 
 The lane requires a fresh project/build/assets namespace, chain-321 height

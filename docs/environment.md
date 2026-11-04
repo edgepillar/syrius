@@ -53,8 +53,16 @@ exit zero and no OOM event is observed. Bounded node logs yield no known code.
 The exact inner causes, positive production, five normal exits and final native
 source verification remain unqualified. Both runs have zero artifacts. No
 unchanged trial is scheduled again; Source450 stays failed with its own unknowns.
+Source453 prepares [coordinated lab retirement](review/source453-coordinated-lab-retirement.md):
+one validated project-ID stop batch precedes Compose removal, with the same
+ten-second Linux grace. Listing/identity/stop errors prevent removal or retry.
+Twenty local pure controls pass; six actual-script fixture controls are selected
+only in the Linux source lane. The full preparation is 1,032 Python cases.
+Fresh source/runtime observations are pending; node, frontier, positive-production
+and five-zero-exit criteria remain. The original failed trials keep their outcomes.
 All 1,970 earlier runtime entries
-remain byte-identical; two new Python files are separately scoped. No new local
+remain byte-identical through Source451; Source453 separately changes the lab
+script/controller/workflow and adds six shell-fixture cases. No new local
 SDK, binary transport, Windows build or old runtime replay occurs.
 
 Original acceptance remains 72/80 rows, 50/94 historical literal outputs, 44
