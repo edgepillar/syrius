@@ -1,13 +1,24 @@
 # First delivery and deferred acceptance
 
-Updated: 2026-11-04T04:57Z.
+Updated: 2026-11-04T05:16Z.
 
 The owner selected a first delivery covering the core interface and existing
 basic functionality, with detailed visual and extended platform/lab acceptance
 afterward. The first milestone is ready for Draft code review. Final acceptance
 of the complete redesign remains open.
 
-The latest focused source is Source411 `7ced2135d937ae1aacf776009ef587fea9601a7f`.
+The latest focused source is Source413 `c0449fa4d2f6ac52268415c25f0d6005485b1eea`.
+Its [Plasma painted-control result](source413-plasma-painted-controls.md#fresh-source413-focused-result)
+in [41776860011](https://github.com/edgepillar/syrius/actions/runs/41776860011)
+passes all 1,123 ordinary cases in complete 45/44-file streams (553/570),
+955 Python controls with three existing skips, fourteen assets and zero selected
+findings. All eight Plasma list cases, including three new stale/fresh control
+regressions, and every earlier focused path pass. Source414 changes documentation
+only. Original local accounting refusals and all earlier failures retain their
+evidence. Native Plasma effects and full Windows/lab/visual/performance acceptance
+remain in the second phase.
+
+The earlier focused source is Source411 `7ced2135d937ae1aacf776009ef587fea9601a7f`.
 Its [cancellation ownership result](source405-stake-cancellation-ownership.md#fresh-source411-focused-result)
 in [41773894715](https://github.com/edgepillar/syrius/actions/runs/41773894715)
 passes all 1,115 ordinary cases in complete 44/44-file streams (546/569),
@@ -152,8 +163,9 @@ their original page visit, owner and read ticket. Three new cases preserve the
 five existing list cases and require fresh controls to remain usable. The full
 eight-case file joins all earlier paths, preparing 1,123 ordinary cases in
 45/44-file streams. Thirty-seven local mocked/read-only controls pass in disjoint
-batches, preserving the original local wrapper count refusal. Fresh Flutter
-analysis/engine acceptance is pending. No heavy qualification is added.
+batches, preserving the original local wrapper count refusal. The fresh result
+above qualifies all 1,123 ordinary cases and zero-finding selected analysis.
+No heavy qualification is added.
 
 ## Second phase
 

@@ -80,3 +80,40 @@ visual/platform/performance acceptance remain open. The original ledger stays
 72/80, 50/94 literal outputs, 44 missing and zero accepted whole-image matches.
 Earlier failures and UNKNOWNs retain their source and scope. The PR stays Draft;
 public content remains English with edgepillar no-reply/UTC attribution.
+
+## Fresh Source413 focused result
+
+Source413 `c0449fa4d2f6ac52268415c25f0d6005485b1eea`, tree
+`2bf33f5eb4642caba4315ed7c98e20bdc397d82d`, independently qualifies
+[41776860011](https://github.com/edgepillar/syrius/actions/runs/41776860011),
+attempt one, job 126399130526. Both complete 45/44-file streams pass, 553/570:
+all 1,123 ordinary cases, zero failures/errors/skips, 125 hidden events and
+1,248 terminal events. Actual commands close normally in 194.344 and
+159.219 seconds, without timeout, forced kill or output overflow. Original
+worker, group/aggregate time and output bounds remain.
+
+All eight Plasma list cases pass, including the three new regressions. Old
+selection, row and batch callbacks refuse hidden-return and fresh-read changes;
+fresh real taps retain the original selection and exact-hash question, and No
+closes the original route. Each added case requires zero cancellation
+preparation/publication and no framework exception. The five existing case
+bodies and every earlier focused file remain unchanged and pass.
+
+Python completes all 955 controls without failures/errors, retaining three
+existing hosted skips. Fourteen asset controls pass. Selected analysis exits
+zero with complete empty output and zero errors, warnings or infos. Every
+source-bound job is terminal and artifacts are zero. The 1,125 asset-fidelity
+variant and standalone rail widget suite remain outside this ordinary selection.
+
+The original local 33-case wrapper count refusal remains, alongside its actual
+passing child and the four separately completed controls. A separate source
+preparation refusal counted a conditional asset-branch AST node as a literal
+path. Its actual exit one remains preserved; the corrected literal-only reader
+verifies 88 previous and 89 current ordinary files. Neither refusal starts a
+source commit or hosted producer, and no completed test control is repeated.
+
+X566 is complete only within this source/engine scope. Source414 changes
+documentation only, with no second producer. Current-source full Windows,
+native Plasma effects, complete seeded workflows and final visual/platform/
+performance acceptance remain unqualified/deferred. The original ledger and
+all earlier failures/UNKNOWNs retain their scope. The PR remains Draft.
