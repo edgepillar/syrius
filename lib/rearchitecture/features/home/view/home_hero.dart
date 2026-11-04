@@ -211,12 +211,12 @@ class _HomeHeroState extends State<HomeHero> {
     final double hiddenEyeWidth = hidden
         ? tokens.heroHiddenEyeGap + tokens.heroHiddenEyeSlotWidth
         : 0;
-    final double znnGap = _homeAmountSymbolGap(
+    final double znnGap = _homeAmountMetrics(
       context, tokens.heroAmountText, hidden: hidden,
-    );
-    final double qsrGap = _homeAmountSymbolGap(
+    ).symbolGap;
+    final double qsrGap = _homeAmountMetrics(
       context, tokens.heroSecondaryAmountText, hidden: hidden,
-    );
+    ).symbolGap;
     return math.max(
       znn + znnGap + _textWidth(context, kZnnCoin.symbol, znnSymbol) +
           hiddenEyeWidth,

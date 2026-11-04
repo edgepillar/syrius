@@ -1185,4 +1185,62 @@ void main() {
       }
     }
   });
+
+  testWidgets('priced Home rows share the reference inline baseline', (
+    WidgetTester tester,
+  ) async {
+    double baseline(Finder finder) {
+      final RenderBox box = tester.renderObject<RenderBox>(finder);
+      final double? distance = box.getDistanceToBaseline(
+        TextBaseline.alphabetic, onlyReal: true,
+      );
+      expect(distance, isNotNull);
+      return tester.getTopLeft(finder).dy + distance!;
+    }
+
+    for (final bool light in <bool>[false, true]) {
+      for (final TextDirection direction in TextDirection.values) {
+        for (final double scale in <double>[1, 2]) {
+          await show(
+            tester, light: light, direction: direction, textScale: scale,
+            size: const Size(2400, 780),
+          );
+          for (final bool primary in <bool>[true, false]) {
+            final String prefix = primary ? 'home_znn' : 'home_qsr';
+            final Finder amount = find.descendant(
+              of: find.byKey(ValueKey<String>(prefix)),
+              matching: find.byType(RichText),
+            );
+            final Finder dollars = find.descendant(
+              of: find.byKey(ValueKey<String>('${prefix}_dollars')),
+              matching: find.byType(RichText),
+            );
+            expect(amount, findsOneWidget);
+            expect(dollars, findsOneWidget);
+            // Inline .usd has the amount's baseline, including at 2x text.
+            expect(baseline(dollars), closeTo(baseline(amount), 0.1));
+            final TextSpan number =
+                tester.widget<RichText>(amount).text as TextSpan;
+            expect(number.style!.height, primary ? 1.1 : 1.45);
+            expect(dollars.hitTestable(), findsOneWidget);
+            expect(tester.getRect(amount).overlaps(tester.getRect(dollars)),
+              isFalse);
+          }
+          // Reflow keeps both original estimates and actions reachable.
+          await show(
+            tester, light: light, direction: direction, textScale: scale,
+            size: const Size(1024, 780),
+          );
+          expect(find.text(r'$746.79').hitTestable(), findsOneWidget);
+          expect(find.text(r'$399.28').hitTestable(), findsOneWidget);
+          expect(find.byKey(const Key('home_send')).hitTestable(),
+            findsOneWidget);
+          expect(find.byKey(const Key('home_receive')).hitTestable(),
+            findsOneWidget);
+          expect(visibility.hidden, isFalse);
+          expect(tester.takeException(), isNull);
+        }
+      }
+    }
+  });
 }

@@ -2482,3 +2482,16 @@ See [the source-bound refusal and time-binding correction](docs/review/source439
 | Row | Status | Updated | Evidence |
 | --- | --- | --- | --- |
 | X580 | done | 2026-11-04T15:34Z | Source439 5a5e9d0bc3bd / source 41857154252, small native controls 41857791020 and distinct package 41858076161 independently qualify thirty-two cases/helper syntax, native VERIFIED/digest-refusal and final VERIFIED on the exact signed MSI. MSI and installed version/status commands exit zero normally with WSL 3.0.3.0 and unchanged source; all three runs are terminal with zero artifacts. Explicit Windows birthtime binding retains both same-API ctime guards, the original four snapshots and one payload read. Source440 changes documentation only. Original failed producers are not retried; kernel/Docker, P03/P09 and full acceptance remain open. |
+
+
+### Home inline dollar baseline follow-up
+
+Source441 preserves the existing Home financial data and actions while aligning
+inline dollar estimates with the amount baseline from the reference. The
+secondary numeric row uses its inherited 1.45 line height; constant-glyph
+measurement retains symbol spacing and the original responsive wrap. See
+[the source change and pending gate](docs/review/source441-home-dollar-baseline.md).
+
+| ID | State | Updated | Evidence |
+| --- | --- | --- | --- |
+| X581 | review | 2026-11-04T15:49Z | One appended bundled-font widget case checks actual numeric/dollar baselines across both themes/directions and normal/double text, plus original estimate/action reachability at 1024x780. All prior Home case bodies remain. The same 96 files prepare 1230 ordinary cases in 48/48-file groups (597/633), 1232 with asset fidelity and 1001 hosted Python controls/three existing skips. Thirty-seven earlier local controls are reused on unchanged Python bytes; no SDK/native executes locally. Fresh hosted analysis/widget execution and native pixels remain pending. Full Windows/lab/image/motion work stays deferred; main progress stays 72/80 and zero accepted matches. |

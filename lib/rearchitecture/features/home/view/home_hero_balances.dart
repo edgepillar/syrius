@@ -1,8 +1,8 @@
 part of 'home_hero.dart';
 
-// Measure an interior mono space with the visible or masked tracking.
-// The width never depends on the private amount or trailing-space trimming.
-double _homeAmountSymbolGap(
+// Measure an interior space and baseline with the reference mono style.
+// Constant glyphs keep every metric independent of the private amount.
+({double symbolGap, double height, double baseline}) _homeAmountMetrics(
   BuildContext context,
   TextStyle amountStyle, {
   required bool hidden,
@@ -24,8 +24,10 @@ double _homeAmountSymbolGap(
     const TextSelection(baseOffset: 1, extentOffset: 2),
   ).single;
   final double width = space.right - space.left;
+  final double height = painter.height;
+  final double baseline = painter.computeLineMetrics().single.baseline;
   painter.dispose();
-  return width;
+  return (symbolGap: width, height: height, baseline: baseline);
 }
 
 // Inline coin spans inherit the reference's mono face and row weight.
@@ -162,6 +164,10 @@ class _HomeHeroBalanceLine extends StatelessWidget {
     final TextStyle amountStyle = primary
         ? tokens.heroAmountText
         : tokens.heroSecondaryAmountText;
+    final ({double symbolGap, double height, double baseline}) metrics =
+        _homeAmountMetrics(
+          context, amountStyle, hidden: visibility.hidden,
+        );
     return Wrap(
       spacing: visibility.hidden
           ? tokens.heroHiddenEyeGap
@@ -192,11 +198,7 @@ class _HomeHeroBalanceLine extends StatelessWidget {
                   ),
                 ),
               ),
-              SizedBox(
-                width: _homeAmountSymbolGap(
-                  context, amountStyle, hidden: visibility.hidden,
-                ),
-              ),
+              SizedBox(width: metrics.symbolGap),
               Text(
                 symbol,
                 key: ValueKey<String>('${keyPrefix}_symbol'),
@@ -215,13 +217,20 @@ class _HomeHeroBalanceLine extends StatelessWidget {
             child: Center(child: control),
           ),
         if (priced && !visibility.hidden)
-          DollarText(
-            key: ValueKey<String>('${keyPrefix}_dollars'),
-            amount: amount,
-            decimals: decimals,
-            coin: coin,
-            hidden: visibility.hidden,
-            feed: feed,
+          SizedBox(
+            height: metrics.height,
+            child: Baseline(
+              baseline: metrics.baseline,
+              baselineType: TextBaseline.alphabetic,
+              child: DollarText(
+                key: ValueKey<String>('${keyPrefix}_dollars'),
+                amount: amount,
+                decimals: decimals,
+                coin: coin,
+                hidden: visibility.hidden,
+                feed: feed,
+              ),
+            ),
           ),
       ],
     );

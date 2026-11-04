@@ -776,7 +776,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The secondary headline balance, preserving every significant digit.
   TextStyle get heroSecondaryAmountText => dataText.copyWith(
     fontSize: 18,
-    height: 1.1,
+    height: 1.45,
     letterSpacing: 0,
     color: dim,
   );
