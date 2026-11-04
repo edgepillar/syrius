@@ -1,0 +1,56 @@
+name: Windows WSL readiness
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [redesign]
+    paths:
+      - .github/workflows/windows-wsl-readiness.yml
+      - tool/ci/windows_wsl_readiness.py
+      - test/ci/test_windows_wsl_readiness.py
+
+permissions:
+  contents: read
+
+jobs:
+  published-source:
+    if: github.event_name == 'push' && github.repository == 'edgepillar/syrius'
+    name: Verify WSL query controls
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Verify source and finite controls without native execution
+        run: |
+          test "$GITHUB_REF" = refs/heads/redesign
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          python -B -m tool.ci.windows_wsl_readiness --self-test
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
+
+  windows-wsl-readiness:
+    if: github.event_name == 'workflow_dispatch' && github.repository == 'edgepillar/syrius'
+    name: Query installed Windows WSL components
+    runs-on: windows-11-arm
+    timeout-minutes: 5
+    env:
+      GIT_CONFIG_COUNT: "1"
+      GIT_CONFIG_KEY_0: core.autocrlf
+      GIT_CONFIG_VALUE_0: "false"
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Validate finite controls before querying WSL
+        run: python -B -m tool.ci.windows_wsl_readiness --self-test
+
+      - name: Query WSL version and status without installation
+        env:
+          SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
+          SYRIUS_WINDOWS_WSL_READINESS: "true"
+        run: python -B -m tool.ci.windows_wsl_readiness

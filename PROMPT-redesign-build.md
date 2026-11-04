@@ -2440,3 +2440,11 @@ See [the SDK-free finite metadata lane](docs/review/source430-windows-arm-metada
 | Row | Status | Updated | Evidence |
 | --- | --- | --- | --- |
 | X575 | done | 2026-11-04 | Source430 d2b8ae9c116e / source registration 41828792703 and manual 41829942037, attempt one, job 126574219858 independently bind the exact source and complete finite Arm frame, with zero artifacts and no replay. VMP/WSL/Hyper-V are enabled, WSL is on PATH, Docker on PATH and the standard Desktop file are absent. The original probe, main workflow and all application/test/controller/dependency bytes remain; the 1229-case UI result retains its tested source. No SDK, install, feature change or kernel/container/wallet/chain-node startup occurs. Source431 changes documentation only. Nested virtualization, Docker Linux mode, P03/P09 and full acceptance remain unqualified/open. |
+
+## Source432 installed WSL readiness
+
+See [the finite installed-component query](docs/review/source432-wsl-component-readiness.md). Source430 establishes tool presence, not an installed WSL version or working Linux runtime. The new lane queries only version/status before a larger installation. [Exact body331](docs/review/pr-body-331.md) preserves the previous handoff.
+
+| Row | Status | Updated | Evidence |
+| --- | --- | --- | --- |
+| X576 | review | 2026-11-04 | Fourteen local mocked controls pass without native, network or scratch activity. A separate five-minute hosted lane prepares fixed WSL version/status queries with fifteen-second and 16 KiB bounds, private output and original exit/completeness facts. Source-change and unsupported-context refusals do not replay a query. Source registration and actual installed-component observation remain pending. The existing UI lineage, original Arm probe and main workflow remain; no SDK, installer, kernel/container/wallet/node startup or artifact upload is added. P03/P09 and full acceptance stay open. |
