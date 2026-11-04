@@ -46,3 +46,29 @@ platform and performance acceptance remain phase two. The original 72/80 rows,
 Earlier success, failure and UNKNOWN observations keep their exact source and
 scope. The Deposit candidate remains unapplied. No local SDK execution or
 native financial operation replay accompanies this change.
+
+## Original Source394 analysis refusal
+
+Original [41746029953](https://github.com/edgepillar/syrius/actions/runs/41746029953),
+attempt one, job 126299135855, fails at Source394
+`d6fa2a8bb169df2c354086f9c81b8e4669aed5e2`, tree
+`eb510862ecf6e70fa412ac552a32d0b1984172fb`. All 955 Python controls complete
+without failures/errors and retain three existing skips; fourteen assets pass.
+Analysis exits normally with complete 223-byte output, zero errors/warnings
+and one `PREFER_FUNCTION_DECLARATIONS_OVER_VARIABLES` info at line 220,
+column 27, categorized as `other`. The zero-info gate refuses the result;
+Dart execution is skipped. All jobs are terminal with zero artifacts.
+
+Exact raw diagnostic paths were not retained. The new sender test's matching
+line uses a function-expression variable; that correspondence is source
+inference, not a reconstructed path. The first read-only discovery query
+returned zero indexed runs before the original attempt was bound. That query
+refusal is retained separately and does not represent a producer retry.
+
+## Source395 declaration correction
+
+The test now declares the context function and keeps its explicit original
+reference. This preserves the guard and identity assertions. Every application,
+controller, workflow, dependency, case and selected path stays unchanged.
+Fresh complete widget execution and zero-finding analysis remain pending.
+The original Source394 failure is preserved and not retried.

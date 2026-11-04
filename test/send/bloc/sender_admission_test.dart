@@ -217,7 +217,8 @@ void main() {
   test('guarded contracts retain their exact result and publication guard',
       () async {
     bool current = true;
-    final bool Function() guard = () => current;
+    bool currentContext() => current;
+    final bool Function() guard = currentContext;
     final Object requestId = Object();
     final SendTransactionInitiateFromBlock event = contract(
       requestId: requestId,

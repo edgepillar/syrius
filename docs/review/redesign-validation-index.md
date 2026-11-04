@@ -2,7 +2,7 @@
 
 Small versioned records extend the preserved original validation history.
 
-- [Source394 Stake context ownership](source394-stake-context-ownership.md): retained controls bind to the painted address/generation, guarded contract admission checks the original context and exact request results own completion. Eleven new widget/sender cases preserve all original cases; fresh 1,083-case qualification is pending. [Exact PR body319](pr-body-319.md) retains preceding results. Full native/visual/platform acceptance stays deferred.
+- [Source394 original Stake analysis refusal](source394-stake-context-ownership.md#original-source394-analysis-refusal): 955 Python controls/three existing skips and fourteen assets pass; zero errors/warnings and one function-declaration info refuse analysis, so Dart is skipped. Source395 corrects the matching test declaration/reference while preserving all application/controller bytes, 1,083 cases and original bounds. Fresh qualification is pending. [Exact PR body319](pr-body-319.md) retains preceding results. Full native/visual/platform acceptance stays deferred.
 
 - [Source392 Send draft amount qualification](source392-send-draft-amount-binding.md#focused-result): 41739664927 independently qualifies all 1,051 cases in complete 42/41-file streams (528/523), 955 Python controls/three existing skips, fourteen assets and zero findings. Three new regressions and all 18 original form cases pass; unavailable pairs drop another pair's displayed quantity, valid QSR keeps its exact amount and invalid fallbacks hold Send disabled. All earlier paths remain. Source393 preserves tested code. [Exact PR body318](pr-body-318.md) retains preceding results.
 

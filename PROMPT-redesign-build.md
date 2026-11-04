@@ -2329,4 +2329,4 @@ See [the original-context Stake correction](docs/review/source394-stake-context-
 
 | Row | Status | Updated | Evidence |
 | --- | --- | --- | --- |
-| X559 | todo | 2026-11-04 | Source394 prepares five new real-widget and six new real-sender controls for Stake context/admission/result ownership, retaining every original case and exact chain inputs. All 27 sender-admission cases and five added Stake cases join the previous focused selection. Nineteen local mocked controls pass. Fresh complete 1,083-case execution and strict analysis remain pending. Native effects, whole-image and final acceptance remain open. |
+| X559 | todo | 2026-11-04 | Source394 41746029953 retains 955 Python controls/three existing skips and fourteen assets, then zero errors/warnings and one function-declaration info with normal complete analysis output; Dart is skipped. Source395 changes only the matching test function declaration/reference and documentation. All 1,083 cases, selections, bounds and application bytes remain. Fresh complete execution and strict zero-finding analysis remain pending. Native effects, whole-image and final acceptance remain open. |
