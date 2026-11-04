@@ -43,3 +43,19 @@ The prior first-delivery UI lineage is unchanged; current full Windows/native,
 Docker/lab, seeded effects, all 94 visual pairs and motion/final acceptance stay
 open. The main ledger remains 72/80. [Exact body333](pr-body-333.md) preserves the
 previous handoff and all original failure/UNKNOWN boundaries.
+
+## Source438 original observations
+
+Source `4129dde6cea7366cf9cd4a6525caff343c4e2544`, tree
+`961da5a10aee2dc5d9e7f61380cb2a84cdaed9b4`, passes twenty-eight source controls
+and helper parsing in registration 41851572834. Identity-only 41852229666
+passes native VERIFIED and PACKAGE_DIGEST_REFUSED controls on separate 32-byte
+files. The subsequent distinct package run 41852871210 retains its original
+failure, now with PACKAGE_OPEN_IDENTITY_REFUSED and only ctime unequal.
+Every other original identity comparison is equal. The exact package download
+and Microsoft signature pass, but no MSI is invoked. All three runs are terminal
+with zero artifacts and independently reconciled source/run/frame bindings.
+The original Source435 cause is not reconstructed or changed. The candidate
+[Windows time binding](source439-windows-time-binding.md) preserves same-API
+ctime stability and adds explicit Windows creation-time binding; its fresh
+native and package results remain pending.

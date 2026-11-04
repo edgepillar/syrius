@@ -47,11 +47,14 @@ class Refused(Exception):
 
 
 IDENTITY_FIELDS = ('st_dev', 'st_ino', 'st_size', 'st_mtime_ns', 'st_ctime_ns', 'st_nlink')
+WINDOWS_BINDING_FIELDS = ('st_dev', 'st_ino', 'st_size', 'st_mtime_ns',
+                          'st_birthtime_ns', 'st_nlink')
 PACKAGE_CODES = frozenset((
     'PACKAGE_TYPE_REFUSED', 'PACKAGE_SIZE_REFUSED', 'PACKAGE_LINKS_REFUSED',
     'PACKAGE_OPEN_IDENTITY_REFUSED', 'PACKAGE_STREAM_SIZE_REFUSED',
     'PACKAGE_CLOSE_IDENTITY_REFUSED', 'PACKAGE_PATH_IDENTITY_REFUSED',
     'PACKAGE_LENGTH_REFUSED', 'PACKAGE_DIGEST_REFUSED',
+    'PACKAGE_CREATION_TIME_UNAVAILABLE',
 ))
 
 
@@ -68,7 +71,8 @@ def verification_failure(error):
     if type(error) is PackageRefused:
         code, comparisons = error.code, error.comparisons
         if (type(code) is str and code in PACKAGE_CODES and type(comparisons) is dict
-                and (not comparisons or set(comparisons) == set(IDENTITY_FIELDS))
+                and (not comparisons or set(comparisons) in (
+                    set(IDENTITY_FIELDS), set(WINDOWS_BINDING_FIELDS)))
                 and all(type(value) is bool for value in comparisons.values())):
             return dict(status='REFUSED', code=code,
                         comparisons=dict(comparisons), os_code=None)
@@ -232,9 +236,17 @@ def installer_result(receipt, command_error=None):
 
 
 def verify_package(path):
-    def identity(info):
-        return (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns,
-                info.st_ctime_ns, info.st_nlink)
+    windows = sys.platform == 'win32'
+    def require_equal(current, baseline, fields, code):
+        if fields == WINDOWS_BINDING_FIELDS:
+            if any(type(getattr(info, 'st_birthtime_ns', None)) is not int
+                   for info in (current, baseline)):
+                raise PackageRefused('PACKAGE_CREATION_TIME_UNAVAILABLE')
+        actual = tuple(getattr(current, name) for name in fields)
+        expected = tuple(getattr(baseline, name) for name in fields)
+        if actual != expected:
+            raise PackageRefused(code, dict(zip(fields,
+                (a == b for a, b in zip(actual, expected)))))
     before = readiness.bounded.plain(path)
     if not stat.S_ISREG(before.st_mode):
         raise PackageRefused('PACKAGE_TYPE_REFUSED')
@@ -242,21 +254,26 @@ def verify_package(path):
         raise PackageRefused('PACKAGE_SIZE_REFUSED')
     if before.st_nlink != 1:
         raise PackageRefused('PACKAGE_LINKS_REFUSED')
-    def require_identity(current, code):
-        actual, expected = identity(current), identity(before)
-        if actual != expected:
-            raise PackageRefused(code, dict(zip(IDENTITY_FIELDS,
-                (a == b for a, b in zip(actual, expected)))))
+    binding = WINDOWS_BINDING_FIELDS if windows else IDENTITY_FIELDS
     digest, count = hashlib.sha256(), 0
     with path.open('rb') as stream:
-        require_identity(os.fstat(stream.fileno()), 'PACKAGE_OPEN_IDENTITY_REFUSED')
+        opened = os.fstat(stream.fileno())
+        require_equal(opened, before, binding, 'PACKAGE_OPEN_IDENTITY_REFUSED')
         while block := stream.read(65536):
             count += len(block)
             if count > PACKAGE_BYTES:
                 raise PackageRefused('PACKAGE_STREAM_SIZE_REFUSED')
             digest.update(block)
-        require_identity(os.fstat(stream.fileno()), 'PACKAGE_CLOSE_IDENTITY_REFUSED')
-    require_identity(readiness.bounded.plain(path), 'PACKAGE_PATH_IDENTITY_REFUSED')
+        finished = os.fstat(stream.fileno())
+        # Keep ctime stable within each API; Windows cross-API binding uses
+        # the explicit creation-time field instead of deprecated ctime aliases.
+        require_equal(finished, opened, IDENTITY_FIELDS, 'PACKAGE_CLOSE_IDENTITY_REFUSED')
+        if windows:
+            require_equal(finished, opened, binding, 'PACKAGE_CLOSE_IDENTITY_REFUSED')
+    after = readiness.bounded.plain(path)
+    require_equal(after, before, IDENTITY_FIELDS, 'PACKAGE_PATH_IDENTITY_REFUSED')
+    if windows:
+        require_equal(after, before, binding, 'PACKAGE_PATH_IDENTITY_REFUSED')
     if count != PACKAGE_BYTES:
         raise PackageRefused('PACKAGE_LENGTH_REFUSED')
     if digest.hexdigest() != PACKAGE_SHA256:
@@ -394,7 +411,7 @@ def main(arguments=None):
         directory = str(Path(__file__).absolute().parents[2] / 'test/ci')
         suite = unittest.TestLoader().discover(directory,
             pattern='test_windows_wsl_installation.py')
-        if suite.countTestCases() != 28:
+        if suite.countTestCases() != 32:
             print('::error title=WSL installation controls::TEST_SELECTION_REFUSED')
             return 1
         return execute_suite(suite, scope='wsl_installation_controls',

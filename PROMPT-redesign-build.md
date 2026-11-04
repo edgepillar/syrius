@@ -2473,4 +2473,12 @@ See [the fixed refusal projection](docs/review/source438-wsl-verification-predic
 
 | Row | Status | Updated | Evidence |
 | --- | --- | --- | --- |
-| X579 | review | 2026-11-04 | Twenty-eight local mocked controls pass without native, network, PowerShell or scratch work. Fixed type/size/link/identity/length/digest refusal codes and equality-only fields preserve the original verifier decisions and one-call result/exception. Private or unknown failures stay finite/UNKNOWN. Hosted source and actual two-file Windows controls remain pending before any fresh package trial is selected. No original producer is retried, timestamp guard relaxed or full acceptance granted. P03/P09 and complete original scope remain open. |
+| X579 | done | 2026-11-04 | Source438 4129dde6cea7 / source 41851572834 and fixture 41852229666 independently qualify twenty-eight controls, helper syntax and native VERIFIED/digest-refusal results. Distinct package 41852871210 then retains a failed PACKAGE_OPEN_IDENTITY_REFUSED observation with only ctime unequal; input digest and Microsoft signature pass, but MSI and source-after checking are unreached. All three runs are terminal with zero artifacts. Source435's original cause remains NOT_ESTABLISHED. This closes finite predicate observation only; P03/P09 and full acceptance remain open. |
+
+## Source439 Windows creation-time binding
+
+See [the source-bound refusal and time-binding correction](docs/review/source439-windows-time-binding.md). Windows path/handle binding requires explicit creation time; original ctime stability remains checked independently within both path and descriptor lifetimes. Portable binding, exact payload/signature, original query/read counts and every other guard remain.
+
+| Row | Status | Updated | Evidence |
+| --- | --- | --- | --- |
+| X580 | review | 2026-11-04 | Thirty-two local mocked controls pass, including stable cross-API ctime divergence, refused ctime changes within either API, creation-time changes and missing creation data. No native, network, PowerShell or scratch is used locally. The same four snapshots and one payload read remain; no timestamp check is silently skipped. Hosted source, small native controls and any new source-bound package trial remain pending. Original failed producers and the complete P03/P09/full acceptance scope remain open. |

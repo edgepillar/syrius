@@ -89,26 +89,35 @@ class InstallationControls(unittest.TestCase):
         self.assertEqual(response.tell(), 0)
 
     def verify_memory_package(self, *, replaced=False, changed_field=None,
-                              changed_phase='open', header=None, received=None):
+                              changed_phase='open', header=None, received=None,
+                              windows=False, missing_birth=None):
         raw = b'fixed-public-fixture'
         before = SimpleNamespace(st_dev=1, st_ino=2, st_size=len(raw), st_mtime_ns=3,
             st_ctime_ns=4, st_nlink=1, st_mode=stat.S_IFREG)
-        after = SimpleNamespace(**dict(vars(before), st_ino=5)) if replaced else before
-        opened, closed = before, before
+        if windows:
+            before.st_birthtime_ns = 8
+        opened = SimpleNamespace(**dict(vars(before), st_ctime_ns=9)) if windows else before
+        closed = SimpleNamespace(**vars(opened))
+        after = SimpleNamespace(**dict(vars(before), st_ino=5)) if replaced else SimpleNamespace(**vars(before))
         if changed_field is not None:
-            changed = SimpleNamespace(**dict(vars(before),
-                **{changed_field: getattr(before, changed_field) + 1}))
+            baseline = opened if changed_phase in ('open', 'close') else before
+            changed = SimpleNamespace(**dict(vars(baseline),
+                **{changed_field: getattr(baseline, changed_field) + 1}))
             if changed_phase == 'open':
                 opened = changed
             elif changed_phase == 'close':
                 closed = changed
             else:
                 after = changed
+        if missing_birth is not None:
+            target = {'path': before, 'open': opened, 'close': closed, 'after': after}[missing_birth]
+            del target.st_birthtime_ns
         first = before if header is None else SimpleNamespace(**dict(vars(before), **header))
         class Package(io.BytesIO):
             def fileno(self):
                 return 123
-        with (patch.object(installation, 'PACKAGE_BYTES', len(raw)),
+        with (patch.object(installation.sys, 'platform', 'win32' if windows else 'linux'),
+                patch.object(installation, 'PACKAGE_BYTES', len(raw)),
                 patch.object(installation, 'PACKAGE_SHA256', hashlib.sha256(raw).hexdigest()),
                 patch.object(installation.readiness.bounded, 'plain', side_effect=[first, after]),
                 patch.object(Path, 'open', return_value=Package(raw if received is None else received)),
@@ -147,6 +156,40 @@ class InstallationControls(unittest.TestCase):
                 with self.assertRaises(installation.PackageRefused) as caught:
                     self.verify_memory_package(header=header, received=received)
                 self.assertEqual(installation.verification_failure(caught.exception)['code'], code)
+
+    def test_windows_binds_creation_time_while_each_api_keeps_its_own_ctime(self):
+        self.verify_memory_package(windows=True)
+
+    def test_windows_still_refuses_path_or_handle_ctime_changes_during_read(self):
+        for phase, code in (('close', 'PACKAGE_CLOSE_IDENTITY_REFUSED'),
+                            ('path', 'PACKAGE_PATH_IDENTITY_REFUSED')):
+            with self.subTest(phase=phase):
+                with self.assertRaises(installation.PackageRefused) as caught:
+                    self.verify_memory_package(windows=True,
+                        changed_field='st_ctime_ns', changed_phase=phase)
+                value = installation.verification_failure(caught.exception)
+                self.assertEqual(value['code'], code)
+                self.assertIs(value['comparisons']['st_ctime_ns'], False)
+
+    def test_windows_creation_time_changes_are_refused_at_every_binding(self):
+        for phase, code in (('open', 'PACKAGE_OPEN_IDENTITY_REFUSED'),
+                ('close', 'PACKAGE_CLOSE_IDENTITY_REFUSED'),
+                ('path', 'PACKAGE_PATH_IDENTITY_REFUSED')):
+            with self.subTest(phase=phase):
+                with self.assertRaises(installation.PackageRefused) as caught:
+                    self.verify_memory_package(windows=True,
+                        changed_field='st_birthtime_ns', changed_phase=phase)
+                value = installation.verification_failure(caught.exception)
+                self.assertEqual(value['code'], code)
+                self.assertIs(value['comparisons']['st_birthtime_ns'], False)
+
+    def test_windows_missing_creation_time_never_falls_back_to_ctime(self):
+        for phase in ('path', 'open', 'close', 'after'):
+            with self.subTest(phase=phase):
+                with self.assertRaises(installation.PackageRefused) as caught:
+                    self.verify_memory_package(windows=True, missing_birth=phase)
+                self.assertEqual(installation.verification_failure(caught.exception)['code'],
+                                 'PACKAGE_CREATION_TIME_UNAVAILABLE')
 
     def test_wrapper_rethrows_the_same_refusal_without_a_second_call(self):
         error = installation.PackageRefused('PACKAGE_DIGEST_REFUSED')
