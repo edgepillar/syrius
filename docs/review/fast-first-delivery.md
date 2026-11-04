@@ -1,13 +1,23 @@
 # First delivery and deferred acceptance
 
-Updated: 2026-11-04T05:44Z.
+Updated: 2026-11-04T06:01Z.
 
 The owner selected a first delivery covering the core interface and existing
 basic functionality, with detailed visual and extended platform/lab acceptance
 afterward. The first milestone is ready for Draft code review. Final acceptance
 of the complete redesign remains open.
 
-The latest focused source is Source413 `c0449fa4d2f6ac52268415c25f0d6005485b1eea`.
+The latest focused source is Source415 `6f371be032545394b5fbe40b573c74d2bfaefa7c`.
+Its [Pillar sort-frame result](source415-pillar-sort-frame.md#fresh-source415-focused-result)
+in [41781844194](https://github.com/edgepillar/syrius/actions/runs/41781844194)
+passes all 1,123 ordinary cases in complete 45/44-file streams (553/570),
+955 Python controls with three existing skips, fourteen assets and zero selected
+findings. All nine Pillars cases pass, including both-theme frame/outline and
+the existing 1.75-scale cases extended to RTL. The original menu, actions and
+assertions remain. Source416 changes documentation only. X556 native container
+pixels and all full visual/platform/lab/performance acceptance remain open.
+
+The earlier focused source is Source413 `c0449fa4d2f6ac52268415c25f0d6005485b1eea`.
 Its [Plasma painted-control result](source413-plasma-painted-controls.md#fresh-source413-focused-result)
 in [41776860011](https://github.com/edgepillar/syrius/actions/runs/41776860011)
 passes all 1,123 ordinary cases in complete 45/44-file streams (553/570),
@@ -172,8 +182,9 @@ No heavy qualification is added.
 Source415 prepares the [Pillar sort frame](source415-pillar-sort-frame.md)
 from the nested tab cascade. The existing menu and actions remain; existing
 both-theme cases extend frame, open-bottom outline, large-text and RTL checks.
-Counts remain 1,123 ordinary cases with zero new registrations. Fresh focused
-qualification is pending. This source correction starts no full Windows/lab
+Counts remain 1,123 ordinary cases with zero new registrations. The fresh result
+above qualifies all cases and zero-finding selected analysis. This correction
+starts no full Windows/lab
 producer or image transport; X556 native geometry and all detailed acceptance
 remain open.
 

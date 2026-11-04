@@ -81,3 +81,35 @@ source correction schedules no full Windows/lab producer or image transport.
 X556 keeps current native container geometry and full visual acceptance open.
 The original ledger stays 72/80, 50/94 literal outputs, 44 missing and zero
 accepted matches. Earlier failures and UNKNOWNs retain their source and scope.
+
+## Fresh Source415 focused result
+
+Source415 `6f371be032545394b5fbe40b573c74d2bfaefa7c`, tree
+`828c18e9a3ea81f77a3c2d1b68e1945c0024e2ed`, independently qualifies
+[41781844194](https://github.com/edgepillar/syrius/actions/runs/41781844194),
+attempt one, job 126414951553. Both complete 45/44-file streams pass, 553/570:
+all 1,123 ordinary cases, zero failures/errors/skips, 125 hidden events and
+1,248 terminal events. Actual commands close normally in 133.75 and
+105.109 seconds without timeout, forced kill or output overflow. The original
+one-worker, group/aggregate deadlines and output bounds remain.
+
+All nine Pillars cases pass. Both-theme observations establish the 27-pixel
+frame, half-pixel centered offset, original icon inset/center, unequal border
+widths, theme color and transparent-bottom mask. Existing compact-density
+cases retain delegation guards and pass the enlarged frame at 1.75 scale in
+LTR and RTL. Existing actual sort-menu taps, disabled APR, row details,
+refresh and loaded-identity checks pass. Every earlier selected path passes;
+all original registrations and assertions remain.
+
+Python completes all 955 controls without failures/errors and retains three
+existing hosted skips. Fourteen asset controls pass. Selected analysis exits
+zero with complete empty output and zero errors, warnings or infos. Every
+source-bound job is terminal and artifacts are zero. The 1,125 asset-fidelity
+variant and standalone rail widget suite remain outside this ordinary selection.
+
+Source416 changes documentation only, with no second producer. This result
+qualifies source correspondence and finite widget geometry. X556 remains open
+for current native container pixels and whole-chip/whole-image acceptance.
+No reference is edited, no native image is transported, and no visual match
+is inferred. The five original end-state criteria and all remaining phase-two
+gates retain their full requirements. The PR remains Draft.
