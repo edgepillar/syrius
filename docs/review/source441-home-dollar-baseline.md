@@ -40,3 +40,21 @@ accepted. Main progress remains 72/80, with 50/94 historical literal outputs,
 44 missing and zero accepted matches. The PR remains Draft.
 
 [Exact preceding body334](pr-body-334.md) preserves the prior published handoff.
+
+## Numeric span observation correction
+
+Source442 corrects one new test observation while the original Source441 run
+41862348827 retains its source and attempt. The pinned
+[Flutter 3.47.7 Text implementation](https://github.com/flutter/flutter/blob/3.47.7/packages/flutter/lib/src/widgets/text.dart#L695-L704)
+wraps a supplied rich span in an outer span with the ambient style. AmountText
+supplies its numeric style on the inner span. Reading the outer style cannot
+establish the amount's line height.
+
+The test now reads that inner numeric span. Its exact 1.1/1.45 expectations,
+rendered baseline comparison, all theme/direction/scale/viewport inputs,
+reachability checks, case registrations and every application byte remain.
+This is a source-derived correction, not an executed failure diagnosis. The
+original queued producer is neither cancelled nor replayed; its actual result
+and any later fresh-source qualification must retain their separate sources.
+The same 1,230-case widget and 1,001-case Python selections remain pending.
+[Exact preceding body335](pr-body-335.md) preserves the published pending state.

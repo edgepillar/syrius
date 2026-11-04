@@ -2495,3 +2495,16 @@ measurement retains symbol spacing and the original responsive wrap. See
 | ID | State | Updated | Evidence |
 | --- | --- | --- | --- |
 | X581 | review | 2026-11-04T15:49Z | One appended bundled-font widget case checks actual numeric/dollar baselines across both themes/directions and normal/double text, plus original estimate/action reachability at 1024x780. All prior Home case bodies remain. The same 96 files prepare 1230 ordinary cases in 48/48-file groups (597/633), 1232 with asset fidelity and 1001 hosted Python controls/three existing skips. Thirty-seven earlier local controls are reused on unchanged Python bytes; no SDK/native executes locally. Fresh hosted analysis/widget execution and native pixels remain pending. Full Windows/lab/image/motion work stays deferred; main progress stays 72/80 and zero accepted matches. |
+
+
+### Home numeric span observation
+
+Source442 follows the pinned Flutter 3.47.7 outer rich-span wrapper and reads the
+inner AmountText numeric style. Expected line heights, rendered baseline checks,
+all original scenarios, application bytes and 1230/1232 counts remain. The
+original Source441 producer retains its original attempt and source; this source
+inspection does not establish an executed failure or a successful test result.
+
+| ID | State | Updated | Evidence |
+| --- | --- | --- | --- |
+| X582 | review | 2026-11-04T16:21Z | Source-derived test observation correction reads the supplied numeric span beneath Flutter's ambient wrapper. Exact 1.1/1.45 expectations, actual baseline comparisons, all theme/direction/scale/window inputs, case registrations and application bytes remain. The original Source441 job is neither cancelled nor replayed. Fresh hosted qualification remains pending; original 72/80 scope and all native/visual/platform/lab acceptance remain open. |

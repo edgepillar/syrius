@@ -1219,8 +1219,9 @@ void main() {
             expect(dollars, findsOneWidget);
             // Inline .usd has the amount's baseline, including at 2x text.
             expect(baseline(dollars), closeTo(baseline(amount), 0.1));
-            final TextSpan number =
+            final TextSpan wrapper =
                 tester.widget<RichText>(amount).text as TextSpan;
+            final TextSpan number = wrapper.children!.single as TextSpan;
             expect(number.style!.height, primary ? 1.1 : 1.45);
             expect(dollars.hitTestable(), findsOneWidget);
             expect(tester.getRect(amount).overlaps(tester.getRect(dollars)),
