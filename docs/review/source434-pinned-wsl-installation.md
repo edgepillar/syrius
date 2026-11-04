@@ -91,3 +91,13 @@ finite evidence while preventing download/installation and follow-up queries.
 All twenty-two local controls pass without native, network, PowerShell or
 scratch work. Hosted parsing and one actual Source435 installation remain
 pending. The full 991-case current controller suite remains unqualified.
+
+## Original Source435 pre-install refusal
+
+[The actual manual observation](source436-windows-file-identity.md) passes all
+twenty-two controls, preflight, exact package download and Microsoft signature.
+It then refuses in the final file-verification region before invoking MSI.
+The original job remains failed and its exact inner predicate/cause is
+NOT_ESTABLISHED. No component installation or final source-after check is
+qualified. Source436 prepares a tiny, separate regular-file diagnostic without
+repeating the large download or weakening any original package guard.

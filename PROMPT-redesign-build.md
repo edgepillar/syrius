@@ -2458,3 +2458,11 @@ See [the isolated installation lane](docs/review/source434-pinned-wsl-installati
 | X577 | review | 2026-11-04 | Twenty-one local mocked controls pass without native, network, PowerShell or scratch activity. One pinned 341086208-byte Microsoft WSL ARM64 package is admitted only on a fresh hosted desktop VM with enabled prerequisites, no detected WSL installation and no known pending reboot. Exact input/identity/signature checks precede one no-restart MSI invocation; timeout/output/storage refusals and 3010 remain separate, without retries or cleanup. Source registration, PowerShell parsing and actual component installation remain pending. No distro, Linux kernel, container, wallet or chain node is started. Original UI and existing controller bytes remain; P03/P09 and full acceptance stay open. |
 
 Source435 adds finite negative preflight/signature retention and original helper command outcomes before the first installer dispatch. All twenty-two local controls pass; source parsing and actual installation remain pending. Inputs, admission, original positive sequence and limits stay unchanged. See [the refusal evidence](docs/review/source434-pinned-wsl-installation.md#source435-finite-refusal-evidence).
+
+## Source436 small Windows file identity diagnostic
+
+See [the original pre-install refusal and tiny diagnostic](docs/review/source436-windows-file-identity.md). Source435 manual 41843120048 passes twenty-two controls, preflight, exact download and Microsoft signature, then refuses before MSI execution. Its exact inner cause stays NOT_ESTABLISHED. A separate identity-only input observes a small regular file without another large transfer or package installation.
+
+| Row | Status | Updated | Evidence |
+| --- | --- | --- | --- |
+| X578 | review | 2026-11-04 | A separate five-minute Arm job prepares finite path/handle equality facts and the unchanged verifier's explicitly fixture-only result. It starts no installer, kernel, container, wallet or chain node and downloads no binary. Original Source435 failure, unreached source-after check and all original guards remain. Local source checking, hosted source qualification and actual regular-file observation remain pending; P03/P09 and full acceptance stay open. |

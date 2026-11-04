@@ -2,6 +2,11 @@ name: Windows WSL installation
 
 on:
   workflow_dispatch:
+    inputs:
+      file_identity_only:
+        description: Observe a tiny regular-file fixture without package download
+        type: boolean
+        default: false
   push:
     branches: [redesign]
     paths:
@@ -46,7 +51,7 @@ jobs:
           Write-Output '::notice title=WSL PowerShell source::SYNTAX_VALID'
 
   windows-wsl-installation:
-    if: github.event_name == 'workflow_dispatch' && github.repository == 'edgepillar/syrius'
+    if: github.event_name == 'workflow_dispatch' && github.repository == 'edgepillar/syrius' && !inputs.file_identity_only
     name: Install pinned WSL components on fresh Windows Arm
     runs-on: windows-11-arm
     timeout-minutes: 12
@@ -68,3 +73,113 @@ jobs:
           SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
           SYRIUS_WINDOWS_WSL_INSTALLATION: "true"
         run: python -B -m tool.ci.windows_wsl_installation
+
+  windows-file-identity:
+    if: github.event_name == 'workflow_dispatch' && github.repository == 'edgepillar/syrius' && inputs.file_identity_only
+    name: Observe small regular-file identity on Windows Arm
+    runs-on: windows-11-arm
+    timeout-minutes: 5
+    env:
+      GIT_CONFIG_COUNT: "1"
+      GIT_CONFIG_KEY_0: core.autocrlf
+      GIT_CONFIG_VALUE_0: "false"
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Observe file metadata without package allocation
+        shell: bash
+        env:
+          SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
+        run: |
+          python -B - <<'PY'
+          import hashlib, json, os, re, shutil, stat, sys, tempfile
+          from pathlib import Path
+          from unittest.mock import patch
+          from tool.ci import windows_wsl_installation as package
+          from tool.ci import windows_wsl_readiness as readiness
+          value = dict(schema=1, scope='small_windows_regular_file_identity',
+              status='UNKNOWN', stage='environment', source_sha=None, source_tree=None,
+              source_unchanged=False, package_qualified=False, installer_invoked=False,
+              downloads_performed=False, cleanup_performed=False,
+              kernel_or_container_start_requested=False)
+          try:
+              parent = os.environ
+              required = dict(GITHUB_ACTIONS='true', RUNNER_OS='Windows', RUNNER_ARCH='ARM64',
+                  SYRIUS_HOSTED_RUNNER='github-hosted', GITHUB_REPOSITORY='edgepillar/syrius',
+                  GITHUB_EVENT_NAME='workflow_dispatch', GITHUB_REF='refs/heads/redesign',
+                  GITHUB_RUN_ATTEMPT='1')
+              assert sys.platform == 'win32' and all(parent.get(k) == v for k, v in required.items())
+              assert re.fullmatch('[a-f0-9]{40}', parent['GITHUB_SHA'])
+              assert re.fullmatch('[1-9][0-9]{0,19}', parent['GITHUB_RUN_ID'])
+              value.update(run_id=parent['GITHUB_RUN_ID'], run_attempt=1,
+                  python_version='.'.join(str(v) for v in sys.version_info[:3]))
+              repo = Path.cwd()
+              env = readiness.query_environment(parent)
+              git = shutil.which('git.exe', path=env.get('PATH', ''))
+              assert git
+              def source():
+                  items = []
+                  for args in (['rev-parse', 'HEAD'], ['rev-parse', 'HEAD^{tree}'],
+                               ['status', '--porcelain=v1', '--untracked-files=all']):
+                      result = readiness.bounded.run_bounded([git, '--no-pager',
+                          '--no-lazy-fetch', '-c', 'core.fsmonitor=false', '-c', 'gc.auto=0', *args],
+                          cwd=repo, env=env, cap=16384, timeout=15)
+                      assert result.success
+                      items.append(result.output.decode('ascii').strip())
+                  assert items[0] == parent['GITHUB_SHA'] and not items[2]
+                  assert re.fullmatch('[a-f0-9]{40}', items[1])
+                  return tuple(items[:2])
+              value['stage'] = 'source_before'
+              original = source()
+              value.update(source_sha=original[0], source_tree=original[1])
+              value['stage'] = 'fixture'
+              temp = Path(parent['RUNNER_TEMP'])
+              readiness.bounded.plain(temp)
+              assert shutil.disk_usage(temp).free >= 2 * 1024**3 + 1024**2
+              root = Path(tempfile.mkdtemp(prefix='syrius-file-identity-', dir=temp))
+              path = root / 'regular-fixture.bin'
+              payload = b'syrius-file-identity-fixture-v1\n'
+              with path.open('xb') as stream:
+                  stream.write(payload)
+                  stream.flush()
+                  os.fsync(stream.fileno())
+              path.chmod(0o400)
+              before = readiness.bounded.plain(path)
+              with path.open('rb') as stream:
+                  opened = os.fstat(stream.fileno())
+                  received = stream.read(len(payload) + 1)
+                  finished = os.fstat(stream.fileno())
+              after = readiness.bounded.plain(path)
+              fields = ('st_dev', 'st_ino', 'st_size', 'st_mtime_ns', 'st_ctime_ns',
+                        'st_nlink', 'st_birthtime_ns')
+              def compare(left, right):
+                  return {name: (getattr(left, name) == getattr(right, name)
+                      if hasattr(left, name) and hasattr(right, name) else None) for name in fields}
+              value.update(stage='original_verifier', fixture_bytes=len(payload),
+                  payload_matches=received == payload, path_regular=stat.S_ISREG(before.st_mode),
+                  path_single_link=before.st_nlink == 1, path_to_handle=compare(before, opened),
+                  handle_stable=compare(opened, finished), path_stable=compare(before, after))
+              # These fixture-only constants never qualify a real MSI or start installation.
+              with patch.object(package, 'PACKAGE_BYTES', len(payload)), patch.object(
+                      package, 'PACKAGE_SHA256', hashlib.sha256(payload).hexdigest()):
+                  try:
+                      package.verify_package(path)
+                      verifier = 'ACCEPTED'
+                  except package.Refused:
+                      verifier = 'REFUSED'
+              value['original_verifier_result'] = verifier
+              value['stage'] = 'source_after'
+              assert source() == original
+              value.update(status='OBSERVED', stage='complete', source_unchanged=True)
+          except (Exception, KeyboardInterrupt):
+              value['status'] = 'UNKNOWN'
+          encoded = json.dumps(value, sort_keys=True, separators=(',', ':'))
+          if not encoded.isascii() or len(encoded.encode()) > 3800:
+              print('::error title=Windows file identity::REPORT_REFUSED')
+              raise SystemExit(1)
+          print('::notice title=Windows file identity::' + encoded)
+          raise SystemExit(0 if value['status'] == 'OBSERVED' else 1)
+          PY
