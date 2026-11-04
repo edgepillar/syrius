@@ -10908,3 +10908,28 @@ These are source-bound finite facts, not Docker Linux mode, an x64 wallet or a
 qualified lab route. Source431 changes documentation only. P03/P09 and the full
 original acceptance gates remain open; the completed UI qualification retains
 its own tested source and scope. See the [detailed result](review/source430-windows-arm-metadata-lane.md#source430-hosted-observations).
+
+### Installed WSL component queries (2026-11-04)
+
+Source432 `00638c824cd2a2d89a4b089228fca1aa29ce9a8b`, tree
+`34abe0e858ca96df8cc0d5e38bb3ee63dd77ab80`, adds a separate finite version/status
+query. [Registration 41836631732](https://github.com/edgepillar/syrius/actions/runs/41836631732)
+passes fourteen mocked controls on Linux.
+[Manual observation 41837097008](https://github.com/edgepillar/syrius/actions/runs/41837097008),
+attempt one, job 126598724026, passes those controls on Windows Arm and invokes
+each WSL query once. Both runs are terminal with zero artifacts and independently
+reconciled source/run bindings.
+
+The original version query exits `1`; the original status query exits `50`.
+Each has 324 complete output bytes, no overflow and no forced termination.
+Both command outcomes remain unsuccessful. Package/kernel versions and the
+Docker minimum-version comparison are unknown, with no recognized diagnostic
+code. The exact inner cause stays NOT_ESTABLISHED. The observation job succeeds
+because those original command outcomes are complete; it does not qualify WSL
+readiness, a Linux kernel or Docker. No raw output or paths are published.
+
+No SDK, installation, update, feature change, download, kernel/container or
+wallet/node startup is requested. The fourteen controls and fixed query are
+qualified separately from the unchanged Source428 UI result. Source433 changes
+documentation only. P03/P09, current full Windows/native and final acceptance
+stay open. See the [finite result and scope](review/source432-wsl-component-readiness.md#hosted-observations).

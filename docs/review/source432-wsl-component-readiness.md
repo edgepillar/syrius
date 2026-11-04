@@ -46,8 +46,42 @@ result. All original application, Dart test, harness and dependency bytes retain
 their qualified 1,229-case UI lineage. Newly added query code and its tests need
 their own hosted evidence; the old result does not cover them.
 
-Hosted source registration and the actual WSL observation are pending. P03/P09
-and the original acceptance ledger stay open at 72/80. Full Windows/lab, 94-pair
-visual, motion/performance and final acceptance remain second-phase work. The
-first delivery remains available for Draft code review. [Exact body331](pr-body-331.md)
+## Hosted observations
+
+The query source is `00638c824cd2a2d89a4b089228fca1aa29ce9a8b`, tree
+`34abe0e858ca96df8cc0d5e38bb3ee63dd77ab80`.
+[Source registration 41836631732](https://github.com/edgepillar/syrius/actions/runs/41836631732)
+passes all fourteen controls on Linux and skips the Windows job.
+[Manual observation 41837097008](https://github.com/edgepillar/syrius/actions/runs/41837097008),
+attempt one, job 126598724026, passes the same fourteen controls on Windows and
+executes each original WSL query once. The registration job is skipped for that
+manual event. Both runs finish with zero artifacts.
+
+| Original query | Exit code | Output bytes | Complete | Forced termination |
+| --- | --- | --- | --- | --- |
+| `wsl.exe --version` | `1` | `324` | `true` | `false` |
+| `wsl.exe --status` | `50` | `324` | `true` | `false` |
+
+Neither command succeeds or supplies a qualified version. Package version,
+reported kernel version and the Docker minimum-version comparison remain
+unknown. No recognized diagnostic code is reported. The exact inner cause is
+NOT_ESTABLISHED; these finite results do not prove a global absence of WSL or
+nested virtualization. The successful CI job qualifies a complete observation
+of the failed commands, not successful WSL readiness. Raw output remains
+unretained and is not reconstructed from source or exit codes.
+
+Independent read-only API reconciliation verifies original source, run, attempt,
+jobs, successful probe step and the exact allowlisted final frame. Source stays
+unchanged, all source-bound jobs are terminal, and neither runtime query is
+replayed. No installation, feature change, download or kernel/container/wallet/
+node startup is requested. The next installation route must establish a working
+WSL package and runtime before relying on Docker Linux mode.
+
+Source433 changes documentation only. All 1,965 original runtime entries retain
+the qualified Source428 UI lineage. The two added Python files and their
+workflow have their own source-bound hosted observations; a new complete
+969-case controller run or current-source full Windows build is not claimed.
+P03/P09 and the original acceptance ledger stay open at 72/80. Full Windows/lab,
+94-pair visual, motion/performance and final acceptance remain second-phase work.
+The first delivery remains available for Draft code review. [Exact body331](pr-body-331.md)
 preserves the previous handoff and original failures and UNKNOWN outcomes.

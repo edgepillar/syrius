@@ -328,3 +328,12 @@ is replayed by this delivery decision.
 
 Public changes continue in English with edgepillar attribution and GitHub
 no-reply metadata. Existing evidence, failures and history are preserved.
+
+The later [Source432 WSL queries](source432-wsl-component-readiness.md#hosted-observations)
+complete registration 41836631732 and manual observation 41837097008, each with
+fourteen passing controls and zero artifacts. The original version/status
+commands exit 1/50 with complete output, leaving package/kernel versions and
+Docker readiness unknown. This is a qualified negative command observation,
+not working WSL or Docker. Source433 changes documentation only. No large
+download, SDK or kernel/container startup is added; P03/P09 and full acceptance
+remain open while the first delivery stays available for Draft code review.
