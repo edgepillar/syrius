@@ -8,9 +8,12 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart'
     show PrimaryPill;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+import '../helpers/hydrated_bloc.dart';
 import '../token_actions_redesign/support.dart';
 
 void main() {
+  initHydratedStorage();
+
   const String owner = 'z1qq6eg8n43g032hanpsfp02qcdmv7zfj3y2lt5d';
   const String holder = 'z1qp3yph55qgresyytz83anynr2f4z39x2z3ej3e';
 

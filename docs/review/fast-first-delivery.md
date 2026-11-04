@@ -7,6 +7,14 @@ basic functionality, with detailed visual and extended platform/lab acceptance
 afterward. The first milestone is ready for Draft code review. Final acceptance
 of the complete redesign remains open.
 
+Source421's [original result](source421-token-row-disclosure.md#original-source421-result-and-source422-fixture-setup)
+retains clean selected analysis, passing Python/assets and complete Dart streams
+with 1,220 passes and three Burn-fixture failures. Source422 adds the existing
+in-memory storage setup used by the other action tests. Application bytes,
+assertions, registrations and bounds remain. Fresh 1,223-case qualification is
+pending; the original failed producer is preserved. Heavy second-phase work
+stays deferred.
+
 Source421 prepares the [single Token disclosure](source421-token-row-disclosure.md)
 while heavy second-phase work stays deferred. Existing actions remain inside
 the open panel. All 39 cases in the three affected test files join the prior

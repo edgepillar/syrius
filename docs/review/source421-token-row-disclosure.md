@@ -44,3 +44,25 @@ second phase. Original acceptance stays 72/80; the historical pool remains
 token pixels and complete expanded-row visual correspondence remain open.
 Reference files, dependencies, financial transport and original failed or
 unknown qualification evidence are preserved.
+
+## Original Source421 result and Source422 fixture setup
+
+[Run 41796451862](https://github.com/edgepillar/syrius/actions/runs/41796451862),
+attempt one, job 126461590848, retains 955 passing Python controls with three
+existing skips, fourteen passing assets and complete zero-finding selected
+analysis. Both 48-file Dart streams finish normally within the original bounds:
+595 passes first, then 625 passes and three failures. Their original outputs are
+complete and unforced; no producer is retried.
+
+All three retained details identify `token_card_test.dart:109`, where the new
+in-memory action fixture constructs its synthetic sender. Full original error
+messages remain unretained. Source inspection identifies a missing prerequisite:
+the sender extends HydratedBloc, and the other action widget tests initialize
+the shared mock storage before constructing it. This is a source diagnosis,
+separate from the closed runtime details.
+
+Source422 adds that existing mock-storage import and initialization to the Burn
+file. Every fixture input, permission assertion, action path, application byte,
+registration, selected file/count and process bound remains. Completed local
+controls are reused on unchanged Python bytes. Fresh 1,223-case hosted runtime
+qualification remains pending. Heavy phase-two acceptance stays deferred.
