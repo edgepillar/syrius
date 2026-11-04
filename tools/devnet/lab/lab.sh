@@ -16,11 +16,11 @@ assets="$here/assets"
 
 # go-zenon is fetched from GitHub at one commit into .build/, so the lab needs
 # no checkout beside this repository and every machine builds the same node.
-# 590f43c is the commit the lab was first proven on (2026-10-11).
+# The reference recipe and this fixed source pass the isolated lab command gate.
 go_zenon_url="${GO_ZENON_URL:-https://github.com/zenon-network/go-zenon.git}"
-go_zenon_rev="${GO_ZENON_REV:-590f43ca7a24dccd8e883bc8903a0cb02e54528a}"
+go_zenon_rev="${GO_ZENON_REV:-0e80915fb9569f2fc3f6bd90c2a54e4c10d7bc1b}"
 go_zenon="$build/go-zenon"
-build_recipe="${LAB_BUILD_RECIPE:-upstream}"
+build_recipe="${LAB_BUILD_RECIPE:-reference}"
 case "$build_recipe" in
   upstream) stop_timeout=10 ;;
   reference) stop_timeout=20 ;;

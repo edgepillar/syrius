@@ -14,7 +14,13 @@ tools/devnet/lab/lab.sh wipe     # stop, delete the chain and the assets
 Needs bash (Git Bash on Windows), git, Docker and Node. Nothing outside this
 repository: `lab.sh` fetches go-zenon from GitHub at one pinned commit into
 `.build/` (`GO_ZENON_REV` and `GO_ZENON_URL` override it) and builds the image
-from an export of that commit.
+from an export of that commit. The default is fixed source
+`0e80915fb9569f2fc3f6bd90c2a54e4c10d7bc1b` with the checked-in reference recipe,
+Go 1.24.1, CGO/static build flags and module-file checks. `LAB_BUILD_RECIPE=upstream`
+explicitly selects the exported source's own Dockerfile. Existing tags and
+volumes are preserved; a different stored recipe refuses instead of migrating
+or wiping state. The default promotion's fresh qualification is pending; the
+explicit [reference selection has passed](../../../docs/review/source458-continued-startup-readiness.md#actual-source458-result).
 
 ## What it is
 
@@ -81,7 +87,8 @@ index through the wallet and select that index.
 
 The separate **Original lab commands** workflow has a default-off `execute`
 input. Its manual Linux job runs this file's actual `lab.sh up`, `status` and
-`down` route, including the original pinned node's Dockerfile. Controller tests
+`down` route. The default selects the fixed reference recipe; explicit legacy
+choices retain the upstream Dockerfile. Controller tests
 run before allocation; no Flutter SDK or wallet is selected. The four original
 lab inputs are pinned to the tested recipe. Source453 changes only `lab.sh`
 among those inputs: down validates the current project IDs and submits one

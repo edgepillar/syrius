@@ -65,7 +65,8 @@ class LiteralLabTests(unittest.TestCase):
             lab.admit(self.parent(), 'win32')
 
     def test_node_choices_are_fixed_pins_and_unknown_revisions_refuse(self):
-        self.assertEqual(lab.selected_node({}), ('original', lab.NODE, lab.NODE_TREE))
+        self.assertEqual(lab.selected_node({}), ('default',
+            *lab.NODE_SOURCES['dev-0e80915-reference']))
         self.assertEqual(lab.admit(dict(self.parent(),
             SYRIUS_LITERAL_NODE_SOURCE='dev-0e80915'), 'linux'),
             ('dev-0e80915', '0e80915fb9569f2fc3f6bd90c2a54e4c10d7bc1b',
@@ -73,6 +74,19 @@ class LiteralLabTests(unittest.TestCase):
         for value in ('dev', 'a' * 40, '/private/input', '', None, True, []):
             with self.subTest(value=value), self.assertRaises(lab.Refused):
                 lab.admit(dict(self.parent(), SYRIUS_LITERAL_NODE_SOURCE=value), 'linux')
+
+    def test_default_selection_removes_source_overrides_before_script_execution(self):
+        env = dict(GO_ZENON_URL='https://example.invalid', GO_ZENON_REV='a' * 40,
+            LAB_BUILD_RECIPE='upstream', LAB_RPC='private', PATH='/fixture')
+        lab.node_environment(env, 'default')
+        self.assertEqual(env, dict(PATH='/fixture', LAB_RPC='http://127.0.0.1:45997'))
+        self.assertEqual(lab.NODE_RECIPES[lab.DEFAULT_SOURCE], 'reference')
+        lab.node_environment(env, 'original')
+        self.assertEqual(env['GO_ZENON_REV'], lab.NODE)
+        self.assertEqual(env['LAB_BUILD_RECIPE'], 'upstream')
+        before = dict(env)
+        with self.assertRaises(lab.Refused):lab.node_environment(env, 'private')
+        self.assertEqual(env, before)
 
     def test_unadmitted_main_starts_no_original_process(self):
         with mock.patch.dict(lab.os.environ, {}, clear=True), \
@@ -428,7 +442,8 @@ class LiteralLabTests(unittest.TestCase):
             if stage == 'up':return b'chain 321: 5 then 7 after 5 s\nproducing\n'
             raise lab.Refused('CHAIN_REFUSED')
         commands.run.side_effect = run
-        report = dict(source_sha='a' * 40, checks=dict(fresh=False, originals=False, production=False))
+        report = dict(source_sha='a' * 40, node_source='original',
+            checks=dict(fresh=False, originals=False, production=False))
         owned = self.parse(self.rows());changed = dict(owned, pillar=('e' * 64, owned['pillar'][1], 99))
         with mock.patch.object(lab, 'source', return_value='b' * 40), \
                 mock.patch.object(lab, 'empty_project'), \

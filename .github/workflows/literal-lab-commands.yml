@@ -8,10 +8,11 @@ on:
         type: boolean
         default: false
       node_source:
-        description: Pinned node source for the isolated recipe trial
+        description: Pinned source selection; default exercises the script defaults
         type: choice
-        default: original
+        default: default
         options:
+          - default
           - original
           - dev-0e80915
           - dev-0e80915-reference

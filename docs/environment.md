@@ -119,6 +119,23 @@ all five pins and selects every lab input path. Twenty-nine local pure cases pas
 eleven Bash and two actual-JavaScript inert-adapter cases stay unselected locally.
 Fresh 1,048-case source/reference execution is pending; this is not a proven
 production repair or transferred Source456 normal-retirement qualification.
+The [actual Source458 explicit-reference result](review/source458-continued-startup-readiness.md#actual-source458-result)
+succeeds in 41929192629 and 41929517942: 1,048 controls/two existing Linux skips
+and all eleven Bash/two JavaScript fixtures. Seven notices/21 complete zero-exit
+unforced receipts consume, at most 2,932 bytes. Up advances one to three over 110
+seconds, then status three to four over five seconds. Original bindings, all
+five normal zero-exit/no-OOM events, empty project/network and final source/genesis
+checks pass. Both runs are terminal with zero artifacts. This is selected
+Linux/amd64 command qualification, not Windows/wallet/full acceptance or old
+stall-cause proof. [Source459](review/source459-reference-default.md) promotes
+the same fixed source/reference recipe to script/workflow default and removes
+node URL/revision/recipe overrides in default mode. Explicit legacy selections
+and stored tags/volumes remain; no automatic migration/wipe occurs. The compiler
+guard retains exact Go 1.24.1/Linux without hard-coding architecture; ARM64 native
+acceptance remains open. Thirty local pure cases pass, with thirteen Bash/two
+JavaScript fixtures unselected locally. Fresh 1,051-case source/default execution
+is pending; dispatch will omit node_source. All original deadlines and strict
+criteria remain.
 All 1,970 earlier runtime entries
 remain byte-identical through Source451; Source453 separately changes the lab
 script/controller/workflow and adds six shell-fixture cases. No new local

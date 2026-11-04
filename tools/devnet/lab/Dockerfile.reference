@@ -4,7 +4,7 @@ FROM golang:1.24.1-alpine AS builder
 RUN apk add --no-cache gcc musl-dev
 ENV GOTOOLCHAIN=local CGO_ENABLED=1
 WORKDIR /app
-RUN test "$(go version)" = "go version go1.24.1 linux/amd64"
+RUN test "$(go env GOVERSION)" = "go1.24.1" && test "$(go env GOOS)" = "linux"
 COPY go.mod go.sum ./
 RUN sha256sum go.mod go.sum > /tmp/modules.sha256 \
     && go mod download && sha256sum -c /tmp/modules.sha256

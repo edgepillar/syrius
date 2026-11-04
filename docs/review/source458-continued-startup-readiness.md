@@ -50,3 +50,31 @@ binary/image transport, full Windows build or heavy seed/visual/motion job chang
 Full acceptance stays 72/80 with zero accepted whole-image matches. P03/P09/F06
 and final platform, visual and performance acceptance remain open; the PR stays
 Draft and public artifacts remain English and privacy-safe.
+
+## Actual Source458 result
+
+Source `74097e1cb075153cf7dbf082446e798a980264ba`, tree
+`94410c9a5b52e504c9a6c46d3a75e1ad2a5f7ff2`, passes 1,048 source controls with
+two existing Linux skips, all eleven Bash cases and both JavaScript cases in
+source-only [41929192629](https://github.com/edgepillar/syrius/actions/runs/41929192629)
+and manual [41929517942](https://github.com/edgepillar/syrius/actions/runs/41929517942).
+Both runs are successful, terminal and have zero artifacts. The manual runtime
+is attempt one, job 126922728057.
+
+All seven source/tree/run/attempt-bound notices and 21 complete, zero-exit,
+unforced command receipts independently consume; the largest notice is 2,932
+bytes. The fixed `dev-0e80915-reference` source/tree and reference recipe bind to
+the report, with `startup_min_advances=2`. Actual up observes chain 321 from one
+to three over 110 seconds; status then observes three to four over five seconds.
+Fresh project, original identities, production, normal retirement and final
+source/genesis checks all pass, with no observation/close error or unadopted start.
+Each of the five original containers has one zero-exit die event and no observed
+OOM; project/network emptiness checks pass. Volumes remain preserved.
+
+This qualifies actual up/status/down for this explicit reference selection and
+its observed windows on the hosted Linux/amd64 runner. It does not establish the
+old stall's sole cause, indefinitely sustained production, the old upstream
+default, Windows Docker Desktop, wallet import/send, F06, VM disposal or full
+visual/performance acceptance. Earlier failures are not replayed or relabelled.
+The next [default promotion](source459-reference-default.md) must execute the
+script's actual defaults independently; this pass is not transferred to it.

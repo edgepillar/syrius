@@ -60,6 +60,8 @@ class LabShutdownTests(unittest.TestCase):
             env = dict(os.environ, PATH=str(root) + os.pathsep + os.environ['PATH'],
                 FIXTURE_TRACE=str(trace), FIXTURE_IDS='\n'.join(identifiers),
                 FIXTURE_FAIL=failure, LAB_BUILD_RECIPE=recipe)
+            if recipe is None:
+                env.pop('LAB_BUILD_RECIPE')
             result = subprocess.run([BASH, str(script), 'down'], env=env,
                 capture_output=True, timeout=5, check=False)
             calls = [json.loads(line) for line in trace.read_text().splitlines()] if trace.exists() else []
@@ -130,11 +132,18 @@ class LabShutdownTests(unittest.TestCase):
                 stream.addfile(entry, io.BytesIO(b'fixture'))
             git = root / 'git'
             git.write_text('#!' + sys.executable + '\n' + '''import os, sys
+import json
 from pathlib import Path
 args = sys.argv[1:]
+with Path(os.environ['FIXTURE_GIT_TRACE']).open('a') as out:
+    out.write(json.dumps(args) + '\\n')
 if 'cat-file' in args:
+    sys.exit(7 if os.environ.get('FIXTURE_NEED_FETCH') == 'true' else 0)
+if 'init' in args:
+    Path(args[-1]).mkdir(parents=True, exist_ok=True)
+elif 'fetch' in args:
     sys.exit(0)
-if 'rev-parse' in args:
+elif 'rev-parse' in args:
     print('0e80915')
 elif 'archive' in args:
     sys.stdout.buffer.write(Path(os.environ['FIXTURE_ARCHIVE']).read_bytes())
@@ -148,13 +157,25 @@ else:
             trace = root / 'trace.jsonl'
             env = dict(os.environ, PATH=str(root) + os.pathsep + os.environ['PATH'],
                 LAB_BUILD_RECIPE=recipe, FIXTURE_TRACE=str(trace),
-                FIXTURE_FAIL=failure, FIXTURE_ARCHIVE=str(archive))
+                FIXTURE_FAIL=failure, FIXTURE_ARCHIVE=str(archive),
+                FIXTURE_GIT_TRACE=str(root / 'git-trace.jsonl'),
+                FIXTURE_NEED_FETCH='true' if recipe is None else 'false')
+            if recipe is None:
+                for name in ('LAB_BUILD_RECIPE', 'GO_ZENON_URL', 'GO_ZENON_REV'):
+                    env.pop(name, None)
             result = subprocess.run([BASH, str(script), 'build'], env=env,
                 capture_output=True, timeout=5, check=False)
             calls = [json.loads(line) for line in trace.read_text().splitlines()]
             stamp = root / '.build/revision'
             revision = stamp.read_text() if stamp.exists() else None
             self.assertEqual((root / '.build/src/fixture.txt').read_bytes(), b'fixture')
+            if recipe is None:
+                git_calls = [json.loads(line) for line in
+                    (root / 'git-trace.jsonl').read_text().splitlines()]
+                fetch = [args for args in git_calls if 'fetch' in args]
+                self.assertEqual(len(fetch), 1)
+                self.assertEqual(fetch[0][-2:], ['https://github.com/zenon-network/go-zenon.git',
+                    '0e80915fb9569f2fc3f6bd90c2a54e4c10d7bc1b'])
             return result, calls, revision, root
 
     def test_actual_build_selects_recipe_and_distinct_image_tag(self):
@@ -174,6 +195,19 @@ else:
         self.assertIsNone(revision)
         self.assertEqual(len(calls), 1)
         self.assertEqual(calls[0][0], 'build')
+
+    def test_default_build_fetches_fixed_source_and_selects_reference_recipe(self):
+        result, calls, revision, root = self.build(None)
+        self.assertEqual(result.returncode, 0)
+        self.assertEqual(revision, '0e80915-reference\n')
+        self.assertEqual(calls, [['build', '-f', str(root / 'Dockerfile.reference'),
+            '-t', 'syrius-lab-znnd:0e80915-reference', str(root / '.build/src')]])
+
+    def test_default_down_uses_the_reference_stop_grace(self):
+        result, calls = self.invoke(recipe=None, revision='0e80915-reference')
+        self.assertEqual(result.returncode, 0)
+        self.assertEqual(calls, [['compose', 'ps', '-a', '-q'],
+            ['stop', '--timeout', '20', *IDS], ['compose', 'down']])
 
     def test_up_requests_two_advances_and_status_retains_thirty_seconds(self):
         with tempfile.TemporaryDirectory(prefix='lab-readiness-fixture-') as directory:

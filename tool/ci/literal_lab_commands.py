@@ -16,14 +16,17 @@ from tool.ci import hosted_chain321 as hosted
 MIB, GIB = 1024**2, 1024**3
 NODE = '590f43ca7a24dccd8e883bc8903a0cb02e54528a'
 NODE_TREE = '3bedc2fde71035c983997451c2d7e76b66d2d210'
+DEFAULT_SOURCE = 'default'
 NODE_SOURCES = {
+    'default': ('0e80915fb9569f2fc3f6bd90c2a54e4c10d7bc1b',
+        '244d362062b03c07e205ef9a2ad7ba1071fe779a'),
     'original': (NODE, NODE_TREE),
     'dev-0e80915': ('0e80915fb9569f2fc3f6bd90c2a54e4c10d7bc1b',
         '244d362062b03c07e205ef9a2ad7ba1071fe779a'),
     'dev-0e80915-reference': ('0e80915fb9569f2fc3f6bd90c2a54e4c10d7bc1b',
         '244d362062b03c07e205ef9a2ad7ba1071fe779a'),
 }
-NODE_RECIPES = dict(original='upstream', **{'dev-0e80915': 'upstream',
+NODE_RECIPES = dict(default='reference', original='upstream', **{'dev-0e80915': 'upstream',
     'dev-0e80915-reference': 'reference'})
 PROJECT = 'syrius-lab'
 ROLES = ('pillar', 'pillar2', 'pillar3', 'observer', 'rpc')
@@ -34,8 +37,8 @@ NODE_LOG_SOURCES = (
 NODE_LOG_READ = ('[ ! -L /root/.znn/log ] && [ ! -L /root/.znn/log/error ] '
     '&& [ ! -L "$1" ] && [ -f "$1" ] && exec tail -n 64 "$1"')
 PINS = {
-    'lab.sh': 'afdbc151250aee9571fad73ef290ae2fdcd71a3c77f737e2ed850c10a82be801',
-    'Dockerfile.reference': 'e9881d35e990c3013d1fde7a3adb92e5e85bb3dde4a9a24a0e8a1d8e6fe2377a',
+    'lab.sh': 'a80a99d7418bd4ec2a81ac0e625f04d509961b5d7ee512efa939e103ac3f0256',
+    'Dockerfile.reference': '7969a9f44ad469b40680d35be1d96d8ce2d99dc3c541fd4bcc670c04e3d4eda5',
     'docker-compose.yml': '0100e958abd79d03bd125ce7fd042b9f3bb78cda8b69a17502beadb99ed4cef9',
     'make-assets.js': 'bf2a2f20f780b384b2cd0d0e04cb8eff217b671373b0025435bded07b56fbebb',
     'frontier.js': 'b4c16f1943abcba6cb26f44aced4cec8df590b98b2d61d256ed33063c035db87',
@@ -61,9 +64,19 @@ def digest(raw):
 
 
 def selected_node(parent):
-    choice = parent.get('SYRIUS_LITERAL_NODE_SOURCE', 'original')
+    choice = parent.get('SYRIUS_LITERAL_NODE_SOURCE', DEFAULT_SOURCE)
     need(type(choice) is str and choice in NODE_SOURCES, 'ENVIRONMENT_REFUSED')
     return choice, *NODE_SOURCES[choice]
+
+
+def node_environment(env, choice):
+    need(type(choice) is str and choice in NODE_SOURCES, 'ENVIRONMENT_REFUSED')
+    for key in ('GO_ZENON_URL', 'GO_ZENON_REV', 'LAB_BUILD_RECIPE'):
+        env.pop(key, None)
+    env['LAB_RPC'] = 'http://127.0.0.1:45997'
+    if choice != 'default':
+        env.update(GO_ZENON_URL='https://github.com/zenon-network/go-zenon.git',
+            GO_ZENON_REV=NODE_SOURCES[choice][0], LAB_BUILD_RECIPE=NODE_RECIPES[choice])
 
 
 def admit(parent, platform):
@@ -435,11 +448,13 @@ def empty_project(commands):
 
 def observe(commands, repo, lab, report):
     choice, node_pin, node_tree = selected_node(dict(
-        SYRIUS_LITERAL_NODE_SOURCE=report.get('node_source', 'original')))
+        SYRIUS_LITERAL_NODE_SOURCE=report.get('node_source', DEFAULT_SOURCE)))
     recipe = NODE_RECIPES[choice]
     need(report.get('node_sha', node_pin) == node_pin
         and report.get('node_tree', node_tree) == node_tree
-        and report.get('node_build_recipe', recipe) == recipe, 'SOURCE_REFUSED')
+        and report.get('node_build_recipe', recipe) == recipe
+        and report.get('node_uses_script_defaults', choice == 'default')
+            is (choice == 'default'), 'SOURCE_REFUSED')
     script = ['bash', str(lab / 'lab.sh')]
     owned, image = None, None
     report['source_tree'] = source(commands, repo, lab, report['source_sha'])
@@ -552,8 +567,9 @@ def main():
         source_sha=None, source_tree=None, run_id=None, run_attempt=None,
         observation_code=None, close_code=None, unadopted_start_held=False,
         node_failure_facts={}, node_file_failure_facts={}, exit_observations=None,
-        node_source='original', node_sha=NODE, node_tree=NODE_TREE,
-        node_build_recipe='upstream',
+        node_source=DEFAULT_SOURCE, node_sha=NODE_SOURCES[DEFAULT_SOURCE][0],
+        node_tree=NODE_SOURCES[DEFAULT_SOURCE][1], node_build_recipe=NODE_RECIPES[DEFAULT_SOURCE],
+        node_uses_script_defaults=True,
         startup_min_advances=2,
         commands=[], up=None, status=None,
         image_sha256=None, genesis_sha256=None, exit_codes={},
@@ -568,7 +584,7 @@ def main():
         choice, node_pin, node_tree = admit(parent, sys.platform)
         report.update(source_sha=parent['GITHUB_SHA'], run_id=parent['GITHUB_RUN_ID'],
             run_attempt='1', node_source=choice, node_sha=node_pin, node_tree=node_tree,
-            node_build_recipe=NODE_RECIPES[choice])
+            node_build_recipe=NODE_RECIPES[choice], node_uses_script_defaults=choice == 'default')
         repo = Path(parent['GITHUB_WORKSPACE'])
         lab = repo / 'tools/devnet/lab'
         hosted.directories(lab)
@@ -583,9 +599,7 @@ def main():
         need(not os.path.lexists(root), 'STORAGE_REFUSED')
         root.mkdir(mode=0o700)
         env = hosted.child_environment(root, parent)
-        env.update(GO_ZENON_URL='https://github.com/zenon-network/go-zenon.git',
-            GO_ZENON_REV=node_pin, LAB_RPC='http://127.0.0.1:45997',
-            LAB_BUILD_RECIPE=NODE_RECIPES[choice])
+        node_environment(env, choice)
         commands = Commands(repo, root, lab, env, report)
         observe(commands, repo, lab, report)
         report['success'] = all(report['checks'].values())
