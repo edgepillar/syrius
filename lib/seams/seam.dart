@@ -47,6 +47,9 @@ enum Seam {
 
   /// Aggregating wallet-owned activity for Home's address-scope filter.
   activityAddressScope,
+
+  /// Opening a token in a configured explorer for its original chain.
+  tokenExplorer,
 }
 
 /// A missing service refuses explicitly instead of returning invented data.

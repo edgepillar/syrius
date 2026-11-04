@@ -2423,3 +2423,11 @@ See [the owner and holder presentation](docs/review/source425-token-holder-actio
 | Row | Status | Updated | Evidence |
 | --- | --- | --- | --- |
 | X573 | done | 2026-11-04 | Source425 fc512bd44686 / 41814340797, attempt one, job 126521190343 independently qualifies all 1227 ordinary cases (595/632) in complete 48/48-file streams, 955 Python controls/three existing skips, fourteen assets and zero selected findings. All ten token-list, 30 inline-action and three Burn permission cases pass, including four new both-theme/direction holder scope/lifecycle cases, actual compact controls, exact Send/Burn, synthetic cancel/accept, held close/reopen, confirmed Another and old-submit refusal. Owner segments, fixed dialogs, protected publication protocol and all 26 prior inline case bodies remain. Source426 changes documentation only; the token-explorer route, current native pixels and full visual/platform/lab/final acceptance remain unqualified. Original failures and UNKNOWN evidence are preserved. |
+
+## Source427 Token explorer control
+
+See [the drawn holder explorer control](docs/review/source427-token-explorer-control.md) and its [configured-route boundary](docs/research/token-explorer-link.md). The missing route uses the original registered seam contract; existing financial actions and links remain available. [Exact body329](docs/review/pr-body-329.md) preserves preceding results. Heavy second-phase work stays deferred.
+
+| Row | Status | Updated | Evidence |
+| --- | --- | --- | --- |
+| X574 | review | 2026-11-04 | Source427 draws the original holder explorer link behind Seam.tokenExplorer, with the original 12-pixel ext vector, dim ink and 12.5-pixel localized label. The gate and retained callback refuse activation; direct service callers receive SeamNotBuilt without URL, chain or wallet access. Existing Burn/Send, owner/fixed forms, publication protocol and domain/transaction links remain. The four existing holder cases add actual gate, disabled semantics, SVG, pointer and retained-callback checks while preserving original fixtures/assertions and fresh financial controls. Two enum-driven service/Go To cases prepare 1229 ordinary cases (596/633) in the unchanged 48/48-file selection. Thirty-seven local controls pass; fresh hosted tests/analysis remain pending. Functional route, native pixels and full acceptance remain open. |

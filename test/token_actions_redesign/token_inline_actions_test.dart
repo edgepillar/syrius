@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/rendering.dart' show SemanticsHandle;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -12,6 +13,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/tokens/widge
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/tokens/widgets/token_card.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/tokens/widgets/token_inline_actions.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/row_detail.dart';
+import 'package:zenon_syrius_wallet_flutter/seams/seam.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
@@ -19,6 +21,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/moda
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../helpers/hydrated_bloc.dart';
+import '../helpers/mockup_symbol.dart';
 import 'support.dart';
 
 Widget _host(
@@ -601,6 +604,56 @@ void main() {
                 );
               }
               expect(find.byKey(const Key('burn_amount_field')), findsNothing);
+              final Finder explorer = find.byKey(const Key('token_explorer'));
+              expect(
+                tester.widget<SeamGate>(explorer).seam,
+                Seam.tokenExplorer,
+              );
+              final Finder explorerControl = find.byKey(
+                const Key('token_explorer_control'),
+              );
+              final TextButton explorerButton = tester.widget<TextButton>(
+                explorerControl,
+              );
+              final VoidCallback oldExplorer = explorerButton.onPressed!;
+              final SemanticsHandle semantics = tester.ensureSemantics();
+              try {
+                await tester.pump();
+                expect(
+                  tester.getSemantics(explorer),
+                  isSemantics(
+                    label: 'Not yet',
+                    hasEnabledState: true,
+                    isEnabled: false,
+                  ),
+                );
+                expectMockupSymbol(
+                  tester,
+                  within: explorer,
+                  symbol: 'ext',
+                  size: 12,
+                  color: AppTokens.of(tester.element(explorer)).dim,
+                );
+                expect(
+                  explorerButton.style!.textStyle!.resolve(
+                    <WidgetState>{},
+                  )!.fontSize,
+                  12.5,
+                );
+                await tester.tapAt(tester.getCenter(explorerControl));
+                oldExplorer();
+                await tester.pump();
+                expect(questions, isEmpty);
+                expect(sends, isEmpty);
+                expect(fixture.transport.calls, isEmpty);
+                expect(
+                  find.byKey(const Key('burn_amount_field')),
+                  findsNothing,
+                );
+                expect(tester.takeException(), isNull);
+              } finally {
+                semantics.dispose();
+              }
               final VoidCallback oldBurn = tester
                   .widget<OutlinedButton>(burn)
                   .onPressed!;
@@ -618,6 +671,7 @@ void main() {
               );
               oldBurn();
               oldSend();
+              oldExplorer();
               await tester.pump();
               expect(find.byKey(const Key('burn_amount_field')), findsNothing);
               expect(sends, isEmpty);

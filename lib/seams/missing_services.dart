@@ -1,5 +1,22 @@
 import 'package:zenon_syrius_wallet_flutter/seams/seam.dart';
 
+/// The missing configured explorer route for a token and its owning chain.
+// Existing transaction and momentum links remain available.
+// ignore: one_member_abstracts
+abstract interface class TokenExplorerService {
+  /// Opens a token only after its provider and route are verified.
+  Future<void> open();
+}
+
+/// Refuses without opening a guessed URL or reading another chain.
+class UnbuiltTokenExplorerService implements TokenExplorerService {
+  /// Creates a boundary with no browser, network or wallet dependencies.
+  const UnbuiltTokenExplorerService();
+
+  @override
+  Future<void> open() async => throw const SeamNotBuilt(Seam.tokenExplorer);
+}
+
 /// The missing all-address history scope and its filter.
 // The existing selected-address reader does not aggregate wallet history.
 // ignore: one_member_abstracts

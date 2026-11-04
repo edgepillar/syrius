@@ -16,6 +16,7 @@ void main() {
   const SporksService sporks = UnbuiltSporksService();
   const PillarAprService pillarApr = UnbuiltPillarAprService();
   const ActivityScopeService activity = UnbuiltActivityScopeService();
+  const TokenExplorerService tokenExplorer = UnbuiltTokenExplorerService();
   final Map<Seam, Future<void> Function()> operations =
       <Seam, Future<void> Function()>{
         Seam.swapTerms: swapTerms.start,
@@ -32,6 +33,7 @@ void main() {
         Seam.sporks: sporks.load,
         Seam.pillarAprEstimate: pillarApr.load,
         Seam.activityAddressScope: activity.open,
+        Seam.tokenExplorer: tokenExplorer.open,
       };
 
   test('each missing implementation has a refusing service boundary', () {

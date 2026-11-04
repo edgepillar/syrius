@@ -636,7 +636,10 @@ def analyze(parent, repo):
         'test/tokens_redesign/tokens_view_test.dart',
         'test/token_actions_redesign/token_inline_actions_test.dart',
         'test/token_actions_redesign/support.dart',
-        'test/burn_token/token_card_test.dart'],
+        'test/burn_token/token_card_test.dart',
+        'lib/seams/seam.dart',
+        'lib/seams/missing_services.dart',
+        'test/seams/missing_services_test.dart'],
         cwd=repo, env=parent, shell=False, stdin=subprocess.DEVNULL,
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=0)
     lines = Lines(original.stdout)

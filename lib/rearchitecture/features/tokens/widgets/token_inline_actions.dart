@@ -11,6 +11,8 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/bloc/se
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/tokens/actions/token_action_publisher.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/segment.dart';
+import 'package:zenon_syrius_wallet_flutter/seams/missing_services.dart';
+import 'package:zenon_syrius_wallet_flutter/seams/seam.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/explorer_links.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/extensions.dart';
@@ -22,6 +24,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/wallet_context_revision.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// One captured question, injectable so widget cases never sign or use a node.
@@ -570,6 +573,7 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
     return Wrap(
       spacing: tokens.inlineGap,
       runSpacing: tokens.inlineGap,
+      crossAxisAlignment: WrapCrossAlignment.center,
       children: <Widget>[
         if (token.isBurnable)
           OutlinedButton(
@@ -585,7 +589,46 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
             child: Text(context.l10n.burn),
           ),
         _buildSend(token, compact: true),
+        _buildTokenExplorer(),
       ],
+    );
+  }
+
+  Widget _buildTokenExplorer() {
+    final AppTokens tokens = AppTokens.of(context);
+    return SeamGate(
+      key: const Key('token_explorer'),
+      seam: Seam.tokenExplorer,
+      child: TextButton(
+        key: const Key('token_explorer_control'),
+        style: TextButton.styleFrom(
+          foregroundColor: tokens.dim,
+          minimumSize: Size.zero,
+          padding: EdgeInsets.zero,
+          textStyle: tokens.bodyText.copyWith(fontSize: 12.5),
+          visualDensity: VisualDensity.standard,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+        onPressed: () => runUnlessSeamed(
+          seam: Seam.tokenExplorer,
+          action: () => unawaited(const UnbuiltTokenExplorerService().open()),
+        ),
+        child: Text.rich(
+          TextSpan(
+            children: <InlineSpan>[
+              WidgetSpan(
+                alignment: PlaceholderAlignment.middle,
+                child: ShellSymbol(
+                  'ext',
+                  size: tokens.inlineGlyphSize,
+                  color: tokens.dim,
+                ),
+              ),
+              TextSpan(text: ' ${context.l10n.aboutExplorer.toLowerCase()}'),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

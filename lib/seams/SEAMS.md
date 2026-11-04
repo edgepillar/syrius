@@ -23,6 +23,7 @@ request and result models.
 | `sporks` | `set-node` | `lib/seams/missing_services.dart`, `UnbuiltSporksService.load`; future Sporks feature behind the Node group | `docs/research/extension-parity.md` |
 | `pillarAprEstimate` | `pillars`, `pillar-mine` | `lib/seams/missing_services.dart`, `UnbuiltPillarAprService.load`; future qualified return model beside the Pillars list | `docs/research/qol-ideas.md` |
 | `activityAddressScope` | `home-rest`, `home-open`, `home-hidden`, `home-bell`, `home-zap`, `home-goto` | `lib/seams/missing_services.dart`, `UnbuiltActivityScopeService.open`; future wallet-owned aggregate reader beside `lib/rearchitecture/features/latest_transactions/` | `docs/research/activity-address-scope.md` |
+| `tokenExplorer` | `tokens` | `lib/seams/missing_services.dart`, `UnbuiltTokenExplorerService.open`; configured token route beside `lib/utils/explorer_links.dart` | `docs/research/token-explorer-link.md` |
 
 The update notice in `home-rest` represents the shared status strip on shell
 screens. It is a wallet release notice. The embedded-node updater already
@@ -63,6 +64,16 @@ wallet-wide activity reader. The drawn scope chevron is gated while the
 existing selected-address label, rows, privacy and pagination remain available.
 No selected history is labelled All addresses. No palette action or shortcut
 currently opens this filter; the enum-wide indirect guards also refuse it.
+
+`tokenExplorer` covers the holder row's token link. The current configured
+provider has transaction and momentum helpers, with no configured token route.
+This does not claim that the remote provider has no token page. The original
+external-link symbol and label are drawn behind the gate. Existing domain and
+submitted-transaction links remain available. No palette entry or shortcut
+currently opens this link; enum-wide indirect guards refuse the new value too.
+Verify a provider route for the original chain and exact token standard before
+replacing the refusing service. Never send an unsupported chain's identifier
+to the mainnet explorer.
 
 Ledger discovery, creation, unlock and signing already exist in
 `lib/screens/onboarding/hardware_wallet/` and `lib/utils/wallet_file.dart`.

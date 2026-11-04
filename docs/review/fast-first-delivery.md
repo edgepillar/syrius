@@ -7,6 +7,15 @@ basic functionality, with detailed visual and extended platform/lab acceptance
 afterward. The first milestone is ready for Draft code review. Final acceptance
 of the complete redesign remains open.
 
+Source427 draws the [holder explorer control](source427-token-explorer-control.md)
+behind its registered `Not yet` gate. The current token route is unverified;
+existing Burn/Send and domain/transaction links retain their path. The original
+external-link symbol, label and pointer/semantic/retained-callback refusals join
+the four existing holder cases. Two enum-driven service/Go To cases prepare
+1,229 ordinary cases (596/633) in the unchanged 48/48-file selection. Thirty-seven
+local controls pass; fresh hosted tests and selected analysis remain pending.
+Heavy phase-two work stays deferred.
+
 The most recently qualified focused source is Source425
 `fc512bd44686f1bf5a16d379503bf9b849861750`. Its
 [Token holder result](source425-token-holder-actions.md#focused-result) in
