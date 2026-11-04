@@ -1,11 +1,25 @@
 # First delivery and deferred acceptance
 
-Updated: 2026-11-04T07:30Z.
+Updated: 2026-11-04T09:02Z.
 
 The owner selected a first delivery covering the core interface and existing
 basic functionality, with detailed visual and extended platform/lab acceptance
 afterward. The first milestone is ready for Draft code review. Final acceptance
 of the complete redesign remains open.
+
+The most recently qualified focused source is Source423
+`d5ccace22d61f8bd2f4f65abe95e501bba697973`. Its
+[Token disclosure result](source421-token-row-disclosure.md#fresh-source423-focused-result)
+in [41801289094](https://github.com/edgepillar/syrius/actions/runs/41801289094)
+passes all 1,223 ordinary cases in complete 48/48-file streams (595/628), 955 Python controls with three existing skips, fourteen assets and zero selected findings.
+All ten token-list, 26 inline-action and three Burn permission cases pass,
+including the actual disclosure, original-context refusal and exact balances.
+Source424 changes documentation only. The original Source421 fixture and
+Source422 form-entry failures remain preserved; current native pixels and full
+phase-two acceptance stay open.
+
+The historical preparation notes below retain their publication-time states.
+The qualified result above is the current focused acceptance record.
 
 Source422's [original form result](source421-token-row-disclosure.md#original-source422-result-and-source423-bounded-balance)
 retains clean selected analysis, passing Python/assets and complete Dart streams
@@ -30,7 +44,7 @@ selection, preparing 1,223 ordinary cases in 48/48-file streams. Thirty-seven
 local mocked/read-only controls pass; fresh hosted Flutter tests and selected
 analysis remain pending. No native, build or image job is scheduled.
 
-The most recently qualified focused source is Source419
+The earlier qualified focused source is Source419
 `ae9ed0a0cac093a7b864b2bfc1e448d46457c162`.
 Its [Staking/Sentinel result](source417-staking-sentinel-symbols.md#fresh-source419-focused-result)
 in [41791263517](https://github.com/edgepillar/syrius/actions/runs/41791263517)
@@ -68,7 +82,7 @@ Thirty-seven local mocked/read-only controls pass. Fresh Flutter tests and
 selected analysis remain pending. Heavy qualification and image work stay
 deferred.
 
-The latest focused source is Source415 `6f371be032545394b5fbe40b573c74d2bfaefa7c`.
+The earlier qualified focused source is Source415 `6f371be032545394b5fbe40b573c74d2bfaefa7c`.
 Its [Pillar sort-frame result](source415-pillar-sort-frame.md#fresh-source415-focused-result)
 in [41781844194](https://github.com/edgepillar/syrius/actions/runs/41781844194)
 passes all 1,123 ordinary cases in complete 45/44-file streams (553/570),

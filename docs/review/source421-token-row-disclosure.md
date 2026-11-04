@@ -33,8 +33,8 @@ focused path. The ordinary selection is 96 files and 1,223 cases, split into
 48/48-file serial streams with expected passes of 595/628. No new global Dart
 or Python test registration is added. All process, output and worker bounds
 remain. Selected analysis includes the affected files and existing action
-panel/support. Thirty-seven local mocked/read-only controls pass; fresh hosted
-Flutter tests and selected analysis remain pending.
+panel/support. Thirty-seven local mocked/read-only controls pass. The fresh
+Source423 result below completes the focused Flutter/analysis gate.
 
 The first delivery remains a Draft code-review milestone. Heavy Windows
 builds, native chain-321 execution, image transport, all 94 visual comparisons,
@@ -88,3 +88,40 @@ selection/count and process bound remains. The supply validator is unchanged.
 Completed local Python controls are reused. Fresh 1,223-case hosted execution
 remains pending; both original failed producers and all phase-two acceptance
 remain preserved.
+
+## Fresh Source423 focused result
+
+[Run 41801289094](https://github.com/edgepillar/syrius/actions/runs/41801289094),
+attempt one, job 126477400701, independently qualifies all 1,223 ordinary cases in complete 48/48-file streams (595/628), 955 Python controls with three existing skips, fourteen assets and zero selected findings.
+The ordinary cases have zero failures, errors or skips. Both actual output
+streams are complete, unforced and within the unchanged process/output/worker
+bounds. Their durations are 149.391 and
+145.578 seconds. The streams retain
+134 hidden events and 1357 terminal events;
+all source-bound jobs are terminal with zero artifacts.
+
+All ten token-list cases, 26 inline-action cases, three Burn permission cases
+and every previous focused path pass. Both-theme/direction 32-pixel disclosure
+checks, actual owner opening, exact balances, original-context refusal,
+close/reopen refusal and public/owner/non-owner Burn checks pass. The shared mock
+storage and explicit 40-unit fixture balance preserve every other input and
+permission assertion.
+Opening and editing the synthetic forms publish nothing. No global test
+registration is added. The 1,225 asset-fidelity variant remains outside this
+ordinary selection.
+
+Source424 changes documentation only and preserves every application, test,
+controller, workflow and dependency byte from tested Source423
+`d5ccace22d61f8bd2f4f65abe95e501bba697973`, tree `b857ee4f32c9262c7faac9f0911310904112a185`.
+Source421's original 1,220-pass/three-failure producer remains failed with its
+complete original streams and unretained full error messages. Its source-derived
+storage diagnosis is supported by the corrected fresh result; the original
+producer is never replayed. Source422's separate 1,220-pass/three-form-failure
+run 41798633281 also remains failed with its complete unforced streams and
+unretained full messages. All earlier failure and UNKNOWN evidence remains.
+
+This result qualifies the focused widget/engine scope. Current native token
+pixels, the owner capture recipe, complete expanded-row visual correspondence,
+all 94 accepted pairs and full Windows/lab/motion/platform/final acceptance
+remain open and deferred. Original acceptance stays 72/80, with 50/94 historical
+literal outputs, 44 missing and zero accepted whole-image matches.
