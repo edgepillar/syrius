@@ -385,6 +385,7 @@ class _Action extends StatelessWidget {
     }
     return CancelStakeButton(
       key: ValueKey<String>('staking_withdraw_${stakeEntry.id}'),
+      ownerAddress: stakeEntry.address.toString(),
       stakeHash: stakeEntry.id,
       amount: stakeEntry.amount,
       onCancelled: onRefresh,

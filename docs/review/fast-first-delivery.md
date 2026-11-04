@@ -1,6 +1,6 @@
 # First delivery and deferred acceptance
 
-Updated: 2026-11-04T02:51Z.
+Updated: 2026-11-04T03:08Z.
 
 The owner selected a first delivery covering the core interface and existing
 basic functionality, with detailed visual and extended platform/lab acceptance
@@ -99,8 +99,15 @@ retains its [original focused failure](source402-deposit-input-readiness.md#orig
 1,092 passes, two command-completion assertion failures and zero selected
 findings. Source403's explicit ordinal correction independently passes all
 1,094 cases and zero-finding selected analysis in the focused result above.
-The first-delivery application remains unchanged; native verification of the
+Source403 leaves application code unchanged; native verification of that
 follow-up and complete seeded effects still belong to phase two.
+
+Source405 prepares [stake cancellation ownership](source405-stake-cancellation-ownership.md)
+as a core-flow correction. The original confirmation and publication path keep
+their arguments, while account changes, retained callbacks and late results
+must retain their original owner. All previous focused paths plus complete
+cancellation/table coverage prepare 1,115 cases; fresh qualification is pending.
+This source correction schedules no heavy platform/lab or image work.
 
 ## Second phase
 

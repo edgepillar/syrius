@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -8,16 +10,22 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../../helpers/hydrated_bloc.dart';
 
+/// Supplies only the injected client's contract APIs.
 class MockZenon extends Mock implements Zenon {}
 
+/// Keeps contract construction separate from publication.
 class MockEmbedded extends Mock implements EmbeddedApi {}
 
+/// Records the original stake hash without a node.
 class MockStakeApi extends Mock implements StakeApi {}
 
+/// Replaces wallet acquisition, signing and network transport.
 class MockAccountBlockUtils extends Mock implements AccountBlockUtils {}
 
+/// Counts only the current owner's balance refresh.
 class MockZenonAddressUtils extends Mock implements ZenonAddressUtils {}
 
+/// Carries an in-memory original response identity.
 class MockAccountBlockTemplate extends Mock implements AccountBlockTemplate {}
 
 void main() {
@@ -26,6 +34,7 @@ void main() {
   setUpAll(() {
     registerFallbackValue(AccountBlockTemplate(blockType: 1));
     registerFallbackValue(emptyHash);
+    registerFallbackValue(emptyAddress);
   });
 
   group('CancelStakeBloc', () {
@@ -101,5 +110,101 @@ void main() {
         ),
       ],
     );
+
+    test('owned requests keep one exact block, account and guard', () async {
+      addTearDown(bloc.close);
+      final Completer<AccountBlockTemplate> reply =
+          Completer<AccountBlockTemplate>();
+      bool current() => true;
+      final bool Function() guard = current;
+      when(() => accountBlockUtils.createAccountBlock(
+        any(), any(), address: any(named: 'address'),
+        waitForRequiredPlasma: any(named: 'waitForRequiredPlasma'),
+        canPublish: any(named: 'canPublish'),
+      )).thenAnswer((Invocation call) {
+        expect(call.positionalArguments.first, same(template));
+        expect(call.namedArguments[#address], emptyAddress);
+        expect(call.namedArguments[#waitForRequiredPlasma], isTrue);
+        expect(call.namedArguments[#canPublish], same(guard));
+        return reply.future;
+      });
+      final CancelStakeRequested request = CancelStakeRequested.owned(
+        stakeHash: emptyHash, fromAddress: emptyAddress,
+        block: template, canPublish: guard,
+      );
+      final Future<CancelStakeState> loading = bloc.stream.firstWhere(
+        (CancelStakeState state) => state is CancelStakeLoading,
+      );
+      final Future<CancelStakeState> done = bloc.stream.firstWhere(
+        (CancelStakeState state) => state is CancelStakeDone,
+      );
+      bloc..add(request)..add(request);
+      await loading;
+      await Future<void>.delayed(Duration.zero);
+      verify(() => accountBlockUtils.createAccountBlock(
+        any(), any(), address: any(named: 'address'),
+        waitForRequiredPlasma: any(named: 'waitForRequiredPlasma'),
+        canPublish: any(named: 'canPublish'),
+      )).called(1);
+      verifyNever(() => stakeApi.cancel(any()));
+      reply.complete(template);
+      await done;
+      verify(() => zenonAddressUtils.refreshBalance()).called(1);
+    });
+
+    test('a revoked owned request never enters preparation', () async {
+      addTearDown(bloc.close);
+      final Future<CancelStakeState> idle = bloc.stream.firstWhere(
+        (CancelStakeState state) => state is CancelStakeInitial,
+      );
+      bloc.add(CancelStakeRequested.owned(
+        stakeHash: emptyHash, fromAddress: emptyAddress,
+        block: template, canPublish: () => false,
+      ));
+      await idle;
+      verifyNever(() => stakeApi.cancel(any()));
+      verifyNever(() => accountBlockUtils.createAccountBlock(
+        any(), any(), address: any(named: 'address'),
+        waitForRequiredPlasma: any(named: 'waitForRequiredPlasma'),
+        canPublish: any(named: 'canPublish'),
+      ));
+      verifyNever(() => zenonAddressUtils.refreshBalance());
+    });
+
+    for (final bool rejected in <bool>[false, true]) {
+      test('late owned outcome cannot refresh a new context, $rejected',
+          () async {
+        addTearDown(bloc.close);
+        final Completer<AccountBlockTemplate> reply =
+            Completer<AccountBlockTemplate>();
+        bool current = true;
+        when(() => accountBlockUtils.createAccountBlock(
+          any(), any(), address: any(named: 'address'),
+          waitForRequiredPlasma: any(named: 'waitForRequiredPlasma'),
+          canPublish: any(named: 'canPublish'),
+        )).thenAnswer((_) => reply.future);
+        final Future<CancelStakeState> loading = bloc.stream.firstWhere(
+          (CancelStakeState state) => state is CancelStakeLoading,
+        );
+        final Future<CancelStakeState> idle = bloc.stream.firstWhere(
+          (CancelStakeState state) => state is CancelStakeInitial,
+        );
+        bloc.add(CancelStakeRequested.owned(
+          stakeHash: emptyHash, fromAddress: emptyAddress,
+          block: template, canPublish: () => current,
+        ));
+        await loading;
+        current = false;
+        if (rejected) {
+          reply.completeError(FailureException());
+        } else {
+          reply.complete(template);
+        }
+        await idle;
+        verifyNever(() => stakeApi.cancel(any()));
+        verifyNever(() => zenonAddressUtils.refreshBalance());
+        expect(bloc.state, const CancelStakeInitial());
+      });
+    }
   });
 }

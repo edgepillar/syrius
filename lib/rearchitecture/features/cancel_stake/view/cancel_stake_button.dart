@@ -7,20 +7,27 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/cancel_stake
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/card_parts/card_parts.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/wallet_action_context.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/wallet_context_revision.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// Button that handles the stake cancellation flow.
-class CancelStakeButton extends StatelessWidget {
+class CancelStakeButton extends StatefulWidget {
   /// Creates a [CancelStakeButton].
   const CancelStakeButton({
+    required this.ownerAddress,
     required this.stakeHash,
     required this.amount,
     required this.onCancelled,
     this.label,
     this.style,
+    this.bloc,
     super.key,
   });
+
+  /// The account that owns the displayed stake, never a later selection.
+  final String ownerAddress;
 
   /// Hash of the stake entry that should be cancelled.
   final Hash stakeHash;
@@ -38,15 +45,37 @@ class CancelStakeButton extends StatelessWidget {
   /// The enclosing table's secondary button style.
   final ButtonStyle? style;
 
+  /// Uses the existing cancellation owner without constructing wallet I/O.
+  final CancelStakeBloc? bloc;
+
+  @override
+  State<CancelStakeButton> createState() => _CancelStakeButtonState();
+}
+
+class _CancelStakeButtonState extends State<CancelStakeButton> {
+  bool _confirming = false;
+  bool _submitted = false;
+  bool Function()? _attemptCurrent;
+  VoidCallback? _onCancelled;
+
   @override
   Widget build(BuildContext context) {
+    final Widget child = _buildContent();
+    final CancelStakeBloc? bloc = widget.bloc;
+    if (bloc != null) {
+      return BlocProvider<CancelStakeBloc>.value(value: bloc, child: child);
+    }
     return BlocProvider<CancelStakeBloc>(
       create: (_) => CancelStakeBloc(
         accountBlockUtils: AccountBlockUtils(),
         zenon: zenon!,
         zenonAddressUtils: ZenonAddressUtils(),
       ),
-      child: Row(
+      child: child,
+    );
+  }
+
+  Widget _buildContent() => Row(
         mainAxisAlignment: .center,
         mainAxisSize: .min,
         children: <Widget>[
@@ -54,8 +83,17 @@ class CancelStakeButton extends StatelessWidget {
           Flexible(
             child: BlocConsumer<CancelStakeBloc, CancelStakeState>(
               listener: (BuildContext context, CancelStakeState state) {
+                if (state is CancelStakeLoading) return;
+                final bool current = _attemptCurrent?.call() ?? false;
+                final VoidCallback? onCancelled = _onCancelled;
+                setState(() {
+                  _submitted = false;
+                  _attemptCurrent = null;
+                  _onCancelled = null;
+                });
+                if (!current) return;
                 if (state is CancelStakeDone) {
-                  onCancelled();
+                  onCancelled?.call();
                 } else if (state is CancelStakeFailure) {
                   unawaited(
                     NotificationUtils.sendNotificationError(
@@ -74,42 +112,93 @@ class CancelStakeButton extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  OutlinedButton _buildButton(BuildContext context) {
-    Future<void> cancel() async {
-      final CancelStakeBloc cancelStakeBloc = context.read<CancelStakeBloc>();
-      final bool? cancellationConfirmed = await showDialogWithNoAndYesOptions(
-        isBarrierDismissible: false,
-        context: context,
-        title: context.l10n.cancel,
-        // Keep the same confirmation for both stake cancellation controls.
-        description:
-            'Cancel the stake of '
-            '${cardAmount(amount, kZnnCoin.decimals, kZnnCoin.symbol)}?',
       );
 
-      if (cancellationConfirmed ?? false) {
-        cancelStakeBloc.add(
-          CancelStakeRequested(stakeHash: stakeHash),
+  OutlinedButton _buildButton(BuildContext context) {
+    final String owner = widget.ownerAddress;
+    final String hash = widget.stakeHash.toString();
+    final BigInt amount = widget.amount;
+    final int revision = WalletContextRevision.value;
+    bool painted() =>
+        mounted &&
+        owner == widget.ownerAddress &&
+        hash == widget.stakeHash.toString() &&
+        amount == widget.amount &&
+        owner == kSelectedAddress &&
+        revision == WalletContextRevision.value &&
+        TickerMode.valuesOf(context).enabled;
+    Future<void> cancel() async {
+      if (!painted() || _confirming || _submitted) return;
+      final CancelStakeBloc cancelStakeBloc = context.read<CancelStakeBloc>();
+      if (cancelStakeBloc.isClosed ||
+          cancelStakeBloc.state is CancelStakeLoading) return;
+      final WalletActionContext? action = WalletActionContext.capture(owner);
+      bool current() =>
+          painted() &&
+          !cancelStakeBloc.isClosed &&
+          (action?.isCurrent ?? false);
+      final VoidCallback onCancelled = widget.onCancelled;
+      setState(() => _confirming = true);
+      try {
+        final bool? cancellationConfirmed = await showDialogWithNoAndYesOptions(
+          isBarrierDismissible: false,
+          context: context,
+          title: context.l10n.cancel,
+          // Keep the same confirmation for both stake cancellation controls.
+          description:
+              'Cancel the stake of '
+              '${cardAmount(amount, kZnnCoin.decimals, kZnnCoin.symbol)}?',
         );
+
+        if (cancellationConfirmed != true || !current() ||
+            cancelStakeBloc.isClosed) return;
+        final AccountBlockTemplate block = action!.client.embedded.stake
+            .cancel(Hash.parse(hash));
+        if (!current()) return;
+        setState(() {
+          _submitted = true;
+          _attemptCurrent = current;
+          _onCancelled = onCancelled;
+        });
+        cancelStakeBloc.add(
+          CancelStakeRequested.owned(
+            stakeHash: Hash.parse(hash),
+            fromAddress: Address.parse(owner),
+            block: block,
+            canPublish: current,
+          ),
+        );
+      } on Object catch (error) {
+        if (!mounted) return;
+        setState(() {
+          _submitted = false;
+          _attemptCurrent = null;
+          _onCancelled = null;
+        });
+        if (!current()) return;
+        unawaited(NotificationUtils.sendNotificationError(
+          error is SyriusException ? error : FailureException(),
+          context.l10n.errorWhileCancellingStake,
+        ));
+      } finally {
+        if (mounted) setState(() => _confirming = false);
       }
     }
 
     final ButtonStyle buttonStyle =
-        style ?? cardSecondaryButtonStyle(context, line: AppColors.errorColor);
-    if (label != null) {
+        widget.style ??
+        cardSecondaryButtonStyle(context, line: AppColors.errorColor);
+    final VoidCallback? press = _confirming || _submitted ? null : cancel;
+    if (widget.label != null) {
       return OutlinedButton(
         style: buttonStyle,
-        onPressed: cancel,
-        child: Text(label!),
+        onPressed: press,
+        child: Text(widget.label!),
       );
     }
     return OutlinedButton.icon(
       style: buttonStyle,
-      onPressed: cancel,
+      onPressed: press,
       label: Text(context.l10n.cancel),
       icon: const Icon(Icons.close, size: 16),
     );

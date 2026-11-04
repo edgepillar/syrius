@@ -25,31 +25,73 @@ class CancelStakeBloc extends Bloc<CancelStakeEvent, CancelStakeState> {
   final AccountBlockUtils _accountBlockUtils;
   final Zenon _zenon;
   final ZenonAddressUtils _zenonAddressUtils;
+  bool _busy = false;
 
   FutureOr<void> _onCancelStakeRequested(
     CancelStakeRequested event,
     Emitter<CancelStakeState> emit,
   ) async {
+    if (_busy || isClosed) return;
+    _busy = true;
+    bool current() {
+      try {
+        return !isClosed && (event.canPublish?.call() ?? true);
+      } on Object {
+        return false;
+      }
+    }
+
+    void fail(SyriusException error) {
+      if (emit.isDone) return;
+      emit(
+        current()
+            ? CancelStakeFailure(exception: error)
+            : const CancelStakeInitial(),
+      );
+    }
+
     try {
       emit(const CancelStakeLoading());
-      final AccountBlockTemplate transactionParams = _zenon.embedded.stake
-          .cancel(event.stakeHash);
+      if (!current()) {
+        if (!emit.isDone) emit(const CancelStakeInitial());
+        return;
+      }
+      final AccountBlockTemplate transactionParams = event.block ??
+          _zenon.embedded.stake.cancel(event.stakeHash);
+      if (event.canPublish != null) {
+        await _accountBlockUtils.createAccountBlock(
+          transactionParams,
+          PlasmaPurpose.cancelStake.message,
+          address: event.fromAddress,
+          waitForRequiredPlasma: true,
+          canPublish: event.canPublish,
+        );
+      } else {
+        await _accountBlockUtils.createAccountBlock(
+          transactionParams,
+          PlasmaPurpose.cancelStake.message,
+          waitForRequiredPlasma: true,
+        );
+      }
 
-      await _accountBlockUtils.createAccountBlock(
-        transactionParams,
-        PlasmaPurpose.cancelStake.message,
-        waitForRequiredPlasma: true,
-      );
+      if (!current()) {
+        if (!emit.isDone) emit(const CancelStakeInitial());
+        return;
+      }
 
       _zenonAddressUtils.refreshBalance();
 
-      emit(const CancelStakeDone());
+      if (!emit.isDone) {
+        emit(current() ? const CancelStakeDone() : const CancelStakeInitial());
+      }
     } on SyriusException catch (e, stackTrace) {
-      addError(e, stackTrace);
-      emit(CancelStakeFailure(exception: e));
+      if (!isClosed) addError(e, stackTrace);
+      fail(e);
     } on Exception catch (e, stackTrace) {
-      addError(e, stackTrace);
-      emit(CancelStakeFailure(exception: FailureException()));
+      if (!isClosed) addError(e, stackTrace);
+      fail(FailureException());
+    } finally {
+      _busy = false;
     }
   }
 }
