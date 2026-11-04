@@ -142,3 +142,50 @@ unretained message. Every test registration, controller, workflow, dependency,
 1,184/1,186 count and original refusal/process bound remains. The completed
 37 local controls are reused on unchanged Python bytes. Fresh Source419
 Flutter qualification remains pending; heavy acceptance stays deferred.
+
+## Fresh Source419 focused result
+
+Qualified: 2026-11-04T07:30Z.
+
+The separate [run 41791263517](https://github.com/edgepillar/syrius/actions/runs/41791263517),
+attempt one, job 126444948422, independently qualifies Source419
+`ae9ed0a0cac093a7b864b2bfc1e448d46457c162`, tree
+`a821559bd134fa2dea6043fee2291735ac535e2d`.
+
+| Stream | Files | Passed | Seconds | Complete output bytes |
+| --- | --- | --- | --- | --- |
+| First | 47 | 568 | 186.250 | 304590 |
+| Second | 46 | 616 | 162.984 | 303193 |
+
+All 1,184 ordinary cases pass with zero failures/errors/skips. Both actual
+streams finish normally, completely and without forced cleanup, overflow,
+retries or unfinished cases. They retain 131 hidden events and 1,315 terminal
+events. The original one-worker, 240-second per-command, 480-second combined
+and 4 MiB output bounds remain.
+
+Python passes 955 controls with zero failures/errors and three existing hosted
+skips. All fourteen asset controls pass. Selected analysis completes normally
+with empty output and zero errors/warnings/infos. The three original startup
+checks and both pre-build refusal controls pass. Every source-bound job is
+terminal and there are zero artifacts.
+
+All 89 earlier focused paths and the complete existing Sentinel list/value/strip
+and standalone rail suites pass. Both theme cases now reach the exact one-hour
+label and both original revocation SVG checks. Stake/Close, Rewards, compact
+Spawn with enabled/disabled and large-text states, owner menu, locked/unlocked
+chips and all earlier action, amount, privacy, owner, timer and RTL controls
+pass. The original two Material-shape assertions require their corresponding
+reference SVGs; original functional assertions and registrations remain.
+The 1,186 asset-fidelity variant remains outside this ordinary selection.
+
+Source420 changes documentation only and preserves all tested application,
+test, controller, workflow and dependency bytes. The original Source417
+two-info failure and Source418 two-assertion failure above retain their exact
+observations and scope. No original failed producer is retried or relabelled.
+
+The original microtasks still define 80 rows: 72 done, four review and four
+blocked. P03/P09/F06, full current Windows/root analysis, all 94 visual matches,
+running motion/shaders/frame time, native seam interaction, independent review
+and the complete original end state remain open. The 50/94 literal outputs,
+44 missing outputs and zero accepted whole-image matches remain. X556 native
+container pixels and current Staking/Sentinel pixels stay in phase two.

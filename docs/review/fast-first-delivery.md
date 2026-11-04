@@ -1,11 +1,22 @@
 # First delivery and deferred acceptance
 
-Updated: 2026-11-04T07:10Z.
+Updated: 2026-11-04T07:30Z.
 
 The owner selected a first delivery covering the core interface and existing
 basic functionality, with detailed visual and extended platform/lab acceptance
 afterward. The first milestone is ready for Draft code review. Final acceptance
 of the complete redesign remains open.
+
+The latest focused source is Source419 `ae9ed0a0cac093a7b864b2bfc1e448d46457c162`.
+Its [Staking/Sentinel result](source417-staking-sentinel-symbols.md#fresh-source419-focused-result)
+in [41791263517](https://github.com/edgepillar/syrius/actions/runs/41791263517)
+passes all 1,184 ordinary cases in complete 47/46-file streams (568/616),
+955 Python controls with three existing skips, fourteen assets and zero selected
+findings. Every earlier focused path and the complete Sentinel/rail suites pass,
+including both-theme reference-SVG checks and the exact one-hour label.
+Source420 changes documentation only. The original Source417/418 failures
+remain preserved. Current native pixels and full platform/lab/visual/performance
+acceptance stay in the second phase.
 
 Source418's [original runtime result](source417-staking-sentinel-symbols.md#original-source418-runtime-result)
 retains complete zero-finding analysis and Dart streams with 1,182 passes/two
