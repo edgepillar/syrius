@@ -1,21 +1,24 @@
 # First delivery and deferred acceptance
 
-Updated: 2026-11-04T01:04Z.
+Updated: 2026-11-04T01:47Z.
 
 The owner selected a first delivery covering the core interface and existing
 basic functionality, with detailed visual and extended platform/lab acceptance
 afterward. The first milestone is ready for Draft code review. Final acceptance
 of the complete redesign remains open.
 
-The latest focused source is Source397 `18e56d9e0f21980b713919518dda6384f54b2562`.
-Its [Pillar sort result](source397-pillar-sort-label.md#focused-result)
-in [41750201481](https://github.com/edgepillar/syrius/actions/runs/41750201481) passes all
+The latest focused source is Source400 `aa991e302d29213a01f8a739cc6a4b4c6d9d73cd`.
+Its [compact picker result](source399-compact-picker-presentation.md#focused-result)
+in [41755440101](https://github.com/edgepillar/syrius/actions/runs/41755440101) passes all
 1,083 cases in complete 42/42-file streams (528/555), 955 Python controls with
-three existing skips, fourteen assets and zero selected findings. All nine
-Pillars card cases and every earlier focused path pass without test changes.
-Literal CSS and source establish the 12-pixel dim sort label at weight 500.
-Native pixels and remaining container chrome stay open in X556. Source398
-changes documentation only. The earlier
+three existing skips, fourteen assets and zero selected findings. Existing
+Display cases cover all six languages, both themes/heights, original buttons,
+actual arrow-position taps, saved values, large Arabic and refusal controls.
+All nine Pillars cases and earlier paths pass. Source401 changes documentation
+only. Original Source399's redundant-default analysis refusal remains.
+The earlier [Pillar label result](source397-pillar-sort-label.md#focused-result)
+retains its source. Native pixels and remaining container chrome stay open in
+X556. The earlier
 [Stake context result](source394-stake-context-ownership.md#fresh-source395-focused-result)
 retains its source; all ten Stake widget cases, 27 sender-admission cases
 and 21 Send form cases remain in the passing selection. The original

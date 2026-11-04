@@ -23,7 +23,7 @@ cases (528/555), or 1,085 in the separate asset-fidelity selection. Python
 retains 955 controls and three existing hosted skips. Strict analysis already
 includes the modified libraries and Display test. No controller, workflow,
 dependency, reference, generated file or case count changes. Fresh focused
-qualification is pending; original bounds and refusals remain.
+qualification is recorded below; original bounds and refusals remain.
 
 The [first-delivery scope](fast-first-delivery.md) continues. New full Windows
 builds, native producers, image transport and detailed visual/performance
@@ -52,5 +52,30 @@ already defaults this property to false.
 
 Source400 removes only the redundant argument. The same unfilled theme value,
 every other application/test/controller/workflow byte and all 1,083 cases
-remain. Fresh complete engine execution and zero-finding analysis are pending.
+remain. Fresh complete engine execution and zero-finding analysis follow below.
 The original Source399 failure is preserved and not retried.
+
+## Focused result
+
+Original [41755440101](https://github.com/edgepillar/syrius/actions/runs/41755440101),
+attempt one, job 126330340700, independently qualifies Source400
+`aa991e302d29213a01f8a739cc6a4b4c6d9d73cd`, tree
+`02e373c6cf4fee1a0cd4e22b14790059166be729`. Both complete 42/42-file
+streams pass: all 1,083 ordinary cases (528/555), 114 hidden and 1,197 terminal
+events, with no failures, errors or skips. Existing Display controls pass,
+including all six languages, both themes/heights, original enabled menu
+buttons, actual arrow-position taps, saved values, selected-label visibility,
+large Arabic, unsupported-chain refusal and zero price requests. All nine
+Pillars card cases and every earlier focused path also pass.
+
+Python completes 955 controls without failures/errors and retains three
+existing hosted skips. Fourteen assets pass. Selected analysis has zero
+errors, warnings and infos. Original startup/entry refusals and all worker,
+deadline, output and completion bounds remain. All source-bound jobs are
+terminal with zero artifacts. The 1,085 asset-fidelity count remains separate.
+
+Source401 changes documentation only and preserves every application, test,
+controller, workflow and dependency byte from tested Source400. The earlier
+Source399 failure and its omitted diagnostic-path limitation remain. No
+original producer is retried. Native pixels, X556 container geometry and full
+platform, visual, performance and lab acceptance remain phase-two work.
