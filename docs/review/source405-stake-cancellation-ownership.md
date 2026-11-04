@@ -239,3 +239,37 @@ process bound remains. Application libraries, wallet I/O, all other selected
 tests, projector, workflow and dependencies are unchanged. The same 1,115
 ordinary cases and zero-finding selected analysis remain required. Heavy
 Windows, native, image and final visual/performance acceptance stays deferred.
+
+## Fresh Source411 focused result
+
+Source411 `7ced2135d937ae1aacf776009ef587fea9601a7f`, tree
+`2d6d74b4da0ad84a41363d2bf0171b29baa2f147`, independently qualifies
+[41773894715](https://github.com/edgepillar/syrius/actions/runs/41773894715),
+attempt one, job 126389660257. Both complete 44-file streams pass, 546/569:
+all 1,115 ordinary cases, zero failures/errors/skips, 124 hidden events and
+1,239 terminal events. The original one-worker, 240-second group, 480-second
+aggregate and 4 MiB group-output bounds remain. Actual streams close normally
+in 190.578 and 160.109 seconds without forced kill, timeout or overflow.
+
+All seven cancellation bloc cases, seven real-dialog cases and seven table
+cases pass. The real dialog covers original account/hash/template ownership,
+both themes, duplicate callbacks, No, hidden/stale callbacks, an account round
+trip, view removal and late accepted outcomes. The recording guard assertion
+keeps its original value and matcher through the callback-specific API; all
+case bodies remain byte-identical to Source410. Every earlier selected path,
+including Deposit readiness, Send/Stake context and compact pickers, also passes.
+
+Python completes all 955 controls with zero failures/errors and three existing
+hosted skips. Fourteen asset controls pass. Selected analysis exits zero with
+complete empty output and zero errors, warnings or infos. Every source-bound
+job is terminal, with zero artifacts. The 1,117 asset-fidelity variant and
+standalone rail widget suite are outside this ordinary selection.
+
+This result resolves X563-X565 only within their focused source/engine scope.
+Source410's measured async-conflict failure and all earlier failures remain
+preserved. Earlier unretained messages and exact causes are not reconstructed.
+Source412 changes documentation only; no second producer or local SDK is used.
+Full current-source Windows, native cancellation effects, six seeded effects,
+visual/performance/platform and final acceptance remain unqualified/deferred.
+The original ledger stays 72/80, 50/94 literal outputs, 44 missing and zero
+accepted whole-image matches. The existing PR remains Draft.

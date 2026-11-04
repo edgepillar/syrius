@@ -1,13 +1,24 @@
 # First delivery and deferred acceptance
 
-Updated: 2026-11-04T04:30Z.
+Updated: 2026-11-04T04:44Z.
 
 The owner selected a first delivery covering the core interface and existing
 basic functionality, with detailed visual and extended platform/lab acceptance
 afterward. The first milestone is ready for Draft code review. Final acceptance
 of the complete redesign remains open.
 
-The latest focused source is Source403 `8bbfe5eb464d1b381239c8985512118445e1c5ec`.
+The latest focused source is Source411 `7ced2135d937ae1aacf776009ef587fea9601a7f`.
+Its [cancellation ownership result](source405-stake-cancellation-ownership.md#fresh-source411-focused-result)
+in [41773894715](https://github.com/edgepillar/syrius/actions/runs/41773894715)
+passes all 1,115 ordinary cases in complete 44/44-file streams (546/569),
+955 Python controls with three existing skips, fourteen assets and zero selected
+findings. Every cancellation bloc/dialog/table case and earlier focused path
+passes. The guard assertion's value/matcher, every case body and all process
+bounds remain. Original Source405-410 failures retain their evidence and scope.
+Source412 changes documentation only. Native cancellation effects and full
+Windows/lab/visual/performance acceptance remain in the second phase.
+
+The earlier focused source is Source403 `8bbfe5eb464d1b381239c8985512118445e1c5ec`.
 Its [Deposit readiness result](source402-deposit-input-readiness.md#fresh-source403-focused-result)
 in [41762557560](https://github.com/edgepillar/syrius/actions/runs/41762557560)
 passes all 1,094 cases in complete 43/42-file streams (539/555), 955 Python
@@ -131,8 +142,9 @@ passing Python/assets and a separate 1,111-pass/four-failure result. The closed
 observer executes and reports TEST_ASYNC_CONFLICT in all three retained details.
 Source411 changes the recording publisher's guard assertion to Flutter's
 callback-specific expectSync with the same value/matcher. Every case body and
-application byte stays unchanged; the fresh 1,115-case result is pending.
-Original failures remain preserved. No heavy qualification is added.
+application byte stays unchanged. The fresh Source411 result above qualifies
+all 1,115 cases and zero-finding selected analysis. Original failures remain
+preserved. No heavy qualification is added.
 
 ## Second phase
 
