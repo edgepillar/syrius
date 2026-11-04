@@ -25,7 +25,9 @@ part of 'home_hero.dart';
   ).single;
   final double width = space.right - space.left;
   final double height = painter.height;
-  final double baseline = painter.computeLineMetrics().single.baseline;
+  final double baseline = painter.computeDistanceToActualBaseline(
+    TextBaseline.alphabetic,
+  );
   painter.dispose();
   return (symbolGap: width, height: height, baseline: baseline);
 }

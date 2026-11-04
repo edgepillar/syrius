@@ -2551,3 +2551,12 @@ See [the diagnostic scope](docs/review/source445-home-baseline-diagnostics.md).
 | ID | State | Updated | Evidence |
 | --- | --- | --- | --- |
 | X585 | review | 2026-11-04T17:34Z | Twenty-three local read-only/in-memory projection controls pass, including five new privacy/binding controls, without SDK/network/native or scratch. Only twelve typed fields from the failing known Home test may be exported; unknown keys, wrong types, nonfinite/range violations, duplicates, malformed last records and foreign contexts refuse. Original failures are rethrown and remain preserved; no raw input, identity, path or error text is exported. Hosted total is 1006 controls/three existing skips; unchanged widget selection stays 1230/1232 in 48/48-file groups (597/633). Fresh hosted observation remains pending; original 72/80 and full native/lab/visual acceptance stay open. |
+
+
+### Home paragraph baseline measurement
+
+See [the original Source445 geometry and Source446 correction](docs/review/source446-home-paragraph-baseline.md). The original failed stream measures a 0.4-pixel difference between the dollar target and actual amount paragraph; the correction uses Flutter layout's alphabetic paragraph-baseline API. All test bytes and the original 0.1 tolerance remain. Heavy second-phase qualification stays deferred.
+
+| ID | State | Updated | Evidence |
+| --- | --- | --- | --- |
+| X586 | review | 2026-11-04T17:54Z | Original Source445 41879360932, attempt one, job 126747573974 is terminal with zero artifacts. All 1006 Python controls/three existing skips, fourteen assets and zero selected findings pass; its complete unforced first group retains 596 passes/one failure, with the second group unreached. Typed dark RTL normal-scale primary-coin coordinates measure 95.94000053405762 versus 95.54000091552734, while the dollar follows target 30.540000915527344 above top 65. Source446 uses the alphabetic paragraph-baseline API for the same constant sample/painter; all original test bytes, input variants, tolerance, financial behavior and process bounds remain. Fresh 1230-case qualification is pending; original 72/80 and full acceptance stay open. |

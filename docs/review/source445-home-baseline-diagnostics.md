@@ -40,3 +40,17 @@ no old producer or financial operation is replayed. Full Windows/lab/image/motio
 acceptance remains deferred. The original ledger remains 72/80, 50/94 historical
 literal outputs, 44 missing and zero accepted whole-image matches. The PR stays
 Draft with English public content and edgepillar attribution.
+
+## Original hosted observation
+
+Run [41879360932](https://github.com/edgepillar/syrius/actions/runs/41879360932),
+attempt one, job 126747573974, is terminal with zero artifacts. All 1,006 Python
+controls complete with three existing skips, fourteen assets pass and selected
+analysis has zero findings. Its complete, unforced first widget stream retains
+596 passes and one failure; the second group is unreached. The known Home
+fixture reports a dark RTL primary-coin baseline difference of approximately
+0.4 logical pixels at normal text scale. Its OTHER error-kind tag does not
+establish a more specific original exception. The 0.1 tolerance remains.
+[Source446](source446-home-paragraph-baseline.md) follows this finite geometry
+with the paragraph baseline API; this failed producer is not replayed or
+converted into positive UI qualification.
