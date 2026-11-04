@@ -1,6 +1,6 @@
 # First delivery and deferred acceptance
 
-Updated: 2026-11-04T03:18Z.
+Updated: 2026-11-04T03:27Z.
 
 The owner selected a first delivery covering the core interface and existing
 basic functionality, with detailed visual and extended platform/lab acceptance
@@ -109,8 +109,11 @@ must retain their original owner. All previous focused paths plus complete
 cancellation/table coverage prepare 1,115 cases. Its original pre-SDK run
 retains one test-basename catalog failure and skipped SDK/analysis/Dart.
 Source406 adds the missing public basename and protects descendant-context
-lifetime; twenty-four local controls pass, with fresh focused qualification
-pending. This source correction schedules no heavy platform/lab or image work.
+lifetime. Its original analysis result retains five infos and skipped Dart,
+with Python/assets passing. Source407 corrects the matching braces/imports
+without changing any fixture/test body, case or publication argument.
+Twenty-four local controls pass; fresh focused qualification is pending.
+This source correction schedules no heavy platform/lab or image work.
 
 ## Second phase
 

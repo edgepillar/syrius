@@ -6,12 +6,13 @@ import 'package:mocktail/mocktail.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
+import
+    'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/wallet_context_revision.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/tabs.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
-import '../../../lib/rearchitecture/features/cancel_stake/cancel_stake.dart';
-import '../../../lib/utils/wallet_context_revision.dart';
-import '../../../lib/widgets/shell/tabs.dart';
 import '../../helpers/hydrated_bloc.dart';
 import '../../publication_session/support.dart';
 

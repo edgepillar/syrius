@@ -132,7 +132,9 @@ class _CancelStakeButtonState extends State<CancelStakeButton> {
       if (!painted() || _confirming || _submitted) return;
       final CancelStakeBloc cancelStakeBloc = context.read<CancelStakeBloc>();
       if (cancelStakeBloc.isClosed ||
-          cancelStakeBloc.state is CancelStakeLoading) return;
+          cancelStakeBloc.state is CancelStakeLoading) {
+        return;
+      }
       final WalletActionContext? action = WalletActionContext.capture(owner);
       bool current() =>
           painted() &&
@@ -153,7 +155,9 @@ class _CancelStakeButtonState extends State<CancelStakeButton> {
         );
 
         if (cancellationConfirmed != true || !current() ||
-            cancelStakeBloc.isClosed) return;
+            cancelStakeBloc.isClosed) {
+          return;
+        }
         final AccountBlockTemplate block = action!.client.embedded.stake
             .cancel(Hash.parse(hash));
         if (!current()) return;

@@ -72,7 +72,33 @@ Source review also adds an explicit mounted check for the original builder
 context and captures the existing error label before the dialog's await. A
 late callback cannot consult an unmounted descendant context. Dialog text,
 original block/address/guard arguments and every existing test remain. Fresh
-Source406 focused engine and zero-finding analysis are pending.
+Source407 focused engine and zero-finding analysis are pending; the original
+Source406 analysis result is retained below.
+
+## Original Source406 analysis refusal
+
+Source406 `db93a4b4a6857493d7da2e5eba508e6c0c60bb9a`, tree
+`b6568d78b8882b9c93d9e6c0d3a2d4561db81524`, retains failed
+[41766560606](https://github.com/edgepillar/syrius/actions/runs/41766560606),
+attempt one, job 126366181551. Python completes all 955 controls without
+failures/errors and retains three existing skips. Fourteen assets pass.
+Analysis exits normally with complete 958-byte output, zero errors/warnings
+and five infos: two CURLY_BRACES_IN_FLOW_CONTROL_STRUCTURES at 135:56 and
+156:39, and three AVOID_RELATIVE_LIB_IMPORTS at 12:8, 13:8 and 14:8. All are
+categorized as other. Raw diagnostic paths are not retained or reconstructed.
+The zero-info gate refuses; Dart is skipped. All jobs are terminal with zero
+artifacts, and the original producer is not retried.
+
+## Source407 declaration cleanup
+
+Source correspondence identifies two multiline returns and the new widget
+test's three relative library imports. That correspondence is source inference,
+not a reconstructed raw diagnostic path. The returns now have braces and the
+test imports the same declarations through package URIs. The complete fixture
+and test bodies are byte-identical. No test, condition, publication argument,
+worker or output bound changes. X564 separates this declaration cleanup from
+X563's application-flow acceptance. Fresh strict analysis and all 1,115 focused
+cases remain required.
 
 The fast first-delivery priority continues. No new full Windows build, native
 chain producer, image transport or local SDK execution accompanies this source
