@@ -2466,3 +2466,11 @@ See [the original pre-install refusal and tiny diagnostic](docs/review/source436
 | Row | Status | Updated | Evidence |
 | --- | --- | --- | --- |
 | X578 | done | 2026-11-04T14:26Z | Source436 c51b01bd727e / registration 41845470979 and manual 41845942293 independently bind source/attempt, twenty-two source controls, helper parsing and one 32-byte regular fixture with Python 3.13.17. All seven metadata comparisons are equal, payload matches and the unchanged verifier accepts. Both runs are terminal with zero artifacts; MSI is skipped, source stays unchanged and no large download repeats. General mismatch is not reproduced; original Source435 failure and NOT_ESTABLISHED cause remain. Source437 changes documentation only. This closes the finite fixture observation, not MSI/P03/P09 or full acceptance. |
+
+## Source438 finite package verification predicates
+
+See [the fixed refusal projection](docs/review/source438-wsl-verification-predicates.md). The original package checks, identity fields, order and bounds remain; the wrapper retains the original exception and never retries. The identity-only lane adds a second 32-byte digest-refusal control without selecting package download or installation. [Exact body333](docs/review/pr-body-333.md) preserves the previous results.
+
+| Row | Status | Updated | Evidence |
+| --- | --- | --- | --- |
+| X579 | review | 2026-11-04 | Twenty-eight local mocked controls pass without native, network, PowerShell or scratch work. Fixed type/size/link/identity/length/digest refusal codes and equality-only fields preserve the original verifier decisions and one-call result/exception. Private or unknown failures stay finite/UNKNOWN. Hosted source and actual two-file Windows controls remain pending before any fresh package trial is selected. No original producer is retried, timestamp guard relaxed or full acceptance granted. P03/P09 and complete original scope remain open. |

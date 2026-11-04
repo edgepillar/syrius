@@ -163,14 +163,36 @@ jobs:
                   path_single_link=before.st_nlink == 1, path_to_handle=compare(before, opened),
                   handle_stable=compare(opened, finished), path_stable=compare(before, after))
               # These fixture-only constants never qualify a real MSI or start installation.
+              verification = {}
               with patch.object(package, 'PACKAGE_BYTES', len(payload)), patch.object(
                       package, 'PACKAGE_SHA256', hashlib.sha256(payload).hexdigest()):
                   try:
-                      package.verify_package(path)
+                      package.verify_for_installation(path, verification)
                       verifier = 'ACCEPTED'
                   except package.Refused:
                       verifier = 'REFUSED'
               value['original_verifier_result'] = verifier
+              value['file_verification'] = verification['file_verification']
+              assert verifier == 'ACCEPTED' and value['file_verification'] == dict(
+                  status='VERIFIED', code=None, comparisons={}, os_code=None)
+              negative_path = root / 'digest-mismatch-fixture.bin'
+              with negative_path.open('xb') as stream:
+                  stream.write(b'x' * len(payload))
+                  stream.flush()
+                  os.fsync(stream.fileno())
+              negative_path.chmod(0o400)
+              negative = {}
+              refused = False
+              with patch.object(package, 'PACKAGE_BYTES', len(payload)), patch.object(
+                      package, 'PACKAGE_SHA256', hashlib.sha256(payload).hexdigest()):
+                  try:
+                      package.verify_for_installation(negative_path, negative)
+                  except package.PackageRefused:
+                      refused = True
+              value.update(negative_fixture_bytes=len(payload),
+                  negative_verification=negative['file_verification'])
+              assert refused and value['negative_verification'] == dict(status='REFUSED',
+                  code='PACKAGE_DIGEST_REFUSED', comparisons={}, os_code=None)
               value['stage'] = 'source_after'
               assert source() == original
               value.update(status='OBSERVED', stage='complete', source_unchanged=True)

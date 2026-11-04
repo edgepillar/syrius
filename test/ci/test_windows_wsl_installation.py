@@ -88,19 +88,31 @@ class InstallationControls(unittest.TestCase):
             installation.copy_verified(response, io.BytesIO(), 3, '0' * 64, sample=refused)
         self.assertEqual(response.tell(), 0)
 
-    def verify_memory_package(self, *, replaced=False):
+    def verify_memory_package(self, *, replaced=False, changed_field=None,
+                              changed_phase='open', header=None, received=None):
         raw = b'fixed-public-fixture'
         before = SimpleNamespace(st_dev=1, st_ino=2, st_size=len(raw), st_mtime_ns=3,
             st_ctime_ns=4, st_nlink=1, st_mode=stat.S_IFREG)
         after = SimpleNamespace(**dict(vars(before), st_ino=5)) if replaced else before
+        opened, closed = before, before
+        if changed_field is not None:
+            changed = SimpleNamespace(**dict(vars(before),
+                **{changed_field: getattr(before, changed_field) + 1}))
+            if changed_phase == 'open':
+                opened = changed
+            elif changed_phase == 'close':
+                closed = changed
+            else:
+                after = changed
+        first = before if header is None else SimpleNamespace(**dict(vars(before), **header))
         class Package(io.BytesIO):
             def fileno(self):
                 return 123
         with (patch.object(installation, 'PACKAGE_BYTES', len(raw)),
                 patch.object(installation, 'PACKAGE_SHA256', hashlib.sha256(raw).hexdigest()),
-                patch.object(installation.readiness.bounded, 'plain', side_effect=[before, after]),
-                patch.object(Path, 'open', return_value=Package(raw)),
-                patch.object(installation.os, 'fstat', return_value=before)):
+                patch.object(installation.readiness.bounded, 'plain', side_effect=[first, after]),
+                patch.object(Path, 'open', return_value=Package(raw if received is None else received)),
+                patch.object(installation.os, 'fstat', side_effect=[opened, closed])):
             installation.verify_package(Path('fixture.msi'))
 
     def test_package_is_rehashed_with_stable_file_identity_before_installation(self):
@@ -109,6 +121,70 @@ class InstallationControls(unittest.TestCase):
     def test_replaced_verified_package_is_refused_without_installation(self):
         with self.assertRaises(installation.Refused):
             self.verify_memory_package(replaced=True)
+
+    def test_each_original_identity_field_and_phase_remain_guarded(self):
+        for phase, code in (('open', 'PACKAGE_OPEN_IDENTITY_REFUSED'),
+                ('close', 'PACKAGE_CLOSE_IDENTITY_REFUSED'),
+                ('path', 'PACKAGE_PATH_IDENTITY_REFUSED')):
+            for field in installation.IDENTITY_FIELDS:
+                with self.subTest(phase=phase, field=field):
+                    with self.assertRaises(installation.PackageRefused) as caught:
+                        self.verify_memory_package(changed_field=field, changed_phase=phase)
+                    value = installation.verification_failure(caught.exception)
+                    self.assertEqual(value['code'], code)
+                    self.assertIs(value['comparisons'][field], False)
+                    self.assertTrue(all(v for k, v in value['comparisons'].items() if k != field))
+
+    def test_original_type_size_links_length_digest_and_overflow_stay_distinct(self):
+        for header, received, code in (
+                (dict(st_mode=stat.S_IFDIR), None, 'PACKAGE_TYPE_REFUSED'),
+                (dict(st_size=1), None, 'PACKAGE_SIZE_REFUSED'),
+                (dict(st_nlink=2), None, 'PACKAGE_LINKS_REFUSED'),
+                (None, b'short', 'PACKAGE_LENGTH_REFUSED'),
+                (None, b'x' * len(b'fixed-public-fixture'), 'PACKAGE_DIGEST_REFUSED'),
+                (None, b'fixed-public-fixture-extra', 'PACKAGE_STREAM_SIZE_REFUSED')):
+            with self.subTest(code=code):
+                with self.assertRaises(installation.PackageRefused) as caught:
+                    self.verify_memory_package(header=header, received=received)
+                self.assertEqual(installation.verification_failure(caught.exception)['code'], code)
+
+    def test_wrapper_rethrows_the_same_refusal_without_a_second_call(self):
+        error = installation.PackageRefused('PACKAGE_DIGEST_REFUSED')
+        report, path = {}, Path('fixture.msi')
+        with patch.object(installation, 'verify_package', side_effect=error) as verify:
+            with self.assertRaises(installation.PackageRefused) as caught:
+                installation.verify_for_installation(path, report)
+        self.assertIs(caught.exception, error)
+        verify.assert_called_once_with(path)
+        self.assertEqual(report['file_verification'], dict(status='REFUSED',
+            code='PACKAGE_DIGEST_REFUSED', comparisons={}, os_code=None))
+
+    def test_unknown_mutated_and_private_failures_cannot_enter_the_projection(self):
+        class Hostile(installation.PackageRefused):
+            @property
+            def code(self):
+                raise RuntimeError('private-details')
+        hostile = Hostile.__new__(Hostile)
+        changed = installation.PackageRefused('PACKAGE_DIGEST_REFUSED')
+        changed.code = 'private-path'
+        fields = installation.PackageRefused('PACKAGE_OPEN_IDENTITY_REFUSED')
+        fields.comparisons = {'st_ino': 'private-identifier'}
+        for error in (RuntimeError('private-person'), hostile, changed, fields,
+                      PermissionError(13, 'private-path')):
+            with self.subTest(kind=type(error).__name__):
+                value = installation.verification_failure(error)
+                self.assertEqual(value['status'], 'UNKNOWN')
+                self.assertEqual(value['code'], 'PACKAGE_VERIFICATION_UNCERTAIN')
+                self.assertEqual(value['comparisons'], {})
+                self.assertNotIn('private', json.dumps(value))
+
+    def test_verification_success_preserves_result_without_starting_installation(self):
+        original, report, path = object(), {}, Path('fixture.msi')
+        with patch.object(installation, 'verify_package', return_value=original) as verify:
+            self.assertIs(installation.verify_for_installation(path, report), original)
+        verify.assert_called_once_with(path)
+        self.assertEqual(report, dict(file_verification=dict(status='VERIFIED',
+            code=None, comparisons={}, os_code=None)))
 
     def test_redirects_refuse_credentials_http_other_hosts_ports_and_fragments(self):
         for url in ('http://github.com/file', 'https://example.com/file',
@@ -155,7 +231,7 @@ class InstallationControls(unittest.TestCase):
         self.assertFalse(value['reported_success'])
         self.assertFalse(value['ready_without_reboot'])
 
-    def run_controller(self, *, reboot=False, blocked=False):
+    def run_controller(self, *, reboot=False, blocked=False, verification_refusal=False):
         parent = dict(GITHUB_ACTIONS='true', RUNNER_OS='Windows', RUNNER_ARCH='ARM64',
             SYRIUS_HOSTED_RUNNER='github-hosted', GITHUB_REPOSITORY='edgepillar/syrius',
             GITHUB_EVENT_NAME='workflow_dispatch', GITHUB_REF='refs/heads/redesign',
@@ -209,18 +285,20 @@ class InstallationControls(unittest.TestCase):
                 patch.object(installation.owned, 'sample_storage', return_value=0),
                 patch.object(installation.owned, 'Commands', side_effect=commands),
                 patch.object(installation, 'download', return_value=Path('fixture.msi')),
-                patch.object(installation, 'verify_package'),
+                patch.object(installation, 'verify_package',
+                    side_effect=(installation.PackageRefused('PACKAGE_DIGEST_REFUSED')
+                        if verification_refusal else None)),
                 patch.object(installation.readiness.bounded, 'run_bounded', side_effect=query),
                 patch.object(installation.readiness.bounded.subprocess, 'Popen',
                     side_effect=AssertionError('No process'))):
-            if blocked:
+            if blocked or verification_refusal:
                 with self.assertRaises(installation.Refused):
                     installation.observe(parent, report)
             else:
                 installation.observe(parent, report)
         installs = [argv for argv in calls if argv[0].endswith('msiexec.exe')]
-        self.assertEqual(len(installs), 0 if blocked else 1)
-        if not blocked:
+        self.assertEqual(len(installs), 0 if blocked or verification_refusal else 1)
+        if not blocked and not verification_refusal:
             self.assertEqual(installs[0][1:],
                 ['/i', 'fixture.msi', '/qn', '/norestart', 'REBOOT=ReallySuppress'])
         return report, [argv[-1] for argv in reads if argv[0] != 'git.exe']
@@ -249,6 +327,13 @@ class InstallationControls(unittest.TestCase):
         self.assertEqual(value['preflight_command']['exit_code'], 0)
         self.assertTrue(value['preflight_command']['output_complete'])
         self.assertFalse(value['preflight_command']['forced'])
+
+    def test_real_controller_retains_verification_refusal_before_install_or_queries(self):
+        value, queries = self.run_controller(verification_refusal=True)
+        self.assertEqual(queries, [])
+        self.assertFalse(value['installation_requested'])
+        self.assertFalse(value['component_version_qualified'])
+        self.assertEqual(value['file_verification']['code'], 'PACKAGE_DIGEST_REFUSED')
 
     def test_nonhosted_context_refuses_before_files_network_or_processes(self):
         with (patch.object(installation, 'download', side_effect=AssertionError('No download')) as download,

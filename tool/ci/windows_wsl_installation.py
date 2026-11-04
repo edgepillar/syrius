@@ -46,6 +46,52 @@ class Refused(Exception):
     pass
 
 
+IDENTITY_FIELDS = ('st_dev', 'st_ino', 'st_size', 'st_mtime_ns', 'st_ctime_ns', 'st_nlink')
+PACKAGE_CODES = frozenset((
+    'PACKAGE_TYPE_REFUSED', 'PACKAGE_SIZE_REFUSED', 'PACKAGE_LINKS_REFUSED',
+    'PACKAGE_OPEN_IDENTITY_REFUSED', 'PACKAGE_STREAM_SIZE_REFUSED',
+    'PACKAGE_CLOSE_IDENTITY_REFUSED', 'PACKAGE_PATH_IDENTITY_REFUSED',
+    'PACKAGE_LENGTH_REFUSED', 'PACKAGE_DIGEST_REFUSED',
+))
+
+
+class PackageRefused(Refused):
+    def __init__(self, code, comparisons=None):
+        self.code = code if type(code) is str and code in PACKAGE_CODES else None
+        self.comparisons = {} if comparisons is None else dict(comparisons)
+        super().__init__('PACKAGE_VERIFICATION_REFUSED')
+
+
+def verification_failure(error):
+    unknown = dict(status='UNKNOWN', code='PACKAGE_VERIFICATION_UNCERTAIN',
+                   comparisons={}, os_code=None)
+    if type(error) is PackageRefused:
+        code, comparisons = error.code, error.comparisons
+        if (type(code) is str and code in PACKAGE_CODES and type(comparisons) is dict
+                and (not comparisons or set(comparisons) == set(IDENTITY_FIELDS))
+                and all(type(value) is bool for value in comparisons.values())):
+            return dict(status='REFUSED', code=code,
+                        comparisons=dict(comparisons), os_code=None)
+    elif type(error) in (OSError, FileNotFoundError, PermissionError,
+                         IsADirectoryError, NotADirectoryError):
+        code = getattr(error, 'winerror', None)
+        code = getattr(error, 'errno', None) if code is None else code
+        if type(code) is int and code in (2, 3, 5, 13, 21, 32, 33, 87, 1117, 1392):
+            unknown['os_code'] = code
+    return unknown
+
+
+def verify_for_installation(path, report):
+    try:
+        result = verify_package(path)
+    except (Exception, KeyboardInterrupt) as error:
+        report['file_verification'] = verification_failure(error)
+        raise
+    report['file_verification'] = dict(status='VERIFIED', code=None,
+                                      comparisons={}, os_code=None)
+    return result
+
+
 def admit(parent, platform_name):
     expected = dict(GITHUB_ACTIONS='true', RUNNER_OS='Windows', RUNNER_ARCH='ARM64',
         SYRIUS_HOSTED_RUNNER='github-hosted', GITHUB_REPOSITORY='edgepillar/syrius',
@@ -190,23 +236,31 @@ def verify_package(path):
         return (info.st_dev, info.st_ino, info.st_size, info.st_mtime_ns,
                 info.st_ctime_ns, info.st_nlink)
     before = readiness.bounded.plain(path)
-    if (not stat.S_ISREG(before.st_mode) or before.st_size != PACKAGE_BYTES
-            or before.st_nlink != 1):
-        raise Refused()
+    if not stat.S_ISREG(before.st_mode):
+        raise PackageRefused('PACKAGE_TYPE_REFUSED')
+    if before.st_size != PACKAGE_BYTES:
+        raise PackageRefused('PACKAGE_SIZE_REFUSED')
+    if before.st_nlink != 1:
+        raise PackageRefused('PACKAGE_LINKS_REFUSED')
+    def require_identity(current, code):
+        actual, expected = identity(current), identity(before)
+        if actual != expected:
+            raise PackageRefused(code, dict(zip(IDENTITY_FIELDS,
+                (a == b for a, b in zip(actual, expected)))))
     digest, count = hashlib.sha256(), 0
     with path.open('rb') as stream:
-        if identity(os.fstat(stream.fileno())) != identity(before):
-            raise Refused()
+        require_identity(os.fstat(stream.fileno()), 'PACKAGE_OPEN_IDENTITY_REFUSED')
         while block := stream.read(65536):
             count += len(block)
             if count > PACKAGE_BYTES:
-                raise Refused()
+                raise PackageRefused('PACKAGE_STREAM_SIZE_REFUSED')
             digest.update(block)
-        if identity(os.fstat(stream.fileno())) != identity(before):
-            raise Refused()
-    if (identity(readiness.bounded.plain(path)) != identity(before)
-            or count != PACKAGE_BYTES or digest.hexdigest() != PACKAGE_SHA256):
-        raise Refused()
+        require_identity(os.fstat(stream.fileno()), 'PACKAGE_CLOSE_IDENTITY_REFUSED')
+    require_identity(readiness.bounded.plain(path), 'PACKAGE_PATH_IDENTITY_REFUSED')
+    if count != PACKAGE_BYTES:
+        raise PackageRefused('PACKAGE_LENGTH_REFUSED')
+    if digest.hexdigest() != PACKAGE_SHA256:
+        raise PackageRefused('PACKAGE_DIGEST_REFUSED')
 
 
 def observe(parent, report):
@@ -291,7 +345,7 @@ def observe(parent, report):
     env['SYRIUS_WSL_MSI_FILE'] = str(package)
     report['signature'] = facts('signature')
     signature(report['signature'])
-    verify_package(package)
+    verify_for_installation(package, report)
     report['stage'] = 'installer'
     report['installation_requested'] = True
     original_count = len(commands.originals)
@@ -340,7 +394,7 @@ def main(arguments=None):
         directory = str(Path(__file__).absolute().parents[2] / 'test/ci')
         suite = unittest.TestLoader().discover(directory,
             pattern='test_windows_wsl_installation.py')
-        if suite.countTestCases() != 22:
+        if suite.countTestCases() != 28:
             print('::error title=WSL installation controls::TEST_SELECTION_REFUSED')
             return 1
         return execute_suite(suite, scope='wsl_installation_controls',
