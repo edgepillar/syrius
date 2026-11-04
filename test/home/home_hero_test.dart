@@ -1191,8 +1191,8 @@ void main() {
   ) async {
     double baseline(Finder finder) {
       final RenderBox box = tester.renderObject<RenderBox>(finder);
-      final double? distance = box.getDistanceToBaseline(
-        TextBaseline.alphabetic, onlyReal: true,
+      final double? distance = box.getDryBaseline(
+        box.constraints, TextBaseline.alphabetic,
       );
       expect(distance, isNotNull);
       return tester.getTopLeft(finder).dy + distance!;

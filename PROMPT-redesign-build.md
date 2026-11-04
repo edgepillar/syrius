@@ -2508,3 +2508,18 @@ inspection does not establish an executed failure or a successful test result.
 | ID | State | Updated | Evidence |
 | --- | --- | --- | --- |
 | X582 | review | 2026-11-04T16:21Z | Source-derived test observation correction reads the supplied numeric span beneath Flutter's ambient wrapper. Exact 1.1/1.45 expectations, actual baseline comparisons, all theme/direction/scale/window inputs, case registrations and application bytes remain. The original Source441 job is neither cancelled nor replayed. Fresh hosted qualification remains pending; original 72/80 scope and all native/visual/platform/lab acceptance remain open. |
+
+
+### Original Home observer refusal and dry baseline query
+
+Original Source441 / 41862348827 passes all 1001 Python controls/three existing
+skips, fourteen assets and empty selected analysis. The first complete unforced
+48-file widget stream retains 596 passes/one failure at the new baseline query;
+the second group is unreached. The finite framework assertion and original
+failure remain preserved. Source443 queries the baseline at the paragraph's
+actual constraints through the documented dry API; application bytes and every
+original expectation, scenario, registration and bound remain.
+
+| ID | State | Updated | Evidence |
+| --- | --- | --- | --- |
+| X583 | review | 2026-11-04T16:33Z | Original run 41862348827, attempt one, job 126687333819, remains failed with a finite home_hero_test.dart:1194 / Flutter box:2479 assertion and unretained full message. Source443 uses getDryBaseline at actual constraints while retaining global placement, exact baseline tolerance/non-null check, Source442 numeric-span heights, all inputs and 1230/1232 totals. The old job is terminal with zero artifacts and is not replayed. Fresh Source443 analysis/widget qualification remains pending; the original 72/80, native/lab/platform/visual and final acceptance scope remains open. |
