@@ -42,8 +42,17 @@ command and a separate STOP_UNKNOWN close refusal in the complete notice prefix.
 The notice is truncated at 4,096 bytes; full runtime/exit details and the inner
 cause remain NOT_ESTABLISHED. Source451 adds
 [bounded receipt chunks and fixed diagnostics](review/source451-bounded-lab-observations.md)
-without changing original production/ownership/exit criteria. Fresh observations
-are pending; the old run stays failed and its shutdown remains unqualified.
+without changing original production/ownership/exit criteria. Its source-only
+41904571720 passes 1,026 controls with two existing Linux skips and zero
+failures/errors. The separate [actual Source451 result](review/source451-bounded-lab-observations.md#actual-source451-result)
+in 41905303718 is failed and terminal: all seven notices/22 command receipts
+are complete, at most 3,051 bytes. Original up observes chain 321 from one to
+two over fifty seconds; status exits one after two remains two for thirty
+seconds. Down exits zero, but observer/rpc die events exit 137; the other three
+exit zero and no OOM event is observed. Bounded node logs yield no known code.
+The exact inner causes, positive production, five normal exits and final native
+source verification remain unqualified. Both runs have zero artifacts. No
+unchanged trial is scheduled again; Source450 stays failed with its own unknowns.
 All 1,970 earlier runtime entries
 remain byte-identical; two new Python files are separately scoped. No new local
 SDK, binary transport, Windows build or old runtime replay occurs.

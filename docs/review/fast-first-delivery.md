@@ -22,6 +22,15 @@ The 1,232-case asset variant was not executed. Full Windows/native, lab, visual
 and performance acceptance remains deferred/open; this milestone is for Draft
 code review. Original progress stays 72/80 and zero accepted visual matches.
 
+Source449-451 add two separately scoped Python CI files while preserving all
+1,970 prior runtime entries from the qualified UI lineage. Source451's
+[original-lab observations](source451-bounded-lab-observations.md#actual-source451-result)
+qualify 1,026 source controls with two existing Linux skips. Its one bounded
+Linux component trial fails the original status and normal-container-exit gates;
+complete reporting does not qualify a working lab recipe or the current full
+native wallet. Source452 records these outcomes without changing runtime code.
+No new full Windows build, image transport or visual/performance pass is selected.
+
 The preceding complete focused source is Source428
 `fc49ca01d4c6e830176e8dff50e1abf3b4a6ce13`. Its
 [Token explorer result](source427-token-explorer-control.md#fresh-source428-focused-result)

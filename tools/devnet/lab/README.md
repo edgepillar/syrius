@@ -100,9 +100,17 @@ limits are unchanged. The lane does not qualify Windows Docker Desktop, import
 a wallet, send a block or admit F06. Source450 registration passes 1,022 controls
 with two existing Linux skips. Its first runtime fails the original status
 command and does not qualify shutdown; the large runtime notice is incomplete.
-Source451 adds bounded summary/receipt notices and fixed failure diagnostics.
+Source451's source-only 41904571720 and actual 41905303718 pass 1,026 controls
+with two existing Linux skips. The actual trial remains failed: all seven
+notices and 22 command receipts are complete, with a 3,051-byte largest notice.
+Up observes chain 321 from one to two over fifty seconds, then status exits one
+after height two stays unchanged for thirty seconds. Down exits zero, but
+observer/rpc container events exit 137 while the other three exit zero; no OOM
+event is observed. Production, five normal exits and final native source
+verification remain unqualified. Exact inner causes are NOT_ESTABLISHED.
+Both runs are terminal with zero artifacts; no unchanged trial is scheduled.
 See [the original scope](../../../docs/review/source449-original-lab-commands.md)
-and [the retained failure boundary](../../../docs/review/source451-bounded-lab-observations.md).
+and [the complete failed result](../../../docs/review/source451-bounded-lab-observations.md#actual-source451-result).
 Complete original-command qualification remains pending.
 
 The manual `Public Contribution Qualification` workflow has a default-off
