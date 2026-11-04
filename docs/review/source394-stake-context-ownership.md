@@ -35,8 +35,9 @@ original sender-admission cases remain. The focused lane adds the complete
 27-case sender file and five Stake cases: 84 files in 42/42-file streams,
 requiring 1,083 ordinary passes (528/555), or 1,085 with the separate asset
 selection. Both libraries and tests join strict analysis. Nineteen local mocked
-admission/analysis controls pass; hosted execution and strict analysis remain
-pending. Python retains 955 controls and three existing hosted skips. Original
+admission/analysis controls pass; the fresh Source395 result below qualifies
+strict analysis and both complete streams. Python retains 955 controls and
+three existing hosted skips. Original
 worker, deadline, output and process-completion bounds remain.
 
 The [fast first-delivery scope](fast-first-delivery.md) continues. New full
@@ -70,5 +71,28 @@ refusal is retained separately and does not represent a producer retry.
 The test now declares the context function and keeps its explicit original
 reference. This preserves the guard and identity assertions. Every application,
 controller, workflow, dependency, case and selected path stays unchanged.
-Fresh complete widget execution and zero-finding analysis remain pending.
+The fresh complete widget and zero-finding analysis result is recorded below.
 The original Source394 failure is preserved and not retried.
+
+## Fresh Source395 focused result
+
+Original [41747338338](https://github.com/edgepillar/syrius/actions/runs/41747338338),
+attempt one, job 126303544299, independently qualifies Source395
+`0f123a605e2299d4ba3cf85aa7628f7c9e619427`, tree
+`7b18f30584e51e2daaa50524077a67deb44e9b88`. Both complete 42/42-file
+streams pass: all 1,083 ordinary cases (528/555), 114 hidden and 1,197 terminal
+events, with no failures, errors or skips. All ten Stake widget cases and all
+27 real sender-admission cases pass. Every earlier focused path remains.
+
+Python completes 955 controls without failures/errors and retains three
+existing hosted skips. Fourteen asset controls pass. Selected analysis has
+zero errors, warnings and infos. Original startup/entry refusals and all
+worker, deadline, output and completion bounds remain. All source-bound jobs
+are terminal with zero artifacts. The 1,085 asset-fidelity count remains a
+separate selection. No local SDK, wallet, node, build or image transfer runs.
+
+Source396 changes documentation only and preserves every application, test,
+controller, workflow and dependency byte from tested Source395. The original
+Source394 failure and its omitted diagnostic-path limitation remain. No
+original producer is retried. Native effects, current-source full Windows,
+all visual pairs, platform and final acceptance remain phase-two work.

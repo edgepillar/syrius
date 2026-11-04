@@ -1,20 +1,24 @@
 # First delivery and deferred acceptance
 
-Updated: 2026-11-03T23:41Z.
+Updated: 2026-11-04T00:42Z.
 
 The owner selected a first delivery covering the core interface and existing
 basic functionality, with detailed visual and extended platform/lab acceptance
 afterward. The first milestone is ready for Draft code review. Final acceptance
 of the complete redesign remains open.
 
-The latest focused source is Source392 `19e322e0c019ce986cca70db78ab189db060a1e8`.
-Its [Send draft result](source392-send-draft-amount-binding.md#focused-result)
-in [41739664927](https://github.com/edgepillar/syrius/actions/runs/41739664927) passes all
-1,051 cases in complete 42/41-file streams (528/523), 955 Python controls with
-three existing skips, fourteen assets and zero selected findings. All 21
-Send form cases pass, including restored/arriving unavailable pairs, a lost
-balance owner, exact valid QSR retention and disabled fallback submission.
-Every earlier focused path passes. Source393 changes documentation only.
+The latest focused source is Source395 `0f123a605e2299d4ba3cf85aa7628f7c9e619427`.
+Its [Stake context result](source394-stake-context-ownership.md#fresh-source395-focused-result)
+in [41747338338](https://github.com/edgepillar/syrius/actions/runs/41747338338) passes all
+1,083 cases in complete 42/42-file streams (528/555), 955 Python controls with
+three existing skips, fourteen assets and zero selected findings. All ten
+Stake widget cases and all 27 sender-admission cases pass. Retained controls
+check their original address/generation, and only the original request result
+can update its current form. Refusal preserves its draft. All 21 earlier
+Send form cases and every earlier focused path pass. Source396 changes
+documentation only. The original Source394 analysis refusal remains preserved.
+The earlier [Send draft result](source392-send-draft-amount-binding.md#focused-result)
+retains its source and amount-owner regressions.
 The earlier [shared-chevron result](source388-shared-disclosure-symbols.md#fresh-source390-focused-result)
 keeps its source. Source388/389 retain their original assertion/framework
 failures. The earlier
