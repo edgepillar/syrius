@@ -2,6 +2,8 @@
 
 Small versioned records extend the preserved original validation history.
 
+- [Source409 original handler-type refusal](source405-stake-cancellation-ownership.md#original-source409-type-import-refusal): 41771375096 retains passing 955 Python controls/three existing skips and fourteen assets, one normal complete undefined-class analysis error and skipped Dart. Source410 adds the explicit FlutterExceptionHandler import without changing any other test or application byte. Fresh analysis/engine observation is pending; local Python controls do not qualify Flutter handler execution.
+
 - [Source408 repeated runtime result and Source409 diagnosis](source405-stake-cancellation-ownership.md#original-source408-runtime-result): 41769308454 retains 1,111 passes/four failures, complete streams and passing Python/assets/zero-finding analysis. Source409 preserves every application byte and case body while adding closed error-kind tags, original-handler forwarding and original failure rethrow. Thirty-seven local controls pass; fresh 1,115-case observation is pending. Exact original messages remain unretained and the cause stays NOT_ESTABLISHED.
 
 - [Source407 original runtime failure](source405-stake-cancellation-ownership.md#original-source407-runtime-result): 41767555787 retains clean analysis, passing Python/assets, 1,111 test passes and four failures in complete 44/44-file streams. Three retained details identify the new answer helper; the exact inner cause and complete messages remain unestablished. Source408's row/viewport follow-up retains its separate failure above. All original counts and bounds remain.

@@ -1,6 +1,6 @@
 # First delivery and deferred acceptance
 
-Updated: 2026-11-04T04:04Z.
+Updated: 2026-11-04T04:14Z.
 
 The owner selected a first delivery covering the core interface and existing
 basic functionality, with detailed visual and extended platform/lab acceptance
@@ -120,6 +120,10 @@ adds privacy-safe closed failure-kind observation without changing application
 code, any case body or failure handling. Thirty-seven local controls pass;
 fresh focused runtime diagnosis is pending. The exact original cause remains
 NOT_ESTABLISHED.
+Source409 retains one handler-type import error and skipped Dart. Source410
+adds the explicit foundation type import, retaining all other test/application
+bytes. The local controls cover Python privacy/catalog/admission; Flutter
+observer execution and complete focused acceptance remain pending.
 This source correction schedules no heavy platform/lab or image work.
 
 ## Second phase

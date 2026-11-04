@@ -171,6 +171,29 @@ I/O, selectors, recipes, workflow and dependencies are byte-identical to
 Source408. Fresh focused observation is pending; no successful runtime or
 native acceptance is inferred.
 
+## Original Source409 type-import refusal
+
+Source409 `f8f01ac6b5e38ba4d86e80c6054b6a65c24da714`, tree
+`a306e60a3f1071e8df22f2f404ebebc847d9abc8`, retains failed
+[41771375096](https://github.com/edgepillar/syrius/actions/runs/41771375096),
+attempt one, job 126381599364. Python completes all 955 controls without
+failures/errors, retaining three existing skips, and fourteen assets pass.
+Analysis exits three normally with complete 172-byte output: one
+UNDEFINED_CLASS error at 177:9 categorized as other, no warnings or infos.
+Raw diagnostic paths remain unretained. Dart is skipped, all jobs are terminal
+and artifacts are zero. The original producer is not retried.
+
+## Source410 explicit handler type
+
+The corresponding test declaration uses FlutterExceptionHandler. The fixture
+now imports that type explicitly from Flutter foundation, following the
+existing handler fixtures. This is source correspondence, not a reconstructed
+raw diagnostic path. Every other test byte, observer, original-handler call,
+rethrow, case, assertion, application byte and process bound stays unchanged.
+The thirty-seven local controls cover Python privacy/catalog/admission and
+source reads; they do not establish Flutter observer execution. Fresh strict
+analysis and focused engine observation remain required.
+
 The fast first-delivery priority continues. No new full Windows build, native
 chain producer, image transport or local SDK execution accompanies this source
 change. Native cancellation effects and full visual/platform/performance
