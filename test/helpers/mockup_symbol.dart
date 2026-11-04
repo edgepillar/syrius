@@ -6,7 +6,7 @@ import 'package:material_ui/material_ui.dart';
 
 final Map<String, String> _referenceSymbols = <String, String>{
   for (final RegExpMatch entry in RegExp(
-    r'<symbol id="([^"]+)" viewBox="0 0 24 24">(.*?)</symbol>',
+    '<symbol id="([^"]+)" viewBox="0 0 24 24">(.*?)</symbol>',
     dotAll: true,
   ).allMatches(File('mockups/redesign/src/00-head.html').readAsStringSync()))
     entry.group(1)!: entry.group(2)!,

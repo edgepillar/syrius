@@ -311,13 +311,13 @@ class _SentinelRevocationTimeState extends State<SentinelRevocationTime> {
 class _FactChip extends StatelessWidget {
   const _FactChip({
     required this.label,
-    required Widget icon,
+    required this._icon,
     required this.ink,
     required this.fill,
     required this.line,
     required this.compact,
     this.data = false,
-  }) : _icon = icon;
+  });
 
   final String label;
   final Widget _icon;

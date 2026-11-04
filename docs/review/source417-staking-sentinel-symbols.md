@@ -82,3 +82,31 @@ results and failures. Source415's 1,123-case result and Source368's full Windows
 baseline retain their exact revisions; neither is execution proof for this
 new source. The PR remains Draft and all public content remains English and
 privacy-safe.
+
+## Original Source417 focused result
+
+The original [run 41786938967](https://github.com/edgepillar/syrius/actions/runs/41786938967),
+attempt one, job 126431136640, is closed at Source417
+`96ef81b79d8d45930288ff5e9307e4656b0c61d8`, tree
+`5faf6eb6791b53a0159c20ff1d6d8084fa19c355`. Python passes all 955 controls
+with three existing skips and assets pass all fourteen controls. Selected
+analysis records zero errors/warnings and two infos, so the strict controller
+refuses that step and Dart tests are skipped. There are zero artifacts and all
+source-bound jobs are terminal. The original failed producer is not retried.
+
+The complete 331-byte analysis output has actual analyzer exit zero and
+SHA-256 `2d95e8516ed0d36c3d7927db870fc540a27614c62f5fcc17c8ffbfa147af2cc0`.
+The sanitized observer records PREFER_INITIALIZING_FORMALS at 320:8 and
+UNNECESSARY_RAW_STRINGS at 9:5. Both source classes are `other`; the original
+raw paths are unretained and are not reconstructed as producer evidence.
+
+Source418's on-disk correspondence identifies the new chip initializer and
+the helper's raw-string prefix as the matching source candidates. It uses the
+private-field initializing formal already supported by the pinned SDK and
+removes the unnecessary raw prefix. The resulting constructor argument and
+regular-expression contents remain the same. This attribution is source
+inference; the original observation above retains its scope. Every other
+application, test, Python, controller, dependency and workflow byte stays
+unchanged from Source417. The 37 completed local controls are reused against
+unchanged Python bytes. The 1,184/1,186 counts, all registrations and original
+process/refusal bounds remain. Fresh Source418 Flutter qualification is pending.

@@ -1,11 +1,19 @@
 # First delivery and deferred acceptance
 
-Updated: 2026-11-04T06:30Z.
+Updated: 2026-11-04T06:46Z.
 
 The owner selected a first delivery covering the core interface and existing
 basic functionality, with detailed visual and extended platform/lab acceptance
 afterward. The first milestone is ready for Draft code review. Final acceptance
 of the complete redesign remains open.
+
+Source417's [original analysis result](source417-staking-sentinel-symbols.md#original-source417-focused-result)
+retains passing 955 Python controls with three existing skips, fourteen assets,
+zero errors/warnings, two infos and skipped Dart. Source418 corrects only the
+matching initializer/raw-string syntax, preserving every input/action, case,
+registration and process bound. The 37 completed local controls are reused on
+unchanged Python bytes. Fresh 1,184-case/zero-finding Flutter qualification is
+pending; no heavy qualification or image work is scheduled.
 
 Source417 prepares [Staking and Sentinel control symbols](source417-staking-sentinel-symbols.md)
 from the unchanged original SVGs. All action, amount and ownership behavior
