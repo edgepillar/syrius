@@ -123,9 +123,13 @@ Future<void> _frames(WidgetTester tester) async {
 
 Future<_Fixture> _prepare(WidgetTester tester, {bool light = false}) async {
   final _Fixture source = _Fixture();
+  tester.view.physicalSize = const Size(1280, 780);
+  tester.view.devicePixelRatio = 1;
   addTearDown(() async {
     await tester.pumpWidget(const SizedBox.shrink());
     await source.dispose();
+    tester.view.resetPhysicalSize();
+    tester.view.resetDevicePixelRatio();
   });
   await tester.pumpWidget(source.host(light: light));
   await _frames(tester);
@@ -133,8 +137,10 @@ Future<_Fixture> _prepare(WidgetTester tester, {bool light = false}) async {
 }
 
 Future<void> _answer(WidgetTester tester, bool yes) async {
-  await tester.tap(find.byKey(Key(yes ? 'dialog_yes_button' :
-      'dialog_no_button')));
+  final Finder answer = find.byKey(Key(yes ? 'dialog_yes_button' :
+      'dialog_no_button'));
+  expect(answer.hitTestable(), findsOneWidget);
+  await tester.tap(answer);
   await _frames(tester);
 }
 

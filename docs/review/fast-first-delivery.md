@@ -1,6 +1,6 @@
 # First delivery and deferred acceptance
 
-Updated: 2026-11-04T03:27Z.
+Updated: 2026-11-04T03:43Z.
 
 The owner selected a first delivery covering the core interface and existing
 basic functionality, with detailed visual and extended platform/lab acceptance
@@ -112,7 +112,11 @@ Source406 adds the missing public basename and protects descendant-context
 lifetime. Its original analysis result retains five infos and skipped Dart,
 with Python/assets passing. Source407 corrects the matching braces/imports
 without changing any fixture/test body, case or publication argument.
-Twenty-four local controls pass; fresh focused qualification is pending.
+Source407 has zero selected findings but retains its separate 1,111-pass,
+four-failure runtime result. Source408 keeps admission with the stable row
+State and fixes the required fixture viewport, retaining every case body and
+assertion. Twenty-four local controls pass; fresh focused qualification is
+pending.
 This source correction schedules no heavy platform/lab or image work.
 
 ## Second phase

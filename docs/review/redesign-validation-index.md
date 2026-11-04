@@ -2,7 +2,9 @@
 
 Small versioned records extend the preserved original validation history.
 
-- [Source406 original five-info refusal](source405-stake-cancellation-ownership.md#original-source406-analysis-refusal): 41766560606 retains passing 955 Python controls/three existing skips and fourteen assets, but five infos refuse analysis and Dart is skipped. Source407 adds braces to the two matching multiline returns and uses package URIs for the three library imports. All fixture/test bodies, 1,115 cases and original bounds remain. Fresh qualification is pending; raw diagnostic paths remain unretained.
+- [Source407 original runtime failure](source405-stake-cancellation-ownership.md#original-source407-runtime-result): 41767555787 retains clean analysis, passing Python/assets, 1,111 test passes and four failures in complete 44/44-file streams. Three retained details identify the new answer helper; the exact inner cause and complete messages remain unestablished. Source408 binds the guard to the row State and fixes the specified fixture viewport while requiring one reachable original answer. Case bodies, assertions, counts and bounds remain; fresh qualification is pending.
+
+- [Source406 original five-info refusal](source405-stake-cancellation-ownership.md#original-source406-analysis-refusal): 41766560606 retains passing 955 Python controls/three existing skips and fourteen assets, but five infos refuse analysis and Dart is skipped. Source407's matching declaration correction has zero selected findings; its separate runtime failure remains above. Raw diagnostic paths remain unretained.
 
 - [Source405 original pre-SDK refusal](source405-stake-cancellation-ownership.md#original-source405-pre-sdk-refusal): 41765703173 retains one public-test catalog failure among 955 Python controls, zero errors and three existing skips. Assets, SDK, analysis and Dart are skipped. Source406 adds the new fixed basename and guards the original descendant context; its separate analysis refusal remains above. Twenty-four local mocked/read-only controls pass. Heavy Windows/lab/image work stays deferred. [Exact PR body323](pr-body-323.md) retains preceding results.
 

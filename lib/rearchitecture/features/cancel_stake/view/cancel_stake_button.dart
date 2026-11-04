@@ -119,15 +119,15 @@ class _CancelStakeButtonState extends State<CancelStakeButton> {
     final String hash = widget.stakeHash.toString();
     final BigInt amount = widget.amount;
     final int revision = WalletContextRevision.value;
+    // The row owner stays current while its loading child changes.
     bool painted() =>
         mounted &&
-        context.mounted &&
         owner == widget.ownerAddress &&
         hash == widget.stakeHash.toString() &&
         amount == widget.amount &&
         owner == kSelectedAddress &&
         revision == WalletContextRevision.value &&
-        TickerMode.valuesOf(context).enabled;
+        TickerMode.valuesOf(this.context).enabled;
     Future<void> cancel() async {
       if (!painted() || _confirming || _submitted) return;
       final CancelStakeBloc cancelStakeBloc = context.read<CancelStakeBloc>();

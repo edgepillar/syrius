@@ -97,8 +97,47 @@ not a reconstructed raw diagnostic path. The returns now have braces and the
 test imports the same declarations through package URIs. The complete fixture
 and test bodies are byte-identical. No test, condition, publication argument,
 worker or output bound changes. X564 separates this declaration cleanup from
-X563's application-flow acceptance. Fresh strict analysis and all 1,115 focused
-cases remain required.
+X563's application-flow acceptance. Source407's original result below retains
+clean analysis and a separate runtime failure. Fresh Source408 qualification
+remains required.
+
+## Original Source407 runtime result
+
+Source407 `506122cd9ca9f78b59a08fdefaded413b853893f`, tree
+`fcc563ac45768cf852e466950a99b316a53f7b6e`, retains failed
+[41767555787](https://github.com/edgepillar/syrius/actions/runs/41767555787),
+attempt one, job 126369414089. All 955 Python controls complete without
+failures/errors and with three existing skips; fourteen assets pass. Selected
+analysis completes normally with zero errors, warnings and infos.
+
+Both 44-file streams complete within their original bounds. The first passes
+all 546 cases, including all seven cancellation bloc cases. The second passes
+565 cases and fails four, with seven error events. Totals are 1,111 passes,
+four failures, 124 hidden events and 1,239 terminal events, with no skips.
+Original exits are zero/one, complete and unforced, without output overflow.
+The three retained error details identify the new widget test's answer helper
+at line 136. Complete framework messages and all failing case names are not
+retained; the exact inner cause remains NOT_ESTABLISHED. All jobs are terminal
+with zero artifacts. The aggregate is unqualified and is not retried.
+
+## Source408 row ownership and fixture follow-up
+
+The long-lived publication guard now checks the stable row State's mounting
+and visibility. A loading child's replacement cannot become the publication
+owner. Original account, generation, amount, hash and wallet checks remain.
+Removing the row still revokes its guard, and a late result still cannot
+refresh another context. Publication code and arguments remain unchanged.
+
+The real-dialog fixture now fixes its client area to the specified 1280 by 780
+at scale one and restores the prior view afterward. Its answer helper requires
+one hit-testable original answer before the same real tap. All seven widget
+case bodies and every original assertion remain byte-identical. The finite
+300 ms frame step, exact positive publication assertions, stale/duplicate
+refusals and original completion limits remain. These changes follow source
+review; they do not reconstruct the failed original's missing messages.
+
+No case or selected path is removed. Fresh zero-finding analysis and all 1,115
+focused cases remain required; full native/visual acceptance stays deferred.
 
 The fast first-delivery priority continues. No new full Windows build, native
 chain producer, image transport or local SDK execution accompanies this source
