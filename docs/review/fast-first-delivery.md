@@ -1,6 +1,6 @@
 # First delivery and deferred acceptance
 
-Updated: 2026-11-04T04:14Z.
+Updated: 2026-11-04T04:30Z.
 
 The owner selected a first delivery covering the core interface and existing
 basic functionality, with detailed visual and extended platform/lab acceptance
@@ -125,6 +125,14 @@ adds the explicit foundation type import, retaining all other test/application
 bytes. The local controls cover Python privacy/catalog/admission; Flutter
 observer execution and complete focused acceptance remain pending.
 This source correction schedules no heavy platform/lab or image work.
+
+Source410's original run 41772322605 now retains complete zero-finding analysis,
+passing Python/assets and a separate 1,111-pass/four-failure result. The closed
+observer executes and reports TEST_ASYNC_CONFLICT in all three retained details.
+Source411 changes the recording publisher's guard assertion to Flutter's
+callback-specific expectSync with the same value/matcher. Every case body and
+application byte stays unchanged; the fresh 1,115-case result is pending.
+Original failures remain preserved. No heavy qualification is added.
 
 ## Second phase
 

@@ -395,7 +395,7 @@ macOS; Windows provision and acceptance remain pending. See
 - Updated: 2026-11-04
 - Delivery priority: The owner reaffirmed [core interface and basic functionality first](docs/review/fast-first-delivery.md). Finalize the staged Draft handoff with completed evidence; defer new heavy platform/lab jobs, catalog transport and detailed motion/frame-time acceptance to phase two. The original final criteria remain open
 - Latest outcomes: [Source403 focused result](docs/review/source402-deposit-input-readiness.md#fresh-source403-focused-result) qualifies 41762557560: both complete 43/42-file streams, all 1094 cases (539/555), 955 Python controls/three existing skips, fourteen assets and zero selected findings. Existing Deposit real-modal cases and all earlier paths pass. Source404 preserves tested code. Original Source402 test failures, Source399/394 analysis refusals, earlier outcomes and Source368 full Windows/Native108 evidence retain their scope
-- Current implementation: The original first-delivery pin stays 19c7b2af5e1c. Source407/408 retain 1111 passes and four runtime failures. Source409 retains an undefined handler-type error with Dart skipped; Source410 adds its explicit foundation import, preserving every other test/application byte, case and 1115-case bound. Thirty-seven local Python/privacy/catalog controls pass, without qualifying Flutter observer execution. Fresh X565 analysis/runtime diagnosis is pending. Earlier failures and Source403 Deposit qualification retain their scope. Heavy Windows/lab/capture work and native verification remain deferred
+- Current implementation: The original first-delivery pin stays 19c7b2af5e1c. Source410 retains zero selected findings, 1111 passes and four failures. All three retained closed diagnostic details report TEST_ASYNC_CONFLICT. Source411 changes only the recording publisher guard assertion from expect to Flutter's callback-specific expectSync, retaining its value/matcher, every case body, application byte and 1115-case bound. Fresh X565 engine acceptance is pending. Earlier failures and Source403 Deposit qualification retain their scope. Heavy Windows/lab/capture work and native verification remain deferred
 - Actual review: All eight Source353 Home PNGs and their eight exact references were individually viewed in a successfully closed owned review. X521-X528 retain differences in hero distribution, type, glyphs, spacing and genuine data coverage. Source357 shared hero colours have no new native pixel acceptance. Earlier Settings findings remain source-bound; zero whole-image matches are accepted
 - Acceptance: 72/80 rows, 90 percent by original rows; nineteen preparations, 50 literal outputs, 44 missing and zero of 94 accepted matches. P03, P09, F06, V01-V03 and V05-V06 remain open. Native108 retains Stake/Fuse/Token prefix observations before Deposit command six refuses before publication; Project and Fund address remain unreached. All original FAILURE/HOLD/UNKNOWN and Native101/103/104 UNKNOWN remain. English public text, edgepillar no-reply/UTC attribution and Draft status continue
 
@@ -2361,7 +2361,7 @@ See [the original-account cancellation correction](docs/review/source405-stake-c
 
 | Row | Status | Updated | Evidence |
 | --- | --- | --- | --- |
-| X563 | todo | 2026-11-04T04:04Z | Source407 and Source408 each retain zero selected findings, 1111 passes and four failures. Source409 keeps application code, case bodies, assertions, exact publication arguments, all 1115 cases and limits while adding closed diagnosis. Thirty-seven local controls pass; X565 diagnosis and fresh flow/engine acceptance remain pending. All original failures, native effects and full acceptance remain open. |
+| X563 | todo | 2026-11-04T04:30Z | Source407/408/410 each retain zero selected findings, 1111 passes and four failures. Source410's closed tags identify TEST_ASYNC_CONFLICT. Source411 uses Flutter's callback assertion for the same guard value/matcher, retaining all case bodies, application bytes, publication arguments, 1115 cases and bounds. Fresh flow/engine acceptance remains pending. Original failures, native effects and full acceptance remain open. |
 
 ## Source407 cancellation declaration cleanup
 
@@ -2369,7 +2369,7 @@ See [the preserved analysis refusal and declaration correction](docs/review/sour
 
 | Row | Status | Updated | Evidence |
 | --- | --- | --- | --- |
-| X564 | todo | 2026-11-04T04:04Z | Source407 and Source408 both qualify normal complete zero-finding analysis after declaration cleanup, but each retains four test failures. Source409 preserves every case body, assertion and count/process gate while adding runtime diagnosis. Fresh zero-finding analysis and complete 1115-case acceptance remain required; Source406's original five-info refusal is preserved. |
+| X564 | todo | 2026-11-04T04:30Z | Source407/408/410 qualify normal complete zero-finding analysis after declaration cleanup, but each retains four test failures. Source411 keeps the original guard assertion value/matcher and all case bodies while correcting the recording callback's test API. Fresh zero-finding analysis and complete 1115-case acceptance remain required; Source406's original five-info refusal is preserved. |
 
 ## Source409 closed cancellation failure-kind observation
 
@@ -2377,4 +2377,4 @@ See [the bounded runtime diagnostic](docs/review/source405-stake-cancellation-ow
 
 | Row | Status | Updated | Evidence |
 | --- | --- | --- | --- |
-| X565 | todo | 2026-11-04T04:14Z | Source409 retains one undefined-class analysis error and skipped Dart after passing Python/assets. Source410 adds only the explicit foundation handler type import. Original forwarding/rethrow, application bytes, all cases/assertions and 1115-case bounds remain. Thirty-seven local controls cover Python privacy/catalog/admission, without qualifying the Flutter observer. Fresh focused diagnosis is pending; the two original runtime causes remain NOT_ESTABLISHED. |
+| X565 | todo | 2026-11-04T04:30Z | Source410's original 41772322605 executes the closed observer: all three retained details report TEST_ASYNC_CONFLICT, with 1111 passes/four failures and zero selected findings. Source411 uses expectSync for the recording callback's same canPublish-isTrue assertion, following the pinned Flutter API. Every case body, application byte, real input and bound remains. Fresh focused acceptance is pending; original Source407/408 messages and exact causes remain unretained/NOT_ESTABLISHED. |

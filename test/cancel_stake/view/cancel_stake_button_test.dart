@@ -50,7 +50,8 @@ class _Publisher extends AccountBlockUtils {
     owner = address;
     guard = canPublish;
     wait = waitForRequiredPlasma;
-    expect(canPublish?.call(), isTrue);
+    // The bloc callback can run while the original tester tap is pending.
+    expectSync(canPublish?.call(), isTrue);
     return reply.future;
   }
 }

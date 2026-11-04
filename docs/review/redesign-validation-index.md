@@ -1,5 +1,7 @@
 # Redesign validation index
 
+- [Source410 original async result and Source411 callback assertion](source405-stake-cancellation-ownership.md#original-source410-asynchronous-assertion-result): 41772322605 retains 1,111 passes/four failures, complete streams and passing Python/assets/zero-finding analysis. All three retained details now report TEST_ASYNC_CONFLICT. Source411 uses expectSync only for the recording publisher's unchanged guard assertion, as documented by the pinned Flutter API. All case bodies, application bytes and limits remain; fresh 1,115-case acceptance is pending. Heavy platform/lab/image work remains deferred.
+
 Small versioned records extend the preserved original validation history.
 
 - [Source409 original handler-type refusal](source405-stake-cancellation-ownership.md#original-source409-type-import-refusal): 41771375096 retains passing 955 Python controls/three existing skips and fourteen assets, one normal complete undefined-class analysis error and skipped Dart. Source410 adds the explicit FlutterExceptionHandler import without changing any other test or application byte. Fresh analysis/engine observation is pending; local Python controls do not qualify Flutter handler execution.

@@ -202,3 +202,40 @@ acceptance remain open. The original ledger stays 72/80, 50/94 literal outputs,
 UNKNOWN observations retain their original source and scope. Source403's
 Deposit readiness is focused-qualified; Native108's separate cause remains
 NOT_ESTABLISHED and its native replay remains deferred.
+
+## Original Source410 asynchronous assertion result
+
+Source410 `de7d2faaf269af08878d599508233951febee482`, tree
+`81a75d45ba0d9018db75ce163e07d3c51cc24929`, retains failed
+[41772322605](https://github.com/edgepillar/syrius/actions/runs/41772322605),
+attempt one, job 126384632107. All 955 Python controls complete with zero
+failures/errors and three existing skips, fourteen assets pass, and selected
+analysis completes with zero errors, warnings or infos. The complete 44/44-file
+streams retain 546/565 passes, four failures, seven error events, 124 hidden
+and 1,239 terminal events. There is no skip, forced kill, overflow or timeout.
+All jobs are terminal and artifacts are zero.
+
+The diagnostic now executes. Each of the three retained error details reports
+TEST_ASYNC_CONFLICT at the real answer tap, line 208, with the original Flutter
+async stack frame at 72:42. This establishes the observed failure category.
+Complete framework messages remain unretained, and earlier Source407/408
+messages and exact causes are not reconstructed or relabelled. The original
+failed producer is not retried.
+
+## Source411 callback assertion
+
+The recording publisher is invoked by the real bloc during the original
+asynchronous input. Its guard assertion used Flutter's ordinary expect, which
+also checks pending test APIs. The
+[pinned Flutter 3.47.7 implementation](https://github.com/flutter/flutter/blob/3.47.7/packages/flutter_test/lib/src/widget_tester.dart#L444-L464)
+provides expectSync for assertions in user-input completion callbacks. Source411
+uses that variant only for the publisher's existing canPublish-isTrue assertion.
+This is the source-based correction suggested by the measured category; fresh
+engine results must verify whether it resolves the failures.
+
+The assertion's value and matcher are unchanged. Every case body, other fixture
+byte, positive hit test, real tap, original handler forwarding/rethrow and
+process bound remains. Application libraries, wallet I/O, all other selected
+tests, projector, workflow and dependencies are unchanged. The same 1,115
+ordinary cases and zero-finding selected analysis remain required. Heavy
+Windows, native, image and final visual/performance acceptance stays deferred.
