@@ -62,23 +62,32 @@ def preflight(value):
     yes = {'administrator', 'desktop_windows', 'native_arm64',
            'virtual_machine_platform_enabled', 'wsl_feature_enabled'}
     no = {'existing_msi_binary', 'store_package_present', 'known_windows_reboot_pending'}
-    if (type(value) is not dict or set(value) != yes | no | {'schema', 'scope'}
-            or type(value['schema']) is not int or value['schema'] != 1
-            or value['scope'] != 'wsl_install_preflight'
-            or any(value[name] is not True for name in yes)
+    finite_facts(value, 'wsl_install_preflight', yes | no)
+    if (any(value[name] is not True for name in yes)
             or any(value[name] is not False for name in no)):
         raise Refused()
     return value
 
 
 def signature(value):
-    if (type(value) is not dict
-            or set(value) != {'schema', 'scope', 'valid', 'microsoft_publisher'}
-            or type(value['schema']) is not int or value['schema'] != 1
-            or value['scope'] != 'wsl_install_signature'
-            or value['valid'] is not True or value['microsoft_publisher'] is not True):
+    finite_facts(value, 'wsl_install_signature', {'valid', 'microsoft_publisher'})
+    if value['valid'] is not True or value['microsoft_publisher'] is not True:
         raise Refused()
     return value
+
+
+def finite_facts(value, scope, fields):
+    if (type(value) is not dict or set(value) != fields | {'schema', 'scope'}
+            or type(value['schema']) is not int or value['schema'] != 1
+            or value['scope'] != scope or any(type(value[name]) is not bool for name in fields)):
+        raise Refused()
+    return value
+
+
+def command_error(error):
+    code = error.code if isinstance(error, owned.Failure) else None
+    return (code if code in ('COMMAND_FAILED', 'COMMAND_TIMEOUT',
+        'OUTPUT_REFUSED', 'STORAGE_REFUSED') else 'INSTALL_COMMAND_UNCERTAIN')
 
 
 def allowed_url(url):
@@ -248,13 +257,31 @@ def observe(parent, report):
 
     def facts(stage):
         env['SYRIUS_WSL_INSTALL_STAGE'] = stage
-        raw = commands.run([str(powershell), '-NoLogo', '-NoProfile', '-NonInteractive',
-            '-File', str(repo / 'tool/ci/windows_wsl_installation.ps1')],
-            cwd=repo, timeout=45, cap=CAP)
-        return json.loads(raw.decode('utf-8-sig'))
+        original_count, failure = len(commands.originals), None
+        try:
+            raw = commands.run([str(powershell), '-NoLogo', '-NoProfile', '-NonInteractive',
+                '-File', str(repo / 'tool/ci/windows_wsl_installation.ps1')],
+                cwd=repo, timeout=45, cap=CAP)
+            value = json.loads(raw.decode('utf-8-sig'))
+            fields = ({'administrator', 'desktop_windows', 'native_arm64',
+                'virtual_machine_platform_enabled', 'wsl_feature_enabled',
+                'existing_msi_binary', 'store_package_present', 'known_windows_reboot_pending'}
+                if stage == 'preflight' else {'valid', 'microsoft_publisher'})
+            return finite_facts(value, 'wsl_install_' + stage, fields)
+        except (Exception, KeyboardInterrupt) as error:
+            failure = command_error(error)
+            raise
+        finally:
+            receipt = (commands.originals[-1].receipt
+                if len(commands.originals) == original_count + 1 else None)
+            original = installer_result(receipt, failure)
+            report[stage + '_command'] = {name: original[name] for name in (
+                'exit_code', 'output_complete', 'forced', 'output_bytes',
+                'overflow', 'command_error')}
 
     report['stage'] = 'preflight'
-    report['preflight'] = preflight(facts('preflight'))
+    report['preflight'] = facts('preflight')
+    preflight(report['preflight'])
     report['stage'] = 'download'
     report['download_requested'] = True
     package = download(root, report)
@@ -262,23 +289,22 @@ def observe(parent, report):
     report['download_complete'] = True
     report['stage'] = 'signature'
     env['SYRIUS_WSL_MSI_FILE'] = str(package)
-    report['signature'] = signature(facts('signature'))
+    report['signature'] = facts('signature')
+    signature(report['signature'])
     verify_package(package)
     report['stage'] = 'installer'
     report['installation_requested'] = True
     original_count = len(commands.originals)
-    command_error = None
+    failure = None
     try:
         commands.run([str(msiexec), '/i', str(package), '/qn', '/norestart',
             'REBOOT=ReallySuppress'], cwd=repo, timeout=INSTALL_SECONDS, cap=CAP)
     except (Exception, KeyboardInterrupt) as error:
         # A failed or uncertain original invocation is never launched again.
-        code = error.code if isinstance(error, owned.Failure) else None
-        command_error = (code if code in ('COMMAND_FAILED', 'COMMAND_TIMEOUT',
-            'OUTPUT_REFUSED', 'STORAGE_REFUSED') else 'INSTALL_COMMAND_UNCERTAIN')
+        failure = command_error(error)
     receipt = (commands.originals[-1].receipt
                if len(commands.originals) == original_count + 1 else None)
-    report['installer'] = installer_result(receipt, command_error)
+    report['installer'] = installer_result(receipt, failure)
     owned.sample_storage(root)
     if report['installer']['reboot_required'] is True:
         report['status'] = 'REBOOT_REQUIRED'
@@ -314,7 +340,7 @@ def main(arguments=None):
         directory = str(Path(__file__).absolute().parents[2] / 'test/ci')
         suite = unittest.TestLoader().discover(directory,
             pattern='test_windows_wsl_installation.py')
-        if suite.countTestCases() != 21:
+        if suite.countTestCases() != 22:
             print('::error title=WSL installation controls::TEST_SELECTION_REFUSED')
             return 1
         return execute_suite(suite, scope='wsl_installation_controls',

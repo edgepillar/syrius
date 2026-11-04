@@ -74,3 +74,20 @@ controls do not establish a fresh complete 990-case controller run or a new
 Windows wallet build. P03/P09, full native/visual/motion acceptance and the
 original 72/80 ledger remain open. [Exact body332](pr-body-332.md) preserves the
 previous Draft handoff and all original failure/UNKNOWN scopes.
+
+## Source435 finite refusal evidence
+
+Source435 preserves schema-checked boolean preflight/signature facts before
+requiring their positive values. A refusal can therefore retain its actual
+finite negative field without exporting private output. Invalid shapes and
+nonboolean fields still refuse before retention. Original helper command exits,
+completeness, forced state and byte counts are now separately projected on both
+success and refusal. No admission condition is relaxed. The MSI inputs, native
+helper, workflow, query arguments, process/storage bounds and existing positive
+sequence remain unchanged. No installer has been dispatched for Source434.
+
+The added real-controller case requires a detected Store package to survive as
+finite evidence while preventing download/installation and follow-up queries.
+All twenty-two local controls pass without native, network, PowerShell or
+scratch work. Hosted parsing and one actual Source435 installation remain
+pending. The full 991-case current controller suite remains unqualified.

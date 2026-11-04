@@ -155,7 +155,7 @@ class InstallationControls(unittest.TestCase):
         self.assertFalse(value['reported_success'])
         self.assertFalse(value['ready_without_reboot'])
 
-    def run_controller(self, *, reboot=False):
+    def run_controller(self, *, reboot=False, blocked=False):
         parent = dict(GITHUB_ACTIONS='true', RUNNER_OS='Windows', RUNNER_ARCH='ARM64',
             SYRIUS_HOSTED_RUNNER='github-hosted', GITHUB_REPOSITORY='edgepillar/syrius',
             GITHUB_EVENT_NAME='workflow_dispatch', GITHUB_REF='refs/heads/redesign',
@@ -165,13 +165,14 @@ class InstallationControls(unittest.TestCase):
         calls, reads, originals = [], [], []
         def command(argv, **kwargs):
             calls.append(argv)
-            originals.append(SimpleNamespace(receipt=self.receipt(3010 if reboot else 0)))
+            originals.append(SimpleNamespace(receipt=self.receipt(
+                3010 if reboot and argv[0].endswith('msiexec.exe') else 0)))
             if argv[0].endswith('msiexec.exe'):
                 if reboot:
                     raise installation.owned.Failure('COMMAND_FAILED')
                 return b''
             if env['SYRIUS_WSL_INSTALL_STAGE'] == 'preflight':
-                return json.dumps(self.facts()).encode()
+                return json.dumps(dict(self.facts(), store_package_present=blocked)).encode()
             return json.dumps(dict(schema=1, scope='wsl_install_signature',
                 valid=True, microsoft_publisher=True)).encode()
         def query(argv, **kwargs):
@@ -196,7 +197,8 @@ class InstallationControls(unittest.TestCase):
         def command_with_environment(argv, **kwargs):
             env.update(nonlocal_env[0])
             return command(argv, **kwargs)
-        report = dict(component_version_qualified=False, **installation.FALSE_SCOPE)
+        report = dict(component_version_qualified=False, installation_requested=False,
+                      **installation.FALSE_SCOPE)
         with (patch.object(installation.sys, 'platform', 'win32'),
                 patch.object(installation.shutil, 'which', return_value='git.exe'),
                 patch.object(installation.shutil, 'disk_usage',
@@ -211,11 +213,16 @@ class InstallationControls(unittest.TestCase):
                 patch.object(installation.readiness.bounded, 'run_bounded', side_effect=query),
                 patch.object(installation.readiness.bounded.subprocess, 'Popen',
                     side_effect=AssertionError('No process'))):
-            installation.observe(parent, report)
+            if blocked:
+                with self.assertRaises(installation.Refused):
+                    installation.observe(parent, report)
+            else:
+                installation.observe(parent, report)
         installs = [argv for argv in calls if argv[0].endswith('msiexec.exe')]
-        self.assertEqual(len(installs), 1)
-        self.assertEqual(installs[0][1:],
-            ['/i', 'fixture.msi', '/qn', '/norestart', 'REBOOT=ReallySuppress'])
+        self.assertEqual(len(installs), 0 if blocked else 1)
+        if not blocked:
+            self.assertEqual(installs[0][1:],
+                ['/i', 'fixture.msi', '/qn', '/norestart', 'REBOOT=ReallySuppress'])
         return report, [argv[-1] for argv in reads if argv[0] != 'git.exe']
 
     def test_real_controller_uses_one_installer_and_fixed_component_queries(self):
@@ -232,6 +239,16 @@ class InstallationControls(unittest.TestCase):
         self.assertEqual(value['status'], 'REBOOT_REQUIRED')
         self.assertFalse(value['component_version_qualified'])
         self.assertTrue(value['source_unchanged'])
+
+    def test_finite_negative_preflight_and_original_command_survive_refusal(self):
+        value, queries = self.run_controller(blocked=True)
+        self.assertEqual(queries, [])
+        self.assertTrue(value['preflight']['store_package_present'])
+        self.assertFalse(value['installation_requested'])
+        self.assertFalse(value['component_version_qualified'])
+        self.assertEqual(value['preflight_command']['exit_code'], 0)
+        self.assertTrue(value['preflight_command']['output_complete'])
+        self.assertFalse(value['preflight_command']['forced'])
 
     def test_nonhosted_context_refuses_before_files_network_or_processes(self):
         with (patch.object(installation, 'download', side_effect=AssertionError('No download')) as download,
