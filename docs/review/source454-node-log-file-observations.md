@@ -44,3 +44,36 @@ qualified 1,230-case UI remains bound to Source447. Source450/451/453 failures
 keep their own facts and unknowns; no unchanged trial is scheduled again.
 Windows Docker Desktop, F06, native visual/performance and final acceptance stay
 open at 72/80 and zero accepted visual matches.
+
+## Actual Source454 result
+
+Source454 `38c22048eb310f8d8e7030f3bbf916bae75e0be7`, tree
+`d8d27c15bbacf4134c75f67279947d5bda934293`, completes source-only
+[41912320704](https://github.com/edgepillar/syrius/actions/runs/41912320704)
+with 1,034 controls, two existing Linux skips and zero failures/errors. All six
+shell cases execute. Source checks pass before/after; runtime is skipped and
+artifacts are zero.
+
+The distinct trial [41912892078](https://github.com/edgepillar/syrius/actions/runs/41912892078),
+attempt one, runtime job 126865061622, is failed and terminal with zero artifacts.
+Its source job passes the same 1,034 controls with two skips. All nine bound
+notices and 32 complete unforced command receipts consume; the largest notice
+is 3,050 bytes.
+
+Up exits zero and observes chain 321 from one to two over ten seconds. Status
+then exits one after height two stays unchanged for thirty seconds. All five
+main file reads exit zero. All five error-file commands exit one and report
+COMMAND_FAILED; absence, permissions and other inner refusals are not distinguished.
+No recognized closed node code is found in readable files or container streams.
+This is not a healthy-node finding, and old unretained content is not reconstructed.
+
+Down exits zero, but all five original die events exit 137 without an observed
+OOM event. Production, five normal exits and final native source remain
+unqualified. COMMAND_FAILED and separate STOP_UNKNOWN persist. Exact inner
+causes stay NOT_ESTABLISHED. Source450/451/453 keep their own observed outcomes;
+different executions are not evidence of stable repair or a retroactive cause.
+
+[Source455](source455-pinned-node-candidate.md) prepares a separate fixed upstream
+candidate selection while retaining the original default and every positive
+acceptance criterion. No unchanged trial is scheduled again. Full original
+Windows/wallet/seed/visual/performance acceptance remains open at 72/80.

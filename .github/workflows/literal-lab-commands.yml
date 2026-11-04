@@ -7,6 +7,13 @@ on:
         description: Build and observe the original isolated chain-321 lab commands
         type: boolean
         default: false
+      node_source:
+        description: Pinned node source for the isolated recipe trial
+        type: choice
+        default: original
+        options:
+          - original
+          - dev-0e80915
   push:
     branches: [dev, redesign]
     paths:
@@ -61,5 +68,6 @@ jobs:
       - name: Observe original up, status and down commands
         env:
           SYRIUS_LITERAL_LAB: 'true'
+          SYRIUS_LITERAL_NODE_SOURCE: ${{ inputs.node_source }}
           SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
         run: python -B -m tool.ci.literal_lab_commands

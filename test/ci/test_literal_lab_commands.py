@@ -64,6 +64,16 @@ class LiteralLabTests(unittest.TestCase):
         with self.assertRaises(lab.Refused):
             lab.admit(self.parent(), 'win32')
 
+    def test_node_choices_are_fixed_pins_and_unknown_revisions_refuse(self):
+        self.assertEqual(lab.selected_node({}), ('original', lab.NODE, lab.NODE_TREE))
+        self.assertEqual(lab.admit(dict(self.parent(),
+            SYRIUS_LITERAL_NODE_SOURCE='dev-0e80915'), 'linux'),
+            ('dev-0e80915', '0e80915fb9569f2fc3f6bd90c2a54e4c10d7bc1b',
+                '244d362062b03c07e205ef9a2ad7ba1071fe779a'))
+        for value in ('dev', 'a' * 40, '/private/input', '', None, True, []):
+            with self.subTest(value=value), self.assertRaises(lab.Refused):
+                lab.admit(dict(self.parent(), SYRIUS_LITERAL_NODE_SOURCE=value), 'linux')
+
     def test_unadmitted_main_starts_no_original_process(self):
         with mock.patch.dict(lab.os.environ, {}, clear=True), \
                 mock.patch.object(lab.hosted, 'Original', side_effect=AssertionError('forbidden')), \
@@ -294,28 +304,47 @@ class LiteralLabTests(unittest.TestCase):
             separators=(',', ':')).encode()) <= 3800 for frame in frames))
 
     def test_complete_original_command_path_closes_once_then_revalidates_source(self):
-        commands = mock.Mock();commands.git.side_effect = [lab.NODE, lab.NODE_TREE]
-        rows = self.rows();owned = self.parse(rows)
-        commands.docker.side_effect = [json.dumps('sha256:' + 'f' * 64).encode(),
-            json.dumps(rows).encode(), json.dumps(rows).encode(), b'', b'']
-        outputs = dict(up=b'chain 321: 5 then 6 after 5 s\nproducing\n',
-            status=b'chain 321: 6 then 7 after 5 s\nproducing\n', down=b'',
-            exit_events=self.encoded(self.events(owned)))
-        commands.run.side_effect = lambda stage, *_args: outputs[stage]
-        report = dict(source_sha='a' * 40, checks=dict.fromkeys(
-            ('fresh', 'originals', 'production', 'stopped', 'source_after'), False))
-        genesis = b'{"ChainIdentifier":321}'
-        with mock.patch.object(lab, 'source', return_value='b' * 40) as source, \
-                mock.patch.object(lab, 'empty_project'), \
-                mock.patch.object(lab.hosted, 'regular', side_effect=[b'590f43c', genesis, genesis]):
-            lab.observe(commands, Path('/repo'), Path('/fixture'), report)
-        self.assertTrue(all(report['checks'].values()))
-        self.assertEqual(source.call_count, 2)
-        self.assertEqual(report['exit_codes'], dict.fromkeys(lab.ROLES, 0))
-        self.assertEqual([c.args[0] for c in commands.run.call_args_list],
-            ['up', 'status', 'down', 'exit_events'])
-        argv = commands.run.call_args_list[-1].args[1]
-        for value in owned.values():self.assertEqual(argv.count('container=' + value[0]), 1)
+        for choice, (node, tree) in lab.NODE_SOURCES.items():
+            with self.subTest(choice=choice):
+                commands = mock.Mock();commands.git.side_effect = [node, tree]
+                rows = self.rows();owned = self.parse(rows)
+                commands.docker.side_effect = [json.dumps('sha256:' + 'f' * 64).encode(),
+                    json.dumps(rows).encode(), json.dumps(rows).encode(), b'', b'']
+                outputs = dict(up=b'chain 321: 5 then 6 after 5 s\nproducing\n',
+                    status=b'chain 321: 6 then 7 after 5 s\nproducing\n', down=b'',
+                    exit_events=self.encoded(self.events(owned)))
+                commands.run.side_effect = lambda stage, *_args: outputs[stage]
+                report = dict(source_sha='a' * 40, node_source=choice,
+                    node_sha=node, node_tree=tree, checks=dict.fromkeys(
+                    ('fresh', 'originals', 'production', 'stopped', 'source_after'), False))
+                genesis = b'{"ChainIdentifier":321}'
+                with mock.patch.object(lab, 'source', return_value='b' * 40) as source, \
+                        mock.patch.object(lab, 'empty_project'), \
+                        mock.patch.object(lab.hosted, 'regular',
+                            side_effect=[node[:7].encode(), genesis, genesis]):
+                    lab.observe(commands, Path('/repo'), Path('/fixture'), report)
+                self.assertTrue(all(report['checks'].values()))
+                self.assertEqual(source.call_count, 2)
+                self.assertEqual(report['exit_codes'], dict.fromkeys(lab.ROLES, 0))
+                self.assertEqual([c.args[0] for c in commands.run.call_args_list],
+                    ['up', 'status', 'down', 'exit_events'])
+                argv = commands.run.call_args_list[-1].args[1]
+                for value in owned.values():self.assertEqual(argv.count('container=' + value[0]), 1)
+
+    def test_candidate_header_cannot_borrow_an_original_node_build(self):
+        commands = mock.Mock();commands.git.return_value = lab.NODE
+        commands.run.return_value = b'chain 321: 5 then 6 after 5 s\nproducing\n'
+        node, tree = lab.NODE_SOURCES['dev-0e80915']
+        report = dict(source_sha='a' * 40, node_source='dev-0e80915',
+            node_sha=node, node_tree=tree, checks=dict(fresh=False))
+        with mock.patch.object(lab, 'source', return_value='b' * 40), \
+                mock.patch.object(lab, 'empty_project'):
+            with self.assertRaises(lab.Refused) as raised:
+                lab.observe(commands, Path('/repo'), Path('/fixture'), report)
+        self.assertEqual(raised.exception.code, 'SOURCE_REFUSED')
+        self.assertEqual(report['observation_code'], 'SOURCE_REFUSED')
+        self.assertTrue(report['unadopted_start_held'])
+        self.assertEqual([call.args[0] for call in commands.run.call_args_list], ['up'])
 
     def test_primary_observation_failure_survives_a_close_refusal(self):
         commands = mock.Mock();commands.git.side_effect = [lab.NODE, lab.NODE_TREE]

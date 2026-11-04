@@ -68,8 +68,19 @@ five normal exits and final native source remain unqualified. Source454 adds
 [fixed node-file log observations](review/source454-node-log-file-observations.md)
 because the pinned logger writes to files rather than container stdout. Twenty-two
 local pure controls pass; six shell cases stay unselected locally. The full
-preparation is 1,034 Python cases; fresh hosted execution is pending. Node,
-frontier, ownership and exit criteria remain. Original failed trials are preserved.
+preparation is 1,034 Python cases. Its [actual Source454 result](review/source454-node-log-file-observations.md#actual-source454-result)
+qualifies 1,034 source controls/two skips in 41912320704 and 41912892078. The one
+runtime remains failed: all five main log files read, error-file sources remain
+unavailable and no known code is recognized. All nine notices/32 complete
+unforced receipts consume, at most 3,050 bytes. Status stays at height two for
+thirty seconds; all five die events exit 137 without observed OOM. Exact causes,
+production, five normal exits and final native source remain unqualified.
+Source455 prepares a [fixed upstream candidate](review/source455-pinned-node-candidate.md)
+while retaining the original default. Its locked modules, Dockerfile and complete
+devnet directory match already supported upstream base 2d1b929. Twenty-four local
+pure controls pass; six shell cases stay unselected locally. Fresh 1,036-case
+hosted source/candidate execution is pending. Frontier, ownership and exit
+criteria remain; all original failed trials are preserved.
 All 1,970 earlier runtime entries
 remain byte-identical through Source451; Source453 separately changes the lab
 script/controller/workflow and adds six shell-fixture cases. No new local

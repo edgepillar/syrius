@@ -98,7 +98,17 @@ Production, five normal exits and final native source remain unqualified.
 Source454 adds bounded fixed-file log reads because the pinned node writes
 outside container stdout; only known diagnostic codes are exported. See the
 [node-log observation scope](../../../docs/review/source454-node-log-file-observations.md).
-Fresh qualification of those observations is pending. The final image ID is observed
+Source454 41912892078 reads all five main files, with error-file sources
+unavailable and no recognized code. Its runtime stays failed: no progress at
+height two for thirty seconds, and five exit-137 events without observed OOM.
+All nine notices/32 receipts consume; artifacts are zero. Source455 adds one
+manual `node_source` choice, `dev-0e80915`, while retaining the original default.
+This selects upstream SHA 0e80915fb9569f2fc3f6bd90c2a54e4c10d7bc1b and tree
+244d362062b03c07e205ef9a2ad7ba1071fe779a, with no moving branch or local patch.
+Its locked modules/Dockerfile/devnet inputs match the existing upstream base;
+previous native qualification does not transfer. See the
+[pinned candidate scope](../../../docs/review/source455-pinned-node-candidate.md).
+Fresh candidate qualification is pending. The final image ID is observed
 because the upstream Dockerfile's base-image tags can move.
 
 The lane requires a fresh project/build/assets namespace, chain-321 height

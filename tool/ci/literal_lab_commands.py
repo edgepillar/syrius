@@ -16,6 +16,11 @@ from tool.ci import hosted_chain321 as hosted
 MIB, GIB = 1024**2, 1024**3
 NODE = '590f43ca7a24dccd8e883bc8903a0cb02e54528a'
 NODE_TREE = '3bedc2fde71035c983997451c2d7e76b66d2d210'
+NODE_SOURCES = {
+    'original': (NODE, NODE_TREE),
+    'dev-0e80915': ('0e80915fb9569f2fc3f6bd90c2a54e4c10d7bc1b',
+        '244d362062b03c07e205ef9a2ad7ba1071fe779a'),
+}
 PROJECT = 'syrius-lab'
 ROLES = ('pillar', 'pillar2', 'pillar3', 'observer', 'rpc')
 NODE_LOG_SOURCES = (
@@ -50,6 +55,12 @@ def digest(raw):
     return hashlib.sha256(raw).hexdigest()
 
 
+def selected_node(parent):
+    choice = parent.get('SYRIUS_LITERAL_NODE_SOURCE', 'original')
+    need(type(choice) is str and choice in NODE_SOURCES, 'ENVIRONMENT_REFUSED')
+    return choice, *NODE_SOURCES[choice]
+
+
 def admit(parent, platform):
     need(platform == 'linux' and parent.get('GITHUB_ACTIONS') == 'true'
         and parent.get('GITHUB_EVENT_NAME') == 'workflow_dispatch'
@@ -60,6 +71,7 @@ def admit(parent, platform):
         and re.fullmatch('[a-f0-9]{40}', parent.get('GITHUB_SHA', ''))
         and re.fullmatch('[1-9][0-9]{0,19}', parent.get('GITHUB_RUN_ID', ''))
         and parent.get('GITHUB_RUN_ATTEMPT') == '1', 'ENVIRONMENT_REFUSED')
+    return selected_node(parent)
 
 
 def frontier(raw):
@@ -395,6 +407,10 @@ def empty_project(commands):
 
 
 def observe(commands, repo, lab, report):
+    _, node_pin, node_tree = selected_node(dict(
+        SYRIUS_LITERAL_NODE_SOURCE=report.get('node_source', 'original')))
+    need(report.get('node_sha', node_pin) == node_pin
+        and report.get('node_tree', node_tree) == node_tree, 'SOURCE_REFUSED')
     script = ['bash', str(lab / 'lab.sh')]
     owned, image = None, None
     report['source_tree'] = source(commands, repo, lab, report['source_sha'])
@@ -404,11 +420,11 @@ def observe(commands, repo, lab, report):
     try:
         report['up'] = frontier(commands.run('up', [*script, 'up'], 900))
         node = lab / '.build/go-zenon'
-        need(commands.git(node, 'rev-parse', NODE + '^{commit}') == NODE
-            and commands.git(node, 'rev-parse', NODE + '^{tree}') == NODE_TREE,
+        need(commands.git(node, 'rev-parse', node_pin + '^{commit}') == node_pin
+            and commands.git(node, 'rev-parse', node_pin + '^{tree}') == node_tree,
             'SOURCE_REFUSED')
         tag = hosted.regular(lab / '.build/revision', 80).decode('ascii').strip()
-        need(re.fullmatch('[a-f0-9]{7,40}', tag) and NODE.startswith(tag), 'SOURCE_REFUSED')
+        need(re.fullmatch('[a-f0-9]{7,40}', tag) and node_pin.startswith(tag), 'SOURCE_REFUSED')
         image = json_value(commands.docker('image', 'inspect', 'syrius-lab-znnd:' + tag,
             '--format', '{{json .Id}}'))
         need(type(image) is str and re.fullmatch('sha256:[a-f0-9]{64}', image), 'SOURCE_REFUSED')
@@ -504,7 +520,8 @@ def main():
         source_sha=None, source_tree=None, run_id=None, run_attempt=None,
         observation_code=None, close_code=None, unadopted_start_held=False,
         node_failure_facts={}, node_file_failure_facts={}, exit_observations=None,
-        node_sha=NODE, node_tree=NODE_TREE, commands=[], up=None, status=None,
+        node_source='original', node_sha=NODE, node_tree=NODE_TREE,
+        commands=[], up=None, status=None,
         image_sha256=None, genesis_sha256=None, exit_codes={},
         checks=dict(fresh=False, originals=False, production=False, stopped=False, source_after=False),
         work_limit_bytes=4 * GIB, fixture_floor_bytes=2 * GIB, per_stream_bytes=2 * MIB,
@@ -514,8 +531,9 @@ def main():
         wallet_import_or_send_qualified=False)
     try:
         parent = dict(os.environ)
-        admit(parent, sys.platform)
-        report.update(source_sha=parent['GITHUB_SHA'], run_id=parent['GITHUB_RUN_ID'], run_attempt='1')
+        choice, node_pin, node_tree = admit(parent, sys.platform)
+        report.update(source_sha=parent['GITHUB_SHA'], run_id=parent['GITHUB_RUN_ID'],
+            run_attempt='1', node_source=choice, node_sha=node_pin, node_tree=node_tree)
         repo = Path(parent['GITHUB_WORKSPACE'])
         lab = repo / 'tools/devnet/lab'
         hosted.directories(lab)
@@ -531,7 +549,7 @@ def main():
         root.mkdir(mode=0o700)
         env = hosted.child_environment(root, parent)
         env.update(GO_ZENON_URL='https://github.com/zenon-network/go-zenon.git',
-            GO_ZENON_REV=NODE, LAB_RPC='http://127.0.0.1:45997')
+            GO_ZENON_REV=node_pin, LAB_RPC='http://127.0.0.1:45997')
         commands = Commands(repo, root, lab, env, report)
         observe(commands, repo, lab, report)
         report['success'] = all(report['checks'].values())
