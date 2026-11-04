@@ -1,7 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:ui' as ui;
 
-import 'package:flutter/foundation.dart' as foundation show TargetPlatform;
+import 'package:flutter/foundation.dart' as foundation;
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -59,6 +60,26 @@ class _Prices {
     requests++;
     if (fail) throw const FormatException('Unavailable fixture');
     return answer;
+  }
+}
+
+void _reportHomeBaselineFailure(Object error) {
+  try {
+    final String message = error.toString();
+    final String kind = message.contains('Guarded function conflict')
+        ? 'TEST_ASYNC_CONFLICT'
+        : error is foundation.FlutterError
+        ? 'FLUTTER_ERROR'
+        : error is AssertionError
+        ? 'ASSERTION_ERROR'
+        : error is StateError
+        ? 'STATE_ERROR'
+        : error is TypeError
+        ? 'TYPE_ERROR'
+        : 'OTHER';
+    foundation.debugPrintSynchronously('CI_FRAMEWORK_FAILURE_KIND:$kind');
+  } on Object {
+    // Observation cannot replace the original test failure.
   }
 }
 
@@ -1218,7 +1239,40 @@ void main() {
             expect(amount, findsOneWidget);
             expect(dollars, findsOneWidget);
             // Inline .usd has the amount's baseline, including at 2x text.
-            expect(baseline(dollars), closeTo(baseline(amount), 0.1));
+            final double dollarBaseline = baseline(dollars);
+            final double numberBaseline = baseline(amount);
+            try {
+              // Only synthetic fixture coordinates leave this test.
+              final Rect numberRect = tester.getRect(amount);
+              final Rect dollarRect = tester.getRect(dollars);
+              final Baseline target = tester.widget<Baseline>(find.ancestor(
+                of: find.byKey(ValueKey<String>('${prefix}_dollars')),
+                matching: find.byType(Baseline),
+              ));
+              final String geometry = jsonEncode(<String, Object>{
+                'schema': 1,
+                'light': light,
+                'direction': direction.name,
+                'scale': scale,
+                'primary': primary,
+                'number_baseline': numberBaseline,
+                'dollar_baseline': dollarBaseline,
+                'number_top': numberRect.top,
+                'dollar_top': dollarRect.top,
+                'number_height': numberRect.height,
+                'dollar_height': dollarRect.height,
+                'target_baseline': target.baseline,
+              });
+              foundation.debugPrintSynchronously('CI_HOME_BASELINE:$geometry');
+            } on Object {
+              // Diagnostic failure leaves the original assertion in place.
+            }
+            try {
+              expect(dollarBaseline, closeTo(numberBaseline, 0.1));
+            } on Object catch (error) {
+              _reportHomeBaselineFailure(error);
+              rethrow;
+            }
             final TextSpan wrapper =
                 tester.widget<RichText>(amount).text as TextSpan;
             final TextSpan number = wrapper.children!.single as TextSpan;

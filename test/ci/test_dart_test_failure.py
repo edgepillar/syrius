@@ -285,6 +285,77 @@ class DartFailureTests(unittest.TestCase):
             failure.project(encode(rows))['items'][0])
 
 
+class HomeBaselineProjectionTests(unittest.TestCase):
+    def sample(self):
+        return dict(schema=1, light=False, direction='ltr', scale=1,
+                    primary=True, number_baseline=122.5, dollar_baseline=123.25,
+                    number_top=94, dollar_top=111, number_height=37,
+                    dollar_height=14, target_baseline=28.25)
+
+    def rows(self, message, *, suite='home_hero_test.dart', identity=7):
+        return [dict(type='suite', suite=dict(id=2,
+                    path='/fixture/private/' + suite)),
+                dict(type='testStart', test=dict(id=7, suiteID=2,
+                    name='private fixture label')),
+                dict(type='print', testID=identity, message=message),
+                dict(type='error', testID=7, isFailure=True,
+                    error='Assertion failed: private input',
+                    stackTrace=suite + ':1221:5')]
+
+    def test_exports_only_bound_finite_geometry(self):
+        sample = self.sample()
+        value = failure.project(encode(self.rows(
+            'CI_HOME_BASELINE:' + json.dumps(sample))))['items'][0]
+        self.assertEqual(value['home_baseline'], sample)
+        self.assertNotIn('private', json.dumps(value))
+        self.assertNotIn('/fixture', json.dumps(value))
+
+    def test_last_fixture_observation_is_selected(self):
+        first, last = self.sample(), self.sample()
+        last.update(light=True, direction='rtl', scale=2, primary=False)
+        message = '\n'.join('CI_HOME_BASELINE:' + json.dumps(row)
+                            for row in (first, last))
+        value = failure.project(encode(self.rows(message)))['items'][0]
+        self.assertEqual(value['home_baseline'], last)
+
+    def test_unknown_fields_shapes_and_nonfinite_values_refuse(self):
+        samples = [dict(self.sample(), private='secret'),
+                   dict(self.sample(), number_top=True),
+                   dict(self.sample(), light=1),
+                   dict(self.sample(), schema=True),
+                   dict(self.sample(), direction='private'),
+                   dict(self.sample(), scale=True)]
+        for bad in (-1, 4097, float('nan'), float('inf'), 'private', {}):
+            samples.append(dict(self.sample(), number_baseline=bad))
+        for sample in samples:
+            with self.subTest(sample=sample):
+                value = failure.project(encode(self.rows(
+                    'CI_HOME_BASELINE:' + json.dumps(sample))))['items'][0]
+                self.assertNotIn('home_baseline', value)
+                self.assertNotIn('secret', json.dumps(value))
+
+    def test_last_malformed_or_duplicate_record_never_falls_back(self):
+        valid = 'CI_HOME_BASELINE:' + json.dumps(self.sample())
+        duplicate = json.dumps(self.sample())[:-1] + ', "schema": 1}'
+        for bad in ('private', '[]', duplicate, 'x' * 1025):
+            with self.subTest(bad=bad):
+                value = failure.project(encode(self.rows(
+                    valid + '\nCI_HOME_BASELINE:' + bad)))['items'][0]
+                self.assertNotIn('home_baseline', value)
+        self.assertIsNone(failure.home_baseline_geometry(None))
+        self.assertIsNone(failure.home_baseline_geometry('x' * 16385))
+
+    def test_other_suites_and_other_test_prints_cannot_bind(self):
+        marker = 'CI_HOME_BASELINE:' + json.dumps(self.sample())
+        for suite, identity in (('go_to_palette_test.dart', 7),
+                                ('private_home_hero_test.dart', 7),
+                                ('home_hero_test.dart', 99)):
+            with self.subTest(suite=suite, identity=identity):
+                value = failure.project(encode(self.rows(
+                    marker, suite=suite, identity=identity)))['items'][0]
+                self.assertNotIn('home_baseline', value)
+
+
 class RootSuitePrivacyTests(unittest.TestCase):
     def test_root_catalog_covers_public_test_files_without_unknown_names(self):
         from pathlib import Path

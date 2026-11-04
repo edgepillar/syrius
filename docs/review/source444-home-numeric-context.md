@@ -40,3 +40,7 @@ that selection. Fresh hosted qualification is pending; no SDK, wallet or node
 runs locally. Full Windows/lab/image/motion qualification stays deferred.
 Original main progress remains 72/80, 50/94 historical literal outputs,
 44 missing and zero accepted whole-image matches. The PR remains Draft.
+
+The [later bounded observation](source445-home-baseline-diagnostics.md) preserves
+the original Source444 comparison failure and adds finite fixture geometry.
+No passing Source444 widget result or reconstructed numeric delta is claimed.

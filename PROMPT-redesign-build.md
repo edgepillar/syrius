@@ -2537,3 +2537,17 @@ bytes and tolerances. See [the exact scope](docs/review/source444-home-numeric-c
 | ID | State | Updated | Evidence |
 | --- | --- | --- | --- |
 | X584 | review | 2026-11-04T16:57Z | One Home row context now supplies mono typography and the reference 1.1/1.45 line heights to its actual rich wrapper and dollar children. The existing constant-glyph measurement, all test bytes/tolerances, values, feed, privacy, clocks, callbacks, registrations and process bounds remain. Both earlier original failures remain failed with their finite records; no raw numeric delta is reconstructed. Fresh 1230-case hosted qualification is pending. No local SDK/native or image transport occurs; original 72/80 and full native/lab/visual acceptance stay open. |
+
+
+### Bounded Home baseline observations
+
+Source444 / 41873932775 retains 1001 Python controls/three existing skips, fourteen
+assets and zero selected findings, followed by its original complete unforced
+596-pass/one-failure first widget group and unreached second group. Source445
+adds bounded public-fixture geometry and a closed error kind without changing
+application bytes, inputs, tolerances, registrations or original failure handling.
+See [the diagnostic scope](docs/review/source445-home-baseline-diagnostics.md).
+
+| ID | State | Updated | Evidence |
+| --- | --- | --- | --- |
+| X585 | review | 2026-11-04T17:34Z | Twenty-three local read-only/in-memory projection controls pass, including five new privacy/binding controls, without SDK/network/native or scratch. Only twelve typed fields from the failing known Home test may be exported; unknown keys, wrong types, nonfinite/range violations, duplicates, malformed last records and foreign contexts refuse. Original failures are rethrown and remain preserved; no raw input, identity, path or error text is exported. Hosted total is 1006 controls/three existing skips; unchanged widget selection stays 1230/1232 in 48/48-file groups (597/633). Fresh hosted observation remains pending; original 72/80 and full native/lab/visual acceptance stay open. |

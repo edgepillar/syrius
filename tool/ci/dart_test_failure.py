@@ -1,6 +1,7 @@
 """Project known test locations and fixed assertion labels without raw errors."""
 
 import json
+import math
 import re
 
 FILES = ('wallet_tour_test.dart', 'build_output_test.dart',
@@ -554,6 +555,47 @@ def goto_geometry_diagnostic(text):
     return value
 
 
+def home_baseline_geometry(text):
+    """Keep only bounded coordinates from the public Home widget fixture."""
+    if type(text) is not str or len(text) > 16384:
+        return None
+    rows = re.findall(r'(?m)^CI_HOME_BASELINE:([^\r\n]*)\r?$', text)
+    if not rows or len(rows) > 64 or not 0 < len(rows[-1]) <= 1024:
+        return None
+
+    def pairs(items):
+        value = {}
+        for key, item in items:
+            if key in value:
+                raise ValueError()
+            value[key] = item
+        return value
+
+    try:
+        value = json.loads(rows[-1], object_pairs_hook=pairs)
+    except (ValueError, TypeError, OverflowError):
+        return None
+    numbers = ('number_baseline', 'dollar_baseline', 'number_top',
+               'dollar_top', 'number_height', 'dollar_height', 'target_baseline')
+    fields = {'schema', 'light', 'direction', 'scale', 'primary', *numbers}
+    if type(value) is not dict or set(value) != fields:
+        return None
+    if type(value['schema']) is not int or value['schema'] != 1:
+        return None
+    if type(value['light']) is not bool or type(value['primary']) is not bool:
+        return None
+    if value['direction'] not in ('ltr', 'rtl'):
+        return None
+    if type(value['scale']) not in (int, float) or value['scale'] not in (1, 2):
+        return None
+    if not all(type(value[key]) in (int, float) and 0 <= value[key] <= 4096
+               and math.isfinite(value[key]) for key in numbers):
+        return None
+    return dict(schema=1, light=value['light'], direction=value['direction'],
+                scale=int(value['scale']), primary=value['primary'],
+                **{key: float(value[key]) for key in numbers})
+
+
 def project(raw):
     refused = dict(status='REFUSED', total=0, items=[])
     if type(raw) is not bytes or len(raw) > 4 * 1024**2:
@@ -637,6 +679,10 @@ def project(raw):
                 geometry = goto_geometry_diagnostic(details)
                 if geometry is not None:
                     item['goto_geometry'] = geometry
+            if suite == 'home_hero_test.dart':
+                geometry = home_baseline_geometry(context)
+                if geometry is not None:
+                    item['home_baseline'] = geometry
             for label, text in (('STACK', stack), ('ERROR', error), ('PRINT', context)):
                 caller = location(text, tests_only=True)
                 if caller is not None:
