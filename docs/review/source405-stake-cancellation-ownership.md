@@ -45,6 +45,35 @@ Python retains 955 controls and three existing hosted skips. Original worker,
 deadline, output, source and startup/entry-refusal bounds remain. Fresh focused
 engine and zero-finding analysis are pending.
 
+## Original Source405 pre-SDK refusal
+
+Source405 `d5d594baa67762fc0eb975ea1e59a5d4db55568d`, tree
+`b8397d6180e22906cde1f356fb30c9af772ff0cb`, retains failed
+[41765703173](https://github.com/edgepillar/syrius/actions/runs/41765703173),
+attempt one, job 126363452056. Python completes 955 controls with one failure,
+zero errors and three existing skips. The failing control requires the fixed
+public test-basename catalog to equal the actual source tree. The new
+cancel_stake_button_test.dart basename was absent from that catalog.
+
+Asset execution, SDK allocation/restoration, analysis and Dart execution are
+all skipped. All source-bound jobs are terminal with zero artifacts. This is
+an original pre-SDK refusal, not an application-test or analyzer result. The
+original producer is not retried.
+
+## Source406 catalog and context follow-up
+
+The catalog adds only the new versioned public basename. Its exact coverage,
+sorting, unknown-name, private-path and output bounds remain unchanged. All
+test files, cases, selectors, publication controls and worker limits remain.
+The existing five catalog/privacy controls and nineteen mocked admission/
+analysis controls pass locally, with no scratch, SDK or native execution.
+
+Source review also adds an explicit mounted check for the original builder
+context and captures the existing error label before the dialog's await. A
+late callback cannot consult an unmounted descendant context. Dialog text,
+original block/address/guard arguments and every existing test remain. Fresh
+Source406 focused engine and zero-finding analysis are pending.
+
 The fast first-delivery priority continues. No new full Windows build, native
 chain producer, image transport or local SDK execution accompanies this source
 change. Native cancellation effects and full visual/platform/performance

@@ -1,6 +1,6 @@
 # First delivery and deferred acceptance
 
-Updated: 2026-11-04T03:08Z.
+Updated: 2026-11-04T03:18Z.
 
 The owner selected a first delivery covering the core interface and existing
 basic functionality, with detailed visual and extended platform/lab acceptance
@@ -106,8 +106,11 @@ Source405 prepares [stake cancellation ownership](source405-stake-cancellation-o
 as a core-flow correction. The original confirmation and publication path keep
 their arguments, while account changes, retained callbacks and late results
 must retain their original owner. All previous focused paths plus complete
-cancellation/table coverage prepare 1,115 cases; fresh qualification is pending.
-This source correction schedules no heavy platform/lab or image work.
+cancellation/table coverage prepare 1,115 cases. Its original pre-SDK run
+retains one test-basename catalog failure and skipped SDK/analysis/Dart.
+Source406 adds the missing public basename and protects descendant-context
+lifetime; twenty-four local controls pass, with fresh focused qualification
+pending. This source correction schedules no heavy platform/lab or image work.
 
 ## Second phase
 

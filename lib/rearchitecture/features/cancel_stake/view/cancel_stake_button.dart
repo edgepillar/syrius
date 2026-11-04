@@ -121,6 +121,7 @@ class _CancelStakeButtonState extends State<CancelStakeButton> {
     final int revision = WalletContextRevision.value;
     bool painted() =>
         mounted &&
+        context.mounted &&
         owner == widget.ownerAddress &&
         hash == widget.stakeHash.toString() &&
         amount == widget.amount &&
@@ -138,6 +139,7 @@ class _CancelStakeButtonState extends State<CancelStakeButton> {
           !cancelStakeBloc.isClosed &&
           (action?.isCurrent ?? false);
       final VoidCallback onCancelled = widget.onCancelled;
+      final String errorLabel = context.l10n.errorWhileCancellingStake;
       setState(() => _confirming = true);
       try {
         final bool? cancellationConfirmed = await showDialogWithNoAndYesOptions(
@@ -178,7 +180,7 @@ class _CancelStakeButtonState extends State<CancelStakeButton> {
         if (!current()) return;
         unawaited(NotificationUtils.sendNotificationError(
           error is SyriusException ? error : FailureException(),
-          context.l10n.errorWhileCancellingStake,
+          errorLabel,
         ));
       } finally {
         if (mounted) setState(() => _confirming = false);

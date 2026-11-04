@@ -91,6 +91,7 @@ ROOT_TEST_FILES = (
     'cache_policy_test.dart',
     'cancel_plasma_bloc_test.dart',
     'cancel_stake_bloc_test.dart',
+    'cancel_stake_button_test.dart',
     'capture_frame_test.dart',
     'capture_protocol_test.dart',
     'captured_sender_test.dart',
