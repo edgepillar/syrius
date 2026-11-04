@@ -35,3 +35,33 @@ Full Windows, Docker/chain-321, native seed, visual, motion and frame-time
 acceptance stay deferred/open. Original progress remains 72/80, with 50/94
 historical literal outputs, 44 missing and zero accepted whole-image matches.
 The PR stays Draft with English public text and edgepillar attribution.
+
+## Fresh Source447 focused result
+
+Source447 `bd4d9d712a7ad6e4bfe1e90181cef90ea329322f`, tree
+`dc83c5365575718346f00a9cb1c396577cf753b3`, is independently qualified by
+[41885387732](https://github.com/edgepillar/syrius/actions/runs/41885387732),
+attempt one, job 126768333183. All 1,230 ordinary widget cases pass in complete
+48/48-file streams (597/633), with zero failures/errors/skips, 134 hidden and
+1,364 terminal events. Both original processes exit zero normally with complete
+bounded output and distinct digests. The Home baseline/reflow case passes its
+unchanged inputs, original 0.1 tolerance and narrow-window reachability checks.
+
+Python completes all 1,006 controls with three existing skips and no
+failures/errors. Fourteen assets pass. Selected analysis has zero errors,
+warnings and infos with complete empty output. Aggregate publication and final
+source checking now complete successfully. All tested-source runs and original
+jobs are terminal with zero artifacts. The actual two streams, final source,
+attempt and API receipts are reconciled without another producer or SDK run.
+
+All 96 selected paths and previous registrations remain, including the complete
+Token, Sentinel and rail suites and earlier financial/context guards. The
+1,232-case asset-fidelity variant was not executed. The five earlier Home and
+aggregate failures remain attached to their original source; this success does
+not relabel them. Original Source428 and Source439 retain their separate scope.
+
+Source448 changes documentation only and preserves all 1,970 current runtime
+entries. It updates the first-delivery and progress records and archives exact
+English Draft body336. Full current Windows/native, six seed effects, Docker
+lab route, all visual pairs, motion/frame time and final acceptance remain open.
+The original main ledger stays 72/80 with zero accepted whole-image matches.

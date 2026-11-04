@@ -7,7 +7,22 @@ basic functionality, with detailed visual and extended platform/lab acceptance
 afterward. The first milestone is ready for Draft code review. Final acceptance
 of the complete redesign remains open.
 
-The most recently qualified focused source is Source428
+The most recently qualified focused source is Source447
+`bd4d9d712a7ad6e4bfe1e90181cef90ea329322f`, tree
+`dc83c5365575718346f00a9cb1c396577cf753b3`. Its
+[Home baseline and aggregate result](source447-focused-case-count.md#fresh-source447-focused-result)
+in [41885387732](https://github.com/edgepillar/syrius/actions/runs/41885387732)
+passes all 1,230 ordinary widget cases in complete 48/48-file streams (597/633),
+1,006 Python controls with three existing skips, fourteen assets and zero selected
+findings. The original Home baseline/reflow assertions and every prior selected
+path pass. Exact aggregate publication and final source checking complete;
+all tested-source jobs are terminal with zero artifacts. Source448 changes
+documentation only. The earlier Home and aggregate failures remain preserved.
+The 1,232-case asset variant was not executed. Full Windows/native, lab, visual
+and performance acceptance remains deferred/open; this milestone is for Draft
+code review. Original progress stays 72/80 and zero accepted visual matches.
+
+The preceding complete focused source is Source428
 `fc49ca01d4c6e830176e8dff50e1abf3b4a6ce13`. Its
 [Token explorer result](source427-token-explorer-control.md#fresh-source428-focused-result)
 in [41821411911](https://github.com/edgepillar/syrius/actions/runs/41821411911)
