@@ -10933,3 +10933,32 @@ wallet/node startup is requested. The fourteen controls and fixed query are
 qualified separately from the unchanged Source428 UI result. Source433 changes
 documentation only. P03/P09, current full Windows/native and final acceptance
 stay open. See the [finite result and scope](review/source432-wsl-component-readiness.md#hosted-observations).
+
+### WSL pre-install refusal and small-file control (2026-11-04)
+
+[Source435 manual 41843120048](https://github.com/edgepillar/syrius/actions/runs/41843120048),
+attempt one, job 126619629840, passes twenty-two controls and positive Arm64,
+desktop, admin and enabled-feature prerequisites. No existing WSL MSI binary,
+Store package or known pending reboot is detected. One exact 341,086,208-byte
+ARM64 input downloads with its selected SHA-256, and Windows reports a valid
+Microsoft signature. The original fact helpers exit zero normally with complete
+output. The job remains failed: final file verification refuses before MSI is
+invoked or installed-component queries/final source-after checking are reached.
+The exact inner cause remains NOT_ESTABLISHED; no component installation is
+qualified. The original producer and large download are not repeated.
+
+[Source436 registration 41845470979](https://github.com/edgepillar/syrius/actions/runs/41845470979)
+passes the unchanged twenty-two controls and helper syntax parsing.
+[Identity-only 41845942293](https://github.com/edgepillar/syrius/actions/runs/41845942293),
+attempt one, job 126629339303, uses Python 3.13.17 and one 32-byte regular file.
+All seven path/handle, handle/handle and path/path comparisons are equal, and
+the unchanged verifier accepts its explicit fixture input. Both runs are
+terminal with zero artifacts. Source remains unchanged. The MSI job is skipped;
+no package, SDK, installer or kernel/container is started by this diagnostic.
+
+This passing control does not reproduce a general metadata mismatch or identify
+the original MSI predicate. No timestamp guard is relaxed. Source437 changes
+documentation only. The original Source428 UI lineage remains separate from
+new metadata code/observations; the current full 991-case controller suite and
+current full Windows/native wallet remain unqualified. P03/P09 and complete
+redesign acceptance stay open. See the [result and boundaries](review/source436-windows-file-identity.md#source436-hosted-result).

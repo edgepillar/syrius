@@ -337,3 +337,13 @@ Docker readiness unknown. This is a qualified negative command observation,
 not working WSL or Docker. Source433 changes documentation only. No large
 download, SDK or kernel/container startup is added; P03/P09 and full acceptance
 remain open while the first delivery stays available for Draft code review.
+
+The [later installation/identity observations](source436-windows-file-identity.md#source436-hosted-result)
+retain Source435's failed pre-install result: positive prerequisites, exact
+download and Microsoft signature precede an unclassified final file-verification
+refusal; no MSI is invoked. Source436's separate 32-byte control passes all
+metadata comparisons and the unchanged verifier, without repeating the large
+download. Both source-bound diagnostic runs close with zero artifacts. A general
+metadata mismatch is not reproduced and no guard is relaxed. Source437 changes
+documentation only. The first-delivery UI result keeps its original source;
+P03/P09, current full platform/native and final acceptance remain open.

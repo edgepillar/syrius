@@ -42,3 +42,34 @@ Local source extraction/AST checking and the hosted source job must precede one
 manual diagnostic. Actual metadata comparison remains pending. No large input
 is transported again. P03/P09 and all original acceptance remain open at 72/80;
 the original failed producer is never relabeled as successful.
+
+## Source436 hosted result
+
+Source is `c51b01bd727e55b142ef5cd2e2f1368773adb7b9`, tree
+`fe3f64c1247fa725709f3d1b116c1cfd185157be`.
+[Source registration 41845470979](https://github.com/edgepillar/syrius/actions/runs/41845470979)
+passes all twenty-two unchanged controls and PowerShell source parsing.
+[Identity-only observation 41845942293](https://github.com/edgepillar/syrius/actions/runs/41845942293),
+attempt one, job 126629339303, completes successfully with Python `3.13.17`.
+Both other jobs, including the installer, are skipped for that manual event.
+Both runs are terminal with zero artifacts.
+
+The 32-byte regular, single-link fixture retains its exact bytes. Every compared
+field matches between path and handle, between original/final handle metadata
+and between original/final path metadata: device, file ID, size, mtime, ctime,
+link count and birthtime. Only equality booleans are emitted. The unchanged
+original verifier accepts the fixture. Source remains unchanged.
+
+Independent read-only reconciliation verifies exact source/run/job/attempt and
+the complete final frame. No large binary is downloaded, no MSI is invoked and
+no kernel/container starts. The generic path/handle mismatch hypothesis is not
+reproduced by this control. No timestamp guard is changed. This tiny regular
+file does not establish behavior of the signed MSI or identify the
+original Source435 failed predicate. Its cause stays NOT_ESTABLISHED.
+
+Source437 changes documentation only. The next diagnostic must preserve the
+specific failed verification predicate before selecting another package trial;
+it must not weaken an identity/time check based on this passing fixture. The
+original failed manual attempt and incomplete source-after observation
+remain separate. P03/P09, current full Windows/native, visual, motion/performance
+and final acceptance remain open. The full original ledger stays 72/80.
