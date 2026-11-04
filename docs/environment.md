@@ -56,10 +56,20 @@ unchanged trial is scheduled again; Source450 stays failed with its own unknowns
 Source453 prepares [coordinated lab retirement](review/source453-coordinated-lab-retirement.md):
 one validated project-ID stop batch precedes Compose removal, with the same
 ten-second Linux grace. Listing/identity/stop errors prevent removal or retry.
-Twenty local pure controls pass; six actual-script fixture controls are selected
-only in the Linux source lane. The full preparation is 1,032 Python cases.
-Fresh source/runtime observations are pending; node, frontier, positive-production
-and five-zero-exit criteria remain. The original failed trials keep their outcomes.
+Its [actual source and runtime result](review/source453-coordinated-lab-retirement.md#actual-source453-result)
+passes 1,032 controls/two existing Linux skips in source-only 41909585709 and
+manual 41910010050, including all six actual-script fixture cases. The one manual
+runtime remains failed: up advances one to two over thirty seconds, then status
+exits one after height two stays unchanged for thirty seconds. Down exits zero;
+four original node events exit zero, but observer exits 137 without observed OOM.
+All seven notices/22 complete unforced receipts consume, at most 3,051 bytes.
+Both runs are terminal with zero artifacts. Exact inner causes, production,
+five normal exits and final native source remain unqualified. Source454 adds
+[fixed node-file log observations](review/source454-node-log-file-observations.md)
+because the pinned logger writes to files rather than container stdout. Twenty-two
+local pure controls pass; six shell cases stay unselected locally. The full
+preparation is 1,034 Python cases; fresh hosted execution is pending. Node,
+frontier, ownership and exit criteria remain. Original failed trials are preserved.
 All 1,970 earlier runtime entries
 remain byte-identical through Source451; Source453 separately changes the lab
 script/controller/workflow and adds six shell-fixture cases. No new local

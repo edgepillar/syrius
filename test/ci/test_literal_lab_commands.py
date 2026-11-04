@@ -200,6 +200,49 @@ class LiteralLabTests(unittest.TestCase):
             self.assertEqual(call.args[0], 'node_failure_logs')
             self.assertEqual(call.args[1][:4], ['docker', 'logs', '--tail', '64'])
 
+    def test_node_file_logs_use_only_the_bound_ids_and_pinned_regular_paths(self):
+        self.assertEqual(lab.NODE_LOG_SOURCES, (
+            ('main', '/root/.znn/log/zenon.log'),
+            ('error', '/root/.znn/log/error/zenon.error.log')))
+        commands = mock.Mock()
+        commands.run.side_effect = lambda stage, argv: (
+            b'panic: fixture' if argv[-1].endswith('/log/zenon.log')
+            else b'permission denied: fixture')
+        owned = self.parse(self.rows())
+        value = lab.failure_file_logs(commands, owned)
+        self.assertEqual(value, {role: dict(sources=dict(main='READ', error='READ'),
+            codes=['NODE_STORAGE_REFUSED', 'NODE_PANIC']) for role in lab.ROLES})
+        self.assertEqual(commands.run.call_count, 10)
+        for index, call in enumerate(commands.run.call_args_list):
+            role = lab.ROLES[index // 2]
+            self.assertEqual(call.args, ('node_failure_file_logs', ['docker',
+                'exec', owned[role][0], 'sh', '-c', lab.NODE_LOG_READ,
+                'lab-log', lab.NODE_LOG_SOURCES[index % 2][1]]))
+        self.assertIn('[ ! -L "$1" ]', lab.NODE_LOG_READ)
+        self.assertIn('[ -f "$1" ]', lab.NODE_LOG_READ)
+        self.assertIn('exec tail -n 64 "$1"', lab.NODE_LOG_READ)
+
+    def test_node_file_log_refusal_preserves_closed_codes_without_raw_errors(self):
+        commands = mock.Mock()
+        commands.run.side_effect = lab.Refused('OUTPUT_REFUSED')
+        value = lab.failure_file_logs(commands, self.parse(self.rows()))
+        self.assertEqual(value, {role: dict(sources=dict(main='OUTPUT_REFUSED',
+            error='OUTPUT_REFUSED'), codes=[]) for role in lab.ROLES})
+        self.assertEqual(commands.run.call_count, 10)
+        commands = mock.Mock()
+        commands.run.return_value = 'private input'
+        value = lab.failure_file_logs(commands, self.parse(self.rows()))
+        self.assertEqual(value, {role: dict(sources=dict(main='OUTPUT_REFUSED',
+            error='OUTPUT_REFUSED'), codes=[]) for role in lab.ROLES})
+        commands = mock.Mock()
+        commands.run.return_value = b'fixture'
+        with mock.patch.object(lab.hosted, 'node_diagnostics',
+                side_effect=ValueError('private input')):
+            value = lab.failure_file_logs(commands, self.parse(self.rows()))
+        self.assertEqual(value, {role: dict(sources=dict(main='INTERNAL_ERROR',
+            error='INTERNAL_ERROR'), codes=[]) for role in lab.ROLES})
+        self.assertNotIn('private', json.dumps(value))
+
     def test_notice_chunks_preserve_all_bound_receipts_within_message_limit(self):
         command = dict(stage='source', seconds=0.1, receipt=dict(exit_code=0,
             output_complete=True, forced=False, stop_code=None, stop_os_error=None,
@@ -209,8 +252,30 @@ class LiteralLabTests(unittest.TestCase):
         rows = [copy.deepcopy(command) for _ in range(80)]
         rows[7]['stage'] = 'up'
         rows[7]['up_output_tags'] = [dict(code='GO_LINKNAME_REFUSED', symbol='a' * 95) for _ in range(12)]
-        report = dict(schema=1, scope='literal_lab_commands', source_sha='a' * 40,
-            source_tree='b' * 40, run_id='1', run_attempt='1', commands=rows)
+        with mock.patch.dict(lab.os.environ, {}, clear=True), \
+                mock.patch.object(lab.hosted, 'Original', side_effect=AssertionError('forbidden')), \
+                contextlib.redirect_stdout(io.StringIO()) as output:
+            self.assertEqual(lab.main(), 1)
+        report = json.loads(output.getvalue().split('::', 2)[2])
+        report.update(source_sha='a' * 40, source_tree='b' * 40,
+            run_id='1' * 20, run_attempt='1', commands=rows)
+        del report['command_count'], report['command_chunk_count']
+        codes = ['NODE_DATA_LOCK_RELEASE_REQUESTED', 'NODE_KEYSTORE_REFUSED',
+            'NODE_P2P_STOP_REQUESTED', 'NODE_SIGNAL_RECEIVED']
+        report['node_failure_facts'] = {role: dict(status='READ', codes=codes)
+            for role in lab.ROLES}
+        report['node_file_failure_facts'] = {role: dict(sources=dict(
+            main='OUTPUT_REFUSED', error='COMMAND_TIMEOUT'), codes=codes)
+            for role in lab.ROLES}
+        report['exit_observations'] = dict(status='OBSERVED', roles={role: dict(
+            die_count=2000, exit_codes=[137, 138, 139, 255], exit_code_count=256,
+            oom=True) for role in lab.ROLES})
+        report.update(image_sha256='c' * 64, genesis_sha256='d' * 64,
+            observation_code='COMMAND_TIMEOUT', close_code='RESOURCE_CHANGED',
+            up=dict(chain_id=321, first_height=2**53 - 2,
+                last_height=2**53 - 1, seconds=270),
+            status=dict(chain_id=321, first_height=2**53 - 2,
+                last_height=2**53 - 1, seconds=270))
         frames = lab.notice_frames(report)
         self.assertEqual(frames[0]['command_count'], 80)
         self.assertEqual(frames[0]['command_chunk_count'], len(frames) - 1)
@@ -221,7 +286,7 @@ class LiteralLabTests(unittest.TestCase):
             self.assertEqual(frame['chunk_index'], index)
             self.assertEqual(frame['chunk_count'], len(frames) - 1)
             self.assertEqual(frame['source_sha'], report['source_sha'])
-            self.assertEqual(frame['run_id'], '1')
+            self.assertEqual(frame['run_id'], '1' * 20)
             items.extend(frame['items'])
         self.assertEqual([item['index'] for item in items], list(range(1, 81)))
         self.assertEqual([item['command'] for item in items], rows)

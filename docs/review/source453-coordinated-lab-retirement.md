@@ -47,3 +47,34 @@ No application Dart, financial route, dependency or reference changes. The
 not qualify Windows Docker Desktop, wallet import/send, seed state, native pixels
 or final acceptance. Full progress stays 72/80, with zero accepted visual matches;
 heavy Windows, image and performance work remains deferred.
+
+## Actual Source453 result
+
+Source453 `fa24bd54936d3f01cb1832c8ff95aaa251b7f7f1`, tree
+`701aa8adcb0f726d8b6e78ed2e7b3a6b31715703`, completes its source-only
+[41909585709](https://github.com/edgepillar/syrius/actions/runs/41909585709)
+with 1,032 controls, two existing Linux skips and zero failures/errors. All six
+actual-script/fake-Docker cases execute successfully. Source checks pass before
+and after; runtime is skipped and artifacts are zero.
+
+The separate corrected-recipe trial
+[41910010050](https://github.com/edgepillar/syrius/actions/runs/41910010050),
+attempt one, runtime job 126855015671, is terminal and failed with zero artifacts.
+Its source job also passes 1,032 controls with two skips and zero failures/errors.
+All seven bound notices and 22 complete unforced command receipts consume; the
+largest notice is 3,051 bytes. Original up exits zero, observing chain 321 from
+one to two over thirty seconds. Status then exits one after height two remains
+unchanged for thirty seconds. Its exact inner cause remains NOT_ESTABLISHED.
+
+The one corrected down command exits zero. Pillar/pillar2/pillar3/rpc each have
+one zero-exit event; observer has one exit-137 event. No OOM event is observed.
+This differs from Source451's two nonzero roles, but separate fresh executions
+do not establish the old inner cause or a stable RPC repair. The strict five-zero
+predicate still refuses shutdown. Production and final native source checking
+remain unqualified, with COMMAND_FAILED and separate STOP_UNKNOWN retained.
+
+Container stdout/stderr log reads yield no recognized code. The pinned logger
+uses files; [Source454](source454-node-log-file-observations.md) adds fixed
+file observations without changing production, resource or exit requirements.
+No original trial is retried. Full Windows/wallet/seed/visual/performance scope
+remains open; 72/80 and zero accepted matches are unchanged.

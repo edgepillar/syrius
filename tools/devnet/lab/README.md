@@ -89,7 +89,16 @@ complete stop batch before Compose removal, retaining ten-second Linux grace.
 Any listing/identity/stop failure prevents removal and is not retried. The other
 three inputs and node pin remain unchanged. See the
 [coordinated retirement scope](../../../docs/review/source453-coordinated-lab-retirement.md).
-Fresh source/runtime qualification of this correction is pending. The final image ID is observed
+Source-only 41909585709 and manual 41910010050 pass 1,032 controls with two
+existing Linux skips, including all six actual-script fixtures. The manual runtime
+remains failed: status observes no progress at height two for thirty seconds,
+and observer exits 137 while four original nodes exit zero, with no observed OOM.
+All seven notices/22 command receipts consume completely; artifacts are zero.
+Production, five normal exits and final native source remain unqualified.
+Source454 adds bounded fixed-file log reads because the pinned node writes
+outside container stdout; only known diagnostic codes are exported. See the
+[node-log observation scope](../../../docs/review/source454-node-log-file-observations.md).
+Fresh qualification of those observations is pending. The final image ID is observed
 because the upstream Dockerfile's base-image tags can move.
 
 The lane requires a fresh project/build/assets namespace, chain-321 height

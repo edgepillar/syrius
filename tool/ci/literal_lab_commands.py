@@ -18,6 +18,12 @@ NODE = '590f43ca7a24dccd8e883bc8903a0cb02e54528a'
 NODE_TREE = '3bedc2fde71035c983997451c2d7e76b66d2d210'
 PROJECT = 'syrius-lab'
 ROLES = ('pillar', 'pillar2', 'pillar3', 'observer', 'rpc')
+NODE_LOG_SOURCES = (
+    ('main', '/root/.znn/log/zenon.log'),
+    ('error', '/root/.znn/log/error/zenon.error.log'),
+)
+NODE_LOG_READ = ('[ ! -L /root/.znn/log ] && [ ! -L /root/.znn/log/error ] '
+    '&& [ ! -L "$1" ] && [ -f "$1" ] && exec tail -n 64 "$1"')
 PINS = {
     'lab.sh': 'a7488a8ff366ca96b91e1ab88150253ee792632c06a19ea5916dcb25d7deb234',
     'docker-compose.yml': '0100e958abd79d03bd125ce7fd042b9f3bb78cda8b69a17502beadb99ed4cef9',
@@ -217,6 +223,26 @@ def failure_logs(commands, owned):
     return result
 
 
+def failure_file_logs(commands, owned):
+    """The pinned node writes its logs to files, outside container stdout."""
+    result = {}
+    for role in ROLES:
+        sources, parts, codes = {}, [], []
+        for label, path in NODE_LOG_SOURCES:
+            try:
+                raw = commands.run('node_failure_file_logs', ['docker', 'exec',
+                    owned[role][0], 'sh', '-c', NODE_LOG_READ, 'lab-log', path])
+                need(type(raw) is bytes and len(raw) <= 2 * MIB, 'OUTPUT_REFUSED')
+                candidate = [*parts, raw]
+                found = hosted.node_diagnostics(b'\n'.join(candidate))[:4]
+                parts, codes = candidate, found
+                sources[label] = 'READ'
+            except Exception as error:
+                sources[label] = code(error)
+        result[role] = dict(sources=sources, codes=codes)
+    return result
+
+
 class Commands:
     """Bound original process groups; keep raw output private and receipts finite."""
     def __init__(self, repo, root, lab, env, report):
@@ -411,6 +437,7 @@ def observe(commands, repo, lab, report):
                 need(current == owned, 'RESOURCE_CHANGED')
                 if observation_failed:
                     report['node_failure_facts'] = failure_logs(commands, owned)
+                    report['node_file_failure_facts'] = failure_file_logs(commands, owned)
                     current = containers(commands.docker('inspect', *names), image, lab / 'assets')
                     need(current == owned, 'RESOURCE_CHANGED')
                 since = str(max(0, int(time.time()) - 1))
@@ -476,7 +503,7 @@ def main():
     report = dict(schema=1, scope='literal_lab_commands', success=False, code=None,
         source_sha=None, source_tree=None, run_id=None, run_attempt=None,
         observation_code=None, close_code=None, unadopted_start_held=False,
-        node_failure_facts={}, exit_observations=None,
+        node_failure_facts={}, node_file_failure_facts={}, exit_observations=None,
         node_sha=NODE, node_tree=NODE_TREE, commands=[], up=None, status=None,
         image_sha256=None, genesis_sha256=None, exit_codes={},
         checks=dict(fresh=False, originals=False, production=False, stopped=False, source_after=False),
