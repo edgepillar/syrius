@@ -1,11 +1,20 @@
 # First delivery and deferred acceptance
 
-Updated: 2026-11-04T06:01Z.
+Updated: 2026-11-04T06:30Z.
 
 The owner selected a first delivery covering the core interface and existing
 basic functionality, with detailed visual and extended platform/lab acceptance
 afterward. The first milestone is ready for Draft code review. Final acceptance
 of the complete redesign remains open.
+
+Source417 prepares [Staking and Sentinel control symbols](source417-staking-sentinel-symbols.md)
+from the unchanged original SVGs. All action, amount and ownership behavior
+remains; existing cases extend rendered correspondence checks. Sixty-one
+existing Sentinel/rail cases join the focused selection, preparing 1,184
+ordinary cases in 47/46-file streams, with no new global registrations.
+Thirty-seven local mocked/read-only controls pass. Fresh Flutter tests and
+selected analysis remain pending. Heavy qualification and image work stay
+deferred.
 
 The latest focused source is Source415 `6f371be032545394b5fbe40b573c74d2bfaefa7c`.
 Its [Pillar sort-frame result](source415-pillar-sort-frame.md#fresh-source415-focused-result)

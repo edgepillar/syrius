@@ -54,6 +54,15 @@ const Map<String, String> _symbols = <String, String>{
   'sort':
       '<path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 '
       '3M17 4l3 3"/>',
+  'plus': '<path d="M12 5v14M5 12h14"/>',
+  'x': '<path d="M6 6l12 12M18 6 6 18"/>',
+  'chart': '<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>',
+  'more':
+      '<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" '
+      'r="1"/><circle cx="19" cy="12" r="1"/>',
+  'clock':
+      '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  'check': '<path d="m5 12 5 5L20 7"/>',
   'qr':
       '<rect x="3" y="3" width="7" height="7"/><rect '
       'x="14" y="3" width="7" height="7"/><rect '

@@ -7,6 +7,8 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/motion/
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show ShellSymbol;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// The owner's label or shortened address, with its full value on hover.
@@ -69,11 +71,15 @@ class SentinelStatusChip extends StatelessWidget {
           : active
           ? context.l10n.nodesActive
           : context.l10n.nodesRevoked,
-      icon: yours
-          ? Icons.person_outline_rounded
-          : active
-          ? Icons.check_rounded
-          : Icons.remove_circle_outline_rounded,
+      icon: Icon(
+        yours
+            ? Icons.person_outline_rounded
+            : active
+            ? Icons.check_rounded
+            : Icons.remove_circle_outline_rounded,
+        size: tokens.settingsIconSize,
+        color: ink,
+      ),
       ink: ink,
       fill: active ? tokens.znn.withValues(alpha: 0.12) : tokens.card,
       line: active ? tokens.znn.withValues(alpha: 0) : tokens.line,
@@ -286,7 +292,11 @@ class _SentinelRevocationTimeState extends State<SentinelRevocationTime> {
     }
     return _FactChip(
       label: text,
-      icon: sentinel.isRevocable ? Icons.check_rounded : Icons.schedule_rounded,
+      icon: ShellSymbol(
+        sentinel.isRevocable ? 'check' : 'clock',
+        size: tokens.inlineGlyphSize,
+        color: sentinel.isRevocable ? tokens.znnInk : tokens.qsrInk,
+      ),
       ink: sentinel.isRevocable ? tokens.znnInk : tokens.qsrInk,
       fill: (sentinel.isRevocable ? tokens.znn : tokens.qsr).withValues(
         alpha: 0.12,
@@ -301,16 +311,16 @@ class _SentinelRevocationTimeState extends State<SentinelRevocationTime> {
 class _FactChip extends StatelessWidget {
   const _FactChip({
     required this.label,
-    required this.icon,
+    required Widget icon,
     required this.ink,
     required this.fill,
     required this.line,
     required this.compact,
     this.data = false,
-  });
+  }) : _icon = icon;
 
   final String label;
-  final IconData icon;
+  final Widget _icon;
   final Color ink;
   final Color fill;
   final Color line;
@@ -335,7 +345,7 @@ class _FactChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          Icon(icon, size: tokens.settingsIconSize, color: ink),
+          _icon,
           SizedBox(width: tokens.fieldLabelGap),
           Text(
             label,

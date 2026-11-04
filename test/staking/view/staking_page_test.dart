@@ -20,6 +20,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/staking
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../../helpers/hydrated_bloc.dart';
+import '../../helpers/mockup_symbol.dart';
 
 class _Stakes extends MockBloc<InfiniteListEvent, InfiniteListState<StakeEntry>>
     implements StakesBloc {}
@@ -417,6 +418,12 @@ void main() {
           matching: find.byType(OutlinedButton),
         );
         expect(tester.getSize(action).height, 38);
+        expectMockupSymbol(
+          tester,
+          within: action,
+          symbol: 'plus',
+          size: 18,
+        );
         await tester.tap(action);
         await tester.pump(const Duration(milliseconds: 300));
         final OutlinedButton close = tester.widget<OutlinedButton>(action);
@@ -426,6 +433,12 @@ void main() {
           14,
         );
         expect(find.text('Close'), findsOneWidget);
+        expectMockupSymbol(
+          tester,
+          within: action,
+          symbol: 'x',
+          size: 18,
+        );
         await tester.tap(action);
         await tester.pump(const Duration(milliseconds: 300));
         expect(find.text('Close'), findsNothing);
@@ -457,6 +470,12 @@ void main() {
     await tester.pump();
     expect(find.text(r'$930.00'), findsOneWidget);
     expect(find.text(r'$0.5704'), findsOneWidget);
+    expectMockupSymbol(
+      tester,
+      within: find.byKey(const Key('staking_chart_button')),
+      symbol: 'chart',
+      size: 14,
+    );
     final SemanticsHandle semantics = tester.ensureSemantics();
     try {
       BalanceVisibility.instance.set(true);

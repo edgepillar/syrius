@@ -15,6 +15,8 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/app_lottie.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+import '../../helpers/mockup_symbol.dart';
+
 class _Stakes extends MockBloc<InfiniteListEvent, InfiniteListState<StakeEntry>>
     implements StakesBloc {}
 
@@ -151,8 +153,21 @@ void main() {
         );
         expect(tester.widget<OutlinedButton>(locked).onPressed, isNull);
         expect(find.text('Cancel and withdraw'), findsOneWidget);
-        expect(find.byIcon(Icons.schedule_rounded), findsOneWidget);
-        expect(find.byIcon(Icons.check_rounded), findsOneWidget);
+        final AppTokens tokens = AppTokens.of(tester.element(_row(1)));
+        expectMockupSymbol(
+          tester,
+          within: _row(1),
+          symbol: 'clock',
+          size: 12,
+          color: tokens.qsrInk,
+        );
+        expectMockupSymbol(
+          tester,
+          within: _row(2),
+          symbol: 'check',
+          size: 12,
+          color: tokens.znnInk,
+        );
         expect(
           tester
               .widget<Text>(find.byKey(const Key('staking_stakes_count')))

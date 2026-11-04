@@ -14,6 +14,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/app_lottie.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+import '../../helpers/mockup_symbol.dart';
 import '../sentinel_fixture.dart';
 
 class _Sentinels
@@ -172,6 +173,12 @@ void main() {
         );
         await tester.pump(const Duration(milliseconds: 450));
         final Finder button = find.byKey(const Key('sentinels_spawn'));
+        expectMockupSymbol(
+          tester,
+          within: button,
+          symbol: 'plus',
+          size: 12,
+        );
         expect(
           Theme.of(tester.element(button)).visualDensity,
           VisualDensity.compact,
@@ -185,6 +192,12 @@ void main() {
         await tester.pump();
         expect(tester.getSize(button).height, 26);
         expect(tester.widget<TextButton>(button).onPressed, isNull);
+        expectMockupSymbol(
+          tester,
+          within: button,
+          symbol: 'plus',
+          size: 12,
+        );
         await tester.tap(button);
         expect(spawned, 1);
 
@@ -193,6 +206,12 @@ void main() {
         );
         await tester.pump();
         expect(tester.getSize(button).height, greaterThan(26));
+        expectMockupSymbol(
+          tester,
+          within: button,
+          symbol: 'plus',
+          size: 12,
+        );
         expect(tester.widget<TextButton>(button).onPressed, isNotNull);
         await tester.tap(button);
         expect(spawned, 2);

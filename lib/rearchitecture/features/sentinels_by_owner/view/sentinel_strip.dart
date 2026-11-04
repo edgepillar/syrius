@@ -7,6 +7,8 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/pa
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/page_refresh.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show ShellSymbol;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// The selected address's proven ownership beside root-owned rewards/actions.
@@ -151,14 +153,14 @@ class SentinelStrip extends StatelessWidget {
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
           onPressed: onOpenRewards,
-          icon: Icon(Icons.bar_chart_rounded, size: tokens.settingsIconSize),
+          icon: ShellSymbol('chart', size: tokens.smallActionGlyphSize),
           label: Text(context.l10n.nodesRewards),
         ),
         IconButton(
           key: const Key('nodes_sentinel_owner'),
           tooltip: context.l10n.nodesYourSentinel,
           onPressed: available ? onOpenOwner : null,
-          icon: Icon(Icons.more_horiz, size: tokens.railIconSize),
+          icon: ShellSymbol('more', size: tokens.smallActionGlyphSize),
         ),
       ],
     );

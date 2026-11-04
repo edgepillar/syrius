@@ -9,6 +9,8 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/eye_tog
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/ltr.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/empty_note.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show ShellSymbol;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// Stakes belonging to the selected address, with their unlock status.
@@ -332,9 +334,9 @@ class _UnlockChip extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              Icon(
-                unlocked ? Icons.check_rounded : Icons.schedule_rounded,
-                size: 12,
+              ShellSymbol(
+                unlocked ? 'check' : 'clock',
+                size: tokens.inlineGlyphSize,
                 color: ink,
               ),
               SizedBox(width: tokens.fieldLabelGap),

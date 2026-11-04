@@ -8,6 +8,8 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+import '../../helpers/mockup_symbol.dart';
+
 class _Sentinel extends Mock implements SentinelInfo {}
 
 SentinelInfo _sentinel({
@@ -232,6 +234,39 @@ void main() {
       expect(find.byIcon(Icons.check_rounded), findsOneWidget);
       expect(find.byIcon(Icons.remove_circle_outline_rounded), findsOneWidget);
       expect(find.text('Producing'), findsNothing);
+      await tester.pumpWidget(
+        _host(
+          Row(
+            children: <Widget>[
+              for (final bool open in <bool>[false, true])
+                SentinelRevocationTime(
+                  sentinel: _sentinel(cooldown: 3600, open: open),
+                  now: () => readAt,
+                  chip: true,
+                ),
+            ],
+          ),
+          light: light,
+        ),
+      );
+      final Finder chips = find.byType(SentinelRevocationTime);
+      final AppTokens tokens = AppTokens.of(tester.element(chips.first));
+      expect(find.text('in 1 h'), findsOneWidget);
+      expect(find.text('now'), findsOneWidget);
+      expectMockupSymbol(
+        tester,
+        within: chips.first,
+        symbol: 'clock',
+        size: 12,
+        color: tokens.qsrInk,
+      );
+      expectMockupSymbol(
+        tester,
+        within: chips.last,
+        symbol: 'check',
+        size: 12,
+        color: tokens.znnInk,
+      );
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox.shrink());
     });

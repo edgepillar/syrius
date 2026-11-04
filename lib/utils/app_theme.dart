@@ -1687,6 +1687,15 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The reference sort chip uses the extra-small original glyph.
   double get pillarSortIconSize => 12;
 
+  /// Original page-action symbols use the reference's ordinary SVG size.
+  double get actionGlyphSize => 18;
+
+  /// Quiet strip actions use the reference's small SVG size.
+  double get smallActionGlyphSize => 14;
+
+  /// Compact actions and time/status chips use the extra-small SVG size.
+  double get inlineGlyphSize => 12;
+
   /// Nested tab padding and borders exceed the chip's declared 26 px.
   double get pillarSortMinHeight => 27;
 

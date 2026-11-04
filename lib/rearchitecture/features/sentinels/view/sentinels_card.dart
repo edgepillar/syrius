@@ -9,6 +9,8 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/error_widget.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/page_refresh.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show ShellSymbol;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// Every active sentinel on the network, with its actual registration window.
@@ -113,7 +115,7 @@ class _View extends StatelessWidget {
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
                 onPressed: onSpawn,
-                icon: Icon(Icons.add, size: tokens.settingsIconSize),
+                icon: ShellSymbol('plus', size: tokens.inlineGlyphSize),
                 label: Text(context.l10n.spawn),
               ),
             ],

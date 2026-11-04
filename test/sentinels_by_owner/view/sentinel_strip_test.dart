@@ -12,6 +12,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/notifiers/balance_visibility.d
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/app_lottie.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+import '../../helpers/mockup_symbol.dart';
 import '../../sentinels/sentinel_fixture.dart';
 
 Widget _host(
@@ -118,6 +119,27 @@ void main() {
         expect(find.byTooltip(sentinelOwnerFixture(1)), findsOneWidget);
         expect(find.text('Producing'), findsNothing);
         expect(find.text('None yet'), findsNothing);
+        expectMockupSymbol(
+          tester,
+          within: find.byKey(const Key('nodes_sentinel_rewards')),
+          symbol: 'chart',
+          size: 14,
+        );
+        expectMockupSymbol(
+          tester,
+          within: find.byKey(const Key('nodes_sentinel_owner')),
+          symbol: 'more',
+          size: 14,
+        );
+        expectMockupSymbol(
+          tester,
+          within: find.byType(SentinelStrip),
+          symbol: 'clock',
+          size: 12,
+          color: AppTokens.of(
+            tester.element(find.byType(SentinelStrip)),
+          ).qsrInk,
+        );
         expect(tester.takeException(), isNull);
         await tester.pumpWidget(const SizedBox.shrink());
       },

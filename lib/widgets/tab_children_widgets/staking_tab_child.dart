@@ -20,6 +20,8 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_context_revision.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/app_lottie.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show ShellSymbol;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// What the chart's open or closed state is stored under.
@@ -499,7 +501,7 @@ class _Strip extends StatelessWidget {
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
                 onPressed: chart.toggle,
-                icon: const Icon(Icons.bar_chart_rounded, size: 16),
+                icon: ShellSymbol('chart', size: tokens.smallActionGlyphSize),
                 label: Text(context.l10n.stakingChart),
               ),
             // One place, two buttons: the page's main action while the
@@ -521,12 +523,12 @@ class _Strip extends StatelessWidget {
                         ),
                       ),
                       onPressed: form.close,
-                      icon: const Icon(Icons.close, size: 16),
+                      icon: ShellSymbol('x', size: tokens.actionGlyphSize),
                       label: Text(context.l10n.commonClose),
                     )
                   : PrimaryPill(
                       onPressed: form.open,
-                      icon: const Icon(Icons.add, size: 18),
+                      icon: ShellSymbol('plus', size: tokens.actionGlyphSize),
                       child: Text(context.l10n.stake),
                     ),
             ),
