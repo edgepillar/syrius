@@ -644,6 +644,10 @@ class AnalysisAdmissionTests(unittest.TestCase):
         self.assertEqual(self.analysis_argv.count('test/theme/mockup_tokens_test.dart'), 1)
         for path in ('lib/rearchitecture/features/send/widgets/send_populated.dart',
                      'test/send/widgets/send_form_test.dart',
+                     'lib/rearchitecture/features/create_stake/view/create_stake_card.dart',
+                     'test/staking/view/create_stake_card_test.dart',
+                     'lib/rearchitecture/features/send/bloc/send_transaction/send_transaction_bloc.dart',
+                     'test/send/bloc/sender_admission_test.dart',
                      'lib/widgets/shell/rail.dart',
                      'lib/rearchitecture/features/latest_transactions/view/activity_row.dart',
                      'test/latest_transactions/activity_row_test.dart',

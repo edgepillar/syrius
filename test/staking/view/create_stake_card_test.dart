@@ -15,6 +15,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dar
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/disclosure.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/segment.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/wallet_context_revision.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -29,6 +30,8 @@ class _Zenon extends Mock implements Zenon {}
 class _Embedded extends Mock implements EmbeddedApi {}
 
 class _Stake extends Mock implements StakeApi {}
+
+class _Request extends Mock implements SendRequestHandle {}
 
 const Key _amountKey = Key('create_stake_amount_field');
 const Key _submitKey = Key('create_stake_submit_button');
@@ -61,8 +64,14 @@ void main() {
   late Zenon? previousZenon;
   late String? previousAddress;
   late SelectedAddressNotifier selection;
+  late List<Completer<SendRequestResult>> outcomes;
+  late List<bool Function()> startGuards;
+  late List<bool Function()> publishGuards;
+  late bool refuseAdmission;
 
   setUpAll(() {
+    registerFallbackValue(() => true);
+    registerFallbackValue(BigInt.zero);
     registerFallbackValue(const MultipleBalanceFetch(addresses: <String>[]));
     registerFallbackValue(
       SendTransactionInitiateFromBlock(
@@ -80,6 +89,10 @@ void main() {
     selection = SelectedAddressNotifier();
     balances = _Balances();
     transactions = _Transactions();
+    outcomes = <Completer<SendRequestResult>>[];
+    startGuards = <bool Function()>[];
+    publishGuards = <bool Function()>[];
+    refuseAdmission = false;
     balanceStates = StreamController<MultipleBalanceState>.broadcast(
       sync: true,
     );
@@ -96,6 +109,31 @@ void main() {
       transactionStates.stream,
       initialState: const SendTransactionState(),
     );
+    when(
+      () => transactions.trySubmitContract(
+        any(),
+        canStart: any(named: 'canStart'),
+        canPublish: any(named: 'canPublish'),
+      ),
+    ).thenAnswer((Invocation invocation) {
+      if (refuseAdmission) return null;
+      final SendTransactionInitiateFromBlock event =
+          invocation.positionalArguments.single
+              as SendTransactionInitiateFromBlock;
+      final Completer<SendRequestResult> outcome =
+          Completer<SendRequestResult>();
+      final _Request request = _Request();
+      when(() => request.requestId).thenReturn(event.requestId!);
+      when(() => request.result).thenAnswer((_) => outcome.future);
+      outcomes.add(outcome);
+      startGuards.add(invocation.namedArguments[#canStart] as bool Function());
+      publishGuards.add(
+        invocation.namedArguments[#canPublish] as bool Function(),
+      );
+      // Observe the enqueued event; real admission is tested with the sender.
+      transactions.add(event);
+      return request;
+    });
     app.sl.registerSingleton<MultipleBalanceBloc>(balances);
 
     final _Zenon zenon = _Zenon();
@@ -107,6 +145,12 @@ void main() {
   });
 
   tearDown(() async {
+    WalletContextRevision.invalidate();
+    for (final Completer<SendRequestResult> outcome in outcomes) {
+      if (!outcome.isCompleted) {
+        outcome.complete(SendRequestResult(error: StateError('Owner closed')));
+      }
+    }
     await balanceStates.close();
     await transactionStates.close();
     await app.sl.unregister<MultipleBalanceBloc>();
@@ -169,6 +213,10 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(child);
     await tester.pump(const Duration(milliseconds: 400));
+    addTearDown(() async {
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+    });
   }
 
   Future<void> chooseSixMonths(WidgetTester tester) async {
@@ -309,9 +357,24 @@ void main() {
     final ValueChanged<String> submit = tester
         .widget<TextField>(find.byKey(_amountKey))
         .onSubmitted!;
+    final VoidCallback max = tester
+        .widget<TextButton>(
+          find.byKey(const Key('create_stake_max_button')),
+        )
+        .onPressed!;
+    final ValueChanged<int> duration = tester
+        .widget<Segment<int>>(find.byType(Segment<int>))
+        .onChanged;
     submit('300');
     submit('300');
+    max();
+    duration(1);
     await tester.pump();
+    expect(
+      tester.widget<TextField>(find.byKey(_amountKey)).controller!.text,
+      '300',
+    );
+    expect(tester.widget<Segment<int>>(find.byType(Segment<int>)).selected, 6);
     verify(() => stake.stake(6 * stakeTimeUnitSec, amount)).called(1);
     final List<dynamic> sent = verify(
       () => transactions.add(captureAny()),
@@ -336,6 +399,10 @@ void main() {
       SendTransactionState(status: SendTransactionStatus.success, data: block),
     );
     await tester.pump();
+    expect(created, 0);
+    expect(observed, isEmpty);
+    outcomes.single.complete(SendRequestResult(block: block));
+    await tester.pump();
     expect(created, 1);
     expect(observed, hasLength(1));
     expect(observed.single, same(block));
@@ -348,6 +415,181 @@ void main() {
       isNull,
     );
     verify(() => balances.add(any())).called(1);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('old controls reject address round trips before a frame', (
+    WidgetTester tester,
+  ) async {
+    await show(tester, host());
+    await chooseSixMonths(tester);
+    await tester.enterText(find.byKey(_amountKey), '300');
+    await tester.pump();
+    final TextEditingController amount = tester
+        .widget<TextField>(find.byKey(_amountKey)).controller!;
+    final VoidCallback max = tester.widget<TextButton>(
+      find.byKey(const Key('create_stake_max_button')),
+    ).onPressed!;
+    final ValueChanged<int> duration = tester
+        .widget<Segment<int>>(find.byType(Segment<int>)).onChanged;
+    final ValueChanged<String> submit = tester
+        .widget<TextField>(find.byKey(_amountKey)).onSubmitted!;
+    for (final String address in <String>[
+      Address('z', <int>[0, 1, ...List<int>.filled(18, 7)]).toString(),
+      emptyAddress.toString(),
+    ]) {
+      kSelectedAddress = address;
+      WalletContextRevision.invalidate();
+      max();
+      duration(1);
+      submit('300');
+      expect(amount.text, '300');
+    }
+    verifyZeroInteractions(stake);
+    verifyNever(() => transactions.add(any()));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(
+      tester.widget<TextField>(find.byKey(_amountKey)).controller!.text,
+      isEmpty,
+    );
+    await tester.tap(find.byKey(const Key('create_stake_max_button')));
+    await tester.pump();
+    expect(
+      tester.widget<TextField>(find.byKey(_amountKey)).controller!.text,
+      '1000',
+    );
+    await tester.pumpWidget(const SizedBox.shrink());
+    max();
+    duration(1);
+    submit('300');
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('retained controls cannot edit a closed kept-alive form', (
+    WidgetTester tester,
+  ) async {
+    final DisclosureController disclosure = DisclosureController();
+    addTearDown(disclosure.dispose);
+    await show(tester, host(disclosure: disclosure));
+    disclosure.open();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    await chooseSixMonths(tester);
+    await tester.enterText(find.byKey(_amountKey), '300');
+    await tester.pump();
+    final TextEditingController amount = tester
+        .widget<TextField>(find.byKey(_amountKey)).controller!;
+    final VoidCallback max = tester.widget<TextButton>(
+      find.byKey(const Key('create_stake_max_button')),
+    ).onPressed!;
+    final ValueChanged<int> duration = tester
+        .widget<Segment<int>>(find.byType(Segment<int>)).onChanged;
+    final ValueChanged<String> submit = tester
+        .widget<TextField>(find.byKey(_amountKey)).onSubmitted!;
+    disclosure.close();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    max();
+    duration(1);
+    submit('300');
+    expect(amount.text, '300');
+    verifyZeroInteractions(stake);
+    verifyNever(() => transactions.add(any()));
+    disclosure.open();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(tester.widget<Segment<int>>(find.byType(Segment<int>)).selected, 6);
+    expect(
+      tester.widget<TextField>(find.byKey(_amountKey)).controller,
+      same(amount),
+    );
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('an original accepted result outlives its form', (
+    WidgetTester tester,
+  ) async {
+    final AccountBlockTemplate block = AccountBlockTemplate(blockType: 1);
+    when(() => stake.stake(6 * stakeTimeUnitSec, any())).thenReturn(block);
+    final List<AccountBlockTemplate> observed = <AccountBlockTemplate>[];
+    int created = 0;
+    await show(tester, host(
+      onCreated: () => created++,
+      onPublished: observed.add,
+    ));
+    await chooseSixMonths(tester);
+    await tester.enterText(find.byKey(_amountKey), '300');
+    await tester.pump();
+    tester.widget<TextField>(find.byKey(_amountKey)).onSubmitted!('300');
+    expect(startGuards.single(), isTrue);
+    expect(publishGuards.single(), isTrue);
+    await tester.pumpWidget(const SizedBox.shrink());
+    outcomes.single.complete(SendRequestResult(block: block));
+    await tester.pump();
+    expect(observed, <AccountBlockTemplate>[block]);
+    expect(created, 0);
+    verifyNever(() => balances.add(any()));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('an old accepted result cannot clear a replacement draft', (
+    WidgetTester tester,
+  ) async {
+    final AccountBlockTemplate block = AccountBlockTemplate(blockType: 1);
+    when(() => stake.stake(6 * stakeTimeUnitSec, any())).thenReturn(block);
+    final List<AccountBlockTemplate> observed = <AccountBlockTemplate>[];
+    int created = 0;
+    await show(tester, host(
+      onCreated: () => created++,
+      onPublished: observed.add,
+    ));
+    await chooseSixMonths(tester);
+    await tester.enterText(find.byKey(_amountKey), '300');
+    await tester.pump();
+    tester.widget<TextField>(find.byKey(_amountKey)).onSubmitted!('300');
+    WalletContextRevision.invalidate();
+    expect(startGuards.single(), isFalse);
+    expect(publishGuards.single(), isFalse);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    await chooseSixMonths(tester);
+    await tester.enterText(find.byKey(_amountKey), '400');
+    await tester.pump();
+    outcomes.single.complete(SendRequestResult(block: block));
+    await tester.pump();
+    expect(observed, <AccountBlockTemplate>[block]);
+    expect(created, 0);
+    expect(
+      tester.widget<TextField>(find.byKey(_amountKey)).controller!.text,
+      '400',
+    );
+    verifyNever(() => balances.add(any()));
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('refused admission releases only its pending display', (
+    WidgetTester tester,
+  ) async {
+    final AccountBlockTemplate block = AccountBlockTemplate(blockType: 1);
+    when(() => stake.stake(6 * stakeTimeUnitSec, any())).thenReturn(block);
+    refuseAdmission = true;
+    await show(tester, host());
+    await chooseSixMonths(tester);
+    await tester.enterText(find.byKey(_amountKey), '300');
+    await tester.pump();
+    tester.widget<TextField>(find.byKey(_amountKey)).onSubmitted!('300');
+    await tester.pump();
+    expect(outcomes, isEmpty);
+    expect(
+      tester.widget<TextField>(find.byKey(_amountKey)).controller!.text,
+      '300',
+    );
+    expect(
+      tester.widget<PrimaryPill>(find.byKey(_submitKey)).onPressed,
+      isNotNull,
+    );
+    verifyNever(() => transactions.add(any()));
     await tester.pumpWidget(const SizedBox.shrink());
   });
 

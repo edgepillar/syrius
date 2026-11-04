@@ -79,6 +79,7 @@ void main() {
   late Future<AccountBlockTemplate> Function(AccountBlockTemplate) publish;
   late List<Completer<AccountBlockTemplate>> pending;
   late int publicationCount;
+  late List<bool Function()> publicationGuards;
 
   setUp(() {
     previousObserver = Bloc.observer;
@@ -89,6 +90,7 @@ void main() {
     addresses = _AddressUtils();
     pending = <Completer<AccountBlockTemplate>>[];
     publicationCount = 0;
+    publicationGuards = <bool Function()>[];
     publish = (AccountBlockTemplate block) async => block;
     when(
       () => blocks.createAccountBlock(
@@ -99,6 +101,23 @@ void main() {
       ),
     ).thenAnswer((Invocation invocation) {
       publicationCount++;
+      return publish(
+        invocation.positionalArguments.first as AccountBlockTemplate,
+      );
+    });
+    when(
+      () => blocks.createAccountBlock(
+        any(),
+        any(),
+        address: any(named: 'address'),
+        waitForRequiredPlasma: any(named: 'waitForRequiredPlasma'),
+        canPublish: any(named: 'canPublish'),
+      ),
+    ).thenAnswer((Invocation invocation) {
+      publicationCount++;
+      final bool Function()? guard =
+          invocation.namedArguments[#canPublish] as bool Function()?;
+      if (guard != null) publicationGuards.add(guard);
       return publish(
         invocation.positionalArguments.first as AccountBlockTemplate,
       );
@@ -168,6 +187,131 @@ void main() {
     (SendTransactionState state) =>
         state.status == SendTransactionStatus.success,
   );
+
+  SendTransactionInitiateFromBlock contract({
+    Object? requestId,
+    SendTransactionOrigin origin = SendTransactionOrigin.contract,
+  }) => SendTransactionInitiateFromBlock(
+    block: AccountBlockTemplate(blockType: 1),
+    fromAddress: emptyAddress.toString(),
+    reasonForGeneratingPlasma: 'Stake',
+    requestId: requestId,
+    origin: origin,
+  );
+
+  test('guarded contracts require an identity and the contract origin', () {
+    expect(sender.trySubmitContract(
+      contract(),
+      canStart: () => true,
+      canPublish: () => true,
+    ), isNull);
+    expect(sender.trySubmitContract(
+      contract(requestId: Object(), origin: SendTransactionOrigin.collection),
+      canStart: () => true,
+      canPublish: () => true,
+    ), isNull);
+    expect(publicationCount, 0);
+    expect(sender.busy.value, isFalse);
+  });
+
+  test('guarded contracts retain their exact result and publication guard',
+      () async {
+    bool current = true;
+    final bool Function() guard = () => current;
+    final Object requestId = Object();
+    final SendTransactionInitiateFromBlock event = contract(
+      requestId: requestId,
+    );
+    final SendRequestHandle handle = sender.trySubmitContract(
+      event,
+      canStart: guard,
+      canPublish: guard,
+    )!;
+    expect(handle.requestId, same(requestId));
+    expect(sender.trySubmitContract(
+      contract(requestId: Object()),
+      canStart: guard,
+      canPublish: guard,
+    ), isNull);
+    final SendRequestResult result = await handle.result;
+    expect(result.accepted, isTrue);
+    expect(result.block, same(event.block));
+    expect(sender.state.origin, SendTransactionOrigin.contract);
+    expect(sender.state.requestId, same(requestId));
+    expect(publicationCount, 1);
+    expect(publicationGuards.single, same(guard));
+    current = false;
+    expect(publicationGuards.single(), isFalse);
+    expect(result.accepted, isTrue);
+  });
+
+  test('guarded contracts reject a revoked context before the handler starts',
+      () async {
+    bool current = true;
+    final SendRequestHandle handle = sender.trySubmitContract(
+      contract(requestId: Object()),
+      canStart: () => current,
+      canPublish: () => current,
+    )!;
+    current = false;
+    final SendRequestResult result = await handle.result;
+    expect(result.accepted, isFalse);
+    expect(result.error, isA<StateError>());
+    expect(publicationCount, 0);
+    expect(sender.busy.value, isFalse);
+  });
+
+  test('loading observers can revoke a guarded contract before transport',
+      () async {
+    bool current = true;
+    observer.changeAction = (Change<dynamic> change) {
+      if (change.nextState is SendTransactionState &&
+          (change.nextState as SendTransactionState).status ==
+              SendTransactionStatus.loading) {
+        current = false;
+      }
+    };
+    final SendRequestResult result = await sender.trySubmitContract(
+      contract(requestId: Object()),
+      canStart: () => current,
+      canPublish: () => current,
+    )!.result;
+    expect(result.accepted, isFalse);
+    expect(result.error, isA<StateError>());
+    expect(publicationCount, 0);
+  });
+
+  test('a guarded contract settles its original enqueue error', () async {
+    final StateError failure = StateError('Enqueue observer refused');
+    observer.eventAction = () => throw failure;
+    final SendRequestResult result = await sender.trySubmitContract(
+      contract(requestId: Object()),
+      canStart: () => true,
+      canPublish: () => true,
+    )!.result;
+    expect(result.accepted, isFalse);
+    expect(result.error, same(failure));
+    expect(publicationCount, 0);
+    expect(sender.busy.value, isFalse);
+  });
+
+  test('reservations and close refuse guarded contracts', () async {
+    final Object owner = Object();
+    expect(sender.tryReserve(owner), isTrue);
+    expect(sender.trySubmitContract(
+      contract(requestId: Object()),
+      canStart: () => true,
+      canPublish: () => true,
+    ), isNull);
+    sender.releaseReservation(owner);
+    await sender.close();
+    expect(sender.trySubmitContract(
+      contract(requestId: Object()),
+      canStart: () => true,
+      canPublish: () => true,
+    ), isNull);
+    expect(publicationCount, 0);
+  });
 
   for (final bool fromBlock in <bool>[false, true]) {
     test('legacy $fromBlock admits synchronously and drops overlap', () async {

@@ -11,6 +11,8 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/eye_tog
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/ltr.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/segment.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/wallet_context_revision.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/sheen.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/input_fields/amount_input_field.dart';
@@ -81,27 +83,34 @@ class _View extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     context.watch<SelectedAddressNotifier>();
-    final Widget body = BlocBuilder<MultipleBalanceBloc, MultipleBalanceState>(
-      builder: (_, MultipleBalanceState state) {
-        final AccountInfo? accountInfo = state.data?[kSelectedAddress];
-        return StateSwitcher(
-          child: switch (state.status) {
-            MultipleBalanceStatus.failure => CardNote.error(
-              state.error!,
-              key: const ValueKey<String>('failure'),
-            ),
-            // A balance refresh retains the mounted draft.
-            _ when accountInfo != null => _Populated(
-              key: ValueKey<String?>('form_$kSelectedAddress'),
-              accountInfo: accountInfo,
-              onStakeCreated: onStakeCreated,
-              onStakePublished: onStakePublished,
-              framed: framed,
-            ),
-            _ => const _Loading(key: ValueKey<String>('loading')),
-          },
-        );
-      },
+    final Widget body = ValueListenableBuilder<int>(
+      valueListenable: WalletContextRevision.changes,
+      builder: (_, int revision, _) =>
+          BlocBuilder<MultipleBalanceBloc, MultipleBalanceState>(
+            builder: (_, MultipleBalanceState state) {
+              final String? owner = kSelectedAddress;
+              final AccountInfo? accountInfo = state.data?[owner];
+              return StateSwitcher(
+                child: switch (state.status) {
+                  MultipleBalanceStatus.failure => CardNote.error(
+                    state.error!,
+                    key: const ValueKey<String>('failure'),
+                  ),
+                  // Balance refreshes retain a draft in its original context.
+                  _ when owner != null && accountInfo != null => _Populated(
+                    key: ValueKey<String>('form_${owner}_$revision'),
+                    ownerAddress: owner,
+                    contextRevision: revision,
+                    accountInfo: accountInfo,
+                    onStakeCreated: onStakeCreated,
+                    onStakePublished: onStakePublished,
+                    framed: framed,
+                  ),
+                  _ => const _Loading(key: ValueKey<String>('loading')),
+                },
+              );
+            },
+          ),
     );
     return Panel(
       title: framed ? context.l10n.stakingNewStake : null,
@@ -154,6 +163,8 @@ class _Loading extends StatelessWidget {
 
 class _Populated extends StatefulWidget {
   const _Populated({
+    required this.ownerAddress,
+    required this.contextRevision,
     required this.accountInfo,
     required this.onStakeCreated,
     required this.framed,
@@ -161,6 +172,8 @@ class _Populated extends StatefulWidget {
     super.key,
   });
 
+  final String ownerAddress;
+  final int contextRevision;
   final AccountInfo accountInfo;
   final VoidCallback onStakeCreated;
 
@@ -178,6 +191,19 @@ class _PopulatedState extends State<_Populated> {
   final SheenController _submitSheen = SheenController();
   Duration? _selectedStakeDuration;
   bool _submitting = false;
+  Object? _request;
+
+  bool get _sourceIsCurrent =>
+      mounted &&
+      widget.ownerAddress == kSelectedAddress &&
+      widget.contextRevision == WalletContextRevision.value;
+
+  bool get _canEdit =>
+      _sourceIsCurrent &&
+      TickerMode.valuesOf(context).enabled &&
+      !_submitting &&
+      context.read<SendTransactionBloc>().state.status !=
+          SendTransactionStatus.loading;
 
   BigInt get _maxZnnAmount =>
       widget.accountInfo.getBalance(kZnnCoin.tokenStandard);
@@ -221,6 +247,7 @@ class _PopulatedState extends State<_Populated> {
           (SendTransactionBloc bloc) =>
               bloc.state.status == SendTransactionStatus.loading,
         );
+    final bool canEdit = _canEdit;
     final int? selectedMonths = _selectedStakeDuration == null
         ? null
         : _selectedStakeDuration!.inSeconds ~/ stakeTimeUnitSec;
@@ -239,9 +266,9 @@ class _PopulatedState extends State<_Populated> {
       child: _Control(
         label: context.l10n.duration,
         child: IgnorePointer(
-          ignoring: busy,
+          ignoring: !canEdit,
           child: ExcludeFocus(
-            excluding: busy,
+            excluding: !canEdit,
             child: Segment<int>(
               keyPrefix: 'create_stake_months',
               items: <SegmentItem<int>>[
@@ -276,7 +303,7 @@ class _PopulatedState extends State<_Populated> {
               key: const Key('create_stake_amount_field'),
               controller: _amountController,
               focusNode: _amountFocusNode,
-              enabled: !busy,
+              enabled: canEdit,
               textDirection: TextDirection.ltr,
               style: tokens.dataText.copyWith(fontSize: 18),
               decoration: InputDecoration(
@@ -319,7 +346,7 @@ class _PopulatedState extends State<_Populated> {
                           horizontal: tokens.inlineGap,
                         ),
                       ),
-                      onPressed: !busy && _maxZnnAmount > BigInt.zero
+                      onPressed: canEdit && _maxZnnAmount > BigInt.zero
                           ? _onMaxPressed
                           : null,
                       child: Text(context.l10n.max),
@@ -402,7 +429,7 @@ class _PopulatedState extends State<_Populated> {
               horizontal: tokens.pageGap,
             ),
           ),
-          onPressed: !busy && _isInputValid ? _onStakePressed : null,
+          onPressed: canEdit && _isInputValid ? _onStakePressed : null,
           child: busy
               ? SizedBox.square(
                   dimension: tokens.inlineGap * 2,
@@ -426,115 +453,150 @@ class _PopulatedState extends State<_Populated> {
         ),
       ),
     );
-    return BlocListener<SendTransactionBloc, SendTransactionState>(
-      listener: (_, SendTransactionState state) =>
-          _onTransactionStateChanged(state),
-      child: FocusTraversalGroup(
-        policy: OrderedTraversalPolicy(),
-        child: Padding(
-          padding: tokens.stripPadding.copyWith(
-            top: tokens.panelGap,
-            bottom: tokens.panelGap,
-          ),
-          child: LayoutBuilder(
-            builder: (_, BoxConstraints constraints) {
-              if (!widget.framed && constraints.maxWidth >= _kInlineFormWidth) {
-                return Row(
+    return FocusTraversalGroup(
+      policy: OrderedTraversalPolicy(),
+      child: Padding(
+        padding: tokens.stripPadding.copyWith(
+          top: tokens.panelGap,
+          bottom: tokens.panelGap,
+        ),
+        child: LayoutBuilder(
+          builder: (_, BoxConstraints constraints) {
+            if (!widget.framed && constraints.maxWidth >= _kInlineFormWidth) {
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: <Widget>[
+                  SizedBox(width: _kDurationWidth, child: duration),
+                  SizedBox(width: tokens.panelGap),
+                  Expanded(child: amount),
+                  SizedBox(width: tokens.panelGap),
+                  SizedBox(width: _kUnlockWidth, child: unlocks),
+                  SizedBox(width: tokens.panelGap),
+                  submit,
+                ],
+              );
+            }
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: <Widget>[
-                    SizedBox(width: _kDurationWidth, child: duration),
-                    SizedBox(width: tokens.panelGap),
-                    Expanded(child: amount),
+                    Expanded(child: duration),
                     SizedBox(width: tokens.panelGap),
                     SizedBox(width: _kUnlockWidth, child: unlocks),
+                  ],
+                ),
+                SizedBox(height: tokens.panelGap),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: <Widget>[
+                    Expanded(child: amount),
                     SizedBox(width: tokens.panelGap),
                     submit,
                   ],
-                );
-              }
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: <Widget>[
-                      Expanded(child: duration),
-                      SizedBox(width: tokens.panelGap),
-                      SizedBox(width: _kUnlockWidth, child: unlocks),
-                    ],
-                  ),
-                  SizedBox(height: tokens.panelGap),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: <Widget>[
-                      Expanded(child: amount),
-                      SizedBox(width: tokens.panelGap),
-                      submit,
-                    ],
-                  ),
-                ],
-              );
-            },
-          ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
   }
 
   void _onStakeDurationChanged(Duration value) {
-    if (_submitting) return;
+    if (!_canEdit) return;
     setState(() => _selectedStakeDuration = value);
     _amountFocusNode.requestFocus();
   }
 
   void _onMaxPressed() {
+    if (!_canEdit) return;
     _amountController.text = _maxZnnAmount.addDecimals(kZnnCoin.decimals);
   }
 
   void _onStakePressed() {
+    if (!_canEdit || !_isInputValid) return;
     final SendTransactionBloc bloc = context.read<SendTransactionBloc>();
-    // The keyboard can submit before the loading state reaches the button.
-    if (_submitting ||
-        bloc.state.status == SendTransactionStatus.loading ||
-        !_isInputValid) {
-      return;
-    }
-    final AccountBlockTemplate block = zenon!.embedded.stake.stake(
+    final String owner = widget.ownerAddress;
+    final int revision = widget.contextRevision;
+    final Zenon? client = zenon;
+    final WalletFile? file = kWalletFile;
+    final String? path = kWalletPath;
+    if (client == null) return;
+    bool current() =>
+        WalletContextRevision.value == revision &&
+        kSelectedAddress == owner &&
+        identical(zenon, client) &&
+        identical(kWalletFile, file) &&
+        kWalletPath == path;
+    final AccountBlockTemplate block = client.embedded.stake.stake(
       _selectedStakeDuration!.inSeconds,
       _amount.extractDecimals(kZnnCoin.decimals),
     );
-    setState(() => _submitting = true);
-    bloc.add(
+    if (!_canEdit || !current()) return;
+    final Object request = Object();
+    final VoidCallback onCreated = widget.onStakeCreated;
+    final ValueChanged<AccountBlockTemplate>? onPublished =
+        widget.onStakePublished;
+    setState(() {
+      _submitting = true;
+      _request = request;
+    });
+    final SendRequestHandle? handle = bloc.trySubmitContract(
       SendTransactionInitiateFromBlock(
         block: block,
-        fromAddress: kSelectedAddress!,
+        fromAddress: owner,
         reasonForGeneratingPlasma: context.l10n.plasmaPurposeCreateStake,
+        requestId: request,
       ),
+      canStart: current,
+      canPublish: current,
     );
-  }
-
-  void _onTransactionStateChanged(SendTransactionState state) {
-    if (state.status == SendTransactionStatus.success) {
-      _submitSheen.pass();
+    if (handle == null) {
       setState(() {
         _submitting = false;
+        _request = null;
+      });
+      return;
+    }
+    unawaited(_observeStake(handle, current, onCreated, onPublished));
+  }
+
+  Future<void> _observeStake(
+    SendRequestHandle handle,
+    bool Function() current,
+    VoidCallback onCreated,
+    ValueChanged<AccountBlockTemplate>? onPublished,
+  ) async {
+    final SendRequestResult result = await handle.result;
+    if (result.accepted) {
+      try {
+        onPublished?.call(result.block!);
+      } on Object {
+        // A read-only observer cannot replace the original accepted result.
+      }
+    }
+    if (!mounted || !identical(_request, handle.requestId)) return;
+    setState(() {
+      _submitting = false;
+      _request = null;
+    });
+    if (!current()) return;
+    if (result.accepted) {
+      _submitSheen.pass();
+      setState(() {
         _amountController.clear();
         _selectedStakeDuration = null;
       });
-      final AccountBlockTemplate? original = state.data;
-      try {
-        if (original != null) widget.onStakePublished?.call(original);
-      } on Object {
-        // A read-only observer cannot change the accepted result or form flow.
-      }
-      widget.onStakeCreated();
-      _fetchBalance();
-    } else if (state.status == SendTransactionStatus.failure) {
-      setState(() => _submitting = false);
+      if (!current()) return;
+      onCreated();
+      if (current()) _fetchBalance();
+    } else if (result.error != null) {
       unawaited(
         NotificationUtils.sendNotificationError(
-          state.error!,
+          result.error is SyriusException ? result.error! : FailureException(),
           context.l10n.errorWhileGeneratingStake,
         ),
       );

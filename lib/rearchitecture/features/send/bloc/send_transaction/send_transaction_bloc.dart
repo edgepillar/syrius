@@ -76,6 +76,30 @@ class SendTransactionBloc
     return SendRequestHandle._(event.requestId!, admission.completion.future);
   }
 
+  /// Admits one contract with start and pre-publication ownership checks.
+  SendRequestHandle? trySubmitContract(
+    SendTransactionInitiateFromBlock event, {
+    required bool Function() canStart,
+    required bool Function() canPublish,
+  }) {
+    if (event.requestId == null ||
+        event.origin != SendTransactionOrigin.contract ||
+        _closing != null ||
+        isClosed ||
+        _active != null ||
+        _reservation != null) {
+      return null;
+    }
+    final _SendAdmission admission = _SendAdmission(
+      event,
+      canStart: canStart,
+      canPublish: canPublish,
+    );
+    _active = admission;
+    _enqueue(admission);
+    return SendRequestHandle._(event.requestId!, admission.completion.future);
+  }
+
   /// Reserves the existing sender without queuing or starting a publication.
   bool tryReserve(Object owner) {
     if (_closing != null ||

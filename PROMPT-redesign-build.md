@@ -2322,3 +2322,11 @@ See [the saved-quantity correction](docs/review/source392-send-draft-amount-bind
 | Row | Status | Updated | Evidence |
 | --- | --- | --- | --- |
 | X558 | done | 2026-11-03T23:41Z | Source392 19e322e0c019 / 41739664927, attempt one, job 126277713956 independently qualifies both complete 42/41-file streams: all 1051 cases (528/523), 955 Python controls/three existing skips, fourteen assets and zero selected findings. All 21 Send form cases pass, including the three restoration/arrival/balance-owner regressions, retained original payloads, positive exact QSR amount retention and disabled fallback submission. All earlier focused paths remain. Source393 changes documentation only. No native financial operation is replayed; original final acceptance remains open. |
+
+## Source394 Stake context ownership
+
+See [the original-context Stake correction](docs/review/source394-stake-context-ownership.md). Interactive callbacks recheck their painted source and active/busy state. Contract admission carries original start/publication guards, and the exact request handle owns completion independently of general sender display states. [Exact body319](docs/review/pr-body-319.md) preserves preceding results. Heavy phase-two work stays deferred.
+
+| Row | Status | Updated | Evidence |
+| --- | --- | --- | --- |
+| X559 | todo | 2026-11-04 | Source394 prepares five new real-widget and six new real-sender controls for Stake context/admission/result ownership, retaining every original case and exact chain inputs. All 27 sender-admission cases and five added Stake cases join the previous focused selection. Nineteen local mocked controls pass. Fresh complete 1,083-case execution and strict analysis remain pending. Native effects, whole-image and final acceptance remain open. |
