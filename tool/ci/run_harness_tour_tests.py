@@ -260,6 +260,7 @@ def main():
             'test/cancel_stake/bloc/cancel_stake_bloc_test.dart',
             'test/cancel_stake/view/cancel_stake_button_test.dart',
             'test/staking/view/stakes_card_test.dart',
+            'test/plasma_redesign/plasma_list_test.dart',
             'test/send/bloc/sender_admission_test.dart',
             'test/row_detail/row_detail_test.dart',
             'test/pillars/view/pillars_card_test.dart',
@@ -341,7 +342,7 @@ def main():
                 debug.need(debug.entry.source_tree(repo, parent) == tree, 'SOURCE_REFUSED')
             first += len(group)
         counts = combined_counts(report['commands'], selected_tests)
-        debug.need(counts['passed'] == (1117 if asset_fidelity else 1115), 'TESTS_FAILED')
+        debug.need(counts['passed'] == (1125 if asset_fidelity else 1123), 'TESTS_FAILED')
         report['counts'] = counts
         if asset_fidelity:
             report['launch_asset_fidelity'] = True

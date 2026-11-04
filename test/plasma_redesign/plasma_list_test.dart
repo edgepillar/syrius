@@ -182,6 +182,17 @@ Future<void> _withFixture(
   }
 }
 
+Future<void> _declineQuestion(WidgetTester tester) async {
+  final Finder decline = find.byKey(const Key('plasma_cancel_decline'));
+  final ModalRoute<bool> route = ModalRoute.of<bool>(
+    tester.element(decline),
+  )!;
+  await tester.tap(decline);
+  await tester.pump();
+  await tester.pump(route.reverseTransitionDuration);
+  await tester.pump(const Duration(microseconds: 1));
+}
+
 void main() {
   initHydratedStorage();
 
@@ -360,4 +371,118 @@ void main() {
       });
     },
   );
+
+  testWidgets('old row selection refuses a hidden visit and return',
+      (WidgetTester tester) async {
+    final ValueNotifier<bool> visible = ValueNotifier<bool>(true);
+    addTearDown(visible.dispose);
+    await _withFixture(tester, (PlasmaFixture fixture) async {
+      await _prepare(tester, fixture, AppTheme.darkTheme,
+          pageVisible: visible);
+      final Finder check = find.byKey(
+        ValueKey<String>('plasma_select_${plasmaTestHash(1)}'),
+      );
+      final ValueChanged<bool?> original =
+          tester.widget<Checkbox>(check).onChanged!;
+      visible.value = false;
+      await tester.pump();
+      expect(tester.widget<Checkbox>(check).onChanged, isNull);
+      original(true);
+      expect(fixture.owner.selected, isEmpty);
+      visible.value = true;
+      await tester.pump();
+      original(true);
+      expect(fixture.owner.selected, isEmpty);
+      await tester.tap(check);
+      await tester.pump();
+      expect(fixture.owner.selected, <String>{plasmaTestHash(1)});
+      expect(fixture.transport.calls, isEmpty);
+      expect(fixture.cancellations, isEmpty);
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  testWidgets('old row and batch buttons cannot ask after a hidden visit',
+      (WidgetTester tester) async {
+    final ValueNotifier<bool> visible = ValueNotifier<bool>(true);
+    addTearDown(visible.dispose);
+    await _withFixture(tester, (PlasmaFixture fixture) async {
+      await _prepare(tester, fixture, AppTheme.lightTheme,
+          pageVisible: visible);
+      await tester.tap(find.byKey(
+        ValueKey<String>('plasma_select_${plasmaTestHash(1)}'),
+      ));
+      await tester.pump();
+      final VoidCallback row = tester.widget<OutlinedButton>(find.byKey(
+        ValueKey<String>('plasma_cancel_${plasmaTestHash(1)}'),
+      )).onPressed!;
+      final Finder batch = find.byKey(const Key('plasma_cancel_selected'));
+      final VoidCallback original =
+          tester.widget<OutlinedButton>(batch).onPressed!;
+      visible.value = false;
+      await tester.pump();
+      visible.value = true;
+      await tester.pump();
+      row();
+      original();
+      await tester.pump(const Duration(milliseconds: 250));
+      expect(fixture.owner.questioning, isFalse);
+      expect(find.byKey(const Key('plasma_cancel_confirmation')),
+          findsNothing);
+      expect(fixture.owner.selected, <String>{plasmaTestHash(1)});
+      await tester.tap(batch);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
+      expect(find.text(plasmaTestHash(1)), findsOneWidget);
+      await _declineQuestion(tester);
+      expect(fixture.owner.questioning, isFalse);
+      expect(fixture.transport.calls, isEmpty);
+      expect(fixture.cancellations, isEmpty);
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  testWidgets('a fresh read revokes old controls for the same fusion',
+      (WidgetTester tester) async {
+    await _withFixture(tester, (PlasmaFixture fixture) async {
+      await _prepare(tester, fixture, AppTheme.darkTheme);
+      final Finder check = find.byKey(
+        ValueKey<String>('plasma_select_${plasmaTestHash(1)}'),
+      );
+      await tester.tap(check);
+      await tester.pump();
+      final Object ticket = fixture.owner.read!.ticket;
+      final ValueChanged<bool?> originalCheck =
+          tester.widget<Checkbox>(check).onChanged!;
+      final Finder row = find.byKey(
+        ValueKey<String>('plasma_cancel_${plasmaTestHash(1)}'),
+      );
+      final VoidCallback originalRow =
+          tester.widget<OutlinedButton>(row).onPressed!;
+      final VoidCallback originalBatch = tester.widget<OutlinedButton>(
+        find.byKey(const Key('plasma_cancel_selected')),
+      ).onPressed!;
+      await _completeInRealAsync<void>(tester, fixture.loadAll,
+          operation: 'Fresh Plasma owner read');
+      await tester.pump();
+      expect(fixture.owner.read!.ticket, isNot(same(ticket)));
+      originalCheck(true);
+      originalRow();
+      originalBatch();
+      await tester.pump(const Duration(milliseconds: 250));
+      expect(fixture.owner.selected, isEmpty);
+      expect(fixture.owner.questioning, isFalse);
+      expect(find.byKey(const Key('plasma_cancel_confirmation')),
+          findsNothing);
+      await tester.tap(row);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
+      expect(find.text(plasmaTestHash(1)), findsOneWidget);
+      await _declineQuestion(tester);
+      expect(fixture.owner.questioning, isFalse);
+      expect(fixture.transport.calls, isEmpty);
+      expect(fixture.cancellations, isEmpty);
+      expect(tester.takeException(), isNull);
+    });
+  });
 }

@@ -1,6 +1,6 @@
 # First delivery and deferred acceptance
 
-Updated: 2026-11-04T04:44Z.
+Updated: 2026-11-04T04:57Z.
 
 The owner selected a first delivery covering the core interface and existing
 basic functionality, with detailed visual and extended platform/lab acceptance
@@ -145,6 +145,15 @@ callback-specific expectSync with the same value/matcher. Every case body and
 application byte stays unchanged. The fresh Source411 result above qualifies
 all 1,115 cases and zero-finding selected analysis. Original failures remain
 preserved. No heavy qualification is added.
+
+Source413 prepares a [Plasma painted-control correction](source413-plasma-painted-controls.md).
+The active list now binds row selection and row/batch cancellation callbacks to
+their original page visit, owner and read ticket. Three new cases preserve the
+five existing list cases and require fresh controls to remain usable. The full
+eight-case file joins all earlier paths, preparing 1,123 ordinary cases in
+45/44-file streams. Thirty-seven local mocked/read-only controls pass in disjoint
+batches, preserving the original local wrapper count refusal. Fresh Flutter
+analysis/engine acceptance is pending. No heavy qualification is added.
 
 ## Second phase
 

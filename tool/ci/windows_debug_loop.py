@@ -512,6 +512,8 @@ def analyze(parent, repo):
         'test/cancel_stake/bloc/cancel_stake_bloc_test.dart',
         'test/cancel_stake/view/cancel_stake_button_test.dart',
         'test/staking/view/stakes_card_test.dart',
+        'lib/rearchitecture/features/fused_plasma/view/fused_plasma_card.dart',
+        'test/plasma_redesign/plasma_list_test.dart',
         'lib/rearchitecture/features/send/bloc/send_transaction/send_transaction_bloc.dart',
         'test/send/bloc/sender_admission_test.dart',
         'test/harness/lab_send_policy_test.dart',

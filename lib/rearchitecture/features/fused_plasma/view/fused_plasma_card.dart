@@ -90,8 +90,16 @@ class _FusedPlasmaCardState extends State<FusedPlasmaCard> {
         final AppTokens tokens = AppTokens.of(context);
         final PlasmaOwnerRead? read = owner.displayRead;
         final List<PlasmaFusion> entries = read?.entries ?? <PlasmaFusion>[];
-        final bool enabled =
+        final int visibilityEpoch = _visibilityEpoch;
+        // A later visit or owner read cannot revive an old painted control.
+        bool current() =>
             _current &&
+            identical(owner, widget.owner) &&
+            visibilityEpoch == _visibilityEpoch &&
+            read != null &&
+            identical(read.ticket, owner.read?.ticket);
+        final bool enabled =
+            current() &&
             !owner.busy &&
             !owner.questioning &&
             !owner.sender.busy.value;
@@ -126,7 +134,13 @@ class _FusedPlasmaCardState extends State<FusedPlasmaCard> {
               OutlinedButton(
                 key: const Key('plasma_cancel_selected'),
                 style: _cancelButtonStyle(context),
-                onPressed: enabled ? () => unawaited(_confirm()) : null,
+                onPressed: enabled
+                    ? () {
+                        if (current()) {
+                          unawaited(_confirm());
+                        }
+                      }
+                    : null,
                 child: Text(
                   context.l10n.plasmaPageCancelFuses(owner.selected.length),
                 ),
@@ -205,7 +219,7 @@ class _FusedPlasmaCardState extends State<FusedPlasmaCard> {
                         final PlasmaFusion entry = entries[index];
                         return ListEntranceItem(
                           key: ValueKey<String>(entry.hash),
-                          child: _buildRow(entry, read),
+                          child: _buildRow(entry, read, current),
                         );
                       },
                     ),
@@ -235,10 +249,15 @@ class _FusedPlasmaCardState extends State<FusedPlasmaCard> {
     ],
   );
 
-  Widget _buildRow(PlasmaFusion entry, PlasmaOwnerRead read) {
+  Widget _buildRow(
+    PlasmaFusion entry,
+    PlasmaOwnerRead read,
+    bool Function() isCurrent,
+  ) {
     final AppTokens tokens = AppTokens.of(context);
     final PlasmaOwnerController owner = widget.owner;
-    final bool eligible = widget.isCurrent() && owner.canSelect(entry);
+    bool current() => isCurrent() && owner.canSelect(entry);
+    final bool eligible = current();
     return Container(
       key: ValueKey<String>('plasma_row_${entry.hash}'),
       color: owner.selected.contains(entry.hash) ? tokens.card2 : tokens.card,
@@ -248,8 +267,11 @@ class _FusedPlasmaCardState extends State<FusedPlasmaCard> {
           key: ValueKey<String>('plasma_select_${entry.hash}'),
           value: owner.selected.contains(entry.hash),
           onChanged: eligible
-              ? (bool? selected) =>
-                    owner.select(entry, selected: selected ?? false)
+              ? (bool? selected) {
+                  if (current()) {
+                    owner.select(entry, selected: selected ?? false);
+                  }
+                }
               : null,
         ),
         amount: Tooltip(
@@ -286,7 +308,11 @@ class _FusedPlasmaCardState extends State<FusedPlasmaCard> {
               key: ValueKey<String>('plasma_cancel_${entry.hash}'),
               style: _cancelButtonStyle(context),
               onPressed: eligible
-                  ? () => unawaited(_confirm(entry.hash))
+                  ? () {
+                      if (current()) {
+                        unawaited(_confirm(entry.hash));
+                      }
+                    }
                   : null,
               child: Text(context.l10n.cancel),
             ),
