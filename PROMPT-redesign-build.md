@@ -2523,3 +2523,17 @@ original expectation, scenario, registration and bound remain.
 | ID | State | Updated | Evidence |
 | --- | --- | --- | --- |
 | X583 | review | 2026-11-04T16:33Z | Original run 41862348827, attempt one, job 126687333819, remains failed with a finite home_hero_test.dart:1194 / Flutter box:2479 assertion and unretained full message. Source443 uses getDryBaseline at actual constraints while retaining global placement, exact baseline tolerance/non-null check, Source442 numeric-span heights, all inputs and 1230/1232 totals. The old job is terminal with zero artifacts and is not replayed. Fresh Source443 analysis/widget qualification remains pending; the original 72/80, native/lab/platform/visual and final acceptance scope remains open. |
+
+
+### Home numeric row context
+
+Source443 / 41869055026 retains passing 1001 Python controls/three existing skips,
+fourteen assets and zero selected findings, but fails its original first widget
+group at the numeric/dollar comparison (596 passes/one failure; second group
+unreached). Actual values/full message remain unretained. Source444 applies the
+reference numeric style to the row's inherited text context, preserving all test
+bytes and tolerances. See [the exact scope](docs/review/source444-home-numeric-context.md).
+
+| ID | State | Updated | Evidence |
+| --- | --- | --- | --- |
+| X584 | review | 2026-11-04T16:57Z | One Home row context now supplies mono typography and the reference 1.1/1.45 line heights to its actual rich wrapper and dollar children. The existing constant-glyph measurement, all test bytes/tolerances, values, feed, privacy, clocks, callbacks, registrations and process bounds remain. Both earlier original failures remain failed with their finite records; no raw numeric delta is reconstructed. Fresh 1230-case hosted qualification is pending. No local SDK/native or image transport occurs; original 72/80 and full native/lab/visual acceptance stay open. |

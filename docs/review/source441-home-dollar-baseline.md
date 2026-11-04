@@ -85,3 +85,7 @@ counts and application bytes remain. Source442's separate wrapper observation
 correction stays source-derived. Neither original producer nor any financial
 operation is replayed. Fresh Source443 execution is pending; full native pixels,
 platform/lab acceptance and the original 72/80 scope remain open.
+
+The later Source443 comparison refusal and
+[Source444 numeric context correction](source444-home-numeric-context.md)
+retain the original test and both earlier failure scopes.

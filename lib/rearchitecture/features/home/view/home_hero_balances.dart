@@ -168,71 +168,74 @@ class _HomeHeroBalanceLine extends StatelessWidget {
         _homeAmountMetrics(
           context, amountStyle, hidden: visibility.hidden,
         );
-    return Wrap(
-      spacing: visibility.hidden
-          ? tokens.heroHiddenEyeGap
-          : tokens.heroDollarGap,
-      runSpacing: tokens.heroBalanceRunGap,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: <Widget>[
-        Ltr(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: <Widget>[
-              Flexible(
-                child: ValueFlash(
-                  value: amount,
-                  color: primary ? null : tokens.qsrInk,
-                  child: HiddenAmount(
-                    key: ValueKey<String>('${keyPrefix}_value'),
-                    visibility: visibility,
-                    style: amountStyle,
-                    child: AmountText(
-                      amount,
-                      key: ValueKey<String>(keyPrefix),
-                      decimals: decimals,
+    return DefaultTextStyle.merge(
+      style: monoStyle(amountStyle),
+      child: Wrap(
+        spacing: visibility.hidden
+            ? tokens.heroHiddenEyeGap
+            : tokens.heroDollarGap,
+        runSpacing: tokens.heroBalanceRunGap,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: <Widget>[
+          Ltr(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: <Widget>[
+                Flexible(
+                  child: ValueFlash(
+                    value: amount,
+                    color: primary ? null : tokens.qsrInk,
+                    child: HiddenAmount(
+                      key: ValueKey<String>('${keyPrefix}_value'),
+                      visibility: visibility,
                       style: amountStyle,
+                      child: AmountText(
+                        amount,
+                        key: ValueKey<String>(keyPrefix),
+                        decimals: decimals,
+                        style: amountStyle,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              SizedBox(width: metrics.symbolGap),
-              Text(
-                symbol,
-                key: ValueKey<String>('${keyPrefix}_symbol'),
-                style: _homeHeroSymbolStyle(
-                  context, primary: primary, hidden: visibility.hidden,
-                ).copyWith(color: symbolColor),
-              ),
-            ],
-          ),
-        ),
-        if (eye case final Widget control)
-          SizedBox(
-            key: const Key('home_hidden_eye_slot'),
-            width: tokens.heroHiddenEyeSlotWidth,
-            height: tokens.heroHiddenEyeSize,
-            child: Center(child: control),
-          ),
-        if (priced && !visibility.hidden)
-          SizedBox(
-            height: metrics.height,
-            child: Baseline(
-              baseline: metrics.baseline,
-              baselineType: TextBaseline.alphabetic,
-              child: DollarText(
-                key: ValueKey<String>('${keyPrefix}_dollars'),
-                amount: amount,
-                decimals: decimals,
-                coin: coin,
-                hidden: visibility.hidden,
-                feed: feed,
-              ),
+                SizedBox(width: metrics.symbolGap),
+                Text(
+                  symbol,
+                  key: ValueKey<String>('${keyPrefix}_symbol'),
+                  style: _homeHeroSymbolStyle(
+                    context, primary: primary, hidden: visibility.hidden,
+                  ).copyWith(color: symbolColor),
+                ),
+              ],
             ),
           ),
-      ],
+          if (eye case final Widget control)
+            SizedBox(
+              key: const Key('home_hidden_eye_slot'),
+              width: tokens.heroHiddenEyeSlotWidth,
+              height: tokens.heroHiddenEyeSize,
+              child: Center(child: control),
+            ),
+          if (priced && !visibility.hidden)
+            SizedBox(
+              height: metrics.height,
+              child: Baseline(
+                baseline: metrics.baseline,
+                baselineType: TextBaseline.alphabetic,
+                child: DollarText(
+                  key: ValueKey<String>('${keyPrefix}_dollars'),
+                  amount: amount,
+                  decimals: decimals,
+                  coin: coin,
+                  hidden: visibility.hidden,
+                  feed: feed,
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
