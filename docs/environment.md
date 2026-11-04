@@ -10962,3 +10962,29 @@ documentation only. The original Source428 UI lineage remains separate from
 new metadata code/observations; the current full 991-case controller suite and
 current full Windows/native wallet remain unqualified. P03/P09 and complete
 redesign acceptance stay open. See the [result and boundaries](review/source436-windows-file-identity.md#source436-hosted-result).
+
+### Pinned WSL component installation (2026-11-04)
+
+[Source438 41852871210](https://github.com/edgepillar/syrius/actions/runs/41852871210)
+adds a finite refusal projection: only its cross-API ctime equality is false.
+The verified input and Microsoft signature pass, but MSI and final source-after
+checking are unreached. This does not identify Source435's original inner cause.
+
+[Source439's result](review/source439-windows-time-binding.md#hosted-source439-result)
+binds explicit Windows creation time across APIs while retaining both same-API
+ctime lifetime guards. Source 41857154252 qualifies thirty-two controls/helper
+syntax; native 41857791020 qualifies the small positive/negative files. Distinct
+package 41858076161, attempt one, job 126672044828, passes exact input/signature
+and final file verification. One no-restart MSI exits zero normally, followed
+by successful version/status queries with 442/40 complete bytes. WSL package
+3.0.3.0 and unchanged source are observed. All three runs are terminal with zero
+artifacts; no old producer is retried. Source440 changes documentation only.
+
+The component installation is qualified on this fresh hosted Arm VM; the kernel
+version remains unknown. No distro/kernel/container, wallet or node starts, and
+no feature change/reboot or local binary/SDK execution is requested. Docker
+installation/Linux mode, nested virtualization, the documented lab route and
+full P03/P09 acceptance remain open. All earlier failures retain their scope.
+The Source428 UI result is reused on its unchanged original entries; the full
+current 1,001-case controller suite and current full Windows/native remain
+unqualified. Heavy platform, image and motion/performance work stays deferred.

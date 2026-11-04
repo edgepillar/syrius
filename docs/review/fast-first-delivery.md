@@ -347,3 +347,16 @@ download. Both source-bound diagnostic runs close with zero artifacts. A general
 metadata mismatch is not reproduced and no guard is relaxed. Source437 changes
 documentation only. The first-delivery UI result keeps its original source;
 P03/P09, current full platform/native and final acceptance remain open.
+
+The [Source439 time-binding result](source439-windows-time-binding.md#hosted-source439-result)
+then qualifies thirty-two controls, helper syntax and native positive/negative
+small-file checks before one distinct source-bound package trial. The corrected
+final file check passes on the pinned Microsoft input; MSI and installed
+version/status commands exit zero normally, reporting WSL 3.0.3.0 with unchanged
+source. All three original runs are terminal with zero artifacts. Source438's
+ctime-only refusal and Source435's unestablished original cause remain recorded;
+neither producer is retried. No distro/kernel/container, wallet or chain node
+starts. Source440 changes documentation only. Docker/Linux lab acceptance,
+current full Windows/native and the complete 1,001-case controller suite remain
+unqualified. The core Draft delivery retains its original UI evidence, with
+72/80 main rows complete and all expensive second-phase gates still open.
