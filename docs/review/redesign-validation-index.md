@@ -2,7 +2,7 @@
 
 Small versioned records extend the preserved original validation history.
 
-- [Source399 compact pickers](source399-compact-picker-presentation.md): Display's language and explorer choices use the reference 12-pixel dim label, original SVG chevron and unfilled outline. Pillar sort also drops its secondary fill. Original menu buttons, measurement allowances and handlers remain; one existing test finder follows the actual SVG arrow. All 1,083 cases and bounds remain. Fresh qualification is pending. [Exact PR body321](pr-body-321.md) retains preceding results.
+- [Source399 original picker analysis refusal](source399-compact-picker-presentation.md#original-source399-analysis-refusal): 955 Python controls/three existing skips and fourteen assets pass; zero errors/warnings and one redundant-default info refuse analysis, so Dart is skipped. Source400 removes only the explicit default-false argument and preserves all 1,083 cases, other application bytes and bounds. Fresh qualification is pending. [Exact PR body321](pr-body-321.md) retains preceding results.
 
 - [Source397 Pillar sort label](source397-pillar-sort-label.md#focused-result): 41750201481 independently qualifies all 1,083 cases in complete 42/42-file streams (528/555), 955 Python controls/three existing skips, fourteen assets and zero selected findings. All nine existing Pillars cases and earlier paths pass without changing any test. Literal CSS and source establish the 12-pixel dim label at weight 500; native pixels and container geometry stay open in X556. Source398 preserves tested code. [Exact PR body320](pr-body-320.md) retains preceding results.
 

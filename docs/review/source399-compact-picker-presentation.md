@@ -30,3 +30,27 @@ builds, native producers, image transport and detailed visual/performance
 acceptance remain deferred. Original acceptance stays 72/80 rows, 50/94 literal
 outputs, 44 missing and zero accepted whole-image matches. All earlier results,
 failures and UNKNOWN outcomes retain their exact source and scope.
+
+## Original Source399 analysis refusal
+
+Original [41753919868](https://github.com/edgepillar/syrius/actions/runs/41753919868),
+attempt one, job 126325393899, fails at Source399
+`3846cec0b123dc60fa7638973e194390a7af3e7f`, tree
+`4fa7094160e9e8959f2304e57abf29a83c8e9fab`. All 955 Python controls
+complete without failures/errors and retain three existing skips; fourteen
+assets pass. Analysis exits normally with complete 213-byte output, zero
+errors/warnings and one `AVOID_REDUNDANT_ARGUMENT_VALUES` info at line 387,
+column 13, categorized as `other`. The zero-info gate refuses this result;
+Dart execution is skipped. All jobs are terminal with zero artifacts.
+
+Exact raw diagnostic paths were not retained. The new explicit `filled: false`
+at the matching Display source line is source correspondence, not a recovered
+diagnostic path. The [pinned material_ui constructor](https://github.com/flutter/packages/blob/material_ui-v1.6.0/packages/material_ui/lib/src/input_decorator.dart#L4716)
+already defaults this property to false.
+
+## Source400 default argument correction
+
+Source400 removes only the redundant argument. The same unfilled theme value,
+every other application/test/controller/workflow byte and all 1,083 cases
+remain. Fresh complete engine execution and zero-finding analysis are pending.
+The original Source399 failure is preserved and not retried.

@@ -384,7 +384,6 @@ InputDecorationThemeData _menuDecoration(BuildContext context) {
   return InputDecorationThemeData(
     isDense: true,
     isCollapsed: true,
-    filled: false,
     constraints: BoxConstraints(minHeight: tokens.settingsMenuHeight),
     suffixIconConstraints: BoxConstraints.tightFor(
       width: tokens.settingsMenuChevronWidth,
