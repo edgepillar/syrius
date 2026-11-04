@@ -3882,6 +3882,10 @@ class HarnessAgent {
     if (ready && gone) {
       throw HarnessError('ready requires a positive selector');
     }
+    final Object? ordinal = c['nth'];
+    if (ready && ordinal != null && (ordinal is! int || ordinal < 0)) {
+      throw HarnessError('ready requires a nonnegative ordinal');
+    }
     final Stopwatch sw = Stopwatch()..start();
     while (true) {
       String? regionRejection;
@@ -3899,16 +3903,20 @@ class HarnessAgent {
           'error',
         ],
       );
-      // Presence alone does not admit input through a disabled field or an
-      // overlay. Readiness observes the same unique hit and guards as type.
+      // An explicit ordinal selects the same ranked hit as input. Without an
+      // ordinal, readiness still requires a unique hit. Neither selection
+      // admits a disabled field or input through an overlay.
+      final _Node? selected = ready && ordinal is int
+          ? ordinal < hits.length ? hits[ordinal] : null
+          : hits.length == 1 ? hits.single : null;
       final bool found = ready
-          ? hits.length == 1 && hits.single.enabled &&
-              _positiveObservationReachable(hits.single, hits.single.center)
+          ? selected != null && selected.enabled &&
+              _positiveObservationReachable(selected, selected.center)
           : hits.isNotEmpty;
       if (gone ? hits.isEmpty : found) {
         return <String, Object?>{
           'ms': sw.elapsedMilliseconds,
-          if (!gone) 'target': hits.first.toJson(),
+          if (!gone) 'target': ready ? selected!.toJson() : hits.first.toJson(),
         };
       }
       if (sw.elapsedMilliseconds >= timeout) {

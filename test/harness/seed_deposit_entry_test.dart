@@ -282,6 +282,27 @@ void main() {
             'nth': 0, 'ready': true, 'timeoutMs': 30000,
           },
         ]);
+        for (final Map<String, dynamic> selection in <Map<String, dynamic>>[
+          <String, dynamic>{},
+          <String, dynamic>{'nth': 2},
+        ]) {
+          await expectLater(agent.commandForTest(<String, dynamic>{
+            'cmd': 'wait', 'key': 'swap_amount_input', 'kind': 'field',
+            'ready': true, 'timeoutMs': 0, ...selection,
+          }), throwsA(isA<HarnessError>().having(
+            (HarnessError error) => error.message, 'message',
+            'not ready after 0 ms',
+          )));
+        }
+        for (final Object ordinal in <Object>[-1, '0']) {
+          await expectLater(agent.commandForTest(<String, dynamic>{
+            'cmd': 'wait', 'key': 'swap_amount_input', 'kind': 'field',
+            'ready': true, 'timeoutMs': 0, 'nth': ordinal,
+          }), throwsA(isA<HarnessError>().having(
+            (HarnessError error) => error.message, 'message',
+            'ready requires a nonnegative ordinal',
+          )));
+        }
         await _driveDepositCommand(tester,
           agent.commandForTest(<String, dynamic>{
             'cmd': 'type', 'key': 'swap_amount_input', 'kind': 'field',

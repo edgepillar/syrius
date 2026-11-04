@@ -1,6 +1,6 @@
 # First delivery and deferred acceptance
 
-Updated: 2026-11-04T02:13Z.
+Updated: 2026-11-04T02:43Z.
 
 The owner selected a first delivery covering the core interface and existing
 basic functionality, with detailed visual and extended platform/lab acceptance
@@ -84,8 +84,11 @@ results with their original scope.
 The owner reaffirmed fast delivery before further expensive qualification.
 No new heavy qualification or image transport is scheduled for this milestone.
 Use the completed results for the Draft handoff and batch extended checks
-after implementation stabilizes. Source402 prepares the bounded Deposit input
-readiness follow-up in source, with fresh focused qualification pending.
+after implementation stabilizes. Source402's bounded Deposit input follow-up
+retains its [original focused failure](source402-deposit-input-readiness.md#original-source402-focused-result):
+1,092 passes, two command-completion assertion failures and zero selected
+findings. Source403 corrects explicit ordinal selection in the readiness loop;
+all 1,094 cases remain selected, with fresh focused qualification pending.
 The first-delivery application remains unchanged; native verification of the
 follow-up and complete seeded effects still belong to phase two.
 
