@@ -1,11 +1,20 @@
 # First delivery and deferred acceptance
 
-Updated: 2026-11-04T06:46Z.
+Updated: 2026-11-04T07:10Z.
 
 The owner selected a first delivery covering the core interface and existing
 basic functionality, with detailed visual and extended platform/lab acceptance
 afterward. The first milestone is ready for Draft code review. Final acceptance
 of the complete redesign remains open.
+
+Source418's [original runtime result](source417-staking-sentinel-symbols.md#original-source418-runtime-result)
+retains complete zero-finding analysis and Dart streams with 1,182 passes/two
+assertions, alongside passing Python/assets. The two details identify the new
+one-hour label expectation. Source419 corrects only its English text to the
+existing formatter's `in 1 h 0 m`, preserving application bytes, the fixture
+clock/input, all other assertions, SVG checks, registrations and bounds.
+Fresh 1,184-case qualification remains pending. The original failed producers
+and every phase-two acceptance boundary remain.
 
 Source417's [original analysis result](source417-staking-sentinel-symbols.md#original-source417-focused-result)
 retains passing 955 Python controls with three existing skips, fourteen assets,

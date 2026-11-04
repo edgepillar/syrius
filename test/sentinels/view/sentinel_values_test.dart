@@ -251,7 +251,7 @@ void main() {
       );
       final Finder chips = find.byType(SentinelRevocationTime);
       final AppTokens tokens = AppTokens.of(tester.element(chips.first));
-      expect(find.text('in 1 h'), findsOneWidget);
+      expect(find.text('in 1 h 0 m'), findsOneWidget);
       expect(find.text('now'), findsOneWidget);
       expectMockupSymbol(
         tester,

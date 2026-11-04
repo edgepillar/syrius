@@ -110,3 +110,35 @@ application, test, Python, controller, dependency and workflow byte stays
 unchanged from Source417. The 37 completed local controls are reused against
 unchanged Python bytes. The 1,184/1,186 counts, all registrations and original
 process/refusal bounds remain. Fresh Source418 Flutter qualification is pending.
+
+## Original Source418 runtime result
+
+The separate [run 41788470976](https://github.com/edgepillar/syrius/actions/runs/41788470976),
+attempt one, job 126436010901, is closed at Source418
+`dfd10741454b1287419b0634c36c3359c127edd2`, tree
+`2d7d1df827a99bbcc01e0547339d1ccbe6240bd8`. Selected analysis is complete and
+empty, with zero errors/warnings/infos. All 955 Python controls pass with three
+existing skips, and all fourteen asset controls pass.
+
+Both original Dart streams finish normally and completely, without overflow,
+forced cleanup, retries or unfinished cases. The first 47-file stream passes
+all 568 cases in 188.468 seconds. The second 46-file stream records 614 passes
+and two failures in 165.906 seconds, for 1,182 passes/two failures overall.
+All source-bound jobs are terminal and there are zero artifacts. This remains
+the original failed result and is not retried.
+
+The bounded closed text reader retains both ASSERTION details at
+`sentinel_values_test.dart:254`, in the two existing theme cases. The complete
+original expected/actual messages are unretained. Source inspection identifies
+the newly added `in 1 h` expectation: the unchanged formatter selects
+`durationHoursMinutes(1, 0)`, whose existing English localization yields
+`1 h 0 m`, wrapped by `nodesInDuration`.
+
+Source419 changes only that new expectation to the exact `in 1 h 0 m` label.
+The fixture's one-hour input and clock, all original assertions and all SVG
+source/size/foreground/semantics checks remain. No application byte changes.
+This correspondence is source inference, rather than a reconstruction of the
+unretained message. Every test registration, controller, workflow, dependency,
+1,184/1,186 count and original refusal/process bound remains. The completed
+37 local controls are reused on unchanged Python bytes. Fresh Source419
+Flutter qualification remains pending; heavy acceptance stays deferred.
