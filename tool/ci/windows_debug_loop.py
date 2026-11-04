@@ -475,6 +475,8 @@ def analyze(parent, repo):
         'test/harness/addresses_selection_test.dart',
         'harness/app/fixtures/lab_transfer_witness.dart',
         'test/harness/lab_transfer_witness_test.dart',
+        'harness/seed/seed_recipe.dart',
+        'test/harness/seed_recipe_test.dart',
         'harness/app/fixtures/seed_policy.dart',
         'harness/app/fixtures/seed_commands.dart',
         'harness/seed_preparation_failure.dart',

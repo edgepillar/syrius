@@ -1,9 +1,18 @@
 import '../app/fixtures/seed_policy.dart';
 import '../bin/screen_capture.dart' show scriptWords;
 
+const String _depositMarkerWait =
+    'wait --key swap_start_screen_marker --timeout 30';
+const String _depositReadyWait =
+    'wait --key swap_amount_input --kind field --nth 0 --ready --timeout 30';
+const String _depositAmountType =
+    'type --key swap_amount_input --nth 0 1';
+
 /// These are UI scripts, not shell scripts. There is no shell expansion.
 final class SeedRecipe {
   SeedRecipe._(this.id, this.lines);
+
+  /// Validates the complete authored plan before admitting a UI command.
   factory SeedRecipe.parse(String id, String text) {
     if (!seedRecipeIds.contains(id) ||
         text.length > 8192 ||
@@ -21,6 +30,7 @@ final class SeedRecipe {
     final List<List<String>> lines = <List<String>>[];
     final Set<String> projectScrolls = <String>{};
     int publications = 0;
+    bool depositReady = false;
     for (final String raw in text.split('\n')) {
       final String line = raw.trim();
       if (line.isEmpty || line.startsWith('#')) continue;
@@ -63,9 +73,19 @@ final class SeedRecipe {
                   '--nth',
                   '--exact',
                   '--timeout',
+                  '--ready',
                 }.contains(word),
           )) {
         throw const SeedRefused('seed-script-command-refused');
+      }
+      if (words.contains('--ready')) {
+        if (id != 'deposit' ||
+            publications != 0 ||
+            depositReady ||
+            words.join(' ') != _depositReadyWait) {
+          throw const SeedRefused('seed-script-command-refused');
+        }
+        depositReady = true;
       }
       if (words.first == 'goto' &&
           (words.length != 2 ||
@@ -129,11 +149,27 @@ final class SeedRecipe {
     if (publications != 1 || lines.isEmpty || lines.last.first != 'assert') {
       throw const SeedRefused('one-seed-publication-required');
     }
+    if (id == 'deposit') {
+      final int ready = lines.indexWhere(
+        (List<String> words) => words.contains('--ready'),
+      );
+      if (!depositReady ||
+          ready < 1 ||
+          ready + 1 >= lines.length ||
+          lines[ready - 1].join(' ') != _depositMarkerWait ||
+          lines[ready + 1].join(' ') != _depositAmountType) {
+        throw const SeedRefused('deposit-input-readiness-required');
+      }
+    }
     return SeedRecipe._(id, List<List<String>>.unmodifiable(lines));
   }
+  /// The fixed recipe selected by the isolated fixture workflow.
   final String id;
+
+  /// Immutable ordered UI commands after complete source validation.
   final List<List<String>> lines;
 
+  /// Resolves only the recipe's captured address placeholders.
   List<String> resolve(List<String> words, Map<String, String> values) =>
       List<String>.unmodifiable(
         words.map((String word) {
@@ -147,6 +183,7 @@ final class SeedRecipe {
       );
 }
 
+/// Selects the sole original publication control for each recipe.
 List<String> seedPublishSelector(String recipe) => switch (recipe) {
   'stake' => <String>['--key', 'create_stake_submit_button'],
   'fuse' => <String>['--key', 'fuse_plasma_submit_button'],
@@ -195,6 +232,7 @@ Map<String, Object> seedPreparationTarget(String recipe, List<String> words) {
       : <String, Object>{'text': words.first, 'kind': 'button', 'exact': true};
 }
 
+/// Holds Token Continue outside its original active preparation frame.
 void requireSeedTokenPreparation({
   required String? frameKey,
   required bool active,

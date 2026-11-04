@@ -29,6 +29,47 @@ void main() {
         );
         expect(plan.lines.last.first, 'assert');
       }
+      final String deposit = File('harness/seed/deposit.txt')
+          .readAsStringSync().replaceAll('\r\n', '\n');
+      const String marker =
+          'wait --key swap_start_screen_marker --timeout 30';
+      const String ready =
+          'wait --key swap_amount_input --kind field '
+          '--nth 0 --ready --timeout 30';
+      const String amount = 'type --key swap_amount_input --nth 0 1';
+      final SeedRecipe plan = SeedRecipe.parse('deposit', deposit);
+      final int waiting = plan.lines.indexWhere(
+        (List<String> words) => words.contains('--ready'),
+      );
+      expect(waiting, greaterThan(0));
+      expect(plan.lines[waiting - 1].join(' '), marker);
+      expect(plan.lines[waiting].join(' '), ready);
+      expect(plan.lines[waiting + 1].join(' '), amount);
+      final String absent = deposit.replaceFirst('$ready\n', '');
+      for (final String invalid in <String>[
+        absent,
+        deposit.replaceFirst(ready, '$ready\n$ready'),
+        deposit.replaceFirst(ready,
+          ready.replaceFirst('swap_amount_input', 'swap_counterparty_input')),
+        deposit.replaceFirst(ready, ready.replaceFirst('field', 'button')),
+        deposit.replaceFirst(ready, ready.replaceFirst('--nth 0', '--nth 1')),
+        deposit.replaceFirst(ready, ready.replaceFirst('30', '31')),
+        deposit.replaceFirst(ready, '$amount --ready'),
+        absent.replaceFirst(marker, '$ready\n$marker'),
+        absent.replaceFirst(amount, '$amount\n$ready'),
+        deposit.replaceFirst(ready,
+          '$ready\nassert --key swap_start_screen_marker'),
+        absent.replaceFirst('publish --key swap_create_deposit',
+          'publish --key swap_create_deposit\n$ready'),
+      ]) {
+        expect(() => SeedRecipe.parse('deposit', invalid),
+            throwsA(isA<SeedRefused>()));
+      }
+      expect(
+        () => SeedRecipe.parse('stake',
+            _valid.replaceFirst('goto staking', ready)),
+        throwsA(isA<SeedRefused>()),
+      );
     },
   );
   test('a complete recipe is validated before any UI command is admitted', () {

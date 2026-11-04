@@ -6,6 +6,7 @@ wait --key p2p_start_swap --timeout 30
 tap --key p2p_start_swap
 tap --key p2p_warning_continue
 wait --key swap_start_screen_marker --timeout 30
+wait --key swap_amount_input --kind field --nth 0 --ready --timeout 30
 type --key swap_amount_input --nth 0 1
 type --key swap_counterparty_input ${counterparty}
 tap --key swap_action_details_toggle

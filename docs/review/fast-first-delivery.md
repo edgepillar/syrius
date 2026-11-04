@@ -1,6 +1,6 @@
 # First delivery and deferred acceptance
 
-Updated: 2026-11-04T01:47Z.
+Updated: 2026-11-04T02:13Z.
 
 The owner selected a first delivery covering the core interface and existing
 basic functionality, with detailed visual and extended platform/lab acceptance
@@ -84,8 +84,10 @@ results with their original scope.
 The owner reaffirmed fast delivery before further expensive qualification.
 No new heavy qualification or image transport is scheduled for this milestone.
 Use the completed results for the Draft handoff and batch extended checks
-after implementation stabilizes. The prepared Deposit input-readiness
-follow-up belongs to phase two and is not applied in this documentation update.
+after implementation stabilizes. Source402 prepares the bounded Deposit input
+readiness follow-up in source, with fresh focused qualification pending.
+The first-delivery application remains unchanged; native verification of the
+follow-up and complete seeded effects still belong to phase two.
 
 ## Second phase
 

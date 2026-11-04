@@ -1,14 +1,19 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/gestures.dart' show PointerDeviceKind;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/p2p_swap_warning_modal.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/start_native_swap_modal.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+import '../../harness/app/agent.dart';
 import '../../harness/app/fixtures/seed_deposit_entry.dart';
 import '../../harness/app/fixtures/seed_policy.dart';
 import '../../harness/app/seed_deposit_entry_binding.dart';
+import '../../harness/bin/harness.dart' as cli;
+import '../../harness/seed/seed_recipe.dart';
 import '../swap_actions_redesign/support.dart';
 
 Matcher _refused(String code) => throwsA(
@@ -47,6 +52,54 @@ Future<void> _pointer(
   );
   admission();
   await pointer.up();
+}
+
+// Original CLI selectors reach the actual widget tree without a profile.
+final class _DepositAgentInstance extends cli.Instance {
+  _DepositAgentInstance(this._agent) : super('synthetic-deposit-entry');
+
+  final HarnessAgent _agent;
+  final List<Map<String, Object?>> commands = <Map<String, Object?>>[];
+
+  @override
+  Map<String, dynamic> read() =>
+      throw StateError('A synthetic instance has no profile');
+
+  @override
+  Future<Map<String, dynamic>> send(Map<String, Object?> command, {
+    Duration timeout = const Duration(seconds: 120),
+  }) async {
+    commands.add(Map<String, Object?>.of(command));
+    return <String, dynamic>{
+      'ok': true,
+      ...await _agent.commandForTest(<String, dynamic>{
+        ...command, 'settleMs': 0,
+      }),
+    };
+  }
+}
+
+Future<T> _driveDepositCommand<T>(
+  WidgetTester tester, Future<T> command,
+) async {
+  bool done = false;
+  T? result;
+  Object? failure;
+  StackTrace? trace;
+  unawaited(command.then((T value) {
+    result = value;
+    done = true;
+  }, onError: (Object error, StackTrace stack) {
+    failure = error;
+    trace = stack;
+    done = true;
+  }));
+  for (int frame = 0; frame < 80 && !done; frame++) {
+    await tester.pump(const Duration(milliseconds: 40));
+  }
+  expect(done, isTrue, reason: 'The original input command must finish');
+  if (failure != null) Error.throwWithStackTrace(failure!, trace!);
+  return result as T;
 }
 
 void main() {
@@ -144,6 +197,8 @@ void main() {
       (WidgetTester tester) async {
         prepareSwapViewport(tester);
         final SwapUiFixture source = SwapUiFixture();
+        final Completer<AccountInfo> funds = Completer<AccountInfo>();
+        source.accountReply = funds.future;
         int accepted = 0;
         int pointers = 0;
         await tester.pumpWidget(swapHost(Builder(
@@ -190,6 +245,56 @@ void main() {
         expect(find.byType(StartNativeSwapModal), findsOneWidget);
         expect(find.byKey(const Key('swap_start_screen_marker')),
             findsOneWidget);
+        expect(source.accountReads, <String>[source.owner]);
+        final HarnessAgent agent = HarnessAgent.forTest()..booted = true;
+        await expectLater(agent.commandForTest(<String, dynamic>{
+          'cmd': 'type', 'key': 'swap_amount_input', 'kind': 'field',
+          'nth': 0, 'value': '1', 'settleMs': 0,
+        }), throwsA(isA<HarnessError>().having(
+          (HarnessError error) => error.message, 'message', 'read-only field',
+        )));
+        final SeedRecipe recipe = SeedRecipe.parse('deposit',
+            File('harness/seed/deposit.txt').readAsStringSync());
+        final List<String> ready = recipe.lines.singleWhere(
+          (List<String> words) => words.contains('--ready'),
+        );
+        final _DepositAgentInstance instance = _DepositAgentInstance(agent);
+        bool readyDone = false;
+        final Future<Map<String, dynamic>> readiness = cli.waitForTarget(
+          instance, cli.Args(ready.sublist(1)),
+        );
+        unawaited(readiness.then<void>((_) {
+          readyDone = true;
+        }, onError: (Object error, StackTrace trace) {
+          readyDone = true;
+        }));
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(readyDone, isFalse);
+        expect(source.mutations, 0);
+        funds.complete(source.account(source.owner));
+        final Map<String, dynamic> observed =
+            await _driveDepositCommand(tester, readiness);
+        expect((observed['target']! as Map<String, Object?>)['key'],
+            'swap_amount_input');
+        expect(instance.commands, <Map<String, Object?>>[
+          <String, Object?>{
+            'cmd': 'wait', 'key': 'swap_amount_input', 'kind': 'field',
+            'nth': 0, 'ready': true, 'timeoutMs': 30000,
+          },
+        ]);
+        await _driveDepositCommand(tester,
+          agent.commandForTest(<String, dynamic>{
+            'cmd': 'type', 'key': 'swap_amount_input', 'kind': 'field',
+            'nth': 0, 'value': '1', 'settleMs': 0,
+          }),
+        );
+        final List<TextField> amounts = tester.widgetList<TextField>(
+          find.byKey(const Key('swap_amount_input')),
+        ).toList();
+        expect(amounts, hasLength(2));
+        expect(amounts.first.controller!.text, '1');
+        expect(amounts.last.controller!.text, isEmpty);
+        expect(source.accountReads, <String>[source.owner]);
         expect(source.mutations, 0);
         expect(tester.takeException(), isNull);
       },
