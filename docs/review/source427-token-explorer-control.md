@@ -49,3 +49,27 @@ acceptance remain open. Heavy phase-two work stays deferred. Original acceptance
 remains 72/80, with 50/94 historical literal outputs, 44 missing and zero accepted
 whole-image matches. The PR remains Draft with English, privacy-safe text and
 edgepillar attribution.
+
+## Original Source427 result and Source428 import cleanup
+
+[Run 41819556940](https://github.com/edgepillar/syrius/actions/runs/41819556940),
+attempt one, job 126539003257, retains its original analysis refusal. Python
+passes all 955 controls with three existing hosted skips and fourteen asset
+controls pass. Selected analysis completes normally with zero errors, zero
+warnings and one info. The closed notice reports `UNNECESSARY_IMPORT` at line 3,
+column 8, with the privacy-safe source category `other`; the complete raw
+diagnostic text and path remain unretained. The strict gate refuses that info,
+so the Flutter test step is skipped. All source-bound jobs are terminal with
+zero artifacts. This producer remains failed and is not retried.
+
+Source428 removes only the matching explicit rendering import from the existing
+holder test file. The diagnosis is source-derived from the reported code and
+location; no original raw path is reconstructed. Every test body, fixture,
+assertion, registration, selected file, application byte, seam, existing link,
+Python controller and process bound remains unchanged. The completed 37 local
+controls are reused on their exact unchanged Python bytes. Fresh 1,229-case
+Flutter and zero-finding selected-analysis qualification remain pending.
+
+The original control and its refusing service stay in place. This follow-up
+starts no heavy Windows/lab producer or image transport. The functional token
+route, native pixels and all original final acceptance gates remain open.

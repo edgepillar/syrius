@@ -7,14 +7,15 @@ basic functionality, with detailed visual and extended platform/lab acceptance
 afterward. The first milestone is ready for Draft code review. Final acceptance
 of the complete redesign remains open.
 
-Source427 draws the [holder explorer control](source427-token-explorer-control.md)
-behind its registered `Not yet` gate. The current token route is unverified;
-existing Burn/Send and domain/transaction links retain their path. The original
-external-link symbol, label and pointer/semantic/retained-callback refusals join
-the four existing holder cases. Two enum-driven service/Go To cases prepare
-1,229 ordinary cases (596/633) in the unchanged 48/48-file selection. Thirty-seven
-local controls pass; fresh hosted tests and selected analysis remain pending.
-Heavy phase-two work stays deferred.
+Source427's [original holder-control result](source427-token-explorer-control.md#original-source427-result-and-source428-import-cleanup)
+retains passing Python/assets, zero analysis errors/warnings and one
+`UNNECESSARY_IMPORT` info, with Flutter tests skipped. Source428 removes only
+the matching rendering import from the holder test. Every case body, fixture,
+assertion, registration, application byte and bound remains. The completed 37
+local controls are reused on unchanged Python bytes. Fresh 1,229-case
+qualification in the same 48/48-file selection (596/633) remains pending.
+The original failed producer is preserved. The token route and full phase-two
+acceptance remain open; heavy work stays deferred.
 
 The most recently qualified focused source is Source425
 `fc512bd44686f1bf5a16d379503bf9b849861750`. Its
