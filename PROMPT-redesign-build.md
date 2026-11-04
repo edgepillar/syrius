@@ -2448,3 +2448,11 @@ See [the finite installed-component query](docs/review/source432-wsl-component-r
 | Row | Status | Updated | Evidence |
 | --- | --- | --- | --- |
 | X576 | done | 2026-11-04T13:22Z | Source432 00638c824cd2 / registration 41836631732 and manual 41837097008 independently bind fourteen controls per platform and complete original WSL version/status exits 1/50, with zero artifacts and no query replay. Each command has 324 complete bytes without forced termination. Package/kernel versions and Docker minimum readiness remain unknown; original command failures and NOT_ESTABLISHED inner cause are preserved. Source433 changes documentation only. No SDK, installer, kernel/container/wallet/node startup or artifact upload is added. This closes finite metadata observation only; P03/P09 and full acceptance stay open. |
+
+## Source434 pinned WSL package installation
+
+See [the isolated installation lane](docs/review/source434-pinned-wsl-installation.md). It prepares one exact ARM64 release MSI with size/SHA-256 and independent Microsoft signature checks, fresh-VM admission, original process/storage bounds and no reboot or Linux startup. [Exact body332](docs/review/pr-body-332.md) preserves the previous handoff.
+
+| Row | Status | Updated | Evidence |
+| --- | --- | --- | --- |
+| X577 | review | 2026-11-04 | Twenty-one local mocked controls pass without native, network, PowerShell or scratch activity. One pinned 341086208-byte Microsoft WSL ARM64 package is admitted only on a fresh hosted desktop VM with enabled prerequisites, no detected WSL installation and no known pending reboot. Exact input/identity/signature checks precede one no-restart MSI invocation; timeout/output/storage refusals and 3010 remain separate, without retries or cleanup. Source registration, PowerShell parsing and actual component installation remain pending. No distro, Linux kernel, container, wallet or chain node is started. Original UI and existing controller bytes remain; P03/P09 and full acceptance stay open. |
