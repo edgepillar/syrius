@@ -112,7 +112,7 @@ Future<ActionFixture> _pumpTokenCard(
   final ActionFixture fixture = ActionFixture(
     initialToken: token,
     ownerAddress: kSelectedAddress,
-  );
+  )..balance = BigInt.from(40);
   addTearDown(fixture.close);
   await tester.pumpWidget(
     MaterialApp(

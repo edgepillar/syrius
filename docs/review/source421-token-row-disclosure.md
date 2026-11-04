@@ -66,3 +66,25 @@ file. Every fixture input, permission assertion, action path, application byte,
 registration, selected file/count and process bound remains. Completed local
 controls are reused on unchanged Python bytes. Fresh 1,223-case hosted runtime
 qualification remains pending. Heavy phase-two acceptance stays deferred.
+
+## Original Source422 result and Source423 bounded balance
+
+[Run 41798633281](https://github.com/edgepillar/syrius/actions/runs/41798633281),
+attempt one, job 126468680131, retains passing Python/assets and complete
+zero-finding analysis. Both 48-file streams finish normally with 595 and 625
+passes, plus three failures in the second stream. All retained details now
+identify `token_card_test.dart:150`, at entry into the Burn amount field, rather
+than the earlier fixture constructor. Full original messages remain unretained.
+
+Source inspection finds that the shared action fixture's large default balance
+exceeds this legacy token fixture's issued supply of 85. The existing account
+snapshot deliberately refuses a balance above issued supply, so that input
+cannot establish an actionable form. This diagnosis comes from the fixture and
+the unchanged snapshot validator, separately from the closed runtime locations.
+
+Source423 gives these three cases an explicit synthetic balance of 40. Every
+other fixture input, permission assertion, application byte, registration,
+selection/count and process bound remains. The supply validator is unchanged.
+Completed local Python controls are reused. Fresh 1,223-case hosted execution
+remains pending; both original failed producers and all phase-two acceptance
+remain preserved.

@@ -7,6 +7,14 @@ basic functionality, with detailed visual and extended platform/lab acceptance
 afterward. The first milestone is ready for Draft code review. Final acceptance
 of the complete redesign remains open.
 
+Source422's [original form result](source421-token-row-disclosure.md#original-source422-result-and-source423-bounded-balance)
+retains clean selected analysis, passing Python/assets and complete Dart streams
+with 1,220 passes and three Burn form-entry failures. Source423 binds the fixture
+balance to 40 units within its 85-unit issued supply. All other inputs,
+permission assertions, application bytes, registrations and bounds remain;
+the supply validator is unchanged. Fresh 1,223-case qualification is pending.
+Both original failed producers and the heavy phase-two boundary remain.
+
 Source421's [original result](source421-token-row-disclosure.md#original-source421-result-and-source422-fixture-setup)
 retains clean selected analysis, passing Python/assets and complete Dart streams
 with 1,220 passes and three Burn-fixture failures. Source422 adds the existing
