@@ -7,17 +7,29 @@ basic functionality, with detailed visual and extended platform/lab acceptance
 afterward. The first milestone is ready for Draft code review. Final acceptance
 of the complete redesign remains open.
 
+The most recently qualified focused source is Source428
+`fc49ca01d4c6e830176e8dff50e1abf3b4a6ce13`. Its
+[Token explorer result](source427-token-explorer-control.md#fresh-source428-focused-result)
+in [41821411911](https://github.com/edgepillar/syrius/actions/runs/41821411911)
+passes all 1,229 ordinary cases in complete 48/48-file streams (596/633),
+955 Python controls with three existing skips, fourteen assets and zero selected
+findings. All token-list/inline/Burn cases, the actual both-theme/direction
+explorer gate and enum-driven service/Go To refusals pass. Existing financial
+controls and every earlier path remain working in isolated fixtures. Source429
+changes documentation only. The original Source427 analysis refusal remains;
+the functional token route and full phase-two acceptance stay open and deferred.
+
 Source427's [original holder-control result](source427-token-explorer-control.md#original-source427-result-and-source428-import-cleanup)
 retains passing Python/assets, zero analysis errors/warnings and one
 `UNNECESSARY_IMPORT` info, with Flutter tests skipped. Source428 removes only
 the matching rendering import from the holder test. Every case body, fixture,
 assertion, registration, application byte and bound remains. The completed 37
-local controls are reused on unchanged Python bytes. Fresh 1,229-case
-qualification in the same 48/48-file selection (596/633) remains pending.
+local controls are reused on unchanged Python bytes. The fresh result above
+completes 1,229-case qualification in the same 48/48-file selection (596/633).
 The original failed producer is preserved. The token route and full phase-two
 acceptance remain open; heavy work stays deferred.
 
-The most recently qualified focused source is Source425
+The earlier qualified focused source is Source425
 `fc512bd44686f1bf5a16d379503bf9b849861750`. Its
 [Token holder result](source425-token-holder-actions.md#focused-result) in
 [41814340797](https://github.com/edgepillar/syrius/actions/runs/41814340797)
