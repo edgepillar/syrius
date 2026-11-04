@@ -108,6 +108,24 @@ This selects upstream SHA 0e80915fb9569f2fc3f6bd90c2a54e4c10d7bc1b and tree
 Its locked modules/Dockerfile/devnet inputs match the existing upstream base;
 previous native qualification does not transfer. See the
 [pinned candidate scope](../../../docs/review/source455-pinned-node-candidate.md).
+
+Source455's actual candidate run 41919093364 passes 1,036 controls/two existing
+Linux skips but remains failed: status stays at height two for thirty seconds,
+pillar3 exits zero and the other four exit 137 without observed OOM. Nine notices
+and 32 complete unforced receipts consume; artifacts are zero. Five main logs
+and pillar3's error file read, without recognized codes. Exact causes, production,
+five normal exits and final native source remain unqualified. See the
+[actual result](../../../docs/review/source455-pinned-node-candidate.md#actual-source455-result).
+
+The experimental `dev-0e80915-reference` choice uses that same fixed unmodified
+node with the [reference compiler recipe](../../../docs/review/source456-reference-lab-build.md):
+Go 1.24.1/Linux amd64, explicit CGO, locked modules and the existing static build
+flags. `LAB_BUILD_RECIPE=reference` selects this recipe for every lab command;
+its image tag ends in `-reference`, and a different recipe cannot reuse it.
+Reference down uses twenty seconds of grace for the one validated stop batch;
+upstream keeps ten. Failed builds do not publish a revision. A candidate header
+cannot borrow another recipe's image. Fresh source/runtime execution is pending;
+no old pass transfers and the original default remains unchanged.
 Fresh candidate qualification is pending. The final image ID is observed
 because the upstream Dockerfile's base-image tags can move.
 

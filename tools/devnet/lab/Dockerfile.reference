@@ -1,0 +1,27 @@
+# Use the existing hosted backend's exact Go version and static build flags.
+# Source, modules and role entrypoint still come from the selected node export.
+FROM golang:1.24.1-alpine AS builder
+RUN apk add --no-cache gcc musl-dev
+ENV GOTOOLCHAIN=local CGO_ENABLED=1
+WORKDIR /app
+RUN test "$(go version)" = "go version go1.24.1 linux/amd64"
+COPY go.mod go.sum ./
+RUN sha256sum go.mod go.sum > /tmp/modules.sha256 \
+    && go mod download && sha256sum -c /tmp/modules.sha256
+COPY . .
+RUN go build -trimpath -buildvcs=false -mod=readonly \
+    -tags=netgo,osusergo \
+    -ldflags="-linkmode=external -extldflags=-static" \
+    -o /app/build/znnd ./cmd/znnd \
+    && sha256sum -c /tmp/modules.sha256
+
+FROM alpine:latest
+RUN apk add --no-cache ca-certificates
+WORKDIR /root
+RUN mkdir -p /root/.znn
+COPY --from=builder /app/build/znnd /usr/local/bin/znnd
+COPY docker/devnet /devnet
+EXPOSE 35995 35997 35998
+COPY docker/devnet/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]

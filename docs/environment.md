@@ -78,9 +78,24 @@ production, five normal exits and final native source remain unqualified.
 Source455 prepares a [fixed upstream candidate](review/source455-pinned-node-candidate.md)
 while retaining the original default. Its locked modules, Dockerfile and complete
 devnet directory match already supported upstream base 2d1b929. Twenty-four local
-pure controls pass; six shell cases stay unselected locally. Fresh 1,036-case
-hosted source/candidate execution is pending. Frontier, ownership and exit
-criteria remain; all original failed trials are preserved.
+pure controls pass; six shell cases stay unselected locally. Its [actual result](review/source455-pinned-node-candidate.md#actual-source455-result)
+passes 1,036 controls/two existing Linux skips in source-only 41918321972 and
+manual 41919093364. Both are terminal with zero artifacts; the runtime remains
+failed. Nine notices/32 complete unforced receipts consume, at most 3,050 bytes.
+Up advances one to two over forty-five seconds, then status stays at height two
+for thirty seconds. Five main files and pillar3 error file read without known
+codes. Down exits zero; pillar3 exits zero, the other four exit 137 without
+observed OOM. Exact causes, production, five normal exits and final native source
+remain unqualified. [Source456](review/source456-reference-lab-build.md) adds an
+explicit recipe with exact Go 1.24.1, CGO/static flags, module-file checks, a
+distinct image suffix and twenty-second stop grace matching the existing hosted
+backend. Upstream keeps ten seconds. Recipe/tag mismatch refuses before Docker;
+failed builds cannot publish a revision. Twenty-seven local pure controls pass;
+ten shell fixtures stay unselected locally. Fresh 1,043-case source/reference
+execution is pending. All five lab inputs, original thirty-second progress window,
+parent deadlines, resource/ownership and strict five-zero-exit/no-OOM criteria
+remain. Fixed producer error categories export only closed codes. No old pass
+transfers; all original failed trials and their unknowns are preserved.
 All 1,970 earlier runtime entries
 remain byte-identical through Source451; Source453 separately changes the lab
 script/controller/workflow and adds six shell-fixture cases. No new local

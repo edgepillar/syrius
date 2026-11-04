@@ -46,3 +46,33 @@ application Dart, financial route, dependency manifest or reference changes.
 The candidate does not qualify Windows Docker Desktop, wallet import/send, seed
 effects, native pixels or performance. Full acceptance stays 72/80 with zero
 accepted visual matches, and the PR stays Draft.
+
+## Actual Source455 result
+
+Source `5fee626f2728b6eb9432f805c35e16672865df70`, tree
+`f85fc7a0abf95216a08c7d6a283af51068309cf4`, passes 1,036 source controls with
+two existing Linux skips and all six shell fixtures in source-only
+[41918321972](https://github.com/edgepillar/syrius/actions/runs/41918321972)
+and manual [41919093364](https://github.com/edgepillar/syrius/actions/runs/41919093364).
+Both runs are terminal with zero artifacts. The manual runtime job
+126886720324, attempt one, remains failed.
+
+All nine source/tree/run/attempt-bound notices and 32 complete, unforced command
+receipts independently consume; the largest notice is 3,050 bytes. The selected
+node is exactly `dev-0e80915`, SHA `0e80915fb9569f2fc3f6bd90c2a54e4c10d7bc1b`,
+tree `244d362062b03c07e205ef9a2ad7ba1071fe779a`. Up advances chain 321 from one
+to two over forty-five seconds. Status exits one after height two remains two
+for thirty seconds.
+
+All five main files read. Pillar3's error file also reads; the other four error
+file commands exit one. Their inner refusal or absence is NOT_ESTABLISHED.
+The existing classifier recognizes no closed code; this is not absence of errors.
+Down exits zero. Pillar3's die event exits zero, the other four exit 137, and no
+OOM event is observed. Exit 137 alone does not establish the inner cause.
+Production, five normal exits and final native source remain unqualified, with
+COMMAND_FAILED and the separate STOP_UNKNOWN retained. The trial is not retried;
+all earlier failures and their unknowns remain source-bound.
+
+The next [reference build recipe](source456-reference-lab-build.md) changes the
+compiler recipe and stop grace explicitly, without borrowing this candidate's
+failed runtime or the custom backend's earlier pass.

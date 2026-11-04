@@ -281,6 +281,7 @@ class LiteralLabTests(unittest.TestCase):
             die_count=2000, exit_codes=[137, 138, 139, 255], exit_code_count=256,
             oom=True) for role in lab.ROLES})
         report.update(image_sha256='c' * 64, genesis_sha256='d' * 64,
+            node_source='dev-0e80915-reference', node_build_recipe='reference',
             observation_code='COMMAND_TIMEOUT', close_code='RESOURCE_CHANGED',
             up=dict(chain_id=321, first_height=2**53 - 2,
                 last_height=2**53 - 1, seconds=270),
@@ -315,13 +316,16 @@ class LiteralLabTests(unittest.TestCase):
                     exit_events=self.encoded(self.events(owned)))
                 commands.run.side_effect = lambda stage, *_args: outputs[stage]
                 report = dict(source_sha='a' * 40, node_source=choice,
-                    node_sha=node, node_tree=tree, checks=dict.fromkeys(
+                    node_sha=node, node_tree=tree,
+                    node_build_recipe=lab.NODE_RECIPES[choice], checks=dict.fromkeys(
                     ('fresh', 'originals', 'production', 'stopped', 'source_after'), False))
                 genesis = b'{"ChainIdentifier":321}'
                 with mock.patch.object(lab, 'source', return_value='b' * 40) as source, \
                         mock.patch.object(lab, 'empty_project'), \
                         mock.patch.object(lab.hosted, 'regular',
-                            side_effect=[node[:7].encode(), genesis, genesis]):
+                            side_effect=[(node[:7] + ('-reference' if
+                                lab.NODE_RECIPES[choice] == 'reference' else '')).encode(),
+                                genesis, genesis]):
                     lab.observe(commands, Path('/repo'), Path('/fixture'), report)
                 self.assertTrue(all(report['checks'].values()))
                 self.assertEqual(source.call_count, 2)
@@ -330,6 +334,52 @@ class LiteralLabTests(unittest.TestCase):
                     ['up', 'status', 'down', 'exit_events'])
                 argv = commands.run.call_args_list[-1].args[1]
                 for value in owned.values():self.assertEqual(argv.count('container=' + value[0]), 1)
+
+    def test_reference_choice_is_bound_before_allocation(self):
+        choice, node, tree = lab.admit(dict(self.parent(),
+            SYRIUS_LITERAL_NODE_SOURCE='dev-0e80915-reference'), 'linux')
+        self.assertEqual((node, tree), lab.NODE_SOURCES['dev-0e80915'])
+        self.assertEqual(lab.NODE_RECIPES[choice], 'reference')
+        self.assertEqual(set(lab.NODE_RECIPES), set(lab.NODE_SOURCES))
+        self.assertEqual(lab.NODE_RECIPES['original'], 'upstream')
+
+    def test_producer_file_errors_export_only_closed_categories(self):
+        samples = (
+            (b'failed to generate momentum', 'NODE_MOMENTUM_GENERATION_FAILED'),
+            (b'do not broadcast own momentum', 'NODE_MOMENTUM_NOT_BROADCAST'),
+            (b'unable to generate receive block', 'NODE_CONTRACT_RECEIVE_FAILED'),
+            (b'unable to insert autoreceive block', 'NODE_CONTRACT_RECEIVE_FAILED'),
+            (b'failed to update contracts', 'NODE_CONTRACT_UPDATE_FAILED'),
+        )
+        for text, expected in samples:
+            with self.subTest(code=expected):
+                value = lab.node_file_diagnostics(text + b' private path/address/password')
+                self.assertEqual(value, [expected])
+                self.assertNotIn('private', json.dumps(value))
+        self.assertEqual(lab.node_file_diagnostics(b'unknown private error'), [])
+        self.assertEqual(lab.node_file_diagnostics(b'panic: private'), ['NODE_PANIC'])
+        self.assertEqual(len(lab.node_file_diagnostics(
+            b'\n'.join(text for text, _ in samples))), 4)
+
+    def test_reference_header_refuses_upstream_image_or_recipe(self):
+        choice = 'dev-0e80915-reference'
+        node, tree = lab.NODE_SOURCES[choice]
+        for tag, recipe in ((node[:7].encode(), 'reference'),
+                ((node[:7] + '-reference').encode(), 'upstream'),
+                ((node[:7] + '-reference-extra').encode(), 'reference')):
+            with self.subTest(tag=tag, recipe=recipe):
+                commands = mock.Mock();commands.git.side_effect = [node, tree]
+                commands.run.return_value = b'chain 321: 5 then 6 after 5 s\nproducing\n'
+                report = dict(source_sha='a' * 40, node_source=choice,
+                    node_sha=node, node_tree=tree, node_build_recipe=recipe,
+                    checks=dict(fresh=False))
+                with mock.patch.object(lab, 'source', return_value='b' * 40), \
+                        mock.patch.object(lab, 'empty_project'), \
+                        mock.patch.object(lab.hosted, 'regular', return_value=tag), \
+                        self.assertRaises(lab.Refused) as raised:
+                    lab.observe(commands, Path('/repo'), Path('/fixture'), report)
+                self.assertEqual(raised.exception.code, 'SOURCE_REFUSED')
+                self.assertFalse(commands.docker.called)
 
     def test_candidate_header_cannot_borrow_an_original_node_build(self):
         commands = mock.Mock();commands.git.return_value = lab.NODE

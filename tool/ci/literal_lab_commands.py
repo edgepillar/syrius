@@ -20,7 +20,11 @@ NODE_SOURCES = {
     'original': (NODE, NODE_TREE),
     'dev-0e80915': ('0e80915fb9569f2fc3f6bd90c2a54e4c10d7bc1b',
         '244d362062b03c07e205ef9a2ad7ba1071fe779a'),
+    'dev-0e80915-reference': ('0e80915fb9569f2fc3f6bd90c2a54e4c10d7bc1b',
+        '244d362062b03c07e205ef9a2ad7ba1071fe779a'),
 }
+NODE_RECIPES = dict(original='upstream', **{'dev-0e80915': 'upstream',
+    'dev-0e80915-reference': 'reference'})
 PROJECT = 'syrius-lab'
 ROLES = ('pillar', 'pillar2', 'pillar3', 'observer', 'rpc')
 NODE_LOG_SOURCES = (
@@ -30,7 +34,8 @@ NODE_LOG_SOURCES = (
 NODE_LOG_READ = ('[ ! -L /root/.znn/log ] && [ ! -L /root/.znn/log/error ] '
     '&& [ ! -L "$1" ] && [ -f "$1" ] && exec tail -n 64 "$1"')
 PINS = {
-    'lab.sh': 'a7488a8ff366ca96b91e1ab88150253ee792632c06a19ea5916dcb25d7deb234',
+    'lab.sh': '806fb71e96a718e0a8e67d84051b07d3cfdb347c197f21f511e87af24ad68119',
+    'Dockerfile.reference': 'e9881d35e990c3013d1fde7a3adb92e5e85bb3dde4a9a24a0e8a1d8e6fe2377a',
     'docker-compose.yml': '0100e958abd79d03bd125ce7fd042b9f3bb78cda8b69a17502beadb99ed4cef9',
     'make-assets.js': 'bf2a2f20f780b384b2cd0d0e04cb8eff217b671373b0025435bded07b56fbebb',
     'frontier.js': 'd43aad19cf583b72f6615b96069c4e39e617587a5afaedc9ea07f6b2c2f1a76d',
@@ -246,13 +251,26 @@ def failure_file_logs(commands, owned):
                     owned[role][0], 'sh', '-c', NODE_LOG_READ, 'lab-log', path])
                 need(type(raw) is bytes and len(raw) <= 2 * MIB, 'OUTPUT_REFUSED')
                 candidate = [*parts, raw]
-                found = hosted.node_diagnostics(b'\n'.join(candidate))[:4]
+                found = node_file_diagnostics(b'\n'.join(candidate))
                 parts, codes = candidate, found
                 sources[label] = 'READ'
             except Exception as error:
                 sources[label] = code(error)
         result[role] = dict(sources=sources, codes=codes)
     return result
+
+
+def node_file_diagnostics(raw):
+    """Expose only fixed producer error categories from the pinned node source."""
+    patterns = (
+        ('NODE_MOMENTUM_GENERATION_FAILED', r'failed to generate momentum'),
+        ('NODE_MOMENTUM_NOT_BROADCAST', r'do not broadcast own momentum'),
+        ('NODE_CONTRACT_RECEIVE_FAILED', r'unable to (?:generate receive|insert autoreceive) block'),
+        ('NODE_CONTRACT_UPDATE_FAILED', r'failed to update contracts'),
+    )
+    text = raw.decode('utf-8', 'replace')
+    return (hosted.node_diagnostics(raw) + [name for name, pattern in patterns
+        if re.search(pattern, text)])[:4]
 
 
 class Commands:
@@ -407,10 +425,12 @@ def empty_project(commands):
 
 
 def observe(commands, repo, lab, report):
-    _, node_pin, node_tree = selected_node(dict(
+    choice, node_pin, node_tree = selected_node(dict(
         SYRIUS_LITERAL_NODE_SOURCE=report.get('node_source', 'original')))
+    recipe = NODE_RECIPES[choice]
     need(report.get('node_sha', node_pin) == node_pin
-        and report.get('node_tree', node_tree) == node_tree, 'SOURCE_REFUSED')
+        and report.get('node_tree', node_tree) == node_tree
+        and report.get('node_build_recipe', recipe) == recipe, 'SOURCE_REFUSED')
     script = ['bash', str(lab / 'lab.sh')]
     owned, image = None, None
     report['source_tree'] = source(commands, repo, lab, report['source_sha'])
@@ -424,7 +444,10 @@ def observe(commands, repo, lab, report):
             and commands.git(node, 'rev-parse', node_pin + '^{tree}') == node_tree,
             'SOURCE_REFUSED')
         tag = hosted.regular(lab / '.build/revision', 80).decode('ascii').strip()
-        need(re.fullmatch('[a-f0-9]{7,40}', tag) and node_pin.startswith(tag), 'SOURCE_REFUSED')
+        suffix = '-reference' if recipe == 'reference' else ''
+        revision = tag.removesuffix(suffix) if suffix else tag
+        need(re.fullmatch('[a-f0-9]{7,40}', revision)
+            and node_pin.startswith(revision) and tag == revision + suffix, 'SOURCE_REFUSED')
         image = json_value(commands.docker('image', 'inspect', 'syrius-lab-znnd:' + tag,
             '--format', '{{json .Id}}'))
         need(type(image) is str and re.fullmatch('sha256:[a-f0-9]{64}', image), 'SOURCE_REFUSED')
@@ -521,6 +544,7 @@ def main():
         observation_code=None, close_code=None, unadopted_start_held=False,
         node_failure_facts={}, node_file_failure_facts={}, exit_observations=None,
         node_source='original', node_sha=NODE, node_tree=NODE_TREE,
+        node_build_recipe='upstream',
         commands=[], up=None, status=None,
         image_sha256=None, genesis_sha256=None, exit_codes={},
         checks=dict(fresh=False, originals=False, production=False, stopped=False, source_after=False),
@@ -533,7 +557,8 @@ def main():
         parent = dict(os.environ)
         choice, node_pin, node_tree = admit(parent, sys.platform)
         report.update(source_sha=parent['GITHUB_SHA'], run_id=parent['GITHUB_RUN_ID'],
-            run_attempt='1', node_source=choice, node_sha=node_pin, node_tree=node_tree)
+            run_attempt='1', node_source=choice, node_sha=node_pin, node_tree=node_tree,
+            node_build_recipe=NODE_RECIPES[choice])
         repo = Path(parent['GITHUB_WORKSPACE'])
         lab = repo / 'tools/devnet/lab'
         hosted.directories(lab)
@@ -549,7 +574,8 @@ def main():
         root.mkdir(mode=0o700)
         env = hosted.child_environment(root, parent)
         env.update(GO_ZENON_URL='https://github.com/zenon-network/go-zenon.git',
-            GO_ZENON_REV=node_pin, LAB_RPC='http://127.0.0.1:45997')
+            GO_ZENON_REV=node_pin, LAB_RPC='http://127.0.0.1:45997',
+            LAB_BUILD_RECIPE=NODE_RECIPES[choice])
         commands = Commands(repo, root, lab, env, report)
         observe(commands, repo, lab, report)
         report['success'] = all(report['checks'].values())

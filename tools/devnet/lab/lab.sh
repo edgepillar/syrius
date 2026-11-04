@@ -20,6 +20,12 @@ assets="$here/assets"
 go_zenon_url="${GO_ZENON_URL:-https://github.com/zenon-network/go-zenon.git}"
 go_zenon_rev="${GO_ZENON_REV:-590f43ca7a24dccd8e883bc8903a0cb02e54528a}"
 go_zenon="$build/go-zenon"
+build_recipe="${LAB_BUILD_RECIPE:-upstream}"
+case "$build_recipe" in
+  upstream) stop_timeout=10 ;;
+  reference) stop_timeout=20 ;;
+  *) echo "Unknown lab build recipe." >&2; exit 2 ;;
+esac
 
 fetch_go_zenon() {
   if ! git -C "$go_zenon" cat-file -e "$go_zenon_rev^{commit}" 2> /dev/null; then
@@ -32,15 +38,25 @@ fetch_go_zenon() {
 # The image is tagged with the go-zenon commit it was built from, and that is
 # remembered, so a later `up` runs what was built even if go-zenon has moved.
 tag() {
+  local revision
   if [ ! -f "$build/revision" ]; then
     echo "No image yet: run 'lab.sh build'." >&2
     exit 1
   fi
-  cat "$build/revision"
+  revision="$(cat "$build/revision")"
+  if { [ "$build_recipe" = upstream ] && [[ "$revision" =~ ^[a-f0-9]{7,40}$ ]]; } ||
+     { [ "$build_recipe" = reference ] && [[ "$revision" =~ ^[a-f0-9]{7,40}-reference$ ]]; }; then
+    echo "$revision"
+  else
+    echo "Lab image recipe differs: select the recipe used to build it." >&2
+    return 1
+  fi
 }
 
 compose() {
-  LAB_ZNND_TAG="$(tag)" docker compose -f "$here/docker-compose.yml" "$@"
+  local revision
+  revision="$(tag)" || return
+  LAB_ZNND_TAG="$revision" docker compose -f "$here/docker-compose.yml" "$@"
 }
 
 do_build() {
@@ -52,7 +68,12 @@ do_build() {
   rm -rf "$build/src"
   mkdir -p "$build/src"
   git -C "$go_zenon" archive "$go_zenon_rev" | tar -x -C "$build/src"
-  docker build -t "syrius-lab-znnd:$revision" "$build/src"
+  if [ "$build_recipe" = reference ]; then
+    revision="$revision-reference"
+    docker build -f "$here/Dockerfile.reference" -t "syrius-lab-znnd:$revision" "$build/src"
+  else
+    docker build -t "syrius-lab-znnd:$revision" "$build/src"
+  fi
   echo "$revision" > "$build/revision"
   echo "built syrius-lab-znnd:$revision"
 }
@@ -65,7 +86,7 @@ do_assets() {
 do_down() {
   local offered id prior count=0
   local ids=()
-  offered="$(compose ps -a -q)"
+  offered="$(compose ps -a -q)" || return
   while IFS= read -r id; do
     [ -n "$id" ] || continue
     if [[ ! "$id" =~ ^[a-f0-9]{64}$ ]]; then
@@ -89,8 +110,9 @@ do_down() {
   done <<< "$offered"
   if [ "$count" -gt 0 ]; then
     # Compose retires dependants before their live peers. Submit the complete
-    # set together; keep its usual ten-second grace and retain any stop error.
-    docker stop --timeout 10 "${ids[@]}"
+    # set together. The reference recipe uses the existing hosted backend's
+    # twenty-second grace; upstream keeps ten. Retain any stop error.
+    docker stop --timeout "$stop_timeout" "${ids[@]}"
   fi
   compose down
 }
@@ -101,7 +123,8 @@ case "${1:-}" in
     ;;
   up)
     [ -f "$build/revision" ] || do_build
-    docker image inspect "syrius-lab-znnd:$(tag)" > /dev/null
+    image_tag="$(tag)"
+    docker image inspect "syrius-lab-znnd:$image_tag" > /dev/null
     do_assets
     compose up -d
     node "$here/frontier.js" 180 --wait 90

@@ -14,6 +14,7 @@ on:
         options:
           - original
           - dev-0e80915
+          - dev-0e80915-reference
   push:
     branches: [dev, redesign]
     paths:
@@ -22,6 +23,7 @@ on:
       - test/ci/test_literal_lab_commands.py
       - test/ci/test_lab_shutdown.py
       - tools/devnet/lab/lab.sh
+      - tools/devnet/lab/Dockerfile.reference
 
 permissions:
   contents: read
