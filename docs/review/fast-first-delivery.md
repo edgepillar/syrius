@@ -1,6 +1,6 @@
 # First delivery and deferred acceptance
 
-Updated: 2026-11-04T05:16Z.
+Updated: 2026-11-04T05:44Z.
 
 The owner selected a first delivery covering the core interface and existing
 basic functionality, with detailed visual and extended platform/lab acceptance
@@ -168,6 +168,14 @@ above qualifies all 1,123 ordinary cases and zero-finding selected analysis.
 No heavy qualification is added.
 
 ## Second phase
+
+Source415 prepares the [Pillar sort frame](source415-pillar-sort-frame.md)
+from the nested tab cascade. The existing menu and actions remain; existing
+both-theme cases extend frame, open-bottom outline, large-text and RTL checks.
+Counts remain 1,123 ordinary cases with zero new registrations. Fresh focused
+qualification is pending. This source correction starts no full Windows/lab
+producer or image transport; X556 native geometry and all detailed acceptance
+remain open.
 
 | Work | Remaining acceptance |
 | --- | --- |

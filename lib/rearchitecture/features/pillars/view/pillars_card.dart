@@ -274,6 +274,7 @@ class _ViewState extends State<_View> {
 
   Widget _buildSort(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
+    final Border outline = tokens.pillarSortOutline;
     return PopupMenuButton<PillarListSort>(
       key: const Key('pillars_sort'),
       tooltip: context.l10n.pillarsSortLoaded,
@@ -301,29 +302,45 @@ class _ViewState extends State<_View> {
           ),
         ),
       ],
-      child: DecoratedBox(
-        decoration: ShapeDecoration(
-          shape: StadiumBorder(side: BorderSide(color: tokens.line)),
-        ),
-        child: Padding(
-          padding: EdgeInsetsDirectional.symmetric(
-            horizontal: tokens.cardGap,
-            vertical: tokens.fieldLabelGap,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
+      child: Transform.translate(
+        offset: tokens.pillarSortOffset,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: tokens.pillarSortMinHeight),
+          child: Stack(
+            fit: StackFit.passthrough,
             children: <Widget>[
-              ShellSymbol(
-                'sort',
-                size: tokens.pillarSortIconSize,
-                color: tokens.dim,
+              Positioned.fill(
+                child: ClipPath(
+                  clipper: _SortOutlineClipper(
+                    outline.dimensions.resolve(Directionality.of(context)),
+                  ),
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      border: outline,
+                      borderRadius: BorderRadius.circular(tokens.pillRadius),
+                    ),
+                  ),
+                ),
               ),
-              SizedBox(width: tokens.fieldLabelGap),
-              Text(
-                _sort == PillarListSort.weight
-                    ? context.l10n.weight
-                    : context.l10n.pillarsSortProduction,
-                style: tokens.pillarSortText,
+              Padding(
+                padding: tokens.pillarSortContentPadding,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    ShellSymbol(
+                      'sort',
+                      size: tokens.pillarSortIconSize,
+                      color: tokens.dim,
+                    ),
+                    SizedBox(width: tokens.fieldLabelGap),
+                    Text(
+                      _sort == PillarListSort.weight
+                          ? context.l10n.weight
+                          : context.l10n.pillarsSortProduction,
+                      style: tokens.pillarSortText,
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -331,6 +348,28 @@ class _ViewState extends State<_View> {
       ),
     );
   }
+}
+
+// A transparent CSS bottom border still reserves its corner-join region.
+// Clip the outline layer only, so that neither label nor input is clipped.
+class _SortOutlineClipper extends CustomClipper<Path> {
+  const _SortOutlineClipper(this.border);
+
+  final EdgeInsets border;
+
+  @override
+  Path getClip(Size size) => Path()
+    ..fillType = PathFillType.evenOdd
+    ..addRect(Offset.zero & size)
+    ..moveTo(0, size.height)
+    ..lineTo(border.left, size.height - border.bottom)
+    ..lineTo(size.width - border.right, size.height - border.bottom)
+    ..lineTo(size.width, size.height)
+    ..close();
+
+  @override
+  bool shouldReclip(_SortOutlineClipper oldClipper) =>
+      oldClipper.border != border;
 }
 
 LocalKey _pillarKey(PillarInfo item) => ValueKey<String>(item.name);

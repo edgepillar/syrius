@@ -78,6 +78,55 @@ Future<void> _frames(WidgetTester tester) async {
   await tester.pump(const Duration(milliseconds: 500));
 }
 
+void _expectSortFrame(
+  WidgetTester tester, {
+  bool scaled = false,
+  bool rtl = false,
+}) {
+  final Finder sort = find.byKey(const Key('pillars_sort'));
+  final Finder clip = find.descendant(
+    of: sort,
+    matching: find.byType(ClipPath),
+  );
+  expect(clip, findsOneWidget);
+  final Rect frame = tester.getRect(clip);
+  expect(frame.height, scaled ? greaterThan(27) : 27);
+  expect(frame.center.dy - tester.getRect(sort).center.dy,
+      closeTo(0.5, 0.01));
+  final ClipPath mask = tester.widget<ClipPath>(clip);
+  final Path path = mask.clipper!.getClip(frame.size);
+  expect(path.contains(Offset(frame.width / 2, 0.5)), isTrue);
+  expect(path.contains(Offset(frame.width / 2, frame.height - 0.5)), isFalse);
+  final DecoratedBox painted = tester.widget<DecoratedBox>(
+    find.descendant(of: clip, matching: find.byType(DecoratedBox)),
+  );
+  final BoxDecoration decoration = painted.decoration as BoxDecoration;
+  final Border border = decoration.border! as Border;
+  expect(decoration.color, isNull);
+  expect(border.top.width, 1);
+  expect(border.left.width, 1);
+  expect(border.right.width, 1);
+  expect(border.bottom.width, 2);
+  final Color line = AppTokens.of(tester.element(sort)).line;
+  for (final BorderSide side in <BorderSide>[
+    border.top, border.right, border.bottom, border.left,
+  ]) {
+    expect(side.color, line);
+  }
+  final Rect glyph = tester.getRect(find.descendant(
+    of: sort,
+    matching: find.byType(SvgPicture),
+  ));
+  expect(rtl ? frame.right - glyph.right : glyph.left - frame.left,
+      closeTo(11, 0.01));
+  expect(glyph.center.dy - frame.center.dy, closeTo(-0.5, 0.01));
+  final Rect label = tester.getRect(find.descendant(
+    of: sort,
+    matching: find.byType(Text),
+  ));
+  expect(frame.height - label.height, greaterThanOrEqualTo(2.999));
+}
+
 void main() {
   late _Pillars pillars;
   late _Delegate delegate;
@@ -220,6 +269,7 @@ void main() {
       final AppTokens tokens = AppTokens.of(
         tester.element(find.byType(PillarsCard)),
       );
+      _expectSortFrame(tester);
       for (final (String, double, Color) control in <(String, double, Color)>[
         ('pillars_search', 14, tokens.faint),
         ('pillars_sort', 12, tokens.dim),
@@ -318,6 +368,12 @@ void main() {
         expect(tester.getSize(alpha).height, greaterThan(26));
         expect(tester.getSize(beta).height, greaterThan(26));
         expect(tester.widget<OutlinedButton>(alpha).onPressed, isNotNull);
+        _expectSortFrame(tester, scaled: true);
+        await tester.pumpWidget(
+          host(theme: theme, textScale: 1.75, rtl: true),
+        );
+        await _frames(tester);
+        _expectSortFrame(tester, scaled: true, rtl: true);
         verifyNever(() => stats.add(any()));
         verifyNever(() => delegate.close());
         expect(tester.takeException(), isNull);

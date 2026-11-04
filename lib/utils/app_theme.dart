@@ -1687,6 +1687,24 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The reference sort chip uses the extra-small original glyph.
   double get pillarSortIconSize => 12;
 
+  /// Nested tab padding and borders exceed the chip's declared 26 px.
+  double get pillarSortMinHeight => 27;
+
+  /// The tab's negative bottom margin centers its border half a pixel lower.
+  Offset get pillarSortOffset => const Offset(0, 0.5);
+
+  /// The content keeps ten-pixel side padding inside the original border.
+  EdgeInsetsDirectional get pillarSortContentPadding =>
+      const EdgeInsetsDirectional.fromSTEB(11, 1, 11, 2);
+
+  /// The bottom region is masked separately to retain the CSS corner joins.
+  Border get pillarSortOutline => Border(
+    top: BorderSide(color: line),
+    right: BorderSide(color: line),
+    bottom: BorderSide(color: line, width: 2),
+    left: BorderSide(color: line),
+  );
+
   /// The nested chip inherits the tab's medium label weight.
   TextStyle get pillarSortText => bodyText.copyWith(
     fontSize: 12,
