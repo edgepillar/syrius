@@ -395,7 +395,7 @@ macOS; Windows provision and acceptance remain pending. See
 - Updated: 2026-11-04
 - Delivery priority: The owner reaffirmed [core interface and basic functionality first](docs/review/fast-first-delivery.md). Finalize the staged Draft handoff with completed evidence; defer new heavy platform/lab jobs, catalog transport and detailed motion/frame-time acceptance to phase two. The original final criteria remain open
 - Latest outcomes: [Source403 focused result](docs/review/source402-deposit-input-readiness.md#fresh-source403-focused-result) qualifies 41762557560: both complete 43/42-file streams, all 1094 cases (539/555), 955 Python controls/three existing skips, fourteen assets and zero selected findings. Existing Deposit real-modal cases and all earlier paths pass. Source404 preserves tested code. Original Source402 test failures, Source399/394 analysis refusals, earlier outcomes and Source368 full Windows/Native108 evidence retain their scope
-- Current implementation: The original first-delivery pin stays 19c7b2af5e1c. Source407 has zero selected findings but retains 1111 test passes and four failures. Source408 binds the long-lived cancellation guard to the stable row State and fixes the required 1280 by 780 fixture view, requiring a hit-testable original answer. All case bodies, assertions, 1115 selected cases and original process bounds remain. Fresh focused qualification is pending. Earlier catalog/analysis/runtime failures and Source403 Deposit qualification retain their scope. Heavy Windows/lab/capture work and native verification remain deferred
+- Current implementation: The original first-delivery pin stays 19c7b2af5e1c. Source407 and Source408 retain clean analysis, 1111 test passes and four failures each; exact original messages and cause remain unestablished. Source409 adds closed failure-kind tags while preserving original framework forwarding, failure rethrow, all application bytes, case bodies, 1115 cases and process limits. Thirty-seven local controls pass; fresh X565 runtime diagnosis is pending. Earlier failures and Source403 Deposit qualification retain their scope. Heavy Windows/lab/capture work and native verification remain deferred
 - Actual review: All eight Source353 Home PNGs and their eight exact references were individually viewed in a successfully closed owned review. X521-X528 retain differences in hero distribution, type, glyphs, spacing and genuine data coverage. Source357 shared hero colours have no new native pixel acceptance. Earlier Settings findings remain source-bound; zero whole-image matches are accepted
 - Acceptance: 72/80 rows, 90 percent by original rows; nineteen preparations, 50 literal outputs, 44 missing and zero of 94 accepted matches. P03, P09, F06, V01-V03 and V05-V06 remain open. Native108 retains Stake/Fuse/Token prefix observations before Deposit command six refuses before publication; Project and Fund address remain unreached. All original FAILURE/HOLD/UNKNOWN and Native101/103/104 UNKNOWN remain. English public text, edgepillar no-reply/UTC attribution and Draft status continue
 
@@ -2361,7 +2361,7 @@ See [the original-account cancellation correction](docs/review/source405-stake-c
 
 | Row | Status | Updated | Evidence |
 | --- | --- | --- | --- |
-| X563 | todo | 2026-11-04T03:43Z | Source407 retains zero selected findings, 1111 passes and four test failures. Source408 keeps the publication guard with the stable row State, fixes the specified fixture viewport and requires one hit-testable original answer. All case bodies, assertions, exact publication arguments, 1115 cases and process limits remain. Fresh flow/engine qualification is pending. All original failures, native effects and full acceptance remain open. |
+| X563 | todo | 2026-11-04T04:04Z | Source407 and Source408 each retain zero selected findings, 1111 passes and four failures. Source409 keeps application code, case bodies, assertions, exact publication arguments, all 1115 cases and limits while adding closed diagnosis. Thirty-seven local controls pass; X565 diagnosis and fresh flow/engine acceptance remain pending. All original failures, native effects and full acceptance remain open. |
 
 ## Source407 cancellation declaration cleanup
 
@@ -2369,4 +2369,12 @@ See [the preserved analysis refusal and declaration correction](docs/review/sour
 
 | Row | Status | Updated | Evidence |
 | --- | --- | --- | --- |
-| X564 | todo | 2026-11-04T03:43Z | Source407 41767555787 qualifies normal complete zero-finding analysis after the declaration correction, but its four test failures keep full focused acceptance open. Source408 changes row-context/fixture ownership while retaining every case body, assertion and original count/process gate. Fresh zero-finding analysis and complete 1115-case acceptance remain required; Source406's original five-info refusal is preserved. |
+| X564 | todo | 2026-11-04T04:04Z | Source407 and Source408 both qualify normal complete zero-finding analysis after declaration cleanup, but each retains four test failures. Source409 preserves every case body, assertion and count/process gate while adding runtime diagnosis. Fresh zero-finding analysis and complete 1115-case acceptance remain required; Source406's original five-info refusal is preserved. |
+
+## Source409 closed cancellation failure-kind observation
+
+See [the bounded runtime diagnostic](docs/review/source405-stake-cancellation-ownership.md#source409-closed-failure-kind-observation).
+
+| Row | Status | Updated | Evidence |
+| --- | --- | --- | --- |
+| X565 | todo | 2026-11-04T04:04Z | Two original runtime failures remain with the exact inner cause NOT_ESTABLISHED. Source409 observes only closed error-kind tags while forwarding the original Flutter details and rethrowing original answer failures. No raw exception/path/input is printed, and the original handler is restored. Thirty-seven local memory/read-only controls pass. Application bytes, all case bodies, assertions and 1115-case bounds remain; fresh focused diagnosis is pending. |

@@ -121,15 +121,78 @@ Future<void> _frames(WidgetTester tester) async {
   await tester.pump(const Duration(milliseconds: 300));
 }
 
+String _failureKind(Object error) {
+  final String message = error.toString();
+  final String kind;
+  if (message.contains('Looking up a deactivated widget')) {
+    kind = 'DEACTIVATED_CONTEXT';
+  } else if (message.contains('called during build') &&
+      (message.contains('setState') || message.contains('markNeedsBuild'))) {
+    kind = 'SET_STATE_DURING_BUILD';
+  } else if (message.contains('setState() called after dispose')) {
+    kind = 'SET_STATE_AFTER_DISPOSE';
+  } else if (message.contains('Guarded function conflict') ||
+      message.contains('guarded method')) {
+    kind = 'TEST_ASYNC_CONFLICT';
+  } else if (message.contains('dependOnInheritedWidgetOfExactType')) {
+    kind = 'DEPENDENCY_LIFECYCLE';
+  } else if (message.contains('GetIt') && message.contains('not registered')) {
+    kind = 'UNREGISTERED_DEPENDENCY';
+  } else if (message.contains('hit test') || message.contains('hit-test')) {
+    kind = 'HIT_TEST_FAILURE';
+  } else if (message.contains('GlobalKey') &&
+      (message.contains('multiple') || message.contains('Duplicate'))) {
+    kind = 'DUPLICATE_GLOBAL_KEY';
+  } else if (message.contains('ProviderNotFoundException')) {
+    kind = 'PROVIDER_MISSING';
+  } else if (error is FlutterError) {
+    kind = 'FLUTTER_ERROR';
+  } else if (error is AssertionError) {
+    kind = 'ASSERTION_ERROR';
+  } else if (error is StateError) {
+    kind = 'STATE_ERROR';
+  } else if (error is TypeError) {
+    kind = 'TYPE_ERROR';
+  } else if (error is NoSuchMethodError) {
+    kind = 'NO_SUCH_METHOD';
+  } else if (error is FormatException) {
+    kind = 'FORMAT_ERROR';
+  } else {
+    kind = 'OTHER';
+  }
+  return kind;
+}
+
+void _reportFailureKind(Object error) {
+  try {
+    // This closed tag contains no original exception text, path or input.
+    debugPrint('CI_FRAMEWORK_FAILURE_KIND:${_failureKind(error)}');
+  } on Object {
+    // Observation cannot replace the original framework or input failure.
+  }
+}
+
 Future<_Fixture> _prepare(WidgetTester tester, {bool light = false}) async {
   final _Fixture source = _Fixture();
+  final FlutterExceptionHandler? originalError = FlutterError.onError;
+  if (originalError == null) {
+    throw StateError('The original framework handler must be installed');
+  }
+  FlutterError.onError = (FlutterErrorDetails details) {
+    _reportFailureKind(details.exception);
+    originalError(details);
+  };
   tester.view.physicalSize = const Size(1280, 780);
   tester.view.devicePixelRatio = 1;
   addTearDown(() async {
-    await tester.pumpWidget(const SizedBox.shrink());
-    await source.dispose();
-    tester.view.resetPhysicalSize();
-    tester.view.resetDevicePixelRatio();
+    try {
+      await tester.pumpWidget(const SizedBox.shrink());
+      await source.dispose();
+    } finally {
+      FlutterError.onError = originalError;
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    }
   });
   await tester.pumpWidget(source.host(light: light));
   await _frames(tester);
@@ -139,9 +202,14 @@ Future<_Fixture> _prepare(WidgetTester tester, {bool light = false}) async {
 Future<void> _answer(WidgetTester tester, bool yes) async {
   final Finder answer = find.byKey(Key(yes ? 'dialog_yes_button' :
       'dialog_no_button'));
-  expect(answer.hitTestable(), findsOneWidget);
-  await tester.tap(answer);
-  await _frames(tester);
+  try {
+    expect(answer.hitTestable(), findsOneWidget);
+    await tester.tap(answer);
+    await _frames(tester);
+  } on Object catch (error) {
+    _reportFailureKind(error);
+    rethrow;
+  }
 }
 
 void main() {

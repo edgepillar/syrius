@@ -139,6 +139,38 @@ review; they do not reconstruct the failed original's missing messages.
 No case or selected path is removed. Fresh zero-finding analysis and all 1,115
 focused cases remain required; full native/visual acceptance stays deferred.
 
+## Original Source408 runtime result
+
+Source408 `0609c0184525cebb200c8aa27e2f46851b2f26b6`, tree
+`e8bbe32f03e9d00c7e3876ad4dbfcf8ebd82c0d8`, retains failed
+[41769308454](https://github.com/edgepillar/syrius/actions/runs/41769308454),
+attempt one, job 126375006007. Python/assets and zero-finding analysis pass.
+Both original 44-file streams complete normally: 546 passes, then 565 passes
+and four failures. The total remains 1,111 passes, four failures, seven error
+events, 124 hidden and 1,239 terminal events, with no skips, forced kill or
+overflow. The first three retained details identify the answer helper at line
+143, after its positive hit-test assertion. Complete messages remain
+unretained, so the exact inner cause stays NOT_ESTABLISHED. All jobs are
+terminal with zero artifacts; no original producer is retried.
+
+## Source409 closed failure-kind observation
+
+X565 separates runtime diagnosis from the unchanged application correction.
+The new widget fixture observes original framework and answer-helper failures
+through a fixed set of error-kind tags. It never prints exception text, paths,
+widget input or runtime type names. The original Flutter handler still receives
+the same details, caught answer failures are rethrown, and the handler is
+restored during teardown. Observation cannot replace an original failure.
+
+The existing closed projector recognizes only the versioned tags; unknown or
+foreign markers remain refused by the existing privacy cases. Those cases also
+exercise every admitted tag. Thirty-seven local memory/read-only controls pass.
+No Python or Dart case is added. All case bodies, original assertions, actual
+taps, fixture size and process bounds remain. Application libraries, wallet
+I/O, selectors, recipes, workflow and dependencies are byte-identical to
+Source408. Fresh focused observation is pending; no successful runtime or
+native acceptance is inferred.
+
 The fast first-delivery priority continues. No new full Windows build, native
 chain producer, image transport or local SDK execution accompanies this source
 change. Native cancellation effects and full visual/platform/performance

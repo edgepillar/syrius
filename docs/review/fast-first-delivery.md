@@ -1,6 +1,6 @@
 # First delivery and deferred acceptance
 
-Updated: 2026-11-04T03:43Z.
+Updated: 2026-11-04T04:04Z.
 
 The owner selected a first delivery covering the core interface and existing
 basic functionality, with detailed visual and extended platform/lab acceptance
@@ -115,8 +115,11 @@ without changing any fixture/test body, case or publication argument.
 Source407 has zero selected findings but retains its separate 1,111-pass,
 four-failure runtime result. Source408 keeps admission with the stable row
 State and fixes the required fixture viewport, retaining every case body and
-assertion. Twenty-four local controls pass; fresh focused qualification is
-pending.
+assertion. Its separate original run also retains four failures, so Source409
+adds privacy-safe closed failure-kind observation without changing application
+code, any case body or failure handling. Thirty-seven local controls pass;
+fresh focused runtime diagnosis is pending. The exact original cause remains
+NOT_ESTABLISHED.
 This source correction schedules no heavy platform/lab or image work.
 
 ## Second phase

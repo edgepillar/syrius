@@ -2,7 +2,9 @@
 
 Small versioned records extend the preserved original validation history.
 
-- [Source407 original runtime failure](source405-stake-cancellation-ownership.md#original-source407-runtime-result): 41767555787 retains clean analysis, passing Python/assets, 1,111 test passes and four failures in complete 44/44-file streams. Three retained details identify the new answer helper; the exact inner cause and complete messages remain unestablished. Source408 binds the guard to the row State and fixes the specified fixture viewport while requiring one reachable original answer. Case bodies, assertions, counts and bounds remain; fresh qualification is pending.
+- [Source408 repeated runtime result and Source409 diagnosis](source405-stake-cancellation-ownership.md#original-source408-runtime-result): 41769308454 retains 1,111 passes/four failures, complete streams and passing Python/assets/zero-finding analysis. Source409 preserves every application byte and case body while adding closed error-kind tags, original-handler forwarding and original failure rethrow. Thirty-seven local controls pass; fresh 1,115-case observation is pending. Exact original messages remain unretained and the cause stays NOT_ESTABLISHED.
+
+- [Source407 original runtime failure](source405-stake-cancellation-ownership.md#original-source407-runtime-result): 41767555787 retains clean analysis, passing Python/assets, 1,111 test passes and four failures in complete 44/44-file streams. Three retained details identify the new answer helper; the exact inner cause and complete messages remain unestablished. Source408's row/viewport follow-up retains its separate failure above. All original counts and bounds remain.
 
 - [Source406 original five-info refusal](source405-stake-cancellation-ownership.md#original-source406-analysis-refusal): 41766560606 retains passing 955 Python controls/three existing skips and fourteen assets, but five infos refuse analysis and Dart is skipped. Source407's matching declaration correction has zero selected findings; its separate runtime failure remains above. Raw diagnostic paths remain unretained.
 
