@@ -629,7 +629,14 @@ def analyze(parent, repo):
         'test/launch_film/launch_decode_observation_test.dart',
         'test/harness/key_dispatch_test.dart', 'test/harness/rail_navigation_test.dart',
         'test/harness/agent_input_test.dart',
-        'test/harness/wallet_recipe_failure_test.dart', 'test/harness/wallet_recipe_test.dart'],
+        'test/harness/wallet_recipe_failure_test.dart', 'test/harness/wallet_recipe_test.dart',
+        'lib/rearchitecture/features/tokens/widgets/token_card.dart',
+        'lib/rearchitecture/features/tokens/widgets/token_row_action.dart',
+        'lib/rearchitecture/features/tokens/widgets/token_inline_actions.dart',
+        'test/tokens_redesign/tokens_view_test.dart',
+        'test/token_actions_redesign/token_inline_actions_test.dart',
+        'test/token_actions_redesign/support.dart',
+        'test/burn_token/token_card_test.dart'],
         cwd=repo, env=parent, shell=False, stdin=subprocess.DEVNULL,
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=0)
     lines = Lines(original.stdout)

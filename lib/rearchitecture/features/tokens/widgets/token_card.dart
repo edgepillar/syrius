@@ -24,8 +24,8 @@ const double kTokenSupplyColumnWidth = 120;
 /// The width of the owner column of the token list.
 const double kTokenOwnerColumnWidth = 110;
 
-/// Existing permission-scoped entry actions plus the row's disclosure.
-const double kTokenActionsColumnWidth = 4 * kTokenRowActionSize;
+/// The row's single disclosure control; actions live in its open panel.
+const double kTokenActionsColumnWidth = kTokenRowActionSize;
 
 /// The gap between two columns of the token list.
 const double kTokenColumnGap = 12;
@@ -61,7 +61,7 @@ class TokenCard extends StatefulWidget {
   /// Null is unavailable. Only a complete current account establishes zero.
   final BigInt? balance;
 
-  /// Rechecked when an existing money action is activated.
+  /// Rechecked before opening the panel and activating an existing action.
   final bool Function()? isCurrent;
 
   /// Shared committed membership for the one list and its stars.
@@ -87,7 +87,6 @@ class _TokenCardState extends State<TokenCard> {
   bool _ownOpen = false;
   bool _wasOpen = false;
   int _epoch = 0;
-  TokenActionMode _mode = TokenActionMode.mint;
   RowDetailGroupState? _group;
 
   String get _standard => widget._token.tokenStandard.toString();
@@ -102,7 +101,7 @@ class _TokenCardState extends State<TokenCard> {
   }
 
   void _toggle(bool open) {
-    if (!mounted) return;
+    if (!mounted || (open && !(widget.isCurrent?.call() ?? true))) return;
     _epoch++;
     if (_group != null) {
       if (open) {
@@ -114,12 +113,6 @@ class _TokenCardState extends State<TokenCard> {
       setState(() => _ownOpen = open);
     }
     _wasOpen = open;
-  }
-
-  void _select(TokenActionMode mode) {
-    if (!(widget.isCurrent?.call() ?? true)) return;
-    setState(() => _mode = mode);
-    if (!_open) _toggle(true);
   }
 
   @override
@@ -148,7 +141,6 @@ class _TokenCardState extends State<TokenCard> {
         child: TokenInlineActions(
           token: token,
           isCurrent: current,
-          initialMode: _mode,
           onSendToken: widget.onSendToken,
           publisher: widget.publisher,
           question: widget.question,
@@ -221,11 +213,22 @@ class _TokenCardState extends State<TokenCard> {
                     ),
                   SizedBox(
                     width: kTokenActionsColumnWidth,
-                    child: _Actions(
-                      token: token,
-                      isCurrent: widget.isCurrent,
-                      onSelect: _select,
-                      onToggle: () => _toggle(!_open),
+                    child: RowDetailIgnore(
+                      key:
+                          kSelectedAddress == token.owner.toString() &&
+                              token.isMintable &&
+                              token.totalSupply < token.maxSupply
+                          ? const Key('token_owned_detail_button')
+                          : null,
+                      child: TokenRowAction(
+                        key: const Key('token_detail_button'),
+                        tooltip: context.l10n.tokenDetails,
+                        icon: const RowDetailChevron(),
+                        onPressed:
+                            _open || (widget.isCurrent?.call() ?? true)
+                            ? () => _toggle(!_open)
+                            : null,
+                      ),
                     ),
                   ),
                 ],
@@ -500,79 +503,6 @@ class _Owner extends StatelessWidget {
       shown: label ?? owner.toShortString(),
       tooltip: context.l10n.tokensCopyOwner,
       style: label == null ? monoStyle(style) : style,
-    );
-  }
-}
-
-/// What the selected address may do with the token, quiet until pointed at.
-class _Actions extends StatelessWidget {
-  const _Actions({
-    required this.token,
-    required this.isCurrent,
-    required this.onSelect,
-    required this.onToggle,
-  });
-
-  final Token token;
-  final bool Function()? isCurrent;
-  final ValueChanged<TokenActionMode> onSelect;
-  final VoidCallback onToggle;
-
-  @override
-  Widget build(BuildContext context) {
-    final bool isOwner = kSelectedAddress == token.owner.toString();
-    final bool current = isCurrent?.call() ?? true;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: <Widget>[
-        if (isOwner && token.isMintable && token.totalSupply < token.maxSupply)
-          TokenRowAction(
-            key: const Key('token_mint_button'),
-            tooltip: context.l10n.mint,
-            icon: const Icon(Icons.add_circle_outline),
-            onPressed: current
-                ? () {
-                    if (isCurrent?.call() ?? true) {
-                      onSelect(TokenActionMode.mint);
-                    }
-                  }
-                : null,
-          ),
-        if (token.isBurnable || isOwner)
-          TokenRowAction(
-            key: const Key('token_burn_button'),
-            tooltip: context.l10n.burn,
-            icon: const Icon(Icons.local_fire_department_outlined),
-            onPressed: current
-                ? () {
-                    if (isCurrent?.call() ?? true) {
-                      onSelect(TokenActionMode.burn);
-                    }
-                  }
-                : null,
-          ),
-        if (isOwner)
-          TokenRowAction(
-            key: const Key('token_transfer_button'),
-            tooltip: context.l10n.transferTokenOwnership,
-            icon: const Icon(Icons.swap_horiz),
-            onPressed: current
-                ? () {
-                    if (isCurrent?.call() ?? true) {
-                      onSelect(TokenActionMode.transfer);
-                    }
-                  }
-                : null,
-          ),
-        RowDetailIgnore(
-          child: TokenRowAction(
-            key: const Key('token_detail_button'),
-            tooltip: context.l10n.tokenDetails,
-            icon: const RowDetailChevron(),
-            onPressed: onToggle,
-          ),
-        ),
-      ],
     );
   }
 }

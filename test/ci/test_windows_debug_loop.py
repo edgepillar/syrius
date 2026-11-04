@@ -680,6 +680,13 @@ class AnalysisAdmissionTests(unittest.TestCase):
         for path in (
             'test/window/window_frame_test.dart',
             'test/go_to_palette/go_to_palette_test.dart',
+            'lib/rearchitecture/features/tokens/widgets/token_card.dart',
+            'lib/rearchitecture/features/tokens/widgets/token_row_action.dart',
+            'lib/rearchitecture/features/tokens/widgets/token_inline_actions.dart',
+            'test/tokens_redesign/tokens_view_test.dart',
+            'test/token_actions_redesign/token_inline_actions_test.dart',
+            'test/token_actions_redesign/support.dart',
+            'test/burn_token/token_card_test.dart',
             'lib/rearchitecture/utils/widgets/go_to_palette.dart',
             'harness/bin/readonly_details_catalog.dart',
             'harness/bin/readonly_navigation_catalog.dart',
@@ -724,6 +731,13 @@ class AnalysisAdmissionTests(unittest.TestCase):
 
     def test_every_selected_finding_refuses_even_with_zero_process_exit(self):
         sources = {
+            'lib/rearchitecture/features/tokens/widgets/token_card.dart': 'other',
+            'lib/rearchitecture/features/tokens/widgets/token_row_action.dart': 'other',
+            'lib/rearchitecture/features/tokens/widgets/token_inline_actions.dart': 'other',
+            'test/tokens_redesign/tokens_view_test.dart': 'other',
+            'test/token_actions_redesign/token_inline_actions_test.dart': 'other',
+            'test/token_actions_redesign/support.dart': 'other',
+            'test/burn_token/token_card_test.dart': 'other',
             'harness/bin/readonly_details_catalog.dart': 'other',
             'harness/bin/readonly_navigation_catalog.dart': 'other',
             'harness/bin/readonly_settings_catalog.dart': 'other',

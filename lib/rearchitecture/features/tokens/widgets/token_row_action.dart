@@ -40,7 +40,7 @@ class TokenRowAction extends IconButton {
       visualDensity: VisualDensity.compact,
       mouseCursor: WidgetStateMouseCursor.clickable,
       // Compact density reduces minimum constraints, so fix the visible size
-      // and remove the inherited tap padding to fit the four-action column.
+      // and remove the inherited tap padding to fit one ledger action slot.
       style: const ButtonStyle(
         fixedSize: WidgetStatePropertyAll<Size>(
           Size.square(kTokenRowActionSize),

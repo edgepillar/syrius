@@ -2399,3 +2399,11 @@ See [the original action and time symbols](docs/review/source417-staking-sentine
 | --- | --- | --- | --- |
 | X568 | done | 2026-11-04T07:10Z | Source418 dfd10741454b / 41788470976 independently qualifies complete empty selected analysis with zero errors/warnings/infos after the matching initializer/raw-string correction. Regex contents, actions, case registrations and bounds remain. Source417's original two-info refusal remains failed with unretained raw paths. Source418's separate 1182-pass/two-assertion runtime result is retained in X569; complete focused and full native/visual acceptance remain open. |
 | X569 | done | 2026-11-04T07:30Z | Source419 ae9ed0a0cac0 / 41791263517 independently qualifies the corrected exact one-hour label in both themes and all 1184 cases with zero selected findings. The one-hour input/clock, all SVG checks, every original functional assertion, application byte, registration and process bound remain. Source418's complete unforced 1182-pass/two-assertion result stays failed with its observed source line and unretained full messages. Source420 preserves tested code; every original final acceptance gate remains open. |
+
+## Source421 Token ledger disclosure
+
+See [the single collapsed-row disclosure](docs/review/source421-token-row-disclosure.md). Existing financial actions stay inside the open panel; the capture recipe follows the same owner through that disclosure. [Exact body327](docs/review/pr-body-327.md) retains preceding results. Heavy second-phase work remains deferred.
+
+| Row | Status | Updated | Evidence |
+| --- | --- | --- | --- |
+| X570 | review | 2026-11-04 | Source421 prepares one 32-pixel trailing disclosure and aligned header, with current-context refusal before opening and unchanged inline proof/confirmation/publication guards. Existing token-list, inline-action and three Burn permission cases exercise the new access path; their 39 existing cases join every previous path, preparing 1223 ordinary cases (595/628) in 48/48-file streams without new registrations or bounds changes. Thirty-seven local mocked/read-only controls pass. Fresh hosted Flutter tests and zero-finding selected analysis remain pending; native pixels, recipe execution and original final acceptance stay open. |

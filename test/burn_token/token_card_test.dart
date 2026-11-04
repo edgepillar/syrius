@@ -4,7 +4,11 @@ import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart'
+    show PrimaryPill;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
+
+import '../token_actions_redesign/support.dart';
 
 void main() {
   const String owner = 'z1qq6eg8n43g032hanpsfp02qcdmv7zfj3y2lt5d';
@@ -25,14 +29,18 @@ void main() {
   testWidgets('allows a non-owner to burn a publicly burnable token', (
     WidgetTester tester,
   ) async {
-    await _pumpTokenCard(
+    final ActionFixture fixture = await _pumpTokenCard(
       tester,
       _buildToken(owner: owner, isBurnable: true),
     );
 
-    final Finder burnButton = find.byKey(const Key('token_burn_button'));
-    expect(burnButton, findsOneWidget);
-    expect(tester.widget<IconButton>(burnButton).onPressed, isNotNull);
+    expect(
+      tester.widget<PrimaryPill>(find.byKey(const Key('token_burn_submit')))
+          .onPressed,
+      isNotNull,
+    );
+    expect(fixture.transport.calls, isEmpty);
+    await tester.pumpWidget(const SizedBox.shrink());
   });
 
   testWidgets('allows the owner to burn an owner-only token', (
@@ -42,17 +50,21 @@ void main() {
     kDefaultAddressList = <String?>[owner];
     kAddressLabelMap = <String, String>{owner: 'Owner'};
 
-    await _pumpTokenCard(
+    final ActionFixture fixture = await _pumpTokenCard(
       tester,
       _buildToken(owner: owner, isBurnable: false),
     );
 
-    final Finder burnButton = find.byKey(const Key('token_burn_button'));
-    expect(burnButton, findsOneWidget);
-    expect(tester.widget<IconButton>(burnButton).onPressed, isNotNull);
+    expect(
+      tester.widget<PrimaryPill>(find.byKey(const Key('token_burn_submit')))
+          .onPressed,
+      isNotNull,
+    );
+    expect(fixture.transport.calls, isEmpty);
+    await tester.pumpWidget(const SizedBox.shrink());
   });
 
-  testWidgets('hides owner-only burn from the selected non-owner', (
+  testWidgets('refuses owner-only burn for the selected non-owner', (
     WidgetTester tester,
   ) async {
     kDefaultAddressList = <String?>[holder, owner];
@@ -61,12 +73,18 @@ void main() {
       owner: 'Owner',
     };
 
-    await _pumpTokenCard(
+    final ActionFixture fixture = await _pumpTokenCard(
       tester,
       _buildToken(owner: owner, isBurnable: false),
     );
 
-    expect(find.byKey(const Key('token_burn_button')), findsNothing);
+    expect(
+      tester.widget<PrimaryPill>(find.byKey(const Key('token_burn_submit')))
+          .onPressed,
+      isNull,
+    );
+    expect(fixture.transport.calls, isEmpty);
+    await tester.pumpWidget(const SizedBox.shrink());
   });
 }
 
@@ -84,10 +102,15 @@ Token _buildToken({required String owner, required bool isBurnable}) => Token(
   true,
 );
 
-Future<void> _pumpTokenCard(
+Future<ActionFixture> _pumpTokenCard(
   WidgetTester tester,
   Token token,
 ) async {
+  final ActionFixture fixture = ActionFixture(
+    initialToken: token,
+    ownerAddress: kSelectedAddress,
+  );
+  addTearDown(fixture.close);
   await tester.pumpWidget(
     MaterialApp(
       localizationsDelegates: appLocalizationsDelegates,
@@ -100,12 +123,32 @@ Future<void> _pumpTokenCard(
             token: token,
             favoritesCallback: () {},
             favoriteRepository: _Favorites(),
+            publisher: fixture.publisher,
+            isCurrent: () => fixture.active,
           ),
         ),
       ),
     ),
   );
   await tester.pump();
+  // The collapsed ledger has one detail control and its independent star.
+  expect(find.byTooltip('Mint'), findsNothing);
+  expect(find.byTooltip('Burn'), findsNothing);
+  expect(find.byTooltip('Transfer token ownership'), findsNothing);
+  final Finder disclosure = find.byKey(const Key('token_detail_button'));
+  expect(disclosure, findsOneWidget);
+  expect(tester.getSize(disclosure), const Size.square(32));
+  expect(fixture.tokenReads, 0);
+  await tester.tap(disclosure);
+  await pumpActionUntil(tester, () => fixture.tokenReads == 1);
+  await tester.pump(const Duration(milliseconds: 260));
+  await tester.tap(find.byKey(const Key('token_action_mode_burn')));
+  await tester.pump(const Duration(milliseconds: 260));
+  await tester.enterText(find.byKey(const Key('burn_amount_field')), '1');
+  await tester.pump();
+  expect(fixture.tokenReads, 1);
+  expect(fixture.accountReads, 1);
+  return fixture;
 }
 
 class _Favorites implements FavoriteTokensRepository {

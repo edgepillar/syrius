@@ -172,6 +172,18 @@ void main() {
           await tester.pump(const Duration(milliseconds: 500));
           expect(find.text('Held token'), findsOneWidget);
           expect(find.text('Unheld favorite'), findsNothing);
+          final Finder disclosure = find.byKey(
+            const Key('token_detail_button'),
+          );
+          expect(disclosure, findsOneWidget);
+          expect(tester.getSize(disclosure), const Size.square(32));
+          expect(
+            find.byKey(const Key('token_owned_detail_button')),
+            findsOneWidget,
+          );
+          expect(find.byTooltip('Mint'), findsNothing);
+          expect(find.byTooltip('Burn'), findsNothing);
+          expect(find.byKey(const Key('mint_amount_field')), findsNothing);
           final Finder amount = find.byWidgetPredicate(
             (Widget widget) => widget is AmountText && widget.raw == exact,
           );
@@ -266,13 +278,13 @@ void main() {
     );
     await tester.pump();
     expect(find.text('Held token'), findsNothing);
-    expect(find.byKey(const Key('token_mint_button')), findsNothing);
-    expect(find.byKey(const Key('token_burn_button')), findsNothing);
+    expect(find.byKey(const Key('token_detail_button')), findsNothing);
+    expect(find.byType(TokenCard), findsNothing);
     await tester.pumpWidget(const SizedBox.shrink());
     controller.dispose();
   });
 
-  testWidgets('a retained money callback rechecks its original context', (
+  testWidgets('a retained disclosure rechecks its original context', (
     WidgetTester tester,
   ) async {
     bool current = true;
@@ -289,14 +301,15 @@ void main() {
         ),
       ),
     );
-    final IconButton mint = tester.widget<IconButton>(
-      find.byKey(const Key('token_mint_button')),
+    final IconButton disclosure = tester.widget<IconButton>(
+      find.byKey(const Key('token_detail_button')),
     );
-    expect(mint.onPressed, isNotNull);
+    expect(disclosure.onPressed, isNotNull);
     current = false;
-    mint.onPressed!();
+    disclosure.onPressed!();
     await tester.pump();
     expect(find.byType(Dialog), findsNothing);
+    expect(find.byKey(const Key('token_action_mode_mint')), findsNothing);
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox.shrink());
   });
@@ -532,21 +545,21 @@ void main() {
       }
 
       expect(amount(exact), findsOneWidget);
-      final VoidCallback oldMint = tester
+      final VoidCallback oldDisclosure = tester
           .widget<IconButton>(
-            find.byKey(const Key('token_mint_button')).first,
+            find.byKey(const Key('token_detail_button')).first,
           )
           .onPressed!;
 
       pendingCatalog = Completer<Object?>();
       pendingAccount = Completer<Object?>();
       selection.changeSelectedAddress(tokenAddress.toString());
-      oldMint();
+      oldDisclosure();
       await tester.pump();
       expect(amount(exact), findsNothing);
-      expect(find.byKey(const Key('token_mint_button')), findsNothing);
+      expect(find.byKey(const Key('token_detail_button')), findsNothing);
       expect(controller.filter, TokensFilter.all);
-      oldMint();
+      oldDisclosure();
       expect(tester.takeException(), isNull);
       pendingCatalog.complete(tokenPage(<Token>[held, unheld]));
       pendingAccount.complete(
@@ -572,7 +585,7 @@ void main() {
         }
         await tester.pump();
         expect(amount(BigInt.from(5)), findsNothing);
-        expect(find.byKey(const Key('token_mint_button')), findsNothing);
+        expect(find.byKey(const Key('token_detail_button')), findsNothing);
         pendingCatalog.complete(tokenPage(<Token>[held, unheld]));
         pendingAccount.complete(
           tokenAccount(<(Token, BigInt)>[

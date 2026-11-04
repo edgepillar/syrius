@@ -7,7 +7,15 @@ basic functionality, with detailed visual and extended platform/lab acceptance
 afterward. The first milestone is ready for Draft code review. Final acceptance
 of the complete redesign remains open.
 
-The latest focused source is Source419 `ae9ed0a0cac093a7b864b2bfc1e448d46457c162`.
+Source421 prepares the [single Token disclosure](source421-token-row-disclosure.md)
+while heavy second-phase work stays deferred. Existing actions remain inside
+the open panel. All 39 cases in the three affected test files join the prior
+selection, preparing 1,223 ordinary cases in 48/48-file streams. Thirty-seven
+local mocked/read-only controls pass; fresh hosted Flutter tests and selected
+analysis remain pending. No native, build or image job is scheduled.
+
+The most recently qualified focused source is Source419
+`ae9ed0a0cac093a7b864b2bfc1e448d46457c162`.
 Its [Staking/Sentinel result](source417-staking-sentinel-symbols.md#fresh-source419-focused-result)
 in [41791263517](https://github.com/edgepillar/syrius/actions/runs/41791263517)
 passes all 1,184 ordinary cases in complete 47/46-file streams (568/616),

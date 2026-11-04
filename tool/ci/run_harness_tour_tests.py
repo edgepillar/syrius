@@ -307,6 +307,9 @@ def main():
             'test/sentinels/view/sentinel_values_test.dart',
             'test/sentinels_by_owner/view/sentinel_strip_test.dart',
             'test/shell/rail_test.dart',
+            'test/tokens_redesign/tokens_view_test.dart',
+            'test/token_actions_redesign/token_inline_actions_test.dart',
+            'test/burn_token/token_card_test.dart',
             *(['test/launch_film/launch_asset_test.dart'] if asset_fidelity else [])
         ]
         first = 1
@@ -346,7 +349,7 @@ def main():
                 debug.need(debug.entry.source_tree(repo, parent) == tree, 'SOURCE_REFUSED')
             first += len(group)
         counts = combined_counts(report['commands'], selected_tests)
-        debug.need(counts['passed'] == (1186 if asset_fidelity else 1184), 'TESTS_FAILED')
+        debug.need(counts['passed'] == (1225 if asset_fidelity else 1223), 'TESTS_FAILED')
         report['counts'] = counts
         if asset_fidelity:
             report['launch_asset_fidelity'] = True

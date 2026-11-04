@@ -504,7 +504,12 @@ void main() {
             ),
           ),
         );
-        group.currentState!.open(fixture.token.tokenStandard.toString());
+        final Finder ownerDisclosure = find.byKey(
+          const Key('token_owned_detail_button'),
+        );
+        expect(ownerDisclosure, findsNWidgets(2));
+        expect(find.byKey(const Key('mint_amount_field')), findsNothing);
+        await tester.tap(ownerDisclosure.first);
         await tester.pump();
         await _ready(tester);
         await tester.pump(const Duration(milliseconds: 240));
