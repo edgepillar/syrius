@@ -10869,3 +10869,19 @@ reader. The UI change also requires a fresh full baseline; expected root counts
 are 4849 passes and one original skip, derived before execution. All bounds,
 original financial/profile/password/seed/reopen inputs and SDK policy remain.
 The prepared Settings catalog is deferred until this correction is qualified.
+
+## Source430 separate Windows Arm metadata lane
+
+The [finite metadata lane](review/source430-windows-arm-metadata-lane.md) isolates
+the unchanged Arm capability probe from the main inventory mode's Flutter
+setup. Its path-filtered source check and manual five-minute Arm job use shallow
+checkout and contents-read permission, with no SDK, installation, build, cache
+or artifact steps. The main workflow and its 25 inputs remain unchanged.
+
+Hosted registration and actual observations are pending. The probe reads finite
+platform/feature/tool facts without enabling features or starting a kernel,
+container, wallet or node. It retains unknown fields and the explicit
+`NOT_ESTABLISHED` nested-virtualization result. This preparation does not qualify
+Docker Desktop installation, Docker Linux mode, P03/P09 or a native wallet.
+The completed first-delivery UI evidence retains its original source and scope;
+heavy platform/lab, image and performance acceptance remain deferred.

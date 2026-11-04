@@ -2431,3 +2431,11 @@ See [the drawn holder explorer control](docs/review/source427-token-explorer-con
 | Row | Status | Updated | Evidence |
 | --- | --- | --- | --- |
 | X574 | done | 2026-11-04 | Source428 fc49ca01d4c6 / 41821411911, attempt one, job 126545215413 independently qualifies all 1229 cases (596/633) in complete 48/48-file streams, 955 Python controls/three existing skips, fourteen assets and zero selected findings. Both-theme/direction actual explorer gate, disabled semantics, original SVG, pointer/retained-callback refusal and fresh Burn/Send pass, alongside service/Go To refusals, registry checks and every earlier path. The one-import follow-up preserves every Source427 case body, fixture, assertion, application byte, registration and bound. Source429 changes documentation only. Original Source427's one-info analysis refusal and skipped Flutter tests remain failed; raw path/text stay unretained. The functional route, native pixels and full acceptance remain open. |
+
+## Source430 Windows Arm metadata lane
+
+See [the SDK-free finite metadata lane](docs/review/source430-windows-arm-metadata-lane.md). The existing main workflow's inventory mode also sets up Flutter; this separate wrapper retains the original probe and keeps the first-delivery UI qualification unchanged. [Exact body330](docs/review/pr-body-330.md) preserves preceding results. Heavy second-phase work stays deferred.
+
+| Row | Status | Updated | Evidence |
+| --- | --- | --- | --- |
+| X575 | review | 2026-11-04 | Source430 prepares one source-only push job and one manually selected Windows Arm metadata job, each capped at five minutes with shallow checkout and contents-read permission. The original probe, main workflow, all application/test/controller/dependency bytes and existing UI evidence remain. No SDK, install, build, cache or artifact step is added. Source registration and actual hosted facts remain pending. No environment value is substituted; nested virtualization, Docker Linux mode, P03/P09 and all original final acceptance gates stay unqualified/open. |

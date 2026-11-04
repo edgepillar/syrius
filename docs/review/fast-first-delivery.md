@@ -289,6 +289,14 @@ No heavy qualification is added.
 
 ## Second phase
 
+Source430 prepares a [separate finite Windows Arm query](source430-windows-arm-metadata-lane.md)
+to investigate the remaining environment route without SDK setup. The existing
+inventory input also starts a Flutter setup job; the new wrapper keeps source
+registration and manual metadata observation separate. The probe and completed
+UI code/tests remain unchanged. Actual hosted facts remain pending, and this
+lane cannot qualify Docker Linux mode or nested virtualization. No heavy
+platform/lab or image work is scheduled by this preparation.
+
 Source415 prepares the [Pillar sort frame](source415-pillar-sort-frame.md)
 from the nested tab cascade. The existing menu and actions remain; existing
 both-theme cases extend frame, open-bottom outline, large-text and RTL checks.
