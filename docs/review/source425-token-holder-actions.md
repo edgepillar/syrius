@@ -46,8 +46,9 @@ The focused selection retains all 96 files in the same order. Four new global
 Dart cases prepare 1,227 ordinary cases in 48/48-file serial streams (595/632).
 The asset-fidelity variant is 1,229 and remains outside the ordinary selection.
 Python registration count and every process/output/worker bound are unchanged.
-Thirty-seven local mocked/read-only controls pass. Fresh hosted Flutter tests
-and selected analysis remain pending; no local SDK is executed.
+Thirty-seven local mocked/read-only controls pass. The hosted result below
+completes the focused Flutter and selected-analysis gate; no local SDK is
+executed.
 
 The first delivery remains a Draft code-review milestone. Heavy Windows builds,
 native chain-321 execution, image transport, all 94 visual comparisons,
@@ -55,3 +56,37 @@ motion/frame-time observations and final independent acceptance remain phase
 two. Original acceptance stays 72/80, with 50/94 historical literal outputs,
 44 missing and zero accepted whole-image matches. Reference files, dependencies
 and original failure/UNKNOWN evidence are preserved.
+
+## Focused result
+
+[Run 41814340797](https://github.com/edgepillar/syrius/actions/runs/41814340797),
+attempt one, job 126521190343, independently qualifies tested Source425
+`fc512bd44686f1bf5a16d379503bf9b849861750`, tree
+`7da7334e0bb4890bbff423217b4f1019a6b3c7d9`. All 1,227 ordinary cases pass with
+zero failures, errors or skips in the complete 48/48-file streams (595/632).
+Both actual streams finish normally within the unchanged deadline, output and
+worker bounds, taking 188.187 and 174.547 seconds. They retain 134 hidden events
+and 1,361 terminal events. All tested-source jobs are terminal with zero
+artifacts. Python completes 955 controls with three existing hosted skips and
+zero failures or errors. Fourteen asset controls pass. Selected analysis has
+zero errors, warnings and infos.
+
+All ten token-list, 30 inline-action and three Burn permission cases pass,
+alongside every earlier focused path. The four new both-theme/direction cases
+exercise the actual compact controls, retained-callback refusal after publisher
+replacement, exact-standard Send, explicit Burn, declined/accepted synthetic
+questions, held close/reopen, confirmed Another and old-submit refusal. The
+three existing Burn scenarios require the appropriate holder/owner path and
+retain their valid balance, supply and permission inputs. The original 26
+inline-action case bodies and protected submission protocol remain unchanged.
+The 1,229 asset-fidelity variant stays outside this ordinary selection.
+
+Source426 changes documentation only and preserves every application, test,
+controller, workflow and dependency byte from tested Source425. Prior failed
+producers and UNKNOWN outcomes retain their original evidence and scope; none
+is replayed or relabelled by this result. Current native token pixels, the owner
+capture recipe, a configured token-explorer route and complete expanded-row
+visual correspondence remain unqualified. Full Windows/lab/platform, all 94
+visual pairs, motion/frame-time and independent final acceptance stay deferred.
+Original acceptance remains 72/80, with 50/94 historical literal outputs, 44
+missing and zero accepted whole-image matches. The existing PR remains Draft.

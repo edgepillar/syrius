@@ -1,21 +1,26 @@
 # First delivery and deferred acceptance
 
-Updated: 2026-11-04T09:02Z.
+Updated: 2026-11-04.
 
 The owner selected a first delivery covering the core interface and existing
 basic functionality, with detailed visual and extended platform/lab acceptance
 afterward. The first milestone is ready for Draft code review. Final acceptance
 of the complete redesign remains open.
 
-Source425 prepares the [Token holder actions](source425-token-holder-actions.md)
-from the original owner/holder distinction. Another address's token starts with
-compact Burn/Send controls; owner segments and all publication guards remain.
-Four new scope/lifecycle cases join the unchanged selection, preparing 1,227
-ordinary cases in 48/48-file streams. Thirty-seven local controls pass. Fresh
-hosted tests and selected analysis remain pending; heavy phase-two work stays
-deferred.
+The most recently qualified focused source is Source425
+`fc512bd44686f1bf5a16d379503bf9b849861750`. Its
+[Token holder result](source425-token-holder-actions.md#focused-result) in
+[41814340797](https://github.com/edgepillar/syrius/actions/runs/41814340797)
+passes all 1,227 ordinary cases in complete 48/48-file streams (595/632),
+955 Python controls with three existing skips, fourteen assets and zero selected
+findings. All ten token-list, 30 inline-action and three Burn permission cases
+pass. Four new both-theme/direction cases cover the compact holder controls,
+original-proof refusal, exact Send/Burn and confirmed Another. Owner segments,
+fixed dialogs and publication guards remain. Source426 changes documentation
+only. Native token pixels, a token-explorer route and full phase-two acceptance
+remain unqualified; heavy work stays deferred.
 
-The most recently qualified focused source is Source423
+The earlier qualified focused source is Source423
 `d5ccace22d61f8bd2f4f65abe95e501bba697973`. Its
 [Token disclosure result](source421-token-row-disclosure.md#fresh-source423-focused-result)
 in [41801289094](https://github.com/edgepillar/syrius/actions/runs/41801289094)
@@ -27,7 +32,7 @@ Source422 form-entry failures remain preserved; current native pixels and full
 phase-two acceptance stay open.
 
 The historical preparation notes below retain their publication-time states.
-The qualified result above is the current focused acceptance record.
+The results above record their later focused qualification.
 
 Source422's [original form result](source421-token-row-disclosure.md#original-source422-result-and-source423-bounded-balance)
 retains clean selected analysis, passing Python/assets and complete Dart streams
