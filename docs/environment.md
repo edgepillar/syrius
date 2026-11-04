@@ -32,7 +32,12 @@ Docker Desktop, Linux mode, nested virtualization and the documented lab route
 remain unqualified. The retained successful custom Linux Docker backend does
 not execute the original `lab.sh` route. Source449 prepares a separate
 [default-off original-command lane](review/source449-original-lab-commands.md);
-its source/runtime results remain pending. All 1,970 earlier runtime entries
+its source registration 41897166398 passes 1,022 controls with two existing Linux
+skips and zero failures/errors, with original source verified before/after.
+The runtime job is skipped and artifacts are zero. Source450 clarifies that its
+SDK metric counts Flutter only; the original Go compiler remains inside the
+Docker build image. The first actual original-command runtime remains pending.
+All 1,970 earlier runtime entries
 remain byte-identical; two new Python files are separately scoped. No new local
 SDK, binary transport, Windows build or old runtime replay occurs.
 

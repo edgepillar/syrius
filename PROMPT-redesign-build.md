@@ -2587,3 +2587,12 @@ See [the exact original-command lane](docs/review/source449-original-lab-command
 | ID | State | Updated | Evidence |
 | --- | --- | --- | --- |
 | X589 | review | 2026-11-04T19:24Z | Sixteen local pure/mocked controls pass without SDK/native/network or filesystem scratch. Source449 adds an SDK-free, default-off original lab.sh up/status/down lane; source pushes run controller tests only. Four existing script/configuration inputs and node 590f43ca7a24 are pinned unchanged. Original ID/start/PID, role/image/assets/loopback bindings, increasing chain-321 heights, five zero-exit/no-OOM events and final source/genesis checking are required. Unknown starts are held; observation and close errors remain separate. Cooperative 4 GiB allocation/work samples, declared isolated 2 GiB floor, 2 MiB streams and twenty-minute job bounds do not change local production policy. Full Python preparation becomes 1022 cases; hosted source/runtime execution is pending. All 1970 prior runtime entries remain unchanged, with two new Python files separately scoped. The environment header is current and historical snapshots remain; P03/P09/F06 and full original 72/80 acceptance stay open. |
+
+
+### Original lab source result and Flutter metric scope
+
+See [the initial source result and metric boundary](docs/review/source449-original-lab-commands.md#source449-source-result-and-source450-metric-scope). Source449 source registration passes; its runtime is skipped. Source450 makes the unexecuted metric explicitly Flutter-only, while the original Dockerfile still runs its Go compiler. No command, input pin, ownership/exit guard or resource bound changes.
+
+| ID | State | Updated | Evidence |
+| --- | --- | --- | --- |
+| X590 | review | 2026-11-04T19:36Z | Source449 7952240ac4d7 / 41897166398, attempt one, job 126809673525 independently qualifies 1022 Python controls with two existing Linux skips and zero failures/errors. Original source checks pass before/after; runtime is skipped and artifacts are zero. Source450 changes only the unexecuted report's generic SDK key to flutter_sdk_executions and adds explicit inclusion/exclusion assertions in the existing admission case. Sixteen local pure/mocked controls pass; registrations, original up/status/down, Go-in-Docker build, process/stream/storage limits, container/process bindings, first/close failure separation and all input pins remain. Fresh source registration and the first actual runtime are pending. Main original progress stays 72/80 with full P03/P09/F06 and visual/performance acceptance open. |

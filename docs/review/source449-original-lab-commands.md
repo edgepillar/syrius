@@ -56,3 +56,20 @@ The environment document now leads with that current qualification and retains
 Source353 as a historical snapshot. P03/P09, wallet import/send on this instance,
 F06, current full Windows/native, visual pairs and performance acceptance remain
 open. Main progress stays 72/80 with zero accepted whole-image matches.
+
+## Source449 source result and Source450 metric scope
+
+[41897166398](https://github.com/edgepillar/syrius/actions/runs/41897166398),
+attempt one, job 126809673525, succeeds at Source449
+`7952240ac4d71b9a116436adc8fac4a036c3d9de`. All 1,022 Python controls complete
+with two existing Linux skips and zero failures/errors. Source is verified
+before and after the suite. The runtime job is skipped; the run is terminal
+with zero artifacts. This qualifies source controls only.
+
+Source450 renames the unexecuted runtime report's generic SDK field to
+`flutter_sdk_executions`. The existing admission test requires that explicit
+field and excludes the ambiguous former field. The original upstream Dockerfile
+still uses a Go compiler inside its build image; zero Flutter executions does
+not claim absence of all compilers/toolchains. Runtime commands, input pins,
+resource bounds and ownership/exit requirements are unchanged. Fresh source
+registration and the first actual original-command trial remain pending.

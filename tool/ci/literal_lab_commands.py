@@ -378,7 +378,7 @@ def main():
         work_limit_bytes=4 * GIB, fixture_floor_bytes=2 * GIB, per_stream_bytes=2 * MIB,
         storage_scope='fresh_hosted_regression_cooperative_samples',
         volumes_preserved=True, vm_disposal_qualified=False, wallet_executions=0,
-        sdk_executions=0, windows_docker_desktop_qualified=False,
+        flutter_sdk_executions=0, windows_docker_desktop_qualified=False,
         wallet_import_or_send_qualified=False)
     try:
         parent = dict(os.environ)

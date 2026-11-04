@@ -72,6 +72,8 @@ class LiteralLabTests(unittest.TestCase):
         value = json.loads(output.getvalue().split('::', 2)[2])
         self.assertEqual(value['code'], 'ENVIRONMENT_REFUSED')
         self.assertEqual(value['commands'], [])
+        self.assertEqual(value['flutter_sdk_executions'], 0)
+        self.assertNotIn('sdk_executions', value)
 
     def test_frontier_requires_chain321_and_actual_height_progress(self):
         self.assertEqual(lab.frontier(b'compose table\nchain 321: 5 then 6 after 5 s\nproducing\n'),
