@@ -324,7 +324,7 @@ class _ViewState extends State<_View> {
                 _sort == PillarListSort.weight
                     ? context.l10n.weight
                     : context.l10n.pillarsSortProduction,
-                style: tokens.compactText,
+                style: tokens.pillarSortText,
               ),
             ],
           ),

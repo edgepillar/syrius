@@ -1683,6 +1683,13 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The reference sort chip uses the extra-small original glyph.
   double get pillarSortIconSize => 12;
 
+  /// The nested chip inherits the tab's medium label weight.
+  TextStyle get pillarSortText => bodyText.copyWith(
+    fontSize: 12,
+    fontWeight: FontWeight.w500,
+    color: dim,
+  );
+
   /// Node list values share the mockup's row inset.
   EdgeInsetsDirectional get pillarCellPadding =>
       const EdgeInsetsDirectional.symmetric(horizontal: 16, vertical: 9);

@@ -2,6 +2,8 @@
 
 Small versioned records extend the preserved original validation history.
 
+- [Source397 Pillar sort label](source397-pillar-sort-label.md): the reference chip and tab rules supply 12-pixel dim text at weight 500. A component token replaces the general 13-pixel foreground style. Application behavior, tests and the 1,083-case focused selection remain unchanged. Fresh qualification is pending; container geometry, native pixels and complete acceptance remain open. [Exact PR body320](pr-body-320.md) retains preceding results.
+
 - [Source395 Stake context qualification](source394-stake-context-ownership.md#fresh-source395-focused-result): 41747338338 independently qualifies all 1,083 cases in complete 42/42-file streams (528/555), 955 Python controls/three existing skips, fourteen assets and zero selected findings. All ten Stake widget cases and 27 sender-admission cases pass; current context, original request ownership and refusal preserve drafts. All earlier focused paths and original Source394 analysis refusal remain. Source396 preserves tested code. Full native/visual/platform acceptance stays deferred.
 
 - [Source394 original Stake analysis refusal](source394-stake-context-ownership.md#original-source394-analysis-refusal): 955 Python controls/three existing skips and fourteen assets pass; zero errors/warnings and one function-declaration info refuse analysis, so Dart is skipped. Source395 corrects the matching test declaration/reference while preserving all application/controller bytes, 1,083 cases and original bounds. Fresh Source395 qualification retains the original failure. [Exact PR body319](pr-body-319.md) retains preceding results. Full native/visual/platform acceptance stays deferred.

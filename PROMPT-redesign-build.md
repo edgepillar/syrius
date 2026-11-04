@@ -392,10 +392,10 @@ macOS; Windows provision and acceptance remain pending. See
 
 ### Now
 
-- Updated: 2026-11-03
+- Updated: 2026-11-04
 - Delivery priority: The owner reaffirmed [core interface and basic functionality first](docs/review/fast-first-delivery.md). Finalize the staged Draft handoff with completed evidence; defer new heavy platform/lab jobs, catalog transport and detailed motion/frame-time acceptance to phase two. The original final criteria remain open
-- Latest outcomes: [Source386 focused result](docs/review/source386-pillar-control-symbols.md#focused-result) qualifies 41726668001: both complete 40-file streams, all 996 cases (486/510), 955 Python controls/three existing skips, fourteen assets and zero selected findings. All nine Pillars card cases and every earlier focused file pass. Both themes qualify actual header SVG geometry/foreground/semantics. Original Source383 seven-info failure, earlier outcomes and Source368 full Windows/Native108 evidence retain their scope
-- Current implementation: The original first-delivery pin stays 19c7b2af5e1c. Source386 draws original Pillar search/sort SVGs with 14/12-pixel geometry and reference faint/dim foreground while retaining all non-icon list/action code. Source387 changes documentation only and preserves every tested runtime/test/workflow/dependency byte. Remaining Pillar sort-chip typography/chrome is recorded in X556 for phase two. Heavy Windows/lab/capture work and the unapplied Deposit candidate remain deferred
+- Latest outcomes: [Source395 focused result](docs/review/source394-stake-context-ownership.md#fresh-source395-focused-result) qualifies 41747338338: both complete 42/42-file streams, all 1083 cases (528/555), 955 Python controls/three existing skips, fourteen assets and zero selected findings. All ten Stake widget cases, 27 sender-admission cases and every earlier focused path pass. Source396 preserves tested code. Original Source394 analysis refusal, earlier outcomes and Source368 full Windows/Native108 evidence retain their scope
+- Current implementation: The original first-delivery pin stays 19c7b2af5e1c. Source397 prepares the Pillar sort label at the reference 12-pixel size, dim foreground and medium tab weight. Application behavior and all 1083 focused cases retain their source; fresh focused qualification is pending. X556 retains the separate container geometry and native pixel work. Heavy Windows/lab/capture work and the unapplied Deposit candidate remain deferred
 - Actual review: All eight Source353 Home PNGs and their eight exact references were individually viewed in a successfully closed owned review. X521-X528 retain differences in hero distribution, type, glyphs, spacing and genuine data coverage. Source357 shared hero colours have no new native pixel acceptance. Earlier Settings findings remain source-bound; zero whole-image matches are accepted
 - Acceptance: 72/80 rows, 90 percent by original rows; nineteen preparations, 50 literal outputs, 44 missing and zero of 94 accepted matches. P03, P09, F06, V01-V03 and V05-V06 remain open. Native108 retains Stake/Fuse/Token prefix observations before Deposit command six refuses before publication; Project and Fund address remain unreached. All original FAILURE/HOLD/UNKNOWN and Native101/103/104 UNKNOWN remain. English public text, edgepillar no-reply/UTC attribution and Draft status continue
 
@@ -2305,7 +2305,7 @@ See [the complete original result](docs/review/source386-pillar-control-symbols.
 
 | Row | Status | Updated | Evidence |
 | --- | --- | --- | --- |
-| X556 | todo | 2026-11-03T22:08Z | Phase-two Pillar sort-chip source finding: reference text is 12-pixel dim; the current label uses 13-pixel foreground compactText. Container geometry also depends on the more-specific `.tabs span` rule, not only base `.chip` declarations. Review their combined effect against the reference before changing the current six-pixel vertical padding or unfixed height. The new 12-pixel SVG is qualified separately. No measured native geometry or whole-image match is established. |
+| X556 | todo | 2026-11-04T00:50Z | Source397 prepares reference 12-pixel dim sort text with the medium weight inherited from the more-specific tab rule. Fresh focused qualification is pending. Separate container padding, background and outline remain phase-two work: nested `.tabs span` geometry overrides base `.chip` rules. The qualified original SVG remains. No measured native container geometry or whole-image match is established. |
 
 ## Source388 shared disclosure chevrons
 
@@ -2330,3 +2330,11 @@ See [the original-context Stake correction](docs/review/source394-stake-context-
 | Row | Status | Updated | Evidence |
 | --- | --- | --- | --- |
 | X559 | done | 2026-11-04T00:42Z | Source395 0f123a605e22 / 41747338338, attempt one, job 126303544299 independently qualifies both complete 42/42-file streams: all 1083 cases (528/555), 955 Python controls/three existing skips, fourteen assets and zero selected findings. All ten Stake widget cases and 27 sender-admission cases pass, including original-context guards, retained controls, accepted-result ownership and refusal. Source394 retains its original function-declaration analysis refusal and skipped Dart execution. Source396 changes documentation only. Native effects, whole-image and final acceptance remain open. |
+
+## Source397 Pillar sort label
+
+See [the sort label correction](docs/review/source397-pillar-sort-label.md).
+
+| Row | Status | Updated | Evidence |
+| --- | --- | --- | --- |
+| X560 | todo | 2026-11-04T00:50Z | Reference CSS supplies 12-pixel dim text and weight 500 for the nested Pillar sort chip. A component token replaces its 13-pixel foreground label. All behavior, tests, 1083/1085 selections, workflows and dependencies remain unchanged. Fresh focused qualification is pending. X556 keeps the remaining container and native geometry review open; no visual match is claimed. |
