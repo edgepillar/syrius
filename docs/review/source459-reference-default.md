@@ -48,3 +48,33 @@ five-zero-exit/no-OOM criteria are unchanged. No full Windows/native wallet,
 seed, visual/motion job, local SDK or binary/image transport is selected.
 Original acceptance stays 72/80 with zero accepted whole-image matches. The PR
 remains Draft; all earlier failures and unknowns retain their own source/run.
+
+## Actual Source459 default result
+
+Source `9a758129afdae895ad253b0ae357b33aa919ed52`, tree
+`666e717e573292a073dc544a7c307b3c6887c55b`, passes 1,051 source controls with
+two existing Linux skips, all thirteen Bash cases and both JavaScript cases in
+source-only [41933458571](https://github.com/edgepillar/syrius/actions/runs/41933458571)
+and manual [41933716306](https://github.com/edgepillar/syrius/actions/runs/41933716306).
+Both runs are successful, terminal and have zero artifacts. The manual runtime
+is attempt one, job 126936947331.
+
+The dispatch omits `node_source`. The runtime reports selection `default` and
+`node_uses_script_defaults=true`, with the fixed node SHA/tree and reference
+recipe. No node URL/revision/recipe overrides are supplied to the script. All
+seven source/tree/run/attempt-bound notices and 21 complete, zero-exit, unforced
+receipts independently consume; the largest notice is 2,932 bytes.
+
+Actual up observes chain 321 from one to three over 115 seconds, then status
+observes three to four over five seconds. Fresh project, original identities,
+production, normal retirement and final source/genesis checks pass, with no
+observation/close error or unadopted start. Each of the five original containers
+has one zero-exit die event and no observed OOM. Empty project/network checks
+pass; volumes remain preserved.
+
+This independently qualifies the script and workflow defaults for the observed
+hosted Linux windows. It does not borrow the earlier explicit selection's pass,
+establish the old stall's sole cause or indefinitely sustained production, or
+qualify ARM64, Windows Docker Desktop, wallet import/send, F06, VM disposal or
+full visual/performance acceptance. Source460 records the result and exact
+English body339 without runtime changes; all older failures keep their facts.

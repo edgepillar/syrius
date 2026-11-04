@@ -19,8 +19,10 @@ from an export of that commit. The default is fixed source
 Go 1.24.1, CGO/static build flags and module-file checks. `LAB_BUILD_RECIPE=upstream`
 explicitly selects the exported source's own Dockerfile. Existing tags and
 volumes are preserved; a different stored recipe refuses instead of migrating
-or wiping state. The default promotion's fresh qualification is pending; the
-explicit [reference selection has passed](../../../docs/review/source458-continued-startup-readiness.md#actual-source458-result).
+or wiping state. The [actual default has passed](../../../docs/review/source459-reference-default.md#actual-source459-default-result)
+its hosted Linux up/status/down gate, independently of the earlier explicit
+reference selection. Windows Docker Desktop and full wallet acceptance remain
+separate.
 
 ## What it is
 
@@ -395,3 +397,19 @@ resources held. No guessed down is submitted. Node, reference recipe, stop grace
 and protocol broadcast deadline remain unchanged. Fresh 1,048-case source and
 reference runtime execution are pending. The [scope and fixtures](../../../docs/review/source458-continued-startup-readiness.md)
 do not establish a production repair; Source456 retirement retains its own pin.
+
+## Actual default qualification
+
+Source459 9a758129afda / source-only 41933458571 and manual 41933716306 pass
+1,051 controls/two existing Linux skips, thirteen Bash/two JavaScript fixtures
+and the actual default up/status/down gate. Dispatch omits node_source and no
+node URL/revision/recipe overrides are supplied. Up advances chain 321 from one
+to three over 115 seconds; status advances three to four over five seconds.
+Seven notices/21 complete zero-exit unforced receipts consume, at most 2,932
+bytes. All original identities, five zero-exit/no-OOM events, empty project/network
+and final source/genesis checks pass. Both runs are terminal with zero artifacts.
+See the [actual default record](../../../docs/review/source459-reference-default.md#actual-source459-default-result).
+This qualifies observed hosted Linux defaults only. ARM64/Windows Docker Desktop,
+wallet import/send, all F06 effects, indefinite production, VM disposal and full
+visual/performance acceptance remain open. Earlier failures keep their own facts;
+Source460 changes documentation only.

@@ -41,6 +41,16 @@ Source457 records the actual result without runtime changes. No lab pass, curren
 full wallet qualification or original acceptance count is inferred. Heavy second-
 phase Windows/native, catalog, visual and motion work remains deferred.
 
+The [Source459 actual defaults](source459-reference-default.md#actual-source459-default-result)
+now pass independently in 41933458571/41933716306: 1,051 controls/two existing
+Linux skips, thirteen Bash/two JavaScript cases and zero artifacts. Dispatch omits
+node_source and the script receives no node-source/recipe overrides. Up advances
+one to three over 115 seconds, then status three to four over five seconds.
+All original bindings, five normal exits and final source/genesis checks pass.
+This qualifies the hosted Linux command defaults; Windows Docker Desktop, wallet
+import/send, F06 and full acceptance stay open. Source460 records this result
+without runtime changes or replaying SDK/native/artifact work.
+
 The preceding complete focused source is Source428
 `fc49ca01d4c6e830176e8dff50e1abf3b4a6ce13`. Its
 [Token explorer result](source427-token-explorer-control.md#fresh-source428-focused-result)

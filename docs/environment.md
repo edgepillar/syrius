@@ -2,150 +2,65 @@
 
 ## Current qualification status (2026-11-04)
 
-The most recent complete focused gate is Source447
+The latest qualified focused UI source remains Source447
 `bd4d9d712a7ad6e4bfe1e90181cef90ea329322f`, tree
 `dc83c5365575718346f00a9cb1c396577cf753b3`.
-[41885387732](https://github.com/edgepillar/syrius/actions/runs/41885387732),
-attempt one, job 126768333183, independently qualifies all 1,230 ordinary widget
-cases in complete 48/48-file streams (597/633), with zero failures/errors/skips,
-134 hidden and 1,364 terminal events. Python completes 1,006 controls with three
-existing skips and no failures/errors. Fourteen assets and empty zero-finding
-selected analysis pass. Exact aggregate publication and final source checking
-complete; all tested-source jobs are terminal with zero artifacts. The Home
-baseline/reflow criteria and every earlier selected path pass. Source448 is a
-documentation-only follow-up. The asset-fidelity variant was not executed.
+[41885387732](https://github.com/edgepillar/syrius/actions/runs/41885387732)
+qualifies all 1,230 ordinary widgets in complete 48/48-file streams (597/633),
+with zero failures/errors/skips, 1,006 Python controls/three existing skips,
+fourteen assets and zero selected findings. Aggregate publication and final
+source checking pass; all tested-source jobs are terminal with zero artifacts.
+The 1,232-case asset variant and current full-root Windows/native are unqualified.
+Later lab/CI changes preserve application Dart, dependencies and references.
 
-The [current Home/count record](review/source447-focused-case-count.md#fresh-source447-focused-result)
-and [first-delivery boundary](review/fast-first-delivery.md) retain the original
-failures. This gate does not qualify the current full Windows/native build.
-The last full Windows baseline is Source368
-`a06c9bfa5d6caa207f97f950cae6287bea3ec0f8`: 4,900 nonchain passes/one existing
-skip, Debug/Release success and twelve controls, with root analysis at zero
-errors/warnings and 1,297 infos. Native108's Deposit refusal, incomplete
-Stake/Fuse/Token prefix and unreached Project/Fund address remain preserved.
-The later focused readiness fix does not qualify its native replay or F06.
+The [actual Source459 default lab result](review/source459-reference-default.md#actual-source459-default-result)
+binds `9a758129afdae895ad253b0ae357b33aa919ed52`, tree
+`666e717e573292a073dc544a7c307b3c6887c55b`. Source-only 41933458571 and manual
+41933716306 pass 1,051 controls/two existing Linux skips, all thirteen Bash cases
+and both JavaScript cases. Both runs are successful, terminal and have zero
+artifacts. Dispatch omits node_source; the runtime reports default selection and
+node_uses_script_defaults=true. Seven bound notices/21 complete zero-exit
+unforced receipts consume, at most 2,932 bytes. Up advances chain 321 from one
+to three over 115 seconds; status advances three to four over five seconds.
+Original identity, production, five normal zero-exit/no-OOM events, empty
+project/network and final source/genesis checks all pass. Volumes are preserved.
+This qualifies the actual defaults in the observed hosted Linux windows, not
+ARM64/Windows, indefinitely sustained production, wallet import/send, F06,
+VM disposal or full visual/performance acceptance.
+
+The fixed unmodified node is 0e80915fb9569f2fc3f6bd90c2a54e4c10d7bc1b, tree
+244d362062b03c07e205ef9a2ad7ba1071fe779a. The reference recipe retains exact Go
+1.24.1/Linux, CGO/static flags and module-file checks. Startup requires two
+advances within the original 180-second progress/ninety-second initial RPC
+bounds; status remains thirty seconds/one advance. Default source/recipe inputs
+are exercised without child overrides. Explicit legacy choices and existing
+tags/volumes remain; no automatic migration/wipe occurs. Image tags are mutable
+and no binary reproducibility is claimed. The preceding explicit reference pass
+is [Source458 41929517942](review/source458-continued-startup-readiness.md#actual-source458-result);
+it is preserved separately. Source450/451/453/454/455/456 failures and their
+unknowns retain their original records; none is replayed or relabelled.
 
 [Source439](review/source439-windows-time-binding.md#hosted-source439-result)
-separately qualifies the pinned WSL 3.0.3.0 component installation and metadata
-queries on its hosted Arm VM. No Linux kernel/distro/container starts. Windows
-Docker Desktop, Linux mode, nested virtualization and the documented lab route
-remain unqualified. The retained successful custom Linux Docker backend does
-not execute the original `lab.sh` route. Source449 prepares a separate
-[default-off original-command lane](review/source449-original-lab-commands.md);
-its source registration 41897166398 passes 1,022 controls with two existing Linux
-skips and zero failures/errors, with original source verified before/after.
-The runtime job is skipped and artifacts are zero. Source450 clarifies that its
-SDK metric counts Flutter only; the original Go compiler remains inside the
-Docker build image. Source450's first actual original-command trial 41899894079
-fails after original-container admission, with COMMAND_FAILED at the status
-command and a separate STOP_UNKNOWN close refusal in the complete notice prefix.
-The notice is truncated at 4,096 bytes; full runtime/exit details and the inner
-cause remain NOT_ESTABLISHED. Source451 adds
-[bounded receipt chunks and fixed diagnostics](review/source451-bounded-lab-observations.md)
-without changing original production/ownership/exit criteria. Its source-only
-41904571720 passes 1,026 controls with two existing Linux skips and zero
-failures/errors. The separate [actual Source451 result](review/source451-bounded-lab-observations.md#actual-source451-result)
-in 41905303718 is failed and terminal: all seven notices/22 command receipts
-are complete, at most 3,051 bytes. Original up observes chain 321 from one to
-two over fifty seconds; status exits one after two remains two for thirty
-seconds. Down exits zero, but observer/rpc die events exit 137; the other three
-exit zero and no OOM event is observed. Bounded node logs yield no known code.
-The exact inner causes, positive production, five normal exits and final native
-source verification remain unqualified. Both runs have zero artifacts. No
-unchanged trial is scheduled again; Source450 stays failed with its own unknowns.
-Source453 prepares [coordinated lab retirement](review/source453-coordinated-lab-retirement.md):
-one validated project-ID stop batch precedes Compose removal, with the same
-ten-second Linux grace. Listing/identity/stop errors prevent removal or retry.
-Its [actual source and runtime result](review/source453-coordinated-lab-retirement.md#actual-source453-result)
-passes 1,032 controls/two existing Linux skips in source-only 41909585709 and
-manual 41910010050, including all six actual-script fixture cases. The one manual
-runtime remains failed: up advances one to two over thirty seconds, then status
-exits one after height two stays unchanged for thirty seconds. Down exits zero;
-four original node events exit zero, but observer exits 137 without observed OOM.
-All seven notices/22 complete unforced receipts consume, at most 3,051 bytes.
-Both runs are terminal with zero artifacts. Exact inner causes, production,
-five normal exits and final native source remain unqualified. Source454 adds
-[fixed node-file log observations](review/source454-node-log-file-observations.md)
-because the pinned logger writes to files rather than container stdout. Twenty-two
-local pure controls pass; six shell cases stay unselected locally. The full
-preparation is 1,034 Python cases. Its [actual Source454 result](review/source454-node-log-file-observations.md#actual-source454-result)
-qualifies 1,034 source controls/two skips in 41912320704 and 41912892078. The one
-runtime remains failed: all five main log files read, error-file sources remain
-unavailable and no known code is recognized. All nine notices/32 complete
-unforced receipts consume, at most 3,050 bytes. Status stays at height two for
-thirty seconds; all five die events exit 137 without observed OOM. Exact causes,
-production, five normal exits and final native source remain unqualified.
-Source455 prepares a [fixed upstream candidate](review/source455-pinned-node-candidate.md)
-while retaining the original default. Its locked modules, Dockerfile and complete
-devnet directory match already supported upstream base 2d1b929. Twenty-four local
-pure controls pass; six shell cases stay unselected locally. Its [actual result](review/source455-pinned-node-candidate.md#actual-source455-result)
-passes 1,036 controls/two existing Linux skips in source-only 41918321972 and
-manual 41919093364. Both are terminal with zero artifacts; the runtime remains
-failed. Nine notices/32 complete unforced receipts consume, at most 3,050 bytes.
-Up advances one to two over forty-five seconds, then status stays at height two
-for thirty seconds. Five main files and pillar3 error file read without known
-codes. Down exits zero; pillar3 exits zero, the other four exit 137 without
-observed OOM. Exact causes, production, five normal exits and final native source
-remain unqualified. [Source456](review/source456-reference-lab-build.md) adds an
-explicit recipe with exact Go 1.24.1, CGO/static flags, module-file checks, a
-distinct image suffix and twenty-second stop grace matching the existing hosted
-backend. Upstream keeps ten seconds. Recipe/tag mismatch refuses before Docker;
-failed builds cannot publish a revision. Twenty-seven local pure controls pass;
-ten shell fixtures stay unselected locally. Fresh 1,043-case source/reference
-execution is pending. All five lab inputs, original thirty-second progress window,
-parent deadlines, resource/ownership and strict five-zero-exit/no-OOM criteria
-remain. Fixed producer error categories export only closed codes. No old pass
-transfers; all original failed trials and their unknowns are preserved.
-The [actual Source456 result](review/source456-reference-lab-build.md#actual-source456-result)
-qualifies 1,043 controls/two existing Linux skips and all ten script fixtures in
-41925765311 and 41926018636. Both runs are terminal with zero artifacts. The
-manual runtime remains failed: up advances one to two over forty-five seconds,
-then status stays at height two for thirty seconds. All ten notices/34 complete
-unforced receipts consume, at most 3,049 bytes. Down, five original zero-exit/no-OOM
-events and subsequent empty-project/network checks pass, with no close error.
-Normal retirement is qualified for this source/run. Pillar error file projects
-NODE_MOMENTUM_NOT_BROADCAST, corresponding to the pinned worker broadcast window;
-this is not sole-cause proof, and exact timing remains NOT_ESTABLISHED. Production,
-final native source and VM disposal remain unqualified. Source457 records these
-results without runtime changes. Continued-startup readiness is the next
-correction within the existing startup bound; status/protocol deadlines remain.
-[Source458 continued readiness](review/source458-continued-startup-readiness.md)
-now requires two advances for actual up within the original 180-second progress
-and ninety-second initial RPC bounds. Status retains thirty seconds/one advance;
-node, recipe, grace and protocol deadlines remain. Both the script and controller
-refuse partial startup readiness. Failed up exports bounded partial-progress
-facts, with unknown resources unadopted/held and no guessed down. Source CI checks
-all five pins and selects every lab input path. Twenty-nine local pure cases pass;
-eleven Bash and two actual-JavaScript inert-adapter cases stay unselected locally.
-Fresh 1,048-case source/reference execution is pending; this is not a proven
-production repair or transferred Source456 normal-retirement qualification.
-The [actual Source458 explicit-reference result](review/source458-continued-startup-readiness.md#actual-source458-result)
-succeeds in 41929192629 and 41929517942: 1,048 controls/two existing Linux skips
-and all eleven Bash/two JavaScript fixtures. Seven notices/21 complete zero-exit
-unforced receipts consume, at most 2,932 bytes. Up advances one to three over 110
-seconds, then status three to four over five seconds. Original bindings, all
-five normal zero-exit/no-OOM events, empty project/network and final source/genesis
-checks pass. Both runs are terminal with zero artifacts. This is selected
-Linux/amd64 command qualification, not Windows/wallet/full acceptance or old
-stall-cause proof. [Source459](review/source459-reference-default.md) promotes
-the same fixed source/reference recipe to script/workflow default and removes
-node URL/revision/recipe overrides in default mode. Explicit legacy selections
-and stored tags/volumes remain; no automatic migration/wipe occurs. The compiler
-guard retains exact Go 1.24.1/Linux without hard-coding architecture; ARM64 native
-acceptance remains open. Thirty local pure cases pass, with thirteen Bash/two
-JavaScript fixtures unselected locally. Fresh 1,051-case source/default execution
-is pending; dispatch will omit node_source. All original deadlines and strict
-criteria remain.
-All 1,970 earlier runtime entries
-remain byte-identical through Source451; Source453 separately changes the lab
-script/controller/workflow and adds six shell-fixture cases. No new local
-SDK, binary transport, Windows build or old runtime replay occurs.
+qualifies the exact WSL 3.0.3.0 component installation and metadata queries after
+thirty-two controls, positive/negative files, package/signature and final identity
+checks. No Linux kernel/distro/container starts. Windows Docker Desktop, Linux
+mode and nested virtualization remain unqualified. Source435's unknown cause and
+Source438's separate ctime-only refusal remain preserved. The last full Windows
+baseline stays Source368 a06c9bfa5d6caa207f97f950cae6287bea3ec0f8: 4,900 nonchain
+passes/one existing skip, Debug/Release success and twelve controls, with root
+analysis at zero errors/warnings and 1,297 infos. Native108 retains its Deposit
+refusal, incomplete Stake/Fuse/Token prefix and unreached Project/Fund address.
+Later focused readiness fixes do not qualify native replay or all six seed effects.
 
-Original acceptance remains 72/80 rows, 50/94 historical literal outputs, 44
-missing and zero accepted whole-image matches. P03/P09/F06 and
-V01/V02/V03/V05/V06 remain open. Full native/seed, visual, motion/frame time,
-seam and independent final acceptance stay phase two. The PR stays Draft;
-all earlier FAILURE/HOLD/UNKNOWN records retain their source and scope.
+The [fast first delivery](review/fast-first-delivery.md) is ready for Draft code
+review. Original acceptance remains 72/80 rows, 50/94 historical literal outputs,
+44 missing and zero accepted whole-image matches. P03/P09/F06 and
+V01/V02/V03/V05/V06 remain open. Heavy Windows/native wallet, seed/seam interaction,
+catalog transport, detailed visual and motion/shader/frame-time acceptance remain
+phase two. Source460 records the latest default result and body339 without
+runtime changes or repeated SDK/native/artifact work. The [validation index](review/redesign-validation-index.md)
+and [exact preceding environment header](https://github.com/edgepillar/syrius/blob/9a758129afdae895ad253b0ae357b33aa919ed52/docs/environment.md#current-qualification-status-2026-11-04)
+retain prior source-bound results. The historical snapshots below are unchanged.
 
 ## Historical Source353 qualification snapshot (2026-11-03T04:53Z)
 
