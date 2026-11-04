@@ -1,14 +1,24 @@
 # First delivery and deferred acceptance
 
-Updated: 2026-11-04T02:43Z.
+Updated: 2026-11-04T02:51Z.
 
 The owner selected a first delivery covering the core interface and existing
 basic functionality, with detailed visual and extended platform/lab acceptance
 afterward. The first milestone is ready for Draft code review. Final acceptance
 of the complete redesign remains open.
 
-The latest focused source is Source400 `aa991e302d29213a01f8a739cc6a4b4c6d9d73cd`.
-Its [compact picker result](source399-compact-picker-presentation.md#focused-result)
+The latest focused source is Source403 `8bbfe5eb464d1b381239c8985512118445e1c5ec`.
+Its [Deposit readiness result](source402-deposit-input-readiness.md#fresh-source403-focused-result)
+in [41762557560](https://github.com/edgepillar/syrius/actions/runs/41762557560)
+passes all 1,094 cases in complete 43/42-file streams (539/555), 955 Python
+controls with three existing skips, fourteen assets and zero selected findings.
+The two existing real-modal cases qualify the original CLI readiness/input path,
+delayed account reply, ordinal refusals, untouched second field and zero
+mutations. Every earlier focused path passes. Source404 changes documentation
+only. Source402 retains its original two command-completion assertion failures.
+
+The preceding Source400 `aa991e302d29213a01f8a739cc6a4b4c6d9d73cd`
+[compact picker result](source399-compact-picker-presentation.md#focused-result)
 in [41755440101](https://github.com/edgepillar/syrius/actions/runs/41755440101) passes all
 1,083 cases in complete 42/42-file streams (528/555), 955 Python controls with
 three existing skips, fourteen assets and zero selected findings. Existing
@@ -87,8 +97,8 @@ Use the completed results for the Draft handoff and batch extended checks
 after implementation stabilizes. Source402's bounded Deposit input follow-up
 retains its [original focused failure](source402-deposit-input-readiness.md#original-source402-focused-result):
 1,092 passes, two command-completion assertion failures and zero selected
-findings. Source403 corrects explicit ordinal selection in the readiness loop;
-all 1,094 cases remain selected, with fresh focused qualification pending.
+findings. Source403's explicit ordinal correction independently passes all
+1,094 cases and zero-finding selected analysis in the focused result above.
 The first-delivery application remains unchanged; native verification of the
 follow-up and complete seeded effects still belong to phase two.
 

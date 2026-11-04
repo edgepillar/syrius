@@ -7,8 +7,8 @@ cause remains NOT_ESTABLISHED; this preparation does not replay that workflow.
 
 The authored Deposit recipe now waits for its original amount field to become
 ready after the Start marker and immediately before its first type command.
-The existing CLI/agent readiness path requires the same unique, enabled and
-reachable target used by input. The wait is capped at thirty seconds. No
+The existing CLI/agent readiness path requires the same explicitly selected,
+enabled and reachable target used by input. The wait is capped at thirty seconds. No
 selector, amount, counterparty, publication or confirmation control changes.
 
 The parser admits exactly one such wait for Deposit, before publication, with
@@ -77,5 +77,29 @@ The two existing real-modal cases retain their delayed-reply, original CLI
 command, first-field type, untouched second field and zero-mutation assertions.
 They also require ambiguous, out-of-range, negative and noninteger readiness
 selectors to refuse. Their finite pump bound is unchanged. All 85 files and
-1,094 ordinary cases remain selected. Fresh Source403 focused qualification
-is pending; full Windows/lab and visual/performance work remains deferred.
+1,094 ordinary cases remain selected. Full Windows/lab and visual/performance
+work remains deferred.
+
+## Fresh Source403 focused result
+
+Source403 `8bbfe5eb464d1b381239c8985512118445e1c5ec`, tree
+`cbcdfb66afb2112bef6ab95c3e350128eb08b8b9`, independently qualifies
+[41762557560](https://github.com/edgepillar/syrius/actions/runs/41762557560),
+attempt one, job 126353383410. All 1,094 ordinary cases pass in complete
+43/42-file streams (539/555), without failures, errors or skips. The streams
+retain 115 hidden events and 1,209 terminal events. The two existing real-modal
+cases now complete their original readiness and input commands and their
+additional ordinal refusal checks. All earlier selected paths also pass.
+
+Python completes 955 controls without failures/errors, with three existing
+hosted skips. Fourteen asset controls pass. Selected analysis completes normally
+with zero errors, warnings and infos. Original one-worker, command/output,
+deadline, startup and entry-refusal bounds remain. All source-bound jobs are
+terminal with zero artifacts. The separate 1,096-case asset-fidelity variant
+and standalone rail widget suite are outside this ordinary selection.
+
+Source404 changes documentation only and preserves all tested application,
+test, controller, workflow and dependency bytes. The original Source402 failure
+remains above. This result qualifies the focused readiness controls; Native108,
+full F06, Windows/native effects and complete visual/performance acceptance
+retain their original open scope.
