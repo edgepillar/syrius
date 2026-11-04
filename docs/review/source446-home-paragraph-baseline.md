@@ -38,3 +38,16 @@ visual, motion and frame-time acceptance remain deferred/open. The original
 ledger stays 72/80, 50/94 historical literal outputs, 44 missing and zero accepted
 whole-image matches. The PR remains Draft with English public text and
 edgepillar attribution.
+
+## Original hosted result
+
+[41882167075](https://github.com/edgepillar/syrius/actions/runs/41882167075),
+attempt one, job 126757164871, passes all 1,230 actual widget cases in complete
+48/48-file streams (597/633), including the unchanged Home baseline/reflow case.
+There are zero widget failures/errors/skips. Python completes 1,006 controls
+with three existing skips; fourteen assets and selected analysis pass with zero
+findings. The original workflow nevertheless fails its stale 1,229 aggregate
+expectation before publishing aggregate counts and final source-after checking.
+It is terminal with zero artifacts. [Source447](source447-focused-case-count.md)
+updates the ordinary/asset totals while retaining every actual test and process
+guard. The passing widget observations do not relabel the original failed gate.

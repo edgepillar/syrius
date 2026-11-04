@@ -2560,3 +2560,12 @@ See [the original Source445 geometry and Source446 correction](docs/review/sourc
 | ID | State | Updated | Evidence |
 | --- | --- | --- | --- |
 | X586 | review | 2026-11-04T17:54Z | Original Source445 41879360932, attempt one, job 126747573974 is terminal with zero artifacts. All 1006 Python controls/three existing skips, fourteen assets and zero selected findings pass; its complete unforced first group retains 596 passes/one failure, with the second group unreached. Typed dark RTL normal-scale primary-coin coordinates measure 95.94000053405762 versus 95.54000091552734, while the dollar follows target 30.540000915527344 above top 65. Source446 uses the alphabetic paragraph-baseline API for the same constant sample/painter; all original test bytes, input variants, tolerance, financial behavior and process bounds remain. Fresh 1230-case qualification is pending; original 72/80 and full acceptance stay open. |
+
+
+### Focused aggregate count integration
+
+See [the original passing widget streams and exact count correction](docs/review/source447-focused-case-count.md). Source446 passes the Home regression and all 1230 actual widget cases, but its original workflow remains failed at the stale aggregate expectation before final source-after checking. Source447 changes the exact ordinary/asset totals and current mocked admission fixtures; all application and Dart test bytes remain.
+
+| ID | State | Updated | Evidence |
+| --- | --- | --- | --- |
+| X587 | review | 2026-11-04T18:13Z | Original Source446 41882167075, attempt one, job 126757164871 is terminal with zero artifacts. Two complete unforced 48/48-file streams pass 597/633 cases, with zero failures/errors/skips, 134 hidden and 1364 terminal events. Python completes 1006 controls/three existing skips; fourteen assets and zero selected findings pass. The exact old 1229 aggregate guard refuses actual 1230 before aggregate publication and final source-after checking. Source447 updates ordinary/asset totals to 1230/1232 and existing positive/negative count fixtures; fourteen local mocked admission tests pass. No test registration, application/Dart byte, path selection or process/source guard changes. Fresh complete hosted qualification is pending; original 72/80 and heavy full acceptance remain open/deferred. |
