@@ -842,6 +842,10 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The small outlined language and explorer choices in Settings.
   double get settingsMenuHeight => 30;
 
+  /// Closed Settings pickers use the reference chip's quiet label.
+  TextStyle get settingsMenuText =>
+      bodyText.copyWith(fontSize: 12, color: dim);
+
   /// The reference's small chevron inside a compact Settings menu.
   double get settingsMenuChevronSize => 12;
 

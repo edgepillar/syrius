@@ -233,7 +233,8 @@ class _DisplayWidget extends State<DisplayWidget> {
                                 initialSelection: ExplorerLinks.providerHost,
                                 enabled: ExplorerLinks.available(kNodeChainId),
                                 selectOnly: true,
-                                textStyle: AppTokens.of(context).compactText,
+                                textStyle:
+                                    AppTokens.of(context).settingsMenuText,
                                 inputDecorationTheme: _menuDecoration(context),
                                 trailingIcon: _buildMenuChevron(context),
                                 selectedTrailingIcon: _buildMenuChevron(
@@ -322,7 +323,7 @@ class _LanguageMenu extends StatelessWidget {
       child: DropdownMenu<AppLanguage>(
         key: const Key('display_language_menu'),
         initialSelection: selected,
-        textStyle: AppTokens.of(context).compactText,
+        textStyle: AppTokens.of(context).settingsMenuText,
         inputDecorationTheme: _menuDecoration(context),
         trailingIcon: _buildMenuChevron(context),
         selectedTrailingIcon: _buildMenuChevron(context, open: true),
@@ -347,7 +348,7 @@ class _LanguageMenu extends StatelessWidget {
 double _menuWidth(BuildContext context, String label) {
   final AppTokens tokens = AppTokens.of(context);
   final TextPainter painter = TextPainter(
-    text: TextSpan(text: label, style: tokens.compactText),
+    text: TextSpan(text: label, style: tokens.settingsMenuText),
     textDirection: Directionality.of(context),
     textScaler: MediaQuery.textScalerOf(context),
     locale: Localizations.localeOf(context),
@@ -364,10 +365,13 @@ double _menuWidth(BuildContext context, String label) {
 
 Widget _buildMenuChevron(BuildContext context, {bool open = false}) {
   final AppTokens tokens = AppTokens.of(context);
-  return Icon(
-    open ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
-    size: tokens.settingsMenuChevronSize,
-    color: tokens.faint,
+  return RotatedBox(
+    quarterTurns: open ? 2 : 0,
+    child: ShellSymbol(
+      'chev',
+      size: tokens.settingsMenuChevronSize,
+      color: tokens.dim,
+    ),
   );
 }
 
@@ -380,8 +384,7 @@ InputDecorationThemeData _menuDecoration(BuildContext context) {
   return InputDecorationThemeData(
     isDense: true,
     isCollapsed: true,
-    filled: true,
-    fillColor: tokens.card2,
+    filled: false,
     constraints: BoxConstraints(minHeight: tokens.settingsMenuHeight),
     suffixIconConstraints: BoxConstraints.tightFor(
       width: tokens.settingsMenuChevronWidth,

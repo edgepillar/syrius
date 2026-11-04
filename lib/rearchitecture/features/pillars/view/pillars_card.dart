@@ -303,7 +303,6 @@ class _ViewState extends State<_View> {
       ],
       child: DecoratedBox(
         decoration: ShapeDecoration(
-          color: tokens.card2,
           shape: StadiumBorder(side: BorderSide(color: tokens.line)),
         ),
         child: Padding(

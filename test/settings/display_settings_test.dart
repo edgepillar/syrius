@@ -353,7 +353,7 @@ void main() {
         expect(field, findsOneWidget);
         final Finder chevron = find.descendant(
           of: field,
-          matching: find.byIcon(Icons.keyboard_arrow_down_rounded),
+          matching: find.byType(ShellSymbol),
         );
         expect(chevron, findsOneWidget);
         await tester.tapAt(tester.getCenter(chevron));

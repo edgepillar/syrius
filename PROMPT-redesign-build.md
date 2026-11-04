@@ -395,7 +395,7 @@ macOS; Windows provision and acceptance remain pending. See
 - Updated: 2026-11-04
 - Delivery priority: The owner reaffirmed [core interface and basic functionality first](docs/review/fast-first-delivery.md). Finalize the staged Draft handoff with completed evidence; defer new heavy platform/lab jobs, catalog transport and detailed motion/frame-time acceptance to phase two. The original final criteria remain open
 - Latest outcomes: [Source397 focused result](docs/review/source397-pillar-sort-label.md#focused-result) qualifies 41750201481: both complete 42/42-file streams, all 1083 cases (528/555), 955 Python controls/three existing skips, fourteen assets and zero selected findings. All nine Pillars card cases and every earlier focused path pass without test changes. Source398 preserves tested code. Original Source394 analysis refusal, earlier outcomes and Source368 full Windows/Native108 evidence retain their scope
-- Current implementation: The original first-delivery pin stays 19c7b2af5e1c. Source397 uses the reference 12-pixel dim Pillar sort label and medium tab weight. Application behavior and all tests retain their source. Source398 changes documentation only. Literal CSS and component source establish label values; X556 retains separate container geometry and native pixel acceptance. Heavy Windows/lab/capture work and the unapplied Deposit candidate remain deferred
+- Current implementation: The original first-delivery pin stays 19c7b2af5e1c. Source399 prepares shared reference typography, original chevrons and unfilled surfaces for Display pickers, plus the unfilled Pillar sort surface. Original menu buttons, measurement allowances, handlers and all 1083 cases remain; one existing test finder follows the actual SVG arrow. Fresh focused qualification is pending. X556 retains padding/outline and native geometry acceptance. Heavy Windows/lab/capture work and the unapplied Deposit candidate remain deferred
 - Actual review: All eight Source353 Home PNGs and their eight exact references were individually viewed in a successfully closed owned review. X521-X528 retain differences in hero distribution, type, glyphs, spacing and genuine data coverage. Source357 shared hero colours have no new native pixel acceptance. Earlier Settings findings remain source-bound; zero whole-image matches are accepted
 - Acceptance: 72/80 rows, 90 percent by original rows; nineteen preparations, 50 literal outputs, 44 missing and zero of 94 accepted matches. P03, P09, F06, V01-V03 and V05-V06 remain open. Native108 retains Stake/Fuse/Token prefix observations before Deposit command six refuses before publication; Project and Fund address remain unreached. All original FAILURE/HOLD/UNKNOWN and Native101/103/104 UNKNOWN remain. English public text, edgepillar no-reply/UTC attribution and Draft status continue
 
@@ -2305,7 +2305,7 @@ See [the complete original result](docs/review/source386-pillar-control-symbols.
 
 | Row | Status | Updated | Evidence |
 | --- | --- | --- | --- |
-| X556 | todo | 2026-11-04T01:04Z | Source397 41750201481 qualifies all 1083 focused cases and zero selected findings without test changes. Literal CSS and source supply 12-pixel dim sort text at weight 500. Separate container padding, background and outline remain phase-two work: nested `.tabs span` geometry overrides base `.chip` rules. The qualified original SVG remains. No measured native container geometry or whole-image match is established. |
+| X556 | todo | 2026-11-04T01:20Z | Source397 41750201481 qualifies all 1083 focused cases and zero selected findings without test changes. Source399 prepares the reference's unfilled sort surface while retaining the qualified 12-pixel dim label and original SVG. Fresh focused qualification is pending. Separate padding/outline cascade and native geometry remain phase-two work; no whole-chip or whole-image match is established. |
 
 ## Source388 shared disclosure chevrons
 
@@ -2338,3 +2338,11 @@ See [the sort label correction](docs/review/source397-pillar-sort-label.md).
 | Row | Status | Updated | Evidence |
 | --- | --- | --- | --- |
 | X560 | done | 2026-11-04T01:04Z | Source397 18e56d9e0f21 / 41750201481, attempt one, job 126313114020 independently qualifies all 1083 cases (528/555), 955 Python controls/three existing skips, fourteen assets and zero selected findings. All nine existing Pillars cases and every earlier path pass without test changes. Literal CSS and source establish the 12-pixel dim label at weight 500. Source398 changes documentation only. X556 keeps container and native geometry acceptance open; no visual match is claimed. |
+
+## Source399 compact picker presentation
+
+See [the compact picker correction](docs/review/source399-compact-picker-presentation.md).
+
+| Row | Status | Updated | Evidence |
+| --- | --- | --- | --- |
+| X561 | todo | 2026-11-04T01:20Z | Display's language and explorer choices render and measure the reference 12-pixel dim text, reuse the original chevron and drop their secondary fill. Pillar sort also becomes unfilled. The original menu button, selection and persistence handlers remain. One existing finder targets the actual SVG arrow; every case and bound remains. Fresh 1083-case qualification is pending. X556 and full visual/native acceptance stay open. |
