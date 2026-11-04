@@ -2415,3 +2415,11 @@ See [the single collapsed-row disclosure](docs/review/source421-token-row-disclo
 | Row | Status | Updated | Evidence |
 | --- | --- | --- | --- |
 | X572 | done | 2026-11-04T09:02Z | Source423 d5ccace22d61 / 41801289094 independently qualifies the explicit 40-unit fixture balance within the 85-unit supply and all three Burn permission cases, alongside all 1223 cases and zero selected findings. The exact one-value follow-up preserves all other fixture inputs, assertions, application bytes, registrations, selections and bounds; the supply validator is unchanged. Source422 run 41798633281 stays failed with its original 1220-pass/three-form-failure evidence. Source424 preserves tested code; full native/visual/platform acceptance remains open. |
+
+## Source425 Token holder actions
+
+See [the owner and holder presentation](docs/review/source425-token-holder-actions.md). Current action proofs and publication guards remain; a token-explorer route and full native correspondence remain unverified. [Exact body328](docs/review/pr-body-328.md) preserves preceding results. Heavy second-phase work stays deferred.
+
+| Row | Status | Updated | Evidence |
+| --- | --- | --- | --- |
+| X573 | review | 2026-11-04 | Source425 prepares four holder facts, compact Burn/Send controls and explicit proof/epoch-bound Burn opening, retaining owner segments and fixed dialogs. Another adds only its view flag after the existing fresh proof succeeds. Existing form, submission, question, receipt and transport behavior remains; all 26 original inline case bodies are byte-identical. Four new both-theme/direction cases cover stale publisher callbacks, exact Send/Burn intent, synthetic cancel/accept, held close/reopen, confirmed Another and old-submit refusal. The three original Burn permission scenarios retain exact valid fixtures and follow the appropriate access path. Thirty-seven local controls pass; fresh 1227-case hosted qualification in the unchanged 48/48-file selection (595/632) is pending. Full native/visual/final acceptance remains open. |

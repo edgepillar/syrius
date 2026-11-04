@@ -81,11 +81,8 @@ void main() {
       _buildToken(owner: owner, isBurnable: false),
     );
 
-    expect(
-      tester.widget<PrimaryPill>(find.byKey(const Key('token_burn_submit')))
-          .onPressed,
-      isNull,
-    );
+    expect(find.byKey(const Key('token_burn_submit')), findsNothing);
+    expect(find.byKey(const Key('burn_amount_field')), findsNothing);
     expect(fixture.transport.calls, isEmpty);
     await tester.pumpWidget(const SizedBox.shrink());
   });
@@ -113,6 +110,7 @@ Future<ActionFixture> _pumpTokenCard(
     initialToken: token,
     ownerAddress: kSelectedAddress,
   )..balance = BigInt.from(40);
+  final List<String> sends = <String>[];
   addTearDown(fixture.close);
   await tester.pumpWidget(
     MaterialApp(
@@ -128,6 +126,7 @@ Future<ActionFixture> _pumpTokenCard(
             favoriteRepository: _Favorites(),
             publisher: fixture.publisher,
             isCurrent: () => fixture.active,
+            onSendToken: sends.add,
           ),
         ),
       ),
@@ -145,7 +144,27 @@ Future<ActionFixture> _pumpTokenCard(
   await tester.tap(disclosure);
   await pumpActionUntil(tester, () => fixture.tokenReads == 1);
   await tester.pump(const Duration(milliseconds: 260));
-  await tester.tap(find.byKey(const Key('token_action_mode_burn')));
+  expect(fixture.tokenReads, 1);
+  expect(fixture.accountReads, 1);
+  if (token.owner.toString() == fixture.session.address) {
+    await tester.tap(find.byKey(const Key('token_action_mode_burn')));
+  } else {
+    for (final String mode in <String>['mint', 'burn', 'transfer', 'flags']) {
+      expect(find.byKey(Key('token_action_mode_$mode')), findsNothing);
+    }
+    expect(find.byKey(const Key('burn_amount_field')), findsNothing);
+    final Finder send = find.byKey(const Key('token_send'));
+    expect(tester.widget<OutlinedButton>(send).onPressed, isNotNull);
+    await tester.tap(send);
+    expect(sends, <String>[token.tokenStandard.toString()]);
+    final Finder burn = find.byKey(const Key('token_burn_open'));
+    if (!token.isBurnable) {
+      expect(burn, findsNothing);
+      return fixture;
+    }
+    expect(burn, findsOneWidget);
+    await tester.tap(burn);
+  }
   await tester.pump(const Duration(milliseconds: 260));
   await tester.enterText(find.byKey(const Key('burn_amount_field')), '1');
   await tester.pump();

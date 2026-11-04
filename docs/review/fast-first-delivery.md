@@ -7,6 +7,14 @@ basic functionality, with detailed visual and extended platform/lab acceptance
 afterward. The first milestone is ready for Draft code review. Final acceptance
 of the complete redesign remains open.
 
+Source425 prepares the [Token holder actions](source425-token-holder-actions.md)
+from the original owner/holder distinction. Another address's token starts with
+compact Burn/Send controls; owner segments and all publication guards remain.
+Four new scope/lifecycle cases join the unchanged selection, preparing 1,227
+ordinary cases in 48/48-file streams. Thirty-seven local controls pass. Fresh
+hosted tests and selected analysis remain pending; heavy phase-two work stays
+deferred.
+
 The most recently qualified focused source is Source423
 `d5ccace22d61f8bd2f4f65abe95e501bba697973`. Its
 [Token disclosure result](source421-token-row-disclosure.md#fresh-source423-focused-result)

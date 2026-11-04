@@ -109,6 +109,7 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
   bool _submitting = false;
   bool _rearming = false;
   bool _confirming = false;
+  bool _holderBurnOpen = false;
   bool _visible = true;
   bool _windowActive = true;
   int _epoch = 0;
@@ -140,6 +141,7 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
 
   void _authorityChanged() {
     _epoch++;
+    _holderBurnOpen = false;
     _resetLocalWork();
     _read = null;
     _proof = null;
@@ -201,6 +203,7 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
         oldWidget.authorityEpoch != widget.authorityEpoch) {
       _epoch++;
       _modeEpoch++;
+      _holderBurnOpen = false;
       _dismissQuestion();
       _resetLocalWork();
       _publisher =
@@ -217,6 +220,7 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
     if (oldWidget.initialMode != widget.initialMode ||
         oldWidget.fixedMode != widget.fixedMode) {
       _modeEpoch++;
+      _holderBurnOpen = false;
       _dismissQuestion();
       _resetLocalWork();
       _mode = requested;
@@ -379,6 +383,11 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
     final AppTokens tokens = AppTokens.of(context);
     final Token token = _proof?.token ?? widget.token;
     final bool current = _current;
+    final bool holderView =
+        widget.showFacts &&
+        widget.fixedMode == null &&
+        _publisher?.session.address != token.owner.toString();
+    final bool showForm = !holderView || _holderBurnOpen;
     return PopScope(
       canPop: !_submitting,
       child: IgnorePointer(
@@ -400,9 +409,14 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
                           (BuildContext context, BoxConstraints constraints) {
                             final Widget facts = _TokenFacts(
                               token: token,
-                              metadataOnly: _mode == TokenActionMode.flags,
+                              metadataOnly:
+                                  !holderView &&
+                                  _mode == TokenActionMode.flags,
+                              includeUtility: !holderView,
                             );
-                            final Widget modes = _buildSegment();
+                            final Widget modes = holderView
+                                ? _buildHolderActions(token)
+                                : _buildSegment();
                             if (constraints.maxWidth <
                                     tokens.tokenActionFormWidth ||
                                 MediaQuery.textScalerOf(context).scale(1) >
@@ -421,7 +435,10 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
                               children: <Widget>[
                                 Expanded(child: facts),
                                 SizedBox(width: tokens.tokenDetailFactGap),
-                                Flexible(child: modes),
+                                if (holderView)
+                                  modes
+                                else
+                                  Flexible(child: modes),
                               ],
                             );
                           },
@@ -439,7 +456,7 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
                     )
                   else if (_proof == null)
                     _buildStatus(TokenActionStatus.refused)
-                  else
+                  else if (showForm)
                     Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -454,7 +471,8 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
                           ),
                       ],
                     ),
-                  if (_mode == TokenActionMode.mint &&
+                  if (showForm &&
+                      _mode == TokenActionMode.mint &&
                       _proof != null &&
                       token.isMintable)
                     Padding(
@@ -474,7 +492,7 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
                         ),
                       ),
                     ),
-                  if (_mode == TokenActionMode.transfer)
+                  if (showForm && _mode == TokenActionMode.transfer)
                     Padding(
                       padding: EdgeInsetsDirectional.only(
                         top: tokens.tokenDetailBodyGap,
@@ -491,7 +509,8 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
                       ),
                       child: _buildOutcome(_outcome!),
                     ),
-                  if (widget.showFacts) _buildLinks(token),
+                  if (widget.showFacts)
+                    _buildLinks(token, includeSend: !holderView),
                 ],
               ),
             ),
@@ -510,6 +529,65 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
         SegmentItem<TokenActionMode>(value: mode, label: _label(mode)),
     ],
   );
+
+  ButtonStyle _smallActionStyle() {
+    final AppTokens tokens = AppTokens.of(context);
+    return OutlinedButton.styleFrom(
+      minimumSize: Size(0, tokens.smallButtonHeight),
+      padding: EdgeInsetsDirectional.symmetric(
+        horizontal: tokens.tokenActionGap,
+      ),
+      foregroundColor: tokens.foreground,
+      disabledForegroundColor: tokens.faint,
+      backgroundColor: tokens.card2,
+      side: BorderSide(color: tokens.line),
+      shape: const StadiumBorder(),
+      textStyle: tokens.captionText.copyWith(fontWeight: FontWeight.w500),
+      visualDensity: VisualDensity.standard,
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    );
+  }
+
+  Widget _buildHolderActions(Token token) {
+    final AppTokens tokens = AppTokens.of(context);
+    final TokenActionProof? proof = _proof;
+    final int epoch = _epoch;
+    final bool Function() authority = widget.isCurrent;
+    bool current() =>
+        _current &&
+        authority() &&
+        epoch == _epoch &&
+        identical(_proof, proof) &&
+        (proof?.isCurrent ?? false);
+    bool available() =>
+        current() &&
+        (proof?.permits(TokenActionMode.burn) ?? false) &&
+        !_holderBurnOpen &&
+        !_confirming &&
+        !_submitting &&
+        !_rearming &&
+        (_outcome == null || _outcome!.status == TokenActionStatus.refused);
+    return Wrap(
+      spacing: tokens.inlineGap,
+      runSpacing: tokens.inlineGap,
+      children: <Widget>[
+        if (token.isBurnable)
+          OutlinedButton(
+            key: const Key('token_burn_open'),
+            style: _smallActionStyle(),
+            onPressed: available()
+                ? () {
+                    if (!available()) return;
+                    _select(TokenActionMode.burn);
+                    setState(() => _holderBurnOpen = true);
+                  }
+                : null,
+            child: Text(context.l10n.burn),
+          ),
+        _buildSend(token, compact: true),
+      ],
+    );
+  }
 
   Widget _buildForm(TokenActionMode mode) {
     final AppTokens tokens = AppTokens.of(context);
@@ -1027,6 +1105,7 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
         _outcome = null;
         _loading = false;
         _rearming = false;
+        _holderBurnOpen = original.intent.mode == TokenActionMode.burn;
       });
     } else {
       setState(() {
@@ -1036,13 +1115,39 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
     }
   }
 
-  Widget _buildLinks(Token token) {
-    final AppTokens tokens = AppTokens.of(context);
+  Widget _buildSend(Token token, {bool compact = false}) {
     final int epoch = _epoch;
     final bool Function() originalCurrent = widget.isCurrent;
     bool current() => _current && originalCurrent() && epoch == _epoch;
     final bool live = _proof?.isCurrent ?? false;
     final String standard = token.tokenStandard.toString();
+    final VoidCallback? send = current() && live && widget.onSendToken != null
+        ? () {
+            if (current() && (_proof?.isCurrent ?? false)) {
+              widget.onSendToken!(standard);
+            }
+          }
+        : null;
+    if (compact) {
+      return OutlinedButton(
+        key: const Key('token_send'),
+        style: _smallActionStyle(),
+        onPressed: send,
+        child: Text(context.l10n.send),
+      );
+    }
+    return TextButton(
+      key: const Key('token_send'),
+      onPressed: send,
+      child: Text(context.l10n.send),
+    );
+  }
+
+  Widget _buildLinks(Token token, {bool includeSend = true}) {
+    final AppTokens tokens = AppTokens.of(context);
+    final int epoch = _epoch;
+    final bool Function() originalCurrent = widget.isCurrent;
+    bool current() => _current && originalCurrent() && epoch == _epoch;
     final TokenActionOutcome? outcome = _outcome;
     final Uri? explorer = outcome?.status == TokenActionStatus.submitted
         ? ExplorerLinks.transaction(
@@ -1056,17 +1161,7 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
         spacing: tokens.tokenActionGap,
         runSpacing: tokens.tokenActionGap,
         children: <Widget>[
-          TextButton(
-            key: const Key('token_send'),
-            onPressed: current() && live && widget.onSendToken != null
-                ? () {
-                    if (current() && (_proof?.isCurrent ?? false)) {
-                      widget.onSendToken!(standard);
-                    }
-                  }
-                : null,
-            child: Text(context.l10n.send),
-          ),
+          if (includeSend) _buildSend(token),
           TextButton.icon(
             key: const Key('token_domain'),
             onPressed: current() && token.domain.isNotEmpty
@@ -1177,11 +1272,13 @@ class _TokenFacts extends StatelessWidget {
     required this.token,
     this.flagsOnly = false,
     this.metadataOnly = false,
+    this._includeUtility = true,
   });
 
   final Token token;
   final bool flagsOnly;
   final bool metadataOnly;
+  final bool _includeUtility;
 
   @override
   Widget build(BuildContext context) {
@@ -1204,7 +1301,7 @@ class _TokenFacts extends StatelessWidget {
               ? context.l10n.tokensBurnableByHolder
               : context.l10n.tokensBurnableByOwner,
         ),
-      if (!metadataOnly)
+      if (!metadataOnly && _includeUtility)
         (
           context.l10n.tokensUtility,
           token.isUtility ? context.l10n.tokensYes : context.l10n.tokensNo,

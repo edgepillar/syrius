@@ -537,6 +537,188 @@ void main() {
     },
   );
 
+  for (final Brightness brightness in Brightness.values) {
+    for (final TextDirection direction in TextDirection.values) {
+      testWidgets(
+        '${brightness.name} ${direction.name} holder actions refuse '
+        'retained callbacks after publisher replacement',
+        (WidgetTester tester) async {
+          await _withFixture(tester, (ActionFixture fixture) async {
+            fixture.token = actionToken(owner: tokenAddress);
+            final ActionFixture replacement = ActionFixture(
+              initialToken: Token.fromJson(fixture.token.toJson()),
+            );
+            try {
+              ActionFixture active = fixture;
+              late StateSetter update;
+              final List<String> sends = <String>[];
+              final List<TokenActionIntent> questions = <TokenActionIntent>[];
+              bool acceptQuestion = false;
+              await tester.pumpWidget(
+                _host(
+                  StatefulBuilder(
+                    builder: (BuildContext context, StateSetter setState) {
+                      update = setState;
+                      return TokenCard(
+                        token: active.token,
+                        balance: active.balance,
+                        publisher: active.publisher,
+                        favoritesCallback: () {},
+                        favoriteRepository: _Favorites(),
+                        isCurrent: () => true,
+                        onSendToken: sends.add,
+                        question: (TokenActionIntent intent) async {
+                          questions.add(intent);
+                          return acceptQuestion;
+                        },
+                      );
+                    },
+                  ),
+                  brightness: brightness,
+                  direction: direction,
+                ),
+              );
+              await tester.tap(find.byKey(const Key('token_detail_button')));
+              await tester.pump();
+              final Finder burn = find.byKey(const Key('token_burn_open'));
+              await pumpActionUntil(
+                tester,
+                () =>
+                    burn.evaluate().isNotEmpty &&
+                    tester.widget<OutlinedButton>(burn).onPressed != null,
+              );
+              await tester.pump(const Duration(milliseconds: 260));
+              expect(tester.getSize(burn).height, 26);
+              for (final String mode in <String>[
+                'mint',
+                'burn',
+                'transfer',
+                'flags',
+              ]) {
+                expect(
+                  find.byKey(Key('token_action_mode_$mode')),
+                  findsNothing,
+                );
+              }
+              expect(find.byKey(const Key('burn_amount_field')), findsNothing);
+              final VoidCallback oldBurn = tester
+                  .widget<OutlinedButton>(burn)
+                  .onPressed!;
+              final Finder send = find.byKey(const Key('token_send'));
+              final VoidCallback oldSend = tester
+                  .widget<OutlinedButton>(send)
+                  .onPressed!;
+              update(() => active = replacement);
+              await tester.pump();
+              await pumpActionUntil(
+                tester,
+                () =>
+                    replacement.accountReads == 1 &&
+                    tester.widget<OutlinedButton>(burn).onPressed != null,
+              );
+              oldBurn();
+              oldSend();
+              await tester.pump();
+              expect(find.byKey(const Key('burn_amount_field')), findsNothing);
+              expect(sends, isEmpty);
+              expect(questions, isEmpty);
+              expect(fixture.transport.calls, isEmpty);
+              expect(replacement.transport.calls, isEmpty);
+              await tester.tap(send);
+              expect(
+                sends,
+                <String>[replacement.token.tokenStandard.toString()],
+              );
+              await tester.tap(burn);
+              await tester.pump();
+              await tester.pump(const Duration(milliseconds: 260));
+              await _editField(tester, 'burn_amount_field', '1');
+              final Finder submit = find.byKey(const Key('token_burn_submit'));
+              expect(tester.widget<PrimaryPill>(submit).onPressed, isNotNull);
+              final VoidCallback oldSubmit = tester
+                  .widget<PrimaryPill>(submit)
+                  .onPressed!;
+              await tester.tap(submit);
+              await pumpActionUntil(tester, () => questions.length == 1);
+              await tester.pump();
+              expect(questions.single.mode, TokenActionMode.burn);
+              expect(
+                questions.single.amount,
+                BigInt.from(10).pow(replacement.token.decimals),
+              );
+              expect(
+                questions.single.standard,
+                replacement.token.tokenStandard,
+              );
+              expect(fixture.transport.calls, isEmpty);
+              expect(replacement.transport.calls, isEmpty);
+              acceptQuestion = true;
+              await pumpActionUntil(
+                tester,
+                () => tester.widget<PrimaryPill>(submit).onPressed != null,
+              );
+              await tester.tap(submit);
+              await pumpActionUntil(
+                tester,
+                () =>
+                    replacement.publisher.lastOutcome?.status ==
+                    TokenActionStatus.submitted,
+              );
+              await tester.pump();
+              expect(questions, hasLength(2));
+              expect(replacement.transport.calls, hasLength(1));
+              final Finder disclosure = find.byKey(
+                const Key('token_detail_button'),
+              );
+              await tester.tap(disclosure);
+              await tester.pump();
+              await tester.pump(const Duration(milliseconds: 241));
+              expect(find.byType(TokenInlineActions), findsNothing);
+              await tester.tap(disclosure);
+              await tester.pump();
+              final Finder another = find.byKey(
+                const Key('token_action_another'),
+              );
+              await pumpActionUntil(
+                tester,
+                () => another.evaluate().isNotEmpty,
+              );
+              await tester.pump(const Duration(milliseconds: 241));
+              expect(find.byKey(const Key('burn_amount_field')), findsNothing);
+              replacement.confirm(replacement.publisher.lastOutcome!);
+              await tester.pump();
+              expect(
+                tester.widget<TextButton>(another).onPressed,
+                isNotNull,
+              );
+              await tester.tap(another);
+              await pumpActionUntil(
+                tester,
+                () => find.byKey(const Key('burn_amount_field'))
+                    .evaluate().isNotEmpty,
+              );
+              oldSubmit();
+              await tester.pump();
+              expect(questions, hasLength(2));
+              expect(
+                tester.widget<TextField>(
+                  find.byKey(const Key('burn_amount_field')),
+                ).controller!.text,
+                isEmpty,
+              );
+              expect(fixture.transport.calls, isEmpty);
+              expect(replacement.transport.published, 1);
+              expect(tester.takeException(), isNull);
+            } finally {
+              await tester.pumpWidget(const SizedBox.shrink());
+              await _closeFixture(tester, replacement);
+            }
+          });
+        },
+      );
+    }
+  }
+
   testWidgets(
     'keyboard submission uses the active mode and hidden modes cannot submit',
     (WidgetTester tester) async {
