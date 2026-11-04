@@ -97,8 +97,13 @@ replace positive shutdown. Raw outputs and paths remain private.
 This is a fresh non-secret hosted fixture with a declared 4 GiB cooperative
 allocation/work limit, 2 GiB floor and twenty-minute job limit. Local production
 limits are unchanged. The lane does not qualify Windows Docker Desktop, import
-a wallet, send a block or admit F06. Its initial source/runtime execution is
-pending; see [the exact scope](../../../docs/review/source449-original-lab-commands.md).
+a wallet, send a block or admit F06. Source450 registration passes 1,022 controls
+with two existing Linux skips. Its first runtime fails the original status
+command and does not qualify shutdown; the large runtime notice is incomplete.
+Source451 adds bounded summary/receipt notices and fixed failure diagnostics.
+See [the original scope](../../../docs/review/source449-original-lab-commands.md)
+and [the retained failure boundary](../../../docs/review/source451-bounded-lab-observations.md).
+Complete original-command qualification remains pending.
 
 The manual `Public Contribution Qualification` workflow has a default-off
 `chain321_lab` input. It prepares two independent fresh runners:

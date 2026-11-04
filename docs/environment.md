@@ -36,7 +36,14 @@ its source registration 41897166398 passes 1,022 controls with two existing Linu
 skips and zero failures/errors, with original source verified before/after.
 The runtime job is skipped and artifacts are zero. Source450 clarifies that its
 SDK metric counts Flutter only; the original Go compiler remains inside the
-Docker build image. The first actual original-command runtime remains pending.
+Docker build image. Source450's first actual original-command trial 41899894079
+fails after original-container admission, with COMMAND_FAILED at the status
+command and a separate STOP_UNKNOWN close refusal in the complete notice prefix.
+The notice is truncated at 4,096 bytes; full runtime/exit details and the inner
+cause remain NOT_ESTABLISHED. Source451 adds
+[bounded receipt chunks and fixed diagnostics](review/source451-bounded-lab-observations.md)
+without changing original production/ownership/exit criteria. Fresh observations
+are pending; the old run stays failed and its shutdown remains unqualified.
 All 1,970 earlier runtime entries
 remain byte-identical; two new Python files are separately scoped. No new local
 SDK, binary transport, Windows build or old runtime replay occurs.

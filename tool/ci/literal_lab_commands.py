@@ -62,11 +62,30 @@ def frontier(raw):
     markers = [row for row in rows if row.startswith('chain ')]
     need(len(markers) == 1 and len(rows) >= 2
         and rows[-2:] == [markers[0], 'producing'], 'CHAIN_REFUSED')
-    match = re.fullmatch(r'chain 321: ([0-9]+) then ([0-9]+) after ([0-9]+) s', markers[0])
+    match = re.fullmatch(r'chain 321: ([0-9]{1,16}) then ([0-9]{1,16}) after ([0-9]{1,3}) s', markers[0])
     need(match is not None, 'CHAIN_REFUSED')
     first, last, seconds = map(int, match.groups())
     need(0 <= first < last <= 2**53 - 1 and 0 <= seconds <= 270, 'CHAIN_REFUSED')
     return dict(chain_id=321, first_height=first, last_height=last, seconds=seconds)
+
+
+def failed_frontier(raw):
+    """Retain only an exact stopped-progress line, never an RPC error string."""
+    value = dict(status='UNAVAILABLE')
+    if type(raw) is not bytes or len(raw) > 2 * MIB:
+        return value
+    rows = raw.decode('utf-8', 'replace').splitlines()
+    markers = [row for row in rows if row.startswith('chain ')]
+    if len(markers) != 1 or rows[-2:] != [markers[0], 'NOT producing']:
+        return value
+    match = re.fullmatch(r'chain 321: ([0-9]{1,16}) then ([0-9]{1,16}) after ([0-9]{1,3}) s', markers[0])
+    if match is None:
+        return value
+    first, last, seconds = map(int, match.groups())
+    if not (0 <= first == last <= 2**53 - 1 and 0 <= seconds <= 270):
+        return value
+    return dict(status='STALLED', chain_id=321, first_height=first,
+        last_height=last, seconds=seconds)
 
 
 def json_value(raw):
@@ -145,6 +164,56 @@ def exits(raw, owned):
             and labels.get('com.docker.compose.service') == role, 'STOP_UNKNOWN')
         result[role] = 0
     need(set(result) == set(ROLES), 'STOP_UNKNOWN')
+    return result
+
+
+def exit_facts(raw, owned):
+    """Diagnostic facts do not replace the unchanged strict exit admission."""
+    result = {role: dict(die_count=0, exit_codes=[], exit_code_count=0, oom=False)
+        for role in ROLES}
+    roles = {value[0]: role for role, value in owned.items()}
+    codes = {role: set() for role in ROLES}
+    try:
+        need(type(raw) is bytes and len(raw) <= 2 * MIB
+            and len(raw.splitlines()) <= 2000, 'OUTPUT_REFUSED')
+        for line in raw.splitlines():
+            row = json_value(line)
+            identity = row.get('Actor', {}).get('ID')
+            if type(identity) is not str or identity not in roles:
+                continue
+            role = roles[identity]
+            need(row.get('Type') == 'container', 'STOP_UNKNOWN')
+            if row.get('Action') == 'oom':
+                result[role]['oom'] = True
+            if row.get('Action') != 'die':
+                continue
+            labels = row['Actor']['Attributes']
+            need(labels.get('com.docker.compose.project') == PROJECT
+                and labels.get('com.docker.compose.service') == role
+                and labels.get('name') == 'syrius-lab-' + role, 'STOP_UNKNOWN')
+            value = labels.get('exitCode')
+            need(type(value) is str and re.fullmatch('[0-9]{1,3}', value)
+                and 0 <= int(value) <= 255, 'STOP_UNKNOWN')
+            result[role]['die_count'] += 1
+            codes[role].add(int(value))
+        for role in ROLES:
+            result[role].update(exit_codes=sorted(codes[role])[:4],
+                exit_code_count=len(codes[role]))
+        return dict(status='OBSERVED', roles=result)
+    except Exception:
+        return dict(status='REFUSED', roles={})
+
+
+def failure_logs(commands, owned):
+    """Read bounded original-container logs without exporting raw messages."""
+    result = {}
+    for role in ROLES:
+        try:
+            commands.run('node_failure_logs', ['docker', 'logs', '--tail', '64', owned[role][0]])
+            output = b'\n'.join(bytes(drain.data) for drain in commands.originals[-1].drains)
+            result[role] = dict(status='READ', codes=hosted.node_diagnostics(output)[:4])
+        except Exception as error:
+            result[role] = dict(status='UNAVAILABLE', code=code(error))
     return result
 
 
@@ -255,6 +324,8 @@ class Commands:
                 output = b'\n'.join(bytes(drain.data) for drain in original.drains)
                 row['up_output_tags'] = [item for item in hosted.compiler_diagnostics(output)
                     if item['code'] != 'UNCLASSIFIED_BUILD_FAILURE']
+            if stage == 'status' and error is not None:
+                row['frontier_observation'] = failed_frontier(bytes(original.drains[0].data))
             try:
                 row['retained_objects'] = self.retain(original)
             except Exception as caught:
@@ -338,6 +409,10 @@ def observe(commands, repo, lab, report):
                 names = ['syrius-lab-' + role for role in ROLES]
                 current = containers(commands.docker('inspect', *names), image, lab / 'assets')
                 need(current == owned, 'RESOURCE_CHANGED')
+                if observation_failed:
+                    report['node_failure_facts'] = failure_logs(commands, owned)
+                    current = containers(commands.docker('inspect', *names), image, lab / 'assets')
+                    need(current == owned, 'RESOURCE_CHANGED')
                 since = str(max(0, int(time.time()) - 1))
                 commands.run('down', [*script, 'down'], 45)
                 until = str(int(time.time()) + 1)
@@ -346,6 +421,7 @@ def observe(commands, repo, lab, report):
                 raw = commands.run('exit_events', ['docker', 'events', '--since', since,
                     '--until', until, '--filter', 'type=container', *filters,
                     '--format', '{{json .}}'], 20)
+                report['exit_observations'] = exit_facts(raw, owned)
                 report['exit_codes'] = exits(raw, owned)
                 need(not commands.docker('ps', '-a', '--filter',
                     'name=^/syrius-lab-', '--format', '{{.ID}}').strip(), 'STOP_UNKNOWN')
@@ -368,10 +444,39 @@ def code(error):
     return error.code if isinstance(error, (Refused, hosted.Failure)) and error.code in CODES else 'INTERNAL_ERROR'
 
 
+def notice_frames(report):
+    """Keep every independently bound notice below the observed 4 KiB limit."""
+    summary = dict(report)
+    rows = summary.pop('commands')
+    need(type(rows) is list and len(rows) <= 80, 'OUTPUT_REFUSED')
+    binding = {key: report[key] for key in ('source_sha', 'source_tree', 'run_id', 'run_attempt')}
+    def packet(items, index, count):
+        return dict(schema=1, scope='literal_lab_command_receipts', **binding,
+            command_count=len(rows), chunk_index=index, chunk_count=count, items=items)
+    def encoded(value):
+        return json.dumps(value, sort_keys=True, separators=(',', ':')).encode('ascii')
+    chunks, current = [], []
+    for index, row in enumerate(rows, 1):
+        item = dict(index=index, command=row)
+        if current and len(encoded(packet([*current, item], 80, 80))) > 3500:
+            chunks.append(current)
+            current = []
+        current.append(item)
+        need(len(encoded(packet(current, 80, 80))) <= 3500, 'OUTPUT_REFUSED')
+    if current:
+        chunks.append(current)
+    summary.update(schema=2, command_count=len(rows), command_chunk_count=len(chunks))
+    frames = [summary, *[packet(items, index, len(chunks))
+        for index, items in enumerate(chunks, 1)]]
+    need(len(frames) <= 50 and all(len(encoded(frame)) <= 3800 for frame in frames), 'OUTPUT_REFUSED')
+    return frames
+
+
 def main():
     report = dict(schema=1, scope='literal_lab_commands', success=False, code=None,
         source_sha=None, source_tree=None, run_id=None, run_attempt=None,
         observation_code=None, close_code=None, unadopted_start_held=False,
+        node_failure_facts={}, exit_observations=None,
         node_sha=NODE, node_tree=NODE_TREE, commands=[], up=None, status=None,
         image_sha256=None, genesis_sha256=None, exit_codes={},
         checks=dict(fresh=False, originals=False, production=False, stopped=False, source_after=False),
@@ -405,8 +510,9 @@ def main():
         report['success'] = all(report['checks'].values())
     except Exception as error:
         report['code'] = code(error)
-    raw = json.dumps(report, sort_keys=True, separators=(',', ':'))
-    print('::notice title=Original lab commands::' + raw)
+    for frame in notice_frames(report):
+        raw = json.dumps(frame, sort_keys=True, separators=(',', ':'))
+        print('::notice title=Original lab commands::' + raw)
     return 0 if report['success'] else 1
 
 

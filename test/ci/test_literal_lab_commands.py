@@ -71,7 +71,10 @@ class LiteralLabTests(unittest.TestCase):
             self.assertEqual(lab.main(), 1)
         value = json.loads(output.getvalue().split('::', 2)[2])
         self.assertEqual(value['code'], 'ENVIRONMENT_REFUSED')
-        self.assertEqual(value['commands'], [])
+        self.assertEqual(value['schema'], 2)
+        self.assertEqual(value['command_count'], 0)
+        self.assertEqual(value['command_chunk_count'], 0)
+        self.assertNotIn('commands', value)
         self.assertEqual(value['flutter_sdk_executions'], 0)
         self.assertNotIn('sdk_executions', value)
 
@@ -161,6 +164,69 @@ class LiteralLabTests(unittest.TestCase):
     def test_duplicate_json_keys_and_unknown_errors_do_not_export_input(self):
         with self.assertRaises(lab.Refused):lab.json_value(b'{"a": 1, "a": 2}')
         self.assertEqual(lab.code(ValueError('/private/input secret')), 'INTERNAL_ERROR')
+
+    def test_failed_frontier_keeps_only_exact_stalled_fixture_numbers(self):
+        self.assertEqual(lab.failed_frontier(b'table\nchain 321: 5 then 5 after 30 s\nNOT producing\n'),
+            dict(status='STALLED', chain_id=321, first_height=5, last_height=5, seconds=30))
+        for raw in (b'http://private: secret',
+                b'chain 69: 5 then 5 after 30 s\nNOT producing\n',
+                b'chain 321: 5 then 6 after 30 s\nNOT producing\n',
+                b'chain 321: 5 then 5 after 30 s\nNOT producing\nprivate',
+                b'chain 321: 5 then ' + b'9' * 10000 + b' after 30 s\nNOT producing\n'):
+            value = lab.failed_frontier(raw)
+            self.assertEqual(value, dict(status='UNAVAILABLE'))
+            self.assertNotIn('private', json.dumps(value))
+
+    def test_exit_facts_never_turn_nonzero_missing_or_oom_into_success(self):
+        owned = self.parse(self.rows());rows = self.events(owned)[:-1]
+        rows[0]['Actor']['Attributes']['exitCode'] = '137'
+        rows.append(dict(Type='container', Action='oom', Actor=dict(ID=owned['pillar2'][0])))
+        rows.append(dict(Type='container', Action='die', Actor=dict(ID='private', Attributes=dict(secret='private'))))
+        raw = self.encoded(rows);facts = lab.exit_facts(raw, owned)
+        self.assertEqual(facts['status'], 'OBSERVED')
+        self.assertEqual(facts['roles']['pillar']['exit_codes'], [137])
+        self.assertEqual(facts['roles']['rpc']['die_count'], 0)
+        self.assertTrue(facts['roles']['pillar2']['oom'])
+        self.assertNotIn('private', json.dumps(facts))
+        with self.assertRaises(lab.Refused):lab.exits(raw, owned)
+        self.assertEqual(lab.exit_facts(b'private', owned), dict(status='REFUSED', roles={}))
+
+    def test_failure_log_refusal_is_bounded_and_does_not_raise(self):
+        commands = mock.Mock();commands.run.side_effect = lab.Refused('OUTPUT_REFUSED')
+        owned = self.parse(self.rows());value = lab.failure_logs(commands, owned)
+        self.assertEqual(value, {role: dict(status='UNAVAILABLE', code='OUTPUT_REFUSED') for role in lab.ROLES})
+        self.assertEqual(commands.run.call_count, 5)
+        for call in commands.run.call_args_list:
+            self.assertEqual(call.args[0], 'node_failure_logs')
+            self.assertEqual(call.args[1][:4], ['docker', 'logs', '--tail', '64'])
+
+    def test_notice_chunks_preserve_all_bound_receipts_within_message_limit(self):
+        command = dict(stage='source', seconds=0.1, receipt=dict(exit_code=0,
+            output_complete=True, forced=False, stop_code=None, stop_os_error=None,
+            streams={name: dict(bytes=40, retained_bytes=40, sha256='a' * 64,
+                overflow=False) for name in ('stdout', 'stderr')}),
+            retained_objects={name: dict(bytes=40, sha256='a' * 64) for name in ('stdout', 'stderr')})
+        rows = [copy.deepcopy(command) for _ in range(80)]
+        rows[7]['stage'] = 'up'
+        rows[7]['up_output_tags'] = [dict(code='GO_LINKNAME_REFUSED', symbol='a' * 95) for _ in range(12)]
+        report = dict(schema=1, scope='literal_lab_commands', source_sha='a' * 40,
+            source_tree='b' * 40, run_id='1', run_attempt='1', commands=rows)
+        frames = lab.notice_frames(report)
+        self.assertEqual(frames[0]['command_count'], 80)
+        self.assertEqual(frames[0]['command_chunk_count'], len(frames) - 1)
+        self.assertEqual(report['commands'], rows)
+        self.assertLessEqual(len(frames), 50)
+        items = []
+        for index, frame in enumerate(frames[1:], 1):
+            self.assertEqual(frame['chunk_index'], index)
+            self.assertEqual(frame['chunk_count'], len(frames) - 1)
+            self.assertEqual(frame['source_sha'], report['source_sha'])
+            self.assertEqual(frame['run_id'], '1')
+            items.extend(frame['items'])
+        self.assertEqual([item['index'] for item in items], list(range(1, 81)))
+        self.assertEqual([item['command'] for item in items], rows)
+        self.assertTrue(all(len(json.dumps(frame, sort_keys=True,
+            separators=(',', ':')).encode()) <= 3800 for frame in frames))
 
     def test_complete_original_command_path_closes_once_then_revalidates_source(self):
         commands = mock.Mock();commands.git.side_effect = [lab.NODE, lab.NODE_TREE]

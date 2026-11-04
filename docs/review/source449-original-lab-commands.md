@@ -73,3 +73,15 @@ still uses a Go compiler inside its build image; zero Flutter executions does
 not claim absence of all compilers/toolchains. Runtime commands, input pins,
 resource bounds and ownership/exit requirements are unchanged. Fresh source
 registration and the first actual original-command trial remain pending.
+
+## Original Source450 runtime
+
+The first actual trial
+[41899894079](https://github.com/edgepillar/syrius/actions/runs/41899894079)
+fails at the original status command, with a separate STOP_UNKNOWN close result
+in the complete prefix of its truncated 4,096-byte notice. Full inner/exit facts
+remain unretained. The failed original is terminal with zero artifacts and is
+not retried or converted into a successful lab. The
+[Source451 observation correction](source451-bounded-lab-observations.md)
+uses small bound receipt chunks and fixed failure facts while retaining the
+original commands, production, identity and strict zero-exit requirements.
