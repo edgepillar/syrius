@@ -5,7 +5,7 @@ that sends a block goes here, never to a public devnet: a spork activated from
 a wallet as a test stopped a public devnet on 2026-10-11.
 
 ```sh
-tools/devnet/lab/lab.sh up       # fetches go-zenon, builds the image and the assets on first use
+tools/devnet/lab/lab.sh up       # builds on first use; waits for two height advances
 tools/devnet/lab/lab.sh status   # containers, and whether momentums are being produced
 tools/devnet/lab/lab.sh down     # stop, chain kept
 tools/devnet/lab/lab.sh wipe     # stop, delete the chain and the assets
@@ -375,3 +375,16 @@ and VM disposal stay unqualified. See the [actual record](../../../docs/review/s
 Source457 changes documentation only. Continued-startup readiness is the next
 correction within the existing startup bound; status and protocol deadlines
 remain. Earlier failed runs retain their facts.
+
+## Continued startup readiness
+
+`up` now requires two height advances within its existing 180-second progress
+window, after the existing ninety-second initial RPC wait. `status` still
+requires one advance within thirty seconds. A first isolated block is not
+sufficient readiness. Foreign/invalid heights, regression and malformed advance
+options refuse. The controller independently checks the required startup delta;
+a failed up exports only bounded partial-progress facts and leaves unadopted
+resources held. No guessed down is submitted. Node, reference recipe, stop grace
+and protocol broadcast deadline remain unchanged. Fresh 1,048-case source and
+reference runtime execution are pending. The [scope and fixtures](../../../docs/review/source458-continued-startup-readiness.md)
+do not establish a production repair; Source456 retirement retains its own pin.

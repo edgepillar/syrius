@@ -36,6 +36,8 @@ elif args == ['compose', 'down']:
 elif args[:1] == ['build']:
     if os.environ.get('FIXTURE_FAIL') == 'build':
         sys.exit(17)
+elif args[:2] == ['image', 'inspect'] or args in (['compose', 'up', '-d'], ['compose', 'ps', '-a']):
+    pass
 else:
     sys.exit(99)
 '''
@@ -172,6 +174,32 @@ else:
         self.assertIsNone(revision)
         self.assertEqual(len(calls), 1)
         self.assertEqual(calls[0][0], 'build')
+
+    def test_up_requests_two_advances_and_status_retains_thirty_seconds(self):
+        with tempfile.TemporaryDirectory(prefix='lab-readiness-fixture-') as directory:
+            root = Path(directory);script = root / 'lab.sh'
+            script.write_bytes((REPO / 'tools/devnet/lab/lab.sh').read_bytes())
+            (root / '.build').mkdir();(root / '.build/revision').write_text('590f43c\n')
+            (root / 'assets').mkdir();(root / 'assets/genesis.json').write_text('{}')
+            trace = root / 'trace.jsonl'
+            docker = root / 'docker';docker.write_text('#!' + sys.executable + '\n' + DOCKER);docker.chmod(0o700)
+            node = root / 'node'
+            node.write_text('#!' + sys.executable + '\n' + '''import json, os, sys
+from pathlib import Path
+with Path(os.environ['FIXTURE_TRACE']).open('a') as out:
+    out.write(json.dumps(['node', *sys.argv[1:]]) + '\\n')
+''');node.chmod(0o700)
+            env = dict(os.environ, PATH=str(root) + os.pathsep + os.environ['PATH'],
+                FIXTURE_TRACE=str(trace), LAB_BUILD_RECIPE='upstream')
+            for action in ('up', 'status'):
+                result = subprocess.run([BASH, str(script), action], env=env,
+                    capture_output=True, timeout=5, check=False)
+                self.assertEqual(result.returncode, 0)
+            calls = [json.loads(line) for line in trace.read_text().splitlines()]
+            self.assertEqual(calls, [['image', 'inspect', 'syrius-lab-znnd:590f43c'],
+                ['compose', 'up', '-d'], ['node', str(root / 'frontier.js'),
+                    '180', '--wait', '90', '--advances', '2'],
+                ['compose', 'ps', '-a'], ['node', str(root / 'frontier.js'), '30']])
 
 
 if __name__ == '__main__':

@@ -34,11 +34,11 @@ NODE_LOG_SOURCES = (
 NODE_LOG_READ = ('[ ! -L /root/.znn/log ] && [ ! -L /root/.znn/log/error ] '
     '&& [ ! -L "$1" ] && [ -f "$1" ] && exec tail -n 64 "$1"')
 PINS = {
-    'lab.sh': '806fb71e96a718e0a8e67d84051b07d3cfdb347c197f21f511e87af24ad68119',
+    'lab.sh': 'afdbc151250aee9571fad73ef290ae2fdcd71a3c77f737e2ed850c10a82be801',
     'Dockerfile.reference': 'e9881d35e990c3013d1fde7a3adb92e5e85bb3dde4a9a24a0e8a1d8e6fe2377a',
     'docker-compose.yml': '0100e958abd79d03bd125ce7fd042b9f3bb78cda8b69a17502beadb99ed4cef9',
     'make-assets.js': 'bf2a2f20f780b384b2cd0d0e04cb8eff217b671373b0025435bded07b56fbebb',
-    'frontier.js': 'd43aad19cf583b72f6615b96069c4e39e617587a5afaedc9ea07f6b2c2f1a76d',
+    'frontier.js': 'b4c16f1943abcba6cb26f44aced4cec8df590b98b2d61d256ed33063c035db87',
 }
 CODES = frozenset(('ENVIRONMENT_REFUSED', 'SOURCE_REFUSED', 'STORAGE_REFUSED',
     'RESOURCE_CHANGED', 'CHAIN_REFUSED', 'COMMAND_FAILED', 'COMMAND_TIMEOUT',
@@ -79,7 +79,8 @@ def admit(parent, platform):
     return selected_node(parent)
 
 
-def frontier(raw):
+def frontier(raw, minimum=1):
+    need(type(minimum) is int and minimum in (1, 2), 'CHAIN_REFUSED')
     need(type(raw) is bytes and len(raw) <= 2 * MIB, 'OUTPUT_REFUSED')
     rows = raw.decode('utf-8', 'strict').splitlines()
     markers = [row for row in rows if row.startswith('chain ')]
@@ -88,14 +89,16 @@ def frontier(raw):
     match = re.fullmatch(r'chain 321: ([0-9]{1,16}) then ([0-9]{1,16}) after ([0-9]{1,3}) s', markers[0])
     need(match is not None, 'CHAIN_REFUSED')
     first, last, seconds = map(int, match.groups())
-    need(0 <= first < last <= 2**53 - 1 and 0 <= seconds <= 270, 'CHAIN_REFUSED')
+    need(0 <= first <= last <= 2**53 - 1 and last - first >= minimum
+        and 0 <= seconds <= 270, 'CHAIN_REFUSED')
     return dict(chain_id=321, first_height=first, last_height=last, seconds=seconds)
 
 
-def failed_frontier(raw):
-    """Retain only an exact stopped-progress line, never an RPC error string."""
+def failed_frontier(raw, minimum=1):
+    """Retain an exact insufficient-progress line, never an RPC error string."""
     value = dict(status='UNAVAILABLE')
-    if type(raw) is not bytes or len(raw) > 2 * MIB:
+    if (type(minimum) is not int or minimum not in (1, 2)
+            or type(raw) is not bytes or len(raw) > 2 * MIB):
         return value
     rows = raw.decode('utf-8', 'replace').splitlines()
     markers = [row for row in rows if row.startswith('chain ')]
@@ -105,10 +108,14 @@ def failed_frontier(raw):
     if match is None:
         return value
     first, last, seconds = map(int, match.groups())
-    if not (0 <= first == last <= 2**53 - 1 and 0 <= seconds <= 270):
+    if not (0 <= first <= last <= 2**53 - 1 and last - first < minimum
+            and 0 <= seconds <= 270):
         return value
-    return dict(status='STALLED', chain_id=321, first_height=first,
-        last_height=last, seconds=seconds)
+    value = dict(status='STALLED' if first == last else 'INSUFFICIENT_PROGRESS',
+        chain_id=321, first_height=first, last_height=last, seconds=seconds)
+    if minimum == 2:
+        value['required_advances'] = minimum
+    return value
 
 
 def json_value(raw):
@@ -380,6 +387,8 @@ class Commands:
                 output = b'\n'.join(bytes(drain.data) for drain in original.drains)
                 row['up_output_tags'] = [item for item in hosted.compiler_diagnostics(output)
                     if item['code'] != 'UNCLASSIFIED_BUILD_FAILURE']
+                row['frontier_observation'] = failed_frontier(
+                    bytes(original.drains[0].data), minimum=2)
             if stage == 'status' and error is not None:
                 row['frontier_observation'] = failed_frontier(bytes(original.drains[0].data))
             try:
@@ -438,7 +447,7 @@ def observe(commands, repo, lab, report):
     report['checks']['fresh'] = True
     observation_failed = False
     try:
-        report['up'] = frontier(commands.run('up', [*script, 'up'], 900))
+        report['up'] = frontier(commands.run('up', [*script, 'up'], 900), minimum=2)
         node = lab / '.build/go-zenon'
         need(commands.git(node, 'rev-parse', node_pin + '^{commit}') == node_pin
             and commands.git(node, 'rev-parse', node_pin + '^{tree}') == node_tree,
@@ -545,6 +554,7 @@ def main():
         node_failure_facts={}, node_file_failure_facts={}, exit_observations=None,
         node_source='original', node_sha=NODE, node_tree=NODE_TREE,
         node_build_recipe='upstream',
+        startup_min_advances=2,
         commands=[], up=None, status=None,
         image_sha256=None, genesis_sha256=None, exit_codes={},
         checks=dict(fresh=False, originals=False, production=False, stopped=False, source_after=False),

@@ -1,20 +1,27 @@
 #!/usr/bin/env node
 // Is the lab producing? Reads the frontier momentum, then again every five
-// seconds until the height has moved or the time is up.
+// seconds until the requested number of advances or the time limit.
 //
-//   node frontier.js [seconds to give it, default 30] [--wait <seconds>]
+//   node frontier.js [seconds, default 30] [--wait <seconds>] [--advances <count>]
 //
 // A chain that has stopped still answers, and still takes blocks into its
-// pool, so one read proves nothing. `--wait` keeps trying until the node
-// answers at all, for the minute after `up`; the first momentum of a new
-// chain comes about 90 s after the nodes start. Exit status 0 only when the
-// height moved.
+// pool, so one read proves nothing. `--wait` bounds initial RPC readiness;
+// `--advances` sets the required height delta within the progress window.
+// Exit status 0 requires that delta. Startup requires two; status one.
 const http = require('node:http');
 
 const args = process.argv.slice(2);
 const waitAt = args.indexOf('--wait');
 const wait = waitAt >= 0 ? Number(args.splice(waitAt, 2)[1]) : 0;
+const advancesAt = args.indexOf('--advances');
+const advances = advancesAt >= 0 ? Number(args.splice(advancesAt, 2)[1]) : 1;
 const patience = Number(args[0] || 30);
+if (args.length > 1 || !Number.isSafeInteger(patience) || patience <= 0 ||
+    !Number.isSafeInteger(wait) || wait < 0 ||
+    !Number.isSafeInteger(advances) || advances <= 0) {
+  console.error('usage: frontier.js [seconds] [--wait <seconds>] [--advances <count>]');
+  process.exit(2);
+}
 const url = process.env.LAB_RPC || 'http://127.0.0.1:45997';
 
 const frontier = () => new Promise((resolve, reject) => {
@@ -25,7 +32,10 @@ const frontier = () => new Promise((resolve, reject) => {
       try {
         const reply = JSON.parse(body);
         if (reply.error) reject(new Error(reply.error.message));
-        else resolve(reply.result);
+        else if (reply.result?.chainIdentifier !== 321 ||
+                 !Number.isSafeInteger(reply.result.height) || reply.result.height < 0) {
+          reject(new Error('invalid lab frontier'));
+        } else resolve(reply.result);
       } catch (error) {
         reject(error);
       }
@@ -52,14 +62,15 @@ const pause = (seconds) => new Promise((resolve) => { setTimeout(resolve, second
   }
   const started = Date.now();
   let second = first;
-  while (second.height === first.height && Date.now() - started < patience * 1000) {
+  while (second.height >= first.height && second.height - first.height < advances &&
+         Date.now() - started < patience * 1000) {
     await pause(5);
     second = await frontier();
   }
   const moved = second.height - first.height;
   console.log(`chain ${second.chainIdentifier}: ${first.height} then ${second.height} after ${Math.round((Date.now() - started) / 1000)} s`);
-  console.log(moved > 0 ? 'producing' : 'NOT producing');
-  process.exit(moved > 0 ? 0 : 1);
+  console.log(moved >= advances ? 'producing' : 'NOT producing');
+  process.exit(moved >= advances ? 0 : 1);
 })().catch((error) => {
   console.error(`${url}: ${error.message}`);
   process.exit(1);

@@ -109,6 +109,16 @@ this is not sole-cause proof, and exact timing remains NOT_ESTABLISHED. Producti
 final native source and VM disposal remain unqualified. Source457 records these
 results without runtime changes. Continued-startup readiness is the next
 correction within the existing startup bound; status/protocol deadlines remain.
+[Source458 continued readiness](review/source458-continued-startup-readiness.md)
+now requires two advances for actual up within the original 180-second progress
+and ninety-second initial RPC bounds. Status retains thirty seconds/one advance;
+node, recipe, grace and protocol deadlines remain. Both the script and controller
+refuse partial startup readiness. Failed up exports bounded partial-progress
+facts, with unknown resources unadopted/held and no guessed down. Source CI checks
+all five pins and selects every lab input path. Twenty-nine local pure cases pass;
+eleven Bash and two actual-JavaScript inert-adapter cases stay unselected locally.
+Fresh 1,048-case source/reference execution is pending; this is not a proven
+production repair or transferred Source456 normal-retirement qualification.
 All 1,970 earlier runtime entries
 remain byte-identical through Source451; Source453 separately changes the lab
 script/controller/workflow and adds six shell-fixture cases. No new local

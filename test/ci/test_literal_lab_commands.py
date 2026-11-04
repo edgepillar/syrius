@@ -104,6 +104,28 @@ class LiteralLabTests(unittest.TestCase):
             with self.assertRaises(lab.Refused):
                 lab.frontier(raw)
 
+    def test_startup_requires_two_advances_with_existing_status_minimum(self):
+        single = b'chain 321: 5 then 6 after 5 s\nproducing\n'
+        self.assertEqual(lab.frontier(single)['last_height'], 6)
+        with self.assertRaises(lab.Refused):lab.frontier(single, minimum=2)
+        self.assertEqual(lab.frontier(single.replace(b'then 6', b'then 7'),
+            minimum=2), dict(chain_id=321, first_height=5, last_height=7, seconds=5))
+        for minimum in (True, 0, -1, 3, 2.0, '2'):
+            with self.subTest(minimum=minimum), self.assertRaises(lab.Refused):
+                lab.frontier(single, minimum=minimum)
+
+    def test_incomplete_startup_keeps_bounded_partial_progress_only(self):
+        raw = b'chain 321: 1 then 2 after 180 s\nNOT producing\n'
+        self.assertEqual(lab.failed_frontier(raw, minimum=2), dict(
+            status='INSUFFICIENT_PROGRESS', chain_id=321, first_height=1,
+            last_height=2, seconds=180, required_advances=2))
+        self.assertEqual(lab.failed_frontier(raw), dict(status='UNAVAILABLE'))
+        for changed in (raw.replace(b'then 2', b'then 3'),
+                raw.replace(b'321', b'69'), raw.replace(b'NOT producing', b'producing'),
+                raw + b'private', b'private RPC error'):
+            self.assertEqual(lab.failed_frontier(changed, minimum=2),
+                dict(status='UNAVAILABLE'))
+
     def test_container_binding_keeps_original_id_start_and_pid_only(self):
         result = self.parse(self.rows())
         self.assertEqual(set(result), set(lab.ROLES))
@@ -262,6 +284,9 @@ class LiteralLabTests(unittest.TestCase):
         rows = [copy.deepcopy(command) for _ in range(80)]
         rows[7]['stage'] = 'up'
         rows[7]['up_output_tags'] = [dict(code='GO_LINKNAME_REFUSED', symbol='a' * 95) for _ in range(12)]
+        rows[7]['frontier_observation'] = dict(status='INSUFFICIENT_PROGRESS',
+            chain_id=321, first_height=2**53 - 2, last_height=2**53 - 1,
+            seconds=270, required_advances=2)
         with mock.patch.dict(lab.os.environ, {}, clear=True), \
                 mock.patch.object(lab.hosted, 'Original', side_effect=AssertionError('forbidden')), \
                 contextlib.redirect_stdout(io.StringIO()) as output:
@@ -311,8 +336,8 @@ class LiteralLabTests(unittest.TestCase):
                 rows = self.rows();owned = self.parse(rows)
                 commands.docker.side_effect = [json.dumps('sha256:' + 'f' * 64).encode(),
                     json.dumps(rows).encode(), json.dumps(rows).encode(), b'', b'']
-                outputs = dict(up=b'chain 321: 5 then 6 after 5 s\nproducing\n',
-                    status=b'chain 321: 6 then 7 after 5 s\nproducing\n', down=b'',
+                outputs = dict(up=b'chain 321: 5 then 7 after 5 s\nproducing\n',
+                    status=b'chain 321: 7 then 8 after 5 s\nproducing\n', down=b'',
                     exit_events=self.encoded(self.events(owned)))
                 commands.run.side_effect = lambda stage, *_args: outputs[stage]
                 report = dict(source_sha='a' * 40, node_source=choice,
@@ -369,7 +394,7 @@ class LiteralLabTests(unittest.TestCase):
                 ((node[:7] + '-reference-extra').encode(), 'reference')):
             with self.subTest(tag=tag, recipe=recipe):
                 commands = mock.Mock();commands.git.side_effect = [node, tree]
-                commands.run.return_value = b'chain 321: 5 then 6 after 5 s\nproducing\n'
+                commands.run.return_value = b'chain 321: 5 then 7 after 5 s\nproducing\n'
                 report = dict(source_sha='a' * 40, node_source=choice,
                     node_sha=node, node_tree=tree, node_build_recipe=recipe,
                     checks=dict(fresh=False))
@@ -383,7 +408,7 @@ class LiteralLabTests(unittest.TestCase):
 
     def test_candidate_header_cannot_borrow_an_original_node_build(self):
         commands = mock.Mock();commands.git.return_value = lab.NODE
-        commands.run.return_value = b'chain 321: 5 then 6 after 5 s\nproducing\n'
+        commands.run.return_value = b'chain 321: 5 then 7 after 5 s\nproducing\n'
         node, tree = lab.NODE_SOURCES['dev-0e80915']
         report = dict(source_sha='a' * 40, node_source='dev-0e80915',
             node_sha=node, node_tree=tree, checks=dict(fresh=False))
@@ -400,7 +425,7 @@ class LiteralLabTests(unittest.TestCase):
         commands = mock.Mock();commands.git.side_effect = [lab.NODE, lab.NODE_TREE]
         commands.docker.return_value = json.dumps('sha256:' + 'f' * 64).encode()
         def run(stage, *args):
-            if stage == 'up':return b'chain 321: 5 then 6 after 5 s\nproducing\n'
+            if stage == 'up':return b'chain 321: 5 then 7 after 5 s\nproducing\n'
             raise lab.Refused('CHAIN_REFUSED')
         commands.run.side_effect = run
         report = dict(source_sha='a' * 40, checks=dict(fresh=False, originals=False, production=False))

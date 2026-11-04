@@ -22,8 +22,12 @@ on:
       - tool/ci/literal_lab_commands.py
       - test/ci/test_literal_lab_commands.py
       - test/ci/test_lab_shutdown.py
+      - test/ci/test_lab_frontier.py
       - tools/devnet/lab/lab.sh
       - tools/devnet/lab/Dockerfile.reference
+      - tools/devnet/lab/frontier.js
+      - tools/devnet/lab/docker-compose.yml
+      - tools/devnet/lab/make-assets.js
 
 permissions:
   contents: read
@@ -43,6 +47,7 @@ jobs:
         run: |
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           test -z "$(git status --porcelain=v1 --untracked-files=all)"
+          python -B -c "from pathlib import Path; from tool.ci import literal_lab_commands as lab; root=Path('tools/devnet/lab'); assert all(lab.digest(lab.hosted.regular(root/name)) == pin for name, pin in lab.PINS.items())"
       - name: Test controller contracts without SDK or lab execution
         env:
           SYRIUS_LAB_SHELL_FIXTURE: 'true'

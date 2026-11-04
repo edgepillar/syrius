@@ -127,7 +127,7 @@ case "${1:-}" in
     docker image inspect "syrius-lab-znnd:$image_tag" > /dev/null
     do_assets
     compose up -d
-    node "$here/frontier.js" 180 --wait 90
+    node "$here/frontier.js" 180 --wait 90 --advances 2
     ;;
   status)
     compose ps -a
