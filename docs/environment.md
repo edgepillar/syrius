@@ -96,6 +96,19 @@ execution is pending. All five lab inputs, original thirty-second progress windo
 parent deadlines, resource/ownership and strict five-zero-exit/no-OOM criteria
 remain. Fixed producer error categories export only closed codes. No old pass
 transfers; all original failed trials and their unknowns are preserved.
+The [actual Source456 result](review/source456-reference-lab-build.md#actual-source456-result)
+qualifies 1,043 controls/two existing Linux skips and all ten script fixtures in
+41925765311 and 41926018636. Both runs are terminal with zero artifacts. The
+manual runtime remains failed: up advances one to two over forty-five seconds,
+then status stays at height two for thirty seconds. All ten notices/34 complete
+unforced receipts consume, at most 3,049 bytes. Down, five original zero-exit/no-OOM
+events and subsequent empty-project/network checks pass, with no close error.
+Normal retirement is qualified for this source/run. Pillar error file projects
+NODE_MOMENTUM_NOT_BROADCAST, corresponding to the pinned worker broadcast window;
+this is not sole-cause proof, and exact timing remains NOT_ESTABLISHED. Production,
+final native source and VM disposal remain unqualified. Source457 records these
+results without runtime changes. Continued-startup readiness is the next
+correction within the existing startup bound; status/protocol deadlines remain.
 All 1,970 earlier runtime entries
 remain byte-identical through Source451; Source453 separately changes the lab
 script/controller/workflow and adds six shell-fixture cases. No new local

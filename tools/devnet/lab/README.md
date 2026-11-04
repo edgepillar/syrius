@@ -360,3 +360,18 @@ failed test is restored but remains failed; a forced, incomplete or unknown
 command or changed file is held without reverse application. Source-only
 validation and local policy cases do not qualify Windows runtime behaviour.
 The ordinary native and Docker node-only lanes keep their original client.
+
+## Reference recipe result
+
+Source456 73ffe7cc9643 / source-only 41925765311 and manual 41926018636 pass
+1,043 controls/two existing Linux skips, including ten actual-script fixtures.
+The runtime remains failed at status, with height two unchanged for thirty
+seconds. All ten notices/34 complete unforced receipts consume, at most 3,049
+bytes. Down, all five original zero-exit/no-OOM events and empty-project/network
+checks pass, with no close error. This qualifies normal retirement for that
+source/run. Pillar error file projects NODE_MOMENTUM_NOT_BROADCAST; exact timing
+and the sole stall cause remain NOT_ESTABLISHED. Production/final native source
+and VM disposal stay unqualified. See the [actual record](../../../docs/review/source456-reference-lab-build.md#actual-source456-result).
+Source457 changes documentation only. Continued-startup readiness is the next
+correction within the existing startup bound; status and protocol deadlines
+remain. Earlier failed runs retain their facts.

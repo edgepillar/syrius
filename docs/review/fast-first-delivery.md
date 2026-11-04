@@ -31,6 +31,16 @@ complete reporting does not qualify a working lab recipe or the current full
 native wallet. Source452 records these outcomes without changing runtime code.
 No new full Windows build, image transport or visual/performance pass is selected.
 
+The [Source456 reference lab result](source456-reference-lab-build.md#actual-source456-result)
+separately qualifies 1,043 source controls with two existing Linux skips and ten
+actual-script fixtures. Its one runtime qualifies normal retirement of all five
+original containers and an empty project/network, but remains failed at production.
+The initial one-to-two advance is followed by thirty seconds at height two. A
+closed late-broadcast code is observed; the sole stall cause is not established.
+Source457 records the actual result without runtime changes. No lab pass, current
+full wallet qualification or original acceptance count is inferred. Heavy second-
+phase Windows/native, catalog, visual and motion work remains deferred.
+
 The preceding complete focused source is Source428
 `fc49ca01d4c6e830176e8dff50e1abf3b4a6ce13`. Its
 [Token explorer result](source427-token-explorer-control.md#fresh-source428-focused-result)

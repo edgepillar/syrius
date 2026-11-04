@@ -54,3 +54,40 @@ binary transport, Windows rebuild, wallet operation or image transport occurs.
 No application Dart, dependency manifest or reference changes. Full acceptance
 remains 72/80 with zero accepted whole-image matches; P03/P09/F06 and final
 platform, visual and performance acceptance remain open. The PR stays Draft.
+
+## Actual Source456 result
+
+Source `73ffe7cc96438ebd8799264fcea05777c3945d72`, tree
+`065db71ed87a5aa0bc2a9a357353366a630f3072`, passes 1,043 source controls with
+two existing Linux skips and all ten actual-script fixtures in source-only
+[41925765311](https://github.com/edgepillar/syrius/actions/runs/41925765311)
+and manual [41926018636](https://github.com/edgepillar/syrius/actions/runs/41926018636).
+Both runs are terminal with zero artifacts. The manual runtime job
+126910766421, attempt one, remains failed at the production check.
+
+All ten source/tree/run/attempt-bound notices and 34 complete unforced command
+receipts independently consume; the largest notice is 3,049 bytes. The report
+binds the exact upstream SHA/tree to `dev-0e80915-reference` and the reference
+recipe. Up advances chain 321 from one to two over forty-five seconds. Status
+exits one after height two remains two for thirty seconds.
+
+Down exits zero. Every original container has one zero-exit die event and no
+observed OOM; the following empty-project and empty-network checks pass. This
+qualifies normal retirement for this source/run, with no close error. It does
+not identify whether the compiler settings, grace interval or another factor
+explains the difference from older runs.
+
+All five main files read. Pillar's error file also reads and projects the closed
+code NODE_MOMENTUM_NOT_BROADCAST; the other four error sources remain unavailable.
+The pinned worker emits that message when a generated momentum misses its
+three-second broadcast window. This source correspondence is not proof that it
+is the sole cause of the thirty-second stall; its inner timing and the other
+file refusals remain NOT_ESTABLISHED. Old raw logs are not reinterpreted using
+the new classifier.
+
+Production and final native source remain unqualified. Normal shutdown does not
+turn the failed runtime into a pass, and VM disposal remains unqualified. All
+earlier failure facts and strict criteria are preserved. The next correction
+will require continued startup progress within the existing startup bound,
+instead of treating the first single advance as sufficient readiness. The
+thirty-second status window and protocol broadcast deadline will not increase.
