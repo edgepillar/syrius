@@ -79,6 +79,27 @@ index through the wallet and select that index.
 
 ## Hosted qualification
 
+The separate **Original lab commands** workflow has a default-off `execute`
+input. Its manual Linux job runs this file's actual `lab.sh up`, `status` and
+`down` route, including the original pinned node's Dockerfile. Controller tests
+run before allocation; no Flutter SDK or wallet is selected. The four original
+lab inputs are pinned and remain unchanged. The final image ID is observed
+because the upstream Dockerfile's base-image tags can move.
+
+The lane requires a fresh project/build/assets namespace, chain-321 height
+progress, five original container/process bindings and loopback-only published
+RPC. Before the single down attempt it rechecks those originals. Afterwards,
+bounded event history must contain five normal zero exits without OOM, and
+source/genesis must still match. Volumes remain preserved. Partial/changed
+starts and failed original stops remain failed or held; VM disposal does not
+replace positive shutdown. Raw outputs and paths remain private.
+
+This is a fresh non-secret hosted fixture with a declared 4 GiB cooperative
+allocation/work limit, 2 GiB floor and twenty-minute job limit. Local production
+limits are unchanged. The lane does not qualify Windows Docker Desktop, import
+a wallet, send a block or admit F06. Its initial source/runtime execution is
+pending; see [the exact scope](../../../docs/review/source449-original-lab-commands.md).
+
 The manual `Public Contribution Qualification` workflow has a default-off
 `chain321_lab` input. It prepares two independent fresh runners:
 

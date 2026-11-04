@@ -1,0 +1,61 @@
+name: Original lab commands
+
+on:
+  workflow_dispatch:
+    inputs:
+      execute:
+        description: Build and observe the original isolated chain-321 lab commands
+        type: boolean
+        default: false
+  push:
+    branches: [dev, redesign]
+    paths:
+      - .github/workflows/literal-lab-commands.yml
+      - tool/ci/literal_lab_commands.py
+      - test/ci/test_literal_lab_commands.py
+
+permissions:
+  contents: read
+
+jobs:
+  source-controls:
+    if: github.repository == 'edgepillar/syrius'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Verify the original test source
+        shell: bash
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
+      - name: Test controller contracts without SDK or lab execution
+        run: >-
+          python -B -c "import unittest; from tool.ci.run_debug_tests import execute_suite;
+          raise SystemExit(execute_suite(unittest.TestLoader().discover('test/ci'),
+          scope='literal_lab_controller_cases', title='Original lab controller tests',
+          wallet_node_scope=True))"
+      - name: Revalidate the original test source
+        shell: bash
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test -z "$(git status --porcelain=v1 --untracked-files=all)"
+
+  original-lab:
+    if: github.event_name == 'workflow_dispatch' && inputs.execute && github.repository == 'edgepillar/syrius'
+    needs: source-controls
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Observe original up, status and down commands
+        env:
+          SYRIUS_LITERAL_LAB: 'true'
+          SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
+        run: python -B -m tool.ci.literal_lab_commands

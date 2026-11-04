@@ -1,6 +1,48 @@
 # Redesign build environment
 
-## Current qualification status (2026-11-03T04:53Z)
+## Current qualification status (2026-11-04)
+
+The most recent complete focused gate is Source447
+`bd4d9d712a7ad6e4bfe1e90181cef90ea329322f`, tree
+`dc83c5365575718346f00a9cb1c396577cf753b3`.
+[41885387732](https://github.com/edgepillar/syrius/actions/runs/41885387732),
+attempt one, job 126768333183, independently qualifies all 1,230 ordinary widget
+cases in complete 48/48-file streams (597/633), with zero failures/errors/skips,
+134 hidden and 1,364 terminal events. Python completes 1,006 controls with three
+existing skips and no failures/errors. Fourteen assets and empty zero-finding
+selected analysis pass. Exact aggregate publication and final source checking
+complete; all tested-source jobs are terminal with zero artifacts. The Home
+baseline/reflow criteria and every earlier selected path pass. Source448 is a
+documentation-only follow-up. The asset-fidelity variant was not executed.
+
+The [current Home/count record](review/source447-focused-case-count.md#fresh-source447-focused-result)
+and [first-delivery boundary](review/fast-first-delivery.md) retain the original
+failures. This gate does not qualify the current full Windows/native build.
+The last full Windows baseline is Source368
+`a06c9bfa5d6caa207f97f950cae6287bea3ec0f8`: 4,900 nonchain passes/one existing
+skip, Debug/Release success and twelve controls, with root analysis at zero
+errors/warnings and 1,297 infos. Native108's Deposit refusal, incomplete
+Stake/Fuse/Token prefix and unreached Project/Fund address remain preserved.
+The later focused readiness fix does not qualify its native replay or F06.
+
+[Source439](review/source439-windows-time-binding.md#hosted-source439-result)
+separately qualifies the pinned WSL 3.0.3.0 component installation and metadata
+queries on its hosted Arm VM. No Linux kernel/distro/container starts. Windows
+Docker Desktop, Linux mode, nested virtualization and the documented lab route
+remain unqualified. The retained successful custom Linux Docker backend does
+not execute the original `lab.sh` route. Source449 prepares a separate
+[default-off original-command lane](review/source449-original-lab-commands.md);
+its source/runtime results remain pending. All 1,970 earlier runtime entries
+remain byte-identical; two new Python files are separately scoped. No new local
+SDK, binary transport, Windows build or old runtime replay occurs.
+
+Original acceptance remains 72/80 rows, 50/94 historical literal outputs, 44
+missing and zero accepted whole-image matches. P03/P09/F06 and
+V01/V02/V03/V05/V06 remain open. Full native/seed, visual, motion/frame time,
+seam and independent final acceptance stay phase two. The PR stays Draft;
+all earlier FAILURE/HOLD/UNKNOWN records retain their source and scope.
+
+## Historical Source353 qualification snapshot (2026-11-03T04:53Z)
 
 [Source353 Windows and Home results](review/source353-windows-and-home-results.md)
 record the current tested source 54cd86c57ad125163c8cff61c3bb38d4e254f99f,
