@@ -289,13 +289,14 @@ No heavy qualification is added.
 
 ## Second phase
 
-Source430 prepares a [separate finite Windows Arm query](source430-windows-arm-metadata-lane.md)
-to investigate the remaining environment route without SDK setup. The existing
-inventory input also starts a Flutter setup job; the new wrapper keeps source
-registration and manual metadata observation separate. The probe and completed
-UI code/tests remain unchanged. Actual hosted facts remain pending, and this
-lane cannot qualify Docker Linux mode or nested virtualization. No heavy
-platform/lab or image work is scheduled by this preparation.
+Source430's [separate finite Windows Arm query](source430-windows-arm-metadata-lane.md#source430-hosted-observations)
+completes source registration 41828792703 and manual observation 41829942037,
+with independent source/run reconciliation and zero artifacts. The VM reports
+VMP/WSL/Hyper-V enabled and WSL on PATH, with no Docker command or standard
+Desktop file. No SDK setup, installation or kernel/container startup occurs.
+Nested virtualization and Docker Linux mode remain unqualified. Source431
+changes documentation only; the probe and completed UI code/tests are
+unchanged. Heavy platform/lab, image and motion/performance work stays deferred.
 
 Source415 prepares the [Pillar sort frame](source415-pillar-sort-frame.md)
 from the nested tab cascade. The existing menu and actions remain; existing

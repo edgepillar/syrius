@@ -10885,3 +10885,26 @@ container, wallet or node. It retains unknown fields and the explicit
 Docker Desktop installation, Docker Linux mode, P03/P09 or a native wallet.
 The completed first-delivery UI evidence retains its original source and scope;
 heavy platform/lab, image and performance acceptance remain deferred.
+
+### Source430 observed Arm facts
+
+[Source registration 41828792703](https://github.com/edgepillar/syrius/actions/runs/41828792703)
+and [manual observation 41829942037](https://github.com/edgepillar/syrius/actions/runs/41829942037)
+complete at source `d2b8ae9c116efd23b5977308278c65dbd36a150d`, tree
+`225a631c14195f5f3161d2dca47b5607a185c66d`, attempt one. The source-only Linux job
+and the selected Windows Arm job both succeed in their separate profiles;
+the other job is skipped each time. Independent API reconciliation retains
+the original complete finite frame with zero artifacts and no platform replay.
+
+This VM reports OS/process `arm64`, desktop product type 1 and a present
+hypervisor. Virtual Machine Platform, WSL and Hyper-V features are enabled;
+the WSL application is found on PATH. Docker is not found on PATH and the
+standard Docker Desktop file is absent. The firmware/VM-monitor/SLAT flags are
+reported false on Arm; no native x86 inference is applied. Nested virtualization
+remains `NOT_ESTABLISHED`. No installation, feature change, download, kernel,
+container, wallet or chain-node startup is performed by the probe.
+
+These are source-bound finite facts, not Docker Linux mode, an x64 wallet or a
+qualified lab route. Source431 changes documentation only. P03/P09 and the full
+original acceptance gates remain open; the completed UI qualification retains
+its own tested source and scope. See the [detailed result](review/source430-windows-arm-metadata-lane.md#source430-hosted-observations).

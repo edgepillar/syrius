@@ -18,7 +18,7 @@ source check; the Windows job is skipped for that event. This registers the
 published workflow without changing a branch setting. A subsequent manual
 dispatch selects only the Windows job. GitHub documents
 [dispatch after a workflow has run](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#workflow_dispatch).
-Registration and actual manual execution remain to be observed.
+The source and manual observations below now bind both event profiles.
 
 Both jobs use shallow checkout, omit persisted credentials, have a five-minute
 bound and request only `contents: read`. The push job checks the exact head and
@@ -36,9 +36,9 @@ checks source identity before and after, preserves attempt-one admission and
 reports nested virtualization as `NOT_ESTABLISHED`. It starts no kernel,
 container, wallet or node and enables no feature.
 
-Source review confirms the wrapper and preserved probe. The path-filtered source
-run and manual Windows observation remain pending. No local PowerShell or SDK
-is executed. Application, Dart/Python test, harness, dependency, probe and main
+Source review and the hosted observations below confirm the wrapper and
+preserved probe. No local PowerShell or SDK is executed.
+Application, Dart/Python test, harness, dependency, probe and main
 qualification-workflow bytes retain the completed first-delivery lineage from
 tested Source428 through documentation-only Source429. The existing 1,229-case
 and zero-finding selected-analysis result is reused with its original source;
@@ -51,3 +51,49 @@ original acceptance gates remain open. Heavy platform/lab, image transport,
 motion/frame-time and final acceptance stay deferred. Original acceptance stays
 72/80, with 50/94 historical literal outputs, 44 missing and zero accepted
 whole-image matches. The existing PR remains Draft.
+
+## Source430 hosted observations
+
+Tested metadata source is `d2b8ae9c116efd23b5977308278c65dbd36a150d`, tree
+`225a631c14195f5f3161d2dca47b5607a185c66d`.
+[Source registration 41828792703](https://github.com/edgepillar/syrius/actions/runs/41828792703),
+attempt one, job 126570296401, completes the Linux source check successfully;
+the Windows job is skipped. That result establishes registration and source
+checking, not platform facts.
+
+[Manual observation 41829942037](https://github.com/edgepillar/syrius/actions/runs/41829942037),
+attempt one, job 126574219858, completes the Windows Arm query successfully;
+the source-only job is skipped. Independent read-only API reconciliation binds
+the exact workflow, source, job, attempt and complete allowlisted final frame.
+Both source-bound runs are terminal with zero artifacts. Neither run is retried,
+and the original platform query is not replayed during reconciliation.
+
+| Field | Observed value |
+| --- | --- |
+| OS and process architecture | `arm64` / `arm64` |
+| Windows product type | `1` (desktop) |
+| Hypervisor present | `true` |
+| Firmware virtualization, VM monitor and SLAT flags | `false`, as reported on Arm; no native x86 inference |
+| Virtual Machine Platform | `enabled` |
+| Windows Subsystem for Linux feature | `enabled` |
+| Hyper-V hypervisor feature | `enabled` |
+| WSL application on PATH | `true` |
+| Docker application on PATH | `false` |
+| Standard Docker Desktop file | `false` |
+| Nested virtualization | `NOT_ESTABLISHED` |
+| Docker Linux mode, x64 wallet and chain-321 qualified | `false` |
+
+These values describe this one fresh hosted Arm VM. A hypervisor, enabled
+features and a WSL command do not establish a running kernel or a working Linux
+container. The three reported CPU flags do not establish Arm nested capability
+or its absence. The missing standard file is not a search of every installation
+location. The probe records no installation, feature change, download, kernel,
+container, wallet or chain-node startup, and source remains unchanged.
+
+Source431 changes documentation only. The original application/test/harness,
+probe, dependency, reference and main-workflow bytes remain identical to the
+qualified UI lineage from Source428. The new wrapper is qualified separately by
+its actual source and manual runs. No current-source Flutter rerun or complete
+Windows wallet build is claimed. The first delivery remains ready for Draft
+code review; P03 installation, P09's Docker route and all full platform/lab,
+visual, motion/performance and final acceptance gates remain open and deferred.
