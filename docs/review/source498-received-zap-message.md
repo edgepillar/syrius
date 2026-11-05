@@ -64,3 +64,46 @@ privacy refusals remain closed. UI code, all sixteen new cases, seventeen
 existing Zap cases, all prior selected files, count expectations, fonts and
 process/source bounds remain byte-identical. Fresh hosted qualification is
 pending; the original refusal and full acceptance boundaries are preserved.
+
+## Original Source499 restore refusal and Source500 observation
+
+Source499 2b432d4fc9743a2e81609d446dc00ce0f8e6b484, tree
+37d81f2217fe056605b94287e86a282da27e58b6, fails in original fork-only
+42064179312 / job 127373644358, attempt one. All 1068 Python cases finish with
+zero failures/errors and eighteen expected Windows skips. All fourteen asset
+observations pass. SDK revision matches the pinned value. Application restore
+exits zero normally in 55.703 seconds/6228 bytes and vendored restore in
+9.453 seconds/1642 bytes. Both outputs are complete and unforced.
+
+The following source-integrity check refuses SOURCE_REFUSED. Analysis and Dart
+are skipped. The exact failing condition is NOT_ESTABLISHED and changed files
+are NOT_RETAINED. Generated formatting is only an unverified hypothesis. The
+failed run is terminal with zero artifacts; no wallet, node or native build is
+started and no renderer result follows.
+
+The original push exits zero once and the fork ref/tree and all 590 contribution
+identities are verified. Initial post-push PR reads still expose predecessor
+6faef6446c7c0b8d00e6f18c1e11dc0ef5319f8f. Fresh direct/list/pull-ref reads
+agree on that predecessor and both API views have the same repository identity.
+The exact synchronization cause remains unestablished. Fork verification and
+fork-only CI are retained separately; upstream PR source acceptance remains
+open. No push is repeated to reconcile these reads.
+
+Source500 adds read-only observations at the original refusal. The original
+head/tree/worktree checks and failure result remain. Five bounded Git commands
+record only completion, digests and closed comparison results. A fixed catalog
+of generated localization/plugin source names can export byte counts, hashes
+and small ASCII edits; unknown names become a count. Private paths, Bearer/GitHub
+token patterns, non-ASCII or oversized edits are omitted explicitly. At most eight file notices
+plus their header fit the existing per-step budget; complete bounded metadata
+remains in ordinary job text. No files are reset or normalized by this observer.
+
+Ten pure local methods pass without SDK/native execution or filesystem fixtures.
+They verify exact reconstruction, private/unknown-name refusal, bounds, the
+original sanitized Git environment, dirty-state retention, notice budgets and
+the original failed outcome without continuation. Five new methods prepare
+1073 complete Python cases. All source498 UI, generated labels, fonts and
+102 selected Dart files remain byte-identical: 1338 ordinary / 1340 asset cases,
+51/51 files and expected 644/694 passes. Fresh execution is pending. The original
+source499 failure, all earlier unknowns, X614, 72/80 and zero accepted matches
+remain open.
