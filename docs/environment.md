@@ -2,68 +2,41 @@
 
 ## Current qualification status (2026-11-05)
 
-The latest qualified focused source is Source475
-`89fda90f30dc5e277fd4b6b35277f9f12cf06ace`, tree
-`2c5abe592a68232662125b2668fdd48dc46c9891`.
-[41963059783](https://github.com/edgepillar/syrius/actions/runs/41963059783),
-attempt one, job 127033689688, independently qualifies all 1,239 ordinary widgets
-in complete 49/48-file streams (606/633): zero failures/errors/skips, 135 hidden
-and 1,374 terminal events. All 1,063 Python controls/eighteen explicit Windows
+The latest qualified focused source is Source479
+`a8c5f7f9ad2d946f40635ec89b0be0fc57114052`, tree
+`1a053de456b8a8c87ede8dca7f2e98ff9024f58e`.
+[41970203002](https://github.com/edgepillar/syrius/actions/runs/41970203002),
+attempt one, job 127056418527, independently qualifies all 1,273 ordinary widgets
+in complete 49/49-file streams (606/667): zero failures/errors/skips, 138 hidden
+and 1,411 terminal events. All 1,063 Python controls/eighteen explicit Windows
 skips, fourteen assets and zero selected analyzer findings pass. Both streams,
 aggregate, startup/refusal and final source checks complete. All tested-source
-runs are terminal with zero artifacts; the 1,241-case asset variant is unselected.
+runs are terminal with zero artifacts; the 1,275-case asset variant is unselected.
 
-The [fresh Node preparation result](review/source474-node-capture-rest.md#fresh-source475-focused-result)
-qualifies the actual authored script through existing preflight and injected
-capture in both themes. All twelve original commands remain, followed by top
-restoration, supported hover @0,0, original Add readiness and the header assertion.
-The bound Settings case requires exact scroll/neutral-hover receipts and the
-Add-header shot expectation. All original refusal, retention, Home return,
-held-lane and timeout assertions remain, with unchanged registrations. Four
-memory-only current-script controls also pass. Original Source474 stays failed
-with 605 passes/one old scroll-count assertion failure and no second stream.
-Native rest pixels and historical image causes remain unqualified.
+The [fresh Node version result](review/source477-node-version-columns.md#fresh-source479-focused-result)
+qualifies both-theme inline/equal-column facts, Arabic ordering with left-to-right
+data and the original 700-pixel normal/doubled-text stacked layouts. All 34 existing
+Node card cases pass with fourteen unchanged bundled font weights loaded.
+Original Check, confirmation/cancel-default, unverified release, file, checksum,
+rollback and source assertions remain. The early exception assertion supplements
+the original final assertion. All 37 pure projection/admission controls pass;
+all 97 earlier selected files remain, with unchanged registrations and bounds.
 
-The [preceding Source472 menu result](review/source470-settings-menu-text-scale.md#fresh-source472-focused-result)
-retains normal/doubled paragraph fit, keyboard focus/viewport, outgoing-action
-and motion qualification at its own source. Every earlier selected file passes
-again in Source475. The [Source468 result](review/source467-goto-viewport-budget.md#fresh-source468-focused-result)
-keeps its separate source pin. Source476 changes documentation only and preserves
-all 1,976 qualified runtime/source entries. No extra local SDK, full Windows/native,
-wallet/devnet, image or motion job is allocated for this record. Original 72/80,
-zero accepted matches and all eight original acceptance rows remain open.
+Original Source477 41966584841 stays failed with one import-order info and no
+Dart execution. Original Source478 41967576347 stays failed with zero selected
+findings, then complete 606-pass and 666-pass/one-failure streams. The original
+variant, widget, renderer/font and sole layout cause remain NOT_ESTABLISHED.
+Their [retained results](review/source477-node-version-columns.md#original-source477-analysis-result)
+are not relabelled. Native Node version/rest pixels and whole-image matching
+remain unqualified.
 
-Original [Source477](review/source477-node-version-columns.md#original-source477-analysis-result),
-41966584841 / job 127044892489, passes all 1,063 controllers/eighteen Windows
-skips and fourteen assets. Strict analysis retains one DIRECTIVES_ORDERING info
-at line six, zero errors/warnings and complete output. Both Dart groups are
-skipped; the run stays failed, terminal and has zero artifacts. The finite frame
-does not retain the file name. Source inspection finds the existing material_ui
-import before flutter_bloc in the newly selected Node card library.
-
-[Original Source478](review/source477-node-version-columns.md#original-source478-layout-result),
-41967576347 / job 127048038248, passes strict analysis with zero findings,
-1,063 controllers/eighteen Windows skips and fourteen assets. Both complete
-49-file streams exit normally: 606 passes/zero failures, then 666 passes/one
-Node narrow-layout failure. No aggregate pass exists. The original fixture
-variant, widget and dimensions are NOT_ESTABLISHED; all source runs are terminal
-and the failed original has zero artifacts.
-
-Source479 loads all fourteen existing bundled font weights for the Node tests,
-following existing explicit test-font preparation. It adds only closed fixture
-theme/direction/scale/phase and bounded layout facts, bound to this suite and
-the same test ID. An immediate post-open exception assertion supplements the
-original final assertion. Thirty-seven pure controls pass, including privacy,
-malformed/foreign binding refusals and unchanged admission controls. The maximal
-bounded addition to the retained single-failure notice is 3,769 bytes within
-the original 3,800-byte cap.
-
-All production layout, updater/callback/state, asset, dependency and workflow
-bytes remain. The original 700-pixel test width, normal/doubled text, both themes
-and directions, 34 Node cases, all 98 selected files and 1,273 ordinary / 1,275
-asset expectations remain. Fresh strict analysis and complete 49/49 streams
-(606/667) are pending. No original is retried; native pixels, original 72/80 and
-phase two remain open. The old overflow cause is not reconstructed from source.
+The [Source475 capture result](review/source474-node-capture-rest.md#fresh-source475-focused-result)
+and [Source472 menu result](review/source470-settings-menu-text-scale.md#fresh-source472-focused-result)
+retain their original source pins; every prior selected file passes again in
+Source479. Source480 changes documentation only and preserves all 1,976 qualified
+runtime/source entries. No extra SDK, full Windows/native, wallet/devnet, image
+or motion job is allocated for this record. Original 72/80, zero accepted
+matches and all eight original acceptance rows remain open.
 
 The [actual Source459 default lab result](review/source459-reference-default.md#actual-source459-default-result)
 binds `9a758129afdae895ad253b0ae357b33aa919ed52`, tree

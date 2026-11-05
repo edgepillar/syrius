@@ -149,3 +149,60 @@ All 34 logical Node cases, 98 selected files, 1,273 ordinary / 1,275 asset total
 checks remain. Fresh hosted strict analysis and complete execution are pending.
 X610 remains review. The original Source477/478 failures, native-pixel
 uncertainty, full 72/80 acceptance, zero accepted matches and phase two remain.
+
+## Fresh Source479 focused result
+
+Updated: 2026-11-05T05:01Z.
+
+[41970203002](https://github.com/edgepillar/syrius/actions/runs/41970203002),
+attempt one, job 127056418527, independently qualifies Source479
+`a8c5f7f9ad2d946f40635ec89b0be0fc57114052`, tree
+`1a053de456b8a8c87ede8dca7f2e98ff9024f58e`. All 1,273 ordinary
+widgets pass in complete 49/49-file streams (606/667), with zero failures,
+errors or skips, 138 hidden and 1,411 terminal events. All 1,063 Python controls
+pass with eighteen explicit Windows skips. Fourteen asset observations and
+strict selected analysis pass with zero errors, warnings or infos.
+
+| Stream | Files | Passes | Hidden | Terminal | Seconds | Bytes | SHA-256 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| First | 49 | 606 | 69 | 675 | 128.657 | 332796 | `3d273afd6be64f75a3ab875e9d9504a8d16ec846cf6feb97b08133184da8c745` |
+| Second | 49 | 667 | 69 | 736 | 119.578 | 336731 | `0db2c0904b8d58532ae9401e9931581624b9793e5f896bbcdac9f0bf143fcbfb` |
+
+Both original commands exit zero normally, with complete unforced output and no
+output overflow. One worker, original 240-second/4-MiB child bounds and the
+480-second aggregate remain. Aggregate, three startup checks, pre-build entry
+refusals and final source checks pass. All tested-source runs are terminal with
+zero artifacts. All 98 selected files remain; the 1,275-case asset variant is
+unselected. No original producer is retried.
+
+All 34 existing Node card cases pass. Both-theme wide geometry proves inline
+labels and equal-column placement. Arabic reverses the columns while hashes,
+repositories and dialog data remain left to right. The original 700-by-1000
+case passes with staged/previous/installed data in both themes, English/Arabic
+and normal/doubled text, with stacked facts and manual Check still working.
+All original exception assertions remain, supplemented by the early open check.
+The same Check, confirmation/cancel-default, unverified release, file, checksum,
+rollback and source cases pass without new registrations or changed production
+action/state logic.
+
+The test loads all fourteen existing bundled font weights. Closed Node
+projection controls and unchanged admission controls also pass: 23 and fourteen
+existing pure cases respectively, plus the complete hosted controller suite.
+The original Go To helper and every prior selected file remain. No new Node
+failure is observed in this successful run. The original Source477 analysis
+refusal and Source478 layout failure keep their own source and complete
+receipts. Their original renderer/font and sole overflow cause remain
+NOT_ESTABLISHED.
+
+X610 closes only for selected implementation and widget qualification. It does
+not close the original Source334/336 actual-image finding: native version/rest
+pixels and current whole-image comparisons remain unqualified. Source480 records
+this result and exact English body344 in documentation only. All 1,976 qualified
+runtime/source entries retain their bytes, with entry-map digest
+`5b92e9037e680ecd1b1a39a777e87ed75c0b226f2458908d317176e1005adbb9`.
+
+Full acceptance remains 72/80 original rows, 50/94 historical literal outputs,
+44 missing and zero accepted whole-image matches. P03/P09/F06 and
+V01/V02/V03/V05/V06 remain open. Full Windows/native wallet, seed/seam,
+catalog transport, visual, motion and independent final acceptance stay in
+phase two. The first delivery remains ready for Draft code review.
