@@ -9,8 +9,8 @@ import '../../harness/app/fixtures/fixture_cleanup.dart';
 import '../../harness/app/fixtures/lab_seed_binding.dart';
 import '../../harness/app/fixtures/seed_commands.dart';
 import '../../harness/app/fixtures/seed_policy.dart';
-import '../../harness/app/fixtures/seed_stake_effect.dart';
 import '../../harness/app/fixtures/seed_project_presentation.dart';
+import '../../harness/app/fixtures/seed_stake_effect.dart';
 import '../../harness/app/fixtures/seed_token_presentation.dart';
 
 String _hash(int id) => id.toRadixString(16).padLeft(64, '0');
@@ -219,7 +219,7 @@ void main() {
       'id_matches': 3, 'owner_matches': 2, 'amount_matches': 1,
       'duration_matches': 0,
     });
-    expect(() => observed.public.clear(), throwsUnsupportedError);
+    expect(observed.public.clear, throwsUnsupportedError);
     final String encoded = jsonEncode(observed.public);
     for (final String private in <String>[
       _hash(9), 'address', 'timestamp', 'receipt', 'retry', 'confirmed',

@@ -60,7 +60,45 @@ The ordinary two groups remain 51/51 files, with expected passes 644/706.
 Python expects 1087 cases and eighteen existing Windows skips. The new pure
 fixture is included in selected analysis and known-file failure projection.
 
-Fresh hosted Dart/analysis qualification is pending. The new counters have no
-native observation yet. No new native run, old profile or original operation
-is started by this source qualification. P03/P09/F06 and V01/V02/V03/V05/V06,
+At preparation, fresh hosted Dart/analysis qualification was pending. The
+actual negative result is recorded below. The new counters have no native
+observation yet. No new native run, old profile or original operation is
+started by this source qualification. P03/P09/F06 and V01/V02/V03/V05/V06,
 the original 72/80 ledger and zero accepted whole-image matches remain open.
+
+## Actual Source514 analysis refusal
+
+Tested head f43b899e1409ed3c827985c222c3e57dc87239b4, tree
+ed66f0bf6567f8037a286aae467c84b5fa8e0bd5, has one observed
+[run 42130643044](https://github.com/edgepillar/syrius/actions/runs/42130643044),
+attempt one, job 127606066879. It fails at selected analysis with zero errors,
+zero warnings and eleven infos. All 1087 Python cases finish with eighteen
+explicit Windows skips and zero failures/errors. Fourteen asset controls
+pass. The Dart engine step is skipped, so no 1350-case Dart result qualifies.
+The source remains unchanged; the run is terminal with zero artifacts.
+
+The first dispatch client exits one with unexpected end of JSON input, and
+its request outcome stays UNKNOWN. A reviewed request repair adds an explicit
+JSON media type and retains HTTP status/headers/body. It receives HTTP 204
+with an empty body. Both request attempts remain recorded; the exact request
+origin of the single observed run is NOT_ESTABLISHED. Neither HTTP acceptance
+nor the Python success replaces the failed analysis or unexecuted Dart gate.
+
+The installed CLI's file-body path does not automatically add the JSON media
+type used for map bodies; see its pinned [HTTP request implementation](https://github.com/cli/cli/blob/v2.97.0/pkg/cmd/api/http.go#L26-L72).
+That verified omission does not establish the original failure's exact cause.
+
+## Source515 analysis correction
+
+Source515 moves the constructor declarations before members, orders imports,
+uses the equivalent null-aware map entry, adds the required flow braces and
+uses explicit map types and method tear-offs in the tests. The optional source
+capability retains one documented local style exception: the observation is
+bound to the captured source as its receiver. Global analyzer rules and the
+zero-finding gate remain unchanged.
+
+The effect predicate, guard, round count, delays and every RPC/publication
+path remain. No test is removed and no registration is added. Expected counts
+remain 1350 Dart (644/706 in 51/51 files) and 1087 Python/eighteen Windows
+skips. Fresh hosted qualification is pending; the Source514 failure and all
+older UNKNOWN outcomes remain preserved.

@@ -18,7 +18,9 @@ final class SeedStakeEffectObservation {
     required Iterable<SeedStakeEffectPredicates> entries,
   }) {
     if (reported < 0 || reported > 9007199254740991 ||
-        returned < 0 || returned > 64) return null;
+        returned < 0 || returned > 64) {
+      return null;
+    }
     final Map<String, Object> value = <String, Object>{
       'schema': 1, 'scope': 'original_seed_stake_effect',
       'reported_rows': reported, 'returned_rows': returned,
@@ -54,6 +56,8 @@ final class SeedStakeEffectObservation {
 }
 
 /// Only a captured source may expose its last same-hash passive observation.
+// This optional capability keeps the captured source as its receiver.
+// ignore: one_member_abstracts
 abstract interface class SeedStakeEffectSource {
   SeedStakeEffectObservation? observeStakeEffect(String hash);
 }
@@ -76,12 +80,16 @@ Map<String, Object>? seedStakeEffectProjection(Object? value) {
   final int reported = value['reported_rows']! as int;
   final int returned = value['returned_rows']! as int;
   if (reported < 0 || reported > 9007199254740991 ||
-      returned < 0 || returned > 64) return null;
+      returned < 0 || returned > 64) {
+    return null;
+  }
   final bool complete = reported == returned && reported <= 64;
   final Set<String> fields = <String>{...base, if (complete) ...counts};
   if (value.length != fields.length ||
       !value.keys.toSet().containsAll(fields) ||
-      value['scan'] != (complete ? 'COMPLETE' : 'NOT_RUN')) return null;
+      value['scan'] != (complete ? 'COMPLETE' : 'NOT_RUN')) {
+    return null;
+  }
   int previous = returned;
   if (complete) {
     for (final String key in counts) {

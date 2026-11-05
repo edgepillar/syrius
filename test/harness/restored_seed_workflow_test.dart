@@ -1177,9 +1177,11 @@ void main() {
         failure.diagnostic);
     stake['reported_rows'] = 10;
     counts['absent'] = 0;
+    final Map<String, Object> retainedCounts =
+        failure.diagnostic['confirmation']! as Map<String, Object>;
     expect(retained['reported_rows'], 0);
-    expect((failure.diagnostic['confirmation']! as Map)['absent'], 13);
-    expect(() => retained.clear(), throwsUnsupportedError);
+    expect(retainedCounts['absent'], 13);
+    expect(retained.clear, throwsUnsupportedError);
     for (final String key in <String>[
       'hash', 'address', 'path', 'receipt', 'retry', 'confirmed', 'complete',
     ]) {

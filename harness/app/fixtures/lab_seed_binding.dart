@@ -42,16 +42,6 @@ Future<HtlcInfo?> readSeedDepositEntry({
 /// Every wrapper and transport below is captured before the first await.
 /// No fixture installs a client into the ordinary app's global SDK.
 final class LabSeedBinding implements SeedSource, SeedStakeEffectSource {
-  ({String hash, SeedStakeEffectObservation observation})? _stakeEffect;
-
-  @override
-  SeedStakeEffectObservation? observeStakeEffect(String hash) {
-    final ({String hash, SeedStakeEffectObservation observation})? captured =
-        _stakeEffect;
-    return isCurrent && captured != null && captured.hash == hash
-        ? captured.observation : null;
-  }
-
   LabSeedBinding._({
     required this.environment,
     required this.home,
@@ -251,6 +241,16 @@ final class LabSeedBinding implements SeedSource, SeedStakeEffectSource {
   final HtlcApi _htlc;
   final AcceleratorApi _accelerator;
   bool _revoked = false;
+  ({String hash, SeedStakeEffectObservation observation})? _stakeEffect;
+
+  @override
+  SeedStakeEffectObservation? observeStakeEffect(String hash) {
+    final ({String hash, SeedStakeEffectObservation observation})? captured =
+        _stakeEffect;
+    return isCurrent && captured != null && captured.hash == hash
+        ? captured.observation : null;
+  }
+
   @override
   bool get isCurrent {
     if (_revoked) return false;

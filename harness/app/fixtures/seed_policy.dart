@@ -311,7 +311,7 @@ Map<String, Object>? seedRefusalDetail(
         ? seedStakeEffectProjection(error.stakeEffect?.public) : null;
     return Map<String, Object>.unmodifiable(<String, Object>{
       'seedConfirmation': confirmation,
-      if (stake != null) 'seedStakeEffect': stake,
+      'seedStakeEffect': ?stake,
     });
   }
   final Map<String, Object>? frontier =
