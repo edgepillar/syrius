@@ -4,7 +4,7 @@ import contextlib
 import copy
 import io
 import json
-from pathlib import Path
+from pathlib import PurePosixPath, PureWindowsPath
 import unittest
 from unittest import mock
 
@@ -41,7 +41,7 @@ class LiteralLabTests(unittest.TestCase):
 
     def parse(self, rows):
         return lab.containers(json.dumps(rows).encode(), 'sha256:' + 'f' * 64,
-            Path('/fixture/assets'))
+            PurePosixPath('/fixture/assets'))
 
     def events(self, owned):
         return [dict(Type='container', Action='die', Actor=dict(ID=value[0],
@@ -145,6 +145,10 @@ class LiteralLabTests(unittest.TestCase):
         self.assertEqual(set(result), set(lab.ROLES))
         self.assertEqual(result['pillar'], ('1' * 64, '2026-11-04T00:00:00.123456789Z', 1))
         self.assertNotIn('private', json.dumps(result))
+        with self.assertRaises(lab.Refused) as refused:
+            lab.containers(json.dumps(self.rows()).encode(),
+                'sha256:' + 'f' * 64, PureWindowsPath('/fixture/assets'))
+        self.assertEqual(refused.exception.code, 'RESOURCE_CHANGED')
 
     def test_missing_extra_repeated_and_replaced_resources_refuse(self):
         original = self.rows()
@@ -365,7 +369,7 @@ class LiteralLabTests(unittest.TestCase):
                             side_effect=[(node[:7] + ('-reference' if
                                 lab.NODE_RECIPES[choice] == 'reference' else '')).encode(),
                                 genesis, genesis]):
-                    lab.observe(commands, Path('/repo'), Path('/fixture'), report)
+                    lab.observe(commands, PurePosixPath('/repo'), PurePosixPath('/fixture'), report)
                 self.assertTrue(all(report['checks'].values()))
                 self.assertEqual(source.call_count, 2)
                 self.assertEqual(report['exit_codes'], dict.fromkeys(lab.ROLES, 0))
@@ -416,7 +420,7 @@ class LiteralLabTests(unittest.TestCase):
                         mock.patch.object(lab, 'empty_project'), \
                         mock.patch.object(lab.hosted, 'regular', return_value=tag), \
                         self.assertRaises(lab.Refused) as raised:
-                    lab.observe(commands, Path('/repo'), Path('/fixture'), report)
+                    lab.observe(commands, PurePosixPath('/repo'), PurePosixPath('/fixture'), report)
                 self.assertEqual(raised.exception.code, 'SOURCE_REFUSED')
                 self.assertFalse(commands.docker.called)
 
@@ -429,7 +433,7 @@ class LiteralLabTests(unittest.TestCase):
         with mock.patch.object(lab, 'source', return_value='b' * 40), \
                 mock.patch.object(lab, 'empty_project'):
             with self.assertRaises(lab.Refused) as raised:
-                lab.observe(commands, Path('/repo'), Path('/fixture'), report)
+                lab.observe(commands, PurePosixPath('/repo'), PurePosixPath('/fixture'), report)
         self.assertEqual(raised.exception.code, 'SOURCE_REFUSED')
         self.assertEqual(report['observation_code'], 'SOURCE_REFUSED')
         self.assertTrue(report['unadopted_start_held'])
@@ -450,7 +454,7 @@ class LiteralLabTests(unittest.TestCase):
                 mock.patch.object(lab.hosted, 'regular', side_effect=[b'590f43c', b'{"ChainIdentifier":321}']), \
                 mock.patch.object(lab, 'containers', side_effect=[owned, changed]):
             with self.assertRaises(lab.Refused) as raised:
-                lab.observe(commands, Path('/fixture'), Path('/fixture/lab'), report)
+                lab.observe(commands, PurePosixPath('/fixture'), PurePosixPath('/fixture/lab'), report)
         self.assertEqual(raised.exception.code, 'CHAIN_REFUSED')
         self.assertEqual(report['observation_code'], 'CHAIN_REFUSED')
         self.assertEqual(report['close_code'], 'RESOURCE_CHANGED')

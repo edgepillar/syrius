@@ -13,13 +13,16 @@ source checking pass; all tested-source jobs are terminal with zero artifacts.
 The 1,232-case asset variant and current full-root Windows/native are unqualified.
 Later lab/CI changes preserve application Dart, dependencies and references.
 
-[Source463 Go To scaling](review/source463-goto-scaled-rows.md) now changes the
-palette's row/heading geometry and its existing fit/keyboard tests. Normal-scale
-reference dimensions remain; scaled rows and scroll offsets share one measurement.
-The 1,230 ordinary/1,232 asset case selections and 48/48 files remain unchanged.
-Fresh nonnative focused qualification is pending with 1,063 controller cases and
-eighteen expected Windows skips. The prior Source447 pass does not qualify this
-new UI revision. No local SDK, native wallet/lab, image or motion job is selected.
+[Source463 Go To scaling](review/source463-goto-scaled-rows.md#original-source463-result)
+retains its correction, but original 41942346719 fails before SDK with fourteen
+controller errors among 1,063 cases/eighteen expected skips. Assets, SDK, analysis
+and Dart are skipped; the terminal run has zero artifacts. [Source464](review/source464-portable-lab-fixtures.md)
+reproduces fourteen resource refusals with a pure Windows path model, then changes
+nine mocked Linux paths to explicit PurePosixPath. All thirty local pure cases
+pass with subprocess creation forbidden, no skips and no filesystem scratch.
+Production code and every Source463 Dart byte remain. Fresh focused engine and
+selected analysis qualification is pending. No full wallet/lab/image/motion job
+is selected; the prior Source447 pass does not qualify this new UI revision.
 
 The [actual Source459 default lab result](review/source459-reference-default.md#actual-source459-default-result)
 binds `9a758129afdae895ad253b0ae357b33aa919ed52`, tree
