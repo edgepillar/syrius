@@ -2662,5 +2662,11 @@
   "swapActionPaste": "Paste",
   "swapActionTitle": "Swap",
   "receiveOperationFailed": "Could not receive. Refresh activity.",
-  "walletCreationUnavailable": "Wallet setup is unavailable. Your original attempt has been kept."
+  "walletCreationUnavailable": "Wallet setup is unavailable. Your original attempt has been kept.",
+  "zapReceivedBack": "Zap back",
+  "@zapReceivedBack": {"description": "Reply action in the received Zap message."},
+  "zapReceivedNice": "Nice",
+  "@zapReceivedNice": {"description": "Dismiss action in the received Zap message."},
+  "zapSenderAttribution": "Written by the sender, not by Syrius.",
+  "@zapSenderAttribution": {"description": "Attribution below an untrusted sender's plain-text message."}
 }

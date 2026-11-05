@@ -1,0 +1,37 @@
+name: Prepare English localization sources
+run-name: Localization preparation at ${{ github.sha }}
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    env:
+      SYRIUS_LOCALIZATION_PREPARATION: "true"
+      SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
+      GIT_CONFIG_COUNT: "1"
+      GIT_CONFIG_KEY_0: core.autocrlf
+      GIT_CONFIG_VALUE_0: "false"
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Admit source generation before SDK allocation
+        run: python -B -m tool.ci.prepare_localizations --admission-only
+      - name: Check finite generated-delta controls
+        run: python -B -m unittest test.ci.test_localization_preparation -v
+      - name: Set up the existing pinned Flutter version
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.7"
+          channel: stable
+          cache: true
+          pub-cache: 'false'
+      - name: Generate the three English fallback labels
+        timeout-minutes: 3
+        run: python -B -m tool.ci.prepare_localizations
