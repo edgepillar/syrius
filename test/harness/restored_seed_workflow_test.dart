@@ -1213,7 +1213,7 @@ void main() {
         .containsKey('confirmation'), isFalse);
   });
 
-  test('only original frontier replies retain immutable negative samples', () {
+  test('only original refusal replies retain immutable negative details', () {
     const Map<String, Object> facts = <String, Object>{
       'polls': 6, 'ws_first_height': 10, 'ws_last_height': 10,
       'ws_first_timestamp': 100, 'ws_last_timestamp': 100,
@@ -1269,6 +1269,64 @@ void main() {
       commandIndex: 8);
     expect(original.failure(const SeedRefused('advancing-momentum-required'))
         .diagnostic.containsKey('frontier'), isFalse);
+    for (int flags = 1; flags < 8; flags++) {
+      final Map<String, Object> facts = <String, Object>{
+        'pending': (flags & 1) != 0, 'failed': (flags & 2) != 0,
+        'release_failed': (flags & 4) != 0,
+      };
+      final Map<String, Object> offered = Map<String, Object>.of(facts);
+      final cli.SeedOperationTrace trace = cli.SeedOperationTrace('deposit')
+        ..at(cli.SeedOperationAction.publish, cli.SeedOperationStep.reply,
+            commandIndex: 12)
+        ..publicationCallEntered()
+        ..refusedReply('earlier-original-unresolved', originals: offered);
+      final cli.SeedOperationFailure failure =
+          trace.failure(cli.Fail('private'));
+      final Map<String, Object> observed =
+          failure.diagnostic['originals']! as Map<String, Object>;
+      offered.clear();
+      expect(observed, facts);
+      expect(observed.clear, throwsUnsupportedError);
+      expect(reopen.restoredChildFailure('seed_deposit', failure)!['seed'],
+          failure.diagnostic);
+      expect(reopen.restoredChildFailure('seed_stake', failure), isNull);
+      for (final (cli.SeedOperationAction, cli.SeedOperationStep) boundary in
+          <(cli.SeedOperationAction, cli.SeedOperationStep)>[
+        (cli.SeedOperationAction.publish, cli.SeedOperationStep.owner),
+        (cli.SeedOperationAction.publish, cli.SeedOperationStep.request),
+        (cli.SeedOperationAction.command, cli.SeedOperationStep.execute),
+        (cli.SeedOperationAction.finish, cli.SeedOperationStep.reply),
+      ]) {
+        trace
+          ..at(boundary.$1, boundary.$2, commandIndex: 12)
+          ..refusedReply('earlier-original-unresolved', originals: facts);
+        expect(trace.failure(cli.Fail('private')).diagnostic
+            .containsKey('originals'), isFalse);
+      }
+      trace.at(cli.SeedOperationAction.publish, cli.SeedOperationStep.reply,
+          commandIndex: 12);
+      for (final String reason in <String>[
+        'unknown', 'advancing-momentum-required',
+        'exact-confirmation-or-effect-pending',
+      ]) {
+        trace.refusedReply(reason, originals: facts);
+        expect(trace.failure(cli.Fail('private')).diagnostic
+            .containsKey('originals'), isFalse);
+      }
+      trace.refusedReply('earlier-original-unresolved', originals:
+          <String, Object>{...facts, 'path': 'private'});
+      expect(trace.failure(cli.Fail('private')).diagnostic
+          .containsKey('originals'), isFalse);
+      trace.refusedReply('earlier-original-unresolved', originals: facts);
+      expect(trace.failure(TimeoutException('private')).diagnostic
+          .containsKey('originals'), isFalse);
+      expect(trace.failure(_UnprintableSeedError()).diagnostic
+          .containsKey('originals'), isFalse);
+      trace.at(cli.SeedOperationAction.check, cli.SeedOperationStep.owner,
+          commandIndex: 12);
+      expect(trace.failure(cli.Fail('private')).diagnostic
+          .containsKey('originals'), isFalse);
+    }
   });
 
   test('the confirmed original Project exit awaits its actual route once',

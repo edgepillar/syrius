@@ -1049,6 +1049,20 @@ class SeedFailureProjectionTests(unittest.TestCase):
             for field in ('hash', 'address', 'path', 'confirmed', 'retry', 'success'):
                 self.assertNotIn(field, result)
                 self.assertNotIn(field, result['frontier'])
+        for flags in range(1, 8):
+            offered = self.seed(recipe='deposit', action='publish', step='reply',
+                command_index=12, publication_call_entered=True,
+                reason='earlier-original-unresolved', originals=dict(
+                    pending=bool(flags & 1), failed=bool(flags & 2),
+                    release_failed=bool(flags & 4)))
+            result = restored.seed_failure_projection(offered, 'seed_deposit')
+            self.assertEqual(result, offered)
+            self.assertIsNot(result['originals'], offered['originals'])
+            offered['originals'].clear()
+            self.assertTrue(any(result['originals'].values()))
+            child = self.child(result, phase='seed_deposit')
+            self.assertEqual(restored.child_failure_projection(child)['seed'],
+                             result)
 
     def test_frontier_samples_refuse_private_coerced_inconsistent_or_misplaced_data(self):
         original = self.seed(action='publish', step='reply', command_index=8,
@@ -1078,6 +1092,32 @@ class SeedFailureProjectionTests(unittest.TestCase):
                 restored.seed_failure_projection(original | change, 'seed_stake')
         with self.assertRaises(restored.checkpoint.Refused):
             restored.seed_failure_projection(original, 'seed_fuse')
+        flags = dict(pending=True, failed=False, release_failed=False)
+        original = self.seed(recipe='deposit', action='publish', step='reply',
+            command_index=12, publication_call_entered=True,
+            reason='earlier-original-unresolved', originals=flags)
+        values = [None, True, [], 'Synthetic', dict.fromkeys(flags, False)]
+        values += [flags | {key: value} for key in flags
+                   for value in (1, 0, None, 'Synthetic')]
+        values += [{key: value for key, value in flags.items() if key != missing}
+                   for missing in flags]
+        values += [flags | {key: 'Synthetic'} for key in
+                   ('path', 'hash', 'address', 'retry', 'confirmed')]
+        for value in values:
+            with self.subTest(value=value), self.assertRaises(restored.checkpoint.Refused):
+                restored.seed_failure_projection(original | dict(originals=value),
+                                                  'seed_deposit')
+        for change in (dict(action='begin', command_index=0,
+                            publication_call_entered=False),
+                dict(action='command', step='execute'), dict(step='request'),
+                dict(publication_call_entered=False), dict(kind='timeout'),
+                dict(reason='unknown'), dict(reason='advancing-momentum-required'),
+                dict(confirmation=self.counts()), dict(home=self.home()),
+                dict(frontier=self.frontier())):
+            with self.subTest(change=change), self.assertRaises(restored.checkpoint.Refused):
+                restored.seed_failure_projection(original | change, 'seed_deposit')
+        with self.assertRaises(restored.checkpoint.Refused):
+            restored.seed_failure_projection(original, 'seed_stake')
 
     def test_finite_original_boundaries_remain_observation_data(self):
         for recipe in restored.SEED_FAILURE_RECIPES:

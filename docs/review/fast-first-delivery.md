@@ -40,6 +40,15 @@ quiescence and normal original actors. Copied seed/lifecycle remains incomplete.
 Deposit stays UNKNOWN with inner cause NOT_ESTABLISHED. Project/Fund address
 are unreached; complete F06/coordinated Swap states remain unqualified.
 
+The fresh [Source506 Native110 result](source507-seed-original-state.md)
+qualifies the original send/tour/quiescence and normal required actors again,
+with its own source gates and independent archive reader. Its producer still
+fails in the copied session: Stake/Fuse/Token confirms, then Deposit refuses
+with `earlier-original-unresolved`. The exact guard places this before its
+journal claim/tap; which earlier original is pending or failed remains
+NOT_ESTABLISHED. Source507 adds three passive negative flags to distinguish
+that hold; fresh engine/analysis is pending. No old outcome is reclassified.
+
 ## Deferred acceptance
 
 | Original gate | Required evidence |

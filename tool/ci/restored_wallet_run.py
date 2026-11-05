@@ -205,6 +205,15 @@ SEED_PREPARATION_REPLY_CODES = frozenset((
 ))
 
 
+def seed_original_projection(value):
+    """Three negative flags from the same snapshot; no identity or authority."""
+    fields = {'pending', 'failed', 'release_failed'}
+    checkpoint.need(type(value) is dict and set(value) == fields
+        and all(type(value[key]) is bool for key in fields)
+        and any(value.values()))
+    return dict(value)
+
+
 def seed_confirmation_projection(value):
     """Only eighteen completed negative original rounds; no operation data."""
     fields = {'polls', 'absent', 'unconfirmed', 'effect_pending', 'last'}
@@ -300,7 +309,7 @@ def seed_failure_projection(value, phase):
               'publication_call_entered', 'kind', 'reason'}
     checkpoint.need(type(value) is dict and set(value) in
         (fields, fields | {'confirmation'}, fields | {'home'},
-         fields | {'frontier'})
+         fields | {'frontier'}, fields | {'originals'})
         and type(value['schema']) is int and value['schema'] == 1
         and type(value['scope']) is str
         and value['scope'] == 'original_seed_operation_failure'
@@ -347,6 +356,11 @@ def seed_failure_projection(value, phase):
             and value['kind'] == 'refused'
             and value['reason'] == 'advancing-momentum-required')
         result['frontier'] = seed_advance_projection(value['frontier'])
+    if 'originals' in value:
+        checkpoint.need(action == 'publish' and step == 'reply' and entered
+            and value['kind'] == 'refused'
+            and value['reason'] == 'earlier-original-unresolved')
+        result['originals'] = seed_original_projection(value['originals'])
     return result
 
 

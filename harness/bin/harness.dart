@@ -983,6 +983,7 @@ class SeedOperationTrace {
   String _replyCode = 'unknown';
   Map<String, Object>? _confirmation;
   Map<String, Object>? _frontier;
+  Map<String, Object>? _originals;
   final HomePreparationTrace _homeObservation = HomePreparationTrace();
 
   /// Marks a boundary without invoking, replacing or waiting on an operation.
@@ -995,6 +996,7 @@ class SeedOperationTrace {
     _replyCode = 'unknown';
     _confirmation = null;
     _frontier = null;
+    _originals = null;
     _homeObservation.clear();
   }
 
@@ -1002,7 +1004,9 @@ class SeedOperationTrace {
   void publicationCallEntered() => _publicationCallEntered = true;
 
   /// Retains only an exact code from the already received original reply.
-  void refusedReply(Object? value, {Object? confirmation, Object? frontier}) {
+  void refusedReply(Object? value, {
+    Object? confirmation, Object? frontier, Object? originals,
+  }) {
     _replyCode = seedOperationReplyCode(value);
     _confirmation = seedRecipeIds.contains(_recipe) &&
             _action == SeedOperationAction.publish &&
@@ -1014,6 +1018,11 @@ class SeedOperationTrace {
             _step == SeedOperationStep.reply && _publicationCallEntered &&
             _replyCode == 'advancing-momentum-required'
         ? seedAdvanceProjection(frontier) : null;
+    _originals = seedRecipeIds.contains(_recipe) &&
+            _action == SeedOperationAction.publish &&
+            _step == SeedOperationStep.reply && _publicationCallEntered &&
+            _replyCode == 'earlier-original-unresolved'
+        ? seedOriginalProjection(originals) : null;
   }
 
   bool get _homeScope => seedRecipeIds.contains(_recipe) &&
@@ -1070,6 +1079,9 @@ class SeedOperationTrace {
       if (kind == SeedOperationFailureKind.refused &&
           reason == 'advancing-momentum-required' &&
           _frontier != null) 'frontier': _frontier!,
+      if (kind == SeedOperationFailureKind.refused &&
+          reason == 'earlier-original-unresolved' &&
+          _originals != null) 'originals': _originals!,
     });
   }
 }
@@ -1127,7 +1139,9 @@ Future<Map<String, dynamic>> seed(
           detail is Map<String, dynamic> && detail.length == 1
               ? detail['seedConfirmation'] : null,
           frontier: detail is Map<String, dynamic> && detail.length == 1
-              ? detail['seedAdvance'] : null);
+              ? detail['seedAdvance'] : null,
+          originals: detail is Map<String, dynamic> && detail.length == 1
+              ? detail['seedOriginals'] : null);
       throw Fail('seed refused: ${result['error']}');
     }
     return result;

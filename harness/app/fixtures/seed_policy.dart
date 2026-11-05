@@ -15,12 +15,60 @@ const Set<String> seedRecipeIds = <String>{
 };
 
 final class SeedRefused implements Exception {
-  const SeedRefused(this.code, {this.frontier, this.confirmation});
+  const SeedRefused(this.code, {
+    this.frontier, this.confirmation, this.originals,
+  });
   final String code;
   final SeedAdvanceObservation? frontier;
   final SeedConfirmationObservation? confirmation;
+  final SeedOriginalObservation? originals;
   @override
   String toString() => 'Seed refused: $code';
+}
+
+/// The same admission snapshot, without identities, errors or accepted hashes.
+final class SeedOriginalObservation {
+  const SeedOriginalObservation._({
+    required this.pending, required this.failed, required this.releaseFailed,
+  });
+
+  factory SeedOriginalObservation.capture(Iterable<SeedOriginal> originals) {
+    bool pending = false;
+    bool failed = false;
+    bool releaseFailed = false;
+    for (final SeedOriginal original in originals) {
+      pending = !original.settled || pending;
+      failed = original.failed || failed;
+      releaseFailed = original.releaseFailed || releaseFailed;
+    }
+    return SeedOriginalObservation._(
+      pending: pending, failed: failed, releaseFailed: releaseFailed,
+    );
+  }
+
+  final bool pending;
+  final bool failed;
+  final bool releaseFailed;
+  bool get unresolved => pending || failed || releaseFailed;
+
+  Map<String, Object> get public =>
+      Map<String, Object>.unmodifiable(<String, Object>{
+        'pending': pending, 'failed': failed, 'release_failed': releaseFailed,
+      });
+}
+
+/// Three exact negative flags from one original snapshot, without authority.
+Map<String, Object>? seedOriginalProjection(Object? value) {
+  const Set<String> fields = <String>{'pending', 'failed', 'release_failed'};
+  if (value is! Map<String, Object?> || value.length != fields.length ||
+      !value.keys.toSet().containsAll(fields) ||
+      fields.any((String key) => value[key] is! bool) ||
+      !fields.any((String key) => value[key] == true)) {
+    return null;
+  }
+  return Map<String, Object>.unmodifiable(<String, Object>{
+    for (final String key in fields) key: value[key]! as bool,
+  });
 }
 
 /// Completed nonpositive rounds from the original eighteen seed reads only.
@@ -243,6 +291,14 @@ Map<String, Object>? seedRefusalDetail(
   required Object? action,
 }) {
   if (action != 'publish') return null;
+  final Map<String, Object>? originals =
+      error.code == 'earlier-original-unresolved'
+      ? seedOriginalProjection(error.originals?.public) : null;
+  if (originals != null) {
+    return Map<String, Object>.unmodifiable(<String, Object>{
+      'seedOriginals': originals,
+    });
+  }
   final Map<String, Object>? confirmation =
       error.code == 'exact-confirmation-or-effect-pending'
       ? seedConfirmationProjection(error.confirmation?.public) : null;
@@ -431,11 +487,10 @@ final class SeedGuard {
         funds.qsr < minimum.qsr) {
       throw const SeedRefused('funded-selected-index-required');
     }
-    if (source.originals().any(
-      (SeedOriginal value) =>
-          !value.settled || value.failed || value.releaseFailed,
-    )) {
-      throw const SeedRefused('earlier-original-unresolved');
+    final SeedOriginalObservation originals =
+        SeedOriginalObservation.capture(source.originals());
+    if (originals.unresolved) {
+      throw SeedRefused('earlier-original-unresolved', originals: originals);
     }
   }
 

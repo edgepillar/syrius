@@ -539,16 +539,81 @@ void main() {
   test(
     'an earlier pending, failed or unreleased original prevents another tap',
     () async {
-      for (int kind = 0; kind < 3; kind++) {
-        final _Original operation = _Original();
-        if (kind == 0) operation.settled = false;
-        if (kind == 1) operation.failed = true;
-        if (kind == 2) operation.releaseFailed = true;
+      int taps = 0;
+      for (int flags = 1; flags < 8; flags++) {
+        final _Original operation = _Original()
+          ..settled = (flags & 1) == 0
+          ..failed = (flags & 2) != 0
+          ..releaseFailed = (flags & 4) != 0;
         source.operations
           ..clear()
+          ..add(_Original())
           ..add(operation);
-        await expectLater(guard.admit('stake'), throwsA(isA<SeedRefused>()));
+        SeedRefused? refusal;
+        try {
+          await guard.publish('stake', () async { taps++; });
+        } on SeedRefused catch (error) {
+          refusal = error;
+        }
+        expect(refusal?.code, 'earlier-original-unresolved');
+        final SeedRefused original = refusal!;
+        final Map<String, Object> facts = <String, Object>{
+          'pending': (flags & 1) != 0, 'failed': (flags & 2) != 0,
+          'release_failed': (flags & 4) != 0,
+        };
+        final Map<String, Object> detail = seedRefusalDetail(
+          original, action: 'publish',
+        )!;
+        expect(detail, <String, Object>{'seedOriginals': facts});
+        expect(detail.clear, throwsUnsupportedError);
+        final Map<String, Object> observed =
+            detail['seedOriginals']! as Map<String, Object>;
+        expect(observed.clear, throwsUnsupportedError);
+        operation
+          ..settled = true
+          ..failed = false
+          ..releaseFailed = false;
+        expect(observed, facts);
+        final Map<String, Object> offered = Map<String, Object>.of(facts);
+        final Map<String, Object> copied = seedOriginalProjection(offered)!;
+        offered.clear();
+        expect(copied, facts);
+        expect(copied.clear, throwsUnsupportedError);
+        for (final Object? action in <Object?>[
+          'begin', 'check', 'prepare', 'finish', null, true,
+        ]) {
+          expect(seedRefusalDetail(original, action: action), isNull);
+        }
+        expect(seedRefusalDetail(SeedRefused('unknown',
+          originals: original.originals), action: 'publish'), isNull);
+        for (final Object? value in <Object?>[
+          null, true, <Object>[], 'Synthetic',
+          <String, Object>{...facts, 'path': 'Synthetic'},
+          <String, Object>{...facts, 'hash': 'Synthetic'},
+          <String, Object>{
+            'pending': false, 'failed': false, 'release_failed': false,
+          },
+          for (final String key in facts.keys) ...<Object?>[
+            <String, Object>{
+              for (final String field in facts.keys)
+                if (field != key) field: facts[field]!,
+            },
+            <String, Object>{...facts, key: 1},
+            <String, Object?>{...facts, key: null},
+          ],
+        ]) {
+          expect(seedOriginalProjection(value), isNull);
+        }
+        expect(journal.attempts, isEmpty);
+        expect(journal.acceptedHashes, isEmpty);
+        expect(journal.confirmedHashes, isEmpty);
       }
+      expect(taps, 0);
+      expect(source.wsReads, 14);
+      expect(source.httpReads, 14);
+      expect(source.delays, 7);
+      expect(source.confirmationReads, 0);
+      expect(source.effectReads, 0);
       expect(journal.attempts, isEmpty);
     },
   );
