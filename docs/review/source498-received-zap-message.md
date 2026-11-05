@@ -202,3 +202,33 @@ code or route duration changes. The missing first-frame scheduling is an
 inference to verify in fresh complete execution, not an already qualified fix.
 All prior failures, backend seams, receipt boundaries, X614, original 72/80 and
 zero accepted whole-image matches remain open.
+
+## Actual Source503 focused result
+
+Source503 9256afbba55b4a92542647ba62d2cec070b698f0, tree
+23a83b96132b1267f51911182966115ae7b208de, succeeds in original
+[42082135377](https://github.com/edgepillar/syrius/actions/runs/42082135377),
+attempt one, job 127437670650. Independent reconciliation qualifies all 1338
+widgets in complete 51/51-file streams (644/694), zero failures/errors/skips,
+150 hidden cases and 1488 terminal events. Both original commands exit zero
+normally with complete unforced output in 165.390/153.984 seconds.
+
+All sixteen received-message cases pass, including Nice and close-icon removal
+in both themes and the closed focus loop/Escape opener restoration. Exact raw
+amounts, shared numeric semantics/privacy, plain sender text, bounded scaled RTL,
+reply refusal, validation and preserved motion clocks remain asserted. All
+seventeen existing Zap cases and every prior focused file remain. The original
+300-millisecond advances, all assertions and original process limits remain.
+
+All 1073 Python cases finish with eighteen explicit Windows skips and zero
+failures/errors. Fourteen assets and zero selected errors/warnings/infos pass.
+Aggregate, startup/refusal and final source checks complete. Fresh reads verify
+the fork source/tree, matching upstream Draft head and terminal original run
+with zero artifacts. No local SDK, wallet, node or image transport executes.
+
+This closes X614 for the selected presentation/renderer scope. Source504 records
+documentation and body350 only, preserving all 1983 runtime/source entries.
+Source502's three actual failures and every earlier failure/unknown remain.
+Receipt admission, durable once-per-hash behavior and reply/receive services
+remain behind their existing seams. Native pixels, original 72/80, zero of 94
+accepted whole-image matches and complete redesign acceptance remain open.

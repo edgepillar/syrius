@@ -7,6 +7,22 @@ basic functionality, with detailed visual and extended platform/lab acceptance
 afterward. The first milestone is ready for Draft code review. Final acceptance
 of the complete redesign remains open.
 
+The [qualified Source503 received-message result](source498-received-zap-message.md#actual-source503-focused-result)
+at 9256afbba55b4a92542647ba62d2cec070b698f0 passes original 42082135377 /
+job 127437670650, attempt one. All 1338 widgets in complete 51/51-file streams
+(644/694), 1073 Python cases/eighteen explicit Windows skips, fourteen assets
+and zero selected findings pass. All sixteen message cases qualify exact raw
+amounts, shared privacy/semantics, inert plain text, scaled RTL, seam refusal,
+both close actions, focus restoration and unchanged clocks. All prior selected
+files remain. Aggregate/startup/refusal/final source checks pass; the original
+is terminal with zero artifacts. Source504 records documentation/body350 only
+and preserves all 1983 runtime/source entries. Receipt admission and missing
+receive/reply services remain seamed. Detailed visuals, extended native/lab
+acceptance, original 72/80 and zero accepted whole-image matches remain open.
+
+The following sections retain earlier source-bound results and preparation
+snapshots; they do not replace the latest qualified focused source above.
+
 The [qualified Source492 Activity result](source489-activity-reference-spacing.md#actual-source492-focused-result)
 at a1dd38c462699959cb9066f03db2b5136a33848e passes original 42039587847 /
 job 127286567686, attempt one. All 1,305 widgets in complete 50/50-file
