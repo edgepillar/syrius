@@ -2,6 +2,30 @@
 
 ## Current qualification status (2026-11-05)
 
+The latest [native result](review/source485-native109-deposit-reply.md) is
+Source485 fa75ca03ab970fdfecf23cb06b4162d6cb957f45, tree
+f5201248e2455ec841bb23cb7bde7aa79b18eab2. Original
+[41996122451](https://github.com/edgepillar/syrius/actions/runs/41996122451),
+job 127139611515, remains failed. SDK-free independent
+[41999579386](https://github.com/edgepillar/syrius/actions/runs/41999579386),
+job 127151127106, qualifies the separate original one-ZNN index-1 to index-0
+send, twelve-page tour, quiescence and normal original app/entry plus five node
+exits. Current gates pass 1,297 widgets in complete 50/50-file streams (619/678),
+1,063 controllers/eighteen Windows skips, fourteen assets and zero selected
+findings. Both runs are terminal; two finite original manifests are read in
+memory, with zero reader artifacts and no local archive/image transfer.
+
+The copied Stake/Fuse/Token prefix remains incomplete. Deposit passes its first
+eleven commands, including field readiness and first amount entry, then command
+twelve refuses in its publish reply. The transport-entry marker proves neither
+pointer/SDK entry nor delivery/acceptance. Deposit outcome is UNKNOWN; the inner
+cause is NOT_ESTABLISHED. Project/Fund address are unreached and copied lifecycle,
+six effects and full F06 remain unqualified. Native108's earlier input refusal
+and every prior UNKNOWN remain. Source486 records this split result and exact
+body347 only, preserving all 1,976 runtime/source entries and earlier actual PR
+bodies. First delivery stays ready for Draft review; original 72/80 and zero
+accepted whole-image matches remain.
+
 The current full Windows source is Source484
 `7c4848a293698d02a6e99a8dcaa33ad81d4b9f70`, tree
 `d366eb8c1223dee6e3df3c5aba6785cdd5774b48`. Original

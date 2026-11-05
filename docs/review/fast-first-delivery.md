@@ -7,6 +7,28 @@ basic functionality, with detailed visual and extended platform/lab acceptance
 afterward. The first milestone is ready for Draft code review. Final acceptance
 of the complete redesign remains open.
 
+The latest [native result](source485-native109-deposit-reply.md) is Source485
+fa75ca03ab970fdfecf23cb06b4162d6cb957f45, tree
+f5201248e2455ec841bb23cb7bde7aa79b18eab2. Original
+[41996122451](https://github.com/edgepillar/syrius/actions/runs/41996122451)
+remains failed; SDK-free independent
+[41999579386](https://github.com/edgepillar/syrius/actions/runs/41999579386)
+qualifies the separate original confirmed one-ZNN send, twelve-page tour,
+quiescence and normal original app/entry plus all five original node exits.
+Current source gates pass all 1,297 widgets in complete 50/50-file streams,
+1,063 controllers/eighteen Windows skips, fourteen assets and zero selected
+findings. Both runs are terminal. Two finite manifests are read in memory;
+no local archive/image transfer or reader runtime/SDK allocation occurs.
+
+The copied session observes an incomplete Stake/Fuse/Token prefix. Deposit
+passes the first eleven authored commands, then command twelve refuses in its
+publish reply. Its call-entry marker proves neither pointer/SDK entry nor
+delivery/acceptance. Deposit outcome remains UNKNOWN and its inner cause
+NOT_ESTABLISHED. Project/Fund address are unreached. Complete seed/lifecycle,
+coordinated Swap, visual/motion and final acceptance remain phase two. Source486
+records this split outcome and exact English body347 only; all 1,976 runtime/
+source entries and original failures/UNKNOWN evidence remain unchanged.
+
 The current full Windows result is Source484 `7c4848a293698d02a6e99a8dcaa33ad81d4b9f70`,
 tree `d366eb8c1223dee6e3df3c5aba6785cdd5774b48`.
 [41983354537](https://github.com/edgepillar/syrius/actions/runs/41983354537)
@@ -19,7 +41,7 @@ analysis has no findings. Locked restoration, generated/localized
 correspondence and identical DLL map/export lookups pass. Both runs are terminal
 with zero artifacts. The [full report](source484-current-windows-baseline.md)
 preserves the initial count expectation and its exact-source reconciliation.
-Current wallet/seed, Docker Linux mode, native images and final acceptance stay
+Complete wallet/seed, Docker Linux mode, native images and final acceptance stay
 separate and open.
 
 The most recently qualified focused source is Source483
@@ -44,7 +66,7 @@ native About pixels and whole-image matching remain unqualified.
 
 Source485 changes documentation only and archives exact English body346,
 preserving all 1,976 qualified runtime/source entries. The 1,299-case asset
-variant stays unselected. Full Windows/native, visual and performance acceptance
+variant stays unselected. Full platform/seed, visual and performance acceptance
 stays deferred/open. Original progress remains 72/80 with zero accepted matches;
 this milestone is ready for Draft code review.
 
