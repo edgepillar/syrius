@@ -540,6 +540,19 @@ def goto_geometry_diagnostic(text):
         return None
     theme, direction, scale = markers[-1]
     value = dict(theme=theme, direction=direction, scale=int(scale))
+    measurements = [line for line in text.splitlines()
+        if line.startswith('CI_GOTO_MEASURE:')]
+    if measurements:
+        number = r'(-?[0-9]{1,4}(?:[.][0-9]{1,3})?)'
+        measured = re.fullmatch(r'CI_GOTO_MEASURE:'
+            r'(pages|actions|addresses|label|scroll):'
+            + ':'.join([number] * 4), measurements[-1])
+        if measured:
+            values = [float(item) for item in measured.groups()[1:]]
+            if all(math.isfinite(item) for item in values) and min(values[:2]) >= 0:
+                value['measurement'] = dict(target=measured[1],
+                    available=values[0], needed=values[1],
+                    start_gap=values[2], end_gap=values[3])
     overflow = re.search(r'A RenderFlex overflowed by '
         r'([0-9]{1,4}(?:[.][0-9]{1,3})?) pixels on the '
         r'(left|right|top|bottom)[.]', text)

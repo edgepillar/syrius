@@ -15,6 +15,20 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/fros
 const Key _field = Key('go_to_field');
 const Key _results = Key('go_to_results');
 
+void _reportGeometry(
+  String target,
+  double available,
+  double needed, {
+  double startGap = 0,
+  double endGap = 0,
+}) {
+  // Only fixed fixture targets and numeric geometry are emitted.
+  // ignore: avoid_print
+  print('CI_GOTO_MEASURE:$target:${available.toStringAsFixed(3)}:'
+      '${needed.toStringAsFixed(3)}:${startGap.toStringAsFixed(3)}:'
+      '${endGap.toStringAsFixed(3)}');
+}
+
 Finder _row(Object id) => find.byKey(ValueKey<Object?>(id));
 
 Finder _rowRichText(Object id, String label) => find.descendant(
@@ -220,19 +234,20 @@ void main() {
           expect(inlineHint.width, closeTo(rowHint.width, 0.01));
           expect(_rowSemantics(tester, 'address').properties.label,
               contains('synthetic' * 12));
-          for (final Finder text in <Finder>[
-            find.text('PAGES'),
-            find.text('ACTIONS'),
-            find.text('ADDRESSES'),
-            _rowRichText('short', 'Delegation'),
-          ]) {
+          for (final MapEntry<String, Finder> item in <String, Finder>{
+            'pages': find.text('PAGES'),
+            'actions': find.text('ACTIONS'),
+            'addresses': find.text('ADDRESSES'),
+            'label': _rowRichText('short', 'Delegation'),
+          }.entries) {
             final RenderParagraph paragraph =
-                tester.renderObject<RenderParagraph>(text);
+                tester.renderObject<RenderParagraph>(item.value);
+            final double needed =
+                paragraph.getMaxIntrinsicHeight(paragraph.size.width);
+            _reportGeometry(item.key, paragraph.size.height, needed);
             expect(
               paragraph.size.height + 0.01,
-              greaterThanOrEqualTo(
-                paragraph.getMaxIntrinsicHeight(paragraph.size.width),
-              ),
+              greaterThanOrEqualTo(needed),
             );
           }
           expect(tester.takeException(), isNull);
@@ -504,6 +519,11 @@ void main() {
       await tester.pumpAndSettle();
       final Rect viewport = tester.getRect(find.byKey(_results));
       final Rect last = tester.getRect(_row('entry_23'));
+      // ignore: avoid_print
+      print('CI_GOTO_GEOMETRY_CASE:dark:ltr:${scale.toInt()}');
+      _reportGeometry('scroll', viewport.height, last.height,
+          startGap: last.top - viewport.top,
+          endGap: viewport.bottom - last.bottom);
       expect(last.top, greaterThanOrEqualTo(viewport.top));
       expect(last.bottom, lessThanOrEqualTo(viewport.bottom));
       expect(_rowSemantics(tester, 'entry_23').properties.selected, isTrue);

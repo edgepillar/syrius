@@ -389,8 +389,9 @@ class _GoToPaletteState<T> extends State<GoToPalette<T>> {
     // Preserve the reference dimensions at normal scale, then add the extra
     // line height without shrinking the original heading and row padding.
     return (
-      heading: tokens.goToHeadingHeight + growth(tokens.ledgerText),
-      row: tokens.goToRowHeight + growth(tokens.bodyText),
+      heading: (tokens.goToHeadingHeight + growth(tokens.ledgerText))
+          .ceilToDouble(),
+      row: (tokens.goToRowHeight + growth(tokens.bodyText)).ceilToDouble(),
     );
   }
 
@@ -566,7 +567,24 @@ class _GoToPaletteState<T> extends State<GoToPalette<T>> {
                                 color: tokens.line,
                               ),
                               Flexible(child: _buildList(tokens)),
-                              _buildFooter(tokens),
+                              // Wrapped shortcut help scrolls independently so
+                              // large text leaves space for the result list.
+                              ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  maxHeight: math.max(
+                                    0,
+                                    constraints.maxHeight -
+                                        math.min(tokens.goToTopInset,
+                                            constraints.maxHeight / 4) -
+                                        tokens.goToEdgeInset,
+                                  ) / 3,
+                                ),
+                                child: SingleChildScrollView(
+                                  key: const Key('go_to_shortcuts'),
+                                  primary: false,
+                                  child: _buildFooter(tokens),
+                                ),
+                              ),
                             ],
                           ),
                         ),

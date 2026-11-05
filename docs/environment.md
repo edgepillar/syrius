@@ -13,16 +13,16 @@ source checking pass; all tested-source jobs are terminal with zero artifacts.
 The 1,232-case asset variant and current full-root Windows/native are unqualified.
 Later lab/CI changes preserve application Dart, dependencies and references.
 
-Source465 41944913219 passes 1,063 controllers/eighteen expected Windows skips,
-fourteen assets and zero-finding selected analysis. Its first 48-file stream
-completes normally with 595 passes/two new palette failures; the second group
-does not execute. The terminal original stays failed with zero artifacts.
-[Source466](review/source466-goto-inline-scaling.md) removes nested inline-key
-scaling and retains all prior paragraph, semantics and keyboard assertions,
-adding measured inline/standalone hint correspondence in the existing case.
-Fresh 1,230-case focused qualification is pending. The Source464 portable fixture
-and Linux source pass retain their own pins. No full wallet/devnet/image/motion
-job or local SDK is selected; all original failures remain preserved.
+Source466 41947091277 passes 1,063 controllers/eighteen expected skips, fourteen
+assets and zero-finding selected analysis, but its first 48-file stream retains
+595 passes/two palette failures and the second group is unexecuted. The terminal
+original stays failed with zero artifacts. [Source467](review/source467-goto-viewport-budget.md)
+rounds scaled heights upward, reserves result space with a bounded independently
+scrollable complete footer and preserves all prior assertions. Fixed-label numeric
+diagnostics add no raw text; all 23 local projection controls pass and the extended
+two-failure frame fits 3,759/3,800 bytes. Fresh focused qualification is pending;
+no full wallet/devnet/image/motion or local SDK job is selected. Every failed
+original and the Source464 portable fixture result remain separately preserved.
 
 The [actual Source459 default lab result](review/source459-reference-default.md#actual-source459-default-result)
 binds `9a758129afdae895ad253b0ae357b33aa919ed52`, tree

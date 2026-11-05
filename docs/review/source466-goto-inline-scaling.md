@@ -36,3 +36,23 @@ Source463's fourteen controller errors and Source464's analyzer-info refusal
 remain preserved. The portable fixture, actual Source459 Linux defaults and
 Source461 component/kernel split keep their own pins. Full original acceptance
 remains 72/80 with zero accepted whole-image matches; the PR remains Draft.
+
+
+## Original Source466 result
+
+Original [41947091277](https://github.com/edgepillar/syrius/actions/runs/41947091277),
+attempt one, job 126981898372, runs at Source466
+`0e5de571a206b31a65cf344bb84353aade1ada54`, tree
+`fbd08d34712ff6f140274f61a8ffae851af26e8c`. All 1,063 controllers/eighteen
+expected skips, fourteen assets and zero-finding selected analysis pass.
+The complete first 48-file stream still retains 595 passes/two failures, 68
+hidden events, normal exit one, 200.797 seconds and 326,603 complete unforced
+bytes. The second group is unexecuted; the terminal original remains failed with
+zero artifacts and no whole-selection or final-source qualification.
+
+The finite geometry detail now reaches its paragraph-height assertion after the
+new inline/standalone hint comparisons; the keyboard detail retains the selected
+row's top/viewport assertion. Exact failing paragraph dimensions and viewport
+numbers remain unretained. [Source467](source467-goto-viewport-budget.md) reserves
+result space and adds only bounded synthetic numeric diagnostics while retaining
+all existing assertions. This original is not retried or relabelled.

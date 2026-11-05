@@ -179,6 +179,22 @@ class DartFailureTests(unittest.TestCase):
                 'CI_GOTO_GEOMETRY_CASE:dark:ltr:1\n'
                 'A RenderFlex overflowed by ' + overflow + ' pixels on the right.')
             self.assertNotIn('overflow', result)
+        prefix = 'CI_GOTO_GEOMETRY_CASE:dark:rtl:2\n'
+        good = 'CI_GOTO_MEASURE:scroll:120.250:61.000:-0.125:2.000'
+        self.assertEqual(failure.goto_geometry_diagnostic(prefix + good), dict(
+            theme='dark', direction='rtl', scale=2,
+            measurement=dict(target='scroll', available=120.25, needed=61.0,
+                start_gap=-0.125, end_gap=2.0)))
+        for invalid in (good.replace('scroll', 'private'),
+                good.replace('120.250', '10000'),
+                good.replace('120.250', 'NaN'),
+                good.replace('120.250', '-1'),
+                good.replace('61.000', 'Infinity'),
+                good.replace('61.000', '-2'),
+                good.replace('61.000', '12.1234'), good + ' private'):
+            value = failure.goto_geometry_diagnostic(prefix + good + '\n' + invalid)
+            self.assertNotIn('measurement', value)
+            self.assertNotIn('private', json.dumps(value))
 
     def test_foreign_prints_cannot_supply_a_location_and_loading_errors_use_known_text(self):
         rows = [dict(type='print', testID=99, message='MissingPluginException private agent.dart:444:1'),
