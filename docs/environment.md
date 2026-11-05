@@ -23,6 +23,16 @@ remains separately pinned. Source473 changes documentation only, preserving all
 1,976 qualified runtime/source entries. No extra local SDK, full Windows/native,
 wallet/devnet, image or motion job is allocated for that record.
 
+[Source474](review/source474-node-capture-rest.md) changes only the Node capture
+script at runtime. Lower-section checks remain, followed by top restoration,
+neutral hover and the original five-second Add readiness/final assertion.
+Four existing pure catalog cases pass using all seven current script digests
+and synthetic in-memory archives. No local SDK, native process, extraction or
+network is used. All Dart/Python/workflow/dependency/asset bytes remain; fresh
+1,239-case focused execution is pending in the existing 49/48-file selection.
+Source472's UI pass remains separately bound. No current native shot or match
+is inferred, and heavy native/image acceptance stays deferred.
+
 The [actual Source459 default lab result](review/source459-reference-default.md#actual-source459-default-result)
 binds `9a758129afdae895ad253b0ae357b33aa919ed52`, tree
 `666e717e573292a073dc544a7c307b3c6887c55b`. Source-only 41933458571 and manual

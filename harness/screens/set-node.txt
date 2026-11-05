@@ -14,6 +14,12 @@ assert --key node_settings_peers_toggle
 scroll --key node_settings_peers_toggle 300
 assert --key node_settings_sporks_gate
 
+# Capture the resting header after checking the lower groups.
+scroll -1000000
+hover --at 0,0
+wait --key node_settings_add --ready --timeout 5
+assert --key node_settings_add
+
 # Return only after a fully retained positive shot.
 # after-capture: goto dashboard
 # after-capture: wait --key home_hero --timeout 5
