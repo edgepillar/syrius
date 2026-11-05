@@ -23,15 +23,18 @@ remains separately pinned. Source473 changes documentation only, preserving all
 1,976 qualified runtime/source entries. No extra local SDK, full Windows/native,
 wallet/devnet, image or motion job is allocated for that record.
 
-[Source474](review/source474-node-capture-rest.md) changes only the Node capture
-script at runtime. Lower-section checks remain, followed by top restoration,
-neutral hover and the original five-second Add readiness/final assertion.
-Four existing pure catalog cases pass using all seven current script digests
-and synthetic in-memory archives. No local SDK, native process, extraction or
-network is used. All Dart/Python/workflow/dependency/asset bytes remain; fresh
-1,239-case focused execution is pending in the existing 49/48-file selection.
-Source472's UI pass remains separately bound. No current native shot or match
-is inferred, and heavy native/image acceptance stays deferred.
+Original Source474 41960995980 passes 1,063 controllers/eighteen Windows
+skips, fourteen assets and zero selected findings, but its complete first group
+retains 605 passes/one existing scroll-receipt assertion failure and no second
+group. [Source475](review/source474-node-capture-rest.md#source475-exact-rest-receipts-and-hover-syntax)
+uses supported positional hover coordinates and updates the existing bound
+Settings case to exact three-scroll/one-neutral-hover receipts per Node
+preparation and the exact Add-header shot expectation. Every old refusal,
+retention, Home return, held-lane and timeout check remains. Four pure current-
+script-pin controls pass on the corrected digest. Fresh complete 1,239-case
+qualification is pending with unchanged registrations and original bounds.
+No production Dart/Python/workflow/dependency/asset or native image changes.
+Source472 remains the separately qualified UI; full acceptance stays open.
 
 The [actual Source459 default lab result](review/source459-reference-default.md#actual-source459-default-result)
 binds `9a758129afdae895ad253b0ae357b33aa919ed52`, tree

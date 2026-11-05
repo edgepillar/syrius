@@ -1115,6 +1115,11 @@ void main() {
           if (name == 'shot') {
             expect(tab, 'settings');
             expect(selected, screens[shots ~/ 2]);
+            if (selected == 'set-node') {
+              expect(command['expect'], <String, Object?>{
+                'key': 'node_settings_add', 'exact': true,
+              });
+            }
             if (fault == 'shot' || fault == 'late' && shots == 5) {
               return negative;
             }
@@ -1236,22 +1241,30 @@ void main() {
       ).toList();
       expect(scrolls, hasLength(switch (fault) {
         'first' => 0,
-        'none' || 'late' => 4,
-        'shot' || 'return' || 'png' => 2,
+        'none' || 'late' => 6,
+        'shot' || 'return' || 'png' => 3,
         _ => throw StateError('Unexpected bound capture fault'),
       }));
       expect(scrolls, equals(<Map<String, Object?>>[
-        for (int pair = 0; pair < scrolls.length ~/ 2; pair++)
+        for (int pair = 0; pair < scrolls.length ~/ 3; pair++)
           ...<Map<String, Object?>>[
             <String, Object?>{'cmd': 'scroll', 'dy': -1000000},
             <String, Object?>{
               'cmd': 'scroll', 'key': 'node_settings_peers_toggle', 'dy': 300,
             },
+            <String, Object?>{'cmd': 'scroll', 'dy': -1000000},
           ],
       ]));
+      final List<Map<String, Object?>> hovers = commands.where(
+        (Map<String, Object?> value) => value['cmd'] == 'hover',
+      ).toList();
+      expect(hovers, <Map<String, Object?>>[
+        for (int pair = 0; pair < scrolls.length ~/ 3; pair++)
+          <String, Object?>{'cmd': 'hover', 'at': <int>[0, 0]},
+      ]);
       expect(commands.every((Map<String, Object?> value) => <String>{
         'readonly-wallet-bind', 'state', 'tree', 'tap', 'theme', 'window',
-        'wait', 'assert', 'shot', 'scroll',
+        'wait', 'assert', 'shot', 'scroll', 'hover',
       }.contains(value['cmd'])), isTrue);
       expect(output.lines.every((Object? line) => line is String &&
           line.startsWith('ok')), isTrue);

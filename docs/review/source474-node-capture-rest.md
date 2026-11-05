@@ -52,3 +52,50 @@ Full acceptance remains 72/80 original rows, 50/94 historical literal outputs,
 V01/V02/V03/V05/V06 remain open. Heavy Windows/native wallet, seed/seam, catalog
 transport, visual, motion and final acceptance remain phase two. English public
 artifacts, edgepillar no-reply/UTC attribution and the existing Draft PR continue.
+
+## Original Source474 result
+
+Updated: 2026-11-05T03:36Z.
+
+Original [41960995980](https://github.com/edgepillar/syrius/actions/runs/41960995980),
+attempt one, job 127027060090, binds Source474
+`163cd58159d35b86141c6189d2d52b76cdc65685`, tree
+`4b6f88a45c8d764caaacae1fe38fa1af1158bc6d`. All 1,063 controllers/eighteen
+Windows skips, fourteen assets and zero-finding selected analysis pass. The
+complete first 49-file stream exits one normally in 215.25 seconds, with 334,005
+complete bytes and no overflow or forced termination. Its digest is
+`bcd554c53b01538ea883e3d9851fddce5dd238ca13105a80851757afdee34684`.
+There are 605 passes, one failure/error event, zero skips, 69 hidden and 675
+terminal events. The second group is not executed and no aggregate pass exists.
+The finite failure binds the existing bound Settings test's scroll-count
+assertion at line 1237; raw observed scroll count is not retained.
+The run remains failed, terminal and has zero artifacts; no native script ran.
+
+## Source475 exact rest receipts and hover syntax
+
+The existing bound Settings test still expected two scroll commands per Node
+preparation. It now requires the exact top/Peers/top triplet: six commands when
+both themes prepare Node, three when the first shot/return/PNG refuses and zero
+when the first section input refuses. The two original scroll commands remain
+in each exact triplet. One exact neutral-corner hover is required per preparation,
+and Node shot requests must name the exact Add-header expectation. The command
+whitelist gains only hover; its exact payload is separately checked.
+
+Source inspection also found that CLI coordinates are positional, such as
+`hover @0,0`. The earlier `--at` flag was not applied by selector(), so Source475
+uses the supported form. The existing test now checks the forwarded coordinate
+map, rather than accepting an unspecified hover. No old native pointer position
+or original image cause is inferred; that script was not run natively.
+
+All unbound, first-input, shot, return, late and PNG refusal paths remain, along
+with retained-file, Home return, held-lane, timeout and unchanged-response checks.
+No test registration, production Dart/Python, workflow, dependency or asset is
+changed. Four existing current-script-pin controls pass again against the new
+Node digest, with no failures/errors/skips, process, network or filesystem scratch.
+The other six Settings scripts and after-capture hooks retain their bytes.
+
+Fresh selected analysis and both complete 1,239-case hosted streams are required;
+97 files, 49/48 groups (606/633), the 1,241-case asset variant and every process
+bound remain. The original Source474 failure and all earlier evidence remain.
+Native rest pixels, full 72/80 acceptance, zero accepted matches and phase two
+remain open. No heavy native/image job is selected.
