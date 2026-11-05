@@ -10,11 +10,11 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 
 ## Verified results
 
-The latest [focused result](source505-seed-control-reason.md#actual-source505-focused-result)
-is Source505 30dd521bdfeb20d06f5345266c1bc6040bb79b6c, tree
-7e4a07fcae8d31e8ee79d297f34d6aad9e5e4be4. Original
-[42088467428](https://github.com/edgepillar/syrius/actions/runs/42088467428),
-attempt one, job 127459866891, independently qualifies:
+The latest [focused result](source507-seed-original-state.md#actual-source507-focused-result)
+is Source507 9e641e244b1f80172f38197252ae0373b94db1a3, tree
+721b30f524b07b32451fa9748675c8169688ac09. Original
+[42102216091](https://github.com/edgepillar/syrius/actions/runs/42102216091),
+attempt one, job 127507673558, independently qualifies:
 
 - 1338 selected Dart cases in complete 51/51-file streams (644/694), zero failures/errors/
   skips, 150 hidden cases and 1488 terminal events.
@@ -22,7 +22,7 @@ attempt one, job 127459866891, independently qualifies:
 - Fourteen asset observations and zero selected errors/warnings/infos.
 - Complete aggregate/startup/refusal/final source checks and zero artifacts.
 
-The new source-defined control-refusal reason stays anonymous and grants no
+Three immutable negative original-state flags stay anonymous and grant no
 operation authority. All existing guards, actions and test registrations remain.
 The [Source503 received-message result](source498-received-zap-message.md#actual-source503-focused-result)
 retains its presentation scope: exact amounts, shared privacy/semantics, inert
@@ -46,8 +46,8 @@ with its own source gates and independent archive reader. Its producer still
 fails in the copied session: Stake/Fuse/Token confirms, then Deposit refuses
 with `earlier-original-unresolved`. The exact guard places this before its
 journal claim/tap; which earlier original is pending or failed remains
-NOT_ESTABLISHED. Source507 adds three passive negative flags to distinguish
-that hold; fresh engine/analysis is pending. No old outcome is reclassified.
+NOT_ESTABLISHED. Source507 separately qualifies the passive negative flags;
+it does not observe a new native hold or reclassify any old outcome.
 
 ## Deferred acceptance
 
@@ -71,9 +71,9 @@ The [validation index](redesign-validation-index.md) retains the individual
 source-bound results, failures and UNKNOWN outcomes. The complete preceding
 [first-delivery record](https://github.com/edgepillar/syrius/blob/30dd521bdfeb20d06f5345266c1bc6040bb79b6c/docs/review/fast-first-delivery.md)
 remains immutable in the published history, and all original report paths
-remain available. The exact preceding PR text is [body350](pr-body-350.md).
+remain available. The exact preceding PR text is [body351](pr-body-351.md).
 
-Source506 records documentation/body351 only and preserves all 1983 Source505
+Source508 records documentation/body352 only and preserves all 1983 Source507
 runtime/source entries. No new SDK, native/lab or image-transport job is
 allocated for this record. Public artifacts remain English and privacy-safe,
 with edgepillar attribution and GitHub no-reply metadata. The PR stays Draft.

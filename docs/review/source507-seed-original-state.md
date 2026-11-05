@@ -62,7 +62,40 @@ reads on a hold. All sixteen selected memory-only Python controls pass with
 zero failures/errors/skips. Existing registrations and the 1338/1340 Dart,
 1073 Python/eighteen Windows skips and 51/51-file selection remain.
 
-Fresh Source507 engine/analysis qualification is pending. No new native seed
-attempt is started by this change. X616, complete F06, all eight original open
-gates, 44 missing literal outputs and zero accepted whole-image matches remain
-open. Heavy platform, image and performance acceptance stays in phase two.
+At preparation, fresh Source507 engine/analysis qualification was pending.
+No new native seed attempt is started by this change. Complete F06, all eight
+original open gates, 44 missing literal outputs and zero accepted whole-image
+matches remain open. Heavy platform, image and performance acceptance stays
+in phase two.
+
+## Actual Source507 focused result
+
+Source507 9e641e244b1f80172f38197252ae0373b94db1a3, tree
+721b30f524b07b32451fa9748675c8169688ac09, succeeds in original
+[42102216091](https://github.com/edgepillar/syrius/actions/runs/42102216091),
+attempt one, job 127507673558. Independent reconciliation qualifies all 1338
+selected Dart cases in complete 51/51-file streams (644/694), zero failures/
+errors/skips, 150 hidden and 1488 terminal events. Both original commands exit
+zero normally with complete unforced output in 199.688/192.500 seconds.
+
+All seven negative flag combinations, immutable copies, malformed data and
+reply-boundary refusals pass in the existing cases. The guard refuses every
+hold with zero taps, journal writes or confirmation/effect reads. Every prior
+selected path and registration remains. All 1073 Python cases finish with
+eighteen explicit Windows skips and zero failures/errors. Fourteen assets
+and zero selected errors/warnings/infos pass. Aggregate/startup/refusal/final
+source checks and fresh source/tree/Draft-head/terminal-run reads complete
+with zero artifacts. No local SDK, native financial flow or image transport
+executes.
+
+Independent source comparison also verifies unchanged environment validation,
+admission frontier/funding prefix, RPC/frontier helpers and the complete
+publish/confirmation body. The Python syntax tree is unchanged after removing
+only the new passive projection helper and its bound optional detail. The
+other three original policy files remain byte-identical.
+
+X616 closes for selected diagnostic/projection scope. Source508 records
+documentation/body352 only and preserves all 1983 Source507 runtime/source
+entries. This does not observe a new native hold or identify Native110's
+unresolved original. Original failures, Native109's UNKNOWN and full F06,
+original 72/80 and zero accepted visual matches remain unchanged.
