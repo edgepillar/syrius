@@ -75,3 +75,38 @@ The Activity implementation and tokens retain Source489's bytes. Registrations,
 all one hundred selected files, both original groups and every bound remain.
 Fresh 1,305-widget qualification is pending. The original failed run is not
 retried, and native pixels/full acceptance remain open.
+
+## Source490 result and Source491 component fixture
+
+Original [42033801208](https://github.com/edgepillar/syrius/actions/runs/42033801208),
+attempt one, job 127266622775, tests Source490
+6b14bc192c5271ea0f4d87846a25cb2e41a36037, tree
+72437833223c5f0d040e77ef05488f751c77a5ec. Its first complete 50-file stream
+finishes with 625 passes, two failures/errors, zero skips, 70 hidden and 697
+terminal events. The remaining failures point to the height assertion and the
+original visible amount-label assertion. The complete unforced command exits
+one in 202.125 seconds with 348,287 bytes. Group two is unselected. All 1,063
+Python controls/eighteen Windows skips, fourteen assets and zero selected
+findings pass. All jobs are terminal with zero artifacts. Neither old run is
+retried. Old actual numeric heights and label counts remain NOT_RETAINED.
+
+Source491 separates the component's layout contract from a list's extra
+semantics: a horizontal-axis UnconstrainedBox releases the vertical constraint
+just as the production list does, while retaining the original component-test
+semantics. The same exact one-label and hidden-label assertions remain.
+
+The reference height now shapes independent fourteen-pixel/1.45 sans and mono
+line boxes before adding the nine-pixel insets and one-pixel separator. This
+replaces the raw font-size product; the forty-pixel minimum and 0.1-pixel
+comparison stay. The actual row is never used to compute the expected height.
+Movement gap, explorer extent, amounts, marks, actions and all older assertions
+remain. Production Activity and token files retain Source489's bytes.
+
+Only fixed fixture geometry or a visible-label match count can enter the new
+failure diagnostic. It is bound to the originating Activity test and admits no
+text, amounts, hashes, addresses, labels, paths or exception payload. Unknown
+fields, duplicates, nonfinite or out-of-range values and foreign test context
+refuse. Five existing pure projection cases pass locally with all old controls
+retained, no filesystem fixtures, no SDK and no new registrations. Current
+1,305-widget/1,063-controller qualification remains pending. All previous
+failures, native pixel limits and original 72/80 acceptance remain unchanged.

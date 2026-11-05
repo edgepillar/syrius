@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart' as foundation;
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -44,11 +46,10 @@ Widget _host(
         alignment: Alignment.topLeft,
         child: SizedBox(
           width: width,
-          // Match the production list's content-height row constraints.
-          child: ListView(
-            primary: false,
-            padding: EdgeInsets.zero,
-            children: <Widget>[child],
+          // Match vertical-list constraints without adding scroll semantics.
+          child: UnconstrainedBox(
+            constrainedAxis: Axis.horizontal,
+            child: child,
           ),
         ),
       ),
@@ -105,10 +106,41 @@ void _expectReferenceRowGeometry(
   expect(direction == TextDirection.ltr
       ? label.left - mark.right : mark.left - label.right, closeTo(10, 0.1));
   expect(tester.getSize(find.byType(IconButton)), const Size.square(14));
-  // A plain link does not enlarge the 14 px / 1.45 line and 9 px insets.
-  final double lineHeight = 14 * 1.45 * scale + 19;
+  // Shape both reference fonts before adding the CSS insets and separator.
+  double lineHeight = 0;
+  for (final String family in <String>[kSansFontFamily, kMonoFontFamily]) {
+    final TextPainter reference = TextPainter(
+      text: TextSpan(text: 'Sent', style: TextStyle(
+        fontFamily: family,
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        letterSpacing: 0,
+        height: 1.45,
+        leadingDistribution: TextLeadingDistribution.even,
+        fontFeatures: const <ui.FontFeature>[ui.FontFeature.tabularFigures()],
+      )),
+      textDirection: direction,
+      textScaler: TextScaler.linear(scale),
+    )..layout();
+    if (reference.height > lineHeight) lineHeight = reference.height;
+    reference.dispose();
+  }
+  final double expectedHeight = lineHeight + 19 < 40 ? 40 : lineHeight + 19;
+  foundation.debugPrintSynchronously('CI_ACTIVITY_FIXTURE:${jsonEncode(
+    <String, Object>{
+      'schema': 1,
+      'kind': 'geometry',
+      'light': Theme.of(tester.element(find.byType(ActivityRow))).brightness ==
+          Brightness.light,
+      'direction': direction.name,
+      'scale': scale,
+      'row_height': tester.getSize(find.byType(ActivityRow)).height,
+      'reference_height': expectedHeight,
+      'line_height': lineHeight,
+    },
+  )}');
   expect(tester.getSize(find.byType(ActivityRow)).height,
-    closeTo(lineHeight < 40 ? 40 : lineHeight, 0.1));
+    closeTo(expectedHeight, 0.1));
 }
 
 void main() {
@@ -197,6 +229,14 @@ void main() {
       final SemanticsHandle handle = tester.ensureSemantics();
       try {
         await tester.pumpWidget(_host(row()));
+        foundation.debugPrintSynchronously('CI_ACTIVITY_FIXTURE:${jsonEncode(
+          <String, Object>{
+            'schema': 1,
+            'kind': 'semantics',
+            'visible_label_matches':
+                find.semantics.byLabel('12.5').evaluate().length,
+          },
+        )}');
         expect(find.semantics.byLabel('12.5'), findsOne);
         visibility.set(true);
         await tester.pump();

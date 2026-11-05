@@ -367,6 +367,16 @@ class DartFailureTests(unittest.TestCase):
 
 
 class HomeBaselineProjectionTests(unittest.TestCase):
+    def activity_sample(self, *, semantics=False):
+        if semantics:
+            return dict(schema=1, kind='semantics', visible_label_matches=1)
+        return dict(schema=1, kind='geometry', light=False, direction='ltr',
+                    scale=1, row_height=40, reference_height=40, line_height=21)
+
+    def activity_value(self, message, **kwargs):
+        kwargs.setdefault('suite', 'activity_row_test.dart')
+        return failure.project(encode(self.rows(message, **kwargs)))['items'][0]
+
     def sample(self):
         return dict(schema=1, light=False, direction='ltr', scale=1,
                     primary=True, number_baseline=122.5, dollar_baseline=123.25,
@@ -391,6 +401,13 @@ class HomeBaselineProjectionTests(unittest.TestCase):
         self.assertNotIn('private', json.dumps(value))
         self.assertNotIn('/fixture', json.dumps(value))
 
+        for semantics in (False, True):
+            sample = self.activity_sample(semantics=semantics)
+            value = self.activity_value('CI_ACTIVITY_FIXTURE:' + json.dumps(sample))
+            self.assertEqual(value['activity_fixture'], sample)
+            self.assertNotIn('private', json.dumps(value))
+            self.assertNotIn('/fixture', json.dumps(value))
+
     def test_last_fixture_observation_is_selected(self):
         first, last = self.sample(), self.sample()
         last.update(light=True, direction='rtl', scale=2, primary=False)
@@ -398,6 +415,12 @@ class HomeBaselineProjectionTests(unittest.TestCase):
                             for row in (first, last))
         value = failure.project(encode(self.rows(message)))['items'][0]
         self.assertEqual(value['home_baseline'], last)
+
+        first, last = self.activity_sample(), self.activity_sample()
+        last.update(light=True, direction='rtl', scale=1.5, row_height=50)
+        message = '\n'.join('CI_ACTIVITY_FIXTURE:' + json.dumps(row)
+                            for row in (first, last))
+        self.assertEqual(self.activity_value(message)['activity_fixture'], last)
 
     def test_unknown_fields_shapes_and_nonfinite_values_refuse(self):
         samples = [dict(self.sample(), private='secret'),
@@ -415,6 +438,23 @@ class HomeBaselineProjectionTests(unittest.TestCase):
                 self.assertNotIn('home_baseline', value)
                 self.assertNotIn('secret', json.dumps(value))
 
+        samples = [dict(self.activity_sample(), private='secret'),
+                   dict(self.activity_sample(), schema=True),
+                   dict(self.activity_sample(), light=1),
+                   dict(self.activity_sample(), scale=True),
+                   dict(self.activity_sample(), scale=2),
+                   dict(self.activity_sample(), direction='private'),
+                   dict(self.activity_sample(), kind='private')]
+        for bad in (-1, 4097, float('nan'), float('inf'), True, 'private', {}):
+            samples.append(dict(self.activity_sample(), row_height=bad))
+        for bad in (-1, 65, True, 'private', 1.5):
+            samples.append(dict(self.activity_sample(semantics=True),
+                                visible_label_matches=bad))
+        for sample in samples:
+            value = self.activity_value('CI_ACTIVITY_FIXTURE:' + json.dumps(sample))
+            self.assertNotIn('activity_fixture', value)
+            self.assertNotIn('secret', json.dumps(value))
+
     def test_last_malformed_or_duplicate_record_never_falls_back(self):
         valid = 'CI_HOME_BASELINE:' + json.dumps(self.sample())
         duplicate = json.dumps(self.sample())[:-1] + ', "schema": 1}'
@@ -426,6 +466,14 @@ class HomeBaselineProjectionTests(unittest.TestCase):
         self.assertIsNone(failure.home_baseline_geometry(None))
         self.assertIsNone(failure.home_baseline_geometry('x' * 16385))
 
+        valid = 'CI_ACTIVITY_FIXTURE:' + json.dumps(self.activity_sample())
+        duplicate = json.dumps(self.activity_sample())[:-1] + ', "schema": 1}'
+        for bad in ('private', '[]', duplicate, 'x' * 1025):
+            self.assertNotIn('activity_fixture', self.activity_value(
+                valid + '\nCI_ACTIVITY_FIXTURE:' + bad))
+        self.assertIsNone(failure.activity_fixture_diagnostic(None))
+        self.assertIsNone(failure.activity_fixture_diagnostic('x' * 16385))
+
     def test_other_suites_and_other_test_prints_cannot_bind(self):
         marker = 'CI_HOME_BASELINE:' + json.dumps(self.sample())
         for suite, identity in (('go_to_palette_test.dart', 7),
@@ -435,6 +483,13 @@ class HomeBaselineProjectionTests(unittest.TestCase):
                 value = failure.project(encode(self.rows(
                     marker, suite=suite, identity=identity)))['items'][0]
                 self.assertNotIn('home_baseline', value)
+
+        marker = 'CI_ACTIVITY_FIXTURE:' + json.dumps(self.activity_sample())
+        for suite, identity in (('home_hero_test.dart', 7),
+                                ('private_activity_row_test.dart', 7),
+                                ('activity_row_test.dart', 99)):
+            self.assertNotIn('activity_fixture', self.activity_value(
+                marker, suite=suite, identity=identity))
 
 
 class RootSuitePrivacyTests(unittest.TestCase):

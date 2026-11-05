@@ -638,6 +638,48 @@ def home_baseline_geometry(text):
                 **{key: float(value[key]) for key in numbers})
 
 
+def activity_fixture_diagnostic(text):
+    """Keep only bounded layout or match counts from the Activity fixture."""
+    if type(text) is not str or len(text) > 16384:
+        return None
+    rows = re.findall(r'(?m)^CI_ACTIVITY_FIXTURE:([^\r\n]*)\r?$', text)
+    if not rows or len(rows) > 64 or not 0 < len(rows[-1]) <= 1024:
+        return None
+
+    def pairs(items):
+        value = {}
+        for key, item in items:
+            if key in value:
+                raise ValueError()
+            value[key] = item
+        return value
+
+    try:
+        value = json.loads(rows[-1], object_pairs_hook=pairs)
+    except (ValueError, TypeError, OverflowError):
+        return None
+    if type(value) is not dict or type(value.get('schema')) is not int or value['schema'] != 1:
+        return None
+    if value.get('kind') == 'semantics':
+        if set(value) != {'schema', 'kind', 'visible_label_matches'}:
+            return None
+        count = value['visible_label_matches']
+        return value if type(count) is int and 0 <= count <= 64 else None
+    numbers = ('row_height', 'reference_height', 'line_height')
+    if set(value) != {'schema', 'kind', 'light', 'direction', 'scale', *numbers}:
+        return None
+    if value['kind'] != 'geometry' or type(value['light']) is not bool:
+        return None
+    if value['direction'] not in ('ltr', 'rtl'):
+        return None
+    if type(value['scale']) not in (int, float) or value['scale'] not in (1, 1.5):
+        return None
+    if not all(type(value[key]) in (int, float) and 0 <= value[key] <= 4096
+               and math.isfinite(value[key]) for key in numbers):
+        return None
+    return value
+
+
 def project(raw):
     refused = dict(status='REFUSED', total=0, items=[])
     if type(raw) is not bytes or len(raw) > 4 * 1024**2:
@@ -729,6 +771,10 @@ def project(raw):
                 geometry = home_baseline_geometry(context)
                 if geometry is not None:
                     item['home_baseline'] = geometry
+            if suite == 'activity_row_test.dart':
+                geometry = activity_fixture_diagnostic(context)
+                if geometry is not None:
+                    item['activity_fixture'] = geometry
             for label, text in (('STACK', stack), ('ERROR', error), ('PRINT', context)):
                 caller = location(text, tests_only=True)
                 if caller is not None:
