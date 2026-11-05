@@ -448,6 +448,7 @@ ROOT_TEST_FILES = (
     'withdrawal_proof_test.dart',
     'zap_draft_test.dart',
     'zap_form_test.dart',
+    'zap_received_message_test.dart',
     'zap_sparks_test.dart',
 )
 FILES = tuple(dict.fromkeys((*FILES, *ROOT_TEST_FILES)))

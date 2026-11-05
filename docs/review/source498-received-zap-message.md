@@ -46,3 +46,21 @@ analysis and full selected execution are pending.
 No local SDK, binary/image archive or financial replay is allocated. Native
 pixels, every prior failure/unknown, copied Deposit UNKNOWN, X614, full original
 72/80 acceptance and zero of 94 accepted whole-image matches remain open.
+
+## Original Source498 catalog refusal and Source499 registration
+
+Source498 6faef6446c7c0b8d00e6f18c1e11dc0ef5319f8f, tree
+ed5d89ba12e07d6c5cb368f68a80d2afbe615e7e, remains failed in original
+42061034183 / job 127362541740, attempt one. Admission passes; the complete
+1068-controller selection reports one failure, zero errors and eighteen expected
+Windows skips. The failing root-catalog integrity case detects the missing
+zap_received_message_test.dart entry. SDK setup, assets, analysis and Dart
+execution are skipped. The failed run is terminal with zero artifacts; no
+renderer pass is inferred.
+
+Source499 adds that one explicit public basename to the existing sorted failure
+catalog. Unknown names, private paths, ambiguous identities and all other
+privacy refusals remain closed. UI code, all sixteen new cases, seventeen
+existing Zap cases, all prior selected files, count expectations, fonts and
+process/source bounds remain byte-identical. Fresh hosted qualification is
+pending; the original refusal and full acceptance boundaries are preserved.
