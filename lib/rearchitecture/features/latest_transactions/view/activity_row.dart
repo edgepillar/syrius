@@ -94,7 +94,7 @@ class _ActivityRowState extends State<ActivityRow>
               child: Row(
                 children: <Widget>[
                   _buildMovementIcon(tokens, actionInk),
-                  SizedBox(width: tokens.homeTokenRowGap),
+                  SizedBox(width: tokens.activityMovementGap),
                   Flexible(
                     child: Text(
                       _label(context, entry.kind),
@@ -331,6 +331,7 @@ class _ActivityRowState extends State<ActivityRow>
       child: IconButton(
         key: ValueKey<String>('activity_explorer:${entry.hash}'),
         tooltip: context.l10n.activityExplorer,
+        iconSize: tokens.activityIconSize,
         onPressed: link == null
             ? null
             : () {
@@ -343,9 +344,10 @@ class _ActivityRowState extends State<ActivityRow>
         style: IconButton.styleFrom(
           foregroundColor: tokens.faint,
           disabledForegroundColor: tokens.faint,
-          minimumSize: Size.square(tokens.smallButtonHeight),
-          maximumSize: Size.square(tokens.smallButtonHeight),
+          minimumSize: Size.square(tokens.activityIconSize),
+          maximumSize: Size.square(tokens.activityIconSize),
           padding: EdgeInsets.zero,
+          visualDensity: VisualDensity.standard,
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
         icon: ShellSymbol('ext', size: tokens.activityIconSize),

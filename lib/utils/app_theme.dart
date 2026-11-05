@@ -448,6 +448,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The direction mark remains secondary to the data.
   double get activityIconSize => 14;
 
+  /// The movement mark and label follow the reference's inline row.
+  double get activityMovementGap => 10;
+
   /// The Activity scope chip follows the reference's compact chrome.
   double get activityScopeHeight => 26;
 

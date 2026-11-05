@@ -84,6 +84,25 @@ void _expectOriginalMarks(WidgetTester tester, {bool incoming = false}) {
   );
 }
 
+void _expectReferenceRowGeometry(
+  WidgetTester tester, {
+  TextDirection direction = TextDirection.ltr,
+  double scale = 1,
+}) {
+  final Rect mark = tester.getRect(find.descendant(
+    of: find.byType(ActivityRow), matching: find.byType(SvgPicture),
+  ).first);
+  final Rect label = tester.getRect(find.text('Sent'));
+  // The reference's .row has a 10 px gap and .i.s has a 14 px box.
+  expect(direction == TextDirection.ltr
+      ? label.left - mark.right : mark.left - label.right, closeTo(10, 0.1));
+  expect(tester.getSize(find.byType(IconButton)), const Size.square(14));
+  // A plain link does not enlarge the 14 px / 1.45 line and 9 px insets.
+  final double lineHeight = 14 * 1.45 * scale + 19;
+  expect(tester.getSize(find.byType(ActivityRow)).height,
+    closeTo(lineHeight < 40 ? 40 : lineHeight, 0.1));
+}
+
 void main() {
   late SharedPrefsService? preferences;
   late BalanceVisibility visibility;
@@ -138,6 +157,7 @@ void main() {
           tokens.foreground,
         );
         _expectOriginalMarks(tester);
+        _expectReferenceRowGeometry(tester);
         expect(tester.takeException(), isNull);
       },
     );
@@ -330,6 +350,9 @@ void main() {
       );
       expect(number.textDirection, TextDirection.ltr);
       expect(_number(tester), '12.5');
+      _expectReferenceRowGeometry(
+        tester, direction: TextDirection.rtl, scale: 1.5,
+      );
       expect(tester.takeException(), isNull);
     },
   );
