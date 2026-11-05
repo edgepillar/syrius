@@ -15,6 +15,8 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/home/cubit/h
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/home/view/home_hero.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/home/widgets/amount_text.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/transfer/view/transfer_page.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart'
+    show HeroField;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/dollar_text.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/eye_toggle.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/plasma_meter.dart';
@@ -61,6 +63,72 @@ class _Prices {
     if (fail) throw const FormatException('Unavailable fixture');
     return answer;
   }
+}
+
+const Size _homeFieldSize = Size(1204, 153);
+
+Future<void> _showHomeField(
+  WidgetTester tester, {
+  required bool light,
+  bool enabled = true,
+  bool reduced = false,
+}) async {
+  tester.view
+    ..physicalSize = const Size(1280, 780)
+    ..devicePixelRatio = 1;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+  addTearDown(() => tester.pumpWidget(const SizedBox.shrink()));
+  await tester.pumpWidget(MaterialApp(
+    theme: light ? AppTheme.lightTheme : AppTheme.darkTheme,
+    home: MediaQuery(
+      data: MediaQueryData(disableAnimations: reduced),
+      child: TickerMode(
+        enabled: enabled,
+        child: const Center(
+          child: SizedBox(
+            width: 1204,
+            height: 153,
+            child: HeroField.home(),
+          ),
+        ),
+      ),
+    ),
+  ));
+  await tester.pump();
+}
+
+Future<Uint8List> _homeFieldPixels(WidgetTester tester) async {
+  final RenderRepaintBoundary boundary =
+      tester.renderObject<RenderRepaintBoundary>(find.descendant(
+        of: find.byType(HeroField), matching: find.byType(RepaintBoundary),
+      ));
+  return (await tester.runAsync<Uint8List>(() async {
+    final ui.Image image = await boundary.toImage();
+    try {
+      expect(image.width, _homeFieldSize.width.toInt());
+      expect(image.height, _homeFieldSize.height.toInt());
+      final ByteData? data = await image.toByteData();
+      if (data == null) throw StateError('Home field pixels unavailable');
+      return Uint8List.fromList(data.buffer.asUint8List(
+        data.offsetInBytes, data.lengthInBytes,
+      ));
+    } finally {
+      image.dispose();
+    }
+  }))!;
+}
+
+void _expectHomeFieldBand(
+  Uint8List pixels, int x, int y, List<int> expected,
+) {
+  final int at = (y * _homeFieldSize.width.toInt() + x) * 4;
+  for (int channel = 0; channel < 3; channel++) {
+    expect(pixels[at + channel], closeTo(expected[channel], 8),
+      reason: 'Reference Home wash at $x,$y, channel $channel',
+    );
+  }
+  expect(pixels[at + 3], 255);
 }
 
 void _reportHomeBaselineFailure(Object error) {
@@ -1298,4 +1366,74 @@ void main() {
       }
     }
   });
+
+  for (final bool light in <bool>[false, true]) {
+    testWidgets('Home wash follows reference light regions, light $light', (
+      WidgetTester tester,
+    ) async {
+      await _showHomeField(tester, light: light);
+      final Uint8List pixels = await _homeFieldPixels(tester);
+      // Original PNG samples, adjusted for the two approved brand colours.
+      // The envelopes allow eight-bit blur/compositing rounding.
+      _expectHomeFieldBand(pixels, 150, 110,
+        light ? <int>[221, 240, 229] : <int>[36, 55, 44],
+      );
+      _expectHomeFieldBand(pixels, 1040, 100,
+        light ? <int>[204, 220, 244] : <int>[33, 49, 73],
+      );
+      _expectHomeFieldBand(pixels, 600, 145,
+        light ? <int>[230, 228, 241] : <int>[43, 42, 54],
+      );
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('Home wash returns after both drift legs, light $light', (
+      WidgetTester tester,
+    ) async {
+      await _showHomeField(tester, light: light);
+      final Uint8List first = await _homeFieldPixels(tester);
+      await tester.pump(const Duration(seconds: 18));
+      final Uint8List opposite = await _homeFieldPixels(tester);
+      expect(foundation.listEquals(first, opposite), isFalse);
+      await tester.pump(const Duration(seconds: 18));
+      expect(foundation.listEquals(first, await _homeFieldPixels(tester)),
+        isTrue,
+      );
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('Home wash holds its clock while hidden, light $light', (
+      WidgetTester tester,
+    ) async {
+      await _showHomeField(tester, light: light);
+      await tester.pump(const Duration(seconds: 4));
+      final Uint8List before = await _homeFieldPixels(tester);
+      await _showHomeField(tester, light: light, enabled: false);
+      await tester.pump(const Duration(seconds: 18));
+      expect(foundation.listEquals(before, await _homeFieldPixels(tester)),
+        isTrue,
+      );
+      await _showHomeField(tester, light: light);
+      expect(foundation.listEquals(before, await _homeFieldPixels(tester)),
+        isTrue,
+      );
+      await tester.pump(const Duration(seconds: 1));
+      expect(foundation.listEquals(before, await _homeFieldPixels(tester)),
+        isFalse,
+      );
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('Home wash moves with the OS motion flag off, light $light', (
+      WidgetTester tester,
+    ) async {
+      await _showHomeField(tester, light: light, reduced: true);
+      final Uint8List first = await _homeFieldPixels(tester);
+      await tester.pump(const Duration(seconds: 9));
+      expect(foundation.listEquals(first, await _homeFieldPixels(tester)),
+        isFalse,
+      );
+      expect(tester.takeException(), isNull);
+    });
+  }
 }

@@ -7,6 +7,16 @@ basic functionality, with detailed visual and extended platform/lab acceptance
 afterward. The first milestone is ready for Draft code review. Final acceptance
 of the complete redesign remains open.
 
+The [Source487 Home field follow-up](source487-home-reference-field.md) prepares
+the reference light geometry, grouped blur and eighteen-second alternate drift
+with the existing clock and approved palette. Eight new two-theme pixel/clock
+cases retain all original tests and the same 100-file selection: 1,305 ordinary
+cases in 50/50-file streams (627/678), or 1,307 with asset fidelity. Fourteen
+mocked local admission methods pass without SDK/native execution or filesystem
+fixtures. Fresh hosted analysis/widgets are pending; current native pixels,
+GPU/frame time, populated states and complete image acceptance remain phase two.
+Native109's copied Deposit remains UNKNOWN, with no financial replay.
+
 The latest [native result](source485-native109-deposit-reply.md) is Source485
 fa75ca03ab970fdfecf23cb06b4162d6cb957f45, tree
 f5201248e2455ec841bb23cb7bde7aa79b18eab2. Original

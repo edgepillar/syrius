@@ -2,6 +2,19 @@
 
 ## Current qualification status (2026-11-05)
 
+The [Source487 Home field candidate](review/source487-home-reference-field.md)
+aligns the Home-only light geometry, blur, composition and drift with the source
+CSS. Eight added two-theme pixel/clock cases prepare 1,305 ordinary widgets in
+the same 50/50-file streams (627/678), or 1,307 with asset fidelity. All fourteen
+mocked admission methods pass locally with zero failures/errors/skips and no
+filesystem fixtures or SDK/native execution. The 1,063-controller/eighteen
+Windows-skip selection and all original deadlines/caps remain. Fresh hosted
+strict analysis and complete widget execution are pending. Native pixels,
+GPU/frame time, complete Home states and all whole-image matches stay open.
+The default fragment painter/asset, original clock and financial data/actions
+remain. Native109's copied Deposit outcome stays UNKNOWN and its cause remains
+NOT_ESTABLISHED; no original operation is replayed for this follow-up.
+
 The latest [native result](review/source485-native109-deposit-reply.md) is
 Source485 fa75ca03ab970fdfecf23cb06b4162d6cb957f45, tree
 f5201248e2455ec841bb23cb7bde7aa79b18eab2. Original

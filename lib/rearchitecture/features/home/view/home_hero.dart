@@ -87,7 +87,7 @@ class _HomeHeroState extends State<HomeHero> {
     return Panel(
       child: Stack(
         children: <Widget>[
-          const Positioned.fill(child: IgnorePointer(child: HeroField())),
+          const Positioned.fill(child: IgnorePointer(child: HeroField.home())),
           Padding(
             padding: tokens.heroPadding,
             child: ListenableBuilder(

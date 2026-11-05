@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
@@ -5,6 +6,7 @@ import 'package:flutter_shaders/flutter_shaders.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/shaders/shader_clock.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_colors.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 
 /// The asset the field is drawn by. Listed under `flutter: shaders:`.
 const String kHeroFieldShader = 'assets/shaders/hero_field.frag';
@@ -12,7 +14,9 @@ const String kHeroFieldShader = 'assets/shaders/hero_field.frag';
 /// A slow field of green, pink and blue light under the card colour: the
 /// surface behind the Home hero.
 ///
-/// It fills whatever box it is given and draws nothing until its shader has
+/// The Home preset follows the reference's grouped gradients, blur and drift
+/// through SDK shaders. Existing callers use the original fragment shader.
+/// That shader fills its box and draws nothing until its program has
 /// loaded, so the card is simply its own colour for the first frames. Put it
 /// under the content in a `Stack`, inside the card's clip.
 ///
@@ -21,12 +25,18 @@ const String kHeroFieldShader = 'assets/shaders/hero_field.frag';
 /// window or a frosted overlay holds the field on its current frame.
 class HeroField extends StatefulWidget {
   /// Creates the field.
-  const HeroField({this.strength, super.key});
+  const HeroField({this.strength, super.key}) : _referenceHome = false;
+
+  /// The Home card's closest-side lights and eighteen-second alternate drift.
+  const HeroField.home({super.key})
+    : strength = null,
+      _referenceHome = true;
 
   /// How far a light pulls the card colour at its centre, 0 to 1. Null
   /// takes the value for the theme: less on a white card, where the same
   /// pull reads as a stain.
   final double? strength;
+  final bool _referenceHome;
 
   @override
   State<HeroField> createState() => _HeroFieldState();
@@ -49,6 +59,14 @@ class _HeroFieldState extends State<HeroField>
   }
 
   @override
+  void didUpdateWidget(HeroField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget._referenceHome != widget._referenceHome) {
+      _clock.active = false;
+    }
+  }
+
+  @override
   void dispose() {
     _clock.dispose();
     super.dispose();
@@ -56,6 +74,24 @@ class _HeroFieldState extends State<HeroField>
 
   @override
   Widget build(BuildContext context) {
+    if (widget._referenceHome) {
+      final AppTokens tokens = AppTokens.of(context);
+      _clock.active = true;
+      return RepaintBoundary(
+        child: ClipRect(
+          child: CustomPaint(
+            painter: _HomeHeroFieldPainter(
+              seconds: _clock,
+              base: tokens.card,
+              green: tokens.znn,
+              blue: tokens.qsr,
+              pink: tokens.pink,
+            ),
+            child: const SizedBox.expand(),
+          ),
+        ),
+      );
+    }
     final ThemeData theme = Theme.of(context);
     final bool dark = theme.brightness == Brightness.dark;
     return RepaintBoundary(
@@ -78,6 +114,114 @@ class _HeroFieldState extends State<HeroField>
       ),
     );
   }
+}
+
+class _HomeHeroFieldPainter extends CustomPainter {
+  _HomeHeroFieldPainter({
+    required this.seconds,
+    required this.base,
+    required this.green,
+    required this.blue,
+    required this.pink,
+  }) : super(repaint: seconds);
+
+  final ValueListenable<double> seconds;
+  final Color base;
+  final Color green;
+  final Color blue;
+  final Color pink;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.isEmpty) return;
+    final Rect viewport = Offset.zero & size;
+    canvas.drawRect(viewport, Paint()..color = base);
+    // CSS inset percentages use the card; translation uses the enlarged field.
+    final Rect field = Rect.fromLTWH(
+      -size.width * 0.4,
+      -size.height * 0.4,
+      size.width * 1.8,
+      size.height * 1.8,
+    );
+    final double leg = (seconds.value % 36) / 18;
+    final double progress = Curves.easeInOut.transform(
+      leg <= 1 ? leg : 2 - leg,
+    );
+    final Offset center = field.center;
+    canvas
+      ..save()
+      ..clipRect(viewport)
+      ..translate(
+        center.dx + field.width * (-0.03 + 0.06 * progress),
+        center.dy + field.height * (-0.02 + 0.04 * progress),
+      )
+      ..rotate(math.pi / 30 * progress)
+      ..translate(-center.dx, -center.dy)
+      // Group opacity and blur apply to the transparent lights, above the base.
+      ..saveLayer(
+        field.inflate(120),
+        Paint()
+          ..color = const Color.fromRGBO(255, 255, 255, 0.55)
+          ..imageFilter = ui.ImageFilter.blur(
+            sigmaX: 40,
+            sigmaY: 40,
+            tileMode: ui.TileMode.decal,
+          ),
+      );
+    // The first CSS background is painted over the later backgrounds.
+    _light(canvas, field, pink, const Offset(0.5, 0.9), 0.38);
+    _light(canvas, field, blue, const Offset(0.7, 0.6), 0.45);
+    _light(canvas, field, green, const Offset(0.3, 0.4), 0.45);
+    canvas
+      ..restore()
+      ..restore();
+  }
+
+  static void _light(
+    Canvas canvas,
+    Rect field,
+    Color color,
+    Offset position,
+    double opacity,
+  ) {
+    final Offset center = Offset(
+      field.left + field.width * position.dx,
+      field.top + field.height * position.dy,
+    );
+    final double radiusX = math.min(
+      center.dx - field.left, field.right - center.dx,
+    );
+    final double radiusY = math.min(
+      center.dy - field.top, field.bottom - center.dy,
+    );
+    canvas
+      ..save()
+      ..translate(center.dx, center.dy)
+      ..scale(radiusX, radiusY)
+      ..drawRect(
+        Rect.fromLTRB(
+          (field.left - center.dx) / radiusX,
+          (field.top - center.dy) / radiusY,
+          (field.right - center.dx) / radiusX,
+          (field.bottom - center.dy) / radiusY,
+        ),
+        Paint()
+          ..shader = ui.Gradient.radial(
+            Offset.zero,
+            1,
+            <Color>[
+              color.withValues(alpha: opacity),
+              color.withValues(alpha: 0),
+            ],
+          ),
+      )
+      ..restore();
+  }
+
+  @override
+  bool shouldRepaint(_HomeHeroFieldPainter old) =>
+      old.seconds != seconds || old.base != base || old.green != green ||
+      old.blue != blue || old.pink != pink;
 }
 
 class _HeroFieldPainter extends CustomPainter {
