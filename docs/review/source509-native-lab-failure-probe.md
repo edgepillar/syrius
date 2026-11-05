@@ -71,7 +71,7 @@ a failed close remains unqualified after later successful closes. No read,
 financial operation, profile or node is retried or replaced.
 
 Only strict typed counts, states, heights and closed refusal codes are retained.
-Peer identities, IPs, names, raw replies, hashes, paths, inputs and exception
+Peer identities, IPs, names, raw replies, ledger hashes, paths, inputs and exception
 text are omitted. The independent reader binds this data to the failed native
 diagnostic context. A separate notice carries its exact parent hash and source,
 run, attempt, archive and manifest bindings; every notice retains the original
@@ -108,6 +108,36 @@ and assertions after that import remain unchanged.
 Every Source509 production byte is retained. The thirty-five preceding memory
 controls keep their scope; no application, transport, node, admission or count
 changes are introduced by this fixture correction. A fresh read verifies zero
-Source509 workflow runs in the contribution fork before the combined qualification. One new
-focused gate targets Source510, retaining 1338 Dart and 1084 Python cases and
+Source509 workflow runs in the contribution fork before the combined
+qualification. One new focused gate targets Source510, retaining 1338 Dart and 1084 Python cases and
 all previous selected paths. No old hosted or native job is retried.
+
+## Actual Source510 focused result
+
+Source510 124e66724b3b81e21890573bb01ea95b1a461fa2, tree
+c005d324fd38afd33c44c68f9d4260f3595cb8a6, succeeds in original
+[42115577615](https://github.com/edgepillar/syrius/actions/runs/42115577615),
+attempt one, job 127554213259. Independent reconciliation qualifies all 1338
+selected Dart cases in complete 51/51-file streams (644/694), zero failures/
+errors/skips, 150 hidden and 1488 terminal events. Both original commands exit
+zero normally with complete unforced output in 211.546/190.844 seconds.
+
+All 1084 Python cases finish with eighteen explicit Windows skips and zero
+failures/errors. The eleven new fixed-wire, ownership, limits, close, privacy,
+context and complete-frame cases pass in actual Windows flat discovery.
+Fourteen assets and zero selected errors/warnings/infos pass. Aggregate,
+startup/refusal and final source checks complete. Fresh source/tree/Draft-head
+and terminal-run reads pass with zero artifacts. No native wallet, lab,
+financial flow, local SDK or image transport is admitted by this focused lane.
+
+All preceding selected paths, test methods and assertions remain. Independent
+comparison verifies unchanged Source509 production bytes and the portable
+fixture import as the only test-body change. The original discovery refusal,
+Native111's stationary preflight and required forced wallet cleanup, Native110's
+separate admission hold and Native109's UNKNOWN remain preserved.
+
+X617 closes for selected diagnostic/projection scope. Source511 records
+documentation/body353 only and preserves all 1985 Source510 runtime/source
+entries. The new probe has not been observed in a native run and supplies no
+retrospective cause. Full F06, all eight original acceptance gates, 44 missing
+literal outputs and zero accepted whole-image matches remain open.

@@ -10,20 +10,22 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 
 ## Verified results
 
-The latest [focused result](source507-seed-original-state.md#actual-source507-focused-result)
-is Source507 9e641e244b1f80172f38197252ae0373b94db1a3, tree
-721b30f524b07b32451fa9748675c8169688ac09. Original
-[42102216091](https://github.com/edgepillar/syrius/actions/runs/42102216091),
-attempt one, job 127507673558, independently qualifies:
+The latest [focused result](source509-native-lab-failure-probe.md#actual-source510-focused-result)
+is Source510 124e66724b3b81e21890573bb01ea95b1a461fa2, tree
+c005d324fd38afd33c44c68f9d4260f3595cb8a6. Original
+[42115577615](https://github.com/edgepillar/syrius/actions/runs/42115577615),
+attempt one, job 127554213259, independently qualifies:
 
 - 1338 selected Dart cases in complete 51/51-file streams (644/694), zero failures/errors/
   skips, 150 hidden cases and 1488 terminal events.
-- 1073 Python cases, eighteen explicit Windows skips and zero failures/errors.
+- 1084 Python cases, eighteen explicit Windows skips and zero failures/errors.
 - Fourteen asset observations and zero selected errors/warnings/infos.
 - Complete aggregate/startup/refusal/final source checks and zero artifacts.
 
-Three immutable negative original-state flags stay anonymous and grant no
-operation authority. All existing guards, actions and test registrations remain.
+The optional three-read failure status snapshot, strict context/privacy/close
+rules and bounded parent frame qualify in the selected suite. Earlier negative
+original-state flags retain their own scope. Data grants no operation authority;
+all existing guards, actions, paths and test registrations remain.
 The [Source503 received-message result](source498-received-zap-message.md#actual-source503-focused-result)
 retains its presentation scope: exact amounts, shared privacy/semantics, inert
 text, scaled RTL, seam refusal, both close actions, focus and motion clocks.
@@ -54,8 +56,8 @@ passes its fresh source gates but fails before the original send's confirmation
 accept tap: both endpoints' first/last heights remain 14 in the six-round
 preflight. No send/tour/seed qualifies and a required wallet actor is forced;
 the five original nodes close normally. The stationary cause remains
-NOT_ESTABLISHED. Source509 prepares bounded, passive peer/sync/frontier reads
-after such a failure; fresh hosted qualification is pending.
+NOT_ESTABLISHED. Source510 separately qualifies bounded, passive peer/sync/
+frontier reads after such a failure. Their native observation remains pending.
 
 ## Deferred acceptance
 
@@ -79,9 +81,9 @@ The [validation index](redesign-validation-index.md) retains the individual
 source-bound results, failures and UNKNOWN outcomes. The complete preceding
 [first-delivery record](https://github.com/edgepillar/syrius/blob/30dd521bdfeb20d06f5345266c1bc6040bb79b6c/docs/review/fast-first-delivery.md)
 remains immutable in the published history, and all original report paths
-remain available. The exact preceding PR text is [body351](pr-body-351.md).
+remain available. The exact preceding PR text is [body352](pr-body-352.md).
 
-Source508 records documentation/body352 only and preserves all 1983 Source507
+Source511 records documentation/body353 only and preserves all 1985 Source510
 runtime/source entries. No new SDK, native/lab or image-transport job is
 allocated for this record. Public artifacts remain English and privacy-safe,
 with edgepillar attribution and GitHub no-reply metadata. The PR stays Draft.
