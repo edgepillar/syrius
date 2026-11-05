@@ -38,6 +38,23 @@ runtime/source entries. No extra SDK, full Windows/native, wallet/devnet, image
 or motion job is allocated for this record. Original 72/80, zero accepted
 matches and all eight original acceptance rows remain open.
 
+[Source481](review/source481-about-strip-geometry.md) prepares About's reference
+70-pixel normal strip and 28-pixel fact gap with two semantic tokens and optional
+PageStrip parameters. Ordinary defaults and lead dimensions remain; taller
+content can grow. Genuine metadata, ownership, unavailable update actions,
+disclosures, links/folders and licence behavior remain. Both reference PNGs
+were measured read-only; no new actual image is produced or accepted.
+
+The existing sixteen-case PageStrip and eight-case About files join all 98
+previous focused files. Both retain ordinary registrations and load the same
+fourteen bundled font weights for geometry. Normal-theme reference dimensions,
+original scaled RTL, ordinary defaults, intact lead size and growing content are
+checked. Fourteen pure admission controls pass with zero failures/errors/skips.
+Fresh strict analysis and all 1,297 ordinary cases in 50/50-file streams
+(619/678) are pending; the 1,299-case asset variant stays unselected. Original
+bounds, source checks and all earlier failures remain. Native About pixels,
+original 72/80 and phase two remain open.
+
 The [actual Source459 default lab result](review/source459-reference-default.md#actual-source459-default-result)
 binds `9a758129afdae895ad253b0ae357b33aa919ed52`, tree
 `666e717e573292a073dc544a7c307b3c6887c55b`. Source-only 41933458571 and manual

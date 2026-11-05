@@ -274,6 +274,8 @@ class _AboutCardState extends State<AboutCard> {
           return PageStrip(
             key: const Key('about_strip'),
             figures: figures,
+            minimumContentHeight: tokens.aboutStripContentHeight,
+            figureGap: tokens.aboutStripFigureGap,
             actions: <Widget>[updates],
           );
         }
@@ -282,7 +284,11 @@ class _AboutCardState extends State<AboutCard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              PageStrip(figures: figures),
+              PageStrip(
+                figures: figures,
+                minimumContentHeight: tokens.aboutStripContentHeight,
+                figureGap: tokens.aboutStripFigureGap,
+              ),
               Padding(
                 padding: tokens.stripPadding,
                 child: Align(

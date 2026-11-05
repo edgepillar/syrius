@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/disclosure.dart';
 import 'package:zenon_syrius_wallet_flutter/seams/seam.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/help_widgets/about_card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/help_widgets/about_information.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/help_widgets/licences.dart';
@@ -32,6 +33,25 @@ Future<void> _toggle(WidgetTester tester, String key) async {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(() async {
+    for (final (String, List<String>) family in
+        const <(String, List<String>)>[
+      (kSansFontFamily, <String>['Regular', 'Medium', 'SemiBold', 'Bold']),
+      (kMonoFontFamily, <String>['Regular', 'Medium', 'SemiBold', 'Bold']),
+      (kArabicFontFamily, <String>['Regular', 'Medium', 'Bold']),
+      (kDevanagariFontFamily, <String>['Regular', 'Medium', 'Bold']),
+    ]) {
+      final FontLoader fonts = FontLoader(family.$1);
+      for (final String weight in family.$2) {
+        fonts.addFont(
+          rootBundle.load('assets/fonts/${family.$1}-$weight.ttf'),
+        );
+      }
+      await fonts.load();
+    }
+  });
+
   for (final (bool, bool, double) variant in <(bool, bool, double)>[
     (false, false, 1),
     (true, true, 1.5),
@@ -45,15 +65,34 @@ void main() {
         int registryReads = 0;
         final SemanticsHandle semantics = tester.ensureSemantics();
         try {
+          final AboutCard card = AboutCard(
+            loadInformation: _information,
+            loadLicences: () {
+              registryReads++;
+              return _emptyLicences();
+            },
+          );
+          await tester.pumpWidget(
+            aboutHost(card, light: variant.$1, rtl: variant.$2),
+          );
+          await tester.pump();
+          expect(
+            tester.getSize(find.byKey(const Key('about_strip'))).height,
+            closeTo(70, 0.01),
+          );
+          final Rect version = tester.getRect(
+            find.byKey(const Key('about_version')),
+          );
+          final Rect embedded = tester.getRect(find.text('EMBEDDED NODE'));
+          expect(
+            variant.$2
+                ? version.left - embedded.right
+                : embedded.left - version.right,
+            closeTo(28, 0.01),
+          );
           await tester.pumpWidget(
             aboutHost(
-              AboutCard(
-                loadInformation: _information,
-                loadLicences: () {
-                  registryReads++;
-                  return _emptyLicences();
-                },
-              ),
+              card,
               light: variant.$1,
               rtl: variant.$2,
               scale: variant.$3,
@@ -63,6 +102,10 @@ void main() {
           expect(
             tester.getSize(find.byKey(const Key('about_strip'))).width,
             1000,
+          );
+          expect(
+            tester.getSize(find.byKey(const Key('about_strip'))).height,
+            variant.$3 > 1 ? greaterThan(70) : closeTo(70, 0.01),
           );
           expect(_text(tester, 'about_version').data, '9.8.7-rc.2');
           expect(_text(tester, 'about_embedded_version').data, 'Unknown');

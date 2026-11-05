@@ -65,6 +65,8 @@ class PageStrip extends StatelessWidget {
     required this.figures,
     this.lead,
     this.actions = const <Widget>[],
+    this.minimumContentHeight = kStripLeadSize,
+    this.figureGap,
     super.key,
   });
 
@@ -79,6 +81,12 @@ class PageStrip extends StatelessWidget {
   /// their own width.
   final List<Widget> actions;
 
+  /// The content minimum, inside the padding. Taller children still grow.
+  final double minimumContentHeight;
+
+  /// The gap between facts. Null keeps the ordinary page-strip spacing.
+  final double? figureGap;
+
   @override
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
@@ -90,11 +98,10 @@ class PageStrip extends StatelessWidget {
         // The strip's inset differs from the list title's: its figures
         // have the extra room drawn in the mockup's stripcard rule.
         padding: tokens.stripPadding,
-        // As tall as the lead slot with or without a lead, so the strip
-        // does not change height between a page that has one and its
-        // neighbour.
+        // The ordinary strip reserves the lead slot even without a lead.
+        // Text-only variants can use their own minimum without clipping.
         child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: kStripLeadSize),
+          constraints: BoxConstraints(minHeight: minimumContentHeight),
           child: Row(
             children: <Widget>[
               if (lead != null) ...<Widget>[
@@ -105,7 +112,8 @@ class PageStrip extends StatelessWidget {
                 child: Row(
                   children: <Widget>[
                     for (int i = 0; i < figures.length; i++) ...<Widget>[
-                      if (i > 0) SizedBox(width: tokens.panelGap * 2),
+                      if (i > 0)
+                        SizedBox(width: figureGap ?? tokens.panelGap * 2),
                       Flexible(child: _StripFigureView(figures[i])),
                     ],
                   ],

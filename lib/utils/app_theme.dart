@@ -905,6 +905,12 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// About labels leave room for their original local values.
   double get aboutInfoLabelWidth => 170;
 
+  /// The 70-pixel About strip leaves 46 pixels inside its vertical inset.
+  double get aboutStripContentHeight => 46;
+
+  /// The reference separates About's version facts by 28 pixels.
+  double get aboutStripFigureGap => 28;
+
   /// The height reserved for each closed About disclosure.
   double get aboutGroupHeaderHeight => 44;
 

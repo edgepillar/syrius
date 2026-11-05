@@ -70,6 +70,25 @@ TextStyle _paintedStyle(WidgetTester tester, String text) => tester
     .style!;
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(() async {
+    for (final (String, List<String>) family in
+        const <(String, List<String>)>[
+      (kSansFontFamily, <String>['Regular', 'Medium', 'SemiBold', 'Bold']),
+      (kMonoFontFamily, <String>['Regular', 'Medium', 'SemiBold', 'Bold']),
+      (kArabicFontFamily, <String>['Regular', 'Medium', 'Bold']),
+      (kDevanagariFontFamily, <String>['Regular', 'Medium', 'Bold']),
+    ]) {
+      final FontLoader fonts = FontLoader(family.$1);
+      for (final String weight in family.$2) {
+        fonts.addFont(
+          rootBundle.load('assets/fonts/${family.$1}-$weight.ttf'),
+        );
+      }
+      await fonts.load();
+    }
+  });
+
   tearDown(AppLottie.debugClear);
 
   group('PageStrip', () {
@@ -126,6 +145,7 @@ void main() {
     ) async {
       await tester.pumpWidget(_host(_page(_three())));
       final double withLead = tester.getSize(find.byKey(_strip)).height;
+      expect(withLead, 72);
       await tester.pumpWidget(
         _host(
           _page(
@@ -139,6 +159,48 @@ void main() {
         ),
       );
       expect(tester.getSize(find.byKey(_strip)).height, withLead);
+      for (final bool lead in <bool>[false, true]) {
+        await tester.pumpWidget(
+          _host(
+            _page(
+              PageStrip(
+                key: _strip,
+                lead: lead ? const SizedBox.expand(key: _lead) : null,
+                minimumContentHeight: 46,
+                figureGap: 28,
+                figures: const <StripFigure>[
+                  StripFigure(label: 'Staked', value: Text('0')),
+                ],
+              ),
+            ),
+          ),
+        );
+        expect(
+          tester.getSize(find.byKey(_strip)).height,
+          lead ? withLead : 70,
+        );
+        if (lead) {
+          expect(tester.getSize(find.byKey(_lead)), const Size.square(48));
+        }
+      }
+      await tester.pumpWidget(
+        _host(
+          MediaQuery(
+            data: MediaQueryData(textScaler: TextScaler.linear(2)),
+            child: _page(
+              const PageStrip(
+                key: _strip,
+                minimumContentHeight: 46,
+                figures: <StripFigure>[
+                  StripFigure(label: 'Staked', value: Text('0')),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+      expect(tester.getSize(find.byKey(_strip)).height, greaterThan(70));
+      expect(tester.takeException(), isNull);
     });
 
     for (final TextDirection direction in TextDirection.values) {
