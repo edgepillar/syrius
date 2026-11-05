@@ -94,3 +94,20 @@ controls use memory and injected wires, without sockets, files, SDKs or native
 processes. Fresh hosted qualification is pending; no new native run is started
 by this preparation. X617, full F06 and all eight original acceptance gates stay
 open: 72/80 original rows, 44 missing literal outputs and zero accepted matches.
+
+## Source510 discovery fixture
+
+Before hosted dispatch, a memory-only check loads the eleven new cases through
+CI's flat discovery while an unrelated top-level `test` package exists. The
+original package-qualified fixture import raises one `ModuleNotFoundError`;
+that failure is retained. Source510 uses the current package's relative import
+in package discovery and the discovered module's name in flat discovery.
+Both eleven-case modes pass with zero failures/errors/skips. All test bodies
+and assertions after that import remain unchanged.
+
+Every Source509 production byte is retained. The thirty-five preceding memory
+controls keep their scope; no application, transport, node, admission or count
+changes are introduced by this fixture correction. A fresh read verifies zero
+Source509 workflow runs in the contribution fork before the combined qualification. One new
+focused gate targets Source510, retaining 1338 Dart and 1084 Python cases and
+all previous selected paths. No old hosted or native job is retried.

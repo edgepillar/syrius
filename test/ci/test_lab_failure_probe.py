@@ -298,7 +298,10 @@ class FailureProbeTests(unittest.TestCase):
         self.assertEqual(report['error_codes'], ['WALLET_TOUR_FAILED'])
 
     def test_complete_notice_preserves_every_old_negative_fact_and_binds_a_small_probe_frame(self):
-        from test.ci.test_inspect_chain321 import InspectionTests
+        if __package__:
+            from .test_inspect_chain321 import InspectionTests
+        else:
+            from test_inspect_chain321 import InspectionTests
 
         report = InspectionTests.wallet_stop_report()
         report['wallet_failure_probe'] = self.collect()
