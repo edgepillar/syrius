@@ -38,22 +38,22 @@ runtime/source entries. No extra SDK, full Windows/native, wallet/devnet, image
 or motion job is allocated for this record. Original 72/80, zero accepted
 matches and all eight original acceptance rows remain open.
 
-[Source481](review/source481-about-strip-geometry.md) prepares About's reference
-70-pixel normal strip and 28-pixel fact gap with two semantic tokens and optional
-PageStrip parameters. Ordinary defaults and lead dimensions remain; taller
-content can grow. Genuine metadata, ownership, unavailable update actions,
-disclosures, links/folders and licence behavior remain. Both reference PNGs
-were measured read-only; no new actual image is produced or accepted.
+Original [Source481](review/source481-about-strip-geometry.md#original-source481-analysis-result),
+41975020825 / job 127071741867, passes 1,063 controllers/eighteen Windows skips,
+fourteen assets and locked-input restoration. Strict analysis has zero
+errors/warnings and two PREFER_CONST_CONSTRUCTORS infos at line 189, columns 19
+and 46. Both Dart groups are skipped; the original stays failed and terminal
+with zero artifacts. The finite location does not retain the file name.
 
-The existing sixteen-case PageStrip and eight-case About files join all 98
-previous focused files. Both retain ordinary registrations and load the same
-fourteen bundled font weights for geometry. Normal-theme reference dimensions,
-original scaled RTL, ordinary defaults, intact lead size and growing content are
-checked. Fourteen pure admission controls pass with zero failures/errors/skips.
-Fresh strict analysis and all 1,297 ordinary cases in 50/50-file streams
-(619/678) are pending; the 1,299-case asset variant stays unselected. Original
-bounds, source checks and all earlier failures remain. Native About pixels,
-original 72/80 and phase two remain open.
+Source inspection matches those positions to the two constant-capable
+constructors in the new PageStrip doubled-text growth fixture. Source482 adds
+the enclosing const only; the inner scaler inherits its constant context.
+Every production layout, callback, owner/seam, metadata and licence byte remains,
+as do all font setup and existing assertions/registrations. The fourteen pure
+admission controls stay pinned. All 100 files, 1,297 ordinary / 1,299 asset
+expectations and 50/50 streams (619/678) retain their original bounds. Fresh
+strict analysis and complete execution are pending; the original is not retried.
+Native About pixels, original 72/80 and phase two remain open.
 
 The [actual Source459 default lab result](review/source459-reference-default.md#actual-source459-default-result)
 binds `9a758129afdae895ad253b0ae357b33aa919ed52`, tree

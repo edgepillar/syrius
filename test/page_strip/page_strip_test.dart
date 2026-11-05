@@ -186,7 +186,7 @@ void main() {
       await tester.pumpWidget(
         _host(
           MediaQuery(
-            data: MediaQueryData(textScaler: TextScaler.linear(2)),
+            data: const MediaQueryData(textScaler: TextScaler.linear(2)),
             child: _page(
               const PageStrip(
                 key: _strip,

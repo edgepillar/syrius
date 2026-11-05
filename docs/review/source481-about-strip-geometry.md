@@ -79,3 +79,34 @@ rows, 50/94 historical literal outputs, 44 missing and zero accepted matches.
 P03/P09/F06 and V01/V02/V03/V05/V06 remain open. Full Windows/native wallet,
 seed/seam, catalog transport, visuals, motion and independent final acceptance
 stay in phase two. The first delivery remains ready for Draft code review.
+
+## Original Source481 analysis result
+
+Updated: 2026-11-05T05:46Z.
+
+[41975020825](https://github.com/edgepillar/syrius/actions/runs/41975020825),
+attempt one, job 127071741867, binds Source481
+ec6e99ab49f6758a402e79ab2158cf6628ceadcb, tree
+ca0ffa63452cf23aee5c74c7894f3caab56e26a6. All 1,063 controllers/eighteen
+Windows skips, fourteen assets and locked-input restoration pass. Strict
+analysis retains two PREFER_CONST_CONSTRUCTORS infos at line 189, columns 19
+and 46, with zero errors or warnings. Its complete 330-byte stream has digest
+e1ae29043da9b4784685b23970032fcda20ceb8dc9419cfe49c68097f6e02cd8.
+The analyzer exits zero, but the original strict zero-finding gate refuses the
+infos and skips both Dart groups. No engine or geometry pass is inferred.
+All source runs are terminal; the original remains failed with zero artifacts.
+
+The finite locations use the scrubbed source value other and do not name a
+file. Source inspection matches both positions to the MediaQueryData and
+TextScaler constructors in the new doubled-text growth fixture. Source482
+adds the enclosing const, giving the nested scaler its implicit constant
+context. No raw diagnostic path or unobserved runtime cause is invented.
+
+Only that test expression changes in code. Every production layout, shared
+default/lead size, About fact, metadata/owner/action/seam, disclosure and licence
+byte remains. All fourteen font weights, old assertions, ordinary registrations,
+100 selected files, 1,297 ordinary / 1,299 asset expectations, 50/50 groups
+(619/678) and original process/output/source bounds remain. The fourteen pure
+admission controls stay pinned. Fresh strict analysis and both complete engine
+streams are pending; the original producer is not retried. Native About pixels,
+full original 72/80 acceptance and zero accepted matches remain open.
