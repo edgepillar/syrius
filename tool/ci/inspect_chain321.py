@@ -18,6 +18,7 @@ from tool.ci.hosted_chain321 import (CODES, GO_FAILURE_CODES, NODE_DIAGNOSTICS, 
                                    ROLES, SHUTDOWN_TESTS, UPSTREAM_NODE_SHA, selected_node_source)
 from tool.ci import native_stack_probe, node_panic_projection, producer_shutdown_patch, read_first_client_fixture
 from tool.ci import lab_asset_progress, closed_lab_checkpoint, restored_lab_paths, closed_wallet_pointer, restored_wallet_run
+from tool.ci import lab_failure_probe
 
 
 API = "https://api.github.com/repos/edgepillar/syrius"
@@ -169,6 +170,25 @@ def preparation_command_tail(commands):
     return dict(count=len(commands), tail=tail)
 
 
+def project_wallet_failure_probe(report, backend):
+    """Additional context for passive data; project() still binds source/run."""
+    value = report.get('wallet_failure_probe')
+    if value is None:
+        return None
+    checks, errors = report.get('checks'), report.get('error_codes')
+    need(backend == 'native' and report.get('wallet_tour_requested') is True
+         and report.get('native_stack_diagnostic') is True
+         and report.get('success') is False and type(errors) is list
+         and 'WALLET_TOUR_FAILED' in errors and type(checks) is dict
+         and all(checks.get(key) is True
+                 for key in ('source', 'build', 'started', 'production'))
+         and report.get('runtime_phase') == 'wallet_tour')
+    try:
+        return lab_failure_probe.project(value)
+    except lab_failure_probe.Refused:
+        raise Refused('INSPECTION_REFUSED') from None
+
+
 def project(report, backend, head, run_id, expected_node=NODE_SHA, *,
             expected_patched=False, expected_inspection=False):
     pins = {value[0]: value[1] for value in NODE_SOURCES.values()}
@@ -192,6 +212,7 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA, *,
              and 'wallet_inspection' not in report)
     checks, errors, commands = report.get("checks"), report.get("error_codes"), report.get("commands")
     need(type(checks) is dict and set(checks) == CHECKS and all(type(v) is bool for v in checks.values()))
+    failure_probe = project_wallet_failure_probe(report, backend)
     node_tree = report.get("node_tree")
     need((node_tree is None and not checks["source"]) or node_tree == pins[expected_node])
     need(type(expected_patched) is bool)
@@ -509,6 +530,8 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA, *,
                       producer_task_patch=patch_summary)
     if client_fixture is not None:
         result['upstream_client_fixture'] = client_fixture
+    if failure_probe is not None:
+        result['wallet_failure_probe'] = failure_probe
     if go_failure is not None:
         result["upstream_stop_failure"] = go_failure
     if report.get('asset_generation') is not None:
@@ -550,6 +573,29 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA, *,
             if not result[key]:
                 del result[key]
     return result
+
+
+def observation_frames(summary):
+    """Keep the existing bounded parent and attach optional passive data."""
+    parent = dict(summary)
+    probe = parent.pop('wallet_failure_probe', None)
+    frames = restored_wallet_run.notice_frames(parent)
+    if probe is not None:
+        try:
+            probe = lab_failure_probe.project(probe)
+        except lab_failure_probe.Refused:
+            raise Refused('INSPECTION_REFUSED') from None
+        original = frames[0][1]
+        encode = lambda value: json.dumps(value, sort_keys=True,
+            separators=(',', ':')).encode('ascii')
+        frame = dict(schema=1, scope='owned_lab_failure_probe_component',
+            parent_scope=original['scope'], parent_notice_sha256=sha(encode(original)),
+            facts=probe, **{key: original[key] for key in ('source_head',
+                'source_run_id', 'source_attempt', 'backend', 'archive_sha256',
+                'manifest_sha256') if key in original})
+        need(len(encode(frame)) <= 3800)
+        frames.append(('wallet_failure_probe', frame))
+    return frames
 
 
 def project_wallet_tour(report, lab, head, run_id, tree, manifest_sha):
@@ -662,9 +708,11 @@ def main():
             wallet_lab = report
         summary.update(archive_sha256=sha(raw), manifest_sha256=manifest_sha)
         PHASE = "notice_" + backend
-        for component, frame in restored_wallet_run.notice_frames(summary):
+        for component, frame in observation_frames(summary):
             encoded = json.dumps(frame, sort_keys=True, separators=(",", ":"))
-            title = 'Retained chain-321 observation' if not component else 'Retained closed copy ' + component
+            title = ('Retained chain-321 observation' if not component else
+                     'Retained lab failure probe' if component == 'wallet_failure_probe'
+                     else 'Retained closed copy ' + component)
             escaped = encoded.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
             print('::notice title=' + title + '::' + escaped, flush=True)
     if wallet_lab is not None:

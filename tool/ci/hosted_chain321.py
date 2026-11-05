@@ -27,7 +27,7 @@ import time
 from tool.ci.windows_presentation_smoke import OutputDrain
 from tool.ci.loopback_relay import PAIRS as RELAY_PAIRS, TARGET as RELAY_TARGET, Relay
 from tool.ci import native_stack_probe, node_panic_projection, producer_shutdown_patch, read_first_client_fixture
-from tool.ci import lab_asset_progress
+from tool.ci import lab_asset_progress, lab_failure_probe
 from tools.devnet.lab import owned_lab as wire_policy
 from tools.devnet.lab.socket_transport import make_transports
 
@@ -1008,6 +1008,23 @@ class Docker:
              and self.shutdown["forced"] is False, "STOP_UNKNOWN")
 
 
+def record_wallet_failure_probe(report, runtime, *, wallet_tour, stack_debug):
+    """Once-only data after the original failure; never replace its error."""
+    if (wallet_tour and stack_debug and isinstance(runtime, Native)
+            and report.get('runtime_phase') == 'wallet_tour'
+            and report.get('error_codes', [])[-1:] == ['WALLET_TOUR_FAILED']
+            and all(report.get('checks', {}).get(key) is True
+                    for key in ('source', 'build', 'started', 'production'))
+            and 'wallet_failure_probe' not in report):
+        report['wallet_failure_probe'] = lab_failure_probe.unavailable()
+        try:
+            value = lab_failure_probe.project(lab_failure_probe.collect(runtime.healthy))
+            if value is not None:
+                report['wallet_failure_probe'] = value
+        except Exception:
+            pass
+
+
 def observe(runtime, root, report=None, *, measure=None):
     def phase(name):
         if report is not None:
@@ -1246,6 +1263,8 @@ def run(backend):
         report["checks"]["inputs_unchanged"] = True
     except (Exception, KeyboardInterrupt) as error:
         report["error_codes"].append(failure_code(error))
+        record_wallet_failure_probe(report, runtime,
+            wallet_tour=wallet_tour, stack_debug=stack_debug)
     finally:
         if runtime is not None:
             try:

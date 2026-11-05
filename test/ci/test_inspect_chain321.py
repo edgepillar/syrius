@@ -310,6 +310,17 @@ class InspectionTests(unittest.TestCase):
         self.assertEqual(value["native_stack_probe"]["role"],"pillar2")
         self.assertEqual(value["native_stack_probe"]["protocol_workers"]["count"],4)
         self.assertEqual(len(value["native_stack_probe"]["protocol_workers"]["items"]),2)
+        report['wallet_failure_probe'] = inspect.lab_failure_probe.unavailable()
+        value = inspect.project(report, 'native', 'a'*40, 40319698922,
+            inspect.UPSTREAM_NODE_SHA, expected_patched=True)
+        value.update(archive_sha256='e'*64, manifest_sha256='f'*64)
+        frames = inspect.observation_frames(value)
+        self.assertEqual([name for name, _ in frames], ['', 'wallet_failure_probe'])
+        self.assertFalse(frames[0][1]['artifact_reported_success'])
+        self.assertEqual(len(frames[0][1]['node_exits']), 5)
+        self.assertEqual(frames[1][1]['facts'], inspect.lab_failure_probe.unavailable())
+        self.assertTrue(all(len(json.dumps(frame, sort_keys=True,
+            separators=(',', ':')).encode()) <= 3800 for _, frame in frames))
 
     def test_wallet_phase_requires_the_explicit_producing_native_client_fixture(self):
         for change in (dict(wallet_tour_requested=False), dict(upstream_client_fixture=None),

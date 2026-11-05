@@ -49,6 +49,14 @@ journal claim/tap; which earlier original is pending or failed remains
 NOT_ESTABLISHED. Source507 separately qualifies the passive negative flags;
 it does not observe a new native hold or reclassify any old outcome.
 
+The later [Source508 Native111 result](source509-native-lab-failure-probe.md)
+passes its fresh source gates but fails before the original send's confirmation
+accept tap: both endpoints' first/last heights remain 14 in the six-round
+preflight. No send/tour/seed qualifies and a required wallet actor is forced;
+the five original nodes close normally. The stationary cause remains
+NOT_ESTABLISHED. Source509 prepares bounded, passive peer/sync/frontier reads
+after such a failure; fresh hosted qualification is pending.
+
 ## Deferred acceptance
 
 | Original gate | Required evidence |
