@@ -22,3 +22,24 @@ Fresh focused analysis and the 1,230 ordinary cases in 48/48-file streams
 No full wallet/devnet, image or motion/performance work is selected. Both failed
 originals remain preserved, all eight original acceptance rows remain open and
 full progress remains 72/80. The PR stays Draft.
+
+
+## Original Source465 result
+
+Original [41944913219](https://github.com/edgepillar/syrius/actions/runs/41944913219),
+attempt one, job 126974595009, runs on Source465
+`482b9110872bc5ab52c632f739897d2a331d0fe4`, tree
+`05e1b8d090fbed4b24e6a9674d421ef569667b4a`. All 1,063 controllers/eighteen
+expected skips, fourteen assets and zero-finding selected analysis pass.
+The original first 48-file engine stream completes normally in 169.875 seconds,
+with 326,379 complete bytes, no forced termination/overflow, 595 passes, two
+failures and 68 hidden events. The second group does not run; no combined pass
+or final-source qualification is inferred.
+
+The finite details name the palette geometry case in dark/RTL/doubled scale at
+its address-semantics helper, and the keyboard case at its last-row top/viewport
+assertion. Raw messages and prior viewport dimensions remain unretained. The
+original run is terminal, failed, with zero artifacts; startup/refusal checks
+remain separately observed. [Source466](source466-goto-inline-scaling.md) corrects
+the footer's nested text scaling and extends the existing painted-size check.
+Fresh engine qualification is pending; no failed original is retried or relabelled.

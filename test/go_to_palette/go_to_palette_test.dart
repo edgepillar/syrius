@@ -9,6 +9,7 @@ import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/go_to_palette.dart';
 import 'package:zenon_syrius_wallet_flutter/seams/seam.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/key_hint.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
 
 const Key _field = Key('go_to_field');
@@ -209,6 +210,14 @@ void main() {
           expect(direction == TextDirection.ltr
               ? detail.left - label.right : label.left - detail.right,
               closeTo(tokens.inlineGap, 1));
+          final Rect rowHint = tester.getRect(find.descendant(
+            of: _row('short'), matching: find.byType(AppKeyHint),
+          ));
+          final Rect inlineHint = tester.getRect(find.ancestor(
+            of: find.text('Ctrl 1'), matching: find.byType(AppKeyHint),
+          ));
+          expect(inlineHint.height, closeTo(rowHint.height, 0.01));
+          expect(inlineHint.width, closeTo(rowHint.width, 0.01));
           expect(_rowSemantics(tester, 'address').properties.label,
               contains('synthetic' * 12));
           for (final Finder text in <Finder>[

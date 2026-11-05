@@ -812,6 +812,8 @@ class _ShortcutSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final TextStyle caption = AppTokens.of(context).captionText;
+    final TextScaler scaler = MediaQuery.textScalerOf(context);
     final List<String> chords = <String>[
       '$chordName 1',
       '$chordName 8',
@@ -842,7 +844,10 @@ class _ShortcutSummary extends StatelessWidget {
     if (cursor < text.length) spans.add(TextSpan(text: text.substring(cursor)));
     return Text.rich(
       TextSpan(children: spans),
-      style: AppTokens.of(context).captionText,
+      // Inline widgets inherit their own text scale. Keep their boxes at that
+      // size and apply the surrounding caption's accessibility scale once.
+      style: caption.copyWith(fontSize: scaler.scale(caption.fontSize!)),
+      textScaler: TextScaler.noScaling,
       textAlign: TextAlign.end,
     );
   }

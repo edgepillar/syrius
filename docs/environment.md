@@ -13,16 +13,16 @@ source checking pass; all tested-source jobs are terminal with zero artifacts.
 The 1,232-case asset variant and current full-root Windows/native are unqualified.
 Later lab/CI changes preserve application Dart, dependencies and references.
 
-Source464 qualifies the portable lab fixture in Linux source 41943563062
-(1,063 controls/two skips, thirteen Bash/two JavaScript cases) and the Windows
-controller gate of 41943782403 (1,063 controls/eighteen skips and fourteen assets).
-The latter original remains failed at one PREFER_INT_LITERALS info, with zero
-analysis errors/warnings and Dart skipped. Both runs are terminal with zero
-artifacts. [Source465](review/source465-goto-integer-literal.md) replaces only the
-matching 0.0 clamp literal with 0; all Source463 palette tests and Source464
-fixtures remain. Fresh focused analysis/engine qualification is pending. No full
-wallet/devnet/image/motion job or local SDK is selected. The earlier Source463
-pre-SDK failure and all old evidence remain separately preserved.
+Source465 41944913219 passes 1,063 controllers/eighteen expected Windows skips,
+fourteen assets and zero-finding selected analysis. Its first 48-file stream
+completes normally with 595 passes/two new palette failures; the second group
+does not execute. The terminal original stays failed with zero artifacts.
+[Source466](review/source466-goto-inline-scaling.md) removes nested inline-key
+scaling and retains all prior paragraph, semantics and keyboard assertions,
+adding measured inline/standalone hint correspondence in the existing case.
+Fresh 1,230-case focused qualification is pending. The Source464 portable fixture
+and Linux source pass retain their own pins. No full wallet/devnet/image/motion
+job or local SDK is selected; all original failures remain preserved.
 
 The [actual Source459 default lab result](review/source459-reference-default.md#actual-source459-default-result)
 binds `9a758129afdae895ad253b0ae357b33aa919ed52`, tree
