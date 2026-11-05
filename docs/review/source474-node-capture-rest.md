@@ -99,3 +99,51 @@ Fresh selected analysis and both complete 1,239-case hosted streams are required
 bound remain. The original Source474 failure and all earlier evidence remain.
 Native rest pixels, full 72/80 acceptance, zero accepted matches and phase two
 remain open. No heavy native/image job is selected.
+
+## Fresh Source475 focused result
+
+Updated: 2026-11-05T03:56Z.
+
+[41963059783](https://github.com/edgepillar/syrius/actions/runs/41963059783),
+attempt one, job 127033689688, independently qualifies Source475
+`89fda90f30dc5e277fd4b6b35277f9f12cf06ace`, tree
+`2c5abe592a68232662125b2668fdd48dc46c9891`. All 1,239 ordinary
+widgets pass in complete 49/48-file streams (606/633), with zero failures,
+errors or skips, 135 hidden and 1,374 terminal events. All 1,063 Python controls
+pass with eighteen explicit Windows skips. Fourteen asset observations and
+selected analysis pass with zero errors, warnings or infos.
+
+| Stream | Files | Passes | Hidden | Terminal | Seconds | Bytes | SHA-256 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| First | 49 | 606 | 69 | 675 | 203.984 | 333252 | `9395d00d070dfa0f9386e0588acbd078d4f59e5307dcb9fc74342944f88072d0` |
+| Second | 48 | 633 | 66 | 699 | 200.797 | 314990 | `a6234eeb7d5b8add15e9d4a6c0af5894a3a7fe69aedbfb69bb8ac6ac780f44c6` |
+
+Both original commands exit zero normally, with complete unforced output, no
+overflow and unchanged 240-second/4-MiB child bounds. Aggregate, three startup
+checks, pre-build entry refusals and final source checks pass. All tested-source
+runs are terminal with zero artifacts. All 97 selected files remain; the
+1,241-case asset variant remains unselected.
+
+Existing actual-script preflight and injected capture pass in both themes.
+The bound Settings case verifies exact top/Peers/top scroll triplets, one
+neutral-corner hover per preparation and exact Add-header shot expectations.
+The supported positional hover command reaches the expected coordinate map.
+All original unbound, first-input, shot, return, late and PNG refusal paths,
+retained-file, Home return, held-lane, timeout and response assertions remain.
+Four current-script controls retain their separate memory-only qualification.
+No Dart or Python registration is added or removed.
+
+X608/X609 close only for selected preparation, injected-capture and receipt
+checks. Original Source474 remains failed with its complete first-stream
+evidence. The earlier Source472 menu qualification retains its own source pin.
+No native screenshot was produced and native Node rest pixels remain
+unqualified. Historical heading/hover causes remain NOT_ESTABLISHED.
+
+Source476 records this result and exact English body343 in documentation only.
+All 1,976 qualified runtime/source entries retain their bytes, with entry-map
+digest `26602efd8073e9e250f755b1e21d9663dff615a2be993f5c6a5a54745306d965`.
+Full acceptance remains 72/80 original rows, 50/94 historical literal outputs,
+44 missing and zero accepted whole-image matches. P03/P09/F06 and
+V01/V02/V03/V05/V06 remain open. Full Windows/native wallet, seed/seam,
+catalog transport, visual, motion and independent final acceptance stay in
+phase two; the first delivery remains ready for Draft code review.

@@ -2,39 +2,36 @@
 
 ## Current qualification status (2026-11-05)
 
-The latest qualified focused UI source is Source472
-`fae94fdc4a847a41693d584d939782a4fc31ccc0`, tree
-`fa011d8fa5c83394f1a2d23f771ee2836f496cd9`.
-[41957578090](https://github.com/edgepillar/syrius/actions/runs/41957578090),
-attempt one, job 127016071419, independently qualifies all 1,239 ordinary widgets
+The latest qualified focused source is Source475
+`89fda90f30dc5e277fd4b6b35277f9f12cf06ace`, tree
+`2c5abe592a68232662125b2668fdd48dc46c9891`.
+[41963059783](https://github.com/edgepillar/syrius/actions/runs/41963059783),
+attempt one, job 127033689688, independently qualifies all 1,239 ordinary widgets
 in complete 49/48-file streams (606/633): zero failures/errors/skips, 135 hidden
 and 1,374 terminal events. All 1,063 Python controls/eighteen explicit Windows
-skips, fourteen assets and zero selected analyzer findings pass. Aggregate,
-startup/refusal and final source checks complete. All tested-source runs are
-terminal with zero artifacts; the 1,241-case asset variant remains unselected.
+skips, fourteen assets and zero selected analyzer findings pass. Both streams,
+aggregate, startup/refusal and final source checks complete. All tested-source
+runs are terminal with zero artifacts; the 1,241-case asset variant is unselected.
 
-The [fresh menu result](review/source470-settings-menu-text-scale.md#fresh-source472-focused-result)
-qualifies normal geometry, full doubled-scale labels in both themes/directions,
-the original six-Tab baseline, explicit focus and selected-row visibility in a
-short scaled viewport. Outgoing-action and independent motion assertions pass;
-every prior path, including Go To, remains. Both failed originals keep their
-scope. The [preceding Source468 result](review/source467-goto-viewport-budget.md#fresh-source468-focused-result)
-remains separately pinned. Source473 changes documentation only, preserving all
-1,976 qualified runtime/source entries. No extra local SDK, full Windows/native,
-wallet/devnet, image or motion job is allocated for that record.
+The [fresh Node preparation result](review/source474-node-capture-rest.md#fresh-source475-focused-result)
+qualifies the actual authored script through existing preflight and injected
+capture in both themes. All twelve original commands remain, followed by top
+restoration, supported hover @0,0, original Add readiness and the header assertion.
+The bound Settings case requires exact scroll/neutral-hover receipts and the
+Add-header shot expectation. All original refusal, retention, Home return,
+held-lane and timeout assertions remain, with unchanged registrations. Four
+memory-only current-script controls also pass. Original Source474 stays failed
+with 605 passes/one old scroll-count assertion failure and no second stream.
+Native rest pixels and historical image causes remain unqualified.
 
-Original Source474 41960995980 passes 1,063 controllers/eighteen Windows
-skips, fourteen assets and zero selected findings, but its complete first group
-retains 605 passes/one existing scroll-receipt assertion failure and no second
-group. [Source475](review/source474-node-capture-rest.md#source475-exact-rest-receipts-and-hover-syntax)
-uses supported positional hover coordinates and updates the existing bound
-Settings case to exact three-scroll/one-neutral-hover receipts per Node
-preparation and the exact Add-header shot expectation. Every old refusal,
-retention, Home return, held-lane and timeout check remains. Four pure current-
-script-pin controls pass on the corrected digest. Fresh complete 1,239-case
-qualification is pending with unchanged registrations and original bounds.
-No production Dart/Python/workflow/dependency/asset or native image changes.
-Source472 remains the separately qualified UI; full acceptance stays open.
+The [preceding Source472 menu result](review/source470-settings-menu-text-scale.md#fresh-source472-focused-result)
+retains normal/doubled paragraph fit, keyboard focus/viewport, outgoing-action
+and motion qualification at its own source. Every earlier selected file passes
+again in Source475. The [Source468 result](review/source467-goto-viewport-budget.md#fresh-source468-focused-result)
+keeps its separate source pin. Source476 changes documentation only and preserves
+all 1,976 qualified runtime/source entries. No extra local SDK, full Windows/native,
+wallet/devnet, image or motion job is allocated for this record. Original 72/80,
+zero accepted matches and all eight original acceptance rows remain open.
 
 The [actual Source459 default lab result](review/source459-reference-default.md#actual-source459-default-result)
 binds `9a758129afdae895ad253b0ae357b33aa919ed52`, tree
