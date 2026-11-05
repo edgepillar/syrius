@@ -129,3 +129,36 @@ selected paths remain. Setup events remain hidden lifecycle observations; they
 do not increase ordinary passes. Current selected analysis/widgets and complete
 native/visual acceptance remain pending. No local SDK, font or archive download
 is started.
+
+## Actual Source492 focused result
+
+Tested Source492 a1dd38c462699959cb9066f03db2b5136a33848e, tree
+819cc21dae4e58faccec0b13103ac5844897f175, succeeds in original
+[42039587847](https://github.com/edgepillar/syrius/actions/runs/42039587847),
+attempt one, job 127286567686. Independent source/result reconciliation
+qualifies all 1,305 widgets with zero failures/errors/skips, 146 hidden and
+1,451 terminal events. The original one hundred files finish in complete
+50/50-file streams, with 627/678 passes. Both original commands exit zero
+normally, with 346,223/344,417 complete unforced bytes in 215.984/211.203
+seconds. The two additional hidden setup/teardown events do not add passes.
+
+The normal dark/light and scaled RTL geometry controls pass with all eight
+bundled font files, independent reference shaping, the original ten-pixel gap,
+fourteen-pixel explorer extent and strict height tolerance. The original
+visible/hidden semantics, exact amounts, marks, actions and registrations pass.
+All 1,063 Python cases finish with eighteen explicit Windows skips and zero
+failures/errors. Fourteen asset controls and zero selected analyzer
+errors/warnings/infos pass. Aggregate, startup/refusal and final source checks
+complete; all tested-source runs and jobs are terminal with zero artifacts.
+
+X613 closes for selected implementation/engine scope. Source489/490 remain
+failed, with their old numeric geometry/counts NOT_RETAINED. Source491 has zero
+separate runs. The local result reader's stale status literal refused before
+live queries; its protected replacement qualifies this same original run.
+No SDK/native execution is repeated for that metadata correction.
+
+Source493 records this result and exact English body349 in documentation only,
+preserving all 1,976 Source492 runtime/source entries. Current native pixels,
+populated states, X521-X528, GPU/frame time, Native109's Deposit UNKNOWN and
+full original acceptance stay open. Main progress remains 72/80, with 50/94
+historical literal outputs, 44 missing and zero accepted whole-image matches.

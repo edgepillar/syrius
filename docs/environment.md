@@ -2,6 +2,21 @@
 
 ## Current qualification status (2026-11-05)
 
+The [qualified Source492 Activity result](review/source489-activity-reference-spacing.md#actual-source492-focused-result)
+at a1dd38c462699959cb9066f03db2b5136a33848e, tree
+819cc21dae4e58faccec0b13103ac5844897f175, passes original 42039587847 /
+job 127286567686, attempt one. Independent reconciliation qualifies all
+1,305 widgets, 146 hidden and 1,451 terminal events, with zero failures,
+errors or skips in complete 50/50-file streams (627/678). All 1,063 Python
+controls/eighteen explicit Windows skips, fourteen assets and zero selected
+findings pass. All source runs are terminal with zero artifacts. Source493
+changes documentation/body349 only, preserving all 1,976 runtime/source
+entries with digest
+78de5849e5fe06ed62913a6b69a93c26c289254f3f079726fcd6be8b5e992731.
+X613 closes for selected implementation/engine scope. Earlier failures,
+current native pixels and full original acceptance remain open. The earlier
+Source487 result below retains its tested source.
+
 The [qualified Source487 Home field result](review/source487-home-reference-field.md#actual-source487-focused-result)
 at 1c0c36b4ff49d1ccbb913d4f95b3f4fcfafdb8c1, tree
 b6fb5b2870dcd095e5d8eba5bfd6594e19935630, passes original
