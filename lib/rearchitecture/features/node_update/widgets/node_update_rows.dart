@@ -13,11 +13,80 @@ class _Body extends StatelessWidget {
           _RollbackRow.offered(state.library),
       builder: (BuildContext context, bool rollback) => SettingsList(
         children: <Widget>[
-          const _NowRow(),
-          const _CheckRow(),
+          const _VersionFacts(),
           _InstallRow(pickFile: _pickFile),
           if (rollback) const _RollbackRow(),
           const _SourceRow(),
+        ],
+      ),
+    );
+  }
+}
+
+/// Current and available libraries share the reference's two-column ledger.
+/// Each column needs room for its label, short hash and copy control.
+class _VersionFacts extends StatelessWidget {
+  const _VersionFacts();
+
+  @override
+  Widget build(BuildContext context) {
+    final double scale = MediaQuery.textScalerOf(context).scale(13) / 13;
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        if (constraints.maxWidth < 720 * scale) {
+          return const SettingsList(
+            children: <Widget>[_NowRow(), _CheckRow()],
+          );
+        }
+        return const Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Expanded(child: _NowRow()),
+            Expanded(child: _CheckRow()),
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// One inline ledger label, its genuine values and an optional action.
+class _VersionFact extends StatelessWidget {
+  const _VersionFact({
+    required this._name,
+    required this._child,
+    this._action,
+  });
+
+  final String _name;
+  final Widget _child;
+  final Widget? _action;
+
+  @override
+  Widget build(BuildContext context) {
+    final Widget? action = _action;
+    final double scale = MediaQuery.textScalerOf(context).scale(11) / 11;
+    return Padding(
+      padding: AppTokens.of(context).settingsRowPadding,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          SizedBox(
+            width: 96 * scale,
+            child: Padding(
+              padding: const EdgeInsetsDirectional.only(top: 2),
+              child: Text(
+                _label(context, _name),
+                style: ledgerLabelStyle(context),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(child: _child),
+          if (action != null) ...<Widget>[
+            const SizedBox(width: 8),
+            action,
+          ],
         ],
       ),
     );
@@ -60,11 +129,11 @@ class _NowRow extends StatelessWidget {
             : l10n.nodeUpdateReopenStagedLabel(comingName);
         final NodeLibraryBadMarker? bad = status.bad;
         final String? sha256 = shown?.sha256;
-        return SettingRow(
-          label: loaded == null
+        return _VersionFact(
+          name: loaded == null
               ? l10n.nodeUpdateNextStartLabel
               : l10n.nodeUpdateLoadedLabel,
-          below: Column(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
@@ -276,9 +345,9 @@ class _CheckRow extends StatelessWidget {
       buildWhen: (NodeUpdatePanelState before, NodeUpdatePanelState now) =>
           before.check != now.check || before.idle != now.idle,
       builder: (BuildContext context, NodeUpdatePanelState state) {
-        return SettingRow(
-          label: l10n.nodeUpdateReleaseLabel,
-          trailing: OutlinedButton(
+        return _VersionFact(
+          name: l10n.nodeUpdateReleaseLabel,
+          action: OutlinedButton(
             key: const ValueKey<String>('node_update_check'),
             style: cardSecondaryButtonStyle(context),
             onPressed: state.idle
@@ -286,7 +355,7 @@ class _CheckRow extends StatelessWidget {
                 : null,
             child: Text(l10n.nodeUpdateCheckLabel),
           ),
-          below: StateSwitcher(
+          child: StateSwitcher(
             alignment: AlignmentDirectional.topStart,
             child: _buildAnswer(context, state.check),
           ),

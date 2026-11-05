@@ -33,6 +33,18 @@ all 1,976 qualified runtime/source entries. No extra local SDK, full Windows/nat
 wallet/devnet, image or motion job is allocated for this record. Original 72/80,
 zero accepted matches and all eight original acceptance rows remain open.
 
+[Source477](review/source477-node-version-columns.md) prepares the existing
+loaded/release facts as equal columns with inline ledger labels, stacking in
+narrow or larger-text layouts. Genuine values, hash/copy, manual Check/Download,
+confirmation, rollback and source ownership remain. The existing Node card file
+adds wide alignment, Arabic ordering and normal/doubled narrow coverage in both
+themes. No test is registered or removed. All 97 prior focused files remain;
+this existing 34-case file raises selection to 1,273 ordinary / 1,275 asset cases
+in 49/49-file groups (606/667). Fourteen pure admission controls pass with zero
+failures/errors/skips and native processes forbidden. Fresh strict hosted
+analysis and complete execution are pending. Native pixels and original 72/80
+acceptance remain open; heavy platform/lab/image work stays in phase two.
+
 The [actual Source459 default lab result](review/source459-reference-default.md#actual-source459-default-result)
 binds `9a758129afdae895ad253b0ae357b33aa919ed52`, tree
 `666e717e573292a073dc544a7c307b3c6887c55b`. Source-only 41933458571 and manual

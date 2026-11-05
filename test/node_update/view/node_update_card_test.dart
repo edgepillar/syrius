@@ -105,6 +105,7 @@ void main() {
     Size size = const Size(1200, 1000),
     Locale locale = const Locale('en'),
     ThemeData? theme,
+    double textScale = 1,
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
@@ -115,6 +116,12 @@ void main() {
         locale: locale,
         localizationsDelegates: appLocalizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
+        builder: (BuildContext context, Widget? child) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: TextScaler.linear(textScale),
+          ),
+          child: child!,
+        ),
         home: Scaffold(
           body: SingleChildScrollView(
             child: NodeUpdateCard(
@@ -162,6 +169,15 @@ void main() {
         );
         expect(_buttonHeight(tester, _fromFile), 30);
         expect(_buttonHeight(tester, _download), 30);
+        final Rect loaded = tester.getRect(find.text('LOADED'));
+        final Rect release = tester.getRect(find.text('LATEST RELEASE'));
+        final Rect value = tester.getRect(find.text('Bundled'));
+        expect(loaded.top, closeTo(release.top, 0.01));
+        expect(loaded.left, lessThan(value.left));
+        expect(release.left, greaterThan(value.right));
+        expect(value.top, closeTo(loaded.top, 3));
+        expect(asked, isEmpty);
+        expect(updater.calls, isEmpty);
         await press(tester, _check);
         await press(tester, _download);
         expect(_buttonHeight(tester, _dialogCancel), 38);
@@ -188,7 +204,7 @@ void main() {
       await open(tester);
 
       expect(find.text('Embedded node'), findsOneWidget);
-      expect(find.text('Loaded'), findsOneWidget);
+      expect(find.text('LOADED'), findsOneWidget);
       expect(find.text('Bundled'), findsOneWidget);
       // Cut in the middle on the row, whole in the tooltip.
       expect(find.text('1111111111…cccccc4444'), findsOneWidget);
@@ -262,12 +278,46 @@ void main() {
         staged: manifestOf(tag: 'v0.1.0-rc.1', sha256: kOldSha),
         previous: manifestOf(tag: 'v0.0.8', sha256: kOldSha),
       );
-      await open(tester, size: const Size(700, 1000));
-      await press(tester, _check);
+      for (final bool light in <bool>[false, true]) {
+        for (final Locale locale in <Locale>[
+          const Locale('en'),
+          const Locale('ar'),
+        ]) {
+          for (final double scale in <double>[1, 2]) {
+            final List<String> before = List<String>.of(updater.calls);
+            await open(
+              tester,
+              size: const Size(700, 1000),
+              locale: locale,
+              theme: light ? AppTheme.lightTheme : AppTheme.darkTheme,
+              textScale: scale,
+            );
+            expect(updater.calls, before);
+            final AppLocalizations l10n = AppLocalizations.of(
+              tester.element(find.byKey(_check)),
+            )!;
+            final bool latin = locale.languageCode == 'en';
+            final String loadedLabel = l10n.nodeUpdateLoadedLabel;
+            final String releaseLabel = l10n.nodeUpdateReleaseLabel;
+            final Rect loaded = tester.getRect(
+              find.text(latin ? loadedLabel.toUpperCase() : loadedLabel),
+            );
+            final Rect release = tester.getRect(
+              find.text(latin ? releaseLabel.toUpperCase() : releaseLabel),
+            );
+            expect(loaded.bottom, lessThan(release.top));
+            await press(tester, _check);
 
-      expect(find.byKey(_usePrevious), findsOneWidget);
-      expect(find.byKey(_useBundled), findsOneWidget);
-      expect(find.text('Up to date'), findsOneWidget);
+            expect(find.byKey(_usePrevious), findsOneWidget);
+            expect(find.byKey(_useBundled), findsOneWidget);
+            expect(
+              find.text(l10n.nodeUpdateCompareUpToDateLabel),
+              findsOneWidget,
+            );
+            expect(tester.takeException(), isNull);
+          }
+        }
+      }
     });
 
     testWidgets('keeps hashes and names left to right in Arabic', (
@@ -286,6 +336,15 @@ void main() {
       expect(
         tester.widget<TextField>(find.byKey(_repository)).textDirection,
         TextDirection.ltr,
+      );
+      final AppLocalizations l10n = AppLocalizations.of(
+        tester.element(find.byKey(_check)),
+      )!;
+      expect(
+        tester.getRect(find.text(l10n.nodeUpdateLoadedLabel)).left,
+        greaterThan(
+          tester.getRect(find.text(l10n.nodeUpdateReleaseLabel)).right,
+        ),
       );
 
       await press(tester, _check);
