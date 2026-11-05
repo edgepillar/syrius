@@ -53,3 +53,25 @@ repository's other workflows. All opt-ins, source/SDK checks, floor, bounds,
 output restrictions, five pure tests and generated inputs remain. The original
 refusal is preserved. Fresh generation on the corrected source is pending;
 neither the missing view nor current runtime acceptance is qualified.
+
+## Original Source495 loader failure and Source496 discovery
+
+Source495 a36c23903a555fd149d63ffcb264ed5bc2f22c75, tree
+12d3817e7cdcf105ad180bec9c56c5d19a70e7b5, is accepted as original manual
+run 42053316528 / job 127334909683, attempt one. Admission passes. The next
+step fails to import test.ci: Windows Python's standard test package shadows
+the repository's namespace. The actual loader reports one error; none of the
+five selected cases executes. SDK setup and generation are skipped. The failed
+run is terminal with zero artifacts.
+
+An initial bounded text-log reader refuses terminal escapes and retains its
+actual exit. A separate read explicitly accepts escape bytes into protected
+bounded metadata, then extracts only plain diagnostic lines. Neither reader
+retries CI, downloads an archive or allocates an SDK.
+
+Source496 changes only that workflow command to unittest discovery rooted at
+test/ci with the exact test_localization_preparation.py filename. This matches
+the repository's existing discovery approach and retains all five cases and
+negative assertions. All inputs, opt-ins, source/SDK checks, floor, bounds and
+generated-output restrictions remain. Both original failures are preserved;
+fresh generation remains pending.

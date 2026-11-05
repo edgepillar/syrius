@@ -25,7 +25,9 @@ jobs:
           SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
         run: python -B -m tool.ci.prepare_localizations --admission-only
       - name: Check finite generated-delta controls
-        run: python -B -m unittest test.ci.test_localization_preparation -v
+        run: >-
+          python -B -m unittest discover -s test/ci
+          -p test_localization_preparation.py -v
       - name: Set up the existing pinned Flutter version
         uses: subosito/flutter-action@v2
         with:
