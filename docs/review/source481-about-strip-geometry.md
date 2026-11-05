@@ -158,3 +158,50 @@ All 100 selected files, 1,297 ordinary / 1,299 asset cases, 50/50 streams
 (619/678), strict zero-finding analysis and process/source bounds remain.
 Fresh complete qualification is pending. Original failures, native About
 pixels, zero whole-image matches and original 72/80 acceptance remain open.
+
+## Fresh Source483 focused result
+
+Updated: 2026-11-05T06:30Z.
+
+[41979013198](https://github.com/edgepillar/syrius/actions/runs/41979013198),
+attempt one, job 127084523980, independently qualifies Source483
+c6c882829a634a17c934f62f4d9fdefbb961a0cd, tree
+34686b1f3cfab8c8b29c54c8a9d5aec71ca7cc52. The 1,063 Python cases finish with
+eighteen explicit Windows skips and zero failures/errors. All fourteen asset
+observations, locked-input restoration and zero-finding selected analysis pass.
+
+Both fifty-file engine streams exit zero normally with complete, unforced
+output. The first has 619 passes, seventy hidden and 689 terminal events in
+210.047 seconds, retaining 340,958 bytes with digest
+dd4153839ff51ad16ff9bf454c1fe55f6fe1cc1091d3f8d62efc9310f52ad510.
+The second has 678 passes, 74 hidden and 752 terminal events in 207.828 seconds,
+retaining 344,588 bytes with digest
+53c14e14eb4c09ff708890b3b7859ef50d4000961ad4c53ba0761a61cd688b86.
+All 1,297 ordinary cases pass with zero failures/errors/skips, 144 hidden and
+1,441 terminal events. Aggregate, three startup checks, both original entry
+refusals and final-source checks complete. All tested-source runs are terminal
+with zero artifacts; the 1,299-case asset variant stays unselected.
+
+All sixteen shared-strip and eight About cases pass with fourteen bundled font
+weights per file. Both themes retain the narrow 70-71 logical-height range and
+exact 28-pixel fact gap. Original scaled RTL, exact 72-pixel ordinary defaults,
+48-pixel leads and growth above 71 pass. Original shared figure/callback/key/
+amount, metadata replacement/failure/disposal, eighteen URLs, safe folder/link,
+disabled action/seam and licence/end-hook cases remain and pass. Every earlier
+selected file and ordinary registration remains.
+
+CSS's 70.5-pixel logical box and seventy solid reference fill rows retain their
+distinct meanings. The earlier exact-seventy inference stays withdrawn.
+Success does not reconstruct Source482's unretained actual heights or sole
+runtime cause. Original Source481 analysis refusal and Source482 height failures
+remain separately pinned and are not retried.
+
+X611 closes for selected implementation/widget scope. Native About pixels,
+historical image findings and whole-image matching remain unqualified.
+Source484 records this result and exact body345 in documentation only, preserving
+all 1,976 qualified runtime/source entries with digest
+fcfd7c7e62389657ceaf949893c6c651dc5d14d623335c5dafd3dff06648c608.
+No duplicate SDK/native or image-transport job is allocated for this record.
+Original 72/80, fifty literal outputs, 44 missing, zero of 94 accepted matches
+and every phase-two boundary remain open. The first delivery remains ready for
+Draft code review.

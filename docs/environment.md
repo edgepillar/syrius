@@ -2,69 +2,46 @@
 
 ## Current qualification status (2026-11-05)
 
-The latest qualified focused source is Source479
-`a8c5f7f9ad2d946f40635ec89b0be0fc57114052`, tree
-`1a053de456b8a8c87ede8dca7f2e98ff9024f58e`.
-[41970203002](https://github.com/edgepillar/syrius/actions/runs/41970203002),
-attempt one, job 127056418527, independently qualifies all 1,273 ordinary widgets
-in complete 49/49-file streams (606/667): zero failures/errors/skips, 138 hidden
-and 1,411 terminal events. All 1,063 Python controls/eighteen explicit Windows
-skips, fourteen assets and zero selected analyzer findings pass. Both streams,
-aggregate, startup/refusal and final source checks complete. All tested-source
-runs are terminal with zero artifacts; the 1,275-case asset variant is unselected.
+The latest qualified focused source is Source483
+`c6c882829a634a17c934f62f4d9fdefbb961a0cd`, tree
+`34686b1f3cfab8c8b29c54c8a9d5aec71ca7cc52`.
+[41979013198](https://github.com/edgepillar/syrius/actions/runs/41979013198),
+attempt one, job 127084523980, independently qualifies all 1,297 ordinary widgets
+in complete 50/50-file streams (619/678): zero failures/errors/skips, 144 hidden
+and 1,441 terminal events. The 1,063 Python cases finish with eighteen explicit
+Windows skips and zero failures/errors. Fourteen assets and zero selected
+analyzer findings pass. Both streams, aggregate, startup/refusal and final source
+checks complete. All tested-source runs are terminal with zero artifacts;
+the 1,299-case asset variant is unselected.
 
-The [fresh Node version result](review/source477-node-version-columns.md#fresh-source479-focused-result)
-qualifies both-theme inline/equal-column facts, Arabic ordering with left-to-right
-data and the original 700-pixel normal/doubled-text stacked layouts. All 34 existing
-Node card cases pass with fourteen unchanged bundled font weights loaded.
-Original Check, confirmation/cancel-default, unverified release, file, checksum,
-rollback and source assertions remain. The early exception assertion supplements
-the original final assertion. All 37 pure projection/admission controls pass;
-all 97 earlier selected files remain, with unchanged registrations and bounds.
+The [fresh About result](review/source481-about-strip-geometry.md#fresh-source483-focused-result)
+covers all sixteen shared-strip and eight About cases, loading fourteen bundled
+font weights per file. Both-theme normal logical-height checks require 70-71
+pixels, with the exact 28-pixel fact gap and original scaled RTL scenario.
+Ordinary defaults remain exactly 72 pixels, leads remain 48 and larger text
+grows above 71. Original metadata replacement/failure/disposal, eighteen URLs,
+safe link/folder, disabled action/seam and licence/end-hook cases pass.
+Every earlier selected file and ordinary registration remains.
 
-Original Source477 41966584841 stays failed with one import-order info and no
-Dart execution. Original Source478 41967576347 stays failed with zero selected
-findings, then complete 606-pass and 666-pass/one-failure streams. The original
-variant, widget, renderer/font and sole layout cause remain NOT_ESTABLISHED.
-Their [retained results](review/source477-node-version-columns.md#original-source477-analysis-result)
-are not relabelled. Native Node version/rest pixels and whole-image matching
-remain unqualified.
+CSS's 11/19-pixel lines at 1.45 height, three-pixel gap and 24 vertical inset
+pixels total 70.5 logical pixels. Seventy solid reference fill rows do not
+establish exactly seventy logical pixels; that earlier inference is withdrawn.
+Original Source481 41975020825 remains failed at two const infos, with no Dart
+execution. Source482 41976660748 passes zero selected findings, then complete
+619-pass and 675-pass/three-height-failure streams. Its actual failed heights
+and sole runtime cause remain unretained. Both originals, complete outputs and
+terminal zero-artifact states stay preserved; neither producer is retried.
 
-The [Source475 capture result](review/source474-node-capture-rest.md#fresh-source475-focused-result)
+The preceding [Source479 Node result](review/source477-node-version-columns.md#fresh-source479-focused-result),
+[Source475 capture result](review/source474-node-capture-rest.md#fresh-source475-focused-result)
 and [Source472 menu result](review/source470-settings-menu-text-scale.md#fresh-source472-focused-result)
-retain their original source pins; every prior selected file passes again in
-Source479. Source480 changes documentation only and preserves all 1,976 qualified
-runtime/source entries. No extra SDK, full Windows/native, wallet/devnet, image
-or motion job is allocated for this record. Original 72/80, zero accepted
-matches and all eight original acceptance rows remain open.
-
-Original [Source481](review/source481-about-strip-geometry.md#original-source481-analysis-result),
-41975020825 / job 127071741867, passes 1,063 controllers/eighteen Windows skips,
-fourteen assets and locked-input restoration. Strict analysis has zero
-errors/warnings and two PREFER_CONST_CONSTRUCTORS infos at line 189, columns 19
-and 46. Both Dart groups are skipped; the original stays failed and terminal
-with zero artifacts. The finite location does not retain the file name.
-
-Source482 adds the enclosing const only. Its
-[original height result](review/source481-about-strip-geometry.md#original-source482-height-result)
-in 41976660748 / job 127076991682 passes zero selected findings, 1,063
-controllers/eighteen Windows skips and fourteen assets. Complete 50/50 streams
-retain 619 passes, then 675 passes/three new height-assertion failures. Both
-processes finish normally with complete output; the aggregate stays failed.
-All source runs are terminal with zero artifacts. Exact failed heights and the
-sole runtime cause are not retained; no missing numeric value is inferred.
-
-Source483 corrects the test's raster-to-logical inference. CSS uses 11/19-pixel
-labels/values at 1.45 line height, a three-pixel gap and 24 vertical inset pixels,
-giving 70.5 logical pixels before rounding. Seventy solid PNG fill rows do not
-establish an exact 70-pixel logical height. The new normal checks require the
-narrow 70-71 range. Ordinary 72-pixel defaults, 48-pixel leads, exact 28-pixel
-fact gap and earlier assertions remain; scaled growth now exceeds 71.
-Production, font, controller and registration bytes remain. The two test files
-correct only the new height checks and explanations; all 100 files and 1,297
-ordinary cases remain selected. The 1,299-case asset
-variant stays unselected. Fresh complete qualification is pending; neither
-original producer is retried. Native pixels, original 72/80 and phase two remain.
+retain their exact source pins and original failures. Their selected files pass
+again in Source483. Native About/Node/rest pixels and whole-image matching stay
+unqualified. Source484 records documentation and exact body345 only, preserving
+all 1,976 qualified runtime/source entries with digest
+fcfd7c7e62389657ceaf949893c6c651dc5d14d623335c5dafd3dff06648c608.
+No extra SDK, full Windows/native, wallet/devnet, image or motion job is allocated
+for this record. Original 72/80 and all eight acceptance rows remain open.
 
 The [actual Source459 default lab result](review/source459-reference-default.md#actual-source459-default-result)
 binds `9a758129afdae895ad253b0ae357b33aa919ed52`, tree

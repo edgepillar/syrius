@@ -7,33 +7,39 @@ basic functionality, with detailed visual and extended platform/lab acceptance
 afterward. The first milestone is ready for Draft code review. Final acceptance
 of the complete redesign remains open.
 
-The most recently qualified focused source is Source479
-`a8c5f7f9ad2d946f40635ec89b0be0fc57114052`, tree
-`1a053de456b8a8c87ede8dca7f2e98ff9024f58e`. Its
-[Node version result](source477-node-version-columns.md#fresh-source479-focused-result)
-in [41970203002](https://github.com/edgepillar/syrius/actions/runs/41970203002)
-passes all 1,273 ordinary widgets in complete 49/49-file streams (606/667),
-1,063 Python controls/eighteen explicit Windows skips, fourteen assets and zero
-selected findings. Both-theme inline/equal-column facts, Arabic ordering/LTR
-data and original 700-pixel normal/doubled-text stacked layouts pass with fourteen
-bundled font weights loaded. All 34 existing Node cases and every prior selected
-file remain. Original update/confirmation/rollback/source assertions and all
-37 pure projection/admission controls pass. Aggregate, startup/refusal and final
-source checks complete; all tested-source runs are terminal with zero artifacts.
+The most recently qualified focused source is Source483
+`c6c882829a634a17c934f62f4d9fdefbb961a0cd`, tree
+`34686b1f3cfab8c8b29c54c8a9d5aec71ca7cc52`. Its
+[About result](source481-about-strip-geometry.md#fresh-source483-focused-result)
+in [41979013198](https://github.com/edgepillar/syrius/actions/runs/41979013198)
+passes all 1,297 ordinary widgets in complete 50/50-file streams (619/678),
+zero failures/errors/skips, 144 hidden and 1,441 terminal events. The 1,063
+Python cases finish with eighteen explicit Windows skips and zero failures/errors;
+fourteen assets and zero selected findings pass. Both streams, aggregate,
+startup/refusal and final source checks complete. All source runs are terminal
+with zero artifacts; every earlier selected file and registration remains.
 
-Source480 changes documentation only and archives exact English body344,
-preserving all 1,976 qualified runtime/source entries. The 1,275-case asset
-variant remains unselected. Full Windows/native, visual and performance
-acceptance stays deferred/open. Original progress remains 72/80 with zero
-accepted matches; this milestone is ready for Draft code review. Original
-Source477/478 failures and unknown causes remain; native version/rest pixels
-and whole-image matching remain unqualified.
+All sixteen shared-strip/eight About cases pass with fourteen font weights per
+file. Normal checks require 70-71 logical pixels around CSS's 70.5-pixel box,
+the exact 28-pixel fact gap and original scaled RTL. Ordinary 72-pixel defaults/
+48-pixel leads remain, and larger text grows above 71. Original metadata,
+owner/disposal, eighteen URLs, disabled actions and licence cases pass.
+Source481/482 failures and unretained original height values remain; current
+native About pixels and whole-image matching remain unqualified.
 
-The [preceding Source475 capture result](source474-node-capture-rest.md#fresh-source475-focused-result),
+Source484 changes documentation only and archives exact English body345,
+preserving all 1,976 qualified runtime/source entries. The 1,299-case asset
+variant stays unselected. Full Windows/native, visual and performance acceptance
+stays deferred/open. Original progress remains 72/80 with zero accepted matches;
+this milestone is ready for Draft code review.
+
+The [preceding Source479 Node result](source477-node-version-columns.md#fresh-source479-focused-result),
+[Source475 capture result](source474-node-capture-rest.md#fresh-source475-focused-result),
 [Source472 menu result](source470-settings-menu-text-scale.md#fresh-source472-focused-result)
 and [Source468 result](source467-goto-viewport-budget.md#fresh-source468-focused-result)
-retain their own source pins and original failures. Source479 receives fresh
-complete qualification for its exact changed source.
+retain their source pins and original failures. Their selected files pass again
+in Source483. No native/financial replay or heavy platform/image job is allocated
+for this documentation record.
 
 Source449-451 add two separately scoped Python CI files while preserving all
 1,970 prior runtime entries from the qualified UI lineage. Source451's
