@@ -1100,8 +1100,21 @@ void main() {
     expect(before.diagnostic['publication_call_entered'], isFalse);
     expect(after.diagnostic['publication_call_entered'], isTrue);
     expect(after.diagnostic['command_index'], 7);
+    final cli.SeedOperationTrace deposit = cli.SeedOperationTrace('deposit')
+      ..at(cli.SeedOperationAction.publish, cli.SeedOperationStep.reply,
+          commandIndex: 12)
+      ..publicationCallEntered()
+      ..refusedReply('original-ui-control-changed');
+    final cli.SeedOperationFailure changed =
+        deposit.failure(cli.Fail('synthetic-private-value'));
+    expect(changed.diagnostic, <String, Object>{
+      'schema': 1, 'scope': 'original_seed_operation_failure',
+      'recipe': 'deposit', 'action': 'publish', 'step': 'reply',
+      'command_index': 12, 'publication_call_entered': true,
+      'kind': 'refused', 'reason': 'original-ui-control-changed',
+    });
     for (final cli.SeedOperationFailure failure in <cli.SeedOperationFailure>[
-      before, after,
+      before, after, changed,
     ]) {
       expect(failure.diagnostic.containsKey('confirmed'), isFalse);
       expect(failure.diagnostic.containsKey('hash'), isFalse);

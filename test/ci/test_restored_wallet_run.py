@@ -1152,10 +1152,26 @@ class SeedFailureProjectionTests(unittest.TestCase):
         for value in (code + ' ', code + '-private', 'Seed refused: ' + code):
             with self.assertRaises(restored.checkpoint.Refused):
                 restored.seed_failure_projection(self.seed(reason=value), 'seed_stake')
+        control_code = 'original-ui-control-changed'
+        control = self.seed(recipe='deposit', action='publish', command_index=12,
+                            publication_call_entered=True, reason=control_code)
+        self.assertEqual(restored.seed_failure_projection(control,
+                         'seed_deposit'), control)
+        for changes in (dict(action='begin'), dict(command_index=0),
+                        dict(publication_call_entered=False), dict(step='owner')):
+            with self.assertRaises(restored.checkpoint.Refused):
+                restored.seed_failure_projection(control | changes,
+                                                  'seed_deposit')
+        for value in (control_code + ' ', control_code + '-private',
+                      'Seed refused: ' + control_code):
+            with self.assertRaises(restored.checkpoint.Refused):
+                restored.seed_failure_projection(control | dict(reason=value),
+                                                  'seed_deposit')
         with self.assertRaises(restored.checkpoint.Refused):
             restored.seed_failure_projection(self.seed(reason=code, kind='type'),
                                              'seed_stake')
-        for key in ('confirmed', 'complete', 'hash', 'retry', 'seed_admitted', 'success'):
+        for key in ('confirmed', 'complete', 'hash', 'retry', 'seed_admitted',
+                    'success', 'pointer_dispatched', 'sdk_entered', 'accepted'):
             with self.subTest(key=key), self.assertRaises(restored.checkpoint.Refused):
                 restored.seed_failure_projection(self.seed(**{key: True}), 'seed_stake')
 

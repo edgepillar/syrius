@@ -905,6 +905,7 @@ const Set<String> seedOperationReplyCodes = <String>{
   'original-transfer-review-mismatch',
   'original-transfer-review-required',
   'original-transfer-witness-required',
+  'original-ui-control-changed',
   'owned-isolated-profile-required',
   'recipe-prerequisite-missing',
   'restored-seed-derivation-refused',
