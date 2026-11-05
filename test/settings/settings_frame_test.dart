@@ -59,6 +59,13 @@ class _DemoState extends State<_Demo> {
 Finder _section(SettingsSectionId section) =>
     find.byKey(ValueKey<String>('settings_${section.name}'));
 
+FocusNode _sectionFocus(WidgetTester tester, SettingsSectionId section) =>
+    Focus.of(
+      tester.element(
+        find.descendant(of: _section(section), matching: find.byType(Text)),
+      ),
+    );
+
 Material _surface(WidgetTester tester, SettingsSectionId section) =>
     tester.widget<Material>(
       find
@@ -143,16 +150,44 @@ void main() {
     WidgetTester tester,
   ) async {
     _window(tester);
+    await tester.pumpWidget(_app());
+    await tester.pumpAndSettle();
+    for (int i = 0; i < 6; i++) {
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+    }
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await tester.pumpAndSettle();
+    expect(find.text('Page apps'), findsOneWidget);
+    expect(find.text('Page addresses'), findsNothing);
+    expect(
+      _surface(tester, SettingsSectionId.apps).color,
+      AppTokens.dark.card2,
+    );
+    expect(tester.takeException(), isNull);
+
     for (final double scale in <double>[1, 2]) {
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pumpWidget(
         _app(textScale: scale, height: scale == 1 ? null : 200),
       );
       await tester.pumpAndSettle();
-      for (int i = 0; i < 6; i++) {
+      // Scrollable entry focus is separate from traversal within the menu.
+      final FocusNode first = _sectionFocus(
+        tester,
+        SettingsSectionId.addresses,
+      );
+      first.requestFocus();
+      await tester.pumpAndSettle();
+      expect(first.hasPrimaryFocus, isTrue);
+      for (int i = 0; i < 5; i++) {
         await tester.sendKeyEvent(LogicalKeyboardKey.tab);
-        await tester.pump();
+        await tester.pumpAndSettle();
       }
+      expect(
+        _sectionFocus(tester, SettingsSectionId.apps).hasPrimaryFocus,
+        isTrue,
+      );
       await tester.sendKeyEvent(LogicalKeyboardKey.enter);
       await tester.pumpAndSettle();
       expect(find.text('Page apps'), findsOneWidget);
