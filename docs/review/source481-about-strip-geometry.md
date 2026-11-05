@@ -205,3 +205,17 @@ No duplicate SDK/native or image-transport job is allocated for this record.
 Original 72/80, fifty literal outputs, 44 missing, zero of 94 accepted matches
 and every phase-two boundary remain open. The first delivery remains ready for
 Draft code review.
+
+## Current full Windows result
+
+Updated: 2026-11-05T07:51Z.
+
+The [Source484 full Windows result](source484-current-windows-baseline.md)
+independently qualifies all 4,939 nonchain cases/one existing skip, Debug/Release
+and all twelve baseline checks at 7c4848a293698d02a6e99a8dcaa33ad81d4b9f70.
+All sixteen shared-strip and eight About cases remain in that full suite.
+Runtime/source inputs match the focused Source483 lineage byte for byte.
+Root analysis has zero errors/warnings and 1,299 infos; this does not relabel
+the separately pinned zero-finding selected analysis as zero findings globally.
+Source485 records documentation/body346 only. Native About pixels, original
+failures and complete visual/final acceptance remain open.

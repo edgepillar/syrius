@@ -2,6 +2,28 @@
 
 ## Current qualification status (2026-11-05)
 
+The current full Windows source is Source484
+`7c4848a293698d02a6e99a8dcaa33ad81d4b9f70`, tree
+`d366eb8c1223dee6e3df3c5aba6785cdd5774b48`. Original
+[41983354537](https://github.com/edgepillar/syrius/actions/runs/41983354537),
+job 127098312295, and SDK-free independent
+[41987601274](https://github.com/edgepillar/syrius/actions/runs/41987601274),
+job 127111977515, qualify 4,939 nonchain passes/one existing skip, zero
+failures/error events, 577 hidden and 5,517 terminal events. Debug/Release and
+all twelve baseline checks pass. Root analysis has zero errors/warnings and
+1,299 infos; vendored analysis has no findings. Locked restoration,
+generation/localization, DLL byte equality and three map/export lookups pass.
+All original commands complete normally with full output. Both runs are terminal
+with zero artifacts. See the [full result](review/source484-current-windows-baseline.md).
+
+The source-only initial expectation of 4,935 omitted four parameterized cases.
+Two added seams expand the existing service and Go To registries from thirteen
+to fifteen entries, adding two cases each. The explicit 35-case increase plus
+those four gives 39 additions over the old 4,900-pass source. Initial
+expectations and exact-source reconciliation are preserved without repeating
+tests or builds. No DLL export invocation, VM disposal, native wallet/seed,
+Docker Linux mode or image match is established by this baseline.
+
 The latest qualified focused source is Source483
 `c6c882829a634a17c934f62f4d9fdefbb961a0cd`, tree
 `34686b1f3cfab8c8b29c54c8a9d5aec71ca7cc52`.
@@ -37,11 +59,11 @@ The preceding [Source479 Node result](review/source477-node-version-columns.md#f
 and [Source472 menu result](review/source470-settings-menu-text-scale.md#fresh-source472-focused-result)
 retain their exact source pins and original failures. Their selected files pass
 again in Source483. Native About/Node/rest pixels and whole-image matching stay
-unqualified. Source484 records documentation and exact body345 only, preserving
+unqualified. Source485 records the full Windows result and exact body346 only, preserving
 all 1,976 qualified runtime/source entries with digest
 fcfd7c7e62389657ceaf949893c6c651dc5d14d623335c5dafd3dff06648c608.
-No extra SDK, full Windows/native, wallet/devnet, image or motion job is allocated
-for this record. Original 72/80 and all eight acceptance rows remain open.
+No duplicate SDK, Windows build, wallet/devnet, image or motion job is allocated
+for this documentation record. Original 72/80 and all eight acceptance rows remain open.
 
 The [actual Source459 default lab result](review/source459-reference-default.md#actual-source459-default-result)
 binds `9a758129afdae895ad253b0ae357b33aa919ed52`, tree
@@ -75,12 +97,12 @@ qualifies the exact WSL 3.0.3.0 component installation and metadata queries afte
 thirty-two controls, positive/negative files, package/signature and final identity
 checks. No Linux kernel/distro/container starts. Windows Docker Desktop, Linux
 mode and nested virtualization remain unqualified. Source435's unknown cause and
-Source438's separate ctime-only refusal remain preserved. The last full Windows
-baseline stays Source368 a06c9bfa5d6caa207f97f950cae6287bea3ec0f8: 4,900 nonchain
-passes/one existing skip, Debug/Release success and twelve controls, with root
-analysis at zero errors/warnings and 1,297 infos. Native108 retains its Deposit
-refusal, incomplete Stake/Fuse/Token prefix and unreached Project/Fund address.
-Later focused readiness fixes do not qualify native replay or all six seed effects.
+Source438's separate ctime-only refusal remain preserved. The current full Windows
+baseline is Source484 as linked above. Source368's Native108 result remains
+separately pinned at a06c9bfa5d6caa207f97f950cae6287bea3ec0f8, retaining the
+Deposit refusal, incomplete Stake/Fuse/Token prefix and unreached Project/Fund
+address. Later focused readiness fixes and the new nonchain baseline do not
+qualify native replay or all six seed effects.
 
 [Actual Source461 results](review/source461-wsl-system-kernel.md#actual-source461-result)
 bind source 2b084df944b34532b751bf3d123be20015f5c561, tree

@@ -7,6 +7,21 @@ basic functionality, with detailed visual and extended platform/lab acceptance
 afterward. The first milestone is ready for Draft code review. Final acceptance
 of the complete redesign remains open.
 
+The current full Windows result is Source484 `7c4848a293698d02a6e99a8dcaa33ad81d4b9f70`,
+tree `d366eb8c1223dee6e3df3c5aba6785cdd5774b48`.
+[41983354537](https://github.com/edgepillar/syrius/actions/runs/41983354537)
+and SDK-free independent
+[41987601274](https://github.com/edgepillar/syrius/actions/runs/41987601274)
+qualify 4,939 nonchain passes/one existing skip, Debug/Release and all twelve
+checks. There are zero failures/error events, 577 hidden and 5,517 terminal
+events. Root analysis has zero errors/warnings and 1,299 infos; vendored
+analysis has no findings. Locked restoration, generated/localized
+correspondence and identical DLL map/export lookups pass. Both runs are terminal
+with zero artifacts. The [full report](source484-current-windows-baseline.md)
+preserves the initial count expectation and its exact-source reconciliation.
+Current wallet/seed, Docker Linux mode, native images and final acceptance stay
+separate and open.
+
 The most recently qualified focused source is Source483
 `c6c882829a634a17c934f62f4d9fdefbb961a0cd`, tree
 `34686b1f3cfab8c8b29c54c8a9d5aec71ca7cc52`. Its
@@ -27,7 +42,7 @@ owner/disposal, eighteen URLs, disabled actions and licence cases pass.
 Source481/482 failures and unretained original height values remain; current
 native About pixels and whole-image matching remain unqualified.
 
-Source484 changes documentation only and archives exact English body345,
+Source485 changes documentation only and archives exact English body346,
 preserving all 1,976 qualified runtime/source entries. The 1,299-case asset
 variant stays unselected. Full Windows/native, visual and performance acceptance
 stays deferred/open. Original progress remains 72/80 with zero accepted matches;
