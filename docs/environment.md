@@ -2,39 +2,26 @@
 
 ## Current qualification status (2026-11-05)
 
-The latest qualified focused UI source is Source468
-`8ef8e53f088fcdb55e2445d3fb5af0296cbcbb9b`, tree
-`ac24abf991ecfa1c78573a02cd9e8698b5ff4863`.
-[41950865638](https://github.com/edgepillar/syrius/actions/runs/41950865638),
-attempt one, job 126994212093, independently qualifies all 1,230 ordinary widgets
-in complete 48/48-file streams (597/633): zero failures/errors/skips, 134 hidden
-and 1,364 terminal events. All 1,063 Python controls pass with eighteen explicit
-Windows skips; fourteen assets and zero selected analyzer findings pass.
-Aggregate publication, startup/refusal controls and final source checking complete;
-all tested-source jobs are terminal with zero artifacts. The 1,232-case asset
-variant and current full-root Windows/native acceptance remain unqualified.
+The latest qualified focused UI source is Source472
+`fae94fdc4a847a41693d584d939782a4fc31ccc0`, tree
+`fa011d8fa5c83394f1a2d23f771ee2836f496cd9`.
+[41957578090](https://github.com/edgepillar/syrius/actions/runs/41957578090),
+attempt one, job 127016071419, independently qualifies all 1,239 ordinary widgets
+in complete 49/48-file streams (606/633): zero failures/errors/skips, 135 hidden
+and 1,374 terminal events. All 1,063 Python controls/eighteen explicit Windows
+skips, fourteen assets and zero selected analyzer findings pass. Aggregate,
+startup/refusal and final source checks complete. All tested-source runs are
+terminal with zero artifacts; the 1,241-case asset variant remains unselected.
 
-The [fresh focused result](review/source467-goto-viewport-budget.md#fresh-source468-focused-result)
-qualifies normal/doubled Go To paragraph fit in both themes/directions, equal
-painted inline/standalone keycap bounds and selected-row keyboard visibility.
-Thirteen palette registrations and every prior selected path remain. Portable
-Linux fixture paths also pass in this Windows run. All original Source463-467
-failures remain preserved. The preceding [Source447 result](review/source447-focused-case-count.md#fresh-source447-focused-result)
-retains its own pin and evidence. Source469 changes documentation only; all
-1,976 runtime/source entries retain their qualified bytes. No local SDK, full
-wallet/devnet, image or motion job is selected.
-
-Original Source471 41956299483 passes all 1,063 controllers/eighteen expected
-Windows skips and fourteen assets, but one cascade info with zero errors/warnings
-refuses analysis and skips Dart. The original is failed, terminal and has zero
-artifacts. [Source472](review/source470-settings-menu-text-scale.md#source472-menu-traversal-group)
-fixes that fixture style and gives the Settings menu its own traversal group.
-Geometry, labels, callbacks, the original six-Tab baseline, explicit focus,
-viewport, outgoing-action and motion assertions remain. Python/controller bytes
-and fourteen local controls are unchanged. Fresh complete 1,239-case qualification
-is pending in 49/48 streams (606/633); the 1,241-case asset variant is unselected.
-Source470's 605-pass/one-failure original and Source468's separately qualified
-source retain their scope. No current native/image/motion acceptance is inferred.
+The [fresh menu result](review/source470-settings-menu-text-scale.md#fresh-source472-focused-result)
+qualifies normal geometry, full doubled-scale labels in both themes/directions,
+the original six-Tab baseline, explicit focus and selected-row visibility in a
+short scaled viewport. Outgoing-action and independent motion assertions pass;
+every prior path, including Go To, remains. Both failed originals keep their
+scope. The [preceding Source468 result](review/source467-goto-viewport-budget.md#fresh-source468-focused-result)
+remains separately pinned. Source473 changes documentation only, preserving all
+1,976 qualified runtime/source entries. No extra local SDK, full Windows/native,
+wallet/devnet, image or motion job is allocated for that record.
 
 The [actual Source459 default lab result](review/source459-reference-default.md#actual-source459-default-result)
 binds `9a758129afdae895ad253b0ae357b33aa919ed52`, tree
@@ -98,10 +85,10 @@ review. Original acceptance remains 72/80 rows, 50/94 historical literal outputs
 44 missing and zero accepted whole-image matches. P03/P09/F06 and
 V01/V02/V03/V05/V06 remain open. Heavy Windows/native wallet, seed/seam interaction,
 catalog transport, detailed visual and motion/shader/frame-time acceptance remain
-phase two. Source469 records the qualified focused result and exact body341
+phase two. Source473 records the qualified focused result and exact body342
 without runtime changes or repeated SDK/native/artifact work. Source462's split
 Windows result remains preserved. The [validation index](review/redesign-validation-index.md)
-and [exact preceding environment header](https://github.com/edgepillar/syrius/blob/8ef8e53f088fcdb55e2445d3fb5af0296cbcbb9b/docs/environment.md#current-qualification-status-2026-11-05)
+and [exact preceding environment header](https://github.com/edgepillar/syrius/blob/fae94fdc4a847a41693d584d939782a4fc31ccc0/docs/environment.md#current-qualification-status-2026-11-05)
 retain prior source-bound results. The historical snapshots below are unchanged.
 
 ## Historical Source353 qualification snapshot (2026-11-03T04:53Z)

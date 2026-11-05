@@ -126,3 +126,51 @@ Nine existing menu cases and 1,239 ordinary/1,241 asset cases remain, with 49/48
 ordinary files (606/633). Fresh zero-finding selected analysis and both complete
 hosted streams are required. Both failed originals, the original Node-heading
 uncertainty, native pixels, full 72/80 acceptance and phase two remain open.
+
+## Fresh Source472 focused result
+
+Updated: 2026-11-05T03:04Z.
+
+Original [41957578090](https://github.com/edgepillar/syrius/actions/runs/41957578090),
+attempt one, job 127016071419, succeeds on Source472
+`fae94fdc4a847a41693d584d939782a4fc31ccc0`, tree
+`fa011d8fa5c83394f1a2d23f771ee2836f496cd9`. Independent consumption verifies both complete
+streams, original metadata receipts and fresh terminal run/job/artifact listings.
+All tested-source runs are terminal with zero artifacts; no producer is retried.
+
+All 1,239 ordinary cases pass: zero failures/errors/skips, 135 hidden and 1,374
+terminal events. The 97 selected files execute once in 49/48 groups, retaining
+every prior file and adding nine existing menu cases. Each stream exits zero
+normally with complete, unforced output and the original process bounds:
+
+| Group | Files | Passed | Hidden | Terminal | Seconds | Output bytes |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | 49 | 606 | 69 | 675 | 193.953 | 333166 |
+| 2 | 48 | 633 | 66 | 699 | 182.531 | 314909 |
+
+Corresponding output SHA-256 values:
+
+- `01466e12a284393e7ee13630cd50e41400ffbe509b608aeb25859c85ccac737b`
+- `430f9c842a5b4b92f34b37dd2e8def363b2776f678a091d1bc4557cc934c8225`
+
+All 1,063 Python controls pass with eighteen explicit Windows skips; fourteen
+asset observations and zero selected analyzer errors/warnings/infos pass.
+Aggregate publication, startup/refusal and final source checks complete.
+The 1,241-case asset variant remains unselected.
+
+All four both-theme/direction geometry cases retain normal-size assertions and
+pass complete doubled-scale paragraph fit. The original six-Tab opening and
+added explicit-focus normal/doubled viewport checks pass. Outgoing actions still
+refuse during exit and all independent motion-flag cases retain their clocks.
+Every prior focused path, including Go To scaling, passes. X606/X607 close only
+for selected widget/controller qualification. Original Source470 keyboard failure
+and Source471 analysis refusal retain their failed outcomes and unknowns.
+
+Source473 records documentation and exact English body342 only, preserving all
+1,976 qualified runtime/source entries. No extra SDK, full wallet/lab, native
+capture, image or motion allocation is made for that record. Source468, actual
+Source459 Linux defaults and the Source461 component/kernel split keep their
+own pins and scope. Full acceptance remains 72/80, 50/94 historical literal
+outputs, 44 missing and zero accepted whole-image matches. P03/P09/F06 and
+V01/V02/V03/V05/V06 remain open; heavy phase-two checks stay deferred.
+The first delivery remains ready for Draft code review.
