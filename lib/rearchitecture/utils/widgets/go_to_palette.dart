@@ -173,6 +173,12 @@ class _GoToPaletteState<T> extends State<GoToPalette<T>> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _scheduleScroll();
+  }
+
+  @override
   void dispose() {
     _query
       ..removeListener(_editingChanged)
@@ -267,14 +273,13 @@ class _GoToPaletteState<T> extends State<GoToPalette<T>> {
       double target = reset ? position.minScrollExtent : position.pixels;
       if (_highlighted >= 0) {
         final AppTokens tokens = AppTokens.of(context);
+        final ({double heading, double row}) metrics = _listMetrics(tokens);
         double top = tokens.goToListInset;
         for (final _ListItem<T> item in _items) {
           if (item.entryIndex == _highlighted) break;
-          top += item.entry == null
-              ? tokens.goToHeadingHeight
-              : tokens.goToRowHeight;
+          top += item.entry == null ? metrics.heading : metrics.row;
         }
-        final double bottom = top + tokens.goToRowHeight;
+        final double bottom = top + metrics.row;
         if (top < target) {
           target = top;
         } else if (bottom > target + position.viewportDimension) {
@@ -373,10 +378,27 @@ class _GoToPaletteState<T> extends State<GoToPalette<T>> {
     ),
   );
 
+  ({double heading, double row}) _listMetrics(AppTokens tokens) {
+    final TextScaler scaler = MediaQuery.textScalerOf(context);
+    double growth(TextStyle style) {
+      final double fontSize = style.fontSize!;
+      return math.max(0.0, scaler.scale(fontSize) - fontSize) *
+          (style.height ?? 1);
+    }
+
+    // Preserve the reference dimensions at normal scale, then add the extra
+    // line height without shrinking the original heading and row padding.
+    return (
+      heading: tokens.goToHeadingHeight + growth(tokens.ledgerText),
+      row: tokens.goToRowHeight + growth(tokens.bodyText),
+    );
+  }
+
   Widget _buildList(AppTokens tokens) {
+    final ({double heading, double row}) metrics = _listMetrics(tokens);
     if (_matches.isEmpty) {
       return SizedBox(
-        height: tokens.goToRowHeight + tokens.goToListInset * 2,
+        height: metrics.row + tokens.goToListInset * 2,
         child: Padding(
           padding: EdgeInsetsDirectional.symmetric(
             horizontal: tokens.goToRowInset + tokens.goToListInset,
@@ -394,8 +416,8 @@ class _GoToPaletteState<T> extends State<GoToPalette<T>> {
     final int headings = _items.length - _matches.length;
     final double height =
         tokens.goToListInset * 2 +
-        headings * tokens.goToHeadingHeight +
-        math.min(_matches.length, _rowsShown) * tokens.goToRowHeight;
+        headings * metrics.heading +
+        math.min(_matches.length, _rowsShown) * metrics.row;
     return SizedBox(
       height: height,
       child: ListView.builder(
@@ -408,7 +430,7 @@ class _GoToPaletteState<T> extends State<GoToPalette<T>> {
           final GoToEntry<T>? entry = item.entry;
           if (entry == null) {
             return SizedBox(
-              height: tokens.goToHeadingHeight,
+              height: metrics.heading,
               child: Padding(
                 padding: tokens.goToHeadingPadding,
                 child: Text(
@@ -427,7 +449,7 @@ class _GoToPaletteState<T> extends State<GoToPalette<T>> {
             onTap: () => _takeEntry(entry),
           );
           if (entry.seam != null) row = SeamGate(seam: entry.seam!, child: row);
-          return SizedBox(height: tokens.goToRowHeight, child: row);
+          return SizedBox(height: metrics.row, child: row);
         },
       ),
     );

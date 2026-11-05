@@ -41,11 +41,19 @@ Semantics _rowSemantics(WidgetTester tester, Object id) =>
       ),
     );
 
-Widget _host(Widget child) => MaterialApp(
+Widget _host(Widget child, {double? textScale}) => MaterialApp(
   theme: AppTheme.darkTheme,
   locale: const Locale('en'),
   localizationsDelegates: appLocalizationsDelegates,
   supportedLocales: AppLocalizations.supportedLocales,
+  builder: textScale == null
+      ? null
+      : (BuildContext context, Widget? child) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: TextScaler.linear(textScale),
+          ),
+          child: child!,
+        ),
   home: Scaffold(body: child),
 );
 
@@ -55,6 +63,7 @@ Future<void> _open<T>(
   List<T?>? answers,
   ValueNotifier<List<GoToEntry<T>>>? liveEntries,
   String chordName = 'Ctrl',
+  double? textScale,
 }) async {
   tester.view
     ..physicalSize = const Size(1200, 600)
@@ -96,6 +105,7 @@ Future<void> _open<T>(
           child: const Text('Open'),
         ),
       ),
+      textScale: textScale,
     ),
   );
   await tester.tap(find.text('Open'));
@@ -201,6 +211,21 @@ void main() {
               closeTo(tokens.inlineGap, 1));
           expect(_rowSemantics(tester, 'address').properties.label,
               contains('synthetic' * 12));
+          for (final Finder text in <Finder>[
+            find.text('PAGES'),
+            find.text('ACTIONS'),
+            find.text('ADDRESSES'),
+            _rowRichText('short', 'Delegation'),
+          ]) {
+            final RenderParagraph paragraph =
+                tester.renderObject<RenderParagraph>(text);
+            expect(
+              paragraph.size.height + 0.01,
+              greaterThanOrEqualTo(
+                paragraph.getMaxIntrinsicHeight(paragraph.size.width),
+              ),
+            );
+          }
           expect(tester.takeException(), isNull);
         }
       }
@@ -445,38 +470,46 @@ void main() {
   testWidgets('keyboard scrolling counts headings and query changes reset it', (
     WidgetTester tester,
   ) async {
-    await _open<int>(tester, <GoToEntry<int>>[
-      for (int i = 0; i < 24; i++)
-        GoToEntry<int>(
-          id: 'entry_$i',
-          value: i,
-          label: 'Entry $i',
-          category: i < 8
-              ? GoToCategory.pages
-              : i < 16
-              ? GoToCategory.actions
-              : GoToCategory.addresses,
-        ),
-    ]);
-    for (int i = 0; i < 23; i++) {
-      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
-      await tester.pump();
+    for (final double scale in <double>[1, 2]) {
+      await _open<int>(
+        tester,
+        <GoToEntry<int>>[
+          for (int i = 0; i < 24; i++)
+            GoToEntry<int>(
+              id: 'entry_$i',
+              value: i,
+              label: 'Entry $i',
+              category: i < 8
+                  ? GoToCategory.pages
+                  : i < 16
+                  ? GoToCategory.actions
+                  : GoToCategory.addresses,
+            ),
+        ],
+        textScale: scale,
+      );
+      for (int i = 0; i < 23; i++) {
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+        await tester.pump();
+      }
+      await tester.pumpAndSettle();
+      final Rect viewport = tester.getRect(find.byKey(_results));
+      final Rect last = tester.getRect(_row('entry_23'));
+      expect(last.top, greaterThanOrEqualTo(viewport.top));
+      expect(last.bottom, lessThanOrEqualTo(viewport.bottom));
+      expect(_rowSemantics(tester, 'entry_23').properties.selected, isTrue);
+      await tester.enterText(find.byKey(_field), 'Entry 0');
+      await tester.pumpAndSettle();
+      final ListView list = tester.widget<ListView>(find.byKey(_results));
+      expect(list.controller!.offset, 0);
+      expect(_rowSemantics(tester, 'entry_0').properties.selected, isTrue);
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+      await tester.pumpAndSettle();
+      expect(_rowSemantics(tester, 'entry_0').properties.selected, isTrue);
+      expect(tester.takeException(), isNull);
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pumpAndSettle();
     }
-    await tester.pumpAndSettle();
-    final Rect viewport = tester.getRect(find.byKey(_results));
-    final Rect last = tester.getRect(_row('entry_23'));
-    expect(last.top, greaterThanOrEqualTo(viewport.top));
-    expect(last.bottom, lessThanOrEqualTo(viewport.bottom));
-    expect(_rowSemantics(tester, 'entry_23').properties.selected, isTrue);
-    await tester.enterText(find.byKey(_field), 'Entry 0');
-    await tester.pumpAndSettle();
-    final ListView list = tester.widget<ListView>(find.byKey(_results));
-    expect(list.controller!.offset, 0);
-    expect(_rowSemantics(tester, 'entry_0').properties.selected, isTrue);
-    await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
-    await tester.pumpAndSettle();
-    expect(_rowSemantics(tester, 'entry_0').properties.selected, isTrue);
-    expect(tester.takeException(), isNull);
   });
 
   testWidgets('composition keeps Enter until the text is committed', (

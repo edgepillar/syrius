@@ -13,6 +13,14 @@ source checking pass; all tested-source jobs are terminal with zero artifacts.
 The 1,232-case asset variant and current full-root Windows/native are unqualified.
 Later lab/CI changes preserve application Dart, dependencies and references.
 
+[Source463 Go To scaling](review/source463-goto-scaled-rows.md) now changes the
+palette's row/heading geometry and its existing fit/keyboard tests. Normal-scale
+reference dimensions remain; scaled rows and scroll offsets share one measurement.
+The 1,230 ordinary/1,232 asset case selections and 48/48 files remain unchanged.
+Fresh nonnative focused qualification is pending with 1,063 controller cases and
+eighteen expected Windows skips. The prior Source447 pass does not qualify this
+new UI revision. No local SDK, native wallet/lab, image or motion job is selected.
+
 The [actual Source459 default lab result](review/source459-reference-default.md#actual-source459-default-result)
 binds `9a758129afdae895ad253b0ae357b33aa919ed52`, tree
 `666e717e573292a073dc544a7c307b3c6887c55b`. Source-only 41933458571 and manual
