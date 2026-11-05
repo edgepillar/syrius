@@ -75,3 +75,41 @@ the repository's existing discovery approach and retains all five cases and
 negative assertions. All inputs, opt-ins, source/SDK checks, floor, bounds and
 generated-output restrictions remain. Both original failures are preserved;
 fresh generation remains pending.
+
+## Actual Source496 generation and Source497 application
+
+Source496 0c77706799edd03346a8f2edd147c51eea91a0da, tree
+dbf3295eddcb419684fb3a633e0d68fab2588711, succeeds in original
+[42054712355](https://github.com/edgepillar/syrius/actions/runs/42054712355),
+job 127339831229, attempt one. Admission, all five pure discovery cases,
+the existing Flutter 3.47.7 setup and generation pass. The SDK revision is
+exactly abaf9c523780a608bd46686fd5e53740a07077f8.
+
+All five original commands exit zero normally, with complete unforced output
+and no overflow/error. The gen-l10n command takes 14.406 seconds with 161 output
+bytes. Input digests, source head and index remain; exactly the seven allowed
+tracked outputs change. The run and all its steps are terminal with zero
+artifacts. There is no application build, wallet or node execution.
+
+GitHub truncates the generated-result annotation to 4096 bytes, leaving invalid
+JSON. The first observer refuses rather than qualifying that fragment. The
+original full JSON remains in the same job's ordinary text: a complete bounded
+42979-byte read retains the 7615-byte report. A separate read-only reconciliation
+verifies the source/run/job/attempt, final steps and zero artifacts; it reconstructs
+every output from the actual exported edits and checks every before/after byte
+count and SHA-256 value. The original annotation-reader refusal is preserved.
+No CI run is repeated to recover this metadata.
+
+Source497 applies those exact SDK-generated changes to six localization Dart
+classes and the existing missing-key report. The delta contains only the three
+English getters/generated comments and corresponding missing-key additions.
+All reconstructed file hashes match the original generated report after
+application. No getter is hand-authored and no local SDK/archive is allocated.
+
+This qualifies localization generation and faithful application only. The full
+current 1068-controller selection, new message view, both-theme/scaled/RTL/privacy
+checks, application engine/native behavior and complete acceptance remain open.
+Source492 retains its separate 1305-widget qualification. Source494's pre-run
+HTTP 422, Source495's loader failure, all earlier failures and the copied
+Deposit UNKNOWN remain. X614 stays in review; the main ledger remains 72/80,
+with 50/94 historical outputs, 44 missing and zero accepted whole-image matches.

@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -4778,4 +4779,13 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get walletCreationUnavailable =>
       'Wallet setup is unavailable. Your original attempt has been kept.';
+
+  @override
+  String get zapReceivedBack => 'Zap back';
+
+  @override
+  String get zapReceivedNice => 'Nice';
+
+  @override
+  String get zapSenderAttribution => 'Written by the sender, not by Syrius.';
 }

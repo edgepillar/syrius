@@ -1354,7 +1354,10 @@
     "swapActionPaste",
     "swapActionTitle",
     "receiveOperationFailed",
-    "walletCreationUnavailable"
+    "walletCreationUnavailable",
+    "zapReceivedBack",
+    "zapReceivedNice",
+    "zapSenderAttribution"
   ],
 
   "es": [
@@ -2712,7 +2715,10 @@
     "swapActionPaste",
     "swapActionTitle",
     "receiveOperationFailed",
-    "walletCreationUnavailable"
+    "walletCreationUnavailable",
+    "zapReceivedBack",
+    "zapReceivedNice",
+    "zapSenderAttribution"
   ],
 
   "hi": [
@@ -4070,7 +4076,10 @@
     "swapActionPaste",
     "swapActionTitle",
     "receiveOperationFailed",
-    "walletCreationUnavailable"
+    "walletCreationUnavailable",
+    "zapReceivedBack",
+    "zapReceivedNice",
+    "zapSenderAttribution"
   ],
 
   "zh": [
@@ -5428,6 +5437,9 @@
     "swapActionPaste",
     "swapActionTitle",
     "receiveOperationFailed",
-    "walletCreationUnavailable"
+    "walletCreationUnavailable",
+    "zapReceivedBack",
+    "zapReceivedNice",
+    "zapSenderAttribution"
   ]
 }

@@ -8259,6 +8259,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Wallet setup is unavailable. Your original attempt has been kept.'**
   String get walletCreationUnavailable;
+
+  /// Reply action in the received Zap message.
+  ///
+  /// In en, this message translates to:
+  /// **'Zap back'**
+  String get zapReceivedBack;
+
+  /// Dismiss action in the received Zap message.
+  ///
+  /// In en, this message translates to:
+  /// **'Nice'**
+  String get zapReceivedNice;
+
+  /// Attribution below an untrusted sender's plain-text message.
+  ///
+  /// In en, this message translates to:
+  /// **'Written by the sender, not by Syrius.'**
+  String get zapSenderAttribution;
 }
 
 class _AppLocalizationsDelegate
