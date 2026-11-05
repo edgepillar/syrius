@@ -2,6 +2,26 @@
 
 ## Current qualification status (2026-11-05)
 
+The [qualified Source487 Home field result](review/source487-home-reference-field.md#actual-source487-focused-result)
+at 1c0c36b4ff49d1ccbb913d4f95b3f4fcfafdb8c1, tree
+b6fb5b2870dcd095e5d8eba5bfd6594e19935630, passes original
+[42023832253](https://github.com/edgepillar/syrius/actions/runs/42023832253),
+attempt one, job 127232975862. Independent reconciliation qualifies 1,305
+widgets in complete 50/50-file streams (627/678), zero failures/errors/skips,
+144 hidden and 1,449 terminal events. All eight two-theme field colour/clock
+cases and every earlier Home case pass. Both original commands exit zero
+normally with full unforced output. The 1,063 controllers finish with eighteen
+explicit Windows skips and zero failures/errors; fourteen assets and zero
+selected analyzer findings pass. Aggregate/startup/refusal/final source checks
+complete; all current-source runs are terminal with zero artifacts.
+Source488 changes documentation/body348 only, preserving all 1,976 runtime/
+source entries with digest
+717c6680a52178e69bd67375dd0dedde84741595ffac93a98ba464c7acd78714.
+X612 closes for selected field scope. Native pixels/GPU cost, all main 72/80
+acceptance limits and Native109's original Deposit UNKNOWN remain open.
+
+The preparation snapshot below retains its at-the-time scope.
+
 The [Source487 Home field candidate](review/source487-home-reference-field.md)
 aligns the Home-only light geometry, blur, composition and drift with the source
 CSS. Eight added two-theme pixel/clock cases prepare 1,305 ordinary widgets in

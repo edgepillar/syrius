@@ -7,6 +7,22 @@ basic functionality, with detailed visual and extended platform/lab acceptance
 afterward. The first milestone is ready for Draft code review. Final acceptance
 of the complete redesign remains open.
 
+The [qualified Source487 Home result](source487-home-reference-field.md#actual-source487-focused-result)
+at 1c0c36b4ff49d1ccbb913d4f95b3f4fcfafdb8c1, tree
+b6fb5b2870dcd095e5d8eba5bfd6594e19935630, succeeds in original
+[42023832253](https://github.com/edgepillar/syrius/actions/runs/42023832253),
+attempt one, job 127232975862. Independent reconciliation qualifies all 1,305
+widgets in complete 50/50-file streams (627/678), zero failures/errors/skips,
+144 hidden and 1,449 terminal events. All eight new field cases and every prior
+Home case pass. All 1,063 controllers/eighteen Windows skips, fourteen assets
+and zero selected findings pass. Aggregate/startup/refusal/final source checks
+complete; all current-source runs are terminal with zero artifacts. Source488
+records documentation/body348 only and preserves all 1,976 runtime/source
+entries. X612 closes for selected field scope. Native pixels/GPU cost, populated
+states, Native109's Deposit UNKNOWN and original 72/80/zero matches remain open.
+
+The preparation snapshot below retains its at-the-time scope.
+
 The [Source487 Home field follow-up](source487-home-reference-field.md) prepares
 the reference light geometry, grouped blur and eighteen-second alternate drift
 with the existing clock and approved palette. Eight new two-theme pixel/clock

@@ -63,8 +63,8 @@ remain. The existing fourteen mocked admission methods pass locally with zero
 failures/errors/skips, no filesystem fixtures and no SDK/native execution.
 They reject the previous and neighbouring totals while requiring the complete
 current selection. The hosted Python selection stays 1,063 cases, with eighteen
-expected Windows skips. Fresh strict analysis and complete widget execution are
-pending; these counts are expectations, not executed Dart results.
+expected Windows skips. The original result below now qualifies the ordinary
+selection; the asset-fidelity total remains an unselected expectation.
 
 ## Retained scope
 
@@ -83,3 +83,31 @@ to their original views; X612 tracks this selected field scope. Original
 progress remains 72/80, with 50/94 historical literal outputs, 44 missing and
 zero accepted whole-image matches. All original FAILURE/HOLD/UNKNOWN records
 and actual previous PR bodies remain unchanged.
+
+## Actual Source487 focused result
+
+Tested Source487 1c0c36b4ff49d1ccbb913d4f95b3f4fcfafdb8c1, tree
+b6fb5b2870dcd095e5d8eba5bfd6594e19935630, succeeds in original
+[42023832253](https://github.com/edgepillar/syrius/actions/runs/42023832253),
+attempt one, job 127232975862. Independent source/result reconciliation
+qualifies all 1,305 widgets with zero failures/errors/skips, 144 hidden and
+1,449 terminal events. The original one hundred files finish in complete
+50/50-file streams, with 627/678 passes. Their normal zero-exit commands retain
+344,651/344,378 complete unforced bytes in 210.422/194.515 seconds.
+
+All eight added Home field cases pass in both themes, including the independent
+colour envelopes, both eighteen-second legs, hidden hold/resume and the OS
+motion flag. Every earlier Home assertion and selected path remains. All
+1,063 Python controls finish with eighteen explicit Windows skips and zero
+failures/errors. Fourteen asset observations and strict selected analysis pass
+with zero errors/warnings/infos. Aggregate, original startup/refusal and final
+source checks pass. All current-source runs and jobs are terminal; there are
+zero artifacts and no local SDK or archive/image transport.
+
+X612 closes for this selected implementation/renderer scope. Current native
+whole-image pixels, populated-state coverage and GPU/frame time remain
+unqualified; X521-X528 and all eight main acceptance rows stay open. Source488
+records this result and exact English body348 in documentation only, preserving
+all 1,976 Source487 runtime/source entries. Native109's copied Deposit remains
+UNKNOWN and every original failure/hold/unknown is preserved. Main progress
+remains 72/80, with 50/94 historical literal outputs and zero accepted matches.
