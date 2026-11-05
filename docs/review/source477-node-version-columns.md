@@ -89,3 +89,63 @@ asset expectations and 49/49-file streams (606/667) remain. Fourteen pure
 admission controls stay pinned; original child/output/source bounds are unchanged.
 Fresh strict analysis and complete execution are pending. The original producer
 is not retried, and native pixels/full 72/80 acceptance remain open.
+
+## Original Source478 layout result
+
+Updated: 2026-11-05T04:45Z.
+
+[41967576347](https://github.com/edgepillar/syrius/actions/runs/41967576347),
+attempt one, job 127048038248, binds Source478
+0d93065b8ef596fd696dc6fea82b7aafbf16b7ea, tree
+55270681d8b60f9f0662f70b4939096cd1f330d8. All 1,063 Python controls/eighteen
+Windows skips, fourteen assets, locked inputs and strict zero-finding analysis
+pass. Both 49-file commands finish normally, with complete unforced output and
+no overflow. The first exits zero with 606 passes, zero failures/errors/skips,
+69 hidden and 675 terminal events in 127.046 seconds; 332,767 bytes have digest
+15dd9c87609f0de11606522660f21bd1084b97c37c9df0f27969e5e8219c2e23.
+The second exits one with 666 passes, one failure/error event, zero skips,
+67 hidden and 734 terminal events in 122.094 seconds; 336,009 bytes have digest
+dc78d4ce8bea242dea6cf8ec384dbefcbd0137d88ed8f59abc84ffb3911b1a71.
+
+The finite LAYOUT failure names node_update_card_test.dart line 317, the final
+exception assertion in the existing narrow-panel case. It does not retain the
+theme, direction, scale, affected widget or raw dimensions. Those original facts
+remain NOT_ESTABLISHED. No aggregate, complete geometry or native-pixel pass is
+inferred. All source runs are terminal; the original remains failed with zero
+artifacts and is not retried.
+
+## Source479 font and bounded-layout preparation
+
+The Node test had no explicit bundled-font setup. Source479 adds the same
+FontLoader preparation used by existing layout tests, covering Space Grotesk,
+JetBrains Mono and the Arabic/Devanagari fallback weights. All fourteen font
+assets retain their bytes. [Flutter's custom-font test guidance](https://api.flutter.dev/flutter/flutter_test/matchesGoldenFile.html)
+describes this explicit loading approach. Source inspection and that guidance
+do not establish the original run's renderer/font or sole overflow cause.
+
+The existing narrow case retains its 700-by-1000 viewport, both themes,
+English/Arabic directions and normal/doubled text. It now checks exceptions
+immediately after opening as well as after the original manual Check. Every
+original assertion and test registration remains; no production widget or
+callback is changed by this preparation.
+
+Fixed protocol lines identify only the declared theme, direction, scale and
+open/check phase. The failure projector consumes them only for the same test ID
+and the exact Node suite. It retains bounded overflow pixels/edge, fixed layout
+kinds and line/column positions for only node_update_rows.dart or
+settings_parts.dart. It copies no raw diagnostic, arbitrary label or path.
+Malformed markers, unsupported scales/phases, foreign tests/suites, oversized
+text, nonfinite/out-of-range geometry and private filename lookalikes remain
+refused. The original Go To helper and all its controls remain unchanged.
+
+All 37 pure controls pass with zero failures/errors/skips: the same 23 failure-
+projection cases and fourteen admission cases. Native processes, network and
+filesystem scratch are forbidden. Adding the maximal declared geometry to the
+retained single-failure frame gives 3,769 bytes within the original 3,800-byte
+notice cap. This is a source-bound memory fixture, not a new runtime failure.
+
+All 34 logical Node cases, 98 selected files, 1,273 ordinary / 1,275 asset totals,
+49/49-file streams (606/667), one worker, child/aggregate/output limits and source
+checks remain. Fresh hosted strict analysis and complete execution are pending.
+X610 remains review. The original Source477/478 failures, native-pixel
+uncertainty, full 72/80 acceptance, zero accepted matches and phase two remain.

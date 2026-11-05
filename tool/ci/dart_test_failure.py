@@ -568,6 +568,35 @@ def goto_geometry_diagnostic(text):
     return value
 
 
+def node_update_geometry_diagnostic(text):
+    """Keep only the fixed Node fixture and bounded layout facts."""
+    if type(text) is not str or len(text) > 32768:
+        return None
+    markers = re.findall(r'(?m)^CI_NODE_GEOMETRY_CASE:'
+        r'(dark|light):(ltr|rtl):(1|2):(open|check)\r?$', text)
+    if not markers:
+        return None
+    theme, direction, scale, phase = markers[-1]
+    value = dict(theme=theme, direction=direction, scale=int(scale), phase=phase)
+    overflow = re.search(r'A RenderFlex overflowed by '
+        r'([0-9]{1,4}(?:[.][0-9]{1,3})?) pixels on the '
+        r'(left|right|top|bottom)[.]', text)
+    if overflow:
+        value.update(pixels=float(overflow[1]), edge=overflow[2])
+    elif 'RenderBox was not laid out' in text:
+        value['layout_kind'] = 'RENDER_BOX_UNLAID_OUT'
+    elif 'BoxConstraints forces' in text:
+        value['layout_kind'] = 'UNBOUNDED_CONSTRAINTS'
+    origin = re.search(r'(?<![A-Za-z0-9_.-])'
+        r'(node_update_rows|settings_parts)[.]dart'
+        r'(?::|\s+)([1-9][0-9]{0,3})(?![0-9])'
+        r':([1-9][0-9]{0,3})(?![0-9])', text)
+    if origin:
+        value.update(file=origin[1] + '.dart',
+            line=int(origin[2]), column=int(origin[3]))
+    return value
+
+
 def home_baseline_geometry(text):
     """Keep only bounded coordinates from the public Home widget fixture."""
     if type(text) is not str or len(text) > 16384:
@@ -692,6 +721,10 @@ def project(raw):
                 geometry = goto_geometry_diagnostic(details)
                 if geometry is not None:
                     item['goto_geometry'] = geometry
+            if suite == 'node_update_card_test.dart':
+                geometry = node_update_geometry_diagnostic(details)
+                if geometry is not None:
+                    item['node_geometry'] = geometry
             if suite == 'home_hero_test.dart':
                 geometry = home_baseline_geometry(context)
                 if geometry is not None:

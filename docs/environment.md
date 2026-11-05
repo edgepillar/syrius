@@ -41,13 +41,29 @@ skipped; the run stays failed, terminal and has zero artifacts. The finite frame
 does not retain the file name. Source inspection finds the existing material_ui
 import before flutter_bloc in the newly selected Node card library.
 
-Source478 reorders only those existing imports. The responsive version columns,
-inline labels, genuine values and all manual update/confirmation/rollback/source
-logic remain. All 34 existing Node cases and all 98 selected files remain;
-1,273 ordinary / 1,275 asset expectations in 49/49 streams (606/667), original
-process bounds and the fourteen pure admission controls are unchanged. Fresh
-strict analysis and complete execution are pending. Native pixels, original
-72/80 and phase two remain open; no original producer is retried.
+[Original Source478](review/source477-node-version-columns.md#original-source478-layout-result),
+41967576347 / job 127048038248, passes strict analysis with zero findings,
+1,063 controllers/eighteen Windows skips and fourteen assets. Both complete
+49-file streams exit normally: 606 passes/zero failures, then 666 passes/one
+Node narrow-layout failure. No aggregate pass exists. The original fixture
+variant, widget and dimensions are NOT_ESTABLISHED; all source runs are terminal
+and the failed original has zero artifacts.
+
+Source479 loads all fourteen existing bundled font weights for the Node tests,
+following existing explicit test-font preparation. It adds only closed fixture
+theme/direction/scale/phase and bounded layout facts, bound to this suite and
+the same test ID. An immediate post-open exception assertion supplements the
+original final assertion. Thirty-seven pure controls pass, including privacy,
+malformed/foreign binding refusals and unchanged admission controls. The maximal
+bounded addition to the retained single-failure notice is 3,769 bytes within
+the original 3,800-byte cap.
+
+All production layout, updater/callback/state, asset, dependency and workflow
+bytes remain. The original 700-pixel test width, normal/doubled text, both themes
+and directions, 34 Node cases, all 98 selected files and 1,273 ordinary / 1,275
+asset expectations remain. Fresh strict analysis and complete 49/49 streams
+(606/667) are pending. No original is retried; native pixels, original 72/80 and
+phase two remain open. The old overflow cause is not reconstructed from source.
 
 The [actual Source459 default lab result](review/source459-reference-default.md#actual-source459-default-result)
 binds `9a758129afdae895ad253b0ae357b33aa919ed52`, tree

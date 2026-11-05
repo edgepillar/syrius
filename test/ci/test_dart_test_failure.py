@@ -196,6 +196,71 @@ class DartFailureTests(unittest.TestCase):
             self.assertNotIn('measurement', value)
             self.assertNotIn('private', json.dumps(value))
 
+        prefix = [dict(type='suite', suite=dict(id=2,
+            path='/fixture/private/node_update_card_test.dart')),
+            dict(type='testStart', test=dict(id=7, suiteID=2))]
+        for theme in ('dark', 'light'):
+            for direction in ('ltr', 'rtl'):
+                for scale in (1, 2):
+                    for phase in ('open', 'check'):
+                        marker = 'CI_NODE_GEOMETRY_CASE:%s:%s:%s:%s' % (
+                            theme, direction, scale, phase)
+                        message = (marker + '\nA RenderFlex overflowed by '
+                            '12.25 pixels on the right. private value\n'
+                            '/fixture/private/node_update_rows.dart:100:12')
+                        rows = prefix + [dict(type='print', testID=7,
+                            message=message), dict(type='error', testID=7,
+                            isFailure=False, error='Test failed.', stackTrace='')]
+                        result = failure.project(encode(rows))['items'][0]
+                        self.assertEqual(result['node_geometry'], dict(
+                            theme=theme, direction=direction, scale=scale,
+                            phase=phase, pixels=12.25, edge='right',
+                            file='node_update_rows.dart', line=100, column=12))
+                        self.assertNotIn('private', json.dumps(result))
+                        self.assertNotIn('/fixture', json.dumps(result))
+                        rows[-2]['testID'] = 99
+                        self.assertNotIn('node_geometry',
+                            failure.project(encode(rows))['items'][0])
+                        rows[-2]['testID'] = 7
+                        rows[0]['suite']['path'] = 'unknown_test.dart'
+                        self.assertNotIn('node_geometry',
+                            failure.project(encode(rows))['items'][0])
+                        rows[0]['suite']['path'] = 'node_update_card_test.dart'
+        for marker in ('CI_NODE_GEOMETRY_CASE:private:ltr:1:open',
+                'CI_NODE_GEOMETRY_CASE:dark:ltr:3:open',
+                'CI_NODE_GEOMETRY_CASE:dark:ltr:1:private',
+                'CI_NODE_GEOMETRY_CASE:dark:ltr:1:open private'):
+            self.assertIsNone(failure.node_update_geometry_diagnostic(marker))
+        marker = 'CI_NODE_GEOMETRY_CASE:dark:rtl:2:check\n'
+        for origin in ('private_node_update_rows.dart:100:12',
+                'node_update_rows.dart:0:12', 'node_update_rows.dart:100:0',
+                'node_update_rows.dart:1234567:12', 'private_file.dart:100:12'):
+            self.assertNotIn('file',
+                failure.node_update_geometry_diagnostic(marker + origin))
+        for overflow in ('10000', '12.1234', '-1', 'NaN', 'Infinity'):
+            value = failure.node_update_geometry_diagnostic(marker +
+                'A RenderFlex overflowed by ' + overflow +
+                ' pixels on the right.')
+            self.assertNotIn('pixels', value)
+        self.assertEqual(failure.node_update_geometry_diagnostic(marker +
+            'RenderBox was not laid out')['layout_kind'],
+            'RENDER_BOX_UNLAID_OUT')
+        self.assertEqual(failure.node_update_geometry_diagnostic(marker +
+            'BoxConstraints forces an infinite width')['layout_kind'],
+            'UNBOUNDED_CONSTRAINTS')
+        self.assertEqual(failure.node_update_geometry_diagnostic(marker +
+            '/fixture/private/settings_parts.dart:125:9'), dict(
+                theme='dark', direction='rtl', scale=2, phase='check',
+                file='settings_parts.dart', line=125, column=9))
+        maximum = failure.node_update_geometry_diagnostic(
+            'CI_NODE_GEOMETRY_CASE:light:rtl:2:check\n'
+            'A RenderFlex overflowed by 9999.999 pixels on the bottom.\n'
+            'node_update_rows.dart:9999:9999')
+        self.assertLessEqual(len(json.dumps(dict(node_geometry=maximum),
+            sort_keys=True, separators=(',', ':')).encode()), 180)
+        self.assertIsNone(failure.node_update_geometry_diagnostic(None))
+        self.assertIsNone(failure.node_update_geometry_diagnostic('x' * 32769))
+
     def test_foreign_prints_cannot_supply_a_location_and_loading_errors_use_known_text(self):
         rows = [dict(type='print', testID=99, message='MissingPluginException private agent.dart:444:1'),
             dict(type='error', testID=7, isFailure=False, stackTrace='',

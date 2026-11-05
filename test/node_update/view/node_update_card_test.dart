@@ -94,6 +94,25 @@ Color? _inkOf(WidgetTester tester, String text) =>
     tester.widget<Text>(find.text(text)).style?.color;
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(() async {
+    for (final (String, List<String>) family in
+        const <(String, List<String>)>[
+      (kSansFontFamily, <String>['Regular', 'Medium', 'SemiBold', 'Bold']),
+      (kMonoFontFamily, <String>['Regular', 'Medium', 'SemiBold', 'Bold']),
+      (kArabicFontFamily, <String>['Regular', 'Medium', 'Bold']),
+      (kDevanagariFontFamily, <String>['Regular', 'Medium', 'Bold']),
+    ]) {
+      final FontLoader fonts = FontLoader(family.$1);
+      for (final String weight in family.$2) {
+        fonts.addFont(
+          rootBundle.load('assets/fonts/${family.$1}-$weight.ttf'),
+        );
+      }
+      await fonts.load();
+    }
+  });
+
   late FakeNodeLibrary library;
   late FakeNodeUpdater updater;
   late List<String> asked;
@@ -284,6 +303,13 @@ void main() {
           const Locale('ar'),
         ]) {
           for (final double scale in <double>[1, 2]) {
+            final String variant =
+                '${light ? 'light' : 'dark'}:'
+                '${locale.languageCode == 'en' ? 'ltr' : 'rtl'}:'
+                '${scale.toInt()}';
+            // Only declared fixture labels and phases are emitted.
+            // ignore: avoid_print
+            print('CI_NODE_GEOMETRY_CASE:$variant:open');
             final List<String> before = List<String>.of(updater.calls);
             await open(
               tester,
@@ -292,6 +318,7 @@ void main() {
               theme: light ? AppTheme.lightTheme : AppTheme.darkTheme,
               textScale: scale,
             );
+            expect(tester.takeException(), isNull);
             expect(updater.calls, before);
             final AppLocalizations l10n = AppLocalizations.of(
               tester.element(find.byKey(_check)),
@@ -306,6 +333,9 @@ void main() {
               find.text(latin ? releaseLabel.toUpperCase() : releaseLabel),
             );
             expect(loaded.bottom, lessThan(release.top));
+            // Only declared fixture labels and phases are emitted.
+            // ignore: avoid_print
+            print('CI_NODE_GEOMETRY_CASE:$variant:check');
             await press(tester, _check);
 
             expect(find.byKey(_usePrevious), findsOneWidget);
