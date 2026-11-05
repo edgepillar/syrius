@@ -2,26 +2,27 @@
 
 ## Current qualification status (2026-11-05)
 
-The latest qualified focused UI source remains Source447
-`bd4d9d712a7ad6e4bfe1e90181cef90ea329322f`, tree
-`dc83c5365575718346f00a9cb1c396577cf753b3`.
-[41885387732](https://github.com/edgepillar/syrius/actions/runs/41885387732)
-qualifies all 1,230 ordinary widgets in complete 48/48-file streams (597/633),
-with zero failures/errors/skips, 1,006 Python controls/three existing skips,
-fourteen assets and zero selected findings. Aggregate publication and final
-source checking pass; all tested-source jobs are terminal with zero artifacts.
-The 1,232-case asset variant and current full-root Windows/native are unqualified.
-Later lab/CI changes preserve application Dart, dependencies and references.
+The latest qualified focused UI source is Source468
+`8ef8e53f088fcdb55e2445d3fb5af0296cbcbb9b`, tree
+`ac24abf991ecfa1c78573a02cd9e8698b5ff4863`.
+[41950865638](https://github.com/edgepillar/syrius/actions/runs/41950865638),
+attempt one, job 126994212093, independently qualifies all 1,230 ordinary widgets
+in complete 48/48-file streams (597/633): zero failures/errors/skips, 134 hidden
+and 1,364 terminal events. All 1,063 Python controls pass with eighteen explicit
+Windows skips; fourteen assets and zero selected analyzer findings pass.
+Aggregate publication, startup/refusal controls and final source checking complete;
+all tested-source jobs are terminal with zero artifacts. The 1,232-case asset
+variant and current full-root Windows/native acceptance remain unqualified.
 
-Source467 41949567525 passes all 1,063 controllers/eighteen explicit Windows
-skips and fourteen assets. Selected analysis retains zero errors/warnings and
-one DOCUMENT_IGNORES info, so Dart is skipped and the terminal original remains
-failed with zero artifacts. [Source468](review/source467-goto-viewport-budget.md#source468-ignore-reason)
-adds only its missing fixed-fixture print reason. Every application/reader/Python
-byte, expression, assertion and registration remains. Fresh complete 1,230-case
-focused analysis/engine qualification is pending; the unchanged 23 local controls
-are reused. No full wallet/devnet/image/motion or local SDK job is selected.
-All earlier failed originals and accepted-source boundaries remain preserved.
+The [fresh focused result](review/source467-goto-viewport-budget.md#fresh-source468-focused-result)
+qualifies normal/doubled Go To paragraph fit in both themes/directions, equal
+painted inline/standalone keycap bounds and selected-row keyboard visibility.
+Thirteen palette registrations and every prior selected path remain. Portable
+Linux fixture paths also pass in this Windows run. All original Source463-467
+failures remain preserved. The preceding [Source447 result](review/source447-focused-case-count.md#fresh-source447-focused-result)
+retains its own pin and evidence. Source469 changes documentation only; all
+1,976 runtime/source entries retain their qualified bytes. No local SDK, full
+wallet/devnet, image or motion job is selected.
 
 The [actual Source459 default lab result](review/source459-reference-default.md#actual-source459-default-result)
 binds `9a758129afdae895ad253b0ae357b33aa919ed52`, tree
@@ -85,9 +86,10 @@ review. Original acceptance remains 72/80 rows, 50/94 historical literal outputs
 44 missing and zero accepted whole-image matches. P03/P09/F06 and
 V01/V02/V03/V05/V06 remain open. Heavy Windows/native wallet, seed/seam interaction,
 catalog transport, detailed visual and motion/shader/frame-time acceptance remain
-phase two. Source462 records the split Windows result and body340 without
-runtime changes or repeated SDK/native/artifact work. The [validation index](review/redesign-validation-index.md)
-and [exact preceding environment header](https://github.com/edgepillar/syrius/blob/9a758129afdae895ad253b0ae357b33aa919ed52/docs/environment.md#current-qualification-status-2026-11-04)
+phase two. Source469 records the qualified focused result and exact body341
+without runtime changes or repeated SDK/native/artifact work. Source462's split
+Windows result remains preserved. The [validation index](review/redesign-validation-index.md)
+and [exact preceding environment header](https://github.com/edgepillar/syrius/blob/8ef8e53f088fcdb55e2445d3fb5af0296cbcbb9b/docs/environment.md#current-qualification-status-2026-11-05)
 retain prior source-bound results. The historical snapshots below are unchanged.
 
 ## Historical Source353 qualification snapshot (2026-11-03T04:53Z)

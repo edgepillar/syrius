@@ -1,26 +1,32 @@
 # First delivery and deferred acceptance
 
-Updated: 2026-11-04.
+Updated: 2026-11-05.
 
 The owner selected a first delivery covering the core interface and existing
 basic functionality, with detailed visual and extended platform/lab acceptance
 afterward. The first milestone is ready for Draft code review. Final acceptance
 of the complete redesign remains open.
 
-The most recently qualified focused source is Source447
-`bd4d9d712a7ad6e4bfe1e90181cef90ea329322f`, tree
-`dc83c5365575718346f00a9cb1c396577cf753b3`. Its
-[Home baseline and aggregate result](source447-focused-case-count.md#fresh-source447-focused-result)
-in [41885387732](https://github.com/edgepillar/syrius/actions/runs/41885387732)
+The most recently qualified focused source is Source468
+`8ef8e53f088fcdb55e2445d3fb5af0296cbcbb9b`, tree
+`ac24abf991ecfa1c78573a02cd9e8698b5ff4863`. Its
+[Go To scaling and viewport result](source467-goto-viewport-budget.md#fresh-source468-focused-result)
+in [41950865638](https://github.com/edgepillar/syrius/actions/runs/41950865638)
 passes all 1,230 ordinary widget cases in complete 48/48-file streams (597/633),
-1,006 Python controls with three existing skips, fourteen assets and zero selected
-findings. The original Home baseline/reflow assertions and every prior selected
-path pass. Exact aggregate publication and final source checking complete;
-all tested-source jobs are terminal with zero artifacts. Source448 changes
-documentation only. The earlier Home and aggregate failures remain preserved.
-The 1,232-case asset variant was not executed. Full Windows/native, lab, visual
-and performance acceptance remains deferred/open; this milestone is for Draft
-code review. Original progress stays 72/80 and zero accepted visual matches.
+1,063 Python controls with eighteen explicit Windows skips, fourteen assets and
+zero selected findings. The original paragraph, keycap and keyboard assertions
+pass at their tested normal/doubled scales; every prior selected path remains.
+Aggregate publication and final source checking complete; all tested-source jobs
+are terminal with zero artifacts. Source469 changes documentation only and
+archives exact English body341. All prior failed originals remain preserved.
+The 1,232-case asset variant was not executed. Full Windows/native, visual and
+performance acceptance remains deferred/open; this milestone is for Draft code
+review. Original progress stays 72/80 with zero accepted visual matches.
+
+The preceding [Source447 Home baseline and aggregate result](source447-focused-case-count.md#fresh-source447-focused-result)
+in 41885387732 keeps its own source pin, 1,230-case pass, 1,006 controls/three
+existing skips, fourteen assets and zero selected findings. Later Source463-468
+fixes receive the fresh qualification above rather than inheriting that old pass.
 
 Source449-451 add two separately scoped Python CI files while preserving all
 1,970 prior runtime entries from the qualified UI lineage. Source451's

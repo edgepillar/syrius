@@ -62,3 +62,58 @@ Source467 application, measurement reader and its Python tests retain their byte
 the unchanged 23 local controls are reused. Fresh selected analysis and the full
 1,230-case focused engine run remain pending. All previous failed originals and
 full 72/80 acceptance remain; no local SDK/native/image or heavy job is selected.
+
+## Fresh Source468 focused result
+
+Updated: 2026-11-05T02:02Z.
+
+Original [41950865638](https://github.com/edgepillar/syrius/actions/runs/41950865638),
+attempt one, job 126994212093, completes successfully on Source468
+`8ef8e53f088fcdb55e2445d3fb5af0296cbcbb9b`, tree
+`ac24abf991ecfa1c78573a02cd9e8698b5ff4863`. Independent consumption verifies the original
+metadata, both complete test streams and fresh terminal run/job/artifact listings.
+All tested-source runs are terminal with zero artifacts; no producer is retried.
+
+All 1,230 ordinary widget cases pass across the unchanged 96-file selection in
+48/48-file groups (597/633). There are zero failures, errors or skips, 134 hidden
+events and 1,364 terminal events. Each original group exits zero normally, with
+complete output and no forced termination or overflow:
+
+| Group | Files | Passed | Hidden | Terminal | Seconds | Output bytes |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | 48 | 597 | 68 | 665 | 169.782 | 328073 |
+| 2 | 48 | 633 | 66 | 699 | 159.047 | 314685 |
+
+The corresponding output SHA-256 values are
+`cf2a1be4a12cd0b930012383e535975fc809bca64b7820abd54e91dab90d13ad`
+and `291423d0b14778cd4329739f824fed91b8075c948d5263ac85bc0311fb080098`.
+The 1,232-case asset variant remains unselected. Aggregate publication, startup
+ownership/refusal checks and final source checking complete successfully.
+
+The selected analyzer reports zero errors, warnings or infos. Fourteen asset
+observations and all 1,063 Python controls pass, with eighteen explicit Windows
+skips: fifteen Linux-only Bash/JavaScript cases and three unavailable AF_UNIX
+socketpair cases. The separately pinned Linux execution retains its actual-script
+evidence; Windows skips do not substitute for those runs.
+
+The existing Go To cases now qualify paragraph fit at normal/doubled text scale
+in both themes and directions, equal painted inline/standalone shortcut bounds,
+and selected-row keyboard visibility at both scales. All thirteen palette
+registrations remain. Query, IME, identity, seam refusal and existing action
+cases continue to pass. The portable Linux fixture also passes on Windows.
+This closes X600/X603/X604/X605 for the selected widget/controller scope.
+The original Source463 controller errors, Source464/Source467 analysis refusals
+and Source465/Source466 layout failures keep their original failed outcomes.
+
+Source469 records this result and the exact English PR body341 in documentation
+only. All 1,976 selected runtime/source entries retain their qualified bytes;
+no second SDK, native build, wallet, lab, image or motion job is allocated.
+The previous [Source447 focused result](source447-focused-case-count.md#fresh-source447-focused-result)
+keeps its own source pin. Source459's actual Linux default lab pass and
+Source461's split component/kernel outcomes remain separately qualified.
+
+Full acceptance remains 72/80 original rows, 50/94 historical literal outputs,
+44 missing and zero accepted whole-image matches. P03/P09/F06 and
+V01/V02/V03/V05/V06 remain open. Full Windows/native wallet, seed/seam interaction,
+catalog transport, visual comparison and motion/shader/frame-time acceptance
+remain in phase two. The first delivery remains ready for Draft code review.
