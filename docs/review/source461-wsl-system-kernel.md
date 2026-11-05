@@ -1,5 +1,7 @@
 # Opt-in system-kernel query after the verified WSL component
 
+## Source461 preparation (2026-11-04)
+
 The [Source439 component result](source439-windows-time-binding.md#hosted-source439-result)
 qualifies the pinned Microsoft WSL installation and version/status queries on a
 fresh hosted Windows Arm VM. It starts no Linux kernel. The earlier
@@ -62,3 +64,48 @@ dependency manifest, design reference, lab input or old failure changes. Origina
 acceptance stays 72/80 with zero accepted whole-image matches; heavy full
 Windows/native wallet and visual/performance acceptance remain phase two. The PR
 stays Draft and public artifacts remain English and privacy-safe.
+
+
+## Actual Source461 result
+
+The tested source is `2b084df944b34532b751bf3d123be20015f5c561`, tree
+`fc34a2a2280a2948ec0a479362fdc78622620fdf`. All three original runs are terminal,
+attempt one, with zero artifacts. Bounded read-only API receipts independently
+bind the source, workflow, jobs, steps and finite annotation frames. The original
+kernel trial remains failed; the successful installation is a separate result.
+
+| Original run | Observed result |
+| --- | --- |
+| [41938113604](https://github.com/edgepillar/syrius/actions/runs/41938113604) | Source controls: 1,063 cases, two existing Linux skips, zero failures/errors. All thirteen Bash and two JavaScript fixtures execute. The PowerShell helper parses successfully without execution. |
+| [41938484962](https://github.com/edgepillar/syrius/actions/runs/41938484962), job 126952920757 | Native file gate: the original verifier accepts a correct 32-byte regular file and refuses the separate digest-mismatch file. All seven path/handle metadata comparisons remain true before and after; final source identity passes. No package allocation or startup occurs. |
+| [41939295324](https://github.com/edgepillar/syrius/actions/runs/41939295324), job 126955667166 | The 32 installation and twelve kernel controls pass. The component installation succeeds; the separate kernel command fails. Both finite reports complete with unchanged source. |
+
+The fresh package trial receives exactly 341,086,208 bytes with HTTP 200 and the
+pinned digest. Microsoft signature and final file verification pass. One installer
+exits zero normally, without reboot, followed by successful installed version and
+status queries reporting WSL 3.0.3.0. This independently qualifies component
+installation on this source/run; the later step does not overwrite that outcome.
+
+The separate kernel step repeats successful version/status prerequisites and
+submits the fixed `--system --exec /bin/uname -r` command exactly once. The original
+command exits `4294967295` after 0.095 seconds with 504 complete bytes, no forced
+termination, overflow or captured command-error code. No valid release is
+observed; the result is `KERNEL_START_UNQUALIFIED` / `COMMAND_FAILED`. Its captured
+output digest is `756a9ae833f91603d69b5ee0e38d855073252c2585b8808c37f801cf43646c15`.
+Raw output and unknown error strings remain unexported. No recognized diagnostic
+code is projected; the exact inner cause remains `NOT_ESTABLISHED`.
+
+This failed command does not establish that nested virtualization is generally
+available or unavailable, nor that the selected system-distro command can work
+without another prerequisite. No retry, guessed shutdown, feature change, reboot,
+extra distro download, Docker, wallet or node command follows. Kernel/VM lifecycle
+and disposal remain unqualified. The separate hosted installer uses cooperative
+4 GiB work samples and a declared isolated 2 GiB floor; these are not an OS-wide
+allocation quota and do not change local storage policy.
+
+Source462 records these results and exact body340 without runtime changes or
+repeated SDK/native/artifact work. The qualified Source459 Linux defaults and
+Source447 focused UI remain separately pinned. All earlier failure/unknown
+records remain. Original acceptance is still 72/80 rows, with four in review,
+four blocked and zero accepted whole-image matches. Heavy full Windows wallet,
+F06, seam, visual and performance work remains phase two; the PR stays Draft.

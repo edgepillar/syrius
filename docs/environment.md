@@ -1,6 +1,6 @@
 # Redesign build environment
 
-## Current qualification status (2026-11-04)
+## Current qualification status (2026-11-05)
 
 The latest qualified focused UI source remains Source447
 `bd4d9d712a7ad6e4bfe1e90181cef90ea329322f`, tree
@@ -52,25 +52,30 @@ analysis at zero errors/warnings and 1,297 infos. Native108 retains its Deposit
 refusal, incomplete Stake/Fuse/Token prefix and unreached Project/Fund address.
 Later focused readiness fixes do not qualify native replay or all six seed effects.
 
-[Source461 system-kernel preparation](review/source461-wsl-system-kernel.md) adds
-a default-off, separate kernel command after the unchanged component installer.
-It rechecks exact version/status and requests one fixed system-distro uname
-query, with thirty-second/16 KiB bounds and finite release/outcome/code output.
-Only complete original zero exit and final source identity can qualify startup;
-metadata, uncertain failures and source drift cannot. Fifty-eight local pure
-cases pass, including twelve new cases and all unchanged installation/readiness
-cases. Fresh 1,063-case source controls, PowerShell parsing, the tiny native file
-gate and one new package/kernel trial are pending. The fresh hosted VM still
-uses the exact 341,086,208-byte MSI; the kernel step requests no extra distro
-image, feature change, reboot, Docker, wallet or node. No local native/SDK or
-binary transport occurs, and no previous runtime is retried or relabelled.
+[Actual Source461 results](review/source461-wsl-system-kernel.md#actual-source461-result)
+bind source 2b084df944b34532b751bf3d123be20015f5c561, tree
+fc34a2a2280a2948ec0a479362fdc78622620fdf. Source-only 41938113604 passes
+1,063 controls/two existing Linux skips, thirteen Bash/two JavaScript fixtures
+and PowerShell parsing. Tiny native 41938484962 qualifies positive/negative
+32-byte files and stable metadata without package allocation. Separate manual
+41939295324 / job 126955667166 passes 32 installation/twelve kernel controls.
+Exact package transport, Microsoft signature/final identity, one normal zero-exit
+MSI and installed version/status independently qualify WSL 3.0.3.0 installation.
+The later fixed kernel command exits 4294967295 in 0.095 seconds with 504 complete
+unforced bytes, no valid release and no recognized diagnostic code. Its status is
+KERNEL_START_UNQUALIFIED; the exact inner cause remains NOT_ESTABLISHED. Both
+finite frames finish with unchanged source, preserving installation success
+separately from the failed kernel step. All three runs are terminal with zero
+artifacts. No retry, guessed shutdown, extra distro/feature/reboot change,
+Docker, wallet or node follows. Nested virtualization, kernel/VM lifecycle and
+VM disposal remain unqualified. No local SDK/native or binary/log transport occurs.
 
 The [fast first delivery](review/fast-first-delivery.md) is ready for Draft code
 review. Original acceptance remains 72/80 rows, 50/94 historical literal outputs,
 44 missing and zero accepted whole-image matches. P03/P09/F06 and
 V01/V02/V03/V05/V06 remain open. Heavy Windows/native wallet, seed/seam interaction,
 catalog transport, detailed visual and motion/shader/frame-time acceptance remain
-phase two. Source460 records the latest default result and body339 without
+phase two. Source462 records the split Windows result and body340 without
 runtime changes or repeated SDK/native/artifact work. The [validation index](review/redesign-validation-index.md)
 and [exact preceding environment header](https://github.com/edgepillar/syrius/blob/9a758129afdae895ad253b0ae357b33aa919ed52/docs/environment.md#current-qualification-status-2026-11-04)
 retain prior source-bound results. The historical snapshots below are unchanged.
