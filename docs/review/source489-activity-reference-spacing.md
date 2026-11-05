@@ -45,3 +45,33 @@ final acceptance in phase two. Original progress stays 72/80, with 50/94
 historical literal outputs, 44 missing and zero accepted matches. Native109's
 copied Deposit remains UNKNOWN and its inner cause NOT_ESTABLISHED. All
 original failure/hold/unknown evidence and actual PR body archives remain.
+
+## Original Source489 result and Source490 list fixture
+
+Original [42030825906](https://github.com/edgepillar/syrius/actions/runs/42030825906),
+attempt one, job 127256540515, tests Source489
+c6894ee69ec7e401aeadaa2e1fa18a62b95fe999, tree
+d55769398892d36da9862efc4a89d01749ac92a1. The first 50-file stream finishes
+normally with exit one, 624 passes, three failures/errors, zero skips,
+70 hidden and 697 terminal events. All three retained failures point to the
+new row-height assertion. The preceding movement-gap and explorer-box checks
+pass. The second group is unselected. The complete unforced stream is 350,248
+bytes in 217.047 seconds. All 1,063 Python controls/eighteen explicit Windows
+skips, fourteen assets and zero selected analyzer findings pass. Startup and
+refusal controls pass; all jobs are terminal with zero artifacts.
+
+Source review shows a fixture mismatch: the test placed an ActivityRow directly
+under a bounded viewport, while the actual card creates its rows in a vertical
+ListView. Flutter documents that [Align expands under bounded constraints and
+shrinks to its child when unconstrained](https://api.flutter.dev/flutter/widgets/Align-class.html).
+That distinction applies to the row's amount and action Align widgets. The
+old actual heights were not retained, so their numeric values are not inferred
+from this explanation.
+
+Source490 puts the existing test child inside a zero-padding vertical ListView,
+matching the production row constraint model. All original gap, control-size,
+height, exact amount, mark, action, privacy and semantics assertions remain.
+The Activity implementation and tokens retain Source489's bytes. Registrations,
+all one hundred selected files, both original groups and every bound remain.
+Fresh 1,305-widget qualification is pending. The original failed run is not
+retried, and native pixels/full acceptance remain open.

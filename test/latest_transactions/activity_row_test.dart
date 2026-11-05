@@ -42,7 +42,15 @@ Widget _host(
       textDirection: direction,
       child: Align(
         alignment: Alignment.topLeft,
-        child: SizedBox(width: width, child: child),
+        child: SizedBox(
+          width: width,
+          // Match the production list's content-height row constraints.
+          child: ListView(
+            primary: false,
+            padding: EdgeInsets.zero,
+            children: <Widget>[child],
+          ),
+        ),
       ),
     ),
   ),
