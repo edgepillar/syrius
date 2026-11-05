@@ -382,7 +382,7 @@ class _GoToPaletteState<T> extends State<GoToPalette<T>> {
     final TextScaler scaler = MediaQuery.textScalerOf(context);
     double growth(TextStyle style) {
       final double fontSize = style.fontSize!;
-      return math.max(0.0, scaler.scale(fontSize) - fontSize) *
+      return math.max(0, scaler.scale(fontSize) - fontSize) *
           (style.height ?? 1);
     }
 

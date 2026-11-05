@@ -13,16 +13,16 @@ source checking pass; all tested-source jobs are terminal with zero artifacts.
 The 1,232-case asset variant and current full-root Windows/native are unqualified.
 Later lab/CI changes preserve application Dart, dependencies and references.
 
-[Source463 Go To scaling](review/source463-goto-scaled-rows.md#original-source463-result)
-retains its correction, but original 41942346719 fails before SDK with fourteen
-controller errors among 1,063 cases/eighteen expected skips. Assets, SDK, analysis
-and Dart are skipped; the terminal run has zero artifacts. [Source464](review/source464-portable-lab-fixtures.md)
-reproduces fourteen resource refusals with a pure Windows path model, then changes
-nine mocked Linux paths to explicit PurePosixPath. All thirty local pure cases
-pass with subprocess creation forbidden, no skips and no filesystem scratch.
-Production code and every Source463 Dart byte remain. Fresh focused engine and
-selected analysis qualification is pending. No full wallet/lab/image/motion job
-is selected; the prior Source447 pass does not qualify this new UI revision.
+Source464 qualifies the portable lab fixture in Linux source 41943563062
+(1,063 controls/two skips, thirteen Bash/two JavaScript cases) and the Windows
+controller gate of 41943782403 (1,063 controls/eighteen skips and fourteen assets).
+The latter original remains failed at one PREFER_INT_LITERALS info, with zero
+analysis errors/warnings and Dart skipped. Both runs are terminal with zero
+artifacts. [Source465](review/source465-goto-integer-literal.md) replaces only the
+matching 0.0 clamp literal with 0; all Source463 palette tests and Source464
+fixtures remain. Fresh focused analysis/engine qualification is pending. No full
+wallet/devnet/image/motion job or local SDK is selected. The earlier Source463
+pre-SDK failure and all old evidence remain separately preserved.
 
 The [actual Source459 default lab result](review/source459-reference-default.md#actual-source459-default-result)
 binds `9a758129afdae895ad253b0ae357b33aa919ed52`, tree

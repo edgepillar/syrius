@@ -37,3 +37,25 @@ The earlier failed run stays failed. Source447 UI, Source459 Linux defaults and
 Source461 component success/kernel failure retain their own pins. No visual match
 or original acceptance row closes; 72/80 and heavy phase-two work remain open.
 The PR stays Draft and public text remains English and privacy-safe.
+
+
+## Original Source464 result
+
+The [Linux source run 41943563062](https://github.com/edgepillar/syrius/actions/runs/41943563062),
+attempt one, job 126970077621, succeeds with 1,063 controls/two existing Linux
+skips, thirteen Bash/two JavaScript fixtures, final source checking and zero
+artifacts. The actual lab runtime job is skipped.
+
+The [Windows focused run 41943782403](https://github.com/edgepillar/syrius/actions/runs/41943782403),
+attempt one, job 126970815677, passes all 1,063 controllers/eighteen expected
+Windows skips and fourteen assets at Source464
+`2eeb9c92f0be98ba66962b1c991fe7ea2ba7642c`, tree
+`648f9921c9a8b95c71ac445093654180132fa34d`. The fourteen fixture errors are
+resolved in the actual Windows controller gate. Selected analysis has zero
+errors/warnings and one PREFER_INT_LITERALS info at the palette's numeric clamp.
+The analysis gate correctly refuses it, Dart is skipped and the terminal original
+run stays failed with zero artifacts. No palette engine result is inferred.
+
+[Source465](source465-goto-integer-literal.md) changes only that numeric literal
+in application code. The fixture correction and every Dart test byte remain;
+fresh focused analysis/engine qualification is pending. No original is retried.
