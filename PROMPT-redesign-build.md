@@ -2800,3 +2800,20 @@ unavailable update actions preserved.
 | X615 | done | 2026-11-05T19:09Z | Source505 30dd521bdfeb / original 42088467428 independently qualifies all 1338 selected Dart cases in complete 51/51-file streams (644/694), zero failures/errors/skips, 150 hidden and 1488 terminal events. Both complete unforced commands exit zero normally in 174.265/161.781 seconds. All 1073 controllers/eighteen explicit Windows skips, fourteen assets and zero selected findings pass; aggregate/startup/refusal/final source checks and fresh source/tree/Draft-head/terminal-run reads complete with zero artifacts. This closes selected closed-reason/projection scope only. Source506 records documentation/body351 and preserves all 1983 runtime/source entries, original failures and UNKNOWNs. Native109's Deposit stays UNKNOWN with cause NOT_ESTABLISHED; F06, original 72/80 and zero accepted matches remain open. |
 | X616 | done | 2026-11-05T20:31Z | Source507 9e641e244b1f / original 42102216091 independently qualifies all 1338 selected Dart cases in complete 51/51-file streams (644/694), zero failures/errors/skips, 150 hidden and 1488 terminal events. Both original commands exit zero normally with complete unforced output in 199.688/192.500 seconds. All seven negative original-state combinations, immutable copies and malformed/boundary refusals pass with zero taps, journal writes or receipt reads on a hold. All 1073 controllers/eighteen Windows skips, fourteen assets and zero selected findings pass; aggregate/startup/refusal/final source and fresh remote/terminal-run reads complete with zero artifacts. Independent source comparison verifies the diagnostic-only original-policy delta. Source508 records documentation/body352 only and preserves all 1983 runtime/source entries. Native110's unresolved original and SDK entry remain NOT_ESTABLISHED; Native109, full F06, original 72/80 and zero accepted visual matches remain unchanged. |
 | X617 | done | 2026-11-05T21:58Z | Source510 124e66724b3b / original 42115577615 independently qualifies all 1338 selected Dart cases in complete 51/51-file streams (644/694), zero failures/errors/skips, 150 hidden and 1488 terminal events. Both original commands exit zero normally with complete unforced output in 211.546/190.844 seconds. All 1084 controllers/eighteen Windows skips, eleven new fixed-wire/ownership/deadline/late-close/privacy/context/frame cases, fourteen assets and zero selected findings pass. Aggregate/startup/refusal/final source and fresh remote/terminal-run reads complete with zero artifacts. Original test methods/assertions and Source509 production bytes remain; the controlled discovery failure is retained. Source511 records documentation/body353 only and preserves all 1985 runtime/source entries. This closes selected diagnostic/projection scope only: no native probe is observed, Native111's stationary cause stays NOT_ESTABLISHED, and all original failures, full F06, original 72/80 and zero accepted visual matches remain open. |
+
+### Source512 Native112 split observation
+
+Original 42120740143 / job 127572118206 remains failed; independent SDK-free
+42123890970 / job 127582978238 verifies both finite archives. Fresh 1338 Dart
+and 1084 Python cases/eighteen Windows skips, fourteen assets and zero selected
+findings pass. The original confirmed one-ZNN UI send, twelve-page tour,
+quiescence, required application/entry and five original node exits qualify
+separately. The copied Stake publish command eight refuses after thirteen
+absent and five effect_pending rounds. Exact source places those five in the
+positive confirmed-send branch without accepting the matching effect; the
+Stake outcome stays UNKNOWN and its cause NOT_ESTABLISHED. Later five seed
+recipes and all four copied components remain incomplete. The original-tour
+failure probe and original-state refusal flags are not sampled. Both runs are
+terminal; Source513 records documentation/body354 only, preserving all 1985
+runtime/source entries. P03/P09/F06 and V01/V02/V03/V05/V06, original 72/80,
+zero accepted whole-image matches and every earlier failure/UNKNOWN remain.

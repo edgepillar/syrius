@@ -10,6 +10,20 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 
 ## Verified results
 
+The latest [Source512 Native112 result](source512-native112-stake-effect.md)
+verifies fresh source gates, the original confirmed one-ZNN UI send,
+twelve-page tour, quiescence and normal required original actors. All 1338
+Dart cases, 1084 Python cases/eighteen explicit Windows skips, fourteen assets
+and zero selected findings pass. Independent SDK-free reader 42123890970
+verifies the failed producer 42120740143 and its two finite archives.
+The copied session stops at Stake publish command eight: thirteen completed
+rounds have no account-block record, followed by five effect_pending rounds.
+Exact source places those five in the confirmed-send branch, without a
+qualified matching Stake effect. Stake remains UNKNOWN with cause
+NOT_ESTABLISHED; the later five seed recipes and copied lifecycle do not
+qualify. The new failure probe is absent because the original tour succeeds.
+Native111 and all earlier failures retain their separate outcomes.
+
 The latest [focused result](source509-native-lab-failure-probe.md#actual-source510-focused-result)
 is Source510 124e66724b3b81e21890573bb01ea95b1a461fa2, tree
 c005d324fd38afd33c44c68f9d4260f3595cb8a6. Original
@@ -81,9 +95,9 @@ The [validation index](redesign-validation-index.md) retains the individual
 source-bound results, failures and UNKNOWN outcomes. The complete preceding
 [first-delivery record](https://github.com/edgepillar/syrius/blob/30dd521bdfeb20d06f5345266c1bc6040bb79b6c/docs/review/fast-first-delivery.md)
 remains immutable in the published history, and all original report paths
-remain available. The exact preceding PR text is [body352](pr-body-352.md).
+remain available. The exact preceding PR text is [body353](pr-body-353.md).
 
-Source511 records documentation/body353 only and preserves all 1985 Source510
+Source513 records documentation/body354 only and preserves all 1985 Source512
 runtime/source entries. No new SDK, native/lab or image-transport job is
 allocated for this record. Public artifacts remain English and privacy-safe,
 with edgepillar attribution and GitHub no-reply metadata. The PR stays Draft.
