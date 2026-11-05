@@ -60,3 +60,32 @@ zero accepted whole-image matches. P03/P09/F06 and V01/V02/V03/V05/V06 remain
 open. Heavy Windows/native wallet, seed/seam, catalog transport, visual,
 motion and independent final acceptance stay in phase two. The existing PR
 remains Draft; public artifacts use English and edgepillar no-reply/UTC.
+
+## Original Source477 analysis result
+
+Updated: 2026-11-05T04:20Z.
+
+[41966584841](https://github.com/edgepillar/syrius/actions/runs/41966584841),
+attempt one, job 127044892489, binds Source477
+a1d0030a088a47e45e7fc2699f9c225a3412388a, tree
+0cd78268d0e578d2cd5787e7263cccb071d78672. All 1,063 Python controls pass with
+eighteen explicit Windows skips; fourteen asset observations and locked-input
+restoration pass. Strict analysis retains one DIRECTIVES_ORDERING info at line
+six, column one, with zero errors or warnings. Its complete 172-byte stream has
+digest 44c589f567f149c3fbf9b7d8241fdb6bb0c557bfc724cbf47c15b3126a89bbfb.
+The analyzer exits zero, but the strict zero-finding gate refuses that info.
+Both Dart groups are skipped. No widget, aggregate or geometry pass is inferred.
+All source runs are terminal; the original remains failed with zero artifacts.
+
+The finite location uses the scrubbed source value other and does not name a
+file. Source inspection finds material_ui before flutter_bloc in the newly
+selected node_update_card.dart library. Source478 reorders those existing
+directives only; no import is added or removed. This matches the retained rule
+and line, without inventing a raw diagnostic path.
+
+All Source477 layout, selector, value, callback and test bytes remain. The 34
+existing Node card cases, all 98 selected files, strict 1,273 ordinary / 1,275
+asset expectations and 49/49-file streams (606/667) remain. Fourteen pure
+admission controls stay pinned; original child/output/source bounds are unchanged.
+Fresh strict analysis and complete execution are pending. The original producer
+is not retried, and native pixels/full 72/80 acceptance remain open.

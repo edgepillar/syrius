@@ -33,17 +33,21 @@ all 1,976 qualified runtime/source entries. No extra local SDK, full Windows/nat
 wallet/devnet, image or motion job is allocated for this record. Original 72/80,
 zero accepted matches and all eight original acceptance rows remain open.
 
-[Source477](review/source477-node-version-columns.md) prepares the existing
-loaded/release facts as equal columns with inline ledger labels, stacking in
-narrow or larger-text layouts. Genuine values, hash/copy, manual Check/Download,
-confirmation, rollback and source ownership remain. The existing Node card file
-adds wide alignment, Arabic ordering and normal/doubled narrow coverage in both
-themes. No test is registered or removed. All 97 prior focused files remain;
-this existing 34-case file raises selection to 1,273 ordinary / 1,275 asset cases
-in 49/49-file groups (606/667). Fourteen pure admission controls pass with zero
-failures/errors/skips and native processes forbidden. Fresh strict hosted
-analysis and complete execution are pending. Native pixels and original 72/80
-acceptance remain open; heavy platform/lab/image work stays in phase two.
+Original [Source477](review/source477-node-version-columns.md#original-source477-analysis-result),
+41966584841 / job 127044892489, passes all 1,063 controllers/eighteen Windows
+skips and fourteen assets. Strict analysis retains one DIRECTIVES_ORDERING info
+at line six, zero errors/warnings and complete output. Both Dart groups are
+skipped; the run stays failed, terminal and has zero artifacts. The finite frame
+does not retain the file name. Source inspection finds the existing material_ui
+import before flutter_bloc in the newly selected Node card library.
+
+Source478 reorders only those existing imports. The responsive version columns,
+inline labels, genuine values and all manual update/confirmation/rollback/source
+logic remain. All 34 existing Node cases and all 98 selected files remain;
+1,273 ordinary / 1,275 asset expectations in 49/49 streams (606/667), original
+process bounds and the fourteen pure admission controls are unchanged. Fresh
+strict analysis and complete execution are pending. Native pixels, original
+72/80 and phase two remain open; no original producer is retried.
 
 The [actual Source459 default lab result](review/source459-reference-default.md#actual-source459-default-result)
 binds `9a758129afdae895ad253b0ae357b33aa919ed52`, tree
