@@ -7,20 +7,16 @@ part of 'zap_form.dart';
 /// checks. The ordinary Activity Message control remains behind its seam.
 class ZapReceivedMessage extends StatelessWidget {
   /// Draws caller-supplied facts without fetching or publishing anything.
-  ZapReceivedMessage({
+  factory ZapReceivedMessage({
     required String sender,
     required BigInt znn,
     required BigInt qsr,
     required String message,
     required VoidCallback onClose,
     BalanceVisibility? visibility,
-    super.key,
-  }) : _sender = sender,
-       _znn = znn,
-       _qsr = qsr,
-       _message = _plainReceivedMessage(message),
-       _onClose = onClose,
-       _visibility = visibility {
+    Key? key,
+  }) {
+    final String plain = _plainReceivedMessage(message);
     if (sender.isEmpty ||
         sender.length > 128 ||
         !RegExp(r'^[\x21-\x7e]+$').hasMatch(sender) ||
@@ -28,7 +24,26 @@ class ZapReceivedMessage extends StatelessWidget {
         qsr.isNegative) {
       throw ArgumentError('Invalid received Zap presentation.');
     }
+    return ZapReceivedMessage._(
+      sender,
+      znn,
+      qsr,
+      plain,
+      onClose,
+      visibility,
+      key: key,
+    );
   }
+
+  const ZapReceivedMessage._(
+    this._sender,
+    this._znn,
+    this._qsr,
+    this._message,
+    this._onClose,
+    this._visibility, {
+    super.key,
+  });
 
   final String _sender;
   final BigInt _znn;

@@ -141,3 +141,36 @@ new cases, seventeen existing Zap cases, all previous selected files and all
 only on failure. Fresh restoration, strict analysis and complete 1338-case
 execution are pending. Every original failure, upstream PR source binding,
 native visuals, X614, original 72/80 and zero accepted matches remain open.
+
+## Source501 restoration and Source502 explicit imports
+
+Source501 0b0c32faad12bb61909418d04d0d3d15bc3d8262, tree
+b85ff114219dd6b92ed546ce52567ba81bf177d0, succeeds through locked restoration
+in original 42073938650 / job 127408978037, attempt one. The original source
+checks now pass without changed tracked inputs. All 1073 controllers/eighteen
+expected Windows skips and fourteen assets pass. This verifies the observed
+five-byte correction at its tested source.
+
+Strict selected analysis returns zero errors/warnings and eighteen infos:
+unnecessary imports and prefer-initializing-formals. Its complete 6283-byte
+output is hashed; sixteen finite locations are retained and the other two
+locations are not retained. The strict gate correctly refuses, so Dart is
+skipped. The failed original is terminal with zero artifacts. No full renderer
+pass is inferred from the restored dependency stage.
+
+Source502 restores the shared widget export file to its original byte content.
+Two explicit modal/privacy entry points serve the new feature and its tests
+without making those symbols implicit for every existing utility consumer.
+The received view's factory validates in the same order and forwards the same
+sender, raw amounts, plain message, callback, visibility and key to private
+initializing formals. These are import/constructor changes; message sanitizing,
+layouts, exact amounts, privacy, reply refusal, close actions and clocks remain.
+
+All sixteen test bodies and registrations remain unchanged; only their explicit
+imports change. The seventeen existing Zap cases, all prior selected paths,
+generated localization outputs, 1338 ordinary / 1340 asset expectations and
+original process/source bounds remain. The two entry points are explicitly
+selected for analysis. The complete Python expectation stays 1073. Fresh strict
+analysis and complete widget execution are pending. Source501's failed outcome,
+every earlier failure/unknown, native pixels, upstream PR head binding, X614,
+original 72/80 and zero accepted whole-image matches remain open.

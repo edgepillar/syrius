@@ -547,6 +547,8 @@ def analyze(parent, repo):
         'lib/rearchitecture/features/zap.dart',
         'lib/rearchitecture/features/zap/view/zap_form.dart',
         'lib/rearchitecture/features/zap/view/zap_received_message.dart',
+        'lib/utils/balances.dart',
+        'lib/widgets/modals.dart',
         'lib/rearchitecture/utils/widgets/widgets.dart',
         'test/zap/zap_form_test.dart',
         'test/zap/zap_received_message_test.dart',

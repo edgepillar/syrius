@@ -6,15 +6,15 @@ import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/home/widgets/amount_text.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/zap/cubit/zap_draft_cubit.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart'
-    show FrostedSurface, HiddenAmount, RiseIn;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/dollar_text.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/ltr.dart';
 import 'package:zenon_syrius_wallet_flutter/seams/seam.dart';
 import 'package:zenon_syrius_wallet_flutter/services/price_feed.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
-import 'package:zenon_syrius_wallet_flutter/utils/notifiers/balance_visibility.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/balances.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/modals.dart'
+    show FrostedSurface, RiseIn;
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
