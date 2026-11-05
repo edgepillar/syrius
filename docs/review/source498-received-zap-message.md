@@ -107,3 +107,37 @@ the original failed outcome without continuation. Five new methods prepare
 51/51 files and expected 644/694 passes. Fresh execution is pending. The original
 source499 failure, all earlier unknowns, X614, 72/80 and zero accepted matches
 remain open.
+
+## Actual Source500 five-byte delta and Source501 application
+
+Source500 99e71c77efa9092c35d67997d68b44531e65651c, tree
+372b217266fbbedf97d516a54ef88723d36ed252, remains failed in original
+42071062973 / job 127398809605, attempt one. All 1073 controllers finish with
+zero failures/errors and eighteen expected Windows skips; fourteen assets pass.
+The SDK revision is exactly abaf9c523780a608bd46686fd5e53740a07077f8.
+Application restore completes normally in 71.187 seconds/6228 bytes and vendored
+restore in 7.859 seconds/1642 bytes. Analysis and Dart remain skipped.
+
+The new observer retains SOURCE_REFUSED at verify_tree_after_restore. Its five
+complete unforced commands show matching head, tree and index, while the
+worktree probe exits one. The complete names probe reports exactly five generated
+locale classes and zero other tracked changes. Each file differs by one removed
+LF at zero-based line two. All original and observation command outputs are
+complete, unforced and within their bounds. The failed run is terminal with zero
+artifacts. All five file notices and the source header are complete; no notice
+is omitted or truncated.
+
+An independent read verifies source/run/job/attempt, all retained HTTP captures,
+fresh terminal jobs and zero artifacts. It reconstructs every after-file from
+the actual SDK-reported edit, verifies all before/after byte counts and hashes,
+and proves that only five blank bytes differ. Code, string values, labels and
+all other tracked source bytes are unchanged. Which individual restore command
+introduced the difference and its inner formatter cause remain unestablished.
+
+Source501 applies these five actual generated outputs. It does not hand-author
+getters, reset the worktree or suppress the source check. UI code, all sixteen
+new cases, seventeen existing Zap cases, all previous selected files and all
+1073 Python cases retain their bytes. The source observer remains available
+only on failure. Fresh restoration, strict analysis and complete 1338-case
+execution are pending. Every original failure, upstream PR source binding,
+native visuals, X614, original 72/80 and zero accepted matches remain open.
