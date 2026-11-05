@@ -52,6 +52,19 @@ analysis at zero errors/warnings and 1,297 infos. Native108 retains its Deposit
 refusal, incomplete Stake/Fuse/Token prefix and unreached Project/Fund address.
 Later focused readiness fixes do not qualify native replay or all six seed effects.
 
+[Source461 system-kernel preparation](review/source461-wsl-system-kernel.md) adds
+a default-off, separate kernel command after the unchanged component installer.
+It rechecks exact version/status and requests one fixed system-distro uname
+query, with thirty-second/16 KiB bounds and finite release/outcome/code output.
+Only complete original zero exit and final source identity can qualify startup;
+metadata, uncertain failures and source drift cannot. Fifty-eight local pure
+cases pass, including twelve new cases and all unchanged installation/readiness
+cases. Fresh 1,063-case source controls, PowerShell parsing, the tiny native file
+gate and one new package/kernel trial are pending. The fresh hosted VM still
+uses the exact 341,086,208-byte MSI; the kernel step requests no extra distro
+image, feature change, reboot, Docker, wallet or node. No local native/SDK or
+binary transport occurs, and no previous runtime is retried or relabelled.
+
 The [fast first delivery](review/fast-first-delivery.md) is ready for Draft code
 review. Original acceptance remains 72/80 rows, 50/94 historical literal outputs,
 44 missing and zero accepted whole-image matches. P03/P09/F06 and
