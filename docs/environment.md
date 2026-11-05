@@ -24,6 +24,15 @@ retains its own pin and evidence. Source469 changes documentation only; all
 1,976 runtime/source entries retain their qualified bytes. No local SDK, full
 wallet/devnet, image or motion job is selected.
 
+[Source470](review/source470-settings-menu-text-scale.md) changes the Settings
+menu and its existing tests, and adds all nine menu cases to the focused
+selection. Normal geometry remains; full labels can grow and wrap at doubled
+text scale. The fresh gate expects 1,239 ordinary cases in 49/48-file streams
+(606/633), 1,063 controllers/eighteen explicit Windows skips, fourteen assets
+and zero selected findings. All fourteen local admission controls pass. Fresh
+hosted engine qualification is pending; Source468 remains separately qualified.
+No current full Windows/native, image or motion acceptance is inferred.
+
 The [actual Source459 default lab result](review/source459-reference-default.md#actual-source459-default-result)
 binds `9a758129afdae895ad253b0ae357b33aa919ed52`, tree
 `666e717e573292a073dc544a7c307b3c6887c55b`. Source-only 41933458571 and manual

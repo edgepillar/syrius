@@ -191,8 +191,11 @@ class _SectionItemState extends State<_SectionItem>
                   if (mounted) setState(() => _focused = focused);
                 },
                 onTap: widget.onTap,
-                child: SizedBox(
-                  height: tokens.settingsItemHeight,
+                // Larger labels can wrap without losing their line height.
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: tokens.settingsItemHeight,
+                  ),
                   child: Padding(
                     padding: EdgeInsetsDirectional.symmetric(
                       horizontal: tokens.cardGap,
@@ -209,7 +212,6 @@ class _SectionItemState extends State<_SectionItem>
                         Expanded(
                           child: Text(
                             widget.section.label(context),
-                            overflow: TextOverflow.ellipsis,
                             style: tokens.bodyText.copyWith(
                               color: Color.lerp(
                                 tokens.dim,

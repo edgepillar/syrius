@@ -242,6 +242,7 @@ def main():
             'test/harness/readonly_viewport_probe_test.dart',
             'test/harness/screen_capture_test.dart',
             'test/settings/display_settings_test.dart',
+            'test/settings/settings_frame_test.dart',
             'test/settings_security_redesign/security_settings_view_test.dart',
             'test/settings_apps_redesign/apps_settings_view_test.dart',
             'test/settings_wallet_redesign/wallet_settings_view_test.dart',
@@ -349,7 +350,7 @@ def main():
                 debug.need(debug.entry.source_tree(repo, parent) == tree, 'SOURCE_REFUSED')
             first += len(group)
         counts = combined_counts(report['commands'], selected_tests)
-        debug.need(counts['passed'] == (1232 if asset_fidelity else 1230), 'TESTS_FAILED')
+        debug.need(counts['passed'] == (1241 if asset_fidelity else 1239), 'TESTS_FAILED')
         report['counts'] = counts
         if asset_fidelity:
             report['launch_asset_fidelity'] = True

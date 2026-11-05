@@ -1,3 +1,4 @@
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -9,6 +10,8 @@ Widget _app({
   bool light = false,
   bool rtl = false,
   bool disableAnimations = false,
+  double textScale = 1,
+  double? height,
   ValueChanged<SettingsSectionId>? onAction,
 }) => MaterialApp(
   theme: light ? AppTheme.lightTheme : AppTheme.darkTheme,
@@ -16,10 +19,15 @@ Widget _app({
   supportedLocales: const <Locale>[Locale('en'), Locale('ar')],
   locale: rtl ? const Locale('ar') : const Locale('en'),
   builder: (BuildContext context, Widget? child) => MediaQuery(
-    data: MediaQuery.of(context).copyWith(disableAnimations: disableAnimations),
+    data: MediaQuery.of(context).copyWith(
+      disableAnimations: disableAnimations,
+      textScaler: TextScaler.linear(textScale),
+    ),
     child: child!,
   ),
-  home: Scaffold(body: _Demo(onAction: onAction)),
+  home: Scaffold(
+    body: SizedBox(height: height, child: _Demo(onAction: onAction)),
+  ),
 );
 
 class _Demo extends StatefulWidget {
@@ -100,6 +108,32 @@ void main() {
             light ? AppTokens.light.card2 : AppTokens.dark.card2,
           );
           expect(tester.takeException(), isNull);
+
+          await tester.pumpWidget(
+            _app(light: light, rtl: rtl, textScale: 2),
+          );
+          await tester.pumpAndSettle();
+          for (final SettingsSectionId section in SettingsSectionId.values) {
+            final Finder label = find.descendant(
+              of: _section(section),
+              matching: find.byType(Text),
+            );
+            final RenderParagraph paragraph = tester.renderObject(
+              find.descendant(of: label, matching: find.byType(RichText)),
+            );
+            expect(paragraph.didExceedMaxLines, isFalse);
+            expect(
+              paragraph.size.height,
+              greaterThanOrEqualTo(
+                paragraph.getMaxIntrinsicHeight(paragraph.size.width),
+              ),
+            );
+            expect(
+              tester.getSize(_section(section)).height,
+              greaterThanOrEqualTo(paragraph.size.height),
+            );
+          }
+          expect(tester.takeException(), isNull);
         },
       );
     }
@@ -109,21 +143,35 @@ void main() {
     WidgetTester tester,
   ) async {
     _window(tester);
-    await tester.pumpWidget(_app());
-    await tester.pumpAndSettle();
-    for (int i = 0; i < 6; i++) {
-      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
-      await tester.pump();
+    for (final double scale in <double>[1, 2]) {
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpWidget(
+        _app(textScale: scale, height: scale == 1 ? null : 200),
+      );
+      await tester.pumpAndSettle();
+      for (int i = 0; i < 6; i++) {
+        await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+        await tester.pump();
+      }
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pumpAndSettle();
+      expect(find.text('Page apps'), findsOneWidget);
+      expect(find.text('Page addresses'), findsNothing);
+      expect(
+        _surface(tester, SettingsSectionId.apps).color,
+        AppTokens.dark.card2,
+      );
+      final Rect viewport = tester.getRect(
+        find.descendant(
+          of: find.byKey(const Key('settings_section_menu')),
+          matching: find.byType(Scrollable),
+        ),
+      );
+      final Rect apps = tester.getRect(_section(SettingsSectionId.apps));
+      expect(apps.top, greaterThanOrEqualTo(viewport.top));
+      expect(apps.bottom, lessThanOrEqualTo(viewport.bottom));
+      expect(tester.takeException(), isNull);
     }
-    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
-    await tester.pumpAndSettle();
-    expect(find.text('Page apps'), findsOneWidget);
-    expect(find.text('Page addresses'), findsNothing);
-    expect(
-      _surface(tester, SettingsSectionId.apps).color,
-      AppTokens.dark.card2,
-    );
-    expect(tester.takeException(), isNull);
   });
 
   testWidgets('the outgoing section rejects actions during its visible exit', (
