@@ -37,3 +37,19 @@ X614 remains open. No generated Dart is hand-edited, no local SDK or archive is
 downloaded, and no old financial operation or profile is replayed. Original
 72/80 progress, 50/94 historical outputs, 44 missing, zero accepted whole-image
 matches and every previous failure/hold/unknown remain.
+
+## Original Source494 dispatch and Source495 correction
+
+The actual Source494 dispatch at 85aec717a5fead71159676cc6cd57852c5961195,
+tree 3ed249e6156e68763c61f2f332eb9192e389c120, exits one with complete
+unforced output and HTTP 422. GitHub refuses the workflow before execution:
+runner context is unavailable in job-level env. A read-only source-bound query
+finds zero workflow-dispatch runs. No SDK, generation, build, wallet or node
+execution is established by that request.
+
+Source495 moves the existing hosted-runner marker into the admission and
+generation steps, where runner context is supported and already used by the
+repository's other workflows. All opt-ins, source/SDK checks, floor, bounds,
+output restrictions, five pure tests and generated inputs remain. The original
+refusal is preserved. Fresh generation on the corrected source is pending;
+neither the missing view nor current runtime acceptance is qualified.

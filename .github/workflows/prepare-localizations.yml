@@ -13,7 +13,6 @@ jobs:
     timeout-minutes: 10
     env:
       SYRIUS_LOCALIZATION_PREPARATION: "true"
-      SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
       GIT_CONFIG_COUNT: "1"
       GIT_CONFIG_KEY_0: core.autocrlf
       GIT_CONFIG_VALUE_0: "false"
@@ -22,6 +21,8 @@ jobs:
         with:
           persist-credentials: false
       - name: Admit source generation before SDK allocation
+        env:
+          SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
         run: python -B -m tool.ci.prepare_localizations --admission-only
       - name: Check finite generated-delta controls
         run: python -B -m unittest test.ci.test_localization_preparation -v
@@ -34,4 +35,6 @@ jobs:
           pub-cache: 'false'
       - name: Generate the three English fallback labels
         timeout-minutes: 3
+        env:
+          SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
         run: python -B -m tool.ci.prepare_localizations
