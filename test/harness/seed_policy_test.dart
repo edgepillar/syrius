@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' as rpc;
@@ -8,6 +9,7 @@ import '../../harness/app/fixtures/fixture_cleanup.dart';
 import '../../harness/app/fixtures/lab_seed_binding.dart';
 import '../../harness/app/fixtures/seed_commands.dart';
 import '../../harness/app/fixtures/seed_policy.dart';
+import '../../harness/app/fixtures/seed_stake_effect.dart';
 import '../../harness/app/fixtures/seed_project_presentation.dart';
 import '../../harness/app/fixtures/seed_token_presentation.dart';
 
@@ -176,6 +178,21 @@ class _Source implements SeedSource {
   }
 }
 
+class _ObservedStakeSource extends _Source implements SeedStakeEffectSource {
+  SeedStakeEffectObservation? observation = SeedStakeEffectObservation.capture(
+    reported: 0, returned: 0, entries: const <SeedStakeEffectPredicates>[],
+  );
+  bool diagnosticThrows = false;
+  int observationReads = 0;
+
+  @override
+  SeedStakeEffectObservation? observeStakeEffect(String hash) {
+    observationReads++;
+    if (diagnosticThrows) throw StateError('Synthetic private diagnostic');
+    return hash == _hash(9) ? observation : null;
+  }
+}
+
 void main() {
   late _Source source;
   late _Journal journal;
@@ -184,6 +201,209 @@ void main() {
     source = _Source();
     journal = _Journal();
     guard = SeedGuard(source: source, journal: journal, delay: source.delay);
+  });
+
+  test('negative Stake counts distinguish each successive match', () {
+    final SeedStakeEffectObservation observed =
+        SeedStakeEffectObservation.capture(reported: 4, returned: 4,
+      entries: const <SeedStakeEffectPredicates>[
+        (identity: false, owner: true, amount: true, duration: true),
+        (identity: true, owner: false, amount: true, duration: true),
+        (identity: true, owner: true, amount: false, duration: true),
+        (identity: true, owner: true, amount: true, duration: false),
+      ],
+    )!;
+    expect(observed.public, <String, Object>{
+      'schema': 1, 'scope': 'original_seed_stake_effect',
+      'reported_rows': 4, 'returned_rows': 4, 'scan': 'COMPLETE',
+      'id_matches': 3, 'owner_matches': 2, 'amount_matches': 1,
+      'duration_matches': 0,
+    });
+    expect(() => observed.public.clear(), throwsUnsupportedError);
+    final String encoded = jsonEncode(observed.public);
+    for (final String private in <String>[
+      _hash(9), 'address', 'timestamp', 'receipt', 'retry', 'confirmed',
+    ]) {
+      expect(encoded.contains(private), isFalse);
+    }
+    final SeedStakeEffectObservation duplicate =
+        SeedStakeEffectObservation.capture(reported: 2, returned: 2,
+      entries: List<SeedStakeEffectPredicates>.filled(2,
+        (identity: true, owner: true, amount: true, duration: true)),
+    )!;
+    expect(duplicate.public['duration_matches'], 2);
+  });
+
+  test('incomplete Stake list exposes no invented predicate counts', () {
+    int scans = 0;
+    final SeedStakeEffectObservation observed =
+        SeedStakeEffectObservation.capture(reported: 65, returned: 64,
+      entries: Iterable<SeedStakeEffectPredicates>.generate(64, (_) {
+        scans++;
+        return (identity: true, owner: true, amount: true, duration: true);
+      }),
+    )!;
+    expect(scans, 0);
+    expect(observed.public, <String, Object>{
+      'schema': 1, 'scope': 'original_seed_stake_effect',
+      'reported_rows': 65, 'returned_rows': 64, 'scan': 'NOT_RUN',
+    });
+  });
+
+  test('Stake snapshots reject positive malformed and private data', () {
+    const Map<String, Object> valid = <String, Object>{
+      'schema': 1, 'scope': 'original_seed_stake_effect',
+      'reported_rows': 0, 'returned_rows': 0, 'scan': 'COMPLETE',
+      'id_matches': 0, 'owner_matches': 0, 'amount_matches': 0,
+      'duration_matches': 0,
+    };
+    final List<Map<String, Object>> invalid = <Map<String, Object>>[
+      <String, Object>{...valid, 'schema': true},
+      <String, Object>{...valid, 'reported_rows': -1},
+      <String, Object>{...valid, 'returned_rows': 65},
+      <String, Object>{...valid, 'reported_rows': 1},
+      <String, Object>{...valid, 'scan': 'NOT_RUN'},
+      <String, Object>{...valid, 'owner_matches': 1},
+      <String, Object>{...valid, 'id_matches': 0.0},
+      <String, Object>{...valid, 'hash': _hash(9)},
+      <String, Object>{...valid, 'address': 'Synthetic private address'},
+      <String, Object>{...valid, 'reported_rows': 1, 'returned_rows': 1,
+        'id_matches': 1, 'owner_matches': 1, 'amount_matches': 1,
+        'duration_matches': 1},
+      for (final String key in valid.keys)
+        <String, Object>{...valid}..remove(key),
+    ];
+    for (final Object? value in <Object?>[null, true, <Object>[], ...invalid]) {
+      expect(seedStakeEffectProjection(value), isNull);
+    }
+    expect(SeedStakeEffectObservation.capture(reported: 1, returned: 1,
+      entries: const <SeedStakeEffectPredicates>[
+        (identity: true, owner: true, amount: true, duration: true),
+      ],
+    ), isNull);
+  });
+
+  test('Stake capture bounds inconsistent and unending entry iterables', () {
+    int visited = 0;
+    expect(SeedStakeEffectObservation.capture(reported: 64, returned: 64,
+      entries: Iterable<SeedStakeEffectPredicates>.generate(1000000, (_) {
+        visited++;
+        return (identity: false, owner: false, amount: false, duration: false);
+      }),
+    ), isNull);
+    expect(visited, 65);
+    expect(SeedStakeEffectObservation.capture(reported: 1, returned: 1,
+      entries: const <SeedStakeEffectPredicates>[],
+    ), isNull);
+    expect(SeedStakeEffectObservation.capture(reported: -1, returned: 0,
+      entries: const <SeedStakeEffectPredicates>[],
+    ), isNull);
+  });
+
+  test('Stake failure attaches the same last negative read without retry',
+      () async {
+    final _ObservedStakeSource observed = _ObservedStakeSource()
+      ..effectPresent = false;
+    final SeedGuard current = SeedGuard(
+      source: observed, journal: journal, delay: observed.delay,
+    );
+    SeedRefused? refusal;
+    int taps = 0;
+    try {
+      await current.publish('stake', () async {
+        taps++;
+        observed.operations.add(_Original());
+      });
+    } on SeedRefused catch (error) {
+      refusal = error;
+    }
+    expect(refusal?.code, 'exact-confirmation-or-effect-pending');
+    expect(refusal?.stakeEffect, same(observed.observation));
+    expect(observed.confirmationReads, 18);
+    expect(observed.effectReads, 18);
+    expect(observed.observationReads, 18);
+    expect(taps, 1);
+    expect(journal.attempts, <String>{'stake'});
+    expect(journal.confirmedHashes, isEmpty);
+    expect(seedRefusalDetail(refusal!, action: 'publish')!['seedStakeEffect'],
+        observed.observation!.public);
+    await expectLater(current.publish('stake', () async { taps++; }),
+        throwsA(isA<SeedRefused>()));
+    expect(taps, 1);
+  });
+
+  test('a final absent round clears an earlier Stake observation', () async {
+    final _ObservedStakeSource observed = _ObservedStakeSource()
+      ..effectPresent = false;
+    observed.onConfirmation = () async => observed.confirmationReads == 18
+        ? null : SeedConfirmed(hash: _hash(9), owner: 'owner', chain: 321,
+            positiveConfirmation: true, matchesRecipe: true);
+    final SeedGuard current = SeedGuard(
+      source: observed, journal: journal, delay: observed.delay,
+    );
+    SeedRefused? refusal;
+    try {
+      await current.publish('stake', () async {
+        observed.operations.add(_Original());
+      });
+    } on SeedRefused catch (error) {
+      refusal = error;
+    }
+    expect(refusal?.code, 'exact-confirmation-or-effect-pending');
+    expect(refusal?.confirmation?.public['last'], 'absent');
+    expect(refusal?.stakeEffect, isNull);
+    expect(observed.observationReads, 17);
+    expect(observed.effectReads, 17);
+    expect(observed.confirmationReads, 18);
+    expect(seedRefusalDetail(refusal!, action: 'publish')!
+        .containsKey('seedStakeEffect'), isFalse);
+  });
+
+  test('diagnostic failure preserves all original Stake refusal counts',
+      () async {
+    final _ObservedStakeSource observed = _ObservedStakeSource()
+      ..effectPresent = false
+      ..diagnosticThrows = true;
+    final SeedGuard current = SeedGuard(
+      source: observed, journal: journal, delay: observed.delay,
+    );
+    SeedRefused? refusal;
+    try {
+      await current.publish('stake', () async {
+        observed.operations.add(_Original());
+      });
+    } on SeedRefused catch (error) {
+      refusal = error;
+    }
+    expect(refusal?.code, 'exact-confirmation-or-effect-pending');
+    expect(refusal?.stakeEffect, isNull);
+    expect(observed.confirmationReads, 18);
+    expect(observed.effectReads, 18);
+    expect(observed.observationReads, 18);
+    expect(journal.confirmedHashes, isEmpty);
+  });
+
+  test('positive effects and other recipes never request Stake diagnostics',
+      () async {
+    for (final String recipe in <String>['stake', 'fuse']) {
+      final _ObservedStakeSource observed = _ObservedStakeSource()
+        ..effectPresent = recipe == 'stake';
+      final _Journal ledger = _Journal();
+      final SeedGuard current = SeedGuard(
+        source: observed, journal: ledger, delay: observed.delay,
+      );
+      Future<String> publish() => current.publish(recipe, () async {
+        observed.operations.add(_Original());
+      });
+      if (recipe == 'stake') {
+        expect(await publish(), _hash(9));
+        expect(ledger.confirmedHashes[recipe], _hash(9));
+      } else {
+        await expectLater(publish(), throwsA(isA<SeedRefused>()));
+        expect(ledger.confirmedHashes, isEmpty);
+      }
+      expect(observed.observationReads, 0);
+    }
   });
 
   test('a current deposit entry retains its original result identity',

@@ -11,6 +11,7 @@ import 'dart:io';
 import 'dart:math';
 
 import '../app/fixtures/seed_policy.dart';
+import '../app/fixtures/seed_stake_effect.dart';
 import '../app/presentation_mode.dart';
 import '../app/readonly_native_mode.dart';
 import '../home_preparation_observation.dart';
@@ -984,6 +985,7 @@ class SeedOperationTrace {
   Map<String, Object>? _confirmation;
   Map<String, Object>? _frontier;
   Map<String, Object>? _originals;
+  Map<String, Object>? _stakeEffect;
   final HomePreparationTrace _homeObservation = HomePreparationTrace();
 
   /// Marks a boundary without invoking, replacing or waiting on an operation.
@@ -997,6 +999,7 @@ class SeedOperationTrace {
     _confirmation = null;
     _frontier = null;
     _originals = null;
+    _stakeEffect = null;
     _homeObservation.clear();
   }
 
@@ -1006,6 +1009,7 @@ class SeedOperationTrace {
   /// Retains only an exact code from the already received original reply.
   void refusedReply(Object? value, {
     Object? confirmation, Object? frontier, Object? originals,
+    Object? stakeEffect,
   }) {
     _replyCode = seedOperationReplyCode(value);
     _confirmation = seedRecipeIds.contains(_recipe) &&
@@ -1023,6 +1027,28 @@ class SeedOperationTrace {
             _step == SeedOperationStep.reply && _publicationCallEntered &&
             _replyCode == 'earlier-original-unresolved'
         ? seedOriginalProjection(originals) : null;
+    _stakeEffect = _recipe == 'stake' && _confirmation != null &&
+            _confirmation!['last'] == 'effect_pending'
+        ? seedStakeEffectProjection(stakeEffect) : null;
+  }
+
+  /// The actual reply accepts only the old singleton or exact combined data.
+  void refusedReplyDetail(Object? value, Object? detail) {
+    final bool combined = detail is Map<String, dynamic> &&
+        detail.length == 2 && detail.keys.toSet().containsAll(
+          <String>{'seedConfirmation', 'seedStakeEffect'},
+        );
+    refusedReply(value,
+      confirmation: detail is Map<String, dynamic> &&
+          (detail.length == 1 || combined)
+          ? detail['seedConfirmation'] : null,
+      frontier: detail is Map<String, dynamic> && detail.length == 1
+          ? detail['seedAdvance'] : null,
+      originals: detail is Map<String, dynamic> && detail.length == 1
+          ? detail['seedOriginals'] : null,
+      stakeEffect: detail is Map<String, dynamic> && combined
+          ? detail['seedStakeEffect'] : null,
+    );
   }
 
   bool get _homeScope => seedRecipeIds.contains(_recipe) &&
@@ -1076,6 +1102,10 @@ class SeedOperationTrace {
       if (kind == SeedOperationFailureKind.refused &&
           reason == 'exact-confirmation-or-effect-pending' &&
           _confirmation != null) 'confirmation': _confirmation!,
+      if (kind == SeedOperationFailureKind.refused &&
+          reason == 'exact-confirmation-or-effect-pending' &&
+          _confirmation != null && _stakeEffect != null)
+        'stake_effect': _stakeEffect!,
       if (kind == SeedOperationFailureKind.refused &&
           reason == 'advancing-momentum-required' &&
           _frontier != null) 'frontier': _frontier!,
@@ -1134,14 +1164,7 @@ Future<Map<String, dynamic>> seed(
         .timeout(const Duration(seconds: 305));
     trace?.at(_seedOperationAction(fields['action']), SeedOperationStep.reply);
     if (result['ok'] != true) {
-      final Object? detail = result['detail'];
-      trace?.refusedReply(result['error'], confirmation:
-          detail is Map<String, dynamic> && detail.length == 1
-              ? detail['seedConfirmation'] : null,
-          frontier: detail is Map<String, dynamic> && detail.length == 1
-              ? detail['seedAdvance'] : null,
-          originals: detail is Map<String, dynamic> && detail.length == 1
-              ? detail['seedOriginals'] : null);
+      trace?.refusedReplyDetail(result['error'], result['detail']);
       throw Fail('seed refused: ${result['error']}');
     }
     return result;

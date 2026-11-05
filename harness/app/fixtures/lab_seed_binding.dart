@@ -13,6 +13,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/wallet_action_context.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import 'seed_policy.dart';
+import 'seed_stake_effect.dart';
 
 /// Reads one original HTLC entry without treating its absence as success.
 /// The pinned node returns this exact RPC error for a missing entry. Only
@@ -40,7 +41,17 @@ Future<HtlcInfo?> readSeedDepositEntry({
 
 /// Every wrapper and transport below is captured before the first await.
 /// No fixture installs a client into the ordinary app's global SDK.
-final class LabSeedBinding implements SeedSource {
+final class LabSeedBinding implements SeedSource, SeedStakeEffectSource {
+  ({String hash, SeedStakeEffectObservation observation})? _stakeEffect;
+
+  @override
+  SeedStakeEffectObservation? observeStakeEffect(String hash) {
+    final ({String hash, SeedStakeEffectObservation observation})? captured =
+        _stakeEffect;
+    return isCurrent && captured != null && captured.hash == hash
+        ? captured.observation : null;
+  }
+
   LabSeedBinding._({
     required this.environment,
     required this.home,
@@ -465,6 +476,7 @@ final class LabSeedBinding implements SeedSource {
   @override
   Future<bool> effect(String recipe, String hash) async {
     _requireCurrent();
+    _stakeEffect = null;
     final Address owner = Address.parse(environment.owner);
     if (recipe == 'stake') {
       final StakeList rows = await _stake.getEntriesByAddress(
@@ -472,7 +484,7 @@ final class LabSeedBinding implements SeedSource {
         pageSize: 64,
       );
       _requireCurrent();
-      return rows.count == rows.list.length &&
+      final bool matched = rows.count == rows.list.length &&
           rows.count <= 64 &&
           rows.list
                   .where(
@@ -485,6 +497,27 @@ final class LabSeedBinding implements SeedSource {
                   )
                   .length ==
               1;
+      if (!matched) {
+        try {
+          final SeedStakeEffectObservation? observed =
+              SeedStakeEffectObservation.capture(
+            reported: rows.count, returned: rows.list.length,
+            entries: rows.list.map((StakeEntry row) => (
+              identity: row.id.toString() == hash,
+              owner: row.address == owner,
+              amount: row.amount == BigInt.from(30000000000),
+              duration: row.expirationTimestamp - row.startTimestamp ==
+                  6 * stakeTimeUnitSec,
+            )),
+          );
+          if (observed != null) {
+            _stakeEffect = (hash: hash, observation: observed);
+          }
+        } on Object {
+          // An unavailable diagnostic keeps the original false result.
+        }
+      }
+      return matched;
     }
     if (recipe == 'fuse') {
       final FusionEntryList rows = await _plasma.getEntriesByAddress(

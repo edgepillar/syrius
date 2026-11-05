@@ -1241,6 +1241,78 @@ class SeedFailureProjectionTests(unittest.TestCase):
                 with self.subTest(change=change), self.assertRaises(restored.checkpoint.Refused):
                     restored.seed_failure_projection(value, 'seed_stake')
 
+    @staticmethod
+    def stake_effect(**changes):
+        value = dict(schema=1, scope='original_seed_stake_effect',
+            reported_rows=0, returned_rows=0, scan='COMPLETE',
+            id_matches=0, owner_matches=0, amount_matches=0, duration_matches=0)
+        value.update(changes)
+        return value
+
+    def stake_failure(self, effect):
+        return self.seed(recipe='stake', action='publish', step='reply',
+            command_index=8, publication_call_entered=True, kind='refused',
+            reason='exact-confirmation-or-effect-pending',
+            confirmation=self.counts(absent=13, unconfirmed=0, effect_pending=5),
+            stake_effect=effect)
+
+    def test_stake_effect_counts_are_copied_negative_data_without_authority(self):
+        unscanned = dict(schema=1, scope='original_seed_stake_effect',
+            reported_rows=65, returned_rows=64, scan='NOT_RUN')
+        values = [self.stake_effect(), unscanned,
+            self.stake_effect(reported_rows=4, returned_rows=4, id_matches=3,
+                owner_matches=2, amount_matches=1),
+            self.stake_effect(reported_rows=2, returned_rows=2, id_matches=2,
+                owner_matches=2, amount_matches=2, duration_matches=2)]
+        for effect in values:
+            offered = self.stake_failure(effect)
+            projected = restored.seed_failure_projection(offered, 'seed_stake')
+            self.assertEqual(projected, offered)
+            self.assertIsNot(projected['stake_effect'], effect)
+            self.assertEqual(restored.child_failure_projection(
+                self.child(projected))['seed'], projected)
+            effect['reported_rows'] = 100
+            self.assertNotEqual(projected['stake_effect']['reported_rows'], 100)
+            for key in ('hash', 'address', 'path', 'receipt', 'retry', 'confirmed'):
+                self.assertNotIn(key, projected['stake_effect'])
+        self.assertNotIn('stake_effect', restored.seed_failure_projection(
+            self.exhausted(), 'seed_fuse'))
+
+    def test_stake_effect_counts_refuse_unknown_coerced_or_positive_values(self):
+        original = self.stake_effect()
+        values = [None, True, [], 'Synthetic']
+        values += [original | change for change in (
+            dict(schema=True), dict(reported_rows=-1), dict(reported_rows=2**53),
+            dict(returned_rows=65), dict(reported_rows=1), dict(scan='NOT_RUN'),
+            dict(id_matches=True), dict(owner_matches=1), dict(id_matches=0.0),
+            dict(reported_rows=1, returned_rows=1, id_matches=1, owner_matches=1,
+                 amount_matches=1, duration_matches=1))]
+        values += [original | {key: 'Synthetic private value'} for key in
+                   ('hash', 'address', 'path', 'receipt', 'retry', 'exception')]
+        values += [{key: item for key, item in original.items() if key != missing}
+                   for missing in original]
+        for effect in values:
+            with self.subTest(effect=effect), self.assertRaises(
+                    restored.checkpoint.Refused):
+                restored.seed_failure_projection(self.stake_failure(effect),
+                                                  'seed_stake')
+
+    def test_stake_effect_snapshot_requires_its_same_last_reply_context(self):
+        original = self.stake_failure(self.stake_effect())
+        changes = (dict(recipe='fuse'), dict(step='request'),
+            dict(publication_call_entered=False), dict(kind='timeout'),
+            dict(reason='unknown'), dict(confirmation=self.counts(last='absent')),
+            dict(confirmation=None), dict(frontier=self.frontier(True, False)))
+        for change in changes:
+            value = original | change
+            phase = 'seed_' + value['recipe']
+            with self.subTest(change=change), self.assertRaises(
+                    restored.checkpoint.Refused):
+                restored.seed_failure_projection(value, phase)
+        del original['confirmation']
+        with self.assertRaises(restored.checkpoint.Refused):
+            restored.seed_failure_projection(original, 'seed_stake')
+
     def test_public_enum_and_reply_catalogs_match_the_actual_dart_source(self):
         source = Path('harness/bin/harness.dart').read_text()
         for name, expected in (

@@ -214,6 +214,32 @@ def seed_original_projection(value):
     return dict(value)
 
 
+def seed_stake_effect_projection(value):
+    """Counts from one negative read; no identity, receipt or retry authority."""
+    base = {'schema', 'scope', 'reported_rows', 'returned_rows', 'scan'}
+    counts = ('id_matches', 'owner_matches', 'amount_matches', 'duration_matches')
+    checkpoint.need(type(value) is dict
+        and type(value.get('schema')) is int and value['schema'] == 1
+        and type(value.get('scope')) is str
+        and value.get('scope') == 'original_seed_stake_effect'
+        and type(value.get('reported_rows')) is int
+        and 0 <= value['reported_rows'] <= 9007199254740991
+        and type(value.get('returned_rows')) is int
+        and 0 <= value['returned_rows'] <= 64)
+    complete = value['reported_rows'] == value['returned_rows']
+    checkpoint.need(set(value) == base | (set(counts) if complete else set())
+        and type(value.get('scan')) is str
+        and value['scan'] == ('COMPLETE' if complete else 'NOT_RUN'))
+    if complete:
+        previous = value['returned_rows']
+        for name in counts:
+            checkpoint.need(type(value[name]) is int
+                and 0 <= value[name] <= previous)
+            previous = value[name]
+        checkpoint.need(value['duration_matches'] != 1)
+    return dict(value)
+
+
 def seed_confirmation_projection(value):
     """Only eighteen completed negative original rounds; no operation data."""
     fields = {'polls', 'absent', 'unconfirmed', 'effect_pending', 'last'}
@@ -308,7 +334,8 @@ def seed_failure_projection(value, phase):
     fields = {'schema', 'scope', 'recipe', 'action', 'step', 'command_index',
               'publication_call_entered', 'kind', 'reason'}
     checkpoint.need(type(value) is dict and set(value) in
-        (fields, fields | {'confirmation'}, fields | {'home'},
+        (fields, fields | {'confirmation'},
+         fields | {'confirmation', 'stake_effect'}, fields | {'home'},
          fields | {'frontier'}, fields | {'originals'})
         and type(value['schema']) is int and value['schema'] == 1
         and type(value['scope']) is str
@@ -347,6 +374,10 @@ def seed_failure_projection(value, phase):
             and value['kind'] == 'refused'
             and value['reason'] == 'exact-confirmation-or-effect-pending')
         result['confirmation'] = seed_confirmation_projection(value['confirmation'])
+    if 'stake_effect' in value:
+        checkpoint.need(value['recipe'] == 'stake'
+            and result['confirmation']['last'] == 'effect_pending')
+        result['stake_effect'] = seed_stake_effect_projection(value['stake_effect'])
     if 'home' in value:
         checkpoint.need(action == 'home' and step == 'navigation'
             and value['command_index'] == 0 and entered is False)

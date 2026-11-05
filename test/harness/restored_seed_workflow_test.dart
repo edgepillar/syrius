@@ -1150,6 +1150,158 @@ void main() {
     });
   });
 
+  test('actual Stake reply freezes both counts without private fields', () {
+    final Map<String, Object> counts = <String, Object>{
+      'polls': 18, 'absent': 13, 'unconfirmed': 0,
+      'effect_pending': 5, 'last': 'effect_pending',
+    };
+    final Map<String, Object> stake = <String, Object>{
+      'schema': 1, 'scope': 'original_seed_stake_effect',
+      'reported_rows': 0, 'returned_rows': 0, 'scan': 'COMPLETE',
+      'id_matches': 0, 'owner_matches': 0, 'amount_matches': 0,
+      'duration_matches': 0,
+    };
+    final cli.SeedOperationTrace trace = cli.SeedOperationTrace('stake')
+      ..at(cli.SeedOperationAction.publish, cli.SeedOperationStep.reply,
+          commandIndex: 8)
+      ..publicationCallEntered()
+      ..refusedReplyDetail('exact-confirmation-or-effect-pending',
+          <String, Object>{
+            'seedConfirmation': counts, 'seedStakeEffect': stake,
+          });
+    final cli.SeedOperationFailure failure = trace.failure(cli.Fail('private'));
+    final Map<String, Object> retained =
+        failure.diagnostic['stake_effect']! as Map<String, Object>;
+    expect(retained, stake);
+    expect(reopen.restoredChildFailure('seed_stake', failure)!['seed'],
+        failure.diagnostic);
+    stake['reported_rows'] = 10;
+    counts['absent'] = 0;
+    expect(retained['reported_rows'], 0);
+    expect((failure.diagnostic['confirmation']! as Map)['absent'], 13);
+    expect(() => retained.clear(), throwsUnsupportedError);
+    for (final String key in <String>[
+      'hash', 'address', 'path', 'receipt', 'retry', 'confirmed', 'complete',
+    ]) {
+      expect(retained.containsKey(key), isFalse);
+    }
+  });
+
+  test('Stake reply data requires its exact combined envelope', () {
+    const Map<String, Object> counts = <String, Object>{
+      'polls': 18, 'absent': 13, 'unconfirmed': 0,
+      'effect_pending': 5, 'last': 'effect_pending',
+    };
+    const Map<String, Object> stake = <String, Object>{
+      'schema': 1, 'scope': 'original_seed_stake_effect',
+      'reported_rows': 0, 'returned_rows': 0, 'scan': 'COMPLETE',
+      'id_matches': 0, 'owner_matches': 0, 'amount_matches': 0,
+      'duration_matches': 0,
+    };
+    final cli.SeedOperationTrace trace = cli.SeedOperationTrace('stake')
+      ..at(cli.SeedOperationAction.publish, cli.SeedOperationStep.reply,
+          commandIndex: 8)
+      ..publicationCallEntered();
+    for (final Object? detail in <Object?>[
+      null, true, <Object>[],
+      <String, Object>{'seedStakeEffect': stake},
+      <String, Object>{'seedConfirmation': counts, 'path': 'private'},
+      <String, Object>{'seedConfirmation': counts, 'seedStakeEffect': stake,
+        'path': 'private'},
+    ]) {
+      trace.refusedReplyDetail('exact-confirmation-or-effect-pending', detail);
+      final Map<String, Object> failure =
+          trace.failure(cli.Fail('private')).diagnostic;
+      expect(failure.containsKey('stake_effect'), isFalse);
+      expect(failure.containsKey('confirmation'), isFalse);
+    }
+    trace.refusedReplyDetail('exact-confirmation-or-effect-pending',
+        <String, Object>{'seedConfirmation': counts});
+    expect(trace.failure(cli.Fail('private')).diagnostic['confirmation'],
+        counts);
+  });
+
+  test('Stake snapshots cannot cross recipe or original reply boundaries', () {
+    const Map<String, Object> detail = <String, Object>{
+      'seedConfirmation': <String, Object>{
+        'polls': 18, 'absent': 13, 'unconfirmed': 0,
+        'effect_pending': 5, 'last': 'effect_pending',
+      },
+      'seedStakeEffect': <String, Object>{
+        'schema': 1, 'scope': 'original_seed_stake_effect',
+        'reported_rows': 0, 'returned_rows': 0, 'scan': 'COMPLETE',
+        'id_matches': 0, 'owner_matches': 0, 'amount_matches': 0,
+        'duration_matches': 0,
+      },
+    };
+    for (final String recipe in <String>['stake', 'fuse']) {
+      for (final cli.SeedOperationStep step in <cli.SeedOperationStep>[
+        cli.SeedOperationStep.owner, cli.SeedOperationStep.request,
+        cli.SeedOperationStep.reply,
+      ]) {
+        for (final bool entered in <bool>[false, true]) {
+          final cli.SeedOperationTrace trace = cli.SeedOperationTrace(recipe)
+            ..at(cli.SeedOperationAction.publish, step, commandIndex: 8);
+          if (entered) trace.publicationCallEntered();
+          trace.refusedReplyDetail('exact-confirmation-or-effect-pending',
+              detail);
+          final bool expected = recipe == 'stake' && entered &&
+              step == cli.SeedOperationStep.reply;
+          expect(trace.failure(cli.Fail('private')).diagnostic
+              .containsKey('stake_effect'), expected);
+          expect(trace.failure(TimeoutException('private')).diagnostic
+              .containsKey('stake_effect'), isFalse);
+          trace.refusedReplyDetail('unknown', detail);
+          expect(trace.failure(cli.Fail('private')).diagnostic
+              .containsKey('stake_effect'), isFalse);
+        }
+      }
+    }
+  });
+
+  test('positive malformed and stale Stake snapshots never replace counts',
+      () {
+    const Map<String, Object> counts = <String, Object>{
+      'polls': 18, 'absent': 13, 'unconfirmed': 0,
+      'effect_pending': 5, 'last': 'effect_pending',
+    };
+    const Map<String, Object> valid = <String, Object>{
+      'schema': 1, 'scope': 'original_seed_stake_effect',
+      'reported_rows': 0, 'returned_rows': 0, 'scan': 'COMPLETE',
+      'id_matches': 0, 'owner_matches': 0, 'amount_matches': 0,
+      'duration_matches': 0,
+    };
+    final cli.SeedOperationTrace trace = cli.SeedOperationTrace('stake')
+      ..at(cli.SeedOperationAction.publish, cli.SeedOperationStep.reply,
+          commandIndex: 8)
+      ..publicationCallEntered();
+    for (final Object? value in <Object?>[
+      null, true,
+      <String, Object>{...valid, 'hash': 'private'},
+      <String, Object>{...valid, 'reported_rows': 1, 'returned_rows': 1,
+        'id_matches': 1, 'owner_matches': 1, 'amount_matches': 1,
+        'duration_matches': 1},
+    ]) {
+      trace.refusedReplyDetail('exact-confirmation-or-effect-pending',
+          <String, Object?>{
+            'seedConfirmation': counts, 'seedStakeEffect': value,
+          });
+      final Map<String, Object> failure =
+          trace.failure(cli.Fail('private')).diagnostic;
+      expect(failure['confirmation'], counts);
+      expect(failure.containsKey('stake_effect'), isFalse);
+    }
+    trace.refusedReplyDetail('exact-confirmation-or-effect-pending',
+        <String, Object>{
+          'seedConfirmation': counts, 'seedStakeEffect': valid,
+        });
+    expect(trace.failure(cli.Fail('private')).diagnostic['stake_effect'],
+        valid);
+    trace.at(cli.SeedOperationAction.check, cli.SeedOperationStep.owner);
+    expect(trace.failure(cli.Fail('private')).diagnostic
+        .containsKey('stake_effect'), isFalse);
+  });
+
   test('original exhausted seed counts survive as an immutable failure', () {
     final Map<String, Object> counts = <String, Object>{
       'polls': 18, 'absent': 6, 'unconfirmed': 6,

@@ -728,6 +728,7 @@ class AnalysisAdmissionTests(unittest.TestCase):
             'harness/app/seed_token_presentation_binding.dart',
             'lib/rearchitecture/features/registration_success/registration_confirmation.dart',
             'test/harness/seed_policy_test.dart',
+            'harness/app/fixtures/seed_stake_effect.dart',
             'lib/widgets/modular_widgets/accelerator_widgets/accelerator_action_stepper.dart',
         ):
             self.assertEqual(self.analysis_argv.count(path), 1)
@@ -791,6 +792,7 @@ class AnalysisAdmissionTests(unittest.TestCase):
             'harness/app/seed_token_presentation_binding.dart': 'token_presentation_binding',
             'lib/rearchitecture/features/registration_success/registration_confirmation.dart': 'registration_confirmation',
             'test/harness/seed_policy_test.dart': 'seed_policy_test',
+            'harness/app/fixtures/seed_stake_effect.dart': 'seed_stake_effect',
             'lib/widgets/modular_widgets/accelerator_widgets/accelerator_action_stepper.dart': 'accelerator_stepper',
         }
         for severity in ('INFO', 'WARNING', 'ERROR'):

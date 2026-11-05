@@ -84,6 +84,7 @@ class DartFailureTests(unittest.TestCase):
                      'send_populated.dart',
                      'lab_send_policy.dart', 'seed_policy_test.dart', 'seed_policy.dart',
                      'lab_seed_binding.dart',
+                     'seed_stake_effect.dart',
                      'selection_context_revision_test.dart', 'default_address_notifier.dart',
                      'recipe_control_admission_test.dart', 'recipe_control_admission.dart'):
             row = event();row['stackTrace'] = '/fixture/private/' + name + ':129:5\nprivate'

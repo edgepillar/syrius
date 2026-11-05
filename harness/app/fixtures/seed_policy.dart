@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'seed_stake_effect.dart';
+
 /// Harness-only policy. This file has no wallet, signer, filesystem or client.
 const String seedWsOrigin = 'ws://127.0.0.1:45998';
 const String seedHttpOrigin = 'http://127.0.0.1:45997';
@@ -16,12 +18,13 @@ const Set<String> seedRecipeIds = <String>{
 
 final class SeedRefused implements Exception {
   const SeedRefused(this.code, {
-    this.frontier, this.confirmation, this.originals,
+    this.frontier, this.confirmation, this.originals, this.stakeEffect,
   });
   final String code;
   final SeedAdvanceObservation? frontier;
   final SeedConfirmationObservation? confirmation;
   final SeedOriginalObservation? originals;
+  final SeedStakeEffectObservation? stakeEffect;
   @override
   String toString() => 'Seed refused: $code';
 }
@@ -303,8 +306,12 @@ Map<String, Object>? seedRefusalDetail(
       error.code == 'exact-confirmation-or-effect-pending'
       ? seedConfirmationProjection(error.confirmation?.public) : null;
   if (confirmation != null) {
+    final Map<String, Object>? stake =
+        confirmation['last'] == 'effect_pending'
+        ? seedStakeEffectProjection(error.stakeEffect?.public) : null;
     return Map<String, Object>.unmodifiable(<String, Object>{
       'seedConfirmation': confirmation,
+      if (stake != null) 'seedStakeEffect': stake,
     });
   }
   final Map<String, Object>? frontier =
@@ -550,7 +557,9 @@ final class SeedGuard {
     int unconfirmed = 0;
     int effectPending = 0;
     SeedPendingResult last = SeedPendingResult.absent;
+    SeedStakeEffectObservation? stakeEffect;
     for (int poll = 0; poll < 18; poll++) {
+      stakeEffect = null;
       final SeedConfirmed? block = await _read(
         () => source.confirmed(recipe, hash),
       );
@@ -569,6 +578,14 @@ final class SeedGuard {
         }
         effectPending++;
         last = SeedPendingResult.effectPending;
+        if (recipe == 'stake' && source is SeedStakeEffectSource) {
+          try {
+            stakeEffect = (source as SeedStakeEffectSource)
+                .observeStakeEffect(hash);
+          } on Object {
+            // Passive data cannot replace the original negative outcome.
+          }
+        }
       } else if (block == null) {
         absent++;
         last = SeedPendingResult.absent;
@@ -579,6 +596,7 @@ final class SeedGuard {
       await _delay(const Duration(seconds: 2));
     }
     throw SeedRefused('exact-confirmation-or-effect-pending',
+      stakeEffect: stakeEffect,
       confirmation: SeedConfirmationObservation._(
         absent: absent, unconfirmed: unconfirmed,
         effectPending: effectPending, last: last,

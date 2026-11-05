@@ -2817,3 +2817,9 @@ failure probe and original-state refusal flags are not sampled. Both runs are
 terminal; Source513 records documentation/body354 only, preserving all 1985
 runtime/source entries. P03/P09/F06 and V01/V02/V03/V05/V06, original 72/80,
 zero accepted whole-image matches and every earlier failure/UNKNOWN remain.
+
+### Stake effect predicate observation
+
+| Row | State | Updated (UTC) | Note |
+| --- | --- | --- | --- |
+| X618 | todo | 2026-11-05 | Source514 adds bounded same-read negative Stake list/predicate counts, strict actual CLI/Python projections and twelve Dart/three Python registrations. Thirty-nine local memory/mocked methods and a synthetic five-frame parent-binding check pass. Existing admission, receipt/effect predicate, eighteen rounds, delays and once-only publication remain. Fresh 1350 Dart/1087 Python/eighteen-skip hosted qualification is pending; no native sample, old operation replay or cause for Native112 is established. Main 72/80 and all eight original acceptance gates remain open. |
