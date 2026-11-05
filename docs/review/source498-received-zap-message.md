@@ -174,3 +174,31 @@ selected for analysis. The complete Python expectation stays 1073. Fresh strict
 analysis and complete widget execution are pending. Source501's failed outcome,
 every earlier failure/unknown, native pixels, upstream PR head binding, X614,
 original 72/80 and zero accepted whole-image matches remain open.
+
+## Source502 actual widget result and Source503 route frames
+
+Original Source502 13b85b0ad5805862f7f9564cf03a0037eafc1b4c, tree
+5dffad6bacde8f12d601717d23f3df74aa8c581a, executes in 42078093509 /
+job 127423585366, attempt one. Locked restoration, strict selected analysis
+with zero errors/warnings/infos, all 1073 controllers/eighteen expected Windows
+skips and fourteen assets pass. Both 51-file widget commands finish normally
+with complete unforced output within the original bounds. The first has 644
+passes and zero failures; the second has 691 passes and three failures. There
+are no skipped or unfinished cases. The failed original is terminal with zero
+artifacts and remains preserved.
+
+The full bounded report is read from that same original job text after the
+aggregate notice exceeds its annotation budget. Its three retained assertion
+locations are the two-theme close checks at line 315 and the Escape close check
+at line 411 in `zap_received_message_test.dart`. Numeric assertion payloads are
+not retained. No replacement run is used to reconstruct the original failure.
+
+Source503 starts the reverse transition with a zero-duration pump before the
+existing 300-millisecond advance and then flushes route disposal with another
+zero-duration pump. The same sequencing covers Nice, the close icon and Escape.
+All original assertions, sixteen registrations, focus/privacy/reply checks,
+102 selected files, 1338/1340 expectations and process limits remain. No product
+code or route duration changes. The missing first-frame scheduling is an
+inference to verify in fresh complete execution, not an already qualified fix.
+All prior failures, backend seams, receipt boundaries, X614, original 72/80 and
+zero accepted whole-image matches remain open.

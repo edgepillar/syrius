@@ -311,7 +311,10 @@ void main() {
         expect(fixture.closes, 0);
         expect(_key('zap_received_card'), findsOneWidget);
         await tester.tap(_key('zap_received_nice'));
+        // Start the reverse ticker before advancing its elapsed time.
+        await tester.pump();
         await tester.pump(const Duration(milliseconds: 300));
+        await tester.pump();
         expect(_key('zap_received_card'), findsNothing);
         expect(fixture.closes, 1);
         await tester.tap(_key('open_received_message'));
@@ -319,7 +322,9 @@ void main() {
         await tester.pump(const Duration(milliseconds: 300));
         expect(find.byTooltip('Close'), findsOneWidget);
         await tester.tap(_key('zap_received_close'));
+        await tester.pump();
         await tester.pump(const Duration(milliseconds: 300));
+        await tester.pump();
         expect(_key('zap_received_card'), findsNothing);
         expect(fixture.closes, 2);
         expect(tester.takeException(), isNull);
@@ -407,7 +412,9 @@ void main() {
         expect(fixture.opener.hasFocus, isFalse);
       }
       await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
+      await tester.pump();
       expect(_key('zap_received_card'), findsNothing);
       expect(fixture.opener.hasFocus, isTrue);
       expect(tester.takeException(), isNull);
