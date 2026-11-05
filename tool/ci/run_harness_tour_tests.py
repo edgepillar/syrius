@@ -215,6 +215,7 @@ def main():
             debug.need(check['passed'], 'TESTS_FAILED')
         packages = Path(parent['FLUTTER_ROOT']) / 'packages/flutter_tools/.dart_tool/package_config.json'
         selected_tests = [
+            'test/zap/zap_form_test.dart',
             'test/harness/wallet_tour_test.dart', 'test/harness/build_output_test.dart',
             'test/harness/agent_input_test.dart',
             'test/harness/logical_capture_test.dart',
@@ -314,6 +315,7 @@ def main():
             'test/node_update/view/node_update_card_test.dart',
             'test/page_strip/page_strip_test.dart',
             'test/settings_about_redesign/about_settings_view_test.dart',
+            'test/zap/zap_received_message_test.dart',
             *(['test/launch_film/launch_asset_test.dart'] if asset_fidelity else [])
         ]
         first = 1
@@ -353,7 +355,7 @@ def main():
                 debug.need(debug.entry.source_tree(repo, parent) == tree, 'SOURCE_REFUSED')
             first += len(group)
         counts = combined_counts(report['commands'], selected_tests)
-        debug.need(counts['passed'] == (1307 if asset_fidelity else 1305), 'TESTS_FAILED')
+        debug.need(counts['passed'] == (1340 if asset_fidelity else 1338), 'TESTS_FAILED')
         report['counts'] = counts
         if asset_fidelity:
             report['launch_asset_fidelity'] = True

@@ -1659,6 +1659,46 @@ class AppTokens extends ThemeExtension<AppTokens> {
   EdgeInsetsDirectional get zapMessagePadding =>
       const EdgeInsetsDirectional.symmetric(horizontal: 12, vertical: 10);
 
+  /// The home-zap message card's authored width.
+  double get zapReceivedWidth => 460;
+
+  /// Dialog content stays clear of the viewport on every side.
+  double get zapReceivedViewportInset => 24;
+
+  /// The message dialog header uses the reference's compact card chrome.
+  EdgeInsetsDirectional get zapReceivedHeaderPadding =>
+      const EdgeInsetsDirectional.symmetric(horizontal: 20, vertical: 14);
+
+  /// The received sender, exact amounts and message share this body inset.
+  EdgeInsetsDirectional get zapReceivedBodyPadding =>
+      const EdgeInsetsDirectional.symmetric(horizontal: 20, vertical: 16);
+
+  /// The footer leaves a little more room below its two pills.
+  EdgeInsetsDirectional get zapReceivedFooterPadding =>
+      const EdgeInsetsDirectional.fromSTEB(20, 12, 20, 16);
+
+  /// The reference's gap between its leading bolt and title.
+  double get zapReceivedTitleGap => 10;
+
+  /// The reference's gap between body sections.
+  double get zapReceivedSectionGap => 12;
+
+  /// Sender and amount ledger rows keep their own compact rhythm.
+  double get zapReceivedFactGap => 6;
+
+  /// Ledger labels are separate from the data column.
+  double get zapReceivedColumnGap => 18;
+
+  /// Exact received amounts retain the reference's ordinary data scale.
+  TextStyle get zapReceivedDataText => dataText.copyWith(fontSize: 13.5);
+
+  /// A stranger's message is plain interface text, never a rich document.
+  TextStyle get zapReceivedMessageText => bodyText.copyWith(fontSize: 15);
+
+  /// The sender attribution is secondary prose rather than ledger texture.
+  TextStyle get zapReceivedAttributionText =>
+      compactText.copyWith(color: dim);
+
   /// Search is constrained beside the Nodes tabs.
   double get pillarSearchWidth => 200;
 
