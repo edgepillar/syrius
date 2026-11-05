@@ -177,7 +177,8 @@ void main() {
         );
         expect(
           tester.getSize(find.byKey(_strip)).height,
-          lead ? withLead : 70,
+          lead ? equals(withLead) : inInclusiveRange(70, 71),
+          reason: 'CSS line boxes total 70.5 px before raster rounding.',
         );
         if (lead) {
           expect(tester.getSize(find.byKey(_lead)), const Size.square(48));
@@ -199,7 +200,7 @@ void main() {
           ),
         ),
       );
-      expect(tester.getSize(find.byKey(_strip)).height, greaterThan(70));
+      expect(tester.getSize(find.byKey(_strip)).height, greaterThan(71));
       expect(tester.takeException(), isNull);
     });
 

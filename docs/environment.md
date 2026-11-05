@@ -45,15 +45,26 @@ errors/warnings and two PREFER_CONST_CONSTRUCTORS infos at line 189, columns 19
 and 46. Both Dart groups are skipped; the original stays failed and terminal
 with zero artifacts. The finite location does not retain the file name.
 
-Source inspection matches those positions to the two constant-capable
-constructors in the new PageStrip doubled-text growth fixture. Source482 adds
-the enclosing const only; the inner scaler inherits its constant context.
-Every production layout, callback, owner/seam, metadata and licence byte remains,
-as do all font setup and existing assertions/registrations. The fourteen pure
-admission controls stay pinned. All 100 files, 1,297 ordinary / 1,299 asset
-expectations and 50/50 streams (619/678) retain their original bounds. Fresh
-strict analysis and complete execution are pending; the original is not retried.
-Native About pixels, original 72/80 and phase two remain open.
+Source482 adds the enclosing const only. Its
+[original height result](review/source481-about-strip-geometry.md#original-source482-height-result)
+in 41976660748 / job 127076991682 passes zero selected findings, 1,063
+controllers/eighteen Windows skips and fourteen assets. Complete 50/50 streams
+retain 619 passes, then 675 passes/three new height-assertion failures. Both
+processes finish normally with complete output; the aggregate stays failed.
+All source runs are terminal with zero artifacts. Exact failed heights and the
+sole runtime cause are not retained; no missing numeric value is inferred.
+
+Source483 corrects the test's raster-to-logical inference. CSS uses 11/19-pixel
+labels/values at 1.45 line height, a three-pixel gap and 24 vertical inset pixels,
+giving 70.5 logical pixels before rounding. Seventy solid PNG fill rows do not
+establish an exact 70-pixel logical height. The new normal checks require the
+narrow 70-71 range. Ordinary 72-pixel defaults, 48-pixel leads, exact 28-pixel
+fact gap and earlier assertions remain; scaled growth now exceeds 71.
+Production, font, controller and registration bytes remain. The two test files
+correct only the new height checks and explanations; all 100 files and 1,297
+ordinary cases remain selected. The 1,299-case asset
+variant stays unselected. Fresh complete qualification is pending; neither
+original producer is retried. Native pixels, original 72/80 and phase two remain.
 
 The [actual Source459 default lab result](review/source459-reference-default.md#actual-source459-default-result)
 binds `9a758129afdae895ad253b0ae357b33aa919ed52`, tree

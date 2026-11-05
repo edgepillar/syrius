@@ -110,3 +110,51 @@ byte remains. All fourteen font weights, old assertions, ordinary registrations,
 admission controls stay pinned. Fresh strict analysis and both complete engine
 streams are pending; the original producer is not retried. Native About pixels,
 full original 72/80 acceptance and zero accepted matches remain open.
+
+## Original Source482 height result
+
+Updated: 2026-11-05T06:08Z.
+
+[41976660748](https://github.com/edgepillar/syrius/actions/runs/41976660748),
+attempt one, job 127076991682, binds Source482
+c42de3a301402e04ef6dc741508fd9a62fc95626, tree
+9d91f94af1cab748e3dd91ce1a2ac253a35f08db. All 1,063 controllers/eighteen
+Windows skips, fourteen assets, locked inputs and zero selected findings pass.
+Both fifty-file streams finish normally, without truncation or forced closure.
+The first has 619 passes, seventy hidden and 689 terminal events in 199.859
+seconds, retaining 340,875 bytes with digest
+6d08459b71c6f6e30ab93bdcaa4494584c71472c80abbe857f1750998c156382.
+The second has 675 passes, three failures/error events, 74 hidden and 752
+terminal events in 186.516 seconds, retaining 349,844 bytes with digest
+f206bfe547a7f840132cbbf341b299dfa45452c97b887d20a94f5a99763efcb1.
+There are no Dart skips/retries. The aggregate is failed, with zero artifacts
+and all tested-source runs terminal. The original producer is not retried.
+
+The finite failure report identifies the new shared-strip assertion at line
+178 and both About variants at line 79. Their actual failed heights and sole
+runtime cause are not retained. The complete 61,678-byte original job log has
+digest 6ffcd9d4f6bc89d5a5680dc6358dbffc9cf90040c5b31077256339fd8ebdab9b.
+It retains the closed report without rendering raw paths or errors. The first
+read's CLI escape-sequence refusal remains a separate failed metadata read;
+the subsequent bounded parser-only read launches no test or native actor.
+
+### Source483 logical-height correction
+
+The source CSS provides a reason to correct the test independently of the
+unretained actual measurements: label/value sizes 11/19 at line height 1.45,
+three pixels between lines and 24 vertical inset pixels total 70.5 logical
+pixels. The reference's seventy solid fill rows measure raster coverage, not
+an exact logical box. The earlier inference of exactly seventy is withdrawn.
+
+The added normal-height assertions now require the narrow inclusive 70-71
+range. Ordinary lead/no-lead equality and the exact 72-pixel default remain;
+48-pixel leads and the exact 28-pixel About gap remain. Scaled-text growth is
+strengthened above 71. This corrects newly added expectations, preserving every
+earlier case, action/ownership/seam assertion, fourteen font weights and all
+production/controller bytes. No tolerance admits an ordinary 72-pixel About
+strip and no text is clipped to force the reference's pixel coverage.
+
+All 100 selected files, 1,297 ordinary / 1,299 asset cases, 50/50 streams
+(619/678), strict zero-finding analysis and process/source bounds remain.
+Fresh complete qualification is pending. Original failures, native About
+pixels, zero whole-image matches and original 72/80 acceptance remain open.
