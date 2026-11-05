@@ -144,6 +144,22 @@ void _expectReferenceRowGeometry(
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(() async {
+    for (final String family in const <String>[
+      kSansFontFamily, kMonoFontFamily,
+    ]) {
+      final FontLoader fonts = FontLoader(family);
+      for (final String weight in const <String>[
+        'Regular', 'Medium', 'SemiBold', 'Bold',
+      ]) {
+        fonts.addFont(rootBundle.load(
+          'assets/fonts/$family-$weight.ttf',
+        ));
+      }
+      await fonts.load();
+    }
+  });
   late SharedPrefsService? preferences;
   late BalanceVisibility visibility;
   late List<Uri> opened;

@@ -110,3 +110,22 @@ refuse. Five existing pure projection cases pass locally with all old controls
 retained, no filesystem fixtures, no SDK and no new registrations. Current
 1,305-widget/1,063-controller qualification remains pending. All previous
 failures, native pixel limits and original 72/80 acceptance remain unchanged.
+
+## Source492 bundled-font batch
+
+The component file now loads Space Grotesk and JetBrains Mono in their existing
+regular, medium, semibold and bold weights before every case and independent
+reference measurement. The same eight-file setup is already used by the Home
+fixture. This uses the committed assets and changes neither their bytes nor
+the dependency manifest. It avoids relying on the test engine's default font
+for reference measurements.
+
+The exact Source491 head has zero hosted runs, verified before this preparation.
+Its new fixture and bounded diagnostics are combined with this font setup in
+one Source492 focused execution. Source491 is not independently dispatched and
+neither earlier failed run is retried. All assertions, ten static registrations,
+1,305 ordinary/1,307 asset expectations, 1,063 Python cases and one hundred
+selected paths remain. Setup events remain hidden lifecycle observations; they
+do not increase ordinary passes. Current selected analysis/widgets and complete
+native/visual acceptance remain pending. No local SDK, font or archive download
+is started.
