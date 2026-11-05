@@ -37,3 +37,28 @@ Fresh focused analysis/engine qualification is pending. No local SDK, full walle
 lab, image or motion/performance work is selected. Every earlier failed original
 and all prior evidence remain; full acceptance is still 72/80 with zero accepted
 whole-image matches. The PR remains Draft.
+
+
+## Original Source467 result
+
+Original [41949567525](https://github.com/edgepillar/syrius/actions/runs/41949567525),
+attempt one, job 126990026512, runs on Source467
+`e259f5248c13e960c40b05112bd1d641d8fcba8c`, tree
+`fd9f25f228e78880bb3533f8834d0cef0f99aa94`. All 1,063 controllers/eighteen
+expected skips and fourteen assets pass, including the bounded measurement reader.
+Selected analysis has zero errors/warnings and one DOCUMENT_IGNORES info at the
+keyboard fixture's new diagnostic print. The gate refuses the info; Dart is
+skipped and the terminal original stays failed with zero artifacts. No viewport
+or whole-engine pass is inferred.
+
+## Source468 ignore reason
+
+Updated: 2026-11-05T01:43Z.
+
+Source468 adds the single missing English reason above that existing avoid_print
+ignore: it emits only a fixed fixture theme/direction/scale. No print, expression,
+assertion, input, registration, layout, workflow or dependency changes. The entire
+Source467 application, measurement reader and its Python tests retain their bytes;
+the unchanged 23 local controls are reused. Fresh selected analysis and the full
+1,230-case focused engine run remain pending. All previous failed originals and
+full 72/80 acceptance remain; no local SDK/native/image or heavy job is selected.

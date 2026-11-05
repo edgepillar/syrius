@@ -519,6 +519,7 @@ void main() {
       await tester.pumpAndSettle();
       final Rect viewport = tester.getRect(find.byKey(_results));
       final Rect last = tester.getRect(_row('entry_23'));
+      // Only the fixed fixture theme, direction and scale are printed.
       // ignore: avoid_print
       print('CI_GOTO_GEOMETRY_CASE:dark:ltr:${scale.toInt()}');
       _reportGeometry('scroll', viewport.height, last.height,
