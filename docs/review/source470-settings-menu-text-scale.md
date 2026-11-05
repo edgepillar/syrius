@@ -86,3 +86,43 @@ The unchanged fourteen local admission controls are reused. Original selected
 analysis, both complete hosted streams and their strict gates are required anew.
 No local SDK, full wallet/lab, image or motion job is selected. The original
 failure and all full 72/80 acceptance boundaries remain; the PR stays Draft.
+
+## Original Source471 analysis result
+
+Updated: 2026-11-05T02:45Z.
+
+Original [41956299483](https://github.com/edgepillar/syrius/actions/runs/41956299483),
+attempt one, job 127011895296, binds Source471
+`f174cb3c6dc16f298fd8bddc872e1afa8f0e11b4`, tree
+`e7f24130942024e8ec00b83a4ef68f63485911d0`. All 1,063 controllers/eighteen
+expected Windows skips and fourteen assets pass. Selected analysis retains zero
+errors/warnings and one CASCADE_INVOCATIONS info at the added requestFocus line.
+Dart is skipped; the original remains failed and terminal with zero artifacts.
+
+## Source472 menu traversal group
+
+Source472 makes the added requestFocus call part of the FocusNode declaration's
+cascade. Its value, target, timing, cases and assertions remain unchanged.
+
+The menu's existing scroll view also gains a FocusTraversalGroup. Flutter's
+[reading-order policy](https://api.flutter.dev/flutter/widgets/ReadingOrderTraversalPolicy-class.html)
+sorts focus targets by screen rectangles. Without a group around the menu,
+page controls and section links share that ordering; longer labels or a short
+viewport can place a page control between links. This is a source-derived reason
+for separating navigation, not proof of the old run's exact focused target.
+Flutter documents that a [traversal group](https://api.flutter.dev/flutter/widgets/FocusTraversalGroup-class.html)
+is ordered as one unit by its parent. The menu retains its default directional
+reading order and can still leave the group for the page.
+
+No focus trap, new destination, shortcut, owner override or action callback is
+introduced. Both themes, geometry, complete labels, selection surfaces and
+150-millisecond clocks remain. The original six-Tab opening baseline, explicit
+normal/doubled focus/viewport checks, paragraph assertions, outgoing-action
+refusal and independent motion cases remain. Keyboard execution uses the existing
+dark/LTR fixture; both directions/themes retain geometry coverage.
+
+Python/controller bytes and fourteen completed local admission cases are reused.
+Nine existing menu cases and 1,239 ordinary/1,241 asset cases remain, with 49/48
+ordinary files (606/633). Fresh zero-finding selected analysis and both complete
+hosted streams are required. Both failed originals, the original Node-heading
+uncertainty, native pixels, full 72/80 acceptance and phase two remain open.

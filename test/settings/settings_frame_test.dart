@@ -176,8 +176,7 @@ void main() {
       final FocusNode first = _sectionFocus(
         tester,
         SettingsSectionId.addresses,
-      );
-      first.requestFocus();
+      )..requestFocus();
       await tester.pumpAndSettle();
       expect(first.hasPrimaryFocus, isTrue);
       for (int i = 0; i < 5; i++) {

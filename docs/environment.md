@@ -24,17 +24,17 @@ retains its own pin and evidence. Source469 changes documentation only; all
 1,976 runtime/source entries retain their qualified bytes. No local SDK, full
 wallet/devnet, image or motion job is selected.
 
-Original Source470 41954579745 passes all 1,063 controllers/eighteen explicit
-Windows skips, fourteen assets and zero selected findings. Its complete first
-49-file stream retains 605 passes/one Apps activation assertion failure; no
-second group executes. The exact original scale/focus are NOT_ESTABLISHED.
-[Source471](review/source470-settings-menu-text-scale.md#source471-explicit-menu-focus)
-retains the original normal-size six-Tab baseline and explicitly verifies the
-starting and destination focus in added normal/doubled viewport checks. All
-application/controller bytes, fourteen local controls and 1,239 ordinary/1,241
-asset selections remain. Fresh complete focused qualification is pending with
-49/48 files (606/633). Source468 remains the separately qualified UI source;
-no full Windows/native, image or motion acceptance is inferred.
+Original Source471 41956299483 passes all 1,063 controllers/eighteen expected
+Windows skips and fourteen assets, but one cascade info with zero errors/warnings
+refuses analysis and skips Dart. The original is failed, terminal and has zero
+artifacts. [Source472](review/source470-settings-menu-text-scale.md#source472-menu-traversal-group)
+fixes that fixture style and gives the Settings menu its own traversal group.
+Geometry, labels, callbacks, the original six-Tab baseline, explicit focus,
+viewport, outgoing-action and motion assertions remain. Python/controller bytes
+and fourteen local controls are unchanged. Fresh complete 1,239-case qualification
+is pending in 49/48 streams (606/633); the 1,241-case asset variant is unselected.
+Source470's 605-pass/one-failure original and Source468's separately qualified
+source retain their scope. No current native/image/motion acceptance is inferred.
 
 The [actual Source459 default lab result](review/source459-reference-default.md#actual-source459-default-result)
 binds `9a758129afdae895ad253b0ae357b33aa919ed52`, tree
