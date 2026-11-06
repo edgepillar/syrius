@@ -202,8 +202,9 @@ void main() {
     await tester.pumpWidget(_host(controller));
     await _paste(tester);
     final TextSelection before = controller.selection;
-    controller.selection = const TextSelection.collapsed(offset: 0);
-    controller.selection = before;
+    controller
+      ..selection = const TextSelection.collapsed(offset: 0)
+      ..selection = before;
     clipboard.answer(0, 'stale clipboard');
     await tester.pump();
     expect(controller.text, 'draft');

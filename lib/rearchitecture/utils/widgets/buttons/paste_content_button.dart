@@ -7,9 +7,9 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 class PasteContentButton extends StatefulWidget {
   /// Creates a button that pastes clipboard text into [controller].
   const PasteContentButton({
-    required TextEditingController controller,
+    required this._controller,
     super.key,
-  }) : _controller = controller;
+  });
 
   final TextEditingController _controller;
 

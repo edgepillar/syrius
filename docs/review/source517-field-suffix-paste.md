@@ -82,3 +82,26 @@ new test name belongs to both catalogs, with no path or private error exposed.
 Fresh 1358 Dart/1087 Python/eighteen-skip hosted qualification is pending.
 Source517's controller failure and unexecuted Dart/analysis stay preserved;
 X619, all eight original gates and complete acceptance remain open.
+
+## Actual Source518 analysis refusal
+
+Source518 5897b08f82695080631f8a69d8caa7e20d955b69, tree
+24e1ed1ceedbef74b402467806fba6b960664443, has one actual
+[run 42138070381](https://github.com/edgepillar/syrius/actions/runs/42138070381),
+attempt one, job 127631174114. All 1087 Python cases finish with zero
+failures/errors and eighteen Windows skips; fourteen asset controls pass.
+Selected analysis has zero errors/warnings and two infos, so its zero-finding
+gate fails. Dart execution is skipped. The run is terminal with zero artifacts;
+this does not establish an executed 1358-case engine result.
+
+## Source519 analyzer correction
+
+Source519 uses the existing private-field constructor form for Paste's
+controller and the equivalent cascade for the test's two selection changes.
+They address PREFER_INITIALIZING_FORMALS and CASCADE_INVOCATIONS. The public
+controller argument, listener/request guard, assignment order, labels, all
+eight cases, count gates and global analyzer rules remain. Python and catalog
+bytes remain unchanged. The implementation/widget scope stays in X619; the
+two analyzer findings are tracked separately in X620 after the two preceding
+refusals. Fresh hosted qualification remains pending, and both original
+failed runs remain preserved.
