@@ -2836,3 +2836,9 @@ RPC/publication paths, registrations and the global zero-finding analysis gate
 remain. Fresh hosted qualification and X618 were pending at that preparation.
 The actual Source515 result above closes the selected diagnostic/projection
 scope. Original 72/80 and all eight original acceptance gates remain open.
+
+### Field suffix clipboard lifetime
+
+| Row | State | Updated (UTC) | Note |
+| --- | --- | --- | --- |
+| X619 | todo | 2026-11-06T00:23Z | Source517 rejects shared Paste answers after controller edits/selection, replacement, a newer request or unmount, and gives Paste/Clear their existing localized tooltips. Original helper, glyphs, Clear callback and form actions remain. Eight new widget cases prepare 1358 ordinary/1360 asset totals; all 102 preceding selected paths remain, with 103 files split 52/51 and expected 653/705 passes. Twenty local memory/mocked Python methods pass; registrations remain 1087/eighteen hosted Windows skips. Fresh Dart/analysis qualification remains pending. No native/lab or image transport is scheduled; original 72/80, all eight main gates and zero accepted visual matches remain open. |

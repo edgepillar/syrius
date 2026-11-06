@@ -642,7 +642,10 @@ class AnalysisAdmissionTests(unittest.TestCase):
         self.assertFalse(value['failed'])
         self.assertEqual(value['diagnostics'], dict(error=0, warning=0, info=0))
         self.assertEqual(self.analysis_argv.count('test/theme/mockup_tokens_test.dart'), 1)
-        for path in ('lib/rearchitecture/features/send/widgets/send_populated.dart',
+        for path in ('lib/rearchitecture/utils/widgets/buttons/paste_content_button.dart',
+                     'lib/rearchitecture/utils/widgets/buttons/clear_content_button.dart',
+                     'test/rearchitecture/utils/widgets/field_suffix_buttons_test.dart',
+                     'lib/rearchitecture/features/send/widgets/send_populated.dart',
                      'test/send/widgets/send_form_test.dart',
                      'lib/rearchitecture/features/create_stake/view/create_stake_card.dart',
                      'test/staking/view/create_stake_card_test.dart',

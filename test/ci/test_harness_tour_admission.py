@@ -13,7 +13,7 @@ from tool.ci import run_harness_tour_tests as harness
 
 
 class HarnessAdmissionTests(unittest.TestCase):
-    def run_case(self, *, passed=1350, terminal=True, skipped=0, failed=0,
+    def run_case(self, *, passed=1358, terminal=True, skipped=0, failed=0,
                  error_events=0, command_success=True, complete=True,
                  source_changed=False, asset_fidelity=False,
                  first_command_success=True, first_complete=True, duplicate_stream=False):
@@ -78,10 +78,11 @@ class HarnessAdmissionTests(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertTrue(report['success'])
         self.assertIsNone(report['code'])
-        self.assertEqual(report['counts']['passed'], 1350)
+        self.assertEqual(report['counts']['passed'], 1358)
         self.assertTrue(report['entry_refusal']['refused_before_build'])
         for path in ('test/zap/zap_form_test.dart',
-                     'test/zap/zap_received_message_test.dart'):
+                     'test/zap/zap_received_message_test.dart',
+                     'test/rearchitecture/utils/widgets/field_suffix_buttons_test.dart'):
             self.assertEqual(self.command_argv.count(path), 1)
         self.assertTrue(report['inspection_entry_refusal']['refused_before_build'])
         self.assertEqual([value['kind'] for value in report['startup_checks']],
@@ -89,7 +90,7 @@ class HarnessAdmissionTests(unittest.TestCase):
         self.assertEqual((source_checks, tree_checks), (3, 3))
 
     def test_stale_short_or_extra_suite_counts_are_refused(self):
-        for passed in (1338, 1349, 1351, 1352, 1353):
+        for passed in (1338, 1349, 1351, 1352, 1353, 1350, 1357, 1359, 1360, 1361):
             code, report, _, _ = self.run_case(passed=passed)
             self.assertEqual(code, 1)
             self.assertFalse(report['success'])
@@ -137,12 +138,12 @@ class HarnessAdmissionTests(unittest.TestCase):
             'test/harness/restored_unlock_ready_test.dart'), 1)
         self.assertEqual(self.command_argv.count(
             'test/onboarding/welcome_drop_route_test.dart'), 1)
-        code, report, _, _ = self.run_case(passed=1352, asset_fidelity=True)
+        code, report, _, _ = self.run_case(passed=1360, asset_fidelity=True)
         self.assertEqual(code, 0)
         self.assertTrue(report['launch_asset_fidelity'])
         self.assertEqual(self.command_argv.count(
             'test/launch_film/launch_asset_test.dart'), 1)
-        for passed in (1340, 1350, 1351, 1353, 1354):
+        for passed in (1340, 1350, 1351, 1353, 1354, 1352, 1358, 1359, 1361, 1362):
             code, report, _, _ = self.run_case(
                 passed=passed, asset_fidelity=True)
             self.assertEqual(code, 1)
@@ -154,7 +155,7 @@ class HarnessAdmissionTests(unittest.TestCase):
             self.assertFalse(report['success'])
 
     def test_deposit_and_complete_fixture_selection_cannot_borrow_old_counts(self):
-        for fidelity, passed in ((False, 1350), (True, 1352)):
+        for fidelity, passed in ((False, 1358), (True, 1360)):
             with self.subTest(fidelity=fidelity):
                 code, report, source, tree = self.run_case(
                     passed=passed, asset_fidelity=fidelity)
@@ -176,7 +177,7 @@ class HarnessAdmissionTests(unittest.TestCase):
                     self.assertEqual((source, tree), (2, 2))
 
     def test_deposit_exit_selection_and_exact_profile_counts_are_bound(self):
-        for fidelity, passed in ((False, 1350), (True, 1352)):
+        for fidelity, passed in ((False, 1358), (True, 1360)):
             code, report, source, tree = self.run_case(
                 passed=passed, asset_fidelity=fidelity)
             self.assertEqual(code, 0)
@@ -225,7 +226,7 @@ class HarnessAdmissionTests(unittest.TestCase):
                  'test/harness/readonly_sdk_admission_test.dart',
                  'test/harness/readonly_sdk_binding_test.dart',
                  'test/harness/readonly_native_commands_test.dart')
-        for fidelity, passed in ((False, 1350), (True, 1352)):
+        for fidelity, passed in ((False, 1358), (True, 1360)):
             with self.subTest(fidelity=fidelity):
                 code, report, source, tree = self.run_case(
                     passed=passed, asset_fidelity=fidelity)
@@ -265,7 +266,7 @@ class HarnessAdmissionTests(unittest.TestCase):
                  'test/settings/display_settings_test.dart',
                  'test/settings/settings_frame_test.dart',
                  'test/go_to_palette/go_to_palette_test.dart')
-        for fidelity, passed in ((False, 1350), (True, 1352)):
+        for fidelity, passed in ((False, 1358), (True, 1360)):
             with self.subTest(fidelity=fidelity):
                 code, report, source, tree = self.run_case(
                     passed=passed, asset_fidelity=fidelity)
@@ -303,14 +304,14 @@ class HarnessAdmissionTests(unittest.TestCase):
         code, report, source, tree = self.run_case()
         self.assertEqual((code, report['schema'], source, tree), (0, 2, 3, 3))
         self.assertEqual(report['groups_expected'], 2)
-        self.assertEqual([row['selected_suites'] for row in report['commands']], [51, 51])
-        self.assertEqual([row['first_suite_index'] for row in report['commands']], [1, 52])
+        self.assertEqual([row['selected_suites'] for row in report['commands']], [52, 51])
+        self.assertEqual([row['first_suite_index'] for row in report['commands']], [1, 53])
         self.assertEqual(report['total_command_limit_seconds'], 480)
         for call in self.command_groups:
             self.assertEqual(call.kwargs['timeout'], 240)
             self.assertEqual(call.kwargs['cap'], 4 * 1024**2)
             self.assertEqual(call.args[0].count('--concurrency=1'), 1)
-        self.assertEqual(len(set(self.selected_paths)), 102)
+        self.assertEqual(len(set(self.selected_paths)), 103)
         for path in ('test/page_strip/page_strip_test.dart',
                      'test/settings_about_redesign/about_settings_view_test.dart'):
             self.assertEqual(self.command_argv.count(path), 1)

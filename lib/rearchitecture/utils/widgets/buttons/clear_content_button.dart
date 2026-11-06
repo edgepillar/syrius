@@ -16,6 +16,7 @@ class ClearContentButton extends StatelessWidget {
       builder: (_, TextEditingValue value, _) {
         final bool isActive = value.text.isNotEmpty;
         return IconButton(
+          tooltip: context.l10n.tokensSearchClear,
           onPressed: isActive ? _controller.clear : null,
           icon: Icon(
             Icons.clear,

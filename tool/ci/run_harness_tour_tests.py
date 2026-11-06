@@ -316,6 +316,7 @@ def main():
             'test/page_strip/page_strip_test.dart',
             'test/settings_about_redesign/about_settings_view_test.dart',
             'test/zap/zap_received_message_test.dart',
+            'test/rearchitecture/utils/widgets/field_suffix_buttons_test.dart',
             *(['test/launch_film/launch_asset_test.dart'] if asset_fidelity else [])
         ]
         first = 1
@@ -355,7 +356,7 @@ def main():
                 debug.need(debug.entry.source_tree(repo, parent) == tree, 'SOURCE_REFUSED')
             first += len(group)
         counts = combined_counts(report['commands'], selected_tests)
-        debug.need(counts['passed'] == (1352 if asset_fidelity else 1350), 'TESTS_FAILED')
+        debug.need(counts['passed'] == (1360 if asset_fidelity else 1358), 'TESTS_FAILED')
         report['counts'] = counts
         if asset_fidelity:
             report['launch_asset_fidelity'] = True
