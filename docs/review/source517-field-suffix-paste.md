@@ -105,3 +105,20 @@ bytes remain unchanged. The implementation/widget scope stays in X619; the
 two analyzer findings are tracked separately in X620 after the two preceding
 refusals. Fresh hosted qualification remains pending, and both original
 failed runs remain preserved.
+
+## Actual Source519 comment-reference refusal
+
+Source519 295d2dd6ebd47f7a2b487d3402ef97514a81503a, tree
+1f473b7f18406af3b067119f9906329a04440cb9, has one actual
+[run 42139229211](https://github.com/edgepillar/syrius/actions/runs/42139229211),
+attempt one, job 127635026206. All 1087 Python cases/eighteen Windows skips
+and fourteen asset controls pass. The two preceding code infos are gone;
+the changed constructor leaves one COMMENT_REFERENCES info in its existing
+documentation. Analysis has zero errors/warnings, its zero-finding gate
+fails, and Dart remains unrun. The original is terminal with zero artifacts.
+
+Source520 changes only that documentation link from the former parameter
+name to the existing controller field. Every executable token, test case,
+callback, input guard, localization, catalog, count and process limit remains.
+The original Source517/518/519 failures remain preserved. Fresh hosted
+analysis and all 1358 selected Dart cases are required before X619/X620 close.

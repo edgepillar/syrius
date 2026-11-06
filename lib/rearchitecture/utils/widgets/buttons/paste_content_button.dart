@@ -5,7 +5,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 /// A simple button that helps paste content inside a [TextField] or
 /// [TextFormField]
 class PasteContentButton extends StatefulWidget {
-  /// Creates a button that pastes clipboard text into [controller].
+  /// Creates a button that pastes clipboard text into [_controller].
   const PasteContentButton({
     required this._controller,
     super.key,
