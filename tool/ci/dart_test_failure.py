@@ -149,6 +149,7 @@ ROOT_TEST_FILES = (
     'favorite_ordering_test.dart',
     'favorite_tokens_repository_test.dart',
     'fetch_bloc_test.dart',
+    'field_suffix_buttons_test.dart',
     'fixture_cleanup_test.dart',
     'flight_state_test.dart',
     'font_fallback_test.dart',

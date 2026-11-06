@@ -52,3 +52,33 @@ Detailed visuals, native motion/platform and complete lab acceptance remain
 phase two. Original 72/80, P03/P09/F06, V01/V02/V03/V05/V06, 50/94 available
 literal outputs and zero accepted whole-image matches remain. All original
 failures and UNKNOWN outcomes retain their sources.
+
+## Actual Source517 controller refusal
+
+Source517 21fad9313afac8eb208f7a56aca0ceecdedc60f4, tree
+26f6c9d78a5999fc238c7d13946cd11f651e0f1e, has one actual
+[run 42137045185](https://github.com/edgepillar/syrius/actions/runs/42137045185),
+attempt one, job 127627741038. It fails before SDK allocation: 1087 Python
+cases report one failure, zero errors and eighteen explicit Windows skips.
+The failing root-catalog integrity case detects the new test filename missing
+from the sorted complete-test catalog. The separate focused location list
+already contains that name; it does not replace complete-catalog coverage.
+
+Assets, SDK setup, selected analysis and Dart execution are skipped. No new
+Dart result qualifies. Fresh run/job/source/tree/Draft-head reads independently
+reconcile the terminal failure with zero artifacts. The original is not
+retried, and all earlier results retain their scopes.
+
+## Source518 catalog correction
+
+Source518 adds only field_suffix_buttons_test.dart to the sorted root
+catalog. Every preceding entry remains, with the same privacy projection and
+unknown-name refusal. Source517's production, widget-test, selection, count
+and analysis bytes remain unchanged. No test registration or threshold moves.
+
+Twenty-five local memory/mocked and read-only source methods pass, including
+all five root-catalog privacy cases and the preceding twenty controls. The
+new test name belongs to both catalogs, with no path or private error exposed.
+Fresh 1358 Dart/1087 Python/eighteen-skip hosted qualification is pending.
+Source517's controller failure and unexecuted Dart/analysis stay preserved;
+X619, all eight original gates and complete acceptance remain open.
