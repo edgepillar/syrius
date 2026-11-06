@@ -24,26 +24,35 @@ NOT_ESTABLISHED; the later five seed recipes and copied lifecycle do not
 qualify. The new failure probe is absent because the original tour succeeds.
 Native111 and all earlier failures retain their separate outcomes.
 
-The latest [focused result](source514-stake-effect-counts.md#actual-source515-focused-result)
-is Source515 54a54347c3e4b93cf479555dded81b640277f33a, tree
-0e2a0755d5f175e25fd79b8ef361530ac399b2bb. Original
-[42132982994](https://github.com/edgepillar/syrius/actions/runs/42132982994),
-attempt one, job 127613980669, independently qualifies:
+The latest [focused result](source517-field-suffix-paste.md#actual-source520-focused-result)
+is Source520 3d02eada08ef7c0ead1485841bbdcbd363b5ac6e, tree
+e813dbdc17dd67c8d8827b1eb5a5e79909bbed84. Original
+[42140396510](https://github.com/edgepillar/syrius/actions/runs/42140396510),
+attempt one, job 127638996219, independently qualifies:
 
-- 1350 selected Dart cases in complete 51/51-file streams (644/706), zero failures/errors/
-  skips, 150 hidden cases and 1500 terminal events.
+- 1358 selected Dart cases in complete 52/51-file streams (653/705), zero failures/errors/
+  skips, 151 hidden cases and 1509 terminal events.
 - 1087 Python cases, eighteen explicit Windows skips and zero failures/errors.
 - Fourteen asset observations and zero selected errors/warnings/infos.
 - Complete aggregate/startup/refusal/final source checks and zero artifacts.
 
-The new passive Stake summary distinguishes list coverage and progressive
+The shared Paste button now rejects late answers after edits, selection,
+clearing, a newer request, controller replacement or unmount. All eight new
+widget cases pass, including current paste and existing localized suffix
+labels in both themes. The original clipboard helper, glyphs, Clear behavior
+and financial actions remain. Source517's catalog refusal, Source518's two
+analysis infos and Source519's comment-reference info remain in their original
+failed records. Their Dart steps are unexecuted; the later success does not
+rewrite them.
+
+The earlier passive Stake summary distinguishes list coverage and progressive
 predicate counts from the original failed effect read. Strict closed-schema,
 privacy, final-round and reply-context checks qualify in the selected suite.
 The original predicate, receipt requirement, eighteen rounds, delays and
 once-only actions remain. No native sample or cause for Native112 qualifies.
 Source514's earlier eleven-info analysis refusal, unexecuted Dart step and
-original dispatch UNKNOWN remain preserved. The two passing Dart commands
-exit normally in 143.328/134.203 seconds with complete unforced output;
+original dispatch UNKNOWN remain preserved. The latest two passing Dart commands
+exit normally in 206.329/190.829 seconds with complete unforced output;
 independent progress streams have no retries or unfinished cases.
 
 The optional three-read failure status snapshot, strict context/privacy/close
@@ -105,9 +114,9 @@ The [validation index](redesign-validation-index.md) retains the individual
 source-bound results, failures and UNKNOWN outcomes. The complete preceding
 [first-delivery record](https://github.com/edgepillar/syrius/blob/30dd521bdfeb20d06f5345266c1bc6040bb79b6c/docs/review/fast-first-delivery.md)
 remains immutable in the published history, and all original report paths
-remain available. The exact preceding PR text is [body354](pr-body-354.md).
+remain available. The exact preceding PR text is [body355](pr-body-355.md).
 
-Source516 records documentation/body355 only and preserves all 1986 Source515
+Source521 records documentation/body356 only and preserves all 1987 Source520
 runtime/source entries. No new SDK, native/lab or image-transport job is
 allocated for this record. Public artifacts remain English and privacy-safe,
 with edgepillar attribution and GitHub no-reply metadata. The PR stays Draft.

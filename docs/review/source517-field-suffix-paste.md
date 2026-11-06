@@ -122,3 +122,36 @@ name to the existing controller field. Every executable token, test case,
 callback, input guard, localization, catalog, count and process limit remains.
 The original Source517/518/519 failures remain preserved. Fresh hosted
 analysis and all 1358 selected Dart cases are required before X619/X620 close.
+
+## Actual Source520 focused result
+
+Tested head 3d02eada08ef7c0ead1485841bbdcbd363b5ac6e, tree
+e813dbdc17dd67c8d8827b1eb5a5e79909bbed84, has one actual
+[run 42140396510](https://github.com/edgepillar/syrius/actions/runs/42140396510),
+attempt one, job 127638996219. It succeeds with all 1358 selected Dart cases
+in complete 52/51-file streams (653/705), zero failures/errors/skips, 151
+hidden cases and 1509 terminal events. Both original commands exit zero
+normally, with complete unforced output, in 206.329/190.829 seconds.
+Independent progress streams bind every suite and terminal event to those
+exact source/run/output hashes, with no retries or unfinished cases.
+
+All eight new suffix cases pass, including current paste and labels in both
+themes, typing/clearing/selection changes, reverse reply order, replacement
+and disposal. Every preceding selected path and test registration remains.
+All 1087 Python cases finish with eighteen explicit Windows skips and zero
+failures/errors. Fourteen assets, zero selected analyzer errors/warnings/
+infos and aggregate/startup/refusal/final source checks pass. Fresh source,
+tree, Draft-head and terminal-run reads independently qualify the original
+streams. The run has zero artifacts and no local SDK or archive allocation.
+
+X619 closes for selected shared-field behavior and widget scope; X620 closes
+for the two code corrections and comment link under the unchanged strict
+analysis gate. The original clipboard helper, financial actions and guards
+remain. Source517's controller failure, Source518's two infos and Source519's
+comment-reference refusal retain their original unexecuted Dart outcomes.
+No old CI, wallet profile or financial operation is replayed.
+
+Source521 records documentation/body356 only and preserves all 1987 Source520
+runtime/source entries. Native clipboard/platform behavior, detailed pixels,
+full lab acceptance, original 72/80 and all eight original gates remain open.
+Literal availability remains 50/94, with zero accepted whole-image matches.
