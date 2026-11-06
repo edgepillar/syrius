@@ -2822,7 +2822,7 @@ zero accepted whole-image matches and every earlier failure/UNKNOWN remain.
 
 | Row | State | Updated (UTC) | Note |
 | --- | --- | --- | --- |
-| X618 | todo | 2026-11-05 | Source514 adds bounded same-read negative Stake list/predicate counts, strict actual CLI/Python projections and twelve Dart/three Python registrations. Thirty-nine local memory/mocked methods and a synthetic five-frame parent-binding check pass. Existing admission, receipt/effect predicate, eighteen rounds, delays and once-only publication remain. Fresh 1350 Dart/1087 Python/eighteen-skip hosted qualification is pending; no native sample, old operation replay or cause for Native112 is established. Main 72/80 and all eight original acceptance gates remain open. |
+| X618 | done | 2026-11-06T00:09Z | Source515 54a54347c3e4 / original 42132982994 independently qualifies all 1350 selected Dart cases in complete 51/51-file streams (644/706), zero failures/errors/skips, 150 hidden and 1500 terminal events. Both commands exit zero normally with complete unforced output in 143.328/134.203 seconds; independent progress streams retain every suite and terminal event with no retries or unfinished cases. All 1087 Python cases/eighteen Windows skips, fourteen assets and zero selected findings pass; aggregate/startup/refusal/final source and fresh remote/terminal-run checks complete with zero artifacts. Original predicates, guards, eighteen rounds, delays, once-only publication and every preceding registration remain. Source516 records documentation/body355 only, preserving all 1986 runtime/source entries. This closes selected diagnostic/projection scope only: no native sample or cause for Native112 qualifies. Source514's original client UNKNOWN, analysis refusal and unexecuted Dart step, all original failures, full F06 and original 72/80/zero accepted visual matches remain. |
 
 Source514 actual 42130643044 / job 127606066879 passes 1087 Python cases with
 eighteen Windows skips and fourteen assets, then refuses eleven selected infos
@@ -2833,5 +2833,6 @@ receives 204. One actual source run is observed; its exact request origin is
 NOT_ESTABLISHED. Source515 corrects the reported order, syntax, brace and type
 findings, with one documented optional-capability style exception. Guards,
 RPC/publication paths, registrations and the global zero-finding analysis gate
-remain. Fresh hosted qualification, X618, original 72/80 and all eight original
-acceptance gates remain open.
+remain. Fresh hosted qualification and X618 were pending at that preparation.
+The actual Source515 result above closes the selected diagnostic/projection
+scope. Original 72/80 and all eight original acceptance gates remain open.

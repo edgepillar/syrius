@@ -100,5 +100,36 @@ zero-finding gate remain unchanged.
 The effect predicate, guard, round count, delays and every RPC/publication
 path remain. No test is removed and no registration is added. Expected counts
 remain 1350 Dart (644/706 in 51/51 files) and 1087 Python/eighteen Windows
-skips. Fresh hosted qualification is pending; the Source514 failure and all
-older UNKNOWN outcomes remain preserved.
+skips. Hosted qualification was pending at preparation; its actual result
+follows. The Source514 failure and all older UNKNOWN outcomes remain preserved.
+
+## Actual Source515 focused result
+
+Tested head 54a54347c3e4b93cf479555dded81b640277f33a, tree
+0e2a0755d5f175e25fd79b8ef361530ac399b2bb, has one actual
+[run 42132982994](https://github.com/edgepillar/syrius/actions/runs/42132982994),
+attempt one, job 127613980669. It succeeds with all 1350 selected Dart cases
+in complete 51/51-file streams (644/706), zero failures/errors/skips, 150
+hidden cases and 1500 terminal events. Both original commands exit zero
+normally, with complete unforced output, in 143.328/134.203 seconds. Their
+independent progress streams retain every suite and terminal event with no
+retries, unfinished cases or errors.
+
+All 1087 Python cases finish with eighteen explicit Windows skips and zero
+failures/errors. Fourteen asset controls and zero selected analyzer errors,
+warnings or infos pass. Aggregate, startup, refusal and final source checks
+pass. Fresh source/tree/Draft-head and terminal-run reads independently bind
+the original streams; the run has zero artifacts. The original HTTP 204
+response is retained separately from this executed result.
+
+This closes X618 for selected diagnostic/projection scope only. The original
+Stake effect predicate, receipt requirement, eighteen rounds, delays, guards,
+once-only publication and every preceding test registration remain. No new
+native run or sample qualifies: Native112's Stake outcome stays UNKNOWN and
+its exact cause NOT_ESTABLISHED. Source514's original client UNKNOWN, eleven
+analysis infos and unexecuted Dart step remain in their original records.
+
+Source516 records documentation/body355 only and preserves all 1986 Source515
+runtime/source entries. No local SDK, archive/image transfer or native/lab job
+is allocated for this record. Original 72/80, all eight original acceptance
+gates, 50/94 literal outputs and zero accepted whole-image matches remain.

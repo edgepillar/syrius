@@ -1,6 +1,6 @@
 # First delivery and deferred acceptance
 
-Updated: 2026-11-05.
+Updated: 2026-11-06.
 
 The core interface and existing basic functionality are available for
 [Draft code review](https://github.com/sol-znn/syrius/pull/6). Unavailable
@@ -24,17 +24,27 @@ NOT_ESTABLISHED; the later five seed recipes and copied lifecycle do not
 qualify. The new failure probe is absent because the original tour succeeds.
 Native111 and all earlier failures retain their separate outcomes.
 
-The latest [focused result](source509-native-lab-failure-probe.md#actual-source510-focused-result)
-is Source510 124e66724b3b81e21890573bb01ea95b1a461fa2, tree
-c005d324fd38afd33c44c68f9d4260f3595cb8a6. Original
-[42115577615](https://github.com/edgepillar/syrius/actions/runs/42115577615),
-attempt one, job 127554213259, independently qualifies:
+The latest [focused result](source514-stake-effect-counts.md#actual-source515-focused-result)
+is Source515 54a54347c3e4b93cf479555dded81b640277f33a, tree
+0e2a0755d5f175e25fd79b8ef361530ac399b2bb. Original
+[42132982994](https://github.com/edgepillar/syrius/actions/runs/42132982994),
+attempt one, job 127613980669, independently qualifies:
 
-- 1338 selected Dart cases in complete 51/51-file streams (644/694), zero failures/errors/
-  skips, 150 hidden cases and 1488 terminal events.
-- 1084 Python cases, eighteen explicit Windows skips and zero failures/errors.
+- 1350 selected Dart cases in complete 51/51-file streams (644/706), zero failures/errors/
+  skips, 150 hidden cases and 1500 terminal events.
+- 1087 Python cases, eighteen explicit Windows skips and zero failures/errors.
 - Fourteen asset observations and zero selected errors/warnings/infos.
 - Complete aggregate/startup/refusal/final source checks and zero artifacts.
+
+The new passive Stake summary distinguishes list coverage and progressive
+predicate counts from the original failed effect read. Strict closed-schema,
+privacy, final-round and reply-context checks qualify in the selected suite.
+The original predicate, receipt requirement, eighteen rounds, delays and
+once-only actions remain. No native sample or cause for Native112 qualifies.
+Source514's earlier eleven-info analysis refusal, unexecuted Dart step and
+original dispatch UNKNOWN remain preserved. The two passing Dart commands
+exit normally in 143.328/134.203 seconds with complete unforced output;
+independent progress streams have no retries or unfinished cases.
 
 The optional three-read failure status snapshot, strict context/privacy/close
 rules and bounded parent frame qualify in the selected suite. Earlier negative
@@ -95,9 +105,9 @@ The [validation index](redesign-validation-index.md) retains the individual
 source-bound results, failures and UNKNOWN outcomes. The complete preceding
 [first-delivery record](https://github.com/edgepillar/syrius/blob/30dd521bdfeb20d06f5345266c1bc6040bb79b6c/docs/review/fast-first-delivery.md)
 remains immutable in the published history, and all original report paths
-remain available. The exact preceding PR text is [body353](pr-body-353.md).
+remain available. The exact preceding PR text is [body354](pr-body-354.md).
 
-Source513 records documentation/body354 only and preserves all 1985 Source512
+Source516 records documentation/body355 only and preserves all 1986 Source515
 runtime/source entries. No new SDK, native/lab or image-transport job is
 allocated for this record. Public artifacts remain English and privacy-safe,
 with edgepillar attribution and GitHub no-reply metadata. The PR stays Draft.
