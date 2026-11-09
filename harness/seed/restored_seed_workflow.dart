@@ -1,7 +1,7 @@
 import '../app/fixtures/seed_policy.dart';
 import '../wallet_address_context.dart';
 
-enum RestoredSeedSelection { all, seededCatalog, stakeDraft }
+enum RestoredSeedSelection { all, seededCatalog, stakeDraft, projectDetail }
 
 /// A single owned session; receipts observe originals and never admit a retry.
 final class RestoredSeedWorkflow {
@@ -66,10 +66,13 @@ final class RestoredSeedWorkflow {
       RestoredSeedSelection.all => seedRecipeIds,
       RestoredSeedSelection.seededCatalog => const <String>{'stake', 'token'},
       RestoredSeedSelection.stakeDraft => const <String>{'stake'},
+      RestoredSeedSelection.projectDetail => const <String>{'project'},
     };
-    final String privateScope = selection == RestoredSeedSelection.all
-        ? 'private_restored_seed'
-        : 'private_restored_seed_catalog';
+    final String privateScope = switch (selection) {
+      RestoredSeedSelection.all => 'private_restored_seed',
+      RestoredSeedSelection.projectDetail => 'private_restored_project_catalog',
+      _ => 'private_restored_seed_catalog',
+    };
     for (final String id in recipes) {
       await current();
       final Map<String, dynamic> result = await recipe(id, current);

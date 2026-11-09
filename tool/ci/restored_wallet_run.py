@@ -457,9 +457,8 @@ def child_failure_projection(value):
             and code is None and recipe is None)
         capture = value['capture']
         checkpoint.need(type(capture) is dict)
-        schema = (catalog.STAKE_DRAFT_SCHEMA
-                  if capture.get('kind') == catalog.STAKE_DRAFT_FAILURE_KIND
-                  else catalog.SEEDED_SCHEMA)
+        schema = next((schema for schema, kind in catalog.RESTORED_FAILURE_KINDS.items()
+                       if capture.get('kind') == kind), catalog.SEEDED_SCHEMA)
         try:
             result['capture'] = catalog.failure_diagnostic(
                 capture, catalog_schema=schema)
@@ -676,9 +675,9 @@ def project(value):
         except catalog.Refused:
             raise checkpoint.Refused() from None
         checkpoint.need(reference['schema'] in catalog.RESTORED_SCHEMAS)
-        if reference['schema'] == catalog.STAKE_DRAFT_SCHEMA:
+        if reference['schema'] != catalog.SEEDED_SCHEMA:
             checkpoint.need(catalog_seed)
-            catalog_capture = catalog.STAKE_DRAFT_FAMILY
+            catalog_capture = seeds.CATALOG_SELECTIONS[reference['schema']]
     seed_value = seeds.project(value.get(seed_key), catalog_capture=catalog_capture)
     if seed_fields:
         checkpoint.need(type(seed_value) is dict and seed_value['complete'] is True)
@@ -833,8 +832,7 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
     family = parent.get('SYRIUS_READONLY_CATALOG_FAMILY')
     capture_schema = catalog.RESTORED_FAMILIES.get(family)
     seeded_capture = capture_schema is not None
-    stake_draft = capture_schema == catalog.STAKE_DRAFT_SCHEMA
-    catalog_capture = catalog.STAKE_DRAFT_FAMILY if stake_draft else seeded_capture
+    catalog_capture = seeds.CATALOG_SELECTIONS.get(capture_schema, False)
     seed_key = 'catalog_prerequisites' if seeded_capture else 'seed_workflow'
     capture_output = repo / catalog.SEEDED_OUTPUT
     capture_reservation = catalog.MAX_CAPTURE_TOTAL + catalog.MAX_MANIFEST if seeded_capture else 0
@@ -960,7 +958,7 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
             SYRIUS_HOSTED_RUNNER=parent['SYRIUS_HOSTED_RUNNER'])
         if seeded_capture:
             env['SYRIUS_CI_REOPEN_SEEDED_CAPTURE'] = (
-                catalog.STAKE_DRAFT_FAMILY if stake_draft else 'true')
+                'true' if catalog_capture is True else catalog_capture)
         dart, _ = debug.sdk(parent)
         trace.at('launch')
         job = debug.WindowsJob()

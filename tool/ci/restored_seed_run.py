@@ -3,24 +3,56 @@
 import hashlib
 import json
 import re
+from typing import NamedTuple
 
 from .closed_lab_checkpoint import need
-from .readonly_details_capture import STAKE_DRAFT_FAMILY
+from . import readonly_details_capture as catalog
 
 
 IDS = ('stake', 'fuse', 'token', 'deposit', 'project', 'fund-address')
 CATALOG_IDS = ('stake', 'token')
 SCOPE = 'owned_restored_seed_workflow'
 CATALOG_SCOPE = 'owned_restored_seed_catalog_prerequisites'
+PROJECT_SCOPE = 'owned_restored_project_catalog_prerequisites'
 PREFIX_SCOPE = 'observed_restored_seed_prefix'
 CATALOG_PREFIX_SCOPE = 'observed_restored_seed_catalog_prefix'
+PROJECT_PREFIX_SCOPE = 'observed_restored_project_catalog_prefix'
+
+CATALOG_SELECTIONS = {
+    catalog.SEEDED_SCHEMA: True,
+    catalog.STAKE_DRAFT_SCHEMA: catalog.STAKE_DRAFT_FAMILY,
+    catalog.PROJECT_DETAIL_SCHEMA: catalog.PROJECT_DETAIL_FAMILY,
+}
 
 
-def _recipe_ids(catalog_capture):
-    if catalog_capture == STAKE_DRAFT_FAMILY:
-        return ('stake',)
-    need(type(catalog_capture) is bool)
-    return CATALOG_IDS if catalog_capture else IDS
+class _SeedPlan(NamedTuple):
+    recipes: tuple[str, ...]
+    private_scope: str
+    completed_scope: str
+    prefix_scope: str
+
+
+_PLANS = {
+    False: _SeedPlan(IDS, 'private_restored_seed', SCOPE, PREFIX_SCOPE),
+    True: _SeedPlan(CATALOG_IDS, 'private_restored_seed_catalog',
+                    CATALOG_SCOPE, CATALOG_PREFIX_SCOPE),
+    catalog.STAKE_DRAFT_FAMILY: _SeedPlan(
+        ('stake',), 'private_restored_seed_catalog',
+        CATALOG_SCOPE, CATALOG_PREFIX_SCOPE),
+    catalog.PROJECT_DETAIL_FAMILY: _SeedPlan(
+        ('project',), 'private_restored_project_catalog',
+        PROJECT_SCOPE, PROJECT_PREFIX_SCOPE),
+}
+_PREFIX_RECIPES = {
+    PREFIX_SCOPE: IDS,
+    CATALOG_PREFIX_SCOPE: CATALOG_IDS,
+    PROJECT_PREFIX_SCOPE: _PLANS[catalog.PROJECT_DETAIL_FAMILY].recipes,
+}
+
+
+def _plan(catalog_capture):
+    need(type(catalog_capture) in (bool, str) and catalog_capture in _PLANS)
+    return _PLANS[catalog_capture]
 
 
 def digest(value):
@@ -47,9 +79,9 @@ def counterparty(genesis, members):
 
 
 def _private_receipts(value, *, prefix=False, catalog_capture=False):
-    ids = _recipe_ids(catalog_capture)
-    scope = 'private_restored_seed_catalog' if catalog_capture else 'private_restored_seed'
-    scope += '_prefix' if prefix else '_receipts'
+    plan = _plan(catalog_capture)
+    ids = plan.recipes
+    scope = plan.private_scope + ('_prefix' if prefix else '_receipts')
     fields = {'schema', 'scope', 'chain', 'members', 'selected_index',
         'derived_once', 'owner_stable', 'receipts'}
     need(type(value) is dict and set(value) == fields
@@ -95,8 +127,8 @@ def prefix_projection(value):
         'journals_consistent', 'receipts_sha256', 'seed_admitted'}
     need(type(value) is dict and set(value) == fields
         and type(value['schema']) is int and value['schema'] == 1
-        and value['scope'] in (PREFIX_SCOPE, CATALOG_PREFIX_SCOPE))
-    ids = CATALOG_IDS if value['scope'] == CATALOG_PREFIX_SCOPE else IDS
+        and type(value['scope']) is str and value['scope'] in _PREFIX_RECIPES)
+    ids = _PREFIX_RECIPES[value['scope']]
     need(value['complete'] is value['seed_admitted'] is False
         and type(value['confirmed']) is int and 1 <= value['confirmed'] <= len(ids)
         and type(value['recipes']) is list
@@ -115,7 +147,7 @@ def retain_prefix(previous, value, read_journal, *, catalog_capture=False):
     for state in ('attempt', 'accepted', 'confirmed'):
         journal_record(latest['recipe'], state,
             read_journal(latest['recipe'], state), latest['hash'])
-    scope = CATALOG_PREFIX_SCOPE if catalog_capture else PREFIX_SCOPE
+    scope = _plan(catalog_capture).prefix_scope
     public = prefix_projection(dict(schema=1, scope=scope,
         complete=False, confirmed=len(value['receipts']),
         recipes=[row['recipe'] for row in value['receipts']],
@@ -144,8 +176,8 @@ def journal_record(recipe, state, raw, original_hash):
 
 def completed(value, *, catalog_capture=False):
     value = private_receipts(value, catalog_capture=catalog_capture)
-    ids = _recipe_ids(catalog_capture)
-    scope = CATALOG_SCOPE if catalog_capture else SCOPE
+    plan = _plan(catalog_capture)
+    ids, scope = plan.recipes, plan.completed_scope
     return project(dict(schema=1, scope=scope, complete=True, chain=321,
         recipes=list(ids), confirmed=len(ids), members=3, selected_index=1,
         derived_once=True, owner_stable=True, journals_consistent=True,
@@ -156,8 +188,8 @@ def completed(value, *, catalog_capture=False):
 def project(value, *, catalog_capture=False):
     if value is None:
         return None
-    ids = _recipe_ids(catalog_capture)
-    scope = CATALOG_SCOPE if catalog_capture else SCOPE
+    plan = _plan(catalog_capture)
+    ids, scope = plan.recipes, plan.completed_scope
     common = {'schema', 'scope', 'complete'}
     need(type(value) is dict and common <= set(value)
         and type(value['schema']) is int and value['schema'] == 1

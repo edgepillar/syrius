@@ -169,6 +169,12 @@ must bind the original row selector to the exact confirmed Project receipt.
 The recipe verifies the loaded details and uses the existing back control
 before returning to Home. Native admission for this recipe remains open.
 
+Source565 adds the opt-in Project detail selection to the restored wallet
+tour. It confirms one original Project, closes the completion screen,
+opens the row bound to the confirmed receipt, and captures the detail in
+both themes. The reader requires the matching Project scope, script and
+two filenames. The Windows observation remains open.
+
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,
 Project and Fund Address with its confirmed receive and target balance. The

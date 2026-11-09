@@ -285,6 +285,7 @@ class ScreenCapture {
     this.readonlySendConfirmation = false,
     this.readonlyEarn = false,
     this.restoredSeeded = false,
+    this.restoredProject = false,
   });
 
   final Directory repository;
@@ -298,6 +299,7 @@ class ScreenCapture {
   final bool readonlySendConfirmation;
   final bool readonlyEarn;
   final bool restoredSeeded;
+  final bool restoredProject;
 
   static const String _afterCapturePrefix = '# after-capture:';
 
@@ -381,15 +383,19 @@ class ScreenCapture {
         final bool sendPrepared = readonlySendConfirmation &&
             screen.id == 'send-confirm' &&
             text == '# prerequisite: readonly-lab-send-confirmation';
-        final bool tokenPrepared = restoredSeeded &&
+        final bool tokenPrepared = restoredSeeded && !restoredProject &&
             screen.id == 'token-mine' &&
             text == '# prerequisite: restored-lab-token';
+        final bool projectPrepared = restoredSeeded && restoredProject &&
+            screen.id == 'az-project' &&
+            text == '# prerequisite: restored-lab-project';
         final bool pillarPrepared = readonlyEarn &&
             screen.id == 'pillar-mine' &&
             text == '# prerequisite: readonly-lab-pillar-owner';
         if (text.startsWith('# prerequisite:') &&
             text != '# prerequisite: unlocked-home' &&
-            !sendPrepared && !tokenPrepared && !pillarPrepared) {
+            !sendPrepared && !tokenPrepared && !projectPrepared &&
+            !pillarPrepared) {
           throw ScreenCaptureError('${screen.id}: ${text.substring(2)}');
         }
         continue;

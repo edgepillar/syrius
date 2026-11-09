@@ -102,6 +102,24 @@ class PolicyTests(unittest.TestCase):
         ):
             with self.subTest(different=different), self.assertRaises(restored.checkpoint.Refused):
                 restored.project(different)
+        project_only = restored.seeds.completed(dict(seed_receipts,
+            scope='private_restored_project_catalog_receipts',
+            receipts=[row for row in seed_receipts['receipts']
+                      if row['recipe'] == 'project']), catalog_capture='project-detail')
+        project_reference = dict(reference, schema=7, screens=['az-project'],
+            captured=2, seed_receipts_sha256=project_only['receipts_sha256'])
+        detail = dict(completed(), catalog_prerequisites=project_only,
+                      seeded_catalog=project_reference)
+        self.assertEqual(restored.project(detail), detail)
+        self.assertEqual(project_only['scope'], 'owned_restored_project_catalog_prerequisites')
+        for different in (
+            dict(detail, catalog_prerequisites=stake_only),
+            dict(detail, seeded_catalog=dict(stake_draft_reference,
+                 seed_receipts_sha256=project_only['receipts_sha256'])),
+            dict(completed(), seed_workflow=seeds, seeded_catalog=project_reference),
+        ):
+            with self.subTest(different=different), self.assertRaises(restored.checkpoint.Refused):
+                restored.project(different)
 
     def test_absence_and_incomplete_reopen_never_supply_a_wallet(self):
         self.assertIsNone(restored.project(None))
@@ -291,9 +309,13 @@ class ReopenDiagnosticTests(unittest.TestCase):
                 capture=dict(capture, command='private')))
         draft = dict(capture, kind='restored_stake_draft_capture_failure',
                      screen='staking-new')
-        self.assertEqual(restored.child_failure_projection(dict(child,
-            capture=draft))['capture'], draft)
-        for wrong in (dict(capture, screen='staking-new'), dict(draft, screen='staking')):
+        detail = dict(capture, kind='restored_project_detail_capture_failure',
+                      screen='az-project')
+        for scoped in (draft, detail):
+            self.assertEqual(restored.child_failure_projection(dict(child,
+                capture=scoped))['capture'], scoped)
+        for wrong in (dict(capture, screen='staking-new'),
+                      dict(draft, screen='az-project'), dict(detail, screen='staking')):
             with self.assertRaises(restored.checkpoint.Refused):
                 restored.child_failure_projection(dict(child, capture=wrong))
 

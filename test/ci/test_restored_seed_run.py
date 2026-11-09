@@ -138,14 +138,21 @@ class SeedPrefixObservationTests(unittest.TestCase):
         return json.dumps(value).encode()
 
     def test_ordered_prefixes_read_only_the_three_new_journals(self):
-        for catalog_capture, ids in ((False, seeds.IDS), (True, ('stake', 'token')),
-                                     ('stake-draft', ('stake',))):
+        plans = (
+            (False, seeds.IDS, 'private_restored_seed', 'observed_restored_seed_prefix'),
+            (True, ('stake', 'token'), 'private_restored_seed_catalog',
+             'observed_restored_seed_catalog_prefix'),
+            ('stake-draft', ('stake',), 'private_restored_seed_catalog',
+             'observed_restored_seed_catalog_prefix'),
+            ('project-detail', ('project',), 'private_restored_project_catalog',
+             'observed_restored_project_catalog_prefix'),
+        )
+        for catalog_capture, ids, private_scope, public_scope in plans:
             previous = None
             final = receipts()
-            if catalog_capture:
-                final = dict(final, scope='private_restored_seed_catalog_receipts',
-                    receipts=[row for row in final['receipts'] if row['recipe'] in ids])
-            prefix_scope = final['scope'].removesuffix('_receipts') + '_prefix'
+            final = dict(final, scope=private_scope + '_receipts',
+                receipts=[row for row in final['receipts'] if row['recipe'] in ids])
+            prefix_scope = private_scope + '_prefix'
             for count in range(1, len(ids) + 1):
                 calls = []
                 def read(recipe, state):
@@ -158,19 +165,18 @@ class SeedPrefixObservationTests(unittest.TestCase):
                     for state in ('attempt', 'accepted', 'confirmed')])
                 self.assertEqual(public['confirmed'], count)
                 self.assertEqual(public['recipes'], list(ids[:count]))
-                self.assertEqual(public['scope'], 'observed_restored_seed_catalog_prefix'
-                    if catalog_capture else 'observed_restored_seed_prefix')
+                self.assertEqual(public['scope'], public_scope)
                 self.assertEqual(public['receipts_sha256'], seeds.digest(value))
                 self.assertFalse(public['complete'])
                 self.assertFalse(public['seed_admitted'])
                 self.assertNotIn('receipts', public)
-                self.assertNotIn('1'*64, json.dumps(public))
+                self.assertNotIn(prefix['receipts'][-1]['hash'], json.dumps(public))
                 previous = value
             self.assertEqual(seeds.finish_prefix(previous, final,
                 catalog_capture=catalog_capture), final)
             with self.assertRaises(restored.checkpoint.Refused):
                 seeds.finish_prefix(previous, final, catalog_capture=not catalog_capture)
-            if catalog_capture == 'stake-draft':
+            if catalog_capture in ('stake-draft', 'project-detail'):
                 with self.assertRaises(restored.checkpoint.Refused):
                     seeds.finish_prefix(previous, final, catalog_capture=True)
 

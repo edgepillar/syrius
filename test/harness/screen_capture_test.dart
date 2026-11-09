@@ -472,7 +472,7 @@ void main() {
         capture.capture('token-mine'),
         throwsA(isA<ScreenCaptureError>()),
       );
-      final ScreenScript seeded = ScreenCapture(
+      ScreenCapture ownedCapture({required bool project}) => ScreenCapture(
         repository: repository,
         call: agent.call,
         prepareHome: agent.prepareHome,
@@ -480,7 +480,10 @@ void main() {
         assertionFor: (List<String> words) =>
             cli.assertionArgs(cli.Args(words.sublist(1))),
         restoredSeeded: true,
-      ).preflight('token-mine').single;
+        restoredProject: project,
+      );
+      final ScreenCapture seededCapture = ownedCapture(project: false);
+      final ScreenScript seeded = seededCapture.preflight('token-mine').single;
       expect(seeded.assertion['key'], 'mint_amount_field');
       expect(seeded.assertion['kind'], 'field');
       expect(seeded.lines.map((ScreenLine line) => line.words.join(' ')),
@@ -492,6 +495,22 @@ void main() {
           ]));
       expect(seeded.afterCapture.first.words,
           <String>['tap', '--key', '@issued-token-row']);
+      writeScript('az-project',
+          File('harness/screens/az-project.txt').readAsStringSync());
+      expect(() => seededCapture.preflight('az-project'),
+          throwsA(isA<ScreenCaptureError>()));
+      final ScreenCapture project = ownedCapture(project: true);
+      expect(() => project.preflight('token-mine'),
+          throwsA(isA<ScreenCaptureError>()));
+      final ScreenScript detail = project.preflight('az-project').single;
+      expect(detail.assertion['key'], 'accelerator_project_loaded');
+      expect(detail.lines.map((ScreenLine line) => line.words.join(' ')),
+          containsAllInOrder(<String>[
+            'wait --key @confirmed-project-row --timeout 30',
+            'tap --key @confirmed-project-row',
+          ]));
+      expect(detail.afterCapture.first.words,
+          <String>['tap', '--key', 'project_details_back']);
       expect(agent.commands, isEmpty);
       expect(Directory('${repository.path}/.harness').existsSync(), isFalse);
     },

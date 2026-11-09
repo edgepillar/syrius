@@ -31,10 +31,17 @@ SEEDED_FILES = ('13-staking-dark.png', '13-staking-light.png',
                 '24-token-mine-dark.png', '24-token-mine-light.png')
 STAKE_DRAFT_FAMILY = 'stake-draft'
 STAKE_DRAFT_SCHEMA = 6
-STAKE_DRAFT_FAILURE_KIND = 'restored_stake_draft_capture_failure'
+PROJECT_DETAIL_FAMILY = 'project-detail'
+PROJECT_DETAIL_SCHEMA = 7
 RESTORED_FAMILIES = {SEEDED_FAMILY: SEEDED_SCHEMA,
-                     STAKE_DRAFT_FAMILY: STAKE_DRAFT_SCHEMA}
+                     STAKE_DRAFT_FAMILY: STAKE_DRAFT_SCHEMA,
+                     PROJECT_DETAIL_FAMILY: PROJECT_DETAIL_SCHEMA}
 RESTORED_SCHEMAS = frozenset(RESTORED_FAMILIES.values())
+RESTORED_FAILURE_KINDS = {
+    SEEDED_SCHEMA: 'restored_seeded_capture_failure',
+    STAKE_DRAFT_SCHEMA: 'restored_stake_draft_capture_failure',
+    PROJECT_DETAIL_SCHEMA: 'restored_project_detail_capture_failure',
+}
 FAMILY_SCHEMAS = {'details': 1, 'token-draft': 2, 'send-confirm': 3, 'earn': 5}
 CATALOG_STAGES = {name.replace('-', '_') + '_catalog': schema
                   for name, schema in FAMILY_SCHEMAS.items()}
@@ -46,6 +53,8 @@ CATALOGS = {
     FAMILY_SCHEMAS['earn']: (EARN_SCREENS, EARN_FILES),
     STAKE_DRAFT_SCHEMA: (('staking-new',),
                          ('14-staking-new-dark.png', '14-staking-new-light.png')),
+    PROJECT_DETAIL_SCHEMA: (('az-project',),
+                            ('29-az-project-dark.png', '29-az-project-light.png')),
 }
 OUTPUT = Path('.harness/ci-details-catalog')
 SEEDED_OUTPUT = Path('.harness/ci-seeded-catalog')
@@ -126,9 +135,8 @@ def failure_diagnostic(value, *, catalog_schema=1):
     else:
         need(value['schema'] == 1)
     need(required <= set(value) <= required | optional)
-    kind = {SEEDED_SCHEMA: 'restored_seeded_capture_failure',
-            STAKE_DRAFT_SCHEMA: STAKE_DRAFT_FAILURE_KIND}.get(
-                catalog_schema, 'readonly_details_capture_failure')
+    kind = RESTORED_FAILURE_KINDS.get(
+        catalog_schema, 'readonly_details_capture_failure')
     need(type(value['schema']) is int and value['schema'] in (1, 2)
          and value['kind'] == kind
          and type(value['last_entered_step']) is str

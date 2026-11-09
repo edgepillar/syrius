@@ -857,10 +857,14 @@ void main() {
         RestoredSeedSelection.all => seedRecipeIds.toList(),
         RestoredSeedSelection.seededCatalog => const <String>['stake', 'token'],
         RestoredSeedSelection.stakeDraft => const <String>['stake'],
+        RestoredSeedSelection.projectDetail => const <String>['project'],
       };
-      final String scope = selection == RestoredSeedSelection.all
-          ? 'private_restored_seed'
-          : 'private_restored_seed_catalog';
+      final String scope = switch (selection) {
+        RestoredSeedSelection.all => 'private_restored_seed',
+        RestoredSeedSelection.projectDetail =>
+          'private_restored_project_catalog',
+        _ => 'private_restored_seed_catalog',
+      };
       final Map<String, Object> result = await session.workflow(
         onConfirmedPrefix: (Map<String, Object> prefix) async {
           observed.add(prefix);
