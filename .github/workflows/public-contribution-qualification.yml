@@ -56,6 +56,7 @@ on:
           - launch
           - launch-settle
           - lock-catalog
+          - quiz-catalog
           - seeded-states
           - stake-draft
           - project-detail
@@ -191,12 +192,12 @@ jobs:
         run: flutter build windows --release --no-pub --target harness/app/main.dart --dart-define-from-file=.dart_tool/git_metadata.json
 
       - name: Observe the original startup and normal process exit
-        if: inputs.readonly_catalog_family != 'launch' && inputs.readonly_catalog_family != 'launch-settle' && inputs.readonly_catalog_family != 'lock-catalog'
+        if: inputs.readonly_catalog_family != 'launch' && inputs.readonly_catalog_family != 'launch-settle' && inputs.readonly_catalog_family != 'lock-catalog' && inputs.readonly_catalog_family != 'quiz-catalog'
         timeout-minutes: 3
         run: python -B -m tool.ci.windows_startup_probe
 
       - name: Observe natural startup in a fresh original process
-        if: inputs.readonly_catalog_family != 'launch' && inputs.readonly_catalog_family != 'launch-settle' && inputs.readonly_catalog_family != 'lock-catalog'
+        if: inputs.readonly_catalog_family != 'launch' && inputs.readonly_catalog_family != 'launch-settle' && inputs.readonly_catalog_family != 'lock-catalog' && inputs.readonly_catalog_family != 'quiz-catalog'
         timeout-minutes: 3
         run: python -B -m tool.ci.windows_startup_probe --natural-only
 
@@ -263,6 +264,26 @@ jobs:
             .harness/ci-lock-catalog/42-lock-wrong-light.png
             .harness/ci-lock-catalog/43-lock-pick-dark.png
             .harness/ci-lock-catalog/43-lock-pick-light.png
+
+      - name: Capture the synthetic seed quiz in both themes
+        if: inputs.readonly_catalog_family == 'quiz-catalog'
+        timeout-minutes: 4
+        env:
+          SYRIUS_WINDOWS_QUIZ_CATALOG: 'true'
+        run: python -B -m tool.ci.windows_quiz_catalog
+
+      - name: Retain the synthetic seed quiz manifest and PNGs
+        if: always() && inputs.readonly_catalog_family == 'quiz-catalog' && hashFiles('.harness/ci-quiz-catalog/manifest.json') != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-quiz-catalog-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          compression-level: 0
+          include-hidden-files: true
+          if-no-files-found: error
+          path: |
+            .harness/ci-quiz-catalog/manifest.json
+            .harness/ci-quiz-catalog/46-seed-quiz-dark.png
+            .harness/ci-quiz-catalog/46-seed-quiz-light.png
 
       - name: Retain only finite startup observations
         if: always() && hashFiles('.harness/ci-startup-probe/manifest.json') != ''

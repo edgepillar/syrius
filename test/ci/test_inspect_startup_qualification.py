@@ -244,6 +244,61 @@ class StartupInspectionTests(unittest.TestCase):
         with self.assertRaises(inspect.archive.Refused):
             read(dict(report, attempts=attempts[:-1]))
 
+    def test_quiz_catalog_requires_one_closed_actor_and_ordered_native_frames(self):
+        catalog = inspect.quiz_catalog
+        bodies = {name: _png(index) for index, name in enumerate(catalog.FILES)}
+        pins = dict(capture_source_sha256='d' * 64, fixture_source_sha256='c' * 64)
+        attempt = dict(theme='dark', role='capture', phase='complete', action_complete=True,
+            checks=dict.fromkeys(inspect.launch.ATTEMPT_CHECKS, True), exit_code=0,
+            exit_observed=True, forced_kill=False, output_complete=True,
+            output_overflow=False, error_codes=[])
+        captures = [dict(file=name, theme=theme, bytes=len(bodies[name]),
+            sha256=inspect.archive.sha(bodies[name]), correct=1, unlocked=1,
+            questions=3, choices=[4, 4, 4], complete=False, artwork_seconds=6,
+            native_before=4 + 2 * index, native_after=5 + 2 * index)
+            for index, (theme, name) in enumerate(zip(inspect.launch.THEMES, catalog.FILES))]
+        report = dict(schema=1, scope=catalog.SCOPE, success=True, attempts=[attempt],
+            captures=captures, source_stable=True, error_codes=[], source_sha=HEAD,
+            source_tree=TREE, run_id=str(RUN), run_attempt='1', runner_sha256='e' * 64,
+            payload_sha256='f' * 64, **pins)
+
+        def read(value, images=bodies):
+            buffer = io.BytesIO()
+            with zipfile.ZipFile(buffer, 'w') as zipped:
+                zipped.writestr('manifest.json', json.dumps(value))
+                for row in value['captures']:
+                    zipped.writestr(row['file'], images[row['file']])
+            raw = buffer.getvalue()
+            return inspect.launch_archive(raw, inspect.archive.sha(raw), len(raw),
+                HEAD, TREE, RUN, pins, quiz=True)
+
+        summary = read(report)
+        self.assertTrue(summary['artifact_reported_success'])
+        self.assertTrue(summary['single_process'])
+        self.assertEqual(summary['filenames'], list(catalog.FILES))
+        self.assertEqual(summary['visual_matches'], 0)
+        for change in (dict(correct=True), dict(unlocked=2), dict(complete=True),
+                       dict(artwork_seconds=7), dict(native_before=5),
+                       dict(native_after=6)):
+            with self.subTest(change=change), self.assertRaises(inspect.archive.Refused):
+                read(dict(report, captures=[captures[0], dict(captures[1], **change)]))
+        failed = dict(attempt, phase='restore', action_complete=False, forced_kill=True)
+        with self.assertRaises(inspect.archive.Refused):
+            read(dict(report, attempts=[failed]))
+        with self.assertRaises(inspect.archive.Refused):
+            read(dict(report, attempts=[attempt, attempt]))
+        dark, light = catalog.FILES
+        duplicate = dict(captures[1], bytes=len(bodies[dark]),
+                         sha256=inspect.archive.sha(bodies[dark]))
+        with self.assertRaises(inspect.archive.Refused):
+            read(dict(report, captures=[captures[0], duplicate]),
+                 dict(bodies, **{light: bodies[dark]}))
+        partial = read(dict(report, attempts=[failed], captures=[], source_stable=False,
+            success=False, error_codes=['WINDOW_RESTORE_FAILED']))
+        self.assertFalse(partial['artifact_reported_success'])
+        self.assertFalse(partial['single_process'])
+        self.assertEqual(partial['verified_png_count'], 0)
+
     def test_lock_catalog_waits_for_rest_and_refuses_a_changed_profile(self):
         catalog = inspect.lock_catalog
         settled = dict(ok=True, status='ready', theme='dark', frame=55, frames=56,

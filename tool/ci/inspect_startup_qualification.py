@@ -11,6 +11,7 @@ import zipfile
 from . import inspect_chain321 as archive
 from . import windows_launch_catalog as launch
 from . import windows_lock_catalog as lock_catalog
+from . import windows_quiz_catalog as quiz_catalog
 from . import windows_startup_probe as startup
 
 
@@ -136,13 +137,18 @@ def inspect_run(client, *, head, tree, run_id, job):
 
 
 def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *,
-                   settle=False, lock=False):
-    """Bind two genuine launch states to their closed preparation and capture actors."""
+                   settle=False, lock=False, quiz=False):
+    """Bind original startup lane PNGs to their exact closed actors."""
     cap = lock_catalog.MAX_ARCHIVE if lock else launch.MAX_ARCHIVE
+    if quiz:
+        cap = quiz_catalog.MAX_ARCHIVE
     archive.need(type(raw) is bytes and type(expected_size) is int
         and 0 < len(raw) == expected_size <= cap
         and archive.sha(raw) == expected_sha)
-    if lock:
+    if quiz:
+        files, frame_fields, scope = quiz_catalog.FILES, quiz_catalog.STATE_FIELDS, quiz_catalog.SCOPE
+        pin_fields = set(quiz_catalog.PIN_SOURCES)
+    elif lock:
         files, frame_fields, scope = lock_catalog.FILES, lock_catalog.STATE_FIELDS, lock_catalog.SCOPE
         pin_fields = {'capture_source_sha256', 'profile_sha256'}
     else:
@@ -191,13 +197,14 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
         archive.need(type(errors) is list and len(errors) <= 2
             and all(type(code) is str and code in startup.CODES for code in errors))
         attempts, captures = report['attempts'], report['captures']
-        roles = [(theme, role) for theme in launch.THEMES for role in ('prepare', 'capture')]
+        roles = ([('dark', 'capture')] if quiz else
+                 [(theme, role) for theme in launch.THEMES for role in ('prepare', 'capture')])
         archive.need(type(attempts) is list and len(attempts) <= len(roles)
                      and type(captures) is list and len(captures) <= len(files))
         attempt_flags = ('action_complete', 'exit_observed', 'forced_kill',
                          'output_complete', 'output_overflow')
         attempt_keys = {*attempt_flags, 'theme', 'role', 'checks', 'exit_code', 'error_codes'}
-        if lock:
+        if lock or quiz:
             attempt_keys.add('phase')
         for row, (theme, role) in zip(attempts, roles):
             archive.need(type(row) is dict and set(row) == attempt_keys
@@ -213,22 +220,30 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
                 archive.need(row['phase'] in lock_catalog.PHASES
                     and ((role == 'prepare') is (row['phase'] == 'prepare'))
                     and (not row['action_complete'] or row['phase'] in ('prepare', 'complete')))
+            if quiz:
+                archive.need(row['phase'] in quiz_catalog.PHASES
+                    and row['action_complete'] is (row['phase'] == 'complete'))
         archive.need(all(launch.attempt_passed(row) for row in attempts[:-1]))
         for index, (row, name) in enumerate(zip(captures, files)):
             theme, phase = divmod(index, per_theme)
+            actor = 0 if quiz else 2 * theme + 1
             archive.need(type(row) is dict
                 and set(row) == {'theme', 'file', 'bytes', 'sha256'} | frame_fields
                 and row['theme'] == launch.THEMES[theme] and row['file'] == name
-                and (lock_catalog.frame_matches(row, lock_catalog.SCREENS[phase]) if lock
-                     else launch.frame_matches(row, settle=settle))
                 and type(row['bytes']) is int and 0 < row['bytes'] <= launch.MAX_PNG
-                and len(attempts) >= 2 * (theme + 1)
-                and launch.attempt_passed(attempts[2 * theme + 1]))
+                and len(attempts) > actor and launch.attempt_passed(attempts[actor]))
+            if quiz:
+                archive.need(quiz_catalog.frame_matches(row) and (index == 0
+                    or row['native_before'] > captures[index - 1]['native_after']))
+            elif lock:
+                archive.need(lock_catalog.frame_matches(row, lock_catalog.SCREENS[phase]))
+            else:
+                archive.need(launch.frame_matches(row, settle=settle))
             pixels = zipped.read(name)
             archive.need(len(pixels) == row['bytes'] and archive.sha(pixels) == row['sha256'])
             launch.entry.png_bytes(base64.b64encode(pixels).decode('ascii'))
         archive.need(set(names) == {'manifest.json', *(row['file'] for row in captures)})
-        if lock:
+        if lock or quiz:
             archive.need(len({row['sha256'] for row in captures}) == len(captures))
         complete = (len(attempts) == len(roles) and len(captures) == len(files)
                     and all(launch.attempt_passed(row) for row in attempts)
@@ -238,26 +253,34 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
         source_head=head, source_tree=tree, source_run_id=run_id, source_attempt=1,
         archive_sha256=archive.sha(raw), manifest_sha256=archive.sha(manifest),
         artifact_reported_success=complete, verified_png_count=len(captures),
-        filenames=[row['file'] for row in captures], frames=56,
+        filenames=[row['file'] for row in captures],
         error_codes=errors, visual_matches=0, runtime_started=False,
         **pins)
-    if lock:
+    if quiz:
+        summary['single_process'] = len(attempts) == 1 and launch.attempt_passed(attempts[0])
+        summary['states'] = [{key: row[key] for key in sorted(frame_fields)} for row in captures]
+    elif lock:
+        summary['frames'] = 56
         summary['states'] = [{key: row[key] for key in sorted(frame_fields)} for row in captures]
     else:
+        summary['frames'] = 56
         summary['frame'] = 55 if settle else 23
     if settle:
         summary['handoff_progress'] = [row['progress'] for row in captures]
     return summary
 
 
-def inspect_launch_run(client, *, head, tree, run_id, job, settle=False, lock=False):
+def inspect_launch_run(client, *, head, tree, run_id, job, settle=False, lock=False, quiz=False):
     """Inspect the selected startup lane without an SDK or native process."""
     archive.need(job['name'] == JOB_NAME and job['head_sha'] == head
         and job['run_id'] == run_id and job['status'] == 'completed'
         and job['conclusion'] in ('success', 'failure'))
     pins = {}
     sources = [('tool/ci/windows_launch_catalog.py', None)]
-    if lock:
+    if quiz:
+        sources.append(('tool/ci/windows_quiz_catalog.py', None))
+        sources.extend((str(path), key) for key, path in quiz_catalog.PIN_SOURCES.items())
+    elif lock:
         sources.extend((('tool/ci/windows_lock_catalog.py', None),
                         (str(lock_catalog.CAPTURE_SOURCE), 'capture_source_sha256')))
     else:
@@ -275,7 +298,7 @@ def inspect_launch_run(client, *, head, tree, run_id, job, settle=False, lock=Fa
         archive.need(len(body) == selected['size'])
         if key is None:
             current = Path(__file__).with_name(Path(name).name).read_bytes()
-            prior = () if lock else ((HANDOFF_LAUNCH_PRODUCER_SHA,) if settle else
+            prior = () if lock or quiz else ((HANDOFF_LAUNCH_PRODUCER_SHA,) if settle else
                                       (ORIGINAL_LAUNCH_PRODUCER_SHA, HANDOFF_LAUNCH_PRODUCER_SHA))
             archive.need(body == current or archive.sha(body) in prior)
         else:
@@ -286,6 +309,8 @@ def inspect_launch_run(client, *, head, tree, run_id, job, settle=False, lock=Fa
     screen = launch.SETTLE_SCREEN if settle else 'launch'
     prefix = lock_catalog.ARTIFACT_PREFIX if lock else 'windows-' + screen + '-catalog-'
     cap = lock_catalog.MAX_ARCHIVE if lock else launch.MAX_ARCHIVE
+    if quiz:
+        prefix, cap = quiz_catalog.ARTIFACT_PREFIX, quiz_catalog.MAX_ARCHIVE
     archive.need(item['name'] == prefix + head + '-' + str(run_id) + '-1'
         and item['expired'] is False and item['workflow_run']['id'] == run_id
         and item['workflow_run']['head_sha'] == head and type(item['id']) is int and item['id'] > 0
@@ -294,7 +319,7 @@ def inspect_launch_run(client, *, head, tree, run_id, job, settle=False, lock=Fa
     location = client.read(archive.API + '/actions/artifacts/' + str(item['id']) + '/zip', redirect=True)
     raw = client.read(location, authenticated=False, cap=cap)
     summary = launch_archive(raw, item['digest'][7:], item['size_in_bytes'],
-        head, tree, run_id, pins, settle=settle, lock=lock)
+        head, tree, run_id, pins, settle=settle, lock=lock, quiz=quiz)
     archive.need((job['conclusion'] == 'success') is summary['artifact_reported_success'])
     summary.update(original_job_id=job['id'], original_job_conclusion=job['conclusion'])
     return summary

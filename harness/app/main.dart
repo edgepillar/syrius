@@ -17,6 +17,7 @@ import 'fixtures/sentinel_fixture.dart';
 import 'native_launch_capture.dart'
     show nativeLaunchScreenEnvironment, nativeLaunchThemeEnvironment;
 import 'native_lock_catalog.dart' show lockCatalogScreen;
+import 'native_quiz_catalog.dart' show quizCatalogScreen;
 import 'native_window_owner.dart';
 import 'presentation_host.dart';
 import 'presentation_mode.dart';
@@ -82,10 +83,12 @@ Future<void> main() async {
   final String? launchScreen = env[nativeLaunchScreenEnvironment];
   final bool launchSettle = launchScreen == 'launch-settle';
   final bool launchLock = launchScreen == lockCatalogScreen;
+  final bool launchQuiz = launchScreen == quizCatalogScreen;
   if ((launchTheme != null || launchScreen != null) &&
       (!Platform.isWindows || env['GITHUB_ACTIONS'] != 'true' ||
           readonlyNative || presentation != null ||
-          launchScreen != null && !launchSettle && !launchLock ||
+          launchScreen != null && !launchSettle && !launchLock && !launchQuiz ||
+          launchQuiz && launchTheme != 'dark' ||
           launchTheme != null && launchTheme != 'dark' &&
               launchTheme != 'light')) {
     stderr.writeln('syrius harness: launch capture requires Windows CI');
@@ -148,6 +151,7 @@ Future<void> main() async {
       launchTheme: launchTheme,
       launchSettle: launchSettle,
       launchLockCatalog: launchLock,
+      launchQuizCatalog: launchQuiz,
     );
     await configureHarnessWindowTracking();
   }

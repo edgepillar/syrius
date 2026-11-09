@@ -93,6 +93,7 @@ import 'logical_capture.dart';
 import 'native_entry_capture.dart';
 import 'native_launch_capture.dart';
 import 'native_lock_catalog.dart';
+import 'native_quiz_catalog.dart';
 import 'native_window_owner.dart';
 import 'presentation_close.dart';
 import 'presentation_host.dart';
@@ -473,6 +474,7 @@ class HarnessAgent {
   NativeEntryCapture? _nativeEntry;
   NativeLaunchCapture? _nativeLaunch;
   NativeLockCatalog? _nativeLock;
+  NativeQuizCatalog? _nativeQuiz;
   NativeWindowOwner? _nativeWindow;
   ReadonlyNativeCommands? _readonlyNative;
   StatefulElement? _lockViewOwner;
@@ -540,6 +542,7 @@ class HarnessAgent {
     String? launchTheme,
     bool launchSettle = false,
     bool launchLockCatalog = false,
+    bool launchQuizCatalog = false,
   }) {
     if (_modeSelected ||
         booted ||
@@ -602,7 +605,9 @@ class HarnessAgent {
         );
       },
     );
-    if (launchTheme != null && launchLockCatalog) {
+    if (launchQuizCatalog) {
+      _nativeQuiz = NativeQuizCatalog(window: window, readView: () => _view);
+    } else if (launchTheme != null && launchLockCatalog) {
       _nativeLock = NativeLockCatalog(
         theme: launchTheme,
         window: window,
@@ -967,6 +972,8 @@ class HarnessAgent {
         return _lockViewCommand(c);
       case 'lock-catalog':
         return _lockCatalogCommand(c);
+      case 'quiz-catalog':
+        return _quizCatalogCommand(c);
       case 'wallet-recipe':
         return _walletRecipeCommand(c);
       case 'entry-caption':
@@ -1893,6 +1900,41 @@ class HarnessAgent {
       final Map<String, Object?> receipt = catalog.control(action);
       if (action == 'open-picker' || action == 'close-picker') await _frame();
       return receipt;
+    } on CaptureRefused catch (error) {
+      throw HarnessError(error.code);
+    }
+  }
+
+  Future<Map<String, Object?>> _quizCatalogCommand(
+    Map<String, dynamic> command,
+  ) async {
+    final NativeQuizCatalog? catalog = _nativeQuiz;
+    if (catalog == null || command.length != 2) {
+      throw HarnessError('quiz-catalog-input-refused');
+    }
+    _requireCaptureFrameIdle();
+    try {
+      switch (command['action']) {
+        case 'open':
+          catalog.open();
+        case 'status':
+          return await catalog.observe();
+        case 'select-first':
+          final String key = catalog.firstChoice;
+          await _tap(
+            <String, dynamic>{'key': key, 'exact': true, 'settleMs': 0},
+            requireAdmission: () {
+              if (catalog.firstChoice != key) {
+                throw const CaptureRefused('quiz-first-choice-changed');
+              }
+            },
+          );
+        case 'close':
+          await catalog.close();
+        default:
+          throw HarnessError('quiz-catalog-input-refused');
+      }
+      return <String, Object?>{'status': 'accepted'};
     } on CaptureRefused catch (error) {
       throw HarnessError(error.code);
     }

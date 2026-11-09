@@ -295,20 +295,23 @@ def main():
                 and other['status'] == 'completed' and other['conclusion'] == 'skipped'
                 for other in listing['jobs'] if other is not job))
             PHASE = 'startup_artifacts'
-            launch_names = (startup.launch.JOB_STEP, startup.launch.SETTLE_JOB_STEP,
-                            startup.lock_catalog.JOB_STEP)
+            launch_titles = {
+                startup.launch.JOB_STEP: 'Hosted original cold launch inspection',
+                startup.launch.SETTLE_JOB_STEP: 'Hosted original launch handoff inspection',
+                startup.lock_catalog.JOB_STEP: 'Hosted original lock catalog inspection',
+                startup.quiz_catalog.JOB_STEP: 'Hosted original seed quiz catalog inspection',
+            }
             launch_steps = [step for step in job.get('steps', [])
-                            if step['name'] in launch_names
+                            if step['name'] in launch_titles
                             and step['conclusion'] != 'skipped']
             if launch_steps:
                 archive.need(len(launch_steps) == 1 and launch_steps[0]['status'] == 'completed')
-                settle = launch_steps[0]['name'] == startup.launch.SETTLE_JOB_STEP
-                lock = launch_steps[0]['name'] == startup.lock_catalog.JOB_STEP
-                title = 'Hosted original lock catalog inspection' if lock else (
-                    'Hosted original launch handoff inspection' if settle
-                    else 'Hosted original cold launch inspection')
-                emit(title, startup.inspect_launch_run(
-                    client, head=head, tree=tree, run_id=run_id, job=job, settle=settle, lock=lock))
+                name = launch_steps[0]['name']
+                emit(launch_titles[name], startup.inspect_launch_run(
+                    client, head=head, tree=tree, run_id=run_id, job=job,
+                    settle=name == startup.launch.SETTLE_JOB_STEP,
+                    lock=name == startup.lock_catalog.JOB_STEP,
+                    quiz=name == startup.quiz_catalog.JOB_STEP))
                 return 0
             for summary in startup.inspect_run(
                     client, head=head, tree=tree, run_id=run_id, job=job):

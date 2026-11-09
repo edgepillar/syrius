@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
@@ -13,6 +11,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/lock_ca
 import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/lock_wallet_picker.dart';
 
 import 'capture_protocol.dart';
+import 'fixtures/seed_quiz_fixture.dart';
 
 /// Memory-only scene selection for an independent presentation process.
 class HarnessPresentationController extends ChangeNotifier {
@@ -140,13 +139,7 @@ class _HarnessPresentationHostState extends State<HarnessPresentationHost> {
     text: 'synthetic-input',
   );
   final ImportSeedDraft _draft = ImportSeedDraft('', expectedWords: 12);
-  late final SeedQuiz _quiz = SeedQuiz(
-    // Deliberately invalid wallet words cannot become a usable mnemonic.
-    List<String>.generate(12, (int index) => 'fixture-word-$index'),
-    random: Random(7),
-    isValidWord: (String _) => true,
-    validateMnemonic: (List<String> _) => true,
-  );
+  late final SeedQuiz _quiz = createSyntheticSeedQuiz();
 
   static Never _refuse() =>
       throw const CaptureRefused('presentation-action-refused');
