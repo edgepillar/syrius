@@ -268,9 +268,14 @@ verifies the manifest with zero images. Source577 waits separately for the
 final film frame and the original input owner. It focuses the existing window
 once when needed and checks the picker with the selected lock-view cases.
 Source578 binds still captures to the visible unlock control exposed by the
-harness. Fresh capture and reference review remain open.
+harness. Both Dart groups complete with 654 and 721 passing cases. The
+combined gate still expects 1,374 and stops before building. Source579
+includes the new lock-view case in the expected totals. The Source578 run
+retains its failed gate and zero artifacts. Fresh capture and reference
+review remain open.
 [First producer](https://github.com/edgepillar/syrius/actions/runs/42714625910)
 and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42717061765).
+[Source578 run](https://github.com/edgepillar/syrius/actions/runs/42717861561).
 
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,
