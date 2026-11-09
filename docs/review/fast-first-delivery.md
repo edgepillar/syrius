@@ -10,11 +10,15 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 
 ## Verified results
 
-The latest Native113 result qualifies the original one-ZNN UI send,
-twelve-page tour, quiescence and normal required actor exits. The copied
-session confirms Stake, Fuse and Token before Deposit refuses pointer
-admission. The precise condition and Deposit outcome remain unknown. Fresh
-native verification of the control-binding correction is pending.
+Native114 qualifies the original one-ZNN UI send, twelve-page tour,
+quiescence and normal required actor exits. The copied session confirms
+Stake, Fuse, Token, Deposit and Project, then stops while Fund Address waits
+for its Send form. The recipe now observes the actual recipient field.
+Fresh hosted verification and the copied lifecycle remain open.
+[Source524 Native114 result](source524-native114-fund-address-readiness.md).
+
+The earlier Native113 copied session stopped at Deposit pointer admission.
+The precise condition and that original outcome remain unknown.
 [Source521 Native113 result](source521-native113-deposit-control.md).
 
 The [Source512 Native112 result](source512-native112-stake-effect.md)

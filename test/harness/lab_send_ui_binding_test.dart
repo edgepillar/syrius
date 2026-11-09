@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -25,6 +26,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 import '../../harness/app/agent.dart';
 import '../../harness/app/fixtures/lab_send_ui_binding.dart';
 import '../../harness/app/fixtures/seed_policy.dart';
+import '../../harness/seed/seed_recipe.dart';
 import '../helpers/hydrated_bloc.dart';
 import '../settings_addresses_redesign/support.dart';
 
@@ -67,7 +69,7 @@ Future<T> _drive<T>(WidgetTester tester, Future<T> command) async {
 
 class _Fixture {
   _Fixture({this.customReview = false, this.deferReview = false,
-    this.amount = '1'}) {
+    this.amount = '1', this.showSyncNotice = true}) {
     source = _Source(SeedEnvironment(
       profile: 'fixture-ui', isolated: true, unlocked: true,
       initialized: true, booted: true, ws: seedWsOrigin, http: seedHttpOrigin,
@@ -96,6 +98,7 @@ class _Fixture {
   final String amount;
   final bool customReview;
   final bool deferReview;
+  final bool showSyncNotice;
   final _Blocks blocks = _Blocks();
   final _Balances balances = _Balances();
   final _Sync sync = _Sync();
@@ -167,7 +170,10 @@ class _Fixture {
             BlocProvider<SendTransactionBloc>.value(value: value,
               child: BlocProvider<SendDraftCubit>.value(value: draft,
                 child: Scaffold(body: SingleChildScrollView(
-                  child: SendPopulated(showSender: false,
+                  child: SendPopulated(
+                    key: const Key('send_form_ready'),
+                    showSender: false,
+                    showSyncNotice: showSyncNotice,
                     balances: <String, AccountInfo>{
                       from: AccountInfo(address: from, blockCount: 1,
                         balanceInfoList: <BalanceInfoListItem>[
@@ -256,6 +262,42 @@ void main() {
   setUpAll(() {
     registerFallbackValue(AccountBlockTemplate(blockType: 2));
     registerFallbackValue(Address.parse(fixtureAddress(1)));
+  });
+
+  testWidgets('Fund Address observes the real Send recipient field', (
+    WidgetTester tester,
+  ) async {
+    const String recipient = 'send_recipient_field';
+    final SeedRecipe plan = SeedRecipe.parse(
+      'fund-address',
+      File('harness/seed/fund-address.txt').readAsStringSync(),
+    );
+    expect(plan.lines[2], <String>[
+      'wait', '--key', recipient, '--kind', 'field', '--timeout', '30',
+    ]);
+    expect(plan.lines.last, <String>[
+      'assert', '--key', recipient, '--kind', 'field',
+    ]);
+
+    final _Fixture fixture = _Fixture(showSyncNotice: false);
+    await fixture.mount(tester);
+    expect(find.byKey(const Key('send_form_ready')), findsOneWidget);
+    await expectLater(fixture.agent.commandForTest(<String, dynamic>{
+      'cmd': 'wait', 'key': 'send_form_ready', 'timeoutMs': 0,
+    }), throwsA(isA<HarnessError>()));
+
+    for (final String command in <String>['wait', 'assert']) {
+      final Map<String, Object?> reply = await fixture.agent.commandForTest(
+        <String, dynamic>{
+          'cmd': command, 'key': recipient, 'kind': 'field',
+          if (command == 'wait') 'timeoutMs': 0,
+        },
+      );
+      expect(reply['target'], containsPair('key', recipient));
+      expect(reply['target'], containsPair('kind', 'field'));
+    }
+    expect(fixture.down, 0);
+    expect(fixture.publications, 0);
   });
 
   test('HTTP lab-send input cannot choose terms or non-lab transports',

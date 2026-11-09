@@ -3,7 +3,7 @@
 # Derived index 2 must already exist, after prepare-address.txt.
 goto transfer
 tap --key transfer_mode_send
-wait --key send_form_ready --timeout 30
+wait --key send_recipient_field --kind field --timeout 30
 tap --key send_token_field
 tap ZNN --kind button --exact
 type --key send_recipient_field ${secondaryAddress}
@@ -12,4 +12,4 @@ tap --key send_submit_button
 wait --key send_confirmation_accept --timeout 30
 assert --key send_confirmation_accept
 publish --key send_confirmation_accept
-assert --key send_form_ready
+assert --key send_recipient_field --kind field
