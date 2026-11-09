@@ -124,8 +124,8 @@ final class SeedFundingObservation {
     required this.ledger,
     required this.walletReceive,
     required this.pairedReceive,
-    Future<Object?>? receiveResult,
-  }) : _receiveResult = receiveResult;
+    this._receiveResult,
+  });
 
   final SeedFundingLedger ledger;
   final SeedFundingReceive walletReceive;
