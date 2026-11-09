@@ -227,7 +227,7 @@ class InspectionTests(unittest.TestCase):
 
     def test_lab_failure_projection_retains_only_fixed_codes_and_refuses_success(self):
         labels = []
-        for code in inspection.LAB_CODES:
+        for code in lab.CODES:
             error = RuntimeError('Synthetic private exception text')
             error.code = code
             self.assertEqual(inspection.inspection_failure_code(error,

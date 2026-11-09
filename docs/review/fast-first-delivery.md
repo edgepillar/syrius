@@ -66,6 +66,16 @@ slot each, and the four earlier waits remain five seconds each.
 [Producer](https://github.com/edgepillar/syrius/actions/runs/42654419029) and
 [independent archive reader](https://github.com/edgepillar/syrius/actions/runs/42658136847).
 
+Source555 Native133 passes the selected source gates and reaches the owned
+wallet's ready state. Lab revalidation stops with `INTERNAL_ERROR` before
+fixture input. A passive probe reads height eight and one peer. All five
+original nodes close normally. The reader verifies both manifests and zero
+captured images. The inner cause remains `NOT_ESTABLISHED`. Source556 retains
+the same fixed lab failure vocabulary already used by the readonly inspection.
+The archive reader binds those codes to failed revalidation before input.
+[Producer](https://github.com/edgepillar/syrius/actions/runs/42659364060) and
+[independent archive reader](https://github.com/edgepillar/syrius/actions/runs/42662567182).
+
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,
 Project and Fund Address with its confirmed receive and target balance. The

@@ -621,9 +621,14 @@ def project_wallet_tour(report, lab, head, run_id, tree, manifest_sha):
     checks, errors, captures = report.get("checks"), report.get("errors"), report.get("captures")
     expected_checks = wallet.CHECKS if report['schema'] == 1 else wallet.CURRENT_CHECKS
     need(type(checks) is dict and set(checks) == set(expected_checks)
-         and all(type(value) is bool for value in checks.values())
-         and type(errors) is list and len(errors) <= 16
-         and all(value in wallet.CODES for value in errors)
+         and all(type(value) is bool for value in checks.values()))
+    codes = wallet.CODES
+    if (report.get("phase") == original.get("phase") == "lab_revalidation"
+            and report["success"] is False
+            and checks["lab_revalidated"] is checks["input_released"] is False):
+        codes |= wallet.LAB_REVALIDATION_CODES
+    need(type(errors) is list and len(errors) <= 16
+         and all(type(value) is str and value in codes for value in errors)
          and type(captures) is list and len(captures) <= len(wallet.PAGES)
          and "tour" in report)
     for index, capture in enumerate(captures):

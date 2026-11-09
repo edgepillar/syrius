@@ -937,6 +937,22 @@ class InspectionTests(unittest.TestCase):
         self.assertIsNone(value["tour"])
         self.assertFalse(value["artifact_reported_success"])
 
+        report.update(phase="lab_revalidation", entry_failure=None)
+        lab["wallet_tour"]["phase"] = "lab_revalidation"
+        for code in ("PRODUCTION_UNPROVEN", "LAB_REVALIDATION_TIMEOUT_ERROR"):
+            report["errors"] = lab["wallet_tour"]["errors"] = [code]
+            value = inspect.project_wallet_tour(
+                report, lab, "a" * 40, 123, "b" * 40, "c" * 64)
+            self.assertEqual(value["original_error_codes"], [code])
+            self.assertFalse(value["artifact_reported_success"])
+        lab["wallet_tour"]["phase"] = "onboarding_and_tour"
+        with self.assertRaises(inspect.Refused):
+            inspect.project_wallet_tour(report, lab, "a" * 40, 123, "b" * 40, "c" * 64)
+        lab["wallet_tour"]["phase"] = "lab_revalidation"
+        report["checks"]["input_released"] = lab["wallet_tour"]["checks"]["input_released"] = True
+        with self.assertRaises(inspect.Refused):
+            inspect.project_wallet_tour(report, lab, "a" * 40, 123, "b" * 40, "c" * 64)
+
     def test_relay_projection_is_finite_data_and_never_an_owner(self):
         report = manifest()
         report.update(backend="docker", compiler="go version go1.24.1 linux/amd64",

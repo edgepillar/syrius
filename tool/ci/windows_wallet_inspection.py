@@ -26,7 +26,7 @@ from . import readonly_settings_capture as settings
 from . import readonly_navigation_capture as navigation
 from . import readonly_details_capture as details
 from .windows_debug_process import IMAGE_NAMES
-from .hosted_chain321 import (CODES as LAB_CODES, READONLY_CATALOG_SCHEMAS,
+from .hosted_chain321 import (READONLY_CATALOG_SCHEMAS,
     SEND_CONFIRM_INSPECTION_SCHEMA, readonly_catalog_family)
 
 
@@ -55,10 +55,8 @@ CHECKS = ('environment', 'source', 'unused_destinations', 'job_owned',
     'captures', 'close_ack', 'application_exit', 'entry_exit',
     'output_complete', 'source_unchanged', 'auxiliary_cleanup')
 TOUR_CHECKS = ('tours_complete', 'locale_verified')
-CODES = shared.CODES | LAB_CODES | frozenset(('BINDING_REFUSED', 'INSPECTION_REFUSED',
-    'LAB_REVALIDATION_TIMEOUT_ERROR', 'LAB_REVALIDATION_CONNECTION_ERROR',
-    'LAB_REVALIDATION_KEY_ERROR', 'LAB_REVALIDATION_TYPE_ERROR',
-    'LAB_REVALIDATION_VALUE_ERROR', 'LAB_REVALIDATION_OS_ERROR'))
+CODES = shared.CODES | shared.LAB_REVALIDATION_CODES | frozenset((
+    'BINDING_REFUSED', 'INSPECTION_REFUSED'))
 STAGES = frozenset(('unused_destinations', 'build', 'start', 'input', 'window',
     'onboarding', 'signing_policy', 'onboarding_logs', 'address_selection',
     'wallet_binding', 'tour_dark', 'tour_light', 'home_catalog', 'settings_catalog',
@@ -77,25 +75,7 @@ def need(value, code='INSPECTION_REFUSED'):
 
 
 def inspection_failure_code(error, phase):
-    """Retain only fixed failure labels, never exception text or class names."""
-    try:
-        code = getattr(error, 'code', None)
-    except Exception:
-        code = None
-    if code is None and type(error) is debug.ProcessRefused and len(error.args) == 1:
-        code = error.args[0]
-    if type(code) is str and code in CODES:
-        return code
-    if phase == 'lab_revalidation':
-        for kind, label in ((TimeoutError, 'LAB_REVALIDATION_TIMEOUT_ERROR'),
-            (ConnectionError, 'LAB_REVALIDATION_CONNECTION_ERROR'),
-            (KeyError, 'LAB_REVALIDATION_KEY_ERROR'),
-            (TypeError, 'LAB_REVALIDATION_TYPE_ERROR'),
-            (ValueError, 'LAB_REVALIDATION_VALUE_ERROR'),
-            (OSError, 'LAB_REVALIDATION_OS_ERROR')):
-            if isinstance(error, kind):
-                return label
-    return 'INTERNAL_ERROR'
+    return shared.project_failure_code(error, phase, CODES)
 
 
 def read_original(path, cap):

@@ -22,6 +22,7 @@ import time
 from . import lab_send_diagnostic
 from . import wallet_restore_origin
 from . import windows_debug_loop as debug
+from .hosted_chain321 import CODES as LAB_CODES
 
 
 PAGES = ('dashboard', 'transfer', 'pillars', 'sentinels', 'staking', 'plasma',
@@ -39,6 +40,16 @@ CODES = frozenset(('ENVIRONMENT_REFUSED', 'SOURCE_REFUSED', 'PROFILE_REFUSED',
     'APPLICATION_EXIT_UNCONFIRMED', 'PNG_INVALID', 'TOOL_REFUSED',
     'TOTAL_DEADLINE', 'HELPER_IMAGE_REFUSED', 'HELPER_IDENTITY_REFUSED',
     'HELPER_CLOSE_UNCONFIRMED', 'QUIESCENCE_REFUSED', 'INTERNAL_ERROR'))
+LAB_REVALIDATION_ERRORS = (
+    (TimeoutError, 'LAB_REVALIDATION_TIMEOUT_ERROR'),
+    (ConnectionError, 'LAB_REVALIDATION_CONNECTION_ERROR'),
+    (KeyError, 'LAB_REVALIDATION_KEY_ERROR'),
+    (TypeError, 'LAB_REVALIDATION_TYPE_ERROR'),
+    (ValueError, 'LAB_REVALIDATION_VALUE_ERROR'),
+    (OSError, 'LAB_REVALIDATION_OS_ERROR'),
+)
+LAB_REVALIDATION_CODES = LAB_CODES | frozenset(
+    label for _, label in LAB_REVALIDATION_ERRORS)
 WORK_CAP = 4 * 1024**3
 FIXTURE_FLOOR = 2 * 1024**3
 ENTRY_LIMIT = 100000
@@ -120,6 +131,23 @@ class Refused(Exception):
 def need(value, code):
     if not value:
         raise Refused(code)
+
+
+def project_failure_code(error, phase, codes):
+    """Retain only fixed failure labels, never exception text or class names."""
+    try:
+        code = getattr(error, 'code', None)
+    except Exception:
+        code = None
+    if code is None and type(error) is debug.ProcessRefused and len(error.args) == 1:
+        code = error.args[0]
+    if type(code) is str and code in codes:
+        return code
+    if phase == 'lab_revalidation':
+        for kind, label in LAB_REVALIDATION_ERRORS:
+            if isinstance(error, kind):
+                return label
+    return 'INTERNAL_ERROR'
 
 
 TOUR_FAILURE_STEPS = frozenset((
@@ -696,8 +724,8 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, retain_clos
              and current['cross_transport_hash_equal'] is observation['cross_transport_hash_equal'] is True,
              'LAB_REFUSED')
         report['checks']['lab_revalidated'] = True
-        fixture = public_fixture((repo / 'tools/devnet/lab/README.md').read_text(encoding='utf-8'))
         report['phase'] = 'onboarding_and_tour'
+        fixture = public_fixture((repo / 'tools/devnet/lab/README.md').read_text(encoding='utf-8'))
         # Reserve before the single private-input write; no retry is admitted.
         report['input_attempted'] = True
         password = secrets.token_hex(16) + 'A!1'
@@ -757,8 +785,13 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, retain_clos
         report['checks']['auxiliary_cleanup'] = True
         report['phase'] = 'complete'
     except (Exception, KeyboardInterrupt) as error:
-        code = getattr(error, 'code', None) or str(error)
-        report['errors'].append(code if code in CODES else 'INTERNAL_ERROR')
+        phase = report['phase']
+        if phase == 'lab_revalidation':
+            code = project_failure_code(error, phase, CODES | LAB_REVALIDATION_CODES)
+        else:
+            code = getattr(error, 'code', None) or str(error)
+            code = code if code in CODES else 'INTERNAL_ERROR'
+        report['errors'].append(code)
     finally:
         if job is not None:
             if job.application is not None and not close_attempted:
