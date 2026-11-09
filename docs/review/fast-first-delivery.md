@@ -233,6 +233,14 @@ now has 68 of 94 literal outputs. Pair review remains open.
 [Producer](https://github.com/edgepillar/syrius/actions/runs/42704416632) and
 [independent reader](https://github.com/edgepillar/syrius/actions/runs/42707255249).
 
+Source573 prepares the two `launch-settle` catalog images. The job builds the
+Windows Release target once and closes a fresh encrypted test profile per theme.
+Each cold process observes the original film's last frame as the real lock
+card appears and waits for that film to enter the same card's well. The
+profile stays locked with a saved loopback preference. The reader checks
+the intermediate geometry, both PNGs and all four ordinary process exits.
+Windows observation and reference comparison remain pending.
+
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,
 Project and Fund Address with its confirmed receive and target balance. The

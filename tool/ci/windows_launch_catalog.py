@@ -1,4 +1,4 @@
-"""Retain the original cold-launch reference frame from two owned profiles."""
+"""Retain an original cold-launch reference state from two owned profiles."""
 
 import hashlib
 import json
@@ -17,15 +17,24 @@ from . import windows_startup_probe as startup
 
 OUTPUT = Path('.harness/ci-launch-catalog')
 RECIPE = Path('harness/screens/launch.txt')
+SETTLE_RECIPE = Path('harness/screens/launch-settle.txt')
 CAPTURE_SOURCE = Path('harness/app/native_launch_capture.dart')
+SETTLE_PROFILE_SOURCE = Path('harness/app/fixtures/launch_settle_profile.dart')
 THEMES = ('dark', 'light')
 FILES = tuple('39-launch-' + theme + '.png' for theme in THEMES)
+SETTLE_SCREEN = 'launch-settle'
+SETTLE_FILES = tuple('40-launch-settle-' + theme + '.png' for theme in THEMES)
+FRAME_FIELDS = {'frame', 'frames', 'stage'}
+SETTLE_FIELDS = FRAME_FIELDS | {'progress', 'well', 'lockHandoff'}
 MAX_PNG = 4 * 1024**2
 MAX_MANIFEST = 32 * 1024
 MAX_ARCHIVE = 2 * MAX_PNG + MAX_MANIFEST + 65536
 LIMITS = replace(startup.LIMITS, response_bytes=entry.MAX_BASE64 + 65536)
 ATTEMPT_CHECKS = ('identity', 'auth', 'close_ack', 'exit')
 JOB_STEP = 'Capture the original cold launch in both themes'
+SETTLE_JOB_STEP = 'Capture the original launch handoff in both themes'
+SCOPE = 'original_cold_launch_catalog'
+SETTLE_SCOPE = 'original_launch_settle_catalog'
 
 
 def need(value, code='STARTUP_OBSERVATION_REFUSED'):
@@ -43,17 +52,38 @@ def stage_matches(value):
             and value in ([0, 0, 1280, 780], [0, 32, 1280, 748]))
 
 
-def launch_pixels(reply, theme):
-    """Admit only the fixed painted film index and original client bounds."""
+def client_rect(value):
+    if (type(value) is not list or len(value) != 4
+            or not all(type(v) in (int, float) for v in value)):
+        return False
+    x, y, width, height = value
+    return 0 <= x < 1280 and 0 <= y < 780 and 0 < width <= 1280 - x and 0 < height <= 780 - y
+
+
+def frame_matches(value, *, settle=False):
+    if (type(value['frames']) is not int or value['frames'] != 56
+            or type(value['frame']) is not int):
+        return False
+    stage = value['stage']
+    if not settle:
+        return value['frame'] == 23 and stage_matches(stage)
+    well, progress = value['well'], value['progress']
+    return (value['frame'] == 55 and value['lockHandoff'] is True
+            and type(progress) in (int, float) and .4 <= progress <= .72
+            and client_rect(stage) and client_rect(well)
+            and well[2] < stage[2] < 1280 and well[3] < stage[3] < 780)
+
+
+def launch_pixels(reply, theme, *, settle=False):
+    """Admit the painted film frame or the measured intermediate handoff."""
+    fields = SETTLE_FIELDS if settle else FRAME_FIELDS
     need(theme in THEMES and type(reply) is dict and set(reply) ==
-         {'ok', 'status', 'theme', 'frame', 'frames', 'stage', 'png'})
+         {'ok', 'status', 'theme', 'png'} | fields)
     need(reply['ok'] is True and reply['status'] == 'captured'
-         and reply['theme'] == theme and type(reply['frame']) is int
-         and reply['frame'] == 23 and type(reply['frames']) is int
-         and reply['frames'] == 56 and stage_matches(reply['stage']))
+         and reply['theme'] == theme and frame_matches(reply, settle=settle))
     pixels = entry.png_bytes(reply['png'])
     need(0 < len(pixels) <= MAX_PNG)
-    return pixels, dict(frame=23, frames=56, stage=reply['stage'])
+    return pixels, {name: reply[name] for name in sorted(fields)}
 
 
 def attempt_passed(value):
@@ -71,10 +101,11 @@ class LaunchProcess(startup.StartupProbe):
              and body.get('savedMode') == 'ThemeMode.' + theme)
         # Closing at this size saves the actual outer geometry in this profile.
 
-    def _observe_pixels(self, theme):
+    def _observe_pixels(self, theme, *, settle):
+        screen = SETTLE_SCREEN if settle else 'launch'
         until = min(self.deadline, self.started + 60)
         while self.clock() < until:
-            reply = self._rpc(dict(cmd='entry-capture', screen='launch', theme=theme),
+            reply = self._rpc(dict(cmd='entry-capture', screen=screen, theme=theme),
                               until=until)
             if reply == {'ok': True, 'status': 'refused',
                          'reason': 'original-launch-window-refused'}:
@@ -83,16 +114,16 @@ class LaunchProcess(startup.StartupProbe):
                          'reason': 'original-launch-theme-refused'}:
                 raise startup.Failure('ENTRY_INVALID')
             if reply != {'ok': True, 'status': 'pending'}:
-                return launch_pixels(reply, theme)
+                return launch_pixels(reply, theme, settle=settle)
             self.sleep(min(self.limits.poll, max(0, until - self.clock())))
         raise startup.Failure('STARTUP_DEADLINE')
 
-    def run_launch(self, theme, *, capture):
+    def run_launch(self, theme, *, capture, settle):
         result, complete = None, False
         try:
             self._ready()
             if capture:
-                result = self._observe_pixels(theme)
+                result = self._observe_pixels(theme, settle=settle)
             else:
                 self._prepare_theme(theme)
             complete = True
@@ -115,7 +146,7 @@ class LaunchProcess(startup.StartupProbe):
         return receipt, result if attempt_passed(receipt) else None
 
 
-def run_process(repo, parent, binaries, profile, theme, *, capture):
+def run_process(repo, parent, binaries, profile, theme, *, capture, settle):
     bounded.check_no_existing(repo, parent)
     binary = binaries[0][0]
     for selected, _, original in binaries:
@@ -127,6 +158,8 @@ def run_process(repo, parent, binaries, profile, theme, *, capture):
         reservation.bind(('127.0.0.1', 0))
         port = reservation.getsockname()[1]
     env = entry.child_environment(parent, profile, port, token)
+    if settle:
+        env.update(GITHUB_ACTIONS='true', SYRIUS_CI_LAUNCH_SCREEN=SETTLE_SCREEN)
     if capture:
         env.update(GITHUB_ACTIONS='true', SYRIUS_CI_LAUNCH_THEME=theme)
     report = startup.Report()
@@ -141,11 +174,13 @@ def run_process(repo, parent, binaries, profile, theme, *, capture):
     except BaseException:
         bounded.finish_original(process, drain, report, LIMITS)
         raise
-    return session.run_launch(theme, capture=capture)
+    return session.run_launch(theme, capture=capture, settle=settle)
 
 
 def main():
-    report = dict(schema=1, scope='original_cold_launch_catalog', success=False,
+    requested = os.environ.get('SYRIUS_WINDOWS_LAUNCH_CATALOG')
+    settle = requested == SETTLE_SCREEN
+    report = dict(schema=1, scope=SETTLE_SCOPE if settle else SCOPE, success=False,
         attempts=[], captures=[], source_stable=False, error_codes=[])
     destination = None
     try:
@@ -154,30 +189,35 @@ def main():
         need(parent.get('GITHUB_EVENT_NAME') == 'workflow_dispatch'
              and parent.get('GITHUB_RUN_ATTEMPT') == '1'
              and parent.get('SYRIUS_WINDOWS_STARTUP_PROBE') == 'true'
-             and parent.get('SYRIUS_WINDOWS_LAUNCH_CATALOG') == 'true', 'ENVIRONMENT_REFUSED')
+             and requested in ('true', SETTLE_SCREEN), 'ENVIRONMENT_REFUSED')
         repo = Path(parent['GITHUB_WORKSPACE'])
         bounded.plain(repo)
         need(repo.resolve() == Path.cwd().resolve(), 'ENVIRONMENT_REFUSED')
         bounded.verify_source(repo, head, parent)
         tree = entry.source_tree(repo, parent)
         binaries = tuple(bounded.binary_hash(repo, path) for path in (startup.BINARY, startup.PAYLOAD))
+        recipe = SETTLE_RECIPE if settle else RECIPE
         report.update(source_sha=head, source_tree=tree, run_id=parent['GITHUB_RUN_ID'],
             run_attempt='1', runner_sha256=binaries[0][1], payload_sha256=binaries[1][1],
-            recipe_sha256=sha((repo / RECIPE).read_bytes()),
+            recipe_sha256=sha((repo / recipe).read_bytes()),
             capture_source_sha256=sha((repo / CAPTURE_SOURCE).read_bytes()))
+        if settle:
+            report['profile_sha256'] = sha((repo / SETTLE_PROFILE_SOURCE).read_bytes())
         entry.private_root(repo)
         output_directory = repo / OUTPUT
         output_directory.mkdir(mode=0o700)
         destination = output_directory
-        for theme, filename in zip(THEMES, FILES):
+        for theme, filename in zip(THEMES, SETTLE_FILES if settle else FILES):
             profile = entry.new_profile(repo)
             original = bounded.plain(profile)
-            prepared, _ = run_process(repo, parent, binaries, profile, theme, capture=False)
+            prepared, _ = run_process(repo, parent, binaries, profile, theme,
+                                      capture=False, settle=settle)
             report['attempts'].append(prepared)
             need(attempt_passed(prepared))
             current = bounded.plain(profile)
             need((current.st_dev, current.st_ino) == (original.st_dev, original.st_ino), 'PROFILE_REFUSED')
-            captured, result = run_process(repo, parent, binaries, profile, theme, capture=True)
+            captured, result = run_process(repo, parent, binaries, profile, theme,
+                                           capture=True, settle=settle)
             report['attempts'].append(captured)
             need(result is not None)
             pixels, state = result
@@ -203,7 +243,8 @@ def main():
         except (Exception, KeyboardInterrupt):
             report['success'] = False
             report['error_codes'].append('ARTIFACT_FAILED')
-    print('::notice title=Original cold launch catalog::' + json.dumps(report, separators=(',', ':')))
+    title = 'Original launch handoff catalog' if settle else 'Original cold launch catalog'
+    print('::notice title=' + title + '::' + json.dumps(report, separators=(',', ':')))
     return 0 if report['success'] else 1
 
 

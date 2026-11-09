@@ -1,2 +1,5 @@
-# prerequisite: pending P08 cold-start handoff and measured transition-frame control
+# prerequisite: original-native-cold-launch-lock-handoff
+# The startup catalog observes the original film's last frame near the
+# reference card opacity and admits the image after the lock handoff.
 assert --key startup_stage_rect
+assert --key lock_film_well

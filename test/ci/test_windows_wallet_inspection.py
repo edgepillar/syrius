@@ -214,7 +214,8 @@ class InspectionTests(unittest.TestCase):
             self.assertEqual(lab.READONLY_CATALOG_SCHEMAS[
                 lab.readonly_catalog_family(selected)], schema)
         for value in (None, True, 1, '', 'Home', 'all', 'home,navigation',
-                      '../home', 'launch', 'seeded-states', 'stake-draft', 'project-detail'):
+                      '../home', 'launch', 'launch-settle', 'seeded-states',
+                      'stake-draft', 'project-detail'):
             with self.subTest(value=value), self.assertRaises(lab.Failure):
                 lab.wallet_inspection_requested('native',
                     dict(parent, SYRIUS_READONLY_CATALOG_FAMILY=value))
@@ -225,7 +226,7 @@ class InspectionTests(unittest.TestCase):
         self.assertEqual([line.strip()[2:] for line in choice.splitlines()
             if line.strip().startswith('- ')],
             ['home', 'settings', 'navigation', 'details', 'token-draft',
-             'send-confirm', 'earn', 'sentinel-fixture', 'launch', 'seeded-states',
+             'send-confirm', 'earn', 'sentinel-fixture', 'launch', 'launch-settle', 'seeded-states',
              'stake-draft', 'project-detail'])
         self.assertIn('SYRIUS_READONLY_CATALOG_FAMILY: ${{ inputs.readonly_catalog_family }}', workflow)
         for family, title, stem in (

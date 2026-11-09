@@ -119,6 +119,12 @@ class Client:
 
 class StartupInspectionTests(unittest.TestCase):
     def test_cold_launch_requires_exact_frame_geometry_and_normal_actor_exits(self):
+        self._check_launch_catalog(settle=False)
+
+    def test_launch_settle_requires_original_handoff_and_intermediate_geometry(self):
+        self._check_launch_catalog(settle=True)
+
+    def _check_launch_catalog(self, *, settle):
         def chunk(kind, data):
             return (struct.pack('>I', len(data)) + kind + data
                     + struct.pack('>I', zlib.crc32(kind + data)))
@@ -128,23 +134,34 @@ class StartupInspectionTests(unittest.TestCase):
             + chunk(b'IDAT', zlib.compress(bytes((1 + 1280 * 3) * 780)))
             + chunk(b'IEND', b''))
         pins = dict(recipe_sha256='c' * 64, capture_source_sha256='d' * 64)
+        if settle:
+            pins['profile_sha256'] = 'a' * 64
         attempts = [dict(theme=theme, role=role, action_complete=True,
             checks=dict.fromkeys(inspect.launch.ATTEMPT_CHECKS, True), exit_code=0,
             exit_observed=True, forced_kill=False, output_complete=True,
             output_overflow=False, error_codes=[])
             for theme in inspect.launch.THEMES for role in ('prepare', 'capture')]
         captures = []
-        for theme, name in zip(inspect.launch.THEMES, inspect.launch.FILES):
-            reply = dict(ok=True, status='captured', theme=theme, frame=23, frames=56,
-                stage=[0, 32, 1280, 748], png=base64.b64encode(pixels).decode())
-            original, state = inspect.launch.launch_pixels(reply, theme)
+        files = inspect.launch.SETTLE_FILES if settle else inspect.launch.FILES
+        for theme, name in zip(inspect.launch.THEMES, files):
+            state = (dict(frame=55, frames=56, stage=[220, 88, 840, 410],
+                          well=[430, 194, 420, 118], lockHandoff=True, progress=.52)
+                     if settle else dict(frame=23, frames=56, stage=[0, 32, 1280, 748]))
+            reply = dict(ok=True, status='captured', theme=theme,
+                         png=base64.b64encode(pixels).decode(), **state)
+            original, state = inspect.launch.launch_pixels(reply, theme, settle=settle)
             self.assertEqual(original, pixels)
             captures.append(dict(theme=theme, file=name, bytes=len(pixels),
                 sha256=inspect.archive.sha(pixels), **state))
-            for wrong in (dict(frame=24), dict(stage=[0, 32, 10, 10]), dict(frames=True)):
+            refusals = [dict(frame=24), dict(stage=[0, 32, 10, 10]), dict(frames=True)]
+            if settle:
+                refusals += [dict(progress=.39), dict(progress=.73),
+                             dict(lockHandoff=False), dict(well=[0, 0, 960, 480])]
+            for wrong in refusals:
                 with self.assertRaises(inspect.startup.Failure):
-                    inspect.launch.launch_pixels(dict(reply, **wrong), theme)
-        report = dict(schema=1, scope='original_cold_launch_catalog', success=True,
+                    inspect.launch.launch_pixels(dict(reply, **wrong), theme, settle=settle)
+        scope = inspect.launch.SETTLE_SCOPE if settle else inspect.launch.SCOPE
+        report = dict(schema=1, scope=scope, success=True,
             attempts=attempts, captures=captures, source_stable=True, error_codes=[],
             source_sha=HEAD, source_tree=TREE, run_id=str(RUN), run_attempt='1',
             runner_sha256='e' * 64, payload_sha256='f' * 64, **pins)
@@ -157,11 +174,16 @@ class StartupInspectionTests(unittest.TestCase):
                     zipped.writestr(row['file'], pixels)
             raw = buffer.getvalue()
             return inspect.launch_archive(raw, inspect.archive.sha(raw), len(raw),
-                HEAD, TREE, RUN, pins)
+                HEAD, TREE, RUN, pins, settle=settle)
 
         actual = read(report)
         self.assertTrue(actual['artifact_reported_success'])
         self.assertEqual(actual['verified_png_count'], 2)
+        self.assertEqual(actual['filenames'], list(files))
+        if settle:
+            self.assertEqual(actual['handoff_progress'], [.52, .52])
+            with self.assertRaises(inspect.archive.Refused):
+                read(dict(report, captures=[dict(captures[0], lockHandoff=False), captures[1]]))
         failed = dict(attempts[2], action_complete=False, forced_kill=True)
         with self.assertRaises(inspect.archive.Refused):
             read(dict(report, attempts=attempts[:2] + [failed, attempts[3]]))

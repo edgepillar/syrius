@@ -536,6 +536,7 @@ class HarnessAgent {
   void useNativeEntry({
     required NativeWindowOwner window,
     String? launchTheme,
+    bool launchSettle = false,
   }) {
     if (_modeSelected ||
         booted ||
@@ -601,6 +602,7 @@ class HarnessAgent {
     if (launchTheme != null) {
       _nativeLaunch = NativeLaunchCapture(
         theme: launchTheme,
+        settle: launchSettle,
         window: window,
         readView: () => _view,
       );
@@ -1082,9 +1084,10 @@ class HarnessAgent {
           command['theme'] is! String) {
         throw HarnessError('unsupported entry capture input');
       }
-      if (command['screen'] == 'launch') {
+      final Object? screen = command['screen'];
+      if (screen == 'launch' || screen == 'launch-settle') {
         final NativeLaunchCapture? launch = _nativeLaunch;
-        if (launch == null) {
+        if (launch == null || launch.screen != screen) {
           throw const CaptureRefused('original-launch-capture-unavailable');
         }
         return launch.read(command['theme'] as String);

@@ -12,8 +12,10 @@ import 'package:zenon_syrius_wallet_flutter/utils/motion_binding.dart';
 
 import 'agent.dart';
 import 'client_window.dart';
+import 'fixtures/launch_settle_profile.dart';
 import 'fixtures/sentinel_fixture.dart';
-import 'native_launch_capture.dart' show nativeLaunchThemeEnvironment;
+import 'native_launch_capture.dart'
+    show nativeLaunchScreenEnvironment, nativeLaunchThemeEnvironment;
 import 'native_window_owner.dart';
 import 'presentation_host.dart';
 import 'presentation_mode.dart';
@@ -76,10 +78,14 @@ Future<void> main() async {
     exit(64);
   }
   final String? launchTheme = env[nativeLaunchThemeEnvironment];
-  if (launchTheme != null &&
+  final String? launchScreen = env[nativeLaunchScreenEnvironment];
+  final bool launchSettle = launchScreen == 'launch-settle';
+  if ((launchTheme != null || launchScreen != null) &&
       (!Platform.isWindows || env['GITHUB_ACTIONS'] != 'true' ||
           readonlyNative || presentation != null ||
-          launchTheme != 'dark' && launchTheme != 'light')) {
+          launchScreen != null && !launchSettle ||
+          launchTheme != null && launchTheme != 'dark' &&
+              launchTheme != 'light')) {
     stderr.writeln('syrius harness: launch capture requires Windows CI');
     exit(64);
   }
@@ -123,8 +129,18 @@ Future<void> main() async {
     return;
   }
   if (Platform.isWindows) {
+    if (launchSettle && launchTheme == null) {
+      try {
+        await prepareLaunchSettleProfile(home, appData);
+      } on Object {
+        stderr.writeln('syrius harness: launch settle profile refused');
+        exit(64);
+      }
+    }
     HarnessAgent.instance.useNativeEntry(
-      window: NativeWindowOwner.process(), launchTheme: launchTheme,
+      window: NativeWindowOwner.process(),
+      launchTheme: launchTheme,
+      launchSettle: launchSettle,
     );
     await configureHarnessWindowTracking();
   }

@@ -447,6 +447,7 @@ def analyze(parent, repo):
     original = subprocess.Popen([str(dart), 'analyze', '--format', 'machine',
         'tool/ci/windows_debug_service_probe.dart', 'harness/app/main.dart',
         'harness/app/native_launch_capture.dart',
+        'harness/app/fixtures/launch_settle_profile.dart',
         'harness/bin/harness.dart', 'test/harness/wallet_tour_test.dart',
         'harness/bin/copied_wallet_pointer.dart',
         'test/harness/copied_wallet_pointer_test.dart',
