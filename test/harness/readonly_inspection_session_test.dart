@@ -1760,7 +1760,8 @@ void main() {
                 targetKey == 'send_recipient_field' ? labRecipient : '12.5');
               typeTarget = <String, Object?>{
                 'ref': 1, 'kind': 'field', 'key': targetKey,
-                'value': draft[targetKey],
+                'type': 'EditableText', 'value': draft[targetKey],
+                'rect': <int>[0, 0, 200, 100],
               };
               draft[targetKey] = command['value'];
             } else {
