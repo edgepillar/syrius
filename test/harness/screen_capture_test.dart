@@ -352,6 +352,7 @@ void main() {
   test('actual restricted recipes refuse before any effect', () async {
     for (final String id in <String>[
       'send-confirm',
+      'pillar-mine',
       'launch',
       'launch-settle',
       'lock-screen',
@@ -481,10 +482,13 @@ void main() {
         restoredSeeded: true,
       ).preflight('token-mine').single;
       expect(seeded.assertion['key'], 'mint_amount_field');
+      expect(seeded.assertion['kind'], 'field');
       expect(seeded.lines.map((ScreenLine line) => line.words.join(' ')),
           containsAllInOrder(<String>[
             'tap --key tokens_filter_held', 'key ctrl+r',
             'wait --key @issued-token-row --timeout 30',
+            'assert --key mint_beneficiary_field --kind field',
+            'assert --key mint_amount_field --kind field',
           ]));
       expect(seeded.afterCapture.first.words,
           <String>['tap', '--key', '@issued-token-row']);

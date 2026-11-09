@@ -224,12 +224,12 @@ const Set<String> _seededLines = <String>{
   'tap --key @issued-token-row',
   'wait --key token_action_mode_mint --timeout 30',
   'tap --key token_action_mode_mint',
-  'wait --key mint_amount_field --timeout 30',
+  'wait --key mint_amount_field --kind field --timeout 30',
   'type --key mint_amount_field 5000',
   'assert --key @issued-token-row',
-  'assert --key mint_beneficiary_field',
-  'assert --key mint_amount_field',
-  'wait --key mint_amount_field --gone --timeout 10',
+  'assert --key mint_beneficiary_field --kind field',
+  'assert --key mint_amount_field --kind field',
+  'wait --key mint_amount_field --kind field --gone --timeout 10',
 };
 
 Future<Map<String, Object>> _captureSeededCatalog(
@@ -246,6 +246,12 @@ Future<Map<String, Object>> _captureSeededCatalog(
   final String standard =
       seedIssuedTokenStandard(confirmed('token')).toString();
   final String rowKey = 'token_${standard}_row';
+  Map<String, Object?> assertion(List<String> args) {
+    final Map<String, Object?> selector = cli.assertionArgs(cli.Args(args));
+    if (selector['key'] == 'staking_stakes_count') selector['key'] = stake;
+    return selector;
+  }
+
   final ScreenCapture capture = ScreenCapture(
     repository: Directory(cli.repo),
     restoredSeeded: true,
@@ -260,11 +266,7 @@ Future<Map<String, Object>> _captureSeededCatalog(
     readRailState: () => cli.screenRailExpanded(instance),
     restoreRailState: ({required bool expanded}) =>
         cli.restoreScreenRail(instance, expanded: expanded),
-    assertionFor: (List<String> words) =>
-        cli.assertionArgs(cli.Args(<String>[
-          '--key',
-          if (words.last == 'staking_stakes_count') stake else words.last,
-        ])),
+    assertionFor: (List<String> words) => assertion(words.sublist(1)),
     runLine: (List<String> words) async {
       final String authored = words.join(' ');
       if (!_seededLines.contains(authored)) {
@@ -302,8 +304,9 @@ Future<Map<String, Object>> _captureSeededCatalog(
             throw const FormatException('seeded draft amount refused');
           }
         case 'assert':
-          final String key = args.last;
-          if (key == 'staking_stakes_count') {
+          final Map<String, Object?> selector = assertion(args);
+          final Object? key = selector['key'];
+          if (key == stake) {
             await cli.waitForTarget(instance, cli.Args(<String>[
               '--key', stake, '--exact', '--timeout', '30',
             ]));
@@ -311,8 +314,7 @@ Future<Map<String, Object>> _captureSeededCatalog(
           final Map<String, dynamic> asserted = await cli.call(
             instance, <String, Object?>{
               'cmd': 'assert',
-              'key': key == 'staking_stakes_count' ? stake : key,
-              'exact': true,
+              ...selector,
             },
           );
           final String? expectedValue = switch (key) {

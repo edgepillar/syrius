@@ -435,7 +435,7 @@ void main() {
     },
   );
 
-  testWidgets('assert refuses missing, covered and error states', (
+  testWidgets('assert respects target kinds and refuses invalid states', (
     WidgetTester tester,
   ) async {
     final HarnessAgent agent = HarnessAgent.forTest();
@@ -453,6 +453,40 @@ void main() {
       }))['asserted'],
       isTrue,
     );
+    final TextEditingController controller = TextEditingController(
+      text: 'original beneficiary',
+    );
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: Center(
+          child: SizedBox(
+            width: 480,
+            child: TextField(
+              key: const Key('beneficiary'),
+              controller: controller,
+              decoration: InputDecoration(
+                suffixIcon: TextButton(
+                  onPressed: () {}, child: const Text('This address'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ));
+    const Map<String, dynamic> beneficiary = <String, dynamic>{
+      'cmd': 'assert', 'key': 'beneficiary', 'exact': true,
+    };
+    final Map<String, Object?> byKey = await agent.commandForTest(beneficiary);
+    expect((byKey['target']! as Map<String, Object?>)['kind'], 'button');
+    final Map<String, Object?> byField = await agent.commandForTest(
+      <String, dynamic>{...beneficiary, 'kind': 'field'},
+    );
+    final Map<String, Object?> target = byField['target']!
+        as Map<String, Object?>;
+    expect(target['kind'], 'field');
+    expect(target['value'], 'original beneficiary');
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(

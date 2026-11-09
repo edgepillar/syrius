@@ -3,7 +3,13 @@
 goto pillars
 wait --key nodes_tab_pillars --timeout 30
 tap --key nodes_tab_pillars
+wait --key nodes_pillar_more --timeout 30
+tap --key nodes_pillar_more
 wait --key nodes_pillar_owner --timeout 30
 tap --key nodes_pillar_owner
 wait --key pillar_owner_panel --timeout 30
 assert --key pillar_owner_panel
+# after-capture: tap --key nodes_pillar_owner_close
+# after-capture: wait --key nodes_pillar_more --timeout 10
+# after-capture: goto dashboard
+# after-capture: wait --key home_hero --timeout 5

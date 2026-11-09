@@ -9,10 +9,10 @@ wait --key @issued-token-row --timeout 30
 tap --key @issued-token-row
 wait --key token_action_mode_mint --timeout 30
 tap --key token_action_mode_mint
-wait --key mint_amount_field --timeout 30
+wait --key mint_amount_field --kind field --timeout 30
 type --key mint_amount_field 5000
 assert --key @issued-token-row
-assert --key mint_beneficiary_field
-assert --key mint_amount_field
+assert --key mint_beneficiary_field --kind field
+assert --key mint_amount_field --kind field
 # after-capture: tap --key @issued-token-row
-# after-capture: wait --key mint_amount_field --gone --timeout 10
+# after-capture: wait --key mint_amount_field --kind field --gone --timeout 10

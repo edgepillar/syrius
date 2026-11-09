@@ -235,6 +235,7 @@ class _PillarOwnerStrip extends StatelessWidget {
       actions: <Widget>[
         PillarCollectAction(enabled: hasNodesRewards(rewards)),
         TextButton.icon(
+          key: const Key('nodes_pillar_owner_close'),
           onPressed: onClose,
           icon: const Icon(Icons.close),
           label: Text(context.l10n.commonClose),
