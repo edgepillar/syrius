@@ -41,7 +41,7 @@ on:
         type: boolean
         default: false
       readonly_catalog_family:
-        description: Select one original readonly catalog for the owned Windows inspection
+        description: Select an original readonly catalog. Send confirmation captures only its two views.
         type: choice
         default: details
         options:

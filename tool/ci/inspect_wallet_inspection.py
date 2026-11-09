@@ -131,18 +131,21 @@ def projection(report, lab, lab_summary, head, tree, run_id, manifest_sha):
          and type(original['captured_pages']) is type(original['visited_pages']) is int
          and original['captured_pages'] == len(report['captures'])
          and original['visited_pages'] == sum(len(v['tour']['visited']) for v in report['tours'].values()))
-    positive = (report['phase'] == 'complete' and not report['errors']
-        and all(report['checks'].values())
-        and report['input_attempted'] is True and report['lab_revalidations'] == 2
-        and report['address_selection'] is not None
-        and report['sdk_admission'] is not None and report['wallet_admission'] is not None
-        and set(report['tours']) == set(report['locales']) == set(report['stalls']) == set(producer.THEMES)
+    catalog_only = producer.send_confirmation_only(report)
+    samples_complete = catalog_only or (
+        set(report['tours']) == set(report['locales']) ==
+            set(report['stalls']) == set(producer.THEMES)
         and len(report['captures']) == len(producer.THEMES) * len(producer.PAGES)
         and all(v['tour']['complete'] is True
                 and len(v['tour']['visited']) == len(producer.PAGES)
                 and all(p['captured'] is True and p['nodes'] > 0
                         and p['error_widgets'] == p['severe_logs'] == 0
-                        for p in v['tour']['visited']) for v in report['tours'].values())
+                        for p in v['tour']['visited']) for v in report['tours'].values()))
+    positive = (report['phase'] == 'complete' and not report['errors']
+        and producer.complete_checks(report) and samples_complete
+        and report['input_attempted'] is True and report['lab_revalidations'] == 2
+        and report['address_selection'] is not None
+        and report['sdk_admission'] is not None and report['wallet_admission'] is not None
         and type(report.get('application_exit')) is int and report['application_exit'] == 0
         and type(report.get('entry_exit')) is int and report['entry_exit'] == 0
         and report['required_actor_forced_cleanup'] is False
@@ -156,11 +159,12 @@ def projection(report, lab, lab_summary, head, tree, run_id, manifest_sha):
         and report['forced_cleanup'] is report['auxiliary_cleanup']['forced'])
     need(report['success'] is bool(positive))
     if positive:
-        producer.capture_records(report['captures'])
+        if not catalog_only:
+            producer.capture_records(report['captures'])
         producer.sdk_receipt(report['sdk_admission'])
         producer.wallet_receipt(report['wallet_admission'])
     captures = json.dumps(report['captures'], sort_keys=True, separators=(',', ':')).encode('ascii')
-    return dict(schema=1, scope='retained_readonly_wallet_inspection',
+    result = dict(schema=1, scope='retained_readonly_wallet_inspection',
         source_head=head, source_tree=tree, source_run_id=run_id, source_attempt=1,
         artifact_reported_success=report['success'],
         original_lab_closure_qualified=lab_summary['original_lab_closure_qualified'],
@@ -181,6 +185,9 @@ def projection(report, lab, lab_summary, head, tree, run_id, manifest_sha):
         seed_admitted=False, financial_send_qualified=False,
         motion_baseline_compared=False, arabic_or_minimum_window_qualified=False,
         visual_matches=0)
+    if catalog_only:
+        result['sampling_scope'] = 'send-confirm-only'
+    return result
 
 
 LAYOUT_STATUS_ORDER = ('MISSING', 'OBSERVED', 'DUPLICATE', 'UNAVAILABLE', 'LIMIT')
@@ -257,20 +264,23 @@ def unpack(raw, expected_sha, expected_size, head, tree, run_id, lab, lab_summar
         report = decode(manifest)
         summary = projection(report, lab, lab_summary, head, tree, run_id, archive.sha(manifest))
         if report['success']:
-            need(set(names) == allowed)
+            catalog_only = producer.send_confirmation_only(report)
+            need(set(names) == ({'manifest.json'} if catalog_only else allowed))
             for row in report['captures']:
                 name = 'captures/' + row['theme'] + '/' + row['page'] + '.png'
                 image = member(name, producer.debug.entry.MAX_PNG)
                 need(len(image) == row['bytes'] and archive.sha(image) == row['sha256'])
                 producer.debug.entry.png_bytes(base64.b64encode(image).decode('ascii'))
-            summary['verified_png_count'] = 24
-            summary['_layout_observation'] = layout_projection(report, head, tree, run_id)
+            summary['verified_png_count'] = len(report['captures'])
+            if not catalog_only:
+                summary['_layout_observation'] = layout_projection(
+                    report, head, tree, run_id)
             summary['_home_catalog_reference'] = report['home_catalog']
             if report['schema'] == 2:
                 summary['_settings_catalog_reference'] = report['settings_catalog']
             elif report['schema'] == 3:
                 summary['_navigation_catalog_reference'] = report['navigation_catalog']
-            elif report['schema'] == 4:
+            elif report['schema'] in (4, producer.SEND_CONFIRM_INSPECTION_SCHEMA):
                 summary['_details_catalog_reference'] = report['details_catalog']
             summary['_viewport_reference'] = report['viewport']
         else:
@@ -498,8 +508,10 @@ def main(parent=None):
         item = artifact(listing, name, head, run_id)
         summary = unpack(download(item, MAX_ARCHIVE), item['digest'][7:], item['size_in_bytes'],
             head, tree, run_id, lab, lab_summary)
+        expected_pages = 0 if summary.get('sampling_scope') == 'send-confirm-only' else 24
         summary['native_inspection_qualified'] = bool(summary['artifact_reported_success']
-            and summary['original_lab_closure_qualified'] and summary['verified_png_count'] == 24
+            and summary['original_lab_closure_qualified']
+            and summary['verified_png_count'] == expected_pages
             and job['conclusion'] == 'success')
     need(job['conclusion'] != 'success' or summary['native_inspection_qualified'])
     catalog = viewport_observation = None
@@ -542,12 +554,18 @@ def main(parent=None):
             catalog = unpack_home_catalog(download(item, MAX_HOME_ARCHIVE), item['digest'][7:],
                 item['size_in_bytes'], head, tree, run_id, reference,
                 home_script_source_pins(source_digests, reference['schema']))
+        viewport_name = 'viewport-observation-' + head + '-' + text + '-1'
         PHASE = 'viewport_artifact'
-        need(viewport_reference is not None)
-        item = artifact(listing, 'viewport-observation-' + head + '-' + text + '-1', head, run_id)
-        viewport_observation = producer.viewport.unpack(download(item, producer.viewport.MAX_ARCHIVE),
-            item['digest'][7:], item['size_in_bytes'], head, tree, run_id, viewport_reference,
-            source_digests['harness/bin/readonly_viewport_probe.dart'])
+        if summary.get('sampling_scope') == 'send-confirm-only':
+            need(viewport_reference is None and details_reference is not None
+                 and details_reference['schema'] == producer.details.FAMILY_SCHEMAS['send-confirm']
+                 and not any(v.get('name') == viewport_name for v in listing['artifacts']))
+        else:
+            need(viewport_reference is not None)
+            item = artifact(listing, viewport_name, head, run_id)
+            viewport_observation = producer.viewport.unpack(download(item, producer.viewport.MAX_ARCHIVE),
+                item['digest'][7:], item['size_in_bytes'], head, tree, run_id, viewport_reference,
+                source_digests['harness/bin/readonly_viewport_probe.dart'])
     PHASE = 'metadata_after'
     after = client.json('/actions/runs/' + text)
     need(all(after.get(k) == run.get(k) for k in ('id', 'head_sha', 'run_attempt', 'workflow_id', 'status', 'conclusion')))

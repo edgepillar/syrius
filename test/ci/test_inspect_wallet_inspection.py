@@ -554,7 +554,9 @@ class ReaderTests(unittest.TestCase):
                     'expected', 'a' * 40, 1)
 
     def run_main(self, *, positive=True, parent_failed=False, mutate_after=False,
-                 child_missing=False, auxiliary_forced=False, home_schema=1, settings_catalog=False, navigation_catalog=False, details_catalog=False):
+                 child_missing=False, auxiliary_forced=False, home_schema=1,
+                 settings_catalog=False, navigation_catalog=False,
+                 details_catalog=False, send_confirmation=False, extra_viewport=False):
         child, lab, files = pair(positive=positive)
         if auxiliary_forced:
             child['forced_cleanup'] = child['auxiliary_cleanup']['forced'] = True
@@ -575,8 +577,11 @@ class ReaderTests(unittest.TestCase):
         source = b'synthetic source'
         home_pixels = wallet_fixtures.png()
         home = wallet_fixtures.home_manifest(home_pixels, source, schema=home_schema)
-        self.assertLessEqual(sum((settings_catalog, navigation_catalog, details_catalog)), 1)
-        if details_catalog:
+        self.assertLessEqual(sum((settings_catalog, navigation_catalog,
+            details_catalog, send_confirmation)), 1)
+        if send_confirmation:
+            home = wallet_fixtures.details_manifest(home_pixels, source, schema=3)
+        elif details_catalog:
             home = wallet_fixtures.details_manifest(home_pixels, source)
         elif settings_catalog:
             home = wallet_fixtures.settings_manifest(home_pixels, source)
@@ -587,7 +592,13 @@ class ReaderTests(unittest.TestCase):
         viewport_manifest['probe_sha256'] = hashlib.sha256(source).hexdigest()
         viewport_manifest_raw = encode(viewport_manifest)
         if not child_missing:
-            if details_catalog:
+            if send_confirmation:
+                child = wallet_fixtures.send_confirmation_report(
+                    child, reader.archive.sha(home_manifest))
+                if not positive:
+                    child['details_catalog'] = None
+                files = files[:1]
+            elif details_catalog:
                 child.update(schema=4, home_catalog=None, settings_catalog=None,
                     navigation_catalog=None,
                     details_catalog=(wallet_fixtures.details_reference(
@@ -603,9 +614,10 @@ class ReaderTests(unittest.TestCase):
             else:
                 child['home_catalog'] = (wallet_fixtures.home_reference(reader.archive.sha(home_manifest), schema=home_schema)
                                          if positive else None)
-            child['viewport'] = (dict(schema=1, scope='readonly_native_viewport_reference',
-                captured=4, manifest_sha256=reader.archive.sha(viewport_manifest_raw))
-                if positive else None)
+            if not send_confirmation:
+                child['viewport'] = (dict(schema=1, scope='readonly_native_viewport_reference',
+                    captured=4, manifest_sha256=reader.archive.sha(viewport_manifest_raw))
+                    if positive else None)
             bind(lab, child)
             files[0] = ('manifest.json', encode(child), stat.S_IFREG)
         original_success = positive and not parent_failed and not child_missing
@@ -616,8 +628,10 @@ class ReaderTests(unittest.TestCase):
         viewport_raw = viewport_fixtures.packed(viewport_manifest, viewport_images)
         blobs = {1: root_raw, 2: wallet_raw, 3: home_raw, 4: viewport_raw}
         artifact_ids = (1,) if child_missing else (1, 2, 3, 4) if positive else (1, 2)
+        if send_confirmation and positive and not extra_viewport:
+            artifact_ids = (1, 2, 3)
         listing = dict(total_count=len(artifact_ids), artifacts=[dict(id=i,
-            name={1: 'chain321-native-', 2: 'wallet-inspection-', 3: 'details-catalog-' if details_catalog else 'navigation-catalog-' if navigation_catalog else 'settings-catalog-' if settings_catalog else 'home-catalog-', 4: 'viewport-observation-'}[i] + 'a' * 40 + '-1-1',
+            name={1: 'chain321-native-', 2: 'wallet-inspection-', 3: 'details-catalog-' if details_catalog or send_confirmation else 'navigation-catalog-' if navigation_catalog else 'settings-catalog-' if settings_catalog else 'home-catalog-', 4: 'viewport-observation-'}[i] + 'a' * 40 + '-1-1',
             expired=False, size_in_bytes=len(blobs[i]), digest='sha256:' + reader.archive.sha(blobs[i]),
             workflow_run=dict(id=1, head_sha='a' * 40)) for i in artifact_ids])
         blob = hashlib.sha1(b'blob ' + str(len(source)).encode() + b'\0' + source).hexdigest()
@@ -775,12 +789,42 @@ class ReaderTests(unittest.TestCase):
         self.assertFalse(observed['wallet_qualified'])
         self.assertEqual(observed['visual_matches'], 0)
 
+        value, calls, text = self.run_main(send_confirmation=True)
+        self.assertTrue(value['native_inspection_qualified'])
+        self.assertEqual(value['sampling_scope'], 'send-confirm-only')
+        self.assertEqual(value['verified_png_count'], 0)
+        self.assertEqual(value['visited_pages'], {})
+        self.assertEqual(value['verified_viewport_png_count'], 0)
+        self.assertEqual(value['verified_catalog_png_count'], 2)
+        self.assertEqual(len(calls), 14)
+        self.assertFalse(value['original_checks']['tours_complete'])
+        self.assertFalse(value['original_checks']['locale_verified'])
+        messages = [line.split('::', 2)[-1] for line in text.splitlines()
+            if line.startswith('::notice title=Retained readonly Details catalog::')]
+        self.assertEqual(len(messages), 1)
+        observed = json.loads(messages[0])
+        self.assertEqual(observed['schema'], 3)
+        self.assertEqual(observed['filenames'],
+            ['12-send-confirm-dark.png', '12-send-confirm-light.png'])
+        self.assertTrue(observed['all_original_png_digests_verified'])
+        self.assertTrue(observed['parent_closure_qualified'])
+        self.assertFalse(observed['financial_send_qualified'])
+        self.assertEqual(observed['visual_matches'], 0)
+        self.assertNotIn('Retained readonly shot layout', text)
+        self.assertNotIn('Retained readonly viewport observation', text)
+        with self.assertRaises(reader.archive.Refused):
+            self.run_main(send_confirmation=True, extra_viewport=True)
+
     def test_failed_parent_cannot_be_healed_by_a_successful_wallet_archive(self):
         value, _, _ = self.run_main(parent_failed=True)
         self.assertTrue(value['artifact_reported_success'])
         self.assertEqual(value['verified_png_count'], 24)
         self.assertFalse(value['original_lab_closure_qualified'])
         self.assertFalse(value['native_inspection_qualified'])
+        focused, _, _ = self.run_main(parent_failed=True, send_confirmation=True)
+        self.assertTrue(focused['artifact_reported_success'])
+        self.assertFalse(focused['native_inspection_qualified'])
+        self.assertEqual(focused['verified_catalog_png_count'], 0)
 
     def test_negative_reader_keeps_original_failure_and_does_not_admit_pixels(self):
         for selected in ({}, dict(details_catalog=True)):

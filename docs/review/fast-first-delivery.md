@@ -111,7 +111,7 @@ frontier reads after such a failure. Their native observation remains pending.
 | Original gate | Required evidence |
 | --- | --- |
 | P03/P09/F06 | Complete the documented platform/Docker route, complete seed effects and copied lifecycle, plus coordinator/peer Swap prerequisites. Earlier Linux defaults, WSL installation and native send observations retain their separate scopes. |
-| V01/V05 | Obtain 44 missing literal outputs, review all 94 pairs, resolve retained layout/type/spacing findings and explicitly accept each match. Availability is 50/94; accepted whole-image matches remain 0/94. |
+| V01/V05 | Obtain 42 missing literal outputs, review all 94 pairs, resolve retained layout/type/spacing findings and explicitly accept each match. Availability is 52/94. Accepted whole-image matches are 0/94. |
 | V02 | Observe every motion/shader row in the running build and compare page-change, disclosure and launch frame times with the original baseline. Finite widget timing or stall telemetry alone does not close this gate. |
 | V03 | Try every original seam control, shortcut and Go To entry in the running native wallet and verify refusal. Registry and widget controls remain partial evidence. |
 | V06 | Check every original end-state requirement and complete independent final acceptance. The earlier minimum-window/Arabic viewing remains source-bound. |

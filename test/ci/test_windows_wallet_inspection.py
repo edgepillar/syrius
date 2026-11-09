@@ -54,20 +54,32 @@ def navigation_reference(digest):
         screens=list(inspection.navigation.SCREENS), captured=14, manifest_sha256=digest)
 
 
-def details_manifest(pixels, script):
+def details_manifest(pixels, script, *, schema=1):
     value, _ = details_fixtures.fixture()
-    value.update(source_sha='a' * 40, source_tree='b' * 40,
+    screens = inspection.details.catalog_screens(schema)
+    files = inspection.details.catalog_files(schema)
+    value.update(schema=schema, source_sha='a' * 40, source_tree='b' * 40,
         run_id='1', script_sha256_by_screen={
             name: hashlib.sha256(script).hexdigest()
-            for name in inspection.details.SCREENS})
-    for row in value['captures']:
-        row.update(bytes=len(pixels), sha256=hashlib.sha256(pixels).hexdigest())
+            for name in screens})
+    value['capture'].update(schema=schema, screens=list(screens), files=list(files))
+    value['captures'] = [dict(row, file=name, bytes=len(pixels),
+        sha256=hashlib.sha256(pixels).hexdigest())
+        for row, name in zip(value['captures'], files)]
     return value
 
 
-def details_reference(digest):
-    return dict(schema=1, scope='readonly_native_details_catalog_reference',
-        screens=list(inspection.details.SCREENS), captured=10, manifest_sha256=digest)
+def details_reference(digest, *, schema=1):
+    return dict(schema=schema, scope='readonly_native_details_catalog_reference',
+        screens=list(inspection.details.catalog_screens(schema)),
+        captured=len(inspection.details.catalog_files(schema)), manifest_sha256=digest)
+
+
+def send_confirmation_report(value, digest):
+    return dict(value, schema=5, captures=[], tours={}, locales={}, stalls={},
+        home_catalog=None, settings_catalog=None, navigation_catalog=None,
+        details_catalog=details_reference(digest, schema=3), viewport=None,
+        checks=dict(value['checks'], tours_complete=False, locale_verified=False))
 
 
 def sdk():
@@ -193,7 +205,7 @@ class InspectionTests(unittest.TestCase):
         self.assertEqual(lab.readonly_catalog_family(parent), 'details')
         for family, schema in (('home', 1), ('settings', 2),
                                ('navigation', 3), ('details', 4),
-                               ('token-draft', 4), ('send-confirm', 4)):
+                               ('token-draft', 4), ('send-confirm', 5)):
             selected = dict(parent, SYRIUS_READONLY_CATALOG_FAMILY=family)
             self.assertTrue(lab.wallet_inspection_requested('native', selected))
             self.assertEqual(lab.READONLY_CATALOG_SCHEMAS[
@@ -548,6 +560,22 @@ class InspectionTests(unittest.TestCase):
                     'motion_baseline_compared', 'arabic_or_minimum_window_qualified'):
             self.assertIs(value[key], False)
         self.assertEqual(value['visual_matches'], 0)
+        focused = send_confirmation_report(value, 'f' * 64)
+        self.assertIs(inspection.public_manifest(focused), focused)
+        self.assertTrue(inspection.completed(focused))
+        for change in (
+            dict(captures=value['captures']), dict(tours=value['tours']),
+            dict(locales=value['locales']), dict(stalls=value['stalls']),
+            dict(viewport=value['viewport']), dict(checks=value['checks']),
+            dict(details_catalog=details_reference('f' * 64, schema=2)),
+            dict(entry_failure=dict(stage='viewport', code=None)),
+        ):
+            with self.subTest(change=tuple(change)), self.assertRaises(inspection.Refused):
+                mutated = dict(focused, **change)
+                self.assertFalse(inspection.completed(mutated))
+                inspection.public_manifest(mutated)
+        self.assertFalse(inspection.completed(dict(focused, entry_exit=1)))
+        self.assertFalse(inspection.completed(dict(focused, required_actor_forced_cleanup=True)))
         self.assertEqual(tuple(inspection.LAYOUT_KEYS), ('window-caption', 'window-body', 'home_hero', 'home_send', 'nodes_tab_pillars', 'nodes_tab_sentinels', 'staking_stake_button', 'plasma_open_fuse', 'tokens_filter_held', 'p2p_start_swap', 'node_settings_add', 'apps_settings_web_switch', 'transfer_card', 'accelerator_strip', 'bell_panel'))
         observed = layout()
         for boundary in ('before', 'after'):
@@ -845,7 +873,9 @@ class InspectionTests(unittest.TestCase):
                     with self.assertRaises(inspection.Refused):
                         inspection.read_original(path, 16)
 
-    def artifact_case(self, value, *, pixels=None, home_schema=1, settings_catalog=False, navigation_catalog=False, details_catalog=False):
+    def artifact_case(self, value, *, pixels=None, home_schema=1,
+                      settings_catalog=False, navigation_catalog=False,
+                      details_catalog=False, send_confirmation=False):
         parent = dict(GITHUB_WORKSPACE='/fixture', GITHUB_RUN_ID='1', GITHUB_RUN_ATTEMPT='1',
                       GITHUB_OUTPUT='/fixture-output')
         value = copy.deepcopy(value)
@@ -856,14 +886,18 @@ class InspectionTests(unittest.TestCase):
         settings_raw = json.dumps(settings_value).encode('ascii')
         navigation_value = navigation_manifest(pixels or b'x', script)
         navigation_raw = json.dumps(navigation_value).encode('ascii')
-        details_value = details_manifest(pixels or b'x', script)
+        details_schema = 3 if send_confirmation else 1
+        details_value = details_manifest(pixels or b'x', script, schema=details_schema)
         details_raw = json.dumps(details_value).encode('ascii')
-        self.assertLessEqual(sum((settings_catalog, navigation_catalog, details_catalog)), 1)
+        self.assertLessEqual(sum((settings_catalog, navigation_catalog,
+            details_catalog, send_confirmation)), 1)
         viewport_manifest, viewport_images = viewport_fixtures.fixture()
         viewport_manifest['probe_sha256'] = hashlib.sha256(script).hexdigest()
         viewport_raw = json.dumps(viewport_manifest).encode('ascii')
         if value['success']:
-            if details_catalog:
+            if send_confirmation:
+                value = send_confirmation_report(value, hashlib.sha256(details_raw).hexdigest())
+            elif details_catalog:
                 value.update(schema=4, home_catalog=None, settings_catalog=None,
                     navigation_catalog=None,
                     details_catalog=details_reference(hashlib.sha256(details_raw).hexdigest()))
@@ -875,7 +909,8 @@ class InspectionTests(unittest.TestCase):
                     settings_catalog=settings_reference(hashlib.sha256(settings_raw).hexdigest()))
             else:
                 value['home_catalog'] = home_reference(hashlib.sha256(home_raw).hexdigest(), schema=home_schema)
-            value['viewport']['manifest_sha256'] = hashlib.sha256(viewport_raw).hexdigest()
+            if value['viewport'] is not None:
+                value['viewport']['manifest_sha256'] = hashlib.sha256(viewport_raw).hexdigest()
         manifest = json.dumps(value).encode()
         output = _Output()
         reads = []
@@ -890,11 +925,12 @@ class InspectionTests(unittest.TestCase):
                 self.assertEqual(cap, 65536)
                 return script
             if (path.parent == Path('/fixture/harness/screens')
-                    and path.stem in inspection.details.SCREENS):
+                    and path.stem in inspection.details.catalog_screens(details_schema)):
                 self.assertEqual(cap, 65536)
                 return script
             if path.parent == Path('/fixture') / inspection.details.OUTPUT:
-                self.assertIn(path.name, ('manifest.json', *inspection.details.FILES))
+                self.assertIn(path.name, ('manifest.json',
+                    *inspection.details.catalog_files(details_schema)))
                 self.assertEqual(cap, inspection.details.MAX_MANIFEST
                     if path.name == 'manifest.json' else inspection.details.MAX_CAPTURE_TOTAL)
                 return details_raw if path.name == 'manifest.json' else pixels
@@ -1025,6 +1061,15 @@ class InspectionTests(unittest.TestCase):
             self.assertIn('ci-details-catalog/' + filename, output)
         self.assertNotIn('ci-navigation-catalog/', output)
         self.assertNotIn('private', output)
+        paths, reads, output = self.artifact_case(
+            value, pixels=pixels, send_confirmation=True)
+        self.assertEqual(paths, ['.harness/ci-wallet-inspection/manifest.json'])
+        self.assertEqual(len(reads), 5)
+        self.assertIn('catalog_family=details-catalog', output)
+        self.assertIn('ci-details-catalog/12-send-confirm-dark.png', output)
+        self.assertIn('ci-details-catalog/12-send-confirm-light.png', output)
+        self.assertNotIn('/captures/', output)
+        self.assertNotIn('ci-viewport-observations/', output)
 
     def test_artifacts_cannot_borrow_another_source_run_or_private_manifest(self):
         for change in ({'source_sha': 'c' * 40}, {'run_attempt': '2'},

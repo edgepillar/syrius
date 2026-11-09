@@ -58,6 +58,16 @@ class _InspectionInstance extends cli.Instance {
 
   Future<Map<String, dynamic>> bindWallet() => _session.bindWallet();
 
+  Future<void> requireCleanLogs() async {
+    final Map<String, dynamic> logs = await cli.call(this, <String, Object?>{
+      'cmd': 'logs', 'since': 0, 'limit': 500,
+      'levels': <String>['SEVERE', 'SHOUT', 'FLUTTER'],
+    });
+    if (logs['logs'] is! List || (logs['logs'] as List<dynamic>).isNotEmpty) {
+      throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.reply);
+    }
+  }
+
   Future<Map<String, Object>> captureCatalog(
     String family, {
     void Function(ScreenCaptureObservation step)? onStep,
@@ -125,6 +135,8 @@ Future<void> main() async {
     final Map<String, String> environment = Platform.environment;
     final String family = readonlyInspectionCatalogFamily(environment);
     detailsSelection = _detailsSelections[family];
+    final bool sendConfirmation =
+        detailsSelection == ReadonlyDetailsSelection.sendConfirmation;
     final String name = environment['SYRIUS_CI_INSPECTION_INSTANCE'] ?? '';
     if (!Platform.isWindows || environment['GITHUB_ACTIONS'] != 'true' ||
         environment['SYRIUS_CI_WALLET_INSPECTION'] != 'true' ||
@@ -210,28 +222,20 @@ Future<void> main() async {
       throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.reply);
     }
     stage = 'onboarding_logs';
-    final Map<String, dynamic> logs = await cli.call(instance,
-      <String, Object?>{
-        'cmd': 'logs', 'since': 0, 'limit': 500,
-        'levels': <String>['SEVERE', 'SHOUT', 'FLUTTER'],
-      },
-    );
-    if (logs['logs'] is! List ||
-        (logs['logs'] as List<dynamic>).isNotEmpty) {
-      throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.reply);
-    }
+    await instance.requireCleanLogs();
     stage = 'address_selection';
     final Map<String, Object> selection = await recipe.selectLabAddress();
     final String? labRecipient =
-        detailsSelection == ReadonlyDetailsSelection.sendConfirmation
-        ? recipe.readonlyLabRecipient : null;
+        sendConfirmation ? recipe.readonlyLabRecipient : null;
     await marker('SYRIUS_INSPECTION_ADDRESS:${jsonEncode(selection)}');
     stage = 'wallet_binding';
     final Map<String, dynamic> bound = await instance.bindWallet();
     await marker('SYRIUS_INSPECTION_WALLET:${jsonEncode(
       bound['readonlyWallet'],
     )}');
-    for (final String theme in <String>['dark', 'light']) {
+    final List<String> tourThemes =
+        sendConfirmation ? const <String>[] : const <String>['dark', 'light'];
+    for (final String theme in tourThemes) {
       stage = 'tour_$theme';
       final Map<String, dynamic> before = await cli.stateOf(instance);
       if (before['locale'] != 'en' || before['direction'] != 'ltr') {
@@ -276,17 +280,21 @@ Future<void> main() async {
       })}');
     }
     stage = detailsSelection?.stage ?? '${family}_catalog';
+    if (sendConfirmation) await cli.goto(instance, 'dashboard');
     final Map<String, Object> catalog = await instance.captureCatalog(
       family,
       onStep: (ScreenCaptureObservation value) => lastCatalogStep = value,
       labRecipient: labRecipient,
     );
+    if (sendConfirmation) await instance.requireCleanLogs();
     await marker('SYRIUS_INSPECTION_CATALOG:${jsonEncode(catalog)}');
-    stage = 'viewport';
-    final Map<String, Object> viewport = await instance.captureViewport(
-      onStep: (ReadonlyViewportStep value) => lastViewportStep = value,
-    );
-    await marker('SYRIUS_INSPECTION_VIEWPORT:${jsonEncode(viewport)}');
+    if (!sendConfirmation) {
+      stage = 'viewport';
+      final Map<String, Object> viewport = await instance.captureViewport(
+        onStep: (ReadonlyViewportStep value) => lastViewportStep = value,
+      );
+      await marker('SYRIUS_INSPECTION_VIEWPORT:${jsonEncode(viewport)}');
+    }
     await marker('CI_INSPECT_DONE');
     stage = 'finish';
     if (!await input.moveNext() || input.current != 'FINISH') {

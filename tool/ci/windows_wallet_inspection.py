@@ -26,7 +26,8 @@ from . import readonly_settings_capture as settings
 from . import readonly_navigation_capture as navigation
 from . import readonly_details_capture as details
 from .windows_debug_process import IMAGE_NAMES
-from .hosted_chain321 import CODES as LAB_CODES, READONLY_CATALOG_SCHEMAS, readonly_catalog_family
+from .hosted_chain321 import (CODES as LAB_CODES, READONLY_CATALOG_SCHEMAS,
+    SEND_CONFIRM_INSPECTION_SCHEMA, readonly_catalog_family)
 
 
 PAGES = shared.PAGES
@@ -53,6 +54,7 @@ CHECKS = ('environment', 'source', 'unused_destinations', 'job_owned',
     'input_released', 'wallet_bound', 'tours_complete', 'locale_verified',
     'captures', 'close_ack', 'application_exit', 'entry_exit',
     'output_complete', 'source_unchanged', 'auxiliary_cleanup')
+TOUR_CHECKS = ('tours_complete', 'locale_verified')
 CODES = shared.CODES | LAB_CODES | frozenset(('BINDING_REFUSED', 'INSPECTION_REFUSED',
     'LAB_REVALIDATION_TIMEOUT_ERROR', 'LAB_REVALIDATION_CONNECTION_ERROR',
     'LAB_REVALIDATION_KEY_ERROR', 'LAB_REVALIDATION_TYPE_ERROR',
@@ -552,7 +554,8 @@ def capture_records(value, *, complete=True):
 
 def inspection_catalog_reference(report):
     schema = report.get('schema')
-    need(type(schema) is int and schema in (1, 2, 3, 4), 'CAPTURE_REFUSED')
+    need(type(schema) is int and schema in READONLY_CATALOG_SCHEMAS.values(),
+         'CAPTURE_REFUSED')
     if schema == 1:
         return home_catalog_reference(report['home_catalog'])
     need(report['home_catalog'] is None, 'CAPTURE_REFUSED')
@@ -562,23 +565,52 @@ def inspection_catalog_reference(report):
     if schema == 3:
         return navigation.catalog_reference(report['navigation_catalog'])
     need(report['navigation_catalog'] is None, 'CAPTURE_REFUSED')
-    return details.catalog_reference(report['details_catalog'])
+    reference = details.catalog_reference(report['details_catalog'])
+    if schema == SEND_CONFIRM_INSPECTION_SCHEMA:
+        need(reference['schema'] == details.FAMILY_SCHEMAS['send-confirm'],
+             'CAPTURE_REFUSED')
+    return reference
+
+
+def send_confirmation_only(report):
+    return report['schema'] == SEND_CONFIRM_INSPECTION_SCHEMA
+
+
+def complete_checks(report):
+    checks = report['checks']
+    skipped = TOUR_CHECKS if send_confirmation_only(report) else ()
+    return set(checks) == set(CHECKS) and all(
+        checks[key] is (key not in skipped) for key in CHECKS)
+
+
+def require_catalog_only_samples(report):
+    failure = report.get('entry_failure')
+    need(report['captures'] == [] and report['viewport'] is None
+         and all(report[key] == {} for key in ('tours', 'locales', 'stalls'))
+         and all(report['checks'][key] is False for key in TOUR_CHECKS)
+         and (failure is None or type(failure) is dict and failure.get('stage')
+              not in ('tour_dark', 'tour_light', 'viewport')), 'OUTPUT_REFUSED')
 
 
 def completed(report):
     try:
-        capture_records(report['captures'])
         inspection_catalog_reference(report)
-        viewport.reference(report['viewport'])
+        if send_confirmation_only(report):
+            require_catalog_only_samples(report)
+        else:
+            capture_records(report['captures'])
+            viewport.reference(report['viewport'])
+            need(set(report['tours']) == set(report['locales']) ==
+                 set(report['stalls']) == set(THEMES)
+                 and all(tour_complete(report['tours'][t])
+                         and locale_receipt(report['locales'][t])
+                         and stalls_receipt(report['stalls'][t]) for t in THEMES),
+                 'TOUR_REFUSED')
         sdk_receipt(report['sdk_admission'])
         wallet_receipt(report['wallet_admission'])
         return (report['phase'] == 'complete' and not report['errors']
-            and set(report['checks']) == set(CHECKS)
-            and all(v is True for v in report['checks'].values())
+            and complete_checks(report)
             and type(report['lab_revalidations']) is int and report['lab_revalidations'] == 2
-            and set(report['tours']) == set(report['locales']) == set(report['stalls']) == set(THEMES)
-            and all(tour_complete(report['tours'][t]) and locale_receipt(report['locales'][t])
-                    and stalls_receipt(report['stalls'][t]) for t in THEMES)
             and type(report.get('application_exit')) is int and report['application_exit'] == 0
             and type(report.get('entry_exit')) is int and report['entry_exit'] == 0
             and type(report.get('owned_job_active_at_close')) is int
@@ -594,16 +626,20 @@ def completed(report):
         return False
 
 
-def output_bytes(output):
+def output_bytes(output, *, catalog_only=False):
     """Only the manifest and finite capture paths belong to this output root."""
     total = entries = 0
     allowed = {output / 'manifest.json'} | {
         output / 'captures' / theme / (page + '.png') for theme in THEMES for page in PAGES}
-    for path in (output, output / 'captures', *(output / 'captures' / t for t in THEMES)):
+    capture_roots = (output / 'captures', *(output / 'captures' / t for t in THEMES))
+    if catalog_only:
+        allowed = {output / 'manifest.json'}
+        capture_roots = ()
+    for path in (output, *capture_roots):
         if path.exists() or path.is_symlink():
             debug.bounded.plain(path)
             for child in path.iterdir():
-                if child in (output / 'captures', *(output / 'captures' / t for t in THEMES)):
+                if child in capture_roots:
                     debug.bounded.plain(child)
                 else:
                     need(child in allowed, 'STORAGE_REFUSED')
@@ -627,16 +663,16 @@ def public_manifest(value):
         'entry_failure', 'application_exit', 'cleanup_application_exit', 'entry_exit',
         'owned_job_images_before_close', 'owned_job_active_at_close', 'entry_output'}
     need(type(value) is dict and type(value.get('schema')) is int
-         and value['schema'] in (1, 2, 3, 4), 'OUTPUT_REFUSED')
-    if value['schema'] in (2, 3, 4):
+         and value['schema'] in READONLY_CATALOG_SCHEMAS.values(), 'OUTPUT_REFUSED')
+    schema = value['schema']
+    if schema >= 2:
         required.add('settings_catalog')
-    if value['schema'] in (3, 4):
+    if schema >= 3:
         required.add('navigation_catalog')
-    if value['schema'] == 4:
+    if schema >= 4:
         required.add('details_catalog')
     need(required <= set(value) <= required | optional, 'OUTPUT_REFUSED')
-    need(type(value['schema']) is int and value['schema'] in (1, 2, 3, 4)
-         and value['scope'] == 'owned_chain321_wallet_inspection'
+    need(value['scope'] == 'owned_chain321_wallet_inspection'
          and all(type(value[k]) is bool for k in flags)
          and all(value[k] is False for k in ('wallet_qualified', 'seed_admitted',
              'financial_send_qualified', 'motion_baseline_compared', 'arabic_or_minimum_window_qualified'))
@@ -670,7 +706,7 @@ def public_manifest(value):
         entry_failure(value['entry_failure'])
     if value['home_catalog'] is not None:
         home_catalog_reference(value['home_catalog'])
-    if value['schema'] in (2, 3, 4):
+    if schema >= 2:
         need(value['home_catalog'] is None, 'OUTPUT_REFUSED')
         if value['schema'] == 2:
             if value['settings_catalog'] is not None:
@@ -687,15 +723,18 @@ def public_manifest(value):
             else:
                 need(value['navigation_catalog'] is None, 'OUTPUT_REFUSED')
                 if value['details_catalog'] is not None:
-                    details.catalog_reference(value['details_catalog'])
+                    inspection_catalog_reference(value)
                 need(not value['success'] or value['details_catalog'] is not None,
                      'OUTPUT_REFUSED')
     else:
         need(not value['success'] or value['home_catalog'] is not None, 'OUTPUT_REFUSED')
-    if value['viewport'] is not None:
-        viewport.reference(value['viewport'])
-    need(not value['success'] or value['viewport'] is not None, 'OUTPUT_REFUSED')
-    capture_records(value['captures'], complete=value['success'])
+    if send_confirmation_only(value):
+        require_catalog_only_samples(value)
+    else:
+        if value['viewport'] is not None:
+            viewport.reference(value['viewport'])
+        need(not value['success'] or value['viewport'] is not None, 'OUTPUT_REFUSED')
+        capture_records(value['captures'], complete=value['success'])
     if value['sdk_admission'] is not None:
         sdk_receipt(value['sdk_admission'])
     if value['wallet_admission'] is not None:
@@ -779,6 +818,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
     catalog_receipt = viewport_receipt = None
     family = catalog_slot = 'details'
     details_schema = 1
+    catalog_only = False
     try:
         parent, source = debug.entry.require_ci(parent, None, platform=os.name)
         need(parent.get('GITHUB_EVENT_NAME') == 'workflow_dispatch'
@@ -791,6 +831,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
         details_schema = details.FAMILY_SCHEMAS.get(family, 1)
         catalog_slot = 'details' if family in details.FAMILY_SCHEMAS else family
         report['schema'] = READONLY_CATALOG_SCHEMAS[family]
+        catalog_only = send_confirmation_only(report)
         for field, since in (('details_catalog', 4), ('navigation_catalog', 3),
                              ('settings_catalog', 2)):
             if report['schema'] < since:
@@ -858,7 +899,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
                 if now >= next_sample:
                     logical = shared.sample_workspace((home, app, build, profile),
                         expected_profile=profile_identity)
-                    logical += output_bytes(output)
+                    logical += output_bytes(output, catalog_only=catalog_only)
                     logical += home_output_bytes(repo / HOME_OUTPUT, schema=4)
                     logical += settings.output_bytes(repo / settings.OUTPUT)
                     logical += navigation.output_bytes(repo / navigation.OUTPUT)
@@ -900,6 +941,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
                     used.add('wallet')
                     report['wallet_admission'] = wallet_receipt(json.loads(line.partition(b':')[2]))
                 elif line.startswith(b'SYRIUS_INSPECTION_TOUR:'):
+                    need(not catalog_only, 'ENTRY_REFUSED')
                     value = tour_receipt(json.loads(line.partition(b':')[2]))
                     theme = value['theme']
                     need('wallet' in used and theme not in report['tours']
@@ -907,6 +949,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
                              len(report['stalls']) == THEMES.index(theme), 'ENTRY_REFUSED')
                     report['tours'][theme] = value
                 elif line.startswith(b'SYRIUS_INSPECTION_LOCALE:'):
+                    need(not catalog_only, 'ENTRY_REFUSED')
                     value = locale_receipt(json.loads(line.partition(b':')[2]))
                     theme = value['theme']
                     need(theme in report['tours'] and theme not in report['locales']
@@ -914,6 +957,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
                          and len(report['stalls']) == THEMES.index(theme), 'ENTRY_REFUSED')
                     report['locales'][theme] = value
                 elif line.startswith(b'SYRIUS_INSPECTION_STALLS:'):
+                    need(not catalog_only, 'ENTRY_REFUSED')
                     value = stalls_receipt(json.loads(line.partition(b':')[2]))
                     theme = value['theme']
                     need(theme in report['locales'] and theme not in report['stalls']
@@ -921,8 +965,9 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
                          and len(report['stalls']) == THEMES.index(theme), 'ENTRY_REFUSED')
                     report['stalls'][theme] = value
                 elif line.startswith(b'SYRIUS_INSPECTION_CATALOG:'):
+                    expected_themes = set() if catalog_only else set(THEMES)
                     need(marker == b'CI_INSPECT_DONE' and catalog_receipt is None
-                         and 'wallet' in used and set(report['stalls']) == set(THEMES),
+                         and 'wallet' in used and set(report['stalls']) == expected_themes,
                          'ENTRY_REFUSED')
                     receipt = json.loads(line.partition(b':')[2])
                     validators = dict(home=home_capture_receipt,
@@ -933,15 +978,16 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
                     need(catalog_receipt['schema'] == (4 if family == 'home' else details_schema),
                          'ENTRY_REFUSED')
                 elif line.startswith(b'SYRIUS_INSPECTION_VIEWPORT:'):
-                    need(marker == b'CI_INSPECT_DONE' and viewport_receipt is None
+                    need(not catalog_only and marker == b'CI_INSPECT_DONE' and viewport_receipt is None
                          and catalog_receipt is not None, 'ENTRY_REFUSED')
                     viewport_receipt = viewport.receipt(json.loads(line.partition(b':')[2]))
                 elif line.startswith(b'CI_INSPECT_ERROR:'):
                     report['entry_failure'] = entry_failure(json.loads(line.partition(b':')[2]))
                     raise Refused('ENTRY_FAILED')
                 elif line == b'CI_INSPECT_DONE':
-                    need(marker == line and set(report['stalls']) == set(THEMES)
-                         and catalog_receipt is not None and viewport_receipt is not None, 'ENTRY_REFUSED')
+                    need(marker == line and catalog_receipt is not None
+                         and (viewport_receipt is not None) is (not catalog_only),
+                         'ENTRY_REFUSED')
                     return
                 elif line.startswith((b'CI_INSPECT_', b'SYRIUS_INSPECTION_',
                         b'CI_WALLET_', b'SYRIUS_LAB_SEND:', b'SYRIUS_WALLET_TOUR:')):
@@ -985,20 +1031,22 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
         need(confirm.status == 200)
         readonly_reply(json.loads(confirm.body), pid, wallet=True)
         report['checks']['wallet_bound'] = True
-        need(all(tour_complete(report['tours'][theme]) for theme in THEMES), 'TOUR_REFUSED')
-        report['checks']['tours_complete'] = True
-        need(set(report['locales']) == set(THEMES))
-        report['checks']['locale_verified'] = True
-        for theme in THEMES:
-            for page in PAGES:
-                path = output / 'captures' / theme / (page + '.png')
-                raw = read_original(path, debug.entry.MAX_PNG)
-                debug.entry.png_bytes(base64.b64encode(raw).decode('ascii'))
-                report['captures'].append(dict(theme=theme, page=page, bytes=len(raw),
-                    sha256=hashlib.sha256(raw).hexdigest(), width=1280, height=780))
-        capture_records(report['captures'])
-        output_bytes(output)
-        report['checks']['captures'] = True
+        if not catalog_only:
+            need(all(tour_complete(report['tours'][theme]) for theme in THEMES), 'TOUR_REFUSED')
+            report['checks']['tours_complete'] = True
+            need(set(report['locales']) == set(THEMES))
+            report['checks']['locale_verified'] = True
+            for theme in THEMES:
+                for page in PAGES:
+                    path = output / 'captures' / theme / (page + '.png')
+                    raw = read_original(path, debug.entry.MAX_PNG)
+                    debug.entry.png_bytes(base64.b64encode(raw).decode('ascii'))
+                    report['captures'].append(dict(theme=theme, page=page, bytes=len(raw),
+                        sha256=hashlib.sha256(raw).hexdigest(), width=1280, height=780))
+            capture_records(report['captures'])
+        output_bytes(output, catalog_only=catalog_only)
+        if not catalog_only:
+            report['checks']['captures'] = True
         if family == 'home':
             report['home_catalog'] = collect_home_catalog(
                 repo, catalog_receipt, source, tree, parent)
@@ -1006,8 +1054,11 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
             collector = dict(settings=settings, navigation=navigation, details=details)[catalog_slot]
             report[catalog_slot + '_catalog'] = collector.collect(
                 repo, catalog_receipt, source, tree, parent, read_original=read_original)
-        report['viewport'] = viewport.collect(repo, viewport_receipt, source, tree, parent,
-            read_original=read_original)
+        if catalog_only:
+            report['checks']['captures'] = True
+        else:
+            report['viewport'] = viewport.collect(repo, viewport_receipt, source, tree, parent,
+                read_original=read_original)
         lab_current()
         report['phase'] = 'ordinary_close'
         close_attempted = True
@@ -1129,10 +1180,11 @@ def artifact_paths(parent):
          and value.get('run_id') == parent['GITHUB_RUN_ID']
          and value.get('run_attempt') == parent['GITHUB_RUN_ATTEMPT'], 'SOURCE_REFUSED')
     paths = [str(OUTPUT / 'manifest.json').replace('\\', '/')]
+    catalog_only = send_confirmation_only(value)
     if value.get('success') is True:
         need(completed(value), 'CAPTURE_REFUSED')
-        output_bytes(repo / OUTPUT)
-        for row in capture_records(value['captures']):
+        output_bytes(repo / OUTPUT, catalog_only=catalog_only)
+        for row in value['captures']:
             relative = OUTPUT / 'captures' / row['theme'] / (row['page'] + '.png')
             capture = repo / relative
             raw = read_original(capture, debug.entry.MAX_PNG)
@@ -1141,7 +1193,8 @@ def artifact_paths(parent):
             debug.entry.png_bytes(base64.b64encode(raw).decode('ascii'))
             paths.append(str(relative).replace('\\', '/'))
     catalog_family = {1: 'home-catalog', 2: 'settings-catalog',
-        3: 'navigation-catalog', 4: 'details-catalog'}[value['schema']]
+        3: 'navigation-catalog', 4: 'details-catalog',
+        SEND_CONFIRM_INSPECTION_SCHEMA: 'details-catalog'}[value['schema']]
     if value['schema'] == 1:
         home_paths = home_artifact_paths(repo, value)
     elif value['schema'] == 2:
@@ -1153,8 +1206,8 @@ def artifact_paths(parent):
     else:
         home_paths = details.artifact_paths(repo, value, read_original=read_original,
             parent_completed=completed(value))
-    viewport_paths = viewport.artifact_paths(repo, value, parent_completed=completed,
-        read_original=read_original)
+    viewport_paths = [] if catalog_only else viewport.artifact_paths(
+        repo, value, parent_completed=completed, read_original=read_original)
     output = Path(parent['GITHUB_OUTPUT'])
     debug.bounded.plain(output)
     with output.open('a', encoding='utf-8') as stream:
