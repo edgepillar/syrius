@@ -267,7 +267,8 @@ preparation and capture processes exit normally, and the independent reader
 verifies the manifest with zero images. Source577 waits separately for the
 final film frame and the original input owner. It focuses the existing window
 once when needed and checks the picker with the selected lock-view cases.
-Fresh capture and reference review remain open.
+Source578 binds still captures to the visible unlock control exposed by the
+harness. Fresh capture and reference review remain open.
 [First producer](https://github.com/edgepillar/syrius/actions/runs/42714625910)
 and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42717061765).
 

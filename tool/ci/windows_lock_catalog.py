@@ -121,7 +121,7 @@ class LockProcess(launch.LaunchProcess):
         self._status(theme, picker, wait=True)
         self._lock_view(0)
         body = self._rpc(dict(cmd='shot', width=1280, height=780, theme=theme,
-                              expect=dict(key='lock_screen_marker')))
+                              expect=dict(key='wallet_unlock_button')))
         need(body.get('asserted') is True and body.get('theme') == theme
              and body.get('width') == 1280 and body.get('height') == 780)
         status = self._status(theme, picker)

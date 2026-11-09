@@ -125,6 +125,12 @@ void main() {
     await tester.pump();
     expect(tester.element(lock), same(original));
     expect(menu, findsOneWidget);
+    final Map<String, Object?> anchor = await HarnessAgent.forTest()
+        .commandForTest(<String, dynamic>{
+          'cmd': 'assert',
+          'key': 'wallet_unlock_button',
+        });
+    expect(anchor['asserted'], isTrue);
     for (final String key in <String>[
       'lock_wallet_picker_entry_0',
       'lock_wallet_picker_entry_1',
