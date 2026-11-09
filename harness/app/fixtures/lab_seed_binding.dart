@@ -323,33 +323,46 @@ final class LabSeedBinding
         ? captured.observation : null;
   }
 
-  SeedFundingReceive _fundingReceive(String hash, Address recipient) {
+  ({SeedFundingReceive status, Future<Object?>? result}) _fundingReceive(
+    String hash,
+    Address recipient,
+  ) {
+    const ({SeedFundingReceive status, Future<Object?>? result}) unavailable =
+        (status: SeedFundingReceive.unavailable, result: null);
     final AutoReceiveTxWorker? worker = _receiveWorker;
     if (worker == null ||
         worker.disposed ||
         !isCurrent ||
         !app.sl.isRegistered<AutoReceiveTxWorker>() ||
         !identical(worker, app.sl<AutoReceiveTxWorker>())) {
-      return SeedFundingReceive.unavailable;
+      return unavailable;
     }
     final List<ReceiveRecord> records = worker.originals;
-    if (records.length > 128) return SeedFundingReceive.unavailable;
+    if (records.length > 128) return unavailable;
     final String destination = recipient.toString();
     final List<ReceiveRecord> exact = records.where((ReceiveRecord record) =>
       record.chainId == 321 &&
       record.inboundHash == hash &&
       record.toAddress == destination,
     ).toList();
-    if (exact.isEmpty) return SeedFundingReceive.unseen;
-    if (exact.length != 1) return SeedFundingReceive.unavailable;
+    if (exact.isEmpty) return (status: SeedFundingReceive.unseen, result: null);
+    if (exact.length != 1) return unavailable;
     final ReceiveRecord record = exact.single;
-    if (record.handle == null) return SeedFundingReceive.unavailable;
-    if (record.error != null) return SeedFundingReceive.held;
-    if (record.result == null) return SeedFundingReceive.pending;
+    final Future<Object?>? result = record.handle?.result;
+    if (result == null) return unavailable;
+    if (record.error != null) {
+      return (status: SeedFundingReceive.held, result: null);
+    }
+    if (record.result == null) {
+      return (status: SeedFundingReceive.pending, result: result);
+    }
     final AccountBlockTemplate? block = record.result?.block;
-    return block != null &&
-            _seedFundingBlockMatches(block, recipient, Hash.parse(hash))
-        ? SeedFundingReceive.accepted : SeedFundingReceive.held;
+    final bool matches = block != null &&
+        _seedFundingBlockMatches(block, recipient, Hash.parse(hash));
+    return (
+      status: matches ? SeedFundingReceive.accepted : SeedFundingReceive.held,
+      result: null,
+    );
   }
 
   @override
@@ -694,7 +707,8 @@ final class LabSeedBinding
         requireCurrent: _requireCurrent,
       );
       if (ledger == SeedFundingLedger.confirmed) return true;
-      SeedFundingReceive receive = SeedFundingReceive.unavailable;
+      ({SeedFundingReceive status, Future<Object?>? result}) receive =
+          (status: SeedFundingReceive.unavailable, result: null);
       try {
         receive = _fundingReceive(hash, recipient);
       } on Object {
@@ -702,8 +716,9 @@ final class LabSeedBinding
       }
       _fundingEffect = (hash: hash, observation: SeedFundingObservation(
         ledger: ledger,
-        walletReceive: receive,
+        walletReceive: receive.status,
         pairedReceive: original.fundAddressReceiveConfirmed,
+        receiveResult: receive.result,
       ));
       return false;
     }

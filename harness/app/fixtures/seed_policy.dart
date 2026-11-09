@@ -124,11 +124,19 @@ final class SeedFundingObservation {
     required this.ledger,
     required this.walletReceive,
     required this.pairedReceive,
-  });
+    Future<Object?>? receiveResult,
+  }) : _receiveResult = receiveResult;
 
   final SeedFundingLedger ledger;
   final SeedFundingReceive walletReceive;
   final bool pairedReceive;
+  final Future<Object?>? _receiveResult;
+
+  /// The existing wallet result only schedules the next exact ledger read.
+  Future<Object?>? get pendingReceiveResult =>
+      !pairedReceive && walletReceive == SeedFundingReceive.pending
+          ? _receiveResult
+          : null;
 
   bool get waitingForReceive =>
       !pairedReceive &&
@@ -675,6 +683,7 @@ final class SeedGuard {
     SeedStakeEffectObservation? stakeEffect;
     SeedFundingObservation? fundingEffect;
     bool waitedForStakeEntry = false;
+    bool waitedForFundingReceive = false;
     const int rounds = 18;
     for (int poll = 0; poll < rounds; poll++) {
       stakeEffect = null;
@@ -731,6 +740,16 @@ final class SeedGuard {
         // The lab's ten-second momentum cadence can delay the contract receive.
         waitedForStakeEntry = true;
         delay = const Duration(seconds: 12);
+      }
+      final Future<Object?>? receive = fundingEffect?.pendingReceiveResult;
+      if (hasNextRound && !waitedForFundingReceive && receive != null) {
+        waitedForFundingReceive = true;
+        requireCurrent();
+        await receive.timeout(
+          const Duration(seconds: 45),
+          onTimeout: () => null,
+        );
+        requireCurrent();
       }
       await _delay(delay);
     }

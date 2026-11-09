@@ -213,19 +213,28 @@ class _ObservedStakeSource extends _Source implements SeedStakeEffectSource {
 class _ObservedFundingSource extends _Source
     implements SeedFundingEffectSource {
   int observations = 0;
+  Future<Object?>? receiveResult;
+  final Completer<void> pendingObserved = Completer<void>();
 
   @override
   SeedFundingObservation? observeFundingEffect(String hash) {
     observations++;
     if (hash != _hash(9)) return null;
+    final SeedFundingReceive receive = receiveResult != null
+        ? SeedFundingReceive.pending
+        : switch (effectReads) {
+            1 => SeedFundingReceive.unseen,
+            2 => SeedFundingReceive.pending,
+            _ => SeedFundingReceive.accepted,
+          };
+    if (receive == SeedFundingReceive.pending && !pendingObserved.isCompleted) {
+      pendingObserved.complete();
+    }
     return SeedFundingObservation(
       ledger: SeedFundingLedger.balancePending,
-      walletReceive: switch (effectReads) {
-        1 => SeedFundingReceive.unseen,
-        2 => SeedFundingReceive.pending,
-        _ => SeedFundingReceive.accepted,
-      },
+      walletReceive: receive,
       pairedReceive: false,
+      receiveResult: receiveResult,
     );
   }
 }
@@ -525,6 +534,98 @@ void main() {
           throwsA(isA<SeedRefused>()));
       expect(taps, 1);
     }
+  });
+
+  test('Fund Address waits for its original receive before reading again',
+      () async {
+    final Completer<Object?> receive = Completer<Object?>();
+    final _ObservedFundingSource observed = _ObservedFundingSource()
+      ..receiveResult = receive.future;
+    observed.onEffect = () async => observed.effectReads == 3;
+    final SeedGuard current = SeedGuard(
+      source: observed, journal: journal, delay: observed.delay,
+    );
+    int taps = 0;
+    final Future<String> publication = current.publish(
+      'fund-address',
+      () async {
+        taps++;
+        observed.operations.add(_Original());
+      },
+    );
+    await observed.pendingObserved.future;
+    await Future<void>.delayed(Duration.zero);
+    final int readsBeforeReceive = observed.confirmationReads;
+    final bool confirmedBeforeReceive = journal.confirmedHashes.isNotEmpty;
+    receive.complete(Object());
+    expect(await publication, _hash(9));
+    expect(readsBeforeReceive, 1);
+    expect(confirmedBeforeReceive, isFalse);
+    expect(observed.confirmationReads, 3);
+    expect(observed.effectReads, 3);
+    expect(taps, 1);
+    expect(journal.confirmedHashes, <String, String>{'fund-address': _hash(9)});
+  });
+
+  testWidgets('Fund Address waits once for a still pending original receive',
+      (WidgetTester tester) async {
+    final _ObservedFundingSource observed = _ObservedFundingSource()
+      ..receiveResult = Completer<Object?>().future
+      ..effectPresent = false;
+    final SeedGuard current = SeedGuard(
+      source: observed, journal: journal, delay: observed.delay,
+    );
+    int taps = 0;
+    final Future<void> refusal = expectLater(
+      current.publish('fund-address', () async {
+        taps++;
+        observed.operations.add(_Original());
+      }),
+      throwsA(isA<SeedRefused>().having(
+        (SeedRefused error) => error.confirmation?.public['funding'],
+        'public funding',
+        <String, Object>{
+          'ledger': 'balance_pending', 'wallet_receive': 'pending',
+          'paired_receive': false,
+        },
+      )),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 44));
+    expect(observed.confirmationReads, 1);
+    await tester.pump(const Duration(seconds: 1));
+    expect(observed.confirmationReads, 18);
+    await refusal;
+    expect(observed.effectReads, 18);
+    expect(journal.attempts, <String>{'fund-address'});
+    expect(journal.confirmedHashes, isEmpty);
+    expect(taps, 1);
+  });
+
+  test('Fund Address rechecks its original context after waiting', () async {
+    final Completer<Object?> receive = Completer<Object?>();
+    final _ObservedFundingSource observed = _ObservedFundingSource()
+      ..receiveResult = receive.future
+      ..effectPresent = false;
+    final SeedGuard current = SeedGuard(
+      source: observed, journal: journal, delay: observed.delay,
+    );
+    final Future<void> refusal = expectLater(
+      current.publish('fund-address', () async {
+        observed.operations.add(_Original());
+      }),
+      throwsA(isA<SeedRefused>().having(
+        (SeedRefused error) => error.code, 'code', 'original-context-changed',
+      )),
+    );
+    await observed.pendingObserved.future;
+    observed.isCurrent = false;
+    receive.complete(Object());
+    await refusal;
+    expect(observed.confirmationReads, 1);
+    expect(observed.effectReads, 1);
+    expect(journal.attempts, <String>{'fund-address'});
+    expect(journal.confirmedHashes, isEmpty);
   });
 
   test('Fund Address keeps exact receive and balance checks', () async {
