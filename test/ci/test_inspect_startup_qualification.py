@@ -117,6 +117,18 @@ class Client:
         return data
 
 
+def _png(sample=0):
+    def chunk(kind, data):
+        return (struct.pack('>I', len(data)) + kind + data
+                + struct.pack('>I', zlib.crc32(kind + data)))
+
+    row = bytes((0, sample)) + bytes(1280 * 3 - 1)
+    return (b'\x89PNG\r\n\x1a\n'
+        + chunk(b'IHDR', struct.pack('>IIBBBBB', 1280, 780, 8, 2, 0, 0, 0))
+        + chunk(b'IDAT', zlib.compress(row * 780))
+        + chunk(b'IEND', b''))
+
+
 class StartupInspectionTests(unittest.TestCase):
     def test_cold_launch_requires_exact_frame_geometry_and_normal_actor_exits(self):
         self._check_launch_catalog(settle=False)
@@ -125,14 +137,7 @@ class StartupInspectionTests(unittest.TestCase):
         self._check_launch_catalog(settle=True)
 
     def _check_launch_catalog(self, *, settle):
-        def chunk(kind, data):
-            return (struct.pack('>I', len(data)) + kind + data
-                    + struct.pack('>I', zlib.crc32(kind + data)))
-
-        pixels = (b'\x89PNG\r\n\x1a\n'
-            + chunk(b'IHDR', struct.pack('>IIBBBBB', 1280, 780, 8, 2, 0, 0, 0))
-            + chunk(b'IDAT', zlib.compress(bytes((1 + 1280 * 3) * 780)))
-            + chunk(b'IEND', b''))
+        pixels = _png()
         pins = dict(recipe_sha256='c' * 64, capture_source_sha256='d' * 64)
         if settle:
             pins['profile_sha256'] = 'a' * 64
@@ -191,6 +196,53 @@ class StartupInspectionTests(unittest.TestCase):
             source_stable=False, success=False, error_codes=['STARTUP_OBSERVATION_REFUSED']))
         self.assertFalse(partial['artifact_reported_success'])
         self.assertEqual(partial['verified_png_count'], 1)
+
+    def test_lock_catalog_requires_each_state_and_its_closed_original(self):
+        catalog = inspect.lock_catalog
+        states = (
+            dict(frame=55, frames=56, failures=0, remaining=3, picker_gates=0, masked_chars=12),
+            dict(frame=23, frames=56, failures=1, remaining=2, picker_gates=0, masked_chars=0),
+            dict(frame=55, frames=56, failures=0, remaining=3, picker_gates=4, masked_chars=0),
+        )
+        bodies = {name: _png(index) for index, name in enumerate(catalog.FILES)}
+        captures = [dict(file=name, theme=inspect.launch.THEMES[index // 3],
+            screen=catalog.SCREENS[index % 3], bytes=len(bodies[name]),
+            sha256=inspect.archive.sha(bodies[name]), **states[index % 3])
+            for index, name in enumerate(catalog.FILES)]
+        attempts = [dict(theme=theme, role=role, phase=phase, action_complete=True,
+            checks=dict.fromkeys(inspect.launch.ATTEMPT_CHECKS, True), exit_code=0,
+            exit_observed=True, forced_kill=False, output_complete=True,
+            output_overflow=False, error_codes=[])
+            for theme in inspect.launch.THEMES for role, phase in
+            (('prepare', 'prepare'), ('capture', 'complete'))]
+        pins = dict(capture_source_sha256='d' * 64, profile_sha256='a' * 64)
+        report = dict(schema=1, scope=catalog.SCOPE, success=True, attempts=attempts,
+            captures=captures, source_stable=True, error_codes=[], source_sha=HEAD,
+            source_tree=TREE, run_id=str(RUN), run_attempt='1', runner_sha256='e' * 64,
+            payload_sha256='f' * 64, **pins)
+
+        def read(value):
+            buffer = io.BytesIO()
+            with zipfile.ZipFile(buffer, 'w') as zipped:
+                zipped.writestr('manifest.json', json.dumps(value))
+                for row in value['captures']:
+                    zipped.writestr(row['file'], bodies[row['file']])
+            raw = buffer.getvalue()
+            return inspect.launch_archive(raw, inspect.archive.sha(raw), len(raw),
+                HEAD, TREE, RUN, pins, lock=True)
+
+        summary = read(report)
+        self.assertTrue(summary['artifact_reported_success'])
+        self.assertEqual(summary['verified_png_count'], 6)
+        self.assertEqual(summary['states'][1]['remaining'], 2)
+        for index, change in ((1, dict(failures=0)), (2, dict(picker_gates=3)),
+                              (4, dict(frame=55)), (5, dict(theme='dark'))):
+            changed = list(captures)
+            changed[index] = dict(changed[index], **change)
+            with self.assertRaises(inspect.archive.Refused):
+                read(dict(report, captures=changed))
+        with self.assertRaises(inspect.archive.Refused):
+            read(dict(report, attempts=attempts[:-1]))
 
     def test_startup_pair_keeps_the_original_twelve_request_transport_bound(self):
         class Response(io.BytesIO):

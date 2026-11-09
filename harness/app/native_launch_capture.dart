@@ -25,6 +25,30 @@ const String nativeLaunchThemeEnvironment = 'SYRIUS_CI_LAUNCH_THEME';
 /// Selects the isolated lock handoff and its preparation profile.
 const String nativeLaunchScreenEnvironment = 'SYRIUS_CI_LAUNCH_SCREEN';
 
+/// The original lock well in the isolated, still-locked startup profile.
+Element? originalLaunchLockedWell(StartupStageSession owner) {
+  final BuildContext? well = owner.wellKey.currentContext;
+  final String? wallet = kWalletPath;
+  if (!owner.claimed ||
+      !owner.authInShell ||
+      owner.isClosed ||
+      well is! Element ||
+      !well.mounted ||
+      wallet == null ||
+      path.basename(wallet) != launchSettleWalletName ||
+      kCurrentNode != launchSettleNode ||
+      kWalletFile != null ||
+      kWalletInitCompleted ||
+      kDefaultAddressList.isNotEmpty) {
+    return null;
+  }
+  final ModalRoute<dynamic>? route = ModalRoute.of(well);
+  return route?.isCurrent == true &&
+          identical(route?.settings.arguments, owner)
+      ? well
+      : null;
+}
+
 typedef _LaunchHandoff = ({
   StartupStageSession owner,
   StatefulElement film,
@@ -144,7 +168,7 @@ final class NativeLaunchCapture {
       throw const CaptureRefused('original-launch-frame-unavailable');
     }
     if (_settle) {
-      final Element? well = _lockedWell(owner);
+      final Element? well = originalLaunchLockedWell(owner);
       final Rect? wellRect = _rect(well?.findRenderObject());
       if (well == null ||
           wellRect == null ||
@@ -195,34 +219,11 @@ final class NativeLaunchCapture {
         rect.intersect(Offset.zero & _client) == rect ? rect : null;
   }
 
-  Element? _lockedWell(StartupStageSession owner) {
-    final BuildContext? well = owner.wellKey.currentContext;
-    final String? wallet = kWalletPath;
-    if (!owner.claimed ||
-        !owner.authInShell ||
-        owner.isClosed ||
-        well is! Element ||
-        !well.mounted ||
-        wallet == null ||
-        path.basename(wallet) != launchSettleWalletName ||
-        kCurrentNode != launchSettleNode ||
-        kWalletFile != null ||
-        kWalletInitCompleted ||
-        kDefaultAddressList.isNotEmpty) {
-      return null;
-    }
-    final ModalRoute<dynamic>? route = ModalRoute.of(well);
-    return route?.isCurrent == true &&
-            identical(route?.settings.arguments, owner)
-        ? well
-        : null;
-  }
-
   bool _settled() {
     final _LaunchHandoff? handoff = _handoff;
     if (handoff == null ||
         !handoff.owner.filmInWell ||
-        !identical(_lockedWell(handoff.owner), handoff.well) ||
+        !identical(originalLaunchLockedWell(handoff.owner), handoff.well) ||
         !identical(handoff.owner.filmKey.currentContext, handoff.film) ||
         handoff.owner.film.cleanupOwnerReplaced) {
       return false;

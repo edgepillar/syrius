@@ -255,6 +255,14 @@ full motion pass remain open.
 [Producer](https://github.com/edgepillar/syrius/actions/runs/42710320680) and
 [independent reader](https://github.com/edgepillar/syrius/actions/runs/42712504486).
 
+Source576 prepares the six lock catalog images. The Windows job builds once
+and uses a separately prepared encrypted test profile for each theme. The
+ordinary lock card receives a masked fixture value, then displays the inert
+picker rows behind their existing seam. After closing the picker, one
+refused input per profile leaves two attempts and starts the original well
+replay. The passive observer admits its painted frame 23. Windows execution
+and reference review remain pending.
+
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,
 Project and Fund Address with its confirmed receive and target balance. The

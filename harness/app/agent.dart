@@ -92,6 +92,7 @@ import 'fixtures/seed_token_presentation.dart';
 import 'logical_capture.dart';
 import 'native_entry_capture.dart';
 import 'native_launch_capture.dart';
+import 'native_lock_catalog.dart';
 import 'native_window_owner.dart';
 import 'presentation_close.dart';
 import 'presentation_host.dart';
@@ -471,6 +472,7 @@ class HarnessAgent {
   HarnessPresentationController? _presentation;
   NativeEntryCapture? _nativeEntry;
   NativeLaunchCapture? _nativeLaunch;
+  NativeLockCatalog? _nativeLock;
   NativeWindowOwner? _nativeWindow;
   ReadonlyNativeCommands? _readonlyNative;
   StatefulElement? _lockViewOwner;
@@ -537,6 +539,7 @@ class HarnessAgent {
     required NativeWindowOwner window,
     String? launchTheme,
     bool launchSettle = false,
+    bool launchLockCatalog = false,
   }) {
     if (_modeSelected ||
         booted ||
@@ -599,7 +602,13 @@ class HarnessAgent {
         );
       },
     );
-    if (launchTheme != null) {
+    if (launchTheme != null && launchLockCatalog) {
+      _nativeLock = NativeLockCatalog(
+        theme: launchTheme,
+        window: window,
+        readView: () => _view,
+      );
+    } else if (launchTheme != null) {
       _nativeLaunch = NativeLaunchCapture(
         theme: launchTheme,
         settle: launchSettle,
@@ -608,6 +617,9 @@ class HarnessAgent {
       );
     }
   }
+
+  /// Retains the original app root under the lock catalog's display scope.
+  Widget wrapLockCatalog(Widget root) => _nativeLock?.wrapRoot(root) ?? root;
 
   /// Chooses the independent host before the first remote command or startup.
   void usePresentation({
@@ -953,6 +965,8 @@ class HarnessAgent {
         return _state();
       case 'lock-view':
         return _lockViewCommand(c);
+      case 'lock-catalog':
+        return _lockCatalogCommand(c);
       case 'wallet-recipe':
         return _walletRecipeCommand(c);
       case 'entry-caption':
@@ -1864,6 +1878,24 @@ class HarnessAgent {
     final Map<String, Object?>? projected = projectLockView(value);
     if (projected == null) throw HarnessError('lock-view-shape-refused');
     return projected;
+  }
+
+  Future<Map<String, Object?>> _lockCatalogCommand(
+    Map<String, dynamic> command,
+  ) async {
+    final NativeLockCatalog? catalog = _nativeLock;
+    final Object? action = command['action'];
+    if (catalog == null || command.length != 2 || action is! String) {
+      throw HarnessError('lock-catalog-input-refused');
+    }
+    _requireCaptureFrameIdle();
+    try {
+      final Map<String, Object?> receipt = catalog.control(action);
+      if (action == 'open-picker' || action == 'close-picker') await _frame();
+      return receipt;
+    } on CaptureRefused catch (error) {
+      throw HarnessError(error.code);
+    }
   }
 
   Map<String, Object?> _state() {

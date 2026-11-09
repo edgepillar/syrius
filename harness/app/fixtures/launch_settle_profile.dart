@@ -15,7 +15,11 @@ const String launchSettleWalletName = 'Main';
 const String launchSettleNode = 'ws://127.0.0.1:9';
 
 /// Creates only the encrypted file and preferences needed by cold startup.
-Future<void> prepareLaunchSettleProfile(String home, String appData) async {
+Future<void> prepareLaunchSettleProfile(
+  String home,
+  String appData, {
+  bool lockCatalog = false,
+}) async {
   final Directory directory = Directory(appData);
   final String data = path.canonicalize(appData);
   final String cache = znnDefaultPaths.cache.path;
@@ -53,6 +57,10 @@ Future<void> prepareLaunchSettleProfile(String home, String appData) async {
     await preferences.putAll(<String, Object>{
       kSelectedNodeKey: launchSettleNode,
       kChainIdKey: 321,
+      if (lockCatalog) ...<String, Object>{
+        kAutoEraseNumAttemptsKey: 3.0,
+        kNumUnlockFailedAttemptsKey: 0,
+      },
     });
   } finally {
     await Hive.close();

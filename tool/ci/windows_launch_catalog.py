@@ -94,6 +94,8 @@ def attempt_passed(value):
 
 
 class LaunchProcess(startup.StartupProbe):
+    profile_screen = SETTLE_SCREEN
+
     def _prepare_theme(self, theme):
         self._show()
         body = self._rpc({'cmd': 'theme', 'mode': theme})
@@ -146,7 +148,8 @@ class LaunchProcess(startup.StartupProbe):
         return receipt, result if attempt_passed(receipt) else None
 
 
-def run_process(repo, parent, binaries, profile, theme, *, capture, settle):
+def run_process(repo, parent, binaries, profile, theme, *, capture, settle,
+                process_type=LaunchProcess):
     bounded.check_no_existing(repo, parent)
     binary = binaries[0][0]
     for selected, _, original in binaries:
@@ -159,7 +162,7 @@ def run_process(repo, parent, binaries, profile, theme, *, capture, settle):
         port = reservation.getsockname()[1]
     env = entry.child_environment(parent, profile, port, token)
     if settle:
-        env.update(GITHUB_ACTIONS='true', SYRIUS_CI_LAUNCH_SCREEN=SETTLE_SCREEN)
+        env.update(GITHUB_ACTIONS='true', SYRIUS_CI_LAUNCH_SCREEN=process_type.profile_screen)
     if capture:
         env.update(GITHUB_ACTIONS='true', SYRIUS_CI_LAUNCH_THEME=theme)
     report = startup.Report()
@@ -169,7 +172,7 @@ def run_process(repo, parent, binaries, profile, theme, *, capture, settle):
     drain = None
     try:
         drain = bounded.OutputDrain(process.stdout, LIMITS.output_bytes)
-        session = LaunchProcess(process, bounded.LoopbackTransport(port, LIMITS.response_bytes),
+        session = process_type(process, bounded.LoopbackTransport(port, LIMITS.response_bytes),
                                 token, drain, report, limits=LIMITS)
     except BaseException:
         bounded.finish_original(process, drain, report, LIMITS)

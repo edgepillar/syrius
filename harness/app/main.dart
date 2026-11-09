@@ -16,6 +16,7 @@ import 'fixtures/launch_settle_profile.dart';
 import 'fixtures/sentinel_fixture.dart';
 import 'native_launch_capture.dart'
     show nativeLaunchScreenEnvironment, nativeLaunchThemeEnvironment;
+import 'native_lock_catalog.dart' show lockCatalogScreen;
 import 'native_window_owner.dart';
 import 'presentation_host.dart';
 import 'presentation_mode.dart';
@@ -80,10 +81,11 @@ Future<void> main() async {
   final String? launchTheme = env[nativeLaunchThemeEnvironment];
   final String? launchScreen = env[nativeLaunchScreenEnvironment];
   final bool launchSettle = launchScreen == 'launch-settle';
+  final bool launchLock = launchScreen == lockCatalogScreen;
   if ((launchTheme != null || launchScreen != null) &&
       (!Platform.isWindows || env['GITHUB_ACTIONS'] != 'true' ||
           readonlyNative || presentation != null ||
-          launchScreen != null && !launchSettle ||
+          launchScreen != null && !launchSettle && !launchLock ||
           launchTheme != null && launchTheme != 'dark' &&
               launchTheme != 'light')) {
     stderr.writeln('syrius harness: launch capture requires Windows CI');
@@ -129,11 +131,15 @@ Future<void> main() async {
     return;
   }
   if (Platform.isWindows) {
-    if (launchSettle && launchTheme == null) {
+    if ((launchSettle || launchLock) && launchTheme == null) {
       try {
-        await prepareLaunchSettleProfile(home, appData);
+        await prepareLaunchSettleProfile(
+          home,
+          appData,
+          lockCatalog: launchLock,
+        );
       } on Object {
-        stderr.writeln('syrius harness: launch settle profile refused');
+        stderr.writeln('syrius harness: isolated lock profile refused');
         exit(64);
       }
     }
@@ -141,6 +147,7 @@ Future<void> main() async {
       window: NativeWindowOwner.process(),
       launchTheme: launchTheme,
       launchSettle: launchSettle,
+      launchLockCatalog: launchLock,
     );
     await configureHarnessWindowTracking();
   }
@@ -153,7 +160,9 @@ Future<void> main() async {
     final bool sentinelFixture = readonlyNative &&
         env['SYRIUS_READONLY_CATALOG_FAMILY'] == harnessReadonlySentinelCatalog;
     await app.runSyriusApp(
-      wrapRoot: sentinelFixture ? wrapReadonlySentinelFixture : null,
+      wrapRoot: launchLock && launchTheme != null
+          ? HarnessAgent.instance.wrapLockCatalog
+          : sentinelFixture ? wrapReadonlySentinelFixture : null,
     );
   } finally {
     _restoreProtocolCommand(previous);

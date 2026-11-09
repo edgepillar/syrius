@@ -25,6 +25,28 @@ class LockWalletDisplayEntry {
   final bool isLedger;
 }
 
+/// Supplies display-only catalog rows to a presentation fixture.
+class LockWalletPickerPreview extends InheritedWidget {
+  /// Retains the same lock subtree while showing the fixture menu.
+  const LockWalletPickerPreview({
+    required this.visible,
+    required this.additionalEntries,
+    required super.child,
+    super.key,
+  });
+
+  /// Opens only the drawn menu. Its controls stay behind their seam.
+  final bool visible;
+
+  /// The fixture's immutable display facts.
+  final List<LockWalletDisplayEntry> additionalEntries;
+
+  @override
+  bool updateShouldNotify(LockWalletPickerPreview oldWidget) =>
+      visible != oldWidget.visible ||
+      !identical(additionalEntries, oldWidget.additionalEntries);
+}
+
 /// The lock field and its drawn, disabled wallet menu.
 ///
 /// Production supplies only [current] and leaves this closed. A future catalog
@@ -58,6 +80,12 @@ class LockWalletPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
+    final LockWalletPickerPreview? preview = context
+        .dependOnInheritedWidgetOfExactType<LockWalletPickerPreview>();
+    final bool showMenu = expanded || preview?.visible == true;
+    final List<LockWalletDisplayEntry> rows = preview != null && preview.visible
+        ? <LockWalletDisplayEntry>[current, ...preview.additionalEntries]
+        : entries;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
@@ -66,16 +94,16 @@ class LockWalletPicker extends StatelessWidget {
           style: tokens.ledgerText,
         ),
         SizedBox(height: tokens.fieldLabelGap),
-        _buildField(tokens),
-        if (expanded) ...<Widget>[
+        _buildField(tokens, showMenu),
+        if (showMenu) ...<Widget>[
           SizedBox(height: tokens.walletPickerMenuGap),
-          _buildMenu(context, tokens),
+          _buildMenu(context, tokens, rows),
         ],
       ],
     );
   }
 
-  Widget _buildField(AppTokens tokens) => Container(
+  Widget _buildField(AppTokens tokens, bool showMenu) => Container(
     key: const ValueKey<String>('lock_wallet_display'),
     height: tokens.fieldHeight,
     padding: tokens.lockFieldPadding,
@@ -123,7 +151,7 @@ class LockWalletPicker extends StatelessWidget {
               height: tokens.fieldHeight,
             ),
             icon: Icon(
-              expanded ? Icons.expand_less : Icons.expand_more,
+              showMenu ? Icons.expand_less : Icons.expand_more,
               size: tokens.lockGlyphSize,
               color: tokens.faint,
             ),
@@ -133,7 +161,11 @@ class LockWalletPicker extends StatelessWidget {
     ),
   );
 
-  Widget _buildMenu(BuildContext context, AppTokens tokens) {
+  Widget _buildMenu(
+    BuildContext context,
+    AppTokens tokens,
+    List<LockWalletDisplayEntry> rows,
+  ) {
     final BorderRadius radius = BorderRadius.circular(tokens.cardRadius);
     return Container(
       key: const ValueKey<String>('lock_wallet_picker_menu'),
@@ -156,8 +188,8 @@ class LockWalletPicker extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                for (int index = 0; index < entries.length; index++)
-                  _buildEntry(tokens, entries[index], index),
+                for (int index = 0; index < rows.length; index++)
+                  _buildEntry(tokens, rows[index], index),
                 Padding(
                   padding: EdgeInsets.symmetric(
                     vertical: tokens.walletPickerMenuGap,
