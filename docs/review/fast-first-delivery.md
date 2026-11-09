@@ -170,10 +170,20 @@ The recipe verifies the loaded details and uses the existing back control
 before returning to Home. Native admission for this recipe remains open.
 
 Source565 adds the opt-in Project detail selection to the restored wallet
-tour. It confirms one original Project, closes the completion screen,
-opens the row bound to the confirmed receipt, and captures the detail in
-both themes. The reader requires the matching Project scope, script and
-two filenames. The Windows observation remains open.
+tour. The recipe requires one confirmed original Project, closes the
+completion screen, and opens the matching row for capture in both themes.
+The reader requires the matching Project scope, script and two filenames.
+
+Source565 Native138 passes selected analysis and all 1,372 selected Dart
+cases. The 1,091 Python cases report 18 skips and zero failures. The original
+send, twelve-page tour and normal required actor exits qualify. In the copied
+session, both transports stay at height 24 over six polls. The Project
+prerequisite check returns `advancing-momentum-required`, and the producer
+ends with `CHECKPOINT_REFUSED` before capture. The cause of the stalled
+frontier and the copied lifecycle remain open. The independent reader
+verifies both retained archives. Catalog coverage remains 64 of 94.
+[Producer](https://github.com/edgepillar/syrius/actions/runs/42690997785)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42694786258).
 
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,
