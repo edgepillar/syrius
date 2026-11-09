@@ -12,6 +12,9 @@ import 'seed_policy.dart';
 import 'seed_project_presentation.dart';
 import 'seed_token_presentation.dart';
 
+/// Dispatches a captured control with admission checked at both boundaries.
+typedef SeedTap = Future<void> Function(void Function() admission);
+
 /// Reached only through the harness's authenticated, serial command queue.
 final class SeedCommands {
   /// Captures real bindings only when an explicit begin command is admitted.
@@ -44,11 +47,7 @@ final class SeedCommands {
     Map<String, dynamic> command, {
     required bool booted,
     required Future<Map<String, Object?>> Function(Map<String, dynamic>) ui,
-    required Future<Map<String, Object?>> Function(
-      Map<String, dynamic>,
-      void Function(),
-    )
-    tap,
+    required SeedTap Function(Map<String, dynamic>) captureTap,
     SeedDepositEntry Function(String)? captureDepositEntry,
     SeedProjectPresentation Function(int)? captureProjectPresentation,
     SeedTokenPresentation Function(int, String)? captureTokenPresentation,
@@ -148,12 +147,13 @@ final class SeedCommands {
           throw const SeedRefused('enabled-preparation-control-required');
         }
         requirePreparation();
-        await tap(<String, dynamic>{
+        final SeedTap tap = captureTap(<String, dynamic>{
           'cmd': 'tap',
           'ref': target['ref'],
           if (recipe == 'token' && exact['key'] == 'token_create_continue')
             'seedTokenPreparation': true,
-        }, requirePreparation);
+        });
+        await tap(requirePreparation);
         return <String, Object?>{'prepared': true};
       }
       if (action == 'finish') {
@@ -252,9 +252,19 @@ final class SeedCommands {
           target['ref'] is! int) {
         throw const SeedRefused('enabled-publication-control-required');
       }
-      // This internal ref retains the actual asserted element across the
-      // advancing-frontier wait. A similarly labelled replacement is refused.
+      // Bind the asserted element before any other scan or frontier wait
+      // can renumber the snapshot references.
       final int originalRef = target['ref'] as int;
+      final SeedTap tap = captureTap(<String, dynamic>{
+        'cmd': 'tap',
+        'ref': originalRef,
+        if (recipe == 'fund-address') ...<String, dynamic>{
+          'seedOwner': source.environment.owner,
+          'seedRecipient': source.environment.members[2],
+          'seedToken': nativeStandard,
+          'seedAmount': '1000000000',
+        },
+      });
       if (recipe == 'project' && _projectPresentation == null) {
         final SeedProjectPresentation Function(int)? capture =
             captureProjectPresentation;
@@ -282,16 +292,7 @@ final class SeedCommands {
       requirePublication();
       final String hash = await guard.publish(recipe, () async {
         requirePublication();
-        await tap(<String, dynamic>{
-          'cmd': 'tap',
-          'ref': originalRef,
-          if (recipe == 'fund-address') ...<String, dynamic>{
-            'seedOwner': source.environment.owner,
-            'seedRecipient': source.environment.members[2],
-            'seedToken': nativeStandard,
-            'seedAmount': '1000000000',
-          },
-        }, requirePublication);
+        await tap(requirePublication);
       });
       _confirmed = true;
       return <String, Object?>{

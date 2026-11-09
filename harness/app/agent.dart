@@ -958,12 +958,8 @@ class HarnessAgent {
             captureDepositPresentation: _captureSeedDepositPresentation,
             captureProjectPresentation: _captureSeedProjectPresentation,
             captureTokenPresentation: _captureSeedTokenPresentation,
-            tap: (Map<String, dynamic> selector, void Function() admission) =>
-                observeSeedPreparation(
-                  preparation: seedPreparation,
-                  original: () => _tap(selector, requireAdmission: admission),
-                  classify: _seedPreparationUiFailure,
-                ),
+            captureTap: (Map<String, dynamic> selector) =>
+                _captureSeedTap(selector, preparation: seedPreparation),
           );
         } on SeedRefused catch (error) {
           throw HarnessError(error.code,
@@ -1611,6 +1607,34 @@ class HarnessAgent {
       throw HarnessError('restored-lab-observation-refused');
     }
   }
+
+  SeedTap _captureSeedTap(
+    Map<String, dynamic> selector, {
+    required bool preparation,
+  }) {
+    final _Node? original = _last[selector['ref']];
+    if (original == null || !original.element.mounted) {
+      throw const SeedRefused('original-ui-control-changed');
+    }
+    return (VoidCallback admission) async {
+      await observeSeedPreparation(
+        preparation: preparation,
+        original: () => _tap(
+          selector,
+          requireAdmission: admission,
+          originalNode: original,
+        ),
+        classify: _seedPreparationUiFailure,
+      );
+    };
+  }
+
+  /// Exercises the same capture and guarded dispatch without a wallet.
+  @visibleForTesting
+  SeedTap captureSeedTapForTest(int reference) => _captureSeedTap(
+    <String, dynamic>{'ref': reference, 'settleMs': 0},
+    preparation: false,
+  );
 
   SeedDepositEntry _captureSeedDepositEntry(String owner) {
     final List<Element> visible = _snapshot()
@@ -3115,6 +3139,17 @@ class HarnessAgent {
 
   // --------------------------------------------------------------- selectors
 
+  _Node? _currentNode(_Node original) {
+    if (!original.element.mounted) return null;
+    for (final _Node node in _snapshot()) {
+      if (identical(node.element, original.element) &&
+          node.kind == original.kind) {
+        return node;
+      }
+    }
+    return null;
+  }
+
   /// Resolves `sel` to one node. `kinds` is the order of preference when the
   /// selector alone does not decide.
   _Node _find(
@@ -3136,9 +3171,8 @@ class HarnessAgent {
         throw HarnessError('ref $ref is stale; take a new tree');
       }
       // Same element, wherever it is now.
-      for (final _Node n in _snapshot()) {
-        if (identical(n.element, old.element) && n.kind == old.kind) return n;
-      }
+      final _Node? current = _currentNode(old);
+      if (current != null) return current;
       throw HarnessError('ref $ref is no longer on screen');
     }
     final List<_Node> hits = _matches(c, kinds: kinds, only: only);
@@ -3397,8 +3431,18 @@ class HarnessAgent {
   Future<Map<String, Object?>> _tap(
     Map<String, dynamic> c, {
     void Function()? requireAdmission,
+    _Node? originalNode,
   }) async {
-    final ({Offset point, _Node? node}) t = _target(c);
+    ({Offset point, _Node? node}) target(_Node? original) {
+      if (original == null) return _target(c);
+      final _Node? current = _currentNode(original);
+      if (current == null) {
+        throw const SeedRefused('original-ui-control-changed');
+      }
+      return (point: current.center, node: current);
+    }
+
+    final ({Offset point, _Node? node}) t = target(originalNode);
     final _Node? n = t.node;
     if (n != null && c['force'] != true) {
       if (!n.enabled) throw HarnessError('disabled', n.toJson());
@@ -3409,7 +3453,8 @@ class HarnessAgent {
     void admission() {
       requireAdmission?.call();
       if (requireAdmission != null) {
-        final ({Offset point, _Node? node}) fresh = _target(c);
+        final ({Offset point, _Node? node}) fresh =
+            target(c['ref'] is int ? n : null);
         if (n == null ||
             fresh.node == null ||
             !identical(fresh.node!.element, n.element) ||

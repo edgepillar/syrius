@@ -1264,7 +1264,7 @@ void main() {
     Future<Map<String, Object?>> finish(SeedCommands original) => original.run(
       <String, dynamic>{'action': 'finish'}, booted: false,
       ui: (_) async => throw StateError('Unexpected generic UI query'),
-      tap: (_, _) async => throw StateError('Unexpected generic pointer'),
+      captureTap: (_) => throw StateError('Unexpected generic pointer'),
     );
     await expectLater(finish(commands(confirmed: false)),
       throwsA(isA<SeedRefused>()
@@ -1350,15 +1350,14 @@ void main() {
             'target': <String, Object?>{'ref': 7},
           };
         },
-        tap: (Map<String, dynamic> request,
-            void Function() admission) async {
-          admission();
-          admission();
-          expect(request, <String, dynamic>{'cmd': 'tap', 'ref': 7});
-          publications++;
-          original.operations.add(_Original());
-          return <String, Object?>{};
-        },
+        captureTap: (Map<String, dynamic> request) =>
+            (void Function() admission) async {
+              admission();
+              admission();
+              expect(request, <String, dynamic>{'cmd': 'tap', 'ref': 7});
+              publications++;
+              original.operations.add(_Original());
+            },
         captureProjectPresentation: phase == 'missing' ? null : (int ref) {
           captures++;
           expect(ref, 7);
@@ -1396,7 +1395,7 @@ void main() {
       final Map<String, Object?> finished = await commands.run(
         <String, dynamic>{'action': 'finish'}, booted: false,
         ui: (_) async => throw StateError('Unexpected generic UI query'),
-        tap: (_, _) async => throw StateError('Unexpected generic pointer'),
+        captureTap: (_) => throw StateError('Unexpected generic pointer'),
       );
       expect(finished, receipt);
       expect(presentation.closed, isTrue);
@@ -1443,7 +1442,7 @@ void main() {
     Future<Map<String, Object?>> finish(SeedCommands original) => original.run(
       <String, dynamic>{'action': 'finish'}, booted: false,
       ui: (_) async => throw StateError('Unexpected generic UI query'),
-      tap: (_, _) async => throw StateError('Unexpected generic pointer'),
+      captureTap: (_) => throw StateError('Unexpected generic pointer'),
     );
     await expectLater(finish(commands(confirmed: false)),
       throwsA(isA<SeedRefused>()
@@ -1529,15 +1528,14 @@ void main() {
             'target': <String, Object?>{'ref': 7},
           };
         },
-        tap: (Map<String, dynamic> request,
-            void Function() admission) async {
-          admission();
-          admission();
-          expect(request, <String, dynamic>{'cmd': 'tap', 'ref': 7});
-          publications++;
-          original.operations.add(_Original());
-          return <String, Object?>{};
-        },
+        captureTap: (Map<String, dynamic> request) =>
+            (void Function() admission) async {
+              admission();
+              admission();
+              expect(request, <String, dynamic>{'cmd': 'tap', 'ref': 7});
+              publications++;
+              original.operations.add(_Original());
+            },
         captureTokenPresentation: phase == 'missing'
             ? null : (int ref, String owner) {
           expect(owner, 'owner');
@@ -1577,7 +1575,7 @@ void main() {
       final Map<String, Object?> finished = await commands.run(
         <String, dynamic>{'action': 'finish'}, booted: false,
         ui: (_) async => throw StateError('Unexpected generic UI query'),
-        tap: (_, _) async => throw StateError('Unexpected generic pointer'),
+        captureTap: (_) => throw StateError('Unexpected generic pointer'),
       );
       expect(finished, receipt);
       expect(presentation.closed, isTrue);

@@ -35,11 +35,7 @@ Future<Map<String, Object?>> _run(
   SeedCommands commands,
   String action, {
   Future<Map<String, Object?>> Function(Map<String, dynamic>)? ui,
-  Future<Map<String, Object?>> Function(
-    Map<String, dynamic>,
-    void Function(),
-  )?
-  tap,
+  SeedTap Function(Map<String, dynamic>)? captureTap,
 }) => commands.run(
   <String, dynamic>{
     'action': action,
@@ -48,7 +44,7 @@ Future<Map<String, Object?>> _run(
   },
   booted: false,
   ui: ui ?? (_) async => throw StateError('Unexpected UI access'),
-  tap: tap ?? (_, _) async => throw StateError('Unexpected pointer access'),
+  captureTap: captureTap ?? (_) => throw StateError('Unexpected pointer'),
 );
 
 class _Original implements SeedOriginal {
@@ -281,11 +277,10 @@ void main() {
           commands,
           'prepare',
           ui: (_) async => _target(),
-          tap: (_, void Function() admission) async {
+          captureTap: (_) => (void Function() admission) async {
             admission();
             effects++;
             admission();
-            return <String, Object?>{};
           },
         ),
         <String, Object?>{'prepared': true},
@@ -299,12 +294,11 @@ void main() {
           commands,
           'publish',
           ui: (_) async => _target(),
-          tap: (_, void Function() admission) async {
+          captureTap: (_) => (void Function() admission) async {
             admission();
             effects++;
             source.operations.add(_Original());
             admission();
-            return <String, Object?>{};
           },
         ),
         <String, Object?>{
@@ -407,9 +401,8 @@ void main() {
               fixture.holdAgain();
               return _target();
             },
-            tap: (_, _) async {
+            captureTap: (_) => (_) async {
               taps++;
-              return <String, Object?>{};
             },
           ),
           _refused('close-current-fixture-first'),
@@ -445,13 +438,12 @@ void main() {
             commands,
             action,
             ui: (_) async => _target(),
-            tap: (_, void Function() admission) async {
+            captureTap: (_) => (void Function() admission) async {
               taps++;
               admission();
               fixture.holdAgain();
               admission();
               effects++;
-              return <String, Object?>{};
             },
           ),
           _refused('close-current-fixture-first'),
@@ -500,9 +492,8 @@ void main() {
           commands,
           'publish',
           ui: (_) async => _target(),
-          tap: (_, _) async {
+          captureTap: (_) => (_) async {
             taps++;
-            return <String, Object?>{};
           },
         ),
         _refused('close-current-fixture-first'),
@@ -570,7 +561,7 @@ void main() {
           'selector': <String>['--key', 'p2p_warning_continue']},
         booted: false,
         ui: (_) async => throw StateError('No generic UI request'),
-        tap: (_, _) async => throw StateError('No generic pointer'),
+        captureTap: (_) => throw StateError('No generic pointer'),
         captureDepositEntry: (String owner) {
           captures++;
           expect(owner, source.environment.owner);
@@ -611,7 +602,7 @@ void main() {
           'selector': <String>['--key', 'p2p_warning_continue']},
         booted: false,
         ui: (_) async => throw StateError('No generic UI request'),
-        tap: (_, _) async => throw StateError('No generic pointer'),
+        captureTap: (_) => throw StateError('No generic pointer'),
         captureDepositEntry: (_) {
           captures++;
           source.isCurrent = false;
@@ -665,12 +656,16 @@ void main() {
           });
           return _target();
         },
-        tap: (Map<String, dynamic> request, void Function() admission) async {
+        captureTap: (Map<String, dynamic> request) {
           expect(request, <String, dynamic>{'cmd': 'tap', 'ref': 7});
-          admission();
-          publications++;
-          source.operations.add(_Original());
-          return <String, Object?>{};
+          expect(captures, 0);
+          expect(source.reads, 0);
+          expect(journal.claims, 0);
+          return (void Function() admission) async {
+            admission();
+            publications++;
+            source.operations.add(_Original());
+          };
         },
         captureDepositPresentation: phase == 'missing' ? null
             : (int reference, String owner) {
@@ -799,7 +794,7 @@ void main() {
         'selector': <String>['--key', 'p2p_warning_continue']},
       booted: false,
       ui: (_) async => throw StateError('No generic UI request'),
-      tap: (_, _) async => throw StateError('No generic pointer'),
+      captureTap: (_) => throw StateError('No generic pointer'),
       captureDepositEntry: (_) {
         captures++;
         return SeedDepositEntry.ready(originalCurrent: () => true);

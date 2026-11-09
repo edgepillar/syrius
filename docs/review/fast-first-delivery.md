@@ -1,6 +1,6 @@
 # First delivery and deferred acceptance
 
-Updated: 2026-11-06.
+Updated 2026-11-09.
 
 The core interface and existing basic functionality are available for
 [Draft code review](https://github.com/sol-znn/syrius/pull/6). Unavailable
@@ -10,7 +10,14 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 
 ## Verified results
 
-The latest [Source512 Native112 result](source512-native112-stake-effect.md)
+The latest Native113 result qualifies the original one-ZNN UI send,
+twelve-page tour, quiescence and normal required actor exits. The copied
+session confirms Stake, Fuse and Token before Deposit refuses pointer
+admission. The precise condition and Deposit outcome remain unknown. Widget
+and native evidence for the subsequent control-binding correction are pending.
+[Source521 Native113 result](source521-native113-deposit-control.md).
+
+The [Source512 Native112 result](source512-native112-stake-effect.md)
 verifies fresh source gates, the original confirmed one-ZNN UI send,
 twelve-page tour, quiescence and normal required original actors. All 1338
 Dart cases, 1084 Python cases/eighteen explicit Windows skips, fourteen assets

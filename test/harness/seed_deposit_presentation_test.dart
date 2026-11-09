@@ -8,6 +8,7 @@ import 'package:zenon_syrius_wallet_flutter/blocs/p2p_swap/htlc_swap/swap_action
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/start_native_swap_modal.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/modals/swap_modal_state.dart';
 
+import '../../harness/app/agent.dart';
 import '../../harness/app/fixtures/seed_deposit_presentation.dart';
 import '../../harness/app/fixtures/seed_policy.dart';
 import '../../harness/app/seed_deposit_presentation_binding.dart';
@@ -127,6 +128,102 @@ class _DepositRoute {
 }
 
 void main() {
+  for (final bool moved in <bool>[false, true]) {
+    testWidgets(
+      moved ? 'moving the captured seed control cancels its pointer'
+          : 'renumbering retains the captured seed control through release',
+      (WidgetTester tester) async {
+        final HarnessAgent agent = HarnessAgent.forTest();
+        int down = 0;
+        int up = 0;
+        int cancel = 0;
+        int originalTaps = 0;
+        int otherTaps = 0;
+        int admissions = 0;
+
+        Widget screen(int earlier, {double left = 250}) => MaterialApp(
+          home: Scaffold(
+            body: Stack(
+              children: <Widget>[
+                for (int i = 0; i < earlier; i++)
+                  Positioned(
+                    key: ValueKey<int>(i),
+                    left: 20,
+                    top: 60.0 * i,
+                    child: TextButton(
+                      onPressed: () => otherTaps++,
+                      child: const Text('Another control'),
+                    ),
+                  ),
+                Positioned(
+                  key: const ValueKey<String>('original-position'),
+                  left: left,
+                  top: 120,
+                  child: Listener(
+                    onPointerDown: (_) => down++,
+                    onPointerUp: (_) => up++,
+                    onPointerCancel: (_) => cancel++,
+                    child: TextButton(
+                      key: const ValueKey<String>('original-seed-control'),
+                      onPressed: () => originalTaps++,
+                      child: const Text('Original control'),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+
+        Future<int> readReference() async {
+          final Map<String, Object?> reply = await agent.commandForTest(
+            <String, dynamic>{
+              'cmd': 'assert',
+              'kind': 'button',
+              'key': 'original-seed-control',
+            },
+          );
+          return (reply['target'] as Map<String, Object?>)['ref'] as int;
+        }
+
+        await tester.pumpWidget(screen(0));
+        final int asserted = await readReference();
+        final Future<void> Function(VoidCallback) tap =
+            agent.captureSeedTapForTest(asserted);
+        await tester.pumpWidget(screen(1));
+        final int renumbered = await readReference();
+        expect(renumbered, isNot(asserted));
+
+        final Future<void> pending = tap(() => admissions++);
+        final Future<void> result = moved
+            ? expectLater(pending, throwsA(isA<SeedRefused>().having(
+                (SeedRefused error) => error.code, 'code',
+                'original-ui-control-changed',
+              )))
+            : pending;
+        // This scan is refreshed by admission after the hover frame.
+        await tester.pumpWidget(screen(2));
+        for (int i = 0; i < 5 && down == 0; i++) {
+          await tester.pump();
+        }
+        expect(down, 1);
+        expect(up, 0);
+        expect(admissions, 1);
+        expect(originalTaps, 0);
+        if (moved) await tester.pumpWidget(screen(2, left: 290));
+        await tester.pump(const Duration(milliseconds: 50));
+        await result;
+
+        expect(admissions, 2);
+        expect(up, moved ? 0 : 1);
+        expect(cancel, moved ? 1 : 0);
+        expect(originalTaps, moved ? 0 : 1);
+        expect(otherTaps, 0);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
+
   test('confirmed Deposit closure awaits its original route exactly once',
       () async {
     final Completer<Object?> route = Completer<Object?>();
