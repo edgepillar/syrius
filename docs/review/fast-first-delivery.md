@@ -30,6 +30,13 @@ original run retains its failure and zero artifacts. Source551 updates those
 expectations and limits seeded capture admission to attempt one.
 [Original run](https://github.com/edgepillar/syrius/actions/runs/42642012164).
 
+Source551 Native129 passes the 1,091 controller cases with eighteen skips
+and reaches selected Dart analysis. The gate records two infos in the
+restored capture entry. The Dart tests and native lab remain unexecuted for
+that source, with zero retained artifacts. Source552 uses the collection
+conditional form and checks the private receipt list type before use.
+[Original analysis run](https://github.com/edgepillar/syrius/actions/runs/42643137298).
+
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,
 Project and Fund Address with its confirmed receive and target balance. The

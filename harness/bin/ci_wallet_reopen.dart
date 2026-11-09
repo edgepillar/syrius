@@ -261,7 +261,8 @@ Future<Map<String, Object>> _captureSeededCatalog(
         cli.restoreScreenRail(instance, expanded: expanded),
     assertionFor: (List<String> words) =>
         cli.assertionArgs(cli.Args(<String>[
-          '--key', words.last == 'staking_stakes_count' ? stake : words.last,
+          '--key',
+          if (words.last == 'staking_stakes_count') stake else words.last,
         ])),
     runLine: (List<String> words) async {
       final String authored = words.join(' ');
@@ -470,9 +471,12 @@ Future<void> main() async {
           throw const FormatException('seeded capture owner changed');
         }
       }
+      final Object? receipts = seeds['receipts'];
+      if (receipts is! List<Map<String, String>>) {
+        throw const FormatException('seeded capture receipts refused');
+      }
       final Map<String, Object> captured = await _captureSeededCatalog(
-        instance, seeds['receipts'] as List<Map<String, String>>,
-        owned.selected, requireCurrent,
+        instance, receipts, owned.selected, requireCurrent,
         (ScreenCaptureObservation step) => captureStep = step,
       );
       await marker('CI_SEEDED_CAPTURE_DONE:${jsonEncode(captured)}');
