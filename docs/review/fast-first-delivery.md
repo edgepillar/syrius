@@ -271,11 +271,21 @@ Source578 binds still captures to the visible unlock control exposed by the
 harness. Both Dart groups complete with 654 and 721 passing cases. The
 combined gate still expects 1,374 and stops before building. Source579
 includes the new lock-view case in the expected totals. The Source578 run
-retains its failed gate and zero artifacts. Fresh capture and reference
-review remain open.
+retains its failed gate and zero artifacts.
 [First producer](https://github.com/edgepillar/syrius/actions/runs/42714625910)
 and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42717061765).
 [Source578 run](https://github.com/edgepillar/syrius/actions/runs/42717861561).
+
+Source579 passes selected analysis and all 1,375 selected Dart cases. The
+controller suite reports 1,095 cases, 18 skips and zero failures. A single
+Windows Release build supplies all six 1280 by 780 lock images. The normal
+pair records masked input. The refusal pair records frame 23 and two attempts
+remaining. The picker pair records the four gated fixture rows. All four
+preparation and capture processes exit normally. The independent reader
+verifies the six distinct PNGs in the 2,902,450-byte archive. The catalog now
+has 76 of 94 literal outputs. Reference comparison remains open.
+[Producer](https://github.com/edgepillar/syrius/actions/runs/42719855532) and
+[independent reader](https://github.com/edgepillar/syrius/actions/runs/42721732086).
 
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,
@@ -407,7 +417,7 @@ frontier reads after such a failure. Their native observation remains pending.
 | --- | --- |
 | P03/P09 | Complete the documented Windows Docker route. Earlier Linux defaults, WSL installation and the Source548 native lab retain their separate scopes. |
 | F06 | Complete the seeded screen states and coordinator/peer Swap prerequisites. Source548 qualifies the original six receipts and copied lifecycle. Source561 qualifies the restored Stake and Token captures. Source563 qualifies the separate New stake draft with one Stake prerequisite. Source569 qualifies the Sentinel fixture pair. |
-| V01/V05 | Obtain 24 missing literal outputs, review all 94 pairs, resolve retained layout/type/spacing findings and explicitly accept each match. Availability is 70/94. Accepted whole-image matches are 0/94. |
+| V01/V05 | Obtain 18 missing literal outputs, review all 94 pairs, resolve retained layout/type/spacing findings and explicitly accept each match. Availability is 76/94. Accepted whole-image matches are 0/94. |
 | V02 | Observe every motion/shader row in the running build and compare page-change, disclosure and launch frame times with the original baseline. Finite widget timing or stall telemetry alone does not close this gate. |
 | V03 | Try every original seam control, shortcut and Go To entry in the running native wallet and verify refusal. Registry and widget controls remain partial evidence. |
 | V06 | Check every original end-state requirement and complete independent final acceptance. The earlier minimum-window/Arabic viewing remains source-bound. |
