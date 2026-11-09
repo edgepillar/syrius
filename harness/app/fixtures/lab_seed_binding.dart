@@ -685,11 +685,7 @@ final class LabSeedBinding
               1;
     }
     if (recipe == 'token') {
-      final TokenStandard standard = TokenStandard.fromBytes(
-        Crypto.digest(
-          Hash.parse(hash).getBytes()!,
-        ).sublist(0, TokenStandard.coreSize),
-      );
+      final TokenStandard standard = seedIssuedTokenStandard(hash);
       final Token? token = await _token.getByZts(standard);
       _requireCurrent();
       return token != null &&

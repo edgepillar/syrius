@@ -11,6 +11,7 @@ import subprocess
 import time
 
 from . import closed_lab_checkpoint as checkpoint
+from . import readonly_details_capture as catalog
 from . import windows_debug_loop as debug
 from . import restored_seed_run as seeds
 
@@ -24,12 +25,12 @@ PHASES = ('admission', 'origin', 'roots', 'journals', 'ciphers', 'node_inputs',
     'source', 'reservation', 'claim', 'retire_metadata', 'runtime', 'node_ports',
     'node_start', 'node_observe', 'initial_chain', 'profile', 'launch', 'output',
     'start', 'entry_metadata', 'application', 'transport', 'pre_input',
-    'unlock_and_observe', 'post_observe', 'seed_workflow', 'seed_journals',
+    'unlock_and_observe', 'post_observe', 'seed_workflow', 'seed_journals', 'seeded_capture',
     'ordinary_close', 'finish', 'source_closed', 'close', 'output_close',
     'transport_close', 'nodes_stop', 'post_close', 'complete_record', 'projection')
 CHILD_PHASES = ('gate', 'start', 'input', 'startup_window', 'startup', 'unlock', 'observe',
     'seed_admission', 'seed_stake', 'seed_fuse', 'seed_token', 'seed_deposit',
-    'seed_project', 'seed_fund-address', 'finish')
+    'seed_project', 'seed_fund-address', 'seeded_capture', 'finish')
 OUTPUT_CODES = ('PUB_RESOLUTION', 'PUB_EXECUTABLE_BUILD', 'UNHANDLED_EXCEPTION',
     'COMPILE_OR_USAGE_ERROR', 'VM_SERVICE_LISTENER', 'UNCLASSIFIED_OUTPUT',
     'REOPEN_CHILD_REFUSED')
@@ -417,7 +418,7 @@ def child_failure_projection(value):
     """Validate data from the original child; it grants no runtime authority."""
     fields = {'schema', 'scope', 'phase', 'kind', 'code', 'recipe'}
     checkpoint.need(type(value) is dict and set(value) in
-        (fields, fields | {'lock_view'}, fields | {'seed'})
+        (fields, fields | {'lock_view'}, fields | {'seed'}, fields | {'capture'})
         and type(value['schema']) is int and value['schema'] == 1
         and value['scope'] == 'owned_reopen_child_failure'
         and type(value['phase']) is str and value['phase'] in CHILD_PHASES
@@ -451,6 +452,14 @@ def child_failure_projection(value):
         checkpoint.need(value['phase'] == 'unlock' and kind == 'HARNESS_REFUSED'
             and type(code) is str and code in UNLOCK_FAILURE_CODES)
         result['lock_view'] = lock_view_projection(value['lock_view'])
+    if 'capture' in value:
+        checkpoint.need(value['phase'] == 'seeded_capture'
+            and code is None and recipe is None)
+        try:
+            result['capture'] = catalog.failure_diagnostic(
+                value['capture'], catalog_schema=catalog.SEEDED_SCHEMA)
+        except catalog.Refused:
+            raise checkpoint.Refused() from None
     return result
 
 
@@ -638,7 +647,8 @@ def project(value):
         return (dict(value, diagnostic=diagnostic_projection(value['diagnostic']))
                 if 'diagnostic' in value else dict(value))
     seed_fields = {'seed_workflow'} if 'seed_workflow' in value else set()
-    checkpoint.need(set(value) == common | seed_fields | {'claim_once', 'originals_closed',
+    capture_fields = {'seeded_catalog'} if 'seeded_catalog' in value else set()
+    checkpoint.need(set(value) == common | seed_fields | capture_fields | {'claim_once', 'originals_closed',
         'chain_continuity', 'journal_unchanged', 'cipher_unchanged', 'wallet',
         'application_exit', 'entry_exit', 'output', 'job_empty', 'forced',
         'nodes', 'private_manifest_sha256', 'seed_admitted'}
@@ -651,6 +661,14 @@ def project(value):
     if seed_fields:
         seed_value = seeds.project(value['seed_workflow'])
         checkpoint.need(type(seed_value) is dict and seed_value['complete'] is True)
+    if capture_fields:
+        checkpoint.need(seed_fields)
+        try:
+            reference = catalog.catalog_reference(value['seeded_catalog'])
+        except catalog.Refused:
+            raise checkpoint.Refused() from None
+        checkpoint.need(reference['schema'] == catalog.SEEDED_SCHEMA
+            and reference['seed_receipts_sha256'] == seed_value['receipts_sha256'])
     output = value['output']
     checkpoint.need(type(output) is dict and set(output) ==
         {'bytes', 'sha256', 'output_complete', 'overflow'}
@@ -797,6 +815,9 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
     origin = wallet.restoration_origin()
     trace.at('roots')
     home, repo = Path(home), Path(repo)
+    seeded_capture = parent.get('SYRIUS_READONLY_CATALOG_FAMILY') == catalog.SEEDED_FAMILY
+    capture_output = repo / catalog.SEEDED_OUTPUT
+    capture_reservation = catalog.MAX_CAPTURE_TOTAL + catalog.MAX_MANIFEST if seeded_capture else 0
     copied_home = Path(restored['wallet_profile'])
     checkpoint.need(all(Path(restored[role]) == home / 'restored' / role
         and Path(restored[role]) != original_runtime.configs[role]
@@ -805,6 +826,9 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
     deadline = time.monotonic() + 2400
     pins = dict(checkpoint.ancestors(home))
     report_pins = dict(pins)
+    if seeded_capture:
+        pins.update(checkpoint.ancestors(capture_output.parent))
+        checkpoint.need(not os.path.lexists(capture_output))
     for root in (wallet.home, *restored.values()):
         pins.update(checkpoint.ancestors(Path(root)))
     snapshot = {}
@@ -851,8 +875,11 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
     def sample():
         checkpoint.need(guard())
         used = measure()
-        checkpoint.need(type(used) is int and 0 <= used <= checkpoint.CAP - OUTPUT_CAP - 64 * 1024
-                        and shutil.disk_usage(repo).free >= checkpoint.FLOOR + OUTPUT_CAP + 64 * 1024)
+        reserve = OUTPUT_CAP + 64 * 1024 + capture_reservation
+        checkpoint.need(type(used) is int and 0 <= used <= checkpoint.CAP - reserve
+                        and shutil.disk_usage(repo).free >= checkpoint.FLOOR + reserve)
+        if seeded_capture:
+            catalog.output_bytes(capture_output, schema=catalog.SEEDED_SCHEMA)
 
     trace.at('source')
     debug.bounded.verify_source(repo, source, parent)
@@ -910,6 +937,8 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
             GITHUB_EVENT_NAME=parent['GITHUB_EVENT_NAME'],
             GITHUB_REPOSITORY=parent['GITHUB_REPOSITORY'],
             SYRIUS_HOSTED_RUNNER=parent['SYRIUS_HOSTED_RUNNER'])
+        if seeded_capture:
+            env['SYRIUS_CI_REOPEN_SEEDED_CAPTURE'] = 'true'
         dart, _ = debug.sdk(parent)
         trace.at('launch')
         job = debug.WindowsJob()
@@ -971,9 +1000,13 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
                 if marker == b'CI_SEED_DONE' and line.startswith(marker + b':'):
                     return seeds.finish_prefix(record.get('seed_private_prefix'),
                         json.loads(line.partition(b':')[2]))
+                if marker == b'CI_SEEDED_CAPTURE_DONE' and line.startswith(marker + b':'):
+                    receipt = catalog.capture_receipt(catalog.decode(line.partition(b':')[2]))
+                    checkpoint.need(receipt['schema'] == catalog.SEEDED_SCHEMA)
+                    return receipt
                 if line == marker:
                     return None
-                checkpoint.need(not line.startswith((b'CI_REOPEN_', b'CI_SEED_')))
+                checkpoint.need(not line.startswith((b'CI_REOPEN_', b'CI_SEED_', b'CI_SEEDED_')))
             raise checkpoint.Refused()
 
         trace.at('start')
@@ -1032,6 +1065,17 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
         record['seed_workflow'] = seeds.completed(seed_receipts)
         unchanged()
         chain_read(runtime, anchor)
+        if seeded_capture:
+            trace.at('seeded_capture')
+            record['phase'] = 'seeded_capture'
+            sample()
+            write(b'CAPTURE_SEEDED\n')
+            receipt = wait(b'CI_SEEDED_CAPTURE_DONE')
+            unchanged()
+            chain_read(runtime, anchor)
+            record['seeded_catalog'] = catalog.collect(repo, receipt, source,
+                tree, parent, read_original=bounded_read,
+                seed_receipts_sha256=record['seed_workflow']['receipts_sha256'])
         trace.at('ordinary_close')
         record['phase'] = 'ordinary_close'
         close_attempted = True
@@ -1127,14 +1171,23 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
     trace.at('post_close')
     unchanged()
     sample()
+    if seeded_capture:
+        artifact_report = dict(success=True, source_sha=source, source_tree=tree,
+            run_id=parent['GITHUB_RUN_ID'], run_attempt=parent['GITHUB_RUN_ATTEMPT'],
+            seeded_catalog=record['seeded_catalog'])
+        catalog.artifact_paths(repo, artifact_report, read_original=bounded_read,
+            parent_completed=record['complete'], reference_key='seeded_catalog')
     raw = checkpoint.encode(record)
     trace.at('complete_record')
     checkpoint.write_record(complete, raw, guard=guard)
     trace.at('projection')
-    return project(dict(schema=1, scope=SCOPE, complete=True, claim_once=True,
+    result = dict(schema=1, scope=SCOPE, complete=True, claim_once=True,
         originals_closed=True, chain_continuity=True, journal_unchanged=True,
         cipher_unchanged=True, wallet=record['wallet'],
         application_exit=record['application_exit'], entry_exit=record['entry_exit'],
         output=record['output'], job_empty=True, forced=False, nodes=record['nodes'],
         private_manifest_sha256=hashlib.sha256(raw).hexdigest(), seed_admitted=False,
-        seed_workflow=record['seed_workflow']))
+        seed_workflow=record['seed_workflow'])
+    if seeded_capture:
+        result['seeded_catalog'] = record['seeded_catalog']
+    return project(result)

@@ -1,5 +1,8 @@
 import 'dart:async';
 
+import 'package:znn_sdk_dart/znn_sdk_dart.dart'
+    show Crypto, Hash, TokenStandard;
+
 import 'seed_stake_effect.dart';
 
 /// Harness-only policy. This file has no wallet, signer, filesystem or client.
@@ -15,6 +18,12 @@ const Set<String> seedRecipeIds = <String>{
   'project',
   'fund-address',
 };
+
+/// The issued token standard is derived from the confirmed Issue block.
+TokenStandard seedIssuedTokenStandard(String hash) => TokenStandard.fromBytes(
+  Crypto.digest(Hash.parse(hash).getBytes()!)
+      .sublist(0, TokenStandard.coreSize),
+);
 
 final class SeedRefused implements Exception {
   const SeedRefused(this.code, {

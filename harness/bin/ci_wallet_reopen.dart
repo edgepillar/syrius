@@ -2,19 +2,21 @@
 import 'dart:convert';
 import 'dart:io';
 
+import '../app/fixtures/seed_policy.dart' show seedIssuedTokenStandard;
 import '../lock_view_observation.dart';
 import '../seed/restored_seed_workflow.dart';
 import '../wallet_address_context.dart';
 import '../wallet_recipe_failure.dart';
 import 'ci_copied_wallet_pointer.dart' show CopiedPointerInput;
 import 'harness.dart' as cli;
+import 'screen_capture.dart';
 import 'wallet_recipe.dart' show WalletRecipeRefused;
 
 /// Fixed child locations, shared with the bounded parent projection.
 const Set<String> restoredChildPhases = <String>{
   'gate', 'start', 'input', 'startup_window', 'startup', 'unlock', 'observe',
   'seed_admission', 'seed_stake', 'seed_fuse', 'seed_token', 'seed_deposit',
-  'seed_project', 'seed_fund-address', 'finish',
+  'seed_project', 'seed_fund-address', 'seeded_capture', 'finish',
 };
 
 /// Exception families disclose no messages, paths, replies or private input.
@@ -121,13 +123,17 @@ Future<void> showRestoredStartupWindow(
 }
 
 /// Only typed families and validated fixed labels enter the failure marker.
-Map<String, Object?>? restoredChildFailure(String phase, Object error) {
+Map<String, Object?>? restoredChildFailure(
+  String phase, Object error, {
+  ScreenCaptureObservation? captureStep,
+}) {
   if (!restoredChildPhases.contains(phase)) return null;
   String kind = 'OTHER_ERROR';
   String? code;
   Map<String, String>? recipe;
   Map<String, Object?>? lockView;
   Map<String, Object>? seed;
+  Map<String, Object>? capture;
   if (error.runtimeType == RestoredWindowRefused) {
     if (phase != 'startup_window') return null;
     kind = 'WINDOW_REFUSED';
@@ -154,7 +160,7 @@ Map<String, Object?>? restoredChildFailure(String phase, Object error) {
     if (phase != 'seed_${value['recipe']}') return null;
     kind = 'HARNESS_REFUSED';
     seed = value;
-  } else if (error is cli.Fail) {
+  } else if (error is cli.Fail || error is ScreenCaptureError) {
     kind = 'HARNESS_REFUSED';
   } else if (error is FormatException) {
     kind = 'FORMAT_ERROR';
@@ -165,11 +171,24 @@ Map<String, Object?>? restoredChildFailure(String phase, Object error) {
   } else if (error is FileSystemException || error is SocketException) {
     kind = 'OS_ERROR';
   }
+  if (phase == 'seeded_capture' && captureStep != null) {
+    final String? reply = screenCaptureReplyOf(error)?.name;
+    capture = <String, Object>{
+      'schema': reply == null ? 1 : 2,
+      'kind': 'restored_seeded_capture_failure',
+      'last_entered_step': captureStep.step.name,
+      'screen': ?captureStep.screen,
+      'theme': ?captureStep.theme,
+      'line': ?captureStep.line,
+      'reply': ?reply,
+    };
+  }
   return <String, Object?>{
     'schema': 1, 'scope': 'owned_reopen_child_failure', 'phase': phase,
     'kind': kind, 'code': code, 'recipe': recipe,
     'lock_view': ?lockView,
     'seed': ?seed,
+    'capture': ?capture,
   };
 }
 
@@ -184,8 +203,144 @@ bool restoredWalletReady(Map<String, dynamic> state) =>
       (String key) => state[key] is int && state[key] == 321,
     );
 
+const String _seededDirectory = '.harness/ci-seeded-catalog';
+const List<String> _seededScreens = <String>['staking', 'token-mine'];
+const List<String> _seededFiles = <String>[
+  '13-staking-dark.png', '13-staking-light.png',
+  '24-token-mine-dark.png', '24-token-mine-light.png',
+];
+
+/// Only these local UI steps may run after the parent validates the journals.
+const Set<String> _seededLines = <String>{
+  'goto staking',
+  'wait --key staking_strip --timeout 30',
+  'wait --key staking_stakes_count --timeout 30',
+  'assert --key staking_stakes_count',
+  'goto tokens',
+  'wait --key tokens_filter_held --timeout 30',
+  'tap --key tokens_filter_held',
+  'wait --key @issued-token-row --timeout 30',
+  'tap --key @issued-token-row',
+  'wait --key token_action_mode_mint --timeout 30',
+  'tap --key token_action_mode_mint',
+  'wait --key mint_amount_field --timeout 30',
+  'type --key mint_amount_field 5000',
+  'assert --key @issued-token-row',
+  'assert --key mint_beneficiary_field',
+  'assert --key mint_amount_field',
+  'wait --key mint_amount_field --gone --timeout 10',
+};
+
+Future<Map<String, Object>> _captureSeededCatalog(
+  cli.Instance instance,
+  List<Map<String, String>> receipts,
+  String beneficiary,
+  Future<void> Function() requireCurrent,
+  void Function(ScreenCaptureObservation) onStep,
+) async {
+  String confirmed(String id) =>
+      receipts.singleWhere((Map<String, String> row) => row['recipe'] == id)
+          ['hash']!;
+  final String stake = confirmed('stake');
+  final String standard =
+      seedIssuedTokenStandard(confirmed('token')).toString();
+  final String rowKey = 'token_${standard}_row';
+  final ScreenCapture capture = ScreenCapture(
+    repository: Directory(cli.repo),
+    restoredSeeded: true,
+    onStep: onStep,
+    call: (Map<String, Object?> command) async {
+      await requireCurrent();
+      final Map<String, dynamic> result = await cli.call(instance, command);
+      await requireCurrent();
+      return result;
+    },
+    prepareHome: () => cli.prepareScreenHome(instance),
+    readRailState: () => cli.screenRailExpanded(instance),
+    restoreRailState: ({required bool expanded}) =>
+        cli.restoreScreenRail(instance, expanded: expanded),
+    assertionFor: (List<String> words) =>
+        cli.assertionArgs(cli.Args(<String>[
+          '--key', words.last == 'staking_stakes_count' ? stake : words.last,
+        ])),
+    runLine: (List<String> words) async {
+      final String authored = words.join(' ');
+      if (!_seededLines.contains(authored)) {
+        throw const FormatException('seeded capture command refused');
+      }
+      final List<String> args = <String>[
+        for (final String word in words.skip(1))
+          if (word == '@issued-token-row') rowKey else word,
+      ];
+      await requireCurrent();
+      switch (words.first) {
+        case 'goto':
+          await cli.goto(instance, args.single);
+        case 'wait':
+          await cli.waitForTarget(instance, cli.Args(args));
+        case 'tap':
+          await cli.call(instance, <String, Object?>{
+            'cmd': 'tap', 'key': args.last, 'exact': true,
+          });
+        case 'type':
+          final Map<String, dynamic> typed = await cli.call(
+            instance, <String, Object?>{
+              'cmd': 'type', 'key': 'mint_amount_field', 'exact': true,
+              'value': '5000',
+            },
+          );
+          if (typed['value'] != '5000') {
+            throw const FormatException('seeded draft amount refused');
+          }
+        case 'assert':
+          final String key = args.last;
+          if (key == 'staking_stakes_count') {
+            await cli.waitForTarget(instance, cli.Args(<String>[
+              '--key', stake, '--exact', '--timeout', '30',
+            ]));
+          }
+          final Map<String, dynamic> asserted = await cli.call(
+            instance, <String, Object?>{
+              'cmd': 'assert',
+              'key': key == 'staking_stakes_count' ? stake : key,
+              'exact': true,
+            },
+          );
+          final String? expectedValue = switch (key) {
+            'mint_beneficiary_field' => beneficiary,
+            'mint_amount_field' => '5000',
+            _ => null,
+          };
+          if (expectedValue != null) {
+            final Object? target = asserted['target'];
+            if (target is! Map || target['value'] != expectedValue) {
+              throw const FormatException('seeded draft field refused');
+            }
+          }
+      }
+      await requireCurrent();
+    },
+  );
+  final List<String> paths = await capture.captureSelection(
+    _seededScreens, directory: _seededDirectory,
+  );
+  if (paths.length != _seededFiles.length ||
+      Iterable<int>.generate(paths.length).any(
+        (int i) => paths[i] != '$_seededDirectory/${_seededFiles[i]}',
+      )) {
+    throw const FormatException('seeded capture paths refused');
+  }
+  return <String, Object>{
+    'schema': 4, 'scope': 'restored_native_seeded_catalog_capture',
+    'screens': _seededScreens, 'themes': const <String>['dark', 'light'],
+    'files': _seededFiles, 'width': 1280, 'height': 780, 'scale': 1,
+    'capture_returned': true,
+  };
+}
+
 Future<void> main() async {
   CopiedPointerInput? input;
+  ScreenCaptureObservation? captureStep;
   String phase = 'gate';
   try {
     final Map<String, String> env = Platform.environment;
@@ -198,7 +353,10 @@ Future<void> main() async {
         !RegExp(r'^ci-wallet-[a-f0-9]{24}$').hasMatch(name)) {
       throw const FormatException('hosted gate refused');
     }
-    final CopiedPointerInput originalInput = CopiedPointerInput(stdin);
+    final bool seededCapture = env['SYRIUS_CI_REOPEN_SEEDED_CAPTURE'] == 'true';
+    final CopiedPointerInput originalInput = CopiedPointerInput(
+      stdin, allowSeededCapture: seededCapture,
+    );
     input = originalInput;
     Future<void> marker(String value) async {
       stdout.writeln(value);
@@ -297,12 +455,36 @@ Future<void> main() async {
     );
     final Map<String, Object> seeds = await workflow.run(counterparty);
     await marker('CI_SEED_DONE:${jsonEncode(seeds)}');
+    if (seededCapture) {
+      phase = 'seeded_capture';
+      if (await originalInput.read() != 'CAPTURE_SEEDED') {
+        throw const FormatException('seeded capture gate refused');
+      }
+      final WalletAddressContext owned = await context();
+      if (!owned.derivedFrom(originalContext)) {
+        throw const FormatException('seeded capture owner refused');
+      }
+      Future<void> requireCurrent() async {
+        if (!originalInput.alive || !owned.same(await context()) ||
+            !originalInput.alive) {
+          throw const FormatException('seeded capture owner changed');
+        }
+      }
+      final Map<String, Object> captured = await _captureSeededCatalog(
+        instance, seeds['receipts'] as List<Map<String, String>>,
+        owned.selected, requireCurrent,
+        (ScreenCaptureObservation step) => captureStep = step,
+      );
+      await marker('CI_SEEDED_CAPTURE_DONE:${jsonEncode(captured)}');
+    }
     phase = 'finish';
     if (await originalInput.read() != 'FINISH') {
       throw const FormatException('closure unconfirmed');
     }
   } on Object catch (error) {
-    final Map<String, Object?>? failure = restoredChildFailure(phase, error);
+    final Map<String, Object?>? failure = restoredChildFailure(
+      phase, error, captureStep: captureStep,
+    );
     if (failure != null) {
       stdout.writeln('CI_REOPEN_FAILURE:${jsonEncode(failure)}');
     }

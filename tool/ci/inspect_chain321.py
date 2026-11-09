@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import io
 import json
@@ -19,6 +20,7 @@ from tool.ci.hosted_chain321 import (CODES, GO_FAILURE_CODES, NODE_DIAGNOSTICS, 
 from tool.ci import native_stack_probe, node_panic_projection, producer_shutdown_patch, read_first_client_fixture
 from tool.ci import lab_asset_progress, closed_lab_checkpoint, restored_lab_paths, closed_wallet_pointer, restored_wallet_run
 from tool.ci import lab_failure_probe
+from tool.ci import readonly_details_capture as catalog
 
 
 API = "https://api.github.com/repos/edgepillar/syrius"
@@ -665,6 +667,26 @@ def project_wallet_tour(report, lab, head, run_id, tree, manifest_sha):
         seed_admitted=False, visual_matches=0, **extra)
 
 
+def seeded_script_pins(client, head):
+    pins = {}
+    for screen in catalog.SEEDED_SCREENS:
+        path = 'harness/screens/' + screen + '.txt'
+        value = client.json('/contents/' + path + '?ref=' + head)
+        need(type(value) is dict and value.get('path') == path
+             and value.get('type') == 'file' and value.get('encoding') == 'base64'
+             and type(value.get('size')) is int and 0 < value['size'] <= 65536
+             and type(value.get('content')) is str
+             and 0 < len(value['content']) <= 90000)
+        encoded = value['content'].replace('\n', '')
+        raw = base64.b64decode(encoded, validate=True)
+        blob = b'blob ' + str(len(raw)).encode('ascii') + b'\0' + raw
+        need(len(raw) == value['size']
+             and base64.b64encode(raw).decode('ascii') == encoded
+             and hashlib.sha1(blob).hexdigest() == value.get('sha'))
+        pins[screen] = sha(raw)
+    return pins
+
+
 def main():
     global PHASE
     parent = os.environ
@@ -688,6 +710,9 @@ def main():
     listing = client.json("/actions/runs/" + run_text + "/artifacts?per_page=20")
     need(listing["total_count"] == len(listing["artifacts"]) <= 20)
     wallet_lab = None
+    seeded = None
+    seeded_items = [item for item in listing["artifacts"]
+                    if item["name"].startswith("seeded-catalog-")]
     for backend in backends:
         name = "chain321-" + backend + "-" + head + "-" + run_text + "-1"
         selected = [item for item in listing["artifacts"] if item["name"] == name]
@@ -738,9 +763,43 @@ def main():
         need(len(encoded.encode("ascii")) <= 3800)
         escaped = encoded.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
         print("::notice title=Retained wallet tour observation::" + escaped, flush=True)
+        reopen = restored_wallet_run.project(wallet_lab.get('wallet_reopen'))
+        reference = None if reopen is None else reopen.get('seeded_catalog')
+        if reference is not None:
+            PHASE = 'seeded_artifact_metadata'
+            need(run['conclusion'] == 'success' and wallet_lab['success'] is True
+                 and wallet_lab.get('wallet_tour_qualified') is True
+                 and summary['artifact_reported_success'] is True
+                 and summary['required_actor_forced_cleanup'] is False
+                 and summary['entry_exit'] == 0 and reopen['complete'] is True
+                 and len(seeded_items) == 1)
+            item = seeded_items[0]
+            need(item['name'] == 'seeded-catalog-' + head + '-' + run_text + '-1'
+                 and item['expired'] is False
+                 and item['workflow_run']['id'] == run_id
+                 and item['workflow_run']['head_sha'] == head
+                 and type(item['size_in_bytes']) is int
+                 and 0 < item['size_in_bytes'] <= catalog.MAX_ARCHIVE
+                 and re.fullmatch(r'sha256:[a-f0-9]{64}', item.get('digest', '')) is not None)
+            PHASE = 'download_seeded'
+            location = client.read(API + '/actions/artifacts/' + str(item['id']) + '/zip', redirect=True)
+            raw = client.read(location, authenticated=False, cap=catalog.MAX_ARCHIVE)
+            PHASE = 'seeded_script_pins'
+            pins = seeded_script_pins(client, head)
+            PHASE = 'projection_seeded'
+            seeded = catalog.unpack(raw, item['digest'][7:], item['size_in_bytes'],
+                head, commit['tree']['sha'], run_id, reference, pins)
+            seeded.update(catalog_capture_qualified=True, parent_closure_qualified=True,
+                          atomic_frame_qualified=True)
+    need(not seeded_items or seeded is not None)
     PHASE = "source_metadata_after"
     after = client.json("/actions/runs/" + run_text)
     need(all(after[key] == run[key] for key in ("id", "head_sha", "run_attempt", "workflow_id", "status", "conclusion")))
+    if seeded is not None:
+        encoded = json.dumps(seeded, sort_keys=True, separators=(',', ':'))
+        need(len(encoded.encode('ascii')) <= 3800)
+        escaped = encoded.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+        print('::notice title=Retained restored seeded catalog::' + escaped, flush=True)
 
 
 if __name__ == "__main__":

@@ -10,12 +10,15 @@ import 'copied_wallet_pointer.dart';
 
 /// The listener remains active during Hive operations so parent EOF is visible.
 final class CopiedPointerInput {
-  CopiedPointerInput(Stream<List<int>> source) {
+  CopiedPointerInput(Stream<List<int>> source, {
+    bool allowSeededCapture = false,
+  }) : _recordLimit = allowSeededCapture ? 5 : 4 {
     _subscription = source.listen(_add, onError: (Object _) => _refuse(),
       onDone: () { _alive = false; _signal(); });
   }
 
   late final StreamSubscription<List<int>> _subscription;
+  final int _recordLimit;
   final Queue<String> _lines = Queue<String>();
   final List<int> _pending = <int>[];
   Completer<void>? _changed;
@@ -41,13 +44,14 @@ final class CopiedPointerInput {
   void _add(List<int> chunk) {
     if (!alive) return;
     _bytes += chunk.length;
-    if (_bytes > 4 * 32768) { _refuse(); return; }
+    if (_bytes > _recordLimit * 32768) { _refuse(); return; }
     for (final int byte in chunk) {
       if (byte < 0 || byte > 255 || _pending.length >= 32768) {
         _refuse(); return;
       }
       if (byte == 10) {
-        if (_pending.isEmpty || ++_records > 4 || _lines.length >= 2) {
+        if (_pending.isEmpty || ++_records > _recordLimit ||
+            _lines.length >= 2) {
           _refuse(); return;
         }
         try {

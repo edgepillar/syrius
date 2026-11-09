@@ -47,6 +47,23 @@ class PolicyTests(unittest.TestCase):
         self.assertEqual(restored.project(value), value)
         self.assertFalse(restored.project(value)['seed_admitted'])
 
+    def test_seeded_catalog_requires_matching_completed_seed_workflow(self):
+        seed_receipts = dict(schema=1, scope='private_restored_seed_receipts',
+            chain=321, members=3, selected_index=1, derived_once=True,
+            owner_stable=True, receipts=[dict(recipe=recipe, hash=f'{i:064x}')
+                for i, recipe in enumerate(restored.seeds.IDS, 1)])
+        seeds = restored.seeds.completed(seed_receipts)
+        reference = dict(schema=4, scope='restored_native_seeded_catalog_reference',
+            screens=['staking', 'token-mine'], captured=4,
+            manifest_sha256='d'*64, seed_receipts_sha256=seeds['receipts_sha256'])
+        value = dict(completed(), seeded_catalog=reference, seed_workflow=seeds)
+        self.assertEqual(restored.project(value), value)
+        for change in (dict(seed_workflow=None),
+                       dict(seeded_catalog=dict(reference, seed_receipts_sha256='e'*64)),
+                       dict(application_exit=1)):
+            with self.subTest(change=change), self.assertRaises(restored.checkpoint.Refused):
+                restored.project(dict(value, **change))
+
     def test_absence_and_incomplete_reopen_never_supply_a_wallet(self):
         self.assertIsNone(restored.project(None))
         value = dict(schema=1, scope=restored.SCOPE, complete=False)
@@ -221,6 +238,18 @@ class ReopenDiagnosticTests(unittest.TestCase):
             self.assertEqual(value['child_phase'], phase)
             self.assertEqual(value['output'], dict(code='REOPEN_CHILD_REFUSED',
                 bytes=len(raw), sha256=hashlib.sha256(raw).hexdigest()))
+        capture = dict(schema=2, kind='restored_seeded_capture_failure',
+            last_entered_step='scriptLine', screen='staking', theme='dark',
+            line=5, reply='targetMissing')
+        child = dict(schema=1, scope='owned_reopen_child_failure',
+            phase='seeded_capture', kind='HARNESS_REFUSED', code=None,
+            recipe=None, capture=capture)
+        self.assertEqual(restored.child_failure_projection(child), child)
+        with self.assertRaises(restored.checkpoint.Refused):
+            restored.child_failure_projection(dict(child, phase='seed_token'))
+        with self.assertRaises(restored.checkpoint.Refused):
+            restored.child_failure_projection(dict(child,
+                capture=dict(capture, command='private')))
 
     def test_ordinary_output_is_ignored_and_error_text_is_only_classified_and_hashed(self):
         trace = restored.ReopenDiagnostic()

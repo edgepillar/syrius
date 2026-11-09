@@ -28,6 +28,7 @@ from tool.ci.windows_presentation_smoke import OutputDrain
 from tool.ci.loopback_relay import PAIRS as RELAY_PAIRS, TARGET as RELAY_TARGET, Relay
 from tool.ci import native_stack_probe, node_panic_projection, producer_shutdown_patch, read_first_client_fixture
 from tool.ci import lab_asset_progress, lab_failure_probe
+from tool.ci.readonly_details_capture import SEEDED_FAMILY
 from tools.devnet.lab import owned_lab as wire_policy
 from tools.devnet.lab.socket_transport import make_transports
 
@@ -139,8 +140,12 @@ def require_environment(backend, parent):
          or (backend == "native" and sys.platform == "win32"), "ENVIRONMENT_REFUSED")
     need(parent.get("SYRIUS_NATIVE_STACK_DIAGNOSTIC") in (None, "true", "false"), "ENVIRONMENT_REFUSED")
     selected_node_source(parent.get("SYRIUS_LAB_NODE_SOURCE", "original"))
-    wallet_inspection_requested(backend, parent)
-    return wallet_tour_requested(backend, parent)
+    inspection = wallet_inspection_requested(backend, parent)
+    tour = wallet_tour_requested(backend, parent)
+    if parent.get('SYRIUS_READONLY_CATALOG_FAMILY') == SEEDED_FAMILY:
+        need(tour and not inspection and parent['GITHUB_REPOSITORY'] == 'edgepillar/syrius',
+             'ENVIRONMENT_REFUSED')
+    return tour
 
 
 def shutdown_test_result(raw):

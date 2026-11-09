@@ -1,4 +1,4 @@
-"""Finite readonly Details metadata and original-byte archive controls."""
+"""Finite Details and restored-state metadata and original archive controls."""
 
 from __future__ import annotations
 
@@ -21,6 +21,11 @@ TOKEN_DRAFT_SCREENS = ('token-new',)
 TOKEN_DRAFT_FILES = ('25-token-new-dark.png', '25-token-new-light.png')
 SEND_CONFIRM_SCREENS = ('send-confirm',)
 SEND_CONFIRM_FILES = ('12-send-confirm-dark.png', '12-send-confirm-light.png')
+SEEDED_FAMILY = 'seeded-states'
+SEEDED_SCHEMA = 4
+SEEDED_SCREENS = ('staking', 'token-mine')
+SEEDED_FILES = ('13-staking-dark.png', '13-staking-light.png',
+                '24-token-mine-dark.png', '24-token-mine-light.png')
 FAMILY_SCHEMAS = {'details': 1, 'token-draft': 2, 'send-confirm': 3}
 CATALOG_STAGES = {name.replace('-', '_') + '_catalog': schema
                   for name, schema in FAMILY_SCHEMAS.items()}
@@ -28,8 +33,10 @@ CATALOGS = {
     1: (SCREENS, FILES),
     2: (TOKEN_DRAFT_SCREENS, TOKEN_DRAFT_FILES),
     3: (SEND_CONFIRM_SCREENS, SEND_CONFIRM_FILES),
+    SEEDED_SCHEMA: (SEEDED_SCREENS, SEEDED_FILES),
 }
 OUTPUT = Path('.harness/ci-details-catalog')
+SEEDED_OUTPUT = Path('.harness/ci-seeded-catalog')
 MAX_CAPTURE_TOTAL = 4 * 1024**2
 MAX_MANIFEST = 64 * 1024
 MAX_ARCHIVE = MAX_CAPTURE_TOTAL + MAX_MANIFEST + 65536
@@ -107,8 +114,10 @@ def failure_diagnostic(value, *, catalog_schema=1):
     else:
         need(value['schema'] == 1)
     need(required <= set(value) <= required | optional)
+    kind = ('restored_seeded_capture_failure' if catalog_schema == SEEDED_SCHEMA
+            else 'readonly_details_capture_failure')
     need(type(value['schema']) is int and value['schema'] in (1, 2)
-         and value['kind'] == 'readonly_details_capture_failure'
+         and value['kind'] == kind
          and type(value['last_entered_step']) is str
          and value['last_entered_step'] in FAILURE_STEPS)
     need(('screen' in value) == ('theme' in value))
@@ -133,6 +142,23 @@ def catalog_screens(schema):
     return CATALOGS[schema][0]
 
 
+def _scope(schema, suffix):
+    prefix = ('restored_native_seeded_catalog' if schema == SEEDED_SCHEMA
+              else 'readonly_native_details_catalog')
+    return prefix + '_' + suffix
+
+
+def _output(schema):
+    return SEEDED_OUTPUT if schema == SEEDED_SCHEMA else OUTPUT
+
+
+def _seed_pin(value, schema):
+    if schema == SEEDED_SCHEMA:
+        need(digest(value.get('seed_receipts_sha256')), 'CAPTURE_REFUSED')
+        return {'seed_receipts_sha256': value['seed_receipts_sha256']}
+    return {}
+
+
 def _script_field(schema):
     catalog_files(schema)
     return 'script_sha256_by_screen'
@@ -148,7 +174,7 @@ def capture_receipt(value):
     need(type(value) is dict, 'CAPTURE_REFUSED')
     schema = value.get('schema')
     files = catalog_files(schema)
-    expected = dict(schema=schema, scope='readonly_native_details_catalog_capture',
+    expected = dict(schema=schema, scope=_scope(schema, 'capture'),
         themes=list(THEMES), files=list(files),
         width=1280, height=780, scale=1, capture_returned=True)
     expected.update(screens=list(catalog_screens(schema)))
@@ -180,8 +206,8 @@ def catalog_reference(value):
     need(type(value) is dict, 'CAPTURE_REFUSED')
     schema = value.get('schema')
     files = catalog_files(schema)
-    expected = dict(schema=schema, scope='readonly_native_details_catalog_reference',
-        captured=len(files))
+    expected = dict(schema=schema, scope=_scope(schema, 'reference'),
+        captured=len(files), **_seed_pin(value, schema))
     expected.update(screens=list(catalog_screens(schema)))
     need(set(value) == set(expected) | {'manifest_sha256'}
          and all(type(value[k]) is type(v) and value[k] == v
@@ -198,10 +224,11 @@ def public_catalog(value):
     catalog_files(schema)
     flags = {'inspection_only', 'parent_closure_qualified', 'atomic_frame_qualified',
              'wallet_qualified', 'seed_admitted', 'financial_send_qualified'}
-    required = flags | {'schema', 'scope', 'source_sha', 'source_tree', 'run_id',
+    required = flags | _seed_pin(value, schema).keys() | {
+        'schema', 'scope', 'source_sha', 'source_tree', 'run_id',
         'run_attempt', _script_field(schema), 'capture', 'captures', 'visual_matches'}
     need(set(value) == required
-         and value['scope'] == 'readonly_native_details_catalog_capture_bundle'
+         and value['scope'] == _scope(schema, 'capture_bundle')
          and all(type(value[k]) is bool for k in flags)
          and value['inspection_only'] is True
          and all(value[k] is False for k in flags - {'inspection_only'})
@@ -243,11 +270,14 @@ def output_bytes(output, *, schema=1):
     return total
 
 
-def collect(repo, receipt, source, tree, parent, *, read_original):
+def collect(repo, receipt, source, tree, parent, *, read_original,
+            seed_receipts_sha256=None):
     """Retain original PNG references without another archive copy."""
     capture_receipt(receipt)
     schema = receipt['schema']
-    output = repo / OUTPUT
+    need((schema == SEEDED_SCHEMA) == (seed_receipts_sha256 is not None))
+    seed_pin = _seed_pin({'seed_receipts_sha256': seed_receipts_sha256}, schema)
+    output = repo / _output(schema)
     output_bytes(output, schema=schema)
     records = []
     for index, name in enumerate(catalog_files(schema)):
@@ -256,12 +286,12 @@ def collect(repo, receipt, source, tree, parent, *, read_original):
         records.append(dict(theme=THEMES[index % len(THEMES)], file=name, bytes=len(raw),
             sha256=hashlib.sha256(raw).hexdigest(), width=1280, height=780, scale=1))
     capture_records(records, schema=schema)
-    value = dict(schema=schema, scope='readonly_native_details_catalog_capture_bundle',
+    value = dict(schema=schema, scope=_scope(schema, 'capture_bundle'),
         source_sha=source, source_tree=tree, run_id=parent['GITHUB_RUN_ID'],
         run_attempt=parent['GITHUB_RUN_ATTEMPT'], capture=receipt, captures=records,
         inspection_only=True, parent_closure_qualified=False, atomic_frame_qualified=False,
         wallet_qualified=False, seed_admitted=False, financial_send_qualified=False,
-        visual_matches=0)
+        visual_matches=0, **seed_pin)
     value[_script_field(schema)] = _script_pins(repo, schema, read_original)
     public_catalog(value)
     data = (json.dumps(value, sort_keys=True, separators=(',', ':')) + '\n').encode('ascii')
@@ -269,20 +299,25 @@ def collect(repo, receipt, source, tree, parent, *, read_original):
     with (output / 'manifest.json').open('xb') as stream:
         stream.write(data)
     output_bytes(output, schema=schema)
-    reference = dict(schema=schema, scope='readonly_native_details_catalog_reference',
-        captured=len(records), manifest_sha256=hashlib.sha256(data).hexdigest())
+    reference = dict(schema=schema, scope=_scope(schema, 'reference'),
+        captured=len(records), manifest_sha256=hashlib.sha256(data).hexdigest(),
+        **seed_pin)
     reference.update(screens=list(catalog_screens(schema)))
     return catalog_reference(reference)
 
 
-def artifact_paths(repo, report, *, read_original, parent_completed):
+def artifact_paths(repo, report, *, read_original, parent_completed,
+                   reference_key='details_catalog'):
     """Only a completed generic parent can export every catalog original."""
     if report.get('success') is not True:
         return []
     need(parent_completed is True, 'CAPTURE_REFUSED')
-    reference = catalog_reference(report['details_catalog'])
+    reference = catalog_reference(report[reference_key])
     schema = reference['schema']
-    output = repo / OUTPUT
+    need(reference_key in ('details_catalog', 'seeded_catalog')
+         and (schema == SEEDED_SCHEMA) == (reference_key == 'seeded_catalog'))
+    relative = _output(schema)
+    output = repo / relative
     output_bytes(output, schema=schema)
     raw = read_original(output / 'manifest.json', MAX_MANIFEST)
     need(hashlib.sha256(raw).hexdigest() == reference['manifest_sha256'], 'CAPTURE_REFUSED')
@@ -295,17 +330,18 @@ def artifact_paths(repo, report, *, read_original, parent_completed):
 
     value = public_catalog(json.loads(raw, object_pairs_hook=unique))
     need(value['schema'] == schema
+         and _seed_pin(value, schema) == _seed_pin(reference, schema)
          and all(value[k] == report[k] for k in
                  ('source_sha', 'source_tree', 'run_id', 'run_attempt'))
          and value[_script_field(schema)] == _script_pins(repo, schema, read_original),
          'SOURCE_REFUSED')
-    paths = [str(OUTPUT / 'manifest.json').replace('\\', '/')]
+    paths = [(relative / 'manifest.json').as_posix()]
     for row in capture_records(value['captures'], schema=schema):
         image = read_original(output / row['file'], MAX_CAPTURE_TOTAL)
         need(len(image) == row['bytes'] and hashlib.sha256(image).hexdigest() == row['sha256'],
              'CAPTURE_REFUSED')
         debug.entry.png_bytes(base64.b64encode(image).decode('ascii'))
-        paths.append(str(OUTPUT / row['file']).replace('\\', '/'))
+        paths.append((relative / row['file']).as_posix())
     return paths
 
 
@@ -348,13 +384,16 @@ def unpack(raw, expected_sha, expected_size, head, tree, run_id,
         need(sha(manifest) == reference['manifest_sha256'])
         value = public_catalog(decode(manifest))
         need(value['schema'] == schema and value['source_sha'] == head
+             and _seed_pin(value, schema) == _seed_pin(reference, schema)
              and value['source_tree'] == tree and value['run_id'] == str(run_id)
              and value['run_attempt'] == '1' and value[script_field] == script_sha)
         for row in capture_records(value['captures'], schema=schema):
             pixels = member(row['file'], MAX_CAPTURE_TOTAL)
             need(len(pixels) == row['bytes'] and sha(pixels) == row['sha256'])
             debug.entry.png_bytes(base64.b64encode(pixels).decode('ascii'))
-    result = dict(schema=schema, scope='retained_readonly_details_catalog', source_head=head,
+    scope = ('retained_restored_seeded_catalog' if schema == SEEDED_SCHEMA
+             else 'retained_readonly_details_catalog')
+    result = dict(schema=schema, scope=scope, source_head=head,
         source_tree=tree, source_run_id=run_id, source_attempt=1,
         themes=list(THEMES), filenames=list(files),
         width=1280, height=780, scale=1, verified_png_count=len(files),
@@ -362,7 +401,7 @@ def unpack(raw, expected_sha, expected_size, head, tree, run_id,
         catalog_capture_qualified=False, parent_closure_qualified=False,
         atomic_frame_qualified=False, inspection_only=True, runtime_started=False,
         wallet_qualified=False, seed_admitted=False, financial_send_qualified=False,
-        visual_matches=0)
+        visual_matches=0, **_seed_pin(reference, schema))
     result.update(screens=list(catalog_screens(schema)))
     result[script_field] = script_sha
     return result

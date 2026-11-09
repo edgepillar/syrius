@@ -65,6 +65,9 @@ def bundle(value, images, *, link=None):
         scope='readonly_native_details_catalog_reference',
         screens=value['capture']['screens'], captured=len(value['captures']),
         manifest_sha256=details.sha(manifest))
+    if value['schema'] == details.SEEDED_SCHEMA:
+        reference.update(scope='restored_native_seeded_catalog_reference',
+            seed_receipts_sha256=value['seed_receipts_sha256'])
     return raw.getvalue(), reference
 
 
@@ -240,6 +243,42 @@ class DetailsCatalogTests(unittest.TestCase):
             data, ref = bundle(value, payload, link=link)
             with self.subTest(archive=index), self.assertRaises(details.Refused):
                 inspect(data, ref)
+
+    def test_restored_catalog_requires_its_four_files_and_exact_seed_receipts(self):
+        original, original_images = fixture()
+        screens = ['staking', 'token-mine']
+        files = ['13-staking-dark.png', '13-staking-light.png',
+                 '24-token-mine-dark.png', '24-token-mine-light.png']
+        pins = dict(staking='7'*64, **{'token-mine': '8'*64})
+        capture = dict(receipt(), schema=4,
+            scope='restored_native_seeded_catalog_capture',
+            screens=screens, files=files)
+        report = dict(original, schema=4,
+            scope='restored_native_seeded_catalog_capture_bundle',
+            capture=capture, script_sha256_by_screen=pins,
+            seed_receipts_sha256='9'*64,
+            captures=[dict(row, file=name)
+                      for row, name in zip(original['captures'], files)])
+        images = dict(zip(files, original_images.values()))
+        raw, reference = bundle(report, images)
+        result = details.unpack(raw, details.sha(raw), len(raw),
+            HEAD, TREE, RUN, reference, pins)
+        self.assertEqual(result['scope'], 'retained_restored_seeded_catalog')
+        self.assertEqual(result['filenames'], files)
+        self.assertEqual(result['seed_receipts_sha256'], '9'*64)
+        self.assertFalse(result['catalog_capture_qualified'])
+        self.assertFalse(result['parent_closure_qualified'])
+        with self.assertRaises(details.Refused):
+            details.unpack(raw, details.sha(raw), len(raw), HEAD, TREE, RUN,
+                dict(reference, seed_receipts_sha256='a'*64), pins)
+        extra, _ = bundle(report, dict(images, **{'unexpected.png': png()}))
+        with self.assertRaises(details.Refused):
+            details.unpack(extra, details.sha(extra), len(extra),
+                HEAD, TREE, RUN, reference, pins)
+        with self.assertRaises(legacy.Refused):
+            legacy.inspection_catalog_reference(dict(schema=4,
+                home_catalog=None, settings_catalog=None,
+                navigation_catalog=None, details_catalog=reference))
 
 
 if __name__ == '__main__':

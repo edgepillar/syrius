@@ -283,6 +283,7 @@ class ScreenCapture {
     this.restoreRailState,
     this.onStep,
     this.readonlySendConfirmation = false,
+    this.restoredSeeded = false,
   });
 
   final Directory repository;
@@ -294,6 +295,7 @@ class ScreenCapture {
   final Future<void> Function({required bool expanded})? restoreRailState;
   final void Function(ScreenCaptureObservation step)? onStep;
   final bool readonlySendConfirmation;
+  final bool restoredSeeded;
 
   static const String _afterCapturePrefix = '# after-capture:';
 
@@ -374,11 +376,15 @@ class ScreenCapture {
       if (text.isEmpty) continue;
       final bool after = text.startsWith(_afterCapturePrefix);
       if (text.startsWith('#') && !after) {
-        final bool prepared = readonlySendConfirmation &&
+        final bool sendPrepared = readonlySendConfirmation &&
             screen.id == 'send-confirm' &&
             text == '# prerequisite: readonly-lab-send-confirmation';
+        final bool tokenPrepared = restoredSeeded &&
+            screen.id == 'token-mine' &&
+            text == '# prerequisite: restored-lab-token';
         if (text.startsWith('# prerequisite:') &&
-            text != '# prerequisite: unlocked-home' && !prepared) {
+            text != '# prerequisite: unlocked-home' &&
+            !sendPrepared && !tokenPrepared) {
           throw ScreenCaptureError('${screen.id}: ${text.substring(2)}');
         }
         continue;
@@ -538,6 +544,7 @@ class ScreenCapture {
       <String, Object?>{'cmd': 'window'},
     );
     final List<String> captured = <String>[];
+    int retainedBytes = 0;
     bool? originalRail;
     Object? failure;
     final List<String> restorationFailures = <String>[];
@@ -601,6 +608,10 @@ class ScreenCapture {
             screen: script.screen, theme: theme,
           );
           final Uint8List bytes = _png(shot, theme);
+          retainedBytes += bytes.length;
+          if (restoredSeeded && retainedBytes > 4 * 1024 * 1024) {
+            throw const ScreenCaptureError('seeded capture byte cap exceeded');
+          }
           enter(ScreenCaptureStep.outputRetention,
             screen: script.screen, theme: theme,
           );

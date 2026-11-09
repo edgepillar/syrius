@@ -18,6 +18,11 @@ Its fresh native result and seeded captures remain open.
 [Producer](https://github.com/edgepillar/syrius/actions/runs/42634466792) and
 [independent archive reader](https://github.com/edgepillar/syrius/actions/runs/42638567706).
 
+The restored seed catalog prepares Staking and Token Mint draft captures in
+both themes after the six original seed journals are verified. The separate
+archive reader binds the four files to the same source and seed receipts.
+Fresh native capture and visual comparison remain open.
+
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,
 Project and Fund Address with its confirmed receive and target balance. The

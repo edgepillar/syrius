@@ -465,6 +465,24 @@ void main() {
           ),
         );
       }
+      writeScript('token-mine',
+          File('harness/screens/token-mine.txt').readAsStringSync());
+      await expectLater(
+        capture.capture('token-mine'),
+        throwsA(isA<ScreenCaptureError>()),
+      );
+      final ScreenScript seeded = ScreenCapture(
+        repository: repository,
+        call: agent.call,
+        prepareHome: agent.prepareHome,
+        runLine: agent.runLine,
+        assertionFor: (List<String> words) =>
+            cli.assertionArgs(cli.Args(words.sublist(1))),
+        restoredSeeded: true,
+      ).preflight('token-mine').single;
+      expect(seeded.assertion['key'], 'mint_amount_field');
+      expect(seeded.afterCapture.first.words,
+          <String>['tap', '--key', '@issued-token-row']);
       expect(agent.commands, isEmpty);
       expect(Directory('${repository.path}/.harness').existsSync(), isFalse);
     },

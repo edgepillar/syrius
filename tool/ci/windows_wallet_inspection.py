@@ -566,6 +566,7 @@ def inspection_catalog_reference(report):
         return navigation.catalog_reference(report['navigation_catalog'])
     need(report['navigation_catalog'] is None, 'CAPTURE_REFUSED')
     reference = details.catalog_reference(report['details_catalog'])
+    need(reference['schema'] != details.SEEDED_SCHEMA, 'CAPTURE_REFUSED')
     if schema == SEND_CONFIRM_INSPECTION_SCHEMA:
         need(reference['schema'] == details.FAMILY_SCHEMAS['send-confirm'],
              'CAPTURE_REFUSED')
