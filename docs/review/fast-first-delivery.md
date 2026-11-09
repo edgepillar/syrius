@@ -222,7 +222,16 @@ preparation process and a cold capture process for each theme. Each capture
 requires the full original stage at frame 23 of the 56-frame film. The
 separate reader binds both PNGs, the recipe and the four original process
 outcomes. The launch-settle pair still needs the original lock handoff in an
-owned wallet profile. Windows observation remains pending.
+owned wallet profile.
+
+The Source571 Windows job passes selected analysis and all 1,374 selected Dart
+cases. The controller suite reports 1,092 cases, 18 skips and zero failures.
+The original Release run captures `39-launch-dark.png` and
+`39-launch-light.png`. All four owned processes exit normally. The independent
+reader verifies both 1280 by 780 PNGs in the 146,632-byte archive. The catalog
+now has 68 of 94 literal outputs. Pair review remains open.
+[Producer](https://github.com/edgepillar/syrius/actions/runs/42704416632) and
+[independent reader](https://github.com/edgepillar/syrius/actions/runs/42707255249).
 
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,
@@ -354,7 +363,7 @@ frontier reads after such a failure. Their native observation remains pending.
 | --- | --- |
 | P03/P09 | Complete the documented Windows Docker route. Earlier Linux defaults, WSL installation and the Source548 native lab retain their separate scopes. |
 | F06 | Complete the seeded screen states and coordinator/peer Swap prerequisites. Source548 qualifies the original six receipts and copied lifecycle. Source561 qualifies the restored Stake and Token captures. Source563 qualifies the separate New stake draft with one Stake prerequisite. Source569 qualifies the Sentinel fixture pair. |
-| V01/V05 | Obtain 28 missing literal outputs, review all 94 pairs, resolve retained layout/type/spacing findings and explicitly accept each match. Availability is 66/94. Accepted whole-image matches are 0/94. |
+| V01/V05 | Obtain 26 missing literal outputs, review all 94 pairs, resolve retained layout/type/spacing findings and explicitly accept each match. Availability is 68/94. Accepted whole-image matches are 0/94. |
 | V02 | Observe every motion/shader row in the running build and compare page-change, disclosure and launch frame times with the original baseline. Finite widget timing or stall telemetry alone does not close this gate. |
 | V03 | Try every original seam control, shortcut and Go To entry in the running native wallet and verify refusal. Registry and widget controls remain partial evidence. |
 | V06 | Check every original end-state requirement and complete independent final acceptance. The earlier minimum-window/Arabic viewing remains source-bound. |
