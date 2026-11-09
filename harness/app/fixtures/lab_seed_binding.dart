@@ -709,13 +709,15 @@ final class LabSeedBinding
   }
 }
 
-final class _Original implements SeedOriginal {
+final class _Original implements SeedOriginalSettlement {
   const _Original(this.value);
   final OriginalPublication<dynamic> value;
   @override
   Object get identity => value;
   @override
   bool get settled => value.settled;
+  @override
+  Future<void> get settlement => value.settlement;
   @override
   bool get failed => value.error != null;
   @override

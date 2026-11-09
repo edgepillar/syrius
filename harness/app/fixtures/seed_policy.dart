@@ -417,6 +417,11 @@ abstract interface class SeedOriginal {
   String? get acceptedHash;
 }
 
+/// Observes the original result and release without stopping its lane.
+abstract interface class SeedOriginalSettlement implements SeedOriginal {
+  Future<void> get settlement;
+}
+
 final class SeedConfirmed {
   const SeedConfirmed({
     required this.hash,
@@ -522,7 +527,7 @@ final class SeedGuard {
   }
 
   /// Both original endpoints must positively advance during this admission.
-  Future<void> admit(String recipe) async {
+  Future<void> admit(String recipe, {bool waitForEarlier = false}) async {
     if (!(_labSend
         ? recipe == labSendRecipeId
         : seedRecipeIds.contains(recipe))) {
@@ -563,6 +568,7 @@ final class SeedGuard {
         ),
       );
     }
+    if (waitForEarlier) await _waitForEarlierOriginals();
     final SeedFunding funds = await _read(source.funding);
     final SeedFunding minimum = source.minimum(recipe);
     if (funds.znn <= BigInt.zero ||
@@ -571,10 +577,42 @@ final class SeedGuard {
         funds.qsr < minimum.qsr) {
       throw const SeedRefused('funded-selected-index-required');
     }
-    final SeedOriginalObservation originals =
-        SeedOriginalObservation.capture(source.originals());
-    if (originals.unresolved) {
-      throw SeedRefused('earlier-original-unresolved', originals: originals);
+    _requireSettledOriginals(source.originals());
+  }
+
+  void _requireSettledOriginals(List<SeedOriginal> originals) {
+    final SeedOriginalObservation observed =
+        SeedOriginalObservation.capture(originals);
+    if (observed.unresolved) {
+      throw SeedRefused('earlier-original-unresolved', originals: observed);
+    }
+  }
+
+  Future<void> _waitForEarlierOriginals() async {
+    requireCurrent();
+    final List<SeedOriginal> originals = source.originals();
+    final SeedOriginalObservation observed =
+        SeedOriginalObservation.capture(originals);
+    if (!observed.pending || observed.failed || observed.releaseFailed) return;
+    final List<SeedOriginal> pending = originals
+        .where((SeedOriginal original) => !original.settled).toList();
+    if (pending.any((SeedOriginal value) => value is! SeedOriginalSettlement)) {
+      return;
+    }
+    try {
+      await Future.wait<void>(pending.cast<SeedOriginalSettlement>().map(
+        (SeedOriginalSettlement original) => original.settlement,
+      )).timeout(const Duration(seconds: 12));
+    } on TimeoutException {
+      // The original is still owned by its existing sender.
+    }
+    requireCurrent();
+    final Set<Object> current = Set<Object>.identity()
+      ..addAll(source.originals().map((SeedOriginal value) => value.identity));
+    if (originals.any(
+      (SeedOriginal value) => !current.contains(value.identity),
+    )) {
+      throw const SeedRefused('original-publication-replaced');
     }
   }
 
@@ -584,11 +622,11 @@ final class SeedGuard {
       throw const SeedRefused('original-transfer-witness-required');
     }
     if (_attempted) throw const SeedRefused('original-attempt-held');
-    await admit(recipe);
-    final Set<Object> before = source
-        .originals()
-        .map((SeedOriginal value) => value.identity)
-        .toSet();
+    await admit(recipe, waitForEarlier: true);
+    final List<SeedOriginal> originals = source.originals();
+    _requireSettledOriginals(originals);
+    final Set<Object> before =
+        originals.map((SeedOriginal value) => value.identity).toSet();
     requireCurrent();
     journal.claim(recipe);
     _attempted = true;

@@ -69,6 +69,17 @@ class _Original implements SeedOriginal {
   String? acceptedHash = _hash(9);
 }
 
+class _SettlingOriginal extends _Original implements SeedOriginalSettlement {
+  final Completer<void> observed = Completer<void>();
+  final Completer<void> finished = Completer<void>();
+
+  @override
+  Future<void> get settlement {
+    if (!observed.isCompleted) observed.complete();
+    return finished.future;
+  }
+}
+
 class _Journal implements SeedJournal {
   final Set<String> attempts = <String>{};
   final Map<String, String> acceptedHashes = <String, String>{};
@@ -1001,6 +1012,49 @@ void main() {
       expect(journal.attempts, isEmpty);
     },
   );
+
+  test('a pending original must settle with the same identity and release',
+      () async {
+    for (final String outcome in <String>['success', 'release', 'replaced']) {
+      final _Source earlier = _Source();
+      final _SettlingOriginal original = _SettlingOriginal()..settled = false;
+      earlier.operations.add(original);
+      final _Journal ledger = _Journal();
+      final SeedGuard current = SeedGuard(
+        source: earlier, journal: ledger, delay: earlier.delay,
+      );
+      int taps = 0;
+      final Future<String> result = current.publish('deposit', () async {
+        taps++;
+        earlier.operations.add(_Original());
+      });
+      await original.observed.future;
+      expect(taps, 0);
+      expect(ledger.attempts, isEmpty);
+      if (outcome == 'replaced') {
+        earlier.operations
+          ..clear()
+          ..add(_Original());
+      }
+      original
+        ..settled = true
+        ..releaseFailed = outcome == 'release'
+        ..finished.complete();
+      if (outcome == 'success') {
+        expect(await result, _hash(9));
+        expect(taps, 1);
+        expect(ledger.confirmedHashes['deposit'], _hash(9));
+      } else {
+        final String code = outcome == 'release'
+            ? 'earlier-original-unresolved' : 'original-publication-replaced';
+        await expectLater(result, throwsA(isA<SeedRefused>().having(
+          (SeedRefused error) => error.code, 'code', code,
+        )));
+        expect(taps, 0);
+        expect(ledger.attempts, isEmpty);
+      }
+    }
+  });
 
   test(
     'one tap retains the original accepted hash and requires exact '

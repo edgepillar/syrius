@@ -48,6 +48,9 @@ class OriginalPublication<T> {
   /// True only after the actual operation Future has settled.
   bool get settled => _settled.isCompleted;
 
+  /// Observes the original outcome and release without pausing admission.
+  Future<void> get settlement => _settled.future;
+
   /// The sender records a failed release of its acquired original file.
   void recordReleaseFailure(Object error, StackTrace trace) {
     _releaseError = error;
@@ -174,7 +177,7 @@ abstract final class OriginalPublications {
     final List<OriginalPublication<dynamic>> originals =
         List<OriginalPublication<dynamic>>.of(lane.operations);
     for (final OriginalPublication<dynamic> operation in originals) {
-      await operation._settled.future;
+      await operation.settlement;
     }
     return OriginalPublicationDrain._(owner, originals);
   }
