@@ -13,8 +13,8 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 The latest Native113 result qualifies the original one-ZNN UI send,
 twelve-page tour, quiescence and normal required actor exits. The copied
 session confirms Stake, Fuse and Token before Deposit refuses pointer
-admission. The precise condition and Deposit outcome remain unknown. Widget
-and native evidence for the subsequent control-binding correction are pending.
+admission. The precise condition and Deposit outcome remain unknown. Fresh
+native verification of the control-binding correction is pending.
 [Source521 Native113 result](source521-native113-deposit-control.md).
 
 The [Source512 Native112 result](source512-native112-stake-effect.md)
@@ -31,19 +31,19 @@ NOT_ESTABLISHED; the later five seed recipes and copied lifecycle do not
 qualify. The new failure probe is absent because the original tour succeeds.
 Native111 and all earlier failures retain their separate outcomes.
 
-The latest [focused result](source517-field-suffix-paste.md#actual-source520-focused-result)
-is Source520 3d02eada08ef7c0ead1485841bbdcbd363b5ac6e, tree
-e813dbdc17dd67c8d8827b1eb5a5e79909bbed84. Original
-[42140396510](https://github.com/edgepillar/syrius/actions/runs/42140396510),
-attempt one, job 127638996219, independently qualifies:
+The latest focused result is Source523 `29a7cf385eed`, run `42569401149`,
+attempt one, job `129003044927`. The guarded seed pointer cases cover stable
+control identity through snapshot renumbering and cancellation when the
+original control moves during the click.
+[Focused qualification](source521-native113-deposit-control.md#focused-qualification).
 
-- 1358 selected Dart cases in complete 52/51-file streams (653/705), zero failures/errors/
-  skips, 151 hidden cases and 1509 terminal events.
+- 1,360 selected Dart cases in complete 52 and 51-file streams (653 and 707),
+  zero failures, errors or skips, 151 hidden cases and 1,511 terminal events.
 - 1087 Python cases, eighteen explicit Windows skips and zero failures/errors.
 - Fourteen asset observations and zero selected errors/warnings/infos.
 - Complete aggregate/startup/refusal/final source checks and zero artifacts.
 
-The shared Paste button now rejects late answers after edits, selection,
+Source520 qualifies the shared Paste button. It rejects late answers after edits, selection,
 clearing, a newer request, controller replacement or unmount. All eight new
 widget cases pass, including current paste and existing localized suffix
 labels in both themes. The original clipboard helper, glyphs, Clear behavior
@@ -51,6 +51,7 @@ and financial actions remain. Source517's catalog refusal, Source518's two
 analysis infos and Source519's comment-reference info remain in their original
 failed records. Their Dart steps are unexecuted; the later success does not
 rewrite them.
+[Source520 focused result](source517-field-suffix-paste.md#actual-source520-focused-result).
 
 The earlier passive Stake summary distinguishes list coverage and progressive
 predicate counts from the original failed effect read. Strict closed-schema,
@@ -58,7 +59,7 @@ privacy, final-round and reply-context checks qualify in the selected suite.
 The original predicate, receipt requirement, eighteen rounds, delays and
 once-only actions remain. No native sample or cause for Native112 qualifies.
 Source514's earlier eleven-info analysis refusal, unexecuted Dart step and
-original dispatch UNKNOWN remain preserved. The latest two passing Dart commands
+original dispatch UNKNOWN remain preserved. The Source520 Dart commands
 exit normally in 206.329/190.829 seconds with complete unforced output;
 independent progress streams have no retries or unfinished cases.
 
