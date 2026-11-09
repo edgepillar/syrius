@@ -326,7 +326,7 @@ final class LabSeedBinding
   SeedFundingReceive _fundingReceive(String hash, Address recipient) {
     final AutoReceiveTxWorker? worker = _receiveWorker;
     if (worker == null ||
-        worker.isClosed ||
+        worker.disposed ||
         !isCurrent ||
         !app.sl.isRegistered<AutoReceiveTxWorker>() ||
         !identical(worker, app.sl<AutoReceiveTxWorker>())) {
