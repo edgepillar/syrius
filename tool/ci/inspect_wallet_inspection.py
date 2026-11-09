@@ -73,6 +73,7 @@ SOURCE_FILES = (
     'harness/screens/set-licences.txt',
     'harness/screens/set-originals.txt',
     'harness/screens/token-new.txt',
+    'harness/screens/send-confirm.txt',
 )
 PHASE = 'environment'
 

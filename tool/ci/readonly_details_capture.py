@@ -19,6 +19,16 @@ SCREENS = ('receive-qr', 'zap-form', 'plasma-fuse', 'set-licences', 'set-origina
 FILES = ('10-receive-qr-dark.png', '10-receive-qr-light.png', '11-zap-form-dark.png', '11-zap-form-light.png', '22-plasma-fuse-dark.png', '22-plasma-fuse-light.png', '37-set-licences-dark.png', '37-set-licences-light.png', '38-set-originals-dark.png', '38-set-originals-light.png')
 TOKEN_DRAFT_SCREENS = ('token-new',)
 TOKEN_DRAFT_FILES = ('25-token-new-dark.png', '25-token-new-light.png')
+SEND_CONFIRM_SCREENS = ('send-confirm',)
+SEND_CONFIRM_FILES = ('12-send-confirm-dark.png', '12-send-confirm-light.png')
+FAMILY_SCHEMAS = {'details': 1, 'token-draft': 2, 'send-confirm': 3}
+CATALOG_STAGES = {name.replace('-', '_') + '_catalog': schema
+                  for name, schema in FAMILY_SCHEMAS.items()}
+CATALOGS = {
+    1: (SCREENS, FILES),
+    2: (TOKEN_DRAFT_SCREENS, TOKEN_DRAFT_FILES),
+    3: (SEND_CONFIRM_SCREENS, SEND_CONFIRM_FILES),
+}
 OUTPUT = Path('.harness/ci-details-catalog')
 MAX_CAPTURE_TOTAL = 4 * 1024**2
 MAX_MANIFEST = 64 * 1024
@@ -114,13 +124,13 @@ def failure_diagnostic(value, *, catalog_schema=1):
 
 
 def catalog_files(schema):
-    need(type(schema) is int and schema in (1, 2))
-    return FILES if schema == 1 else TOKEN_DRAFT_FILES
+    need(type(schema) is int and schema in CATALOGS)
+    return CATALOGS[schema][1]
 
 
 def catalog_screens(schema):
     catalog_files(schema)
-    return SCREENS if schema == 1 else TOKEN_DRAFT_SCREENS
+    return CATALOGS[schema][0]
 
 
 def _script_field(schema):

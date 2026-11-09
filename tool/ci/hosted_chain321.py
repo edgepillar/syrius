@@ -106,6 +106,7 @@ def wallet_tour_requested(backend, parent):
 
 READONLY_CATALOG_SCHEMAS = {
     'home': 1, 'settings': 2, 'navigation': 3, 'details': 4, 'token-draft': 4,
+    'send-confirm': 4,
 }
 
 

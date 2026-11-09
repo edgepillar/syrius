@@ -60,7 +60,7 @@ CODES = shared.CODES | LAB_CODES | frozenset(('BINDING_REFUSED', 'INSPECTION_REF
 STAGES = frozenset(('unused_destinations', 'build', 'start', 'input', 'window',
     'onboarding', 'signing_policy', 'onboarding_logs', 'address_selection',
     'wallet_binding', 'tour_dark', 'tour_light', 'home_catalog', 'settings_catalog',
-    'navigation_catalog', 'details_catalog', 'token_draft_catalog', 'viewport', 'finish'))
+    'navigation_catalog', *details.CATALOG_STAGES, 'viewport', 'finish'))
 
 
 class Refused(Exception):
@@ -511,13 +511,13 @@ def entry_failure(value):
                 navigation.failure_diagnostic(value['diagnostic'])
             except navigation.Refused:
                 need(False, 'ENTRY_REFUSED')
-        elif value['stage'] in ('details_catalog', 'token_draft_catalog'):
+        elif value['stage'] in details.CATALOG_STAGES:
             need(value['code'] is None or value['code'] in {
                 'inspection-' + reason for reason in
                 ('process', 'retired', 'command', 'reply', 'binding')}, 'ENTRY_REFUSED')
             try:
                 details.failure_diagnostic(value['diagnostic'],
-                    catalog_schema=2 if value['stage'] == 'token_draft_catalog' else 1)
+                    catalog_schema=details.CATALOG_STAGES[value['stage']])
             except details.Refused:
                 need(False, 'ENTRY_REFUSED')
         elif value['stage'] == 'viewport':
@@ -788,9 +788,8 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
              and parent.get('SYRIUS_LAB_NODE_SOURCE') == 'lab-fix'
              and parent.get('SYRIUS_NATIVE_STACK_DIAGNOSTIC') == 'true', 'ENVIRONMENT_REFUSED')
         family = readonly_catalog_family(parent)
-        if family == 'token-draft':
-            details_schema = 2
-        catalog_slot = 'details' if details_schema == 2 else family
+        details_schema = details.FAMILY_SCHEMAS.get(family, 1)
+        catalog_slot = 'details' if family in details.FAMILY_SCHEMAS else family
         report['schema'] = READONLY_CATALOG_SCHEMAS[family]
         for field, since in (('details_catalog', 4), ('navigation_catalog', 3),
                              ('settings_catalog', 2)):

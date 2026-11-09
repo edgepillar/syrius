@@ -14,13 +14,19 @@ import 'readonly_viewport_probe.dart';
 import 'screen_capture.dart';
 import 'wallet_recipe.dart';
 
+const Map<String, ReadonlyDetailsSelection> _detailsSelections =
+    <String, ReadonlyDetailsSelection>{
+      'details': ReadonlyDetailsSelection.details,
+      'token-draft': ReadonlyDetailsSelection.tokenDraft,
+      'send-confirm': ReadonlyDetailsSelection.sendConfirmation,
+    };
+
 /// One fixed original capture family, with the previous Details default.
 String readonlyInspectionCatalogFamily(Map<String, String> environment) {
   final String family =
       environment['SYRIUS_READONLY_CATALOG_FAMILY'] ?? 'details';
-  if (!const <String>{
-    'home', 'settings', 'navigation', 'details', 'token-draft',
-  }.contains(family)) {
+  if (!const <String>{'home', 'settings', 'navigation'}.contains(family) &&
+      !_detailsSelections.containsKey(family)) {
     throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.command);
   }
   return family;
@@ -55,24 +61,30 @@ class _InspectionInstance extends cli.Instance {
   Future<Map<String, Object>> captureCatalog(
     String family, {
     void Function(ScreenCaptureObservation step)? onStep,
-  }) => switch (family) {
-    'home' => captureReadonlyHomeGotoStates(
-      repository: Directory(cli.repo), session: _session, onStep: onStep,
-    ),
-    'settings' => captureReadonlySettingsDefaults(
-      repository: Directory(cli.repo), session: _session, onStep: onStep,
-    ),
-    'navigation' => captureReadonlyNavigationDefaults(
-      repository: Directory(cli.repo), session: _session, onStep: onStep,
-    ),
-    'details' || 'token-draft' => captureReadonlyDetailsDefaults(
-      repository: Directory(cli.repo), session: _session, onStep: onStep,
-      tokenDraft: family == 'token-draft',
-    ),
-    _ => throw const ReadonlyInspectionRefused(
-      ReadonlyInspectionReason.command,
-    ),
-  };
+    String? labRecipient,
+  }) {
+    final Directory repository = Directory(cli.repo);
+    if (_detailsSelections[family] case final ReadonlyDetailsSelection choice) {
+      return captureReadonlyDetailsDefaults(
+        repository: repository, session: _session, onStep: onStep,
+        selection: choice, labRecipient: labRecipient,
+      );
+    }
+    return switch (family) {
+      'home' => captureReadonlyHomeGotoStates(
+        repository: repository, session: _session, onStep: onStep,
+      ),
+      'settings' => captureReadonlySettingsDefaults(
+        repository: repository, session: _session, onStep: onStep,
+      ),
+      'navigation' => captureReadonlyNavigationDefaults(
+        repository: repository, session: _session, onStep: onStep,
+      ),
+      _ => throw const ReadonlyInspectionRefused(
+        ReadonlyInspectionReason.command,
+      ),
+    };
+  }
 
   Future<Map<String, Object>> captureViewport({
     void Function(ReadonlyViewportStep step)? onStep,
@@ -108,9 +120,11 @@ Future<void> main() async {
   String stage = 'admission';
   ReadonlyViewportStep? lastViewportStep;
   ScreenCaptureObservation? lastCatalogStep;
+  ReadonlyDetailsSelection? detailsSelection;
   try {
     final Map<String, String> environment = Platform.environment;
     final String family = readonlyInspectionCatalogFamily(environment);
+    detailsSelection = _detailsSelections[family];
     final String name = environment['SYRIUS_CI_INSPECTION_INSTANCE'] ?? '';
     if (!Platform.isWindows || environment['GITHUB_ACTIONS'] != 'true' ||
         environment['SYRIUS_CI_WALLET_INSPECTION'] != 'true' ||
@@ -208,6 +222,9 @@ Future<void> main() async {
     }
     stage = 'address_selection';
     final Map<String, Object> selection = await recipe.selectLabAddress();
+    final String? labRecipient =
+        detailsSelection == ReadonlyDetailsSelection.sendConfirmation
+        ? recipe.readonlyLabRecipient : null;
     await marker('SYRIUS_INSPECTION_ADDRESS:${jsonEncode(selection)}');
     stage = 'wallet_binding';
     final Map<String, dynamic> bound = await instance.bindWallet();
@@ -258,11 +275,11 @@ Future<void> main() async {
         'longest_ms': timings['longestMs'] as int,
       })}');
     }
-    stage = family == 'token-draft'
-        ? 'token_draft_catalog' : '${family}_catalog';
+    stage = detailsSelection?.stage ?? '${family}_catalog';
     final Map<String, Object> catalog = await instance.captureCatalog(
       family,
       onStep: (ScreenCaptureObservation value) => lastCatalogStep = value,
+      labRecipient: labRecipient,
     );
     await marker('SYRIUS_INSPECTION_CATALOG:${jsonEncode(catalog)}');
     stage = 'viewport';
@@ -291,10 +308,10 @@ Future<void> main() async {
         diagnostic = readonlyHomeFailureDiagnostic(lastCatalogStep,
           reply: screenCaptureReplyOf(error),
         );
-      } else if (stage == 'details_catalog' || stage == 'token_draft_catalog') {
+      } else if (detailsSelection != null && stage == detailsSelection.stage) {
         diagnostic = readonlyDetailsFailureDiagnostic(lastCatalogStep,
           reply: screenCaptureReplyOf(error),
-          tokenDraft: stage == 'token_draft_catalog',
+          selection: detailsSelection,
         );
       } else if (stage == 'navigation_catalog') {
         diagnostic = readonlyNavigationFailureDiagnostic(lastCatalogStep);

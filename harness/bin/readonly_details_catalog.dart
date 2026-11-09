@@ -8,6 +8,39 @@ import 'screen_capture.dart';
 /// captures.
 const String readonlyDetailsCatalogDirectory = '.harness/ci-details-catalog';
 
+/// Fixed, independently readable selections within the Details bundle.
+enum ReadonlyDetailsSelection {
+  details(1, 'details_catalog', <String>[
+    'receive-qr', 'zap-form', 'plasma-fuse', 'set-licences', 'set-originals',
+  ], <String>[
+    '10-receive-qr-dark.png',
+    '10-receive-qr-light.png',
+    '11-zap-form-dark.png',
+    '11-zap-form-light.png',
+    '22-plasma-fuse-dark.png',
+    '22-plasma-fuse-light.png',
+    '37-set-licences-dark.png',
+    '37-set-licences-light.png',
+    '38-set-originals-dark.png',
+    '38-set-originals-light.png',
+  ]),
+  tokenDraft(2, 'token_draft_catalog', <String>['token-new'], <String>[
+    '25-token-new-dark.png', '25-token-new-light.png',
+  ]),
+  sendConfirmation(3, 'send_confirm_catalog', <String>['send-confirm'],
+    <String>['12-send-confirm-dark.png', '12-send-confirm-light.png'],
+  );
+
+  const ReadonlyDetailsSelection(
+    this.schema, this.stage, this.screens, this.files,
+  );
+
+  final int schema;
+  final String stage;
+  final List<String> screens;
+  final List<String> files;
+}
+
 class _DetailsInstance extends cli.Instance {
   _DetailsInstance(this._session) : super('readonly-details-catalog');
 
@@ -29,22 +62,16 @@ class _DetailsInstance extends cli.Instance {
 Map<String, Object>? readonlyDetailsFailureDiagnostic(
   ScreenCaptureObservation? observation, {
   ScreenCaptureReplyCode? reply,
-  bool tokenDraft = false,
+  ReadonlyDetailsSelection selection = ReadonlyDetailsSelection.details,
 }) {
   if (observation == null) return null;
   final String? screen = observation.screen;
   final String? theme = observation.theme;
   final int? line = observation.line;
-  final Set<String> screens = tokenDraft
-      ? const <String>{'token-new'}
-      : const <String>{
-          'receive-qr', 'zap-form', 'plasma-fuse',
-          'set-licences', 'set-originals',
-        };
   final bool script = observation.step == ScreenCaptureStep.scriptLine ||
       observation.step == ScreenCaptureStep.afterCaptureLine;
   if ((screen == null) != (theme == null) ||
-      screen != null && !screens.contains(screen) ||
+      screen != null && !selection.screens.contains(screen) ||
       theme != null && theme != 'dark' && theme != 'light' ||
       script && (screen == null || line == null) ||
       line != null && (!script || line < 1 || line > 65535)) {
@@ -65,9 +92,14 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
   required Directory repository,
   required ReadonlyInspectionSession session,
   void Function(ScreenCaptureObservation step)? onStep,
-  bool tokenDraft = false,
+  ReadonlyDetailsSelection selection = ReadonlyDetailsSelection.details,
+  String? labRecipient,
 }) async {
-  if (!session.walletBound) {
+  final bool sendConfirmation =
+      selection == ReadonlyDetailsSelection.sendConfirmation;
+  if (!session.walletBound ||
+      sendConfirmation && (labRecipient == null || labRecipient.isEmpty) ||
+      !sendConfirmation && labRecipient != null) {
     throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.binding);
   }
   final _DetailsInstance instance = _DetailsInstance(session);
@@ -75,38 +107,43 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
     repository: repository,
     call: (Map<String, Object?> command) => cli.call(instance, command),
     prepareHome: session.prepareScreenHome,
-    runLine: (List<String> words) => cli.run(
-      instance, words.first, cli.Args(words.sublist(1)),
-    ),
+    runLine: (List<String> words) async {
+      if (sendConfirmation && words.length >= 3 && words.first == 'type' &&
+          words[1] == '--key' && words[2] == 'send_recipient_field') {
+        final String? value = switch (words) {
+          [_, _, _] => '',
+          [_, _, _, '@lab-index-0'] => labRecipient,
+          _ => throw const ReadonlyInspectionRefused(
+            ReadonlyInspectionReason.command,
+          ),
+        };
+        // The ordinary report includes the field value before and after input.
+        final Map<String, dynamic> typed = await cli.call(
+          instance, <String, Object?>{
+            'cmd': 'type', 'key': 'send_recipient_field', 'exact': true,
+            'value': value,
+          },
+        );
+        if (typed['value'] != value) {
+          throw const ReadonlyInspectionRefused(
+            ReadonlyInspectionReason.reply,
+          );
+        }
+        return;
+      }
+      await cli.run(instance, words.first, cli.Args(words.sublist(1)));
+    },
     assertionFor: (List<String> words) =>
         cli.assertionArgs(cli.Args(words.sublist(1))),
     readRailState: session.railExpanded,
     restoreRailState: session.restoreScreenRail,
     onStep: onStep,
+    readonlySendConfirmation: sendConfirmation,
   );
-  final List<String> screens = tokenDraft
-      ? const <String>['token-new']
-      : const <String>[
-          'receive-qr', 'zap-form', 'plasma-fuse',
-          'set-licences', 'set-originals',
-        ];
-  final List<String> files = tokenDraft
-      ? const <String>['25-token-new-dark.png', '25-token-new-light.png']
-      : const <String>[
-          '10-receive-qr-dark.png',
-          '10-receive-qr-light.png',
-          '11-zap-form-dark.png',
-          '11-zap-form-light.png',
-          '22-plasma-fuse-dark.png',
-          '22-plasma-fuse-light.png',
-          '37-set-licences-dark.png',
-          '37-set-licences-light.png',
-          '38-set-originals-dark.png',
-          '38-set-originals-light.png',
-        ];
   final List<String> captured = await capture.captureSelection(
-    screens, directory: readonlyDetailsCatalogDirectory,
+    selection.screens, directory: readonlyDetailsCatalogDirectory,
   );
+  final List<String> files = selection.files;
   if (captured.length != files.length) {
     throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.reply);
   }
@@ -118,9 +155,9 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
     }
   }
   return <String, Object>{
-    'schema': tokenDraft ? 2 : 1,
+    'schema': selection.schema,
     'scope': 'readonly_native_details_catalog_capture',
-    'screens': screens, 'themes': const <String>['dark', 'light'],
+    'screens': selection.screens, 'themes': const <String>['dark', 'light'],
     'files': files, 'width': 1280, 'height': 780, 'scale': 1,
     'capture_returned': true,
   };

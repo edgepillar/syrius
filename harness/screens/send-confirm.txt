@@ -1,5 +1,18 @@
-# prerequisite: pending F06 reversible prepared send-confirm dialog
-# The prepared state opens confirmation only. This recipe never accepts it.
-wait --key send_confirmation_marker
-assert --key send_confirmation_cancel
-assert --key send_confirmation_accept
+# prerequisite: readonly-lab-send-confirmation
+# Use the first member of the bound test profile and cancel the original dialog.
+goto transfer
+tap --key transfer_mode_send
+wait --key send_recipient_field --kind field --ready --timeout 20
+type --key send_recipient_field @lab-index-0
+type --key send_amount_field 12.5
+wait --key send_submit_button --kind button --ready --timeout 20
+tap --key send_submit_button
+wait --key send_confirmation_cancel --kind button --ready --timeout 10
+assert --key send_confirmation_accept --kind button
+assert --key send_confirmation_marker
+# after-capture: tap --key send_confirmation_cancel
+# after-capture: wait --key send_confirmation_cancel --gone --timeout 5
+# after-capture: type --key send_recipient_field
+# after-capture: type --key send_amount_field
+# after-capture: goto dashboard
+# after-capture: wait --key home_hero --timeout 5

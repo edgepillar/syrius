@@ -349,8 +349,9 @@ void main() {
     });
   }
 
-  test('actual pending entry recipes refuse before any effect', () async {
+  test('actual restricted recipes refuse before any effect', () async {
     for (final String id in <String>[
+      'send-confirm',
       'launch',
       'launch-settle',
       'lock-screen',

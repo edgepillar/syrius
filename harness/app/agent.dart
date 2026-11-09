@@ -3790,6 +3790,7 @@ class HarnessAgent {
         !const <String>{
           'home_hero', 'home_znn', 'rail_label_dashboard',
           'send_form_ready',
+          'send_confirmation_marker',
           'receive_form_ready',
           'receive_screen_marker',
           'nodes_pillars_strip',

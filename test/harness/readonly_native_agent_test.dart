@@ -1227,7 +1227,8 @@ void main() {
     await scope.open();
     final HarnessAgent ordinary = HarnessAgent.forTest()..booted = true;
     const List<String> keys = <String>[
-      'send_form_ready', 'receive_form_ready', 'receive_screen_marker',
+      'send_form_ready', 'send_confirmation_marker',
+      'receive_form_ready', 'receive_screen_marker',
       'nodes_pillars_strip', 'pillar_dev1_detail', 'plasma_strip',
       'plasma_fused_list', 'plasma_screen', 'tokens_strip', 'tokens_list',
       'token_create_rail', 'token_create_step_0', 'token_create_step_1',

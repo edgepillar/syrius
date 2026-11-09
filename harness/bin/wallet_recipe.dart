@@ -477,6 +477,17 @@ class WalletRecipe {
     };
   }
 
+  /// The first member of the selected original readonly lab profile.
+  String get readonlyLabRecipient {
+    final WalletAddressContext? origin = _addressOrigin;
+    if (_retired || _inspectionPid == null || origin == null ||
+        _originalSigningChain != 321 || origin.members.length < 2 ||
+        !origin.consistent || origin.selected != origin.members[1]) {
+      _refuse('wallet-recipe-owned-lab-required');
+    }
+    return origin.members.first;
+  }
+
   /// Append index two once through Settings, retaining the committed index one.
   Future<WalletAddressContext> prepareSeedAddress(
     WalletAddressContext original,

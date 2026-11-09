@@ -192,7 +192,8 @@ class InspectionTests(unittest.TestCase):
             SYRIUS_NATIVE_STACK_DIAGNOSTIC='true')
         self.assertEqual(lab.readonly_catalog_family(parent), 'details')
         for family, schema in (('home', 1), ('settings', 2),
-                               ('navigation', 3), ('details', 4), ('token-draft', 4)):
+                               ('navigation', 3), ('details', 4),
+                               ('token-draft', 4), ('send-confirm', 4)):
             selected = dict(parent, SYRIUS_READONLY_CATALOG_FAMILY=family)
             self.assertTrue(lab.wallet_inspection_requested('native', selected))
             self.assertEqual(lab.READONLY_CATALOG_SCHEMAS[
@@ -207,7 +208,8 @@ class InspectionTests(unittest.TestCase):
         self.assertIn('default: details', choice)
         self.assertEqual([line.strip()[2:] for line in choice.splitlines()
             if line.strip().startswith('- ')],
-            ['home', 'settings', 'navigation', 'details', 'token-draft'])
+            ['home', 'settings', 'navigation', 'details', 'token-draft',
+             'send-confirm'])
         self.assertIn('SYRIUS_READONLY_CATALOG_FAMILY: ${{ inputs.readonly_catalog_family }}', workflow)
 
     def test_lab_failure_projection_retains_only_fixed_codes_and_refuses_success(self):

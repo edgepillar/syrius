@@ -50,7 +50,7 @@ def fixture():
     return value, {name: pixels for name in FILES}
 
 
-def bundle(value, images, *, link=None, token_draft=False):
+def bundle(value, images, *, link=None):
     raw = io.BytesIO()
     manifest = (json.dumps(value, sort_keys=True, separators=(',', ':'))
         + '\n').encode('ascii')
@@ -61,42 +61,51 @@ def bundle(value, images, *, link=None, token_draft=False):
             info.external_attr = ((stat.S_IFLNK if name == link else stat.S_IFREG)
                 | 0o600) << 16
             target.writestr(info, pixels)
-    reference = dict(schema=2 if token_draft else 1,
+    reference = dict(schema=value['schema'],
         scope='readonly_native_details_catalog_reference',
-        screens=['token-new'] if token_draft else list(SCREENS),
-        captured=2 if token_draft else 10, manifest_sha256=details.sha(manifest))
+        screens=value['capture']['screens'], captured=len(value['captures']),
+        manifest_sha256=details.sha(manifest))
     return raw.getvalue(), reference
 
 
 class DetailsCatalogTests(unittest.TestCase):
-    def test_token_draft_only_admits_its_two_original_files_and_script(self):
+    def test_single_state_only_admits_its_two_original_files_and_script(self):
         original, original_images = fixture()
-        files = ['25-token-new-dark.png', '25-token-new-light.png']
-        pins = {'token-new': '7' * 64}
-        capture = dict(receipt(), schema=2, screens=['token-new'], files=files)
-        captures = [dict(row, file=name)
-            for row, name in zip(original['captures'][:2], files)]
-        images = dict(zip(files, original_images.values()))
-        report = dict(original, schema=2, capture=capture, captures=captures,
-            script_sha256_by_screen=pins)
-        raw, reference = bundle(report, images, token_draft=True)
-        result = details.unpack(raw, details.sha(raw), len(raw),
-            HEAD, TREE, RUN, reference, pins)
-        self.assertEqual(result['filenames'], files)
-        self.assertEqual(result['verified_png_count'], 2)
-        self.assertEqual(result['script_sha256_by_screen'], pins)
-        self.assertEqual(result['visual_matches'], 0)
-        with self.assertRaises(details.Refused):
-            details.unpack(raw, details.sha(raw), len(raw),
-                HEAD, TREE, RUN, reference, PINS)
-        with self.assertRaises(details.Refused):
-            details.catalog_reference(dict(reference, schema=1))
-        failure = dict(schema=1, kind='readonly_details_capture_failure',
-            last_entered_step='scriptLine', screen='token-new', theme='dark', line=5)
-        self.assertEqual(legacy.entry_failure(dict(stage='token_draft_catalog',
-            code=None, diagnostic=failure))['diagnostic'], failure)
-        with self.assertRaises(legacy.Refused):
-            legacy.entry_failure(dict(stage='details_catalog', code=None, diagnostic=failure))
+        for schema, screen, number, stage in (
+            (2, 'token-new', 25, 'token_draft_catalog'),
+            (3, 'send-confirm', 12, 'send_confirm_catalog'),
+        ):
+            with self.subTest(screen=screen):
+                files = [f'{number}-{screen}-{theme}.png'
+                    for theme in ('dark', 'light')]
+                pins = {screen: '7' * 64}
+                capture = dict(receipt(), schema=schema, screens=[screen],
+                    files=files)
+                captures = [dict(row, file=name)
+                    for row, name in zip(original['captures'][:2], files)]
+                images = dict(zip(files, original_images.values()))
+                report = dict(original, schema=schema, capture=capture,
+                    captures=captures, script_sha256_by_screen=pins)
+                raw, reference = bundle(report, images)
+                result = details.unpack(raw, details.sha(raw), len(raw),
+                    HEAD, TREE, RUN, reference, pins)
+                self.assertEqual(result['filenames'], files)
+                self.assertEqual(result['verified_png_count'], 2)
+                self.assertEqual(result['script_sha256_by_screen'], pins)
+                self.assertEqual(result['visual_matches'], 0)
+                with self.assertRaises(details.Refused):
+                    details.unpack(raw, details.sha(raw), len(raw),
+                        HEAD, TREE, RUN, reference, PINS)
+                with self.assertRaises(details.Refused):
+                    details.catalog_reference(dict(reference, schema=5-schema))
+                failure = dict(schema=1, kind='readonly_details_capture_failure',
+                    last_entered_step='scriptLine', screen=screen, theme='dark',
+                    line=5)
+                self.assertEqual(legacy.entry_failure(dict(stage=stage,
+                    code=None, diagnostic=failure))['diagnostic'], failure)
+                with self.assertRaises(legacy.Refused):
+                    legacy.entry_failure(dict(stage='details_catalog',
+                        code=None, diagnostic=failure))
 
     def test_closed_details_namespace_cannot_adopt_home_or_private_fields(self):
         value = receipt()

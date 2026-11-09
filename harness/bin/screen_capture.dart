@@ -282,6 +282,7 @@ class ScreenCapture {
     this.readRailState,
     this.restoreRailState,
     this.onStep,
+    this.readonlySendConfirmation = false,
   });
 
   final Directory repository;
@@ -292,6 +293,7 @@ class ScreenCapture {
   final Future<bool> Function()? readRailState;
   final Future<void> Function({required bool expanded})? restoreRailState;
   final void Function(ScreenCaptureObservation step)? onStep;
+  final bool readonlySendConfirmation;
 
   static const String _afterCapturePrefix = '# after-capture:';
 
@@ -372,8 +374,11 @@ class ScreenCapture {
       if (text.isEmpty) continue;
       final bool after = text.startsWith(_afterCapturePrefix);
       if (text.startsWith('#') && !after) {
+        final bool prepared = readonlySendConfirmation &&
+            screen.id == 'send-confirm' &&
+            text == '# prerequisite: readonly-lab-send-confirmation';
         if (text.startsWith('# prerequisite:') &&
-            text != '# prerequisite: unlocked-home') {
+            text != '# prerequisite: unlocked-home' && !prepared) {
           throw ScreenCaptureError('${screen.id}: ${text.substring(2)}');
         }
         continue;

@@ -51,6 +51,7 @@ void main() {
     expect(readonlyInspectionCatalogFamily(<String, String>{}), 'details');
     for (final String family in <String>[
       'home', 'settings', 'navigation', 'details', 'token-draft',
+      'send-confirm',
     ]) {
       expect(readonlyInspectionCatalogFamily(<String, String>{
         'SYRIUS_READONLY_CATALOG_FAMILY': family,
@@ -1539,7 +1540,9 @@ void main() {
       'settings',
     ];
     final Map<String, String> scripts = <String, String>{
-      for (final String screen in <String>[...detailsScreens, 'token-new'])
+      for (final String screen in <String>[
+        ...detailsScreens, 'token-new', 'send-confirm',
+      ])
         screen: File('harness/screens/$screen.txt').readAsStringSync(),
     };
     const List<String> detailsFiles = <String>[
@@ -1578,16 +1581,34 @@ void main() {
     }
     for (final String fault in <String>[
       'unbound', 'none', 'first', 'shot', 'return', 'late', 'png', 'close',
-      'token-draft',
+      'token-draft', 'send-confirm',
     ]) {
       final bool tokenDraft = fault == 'token-draft';
-      final List<String> screens = tokenDraft
-          ? const <String>['token-new'] : detailsScreens;
-      final List<String> routes = tokenDraft
-          ? const <String>['tokens'] : detailsRoutes;
-      final List<String> files = tokenDraft
-          ? const <String>['25-token-new-dark.png', '25-token-new-light.png']
-          : detailsFiles;
+      final bool sendConfirmation = fault == 'send-confirm';
+      final ReadonlyDetailsSelection selection = switch (fault) {
+        'token-draft' => ReadonlyDetailsSelection.tokenDraft,
+        'send-confirm' => ReadonlyDetailsSelection.sendConfirmation,
+        _ => ReadonlyDetailsSelection.details,
+      };
+      final List<String> screens = switch (fault) {
+        'token-draft' => const <String>['token-new'],
+        'send-confirm' => const <String>['send-confirm'],
+        _ => detailsScreens,
+      };
+      final List<String> routes = switch (fault) {
+        'token-draft' => const <String>['tokens'],
+        'send-confirm' => const <String>['transfer'],
+        _ => detailsRoutes,
+      };
+      final List<String> files = switch (fault) {
+        'token-draft' =>
+          const <String>['25-token-new-dark.png', '25-token-new-light.png'],
+        'send-confirm' => const <String>[
+          '12-send-confirm-dark.png', '12-send-confirm-light.png',
+        ],
+        _ => detailsFiles,
+      };
+      const String labRecipient = 'Synthetic first lab member';
       final _CatalogStdout output = _CatalogStdout();
       final Directory repository = Directory.systemTemp.createTempSync(
         'syrius-readonly-details-',
@@ -1607,6 +1628,7 @@ void main() {
       int returned = 0;
       int closedFuse = 0;
       int closedToken = 0;
+      int canceledSend = 0;
       bool draftOpen = false;
       bool draftReady = false;
       final Map<String, Object?> draft = <String, Object?>{};
@@ -1640,6 +1662,23 @@ void main() {
               draftReady = false;
               draft.clear();
             }
+            if (sendConfirmation) {
+              switch (targetKey) {
+                case 'transfer_mode_send':
+                  expect(draftOpen, isFalse);
+                  expect(draft.values.every((Object? v) => v == ''), isTrue);
+                  draftReady = false;
+                case 'send_submit_button':
+                  expect(draftReady && !draftOpen, isTrue);
+                  draftOpen = true;
+                case 'send_confirmation_cancel':
+                  expect(afterShot && draftOpen, isTrue);
+                  draftOpen = false;
+                  canceledSend++;
+                default:
+                  fail('Unexpected pointer target for the Send draft');
+              }
+            }
           }
           if (tokenDraft && name == 'tap' && command['text'] == 'Close') {
             expect(afterShot && draftOpen, isTrue);
@@ -1654,6 +1693,12 @@ void main() {
             }
             if (command['tab'] == 'dashboard') {
               if (tokenDraft) expect(draftOpen, isFalse);
+              if (sendConfirmation) {
+                expect(draftOpen, isFalse);
+                expect(draft, <String, Object?>{
+                  'send_recipient_field': '', 'send_amount_field': '',
+                });
+              }
               expect(shots, returned + 1);
               final File retained = File('${repository.path}/'
                 '$readonlyDetailsCatalogDirectory/${files[shots - 1]}');
@@ -1673,6 +1718,12 @@ void main() {
                 'key': 'token_create_continue', 'kind': 'button', 'exact': true,
               });
             }
+            if (sendConfirmation) {
+              expect(draftOpen && draftReady, isTrue);
+              expect(command['expect'], <String, Object?>{
+                'key': 'send_confirmation_marker', 'exact': true,
+              });
+            }
             if (fault == 'shot' || fault == 'late' && shots == 5) {
               return negative;
             }
@@ -1689,6 +1740,7 @@ void main() {
             if (fault == 'close') return negative;
             closedFuse++;
           }
+          Map<String, Object?>? typeTarget;
           if (name == 'type') {
             if (tokenDraft) {
               expect(draftOpen, isTrue);
@@ -1696,6 +1748,20 @@ void main() {
                 throw StateError('The token draft field key must be a string');
               }
               expect(draft.containsKey(targetKey), isFalse);
+              draft[targetKey] = command['value'];
+            } else if (sendConfirmation) {
+              expect(draftOpen, isFalse);
+              if (targetKey is! String) {
+                throw StateError('The Send draft field key must be a string');
+              }
+              expect(targetKey, anyOf('send_recipient_field',
+                'send_amount_field'));
+              expect(command['value'], afterShot ? '' :
+                targetKey == 'send_recipient_field' ? labRecipient : '12.5');
+              typeTarget = <String, Object?>{
+                'ref': 1, 'kind': 'field', 'key': targetKey,
+                'value': draft[targetKey],
+              };
               draft[targetKey] = command['value'];
             } else {
               final String expected = switch (tab) {
@@ -1715,6 +1781,15 @@ void main() {
             expect(command['ready'], isTrue);
             expect(draft, <String, Object?>{
               'token_name_field': 'MoonTokens', 'token_symbol_field': 'MOON',
+            });
+            draftReady = true;
+          }
+          if (sendConfirmation && name == 'wait' &&
+              targetKey == 'send_submit_button') {
+            expect(command['kind'], 'button');
+            expect(command['ready'], isTrue);
+            expect(draft, <String, Object?>{
+              'send_recipient_field': labRecipient, 'send_amount_field': '12.5',
             });
             draftReady = true;
           }
@@ -1764,7 +1839,9 @@ void main() {
               'target': <String, dynamic>{'ref': 0, 'kind': 'region',
                 'key': command['key'], 'rect': <int>[0, 0, 200, 100]},
             },
-            if (name == 'type') 'value': command['value'],
+            if (name == 'type') ...<String, dynamic>{
+              'value': command['value'], 'target': ?typeTarget,
+            },
             if (name == 'key') 'handled': true,
             if (name == 'shot') ...<String, dynamic>{
               'client': <int>[1280, 780], 'width': 1280, 'height': 780,
@@ -1778,7 +1855,8 @@ void main() {
           IOOverrides.runZoned<Future<Map<String, Object>>>(
         () => captureReadonlyDetailsDefaults(
           repository: repository, session: session, onStep: progress.add,
-          tokenDraft: tokenDraft,
+          selection: selection,
+          labRecipient: sendConfirmation ? labRecipient : null,
         ),
         stdout: () => output,
       );
@@ -1791,10 +1869,17 @@ void main() {
         continue;
       }
       await session.bindWallet();
-      if (fault == 'none' || tokenDraft) {
+      if (sendConfirmation) {
+        final int calls = commands.length;
+        await expectLater(captureReadonlyDetailsDefaults(
+          repository: repository, session: session, selection: selection,
+        ), throwsA(isA<ReadonlyInspectionRefused>()));
+        expect(commands.length, calls);
+      }
+      if (fault == 'none' || tokenDraft || sendConfirmation) {
         final Map<String, Object> receipt = await capture();
         expect(receipt, <String, Object>{
-          'schema': tokenDraft ? 2 : 1,
+          'schema': tokenDraft ? 2 : sendConfirmation ? 3 : 1,
           'scope': 'readonly_native_details_catalog_capture',
           'screens': screens, 'themes': <String>['dark', 'light'],
           'files': files, 'width': 1280, 'height': 780, 'scale': 1,
@@ -1802,8 +1887,9 @@ void main() {
         });
         expect(shots, files.length);
         expect(returned, files.length);
-        expect(closedFuse, tokenDraft ? 0 : 2);
+        expect(closedFuse, tokenDraft || sendConfirmation ? 0 : 2);
         expect(closedToken, tokenDraft ? 2 : 0);
+        expect(canceledSend, sendConfirmation ? 2 : 0);
         expect(tab, 'dashboard');
         expect(expanded, isTrue);
         expect(mode, 'light');
@@ -1871,7 +1957,7 @@ void main() {
         'wait', 'assert', 'shot', 'type', 'key', 'scroll',
       }.contains(value['cmd'])), isTrue);
       expect(output.lines.every((Object? line) => line is String &&
-          line.startsWith('ok')), isTrue);
+          line.startsWith('ok') && !line.contains(labRecipient)), isTrue);
     }
   });
 
