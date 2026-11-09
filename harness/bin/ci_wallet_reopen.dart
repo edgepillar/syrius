@@ -219,6 +219,7 @@ const Set<String> _seededLines = <String>{
   'goto tokens',
   'wait --key tokens_filter_held --timeout 30',
   'tap --key tokens_filter_held',
+  'key ctrl+r',
   'wait --key @issued-token-row --timeout 30',
   'tap --key @issued-token-row',
   'wait --key token_action_mode_mint --timeout 30',
@@ -283,6 +284,13 @@ Future<Map<String, Object>> _captureSeededCatalog(
           await cli.call(instance, <String, Object?>{
             'cmd': 'tap', 'key': args.last, 'exact': true,
           });
+        case 'key':
+          final Map<String, dynamic> refreshed = await cli.call(
+            instance, <String, Object?>{'cmd': 'key', 'key': args.single},
+          );
+          if (refreshed['handled'] != true) {
+            throw const FormatException('token page refresh refused');
+          }
         case 'type':
           final Map<String, dynamic> typed = await cli.call(
             instance, <String, Object?>{
@@ -451,6 +459,7 @@ Future<void> main() async {
           if (id == 'deposit') ...<String>['--counterparty', counterparty],
         ]), requireOwner: current,
           restoredFunding: id == 'fuse' || id == 'fund-address',
+          catalogTokenHolding: seededCapture && id == 'token',
         );
       },
     );

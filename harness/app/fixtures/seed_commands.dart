@@ -56,6 +56,12 @@ final class SeedCommands {
   }) async {
     try {
       final String? action = command['action'] as String?;
+      final bool catalogTokenHolding = command['catalogTokenHolding'] == true;
+      if (command.containsKey('catalogTokenHolding') &&
+          (!catalogTokenHolding ||
+              action != 'begin' || command['recipe'] != 'token')) {
+        throw const SeedRefused('recipe-prerequisite-missing');
+      }
       if (<String>{'begin', 'fixture', 'prepare', 'publish'}.contains(action)) {
         _requireFixtureClear();
       }
@@ -75,6 +81,7 @@ final class SeedCommands {
           booted: booted,
           counterparty: command['counterparty'] as String?,
           restoredFunding: restoredFunding,
+          catalogTokenHolding: catalogTokenHolding,
         );
         if (action == 'fixture') {
           return await _openFixture(command['kind'] as String? ?? '', source);

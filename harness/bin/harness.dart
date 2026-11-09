@@ -1133,6 +1133,7 @@ Future<Map<String, dynamic>> seed(
   Instance inst, Args a, {
   Future<void> Function()? requireOwner,
   bool restoredFunding = false,
+  bool catalogTokenHolding = false,
 }) async {
   const Set<String> allowed = <String>{
     'instance',
@@ -1202,6 +1203,9 @@ Future<Map<String, dynamic>> seed(
       (requireOwner == null || id != 'fuse' && id != 'fund-address')) {
     throw Fail('restored funding requires its original session');
   }
+  if (catalogTokenHolding && (requireOwner == null || id != 'token')) {
+    throw Fail('catalog token holding requires its restored session');
+  }
   final SeedOperationTrace originalTrace = SeedOperationTrace(id);
   trace = originalTrace;
   try {
@@ -1224,6 +1228,7 @@ Future<Map<String, dynamic>> seed(
       'http': a['http'],
       'checkpointReady': true,
       if (restoredFunding) 'restoredFunding': true,
+      if (catalogTokenHolding) 'catalogTokenHolding': true,
       if (a['counterparty'] != null) 'counterparty': a['counterparty'],
     });
     originalTrace.at(SeedOperationAction.source, SeedOperationStep.resolve);

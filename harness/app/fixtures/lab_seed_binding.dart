@@ -97,6 +97,24 @@ Future<SeedFundingLedger> readSeedFundingEffect({
       ? SeedFundingLedger.confirmed : SeedFundingLedger.receivePending;
 }
 
+final BigInt _initialSeedTokenUnits = BigInt.from(1000);
+
+/// Checks the issued asset in the selected account's complete ledger reply.
+@visibleForTesting
+Future<bool> readSeedTokenHolding({
+  required LedgerApi ledger,
+  required Address owner,
+  required TokenStandard standard,
+  required void Function() requireCurrent,
+}) async {
+  requireCurrent();
+  final AccountInfo account = await ledger.getAccountInfoByAddress(owner);
+  requireCurrent();
+  final TokenBalanceSnapshot balance =
+      TokenBalanceSnapshot.fromAccount(account, owner.toString());
+  return balance.unitsFor(standard) == _initialSeedTokenUnits;
+}
+
 /// Every wrapper and transport below is captured before the first await.
 /// No fixture installs a client into the ordinary app's global SDK.
 final class LabSeedBinding
@@ -116,6 +134,7 @@ final class LabSeedBinding
     required this._receiveWorker,
     required this.counterparty,
     required this.restoredFunding,
+    required this._catalogTokenHolding,
   });
 
   /// Captures the isolated lab profile and its exact existing SDK transports.
@@ -126,6 +145,7 @@ final class LabSeedBinding
     required bool booted,
     String? counterparty,
     bool restoredFunding = false,
+    bool catalogTokenHolding = false,
     void Function(String)? observePhase,
   }) {
     if (ws != seedWsOrigin || http != seedHttpOrigin) {
@@ -207,7 +227,8 @@ final class LabSeedBinding
       owner: owner!,
       members: rawMembers.whereType<String>(),
     )..requireLab();
-    if (restoredFunding && environment.members.length != 3) {
+    if ((restoredFunding || catalogTokenHolding) &&
+        environment.members.length != 3) {
       throw const SeedRefused('recipe-prerequisite-missing');
     }
     final String? exactCounterparty = counterparty == null
@@ -254,6 +275,7 @@ final class LabSeedBinding
           ? app.sl<AutoReceiveTxWorker>() : null,
       counterparty: exactCounterparty,
       restoredFunding: restoredFunding,
+      catalogTokenHolding: catalogTokenHolding,
     );
   }
 
@@ -300,6 +322,7 @@ final class LabSeedBinding
   final String home;
   final String? counterparty;
   final bool restoredFunding;
+  final bool _catalogTokenHolding;
   final Object walletOwner;
   final Zenon originalSdk;
   final bool Function() _current;
@@ -688,15 +711,20 @@ final class LabSeedBinding
       final TokenStandard standard = seedIssuedTokenStandard(hash);
       final Token? token = await _token.getByZts(standard);
       _requireCurrent();
-      return token != null &&
+      final bool issued = token != null &&
           token.tokenStandard == standard &&
           token.owner == owner &&
           token.name == 'LabToken' &&
           token.symbol == 'LAB' &&
           token.decimals == 0 &&
           token.isMintable &&
-          token.totalSupply == BigInt.from(1000) &&
+          token.totalSupply == _initialSeedTokenUnits &&
           token.maxSupply == BigInt.from(10000);
+      if (!issued || !_catalogTokenHolding) return issued;
+      return readSeedTokenHolding(
+        ledger: _ledger, owner: owner, standard: standard,
+        requireCurrent: _requireCurrent,
+      );
     }
     if (recipe == 'project') {
       final Project? project = await readSeedContractEntry<Project>(

@@ -952,7 +952,7 @@ class HarnessAgent {
         try {
           final bool restoredFunding =
               c['action'] == 'begin' && c['restoredFunding'] == true;
-          if (restoredFunding) {
+          if (restoredFunding || c['catalogTokenHolding'] == true) {
             final WalletAddressContext? original = _labRestoredAddresses;
             final Object? current =
                 _recipeAddressObservation()['addressContext'];

@@ -1,9 +1,10 @@
 # prerequisite: restored-lab-token
-# The selected address must own a mintable token with remaining supply.
+# The selected address must hold its mintable token with remaining supply.
 # Only the inline draft is opened. No question, signing or publication runs.
 goto tokens
 wait --key tokens_filter_held --timeout 30
 tap --key tokens_filter_held
+key ctrl+r
 wait --key @issued-token-row --timeout 30
 tap --key @issued-token-row
 wait --key token_action_mode_mint --timeout 30

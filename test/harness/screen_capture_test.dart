@@ -481,6 +481,11 @@ void main() {
         restoredSeeded: true,
       ).preflight('token-mine').single;
       expect(seeded.assertion['key'], 'mint_amount_field');
+      expect(seeded.lines.map((ScreenLine line) => line.words.join(' ')),
+          containsAllInOrder(<String>[
+            'tap --key tokens_filter_held', 'key ctrl+r',
+            'wait --key @issued-token-row --timeout 30',
+          ]));
       expect(seeded.afterCapture.first.words,
           <String>['tap', '--key', '@issued-token-row']);
       expect(agent.commands, isEmpty);

@@ -47,6 +47,14 @@ the two catalog prerequisites in their own scope.
 [Producer](https://github.com/edgepillar/syrius/actions/runs/42644297496) and
 [independent archive reader](https://github.com/edgepillar/syrius/actions/runs/42648539666).
 
+Source553 Native131 verifies both catalog prerequisite journals. The
+independent reader verifies the original two manifests. The dark Token Mint
+recipe stops at the Held row wait before the four-image archive qualifies.
+Source554 requires the issued asset's full initial balance in the selected
+lab account and invokes the page refresh shortcut before waiting for its row.
+[Producer](https://github.com/edgepillar/syrius/actions/runs/42649591624) and
+[independent archive reader](https://github.com/edgepillar/syrius/actions/runs/42653177218).
+
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,
 Project and Fund Address with its confirmed receive and target balance. The

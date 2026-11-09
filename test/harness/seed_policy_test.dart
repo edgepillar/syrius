@@ -654,7 +654,7 @@ void main() {
     expect(journal.confirmedHashes, isEmpty);
   });
 
-  test('Fund Address keeps exact receive and balance checks', () async {
+  test('Funding and catalog holdings require exact ledger data', () async {
     final sdk.Hash sendHash = sdk.Hash.parse(_hash(9));
     final sdk.Address recipient = sdk.Address.fromPublicKey(
       List<int>.filled(32, 1),
@@ -746,6 +746,45 @@ void main() {
     expect(await effect(paired: false), SeedFundingLedger.receivePending);
     verify(() => ledger.getAccountBlocksByPage(recipient, pageSize: 64))
         .called(3);
+
+    final sdk.TokenStandard issued = seedIssuedTokenStandard(_hash(12));
+    final sdk.Token labToken = sdk.Token.fromJson(<String, dynamic>{
+      ...kZnnCoin.toJson(),
+      'name': 'LabToken',
+      'symbol': 'LAB',
+      'owner': recipient.toString(),
+      'tokenStandard': issued.toString(),
+      'decimals': 0,
+      'totalSupply': '1000',
+      'maxSupply': '10000',
+      'isMintable': true,
+    });
+    final List<sdk.BalanceInfoListItem> holdings = <sdk.BalanceInfoListItem>[
+      sdk.BalanceInfoListItem(token: kZnnCoin, balance: BigInt.from(1000)),
+    ];
+    String accountOwner = recipient.toString();
+    when(() => ledger.getAccountInfoByAddress(recipient)).thenAnswer(
+      (_) async => sdk.AccountInfo(
+        address: accountOwner, blockCount: 1, balanceInfoList: holdings,
+      ),
+    );
+    int ownerChecks = 0;
+    Future<bool> held() => readSeedTokenHolding(
+      ledger: ledger, owner: recipient, standard: issued,
+      requireCurrent: () => ownerChecks++,
+    );
+    expect(await held(), isFalse);
+    holdings.add(sdk.BalanceInfoListItem(
+      token: labToken, balance: BigInt.from(999),
+    ));
+    expect(await held(), isFalse);
+    holdings[1] = sdk.BalanceInfoListItem(
+      token: labToken, balance: BigInt.from(1000),
+    );
+    expect(await held(), isTrue);
+    expect(ownerChecks, 6);
+    accountOwner = sdk.emptyAddress.toString();
+    await expectLater(held(), throwsFormatException);
   });
 
   test('a current deposit entry retains its original result identity',
