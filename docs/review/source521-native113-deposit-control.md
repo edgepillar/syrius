@@ -46,3 +46,13 @@ qualification is pending for 1,360 ordinary Dart cases
 in the existing 52 and 51 files, or 1,362 cases with asset fidelity enabled.
 Native113's exact refusal condition remains unknown. Full F06, all eight
 original acceptance rows and the visual review remain open.
+
+## First hosted check
+
+Source522 `36192000f3123e95d4d115c693fe1b80fc6f98fd` passed the 1,087
+Python cases with 18 explicit Windows skips and all 14 asset checks. The
+strict analysis gate stopped at two `CAST_NULLABLE_TO_NON_NULLABLE` infos in
+the new widget fixture. The Dart step was skipped. The correction uses a
+typed map pattern for the asserted reference. Fresh hosted qualification
+of the existing cases and both new widget cases is pending.
+[Original focused run](https://github.com/edgepillar/syrius/actions/runs/42568751762).

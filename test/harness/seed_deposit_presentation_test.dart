@@ -183,7 +183,10 @@ void main() {
               'key': 'original-seed-control',
             },
           );
-          return (reply['target'] as Map<String, Object?>)['ref'] as int;
+          if (reply['target'] case {'ref': final int reference}) {
+            return reference;
+          }
+          throw StateError('The asserted control has no reference');
         }
 
         await tester.pumpWidget(screen(0));
