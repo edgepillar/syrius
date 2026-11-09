@@ -239,7 +239,10 @@ Each cold process observes the original film's last frame as the real lock
 card appears and waits for that film to enter the same card's well. The
 profile stays locked with a saved loopback preference. The reader checks
 the intermediate geometry, both PNGs and all four ordinary process exits.
-Windows observation and reference comparison remain pending.
+The first Windows run stops at one `PREFER_INITIALIZING_FORMALS` finding
+before the Release build and retains zero artifacts. Source574 applies the
+initializing formal to the same capture selection. Windows observation and
+reference comparison remain pending. [First run](https://github.com/edgepillar/syrius/actions/runs/42709271243).
 
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,

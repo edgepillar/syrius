@@ -39,11 +39,10 @@ final class NativeLaunchCapture {
   /// Reserves one observation before the original app attaches its root.
   NativeLaunchCapture({
     required this.theme,
-    required bool settle,
+    required this._settle,
     required this._window,
     required this._readView,
-  }) : _settle = settle,
-       _startup = _window.startup() {
+  }) : _startup = _window.startup() {
     WidgetsBinding.instance.addPostFrameCallback(_observe);
   }
 
