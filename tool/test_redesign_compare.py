@@ -166,6 +166,60 @@ class CompareTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "literal strings and lists"):
             screen_notes(source, screen_inventory(self.src))
 
+    def test_manifest_links_existing_literal_and_content_addressed_captures(self) -> None:
+        self.add_actual()
+        first = self.actual / f"{self.stem}.png"
+        other = self.repo / "other"
+        other.mkdir()
+        second = other / "capture.png"
+        self.save_png(second)
+        digest = hashlib.sha256(second.read_bytes()).hexdigest()
+        second = second.rename(other / digest)
+        manifest = self.repo / "captures.json"
+        manifest.write_text(json.dumps({"actual": {
+            self.stem: {"path": str(first.relative_to(self.repo)), "sha256": digest},
+            "02-screen-a-light": {"path": str(second), "sha256": digest},
+        }}), encoding="utf-8")
+
+        result = generate_report(
+            self.repo, None, self.output, actual_manifest=manifest, required_size=(4, 3),
+        )
+        pairs = {pair["id"]: pair for pair in result["pairs"]}
+        self.assertEqual(result["summary"]["states"], {"unreviewed": 2, "missing": 92})
+        self.assertEqual(pairs[self.stem]["actual"]["url"], f"../actual/{self.stem}.png")
+        self.assertEqual(pairs["02-screen-a-light"]["actual"]["url"], f"../other/{digest}")
+        self.assertFalse((self.output / "actual").exists())
+        self.assertEqual(sorted(path.name for path in other.iterdir()), [digest])
+
+    def test_manifest_hash_mismatch_refuses_score_and_review(self) -> None:
+        self.add_actual()
+        manifest = self.repo / "captures.json"
+        manifest.write_text(json.dumps({"actual": {
+            self.stem: {"path": f"actual/{self.stem}.png", "sha256": "0" * 64},
+        }}), encoding="utf-8")
+        pair = generate_report(
+            self.repo, None, self.output, self.review_file(),
+            actual_manifest=manifest, required_size=(4, 3),
+        )["pairs"][0]
+        self.assertEqual(pair["state"], "invalid")
+        self.assertIn("manifest SHA-256", pair["reason"])
+        self.assertEqual(pair["review"], {"state": "none"})
+        self.assertIsNone(pair["score"])
+        self.assertIsNone(pair["diff_url"])
+
+    def test_manifest_rejects_duplicate_or_unknown_capture_stems(self) -> None:
+        manifest = self.repo / "captures.json"
+        entry = json.dumps({"path": f"actual/{self.stem}.png", "sha256": "0" * 64})
+        for entries, message in (
+            (f'"{self.stem}":{entry},"{self.stem}":{entry}', "duplicate keys"),
+            (f'"00-unregistered-dark":{entry}', "Invalid capture manifest entry"),
+        ):
+            with self.subTest(message=message):
+                manifest.write_text('{"actual":{' + entries + '}}', encoding="utf-8")
+                with self.assertRaisesRegex(ValueError, message):
+                    generate_report(self.repo, None, self.output, actual_manifest=manifest)
+                self.assertFalse(self.output.exists())
+
     def test_generation_preserves_unknown_output_files_and_links_inputs(self) -> None:
         self.add_actual()
         self.output.mkdir()

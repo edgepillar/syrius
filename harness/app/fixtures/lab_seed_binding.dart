@@ -431,7 +431,8 @@ final class LabSeedBinding
       if (hash == null || original.address.toString() != environment.owner) {
         return null;
       }
-      final receive = _observeReceive(hash, original.address);
+      final ({SeedFundingReceive status, Future<Object?>? result}) receive =
+          _observeReceive(hash, original.address);
       return receive.status == SeedFundingReceive.pending
           ? receive.result : null;
     } on Object {

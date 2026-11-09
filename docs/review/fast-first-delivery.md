@@ -115,6 +115,19 @@ ledger read still requires the exact 1,000 units. The same eighteen read
 rounds and single issuance attempt apply. Fresh native evidence remains open.
 [Pinned token contract](https://github.com/zenon-network/go-zenon/blob/2d1b929cc3fa5269cf133757d4a6963821137984/vm/embedded/implementation/token.go#L124-L172).
 
+The Source559 Earn job passes 1,091 controller cases with eighteen skips and
+all fourteen asset controls. The analysis gate stops the job after one
+`ALWAYS_SPECIFY_TYPES` finding in the token receipt observer. The job reaches
+no Dart tests or native capture and retains zero artifacts. Source560 uses
+the original typed receipt record at that call site. A fresh hosted result
+remains required. [Earn run](https://github.com/edgepillar/syrius/actions/runs/42676637465).
+
+Source560 lets the comparison tool link literal captures from multiple
+locations using a private path and SHA-256 manifest. The original directory
+input remains available. Fifteen comparison tests and three CLI controls pass
+with the real PNG codec and in-memory files. Actual wallet image review and
+complete catalog acceptance remain open.
+
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,
 Project and Fund Address with its confirmed receive and target balance. The

@@ -3,11 +3,19 @@
 
     python tool/redesign_compare.py
     python tool/redesign_compare.py --actual-dir <shots> --output-dir <report>
+    python tool/redesign_compare.py --actual-manifest <captures.json>
     python tool/redesign_compare.py --reviews <reviews.json> --require-reviewed
 
 Requires Pillow, also used by the mockup pipeline. Input images are linked,
 never copied. The output is local evidence and may contain wallet screenshots;
 keep it private. Relative links require the inputs to remain at their paths.
+
+For captures retained in separate folders, the private input manifest has
+one "actual" object keyed by literal screenshot stem. Each entry contains
+"path" (absolute or relative to the manifest) and "sha256" (64 lowercase hex
+digits). Use the original filename or a content-addressed file named by its
+digest. Missing entries remain visible. Keep run provenance with the captures.
+On Windows, place the report and all selected images on the same drive.
 
 Manual reviews use screenshot stems as keys. For example:
 {
@@ -44,6 +52,7 @@ import json
 import os
 from pathlib import Path
 import re
+import stat
 import sys
 from urllib.parse import quote
 import warnings
@@ -56,6 +65,7 @@ THEMES = ("dark", "light")
 SCREEN_COUNT = 47
 IMAGE_SIZE = (1280, 780)
 MAX_IMAGE_BYTES = 16 * 1024 * 1024
+MAX_CAPTURE_MANIFEST_BYTES = 256 * 1024
 MAX_IMAGE_PIXELS = 4096 * 4096
 SHA256 = re.compile(r"[0-9a-f]{64}\Z")
 
@@ -136,20 +146,70 @@ def load_reviews(source: Path | None) -> dict[str, object]:
     return data["reviews"]
 
 
+def unique_capture_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    result = dict(pairs)
+    if len(result) != len(pairs):
+        raise ReportError("Capture manifest contains duplicate keys")
+    return result
+
+
+def load_actual_manifest(source: Path, stems: set[str]) -> dict[str, tuple[Path, str]]:
+    try:
+        if not source.is_file():
+            raise ReportError("Capture manifest must be a regular file")
+        with source.open("rb") as stream:
+            raw = stream.read(MAX_CAPTURE_MANIFEST_BYTES + 1)
+        if len(raw) > MAX_CAPTURE_MANIFEST_BYTES:
+            raise ReportError("Capture manifest exceeds the byte limit")
+        data = json.loads(raw, object_pairs_hook=unique_capture_keys)
+    except (OSError, UnicodeError, json.JSONDecodeError, RecursionError) as error:
+        raise ReportError("Cannot read the capture manifest JSON") from error
+    if not isinstance(data, dict) or set(data) != {"actual"} or not isinstance(data["actual"], dict):
+        raise ReportError("Capture manifest must have one actual object keyed by screenshot stem")
+
+    captures: dict[str, tuple[Path, str]] = {}
+    for stem, entry in data["actual"].items():
+        if stem not in stems or not isinstance(entry, dict) or set(entry) != {"path", "sha256"}:
+            raise ReportError("Invalid capture manifest entry")
+        name, digest = entry["path"], entry["sha256"]
+        if (
+            not isinstance(name, str) or not name or "\0" in name
+            or not isinstance(digest, str) or SHA256.fullmatch(digest) is None
+        ):
+            raise ReportError("Invalid capture path or SHA-256")
+        path = Path(name)
+        if path.name not in (f"{stem}.png", digest):
+            raise ReportError("Capture file must use its literal name or SHA-256")
+        try:
+            resolved = (source.parent / path).resolve()
+        except (OSError, RuntimeError) as error:
+            raise ReportError("Cannot resolve the capture path") from error
+        captures[stem] = (resolved, digest)
+    return captures
+
+
 def relative_url(target: Path, output: Path) -> str:
     return quote(Path(os.path.relpath(target, output)).as_posix(), safe="/")
 
 
-def read_image(path: Path, output: Path) -> tuple[dict[str, object], Image.Image | None]:
+def read_image(
+    path: Path | None, output: Path, required_sha256: str | None = None,
+) -> tuple[dict[str, object], Image.Image | None]:
+    if path is None:
+        return {"state": "missing", "reason": "Image missing"}, None
     info: dict[str, object] = {"url": relative_url(path, output)}
     try:
-        if path.stat().st_size > MAX_IMAGE_BYTES:
-            raise ValueError("PNG exceeds the 16 MiB input limit")
+        metadata = path.stat()
+        if not stat.S_ISREG(metadata.st_mode) or metadata.st_size > MAX_IMAGE_BYTES:
+            raise ValueError("Expected a regular PNG within the 16 MiB input limit")
         with path.open("rb") as source:
             data = source.read(MAX_IMAGE_BYTES + 1)
         if len(data) > MAX_IMAGE_BYTES:
             raise ValueError("PNG exceeds the 16 MiB input limit")
         info["sha256"] = hashlib.sha256(data).hexdigest()
+        if required_sha256 is not None and info["sha256"] != required_sha256:
+            info.update(state="invalid", reason="Actual PNG does not match the capture manifest SHA-256")
+            return info, None
         with warnings.catch_warnings():
             warnings.simplefilter("error", Image.DecompressionBombWarning)
             with Image.open(io.BytesIO(data)) as original:
@@ -201,14 +261,16 @@ def compare_pair(
     screen: Screen,
     theme: str,
     expected_dir: Path,
-    actual_dir: Path,
+    actual_path: Path | None,
     output: Path,
     reviews: dict[str, object],
     required_size: tuple[int, int] = IMAGE_SIZE,
+    *,
+    actual_sha256: str | None = None,
 ) -> dict[str, object]:
     stem = screen.stem(theme)
     expected, before = read_image(expected_dir / f"{stem}.png", output)
-    actual, after = read_image(actual_dir / f"{stem}.png", output)
+    actual, after = read_image(actual_path, output, actual_sha256)
     pair: dict[str, object] = {
         "id": stem,
         "screen": screen.id,
@@ -326,10 +388,11 @@ def render_html(manifest: dict[str, object]) -> str:
 
 def generate_report(
     repo: Path,
-    actual_dir: Path,
+    actual_dir: Path | None,
     output: Path,
     reviews_path: Path | None = None,
     *,
+    actual_manifest: Path | None = None,
     required_size: tuple[int, int] = IMAGE_SIZE,
 ) -> dict[str, object]:
     src = repo / "mockups" / "redesign" / "src"
@@ -337,12 +400,22 @@ def generate_report(
     screens = screen_inventory(src)
     notes = screen_notes(src / "90-tail.html", screens)
     reviews = load_reviews(reviews_path)
+    stems = {screen.stem(theme) for screen in screens for theme in THEMES}
+    if actual_manifest is not None:
+        if actual_dir is not None:
+            raise ReportError("Choose either an actual directory or a capture manifest")
+        actuals = load_actual_manifest(actual_manifest, stems)
+    else:
+        directory = actual_dir if actual_dir is not None else repo / ".harness" / "shots"
+        actuals = {stem: (directory / f"{stem}.png", None) for stem in stems}
     output.mkdir(parents=True, exist_ok=True)
     pairs = []
     for screen in screens:
         for theme in THEMES:
+            path, digest = actuals.get(screen.stem(theme), (None, None))
             pair = compare_pair(
-                screen, theme, expected_dir, actual_dir, output, reviews, required_size
+                screen, theme, expected_dir, path, output, reviews, required_size,
+                actual_sha256=digest,
             )
             pair["notes"] = notes[screen.id]
             pairs.append(pair)
@@ -369,13 +442,19 @@ def generate_report(
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--actual-dir", type=Path, default=ROOT / ".harness" / "shots")
+    inputs = parser.add_mutually_exclusive_group()
+    inputs.add_argument("--actual-dir", type=Path, help="One capture directory (default: .harness/shots)")
+    inputs.add_argument("--actual-manifest", type=Path, help="Private capture paths and SHA-256 pins")
     parser.add_argument("--output-dir", type=Path, default=ROOT / "mockups" / "redesign" / "compare")
     parser.add_argument("--reviews", type=Path, help="Manual, image-hash-bound visual review JSON")
     parser.add_argument("--require-reviewed", action="store_true", help="Exit 1 unless all 94 pairs are reviewed matches")
     args = parser.parse_args()
     try:
-        manifest = generate_report(ROOT, args.actual_dir.resolve(), args.output_dir.resolve(), args.reviews)
+        actual_dir = args.actual_dir.resolve() if args.actual_dir is not None else None
+        manifest = generate_report(
+            ROOT, actual_dir, args.output_dir.resolve(), args.reviews,
+            actual_manifest=args.actual_manifest,
+        )
     except (OSError, UnicodeError, ValueError) as error:
         # Paths and raw diagnostics can contain private profile information.
         message = str(error) if isinstance(error, ReportError) else "Cannot read inputs or write report"

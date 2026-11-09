@@ -312,6 +312,12 @@ harness/h screens all --dir .harness/capture-02
 python tool/redesign_compare.py --actual-dir .harness/capture-02
 ```
 
+For separately retained literal captures, pass
+`--actual-manifest .harness/captures.json` in place of `--actual-dir`. The
+private JSON has an `actual` object keyed by screenshot stem, with `path`
+and `sha256` fields for each selected PNG. The tool checks the digest and
+links to the existing file. Preserve each capture's original run evidence.
+
 An explicit `--dir` must not exist. Absolute paths, traversal, links and
 Windows device aliases are refused. Captures use exclusive file creation;
 the directory must remain under this run's sole ownership because Dart's
