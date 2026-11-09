@@ -26,7 +26,7 @@ from . import readonly_settings_capture as settings
 from . import readonly_navigation_capture as navigation
 from . import readonly_details_capture as details
 from .windows_debug_process import IMAGE_NAMES
-from .hosted_chain321 import (READONLY_CATALOG_SCHEMAS,
+from .hosted_chain321 import (EARN_INSPECTION_SCHEMA, READONLY_CATALOG_SCHEMAS,
     SEND_CONFIRM_INSPECTION_SCHEMA, readonly_catalog_family)
 
 
@@ -55,6 +55,10 @@ CHECKS = ('environment', 'source', 'unused_destinations', 'job_owned',
     'captures', 'close_ack', 'application_exit', 'entry_exit',
     'output_complete', 'source_unchanged', 'auxiliary_cleanup')
 TOUR_CHECKS = ('tours_complete', 'locale_verified')
+CATALOG_ONLY_FAMILIES = {
+    SEND_CONFIRM_INSPECTION_SCHEMA: 'send-confirm',
+    EARN_INSPECTION_SCHEMA: 'earn',
+}
 CODES = shared.CODES | shared.LAB_REVALIDATION_CODES | frozenset((
     'BINDING_REFUSED', 'INSPECTION_REFUSED'))
 STAGES = frozenset(('unused_destinations', 'build', 'start', 'input', 'window',
@@ -547,19 +551,21 @@ def inspection_catalog_reference(report):
     need(report['navigation_catalog'] is None, 'CAPTURE_REFUSED')
     reference = details.catalog_reference(report['details_catalog'])
     need(reference['schema'] != details.SEEDED_SCHEMA, 'CAPTURE_REFUSED')
-    if schema == SEND_CONFIRM_INSPECTION_SCHEMA:
-        need(reference['schema'] == details.FAMILY_SCHEMAS['send-confirm'],
-             'CAPTURE_REFUSED')
+    family = catalog_only_family(report)
+    if family is not None:
+        need(reference['schema'] == details.FAMILY_SCHEMAS[family], 'CAPTURE_REFUSED')
+    else:
+        need(reference['schema'] != details.FAMILY_SCHEMAS['earn'], 'CAPTURE_REFUSED')
     return reference
 
 
-def send_confirmation_only(report):
-    return report['schema'] == SEND_CONFIRM_INSPECTION_SCHEMA
+def catalog_only_family(report):
+    return CATALOG_ONLY_FAMILIES.get(report['schema'])
 
 
 def complete_checks(report):
     checks = report['checks']
-    skipped = TOUR_CHECKS if send_confirmation_only(report) else ()
+    skipped = TOUR_CHECKS if catalog_only_family(report) else ()
     return set(checks) == set(CHECKS) and all(
         checks[key] is (key not in skipped) for key in CHECKS)
 
@@ -576,7 +582,7 @@ def require_catalog_only_samples(report):
 def completed(report):
     try:
         inspection_catalog_reference(report)
-        if send_confirmation_only(report):
+        if catalog_only_family(report):
             require_catalog_only_samples(report)
         else:
             capture_records(report['captures'])
@@ -709,7 +715,7 @@ def public_manifest(value):
                      'OUTPUT_REFUSED')
     else:
         need(not value['success'] or value['home_catalog'] is not None, 'OUTPUT_REFUSED')
-    if send_confirmation_only(value):
+    if catalog_only_family(value):
         require_catalog_only_samples(value)
     else:
         if value['viewport'] is not None:
@@ -812,7 +818,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
         details_schema = details.FAMILY_SCHEMAS.get(family, 1)
         catalog_slot = 'details' if family in details.FAMILY_SCHEMAS else family
         report['schema'] = READONLY_CATALOG_SCHEMAS[family]
-        catalog_only = send_confirmation_only(report)
+        catalog_only = catalog_only_family(report) is not None
         for field, since in (('details_catalog', 4), ('navigation_catalog', 3),
                              ('settings_catalog', 2)):
             if report['schema'] < since:
@@ -1161,7 +1167,7 @@ def artifact_paths(parent):
          and value.get('run_id') == parent['GITHUB_RUN_ID']
          and value.get('run_attempt') == parent['GITHUB_RUN_ATTEMPT'], 'SOURCE_REFUSED')
     paths = [str(OUTPUT / 'manifest.json').replace('\\', '/')]
-    catalog_only = send_confirmation_only(value)
+    catalog_only = catalog_only_family(value) is not None
     if value.get('success') is True:
         need(completed(value), 'CAPTURE_REFUSED')
         output_bytes(repo / OUTPUT, catalog_only=catalog_only)
@@ -1175,7 +1181,8 @@ def artifact_paths(parent):
             paths.append(str(relative).replace('\\', '/'))
     catalog_family = {1: 'home-catalog', 2: 'settings-catalog',
         3: 'navigation-catalog', 4: 'details-catalog',
-        SEND_CONFIRM_INSPECTION_SCHEMA: 'details-catalog'}[value['schema']]
+        SEND_CONFIRM_INSPECTION_SCHEMA: 'details-catalog',
+        EARN_INSPECTION_SCHEMA: 'details-catalog'}[value['schema']]
     if value['schema'] == 1:
         home_paths = home_artifact_paths(repo, value)
     elif value['schema'] == 2:

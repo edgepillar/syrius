@@ -87,6 +87,21 @@ and native capture remain open.
 [Producer](https://github.com/edgepillar/syrius/actions/runs/42663604896) and
 [independent archive reader](https://github.com/edgepillar/syrius/actions/runs/42667746502).
 
+Source557 Native135 passes the selected analysis and 1,372 Dart tests,
+including the Mint field selector control. The original Send, twelve-page
+tour and normal original actor exits qualify. The copied Stake receipt
+qualifies. The Token effect remains pending after eighteen observations, so
+the Mint draft capture is unreached. The reader verifies both manifests.
+[Producer](https://github.com/edgepillar/syrius/actions/runs/42668526462) and
+[independent archive reader](https://github.com/edgepillar/syrius/actions/runs/42671838197).
+
+Source558 prepares an opt-in readonly Earn catalog for empty Staking and
+Your pillar in both themes. The original selected-address reads must expose
+both positive page markers. Each shot returns to Home through its original
+controls. The catalog uses the existing archive byte limit and retains only
+four PNGs, with the two original scripts bound to the producer tree. Native
+capture, visual comparison and complete F06 acceptance remain open.
+
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,
 Project and Fund Address with its confirmed receive and target balance. The

@@ -1,4 +1,4 @@
-# prerequisite: pending F06 reversible pillar ownership preparation
+# prerequisite: readonly-lab-pillar-owner
 # The caller must select an address with a completed owned-pillar read.
 goto pillars
 wait --key nodes_tab_pillars --timeout 30

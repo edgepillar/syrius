@@ -19,6 +19,7 @@ const Map<String, ReadonlyDetailsSelection> _detailsSelections =
       'details': ReadonlyDetailsSelection.details,
       'token-draft': ReadonlyDetailsSelection.tokenDraft,
       'send-confirm': ReadonlyDetailsSelection.sendConfirmation,
+      'earn': ReadonlyDetailsSelection.earn,
     };
 
 /// One fixed original capture family, with the previous Details default.
@@ -137,6 +138,7 @@ Future<void> main() async {
     detailsSelection = _detailsSelections[family];
     final bool sendConfirmation =
         detailsSelection == ReadonlyDetailsSelection.sendConfirmation;
+    final bool catalogOnly = detailsSelection?.catalogOnly ?? false;
     final String name = environment['SYRIUS_CI_INSPECTION_INSTANCE'] ?? '';
     if (!Platform.isWindows || environment['GITHUB_ACTIONS'] != 'true' ||
         environment['SYRIUS_CI_WALLET_INSPECTION'] != 'true' ||
@@ -234,7 +236,7 @@ Future<void> main() async {
       bound['readonlyWallet'],
     )}');
     final List<String> tourThemes =
-        sendConfirmation ? const <String>[] : const <String>['dark', 'light'];
+        catalogOnly ? const <String>[] : const <String>['dark', 'light'];
     for (final String theme in tourThemes) {
       stage = 'tour_$theme';
       final Map<String, dynamic> before = await cli.stateOf(instance);
@@ -280,15 +282,15 @@ Future<void> main() async {
       })}');
     }
     stage = detailsSelection?.stage ?? '${family}_catalog';
-    if (sendConfirmation) await cli.goto(instance, 'dashboard');
+    if (catalogOnly) await cli.goto(instance, 'dashboard');
     final Map<String, Object> catalog = await instance.captureCatalog(
       family,
       onStep: (ScreenCaptureObservation value) => lastCatalogStep = value,
       labRecipient: labRecipient,
     );
-    if (sendConfirmation) await instance.requireCleanLogs();
+    if (catalogOnly) await instance.requireCleanLogs();
     await marker('SYRIUS_INSPECTION_CATALOG:${jsonEncode(catalog)}');
-    if (!sendConfirmation) {
+    if (!catalogOnly) {
       stage = 'viewport';
       final Map<String, Object> viewport = await instance.captureViewport(
         onStep: (ReadonlyViewportStep value) => lastViewportStep = value,

@@ -21,12 +21,15 @@ TOKEN_DRAFT_SCREENS = ('token-new',)
 TOKEN_DRAFT_FILES = ('25-token-new-dark.png', '25-token-new-light.png')
 SEND_CONFIRM_SCREENS = ('send-confirm',)
 SEND_CONFIRM_FILES = ('12-send-confirm-dark.png', '12-send-confirm-light.png')
+EARN_SCREENS = ('staking-empty', 'pillar-mine')
+EARN_FILES = ('15-staking-empty-dark.png', '15-staking-empty-light.png',
+              '17-pillar-mine-dark.png', '17-pillar-mine-light.png')
 SEEDED_FAMILY = 'seeded-states'
 SEEDED_SCHEMA = 4
 SEEDED_SCREENS = ('staking', 'token-mine')
 SEEDED_FILES = ('13-staking-dark.png', '13-staking-light.png',
                 '24-token-mine-dark.png', '24-token-mine-light.png')
-FAMILY_SCHEMAS = {'details': 1, 'token-draft': 2, 'send-confirm': 3}
+FAMILY_SCHEMAS = {'details': 1, 'token-draft': 2, 'send-confirm': 3, 'earn': 5}
 CATALOG_STAGES = {name.replace('-', '_') + '_catalog': schema
                   for name, schema in FAMILY_SCHEMAS.items()}
 CATALOGS = {
@@ -34,6 +37,7 @@ CATALOGS = {
     2: (TOKEN_DRAFT_SCREENS, TOKEN_DRAFT_FILES),
     3: (SEND_CONFIRM_SCREENS, SEND_CONFIRM_FILES),
     SEEDED_SCHEMA: (SEEDED_SCREENS, SEEDED_FILES),
+    FAMILY_SCHEMAS['earn']: (EARN_SCREENS, EARN_FILES),
 }
 OUTPUT = Path('.harness/ci-details-catalog')
 SEEDED_OUTPUT = Path('.harness/ci-seeded-catalog')

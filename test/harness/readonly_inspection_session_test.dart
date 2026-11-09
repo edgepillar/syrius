@@ -51,7 +51,7 @@ void main() {
     expect(readonlyInspectionCatalogFamily(<String, String>{}), 'details');
     for (final String family in <String>[
       'home', 'settings', 'navigation', 'details', 'token-draft',
-      'send-confirm',
+      'send-confirm', 'earn',
     ]) {
       expect(readonlyInspectionCatalogFamily(<String, String>{
         'SYRIUS_READONLY_CATALOG_FAMILY': family,
@@ -1542,6 +1542,7 @@ void main() {
     final Map<String, String> scripts = <String, String>{
       for (final String screen in <String>[
         ...detailsScreens, 'token-new', 'send-confirm',
+        'staking-empty', 'pillar-mine',
       ])
         screen: File('harness/screens/$screen.txt').readAsStringSync(),
     };
@@ -1581,23 +1582,27 @@ void main() {
     }
     for (final String fault in <String>[
       'unbound', 'none', 'first', 'shot', 'return', 'late', 'png', 'close',
-      'token-draft', 'send-confirm',
+      'token-draft', 'send-confirm', 'earn',
     ]) {
       final bool tokenDraft = fault == 'token-draft';
       final bool sendConfirmation = fault == 'send-confirm';
+      final bool earn = fault == 'earn';
       final ReadonlyDetailsSelection selection = switch (fault) {
         'token-draft' => ReadonlyDetailsSelection.tokenDraft,
         'send-confirm' => ReadonlyDetailsSelection.sendConfirmation,
+        'earn' => ReadonlyDetailsSelection.earn,
         _ => ReadonlyDetailsSelection.details,
       };
       final List<String> screens = switch (fault) {
         'token-draft' => const <String>['token-new'],
         'send-confirm' => const <String>['send-confirm'],
+        'earn' => const <String>['staking-empty', 'pillar-mine'],
         _ => detailsScreens,
       };
       final List<String> routes = switch (fault) {
         'token-draft' => const <String>['tokens'],
         'send-confirm' => const <String>['transfer'],
+        'earn' => const <String>['staking', 'pillars'],
         _ => detailsRoutes,
       };
       final List<String> files = switch (fault) {
@@ -1605,6 +1610,10 @@ void main() {
           const <String>['25-token-new-dark.png', '25-token-new-light.png'],
         'send-confirm' => const <String>[
           '12-send-confirm-dark.png', '12-send-confirm-light.png',
+        ],
+        'earn' => const <String>[
+          '15-staking-empty-dark.png', '15-staking-empty-light.png',
+          '17-pillar-mine-dark.png', '17-pillar-mine-light.png',
         ],
         _ => detailsFiles,
       };
@@ -1629,6 +1638,8 @@ void main() {
       int closedFuse = 0;
       int closedToken = 0;
       int canceledSend = 0;
+      int closedPillar = 0;
+      bool pillarMenuOpen = false;
       bool draftOpen = false;
       bool draftReady = false;
       final Map<String, Object?> draft = <String, Object?>{};
@@ -1655,6 +1666,25 @@ void main() {
               command['key'] != 'rail_toggle') {
             expect(tab, routes[(afterShot ? shots - 1 : shots) ~/ 2]);
             if (fault == 'first') return negative;
+            if (earn) {
+              switch (targetKey) {
+                case 'nodes_tab_pillars':
+                  expect(tab, 'pillars');
+                case 'nodes_pillar_more':
+                  expect(pillarMenuOpen || draftOpen, isFalse);
+                  pillarMenuOpen = true;
+                case 'nodes_pillar_owner':
+                  expect(pillarMenuOpen, isTrue);
+                  pillarMenuOpen = false;
+                  draftOpen = true;
+                case 'nodes_pillar_owner_close':
+                  expect(afterShot && draftOpen, isTrue);
+                  draftOpen = false;
+                  closedPillar++;
+                default:
+                  fail('Unexpected pointer target for the Earn views');
+              }
+            }
             if (tokenDraft) {
               expect(targetKey, 'tokens_create');
               expect(draftOpen, isFalse);
@@ -1692,7 +1722,7 @@ void main() {
               selected = screens[shots ~/ 2];
             }
             if (command['tab'] == 'dashboard') {
-              if (tokenDraft) expect(draftOpen, isFalse);
+              if (tokenDraft || earn) expect(draftOpen, isFalse);
               if (sendConfirmation) {
                 expect(draftOpen, isFalse);
                 expect(draft, <String, Object?>{
@@ -1712,6 +1742,15 @@ void main() {
           if (name == 'shot') {
             expect(tab, routes[shots ~/ 2]);
             expect(selected, screens[shots ~/ 2]);
+            if (earn) {
+              expect(draftOpen, tab == 'pillars');
+              expect(command['expect'], <String, Object?>{
+                'key': tab == 'pillars'
+                    ? 'pillar_owner_panel'
+                    : 'staking_empty_rewards',
+                'exact': true,
+              });
+            }
             if (tokenDraft) {
               expect(draftOpen && draftReady, isTrue);
               expect(command['expect'], <String, Object?>{
@@ -1811,6 +1850,7 @@ void main() {
               'tab': tab, 'tabs': <String>[
                 'dashboard', 'transfer', 'plasma', 'settings',
                 if (tokenDraft) 'tokens',
+                if (earn) ...<String>['staking', 'pillars'],
               ],
               'locale': 'en', 'direction': 'ltr',
             },
@@ -1877,10 +1917,10 @@ void main() {
         ), throwsA(isA<ReadonlyInspectionRefused>()));
         expect(commands.length, calls);
       }
-      if (fault == 'none' || tokenDraft || sendConfirmation) {
+      if (fault == 'none' || tokenDraft || sendConfirmation || earn) {
         final Map<String, Object> receipt = await capture();
         expect(receipt, <String, Object>{
-          'schema': tokenDraft ? 2 : sendConfirmation ? 3 : 1,
+          'schema': selection.schema,
           'scope': 'readonly_native_details_catalog_capture',
           'screens': screens, 'themes': <String>['dark', 'light'],
           'files': files, 'width': 1280, 'height': 780, 'scale': 1,
@@ -1888,9 +1928,10 @@ void main() {
         });
         expect(shots, files.length);
         expect(returned, files.length);
-        expect(closedFuse, tokenDraft || sendConfirmation ? 0 : 2);
+        expect(closedFuse, tokenDraft || sendConfirmation || earn ? 0 : 2);
         expect(closedToken, tokenDraft ? 2 : 0);
         expect(canceledSend, sendConfirmation ? 2 : 0);
+        expect(closedPillar, earn ? 2 : 0);
         expect(tab, 'dashboard');
         expect(expanded, isTrue);
         expect(mode, 'light');

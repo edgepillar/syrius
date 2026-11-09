@@ -51,6 +51,7 @@ on:
           - details
           - token-draft
           - send-confirm
+          - earn
           - seeded-states
       chain321_lab:
         description: Qualify isolated chain-321 production on Linux Docker and native Windows

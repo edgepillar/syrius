@@ -3837,6 +3837,8 @@ class HarnessAgent {
           'receive_screen_marker',
           'nodes_pillars_strip',
           'pillar_dev1_detail',
+          'pillar_owner_panel',
+          'staking_empty_rewards',
           'plasma_strip',
           'plasma_fused_list',
           'plasma_screen',

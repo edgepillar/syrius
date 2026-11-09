@@ -106,9 +106,11 @@ def wallet_tour_requested(backend, parent):
 
 
 SEND_CONFIRM_INSPECTION_SCHEMA = 5
+EARN_INSPECTION_SCHEMA = 6
 READONLY_CATALOG_SCHEMAS = {
     'home': 1, 'settings': 2, 'navigation': 3, 'details': 4, 'token-draft': 4,
     'send-confirm': SEND_CONFIRM_INSPECTION_SCHEMA,
+    'earn': EARN_INSPECTION_SCHEMA,
 }
 
 

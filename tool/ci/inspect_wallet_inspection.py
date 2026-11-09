@@ -131,8 +131,8 @@ def projection(report, lab, lab_summary, head, tree, run_id, manifest_sha):
          and type(original['captured_pages']) is type(original['visited_pages']) is int
          and original['captured_pages'] == len(report['captures'])
          and original['visited_pages'] == sum(len(v['tour']['visited']) for v in report['tours'].values()))
-    catalog_only = producer.send_confirmation_only(report)
-    samples_complete = catalog_only or (
+    catalog_family = producer.catalog_only_family(report)
+    samples_complete = catalog_family is not None or (
         set(report['tours']) == set(report['locales']) ==
             set(report['stalls']) == set(producer.THEMES)
         and len(report['captures']) == len(producer.THEMES) * len(producer.PAGES)
@@ -159,7 +159,7 @@ def projection(report, lab, lab_summary, head, tree, run_id, manifest_sha):
         and report['forced_cleanup'] is report['auxiliary_cleanup']['forced'])
     need(report['success'] is bool(positive))
     if positive:
-        if not catalog_only:
+        if catalog_family is None:
             producer.capture_records(report['captures'])
         producer.sdk_receipt(report['sdk_admission'])
         producer.wallet_receipt(report['wallet_admission'])
@@ -185,8 +185,8 @@ def projection(report, lab, lab_summary, head, tree, run_id, manifest_sha):
         seed_admitted=False, financial_send_qualified=False,
         motion_baseline_compared=False, arabic_or_minimum_window_qualified=False,
         visual_matches=0)
-    if catalog_only:
-        result['sampling_scope'] = 'send-confirm-only'
+    if catalog_family is not None:
+        result['sampling_scope'] = catalog_family + '-only'
     return result
 
 
@@ -264,7 +264,7 @@ def unpack(raw, expected_sha, expected_size, head, tree, run_id, lab, lab_summar
         report = decode(manifest)
         summary = projection(report, lab, lab_summary, head, tree, run_id, archive.sha(manifest))
         if report['success']:
-            catalog_only = producer.send_confirmation_only(report)
+            catalog_only = producer.catalog_only_family(report) is not None
             need(set(names) == ({'manifest.json'} if catalog_only else allowed))
             for row in report['captures']:
                 name = 'captures/' + row['theme'] + '/' + row['page'] + '.png'
@@ -280,7 +280,7 @@ def unpack(raw, expected_sha, expected_size, head, tree, run_id, lab, lab_summar
                 summary['_settings_catalog_reference'] = report['settings_catalog']
             elif report['schema'] == 3:
                 summary['_navigation_catalog_reference'] = report['navigation_catalog']
-            elif report['schema'] in (4, producer.SEND_CONFIRM_INSPECTION_SCHEMA):
+            elif report['schema'] >= 4:
                 summary['_details_catalog_reference'] = report['details_catalog']
             summary['_viewport_reference'] = report['viewport']
         else:
@@ -365,18 +365,18 @@ def unpack_home_catalog(raw, expected_sha, expected_size, head, tree, run_id,
     return result
 
 
-def source_files(repo, value, tree, *, read_workflow_blob=None):
+def source_files(repo, value, tree, *, read_workflow_blob=None, files=SOURCE_FILES):
     need(type(value) is dict and value.get('sha') == tree and value.get('truncated') is False
          and type(value.get('tree')) is list and len(value['tree']) <= 10000)
     entries = {}
     for item in value['tree']:
-        if item.get('path') in SOURCE_FILES:
+        if item.get('path') in files:
             need(item['path'] not in entries and item.get('mode') == '100644'
                  and item.get('type') == 'blob' and digest(item.get('sha'), 40))
             entries[item['path']] = item
-    need(set(entries) == set(SOURCE_FILES))
+    need(set(entries) == set(files))
     digests = {}
-    for name in SOURCE_FILES:
+    for name in files:
         if name == WORKFLOW_SOURCE and read_workflow_blob is not None:
             # The sparse checkout omits workflows. Read the exact producer blob,
             # including when the independent reader is from a later revision.
@@ -471,8 +471,10 @@ def main(parent=None):
     need(commit.get('sha') == head and digest(commit.get('tree', {}).get('sha'), 40))
     tree = commit['tree']['sha']
     PHASE = 'producer_source'
-    source_digests = source_files(Path(parent['GITHUB_WORKSPACE']), decode(client.read(
-        archive.API + '/git/trees/' + tree + '?recursive=1', cap=MAX_TREE)), tree,
+    repo = Path(parent['GITHUB_WORKSPACE'])
+    producer_tree = decode(client.read(
+        archive.API + '/git/trees/' + tree + '?recursive=1', cap=MAX_TREE))
+    source_digests = source_files(repo, producer_tree, tree,
         read_workflow_blob=lambda blob: decode(client.read(
             archive.API + '/git/blobs/' + blob, cap=MAX_WORKFLOW_RESPONSE)))
     jobs = client.json('/actions/runs/' + text + '/attempts/1/jobs?per_page=50')
@@ -508,7 +510,7 @@ def main(parent=None):
         item = artifact(listing, name, head, run_id)
         summary = unpack(download(item, MAX_ARCHIVE), item['digest'][7:], item['size_in_bytes'],
             head, tree, run_id, lab, lab_summary)
-        expected_pages = 0 if summary.get('sampling_scope') == 'send-confirm-only' else 24
+        expected_pages = 0 if 'sampling_scope' in summary else 24
         summary['native_inspection_qualified'] = bool(summary['artifact_reported_success']
             and summary['original_lab_closure_qualified']
             and summary['verified_png_count'] == expected_pages
@@ -525,9 +527,14 @@ def main(parent=None):
             (reference, settings_reference, navigation_reference, details_reference)) == 1)
         if details_reference is not None:
             PHASE = 'details_catalog_artifact'
+            schema = details_reference['schema']
+            scripts = producer.details.catalog_screens(schema)
+            if schema == producer.details.FAMILY_SCHEMAS['earn']:
+                source_digests.update(source_files(repo, producer_tree, tree,
+                    files=tuple('harness/screens/' + name + '.txt' for name in scripts)))
             item = artifact(listing, 'details-catalog-' + head + '-' + text + '-1', head, run_id)
             pins = {name: source_digests['harness/screens/' + name + '.txt']
-                for name in producer.details.catalog_screens(details_reference['schema'])}
+                for name in scripts}
             catalog = producer.details.unpack(download(item, producer.details.MAX_ARCHIVE),
                 item['digest'][7:], item['size_in_bytes'], head, tree, run_id,
                 details_reference, pins)
@@ -556,9 +563,11 @@ def main(parent=None):
                 home_script_source_pins(source_digests, reference['schema']))
         viewport_name = 'viewport-observation-' + head + '-' + text + '-1'
         PHASE = 'viewport_artifact'
-        if summary.get('sampling_scope') == 'send-confirm-only':
+        sampling_scope = summary.get('sampling_scope')
+        if sampling_scope is not None:
             need(viewport_reference is None and details_reference is not None
-                 and details_reference['schema'] == producer.details.FAMILY_SCHEMAS['send-confirm']
+                 and details_reference['schema'] ==
+                 producer.details.FAMILY_SCHEMAS[sampling_scope.removesuffix('-only')]
                  and not any(v.get('name') == viewport_name for v in listing['artifacts']))
         else:
             need(viewport_reference is not None)
@@ -573,24 +582,25 @@ def main(parent=None):
     need(all(after_job.get(k) == job.get(k) for k in ('id', 'head_sha', 'run_id', 'run_attempt', 'status', 'conclusion')))
     PHASE = 'emit'
     layout = summary.pop('_layout_observation', None)
+    verified_sources = len(source_digests)
     for component, frame in archive.restored_wallet_run.notice_frames(lab_summary):
         emit('Readonly inspection parent' + (' ' + component if component else ''), frame)
     summary.update(verified_viewport_png_count=4 if viewport_observation is not None else 0,
         verified_catalog_png_count=catalog['verified_png_count'] if catalog is not None else 0,
         producer_job_id=job['id'], producer_conclusion=job['conclusion'],
-        producer_source_files_verified=len(SOURCE_FILES), metadata_revalidated=True)
+        producer_source_files_verified=verified_sources, metadata_revalidated=True)
     emit('Retained readonly wallet inspection', summary)
     if layout is not None and summary['native_inspection_qualified']:
         layout.update(archive_sha256=summary['archive_sha256'],
             manifest_sha256=summary['manifest_sha256'],
             producer_job_id=job['id'], metadata_revalidated=True,
-            producer_source_files_verified=len(SOURCE_FILES),
+            producer_source_files_verified=verified_sources,
             all_original_png_digests_verified=True)
         emit('Retained readonly shot layout', layout)
     if catalog is not None:
         catalog.update(catalog_capture_qualified=True, parent_closure_qualified=True,
             producer_job_id=job['id'], metadata_revalidated=True,
-            producer_source_files_verified=len(SOURCE_FILES),
+            producer_source_files_verified=verified_sources,
             all_original_png_digests_verified=True)
         title = {'retained_readonly_home_catalog': 'Retained readonly Home catalog',
             'retained_readonly_settings_catalog': 'Retained readonly Settings catalog',
@@ -600,7 +610,7 @@ def main(parent=None):
     if viewport_observation is not None:
         viewport_observation.update(viewport_observation_qualified=True, parent_closure_qualified=True,
             producer_job_id=job['id'], metadata_revalidated=True,
-            producer_source_files_verified=len(SOURCE_FILES), all_original_png_digests_verified=True)
+            producer_source_files_verified=verified_sources, all_original_png_digests_verified=True)
         emit('Retained readonly viewport observation', viewport_observation)
     return summary
 

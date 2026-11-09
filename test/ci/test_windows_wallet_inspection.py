@@ -75,10 +75,12 @@ def details_reference(digest, *, schema=1):
         captured=len(inspection.details.catalog_files(schema)), manifest_sha256=digest)
 
 
-def send_confirmation_report(value, digest):
-    return dict(value, schema=5, captures=[], tours={}, locales={}, stalls={},
+def catalog_only_report(value, digest, family):
+    return dict(value, schema=lab.READONLY_CATALOG_SCHEMAS[family],
+        captures=[], tours={}, locales={}, stalls={},
         home_catalog=None, settings_catalog=None, navigation_catalog=None,
-        details_catalog=details_reference(digest, schema=3), viewport=None,
+        details_catalog=details_reference(
+            digest, schema=inspection.details.FAMILY_SCHEMAS[family]), viewport=None,
         checks=dict(value['checks'], tours_complete=False, locale_verified=False))
 
 
@@ -205,7 +207,8 @@ class InspectionTests(unittest.TestCase):
         self.assertEqual(lab.readonly_catalog_family(parent), 'details')
         for family, schema in (('home', 1), ('settings', 2),
                                ('navigation', 3), ('details', 4),
-                               ('token-draft', 4), ('send-confirm', 5)):
+                               ('token-draft', 4), ('send-confirm', 5),
+                               ('earn', 6)):
             selected = dict(parent, SYRIUS_READONLY_CATALOG_FAMILY=family)
             self.assertTrue(lab.wallet_inspection_requested('native', selected))
             self.assertEqual(lab.READONLY_CATALOG_SCHEMAS[
@@ -222,7 +225,7 @@ class InspectionTests(unittest.TestCase):
         self.assertEqual([line.strip()[2:] for line in choice.splitlines()
             if line.strip().startswith('- ')],
             ['home', 'settings', 'navigation', 'details', 'token-draft',
-             'send-confirm', 'seeded-states'])
+             'send-confirm', 'earn', 'seeded-states'])
         self.assertIn('SYRIUS_READONLY_CATALOG_FAMILY: ${{ inputs.readonly_catalog_family }}', workflow)
 
     def test_lab_failure_projection_retains_only_fixed_codes_and_refuses_success(self):
@@ -561,7 +564,13 @@ class InspectionTests(unittest.TestCase):
                     'motion_baseline_compared', 'arabic_or_minimum_window_qualified'):
             self.assertIs(value[key], False)
         self.assertEqual(value['visual_matches'], 0)
-        focused = send_confirmation_report(value, 'f' * 64)
+        focused = catalog_only_report(value, 'f' * 64, 'send-confirm')
+        earn = catalog_only_report(value, 'f' * 64, 'earn')
+        self.assertTrue(inspection.completed(earn))
+        self.assertIs(inspection.public_manifest(earn), earn)
+        for schema in (4, 5):
+            with self.subTest(earn_schema=schema), self.assertRaises(inspection.Refused):
+                inspection.public_manifest(dict(earn, schema=schema))
         self.assertIs(inspection.public_manifest(focused), focused)
         self.assertTrue(inspection.completed(focused))
         for change in (
@@ -876,7 +885,7 @@ class InspectionTests(unittest.TestCase):
 
     def artifact_case(self, value, *, pixels=None, home_schema=1,
                       settings_catalog=False, navigation_catalog=False,
-                      details_catalog=False, send_confirmation=False):
+                      details_catalog=False, catalog_only=None):
         parent = dict(GITHUB_WORKSPACE='/fixture', GITHUB_RUN_ID='1', GITHUB_RUN_ATTEMPT='1',
                       GITHUB_OUTPUT='/fixture-output')
         value = copy.deepcopy(value)
@@ -887,17 +896,18 @@ class InspectionTests(unittest.TestCase):
         settings_raw = json.dumps(settings_value).encode('ascii')
         navigation_value = navigation_manifest(pixels or b'x', script)
         navigation_raw = json.dumps(navigation_value).encode('ascii')
-        details_schema = 3 if send_confirmation else 1
+        details_schema = inspection.details.FAMILY_SCHEMAS.get(catalog_only, 1)
         details_value = details_manifest(pixels or b'x', script, schema=details_schema)
         details_raw = json.dumps(details_value).encode('ascii')
         self.assertLessEqual(sum((settings_catalog, navigation_catalog,
-            details_catalog, send_confirmation)), 1)
+            details_catalog, catalog_only is not None)), 1)
         viewport_manifest, viewport_images = viewport_fixtures.fixture()
         viewport_manifest['probe_sha256'] = hashlib.sha256(script).hexdigest()
         viewport_raw = json.dumps(viewport_manifest).encode('ascii')
         if value['success']:
-            if send_confirmation:
-                value = send_confirmation_report(value, hashlib.sha256(details_raw).hexdigest())
+            if catalog_only:
+                value = catalog_only_report(
+                    value, hashlib.sha256(details_raw).hexdigest(), catalog_only)
             elif details_catalog:
                 value.update(schema=4, home_catalog=None, settings_catalog=None,
                     navigation_catalog=None,
@@ -1063,12 +1073,21 @@ class InspectionTests(unittest.TestCase):
         self.assertNotIn('ci-navigation-catalog/', output)
         self.assertNotIn('private', output)
         paths, reads, output = self.artifact_case(
-            value, pixels=pixels, send_confirmation=True)
+            value, pixels=pixels, catalog_only='send-confirm')
         self.assertEqual(paths, ['.harness/ci-wallet-inspection/manifest.json'])
         self.assertEqual(len(reads), 5)
         self.assertIn('catalog_family=details-catalog', output)
         self.assertIn('ci-details-catalog/12-send-confirm-dark.png', output)
         self.assertIn('ci-details-catalog/12-send-confirm-light.png', output)
+        self.assertNotIn('/captures/', output)
+        self.assertNotIn('ci-viewport-observations/', output)
+        paths, reads, output = self.artifact_case(
+            value, pixels=pixels, catalog_only='earn')
+        self.assertEqual(paths, ['.harness/ci-wallet-inspection/manifest.json'])
+        self.assertEqual(len(reads), 8)
+        for filename in inspection.details.EARN_FILES:
+            self.assertIn('ci-details-catalog/' + filename, output)
+        self.assertNotIn('12-send-confirm-', output)
         self.assertNotIn('/captures/', output)
         self.assertNotIn('ci-viewport-observations/', output)
 

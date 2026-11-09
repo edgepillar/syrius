@@ -29,6 +29,12 @@ enum ReadonlyDetailsSelection {
   ]),
   sendConfirmation(3, 'send_confirm_catalog', <String>['send-confirm'],
     <String>['12-send-confirm-dark.png', '12-send-confirm-light.png'],
+  ),
+  earn(5, 'earn_catalog', <String>['staking-empty', 'pillar-mine'],
+    <String>[
+      '15-staking-empty-dark.png', '15-staking-empty-light.png',
+      '17-pillar-mine-dark.png', '17-pillar-mine-light.png',
+    ],
   );
 
   const ReadonlyDetailsSelection(
@@ -39,6 +45,8 @@ enum ReadonlyDetailsSelection {
   final String stage;
   final List<String> screens;
   final List<String> files;
+
+  bool get catalogOnly => this == sendConfirmation || this == earn;
 }
 
 class _DetailsInstance extends cli.Instance {
@@ -139,6 +147,7 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
     restoreRailState: session.restoreScreenRail,
     onStep: onStep,
     readonlySendConfirmation: sendConfirmation,
+    readonlyEarn: selection == ReadonlyDetailsSelection.earn,
   );
   final List<String> captured = await capture.captureSelection(
     selection.screens, directory: readonlyDetailsCatalogDirectory,

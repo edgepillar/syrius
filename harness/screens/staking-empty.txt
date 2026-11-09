@@ -3,3 +3,5 @@
 goto staking
 wait --key staking_empty_rewards --timeout 30
 assert --key staking_empty_rewards
+# after-capture: goto dashboard
+# after-capture: wait --key home_hero --timeout 5

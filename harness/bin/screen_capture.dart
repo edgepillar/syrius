@@ -283,6 +283,7 @@ class ScreenCapture {
     this.restoreRailState,
     this.onStep,
     this.readonlySendConfirmation = false,
+    this.readonlyEarn = false,
     this.restoredSeeded = false,
   });
 
@@ -295,6 +296,7 @@ class ScreenCapture {
   final Future<void> Function({required bool expanded})? restoreRailState;
   final void Function(ScreenCaptureObservation step)? onStep;
   final bool readonlySendConfirmation;
+  final bool readonlyEarn;
   final bool restoredSeeded;
 
   static const String _afterCapturePrefix = '# after-capture:';
@@ -382,9 +384,12 @@ class ScreenCapture {
         final bool tokenPrepared = restoredSeeded &&
             screen.id == 'token-mine' &&
             text == '# prerequisite: restored-lab-token';
+        final bool pillarPrepared = readonlyEarn &&
+            screen.id == 'pillar-mine' &&
+            text == '# prerequisite: readonly-lab-pillar-owner';
         if (text.startsWith('# prerequisite:') &&
             text != '# prerequisite: unlocked-home' &&
-            !sendPrepared && !tokenPrepared) {
+            !sendPrepared && !tokenPrepared && !pillarPrepared) {
           throw ScreenCaptureError('${screen.id}: ${text.substring(2)}');
         }
         continue;
