@@ -7,11 +7,14 @@ import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
+import 'package:zenon_syrius_wallet_flutter/seams/seam.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/entry_capture_source.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/lock_card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/lock_tab_child.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart'
+    show LockWalletDisplayEntry, LockWalletPickerPreview;
 
 import '../../harness/app/agent.dart';
 import '../../harness/lock_view_observation.dart';
@@ -82,6 +85,67 @@ void main() {
   tearDown(() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(window, null);
+  });
+
+  testWidgets('display preview preserves the original lock and its seams', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(1280, 780);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final ValueNotifier<bool> visible = ValueNotifier<bool>(false);
+    final ValueNotifier<int> mode = ValueNotifier<int>(0);
+    addTearDown(() async {
+      await tester.pumpWidget(const SizedBox.shrink());
+      visible.dispose();
+      mode.dispose();
+    });
+    await tester.pumpWidget(
+      ValueListenableBuilder<bool>(
+        valueListenable: visible,
+        child: _host(mode),
+        builder: (_, bool open, Widget? child) => LockWalletPickerPreview(
+          visible: open,
+          additionalEntries: const <LockWalletDisplayEntry>[
+            LockWalletDisplayEntry(name: 'Ledger', isLedger: true),
+            LockWalletDisplayEntry(name: 'Lab devnet'),
+          ],
+          child: child!,
+        ),
+      ),
+    );
+    final Finder lock = find.byType(LockTabChild);
+    final Element original = tester.element(lock);
+    final Finder menu = find.byKey(
+      const ValueKey<String>('lock_wallet_picker_menu'),
+    );
+    expect(menu, findsNothing);
+    visible.value = true;
+    await tester.pump();
+    expect(tester.element(lock), same(original));
+    expect(menu, findsOneWidget);
+    for (final String key in <String>[
+      'lock_wallet_picker_entry_0',
+      'lock_wallet_picker_entry_1',
+      'lock_wallet_picker_entry_2',
+      'lock_wallet_picker_add',
+    ]) {
+      expect(
+        find.ancestor(
+          of: find.byKey(ValueKey<String>(key)),
+          matching: find.byWidgetPredicate(
+            (Widget widget) =>
+                widget is SeamGate && widget.seam == Seam.walletPicker,
+          ),
+        ),
+        findsOneWidget,
+      );
+    }
+    visible.value = false;
+    await tester.pump();
+    expect(menu, findsNothing);
+    expect(tester.element(lock), same(original));
   });
 
   testWidgets('passive lock reads keep input and observe original view guards',

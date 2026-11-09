@@ -261,7 +261,15 @@ ordinary lock card receives a masked fixture value, then displays the inert
 picker rows behind their existing seam. After closing the picker, one
 refused input per profile leaves two attempts and starts the original well
 replay. The passive observer admits its painted frame 23. Windows execution
-and reference review remain pending.
+on Source576 passes selected analysis, 1,374 Dart cases and the Release
+build. The first capture stops at the initial readiness check. The dark
+preparation and capture processes exit normally, and the independent reader
+verifies the manifest with zero images. Source577 waits separately for the
+final film frame and the original input owner. It focuses the existing window
+once when needed and checks the picker with the selected lock-view cases.
+Fresh capture and reference review remain open.
+[First producer](https://github.com/edgepillar/syrius/actions/runs/42714625910)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42717061765).
 
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,

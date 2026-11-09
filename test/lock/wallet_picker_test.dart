@@ -135,60 +135,6 @@ void main() {
         .setMockMethodCallHandler(_window, null);
   });
 
-  testWidgets('display preview preserves the current picker and its seams', (
-    WidgetTester tester,
-  ) async {
-    final ValueNotifier<bool> visible = ValueNotifier<bool>(false);
-    addTearDown(visible.dispose);
-    await _show(
-      tester,
-      _host(
-        child: _frame(
-          ValueListenableBuilder<bool>(
-            valueListenable: visible,
-            child: LockWalletPicker(current: _current),
-            builder: (_, bool open, Widget? child) => LockWalletPickerPreview(
-              visible: open,
-              additionalEntries: const <LockWalletDisplayEntry>[
-                _hardware,
-                _secondary,
-              ],
-              child: child!,
-            ),
-          ),
-        ),
-      ),
-    );
-    final Element original = tester.element(find.byType(LockWalletPicker));
-    expect(find.byKey(_menu), findsNothing);
-    visible.value = true;
-    await tester.pump();
-    expect(tester.element(find.byType(LockWalletPicker)), same(original));
-    expect(find.byKey(_menu), findsOneWidget);
-    final List<Key> rows = <Key>[
-      _entryKey(0),
-      _entryKey(1),
-      _entryKey(2),
-      _add,
-    ];
-    for (final Key key in rows) {
-      expect(
-        find.ancestor(
-          of: find.byKey(key),
-          matching: find.byWidgetPredicate(
-            (Widget widget) => widget is SeamGate &&
-                widget.seam == Seam.walletPicker,
-          ),
-        ),
-        findsOneWidget,
-      );
-    }
-    visible.value = false;
-    await tester.pump();
-    expect(find.byKey(_menu), findsNothing);
-    expect(tester.element(find.byType(LockWalletPicker)), same(original));
-  });
-
   for (final bool light in <bool>[false, true]) {
     for (final TextDirection direction in TextDirection.values) {
       final String variant = '${light ? 'light' : 'dark'} ${direction.name}';

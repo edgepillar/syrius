@@ -23,7 +23,7 @@ STATE_FIELDS = {'screen', 'frame', 'frames', 'failures', 'remaining', 'picker_ga
 MAX_ARCHIVE = len(FILES) * launch.MAX_PNG + launch.MAX_MANIFEST + 65536
 SAMPLE = 'screen-state'
 REFUSED_SAMPLE = 'redesign-qualification-wrong-password'
-PHASES = ('prepare', 'ready', 'normal', 'picker', 'refusal', 'complete')
+PHASES = ('prepare', 'ready', 'bind', 'input', 'normal', 'picker', 'refusal', 'complete')
 
 
 def frame_matches(value, screen):
@@ -59,41 +59,73 @@ class LockProcess(launch.LaunchProcess):
             self.sleep(min(self.limits.poll, max(0, until - self.clock())))
         raise startup.Failure('STARTUP_DEADLINE')
 
-    def _lock_view(self, action, failures):
+    def _lock_owner(self, action):
         body = self._rpc(dict(cmd='lock-view', action=action))
         need(body.get('status') == 'observed' and body.get('owner_same') is True
              and type(body.get('view')) is dict)
-        view = body['view']
+        return body['view']
+
+    @staticmethod
+    def _input_ready(view, failures):
         true = ('mounted', 'current', 'window_active', 'visible', 'route_current',
                 'focus_allows_input', 'startup_interactive')
         false = ('busy', 'opening', 'attempt_storage_failed', 'has_error_message')
-        need(all(view.get(key) is True for key in true)
+        return (all(view.get(key) is True for key in true)
              and all(view.get(key) is False for key in false)
-             and view.get('lifecycle') == 'resumed'
+             and view.get('lifecycle') in ('resumed', 'unknown')
              and view.get('incorrect_password') is (failures == 1)
              and startup.integer(view.get('password_failures'), failures, failures)
              and startup.integer(view.get('unlock_requests'), failures, failures)
              and view.get('unlock_phase') == ('password_exception' if failures else 'idle'))
+
+    def _bind_input(self):
+        self.phase = 'bind'
+        view = self._lock_owner('bind')
+        self.phase = 'input'
+        if view.get('window_active') is not True or view.get('lifecycle') != 'resumed':
+            window = entry.EntrySmoke._window(self, self._rpc(dict(cmd='window', do='show')))
+            need(not window['minimized'] and not window['maximized']
+                 and all(abs(a - b) < .01 for a, b in zip(window['client'], (1280, 780))),
+                 'WINDOW_INVALID')
+        until = min(self.deadline, self.clock() + 12)
+        while self.clock() < until:
+            if self._input_ready(self._lock_owner('observe'), 0):
+                return
+            self.sleep(min(self.limits.poll, max(0, until - self.clock())))
+        raise startup.Failure('ENTRY_INVALID')
+
+    def _lock_view(self, failures):
+        need(self._input_ready(self._lock_owner('observe'), failures), 'ENTRY_INVALID')
 
     def _type_sample(self, value):
         body = self._rpc(dict(cmd='type', key='wallet_password_field', value=value, settleMs=0))
         need(body.get('value') == '\u2022' * len(value))
 
     def _status(self, theme, picker, *, wait=False):
-        value = self._wait_catalog('status', 40) if wait else self._catalog('status')
-        need(value == dict(ok=True, status='ready', theme=theme, frame=55, frames=56,
-                          failures=0, remaining=3, picker=picker, gates=4 if picker else 0))
-        return value
+        until = min(self.deadline, self.clock() + 40)
+        expected = dict(ok=True, status='ready', theme=theme, frame=55, frames=56,
+                        failures=0, remaining=3, picker=picker, gates=4 if picker else 0)
+        while self.clock() < until:
+            value = self._catalog('status', until=until)
+            if value == expected:
+                return value
+            need(wait and (value == {'ok': True, 'status': 'pending'} or
+                (set(value) == set(expected) and
+                 all(value[k] == expected[k] for k in expected if k not in ('frame', 'gates')) and
+                 startup.integer(value['frame'], 0, 55) and
+                 startup.integer(value['gates'], 0, expected['gates']))), 'ENTRY_INVALID')
+            self.sleep(min(self.limits.poll, max(0, until - self.clock())))
+        raise startup.Failure('STARTUP_DEADLINE')
 
     def _still(self, theme, screen, *, masked, picker):
-        self._status(theme, picker)
-        self._lock_view('observe', 0)
+        self._status(theme, picker, wait=True)
+        self._lock_view(0)
         body = self._rpc(dict(cmd='shot', width=1280, height=780, theme=theme,
                               expect=dict(key='lock_screen_marker')))
         need(body.get('asserted') is True and body.get('theme') == theme
              and body.get('width') == 1280 and body.get('height') == 780)
         status = self._status(theme, picker)
-        self._lock_view('observe', 0)
+        self._lock_view(0)
         state = dict(screen=screen, frame=status['frame'], frames=status['frames'],
             failures=status['failures'], remaining=status['remaining'],
             picker_gates=status['gates'], masked_chars=masked)
@@ -111,7 +143,7 @@ class LockProcess(launch.LaunchProcess):
     def _observe_pixels(self, theme, *, settle):
         need(settle)
         self._status(theme, False, wait=True)
-        self._lock_view('bind', 0)
+        self._bind_input()
         self.phase = 'normal'
         self._type_sample(SAMPLE)
         normal = self._still(theme, 'lock-screen', masked=len(SAMPLE), picker=False)
@@ -120,7 +152,7 @@ class LockProcess(launch.LaunchProcess):
         self._accept('open-picker')
         picker = self._still(theme, 'lock-pick', masked=0, picker=True)
         self._accept('close-picker')
-        self._status(theme, False)
+        self._status(theme, False, wait=True)
         self.phase = 'refusal'
         self._type_sample(REFUSED_SAMPLE)
         self._accept('arm-wrong')
@@ -129,7 +161,7 @@ class LockProcess(launch.LaunchProcess):
         body = self._wait_catalog('wrong-frame', 27)
         need(set(body) == {'ok', 'status', 'theme', 'frame', 'frames', 'failures', 'remaining', 'png'}
              and body['status'] == 'captured' and body['theme'] == theme)
-        self._lock_view('observe', 1)
+        self._lock_view(1)
         state = dict(screen='lock-wrong', frame=body['frame'], frames=body['frames'],
             failures=body['failures'], remaining=body['remaining'], picker_gates=0, masked_chars=0)
         wrong = self._pixels(body, state)

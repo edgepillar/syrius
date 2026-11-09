@@ -244,6 +244,36 @@ class StartupInspectionTests(unittest.TestCase):
         with self.assertRaises(inspect.archive.Refused):
             read(dict(report, attempts=attempts[:-1]))
 
+    def test_lock_catalog_waits_for_rest_and_refuses_a_changed_profile(self):
+        catalog = inspect.lock_catalog
+        settled = dict(ok=True, status='ready', theme='dark', frame=55, frames=56,
+                       failures=0, remaining=3, picker=False, gates=0)
+
+        class Probe(catalog.LockProcess):
+            def __init__(self, samples):
+                self.samples = iter(samples)
+                self.deadline = 60
+                self.elapsed = 0
+                self.limits = inspect.launch.LIMITS
+
+            def clock(self):
+                return self.elapsed
+
+            def sleep(self, seconds):
+                self.elapsed += seconds
+
+            def _catalog(self, action, *, until=None):
+                if action != 'status' or until != 40:
+                    raise AssertionError('Expected the bounded original state query')
+                return next(self.samples)
+
+        probe = Probe([dict(ok=True, status='pending'), dict(settled, frame=17), settled])
+        self.assertEqual(probe._status('dark', False, wait=True), settled)
+        self.assertEqual(probe.elapsed, 2 * inspect.launch.LIMITS.poll)
+        for changed in (dict(settled, failures=1), dict(settled, theme='light')):
+            with self.assertRaises(inspect.startup.Failure):
+                Probe([changed, settled])._status('dark', False, wait=True)
+
     def test_startup_pair_keeps_the_original_twelve_request_transport_bound(self):
         class Response(io.BytesIO):
             status = 200
