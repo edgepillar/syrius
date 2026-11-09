@@ -156,6 +156,19 @@ confirmed journal before opening the draft. The capture bundle contains both
 themes, and its reader binds the two PNGs and script to the same Stake
 receipt and producer source. A fresh Windows observation remains open.
 
+Source563 Native137 qualifies the original Send, twelve-page tour and
+normal original and copied actor closure. The selected draft reaches the
+original ready control after one confirmed Stake prerequisite. The reader
+verifies the Stake journals, exact script and two 1280 by 780 PNGs in a
+105,739-byte archive. The catalog has 64 of 94 literal outputs.
+[Producer](https://github.com/edgepillar/syrius/actions/runs/42686727403)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42689398504).
+
+Source564 prepares the separate Project detail recipe. The capture caller
+must bind the original row selector to the exact confirmed Project receipt.
+The recipe verifies the loaded details and uses the existing back control
+before returning to Home. Native admission for this recipe remains open.
+
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,
 Project and Fund Address with its confirmed receive and target balance. The
@@ -285,8 +298,8 @@ frontier reads after such a failure. Their native observation remains pending.
 | Original gate | Required evidence |
 | --- | --- |
 | P03/P09 | Complete the documented Windows Docker route. Earlier Linux defaults, WSL installation and the Source548 native lab retain their separate scopes. |
-| F06 | Complete the seeded screen states and coordinator/peer Swap prerequisites. Source548 qualifies the original six receipts and copied lifecycle. Source561 qualifies the restored Stake and Token prerequisites and their four selected captures. |
-| V01/V05 | Obtain 32 missing literal outputs, review all 94 pairs, resolve retained layout/type/spacing findings and explicitly accept each match. Availability is 62/94. Accepted whole-image matches are 0/94. |
+| F06 | Complete the seeded screen states and coordinator/peer Swap prerequisites. Source548 qualifies the original six receipts and copied lifecycle. Source561 qualifies the restored Stake and Token captures. Source563 qualifies the separate New stake draft with one Stake prerequisite. |
+| V01/V05 | Obtain 30 missing literal outputs, review all 94 pairs, resolve retained layout/type/spacing findings and explicitly accept each match. Availability is 64/94. Accepted whole-image matches are 0/94. |
 | V02 | Observe every motion/shader row in the running build and compare page-change, disclosure and launch frame times with the original baseline. Finite widget timing or stall telemetry alone does not close this gate. |
 | V03 | Try every original seam control, shortcut and Go To entry in the running native wallet and verify refusal. Registry and widget controls remain partial evidence. |
 | V06 | Check every original end-state requirement and complete independent final acceptance. The earlier minimum-window/Arabic viewing remains source-bound. |
