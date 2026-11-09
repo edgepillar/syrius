@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/rendering.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
@@ -98,7 +96,7 @@ final class NativeQuizCatalog {
       ),
     );
     _route = route;
-    unawaited(navigator.push<void>(route));
+    navigator.push<void>(route);
   }
 
   String get firstChoice {
@@ -162,7 +160,8 @@ final class NativeQuizCatalog {
     }
     if (_quiz.correct == 1) _artwork ??= _sampleArtwork(context);
     final int callback = await _nativeFrame();
-    if (!_routeCurrent ||
+    if (!context.mounted ||
+        !_routeCurrent ||
         !identical(context, _fixture.currentContext) ||
         (_artwork != null && !_artwork!.observed)) {
       throw const CaptureRefused('quiz-paint-unavailable');
