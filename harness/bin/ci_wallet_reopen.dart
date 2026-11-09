@@ -290,7 +290,9 @@ Future<void> main() async {
           id, '--instance', name, '--ws', 'ws://127.0.0.1:45998',
           '--http', 'http://127.0.0.1:45997', '--checkpoint-ready',
           if (id == 'deposit') ...<String>['--counterparty', counterparty],
-        ]), requireOwner: current);
+        ]), requireOwner: current,
+          restoredFunding: id == 'fuse' || id == 'fund-address',
+        );
       },
     );
     final Map<String, Object> seeds = await workflow.run(counterparty);

@@ -625,12 +625,17 @@ final class SeedGuard {
   }
 
   /// [tapOnce] is the real pointer path. No API here signs or sends a block.
-  Future<String> publish(String recipe, Future<void> Function() tapOnce) async {
+  Future<String> publish(
+    String recipe,
+    Future<void> Function() tapOnce, {
+    Future<void> Function()? requireReady,
+  }) async {
     if (_labSend) {
       throw const SeedRefused('original-transfer-witness-required');
     }
     if (_attempted) throw const SeedRefused('original-attempt-held');
     await admit(recipe, waitForEarlier: true);
+    if (requireReady != null) await _read<void>(requireReady);
     final List<SeedOriginal> originals = source.originals();
     _requireSettledOriginals(originals);
     final Set<Object> before =

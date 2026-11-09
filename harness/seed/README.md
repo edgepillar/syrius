@@ -110,6 +110,16 @@ The final funding tap also checks the existing immutable transfer confirmation:
 sender must be selected index 1, recipient index 2, token ZNN and amount exactly
 10 ZNN. A retained draft with another sender is refused before pointer release.
 
+The hosted restored session uses `fuse-secondary.txt` after it verifies the
+original reopen and one Settings derivation. The same single Fuse action sends
+100 QSR from index 1 for index 2. Both pointer boundaries require the exact
+current form, amount and beneficiary, and the receipt requires the exact owned
+fusion entry. Before Fund Address claims its attempt, one bounded read checks
+the target receive block's required difficulty through the original lab
+transport. Zero difficulty admits the funding tap. The receipt requires the
+exact confirmed send, matching confirmed receive and positive target balance.
+The standalone `fuse.txt` recipe uses its original selected beneficiary.
+
 `deposit` additionally requires `--counterparty` containing an explicitly
 chosen external account on this same isolated lab. It must be outside the
 captured wallet members. No counterparty address or key is supplied here. The

@@ -29,6 +29,20 @@ void main() {
         );
         expect(plan.lines.last.first, 'assert');
       }
+      final String fuse =
+          File('harness/seed/fuse-secondary.txt').readAsStringSync();
+      const String beneficiary = 'fuse_plasma_beneficiary_option_2';
+      final SeedRecipe copied = SeedRecipe.parse('fuse', fuse,
+          restoredFunding: true);
+      expect(
+        copied.lines.where((List<String> line) => line.first == 'publish'),
+        <List<String>>[<String>['publish', ...seedPublishSelector('fuse')]],
+      );
+      expect(copied.lines, contains(<String>['tap', '--key', beneficiary]));
+      expect(() => SeedRecipe.parse('fuse', fuse), throwsA(isA<SeedRefused>()));
+      expect(() => SeedRecipe.parse('fuse',
+          fuse.replaceAll(beneficiary, 'fuse_plasma_beneficiary_option_1'),
+          restoredFunding: true), throwsA(isA<SeedRefused>()));
       final String deposit = File('harness/seed/deposit.txt')
           .readAsStringSync().replaceAll('\r\n', '\n');
       const String marker =

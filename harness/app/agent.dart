@@ -26,8 +26,11 @@ import 'package:zenon_syrius_wallet_flutter/blocs/auto_receive_tx_worker.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_token_stepper/widgets/token_create_frame.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/fuse_plasma/view/fuse_plasma_form.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/node_update/node_update.dart'
     show NodeUpdateCard;
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/plasma_owner/plasma_session.dart'
+    show parsePlasmaQsr;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/widgets/send_confirmation.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/widgets/send_populated.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/disclosure.dart';
@@ -463,6 +466,7 @@ class HarnessAgent {
   String? _labQuiescenceProfile;
   bool _labQuiescenceAttempted = false;
   bool _labRestoredReadAttempted = false;
+  WalletAddressContext? _labRestoredAddresses;
   HarnessPresentationController? _presentation;
   NativeEntryCapture? _nativeEntry;
   NativeWindowOwner? _nativeWindow;
@@ -946,9 +950,21 @@ class HarnessAgent {
       case 'seed':
         final bool seedPreparation = c['action'] == 'prepare';
         try {
+          final bool restoredFunding =
+              c['action'] == 'begin' && c['restoredFunding'] == true;
+          if (restoredFunding) {
+            final WalletAddressContext? original = _labRestoredAddresses;
+            final Object? current =
+                _recipeAddressObservation()['addressContext'];
+            if (original == null || current == null ||
+                !WalletAddressContext.parse(current).derivedFrom(original)) {
+              throw const SeedRefused('restored-seed-derivation-refused');
+            }
+          }
           return await _seeds.run(
             c,
             booted: booted,
+            restoredFunding: restoredFunding,
             ui: (Map<String, dynamic> selector) => observeSeedPreparation(
               preparation: seedPreparation,
               original: () => _run(selector),
@@ -1596,6 +1612,7 @@ class HarnessAgent {
           !confirmed.positiveConfirmation || !confirmed.matchesRecipe) {
         throw const SeedRefused('restored-original-send-unconfirmed');
       }
+      if (before.members.length == 2) _labRestoredAddresses = before;
       return <String, Object?>{'receipt': <String, Object>{
         'schema': 1, 'scope': 'restored_lab_wallet_observation', 'chain': 321,
         'members': before.members.length, 'selected_index': 1,
@@ -1631,8 +1648,13 @@ class HarnessAgent {
 
   /// Exercises the same capture and guarded dispatch without a wallet.
   @visibleForTesting
-  SeedTap captureSeedTapForTest(int reference) => _captureSeedTap(
-    <String, dynamic>{'ref': reference, 'settleMs': 0},
+  SeedTap captureSeedTapForTest(int reference, {String? fuseBeneficiary}) =>
+      _captureSeedTap(
+    <String, dynamic>{
+      'ref': reference,
+      'settleMs': 0,
+      if (fuseBeneficiary != null) 'seedFuseBeneficiary': fuseBeneficiary,
+    },
     preparation: false,
   );
 
@@ -3495,6 +3517,25 @@ class HarnessAgent {
               shown.intent.tokenStandard != c['seedToken'] ||
               shown.intent.amount.toString() != c['seedAmount']) {
             throw const SeedRefused('original-transfer-review-mismatch');
+          }
+        }
+        if (c['seedFuseBeneficiary'] case final String beneficiary) {
+          FusePlasmaForm? form;
+          fresh.node!.element.visitAncestorElements((Element ancestor) {
+            if (ancestor.widget case final FusePlasmaForm value) {
+              form = value;
+              return false;
+            }
+            return true;
+          });
+          final FusePlasmaForm? shown = form;
+          if (shown == null || !shown.inputValid || !shown.isCurrent() ||
+              shown.beneficiaries.length != 3 ||
+              shown.beneficiaries[2].address != beneficiary ||
+              shown.beneficiaryController.text != beneficiary ||
+              parsePlasmaQsr(shown.amountController.text) !=
+                  BigInt.from(10000000000)) {
+            throw const SeedRefused('original-fuse-terms-mismatch');
           }
         }
       }

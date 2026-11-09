@@ -877,6 +877,7 @@ const Set<String> seedOperationReplyCodes = <String>{
   'fixture-route-unavailable',
   'funded-index-one-required',
   'funded-selected-index-required',
+  'funding-receive-plasma-required',
   'invalid-lab-frontier',
   'invalid-original-hash',
   'isolated-checkpoint-prerequisite-required',
@@ -892,6 +893,7 @@ const Set<String> seedOperationReplyCodes = <String>{
   'original-context-changed',
   'original-hash-changed',
   'original-outcome-unknown',
+  'original-fuse-terms-mismatch',
   'original-publication-replaced',
   'original-send-form-changed',
   'original-send-form-required',
@@ -1130,6 +1132,7 @@ SeedOperationAction _seedOperationAction(Object? value) => switch (value) {
 Future<Map<String, dynamic>> seed(
   Instance inst, Args a, {
   Future<void> Function()? requireOwner,
+  bool restoredFunding = false,
 }) async {
   const Set<String> allowed = <String>{
     'instance',
@@ -1195,10 +1198,15 @@ Future<Map<String, dynamic>> seed(
     );
   }
   final String id = a.rest.single;
+  if (restoredFunding &&
+      (requireOwner == null || id != 'fuse' && id != 'fund-address')) {
+    throw Fail('restored funding requires its original session');
+  }
   final SeedOperationTrace originalTrace = SeedOperationTrace(id);
   trace = originalTrace;
   try {
-    final File file = File('$repo/harness/seed/$id.txt');
+    final String name = restoredFunding && id == 'fuse' ? 'fuse-secondary' : id;
+    final File file = File('$repo/harness/seed/$name.txt');
     if (FileSystemEntity.typeSync(file.path, followLinks: false) !=
             FileSystemEntityType.file ||
         file.lengthSync() > 8192) {
@@ -1206,7 +1214,8 @@ Future<Map<String, dynamic>> seed(
     }
     final String source = file.readAsStringSync();
     originalTrace.at(SeedOperationAction.source, SeedOperationStep.parse);
-    final SeedRecipe plan = SeedRecipe.parse(id, source);
+    final SeedRecipe plan = SeedRecipe.parse(id, source,
+        restoredFunding: restoredFunding);
     final Map<String, dynamic> ready = await command(<String, Object?>{
       'action': 'begin',
       'recipe': id,
@@ -1214,6 +1223,7 @@ Future<Map<String, dynamic>> seed(
       'ws': a['ws'],
       'http': a['http'],
       'checkpointReady': true,
+      if (restoredFunding) 'restoredFunding': true,
       if (a['counterparty'] != null) 'counterparty': a['counterparty'],
     });
     originalTrace.at(SeedOperationAction.source, SeedOperationStep.resolve);

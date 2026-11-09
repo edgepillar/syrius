@@ -115,6 +115,7 @@ final class LabSeedBinding
     required this._accelerator,
     required this._receiveWorker,
     required this.counterparty,
+    required this.restoredFunding,
   });
 
   /// Captures the isolated lab profile and its exact existing SDK transports.
@@ -124,6 +125,7 @@ final class LabSeedBinding
     required String http,
     required bool booted,
     String? counterparty,
+    bool restoredFunding = false,
     void Function(String)? observePhase,
   }) {
     if (ws != seedWsOrigin || http != seedHttpOrigin) {
@@ -205,6 +207,9 @@ final class LabSeedBinding
       owner: owner!,
       members: rawMembers.whereType<String>(),
     )..requireLab();
+    if (restoredFunding && environment.members.length != 3) {
+      throw const SeedRefused('recipe-prerequisite-missing');
+    }
     final String? exactCounterparty = counterparty == null
         ? null
         : Address.parse(counterparty).toString();
@@ -248,6 +253,7 @@ final class LabSeedBinding
       receiveWorker: app.sl.isRegistered<AutoReceiveTxWorker>()
           ? app.sl<AutoReceiveTxWorker>() : null,
       counterparty: exactCounterparty,
+      restoredFunding: restoredFunding,
     );
   }
 
@@ -293,6 +299,7 @@ final class LabSeedBinding
   final SeedEnvironment environment;
   final String home;
   final String? counterparty;
+  final bool restoredFunding;
   final Object walletOwner;
   final Zenon originalSdk;
   final bool Function() _current;
@@ -493,6 +500,21 @@ final class LabSeedBinding
     recipe == 'fuse' ? BigInt.from(100) * BigInt.from(100000000) : BigInt.zero,
   );
 
+  /// Read the same receive requirement as the pinned SDK, before the send.
+  Future<void> requireFundingReceiveReady() async {
+    _requireCurrent();
+    final GetRequiredResponse result =
+        await _plasma.getRequiredPoWForAccountBlock(GetRequiredParam(
+      address: Address.parse(environment.members[2]),
+      blockType: BlockTypeEnum.userReceive.index,
+      data: const <int>[],
+    ));
+    _requireCurrent();
+    if (result.requiredDifficulty != 0) {
+      throw const SeedRefused('funding-receive-plasma-required');
+    }
+  }
+
   @override
   List<SeedOriginal> originals() => OriginalPublications.snapshot(
     walletOwner,
@@ -643,6 +665,8 @@ final class LabSeedBinding
       return matched;
     }
     if (recipe == 'fuse') {
+      final Address beneficiary =
+          restoredFunding ? Address.parse(environment.members[2]) : owner;
       final FusionEntryList rows = await _plasma.getEntriesByAddress(
         owner,
         pageSize: 64,
@@ -654,7 +678,7 @@ final class LabSeedBinding
                   .where(
                     (FusionEntry row) =>
                         row.id.toString() == hash &&
-                        row.beneficiary == owner &&
+                        row.beneficiary == beneficiary &&
                         row.qsrAmount == BigInt.from(10000000000),
                   )
                   .length ==

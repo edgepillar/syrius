@@ -249,6 +249,32 @@ void main() {
     guard = SeedGuard(source: source, journal: journal, delay: source.delay);
   });
 
+  test('funding readiness is checked before the claim and tap', () async {
+    int reads = 0;
+    int taps = 0;
+    Future<void> tap() async {
+      taps++;
+      source.operations.add(_Original());
+    }
+
+    Future<void> read({required bool ready}) async {
+      reads++;
+      expect(journal.attempts, isEmpty);
+      expect(taps, 0);
+      if (!ready) throw const SeedRefused('funding-receive-plasma-required');
+    }
+
+    await expectLater(guard.publish('fund-address', tap,
+        requireReady: () => read(ready: false)), throwsA(isA<SeedRefused>()));
+    expect(journal.attempts, isEmpty);
+    expect(taps, 0);
+    expect(await guard.publish('fund-address', tap,
+        requireReady: () => read(ready: true)), _hash(9));
+    expect(reads, 2);
+    expect(taps, 1);
+    expect(journal.confirmedHashes['fund-address'], _hash(9));
+  });
+
   test('negative Stake counts distinguish each successive match', () {
     final SeedStakeEffectObservation observed =
         SeedStakeEffectObservation.capture(reported: 4, returned: 4,

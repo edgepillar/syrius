@@ -13,7 +13,9 @@ final class SeedRecipe {
   SeedRecipe._(this.id, this.lines);
 
   /// Validates the complete authored plan before admitting a UI command.
-  factory SeedRecipe.parse(String id, String text) {
+  factory SeedRecipe.parse(String id, String text, {
+    bool restoredFunding = false,
+  }) {
     if (!seedRecipeIds.contains(id) ||
         text.length > 8192 ||
         text.split('\n').length > 96 ||
@@ -114,7 +116,8 @@ final class SeedRecipe {
         throw const SeedRefused('seed-script-key-refused');
       }
       if (words.first == 'tap') {
-        seedPreparationTarget(id, words.sublist(1));
+        seedPreparationTarget(id, words.sublist(1),
+            restoredFunding: restoredFunding);
       }
       if (words.contains('--timeout')) {
         final int at = words.indexOf('--timeout');
@@ -196,13 +199,21 @@ List<String> seedPublishSelector(String recipe) => switch (recipe) {
 
 /// Fixed preparation controls have no publication callback. Token Continue
 /// additionally requires its actual original preparation frame at pointer time.
-Map<String, Object> seedPreparationTarget(String recipe, List<String> words) {
+Map<String, Object> seedPreparationTarget(String recipe, List<String> words, {
+  bool restoredFunding = false,
+}) {
   final Set<String> allowed = switch (recipe) {
     'stake' => const <String>{
       '--key staking_stake_button',
       '--key create_stake_months_6',
     },
-    'fuse' => const <String>{'--key plasma_open_fuse'},
+    'fuse' => <String>{
+      '--key plasma_open_fuse',
+      if (restoredFunding) ...const <String>{
+        '--key fuse_plasma_beneficiary_selector',
+        '--key fuse_plasma_beneficiary_option_2',
+      },
+    },
     'token' => const <String>{
       '--key tokens_create',
       '--key token_create_continue',
