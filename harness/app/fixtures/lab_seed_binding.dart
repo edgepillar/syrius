@@ -692,10 +692,15 @@ final class LabSeedBinding
       );
       final Token? token = await _token.getByZts(standard);
       _requireCurrent();
-      return token?.tokenStandard == standard &&
-          token?.owner == owner &&
-          token?.name == 'LabToken' &&
-          token?.symbol == 'LAB';
+      return token != null &&
+          token.tokenStandard == standard &&
+          token.owner == owner &&
+          token.name == 'LabToken' &&
+          token.symbol == 'LAB' &&
+          token.decimals == 0 &&
+          token.isMintable &&
+          token.totalSupply == BigInt.from(1000) &&
+          token.maxSupply == BigInt.from(10000);
     }
     if (recipe == 'project') {
       final Project? project = await readSeedContractEntry<Project>(

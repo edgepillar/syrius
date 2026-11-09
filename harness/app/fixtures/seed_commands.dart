@@ -161,7 +161,7 @@ final class SeedCommands {
         final SeedTap tap = captureTap(<String, dynamic>{
           'cmd': 'tap',
           'ref': target['ref'],
-          if (recipe == 'token' && exact['key'] == 'token_create_continue')
+          if (recipe == 'token' && exact['key'] != 'tokens_create')
             'seedTokenPreparation': true,
         });
         await tap(requirePreparation);

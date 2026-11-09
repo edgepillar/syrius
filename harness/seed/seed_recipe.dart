@@ -217,6 +217,7 @@ Map<String, Object> seedPreparationTarget(String recipe, List<String> words, {
     'token' => const <String>{
       '--key tokens_create',
       '--key token_create_continue',
+      '--key token_mintable_checkbox',
     },
     'deposit' => const <String>{
       '--key p2p_start_swap',
@@ -243,18 +244,22 @@ Map<String, Object> seedPreparationTarget(String recipe, List<String> words, {
       : <String, Object>{'text': words.first, 'kind': 'button', 'exact': true};
 }
 
-/// Holds Token Continue outside its original active preparation frame.
+/// Holds Token preparation outside its original active frame.
 void requireSeedTokenPreparation({
   required String? frameKey,
   required bool active,
   required bool busy,
+  bool mintableToggle = false,
 }) {
   const Set<String> frames = <String>{
     'token_create_details',
     'token_create_supply',
     'token_create_options',
   };
-  if (!active || busy || !frames.contains(frameKey)) {
+  if (!active ||
+      busy ||
+      !frames.contains(frameKey) ||
+      (mintableToggle && frameKey != 'token_create_options')) {
     throw const SeedRefused('token-publication-requires-guarded-publish');
   }
 }

@@ -43,6 +43,22 @@ void main() {
       expect(() => SeedRecipe.parse('fuse',
           fuse.replaceAll(beneficiary, 'fuse_plasma_beneficiary_option_1'),
           restoredFunding: true), throwsA(isA<SeedRefused>()));
+      final SeedRecipe token = SeedRecipe.parse('token',
+          File('harness/seed/token.txt').readAsStringSync());
+      expect(
+        token.lines.skip(10).take(8)
+            .map((List<String> words) => words.join(' ')).toList(),
+        const <String>[
+          'wait --key token_create_options --timeout 30',
+          'tap --key token_mintable_checkbox',
+          'tap --key token_create_continue',
+          'wait --key token_max_supply_field --timeout 30',
+          'type --key token_max_supply_field 10000',
+          'tap --key token_create_continue',
+          'wait --key token_create_options --timeout 30',
+          'tap --key token_create_continue',
+        ],
+      );
       final String deposit = File('harness/seed/deposit.txt')
           .readAsStringSync().replaceAll('\r\n', '\n');
       const String marker =
@@ -230,6 +246,26 @@ void main() {
           'token_create_continue',
         ]),
         <String, Object>{'key': 'token_create_continue', 'exact': true},
+      );
+      expect(
+        seedPreparationTarget('token', <String>[
+          '--key', 'token_mintable_checkbox',
+        ]),
+        <String, Object>{'key': 'token_mintable_checkbox', 'exact': true},
+      );
+      expect(
+        () => requireSeedTokenPreparation(
+          frameKey: 'token_create_options', active: true, busy: false,
+          mintableToggle: true,
+        ),
+        returnsNormally,
+      );
+      expect(
+        () => requireSeedTokenPreparation(
+          frameKey: 'token_create_supply', active: true, busy: false,
+          mintableToggle: true,
+        ),
+        throwsA(isA<SeedRefused>()),
       );
       for (final String key in <String>[
         'token_create_details',

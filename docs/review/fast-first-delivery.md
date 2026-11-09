@@ -10,6 +10,14 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 
 ## Verified results
 
+Source548 Native127 qualifies all six copied seed receipts, their journals and
+normal copied wallet, entry and five-node closure. The original send, tour and
+closure also qualify. The independent reader verifies both finite archives.
+Source549 prepares the mintable lab token used by the owned Token Mint draft.
+Its fresh native result and seeded captures remain open.
+[Producer](https://github.com/edgepillar/syrius/actions/runs/42634466792) and
+[independent archive reader](https://github.com/edgepillar/syrius/actions/runs/42638567706).
+
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,
 Project and Fund Address with its confirmed receive and target balance. The
@@ -138,7 +146,8 @@ frontier reads after such a failure. Their native observation remains pending.
 
 | Original gate | Required evidence |
 | --- | --- |
-| P03/P09/F06 | Complete the documented platform/Docker route, complete seed effects and copied lifecycle, plus coordinator/peer Swap prerequisites. Earlier Linux defaults, WSL installation and native send observations retain their separate scopes. |
+| P03/P09 | Complete the documented Windows Docker route. Earlier Linux defaults, WSL installation and the Source548 native lab retain their separate scopes. |
+| F06 | Complete the seeded screen states and coordinator/peer Swap prerequisites. Source548 qualifies the original six receipts and copied lifecycle. Source549's mintable token awaits a fresh native observation. |
 | V01/V05 | Obtain 40 missing literal outputs, review all 94 pairs, resolve retained layout/type/spacing findings and explicitly accept each match. Availability is 54/94. Accepted whole-image matches are 0/94. |
 | V02 | Observe every motion/shader row in the running build and compare page-change, disclosure and launch frame times with the original baseline. Finite widget timing or stall telemetry alone does not close this gate. |
 | V03 | Try every original seam control, shortcut and Go To entry in the running native wallet and verify refusal. Registry and widget controls remain partial evidence. |

@@ -1,5 +1,6 @@
 # seed: token
 # prerequisite: isolated-chain-321-checkpoint
+# Leave enough supply for the later Mint draft on the owned token.
 goto tokens
 wait --key tokens_create --timeout 30
 tap --key tokens_create
@@ -9,6 +10,12 @@ type --key token_symbol_field LAB
 tap --key token_create_continue
 wait --key token_total_supply_field --timeout 30
 type --key token_total_supply_field 1000
+tap --key token_create_continue
+wait --key token_create_options --timeout 30
+tap --key token_mintable_checkbox
+tap --key token_create_continue
+wait --key token_max_supply_field --timeout 30
+type --key token_max_supply_field 10000
 tap --key token_create_continue
 wait --key token_create_options --timeout 30
 tap --key token_create_continue

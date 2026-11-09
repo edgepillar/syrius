@@ -90,7 +90,7 @@ Details, Supply or Options frame. The Issue frame requires guarded `publish`.
 | --- | --- | --- |
 | `stake` | Stake 300 ZNN for six contract time units | Exact stake ID, owner, amount and duration |
 | `fuse` | Fuse 100 QSR to selected index 1 | Exact owned fusion ID, beneficiary and amount |
-| `token` | Issue `LabToken` / `LAB` | Exact ZTS derived from the original hash, with the captured owner/name/symbol |
+| `token` | Issue mintable `LabToken` / `LAB` with 1,000 issued and a 10,000 cap | Exact ZTS, owner, name, symbol, precision, mintable flag and both supplies |
 | `deposit` | Create one 1 ZNN HTLC deposit | Exact deposit ID, both parties, native token and amount |
 | `project` | Create a 100 ZNN / 100 QSR project | Exact original project ID, owner/name and budget |
 | `fund-address` | Send 10 ZNN to derived index 2 | Exact send confirmation, exact receive from that hash, and positive target balance |
