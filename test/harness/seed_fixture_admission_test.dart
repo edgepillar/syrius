@@ -147,7 +147,7 @@ class _Source implements SeedSource {
   }
 
   @override
-  Future<bool> effect(String recipe, String hash) async => true;
+  Future<bool> effect(String recipe, SeedConfirmed original) async => true;
 }
 
 class _Fixture {

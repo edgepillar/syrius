@@ -349,12 +349,14 @@ final class SeedConfirmed {
     required this.chain,
     required this.positiveConfirmation,
     required this.matchesRecipe,
+    this.fundAddressReceiveConfirmed = false,
   });
   final String hash;
   final String owner;
   final int chain;
   final bool positiveConfirmation;
   final bool matchesRecipe;
+  final bool fundAddressReceiveConfirmed;
 }
 
 abstract interface class SeedSource {
@@ -366,7 +368,7 @@ abstract interface class SeedSource {
   Future<SeedFunding> funding();
   List<SeedOriginal> originals();
   Future<SeedConfirmed?> confirmed(String recipe, String hash);
-  Future<bool> effect(String recipe, String hash);
+  Future<bool> effect(String recipe, SeedConfirmed original);
   SeedFunding minimum(String recipe);
 }
 
@@ -570,8 +572,8 @@ final class SeedGuard {
               !block.matchesRecipe)) {
         throw const SeedRefused('exact-original-receipt-mismatch');
       }
-      if (block?.positiveConfirmation == true) {
-        if (await _read(() => source.effect(recipe, hash))) {
+      if (block != null && block.positiveConfirmation) {
+        if (await _read(() => source.effect(recipe, block))) {
           requireCurrent();
           journal.confirmed(recipe, hash);
           return hash;

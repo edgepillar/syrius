@@ -110,7 +110,7 @@ final class _Source implements SeedSource {
   }
 
   @override
-  Future<bool> effect(String recipe, String hash) async {
+  Future<bool> effect(String recipe, SeedConfirmed original) async {
     effects++;
     throw StateError('P09 does not substitute an F06 seed effect');
   }

@@ -3,6 +3,8 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' as rpc;
+import 'package:mocktail/mocktail.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart' as sdk;
 
 import '../../harness/app/fixtures/fixture_cleanup.dart';
@@ -14,6 +16,8 @@ import '../../harness/app/fixtures/seed_stake_effect.dart';
 import '../../harness/app/fixtures/seed_token_presentation.dart';
 
 String _hash(int id) => id.toRadixString(16).padLeft(64, '0');
+
+class _FundingLedger extends Mock implements sdk.LedgerApi {}
 
 sdk.HtlcInfo _depositEntry() => sdk.HtlcInfo(
   id: sdk.Hash.parse(_hash(9)),
@@ -171,7 +175,7 @@ class _Source implements SeedSource {
   }
 
   @override
-  Future<bool> effect(String recipe, String hash) async {
+  Future<bool> effect(String recipe, SeedConfirmed original) async {
     effectReads++;
     if (onEffect != null) return onEffect!();
     return effectPresent;
@@ -404,6 +408,99 @@ void main() {
       }
       expect(observed.observationReads, 0);
     }
+  });
+
+  test('Fund Address keeps exact receive and balance checks', () async {
+    final sdk.Hash sendHash = sdk.Hash.parse(_hash(9));
+    final sdk.Address recipient = sdk.Address.fromPublicKey(
+      List<int>.filled(32, 1),
+    );
+    final Map<String, dynamic> confirmation = <String, dynamic>{
+      'numConfirmations': 1,
+      'momentumHeight': 11,
+      'momentumHash': _hash(11),
+      'momentumTimestamp': 100,
+    };
+    final Map<String, dynamic> wire = <String, dynamic>{
+      ...sdk.AccountBlockTemplate.receive(sendHash).toJson(),
+      'hash': _hash(10),
+      'address': recipient.toString(),
+      'chainIdentifier': 321,
+      'descendantBlocks': const <dynamic>[],
+      'basePlasma': 0,
+      'usedPlasma': 0,
+      'changesHash': sdk.emptyHash.toString(),
+      'confirmationDetail': confirmation,
+    };
+    bool matches(Map<String, dynamic> value) => seedFundingReceiveMatches(
+      sdk.AccountBlock.fromJson(value),
+      recipient,
+      sendHash,
+    );
+
+    expect(matches(wire), isTrue);
+    expect(seedFundingReceiveMatches(null, recipient, sendHash), isFalse);
+    for (final Map<String, dynamic> change in <Map<String, dynamic>>[
+      <String, dynamic>{'hash': sdk.emptyHash.toString()},
+      <String, dynamic>{'address': sdk.stakeAddress.toString()},
+      <String, dynamic>{'chainIdentifier': 1},
+      <String, dynamic>{'blockType': sdk.BlockTypeEnum.userSend.index},
+      <String, dynamic>{'fromBlockHash': _hash(8)},
+      <String, dynamic>{'confirmationDetail': null},
+      <String, dynamic>{
+        'confirmationDetail': <String, dynamic>{
+          ...confirmation,
+          'numConfirmations': 0,
+        },
+      },
+    ]) {
+      expect(matches(<String, dynamic>{...wire, ...change}), isFalse);
+    }
+
+    final _FundingLedger ledger = _FundingLedger();
+    final List<sdk.AccountBlock> history = <sdk.AccountBlock>[];
+    final BigInt requiredUnits = BigInt.from(1000000000);
+    BigInt units = requiredUnits;
+    when(() => ledger.getAccountInfoByAddress(recipient)).thenAnswer(
+      (_) async => sdk.AccountInfo(
+        address: recipient.toString(),
+        blockCount: 1,
+        balanceInfoList: <sdk.BalanceInfoListItem>[
+          sdk.BalanceInfoListItem(token: kZnnCoin, balance: units),
+        ],
+      ),
+    );
+    when(() => ledger.getAccountBlocksByPage(recipient, pageSize: 64))
+        .thenAnswer((_) async => sdk.AccountBlockList(list: history));
+    Future<bool> effect({required bool paired}) => readSeedFundingEffect(
+      ledger: ledger,
+      recipient: recipient,
+      original: SeedConfirmed(
+        hash: sendHash.toString(),
+        owner: 'owner',
+        chain: 321,
+        positiveConfirmation: true,
+        matchesRecipe: true,
+        fundAddressReceiveConfirmed: paired && matches(wire),
+      ),
+      requireCurrent: () {},
+    );
+
+    expect(await effect(paired: true), isTrue);
+    units -= BigInt.one;
+    expect(await effect(paired: true), isFalse);
+    verify(() => ledger.getAccountInfoByAddress(recipient)).called(2);
+    verifyNever(() => ledger.getAccountBlocksByPage(recipient, pageSize: 64));
+
+    units = requiredUnits;
+    expect(await effect(paired: false), isFalse);
+    final sdk.AccountBlock receive = sdk.AccountBlock.fromJson(wire);
+    history.add(receive);
+    expect(await effect(paired: false), isTrue);
+    history.add(receive);
+    expect(await effect(paired: false), isFalse);
+    verify(() => ledger.getAccountBlocksByPage(recipient, pageSize: 64))
+        .called(3);
   });
 
   test('a current deposit entry retains its original result identity',

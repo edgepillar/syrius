@@ -39,6 +39,55 @@ Future<HtlcInfo?> readSeedDepositEntry({
   return entry;
 }
 
+/// Tests the same receive terms for a paired block or an account history row.
+@visibleForTesting
+bool seedFundingReceiveMatches(
+  AccountBlock? receive,
+  Address recipient,
+  Hash sendHash,
+) =>
+    receive != null &&
+    receive.hash != emptyHash &&
+    receive.chainIdentifier == 321 &&
+    receive.address == recipient &&
+    receive.blockType == BlockTypeEnum.userReceive.index &&
+    receive.fromBlockHash == sendHash &&
+    (receive.confirmationDetail?.numConfirmations ?? 0) > 0;
+
+/// Checks the balance even when the committed send carries its exact receive.
+@visibleForTesting
+Future<bool> readSeedFundingEffect({
+  required LedgerApi ledger,
+  required Address recipient,
+  required SeedConfirmed original,
+  required void Function() requireCurrent,
+}) async {
+  requireCurrent();
+  final AccountInfo account = await ledger.getAccountInfoByAddress(recipient);
+  requireCurrent();
+  final TokenBalanceSnapshot balance = TokenBalanceSnapshot.fromAccount(
+    account,
+    recipient.toString(),
+  );
+  if (balance.unitsFor(znnZts) < BigInt.from(1000000000)) return false;
+  if (original.fundAddressReceiveConfirmed) return true;
+  final AccountBlockList receives = await ledger.getAccountBlocksByPage(
+    recipient,
+    pageSize: 64,
+  );
+  requireCurrent();
+  final List<AccountBlock>? rows = receives.list;
+  if (rows == null) return false;
+  final Hash sendHash = Hash.parse(original.hash);
+  return rows
+          .where(
+            (AccountBlock row) =>
+                seedFundingReceiveMatches(row, recipient, sendHash),
+          )
+          .length ==
+      1;
+}
+
 /// Every wrapper and transport below is captured before the first await.
 /// No fixture installs a client into the ordinary app's global SDK.
 final class LabSeedBinding implements SeedSource, SeedStakeEffectSource {
@@ -458,6 +507,13 @@ final class LabSeedBinding implements SeedSource, SeedStakeEffectSource {
           block.confirmationDetail != null &&
           block.confirmationDetail!.numConfirmations > 0 &&
           block.confirmationDetail!.momentumTimestamp > 0,
+      fundAddressReceiveConfirmed:
+          recipe == 'fund-address' &&
+          seedFundingReceiveMatches(
+            block.pairedAccountBlock,
+            target,
+            block.hash,
+          ),
       matchesRecipe:
           block.blockType == BlockTypeEnum.userSend.index &&
           block.toAddress == target &&
@@ -474,9 +530,10 @@ final class LabSeedBinding implements SeedSource, SeedStakeEffectSource {
   }
 
   @override
-  Future<bool> effect(String recipe, String hash) async {
+  Future<bool> effect(String recipe, SeedConfirmed original) async {
     _requireCurrent();
     _stakeEffect = null;
+    final String hash = original.hash;
     final Address owner = Address.parse(environment.owner);
     if (recipe == 'stake') {
       final StakeList rows = await _stake.getEntriesByAddress(
@@ -574,38 +631,12 @@ final class LabSeedBinding implements SeedSource, SeedStakeEffectSource {
           value.amount == BigInt.from(100000000);
     }
     if (recipe == 'fund-address' && environment.members.length >= 3) {
-      final String recipient = environment.members[2];
-      final AccountInfo account = await _ledger.getAccountInfoByAddress(
-        Address.parse(recipient),
+      return readSeedFundingEffect(
+        ledger: _ledger,
+        recipient: Address.parse(environment.members[2]),
+        original: original,
+        requireCurrent: _requireCurrent,
       );
-      _requireCurrent();
-      if (TokenBalanceSnapshot.fromAccount(
-            account,
-            recipient,
-          ).unitsFor(znnZts) <
-          BigInt.from(1000000000)) {
-        return false;
-      }
-      final AccountBlockList receives = await _ledger.getAccountBlocksByPage(
-        Address.parse(recipient),
-        pageSize: 64,
-      );
-      _requireCurrent();
-      final List<AccountBlock>? rows = receives.list;
-      if (rows == null) return false;
-      return rows
-              .where(
-                (AccountBlock row) =>
-                    row.hash != emptyHash &&
-                    row.chainIdentifier == 321 &&
-                    row.address.toString() == recipient &&
-                    row.blockType == BlockTypeEnum.userReceive.index &&
-                    row.fromBlockHash.toString() == hash &&
-                    row.confirmationDetail != null &&
-                    row.confirmationDetail!.numConfirmations > 0,
-              )
-              .length ==
-          1;
     }
     throw const SeedRefused('recipe-prerequisite-missing');
   }
