@@ -55,6 +55,17 @@ lab account and invokes the page refresh shortcut before waiting for its row.
 [Producer](https://github.com/edgepillar/syrius/actions/runs/42649591624) and
 [independent archive reader](https://github.com/edgepillar/syrius/actions/runs/42653177218).
 
+Source554 Native132 passes selected analysis, 1,372 Dart tests and 1,091
+controller tests with eighteen skips. Both original frontiers remain at
+height 19 throughout the six Send admission polls and the passive failure
+probe. The reader verifies both manifests and zero captured images. The
+stationary cause remains `NOT_ESTABLISHED`. Source555 keeps the six polls and
+requires both frontiers to advance. Its last two Send waits are one ten-second
+slot each, and the four earlier waits remain five seconds each.
+[Consensus configuration](https://github.com/zenon-network/go-zenon/blob/2d1b929cc3fa5269cf133757d4a6963821137984/vm/constants/consensus.go#L25-L32).
+[Producer](https://github.com/edgepillar/syrius/actions/runs/42654419029) and
+[independent archive reader](https://github.com/edgepillar/syrius/actions/runs/42658136847).
+
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,
 Project and Fund Address with its confirmed receive and target balance. The

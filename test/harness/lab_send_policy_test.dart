@@ -145,6 +145,15 @@ final class _Case {
 }
 
 void main() {
+  const List<Duration> frontierWaits = <Duration>[
+    Duration(seconds: 5),
+    Duration(seconds: 5),
+    Duration(seconds: 5),
+    Duration(seconds: 5),
+    Duration(seconds: 10),
+    Duration(seconds: 10),
+  ];
+
   test('exhausted original reads expose only immutable finite counts',
       () async {
     for (final int mode in <int>[0, 18, 7, -9]) {
@@ -263,10 +272,19 @@ void main() {
   });
 
   test(
-    'one original confirmation has one claim, input and exact confirmed hash',
+    'advancement on the last sample admits one exact original confirmation',
     () async {
       final _Case value = _Case();
+      value.source
+        ..advancing = false
+        ..onDelay = () {
+          expect(value.journal.attempts, isEmpty);
+          expect(value.taps, 0);
+          value.source.advancing = value.source.delays.length == 6;
+        };
       expect(await value.run(), _hash(9));
+      expect(value.source.delays, frontierWaits);
+      expect(value.source.reads, 14);
       expect(value.taps, 1);
       expect(value.readyChecks, 4);
       expect(value.guard.original, same(value.original));
@@ -319,7 +337,16 @@ void main() {
         value.source
           ..funded = funded
           ..advancing = !funded;
-        await expectLater(value.run(), throwsA(isA<SeedRefused>()));
+        final String reason = funded
+            ? 'advancing-momentum-required'
+            : 'funded-selected-index-required';
+        await expectLater(value.run(), throwsA(isA<SeedRefused>().having(
+          (SeedRefused error) => error.code, 'code', reason,
+        )));
+        expect(
+          value.source.delays, funded ? frontierWaits : frontierWaits.take(1),
+        );
+        expect(value.source.reads, funded ? 14 : 4);
         expect(value.taps, 0);
         expect(value.journal.attempts, isEmpty);
       }

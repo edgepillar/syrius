@@ -557,7 +557,11 @@ final class SeedGuard {
     SeedFrontier previousHttp = firstHttp;
     bool advancing = false;
     for (int poll = 0; poll < 6; poll++) {
-      await _delay(const Duration(seconds: 5));
+      // Give the last two P09 samples a full nominal momentum slot each.
+      final Duration interval = _labSend && poll >= 4
+          ? const Duration(seconds: 10)
+          : const Duration(seconds: 5);
+      await _delay(interval);
       requireCurrent();
       final (SeedFrontier ws, SeedFrontier http) = await _frontiers();
       if (ws.height < previousWs.height ||
