@@ -51,9 +51,9 @@ SentinelsByOwnerBloc _ownerReader(Zenon sdk, String address) =>
 SentinelsBloc _activeReader(Zenon sdk, String address) {
   final WalletActionContext original = _requireOriginal(sdk, address);
   return FixtureSentinelsBloc(
+    () => original.isCurrent,
     sdk: original.client,
     rows: <SentinelInfo>[fixtureSentinelInfo(original.ownerAddress)],
-    current: () => original.isCurrent,
   );
 }
 
@@ -79,12 +79,10 @@ class _FixtureOwner extends SentinelsByOwnerBloc {
 /// Supplies finite fixture rows and excludes them from hydrated storage.
 final class FixtureSentinelsBloc extends SentinelsBloc {
   /// Shares the same read-only fixture list between both harness hosts.
-  FixtureSentinelsBloc({
+  FixtureSentinelsBloc(this._current, {
     required Zenon sdk,
     required List<SentinelInfo> rows,
-    required bool Function() current,
   }) : _rows = List<SentinelInfo>.unmodifiable(rows),
-       _current = current,
        super(zenon: sdk);
 
   final List<SentinelInfo> _rows;

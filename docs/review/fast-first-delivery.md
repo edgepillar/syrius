@@ -192,6 +192,12 @@ requires the visible owner strip in both themes, with owner actions disabled.
 The catalog retains only the two Sentinel images and their manifest. Fresh
 Windows capture and independent verification are pending.
 
+The first Source567 Windows run passes the controller and asset checks, then
+stops at one `PREFER_INITIALIZING_FORMALS` finding in the fixture list
+constructor. Source568 uses an initializing formal for the same current-owner
+callback. The first run retains its failure and zero artifacts.
+[Original run](https://github.com/edgepillar/syrius/actions/runs/42696877998).
+
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,
 Project and Fund Address with its confirmed receive and target balance. The

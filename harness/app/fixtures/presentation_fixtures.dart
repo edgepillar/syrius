@@ -56,9 +56,9 @@ class _SeedPresentationFixtureState extends State<SeedPresentationFixture> {
     _sentinel = fixtureSentinelInfo(widget.owner);
     if (widget.kind == 'sentinel') {
       _sentinels = FixtureSentinelsBloc(
+        () => _current,
         sdk: widget.originalSdk,
         rows: <SentinelInfo>[_sentinel],
-        current: () => _current,
       );
       _sentinels!.add(const InfiniteListRequested());
     } else if (widget.kind == 'aged-fuse') {
