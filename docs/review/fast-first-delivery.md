@@ -128,6 +128,15 @@ input remains available. Fifteen comparison tests and three CLI controls pass
 with the real PNG codec and in-memory files. Actual wallet image review and
 complete catalog acceptance remain open.
 
+The Source560 Windows producer passes selected Dart analysis with zero
+findings, 1,372 selected Dart cases, 1,091 controller cases with eighteen
+skips, and fourteen asset controls. The isolated wallet, entry and all five
+nodes close normally. The independent reader verifies four 1280 by 780 Earn
+PNGs across both themes, the two capture scripts and 62 producer source
+files. The catalog has 58 of 94 literal outputs. Visual acceptance remains
+open for every pair. [Producer](https://github.com/edgepillar/syrius/actions/runs/42677832261)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42680447925).
+
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,
 Project and Fund Address with its confirmed receive and target balance. The
@@ -258,7 +267,7 @@ frontier reads after such a failure. Their native observation remains pending.
 | --- | --- |
 | P03/P09 | Complete the documented Windows Docker route. Earlier Linux defaults, WSL installation and the Source548 native lab retain their separate scopes. |
 | F06 | Complete the seeded screen states and coordinator/peer Swap prerequisites. Source548 qualifies the original six receipts and copied lifecycle. Source549's mintable token awaits a fresh native observation. |
-| V01/V05 | Obtain 40 missing literal outputs, review all 94 pairs, resolve retained layout/type/spacing findings and explicitly accept each match. Availability is 54/94. Accepted whole-image matches are 0/94. |
+| V01/V05 | Obtain 36 missing literal outputs, review all 94 pairs, resolve retained layout/type/spacing findings and explicitly accept each match. Availability is 58/94. Accepted whole-image matches are 0/94. |
 | V02 | Observe every motion/shader row in the running build and compare page-change, disclosure and launch frame times with the original baseline. Finite widget timing or stall telemetry alone does not close this gate. |
 | V03 | Try every original seam control, shortcut and Go To entry in the running native wallet and verify refusal. Registry and widget controls remain partial evidence. |
 | V06 | Check every original end-state requirement and complete independent final acceptance. The earlier minimum-window/Arabic viewing remains source-bound. |
