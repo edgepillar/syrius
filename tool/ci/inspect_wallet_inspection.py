@@ -75,6 +75,8 @@ SOURCE_FILES = (
     'harness/screens/token-new.txt',
     'harness/screens/send-confirm.txt',
 )
+SENTINEL_FIXTURE_SOURCES = ('harness/app/main.dart',
+    'harness/app/fixtures/sentinel_fixture.dart')
 PHASE = 'environment'
 
 
@@ -529,9 +531,13 @@ def main(parent=None):
             PHASE = 'details_catalog_artifact'
             schema = details_reference['schema']
             scripts = producer.details.catalog_screens(schema)
-            if schema == producer.details.FAMILY_SCHEMAS['earn']:
+            if schema in (producer.details.FAMILY_SCHEMAS['earn'],
+                          producer.details.FAMILY_SCHEMAS['sentinel-fixture']):
+                fixture_sources = (SENTINEL_FIXTURE_SOURCES
+                    if schema == producer.details.FAMILY_SCHEMAS['sentinel-fixture'] else ())
                 source_digests.update(source_files(repo, producer_tree, tree,
-                    files=tuple('harness/screens/' + name + '.txt' for name in scripts)))
+                    files=fixture_sources + tuple('harness/screens/' + name + '.txt'
+                                                  for name in scripts)))
             item = artifact(listing, 'details-catalog-' + head + '-' + text + '-1', head, run_id)
             pins = {name: source_digests['harness/screens/' + name + '.txt']
                 for name in scripts}

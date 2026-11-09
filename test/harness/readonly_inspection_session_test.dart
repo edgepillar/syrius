@@ -51,7 +51,7 @@ void main() {
     expect(readonlyInspectionCatalogFamily(<String, String>{}), 'details');
     for (final String family in <String>[
       'home', 'settings', 'navigation', 'details', 'token-draft',
-      'send-confirm', 'earn',
+      'send-confirm', 'earn', 'sentinel-fixture',
     ]) {
       expect(readonlyInspectionCatalogFamily(<String, String>{
         'SYRIUS_READONLY_CATALOG_FAMILY': family,
@@ -1542,7 +1542,7 @@ void main() {
     final Map<String, String> scripts = <String, String>{
       for (final String screen in <String>[
         ...detailsScreens, 'token-new', 'send-confirm',
-        'staking-empty', 'pillar-mine',
+        'staking-empty', 'pillar-mine', 'sentinels',
       ])
         screen: File('harness/screens/$screen.txt').readAsStringSync(),
     };
@@ -1582,27 +1582,31 @@ void main() {
     }
     for (final String fault in <String>[
       'unbound', 'none', 'first', 'shot', 'return', 'late', 'png', 'close',
-      'token-draft', 'send-confirm', 'earn',
+      'token-draft', 'send-confirm', 'earn', 'sentinel-fixture',
     ]) {
       final bool tokenDraft = fault == 'token-draft';
       final bool sendConfirmation = fault == 'send-confirm';
       final bool earn = fault == 'earn';
+      final bool sentinelFixture = fault == 'sentinel-fixture';
       final ReadonlyDetailsSelection selection = switch (fault) {
         'token-draft' => ReadonlyDetailsSelection.tokenDraft,
         'send-confirm' => ReadonlyDetailsSelection.sendConfirmation,
         'earn' => ReadonlyDetailsSelection.earn,
+        'sentinel-fixture' => ReadonlyDetailsSelection.sentinelFixture,
         _ => ReadonlyDetailsSelection.details,
       };
       final List<String> screens = switch (fault) {
         'token-draft' => const <String>['token-new'],
         'send-confirm' => const <String>['send-confirm'],
         'earn' => const <String>['staking-empty', 'pillar-mine'],
+        'sentinel-fixture' => const <String>['sentinels'],
         _ => detailsScreens,
       };
       final List<String> routes = switch (fault) {
         'token-draft' => const <String>['tokens'],
         'send-confirm' => const <String>['transfer'],
         'earn' => const <String>['staking', 'pillars'],
+        'sentinel-fixture' => const <String>['pillars'],
         _ => detailsRoutes,
       };
       final List<String> files = switch (fault) {
@@ -1614,6 +1618,9 @@ void main() {
         'earn' => const <String>[
           '15-staking-empty-dark.png', '15-staking-empty-light.png',
           '17-pillar-mine-dark.png', '17-pillar-mine-light.png',
+        ],
+        'sentinel-fixture' => const <String>[
+          '18-sentinels-dark.png', '18-sentinels-light.png',
         ],
         _ => detailsFiles,
       };
@@ -1666,6 +1673,7 @@ void main() {
               command['key'] != 'rail_toggle') {
             expect(tab, routes[(afterShot ? shots - 1 : shots) ~/ 2]);
             if (fault == 'first') return negative;
+            if (sentinelFixture) expect(targetKey, 'nodes_tab_sentinels');
             if (earn) {
               switch (targetKey) {
                 case 'nodes_tab_pillars':
@@ -1742,6 +1750,11 @@ void main() {
           if (name == 'shot') {
             expect(tab, routes[shots ~/ 2]);
             expect(selected, screens[shots ~/ 2]);
+            if (sentinelFixture) {
+              expect(command['expect'], <String, Object?>{
+                'key': 'nodes_sentinel_read_scope', 'exact': true,
+              });
+            }
             if (earn) {
               expect(draftOpen, tab == 'pillars');
               expect(command['expect'], <String, Object?>{
@@ -1781,6 +1794,7 @@ void main() {
           }
           Map<String, Object?>? typeTarget;
           if (name == 'type') {
+            expect(sentinelFixture, isFalse);
             if (tokenDraft) {
               expect(draftOpen, isTrue);
               if (targetKey is! String) {
@@ -1851,6 +1865,7 @@ void main() {
                 'dashboard', 'transfer', 'plasma', 'settings',
                 if (tokenDraft) 'tokens',
                 if (earn) ...<String>['staking', 'pillars'],
+                if (sentinelFixture) 'pillars',
               ],
               'locale': 'en', 'direction': 'ltr',
             },
@@ -1917,7 +1932,7 @@ void main() {
         ), throwsA(isA<ReadonlyInspectionRefused>()));
         expect(commands.length, calls);
       }
-      if (fault == 'none' || tokenDraft || sendConfirmation || earn) {
+      if (fault == 'none' || tokenDraft || selection.catalogOnly) {
         final Map<String, Object> receipt = await capture();
         expect(receipt, <String, Object>{
           'schema': selection.schema,
@@ -1928,7 +1943,7 @@ void main() {
         });
         expect(shots, files.length);
         expect(returned, files.length);
-        expect(closedFuse, tokenDraft || sendConfirmation || earn ? 0 : 2);
+        expect(closedFuse, tokenDraft || selection.catalogOnly ? 0 : 2);
         expect(closedToken, tokenDraft ? 2 : 0);
         expect(canceledSend, sendConfirmation ? 2 : 0);
         expect(closedPillar, earn ? 2 : 0);

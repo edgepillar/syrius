@@ -27,7 +27,8 @@ from . import readonly_navigation_capture as navigation
 from . import readonly_details_capture as details
 from .windows_debug_process import IMAGE_NAMES
 from .hosted_chain321 import (EARN_INSPECTION_SCHEMA, READONLY_CATALOG_SCHEMAS,
-    SEND_CONFIRM_INSPECTION_SCHEMA, readonly_catalog_family)
+    SEND_CONFIRM_INSPECTION_SCHEMA, SENTINEL_INSPECTION_SCHEMA,
+    readonly_catalog_family)
 
 
 PAGES = shared.PAGES
@@ -58,6 +59,7 @@ TOUR_CHECKS = ('tours_complete', 'locale_verified')
 CATALOG_ONLY_FAMILIES = {
     SEND_CONFIRM_INSPECTION_SCHEMA: 'send-confirm',
     EARN_INSPECTION_SCHEMA: 'earn',
+    SENTINEL_INSPECTION_SCHEMA: 'sentinel-fixture',
 }
 CODES = shared.CODES | shared.LAB_REVALIDATION_CODES | frozenset((
     'BINDING_REFUSED', 'INSPECTION_REFUSED'))
@@ -555,7 +557,7 @@ def inspection_catalog_reference(report):
     if family is not None:
         need(reference['schema'] == details.FAMILY_SCHEMAS[family], 'CAPTURE_REFUSED')
     else:
-        need(reference['schema'] != details.FAMILY_SCHEMAS['earn'], 'CAPTURE_REFUSED')
+        need(reference['schema'] in (1, 2, 3), 'CAPTURE_REFUSED')
     return reference
 
 
@@ -1182,7 +1184,8 @@ def artifact_paths(parent):
     catalog_family = {1: 'home-catalog', 2: 'settings-catalog',
         3: 'navigation-catalog', 4: 'details-catalog',
         SEND_CONFIRM_INSPECTION_SCHEMA: 'details-catalog',
-        EARN_INSPECTION_SCHEMA: 'details-catalog'}[value['schema']]
+        EARN_INSPECTION_SCHEMA: 'details-catalog',
+        SENTINEL_INSPECTION_SCHEMA: 'details-catalog'}[value['schema']]
     if value['schema'] == 1:
         home_paths = home_artifact_paths(repo, value)
     elif value['schema'] == 2:

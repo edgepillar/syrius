@@ -12,6 +12,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/motion_binding.dart';
 
 import 'agent.dart';
 import 'client_window.dart';
+import 'fixtures/sentinel_fixture.dart';
 import 'native_window_owner.dart';
 import 'presentation_host.dart';
 import 'presentation_mode.dart';
@@ -122,7 +123,11 @@ Future<void> main() async {
   // Put back whatever was there, so the installed wallet keeps its links.
   final String? previous = _readProtocolCommand();
   try {
-    await app.main();
+    final bool sentinelFixture = readonlyNative &&
+        env['SYRIUS_READONLY_CATALOG_FAMILY'] == harnessReadonlySentinelCatalog;
+    await app.runSyriusApp(
+      wrapRoot: sentinelFixture ? wrapReadonlySentinelFixture : null,
+    );
   } finally {
     _restoreProtocolCommand(previous);
   }

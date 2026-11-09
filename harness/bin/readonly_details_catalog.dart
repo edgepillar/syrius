@@ -35,6 +35,9 @@ enum ReadonlyDetailsSelection {
       '15-staking-empty-dark.png', '15-staking-empty-light.png',
       '17-pillar-mine-dark.png', '17-pillar-mine-light.png',
     ],
+  ),
+  sentinelFixture(8, 'sentinel_fixture_catalog', <String>['sentinels'],
+    <String>['18-sentinels-dark.png', '18-sentinels-light.png'],
   );
 
   const ReadonlyDetailsSelection(
@@ -46,7 +49,8 @@ enum ReadonlyDetailsSelection {
   final List<String> screens;
   final List<String> files;
 
-  bool get catalogOnly => this == sendConfirmation || this == earn;
+  bool get catalogOnly =>
+      this == sendConfirmation || this == earn || this == sentinelFixture;
 }
 
 class _DetailsInstance extends cli.Instance {
@@ -142,7 +146,11 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
       await cli.run(instance, words.first, cli.Args(words.sublist(1)));
     },
     assertionFor: (List<String> words) =>
-        cli.assertionArgs(cli.Args(words.sublist(1))),
+        selection == ReadonlyDetailsSelection.sentinelFixture
+            ? const <String, Object>{
+                'key': 'nodes_sentinel_read_scope', 'exact': true,
+              }
+            : cli.assertionArgs(cli.Args(words.sublist(1))),
     readRailState: session.railExpanded,
     restoreRailState: session.restoreScreenRail,
     onStep: onStep,

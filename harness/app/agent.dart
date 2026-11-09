@@ -3828,8 +3828,16 @@ class HarnessAgent {
     void Function(String reason)? onRejected,
   }) {
     final Object? key = command['key'];
-    if (_readonlyNative == null || key is! String ||
-        !const <String>{
+    if (_readonlyNative == null || key is! String) return null;
+    final bool sentinelRegion =
+        Platform.environment['SYRIUS_READONLY_CATALOG_FAMILY'] ==
+            harnessReadonlySentinelCatalog &&
+        const <String>{
+          'nodes_sentinels_strip', 'nodes_sentinel_read_scope',
+          'nodes_sentinel_active', 'nodes_sentinel_owner_address',
+          'sentinels_loaded',
+        }.contains(key);
+    if (!sentinelRegion && !const <String>{
           'home_hero', 'home_znn', 'rail_label_dashboard',
           'send_form_ready',
           'send_confirmation_marker',

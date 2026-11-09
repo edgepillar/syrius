@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import '../app/readonly_native_mode.dart' show harnessReadonlySentinelCatalog;
 import '../wallet_recipe_failure.dart' show walletRecipePublicDiagnostic;
 import 'harness.dart' as cli;
 import 'readonly_details_catalog.dart';
@@ -20,6 +21,7 @@ const Map<String, ReadonlyDetailsSelection> _detailsSelections =
       'token-draft': ReadonlyDetailsSelection.tokenDraft,
       'send-confirm': ReadonlyDetailsSelection.sendConfirmation,
       'earn': ReadonlyDetailsSelection.earn,
+      harnessReadonlySentinelCatalog: ReadonlyDetailsSelection.sentinelFixture,
     };
 
 /// One fixed original capture family, with the previous Details default.

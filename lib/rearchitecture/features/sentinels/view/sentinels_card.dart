@@ -22,6 +22,7 @@ class SentinelsCard extends StatelessWidget {
   /// Creates the list; an injected bloc remains owned by its caller.
   const SentinelsCard({
     this.bloc,
+    this.createBloc,
     this.selectedAddress,
     this.onSpawn,
     this.onOpenOwner,
@@ -31,6 +32,9 @@ class SentinelsCard extends StatelessWidget {
 
   /// An already scoped reader, chiefly supplied by the Nodes integration.
   final SentinelsBloc? bloc;
+
+  /// Creates a reader owned by the card when no existing bloc is supplied.
+  final SentinelsBloc Function()? createBloc;
 
   /// The captured address to mark, without inferring wallet ownership.
   final String? selectedAddress;
@@ -57,8 +61,8 @@ class SentinelsCard extends StatelessWidget {
       return BlocProvider<SentinelsBloc>.value(value: supplied, child: view);
     }
     return BlocProvider<SentinelsBloc>(
-      create: (_) =>
-          SentinelsBloc(zenon: zenon!)..add(const InfiniteListRequested()),
+      create: (_) => (createBloc?.call() ?? SentinelsBloc(zenon: zenon!))
+        ..add(const InfiniteListRequested()),
       child: view,
     );
   }

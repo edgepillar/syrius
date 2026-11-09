@@ -52,6 +52,7 @@ on:
           - token-draft
           - send-confirm
           - earn
+          - sentinel-fixture
           - seeded-states
           - stake-draft
           - project-detail

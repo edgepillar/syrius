@@ -208,7 +208,7 @@ class InspectionTests(unittest.TestCase):
         for family, schema in (('home', 1), ('settings', 2),
                                ('navigation', 3), ('details', 4),
                                ('token-draft', 4), ('send-confirm', 5),
-                               ('earn', 6)):
+                               ('earn', 6), ('sentinel-fixture', 7)):
             selected = dict(parent, SYRIUS_READONLY_CATALOG_FAMILY=family)
             self.assertTrue(lab.wallet_inspection_requested('native', selected))
             self.assertEqual(lab.READONLY_CATALOG_SCHEMAS[
@@ -225,7 +225,8 @@ class InspectionTests(unittest.TestCase):
         self.assertEqual([line.strip()[2:] for line in choice.splitlines()
             if line.strip().startswith('- ')],
             ['home', 'settings', 'navigation', 'details', 'token-draft',
-             'send-confirm', 'earn', 'seeded-states', 'stake-draft', 'project-detail'])
+             'send-confirm', 'earn', 'sentinel-fixture', 'seeded-states',
+             'stake-draft', 'project-detail'])
         self.assertIn('SYRIUS_READONLY_CATALOG_FAMILY: ${{ inputs.readonly_catalog_family }}', workflow)
         for family, title, stem in (
             ('stake-draft', 'New stake draft', '14-staking-new'),
@@ -579,12 +580,14 @@ class InspectionTests(unittest.TestCase):
             self.assertIs(value[key], False)
         self.assertEqual(value['visual_matches'], 0)
         focused = catalog_only_report(value, 'f' * 64, 'send-confirm')
-        earn = catalog_only_report(value, 'f' * 64, 'earn')
-        self.assertTrue(inspection.completed(earn))
-        self.assertIs(inspection.public_manifest(earn), earn)
-        for schema in (4, 5):
-            with self.subTest(earn_schema=schema), self.assertRaises(inspection.Refused):
-                inspection.public_manifest(dict(earn, schema=schema))
+        for family in ('earn', 'sentinel-fixture'):
+            catalog = catalog_only_report(value, 'f' * 64, family)
+            self.assertTrue(inspection.completed(catalog))
+            self.assertIs(inspection.public_manifest(catalog), catalog)
+            for schema in (4, 5, 6, 7):
+                if schema != catalog['schema']:
+                    with self.subTest(family=family, schema=schema), self.assertRaises(inspection.Refused):
+                        inspection.public_manifest(dict(catalog, schema=schema))
         self.assertIs(inspection.public_manifest(focused), focused)
         self.assertTrue(inspection.completed(focused))
         for change in (
@@ -1101,6 +1104,16 @@ class InspectionTests(unittest.TestCase):
         self.assertEqual(len(reads), 8)
         for filename in inspection.details.EARN_FILES:
             self.assertIn('ci-details-catalog/' + filename, output)
+        self.assertNotIn('12-send-confirm-', output)
+        self.assertNotIn('/captures/', output)
+        self.assertNotIn('ci-viewport-observations/', output)
+        paths, reads, output = self.artifact_case(
+            value, pixels=pixels, catalog_only='sentinel-fixture')
+        self.assertEqual(paths, ['.harness/ci-wallet-inspection/manifest.json'])
+        self.assertEqual(len(reads), 5)
+        self.assertIn('catalog_family=details-catalog', output)
+        self.assertIn('ci-details-catalog/18-sentinels-dark.png', output)
+        self.assertIn('ci-details-catalog/18-sentinels-light.png', output)
         self.assertNotIn('12-send-confirm-', output)
         self.assertNotIn('/captures/', output)
         self.assertNotIn('ci-viewport-observations/', output)

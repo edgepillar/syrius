@@ -13,3 +13,5 @@ wait --key nodes_sentinel_active --timeout 30
 assert --key sentinels_loaded
 assert --key nodes_sentinel_active
 assert --key nodes_sentinel_owner_address
+# after-capture: goto dashboard
+# after-capture: wait --key home_hero --timeout 5

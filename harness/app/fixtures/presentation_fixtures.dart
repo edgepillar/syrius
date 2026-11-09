@@ -5,7 +5,6 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/fused_plasma
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/plasma_owner/plasma_owner_controller.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/plasma_owner/plasma_session.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/send.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/sentinels/bloc/sentinels_bloc.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/sentinels/view/sentinels_card.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/sentinels_by_owner/view/sentinel_strip.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
@@ -15,6 +14,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import 'fixture_cleanup.dart';
 import 'seed_policy.dart';
+import 'sentinel_fixture.dart';
 
 /// Only the harness imports this route. It supplies presentation data locally;
 /// it does not claim a sentinel registration or age a real chain fusion.
@@ -40,7 +40,7 @@ class SeedPresentationFixture extends StatefulWidget {
 }
 
 class _SeedPresentationFixtureState extends State<SeedPresentationFixture> {
-  _FixtureSentinels? _sentinels;
+  FixtureSentinelsBloc? _sentinels;
   _FixtureSender? _sender;
   PlasmaOwnerController? _fusions;
   Timer? _scopeClock;
@@ -53,15 +53,9 @@ class _SeedPresentationFixtureState extends State<SeedPresentationFixture> {
     super.initState();
     _cleanup = widget.cleanup;
     _cleanup.attach(this);
-    _sentinel = SentinelInfo.fromJson(<String, dynamic>{
-      'owner': widget.owner,
-      'registrationTimestamp': 1625132800,
-      'isRevocable': true,
-      'revokeCooldown': 3600,
-      'active': true,
-    });
+    _sentinel = fixtureSentinelInfo(widget.owner);
     if (widget.kind == 'sentinel') {
-      _sentinels = _FixtureSentinels(
+      _sentinels = FixtureSentinelsBloc(
         sdk: widget.originalSdk,
         rows: <SentinelInfo>[_sentinel],
         current: () => _current,
@@ -127,7 +121,7 @@ class _SeedPresentationFixtureState extends State<SeedPresentationFixture> {
     _expired = true;
     final Timer? clock = _scopeClock;
     final PlasmaOwnerController? fusions = _fusions;
-    final _FixtureSentinels? sentinels = _sentinels;
+    final FixtureSentinelsBloc? sentinels = _sentinels;
     final _FixtureSender? sender = _sender;
     _cleanup.dispose(
       owner: this,
@@ -215,33 +209,6 @@ class _SeedPresentationFixtureState extends State<SeedPresentationFixture> {
       ),
     );
   }
-}
-
-/// No fixture state is hydrated into an ordinary page's cache.
-class _FixtureSentinels extends SentinelsBloc {
-  _FixtureSentinels({
-    required Zenon sdk,
-    required this.rows,
-    required this.current,
-  }) : super(zenon: sdk);
-  final List<SentinelInfo> rows;
-  final bool Function() current;
-  @override
-  Future<List<SentinelInfo>> paginationFetch({
-    required int pageIndex,
-    required int pageSize,
-    Address? address,
-  }) async {
-    if (!current()) throw const SeedRefused('fixture-expired');
-    return pageIndex == 0
-        ? List<SentinelInfo>.unmodifiable(rows)
-        : <SentinelInfo>[];
-  }
-
-  @override
-  Map<String, dynamic>? toJson(InfiniteListState<SentinelInfo> state) => null;
-  @override
-  InfiniteListState<SentinelInfo>? fromJson(Map<String, dynamic> json) => null;
 }
 
 class _FixtureSender extends SendTransactionBloc {

@@ -640,6 +640,9 @@ class ReaderTests(unittest.TestCase):
         if catalog_only == 'earn':
             source_files += tuple('harness/screens/' + name + '.txt'
                                   for name in reader.producer.details.EARN_SCREENS)
+        elif catalog_only == 'sentinel-fixture':
+            source_files += reader.SENTINEL_FIXTURE_SOURCES + (
+                'harness/screens/sentinels.txt',)
         tree = dict(sha='b' * 40, truncated=False, tree=[dict(path=n, mode='100644', type='blob', sha=blob)
             for n in source_files])
         calls = []
@@ -830,6 +833,17 @@ class ReaderTests(unittest.TestCase):
         self.assertNotIn('Retained readonly viewport observation', text)
         with self.assertRaises(reader.archive.Refused):
             self.run_main(catalog_only='earn', extra_viewport=True)
+        value, calls, text = self.run_main(catalog_only='sentinel-fixture')
+        self.assertTrue(value['native_inspection_qualified'])
+        self.assertEqual(value['sampling_scope'], 'sentinel-fixture-only')
+        self.assertEqual(value['verified_catalog_png_count'], 2)
+        self.assertEqual(value['producer_source_files_verified'], 63)
+        self.assertEqual(len(calls), 14)
+        self.assertEqual(value['verified_png_count'], 0)
+        self.assertEqual(value['verified_viewport_png_count'], 0)
+        self.assertNotIn('Retained readonly viewport observation', text)
+        with self.assertRaises(reader.archive.Refused):
+            self.run_main(catalog_only='sentinel-fixture', extra_viewport=True)
 
     def test_failed_parent_cannot_be_healed_by_a_successful_wallet_archive(self):
         value, _, _ = self.run_main(parent_failed=True)

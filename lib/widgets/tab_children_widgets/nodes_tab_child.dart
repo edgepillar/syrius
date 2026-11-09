@@ -38,6 +38,25 @@ enum NodesCommand {
   delegate,
 }
 
+/// Optional readers for the Sentinel view with owner actions disabled.
+final class NodesSentinelReaders {
+  /// Supplies the three reads from a single owner-scoped source.
+  const NodesSentinelReaders({
+    required this.owner,
+    required this.active,
+    required this.count,
+  });
+
+  /// Creates the ownership reader for the selected address.
+  final SentinelsByOwnerBloc Function(Zenon, String) owner;
+
+  /// Creates a reader for the active list, owned by the list card.
+  final SentinelsBloc Function(Zenon, String) active;
+
+  /// Reads the total used in the Sentinel tab heading.
+  final Future<int> Function(Zenon, String) count;
+}
+
 /// One rail destination for the two node lists.
 ///
 /// A null [initialTab] resumes the choice made during this app session. An
@@ -81,6 +100,7 @@ class NodesTabChild extends StatelessWidget {
         child: _bindCommands(
           _NodesOwnerContent(
             initialTab: initialTab,
+            sentinelReaders: context.read<NodesSentinelReaders?>(),
             onStepperNotificationSeeMorePressed:
                 onStepperNotificationSeeMorePressed,
           ),
@@ -106,11 +126,13 @@ class NodesTabChild extends StatelessWidget {
 class _NodesOwnerContent extends StatefulWidget {
   const _NodesOwnerContent({
     required this.onStepperNotificationSeeMorePressed,
+    required this.sentinelReaders,
     this.initialTab,
   });
 
   final VoidCallback onStepperNotificationSeeMorePressed;
   final NodesTab? initialTab;
+  final NodesSentinelReaders? sentinelReaders;
 
   @override
   State<_NodesOwnerContent> createState() => _NodesOwnerContentState();
@@ -121,20 +143,29 @@ class _NodesOwnerContentState extends State<_NodesOwnerContent> {
 
   @override
   Widget build(BuildContext context) => BlocProvider<SentinelsByOwnerBloc>(
-    create: (_) =>
-        SentinelsByOwnerBloc(zenon: zenon!)
-          ..add(FetchRequestData(address: Address.parse(kSelectedAddress!))),
+    create: (_) {
+      final Zenon client = zenon!;
+      final String address = kSelectedAddress!;
+      return (widget.sentinelReaders?.owner(client, address) ??
+          SentinelsByOwnerBloc(zenon: client))
+        ..add(FetchRequestData(address: Address.parse(address)));
+    },
     child: BlocProvider<NodesCountsCubit>(
       create: (_) {
+        final String address = kSelectedAddress!;
         final WalletActionContext? original = WalletActionContext.capture(
-          kSelectedAddress!,
+          address,
         );
         final Zenon client = zenon!;
+        final NodesSentinelReaders? readers = widget.sentinelReaders;
         final NodesCountsCubit reader = NodesCountsCubit(
           loadPillars: () async =>
               (await client.embedded.pillar.getAll(pageSize: 1)).count,
-          loadSentinels: () async =>
-              (await client.embedded.sentinel.getAllActive(pageSize: 1)).count,
+          loadSentinels: readers != null
+              ? () => readers.count(client, address)
+              : () async => (await client.embedded.sentinel.getAllActive(
+                    pageSize: 1,
+                  )).count,
           isCurrent: () => original?.isCurrent ?? false,
         );
         unawaited(reader.refresh());
@@ -166,6 +197,7 @@ class _NodesOwnerContentState extends State<_NodesOwnerContent> {
                     )
                   : null,
               sentinelsStrip: _SentinelStrip(
+                ownerActionsEnabled: widget.sentinelReaders == null,
                 onStepperNotificationSeeMorePressed:
                     widget.onStepperNotificationSeeMorePressed,
               ),
@@ -173,18 +205,22 @@ class _NodesOwnerContentState extends State<_NodesOwnerContent> {
               sentinels: const SentinelsCard(),
               pillarsBuilder: (Widget tabs) =>
                   NodesDelegationList(heading: tabs),
-              sentinelsBuilder: (Widget tabs) => SentinelsCard(
-                heading: tabs,
-                selectedAddress: kSelectedAddress,
-                onSpawn: () => _showSentinelOwner(
+              sentinelsBuilder: (Widget tabs) {
+                final NodesSentinelReaders? readers = widget.sentinelReaders;
+                Future<void> openOwner() => _showSentinelOwner(
                   scoped,
                   widget.onStepperNotificationSeeMorePressed,
-                ),
-                onOpenOwner: () => _showSentinelOwner(
-                  scoped,
-                  widget.onStepperNotificationSeeMorePressed,
-                ),
-              ),
+                );
+                return SentinelsCard(
+                  createBloc: readers == null
+                      ? null
+                      : () => readers.active(zenon!, kSelectedAddress!),
+                  heading: tabs,
+                  selectedAddress: kSelectedAddress,
+                  onSpawn: readers == null ? openOwner : null,
+                  onOpenOwner: readers == null ? openOwner : null,
+                );
+              },
             ),
           ),
         ),
@@ -446,15 +482,18 @@ class _NodesPageState extends State<NodesPage>
 class _SentinelStrip extends StatelessWidget {
   const _SentinelStrip({
     required this.onStepperNotificationSeeMorePressed,
+    required this.ownerActionsEnabled,
   });
 
   final VoidCallback onStepperNotificationSeeMorePressed;
+  final bool ownerActionsEnabled;
 
   @override
   Widget build(BuildContext context) {
     return SentinelCollectScope(
       sender: context.read<SendTransactionBloc>(),
       child: _SentinelStripView(
+        ownerActionsEnabled: ownerActionsEnabled,
         onStepperNotificationSeeMorePressed:
             onStepperNotificationSeeMorePressed,
       ),
@@ -465,9 +504,11 @@ class _SentinelStrip extends StatelessWidget {
 class _SentinelStripView extends StatelessWidget {
   const _SentinelStripView({
     required this.onStepperNotificationSeeMorePressed,
+    required this.ownerActionsEnabled,
   });
 
   final VoidCallback onStepperNotificationSeeMorePressed;
+  final bool ownerActionsEnabled;
 
   Future<void> _openOwner(BuildContext context) =>
       _showSentinelOwner(context, onStepperNotificationSeeMorePressed);
@@ -491,6 +532,9 @@ class _SentinelStripView extends StatelessWidget {
     final FetchState<List<SentinelInfo>> own = ownerReader.isCurrentFor(address)
         ? ownerReader.state
         : const FetchInitial<List<SentinelInfo>>();
+    final bool scopedOwner = !ownerActionsEnabled &&
+        own is FetchPopulated<List<SentinelInfo>> &&
+        own.data.length == 1 && own.data.single.active;
     final FetchState<UncollectedReward> rewards =
         rewardsReader.isCurrentFor(address)
         ? rewardsReader.state
@@ -500,6 +544,7 @@ class _SentinelStripView extends StatelessWidget {
       builder: (BuildContext context, Widget? child) {
         final StripFigure reward = nodesRewardsFigure(context, state: rewards);
         return SentinelStrip(
+          key: scopedOwner ? const Key('nodes_sentinel_read_scope') : null,
           selectedAddress: address,
           ownerState: own,
           rewards: Row(
@@ -513,9 +558,9 @@ class _SentinelStripView extends StatelessWidget {
             ],
           ),
           collectAction: SentinelCollectAction(
-            enabled: hasNodesRewards(rewards),
+            enabled: ownerActionsEnabled && hasNodesRewards(rewards),
           ),
-          onOpenOwner: () => _openOwner(context),
+          onOpenOwner: ownerActionsEnabled ? () => _openOwner(context) : null,
           onOpenRewards: () => _openRewards(context),
           onRefreshOwner: () => ownerReader.add(
             FetchRequestData(address: Address.parse(address)),

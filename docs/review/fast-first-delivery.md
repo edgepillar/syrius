@@ -185,6 +185,13 @@ verifies both retained archives. Catalog coverage remains 64 of 94.
 [Producer](https://github.com/edgepillar/syrius/actions/runs/42690997785)
 and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42694786258).
 
+Source567 prepares the Sentinel fixture capture inside the original Nodes
+page. The isolated readonly wallet supplies the selected test account's
+Sentinel record to the ownership strip, list and count. The guarded capture
+requires the visible owner strip in both themes, with owner actions disabled.
+The catalog retains only the two Sentinel images and their manifest. Fresh
+Windows capture and independent verification are pending.
+
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,
 Project and Fund Address with its confirmed receive and target balance. The

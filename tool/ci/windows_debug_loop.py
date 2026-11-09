@@ -515,6 +515,8 @@ def analyze(parent, repo):
         'test/staking/view/stakes_card_test.dart',
         'lib/widgets/tab_children_widgets/staking_tab_child.dart',
         'test/staking/view/staking_page_test.dart',
+        'lib/widgets/tab_children_widgets/nodes_tab_child.dart',
+        'harness/app/fixtures/sentinel_fixture.dart',
         'lib/rearchitecture/features/sentinels/view/sentinels_card.dart',
         'lib/rearchitecture/features/sentinels/view/sentinel_values.dart',
         'lib/rearchitecture/features/sentinels_by_owner/view/sentinel_strip.dart',

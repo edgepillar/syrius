@@ -66,7 +66,10 @@ final GetIt sl = GetIt.instance;
 final GlobalKey<NavigatorState> globalNavigatorKey =
     GlobalKey<NavigatorState>();
 
-Future<void> main() async {
+Future<void> main() => runSyriusApp();
+
+/// Starts the wallet with optional providers around its original root.
+Future<void> runSyriusApp({Widget Function(Widget)? wrapRoot}) async {
   // Not the SDK's binding: this one keeps every animation at full length when
   // the system asks for reduced motion. It must be the first binding the
   // process creates, so anything that wraps this main installs it too.
@@ -202,9 +205,8 @@ Future<void> main() async {
     }),
   );
 
-  runApp(
-    const MyApp(),
-  );
+  const Widget root = MyApp();
+  runApp(wrapRoot?.call(root) ?? root);
 }
 
 Future<void> _setupTrayManager() async {

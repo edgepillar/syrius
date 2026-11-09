@@ -7,6 +7,9 @@ import 'readonly_wallet_admission.dart';
 /// Selects isolated native inspection explicitly, before any app owner starts.
 const String harnessReadonlyNativeEnvironment = 'SYRIUS_CI_READONLY_INSPECTION';
 
+/// Selects the Nodes Sentinel fixture in the isolated readonly host.
+const String harnessReadonlySentinelCatalog = 'sentinel-fixture';
+
 /// A requested native inspection cannot retain the required startup scope.
 class ReadonlyNativeModeRefused implements Exception {
   /// Refuses before native startup, private input or SDK initialization.
