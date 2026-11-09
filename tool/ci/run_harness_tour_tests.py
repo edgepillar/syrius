@@ -356,7 +356,7 @@ def main():
                 debug.need(debug.entry.source_tree(repo, parent) == tree, 'SOURCE_REFUSED')
             first += len(group)
         counts = combined_counts(report['commands'], selected_tests)
-        debug.need(counts['passed'] == (1367 if asset_fidelity else 1365), 'TESTS_FAILED')
+        debug.need(counts['passed'] == (1368 if asset_fidelity else 1366), 'TESTS_FAILED')
         report['counts'] = counts
         if asset_fidelity:
             report['launch_asset_fidelity'] = True

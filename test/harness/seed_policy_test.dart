@@ -19,6 +19,8 @@ String _hash(int id) => id.toRadixString(16).padLeft(64, '0');
 
 class _FundingLedger extends Mock implements sdk.LedgerApi {}
 
+class _SeedProject extends Mock implements sdk.Project {}
+
 sdk.HtlcInfo _depositEntry() => sdk.HtlcInfo(
   id: sdk.Hash.parse(_hash(9)),
   timeLocked: sdk.htlcAddress,
@@ -586,7 +588,7 @@ void main() {
     final sdk.HtlcInfo original = _depositEntry();
     int reads = 0;
     int owners = 0;
-    final sdk.HtlcInfo? result = await readSeedDepositEntry(
+    final sdk.HtlcInfo? result = await readSeedContractEntry<sdk.HtlcInfo>(
       read: () async { reads++; return original; },
       requireCurrent: () { owners++; },
     );
@@ -598,7 +600,7 @@ void main() {
   test('the exact typed missing deposit reply remains pending', () async {
     int reads = 0;
     int owners = 0;
-    final sdk.HtlcInfo? result = await readSeedDepositEntry(
+    final sdk.HtlcInfo? result = await readSeedContractEntry<sdk.HtlcInfo>(
       read: () async {
         reads++;
         throw rpc.RpcException(-32000, 'data non existent');
@@ -620,7 +622,7 @@ void main() {
     ]) {
       int reads = 0;
       int owners = 0;
-      await expectLater(readSeedDepositEntry(
+      await expectLater(readSeedContractEntry<sdk.HtlcInfo>(
         read: () async { reads++; throw error; },
         requireCurrent: () { owners++; },
       ), throwsA(same(error)));
@@ -637,7 +639,7 @@ void main() {
       StateError('Synthetic missing transport'),
     ]) {
       int owners = 0;
-      await expectLater(readSeedDepositEntry(
+      await expectLater(readSeedContractEntry<sdk.HtlcInfo>(
         read: () async {
           if (error is Exception) throw error;
           if (error is Error) throw error;
@@ -652,7 +654,7 @@ void main() {
   test('a refused deposit owner prevents the original read', () async {
     final StateError error = StateError('Synthetic owner changed');
     int reads = 0;
-    await expectLater(readSeedDepositEntry(
+    await expectLater(readSeedContractEntry<sdk.HtlcInfo>(
       read: () async { reads++; return _depositEntry(); },
       requireCurrent: () { throw error; },
     ), throwsA(same(error)));
@@ -663,7 +665,7 @@ void main() {
       () async {
     final StateError error = StateError('Synthetic owner changed');
     bool current = true;
-    await expectLater(readSeedDepositEntry(
+    await expectLater(readSeedContractEntry<sdk.HtlcInfo>(
       read: () async { current = false; return _depositEntry(); },
       requireCurrent: () { if (!current) throw error; },
     ), throwsA(same(error)));
@@ -673,7 +675,7 @@ void main() {
       () async {
     final StateError error = StateError('Synthetic owner changed');
     bool current = true;
-    await expectLater(readSeedDepositEntry(
+    await expectLater(readSeedContractEntry<sdk.HtlcInfo>(
       read: () async {
         current = false;
         throw rpc.RpcException(-32000, 'data non existent');
@@ -687,7 +689,7 @@ void main() {
     int reads = 0;
     int publications = 0;
     source.onEffect = () async {
-      final sdk.HtlcInfo? entry = await readSeedDepositEntry(
+      final sdk.HtlcInfo? entry = await readSeedContractEntry<sdk.HtlcInfo>(
         read: () async {
           if (++reads == 1) {
             throw rpc.RpcException(-32000, 'data non existent');
@@ -712,11 +714,38 @@ void main() {
     expect(journal.confirmedHashes, <String, String>{'deposit': _hash(9)});
   });
 
+  test('a pending project keeps its original publication while it appears',
+      () async {
+    final sdk.Project original = _SeedProject();
+    int reads = 0;
+    int publications = 0;
+    source.onEffect = () async {
+      final sdk.Project? entry = await readSeedContractEntry<sdk.Project>(
+        read: () async {
+          if (++reads == 1) {
+            throw rpc.RpcException(-32000, 'data non existent');
+          }
+          return original;
+        },
+        requireCurrent: guard.requireCurrent,
+      );
+      return identical(entry, original);
+    };
+    final String result = await guard.publish('project', () async {
+      publications++;
+      source.operations.add(_Original());
+    });
+    expect(result, _hash(9));
+    expect(reads, 2);
+    expect(publications, 1);
+    expect(journal.confirmedHashes, <String, String>{'project': _hash(9)});
+  });
+
   test('a permanently missing deposit retains the original eighteen-read hold',
       () async {
     int publications = 0;
     source.onEffect = () async {
-      final sdk.HtlcInfo? entry = await readSeedDepositEntry(
+      final sdk.HtlcInfo? entry = await readSeedContractEntry<sdk.HtlcInfo>(
         read: () async {
           throw rpc.RpcException(-32000, 'data non existent');
         },

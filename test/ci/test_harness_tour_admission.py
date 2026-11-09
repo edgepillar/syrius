@@ -13,7 +13,7 @@ from tool.ci import run_harness_tour_tests as harness
 
 
 class HarnessAdmissionTests(unittest.TestCase):
-    def run_case(self, *, passed=1365, terminal=True, skipped=0, failed=0,
+    def run_case(self, *, passed=1366, terminal=True, skipped=0, failed=0,
                  error_events=0, command_success=True, complete=True,
                  source_changed=False, asset_fidelity=False,
                  first_command_success=True, first_complete=True, duplicate_stream=False):
@@ -78,7 +78,7 @@ class HarnessAdmissionTests(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertTrue(report['success'])
         self.assertIsNone(report['code'])
-        self.assertEqual(report['counts']['passed'], 1365)
+        self.assertEqual(report['counts']['passed'], 1366)
         self.assertTrue(report['entry_refusal']['refused_before_build'])
         for path in ('test/zap/zap_form_test.dart',
                      'test/zap/zap_received_message_test.dart',
@@ -90,7 +90,7 @@ class HarnessAdmissionTests(unittest.TestCase):
         self.assertEqual((source_checks, tree_checks), (3, 3))
 
     def test_stale_short_or_extra_suite_counts_are_refused(self):
-        for passed in (1338, 1349, 1351, 1352, 1353, 1350, 1357, 1358, 1359, 1360, 1361, 1362, 1363, 1364, 1366, 1367):
+        for passed in (1338, 1349, 1351, 1352, 1353, 1350, 1357, 1358, 1359, 1360, 1361, 1362, 1363, 1364, 1365, 1367, 1368):
             code, report, _, _ = self.run_case(passed=passed)
             self.assertEqual(code, 1)
             self.assertFalse(report['success'])
@@ -138,12 +138,12 @@ class HarnessAdmissionTests(unittest.TestCase):
             'test/harness/restored_unlock_ready_test.dart'), 1)
         self.assertEqual(self.command_argv.count(
             'test/onboarding/welcome_drop_route_test.dart'), 1)
-        code, report, _, _ = self.run_case(passed=1367, asset_fidelity=True)
+        code, report, _, _ = self.run_case(passed=1368, asset_fidelity=True)
         self.assertEqual(code, 0)
         self.assertTrue(report['launch_asset_fidelity'])
         self.assertEqual(self.command_argv.count(
             'test/launch_film/launch_asset_test.dart'), 1)
-        for passed in (1340, 1350, 1351, 1353, 1354, 1352, 1358, 1359, 1360, 1361, 1362, 1363, 1364, 1365, 1366, 1368):
+        for passed in (1340, 1350, 1351, 1353, 1354, 1352, 1358, 1359, 1360, 1361, 1362, 1363, 1364, 1365, 1366, 1367, 1369):
             code, report, _, _ = self.run_case(
                 passed=passed, asset_fidelity=True)
             self.assertEqual(code, 1)
@@ -155,7 +155,7 @@ class HarnessAdmissionTests(unittest.TestCase):
             self.assertFalse(report['success'])
 
     def test_deposit_and_complete_fixture_selection_cannot_borrow_old_counts(self):
-        for fidelity, passed in ((False, 1365), (True, 1367)):
+        for fidelity, passed in ((False, 1366), (True, 1368)):
             with self.subTest(fidelity=fidelity):
                 code, report, source, tree = self.run_case(
                     passed=passed, asset_fidelity=fidelity)
@@ -177,7 +177,7 @@ class HarnessAdmissionTests(unittest.TestCase):
                     self.assertEqual((source, tree), (2, 2))
 
     def test_deposit_exit_selection_and_exact_profile_counts_are_bound(self):
-        for fidelity, passed in ((False, 1365), (True, 1367)):
+        for fidelity, passed in ((False, 1366), (True, 1368)):
             code, report, source, tree = self.run_case(
                 passed=passed, asset_fidelity=fidelity)
             self.assertEqual(code, 0)
@@ -226,7 +226,7 @@ class HarnessAdmissionTests(unittest.TestCase):
                  'test/harness/readonly_sdk_admission_test.dart',
                  'test/harness/readonly_sdk_binding_test.dart',
                  'test/harness/readonly_native_commands_test.dart')
-        for fidelity, passed in ((False, 1365), (True, 1367)):
+        for fidelity, passed in ((False, 1366), (True, 1368)):
             with self.subTest(fidelity=fidelity):
                 code, report, source, tree = self.run_case(
                     passed=passed, asset_fidelity=fidelity)
@@ -266,7 +266,7 @@ class HarnessAdmissionTests(unittest.TestCase):
                  'test/settings/display_settings_test.dart',
                  'test/settings/settings_frame_test.dart',
                  'test/go_to_palette/go_to_palette_test.dart')
-        for fidelity, passed in ((False, 1365), (True, 1367)):
+        for fidelity, passed in ((False, 1366), (True, 1368)):
             with self.subTest(fidelity=fidelity):
                 code, report, source, tree = self.run_case(
                     passed=passed, asset_fidelity=fidelity)

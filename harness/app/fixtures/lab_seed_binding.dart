@@ -17,16 +17,16 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 import 'seed_policy.dart';
 import 'seed_stake_effect.dart';
 
-/// Reads one original HTLC entry without treating its absence as success.
+/// Reads one original contract entry during an isolated seed effect check.
 /// The pinned node returns this exact RPC error for a missing entry. Only
 /// that response is pending; every other error retains its original identity.
 @visibleForTesting
-Future<HtlcInfo?> readSeedDepositEntry({
-  required Future<HtlcInfo> Function() read,
+Future<T?> readSeedContractEntry<T extends Object>({
+  required Future<T> Function() read,
   required void Function() requireCurrent,
 }) async {
   requireCurrent();
-  final HtlcInfo entry;
+  final T entry;
   try {
     entry = await read();
   } on Object catch (error) {
@@ -661,9 +661,11 @@ final class LabSeedBinding
           token?.symbol == 'LAB';
     }
     if (recipe == 'project') {
-      final Project project = await _accelerator.getProjectById(hash);
-      _requireCurrent();
-      return project.id.toString() == hash &&
+      final Project? project = await readSeedContractEntry<Project>(
+        read: () => _accelerator.getProjectById(hash),
+        requireCurrent: _requireCurrent,
+      );
+      return project != null && project.id.toString() == hash &&
           project.owner == owner &&
           project.name == 'Lab Project' &&
           project.znnFundsNeeded == BigInt.from(10000000000) &&
@@ -673,7 +675,7 @@ final class LabSeedBinding
       if (counterparty == null) {
         throw const SeedRefused('external-lab-counterparty-required');
       }
-      final HtlcInfo? value = await readSeedDepositEntry(
+      final HtlcInfo? value = await readSeedContractEntry<HtlcInfo>(
         read: () => _htlc.getById(Hash.parse(hash)),
         requireCurrent: _requireCurrent,
       );
