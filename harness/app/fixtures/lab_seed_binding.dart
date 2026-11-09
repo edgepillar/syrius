@@ -99,6 +99,36 @@ Future<SeedFundingLedger> readSeedFundingEffect({
 
 final BigInt _initialSeedTokenUnits = BigInt.from(1000);
 
+/// Returns the issued asset's exact inbound send from the paired contract read.
+@visibleForTesting
+String? seedIssuedTokenSendHash(AccountBlock original) {
+  if (original.hash == emptyHash || original.chainIdentifier != 321 ||
+      original.blockType != BlockTypeEnum.userSend.index ||
+      original.toAddress != tokenAddress) {
+    return null;
+  }
+  final AccountBlock? received = original.pairedAccountBlock;
+  if (received == null || received.hash == emptyHash ||
+      received.address != tokenAddress || received.chainIdentifier != 321 ||
+      received.blockType != BlockTypeEnum.contractReceive.index ||
+      received.fromBlockHash != original.hash ||
+      (received.confirmationDetail?.numConfirmations ?? 0) <= 0 ||
+      (received.confirmationDetail?.momentumTimestamp ?? 0) <= 0 ||
+      received.descendantBlocks.length != 1) {
+    return null;
+  }
+  final AccountBlock send = received.descendantBlocks.single;
+  final TokenStandard standard = seedIssuedTokenStandard(
+    original.hash.toString(),
+  );
+  return send.hash != emptyHash && send.chainIdentifier == 321 &&
+      send.blockType == BlockTypeEnum.contractSend.index &&
+      send.address == tokenAddress && send.toAddress == original.address &&
+      send.tokenStandard == standard &&
+      send.amount == _initialSeedTokenUnits && send.data.isEmpty
+      ? send.hash.toString() : null;
+}
+
 /// Checks the issued asset in the selected account's complete ledger reply.
 @visibleForTesting
 Future<bool> readSeedTokenHolding({
@@ -353,7 +383,7 @@ final class LabSeedBinding
         ? captured.observation : null;
   }
 
-  ({SeedFundingReceive status, Future<Object?>? result}) _fundingReceive(
+  ({SeedFundingReceive status, Future<Object?>? result}) _observeReceive(
     String hash,
     Address recipient,
   ) {
@@ -393,6 +423,21 @@ final class LabSeedBinding
       status: matches ? SeedFundingReceive.accepted : SeedFundingReceive.held,
       result: null,
     );
+  }
+
+  Future<Object?>? _pendingIssuedTokenReceive(AccountBlock original) {
+    try {
+      final String? hash = seedIssuedTokenSendHash(original);
+      if (hash == null || original.address.toString() != environment.owner) {
+        return null;
+      }
+      final receive = _observeReceive(hash, original.address);
+      return receive.status == SeedFundingReceive.pending
+          ? receive.result : null;
+    } on Object {
+      // A missing observation leaves the original ledger checks in place.
+      return null;
+    }
   }
 
   @override
@@ -624,6 +669,8 @@ final class LabSeedBinding
             target,
             block.hash,
           ),
+      pendingTokenHoldingReceive: recipe == 'token' && _catalogTokenHolding
+          ? _pendingIssuedTokenReceive(block) : null,
       matchesRecipe:
           block.blockType == BlockTypeEnum.userSend.index &&
           block.toAddress == target &&
@@ -763,7 +810,7 @@ final class LabSeedBinding
       ({SeedFundingReceive status, Future<Object?>? result}) receive =
           (status: SeedFundingReceive.unavailable, result: null);
       try {
-        receive = _fundingReceive(hash, recipient);
+        receive = _observeReceive(hash, recipient);
       } on Object {
         // The existing ledger result remains authoritative.
       }

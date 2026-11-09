@@ -447,6 +447,7 @@ final class SeedConfirmed {
     required this.positiveConfirmation,
     required this.matchesRecipe,
     this.fundAddressReceiveConfirmed = false,
+    this.pendingTokenHoldingReceive,
   });
   final String hash;
   final String owner;
@@ -454,6 +455,9 @@ final class SeedConfirmed {
   final bool positiveConfirmation;
   final bool matchesRecipe;
   final bool fundAddressReceiveConfirmed;
+
+  /// The existing wallet result can only schedule another exact ledger read.
+  final Future<Object?>? pendingTokenHoldingReceive;
 }
 
 abstract interface class SeedSource {
@@ -701,7 +705,7 @@ final class SeedGuard {
     SeedStakeEffectObservation? stakeEffect;
     SeedFundingObservation? fundingEffect;
     bool waitedForStakeEntry = false;
-    bool waitedForFundingReceive = false;
+    bool waitedForReceive = false;
     const int rounds = 18;
     for (int poll = 0; poll < rounds; poll++) {
       stakeEffect = null;
@@ -759,9 +763,13 @@ final class SeedGuard {
         waitedForStakeEntry = true;
         delay = const Duration(seconds: 12);
       }
-      final Future<Object?>? receive = fundingEffect?.pendingReceiveResult;
-      if (hasNextRound && !waitedForFundingReceive && receive != null) {
-        waitedForFundingReceive = true;
+      final Future<Object?>? tokenReceive =
+          recipe == 'token' && last == SeedPendingResult.effectPending
+              ? block?.pendingTokenHoldingReceive : null;
+      final Future<Object?>? receive =
+          fundingEffect?.pendingReceiveResult ?? tokenReceive;
+      if (hasNextRound && !waitedForReceive && receive != null) {
+        waitedForReceive = true;
         requireCurrent();
         // The original handle may have a non-nullable result type.
         await receive.then<void>((_) {}).timeout(

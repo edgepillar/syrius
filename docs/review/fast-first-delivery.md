@@ -102,6 +102,19 @@ controls. The catalog uses the existing archive byte limit and retains only
 four PNGs, with the two original scripts bound to the producer tree. Native
 capture, visual comparison and complete F06 acceptance remain open.
 
+The first Source558 Earn dispatch ended before GitHub allocated a job. The
+run reported an internal server error and the terminal metadata lists zero
+jobs and zero artifacts. GitHub reported an Actions outage during that period.
+[Earn dispatch](https://github.com/edgepillar/syrius/actions/runs/42672738188)
+and [Actions incident](https://www.githubstatus.com/incidents/tp8cghg7tlc4).
+
+Source559 gives the restored Mint catalog one bounded wait when the exact
+issued asset is in an original pending wallet receive. The paired contract
+receipt must identify the descendant send to the selected issuer. The next
+ledger read still requires the exact 1,000 units. The same eighteen read
+rounds and single issuance attempt apply. Fresh native evidence remains open.
+[Pinned token contract](https://github.com/zenon-network/go-zenon/blob/2d1b929cc3fa5269cf133757d4a6963821137984/vm/embedded/implementation/token.go#L124-L172).
+
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,
 Project and Fund Address with its confirmed receive and target balance. The

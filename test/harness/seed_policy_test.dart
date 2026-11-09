@@ -562,35 +562,47 @@ void main() {
     }
   });
 
-  test('Fund Address waits for its original receive before reading again',
+  test('funding and catalog Token wait for their original receive',
       () async {
-    final Completer<Object> receive = Completer<Object>();
-    final _ObservedFundingSource observed = _ObservedFundingSource()
-      ..receiveResult = receive.future;
-    observed.onEffect = () async => observed.effectReads == 3;
-    final SeedGuard current = SeedGuard(
-      source: observed, journal: journal, delay: observed.delay,
-    );
-    int taps = 0;
-    final Future<String> publication = current.publish(
-      'fund-address',
-      () async {
+    for (final String recipe in <String>['fund-address', 'token']) {
+      final Completer<Object> receive = Completer<Object>();
+      final _ObservedFundingSource observed = _ObservedFundingSource()
+        ..receiveResult = receive.future;
+      if (recipe == 'token') {
+        observed.onConfirmation = () async {
+          if (!observed.pendingObserved.isCompleted) {
+            observed.pendingObserved.complete();
+          }
+          return SeedConfirmed(
+            hash: _hash(9), owner: 'owner', chain: 321,
+            positiveConfirmation: true, matchesRecipe: true,
+            pendingTokenHoldingReceive: receive.future,
+          );
+        };
+      }
+      observed.onEffect = () async => observed.effectReads == 3;
+      final _Journal ledger = _Journal();
+      final SeedGuard current = SeedGuard(
+        source: observed, journal: ledger, delay: observed.delay,
+      );
+      int taps = 0;
+      final Future<String> publication = current.publish(recipe, () async {
         taps++;
         observed.operations.add(_Original());
-      },
-    );
-    await observed.pendingObserved.future;
-    await Future<void>.delayed(Duration.zero);
-    final int readsBeforeReceive = observed.confirmationReads;
-    final bool confirmedBeforeReceive = journal.confirmedHashes.isNotEmpty;
-    receive.complete(Object());
-    expect(await publication, _hash(9));
-    expect(readsBeforeReceive, 1);
-    expect(confirmedBeforeReceive, isFalse);
-    expect(observed.confirmationReads, 3);
-    expect(observed.effectReads, 3);
-    expect(taps, 1);
-    expect(journal.confirmedHashes, <String, String>{'fund-address': _hash(9)});
+      });
+      await observed.pendingObserved.future;
+      await Future<void>.delayed(Duration.zero);
+      final int readsBeforeReceive = observed.confirmationReads;
+      final bool confirmedBeforeReceive = ledger.confirmedHashes.isNotEmpty;
+      receive.complete(Object());
+      expect(await publication, _hash(9));
+      expect(readsBeforeReceive, 1);
+      expect(confirmedBeforeReceive, isFalse);
+      expect(observed.confirmationReads, 3);
+      expect(observed.effectReads, 3);
+      expect(taps, 1);
+      expect(ledger.confirmedHashes, <String, String>{recipe: _hash(9)});
+    }
   });
 
   testWidgets('Fund Address waits once for a still pending original receive',
@@ -748,6 +760,65 @@ void main() {
         .called(3);
 
     final sdk.TokenStandard issued = seedIssuedTokenStandard(_hash(12));
+    final Map<String, dynamic> tokenSend = <String, dynamic>{
+      ...wire,
+      ...sdk.AccountBlockTemplate.send(
+        recipient, issued, BigInt.from(1000),
+      ).toJson(),
+      'hash': _hash(14),
+      'address': sdk.tokenAddress.toString(),
+      'chainIdentifier': 321,
+      'blockType': sdk.BlockTypeEnum.contractSend.index,
+    };
+    final Map<String, dynamic> contractReceipt = <String, dynamic>{
+      ...wire,
+      'hash': _hash(13),
+      'address': sdk.tokenAddress.toString(),
+      'fromBlockHash': _hash(12),
+      'blockType': sdk.BlockTypeEnum.contractReceive.index,
+      'descendantBlocks': <Map<String, dynamic>>[tokenSend],
+    };
+    String? observedSend(Object? paired) => seedIssuedTokenSendHash(
+      sdk.AccountBlock.fromJson(<String, dynamic>{
+        ...wire,
+        'hash': _hash(12),
+        'toAddress': sdk.tokenAddress.toString(),
+        'blockType': sdk.BlockTypeEnum.userSend.index,
+        'pairedAccountBlock': paired,
+      }),
+    );
+    expect(observedSend(contractReceipt), _hash(14));
+    expect(observedSend(null), isNull);
+    for (final Map<String, dynamic> change in <Map<String, dynamic>>[
+      <String, dynamic>{'fromBlockHash': _hash(13)},
+      <String, dynamic>{'confirmationDetail': null},
+      <String, dynamic>{
+        'confirmationDetail': <String, dynamic>{
+          ...confirmation,
+          'momentumTimestamp': 0,
+        },
+      },
+      <String, dynamic>{
+        'descendantBlocks': <Map<String, dynamic>>[tokenSend, tokenSend],
+      },
+    ]) {
+      expect(observedSend(<String, dynamic>{...contractReceipt, ...change}),
+          isNull);
+    }
+    for (final Map<String, dynamic> change in <Map<String, dynamic>>[
+      <String, dynamic>{'hash': sdk.emptyHash.toString()},
+      <String, dynamic>{'chainIdentifier': 1},
+      <String, dynamic>{'toAddress': sdk.stakeAddress.toString()},
+      <String, dynamic>{'tokenStandard': sdk.znnZts.toString()},
+      <String, dynamic>{'amount': '999'},
+    ]) {
+      expect(observedSend(<String, dynamic>{
+        ...contractReceipt,
+        'descendantBlocks': <Map<String, dynamic>>[
+          <String, dynamic>{...tokenSend, ...change},
+        ],
+      }), isNull);
+    }
     final sdk.Token labToken = sdk.Token.fromJson(<String, dynamic>{
       ...kZnnCoin.toJson(),
       'name': 'LabToken',
