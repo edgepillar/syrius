@@ -1230,6 +1230,8 @@ void main() {
       'send_form_ready', 'receive_form_ready', 'receive_screen_marker',
       'nodes_pillars_strip', 'pillar_dev1_detail', 'plasma_strip',
       'plasma_fused_list', 'plasma_screen', 'tokens_strip', 'tokens_list',
+      'token_create_rail', 'token_create_step_0', 'token_create_step_1',
+      'token_create_step_2', 'token_create_step_3',
       'p2p_swaps_strip', 'p2p_swaps_list',
       'accelerator_strip', 'accelerator_list',
       'receive_qr_screen_marker',

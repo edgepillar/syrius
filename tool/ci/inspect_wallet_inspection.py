@@ -72,6 +72,7 @@ SOURCE_FILES = (
     'harness/screens/plasma-fuse.txt',
     'harness/screens/set-licences.txt',
     'harness/screens/set-originals.txt',
+    'harness/screens/token-new.txt',
 )
 PHASE = 'environment'
 
@@ -513,7 +514,7 @@ def main(parent=None):
             PHASE = 'details_catalog_artifact'
             item = artifact(listing, 'details-catalog-' + head + '-' + text + '-1', head, run_id)
             pins = {name: source_digests['harness/screens/' + name + '.txt']
-                for name in producer.details.SCREENS}
+                for name in producer.details.catalog_screens(details_reference['schema'])}
             catalog = producer.details.unpack(download(item, producer.details.MAX_ARCHIVE),
                 item['digest'][7:], item['size_in_bytes'], head, tree, run_id,
                 details_reference, pins)

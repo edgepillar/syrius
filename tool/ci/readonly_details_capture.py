@@ -17,6 +17,8 @@ from . import windows_debug_loop as debug
 THEMES = ('dark', 'light')
 SCREENS = ('receive-qr', 'zap-form', 'plasma-fuse', 'set-licences', 'set-originals')
 FILES = ('10-receive-qr-dark.png', '10-receive-qr-light.png', '11-zap-form-dark.png', '11-zap-form-light.png', '22-plasma-fuse-dark.png', '22-plasma-fuse-light.png', '37-set-licences-dark.png', '37-set-licences-light.png', '38-set-originals-dark.png', '38-set-originals-light.png')
+TOKEN_DRAFT_SCREENS = ('token-new',)
+TOKEN_DRAFT_FILES = ('25-token-new-dark.png', '25-token-new-light.png')
 OUTPUT = Path('.harness/ci-details-catalog')
 MAX_CAPTURE_TOTAL = 4 * 1024**2
 MAX_MANIFEST = 64 * 1024
@@ -84,7 +86,7 @@ FAILURE_REPLIES = (
 )
 
 
-def failure_diagnostic(value):
+def failure_diagnostic(value, *, catalog_schema=1):
     required = {'schema', 'kind', 'last_entered_step'}
     optional = {'screen', 'theme', 'line'}
     need(type(value) is dict and type(value.get('schema')) is int)
@@ -101,7 +103,8 @@ def failure_diagnostic(value):
          and value['last_entered_step'] in FAILURE_STEPS)
     need(('screen' in value) == ('theme' in value))
     if 'screen' in value:
-        need(type(value['screen']) is str and value['screen'] in SCREENS
+        need(type(value['screen']) is str
+             and value['screen'] in catalog_screens(catalog_schema)
              and type(value['theme']) is str and value['theme'] in THEMES)
     script = value['last_entered_step'] in ('scriptLine', 'afterCaptureLine')
     need(not script or {'screen', 'theme', 'line'} <= set(value))
@@ -111,13 +114,13 @@ def failure_diagnostic(value):
 
 
 def catalog_files(schema):
-    need(type(schema) is int and schema == 1)
-    return FILES
+    need(type(schema) is int and schema in (1, 2))
+    return FILES if schema == 1 else TOKEN_DRAFT_FILES
 
 
 def catalog_screens(schema):
     catalog_files(schema)
-    return SCREENS
+    return SCREENS if schema == 1 else TOKEN_DRAFT_SCREENS
 
 
 def _script_field(schema):
@@ -126,9 +129,8 @@ def _script_field(schema):
 
 
 def _script_pins(repo, schema, read_original):
-    catalog_files(schema)
     return {name: sha(read_original(repo / 'harness/screens' / (name + '.txt'), 65536))
-        for name in SCREENS}
+        for name in catalog_screens(schema)}
 
 
 def capture_receipt(value):

@@ -49,6 +49,7 @@ on:
           - settings
           - navigation
           - details
+          - token-draft
       chain321_lab:
         description: Qualify isolated chain-321 production on Linux Docker and native Windows
         type: boolean

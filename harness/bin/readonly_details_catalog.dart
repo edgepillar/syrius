@@ -29,18 +29,18 @@ class _DetailsInstance extends cli.Instance {
 Map<String, Object>? readonlyDetailsFailureDiagnostic(
   ScreenCaptureObservation? observation, {
   ScreenCaptureReplyCode? reply,
+  bool tokenDraft = false,
 }) {
   if (observation == null) return null;
   final String? screen = observation.screen;
   final String? theme = observation.theme;
   final int? line = observation.line;
-  const Set<String> screens = <String>{
-    'receive-qr',
-    'zap-form',
-    'plasma-fuse',
-    'set-licences',
-    'set-originals',
-  };
+  final Set<String> screens = tokenDraft
+      ? const <String>{'token-new'}
+      : const <String>{
+          'receive-qr', 'zap-form', 'plasma-fuse',
+          'set-licences', 'set-originals',
+        };
   final bool script = observation.step == ScreenCaptureStep.scriptLine ||
       observation.step == ScreenCaptureStep.afterCaptureLine;
   if ((screen == null) != (theme == null) ||
@@ -59,12 +59,13 @@ Map<String, Object>? readonlyDetailsFailureDiagnostic(
   };
 }
 
-/// Runs five original details scripts through the same bound UI owner.
+/// Runs the selected details scripts through the same bound UI owner.
 /// Each positive shot returns to Home before the next preparation can run.
 Future<Map<String, Object>> captureReadonlyDetailsDefaults({
   required Directory repository,
   required ReadonlyInspectionSession session,
   void Function(ScreenCaptureObservation step)? onStep,
+  bool tokenDraft = false,
 }) async {
   if (!session.walletBound) {
     throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.binding);
@@ -83,25 +84,26 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
     restoreRailState: session.restoreScreenRail,
     onStep: onStep,
   );
-  const List<String> screens = <String>[
-    'receive-qr',
-    'zap-form',
-    'plasma-fuse',
-    'set-licences',
-    'set-originals',
-  ];
-  const List<String> files = <String>[
-    '10-receive-qr-dark.png',
-    '10-receive-qr-light.png',
-    '11-zap-form-dark.png',
-    '11-zap-form-light.png',
-    '22-plasma-fuse-dark.png',
-    '22-plasma-fuse-light.png',
-    '37-set-licences-dark.png',
-    '37-set-licences-light.png',
-    '38-set-originals-dark.png',
-    '38-set-originals-light.png',
-  ];
+  final List<String> screens = tokenDraft
+      ? const <String>['token-new']
+      : const <String>[
+          'receive-qr', 'zap-form', 'plasma-fuse',
+          'set-licences', 'set-originals',
+        ];
+  final List<String> files = tokenDraft
+      ? const <String>['25-token-new-dark.png', '25-token-new-light.png']
+      : const <String>[
+          '10-receive-qr-dark.png',
+          '10-receive-qr-light.png',
+          '11-zap-form-dark.png',
+          '11-zap-form-light.png',
+          '22-plasma-fuse-dark.png',
+          '22-plasma-fuse-light.png',
+          '37-set-licences-dark.png',
+          '37-set-licences-light.png',
+          '38-set-originals-dark.png',
+          '38-set-originals-light.png',
+        ];
   final List<String> captured = await capture.captureSelection(
     screens, directory: readonlyDetailsCatalogDirectory,
   );
@@ -116,7 +118,8 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
     }
   }
   return <String, Object>{
-    'schema': 1, 'scope': 'readonly_native_details_catalog_capture',
+    'schema': tokenDraft ? 2 : 1,
+    'scope': 'readonly_native_details_catalog_capture',
     'screens': screens, 'themes': const <String>['dark', 'light'],
     'files': files, 'width': 1280, 'height': 780, 'scale': 1,
     'capture_returned': true,

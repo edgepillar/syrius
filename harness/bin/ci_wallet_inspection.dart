@@ -18,8 +18,9 @@ import 'wallet_recipe.dart';
 String readonlyInspectionCatalogFamily(Map<String, String> environment) {
   final String family =
       environment['SYRIUS_READONLY_CATALOG_FAMILY'] ?? 'details';
-  if (!const <String>{'home', 'settings', 'navigation', 'details'}
-      .contains(family)) {
+  if (!const <String>{
+    'home', 'settings', 'navigation', 'details', 'token-draft',
+  }.contains(family)) {
     throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.command);
   }
   return family;
@@ -64,8 +65,9 @@ class _InspectionInstance extends cli.Instance {
     'navigation' => captureReadonlyNavigationDefaults(
       repository: Directory(cli.repo), session: _session, onStep: onStep,
     ),
-    'details' => captureReadonlyDetailsDefaults(
+    'details' || 'token-draft' => captureReadonlyDetailsDefaults(
       repository: Directory(cli.repo), session: _session, onStep: onStep,
+      tokenDraft: family == 'token-draft',
     ),
     _ => throw const ReadonlyInspectionRefused(
       ReadonlyInspectionReason.command,
@@ -256,7 +258,8 @@ Future<void> main() async {
         'longest_ms': timings['longestMs'] as int,
       })}');
     }
-    stage = '${family}_catalog';
+    stage = family == 'token-draft'
+        ? 'token_draft_catalog' : '${family}_catalog';
     final Map<String, Object> catalog = await instance.captureCatalog(
       family,
       onStep: (ScreenCaptureObservation value) => lastCatalogStep = value,
@@ -288,9 +291,10 @@ Future<void> main() async {
         diagnostic = readonlyHomeFailureDiagnostic(lastCatalogStep,
           reply: screenCaptureReplyOf(error),
         );
-      } else if (stage == 'details_catalog') {
+      } else if (stage == 'details_catalog' || stage == 'token_draft_catalog') {
         diagnostic = readonlyDetailsFailureDiagnostic(lastCatalogStep,
           reply: screenCaptureReplyOf(error),
+          tokenDraft: stage == 'token_draft_catalog',
         );
       } else if (stage == 'navigation_catalog') {
         diagnostic = readonlyNavigationFailureDiagnostic(lastCatalogStep);

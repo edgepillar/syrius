@@ -50,7 +50,7 @@ void main() {
   test('catalog choice preserves the original Details default', () {
     expect(readonlyInspectionCatalogFamily(<String, String>{}), 'details');
     for (final String family in <String>[
-      'home', 'settings', 'navigation', 'details',
+      'home', 'settings', 'navigation', 'details', 'token-draft',
     ]) {
       expect(readonlyInspectionCatalogFamily(<String, String>{
         'SYRIUS_READONLY_CATALOG_FAMILY': family,
@@ -1524,14 +1524,14 @@ void main() {
 
   test('bound Details captures return home after retained positive output',
       () async {
-    const List<String> screens = <String>[
+    const List<String> detailsScreens = <String>[
       'receive-qr',
       'zap-form',
       'plasma-fuse',
       'set-licences',
       'set-originals',
     ];
-    const List<String> routes = <String>[
+    const List<String> detailsRoutes = <String>[
       'transfer',
       'transfer',
       'plasma',
@@ -1539,10 +1539,10 @@ void main() {
       'settings',
     ];
     final Map<String, String> scripts = <String, String>{
-      for (final String screen in screens)
+      for (final String screen in <String>[...detailsScreens, 'token-new'])
         screen: File('harness/screens/$screen.txt').readAsStringSync(),
     };
-    const List<String> files = <String>[
+    const List<String> detailsFiles = <String>[
       '10-receive-qr-dark.png',
       '10-receive-qr-light.png',
       '11-zap-form-dark.png',
@@ -1578,7 +1578,16 @@ void main() {
     }
     for (final String fault in <String>[
       'unbound', 'none', 'first', 'shot', 'return', 'late', 'png', 'close',
+      'token-draft',
     ]) {
+      final bool tokenDraft = fault == 'token-draft';
+      final List<String> screens = tokenDraft
+          ? const <String>['token-new'] : detailsScreens;
+      final List<String> routes = tokenDraft
+          ? const <String>['tokens'] : detailsRoutes;
+      final List<String> files = tokenDraft
+          ? const <String>['25-token-new-dark.png', '25-token-new-light.png']
+          : detailsFiles;
       final _CatalogStdout output = _CatalogStdout();
       final Directory repository = Directory.systemTemp.createTempSync(
         'syrius-readonly-details-',
@@ -1597,6 +1606,10 @@ void main() {
       int shots = 0;
       int returned = 0;
       int closedFuse = 0;
+      int closedToken = 0;
+      bool draftOpen = false;
+      bool draftReady = false;
+      final Map<String, Object?> draft = <String, Object?>{};
       bool afterShot = false;
       final List<Map<String, Object?>> commands = <Map<String, Object?>>[];
       final List<ScreenCaptureObservation> progress =
@@ -1620,6 +1633,18 @@ void main() {
               command['key'] != 'rail_toggle') {
             expect(tab, routes[(afterShot ? shots - 1 : shots) ~/ 2]);
             if (fault == 'first') return negative;
+            if (tokenDraft) {
+              expect(targetKey, 'tokens_create');
+              expect(draftOpen, isFalse);
+              draftOpen = true;
+              draftReady = false;
+              draft.clear();
+            }
+          }
+          if (tokenDraft && name == 'tap' && command['text'] == 'Close') {
+            expect(afterShot && draftOpen, isTrue);
+            draftOpen = false;
+            closedToken++;
           }
           if (name == 'tap' && targetTab != null) {
             expect(<String>['dashboard', ...routes], contains(command['tab']));
@@ -1628,6 +1653,7 @@ void main() {
               selected = screens[shots ~/ 2];
             }
             if (command['tab'] == 'dashboard') {
+              if (tokenDraft) expect(draftOpen, isFalse);
               expect(shots, returned + 1);
               final File retained = File('${repository.path}/'
                 '$readonlyDetailsCatalogDirectory/${files[shots - 1]}');
@@ -1641,6 +1667,12 @@ void main() {
           if (name == 'shot') {
             expect(tab, routes[shots ~/ 2]);
             expect(selected, screens[shots ~/ 2]);
+            if (tokenDraft) {
+              expect(draftOpen && draftReady, isTrue);
+              expect(command['expect'], <String, Object?>{
+                'key': 'token_create_continue', 'kind': 'button', 'exact': true,
+              });
+            }
             if (fault == 'shot' || fault == 'late' && shots == 5) {
               return negative;
             }
@@ -1658,14 +1690,30 @@ void main() {
             closedFuse++;
           }
           if (name == 'type') {
-            final String expected = switch (tab) {
-              'settings' => 'originals_discovery_field',
-              'plasma' => 'fuse_plasma_amount_field',
-              _ => 'receive_amount_field',
-            };
-            expect(command['key'], expected);
-            expect(command['value'], tab == 'settings' ? '321' : '100');
+            if (tokenDraft) {
+              expect(draftOpen, isTrue);
+              expect(draft.containsKey(targetKey), isFalse);
+              draft[targetKey as String] = command['value'];
+            } else {
+              final String expected = switch (tab) {
+                'settings' => 'originals_discovery_field',
+                'plasma' => 'fuse_plasma_amount_field',
+                _ => 'receive_amount_field',
+              };
+              expect(command['key'], expected);
+              expect(command['value'], tab == 'settings' ? '321' : '100');
+            }
             expect(command['submit'], isNull);
+          }
+          if (tokenDraft && name == 'wait' &&
+              targetKey == 'token_create_continue') {
+            expect(draftOpen, isTrue);
+            expect(command['kind'], 'button');
+            expect(command['ready'], isTrue);
+            expect(draft, <String, Object?>{
+              'token_name_field': 'MoonTokens', 'token_symbol_field': 'MOON',
+            });
+            draftReady = true;
           }
           if (name == 'key') expect(command['key'], 'escape');
           if (name == 'theme') {
@@ -1683,6 +1731,7 @@ void main() {
               'walletUnlocked': true, 'walletInitCompleted': true,
               'tab': tab, 'tabs': <String>[
                 'dashboard', 'transfer', 'plasma', 'settings',
+                if (tokenDraft) 'tokens',
               ],
               'locale': 'en', 'direction': 'ltr',
             },
@@ -1726,6 +1775,7 @@ void main() {
           IOOverrides.runZoned<Future<Map<String, Object>>>(
         () => captureReadonlyDetailsDefaults(
           repository: repository, session: session, onStep: progress.add,
+          tokenDraft: tokenDraft,
         ),
         stdout: () => output,
       );
@@ -1738,17 +1788,19 @@ void main() {
         continue;
       }
       await session.bindWallet();
-      if (fault == 'none') {
+      if (fault == 'none' || tokenDraft) {
         final Map<String, Object> receipt = await capture();
         expect(receipt, <String, Object>{
-          'schema': 1, 'scope': 'readonly_native_details_catalog_capture',
+          'schema': tokenDraft ? 2 : 1,
+          'scope': 'readonly_native_details_catalog_capture',
           'screens': screens, 'themes': <String>['dark', 'light'],
           'files': files, 'width': 1280, 'height': 780, 'scale': 1,
           'capture_returned': true,
         });
-        expect(shots, 10);
-        expect(returned, 10);
-        expect(closedFuse, 2);
+        expect(shots, files.length);
+        expect(returned, files.length);
+        expect(closedFuse, tokenDraft ? 0 : 2);
+        expect(closedToken, tokenDraft ? 2 : 0);
         expect(tab, 'dashboard');
         expect(expanded, isTrue);
         expect(mode, 'light');

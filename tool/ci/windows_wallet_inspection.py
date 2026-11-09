@@ -59,7 +59,8 @@ CODES = shared.CODES | LAB_CODES | frozenset(('BINDING_REFUSED', 'INSPECTION_REF
     'LAB_REVALIDATION_VALUE_ERROR', 'LAB_REVALIDATION_OS_ERROR'))
 STAGES = frozenset(('unused_destinations', 'build', 'start', 'input', 'window',
     'onboarding', 'signing_policy', 'onboarding_logs', 'address_selection',
-    'wallet_binding', 'tour_dark', 'tour_light', 'home_catalog', 'settings_catalog', 'navigation_catalog', 'details_catalog', 'viewport', 'finish'))
+    'wallet_binding', 'tour_dark', 'tour_light', 'home_catalog', 'settings_catalog',
+    'navigation_catalog', 'details_catalog', 'token_draft_catalog', 'viewport', 'finish'))
 
 
 class Refused(Exception):
@@ -510,12 +511,13 @@ def entry_failure(value):
                 navigation.failure_diagnostic(value['diagnostic'])
             except navigation.Refused:
                 need(False, 'ENTRY_REFUSED')
-        elif value['stage'] == 'details_catalog':
+        elif value['stage'] in ('details_catalog', 'token_draft_catalog'):
             need(value['code'] is None or value['code'] in {
                 'inspection-' + reason for reason in
                 ('process', 'retired', 'command', 'reply', 'binding')}, 'ENTRY_REFUSED')
             try:
-                details.failure_diagnostic(value['diagnostic'])
+                details.failure_diagnostic(value['diagnostic'],
+                    catalog_schema=2 if value['stage'] == 'token_draft_catalog' else 1)
             except details.Refused:
                 need(False, 'ENTRY_REFUSED')
         elif value['stage'] == 'viewport':
@@ -775,7 +777,8 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
     original = lines = job = output = transport = token = None
     close_attempted = False
     catalog_receipt = viewport_receipt = None
-    family = 'details'
+    family = catalog_slot = 'details'
+    details_schema = 1
     try:
         parent, source = debug.entry.require_ci(parent, None, platform=os.name)
         need(parent.get('GITHUB_EVENT_NAME') == 'workflow_dispatch'
@@ -785,6 +788,9 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
              and parent.get('SYRIUS_LAB_NODE_SOURCE') == 'lab-fix'
              and parent.get('SYRIUS_NATIVE_STACK_DIAGNOSTIC') == 'true', 'ENVIRONMENT_REFUSED')
         family = readonly_catalog_family(parent)
+        if family == 'token-draft':
+            details_schema = 2
+        catalog_slot = 'details' if details_schema == 2 else family
         report['schema'] = READONLY_CATALOG_SCHEMAS[family]
         for field, since in (('details_catalog', 4), ('navigation_catalog', 3),
                              ('settings_catalog', 2)):
@@ -857,7 +863,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
                     logical += home_output_bytes(repo / HOME_OUTPUT, schema=4)
                     logical += settings.output_bytes(repo / settings.OUTPUT)
                     logical += navigation.output_bytes(repo / navigation.OUTPUT)
-                    logical += details.output_bytes(repo / details.OUTPUT)
+                    logical += details.output_bytes(repo / details.OUTPUT, schema=details_schema)
                     logical += viewport.output_bytes(repo / viewport.OUTPUT)
                     need(logical <= shared.WORK_CAP, 'STORAGE_REFUSED')
                     free = shutil.disk_usage(repo).free
@@ -924,8 +930,8 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
                         settings=settings.capture_receipt,
                         navigation=navigation.capture_receipt,
                         details=details.capture_receipt)
-                    catalog_receipt = validators[family](receipt)
-                    need(catalog_receipt['schema'] == (4 if family == 'home' else 1),
+                    catalog_receipt = validators[catalog_slot](receipt)
+                    need(catalog_receipt['schema'] == (4 if family == 'home' else details_schema),
                          'ENTRY_REFUSED')
                 elif line.startswith(b'SYRIUS_INSPECTION_VIEWPORT:'):
                     need(marker == b'CI_INSPECT_DONE' and viewport_receipt is None
@@ -998,8 +1004,8 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
             report['home_catalog'] = collect_home_catalog(
                 repo, catalog_receipt, source, tree, parent)
         else:
-            collector = dict(settings=settings, navigation=navigation, details=details)[family]
-            report[family + '_catalog'] = collector.collect(
+            collector = dict(settings=settings, navigation=navigation, details=details)[catalog_slot]
+            report[catalog_slot + '_catalog'] = collector.collect(
                 repo, catalog_receipt, source, tree, parent, read_original=read_original)
         report['viewport'] = viewport.collect(repo, viewport_receipt, source, tree, parent,
             read_original=read_original)
@@ -1091,8 +1097,8 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
                    if key not in ('captures', 'tours', 'locales', 'stalls', 'home_catalog',
                        'settings_catalog', 'navigation_catalog', 'details_catalog', 'viewport')}
         summary.update(viewport_captured=4 if report['viewport'] is not None else 0,
-            catalog_captured=(report[family + '_catalog']['captured']
-                if report.get(family + '_catalog') is not None else 0),
+            catalog_captured=(report[catalog_slot + '_catalog']['captured']
+                if report.get(catalog_slot + '_catalog') is not None else 0),
             details_catalog_manifest_sha256=(report['details_catalog']['manifest_sha256']
                 if report.get('details_catalog') is not None else None),
             navigation_catalog_manifest_sha256=(report['navigation_catalog']['manifest_sha256']

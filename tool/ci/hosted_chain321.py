@@ -104,7 +104,9 @@ def wallet_tour_requested(backend, parent):
     return value == 'true'
 
 
-READONLY_CATALOG_SCHEMAS = dict(home=1, settings=2, navigation=3, details=4)
+READONLY_CATALOG_SCHEMAS = {
+    'home': 1, 'settings': 2, 'navigation': 3, 'details': 4, 'token-draft': 4,
+}
 
 
 def readonly_catalog_family(parent):
