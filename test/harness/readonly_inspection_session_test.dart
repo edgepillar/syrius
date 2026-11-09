@@ -1692,8 +1692,11 @@ void main() {
           if (name == 'type') {
             if (tokenDraft) {
               expect(draftOpen, isTrue);
+              if (targetKey is! String) {
+                throw StateError('The token draft field key must be a string');
+              }
               expect(draft.containsKey(targetKey), isFalse);
-              draft[targetKey as String] = command['value'];
+              draft[targetKey] = command['value'];
             } else {
               final String expected = switch (tab) {
                 'settings' => 'originals_discovery_field',
