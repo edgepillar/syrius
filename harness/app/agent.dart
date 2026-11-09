@@ -1653,7 +1653,7 @@ class HarnessAgent {
     <String, dynamic>{
       'ref': reference,
       'settleMs': 0,
-      if (fuseBeneficiary != null) 'seedFuseBeneficiary': fuseBeneficiary,
+      'seedFuseBeneficiary': ?fuseBeneficiary,
     },
     preparation: false,
   );
