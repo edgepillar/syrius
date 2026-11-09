@@ -198,6 +198,13 @@ constructor. Source568 uses an initializing formal for the same current-owner
 callback. The first run retains its failure and zero artifacts.
 [Original run](https://github.com/edgepillar/syrius/actions/runs/42696877998).
 
+The Source568 asset process reaches `STARTED` and times out before the
+source-read marker. The original result records `COMMAND_TIMEOUT` and zero
+artifacts before Dart analysis. Source569 allows thirty seconds for the
+single asset control process. Each fixture VM execution has a one-second
+limit, and qualification requires the complete phase sequence.
+[Original run](https://github.com/edgepillar/syrius/actions/runs/42697727302).
+
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,
 Project and Fund Address with its confirmed receive and target balance. The

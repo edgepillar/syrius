@@ -132,7 +132,7 @@ class AssetCommandTests(unittest.TestCase):
                 self.assertNotIn(asset.PREFIX.decode(), output.getvalue())
             else:
                 self.assertEqual(len(calls), 2)
-                self.assertEqual(calls[1][1:], (15, 65536))
+                self.assertEqual(calls[1][1:], (30, 65536))
                 self.assertTrue(value['success'])
                 self.assertFalse(value['commands'][0]['forced_kill'])
 
@@ -171,7 +171,7 @@ class AssetCommandTests(unittest.TestCase):
             exit_observed=True, output_complete=True, output_bytes=10)
         outcome = asset.baseline.Outcome(output=raw, exit_code=1,
             exit_observed=True, forced_kill=True, output_complete=True,
-            output_bytes=len(raw), seconds=15.5, errors=('COMMAND_TIMEOUT',))
+            output_bytes=len(raw), seconds=30.5, errors=('COMMAND_TIMEOUT',))
         with mock.patch.object(asset, 'admit', return_value=(parent, Path('/fixture'))), \
                 mock.patch.object(asset.source.bounded, 'verify_source') as verify, \
                 mock.patch.object(asset.source, 'source_tree', return_value='b'*40), \
@@ -191,7 +191,7 @@ class AssetCommandTests(unittest.TestCase):
         self.assertEqual(value['commands'][-1]['exit_code'], 1)
         self.assertEqual(child.call_count, 2)
         self.assertEqual([(call.kwargs['timeout'], call.kwargs['cap'])
-            for call in child.call_args_list], [(15, 256), (15, 65536)])
+            for call in child.call_args_list], [(15, 256), (30, 65536)])
         verify.assert_called_once()
         self.assertNotIn('private', output.getvalue())
         self.assertNotIn(asset.PREFIX.decode(), output.getvalue())

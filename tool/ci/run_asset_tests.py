@@ -147,7 +147,9 @@ def main():
                                               version.output) is not None, 'VERSION_REFUSED')
         report['node_version'] = version.output.decode('ascii').strip()
         report['phase'] = 'asset_controls'
-        outcome = command('asset_controls', [node, 'test/ci/lab_asset_progress_test.js'], 15, 65536)
+        # Allow cold runner startup within the one-minute workflow step.
+        # The fixture bounds each VM execution separately.
+        outcome = command('asset_controls', [node, 'test/ci/lab_asset_progress_test.js'], 30, 65536)
         if not outcome.success:
             report['control_failure'] = failure_labels(outcome.output)
             raise ValueError('CONTROL_FAILED')
