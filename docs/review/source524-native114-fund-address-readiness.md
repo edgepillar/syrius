@@ -37,10 +37,39 @@ visibility after confirmation. The wait keeps its 30-second bound. The
 original recipient, amount, review intent and single-publication checks
 continue to govern the recipe. One widget case binds both selectors to the
 authored script and the actual Send form. It checks passive observation with
-zero pointer or publication calls. Fresh hosted verification is pending for
-1,361 selected cases, or 1,363 with asset fidelity enabled.
+zero pointer or publication calls. The focused selection contains 1,361
+ordinary cases. The asset-fidelity selection contains 1,363 cases.
 
 Full F06 still requires all six effects, the copied lifecycle and the
 catalog's prepared screen states. The eight original acceptance rows remain
 open. The 44 missing literal outputs are the dark and light views of 22
 screen states whose recipes and reference blobs are present.
+
+## Fresh Native115 result
+
+Source `7a0951bd0beeccd0bbb2c2f35a6417a27df286a6`, tree
+`0825fffe6e6d0239fc7463c61baddfda46b522a8`, passed the new recipient-field
+widget case and the full selected source gate. Both original Dart commands
+exited normally with complete streams in 224.329 and 209.922 seconds. The
+1,361 passes split into 653 and 708 across 52 and 51 files, with 151 hidden
+cases, 1,512 terminal events and zero failures, errors or skips. The 1,087
+Python cases completed with 18 explicit Windows skips. All 14 asset checks
+passed and selected analysis reported zero findings.
+
+The original UI send, twelve-page tour, quiescence and normal required
+actor exits qualify again. The copied session retains the same five
+confirmed recipes. Fund Address passed the corrected readiness step and
+reached publish command eleven. The original eighteen rounds contain three
+absent and fifteen `effect_pending` observations. The exact source checks
+the same send hash, owner, chain, destination, token and amount before a
+positive confirmation can reach the effect predicate. Those fifteen rounds
+therefore establish a matching confirmed send with its effect pending.
+
+The effect predicate first checks the recipient balance and then looks for
+one confirmed receive linked to the original send. The exact unmet
+condition remains unknown. The Fund Address attempt is held, the copied
+lifecycle is incomplete and the producer ended in `CHECKPOINT_REFUSED`.
+The independent reader verifies both finite manifests. Full F06 and the
+eight original acceptance rows remain open.
+[Native115 producer](https://github.com/edgepillar/syrius/actions/runs/42574390061),
+[Independent reader](https://github.com/edgepillar/syrius/actions/runs/42576917309).
