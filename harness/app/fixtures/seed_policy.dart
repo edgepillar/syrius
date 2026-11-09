@@ -674,6 +674,7 @@ final class SeedGuard {
     SeedPendingResult last = SeedPendingResult.absent;
     SeedStakeEffectObservation? stakeEffect;
     SeedFundingObservation? fundingEffect;
+    bool waitedForStakeEntry = false;
     const int rounds = 18;
     for (int poll = 0; poll < rounds; poll++) {
       stakeEffect = null;
@@ -719,9 +720,19 @@ final class SeedGuard {
         unconfirmed++;
         last = SeedPendingResult.unconfirmed;
       }
+      final bool hasNextRound = poll + 1 < rounds;
       // Give an admitted receive time to settle within the same read budget.
-      await _delay(poll + 1 < rounds && fundingEffect?.waitingForReceive == true
-          ? const Duration(seconds: 4) : const Duration(seconds: 2));
+      Duration delay = hasNextRound && fundingEffect?.waitingForReceive == true
+          ? const Duration(seconds: 4)
+          : const Duration(seconds: 2);
+      if (hasNextRound &&
+          !waitedForStakeEntry &&
+          stakeEffect?.isEmpty == true) {
+        // The lab's ten-second momentum cadence can delay the contract receive.
+        waitedForStakeEntry = true;
+        delay = const Duration(seconds: 12);
+      }
+      await _delay(delay);
     }
     throw SeedRefused('exact-confirmation-or-effect-pending',
       stakeEffect: stakeEffect,

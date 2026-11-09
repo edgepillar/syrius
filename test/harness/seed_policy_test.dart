@@ -341,8 +341,11 @@ void main() {
       () async {
     final _ObservedStakeSource observed = _ObservedStakeSource()
       ..effectPresent = false;
+    final List<Duration> waits = <Duration>[];
     final SeedGuard current = SeedGuard(
-      source: observed, journal: journal, delay: observed.delay,
+      source: observed, journal: journal, delay: (Duration delay) async {
+        if (observed.confirmationReads > 0) waits.add(delay);
+      },
     );
     SeedRefused? refusal;
     int taps = 0;
@@ -359,6 +362,10 @@ void main() {
     expect(observed.confirmationReads, 18);
     expect(observed.effectReads, 18);
     expect(observed.observationReads, 18);
+    expect(waits, <Duration>[
+      const Duration(seconds: 12),
+      ...List<Duration>.filled(17, const Duration(seconds: 2)),
+    ]);
     expect(taps, 1);
     expect(journal.attempts, <String>{'stake'});
     expect(journal.confirmedHashes, isEmpty);
@@ -367,6 +374,33 @@ void main() {
     await expectLater(current.publish('stake', () async { taps++; }),
         throwsA(isA<SeedRefused>()));
     expect(taps, 1);
+  });
+
+  test('late Stake confirmation leaves time for the original entry', () async {
+    final _ObservedStakeSource observed = _ObservedStakeSource();
+    observed.onConfirmation = () async => observed.confirmationReads <= 13
+        ? null
+        : SeedConfirmed(hash: _hash(9), owner: 'owner', chain: 321,
+            positiveConfirmation: true, matchesRecipe: true);
+    Duration effectTime = Duration.zero;
+    observed.onEffect = () async => effectTime >= const Duration(seconds: 14);
+    final SeedGuard current = SeedGuard(
+      source: observed, journal: journal, delay: (Duration delay) async {
+        if (observed.effectReads > 0) effectTime += delay;
+      },
+    );
+    int taps = 0;
+    expect(await current.publish('stake', () async {
+      taps++;
+      observed.operations.add(_Original());
+    }), _hash(9));
+    expect(taps, 1);
+    expect(observed.confirmationReads, 16);
+    expect(observed.effectReads, 3);
+    expect(observed.observationReads, 2);
+    expect(effectTime, const Duration(seconds: 14));
+    expect(journal.attempts, <String>{'stake'});
+    expect(journal.confirmedHashes, <String, String>{'stake': _hash(9)});
   });
 
   test('a final absent round clears an earlier Stake observation', () async {
@@ -401,8 +435,11 @@ void main() {
     final _ObservedStakeSource observed = _ObservedStakeSource()
       ..effectPresent = false
       ..diagnosticThrows = true;
+    final List<Duration> waits = <Duration>[];
     final SeedGuard current = SeedGuard(
-      source: observed, journal: journal, delay: observed.delay,
+      source: observed, journal: journal, delay: (Duration delay) async {
+        if (observed.confirmationReads > 0) waits.add(delay);
+      },
     );
     SeedRefused? refusal;
     try {
@@ -417,6 +454,7 @@ void main() {
     expect(observed.confirmationReads, 18);
     expect(observed.effectReads, 18);
     expect(observed.observationReads, 18);
+    expect(waits, List<Duration>.filled(18, const Duration(seconds: 2)));
     expect(journal.confirmedHashes, isEmpty);
   });
 

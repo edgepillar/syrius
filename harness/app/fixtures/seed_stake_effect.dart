@@ -12,6 +12,9 @@ final class SeedStakeEffectObservation {
 
   final Map<String, Object> public;
 
+  bool get isEmpty => public['reported_rows'] == 0 &&
+      public['returned_rows'] == 0;
+
   static SeedStakeEffectObservation? capture({
     required int reported,
     required int returned,
