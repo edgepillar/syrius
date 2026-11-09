@@ -38,7 +38,7 @@ void main() {
         copied.lines.where((List<String> line) => line.first == 'publish'),
         <List<String>>[<String>['publish', ...seedPublishSelector('fuse')]],
       );
-      expect(copied.lines, contains(<String>['tap', '--key', beneficiary]));
+      expect(copied.lines[6], <String>['tap', '--key', beneficiary]);
       expect(() => SeedRecipe.parse('fuse', fuse), throwsA(isA<SeedRefused>()));
       expect(() => SeedRecipe.parse('fuse',
           fuse.replaceAll(beneficiary, 'fuse_plasma_beneficiary_option_1'),
