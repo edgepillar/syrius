@@ -397,7 +397,7 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
             create: (_) => TextScalingNotifier(),
           ),
           ChangeNotifierProvider<AppThemeNotifier>(
-            create: (_) => AppThemeNotifier(),
+            create: (_) => AppThemeNotifier(WidgetUtils.savedThemeMode()),
           ),
           // Starts in the saved language: the preferences are open before
           // runApp, and waiting for InitUtils.initApp would show the first

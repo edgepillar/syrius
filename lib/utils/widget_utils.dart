@@ -12,19 +12,21 @@ import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 class WidgetUtils {
+  /// The theme selected in Display, including the default for a new profile.
+  static ThemeMode savedThemeMode() {
+    final Object? stored = sharedPrefsService?.get(kThemeModeKey);
+    return ThemeMode.values.firstWhere(
+      (ThemeMode mode) => mode.toString() == stored,
+      orElse: () => kDefaultThemeMode,
+    );
+  }
+
   static void setThemeMode(BuildContext context) {
     final AppThemeNotifier appThemeNotifier = Provider.of<AppThemeNotifier>(
       context,
       listen: false,
     );
-    final ThemeMode savedThemeMode = ThemeMode.values.firstWhere(
-      (ThemeMode element) =>
-          element.toString() == sharedPrefsService!.get(kThemeModeKey),
-      orElse: () => kDefaultThemeMode,
-    );
-    if (appThemeNotifier.currentThemeMode != savedThemeMode) {
-      appThemeNotifier.changeThemeMode(savedThemeMode);
-    }
+    appThemeNotifier.changeThemeMode(savedThemeMode());
   }
 
   static void setTextScale(BuildContext context) {

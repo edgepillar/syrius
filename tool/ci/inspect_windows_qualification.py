@@ -295,6 +295,14 @@ def main():
                 and other['status'] == 'completed' and other['conclusion'] == 'skipped'
                 for other in listing['jobs'] if other is not job))
             PHASE = 'startup_artifacts'
+            launch_steps = [step for step in job.get('steps', [])
+                            if step['name'] == startup.launch.JOB_STEP
+                            and step['conclusion'] != 'skipped']
+            if launch_steps:
+                archive.need(len(launch_steps) == 1 and launch_steps[0]['status'] == 'completed')
+                emit('Hosted original cold launch inspection', startup.inspect_launch_run(
+                    client, head=head, tree=tree, run_id=run_id, job=job))
+                return 0
             for summary in startup.inspect_run(
                     client, head=head, tree=tree, run_id=run_id, job=job):
                 title = ('Hosted natural startup inspection'

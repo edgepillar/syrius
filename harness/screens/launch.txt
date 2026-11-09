@@ -1,2 +1,4 @@
-# prerequisite: pending P08 cold-start preparation and original launch-frame control
+# prerequisite: original-native-cold-launch
+# The startup catalog records frame 23 of the original 56-frame film before
+# initialization, using a closed preparation process for the saved theme.
 assert --key startup_stage_rect

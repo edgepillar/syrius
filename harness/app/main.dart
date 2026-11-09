@@ -13,6 +13,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/motion_binding.dart';
 import 'agent.dart';
 import 'client_window.dart';
 import 'fixtures/sentinel_fixture.dart';
+import 'native_launch_capture.dart' show nativeLaunchThemeEnvironment;
 import 'native_window_owner.dart';
 import 'presentation_host.dart';
 import 'presentation_mode.dart';
@@ -74,6 +75,14 @@ Future<void> main() async {
     stderr.writeln('syrius harness: native inspection requires Windows CI');
     exit(64);
   }
+  final String? launchTheme = env[nativeLaunchThemeEnvironment];
+  if (launchTheme != null &&
+      (!Platform.isWindows || env['GITHUB_ACTIONS'] != 'true' ||
+          readonlyNative || presentation != null ||
+          launchTheme != 'dark' && launchTheme != 'light')) {
+    stderr.writeln('syrius harness: launch capture requires Windows CI');
+    exit(64);
+  }
   // The agent needs a binding before app.main() runs, and the first binding
   // created is the one the process keeps. A plain one here would switch the
   // app's own off, and the harness would then drive a wallet whose animations
@@ -114,7 +123,9 @@ Future<void> main() async {
     return;
   }
   if (Platform.isWindows) {
-    HarnessAgent.instance.useNativeEntry(window: NativeWindowOwner.process());
+    HarnessAgent.instance.useNativeEntry(
+      window: NativeWindowOwner.process(), launchTheme: launchTheme,
+    );
     await configureHarnessWindowTracking();
   }
   await HarnessAgent.start(port: port, token: token);

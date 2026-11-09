@@ -6,9 +6,11 @@ import contextlib
 import io
 import json
 from pathlib import Path
+import struct
 import unittest
 from unittest import mock
 import zipfile
+import zlib
 
 from tool.ci import inspect_startup_qualification as inspect
 from tool.ci import inspect_windows_qualification as windows
@@ -116,6 +118,58 @@ class Client:
 
 
 class StartupInspectionTests(unittest.TestCase):
+    def test_cold_launch_requires_exact_frame_geometry_and_normal_actor_exits(self):
+        def chunk(kind, data):
+            return (struct.pack('>I', len(data)) + kind + data
+                    + struct.pack('>I', zlib.crc32(kind + data)))
+
+        pixels = (b'\x89PNG\r\n\x1a\n'
+            + chunk(b'IHDR', struct.pack('>IIBBBBB', 1280, 780, 8, 2, 0, 0, 0))
+            + chunk(b'IDAT', zlib.compress(bytes((1 + 1280 * 3) * 780)))
+            + chunk(b'IEND', b''))
+        pins = dict(recipe_sha256='c' * 64, capture_source_sha256='d' * 64)
+        attempts = [dict(theme=theme, role=role, action_complete=True,
+            checks=dict.fromkeys(inspect.launch.ATTEMPT_CHECKS, True), exit_code=0,
+            exit_observed=True, forced_kill=False, output_complete=True,
+            output_overflow=False, error_codes=[])
+            for theme in inspect.launch.THEMES for role in ('prepare', 'capture')]
+        captures = []
+        for theme, name in zip(inspect.launch.THEMES, inspect.launch.FILES):
+            reply = dict(ok=True, status='captured', theme=theme, frame=23, frames=56,
+                stage=[0, 32, 1280, 748], png=base64.b64encode(pixels).decode())
+            original, state = inspect.launch.launch_pixels(reply, theme)
+            self.assertEqual(original, pixels)
+            captures.append(dict(theme=theme, file=name, bytes=len(pixels),
+                sha256=inspect.archive.sha(pixels), **state))
+            for wrong in (dict(frame=24), dict(stage=[0, 32, 10, 10]), dict(frames=True)):
+                with self.assertRaises(inspect.startup.Failure):
+                    inspect.launch.launch_pixels(dict(reply, **wrong), theme)
+        report = dict(schema=1, scope='original_cold_launch_catalog', success=True,
+            attempts=attempts, captures=captures, source_stable=True, error_codes=[],
+            source_sha=HEAD, source_tree=TREE, run_id=str(RUN), run_attempt='1',
+            runner_sha256='e' * 64, payload_sha256='f' * 64, **pins)
+
+        def read(value):
+            buffer = io.BytesIO()
+            with zipfile.ZipFile(buffer, 'w') as zipped:
+                zipped.writestr('manifest.json', json.dumps(value))
+                for row in value['captures']:
+                    zipped.writestr(row['file'], pixels)
+            raw = buffer.getvalue()
+            return inspect.launch_archive(raw, inspect.archive.sha(raw), len(raw),
+                HEAD, TREE, RUN, pins)
+
+        actual = read(report)
+        self.assertTrue(actual['artifact_reported_success'])
+        self.assertEqual(actual['verified_png_count'], 2)
+        failed = dict(attempts[2], action_complete=False, forced_kill=True)
+        with self.assertRaises(inspect.archive.Refused):
+            read(dict(report, attempts=attempts[:2] + [failed, attempts[3]]))
+        partial = read(dict(report, attempts=attempts[:2] + [failed], captures=captures[:1],
+            source_stable=False, success=False, error_codes=['STARTUP_OBSERVATION_REFUSED']))
+        self.assertFalse(partial['artifact_reported_success'])
+        self.assertEqual(partial['verified_png_count'], 1)
+
     def test_startup_pair_keeps_the_original_twelve_request_transport_bound(self):
         class Response(io.BytesIO):
             status = 200

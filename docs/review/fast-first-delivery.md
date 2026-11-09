@@ -216,6 +216,14 @@ remains open.
 [Producer](https://github.com/edgepillar/syrius/actions/runs/42698643982)
 and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42701914465).
 
+Source571 applies the saved Display theme before the first frame and prepares
+the original launch reference capture. One Release build supplies a closed
+preparation process and a cold capture process for each theme. Each capture
+requires the full original stage at frame 23 of the 56-frame film. The
+separate reader binds both PNGs, the recipe and the four original process
+outcomes. The launch-settle pair still needs the original lock handoff in an
+owned wallet profile. Windows observation remains pending.
+
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,
 Project and Fund Address with its confirmed receive and target balance. The

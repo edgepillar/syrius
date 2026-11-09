@@ -91,6 +91,7 @@ import 'fixtures/seed_project_presentation.dart';
 import 'fixtures/seed_token_presentation.dart';
 import 'logical_capture.dart';
 import 'native_entry_capture.dart';
+import 'native_launch_capture.dart';
 import 'native_window_owner.dart';
 import 'presentation_close.dart';
 import 'presentation_host.dart';
@@ -469,6 +470,7 @@ class HarnessAgent {
   WalletAddressContext? _labRestoredAddresses;
   HarnessPresentationController? _presentation;
   NativeEntryCapture? _nativeEntry;
+  NativeLaunchCapture? _nativeLaunch;
   NativeWindowOwner? _nativeWindow;
   ReadonlyNativeCommands? _readonlyNative;
   StatefulElement? _lockViewOwner;
@@ -531,7 +533,10 @@ class HarnessAgent {
   }
 
   /// The ordinary Windows process retains one native entry scope from startup.
-  void useNativeEntry({required NativeWindowOwner window}) {
+  void useNativeEntry({
+    required NativeWindowOwner window,
+    String? launchTheme,
+  }) {
     if (_modeSelected ||
         booted ||
         _presentation != null ||
@@ -593,6 +598,13 @@ class HarnessAgent {
         );
       },
     );
+    if (launchTheme != null) {
+      _nativeLaunch = NativeLaunchCapture(
+        theme: launchTheme,
+        window: window,
+        readView: () => _view,
+      );
+    }
   }
 
   /// Chooses the independent host before the first remote command or startup.
@@ -1069,6 +1081,13 @@ class HarnessAgent {
           command['screen'] is! String ||
           command['theme'] is! String) {
         throw HarnessError('unsupported entry capture input');
+      }
+      if (command['screen'] == 'launch') {
+        final NativeLaunchCapture? launch = _nativeLaunch;
+        if (launch == null) {
+          throw const CaptureRefused('original-launch-capture-unavailable');
+        }
+        return launch.read(command['theme'] as String);
       }
       return await entry.capture(
         screen: command['screen'] as String,
