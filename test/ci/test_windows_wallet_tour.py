@@ -42,11 +42,14 @@ class AdmissionTests(unittest.TestCase):
             SYRIUS_LAB_NODE_SOURCE='lab-fix', SYRIUS_NATIVE_STACK_DIAGNOSTIC='true')
         with mock.patch.object(lab.sys, 'platform', 'win32'):
             self.assertTrue(lab.require_environment('native', parent))
-            seeded = dict(parent, SYRIUS_READONLY_CATALOG_FAMILY='seeded-states')
+            seeded = dict(parent, SYRIUS_READONLY_CATALOG_FAMILY='seeded-states',
+                          GITHUB_RUN_ATTEMPT='1')
             self.assertTrue(lab.require_environment('native', seeded))
             with self.assertRaises(lab.Failure):
                 lab.require_environment('native',
                     dict(seeded, GITHUB_REPOSITORY='sol-znn/syrius'))
+            with self.assertRaises(lab.Failure):
+                lab.require_environment('native', dict(seeded, GITHUB_RUN_ATTEMPT='2'))
             with self.assertRaises(lab.Failure):
                 lab.require_environment('native',
                     dict(seeded, SYRIUS_WINDOWS_WALLET_TOUR='false'))

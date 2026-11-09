@@ -23,6 +23,13 @@ both themes after the six original seed journals are verified. The separate
 archive reader binds the four files to the same source and seed receipts.
 Fresh native capture and visual comparison remain open.
 
+Source550 Native128 stopped before Flutter allocation. The controller suite
+reported 1,091 cases, eighteen skips, two failures and zero errors. The two
+assertions still expected six workflow choices and 106 reader cases. The
+original run retains its failure and zero artifacts. Source551 updates those
+expectations and limits seeded capture admission to attempt one.
+[Original run](https://github.com/edgepillar/syrius/actions/runs/42642012164).
+
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,
 Project and Fund Address with its confirmed receive and target balance. The

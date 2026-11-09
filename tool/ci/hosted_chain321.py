@@ -143,7 +143,9 @@ def require_environment(backend, parent):
     inspection = wallet_inspection_requested(backend, parent)
     tour = wallet_tour_requested(backend, parent)
     if parent.get('SYRIUS_READONLY_CATALOG_FAMILY') == SEEDED_FAMILY:
-        need(tour and not inspection and parent['GITHUB_REPOSITORY'] == 'edgepillar/syrius',
+        need(tour and not inspection
+             and parent['GITHUB_REPOSITORY'] == 'edgepillar/syrius'
+             and parent.get('GITHUB_RUN_ATTEMPT') == '1',
              'ENVIRONMENT_REFUSED')
     return tour
 
