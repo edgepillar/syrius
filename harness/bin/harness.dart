@@ -1016,7 +1016,8 @@ class SeedOperationTrace {
             _action == SeedOperationAction.publish &&
             _step == SeedOperationStep.reply && _publicationCallEntered &&
             _replyCode == 'exact-confirmation-or-effect-pending'
-        ? seedConfirmationProjection(confirmation) : null;
+        ? seedConfirmationProjection(confirmation,
+            allowFunding: _recipe == 'fund-address') : null;
     _frontier = seedRecipeIds.contains(_recipe) &&
             _action == SeedOperationAction.publish &&
             _step == SeedOperationStep.reply && _publicationCallEntered &&

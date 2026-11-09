@@ -82,12 +82,14 @@ final class SeedConfirmationObservation {
     required this.unconfirmed,
     required this.effectPending,
     required this.last,
+    this.funding,
   });
 
   final int absent;
   final int unconfirmed;
   final int effectPending;
   final SeedPendingResult last;
+  final SeedFundingObservation? funding;
 
   Map<String, Object> get public =>
       Map<String, Object>.unmodifiable(<String, Object>{
@@ -99,18 +101,87 @@ final class SeedConfirmationObservation {
           SeedPendingResult.unconfirmed => 'unconfirmed',
           SeedPendingResult.effectPending => 'effect_pending',
         },
+        'funding': ?funding?.public,
       });
 }
 
 enum SeedPendingResult { absent, unconfirmed, effectPending }
 
+enum SeedFundingLedger {
+  confirmed('confirmed'),
+  balancePending('balance_pending'),
+  receivePending('receive_pending');
+
+  const SeedFundingLedger(this.wire);
+  final String wire;
+}
+
+enum SeedFundingReceive { unavailable, unseen, pending, accepted, held }
+
+/// One completed negative ledger check and its same-hash wallet observation.
+final class SeedFundingObservation {
+  const SeedFundingObservation({
+    required this.ledger,
+    required this.walletReceive,
+    required this.pairedReceive,
+  });
+
+  final SeedFundingLedger ledger;
+  final SeedFundingReceive walletReceive;
+  final bool pairedReceive;
+
+  bool get waitingForReceive =>
+      !pairedReceive &&
+      (walletReceive == SeedFundingReceive.pending ||
+          walletReceive == SeedFundingReceive.accepted);
+
+  Map<String, Object> get public =>
+      Map<String, Object>.unmodifiable(<String, Object>{
+        'ledger': ledger.wire,
+        'wallet_receive': walletReceive.name,
+        'paired_receive': pairedReceive,
+      });
+}
+
+// The optional observer stays bound to the original source.
+// ignore: one_member_abstracts
+abstract interface class SeedFundingEffectSource {
+  SeedFundingObservation? observeFundingEffect(String hash);
+}
+
+Map<String, Object>? _seedFundingProjection(Object? value) {
+  if (value is! Map<String, Object?> || value.length != 3) return null;
+  final Object? ledger = value['ledger'];
+  final Object? receive = value['wallet_receive'];
+  final Object? paired = value['paired_receive'];
+  if (ledger is! String ||
+      !const <String>{'balance_pending', 'receive_pending'}.contains(ledger) ||
+      receive is! String ||
+      !SeedFundingReceive.values.any(
+        (SeedFundingReceive state) => state.name == receive,
+      ) ||
+      paired is! bool ||
+      (paired && ledger == 'receive_pending')) {
+    return null;
+  }
+  return Map<String, Object>.unmodifiable(<String, Object>{
+    'ledger': ledger, 'wallet_receive': receive, 'paired_receive': paired,
+  });
+}
+
 /// A bounded copy of completed original negative reads, without authority.
-Map<String, Object>? seedConfirmationProjection(Object? value) {
+Map<String, Object>? seedConfirmationProjection(
+  Object? value, {
+  bool allowFunding = false,
+}) {
   const Set<String> fields = <String>{
     'polls', 'absent', 'unconfirmed', 'effect_pending', 'last',
   };
-  if (value is! Map<String, Object?> || value.length != fields.length ||
-      !value.keys.toSet().containsAll(fields)) {
+  if (value is! Map<String, Object?>) return null;
+  final bool hasFunding = value.containsKey('funding');
+  if (value.length != fields.length + (hasFunding ? 1 : 0) ||
+      !value.keys.toSet().containsAll(fields) ||
+      (hasFunding && !allowFunding)) {
     return null;
   }
   final Object? polls = value['polls'];
@@ -130,9 +201,12 @@ Map<String, Object>? seedConfirmationProjection(Object? value) {
       last == 'effect_pending' && pending == 0) {
     return null;
   }
+  final Map<String, Object>? funding = _seedFundingProjection(value['funding']);
+  if (hasFunding && (last != 'effect_pending' || funding == null)) return null;
   return Map<String, Object>.unmodifiable(<String, Object>{
     'polls': 18, 'absent': absent, 'unconfirmed': unconfirmed,
     'effect_pending': pending, 'last': last,
+    'funding': ?funding,
   });
 }
 
@@ -304,7 +378,8 @@ Map<String, Object>? seedRefusalDetail(
   }
   final Map<String, Object>? confirmation =
       error.code == 'exact-confirmation-or-effect-pending'
-      ? seedConfirmationProjection(error.confirmation?.public) : null;
+      ? seedConfirmationProjection(error.confirmation?.public,
+          allowFunding: true) : null;
   if (confirmation != null) {
     final Map<String, Object>? stake =
         confirmation['last'] == 'effect_pending'
@@ -560,8 +635,11 @@ final class SeedGuard {
     int effectPending = 0;
     SeedPendingResult last = SeedPendingResult.absent;
     SeedStakeEffectObservation? stakeEffect;
-    for (int poll = 0; poll < 18; poll++) {
+    SeedFundingObservation? fundingEffect;
+    const int rounds = 18;
+    for (int poll = 0; poll < rounds; poll++) {
       stakeEffect = null;
+      fundingEffect = null;
       final SeedConfirmed? block = await _read(
         () => source.confirmed(recipe, hash),
       );
@@ -588,6 +666,14 @@ final class SeedGuard {
             // Passive data cannot replace the original negative outcome.
           }
         }
+        if (recipe == 'fund-address' && source is SeedFundingEffectSource) {
+          try {
+            fundingEffect = (source as SeedFundingEffectSource)
+                .observeFundingEffect(hash);
+          } on Object {
+            // The observed receive cannot replace the ledger result.
+          }
+        }
       } else if (block == null) {
         absent++;
         last = SeedPendingResult.absent;
@@ -595,13 +681,16 @@ final class SeedGuard {
         unconfirmed++;
         last = SeedPendingResult.unconfirmed;
       }
-      await _delay(const Duration(seconds: 2));
+      // Give an admitted receive time to settle within the same read budget.
+      await _delay(poll + 1 < rounds && fundingEffect?.waitingForReceive == true
+          ? const Duration(seconds: 4) : const Duration(seconds: 2));
     }
     throw SeedRefused('exact-confirmation-or-effect-pending',
       stakeEffect: stakeEffect,
       confirmation: SeedConfirmationObservation._(
         absent: absent, unconfirmed: unconfirmed,
         effectPending: effectPending, last: last,
+        funding: fundingEffect,
       ),
     );
   }

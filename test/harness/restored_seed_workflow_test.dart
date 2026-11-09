@@ -1150,6 +1150,36 @@ void main() {
     });
   });
 
+  test('Fund Address retains only its own negative receive observation', () {
+    final Map<String, Object> funding = <String, Object>{
+      'ledger': 'balance_pending', 'wallet_receive': 'pending',
+      'paired_receive': false,
+    };
+    final Map<String, Object> counts = <String, Object>{
+      'polls': 18, 'absent': 3, 'unconfirmed': 0,
+      'effect_pending': 15, 'last': 'effect_pending', 'funding': funding,
+    };
+    cli.SeedOperationFailure refused(String recipe) {
+      final cli.SeedOperationTrace trace = cli.SeedOperationTrace(recipe)
+        ..at(cli.SeedOperationAction.publish, cli.SeedOperationStep.reply,
+            commandIndex: 11)
+        ..publicationCallEntered()
+        ..refusedReplyDetail('exact-confirmation-or-effect-pending',
+            <String, Object>{'seedConfirmation': counts});
+      return trace.failure(cli.Fail('private'));
+    }
+
+    final cli.SeedOperationFailure failure = refused('fund-address');
+    expect(failure.diagnostic['confirmation'], counts);
+    expect(refused('fuse').diagnostic.containsKey('confirmation'), isFalse);
+    expect(reopen.restoredChildFailure('seed_fund-address', failure)!['seed'],
+        failure.diagnostic);
+    funding['hash'] = 'private';
+    expect(refused('fund-address').diagnostic.containsKey('confirmation'),
+        isFalse);
+    expect(failure.diagnostic['confirmation'], isNot(counts));
+  });
+
   test('actual Stake reply freezes both counts without private fields', () {
     final Map<String, Object> counts = <String, Object>{
       'polls': 18, 'absent': 13, 'unconfirmed': 0,

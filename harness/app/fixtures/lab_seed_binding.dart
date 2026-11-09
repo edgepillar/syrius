@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' as rpc;
 import 'package:path/path.dart' as path;
+import 'package:zenon_syrius_wallet_flutter/blocs/auto_receive_tx_worker.dart';
+import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/model/send_intent.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/token_balance/token_balance_snapshot.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
@@ -47,16 +49,23 @@ bool seedFundingReceiveMatches(
   Hash sendHash,
 ) =>
     receive != null &&
+    _seedFundingBlockMatches(receive, recipient, sendHash) &&
+    (receive.confirmationDetail?.numConfirmations ?? 0) > 0;
+
+bool _seedFundingBlockMatches(
+  AccountBlockTemplate receive,
+  Address recipient,
+  Hash sendHash,
+) =>
     receive.hash != emptyHash &&
     receive.chainIdentifier == 321 &&
     receive.address == recipient &&
     receive.blockType == BlockTypeEnum.userReceive.index &&
-    receive.fromBlockHash == sendHash &&
-    (receive.confirmationDetail?.numConfirmations ?? 0) > 0;
+    receive.fromBlockHash == sendHash;
 
 /// Checks the balance even when the committed send carries its exact receive.
 @visibleForTesting
-Future<bool> readSeedFundingEffect({
+Future<SeedFundingLedger> readSeedFundingEffect({
   required LedgerApi ledger,
   required Address recipient,
   required SeedConfirmed original,
@@ -69,28 +78,29 @@ Future<bool> readSeedFundingEffect({
     account,
     recipient.toString(),
   );
-  if (balance.unitsFor(znnZts) < BigInt.from(1000000000)) return false;
-  if (original.fundAddressReceiveConfirmed) return true;
+  if (balance.unitsFor(znnZts) < BigInt.from(1000000000)) {
+    return SeedFundingLedger.balancePending;
+  }
+  if (original.fundAddressReceiveConfirmed) return SeedFundingLedger.confirmed;
   final AccountBlockList receives = await ledger.getAccountBlocksByPage(
     recipient,
     pageSize: 64,
   );
   requireCurrent();
   final List<AccountBlock>? rows = receives.list;
-  if (rows == null) return false;
+  if (rows == null) return SeedFundingLedger.receivePending;
   final Hash sendHash = Hash.parse(original.hash);
-  return rows
-          .where(
-            (AccountBlock row) =>
-                seedFundingReceiveMatches(row, recipient, sendHash),
-          )
-          .length ==
-      1;
+  final int matches = rows.where(
+    (AccountBlock row) => seedFundingReceiveMatches(row, recipient, sendHash),
+  ).length;
+  return matches == 1
+      ? SeedFundingLedger.confirmed : SeedFundingLedger.receivePending;
 }
 
 /// Every wrapper and transport below is captured before the first await.
 /// No fixture installs a client into the ordinary app's global SDK.
-final class LabSeedBinding implements SeedSource, SeedStakeEffectSource {
+final class LabSeedBinding
+    implements SeedSource, SeedStakeEffectSource, SeedFundingEffectSource {
   LabSeedBinding._({
     required this.environment,
     required this.home,
@@ -103,6 +113,7 @@ final class LabSeedBinding implements SeedSource, SeedStakeEffectSource {
     required this._token,
     required this._htlc,
     required this._accelerator,
+    required this._receiveWorker,
     required this.counterparty,
   });
 
@@ -234,6 +245,8 @@ final class LabSeedBinding implements SeedSource, SeedStakeEffectSource {
       token: token,
       htlc: htlc,
       accelerator: accelerator,
+      receiveWorker: app.sl.isRegistered<AutoReceiveTxWorker>()
+          ? app.sl<AutoReceiveTxWorker>() : null,
       counterparty: exactCounterparty,
     );
   }
@@ -289,8 +302,10 @@ final class LabSeedBinding implements SeedSource, SeedStakeEffectSource {
   final TokenApi _token;
   final HtlcApi _htlc;
   final AcceleratorApi _accelerator;
+  final AutoReceiveTxWorker? _receiveWorker;
   bool _revoked = false;
   ({String hash, SeedStakeEffectObservation observation})? _stakeEffect;
+  ({String hash, SeedFundingObservation observation})? _fundingEffect;
 
   @override
   SeedStakeEffectObservation? observeStakeEffect(String hash) {
@@ -298,6 +313,43 @@ final class LabSeedBinding implements SeedSource, SeedStakeEffectSource {
         _stakeEffect;
     return isCurrent && captured != null && captured.hash == hash
         ? captured.observation : null;
+  }
+
+  @override
+  SeedFundingObservation? observeFundingEffect(String hash) {
+    final ({String hash, SeedFundingObservation observation})? captured =
+        _fundingEffect;
+    return isCurrent && captured != null && captured.hash == hash
+        ? captured.observation : null;
+  }
+
+  SeedFundingReceive _fundingReceive(String hash, Address recipient) {
+    final AutoReceiveTxWorker? worker = _receiveWorker;
+    if (worker == null ||
+        worker.isClosed ||
+        !isCurrent ||
+        !app.sl.isRegistered<AutoReceiveTxWorker>() ||
+        !identical(worker, app.sl<AutoReceiveTxWorker>())) {
+      return SeedFundingReceive.unavailable;
+    }
+    final List<ReceiveRecord> records = worker.originals;
+    if (records.length > 128) return SeedFundingReceive.unavailable;
+    final String destination = recipient.toString();
+    final List<ReceiveRecord> exact = records.where((ReceiveRecord record) =>
+      record.chainId == 321 &&
+      record.inboundHash == hash &&
+      record.toAddress == destination,
+    ).toList();
+    if (exact.isEmpty) return SeedFundingReceive.unseen;
+    if (exact.length != 1) return SeedFundingReceive.unavailable;
+    final ReceiveRecord record = exact.single;
+    if (record.handle == null) return SeedFundingReceive.unavailable;
+    if (record.error != null) return SeedFundingReceive.held;
+    if (record.result == null) return SeedFundingReceive.pending;
+    final AccountBlockTemplate? block = record.result?.block;
+    return block != null &&
+            _seedFundingBlockMatches(block, recipient, Hash.parse(hash))
+        ? SeedFundingReceive.accepted : SeedFundingReceive.held;
   }
 
   @override
@@ -533,6 +585,7 @@ final class LabSeedBinding implements SeedSource, SeedStakeEffectSource {
   Future<bool> effect(String recipe, SeedConfirmed original) async {
     _requireCurrent();
     _stakeEffect = null;
+    _fundingEffect = null;
     final String hash = original.hash;
     final Address owner = Address.parse(environment.owner);
     if (recipe == 'stake') {
@@ -631,12 +684,26 @@ final class LabSeedBinding implements SeedSource, SeedStakeEffectSource {
           value.amount == BigInt.from(100000000);
     }
     if (recipe == 'fund-address' && environment.members.length >= 3) {
-      return readSeedFundingEffect(
+      final Address recipient = Address.parse(environment.members[2]);
+      final SeedFundingLedger ledger = await readSeedFundingEffect(
         ledger: _ledger,
-        recipient: Address.parse(environment.members[2]),
+        recipient: recipient,
         original: original,
         requireCurrent: _requireCurrent,
       );
+      if (ledger == SeedFundingLedger.confirmed) return true;
+      SeedFundingReceive receive = SeedFundingReceive.unavailable;
+      try {
+        receive = _fundingReceive(hash, recipient);
+      } on Object {
+        // The existing ledger result remains authoritative.
+      }
+      _fundingEffect = (hash: hash, observation: SeedFundingObservation(
+        ledger: ledger,
+        walletReceive: receive,
+        pairedReceive: original.fundAddressReceiveConfirmed,
+      ));
+      return false;
     }
     throw const SeedRefused('recipe-prerequisite-missing');
   }

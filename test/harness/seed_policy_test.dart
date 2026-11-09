@@ -197,6 +197,26 @@ class _ObservedStakeSource extends _Source implements SeedStakeEffectSource {
   }
 }
 
+class _ObservedFundingSource extends _Source
+    implements SeedFundingEffectSource {
+  int observations = 0;
+
+  @override
+  SeedFundingObservation? observeFundingEffect(String hash) {
+    observations++;
+    if (hash != _hash(9)) return null;
+    return SeedFundingObservation(
+      ledger: SeedFundingLedger.balancePending,
+      walletReceive: switch (effectReads) {
+        1 => SeedFundingReceive.unseen,
+        2 => SeedFundingReceive.pending,
+        _ => SeedFundingReceive.accepted,
+      },
+      pairedReceive: false,
+    );
+  }
+}
+
 void main() {
   late _Source source;
   late _Journal journal;
@@ -410,6 +430,52 @@ void main() {
     }
   });
 
+  test('Fund Address paces only the admitted receive without extra reads',
+      () async {
+    for (final bool finalAbsent in <bool>[false, true]) {
+      final _ObservedFundingSource observed = _ObservedFundingSource()
+        ..effectPresent = false;
+      observed.onConfirmation = () async => observed.confirmationReads == 1 ||
+              (finalAbsent && observed.confirmationReads == 18)
+          ? null : SeedConfirmed(hash: _hash(9), owner: 'owner', chain: 321,
+              positiveConfirmation: true, matchesRecipe: true);
+      final _Journal ledger = _Journal();
+      final List<Duration> waits = <Duration>[];
+      final SeedGuard current = SeedGuard(source: observed, journal: ledger,
+        delay: (Duration duration) async { waits.add(duration); });
+      SeedRefused? refusal;
+      int taps = 0;
+      try {
+        await current.publish('fund-address', () async {
+          taps++;
+          observed.operations.add(_Original());
+        });
+      } on SeedRefused catch (error) {
+        refusal = error;
+      }
+      expect(refusal?.code, 'exact-confirmation-or-effect-pending');
+      expect(observed.confirmationReads, 18);
+      expect(observed.effectReads, finalAbsent ? 16 : 17);
+      expect(observed.observations, observed.effectReads);
+      expect(waits.sublist(waits.length - 18), <Duration>[
+        const Duration(seconds: 2),
+        const Duration(seconds: 2),
+        ...List<Duration>.filled(15, const Duration(seconds: 4)),
+        const Duration(seconds: 2),
+      ]);
+      final Object? funding = refusal?.confirmation?.public['funding'];
+      expect(funding, finalAbsent ? null : <String, Object>{
+        'ledger': 'balance_pending', 'wallet_receive': 'accepted',
+        'paired_receive': false,
+      });
+      expect(ledger.attempts, <String>{'fund-address'});
+      expect(ledger.confirmedHashes, isEmpty);
+      await expectLater(current.publish('fund-address', () async { taps++; }),
+          throwsA(isA<SeedRefused>()));
+      expect(taps, 1);
+    }
+  });
+
   test('Fund Address keeps exact receive and balance checks', () async {
     final sdk.Hash sendHash = sdk.Hash.parse(_hash(9));
     final sdk.Address recipient = sdk.Address.fromPublicKey(
@@ -472,7 +538,8 @@ void main() {
     );
     when(() => ledger.getAccountBlocksByPage(recipient, pageSize: 64))
         .thenAnswer((_) async => sdk.AccountBlockList(list: history));
-    Future<bool> effect({required bool paired}) => readSeedFundingEffect(
+    Future<SeedFundingLedger> effect({required bool paired}) =>
+        readSeedFundingEffect(
       ledger: ledger,
       recipient: recipient,
       original: SeedConfirmed(
@@ -486,19 +553,19 @@ void main() {
       requireCurrent: () {},
     );
 
-    expect(await effect(paired: true), isTrue);
+    expect(await effect(paired: true), SeedFundingLedger.confirmed);
     units -= BigInt.one;
-    expect(await effect(paired: true), isFalse);
+    expect(await effect(paired: true), SeedFundingLedger.balancePending);
     verify(() => ledger.getAccountInfoByAddress(recipient)).called(2);
     verifyNever(() => ledger.getAccountBlocksByPage(recipient, pageSize: 64));
 
     units = requiredUnits;
-    expect(await effect(paired: false), isFalse);
+    expect(await effect(paired: false), SeedFundingLedger.receivePending);
     final sdk.AccountBlock receive = sdk.AccountBlock.fromJson(wire);
     history.add(receive);
-    expect(await effect(paired: false), isTrue);
+    expect(await effect(paired: false), SeedFundingLedger.confirmed);
     history.add(receive);
-    expect(await effect(paired: false), isFalse);
+    expect(await effect(paired: false), SeedFundingLedger.receivePending);
     verify(() => ledger.getAccountBlocksByPage(recipient, pageSize: 64))
         .called(3);
   });

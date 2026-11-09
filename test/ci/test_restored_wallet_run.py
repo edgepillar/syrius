@@ -993,6 +993,29 @@ class SeedFailureProjectionTests(unittest.TestCase):
             with self.assertRaises(restored.checkpoint.Refused):
                 restored.seed_failure_projection(offered, 'seed_fuse')
 
+    def test_funding_observation_requires_the_exact_negative_fund_reply(self):
+        offered = self.exhausted()
+        offered.update(recipe='fund-address', command_index=11)
+        funding = dict(ledger='balance_pending', wallet_receive='pending',
+                       paired_receive=False)
+        offered['confirmation']['funding'] = funding
+        result = restored.seed_failure_projection(offered, 'seed_fund-address')
+        self.assertEqual(result, offered)
+        self.assertIsNot(result['confirmation']['funding'], funding)
+        self.assertEqual(restored.child_failure_projection(self.child(result))['seed'], result)
+        for change in (dict(wallet_receive='private'), dict(ledger='confirmed'),
+                dict(paired_receive=0), dict(hash='private'),
+                dict(ledger='receive_pending', paired_receive=True)):
+            invalid = dict(offered, confirmation=dict(offered['confirmation'],
+                funding=dict(funding, **change)))
+            with self.subTest(change=change), self.assertRaises(restored.checkpoint.Refused):
+                restored.seed_failure_projection(invalid, 'seed_fund-address')
+        wrong_round = dict(offered, confirmation=dict(offered['confirmation'], last='absent'))
+        with self.assertRaises(restored.checkpoint.Refused):
+            restored.seed_failure_projection(wrong_round, 'seed_fund-address')
+        with self.assertRaises(restored.checkpoint.Refused):
+            restored.seed_failure_projection(dict(offered, recipe='fuse'), 'seed_fuse')
+
     def test_seed_counts_cannot_relabel_another_original_boundary(self):
         for change in (dict(action='check', step='owner'),
                 dict(action='publish', step='request'), dict(reason='unknown'),

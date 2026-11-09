@@ -240,10 +240,11 @@ def seed_stake_effect_projection(value):
     return dict(value)
 
 
-def seed_confirmation_projection(value):
+def seed_confirmation_projection(value, *, allow_funding=False):
     """Only eighteen completed negative original rounds; no operation data."""
     fields = {'polls', 'absent', 'unconfirmed', 'effect_pending', 'last'}
-    checkpoint.need(type(value) is dict and set(value) == fields
+    checkpoint.need(type(value) is dict and set(value) in
+        (fields, fields | {'funding'})
         and type(value['polls']) is int and value['polls'] == 18
         and all(type(value[key]) is int and 0 <= value[key] <= 18
                 for key in ('absent', 'unconfirmed', 'effect_pending'))
@@ -251,7 +252,21 @@ def seed_confirmation_projection(value):
         and type(value['last']) is str
         and value['last'] in {'absent', 'unconfirmed', 'effect_pending'}
         and value[value['last']] > 0)
-    return dict(value)
+    result = dict(value)
+    if 'funding' in value:
+        funding = value['funding']
+        checkpoint.need(allow_funding and value['last'] == 'effect_pending'
+            and type(funding) is dict
+            and set(funding) == {'ledger', 'wallet_receive', 'paired_receive'}
+            and type(funding['ledger']) is str
+            and funding['ledger'] in {'balance_pending', 'receive_pending'}
+            and type(funding['wallet_receive']) is str
+            and funding['wallet_receive'] in
+                {'unavailable', 'unseen', 'pending', 'accepted', 'held'}
+            and type(funding['paired_receive']) is bool
+            and (not funding['paired_receive'] or funding['ledger'] == 'balance_pending'))
+        result['funding'] = dict(funding)
+    return result
 
 
 def seed_advance_projection(value):
@@ -373,7 +388,8 @@ def seed_failure_projection(value, phase):
         checkpoint.need(action == 'publish' and step == 'reply' and entered
             and value['kind'] == 'refused'
             and value['reason'] == 'exact-confirmation-or-effect-pending')
-        result['confirmation'] = seed_confirmation_projection(value['confirmation'])
+        result['confirmation'] = seed_confirmation_projection(value['confirmation'],
+            allow_funding=value['recipe'] == 'fund-address')
     if 'stake_effect' in value:
         checkpoint.need(value['recipe'] == 'stake'
             and result['confirmation']['last'] == 'effect_pending')
