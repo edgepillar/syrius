@@ -729,7 +729,7 @@ class ReaderTests(unittest.TestCase):
         value, calls, text = self.run_main(settings_catalog=True)
         self.assertTrue(value['native_inspection_qualified'])
         self.assertEqual(value['verified_catalog_png_count'], 14)
-        self.assertEqual(value['producer_source_files_verified'], 58)
+        self.assertEqual(value['producer_source_files_verified'], 59)
         self.assertEqual(len(calls), 16)
         messages = [line.split('::', 2)[-1] for line in text.splitlines()
             if line.startswith('::notice title=Retained readonly Settings catalog::')]
@@ -745,7 +745,7 @@ class ReaderTests(unittest.TestCase):
         value, calls, text = self.run_main(navigation_catalog=True)
         self.assertTrue(value['native_inspection_qualified'])
         self.assertEqual(value['verified_catalog_png_count'], 14)
-        self.assertEqual(value['producer_source_files_verified'], 58)
+        self.assertEqual(value['producer_source_files_verified'], 59)
         self.assertEqual(len(calls), 16)
         messages = [line.split('::', 2)[-1] for line in text.splitlines()
             if line.startswith('::notice title=Retained readonly Navigation catalog::')]
@@ -761,7 +761,7 @@ class ReaderTests(unittest.TestCase):
         value, calls, text = self.run_main(details_catalog=True)
         self.assertTrue(value['native_inspection_qualified'])
         self.assertEqual(value['verified_catalog_png_count'], 10)
-        self.assertEqual(value['producer_source_files_verified'], 58)
+        self.assertEqual(value['producer_source_files_verified'], 59)
         self.assertEqual(len(calls), 16)
         messages = [line.split('::', 2)[-1] for line in text.splitlines()
             if line.startswith('::notice title=Retained readonly Details catalog::')]
