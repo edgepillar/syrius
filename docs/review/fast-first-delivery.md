@@ -19,8 +19,9 @@ Its fresh native result and seeded captures remain open.
 [independent archive reader](https://github.com/edgepillar/syrius/actions/runs/42638567706).
 
 The restored seed catalog prepares Staking and Token Mint draft captures in
-both themes after the six original seed journals are verified. The separate
-archive reader binds the four files to the same source and seed receipts.
+both themes after the Stake and Token journals are verified. The separate
+archive reader binds the four files to the same source and catalog
+prerequisite receipts. Complete F06 evidence uses the six-recipe workflow.
 Fresh native capture and visual comparison remain open.
 
 Source550 Native128 stopped before Flutter allocation. The controller suite
@@ -36,6 +37,15 @@ restored capture entry. The Dart tests and native lab remain unexecuted for
 that source, with zero retained artifacts. Source552 uses the collection
 conditional form and checks the private receipt list type before use.
 [Original analysis run](https://github.com/edgepillar/syrius/actions/runs/42643137298).
+
+Source552 Native130 completes selected analysis with zero findings and
+passes all 1,372 Dart cases. The independent reader verifies the two
+manifests. The original Send, twelve-page tour and five node exits qualify.
+The copied Stake receipt qualifies. Fuse remains pending after fifteen
+effect observations, and the capture step is unreached. Source553 runs
+the two catalog prerequisites in their own scope.
+[Producer](https://github.com/edgepillar/syrius/actions/runs/42644297496) and
+[independent archive reader](https://github.com/edgepillar/syrius/actions/runs/42648539666).
 
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,

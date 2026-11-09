@@ -24,7 +24,10 @@ final class RestoredSeedWorkflow {
   final Future<void> Function(Map<String, Object>)? onConfirmedPrefix;
   bool _attempted = false;
 
-  Future<Map<String, Object>> run(String counterparty) async {
+  Future<Map<String, Object>> run(
+    String counterparty, {
+    bool catalogCapture = false,
+  }) async {
     if (_attempted) throw const SeedRefused('restored-seed-session-held');
     _attempted = true;
     void alive() {
@@ -57,7 +60,13 @@ final class RestoredSeedWorkflow {
     }
     final List<Map<String, String>> receipts = <Map<String, String>>[];
     final Set<String> hashes = <String>{};
-    for (final String id in seedRecipeIds) {
+    final Set<String> recipes = catalogCapture
+        ? const <String>{'stake', 'token'}
+        : seedRecipeIds;
+    final String privateScope = catalogCapture
+        ? 'private_restored_seed_catalog'
+        : 'private_restored_seed';
+    for (final String id in recipes) {
       await current();
       final Map<String, dynamic> result = await recipe(id, current);
       await current();
@@ -74,7 +83,7 @@ final class RestoredSeedWorkflow {
         await observer(
           Map<String, Object>.unmodifiable(
             <String, Object>{
-              'schema': 1, 'scope': 'private_restored_seed_prefix',
+              'schema': 1, 'scope': '${privateScope}_prefix',
               'chain': 321,
               'members': 3, 'selected_index': 1, 'derived_once': true,
               'owner_stable': true,
@@ -88,7 +97,7 @@ final class RestoredSeedWorkflow {
     }
     await current();
     return <String, Object>{
-      'schema': 1, 'scope': 'private_restored_seed_receipts', 'chain': 321,
+      'schema': 1, 'scope': '${privateScope}_receipts', 'chain': 321,
       'members': 3, 'selected_index': 1, 'derived_once': true,
       'owner_stable': true, 'receipts': receipts,
     };

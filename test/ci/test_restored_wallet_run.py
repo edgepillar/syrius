@@ -63,6 +63,27 @@ class PolicyTests(unittest.TestCase):
                        dict(application_exit=1)):
             with self.subTest(change=change), self.assertRaises(restored.checkpoint.Refused):
                 restored.project(dict(value, **change))
+        prerequisites = restored.seeds.completed(dict(seed_receipts,
+            scope='private_restored_seed_catalog_receipts',
+            receipts=[row for row in seed_receipts['receipts']
+                      if row['recipe'] in ('stake', 'token')]), catalog_capture=True)
+        catalog_reference = dict(reference,
+            seed_receipts_sha256=prerequisites['receipts_sha256'])
+        focused = dict(completed(), catalog_prerequisites=prerequisites,
+            seeded_catalog=catalog_reference)
+        self.assertEqual(restored.project(focused), focused)
+        self.assertEqual(prerequisites['scope'], 'owned_restored_seed_catalog_prerequisites')
+        self.assertEqual(prerequisites['recipes'], ['stake', 'token'])
+        self.assertEqual(prerequisites['confirmed'], 2)
+        with self.assertRaises(restored.checkpoint.Refused):
+            restored.project(dict(completed(), catalog_prerequisites=prerequisites))
+        for change in (dict(catalog_prerequisites=seeds), dict(seeded_catalog=reference),
+                       dict(seed_workflow=seeds)):
+            with self.subTest(change=change), self.assertRaises(restored.checkpoint.Refused):
+                restored.project(dict(focused, **change))
+        with self.assertRaises(restored.checkpoint.Refused):
+            restored.project(dict(completed(), seeded_catalog=catalog_reference,
+                seed_workflow=prerequisites))
 
     def test_absence_and_incomplete_reopen_never_supply_a_wallet(self):
         self.assertIsNone(restored.project(None))
@@ -167,7 +188,7 @@ class ReopenDiagnosticTests(unittest.TestCase):
             original=mock.Mock(poll=lambda: None), trace=trace, json=json,
             wallet_observation=restored.wallet_observation, seeds=restored.seeds,
             unchanged=unchanged, copied_home=Home(), snapshot=snapshot,
-            record=record, bounded_read=read, hashlib=hashlib)
+            record=record, bounded_read=read, hashlib=hashlib, seeded_capture=False)
         exec(compile(ast.Module(body=waits, type_ignores=[]),
             '<original-restored-wait>', 'exec'), namespace)
         with mock.patch.object(restored.checkpoint, 'file_identity',

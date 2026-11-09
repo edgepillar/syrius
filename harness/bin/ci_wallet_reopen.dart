@@ -454,7 +454,9 @@ Future<void> main() async {
         );
       },
     );
-    final Map<String, Object> seeds = await workflow.run(counterparty);
+    final Map<String, Object> seeds = await workflow.run(
+      counterparty, catalogCapture: seededCapture,
+    );
     await marker('CI_SEED_DONE:${jsonEncode(seeds)}');
     if (seededCapture) {
       phase = 'seeded_capture';

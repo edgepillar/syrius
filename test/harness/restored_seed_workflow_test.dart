@@ -848,31 +848,41 @@ void main() {
     expect(result.toString(), isNot(contains('synthetic-member')));
   });
 
-  test('confirmed prefixes retain six immutable ordered snapshots', () async {
-    final _Session session = _Session();
-    final List<Map<String, Object>> observed = <Map<String, Object>>[];
-    final Map<String, Object> result = await session.workflow(
-      onConfirmedPrefix: (Map<String, Object> prefix) async {
-        observed.add(prefix);
+  test('each seed plan retains immutable ordered snapshots', () async {
+    for (final bool catalogCapture in <bool>[false, true]) {
+      final _Session session = _Session();
+      final List<Map<String, Object>> observed = <Map<String, Object>>[];
+      final List<String> expected = catalogCapture
+          ? const <String>['stake', 'token']
+          : seedRecipeIds.toList();
+      final String scope = catalogCapture
+          ? 'private_restored_seed_catalog'
+          : 'private_restored_seed';
+      final Map<String, Object> result = await session.workflow(
+        onConfirmedPrefix: (Map<String, Object> prefix) async {
+          observed.add(prefix);
+          final List<Map<String, String>> receipts =
+              prefix['receipts']! as List<Map<String, String>>;
+          expect(receipts, hasLength(session.started.length));
+          expect(() => prefix['scope'] = 'changed', throwsUnsupportedError);
+          expect(receipts.clear, throwsUnsupportedError);
+          expect(() => receipts.first['hash'] = _hash(9),
+              throwsUnsupportedError);
+        },
+      ).run('synthetic-external-member', catalogCapture: catalogCapture);
+      expect(session.started, expected);
+      expect(observed, hasLength(expected.length));
+      for (int index = 0; index < observed.length; index++) {
+        expect(observed[index]['scope'], '${scope}_prefix');
         final List<Map<String, String>> receipts =
-            prefix['receipts']! as List<Map<String, String>>;
-        expect(receipts, hasLength(session.started.length));
-        expect(() => prefix['scope'] = 'changed', throwsUnsupportedError);
-        expect(receipts.clear, throwsUnsupportedError);
-        expect(() => receipts.first['hash'] = _hash(9), throwsUnsupportedError);
-      },
-    ).run('synthetic-external-member');
-    expect(observed, hasLength(6));
-    for (int index = 0; index < observed.length; index++) {
-      expect(observed[index]['scope'], 'private_restored_seed_prefix');
-      final List<Map<String, String>> receipts =
-          observed[index]['receipts']! as List<Map<String, String>>;
-      expect(receipts.map((Map<String, String> row) => row['recipe']),
-          seedRecipeIds.take(index + 1));
-      expect(receipts.first['hash'], _hash(1));
+            observed[index]['receipts']! as List<Map<String, String>>;
+        expect(receipts.map((Map<String, String> row) => row['recipe']),
+            expected.take(index + 1));
+        expect(receipts.first['hash'], _hash(1));
+      }
+      expect(result['scope'], '${scope}_receipts');
+      expect(result['receipts'], observed.last['receipts']);
     }
-    expect(result['scope'], 'private_restored_seed_receipts');
-    expect(result['receipts'], observed.last['receipts']);
   });
 
   test('the next recipe waits for the original prefix sink', () async {

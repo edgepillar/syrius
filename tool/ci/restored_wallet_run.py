@@ -517,8 +517,9 @@ class ReopenDiagnostic:
     def confirmed_prefix(self, value):
         checkpoint.need(self.error is None and self.phase == 'seed_workflow')
         value = seeds.prefix_projection(value)
-        previous = 0 if self.seed_prefix is None else self.seed_prefix['confirmed']
-        checkpoint.need(value['confirmed'] == previous + 1)
+        previous = self.seed_prefix
+        checkpoint.need(value['confirmed'] == (1 if previous is None else previous['confirmed'] + 1)
+            and (previous is None or previous['scope'] == value['scope']))
         self.seed_prefix = value
 
     def observe_line(self, raw):
@@ -646,7 +647,9 @@ def project(value):
         checkpoint.need(set(value) in (common, common | {'diagnostic'}))
         return (dict(value, diagnostic=diagnostic_projection(value['diagnostic']))
                 if 'diagnostic' in value else dict(value))
-    seed_fields = {'seed_workflow'} if 'seed_workflow' in value else set()
+    catalog_seed = 'catalog_prerequisites' in value
+    seed_key = 'catalog_prerequisites' if catalog_seed else 'seed_workflow'
+    seed_fields = {seed_key} if seed_key in value else set()
     capture_fields = {'seeded_catalog'} if 'seeded_catalog' in value else set()
     checkpoint.need(set(value) == common | seed_fields | capture_fields | {'claim_once', 'originals_closed',
         'chain_continuity', 'journal_unchanged', 'cipher_unchanged', 'wallet',
@@ -654,12 +657,13 @@ def project(value):
         'nodes', 'private_manifest_sha256', 'seed_admitted'}
         and all(value[key] is True for key in ('claim_once', 'originals_closed',
             'chain_continuity', 'journal_unchanged', 'cipher_unchanged', 'job_empty'))
+        and (not catalog_seed or capture_fields)
         and value['forced'] is value['seed_admitted'] is False
         and all(type(value[key]) is int and value[key] == 0
                 for key in ('application_exit', 'entry_exit')))
     wallet_observation(value['wallet'])
+    seed_value = seeds.project(value.get(seed_key), catalog_capture=catalog_seed)
     if seed_fields:
-        seed_value = seeds.project(value['seed_workflow'])
         checkpoint.need(type(seed_value) is dict and seed_value['complete'] is True)
     if capture_fields:
         checkpoint.need(seed_fields)
@@ -816,6 +820,7 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
     trace.at('roots')
     home, repo = Path(home), Path(repo)
     seeded_capture = parent.get('SYRIUS_READONLY_CATALOG_FAMILY') == catalog.SEEDED_FAMILY
+    seed_key = 'catalog_prerequisites' if seeded_capture else 'seed_workflow'
     capture_output = repo / catalog.SEEDED_OUTPUT
     capture_reservation = catalog.MAX_CAPTURE_TOTAL + catalog.MAX_MANIFEST if seeded_capture else 0
     copied_home = Path(restored['wallet_profile'])
@@ -920,7 +925,8 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
         run_attempt=parent['GITHUB_RUN_ATTEMPT'], platform='windows',
         claim_sha256=hashlib.sha256(claim_raw).hexdigest(),
         application_exit=None, entry_exit=None, output=None, job_empty=False,
-        forced=False, wallet=None, seed_workflow=None, nodes=[])
+        forced=False, wallet=None, nodes=[])
+    record[seed_key] = None
     try:
         trace.at('node_ports')
         lab.preflight_ports('native', stack_debug=original_runtime.stack_debug)
@@ -992,14 +998,16 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
                         return raw
                     prefix, observed = seeds.retain_prefix(
                         record.get('seed_private_prefix'),
-                        json.loads(line.partition(b':')[2]), read_journal)
+                        json.loads(line.partition(b':')[2]), read_journal,
+                        catalog_capture=seeded_capture)
                     unchanged()
                     trace.confirmed_prefix(observed)
                     record['seed_private_prefix'] = prefix
                     continue
                 if marker == b'CI_SEED_DONE' and line.startswith(marker + b':'):
                     return seeds.finish_prefix(record.get('seed_private_prefix'),
-                        json.loads(line.partition(b':')[2]))
+                        json.loads(line.partition(b':')[2]),
+                        catalog_capture=seeded_capture)
                 if marker == b'CI_SEEDED_CAPTURE_DONE' and line.startswith(marker + b':'):
                     receipt = catalog.capture_receipt(catalog.decode(line.partition(b':')[2]))
                     checkpoint.need(receipt['schema'] == catalog.SEEDED_SCHEMA)
@@ -1062,7 +1070,7 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
                 pin = identity, hashlib.sha256(raw).hexdigest()
                 checkpoint.need(snapshot.get(path) == pin)
         record['seed_private_receipts'] = seed_receipts
-        record['seed_workflow'] = seeds.completed(seed_receipts)
+        record[seed_key] = seeds.completed(seed_receipts, catalog_capture=seeded_capture)
         unchanged()
         chain_read(runtime, anchor)
         if seeded_capture:
@@ -1075,7 +1083,7 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
             chain_read(runtime, anchor)
             record['seeded_catalog'] = catalog.collect(repo, receipt, source,
                 tree, parent, read_original=bounded_read,
-                seed_receipts_sha256=record['seed_workflow']['receipts_sha256'])
+                seed_receipts_sha256=record[seed_key]['receipts_sha256'])
         trace.at('ordinary_close')
         record['phase'] = 'ordinary_close'
         close_attempted = True
@@ -1186,8 +1194,8 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
         cipher_unchanged=True, wallet=record['wallet'],
         application_exit=record['application_exit'], entry_exit=record['entry_exit'],
         output=record['output'], job_empty=True, forced=False, nodes=record['nodes'],
-        private_manifest_sha256=hashlib.sha256(raw).hexdigest(), seed_admitted=False,
-        seed_workflow=record['seed_workflow'])
+        private_manifest_sha256=hashlib.sha256(raw).hexdigest(), seed_admitted=False)
+    result[seed_key] = record[seed_key]
     if seeded_capture:
         result['seeded_catalog'] = record['seeded_catalog']
     return project(result)
