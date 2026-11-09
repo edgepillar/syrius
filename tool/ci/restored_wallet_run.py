@@ -1106,13 +1106,7 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
                     output_file.close()
                 except Exception:
                     record['complete'] = False
-        if transport is not None:
-            try:
-                if record['complete'] and record['forced'] is False:
-                    trace.at('transport_close')
-                transport.close()
-            except Exception:
-                record['complete'] = False
+        # The app transport closes its HTTP connection in each exchange.
         try:
             if record['complete'] and record['forced'] is False:
                 trace.at('nodes_stop')

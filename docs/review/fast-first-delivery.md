@@ -10,6 +10,16 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 
 ## Verified results
 
+Source547 Native126 qualifies six copied lab effects with consistent original
+receipts. They cover Stake, Fuse for the derived address, Token, Deposit,
+Project and Fund Address with its confirmed receive and target balance. The
+original UI send, twelve-page tour, app, entry and five original nodes qualify.
+The producer ends with `CHECKPOINT_REFUSED` at `transport_close`. Source548
+removes the invalid close call on the per-request app transport. Copied
+lifecycle, coordinated Swap and seeded visual acceptance remain open.
+[Producer](https://github.com/edgepillar/syrius/actions/runs/42630256045) and
+[independent archive reader](https://github.com/edgepillar/syrius/actions/runs/42633722169).
+
 Source541 captures the software-wallet Send confirmation in both themes,
 cancels it and verifies normal app, entry and node closure. The independent
 reader qualifies both PNGs and the exact source recipe. The Ledger reference
