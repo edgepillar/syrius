@@ -17,6 +17,17 @@ variant and visual comparison remain open.
 [Producer](https://github.com/edgepillar/syrius/actions/runs/42616946488) and
 [reader](https://github.com/edgepillar/syrius/actions/runs/42619855661).
 
+Source543 Native123 passes 1,370 selected Dart cases, 1,089 Python cases with
+18 Windows skips, 14 asset checks and selected analysis. The original UI send,
+twelve-page tour and normal app, entry and five-node exits qualify. The copied
+session confirms Stake, Fuse, Token, Deposit and Project. Fund Address
+confirms the exact send in fourteen rounds with the effect pending. The last
+round observes a pending balance and original wallet receive with no confirmed
+paired receive. The producer ends with `CHECKPOINT_REFUSED`. The copied
+lifecycle, eventual receive and F06 remain open.
+[Producer](https://github.com/edgepillar/syrius/actions/runs/42621211558) and
+[independent archive reader](https://github.com/edgepillar/syrius/actions/runs/42625238761).
+
 Native115 qualifies the original one-ZNN UI send, twelve-page tour,
 quiescence and normal required actor exits. The copied session confirms
 Stake, Fuse, Token, Deposit and Project. The corrected Fund Address readiness
