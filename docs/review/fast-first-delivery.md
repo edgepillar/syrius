@@ -10,6 +10,13 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 
 ## Verified results
 
+Source541 captures the software-wallet Send confirmation in both themes,
+cancels it and verifies normal app, entry and node closure. The independent
+reader qualifies both PNGs and the exact source recipe. The Ledger reference
+variant and visual comparison remain open.
+[Producer](https://github.com/edgepillar/syrius/actions/runs/42616946488) and
+[reader](https://github.com/edgepillar/syrius/actions/runs/42619855661).
+
 Native115 qualifies the original one-ZNN UI send, twelve-page tour,
 quiescence and normal required actor exits. The copied session confirms
 Stake, Fuse, Token, Deposit and Project. The corrected Fund Address readiness
@@ -111,7 +118,7 @@ frontier reads after such a failure. Their native observation remains pending.
 | Original gate | Required evidence |
 | --- | --- |
 | P03/P09/F06 | Complete the documented platform/Docker route, complete seed effects and copied lifecycle, plus coordinator/peer Swap prerequisites. Earlier Linux defaults, WSL installation and native send observations retain their separate scopes. |
-| V01/V05 | Obtain 42 missing literal outputs, review all 94 pairs, resolve retained layout/type/spacing findings and explicitly accept each match. Availability is 52/94. Accepted whole-image matches are 0/94. |
+| V01/V05 | Obtain 40 missing literal outputs, review all 94 pairs, resolve retained layout/type/spacing findings and explicitly accept each match. Availability is 54/94. Accepted whole-image matches are 0/94. |
 | V02 | Observe every motion/shader row in the running build and compare page-change, disclosure and launch frame times with the original baseline. Finite widget timing or stall telemetry alone does not close this gate. |
 | V03 | Try every original seam control, shortcut and Go To entry in the running native wallet and verify refusal. Registry and widget controls remain partial evidence. |
 | V06 | Check every original end-state requirement and complete independent final acceptance. The earlier minimum-window/Arabic viewing remains source-bound. |
