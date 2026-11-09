@@ -137,6 +137,19 @@ files. The catalog has 58 of 94 literal outputs. Visual acceptance remains
 open for every pair. [Producer](https://github.com/edgepillar/syrius/actions/runs/42677832261)
 and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42680447925).
 
+Source561 Native136 verifies the original Send, twelve-page tour and normal
+original and copied actor closure. The copied session confirms Stake and
+Token with the exact holding required by the Mint draft. The independent
+reader verifies the receipts, two capture scripts and four 1280 by 780 PNGs
+for populated Staking and the Mint draft in both themes. The catalog has
+62 of 94 literal outputs. [Producer](https://github.com/edgepillar/syrius/actions/runs/42681445958)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42684811796).
+
+Source562 prepares the separate New stake draft recipe. It waits for the
+original six-month 300 ZNN draft to become ready, then closes the form after
+capture and verifies the return to Home. The source controls pass. Native
+capture of the two New stake images remains open.
+
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,
 Project and Fund Address with its confirmed receive and target balance. The
@@ -266,8 +279,8 @@ frontier reads after such a failure. Their native observation remains pending.
 | Original gate | Required evidence |
 | --- | --- |
 | P03/P09 | Complete the documented Windows Docker route. Earlier Linux defaults, WSL installation and the Source548 native lab retain their separate scopes. |
-| F06 | Complete the seeded screen states and coordinator/peer Swap prerequisites. Source548 qualifies the original six receipts and copied lifecycle. Source549's mintable token awaits a fresh native observation. |
-| V01/V05 | Obtain 36 missing literal outputs, review all 94 pairs, resolve retained layout/type/spacing findings and explicitly accept each match. Availability is 58/94. Accepted whole-image matches are 0/94. |
+| F06 | Complete the seeded screen states and coordinator/peer Swap prerequisites. Source548 qualifies the original six receipts and copied lifecycle. Source561 qualifies the restored Stake and Token prerequisites and their four selected captures. |
+| V01/V05 | Obtain 32 missing literal outputs, review all 94 pairs, resolve retained layout/type/spacing findings and explicitly accept each match. Availability is 62/94. Accepted whole-image matches are 0/94. |
 | V02 | Observe every motion/shader row in the running build and compare page-change, disclosure and launch frame times with the original baseline. Finite widget timing or stall telemetry alone does not close this gate. |
 | V03 | Try every original seam control, shortcut and Go To entry in the running native wallet and verify refusal. Registry and widget controls remain partial evidence. |
 | V06 | Check every original end-state requirement and complete independent final acceptance. The earlier minimum-window/Arabic viewing remains source-bound. |

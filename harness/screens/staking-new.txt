@@ -3,7 +3,12 @@
 goto staking
 wait --key staking_stakes_count --timeout 30
 tap --key staking_stake_button
-wait --key create_stake_amount_field --timeout 30
+wait --key create_stake_amount_field --kind field --ready --timeout 30
 tap --key create_stake_months_6
-type --key create_stake_amount_field 300
+type --key create_stake_amount_field --kind field 300
+wait --key create_stake_submit_button --ready --timeout 30
 assert --key create_stake_submit_button
+# after-capture: tap --key staking_stake_button
+# after-capture: wait --key create_stake_amount_field --kind field --gone --timeout 10
+# after-capture: goto dashboard
+# after-capture: wait --key home_hero --timeout 5
