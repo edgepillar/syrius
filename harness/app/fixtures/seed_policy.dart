@@ -745,9 +745,10 @@ final class SeedGuard {
       if (hasNextRound && !waitedForFundingReceive && receive != null) {
         waitedForFundingReceive = true;
         requireCurrent();
-        await receive.timeout(
+        // The original handle may have a non-nullable result type.
+        await receive.then<void>((_) {}).timeout(
           const Duration(seconds: 45),
-          onTimeout: () => null,
+          onTimeout: () {},
         );
         requireCurrent();
       }

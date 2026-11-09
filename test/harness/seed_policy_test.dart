@@ -538,7 +538,7 @@ void main() {
 
   test('Fund Address waits for its original receive before reading again',
       () async {
-    final Completer<Object?> receive = Completer<Object?>();
+    final Completer<Object> receive = Completer<Object>();
     final _ObservedFundingSource observed = _ObservedFundingSource()
       ..receiveResult = receive.future;
     observed.onEffect = () async => observed.effectReads == 3;
@@ -570,7 +570,7 @@ void main() {
   testWidgets('Fund Address waits once for a still pending original receive',
       (WidgetTester tester) async {
     final _ObservedFundingSource observed = _ObservedFundingSource()
-      ..receiveResult = Completer<Object?>().future
+      ..receiveResult = Completer<Object>().future
       ..effectPresent = false;
     final SeedGuard current = SeedGuard(
       source: observed, journal: journal, delay: observed.delay,
@@ -603,7 +603,7 @@ void main() {
   });
 
   test('Fund Address rechecks its original context after waiting', () async {
-    final Completer<Object?> receive = Completer<Object?>();
+    final Completer<Object> receive = Completer<Object>();
     final _ObservedFundingSource observed = _ObservedFundingSource()
       ..receiveResult = receive.future
       ..effectPresent = false;
