@@ -672,9 +672,9 @@ def project_wallet_tour(report, lab, head, run_id, tree, manifest_sha):
         seed_admitted=False, visual_matches=0, **extra)
 
 
-def seeded_script_pins(client, head):
+def seeded_script_pins(client, head, schema=catalog.SEEDED_SCHEMA):
     pins = {}
-    for screen in catalog.SEEDED_SCREENS:
+    for screen in catalog.catalog_screens(schema):
         path = 'harness/screens/' + screen + '.txt'
         value = client.json('/contents/' + path + '?ref=' + head)
         need(type(value) is dict and value.get('path') == path
@@ -790,7 +790,7 @@ def main():
             location = client.read(API + '/actions/artifacts/' + str(item['id']) + '/zip', redirect=True)
             raw = client.read(location, authenticated=False, cap=catalog.MAX_ARCHIVE)
             PHASE = 'seeded_script_pins'
-            pins = seeded_script_pins(client, head)
+            pins = seeded_script_pins(client, head, reference['schema'])
             PHASE = 'projection_seeded'
             seeded = catalog.unpack(raw, item['digest'][7:], item['size_in_bytes'],
                 head, commit['tree']['sha'], run_id, reference, pins)

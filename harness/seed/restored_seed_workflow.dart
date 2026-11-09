@@ -1,6 +1,8 @@
 import '../app/fixtures/seed_policy.dart';
 import '../wallet_address_context.dart';
 
+enum RestoredSeedSelection { all, seededCatalog, stakeDraft }
+
 /// A single owned session; receipts observe originals and never admit a retry.
 final class RestoredSeedWorkflow {
   RestoredSeedWorkflow({
@@ -26,7 +28,7 @@ final class RestoredSeedWorkflow {
 
   Future<Map<String, Object>> run(
     String counterparty, {
-    bool catalogCapture = false,
+    RestoredSeedSelection selection = RestoredSeedSelection.all,
   }) async {
     if (_attempted) throw const SeedRefused('restored-seed-session-held');
     _attempted = true;
@@ -60,12 +62,14 @@ final class RestoredSeedWorkflow {
     }
     final List<Map<String, String>> receipts = <Map<String, String>>[];
     final Set<String> hashes = <String>{};
-    final Set<String> recipes = catalogCapture
-        ? const <String>{'stake', 'token'}
-        : seedRecipeIds;
-    final String privateScope = catalogCapture
-        ? 'private_restored_seed_catalog'
-        : 'private_restored_seed';
+    final Set<String> recipes = switch (selection) {
+      RestoredSeedSelection.all => seedRecipeIds,
+      RestoredSeedSelection.seededCatalog => const <String>{'stake', 'token'},
+      RestoredSeedSelection.stakeDraft => const <String>{'stake'},
+    };
+    final String privateScope = selection == RestoredSeedSelection.all
+        ? 'private_restored_seed'
+        : 'private_restored_seed_catalog';
     for (final String id in recipes) {
       await current();
       final Map<String, dynamic> result = await recipe(id, current);

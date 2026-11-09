@@ -84,6 +84,24 @@ class PolicyTests(unittest.TestCase):
         with self.assertRaises(restored.checkpoint.Refused):
             restored.project(dict(completed(), seeded_catalog=catalog_reference,
                 seed_workflow=prerequisites))
+        stake_only = restored.seeds.completed(dict(seed_receipts,
+            scope='private_restored_seed_catalog_receipts',
+            receipts=seed_receipts['receipts'][:1]), catalog_capture='stake-draft')
+        stake_draft_reference = dict(reference, schema=6, screens=['staking-new'],
+            captured=2, seed_receipts_sha256=stake_only['receipts_sha256'])
+        draft = dict(completed(), catalog_prerequisites=stake_only,
+                     seeded_catalog=stake_draft_reference)
+        self.assertEqual(restored.project(draft), draft)
+        for different in (
+            dict(draft, catalog_prerequisites=prerequisites),
+            dict(draft, seeded_catalog=dict(catalog_reference,
+                 seed_receipts_sha256=stake_only['receipts_sha256'])),
+            dict(completed(), seed_workflow=seeds, seeded_catalog=stake_draft_reference),
+            dict(draft, seeded_catalog=dict(stake_draft_reference,
+                 seed_receipts_sha256=prerequisites['receipts_sha256'])),
+        ):
+            with self.subTest(different=different), self.assertRaises(restored.checkpoint.Refused):
+                restored.project(different)
 
     def test_absence_and_incomplete_reopen_never_supply_a_wallet(self):
         self.assertIsNone(restored.project(None))
@@ -188,7 +206,7 @@ class ReopenDiagnosticTests(unittest.TestCase):
             original=mock.Mock(poll=lambda: None), trace=trace, json=json,
             wallet_observation=restored.wallet_observation, seeds=restored.seeds,
             unchanged=unchanged, copied_home=Home(), snapshot=snapshot,
-            record=record, bounded_read=read, hashlib=hashlib, seeded_capture=False)
+            record=record, bounded_read=read, hashlib=hashlib, catalog_capture=False)
         exec(compile(ast.Module(body=waits, type_ignores=[]),
             '<original-restored-wait>', 'exec'), namespace)
         with mock.patch.object(restored.checkpoint, 'file_identity',
@@ -271,6 +289,13 @@ class ReopenDiagnosticTests(unittest.TestCase):
         with self.assertRaises(restored.checkpoint.Refused):
             restored.child_failure_projection(dict(child,
                 capture=dict(capture, command='private')))
+        draft = dict(capture, kind='restored_stake_draft_capture_failure',
+                     screen='staking-new')
+        self.assertEqual(restored.child_failure_projection(dict(child,
+            capture=draft))['capture'], draft)
+        for wrong in (dict(capture, screen='staking-new'), dict(draft, screen='staking')):
+            with self.assertRaises(restored.checkpoint.Refused):
+                restored.child_failure_projection(dict(child, capture=wrong))
 
     def test_ordinary_output_is_ignored_and_error_text_is_only_classified_and_hashed(self):
         trace = restored.ReopenDiagnostic()

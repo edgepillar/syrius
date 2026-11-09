@@ -53,6 +53,7 @@ on:
           - send-confirm
           - earn
           - seeded-states
+          - stake-draft
       chain321_lab:
         description: Qualify isolated chain-321 production on Linux Docker and native Windows
         type: boolean
@@ -730,6 +731,19 @@ jobs:
             .harness/ci-seeded-catalog/13-staking-light.png
             .harness/ci-seeded-catalog/24-token-mine-dark.png
             .harness/ci-seeded-catalog/24-token-mine-light.png
+
+      - name: Retain the two verified New stake draft captures
+        if: success() && inputs.windows_wallet_tour && inputs.readonly_catalog_family == 'stake-draft'
+        uses: actions/upload-artifact@v7
+        with:
+          name: seeded-catalog-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          compression-level: 0
+          include-hidden-files: true
+          if-no-files-found: error
+          path: |
+            .harness/ci-seeded-catalog/manifest.json
+            .harness/ci-seeded-catalog/14-staking-new-dark.png
+            .harness/ci-seeded-catalog/14-staking-new-light.png
 
       - name: Admit only finite inspection artifact paths
         id: inspection_paths

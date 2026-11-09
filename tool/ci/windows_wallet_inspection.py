@@ -550,7 +550,7 @@ def inspection_catalog_reference(report):
         return navigation.catalog_reference(report['navigation_catalog'])
     need(report['navigation_catalog'] is None, 'CAPTURE_REFUSED')
     reference = details.catalog_reference(report['details_catalog'])
-    need(reference['schema'] != details.SEEDED_SCHEMA, 'CAPTURE_REFUSED')
+    need(reference['schema'] not in details.RESTORED_SCHEMAS, 'CAPTURE_REFUSED')
     family = catalog_only_family(report)
     if family is not None:
         need(reference['schema'] == details.FAMILY_SCHEMAS[family], 'CAPTURE_REFUSED')

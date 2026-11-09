@@ -5,6 +5,7 @@ import json
 import re
 
 from .closed_lab_checkpoint import need
+from .readonly_details_capture import STAKE_DRAFT_FAMILY
 
 
 IDS = ('stake', 'fuse', 'token', 'deposit', 'project', 'fund-address')
@@ -13,6 +14,13 @@ SCOPE = 'owned_restored_seed_workflow'
 CATALOG_SCOPE = 'owned_restored_seed_catalog_prerequisites'
 PREFIX_SCOPE = 'observed_restored_seed_prefix'
 CATALOG_PREFIX_SCOPE = 'observed_restored_seed_catalog_prefix'
+
+
+def _recipe_ids(catalog_capture):
+    if catalog_capture == STAKE_DRAFT_FAMILY:
+        return ('stake',)
+    need(type(catalog_capture) is bool)
+    return CATALOG_IDS if catalog_capture else IDS
 
 
 def digest(value):
@@ -39,7 +47,7 @@ def counterparty(genesis, members):
 
 
 def _private_receipts(value, *, prefix=False, catalog_capture=False):
-    ids = CATALOG_IDS if catalog_capture else IDS
+    ids = _recipe_ids(catalog_capture)
     scope = 'private_restored_seed_catalog' if catalog_capture else 'private_restored_seed'
     scope += '_prefix' if prefix else '_receipts'
     fields = {'schema', 'scope', 'chain', 'members', 'selected_index',
@@ -136,7 +144,7 @@ def journal_record(recipe, state, raw, original_hash):
 
 def completed(value, *, catalog_capture=False):
     value = private_receipts(value, catalog_capture=catalog_capture)
-    ids = CATALOG_IDS if catalog_capture else IDS
+    ids = _recipe_ids(catalog_capture)
     scope = CATALOG_SCOPE if catalog_capture else SCOPE
     return project(dict(schema=1, scope=scope, complete=True, chain=321,
         recipes=list(ids), confirmed=len(ids), members=3, selected_index=1,
@@ -148,7 +156,7 @@ def completed(value, *, catalog_capture=False):
 def project(value, *, catalog_capture=False):
     if value is None:
         return None
-    ids = CATALOG_IDS if catalog_capture else IDS
+    ids = _recipe_ids(catalog_capture)
     scope = CATALOG_SCOPE if catalog_capture else SCOPE
     common = {'schema', 'scope', 'complete'}
     need(type(value) is dict and common <= set(value)

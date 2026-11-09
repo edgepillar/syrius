@@ -150,6 +150,12 @@ original six-month 300 ZNN draft to become ready, then closes the form after
 capture and verifies the return to Home. The source controls pass. Native
 capture of the two New stake images remains open.
 
+Source563 adds the opt-in New stake draft selection to the restored wallet
+tour. The selected profile must show the exact original Stake from its
+confirmed journal before opening the draft. The capture bundle contains both
+themes, and its reader binds the two PNGs and script to the same Stake
+receipt and producer source. A fresh Windows observation remains open.
+
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,
 Project and Fund Address with its confirmed receive and target balance. The

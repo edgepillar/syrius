@@ -849,15 +849,18 @@ void main() {
   });
 
   test('each seed plan retains immutable ordered snapshots', () async {
-    for (final bool catalogCapture in <bool>[false, true]) {
+    for (final RestoredSeedSelection selection
+        in RestoredSeedSelection.values) {
       final _Session session = _Session();
       final List<Map<String, Object>> observed = <Map<String, Object>>[];
-      final List<String> expected = catalogCapture
-          ? const <String>['stake', 'token']
-          : seedRecipeIds.toList();
-      final String scope = catalogCapture
-          ? 'private_restored_seed_catalog'
-          : 'private_restored_seed';
+      final List<String> expected = switch (selection) {
+        RestoredSeedSelection.all => seedRecipeIds.toList(),
+        RestoredSeedSelection.seededCatalog => const <String>['stake', 'token'],
+        RestoredSeedSelection.stakeDraft => const <String>['stake'],
+      };
+      final String scope = selection == RestoredSeedSelection.all
+          ? 'private_restored_seed'
+          : 'private_restored_seed_catalog';
       final Map<String, Object> result = await session.workflow(
         onConfirmedPrefix: (Map<String, Object> prefix) async {
           observed.add(prefix);
@@ -869,7 +872,7 @@ void main() {
           expect(() => receipts.first['hash'] = _hash(9),
               throwsUnsupportedError);
         },
-      ).run('synthetic-external-member', catalogCapture: catalogCapture);
+      ).run('synthetic-external-member', selection: selection);
       expect(session.started, expected);
       expect(observed, hasLength(expected.length));
       for (int index = 0; index < observed.length; index++) {

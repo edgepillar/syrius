@@ -138,7 +138,8 @@ class SeedPrefixObservationTests(unittest.TestCase):
         return json.dumps(value).encode()
 
     def test_ordered_prefixes_read_only_the_three_new_journals(self):
-        for catalog_capture, ids in ((False, seeds.IDS), (True, ('stake', 'token'))):
+        for catalog_capture, ids in ((False, seeds.IDS), (True, ('stake', 'token')),
+                                     ('stake-draft', ('stake',))):
             previous = None
             final = receipts()
             if catalog_capture:
@@ -169,6 +170,9 @@ class SeedPrefixObservationTests(unittest.TestCase):
                 catalog_capture=catalog_capture), final)
             with self.assertRaises(restored.checkpoint.Refused):
                 seeds.finish_prefix(previous, final, catalog_capture=not catalog_capture)
+            if catalog_capture == 'stake-draft':
+                with self.assertRaises(restored.checkpoint.Refused):
+                    seeds.finish_prefix(previous, final, catalog_capture=True)
 
     def test_replay_skipping_and_replaced_prior_hash_refuse_before_io(self):
         previous = self.prefix(1)

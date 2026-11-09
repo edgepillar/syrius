@@ -455,9 +455,14 @@ def child_failure_projection(value):
     if 'capture' in value:
         checkpoint.need(value['phase'] == 'seeded_capture'
             and code is None and recipe is None)
+        capture = value['capture']
+        checkpoint.need(type(capture) is dict)
+        schema = (catalog.STAKE_DRAFT_SCHEMA
+                  if capture.get('kind') == catalog.STAKE_DRAFT_FAILURE_KIND
+                  else catalog.SEEDED_SCHEMA)
         try:
             result['capture'] = catalog.failure_diagnostic(
-                value['capture'], catalog_schema=catalog.SEEDED_SCHEMA)
+                capture, catalog_schema=schema)
         except catalog.Refused:
             raise checkpoint.Refused() from None
     return result
@@ -662,17 +667,23 @@ def project(value):
         and all(type(value[key]) is int and value[key] == 0
                 for key in ('application_exit', 'entry_exit')))
     wallet_observation(value['wallet'])
-    seed_value = seeds.project(value.get(seed_key), catalog_capture=catalog_seed)
-    if seed_fields:
-        checkpoint.need(type(seed_value) is dict and seed_value['complete'] is True)
+    reference = None
+    catalog_capture = catalog_seed
     if capture_fields:
         checkpoint.need(seed_fields)
         try:
             reference = catalog.catalog_reference(value['seeded_catalog'])
         except catalog.Refused:
             raise checkpoint.Refused() from None
-        checkpoint.need(reference['schema'] == catalog.SEEDED_SCHEMA
-            and reference['seed_receipts_sha256'] == seed_value['receipts_sha256'])
+        checkpoint.need(reference['schema'] in catalog.RESTORED_SCHEMAS)
+        if reference['schema'] == catalog.STAKE_DRAFT_SCHEMA:
+            checkpoint.need(catalog_seed)
+            catalog_capture = catalog.STAKE_DRAFT_FAMILY
+    seed_value = seeds.project(value.get(seed_key), catalog_capture=catalog_capture)
+    if seed_fields:
+        checkpoint.need(type(seed_value) is dict and seed_value['complete'] is True)
+    if reference is not None:
+        checkpoint.need(reference['seed_receipts_sha256'] == seed_value['receipts_sha256'])
     output = value['output']
     checkpoint.need(type(output) is dict and set(output) ==
         {'bytes', 'sha256', 'output_complete', 'overflow'}
@@ -819,7 +830,11 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
     origin = wallet.restoration_origin()
     trace.at('roots')
     home, repo = Path(home), Path(repo)
-    seeded_capture = parent.get('SYRIUS_READONLY_CATALOG_FAMILY') == catalog.SEEDED_FAMILY
+    family = parent.get('SYRIUS_READONLY_CATALOG_FAMILY')
+    capture_schema = catalog.RESTORED_FAMILIES.get(family)
+    seeded_capture = capture_schema is not None
+    stake_draft = capture_schema == catalog.STAKE_DRAFT_SCHEMA
+    catalog_capture = catalog.STAKE_DRAFT_FAMILY if stake_draft else seeded_capture
     seed_key = 'catalog_prerequisites' if seeded_capture else 'seed_workflow'
     capture_output = repo / catalog.SEEDED_OUTPUT
     capture_reservation = catalog.MAX_CAPTURE_TOTAL + catalog.MAX_MANIFEST if seeded_capture else 0
@@ -884,7 +899,7 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
         checkpoint.need(type(used) is int and 0 <= used <= checkpoint.CAP - reserve
                         and shutil.disk_usage(repo).free >= checkpoint.FLOOR + reserve)
         if seeded_capture:
-            catalog.output_bytes(capture_output, schema=catalog.SEEDED_SCHEMA)
+            catalog.output_bytes(capture_output, schema=capture_schema)
 
     trace.at('source')
     debug.bounded.verify_source(repo, source, parent)
@@ -944,7 +959,8 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
             GITHUB_REPOSITORY=parent['GITHUB_REPOSITORY'],
             SYRIUS_HOSTED_RUNNER=parent['SYRIUS_HOSTED_RUNNER'])
         if seeded_capture:
-            env['SYRIUS_CI_REOPEN_SEEDED_CAPTURE'] = 'true'
+            env['SYRIUS_CI_REOPEN_SEEDED_CAPTURE'] = (
+                catalog.STAKE_DRAFT_FAMILY if stake_draft else 'true')
         dart, _ = debug.sdk(parent)
         trace.at('launch')
         job = debug.WindowsJob()
@@ -999,7 +1015,7 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
                     prefix, observed = seeds.retain_prefix(
                         record.get('seed_private_prefix'),
                         json.loads(line.partition(b':')[2]), read_journal,
-                        catalog_capture=seeded_capture)
+                        catalog_capture=catalog_capture)
                     unchanged()
                     trace.confirmed_prefix(observed)
                     record['seed_private_prefix'] = prefix
@@ -1007,10 +1023,10 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
                 if marker == b'CI_SEED_DONE' and line.startswith(marker + b':'):
                     return seeds.finish_prefix(record.get('seed_private_prefix'),
                         json.loads(line.partition(b':')[2]),
-                        catalog_capture=seeded_capture)
+                        catalog_capture=catalog_capture)
                 if marker == b'CI_SEEDED_CAPTURE_DONE' and line.startswith(marker + b':'):
                     receipt = catalog.capture_receipt(catalog.decode(line.partition(b':')[2]))
-                    checkpoint.need(receipt['schema'] == catalog.SEEDED_SCHEMA)
+                    checkpoint.need(receipt['schema'] == capture_schema)
                     return receipt
                 if line == marker:
                     return None
@@ -1070,7 +1086,7 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
                 pin = identity, hashlib.sha256(raw).hexdigest()
                 checkpoint.need(snapshot.get(path) == pin)
         record['seed_private_receipts'] = seed_receipts
-        record[seed_key] = seeds.completed(seed_receipts, catalog_capture=seeded_capture)
+        record[seed_key] = seeds.completed(seed_receipts, catalog_capture=catalog_capture)
         unchanged()
         chain_read(runtime, anchor)
         if seeded_capture:

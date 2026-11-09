@@ -29,6 +29,12 @@ SEEDED_SCHEMA = 4
 SEEDED_SCREENS = ('staking', 'token-mine')
 SEEDED_FILES = ('13-staking-dark.png', '13-staking-light.png',
                 '24-token-mine-dark.png', '24-token-mine-light.png')
+STAKE_DRAFT_FAMILY = 'stake-draft'
+STAKE_DRAFT_SCHEMA = 6
+STAKE_DRAFT_FAILURE_KIND = 'restored_stake_draft_capture_failure'
+RESTORED_FAMILIES = {SEEDED_FAMILY: SEEDED_SCHEMA,
+                     STAKE_DRAFT_FAMILY: STAKE_DRAFT_SCHEMA}
+RESTORED_SCHEMAS = frozenset(RESTORED_FAMILIES.values())
 FAMILY_SCHEMAS = {'details': 1, 'token-draft': 2, 'send-confirm': 3, 'earn': 5}
 CATALOG_STAGES = {name.replace('-', '_') + '_catalog': schema
                   for name, schema in FAMILY_SCHEMAS.items()}
@@ -38,6 +44,8 @@ CATALOGS = {
     3: (SEND_CONFIRM_SCREENS, SEND_CONFIRM_FILES),
     SEEDED_SCHEMA: (SEEDED_SCREENS, SEEDED_FILES),
     FAMILY_SCHEMAS['earn']: (EARN_SCREENS, EARN_FILES),
+    STAKE_DRAFT_SCHEMA: (('staking-new',),
+                         ('14-staking-new-dark.png', '14-staking-new-light.png')),
 }
 OUTPUT = Path('.harness/ci-details-catalog')
 SEEDED_OUTPUT = Path('.harness/ci-seeded-catalog')
@@ -118,8 +126,9 @@ def failure_diagnostic(value, *, catalog_schema=1):
     else:
         need(value['schema'] == 1)
     need(required <= set(value) <= required | optional)
-    kind = ('restored_seeded_capture_failure' if catalog_schema == SEEDED_SCHEMA
-            else 'readonly_details_capture_failure')
+    kind = {SEEDED_SCHEMA: 'restored_seeded_capture_failure',
+            STAKE_DRAFT_SCHEMA: STAKE_DRAFT_FAILURE_KIND}.get(
+                catalog_schema, 'readonly_details_capture_failure')
     need(type(value['schema']) is int and value['schema'] in (1, 2)
          and value['kind'] == kind
          and type(value['last_entered_step']) is str
@@ -147,17 +156,17 @@ def catalog_screens(schema):
 
 
 def _scope(schema, suffix):
-    prefix = ('restored_native_seeded_catalog' if schema == SEEDED_SCHEMA
+    prefix = ('restored_native_seeded_catalog' if schema in RESTORED_SCHEMAS
               else 'readonly_native_details_catalog')
     return prefix + '_' + suffix
 
 
 def _output(schema):
-    return SEEDED_OUTPUT if schema == SEEDED_SCHEMA else OUTPUT
+    return SEEDED_OUTPUT if schema in RESTORED_SCHEMAS else OUTPUT
 
 
 def _seed_pin(value, schema):
-    if schema == SEEDED_SCHEMA:
+    if schema in RESTORED_SCHEMAS:
         need(digest(value.get('seed_receipts_sha256')), 'CAPTURE_REFUSED')
         return {'seed_receipts_sha256': value['seed_receipts_sha256']}
     return {}
@@ -279,7 +288,7 @@ def collect(repo, receipt, source, tree, parent, *, read_original,
     """Retain original PNG references without another archive copy."""
     capture_receipt(receipt)
     schema = receipt['schema']
-    need((schema == SEEDED_SCHEMA) == (seed_receipts_sha256 is not None))
+    need((schema in RESTORED_SCHEMAS) == (seed_receipts_sha256 is not None))
     seed_pin = _seed_pin({'seed_receipts_sha256': seed_receipts_sha256}, schema)
     output = repo / _output(schema)
     output_bytes(output, schema=schema)
@@ -319,7 +328,7 @@ def artifact_paths(repo, report, *, read_original, parent_completed,
     reference = catalog_reference(report[reference_key])
     schema = reference['schema']
     need(reference_key in ('details_catalog', 'seeded_catalog')
-         and (schema == SEEDED_SCHEMA) == (reference_key == 'seeded_catalog'))
+         and (schema in RESTORED_SCHEMAS) == (reference_key == 'seeded_catalog'))
     relative = _output(schema)
     output = repo / relative
     output_bytes(output, schema=schema)
@@ -395,7 +404,7 @@ def unpack(raw, expected_sha, expected_size, head, tree, run_id,
             pixels = member(row['file'], MAX_CAPTURE_TOTAL)
             need(len(pixels) == row['bytes'] and sha(pixels) == row['sha256'])
             debug.entry.png_bytes(base64.b64encode(pixels).decode('ascii'))
-    scope = ('retained_restored_seeded_catalog' if schema == SEEDED_SCHEMA
+    scope = ('retained_restored_seeded_catalog' if schema in RESTORED_SCHEMAS
              else 'retained_readonly_details_catalog')
     result = dict(schema=schema, scope=scope, source_head=head,
         source_tree=tree, source_run_id=run_id, source_attempt=1,
