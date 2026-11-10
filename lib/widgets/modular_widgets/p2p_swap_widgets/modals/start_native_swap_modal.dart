@@ -239,6 +239,7 @@ class _StartNativeSwapModalState extends State<StartNativeSwapModal>
         : null;
     final Widget primary = exactId == null
         ? SeamGate(
+            key: const Key('swap_start_terms_gate'),
             seam: Seam.swapTerms,
             child: SwapPrimaryAction(
               label: context.l10n.swapListStart,

@@ -297,6 +297,7 @@ class _ViewState extends State<_View> {
           key: const Key('pillars_sort_apr'),
           enabled: false,
           child: SeamGate(
+            key: const Key('pillars_sort_apr_gate'),
             seam: Seam.pillarAprEstimate,
             child: Text(context.l10n.pillarsAprEstimate),
           ),

@@ -13,6 +13,7 @@ import 'dart:math';
 import '../app/fixtures/seed_policy.dart';
 import '../app/fixtures/seed_stake_effect.dart';
 import '../app/presentation_mode.dart';
+import '../app/readonly_native_commands.dart' show readonlySeamPointerCommand;
 import '../app/readonly_native_mode.dart';
 import '../home_preparation_observation.dart';
 import '../seed/seed_recipe.dart';
@@ -614,6 +615,19 @@ Future<void> run(Instance inst, String command, Args a) async {
         }),
         a,
       );
+    case 'seam':
+      if (r.length != 1 || a['key'] == null) {
+        throw Fail('seam <name> --key <key>');
+      }
+      final Map<String, dynamic> result = await call(inst, <String, Object?>{
+        'cmd': readonlySeamPointerCommand, 'seam': r.single, 'key': a['key'],
+      });
+      stdout.writeln(jsonEncode(<String, Object?>{
+        for (final String name in <String>[
+          'scope', 'seam', 'pointerDispatched', 'absorptionObserved',
+        ])
+          name: result[name],
+      }));
     case 'type':
       // `type <selector> <text>`, or `type <text>` into the focused field.
       final bool aimed = r.length >= 2 || a.has('key') || a.has('type');

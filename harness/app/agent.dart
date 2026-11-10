@@ -50,6 +50,7 @@ import 'package:zenon_syrius_wallet_flutter/screens/onboarding/wallet_ready_surf
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/wallet_success_screen.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/welcome_surface.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/splash_screen.dart';
+import 'package:zenon_syrius_wallet_flutter/seams/seam.dart';
 import 'package:zenon_syrius_wallet_flutter/services/shared_prefs_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/entry_capture_source.dart';
@@ -1142,6 +1143,8 @@ class HarnessAgent {
         return _labRestoredObserve(c);
       case 'tree':
         return _tree(c);
+      case readonlySeamPointerCommand:
+        return _probeReadonlySeam(c);
       case 'tap':
         return _tap(c);
       case 'hover':
@@ -4504,6 +4507,12 @@ class HarnessAgent {
     if (command.keys.any((String name) => !fields.contains(name))) {
       throw HarnessError('readonly region needs a positive key selector');
     }
+    return _visibleKeyNodes(key, onRejected: onRejected);
+  }
+
+  List<_Node> _visibleKeyNodes(String key, {
+    void Function(String reason)? onRejected,
+  }) {
     final Element? root = WidgetsBinding.instance.rootElement;
     if (root == null) {
       onRejected?.call('rootMissing');
@@ -4581,6 +4590,98 @@ class HarnessAgent {
       return false;
     }
     return true;
+  }
+
+  Future<Map<String, Object?>> _probeReadonlySeam(
+    Map<String, dynamic> command,
+  ) async {
+    const String refusal = 'readonly-seam-pointer-refused';
+    final Object? key = command['key'];
+    final Seam? seam = Seam.values.asNameMap()[command['seam']];
+    if (_readonlyNative == null || command.length != 3 ||
+        key is! String || key.isEmpty || key.length > 128 || seam == null) {
+      throw HarnessError(refusal);
+    }
+
+    ({_Node target, RenderAbsorbPointer barrier}) resolve() {
+      final List<_Node> nodes = _visibleKeyNodes(key);
+      if (nodes.length != 1) throw HarnessError(refusal);
+      final _Node target = nodes.single;
+      Element? gate = target.element.widget is SeamGate ? target.element : null;
+      if (gate == null) {
+        target.element.visitAncestorElements((Element ancestor) {
+          if (ancestor.widget is! SeamGate) return true;
+          gate = ancestor;
+          return false;
+        });
+      }
+      final Element? owner = gate;
+      final Widget? widget = owner?.widget;
+      if (owner == null || widget is! SeamGate || widget.seam != seam) {
+        throw HarnessError(refusal);
+      }
+
+      RenderAbsorbPointer? barrier;
+      void visit(Element element) {
+        if (element.widget is AbsorbPointer) {
+          final RenderObject? render = element.renderObject;
+          if (barrier != null || render is! RenderAbsorbPointer) {
+            throw HarnessError(refusal);
+          }
+          barrier = render;
+          return;
+        }
+        element.debugVisitOnstageChildren(visit);
+      }
+      owner.debugVisitOnstageChildren(visit);
+      final RenderAbsorbPointer? absorber = barrier;
+      if (absorber == null || !_seamBlocksPointer(absorber, target.center)) {
+        throw HarnessError(refusal);
+      }
+      return (target: target, barrier: absorber);
+    }
+
+    final ({_Node target, RenderAbsorbPointer barrier}) original = resolve();
+    void requireSameBarrier() {
+      final ({_Node target, RenderAbsorbPointer barrier}) current = resolve();
+      if (!identical(current.target.element, original.target.element) ||
+          !identical(current.barrier, original.barrier) ||
+          current.target.center != original.target.center) {
+        throw HarnessError(refusal);
+      }
+    }
+
+    await _click(original.target.center, requireAdmission: requireSameBarrier);
+    await _settle(250);
+    requireSameBarrier();
+    if (_snapshot().any((_Node node) => node.kind == 'error')) {
+      throw HarnessError(refusal);
+    }
+    return <String, Object?>{
+      'scope': 'readonly_native_seam_pointer_observation',
+      'seam': seam.name,
+      'pointerDispatched': true,
+      'absorptionObserved': true,
+    };
+  }
+
+  bool _seamBlocksPointer(RenderAbsorbPointer barrier, Offset point) {
+    final RenderObject? parent = barrier.parent;
+    if (parent is! RenderExcludeSemantics || !parent.excluding ||
+        !barrier.attached || !barrier.hasSize || !barrier.absorbing ||
+        !(Offset.zero & barrier.size).contains(barrier.globalToLocal(point))) {
+      return false;
+    }
+    final HitTestResult hits = HitTestResult();
+    WidgetsBinding.instance.hitTestInView(
+      hits, point, _view.flutterView.viewId,
+    );
+    // An absorbing render box ends the hit test without adding its own entry.
+    // Its defer-to-child parent is the first render hit for this gate.
+    for (final HitTestEntry<HitTestTarget> hit in hits.path) {
+      if (hit.target is RenderObject) return identical(hit.target, parent);
+    }
+    return false;
   }
 
   Future<Map<String, Object?>> _wait(Map<String, dynamic> c) async {

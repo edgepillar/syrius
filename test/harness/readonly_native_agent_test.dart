@@ -859,6 +859,15 @@ void main() {
       await expectLater(agent.commandForTest(<String, dynamic>{
         'cmd': 'tap', 'key': 'node_settings_sporks_gate',
       }), throwsA(isA<HarnessError>()));
+      final Map<String, Object?> sporksProbe = await _driveCatalogCommand(
+        tester, agent.commandForTest(<String, dynamic>{
+          'cmd': readonlySeamPointerCommand,
+          'key': 'node_settings_sporks_gate',
+          'seam': Seam.sporks.name,
+        }),
+      );
+      expect(sporksProbe['seam'], Seam.sporks.name);
+      expect(sporksProbe['absorptionObserved'], isTrue);
       expect(source.calls, callsBefore);
       expect(scope.disabled, isTrue);
       expect(find.byKey(const Key('node_settings_sporks_body'))
@@ -1525,21 +1534,30 @@ void main() {
     };
     for (final bool light in <bool>[false, true]) {
       for (final MapEntry<String, Seam> entry in gates.entries) {
-        await tester.pumpWidget(about_fixture.aboutHost(
-          Align(
-            alignment: Alignment.topLeft,
-            child: SizedBox(width: 200, height: 80,
-              child: SeamGate(key: Key(entry.key), seam: entry.value,
-                child: TextButton(
-                  key: const Key('synthetic_gated_action'),
-                  onPressed: () => activated++,
-                  child: const Text('Synthetic gated action'),
+        int overlayInput = 0;
+        Widget host({bool covered = false}) => about_fixture.aboutHost(
+          Stack(children: <Widget>[
+            Align(
+              alignment: Alignment.topLeft,
+              child: SizedBox(width: 200, height: 80,
+                child: SeamGate(key: Key(entry.key), seam: entry.value,
+                  child: TextButton(
+                    key: const Key('synthetic_gated_action'),
+                    onPressed: () => activated++,
+                    child: const Text('Synthetic gated action'),
+                  ),
                 ),
               ),
             ),
-          ),
+            if (covered)
+              Positioned.fill(child: Listener(
+                behavior: HitTestBehavior.opaque,
+                onPointerDown: (_) => overlayInput++,
+              )),
+          ]),
           light: light,
-        ));
+        );
+        await tester.pumpWidget(host());
         await tester.pump();
         for (final String command in <String>['assert', 'wait']) {
           final Map<String, Object?> result =
@@ -1560,6 +1578,21 @@ void main() {
         await expectLater(scope.agent.commandForTest(<String, dynamic>{
           'cmd': 'type', 'key': entry.key, 'text': 'Synthetic input',
         }), throwsA(isA<HarnessError>()));
+        final Map<String, dynamic> probe = <String, dynamic>{
+          'cmd': readonlySeamPointerCommand,
+          'key': entry.key,
+          'seam': entry.value.name,
+        };
+        await expectLater(scope.agent.commandForTest(<String, dynamic>{
+          ...probe, 'seam': Seam.sporks.name,
+        }), throwsA(isA<HarnessError>()));
+        final Map<String, Object?> observed = await _driveCatalogCommand(
+          tester, scope.agent.commandForTest(probe),
+        );
+        expect(observed['scope'], 'readonly_native_seam_pointer_observation');
+        expect(observed['seam'], entry.value.name);
+        expect(observed['pointerDispatched'], isTrue);
+        expect(observed['absorptionObserved'], isTrue);
         await tester.tap(find.byKey(const Key('synthetic_gated_action')),
           warnIfMissed: false,
         );
@@ -1571,6 +1604,13 @@ void main() {
         expect((tree['nodes']! as List<Map<String, Object?>>).where(
           (Map<String, Object?> node) => node['kind'] == 'region',
         ), isEmpty);
+        await tester.pumpWidget(host(covered: true));
+        await tester.pump();
+        await expectLater(scope.agent.commandForTest(probe),
+          throwsA(isA<HarnessError>()),
+        );
+        expect(overlayInput, 0);
+        expect(activated, 0);
         expect(tester.takeException(), isNull);
       }
     }

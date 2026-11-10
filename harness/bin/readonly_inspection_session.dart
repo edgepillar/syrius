@@ -1,7 +1,8 @@
 import 'dart:convert';
 
 import '../app/readonly_native_commands.dart'
-    show readonlyHomeZapPreviewCommand, readonlySendWarningSyncCommand;
+    show readonlyHomeZapPreviewCommand, readonlySendWarningSyncCommand,
+        readonlySeamPointerCommand;
 import '../app/readonly_native_mode.dart';
 import 'screen_capture.dart';
 import 'wallet_recipe.dart' show WalletRecipeSend;
@@ -45,6 +46,7 @@ class ReadonlyInspectionSession {
     'wait', 'assert', 'shot', 'theme', 'logs', 'stalls', 'window', 'quit',
     readonlyHomeZapPreviewCommand,
     readonlySendWarningSyncCommand,
+    readonlySeamPointerCommand,
   };
 
   /// The same native process must answer every subsequent original command.

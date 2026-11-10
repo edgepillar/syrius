@@ -491,6 +491,7 @@ class _LockCardState extends State<LockCard>
       SizedBox(width: tokens.inlineGap),
       Flexible(
         child: SeamGate(
+          key: const Key('lock_password_recovery_gate'),
           seam: Seam.passwordRecovery,
           child: TextButton(
             onPressed: () => throw const SeamNotBuilt(Seam.passwordRecovery),

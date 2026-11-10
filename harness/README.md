@@ -217,6 +217,7 @@ decide. `type` looks at fields only.
 | `tree [--kind <k>] [--json]` | what is on screen |
 | `tap <sel> [--double] [--right] [--long] [--force]` | a click; `--force` skips the reach check |
 | `hover <sel>` | moves the mouse there, for tooltips |
+| `seam <name> --key <key>` | in a readonly native session, attempts one pointer click against the visible gate and records absorption |
 | `type [<sel>] <text> [--append] [--submit]` | clicks the field and replaces its text; with no selector, the focused field |
 | `key <chord>` | `enter`, `escape`, `tab`, `shift+tab`, `ctrl+a`, arrows, and the rest of the list in `agent.dart` |
 | `scroll [<sel>] <dy>` | a wheel scroll at the selector, or at the centre |

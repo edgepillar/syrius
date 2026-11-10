@@ -635,7 +635,14 @@ and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42816
 
 Source616 aligns the Receive request label and chevron with the form's inner
 edges. The existing dark and light tests check label alignment with QR closed
-and open. Fresh engine and native visual evidence remain open.
+and open. Selected analysis clears, all 1,381 Dart cases pass, and 1,107 Python
+cases complete with eighteen skips. Native visual evidence remains open.
+[Focused run](https://github.com/edgepillar/syrius/actions/runs/42818849668).
+
+Source617 prepares the readonly native seam pointer command. The gate and
+its hit-test boundary are checked before input, at pointer press and release,
+and after the attempt. The existing agent cases cover Sporks, a wrong seam
+and a covered gate. The running-wallet, shortcut and Go To checks remain open.
 
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied

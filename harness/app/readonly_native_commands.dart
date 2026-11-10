@@ -7,6 +7,9 @@ const String readonlyHomeZapPreviewCommand = 'readonly-home-zap-preview';
 /// Samples the actual session sync state for the isolated Send warning.
 const String readonlySendWarningSyncCommand = 'readonly-send-warning-sync';
 
+/// Probes one visible gate through the original readonly pointer path.
+const String readonlySeamPointerCommand = 'readonly-seam-pointer';
+
 /// A native command cannot establish its original readonly SDK admission.
 class ReadonlyNativeCommandRefused implements Exception {
   /// The refused command supplies no successful native observation.
@@ -57,6 +60,7 @@ class ReadonlyNativeCommands {
     'readonly-entry',
     readonlyHomeZapPreviewCommand,
     readonlySendWarningSyncCommand,
+    readonlySeamPointerCommand,
   };
 
   final bool Function() _isBooted;
