@@ -1020,6 +1020,18 @@ analysis of all six changed Dart files with zero findings. Fresh widget,
 native capture and seam qualification remain open. The Source645 closure
 failure and complete performance acceptance remain open.
 
+The Source646 Windows test lane stops before SDK allocation with one failure
+among 1,145 controller cases and eighteen skips. The full lock seam reader
+regression exposes Windows separators in GitHub source names. No Dart test,
+desktop build or artifact is produced by this attempt.
+[Original run](https://github.com/edgepillar/syrius/actions/runs/42924268335).
+
+Source647 forms those source names with POSIX separators. The original full
+reader regression now covers native and explicit Windows path objects. Its
+negative control reproduces the Windows-only failure before the correction;
+all 180 selected in-memory controls pass after it. Fresh hosted widget,
+entry capture and seam qualification remain open.
+
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied
 owner, confirmed receipt and exact Project row. The original Project

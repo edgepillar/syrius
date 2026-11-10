@@ -5,7 +5,7 @@ import builtins
 import contextlib
 import io
 import json
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 import struct
 import types
 import unittest
@@ -577,12 +577,22 @@ class StartupInspectionTests(unittest.TestCase):
                 assert url == 'https://synthetic.blob.core.windows.net/7'
                 return raw
 
-        client = SeamClient()
-        status, output = self.read_windows(client)
-        self.assertEqual(status, 0)
-        self.assertEqual(len(client.calls), 12)
-        self.assertIn('Hosted original lock seam inspection', output)
-        self.assertIn('retained_original_lock_seam_refusals', output)
+        for windows_paths in (False, True):
+            path_type = PureWindowsPath if windows_paths else Path
+            selected_pins = {key: path_type(path.as_posix())
+                             for key, path in catalog.SEAM_PIN_SOURCES.items()}
+            with self.subTest(windows_paths=windows_paths), contextlib.ExitStack() as stack:
+                stack.enter_context(mock.patch.object(catalog, 'CAPTURE_SOURCE',
+                    path_type(catalog.CAPTURE_SOURCE.as_posix())))
+                stack.enter_context(mock.patch.object(inspect.launch, 'SETTLE_PROFILE_SOURCE',
+                    path_type(inspect.launch.SETTLE_PROFILE_SOURCE.as_posix())))
+                stack.enter_context(mock.patch.object(catalog, 'SEAM_PIN_SOURCES', selected_pins))
+                client = SeamClient()
+                status, output = self.read_windows(client)
+                self.assertEqual(status, 0)
+                self.assertEqual(len(client.calls), 12)
+                self.assertIn('Hosted original lock seam inspection', output)
+                self.assertIn('retained_original_lock_seam_refusals', output)
         client = SeamClient()
         client.job['steps'].append(dict(client.job['steps'][0]))
         status, _ = self.read_windows(client)

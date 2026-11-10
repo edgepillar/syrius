@@ -364,23 +364,23 @@ def inspect_launch_run(client, *, head, tree, run_id, job, settle=False, lock=Fa
     pins = {}
     sources = [('tool/ci/windows_launch_catalog.py', None)]
     if timing:
-        sources.extend(((str(launch.TIMING_SOURCE), 'collector_sha256'),
-                        (str(launch.SETTLE_PROFILE_SOURCE), 'profile_sha256')))
+        sources.extend(((launch.TIMING_SOURCE.as_posix(), 'collector_sha256'),
+                        (launch.SETTLE_PROFILE_SOURCE.as_posix(), 'profile_sha256')))
         sources.extend(('tool/ci/' + name, None) for name in PRODUCERS[:3])
     elif quiz:
         sources.append(('tool/ci/windows_quiz_catalog.py', None))
-        sources.extend((str(path), key) for key, path in quiz_catalog.PIN_SOURCES.items())
+        sources.extend((path.as_posix(), key) for key, path in quiz_catalog.PIN_SOURCES.items())
     elif lock or lock_seams:
         sources.extend((('tool/ci/windows_lock_catalog.py', None),
-                        (str(lock_catalog.CAPTURE_SOURCE), 'capture_source_sha256')))
+                        (lock_catalog.CAPTURE_SOURCE.as_posix(), 'capture_source_sha256')))
     else:
         recipe = launch.SETTLE_RECIPE if settle else launch.RECIPE
-        sources.extend(((str(recipe), 'recipe_sha256'),
-                        (str(launch.CAPTURE_SOURCE), 'capture_source_sha256')))
+        sources.extend(((recipe.as_posix(), 'recipe_sha256'),
+                        (launch.CAPTURE_SOURCE.as_posix(), 'capture_source_sha256')))
     if settle or lock or lock_seams:
-        sources.append((str(launch.SETTLE_PROFILE_SOURCE), 'profile_sha256'))
+        sources.append((launch.SETTLE_PROFILE_SOURCE.as_posix(), 'profile_sha256'))
     if lock_seams:
-        sources.extend((str(path), key) for key, path in lock_catalog.SEAM_PIN_SOURCES.items())
+        sources.extend((path.as_posix(), key) for key, path in lock_catalog.SEAM_PIN_SOURCES.items())
     for name, key in sources:
         selected = client.json('/contents/' + name + '?ref=' + head)
         archive.need(selected['type'] == 'file' and selected['encoding'] == 'base64'
