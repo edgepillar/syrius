@@ -45,12 +45,18 @@ def log(report):
         '2026-10-26T12:00:01.0000000Z ' + json.dumps(report) + '\n').encode()
 
 
-def pixels():
+def pixels(*connector_rows, opaque=False):
     def chunk(kind, data):
         return struct.pack('>I', len(data)) + kind + data + struct.pack('>I', zlib.crc32(kind + data))
+    alpha = 255 if opaque else 0
+    fill = bytes((20, 20, 20, alpha))
+    ink = bytes((60, 60, 60, alpha))
+    blank = b'\x00' + fill * 1280
+    connector = b'\x00' + fill * 482 + ink * 108 + fill * (1280 - 590)
+    scanlines = b''.join(connector if y in connector_rows else blank for y in range(780))
     return (b'\x89PNG\r\n\x1a\n'
         + chunk(b'IHDR', struct.pack('>IIBBBBB', 1280, 780, 8, 6, 0, 0, 0))
-        + chunk(b'IDAT', zlib.compress((b'\x00' + bytes(1280 * 4)) * 780))
+        + chunk(b'IDAT', zlib.compress(scanlines))
         + chunk(b'IEND', b''))
 
 
@@ -226,6 +232,40 @@ class WindowsQualificationTests(unittest.TestCase):
             with self.subTest(change=change), self.assertRaises(inspect.archive.Refused):
                 inspect.entry_projection(report, HEAD, TREE, RUN)
 
+    def test_import_connector_coverage_uses_only_the_original_png_band(self):
+        for rows, opaque, expected, single, aligned in (
+                ((280,), True, [0, 0, 108, 0, 0, 0, 0], True, True),
+                ((281,), True, [0, 0, 0, 108, 0, 0, 0], True, False),
+                ((280, 281), True, [0, 0, 108, 108, 0, 0, 0], False, False),
+                ((280,), False, None, False, False)):
+            with self.subTest(rows=rows, opaque=opaque):
+                data = pixels(*rows, opaque=opaque)
+                raw = package(entry_report(data), data)
+                summary = inspect.entry_archive(raw, inspect.archive.sha(raw), len(raw), HEAD, TREE, RUN)
+                self.assertTrue(summary['artifact_reported_success'])
+                self.assertEqual(summary['visual_matches'], 0)
+                self.assertEqual(set(summary['import_connector_coverage']),
+                                 {'import-dark.png', 'import-light.png'})
+                for band in summary['import_connector_coverage'].values():
+                    self.assertEqual(band, dict(status='observed' if opaque else 'nonopaque',
+                        counts=expected, full_width_single_row=single, reference_row=aligned))
+
+        status, calls, output = self._read_original(
+            baseline_conclusion='skipped', entry_data=pixels(280, opaque=True))
+        self.assertEqual(status, 0)
+        self.assertEqual(len(calls), 6 + len(inspect.PRODUCERS))
+        notices = [json.loads(line.split('::', 2)[2]) for line in output.splitlines()
+                   if line.startswith('::notice')]
+        self.assertEqual([value['scope'] for value in notices], [
+            'retained_windows_baseline_not_selected', 'retained_windows_entry_observation',
+            'retained_import_connector_coverage'])
+        capture, band = notices[1:]
+        for field in ('archive_sha256', 'manifest_sha256', 'source_head', 'source_tree',
+                      'source_run_id', 'original_job_id'):
+            self.assertEqual(band[field], capture[field])
+        self.assertEqual(band['visual_matches'], 0)
+        self.assertTrue(all(result['reference_row'] for result in band['bands'].values()))
+
     def test_partial_entry_and_nonzero_exit_are_not_completed_by_inspection(self):
         report = entry_report(pixels())
         report.update(captures=[], capture_count=0, exit_code=1, forced_kill=True,
@@ -250,8 +290,8 @@ class WindowsQualificationTests(unittest.TestCase):
 
     def _read_original(self, *, entry_change=None, entry_count=1, failed_root=False,
                        baseline_conclusion='success', baseline_change=None, baseline_count=1,
-                       log_failure=None):
-        data = pixels()
+                       log_failure=None, entry_data=None):
+        data = pixels() if entry_data is None else entry_data
         raw = package(entry_report(data), data)
         original_report = baseline()
         if failed_root:

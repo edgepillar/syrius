@@ -828,12 +828,30 @@ eighteen skips. The focused job retains zero artifacts. Native capture,
 the remaining Import dash and whole-image reviews stay open.
 [Focused run](https://github.com/edgepillar/syrius/actions/runs/42882777346).
 
+The independent Windows reader now samples the fixed first Import
+connector band in each ordinary entry capture. It reports the original
+pixel row counts and the reference row alignment from the same verified
+archive read. The original Source620 dark and light images reproduce two
+covered rows, and both reference images reproduce one. The new reader
+keeps the pixel data in memory and emits a separate bounded receipt.
+Fresh native entry capture and whole-image review remain open.
+
 The paired timing overlay now retains a fixed reason when the original
 frame window refuses. The reasons distinguish lock checks, frame order,
 frame bounds, sample limits and delivery. The reader verifies the finite
 reason only on an original frame-window refusal. The current and P06
 collectors use the same existing sampling limits. All 85 selected local
-controls pass. The new overlay needs an original Windows run.
+controls pass.
+
+Source635 passes selected analysis, 1,389 Dart cases and 1,132 Python
+cases with eighteen skips. It records 277 current frames. P06 reaches
+the readiness deadline before original initialization, with a disabled
+password field and no active wallet path. All five actors exit normally.
+The independent reader verifies the original 16,713-byte archive and retains
+its failed outcome. The original P06 launch cause and paired comparison
+remain open.
+[Producer](https://github.com/edgepillar/syrius/actions/runs/42885269336)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42888897255).
 
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied

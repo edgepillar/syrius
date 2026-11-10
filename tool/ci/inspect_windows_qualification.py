@@ -232,6 +232,64 @@ def entry_projection(report, head, tree, run_id):
         **({'transport_failure': transport_failure} if transport_failure is not None else {}))
 
 
+IMPORT_CONNECTOR_X = (482, 590)
+IMPORT_CONNECTOR_Y = (278, 285)
+IMPORT_CONNECTOR_REFERENCE_ROW = 280
+IMPORT_CONNECTOR_CONTRAST = 5
+
+
+def _paeth(left, up, corner):
+    target = left + up - corner
+    a, b, c = abs(target - left), abs(target - up), abs(target - corner)
+    if a <= b and a <= c:
+        return left
+    return up if b <= c else corner
+
+
+def import_connector_coverage(encoded):
+    """Measure a fixed part of the first Import step connector."""
+    _, scanlines, stride = entry.decoded_png(encoded)
+    channels = stride // 1280
+    x0, x1 = IMPORT_CONNECTOR_X
+    y0, y1 = IMPORT_CONNECTOR_Y
+    width = x1 - x0
+    # PNG filters only depend on earlier columns and the previous scanline.
+    prefix = x1 * channels
+    previous = bytearray(prefix)
+    rows = []
+    for y in range(y1):
+        start = y * (stride + 1)
+        filter_type = scanlines[start]
+        row = bytearray(scanlines[start + 1:start + 1 + prefix])
+        if filter_type:
+            for i in range(prefix):
+                left = row[i - channels] if i >= channels else 0
+                up = previous[i]
+                corner = previous[i - channels] if i >= channels else 0
+                if filter_type == 1:
+                    offset = left
+                elif filter_type == 2:
+                    offset = up
+                elif filter_type == 3:
+                    offset = (left + up) // 2
+                else:
+                    offset = _paeth(left, up, corner)
+                row[i] = (row[i] + offset) & 255
+        if y >= y0:
+            rows.append(row[x0 * channels:prefix])
+        previous = row
+    if channels == 4 and any(alpha != 255 for row in rows for alpha in row[3::4]):
+        return dict(status='nonopaque', counts=None, full_width_single_row=False, reference_row=False)
+    background = rows[0]
+    counts = [sum(any(abs(row[i + channel] - background[i + channel]) >= IMPORT_CONNECTOR_CONTRAST
+                      for channel in range(3)) for i in range(0, len(row), channels))
+              for row in rows]
+    return dict(status='observed', counts=counts,
+        full_width_single_row=counts.count(width) == 1 and counts.count(0) == len(rows) - 1,
+        reference_row=counts == [width if y == IMPORT_CONNECTOR_REFERENCE_ROW else 0
+                                 for y in range(y0, y1)])
+
+
 def entry_archive(raw, expected_sha, expected_size, head, tree, run_id):
     archive.need(type(raw) is bytes and type(expected_size) is int and digest(expected_sha)
                  and 0 < len(raw) == expected_size <= MAX_ENTRY_ARCHIVE
@@ -249,11 +307,18 @@ def entry_archive(raw, expected_sha, expected_size, head, tree, run_id):
         manifest = zipped.read('manifest.json')
         summary = entry_projection(json.loads(manifest), head, tree, run_id)
         archive.need(set(names) == {'manifest.json', *(value['file'] for value in summary['captures'])})
+        connector = {}
         for value in summary['captures']:
-            data = zipped.read(value['file'])
+            name = value['file']
+            data = zipped.read(name)
             archive.need(len(data) == value['bytes'] and archive.sha(data) == value['sha256'])
-            entry.png_bytes(base64.b64encode(data).decode('ascii'))
-    summary.update(archive_sha256=archive.sha(raw), manifest_sha256=archive.sha(manifest))
+            encoded = base64.b64encode(data).decode('ascii')
+            if name in ('import-dark.png', 'import-light.png'):
+                connector[name] = import_connector_coverage(encoded)
+            else:
+                entry.png_bytes(encoded)
+    summary.update(archive_sha256=archive.sha(raw), manifest_sha256=archive.sha(manifest),
+                   import_connector_coverage=connector)
     return summary
 
 
@@ -402,7 +467,16 @@ def main():
         archive.need(job['conclusion'] != 'success' or summary['artifact_reported_success'])
         summary.update(original_job_id=job['id'], original_job_conclusion=job['conclusion'],
                        producer_sources_equal=True)
+        connector = summary.pop('import_connector_coverage')
         emit('Hosted entry inspection', summary)
+        if any(band['status'] == 'observed' for band in connector.values()):
+            emit('Hosted Import connector coverage', dict(
+                scope='retained_import_connector_coverage', source_head=head, source_tree=tree,
+                source_run_id=run_id, source_attempt=1, original_job_id=job['id'],
+                original_job_conclusion=job['conclusion'], archive_sha256=summary['archive_sha256'],
+                manifest_sha256=summary['manifest_sha256'], x_range=list(IMPORT_CONNECTOR_X),
+                y_range=list(IMPORT_CONNECTOR_Y), minimum_channel_contrast=IMPORT_CONNECTOR_CONTRAST,
+                bands=connector, visual_matches=0))
         return 0
     except (Exception, KeyboardInterrupt):
         encoded = json.dumps(dict(scope='retained_windows_qualification_observation',

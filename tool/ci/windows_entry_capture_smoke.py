@@ -474,8 +474,8 @@ def child_environment(parent, profile, port, token):
     return env
 
 
-def png_bytes(encoded, *, dimensions=(1280, 780)):
-    """Admit bounded screenshot pixels, never textual/private PNG metadata."""
+def decoded_png(encoded, *, dimensions=(1280, 780)):
+    """Return a verified PNG and its bounded filtered scanlines."""
     try:
         if (type(dimensions) is not tuple or len(dimensions) != 2
                 or any(type(value) is not int for value in dimensions)
@@ -544,9 +544,14 @@ def png_bytes(encoded, *, dimensions=(1280, 780)):
                 or decoder.unused_data or decoder.unconsumed_tail
                 or any(pixels[row * stride] > 4 for row in range(height))):
             raise ValueError()
-        return data
+        return data, pixels, stride - 1
     except (ValueError, TypeError, UnicodeError, binascii.Error, struct.error, zlib.error):
         raise Failure("PNG_INVALID") from None
+
+
+def png_bytes(encoded, *, dimensions=(1280, 780)):
+    """Admit bounded screenshot pixels without returning its scanlines."""
+    return decoded_png(encoded, dimensions=dimensions)[0]
 
 
 def number(value, *, positive=False):
