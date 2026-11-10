@@ -66,6 +66,9 @@ def details_manifest(pixels, script, *, schema=1):
     value['captures'] = [dict(row, file=name, bytes=len(pixels),
         sha256=hashlib.sha256(pixels).hexdigest())
         for row, name in zip(value['captures'], files)]
+    if schema == inspection.details.FAMILY_SCHEMAS['swap-start']:
+        light = png(255)
+        value['captures'][1].update(bytes=len(light), sha256=hashlib.sha256(light).hexdigest())
     return value
 
 
@@ -214,7 +217,8 @@ class InspectionTests(unittest.TestCase):
         for family, schema in (('home', 1), ('home-bell', 8), ('settings', 2),
                                ('navigation', 3), ('details', 4),
                                ('token-draft', 4), ('send-confirm', 5),
-                               ('earn', 6), ('sentinel-fixture', 7)):
+                               ('earn', 6), ('sentinel-fixture', 7),
+                               ('swap-start', 9)):
             selected = dict(parent, SYRIUS_READONLY_CATALOG_FAMILY=family)
             self.assertTrue(lab.wallet_inspection_requested('native', selected))
             self.assertEqual(lab.READONLY_CATALOG_SCHEMAS[
@@ -232,7 +236,7 @@ class InspectionTests(unittest.TestCase):
         self.assertEqual([line.strip()[2:] for line in choice.splitlines()
             if line.strip().startswith('- ')],
             ['home', 'home-bell', 'settings', 'navigation', 'details', 'token-draft',
-             'send-confirm', 'earn', 'sentinel-fixture', 'launch', 'launch-settle',
+             'send-confirm', 'swap-start', 'earn', 'sentinel-fixture', 'launch', 'launch-settle',
              'lock-catalog', 'quiz-catalog', 'seeded-states',
              'stake-draft', 'project-detail'])
         self.assertIn('SYRIUS_READONLY_CATALOG_FAMILY: ${{ inputs.readonly_catalog_family }}', workflow)
@@ -621,11 +625,11 @@ class InspectionTests(unittest.TestCase):
             self.assertIs(value[key], False)
         self.assertEqual(value['visual_matches'], 0)
         focused = catalog_only_report(value, 'f' * 64, 'send-confirm')
-        for family in ('earn', 'sentinel-fixture'):
+        for family in ('earn', 'sentinel-fixture', 'swap-start'):
             catalog = catalog_only_report(value, 'f' * 64, family)
             self.assertTrue(inspection.completed(catalog))
             self.assertIs(inspection.public_manifest(catalog), catalog)
-            for schema in (4, 5, 6, 7):
+            for schema in (4, 5, 6, 7, 9):
                 if schema != catalog['schema']:
                     with self.subTest(family=family, schema=schema), self.assertRaises(inspection.Refused):
                         inspection.public_manifest(dict(catalog, schema=schema))

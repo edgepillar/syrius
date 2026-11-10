@@ -25,14 +25,14 @@ def receipt():
         width=1280, height=780, scale=1, capture_returned=True)
 
 
-def png():
+def png(sample=0):
     def chunk(kind, value):
         body = kind + value
         return struct.pack('>I', len(value)) + body + struct.pack('>I',
             zlib.crc32(body) & 0xffffffff)
     return (bytes((137, 80, 78, 71, 13, 10, 26, 10))
         + chunk(b'IHDR', struct.pack('>IIBBBBB', 1280, 780, 8, 2, 0, 0, 0))
-        + chunk(b'IDAT', zlib.compress((bytes(1 + 1280 * 3)) * 780))
+        + chunk(b'IDAT', zlib.compress((b'\0' + bytes((sample,)) * (1280 * 3)) * 780))
         + chunk(b'IEND', b''))
 
 
@@ -77,6 +77,7 @@ class DetailsCatalogTests(unittest.TestCase):
         for schema, screen, number, stage in (
             (2, 'token-new', 25, 'token_draft_catalog'),
             (3, 'send-confirm', 12, 'send_confirm_catalog'),
+            (9, 'swap-start', 27, 'swap_start_catalog'),
         ):
             with self.subTest(screen=screen):
                 files = [f'{number}-{screen}-{theme}.png'
@@ -87,6 +88,11 @@ class DetailsCatalogTests(unittest.TestCase):
                 captures = [dict(row, file=name)
                     for row, name in zip(original['captures'][:2], files)]
                 images = dict(zip(files, original_images.values()))
+                if schema == 9:
+                    with self.assertRaises(details.Refused):
+                        details.capture_records(captures, schema=schema)
+                    light = images[files[1]] = png(255)
+                    captures[1].update(bytes=len(light), sha256=details.sha(light))
                 report = dict(original, schema=schema, capture=capture,
                     captures=captures, script_sha256_by_screen=pins)
                 raw, reference = bundle(report, images)
@@ -100,7 +106,7 @@ class DetailsCatalogTests(unittest.TestCase):
                     details.unpack(raw, details.sha(raw), len(raw),
                         HEAD, TREE, RUN, reference, PINS)
                 with self.assertRaises(details.Refused):
-                    details.catalog_reference(dict(reference, schema=5-schema))
+                    details.catalog_reference(dict(reference, schema=3 if schema == 2 else 2))
                 failure = dict(schema=1, kind='readonly_details_capture_failure',
                     last_entered_step='scriptLine', screen=screen, theme='dark',
                     line=5)

@@ -1,2 +1,16 @@
-# prerequisite: pending F06/W02 reversible synthetic swap preparation without wallet publication or secret disclosure
+# prerequisite: readonly-lab-swap-start
+# Use the bound lab member in the draft. Close without submitting the form.
+goto p2pSwap
+wait --key p2p_start_swap --kind button --ready --exact --timeout 30
+tap --key p2p_start_swap --kind button --exact
+wait --key swap_amount_input --kind field --nth 0 --ready --exact --timeout 30
+wait --key swap_amount_input --kind field --nth 1 --ready --exact --timeout 30
+type --key swap_amount_input --kind field --nth 0 100
+type --key swap_amount_input --kind field --nth 1 1000
+type --key swap_counterparty_input @lab-index-0
 assert --key swap_start_screen_marker
+assert --key swap_counterparty_input --kind field
+# after-capture: tap --key swap_action_close --kind button --exact
+# after-capture: wait --key swap_start_screen_marker --gone --exact --timeout 10
+# after-capture: goto dashboard
+# after-capture: wait --key home_hero --timeout 5

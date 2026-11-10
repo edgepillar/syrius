@@ -21,6 +21,8 @@ TOKEN_DRAFT_SCREENS = ('token-new',)
 TOKEN_DRAFT_FILES = ('25-token-new-dark.png', '25-token-new-light.png')
 SEND_CONFIRM_SCREENS = ('send-confirm',)
 SEND_CONFIRM_FILES = ('12-send-confirm-dark.png', '12-send-confirm-light.png')
+SWAP_START_SCREENS = ('swap-start',)
+SWAP_START_FILES = ('27-swap-start-dark.png', '27-swap-start-light.png')
 EARN_SCREENS = ('staking-empty', 'pillar-mine')
 EARN_FILES = ('15-staking-empty-dark.png', '15-staking-empty-light.png',
               '17-pillar-mine-dark.png', '17-pillar-mine-light.png')
@@ -45,7 +47,7 @@ RESTORED_FAILURE_KINDS = {
     PROJECT_DETAIL_SCHEMA: 'restored_project_detail_capture_failure',
 }
 FAMILY_SCHEMAS = {'details': 1, 'token-draft': 2, 'send-confirm': 3, 'earn': 5,
-                  'sentinel-fixture': 8}
+                  'sentinel-fixture': 8, 'swap-start': 9}
 CATALOG_STAGES = {name.replace('-', '_') + '_catalog': schema
                   for name, schema in FAMILY_SCHEMAS.items()}
 CATALOGS = {
@@ -56,6 +58,7 @@ CATALOGS = {
     FAMILY_SCHEMAS['earn']: (EARN_SCREENS, EARN_FILES),
     FAMILY_SCHEMAS['sentinel-fixture']: (SENTINEL_FIXTURE_SCREENS,
                                          SENTINEL_FIXTURE_FILES),
+    FAMILY_SCHEMAS['swap-start']: (SWAP_START_SCREENS, SWAP_START_FILES),
     STAKE_DRAFT_SCHEMA: (('staking-new',),
                          ('14-staking-new-dark.png', '14-staking-new-light.png')),
     PROJECT_DETAIL_SCHEMA: (('az-project',),
@@ -225,6 +228,8 @@ def capture_records(value, *, schema=1):
              and (row['width'], row['height'], row['scale']) == (1280, 780, 1),
              'CAPTURE_REFUSED')
     need(sum(row['bytes'] for row in value) <= MAX_CAPTURE_TOTAL, 'CAPTURE_REFUSED')
+    if schema == FAMILY_SCHEMAS['swap-start']:
+        need(len({row['sha256'] for row in value}) == len(files), 'CAPTURE_REFUSED')
     return value
 
 

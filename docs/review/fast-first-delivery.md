@@ -291,7 +291,7 @@ Source585 passes selected analysis and 1,375 selected Dart cases. One ordinary
 Windows Release process captures the dark and light Seed Quiz with one correct
 answer and the six-second artwork sample. The process exits normally and the
 independent reader verifies both distinct PNGs in the 213,813-byte archive.
-The catalog now has 78 of 94 literal outputs. Source586 prepares the original
+That run brought the catalog to 78 of 94 literal outputs. Source586 prepares the original
 Home Bell pair in a focused readonly lab run. Bell qualification remains open.
 [Producer](https://github.com/edgepillar/syrius/actions/runs/42732237291) and
 [independent reader](https://github.com/edgepillar/syrius/actions/runs/42734017009).
@@ -310,10 +310,25 @@ diagnostic archives and zero retained images. The application required
 forced cleanup. The live sampler's fixed Home Go To filename set also
 refuses the first Bell image in a reproduced control. Source588 selects
 the correct family for each output directory and keeps the file count,
-byte limits and free-space floor. All 111 selected controls pass. A fresh
-Windows capture remains open.
+byte limits and free-space floor. All 111 selected controls pass.
 [Producer](https://github.com/edgepillar/syrius/actions/runs/42734996673) and
 [independent reader](https://github.com/edgepillar/syrius/actions/runs/42737238637).
+
+The Source588 Windows run passes selected analysis, 1,373 Dart cases and
+1,100 controller cases with eighteen skips. The original Home Bell panel
+shows retained notifications in both themes. The wallet, entry and all
+five lab nodes close normally. The independent reader verifies the exact
+recipe and both distinct 1280 by 780 PNGs in a 163,094-byte archive. The
+catalog has 80 of 94 literal outputs. Reference review remains open.
+[Producer](https://github.com/edgepillar/syrius/actions/runs/42737678394) and
+[independent reader](https://github.com/edgepillar/syrius/actions/runs/42739465363).
+
+Source589 prepares the Start swap draft in both themes. The readonly
+session accepts the original first-use warning once, enters 100 ZNN and
+1,000 QSR with the bound lab counterparty, then closes the original
+form after each capture. It retains only the two draft images and their
+manifest when the native run qualifies. All 119 selected Python controls
+pass in memory. Fresh Dart and Windows verification remain open.
 
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,
@@ -445,7 +460,7 @@ frontier reads after such a failure. Their native observation remains pending.
 | --- | --- |
 | P03/P09 | Complete the documented Windows Docker route. Earlier Linux defaults, WSL installation and the Source548 native lab retain their separate scopes. |
 | F06 | Complete the seeded screen states and coordinator/peer Swap prerequisites. Source548 qualifies the original six receipts and copied lifecycle. Source561 qualifies the restored Stake and Token captures. Source563 qualifies the separate New stake draft with one Stake prerequisite. Source569 qualifies the Sentinel fixture pair. |
-| V01/V05 | Obtain 16 missing literal outputs, review all 94 pairs, resolve retained layout/type/spacing findings and explicitly accept each match. Availability is 78/94. Accepted whole-image matches are 0/94. |
+| V01/V05 | Obtain 14 missing literal outputs, review all 94 pairs, resolve retained layout/type/spacing findings and explicitly accept each match. Availability is 80/94. Accepted whole-image matches are 0/94. |
 | V02 | Observe every motion/shader row in the running build and compare page-change, disclosure and launch frame times with the original baseline. Finite widget timing or stall telemetry alone does not close this gate. |
 | V03 | Try every original seam control, shortcut and Go To entry in the running native wallet and verify refusal. Registry and widget controls remain partial evidence. |
 | V06 | Check every original end-state requirement and complete independent final acceptance. The earlier minimum-window/Arabic viewing remains source-bound. |

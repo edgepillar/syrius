@@ -577,6 +577,7 @@ class ReaderTests(unittest.TestCase):
         source = b'synthetic source'
         home_pixels = wallet_fixtures.png()
         bell_only = catalog_only == 'home-bell'
+        distinct_themes = bell_only or catalog_only == 'swap-start'
         home = wallet_fixtures.home_manifest(home_pixels, source, schema=home_schema)
         self.assertLessEqual(sum((settings_catalog, navigation_catalog,
             details_catalog, catalog_only is not None)), 1)
@@ -630,7 +631,7 @@ class ReaderTests(unittest.TestCase):
         root_raw = packed([('manifest.json', encode(lab), stat.S_IFREG)])
         home_raw = packed([('manifest.json', home_manifest, stat.S_IFREG)] +
             [(row['file'], wallet_fixtures.png(255)
-              if bell_only and row['theme'] == 'light' else home_pixels, stat.S_IFREG)
+              if distinct_themes and row['theme'] == 'light' else home_pixels, stat.S_IFREG)
              for row in home['captures']])
         viewport_raw = viewport_fixtures.packed(viewport_manifest, viewport_images)
         blobs = {1: root_raw, 2: wallet_raw, 3: home_raw, 4: viewport_raw}
@@ -659,6 +660,8 @@ class ReaderTests(unittest.TestCase):
         elif catalog_only == 'sentinel-fixture':
             source_files += reader.SENTINEL_FIXTURE_SOURCES + (
                 'harness/screens/sentinels.txt',)
+        elif catalog_only == 'swap-start':
+            source_files += ('harness/screens/swap-start.txt',)
         tree = dict(sha='b' * 40, truncated=False, tree=[dict(path=n, mode='100644', type='blob', sha=blob)
             for n in source_files])
         calls = []
@@ -860,6 +863,25 @@ class ReaderTests(unittest.TestCase):
         self.assertNotIn('Retained readonly viewport observation', text)
         with self.assertRaises(reader.archive.Refused):
             self.run_main(catalog_only='sentinel-fixture', extra_viewport=True)
+        value, calls, text = self.run_main(catalog_only='swap-start')
+        self.assertTrue(value['native_inspection_qualified'])
+        self.assertEqual(value['sampling_scope'], 'swap-start-only')
+        self.assertEqual(value['verified_catalog_png_count'], 2)
+        self.assertEqual(value['producer_source_files_verified'], len(reader.SOURCE_FILES) + 1)
+        self.assertEqual(value['verified_viewport_png_count'], 0)
+        self.assertEqual(value['verified_png_count'], 0)
+        self.assertEqual(len(calls), 14)
+        messages = [line.split('::', 2)[-1] for line in text.splitlines()
+            if line.startswith('::notice title=Retained readonly Details catalog::')]
+        self.assertEqual(len(messages), 1)
+        observed = json.loads(messages[0])
+        self.assertEqual(observed['filenames'],
+            ['27-swap-start-dark.png', '27-swap-start-light.png'])
+        self.assertTrue(observed['all_original_png_digests_verified'])
+        self.assertTrue(observed['parent_closure_qualified'])
+        self.assertFalse(observed['financial_send_qualified'])
+        with self.assertRaises(reader.archive.Refused):
+            self.run_main(catalog_only='swap-start', extra_viewport=True)
 
     def test_bell_only_reader_verifies_the_script_and_two_original_frames(self):
         value, calls, text = self.run_main(catalog_only='home-bell')

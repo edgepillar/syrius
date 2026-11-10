@@ -38,6 +38,9 @@ enum ReadonlyDetailsSelection {
   ),
   sentinelFixture(8, 'sentinel_fixture_catalog', <String>['sentinels'],
     <String>['18-sentinels-dark.png', '18-sentinels-light.png'],
+  ),
+  swapStart(9, 'swap_start_catalog', <String>['swap-start'],
+    <String>['27-swap-start-dark.png', '27-swap-start-light.png'],
   );
 
   const ReadonlyDetailsSelection(
@@ -50,7 +53,11 @@ enum ReadonlyDetailsSelection {
   final List<String> files;
 
   bool get catalogOnly =>
-      this == sendConfirmation || this == earn || this == sentinelFixture;
+      this == sendConfirmation || this == earn || this == sentinelFixture ||
+      this == swapStart;
+
+  bool get requiresLabRecipient =>
+      this == sendConfirmation || this == swapStart;
 }
 
 class _DetailsInstance extends cli.Instance {
@@ -109,31 +116,41 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
 }) async {
   final bool sendConfirmation =
       selection == ReadonlyDetailsSelection.sendConfirmation;
+  final bool swapStart = selection == ReadonlyDetailsSelection.swapStart;
   if (!session.walletBound ||
-      sendConfirmation && (labRecipient == null || labRecipient.isEmpty) ||
-      !sendConfirmation && labRecipient != null) {
+      selection.requiresLabRecipient != (labRecipient != null) ||
+      labRecipient?.isEmpty == true) {
     throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.binding);
   }
   final _DetailsInstance instance = _DetailsInstance(session);
+  bool swapWarningAcknowledged = false;
   final ScreenCapture capture = ScreenCapture(
     repository: repository,
     call: (Map<String, Object?> command) => cli.call(instance, command),
     prepareHome: session.prepareScreenHome,
     runLine: (List<String> words) async {
-      if (sendConfirmation && words.length >= 3 && words.first == 'type' &&
-          words[1] == '--key' && words[2] == 'send_recipient_field') {
-        final String? value = switch (words) {
-          [_, _, _] => '',
-          [_, _, _, '@lab-index-0'] => labRecipient,
+      final String? field = words.length >= 3 && words.first == 'type' &&
+          words[1] == '--key' ? words[2] : null;
+      final bool recipient = selection.requiresLabRecipient &&
+          field == (swapStart
+              ? 'swap_counterparty_input' : 'send_recipient_field');
+      final bool swapAmount = swapStart && field == 'swap_amount_input';
+      if (recipient || swapAmount) {
+        final String value = switch (words) {
+          [_, _, _] when sendConfirmation => '',
+          [_, _, _, '@lab-index-0'] when recipient => labRecipient!,
+          _ when swapAmount => words.last,
           _ => throw const ReadonlyInspectionRefused(
             ReadonlyInspectionReason.command,
           ),
         };
+        final Map<String, Object?> selector = cli.assertionArgs(
+          cli.Args(words.sublist(1, words.length == 3 ? 3 : words.length - 1)),
+        );
         // The ordinary report includes the field value before and after input.
         final Map<String, dynamic> typed = await cli.call(
           instance, <String, Object?>{
-            'cmd': 'type', 'key': 'send_recipient_field', 'exact': true,
-            'value': value,
+            'cmd': 'type', ...selector, 'value': value,
           },
         );
         if (typed['value'] != value) {
@@ -143,7 +160,34 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
         }
         return;
       }
+      if (swapStart && words.first == 'assert') {
+        final Map<String, Object?> selector =
+            cli.assertionArgs(cli.Args(words.sublist(1)));
+        final Map<String, dynamic> checked = await cli.call(
+          instance, <String, Object?>{'cmd': 'assert', ...selector},
+        );
+        final Object? target = checked['target'];
+        if (selector['key'] == 'swap_counterparty_input' &&
+            (target is! Map<String, dynamic> ||
+                target['value'] != labRecipient)) {
+          throw const ReadonlyInspectionRefused(
+            ReadonlyInspectionReason.reply,
+          );
+        }
+        return;
+      }
       await cli.run(instance, words.first, cli.Args(words.sublist(1)));
+      if (swapStart && !swapWarningAcknowledged && words.join(' ') ==
+          'tap --key p2p_start_swap --kind button --exact') {
+        await cli.waitForTarget(instance, cli.Args(<String>[
+          '--key', 'p2p_warning_continue', '--kind', 'button', '--ready',
+          '--exact', '--timeout', '10',
+        ]));
+        await cli.call(instance, <String, Object?>{
+          'cmd': 'tap', 'key': 'p2p_warning_continue', 'exact': true,
+        });
+        swapWarningAcknowledged = true;
+      }
     },
     assertionFor: (List<String> words) =>
         selection == ReadonlyDetailsSelection.sentinelFixture
@@ -155,6 +199,7 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
     restoreRailState: session.restoreScreenRail,
     onStep: onStep,
     readonlySendConfirmation: sendConfirmation,
+    readonlySwapStart: swapStart,
     readonlyEarn: selection == ReadonlyDetailsSelection.earn,
   );
   final List<String> captured = await capture.captureSelection(

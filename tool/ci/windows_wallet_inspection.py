@@ -28,7 +28,7 @@ from . import readonly_details_capture as details
 from .windows_debug_process import IMAGE_NAMES
 from .hosted_chain321 import (EARN_INSPECTION_SCHEMA, HOME_BELL_INSPECTION_SCHEMA,
     READONLY_CATALOG_SCHEMAS, SEND_CONFIRM_INSPECTION_SCHEMA, SENTINEL_INSPECTION_SCHEMA,
-    readonly_catalog_family)
+    SWAP_START_INSPECTION_SCHEMA, readonly_catalog_family)
 
 
 PAGES = shared.PAGES
@@ -64,6 +64,7 @@ TOUR_CHECKS = ('tours_complete', 'locale_verified')
 CATALOG_ONLY_FAMILIES = {
     HOME_BELL_INSPECTION_SCHEMA: 'home-bell',
     SEND_CONFIRM_INSPECTION_SCHEMA: 'send-confirm',
+    SWAP_START_INSPECTION_SCHEMA: 'swap-start',
     EARN_INSPECTION_SCHEMA: 'earn',
     SENTINEL_INSPECTION_SCHEMA: 'sentinel-fixture',
 }
@@ -1217,6 +1218,7 @@ def artifact_paths(parent):
         3: 'navigation-catalog', 4: 'details-catalog',
         HOME_BELL_INSPECTION_SCHEMA: 'home-catalog',
         SEND_CONFIRM_INSPECTION_SCHEMA: 'details-catalog',
+        SWAP_START_INSPECTION_SCHEMA: 'details-catalog',
         EARN_INSPECTION_SCHEMA: 'details-catalog',
         SENTINEL_INSPECTION_SCHEMA: 'details-catalog'}[value['schema']]
     if value['schema'] in HOME_INSPECTION_SCHEMAS:

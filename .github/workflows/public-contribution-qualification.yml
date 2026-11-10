@@ -52,6 +52,7 @@ on:
           - details
           - token-draft
           - send-confirm
+          - swap-start
           - earn
           - sentinel-fixture
           - launch

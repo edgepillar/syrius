@@ -283,6 +283,7 @@ class ScreenCapture {
     this.restoreRailState,
     this.onStep,
     this.readonlySendConfirmation = false,
+    this.readonlySwapStart = false,
     this.readonlyEarn = false,
     this.restoredSeeded = false,
     this.restoredProject = false,
@@ -297,6 +298,7 @@ class ScreenCapture {
   final Future<void> Function({required bool expanded})? restoreRailState;
   final void Function(ScreenCaptureObservation step)? onStep;
   final bool readonlySendConfirmation;
+  final bool readonlySwapStart;
   final bool readonlyEarn;
   final bool restoredSeeded;
   final bool restoredProject;
@@ -383,6 +385,9 @@ class ScreenCapture {
         final bool sendPrepared = readonlySendConfirmation &&
             screen.id == 'send-confirm' &&
             text == '# prerequisite: readonly-lab-send-confirmation';
+        final bool swapPrepared = readonlySwapStart &&
+            screen.id == 'swap-start' &&
+            text == '# prerequisite: readonly-lab-swap-start';
         final bool tokenPrepared = restoredSeeded && !restoredProject &&
             screen.id == 'token-mine' &&
             text == '# prerequisite: restored-lab-token';
@@ -394,7 +399,8 @@ class ScreenCapture {
             text == '# prerequisite: readonly-lab-pillar-owner';
         if (text.startsWith('# prerequisite:') &&
             text != '# prerequisite: unlocked-home' &&
-            !sendPrepared && !tokenPrepared && !projectPrepared &&
+            !sendPrepared && !swapPrepared && !tokenPrepared &&
+            !projectPrepared &&
             !pillarPrepared) {
           throw ScreenCaptureError('${screen.id}: ${text.substring(2)}');
         }

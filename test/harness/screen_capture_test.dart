@@ -472,6 +472,10 @@ void main() {
         capture.capture('token-mine'),
         throwsA(isA<ScreenCaptureError>()),
       );
+      writeScript('swap-start',
+          File('harness/screens/swap-start.txt').readAsStringSync());
+      expect(() => capture.preflight('swap-start'),
+          throwsA(isA<ScreenCaptureError>()));
       ScreenCapture ownedCapture({required bool project}) => ScreenCapture(
         repository: repository,
         call: agent.call,

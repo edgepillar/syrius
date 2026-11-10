@@ -20,6 +20,7 @@ const Map<String, ReadonlyDetailsSelection> _detailsSelections =
       'details': ReadonlyDetailsSelection.details,
       'token-draft': ReadonlyDetailsSelection.tokenDraft,
       'send-confirm': ReadonlyDetailsSelection.sendConfirmation,
+      'swap-start': ReadonlyDetailsSelection.swapStart,
       'earn': ReadonlyDetailsSelection.earn,
       harnessReadonlySentinelCatalog: ReadonlyDetailsSelection.sentinelFixture,
     };
@@ -143,8 +144,8 @@ Future<void> main() async {
     final Map<String, String> environment = Platform.environment;
     final String family = readonlyInspectionCatalogFamily(environment);
     detailsSelection = _detailsSelections[family];
-    final bool sendConfirmation =
-        detailsSelection == ReadonlyDetailsSelection.sendConfirmation;
+    final bool requiresLabRecipient =
+        detailsSelection?.requiresLabRecipient ?? false;
     final bool catalogOnly =
         family == 'home-bell' || (detailsSelection?.catalogOnly ?? false);
     final String name = environment['SYRIUS_CI_INSPECTION_INSTANCE'] ?? '';
@@ -236,7 +237,7 @@ Future<void> main() async {
     stage = 'address_selection';
     final Map<String, Object> selection = await recipe.selectLabAddress();
     final String? labRecipient =
-        sendConfirmation ? recipe.readonlyLabRecipient : null;
+        requiresLabRecipient ? recipe.readonlyLabRecipient : null;
     await marker('SYRIUS_INSPECTION_ADDRESS:${jsonEncode(selection)}');
     stage = 'wallet_binding';
     final Map<String, dynamic> bound = await instance.bindWallet();

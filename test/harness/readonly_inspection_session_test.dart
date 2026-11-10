@@ -51,7 +51,7 @@ void main() {
     expect(readonlyInspectionCatalogFamily(<String, String>{}), 'details');
     for (final String family in <String>[
       'home', 'home-bell', 'settings', 'navigation', 'details', 'token-draft',
-      'send-confirm', 'earn', 'sentinel-fixture',
+      'send-confirm', 'swap-start', 'earn', 'sentinel-fixture',
     ]) {
       expect(readonlyInspectionCatalogFamily(<String, String>{
         'SYRIUS_READONLY_CATALOG_FAMILY': family,
@@ -1542,7 +1542,7 @@ void main() {
     final Map<String, String> scripts = <String, String>{
       for (final String screen in <String>[
         ...detailsScreens, 'token-new', 'send-confirm',
-        'staking-empty', 'pillar-mine', 'sentinels',
+        'swap-start', 'staking-empty', 'pillar-mine', 'sentinels',
       ])
         screen: File('harness/screens/$screen.txt').readAsStringSync(),
     };
@@ -1582,15 +1582,17 @@ void main() {
     }
     for (final String fault in <String>[
       'unbound', 'none', 'first', 'shot', 'return', 'late', 'png', 'close',
-      'token-draft', 'send-confirm', 'earn', 'sentinel-fixture',
+      'token-draft', 'send-confirm', 'swap-start', 'earn', 'sentinel-fixture',
     ]) {
       final bool tokenDraft = fault == 'token-draft';
       final bool sendConfirmation = fault == 'send-confirm';
+      final bool swapStart = fault == 'swap-start';
       final bool earn = fault == 'earn';
       final bool sentinelFixture = fault == 'sentinel-fixture';
       final ReadonlyDetailsSelection selection = switch (fault) {
         'token-draft' => ReadonlyDetailsSelection.tokenDraft,
         'send-confirm' => ReadonlyDetailsSelection.sendConfirmation,
+        'swap-start' => ReadonlyDetailsSelection.swapStart,
         'earn' => ReadonlyDetailsSelection.earn,
         'sentinel-fixture' => ReadonlyDetailsSelection.sentinelFixture,
         _ => ReadonlyDetailsSelection.details,
@@ -1598,6 +1600,7 @@ void main() {
       final List<String> screens = switch (fault) {
         'token-draft' => const <String>['token-new'],
         'send-confirm' => const <String>['send-confirm'],
+        'swap-start' => const <String>['swap-start'],
         'earn' => const <String>['staking-empty', 'pillar-mine'],
         'sentinel-fixture' => const <String>['sentinels'],
         _ => detailsScreens,
@@ -1605,6 +1608,7 @@ void main() {
       final List<String> routes = switch (fault) {
         'token-draft' => const <String>['tokens'],
         'send-confirm' => const <String>['transfer'],
+        'swap-start' => const <String>['p2pSwap'],
         'earn' => const <String>['staking', 'pillars'],
         'sentinel-fixture' => const <String>['pillars'],
         _ => detailsRoutes,
@@ -1614,6 +1618,9 @@ void main() {
           const <String>['25-token-new-dark.png', '25-token-new-light.png'],
         'send-confirm' => const <String>[
           '12-send-confirm-dark.png', '12-send-confirm-light.png',
+        ],
+        'swap-start' => const <String>[
+          '27-swap-start-dark.png', '27-swap-start-light.png',
         ],
         'earn' => const <String>[
           '15-staking-empty-dark.png', '15-staking-empty-light.png',
@@ -1645,7 +1652,10 @@ void main() {
       int closedFuse = 0;
       int closedToken = 0;
       int canceledSend = 0;
+      int swapWarnings = 0;
+      int closedSwaps = 0;
       int closedPillar = 0;
+      bool swapWarningOpen = false;
       bool pillarMenuOpen = false;
       bool draftOpen = false;
       bool draftReady = false;
@@ -1717,6 +1727,28 @@ void main() {
                   fail('Unexpected pointer target for the Send draft');
               }
             }
+            if (swapStart) {
+              expect(command['exact'], isTrue);
+              switch (targetKey) {
+                case 'p2p_start_swap':
+                  expect(draftOpen || swapWarningOpen, isFalse);
+                  expect(draft, isEmpty);
+                  swapWarningOpen = swapWarnings == 0;
+                  draftOpen = !swapWarningOpen;
+                case 'p2p_warning_continue':
+                  expect(swapWarningOpen && !draftOpen, isTrue);
+                  swapWarningOpen = false;
+                  draftOpen = true;
+                  swapWarnings++;
+                case 'swap_action_close':
+                  expect(afterShot && draftOpen, isTrue);
+                  draftOpen = false;
+                  draft.clear();
+                  closedSwaps++;
+                default:
+                  fail('Unexpected pointer target for the Swap draft');
+              }
+            }
           }
           if (tokenDraft && name == 'tap' && command['text'] == 'Close') {
             expect(afterShot && draftOpen, isTrue);
@@ -1731,6 +1763,10 @@ void main() {
             }
             if (command['tab'] == 'dashboard') {
               if (tokenDraft || earn) expect(draftOpen, isFalse);
+              if (swapStart) {
+                expect(draftOpen || swapWarningOpen, isFalse);
+                expect(draft, isEmpty);
+              }
               if (sendConfirmation) {
                 expect(draftOpen, isFalse);
                 expect(draft, <String, Object?>{
@@ -1776,6 +1812,16 @@ void main() {
                 'key': 'send_confirmation_marker', 'exact': true,
               });
             }
+            if (swapStart) {
+              expect(draftOpen && !swapWarningOpen, isTrue);
+              expect(draft, <String, Object?>{
+                'send': '100', 'receive': '1000', 'recipient': labRecipient,
+              });
+              expect(command['expect'], <String, Object?>{
+                'key': 'swap_counterparty_input', 'kind': 'field',
+                'exact': true,
+              });
+            }
             if (fault == 'shot' || fault == 'late' && shots == 5) {
               return negative;
             }
@@ -1817,6 +1863,21 @@ void main() {
                 'rect': <int>[0, 0, 200, 100],
               };
               draft[targetKey] = command['value'];
+            } else if (swapStart) {
+              expect(draftOpen && !swapWarningOpen, isTrue);
+              expect(command['exact'], isTrue);
+              switch (targetKey) {
+                case 'swap_amount_input':
+                  expect(command['kind'], 'field');
+                  final Object? index = command['nth'];
+                  expect(index, anyOf(0, 1));
+                  draft[index == 0 ? 'send' : 'receive'] = command['value'];
+                case 'swap_counterparty_input':
+                  expect(command['value'], labRecipient);
+                  draft['recipient'] = command['value'];
+                default:
+                  fail('Unexpected field for the Swap draft');
+              }
             } else {
               final String expected = switch (tab) {
                 'settings' => 'originals_discovery_field',
@@ -1847,6 +1908,17 @@ void main() {
             });
             draftReady = true;
           }
+          if (swapStart && name == 'wait' &&
+              targetKey == 'p2p_warning_continue') {
+            expect(swapWarningOpen, isTrue);
+            expect(command['ready'], isTrue);
+            expect(command['exact'], isTrue);
+          }
+          if (swapStart && name == 'wait' &&
+              targetKey == 'swap_start_screen_marker') {
+            expect(command['gone'], isTrue);
+            expect(draftOpen, isFalse);
+          }
           if (name == 'key') expect(command['key'], 'escape');
           if (name == 'theme') {
             if (command['mode'] case final String requested) mode = requested;
@@ -1866,6 +1938,7 @@ void main() {
                 if (tokenDraft) 'tokens',
                 if (earn) ...<String>['staking', 'pillars'],
                 if (sentinelFixture) 'pillars',
+                if (swapStart) 'p2pSwap',
               ],
               'locale': 'en', 'direction': 'ltr',
             },
@@ -1892,8 +1965,12 @@ void main() {
             },
             if (name == 'wait' || name == 'assert') ...<String, dynamic>{
               'ms': 0, 'asserted': true,
-              'target': <String, dynamic>{'ref': 0, 'kind': 'region',
-                'key': command['key'], 'rect': <int>[0, 0, 200, 100]},
+              'target': <String, dynamic>{
+                'ref': 0, 'kind': command['kind'] ?? 'region',
+                'key': command['key'], 'rect': <int>[0, 0, 200, 100],
+                if (swapStart && targetKey == 'swap_counterparty_input')
+                  'value': draft['recipient'],
+              },
             },
             if (name == 'type') ...<String, dynamic>{
               'value': command['value'], 'target': ?typeTarget,
@@ -1912,7 +1989,7 @@ void main() {
         () => captureReadonlyDetailsDefaults(
           repository: repository, session: session, onStep: progress.add,
           selection: selection,
-          labRecipient: sendConfirmation ? labRecipient : null,
+          labRecipient: selection.requiresLabRecipient ? labRecipient : null,
         ),
         stdout: () => output,
       );
@@ -1925,7 +2002,7 @@ void main() {
         continue;
       }
       await session.bindWallet();
-      if (sendConfirmation) {
+      if (selection.requiresLabRecipient) {
         final int calls = commands.length;
         await expectLater(captureReadonlyDetailsDefaults(
           repository: repository, session: session, selection: selection,
@@ -1946,6 +2023,8 @@ void main() {
         expect(closedFuse, tokenDraft || selection.catalogOnly ? 0 : 2);
         expect(closedToken, tokenDraft ? 2 : 0);
         expect(canceledSend, sendConfirmation ? 2 : 0);
+        expect(swapWarnings, swapStart ? 1 : 0);
+        expect(closedSwaps, swapStart ? 2 : 0);
         expect(closedPillar, earn ? 2 : 0);
         expect(tab, 'dashboard');
         expect(expanded, isTrue);
