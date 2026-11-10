@@ -19,6 +19,8 @@ MAX_ARCHIVE = 256 * 1024
 PRODUCERS = ('windows_startup_probe.py', 'windows_presentation_smoke.py',
              'windows_entry_capture_smoke.py', 'windows_wallet_tour.py')
 JOB_NAME = 'Observe original Windows Release startup'
+# The timing lane preserves earlier launch, lock and quiz producers.
+PRE_TIMING_LAUNCH_PRODUCER_SHA = 'e579d76e178e69189069f5269a0ba8981f3e435a10e0f80f69bb2d559b4761a2'
 # Retained launch archives created before the handoff option use this producer.
 ORIGINAL_LAUNCH_PRODUCER_SHA = 'dbf165b477df62dae61258224a96220e8b5d4575b4673010d9491006c486bce9'
 HANDOFF_LAUNCH_PRODUCER_SHA = 'ffb11b8748080d0973eb08f168f1c926bdf13622e9f9717fe084f2b09571d9fc'
@@ -142,15 +144,19 @@ def inspect_run(client, *, head, tree, run_id, job):
 
 
 def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *,
-                   settle=False, lock=False, quiz=False):
-    """Bind original startup lane PNGs to their exact closed actors."""
-    cap = lock_catalog.MAX_ARCHIVE if lock else launch.MAX_ARCHIVE
+                   settle=False, lock=False, quiz=False, timing=False):
+    """Bind startup evidence to its exact original closed actors."""
+    archive.need(not timing or not (settle or lock or quiz))
+    cap = launch.TIMING_MAX_ARCHIVE if timing else lock_catalog.MAX_ARCHIVE if lock else launch.MAX_ARCHIVE
     if quiz:
         cap = quiz_catalog.MAX_ARCHIVE
     archive.need(type(raw) is bytes and type(expected_size) is int
         and 0 < len(raw) == expected_size <= cap
         and archive.sha(raw) == expected_sha)
-    if quiz:
+    if timing:
+        files, frame_fields, scope = (), set(), launch.TIMING_SCOPE
+        pin_fields = {'collector_sha256', 'profile_sha256'}
+    elif quiz:
         files, frame_fields, scope = quiz_catalog.FILES, quiz_catalog.STATE_FIELDS, quiz_catalog.SCOPE
         pin_fields = set(quiz_catalog.PIN_SOURCES)
     elif lock:
@@ -189,6 +195,8 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
         required = {'schema', 'scope', 'success', 'attempts', 'captures', 'source_stable',
             'error_codes', 'source_sha', 'source_tree', 'run_id', 'run_attempt',
             'runner_sha256', 'payload_sha256'} | pin_fields
+        if timing:
+            required = required - {'captures'} | {'mode', 'theme', 'client', 'frame_window'}
         archive.need(type(report) is dict and set(report) == required
             and type(report['schema']) is int and report['schema'] == 1
             and report['scope'] == scope
@@ -201,9 +209,13 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
         errors = report['error_codes']
         archive.need(type(errors) is list and len(errors) <= 2
             and all(type(code) is str and code in startup.CODES for code in errors))
-        attempts, captures = report['attempts'], report['captures']
-        roles = ([('dark', 'capture')] if quiz else
-                 [(theme, role) for theme in launch.THEMES for role in ('prepare', 'capture')])
+        attempts = report['attempts']
+        captures = [] if timing else report['captures']
+        if timing:
+            roles = [(launch.TIMING_THEME, role) for role in ('prepare', 'timing')]
+        else:
+            roles = ([('dark', 'capture')] if quiz else
+                     [(theme, role) for theme in launch.THEMES for role in ('prepare', 'capture')])
         archive.need(type(attempts) is list and len(attempts) <= len(roles)
                      and type(captures) is list and len(captures) <= len(files))
         attempt_flags = ('action_complete', 'exit_observed', 'forced_kill',
@@ -236,6 +248,19 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
                          and 'COMMAND_FAILED' in row['error_codes']
                          and not row['action_complete'])))
         archive.need(all(launch.attempt_passed(row) for row in attempts[:-1]))
+        frame_window = None
+        if timing:
+            archive.need(report['mode'] == 'release' and report['theme'] == launch.TIMING_THEME
+                and type(report['client']) is list
+                and all(type(value) is int for value in report['client'])
+                and report['client'] == list(launch.TIMING_SIZE))
+            frame_window = report['frame_window']
+            if frame_window is not None:
+                archive.need(len(attempts) == len(roles) and launch.attempt_passed(attempts[-1]))
+                try:
+                    launch.frame_timing_window(frame_window)
+                except startup.Failure:
+                    raise archive.Refused('INSPECTION_REFUSED') from None
         for index, (row, name) in enumerate(zip(captures, files)):
             theme, phase = divmod(index, per_theme)
             actor = 0 if quiz else 2 * theme + 1
@@ -259,7 +284,8 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
             archive.need(len({row['sha256'] for row in captures}) == len(captures))
         complete = (len(attempts) == len(roles) and len(captures) == len(files)
                     and all(launch.attempt_passed(row) for row in attempts)
-                    and report['source_stable'] and not errors)
+                    and report['source_stable'] and not errors
+                    and (not timing or frame_window is not None))
         archive.need(report['success'] is complete)
     summary = dict(schema=1, scope='retained_' + report['scope'],
         source_head=head, source_tree=tree, source_run_id=run_id, source_attempt=1,
@@ -268,7 +294,16 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
         filenames=[row['file'] for row in captures],
         error_codes=errors, visual_matches=0, runtime_started=False,
         **pins)
-    if quiz:
+    if timing:
+        summary.update(frame_count=0, window_us=None, frame_window_sha256=None)
+        if frame_window is not None:
+            raw_window = json.dumps(frame_window, sort_keys=True,
+                separators=(',', ':')).encode('ascii')
+            summary.update(frame_count=len(frame_window['frames']),
+                window_us=frame_window['windowUs'], frame_window_sha256=archive.sha(raw_window))
+        summary.update(mode=report['mode'], theme=report['theme'], client=report['client'],
+            original_attempts=attempts, baseline_compared=False)
+    elif quiz:
         summary['single_process'] = len(attempts) == 1 and launch.attempt_passed(attempts[0])
         summary['states'] = [{key: row[key] for key in sorted(frame_fields)} for row in captures]
         if attempts and attempts[0].get('refusal') is not None:
@@ -284,14 +319,18 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
     return summary
 
 
-def inspect_launch_run(client, *, head, tree, run_id, job, settle=False, lock=False, quiz=False):
+def inspect_launch_run(client, *, head, tree, run_id, job, settle=False, lock=False, quiz=False, timing=False):
     """Inspect the selected startup lane without an SDK or native process."""
     archive.need(job['name'] == JOB_NAME and job['head_sha'] == head
         and job['run_id'] == run_id and job['status'] == 'completed'
         and job['conclusion'] in ('success', 'failure'))
     pins = {}
     sources = [('tool/ci/windows_launch_catalog.py', None)]
-    if quiz:
+    if timing:
+        sources.extend(((str(launch.TIMING_SOURCE), 'collector_sha256'),
+                        (str(launch.SETTLE_PROFILE_SOURCE), 'profile_sha256')))
+        sources.extend(('tool/ci/' + name, None) for name in PRODUCERS[:3])
+    elif quiz:
         sources.append(('tool/ci/windows_quiz_catalog.py', None))
         sources.extend((str(path), key) for key, path in quiz_catalog.PIN_SOURCES.items())
     elif lock:
@@ -314,6 +353,10 @@ def inspect_launch_run(client, *, head, tree, run_id, job, settle=False, lock=Fa
             current = Path(__file__).with_name(Path(name).name).read_bytes()
             prior = () if lock or quiz else ((HANDOFF_LAUNCH_PRODUCER_SHA,) if settle else
                                       (ORIGINAL_LAUNCH_PRODUCER_SHA, HANDOFF_LAUNCH_PRODUCER_SHA))
+            if timing:
+                prior = ()
+            elif name == 'tool/ci/windows_launch_catalog.py':
+                prior = (*prior, PRE_TIMING_LAUNCH_PRODUCER_SHA)
             if quiz and name == 'tool/ci/windows_quiz_catalog.py':
                 prior = PRIOR_QUIZ_PRODUCER_SHAS
             archive.need(body == current or archive.sha(body) in prior)
@@ -325,7 +368,9 @@ def inspect_launch_run(client, *, head, tree, run_id, job, settle=False, lock=Fa
     screen = launch.SETTLE_SCREEN if settle else 'launch'
     prefix = lock_catalog.ARTIFACT_PREFIX if lock else 'windows-' + screen + '-catalog-'
     cap = lock_catalog.MAX_ARCHIVE if lock else launch.MAX_ARCHIVE
-    if quiz:
+    if timing:
+        prefix, cap = launch.TIMING_ARTIFACT_PREFIX, launch.TIMING_MAX_ARCHIVE
+    elif quiz:
         prefix, cap = quiz_catalog.ARTIFACT_PREFIX, quiz_catalog.MAX_ARCHIVE
     archive.need(item['name'] == prefix + head + '-' + str(run_id) + '-1'
         and item['expired'] is False and item['workflow_run']['id'] == run_id
@@ -335,7 +380,7 @@ def inspect_launch_run(client, *, head, tree, run_id, job, settle=False, lock=Fa
     location = client.read(archive.API + '/actions/artifacts/' + str(item['id']) + '/zip', redirect=True)
     raw = client.read(location, authenticated=False, cap=cap)
     summary = launch_archive(raw, item['digest'][7:], item['size_in_bytes'],
-        head, tree, run_id, pins, settle=settle, lock=lock, quiz=quiz)
+        head, tree, run_id, pins, settle=settle, lock=lock, quiz=quiz, timing=timing)
     archive.need((job['conclusion'] == 'success') is summary['artifact_reported_success'])
     summary.update(original_job_id=job['id'], original_job_conclusion=job['conclusion'])
     return summary

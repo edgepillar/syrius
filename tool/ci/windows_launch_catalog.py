@@ -16,6 +16,17 @@ from . import windows_startup_probe as startup
 
 
 OUTPUT = Path('.harness/ci-launch-catalog')
+TIMING_OUTPUT = Path('.harness/ci-launch-timing')
+TIMING_SCREEN = 'launch-timing'
+TIMING_SCOPE = 'original_cold_lock_frame_timing'
+TIMING_JOB_STEP = 'Measure the original cold lock frame window'
+TIMING_ARTIFACT_PREFIX = 'windows-launch-timing-'
+TIMING_MAX_ARCHIVE = 64 * 1024
+TIMING_THEME = 'dark'
+TIMING_SIZE = (1280, 780)
+MAX_TIMING_FRAMES, MAX_TIMING_US = 512, 60000000
+TIMING_FIELDS = ('schema', 'scope', 'windowUs', 'frames')
+TIMING_SOURCE = Path('harness/app/frame_window.dart')
 RECIPE = Path('harness/screens/launch.txt')
 SETTLE_RECIPE = Path('harness/screens/launch-settle.txt')
 CAPTURE_SOURCE = Path('harness/app/native_launch_capture.dart')
@@ -86,6 +97,32 @@ def launch_pixels(reply, theme, *, settle=False):
     return pixels, {name: reply[name] for name in sorted(fields)}
 
 
+def frame_timing_window(value):
+    """Validate a bounded frame interval without exporting other reply fields."""
+    if (type(value) is not dict
+            or set(value) != {'schema', 'scope', 'windowUs', 'frames'}
+            or type(value['schema']) is not int or value['schema'] != 1
+            or value['scope'] != 'harness_frame_window'):
+        raise startup.Failure('STARTUP_OBSERVATION_REFUSED')
+    duration, rows = value['windowUs'], value['frames']
+    if (type(duration) is not int or not 0 < duration <= MAX_TIMING_US
+            or type(rows) is not list or not 0 < len(rows) <= MAX_TIMING_FRAMES):
+        raise startup.Failure('STARTUP_OBSERVATION_REFUSED')
+    previous_id, previous_start = -1, -1
+    for row in rows:
+        if (type(row) is not list or len(row) != 5
+                or any(type(value) is not int for value in row)):
+            raise startup.Failure('STARTUP_OBSERVATION_REFUSED')
+        number, start, build, raster, total = row
+        if (not previous_id < number < 2**32
+                or previous_id == -1 and number != 0
+                or not previous_start <= start < duration or start < 0
+                or build < 0 or raster < 0 or not build + raster <= total <= MAX_TIMING_US):
+            raise startup.Failure('STARTUP_OBSERVATION_REFUSED')
+        previous_id, previous_start = number, start
+    return value
+
+
 def attempt_passed(value):
     return (all(value['checks'].values()) and value['action_complete']
             and value['exit_observed'] and value['exit_code'] == 0
@@ -120,11 +157,37 @@ class LaunchProcess(startup.StartupProbe):
             self.sleep(min(self.limits.poll, max(0, until - self.clock())))
         raise startup.Failure('STARTUP_DEADLINE')
 
-    def run_launch(self, theme, *, capture, settle):
+    def _observe_frame_timing(self):
+        until = min(self.deadline - 5, self.started + 50, self.clock() + 20)
+        state = self._rpc({'cmd': 'state'}, until=until)
+        need(state.get('booted') is True and state.get('walletUnlocked') is False
+             and state.get('size') == list(TIMING_SIZE), 'ENTRY_INVALID')
+        while self.clock() < until:
+            remaining_ms = int((until - self.clock()) * 1000)
+            need(remaining_ms > 0, 'STARTUP_DEADLINE')
+            reply = self._rpc(dict(cmd='wait', key='wallet_password_field',
+                                   timeoutMs=remaining_ms), until=until)
+            target = reply.get('target')
+            need(type(target) is dict and target.get('key') == 'wallet_password_field'
+                 and target.get('kind') == 'field', 'ENTRY_INVALID')
+            if target.get('enabled', True) is True:
+                break
+            need(target.get('enabled') is False, 'ENTRY_INVALID')
+            self.sleep(min(self.limits.poll, max(0, until - self.clock())))
+        else:
+            raise startup.Failure('STARTUP_DEADLINE')
+        raw = self._rpc(dict(cmd='stalls', frameWindow='end'),
+                        until=min(self.deadline, self.started + 60))
+        need(set(raw) == {'ok', *TIMING_FIELDS})
+        return frame_timing_window({field: raw[field] for field in TIMING_FIELDS})
+
+    def run_launch(self, theme, *, capture, settle, timing=False):
         result, complete = None, False
         try:
             self._ready()
-            if capture:
+            if timing:
+                result = self._observe_frame_timing()
+            elif capture:
                 result = self._observe_pixels(theme, settle=settle)
             else:
                 self._prepare_theme(theme)
@@ -140,7 +203,7 @@ class LaunchProcess(startup.StartupProbe):
             bounded.finish_original(self.process, self.drain, self.report,
                                     self.limits, grace=grace)
         report = self.report
-        receipt = dict(theme=theme, role='capture' if capture else 'prepare',
+        receipt = dict(theme=theme, role='timing' if timing else 'capture' if capture else 'prepare',
             action_complete=complete, checks={name: report.checks[name] for name in ATTEMPT_CHECKS},
             exit_code=report.exit_code, exit_observed=report.exit_observed,
             forced_kill=report.forced_kill, output_complete=report.output_complete,
@@ -149,7 +212,9 @@ class LaunchProcess(startup.StartupProbe):
 
 
 def run_process(repo, parent, binaries, profile, theme, *, capture, settle,
-                process_type=LaunchProcess):
+                process_type=LaunchProcess, timing=False):
+    need(not timing or (capture and settle and process_type is LaunchProcess),
+         'ENVIRONMENT_REFUSED')
     bounded.check_no_existing(repo, parent)
     binary = binaries[0][0]
     for selected, _, original in binaries:
@@ -161,30 +226,44 @@ def run_process(repo, parent, binaries, profile, theme, *, capture, settle,
         reservation.bind(('127.0.0.1', 0))
         port = reservation.getsockname()[1]
     env = entry.child_environment(parent, profile, port, token)
-    if settle:
-        env.update(GITHUB_ACTIONS='true', SYRIUS_CI_LAUNCH_SCREEN=process_type.profile_screen)
-    if capture:
-        env.update(GITHUB_ACTIONS='true', SYRIUS_CI_LAUNCH_THEME=theme)
+    limits = LIMITS
+    if timing:
+        env['SYRIUS_HARNESS_FRAME_TIMING'] = 'launch'
+        limits = replace(LIMITS, response_bytes=65536)
+    else:
+        if settle:
+            env.update(GITHUB_ACTIONS='true', SYRIUS_CI_LAUNCH_SCREEN=process_type.profile_screen)
+        if capture:
+            env.update(GITHUB_ACTIONS='true', SYRIUS_CI_LAUNCH_THEME=theme)
     report = startup.Report()
     process = subprocess.Popen([str(binary)], cwd=binary.parent, env=env,
         shell=False, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT, bufsize=0)
     drain = None
     try:
-        drain = bounded.OutputDrain(process.stdout, LIMITS.output_bytes)
-        session = process_type(process, bounded.LoopbackTransport(port, LIMITS.response_bytes),
-                                token, drain, report, limits=LIMITS)
+        drain = bounded.OutputDrain(process.stdout, limits.output_bytes)
+        session = process_type(process, bounded.LoopbackTransport(port, limits.response_bytes),
+                                token, drain, report, limits=limits)
     except BaseException:
-        bounded.finish_original(process, drain, report, LIMITS)
+        bounded.finish_original(process, drain, report, limits)
         raise
+    if timing:
+        return session.run_launch(theme, capture=capture, settle=settle, timing=True)
     return session.run_launch(theme, capture=capture, settle=settle)
 
 
 def main():
     requested = os.environ.get('SYRIUS_WINDOWS_LAUNCH_CATALOG')
-    settle = requested == SETTLE_SCREEN
-    report = dict(schema=1, scope=SETTLE_SCOPE if settle else SCOPE, success=False,
-        attempts=[], captures=[], source_stable=False, error_codes=[])
+    timing = requested == TIMING_SCREEN
+    settle = requested in (SETTLE_SCREEN, TIMING_SCREEN)
+    scope = TIMING_SCOPE if timing else SETTLE_SCOPE if settle else SCOPE
+    report = dict(schema=1, scope=scope, success=False,
+        attempts=[], source_stable=False, error_codes=[])
+    if timing:
+        report.update(mode='release', theme=TIMING_THEME, client=list(TIMING_SIZE),
+                      frame_window=None)
+    else:
+        report['captures'] = []
     destination = None
     try:
         need(not sys.argv[1:], 'ARGUMENTS_REFUSED')
@@ -192,7 +271,9 @@ def main():
         need(parent.get('GITHUB_EVENT_NAME') == 'workflow_dispatch'
              and parent.get('GITHUB_RUN_ATTEMPT') == '1'
              and parent.get('SYRIUS_WINDOWS_STARTUP_PROBE') == 'true'
-             and requested in ('true', SETTLE_SCREEN), 'ENVIRONMENT_REFUSED')
+             and requested in ('true', SETTLE_SCREEN, TIMING_SCREEN)
+             and (not timing or parent.get('GITHUB_REPOSITORY') == 'edgepillar/syrius'),
+             'ENVIRONMENT_REFUSED')
         repo = Path(parent['GITHUB_WORKSPACE'])
         bounded.plain(repo)
         need(repo.resolve() == Path.cwd().resolve(), 'ENVIRONMENT_REFUSED')
@@ -201,16 +282,21 @@ def main():
         binaries = tuple(bounded.binary_hash(repo, path) for path in (startup.BINARY, startup.PAYLOAD))
         recipe = SETTLE_RECIPE if settle else RECIPE
         report.update(source_sha=head, source_tree=tree, run_id=parent['GITHUB_RUN_ID'],
-            run_attempt='1', runner_sha256=binaries[0][1], payload_sha256=binaries[1][1],
-            recipe_sha256=sha((repo / recipe).read_bytes()),
-            capture_source_sha256=sha((repo / CAPTURE_SOURCE).read_bytes()))
+            run_attempt='1', runner_sha256=binaries[0][1], payload_sha256=binaries[1][1])
+        if timing:
+            report['collector_sha256'] = sha((repo / TIMING_SOURCE).read_bytes())
+        else:
+            report.update(recipe_sha256=sha((repo / recipe).read_bytes()),
+                capture_source_sha256=sha((repo / CAPTURE_SOURCE).read_bytes()))
         if settle:
             report['profile_sha256'] = sha((repo / SETTLE_PROFILE_SOURCE).read_bytes())
         entry.private_root(repo)
-        output_directory = repo / OUTPUT
+        output_directory = repo / (TIMING_OUTPUT if timing else OUTPUT)
         output_directory.mkdir(mode=0o700)
         destination = output_directory
-        for theme, filename in zip(THEMES, SETTLE_FILES if settle else FILES):
+        samples = ((TIMING_THEME, None),) if timing else zip(
+            THEMES, SETTLE_FILES if settle else FILES)
+        for theme, filename in samples:
             profile = entry.new_profile(repo)
             original = bounded.plain(profile)
             prepared, _ = run_process(repo, parent, binaries, profile, theme,
@@ -220,9 +306,12 @@ def main():
             current = bounded.plain(profile)
             need((current.st_dev, current.st_ino) == (original.st_dev, original.st_ino), 'PROFILE_REFUSED')
             captured, result = run_process(repo, parent, binaries, profile, theme,
-                                           capture=True, settle=settle)
+                                           capture=True, settle=settle, timing=timing)
             report['attempts'].append(captured)
             need(result is not None)
+            if timing:
+                report['frame_window'] = frame_timing_window(result)
+                continue
             pixels, state = result
             with (destination / filename).open('xb') as output:
                 output.write(pixels)
@@ -246,8 +335,15 @@ def main():
         except (Exception, KeyboardInterrupt):
             report['success'] = False
             report['error_codes'].append('ARTIFACT_FAILED')
-    title = 'Original launch handoff catalog' if settle else 'Original cold launch catalog'
-    print('::notice title=' + title + '::' + json.dumps(report, separators=(',', ':')))
+    if timing:
+        title = 'Original cold lock frame timing'
+        summary = {key: value for key, value in report.items() if key != 'frame_window'}
+        window = report['frame_window']
+        summary['frame_count'] = len(window['frames']) if window is not None else 0
+    else:
+        title = 'Original launch handoff catalog' if settle else 'Original cold launch catalog'
+        summary = report
+    print('::notice title=' + title + '::' + json.dumps(summary, separators=(',', ':')))
     return 0 if report['success'] else 1
 
 

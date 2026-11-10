@@ -62,6 +62,7 @@ on:
           - sentinel-fixture
           - launch
           - launch-settle
+          - launch-timing
           - lock-catalog
           - quiz-catalog
           - seeded-states
@@ -201,12 +202,12 @@ jobs:
         run: flutter build windows --release --no-pub --target harness/app/main.dart --dart-define-from-file=.dart_tool/git_metadata.json
 
       - name: Observe the original startup and normal process exit
-        if: inputs.readonly_catalog_family != 'launch' && inputs.readonly_catalog_family != 'launch-settle' && inputs.readonly_catalog_family != 'lock-catalog' && inputs.readonly_catalog_family != 'quiz-catalog'
+        if: inputs.readonly_catalog_family != 'launch' && inputs.readonly_catalog_family != 'launch-settle' && inputs.readonly_catalog_family != 'lock-catalog' && inputs.readonly_catalog_family != 'quiz-catalog' && inputs.readonly_catalog_family != 'launch-timing'
         timeout-minutes: 3
         run: python -B -m tool.ci.windows_startup_probe
 
       - name: Observe natural startup in a fresh original process
-        if: inputs.readonly_catalog_family != 'launch' && inputs.readonly_catalog_family != 'launch-settle' && inputs.readonly_catalog_family != 'lock-catalog' && inputs.readonly_catalog_family != 'quiz-catalog'
+        if: inputs.readonly_catalog_family != 'launch' && inputs.readonly_catalog_family != 'launch-settle' && inputs.readonly_catalog_family != 'lock-catalog' && inputs.readonly_catalog_family != 'quiz-catalog' && inputs.readonly_catalog_family != 'launch-timing'
         timeout-minutes: 3
         run: python -B -m tool.ci.windows_startup_probe --natural-only
 
@@ -249,6 +250,23 @@ jobs:
             .harness/ci-launch-catalog/manifest.json
             .harness/ci-launch-catalog/40-launch-settle-dark.png
             .harness/ci-launch-catalog/40-launch-settle-light.png
+
+      - name: Measure the original cold lock frame window
+        if: inputs.readonly_catalog_family == 'launch-timing'
+        timeout-minutes: 5
+        env:
+          SYRIUS_WINDOWS_LAUNCH_CATALOG: 'launch-timing'
+        run: python -B -m tool.ci.windows_launch_catalog
+
+      - name: Retain the original cold lock timing manifest
+        if: always() && inputs.readonly_catalog_family == 'launch-timing' && hashFiles('.harness/ci-launch-timing/manifest.json') != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-launch-timing-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          compression-level: 0
+          include-hidden-files: true
+          if-no-files-found: error
+          path: .harness/ci-launch-timing/manifest.json
 
       - name: Capture the original lock states in both themes
         if: inputs.readonly_catalog_family == 'lock-catalog'

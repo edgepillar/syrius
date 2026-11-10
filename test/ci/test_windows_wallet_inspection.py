@@ -235,7 +235,7 @@ class InspectionTests(unittest.TestCase):
             self.assertEqual(lab.READONLY_CATALOG_SCHEMAS[
                 lab.readonly_catalog_family(selected)], schema)
         for value in (None, True, 1, '', 'Home', 'all', 'home,navigation',
-                      '../home', 'launch', 'launch-settle', 'lock-catalog', 'quiz-catalog', 'seeded-states',
+                      '../home', 'launch', 'launch-settle', 'launch-timing', 'lock-catalog', 'quiz-catalog', 'seeded-states',
                       'stake-draft', 'project-detail', 'pillar-spawn',
                       'pillar-done'):
             with self.subTest(value=value), self.assertRaises(lab.Failure):
@@ -250,7 +250,7 @@ class InspectionTests(unittest.TestCase):
             ['home', 'home-seams', 'home-bell', 'home-zap-preview', 'settings', 'settings-seams',
              'navigation', 'details', 'token-draft',
              'send-confirm', 'send-warn', 'swap-start', 'wallet-ready', 'earn',
-             'sentinel-fixture', 'launch', 'launch-settle',
+             'sentinel-fixture', 'launch', 'launch-settle', 'launch-timing',
              'lock-catalog', 'quiz-catalog', 'seeded-states',
              'stake-draft', 'project-detail', 'pillar-spawn', 'pillar-done'])
         self.assertIn('SYRIUS_READONLY_CATALOG_FAMILY: ${{ inputs.readonly_catalog_family }}', workflow)

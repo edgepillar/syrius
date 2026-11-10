@@ -7,6 +7,7 @@ import io
 import json
 from pathlib import Path
 import struct
+import types
 import unittest
 from unittest import mock
 import zipfile
@@ -132,6 +133,149 @@ def _png(sample=0):
 class StartupInspectionTests(unittest.TestCase):
     def test_cold_launch_requires_exact_frame_geometry_and_normal_actor_exits(self):
         self._check_launch_catalog(settle=False)
+
+    def test_launch_timing_waits_for_the_original_enabled_lock_field(self):
+        launch = inspect.launch
+        process = object.__new__(launch.LaunchProcess)
+        process.deadline, process.started = 65, 0
+        process.clock, process.sleep = lambda: 0, mock.Mock()
+        process.limits = launch.LIMITS
+        lock = dict(kind='field', key='wallet_password_field')
+        report = dict(schema=1, scope='harness_frame_window', windowUs=3000000,
+                      frames=[[0, 10, 200, 300, 500]])
+        process._rpc = mock.Mock(side_effect=[
+            dict(ok=True, booted=True, walletUnlocked=False, size=[1280, 780]),
+            dict(ok=True, target=dict(lock, enabled=False)),
+            dict(ok=True, target=lock), dict(ok=True, **report),
+        ])
+        self.assertEqual(process._observe_frame_timing(), report)
+        self.assertEqual([call.args[0] for call in process._rpc.call_args_list], [
+            dict(cmd='state'),
+            dict(cmd='wait', key='wallet_password_field', timeoutMs=20000),
+            dict(cmd='wait', key='wallet_password_field', timeoutMs=20000),
+            dict(cmd='stalls', frameWindow='end'),
+        ])
+        process.sleep.assert_called_once_with(launch.LIMITS.poll)
+
+    def test_launch_timing_main_retains_one_manifest_without_a_capture(self):
+        launch = inspect.launch
+        repo = Path.cwd()
+        profile = repo / 'fixture-profile'
+        binaries = tuple((repo / path, 'c' * 64, (1, 2, 3, 4))
+                         for path in (inspect.startup.BINARY, inspect.startup.PAYLOAD))
+        facts = dict(theme='dark', action_complete=True, exit_observed=True,
+            exit_code=0, forced_kill=False, output_complete=True, output_overflow=False,
+            checks=dict.fromkeys(launch.ATTEMPT_CHECKS, True), error_codes=[])
+        frames = dict(schema=1, scope='harness_frame_window', windowUs=2000000,
+                      frames=[[0, 10, 200, 400, 610]])
+        environment = dict(SYRIUS_WINDOWS_LAUNCH_CATALOG=launch.TIMING_SCREEN)
+        parent = dict(GITHUB_REPOSITORY='edgepillar/syrius',
+            GITHUB_EVENT_NAME='workflow_dispatch', GITHUB_RUN_ATTEMPT='1',
+            GITHUB_RUN_ID=str(RUN), GITHUB_WORKSPACE=str(repo),
+            SYRIUS_WINDOWS_STARTUP_PROBE='true')
+        identity = types.SimpleNamespace(st_dev=1, st_ino=2)
+        output = io.StringIO()
+        open_output = mock.mock_open()
+        with contextlib.ExitStack() as stack:
+            for patch in (
+                mock.patch.dict(launch.os.environ, environment, clear=True),
+                mock.patch.object(launch.sys, 'argv', ['windows_launch_catalog']),
+                mock.patch.object(launch.entry, 'require_ci', return_value=(parent, HEAD)),
+                mock.patch.object(launch.entry, 'source_tree', return_value=TREE),
+                mock.patch.object(launch.entry, 'private_root'),
+                mock.patch.object(launch.entry, 'new_profile', return_value=profile),
+                mock.patch.object(launch.bounded, 'plain', return_value=identity),
+                mock.patch.object(launch.bounded, 'verify_source'),
+                mock.patch.object(launch.bounded, 'binary_hash', side_effect=[*binaries, *binaries]),
+                mock.patch.object(Path, 'mkdir'), mock.patch.object(Path, 'read_bytes', return_value=b'fixture'),
+                mock.patch.object(Path, 'open', open_output),
+                contextlib.redirect_stdout(output),
+            ):
+                stack.enter_context(patch)
+            original = stack.enter_context(mock.patch.object(launch, 'run_process', side_effect=[
+                (dict(facts, role='prepare'), None), (dict(facts, role='timing'), frames),
+            ]))
+            self.assertEqual(launch.main(), 0)
+        self.assertEqual(original.call_args_list, [
+            mock.call(repo, parent, binaries, profile, 'dark', capture=False, settle=True),
+            mock.call(repo, parent, binaries, profile, 'dark', capture=True, settle=True, timing=True),
+        ])
+        open_output.assert_called_once_with('xb')
+        manifest = json.loads(open_output().write.call_args.args[0])
+        self.assertEqual(manifest['frame_window'], frames)
+        self.assertEqual(manifest['source_tree'], TREE)
+        self.assertNotIn('captures', manifest)
+        notice = json.loads(output.getvalue().split('::', 2)[-1])
+        self.assertEqual(notice['frame_count'], 1)
+        self.assertNotIn('frame_window', notice)
+
+    def test_launch_timing_archive_requires_exact_closed_numeric_observation(self):
+        launch = inspect.launch
+        pins = dict(profile_sha256='c' * 64, collector_sha256='d' * 64)
+        frame = dict(schema=1, scope='harness_frame_window', windowUs=1200000,
+                     frames=[[0, 0, 3000, 4100, 7200]])
+        facts = dict(theme='dark', action_complete=True, exit_observed=True,
+            exit_code=0, forced_kill=False, output_complete=True, output_overflow=False,
+            checks=dict.fromkeys(launch.ATTEMPT_CHECKS, True), error_codes=[])
+        report = dict(schema=1, scope=launch.TIMING_SCOPE, success=True, mode='release',
+            theme='dark', client=[1280, 780], frame_window=frame, source_stable=True,
+            source_sha=HEAD, source_tree=TREE, run_id=str(RUN), run_attempt='1',
+            runner_sha256='e' * 64, payload_sha256='f' * 64, error_codes=[],
+            attempts=[dict(facts, role='prepare'), dict(facts, role='timing')], **pins)
+
+        def read(value, *, extra=False):
+            raw, _ = package(value, extra=extra)
+            return inspect.launch_archive(raw, inspect.archive.sha(raw), len(raw),
+                HEAD, TREE, RUN, pins, timing=True)
+
+        summary = read(report)
+        self.assertEqual(summary['frame_count'], 1)
+        self.assertEqual(summary['window_us'], 1200000)
+        self.assertEqual(summary['verified_png_count'], 0)
+        self.assertFalse(summary['baseline_compared'])
+        self.assertTrue(summary['artifact_reported_success'])
+        for change in (dict(frame_window=None), dict(collector_sha256='1' * 64),
+                       dict(mode='debug'), dict(client=[1280, 781]),
+                       dict(attempts=[report['attempts'][0],
+                            dict(report['attempts'][1], forced_kill=True)])):
+            with self.subTest(change=change), self.assertRaises(inspect.archive.Refused):
+                read(dict(report, **change))
+        with self.assertRaises(inspect.archive.Refused):
+            read(report, extra=True)
+        partial = dict(report, success=False, source_stable=False, frame_window=None,
+                       attempts=report['attempts'][:1], error_codes=['ENTRY_INVALID'])
+        self.assertFalse(read(partial)['artifact_reported_success'])
+
+    def test_launch_timing_routes_without_requesting_any_legacy_startup_archive(self):
+        client = Client()
+        client.job['steps'] = [dict(name=inspect.launch.TIMING_JOB_STEP,
+                                    status='completed', conclusion='success')]
+        summary = dict(scope='retained_original_cold_lock_frame_timing',
+                       frame_count=1, artifact_reported_success=True)
+        with mock.patch.object(inspect, 'inspect_launch_run', return_value=summary) as reader:
+            status, output = self.read_windows(client)
+        self.assertEqual(status, 0)
+        self.assertIn('retained_original_cold_lock_frame_timing', output)
+        self.assertTrue(reader.call_args.kwargs['timing'])
+        self.assertFalse(any('/artifacts' in path for path in client.calls))
+
+    def test_launch_timing_refuses_unlocked_or_non_numeric_samples(self):
+        launch = inspect.launch
+        process = object.__new__(launch.LaunchProcess)
+        process.deadline, process.started = 65, 0
+        process.clock = lambda: 0
+        process._rpc = mock.Mock(return_value=dict(
+            ok=True, booted=True, walletUnlocked=True, size=[1280, 780]))
+        with self.assertRaises(inspect.startup.Failure):
+            process._observe_frame_timing()
+        process._rpc.assert_called_once_with({'cmd': 'state'}, until=20)
+        good = dict(schema=1, scope='harness_frame_window', windowUs=1000,
+                    frames=[[0, 0, 30, 40, 70]])
+        for bad in (dict(schema=True), dict(frames=[]), dict(private='private'),
+                    dict(frames=[[0, 1, 60, 40, 99]]),
+                    dict(frames=[[0, 0, 30, 40, 70], [0, 1, 30, 40, 70]])):
+            with self.subTest(bad=bad), self.assertRaises(inspect.startup.Failure):
+                launch.frame_timing_window(dict(good, **bad))
 
     def test_launch_settle_requires_original_handoff_and_intermediate_geometry(self):
         self._check_launch_catalog(settle=True)

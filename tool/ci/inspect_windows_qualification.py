@@ -298,6 +298,7 @@ def main():
             launch_titles = {
                 startup.launch.JOB_STEP: 'Hosted original cold launch inspection',
                 startup.launch.SETTLE_JOB_STEP: 'Hosted original launch handoff inspection',
+                startup.launch.TIMING_JOB_STEP: 'Hosted original cold lock timing inspection',
                 startup.lock_catalog.JOB_STEP: 'Hosted original lock catalog inspection',
                 startup.quiz_catalog.JOB_STEP: 'Hosted original seed quiz catalog inspection',
             }
@@ -311,7 +312,8 @@ def main():
                     client, head=head, tree=tree, run_id=run_id, job=job,
                     settle=name == startup.launch.SETTLE_JOB_STEP,
                     lock=name == startup.lock_catalog.JOB_STEP,
-                    quiz=name == startup.quiz_catalog.JOB_STEP))
+                    quiz=name == startup.quiz_catalog.JOB_STEP,
+                    timing=name == startup.launch.TIMING_JOB_STEP))
                 return 0
             for summary in startup.inspect_run(
                     client, head=head, tree=tree, run_id=run_id, job=job):

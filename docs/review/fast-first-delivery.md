@@ -728,6 +728,25 @@ The fresh Windows pilot covers the current analyzer, selected tests and
 original Home, Activity and Go To attempts.
 [Source625 run](https://github.com/edgepillar/syrius/actions/runs/42840875369).
 
+Source626 clears the selected analyzer gate and passes 1,386 Dart cases and
+1,112 Python cases with eighteen skips. The original Home Zap and Activity
+scope controls absorb pointer input. The unavailable Go To Zap entry
+absorbs pointer input and refuses Down and Enter. The wallet, entry
+controller and all five nodes exit normally. The separate reader verifies
+four archives and 36 image digests. The MSVC telemetry helper has a
+separate forced cleanup receipt.
+[Source626 Windows run](https://github.com/edgepillar/syrius/actions/runs/42841687809)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42845841191).
+
+Source627 adds the opt-in cold lock frame timing job selection. One Release
+build prepares a dark synthetic profile and measures the next original
+process through the enabled lock password field. It retains only the
+finite numeric manifest with the source, binaries, profile setup and
+normal exit facts. The independent reader validates the numeric window and
+original closed processes. Twenty-three in-memory controls pass. The paired
+P06 build, page and disclosure timings, and the visual Motion and Shaders
+pass remain open.
+
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied
 owner, confirmed receipt and exact Project row. The original Project
