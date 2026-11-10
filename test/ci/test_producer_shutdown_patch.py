@@ -102,6 +102,29 @@ class ProducerPatchTests(unittest.TestCase):
             with self.subTest(index=index), self.assertRaises(lab.Failure):
                 lab.source_matches(commands, Path("fixture"), patch.BASE_SHA, patch.BASE_TREE, patch.COMPILED_TREE)
 
+    def test_monitor_failure_cannot_be_the_expected_unpatched_result(self):
+        for code in ("COMMAND_TIMEOUT", "OUTPUT_REFUSED", "STORAGE_SAMPLE_OS_ERROR"):
+            failure = lab.Failure(code)
+            commands = mock.Mock(originals=[])
+            commands.run.side_effect = [b"", failure]
+            report = {}
+            pins = [patch.PATCH_SHA256, patch.FIXTURE_SHA256,
+                    patch.ORIGINAL_MANAGER_SHA256, patch.FIXTURE_SHA256]
+            with self.subTest(code=code), mock.patch.object(lab, "directories"), \
+                 mock.patch.object(lab, "regular", return_value=b"fixture"), \
+                 mock.patch.object(lab, "digest", side_effect=pins), \
+                 mock.patch.object(Path, "exists", return_value=False), \
+                 mock.patch.object(Path, "is_symlink", return_value=False), \
+                 mock.patch.object(Path, "open", mock.mock_open()):
+                with self.assertRaises(lab.Failure) as raised:
+                    lab.prepare_producer_patch(commands, Path("fixture/repo"),
+                                               Path("fixture/source"), report)
+            self.assertIs(raised.exception, failure)
+            self.assertEqual(commands.run.call_count, 2)
+            self.assertEqual(report["producer_task_patch"]["phase"], "unpatched_test")
+            self.assertIsNone(report["producer_task_patch"]["unpatched_exit"])
+            commands.git.assert_not_called()
+
     def test_changed_fixture_or_patch_is_refused_before_a_go_command(self):
         commands = mock.Mock()
         with mock.patch.object(lab, "directories"), mock.patch.object(lab, "regular", return_value=b"changed"):

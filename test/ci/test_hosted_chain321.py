@@ -684,6 +684,24 @@ class OriginalHandleTests(unittest.TestCase):
         with self.assertRaises(lab.Failure):
             original.finish()
 
+    def test_storage_observation_error_keeps_the_forced_command_receipt(self):
+        process = mock.Mock()
+        process.poll.side_effect = [None, None, 1]
+        original = self.original(process, [self.drain(b"private"), self.drain()])
+        commands = lab.Commands(Path("fixture"), {})
+        with mock.patch.object(lab, "Original", return_value=original), \
+             mock.patch.object(lab, "sample_storage", side_effect=PermissionError("private")):
+            with self.assertRaises(lab.Failure) as raised:
+                commands.run(["go", "test"], cwd=Path("fixture"))
+        self.assertEqual(str(raised.exception), "STORAGE_SAMPLE_OS_ERROR")
+        self.assertEqual(commands.originals, [original])
+        self.assertEqual(original.receipt["exit_code"], 1)
+        self.assertTrue(original.receipt["forced"])
+        self.assertTrue(original.receipt["output_complete"])
+        self.assertNotIn("private", json.dumps(original.receipt))
+        process.kill.assert_called_once_with()
+        process.wait.assert_called_once_with(timeout=10)
+
     def test_terminal_failure_is_not_replaced_by_a_second_stop(self):
         original = self.original(mock.Mock(poll=mock.Mock(return_value=7)), [self.drain(), self.drain()])
         with self.assertRaises(lab.Failure):

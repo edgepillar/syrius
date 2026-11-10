@@ -60,7 +60,7 @@ MAX_WORK = 4 * GIB
 FIXTURE_MIN_FREE = 2 * GIB
 GO_VERSION = "1.24.1"
 CODES = frozenset((
-    "ENVIRONMENT_REFUSED", "SOURCE_REFUSED", "STORAGE_REFUSED",
+    "ENVIRONMENT_REFUSED", "SOURCE_REFUSED", "STORAGE_REFUSED", "STORAGE_SAMPLE_OS_ERROR",
     "COMMAND_FAILED", "COMMAND_TIMEOUT", "OUTPUT_REFUSED", "STOP_UNKNOWN",
     "CONFIG_REFUSED", "PORT_CONFLICT", "NODE_EXITED", "RPC_UNAVAILABLE",
     "RPC_REFUSED", "GENESIS_MISMATCH", "PRODUCTION_UNPROVEN",
@@ -403,8 +403,9 @@ def prepare_producer_patch(commands, repo, source, report):
     try:
         commands.run(argv, cwd=source, timeout=600)
     except Failure as error:
-        need(error.code == "COMMAND_FAILED" and len(commands.originals) == count + 1,
-             "NODE_REGRESSIONS_REFUSED")
+        if error.code != "COMMAND_FAILED":
+            raise
+        need(len(commands.originals) == count + 1, "NODE_REGRESSIONS_REFUSED")
         original = commands.originals[-1]
         receipt = original.receipt
         need(type(receipt) is dict and receipt["exit_code"] == 1
@@ -752,7 +753,10 @@ class Commands:
                 now = time.monotonic()
                 need(now < end, "COMMAND_TIMEOUT")
                 if now >= next_sample:
-                    sample_storage(self.root)
+                    try:
+                        sample_storage(self.root)
+                    except OSError:
+                        raise Failure("STORAGE_SAMPLE_OS_ERROR") from None
                     next_sample = now + 2
                 time.sleep(0.2)
             return original.finish()

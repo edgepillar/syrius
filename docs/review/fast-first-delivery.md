@@ -712,6 +712,15 @@ calls. The paired P06 collector receives the same refusal change. Fresh
 Dart analysis and execution remain pending.
 [Source623 run](https://github.com/edgepillar/syrius/actions/runs/42839209876).
 
+The Source621 job log confirms the original unpatched Go process was forced
+to exit with complete output. The unpatched control result and the reason
+for the interruption remain unknown. Source625 preserves command monitor
+refusals through that control and gives storage sampling OS errors a
+bounded label. The existing independent reader now includes the last three
+command receipts for interrupted unpatched controls. The focused 89
+in-memory checks pass. A fresh native result remains open.
+[Original Windows job](https://github.com/edgepillar/syrius/actions/runs/42834639050/job/129893514985).
+
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied
 owner, confirmed receipt and exact Project row. The original Project

@@ -556,7 +556,8 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA, *,
         # The validated prefix length is implied by its fixed phase. One label
         # leaves room for all five original exits in the bounded notice.
         result['asset_phase'] = progress['phase'] if progress['status'] == 'OBSERVED' else progress['status']
-    if "COMMAND_TIMEOUT" in errors and not checks["started"]:
+    interrupted_patch_test = patch_summary is not None and patch_summary["phase"] == "unpatched_test"
+    if not checks["started"] and ("COMMAND_TIMEOUT" in errors or interrupted_patch_test):
         result["preparation_commands"] = preparation_command_tail(commands)
     if docker_shutdown is not None:
         result["docker_shutdown"] = docker_shutdown

@@ -534,6 +534,27 @@ class InspectionTests(unittest.TestCase):
         self.assertFalse(result["artifact_reported_success"])
         self.assertFalse(result["runtime_started"])
 
+    def test_interrupted_unpatched_control_keeps_bounded_command_receipts(self):
+        report = self.corrected_manifest()
+        report["checks"]["build"] = False
+        report.update(producer_task_patch=dict(producer_patch.pending(), phase="unpatched_test"),
+                      compiled_node_tree=None, upstream_stop_regressions=None,
+                      commands=self.preparation_timeout_report()["commands"])
+        for code in ("INTERNAL_ERROR", "STORAGE_SAMPLE_OS_ERROR"):
+            with self.subTest(code=code):
+                report["error_codes"] = [code]
+                value = inspect.project(report, "native", "a" * 40, 123,
+                    inspect.UPSTREAM_NODE_SHA, expected_patched=True)
+                tail = value["preparation_commands"]["tail"]
+                self.assertEqual([item["ordinal"] for item in tail], [3, 4, 5])
+                self.assertEqual((tail[-1]["forced"], tail[-1]["exit_code"]), (True, 1))
+                self.assertIsNone(value["producer_task_patch"]["unpatched_exit"])
+                self.assertFalse(value["artifact_reported_success"])
+                self.assertFalse(value["runtime_started"])
+                self.assertNotIn("private", json.dumps(value))
+                value.update(archive_sha256="e" * 64, manifest_sha256="f" * 64)
+                inspect.observation_frames(value)
+
     def test_corrected_panic_notice_keeps_provenance_and_all_failures_in_its_cap(self):
         report = self.corrected_manifest()
         report["checks"]["production"] = True
