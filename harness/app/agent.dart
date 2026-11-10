@@ -1937,6 +1937,8 @@ class HarnessAgent {
       return <String, Object?>{'status': 'accepted'};
     } on CaptureRefused catch (error) {
       throw HarnessError(error.code);
+    } on NativeWindowRefused {
+      throw HarnessError('quiz-native-frame-refused');
     }
   }
 

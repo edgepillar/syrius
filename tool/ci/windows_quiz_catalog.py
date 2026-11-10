@@ -23,8 +23,18 @@ FILES = tuple(f'46-seed-quiz-{theme}.png' for theme in launch.THEMES)
 MAX_ARCHIVE = len(FILES) * launch.MAX_PNG + launch.MAX_MANIFEST + 65536
 STATE_FIELDS = {'correct', 'unlocked', 'questions', 'choices', 'complete',
                 'artwork_seconds', 'native_before', 'native_after'}
-PHASES = ('ready', 'welcome', 'open', 'selection', 'dark', 'light', 'restore',
-          'complete')
+PHASES = ('ready', 'welcome', 'open', 'route', 'selection', 'dark', 'light',
+          'restore', 'complete')
+REFUSALS = frozenset((
+    'quiz-welcome-unavailable', 'quiz-profile-not-empty', 'quiz-owner-unavailable',
+    'quiz-first-choice-unavailable', 'quiz-first-choice-changed',
+    'quiz-frame-owner-changed', 'quiz-native-frame-refused', 'quiz-artwork-tree-limit',
+    'quiz-artwork-owner-unavailable', 'quiz-artwork-frame-unavailable',
+    'quiz-route-changed', 'quiz-fixture-unavailable', 'quiz-paint-unavailable',
+    'quiz-restore-refused', 'quiz-artwork-restore-unproven',
+    'quiz-welcome-restore-unproven', 'quiz-catalog-input-refused',
+    'quiz-remote-refused', 'quiz-remote-error',
+))
 
 
 def quiz_state(value, correct):
@@ -50,11 +60,20 @@ class QuizProcess(launch.LaunchProcess):
 
     def run_launch(self, theme, *, capture, settle):
         self.phase = 'ready'
+        self.refusal = None
         receipt, result = super().run_launch(theme, capture=capture, settle=settle)
-        return dict(receipt, phase=self.phase), result
+        return dict(receipt, phase=self.phase, refusal=self.refusal), result
 
     def _catalog(self, action, *, until=None):
-        return self._rpc(dict(cmd=SCREEN, action=action), until=until)
+        status, body = self._exchange(dict(cmd=SCREEN, action=action), until=until)
+        if status == 200 and body['ok'] is True:
+            return body
+        error = body.get('error')
+        if status == 400 and type(error) is str and error in REFUSALS:
+            self.refusal = error
+        else:
+            self.refusal = 'quiz-remote-error' if status >= 500 else 'quiz-remote-refused'
+        raise startup.Failure('COMMAND_FAILED')
 
     def _accept(self, action):
         need(self._catalog(action) == {'ok': True, 'status': 'accepted'}, 'ENTRY_INVALID')
@@ -106,6 +125,7 @@ class QuizProcess(launch.LaunchProcess):
         original = {key: original[key] for key in theme_keys}
         self.phase = 'open'
         self._accept('open')
+        self.phase = 'route'
         self._status('dark', 0, wait=True)
         self.phase = 'selection'
         self._accept('select-first')

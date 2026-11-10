@@ -33,6 +33,7 @@ final class NativeQuizCatalog {
   EntryWelcomeReceipt? _welcome;
   OnboardingStepRoute<void>? _route;
   RenderView? _view;
+  BuildContext? _fixtureContext;
   ReferenceArtworkFrame? _artwork;
   bool _closed = false;
 
@@ -59,16 +60,21 @@ final class NativeQuizCatalog {
         _empty;
   }
 
-  bool get _routeCurrent => _ownerCurrent &&
-      !_closed &&
-      entryRouteReady(_route!) &&
-      identical(_route!.navigator, _welcome!.route.navigator);
+  bool get _routeCurrent {
+    final OnboardingStepRoute<void>? route = _route;
+    return route != null &&
+        _ownerCurrent &&
+        !_closed &&
+        entryRouteReady(route) &&
+        identical(route.navigator, _welcome!.route.navigator);
+  }
 
   void open() {
     final EntryWelcomeReceipt? welcome = _registry.welcome;
     if (_route != null || welcome == null || !welcome.ready) {
       throw const CaptureRefused('quiz-welcome-unavailable');
     }
+    if (!_empty) throw const CaptureRefused('quiz-profile-not-empty');
     _welcome = welcome;
     _view = _readView();
     final NavigatorState? navigator = welcome.route.navigator;
@@ -155,9 +161,16 @@ final class NativeQuizCatalog {
     }
     if (!_routeCurrent) return <String, Object?>{'status': 'pending'};
     final BuildContext? context = _fixture.currentContext;
-    if (context == null || !identical(ModalRoute.of(context), route)) {
+    if (context == null && _fixtureContext == null) {
+      return <String, Object?>{'status': 'pending'};
+    }
+    if (context == null ||
+        !context.mounted ||
+        (_fixtureContext != null && !identical(context, _fixtureContext)) ||
+        !identical(ModalRoute.of(context), route)) {
       throw const CaptureRefused('quiz-fixture-unavailable');
     }
+    _fixtureContext ??= context;
     if (_quiz.correct == 1) _artwork ??= _sampleArtwork(context);
     final int callback = await _nativeFrame();
     if (!context.mounted ||

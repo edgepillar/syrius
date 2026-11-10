@@ -298,6 +298,31 @@ class StartupInspectionTests(unittest.TestCase):
         self.assertFalse(partial['artifact_reported_success'])
         self.assertFalse(partial['single_process'])
         self.assertEqual(partial['verified_png_count'], 0)
+        refused = dict(failed, phase='route', forced_kill=False,
+                       refusal='quiz-fixture-unavailable', error_codes=['COMMAND_FAILED'])
+        failure = dict(report, attempts=[refused], captures=[], source_stable=False,
+                       success=False, error_codes=['STARTUP_OBSERVATION_REFUSED'])
+        self.assertEqual(read(failure)['refusal'], 'quiz-fixture-unavailable')
+        for attempt in (dict(refused, refusal='unfiltered payload'),
+                        dict(refused, error_codes=[])):
+            with self.assertRaises(inspect.archive.Refused):
+                read(dict(failure, attempts=[attempt]))
+
+    def test_quiz_catalog_retains_only_fixed_remote_refusals(self):
+        catalog = inspect.quiz_catalog
+        probe = object.__new__(catalog.QuizProcess)
+        for code, body, projected in (
+            (400, dict(ok=False, error='quiz-owner-unavailable'), 'quiz-owner-unavailable'),
+            (400, dict(ok=False, error='unfiltered payload'), 'quiz-remote-refused'),
+            (500, dict(ok=False, error='quiz-owner-unavailable'), 'quiz-remote-error'),
+        ):
+            with self.subTest(code=code, projected=projected), mock.patch.object(
+                    probe, '_exchange', return_value=(code, body)) as exchange:
+                with self.assertRaises(inspect.startup.Failure) as outcome:
+                    probe._catalog('open', until=12)
+                self.assertEqual(outcome.exception.code, 'COMMAND_FAILED')
+                self.assertEqual(probe.refusal, projected)
+                exchange.assert_called_once_with(dict(cmd=catalog.SCREEN, action='open'), until=12)
 
     def test_lock_catalog_waits_for_rest_and_refuses_a_changed_profile(self):
         catalog = inspect.lock_catalog

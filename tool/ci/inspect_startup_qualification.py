@@ -22,6 +22,7 @@ JOB_NAME = 'Observe original Windows Release startup'
 # Retained launch archives created before the handoff option use this producer.
 ORIGINAL_LAUNCH_PRODUCER_SHA = 'dbf165b477df62dae61258224a96220e8b5d4575b4673010d9491006c486bce9'
 HANDOFF_LAUNCH_PRODUCER_SHA = 'ffb11b8748080d0973eb08f168f1c926bdf13622e9f9717fe084f2b09571d9fc'
+FIRST_QUIZ_PRODUCER_SHA = '059f36ee7a97d0242355763211af2241aa8ff3bf38916ac634791a4ca8ff120c'
 
 
 def startup_archive(raw, expected_sha, expected_size, head, tree, run_id, *,
@@ -207,7 +208,9 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
         if lock or quiz:
             attempt_keys.add('phase')
         for row, (theme, role) in zip(attempts, roles):
-            archive.need(type(row) is dict and set(row) == attempt_keys
+            archive.need(type(row) is dict)
+            fields = attempt_keys | {'refusal'} if quiz and 'refusal' in row else attempt_keys
+            archive.need(set(row) == fields
                 and row['theme'] == theme and row['role'] == role
                 and all(type(row[k]) is bool for k in attempt_flags)
                 and type(row['checks']) is dict and set(row['checks']) == set(launch.ATTEMPT_CHECKS)
@@ -221,8 +224,13 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
                     and ((role == 'prepare') is (row['phase'] == 'prepare'))
                     and (not row['action_complete'] or row['phase'] in ('prepare', 'complete')))
             if quiz:
+                refusal = row.get('refusal')
                 archive.need(row['phase'] in quiz_catalog.PHASES
-                    and row['action_complete'] is (row['phase'] == 'complete'))
+                    and row['action_complete'] is (row['phase'] == 'complete')
+                    and (refusal is None or (type(refusal) is str
+                         and refusal in quiz_catalog.REFUSALS
+                         and 'COMMAND_FAILED' in row['error_codes']
+                         and not row['action_complete'])))
         archive.need(all(launch.attempt_passed(row) for row in attempts[:-1]))
         for index, (row, name) in enumerate(zip(captures, files)):
             theme, phase = divmod(index, per_theme)
@@ -259,6 +267,8 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
     if quiz:
         summary['single_process'] = len(attempts) == 1 and launch.attempt_passed(attempts[0])
         summary['states'] = [{key: row[key] for key in sorted(frame_fields)} for row in captures]
+        if attempts and attempts[0].get('refusal') is not None:
+            summary['refusal'] = attempts[0]['refusal']
     elif lock:
         summary['frames'] = 56
         summary['states'] = [{key: row[key] for key in sorted(frame_fields)} for row in captures]
@@ -300,6 +310,8 @@ def inspect_launch_run(client, *, head, tree, run_id, job, settle=False, lock=Fa
             current = Path(__file__).with_name(Path(name).name).read_bytes()
             prior = () if lock or quiz else ((HANDOFF_LAUNCH_PRODUCER_SHA,) if settle else
                                       (ORIGINAL_LAUNCH_PRODUCER_SHA, HANDOFF_LAUNCH_PRODUCER_SHA))
+            if quiz and name == 'tool/ci/windows_quiz_catalog.py':
+                prior = (FIRST_QUIZ_PRODUCER_SHA,)
             archive.need(body == current or archive.sha(body) in prior)
         else:
             pins[key] = archive.sha(body)
