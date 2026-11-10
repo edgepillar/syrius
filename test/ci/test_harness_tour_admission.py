@@ -97,7 +97,8 @@ class HarnessAdmissionTests(unittest.TestCase):
     def test_stale_short_or_extra_suite_counts_are_refused(self):
         for passed in (1338, 1349, 1351, 1352, 1353, 1350, 1357, 1358, 1359,
                        1360, 1361, 1362, 1363, 1364, 1365, 1366, 1367, 1368,
-                       1369, 1370, 1371, 1372, STANDARD_CASES - 1, STANDARD_CASES + 1):
+                       1369, 1370, 1371, 1372, 1373, 1374, 1375, 1376,
+                       STANDARD_CASES - 1, STANDARD_CASES + 1):
             code, report, _, _ = self.run_case(passed=passed)
             self.assertEqual(code, 1)
             self.assertFalse(report['success'])
@@ -152,7 +153,8 @@ class HarnessAdmissionTests(unittest.TestCase):
             'test/launch_film/launch_asset_test.dart'), 1)
         for passed in (1340, 1350, 1351, 1353, 1354, 1352, 1358, 1359, 1360,
                        1361, 1362, 1363, 1364, 1365, 1366, 1367, 1368, 1369,
-                       1370, 1371, 1372, 1373, 1374, ASSET_CASES - 1, ASSET_CASES + 1):
+                       1370, 1371, 1372, 1373, 1374, 1375, 1376, 1377, 1378,
+                       ASSET_CASES - 1, ASSET_CASES + 1):
             code, report, _, _ = self.run_case(
                 passed=passed, asset_fidelity=True)
             self.assertEqual(code, 1)

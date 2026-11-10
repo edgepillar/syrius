@@ -468,6 +468,13 @@ lab startup and any captures. Source603 names the field `addressIndex`
 and updates all original callers. Fresh Windows evidence and the full
 registration completion pair remain open. [Original Windows run](https://github.com/edgepillar/syrius/actions/runs/42772167041).
 
+Source603 clears analysis and completes both Dart groups with 654 and 724
+passing cases. Both original commands exit normally with complete streams
+and no failed or skipped cases. The aggregate gate still expects 1,374, so
+the run stops before lab startup and produces no images. Source604 updates
+the exact gate to 1,378 and tests refusal of the preceding totals. Fresh
+Windows lab evidence remains open. [Original Windows run](https://github.com/edgepillar/syrius/actions/runs/42773245134).
+
 The optional `--no-diff-images` comparison preserves scores, input hashes
 and review state. In-memory controls with 94 synthetic PNG pairs encode
 94 difference images in the standard mode and zero in the compact mode.
