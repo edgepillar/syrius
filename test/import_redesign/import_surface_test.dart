@@ -1,6 +1,5 @@
 import 'dart:ui' as ui;
 
-import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -361,19 +360,41 @@ void main() {
           <Color>[tokens.card2],
         );
         expect(browses, 0);
-        final Finder dashed = find.descendant(
-          of: zone,
-          matching: find.byType(DottedBorder),
-        );
+        final Finder border = find.byKey(const Key('import_drop_border'));
         void expectStroke(double width) {
-          expect(
-            find.descendant(of: dashed, matching: find.byType(CustomPaint)),
-            paints..path(
-              color: tokens.faint,
-              strokeWidth: width,
-              style: PaintingStyle.stroke,
-            ),
-          );
+          final CustomPaint paint = tester.widget<CustomPaint>(border);
+          final TestRecordingCanvas canvas = TestRecordingCanvas();
+          paint.foregroundPainter!.paint(canvas, const Size(562, 132));
+          final Invocation clip = canvas.invocations
+              .singleWhere(
+                (RecordedInvocation call) =>
+                    call.invocation.memberName == #clipPath,
+              )
+              .invocation;
+          final Path ring = clip.positionalArguments.single as Path;
+          expect(ring.contains(Offset(24, width / 2)), isTrue);
+          expect(ring.contains(Offset(24, width + 0.5)), isFalse);
+
+          final Invocation stroke = canvas.invocations
+              .singleWhere(
+                (RecordedInvocation call) =>
+                    call.invocation.memberName == #drawPath,
+              )
+              .invocation;
+          final Path dashes = stroke.positionalArguments[0] as Path;
+          final Paint ink = stroke.positionalArguments[1] as Paint;
+          expect(ink.color, tokens.faint);
+          expect(ink.style, PaintingStyle.stroke);
+          final List<ui.PathMetric> first = dashes
+              .computeMetrics()
+              .take(2)
+              .toList();
+          expect(first[0].length, closeTo(3, 0.001));
+          final Offset start = first[0].getTangentForOffset(0)!.position;
+          final Offset next = first[1].getTangentForOffset(0)!.position;
+          expect(start, const Offset(12, 0));
+          expect(next.dy, 0);
+          expect(next.dx - start.dx, closeTo(1366 / 273, 0.001));
         }
 
         expectStroke(1);

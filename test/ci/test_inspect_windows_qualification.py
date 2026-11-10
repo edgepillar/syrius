@@ -249,6 +249,9 @@ class WindowsQualificationTests(unittest.TestCase):
                 for band in summary['import_connector_coverage'].values():
                     self.assertEqual(band, dict(status='observed' if opaque else 'nonopaque',
                         counts=expected, full_width_single_row=single, reference_row=aligned))
+                for border in summary['import_drop_border_coverage'].values():
+                    self.assertEqual(border['status'], 'observed' if opaque else 'nonopaque')
+                    self.assertFalse(border['model_within_tolerance'])
 
         status, calls, output = self._read_original(
             baseline_conclusion='skipped', entry_data=pixels(280, opaque=True))
@@ -258,12 +261,15 @@ class WindowsQualificationTests(unittest.TestCase):
                    if line.startswith('::notice')]
         self.assertEqual([value['scope'] for value in notices], [
             'retained_windows_baseline_not_selected', 'retained_windows_entry_observation',
-            'retained_import_connector_coverage'])
-        capture, band = notices[1:]
+            'retained_import_connector_coverage', 'retained_import_drop_border_coverage'])
+        capture, band, drop = notices[1:]
         for field in ('archive_sha256', 'manifest_sha256', 'source_head', 'source_tree',
                       'source_run_id', 'original_job_id'):
             self.assertEqual(band[field], capture[field])
+            self.assertEqual(drop[field], capture[field])
         self.assertEqual(band['visual_matches'], 0)
+        self.assertEqual(drop['visual_matches'], 0)
+        self.assertTrue(all(not edge['model_within_tolerance'] for edge in drop['edges'].values()))
         self.assertTrue(all(result['reference_row'] for result in band['bands'].values()))
 
     def test_partial_entry_and_nonzero_exit_are_not_completed_by_inspection(self):

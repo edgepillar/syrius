@@ -1,4 +1,6 @@
-import 'package:dotted_border/dotted_border.dart';
+import 'dart:math' as math;
+import 'dart:ui' show PathMetric;
+
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:material_ui/material_ui.dart';
@@ -13,8 +15,8 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/pri
 const String _fileSymbol =
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" '
     'fill="none" stroke="currentColor" stroke-width="1.8" '
-    'stroke-linecap="round" stroke-linejoin="round">'
-    '<path d="M6 2h8l6 6v14H6zM14 2v6h6"/></svg>';
+    'stroke-linecap="round" stroke-linejoin="round"><path '
+    'd="M6 2h8l6 6v14H6zM14 2v6h6"/></svg>';
 
 /// Only owner-supplied draft data and callbacks enter this import view.
 class ImportSurface extends StatelessWidget {
@@ -222,21 +224,16 @@ class ImportSurface extends StatelessWidget {
       hoverColor: Colors.transparent,
       onTap: onBrowse,
       mouseCursor: SystemMouseCursors.click,
-      child: DottedBorder(
-        options: RoundedRectDottedBorderOptions(
+      child: CustomPaint(
+        key: const Key('import_drop_border'),
+        foregroundPainter: _ImportDropBorderPainter(
           color: fileRefused || pickerFailed ? tokens.error : tokens.faint,
-          strokeWidth: lineWidth,
-          dashPattern: tokens.importDropDashPattern,
-          // The centered stroke overflowed the CSS box and omitted its layout
-          // space. Keep its thickness inside the box and reserve that space.
-          radius: Radius.circular(
-            tokens.dialogRadius - lineWidth / 2,
-          ),
-          borderPadding: EdgeInsets.all(lineWidth / 2),
-          padding: EdgeInsets.all(lineWidth),
+          width: lineWidth,
+          radius: tokens.dialogRadius,
+          pattern: tokens.importDropDashPattern,
         ),
         child: Padding(
-          padding: EdgeInsets.all(tokens.importDropPadding),
+          padding: EdgeInsets.all(tokens.importDropPadding + lineWidth),
           child: SizedBox(
             width: double.infinity,
             child: Column(
@@ -283,6 +280,80 @@ class ImportSurface extends StatelessWidget {
       ),
     ),
   );
+}
+
+class _ImportDropBorderPainter extends CustomPainter {
+  const _ImportDropBorderPainter({
+    required this.color,
+    required this.width,
+    required this.radius,
+    required this.pattern,
+  });
+
+  final Color color;
+  final double width;
+  final double radius;
+  final List<double> pattern;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.isEmpty) return;
+    final double corner = math.min(radius, size.shortestSide / 2);
+    final Radius curve = Radius.circular(corner);
+    final double right = size.width;
+    final double bottom = size.height;
+    // Begin at the upper-left end of the top edge, as in the reference.
+    final Path outline = Path()
+      ..moveTo(corner, 0)
+      ..lineTo(right - corner, 0)
+      ..arcToPoint(Offset(right, corner), radius: curve)
+      ..lineTo(right, bottom - corner)
+      ..arcToPoint(Offset(right - corner, bottom), radius: curve)
+      ..lineTo(corner, bottom)
+      ..arcToPoint(Offset(0, bottom - corner), radius: curve)
+      ..lineTo(0, corner)
+      ..arcToPoint(Offset(corner, 0), radius: curve)
+      ..close();
+    final PathMetric metric = outline.computeMetrics().single;
+    final double dash = pattern[0];
+    final double nominalInterval = dash + pattern[1];
+    final int perimeter = metric.length.floor();
+    final int count = (perimeter / nominalInterval).round();
+    // Spread the fractional gap around the closed border.
+    final double interval = count > 0 ? perimeter / count : nominalInterval;
+    final Path dashes = Path();
+    for (double start = 0; start < metric.length; start += interval) {
+      dashes.addPath(
+        metric.extractPath(start, math.min(start + dash, metric.length)),
+        Offset.zero,
+      );
+    }
+    final RRect outside = RRect.fromRectAndRadius(Offset.zero & size, curve);
+    final RRect inside = outside.deflate(width);
+    final Path ring = Path()
+      ..fillType = PathFillType.evenOdd
+      ..addRRect(outside);
+    if (!inside.isEmpty) ring.addRRect(inside);
+    canvas
+      ..save()
+      ..clipPath(ring)
+      ..drawPath(
+        dashes,
+        Paint()
+          ..color = color
+          ..style = PaintingStyle.stroke
+          // The clip sets the visible thickness and covers the inner edge.
+          ..strokeWidth = width * 2.2,
+      )
+      ..restore();
+  }
+
+  @override
+  bool shouldRepaint(_ImportDropBorderPainter oldDelegate) =>
+      oldDelegate.color != color ||
+      oldDelegate.width != width ||
+      oldDelegate.radius != radius ||
+      oldDelegate.pattern != pattern;
 }
 
 /// Password entry is presentation only; the owner validates and publishes it.

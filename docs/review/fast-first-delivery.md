@@ -855,6 +855,17 @@ whole-image reviews remain open.
 [Original capture](https://github.com/edgepillar/syrius/actions/runs/42893075259)
 and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42894477057).
 
+The Import drop border now starts at the upper-left tangent of the
+rounded outline. The painter distributes the remaining gap around the
+closed path and clips the stroke to the existing border width.
+The reader measures four straight edges from the same image decode as
+the connector. The model's mean coverage error is below 1.4 percent
+on each reference edge and above 43 percent on each retained Source620
+edge. The two changed Dart files pass selected local analysis and all
+86 selected reader controls pass. The updated widget regression and
+fresh Windows drop-border capture remain open.
+[Import reference markup](../../mockups/redesign/src/70-entry.html#L100).
+
 The paired timing overlay now retains a fixed reason when the original
 frame window refuses. The reasons distinguish lock checks, frame order,
 frame bounds, sample limits and delivery. The reader verifies the finite
@@ -877,8 +888,17 @@ and finished flag from the registered original film owner. The lock
 diagnostic uses the existing read-only wallet recipe request. The
 original P06 source and collector retain their recorded identities, and
 the revised observation overlay has its own tree pin. All 86 selected
-local controls pass. The next paired Windows run includes the updated
-Import widget regression and the original P06 launch comparison.
+local controls pass.
+
+Source638 passes selected analysis, 1,389 Dart cases including the
+Import connector regression, and 1,133 Python cases with eighteen
+skips. The current launch records 179 frames. P06 reaches the lock
+field and its original frame request returns HTTP 400 with the fixed
+frame limit refusal. All five actors exit normally. The independent
+reader verifies the 13,572-byte archive and preserves the failed
+original outcome. The complete paired comparison remains open.
+[Producer](https://github.com/edgepillar/syrius/actions/runs/42894798539)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42897441557).
 
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied

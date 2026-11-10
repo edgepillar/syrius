@@ -236,6 +236,11 @@ IMPORT_CONNECTOR_X = (482, 590)
 IMPORT_CONNECTOR_Y = (278, 285)
 IMPORT_CONNECTOR_REFERENCE_ROW = 280
 IMPORT_CONNECTOR_CONTRAST = 5
+IMPORT_DROP_X = (359, 921)
+IMPORT_DROP_Y = (312, 444)
+IMPORT_DROP_INTERVAL = 1366 / 273
+IMPORT_DROP_QUARTER = 18.72809091419975
+IMPORT_DROP_TOLERANCE_PPM = 25000
 
 
 def _paeth(left, up, corner):
@@ -246,13 +251,11 @@ def _paeth(left, up, corner):
     return up if b <= c else corner
 
 
-def import_connector_coverage(encoded):
-    """Measure a fixed part of the first Import step connector."""
+def _png_crop(encoded, columns, lines):
     _, scanlines, stride = entry.decoded_png(encoded)
     channels = stride // 1280
-    x0, x1 = IMPORT_CONNECTOR_X
-    y0, y1 = IMPORT_CONNECTOR_Y
-    width = x1 - x0
+    x0, x1 = columns
+    y0, y1 = lines
     # PNG filters only depend on earlier columns and the previous scanline.
     prefix = x1 * channels
     previous = bytearray(prefix)
@@ -278,7 +281,17 @@ def import_connector_coverage(encoded):
         if y >= y0:
             rows.append(row[x0 * channels:prefix])
         previous = row
-    if channels == 4 and any(alpha != 255 for row in rows for alpha in row[3::4]):
+    return rows, channels
+
+
+def _opaque(rows, channels):
+    return channels == 3 or all(alpha == 255 for row in rows for alpha in row[3::4])
+
+
+def _connector_coverage(rows, channels):
+    width = IMPORT_CONNECTOR_X[1] - IMPORT_CONNECTOR_X[0]
+    y0, y1 = IMPORT_CONNECTOR_Y
+    if not _opaque(rows, channels):
         return dict(status='nonopaque', counts=None, full_width_single_row=False, reference_row=False)
     background = rows[0]
     counts = [sum(any(abs(row[i + channel] - background[i + channel]) >= IMPORT_CONNECTOR_CONTRAST
@@ -288,6 +301,61 @@ def import_connector_coverage(encoded):
         full_width_single_row=counts.count(width) == 1 and counts.count(0) == len(rows) - 1,
         reference_row=counts == [width if y == IMPORT_CONNECTOR_REFERENCE_ROW else 0
                                  for y in range(y0, y1)])
+
+
+def import_connector_coverage(encoded):
+    """Measure a fixed part of the first Import step connector."""
+    return _connector_coverage(*_png_crop(encoded, IMPORT_CONNECTOR_X, IMPORT_CONNECTOR_Y))
+
+
+def _drop_border_coverage(rows, channels, theme):
+    if not _opaque(rows, channels):
+        return dict(status='nonopaque', mean_error_ppm=None, model_within_tolerance=False)
+    # The model follows the pinned reference's 562 by 132 rounded border,
+    # beginning at the upper-left tangent and moving clockwise.
+    left, right = IMPORT_DROP_X
+    top, bottom = IMPORT_DROP_Y
+    radius = 12
+    across, down = right - left - 2 * radius, bottom - top - 2 * radius
+    quarter = IMPORT_DROP_QUARTER
+    columns, lines = range(386, 894), range(326, 422)
+    edges = (
+        ('top', True, top, 320, columns, columns.start - left - radius, 1),
+        ('right', False, right - 1, 912, lines, across + quarter + lines.start - top - radius, 1),
+        ('bottom', True, bottom - 1, 435, columns,
+            across + down + 2 * quarter + right - radius - (columns.start + 1), -1),
+        ('left', False, left, 368, lines,
+            2 * across + down + 3 * quarter + bottom - radius - (lines.start + 1), -1),
+    )
+    peak = {'dark': 70, 'light': 122}[theme]
+
+    def pixel(x, y):
+        start = (x - IMPORT_DROP_X[0]) * channels
+        return rows[y - IMPORT_CONNECTOR_Y[0]][start:start + 3]
+
+    errors = {}
+    for name, horizontal, border, fill, positions, start, direction in edges:
+        loss = 0.0
+        for index, position in enumerate(positions):
+            edge, interior = ((pixel(position, border), pixel(position, fill))
+                              if horizontal else (pixel(border, position), pixel(fill, position)))
+            coverage = max(abs(a - b) for a, b in zip(edge, interior)) / peak
+            phase = (start + index * direction) % IMPORT_DROP_INTERVAL
+            expected = max(0, min(1, 3 - phase)) + max(0, phase + 1 - IMPORT_DROP_INTERVAL)
+            loss += abs(coverage - expected)
+        errors[name] = round(loss * 1000000 / len(positions))
+    return dict(status='observed', mean_error_ppm=errors,
+        model_within_tolerance=max(errors.values()) <= IMPORT_DROP_TOLERANCE_PPM)
+
+
+def import_image_coverage(encoded, theme):
+    """Read the two fixed observations from one decoded entry image."""
+    x0, x1 = IMPORT_DROP_X
+    y0 = IMPORT_CONNECTOR_Y[0]
+    rows, channels = _png_crop(encoded, (x0, x1), (y0, IMPORT_DROP_Y[1]))
+    start, stop = ((value - x0) * channels for value in IMPORT_CONNECTOR_X)
+    connector = [row[start:stop] for row in rows[:IMPORT_CONNECTOR_Y[1] - y0]]
+    return _connector_coverage(connector, channels), _drop_border_coverage(rows, channels, theme)
 
 
 def entry_archive(raw, expected_sha, expected_size, head, tree, run_id):
@@ -307,18 +375,19 @@ def entry_archive(raw, expected_sha, expected_size, head, tree, run_id):
         manifest = zipped.read('manifest.json')
         summary = entry_projection(json.loads(manifest), head, tree, run_id)
         archive.need(set(names) == {'manifest.json', *(value['file'] for value in summary['captures'])})
-        connector = {}
+        connector, drop = {}, {}
         for value in summary['captures']:
             name = value['file']
             data = zipped.read(name)
             archive.need(len(data) == value['bytes'] and archive.sha(data) == value['sha256'])
             encoded = base64.b64encode(data).decode('ascii')
             if name in ('import-dark.png', 'import-light.png'):
-                connector[name] = import_connector_coverage(encoded)
+                theme = name.removeprefix('import-').removesuffix('.png')
+                connector[name], drop[name] = import_image_coverage(encoded, theme)
             else:
                 entry.png_bytes(encoded)
     summary.update(archive_sha256=archive.sha(raw), manifest_sha256=archive.sha(manifest),
-                   import_connector_coverage=connector)
+                   import_connector_coverage=connector, import_drop_border_coverage=drop)
     return summary
 
 
@@ -468,15 +537,22 @@ def main():
         summary.update(original_job_id=job['id'], original_job_conclusion=job['conclusion'],
                        producer_sources_equal=True)
         connector = summary.pop('import_connector_coverage')
+        drop = summary.pop('import_drop_border_coverage')
         emit('Hosted entry inspection', summary)
+        binding = dict(source_head=head, source_tree=tree, source_run_id=run_id,
+            source_attempt=1, original_job_id=job['id'], original_job_conclusion=job['conclusion'],
+            archive_sha256=summary['archive_sha256'], manifest_sha256=summary['manifest_sha256'],
+            visual_matches=0)
         if any(band['status'] == 'observed' for band in connector.values()):
             emit('Hosted Import connector coverage', dict(
-                scope='retained_import_connector_coverage', source_head=head, source_tree=tree,
-                source_run_id=run_id, source_attempt=1, original_job_id=job['id'],
-                original_job_conclusion=job['conclusion'], archive_sha256=summary['archive_sha256'],
-                manifest_sha256=summary['manifest_sha256'], x_range=list(IMPORT_CONNECTOR_X),
-                y_range=list(IMPORT_CONNECTOR_Y), minimum_channel_contrast=IMPORT_CONNECTOR_CONTRAST,
-                bands=connector, visual_matches=0))
+                scope='retained_import_connector_coverage', **binding,
+                x_range=list(IMPORT_CONNECTOR_X), y_range=list(IMPORT_CONNECTOR_Y),
+                minimum_channel_contrast=IMPORT_CONNECTOR_CONTRAST, bands=connector))
+        if any(edge['status'] == 'observed' for edge in drop.values()):
+            emit('Hosted Import drop border coverage', dict(
+                scope='retained_import_drop_border_coverage', **binding,
+                reference_bounds=[IMPORT_DROP_X[0], IMPORT_DROP_Y[0], IMPORT_DROP_X[1], IMPORT_DROP_Y[1]],
+                tolerance_ppm=IMPORT_DROP_TOLERANCE_PPM, edges=drop))
         return 0
     except (Exception, KeyboardInterrupt):
         encoded = json.dumps(dict(scope='retained_windows_qualification_observation',
