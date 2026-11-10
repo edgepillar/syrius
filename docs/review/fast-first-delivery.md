@@ -646,9 +646,18 @@ and a covered gate. The focused run completes 1,107 Python cases with eighteen
 skips and stops at one import combinator ordering finding.
 [Original focused run](https://github.com/edgepillar/syrius/actions/runs/42821590236).
 
-Source618 orders the readonly command names in the inspector import. Fresh
-selected analysis and Dart engine evidence remain open alongside the running
-wallet, shortcut and Go To checks.
+Source618 orders the readonly command names in the inspector import. Selected
+analysis reports zero findings. The two complete Dart groups pass 1,381 cases
+with zero failures or skips. The 1,107 Python cases complete with eighteen
+skips. Both asset commands pass. The original Source617 failure remains
+separate. [Focused run](https://github.com/edgepillar/syrius/actions/runs/42822696290).
+
+Source619 prepares an opt-in pilot for eight Settings seam controls. It uses
+the original isolated wallet after the Settings captures and viewport restore,
+with the same storage sampler and ordinary shutdown. A refusal is retained
+while the original exit is attempted. The pilot adds no capture or separate
+wallet build. Two in-memory controls pass. The Windows results, shortcuts and
+Go To checks remain open.
 
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied

@@ -30,7 +30,7 @@ from .windows_debug_process import IMAGE_NAMES
 from .hosted_chain321 import (EARN_INSPECTION_SCHEMA, HOME_BELL_INSPECTION_SCHEMA,
     HOME_ZAP_PREVIEW_INSPECTION_SCHEMA,
     READONLY_CATALOG_SCHEMAS, SEND_CONFIRM_INSPECTION_SCHEMA, SENTINEL_INSPECTION_SCHEMA,
-    SEND_WARNING_INSPECTION_SCHEMA, SWAP_START_INSPECTION_SCHEMA,
+    SEND_WARNING_INSPECTION_SCHEMA, SETTINGS_SEAMS_FAMILY, SWAP_START_INSPECTION_SCHEMA,
     WALLET_READY_INSPECTION_SCHEMA, readonly_catalog_family)
 
 
@@ -844,6 +844,70 @@ def public_manifest(value):
     return value
 
 
+SETTINGS_SEAM_PANELS = (
+    ('node', 'node_settings_page', (
+        ('sporks', 'node_settings_sporks_gate'),
+    )),
+    ('security', 'security_settings_page', (
+        ('autoLockOnClose', 'security_lock_close'),
+        ('biometricUnlock', 'security_settings_biometric_gate'),
+        ('wrongPasswordLimitOff', 'security_limit_off'),
+        ('passwordChangeMigration', 'security_settings_password_gate'),
+    )),
+    ('wallet', 'wallet_settings_page', (
+        ('operatorModes', 'wallet_settings_modes_gate'),
+        ('walletPicker', 'wallet_settings_wallets_gate'),
+    )),
+    ('about', 'about_page', (
+        ('walletUpdateNotice', 'about_update_gate'),
+    )),
+)
+
+
+def observe_settings_seam_pointers(send, observed):
+    """Use the bound original wallet after its settings captures are complete."""
+    def address_on(tab):
+        state = send(dict(cmd='state'))
+        address = state.get('address')
+        need(state.get('tab') == tab and state.get('locale') == 'en'
+             and state.get('direction') == 'ltr'
+             and state.get('node') == 'ws://127.0.0.1:45998'
+             and state.get('chainId') == state.get('signingChainId') == 321
+             and state.get('savedSigningChainId') == 321
+             and state.get('walletUnlocked') is True
+             and state.get('walletInitCompleted') is True
+             and state.get('embeddedNode') is False
+             and state.get('nodeTransitionPending') is False
+             and type(address) is str and bool(address), 'ENTRY_REFUSED')
+        return address
+
+    original_address = address_on('dashboard')
+    send(dict(cmd='tap', tab='settings'))
+    send(dict(cmd='wait', key='settings_node', timeoutMs=5000))
+    need(address_on('settings') == original_address, 'ENTRY_REFUSED')
+    for panel, marker, targets in SETTINGS_SEAM_PANELS:
+        send(dict(cmd='tap', key='settings_' + panel))
+        send(dict(cmd='wait', key=marker, timeoutMs=30000))
+        if panel == 'node':
+            send(dict(cmd='scroll', dy=-1000000))
+            send(dict(cmd='scroll', key='node_settings_peers_toggle', dy=300))
+        for seam, key in targets:
+            result = send(dict(cmd='readonly-seam-pointer', seam=seam, key=key))
+            need(result.get('scope') == 'readonly_native_seam_pointer_observation'
+                 and result.get('seam') == seam
+                 and result.get('pointerDispatched') is True
+                 and result.get('absorptionObserved') is True,
+                 'ENTRY_REFUSED')
+            need(address_on('settings') == original_address, 'ENTRY_REFUSED')
+            observed.append(dict(panel=panel, seam=seam))
+    send(dict(cmd='tap', tab='dashboard'))
+    send(dict(cmd='wait', key='home_hero', timeoutMs=5000))
+    need(address_on('dashboard') == original_address, 'ENTRY_REFUSED')
+    logs = send(dict(cmd='logs', since=0, limit=500,
+                     levels=['SEVERE', 'SHOUT', 'FLUTTER']))
+    need(logs.get('logs') == [], 'ENTRY_REFUSED')
+
+
 def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_window=None):
     report = dict(schema=4, scope='owned_chain321_wallet_inspection', success=False,
         inspection_qualified=False, wallet_qualified=False, seed_admitted=False, visual_matches=0,
@@ -861,6 +925,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
     close_attempted = False
     warning_close_grace = False
     catalog_receipt = viewport_receipt = None
+    settings_seam_pointers = settings_seam_failure = None
     family = catalog_slot = 'details'
     details_schema = 1
     catalog_only = False
@@ -941,27 +1006,31 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
                  'LAB_REFUSED')
             report['lab_revalidations'] += 1
 
+        def sample(now):
+            nonlocal next_sample
+            if now >= next_sample:
+                logical = shared.sample_workspace((home, app, build, profile),
+                    expected_profile=profile_identity)
+                logical += sample_capture_outputs(
+                    repo, family=family, catalog_only=catalog_only)
+                need(logical <= shared.WORK_CAP, 'STORAGE_REFUSED')
+                free = shutil.disk_usage(repo).free
+                storage = report['storage']
+                storage['samples'] += 1
+                storage['peak_logical_bytes'] = max(storage['peak_logical_bytes'], logical)
+                storage['minimum_free_bytes'] = min(storage['minimum_free_bytes'], free)
+                need(free >= shared.FIXTURE_FLOOR, 'STORAGE_REFUSED')
+                next_sample = now + 5
+
         def wait(marker, *, seconds=None):
-            nonlocal next_sample, ready, catalog_receipt, viewport_receipt
+            nonlocal ready, catalog_receipt, viewport_receipt
             nonlocal warning_close_grace
             limit = deadline if seconds is None else min(deadline, time.monotonic() + seconds)
             while True:
                 runtime.healthy()
                 now = time.monotonic()
                 need(now < limit, 'TOTAL_DEADLINE')
-                if now >= next_sample:
-                    logical = shared.sample_workspace((home, app, build, profile),
-                        expected_profile=profile_identity)
-                    logical += sample_capture_outputs(
-                        repo, family=family, catalog_only=catalog_only)
-                    need(logical <= shared.WORK_CAP, 'STORAGE_REFUSED')
-                    free = shutil.disk_usage(repo).free
-                    storage = report['storage']
-                    storage['samples'] += 1
-                    storage['peak_logical_bytes'] = max(storage['peak_logical_bytes'], logical)
-                    storage['minimum_free_bytes'] = min(storage['minimum_free_bytes'], free)
-                    need(free >= shared.FIXTURE_FLOOR, 'STORAGE_REFUSED')
-                    next_sample = now + 5
+                sample(now)
                 raw = lines.take(.1)
                 if raw is None:
                     need(original.poll() is None or not lines.complete, 'ENTRY_FAILED')
@@ -1155,6 +1224,25 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
         else:
             report['viewport'] = viewport.collect(repo, viewport_receipt, source, tree, parent,
                 read_original=read_original)
+        if parent.get('SYRIUS_READONLY_CATALOG_FAMILY') == SETTINGS_SEAMS_FAMILY:
+            need(family == 'settings', 'ENTRY_REFUSED')
+            settings_seam_pointers = []
+            seam_limit = min(deadline, time.monotonic() + 90)
+
+            def exchange_seam(command):
+                runtime.healthy()
+                need(original.poll() is None, 'ENTRY_FAILED')
+                sample(time.monotonic())
+                timeout = min(35, seam_limit - time.monotonic())
+                need(timeout > 0, 'ENTRY_REFUSED')
+                response = transport.exchange(command, token, timeout)
+                need(response.status == 200, 'ENTRY_REFUSED')
+                return readonly_reply(json.loads(response.body), pid, wallet=True)
+
+            try:
+                observe_settings_seam_pointers(exchange_seam, settings_seam_pointers)
+            except Exception as error:
+                settings_seam_failure = inspection_failure_code(error, report['phase'])
         lab_current()
         report['phase'] = 'ordinary_close'
         close_attempted = True
@@ -1182,6 +1270,8 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
         need(debug.helper_cleanup_complete(report['auxiliary_cleanup']), 'HELPER_CLOSE_UNCONFIRMED')
         report['checks']['auxiliary_cleanup'] = True
         report['phase'] = 'complete'
+        if settings_seam_failure is not None:
+            report['errors'].append(settings_seam_failure)
     except (Exception, KeyboardInterrupt) as error:
         report['errors'].append(inspection_failure_code(error, report['phase']))
     finally:
@@ -1278,6 +1368,20 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
         print(public)
         if len(public.encode()) <= 3800:
             print('::notice title=Windows readonly inspection outcome::' + public)
+        if settings_seam_pointers is not None:
+            seam_summary = json.dumps(dict(schema=1,
+                scope='readonly_native_settings_seam_pointers',
+                source_sha=source, source_tree=tree, run_id=parent['GITHUB_RUN_ID'],
+                run_attempt=parent['GITHUB_RUN_ATTEMPT'],
+                requested=sum(len(targets) for _, _, targets in SETTINGS_SEAM_PANELS),
+                observed=settings_seam_pointers,
+                probe_failure=settings_seam_failure,
+                inspection_completed=report['success'],
+                application_exit=report.get('application_exit'),
+                entry_exit=report.get('entry_exit')),
+                sort_keys=True, separators=(',', ':'))
+            need(len(seam_summary.encode('ascii')) <= 3800, 'OUTPUT_REFUSED')
+            print('::notice title=Windows settings seam pointers::' + seam_summary)
     return report
 
 

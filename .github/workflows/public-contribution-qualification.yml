@@ -49,6 +49,7 @@ on:
           - home-bell
           - home-zap-preview
           - settings
+          - settings-seams
           - navigation
           - details
           - token-draft

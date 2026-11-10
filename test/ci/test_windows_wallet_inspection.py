@@ -224,6 +224,7 @@ class InspectionTests(unittest.TestCase):
             SYRIUS_NATIVE_STACK_DIAGNOSTIC='true')
         self.assertEqual(lab.readonly_catalog_family(parent), 'details')
         for family, schema in (('home', 1), ('home-bell', 8), ('settings', 2),
+                               ('settings-seams', 2),
                                ('navigation', 3), ('details', 4),
                                ('token-draft', 4), ('send-confirm', 5),
                                ('earn', 6), ('sentinel-fixture', 7),
@@ -246,22 +247,24 @@ class InspectionTests(unittest.TestCase):
         self.assertIn('default: details', choice)
         self.assertEqual([line.strip()[2:] for line in choice.splitlines()
             if line.strip().startswith('- ')],
-            ['home', 'home-bell', 'home-zap-preview', 'settings', 'navigation', 'details', 'token-draft',
+            ['home', 'home-bell', 'home-zap-preview', 'settings', 'settings-seams',
+             'navigation', 'details', 'token-draft',
              'send-confirm', 'send-warn', 'swap-start', 'wallet-ready', 'earn',
              'sentinel-fixture', 'launch', 'launch-settle',
              'lock-catalog', 'quiz-catalog', 'seeded-states',
              'stake-draft', 'project-detail', 'pillar-spawn', 'pillar-done'])
         self.assertIn('SYRIUS_READONLY_CATALOG_FAMILY: ${{ inputs.readonly_catalog_family }}', workflow)
-        scoped = dict(parent, SYRIUS_READONLY_CATALOG_FAMILY='send-warn',
-            SYRIUS_HOSTED_RUNNER='github-hosted', GITHUB_ACTIONS='true',
-            GITHUB_EVENT_NAME='workflow_dispatch', GITHUB_REPOSITORY='edgepillar/syrius',
-            GITHUB_SHA='a' * 40, GITHUB_RUN_ATTEMPT='1')
-        with mock.patch.object(lab.sys, 'platform', 'win32'):
-            self.assertFalse(lab.require_environment('native', scoped))
-            for change in (dict(GITHUB_REPOSITORY='sol-znn/syrius'),
-                    dict(GITHUB_RUN_ATTEMPT='2'), dict(SYRIUS_WINDOWS_WALLET_INSPECTION='false')):
-                with self.assertRaises(lab.Failure):
-                    lab.require_environment('native', dict(scoped, **change))
+        for family in ('send-warn', 'settings-seams'):
+            scoped = dict(parent, SYRIUS_READONLY_CATALOG_FAMILY=family,
+                SYRIUS_HOSTED_RUNNER='github-hosted', GITHUB_ACTIONS='true',
+                GITHUB_EVENT_NAME='workflow_dispatch', GITHUB_REPOSITORY='edgepillar/syrius',
+                GITHUB_SHA='a' * 40, GITHUB_RUN_ATTEMPT='1')
+            with mock.patch.object(lab.sys, 'platform', 'win32'):
+                self.assertFalse(lab.require_environment('native', scoped))
+                for change in (dict(GITHUB_REPOSITORY='sol-znn/syrius'),
+                        dict(GITHUB_RUN_ATTEMPT='2'), dict(SYRIUS_WINDOWS_WALLET_INSPECTION='false')):
+                    with self.assertRaises(lab.Failure):
+                        lab.require_environment('native', dict(scoped, **change))
         for family, title, stem in (
             ('stake-draft', 'New stake draft', '14-staking-new'),
             ('project-detail', 'Project detail', '29-az-project'),
@@ -278,6 +281,61 @@ class InspectionTests(unittest.TestCase):
                 f'.harness/ci-seeded-catalog/{stem}-dark.png',
                 f'.harness/ci-seeded-catalog/{stem}-light.png',
             ])
+
+    def test_settings_seam_pointers_stop_on_scope_or_address_change(self):
+        targets = [
+            ('sporks', 'node_settings_sporks_gate'),
+            ('autoLockOnClose', 'security_lock_close'),
+            ('biometricUnlock', 'security_settings_biometric_gate'),
+            ('wrongPasswordLimitOff', 'security_limit_off'),
+            ('passwordChangeMigration', 'security_settings_password_gate'),
+            ('operatorModes', 'wallet_settings_modes_gate'),
+            ('walletPicker', 'wallet_settings_wallets_gate'),
+            ('walletUpdateNotice', 'about_update_gate'),
+        ]
+        for fault in (None, 'scope', 'address'):
+            with self.subTest(fault=fault):
+                tab = 'dashboard'
+                address = 'original'
+                inputs = []
+                observed = []
+
+                def send(command):
+                    nonlocal tab, address
+                    inputs.append(command)
+                    name = command['cmd']
+                    if name == 'tap' and 'tab' in command:
+                        tab = command['tab']
+                    if name == 'state':
+                        return dict(tab=tab, address=address, locale='en',
+                            direction='ltr', node='ws://127.0.0.1:45998',
+                            chainId=321, signingChainId=321, savedSigningChainId=321,
+                            walletUnlocked=True, walletInitCompleted=True,
+                            embeddedNode=False, nodeTransitionPending=False)
+                    if name == 'readonly-seam-pointer':
+                        if fault == 'address':
+                            address = 'replacement'
+                        return dict(scope='unrelated' if fault == 'scope'
+                            else 'readonly_native_seam_pointer_observation',
+                            seam=command['seam'], pointerDispatched=True,
+                            absorptionObserved=True)
+                    if name == 'logs':
+                        return dict(logs=[])
+                    return {}
+
+                if fault is None:
+                    inspection.observe_settings_seam_pointers(send, observed)
+                    self.assertEqual(tab, 'dashboard')
+                    self.assertEqual([row['seam'] for row in observed],
+                                     [seam for seam, _ in targets])
+                    self.assertEqual(inputs[-1]['cmd'], 'logs')
+                else:
+                    with self.assertRaises(inspection.Refused):
+                        inspection.observe_settings_seam_pointers(send, observed)
+                    self.assertEqual(observed, [])
+                self.assertEqual([(row['seam'], row['key']) for row in inputs
+                    if row['cmd'] == 'readonly-seam-pointer'],
+                    targets if fault is None else targets[:1])
 
     def test_lab_failure_projection_retains_only_fixed_codes_and_refuses_success(self):
         labels = []
