@@ -8,6 +8,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer' as dev;
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -101,6 +102,7 @@ import 'fixtures/seed_policy.dart';
 import 'fixtures/seed_project_presentation.dart';
 import 'fixtures/seed_token_presentation.dart';
 import 'fixtures/send_warning_draft.dart';
+import 'frame_window.dart';
 import 'logical_capture.dart';
 import 'native_entry_capture.dart';
 import 'native_launch_capture.dart';
@@ -1171,6 +1173,7 @@ class HarnessAgent {
       case 'logs':
         return _logsCmd(c);
       case 'stalls':
+        if (c.containsKey('frameWindow')) return _frameWindowCmd(c);
         return _stallsCmd(c);
       case 'clipboard':
         return _clipboard(c);
@@ -5140,6 +5143,58 @@ class HarnessAgent {
 
   // ------------------------------------------------------------------ stalls
 
+  static String? get _frameTimingMode =>
+      Platform.environment['SYRIUS_HARNESS_FRAME_TIMING'];
+  HarnessFrameWindow? _frameWindow;
+
+  Future<Map<String, Object?>> _frameWindowCmd(
+    Map<String, dynamic> command,
+  ) async {
+    const String refusal = 'frame-window-unqualified';
+    if (!const <String>{'interactive', 'launch'}.contains(_frameTimingMode) ||
+        command.length != 2) {
+      throw HarnessError(refusal);
+    }
+    final HarnessFrameWindow? window = _frameWindow;
+    switch (command['frameWindow']) {
+      case 'begin':
+        if (_frameTimingMode != 'interactive' || window != null) {
+          throw HarnessError(refusal);
+        }
+        _frameWindow = HarnessFrameWindow(dev.Timeline.now);
+        return <String, Object?>{'frameWindow': 'collecting'};
+      case 'end':
+        if (window == null) throw HarnessError(refusal);
+        if (_frameTimingMode == 'launch') {
+          if (!booted) throw HarnessError(refusal);
+          final List<_Node> fields = _matches(
+            const <String, dynamic>{'key': 'wallet_password_field'},
+            kinds: const <String>['field'],
+            only: true,
+          );
+          if (fields.length != 1 ||
+              !fields.single.enabled ||
+              !_reachable(fields.single, fields.single.center)) {
+            throw HarnessError(refusal);
+          }
+        }
+        try {
+          return await window.finish(
+            endUs: dev.Timeline.now,
+            requestFrame: SchedulerBinding.instance.scheduleFrame,
+          );
+        } on TimeoutException {
+          throw HarnessError(refusal);
+        } on StateError {
+          throw HarnessError(refusal);
+        } finally {
+          _frameWindow = null;
+        }
+      default:
+        throw HarnessError(refusal);
+    }
+  }
+
   final Stopwatch _stallClock = Stopwatch();
   Duration _stallLast = Duration.zero;
   final List<Map<String, Object?>> _stalls = <Map<String, Object?>>[];
@@ -5153,6 +5208,9 @@ class HarnessAgent {
   /// even on a still page. The frame timings add what a timer cannot see:
   /// the raster thread, where a large image or a first-use shader costs.
   void _hookStalls() {
+    if (_frameTimingMode == 'launch') {
+      _frameWindow = HarnessFrameWindow(dev.Timeline.now);
+    }
     void record(String kind, int ms) {
       _stalls.add(<String, Object?>{
         'time': DateTime.now().toIso8601String(),
@@ -5172,6 +5230,7 @@ class HarnessAgent {
       }
     });
     SchedulerBinding.instance.addTimingsCallback((List<ui.FrameTiming> ts) {
+      _frameWindow?.observe(ts);
       for (final ui.FrameTiming t in ts) {
         if (t.buildDuration > const Duration(milliseconds: 16)) {
           record('build', t.buildDuration.inMilliseconds);

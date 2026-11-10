@@ -71,6 +71,7 @@ class Args {
     'key',
     'timeout',
     'min',
+    'frame-window',
     'out',
     'settle',
     'since',
@@ -785,6 +786,19 @@ Future<void> run(Instance inst, String command, Args a) async {
         stdout.writeln('seq ${out['seq']}');
       }
     case 'stalls':
+      final String? operation = a['frame-window'];
+      if (operation != null) {
+        if ((operation != 'begin' && operation != 'end') ||
+            a.has('reset') || a.has('min') || a.has('brief')) {
+          throw Fail('use begin or end without stall filters');
+        }
+        final Map<String, dynamic> report = await call(
+          inst,
+          <String, Object?>{'cmd': 'stalls', 'frameWindow': operation},
+        );
+        stdout.writeln(jsonEncode(report));
+        break;
+      }
       final Map<String, dynamic> out = await call(inst, <String, Object?>{
         'cmd': 'stalls',
         if (a.has('reset')) 'reset': true,

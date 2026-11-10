@@ -681,8 +681,23 @@ Source621 prepares direct pointer checks for Home Zap and the Activity scope
 control and a pointer and keyboard attempt at the Go To Zap result. Arrow
 Down and Enter require the original current palette and its single unavailable
 result at each input boundary. The existing ordinary Home wallet, storage
-sampler and shutdown are reused. Three in-memory controls pass. Native
-execution remains pending.
+sampler and shutdown are reused. Three in-memory controls pass. The original
+Windows attempt reports zero selected analyzer findings, 1,381 passing Dart
+cases and 1,109 Python cases with eighteen skips. It stops in the unpatched
+node test phase with INTERNAL_ERROR before node or wallet startup. The
+independent reader verifies the one original lab archive and 60 source files.
+The cause remains NOT_ESTABLISHED and the three native checks stay open.
+[Producer](https://github.com/edgepillar/syrius/actions/runs/42834639050) and
+[independent reader](https://github.com/edgepillar/syrius/actions/runs/42837175874).
+
+Source622 extends the existing stalls command with opt-in frame windows.
+The collector reports relative build, raster and total durations in a fixed
+interval and waits for a later raster timing before replying. The paired
+P06 candidate uses the same collector and the same enabled, reachable lock
+password field at the cold-launch boundary. Seven in-memory action controls
+cover the prepared Home to Settings, About disclosure and cold-lock
+sequences. Fresh source checks, paired native timing and the visual Motion
+and Shaders pass remain open.
 
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied

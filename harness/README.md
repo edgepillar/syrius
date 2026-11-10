@@ -230,6 +230,7 @@ decide. `type` looks at fields only.
 | `theme dark\|light` | changes the existing app theme notifier and saved Display preference, then verifies the rendered brightness |
 | `logs [--levels SEVERE,WARNING] [--since <seq>]` | the app's log records and Flutter errors |
 | `stalls [--reset] [--min <ms>] [--brief]` | each time the UI isolate ran nothing for over 24 ms (`loop`) and each frame whose build or raster took over 16 ms, and the longest; `--reset` empties the list after printing, `--brief` prints one line |
+| `stalls --frame-window begin` / `stalls --frame-window end` | opens or closes a bounded frame sample in an owned harness with `SYRIUS_HARNESS_FRAME_TIMING=interactive`. Start a fresh owned process with `launch` to collect through the ready lock password field, then call `end` |
 | `clipboard [<text>]` | reads or sets the clipboard |
 | `window [show\|minimize\|maximize\|restore] [--width <w> --height <h>]` | sizes the Flutter client in logical pixels; reports requested and observed client dimensions, physical pixels, DPR and outer window geometry |
 | `goto <tab>`, `lock`, `unlock <password>` | the main tabs and the lock screen |
