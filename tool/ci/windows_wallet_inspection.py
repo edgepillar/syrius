@@ -659,6 +659,16 @@ def output_bytes(output, *, catalog_only=False):
     return total
 
 
+def sample_capture_outputs(repo, *, family, catalog_only):
+    """Account in-progress writes using the selected finite filename sets."""
+    return (output_bytes(repo / OUTPUT, catalog_only=catalog_only)
+        + home_output_bytes(repo / HOME_OUTPUT, schema=HOME_CAPTURE_SCHEMAS.get(family, 4))
+        + settings.output_bytes(repo / settings.OUTPUT)
+        + navigation.output_bytes(repo / navigation.OUTPUT)
+        + details.output_bytes(repo / details.OUTPUT, schema=details.FAMILY_SCHEMAS.get(family, 1))
+        + viewport.output_bytes(repo / viewport.OUTPUT))
+
+
 def public_manifest(value):
     """Refuse unexpected fields and strings before any artifact or annotation."""
     flags = {'success', 'inspection_qualified', 'wallet_qualified', 'seed_admitted',
@@ -914,12 +924,8 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
                 if now >= next_sample:
                     logical = shared.sample_workspace((home, app, build, profile),
                         expected_profile=profile_identity)
-                    logical += output_bytes(output, catalog_only=catalog_only)
-                    logical += home_output_bytes(repo / HOME_OUTPUT, schema=4)
-                    logical += settings.output_bytes(repo / settings.OUTPUT)
-                    logical += navigation.output_bytes(repo / navigation.OUTPUT)
-                    logical += details.output_bytes(repo / details.OUTPUT, schema=details_schema)
-                    logical += viewport.output_bytes(repo / viewport.OUTPUT)
+                    logical += sample_capture_outputs(
+                        repo, family=family, catalog_only=catalog_only)
                     need(logical <= shared.WORK_CAP, 'STORAGE_REFUSED')
                     free = shutil.disk_usage(repo).free
                     storage = report['storage']

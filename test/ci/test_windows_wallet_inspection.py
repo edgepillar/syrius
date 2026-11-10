@@ -299,6 +299,24 @@ class InspectionTests(unittest.TestCase):
             with self.assertRaises(inspection.Refused):
                 inspection.public_manifest(wrong)
 
+        repo = Path('/fixture')
+        output = repo / inspection.HOME_OUTPUT
+        first = output / inspection.HOME_BELL_FILES[0]
+        children = [first]
+        with mock.patch.object(Path, 'exists', lambda path: path == output), \
+                mock.patch.object(Path, 'is_symlink', return_value=False), \
+                mock.patch.object(Path, 'iterdir', lambda _: iter(children)), \
+                mock.patch.object(inspection.debug.bounded, 'plain', side_effect=lambda path:
+                    SimpleNamespace(st_mode=stat.S_IFDIR) if path == output else
+                    SimpleNamespace(st_mode=stat.S_IFREG, st_nlink=1, st_size=24)):
+            self.assertEqual(inspection.sample_capture_outputs(
+                repo, family='home-bell', catalog_only=True), 24)
+            with self.assertRaisesRegex(inspection.Refused, 'STORAGE_REFUSED'):
+                inspection.sample_capture_outputs(repo, family='home', catalog_only=False)
+            children.append(output / 'unregistered.png')
+            with self.assertRaisesRegex(inspection.Refused, 'STORAGE_REFUSED'):
+                inspection.sample_capture_outputs(repo, family='home-bell', catalog_only=True)
+
     def test_home_catalog_privacy_geometry_and_fixed_files_are_independent(self):
         pixels = png()
         original = home_manifest(pixels)

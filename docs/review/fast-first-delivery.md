@@ -300,8 +300,20 @@ The first Source586 Bell run stops before SDK allocation with one failed
 discovery assertion across 1,100 controller cases and eighteen skips. The
 readonly reader still expects 107 cases after the Bell archive control brings
 the suite to 108. The run retains zero artifacts. Source587 updates the
-fixed count and passes all 108 reader cases in memory. Windows capture
-remains open. [Original run](https://github.com/edgepillar/syrius/actions/runs/42734463561).
+fixed count and passes all 108 reader cases in memory.
+[Original run](https://github.com/edgepillar/syrius/actions/runs/42734463561).
+
+The Source587 Windows Bell run passes selected analysis, 1,373 Dart cases
+and 1,100 controller cases with eighteen skips. It stops at `STORAGE_REFUSED`
+during onboarding and inspection. The independent reader verifies both
+diagnostic archives and zero retained images. The application required
+forced cleanup. The live sampler's fixed Home Go To filename set also
+refuses the first Bell image in a reproduced control. Source588 selects
+the correct family for each output directory and keeps the file count,
+byte limits and free-space floor. All 111 selected controls pass. A fresh
+Windows capture remains open.
+[Producer](https://github.com/edgepillar/syrius/actions/runs/42734996673) and
+[independent reader](https://github.com/edgepillar/syrius/actions/runs/42737238637).
 
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,
