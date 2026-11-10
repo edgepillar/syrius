@@ -394,7 +394,13 @@ RPC actor holds local insertion while genuine peer announcements advance.
 Each theme requires a live loopback lag sample, the original warning
 address pair, the original draft and a disabled submit action. The
 reader and Windows controller pass 109 and 22 in-memory cases. The
-native run and both screen outputs are pending.
+hosted Python gate passes 1,101 cases with eighteen skips. Selected
+analysis reports one nullable theme cast and stops before Dart tests
+or lab startup. The original attempt retains zero artifacts.
+[Original Windows attempt](https://github.com/edgepillar/syrius/actions/runs/42754295101).
+
+Source596 admits the two fixed theme markers without a nullable cast.
+Fresh Windows verification and both screen outputs are pending.
 
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,

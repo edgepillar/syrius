@@ -197,8 +197,14 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
     repository: repository,
     call: (Map<String, Object?> command) async {
       if (sendWarning && command['cmd'] == 'shot') {
-        final String theme = command['theme'] as String;
-        await sendWarningWindow!(theme.toUpperCase());
+        final String event = switch (command['theme']) {
+          'dark' => 'DARK',
+          'light' => 'LIGHT',
+          _ => throw const ReadonlyInspectionRefused(
+            ReadonlyInspectionReason.command,
+          ),
+        };
+        await sendWarningWindow!(event);
       }
       return cli.call(instance, command);
     },
