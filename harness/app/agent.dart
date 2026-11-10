@@ -5143,8 +5143,11 @@ class HarnessAgent {
 
   // ------------------------------------------------------------------ stalls
 
+  static const String _pairedLaunchTiming = 'paired-launch';
   static String? get _frameTimingMode =>
       Platform.environment['SYRIUS_HARNESS_FRAME_TIMING'];
+  static bool get _isLaunchTiming =>
+      _frameTimingMode == 'launch' || _frameTimingMode == _pairedLaunchTiming;
   HarnessFrameWindow? _frameWindow;
 
   Future<Map<String, Object?>> _frameWindowCmd(
@@ -5153,7 +5156,7 @@ class HarnessAgent {
     const String refusal = 'frame-window-unqualified';
     HarnessError refused(String reason) =>
         HarnessError(refusal, <String, String>{'reason': reason});
-    if (!const <String>{'interactive', 'launch'}.contains(_frameTimingMode) ||
+    if ((_frameTimingMode != 'interactive' && !_isLaunchTiming) ||
         command.length != 2) {
       throw HarnessError(refusal);
     }
@@ -5167,7 +5170,7 @@ class HarnessAgent {
         return <String, Object?>{'frameWindow': 'collecting'};
       case 'end':
         if (window == null) throw refused('notCollecting');
-        if (_frameTimingMode == 'launch') {
+        if (_isLaunchTiming) {
           if (!booted) throw refused('launchNotBooted');
           final List<_Node> fields = _matches(
             const <String, dynamic>{'key': 'wallet_password_field'},
@@ -5211,8 +5214,11 @@ class HarnessAgent {
   /// even on a still page. The frame timings add what a timer cannot see:
   /// the raster thread, where a large image or a first-use shader costs.
   void _hookStalls() {
-    if (_frameTimingMode == 'launch') {
-      _frameWindow = HarnessFrameWindow(dev.Timeline.now);
+    if (_isLaunchTiming) {
+      _frameWindow = HarnessFrameWindow(
+        dev.Timeline.now,
+        packed: _frameTimingMode == _pairedLaunchTiming,
+      );
     }
     void record(String kind, int ms) {
       _stalls.add(<String, Object?>{

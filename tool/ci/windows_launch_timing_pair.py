@@ -19,7 +19,7 @@ OUTPUT = Path('.harness/ci-launch-timing-pair')
 JOB_STEP = 'Measure paired cold lock frame windows'
 RETAIN_STEP = 'Retain the paired cold lock timing manifest'
 ARTIFACT_PREFIX = 'windows-launch-timing-pair-'
-MAX_MANIFEST = 64 * 1024
+MAX_MANIFEST = 256 * 1024
 MAX_ARCHIVE = MAX_MANIFEST + 65536
 FLOOR = prepare.FREE_FLOOR
 RESERVATION = 4 * 1024**3
@@ -27,10 +27,10 @@ FRAME_BUDGET_US = 16000
 P06_ORIGINAL = 'f024e78bf777d9b16d9e4a81c295ef092c9bf79d'
 P06_SOURCE = 'e06330fd5c630fee82f59efd42140f7190260ff9'
 P06_TREE = '197785948b180221aa3521b35fcc4def52620ba9'
-P06_OVERLAY_TREE = '2e3ca5cae617d4daa15b3a3b530c1d9814781ae4'
+P06_OVERLAY_TREE = 'd795458e1410dc9757ff004cd0472ba8292a2c31'
 PATCH = Path('tool/ci/fixtures/p06-frame-window.patch')
-PATCH_SHA256 = '7a626428ef7c5c26b8066fe05ba37c2c361c688bbd61819b89fa90eb52e8164e'
-COLLECTOR_SHA256 = '2dad8b0cadd494654999123ed24e76e89cd75010ba7cbb3900b7da3ab38127c6'
+PATCH_SHA256 = '06db35e49cf480b5ae43d0caac4b22280b9619fa08d687e33179ad5fbc4c294e'
+COLLECTOR_SHA256 = '51c47391b0bb3c6a3c8a3cae26ed1a3f72dd56a7a8d32a175bd214a5182f4db9'
 SAME_INPUTS = ('pubspec.yaml', 'pubspec.lock', 'patched_packages/reown_core-1.3.8',
                'tool/generate_git_metadata.dart', 'windows', 'lib/utils/wallet_file.dart',
                'lib/utils/constants.dart')
@@ -171,7 +171,7 @@ def build_baseline(repo, parent, report):
 
 def compare_windows(baseline_window, current_window):
     def summarize(window):
-        rows = launch.frame_timing_window(window)['frames']
+        rows = launch.frame_timing_rows(window, allow_packed=True)
         by_stage = {
             'build': [row[2] for row in rows],
             'raster': [row[3] for row in rows],
@@ -236,7 +236,7 @@ def measure_sample(repo, parent, current, binaries, name, report):
     sample['attempts'].append(measured)
     launch.need(window is not None and launch.attempt_passed(measured))
     check_profile(profile, identity)
-    sample['frame_window'] = launch.frame_timing_window(window)
+    sample['frame_window'] = launch.frame_timing_window(window, allow_packed=True)
     check_space(repo, report['storage'])
     return sample['frame_window']
 
@@ -305,8 +305,9 @@ def main():
     summary['command_count'] = len(report['commands'])
     if report['commands']:
         summary['last_command'] = report['commands'][-1]
-    summary['frame_counts'] = {sample['name']: len(sample['frame_window']['frames'])
-                               if sample['frame_window'] else 0 for sample in report['samples']}
+    summary['frame_counts'] = {
+        sample['name']: launch.frame_timing_count(sample['frame_window']) if sample['frame_window'] else 0
+        for sample in report['samples']}
     summary['attempt_outcomes'] = attempt_outcomes(report['samples'])
     if report['comparison'] is not None:
         for key in ('no_added_reported_slow_frames', 'no_frame_number_gaps'):

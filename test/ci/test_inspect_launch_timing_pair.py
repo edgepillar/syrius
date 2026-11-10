@@ -6,9 +6,11 @@ import contextlib
 import io
 import json
 from pathlib import Path
+import struct
 import unittest
 from unittest import mock
 import zipfile
+import zlib
 
 from tool.ci import inspect_launch_timing_pair as reader
 from tool.ci import inspect_windows_qualification as windows
@@ -238,6 +240,38 @@ class PairInspectionTests(unittest.TestCase):
         result = self.project(value)
         self.assertEqual(result['frame_counts'], {'p06': 512, 'current': 512})
         self.assertEqual(result['slow_frame_counts'], {'p06': 512, 'current': 512})
+
+    def test_packed_pair_preserves_all_frames_and_rejects_corrupt_payloads(self):
+        count = pair.launch.MAX_PAIRED_TIMING_FRAMES
+        rows = [[0 if index == 0 else 2**32 - count + index,
+                 index * 14000, 20000000, 20000000, 60000000]
+                for index in range(count)]
+        raw = b''.join(struct.pack('<5I', *row) for row in rows)
+        packed = zlib.compress(raw)
+        original = dict(schema=2, scope='harness_frame_window', windowUs=60000000,
+                        frameCount=count, packedFrames=base64.b64encode(packed).decode('ascii'))
+        self.assertEqual(pair.launch.frame_timing_rows(original, allow_packed=True), rows)
+        with self.assertRaises(pair.launch.startup.Failure):
+            pair.launch.frame_timing_window(original)
+        value = report(self.pins)
+        for sample in value['samples']:
+            sample['frame_window'] = original
+        value['comparison'] = pair.compare_windows(original, original)
+        self.assertLessEqual(len(reader.canonical(value)) + 1, pair.MAX_MANIFEST)
+        result = self.project(value)
+        self.assertEqual(result['frame_counts'], {'p06': count, 'current': count})
+        self.assertEqual(result['slow_frame_counts'], {'p06': count, 'current': count})
+        self.assertFalse(result['no_frame_number_gaps'])
+        self.assertEqual(result['frame_window_sha256']['p06'], reader.archive.sha(reader.canonical(original)))
+
+        trailing = base64.b64encode(packed + b'\0').decode('ascii')
+        truncated = base64.b64encode(packed[:-1]).decode('ascii')
+        oversized = base64.b64encode(zlib.compress(raw + raw)).decode('ascii')
+        for change in (dict(frameCount=count - 1), dict(frameCount=count + 1),
+                       dict(frameCount=True), dict(packedFrames='!'), dict(packedFrames=trailing),
+                       dict(packedFrames=truncated), dict(packedFrames=oversized)):
+            with self.subTest(change=tuple(change)), self.assertRaises(pair.launch.startup.Failure):
+                pair.launch.frame_timing_rows(dict(original, **change), allow_packed=True)
 
     def test_pair_keeps_partial_failure_with_a_forced_actor(self):
         value = report(self.pins)

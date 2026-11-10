@@ -866,6 +866,15 @@ edge. The two changed Dart files pass selected local analysis and all
 fresh Windows drop-border capture remain open.
 [Import reference markup](../../mockups/redesign/src/70-entry.html#L100).
 
+Source639 builds the Windows harness and passes the finite controller
+tests. The first dark Welcome capture reaches its HTTP deadline.
+Window restore and close also report exchange failures. The original
+process exit is observed with code zero. The independent reader
+verifies the 2,111-byte archive and its zero-image manifest. The
+Import drop-border comparison remains open.
+[Producer](https://github.com/edgepillar/syrius/actions/runs/42898658819)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42900095114).
+
 The paired timing overlay now retains a fixed reason when the original
 frame window refuses. The reasons distinguish lock checks, frame order,
 frame bounds, sample limits and delivery. The reader verifies the finite
@@ -899,6 +908,16 @@ reader verifies the 13,572-byte archive and preserves the failed
 original outcome. The complete paired comparison remains open.
 [Producer](https://github.com/edgepillar/syrius/actions/runs/42894798539)
 and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42897441557).
+
+The paired launch now uses a version-two receipt for up to 4,096
+original frames in each interval. It stores five unsigned words per
+frame with lossless zlib compression. The reader verifies the sample
+count, exact decoded length, monotonic frame order and all timing
+bounds before recomputing the comparison. The reply and paired
+manifest are bounded at 128 KiB and 256 KiB respectively.
+Three changed Dart files pass selected analysis and 87 local
+controller cases pass. Fresh paired Windows qualification remains
+open.
 
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied

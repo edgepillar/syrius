@@ -165,6 +165,18 @@ class StartupInspectionTests(unittest.TestCase):
         ])
         self.assertEqual(process.sleep.call_args_list, [mock.call(launch.LIMITS.poll)] * 4)
 
+        count = launch.MAX_TIMING_FRAMES + 1
+        packed = zlib.compress(b''.join(struct.pack('<5I', i, i, 10, 5, 20) for i in range(count)))
+        receipt = dict(schema=2, scope='harness_frame_window', windowUs=1000000,
+                       frameCount=count, packedFrames=base64.b64encode(packed).decode('ascii'))
+        process._exchange = mock.Mock(side_effect=[
+            (200, dict(ok=True, target=lock)),
+            (200, dict(ok=True, booted=True, walletUnlocked=False, size=[1280, 780])),
+            (200, dict(ok=True, **receipt)),
+        ])
+        self.assertEqual(process._observe_frame_timing(paired=True), receipt)
+        self.assertEqual(process._exchange.call_count, 3)
+
     def test_launch_timing_keeps_pending_distinct_from_an_actual_command_failure(self):
         launch = inspect.launch
         cases = (

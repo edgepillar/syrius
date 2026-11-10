@@ -1,13 +1,16 @@
 """Retain an original cold-launch reference state from two owned profiles."""
 
+import base64
 import hashlib
 import json
 import os
 from pathlib import Path
 import secrets
 import socket
+import struct
 import subprocess
 import sys
+import zlib
 from dataclasses import replace
 
 from . import windows_entry_capture_smoke as entry
@@ -31,7 +34,11 @@ FRAME_REFUSALS = ('notCollecting', 'launchNotBooted', 'lockFieldCount', 'lockFie
     'lockFieldUnreachable', 'deliveryTimeout', 'frameOrder', 'frameLimit', 'frameTiming',
     'windowBounds', 'noFrames')
 MAX_TIMING_FRAMES, MAX_TIMING_US = 512, 60000000
+MAX_PAIRED_TIMING_FRAMES = 4096
+PAIRED_TIMING_REPLY_CAP = 128 * 1024
 TIMING_FIELDS = ('schema', 'scope', 'windowUs', 'frames')
+PACKED_TIMING_FIELDS = ('schema', 'scope', 'windowUs', 'frameCount', 'packedFrames')
+FRAME_ROW = struct.Struct('<5I')
 TIMING_SOURCE = Path('harness/app/frame_window.dart')
 RECIPE = Path('harness/screens/launch.txt')
 SETTLE_RECIPE = Path('harness/screens/launch-settle.txt')
@@ -103,31 +110,57 @@ def launch_pixels(reply, theme, *, settle=False):
     return pixels, {name: reply[name] for name in sorted(fields)}
 
 
-def frame_timing_window(value):
-    """Validate a bounded frame interval without exporting other reply fields."""
-    if (type(value) is not dict
-            or set(value) != {'schema', 'scope', 'windowUs', 'frames'}
-            or type(value['schema']) is not int or value['schema'] != 1
-            or value['scope'] != 'harness_frame_window'):
-        raise startup.Failure('STARTUP_OBSERVATION_REFUSED')
-    duration, rows = value['windowUs'], value['frames']
-    if (type(duration) is not int or not 0 < duration <= MAX_TIMING_US
-            or type(rows) is not list or not 0 < len(rows) <= MAX_TIMING_FRAMES):
+def _packed_frame_rows(value):
+    count, encoded = value['frameCount'], value['packedFrames']
+    need(startup.integer(count, 1, MAX_PAIRED_TIMING_FRAMES))
+    size = count * FRAME_ROW.size
+    # This covers the zlib bound even at the largest admitted count.
+    cap = size + 64
+    need(type(encoded) is str and encoded.isascii() and 0 < len(encoded) <= 4 * ((cap + 2) // 3))
+    try:
+        packed = base64.b64decode(encoded, validate=True)
+        need(len(packed) <= cap and base64.b64encode(packed).decode('ascii') == encoded)
+        decoder = zlib.decompressobj()
+        raw = decoder.decompress(packed, size + 1)
+    except (ValueError, zlib.error):
+        raise startup.Failure('STARTUP_OBSERVATION_REFUSED') from None
+    need(len(raw) == size and decoder.eof and not decoder.unconsumed_tail and not decoder.unused_data)
+    return [list(row) for row in FRAME_ROW.iter_unpack(raw)]
+
+
+def frame_timing_rows(value, *, allow_packed=False):
+    """Validate and read every row in the admitted timing representation."""
+    need(type(value) is dict and type(value.get('schema')) is int
+        and value.get('scope') == 'harness_frame_window'
+        and startup.integer(value.get('windowUs'), 1, MAX_TIMING_US))
+    duration = value['windowUs']
+    if value['schema'] == 1 and set(value) == set(TIMING_FIELDS):
+        rows = value['frames']
+        need(type(rows) is list and 0 < len(rows) <= MAX_TIMING_FRAMES)
+    elif allow_packed and value['schema'] == 2 and set(value) == set(PACKED_TIMING_FIELDS):
+        rows = _packed_frame_rows(value)
+    else:
         raise startup.Failure('STARTUP_OBSERVATION_REFUSED')
     previous_id, previous_start = -1, -1
     for row in rows:
-        if (type(row) is not list or len(row) != 5
-                or any(type(value) is not int for value in row)):
-            raise startup.Failure('STARTUP_OBSERVATION_REFUSED')
+        need(type(row) is list and len(row) == 5 and all(type(item) is int for item in row))
         number, start, build, raster, total = row
-        if (not previous_id < number < 2**32
-                or previous_id == -1 and number != 0
-                or not previous_start <= start < duration or start < 0
-                or build < 0 or raster < 0 or not build + raster <= total <= MAX_TIMING_US):
-            raise startup.Failure('STARTUP_OBSERVATION_REFUSED')
+        need(previous_id < number < 2**32 and (previous_id != -1 or number == 0)
+            and previous_start <= start < duration and start >= 0
+            and build >= 0 and raster >= 0 and build + raster <= total <= MAX_TIMING_US)
         previous_id, previous_start = number, start
+    return rows
+
+
+def frame_timing_window(value, *, allow_packed=False):
+    """Keep the original representation for the bounded manifest."""
+    frame_timing_rows(value, allow_packed=allow_packed)
     return value
 
+
+def frame_timing_count(value):
+    """Count a previously validated original frame window."""
+    return value['frameCount'] if value['schema'] == 2 else len(value['frames'])
 
 class TimingCommandRefused(startup.Failure):
     def __init__(self, stage, http_status, reply):
@@ -248,8 +281,9 @@ class LaunchProcess(startup.StartupProbe):
             raise startup.Failure('WINDOW_INVALID' if window_pending else 'STARTUP_DEADLINE')
         raw = timing_reply('frame_window', *self._exchange(dict(cmd='stalls', frameWindow='end'),
                            until=min(self.deadline, self.started + 60)))
-        need(set(raw) == {'ok', *TIMING_FIELDS})
-        return frame_timing_window({field: raw[field] for field in TIMING_FIELDS})
+        fields = PACKED_TIMING_FIELDS if paired else TIMING_FIELDS
+        need(set(raw) == {'ok', *fields})
+        return frame_timing_window({field: raw[field] for field in fields}, allow_packed=paired)
 
     def _lock_diagnostic(self):
         # This sample occurs after the failed comparison window. Keep only
@@ -349,8 +383,9 @@ def run_process(repo, parent, binaries, profile, theme, *, capture, settle,
     env = entry.child_environment(parent, profile, port, token)
     limits = LIMITS
     if timing:
-        env['SYRIUS_HARNESS_FRAME_TIMING'] = 'launch'
-        limits = replace(LIMITS, response_bytes=65536)
+        paired = lock_diagnostic is not None
+        env['SYRIUS_HARNESS_FRAME_TIMING'] = 'paired-launch' if paired else 'launch'
+        limits = replace(LIMITS, response_bytes=PAIRED_TIMING_REPLY_CAP if paired else 65536)
     else:
         if settle:
             env.update(GITHUB_ACTIONS='true', SYRIUS_CI_LAUNCH_SCREEN=process_type.profile_screen)

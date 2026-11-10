@@ -1,4 +1,7 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter_test/flutter_test.dart';
@@ -94,24 +97,77 @@ void main() {
     );
   });
 
-  test('the sample cap refuses rather than dropping retained frames', () async {
-    final HarnessFrameWindow window = HarnessFrameWindow(100000)
+  test('a packed launch retains each frame through its larger limit', () async {
+    const int count = HarnessFrameWindow.maxPackedFrames;
+    const int start = 100000;
+    const int spacing = 12000;
+    const int first = 42;
+    final HarnessFrameWindow window = HarnessFrameWindow(start, packed: true)
       ..observe(<ui.FrameTiming>[
-        for (int i = 0; i <= HarnessFrameWindow.maxFrames; i++)
-          _frame(i + 1, 100000 + i * 30000),
+        for (int i = 0; i < count; i++)
+          _frame(first + i + i ~/ 1000, start + i * spacing),
       ]);
-    await expectLater(
-      window.finish(
-        endUs: 20000000,
-        requestFrame: () => fail('unexpected frame'),
-      ),
-      throwsA(
-        isA<HarnessFrameWindowRefused>().having(
-          (HarnessFrameWindowRefused error) => error.reason,
-          'reason',
-          HarnessFrameWindowRefusal.frameLimit,
-        ),
+    final Future<Map<String, Object?>> result = window.finish(
+      endUs: start + count * spacing,
+      requestFrame: () {},
+    );
+    window.observe(<ui.FrameTiming>[
+      _frame(first + count + count ~/ 1000, start + count * spacing),
+    ]);
+    final Map<String, Object?> receipt = await result;
+    expect(
+      receipt.keys,
+      unorderedEquals(<String>[
+        'schema',
+        'scope',
+        'windowUs',
+        'frameCount',
+        'packedFrames',
+      ]),
+    );
+    expect(receipt['schema'], 2);
+    expect(receipt['scope'], 'harness_frame_window');
+    expect(receipt['windowUs'], count * spacing);
+    expect(receipt['frameCount'], count);
+    final ByteData rows = ByteData.sublistView(
+      Uint8List.fromList(
+        zlib.decode(base64Decode(receipt['packedFrames']! as String)),
       ),
     );
+    expect(rows.lengthInBytes, count * 20);
+    for (int i = 0; i < count; i++) {
+      expect(
+        <int>[
+          for (int field = 0; field < 5; field++)
+            rows.getUint32(i * 20 + field * 4, Endian.little),
+        ],
+        <int>[i + i ~/ 1000, i * spacing, 10000, 5000, 17000],
+      );
+    }
+  });
+
+  test('the sample cap refuses rather than dropping retained frames', () async {
+    for (final bool packed in <bool>[false, true]) {
+      final int count = packed
+          ? HarnessFrameWindow.maxPackedFrames
+          : HarnessFrameWindow.maxFrames;
+      final HarnessFrameWindow window =
+          HarnessFrameWindow(100000, packed: packed)..observe(<ui.FrameTiming>[
+            for (int i = 0; i <= count; i++) _frame(i + 1, 100000 + i * 12000),
+          ]);
+      await expectLater(
+        window.finish(
+          endUs: 60000000,
+          requestFrame: () => fail('unexpected frame'),
+        ),
+        throwsA(
+          isA<HarnessFrameWindowRefused>().having(
+            (HarnessFrameWindowRefused error) => error.reason,
+            'reason',
+            HarnessFrameWindowRefusal.frameLimit,
+          ),
+        ),
+      );
+    }
   });
 }

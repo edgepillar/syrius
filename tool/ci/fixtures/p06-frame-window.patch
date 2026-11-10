@@ -76,17 +76,20 @@
        'owner': _recipeOwner,
        'revision': WalletContextRevision.value,
        'walletPresent': kWalletFile != null,
-@@ -2458,6 +2492,9 @@
+@@ -2458,6 +2492,12 @@
    Future<Map<String, Object?>> _wait(Map<String, dynamic> c) async {
      final int timeout = c['timeoutMs'] as int? ?? 10000;
      final bool gone = c['gone'] == true;
-+    final bool launchReady = !gone && _frameTimingMode == 'launch' &&
-+        c['ready'] == true && c['exact'] == true &&
++    final bool launchReady =
++        !gone &&
++        _isLaunchTiming &&
++        c['ready'] == true &&
++        c['exact'] == true &&
 +        c['key'] == 'wallet_password_field';
      final Stopwatch sw = Stopwatch()..start();
      while (true) {
        final List<_Node> hits = _matches(
-@@ -2472,7 +2509,11 @@
+@@ -2472,7 +2512,11 @@
            'error',
          ],
        );
@@ -99,12 +102,15 @@
          return <String, Object?>{
            'ms': sw.elapsedMilliseconds,
            if (!gone) 'target': hits.first.toJson(),
-@@ -2724,6 +2765,61 @@
+@@ -2724,6 +2768,64 @@
 
    // ------------------------------------------------------------------ stalls
 
++  static const String _pairedLaunchTiming = 'paired-launch';
 +  static String? get _frameTimingMode =>
 +      Platform.environment['SYRIUS_HARNESS_FRAME_TIMING'];
++  static bool get _isLaunchTiming =>
++      _frameTimingMode == 'launch' || _frameTimingMode == _pairedLaunchTiming;
 +  HarnessFrameWindow? _frameWindow;
 +
 +  Future<Map<String, Object?>> _frameWindowCmd(
@@ -113,7 +119,7 @@
 +    const String refusal = 'frame-window-unqualified';
 +    HarnessError refused(String reason) =>
 +        HarnessError(refusal, <String, String>{'reason': reason});
-+    if (!const <String>{'interactive', 'launch'}.contains(_frameTimingMode) ||
++    if ((_frameTimingMode != 'interactive' && !_isLaunchTiming) ||
 +        command.length != 2) {
 +      throw HarnessError(refusal);
 +    }
@@ -127,7 +133,7 @@
 +        return <String, Object?>{'frameWindow': 'collecting'};
 +      case 'end':
 +        if (window == null) throw refused('notCollecting');
-+        if (_frameTimingMode == 'launch') {
++        if (_isLaunchTiming) {
 +          if (!booted) throw refused('launchNotBooted');
 +          final List<_Node> fields = _matches(
 +            const <String, dynamic>{'key': 'wallet_password_field'},
@@ -161,17 +167,20 @@
    final Stopwatch _stallClock = Stopwatch();
    Duration _stallLast = Duration.zero;
    final List<Map<String, Object?>> _stalls = <Map<String, Object?>>[];
-@@ -2737,6 +2833,9 @@
+@@ -2737,6 +2839,12 @@
    /// even on a still page. The frame timings add what a timer cannot see:
    /// the raster thread, where a large image or a first-use shader costs.
    void _hookStalls() {
-+    if (_frameTimingMode == 'launch') {
-+      _frameWindow = HarnessFrameWindow(dev.Timeline.now);
++    if (_isLaunchTiming) {
++      _frameWindow = HarnessFrameWindow(
++        dev.Timeline.now,
++        packed: _frameTimingMode == _pairedLaunchTiming,
++      );
 +    }
      void record(String kind, int ms) {
        _stalls.add(<String, Object?>{
          'time': DateTime.now().toIso8601String(),
-@@ -2756,6 +2855,7 @@
+@@ -2756,6 +2864,7 @@
        }
      });
      SchedulerBinding.instance.addTimingsCallback((List<ui.FrameTiming> ts) {

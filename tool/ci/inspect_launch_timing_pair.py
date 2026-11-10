@@ -114,7 +114,7 @@ def samples(rows):
         if row['frame_window'] is not None:
             archive.need(len(row['attempts']) == len(roles)
                 and all(pair.launch.attempt_passed(attempt) for attempt in row['attempts']))
-            windows[name] = pair.launch.frame_timing_window(row['frame_window'])
+            windows[name] = pair.launch.frame_timing_window(row['frame_window'], allow_packed=True)
     archive.need(len(rows) < 2 or 'current' in windows)
     return windows, closed
 
@@ -197,7 +197,7 @@ def project(raw, expected_sha, expected_size, *, head, tree, run_id, pins):
         p06_source=pair.P06_SOURCE, p06_overlay_tree=pair.P06_OVERLAY_TREE,
         normal_actor_exits=closed, runtime_started=False, verified_png_count=0,
         attempt_outcomes=pair.attempt_outcomes(report['samples']),
-        frame_counts={name: len(window['frames']) for name, window in windows.items()},
+        frame_counts={name: pair.launch.frame_timing_count(window) for name, window in windows.items()},
         frame_window_sha256={name: archive.sha(canonical(window)) for name, window in windows.items()},
         slow_frame_counts=None if comparison is None else {
             name: comparison[key]['slow_frame_counts']['distinct']
