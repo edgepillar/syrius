@@ -5185,7 +5185,7 @@ class HarnessAgent {
           );
         } on TimeoutException {
           throw HarnessError(refusal);
-        } on StateError {
+        } on HarnessFrameWindowRefused {
           throw HarnessError(refusal);
         } finally {
           _frameWindow = null;

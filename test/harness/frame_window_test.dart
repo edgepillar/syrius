@@ -17,8 +17,8 @@ ui.FrameTiming _frame(int number, int start) => ui.FrameTiming(
 
 void main() {
   test('late timings use build time and need a later frame', () async {
-    final HarnessFrameWindow window = HarnessFrameWindow(100000);
-    window.observe(<ui.FrameTiming>[_frame(2, 90000), _frame(3, 100000)]);
+    final HarnessFrameWindow window = HarnessFrameWindow(100000)
+      ..observe(<ui.FrameTiming>[_frame(2, 90000), _frame(3, 100000)]);
     bool requested = false;
     bool delivered = false;
     final Future<Map<String, Object?>> result = window.finish(
@@ -46,48 +46,48 @@ void main() {
     final HarnessFrameWindow window = HarnessFrameWindow(100000);
     final Future<void> refused = expectLater(
       window.finish(endUs: 150000, requestFrame: () {}),
-      throwsStateError,
+      throwsA(isA<HarnessFrameWindowRefused>()),
     );
     window.observe(<ui.FrameTiming>[_frame(1, 150000)]);
     await refused;
   });
 
   test('a reversed frame number refuses the original interval', () async {
-    final HarnessFrameWindow window = HarnessFrameWindow(100000);
-    window.observe(<ui.FrameTiming>[_frame(3, 100000), _frame(2, 110000)]);
+    final HarnessFrameWindow window = HarnessFrameWindow(100000)
+      ..observe(<ui.FrameTiming>[_frame(3, 100000), _frame(2, 110000)]);
     await expectLater(
       window.finish(
         endUs: 150000,
         requestFrame: () => fail('unexpected frame'),
       ),
-      throwsStateError,
+      throwsA(isA<HarnessFrameWindowRefused>()),
     );
   });
 
   test('a frame beyond the proposed end refuses that clock', () async {
-    final HarnessFrameWindow window = HarnessFrameWindow(100000);
-    window.observe(<ui.FrameTiming>[_frame(1, 150001)]);
+    final HarnessFrameWindow window = HarnessFrameWindow(100000)
+      ..observe(<ui.FrameTiming>[_frame(1, 150001)]);
     await expectLater(
       window.finish(
         endUs: 150000,
         requestFrame: () => fail('unexpected frame'),
       ),
-      throwsStateError,
+      throwsA(isA<HarnessFrameWindowRefused>()),
     );
   });
 
   test('the sample cap refuses rather than dropping retained frames', () async {
-    final HarnessFrameWindow window = HarnessFrameWindow(100000);
-    window.observe(<ui.FrameTiming>[
-      for (int i = 0; i <= HarnessFrameWindow.maxFrames; i++)
-        _frame(i + 1, 100000 + i * 30000),
-    ]);
+    final HarnessFrameWindow window = HarnessFrameWindow(100000)
+      ..observe(<ui.FrameTiming>[
+        for (int i = 0; i <= HarnessFrameWindow.maxFrames; i++)
+          _frame(i + 1, 100000 + i * 30000),
+      ]);
     await expectLater(
       window.finish(
         endUs: 20000000,
         requestFrame: () => fail('unexpected frame'),
       ),
-      throwsStateError,
+      throwsA(isA<HarnessFrameWindowRefused>()),
     );
   });
 }

@@ -9,6 +9,12 @@ typedef _Sample = ({
   int total,
 });
 
+/// The interval does not contain a complete timing sample.
+class HarnessFrameWindowRefused implements Exception {
+  /// Reports an invalid or incomplete interval.
+  const HarnessFrameWindowRefused();
+}
+
 /// Attributes batched engine timings to one bounded monotonic interval.
 ///
 /// A sample beginning at or after the end confirms delivery of the preceding
@@ -86,13 +92,13 @@ class HarnessFrameWindow {
         duration <= 0 ||
         duration > _maxWindowUs ||
         (_samples.isNotEmpty && _samples.last.start >= endUs)) {
-      throw StateError('frame window refused');
+      throw const HarnessFrameWindowRefused();
     }
     _endUs = endUs;
     requestFrame();
     await _delivered.future.timeout(const Duration(seconds: 4));
     if (_refused || _samples.isEmpty) {
-      throw StateError('frame window incomplete');
+      throw const HarnessFrameWindowRefused();
     }
     final int first = _samples.first.number;
     return <String, Object?>{
