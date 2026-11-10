@@ -264,6 +264,8 @@ class DetailsCatalogTests(unittest.TestCase):
             (6, ['staking-new'], ['14-staking-new-dark.png', '14-staking-new-light.png']),
             (7, ['az-project'], ['29-az-project-dark.png', '29-az-project-light.png']),
             (13, ['spawn'], ['19-spawn-dark.png', '19-spawn-light.png']),
+            (14, ['pillar-done'],
+                ['20-pillar-done-dark.png', '20-pillar-done-light.png']),
         )
         for schema, screens, files in families:
             with self.subTest(schema=schema):

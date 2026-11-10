@@ -510,6 +510,22 @@ two trace calls in their original order before the deposit request. Fresh
 Windows and archive evidence remains open.
 [Original Windows run](https://github.com/edgepillar/syrius/actions/runs/42781599503).
 
+Source607 clears selected Dart analysis and completes 1,379 Dart cases and
+1,106 Python cases with eighteen skips. The original twelve-page tour and
+both lab closures qualify. The copied wallet confirms Fuse and the exact
+Pillar QSR deposit. The independent reader verifies both 1280 by 780 Spawn
+images and their prerequisite receipts. The catalog has 88 of 94 literal
+outputs. Both themes remain open for Send warning, Pillar Done and
+Accelerator project detail. Visual comparison remains open.
+[Windows producer](https://github.com/edgepillar/syrius/actions/runs/42782684822) and
+[independent reader](https://github.com/edgepillar/syrius/actions/runs/42785959996).
+
+Source608 prepares the original Pillar registration after the same actor's
+verified Fuse and QSR deposit. The original Register control needs the exact
+review fields and live terms. Both themes use the same positively confirmed
+registration before View pillar returns to the owner panel. The panel closes
+through its own control. Fresh Windows and archive evidence remains open.
+
 The optional `--no-diff-images` comparison preserves scores, input hashes
 and review state. In-memory controls with 94 synthetic PNG pairs encode
 94 difference images in the standard mode and zero in the compact mode.

@@ -202,6 +202,44 @@ class SeedPrefixObservationTests(unittest.TestCase):
         with self.assertRaises(restored.checkpoint.Refused):
             seeds.private_receipts(full)
 
+    def test_pillar_done_needs_all_three_distinct_original_receipts(self):
+        family = 'pillar-done'
+        recipes = ('fuse', 'pillar-qsr', 'pillar-register')
+        rows = [dict(recipe=recipe, hash=str(index) * 64)
+                for index, recipe in enumerate(recipes, 1)]
+        prefix = dict(schema=1, scope='private_restored_pillar_done_prefix',
+            chain=321, members=4, selected_index=3, derived_count=2,
+            owner_stable=True)
+        final = dict(prefix, scope='private_restored_pillar_done_receipts',
+                     receipts=rows)
+        reads = []
+
+        def journal(recipe, state):
+            reads.append((recipe, state))
+            row = next(row for row in rows if row['recipe'] == recipe)
+            return json.dumps(dict(recipe=recipe, chain=321, state=state,
+                **({'hash': row['hash']} if state != 'attempt' else {}))).encode()
+
+        original = None
+        for size in range(1, 4):
+            original, observed = seeds.retain_prefix(original,
+                dict(prefix, receipts=rows[:size]), journal, catalog_capture=family)
+            self.assertEqual(observed['recipes'], list(recipes[:size]))
+            if size < 3:
+                with self.assertRaises(restored.checkpoint.Refused):
+                    seeds.finish_prefix(original, final, catalog_capture=family)
+        accepted = seeds.finish_prefix(original, final, catalog_capture=family)
+        completed = seeds.completed(accepted, catalog_capture=family)
+        self.assertEqual(completed['scope'], seeds.PILLAR_DONE_SCOPE)
+        self.assertEqual(completed['recipes'], list(recipes))
+        self.assertEqual(reads, [(recipe, state) for recipe in recipes
+                                 for state in ('attempt', 'accepted', 'confirmed')])
+        for invalid in (rows[:2], [rows[0], rows[2], rows[1]],
+                        [*rows[:2], dict(rows[2], hash=rows[1]['hash'])]):
+            with self.subTest(receipts=invalid), self.assertRaises(restored.checkpoint.Refused):
+                seeds.finish_prefix(original, dict(final, receipts=invalid),
+                                    catalog_capture=family)
+
     def prefix(self, count):
         value = receipts()
         value['scope'] = 'private_restored_seed_prefix'

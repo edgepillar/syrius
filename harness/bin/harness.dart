@@ -1339,6 +1339,39 @@ preparePillarCatalogActor(
   return result;
 }
 
+Future<void> _requirePillarCatalogActor(
+  Instance inst,
+  WalletAddressContext selected,
+  bool Function() parentAlive,
+) async {
+  if (!parentAlive()) throw Fail('owned lab parent unavailable');
+  final Map<String, dynamic> view = await inst.send(
+    <String, Object?>{'cmd': 'wallet-recipe', 'action': 'observe'},
+    timeout: const Duration(seconds: 10),
+  );
+  if (!parentAlive() || view['ok'] != true ||
+      view['chainId'] != 321 || view['savedSigningChainId'] != 321 ||
+      view['nodeSelectionSaved'] != true ||
+      view['transitionPending'] != false ||
+      !selected.same(WalletAddressContext.parse(view['addressContext']))) {
+    throw Fail('original Pillar actor changed');
+  }
+}
+
+Future<void> _tapPillarStep(
+  Instance inst,
+  String key,
+  Future<void> Function() requireActor,
+) async {
+  await waitForTarget(inst, Args(<String>[
+    '--key', key, '--kind', 'button', '--ready', '--timeout', '30',
+  ]));
+  await requireActor();
+  await call(inst, <String, Object?>{
+    'cmd': 'tap', 'key': key, 'kind': 'button', 'exact': true,
+  });
+}
+
 /// Opens the original QSR step and admits its one exact lab deposit.
 Future<String> depositPillarCatalogQsr(
   Instance inst,
@@ -1346,22 +1379,8 @@ Future<String> depositPillarCatalogQsr(
   required bool Function() parentAlive,
 }) async {
   final SeedOperationTrace trace = SeedOperationTrace(pillarDepositRecipeId);
-  Future<void> requireActor() async {
-    if (!parentAlive()) throw Fail('owned lab parent unavailable');
-    final Map<String, dynamic> view = await inst.send(
-      <String, Object?>{'cmd': 'wallet-recipe', 'action': 'observe'},
-      timeout: const Duration(seconds: 10),
-    );
-    if (!parentAlive() || view['ok'] != true ||
-        view['chainId'] != 321 || view['savedSigningChainId'] != 321 ||
-        view['nodeSelectionSaved'] != true ||
-        view['transitionPending'] != false ||
-        !sponsored.selected.same(
-          WalletAddressContext.parse(view['addressContext']),
-        )) {
-      throw Fail('original Pillar actor changed');
-    }
-  }
+  Future<void> requireActor() =>
+      _requirePillarCatalogActor(inst, sponsored.selected, parentAlive);
 
   Future<void> tapKey(String key, int index) async {
     trace.at(SeedOperationAction.command, SeedOperationStep.execute,
@@ -1422,6 +1441,57 @@ Future<String> depositPillarCatalogQsr(
   } on Object catch (error, stack) {
     Error.throwWithStackTrace(trace.failure(error), stack);
   }
+}
+
+/// Completes the already deposited registration through the original form.
+Future<String> registerPillarCatalog(
+  Instance inst,
+  ({WalletAddressContext selected, String fusionHash}) sponsored, {
+  required String deposited,
+  required String producer,
+  required String reward,
+  required bool Function() parentAlive,
+}) async {
+  Future<void> requireActor() =>
+      _requirePillarCatalogActor(inst, sponsored.selected, parentAlive);
+  await _tapPillarStep(inst, 'pillar_qsr_next_button', requireActor);
+  await _tapPillarStep(inst, 'pillar_znn_next_button', requireActor);
+  for (final (String key, String value) in <(String, String)>[
+    ('pillar_name_field', labPillarRegistrationName),
+    ('pillar_reward_address_field', reward),
+    ('pillar_producer_address_field', producer),
+  ]) {
+    final Map<String, Object?> selector = <String, Object?>{
+      'key': key, 'kind': 'field', 'exact': true,
+    };
+    await reveal(inst, selector);
+    await requireActor();
+    final Map<String, dynamic> typed = await call(inst, <String, Object?>{
+      'cmd': 'type', ...selector, 'value': value,
+    });
+    if (typed['value'] != value) throw Fail('Pillar review input refused');
+  }
+  const String register = 'pillar_register_button';
+  await reveal(inst, <String, Object?>{
+    'key': register, 'kind': 'button', 'exact': true,
+  });
+  await waitForTarget(inst, Args(<String>[
+    '--key', register, '--kind', 'button', '--ready', '--timeout', '30',
+  ]));
+  await requireActor();
+  final Map<String, dynamic> receipt = await inst.send(<String, Object?>{
+    'cmd': 'pillar-register', 'profile': inst.name,
+    'fusionHash': sponsored.fusionHash, 'depositHash': deposited,
+    'producer': producer, 'reward': reward,
+  }, timeout: const Duration(seconds: 180));
+  final Object? hash = receipt['hash'];
+  if (receipt['ok'] != true || receipt['confirmed'] != true ||
+      receipt['recipe'] != pillarRegistrationRecipeId || hash is! String ||
+      !seedHash(hash) || hash == sponsored.fusionHash || hash == deposited) {
+    throw Fail('exact Pillar registration receipt refused');
+  }
+  await requireActor();
+  return hash;
 }
 
 /// Runs a file of harness command lines, stopping at the first that fails.

@@ -28,7 +28,7 @@ from tool.ci.windows_presentation_smoke import OutputDrain
 from tool.ci.loopback_relay import PAIRS as RELAY_PAIRS, TARGET as RELAY_TARGET, Relay
 from tool.ci import native_stack_probe, node_panic_projection, producer_shutdown_patch, read_first_client_fixture
 from tool.ci import lab_asset_progress, lab_failure_probe, send_warning_window
-from tool.ci.readonly_details_capture import PILLAR_SPAWN_FAMILY, RESTORED_FAMILIES
+from tool.ci.readonly_details_capture import PILLAR_DONE_FAMILY, PILLAR_SPAWN_FAMILY, RESTORED_FAMILIES
 from tools.devnet.lab import owned_lab as wire_policy
 from tools.devnet.lab.socket_transport import make_transports
 
@@ -1426,7 +1426,8 @@ def run(backend):
                     scope=restored_wallet_run.SCOPE, complete=False)
                 reopen_diagnostic = restored_wallet_run.ReopenDiagnostic()
                 pillar_document = (regular(source / 'docker/devnet/README.md', 32768)
-                    if parent.get('SYRIUS_READONLY_CATALOG_FAMILY') == PILLAR_SPAWN_FAMILY else None)
+                    if parent.get('SYRIUS_READONLY_CATALOG_FAMILY') in
+                    (PILLAR_SPAWN_FAMILY, PILLAR_DONE_FAMILY) else None)
                 report['wallet_reopen'] = restored_wallet_run.run(repo, parent, wallet,
                     runtime, reopen_anchor, restored_roots, checkpoint_home, closed, measured,
                     diagnostic=reopen_diagnostic, pillar_fixture_document=pillar_document)

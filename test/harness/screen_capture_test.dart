@@ -477,7 +477,9 @@ void main() {
       expect(() => capture.preflight('swap-start'),
           throwsA(isA<ScreenCaptureError>()));
       ScreenCapture ownedCapture({
-        required bool project, bool pillarSpawn = false,
+        required bool project,
+        bool pillarSpawn = false,
+        bool pillarDone = false,
       }) => ScreenCapture(
         repository: repository,
         call: agent.call,
@@ -488,6 +490,7 @@ void main() {
         restoredSeeded: true,
         restoredProject: project,
         restoredPillarSpawn: pillarSpawn,
+        restoredPillarDone: pillarDone,
       );
       final ScreenCapture seededCapture = ownedCapture(project: false);
       final ScreenScript seeded = seededCapture.preflight('token-mine').single;
@@ -542,6 +545,17 @@ void main() {
             'wait --key nodes_pillar_owner_close --gone --timeout 10',
             'goto dashboard',
           ]));
+      writeScript('pillar-done',
+          File('harness/screens/pillar-done.txt').readAsStringSync());
+      expect(() => seededCapture.preflight('pillar-done'),
+          throwsA(isA<ScreenCaptureError>()));
+      final ScreenScript done =
+          ownedCapture(project: false, pillarDone: true)
+              .preflight('pillar-done').single;
+      expect(done.assertion['key'], 'pillar_registration_confirmed');
+      expect(done.lines.map((ScreenLine line) => line.words.first),
+          <String>['wait', 'assert']);
+      expect(done.afterCapture, isEmpty);
       expect(agent.commands, isEmpty);
       expect(Directory('${repository.path}/.harness').existsSync(), isFalse);
     },

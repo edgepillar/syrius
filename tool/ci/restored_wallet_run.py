@@ -30,7 +30,8 @@ PHASES = ('admission', 'origin', 'roots', 'journals', 'ciphers', 'node_inputs',
     'transport_close', 'nodes_stop', 'post_close', 'complete_record', 'projection')
 CHILD_PHASES = ('gate', 'start', 'input', 'startup_window', 'startup', 'unlock', 'observe',
     'seed_admission', 'seed_stake', 'seed_fuse', 'seed_token', 'seed_deposit',
-    'seed_project', 'seed_fund-address', 'seed_pillar-qsr', 'seeded_capture', 'finish')
+    'seed_project', 'seed_fund-address', 'seed_pillar-qsr',
+    'seed_pillar-register', 'seeded_capture', 'finish')
 OUTPUT_CODES = ('PUB_RESOLUTION', 'PUB_EXECUTABLE_BUILD', 'UNHANDLED_EXCEPTION',
     'COMPILE_OR_USAGE_ERROR', 'VM_SERVICE_LISTENER', 'UNCLASSIFIED_OUTPUT',
     'REOPEN_CHILD_REFUSED')
@@ -845,8 +846,9 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
     capture_schema = catalog.RESTORED_FAMILIES.get(family)
     seeded_capture = capture_schema is not None
     catalog_capture = seeds.CATALOG_SELECTIONS.get(capture_schema, False)
-    pillar_spawn = capture_schema == catalog.PILLAR_SPAWN_SCHEMA
-    checkpoint.need(pillar_spawn is (pillar_fixture_document is not None))
+    pillar_done = capture_schema == catalog.PILLAR_DONE_SCHEMA
+    pillar_catalog = pillar_done or capture_schema == catalog.PILLAR_SPAWN_SCHEMA
+    checkpoint.need(pillar_catalog is (pillar_fixture_document is not None))
     seed_key = 'catalog_prerequisites' if seeded_capture else 'seed_workflow'
     capture_output = repo / catalog.SEEDED_OUTPUT
     capture_reservation = catalog.MAX_CAPTURE_TOTAL + catalog.MAX_MANIFEST if seeded_capture else 0
@@ -1082,9 +1084,13 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
         trace.at('seed_workflow')
         record['phase'] = 'seed_workflow'
         genesis = json.loads(bounded_read(Path(restored['rpc']) / 'genesis.json', 1024**2))
-        if pillar_spawn:
+        if pillar_catalog:
             fixture = seeds.pillar_fixture(genesis, origin.members, pillar_fixture_document)
-            seed_input = dict(action='SEED_PILLAR_SPAWN', actor=fixture.actor)
+            if pillar_done:
+                seed_input = dict(action='SEED_PILLAR_DONE', actor=fixture.actor,
+                                  producer=fixture.producer, reward=fixture.reward)
+            else:
+                seed_input = dict(action='SEED_PILLAR_SPAWN', actor=fixture.actor)
         else:
             chosen = seeds.counterparty(genesis, origin.members)
             seed_input = dict(action='SEED', counterparty=chosen)

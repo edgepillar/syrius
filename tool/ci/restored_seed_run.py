@@ -15,11 +15,14 @@ SCOPE = 'owned_restored_seed_workflow'
 CATALOG_SCOPE = 'owned_restored_seed_catalog_prerequisites'
 PROJECT_SCOPE = 'owned_restored_project_catalog_prerequisites'
 PILLAR_SPAWN_SCOPE = 'owned_restored_pillar_spawn_prerequisites'
+PILLAR_DONE_SCOPE = 'owned_restored_pillar_done_prerequisites'
 PREFIX_SCOPE = 'observed_restored_seed_prefix'
 CATALOG_PREFIX_SCOPE = 'observed_restored_seed_catalog_prefix'
 PROJECT_PREFIX_SCOPE = 'observed_restored_project_catalog_prefix'
 PILLAR_SPAWN_PREFIX_SCOPE = 'observed_restored_pillar_spawn_prefix'
+PILLAR_DONE_PREFIX_SCOPE = 'observed_restored_pillar_done_prefix'
 PILLAR_SPAWN_IDS = ('fuse', 'pillar-qsr')
+PILLAR_DONE_IDS = (*PILLAR_SPAWN_IDS, 'pillar-register')
 
 # docker/devnet/README.md at go-zenon 2d1b929cc3fa5269cf133757d4a6963821137984.
 _PILLAR_FIXTURE_DOC_SHA256 = '1fb72ad5908eaab0df5f98711d88c9b222e179399b96acf7808e17f42fa6d4b8'
@@ -29,6 +32,7 @@ CATALOG_SELECTIONS = {
     catalog.STAKE_DRAFT_SCHEMA: catalog.STAKE_DRAFT_FAMILY,
     catalog.PROJECT_DETAIL_SCHEMA: catalog.PROJECT_DETAIL_FAMILY,
     catalog.PILLAR_SPAWN_SCHEMA: catalog.PILLAR_SPAWN_FAMILY,
+    catalog.PILLAR_DONE_SCHEMA: catalog.PILLAR_DONE_FAMILY,
 }
 
 
@@ -61,12 +65,16 @@ _PLANS = {
     catalog.PILLAR_SPAWN_FAMILY: _SeedPlan(
         PILLAR_SPAWN_IDS, 'private_restored_pillar_spawn',
         PILLAR_SPAWN_SCOPE, PILLAR_SPAWN_PREFIX_SCOPE, 4, 3, 2),
+    catalog.PILLAR_DONE_FAMILY: _SeedPlan(
+        PILLAR_DONE_IDS, 'private_restored_pillar_done',
+        PILLAR_DONE_SCOPE, PILLAR_DONE_PREFIX_SCOPE, 4, 3, 2),
 }
 _PREFIX_RECIPES = {
     PREFIX_SCOPE: IDS,
     CATALOG_PREFIX_SCOPE: CATALOG_IDS,
     PROJECT_PREFIX_SCOPE: _PLANS[catalog.PROJECT_DETAIL_FAMILY].recipes,
     PILLAR_SPAWN_PREFIX_SCOPE: PILLAR_SPAWN_IDS,
+    PILLAR_DONE_PREFIX_SCOPE: PILLAR_DONE_IDS,
 }
 
 
@@ -238,7 +246,8 @@ def finish_prefix(previous, value, *, catalog_capture=False):
 
 
 def journal_record(recipe, state, raw, original_hash):
-    need(recipe in (*IDS, 'pillar-qsr') and state in ('attempt', 'accepted', 'confirmed')
+    need(recipe in (*IDS, *PILLAR_DONE_IDS[1:])
+        and state in ('attempt', 'accepted', 'confirmed')
         and type(raw) is bytes and 0 < len(raw) <= 2048)
     value = json.loads(raw)
     need(type(value) is dict and set(value) ==

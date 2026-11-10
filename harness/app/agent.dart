@@ -26,10 +26,11 @@ import 'package:window_manager/window_manager.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/auto_receive_tx_worker.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_pillar_stepper/widgets/pillar_step_parts.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_token_stepper/widgets/token_create_frame.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart'
-    show NodeSyncStatusCubit, NodeSyncStatusState, PillarQsrManagementStep,
-        sendMomentumsBehind;
+    show DeployPillarStep, NodeSyncStatusCubit, NodeSyncStatusState,
+        PillarQsrManagementStep, PillarRegisteredSuccess, sendMomentumsBehind;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/fuse_plasma/view/fuse_plasma_form.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/node_update/node_update.dart'
     show NodeUpdateCard;
@@ -73,7 +74,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/shell/tabs.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/lock_tab_child.dart'
     show LockTabChild, LockViewSource;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart'
-    show AccountBlockTemplate, SyncInfo, WebsocketStatus, WsClient,
+    show AccountBlockTemplate, Address, SyncInfo, WebsocketStatus, WsClient,
         getChainIdentifier, znnDefaultPaths, znnZts;
 
 import '../lab_send_failure.dart';
@@ -480,6 +481,9 @@ class HarnessAgent {
   bool _labRestoredReadAttempted = false;
   WalletAddressContext? _labRestoredAddresses;
   WalletAddressContext? _labPillarSponsor;
+  String? _labPillarDepositHash;
+  ({LabSeedBinding source, String hash})? _labPillarRegistration;
+  Object? _labPillarRegistrationAttempt;
   HarnessPresentationController? _presentation;
   NativeEntryCapture? _nativeEntry;
   NativeLaunchCapture? _nativeLaunch;
@@ -1128,6 +1132,8 @@ class HarnessAgent {
       case 'pillar-deposit-preflight':
       case 'pillar-qsr-deposit':
         return _pillarDeposit(c, publish: command == 'pillar-qsr-deposit');
+      case 'pillar-register':
+        return _pillarRegister(c);
       case 'lab-send':
         return _labSend(c);
       case 'lab-quiesce':
@@ -1823,44 +1829,57 @@ class HarnessAgent {
     }
   }
 
+  LabSeedBinding _capturePillarActor(
+    String profile,
+    String fusionHash, {
+    PillarRegistrationRoles? registration,
+  }) {
+    final WalletAddressContext? sponsor = _labPillarSponsor;
+    if (sponsor == null || _seeds.confirmedPillarSponsorHash != fusionHash ||
+        _seeds.fixtureName != null) {
+      throw const SeedRefused('restored-seed-exact-receipt-required');
+    }
+    final WalletAddressContext selected = WalletAddressContext.parse(
+      _recipeAddressObservation()['addressContext'],
+    );
+    final int index = SeedFuseTarget.pillarActor.addressIndex;
+    if (!selected.selectedFrom(sponsor, index)) {
+      throw const SeedRefused('restored-seed-derivation-refused');
+    }
+    bool isCurrent() {
+      final Map<String, Object?> policy = _recipeSigningPolicy();
+      return selected.same(WalletAddressContext.parse(
+               _recipeAddressObservation()['addressContext'],
+             )) &&
+          policy['savedSigningChainId'] == 321 &&
+          policy['nodeSelectionSaved'] == true &&
+          _seeds.confirmedPillarSponsorHash == fusionHash;
+    }
+
+    return LabSeedBinding.capture(
+      profile: profile,
+      ws: seedWsOrigin, http: seedHttpOrigin, booted: booted,
+      pillarActor: (actor: selected.members[index], isCurrent: isCurrent),
+      pillarRegistration: registration,
+    );
+  }
+
   Future<Map<String, Object?>> _pillarDeposit(
     Map<String, dynamic> command, {
     required bool publish,
   }) async {
-    final WalletAddressContext? sponsor = _labPillarSponsor;
-    final String? hash = _seeds.confirmedPillarSponsorHash;
-    if (command.length != 3 || command['profile'] is! String ||
-        command['fusionHash'] is! String || command['fusionHash'] != hash ||
-        sponsor == null || hash == null || _seeds.fixtureName != null) {
+    final Object? profile = command['profile'];
+    final Object? hash = command['fusionHash'];
+    if (command.length != 3 || profile is! String || hash is! String) {
       throw HarnessError('restored-seed-exact-receipt-required');
     }
     try {
-      final WalletAddressContext selected = WalletAddressContext.parse(
-        _recipeAddressObservation()['addressContext'],
-      );
-      final int index = SeedFuseTarget.pillarActor.addressIndex;
-      if (!selected.selectedFrom(sponsor, index)) {
-        throw const SeedRefused('restored-seed-derivation-refused');
-      }
-      bool isCurrent() {
-        final Map<String, Object?> policy = _recipeSigningPolicy();
-        return selected.same(WalletAddressContext.parse(
-                 _recipeAddressObservation()['addressContext'],
-               )) &&
-            policy['savedSigningChainId'] == 321 &&
-            policy['nodeSelectionSaved'] == true &&
-            _seeds.confirmedPillarSponsorHash == hash;
-      }
-
-      final LabSeedBinding source = LabSeedBinding.capture(
-        profile: command['profile'] as String,
-        ws: seedWsOrigin, http: seedHttpOrigin, booted: booted,
-        pillarActor: (actor: selected.members[index], isCurrent: isCurrent),
-      );
+      final LabSeedBinding source = _capturePillarActor(profile, hash);
       await source.requirePillarDepositReady(hash);
       if (!publish) {
         return <String, Object?>{
-          'ready': true, 'chain': 321, 'selectedIndex': index,
+          'ready': true, 'chain': 321,
+          'selectedIndex': source.environment.selectedIndex,
         };
       }
       final ProfileSeedJournal journal =
@@ -1887,6 +1906,7 @@ class HarnessAgent {
         () => tap(guard.requireCurrent),
         requireReady: source.requirePillarDepositTermsNow,
       );
+      _labPillarDepositHash = deposit;
       return <String, Object?>{
         'confirmed': true, 'recipe': pillarDepositRecipeId, 'hash': deposit,
       };
@@ -1896,6 +1916,132 @@ class HarnessAgent {
     } on Object {
       throw HarnessError('seed-prerequisite-or-read-failed');
     }
+  }
+
+  Future<Map<String, Object?>> _pillarRegister(
+    Map<String, dynamic> command,
+  ) async {
+    final Map<String, String> env = Platform.environment;
+    final Object? profile = command['profile'];
+    final Object? fusion = command['fusionHash'];
+    final Object? deposit = command['depositHash'];
+    final Object? producer = command['producer'];
+    final Object? reward = command['reward'];
+    if (!Platform.isWindows || env['GITHUB_ACTIONS'] != 'true' ||
+        env['GITHUB_EVENT_NAME'] != 'workflow_dispatch' ||
+        env['GITHUB_REPOSITORY'] != 'edgepillar/syrius' ||
+        env['SYRIUS_HOSTED_RUNNER'] != 'github-hosted' ||
+        env['SYRIUS_CI_WALLET_REOPEN'] != 'true' ||
+        env['SYRIUS_CI_REOPEN_SEEDED_CAPTURE'] != 'pillar-done' ||
+        command.length != 6 || profile is! String ||
+        profile != env['SYRIUS_CI_REOPEN_INSTANCE'] ||
+        fusion is! String || deposit is! String ||
+        deposit != _labPillarDepositHash || _labPillarRegistration != null ||
+        producer is! String || reward is! String) {
+      throw HarnessError('restored-seed-exact-receipt-required');
+    }
+    try {
+      final PillarRegistrationRoles roles = (
+        producer: Address.parse(producer), reward: Address.parse(reward),
+      );
+      if (roles.producer.toString() != producer ||
+          roles.reward.toString() != reward) {
+        throw const SeedRefused('restored-seed-exact-receipt-required');
+      }
+      final LabSeedBinding source = _capturePillarActor(
+        profile, fusion, registration: roles,
+      );
+      final ProfileSeedJournal journal =
+          ProfileSeedJournal.forPillarRegistration(source.home, fusion, deposit)
+            ..requireAvailable(pillarRegistrationRecipeId);
+      await source.requirePillarRegistrationReady(fusion, deposit);
+      final SeedGuard guard =
+          SeedGuard.forPillarRegistration(source: source, journal: journal);
+      final Map<String, Object?> visible = await _run(<String, dynamic>{
+        'cmd': 'assert', 'key': 'pillar_register_button',
+        'kind': 'button', 'exact': true,
+      });
+      final Object? target = visible['target'];
+      if (target is! Map || target['enabled'] == false ||
+          target['ref'] is! int) {
+        throw const SeedRefused('enabled-publication-control-required');
+      }
+      final SeedTap tap = _captureSeedTap(<String, dynamic>{
+        'cmd': 'tap', 'ref': target['ref'], 'pillarRegisterRoles': roles,
+      }, preparation: false);
+      final String hash = await guard.publish(
+        pillarRegistrationRecipeId,
+        () => tap(guard.requireCurrent),
+        requireReady: () => source.requirePillarRegistrationTermsNow(deposit),
+      );
+      _labPillarRegistration = (source: source, hash: hash);
+      return <String, Object?>{
+        'confirmed': true, 'recipe': pillarRegistrationRecipeId, 'hash': hash,
+      };
+    } on SeedRefused catch (error) {
+      throw HarnessError(error.code);
+    } on Object {
+      throw HarnessError('seed-prerequisite-or-read-failed');
+    }
+  }
+
+  void _requirePillarReview(Element button, PillarRegistrationRoles roles) {
+    Element? frame;
+    button.visitAncestorElements((Element ancestor) {
+      if (ancestor.widget case DeployPillarStep(active: true)) {
+        frame = ancestor;
+        return false;
+      }
+      return true;
+    });
+    final List<PillarReview> reviews = <PillarReview>[];
+    int visited = 0;
+    void visit(Element element) {
+      if (++visited > 4096 || reviews.length > 1) return;
+      if (element.widget case final PillarReview review) reviews.add(review);
+      element.debugVisitOnstageChildren(visit);
+    }
+    frame?.debugVisitOnstageChildren(visit);
+    final PillarReview? review = reviews.length == 1 ? reviews.single : null;
+    if (visited > 4096 || review == null ||
+        review.name != labPillarRegistrationName ||
+        review.producerAddress != roles.producer.toString() ||
+        review.rewardAddress != roles.reward.toString() ||
+        review.momentumPercentage != 0 || review.delegatePercentage != 0) {
+      throw const SeedRefused('original-ui-control-changed');
+    }
+  }
+
+  void _requireOriginalPillarDone(_Node node) {
+    final ({LabSeedBinding source, String hash})? proof =
+        _labPillarRegistration;
+    if (proof == null || !proof.source.isCurrent) {
+      throw HarnessError('original Pillar registration changed');
+    }
+    PillarRegisteredSuccess? surface;
+    node.element.visitAncestorElements((Element ancestor) {
+      if (ancestor.widget case final PillarRegisteredSuccess value) {
+        surface = value;
+        return false;
+      }
+      return true;
+    });
+    final PillarRegisteredSuccess? shown = surface;
+    if (shown == null || shown.confirmation?.isConfirmed != true ||
+        shown.confirmation?.publication?.hashText != proof.hash ||
+        shown.confirmation?.publication?.ownerAddress !=
+            proof.source.environment.owner ||
+        shown.confirmation?.publication?.chainId != 321 ||
+        shown.confirmation?.publication?.name != labPillarRegistrationName ||
+        ModalRoute.of(node.element)?.isCurrent != true) {
+      throw HarnessError('original Pillar registration changed');
+    }
+    final Object attempt = shown.confirmation!.originalAttempt;
+    if (_labPillarRegistrationAttempt != null &&
+        !identical(_labPillarRegistrationAttempt, attempt)) {
+      throw HarnessError('original Pillar registration changed');
+    }
+    _labPillarRegistrationAttempt = attempt;
   }
 
   SeedTap _captureSeedTap(
@@ -3735,7 +3881,9 @@ class HarnessAgent {
   // The first unrelated render hit still covers the region. Input uses
   // the original descendant-only reachability path.
   bool _positiveObservationReachable(_Node n, Offset p) {
-    if (_readonlyNative == null || n.kind != 'region') {
+    final bool pillarDone = _labPillarRegistration != null &&
+        n.key == 'pillar_registration_confirmed';
+    if ((_readonlyNative == null && !pillarDone) || n.kind != 'region') {
       return _reachable(n, p);
     }
     final RenderObject? region = n.element.renderObject;
@@ -3956,6 +4104,9 @@ class HarnessAgent {
                   c['pillarDepositAmount']) {
             throw const SeedRefused('original-ui-control-changed');
           }
+        }
+        if (c['pillarRegisterRoles'] case final PillarRegistrationRoles roles) {
+          _requirePillarReview(fresh.node!.element, roles);
         }
         if (c['seedFuseTarget'] case final SeedFuseTarget fuseTarget) {
           final Object? beneficiary = c['seedFuseBeneficiary'];
@@ -4267,7 +4418,9 @@ class HarnessAgent {
     void Function(String reason)? onRejected,
   }) {
     final Object? key = command['key'];
-    if (_readonlyNative == null || key is! String) return null;
+    final bool pillarDone = _labPillarRegistration != null &&
+        key == 'pillar_registration_confirmed';
+    if ((_readonlyNative == null && !pillarDone) || key is! String) return null;
     final bool sentinelRegion =
         Platform.environment['SYRIUS_READONLY_CATALOG_FAMILY'] ==
             harnessReadonlySentinelCatalog &&
@@ -4287,7 +4440,8 @@ class HarnessAgent {
         }.contains(key);
     final bool zapPreview = _readonlyHomeZapPreview &&
         key == 'zap_received_card';
-    if (!sentinelRegion && !readyRegion && !warningRegion && !zapPreview &&
+    if (!pillarDone && !sentinelRegion && !readyRegion && !warningRegion &&
+        !zapPreview &&
         !const <String>{
           'home_hero', 'home_znn', 'rail_label_dashboard',
           'send_form_ready',
@@ -4643,6 +4797,10 @@ class HarnessAgent {
     }
     if (_readonlySendWarning && c['key'] == 'send_submit_button') {
       _requireSendWarningDraft(node);
+    }
+    if (_labPillarRegistration != null &&
+        c['key'] == 'pillar_registration_confirmed') {
+      _requireOriginalPillarDone(node);
     }
     return <String, Object?>{'asserted': true, 'target': node.toJson()};
   }

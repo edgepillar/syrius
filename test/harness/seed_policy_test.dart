@@ -282,6 +282,37 @@ void main() {
     expect(taps, 1);
   });
 
+  test('registration needs the fourth member and its own one-shot guard',
+      () async {
+    final _Source source = _Source(environment: _environment(index: 3,
+      members: <String>['producer', 'sponsor', 'recipient', 'owner']));
+    final _Journal journal = _Journal();
+    final SeedGuard registration = SeedGuard.forPillarRegistration(
+      source: source, journal: journal, delay: source.delay,
+    );
+    int taps = 0;
+    Future<void> tap() async {
+      taps++;
+      source.operations.add(_Original());
+    }
+
+    await expectLater(registration.publish(pillarDepositRecipeId, tap),
+        throwsA(isA<SeedRefused>()));
+    await expectLater(
+      SeedGuard.forPillarDeposit(
+        source: source, journal: journal, delay: source.delay,
+      ).publish(pillarRegistrationRecipeId, tap),
+      throwsA(isA<SeedRefused>()),
+    );
+    expect(journal.attempts, isEmpty);
+    expect(await registration.publish(pillarRegistrationRecipeId, tap),
+        _hash(9));
+    expect(journal.confirmedHashes[pillarRegistrationRecipeId], _hash(9));
+    await expectLater(registration.publish(pillarRegistrationRecipeId, tap),
+        throwsA(isA<SeedRefused>()));
+    expect(taps, 1);
+  });
+
   test('Pillar preflight requires the exact quote and all live prerequisites',
       () {
     final BigInt quote = BigInt.from(15000000000000);

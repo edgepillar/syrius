@@ -294,6 +294,7 @@ class ScreenCapture {
     this.restoredSeeded = false,
     this.restoredProject = false,
     this.restoredPillarSpawn = false,
+    this.restoredPillarDone = false,
   });
 
   final Directory repository;
@@ -313,6 +314,7 @@ class ScreenCapture {
   final bool restoredSeeded;
   final bool restoredProject;
   final bool restoredPillarSpawn;
+  final bool restoredPillarDone;
 
   static const String _afterCapturePrefix = '# after-capture:';
 
@@ -414,6 +416,9 @@ class ScreenCapture {
         final bool spawnPrepared = restoredSeeded && restoredPillarSpawn &&
             screen.id == 'spawn' &&
             text == '# prerequisite: restored-lab-pillar-deposit';
+        final bool donePrepared = restoredSeeded && restoredPillarDone &&
+            screen.id == 'pillar-done' &&
+            text == '# prerequisite: restored-lab-pillar-registration';
         final bool pillarPrepared = readonlyEarn &&
             screen.id == 'pillar-mine' &&
             text == '# prerequisite: readonly-lab-pillar-owner';
@@ -425,7 +430,7 @@ class ScreenCapture {
             !sendPrepared && !warningPrepared && !zapPreview &&
             !swapPrepared &&
             !tokenPrepared &&
-            !projectPrepared && !spawnPrepared &&
+            !projectPrepared && !spawnPrepared && !donePrepared &&
             !pillarPrepared && !readyPrepared) {
           throw ScreenCaptureError('${screen.id}: ${text.substring(2)}');
         }

@@ -11,6 +11,8 @@ const String seedHttpOrigin = 'http://127.0.0.1:45997';
 /// The single P09 send is separate from the six checkpointed F06 recipes.
 const String labSendRecipeId = 'lab-send';
 const String pillarDepositRecipeId = 'pillar-qsr';
+const String pillarRegistrationRecipeId = 'pillar-register';
+const String labPillarRegistrationName = 'LabPillar';
 const Set<String> seedRecipeIds = <String>{
   'stake',
   'fuse',
@@ -508,8 +510,7 @@ final class SeedGuard {
     Future<void> Function(Duration)? delay,
     this.readTimeout = const Duration(seconds: 3),
   }) : _delay = delay ?? Future<void>.delayed,
-       _labSend = false,
-       _pillarDeposit = false;
+       _isolatedRecipe = null;
 
   /// Read admission for one original P09 request; never a generic seed publish.
   SeedGuard.forLabSend({
@@ -518,8 +519,7 @@ final class SeedGuard {
     Future<void> Function(Duration)? delay,
     this.readTimeout = const Duration(seconds: 3),
   }) : _delay = delay ?? Future<void>.delayed,
-       _labSend = true,
-       _pillarDeposit = false;
+       _isolatedRecipe = labSendRecipeId;
 
   /// Admits the original QSR deposit of the sponsored fourth lab member.
   SeedGuard.forPillarDeposit({
@@ -528,14 +528,22 @@ final class SeedGuard {
     Future<void> Function(Duration)? delay,
     this.readTimeout = const Duration(seconds: 3),
   }) : _delay = delay ?? Future<void>.delayed,
-       _labSend = false,
-       _pillarDeposit = true;
+       _isolatedRecipe = pillarDepositRecipeId;
+
+  /// Admits one registration after the same actor's confirmed QSR deposit.
+  SeedGuard.forPillarRegistration({
+    required this.source,
+    required this.journal,
+    Future<void> Function(Duration)? delay,
+    this.readTimeout = const Duration(seconds: 3),
+  }) : _delay = delay ?? Future<void>.delayed,
+       _isolatedRecipe = pillarRegistrationRecipeId;
   final SeedSource source;
   final SeedJournal journal;
   final Future<void> Function(Duration) _delay;
   final Duration readTimeout;
-  final bool _labSend;
-  final bool _pillarDeposit;
+  final String? _isolatedRecipe;
+  bool get _labSend => _isolatedRecipe == labSendRecipeId;
   bool _revoked = false;
   bool _attempted = false;
   SeedOriginal? _original;
@@ -547,7 +555,9 @@ final class SeedGuard {
       _revoked = true;
       throw const SeedRefused('original-context-changed');
     }
-    source.environment.requireLab(pillarActor: _pillarDeposit);
+    source.environment.requireLab(pillarActor:
+        _isolatedRecipe == pillarDepositRecipeId ||
+        _isolatedRecipe == pillarRegistrationRecipeId);
   }
 
   void requirePreparation() {
@@ -580,11 +590,10 @@ final class SeedGuard {
 
   /// Both original endpoints must positively advance during this admission.
   Future<void> admit(String recipe, {bool waitForEarlier = false}) async {
-    final bool allowed = _labSend
-        ? recipe == labSendRecipeId
-        : _pillarDeposit
-        ? recipe == pillarDepositRecipeId
-        : seedRecipeIds.contains(recipe);
+    final String? requiredRecipe = _isolatedRecipe;
+    final bool allowed = requiredRecipe == null
+        ? seedRecipeIds.contains(recipe)
+        : recipe == requiredRecipe;
     if (!allowed) {
       throw const SeedRefused('unknown-recipe');
     }

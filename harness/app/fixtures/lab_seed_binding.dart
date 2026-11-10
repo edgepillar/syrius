@@ -151,6 +151,9 @@ Future<bool> readSeedTokenHolding({
 /// The actor and revalidation of the original sponsor's persisted selection.
 typedef PillarSponsorAdmission = ({String actor, bool Function() isCurrent});
 
+/// Two distinct roles supplied by the pinned copied lab fixture.
+typedef PillarRegistrationRoles = ({Address producer, Address reward});
+
 final BigInt _labPillarQsrCost = BigInt.from(15000000000000);
 
 @visibleForTesting
@@ -187,6 +190,7 @@ final class LabSeedBinding
     required this._stake,
     required this._plasma,
     required this._pillar,
+    required this._pillarRegistration,
     required this._token,
     required this._htlc,
     required this._accelerator,
@@ -208,6 +212,7 @@ final class LabSeedBinding
     bool catalogTokenHolding = false,
     PillarSponsorAdmission? pillarSponsor,
     PillarSponsorAdmission? pillarActor,
+    PillarRegistrationRoles? pillarRegistration,
     void Function(String)? observePhase,
   }) {
     if (ws != seedWsOrigin || http != seedHttpOrigin) {
@@ -294,6 +299,18 @@ final class LabSeedBinding
       owner: owner!,
       members: rawMembers.whereType<String>(),
     )..requireLab(pillarActor: pillarActor != null);
+    if (pillarRegistration != null &&
+        (pillarActor == null ||
+            pillarRegistration.producer == pillarRegistration.reward ||
+            pillarRegistration.producer == emptyAddress ||
+            pillarRegistration.reward == emptyAddress ||
+            environment.members.contains(
+              pillarRegistration.producer.toString(),
+            ) || environment.members.contains(
+              pillarRegistration.reward.toString(),
+            ))) {
+      throw const SeedRefused('restored-seed-exact-receipt-required');
+    }
     if (pillarActor != null &&
         (pillarSponsor != null || restoredFunding || catalogTokenHolding ||
             counterparty != null || owner != pillarActor.actor ||
@@ -358,6 +375,7 @@ final class LabSeedBinding
       stake: stake,
       plasma: plasma,
       pillar: pillar,
+      pillarRegistration: pillarRegistration,
       token: token,
       htlc: htlc,
       accelerator: accelerator,
@@ -430,6 +448,7 @@ final class LabSeedBinding
   final StakeApi _stake;
   final PlasmaApi _plasma;
   final PillarApi? _pillar;
+  final PillarRegistrationRoles? _pillarRegistration;
   final TokenApi _token;
   final HtlcApi _htlc;
   final AcceleratorApi _accelerator;
@@ -634,7 +653,8 @@ final class LabSeedBinding
       'stake' => BigInt.from(300) * BigInt.from(100000000),
       'token' => tokenZtsIssueFeeInZnn,
       'project' => projectCreationFeeInZnn,
-      pillarDepositRecipeId => pillarRegisterZnnAmount,
+      pillarDepositRecipeId || pillarRegistrationRecipeId =>
+        pillarRegisterZnnAmount,
       'fund-address' => BigInt.from(10) * BigInt.from(100000000),
       _ => BigInt.from(100000000),
     },
@@ -647,9 +667,13 @@ final class LabSeedBinding
 
   /// Rechecks the sponsor receipt and live terms for the selected lab actor.
   Future<void> requirePillarDepositReady(String fusionHash) async {
+    await _requirePillarSponsorship(fusionHash);
+    await requirePillarDepositTermsNow();
+  }
+
+  Future<void> _requirePillarSponsorship(String fusionHash) async {
     _requireCurrent();
-    final PillarApi? pillar = _pillar;
-    if (pillar == null || !seedHash(fusionHash)) {
+    if (_pillar == null || !seedHash(fusionHash)) {
       throw const SeedRefused('restored-seed-exact-receipt-required');
     }
     Future<T> read<T>(Future<T> Function() action) async {
@@ -675,8 +699,6 @@ final class LabSeedBinding
         ))) {
       throw const SeedRefused('restored-seed-exact-receipt-required');
     }
-
-    await requirePillarDepositTermsNow();
   }
 
   /// Reads the same live terms again immediately before the original tap.
@@ -699,6 +721,73 @@ final class LabSeedBinding
       quote: quote, deposited: deposited, funds: funds,
       plasma: plasma.currentPlasma, unregistered: owned.isEmpty,
     );
+  }
+
+  /// Binds both original prerequisites before preparing the one registration.
+  Future<void> requirePillarRegistrationReady(
+    String fusionHash,
+    String depositHash,
+  ) async {
+    if (fusionHash == depositHash) {
+      throw const SeedRefused('restored-seed-exact-receipt-required');
+    }
+    await _requirePillarSponsorship(fusionHash);
+    await requirePillarRegistrationTermsNow(depositHash);
+  }
+
+  AccountBlockTemplate? _pillarRegistrationTemplate() {
+    final PillarRegistrationRoles? roles = _pillarRegistration;
+    if (roles == null) return null;
+    return _pillar?.register(
+      labPillarRegistrationName, roles.producer, roles.reward, 0, 0,
+    );
+  }
+
+  /// Rechecks the live fee, name, producer and exact original deposit.
+  Future<void> requirePillarRegistrationTermsNow(String depositHash) async {
+    _requireCurrent();
+    final PillarApi? pillar = _pillar;
+    final PillarRegistrationRoles? roles = _pillarRegistration;
+    final AccountBlockTemplate? expected = _pillarRegistrationTemplate();
+    if (pillar == null || roles == null || expected == null ||
+        !seedHash(depositHash)) {
+      throw const SeedRefused('restored-seed-exact-receipt-required');
+    }
+    final Address actor = Address.parse(environment.owner);
+    final (
+      SeedConfirmed? deposit, BigInt quote, BigInt deposited,
+      PillarInfoList active, bool nameAvailable, SeedFunding funds,
+      GetRequiredResponse plasma,
+    ) = await (
+      confirmed(pillarDepositRecipeId, depositHash),
+      pillar.getQsrRegistrationCost(),
+      pillar.getDepositedQsr(actor),
+      pillar.getAll(pageSize: 16),
+      pillar.checkNameAvailability(labPillarRegistrationName),
+      funding(),
+      _plasma.getRequiredPoWForAccountBlock(GetRequiredParam(
+        address: actor, blockType: BlockTypeEnum.userSend.index,
+        toAddress: pillarAddress, data: expected.data,
+      )),
+    ).wait.timeout(const Duration(seconds: 3));
+    _requireCurrent();
+    if (deposit == null || deposit.hash != depositHash ||
+        deposit.owner != environment.owner || deposit.chain != 321 ||
+        !deposit.positiveConfirmation || !deposit.matchesRecipe) {
+      throw const SeedRefused('restored-seed-exact-receipt-required');
+    }
+    if (quote != _labPillarQsrCost || deposited != quote || !nameAvailable ||
+        funds.znn < pillarRegisterZnnAmount ||
+        plasma.requiredDifficulty != 0 ||
+        plasma.availablePlasma < plasma.basePlasma ||
+        active.count != 3 || active.list.length != active.count ||
+        active.list.any((PillarInfo row) =>
+          row.type != PillarInfo.legacyPillarType ||
+          row.ownerAddress == actor || row.producerAddress == roles.producer ||
+          row.name == labPillarRegistrationName,
+        )) {
+      throw const SeedRefused('recipe-prerequisite-missing');
+    }
   }
 
   Future<bool> _hasFusion(Address owner, Address beneficiary, String hash,
@@ -788,6 +877,13 @@ final class LabSeedBinding
         Definitions.common,
         'DepositQsr',
       ),
+      pillarRegistrationRecipeId when _pillarRegistration != null => (
+        pillarAddress,
+        znnZts,
+        pillarRegisterZnnAmount,
+        Definitions.pillar,
+        'Register',
+      ),
       'deposit' => (
         htlcAddress,
         znnZts,
@@ -832,6 +928,8 @@ final class LabSeedBinding
           block.amount == amount &&
           (recipe != pillarDepositRecipeId ||
               listEquals(block.data, _pillar!.depositQsr(amount).data)) &&
+          (recipe != pillarRegistrationRecipeId ||
+              listEquals(block.data, _pillarRegistrationTemplate()?.data)) &&
           (fuseTarget != SeedFuseTarget.pillarActor || recipe != 'fuse' ||
               listEquals(block.data, _plasma.fuse(
                 Address.parse(fuseBeneficiary!), amount,
@@ -915,6 +1013,25 @@ final class LabSeedBinding
       final BigInt deposited = await pillar.getDepositedQsr(owner);
       _requireCurrent();
       return deposited == _labPillarQsrCost;
+    }
+    if (recipe == pillarRegistrationRecipeId) {
+      final PillarApi? pillar = _pillar;
+      final PillarRegistrationRoles? roles = _pillarRegistration;
+      if (pillar == null || roles == null) return false;
+      final (List<PillarInfo> rows, BigInt deposit) = await (
+        pillar.getByOwner(owner), pillar.getDepositedQsr(owner),
+      ).wait;
+      _requireCurrent();
+      if (rows.length != 1 || deposit != BigInt.zero) return false;
+      final PillarInfo row = rows.single;
+      return row.ownerAddress == owner &&
+          row.name == labPillarRegistrationName &&
+          row.type == PillarInfo.regularPillarType &&
+          row.revokeTimestamp == 0 &&
+          row.producerAddress == roles.producer &&
+          row.withdrawAddress == roles.reward &&
+          row.giveMomentumRewardPercentage == 0 &&
+          row.giveDelegateRewardPercentage == 0;
     }
     if (recipe == 'token') {
       final TokenStandard standard = seedIssuedTokenStandard(hash);
@@ -1009,10 +1126,17 @@ final class _Original implements SeedOriginalSettlement {
 /// The isolated profile must remain under one process's sole ownership.
 final class ProfileSeedJournal implements SeedJournal {
   ProfileSeedJournal(this.home)
-    : _labSendReview = null, _sponsorFusionHash = null;
+    : _labSendReview = null, _sponsorFusionHash = null,
+      _pillarDepositHash = null;
 
   ProfileSeedJournal.forPillarDeposit(this.home, this._sponsorFusionHash)
-    : _labSendReview = null;
+    : _labSendReview = null, _pillarDepositHash = null;
+
+  ProfileSeedJournal.forPillarRegistration(
+    this.home,
+    this._sponsorFusionHash,
+    this._pillarDepositHash,
+  ) : _labSendReview = null;
 
   /// Records the identical fixed P09 review before the single ordinary accept.
   ProfileSeedJournal.forLabSend(
@@ -1020,11 +1144,13 @@ final class ProfileSeedJournal implements SeedJournal {
     required SeedEnvironment environment,
     required SendIntent intent,
   }) : _labSendReview = _captureLabSendReview(environment, intent),
-       _sponsorFusionHash = null;
+       _sponsorFusionHash = null,
+       _pillarDepositHash = null;
 
   final String home;
   final Map<String, Object>? _labSendReview;
   final String? _sponsorFusionHash;
+  final String? _pillarDepositHash;
   static const Set<String> _reviewKeys = <String>{
     'profile', 'from', 'to', 'recipientInput', 'amountInput',
     'token', 'amount', 'decimals', 'symbol', 'chain',
@@ -1115,7 +1241,10 @@ final class ProfileSeedJournal implements SeedJournal {
 
   void _write(String recipe, String state, {String? hash}) {
     if (!seedRecipeIds.contains(recipe) && recipe != labSendRecipeId &&
-        !(recipe == pillarDepositRecipeId && _sponsorFusionHash != null)) {
+        !(recipe == pillarDepositRecipeId && _sponsorFusionHash != null &&
+            _pillarDepositHash == null) &&
+        !(recipe == pillarRegistrationRecipeId &&
+            _sponsorFusionHash != null && _pillarDepositHash != null)) {
       throw const SeedRefused('unknown-recipe');
     }
     if (recipe == labSendRecipeId &&
@@ -1139,18 +1268,29 @@ final class ProfileSeedJournal implements SeedJournal {
       );
   }
 
+  void _requirePillarReceipt(String recipe, String? hash) {
+    if (hash == null || !seedHash(hash) || _read(recipe, 'attempt') == null ||
+        _read(recipe, 'accepted')?['hash'] != hash ||
+        _read(recipe, 'confirmed')?['hash'] != hash) {
+      throw const SeedRefused('restored-seed-exact-receipt-required');
+    }
+  }
+
   @override
   void requireAvailable(String recipe) {
-    if (recipe == pillarDepositRecipeId) {
-      final String? hash = _sponsorFusionHash;
-      if (hash == null || !seedHash(hash) || _read('fuse', 'attempt') == null ||
-          _read('fuse', 'accepted')?['hash'] != hash ||
-          _read('fuse', 'confirmed')?['hash'] != hash) {
+    if (recipe == pillarDepositRecipeId ||
+        recipe == pillarRegistrationRecipeId) {
+      _requirePillarReceipt('fuse', _sponsorFusionHash);
+    }
+    if (recipe == pillarRegistrationRecipeId) {
+      if (_pillarDepositHash == _sponsorFusionHash) {
         throw const SeedRefused('restored-seed-exact-receipt-required');
       }
+      _requirePillarReceipt(pillarDepositRecipeId, _pillarDepositHash);
     }
     for (final String id in <String>{
       ...seedRecipeIds, labSendRecipeId, pillarDepositRecipeId,
+      pillarRegistrationRecipeId,
     }) {
       final Map<String, dynamic>? attempt = _read(id, 'attempt');
       final Map<String, dynamic>? accepted = _read(id, 'accepted');
@@ -1243,7 +1383,7 @@ final class ProfileSeedJournal implements SeedJournal {
       }
     }
     for (final String recipe in <String>{
-      ...seedRecipeIds, pillarDepositRecipeId,
+      ...seedRecipeIds, pillarDepositRecipeId, pillarRegistrationRecipeId,
     }) {
       for (final String state in <String>['attempt', 'accepted', 'confirmed']) {
         if (_read(recipe, state) != null) {
