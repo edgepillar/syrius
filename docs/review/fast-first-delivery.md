@@ -738,14 +738,21 @@ separate forced cleanup receipt.
 [Source626 Windows run](https://github.com/edgepillar/syrius/actions/runs/42841687809)
 and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42845841191).
 
-Source627 adds the opt-in cold lock frame timing job selection. One Release
-build prepares a dark synthetic profile and measures the next original
-process through the enabled lock password field. It retains only the
-finite numeric manifest with the source, binaries, profile setup and
-normal exit facts. The independent reader validates the numeric window and
-original closed processes. Twenty-three in-memory controls pass. The paired
-P06 build, page and disclosure timings, and the visual Motion and Shaders
-pass remain open.
+Source627 adds the opt-in cold lock frame timing job selection. The selected
+analysis reports zero findings, 1,388 Dart cases pass and 1,117 Python cases
+complete with eighteen skips. The Release build completes and both original
+actors exit normally. The timing actor reports ENTRY_INVALID and retains zero
+frames. The independent reader verifies the 1,358-byte archive and the original
+failure without starting a Windows process.
+[Source627 Windows run](https://github.com/edgepillar/syrius/actions/runs/42846425942)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42849507992).
+
+Source628 waits for the original reachable password field and observes the
+naturally restored client size within the existing deadline. A persistent
+geometry mismatch has its own refusal code. The reader preserves the original
+Source627 producer binding. All 46 selected in-memory controls pass. Fresh
+native timing, paired P06 and page and disclosure measurements, and the
+running Motion and Shaders review remain open.
 
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied

@@ -159,23 +159,31 @@ class LaunchProcess(startup.StartupProbe):
 
     def _observe_frame_timing(self):
         until = min(self.deadline - 5, self.started + 50, self.clock() + 20)
-        state = self._rpc({'cmd': 'state'}, until=until)
-        need(state.get('booted') is True and state.get('walletUnlocked') is False
-             and state.get('size') == list(TIMING_SIZE), 'ENTRY_INVALID')
+        window_pending = False
         while self.clock() < until:
             remaining_ms = int((until - self.clock()) * 1000)
             need(remaining_ms > 0, 'STARTUP_DEADLINE')
             reply = self._rpc(dict(cmd='wait', key='wallet_password_field',
-                                   timeoutMs=remaining_ms), until=until)
+                                   exact=True, ready=True, timeoutMs=remaining_ms), until=until)
             target = reply.get('target')
             need(type(target) is dict and target.get('key') == 'wallet_password_field'
-                 and target.get('kind') == 'field', 'ENTRY_INVALID')
-            if target.get('enabled', True) is True:
-                break
-            need(target.get('enabled') is False, 'ENTRY_INVALID')
+                 and target.get('kind') == 'field'
+                 and type(target.get('enabled', True)) is bool, 'ENTRY_UNAVAILABLE')
+            if target.get('enabled', True):
+                state = self._rpc({'cmd': 'state'}, until=until)
+                need(state.get('booted') is True and state.get('walletUnlocked') is False,
+                     'ENTRY_INVALID')
+                size = state.get('size')
+                need(type(size) is list and len(size) == 2
+                     and all(type(value) is int and value >= 0 for value in size),
+                     'WINDOW_INVALID')
+                # The original startup restores client geometry asynchronously.
+                if size == list(TIMING_SIZE):
+                    break
+                window_pending = True
             self.sleep(min(self.limits.poll, max(0, until - self.clock())))
         else:
-            raise startup.Failure('STARTUP_DEADLINE')
+            raise startup.Failure('WINDOW_INVALID' if window_pending else 'STARTUP_DEADLINE')
         raw = self._rpc(dict(cmd='stalls', frameWindow='end'),
                         until=min(self.deadline, self.started + 60))
         need(set(raw) == {'ok', *TIMING_FIELDS})
