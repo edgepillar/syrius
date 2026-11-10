@@ -149,12 +149,15 @@ def inspect_run(client, *, head, tree, run_id, job):
 
 
 def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *,
-                   settle=False, lock=False, quiz=False, timing=False):
+                   settle=False, lock=False, quiz=False, timing=False, lock_seams=False):
     """Bind startup evidence to its exact original closed actors."""
     archive.need(not timing or not (settle or lock or quiz))
+    archive.need(not lock_seams or not (settle or lock or quiz or timing))
     cap = launch.TIMING_MAX_ARCHIVE if timing else lock_catalog.MAX_ARCHIVE if lock else launch.MAX_ARCHIVE
     if quiz:
         cap = quiz_catalog.MAX_ARCHIVE
+    elif lock_seams:
+        cap = lock_catalog.SEAM_MAX_ARCHIVE
     archive.need(type(raw) is bytes and type(expected_size) is int
         and 0 < len(raw) == expected_size <= cap
         and archive.sha(raw) == expected_sha)
@@ -164,6 +167,9 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
     elif quiz:
         files, frame_fields, scope = quiz_catalog.FILES, quiz_catalog.STATE_FIELDS, quiz_catalog.SCOPE
         pin_fields = set(quiz_catalog.PIN_SOURCES)
+    elif lock_seams:
+        files, frame_fields, scope = (), set(), lock_catalog.SEAM_SCOPE
+        pin_fields = {'capture_source_sha256', 'profile_sha256'} | set(lock_catalog.SEAM_PIN_SOURCES)
     elif lock:
         files, frame_fields, scope = lock_catalog.FILES, lock_catalog.STATE_FIELDS, lock_catalog.SCOPE
         pin_fields = {'capture_source_sha256', 'profile_sha256'}
@@ -190,7 +196,8 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
         archive.need(1 <= len(names) <= len(files) + 1 and len(set(names)) == len(names)
             and 'manifest.json' in names and set(names) <= {'manifest.json', *files})
         for member in members:
-            cap = launch.MAX_MANIFEST if member.filename == 'manifest.json' else launch.MAX_PNG
+            manifest_cap = lock_catalog.SEAM_CAP if lock_seams else launch.MAX_MANIFEST
+            cap = manifest_cap if member.filename == 'manifest.json' else launch.MAX_PNG
             archive.need(member.orig_filename == member.filename and not member.is_dir()
                 and not member.flag_bits & 1 and 0 < member.file_size <= cap
                 and member.compress_type in (zipfile.ZIP_STORED, zipfile.ZIP_DEFLATED)
@@ -202,6 +209,8 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
             'runner_sha256', 'payload_sha256'} | pin_fields
         if timing:
             required = required - {'captures'} | {'mode', 'theme', 'client', 'frame_window'}
+        if lock_seams:
+            required.add('seam_refusals')
         archive.need(type(report) is dict and set(report) == required
             and type(report['schema']) is int and report['schema'] == 1
             and report['scope'] == scope
@@ -216,8 +225,9 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
             and all(type(code) is str and code in startup.CODES for code in errors))
         attempts = report['attempts']
         captures = [] if timing else report['captures']
-        if timing:
-            roles = [(launch.TIMING_THEME, role) for role in ('prepare', 'timing')]
+        if timing or lock_seams:
+            action = 'observe' if lock_seams else 'timing'
+            roles = [(launch.TIMING_THEME, role) for role in ('prepare', action)]
         else:
             roles = ([('dark', 'capture')] if quiz else
                      [(theme, role) for theme in launch.THEMES for role in ('prepare', 'capture')])
@@ -226,7 +236,7 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
         attempt_flags = ('action_complete', 'exit_observed', 'forced_kill',
                          'output_complete', 'output_overflow')
         attempt_keys = {*attempt_flags, 'theme', 'role', 'checks', 'exit_code', 'error_codes'}
-        if lock or quiz:
+        if lock or quiz or lock_seams:
             attempt_keys.add('phase')
         for row, (theme, role) in zip(attempts, roles):
             archive.need(type(row) is dict)
@@ -240,8 +250,9 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
                      and -(2**31) <= row['exit_code'] < 2**32)
                 and type(row['error_codes']) is list and len(row['error_codes']) <= 16
                 and all(type(code) is str and code in startup.CODES for code in row['error_codes']))
-            if lock:
-                archive.need(row['phase'] in lock_catalog.PHASES
+            if lock or lock_seams:
+                phases = lock_catalog.SEAM_PHASES if lock_seams else lock_catalog.PHASES
+                archive.need(row['phase'] in phases
                     and ((role == 'prepare') is (row['phase'] == 'prepare'))
                     and (not row['action_complete'] or row['phase'] in ('prepare', 'complete')))
             if quiz:
@@ -253,6 +264,12 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
                          and 'COMMAND_FAILED' in row['error_codes']
                          and not row['action_complete'])))
         archive.need(all(launch.attempt_passed(row) for row in attempts[:-1]))
+        if lock_seams:
+            observed = report['seam_refusals']
+            expected = tuple(seam for _, seam in lock_catalog.SEAM_ACTIONS)
+            archive.need(type(observed) is list and tuple(observed) == expected[:len(observed)]
+                and (not observed or len(attempts) == 2
+                     and attempts[1]['phase'] in ('seam_probes', 'complete')))
         frame_window = None
         if timing:
             archive.need(report['mode'] == 'release' and report['theme'] == launch.TIMING_THEME
@@ -290,7 +307,8 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
         complete = (len(attempts) == len(roles) and len(captures) == len(files)
                     and all(launch.attempt_passed(row) for row in attempts)
                     and report['source_stable'] and not errors
-                    and (not timing or frame_window is not None))
+                    and (not timing or frame_window is not None)
+                    and (not lock_seams or tuple(observed) == expected))
         archive.need(report['success'] is complete)
     summary = dict(schema=1, scope='retained_' + report['scope'],
         source_head=head, source_tree=tree, source_run_id=run_id, source_attempt=1,
@@ -308,6 +326,12 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
                 window_us=frame_window['windowUs'], frame_window_sha256=archive.sha(raw_window))
         summary.update(mode=report['mode'], theme=report['theme'], client=report['client'],
             original_attempts=attempts, baseline_compared=False)
+    elif lock_seams:
+        summary['seam_refusals'] = observed
+        summary['normal_actor_exits'] = sum(
+            row['exit_observed'] and row['exit_code'] == 0
+            and row['output_complete'] and not row['output_overflow'] and not row['forced_kill']
+            and all(row['checks'].values()) for row in attempts)
     elif quiz:
         summary['single_process'] = len(attempts) == 1 and launch.attempt_passed(attempts[0])
         summary['states'] = [{key: row[key] for key in sorted(frame_fields)} for row in captures]
@@ -324,11 +348,19 @@ def launch_archive(raw, expected_sha, expected_size, head, tree, run_id, pins, *
     return summary
 
 
-def inspect_launch_run(client, *, head, tree, run_id, job, settle=False, lock=False, quiz=False, timing=False):
+def inspect_launch_run(client, *, head, tree, run_id, job, settle=False, lock=False,
+                       quiz=False, timing=False, lock_seams=False):
     """Inspect the selected startup lane without an SDK or native process."""
     archive.need(job['name'] == JOB_NAME and job['head_sha'] == head
         and job['run_id'] == run_id and job['status'] == 'completed'
         and job['conclusion'] in ('success', 'failure'))
+    if lock_seams:
+        observed = [step for step in job['steps'] if step['name'] == lock_catalog.SEAM_STEP]
+        retained = [step for step in job['steps'] if step['name'] == lock_catalog.SEAM_RETAIN_STEP]
+        archive.need(job['labels'] == ['windows-latest'] and len(observed) == len(retained) == 1
+            and observed[0]['status'] == retained[0]['status'] == 'completed'
+            and observed[0]['conclusion'] in ('success', 'failure')
+            and retained[0]['conclusion'] == 'success')
     pins = {}
     sources = [('tool/ci/windows_launch_catalog.py', None)]
     if timing:
@@ -338,15 +370,17 @@ def inspect_launch_run(client, *, head, tree, run_id, job, settle=False, lock=Fa
     elif quiz:
         sources.append(('tool/ci/windows_quiz_catalog.py', None))
         sources.extend((str(path), key) for key, path in quiz_catalog.PIN_SOURCES.items())
-    elif lock:
+    elif lock or lock_seams:
         sources.extend((('tool/ci/windows_lock_catalog.py', None),
                         (str(lock_catalog.CAPTURE_SOURCE), 'capture_source_sha256')))
     else:
         recipe = launch.SETTLE_RECIPE if settle else launch.RECIPE
         sources.extend(((str(recipe), 'recipe_sha256'),
                         (str(launch.CAPTURE_SOURCE), 'capture_source_sha256')))
-    if settle or lock:
+    if settle or lock or lock_seams:
         sources.append((str(launch.SETTLE_PROFILE_SOURCE), 'profile_sha256'))
+    if lock_seams:
+        sources.extend((str(path), key) for key, path in lock_catalog.SEAM_PIN_SOURCES.items())
     for name, key in sources:
         selected = client.json('/contents/' + name + '?ref=' + head)
         archive.need(selected['type'] == 'file' and selected['encoding'] == 'base64'
@@ -356,12 +390,12 @@ def inspect_launch_run(client, *, head, tree, run_id, job, settle=False, lock=Fa
         archive.need(len(body) == selected['size'])
         if key is None:
             current = Path(__file__).with_name(Path(name).name).read_bytes()
-            prior = () if lock or quiz else ((HANDOFF_LAUNCH_PRODUCER_SHA,) if settle else
+            prior = () if lock or quiz or lock_seams else ((HANDOFF_LAUNCH_PRODUCER_SHA,) if settle else
                                       (ORIGINAL_LAUNCH_PRODUCER_SHA, HANDOFF_LAUNCH_PRODUCER_SHA))
             if timing:
                 prior = (PRIOR_TIMING_LAUNCH_PRODUCER_SHAS
                          if name == 'tool/ci/windows_launch_catalog.py' else ())
-            elif name == 'tool/ci/windows_launch_catalog.py':
+            elif name == 'tool/ci/windows_launch_catalog.py' and not lock_seams:
                 prior = (*prior, PRE_TIMING_LAUNCH_PRODUCER_SHA, *PRIOR_TIMING_LAUNCH_PRODUCER_SHAS)
             if quiz and name == 'tool/ci/windows_quiz_catalog.py':
                 prior = PRIOR_QUIZ_PRODUCER_SHAS
@@ -378,6 +412,8 @@ def inspect_launch_run(client, *, head, tree, run_id, job, settle=False, lock=Fa
         prefix, cap = launch.TIMING_ARTIFACT_PREFIX, launch.TIMING_MAX_ARCHIVE
     elif quiz:
         prefix, cap = quiz_catalog.ARTIFACT_PREFIX, quiz_catalog.MAX_ARCHIVE
+    elif lock_seams:
+        prefix, cap = lock_catalog.SEAM_ARTIFACT_PREFIX, lock_catalog.SEAM_MAX_ARCHIVE
     archive.need(item['name'] == prefix + head + '-' + str(run_id) + '-1'
         and item['expired'] is False and item['workflow_run']['id'] == run_id
         and item['workflow_run']['head_sha'] == head and type(item['id']) is int and item['id'] > 0
@@ -386,7 +422,8 @@ def inspect_launch_run(client, *, head, tree, run_id, job, settle=False, lock=Fa
     location = client.read(archive.API + '/actions/artifacts/' + str(item['id']) + '/zip', redirect=True)
     raw = client.read(location, authenticated=False, cap=cap)
     summary = launch_archive(raw, item['digest'][7:], item['size_in_bytes'],
-        head, tree, run_id, pins, settle=settle, lock=lock, quiz=quiz, timing=timing)
+        head, tree, run_id, pins, settle=settle, lock=lock, quiz=quiz, timing=timing,
+        lock_seams=lock_seams)
     archive.need((job['conclusion'] == 'success') is summary['artifact_reported_success'])
     summary.update(original_job_id=job['id'], original_job_conclusion=job['conclusion'])
     return summary

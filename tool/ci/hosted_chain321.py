@@ -117,6 +117,8 @@ WALLET_READY_INSPECTION_SCHEMA = 10
 SEND_WARNING_INSPECTION_SCHEMA = 11
 HOME_ZAP_PREVIEW_INSPECTION_SCHEMA = 12
 HOME_SEAMS_FAMILY = 'home-seams'
+SURFACE_SEAMS_FAMILY = 'surface-seams'
+SURFACE_SEAMS_SCHEMA = 13
 INTERACTIVE_FRAME_PAIR_FAMILY = 'interactive-timing-pair'
 SETTINGS_SEAMS_FAMILY = 'settings-seams'
 READONLY_CATALOG_SCHEMAS = {
@@ -129,6 +131,7 @@ READONLY_CATALOG_SCHEMAS = {
     'home-zap-preview': HOME_ZAP_PREVIEW_INSPECTION_SCHEMA,
     'earn': EARN_INSPECTION_SCHEMA,
     'sentinel-fixture': SENTINEL_INSPECTION_SCHEMA,
+    SURFACE_SEAMS_FAMILY: SURFACE_SEAMS_SCHEMA,
 }
 
 
@@ -168,9 +171,11 @@ def require_environment(backend, parent):
     tour = wallet_tour_requested(backend, parent)
     family = parent.get('SYRIUS_READONLY_CATALOG_FAMILY')
     if family in (send_warning_window.FAMILY, 'home-zap-preview',
-                  HOME_SEAMS_FAMILY, SETTINGS_SEAMS_FAMILY):
+                  HOME_SEAMS_FAMILY, SETTINGS_SEAMS_FAMILY, SURFACE_SEAMS_FAMILY):
         need(inspection and not tour and parent['GITHUB_REPOSITORY'] == 'edgepillar/syrius'
-             and parent.get('GITHUB_RUN_ATTEMPT') == '1', 'ENVIRONMENT_REFUSED')
+             and parent.get('GITHUB_RUN_ATTEMPT') == '1'
+             and (family != SURFACE_SEAMS_FAMILY
+                  or parent.get('GITHUB_REF') == 'refs/heads/redesign'), 'ENVIRONMENT_REFUSED')
     if family == INTERACTIVE_FRAME_PAIR_FAMILY:
         from tool.ci import windows_interactive_frame_pair
         try:

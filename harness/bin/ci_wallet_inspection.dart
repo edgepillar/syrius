@@ -18,6 +18,8 @@ import 'readonly_viewport_probe.dart';
 import 'screen_capture.dart';
 import 'wallet_recipe.dart';
 
+const String _surfaceSeamsFamily = 'surface-seams';
+
 const Map<String, ReadonlyDetailsSelection> _detailsSelections =
     <String, ReadonlyDetailsSelection>{
       'details': ReadonlyDetailsSelection.details,
@@ -31,12 +33,12 @@ const Map<String, ReadonlyDetailsSelection> _detailsSelections =
       harnessReadonlyWalletReadyCatalog: ReadonlyDetailsSelection.walletReady,
     };
 
-/// One fixed original capture family, with the previous Details default.
+/// One fixed inspection family, with the previous Details default.
 String readonlyInspectionCatalogFamily(Map<String, String> environment) {
   final String family =
       environment['SYRIUS_READONLY_CATALOG_FAMILY'] ?? 'details';
   if (!const <String>{
-    'home', 'home-bell', 'settings', 'navigation',
+    'home', 'home-bell', 'settings', 'navigation', _surfaceSeamsFamily,
   }.contains(family) &&
       !_detailsSelections.containsKey(family)) {
     throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.command);
@@ -172,6 +174,14 @@ Future<void> main() async {
       stdout.writeln(value);
       await stdout.flush();
     }
+    Future<void> finish() async {
+      await marker('CI_INSPECT_DONE');
+      stage = 'finish';
+      if (!await input.moveNext() || input.current != 'FINISH') {
+        throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.process);
+      }
+    }
+
     Future<void> warningWindow(String event) async {
       if (!const <String>{'BEGIN', 'DARK', 'LIGHT'}.contains(event)) {
         throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.command);
@@ -305,6 +315,10 @@ Future<void> main() async {
     await marker('SYRIUS_INSPECTION_WALLET:${jsonEncode(
       bound['readonlyWallet'],
     )}');
+    if (family == _surfaceSeamsFamily) {
+      await finish();
+      return;
+    }
     final List<String> tourThemes =
         catalogOnly ? const <String>[] : const <String>['dark', 'light'];
     for (final String theme in tourThemes) {
@@ -375,11 +389,7 @@ Future<void> main() async {
       );
       await marker('SYRIUS_INSPECTION_VIEWPORT:${jsonEncode(viewport)}');
     }
-    await marker('CI_INSPECT_DONE');
-    stage = 'finish';
-    if (!await input.moveNext() || input.current != 'FINISH') {
-      throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.process);
-    }
+    await finish();
   } on Object catch (error) {
     if (stage == 'admission') {
       stdout.writeln('CI_INSPECT_ERROR');

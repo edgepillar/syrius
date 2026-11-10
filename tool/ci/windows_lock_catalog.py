@@ -15,6 +15,22 @@ SCOPE = 'original_lock_catalog'
 JOB_STEP = 'Capture the original lock states in both themes'
 ARTIFACT_PREFIX = 'windows-lock-catalog-'
 OUTPUT = Path('.harness/ci-lock-catalog')
+SEAM_SCOPE = 'original_lock_seam_refusals'
+SEAM_OUTPUT = Path('.harness/ci-lock-seams')
+SEAM_STEP = 'Observe the original lock seam refusals'
+SEAM_RETAIN_STEP = 'Retain the original lock seam manifest'
+SEAM_ARTIFACT_PREFIX = 'windows-lock-seams-'
+SEAM_CAP = 8 * 1024
+SEAM_MAX_ARCHIVE = SEAM_CAP + 65536
+SEAM_PIN_SOURCES = {
+    'lock_card_sha256': Path('lib/widgets/tab_children_widgets/lock_card.dart'),
+    'seam_gate_sha256': Path('lib/seams/seam.dart'),
+}
+SEAM_PHASES = ('prepare', 'ready', 'bind', 'input', 'seam_probes', 'complete')
+SEAM_ACTIONS = (
+    ('probe-add-wallet', 'walletPicker'),
+    ('probe-password-recovery', 'passwordRecovery'),
+)
 CAPTURE_SOURCE = Path('harness/app/native_lock_catalog.dart')
 SCREENS = ('lock-screen', 'lock-wrong', 'lock-pick')
 FILES = tuple(f'{index:02}-{screen}-{theme}.png' for theme in launch.THEMES
@@ -169,17 +185,74 @@ class LockProcess(launch.LaunchProcess):
         return normal, wrong, picker
 
 
+class LockSeamProcess(LockProcess):
+    def __init__(self, *args, observed, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.observed = observed
+
+    def _observe_pixels(self, theme, *, settle):
+        need(settle and theme == launch.TIMING_THEME and not self.observed)
+        self._status(theme, False, wait=True)
+        self._bind_input()
+        self.phase = 'seam_probes'
+        for action, seam in SEAM_ACTIONS:
+            receipt = self._catalog(action)
+            need(receipt == dict(ok=True, scope='native_lock_seam_pointer_observation',
+                seam=seam, pointerDispatched=True, absorptionObserved=True))
+            self._lock_view(0)
+            self.observed.append(seam)
+        self._status(theme, False)
+        need(self._rpc(dict(cmd='logs', since=0, limit=500,
+            levels=['SEVERE', 'SHOUT', 'FLUTTER'])).get('logs') == [])
+        self.phase = 'complete'
+        return tuple(self.observed)
+
+
+def run_seam_probes(repo, parent, binaries, report):
+    theme = launch.TIMING_THEME
+    profile = entry.new_profile(repo)
+    identity = bounded.plain(profile)
+
+    class Process(LockSeamProcess):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, observed=report['seam_refusals'], **kwargs)
+
+    def check_profile():
+        current = bounded.plain(profile)
+        need((current.st_dev, current.st_ino) == (identity.st_dev, identity.st_ino), 'PROFILE_REFUSED')
+
+    prepared, _ = launch.run_process(repo, parent, binaries, profile, theme,
+        capture=False, settle=True, process_type=LockProcess)
+    report['attempts'].append(prepared)
+    need(launch.attempt_passed(prepared))
+    check_profile()
+    attempted, result = launch.run_process(repo, parent, binaries, profile, theme,
+        capture=True, settle=True, process_type=Process)
+    report['attempts'].append(dict(attempted, role='observe'))
+    expected = tuple(seam for _, seam in SEAM_ACTIONS)
+    need(launch.attempt_passed(attempted) and result == expected
+         and tuple(report['seam_refusals']) == expected)
+    check_profile()
+
+
 def main():
-    report = dict(schema=1, scope=SCOPE, success=False, attempts=[], captures=[],
-                  source_stable=False, error_codes=[])
+    mode = os.environ.get('SYRIUS_WINDOWS_LOCK_SEAMS', 'false')
+    seams = mode == 'true'
+    report = dict(schema=1, scope=SEAM_SCOPE if seams else SCOPE,
+                  success=False, attempts=[], captures=[], source_stable=False, error_codes=[])
+    if seams:
+        report['seam_refusals'] = []
     output = None
     try:
         need(not sys.argv[1:], 'ARGUMENTS_REFUSED')
         parent, head = entry.require_ci(os.environ, None, platform=os.name)
-        need(parent.get('GITHUB_EVENT_NAME') == 'workflow_dispatch'
+        need(mode in ('true', 'false') and parent.get('GITHUB_EVENT_NAME') == 'workflow_dispatch'
              and parent.get('GITHUB_RUN_ATTEMPT') == '1'
              and parent.get('SYRIUS_WINDOWS_STARTUP_PROBE') == 'true'
              and parent.get('SYRIUS_WINDOWS_LOCK_CATALOG') == 'true', 'ENVIRONMENT_REFUSED')
+        if seams:
+            need(parent.get('GITHUB_REPOSITORY') == 'edgepillar/syrius'
+                 and parent.get('GITHUB_REF') == 'refs/heads/redesign', 'ENVIRONMENT_REFUSED')
         repo = Path(parent['GITHUB_WORKSPACE'])
         bounded.plain(repo)
         need(repo.resolve() == Path.cwd().resolve(), 'ENVIRONMENT_REFUSED')
@@ -190,28 +263,39 @@ def main():
             runner_sha256=binaries[0][1], payload_sha256=binaries[1][1],
             capture_source_sha256=sha((repo / CAPTURE_SOURCE).read_bytes()),
             profile_sha256=sha((repo / launch.SETTLE_PROFILE_SOURCE).read_bytes()))
+        if seams:
+            for key, relative in SEAM_PIN_SOURCES.items():
+                path = repo / relative
+                info = bounded.plain(path)
+                need(0 < info.st_size <= 64 * 1024, 'SOURCE_REFUSED')
+                raw = path.read_bytes()
+                need(len(raw) == info.st_size, 'SOURCE_REFUSED')
+                report[key] = sha(raw)
         entry.private_root(repo)
-        target = repo / OUTPUT
+        target = repo / (SEAM_OUTPUT if seams else OUTPUT)
         target.mkdir(mode=0o700)
         output = target
-        for index, theme in enumerate(launch.THEMES):
-            profile = entry.new_profile(repo)
-            identity = bounded.plain(profile)
-            prepared, _ = launch.run_process(repo, parent, binaries, profile, theme,
-                capture=False, settle=True, process_type=LockProcess)
-            report['attempts'].append(prepared)
-            need(launch.attempt_passed(prepared))
-            current = bounded.plain(profile)
-            need((current.st_dev, current.st_ino) == (identity.st_dev, identity.st_ino), 'PROFILE_REFUSED')
-            captured, result = launch.run_process(repo, parent, binaries, profile, theme,
-                capture=True, settle=True, process_type=LockProcess)
-            report['attempts'].append(captured)
-            need(result is not None and len(result) == len(SCREENS))
-            for offset, (png, state) in enumerate(result):
-                name = FILES[index * len(SCREENS) + offset]
-                with (output / name).open('xb') as stream:
-                    stream.write(png)
-                report['captures'].append(dict(theme=theme, file=name, bytes=len(png), sha256=sha(png), **state))
+        if seams:
+            run_seam_probes(repo, parent, binaries, report)
+        else:
+            for index, theme in enumerate(launch.THEMES):
+                profile = entry.new_profile(repo)
+                identity = bounded.plain(profile)
+                prepared, _ = launch.run_process(repo, parent, binaries, profile, theme,
+                    capture=False, settle=True, process_type=LockProcess)
+                report['attempts'].append(prepared)
+                need(launch.attempt_passed(prepared))
+                current = bounded.plain(profile)
+                need((current.st_dev, current.st_ino) == (identity.st_dev, identity.st_ino), 'PROFILE_REFUSED')
+                captured, result = launch.run_process(repo, parent, binaries, profile, theme,
+                    capture=True, settle=True, process_type=LockProcess)
+                report['attempts'].append(captured)
+                need(result is not None and len(result) == len(SCREENS))
+                for offset, (png, state) in enumerate(result):
+                    name = FILES[index * len(SCREENS) + offset]
+                    with (output / name).open('xb') as stream:
+                        stream.write(png)
+                    report['captures'].append(dict(theme=theme, file=name, bytes=len(png), sha256=sha(png), **state))
         bounded.verify_source(repo, head, parent)
         need(entry.source_tree(repo, parent) == tree, 'SOURCE_REFUSED')
         need(tuple(bounded.binary_hash(repo, path) for path in (startup.BINARY, startup.PAYLOAD)) == binaries,
@@ -224,7 +308,7 @@ def main():
     if output is not None:
         try:
             manifest = (json.dumps(report, sort_keys=True, separators=(',', ':')) + '\n').encode('ascii')
-            need(len(manifest) <= launch.MAX_MANIFEST, 'ARTIFACT_FAILED')
+            need(len(manifest) <= (SEAM_CAP if seams else launch.MAX_MANIFEST), 'ARTIFACT_FAILED')
             with (output / 'manifest.json').open('xb') as stream:
                 stream.write(manifest)
         except (Exception, KeyboardInterrupt):

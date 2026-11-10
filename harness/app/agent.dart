@@ -2285,6 +2285,46 @@ class HarnessAgent {
     }
     _requireCaptureFrameIdle();
     try {
+      final (Seam, String)? seam = switch (action) {
+        'probe-add-wallet' => (Seam.walletPicker, 'lock_add_wallet_gate'),
+        'probe-password-recovery' => (
+          Seam.passwordRecovery, 'lock_password_recovery_gate',
+        ),
+        _ => null,
+      };
+      if (seam != null) {
+        void requireOriginal() {
+          final Map<String, Object?> state = catalog.control('status');
+          final Map<String, Object?> owner = _lockViewCommand(
+            <String, dynamic>{'cmd': 'lock-view', 'action': 'observe'},
+          );
+          final Object? view = owner['view'];
+          if (state['status'] != 'ready' ||
+              state['picker'] != false || state['failures'] != 0 ||
+              state['remaining'] != 3 ||
+              state['frame'] != 55 || state['frames'] != 56 ||
+              owner['owner_same'] != true || view is! Map<String, Object?> ||
+              view['current'] != true || view['route_current'] != true ||
+              view['startup_interactive'] != true ||
+              view['window_active'] != true ||
+              view['opening'] != false || view['busy'] != false ||
+              view['unlock_requests'] != 0 || view['password_failures'] != 0) {
+            throw const CaptureRefused('lock-catalog-state-refused');
+          }
+        }
+
+        await _observeSeamPointer(
+          seam.$1,
+          seam.$2,
+          requireOwner: requireOriginal,
+        );
+        return <String, Object?>{
+          'scope': 'native_lock_seam_pointer_observation',
+          'seam': seam.$1.name,
+          'pointerDispatched': true,
+          'absorptionObserved': true,
+        };
+      }
       final Map<String, Object?> receipt = catalog.control(action);
       if (action == 'open-picker' || action == 'close-picker') await _frame();
       return receipt;
@@ -4616,15 +4656,29 @@ class HarnessAgent {
   Future<Map<String, Object?>> _probeReadonlySeam(
     Map<String, dynamic> command,
   ) async {
-    const String refusal = 'readonly-seam-pointer-refused';
     final Object? key = command['key'];
     final Seam? seam = Seam.values.asNameMap()[command['seam']];
     if (_readonlyNative == null || command.length != 3 ||
         key is! String || key.isEmpty || key.length > 128 || seam == null) {
-      throw HarnessError(refusal);
+      throw HarnessError('readonly-seam-pointer-refused');
     }
+    await _observeSeamPointer(seam, key);
+    return <String, Object?>{
+      'scope': 'readonly_native_seam_pointer_observation',
+      'seam': seam.name,
+      'pointerDispatched': true,
+      'absorptionObserved': true,
+    };
+  }
 
+  Future<void> _observeSeamPointer(
+    Seam seam,
+    String key, {
+    VoidCallback? requireOwner,
+  }) async {
+    const String refusal = 'readonly-seam-pointer-refused';
     ({_Node target, RenderAbsorbPointer barrier}) resolve() {
+      requireOwner?.call();
       final List<_Node> nodes = _visibleKeyNodes(key);
       if (nodes.length != 1) throw HarnessError(refusal);
       final _Node target = nodes.single;
@@ -4678,12 +4732,6 @@ class HarnessAgent {
     if (_snapshot().any((_Node node) => node.kind == 'error')) {
       throw HarnessError(refusal);
     }
-    return <String, Object?>{
-      'scope': 'readonly_native_seam_pointer_observation',
-      'seam': seam.name,
-      'pointerDispatched': true,
-      'absorptionObserved': true,
-    };
   }
 
   bool _seamBlocksPointer(RenderAbsorbPointer barrier, Offset point) {

@@ -999,6 +999,27 @@ widget regression and one controller regression cover the content selection.
 Nine in-memory Python controls pass, including rejection of changed content,
 address and scroll replies. Fresh widget and native qualification remain open.
 
+Source645 passes selected analysis, all 1,389 ordinary Dart cases and 1,143
+Python cases with eighteen skips. All sixteen measurement commands complete.
+The current session retains eight page-change frames and fourteen disclosure
+frames. Closing is acknowledged, but the exit check times out and records
+forced termination with incomplete output. The reader verifies both original
+manifests, one normal entry exit and five normal node exits. Normal wallet
+closure and both P06 windows remain unqualified.
+[Producer](https://github.com/edgepillar/syrius/actions/runs/42919312168)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42922322292).
+
+Source646 aligns the stationary Welcome action group to physical pixel rows
+before each row's entrance transform. Layout and original callbacks are
+retained. Two new widget cases check border and fill pixels in both themes at
+one and two pixels per logical pixel, including fractional parent positions.
+The same source prepares opt-in native probes for locked wallet controls and
+remaining page seam controls. Existing gates and owner checks remain in place.
+The combined candidate passes 180 in-memory Python controls and selected
+analysis of all six changed Dart files with zero findings. Fresh widget,
+native capture and seam qualification remain open. The Source645 closure
+failure and complete performance acceptance remain open.
+
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied
 owner, confirmed receipt and exact Project row. The original Project

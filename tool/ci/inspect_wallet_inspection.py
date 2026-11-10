@@ -75,6 +75,12 @@ SOURCE_FILES = (
     'harness/screens/token-new.txt',
     'harness/screens/send-confirm.txt',
 )
+SURFACE_SEAM_SOURCES = (
+    'lib/seams/SEAMS.md', 'lib/seams/seam.dart',
+    'lib/widgets/shell/strip/update_slot.dart',
+    'lib/rearchitecture/features/pillars/view/pillars_card.dart',
+    'lib/widgets/modular_widgets/p2p_swap_widgets/modals/start_native_swap_modal.dart',
+)
 SENTINEL_FIXTURE_SOURCES = ('harness/app/main.dart',
     'harness/app/fixtures/sentinel_fixture.dart')
 HOME_ZAP_PREVIEW_SOURCES = ('harness/app/fixtures/home_zap_preview.dart',)
@@ -148,6 +154,8 @@ def projection(report, lab, lab_summary, head, tree, run_id, manifest_sha):
                 and all(p['captured'] is True and p['nodes'] > 0
                         and p['error_widgets'] == p['severe_logs'] == 0
                         for p in v['tour']['visited']) for v in report['tours'].values()))
+    if catalog_family == producer.SURFACE_SEAMS_FAMILY:
+        samples_complete = tuple(report['seam_refusals']) == producer.SURFACE_SEAMS
     positive = (report['phase'] == 'complete' and not report['errors']
         and producer.complete_checks(report) and samples_complete
         and report['input_attempted'] is True and report['lab_revalidations'] == 2
@@ -194,6 +202,8 @@ def projection(report, lab, lab_summary, head, tree, run_id, manifest_sha):
         visual_matches=0)
     if catalog_family is not None:
         result['sampling_scope'] = catalog_family + '-only'
+    if catalog_family == producer.SURFACE_SEAMS_FAMILY:
+        result['seam_refusals'] = list(report['seam_refusals'])
     if send_warning:
         result['send_warning_window'] = producer.require_warning_window(
             report, complete=report['success'])
@@ -526,7 +536,11 @@ def main(parent=None):
             seed_admitted=False, financial_send_qualified=False, visual_matches=0)
     else:
         item = artifact(listing, name, head, run_id)
-        summary = unpack(download(item, MAX_ARCHIVE), item['digest'][7:], item['size_in_bytes'],
+        original = lab.get('wallet_inspection')
+        need(type(original) is dict and type(original.get('captured_pages')) is int)
+        zero_captures = original['captured_pages'] == 0
+        cap = producer.MAX_MANIFEST + 65536 if zero_captures else MAX_ARCHIVE
+        summary = unpack(download(item, cap), item['digest'][7:], item['size_in_bytes'],
             head, tree, run_id, lab, lab_summary)
         expected_pages = 0 if 'sampling_scope' in summary else 24
         summary['native_inspection_qualified'] = bool(summary['artifact_reported_success']
@@ -540,7 +554,14 @@ def main(parent=None):
     navigation_reference = summary.pop('_navigation_catalog_reference', None)
     details_reference = summary.pop('_details_catalog_reference', None)
     viewport_reference = summary.pop('_viewport_reference', None)
-    if summary['native_inspection_qualified']:
+    seams_only = summary.get('sampling_scope') == producer.SURFACE_SEAMS_FAMILY + '-only'
+    if seams_only:
+        need(all(value is None for value in
+                 (reference, settings_reference, navigation_reference, details_reference, viewport_reference))
+             and listing['total_count'] == 2
+             and {item['name'] for item in listing['artifacts']} == {name, root_item['name']})
+        source_digests.update(source_files(repo, producer_tree, tree, files=SURFACE_SEAM_SOURCES))
+    if summary['native_inspection_qualified'] and not seams_only:
         need(sum(value is not None for value in
             (reference, settings_reference, navigation_reference, details_reference)) == 1)
         if details_reference is not None:

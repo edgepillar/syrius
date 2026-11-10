@@ -223,7 +223,7 @@ class InspectionTests(unittest.TestCase):
             SYRIUS_WINDOWS_WALLET_TOUR='false', SYRIUS_LAB_NODE_SOURCE='lab-fix',
             SYRIUS_NATIVE_STACK_DIAGNOSTIC='true')
         self.assertEqual(lab.readonly_catalog_family(parent), 'details')
-        for family, schema in (('home', 1), ('home-seams', 1), ('home-bell', 8), ('settings', 2),
+        for family, schema in (('home', 1), ('home-seams', 1), ('surface-seams', 13), ('home-bell', 8), ('settings', 2),
                                ('settings-seams', 2),
                                ('navigation', 3), ('details', 4),
                                ('token-draft', 4), ('send-confirm', 5),
@@ -236,7 +236,7 @@ class InspectionTests(unittest.TestCase):
                 lab.readonly_catalog_family(selected)], schema)
         for value in (None, True, 1, '', 'Home', 'all', 'home,navigation',
                       '../home', 'launch', 'launch-settle', 'launch-timing', 'launch-timing-pair', 'interactive-timing-pair',
-                      'lock-catalog', 'quiz-catalog', 'seeded-states',
+                      'lock-catalog', 'lock-seams', 'quiz-catalog', 'seeded-states',
                       'stake-draft', 'project-detail', 'pillar-spawn',
                       'pillar-done'):
             with self.subTest(value=value), self.assertRaises(lab.Failure):
@@ -248,20 +248,23 @@ class InspectionTests(unittest.TestCase):
         self.assertIn('default: details', choice)
         self.assertEqual([line.strip()[2:] for line in choice.splitlines()
             if line.strip().startswith('- ')],
-            ['home', 'home-seams', 'home-bell', 'home-zap-preview', 'settings', 'settings-seams',
+            ['home', 'home-seams', 'surface-seams', 'home-bell', 'home-zap-preview', 'settings', 'settings-seams',
              'navigation', 'details', 'token-draft',
              'send-confirm', 'send-warn', 'swap-start', 'wallet-ready', 'earn',
              'sentinel-fixture', 'launch', 'launch-settle', 'launch-timing', 'launch-timing-pair', 'interactive-timing-pair',
-             'lock-catalog', 'quiz-catalog', 'seeded-states',
+             'lock-catalog', 'lock-seams', 'quiz-catalog', 'seeded-states',
              'stake-draft', 'project-detail', 'pillar-spawn', 'pillar-done'])
         self.assertIn('SYRIUS_READONLY_CATALOG_FAMILY: ${{ inputs.readonly_catalog_family }}', workflow)
-        for family in ('send-warn', 'settings-seams', 'home-seams'):
+        for family in ('send-warn', 'settings-seams', 'home-seams', 'surface-seams'):
             scoped = dict(parent, SYRIUS_READONLY_CATALOG_FAMILY=family,
                 SYRIUS_HOSTED_RUNNER='github-hosted', GITHUB_ACTIONS='true',
                 GITHUB_EVENT_NAME='workflow_dispatch', GITHUB_REPOSITORY='edgepillar/syrius',
-                GITHUB_SHA='a' * 40, GITHUB_RUN_ATTEMPT='1')
+                GITHUB_SHA='a' * 40, GITHUB_RUN_ATTEMPT='1', GITHUB_REF='refs/heads/redesign')
             with mock.patch.object(lab.sys, 'platform', 'win32'):
                 self.assertFalse(lab.require_environment('native', scoped))
+                if family == 'surface-seams':
+                    with self.assertRaises(lab.Failure):
+                        lab.require_environment('native', dict(scoped, GITHUB_REF='refs/heads/dev'))
                 for change in (dict(GITHUB_REPOSITORY='sol-znn/syrius'),
                         dict(GITHUB_RUN_ATTEMPT='2'), dict(SYRIUS_WINDOWS_WALLET_INSPECTION='false')):
                     with self.assertRaises(lab.Failure):

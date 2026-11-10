@@ -436,6 +436,7 @@ def main():
                 startup.launch.TIMING_JOB_STEP: 'Hosted original cold lock timing inspection',
                 paired_timing.pair.JOB_STEP: paired_timing.TITLE,
                 startup.lock_catalog.JOB_STEP: 'Hosted original lock catalog inspection',
+                startup.lock_catalog.SEAM_STEP: 'Hosted original lock seam inspection',
                 startup.quiz_catalog.JOB_STEP: 'Hosted original seed quiz catalog inspection',
             }
             launch_steps = [step for step in job.get('steps', [])
@@ -453,7 +454,8 @@ def main():
                         settle=name == startup.launch.SETTLE_JOB_STEP,
                         lock=name == startup.lock_catalog.JOB_STEP,
                         quiz=name == startup.quiz_catalog.JOB_STEP,
-                        timing=name == startup.launch.TIMING_JOB_STEP)
+                        timing=name == startup.launch.TIMING_JOB_STEP,
+                        lock_seams=name == startup.lock_catalog.SEAM_STEP)
                 emit(launch_titles[name], summary)
                 return 0
             for summary in startup.inspect_run(

@@ -1,3 +1,6 @@
+import 'dart:ui' as ui;
+
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -9,6 +12,41 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/app_lottie.
 import 'support.dart';
 
 const List<String> _actions = <String>['create', 'import', 'hardware'];
+
+const Key _paintBoundary = Key('welcome_paint_boundary');
+
+Future<List<int>> _paintedColors(
+  WidgetTester tester,
+  List<Offset> points,
+  double pixelRatio,
+) async {
+  final RenderRepaintBoundary layer = tester
+      .renderObject<RenderRepaintBoundary>(find.byKey(_paintBoundary));
+  final List<Offset> local = points.map(layer.globalToLocal).toList();
+  final List<int>? colors = await tester.runAsync<List<int>>(() async {
+    final ui.Image image = await layer.toImage(pixelRatio: pixelRatio);
+    try {
+      final ByteData pixels = (await image.toByteData())!;
+      final List<int> values = <int>[];
+      for (final Offset point in local) {
+        final int offset =
+            ((point.dy * pixelRatio).round() * image.width +
+                (point.dx * pixelRatio).round()) *
+            4;
+        values.add(
+          pixels.getUint8(offset + 3) << 24 |
+              pixels.getUint8(offset) << 16 |
+              pixels.getUint8(offset + 1) << 8 |
+              pixels.getUint8(offset + 2),
+        );
+      }
+      return values;
+    } finally {
+      image.dispose();
+    }
+  });
+  return colors!;
+}
 
 Finder _action(String name) => find.byKey(Key('welcome_$name'));
 
@@ -108,6 +146,75 @@ void main() {
         expect(calls, isEmpty);
         expect(tester.takeException(), isNull);
       },
+    );
+
+    testWidgets(
+      'the ${light ? 'light' : 'dark'} action borders '
+      'align through fractional layers',
+      (WidgetTester tester) async {
+        prepareWelcomeViewport(tester);
+        for (final double ratio in <double>[1, 2]) {
+          tester.view.physicalSize = const Size(1280, 780) * ratio;
+          tester.view.devicePixelRatio = ratio;
+          for (final double fraction in <double>[0.125, 0.625]) {
+            final List<WelcomeDestination> calls = <WelcomeDestination>[];
+            await tester.pumpWidget(
+              welcomeHost(
+                Builder(
+                  builder: (BuildContext context) => MediaQuery(
+                    data: MediaQuery.of(
+                      context,
+                    ).copyWith(devicePixelRatio: ratio),
+                    child: RepaintBoundary(
+                      key: _paintBoundary,
+                      child: Transform.translate(
+                        offset: Offset(0, fraction),
+                        child: welcomeFixture(
+                          source: Object(),
+                          onSelected: calls.add,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                light: light,
+              ),
+            );
+            await finishWelcomeEntrance(tester);
+            final AppTokens tokens = light ? AppTokens.light : AppTokens.dark;
+            final List<Offset> points = <Offset>[];
+            for (final String name in _actions) {
+              final Rect row = tester.getRect(_action(name));
+              expect(row.size, const Size(400, 70));
+              expect(
+                row.top * ratio,
+                closeTo((row.top * ratio).round(), 0.001),
+              );
+              points.addAll(<Offset>[
+                Offset(row.left + 100, row.top),
+                Offset(row.left + 100, row.top + 1),
+                Offset(row.left + 100, row.bottom - 1 / ratio),
+              ]);
+            }
+            expect(
+              await _paintedColors(tester, points, ratio),
+              <int>[
+                for (final String _ in _actions) ...<int>[
+                  tokens.line.toARGB32(),
+                  tokens.card.toARGB32(),
+                  tokens.line.toARGB32(),
+                ],
+              ],
+            );
+            for (final String name in _actions) {
+              await tester.tap(_action(name));
+            }
+            expect(calls, WelcomeDestination.values);
+            expect(tester.takeException(), isNull);
+          }
+        }
+      },
+      timeout: const Timeout(Duration(seconds: 30)),
     );
 
     testWidgets('the ${light ? 'light' : 'dark'} rows keep one plasma fill', (

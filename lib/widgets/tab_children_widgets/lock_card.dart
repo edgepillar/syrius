@@ -480,6 +480,7 @@ class _LockCardState extends State<LockCard>
     children: <Widget>[
       Flexible(
         child: SeamGate(
+          key: const Key('lock_add_wallet_gate'),
           seam: Seam.walletPicker,
           child: TextButton(
             onPressed: () => throw const SeamNotBuilt(Seam.walletPicker),

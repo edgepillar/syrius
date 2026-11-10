@@ -387,6 +387,51 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual(value['original_errors'], ['ENTRY_FAILED'])
         self.assertFalse(value['original_lab_closure_qualified'])
 
+    def test_surface_seams_preserve_refusal_prefixes_and_admit_only_the_manifest(self):
+        child = child_report()
+        child.update(schema=reader.producer.SURFACE_SEAMS_SCHEMA, captures=[], viewport=None,
+            home_catalog=None, settings_catalog=None, navigation_catalog=None, details_catalog=None,
+            tours={}, locales={}, stalls={}, seam_refusals=list(reader.producer.SURFACE_SEAMS))
+        child['checks'].update(tours_complete=False, locale_verified=False, captures=False)
+        lab = bind(lab_report(), child)
+        files = [('manifest.json', encode(child), stat.S_IFREG)]
+        observed = self.inspect(child, lab, files)
+        self.assertTrue(observed['artifact_reported_success'])
+        self.assertEqual(observed['verified_png_count'], 0)
+        self.assertEqual(observed['seam_refusals'], list(reader.producer.SURFACE_SEAMS))
+        with self.assertRaises(reader.archive.Refused):
+            self.inspect(child, lab, files + [('captures/dark/dashboard.png', b'pixels', stat.S_IFREG)])
+
+        for changes in (dict(seam_refusals=['pillarAprEstimate']),
+                        dict(seam_refusals=['walletUpdateNotice']),
+                        dict(home_catalog=wallet_fixtures.home_reference())):
+            offered = dict(child, **changes)
+            with self.assertRaises(reader.producer.Refused):
+                self.inspect(offered, bind(lab_report(), offered),
+                             [('manifest.json', encode(offered), stat.S_IFREG)])
+
+        partial = dict(child, success=False, inspection_qualified=False, errors=['ENTRY_REFUSED'],
+                       seam_refusals=['walletUpdateNotice'])
+        lab = lab_report()
+        lab.update(success=False, error_codes=['WALLET_INSPECTION_FAILED'])
+        observed = self.inspect(partial, bind(lab, partial),
+                                [('manifest.json', encode(partial), stat.S_IFREG)])
+        self.assertFalse(observed['artifact_reported_success'])
+        self.assertEqual(observed['seam_refusals'], ['walletUpdateNotice'])
+
+        result, calls, _ = self.run_main(surface_seams=True)
+        self.assertTrue(result['native_inspection_qualified'])
+        self.assertEqual(result['seam_refusals'], list(reader.producer.SURFACE_SEAMS))
+        self.assertEqual(result['producer_source_files_verified'],
+                         len(reader.SOURCE_FILES) + len(reader.SURFACE_SEAM_SOURCES))
+        self.assertEqual(result['verified_catalog_png_count'], 0)
+        self.assertEqual(result['verified_viewport_png_count'], 0)
+        self.assertEqual(len(calls), 12)
+        self.assertIn(('read', 'https://fixture.blob.core.windows.net/2',
+                       dict(authenticated=False, cap=reader.producer.MAX_MANIFEST + 65536)), calls)
+        with self.assertRaises(reader.archive.Refused):
+            self.run_main(surface_seams=True, extra_viewport=True)
+
     def test_unknown_duplicate_directory_and_link_members_are_refused(self):
         child, lab, files = pair(positive=False)
         for extra in (('profile.json', b'private fixture', stat.S_IFREG),
@@ -556,7 +601,8 @@ class ReaderTests(unittest.TestCase):
     def run_main(self, *, positive=True, parent_failed=False, mutate_after=False,
                  child_missing=False, auxiliary_forced=False, home_schema=1,
                  settings_catalog=False, navigation_catalog=False,
-                 details_catalog=False, catalog_only=None, extra_viewport=False):
+                 details_catalog=False, catalog_only=None, extra_viewport=False,
+                 surface_seams=False):
         child, lab, files = pair(positive=positive)
         if auxiliary_forced:
             child['forced_cleanup'] = child['auxiliary_cleanup']['forced'] = True
@@ -581,7 +627,7 @@ class ReaderTests(unittest.TestCase):
             'swap-start', 'wallet-ready', 'send-warn', 'home-zap-preview')
         home = wallet_fixtures.home_manifest(home_pixels, source, schema=home_schema)
         self.assertLessEqual(sum((settings_catalog, navigation_catalog,
-            details_catalog, catalog_only is not None)), 1)
+            details_catalog, catalog_only is not None, surface_seams)), 1)
         if bell_only:
             home = wallet_fixtures.home_manifest(home_pixels, source,
                 schema=reader.producer.HOME_BELL_CAPTURE_SCHEMA)
@@ -621,10 +667,17 @@ class ReaderTests(unittest.TestCase):
             else:
                 child['home_catalog'] = (wallet_fixtures.home_reference(reader.archive.sha(home_manifest), schema=home_schema)
                                          if positive else None)
-            if not catalog_only:
+            if not catalog_only and not surface_seams:
                 child['viewport'] = (dict(schema=1, scope='readonly_native_viewport_reference',
                     captured=4, manifest_sha256=reader.archive.sha(viewport_manifest_raw))
                     if positive else None)
+            if surface_seams:
+                child.update(schema=reader.producer.SURFACE_SEAMS_SCHEMA, captures=[],
+                    home_catalog=None, settings_catalog=None, navigation_catalog=None,
+                    details_catalog=None, viewport=None, tours={}, locales={}, stalls={},
+                    seam_refusals=list(reader.producer.SURFACE_SEAMS))
+                child['checks'].update(tours_complete=False, locale_verified=False, captures=False)
+                files = files[:1]
             bind(lab, child)
             files[0] = ('manifest.json', encode(child), stat.S_IFREG)
         if catalog_only == 'send-warn':
@@ -643,6 +696,8 @@ class ReaderTests(unittest.TestCase):
         artifact_ids = (1,) if child_missing else (1, 2, 3, 4) if positive else (1, 2)
         if catalog_only and positive and not extra_viewport:
             artifact_ids = (1, 2, 3)
+        if surface_seams:
+            artifact_ids = (1, 2, 4) if extra_viewport else (1, 2)
         catalog_name = 'home-catalog-'
         if details_catalog or (catalog_only and not bell_only):
             catalog_name = 'details-catalog-'
@@ -658,6 +713,8 @@ class ReaderTests(unittest.TestCase):
         blob = hashlib.sha1(b'blob ' + str(len(source)).encode() + b'\0' + source).hexdigest()
         source_files = reader.SOURCE_FILES
         fixture_bytes = {}
+        if surface_seams:
+            source_files += reader.SURFACE_SEAM_SOURCES
         if bell_only:
             source_files += (reader.producer.HOME_BELL_SCRIPT.as_posix(),)
         elif catalog_only == 'earn':

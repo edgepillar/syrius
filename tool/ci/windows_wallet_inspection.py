@@ -31,7 +31,8 @@ from .hosted_chain321 import (EARN_INSPECTION_SCHEMA, HOME_BELL_INSPECTION_SCHEM
     HOME_SEAMS_FAMILY, HOME_ZAP_PREVIEW_INSPECTION_SCHEMA,
     READONLY_CATALOG_SCHEMAS, SEND_CONFIRM_INSPECTION_SCHEMA, SENTINEL_INSPECTION_SCHEMA,
     SEND_WARNING_INSPECTION_SCHEMA, SETTINGS_SEAMS_FAMILY, SWAP_START_INSPECTION_SCHEMA,
-    WALLET_READY_INSPECTION_SCHEMA, readonly_catalog_family)
+    SURFACE_SEAMS_FAMILY, SURFACE_SEAMS_SCHEMA, WALLET_READY_INSPECTION_SCHEMA,
+    readonly_catalog_family)
 
 
 PAGES = shared.PAGES
@@ -73,6 +74,7 @@ CATALOG_ONLY_FAMILIES = {
     HOME_ZAP_PREVIEW_INSPECTION_SCHEMA: 'home-zap-preview',
     EARN_INSPECTION_SCHEMA: 'earn',
     SENTINEL_INSPECTION_SCHEMA: 'sentinel-fixture',
+    SURFACE_SEAMS_SCHEMA: SURFACE_SEAMS_FAMILY,
 }
 CODES = shared.CODES | shared.LAB_REVALIDATION_CODES | frozenset((
     'BINDING_REFUSED', 'INSPECTION_REFUSED', 'SEND_WARNING_WINDOW_REFUSED'))
@@ -595,6 +597,8 @@ def catalog_only_family(report):
 def complete_checks(report):
     checks = report['checks']
     skipped = TOUR_CHECKS if catalog_only_family(report) else ()
+    if report['schema'] == SURFACE_SEAMS_SCHEMA:
+        skipped += ('captures',)
     return set(checks) == set(CHECKS) and all(
         checks[key] is (key not in skipped) for key in CHECKS)
 
@@ -608,9 +612,23 @@ def require_catalog_only_samples(report):
               not in ('tour_dark', 'tour_light', 'viewport')), 'OUTPUT_REFUSED')
 
 
+def require_surface_seam_samples(report, *, complete):
+    observed = report['seam_refusals']
+    need(type(observed) is list and tuple(observed) == SURFACE_SEAMS[:len(observed)]
+         and (not observed or report['checks']['wallet_bound'] is True)
+         and (not complete or tuple(observed) == SURFACE_SEAMS)
+         and report['checks']['captures'] is False
+         and all(report[field] is None for field in
+                 ('home_catalog', 'settings_catalog', 'navigation_catalog', 'details_catalog')),
+         'OUTPUT_REFUSED')
+
+
 def completed(report):
     try:
-        inspection_catalog_reference(report)
+        if report['schema'] == SURFACE_SEAMS_SCHEMA:
+            require_surface_seam_samples(report, complete=True)
+        else:
+            inspection_catalog_reference(report)
         if catalog_only_family(report):
             require_catalog_only_samples(report)
             if report['schema'] == SEND_WARNING_INSPECTION_SCHEMA:
@@ -671,6 +689,12 @@ def output_bytes(output, *, catalog_only=False):
 
 def sample_capture_outputs(repo, *, family, catalog_only):
     """Account in-progress writes using the selected finite filename sets."""
+    if family == SURFACE_SEAMS_FAMILY:
+        capture_roots = (HOME_OUTPUT, settings.OUTPUT, navigation.OUTPUT,
+                         details.OUTPUT, viewport.OUTPUT)
+        need(catalog_only and not any((repo / path).exists() or (repo / path).is_symlink()
+                                     for path in capture_roots), 'CAPTURE_REFUSED')
+        return output_bytes(repo / OUTPUT, catalog_only=True)
     return (output_bytes(repo / OUTPUT, catalog_only=catalog_only)
         + home_output_bytes(repo / HOME_OUTPUT, schema=HOME_CAPTURE_SCHEMAS.get(family, 4))
         + settings.output_bytes(repo / settings.OUTPUT)
@@ -710,6 +734,8 @@ def public_manifest(value):
         required.add('details_catalog')
     if schema == SEND_WARNING_INSPECTION_SCHEMA:
         required.add('send_warning_window')
+    if schema == SURFACE_SEAMS_SCHEMA:
+        required.add('seam_refusals')
     need(required <= set(value) <= required | optional, 'OUTPUT_REFUSED')
     need(value['scope'] == 'owned_chain321_wallet_inspection'
          and all(type(value[k]) is bool for k in flags)
@@ -743,7 +769,9 @@ def public_manifest(value):
         need(type(value['input_attempted']) is bool, 'OUTPUT_REFUSED')
     if 'entry_failure' in value:
         entry_failure(value['entry_failure'])
-    if schema in HOME_INSPECTION_SCHEMAS:
+    if schema == SURFACE_SEAMS_SCHEMA:
+        require_surface_seam_samples(value, complete=value['success'])
+    elif schema in HOME_INSPECTION_SCHEMAS:
         if value['home_catalog'] is not None or value['success']:
             inspection_catalog_reference(value)
         if schema == HOME_BELL_INSPECTION_SCHEMA:
@@ -962,7 +990,78 @@ def observe_home_seam_pointers(send, observed):
     require_seam_clean_logs(send)
 
 
+SURFACE_SEAMS = ('walletUpdateNotice', 'pillarAprEstimate', 'swapTerms')
+
+
+def observe_surface_seams(send, observed):
+    """Try three existing unavailable controls without captures or form input."""
+    initial = seam_wallet_state(send, 'dashboard')
+    address, home = initial['address'], initial.get('route')
+    need(type(home) is str and bool(home), 'ENTRY_REFUSED')
+
+    def route(tab):
+        state = seam_wallet_state(send, tab)
+        route_name = state.get('route')
+        need(state['address'] == address and type(route_name) is str and bool(route_name),
+             'ENTRY_REFUSED')
+        return route_name
+
+    def wait(key, *, kind=None, gone=False):
+        command = dict(cmd='wait', key=key, exact=True, timeoutMs=5000)
+        if kind is not None:
+            command['kind'] = kind
+        if gone:
+            command['gone'] = True
+        response = send(command)
+        target = response.get('target')
+        need(('target' not in response if gone else
+              type(target) is dict and target.get('key') == key), 'ENTRY_REFUSED')
+
+    def tap(key):
+        result = send(dict(cmd='tap', key=key, kind='button', exact=True))
+        target = result.get('target')
+        need(type(target) is dict and target.get('key') == key, 'ENTRY_REFUSED')
+
+    require_seam_absorption(send, 'walletUpdateNotice', 'strip_update_button')
+    need(route('dashboard') == home, 'ENTRY_REFUSED')
+    observed.append('walletUpdateNotice')
+
+    send(dict(cmd='tap', tab='pillars'))
+    wait('nodes_tab_pillars')
+    tap('nodes_tab_pillars')
+    wait('nodes_pillars_strip')
+    pillars = route('pillars')
+    tap('pillars_sort')
+    menu = route('pillars')
+    need(menu != pillars, 'ENTRY_REFUSED')
+    require_seam_absorption(send, 'pillarAprEstimate', 'pillars_sort_apr_gate')
+    need(route('pillars') == menu, 'ENTRY_REFUSED')
+    send(dict(cmd='key', key='escape'))
+    need(route('pillars') == pillars, 'ENTRY_REFUSED')
+    observed.append('pillarAprEstimate')
+
+    send(dict(cmd='tap', tab='p2pSwap'))
+    wait('p2p_swaps_strip')
+    swap = route('p2pSwap')
+    tap('p2p_start_swap')
+    wait('swap_counterparty_input', kind='field')
+    draft = route('p2pSwap')
+    require_seam_absorption(send, 'swapTerms', 'swap_start_terms_gate')
+    need(route('p2pSwap') == draft, 'ENTRY_REFUSED')
+    wait('swap_counterparty_input', kind='field')
+    tap('swap_action_close')
+    wait('swap_counterparty_input', kind='field', gone=True)
+    need(route('p2pSwap') == swap, 'ENTRY_REFUSED')
+    observed.append('swapTerms')
+
+    send(dict(cmd='tap', tab='dashboard'))
+    wait('home_hero')
+    need(route('dashboard') == home, 'ENTRY_REFUSED')
+    require_seam_clean_logs(send)
+
+
 SEAM_PILOTS = {
+    SURFACE_SEAMS_FAMILY: (SURFACE_SEAMS_FAMILY, observe_surface_seams, len(SURFACE_SEAMS)),
     SETTINGS_SEAMS_FAMILY: ('settings', observe_settings_seam_pointers,
         sum(len(targets) for _, _, targets in SETTINGS_SEAM_PANELS)),
     HOME_SEAMS_FAMILY: ('home', observe_home_seam_pointers,
@@ -990,7 +1089,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
     seam_pointers = seam_failure = seam_pilot = None
     family = catalog_slot = 'details'
     details_schema = 1
-    catalog_only = False
+    catalog_only = seams_only = False
     try:
         parent, source = debug.entry.require_ci(parent, None, platform=os.name)
         need(parent.get('GITHUB_EVENT_NAME') == 'workflow_dispatch'
@@ -1006,6 +1105,12 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
         else:
             catalog_slot = 'details' if family in details.FAMILY_SCHEMAS else family
         report['schema'] = READONLY_CATALOG_SCHEMAS[family]
+        seams_only = family == SURFACE_SEAMS_FAMILY
+        if seams_only:
+            report['seam_refusals'] = []
+            need(parent.get('GITHUB_REPOSITORY') == 'edgepillar/syrius'
+                 and parent.get('GITHUB_REF') == 'refs/heads/redesign'
+                 and parent.get('GITHUB_RUN_ATTEMPT') == '1', 'ENVIRONMENT_REFUSED')
         if family == send_warning_window.FAMILY:
             report['send_warning_window'] = dict(started=False, released=False, samples=[])
         need((family == send_warning_window.FAMILY) == (warning_window is not None),
@@ -1182,7 +1287,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
                         raise
                 elif line.startswith(b'SYRIUS_INSPECTION_CATALOG:'):
                     expected_themes = set() if catalog_only else set(THEMES)
-                    need(marker == b'CI_INSPECT_DONE' and catalog_receipt is None
+                    need(not seams_only and marker == b'CI_INSPECT_DONE' and catalog_receipt is None
                          and 'wallet' in used and set(report['stalls']) == expected_themes,
                          'ENTRY_REFUSED')
                     if warning_window is not None:
@@ -1206,7 +1311,8 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
                         warning_close_grace = True
                     raise Refused('ENTRY_FAILED')
                 elif line == b'CI_INSPECT_DONE':
-                    need(marker == line and catalog_receipt is not None
+                    need(marker == line and 'wallet' in used
+                         and (catalog_receipt is not None) is (not seams_only)
                          and (viewport_receipt is not None) is (not catalog_only),
                          'ENTRY_REFUSED')
                     return
@@ -1271,26 +1377,29 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
                     report['captures'].append(dict(theme=theme, page=page, bytes=len(raw),
                         sha256=hashlib.sha256(raw).hexdigest(), width=1280, height=780))
             capture_records(report['captures'])
-        output_bytes(output, catalog_only=catalog_only)
-        if not catalog_only:
-            report['checks']['captures'] = True
-        if catalog_slot == 'home':
-            report['home_catalog'] = collect_home_catalog(
-                repo, catalog_receipt, source, tree, parent)
+        if seams_only:
+            sample_capture_outputs(repo, family=family, catalog_only=True)
         else:
-            collector = dict(settings=settings, navigation=navigation, details=details)[catalog_slot]
-            report[catalog_slot + '_catalog'] = collector.collect(
-                repo, catalog_receipt, source, tree, parent, read_original=read_original)
-        if catalog_only:
-            report['checks']['captures'] = True
-        else:
-            report['viewport'] = viewport.collect(repo, viewport_receipt, source, tree, parent,
-                read_original=read_original)
+            output_bytes(output, catalog_only=catalog_only)
+            if not catalog_only:
+                report['checks']['captures'] = True
+            if catalog_slot == 'home':
+                report['home_catalog'] = collect_home_catalog(
+                    repo, catalog_receipt, source, tree, parent)
+            else:
+                collector = dict(settings=settings, navigation=navigation, details=details)[catalog_slot]
+                report[catalog_slot + '_catalog'] = collector.collect(
+                    repo, catalog_receipt, source, tree, parent, read_original=read_original)
+            if catalog_only:
+                report['checks']['captures'] = True
+            else:
+                report['viewport'] = viewport.collect(repo, viewport_receipt, source, tree, parent,
+                    read_original=read_original)
         seam_pilot = SEAM_PILOTS.get(parent.get('SYRIUS_READONLY_CATALOG_FAMILY'))
         if seam_pilot is not None:
             expected_family, observe_seams, _ = seam_pilot
             need(family == expected_family, 'ENTRY_REFUSED')
-            seam_pointers = []
+            seam_pointers = report['seam_refusals'] if seams_only else []
             seam_limit = min(deadline, time.monotonic() + 90)
 
             def exchange_seam(command):
@@ -1305,6 +1414,8 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
 
             try:
                 observe_seams(exchange_seam, seam_pointers)
+                if seams_only:
+                    sample_capture_outputs(repo, family=family, catalog_only=True)
             except Exception as error:
                 seam_failure = inspection_failure_code(error, report['phase'])
         lab_current()
@@ -1484,8 +1595,12 @@ def artifact_paths(parent):
         SEND_WARNING_INSPECTION_SCHEMA: 'details-catalog',
         HOME_ZAP_PREVIEW_INSPECTION_SCHEMA: 'details-catalog',
         EARN_INSPECTION_SCHEMA: 'details-catalog',
-        SENTINEL_INSPECTION_SCHEMA: 'details-catalog'}[value['schema']]
-    if value['schema'] in HOME_INSPECTION_SCHEMAS:
+        SENTINEL_INSPECTION_SCHEMA: 'details-catalog',
+        SURFACE_SEAMS_SCHEMA: ''}[value['schema']]
+    if value['schema'] == SURFACE_SEAMS_SCHEMA:
+        sample_capture_outputs(repo, family=SURFACE_SEAMS_FAMILY, catalog_only=True)
+        home_paths = []
+    elif value['schema'] in HOME_INSPECTION_SCHEMAS:
         home_paths = home_artifact_paths(repo, value)
     elif value['schema'] == 2:
         home_paths = settings.artifact_paths(repo, value, read_original=read_original,

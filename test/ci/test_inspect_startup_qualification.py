@@ -490,6 +490,105 @@ class StartupInspectionTests(unittest.TestCase):
         self.assertFalse(partial['artifact_reported_success'])
         self.assertEqual(partial['verified_png_count'], 1)
 
+    def test_lock_seams_require_exact_absorbed_controls_and_closed_actors(self):
+        catalog = inspect.lock_catalog
+        pins = dict.fromkeys(('capture_source_sha256', 'profile_sha256',
+                              *catalog.SEAM_PIN_SOURCES), 'e' * 64)
+        attempts = [dict(theme='dark', role=role, phase=phase, action_complete=True,
+            checks=dict.fromkeys(inspect.launch.ATTEMPT_CHECKS, True), exit_code=0,
+            exit_observed=True, forced_kill=False, output_complete=True,
+            output_overflow=False, error_codes=[])
+            for role, phase in (('prepare', 'prepare'), ('observe', 'complete'))]
+        expected = [seam for _, seam in catalog.SEAM_ACTIONS]
+        report = dict(schema=1, scope=catalog.SEAM_SCOPE, success=True, attempts=attempts,
+            captures=[], seam_refusals=expected, source_stable=True, error_codes=[],
+            source_sha=HEAD, source_tree=TREE, run_id=str(RUN), run_attempt='1',
+            runner_sha256='c' * 64, payload_sha256='d' * 64, **pins)
+
+        def read(value, *, extra=False):
+            raw, _ = package(value, extra=extra)
+            return inspect.launch_archive(raw, inspect.archive.sha(raw), len(raw), HEAD, TREE,
+                                          RUN, pins, lock_seams=True)
+
+        result = read(report)
+        self.assertTrue(result['artifact_reported_success'])
+        self.assertEqual(result['verified_png_count'], 0)
+        self.assertEqual(result['seam_refusals'], expected)
+        self.assertEqual(result['normal_actor_exits'], 2)
+        for change in (dict(seam_refusals=expected[::-1]), dict(seam_refusals=expected[:1]),
+                       dict(captures=[{}]), dict(attempts=attempts[:1]),
+                       dict(attempts=[attempts[0], dict(attempts[1], forced_kill=True)])):
+            with self.subTest(change=change), self.assertRaises(inspect.archive.Refused):
+                read(dict(report, **change))
+        with self.assertRaises(inspect.archive.Refused):
+            read(report, extra=True)
+        partial = read(dict(report, success=False, source_stable=False,
+            seam_refusals=expected[:1], error_codes=['STARTUP_OBSERVATION_REFUSED'],
+            attempts=[attempts[0], dict(attempts[1], phase='seam_probes',
+                action_complete=False, error_codes=['COMMAND_FAILED'])]))
+        self.assertFalse(partial['artifact_reported_success'])
+        self.assertEqual(partial['seam_refusals'], expected[:1])
+        self.assertEqual(partial['normal_actor_exits'], 2)
+
+        sources = {
+            'tool/ci/windows_launch_catalog.py': Path(inspect.launch.__file__).read_bytes(),
+            'tool/ci/windows_lock_catalog.py': Path(catalog.__file__).read_bytes(),
+            catalog.CAPTURE_SOURCE.as_posix(): b'native fixture',
+            inspect.launch.SETTLE_PROFILE_SOURCE.as_posix(): b'isolated profile',
+        }
+        source_paths = {'capture_source_sha256': catalog.CAPTURE_SOURCE,
+                        'profile_sha256': inspect.launch.SETTLE_PROFILE_SOURCE,
+                        **catalog.SEAM_PIN_SOURCES}
+        for path in catalog.SEAM_PIN_SOURCES.values():
+            sources[path.as_posix()] = b'synthetic selected source'
+        sealed = dict(report, **{key: inspect.archive.sha(sources[path.as_posix()])
+                                for key, path in source_paths.items()})
+        raw, _ = package(sealed)
+
+        class SeamClient(Client):
+            def __init__(self):
+                super().__init__()
+                self.job.update(labels=['windows-latest'],
+                    steps=[dict(name=name, status='completed', conclusion='success')
+                           for name in (catalog.SEAM_STEP, catalog.SEAM_RETAIN_STEP)])
+
+            def json(self, path):
+                if path.startswith('/contents/'):
+                    self.calls.append(path)
+                    name, selected = path.removeprefix('/contents/').split('?ref=')
+                    assert selected == HEAD
+                    body = sources[name]
+                    return dict(type='file', encoding='base64', path=name, size=len(body),
+                                content=base64.b64encode(body).decode())
+                if path == '/actions/runs/9/artifacts?per_page=20':
+                    self.calls.append(path)
+                    return dict(total_count=1, artifacts=[dict(id=7, expired=False,
+                        name=catalog.SEAM_ARTIFACT_PREFIX + HEAD + '-9-1',
+                        size_in_bytes=len(raw), digest='sha256:' + inspect.archive.sha(raw),
+                        workflow_run=dict(id=RUN, head_sha=HEAD))])
+                return super().json(path)
+
+            def read(self, url, *, redirect=False, authenticated=True, cap=262144):
+                self.calls.append(url)
+                if redirect:
+                    assert authenticated and url.endswith('/artifacts/7/zip')
+                    return 'https://synthetic.blob.core.windows.net/7'
+                assert not authenticated and cap == catalog.SEAM_MAX_ARCHIVE
+                assert url == 'https://synthetic.blob.core.windows.net/7'
+                return raw
+
+        client = SeamClient()
+        status, output = self.read_windows(client)
+        self.assertEqual(status, 0)
+        self.assertEqual(len(client.calls), 12)
+        self.assertIn('Hosted original lock seam inspection', output)
+        self.assertIn('retained_original_lock_seam_refusals', output)
+        client = SeamClient()
+        client.job['steps'].append(dict(client.job['steps'][0]))
+        status, _ = self.read_windows(client)
+        self.assertEqual(status, 1)
+        self.assertFalse(any('/artifacts' in path for path in client.calls))
+
     def test_lock_catalog_requires_each_state_and_its_closed_original(self):
         catalog = inspect.lock_catalog
         states = (

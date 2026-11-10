@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
@@ -327,47 +328,95 @@ class _WelcomeSurfaceState extends State<WelcomeSurface>
       SizedBox(height: tokens.welcomeTextGap),
       Text(context.l10n.welcomeSubtitle, style: tokens.welcomeSubtitleText),
       SizedBox(height: tokens.welcomeTextGap + tokens.welcomeIntroBottomGap),
-      Column(
-        spacing: tokens.welcomeRowGap,
-        children: <Widget>[
-          ListEntranceItem(
-            key: _rowKeys[0],
-            child: _WelcomeAction(
-              actionKey: const Key('welcome_create'),
-              label: context.l10n.welcomeCreate,
-              hint: context.l10n.welcomeCreateHint,
-              icon: 'plus',
-              primary: true,
-              onTap: _capture(WelcomeDestination.createWallet),
-            ),
-          ),
-          ListEntranceItem(
-            key: _rowKeys[1],
-            child: widget.wrapImportDrop(
-              _WelcomeAction(
-                actionKey: const Key('welcome_import'),
-                label: context.l10n.welcomeImport,
-                hint: context.l10n.welcomeImportHint,
-                icon: 'file',
-                onTap: _capture(WelcomeDestination.importWallet),
+      _WelcomeActionAlignment(
+        child: Column(
+          spacing: tokens.welcomeRowGap,
+          children: <Widget>[
+            ListEntranceItem(
+              key: _rowKeys[0],
+              child: _WelcomeAction(
+                actionKey: const Key('welcome_create'),
+                label: context.l10n.welcomeCreate,
+                hint: context.l10n.welcomeCreateHint,
+                icon: 'plus',
+                primary: true,
+                onTap: _capture(WelcomeDestination.createWallet),
               ),
             ),
-          ),
-          ListEntranceItem(
-            key: _rowKeys[2],
-            child: _WelcomeAction(
-              actionKey: const Key('welcome_hardware'),
-              label: context.l10n.welcomeHardware,
-              hint: context.l10n.welcomeHardwareHint,
-              icon: 'usb',
-              onTap: _capture(WelcomeDestination.hardwareWallet),
+            ListEntranceItem(
+              key: _rowKeys[1],
+              child: widget.wrapImportDrop(
+                _WelcomeAction(
+                  actionKey: const Key('welcome_import'),
+                  label: context.l10n.welcomeImport,
+                  hint: context.l10n.welcomeImportHint,
+                  icon: 'file',
+                  onTap: _capture(WelcomeDestination.importWallet),
+                ),
+              ),
             ),
-          ),
-        ],
+            ListEntranceItem(
+              key: _rowKeys[2],
+              child: _WelcomeAction(
+                actionKey: const Key('welcome_hardware'),
+                label: context.l10n.welcomeHardware,
+                hint: context.l10n.welcomeHardwareHint,
+                icon: 'usb',
+                onTap: _capture(WelcomeDestination.hardwareWallet),
+              ),
+            ),
+          ],
+        ),
       ),
       SizedBox(height: tokens.welcomeTextGap + tokens.welcomeFooterTopGap),
       Text(context.l10n.welcomeSettingsHint, style: tokens.welcomeFooterText),
     ],
+  );
+}
+
+class _WelcomeActionAlignment extends SingleChildRenderObjectWidget {
+  const _WelcomeActionAlignment({required super.child});
+
+  @override
+  _RenderWelcomeActionAlignment createRenderObject(BuildContext context) =>
+      _RenderWelcomeActionAlignment(MediaQuery.devicePixelRatioOf(context));
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    _RenderWelcomeActionAlignment renderObject,
+  ) {
+    renderObject.updatePixelRatio(MediaQuery.devicePixelRatioOf(context));
+  }
+}
+
+class _RenderWelcomeActionAlignment extends RenderFractionalTranslation {
+  _RenderWelcomeActionAlignment(this._pixelRatio)
+    : super(translation: Offset.zero);
+
+  double _pixelRatio;
+
+  void updatePixelRatio(double value) {
+    if (_pixelRatio == value) return;
+    _pixelRatio = value;
+    markNeedsPaint();
+    markNeedsSemanticsUpdate();
+  }
+
+  @override
+  Offset get translation {
+    if (!attached || !hasSize || size.height == 0) return Offset.zero;
+    final Offset? origin = MatrixUtils.getAsTranslation(getTransformTo(null));
+    if (origin == null) return Offset.zero;
+    // Align the stationary row group before its individual entrance transforms.
+    final double top = origin.dy * _pixelRatio;
+    final double correction = (top.floorToDouble() - top) / _pixelRatio;
+    return Offset(0, correction / size.height);
+  }
+
+  @override
+  Rect get paintBounds => super.paintBounds.expandToInclude(
+    super.paintBounds.shift(Offset(0, -1 / _pixelRatio)),
   );
 }
 

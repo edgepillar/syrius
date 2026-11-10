@@ -47,6 +47,7 @@ on:
         options:
           - home
           - home-seams
+          - surface-seams
           - home-bell
           - home-zap-preview
           - settings
@@ -66,6 +67,7 @@ on:
           - launch-timing-pair
           - interactive-timing-pair
           - lock-catalog
+          - lock-seams
           - quiz-catalog
           - seeded-states
           - stake-draft
@@ -204,12 +206,12 @@ jobs:
         run: flutter build windows --release --no-pub --target harness/app/main.dart --dart-define-from-file=.dart_tool/git_metadata.json
 
       - name: Observe the original startup and normal process exit
-        if: inputs.readonly_catalog_family != 'launch' && inputs.readonly_catalog_family != 'launch-settle' && inputs.readonly_catalog_family != 'lock-catalog' && inputs.readonly_catalog_family != 'quiz-catalog' && inputs.readonly_catalog_family != 'launch-timing' && inputs.readonly_catalog_family != 'launch-timing-pair'
+        if: inputs.readonly_catalog_family != 'launch' && inputs.readonly_catalog_family != 'launch-settle' && inputs.readonly_catalog_family != 'lock-catalog' && inputs.readonly_catalog_family != 'lock-seams' && inputs.readonly_catalog_family != 'quiz-catalog' && inputs.readonly_catalog_family != 'launch-timing' && inputs.readonly_catalog_family != 'launch-timing-pair'
         timeout-minutes: 3
         run: python -B -m tool.ci.windows_startup_probe
 
       - name: Observe natural startup in a fresh original process
-        if: inputs.readonly_catalog_family != 'launch' && inputs.readonly_catalog_family != 'launch-settle' && inputs.readonly_catalog_family != 'lock-catalog' && inputs.readonly_catalog_family != 'quiz-catalog' && inputs.readonly_catalog_family != 'launch-timing' && inputs.readonly_catalog_family != 'launch-timing-pair'
+        if: inputs.readonly_catalog_family != 'launch' && inputs.readonly_catalog_family != 'launch-settle' && inputs.readonly_catalog_family != 'lock-catalog' && inputs.readonly_catalog_family != 'lock-seams' && inputs.readonly_catalog_family != 'quiz-catalog' && inputs.readonly_catalog_family != 'launch-timing' && inputs.readonly_catalog_family != 'launch-timing-pair'
         timeout-minutes: 3
         run: python -B -m tool.ci.windows_startup_probe --natural-only
 
@@ -312,6 +314,24 @@ jobs:
             .harness/ci-lock-catalog/42-lock-wrong-light.png
             .harness/ci-lock-catalog/43-lock-pick-dark.png
             .harness/ci-lock-catalog/43-lock-pick-light.png
+
+      - name: Observe the original lock seam refusals
+        if: inputs.readonly_catalog_family == 'lock-seams'
+        timeout-minutes: 5
+        env:
+          SYRIUS_WINDOWS_LOCK_CATALOG: 'true'
+          SYRIUS_WINDOWS_LOCK_SEAMS: 'true'
+        run: python -B -m tool.ci.windows_lock_catalog
+
+      - name: Retain the original lock seam manifest
+        if: always() && inputs.readonly_catalog_family == 'lock-seams' && hashFiles('.harness/ci-lock-seams/manifest.json') != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-lock-seams-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          compression-level: 0
+          include-hidden-files: true
+          if-no-files-found: error
+          path: .harness/ci-lock-seams/manifest.json
 
       - name: Capture the synthetic seed quiz in both themes
         if: inputs.readonly_catalog_family == 'quiz-catalog'
@@ -1081,6 +1101,10 @@ jobs:
             test/ci
             tools/devnet/lab
             harness
+            lib/seams
+            lib/rearchitecture/features/pillars/view
+            lib/widgets/shell/strip
+            lib/widgets/modular_widgets/p2p_swap_widgets/modals
 
       - name: Test both retained lab and readonly archive boundaries in memory
         run: python -B -m tool.ci.run_readonly_reader_tests
