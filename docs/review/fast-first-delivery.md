@@ -721,6 +721,13 @@ command receipts for interrupted unpatched controls. The focused 89
 in-memory checks pass. A fresh native result remains open.
 [Original Windows job](https://github.com/edgepillar/syrius/actions/runs/42834639050/job/129893514985).
 
+The Source625 focused run stops before Flutter allocation at the exact
+reader-suite count. Source626 admits all 110 reader controls, including the
+interrupted Go preparation receipt case. The 110 controls pass in memory.
+The fresh Windows pilot covers the current analyzer, selected tests and
+original Home, Activity and Go To attempts.
+[Source625 run](https://github.com/edgepillar/syrius/actions/runs/42840875369).
+
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied
 owner, confirmed receipt and exact Project row. The original Project
