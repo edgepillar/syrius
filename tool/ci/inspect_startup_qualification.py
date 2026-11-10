@@ -22,7 +22,10 @@ JOB_NAME = 'Observe original Windows Release startup'
 # Retained launch archives created before the handoff option use this producer.
 ORIGINAL_LAUNCH_PRODUCER_SHA = 'dbf165b477df62dae61258224a96220e8b5d4575b4673010d9491006c486bce9'
 HANDOFF_LAUNCH_PRODUCER_SHA = 'ffb11b8748080d0973eb08f168f1c926bdf13622e9f9717fe084f2b09571d9fc'
-FIRST_QUIZ_PRODUCER_SHA = '059f36ee7a97d0242355763211af2241aa8ff3bf38916ac634791a4ca8ff120c'
+PRIOR_QUIZ_PRODUCER_SHAS = (
+    '059f36ee7a97d0242355763211af2241aa8ff3bf38916ac634791a4ca8ff120c',
+    'd7d5770ca1332345e908ec6fe47f0d0f60fbf617760e48daece268e67828c48d',
+)
 
 
 def startup_archive(raw, expected_sha, expected_size, head, tree, run_id, *,
@@ -311,7 +314,7 @@ def inspect_launch_run(client, *, head, tree, run_id, job, settle=False, lock=Fa
             prior = () if lock or quiz else ((HANDOFF_LAUNCH_PRODUCER_SHA,) if settle else
                                       (ORIGINAL_LAUNCH_PRODUCER_SHA, HANDOFF_LAUNCH_PRODUCER_SHA))
             if quiz and name == 'tool/ci/windows_quiz_catalog.py':
-                prior = (FIRST_QUIZ_PRODUCER_SHA,)
+                prior = PRIOR_QUIZ_PRODUCER_SHAS
             archive.need(body == current or archive.sha(body) in prior)
         else:
             pins[key] = archive.sha(body)

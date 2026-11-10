@@ -324,6 +324,31 @@ class StartupInspectionTests(unittest.TestCase):
                 self.assertEqual(probe.refusal, projected)
                 exchange.assert_called_once_with(dict(cmd=catalog.SCREEN, action='open'), until=12)
 
+    def test_quiz_uses_the_original_capture_between_native_observations(self):
+        catalog = inspect.quiz_catalog
+        probe = object.__new__(catalog.QuizProcess)
+        original = _png()
+        calls = mock.Mock()
+        calls.status.side_effect = [
+            dict(native_callback=4),
+            dict(native_callback=6, correct=1, unlocked=1, questions=3,
+                 choices=[4, 4, 4], complete=False, artwork_seconds=6),
+        ]
+        calls.capture.return_value = dict(
+            ok=True, status='captured', theme='dark', width=1280, height=780,
+            png=base64.b64encode(original).decode('ascii'),
+        )
+        with mock.patch.object(probe, '_status', calls.status), mock.patch.object(
+                probe, '_catalog', calls.capture):
+            png, state = probe._capture('dark')
+        self.assertEqual(png, original)
+        self.assertEqual((state['native_before'], state['native_after']), (4, 6))
+        self.assertEqual(calls.mock_calls, [
+            mock.call.status('dark', 1, wait=True),
+            mock.call.capture('capture-dark'),
+            mock.call.status('dark', 1),
+        ])
+
     def test_lock_catalog_waits_for_rest_and_refuses_a_changed_profile(self):
         catalog = inspect.lock_catalog
         settled = dict(ok=True, status='ready', theme='dark', frame=55, frames=56,

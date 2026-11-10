@@ -393,6 +393,7 @@ macOS; Windows provision and acceptance remain pending. See
 ### Now
 
 - Updated 2026-11-10
+- Source584 routes quiz capture through the retained renderer frame. It checks the original second-row choice for visibility, the painted theme, and the same route before encoding. Source583 reached the selected dark quiz state, then its generic shot command failed. Its independent reader verified zero PNGs and the original process exited normally.
 - Source583 retains the first mounted quiz context across observations and distinguishes route admission from the first observation. Source582 passed 1,375 selected Dart cases and the ordinary Windows Release build, then stopped during the quiz opening phase with a normal process exit. Its independent reader verified the manifest-only failure and zero PNGs.
 - Source582 checks that the retained quiz context is still mounted after the native frame and uses the synchronous route admission directly. The Source581 attempt ran 1,096 controller cases with 18 skips and no failures, then stopped at three analysis infos before building. It retains zero PNGs.
 - Source581 prepares the two Seed Quiz captures from one ordinary Windows harness process. The fixture uses display-only words, keeps one correct answer and the original six-second artwork sample across themes, and restores the same Welcome route. Hosted execution and the independent archive read are pending.

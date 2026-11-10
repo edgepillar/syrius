@@ -34,6 +34,12 @@ REFUSALS = frozenset((
     'quiz-restore-refused', 'quiz-artwork-restore-unproven',
     'quiz-welcome-restore-unproven', 'quiz-catalog-input-refused',
     'quiz-remote-refused', 'quiz-remote-error',
+    'quiz-capture-tree-limit', 'quiz-capture-error-widget',
+    'quiz-capture-target-unavailable', 'quiz-capture-source-unavailable',
+    'quiz-capture-window-minimized', 'quiz-capture-source-changed',
+    'original-renderer-unavailable', 'original-renderer-changed',
+    'original-frame-unavailable', 'original-frame-color-space-unproven',
+    'original-frame-encoding-unproven',
 ))
 
 
@@ -98,10 +104,11 @@ class QuizProcess(launch.LaunchProcess):
 
     def _capture(self, theme):
         before = self._status(theme, 1, wait=True)
-        body = self._rpc(dict(cmd='shot', width=1280, height=780, theme=theme,
-                              expect=dict(key='seed_quiz_1_0')))
-        need(body.get('asserted') is True and body.get('theme') == theme
-             and body.get('width') == 1280 and body.get('height') == 780)
+        body = self._catalog('capture-' + theme)
+        need(set(body) == {'ok', 'status', 'theme', 'width', 'height', 'png'}
+             and body['status'] == 'captured' and body['theme'] == theme
+             and startup.integer(body['width'], 1280, 1280)
+             and startup.integer(body['height'], 780, 780))
         after = self._status(theme, 1)
         state = {k: after[k] for k in STATE_FIELDS - {'native_before', 'native_after'}}
         state.update(native_before=before['native_callback'],

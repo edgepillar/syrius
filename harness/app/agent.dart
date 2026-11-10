@@ -1919,6 +1919,11 @@ class HarnessAgent {
           catalog.open();
         case 'status':
           return await catalog.observe();
+        case 'capture-dark' || 'capture-light':
+          return await catalog.capture(
+            command['action'] == 'capture-dark' ? 'dark' : 'light',
+            reachable: _reachableRender,
+          );
         case 'select-first':
           final String key = catalog.firstChoice;
           await _tap(
