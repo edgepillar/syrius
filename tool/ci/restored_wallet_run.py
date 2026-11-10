@@ -358,7 +358,8 @@ def seed_failure_projection(value, phase):
         and type(value['schema']) is int and value['schema'] == 1
         and type(value['scope']) is str
         and value['scope'] == 'original_seed_operation_failure'
-        and type(value['recipe']) is str and value['recipe'] in SEED_FAILURE_RECIPES
+        and type(value['recipe']) is str
+        and value['recipe'] in SEED_FAILURE_RECIPES | {'pillar-qsr'}
         and type(phase) is str and phase == 'seed_' + value['recipe']
         and type(value['action']) is str and value['action'] in SEED_FAILURE_ACTIONS
         and type(value['step']) is str and value['step'] in SEED_FAILURE_STEPS
@@ -382,6 +383,16 @@ def seed_failure_projection(value, phase):
         checkpoint.need(entered is (step != 'owner'))
     elif action == 'finish':
         checkpoint.need(entered is True)
+    if value['recipe'] == 'pillar-qsr':
+        index = value['command_index']
+        if action == 'publish':
+            checkpoint.need(index == 7)
+        else:
+            # The two command boundaries after navigation are the deposit
+            # control readiness and the final owner recheck.
+            checkpoint.need(action == 'command'
+                and (1 <= index <= 6 or (index, step) in ((7, 'execute'), (8, 'owner')))
+                and entered is (index == 8) and value['reason'] == 'unknown')
     if value['reason'] != 'unknown':
         checkpoint.need(value['kind'] == 'refused')
     if value['reason'] in SEED_PREPARATION_REPLY_CODES:

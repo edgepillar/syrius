@@ -488,7 +488,22 @@ Pillar Spawn, Pillar Done and Accelerator project detail.
 Source605 samples the active wallet's sync state after the host confirms lag
 and allows one refresh through the existing wallet polling path. The original
 warning, disabled Send control and paired RPC observations still gate the two
-captures. Fresh Windows and archive evidence remains open.
+captures. Selected analysis clears and all 1,379 Dart cases complete. The
+1,106 Python cases finish with eighteen skips. The three producers advance
+from height 17 to 21. Both original RPC reads start at current and target 17
+and end with current 17 and target zero. The host refuses before the wallet
+sync command or any capture. The marker is released and all five nodes close
+normally. Required wallet actor cleanup is forced. The independent reader
+verifies both original archives. The cause of the lost target remains open.
+[Windows producer](https://github.com/edgepillar/syrius/actions/runs/42778746788) and
+[independent reader](https://github.com/edgepillar/syrius/actions/runs/42780809071).
+
+Source606 reaches the original Spawn button through More and Your pillar in
+both the copied deposit preparation and the theme scripts. The scripts close
+the stepper and then its owner panel through their own controls. The copied
+deposit retains a finite observation of the last entered step and any allowed
+original reply. Its confirmed receipt and effect still gate both captures.
+Fresh Windows and archive evidence remains open.
 
 The optional `--no-diff-images` comparison preserves scores, input hashes
 and review state. In-memory controls with 94 synthetic PNG pairs encode

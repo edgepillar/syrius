@@ -1261,6 +1261,41 @@ class SeedFailureProjectionTests(unittest.TestCase):
             self.assertEqual(restored.seed_failure_projection(offered,
                              'seed_stake'), offered)
 
+        boundaries = [
+            (index, 'command', step, False)
+            for index in range(1, 7) for step in ('owner', 'execute')
+        ] + [
+            (7, 'command', 'execute', False),
+            (7, 'publish', 'owner', False),
+            (7, 'publish', 'request', True),
+            (7, 'publish', 'reply', True),
+            (8, 'command', 'owner', True),
+        ]
+        for index, action, step, entered in boundaries:
+            offered = self.seed(recipe='pillar-qsr', action=action, step=step,
+                command_index=index, publication_call_entered=entered)
+            with self.subTest(boundary=(index, action, step, entered)):
+                self.assertEqual(restored.child_failure_projection(
+                    self.child(offered))['seed'], offered)
+                with self.assertRaises(restored.checkpoint.Refused):
+                    restored.seed_failure_projection(offered, 'seed_deposit')
+                with self.assertRaises(restored.checkpoint.Refused):
+                    restored.seed_failure_projection(
+                        offered | {'publication_call_entered': not entered},
+                        'seed_pillar-qsr')
+        for action, step, index in (('command', 'owner', 7),
+                                    ('command', 'execute', 8),
+                                    ('publish', 'reply', 6),
+                                    ('prepare', 'reply', 3),
+                                    ('home', 'navigation', 0)):
+            with self.subTest(action=action, step=step, index=index):
+                with self.assertRaises(restored.checkpoint.Refused):
+                    restored.seed_failure_projection(self.seed(
+                        recipe='pillar-qsr', action=action, step=step,
+                        command_index=index,
+                        publication_call_entered=action == 'publish'),
+                        'seed_pillar-qsr')
+
     def test_private_unknown_coerced_or_unbounded_metadata_is_refused(self):
         for change in (dict(schema=True), dict(schema=2), dict(scope='private'),
                 dict(recipe='private'), dict(recipe=True), dict(action='private'),

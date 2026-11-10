@@ -528,8 +528,20 @@ void main() {
           ownedCapture(project: false, pillarSpawn: true)
               .preflight('spawn').single;
       expect(spawn.assertion['key'], 'pillar_name_field');
-      expect(spawn.afterCapture.first.words,
-          <String>['tap', 'Close', '--kind', 'button', '--exact']);
+      expect(spawn.lines.map((ScreenLine line) => line.words.join(' ')),
+          containsAllInOrder(<String>[
+            'tap --key nodes_pillar_more',
+            'tap --key nodes_pillar_owner',
+            'wait --key nodes_spawn_pillar --ready --timeout 30',
+            'tap --key nodes_spawn_pillar',
+          ]));
+      expect(spawn.afterCapture.map((ScreenLine line) => line.words.join(' ')),
+          containsAllInOrder(<String>[
+            'tap Close --kind button --exact',
+            'tap --key nodes_pillar_owner_close',
+            'wait --key nodes_pillar_owner_close --gone --timeout 10',
+            'goto dashboard',
+          ]));
       expect(agent.commands, isEmpty);
       expect(Directory('${repository.path}/.harness').existsSync(), isFalse);
     },

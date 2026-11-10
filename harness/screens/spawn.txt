@@ -4,8 +4,12 @@
 goto pillars
 wait --key nodes_tab_pillars --timeout 30
 tap --key nodes_tab_pillars
-reveal Spawn --kind button --exact
-tap Spawn --kind button --exact
+wait --key nodes_pillar_more --ready --timeout 30
+tap --key nodes_pillar_more
+wait --key nodes_pillar_owner --ready --timeout 30
+tap --key nodes_pillar_owner
+wait --key nodes_spawn_pillar --ready --timeout 30
+tap --key nodes_spawn_pillar
 wait --key pillar_plasma_next_button --ready --timeout 30
 tap --key pillar_plasma_next_button
 wait --key pillar_qsr_next_button --ready --timeout 30
@@ -16,5 +20,8 @@ wait --key pillar_name_field --timeout 30
 assert --key pillar_name_field
 # after-capture: tap Close --kind button --exact
 # after-capture: wait --key pillar_name_field --gone --timeout 10
+# after-capture: wait --key nodes_pillar_owner_close --ready --timeout 10
+# after-capture: tap --key nodes_pillar_owner_close
+# after-capture: wait --key nodes_pillar_owner_close --gone --timeout 10
 # after-capture: goto dashboard
 # after-capture: wait --key home_hero --timeout 5

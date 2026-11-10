@@ -1150,6 +1150,19 @@ void main() {
     expect(observed['recipe'], isNull);
     expect(observed['seed'], failure.diagnostic);
     expect(reopen.restoredChildFailure('unlock', failure), isNull);
+    final cli.SeedOperationTrace pillar = cli.SeedOperationTrace('pillar-qsr')
+      ..at(cli.SeedOperationAction.publish, cli.SeedOperationStep.reply,
+          commandIndex: 7)
+      ..publicationCallEntered()
+      ..refusedReply('enabled-publication-control-required');
+    final cli.SeedOperationFailure refused =
+        pillar.failure(cli.Fail('private'));
+    expect(refused.diagnostic['recipe'], 'pillar-qsr');
+    expect(refused.diagnostic['reason'],
+        'enabled-publication-control-required');
+    expect(reopen.restoredChildFailure('seed_pillar-qsr', refused)?['seed'],
+        refused.diagnostic);
+    expect(reopen.restoredChildFailure('seed_deposit', refused), isNull);
     final cli.SeedOperationTrace foreign = cli.SeedOperationTrace('private')
       ..at(cli.SeedOperationAction.command, cli.SeedOperationStep.execute,
           commandIndex: 100000);

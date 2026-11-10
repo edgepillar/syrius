@@ -284,8 +284,12 @@ const Set<String> _spawnLines = <String>{
   'goto pillars',
   'wait --key nodes_tab_pillars --timeout 30',
   'tap --key nodes_tab_pillars',
-  'reveal Spawn --kind button --exact',
-  'tap Spawn --kind button --exact',
+  'wait --key nodes_pillar_more --ready --timeout 30',
+  'tap --key nodes_pillar_more',
+  'wait --key nodes_pillar_owner --ready --timeout 30',
+  'tap --key nodes_pillar_owner',
+  'wait --key nodes_spawn_pillar --ready --timeout 30',
+  'tap --key nodes_spawn_pillar',
   'wait --key pillar_plasma_next_button --ready --timeout 30',
   'tap --key pillar_plasma_next_button',
   'wait --key pillar_qsr_next_button --ready --timeout 30',
@@ -296,6 +300,9 @@ const Set<String> _spawnLines = <String>{
   'assert --key pillar_name_field',
   'tap Close --kind button --exact',
   'wait --key pillar_name_field --gone --timeout 10',
+  'wait --key nodes_pillar_owner_close --ready --timeout 10',
+  'tap --key nodes_pillar_owner_close',
+  'wait --key nodes_pillar_owner_close --gone --timeout 10',
   'goto dashboard',
   'wait --key home_hero --timeout 5',
 };
@@ -399,8 +406,6 @@ Future<Map<String, Object>> _captureSeededCatalog(
               'key': args.last, 'exact': true,
             },
           });
-        case 'reveal':
-          await cli.reveal(instance, assertion(args));
         case 'key':
           final Map<String, dynamic> refreshed = await cli.call(
             instance, <String, Object?>{'cmd': 'key', 'key': args.single},
@@ -628,6 +633,16 @@ Future<void> main() async {
       });
       await cli.waitForTarget(instance, cli.Args(<String>[
         '--key', 'pillar_qsr_next_button', '--gone', '--timeout', '10',
+      ]));
+      await cli.waitForTarget(instance, cli.Args(<String>[
+        '--key', 'nodes_pillar_owner_close', '--ready', '--timeout', '10',
+      ]));
+      await requireCurrent();
+      await cli.call(instance, <String, Object?>{
+        'cmd': 'tap', 'key': 'nodes_pillar_owner_close', 'exact': true,
+      });
+      await cli.waitForTarget(instance, cli.Args(<String>[
+        '--key', 'nodes_pillar_owner_close', '--gone', '--timeout', '10',
       ]));
       await requireCurrent();
       final Map<String, Object> captured = await _captureSeededCatalog(

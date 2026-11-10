@@ -991,6 +991,9 @@ class SeedOperationTrace {
   Map<String, Object>? _stakeEffect;
   final HomePreparationTrace _homeObservation = HomePreparationTrace();
 
+  bool get _knownRecipe =>
+      seedRecipeIds.contains(_recipe) || _recipe == pillarDepositRecipeId;
+
   /// Marks a boundary without invoking, replacing or waiting on an operation.
   void at(SeedOperationAction action, SeedOperationStep step, {
     int? commandIndex,
@@ -1015,18 +1018,18 @@ class SeedOperationTrace {
     Object? stakeEffect,
   }) {
     _replyCode = seedOperationReplyCode(value);
-    _confirmation = seedRecipeIds.contains(_recipe) &&
+    _confirmation = _knownRecipe &&
             _action == SeedOperationAction.publish &&
             _step == SeedOperationStep.reply && _publicationCallEntered &&
             _replyCode == 'exact-confirmation-or-effect-pending'
         ? seedConfirmationProjection(confirmation,
             allowFunding: _recipe == 'fund-address') : null;
-    _frontier = seedRecipeIds.contains(_recipe) &&
+    _frontier = _knownRecipe &&
             _action == SeedOperationAction.publish &&
             _step == SeedOperationStep.reply && _publicationCallEntered &&
             _replyCode == 'advancing-momentum-required'
         ? seedAdvanceProjection(frontier) : null;
-    _originals = seedRecipeIds.contains(_recipe) &&
+    _originals = _knownRecipe &&
             _action == SeedOperationAction.publish &&
             _step == SeedOperationStep.reply && _publicationCallEntered &&
             _replyCode == 'earlier-original-unresolved'
@@ -1095,7 +1098,7 @@ class SeedOperationTrace {
         ) : null;
     return SeedOperationFailure._(<String, Object>{
       'schema': 1, 'scope': 'original_seed_operation_failure',
-      'recipe': seedRecipeIds.contains(_recipe) ? _recipe : 'unknown',
+      'recipe': _knownRecipe ? _recipe : 'unknown',
       'action': _action.name, 'step': _step.name,
       'command_index': _commandIndex >= 0 && _commandIndex <= 96
           ? _commandIndex : 0,
@@ -1342,6 +1345,7 @@ Future<String> depositPillarCatalogQsr(
   ({WalletAddressContext selected, String fusionHash}) sponsored, {
   required bool Function() parentAlive,
 }) async {
+  final SeedOperationTrace trace = SeedOperationTrace(pillarDepositRecipeId);
   Future<void> requireActor() async {
     if (!parentAlive()) throw Fail('owned lab parent unavailable');
     final Map<String, dynamic> view = await inst.send(
@@ -1359,43 +1363,64 @@ Future<String> depositPillarCatalogQsr(
     }
   }
 
-  Future<void> tapKey(String key) async {
+  Future<void> tapKey(String key, int index) async {
+    trace.at(SeedOperationAction.command, SeedOperationStep.execute,
+        commandIndex: index);
     await waitForTarget(inst, Args(<String>[
       '--key', key, '--kind', 'button', '--ready', '--timeout', '30',
     ]));
+    trace.at(SeedOperationAction.command, SeedOperationStep.owner);
     await requireActor();
+    trace.at(SeedOperationAction.command, SeedOperationStep.execute);
     await call(inst, <String, Object?>{
       'cmd': 'tap', 'key': key, 'kind': 'button', 'exact': true,
     });
   }
 
-  await requireActor();
-  await goto(inst, 'pillars');
-  await tapKey('nodes_tab_pillars');
-  const Map<String, Object?> spawn =
-      <String, Object?>{'text': 'Spawn', 'kind': 'button', 'exact': true};
-  await reveal(inst, spawn);
-  await requireActor();
-  await call(inst, <String, Object?>{'cmd': 'tap', ...spawn});
-  await tapKey('pillar_plasma_next_button');
-  await waitForTarget(inst, Args(<String>[
-    '--key', 'pillar_qsr_deposit_button', '--kind', 'button',
-    '--ready', '--timeout', '30',
-  ]));
-  await requireActor();
-  final Map<String, dynamic> receipt = await inst.send(<String, Object?>{
-    'cmd': 'pillar-qsr-deposit',
-    'profile': inst.name,
-    'fusionHash': sponsored.fusionHash,
-  }, timeout: const Duration(seconds: 180));
-  final Object? hash = receipt['hash'];
-  if (receipt['ok'] != true || receipt['confirmed'] != true ||
-      receipt['recipe'] != pillarDepositRecipeId || hash is! String ||
-      !seedHash(hash) || hash == sponsored.fusionHash) {
-    throw Fail('exact Pillar deposit receipt refused');
+  try {
+    trace.at(SeedOperationAction.command, SeedOperationStep.owner,
+        commandIndex: 1);
+    await requireActor();
+    trace.at(SeedOperationAction.command, SeedOperationStep.execute);
+    await goto(inst, 'pillars');
+    await tapKey('nodes_tab_pillars', 2);
+    await tapKey('nodes_pillar_more', 3);
+    await tapKey('nodes_pillar_owner', 4);
+    await tapKey('nodes_spawn_pillar', 5);
+    await tapKey('pillar_plasma_next_button', 6);
+    trace.at(SeedOperationAction.command, SeedOperationStep.execute,
+        commandIndex: 7);
+    await waitForTarget(inst, Args(<String>[
+      '--key', 'pillar_qsr_deposit_button', '--kind', 'button',
+      '--ready', '--timeout', '30',
+    ]));
+    trace.at(SeedOperationAction.publish, SeedOperationStep.owner);
+    await requireActor();
+    trace.at(SeedOperationAction.publish, SeedOperationStep.request);
+    trace.publicationCallEntered();
+    final Map<String, dynamic> receipt = await inst.send(<String, Object?>{
+      'cmd': 'pillar-qsr-deposit',
+      'profile': inst.name,
+      'fusionHash': sponsored.fusionHash,
+    }, timeout: const Duration(seconds: 180));
+    trace.at(SeedOperationAction.publish, SeedOperationStep.reply);
+    if (receipt['ok'] != true) {
+      trace.refusedReplyDetail(receipt['error'], receipt['detail']);
+      throw Fail('exact Pillar deposit receipt refused');
+    }
+    final Object? hash = receipt['hash'];
+    if (receipt['confirmed'] != true ||
+        receipt['recipe'] != pillarDepositRecipeId || hash is! String ||
+        !seedHash(hash) || hash == sponsored.fusionHash) {
+      throw Fail('exact Pillar deposit receipt refused');
+    }
+    trace.at(SeedOperationAction.command, SeedOperationStep.owner,
+        commandIndex: 8);
+    await requireActor();
+    return hash;
+  } on Object catch (error, stack) {
+    Error.throwWithStackTrace(trace.failure(error), stack);
   }
-  await requireActor();
-  return hash;
 }
 
 /// Runs a file of harness command lines, stopping at the first that fails.

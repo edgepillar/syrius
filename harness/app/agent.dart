@@ -1891,7 +1891,8 @@ class HarnessAgent {
         'confirmed': true, 'recipe': pillarDepositRecipeId, 'hash': deposit,
       };
     } on SeedRefused catch (error) {
-      throw HarnessError(error.code);
+      throw HarnessError(error.code,
+        seedRefusalDetail(error, action: publish ? 'publish' : null));
     } on Object {
       throw HarnessError('seed-prerequisite-or-read-failed');
     }
