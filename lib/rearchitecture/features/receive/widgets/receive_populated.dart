@@ -290,6 +290,8 @@ class _ReceivePopulatedState extends State<ReceivePopulated>
   Widget build(BuildContext context) {
     _scheduleHeader();
     final AppTokens tokens = AppTokens.of(context);
+    final String? address = _selectedAddress;
+    final int addressIndex = address == null ? -1 : _addresses.indexOf(address);
     return Theme(
       data: Theme.of(context).copyWith(
         inputDecorationTheme: _buildInputTheme(tokens),
@@ -316,8 +318,20 @@ class _ReceivePopulatedState extends State<ReceivePopulated>
               ],
               if (_qrPresent)
                 _buildExpanded(tokens)
-              else
+              else ...<Widget>[
+                if (widget.headerController != null && addressIndex >= 0)
+                  ...<Widget>[
+                    Text(
+                      context.l10n.addressDefaultLabel(addressIndex + 1)
+                          .toUpperCase(),
+                      key: const Key('receive_address_overline'),
+                      textAlign: TextAlign.center,
+                      style: tokens.ledgerText,
+                    ),
+                    SizedBox(height: tokens.receiveGap),
+                  ],
                 _buildDetails(tokens, centered: true),
+              ],
             ],
           ),
         ),

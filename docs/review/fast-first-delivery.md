@@ -594,6 +594,30 @@ producer](https://github.com/edgepillar/syrius/actions/runs/42804599431) and
 [independent
 reader](https://github.com/edgepillar/syrius/actions/runs/42807061092).
 
+Source613 clears selected analysis and completes 1,381 Dart cases and 1,107
+Python cases with eighteen skips. The copied wallet confirms the Accelerator
+project and captures the exact detail in both themes. The independent reader
+verifies the two 1280 by 780 PNGs and normal original and copied closure. The
+catalog has all 94 literal outputs. The pair review and remaining seeded states
+stay open. [Windows
+producer](https://github.com/edgepillar/syrius/actions/runs/42807861730) and
+[independent
+reader](https://github.com/edgepillar/syrius/actions/runs/42810930398).
+
+Fourteen Source334 Navigation frames and their exact references were viewed
+individually. The single verified archive is retained and the owned review task
+closed. X621-X634 record the archived differences. The comparator can reuse 46
+bound archived reviews. Whole-image acceptance remains open. [Navigation
+producer](https://github.com/edgepillar/syrius/actions/runs/41505378919) and
+[independent
+reader](https://github.com/edgepillar/syrius/actions/runs/41509478065).
+
+Source614 restores the selected address ordinal above the collapsed Receive
+address. It uses the existing translated label and ledger style. The expanded
+QR view, receiver ownership and payload stay bound to their existing controls.
+The existing address and export lifecycle cases check the label across QR and
+selection changes. Fresh engine and native visual evidence remain open.
+
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied
 owner, confirmed receipt and exact Project row. The original Project
@@ -752,7 +776,7 @@ frontier reads after such a failure. Their native observation remains pending.
 | --- | --- |
 | P03/P09 | Complete the documented Windows Docker route. Earlier Linux defaults, WSL installation and the Source548 native lab retain their separate scopes. |
 | F06 | Complete the seeded screen states and coordinator/peer Swap prerequisites. Source548 qualifies the original six receipts and copied lifecycle. Source561 qualifies the restored Stake and Token captures. Source563 qualifies the separate New stake draft with one Stake prerequisite. Source569 qualifies the Sentinel fixture pair. Source607 verifies the Spawn pair. Source608 confirms Pillar registration in the incomplete prefix, in its original failed attempt. Source611 separately verifies the confirmed registration, both Pillar Done captures and normal closure. |
-| V01/V05 | Obtain 2 missing literal outputs, review all 94 pairs, resolve retained layout/type/spacing findings and explicitly accept each match. Availability is 92/94. Accepted whole-image matches are 0/94. |
+| V01/V05 | Review all 94 available literal pairs, resolve retained layout/type/spacing findings and explicitly accept each match. Availability is 94/94. Accepted whole-image matches are 0/94. |
 | V02 | Observe every motion/shader row in the running build and compare page-change, disclosure and launch frame times with the original baseline. Finite widget timing or stall telemetry alone does not close this gate. |
 | V03 | Try every original seam control, shortcut and Go To entry in the running native wallet and verify refusal. Registry and widget controls remain partial evidence. |
 | V06 | Check every original end-state requirement and complete independent final acceptance. The earlier minimum-window/Arabic viewing remains source-bound. |

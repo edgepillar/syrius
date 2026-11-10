@@ -238,7 +238,10 @@ void main() {
       ));
       await tester.pumpWidget(form());
       await tester.pump();
+      final Finder overline = find.byKey(const Key('receive_address_overline'));
+      expect(tester.widget<Text>(overline).data, 'ADDRESS 1');
       await _showQr(tester);
+      expect(overline, findsNothing);
       final ReceiveHeaderSnapshot choices = original.snapshot!;
       await tester.tap(find.byKey(const Key('receive_share_image')));
       await tester.pump();
@@ -277,6 +280,10 @@ void main() {
         'znn:${change == 'address' ? _second : _first}'
         '?zts=${kZnnCoin.tokenStandard}&amount=0',
       );
+      await tester.tap(find.byKey(const Key('receive_qr_toggle')));
+      await receiveTestReveal(tester);
+      expect(tester.widget<Text>(overline).data,
+        change == 'address' ? 'ADDRESS 2' : 'ADDRESS 1');
       await receiveTestDispose(tester);
       original.dispose();
       replacement.dispose();
