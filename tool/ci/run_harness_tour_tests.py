@@ -25,7 +25,7 @@ except ImportError:
     from windows_baseline import fresh_environment, run_bounded, test_counts
 
 
-EXPECTED_DART_CASES = 1388
+EXPECTED_DART_CASES = 1389
 LAUNCH_ASSET_DART_CASES = 2
 
 

@@ -66,6 +66,89 @@ class InteractiveFramePairTests(unittest.TestCase):
         self.assertEqual(result['normal_entry_exits'], 2)
         self.assertTrue(all(result['no_added_reported_slow_frames'].values()))
 
+    def test_normal_about_content_uses_visible_licences_and_keeps_scroll_outside_timing(self):
+        window = fixture()['samples']['current']['observation']['windows']['page_change']
+        for fault in (None, 'closed', 'content', 'address', 'scroll'):
+            calls, validated, pauses = [], [], []
+            tab, opened, collecting = 'dashboard', False, False
+
+            def send(command):
+                nonlocal tab, opened, collecting
+                calls.append(command.copy())
+                kind = command['cmd']
+                if kind == 'theme':
+                    return dict(ok=True, mode='dark', brightness='dark', savedMode='ThemeMode.dark')
+                if kind == 'state':
+                    return dict(ok=True, booted=True, tab=tab, size=[1280, 780],
+                        walletUnlocked=True, walletInitCompleted=True,
+                        node='ws://127.0.0.1:45998', chainId=321, signingChainId=321,
+                        nodeTransitionPending=False,
+                        address='changed-address' if fault == 'address' and opened else 'fixture-address')
+                if kind == 'stalls':
+                    if command['frameWindow'] == 'begin':
+                        self.assertFalse(collecting)
+                        collecting = True
+                        return dict(ok=True, frameWindow='collecting')
+                    self.assertTrue(collecting)
+                    collecting = False
+                    return dict(ok=True, **window)
+                if kind == 'tap':
+                    if command.get('tab') == 'settings':
+                        self.assertTrue(collecting)
+                        tab = 'settings'
+                        return dict(ok=True, target=dict(tab=tab))
+                    key = command['key']
+                    self.assertIn(key, ('settings_about', 'about_licences_toggle'))
+                    if key == 'about_licences_toggle':
+                        self.assertTrue(collecting)
+                        self.assertFalse(opened)
+                        opened = True
+                    else:
+                        self.assertFalse(collecting)
+                    return dict(ok=True, target=dict(key=key))
+                if kind == 'scroll':
+                    self.assertTrue(opened)
+                    self.assertFalse(collecting)
+                    self.assertEqual(command, dict(cmd='scroll', key='about_licences_toggle', dy=300))
+                    return dict(ok=True, at=[1280 if fault == 'scroll' else 900, 500])
+                self.assertEqual(kind, 'wait')
+                self.assertFalse(collecting)
+                if 'key' in command:
+                    self.assertIn(command['key'], ('settings_node', 'about_licences_toggle'))
+                    return dict(ok=True, target=dict(key=command['key']))
+                self.assertEqual(command['type'], 'Licences')
+                self.assertEqual(command['timeoutMs'], 5000)
+                if not opened:
+                    self.assertIs(command['gone'], True)
+                    return dict(ok=True, **({'target': {}} if fault == 'closed' else {}))
+                self.assertNotIn('gone', command)
+                return dict(ok=True, target=dict(path=['Other'] if fault == 'content'
+                                                       else ['AboutCard', 'Licences', 'Text']))
+
+            windows = {}
+
+            def validate(value):
+                pair.shared.launch.frame_timing_window(value)
+                validated.append(value)
+
+            with self.subTest(fault=fault):
+                if fault is None:
+                    result = pair.actions.observe_interactive(send, validate,
+                        size=[1280, 780], windows=windows, sleep=pauses.append)
+                    self.assertIs(result, windows)
+                    self.assertEqual(set(windows), set(pair.WINDOWS))
+                    self.assertEqual(len(calls), 16)
+                    self.assertEqual(pauses, [0.6, 0.6])
+                    self.assertEqual(len(validated), 2)
+                else:
+                    with self.assertRaises(pair.actions.FrameActionRefused):
+                        pair.actions.observe_interactive(send, validate,
+                            size=[1280, 780], windows=windows, sleep=pauses.append)
+                    self.assertEqual(set(windows), {'page_change'})
+                self.assertFalse(collecting)
+                self.assertFalse(any(call.get('key') in ('about_page', 'about_licences_list')
+                                     for call in calls))
+
     def test_profile_progress_preserves_the_original_send_failure(self):
         profile = pair.profile
         original_failure = RuntimeError('synthetic private failure')

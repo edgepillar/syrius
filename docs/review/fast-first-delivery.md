@@ -982,6 +982,23 @@ number and whether its call returned. The reader validates this optional
 progress record and supports the earlier manifests. Failed calls preserve
 their original exception and the already observed windows.
 
+Source644 passes selected analysis, all 1,388 ordinary Dart cases and 1,142
+Python cases with eighteen skips. Its original current session stops at the
+ninth measurement command: the `about_page` wait does not return. The reader
+verifies the same progress record, six page-change frames and normal wallet,
+entry and five-node exits. Disclosure and P06 windows remain unobserved.
+[Producer](https://github.com/edgepillar/syrius/actions/runs/42914701285)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42918126056).
+
+Source645 waits for the original visible licences toggle and checks the
+mounted `Licences` content before and after opening. These selectors use the
+normal wallet agent's existing widget-path matching; readonly-only region
+queries are removed from this measurement. The timing window, outside-window
+scroll and original address/chain checks remain unchanged. One normal-agent
+widget regression and one controller regression cover the content selection.
+Nine in-memory Python controls pass, including rejection of changed content,
+address and scroll replies. Fresh widget and native qualification remain open.
+
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied
 owner, confirmed receipt and exact Project row. The original Project

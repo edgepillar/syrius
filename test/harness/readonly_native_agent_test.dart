@@ -164,6 +164,69 @@ class _InspectionInstance extends cli.Instance {
 }
 
 void main() {
+  about_fixture.aboutTestWidgets(
+    'normal wallet observes the licences disclosure through its content',
+    (WidgetTester tester) async {
+      about_fixture.prepareAboutViewport(tester);
+      final HarnessAgent agent = HarnessAgent.forTest()..booted = true;
+      await tester.pumpWidget(
+        about_fixture.aboutHost(
+          AboutCard(
+            loadInformation: () async => AboutInformation(version: 'fixture'),
+            loadLicences: () => Stream<LicenseEntry>.value(
+              about_fixture.FixtureLicence(
+                <String>['fixture-package'],
+                const <LicenseParagraph>[LicenseParagraph('Fixture terms', 0)],
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      final Map<String, Object?> closed = await agent.commandForTest(
+        <String, dynamic>{
+          'cmd': 'wait',
+          'type': 'Licences',
+          'gone': true,
+          'timeoutMs': 0,
+        },
+      );
+      expect(closed.containsKey('target'), isFalse);
+      await agent.commandForTest(<String, dynamic>{
+        'cmd': 'wait',
+        'key': 'about_licences_toggle',
+        'timeoutMs': 0,
+      });
+      await _driveCatalogCommand(
+        tester,
+        agent.commandForTest(<String, dynamic>{
+          'cmd': 'tap',
+          'key': 'about_licences_toggle',
+        }),
+      );
+      await _driveCatalogCommand(
+        tester,
+        agent.commandForTest(<String, dynamic>{
+          'cmd': 'scroll',
+          'key': 'about_licences_toggle',
+          'dy': 300,
+        }),
+      );
+      final Map<String, Object?> opened = await agent.commandForTest(
+        <String, dynamic>{
+          'cmd': 'wait',
+          'type': 'Licences',
+          'timeoutMs': 0,
+        },
+      );
+      final Map<String, Object?> target =
+          opened['target']! as Map<String, Object?>;
+      expect(target['path'], contains('Licences'));
+      expect(find.text('fixture-package'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets(
     'revealed sibling retains the registry end and earlier complete text',
     (WidgetTester tester) async {

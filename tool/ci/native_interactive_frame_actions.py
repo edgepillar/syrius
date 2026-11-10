@@ -48,6 +48,16 @@ def _wait(send, key):
     return _target(_original(send, cmd='wait', key=key, timeoutMs=5000), key=key)
 
 
+def _licences(send, *, gone=False):
+    reply = _original(send, cmd='wait', type='Licences', timeoutMs=5000,
+                      **({'gone': True} if gone else {}))
+    if gone:
+        _require('target' not in reply)
+    else:
+        path = _target(reply).get('path')
+        _require(type(path) is list and 'Licences' in path)
+
+
 def _end(send, validate_window):
     reply = _original(send, cmd='stalls', frameWindow='end')
     fields = ('schema', 'scope', 'windowUs', 'frames')
@@ -86,11 +96,8 @@ def observe_interactive(send, validate_window, *, size, windows=None, sleep=time
     windows['page_change'] = page
 
     _target(_original(send, cmd='tap', key='settings_about'), key='settings_about')
-    _wait(send, 'about_page')
     _wait(send, 'about_licences_toggle')
-    closed = _original(send, cmd='wait', key='about_licences_list',
-                       gone=True, timeoutMs=5000)
-    _require('target' not in closed)
+    _licences(send, gone=True)
     disclosure = _measure(send, validate_window, sleep,
                           {'key': 'about_licences_toggle'})
     # The redesigned list can start below the visible scroll area. Reveal it
@@ -100,7 +107,7 @@ def observe_interactive(send, validate_window, *, size, windows=None, sleep=time
     _require(type(at) is list and len(at) == len(size) == 2
              and all(type(value) is int and 0 <= value < limit
                      for value, limit in zip(at, size)))
-    _wait(send, 'about_licences_list')
+    _licences(send)
     _wallet(send, 'settings', size, address)
     windows['disclosure'] = disclosure
     return windows
