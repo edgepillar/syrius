@@ -256,19 +256,22 @@ void main() {
           header = replacement;
           await tester.pumpWidget(form());
         case 'route cycle':
+          final MaterialPageRoute<void> cover = MaterialPageRoute<void>(
+            builder: (_) => const Scaffold(body: Text('Covered')),
+          );
           final NavigatorState navigator = Navigator.of(
             tester.element(find.byType(ReceivePopulated)),
-          )..push<void>(
-            MaterialPageRoute<void>(
-              builder: (_) => const Scaffold(body: Text('Covered')),
-            ),
-          );
+          )..push<void>(cover);
+          const Duration clockQuantum = Duration(microseconds: 1);
           await tester.pump();
-          await tester.pump(const Duration(milliseconds: 300));
+          await tester.pump(cover.transitionDuration + clockQuantum);
           expect(original.select(choices, _second), isFalse);
+          final Duration reverse = cover.reverseTransitionDuration;
           navigator.pop();
           await tester.pump();
-          await tester.pump(const Duration(milliseconds: 300));
+          await tester.pump(reverse + clockQuantum);
+          await tester.pump();
+          expect(find.text('Covered', skipOffstage: false), findsNothing);
       }
       encoding.complete(Uint8List.fromList(<int>[1]));
       await tester.pump();
@@ -280,10 +283,14 @@ void main() {
         'znn:${change == 'address' ? _second : _first}'
         '?zts=${kZnnCoin.tokenStandard}&amount=0',
       );
-      await tester.tap(find.byKey(const Key('receive_qr_toggle')));
+      final Finder toggle = find.byKey(const Key('receive_qr_toggle'));
+      await tester.ensureVisible(toggle);
+      await tester.tap(toggle);
       await receiveTestReveal(tester);
-      expect(tester.widget<Text>(overline).data,
-        change == 'address' ? 'ADDRESS 2' : 'ADDRESS 1');
+      expect(
+        tester.widget<Text>(overline).data,
+        change == 'address' ? 'ADDRESS 2' : 'ADDRESS 1',
+      );
       await receiveTestDispose(tester);
       original.dispose();
       replacement.dispose();

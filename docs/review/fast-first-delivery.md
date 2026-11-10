@@ -616,7 +616,15 @@ Source614 restores the selected address ordinal above the collapsed Receive
 address. It uses the existing translated label and ledger style. The expanded
 QR view, receiver ownership and payload stay bound to their existing controls.
 The existing address and export lifecycle cases check the label across QR and
-selection changes. Fresh engine and native visual evidence remain open.
+selection changes. Selected analysis is clear. The focused run completes 1,107
+Python cases with eighteen skips and reports 1,380 Dart passes and one failure
+at the new QR close tap, with zero artifacts.
+[Original focused run](https://github.com/edgepillar/syrius/actions/runs/42811453452).
+
+Source615 uses the covering route's forward and reverse durations, checks
+that the cover is gone and scrolls the QR toggle into view before tapping it.
+Export revocation, the QR payload and the selected address ordinal are still
+checked. Fresh engine and native visual evidence remain open.
 
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied
