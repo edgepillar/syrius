@@ -2624,6 +2624,8 @@ class HarnessAgent {
       'readyOriginal': controls.any(
         (_Node node) => node.key == 'wallet_ready_open' && _recipeReady(node),
       ),
+      if (_readonlyWalletReady)
+        'quizAnswerReady': _recipeNewWalletQuizAnswer(nodes) != null,
       'hasError':
           nodes.any((_Node node) => node.kind == 'error') ||
           view?.presenter.state.failure != null,
@@ -2675,15 +2677,17 @@ class HarnessAgent {
 
   // Resolve only the current choice inside the original quiz owner. Neither
   // its answer nor the selected control key enters a recipe reply.
-  _Node _recipeNewWalletQuizAnswer() {
-    if (!_readonlyWalletReady || kWalletFile != null) {
-      throw HarnessError('wallet-recipe-control-refused');
-    }
+  _Node? _recipeNewWalletQuizAnswer(List<_Node> nodes) {
+    if (!_readonlyWalletReady || kWalletFile != null) return null;
     final List<_Node> hits = <_Node>[];
-    for (final _Node node in _snapshot()) {
+    for (final _Node node in nodes) {
       if (node.key?.startsWith('seed_quiz_') != true ||
-          node.kind != 'button' ||
-          ModalRoute.of(node.element)?.isCurrent != true) {
+          node.kind != 'button') {
+        continue;
+      }
+      final ModalRoute<dynamic>? route = ModalRoute.of(node.element);
+      if (route == null || !route.isCurrent ||
+          route.animation?.isCompleted != true) {
         continue;
       }
       SeedQuiz? quiz;
@@ -2705,9 +2709,12 @@ class HarnessAgent {
         hits.add(node);
       }
     }
-    if (hits.length != 1) throw HarnessError('wallet-recipe-control-refused');
-    return hits.single;
+    return hits.length == 1 ? hits.single : null;
   }
+
+  _Node _requireNewWalletQuizAnswer() =>
+      _recipeNewWalletQuizAnswer(_snapshot()) ??
+      (throw HarnessError('wallet-recipe-control-refused'));
 
   Future<Map<String, Object?>> _walletRecipeCommand(
     Map<String, dynamic> command,
@@ -2801,7 +2808,7 @@ class HarnessAgent {
               command.containsKey('key') || command.containsKey('value'))) {
         throw HarnessError('wallet-recipe-action-refused');
       }
-      final _Node? answer = answerQuiz ? _recipeNewWalletQuizAnswer() : null;
+      final _Node? answer = answerQuiz ? _requireNewWalletQuizAnswer() : null;
       final Object? key = answer?.key ?? command['key'];
       if (key is! String ||
           (!answerQuiz &&
@@ -2875,7 +2882,7 @@ class HarnessAgent {
           throw HarnessError('wallet-recipe-original-owner-changed');
         }
         final _Node fresh = answerQuiz
-            ? _recipeNewWalletQuizAnswer()
+            ? _requireNewWalletQuizAnswer()
             : _recipeControl(key, field: field);
         final String? change = recipeControlChange(
           original: original.element,

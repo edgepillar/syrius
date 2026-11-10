@@ -59,7 +59,9 @@ PROFILE_PARTS = {name.casefold(): name.replace(' ', '_').lower() for name in
      'Microsoft', 'VSCommon', 'VisualStudio', 'Telemetry', '.dotnet', '.nuget',
      'NuGet', 'Packages', 'Pub', 'Cache', 'Dart')}
 ALIAS_LIMIT = 16
-RECIPE_ACTIONS = frozenset(('observe', 'tap', 'type', 'scroll', 'key', 'unknown'))
+RECIPE_ACTIONS = frozenset((
+    'observe', 'tap', 'type', 'scroll', 'key', 'answer-new-wallet-quiz', 'unknown',
+))
 RECIPE_CONTROLS = frozenset((
     'none', 'unknown', 'launch_skip_hint', 'welcome_import', 'import_words_12', 'import_words_24',
     'import_seed_field', 'import_continue', 'import_new_password',
@@ -69,6 +71,9 @@ RECIPE_CONTROLS = frozenset((
     'node_settings_chain_toggle', 'node_settings_client_chain', 'node_settings_chain_save',
     'wallet_ready_open', 'nav_settings', 'nav_dashboard', 'settings_node',
     'settings_addresses', 'settings_add_address', 'addresses_select',
+    'welcome_create', 'new_wallet_seed_backed_up', 'new_wallet_seed_written',
+    'new_wallet_seed_continue', 'seed_quiz_continue', 'new_wallet_password',
+    'new_wallet_confirm_password', 'new_wallet_password_continue',
 ))
 RECIPE_FAILURE_CODES = frozenset((
     'wallet-recipe-action-refused', 'wallet-recipe-control-refused',

@@ -367,8 +367,20 @@ or skips and 151 hidden events. The old aggregate expects 1,373 cases
 and refuses the observed 1,374. The Windows build remains unreached
 with zero retained artifacts. Source593 advances the two exact totals
 to 1,374 and 1,376. The latter includes two opt-in launch asset cases.
-Fresh Windows verification is pending.
 [Original Source592 attempt](https://github.com/edgepillar/syrius/actions/runs/42745935636).
+
+Source593 passes the corrected gates with 1,374 Dart cases and zero
+selected analysis findings. The owned Windows application receives the
+original onboarding command. Its finite report records a refused control
+before Wallet Ready. The command vocabulary and source identify the quiz
+answer action. The exact failed readiness predicate remains
+`NOT_ESTABLISHED`. The independent reader verifies both manifests and
+zero images. Source594 waits for a unique, reachable current choice and a
+completed original route transition before sending each answer. The
+pointer checks still revalidate the original element. Fresh Windows
+verification is pending.
+[Windows producer](https://github.com/edgepillar/syrius/actions/runs/42747845786)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42750137020).
 
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,

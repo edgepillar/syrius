@@ -1,6 +1,7 @@
 /// Only fixed recipe labels may leave the private command exchange.
 const Set<String> walletRecipeActions = <String>{
   'observe', 'tap', 'type', 'scroll', 'key', 'unknown',
+  'answer-new-wallet-quiz',
 };
 
 /// Dynamic node-selection keys collapse to one label without an endpoint.
@@ -15,6 +16,9 @@ const Set<String> walletRecipeControls = <String>{
   'node_settings_client_chain', 'node_settings_chain_save', 'wallet_ready_open',
   'nav_settings', 'nav_dashboard', 'settings_node', 'settings_addresses',
   'settings_add_address', 'addresses_select',
+  'welcome_create', 'new_wallet_seed_backed_up', 'new_wallet_seed_written',
+  'new_wallet_seed_continue', 'seed_quiz_continue', 'new_wallet_password',
+  'new_wallet_confirm_password', 'new_wallet_password_continue',
 };
 
 /// Fixed server and observation refusals carry no exception text or payload.

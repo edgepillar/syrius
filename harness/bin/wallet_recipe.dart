@@ -596,7 +596,9 @@ class WalletRecipe {
     );
     _owner = quiz['owner'] as int;
     for (int index = 0; index < 3; index++) {
-      final Map<String, dynamic> view = await _observe();
+      final Map<String, dynamic> view = await _until(
+        (Map<String, dynamic> value) => value['quizAnswerReady'] == true,
+      );
       _policy(view);
       await _command(<String, Object?>{
         'action': 'answer-new-wallet-quiz',

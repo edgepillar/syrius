@@ -50,6 +50,7 @@ class _WalletUi {
   int opens = 0;
   int consents = 0;
   int quizAnswers = 0;
+  int quizAnswerObservations = 0;
 
   WalletRecipe driver({Duration timeout = const Duration(seconds: 1)}) =>
       WalletRecipe(
@@ -139,6 +140,8 @@ class _WalletUi {
       'nodeBusy': pending,
       'nodeCatalog': <String>[if (catalogued) _node],
       'readyOriginal': phase == 'ready' && readyOriginal,
+      if (phase == 'new-quiz')
+        'quizAnswerReady': quizAnswers < 3 && quizAnswerObservations >= 3,
       'question': phase == 'question' ? 7 : null,
       'hasError': hasError,
       'controls': <Map<String, dynamic>>[
@@ -170,6 +173,7 @@ class _WalletUi {
     commands.add(Map<String, Object?>.of(command));
     final Object? key = command['key'];
     if (command['action'] == 'observe') {
+      if (phase == 'new-quiz') quizAnswerObservations++;
       if (phase == 'startup' && naturalStartup) {
         if (startupObserved) phase = 'welcome';
         startupObserved = true;
@@ -201,12 +205,14 @@ class _WalletUi {
     }
     if (command['action'] == 'answer-new-wallet-quiz') {
       expect(phase, 'new-quiz');
+      expect(quizAnswerObservations, greaterThanOrEqualTo(3));
       expect(command['owner'], owner);
       expect(command['revision'], revision);
       expect(command.keys, unorderedEquals(<String>[
         'cmd', 'action', 'owner', 'revision',
       ]));
       quizAnswers++;
+      quizAnswerObservations = 0;
       return <String, dynamic>{'ok': true, 'acted': true};
     }
     if (command['action'] == 'type') {
