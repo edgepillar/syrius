@@ -808,7 +808,22 @@ lock state query and the final frame request. An original command refusal
 retains its HTTP status and whether the final frame request returned the
 fixed frame-window refusal. The reader binds that observation to the
 original COMMAND_FAILED outcome. All 85 selected local controls pass.
-Fresh Windows evidence is pending.
+
+Source633 passes selected analysis, 1,388 Dart tests and 1,132 Python
+cases with eighteen skips. It records 191 current frames. P06 passes the
+initial password field and locked-state checks, then the frame window
+request returns HTTP 400 and the fixed frame-window refusal. All five
+original actors exit normally. The independent reader binds the original
+13,888-byte archive. The exact inner refusal cause and paired comparison
+remain open.
+[Producer](https://github.com/edgepillar/syrius/actions/runs/42879055212) and
+[independent reader](https://github.com/edgepillar/syrius/actions/runs/42882219474).
+
+The Import step connector now uses a one-logical-pixel fill at the
+existing layout position. The new widget case samples a fractional offset
+and checks that the fill occupies one raster row. The two changed Dart
+files pass local analysis. Windows widget and native capture results are
+pending. The remaining Import dash and whole-image reviews stay open.
 
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied

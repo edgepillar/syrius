@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/hero_field.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/segment.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/onboarding/entry_card_surface.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/import_wallet/import_draft.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/import_wallet/import_surface.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
@@ -57,33 +58,90 @@ Widget _compactEntry(Widget child, {required bool light}) => entryHost(
   light: light,
 );
 
-Future<Color> _paintedColor(
+Future<List<Color>> _paintedColors(
   WidgetTester tester,
-  Offset global,
+  List<Offset> samples,
 ) async {
   final RenderRepaintBoundary layer = tester
       .renderObject<RenderRepaintBoundary>(find.byKey(_paintBoundary));
-  final Offset local = layer.globalToLocal(global);
-  final Color? color = await tester.runAsync<Color>(() async {
+  final List<Offset> local = samples.map(layer.globalToLocal).toList();
+  final List<Color>? colors = await tester.runAsync<List<Color>>(() async {
     final ui.Image image = await layer.toImage();
     try {
       final ByteData pixels = (await image.toByteData())!;
-      final int offset =
-          (local.dy.floor() * image.width + local.dx.floor()) * 4;
-      return Color.fromARGB(
-        pixels.getUint8(offset + 3),
-        pixels.getUint8(offset),
-        pixels.getUint8(offset + 1),
-        pixels.getUint8(offset + 2),
-      );
+      return <Color>[
+        for (final Offset point in local)
+          _colorAt(
+            pixels,
+            (point.dy.floor() * image.width + point.dx.floor()) * 4,
+          ),
+      ];
     } finally {
       image.dispose();
     }
   });
-  return color!;
+  return colors!;
 }
 
+Color _colorAt(ByteData pixels, int offset) => Color.fromARGB(
+  pixels.getUint8(offset + 3),
+  pixels.getUint8(offset),
+  pixels.getUint8(offset + 1),
+  pixels.getUint8(offset + 2),
+);
+
 void main() {
+  testWidgets('the entry step connector fills one row at a fractional offset', (
+    WidgetTester tester,
+  ) async {
+    prepareEntryViewport(tester);
+    const AppTokens tokens = AppTokens.dark;
+    await tester.pumpWidget(
+      entryHost(
+        RepaintBoundary(
+          key: _paintBoundary,
+          child: ColoredBox(
+            color: tokens.card2,
+            child: Center(
+              child: Transform.translate(
+                offset: const Offset(0, 0.25),
+                child: const SizedBox(
+                  width: 620,
+                  child: EntryStepPosition(
+                    steps: <String>['First', 'Second'],
+                    step: 0,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    final Finder connector = find.descendant(
+      of: find.byType(EntryStepPosition),
+      matching: find.byType(CustomPaint),
+    );
+    expect(connector, findsOneWidget);
+    final Rect bounds = tester.getRect(connector);
+    expect(bounds.height, 1);
+    expect(bounds.top, isNot(bounds.top.roundToDouble()));
+    final double row = bounds.top.floorToDouble();
+    final List<Color> colors = await _paintedColors(tester, <Offset>[
+      for (int delta = -1; delta <= 2; delta++)
+        Offset(bounds.center.dx, row + delta),
+    ]);
+    expect(
+      colors,
+      unorderedEquals(<Color>[
+        tokens.card2,
+        tokens.card2,
+        tokens.card2,
+        tokens.line,
+      ]),
+    );
+  });
+
   for (final bool light in <bool>[false, true]) {
     testWidgets(
       'the ${light ? 'light' : 'dark'} import view keeps its measured card',
@@ -288,14 +346,20 @@ void main() {
         final AppTokens tokens = light ? AppTokens.light : AppTokens.dark;
         final Finder zone = find.byKey(const Key('import_file_zone'));
         final Offset sample = tester.getTopLeft(zone) + const Offset(30, 30);
-        expect(await _paintedColor(tester, sample), tokens.card2);
+        expect(
+          await _paintedColors(tester, <Offset>[sample]),
+          <Color>[tokens.card2],
+        );
         final TestGesture pointer = await tester.createGesture(
           kind: ui.PointerDeviceKind.mouse,
         );
         addTearDown(pointer.removePointer);
         await pointer.addPointer(location: sample);
         await tester.pump(const Duration(milliseconds: 201));
-        expect(await _paintedColor(tester, sample), tokens.card2);
+        expect(
+          await _paintedColors(tester, <Offset>[sample]),
+          <Color>[tokens.card2],
+        );
         expect(browses, 0);
         final Finder dashed = find.descendant(
           of: zone,

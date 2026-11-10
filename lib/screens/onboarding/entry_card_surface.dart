@@ -231,7 +231,10 @@ class EntryStepPosition extends StatelessWidget {
                       padding: EdgeInsetsDirectional.symmetric(
                         horizontal: tokens.entryStepLineInset,
                       ),
-                      child: Divider(color: tokens.line, height: 1),
+                      child: CustomPaint(
+                        size: const Size(0, 1),
+                        painter: _EntryStepConnectorPainter(tokens.line),
+                      ),
                     ),
                   ),
                 items[index],
@@ -242,4 +245,25 @@ class EntryStepPosition extends StatelessWidget {
       ),
     );
   }
+}
+
+class _EntryStepConnectorPainter extends CustomPainter {
+  const _EntryStepConnectorPainter(this.color);
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Fill the connector without blending a fractional offset into two rows.
+    canvas.drawRect(
+      Offset.zero & size,
+      Paint()
+        ..color = color
+        ..isAntiAlias = false,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_EntryStepConnectorPainter oldDelegate) =>
+      oldDelegate.color != color;
 }
