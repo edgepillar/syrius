@@ -49,6 +49,9 @@ func TestSyriusSendWarningFixturePreservesOriginalInsert(t *testing.T) {
 	if !fixture.tracksPeerAnnouncements() {
 		t.Fatal("the fixture did not retain actual peer announcements")
 	}
+	// A held sync must return before using the chain or downloader.
+	manager := ProtocolManager{syriusSendWarning: fixture}
+	manager.synchronise(&peer{})
 	if err := os.Mkdir(filepath.Join(dir, "release"), 0o700); err != nil {
 		t.Fatal("could not create the test release marker")
 	}

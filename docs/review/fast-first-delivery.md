@@ -542,6 +542,10 @@ which its selector rejects. The positive confirmation marker, reachable owner
 Close control and original rail restoration still gate the flow. Fresh
 Windows and archive evidence remains open.
 
+Source609 clears selected Dart analysis and completes 1,380 Dart cases and 1,107 Python cases with eighteen skips. The original twelve-page tour and five original node exits qualify. The copied session confirms Fuse and stops at the original Pillar QSR publish reply. Three observations are absent, followed by fifteen observations of the confirmed send with its deposit effect pending. The independent reader verifies the two finite archives. Pillar registration and capture are unreached. The catalog has 88 of 94 literal outputs. [Windows producer](https://github.com/edgepillar/syrius/actions/runs/42790417421) and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42793280353).
+
+Source610 retains real peer momentum announcements and defers new fetch and synchronization requests during the finite Send warning window. Both original HTTP and WebSocket lag readings and the active wallet's visible warning and disabled Send control still gate the two captures. Fresh Windows and archive evidence remains open.
+
 The optional `--no-diff-images` comparison preserves scores, input hashes
 and review state. In-memory controls with 94 synthetic PNG pairs encode
 94 difference images in the standard mode and zero in the compact mode.

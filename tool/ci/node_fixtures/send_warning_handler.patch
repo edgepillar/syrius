@@ -1,5 +1,5 @@
 diff --git a/protocol/handler.go b/protocol/handler.go
-index fc18700d7a09175ea23f2fe7f1b7fd81df3a2522..8a992343ca7678a7f85fdb1b671581fbea19719d 100644
+index fc18700d7a09175ea23f2fe7f1b7fd81df3a2522..b46abb68b80450e8dc9bfa479d85bdf87d7e0eb3 100644
 --- a/protocol/handler.go
 +++ b/protocol/handler.go
 @@ -69,0 +70,2 @@
@@ -14,8 +14,23 @@ index fc18700d7a09175ea23f2fe7f1b7fd81df3a2522..8a992343ca7678a7f85fdb1b671581fb
 @@ -128 +132 @@
 -		manager.chainman.InsertChain,
 +		insertChain,
-@@ -492,0 +497,4 @@
-+		} else if pm.syriusSendWarning.tracksPeerAnnouncements() && detailed.Momentum.Height > p.Td() {
-+			// Keep the actual announced peer height visible while this isolated
-+			// node deliberately holds local insertion. The sync API is unchanged.
-+			p.SetTd(detailed.Momentum.Height)
+@@ -454,0 +459,3 @@
++		if pm.syriusSendWarning.tracksPeerAnnouncements() {
++			break
++		}
+@@ -482,0 +490,7 @@
++		if pm.syriusSendWarning.tracksPeerAnnouncements() {
++			// Retain the real announcement while new fetches are deferred.
++			if detailed.Momentum.Height > p.Td() {
++				p.SetTd(detailed.Momentum.Height)
++			}
++			break
++		}
+diff --git a/protocol/sync.go b/protocol/sync.go
+index 3a9580d9a33b0340debb1d1364444a75c3f86635..bd8e2d0050bf184522611dc396717d169322d46e 100644
+--- a/protocol/sync.go
++++ b/protocol/sync.go
+@@ -187,0 +188,3 @@
++	if pm.syriusSendWarning.tracksPeerAnnouncements() {
++		return
++	}

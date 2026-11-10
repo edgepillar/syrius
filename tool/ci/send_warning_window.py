@@ -12,15 +12,15 @@ from tools.devnet.lab.socket_transport import make_transports
 
 FAMILY = 'send-warn'
 ENVIRONMENT = 'SYRIUS_LAB_SEND_WARN_DIR'
-COMPILED_TREE = 'ce05297713a87313e07759f7c1299fc36878b39f'
+COMPILED_TREE = '033a02277f88e9c9cf596ed4435da668029daf59'
 PATCH = 'tool/ci/node_fixtures/send_warning_handler.patch'
 SOURCE_PINS = {
     'tool/ci/node_fixtures/send_warning_handler.patch':
-        '92511b78c7da1b0c5051100c42892c95efb51087be12849c14b611a83c73de86',
+        '7032a6d0b109fc3a58b8fef8ce651c1ac2ff64824482e1dd09c8fc1c3480faea',
     'tool/ci/node_fixtures/syrius_send_warning_fixture.go':
         '0b49f11bdc5f4f9f5a82d51d2e0796136869a0014929ad4ad2a99ddd7f05f152',
     'tool/ci/node_fixtures/syrius_send_warning_fixture_test.go':
-        'f0f527032695cb6df9498b63450d9e47e532fd256821c3d01d3731ef94bed3b2',
+        '777cd6dcb45864047f5ef5adf02982bc40966d798d52d4729d0e14ca7c670930',
 }
 TESTS = (
     'TestSyriusSendWarningFixturePreservesOriginalInsert',
