@@ -3,9 +3,9 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart'
     show PasswordInputField;
-import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
 
 import '../../harness/app/agent.dart';
 import '../../harness/bin/harness.dart' as cli;

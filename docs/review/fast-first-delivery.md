@@ -408,10 +408,16 @@ and zero images. The exact wait refusal remains unestablished.
 [Windows producer](https://github.com/edgepillar/syrius/actions/runs/42755369629)
 and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42757588894).
 
-Source597 separates the keyed password fields from their visibility
-buttons. An ambiguous observation still refuses input and exports
-only the fixed control label and phase. The exact earlier ambiguity
-and the fresh Windows result remain open.
+Source597 separates password inputs and their visibility controls.
+The 1,101 controller cases pass with eighteen skips. Selected analysis
+reports one test import-order finding. Dart tests and native startup
+are unreached, and the run retains zero artifacts. The earlier native
+ambiguity remains unestablished.
+[Original Windows attempt](https://github.com/edgepillar/syrius/actions/runs/42758515020).
+
+Source598 restores lexical order for the two existing test imports.
+The test assertions and application source stay the same. Fresh Windows
+verification remains pending.
 
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,
