@@ -16,6 +16,9 @@ const String harnessReadonlyWalletReadyCatalog = 'wallet-ready';
 /// Selects the original Send draft with the isolated node lag window.
 const String harnessReadonlySendWarningCatalog = 'send-warn';
 
+/// Selects the visual sample on the original bound Home surface.
+const String harnessReadonlyHomeZapPreview = 'home-zap-preview';
+
 /// A requested native inspection cannot retain the required startup scope.
 class ReadonlyNativeModeRefused implements Exception {
   /// Refuses before native startup, private input or SDK initialization.

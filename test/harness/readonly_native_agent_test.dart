@@ -1836,6 +1836,12 @@ void main() {
     final _Scope scope = _Scope();
     await scope.open();
     await expectLater(
+      scope.agent.commandForTest(<String, dynamic>{
+        'cmd': 'readonly-home-zap-preview',
+      }),
+      throwsA(isA<ReadonlyNativeCommandRefused>()),
+    );
+    await expectLater(
       scope.agent.commandForTest(<String, dynamic>{'cmd': 'entry-check'}),
       throwsA(isA<HarnessError>().having(
         (HarnessError error) => error.message,

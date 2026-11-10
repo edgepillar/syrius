@@ -52,6 +52,7 @@ void main() {
     for (final String family in <String>[
       'home', 'home-bell', 'settings', 'navigation', 'details', 'token-draft',
       'send-confirm', 'send-warn', 'swap-start', 'earn', 'sentinel-fixture',
+      'home-zap-preview',
     ]) {
       expect(readonlyInspectionCatalogFamily(<String, String>{
         'SYRIUS_READONLY_CATALOG_FAMILY': family,
@@ -2440,6 +2441,7 @@ void main() {
     for (final String name in <String>[
       'seed', 'lab-send', 'lab-quiesce', 'lab-reopen-observe',
       'wallet-recipe', 'clipboard', 'readonly-wallet-bind', 'unknown',
+      'readonly-home-zap-preview',
     ]) {
       int calls = 0;
       final ReadonlyInspectionSession session = ReadonlyInspectionSession(

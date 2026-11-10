@@ -577,7 +577,8 @@ class ReaderTests(unittest.TestCase):
         source = b'synthetic source'
         home_pixels = wallet_fixtures.png()
         bell_only = catalog_only == 'home-bell'
-        distinct_themes = bell_only or catalog_only in ('swap-start', 'wallet-ready', 'send-warn')
+        distinct_themes = bell_only or catalog_only in (
+            'swap-start', 'wallet-ready', 'send-warn', 'home-zap-preview')
         home = wallet_fixtures.home_manifest(home_pixels, source, schema=home_schema)
         self.assertLessEqual(sum((settings_catalog, navigation_catalog,
             details_catalog, catalog_only is not None)), 1)
@@ -667,6 +668,8 @@ class ReaderTests(unittest.TestCase):
                 'harness/screens/sentinels.txt',)
         elif catalog_only in ('swap-start', 'wallet-ready'):
             source_files += ('harness/screens/' + catalog_only + '.txt',)
+        elif catalog_only == 'home-zap-preview':
+            source_files += reader.HOME_ZAP_PREVIEW_SOURCES + ('harness/screens/home-zap.txt',)
         elif catalog_only == 'send-warn':
             fixture_bytes = {name: Path(name).read_bytes() for name in fixture.SOURCE_PINS}
             source_files += ('tool/ci/send_warning_window.py',
@@ -926,6 +929,19 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual(observed['filenames'], ['08-send-warn-dark.png', '08-send-warn-light.png'])
         self.assertTrue(observed['parent_closure_qualified'])
         self.assertFalse(observed['financial_send_qualified'])
+
+        zap, _, text = self.run_main(catalog_only='home-zap-preview')
+        self.assertTrue(zap['native_inspection_qualified'])
+        self.assertEqual(zap['sampling_scope'], 'home-zap-preview-only')
+        self.assertEqual(zap['verified_catalog_png_count'], 2)
+        self.assertEqual(zap['producer_source_files_verified'], len(reader.SOURCE_FILES) + 2)
+        observed = next(json.loads(line.split('::', 2)[-1]) for line in text.splitlines()
+            if line.startswith('::notice title=Retained readonly Details catalog::'))
+        self.assertEqual(observed['filenames'], ['06-home-zap-dark.png', '06-home-zap-light.png'])
+        self.assertEqual(observed['presentation_fixture'], 'sample_zap_message')
+        self.assertFalse(observed['seed_admitted'])
+        self.assertFalse(observed['financial_send_qualified'])
+        self.assertEqual(observed['visual_matches'], 0)
 
     def test_bell_only_reader_verifies_the_script_and_two_original_frames(self):
         value, calls, text = self.run_main(catalog_only='home-bell')

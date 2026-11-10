@@ -1,6 +1,9 @@
 import 'readonly_sdk_admission.dart';
 import 'readonly_wallet_admission.dart';
 
+/// Requests the fixed visual sample from an already bound native Home.
+const String readonlyHomeZapPreviewCommand = 'readonly-home-zap-preview';
+
 /// A native command cannot establish its original readonly SDK admission.
 class ReadonlyNativeCommandRefused implements Exception {
   /// The refused command supplies no successful native observation.
@@ -49,6 +52,7 @@ class ReadonlyNativeCommands {
     'window',
     'quit',
     'readonly-entry',
+    readonlyHomeZapPreviewCommand,
   };
 
   final bool Function() _isBooted;
@@ -127,7 +131,9 @@ class ReadonlyNativeCommands {
         ..._receipt(),
       };
     }
-    if (name is! String || !_allowed.contains(name)) {
+    if (name is! String || !_allowed.contains(name) ||
+        name == readonlyHomeZapPreviewCommand &&
+            (_wallet == null || retained.length != 1)) {
       throw const ReadonlyNativeCommandRefused();
     }
     _running = true;

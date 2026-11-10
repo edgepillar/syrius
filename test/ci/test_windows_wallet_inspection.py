@@ -68,7 +68,8 @@ def details_manifest(pixels, script, *, schema=1):
         for row, name in zip(value['captures'], files)]
     if schema in (inspection.details.FAMILY_SCHEMAS['swap-start'],
                   inspection.details.FAMILY_SCHEMAS['wallet-ready'],
-                  inspection.details.FAMILY_SCHEMAS['send-warn']):
+                  inspection.details.FAMILY_SCHEMAS['send-warn'],
+                  inspection.details.FAMILY_SCHEMAS['home-zap-preview']):
         light = png(255)
         value['captures'][1].update(bytes=len(light), sha256=hashlib.sha256(light).hexdigest())
     return value
@@ -226,7 +227,8 @@ class InspectionTests(unittest.TestCase):
                                ('navigation', 3), ('details', 4),
                                ('token-draft', 4), ('send-confirm', 5),
                                ('earn', 6), ('sentinel-fixture', 7),
-                               ('swap-start', 9), ('wallet-ready', 10), ('send-warn', 11)):
+                               ('swap-start', 9), ('wallet-ready', 10), ('send-warn', 11),
+                               ('home-zap-preview', 12)):
             selected = dict(parent, SYRIUS_READONLY_CATALOG_FAMILY=family)
             self.assertTrue(lab.wallet_inspection_requested('native', selected))
             self.assertEqual(lab.READONLY_CATALOG_SCHEMAS[
@@ -243,7 +245,7 @@ class InspectionTests(unittest.TestCase):
         self.assertIn('default: details', choice)
         self.assertEqual([line.strip()[2:] for line in choice.splitlines()
             if line.strip().startswith('- ')],
-            ['home', 'home-bell', 'settings', 'navigation', 'details', 'token-draft',
+            ['home', 'home-bell', 'home-zap-preview', 'settings', 'navigation', 'details', 'token-draft',
              'send-confirm', 'send-warn', 'swap-start', 'wallet-ready', 'earn',
              'sentinel-fixture', 'launch', 'launch-settle',
              'lock-catalog', 'quiz-catalog', 'seeded-states',
@@ -644,11 +646,12 @@ class InspectionTests(unittest.TestCase):
             self.assertIs(value[key], False)
         self.assertEqual(value['visual_matches'], 0)
         focused = catalog_only_report(value, 'f' * 64, 'send-confirm')
-        for family in ('earn', 'sentinel-fixture', 'swap-start', 'wallet-ready', 'send-warn'):
+        for family in ('earn', 'sentinel-fixture', 'swap-start', 'wallet-ready', 'send-warn',
+                       'home-zap-preview'):
             catalog = catalog_only_report(value, 'f' * 64, family)
             self.assertTrue(inspection.completed(catalog))
             self.assertIs(inspection.public_manifest(catalog), catalog)
-            for schema in (4, 5, 6, 7, 9, 10, 11):
+            for schema in (4, 5, 6, 7, 9, 10, 11, 12):
                 if schema != catalog['schema']:
                     with self.subTest(family=family, schema=schema), self.assertRaises(inspection.Refused):
                         inspection.public_manifest(dict(catalog, schema=schema))

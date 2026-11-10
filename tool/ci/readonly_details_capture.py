@@ -47,7 +47,8 @@ RESTORED_FAILURE_KINDS = {
     PROJECT_DETAIL_SCHEMA: 'restored_project_detail_capture_failure',
 }
 FAMILY_SCHEMAS = {'details': 1, 'token-draft': 2, 'send-confirm': 3, 'earn': 5,
-                  'sentinel-fixture': 8, 'swap-start': 9, 'wallet-ready': 10, 'send-warn': 11}
+                  'sentinel-fixture': 8, 'swap-start': 9, 'wallet-ready': 10,
+                  'send-warn': 11, 'home-zap-preview': 12}
 CATALOG_STAGES = {name.replace('-', '_') + '_catalog': schema
                   for name, schema in FAMILY_SCHEMAS.items()}
 CATALOGS = {
@@ -63,6 +64,8 @@ CATALOGS = {
                                     ('47-wallet-ready-dark.png', '47-wallet-ready-light.png')),
     FAMILY_SCHEMAS['send-warn']: (('send-warn',),
                                   ('08-send-warn-dark.png', '08-send-warn-light.png')),
+    FAMILY_SCHEMAS['home-zap-preview']: (('home-zap',),
+        ('06-home-zap-dark.png', '06-home-zap-light.png')),
     STAKE_DRAFT_SCHEMA: (('staking-new',),
                          ('14-staking-new-dark.png', '14-staking-new-light.png')),
     PROJECT_DETAIL_SCHEMA: (('az-project',),
@@ -233,7 +236,7 @@ def capture_records(value, *, schema=1):
              'CAPTURE_REFUSED')
     need(sum(row['bytes'] for row in value) <= MAX_CAPTURE_TOTAL, 'CAPTURE_REFUSED')
     if schema in (FAMILY_SCHEMAS['swap-start'], FAMILY_SCHEMAS['wallet-ready'],
-                  FAMILY_SCHEMAS['send-warn']):
+                  FAMILY_SCHEMAS['send-warn'], FAMILY_SCHEMAS['home-zap-preview']):
         need(len({row['sha256'] for row in value}) == len(files), 'CAPTURE_REFUSED')
     return value
 
@@ -440,4 +443,6 @@ def unpack(raw, expected_sha, expected_size, head, tree, run_id,
         visual_matches=0, **_seed_pin(reference, schema))
     result.update(screens=list(catalog_screens(schema)))
     result[script_field] = script_sha
+    if schema == FAMILY_SCHEMAS['home-zap-preview']:
+        result['presentation_fixture'] = 'sample_zap_message'
     return result

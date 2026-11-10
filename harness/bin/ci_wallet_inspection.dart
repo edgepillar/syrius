@@ -4,7 +4,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import '../app/readonly_native_mode.dart'
-    show harnessReadonlySendWarningCatalog, harnessReadonlySentinelCatalog,
+    show harnessReadonlyHomeZapPreview, harnessReadonlySendWarningCatalog,
+        harnessReadonlySentinelCatalog,
         harnessReadonlyWalletReadyCatalog;
 import '../wallet_recipe_failure.dart' show walletRecipePublicDiagnostic;
 import 'harness.dart' as cli;
@@ -22,6 +23,7 @@ const Map<String, ReadonlyDetailsSelection> _detailsSelections =
       'details': ReadonlyDetailsSelection.details,
       'token-draft': ReadonlyDetailsSelection.tokenDraft,
       'send-confirm': ReadonlyDetailsSelection.sendConfirmation,
+      harnessReadonlyHomeZapPreview: ReadonlyDetailsSelection.homeZapPreview,
       harnessReadonlySendWarningCatalog: ReadonlyDetailsSelection.sendWarning,
       'swap-start': ReadonlyDetailsSelection.swapStart,
       'earn': ReadonlyDetailsSelection.earn,

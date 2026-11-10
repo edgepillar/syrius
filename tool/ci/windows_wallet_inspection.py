@@ -28,6 +28,7 @@ from . import readonly_details_capture as details
 from . import send_warning_window
 from .windows_debug_process import IMAGE_NAMES
 from .hosted_chain321 import (EARN_INSPECTION_SCHEMA, HOME_BELL_INSPECTION_SCHEMA,
+    HOME_ZAP_PREVIEW_INSPECTION_SCHEMA,
     READONLY_CATALOG_SCHEMAS, SEND_CONFIRM_INSPECTION_SCHEMA, SENTINEL_INSPECTION_SCHEMA,
     SEND_WARNING_INSPECTION_SCHEMA, SWAP_START_INSPECTION_SCHEMA,
     WALLET_READY_INSPECTION_SCHEMA, readonly_catalog_family)
@@ -69,6 +70,7 @@ CATALOG_ONLY_FAMILIES = {
     SWAP_START_INSPECTION_SCHEMA: 'swap-start',
     WALLET_READY_INSPECTION_SCHEMA: 'wallet-ready',
     SEND_WARNING_INSPECTION_SCHEMA: send_warning_window.FAMILY,
+    HOME_ZAP_PREVIEW_INSPECTION_SCHEMA: 'home-zap-preview',
     EARN_INSPECTION_SCHEMA: 'earn',
     SENTINEL_INSPECTION_SCHEMA: 'sentinel-fixture',
 }
@@ -1275,6 +1277,7 @@ def artifact_paths(parent):
         SWAP_START_INSPECTION_SCHEMA: 'details-catalog',
         WALLET_READY_INSPECTION_SCHEMA: 'details-catalog',
         SEND_WARNING_INSPECTION_SCHEMA: 'details-catalog',
+        HOME_ZAP_PREVIEW_INSPECTION_SCHEMA: 'details-catalog',
         EARN_INSPECTION_SCHEMA: 'details-catalog',
         SENTINEL_INSPECTION_SCHEMA: 'details-catalog'}[value['schema']]
     if value['schema'] in HOME_INSPECTION_SCHEMAS:

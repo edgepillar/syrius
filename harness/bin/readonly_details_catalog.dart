@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import '../app/fixtures/send_warning_draft.dart';
+import '../app/readonly_native_commands.dart'
+    show readonlyHomeZapPreviewCommand;
 import 'harness.dart' as cli;
 import 'readonly_inspection_session.dart';
 import 'screen_capture.dart';
@@ -30,6 +32,9 @@ enum ReadonlyDetailsSelection {
   ]),
   sendConfirmation(3, 'send_confirm_catalog', <String>['send-confirm'],
     <String>['12-send-confirm-dark.png', '12-send-confirm-light.png'],
+  ),
+  homeZapPreview(12, 'home_zap_preview_catalog', <String>['home-zap'],
+    <String>['06-home-zap-dark.png', '06-home-zap-light.png'],
   ),
   sendWarning(11, 'send_warn_catalog', <String>['send-warn'],
     <String>['08-send-warn-dark.png', '08-send-warn-light.png'],
@@ -61,7 +66,8 @@ enum ReadonlyDetailsSelection {
 
   bool get catalogOnly =>
       this == sendConfirmation || this == earn || this == sentinelFixture ||
-      this == swapStart || this == walletReady || this == sendWarning;
+      this == swapStart || this == walletReady || this == sendWarning ||
+      this == homeZapPreview;
 
   bool get requiresLabRecipient =>
       this == sendConfirmation || this == swapStart;
@@ -176,6 +182,8 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
   final bool sendConfirmation =
       selection == ReadonlyDetailsSelection.sendConfirmation;
   final bool sendWarning = selection == ReadonlyDetailsSelection.sendWarning;
+  final bool zapPreview =
+      selection == ReadonlyDetailsSelection.homeZapPreview;
   final bool swapStart = selection == ReadonlyDetailsSelection.swapStart;
   final bool walletReady = selection == ReadonlyDetailsSelection.walletReady;
   final bool ownerAdmitted = walletReady
@@ -216,6 +224,37 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
       }
     } : requireReady ?? session.prepareScreenHome,
     runLine: (List<String> words) async {
+      if (zapPreview) {
+        switch (words) {
+          case ['preview', 'zap-message']:
+            final Map<String, dynamic> opened = await cli.call(
+              instance, <String, Object?>{'cmd': readonlyHomeZapPreviewCommand},
+            );
+            if (opened['fixture'] != 'home-zap-preview') {
+              throw const ReadonlyInspectionRefused(
+                ReadonlyInspectionReason.reply,
+              );
+            }
+          case ['wait', '--key', final String key] when
+              key == 'zap_received_nice' || key == 'home_hero':
+            await cli.waitForTarget(instance, cli.Args(<String>[
+              '--key', key, '--exact', '--ready', '--timeout', '10',
+            ]));
+          case ['assert', '--key', 'zap_received_card']:
+            await cli.call(instance, <String, Object?>{
+              'cmd': 'assert', 'key': 'zap_received_card', 'exact': true,
+            });
+          case ['tap', '--key', 'zap_received_nice']:
+            await cli.call(instance, <String, Object?>{
+              'cmd': 'tap', 'key': 'zap_received_nice', 'exact': true,
+            });
+          default:
+            throw const ReadonlyInspectionRefused(
+              ReadonlyInspectionReason.command,
+            );
+        }
+        return;
+      }
       if (sendWarning) {
         switch (words) {
           case ['goto', final String page] when page == 'transfer' ||
@@ -346,6 +385,7 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
     onStep: onStep,
     readonlySendConfirmation: sendConfirmation,
     readonlySendWarning: sendWarning,
+    readonlyHomeZapPreview: zapPreview,
     readonlySwapStart: swapStart,
     readonlyEarn: selection == ReadonlyDetailsSelection.earn,
     readonlyWalletReady: walletReady,

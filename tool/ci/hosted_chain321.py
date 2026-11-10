@@ -112,6 +112,7 @@ HOME_BELL_INSPECTION_SCHEMA = 8
 SWAP_START_INSPECTION_SCHEMA = 9
 WALLET_READY_INSPECTION_SCHEMA = 10
 SEND_WARNING_INSPECTION_SCHEMA = 11
+HOME_ZAP_PREVIEW_INSPECTION_SCHEMA = 12
 READONLY_CATALOG_SCHEMAS = {
     'home': 1, 'settings': 2, 'navigation': 3, 'details': 4, 'token-draft': 4,
     'home-bell': HOME_BELL_INSPECTION_SCHEMA,
@@ -119,6 +120,7 @@ READONLY_CATALOG_SCHEMAS = {
     'swap-start': SWAP_START_INSPECTION_SCHEMA,
     'wallet-ready': WALLET_READY_INSPECTION_SCHEMA,
     send_warning_window.FAMILY: SEND_WARNING_INSPECTION_SCHEMA,
+    'home-zap-preview': HOME_ZAP_PREVIEW_INSPECTION_SCHEMA,
     'earn': EARN_INSPECTION_SCHEMA,
     'sentinel-fixture': SENTINEL_INSPECTION_SCHEMA,
 }
@@ -155,7 +157,7 @@ def require_environment(backend, parent):
     inspection = wallet_inspection_requested(backend, parent)
     tour = wallet_tour_requested(backend, parent)
     family = parent.get('SYRIUS_READONLY_CATALOG_FAMILY')
-    if family == send_warning_window.FAMILY:
+    if family in (send_warning_window.FAMILY, 'home-zap-preview'):
         need(inspection and not tour and parent['GITHUB_REPOSITORY'] == 'edgepillar/syrius'
              and parent.get('GITHUB_RUN_ATTEMPT') == '1', 'ENVIRONMENT_REFUSED')
     if family in RESTORED_FAMILIES:

@@ -82,6 +82,7 @@ import 'capture_frame.dart';
 import 'capture_protocol.dart' show CaptureRefused;
 import 'client_window.dart';
 import 'entry_caption_observer.dart';
+import 'fixtures/home_zap_preview.dart';
 import 'fixtures/lab_quiescence.dart';
 import 'fixtures/lab_seed_binding.dart';
 import 'fixtures/lab_send_policy.dart';
@@ -745,6 +746,24 @@ class HarnessAgent {
         throw const ReadonlyNativeCommandRefused();
       }
       return _walletRecipeCommand(command);
+    }
+    if (command['cmd'] == readonlyHomeZapPreviewCommand) {
+      _requireCaptureFrameIdle();
+      if (!_readonlyHomeZapPreview || kCurrentPage != Tabs.dashboard ||
+          command.length != 1) {
+        throw const ReadonlyNativeCommandRefused();
+      }
+      final List<_Node> heroes = _readonlyPositiveKeyNodes(
+        <String, dynamic>{'key': 'home_hero', 'exact': true},
+      )!;
+      if (heroes.length != 1 ||
+          !_positiveObservationReachable(heroes.single, heroes.single.center) ||
+          ModalRoute.of(heroes.single.element)?.isCurrent != true) {
+        throw const ReadonlyNativeCommandRefused();
+      }
+      unawaited(showHomeZapPreview(heroes.single.element));
+      await _settle();
+      return const <String, Object?>{'fixture': 'home-zap-preview'};
     }
     final Map<String, Object?> result = await _runWalletCommand(command);
     if (command['cmd'] == 'state') {
@@ -2019,6 +2038,11 @@ class HarnessAgent {
       _readonlyNative != null &&
       Platform.environment['SYRIUS_READONLY_CATALOG_FAMILY'] ==
           harnessReadonlySendWarningCatalog;
+
+  bool get _readonlyHomeZapPreview =>
+      _readonlyNative != null &&
+      Platform.environment['SYRIUS_READONLY_CATALOG_FAMILY'] ==
+          harnessReadonlyHomeZapPreview;
 
   bool _recipeKey(String? key) =>
       key != null &&
@@ -4036,7 +4060,10 @@ class HarnessAgent {
           'send_node_behind', 'send_recipient_warning',
           'send_known_address', 'send_typed_address',
         }.contains(key);
-    if (!sentinelRegion && !readyRegion && !warningRegion && !const <String>{
+    final bool zapPreview = _readonlyHomeZapPreview &&
+        key == 'zap_received_card';
+    if (!sentinelRegion && !readyRegion && !warningRegion && !zapPreview &&
+        !const <String>{
           'home_hero', 'home_znn', 'rail_label_dashboard',
           'send_form_ready',
           'send_confirmation_marker',

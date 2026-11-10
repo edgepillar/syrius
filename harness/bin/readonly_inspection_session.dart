@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import '../app/readonly_native_commands.dart'
+    show readonlyHomeZapPreviewCommand;
 import '../app/readonly_native_mode.dart';
 import 'screen_capture.dart';
 import 'wallet_recipe.dart' show WalletRecipeSend;
@@ -41,6 +43,7 @@ class ReadonlyInspectionSession {
     'entry-caption', 'entry-state', 'entry-check', 'entry-capture',
     'tree', 'tap', 'hover', 'type', 'key', 'scroll', 'drag', 'drop',
     'wait', 'assert', 'shot', 'theme', 'logs', 'stalls', 'window', 'quit',
+    readonlyHomeZapPreviewCommand,
   };
 
   /// The same native process must answer every subsequent original command.
@@ -68,8 +71,10 @@ class ReadonlyInspectionSession {
     _running = true;
     try {
       final Object? name = command['cmd'];
-      if (!_commands.contains(name) &&
-          !(name == 'readonly-wallet-bind' && _binding)) {
+      if ((!_commands.contains(name) &&
+              !(name == 'readonly-wallet-bind' && _binding)) ||
+          name == readonlyHomeZapPreviewCommand &&
+              (!_walletBound || command.length != 1)) {
         _refuse(ReadonlyInspectionReason.command);
       }
       // Nested input must not change while the original HTTP request awaits.

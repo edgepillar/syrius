@@ -13,6 +13,8 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/balances.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modals.dart';
 
+import '../../harness/app/fixtures/home_zap_preview.dart';
+
 const String _sender = 'fixture-sender-0123456789-0123456789';
 const String _message = 'A plain message supplied by the sender.';
 
@@ -54,6 +56,7 @@ class _Fixture {
     TextDirection direction = TextDirection.ltr,
     bool disableAnimations = false,
     bool settle = true,
+    bool preview = false,
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
@@ -79,6 +82,7 @@ class _Fixture {
                 key: const Key('open_received_message'),
                 focusNode: opener,
                 onPressed: () => unawaited(
+                  preview ? showHomeZapPreview(context) :
                   showFrostedDialog<void>(
                     context: context,
                     builder: (BuildContext dialogContext) =>
@@ -189,6 +193,22 @@ void main() {
         expect(tester.takeException(), isNull);
       } finally {
         await fixture.close(tester);
+      }
+      final _Fixture preview = _Fixture(light: light);
+      try {
+        await preview.show(tester, preview: true);
+        expect(find.text(homeZapPreviewMessage), findsOneWidget);
+        expect(find.byType(FrostedSurface), findsOneWidget);
+        expect(tester.getRect(_key('zap_received_card')).center,
+            const Offset(640, 390));
+        await tester.tap(_key('zap_received_nice'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(_key('zap_received_card'), findsNothing);
+        expect(_key('open_received_message').hitTestable(), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      } finally {
+        await preview.close(tester);
       }
     });
 

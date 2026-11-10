@@ -77,6 +77,7 @@ SOURCE_FILES = (
 )
 SENTINEL_FIXTURE_SOURCES = ('harness/app/main.dart',
     'harness/app/fixtures/sentinel_fixture.dart')
+HOME_ZAP_PREVIEW_SOURCES = ('harness/app/fixtures/home_zap_preview.dart',)
 PHASE = 'environment'
 
 
@@ -550,9 +551,12 @@ def main(parent=None):
                           producer.details.FAMILY_SCHEMAS['sentinel-fixture'],
                           producer.details.FAMILY_SCHEMAS['swap-start'],
                           producer.details.FAMILY_SCHEMAS['wallet-ready'],
-                          producer.details.FAMILY_SCHEMAS['send-warn']):
-                fixture_sources = (SENTINEL_FIXTURE_SOURCES
-                    if schema == producer.details.FAMILY_SCHEMAS['sentinel-fixture'] else ())
+                          producer.details.FAMILY_SCHEMAS['send-warn'],
+                          producer.details.FAMILY_SCHEMAS['home-zap-preview']):
+                fixture_sources = {
+                    producer.details.FAMILY_SCHEMAS['sentinel-fixture']: SENTINEL_FIXTURE_SOURCES,
+                    producer.details.FAMILY_SCHEMAS['home-zap-preview']: HOME_ZAP_PREVIEW_SOURCES,
+                }.get(schema, ())
                 source_digests.update(source_files(repo, producer_tree, tree,
                     files=fixture_sources + tuple('harness/screens/' + name + '.txt'
                                                   for name in scripts)))

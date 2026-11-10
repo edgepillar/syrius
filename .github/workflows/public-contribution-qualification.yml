@@ -47,6 +47,7 @@ on:
         options:
           - home
           - home-bell
+          - home-zap-preview
           - settings
           - navigation
           - details

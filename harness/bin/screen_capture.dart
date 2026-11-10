@@ -284,6 +284,7 @@ class ScreenCapture {
     this.onStep,
     this.readonlySendConfirmation = false,
     this.readonlySendWarning = false,
+    this.readonlyHomeZapPreview = false,
     this.readonlySwapStart = false,
     this.readonlyEarn = false,
     this.readonlyWalletReady = false,
@@ -301,6 +302,7 @@ class ScreenCapture {
   final void Function(ScreenCaptureObservation step)? onStep;
   final bool readonlySendConfirmation;
   final bool readonlySendWarning;
+  final bool readonlyHomeZapPreview;
   final bool readonlySwapStart;
   final bool readonlyEarn;
   final bool readonlyWalletReady;
@@ -392,6 +394,9 @@ class ScreenCapture {
         final bool warningPrepared = readonlySendWarning &&
             screen.id == 'send-warn' &&
             text == '# prerequisite: readonly-lab-send-warning';
+        final bool zapPreview = readonlyHomeZapPreview &&
+            screen.id == 'home-zap' &&
+            text == '# prerequisite: readonly-zap-message-preview';
         final bool swapPrepared = readonlySwapStart &&
             screen.id == 'swap-start' &&
             text == '# prerequisite: readonly-lab-swap-start';
@@ -409,7 +414,8 @@ class ScreenCapture {
             text == '# prerequisite: original-new-wallet-ready';
         if (text.startsWith('# prerequisite:') &&
             text != '# prerequisite: unlocked-home' &&
-            !sendPrepared && !warningPrepared && !swapPrepared &&
+            !sendPrepared && !warningPrepared && !zapPreview &&
+            !swapPrepared &&
             !tokenPrepared &&
             !projectPrepared &&
             !pillarPrepared && !readyPrepared) {
@@ -421,7 +427,11 @@ class ScreenCapture {
         final List<String> words = scriptWords(
           after ? text.substring(_afterCapturePrefix.length).trim() : text,
         );
-        if (words.isEmpty || !_uiCommands.contains(words.first) ||
+        final bool zapPreview = readonlyHomeZapPreview && !after &&
+            screen.id == 'home-zap' && words.length == 2 &&
+            words[0] == 'preview' && words[1] == 'zap-message';
+        if (words.isEmpty ||
+            (!_uiCommands.contains(words.first) && !zapPreview) ||
             words.any(
               (String w) => w == '--instance' || w.startsWith('--instance='),
             )) {

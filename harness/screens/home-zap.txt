@@ -1,4 +1,8 @@
-# prerequisite: pending qualified Zap receive identity and durable atomic admission
-# The receive service is missing. Do not seed receipts, hashes or balances.
-# A native capture also needs an actual qualified receive and message surface.
-assert --key home_zap_sparks
+# prerequisite: readonly-zap-message-preview
+# Use the owned Home and its original message dialog with sample display text.
+wait --key home_hero
+preview zap-message
+wait --key zap_received_nice
+assert --key zap_received_card
+# after-capture: tap --key zap_received_nice
+# after-capture: wait --key home_hero
