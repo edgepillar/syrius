@@ -1,3 +1,4 @@
+import '../app/fixtures/seed_policy.dart' show seedHash;
 import '../app/readonly_native_mode.dart'
     show harnessReadonlyNativeLaunchMatches;
 import '../wallet_address_context.dart';
@@ -497,12 +498,93 @@ class WalletRecipe {
   /// Append index two once through Settings, retaining the committed index one.
   Future<WalletAddressContext> prepareSeedAddress(
     WalletAddressContext original,
-  ) async {
+  ) => _deriveSeedAddress(original, nextIndex: 2);
+
+  /// Derives the actor and selects it after the original Fuse receipt.
+  /// The expected address comes from the owned lab's fixture admission.
+  Future<({WalletAddressContext selected, String fusionHash})>
+  preparePillarActor(
+    WalletAddressContext original, {
+    required String expectedActor,
+    required bool Function() parentAlive,
+    required Future<Map<String, dynamic>> Function(
+      WalletAddressContext firstDerivation,
+      Future<void> Function() requireSponsor,
+    ) sponsor,
+  }) async {
+    void requireParent() {
+      if (!parentAlive()) _refuse('wallet-recipe-owned-seed-lab-required');
+    }
+
+    requireParent();
+    if (expectedActor.isEmpty || expectedActor.length > 128 ||
+        original.members.contains(expectedActor)) {
+      _refuse('wallet-recipe-owned-seed-lab-required');
+    }
+    final WalletAddressContext first = await prepareSeedAddress(original);
+    requireParent();
+    final WalletAddressContext prepared =
+        await _deriveSeedAddress(first, nextIndex: 3);
+    if (prepared.members[3] != expectedActor) {
+      _refuse('wallet-recipe-original-address-context-changed');
+    }
+    Future<void> requireSponsor() async {
+      requireParent();
+      final Map<String, dynamic> view = await _observe();
+      requireParent();
+      _requireSeedAddressPolicy(view);
+      if (!prepared.same(_addressContext(view))) {
+        _refuse('wallet-recipe-original-address-context-changed');
+      }
+    }
+
+    await requireSponsor();
+    final Map<String, dynamic> receipt = await sponsor(first, requireSponsor);
+    await requireSponsor();
+    final Object? hash = receipt['hash'];
+    if (receipt['ok'] != true || receipt['confirmed'] != true ||
+        receipt['recipe'] != 'fuse' || hash is! String || !seedHash(hash)) {
+      _refuse('wallet-recipe-original-pillar-fusion-required');
+    }
+    final WalletAddressContext selected =
+        await _selectPillarSeedAddress(prepared, requireParent: requireParent);
+    requireParent();
+    return (selected: selected, fusionHash: hash);
+  }
+
+  Future<WalletAddressContext> _selectPillarSeedAddress(
+    WalletAddressContext original, {
+    required void Function() requireParent,
+  }) async {
+    await _openSeedAddressSettings(original, memberCount: 4);
+    requireParent();
+    await _act('addresses_select_${original.members[3]}', reveal: true);
+    final Map<String, dynamic> selected = await _until(
+      (Map<String, dynamic> view) {
+        if (view['addressContext'] == null) return false;
+        final WalletAddressContext current = _addressContext(view);
+        if (!current.selectionPending(original, 3)) {
+          _refuse('wallet-recipe-original-address-context-changed');
+        }
+        return current.selectedFrom(original, 3) &&
+            view['addressesReady'] == true;
+      },
+    );
+    _requireSeedAddressPolicy(selected);
+    final WalletAddressContext result = _addressContext(selected);
+    _addressOrigin = result;
+    return result;
+  }
+
+  Future<void> _openSeedAddressSettings(
+    WalletAddressContext original, {
+    required int memberCount,
+  }) async {
     if (_inspectionPid != null) _refuse('wallet-recipe-fresh-inspection-only');
     final Map<String, dynamic> start = await _observe();
     _policy(start);
     if (!original.same(_addressContext(start)) || !original.consistent ||
-        original.members.length != 2 ||
+        original.members.length != memberCount ||
         original.selected != original.members[1] ||
         start['walletPresent'] != true ||
         start['walletInitCompleted'] != true ||
@@ -525,6 +607,13 @@ class WalletRecipe {
       await _act('settings_addresses');
     }
     await _until((Map<String, dynamic> view) => view['addressesReady'] == true);
+  }
+
+  Future<WalletAddressContext> _deriveSeedAddress(
+    WalletAddressContext original, {
+    required int nextIndex,
+  }) async {
+    await _openSeedAddressSettings(original, memberCount: nextIndex);
     await _act('settings_add_address');
     final Map<String, dynamic> extended = await _until(
       (Map<String, dynamic> view) {
@@ -538,15 +627,19 @@ class WalletRecipe {
     );
     final WalletAddressContext result = _addressContext(extended);
     _addressOrigin = result;
-    _policy(extended);
-    if (extended['chainId'] != 321 ||
-        extended['signingChainId'] != 321 ||
-        extended['nodeConnected'] != true ||
-        extended['nodeSelectionSaved'] != true ||
-        extended['transitionPending'] != false) {
+    _requireSeedAddressPolicy(extended);
+    return result;
+  }
+
+  void _requireSeedAddressPolicy(Map<String, dynamic> view) {
+    _policy(view);
+    if (view['chainId'] != 321 ||
+        view['signingChainId'] != 321 ||
+        view['nodeConnected'] != true ||
+        view['nodeSelectionSaved'] != true ||
+        view['transitionPending'] != false) {
       _refuse('wallet-recipe-owned-seed-lab-required');
     }
-    return result;
   }
 
   /// Imports once, opens the original Ready once, then commits signing policy.

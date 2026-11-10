@@ -286,7 +286,7 @@ class ReopenDiagnosticTests(unittest.TestCase):
 
     def test_child_phases_match_the_actual_entry_and_ordered_seed_recipes(self):
         source = Path('harness/bin/ci_wallet_reopen.dart').read_text()
-        phases = set(re.findall(r"phase = '([a-z_]+)'", source))
+        phases = set(re.findall(r"phase = '([a-z_-]+)'", source))
         phases.update('seed_' + name for name in restored.seeds.IDS)
         self.assertEqual(set(restored.CHILD_PHASES), phases)
         for phase in phases:

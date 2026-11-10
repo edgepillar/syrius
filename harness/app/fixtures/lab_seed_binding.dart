@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -9,6 +10,8 @@ import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/model/send_intent.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/token_balance/token_balance_snapshot.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/account_block_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/constants.dart'
+    show kPillarPlasmaAmountNeeded;
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/original_publications.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_action_context.dart';
@@ -145,6 +148,31 @@ Future<bool> readSeedTokenHolding({
   return balance.unitsFor(standard) == _initialSeedTokenUnits;
 }
 
+/// The actor and revalidation of the original sponsor's persisted selection.
+typedef PillarSponsorAdmission = ({String actor, bool Function() isCurrent});
+
+final BigInt _labPillarQsrCost = BigInt.from(15000000000000);
+
+@visibleForTesting
+void requirePillarDepositTerms({
+  required BigInt quote,
+  required BigInt deposited,
+  required SeedFunding funds,
+  required int plasma,
+  required bool unregistered,
+}) {
+  if (quote != _labPillarQsrCost || deposited != BigInt.zero ||
+      funds.qsr < quote || funds.znn < pillarRegisterZnnAmount ||
+      plasma < kPillarPlasmaAmountNeeded || !unregistered) {
+    throw const SeedRefused('recipe-prerequisite-missing');
+  }
+}
+
+bool _positivelyConfirmed(AccountBlock block) =>
+    block.confirmationDetail != null &&
+    block.confirmationDetail!.numConfirmations > 0 &&
+    block.confirmationDetail!.momentumTimestamp > 0;
+
 /// Every wrapper and transport below is captured before the first await.
 /// No fixture installs a client into the ordinary app's global SDK.
 final class LabSeedBinding
@@ -158,12 +186,14 @@ final class LabSeedBinding
     required this._ledger,
     required this._stake,
     required this._plasma,
+    required this._pillar,
     required this._token,
     required this._htlc,
     required this._accelerator,
     required this._receiveWorker,
     required this.counterparty,
     required this.restoredFunding,
+    required this.fuseTarget,
     required this._catalogTokenHolding,
   });
 
@@ -176,6 +206,8 @@ final class LabSeedBinding
     String? counterparty,
     bool restoredFunding = false,
     bool catalogTokenHolding = false,
+    PillarSponsorAdmission? pillarSponsor,
+    PillarSponsorAdmission? pillarActor,
     void Function(String)? observePhase,
   }) {
     if (ws != seedWsOrigin || http != seedHttpOrigin) {
@@ -195,6 +227,9 @@ final class LabSeedBinding
     final LedgerApi originalLedger = sdk.ledger;
     final StakeApi originalStake = sdk.embedded.stake;
     final PlasmaApi originalPlasma = sdk.embedded.plasma;
+    final PillarApi? originalPillar =
+        pillarActor == null ? null : sdk.embedded.pillar;
+    final Client? pillarTransport = originalPillar?.client;
     final TokenApi originalToken = sdk.embedded.token;
     final HtlcApi originalHtlc = sdk.embedded.htlc;
     final AcceleratorApi originalAccelerator = sdk.embedded.accelerator;
@@ -207,7 +242,7 @@ final class LabSeedBinding
       originalAccelerator.client,
     ];
     observePhase?.call('profile_transports');
-    if (transports.any(
+    if (<Client>[...transports, ?pillarTransport].any(
       (Client client) => client is! WsClient || client.url != seedWsOrigin,
     )) {
       throw const SeedRefused('exact-original-lab-transports-required');
@@ -215,6 +250,8 @@ final class LabSeedBinding
     final LedgerApi ledger = LedgerApi()..setClient(transports[0]);
     final StakeApi stake = StakeApi()..setClient(transports[1]);
     final PlasmaApi plasma = PlasmaApi()..setClient(transports[2]);
+    final PillarApi? pillar = pillarTransport == null
+        ? null : (PillarApi()..setClient(pillarTransport));
     final TokenApi token = TokenApi()..setClient(transports[3]);
     final HtlcApi htlc = HtlcApi()..setClient(transports[4]);
     final AcceleratorApi accelerator = AcceleratorApi()
@@ -256,10 +293,27 @@ final class LabSeedBinding
       selectedIndex: rawMembers.indexOf(owner),
       owner: owner!,
       members: rawMembers.whereType<String>(),
-    )..requireLab();
+    )..requireLab(pillarActor: pillarActor != null);
+    if (pillarActor != null &&
+        (pillarSponsor != null || restoredFunding || catalogTokenHolding ||
+            counterparty != null || owner != pillarActor.actor ||
+            !pillarActor.isCurrent())) {
+      throw const SeedRefused('restored-seed-derivation-refused');
+    }
     if ((restoredFunding || catalogTokenHolding) &&
         environment.members.length != 3) {
       throw const SeedRefused('recipe-prerequisite-missing');
+    }
+    final SeedFuseTarget? fuseTarget = pillarSponsor == null
+        ? restoredFunding ? SeedFuseTarget.restoredSecondary : null
+        : SeedFuseTarget.pillarActor;
+    final int actorIndex = SeedFuseTarget.pillarActor.index;
+    if (pillarSponsor != null &&
+        (restoredFunding || catalogTokenHolding || counterparty != null ||
+            environment.members.length != actorIndex + 1 ||
+            environment.members[actorIndex] != pillarSponsor.actor ||
+            !pillarSponsor.isCurrent())) {
+      throw const SeedRefused('restored-seed-derivation-refused');
     }
     final String? exactCounterparty = counterparty == null
         ? null
@@ -276,6 +330,9 @@ final class LabSeedBinding
         identical(originalLedger, sdk.ledger) &&
         identical(originalStake, sdk.embedded.stake) &&
         identical(originalPlasma, sdk.embedded.plasma) &&
+        (originalPillar == null ||
+            identical(originalPillar, sdk.embedded.pillar) &&
+            identical(pillarTransport, originalPillar.client)) &&
         identical(originalToken, sdk.embedded.token) &&
         identical(originalHtlc, sdk.embedded.htlc) &&
         identical(originalAccelerator, sdk.embedded.accelerator) &&
@@ -288,7 +345,9 @@ final class LabSeedBinding
         transports.every(
           (Client client) => client is WsClient && client.url == seedWsOrigin,
         ) &&
-        _isolated(profile, home, env);
+        _isolated(profile, home, env) &&
+        (pillarSponsor?.isCurrent() ?? true) &&
+        (pillarActor?.isCurrent() ?? true);
     return LabSeedBinding._(
       environment: environment,
       home: home,
@@ -298,6 +357,7 @@ final class LabSeedBinding
       ledger: ledger,
       stake: stake,
       plasma: plasma,
+      pillar: pillar,
       token: token,
       htlc: htlc,
       accelerator: accelerator,
@@ -305,6 +365,7 @@ final class LabSeedBinding
           ? app.sl<AutoReceiveTxWorker>() : null,
       counterparty: exactCounterparty,
       restoredFunding: restoredFunding,
+      fuseTarget: fuseTarget,
       catalogTokenHolding: catalogTokenHolding,
     );
   }
@@ -352,13 +413,23 @@ final class LabSeedBinding
   final String home;
   final String? counterparty;
   final bool restoredFunding;
+  final SeedFuseTarget? fuseTarget;
   final bool _catalogTokenHolding;
+
+  BigInt get _fuseAmount =>
+      (fuseTarget ?? SeedFuseTarget.restoredSecondary).units;
+
+  String? get fuseBeneficiary {
+    final SeedFuseTarget? target = fuseTarget;
+    return target == null ? null : environment.members[target.index];
+  }
   final Object walletOwner;
   final Zenon originalSdk;
   final bool Function() _current;
   final LedgerApi _ledger;
   final StakeApi _stake;
   final PlasmaApi _plasma;
+  final PillarApi? _pillar;
   final TokenApi _token;
   final HtlcApi _htlc;
   final AcceleratorApi _accelerator;
@@ -563,11 +634,89 @@ final class LabSeedBinding
       'stake' => BigInt.from(300) * BigInt.from(100000000),
       'token' => tokenZtsIssueFeeInZnn,
       'project' => projectCreationFeeInZnn,
+      pillarDepositRecipeId => pillarRegisterZnnAmount,
       'fund-address' => BigInt.from(10) * BigInt.from(100000000),
       _ => BigInt.from(100000000),
     },
-    recipe == 'fuse' ? BigInt.from(100) * BigInt.from(100000000) : BigInt.zero,
+    switch (recipe) {
+      'fuse' => _fuseAmount,
+      pillarDepositRecipeId => _labPillarQsrCost,
+      _ => BigInt.zero,
+    },
   );
+
+  /// Rechecks the sponsor receipt and live terms for the selected lab actor.
+  Future<void> requirePillarDepositReady(String fusionHash) async {
+    _requireCurrent();
+    final PillarApi? pillar = _pillar;
+    if (pillar == null || !seedHash(fusionHash)) {
+      throw const SeedRefused('restored-seed-exact-receipt-required');
+    }
+    Future<T> read<T>(Future<T> Function() action) async {
+      _requireCurrent();
+      final T result = await action().timeout(const Duration(seconds: 3));
+      _requireCurrent();
+      return result;
+    }
+
+    final Address actor = Address.parse(environment.owner);
+    final Address sponsor = Address.parse(environment.members[1]);
+    final BigInt units = SeedFuseTarget.pillarActor.units;
+    final AccountBlock? block =
+        await read(() => _ledger.getAccountBlockByHash(Hash.parse(fusionHash)));
+    if (block == null || block.hash.toString() != fusionHash ||
+        block.address != sponsor || block.chainIdentifier != 321 ||
+        block.blockType != BlockTypeEnum.userSend.index ||
+        block.toAddress != plasmaAddress || block.tokenStandard != qsrZts ||
+        block.amount != units || !_positivelyConfirmed(block) ||
+        !listEquals(block.data, _plasma.fuse(actor, units).data) ||
+        !await read(() => _hasFusion(
+          sponsor, actor, fusionHash, units, uniqueHash: true,
+        ))) {
+      throw const SeedRefused('restored-seed-exact-receipt-required');
+    }
+
+    await requirePillarDepositTermsNow();
+  }
+
+  /// Reads the same live terms again immediately before the original tap.
+  Future<void> requirePillarDepositTermsNow() async {
+    _requireCurrent();
+    final PillarApi? pillar = _pillar;
+    if (pillar == null) {
+      throw const SeedRefused('restored-seed-derivation-refused');
+    }
+    final Address actor = Address.parse(environment.owner);
+    final (
+      PlasmaInfo plasma, BigInt quote, BigInt deposited,
+      List<PillarInfo> owned, SeedFunding funds,
+    ) = await (
+      _plasma.get(actor), pillar.getQsrRegistrationCost(),
+      pillar.getDepositedQsr(actor), pillar.getByOwner(actor), funding(),
+    ).wait.timeout(const Duration(seconds: 3));
+    _requireCurrent();
+    requirePillarDepositTerms(
+      quote: quote, deposited: deposited, funds: funds,
+      plasma: plasma.currentPlasma, unregistered: owned.isEmpty,
+    );
+  }
+
+  Future<bool> _hasFusion(Address owner, Address beneficiary, String hash,
+      BigInt amount, {required bool uniqueHash}) async {
+    _requireCurrent();
+    final FusionEntryList rows = await _plasma.getEntriesByAddress(
+      owner, pageSize: 64,
+    );
+    _requireCurrent();
+    if (rows.count != rows.list.length || rows.count > 64) return false;
+    final Iterable<FusionEntry> exact = rows.list.where(
+      (FusionEntry row) => row.id.toString() == hash,
+    );
+    return (!uniqueHash || exact.length == 1) &&
+        exact.where((FusionEntry row) =>
+            row.beneficiary == beneficiary && row.qsrAmount == amount,
+        ).length == 1;
+  }
 
   /// Read the same receive requirement as the pinned SDK, before the send.
   Future<void> requireFundingReceiveReady() async {
@@ -614,7 +763,7 @@ final class LabSeedBinding
       'fuse' => (
         plasmaAddress,
         qsrZts,
-        BigInt.from(10000000000),
+        _fuseAmount,
         Definitions.plasma,
         'Fuse',
       ),
@@ -631,6 +780,13 @@ final class LabSeedBinding
         projectCreationFeeInZnn,
         Definitions.accelerator,
         'CreateProject',
+      ),
+      pillarDepositRecipeId when _pillar != null => (
+        pillarAddress,
+        qsrZts,
+        _labPillarQsrCost,
+        Definitions.common,
+        'DepositQsr',
       ),
       'deposit' => (
         htlcAddress,
@@ -659,10 +815,7 @@ final class LabSeedBinding
       hash: block.hash.toString(),
       owner: block.address.toString(),
       chain: block.chainIdentifier,
-      positiveConfirmation:
-          block.confirmationDetail != null &&
-          block.confirmationDetail!.numConfirmations > 0 &&
-          block.confirmationDetail!.momentumTimestamp > 0,
+      positiveConfirmation: _positivelyConfirmed(block),
       fundAddressReceiveConfirmed:
           recipe == 'fund-address' &&
           seedFundingReceiveMatches(
@@ -677,6 +830,12 @@ final class LabSeedBinding
           block.toAddress == target &&
           block.tokenStandard == standard &&
           block.amount == amount &&
+          (recipe != pillarDepositRecipeId ||
+              listEquals(block.data, _pillar!.depositQsr(amount).data)) &&
+          (fuseTarget != SeedFuseTarget.pillarActor || recipe != 'fuse' ||
+              listEquals(block.data, _plasma.fuse(
+                Address.parse(fuseBeneficiary!), amount,
+              ).data)) &&
           (abi == null
               ? block.data.isEmpty
               : AccountBlockUtils.getDecodedBlockData(
@@ -736,24 +895,26 @@ final class LabSeedBinding
       return matched;
     }
     if (recipe == 'fuse') {
-      final Address beneficiary =
-          restoredFunding ? Address.parse(environment.members[2]) : owner;
-      final FusionEntryList rows = await _plasma.getEntriesByAddress(
-        owner,
-        pageSize: 64,
+      final Address beneficiary = Address.parse(
+        fuseBeneficiary ?? environment.owner,
       );
+      final bool sponsored = fuseTarget == SeedFuseTarget.pillarActor;
+      final bool matched = await _hasFusion(
+        owner, beneficiary, hash, _fuseAmount, uniqueHash: sponsored,
+      );
+      if (!matched || !sponsored) return matched;
+      final PlasmaInfo plasma = await _plasma.get(beneficiary);
       _requireCurrent();
-      return rows.count == rows.list.length &&
-          rows.count <= 64 &&
-          rows.list
-                  .where(
-                    (FusionEntry row) =>
-                        row.id.toString() == hash &&
-                        row.beneficiary == beneficiary &&
-                        row.qsrAmount == BigInt.from(10000000000),
-                  )
-                  .length ==
-              1;
+      return plasma.currentPlasma >= kPillarPlasmaAmountNeeded;
+    }
+    if (recipe == pillarDepositRecipeId) {
+      final PillarApi? pillar = _pillar;
+      if (pillar == null) {
+        throw const SeedRefused('restored-seed-derivation-refused');
+      }
+      final BigInt deposited = await pillar.getDepositedQsr(owner);
+      _requireCurrent();
+      return deposited == _labPillarQsrCost;
     }
     if (recipe == 'token') {
       final TokenStandard standard = seedIssuedTokenStandard(hash);
@@ -847,17 +1008,23 @@ final class _Original implements SeedOriginalSettlement {
 /// Three exclusive records at most per recipe; no duplicate binary payloads.
 /// The isolated profile must remain under one process's sole ownership.
 final class ProfileSeedJournal implements SeedJournal {
-  ProfileSeedJournal(this.home) : _labSendReview = null;
+  ProfileSeedJournal(this.home)
+    : _labSendReview = null, _sponsorFusionHash = null;
+
+  ProfileSeedJournal.forPillarDeposit(this.home, this._sponsorFusionHash)
+    : _labSendReview = null;
 
   /// Records the identical fixed P09 review before the single ordinary accept.
   ProfileSeedJournal.forLabSend(
     this.home, {
     required SeedEnvironment environment,
     required SendIntent intent,
-  }) : _labSendReview = _captureLabSendReview(environment, intent);
+  }) : _labSendReview = _captureLabSendReview(environment, intent),
+       _sponsorFusionHash = null;
 
   final String home;
   final Map<String, Object>? _labSendReview;
+  final String? _sponsorFusionHash;
   static const Set<String> _reviewKeys = <String>{
     'profile', 'from', 'to', 'recipientInput', 'amountInput',
     'token', 'amount', 'decimals', 'symbol', 'chain',
@@ -947,7 +1114,8 @@ final class ProfileSeedJournal implements SeedJournal {
   }
 
   void _write(String recipe, String state, {String? hash}) {
-    if (!seedRecipeIds.contains(recipe) && recipe != labSendRecipeId) {
+    if (!seedRecipeIds.contains(recipe) && recipe != labSendRecipeId &&
+        !(recipe == pillarDepositRecipeId && _sponsorFusionHash != null)) {
       throw const SeedRefused('unknown-recipe');
     }
     if (recipe == labSendRecipeId &&
@@ -973,7 +1141,17 @@ final class ProfileSeedJournal implements SeedJournal {
 
   @override
   void requireAvailable(String recipe) {
-    for (final String id in <String>{...seedRecipeIds, labSendRecipeId}) {
+    if (recipe == pillarDepositRecipeId) {
+      final String? hash = _sponsorFusionHash;
+      if (hash == null || !seedHash(hash) || _read('fuse', 'attempt') == null ||
+          _read('fuse', 'accepted')?['hash'] != hash ||
+          _read('fuse', 'confirmed')?['hash'] != hash) {
+        throw const SeedRefused('restored-seed-exact-receipt-required');
+      }
+    }
+    for (final String id in <String>{
+      ...seedRecipeIds, labSendRecipeId, pillarDepositRecipeId,
+    }) {
       final Map<String, dynamic>? attempt = _read(id, 'attempt');
       final Map<String, dynamic>? accepted = _read(id, 'accepted');
       final Map<String, dynamic>? confirmed = _read(id, 'confirmed');
@@ -1064,7 +1242,9 @@ final class ProfileSeedJournal implements SeedJournal {
         throw const SeedRefused('seed-journal-held');
       }
     }
-    for (final String recipe in seedRecipeIds) {
+    for (final String recipe in <String>{
+      ...seedRecipeIds, pillarDepositRecipeId,
+    }) {
       for (final String state in <String>['attempt', 'accepted', 'confirmed']) {
         if (_read(recipe, state) != null) {
           throw const SeedRefused('earlier-seed-attempt-held');

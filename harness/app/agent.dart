@@ -26,6 +26,8 @@ import 'package:zenon_syrius_wallet_flutter/blocs/auto_receive_tx_worker.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_token_stepper/widgets/token_create_frame.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart'
+    show PillarQsrManagementStep;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/fuse_plasma/view/fuse_plasma_form.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/node_update/node_update.dart'
     show NodeUpdateCard;
@@ -475,6 +477,7 @@ class HarnessAgent {
   bool _labQuiescenceAttempted = false;
   bool _labRestoredReadAttempted = false;
   WalletAddressContext? _labRestoredAddresses;
+  WalletAddressContext? _labPillarSponsor;
   HarnessPresentationController? _presentation;
   NativeEntryCapture? _nativeEntry;
   NativeLaunchCapture? _nativeLaunch;
@@ -1029,6 +1032,8 @@ class HarnessAgent {
             c,
             booted: booted,
             restoredFunding: restoredFunding,
+            pillarSponsor: c.containsKey('pillarSponsor')
+                ? _pillarSponsorAdmission(c) : null,
             ui: (Map<String, dynamic> selector) => observeSeedPreparation(
               preparation: seedPreparation,
               original: () => _run(selector),
@@ -1045,6 +1050,9 @@ class HarnessAgent {
           throw HarnessError(error.code,
             seedRefusalDetail(error, action: c['action']));
         }
+      case 'pillar-deposit-preflight':
+      case 'pillar-qsr-deposit':
+        return _pillarDeposit(c, publish: command == 'pillar-qsr-deposit');
       case 'lab-send':
         return _labSend(c);
       case 'lab-quiesce':
@@ -1697,6 +1705,123 @@ class HarnessAgent {
     }
   }
 
+  PillarSponsorAdmission _pillarSponsorAdmission(Map<String, dynamic> command) {
+    const SeedRefused refused = SeedRefused('restored-seed-derivation-refused');
+    final Object? raw = command['pillarSponsor'];
+    final WalletAddressContext? original = _labRestoredAddresses;
+    if (command['action'] != 'begin' || command['recipe'] != 'fuse' ||
+        command.containsKey('restoredFunding') ||
+        command.containsKey('catalogTokenHolding') ||
+        original == null || raw is! Map<String, dynamic> || raw.length != 2 ||
+        raw['actor'] is! String) {
+      throw refused;
+    }
+    try {
+      final WalletAddressContext first =
+          WalletAddressContext.parse(raw['firstDerivation']);
+      final WalletAddressContext current = WalletAddressContext.parse(
+        _recipeAddressObservation()['addressContext'],
+      );
+      final String actor = raw['actor'] as String;
+      final int index = SeedFuseTarget.pillarActor.index;
+      bool isCurrent() {
+        final Map<String, Object?> policy = _recipeSigningPolicy();
+        return current.same(WalletAddressContext.parse(
+                 _recipeAddressObservation()['addressContext'],
+               )) &&
+            policy['savedSigningChainId'] == 321 &&
+            policy['nodeSelectionSaved'] == true;
+      }
+
+      if (!first.derivedFrom(original) || !current.derivedFrom(first) ||
+          current.members.length != index + 1 ||
+          current.selected != current.members[1] ||
+          current.members[index] != actor || !isCurrent()) {
+        throw refused;
+      }
+      final WalletAddressContext? admitted = _labPillarSponsor;
+      if (admitted != null && !admitted.same(current)) throw refused;
+      _labPillarSponsor = current;
+      return (actor: actor, isCurrent: isCurrent);
+    } on Object {
+      throw refused;
+    }
+  }
+
+  Future<Map<String, Object?>> _pillarDeposit(
+    Map<String, dynamic> command, {
+    required bool publish,
+  }) async {
+    final WalletAddressContext? sponsor = _labPillarSponsor;
+    final String? hash = _seeds.confirmedPillarSponsorHash;
+    if (command.length != 3 || command['profile'] is! String ||
+        command['fusionHash'] is! String || command['fusionHash'] != hash ||
+        sponsor == null || hash == null || _seeds.fixtureName != null) {
+      throw HarnessError('restored-seed-exact-receipt-required');
+    }
+    try {
+      final WalletAddressContext selected = WalletAddressContext.parse(
+        _recipeAddressObservation()['addressContext'],
+      );
+      final int index = SeedFuseTarget.pillarActor.index;
+      if (!selected.selectedFrom(sponsor, index)) {
+        throw const SeedRefused('restored-seed-derivation-refused');
+      }
+      bool isCurrent() {
+        final Map<String, Object?> policy = _recipeSigningPolicy();
+        return selected.same(WalletAddressContext.parse(
+                 _recipeAddressObservation()['addressContext'],
+               )) &&
+            policy['savedSigningChainId'] == 321 &&
+            policy['nodeSelectionSaved'] == true &&
+            _seeds.confirmedPillarSponsorHash == hash;
+      }
+
+      final LabSeedBinding source = LabSeedBinding.capture(
+        profile: command['profile'] as String,
+        ws: seedWsOrigin, http: seedHttpOrigin, booted: booted,
+        pillarActor: (actor: selected.members[index], isCurrent: isCurrent),
+      );
+      await source.requirePillarDepositReady(hash);
+      if (!publish) {
+        return <String, Object?>{
+          'ready': true, 'chain': 321, 'selectedIndex': index,
+        };
+      }
+      final ProfileSeedJournal journal =
+          ProfileSeedJournal.forPillarDeposit(source.home, hash)
+            ..requireAvailable(pillarDepositRecipeId);
+      final SeedGuard guard =
+          SeedGuard.forPillarDeposit(source: source, journal: journal);
+      final Map<String, Object?> visible = await _run(<String, dynamic>{
+        'cmd': 'assert', 'key': 'pillar_qsr_deposit_button',
+        'kind': 'button', 'exact': true,
+      });
+      final Object? target = visible['target'];
+      if (target is! Map || target['enabled'] == false ||
+          target['ref'] is! int) {
+        throw const SeedRefused('enabled-publication-control-required');
+      }
+      final SeedTap tap = _captureSeedTap(<String, dynamic>{
+        'cmd': 'tap', 'ref': target['ref'],
+        'pillarDepositOwner': source.environment.owner,
+        'pillarDepositAmount': source.minimum(pillarDepositRecipeId).qsr,
+      }, preparation: false);
+      final String deposit = await guard.publish(
+        pillarDepositRecipeId,
+        () => tap(guard.requireCurrent),
+        requireReady: source.requirePillarDepositTermsNow,
+      );
+      return <String, Object?>{
+        'confirmed': true, 'recipe': pillarDepositRecipeId, 'hash': deposit,
+      };
+    } on SeedRefused catch (error) {
+      throw HarnessError(error.code);
+    } on Object {
+      throw HarnessError('seed-prerequisite-or-read-failed');
+    }
+  }
+
   SeedTap _captureSeedTap(
     Map<String, dynamic> selector, {
     required bool preparation,
@@ -1720,12 +1845,17 @@ class HarnessAgent {
 
   /// Exercises the same capture and guarded dispatch without a wallet.
   @visibleForTesting
-  SeedTap captureSeedTapForTest(int reference, {String? fuseBeneficiary}) =>
-      _captureSeedTap(
+  SeedTap captureSeedTapForTest(int reference, {
+    String? fuseBeneficiary,
+    SeedFuseTarget fuseTarget = SeedFuseTarget.restoredSecondary,
+  }) => _captureSeedTap(
     <String, dynamic>{
       'ref': reference,
       'settleMs': 0,
-      'seedFuseBeneficiary': ?fuseBeneficiary,
+      if (fuseBeneficiary != null) ...<String, dynamic>{
+        'seedFuseTarget': fuseTarget,
+        'seedFuseBeneficiary': fuseBeneficiary,
+      },
     },
     preparation: false,
   );
@@ -3734,7 +3864,25 @@ class HarnessAgent {
             throw const SeedRefused('original-transfer-review-mismatch');
           }
         }
-        if (c['seedFuseBeneficiary'] case final String beneficiary) {
+        if (c['pillarDepositOwner'] case final String owner) {
+          PillarQsrManagementStep? frame;
+          fresh.node!.element.visitAncestorElements((Element ancestor) {
+            if (ancestor.widget case final PillarQsrManagementStep value) {
+              frame = value;
+              return false;
+            }
+            return true;
+          });
+          final PillarQsrManagementStep? shown = frame;
+          if (shown == null || !shown.active ||
+              shown.addressController.text != owner ||
+              parsePlasmaQsr(shown.qsrAmountController.text) !=
+                  c['pillarDepositAmount']) {
+            throw const SeedRefused('original-ui-control-changed');
+          }
+        }
+        if (c['seedFuseTarget'] case final SeedFuseTarget fuseTarget) {
+          final Object? beneficiary = c['seedFuseBeneficiary'];
           FusePlasmaForm? form;
           fresh.node!.element.visitAncestorElements((Element ancestor) {
             if (ancestor.widget case final FusePlasmaForm value) {
@@ -3744,12 +3892,12 @@ class HarnessAgent {
             return true;
           });
           final FusePlasmaForm? shown = form;
-          if (shown == null || !shown.inputValid || !shown.isCurrent() ||
-              shown.beneficiaries.length != 3 ||
-              shown.beneficiaries[2].address != beneficiary ||
+          if (beneficiary is! String || shown == null || !shown.inputValid ||
+              !shown.isCurrent() ||
+              shown.beneficiaries.length != fuseTarget.index + 1 ||
+              shown.beneficiaries[fuseTarget.index].address != beneficiary ||
               shown.beneficiaryController.text != beneficiary ||
-              parsePlasmaQsr(shown.amountController.text) !=
-                  BigInt.from(10000000000)) {
+              parsePlasmaQsr(shown.amountController.text) != fuseTarget.units) {
             throw const SeedRefused('original-fuse-terms-mismatch');
           }
         }

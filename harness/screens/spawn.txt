@@ -1,16 +1,20 @@
-# prerequisite: pending F06 pillar-free address with sufficient plasma, deposited QSR and at least 15000 ZNN
+# prerequisite: restored-lab-pillar-deposit
 # These steps edit a draft only. No deposit, lock or Register is pressed.
 # The existing flow groups name, addresses and sharing inside Register.
 goto pillars
 wait --key nodes_tab_pillars --timeout 30
 tap --key nodes_tab_pillars
-reveal Spawn
-tap Spawn
-wait --key pillar_plasma_next_button --timeout 30
+reveal Spawn --kind button --exact
+tap Spawn --kind button --exact
+wait --key pillar_plasma_next_button --ready --timeout 30
 tap --key pillar_plasma_next_button
-wait --key pillar_qsr_next_button --timeout 30
+wait --key pillar_qsr_next_button --ready --timeout 30
 tap --key pillar_qsr_next_button
-wait --key pillar_znn_next_button --timeout 30
+wait --key pillar_znn_next_button --ready --timeout 30
 tap --key pillar_znn_next_button
 wait --key pillar_name_field --timeout 30
 assert --key pillar_name_field
+# after-capture: tap Close --kind button --exact
+# after-capture: wait --key pillar_name_field --gone --timeout 10
+# after-capture: goto dashboard
+# after-capture: wait --key home_hero --timeout 5

@@ -9,6 +9,7 @@ import '../../harness/wallet_address_context.dart';
 const String _first = 'synthetic-first-member';
 const String _second = 'synthetic-second-member';
 const String _third = 'synthetic-third-member';
+const String _fourth = 'synthetic-funded-member';
 
 Map<String, dynamic> _context({
   List<String> members = const <String>[_first],
@@ -63,6 +64,8 @@ class _AddressUi {
         'nav_settings', 'settings_addresses',
         if (addresses) ...<String>[
           'settings_add_address', 'addresses_select_$_second',
+          if ((context?['members'] as List<dynamic>?)?.length == 4)
+            'addresses_select_$_fourth',
         ],
       ]) <String, dynamic>{
         'key': key, 'enabled': !(key == 'settings_add_address' && blockAdd),
@@ -93,21 +96,29 @@ class _AddressUi {
       case 'settings_add_address':
         if (stallDerivation) await stalled.future;
         final WalletAddressContext before = WalletAddressContext.parse(context);
-        context = before.members.length == 2
-            ? _context(members: <String>[
-                if (wrongDerivation) 'synthetic-replaced-member' else _first,
-                _second, _third,
-              ], selected: _second,
-              saved: seedSelectionUnsettled ? _first : _second,
-              revision: before.revision + 1)
-            : _context(members: <String>[
-                if (wrongDerivation) 'synthetic-replaced-member' else _first,
-                _second,
-              ], revision: 21);
+        context = switch (before.members.length) {
+          3 => _context(members: <String>[...before.members, _fourth],
+            selected: _second, saved: _second, revision: before.revision + 1),
+          2 => _context(members: <String>[
+              if (wrongDerivation) 'synthetic-replaced-member' else _first,
+              _second, _third,
+            ], selected: _second,
+            saved: seedSelectionUnsettled ? _first : _second,
+            revision: before.revision + 1),
+          _ => _context(members: <String>[
+              if (wrongDerivation) 'synthetic-replaced-member' else _first,
+              _second,
+            ], revision: 21),
+        };
       case 'addresses_select_$_second':
         context = _context(members: <String>[_first, _second],
           selected: selectionUnsettled ? _first : _second, saved: _second,
           revision: selectionUnsettled ? 21 : 22);
+      case 'addresses_select_$_fourth':
+        final WalletAddressContext current =
+            WalletAddressContext.parse(context);
+        context = _context(members: current.members, selected: _fourth,
+          saved: _fourth, revision: current.revision + 1);
     }
     return <String, dynamic>{'ok': true, 'acted': true};
   }
@@ -187,20 +198,58 @@ void main() {
     }
   });
 
-  test('seed preparation appends index two without changing index one',
+  test('the funded actor is selected only after the exact Fuse receipt',
       () async {
-    final _AddressUi ui = seedUi();
-    final WalletAddressContext original =
-        WalletAddressContext.parse(ui.context);
-    final WalletAddressContext result = await ui.driver().prepareSeedAddress(
-      original,
-    );
-    expect(result.derivedFrom(original), isTrue);
-    expect(result.members, <String>[_first, _second, _third]);
-    expect(result.selected, _second);
-    expect(ui.taps, <String>[
-      'nav_settings', 'settings_addresses', 'settings_add_address',
-    ]);
+    const String hash =
+        'afafafafafafafafafafafafafafafafafafafafafafafafafafafafafafafaf';
+    for (final bool confirmed in <bool>[false, true]) {
+      final _AddressUi ui = seedUi();
+      final WalletAddressContext original =
+          WalletAddressContext.parse(ui.context);
+      final WalletRecipe driver = ui.driver();
+      int sponsorships = 0;
+      WalletAddressContext? prepared;
+      final Future<({WalletAddressContext selected, String fusionHash})>
+          result = driver.preparePillarActor(
+        original,
+        expectedActor: _fourth,
+        parentAlive: () => true,
+        sponsor: (WalletAddressContext first,
+            Future<void> Function() current) async {
+          sponsorships++;
+          await current();
+          prepared = WalletAddressContext.parse(ui.context);
+          expect(first.derivedFrom(original), isTrue);
+          expect(prepared!.derivedFrom(first), isTrue);
+          expect(prepared!.selected, _second);
+          expect(prepared!.members[3], _fourth);
+          expect(ui.taps, <String>[
+            'nav_settings', 'settings_addresses', 'settings_add_address',
+            'settings_add_address',
+          ]);
+          return <String, dynamic>{
+            'ok': true, 'confirmed': confirmed, 'recipe': 'fuse', 'hash': hash,
+          };
+        },
+      );
+      if (!confirmed) {
+        await expectLater(result, throwsA(isA<WalletRecipeRefused>().having(
+          (WalletRecipeRefused value) => value.code,
+          'code', 'wallet-recipe-original-pillar-fusion-required',
+        )));
+        expect(WalletAddressContext.parse(ui.context).selected, _second);
+        expect(ui.taps, isNot(contains('addresses_select_$_fourth')));
+      } else {
+        final ({WalletAddressContext selected, String fusionHash}) actual =
+            await result;
+        expect(actual.fusionHash, hash);
+        expect(actual.selected.selectedFrom(prepared!, 3), isTrue);
+        expect(ui.taps.where(
+          (String tap) => tap == 'addresses_select_$_fourth',
+        ), hasLength(1));
+      }
+      expect(sponsorships, 1);
+    }
   });
 
   test('seed preparation refuses existing index two and wrong selection',
@@ -215,6 +264,16 @@ void main() {
       ), throwsA(isA<WalletRecipeRefused>()));
       expect(ui.taps, isEmpty);
     }
+    final _AddressUi foreign = seedUi()
+      ..context = _context(members: <String>[_first, _second, _third, _fourth],
+        selected: _second, saved: _second);
+    await expectLater(foreign.driver().preparePillarActor(
+      WalletAddressContext.parse(foreign.context),
+      expectedActor: _third,
+      parentAlive: () => true,
+      sponsor: (_, _) async => throw StateError('unexpected sponsorship'),
+    ), throwsA(isA<WalletRecipeRefused>()));
+    expect(foreign.taps, isEmpty);
   });
 
   test('seed derivation with a changed prefix cannot be tried again',

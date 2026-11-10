@@ -14,14 +14,21 @@ CATALOG_IDS = ('stake', 'token')
 SCOPE = 'owned_restored_seed_workflow'
 CATALOG_SCOPE = 'owned_restored_seed_catalog_prerequisites'
 PROJECT_SCOPE = 'owned_restored_project_catalog_prerequisites'
+PILLAR_SPAWN_SCOPE = 'owned_restored_pillar_spawn_prerequisites'
 PREFIX_SCOPE = 'observed_restored_seed_prefix'
 CATALOG_PREFIX_SCOPE = 'observed_restored_seed_catalog_prefix'
 PROJECT_PREFIX_SCOPE = 'observed_restored_project_catalog_prefix'
+PILLAR_SPAWN_PREFIX_SCOPE = 'observed_restored_pillar_spawn_prefix'
+PILLAR_SPAWN_IDS = ('fuse', 'pillar-qsr')
+
+# docker/devnet/README.md at go-zenon 2d1b929cc3fa5269cf133757d4a6963821137984.
+_PILLAR_FIXTURE_DOC_SHA256 = '1fb72ad5908eaab0df5f98711d88c9b222e179399b96acf7808e17f42fa6d4b8'
 
 CATALOG_SELECTIONS = {
     catalog.SEEDED_SCHEMA: True,
     catalog.STAKE_DRAFT_SCHEMA: catalog.STAKE_DRAFT_FAMILY,
     catalog.PROJECT_DETAIL_SCHEMA: catalog.PROJECT_DETAIL_FAMILY,
+    catalog.PILLAR_SPAWN_SCHEMA: catalog.PILLAR_SPAWN_FAMILY,
 }
 
 
@@ -30,6 +37,15 @@ class _SeedPlan(NamedTuple):
     private_scope: str
     completed_scope: str
     prefix_scope: str
+    members: int = 3
+    selected_index: int = 1
+    derivations: int = 1
+
+    @property
+    def membership(self):
+        derived = ({'derived_once': True} if self.derivations == 1
+                   else {'derived_count': self.derivations})
+        return dict(members=self.members, selected_index=self.selected_index, **derived)
 
 
 _PLANS = {
@@ -42,11 +58,15 @@ _PLANS = {
     catalog.PROJECT_DETAIL_FAMILY: _SeedPlan(
         ('project',), 'private_restored_project_catalog',
         PROJECT_SCOPE, PROJECT_PREFIX_SCOPE),
+    catalog.PILLAR_SPAWN_FAMILY: _SeedPlan(
+        PILLAR_SPAWN_IDS, 'private_restored_pillar_spawn',
+        PILLAR_SPAWN_SCOPE, PILLAR_SPAWN_PREFIX_SCOPE, 4, 3, 2),
 }
 _PREFIX_RECIPES = {
     PREFIX_SCOPE: IDS,
     CATALOG_PREFIX_SCOPE: CATALOG_IDS,
     PROJECT_PREFIX_SCOPE: _PLANS[catalog.PROJECT_DETAIL_FAMILY].recipes,
+    PILLAR_SPAWN_PREFIX_SCOPE: PILLAR_SPAWN_IDS,
 }
 
 
@@ -78,19 +98,73 @@ def counterparty(genesis, members):
     return value
 
 
+class PillarFixture(NamedTuple):
+    actor: str
+    producer: str
+    reward: str
+
+
+def pillar_fixture(genesis, members, upstream_readme):
+    """Bind the copied wallet and the three Pillar roles to pinned lab inputs."""
+    need(type(upstream_readme) is bytes and 0 < len(upstream_readme) <= 32768
+        and hashlib.sha256(upstream_readme).hexdigest() == _PILLAR_FIXTURE_DOC_SHA256)
+    pairs = re.findall(rb'(?m)^\|[ \t]*([0-9])[ \t]*\|[ \t]*'
+        rb'`(z1[023456789acdefghjklmnpqrstuvwxyz]{38})`[ \t]*\|', upstream_readme)
+    addresses = {int(index): value.decode('ascii') for index, value in pairs}
+    need(len(pairs) == len(addresses) == len(set(addresses.values())) == 10
+        and set(addresses) == set(range(10)))
+    legacy_owner = counterparty(genesis, members)
+    need(tuple(members) == (addresses[0], addresses[1]) and legacy_owner == addresses[5])
+    fixture = PillarFixture(addresses[3], addresses[8], addresses[9])
+    pillars = genesis['PillarConfig']['Pillars']
+    for row in pillars:
+        need(type(row.get('PillarType')) is int and row['PillarType'] == 1
+            and all(type(row.get(key)) is str and row[key] in addresses.values()
+                    and row[key] not in fixture for key in (
+                        'StakeAddress', 'BlockProducingAddress', 'RewardWithdrawAddress')))
+    need(all(type(genesis.get(key)) is dict
+             for key in ('PlasmaConfig', 'TokenConfig', 'GenesisBlocks')))
+    fusions = genesis['PlasmaConfig'].get('Fusions')
+    need(type(fusions) is list and len(fusions) == 3 and all(
+        type(row) is dict and row.get('owner') == addresses[1]
+        and row.get('beneficiaryAddress') in (addresses[0], addresses[1])
+        and type(row.get('amount')) is int and row['amount'] == 1000000000000
+        for row in fusions))
+    need(sum(row['beneficiaryAddress'] == addresses[1] for row in fusions) == 2)
+
+    tokens = genesis['TokenConfig'].get('Tokens')
+    need(type(tokens) is list and len(tokens) == 2 and all(type(row) is dict
+        and type(row.get('tokenSymbol')) is str and type(row.get('tokenStandard')) is str
+        and type(row.get('decimals')) is int and row['decimals'] == 8 for row in tokens))
+    standards = {row['tokenSymbol']: row['tokenStandard'] for row in tokens}
+    need(set(standards) == {'ZNN', 'QSR'} and len(set(standards.values())) == 2)
+    blocks = genesis['GenesisBlocks'].get('Blocks')
+    need(type(blocks) is list and len(blocks) == 7 and all(type(row) is dict
+        and type(row.get('Address')) is str and type(row.get('BalanceList')) is dict
+        for row in blocks))
+    balances = {row['Address']: row['BalanceList'] for row in blocks}
+    need(len(balances) == len(blocks))
+    for address in fixture:
+        balance = balances.get(address, {})
+        for symbol, units in (('ZNN', 5000000000000), ('QSR', 50000000000000)):
+            value = balance.get(standards[symbol])
+            need(type(value) is int and value == units)
+    return fixture
+
+
 def _private_receipts(value, *, prefix=False, catalog_capture=False):
     plan = _plan(catalog_capture)
     ids = plan.recipes
     scope = plan.private_scope + ('_prefix' if prefix else '_receipts')
-    fields = {'schema', 'scope', 'chain', 'members', 'selected_index',
-        'derived_once', 'owner_stable', 'receipts'}
+    membership = plan.membership
+    fields = {'schema', 'scope', 'chain', 'owner_stable', 'receipts'} | membership.keys()
     need(type(value) is dict and set(value) == fields
         and type(value['schema']) is int and value['schema'] == 1
         and value['scope'] == scope
         and type(value['chain']) is int and value['chain'] == 321
-        and type(value['members']) is int and value['members'] == 3
-        and type(value['selected_index']) is int and value['selected_index'] == 1
-        and value['derived_once'] is value['owner_stable'] is True
+        and all(type(value[key]) is type(expected) and value[key] == expected
+                for key, expected in membership.items())
+        and value['owner_stable'] is True
         and type(value['receipts']) is list
         and (1 <= len(value['receipts']) <= len(ids) if prefix
              else len(value['receipts']) == len(ids)))
@@ -164,7 +238,7 @@ def finish_prefix(previous, value, *, catalog_capture=False):
 
 
 def journal_record(recipe, state, raw, original_hash):
-    need(recipe in IDS and state in ('attempt', 'accepted', 'confirmed')
+    need(recipe in (*IDS, 'pillar-qsr') and state in ('attempt', 'accepted', 'confirmed')
         and type(raw) is bytes and 0 < len(raw) <= 2048)
     value = json.loads(raw)
     need(type(value) is dict and set(value) ==
@@ -179,9 +253,8 @@ def completed(value, *, catalog_capture=False):
     plan = _plan(catalog_capture)
     ids, scope = plan.recipes, plan.completed_scope
     return project(dict(schema=1, scope=scope, complete=True, chain=321,
-        recipes=list(ids), confirmed=len(ids), members=3, selected_index=1,
-        derived_once=True, owner_stable=True, journals_consistent=True,
-        original_outcomes_preserved=True, receipts_sha256=digest(value)),
+        recipes=list(ids), confirmed=len(ids), owner_stable=True, journals_consistent=True,
+        original_outcomes_preserved=True, receipts_sha256=digest(value), **plan.membership),
         catalog_capture=catalog_capture)
 
 
@@ -197,16 +270,16 @@ def project(value, *, catalog_capture=False):
     if not value['complete']:
         need(set(value) == common)
         return dict(value)
-    need(set(value) == common | {'chain', 'recipes', 'confirmed', 'members',
-        'selected_index', 'derived_once', 'owner_stable', 'journals_consistent',
-        'original_outcomes_preserved', 'receipts_sha256'}
+    membership = plan.membership
+    need(set(value) == common | membership.keys() | {'chain', 'recipes', 'confirmed',
+        'owner_stable', 'journals_consistent', 'original_outcomes_preserved', 'receipts_sha256'}
         and type(value['chain']) is int and value['chain'] == 321
         and value['recipes'] == list(ids)
         and type(value['confirmed']) is int and value['confirmed'] == len(ids)
-        and type(value['members']) is int and value['members'] == 3
-        and type(value['selected_index']) is int and value['selected_index'] == 1
-        and all(value[key] is True for key in ('derived_once', 'owner_stable',
-            'journals_consistent', 'original_outcomes_preserved'))
+        and all(type(value[key]) is type(expected) and value[key] == expected
+                for key, expected in membership.items())
+        and all(value[key] is True for key in ('owner_stable', 'journals_consistent',
+            'original_outcomes_preserved'))
         and type(value['receipts_sha256']) is str
         and re.fullmatch('[a-f0-9]{64}', value['receipts_sha256']))
     return dict(value)

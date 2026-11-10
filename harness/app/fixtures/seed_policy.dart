@@ -10,6 +10,7 @@ const String seedWsOrigin = 'ws://127.0.0.1:45998';
 const String seedHttpOrigin = 'http://127.0.0.1:45997';
 /// The single P09 send is separate from the six checkpointed F06 recipes.
 const String labSendRecipeId = 'lab-send';
+const String pillarDepositRecipeId = 'pillar-qsr';
 const Set<String> seedRecipeIds = <String>{
   'stake',
   'fuse',
@@ -18,6 +19,19 @@ const Set<String> seedRecipeIds = <String>{
   'project',
   'fund-address',
 };
+
+/// The two closed non-self Fuse targets in an owned restored profile.
+enum SeedFuseTarget {
+  restoredSecondary(2, 100),
+  pillarActor(3, 1000);
+
+  const SeedFuseTarget(this.index, this.qsr);
+
+  final int index;
+  final int qsr;
+  BigInt get units => BigInt.from(qsr) * BigInt.from(100000000);
+  String get optionKey => 'fuse_plasma_beneficiary_option_$index';
+}
 
 /// The issued token standard is derived from the confirmed Issue block.
 TokenStandard seedIssuedTokenStandard(String hash) => TokenStandard.fromBytes(
@@ -255,7 +269,7 @@ final class SeedEnvironment {
   final String owner;
   final List<String> members;
 
-  void requireLab() {
+  void requireLab({bool pillarActor = false}) {
     if (profile == 'default' ||
         !RegExp(r'^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$').hasMatch(profile) ||
         !isolated ||
@@ -272,12 +286,16 @@ final class SeedEnvironment {
         signingChain != 321) {
       throw const SeedRefused('exact-chain-321-lab-required');
     }
-    if (selectedIndex != 1 ||
-        members.length < 2 ||
+    final int requiredIndex =
+        pillarActor ? SeedFuseTarget.pillarActor.index : 1;
+    if (selectedIndex != requiredIndex ||
+        members.length <= requiredIndex ||
+        pillarActor && members.length != requiredIndex + 1 ||
         members.toSet().length != members.length ||
         owner.isEmpty ||
-        members[1] != owner) {
-      throw const SeedRefused('funded-index-one-required');
+        members[requiredIndex] != owner) {
+      throw SeedRefused(pillarActor
+          ? 'restored-seed-derivation-refused' : 'funded-index-one-required');
     }
   }
 }
@@ -490,7 +508,8 @@ final class SeedGuard {
     Future<void> Function(Duration)? delay,
     this.readTimeout = const Duration(seconds: 3),
   }) : _delay = delay ?? Future<void>.delayed,
-       _labSend = false;
+       _labSend = false,
+       _pillarDeposit = false;
 
   /// Read admission for one original P09 request; never a generic seed publish.
   SeedGuard.forLabSend({
@@ -499,12 +518,24 @@ final class SeedGuard {
     Future<void> Function(Duration)? delay,
     this.readTimeout = const Duration(seconds: 3),
   }) : _delay = delay ?? Future<void>.delayed,
-       _labSend = true;
+       _labSend = true,
+       _pillarDeposit = false;
+
+  /// Admits the original QSR deposit of the sponsored fourth lab member.
+  SeedGuard.forPillarDeposit({
+    required this.source,
+    required this.journal,
+    Future<void> Function(Duration)? delay,
+    this.readTimeout = const Duration(seconds: 3),
+  }) : _delay = delay ?? Future<void>.delayed,
+       _labSend = false,
+       _pillarDeposit = true;
   final SeedSource source;
   final SeedJournal journal;
   final Future<void> Function(Duration) _delay;
   final Duration readTimeout;
   final bool _labSend;
+  final bool _pillarDeposit;
   bool _revoked = false;
   bool _attempted = false;
   SeedOriginal? _original;
@@ -516,7 +547,7 @@ final class SeedGuard {
       _revoked = true;
       throw const SeedRefused('original-context-changed');
     }
-    source.environment.requireLab();
+    source.environment.requireLab(pillarActor: _pillarDeposit);
   }
 
   void requirePreparation() {
@@ -549,9 +580,12 @@ final class SeedGuard {
 
   /// Both original endpoints must positively advance during this admission.
   Future<void> admit(String recipe, {bool waitForEarlier = false}) async {
-    if (!(_labSend
+    final bool allowed = _labSend
         ? recipe == labSendRecipeId
-        : seedRecipeIds.contains(recipe))) {
+        : _pillarDeposit
+        ? recipe == pillarDepositRecipeId
+        : seedRecipeIds.contains(recipe);
+    if (!allowed) {
       throw const SeedRefused('unknown-recipe');
     }
     requireCurrent();

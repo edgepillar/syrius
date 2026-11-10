@@ -240,6 +240,72 @@ class _ObservedFundingSource extends _Source
 }
 
 void main() {
+  test('only the separate Pillar preflight accepts the funded fourth member',
+      () {
+    final SeedEnvironment actor = _environment(index: 3,
+      members: <String>['producer', 'sponsor', 'recipient', 'owner']);
+    expect(actor.requireLab, throwsA(isA<SeedRefused>()));
+    actor.requireLab(pillarActor: true);
+    expect(() => _environment().requireLab(pillarActor: true),
+        throwsA(isA<SeedRefused>()));
+    expect(() => _environment(index: 3, members: <String>[
+      'producer', 'sponsor', 'recipient', 'owner', 'extra',
+    ]).requireLab(pillarActor: true), throwsA(isA<SeedRefused>()));
+  });
+
+  test('the Pillar guard permits only one exact original deposit', () async {
+    final _Source source = _Source(environment: _environment(index: 3,
+      members: <String>['producer', 'sponsor', 'recipient', 'owner']));
+    final _Journal journal = _Journal();
+    final SeedGuard guard = SeedGuard.forPillarDeposit(
+      source: source, journal: journal, delay: source.delay,
+    );
+    int taps = 0;
+    Future<void> tap() async {
+      taps++;
+      source.operations.add(_Original());
+    }
+
+    await expectLater(guard.publish('fuse', tap),
+        throwsA(isA<SeedRefused>()));
+    await expectLater(
+      SeedGuard(source: source, journal: journal, delay: source.delay)
+          .publish(pillarDepositRecipeId, tap),
+      throwsA(isA<SeedRefused>()),
+    );
+    expect(taps, 0);
+    expect(journal.attempts, isEmpty);
+    expect(await guard.publish(pillarDepositRecipeId, tap), _hash(9));
+    expect(journal.confirmedHashes[pillarDepositRecipeId], _hash(9));
+    await expectLater(guard.publish(pillarDepositRecipeId, tap),
+        throwsA(isA<SeedRefused>()));
+    expect(taps, 1);
+  });
+
+  test('Pillar preflight requires the exact quote and all live prerequisites',
+      () {
+    final BigInt quote = BigInt.from(15000000000000);
+    final SeedFunding funded = SeedFunding(sdk.pillarRegisterZnnAmount, quote);
+    void check({
+      BigInt? fee, BigInt? deposit, SeedFunding? balance,
+      int plasma = 252000, bool unregistered = true,
+    }) => requirePillarDepositTerms(
+      quote: fee ?? quote, deposited: deposit ?? BigInt.zero,
+      funds: balance ?? funded, plasma: plasma, unregistered: unregistered,
+    );
+    check();
+    for (final void Function() refused in <void Function()>[
+      () => check(fee: quote + BigInt.one),
+      () => check(deposit: BigInt.one),
+      () => check(balance: SeedFunding(funded.znn, funded.qsr - BigInt.one)),
+      () => check(balance: SeedFunding(funded.znn - BigInt.one, funded.qsr)),
+      () => check(plasma: 251999),
+      () => check(unregistered: false),
+    ]) {
+      expect(refused, throwsA(isA<SeedRefused>()));
+    }
+  });
+
   late _Source source;
   late _Journal journal;
   late SeedGuard guard;

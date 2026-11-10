@@ -30,7 +30,7 @@ PHASES = ('admission', 'origin', 'roots', 'journals', 'ciphers', 'node_inputs',
     'transport_close', 'nodes_stop', 'post_close', 'complete_record', 'projection')
 CHILD_PHASES = ('gate', 'start', 'input', 'startup_window', 'startup', 'unlock', 'observe',
     'seed_admission', 'seed_stake', 'seed_fuse', 'seed_token', 'seed_deposit',
-    'seed_project', 'seed_fund-address', 'seeded_capture', 'finish')
+    'seed_project', 'seed_fund-address', 'seed_pillar-qsr', 'seeded_capture', 'finish')
 OUTPUT_CODES = ('PUB_RESOLUTION', 'PUB_EXECUTABLE_BUILD', 'UNHANDLED_EXCEPTION',
     'COMPILE_OR_USAGE_ERROR', 'VM_SERVICE_LISTENER', 'UNCLASSIFIED_OUTPUT',
     'REOPEN_CHILD_REFUSED')
@@ -813,7 +813,8 @@ def retire_metadata(original, copied, retained, closed, deadline):
     return value, (original_id, original_sha), (copied_id, original_sha)
 
 
-def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, measure, *, diagnostic=None):
+def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, measure, *,
+        diagnostic=None, pillar_fixture_document=None):
     from . import hosted_chain321 as lab, windows_wallet_tour as tour
     trace = ReopenDiagnostic() if diagnostic is None else diagnostic
     checkpoint.need(type(trace) is ReopenDiagnostic)
@@ -833,6 +834,8 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
     capture_schema = catalog.RESTORED_FAMILIES.get(family)
     seeded_capture = capture_schema is not None
     catalog_capture = seeds.CATALOG_SELECTIONS.get(capture_schema, False)
+    pillar_spawn = capture_schema == catalog.PILLAR_SPAWN_SCHEMA
+    checkpoint.need(pillar_spawn is (pillar_fixture_document is not None))
     seed_key = 'catalog_prerequisites' if seeded_capture else 'seed_workflow'
     capture_output = repo / catalog.SEEDED_OUTPUT
     capture_reservation = catalog.MAX_CAPTURE_TOTAL + catalog.MAX_MANIFEST if seeded_capture else 0
@@ -1067,10 +1070,15 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
         chain_read(runtime, anchor)
         trace.at('seed_workflow')
         record['phase'] = 'seed_workflow'
-        chosen = seeds.counterparty(json.loads(bounded_read(
-            Path(restored['rpc']) / 'genesis.json', 1024**2)), origin.members)
+        genesis = json.loads(bounded_read(Path(restored['rpc']) / 'genesis.json', 1024**2))
+        if pillar_spawn:
+            fixture = seeds.pillar_fixture(genesis, origin.members, pillar_fixture_document)
+            seed_input = dict(action='SEED_PILLAR_SPAWN', actor=fixture.actor)
+        else:
+            chosen = seeds.counterparty(genesis, origin.members)
+            seed_input = dict(action='SEED', counterparty=chosen)
         unchanged()
-        write(checkpoint.encode(dict(action='SEED', counterparty=chosen)))
+        write(checkpoint.encode(seed_input))
         seed_receipts = wait(b'CI_SEED_DONE')
         unchanged()
         trace.at('seed_journals')

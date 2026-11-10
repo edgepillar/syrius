@@ -43,12 +43,21 @@ final class SeedCommands {
   FixtureCleanup? _fixture;
   String? get fixtureName => _fixture?.heldName;
 
+  /// The exact sponsorship remains observable across the owned selection.
+  String? get confirmedPillarSponsorHash {
+    final SeedSource? source = _source;
+    return _confirmed && _recipe == 'fuse' && source is LabSeedBinding &&
+            source.fuseTarget == SeedFuseTarget.pillarActor
+        ? _guard?.acceptedHash : null;
+  }
+
   Future<Map<String, Object?>> run(
     Map<String, dynamic> command, {
     required bool booted,
     required Future<Map<String, Object?>> Function(Map<String, dynamic>) ui,
     required SeedTap Function(Map<String, dynamic>) captureTap,
     bool restoredFunding = false,
+    PillarSponsorAdmission? pillarSponsor,
     SeedDepositEntry Function(String)? captureDepositEntry,
     SeedProjectPresentation Function(int)? captureProjectPresentation,
     SeedTokenPresentation Function(int, String)? captureTokenPresentation,
@@ -60,6 +69,11 @@ final class SeedCommands {
       if (command.containsKey('catalogTokenHolding') &&
           (!catalogTokenHolding ||
               action != 'begin' || command['recipe'] != 'token')) {
+        throw const SeedRefused('recipe-prerequisite-missing');
+      }
+      if (pillarSponsor != null &&
+          (restoredFunding || catalogTokenHolding || action != 'begin' ||
+              command['recipe'] != 'fuse')) {
         throw const SeedRefused('recipe-prerequisite-missing');
       }
       if (<String>{'begin', 'fixture', 'prepare', 'publish'}.contains(action)) {
@@ -82,6 +96,7 @@ final class SeedCommands {
           counterparty: command['counterparty'] as String?,
           restoredFunding: restoredFunding,
           catalogTokenHolding: catalogTokenHolding,
+          pillarSponsor: pillarSponsor,
         );
         if (action == 'fixture') {
           return await _openFixture(command['kind'] as String? ?? '', source);
@@ -118,8 +133,11 @@ final class SeedCommands {
       if (guard == null || recipe == null || source == null) {
         throw const SeedRefused('explicit-seed-begin-required');
       }
+      final LabSeedBinding? labSource =
+          source is LabSeedBinding ? source : null;
       final LabSeedBinding? restoredSource =
-          source is LabSeedBinding && source.restoredFunding ? source : null;
+          labSource?.restoredFunding == true ? labSource : null;
+      final SeedFuseTarget? fuseTarget = labSource?.fuseTarget;
       guard.requireCurrent();
       if (action == 'check') return <String, Object?>{'current': true};
       if (action == 'prepare') {
@@ -137,7 +155,7 @@ final class SeedCommands {
         final Map<String, Object> exact = seedPreparationTarget(
           recipe,
           raw.cast<String>(),
-          restoredFunding: restoredSource != null,
+          fuseTarget: fuseTarget,
         );
         if (recipe == 'deposit' && exact['key'] == 'p2p_warning_continue') {
           if (_depositEntryAttempted) {
@@ -276,8 +294,10 @@ final class SeedCommands {
       final SeedTap tap = captureTap(<String, dynamic>{
         'cmd': 'tap',
         'ref': originalRef,
-        if (recipe == 'fuse' && restoredSource != null)
-          'seedFuseBeneficiary': source.environment.members[2],
+        if (recipe == 'fuse' && fuseTarget != null) ...<String, dynamic>{
+          'seedFuseTarget': fuseTarget,
+          'seedFuseBeneficiary': labSource!.fuseBeneficiary,
+        },
         if (recipe == 'fund-address') ...<String, dynamic>{
           'seedOwner': source.environment.owner,
           'seedRecipient': source.environment.members[2],

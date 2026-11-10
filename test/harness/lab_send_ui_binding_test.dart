@@ -267,99 +267,103 @@ void main() {
     registerFallbackValue(Address.parse(fixtureAddress(1)));
   });
 
-  testWidgets('copied Fuse taps only for the exact prepared terms', (
-    WidgetTester tester,
-  ) async {
-    final HarnessAgent agent = HarnessAgent.forTest();
-    await expectLater(
-      agent.commandForTest(<String, dynamic>{
-        'cmd': 'seed', 'action': 'begin', 'restoredFunding': true,
-      }),
-      throwsA(isA<HarnessError>().having(
-        (HarnessError error) => error.message,
-        'reason', 'restored-seed-derivation-refused',
-      )),
-    );
-    final List<String> members = <String>[
-      fixtureAddress(1), fixtureAddress(2), fixtureAddress(3),
-    ];
-    final TextEditingController amount = TextEditingController(text: '100');
-    final TextEditingController beneficiary =
-        TextEditingController(text: members[1]);
-    final FocusNode focus = FocusNode();
-    int submissions = 0;
-    bool editOnDown = false;
-    addTearDown(() async {
-      await tester.pumpWidget(const SizedBox.shrink());
-      amount.dispose();
-      beneficiary.dispose();
-      focus.dispose();
-    });
-    await tester.pumpWidget(MaterialApp(
-      theme: AppTheme.darkTheme,
-      locale: const Locale('en'),
-      localizationsDelegates: appLocalizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: Scaffold(body: Center(child: Listener(
-        onPointerDown: (_) {
-          if (editOnDown) amount.text = '101';
-        },
-        child: FusePlasmaForm(
-          amountController: amount,
-          beneficiaryController: beneficiary,
-          amountFocusNode: focus,
-          buttonKey: GlobalKey<LoadingButtonState>(),
-          beneficiaries: <FusePlasmaBeneficiary>[
-            for (final String member in members)
-              FusePlasmaBeneficiary(address: member, label: member),
-          ],
-          amount: BigInt.from(10000000000),
-          decimals: 8,
-          amountEnabled: true,
-          inputValid: true,
-          amountError: null,
-          beneficiaryError: null,
-          isCurrent: () => true,
-          onMax: () {},
-          onSubmit: () {
-            submissions++;
-          },
-        ),
-      ))),
-    ));
-    await tester.pumpAndSettle();
-
-    Future<void> tap(String key, {String? expectedBeneficiary}) async {
-      final Map<String, Object?> reply = await agent.commandForTest(
-        <String, dynamic>{'cmd': 'assert', 'key': key, 'exact': true},
+  for (final SeedFuseTarget terms in SeedFuseTarget.values) {
+    testWidgets('copied Fuse checks the exact ${terms.name} terms', (
+      WidgetTester tester,
+    ) async {
+      final HarnessAgent agent = HarnessAgent.forTest();
+      await expectLater(
+        agent.commandForTest(<String, dynamic>{
+          'cmd': 'seed', 'action': 'begin', 'restoredFunding': true,
+        }),
+        throwsA(isA<HarnessError>().having(
+          (HarnessError error) => error.message,
+          'reason', 'restored-seed-derivation-refused',
+        )),
       );
-      final Map<dynamic, dynamic> target =
-          reply['target']! as Map<dynamic, dynamic>;
-      await _drive(tester, agent.captureSeedTapForTest(target['ref'] as int,
-          fuseBeneficiary: expectedBeneficiary)(() {}));
-    }
+      final List<String> members = <String>[
+        for (int index = 0; index <= terms.index; index++)
+          fixtureAddress(index + 1),
+      ];
+      final TextEditingController amount =
+          TextEditingController(text: terms.qsr.toString());
+      final TextEditingController beneficiary =
+          TextEditingController(text: members[1]);
+      final FocusNode focus = FocusNode();
+      int submissions = 0;
+      bool editOnDown = false;
+      addTearDown(() async {
+        await tester.pumpWidget(const SizedBox.shrink());
+        amount.dispose();
+        beneficiary.dispose();
+        focus.dispose();
+      });
+      await tester.pumpWidget(MaterialApp(
+        theme: AppTheme.darkTheme,
+        locale: const Locale('en'),
+        localizationsDelegates: appLocalizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(body: Center(child: Listener(
+          onPointerDown: (_) {
+            if (editOnDown) amount.text = (terms.qsr + 1).toString();
+          },
+          child: FusePlasmaForm(
+            amountController: amount,
+            beneficiaryController: beneficiary,
+            amountFocusNode: focus,
+            buttonKey: GlobalKey<LoadingButtonState>(),
+            beneficiaries: <FusePlasmaBeneficiary>[
+              for (final String member in members)
+                FusePlasmaBeneficiary(address: member, label: member),
+            ],
+            amount: terms.units,
+            decimals: 8,
+            amountEnabled: true,
+            inputValid: true,
+            amountError: null,
+            beneficiaryError: null,
+            isCurrent: () => true,
+            onMax: () {},
+            onSubmit: () {
+              submissions++;
+            },
+          ),
+        ))),
+      ));
+      await tester.pumpAndSettle();
 
-    Future<void> submit() => tap('fuse_plasma_submit_button',
-        expectedBeneficiary: members[2]);
-    final Matcher mismatch = throwsA(isA<SeedRefused>().having(
-      (SeedRefused error) => error.code,
-      'reason', 'original-fuse-terms-mismatch',
-    ));
-    await expectLater(submit(), mismatch);
-    await tap('fuse_plasma_beneficiary_selector');
-    await tester.pumpAndSettle();
-    await tap('fuse_plasma_beneficiary_option_2');
-    await tester.pumpAndSettle();
-    expect(beneficiary.text, members[2]);
-    editOnDown = true;
-    await expectLater(submit(), mismatch);
-    expect(submissions, 0);
-    editOnDown = false;
-    amount.text = '100';
-    await tester.pump();
-    await submit();
-    expect(submissions, 1);
-  });
+      Future<void> tap(String key, {String? expectedBeneficiary}) async {
+        final Map<String, Object?> reply = await agent.commandForTest(
+          <String, dynamic>{'cmd': 'assert', 'key': key, 'exact': true},
+        );
+        final Map<dynamic, dynamic> target =
+            reply['target']! as Map<dynamic, dynamic>;
+        await _drive(tester, agent.captureSeedTapForTest(target['ref'] as int,
+            fuseBeneficiary: expectedBeneficiary, fuseTarget: terms)(() {}));
+      }
+
+      Future<void> submit() => tap('fuse_plasma_submit_button',
+          expectedBeneficiary: members[terms.index]);
+      final Matcher mismatch = throwsA(isA<SeedRefused>().having(
+        (SeedRefused error) => error.code,
+        'reason', 'original-fuse-terms-mismatch',
+      ));
+      await expectLater(submit(), mismatch);
+      await tap('fuse_plasma_beneficiary_selector');
+      await tester.pumpAndSettle();
+      await tap(terms.optionKey);
+      await tester.pumpAndSettle();
+      expect(beneficiary.text, members[terms.index]);
+      editOnDown = true;
+      await expectLater(submit(), mismatch);
+      expect(submissions, 0);
+      editOnDown = false;
+      amount.text = terms.qsr.toString();
+      await tester.pump();
+      await submit();
+      expect(submissions, 1);
+    });
+  }
 
   testWidgets('Fund Address observes the real Send recipient field', (
     WidgetTester tester,

@@ -476,7 +476,9 @@ void main() {
           File('harness/screens/swap-start.txt').readAsStringSync());
       expect(() => capture.preflight('swap-start'),
           throwsA(isA<ScreenCaptureError>()));
-      ScreenCapture ownedCapture({required bool project}) => ScreenCapture(
+      ScreenCapture ownedCapture({
+        required bool project, bool pillarSpawn = false,
+      }) => ScreenCapture(
         repository: repository,
         call: agent.call,
         prepareHome: agent.prepareHome,
@@ -485,6 +487,7 @@ void main() {
             cli.assertionArgs(cli.Args(words.sublist(1))),
         restoredSeeded: true,
         restoredProject: project,
+        restoredPillarSpawn: pillarSpawn,
       );
       final ScreenCapture seededCapture = ownedCapture(project: false);
       final ScreenScript seeded = seededCapture.preflight('token-mine').single;
@@ -515,6 +518,18 @@ void main() {
           ]));
       expect(detail.afterCapture.first.words,
           <String>['tap', '--key', 'project_details_back']);
+      writeScript('spawn',
+          File('harness/screens/spawn.txt').readAsStringSync());
+      expect(() => capture.preflight('spawn'),
+          throwsA(isA<ScreenCaptureError>()));
+      expect(() => seededCapture.preflight('spawn'),
+          throwsA(isA<ScreenCaptureError>()));
+      final ScreenScript spawn =
+          ownedCapture(project: false, pillarSpawn: true)
+              .preflight('spawn').single;
+      expect(spawn.assertion['key'], 'pillar_name_field');
+      expect(spawn.afterCapture.first.words,
+          <String>['tap', 'Close', '--kind', 'button', '--exact']);
       expect(agent.commands, isEmpty);
       expect(Directory('${repository.path}/.harness').existsSync(), isFalse);
     },

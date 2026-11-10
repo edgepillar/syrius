@@ -42,7 +42,7 @@ class AdmissionTests(unittest.TestCase):
             SYRIUS_LAB_NODE_SOURCE='lab-fix', SYRIUS_NATIVE_STACK_DIAGNOSTIC='true')
         with mock.patch.object(lab.sys, 'platform', 'win32'):
             self.assertTrue(lab.require_environment('native', parent))
-            for family in ('seeded-states', 'stake-draft', 'project-detail'):
+            for family in ('seeded-states', 'stake-draft', 'project-detail', 'pillar-spawn'):
                 with self.subTest(family=family):
                     seeded = dict(parent, SYRIUS_READONLY_CATALOG_FAMILY=family,
                                   GITHUB_RUN_ATTEMPT='1')

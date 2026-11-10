@@ -15,7 +15,14 @@ final class SeedRecipe {
   /// Validates the complete authored plan before admitting a UI command.
   factory SeedRecipe.parse(String id, String text, {
     bool restoredFunding = false,
+    bool pillarSponsor = false,
   }) {
+    if (pillarSponsor && (id != 'fuse' || restoredFunding)) {
+      throw const SeedRefused('recipe-prerequisite-missing');
+    }
+    final SeedFuseTarget? fuseTarget = pillarSponsor
+        ? SeedFuseTarget.pillarActor
+        : restoredFunding ? SeedFuseTarget.restoredSecondary : null;
     if (!seedRecipeIds.contains(id) ||
         text.length > 8192 ||
         text.split('\n').length > 96 ||
@@ -116,8 +123,7 @@ final class SeedRecipe {
         throw const SeedRefused('seed-script-key-refused');
       }
       if (words.first == 'tap') {
-        seedPreparationTarget(id, words.sublist(1),
-            restoredFunding: restoredFunding);
+        seedPreparationTarget(id, words.sublist(1), fuseTarget: fuseTarget);
       }
       if (words.contains('--timeout')) {
         final int at = words.indexOf('--timeout');
@@ -164,6 +170,16 @@ final class SeedRecipe {
         throw const SeedRefused('deposit-input-readiness-required');
       }
     }
+    if (pillarSponsor) {
+      final Iterable<List<String>> inputs =
+          lines.where((List<String> words) => words.first == 'type');
+      final int qsr = SeedFuseTarget.pillarActor.qsr;
+      if (inputs.length != 1 ||
+          inputs.single.join(' ') !=
+              'type --key fuse_plasma_amount_field $qsr') {
+        throw const SeedRefused('original-fuse-terms-mismatch');
+      }
+    }
     return SeedRecipe._(id, List<List<String>>.unmodifiable(lines));
   }
   /// The fixed recipe selected by the isolated fixture workflow.
@@ -200,7 +216,7 @@ List<String> seedPublishSelector(String recipe) => switch (recipe) {
 /// Fixed preparation controls have no publication callback. Token Continue
 /// additionally requires its actual original preparation frame at pointer time.
 Map<String, Object> seedPreparationTarget(String recipe, List<String> words, {
-  bool restoredFunding = false,
+  SeedFuseTarget? fuseTarget,
 }) {
   final Set<String> allowed = switch (recipe) {
     'stake' => const <String>{
@@ -209,9 +225,9 @@ Map<String, Object> seedPreparationTarget(String recipe, List<String> words, {
     },
     'fuse' => <String>{
       '--key plasma_open_fuse',
-      if (restoredFunding) ...const <String>{
+      if (fuseTarget != null) ...<String>{
         '--key fuse_plasma_beneficiary_selector',
-        '--key fuse_plasma_beneficiary_option_2',
+        '--key ${fuseTarget.optionKey}',
       },
     },
     'token' => const <String>{

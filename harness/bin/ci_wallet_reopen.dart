@@ -2,7 +2,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-import '../app/fixtures/seed_policy.dart' show seedIssuedTokenStandard;
+import '../app/fixtures/seed_policy.dart'
+    show pillarDepositRecipeId, seedIssuedTokenStandard;
 import '../lock_view_observation.dart';
 import '../seed/restored_seed_workflow.dart';
 import '../wallet_address_context.dart';
@@ -16,7 +17,8 @@ import 'wallet_recipe.dart' show WalletRecipeRefused;
 const Set<String> restoredChildPhases = <String>{
   'gate', 'start', 'input', 'startup_window', 'startup', 'unlock', 'observe',
   'seed_admission', 'seed_stake', 'seed_fuse', 'seed_token', 'seed_deposit',
-  'seed_project', 'seed_fund-address', 'seeded_capture', 'finish',
+  'seed_project', 'seed_fund-address', 'seed_pillar-qsr', 'seeded_capture',
+  'finish',
 };
 
 /// Exception families disclose no messages, paths, replies or private input.
@@ -127,6 +129,7 @@ Map<String, Object?>? restoredChildFailure(
   String phase, Object error, {
   ScreenCaptureObservation? captureStep,
   RestoredSeedSelection selection = RestoredSeedSelection.all,
+  bool pillarSpawn = false,
 }) {
   if (!restoredChildPhases.contains(phase)) return null;
   String kind = 'OTHER_ERROR';
@@ -176,7 +179,8 @@ Map<String, Object?>? restoredChildFailure(
     final String? reply = screenCaptureReplyOf(error)?.name;
     capture = <String, Object>{
       'schema': reply == null ? 1 : 2,
-      'kind': switch (selection) {
+      'kind': pillarSpawn ? 'restored_pillar_spawn_capture_failure'
+          : switch (selection) {
         RestoredSeedSelection.stakeDraft =>
           'restored_stake_draft_capture_failure',
         RestoredSeedSelection.projectDetail =>
@@ -276,6 +280,26 @@ const Set<String> _projectLines = <String>{
   'wait --key home_hero --timeout 5',
 };
 
+const Set<String> _spawnLines = <String>{
+  'goto pillars',
+  'wait --key nodes_tab_pillars --timeout 30',
+  'tap --key nodes_tab_pillars',
+  'reveal Spawn --kind button --exact',
+  'tap Spawn --kind button --exact',
+  'wait --key pillar_plasma_next_button --ready --timeout 30',
+  'tap --key pillar_plasma_next_button',
+  'wait --key pillar_qsr_next_button --ready --timeout 30',
+  'tap --key pillar_qsr_next_button',
+  'wait --key pillar_znn_next_button --ready --timeout 30',
+  'tap --key pillar_znn_next_button',
+  'wait --key pillar_name_field --timeout 30',
+  'assert --key pillar_name_field',
+  'tap Close --kind button --exact',
+  'wait --key pillar_name_field --gone --timeout 10',
+  'goto dashboard',
+  'wait --key home_hero --timeout 5',
+};
+
 Future<Map<String, Object>> _captureSeededCatalog(
   cli.Instance instance,
   List<Map<String, String>> receipts,
@@ -283,13 +307,18 @@ Future<Map<String, Object>> _captureSeededCatalog(
   Future<void> Function() requireCurrent,
   void Function(ScreenCaptureObservation) onStep, {
   required RestoredSeedSelection selection,
+  bool pillarSpawn = false,
 }) async {
   final ({
     int schema,
     List<String> screens,
     List<String> files,
     Set<String> lines,
-  }) catalog = switch (selection) {
+  }) catalog = pillarSpawn
+      ? (schema: 13, screens: const <String>['spawn'],
+          files: const <String>['19-spawn-dark.png', '19-spawn-light.png'],
+          lines: _spawnLines)
+      : switch (selection) {
     RestoredSeedSelection.seededCatalog =>
       (schema: 4, screens: _seededScreens, files: _seededFiles,
        lines: _seededLines),
@@ -307,7 +336,8 @@ Future<Map<String, Object>> _captureSeededCatalog(
           ['hash']!;
   final bool stakeDraft = selection == RestoredSeedSelection.stakeDraft;
   final bool projectDetail = selection == RestoredSeedSelection.projectDetail;
-  final String? stake = projectDetail ? null : confirmed('stake');
+  final String? stake =
+      projectDetail || pillarSpawn ? null : confirmed('stake');
   final String? rowKey = switch (selection) {
     RestoredSeedSelection.seededCatalog =>
       'token_${seedIssuedTokenStandard(confirmed('token'))}_row',
@@ -327,6 +357,7 @@ Future<Map<String, Object>> _captureSeededCatalog(
     repository: Directory(cli.repo),
     restoredSeeded: true,
     restoredProject: projectDetail,
+    restoredPillarSpawn: pillarSpawn,
     onStep: onStep,
     call: (Map<String, Object?> command) async {
       await requireCurrent();
@@ -359,12 +390,17 @@ Future<Map<String, Object>> _captureSeededCatalog(
           await cli.goto(instance, args.single);
         case 'wait':
           await cli.waitForTarget(instance, cli.Args(<String>[
-            ...args, if (stakeDraft || projectDetail) '--exact',
+            ...args, if (stakeDraft || projectDetail || pillarSpawn) '--exact',
           ]));
         case 'tap':
           await cli.call(instance, <String, Object?>{
-            'cmd': 'tap', 'key': args.last, 'exact': true,
+            'cmd': 'tap',
+            if (pillarSpawn) ...assertion(args) else ...<String, Object?>{
+              'key': args.last, 'exact': true,
+            },
           });
+        case 'reveal':
+          await cli.reveal(instance, assertion(args));
         case 'key':
           final Map<String, dynamic> refreshed = await cli.call(
             instance, <String, Object?>{'cmd': 'key', 'key': args.single},
@@ -437,6 +473,7 @@ Future<void> main() async {
   ScreenCaptureObservation? captureStep;
   String phase = 'gate';
   RestoredSeedSelection selection = RestoredSeedSelection.all;
+  bool pillarSpawn = false;
   try {
     final Map<String, String> env = Platform.environment;
     final String name = env['SYRIUS_CI_REOPEN_INSTANCE'] ?? '';
@@ -449,13 +486,15 @@ Future<void> main() async {
       throw const FormatException('hosted gate refused');
     }
     selection = switch (env['SYRIUS_CI_REOPEN_SEEDED_CAPTURE']) {
-      null || 'false' => RestoredSeedSelection.all,
+      null || 'false' || 'pillar-spawn' => RestoredSeedSelection.all,
       'true' => RestoredSeedSelection.seededCatalog,
       'stake-draft' => RestoredSeedSelection.stakeDraft,
       'project-detail' => RestoredSeedSelection.projectDetail,
       _ => throw const FormatException('seeded capture selection refused'),
     };
-    final bool seededCapture = selection != RestoredSeedSelection.all;
+    pillarSpawn = env['SYRIUS_CI_REOPEN_SEEDED_CAPTURE'] == 'pillar-spawn';
+    final bool seededCapture =
+        pillarSpawn || selection != RestoredSeedSelection.all;
     final CopiedPointerInput originalInput = CopiedPointerInput(
       stdin, allowSeededCapture: seededCapture,
     );
@@ -532,6 +571,77 @@ Future<void> main() async {
     await marker('CI_REOPEN_DONE:${jsonEncode(result['receipt'])}');
     phase = 'seed_admission';
     final Object? seedInput = jsonDecode(await originalInput.read());
+    if (pillarSpawn) {
+      if (seedInput is! Map<String, dynamic> || seedInput.length != 2 ||
+          seedInput['action'] != 'SEED_PILLAR_SPAWN' ||
+          seedInput['actor'] is! String ||
+          !RegExp(r'^z1[023456789acdefghjklmnpqrstuvwxyz]{38}$')
+              .hasMatch(seedInput['actor'] as String)) {
+        throw const FormatException('Pillar fixture admission refused');
+      }
+      final List<Map<String, String>> receipts = <Map<String, String>>[];
+      Map<String, Object> receipt(String suffix) => <String, Object>{
+        'schema': 1, 'scope': 'private_restored_pillar_spawn_$suffix',
+        'chain': 321, 'members': 4, 'selected_index': 3,
+        'derived_count': 2, 'owner_stable': true, 'receipts': receipts,
+      };
+      Future<void> prefix() =>
+          marker('CI_SEED_PROGRESS:${jsonEncode(receipt('prefix'))}');
+      phase = 'seed_fuse';
+      final ({WalletAddressContext selected, String fusionHash}) sponsored =
+          await cli.preparePillarCatalogActor(
+        instance, originalContext, expectedActor: seedInput['actor'] as String,
+        parentAlive: () => originalInput.alive,
+        onSponsored: (String hash) async {
+          receipts.add(<String, String>{'recipe': 'fuse', 'hash': hash});
+          await prefix();
+        },
+      );
+      phase = 'seed_pillar-qsr';
+      final String deposited = await cli.depositPillarCatalogQsr(
+        instance, sponsored, parentAlive: () => originalInput.alive,
+      );
+      receipts.add(<String, String>{
+        'recipe': pillarDepositRecipeId, 'hash': deposited,
+      });
+      await prefix();
+      await marker('CI_SEED_DONE:${jsonEncode(receipt('receipts'))}');
+      phase = 'seeded_capture';
+      if (await originalInput.read() != 'CAPTURE_SEEDED') {
+        throw const FormatException('Pillar capture gate refused');
+      }
+      Future<void> requireCurrent() async {
+        if (!originalInput.alive ||
+            !sponsored.selected.same(await context()) || !originalInput.alive) {
+          throw const FormatException('Pillar capture owner changed');
+        }
+      }
+
+      await requireCurrent();
+      await cli.waitForTarget(instance, cli.Args(<String>[
+        '--key', 'pillar_qsr_next_button', '--kind', 'button',
+        '--ready', '--timeout', '30',
+      ]));
+      await requireCurrent();
+      await cli.call(instance, <String, Object?>{
+        'cmd': 'tap', 'text': 'Close', 'kind': 'button', 'exact': true,
+      });
+      await cli.waitForTarget(instance, cli.Args(<String>[
+        '--key', 'pillar_qsr_next_button', '--gone', '--timeout', '10',
+      ]));
+      await requireCurrent();
+      final Map<String, Object> captured = await _captureSeededCatalog(
+        instance, receipts, sponsored.selected.selected, requireCurrent,
+        (ScreenCaptureObservation step) => captureStep = step,
+        selection: RestoredSeedSelection.all, pillarSpawn: true,
+      );
+      await marker('CI_SEEDED_CAPTURE_DONE:${jsonEncode(captured)}');
+      phase = 'finish';
+      if (await originalInput.read() != 'FINISH') {
+        throw const FormatException('closure unconfirmed');
+      }
+      return;
+    }
     if (seedInput is! Map<String, dynamic> || seedInput.length != 2 ||
         seedInput['action'] != 'SEED' || seedInput['counterparty'] is! String) {
       throw const FormatException('seed admission refused');
@@ -612,7 +722,7 @@ Future<void> main() async {
   } on Object catch (error) {
     final Map<String, Object?>? failure = restoredChildFailure(
       phase, error, captureStep: captureStep,
-      selection: selection,
+      selection: selection, pillarSpawn: pillarSpawn,
     );
     if (failure != null) {
       stdout.writeln('CI_REOPEN_FAILURE:${jsonEncode(failure)}');

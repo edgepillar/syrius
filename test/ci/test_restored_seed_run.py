@@ -1,8 +1,10 @@
 """Small memory-only cases; no signer, node, filesystem or network is used."""
 
 import copy
+import hashlib
 import json
 import unittest
+from unittest.mock import patch
 
 from tool.ci import restored_seed_run as seeds
 from tool.ci import restored_wallet_run as restored
@@ -110,6 +112,44 @@ class SeedObservationTests(unittest.TestCase):
         with self.assertRaises(restored.checkpoint.Refused):
             seeds.counterparty(genesis, ('first', address))
 
+    def test_pillar_fixture_binds_the_pinned_document_and_copied_genesis(self):
+        addresses = ['z1' + symbol*38 for symbol in 'qpzry9x8gf']
+        readme = ''.join(f'| {index} | `{value}` | fixture |\n'
+                         for index, value in enumerate(addresses)).encode()
+        genesis = dict(ChainIdentifier=321, ExtraData='SYRIUS LAB', PillarConfig=dict(
+            Pillars=[dict(Name='dev'+str(index), PillarType=1,
+                          StakeAddress=addresses[owner], BlockProducingAddress=addresses[producer],
+                          RewardWithdrawAddress=addresses[owner])
+                     for index, (owner, producer) in enumerate(((1, 0), (5, 4), (7, 6)), 1)]),
+            PlasmaConfig=dict(Fusions=[dict(owner=addresses[1],
+                beneficiaryAddress=addresses[beneficiary], amount=1000000000000)
+                for beneficiary in (1, 1, 0)]),
+            TokenConfig=dict(Tokens=[dict(tokenSymbol=symbol, tokenStandard=symbol.lower(),
+                                          decimals=8) for symbol in ('ZNN','QSR')]),
+            GenesisBlocks=dict(Blocks=[dict(Address=addresses[index], BalanceList=dict(
+                znn=5000000000000, qsr=50000000000000)) for index in (0, 1, 2, 3, 6, 8, 9)]))
+        members = tuple(addresses[:2])
+        with self.assertRaises(restored.checkpoint.Refused):
+            seeds.pillar_fixture(genesis, members, readme)
+        with patch.object(seeds, '_PILLAR_FIXTURE_DOC_SHA256', hashlib.sha256(readme).hexdigest()):
+            self.assertEqual(seeds.pillar_fixture(genesis, members, readme),
+                             (addresses[3], addresses[8], addresses[9]))
+            for invalid in ('wrong-chain', 'changed-pillar-type', 'prior-fusion', 'missing-funds'):
+                altered = copy.deepcopy(genesis)
+                if invalid == 'wrong-chain':
+                    altered['ChainIdentifier'] = 69
+                if invalid == 'changed-pillar-type':
+                    altered['PillarConfig']['Pillars'][2]['PillarType'] = 2
+                if invalid == 'prior-fusion':
+                    altered['PlasmaConfig']['Fusions'][2]['beneficiaryAddress'] = addresses[3]
+                if invalid == 'missing-funds':
+                    altered['GenesisBlocks']['Blocks'][3]['BalanceList']['qsr'] -= 1
+                with self.subTest(invalid=invalid), self.assertRaises(restored.checkpoint.Refused):
+                    seeds.pillar_fixture(altered, members, readme)
+            for incoming, source in ((tuple(reversed(members)), readme), (members, readme+b'\n')):
+                with self.assertRaises(restored.checkpoint.Refused):
+                    seeds.pillar_fixture(genesis, incoming, source)
+
     def test_ambiguous_or_changed_fixture_owner_is_not_a_counterparty(self):
         address = 'z1' + 'q'*38
         genesis = dict(ChainIdentifier=321, ExtraData='SYRIUS LAB', PillarConfig=dict(
@@ -125,6 +165,43 @@ class SeedObservationTests(unittest.TestCase):
 
 
 class SeedPrefixObservationTests(unittest.TestCase):
+    def test_pillar_spawn_binds_both_original_receipts_and_four_member_selection(self):
+        family = 'pillar-spawn'
+        ids = ('fuse', 'pillar-qsr')
+        rows = [dict(recipe=recipe, hash=str(index + 1) * 64)
+                for index, recipe in enumerate(ids)]
+        receipt = dict(schema=1, scope='private_restored_pillar_spawn_prefix',
+            chain=321, members=4, selected_index=3, derived_count=2,
+            owner_stable=True, receipts=rows[:1])
+        reads = []
+
+        def journal(recipe, state):
+            reads.append((recipe, state))
+            row = next(row for row in rows if row['recipe'] == recipe)
+            return json.dumps(dict(recipe=recipe, chain=321, state=state,
+                **({'hash': row['hash']} if state != 'attempt' else {}))).encode()
+
+        first, first_public = seeds.retain_prefix(None, receipt, journal,
+                                                  catalog_capture=family)
+        second, second_public = seeds.retain_prefix(first, dict(receipt, receipts=rows),
+                                                    journal, catalog_capture=family)
+        self.assertEqual(first_public['recipes'], ['fuse'])
+        self.assertEqual(second_public['recipes'], list(ids))
+        self.assertEqual(reads, [(recipe, state) for recipe in ids
+                                 for state in ('attempt', 'accepted', 'confirmed')])
+        full = dict(second, scope='private_restored_pillar_spawn_receipts')
+        accepted = seeds.finish_prefix(second, full, catalog_capture=family)
+        projected = seeds.completed(accepted, catalog_capture=family)
+        self.assertEqual((projected['members'], projected['selected_index'],
+                          projected['derived_count']), (4, 3, 2))
+        self.assertEqual(projected['scope'], seeds.PILLAR_SPAWN_SCOPE)
+        for changed in (dict(members=3), dict(selected_index=1),
+                        dict(derived_count=True), dict(receipts=list(reversed(rows)))):
+            with self.subTest(change=changed), self.assertRaises(restored.checkpoint.Refused):
+                seeds.private_receipts(dict(full, **changed), catalog_capture=family)
+        with self.assertRaises(restored.checkpoint.Refused):
+            seeds.private_receipts(full)
+
     def prefix(self, count):
         value = receipts()
         value['scope'] = 'private_restored_seed_prefix'

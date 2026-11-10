@@ -17,6 +17,7 @@ import '../app/readonly_native_mode.dart';
 import '../home_preparation_observation.dart';
 import '../seed/seed_recipe.dart';
 import '../seed_preparation_failure.dart' show seedPreparationUiFailureCodes;
+import '../wallet_address_context.dart';
 import 'build_output.dart';
 import 'screen_capture.dart';
 import 'wallet_recipe.dart';
@@ -1134,6 +1135,7 @@ Future<Map<String, dynamic>> seed(
   Future<void> Function()? requireOwner,
   bool restoredFunding = false,
   bool catalogTokenHolding = false,
+  ({WalletAddressContext firstDerivation, String actor})? pillarSponsor,
 }) async {
   const Set<String> allowed = <String>{
     'instance',
@@ -1175,6 +1177,11 @@ Future<Map<String, dynamic>> seed(
     return result;
   }
 
+  if (pillarSponsor != null &&
+      (requireOwner == null || restoredFunding || catalogTokenHolding ||
+          a.rest.length != 1 || a.rest.single != 'fuse')) {
+    throw Fail('Pillar sponsorship requires its owned restored session');
+  }
   if (a.rest.first == 'fixture') {
     if (a.rest.length != 2 ||
         !<String>{'sentinel', 'aged-fuse'}.contains(a.rest[1])) {
@@ -1209,7 +1216,9 @@ Future<Map<String, dynamic>> seed(
   final SeedOperationTrace originalTrace = SeedOperationTrace(id);
   trace = originalTrace;
   try {
-    final String name = restoredFunding && id == 'fuse' ? 'fuse-secondary' : id;
+    final String name = pillarSponsor != null
+        ? 'fuse-pillar-sponsor'
+        : restoredFunding && id == 'fuse' ? 'fuse-secondary' : id;
     final File file = File('$repo/harness/seed/$name.txt');
     if (FileSystemEntity.typeSync(file.path, followLinks: false) !=
             FileSystemEntityType.file ||
@@ -1219,7 +1228,7 @@ Future<Map<String, dynamic>> seed(
     final String source = file.readAsStringSync();
     originalTrace.at(SeedOperationAction.source, SeedOperationStep.parse);
     final SeedRecipe plan = SeedRecipe.parse(id, source,
-        restoredFunding: restoredFunding);
+        restoredFunding: restoredFunding, pillarSponsor: pillarSponsor != null);
     final Map<String, dynamic> ready = await command(<String, Object?>{
       'action': 'begin',
       'recipe': id,
@@ -1229,6 +1238,10 @@ Future<Map<String, dynamic>> seed(
       'checkpointReady': true,
       if (restoredFunding) 'restoredFunding': true,
       if (catalogTokenHolding) 'catalogTokenHolding': true,
+      if (pillarSponsor != null) 'pillarSponsor': <String, Object>{
+        'firstDerivation': pillarSponsor.firstDerivation.toJson(),
+        'actor': pillarSponsor.actor,
+      },
       if (a['counterparty'] != null) 'counterparty': a['counterparty'],
     });
     originalTrace.at(SeedOperationAction.source, SeedOperationStep.resolve);
@@ -1276,6 +1289,113 @@ Future<Map<String, dynamic>> seed(
   } on Object catch (error, stack) {
     Error.throwWithStackTrace(originalTrace.failure(error), stack);
   }
+}
+
+/// Keeps the copied profile's sponsor selected through the exact Fuse receipt.
+Future<({WalletAddressContext selected, String fusionHash})>
+preparePillarCatalogActor(
+  Instance inst,
+  WalletAddressContext original, {
+  required String expectedActor,
+  required bool Function() parentAlive,
+  required Future<void> Function(String) onSponsored,
+}) async {
+  final WalletRecipe driver = WalletRecipe(
+    budget: const Duration(minutes: 6),
+    send: (Map<String, Object?> command, Duration timeout) {
+      if (!parentAlive()) throw Fail('owned lab parent unavailable');
+      return inst.send(command, timeout: timeout);
+    },
+  );
+  final ({WalletAddressContext selected, String fusionHash}) result =
+      await driver.preparePillarActor(
+    original,
+    expectedActor: expectedActor,
+    parentAlive: parentAlive,
+    sponsor: (WalletAddressContext first, Future<void> Function() current) =>
+        seed(inst, Args(<String>[
+          'fuse', '--instance', inst.name, '--ws', seedWsOrigin,
+          '--http', seedHttpOrigin, '--checkpoint-ready',
+        ]), requireOwner: current,
+          pillarSponsor: (firstDerivation: first, actor: expectedActor),
+        ),
+  );
+  if (!parentAlive()) throw Fail('owned lab parent unavailable');
+  await onSponsored(result.fusionHash);
+  if (!parentAlive()) throw Fail('owned lab parent unavailable');
+  final Map<String, dynamic> terms = await inst.send(<String, Object?>{
+    'cmd': 'pillar-deposit-preflight',
+    'profile': inst.name,
+    'fusionHash': result.fusionHash,
+  }, timeout: const Duration(seconds: 25));
+  if (!parentAlive() || terms['ok'] != true || terms['ready'] != true ||
+      terms['chain'] != 321 ||
+      terms['selectedIndex'] != SeedFuseTarget.pillarActor.index) {
+    throw Fail('Pillar deposit terms refused');
+  }
+  return result;
+}
+
+/// Opens the original QSR step and admits its one exact lab deposit.
+Future<String> depositPillarCatalogQsr(
+  Instance inst,
+  ({WalletAddressContext selected, String fusionHash}) sponsored, {
+  required bool Function() parentAlive,
+}) async {
+  Future<void> requireActor() async {
+    if (!parentAlive()) throw Fail('owned lab parent unavailable');
+    final Map<String, dynamic> view = await inst.send(
+      <String, Object?>{'cmd': 'wallet-recipe', 'action': 'observe'},
+      timeout: const Duration(seconds: 10),
+    );
+    if (!parentAlive() || view['ok'] != true ||
+        view['chainId'] != 321 || view['savedSigningChainId'] != 321 ||
+        view['nodeSelectionSaved'] != true ||
+        view['transitionPending'] != false ||
+        !sponsored.selected.same(
+          WalletAddressContext.parse(view['addressContext']),
+        )) {
+      throw Fail('original Pillar actor changed');
+    }
+  }
+
+  Future<void> tapKey(String key) async {
+    await waitForTarget(inst, Args(<String>[
+      '--key', key, '--kind', 'button', '--ready', '--timeout', '30',
+    ]));
+    await requireActor();
+    await call(inst, <String, Object?>{
+      'cmd': 'tap', 'key': key, 'kind': 'button', 'exact': true,
+    });
+  }
+
+  await requireActor();
+  await goto(inst, 'pillars');
+  await tapKey('nodes_tab_pillars');
+  const Map<String, Object?> spawn =
+      <String, Object?>{'text': 'Spawn', 'kind': 'button', 'exact': true};
+  await reveal(inst, spawn);
+  await requireActor();
+  await call(inst, <String, Object?>{'cmd': 'tap', ...spawn});
+  await tapKey('pillar_plasma_next_button');
+  await waitForTarget(inst, Args(<String>[
+    '--key', 'pillar_qsr_deposit_button', '--kind', 'button',
+    '--ready', '--timeout', '30',
+  ]));
+  await requireActor();
+  final Map<String, dynamic> receipt = await inst.send(<String, Object?>{
+    'cmd': 'pillar-qsr-deposit',
+    'profile': inst.name,
+    'fusionHash': sponsored.fusionHash,
+  }, timeout: const Duration(seconds: 180));
+  final Object? hash = receipt['hash'];
+  if (receipt['ok'] != true || receipt['confirmed'] != true ||
+      receipt['recipe'] != pillarDepositRecipeId || hash is! String ||
+      !seedHash(hash) || hash == sponsored.fusionHash) {
+    throw Fail('exact Pillar deposit receipt refused');
+  }
+  await requireActor();
+  return hash;
 }
 
 /// Runs a file of harness command lines, stopping at the first that fails.

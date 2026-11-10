@@ -1,0 +1,14 @@
+# seed: fuse
+# prerequisite: isolated-chain-321-checkpoint
+# Keep the sponsor selected until the fusion and actor Plasma qualify.
+goto plasma
+wait --key plasma_open_fuse --timeout 30
+tap --key plasma_open_fuse
+wait --key fuse_plasma_amount_field --timeout 30
+tap --key fuse_plasma_beneficiary_selector
+wait --key fuse_plasma_beneficiary_option_3 --timeout 30
+tap --key fuse_plasma_beneficiary_option_3
+type --key fuse_plasma_amount_field 1000
+assert --key fuse_plasma_submit_button
+publish --key fuse_plasma_submit_button
+assert --key plasma_fused_list

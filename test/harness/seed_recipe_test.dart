@@ -43,6 +43,23 @@ void main() {
       expect(() => SeedRecipe.parse('fuse',
           fuse.replaceAll(beneficiary, 'fuse_plasma_beneficiary_option_1'),
           restoredFunding: true), throwsA(isA<SeedRefused>()));
+      final String sponsorship =
+          File('harness/seed/fuse-pillar-sponsor.txt').readAsStringSync();
+      final SeedRecipe sponsored =
+          SeedRecipe.parse('fuse', sponsorship, pillarSponsor: true);
+      expect(sponsored.lines[6], <String>[
+        'tap', '--key', SeedFuseTarget.pillarActor.optionKey,
+      ]);
+      expect(sponsored.lines[7], <String>[
+        'type', '--key', 'fuse_plasma_amount_field', '1000',
+      ]);
+      expect(() => SeedRecipe.parse('fuse', sponsorship, restoredFunding: true),
+          throwsA(isA<SeedRefused>()));
+      expect(() => SeedRecipe.parse('fuse', fuse, pillarSponsor: true),
+          throwsA(isA<SeedRefused>()));
+      expect(() => SeedRecipe.parse(
+        'fuse', sponsorship.replaceFirst('1000', '100'), pillarSponsor: true,
+      ), throwsA(isA<SeedRefused>()));
       final SeedRecipe token = SeedRecipe.parse('token',
           File('harness/seed/token.txt').readAsStringSync());
       expect(

@@ -37,14 +37,18 @@ STAKE_DRAFT_FAMILY = 'stake-draft'
 STAKE_DRAFT_SCHEMA = 6
 PROJECT_DETAIL_FAMILY = 'project-detail'
 PROJECT_DETAIL_SCHEMA = 7
+PILLAR_SPAWN_FAMILY = 'pillar-spawn'
+PILLAR_SPAWN_SCHEMA = 13
 RESTORED_FAMILIES = {SEEDED_FAMILY: SEEDED_SCHEMA,
                      STAKE_DRAFT_FAMILY: STAKE_DRAFT_SCHEMA,
-                     PROJECT_DETAIL_FAMILY: PROJECT_DETAIL_SCHEMA}
+                     PROJECT_DETAIL_FAMILY: PROJECT_DETAIL_SCHEMA,
+                     PILLAR_SPAWN_FAMILY: PILLAR_SPAWN_SCHEMA}
 RESTORED_SCHEMAS = frozenset(RESTORED_FAMILIES.values())
 RESTORED_FAILURE_KINDS = {
     SEEDED_SCHEMA: 'restored_seeded_capture_failure',
     STAKE_DRAFT_SCHEMA: 'restored_stake_draft_capture_failure',
     PROJECT_DETAIL_SCHEMA: 'restored_project_detail_capture_failure',
+    PILLAR_SPAWN_SCHEMA: 'restored_pillar_spawn_capture_failure',
 }
 FAMILY_SCHEMAS = {'details': 1, 'token-draft': 2, 'send-confirm': 3, 'earn': 5,
                   'sentinel-fixture': 8, 'swap-start': 9, 'wallet-ready': 10,
@@ -70,6 +74,8 @@ CATALOGS = {
                          ('14-staking-new-dark.png', '14-staking-new-light.png')),
     PROJECT_DETAIL_SCHEMA: (('az-project',),
                             ('29-az-project-dark.png', '29-az-project-light.png')),
+    PILLAR_SPAWN_SCHEMA: (('spawn',),
+                         ('19-spawn-dark.png', '19-spawn-light.png')),
 }
 OUTPUT = Path('.harness/ci-details-catalog')
 SEEDED_OUTPUT = Path('.harness/ci-seeded-catalog')

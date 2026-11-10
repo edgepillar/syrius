@@ -235,7 +235,7 @@ class InspectionTests(unittest.TestCase):
                 lab.readonly_catalog_family(selected)], schema)
         for value in (None, True, 1, '', 'Home', 'all', 'home,navigation',
                       '../home', 'launch', 'launch-settle', 'lock-catalog', 'quiz-catalog', 'seeded-states',
-                      'stake-draft', 'project-detail'):
+                      'stake-draft', 'project-detail', 'pillar-spawn'):
             with self.subTest(value=value), self.assertRaises(lab.Failure):
                 lab.wallet_inspection_requested('native',
                     dict(parent, SYRIUS_READONLY_CATALOG_FAMILY=value))
@@ -249,7 +249,7 @@ class InspectionTests(unittest.TestCase):
              'send-confirm', 'send-warn', 'swap-start', 'wallet-ready', 'earn',
              'sentinel-fixture', 'launch', 'launch-settle',
              'lock-catalog', 'quiz-catalog', 'seeded-states',
-             'stake-draft', 'project-detail'])
+             'stake-draft', 'project-detail', 'pillar-spawn'])
         self.assertIn('SYRIUS_READONLY_CATALOG_FAMILY: ${{ inputs.readonly_catalog_family }}', workflow)
         scoped = dict(parent, SYRIUS_READONLY_CATALOG_FAMILY='send-warn',
             SYRIUS_HOSTED_RUNNER='github-hosted', GITHUB_ACTIONS='true',
@@ -264,6 +264,7 @@ class InspectionTests(unittest.TestCase):
         for family, title, stem in (
             ('stake-draft', 'New stake draft', '14-staking-new'),
             ('project-detail', 'Project detail', '29-az-project'),
+            ('pillar-spawn', 'Pillar Spawn', '19-spawn'),
         ):
             marker = f'      - name: Retain the two verified {title} captures\n'
             upload = workflow.split(marker, 1)[1].split('\n      - name:', 1)[0]

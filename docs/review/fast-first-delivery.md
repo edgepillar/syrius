@@ -445,10 +445,24 @@ Source601 records each original producer's local height before opening
 the Send warning window and again on readiness refusal. The isolated
 producer ports expose loopback stats for this workflow only. The paired
 RPC lag gate and both capture checks remain in force. The waiting entry
-gets EOF and a bounded opportunity to exit after a refused gate. Sixty
-local controller and archive cases pass. The original Windows failure
-and the 86 of 94 literal outputs retain their scope. Fresh native
-evidence remains open.
+gets EOF and a bounded opportunity to exit after a refused gate. The
+actual run passes selected analysis, 1,374 Dart cases and 1,104 Python
+cases with eighteen skips. The three producers start at height 23 and the
+paired readiness read reaches current 23 and target 26. The original dark
+warning region is absent at the script wait. Both archives qualify for
+that refusal. The five nodes exit normally and required actor cleanup is
+marked forced. The catalog retains 86 of 94 literal outputs.
+[Windows producer](https://github.com/edgepillar/syrius/actions/runs/42768516220)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42770983516).
+
+Source602 prepares the restored Pillar Spawn catalog. The fixture binds
+the original copied profile and funded fourth member to the pinned node
+inputs. The original Fuse and QSR Deposit controls run once each. The
+copied workflow checks exact confirmed blocks, effects and journals, and
+the capture lane accepts the two Spawn PNGs after the original Next
+controls become available. All 106 selected local Python controls pass.
+The full registration completion pair and the fresh Windows qualification
+remain open.
 
 The optional `--no-diff-images` comparison preserves scores, input hashes
 and review state. In-memory controls with 94 synthetic PNG pairs encode
