@@ -919,6 +919,15 @@ Three changed Dart files pass selected analysis and 87 local
 controller cases pass. Fresh paired Windows qualification remains
 open.
 
+Source640 passes selected analysis and 1,134 Python cases with eighteen
+skips. Its first Dart group records 669 passes and two failures at the
+Import drop-border colour assertion, one in each theme. The Release build
+and paired timing measurement are unreached. The run retains zero
+artifacts. The regression now compares the original eight-bit colour
+channels after Flutter's floating-point paint round trip. Native timing
+and the corrected widget result remain open.
+[Original run](https://github.com/edgepillar/syrius/actions/runs/42900930074).
+
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied
 owner, confirmed receipt and exact Project row. The original Project

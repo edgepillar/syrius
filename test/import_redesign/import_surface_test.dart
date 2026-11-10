@@ -383,7 +383,7 @@ void main() {
               .invocation;
           final Path dashes = stroke.positionalArguments[0] as Path;
           final Paint ink = stroke.positionalArguments[1] as Paint;
-          expect(ink.color, tokens.faint);
+          expect(ink.color.toARGB32(), tokens.faint.toARGB32());
           expect(ink.style, PaintingStyle.stroke);
           final List<ui.PathMetric> first = dashes
               .computeMetrics()
