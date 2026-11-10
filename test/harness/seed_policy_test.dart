@@ -282,6 +282,50 @@ void main() {
     expect(taps, 1);
   });
 
+  test('a confirmed Pillar deposit waits once for its contract receive',
+      () async {
+    final _Source source = _Source(environment: _environment(index: 3,
+      members: <String>['producer', 'sponsor', 'recipient', 'owner']));
+    final _Journal journal = _Journal();
+    final List<Duration> waits = <Duration>[];
+    source.onConfirmation = () async {
+      if (source.confirmationReads == 1) return null;
+      return SeedConfirmed(
+        hash: _hash(9),
+        owner: source.environment.owner,
+        chain: 321,
+        positiveConfirmation: source.confirmationReads > 2,
+        matchesRecipe: true,
+        pillarDepositReceivePending: true,
+      );
+    };
+    source.onEffect = () async => source.effectReads == 4;
+    final SeedGuard guard = SeedGuard.forPillarDeposit(
+      source: source,
+      journal: journal,
+      delay: (Duration duration) async {
+        waits.add(duration);
+      },
+    );
+    int taps = 0;
+    final String receipt = await guard.publish(pillarDepositRecipeId,
+        () async {
+      taps++;
+      source.operations.add(_Original());
+    });
+    expect(receipt, _hash(9));
+    expect(taps, 1);
+    expect(source.confirmationReads, 6);
+    expect(source.effectReads, 4);
+    expect(
+      waits.map((Duration wait) => wait.inSeconds),
+      <int>[5, 2, 2, 12, 2, 2],
+    );
+    expect(journal.confirmedHashes, <String, String>{
+      pillarDepositRecipeId: _hash(9),
+    });
+  });
+
   test('registration needs the fourth member and its own one-shot guard',
       () async {
     final _Source source = _Source(environment: _environment(index: 3,

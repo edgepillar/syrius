@@ -546,6 +546,22 @@ Source609 clears selected Dart analysis and completes 1,380 Dart cases and 1,107
 
 Source610 retains real peer momentum announcements and defers new fetch and synchronization requests during the finite Send warning window. Both original HTTP and WebSocket lag readings and the active wallet's visible warning and disabled Send control still gate the two captures. Fresh Windows and archive evidence remains open.
 
+Source610 clears selected Dart analysis and completes 1,380 Dart cases and
+1,107 Python cases with eighteen skips. Both Send warning themes retain the
+original visible warning, disabled Send control and live HTTP and WebSocket
+lag. The independent reader verifies the two 1280 by 780 PNGs and normal
+closure. The catalog has 90 of 94 literal outputs. Pillar Done and Accelerator
+project detail remain open in both themes. [Windows
+producer](https://github.com/edgepillar/syrius/actions/runs/42794133939) and
+[independent
+reader](https://github.com/edgepillar/syrius/actions/runs/42797073123).
+
+Source611 leaves twelve seconds before the next Pillar QSR confirmation read
+when the original confirmed send has no paired receive. The longer interval is
+used once within the existing eighteen reads. The exact deposit effect still
+gates registration. A new controlled test checks one tap, one longer interval
+and the later ledger effect. Fresh Windows evidence remains open.
+
 The optional `--no-diff-images` comparison preserves scores, input hashes
 and review state. In-memory controls with 94 synthetic PNG pairs encode
 94 difference images in the standard mode and zero in the compact mode.
@@ -680,7 +696,7 @@ frontier reads after such a failure. Their native observation remains pending.
 | --- | --- |
 | P03/P09 | Complete the documented Windows Docker route. Earlier Linux defaults, WSL installation and the Source548 native lab retain their separate scopes. |
 | F06 | Complete the seeded screen states and coordinator/peer Swap prerequisites. Source548 qualifies the original six receipts and copied lifecycle. Source561 qualifies the restored Stake and Token captures. Source563 qualifies the separate New stake draft with one Stake prerequisite. Source569 qualifies the Sentinel fixture pair. Source607 verifies the Spawn pair. Source608 confirms Pillar registration in the incomplete prefix, with copied closure and the Pillar Done pair open. |
-| V01/V05 | Obtain 6 missing literal outputs, review all 94 pairs, resolve retained layout/type/spacing findings and explicitly accept each match. Availability is 88/94. Accepted whole-image matches are 0/94. |
+| V01/V05 | Obtain 4 missing literal outputs, review all 94 pairs, resolve retained layout/type/spacing findings and explicitly accept each match. Availability is 90/94. Accepted whole-image matches are 0/94. |
 | V02 | Observe every motion/shader row in the running build and compare page-change, disclosure and launch frame times with the original baseline. Finite widget timing or stall telemetry alone does not close this gate. |
 | V03 | Try every original seam control, shortcut and Go To entry in the running native wallet and verify refusal. Registry and widget controls remain partial evidence. |
 | V06 | Check every original end-state requirement and complete independent final acceptance. The earlier minimum-window/Arabic viewing remains source-bound. |

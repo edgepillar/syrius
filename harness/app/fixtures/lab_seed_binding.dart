@@ -912,6 +912,8 @@ final class LabSeedBinding
       owner: block.address.toString(),
       chain: block.chainIdentifier,
       positiveConfirmation: _positivelyConfirmed(block),
+      pillarDepositReceivePending: recipe == pillarDepositRecipeId &&
+          block.pairedAccountBlock == null,
       fundAddressReceiveConfirmed:
           recipe == 'fund-address' &&
           seedFundingReceiveMatches(

@@ -467,6 +467,7 @@ final class SeedConfirmed {
     required this.positiveConfirmation,
     required this.matchesRecipe,
     this.fundAddressReceiveConfirmed = false,
+    this.pillarDepositReceivePending = false,
     this.pendingTokenHoldingReceive,
   });
   final String hash;
@@ -475,6 +476,9 @@ final class SeedConfirmed {
   final bool positiveConfirmation;
   final bool matchesRecipe;
   final bool fundAddressReceiveConfirmed;
+
+  /// The same deposit send has no paired receive in its ledger reply.
+  final bool pillarDepositReceivePending;
 
   /// The existing wallet result can only schedule another exact ledger read.
   final Future<Object?>? pendingTokenHoldingReceive;
@@ -748,7 +752,7 @@ final class SeedGuard {
     SeedPendingResult last = SeedPendingResult.absent;
     SeedStakeEffectObservation? stakeEffect;
     SeedFundingObservation? fundingEffect;
-    bool waitedForStakeEntry = false;
+    bool waitedForContractReceive = false;
     bool waitedForReceive = false;
     const int rounds = 18;
     for (int poll = 0; poll < rounds; poll++) {
@@ -800,11 +804,14 @@ final class SeedGuard {
       Duration delay = hasNextRound && fundingEffect?.waitingForReceive == true
           ? const Duration(seconds: 4)
           : const Duration(seconds: 2);
+      final bool pendingPillarReceive = recipe == pillarDepositRecipeId &&
+          last == SeedPendingResult.effectPending &&
+          block?.pillarDepositReceivePending == true;
       if (hasNextRound &&
-          !waitedForStakeEntry &&
-          stakeEffect?.isEmpty == true) {
+          !waitedForContractReceive &&
+          (stakeEffect?.isEmpty == true || pendingPillarReceive)) {
         // The lab's ten-second momentum cadence can delay the contract receive.
-        waitedForStakeEntry = true;
+        waitedForContractReceive = true;
         delay = const Duration(seconds: 12);
       }
       final Future<Object?>? tokenReceive =
