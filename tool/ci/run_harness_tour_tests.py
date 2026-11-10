@@ -25,6 +25,10 @@ except ImportError:
     from windows_baseline import fresh_environment, run_bounded, test_counts
 
 
+EXPECTED_DART_CASES = 1374
+LAUNCH_ASSET_DART_CASES = 2
+
+
 def startup_check(repo, parent, dart, kind):
     debug.need(kind in ('gate', 'sdk', 'inspection'), 'TESTS_FAILED')
     value = dict(kind=kind, passed=False, gate_seen=False, marker_seen=False,
@@ -356,7 +360,8 @@ def main():
                 debug.need(debug.entry.source_tree(repo, parent) == tree, 'SOURCE_REFUSED')
             first += len(group)
         counts = combined_counts(report['commands'], selected_tests)
-        debug.need(counts['passed'] == (1375 if asset_fidelity else 1373), 'TESTS_FAILED')
+        expected = EXPECTED_DART_CASES + (LAUNCH_ASSET_DART_CASES if asset_fidelity else 0)
+        debug.need(counts['passed'] == expected, 'TESTS_FAILED')
         report['counts'] = counts
         if asset_fidelity:
             report['launch_asset_fidelity'] = True

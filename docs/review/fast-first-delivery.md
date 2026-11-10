@@ -357,8 +357,18 @@ focused controller checks pass in memory. The hosted controller observes
 expects 108 cases after the added Wallet Ready case takes it to 109. Flutter
 allocation, selected Dart and the native capture remain unreached, with
 zero retained artifacts. Source592 corrects the inventory to 109 and makes
-the discovery control use the declared count. Fresh Windows verification
-is pending. [Original Windows attempt](https://github.com/edgepillar/syrius/actions/runs/42745386023).
+the discovery control use the declared count.
+[Original Source591 attempt](https://github.com/edgepillar/syrius/actions/runs/42745386023).
+
+Source592 passes selected analysis with zero findings and the 1,101
+Python controller cases with eighteen skips. Both original Dart commands
+complete normally with 654 and 720 passing cases, zero failures, errors
+or skips and 151 hidden events. The old aggregate expects 1,373 cases
+and refuses the observed 1,374. The Windows build remains unreached
+with zero retained artifacts. Source593 advances the two exact totals
+to 1,374 and 1,376. The latter includes two opt-in launch asset cases.
+Fresh Windows verification is pending.
+[Original Source592 attempt](https://github.com/edgepillar/syrius/actions/runs/42745935636).
 
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,
