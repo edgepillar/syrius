@@ -1723,7 +1723,7 @@ class HarnessAgent {
         _recipeAddressObservation()['addressContext'],
       );
       final String actor = raw['actor'] as String;
-      final int index = SeedFuseTarget.pillarActor.index;
+      final int index = SeedFuseTarget.pillarActor.addressIndex;
       bool isCurrent() {
         final Map<String, Object?> policy = _recipeSigningPolicy();
         return current.same(WalletAddressContext.parse(
@@ -1763,7 +1763,7 @@ class HarnessAgent {
       final WalletAddressContext selected = WalletAddressContext.parse(
         _recipeAddressObservation()['addressContext'],
       );
-      final int index = SeedFuseTarget.pillarActor.index;
+      final int index = SeedFuseTarget.pillarActor.addressIndex;
       if (!selected.selectedFrom(sponsor, index)) {
         throw const SeedRefused('restored-seed-derivation-refused');
       }
@@ -3894,8 +3894,9 @@ class HarnessAgent {
           final FusePlasmaForm? shown = form;
           if (beneficiary is! String || shown == null || !shown.inputValid ||
               !shown.isCurrent() ||
-              shown.beneficiaries.length != fuseTarget.index + 1 ||
-              shown.beneficiaries[fuseTarget.index].address != beneficiary ||
+              shown.beneficiaries.length != fuseTarget.addressIndex + 1 ||
+              shown.beneficiaries[fuseTarget.addressIndex].address !=
+                  beneficiary ||
               shown.beneficiaryController.text != beneficiary ||
               parsePlasmaQsr(shown.amountController.text) != fuseTarget.units) {
             throw const SeedRefused('original-fuse-terms-mismatch');

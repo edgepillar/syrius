@@ -461,8 +461,12 @@ inputs. The original Fuse and QSR Deposit controls run once each. The
 copied workflow checks exact confirmed blocks, effects and journals, and
 the capture lane accepts the two Spawn PNGs after the original Next
 controls become available. All 106 selected local Python controls pass.
-The full registration completion pair and the fresh Windows qualification
-remain open.
+The Windows run completes the 1,106 Python cases with eighteen skips.
+Selected Dart analysis rejects the account-position field because its name
+collides with the enum's built-in `index`. The run stops before Dart tests,
+lab startup and any captures. Source603 names the field `addressIndex`
+and updates all original callers. Fresh Windows evidence and the full
+registration completion pair remain open. [Original Windows run](https://github.com/edgepillar/syrius/actions/runs/42772167041).
 
 The optional `--no-diff-images` comparison preserves scores, input hashes
 and review state. In-memory controls with 94 synthetic PNG pairs encode

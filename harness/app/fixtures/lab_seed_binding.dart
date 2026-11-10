@@ -307,7 +307,7 @@ final class LabSeedBinding
     final SeedFuseTarget? fuseTarget = pillarSponsor == null
         ? restoredFunding ? SeedFuseTarget.restoredSecondary : null
         : SeedFuseTarget.pillarActor;
-    final int actorIndex = SeedFuseTarget.pillarActor.index;
+    final int actorIndex = SeedFuseTarget.pillarActor.addressIndex;
     if (pillarSponsor != null &&
         (restoredFunding || catalogTokenHolding || counterparty != null ||
             environment.members.length != actorIndex + 1 ||
@@ -421,7 +421,7 @@ final class LabSeedBinding
 
   String? get fuseBeneficiary {
     final SeedFuseTarget? target = fuseTarget;
-    return target == null ? null : environment.members[target.index];
+    return target == null ? null : environment.members[target.addressIndex];
   }
   final Object walletOwner;
   final Zenon originalSdk;

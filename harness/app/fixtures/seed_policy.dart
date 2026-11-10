@@ -25,12 +25,12 @@ enum SeedFuseTarget {
   restoredSecondary(2, 100),
   pillarActor(3, 1000);
 
-  const SeedFuseTarget(this.index, this.qsr);
+  const SeedFuseTarget(this.addressIndex, this.qsr);
 
-  final int index;
+  final int addressIndex;
   final int qsr;
   BigInt get units => BigInt.from(qsr) * BigInt.from(100000000);
-  String get optionKey => 'fuse_plasma_beneficiary_option_$index';
+  String get optionKey => 'fuse_plasma_beneficiary_option_$addressIndex';
 }
 
 /// The issued token standard is derived from the confirmed Issue block.
@@ -287,7 +287,7 @@ final class SeedEnvironment {
       throw const SeedRefused('exact-chain-321-lab-required');
     }
     final int requiredIndex =
-        pillarActor ? SeedFuseTarget.pillarActor.index : 1;
+        pillarActor ? SeedFuseTarget.pillarActor.addressIndex : 1;
     if (selectedIndex != requiredIndex ||
         members.length <= requiredIndex ||
         pillarActor && members.length != requiredIndex + 1 ||

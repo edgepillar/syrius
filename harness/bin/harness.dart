@@ -1330,7 +1330,7 @@ preparePillarCatalogActor(
   }, timeout: const Duration(seconds: 25));
   if (!parentAlive() || terms['ok'] != true || terms['ready'] != true ||
       terms['chain'] != 321 ||
-      terms['selectedIndex'] != SeedFuseTarget.pillarActor.index) {
+      terms['selectedIndex'] != SeedFuseTarget.pillarActor.addressIndex) {
     throw Fail('Pillar deposit terms refused');
   }
   return result;

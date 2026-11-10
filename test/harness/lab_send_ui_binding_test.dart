@@ -282,7 +282,7 @@ void main() {
         )),
       );
       final List<String> members = <String>[
-        for (int index = 0; index <= terms.index; index++)
+        for (int index = 0; index <= terms.addressIndex; index++)
           fixtureAddress(index + 1),
       ];
       final TextEditingController amount =
@@ -343,7 +343,7 @@ void main() {
       }
 
       Future<void> submit() => tap('fuse_plasma_submit_button',
-          expectedBeneficiary: members[terms.index]);
+          expectedBeneficiary: members[terms.addressIndex]);
       final Matcher mismatch = throwsA(isA<SeedRefused>().having(
         (SeedRefused error) => error.code,
         'reason', 'original-fuse-terms-mismatch',
@@ -353,7 +353,7 @@ void main() {
       await tester.pumpAndSettle();
       await tap(terms.optionKey);
       await tester.pumpAndSettle();
-      expect(beneficiary.text, members[terms.index]);
+      expect(beneficiary.text, members[terms.addressIndex]);
       editOnDown = true;
       await expectLater(submit(), mismatch);
       expect(submissions, 0);
