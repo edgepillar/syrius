@@ -23,6 +23,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/pair.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+import '../../../harness/app/fixtures/send_warning_draft.dart';
 import '../../helpers/hydrated_bloc.dart';
 
 String _address(int n) => Address(
@@ -729,7 +730,12 @@ void main() {
   testWidgets(
     'current sync data holds pointer, Enter and retained callbacks',
     (WidgetTester tester) async {
-      await show(tester);
+      final ContactsStore book = ContactsStore();
+      addTearDown(book.dispose);
+      await book.add(name: 'Alice', address: sendWarningKnownAddress);
+      expect(book.lookAlike(sendWarningTypedAddress)?.address,
+          sendWarningKnownAddress);
+      await show(tester, book: book);
       await fill(tester);
       final VoidCallback retained = action(tester).onPressed!;
       syncStates.add(_syncState(behind: 42));
@@ -750,6 +756,42 @@ void main() {
       syncStates.add(_syncState(behind: 3));
       await tester.pump();
       expect(action(tester).onPressed, isNull);
+
+      await fill(tester, recipient: sendWarningTypedAddress);
+      final Finder warning = find.byKey(const Key('send_recipient_warning'));
+      final Finder behind = find.byKey(const Key('send_node_behind'));
+      expect(warning, findsOneWidget);
+      expect(behind, findsOneWidget);
+      expect(action(tester).onPressed, isNull);
+      for (final (String key, String expected) in <(String, String)>[
+        ('send_known_address', sendWarningKnownAddress),
+        ('send_typed_address', sendWarningTypedAddress),
+      ]) {
+        expect(tester.widget<SelectableText>(find.byKey(Key(key)))
+            .textSpan!.toPlainText(), expected);
+      }
+
+      syncStates.add(_syncState(behind: 2));
+      await tester.pump();
+      expect(behind, findsNothing);
+      expect(warning, findsOneWidget);
+      expect(action(tester).onPressed, isNull);
+
+      syncStates.add(_syncState(behind: 42));
+      await tester.pump();
+      final Finder useTyped = find.byKey(const Key('send_use_typed'));
+      await tester.ensureVisible(useTyped);
+      await tester.pump();
+      expect(useTyped.hitTestable(), findsOneWidget);
+      await tester.tap(useTyped);
+      await tester.pump();
+      expect(action(tester).onPressed, isNull);
+      syncStates.add(_syncState(behind: 2));
+      await tester.pump();
+      expect(action(tester).onPressed, isNotNull);
+      expect(recipient(tester), sendWarningTypedAddress);
+      expect(amount(tester), sendWarningAmount);
+      verifyNever(() => sender.add(any()));
     },
   );
 

@@ -13,6 +13,9 @@ const String harnessReadonlySentinelCatalog = 'sentinel-fixture';
 /// Selects the genuine new-wallet flow in the isolated readonly host.
 const String harnessReadonlyWalletReadyCatalog = 'wallet-ready';
 
+/// Selects the original Send draft with the isolated node lag window.
+const String harnessReadonlySendWarningCatalog = 'send-warn';
+
 /// A requested native inspection cannot retain the required startup scope.
 class ReadonlyNativeModeRefused implements Exception {
   /// Refuses before native startup, private input or SDK initialization.

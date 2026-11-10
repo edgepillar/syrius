@@ -577,7 +577,7 @@ class ReaderTests(unittest.TestCase):
         source = b'synthetic source'
         home_pixels = wallet_fixtures.png()
         bell_only = catalog_only == 'home-bell'
-        distinct_themes = bell_only or catalog_only in ('swap-start', 'wallet-ready')
+        distinct_themes = bell_only or catalog_only in ('swap-start', 'wallet-ready', 'send-warn')
         home = wallet_fixtures.home_manifest(home_pixels, source, schema=home_schema)
         self.assertLessEqual(sum((settings_catalog, navigation_catalog,
             details_catalog, catalog_only is not None)), 1)
@@ -626,6 +626,10 @@ class ReaderTests(unittest.TestCase):
                     if positive else None)
             bind(lab, child)
             files[0] = ('manifest.json', encode(child), stat.S_IFREG)
+        if catalog_only == 'send-warn':
+            fixture = reader.producer.send_warning_window
+            lab.update(send_warning_node_fixture=dict(passed=True,
+                       tests=list(fixture.TESTS), skips=0), compiled_node_tree=fixture.COMPILED_TREE)
         original_success = positive and not parent_failed and not child_missing
         wallet_raw = packed(files)
         root_raw = packed([('manifest.json', encode(lab), stat.S_IFREG)])
@@ -652,6 +656,7 @@ class ReaderTests(unittest.TestCase):
             workflow_run=dict(id=1, head_sha='a' * 40)) for i in artifact_ids])
         blob = hashlib.sha1(b'blob ' + str(len(source)).encode() + b'\0' + source).hexdigest()
         source_files = reader.SOURCE_FILES
+        fixture_bytes = {}
         if bell_only:
             source_files += (reader.producer.HOME_BELL_SCRIPT.as_posix(),)
         elif catalog_only == 'earn':
@@ -662,8 +667,15 @@ class ReaderTests(unittest.TestCase):
                 'harness/screens/sentinels.txt',)
         elif catalog_only in ('swap-start', 'wallet-ready'):
             source_files += ('harness/screens/' + catalog_only + '.txt',)
-        tree = dict(sha='b' * 40, truncated=False, tree=[dict(path=n, mode='100644', type='blob', sha=blob)
-            for n in source_files])
+        elif catalog_only == 'send-warn':
+            fixture_bytes = {name: Path(name).read_bytes() for name in fixture.SOURCE_PINS}
+            source_files += ('tool/ci/send_warning_window.py',
+                'harness/app/fixtures/send_warning_draft.dart', 'harness/screens/send-warn.txt',
+                *fixture_bytes)
+        tree = dict(sha='b' * 40, truncated=False, tree=[
+            dict(path=name, mode='100644', type='blob', sha=hashlib.sha1(
+                b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest())
+            for name in source_files for data in (fixture_bytes.get(name, source),)])
         calls = []
         observed_runs = 0
 
@@ -712,7 +724,9 @@ class ReaderTests(unittest.TestCase):
             GH_TOKEN='synthetic private token')
         output = io.StringIO()
         with mock.patch.object(reader.archive, 'Client', Client), \
-                mock.patch.object(reader.producer, 'read_original', return_value=source), \
+                mock.patch.object(reader.producer, 'read_original',
+                    side_effect=lambda path, _: fixture_bytes.get(
+                        path.relative_to('/fixture').as_posix(), source)), \
                 contextlib.redirect_stdout(output):
             value = reader.main(parent)
         return value, calls, output.getvalue()
@@ -898,6 +912,20 @@ class ReaderTests(unittest.TestCase):
         self.assertFalse(notices[0]['financial_send_qualified'])
         with self.assertRaises(reader.archive.Refused):
             self.run_main(catalog_only='wallet-ready', extra_viewport=True)
+
+        warning, calls, text = self.run_main(catalog_only='send-warn')
+        self.assertTrue(warning['native_inspection_qualified'])
+        self.assertEqual(warning['sampling_scope'], 'send-warn-only')
+        self.assertEqual(warning['verified_catalog_png_count'], 2)
+        self.assertEqual(warning['producer_source_files_verified'], len(reader.SOURCE_FILES) + 6)
+        self.assertEqual([sample['minimum_lag']
+            for sample in warning['send_warning_window']['samples']], [3, 4])
+        self.assertTrue(warning['send_warning_window']['released'])
+        observed = next(json.loads(line.split('::', 2)[-1]) for line in text.splitlines()
+            if line.startswith('::notice title=Retained readonly Details catalog::'))
+        self.assertEqual(observed['filenames'], ['08-send-warn-dark.png', '08-send-warn-light.png'])
+        self.assertTrue(observed['parent_closure_qualified'])
+        self.assertFalse(observed['financial_send_qualified'])
 
     def test_bell_only_reader_verifies_the_script_and_two_original_frames(self):
         value, calls, text = self.run_main(catalog_only='home-bell')

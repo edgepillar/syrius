@@ -27,7 +27,7 @@ import time
 from tool.ci.windows_presentation_smoke import OutputDrain
 from tool.ci.loopback_relay import PAIRS as RELAY_PAIRS, TARGET as RELAY_TARGET, Relay
 from tool.ci import native_stack_probe, node_panic_projection, producer_shutdown_patch, read_first_client_fixture
-from tool.ci import lab_asset_progress, lab_failure_probe
+from tool.ci import lab_asset_progress, lab_failure_probe, send_warning_window
 from tool.ci.readonly_details_capture import RESTORED_FAMILIES
 from tools.devnet.lab import owned_lab as wire_policy
 from tools.devnet.lab.socket_transport import make_transports
@@ -111,12 +111,14 @@ SENTINEL_INSPECTION_SCHEMA = 7
 HOME_BELL_INSPECTION_SCHEMA = 8
 SWAP_START_INSPECTION_SCHEMA = 9
 WALLET_READY_INSPECTION_SCHEMA = 10
+SEND_WARNING_INSPECTION_SCHEMA = 11
 READONLY_CATALOG_SCHEMAS = {
     'home': 1, 'settings': 2, 'navigation': 3, 'details': 4, 'token-draft': 4,
     'home-bell': HOME_BELL_INSPECTION_SCHEMA,
     'send-confirm': SEND_CONFIRM_INSPECTION_SCHEMA,
     'swap-start': SWAP_START_INSPECTION_SCHEMA,
     'wallet-ready': WALLET_READY_INSPECTION_SCHEMA,
+    send_warning_window.FAMILY: SEND_WARNING_INSPECTION_SCHEMA,
     'earn': EARN_INSPECTION_SCHEMA,
     'sentinel-fixture': SENTINEL_INSPECTION_SCHEMA,
 }
@@ -152,7 +154,11 @@ def require_environment(backend, parent):
     selected_node_source(parent.get("SYRIUS_LAB_NODE_SOURCE", "original"))
     inspection = wallet_inspection_requested(backend, parent)
     tour = wallet_tour_requested(backend, parent)
-    if parent.get('SYRIUS_READONLY_CATALOG_FAMILY') in RESTORED_FAMILIES:
+    family = parent.get('SYRIUS_READONLY_CATALOG_FAMILY')
+    if family == send_warning_window.FAMILY:
+        need(inspection and not tour and parent['GITHUB_REPOSITORY'] == 'edgepillar/syrius'
+             and parent.get('GITHUB_RUN_ATTEMPT') == '1', 'ENVIRONMENT_REFUSED')
+    if family in RESTORED_FAMILIES:
         need(tour and not inspection
              and parent['GITHUB_REPOSITORY'] == 'edgepillar/syrius'
              and parent.get('GITHUB_RUN_ATTEMPT') == '1',
@@ -161,6 +167,10 @@ def require_environment(backend, parent):
 
 
 def shutdown_test_result(raw):
+    return selected_go_test_result(raw, SHUTDOWN_TESTS, "github.com/zenon-network/go-zenon/p2p/legacy")
+
+
+def selected_go_test_result(raw, tests, package):
     """A zero Go exit alone cannot qualify an empty or skipped test filter."""
     need(type(raw) is bytes and 0 < len(raw) <= MIB, "NODE_REGRESSIONS_REFUSED")
     seen, package_passed = set(), False
@@ -174,19 +184,19 @@ def shutdown_test_result(raw):
         need(type(event) is dict and event.get("Action") not in ("skip", "fail", "build-fail"),
              "NODE_REGRESSIONS_REFUSED")
         if event.get("Action") == "pass":
-            need(event.get("Package") == "github.com/zenon-network/go-zenon/p2p/legacy",
+            need(event.get("Package") == package,
                  "NODE_REGRESSIONS_REFUSED")
             test = event.get("Test")
             if test is None:
                 package_passed = True
-            elif test in SHUTDOWN_TESTS:
+            elif test in tests:
                 need(test not in seen, "NODE_REGRESSIONS_REFUSED")
                 seen.add(test)
             else:
-                need(type(test) is str and any(test.startswith(name + "/") for name in SHUTDOWN_TESTS),
+                need(type(test) is str and any(test.startswith(name + "/") for name in tests),
                      "NODE_REGRESSIONS_REFUSED")
-    need(package_passed and seen == set(SHUTDOWN_TESTS), "NODE_REGRESSIONS_REFUSED")
-    return dict(passed=True, tests=list(SHUTDOWN_TESTS), skips=0)
+    need(package_passed and seen == set(tests), "NODE_REGRESSIONS_REFUSED")
+    return dict(passed=True, tests=list(tests), skips=0)
 
 
 def reconnect_failure_code(output):
@@ -293,7 +303,8 @@ def source_matches(commands, source, head, base_tree, compiled_tree):
          "SOURCE_REFUSED")
 
 
-def run_wallet_shutdown_tests(commands, repo, source, report):
+def run_wallet_shutdown_tests(commands, repo, source, report, *,
+                              compiled_tree=producer_shutdown_patch.COMPILED_TREE):
     """Adapt only the test client, then restore the exact compiled production tree."""
     policy = read_first_client_fixture
     evidence = report['upstream_client_fixture'] = policy.pending()
@@ -305,7 +316,7 @@ def run_wallet_shutdown_tests(commands, repo, source, report):
     except policy.Refused:
         raise Failure('NODE_REGRESSIONS_REFUSED') from None
     source_matches(commands, source, producer_shutdown_patch.BASE_SHA,
-                   producer_shutdown_patch.BASE_TREE, producer_shutdown_patch.COMPILED_TREE)
+                   producer_shutdown_patch.BASE_TREE, compiled_tree)
     commands.git(source, 'apply', '--check', '--whitespace=error-all', str(patch))
     evidence['phase'] = 'held'
     commands.git(source, 'apply', '--whitespace=error-all', str(patch))
@@ -332,7 +343,7 @@ def run_wallet_shutdown_tests(commands, repo, source, report):
             commands.git(source, 'apply', '--reverse', '--whitespace=error-all', str(patch))
             need(regular(target) == original, 'SOURCE_REFUSED')
             source_matches(commands, source, producer_shutdown_patch.BASE_SHA,
-                           producer_shutdown_patch.BASE_TREE, producer_shutdown_patch.COMPILED_TREE)
+                           producer_shutdown_patch.BASE_TREE, compiled_tree)
             evidence.update(phase='restored', original_restored=True)
     try:
         policy.validate(evidence, required=True)
@@ -413,6 +424,37 @@ def prepare_producer_patch(commands, repo, source, report):
     policy.validate(evidence, required=True)
     source_matches(commands, source, policy.BASE_SHA, policy.BASE_TREE, policy.COMPILED_TREE)
     return policy.COMPILED_TREE
+
+
+def prepare_send_warning_fixture(commands, repo, source):
+    """Apply the isolated fixture to the already verified shutdown correction."""
+    fixture = send_warning_window
+    base = producer_shutdown_patch
+    source_matches(commands, source, base.BASE_SHA, base.BASE_TREE, base.COMPILED_TREE)
+    sources = {name: regular(repo / name, 16 * 1024) for name in fixture.SOURCE_PINS}
+    need(all(digest(raw) == fixture.SOURCE_PINS[name]
+             for name, raw in sources.items()), "SOURCE_REFUSED")
+    destinations = []
+    for name, raw in sources.items():
+        if name == fixture.PATCH:
+            continue
+        filename = Path(name).name
+        target = source / "protocol" / filename
+        directories(target.parent)
+        with target.open("xb") as stream:
+            stream.write(raw)
+        destinations.append("protocol/" + filename)
+    need(commands.run(["gofmt", "-d", *destinations], cwd=source) == b"", "SOURCE_REFUSED")
+    commands.git(source, "add", "--", *destinations)
+    commands.git(source, "apply", "--index", "--unidiff-zero",
+                 "--whitespace=error-all", str(repo / fixture.PATCH))
+    source_matches(commands, source, base.BASE_SHA, base.BASE_TREE, fixture.COMPILED_TREE)
+    result = commands.run(["go", "test", "-json", "-mod=readonly", "-count=1",
+        "-run", "^(" + "|".join(fixture.TESTS) + ")$", "-timeout", "30s", "./protocol"],
+        cwd=source, timeout=180)
+    receipt = selected_go_test_result(result, fixture.TESTS, fixture.PACKAGE)
+    source_matches(commands, source, base.BASE_SHA, base.BASE_TREE, fixture.COMPILED_TREE)
+    return receipt
 
 
 def failure_code(error):
@@ -781,10 +823,11 @@ def preflight_ports(backend, *, stack_debug=False):
 
 
 class Native:
-    def __init__(self, commands, binary, configs, *, stack_debug=False):
+    def __init__(self, commands, binary, configs, *, stack_debug=False, warning_directory=None):
         self.commands, self.binary, self.configs = commands, binary, configs
         self.originals = []
         self.stack_debug = stack_debug
+        self.warning_directory = warning_directory
         self.stop_attempted = False
         self.stop_order = []
 
@@ -796,7 +839,10 @@ class Native:
                 "--wallet", str(data / "wallet")]
             if self.stack_debug:
                 argv += ["--pprof", "--pprof.addr", "127.0.0.1", "--pprof.port", str(native_stack_probe.PORTS[role])]
-            original = Original(argv, cwd=data, env=self.commands.env)
+            env = self.commands.env
+            if role == "rpc" and self.warning_directory is not None:
+                env = {**env, send_warning_window.ENVIRONMENT: str(self.warning_directory)}
+            original = Original(argv, cwd=data, env=env)
             original.stack_debug = self.stack_debug
             if self.stack_debug:
                 original.stack_role, original.stack_port = role, native_stack_probe.PORTS[role]
@@ -1126,6 +1172,7 @@ def run(backend):
     parent = os.environ
     wallet_tour = require_environment(backend, parent)
     inspection = wallet_inspection_requested(backend, parent)
+    send_warning = inspection and readonly_catalog_family(parent) == send_warning_window.FAMILY
     stack_debug = backend == "native" and parent.get("SYRIUS_NATIVE_STACK_DIAGNOSTIC") == "true"
     node_source = parent.get("SYRIUS_LAB_NODE_SOURCE", "original")
     node_sha, node_tree = selected_node_source(node_source)
@@ -1152,6 +1199,8 @@ def run(backend):
         cleanup="runner_lifecycle_not_qualified")
     if inspection:
         report.update(wallet_inspection_requested=True, wallet_inspection=None)
+    if send_warning:
+        report["send_warning_node_fixture"] = None
     runtime = None
     closed_wallets = []
     reopen_anchor = None
@@ -1181,6 +1230,9 @@ def run(backend):
         report["c_compiler"] = dict(target=target, version=c_version, cgo_enabled=True)
         compiled_tree = (prepare_producer_patch(commands, repo, source, report)
                          if node_source == "lab-fix" else node_tree)
+        if send_warning:
+            report["send_warning_node_fixture"] = prepare_send_warning_fixture(commands, repo, source)
+            compiled_tree = send_warning_window.COMPILED_TREE
         report["compiled_node_tree"] = compiled_tree
         binary = root / ("znnd.exe" if backend == "native" else "znnd")
         commands.run(["go", "build", "-trimpath", "-buildvcs=false", "-mod=readonly",
@@ -1194,7 +1246,7 @@ def run(backend):
         report["checks"]["build"] = True
         if node_sha == UPSTREAM_NODE_SHA:
             if wallet_tour or inspection:
-                run_wallet_shutdown_tests(commands, repo, source, report)
+                run_wallet_shutdown_tests(commands, repo, source, report, compiled_tree=compiled_tree)
             else:
                 run_shutdown_tests(commands, source, report)
             source_matches(commands, source, node_sha, node_tree, compiled_tree)
@@ -1239,8 +1291,13 @@ def run(backend):
         report["checks"]["assets"] = True
         preflight_ports(backend, stack_debug=stack_debug)
         report["checks"]["preflight"] = True
+        warning_directory = None
+        if send_warning:
+            warning_directory = root / "send-warning-window"
+            warning_directory.mkdir(mode=0o700)
         runtime = (Docker(commands, binary, configs, nonce) if backend == "docker"
-                   else Native(commands, binary, configs, stack_debug=stack_debug))
+                   else Native(commands, binary, configs, stack_debug=stack_debug,
+                               warning_directory=warning_directory))
         runtime.start()
         report["checks"]["started"] = True
         report["observations"] = observe(runtime, root, report)
@@ -1248,8 +1305,12 @@ def run(backend):
         if inspection:
             from tool.ci import windows_wallet_inspection
             report['runtime_phase'] = 'wallet_inspection'
+            options = {}
+            if warning_directory is not None:
+                options['warning_window'] = send_warning_window.SendWarningWindow(
+                    warning_directory, runtime.healthy)
             outcome = windows_wallet_inspection.run(repo, parent, runtime, root,
-                report['observations'], lambda: observe(runtime, root))
+                report['observations'], lambda: observe(runtime, root), **options)
             path = repo / windows_wallet_inspection.OUTPUT / 'manifest.json'
             manifest_hash = digest(regular(path)) if path.exists() or path.is_symlink() else None
             report['wallet_inspection'] = dict(success=outcome['success'],

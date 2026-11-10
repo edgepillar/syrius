@@ -1,11 +1,13 @@
-# prerequisite: pending F06/T02 reversible look-alike and node-lag preparation
-# The isolated profile needs a known recipient, a validated look-alike draft
-# and a node reporting an actual lag. The recipe never signs or submits.
+# prerequisite: readonly-lab-send-warning
+# Keep both original warnings visible on a disposable draft.
 goto transfer
 tap --key transfer_mode_send
 wait --key send_form_ready
-assert --key send_node_behind
-assert --key send_recipient_warning
-assert --key send_known_address
-assert --key send_typed_address
+type --key send_recipient_field @warning-recipient
+type --key send_amount_field 12.5
+wait --key send_node_behind
 assert --key send_submit_button
+# after-capture: type --key send_recipient_field
+# after-capture: type --key send_amount_field
+# after-capture: goto dashboard
+# after-capture: wait --key home_hero

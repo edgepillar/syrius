@@ -19,7 +19,7 @@ from tool.ci.hosted_chain321 import (CODES, GO_FAILURE_CODES, NODE_DIAGNOSTICS, 
                                    ROLES, SHUTDOWN_TESTS, UPSTREAM_NODE_SHA, selected_node_source)
 from tool.ci import native_stack_probe, node_panic_projection, producer_shutdown_patch, read_first_client_fixture
 from tool.ci import lab_asset_progress, closed_lab_checkpoint, restored_lab_paths, closed_wallet_pointer, restored_wallet_run
-from tool.ci import lab_failure_probe
+from tool.ci import lab_failure_probe, send_warning_window
 from tool.ci import readonly_details_capture as catalog
 
 
@@ -220,15 +220,24 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA, *,
     need(type(expected_patched) is bool)
     patch, compiled_tree = report.get("producer_task_patch"), report.get("compiled_node_tree")
     source_kind = report.get("node_source")
+    send_warning = "send_warning_node_fixture" in report
+    fixture_tests = report.get("send_warning_node_fixture")
+    need(not send_warning or expected_inspection)
+    if send_warning:
+        need((fixture_tests is None and compiled_tree is None)
+             or (send_warning_window.test_receipt(fixture_tests)
+                 and compiled_tree == send_warning_window.COMPILED_TREE))
+    expected_tree = (send_warning_window.COMPILED_TREE if send_warning
+                     else producer_shutdown_patch.COMPILED_TREE)
     if expected_patched:
         need(expected_node == UPSTREAM_NODE_SHA and source_kind == "lab-fix"
-             and compiled_tree in (None, producer_shutdown_patch.COMPILED_TREE))
+             and compiled_tree in (None, expected_tree))
         try:
             patch_summary = producer_shutdown_patch.validate(patch,
                 required=any(checks[key] for key in ("build", "started", "production")) or report["success"])
         except producer_shutdown_patch.Refused:
             raise Refused("INSPECTION_REFUSED") from None
-        need(not checks["build"] or compiled_tree == producer_shutdown_patch.COMPILED_TREE)
+        need(not checks["build"] or compiled_tree == expected_tree)
     else:
         need(patch is None and source_kind in (None, "upstream" if expected_node == UPSTREAM_NODE_SHA else "original")
              and compiled_tree in (None, pins[expected_node]))
@@ -530,6 +539,8 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA, *,
     if expected_patched:
         result.update(node_source="lab-fix", compiled_node_tree=compiled_tree,
                       producer_task_patch=patch_summary)
+    if send_warning:
+        result['send_warning_node_fixture'] = fixture_tests
     if client_fixture is not None:
         result['upstream_client_fixture'] = client_fixture
     if failure_probe is not None:

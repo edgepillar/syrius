@@ -377,10 +377,24 @@ answer action. The exact failed readiness predicate remains
 `NOT_ESTABLISHED`. The independent reader verifies both manifests and
 zero images. Source594 waits for a unique, reachable current choice and a
 completed original route transition before sending each answer. The
-pointer checks still revalidate the original element. Fresh Windows
-verification is pending.
+pointer checks still revalidate the original element.
 [Windows producer](https://github.com/edgepillar/syrius/actions/runs/42747845786)
 and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42750137020).
+
+Source594 passes selected analysis, all 1,374 selected Dart cases and
+1,101 Python cases with eighteen skips. The original Windows entry
+refuses a non-unique onboarding control. Five lab nodes exit normally,
+while the original wallet session requires forced cleanup. The reader
+verifies both retained manifests and zero new images.
+[Windows producer](https://github.com/edgepillar/syrius/actions/runs/42750982387)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42753140518).
+
+Source595 adds a dedicated Send warning observation. A single disposable
+RPC actor holds local insertion while genuine peer announcements advance.
+Each theme requires a live loopback lag sample, the original warning
+address pair, the original draft and a disabled submit action. The
+reader and Windows controller pass 109 and 22 in-memory cases. The
+native run and both screen outputs are pending.
 
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,

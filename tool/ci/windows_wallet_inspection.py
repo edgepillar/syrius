@@ -25,10 +25,12 @@ from . import readonly_viewport_capture as viewport
 from . import readonly_settings_capture as settings
 from . import readonly_navigation_capture as navigation
 from . import readonly_details_capture as details
+from . import send_warning_window
 from .windows_debug_process import IMAGE_NAMES
 from .hosted_chain321 import (EARN_INSPECTION_SCHEMA, HOME_BELL_INSPECTION_SCHEMA,
     READONLY_CATALOG_SCHEMAS, SEND_CONFIRM_INSPECTION_SCHEMA, SENTINEL_INSPECTION_SCHEMA,
-    SWAP_START_INSPECTION_SCHEMA, WALLET_READY_INSPECTION_SCHEMA, readonly_catalog_family)
+    SEND_WARNING_INSPECTION_SCHEMA, SWAP_START_INSPECTION_SCHEMA,
+    WALLET_READY_INSPECTION_SCHEMA, readonly_catalog_family)
 
 
 PAGES = shared.PAGES
@@ -66,11 +68,12 @@ CATALOG_ONLY_FAMILIES = {
     SEND_CONFIRM_INSPECTION_SCHEMA: 'send-confirm',
     SWAP_START_INSPECTION_SCHEMA: 'swap-start',
     WALLET_READY_INSPECTION_SCHEMA: 'wallet-ready',
+    SEND_WARNING_INSPECTION_SCHEMA: send_warning_window.FAMILY,
     EARN_INSPECTION_SCHEMA: 'earn',
     SENTINEL_INSPECTION_SCHEMA: 'sentinel-fixture',
 }
 CODES = shared.CODES | shared.LAB_REVALIDATION_CODES | frozenset((
-    'BINDING_REFUSED', 'INSPECTION_REFUSED'))
+    'BINDING_REFUSED', 'INSPECTION_REFUSED', 'SEND_WARNING_WINDOW_REFUSED'))
 STAGES = frozenset(('unused_destinations', 'build', 'start', 'input', 'window',
     'onboarding', 'signing_policy', 'onboarding_logs', 'address_selection',
     'wallet_binding', 'tour_dark', 'tour_light', 'home_catalog', 'settings_catalog',
@@ -608,6 +611,8 @@ def completed(report):
         inspection_catalog_reference(report)
         if catalog_only_family(report):
             require_catalog_only_samples(report)
+            if report['schema'] == SEND_WARNING_INSPECTION_SCHEMA:
+                require_warning_window(report, complete=True)
         else:
             capture_records(report['captures'])
             viewport.reference(report['viewport'])
@@ -633,7 +638,8 @@ def completed(report):
             and report['entry_output']['output_complete'] and not report['entry_output']['overflow']
             and debug.helper_cleanup_complete(report['auxiliary_cleanup'])
             and report['forced_cleanup'] is report['auxiliary_cleanup']['forced'])
-    except (Refused, viewport.Refused, settings.Refused, navigation.Refused, details.Refused, KeyError, TypeError):
+    except (Refused, viewport.Refused, settings.Refused, navigation.Refused,
+            details.Refused, KeyError, TypeError):
         return False
 
 
@@ -671,6 +677,14 @@ def sample_capture_outputs(repo, *, family, catalog_only):
         + viewport.output_bytes(repo / viewport.OUTPUT))
 
 
+def require_warning_window(report, *, complete):
+    try:
+        return send_warning_window.window_receipt(report['send_warning_window'],
+                                                  complete=complete)
+    except send_warning_window.SendWarningWindowRefused:
+        raise Refused('OUTPUT_REFUSED') from None
+
+
 def public_manifest(value):
     """Refuse unexpected fields and strings before any artifact or annotation."""
     flags = {'success', 'inspection_qualified', 'wallet_qualified', 'seed_admitted',
@@ -692,6 +706,8 @@ def public_manifest(value):
         required.add('navigation_catalog')
     if schema >= 4:
         required.add('details_catalog')
+    if schema == SEND_WARNING_INSPECTION_SCHEMA:
+        required.add('send_warning_window')
     need(required <= set(value) <= required | optional, 'OUTPUT_REFUSED')
     need(value['scope'] == 'owned_chain321_wallet_inspection'
          and all(type(value[k]) is bool for k in flags)
@@ -754,6 +770,8 @@ def public_manifest(value):
                      'OUTPUT_REFUSED')
     if catalog_only_family(value):
         require_catalog_only_samples(value)
+        if schema == SEND_WARNING_INSPECTION_SCHEMA:
+            require_warning_window(value, complete=value['success'])
     else:
         if value['viewport'] is not None:
             viewport.reference(value['viewport'])
@@ -824,7 +842,7 @@ def public_manifest(value):
     return value
 
 
-def run(repo, parent, runtime, lab_root, observation, revalidate):
+def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_window=None):
     report = dict(schema=4, scope='owned_chain321_wallet_inspection', success=False,
         inspection_qualified=False, wallet_qualified=False, seed_admitted=False, visual_matches=0,
         checks=dict.fromkeys(CHECKS, False), errors=[], phase='admission', captures=[],
@@ -858,6 +876,10 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
         else:
             catalog_slot = 'details' if family in details.FAMILY_SCHEMAS else family
         report['schema'] = READONLY_CATALOG_SCHEMAS[family]
+        if family == send_warning_window.FAMILY:
+            report['send_warning_window'] = dict(started=False, released=False, samples=[])
+        need((family == send_warning_window.FAMILY) == (warning_window is not None),
+             'ENVIRONMENT_REFUSED')
         catalog_only = catalog_only_family(report) is not None
         for field, since in (('details_catalog', 4), ('navigation_catalog', 3),
                              ('settings_catalog', 2)):
@@ -987,11 +1009,30 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
                          and len(report['locales']) == len(report['stalls']) + 1
                          and len(report['stalls']) == THEMES.index(theme), 'ENTRY_REFUSED')
                     report['stalls'][theme] = value
+                elif line in (b'CI_INSPECT_SEND_WARN_BEGIN', b'CI_INSPECT_SEND_WARN_DARK',
+                              b'CI_INSPECT_SEND_WARN_LIGHT'):
+                    need(warning_window is not None and marker == b'CI_INSPECT_DONE'
+                         and report['phase'] == 'onboarding_and_inspection'
+                         and report['checks']['application_owned']
+                         and report['checks']['input_released'] and 'wallet' in used
+                         and line not in used and catalog_receipt is None, 'ENTRY_REFUSED')
+                    used.add(line)
+                    if line == b'CI_INSPECT_SEND_WARN_BEGIN':
+                        warning_window.begin()
+                        write(b'LAG_WINDOW\n')
+                    else:
+                        theme = 'dark' if line.endswith(b'DARK') else 'light'
+                        warning_window.sample(theme)
+                        write(b'LAG_SAMPLE\n')
+                    report['send_warning_window'] = warning_window.receipt()
                 elif line.startswith(b'SYRIUS_INSPECTION_CATALOG:'):
                     expected_themes = set() if catalog_only else set(THEMES)
                     need(marker == b'CI_INSPECT_DONE' and catalog_receipt is None
                          and 'wallet' in used and set(report['stalls']) == expected_themes,
                          'ENTRY_REFUSED')
+                    if warning_window is not None:
+                        need(len(warning_window.receipt()['samples']) == len(THEMES),
+                             'ENTRY_REFUSED')
                     receipt = json.loads(line.partition(b':')[2])
                     validators = dict(home=home_capture_receipt,
                         settings=settings.capture_receipt,
@@ -1051,6 +1092,9 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
         write((json.dumps(private_input) + '\n').encode())
         report['checks']['input_released'] = True
         wait(b'CI_INSPECT_DONE')
+        if warning_window is not None:
+            warning_window.release(within_window=True)
+            report['send_warning_window'] = warning_window.receipt()
         shared.address_selection_receipt(report['address_selection'])
         wallet_receipt(report['wallet_admission'])
         confirm = transport.exchange(dict(cmd='ping'), token, 5)
@@ -1115,6 +1159,12 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
     except (Exception, KeyboardInterrupt) as error:
         report['errors'].append(inspection_failure_code(error, report['phase']))
     finally:
+        if warning_window is not None and 'send_warning_window' in report:
+            try:
+                warning_window.release_if_owned()
+                report['send_warning_window'] = warning_window.receipt()
+            except Exception:
+                report['errors'].append('SEND_WARNING_WINDOW_REFUSED')
         if job is not None:
             if job.application is not None and not close_attempted:
                 close_attempted = True
@@ -1224,6 +1274,7 @@ def artifact_paths(parent):
         SEND_CONFIRM_INSPECTION_SCHEMA: 'details-catalog',
         SWAP_START_INSPECTION_SCHEMA: 'details-catalog',
         WALLET_READY_INSPECTION_SCHEMA: 'details-catalog',
+        SEND_WARNING_INSPECTION_SCHEMA: 'details-catalog',
         EARN_INSPECTION_SCHEMA: 'details-catalog',
         SENTINEL_INSPECTION_SCHEMA: 'details-catalog'}[value['schema']]
     if value['schema'] in HOME_INSPECTION_SCHEMAS:

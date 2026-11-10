@@ -4,7 +4,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import '../app/readonly_native_mode.dart'
-    show harnessReadonlySentinelCatalog, harnessReadonlyWalletReadyCatalog;
+    show harnessReadonlySendWarningCatalog, harnessReadonlySentinelCatalog,
+        harnessReadonlyWalletReadyCatalog;
 import '../wallet_recipe_failure.dart' show walletRecipePublicDiagnostic;
 import 'harness.dart' as cli;
 import 'readonly_details_catalog.dart';
@@ -21,6 +22,7 @@ const Map<String, ReadonlyDetailsSelection> _detailsSelections =
       'details': ReadonlyDetailsSelection.details,
       'token-draft': ReadonlyDetailsSelection.tokenDraft,
       'send-confirm': ReadonlyDetailsSelection.sendConfirmation,
+      harnessReadonlySendWarningCatalog: ReadonlyDetailsSelection.sendWarning,
       'swap-start': ReadonlyDetailsSelection.swapStart,
       'earn': ReadonlyDetailsSelection.earn,
       harnessReadonlySentinelCatalog: ReadonlyDetailsSelection.sentinelFixture,
@@ -81,13 +83,14 @@ class _InspectionInstance extends cli.Instance {
     void Function(ScreenCaptureObservation step)? onStep,
     String? labRecipient,
     Future<void> Function()? requireReady,
+    Future<void> Function(String event)? sendWarningWindow,
   }) {
     final Directory repository = Directory(cli.repo);
     if (_detailsSelections[family] case final ReadonlyDetailsSelection choice) {
       return captureReadonlyDetailsDefaults(
         repository: repository, session: _session, onStep: onStep,
         selection: choice, labRecipient: labRecipient,
-        requireReady: requireReady,
+        requireReady: requireReady, sendWarningWindow: sendWarningWindow,
       );
     }
     return switch (family) {
@@ -164,6 +167,16 @@ Future<void> main() async {
     Future<void> marker(String value) async {
       stdout.writeln(value);
       await stdout.flush();
+    }
+    Future<void> warningWindow(String event) async {
+      if (!const <String>{'BEGIN', 'DARK', 'LIGHT'}.contains(event)) {
+        throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.command);
+      }
+      await marker('CI_INSPECT_SEND_WARN_$event');
+      final String expected = event == 'BEGIN' ? 'LAG_WINDOW' : 'LAG_SAMPLE';
+      if (!await input.moveNext() || input.current != expected) {
+        throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.process);
+      }
     }
     await marker('CI_INSPECT_STAGE:gate');
     final String? check = environment['SYRIUS_CI_INSPECTION_CHECK'];
@@ -337,6 +350,8 @@ Future<void> main() async {
           family,
           onStep: (ScreenCaptureObservation value) => lastCatalogStep = value,
           labRecipient: labRecipient,
+          sendWarningWindow: family == harnessReadonlySendWarningCatalog
+              ? warningWindow : null,
         );
     if (catalogOnly) await instance.requireCleanLogs();
     await marker('SYRIUS_INSPECTION_CATALOG:${jsonEncode(catalog)}');

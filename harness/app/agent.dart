@@ -92,6 +92,7 @@ import 'fixtures/seed_deposit_presentation.dart';
 import 'fixtures/seed_policy.dart';
 import 'fixtures/seed_project_presentation.dart';
 import 'fixtures/seed_token_presentation.dart';
+import 'fixtures/send_warning_draft.dart';
 import 'logical_capture.dart';
 import 'native_entry_capture.dart';
 import 'native_launch_capture.dart';
@@ -2013,6 +2014,11 @@ class HarnessAgent {
       _readonlyNative != null &&
       Platform.environment['SYRIUS_READONLY_CATALOG_FAMILY'] ==
           harnessReadonlyWalletReadyCatalog;
+
+  bool get _readonlySendWarning =>
+      _readonlyNative != null &&
+      Platform.environment['SYRIUS_READONLY_CATALOG_FAMILY'] ==
+          harnessReadonlySendWarningCatalog;
 
   bool _recipeKey(String? key) =>
       key != null &&
@@ -4025,7 +4031,12 @@ class HarnessAgent {
         const <String>{
           'wallet_ready_screen_marker', 'wallet_ready_card',
         }.contains(key);
-    if (!sentinelRegion && !readyRegion && !const <String>{
+    final bool warningRegion = _readonlySendWarning &&
+        const <String>{
+          'send_node_behind', 'send_recipient_warning',
+          'send_known_address', 'send_typed_address',
+        }.contains(key);
+    if (!sentinelRegion && !readyRegion && !warningRegion && !const <String>{
           'home_hero', 'home_znn', 'rail_label_dashboard',
           'send_form_ready',
           'send_confirmation_marker',
@@ -4376,7 +4387,47 @@ class HarnessAgent {
     if (!_positiveObservationReachable(node, node.center)) {
       throw HarnessError('assert target is covered', node.toJson());
     }
+    if (_readonlySendWarning && c['key'] == 'send_submit_button') {
+      _requireSendWarningDraft(node);
+    }
     return <String, Object?>{'asserted': true, 'target': node.toJson()};
+  }
+
+  void _requireSendWarningDraft(_Node submit) {
+    if (submit.enabled || submit.kind != 'button') {
+      throw HarnessError('the original send action is not held');
+    }
+    for (final String key in const <String>[
+      'send_node_behind', 'send_recipient_warning',
+    ]) {
+      _assert(<String, dynamic>{'key': key, 'exact': true});
+    }
+    for (final (String key, String address) in <(String, String)>[
+      ('send_known_address', sendWarningKnownAddress),
+      ('send_typed_address', sendWarningTypedAddress),
+    ]) {
+      final List<_Node> nodes = _readonlyPositiveKeyNodes(
+        <String, dynamic>{'key': key, 'exact': true},
+      )!;
+      if (nodes.length != 1 ||
+          !_positiveObservationReachable(nodes.single, nodes.single.center) ||
+          nodes.single.element.widget is! SelectableText ||
+          (nodes.single.element.widget as SelectableText)
+              .textSpan?.toPlainText() != address) {
+        throw HarnessError('the original warning address changed');
+      }
+    }
+    for (final (String key, String value) in <(String, String)>[
+      ('send_recipient_field', sendWarningTypedAddress),
+      ('send_amount_field', sendWarningAmount),
+    ]) {
+      final _Node field = _find(<String, dynamic>{'key': key, 'exact': true},
+        kinds: const <String>['field'], only: true);
+      if (field.extra['value'] != value ||
+          !_positiveObservationReachable(field, field.center)) {
+        throw HarnessError('the original send draft changed');
+      }
+    }
   }
 
   HarnessThemeControl _themeControl() {

@@ -51,7 +51,7 @@ void main() {
     expect(readonlyInspectionCatalogFamily(<String, String>{}), 'details');
     for (final String family in <String>[
       'home', 'home-bell', 'settings', 'navigation', 'details', 'token-draft',
-      'send-confirm', 'swap-start', 'earn', 'sentinel-fixture',
+      'send-confirm', 'send-warn', 'swap-start', 'earn', 'sentinel-fixture',
     ]) {
       expect(readonlyInspectionCatalogFamily(<String, String>{
         'SYRIUS_READONLY_CATALOG_FAMILY': family,

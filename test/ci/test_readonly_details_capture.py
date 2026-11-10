@@ -79,9 +79,10 @@ class DetailsCatalogTests(unittest.TestCase):
             (3, 'send-confirm', 12, 'send_confirm_catalog'),
             (9, 'swap-start', 27, 'swap_start_catalog'),
             (10, 'wallet-ready', 47, 'wallet_ready_catalog'),
+            (11, 'send-warn', 8, 'send_warn_catalog'),
         ):
             with self.subTest(screen=screen):
-                files = [f'{number}-{screen}-{theme}.png'
+                files = [f'{number:02d}-{screen}-{theme}.png'
                     for theme in ('dark', 'light')]
                 pins = {screen: '7' * 64}
                 capture = dict(receipt(), schema=schema, screens=[screen],
@@ -89,7 +90,7 @@ class DetailsCatalogTests(unittest.TestCase):
                 captures = [dict(row, file=name)
                     for row, name in zip(original['captures'][:2], files)]
                 images = dict(zip(files, original_images.values()))
-                if schema in (9, 10):
+                if schema in (9, 10, 11):
                     with self.assertRaises(details.Refused):
                         details.capture_records(captures, schema=schema)
                     light = images[files[1]] = png(255)

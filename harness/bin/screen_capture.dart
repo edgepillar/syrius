@@ -283,6 +283,7 @@ class ScreenCapture {
     this.restoreRailState,
     this.onStep,
     this.readonlySendConfirmation = false,
+    this.readonlySendWarning = false,
     this.readonlySwapStart = false,
     this.readonlyEarn = false,
     this.readonlyWalletReady = false,
@@ -299,6 +300,7 @@ class ScreenCapture {
   final Future<void> Function({required bool expanded})? restoreRailState;
   final void Function(ScreenCaptureObservation step)? onStep;
   final bool readonlySendConfirmation;
+  final bool readonlySendWarning;
   final bool readonlySwapStart;
   final bool readonlyEarn;
   final bool readonlyWalletReady;
@@ -387,6 +389,9 @@ class ScreenCapture {
         final bool sendPrepared = readonlySendConfirmation &&
             screen.id == 'send-confirm' &&
             text == '# prerequisite: readonly-lab-send-confirmation';
+        final bool warningPrepared = readonlySendWarning &&
+            screen.id == 'send-warn' &&
+            text == '# prerequisite: readonly-lab-send-warning';
         final bool swapPrepared = readonlySwapStart &&
             screen.id == 'swap-start' &&
             text == '# prerequisite: readonly-lab-swap-start';
@@ -404,7 +409,8 @@ class ScreenCapture {
             text == '# prerequisite: original-new-wallet-ready';
         if (text.startsWith('# prerequisite:') &&
             text != '# prerequisite: unlocked-home' &&
-            !sendPrepared && !swapPrepared && !tokenPrepared &&
+            !sendPrepared && !warningPrepared && !swapPrepared &&
+            !tokenPrepared &&
             !projectPrepared &&
             !pillarPrepared && !readyPrepared) {
           throw ScreenCaptureError('${screen.id}: ${text.substring(2)}');

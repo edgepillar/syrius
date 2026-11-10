@@ -134,6 +134,10 @@ def projection(report, lab, lab_summary, head, tree, run_id, manifest_sha):
          and original['captured_pages'] == len(report['captures'])
          and original['visited_pages'] == sum(len(v['tour']['visited']) for v in report['tours'].values()))
     catalog_family = producer.catalog_only_family(report)
+    send_warning = catalog_family == producer.send_warning_window.FAMILY
+    need(send_warning is ('send_warning_node_fixture' in lab))
+    if send_warning and report['success']:
+        need(producer.send_warning_window.test_receipt(lab.get('send_warning_node_fixture')))
     samples_complete = catalog_family is not None or (
         set(report['tours']) == set(report['locales']) ==
             set(report['stalls']) == set(producer.THEMES)
@@ -189,6 +193,9 @@ def projection(report, lab, lab_summary, head, tree, run_id, manifest_sha):
         visual_matches=0)
     if catalog_family is not None:
         result['sampling_scope'] = catalog_family + '-only'
+    if send_warning:
+        result['send_warning_window'] = producer.require_warning_window(
+            report, complete=report['success'])
     return result
 
 
@@ -497,6 +504,12 @@ def main(parent=None):
         root_item['digest'][7:], root_item['size_in_bytes'])
     lab_summary = owned_lab(lab, head, tree, run_id)
     lab_summary.update(archive_sha256=root_item['digest'][7:], manifest_sha256=lab_sha)
+    if 'send_warning_node_fixture' in lab:
+        fixture = producer.send_warning_window
+        fixture_sources = ('tool/ci/send_warning_window.py',
+                           'harness/app/fixtures/send_warning_draft.dart', *fixture.SOURCE_PINS)
+        source_digests.update(source_files(repo, producer_tree, tree, files=fixture_sources))
+        need(all(source_digests[name] == pin for name, pin in fixture.SOURCE_PINS.items()))
     PHASE = 'wallet_artifact'
     name = 'wallet-inspection-' + head + '-' + text + '-1'
     child = [v for v in listing['artifacts'] if v.get('name') == name]
@@ -536,7 +549,8 @@ def main(parent=None):
             if schema in (producer.details.FAMILY_SCHEMAS['earn'],
                           producer.details.FAMILY_SCHEMAS['sentinel-fixture'],
                           producer.details.FAMILY_SCHEMAS['swap-start'],
-                          producer.details.FAMILY_SCHEMAS['wallet-ready']):
+                          producer.details.FAMILY_SCHEMAS['wallet-ready'],
+                          producer.details.FAMILY_SCHEMAS['send-warn']):
                 fixture_sources = (SENTINEL_FIXTURE_SOURCES
                     if schema == producer.details.FAMILY_SCHEMAS['sentinel-fixture'] else ())
                 source_digests.update(source_files(repo, producer_tree, tree,

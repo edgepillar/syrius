@@ -1,0 +1,21 @@
+diff --git a/protocol/handler.go b/protocol/handler.go
+index fc18700d7a09175ea23f2fe7f1b7fd81df3a2522..8a992343ca7678a7f85fdb1b671581fbea19719d 100644
+--- a/protocol/handler.go
++++ b/protocol/handler.go
+@@ -69,0 +70,2 @@
++	syriusSendWarning *syriusSendWarningFixture
++
+@@ -108,0 +111,2 @@
++	manager.syriusSendWarning = newSyriusSendWarningFixture()
++	insertChain := manager.syriusSendWarning.wrapInsert(manager.quitSync, manager.chainman.InsertChain)
+@@ -113 +117 @@
+-		manager.chainman.InsertChain,
++		insertChain,
+@@ -128 +132 @@
+-		manager.chainman.InsertChain,
++		insertChain,
+@@ -492,0 +497,4 @@
++		} else if pm.syriusSendWarning.tracksPeerAnnouncements() && detailed.Momentum.Height > p.Td() {
++			// Keep the actual announced peer height visible while this isolated
++			// node deliberately holds local insertion. The sync API is unchanged.
++			p.SetTd(detailed.Momentum.Height)

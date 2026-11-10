@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import '../app/fixtures/send_warning_draft.dart';
 import 'harness.dart' as cli;
 import 'readonly_inspection_session.dart';
 import 'screen_capture.dart';
@@ -30,6 +31,9 @@ enum ReadonlyDetailsSelection {
   sendConfirmation(3, 'send_confirm_catalog', <String>['send-confirm'],
     <String>['12-send-confirm-dark.png', '12-send-confirm-light.png'],
   ),
+  sendWarning(11, 'send_warn_catalog', <String>['send-warn'],
+    <String>['08-send-warn-dark.png', '08-send-warn-light.png'],
+  ),
   earn(5, 'earn_catalog', <String>['staking-empty', 'pillar-mine'],
     <String>[
       '15-staking-empty-dark.png', '15-staking-empty-light.png',
@@ -57,16 +61,18 @@ enum ReadonlyDetailsSelection {
 
   bool get catalogOnly =>
       this == sendConfirmation || this == earn || this == sentinelFixture ||
-      this == swapStart || this == walletReady;
+      this == swapStart || this == walletReady || this == sendWarning;
 
   bool get requiresLabRecipient =>
       this == sendConfirmation || this == swapStart;
 }
 
 class _DetailsInstance extends cli.Instance {
-  _DetailsInstance(this._session) : super('readonly-details-catalog');
+  _DetailsInstance(this._session, {required this.sendWarning})
+      : super('readonly-details-catalog');
 
   final ReadonlyInspectionSession _session;
+  final bool sendWarning;
 
   @override
   Map<String, dynamic> read() =>
@@ -76,8 +82,56 @@ class _DetailsInstance extends cli.Instance {
   Future<Map<String, dynamic>> send(
     Map<String, Object?> command, {
     Duration timeout = const Duration(seconds: 30),
-  }) => _session.send(command, timeout > const Duration(seconds: 30)
-      ? const Duration(seconds: 30) : timeout);
+  }) {
+    if (sendWarning && command['cmd'] == 'wait' &&
+        command['key'] == 'send_node_behind') {
+      // Three lab momentums plus the original SDK status refresh.
+      return _session.send(command, const Duration(seconds: 55));
+    }
+    return _session.send(command, timeout > const Duration(seconds: 30)
+        ? const Duration(seconds: 30) : timeout);
+  }
+}
+
+Future<void> _typeDraft(cli.Instance instance, String key, String value) async {
+  final Map<String, dynamic> typed = await cli.call(instance, <String, Object?>{
+    'cmd': 'type', 'key': key, 'exact': true, 'value': value,
+  });
+  if (typed['value'] != value) {
+    throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.reply);
+  }
+}
+
+Future<void> _prepareWarningContact(cli.Instance instance) async {
+  await cli.goto(instance, 'settings');
+  await cli.call(instance, <String, Object?>{
+    'cmd': 'tap', 'key': 'settings_addresses', 'exact': true,
+  });
+  await cli.waitForTarget(instance, cli.Args(<String>[
+    '--key', 'addresses_add_contact', '--kind', 'button',
+    '--exact', '--ready', '--timeout', '20',
+  ]));
+  await cli.call(instance, <String, Object?>{
+    'cmd': 'tap', 'key': 'addresses_add_contact', 'exact': true,
+  });
+  await cli.call(instance, <String, Object?>{'cmd': 'scroll', 'dy': 440});
+  await cli.waitForTarget(instance, cli.Args(<String>[
+    '--key', 'addresses_contact_name', '--kind', 'field',
+    '--exact', '--ready', '--timeout', '10',
+  ]));
+  await _typeDraft(instance, 'addresses_contact_name', 'Alice');
+  await _typeDraft(
+    instance, 'addresses_contact_address', sendWarningKnownAddress,
+  );
+  await cli.call(instance, <String, Object?>{
+    'cmd': 'tap', 'key': 'addresses_save_contact', 'exact': true,
+  });
+  await cli.waitForTarget(instance, cli.Args(<String>[
+    '--key', 'addresses_edit_contact_$sendWarningKnownAddress',
+    '--kind', 'button',
+    '--exact', '--ready', '--timeout', '10',
+  ]));
+  await cli.goto(instance, 'dashboard');
 }
 
 /// Exports the original step and an optional closed original-reply category.
@@ -117,26 +171,88 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
   ReadonlyDetailsSelection selection = ReadonlyDetailsSelection.details,
   String? labRecipient,
   Future<void> Function()? requireReady,
+  Future<void> Function(String event)? sendWarningWindow,
 }) async {
   final bool sendConfirmation =
       selection == ReadonlyDetailsSelection.sendConfirmation;
+  final bool sendWarning = selection == ReadonlyDetailsSelection.sendWarning;
   final bool swapStart = selection == ReadonlyDetailsSelection.swapStart;
   final bool walletReady = selection == ReadonlyDetailsSelection.walletReady;
   final bool ownerAdmitted = walletReady
       ? !session.walletBound && requireReady != null
       : session.walletBound && requireReady == null;
   if (!ownerAdmitted ||
+      sendWarning != (sendWarningWindow != null) ||
       selection.requiresLabRecipient != (labRecipient != null) ||
       labRecipient?.isEmpty == true) {
     throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.binding);
   }
-  final _DetailsInstance instance = _DetailsInstance(session);
+  final _DetailsInstance instance = _DetailsInstance(
+    session, sendWarning: sendWarning,
+  );
+  bool warningContactSaved = false;
+  bool warningWindowOpened = false;
   bool swapWarningAcknowledged = false;
   final ScreenCapture capture = ScreenCapture(
     repository: repository,
-    call: (Map<String, Object?> command) => cli.call(instance, command),
-    prepareHome: requireReady ?? session.prepareScreenHome,
+    call: (Map<String, Object?> command) async {
+      if (sendWarning && command['cmd'] == 'shot') {
+        final String theme = command['theme'] as String;
+        await sendWarningWindow!(theme.toUpperCase());
+      }
+      return cli.call(instance, command);
+    },
+    prepareHome: sendWarning ? () async {
+      await session.prepareScreenHome();
+      if (!warningContactSaved) {
+        await _prepareWarningContact(instance);
+        warningContactSaved = true;
+      }
+    } : requireReady ?? session.prepareScreenHome,
     runLine: (List<String> words) async {
+      if (sendWarning) {
+        switch (words) {
+          case ['goto', final String page] when page == 'transfer' ||
+              page == 'dashboard':
+            await cli.goto(instance, page);
+          case ['tap', '--key', 'transfer_mode_send']:
+            await cli.call(instance, <String, Object?>{
+              'cmd': 'tap', 'key': 'transfer_mode_send', 'exact': true,
+            });
+          case ['type', '--key', 'send_recipient_field', '@warning-recipient']:
+            await _typeDraft(
+              instance, 'send_recipient_field', sendWarningTypedAddress,
+            );
+          case ['type', '--key', 'send_amount_field', '12.5']:
+            await _typeDraft(instance, 'send_amount_field', sendWarningAmount);
+          case ['type', '--key', final String key] when
+              key == 'send_recipient_field' || key == 'send_amount_field':
+            await _typeDraft(instance, key, '');
+          case ['wait', '--key', 'send_node_behind']:
+            if (!warningWindowOpened) {
+              await sendWarningWindow!('BEGIN');
+              warningWindowOpened = true;
+            }
+            await cli.waitForTarget(instance, cli.Args(<String>[
+              '--key', 'send_node_behind', '--exact', '--ready',
+              '--timeout', '50',
+            ]));
+          case ['wait', '--key', final String key] when
+              key == 'send_form_ready' || key == 'home_hero':
+            await cli.waitForTarget(instance, cli.Args(<String>[
+              '--key', key, '--exact', '--ready', '--timeout', '15',
+            ]));
+          case ['assert', '--key', 'send_submit_button']:
+            await cli.call(instance, <String, Object?>{
+              'cmd': 'assert', 'key': 'send_submit_button', 'exact': true,
+            });
+          default:
+            throw const ReadonlyInspectionRefused(
+              ReadonlyInspectionReason.command,
+            );
+        }
+        return;
+      }
       if (walletReady) {
         if (words.length != 3 || words[0] != 'assert' ||
             words[1] != '--key' || !const <String>{
@@ -223,6 +339,7 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
     restoreRailState: walletReady ? null : session.restoreScreenRail,
     onStep: onStep,
     readonlySendConfirmation: sendConfirmation,
+    readonlySendWarning: sendWarning,
     readonlySwapStart: swapStart,
     readonlyEarn: selection == ReadonlyDetailsSelection.earn,
     readonlyWalletReady: walletReady,
