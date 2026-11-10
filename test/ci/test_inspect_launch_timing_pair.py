@@ -136,6 +136,27 @@ class PairInspectionTests(unittest.TestCase):
         self.assertEqual(result['frame_counts'], {'p06': 2, 'current': 2})
         self.assertEqual(result['slow_frame_counts'], {'p06': 1, 'current': 1})
 
+    def test_p06_warmup_and_measurement_use_the_selected_baseline_binary(self):
+        _, sample = report(self.pins)['samples']
+        prepared, warmed, measured = sample['attempts']
+        window = sample['frame_window']
+        repo, profile, parent = Path('workspace'), Path('profile'), {}
+        current, baseline = object(), object()
+        retained = dict(samples=[], storage={})
+        theme = pair.launch.TIMING_THEME
+        with mock.patch.object(pair.launch.entry, 'new_profile', return_value=profile), \
+             mock.patch.object(pair.launch.bounded, 'plain', return_value=mock.Mock(st_dev=1, st_ino=2)), \
+             mock.patch.object(pair, 'check_space'), \
+             mock.patch.object(pair.launch, 'run_process', side_effect=[
+                 (prepared, None), (warmed, None), (measured, window)]) as run:
+            self.assertEqual(pair.measure_sample(repo, parent, current, baseline, 'p06', retained), window)
+        self.assertEqual(run.call_args_list, [
+            mock.call(repo, parent, current, profile, theme, capture=False, settle=True),
+            mock.call(repo, parent, baseline, profile, theme, capture=False, settle=False),
+            mock.call(repo, parent, baseline, profile, theme, capture=True, settle=True, timing=True),
+        ])
+        self.assertEqual(retained['samples'], [sample])
+
     def test_pair_preserves_a_regression_and_frame_gaps(self):
         value = report(self.pins)
         value['samples'][0]['frame_window'] = frame((0, 2, 17000, 17000, 35000),

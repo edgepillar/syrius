@@ -222,7 +222,7 @@ def measure_sample(repo, parent, current, binaries, name, report):
     check_profile(profile, identity)
     if name == 'p06':
         report['phase'] = 'p06_warm_ordinary_profile'
-        warmed, _ = launch.run_process(repo, parent, p06, profile, theme,
+        warmed, _ = launch.run_process(repo, parent, binaries, profile, theme,
                                        capture=False, settle=False)
         sample['attempts'].append(warmed)
         launch.need(launch.attempt_passed(warmed))

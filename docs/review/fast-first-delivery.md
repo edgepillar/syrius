@@ -768,6 +768,11 @@ independent reader recomputes the 16 ms comparison and verifies the retained
 source, inputs and exit evidence. Fresh native timing, the page and disclosure
 measurements, and the running Motion and Shaders review remain open.
 
+Source630 uses the selected P06 binary for both its preparation start and
+its measured start. The regression test exercises the original preparation
+and measurement order. All 56 selected local controls pass. The producer
+and independent reader also pass complete and interrupted in-memory pairs.
+
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied
 owner, confirmed receipt and exact Project row. The original Project
