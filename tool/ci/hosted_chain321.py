@@ -757,9 +757,11 @@ class Commands:
             "-C", str(path), *args], cwd=path).decode("ascii").strip()
 
 
-def configuration(value, role, data, backend):
+def configuration(value, role, data, backend, *, probe_producers=False):
     """Move only deployment paths, listen addresses and bootstrap ports."""
     need(role in ROLES and backend in ("docker", "native"), "CONFIG_REFUSED")
+    need(type(probe_producers) is bool and (not probe_producers or backend == "native"),
+         "CONFIG_REFUSED")
     result = json.loads(json.dumps(value))
     need(type(result.get("Net")) is dict and type(result.get("RPC")) is dict,
          "CONFIG_REFUSED")
@@ -802,13 +804,19 @@ def configuration(value, role, data, backend):
         HTTPHost=rpc_host, WSHost=rpc_host,
         HTTPPort=35997 if backend == "docker" else 45997,
         WSPort=35998 if backend == "docker" else 45998)
+    if probe_producers and role in send_warning_window.PRODUCER_PORTS:
+        rpc.update(EnableHTTP=True, EnableIPC=False, HTTPHost="127.0.0.1",
+            HTTPPort=send_warning_window.PRODUCER_PORTS[role], Endpoints=["stats"])
     return result
 
 
-def preflight_ports(backend, *, stack_debug=False):
+def preflight_ports(backend, *, stack_debug=False, probe_producers=False):
     ports = [45997, 45998] + (list(NATIVE_PORTS.values()) if backend == "native" else [])
     if backend == "native" and stack_debug:
         ports.extend(native_stack_probe.PORTS.values())
+    if probe_producers:
+        need(backend == "native", "CONFIG_REFUSED")
+        ports.extend(send_warning_window.PRODUCER_PORTS.values())
     sockets = []
     try:
         for port in ports:
@@ -1263,7 +1271,8 @@ def run(backend):
             data = root / role
             data.mkdir(mode=0o700)
             configs[role] = data
-            value = configuration(json.loads(regular(source / "docker/devnet" / role / "config.json")), role, data, backend)
+            value = configuration(json.loads(regular(source / "docker/devnet" / role / "config.json")),
+                role, data, backend, probe_producers=send_warning)
             (data / "config.json").write_text(json.dumps(value, indent=2) + "\n")
             (data / "genesis.json").write_bytes(genesis)
             for name in ("network-private-key", "wallet"):
@@ -1291,7 +1300,7 @@ def run(backend):
             pins[role] = digest(regular(data / "config.json"))
         report["config_sha256"] = pins
         report["checks"]["assets"] = True
-        preflight_ports(backend, stack_debug=stack_debug)
+        preflight_ports(backend, stack_debug=stack_debug, probe_producers=send_warning)
         report["checks"]["preflight"] = True
         warning_directory = None
         if send_warning:
@@ -1310,7 +1319,7 @@ def run(backend):
             options = {}
             if warning_directory is not None:
                 options['warning_window'] = send_warning_window.SendWarningWindow(
-                    warning_directory, runtime.healthy)
+                    warning_directory, runtime.healthy, probe_producers=True)
             outcome = windows_wallet_inspection.run(repo, parent, runtime, root,
                 report['observations'], lambda: observe(runtime, root), **options)
             path = repo / windows_wallet_inspection.OUTPUT / 'manifest.json'

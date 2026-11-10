@@ -1,6 +1,7 @@
 """Own the two finite markers of one isolated Send warning observation."""
 
-from contextlib import ExitStack
+from contextlib import ExitStack, closing
+import http.client
 import secrets
 import time
 
@@ -32,6 +33,10 @@ SECONDS = 90
 READINESS_INTERVAL = 5
 READINESS_ATTEMPTS = 9
 CAPTURE_RESERVE = 45
+PRODUCER_PORTS = {'pillar': 46011, 'pillar2': 46012, 'pillar3': 46013}
+PRODUCER_READ_BYTES = 2048
+PRODUCER_READ_SECONDS = 3
+_SYNC_BODY = b'{"jsonrpc":"2.0","id":1,"method":"stats.syncInfo","params":[]}'
 
 
 class SendWarningWindowRefused(Exception):
@@ -100,9 +105,10 @@ def _readiness_lag(value):
 
 
 def window_receipt(value, *, complete=False):
-    # Older retained reports predate the readiness measurement.
+    # Older reports may have neither the readiness nor producer observations.
     required = {'started', 'released', 'samples'}
-    _require(type(value) is dict and required <= set(value) <= required | {'readiness'}
+    _require(type(value) is dict and required <= set(value) <= required | {
+        'readiness', 'producer_progress'}
              and type(value['started']) is type(value['released']) is bool
              and type(value['samples']) is list and len(value['samples']) <= len(THEMES)
              and (value['started'] or not value['released'] and not value['samples']))
@@ -123,6 +129,17 @@ def window_receipt(value, *, complete=False):
         _require(value['started'] or readiness['attempts'] == 0)
         _require(not samples or (lag is not None
                                   and samples[0]['current_height'] == lag['current_height']))
+    if 'producer_progress' in value:
+        progress = value['producer_progress']
+        _require(type(progress) is dict and set(progress) == {'before', 'after_refusal'})
+        for heights in progress.values():
+            _require(heights is None or (type(heights) is dict
+                and heights.keys() == PRODUCER_PORTS.keys()
+                and all(height is None or (lab_failure_probe.integer(height) and height > 0)
+                        for height in heights.values())))
+        _require(not value['started'] or progress['before'] is not None)
+        _require(progress['after_refusal'] is None or (value['started'] and not samples
+                 and 'readiness' in value and lag is None))
     _require(not complete or (value['started'] and value['released']
                               and len(samples) == len(THEMES)))
     return value
@@ -133,7 +150,7 @@ class _SyncRequest:
         _require(method == 'stats.syncInfo' and type(params) is list
                  and not params and self.next_id == 0)
         self.next_id = 1
-        return b'{"jsonrpc":"2.0","id":1,"method":"stats.syncInfo","params":[]}'
+        return _SYNC_BODY
 
 
 class _SyncHttp(_SyncRequest, policy.HttpRpc):
@@ -144,8 +161,50 @@ class _SyncWs(_SyncRequest, policy.WsRpc):
     pass
 
 
+def _producer_height(port, require_original, deadline):
+    try:
+        require_original()
+        timeout = min(1, deadline - time.monotonic())
+        if timeout <= 0:
+            return None
+        with closing(http.client.HTTPConnection('127.0.0.1', port, timeout=timeout)) as wire:
+            wire.request('POST', '/', body=_SYNC_BODY, headers={'Content-Type': 'application/json',
+                'Accept-Encoding': 'identity', 'Connection': 'close'})
+            with wire.getresponse() as reply:
+                if (reply.status != 200 or reply.getheader('Content-Encoding', 'identity') != 'identity'
+                        or reply.getheader('Content-Type', '').split(';', 1)[0].strip().lower() != 'application/json'):
+                    return None
+                raw = bytearray()
+                while time.monotonic() < deadline:
+                    chunk = reply.read1(PRODUCER_READ_BYTES + 1 - len(raw))
+                    if not chunk:
+                        break
+                    raw.extend(chunk)
+                    if len(raw) > PRODUCER_READ_BYTES:
+                        return None
+                else:
+                    return None
+                if not reply.isclosed() or reply.length not in (0, None):
+                    return None
+        require_original()
+        if time.monotonic() >= deadline:
+            return None
+        limits = policy.Limits(response_bytes=PRODUCER_READ_BYTES)
+        value = lab_failure_probe.sync(policy._json(bytes(raw), 1, limits))
+        return value['current_height'] or None
+    except Exception:
+        # A diagnostic read cannot change the admission or its original error.
+        return None
+
+
+def _producer_heights(require_original, limit):
+    deadline = min(limit, time.monotonic() + PRODUCER_READ_SECONDS)
+    return {role: _producer_height(port, require_original, deadline)
+            for role, port in PRODUCER_PORTS.items()}
+
+
 class SendWarningWindow:
-    def __init__(self, path, require_original):
+    def __init__(self, path, require_original, *, probe_producers=False):
         _require(path.is_absolute())
         self.path = path
         self._original = require_original
@@ -160,11 +219,15 @@ class SendWarningWindow:
         self._deadline = None
         self._samples = []
         self._readiness = dict(attempts=0, read_refused=False, first=None, last=None)
+        self._producer_progress = dict(before=None, after_refusal=None) if probe_producers else None
 
     def receipt(self):
-        return window_receipt(dict(started=self._began is not None,
+        value = dict(started=self._began is not None,
             released=self._released, samples=list(self._samples),
-            readiness=dict(self._readiness)))
+            readiness=dict(self._readiness))
+        if self._producer_progress is not None:
+            value['producer_progress'] = dict(self._producer_progress)
+        return window_receipt(value)
 
     def release_if_owned(self):
         if self._began is not None and not self._release_attempted:
@@ -188,6 +251,9 @@ class SendWarningWindow:
             remaining = cutoff - time.monotonic()
             if remaining > 0 and self._readiness['attempts'] < READINESS_ATTEMPTS:
                 time.sleep(min(READINESS_INTERVAL, remaining))
+        if self._producer_progress is not None:
+            self._producer_progress['after_refusal'] = _producer_heights(
+                self._active, min(limit, self._deadline))
         raise SendWarningWindowRefused()
 
     def sample(self, theme):
@@ -232,11 +298,17 @@ class SendWarningWindow:
         self._original()
         _require(_identity(self.path) == self._owner)
 
-    def begin(self):
+    def begin(self, *, limit=None):
         _require(not self._start_attempted)
         self._current()
         _require(_identity(self._begin) is None and _identity(self._release) is None)
         self._start_attempted = True
+        if self._producer_progress is not None:
+            _require(limit is not None)
+            self._producer_progress['before'] = _producer_heights(self._current, limit)
+            self._current()
+            _require(time.monotonic() < limit
+                     and _identity(self._begin) is None and _identity(self._release) is None)
         self._deadline = time.monotonic() + SECONDS
         self._begin.mkdir(mode=0o700)
         self._current()

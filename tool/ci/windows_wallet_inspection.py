@@ -859,6 +859,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
         motion_baseline_compared=False, arabic_or_minimum_window_qualified=False)
     original = lines = job = output = transport = token = None
     close_attempted = False
+    warning_gate_refused = False
     catalog_receipt = viewport_receipt = None
     family = catalog_slot = 'details'
     details_schema = 1
@@ -942,6 +943,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
 
         def wait(marker, *, seconds=None):
             nonlocal next_sample, ready, catalog_receipt, viewport_receipt
+            nonlocal warning_gate_refused
             limit = deadline if seconds is None else min(deadline, time.monotonic() + seconds)
             while True:
                 runtime.healthy()
@@ -1019,14 +1021,18 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
                          and report['checks']['input_released'] and 'wallet' in used
                          and line not in used and catalog_receipt is None, 'ENTRY_REFUSED')
                     used.add(line)
-                    if line == b'CI_INSPECT_SEND_WARN_BEGIN':
-                        warning_window.begin()
-                        warning_window.wait_until_ready(limit)
-                        write(b'LAG_WINDOW\n')
-                    else:
-                        theme = 'dark' if line.endswith(b'DARK') else 'light'
-                        warning_window.sample(theme)
-                        write(b'LAG_SAMPLE\n')
+                    try:
+                        if line == b'CI_INSPECT_SEND_WARN_BEGIN':
+                            warning_window.begin(limit=limit)
+                            warning_window.wait_until_ready(limit)
+                            write(b'LAG_WINDOW\n')
+                        else:
+                            theme = 'dark' if line.endswith(b'DARK') else 'light'
+                            warning_window.sample(theme)
+                            write(b'LAG_SAMPLE\n')
+                    except send_warning_window.SendWarningWindowRefused:
+                        warning_gate_refused = True
+                        raise
                     report['send_warning_window'] = warning_window.receipt()
                 elif line.startswith(b'SYRIUS_INSPECTION_CATALOG:'):
                     expected_themes = set() if catalog_only else set(THEMES)
@@ -1168,6 +1174,11 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
                 report['send_warning_window'] = warning_window.receipt()
             except Exception:
                 report['errors'].append('SEND_WARNING_WINDOW_REFUSED')
+        if warning_gate_refused and original is not None:
+            try:
+                original.stdin.close()
+            except OSError:
+                report['errors'].append('CLOSE_UNCONFIRMED')
         if job is not None:
             if job.application is not None and not close_attempted:
                 close_attempted = True
@@ -1178,6 +1189,13 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
                         wallet=report['wallet_admission'] is not None)
                     report['cleanup_application_exit'] = job.application_exit()
                 except Exception:
+                    report['errors'].append('CLOSE_UNCONFIRMED')
+            if warning_gate_refused and original.poll() is None:
+                try:
+                    original.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    pass  # The original forced-cleanup accounting still applies.
+                except OSError:
                     report['errors'].append('CLOSE_UNCONFIRMED')
             try:
                 report['owned_job_images_before_close'] = job.remaining_images()
@@ -1199,10 +1217,11 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
             except Exception:
                 report['entry_exit'] = None
                 report['errors'].append('CLOSE_UNCONFIRMED')
-            try:
-                original.stdin.close()
-            except OSError:
-                report['errors'].append('CLOSE_UNCONFIRMED')
+            if not warning_gate_refused:
+                try:
+                    original.stdin.close()
+                except OSError:
+                    report['errors'].append('CLOSE_UNCONFIRMED')
         if lines is not None:
             lines.finish()
             report['entry_output'] = lines.public()

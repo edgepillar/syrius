@@ -739,12 +739,18 @@ class InspectionTests(unittest.TestCase):
                     self.assertNotIn(path, owners)
                     owners[path] = object()
 
+                probe = scenario == 'stationary'
+                before = dict(pillar=9, pillar2=9, pillar3=None)
+                after = dict(pillar=13, pillar2=12, pillar3=13)
                 with (mock.patch.object(Path, 'mkdir', new=mkdir),
                       mock.patch.object(warning, '_identity', owners.get),
+                      mock.patch.object(warning, '_producer_heights',
+                                        side_effect=[before, after]) as producers,
                       mock.patch.object(warning, 'time', SimpleNamespace(
                           monotonic=lambda: clock.now, sleep=sleep))):
-                    window = warning.SendWarningWindow(directory, lambda: None)
-                    window.begin()
+                    window = warning.SendWarningWindow(directory, lambda: None,
+                                                       probe_producers=probe)
+                    window.begin(limit=900)
                     with self.assertRaises(warning.SendWarningWindowRefused):
                         window.sample('dark')
                     if scenario == 'ready':
@@ -801,8 +807,42 @@ class InspectionTests(unittest.TestCase):
                         self.assertEqual(value['samples'], [])
                         self.assertEqual(value['readiness']['read_refused'], error is not None)
                         self.assertEqual(value['readiness']['last'], None if error else unready)
+                        if probe:
+                            self.assertEqual([call.args[1] for call in producers.call_args_list], [900, 90])
+                            self.assertEqual(value['producer_progress'], dict(before=before,
+                                                                           after_refusal=after))
+                            for height in (False, 0, '13'):
+                                bad = dict(value, producer_progress=dict(before=before,
+                                    after_refusal=dict(after, pillar=height)))
+                                with self.assertRaises(warning.SendWarningWindowRefused):
+                                    warning.window_receipt(bad)
                         with self.assertRaises(warning.SendWarningWindowRefused):
                             warning.window_receipt(value, complete=True)
+
+    def test_send_warning_producer_probe_keeps_only_a_complete_owned_height(self):
+        warning = inspection.send_warning_window
+        raw = b'{"jsonrpc":"2.0","id":1,"result":{"state":2,"currentHeight":24,"targetHeight":24}}'
+        for label in ('complete', 'truncated', 'overflow', 'lost_owner'):
+            with self.subTest(label=label):
+                original = mock.Mock(side_effect=[None, RuntimeError('held')]
+                                     if label == 'lost_owner' else None)
+                wire = mock.Mock()
+                reply = mock.MagicMock(status=200, length=1 if label == 'truncated' else 0)
+                reply.__enter__.return_value = reply
+                reply.isclosed.return_value = True
+                reply.getheader.side_effect = {'Content-Encoding': 'identity',
+                                               'Content-Type': 'application/json'}.get
+                reply.read1.side_effect = [b' '*2049 if label == 'overflow' else raw, b'']
+                wire.getresponse.return_value = reply
+                with (mock.patch.object(warning.time, 'monotonic', return_value=0),
+                      mock.patch.object(warning.http.client, 'HTTPConnection', return_value=wire) as connect):
+                    result = warning._producer_height(warning.PRODUCER_PORTS['pillar'], original, 1)
+                self.assertEqual(result, 24 if label == 'complete' else None)
+                connect.assert_called_once_with('127.0.0.1', warning.PRODUCER_PORTS['pillar'], timeout=1)
+                self.assertEqual(wire.request.call_args.args, ('POST', '/'))
+                self.assertEqual(json.loads(wire.request.call_args.kwargs['body']),
+                                 dict(jsonrpc='2.0', id=1, method='stats.syncInfo', params=[]))
+                wire.close.assert_called_once_with()
 
     def test_sdk_and_wallet_receipts_refuse_expansion_coercion_and_old_scopes(self):
         for original, validate, changes in (

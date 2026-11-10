@@ -435,6 +435,29 @@ class ConfigurationTests(unittest.TestCase):
                 self.assertEqual(bool(cfg["RPC"]["HTTPHost"]), role == "rpc")
                 self.assertEqual(bool(cfg["RPC"]["WSHost"]), role == "rpc")
 
+    def test_only_the_native_warning_probe_admits_producer_stats(self):
+        ports = lab.send_warning_window.PRODUCER_PORTS
+        occupied = set(lab.NATIVE_PORTS.values()) | set(lab.native_stack_probe.PORTS.values()) | {45997, 45998}
+        self.assertEqual(len(set(ports.values())), 3)
+        self.assertTrue(occupied.isdisjoint(ports.values()))
+        source = node_config()
+        for role in lab.ROLES:
+            expected = lab.configuration(source, role, Path('fixture'), 'native')
+            if role in ports:
+                expected['RPC'].update(EnableHTTP=True, EnableIPC=False, HTTPHost='127.0.0.1',
+                    HTTPPort=ports[role], Endpoints=['stats'])
+            self.assertEqual(lab.configuration(source, role, Path('fixture'), 'native',
+                probe_producers=True), expected)
+        with self.assertRaises(lab.Failure):
+            lab.configuration(source, 'pillar', Path('fixture'), 'docker', probe_producers=True)
+        sockets = [mock.Mock() for _ in occupied | set(ports.values())]
+        with mock.patch.object(lab.socket, 'socket', side_effect=sockets):
+            lab.preflight_ports('native', stack_debug=True, probe_producers=True)
+        self.assertEqual({original.bind.call_args.args[0] for original in sockets},
+                         {('127.0.0.1', port) for port in occupied | set(ports.values())})
+        for original in sockets:
+            original.close.assert_called_once_with()
+
     def test_docker_keeps_its_internal_ports_and_moves_the_subnet(self):
         cfg = lab.configuration(node_config(), "rpc", Path("fixture"), "docker")
         self.assertIn("172.37.0.12/tcp/35995", cfg["Net"]["BootstrapPeers"][0])

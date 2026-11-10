@@ -431,13 +431,28 @@ outputs. Actual receipt and the original motion remain open.
 [Windows producer](https://github.com/edgepillar/syrius/actions/runs/42762130710)
 and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42764222434).
 
-Source600 measures paired HTTP and WebSocket lag before admitting the
-wallet warning wait, then reads a fresh sample at each capture. It retains
-bounded readiness and control observations. Fresh Windows verification
-remains pending. The optional `--no-diff-images` comparison preserves
-scores, input hashes and review state. In-memory controls with 94
-synthetic PNG pairs encode 94 difference images in the standard mode
-and zero in the compact mode.
+Source600 passes selected analysis, 1,374 Dart cases and 1,102 Python cases
+with eighteen skips. Nine paired HTTP and WebSocket readiness reads end
+at current height 20 and target 21. The gate refuses before the wallet
+warning wait and admits zero captures. The hold marker is released, the
+five nodes exit normally and required actor cleanup is marked forced.
+The independent reader verifies both original archives. The reason the
+advertised target stayed one momentum ahead remains unestablished.
+[Windows producer](https://github.com/edgepillar/syrius/actions/runs/42764618447)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42766914066).
+
+Source601 records each original producer's local height before opening
+the Send warning window and again on readiness refusal. The isolated
+producer ports expose loopback stats for this workflow only. The paired
+RPC lag gate and both capture checks remain in force. The waiting entry
+gets EOF and a bounded opportunity to exit after a refused gate. Sixty
+local controller and archive cases pass. The original Windows failure
+and the 86 of 94 literal outputs retain their scope. Fresh native
+evidence remains open.
+
+The optional `--no-diff-images` comparison preserves scores, input hashes
+and review state. In-memory controls with 94 synthetic PNG pairs encode
+94 difference images in the standard mode and zero in the compact mode.
 
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,
