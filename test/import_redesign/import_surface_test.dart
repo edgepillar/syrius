@@ -301,16 +301,34 @@ void main() {
           of: zone,
           matching: find.byType(DottedBorder),
         );
-        expect(
-          find.descendant(of: dashed, matching: find.byType(CustomPaint)),
-          paints..path(
-            color: tokens.faint,
-            strokeWidth: 1.5,
-            style: PaintingStyle.stroke,
-          ),
-        );
+        void expectStroke(double width) {
+          expect(
+            find.descendant(of: dashed, matching: find.byType(CustomPaint)),
+            paints..path(
+              color: tokens.faint,
+              strokeWidth: width,
+              style: PaintingStyle.stroke,
+            ),
+          );
+        }
+
+        expectStroke(1);
         await tester.tap(zone);
         expect(browses, 1);
+
+        await tester.pumpWidget(
+          entryHost(
+            Builder(
+              builder: (BuildContext context) => MediaQuery(
+                data: MediaQuery.of(context).copyWith(devicePixelRatio: 2),
+                child: _surface(controller),
+              ),
+            ),
+            light: light,
+          ),
+        );
+        await tester.pump(const Duration(milliseconds: 401));
+        expectStroke(1.5);
         expect(tester.takeException(), isNull);
       },
       timeout: const Timeout(Duration(seconds: 30)),

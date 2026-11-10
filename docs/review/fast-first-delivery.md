@@ -652,12 +652,20 @@ with zero failures or skips. The 1,107 Python cases complete with eighteen
 skips. Both asset commands pass. The original Source617 failure remains
 separate. [Focused run](https://github.com/edgepillar/syrius/actions/runs/42822696290).
 
-Source619 prepares an opt-in pilot for eight Settings seam controls. It uses
-the original isolated wallet after the Settings captures and viewport restore,
-with the same storage sampler and ordinary shutdown. A refusal is retained
-while the original exit is attempted. The pilot adds no capture or separate
-wallet build. Two in-memory controls pass. The Windows results, shortcuts and
-Go To checks remain open.
+Source619 observes eight original Settings controls absorbing pointer input
+in the isolated Windows wallet after the usual captures and viewport restore.
+The wallet and entry exit zero with no required actor forced. One owned
+compiler telemetry helper requires termination after those exits. All 1,381
+selected Dart cases pass. The 1,108 Python cases complete with eighteen skips
+and selected analysis reports zero findings. The pilot adds no capture or
+separate build. The four ordinary archives await independent verification.
+Other surfaces, shortcuts and Go To checks remain open.
+[Windows run](https://github.com/edgepillar/syrius/actions/runs/42825530077).
+
+Source620 snaps the Import drop outline to device pixels. The earlier actual
+and reference pairs differ at the top edge in both themes. The existing dark
+and light paint cases now check the 1x width and retained 2x width. Fresh
+selected tests and both Windows pixel comparisons remain pending.
 
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied

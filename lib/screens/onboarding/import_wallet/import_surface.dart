@@ -74,7 +74,13 @@ class ImportSurface extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
-    final Widget drop = _buildDrop(context, tokens);
+    // The reference snaps fractional border widths to whole device pixels.
+    final double pixelRatio = MediaQuery.devicePixelRatioOf(context);
+    final double deviceStrokeWidth =
+        (tokens.importDropLineWidth * pixelRatio).floorToDouble();
+    final double dropLineWidth =
+        deviceStrokeWidth.clamp(1, double.infinity) / pixelRatio;
+    final Widget drop = _buildDrop(context, tokens, dropLineWidth);
     return EntryCardSurface(
       marker: const Key('import_screen_marker'),
       title: context.l10n.importWalletTitle,
@@ -203,7 +209,11 @@ class ImportSurface extends StatelessWidget {
     );
   }
 
-  Widget _buildDrop(BuildContext context, AppTokens tokens) => Material(
+  Widget _buildDrop(
+    BuildContext context,
+    AppTokens tokens,
+    double lineWidth,
+  ) => Material(
     color: tokens.card2,
     borderRadius: BorderRadius.circular(tokens.dialogRadius),
     child: InkWell(
@@ -215,15 +225,15 @@ class ImportSurface extends StatelessWidget {
       child: DottedBorder(
         options: RoundedRectDottedBorderOptions(
           color: fileRefused || pickerFailed ? tokens.error : tokens.faint,
-          strokeWidth: tokens.importDropLineWidth,
+          strokeWidth: lineWidth,
           dashPattern: tokens.importDropDashPattern,
           // The centered stroke overflowed the CSS box and omitted its layout
           // space. Keep its thickness inside the box and reserve that space.
           radius: Radius.circular(
-            tokens.dialogRadius - tokens.importDropLineWidth / 2,
+            tokens.dialogRadius - lineWidth / 2,
           ),
-          borderPadding: EdgeInsets.all(tokens.importDropLineWidth / 2),
-          padding: EdgeInsets.all(tokens.importDropLineWidth),
+          borderPadding: EdgeInsets.all(lineWidth / 2),
+          padding: EdgeInsets.all(lineWidth),
         ),
         child: Padding(
           padding: EdgeInsets.all(tokens.importDropPadding),
