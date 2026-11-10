@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import '../app/readonly_native_commands.dart'
-    show readonlyHomeZapPreviewCommand, readonlySendWarningSyncCommand,
-        readonlySeamPointerCommand;
+    show readonlyHomeZapPreviewCommand, readonlySeamPointerCommand,
+        readonlySendWarningSyncCommand;
 import '../app/readonly_native_mode.dart';
 import 'screen_capture.dart';
 import 'wallet_recipe.dart' show WalletRecipeSend;

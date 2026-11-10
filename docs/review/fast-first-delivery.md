@@ -642,7 +642,13 @@ cases complete with eighteen skips. Native visual evidence remains open.
 Source617 prepares the readonly native seam pointer command. The gate and
 its hit-test boundary are checked before input, at pointer press and release,
 and after the attempt. The existing agent cases cover Sporks, a wrong seam
-and a covered gate. The running-wallet, shortcut and Go To checks remain open.
+and a covered gate. The focused run completes 1,107 Python cases with eighteen
+skips and stops at one import combinator ordering finding.
+[Original focused run](https://github.com/edgepillar/syrius/actions/runs/42821590236).
+
+Source618 orders the readonly command names in the inspector import. Fresh
+selected analysis and Dart engine evidence remain open alongside the running
+wallet, shortcut and Go To checks.
 
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied
