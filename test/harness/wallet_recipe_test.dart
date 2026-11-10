@@ -3,6 +3,8 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart'
+    show PasswordInputField;
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
 
 import '../../harness/app/agent.dart';
@@ -371,6 +373,17 @@ void main() {
       expect(captures, 1);
       expect(ui.taps, isNot(contains('welcome_import')));
     }
+    final _WalletUi duplicate = _WalletUi()..duplicate = 'new_wallet_password';
+    await expectLater(_inspection(duplicate).createWalletForReadyCapture(
+      password: _password,
+      captureReady: () async => fail('ambiguous password capture was admitted'),
+    ), throwsA(isA<WalletRecipeRefused>()
+      .having((WalletRecipeRefused error) => error.code, 'code',
+          'wallet-recipe-control-ambiguous')
+      .having((WalletRecipeRefused error) => error.diagnostic, 'control',
+          containsPair('control', 'new_wallet_password'))));
+    expect(duplicate.quizAnswers, 3);
+    expect(duplicate.typed, isEmpty);
     final _WalletUi ordinary = _WalletUi();
     await expectLater(ordinary.driver().createWalletForReadyCapture(
       password: _password,
@@ -874,14 +887,30 @@ void main() {
     WidgetTester tester,
   ) async {
     final TextEditingController input = TextEditingController(text: _seed(12));
+    final Map<String, TextEditingController> passwords =
+        <String, TextEditingController>{
+      'new_wallet_password': TextEditingController(text: _password),
+      'new_wallet_confirm_password': TextEditingController(text: _password),
+    };
     final HarnessAgent agent = HarnessAgent.forTest()..booted = true;
     try {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: TextField(
-              key: const Key('import_seed_field'),
-              controller: input,
+            body: Column(
+              children: <Widget>[
+                TextField(
+                  key: const Key('import_seed_field'),
+                  controller: input,
+                ),
+                for (final MapEntry<String, TextEditingController> field
+                    in passwords.entries)
+                  PasswordInputField(
+                    key: Key(field.key),
+                    controller: field.value,
+                    hintText: 'Password',
+                  ),
+              ],
             ),
           ),
         ),
@@ -893,8 +922,42 @@ void main() {
       expect(view.containsKey('walletPath'), isFalse);
       expect(view.containsKey('addresses'), isFalse);
       expect(view['signingPolicyReady'], isFalse);
+      expect(jsonEncode(view), isNot(contains(_password)));
+
+      final Map<String, Object?> tree = await agent.commandForTest(
+        <String, dynamic>{'cmd': 'tree'},
+      );
+      final List<Map<String, Object?>> nodes =
+          tree['nodes']! as List<Map<String, Object?>>;
+      for (final String key in passwords.keys) {
+        final Iterable<Map<String, Object?>> field = nodes.where(
+          (Map<String, Object?> node) => node['key'] == key &&
+              const <String>{'field', 'button', 'toggle'}
+                  .contains(node['kind']),
+        );
+        expect(field, hasLength(1));
+        expect(field.single['kind'], 'field');
+        expect(field.single['obscured'], isTrue);
+        expect(field.single['value'], isNot(_password));
+        final String visibility = '${key}_visibility';
+        expect(nodes.where((Map<String, Object?> node) =>
+            node['key'] == visibility && node['kind'] == 'button'),
+            hasLength(1));
+        final Finder editable = find.descendant(
+          of: find.byKey(Key(key)), matching: find.byType(EditableText),
+        );
+        await tester.tap(find.byKey(Key(visibility)));
+        await tester.pump();
+        expect(tester.widget<EditableText>(editable).obscureText, isFalse);
+        await tester.tap(find.byKey(Key(visibility)));
+        await tester.pump();
+        expect(tester.widget<EditableText>(editable).obscureText, isTrue);
+      }
     } finally {
       await tester.pumpWidget(const SizedBox());
+      for (final TextEditingController controller in passwords.values) {
+        controller.dispose();
+      }
       input.dispose();
     }
   });

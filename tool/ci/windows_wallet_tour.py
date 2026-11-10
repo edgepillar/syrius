@@ -90,6 +90,7 @@ RECIPE_FAILURE_CODES = frozenset((
     'wallet-recipe-selection-origin-refused', 'wallet-recipe-transition-held',
     'wallet-recipe-visible-error',
     'wallet-recipe-stage-unsettled', 'wallet-recipe-control-absent',
+    'wallet-recipe-control-ambiguous',
     'wallet-recipe-control-disabled',
     'wallet-recipe-control-widget-disabled',
     'wallet-recipe-address-backend-blocked',
@@ -195,12 +196,16 @@ def entry_failure(value):
                  'ENTRY_REFUSED')
             return value
         need(value['stage'] in ('onboarding', 'address_selection')
-             and value['code'] in ('wallet-recipe-command-refused', 'wallet-recipe-stage-unsettled')
+             and value['code'] in ('wallet-recipe-command-refused',
+                                   'wallet-recipe-stage-unsettled',
+                                   'wallet-recipe-control-ambiguous')
              and type(diagnostic) is dict and {'action', 'control', 'reason'} <= set(diagnostic)
              and set(diagnostic) <= {'action', 'control', 'reason', 'entry', 'startup', 'film'}
              and all(type(item) is str for item in diagnostic.values())
              and diagnostic['action'] in RECIPE_ACTIONS and diagnostic['control'] in RECIPE_CONTROLS
              and diagnostic['reason'] in RECIPE_FAILURE_CODES
+             and (value['code'] != 'wallet-recipe-control-ambiguous'
+                  or diagnostic['action'] == 'observe' and diagnostic['reason'] == value['code'])
              and ('entry' not in diagnostic or diagnostic['entry'] in RECIPE_ENTRY_PHASES)
              and ('startup' not in diagnostic or diagnostic['startup'] in RECIPE_STARTUP_HANDOFFS)
              and ('film' not in diagnostic or diagnostic['film'] in RECIPE_STARTUP_FILM_STATES), 'ENTRY_REFUSED')

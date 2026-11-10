@@ -201,7 +201,13 @@ class WalletRecipe {
         .cast<Map<String, dynamic>>()
         .where((Map<String, dynamic> value) => value['key'] == key)
         .toList();
-    if (matches.length > 1) _refuse('wallet-recipe-control-ambiguous');
+    if (matches.length > 1) {
+      const String reason = 'wallet-recipe-control-ambiguous';
+      _refuse(reason, diagnostic: walletRecipeDiagnostic(
+        <String, Object?>{'action': 'observe', 'key': key},
+        reason, entryPhase: view['entryPhase'],
+      ));
+    }
     return matches.isEmpty ? null : matches.single;
   }
 

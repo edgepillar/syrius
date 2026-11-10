@@ -30,12 +30,17 @@ class _PasswordInputFieldState extends State<PasswordInputField> {
 
   @override
   Widget build(BuildContext context) {
+    final Key? fieldKey = widget.key;
     return SizedBox(
       width: kPasswordInputFieldWidth,
       child: InputField(
         controller: widget.controller,
         obscureText: _obscureText,
         suffixIcon: InkWell(
+          // Keep the visibility action distinct from its owning input.
+          key: fieldKey is ValueKey<String>
+              ? ValueKey<String>('${fieldKey.value}_visibility')
+              : null,
           hoverColor: Colors.transparent,
           splashColor: Colors.transparent,
           onTap: () {

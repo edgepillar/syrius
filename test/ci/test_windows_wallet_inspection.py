@@ -857,6 +857,15 @@ class InspectionTests(unittest.TestCase):
         value = dict(stage='onboarding', code='wallet-recipe-command-refused', diagnostic=dict(
             action='type', control='import_seed_field', reason='wallet-recipe-control-disabled', entry='import'))
         self.assertIs(inspection.entry_failure(value), value)
+        code = 'wallet-recipe-control-ambiguous'
+        ambiguous = dict(stage='onboarding', code=code, diagnostic=dict(
+            action='observe', control='new_wallet_password', reason=code))
+        self.assertIs(inspection.entry_failure(ambiguous), ambiguous)
+        for changed in (dict(action='type'), dict(reason='wallet-recipe-control-absent'),
+                        dict(value='synthetic private password'), dict(control='private key')):
+            with self.assertRaises(inspection.shared.Refused):
+                inspection.entry_failure(dict(ambiguous,
+                    diagnostic=dict(ambiguous['diagnostic'], **changed)))
         for change in ({'stage': 'lab_send'}, {'code': 'synthetic private diagnostic'},
                        {'stack': 'synthetic private path'}):
             with self.assertRaises(inspection.Refused):

@@ -43,6 +43,7 @@ const Set<String> walletRecipeFailureCodes = <String>{
   'wallet-recipe-visible-error',
   'wallet-recipe-stage-unsettled',
   'wallet-recipe-control-absent',
+  'wallet-recipe-control-ambiguous',
   'wallet-recipe-control-disabled',
   'wallet-recipe-control-widget-disabled',
   'wallet-recipe-address-backend-blocked',

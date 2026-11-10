@@ -399,8 +399,19 @@ analysis reports one nullable theme cast and stops before Dart tests
 or lab startup. The original attempt retains zero artifacts.
 [Original Windows attempt](https://github.com/edgepillar/syrius/actions/runs/42754295101).
 
-Source596 admits the two fixed theme markers without a nullable cast.
-Fresh Windows verification and both screen outputs are pending.
+Source596 passes selected analysis, 1,374 Dart cases and 1,101 Python
+cases with eighteen skips. The isolated RPC fixture compiles and
+passes three Go tests. The dark script stops while waiting for the
+original lag notice. The window marker is released, the five node
+exits are normal and the independent reader verifies two manifests
+and zero images. The exact wait refusal remains unestablished.
+[Windows producer](https://github.com/edgepillar/syrius/actions/runs/42755369629)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42757588894).
+
+Source597 separates the keyed password fields from their visibility
+buttons. An ambiguous observation still refuses input and exports
+only the fixed control label and phase. The exact earlier ambiguity
+and the fresh Windows result remain open.
 
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,
