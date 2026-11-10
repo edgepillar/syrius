@@ -313,6 +313,8 @@ class StartupInspectionTests(unittest.TestCase):
         probe = object.__new__(catalog.QuizProcess)
         for code, body, projected in (
             (400, dict(ok=False, error='quiz-owner-unavailable'), 'quiz-owner-unavailable'),
+            (400, dict(ok=False, error='quiz-capture-renderer-timeout'),
+             'quiz-capture-renderer-timeout'),
             (400, dict(ok=False, error='unfiltered payload'), 'quiz-remote-refused'),
             (500, dict(ok=False, error='quiz-owner-unavailable'), 'quiz-remote-error'),
         ):

@@ -41,9 +41,15 @@ final class NativeQuizCatalog {
   BuildContext? _fixtureContext;
   ReferenceArtworkFrame? _artwork;
   bool _closed = false;
+  String? _captureTimeoutCode;
+  bool _captureHeld = false;
 
   static const Size _client = Size(1280, 780);
   static const Key _nextChoice = Key('seed_quiz_1_0');
+  static const Duration _captureBudget = Duration(seconds: 12);
+
+  /// A late capture result cannot reopen the original session.
+  bool get captureBlocked => _captureHeld || _captureTimeoutCode != null;
 
   static bool get _empty =>
       kWalletPath == null &&
@@ -239,7 +245,28 @@ final class NativeQuizCatalog {
   Future<Map<String, Object?>> capture(
     String theme, {
     required bool Function(RenderObject, Offset) reachable,
-  }) async {
+  }) {
+    if (captureBlocked) throw const CaptureRefused('quiz-capture-held');
+    _captureTimeoutCode = 'quiz-capture-window-timeout';
+    final Future<Map<String, Object?>> original = _captureOriginal(
+      theme,
+      reachable,
+    );
+    return original.whenComplete(() {
+      _captureTimeoutCode = null;
+    }).timeout(
+      _captureBudget,
+      onTimeout: () {
+        _captureHeld = true;
+        throw CaptureRefused(_captureTimeoutCode ?? 'quiz-capture-held');
+      },
+    );
+  }
+
+  Future<Map<String, Object?>> _captureOriginal(
+    String theme,
+    bool Function(RenderObject, Offset) reachable,
+  ) async {
     final BuildContext? context = _fixtureContext;
     final RenderView? view = _view;
     final ReferenceArtworkFrame? artwork = _artwork;
@@ -257,7 +284,8 @@ final class NativeQuizCatalog {
     };
     final Element target = _captureTarget(context);
     bool current() {
-      if (!_routeCurrent ||
+      if (_captureHeld ||
+          !_routeCurrent ||
           !context.mounted ||
           !identical(context, _fixture.currentContext) ||
           context.findAncestorWidgetOfExactType<Theme>()?.data != expected ||
@@ -280,13 +308,21 @@ final class NativeQuizCatalog {
     if (await windowManager.isMinimized()) {
       throw const CaptureRefused('quiz-capture-window-minimized');
     }
+    if (_captureHeld) throw const CaptureRefused('quiz-capture-held');
+    _captureTimeoutCode = 'quiz-capture-native-frame-timeout';
+    await _nativeFrame();
+    if (_captureHeld) throw const CaptureRefused('quiz-capture-held');
+    _captureTimeoutCode = 'quiz-capture-renderer-timeout';
     final RetainedRendererFrame frame = await RetainedRendererFrame.capture(
       view: view,
       expectedSize: _client,
       sourceCurrent: current,
     );
     try {
+      _captureTimeoutCode = 'quiz-capture-encoding-timeout';
       final List<int> png = await frame.encodePng();
+      if (_captureHeld) throw const CaptureRefused('quiz-capture-held');
+      _captureTimeoutCode = 'quiz-capture-window-timeout';
       if (await windowManager.isMinimized() || !frame.isCurrent) {
         throw const CaptureRefused('quiz-capture-source-changed');
       }
@@ -298,6 +334,7 @@ final class NativeQuizCatalog {
         'png': base64Encode(png),
       };
     } finally {
+      _captureTimeoutCode = 'quiz-capture-release-timeout';
       await frame.release();
     }
   }

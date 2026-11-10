@@ -959,7 +959,13 @@ class HarnessAgent {
   }
 
   Future<Map<String, Object?>> _runWalletCommand(Map<String, dynamic> c) async {
-    switch (c['cmd'] as String? ?? 'ping') {
+    final String command = c['cmd'] as String? ?? 'ping';
+    if (_nativeQuiz?.captureBlocked == true &&
+        command != 'ping' &&
+        command != 'quit') {
+      throw HarnessError('quiz-capture-held');
+    }
+    switch (command) {
       case 'ping':
         return <String, Object?>{
           'pid': pid,
