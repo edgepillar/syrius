@@ -137,6 +137,7 @@ class PairInspectionTests(unittest.TestCase):
         self.assertEqual(result['normal_actor_exits'], 5)
         self.assertEqual(result['frame_counts'], {'p06': 2, 'current': 2})
         self.assertEqual(result['slow_frame_counts'], {'p06': 1, 'current': 1})
+        self.assertEqual(result['comparison'], report(self.pins)['comparison'])
 
     def test_p06_warmup_and_measurement_use_the_selected_baseline_binary(self):
         _, sample = report(self.pins)['samples']
@@ -173,6 +174,7 @@ class PairInspectionTests(unittest.TestCase):
         attempt.update(action_complete=False, error_codes=['STARTUP_DEADLINE'], lock_diagnostic=diagnostic)
         result = self.project(value)
         self.assertFalse(result['artifact_reported_success'])
+        self.assertIsNone(result['comparison'])
         self.assertEqual(result['normal_actor_exits'], 5)
         self.assertEqual(result['attempt_outcomes']['p06'][-1]['lock_diagnostic'], diagnostic)
         film = dict(frames=54, shown=31, done=False)
@@ -226,6 +228,7 @@ class PairInspectionTests(unittest.TestCase):
         self.assertTrue(result['artifact_reported_success'])
         self.assertFalse(result['no_added_reported_slow_frames'])
         self.assertFalse(result['no_frame_number_gaps'])
+        self.assertEqual(result['comparison'], value['comparison'])
 
     def test_pair_retains_the_full_frame_limit_within_one_manifest(self):
         value = report(self.pins)
@@ -240,6 +243,7 @@ class PairInspectionTests(unittest.TestCase):
         result = self.project(value)
         self.assertEqual(result['frame_counts'], {'p06': 512, 'current': 512})
         self.assertEqual(result['slow_frame_counts'], {'p06': 512, 'current': 512})
+        self.assertLessEqual(len(json.dumps(result, sort_keys=True).encode('ascii')), 3800)
 
     def test_packed_pair_preserves_all_frames_and_rejects_corrupt_payloads(self):
         count = pair.launch.MAX_PAIRED_TIMING_FRAMES

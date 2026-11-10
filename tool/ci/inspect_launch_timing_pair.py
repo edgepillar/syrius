@@ -195,6 +195,7 @@ def project(raw, expected_sha, expected_size, *, head, tree, run_id, pins):
         manifest_sha256=archive.sha(manifest), artifact_reported_success=complete,
         original_phase=report['phase'], error_codes=report['error_codes'],
         p06_source=pair.P06_SOURCE, p06_overlay_tree=pair.P06_OVERLAY_TREE,
+        comparison=comparison,
         normal_actor_exits=closed, runtime_started=False, verified_png_count=0,
         attempt_outcomes=pair.attempt_outcomes(report['samples']),
         frame_counts={name: pair.launch.frame_timing_count(window) for name, window in windows.items()},

@@ -928,6 +928,22 @@ channels after Flutter's floating-point paint round trip. Native timing
 and the corrected widget result remain open.
 [Original run](https://github.com/edgepillar/syrius/actions/runs/42900930074).
 
+Source641 passes selected analysis, all 1,390 Dart cases and 1,134 Python
+cases with eighteen skips. Its Release build and paired launch measurement
+complete. The independent reader verifies the 22,396-byte archive and all
+five normal actor exits. The current sample has 193 frames and 93 reported
+slow frames. P06 has 577 frames and 551 reported slow frames. Both the
+sorted slow-frame duration criterion and the complete frame-number
+criterion remain unmet.
+[Producer](https://github.com/edgepillar/syrius/actions/runs/42903961024)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42907052611).
+
+The independent projection now exposes its recomputed comparison, including
+the frame budget, per-stage slow counts, longest total frame time,
+frame-number gaps and exceeded stages. The existing successful, partial and
+regression controls bind this detail to the verified original windows. The
+maximum-size fixture also checks the existing finite notice limit.
+
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied
 owner, confirmed receipt and exact Project row. The original Project
