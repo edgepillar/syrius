@@ -153,6 +153,7 @@ ROOT_TEST_FILES = (
     'fixture_cleanup_test.dart',
     'flight_state_test.dart',
     'font_fallback_test.dart',
+    'frame_window_test.dart',
     'frosted_route_test.dart',
     'frosted_surface_test.dart',
     'fuse_plasma_bloc_test.dart',

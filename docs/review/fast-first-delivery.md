@@ -699,6 +699,12 @@ cover the prepared Home to Settings, About disclosure and cold-lock
 sequences. Fresh source checks, paired native timing and the visual Motion
 and Shaders pass remain open.
 
+The Source622 run stops before Flutter allocation on two controller
+assertions. Source623 registers the frame window test basename for public
+failure reports and expects 52 suites in each focused test group. The two
+controller modules pass in memory. Fresh Dart analysis and tests remain
+pending. [Original run](https://github.com/edgepillar/syrius/actions/runs/42837977665).
+
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied
 owner, confirmed receipt and exact Project row. The original Project
