@@ -143,38 +143,62 @@ class StartupInspectionTests(unittest.TestCase):
         lock = dict(kind='field', key='wallet_password_field')
         report = dict(schema=1, scope='harness_frame_window', windowUs=3000000,
                       frames=[[0, 10, 200, 300, 500]])
+        process._exchange = mock.Mock(side_effect=[
+            (400, dict(ok=False, error='not there after 0 ms')),
+            (400, dict(ok=False, error='not ready after 0 ms')),
+            (200, dict(ok=True, target=dict(lock, enabled=False))),
+            (200, dict(ok=True, target=lock)),
+            (200, dict(ok=True, target=lock)),
+        ])
         process._rpc = mock.Mock(side_effect=[
-            dict(ok=True, target=dict(lock, enabled=False)),
-            dict(ok=True, target=lock),
             dict(ok=True, booted=True, walletUnlocked=False, size=[1200, 600]),
-            dict(ok=True, target=lock),
             dict(ok=True, booted=True, walletUnlocked=False, size=[1280, 780]),
             dict(ok=True, **report),
         ])
         self.assertEqual(process._observe_frame_timing(), report)
         wait = dict(cmd='wait', key='wallet_password_field', kind='field',
-                    exact=True, ready=True, timeoutMs=20000)
+                    exact=True, ready=True, timeoutMs=0)
+        self.assertEqual(process._exchange.call_args_list, [mock.call(wait, until=20)] * 5)
         self.assertEqual([call.args[0] for call in process._rpc.call_args_list], [
-            wait, wait, dict(cmd='state'), wait, dict(cmd='state'),
-            dict(cmd='stalls', frameWindow='end'),
+            dict(cmd='state'), dict(cmd='state'), dict(cmd='stalls', frameWindow='end'),
         ])
-        self.assertEqual(process.sleep.call_args_list, [mock.call(launch.LIMITS.poll)] * 2)
+        self.assertEqual(process.sleep.call_args_list, [mock.call(launch.LIMITS.poll)] * 4)
+
+    def test_launch_timing_keeps_pending_distinct_from_an_actual_command_failure(self):
+        launch = inspect.launch
+        cases = (
+            ((400, dict(ok=False, error='not there after 0 ms')), 'STARTUP_DEADLINE'),
+            ((400, dict(ok=False, error='not ready after 0 ms')), 'STARTUP_DEADLINE'),
+            ((400, dict(ok=False, error='bad token')), 'COMMAND_FAILED'),
+            ((500, dict(ok=False, error='not ready after 0 ms')), 'COMMAND_FAILED'),
+        )
+        for reply, code in cases:
+            with self.subTest(reply=reply):
+                process = object.__new__(launch.LaunchProcess)
+                process.deadline, process.started, process.limits = 65, 0, launch.LIMITS
+                process.clock = mock.Mock(side_effect=(0, 0, 0, 20))
+                process.sleep, process._rpc = mock.Mock(), mock.Mock()
+                process._exchange = mock.Mock(return_value=reply)
+                with self.assertRaisesRegex(inspect.startup.Failure, '^' + code + '$'):
+                    process._observe_frame_timing()
+                process._rpc.assert_not_called()
+                self.assertEqual(process._exchange.call_count, 1)
 
     def test_launch_timing_refuses_unrestored_geometry_at_its_deadline(self):
         launch = inspect.launch
         process = object.__new__(launch.LaunchProcess)
         process.deadline, process.started = 65, 0
-        process.clock = mock.Mock(side_effect=(0, 0, 0, 0, 20))
+        process.clock = mock.Mock(side_effect=(0, 0, 0, 20))
         process.sleep = mock.Mock()
         process.limits = launch.LIMITS
-        process._rpc = mock.Mock(side_effect=[
-            dict(ok=True, target=dict(kind='field', key='wallet_password_field')),
-            dict(ok=True, booted=True, walletUnlocked=False, size=[1200, 600]),
-        ])
+        process._exchange = mock.Mock(return_value=(
+            200, dict(ok=True, target=dict(kind='field', key='wallet_password_field'))))
+        process._rpc = mock.Mock(return_value=dict(
+            ok=True, booted=True, walletUnlocked=False, size=[1200, 600]))
         with self.assertRaisesRegex(inspect.startup.Failure, '^WINDOW_INVALID$'):
             process._observe_frame_timing()
-        self.assertEqual([call.args[0]['cmd'] for call in process._rpc.call_args_list],
-                         ['wait', 'state'])
+        process._rpc.assert_called_once_with(dict(cmd='state'), until=20)
+        self.assertEqual(process._exchange.call_count, 1)
 
     def test_launch_timing_main_retains_one_manifest_without_a_capture(self):
         launch = inspect.launch
@@ -282,15 +306,15 @@ class StartupInspectionTests(unittest.TestCase):
         launch = inspect.launch
         process = object.__new__(launch.LaunchProcess)
         process.deadline, process.started = 65, 0
-        process.clock = lambda: 0
-        process._rpc = mock.Mock(side_effect=[
-            dict(ok=True, target=dict(kind='field', key='wallet_password_field')),
-            dict(ok=True, booted=True, walletUnlocked=True, size=[1280, 780]),
-        ])
+        process.clock, process.limits = lambda: 0, launch.LIMITS
+        process._exchange = mock.Mock(return_value=(
+            200, dict(ok=True, target=dict(kind='field', key='wallet_password_field'))))
+        process._rpc = mock.Mock(return_value=dict(
+            ok=True, booted=True, walletUnlocked=True, size=[1280, 780]))
         with self.assertRaisesRegex(inspect.startup.Failure, '^ENTRY_INVALID$'):
             process._observe_frame_timing()
-        self.assertEqual([call.args[0]['cmd'] for call in process._rpc.call_args_list],
-                         ['wait', 'state'])
+        process._rpc.assert_called_once_with(dict(cmd='state'), until=20)
+        self.assertEqual(process._exchange.call_count, 1)
         good = dict(schema=1, scope='harness_frame_window', windowUs=1000,
                     frames=[[0, 0, 30, 40, 70]])
         for bad in (dict(schema=True), dict(frames=[]), dict(private='private'),

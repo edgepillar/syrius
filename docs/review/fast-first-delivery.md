@@ -768,10 +768,28 @@ independent reader recomputes the 16 ms comparison and verifies the retained
 source, inputs and exit evidence. Fresh native timing, the page and disclosure
 measurements, and the running Motion and Shaders review remain open.
 
-Source630 uses the selected P06 binary for both its preparation start and
-its measured start. The regression test exercises the original preparation
-and measurement order. All 56 selected local controls pass. The producer
-and independent reader also pass complete and interrupted in-memory pairs.
+Source630 uses the selected P06 binary for its ordinary warmup and measured
+start. The current binary first prepares each isolated profile. The
+regression test exercises that order. All 56 selected local controls pass.
+The producer and independent reader also pass complete and interrupted
+in-memory pairs.
+
+The original Source630 Windows run passes selected analysis, 1,388 Dart
+tests and 1,127 Python cases with eighteen skips. The current Release build
+records 270 original frames. P06 builds with the same SDK and locked inputs
+and its timing actor reports HTTP_FAILED before returning any frames. All
+five original actors exit normally. The independent reader binds the
+16,033-byte archive to the failed producer and confirms the partial result.
+The precise P06 transport cause and the paired comparison remain open.
+[Producer](https://github.com/edgepillar/syrius/actions/runs/42865836277) and
+[independent reader](https://github.com/edgepillar/syrius/actions/runs/42868723130).
+
+The cold timing controller asks the original agent to evaluate the enabled,
+reachable password predicate once per request. Both supported pending replies
+allow another sample within the existing deadline. Unexpected HTTP or command
+failures still stop the original attempt. This removes the shared deadline
+between the agent's wait and its transport. Fresh Windows qualification is
+pending.
 
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied

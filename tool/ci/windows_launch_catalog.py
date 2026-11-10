@@ -160,17 +160,21 @@ class LaunchProcess(startup.StartupProbe):
     def _observe_frame_timing(self):
         until = min(self.deadline - 5, self.started + 50, self.clock() + 20)
         window_pending = False
-        while self.clock() < until:
-            remaining_ms = int((until - self.clock()) * 1000)
-            need(remaining_ms > 0, 'STARTUP_DEADLINE')
-            reply = self._rpc(dict(cmd='wait', key='wallet_password_field',
-                                   kind='field', exact=True, ready=True,
-                                   timeoutMs=remaining_ms), until=until)
-            target = reply.get('target')
-            need(type(target) is dict and target.get('key') == 'wallet_password_field'
-                 and target.get('kind') == 'field'
-                 and type(target.get('enabled', True)) is bool, 'ENTRY_UNAVAILABLE')
-            if target.get('enabled', True):
+        # A zero-wait original predicate leaves time for its HTTP reply.
+        # P06 and the current agent use different fixed pending messages.
+        while self.clock() + self.limits.poll < until:
+            status, reply = self._exchange(dict(cmd='wait', key='wallet_password_field',
+                kind='field', exact=True, ready=True, timeoutMs=0), until=until)
+            pending = (status == 400 and reply['ok'] is False
+                and reply.get('error') in ('not there after 0 ms', 'not ready after 0 ms'))
+            target = None
+            if not pending:
+                need(status == 200 and reply['ok'] is True, 'COMMAND_FAILED')
+                target = reply.get('target')
+                need(type(target) is dict and target.get('key') == 'wallet_password_field'
+                     and target.get('kind') == 'field'
+                     and type(target.get('enabled', True)) is bool, 'ENTRY_UNAVAILABLE')
+            if target is not None and target.get('enabled', True):
                 state = self._rpc({'cmd': 'state'}, until=until)
                 need(state.get('booted') is True and state.get('walletUnlocked') is False,
                      'ENTRY_INVALID')
