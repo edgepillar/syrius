@@ -562,6 +562,41 @@ used once within the existing eighteen reads. The exact deposit effect still
 gates registration. A new controlled test checks one tap, one longer interval
 and the later ledger effect. Fresh Windows evidence remains open.
 
+Source611 clears selected Dart analysis and completes 1,381 Dart cases and
+1,107 Python cases with eighteen skips. The Source611 Pillar Done run confirms
+Fuse, the exact QSR deposit effect and the Pillar registration. The independent
+reader verifies the two 1280 by 780 PNGs from the same registration and normal
+original and copied closure. The catalog has 92 of 94 literal outputs.
+Accelerator project detail remains open in both themes. [Windows
+producer](https://github.com/edgepillar/syrius/actions/runs/42800970254) and
+[independent
+reader](https://github.com/edgepillar/syrius/actions/runs/42804291806).
+
+The Source611 Accelerator project-detail run stops before the first wallet
+send. Both original endpoints remain at height 18 through six preflight reads.
+A separate passive check records four peers. All five original nodes close
+normally, and cleanup forces a required wallet actor. The stationary cause
+remains unestablished. The independent reader verifies both retained manifests.
+The project-detail pair remains open. [Windows
+producer](https://github.com/edgepillar/syrius/actions/runs/42797593948) and
+[independent
+reader](https://github.com/edgepillar/syrius/actions/runs/42800643251).
+
+Source612 reuses four existing producer failure categories in the finite native
+node log projection. It reads the same two original files and preserves the
+existing RPC, shutdown and report bounds. All 74 selected Python controls pass.
+Fresh Windows evidence and the stationary cause remain open.
+
+The existing comparator computes numeric scores for 32 exact Home, Settings and
+Details pairs from three previously verified archives in memory. Each pair
+retains its historical source and both PNG hashes. The visual verdicts remain
+open.
+
+The P06 baseline source and Source611 use the same stall collector and Flutter
+pin. The existing readonly tours retain aggregate stall observations. The
+launch, page change and disclosure still require separate native timing
+windows.
+
 The optional `--no-diff-images` comparison preserves scores, input hashes
 and review state. In-memory controls with 94 synthetic PNG pairs encode
 94 difference images in the standard mode and zero in the compact mode.
@@ -695,8 +730,8 @@ frontier reads after such a failure. Their native observation remains pending.
 | Original gate | Required evidence |
 | --- | --- |
 | P03/P09 | Complete the documented Windows Docker route. Earlier Linux defaults, WSL installation and the Source548 native lab retain their separate scopes. |
-| F06 | Complete the seeded screen states and coordinator/peer Swap prerequisites. Source548 qualifies the original six receipts and copied lifecycle. Source561 qualifies the restored Stake and Token captures. Source563 qualifies the separate New stake draft with one Stake prerequisite. Source569 qualifies the Sentinel fixture pair. Source607 verifies the Spawn pair. Source608 confirms Pillar registration in the incomplete prefix, with copied closure and the Pillar Done pair open. |
-| V01/V05 | Obtain 4 missing literal outputs, review all 94 pairs, resolve retained layout/type/spacing findings and explicitly accept each match. Availability is 90/94. Accepted whole-image matches are 0/94. |
+| F06 | Complete the seeded screen states and coordinator/peer Swap prerequisites. Source548 qualifies the original six receipts and copied lifecycle. Source561 qualifies the restored Stake and Token captures. Source563 qualifies the separate New stake draft with one Stake prerequisite. Source569 qualifies the Sentinel fixture pair. Source607 verifies the Spawn pair. Source608 confirms Pillar registration in the incomplete prefix, in its original failed attempt. Source611 separately verifies the confirmed registration, both Pillar Done captures and normal closure. |
+| V01/V05 | Obtain 2 missing literal outputs, review all 94 pairs, resolve retained layout/type/spacing findings and explicitly accept each match. Availability is 92/94. Accepted whole-image matches are 0/94. |
 | V02 | Observe every motion/shader row in the running build and compare page-change, disclosure and launch frame times with the original baseline. Finite widget timing or stall telemetry alone does not close this gate. |
 | V03 | Try every original seam control, shortcut and Go To entry in the running native wallet and verify refusal. Registry and widget controls remain partial evidence. |
 | V06 | Check every original end-state requirement and complete independent final acceptance. The earlier minimum-window/Arabic viewing remains source-bound. |

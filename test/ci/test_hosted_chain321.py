@@ -273,12 +273,19 @@ class RuntimeDiagnosticTests(unittest.TestCase):
         calls = []
         def read(path):
             calls.append(path)
-            return b'private-path msg="stopping p2p server ..."'
+            return (b'private-path msg="stopping p2p server ..."\n'
+                    b'msg="failed to generate momentum" reason=private\n'
+                    b'msg="do not broadcast own momentum" reason=private\n'
+                    b'msg="unable to insert autoreceive block" reason=private\n'
+                    b'msg="failed to update contracts" reason=private')
         with mock.patch.object(lab, "directories"), mock.patch.object(lab, "regular", side_effect=read):
             result = lab.native_log_projection(Path("fixture"))
         self.assertEqual(calls, [Path("fixture/log/zenon.log"), Path("fixture/log/error/zenon.error.log")])
         self.assertEqual(result["status"], "READ")
-        self.assertEqual(result["codes"], ["NODE_P2P_STOP_REQUESTED"])
+        self.assertEqual(result["codes"], [
+            "NODE_CONTRACT_RECEIVE_FAILED", "NODE_CONTRACT_UPDATE_FAILED",
+            "NODE_MOMENTUM_GENERATION_FAILED", "NODE_MOMENTUM_NOT_BROADCAST",
+            "NODE_P2P_STOP_REQUESTED"])
         self.assertNotIn("private", json.dumps(result))
         self.assertTrue(all(set(item) == {"kind", "bytes", "sha256"} for item in result["files"]))
 

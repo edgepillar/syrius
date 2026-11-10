@@ -282,15 +282,7 @@ def failure_file_logs(commands, owned):
 
 def node_file_diagnostics(raw):
     """Expose only fixed producer error categories from the pinned node source."""
-    patterns = (
-        ('NODE_MOMENTUM_GENERATION_FAILED', r'failed to generate momentum'),
-        ('NODE_MOMENTUM_NOT_BROADCAST', r'do not broadcast own momentum'),
-        ('NODE_CONTRACT_RECEIVE_FAILED', r'unable to (?:generate receive|insert autoreceive) block'),
-        ('NODE_CONTRACT_UPDATE_FAILED', r'failed to update contracts'),
-    )
-    text = raw.decode('utf-8', 'replace')
-    return (hosted.node_diagnostics(raw) + [name for name, pattern in patterns
-        if re.search(pattern, text)])[:4]
+    return hosted.node_diagnostics(raw, producer_failures=True)[:4]
 
 
 class Commands:

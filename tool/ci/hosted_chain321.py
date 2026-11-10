@@ -73,6 +73,8 @@ NODE_DIAGNOSTICS = frozenset((
     "NODE_STARTUP_FAILED", "NODE_SIGNAL_RECEIVED",
     "NODE_STOP_REQUESTED", "NODE_P2P_STOP_REQUESTED", "NODE_HTTP_STOPPED",
     "NODE_DATA_LOCK_RELEASE_REQUESTED", "NODE_STOP_FAILED",
+    "NODE_MOMENTUM_GENERATION_FAILED", "NODE_MOMENTUM_NOT_BROADCAST",
+    "NODE_CONTRACT_RECEIVE_FAILED", "NODE_CONTRACT_UPDATE_FAILED",
 ))
 
 
@@ -464,7 +466,7 @@ def failure_code(error):
             and error.code in CODES else "INTERNAL_ERROR")
 
 
-def node_diagnostics(raw):
+def node_diagnostics(raw, *, producer_failures=False):
     """Finite node failure categories; never include log text or paths."""
     text = raw.decode("utf-8", "replace")
     patterns = (
@@ -482,6 +484,14 @@ def node_diagnostics(raw):
         ("NODE_DATA_LOCK_RELEASE_REQUESTED", r"releasing dataDir lock"),
         ("NODE_STOP_FAILED", r"failed to stop (?:node|wallet|zenon)"),
     )
+    if producer_failures:
+        patterns += (
+            ("NODE_MOMENTUM_GENERATION_FAILED", r"(?-i:failed to generate momentum)"),
+            ("NODE_MOMENTUM_NOT_BROADCAST", r"(?-i:do not broadcast own momentum)"),
+            ("NODE_CONTRACT_RECEIVE_FAILED",
+             r"(?-i:unable to (?:generate receive|insert autoreceive) block)"),
+            ("NODE_CONTRACT_UPDATE_FAILED", r"(?-i:failed to update contracts)"),
+        )
     return [code for code, pattern in patterns if re.search(pattern, text, re.IGNORECASE)]
 
 
@@ -580,7 +590,7 @@ def native_log_projection(data):
             except FileNotFoundError:
                 continue
             result["files"].append(dict(kind=kind, bytes=len(raw), sha256=digest(raw)))
-            result["codes"].extend(node_diagnostics(raw))
+            result["codes"].extend(node_diagnostics(raw, producer_failures=True))
         result["codes"] = sorted(set(result["codes"]))
         result["status"] = "READ" if result["files"] else "MISSING"
     except Exception:
