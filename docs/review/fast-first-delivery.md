@@ -834,7 +834,20 @@ pixel row counts and the reference row alignment from the same verified
 archive read. The original Source620 dark and light images reproduce two
 covered rows, and both reference images reproduce one. The new reader
 keeps the pixel data in memory and emits a separate bounded receipt.
-Fresh native entry capture and whole-image review remain open.
+
+Source636 verifies all four original entry captures and the normal exit.
+The independent reader measures rows 280 and 281 across the 108-column
+first Import connector in both themes. The reference occupies row 280.
+The Welcome files have the same digests as Source620. X639 and X640
+retain the Import connector finding.
+[Original capture](https://github.com/edgepillar/syrius/actions/runs/42890014228)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42891336631).
+
+The connector now aligns its top edge in the logical view while preserving
+its one-pixel layout. The updated regression samples the specific row
+through a fractional ancestor paint layer. Both changed Dart files pass
+local analysis. The widget regression and fresh Windows capture remain
+open.
 
 The paired timing overlay now retains a fixed reason when the original
 frame window refuses. The reasons distinguish lock checks, frame order,

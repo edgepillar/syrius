@@ -91,56 +91,56 @@ Color _colorAt(ByteData pixels, int offset) => Color.fromARGB(
 );
 
 void main() {
-  testWidgets('the entry step connector fills one row at a fractional offset', (
-    WidgetTester tester,
-  ) async {
-    prepareEntryViewport(tester);
-    const AppTokens tokens = AppTokens.dark;
-    await tester.pumpWidget(
-      entryHost(
-        RepaintBoundary(
-          key: _paintBoundary,
-          child: ColoredBox(
-            color: tokens.card2,
-            child: Center(
-              child: Transform.translate(
-                offset: const Offset(0, 0.25),
-                child: const SizedBox(
-                  width: 620,
-                  child: EntryStepPosition(
-                    steps: <String>['First', 'Second'],
-                    step: 0,
+  testWidgets(
+    'the entry step connector aligns to a logical row across paint layers',
+    (
+      WidgetTester tester,
+    ) async {
+      prepareEntryViewport(tester);
+      const AppTokens tokens = AppTokens.dark;
+      await tester.pumpWidget(
+        entryHost(
+          RepaintBoundary(
+            key: _paintBoundary,
+            child: ColoredBox(
+              color: tokens.card2,
+              child: Center(
+                child: Transform.translate(
+                  offset: const Offset(0, 0.75),
+                  child: const RepaintBoundary(
+                    child: SizedBox(
+                      width: 620,
+                      child: EntryStepPosition(
+                        steps: <String>['First', 'Second'],
+                        step: 0,
+                      ),
+                    ),
                   ),
                 ),
               ),
             ),
           ),
         ),
-      ),
-    );
-    final Finder connector = find.descendant(
-      of: find.byType(EntryStepPosition),
-      matching: find.byType(CustomPaint),
-    );
-    expect(connector, findsOneWidget);
-    final Rect bounds = tester.getRect(connector);
-    expect(bounds.height, 1);
-    expect(bounds.top, isNot(bounds.top.roundToDouble()));
-    final double row = bounds.top.floorToDouble();
-    final List<Color> colors = await _paintedColors(tester, <Offset>[
-      for (int delta = -1; delta <= 2; delta++)
-        Offset(bounds.center.dx, row + delta),
-    ]);
-    expect(
-      colors,
-      unorderedEquals(<Color>[
-        tokens.card2,
-        tokens.card2,
-        tokens.card2,
-        tokens.line,
-      ]),
-    );
-  });
+      );
+      final Finder connector = find.descendant(
+        of: find.byType(EntryStepPosition),
+        matching: find.byType(Expanded),
+      );
+      expect(connector, findsOneWidget);
+      final Rect bounds = tester.getRect(connector);
+      expect(bounds.height, 1);
+      expect(bounds.top, isNot(bounds.top.roundToDouble()));
+      final double row = bounds.top.floorToDouble();
+      final List<Color> colors = await _paintedColors(tester, <Offset>[
+        for (int delta = -1; delta <= 2; delta++)
+          Offset(bounds.center.dx, row + delta),
+      ]);
+      expect(
+        colors,
+        <Color>[tokens.card2, tokens.line, tokens.card2, tokens.card2],
+      );
+    },
+  );
 
   for (final bool light in <bool>[false, true]) {
     testWidgets(

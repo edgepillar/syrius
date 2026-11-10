@@ -231,10 +231,7 @@ class EntryStepPosition extends StatelessWidget {
                       padding: EdgeInsetsDirectional.symmetric(
                         horizontal: tokens.entryStepLineInset,
                       ),
-                      child: CustomPaint(
-                        size: const Size(0, 1),
-                        painter: _EntryStepConnectorPainter(tokens.line),
-                      ),
+                      child: _EntryStepConnector(tokens.line),
                     ),
                   ),
                 items[index],
@@ -247,23 +244,57 @@ class EntryStepPosition extends StatelessWidget {
   }
 }
 
-class _EntryStepConnectorPainter extends CustomPainter {
-  const _EntryStepConnectorPainter(this.color);
+class _EntryStepConnector extends LeafRenderObjectWidget {
+  const _EntryStepConnector(this.color);
 
   final Color color;
 
   @override
-  void paint(Canvas canvas, Size size) {
-    // Fill the connector without blending a fractional offset into two rows.
-    canvas.drawRect(
-      Offset.zero & size,
-      Paint()
+  _RenderEntryStepConnector createRenderObject(BuildContext context) =>
+      _RenderEntryStepConnector(color);
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    _RenderEntryStepConnector renderObject,
+  ) {
+    renderObject.updateColor(color);
+  }
+}
+
+class _RenderEntryStepConnector extends RenderBox {
+  _RenderEntryStepConnector(Color color)
+    : _paint = (Paint()
         ..color = color
-        ..isAntiAlias = false,
-    );
+        ..isAntiAlias = false);
+
+  final Paint _paint;
+
+  void updateColor(Color value) {
+    if (_paint.color == value) return;
+    _paint.color = value;
+    markNeedsPaint();
   }
 
   @override
-  bool shouldRepaint(_EntryStepConnectorPainter oldDelegate) =>
-      oldDelegate.color != color;
+  bool get sizedByParent => true;
+
+  @override
+  Size computeDryLayout(BoxConstraints constraints) =>
+      constraints.constrain(const Size(0, 1));
+
+  @override
+  Rect get paintBounds => Rect.fromLTRB(0, -1, size.width, size.height);
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    // The logical view includes ancestor offsets outside this paint layer.
+    final double top =
+        MatrixUtils.getAsTranslation(getTransformTo(null))?.dy ?? 0;
+    final double correction = top.floorToDouble() - top;
+    context.canvas.drawRect(
+      offset.translate(0, correction) & size,
+      _paint,
+    );
+  }
 }
