@@ -136,6 +136,18 @@ class GoToPalette<T> extends StatefulWidget {
   /// The key used by the shell's displayed shortcuts, for example Cmd.
   final String chordName;
 
+  /// Checks the visible palette's current results before a guarded key input.
+  static bool hasOnlySeamedResult(BuildContext context, Seam seam) {
+    final _GoToPaletteState<Object?>? state =
+        context.findAncestorStateOfType<_GoToPaletteState<Object?>>();
+    return state != null &&
+        !state._answered &&
+        !state._composing &&
+        state._highlighted == -1 &&
+        state._matches.length == 1 &&
+        state._matches.single.seam == seam;
+  }
+
   @override
   State<GoToPalette<T>> createState() => _GoToPaletteState<T>();
 }
@@ -449,7 +461,15 @@ class _GoToPaletteState<T> extends State<GoToPalette<T>> {
             onHover: () => _hoverEntry(entry),
             onTap: () => _takeEntry(entry),
           );
-          if (entry.seam != null) row = SeamGate(seam: entry.seam!, child: row);
+          final Seam? seam = entry.seam;
+          if (seam != null) {
+            final Object? id = entry.id;
+            row = SeamGate(
+              key: id is String ? ValueKey<String>('go_to_gate_$id') : null,
+              seam: seam,
+              child: row,
+            );
+          }
           return SizedBox(height: metrics.row, child: row);
         },
       ),

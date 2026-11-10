@@ -1578,6 +1578,16 @@ void main() {
         await expectLater(scope.agent.commandForTest(<String, dynamic>{
           'cmd': 'type', 'key': entry.key, 'text': 'Synthetic input',
         }), throwsA(isA<HarnessError>()));
+        await expectLater(
+          scope.agent.commandForTest(<String, dynamic>{
+            'cmd': 'key', 'key': 'enter', 'paletteGate': entry.key,
+          }),
+          throwsA(isA<HarnessError>().having(
+            (HarnessError error) => error.message,
+            'message',
+            'readonly-palette-keyboard-refused',
+          )),
+        );
         final Map<String, dynamic> probe = <String, dynamic>{
           'cmd': readonlySeamPointerCommand,
           'key': entry.key,

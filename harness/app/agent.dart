@@ -39,6 +39,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/plasma_owner
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/widgets/send_confirmation.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/widgets/send_populated.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/disclosure.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/go_to_palette.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/list_entrance.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/motion/rise_switcher.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/motion/state_switcher.dart';
@@ -4383,6 +4384,23 @@ class HarnessAgent {
 
   /// `key` is a chord such as `enter`, `escape`, `shift+tab` or `ctrl+a`.
   Future<Map<String, Object?>> _key(Map<String, dynamic> c) async {
+    if (c.containsKey('paletteGate')) {
+      const String refusal = 'readonly-palette-keyboard-refused';
+      final Object? key = c['paletteGate'];
+      if (_readonlyNative == null || c.length != 3 ||
+          key is! String || key.isEmpty || key.length > 128 ||
+          !const <String>{'down', 'enter'}.contains(c['key'])) {
+        throw HarnessError(refusal);
+      }
+      final List<_Node> targets = _visibleKeyNodes(key);
+      final Widget? gate =
+          targets.length == 1 ? targets.single.element.widget : null;
+      if (gate is! SeamGate ||
+          ModalRoute.of(targets.single.element)?.isCurrent != true ||
+          !GoToPalette.hasOnlySeamedResult(targets.single.element, gate.seam)) {
+        throw HarnessError(refusal);
+      }
+    }
     final List<String> chord = (c['key'] as String).toLowerCase().split('+');
     final List<(LogicalKeyboardKey, PhysicalKeyboardKey)> keys =
         <(LogicalKeyboardKey, PhysicalKeyboardKey)>[

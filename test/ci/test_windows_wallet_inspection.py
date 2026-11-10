@@ -223,7 +223,7 @@ class InspectionTests(unittest.TestCase):
             SYRIUS_WINDOWS_WALLET_TOUR='false', SYRIUS_LAB_NODE_SOURCE='lab-fix',
             SYRIUS_NATIVE_STACK_DIAGNOSTIC='true')
         self.assertEqual(lab.readonly_catalog_family(parent), 'details')
-        for family, schema in (('home', 1), ('home-bell', 8), ('settings', 2),
+        for family, schema in (('home', 1), ('home-seams', 1), ('home-bell', 8), ('settings', 2),
                                ('settings-seams', 2),
                                ('navigation', 3), ('details', 4),
                                ('token-draft', 4), ('send-confirm', 5),
@@ -247,14 +247,14 @@ class InspectionTests(unittest.TestCase):
         self.assertIn('default: details', choice)
         self.assertEqual([line.strip()[2:] for line in choice.splitlines()
             if line.strip().startswith('- ')],
-            ['home', 'home-bell', 'home-zap-preview', 'settings', 'settings-seams',
+            ['home', 'home-seams', 'home-bell', 'home-zap-preview', 'settings', 'settings-seams',
              'navigation', 'details', 'token-draft',
              'send-confirm', 'send-warn', 'swap-start', 'wallet-ready', 'earn',
              'sentinel-fixture', 'launch', 'launch-settle',
              'lock-catalog', 'quiz-catalog', 'seeded-states',
              'stake-draft', 'project-detail', 'pillar-spawn', 'pillar-done'])
         self.assertIn('SYRIUS_READONLY_CATALOG_FAMILY: ${{ inputs.readonly_catalog_family }}', workflow)
-        for family in ('send-warn', 'settings-seams'):
+        for family in ('send-warn', 'settings-seams', 'home-seams'):
             scoped = dict(parent, SYRIUS_READONLY_CATALOG_FAMILY=family,
                 SYRIUS_HOSTED_RUNNER='github-hosted', GITHUB_ACTIONS='true',
                 GITHUB_EVENT_NAME='workflow_dispatch', GITHUB_REPOSITORY='edgepillar/syrius',
@@ -336,6 +336,63 @@ class InspectionTests(unittest.TestCase):
                 self.assertEqual([(row['seam'], row['key']) for row in inputs
                     if row['cmd'] == 'readonly-seam-pointer'],
                     targets if fault is None else targets[:1])
+
+    def test_home_seams_require_original_palette_after_keyboard(self):
+        for changed_route in (False, True):
+            with self.subTest(changed_route=changed_route):
+                route = 'original-home'
+                inputs, observed = [], []
+
+                def send(command):
+                    nonlocal route
+                    inputs.append(command)
+                    name = command['cmd']
+                    if name == 'state':
+                        return dict(tab='dashboard', route=route, address='original',
+                            locale='en', direction='ltr', node='ws://127.0.0.1:45998',
+                            chainId=321, signingChainId=321, savedSigningChainId=321,
+                            walletUnlocked=True, walletInitCompleted=True,
+                            embeddedNode=False, nodeTransitionPending=False)
+                    if name == 'key':
+                        chord = command['key']
+                        if chord in ('down', 'enter'):
+                            self.assertEqual(command['paletteGate'],
+                                             'go_to_gate_action:zap')
+                        if chord == 'ctrl+k':
+                            route = 'original-palette'
+                        elif chord == 'enter' and changed_route:
+                            route = 'replacement'
+                        elif chord == 'escape':
+                            route = 'original-home'
+                    if name == 'type':
+                        return dict(value=command['value'])
+                    if name == 'readonly-seam-pointer':
+                        return dict(scope='readonly_native_seam_pointer_observation',
+                            seam=command['seam'], pointerDispatched=True,
+                            absorptionObserved=True)
+                    if name == 'logs':
+                        return dict(logs=[])
+                    return {}
+
+                if changed_route:
+                    with self.assertRaises(inspection.Refused):
+                        inspection.observe_home_seam_pointers(send, observed)
+                else:
+                    inspection.observe_home_seam_pointers(send, observed)
+                    self.assertEqual(route, 'original-home')
+                    self.assertEqual(inputs[-1]['cmd'], 'logs')
+                expected = [dict(panel='home', seam='zapSend'),
+                    dict(panel='activity', seam='activityAddressScope')]
+                if not changed_route:
+                    expected.append(dict(panel='go-to', seam='zapSend',
+                                         keyboard_refused=True))
+                self.assertEqual(observed, expected)
+                chords = [v['key'] for v in inputs if v['cmd'] == 'key']
+                self.assertEqual(chords, ['ctrl+k', 'down', 'enter']
+                    + ([] if changed_route else ['escape']))
+                self.assertEqual([v['key'] for v in inputs
+                    if v['cmd'] == 'readonly-seam-pointer'],
+                    ['home_zap', 'activity_scope_filter', 'go_to_gate_action:zap'])
 
     def test_lab_failure_projection_retains_only_fixed_codes_and_refuses_success(self):
         labels = []

@@ -627,6 +627,14 @@ void main() {
         );
         final Finder gate = find.byType(SeamGate);
         expect(gate, findsOneWidget);
+        expect(
+          tester.widget<SeamGate>(gate).key,
+          const Key('go_to_gate_missing'),
+        );
+        expect(
+          GoToPalette.hasOnlySeamedResult(tester.element(gate), seam),
+          isTrue,
+        );
         expect(tester.widget<Tooltip>(_tooltip(gate)).message, 'Not yet');
         final SemanticsNode disabled = tester.getSemantics(gate);
         expect(
@@ -677,6 +685,13 @@ void main() {
       ),
       GoToEntry<int>(id: 'last', value: 3, label: 'Last'),
     ]);
+    expect(
+      GoToPalette.hasOnlySeamedResult(
+        tester.element(find.byType(SeamGate)),
+        Seam.zapSend,
+      ),
+      isFalse,
+    );
     await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
     await tester.pumpAndSettle();
     expect(_rowSemantics(tester, 'last').properties.selected, isTrue);

@@ -658,14 +658,31 @@ The wallet and entry exit zero with no required actor forced. One owned
 compiler telemetry helper requires termination after those exits. All 1,381
 selected Dart cases pass. The 1,108 Python cases complete with eighteen skips
 and selected analysis reports zero findings. The pilot adds no capture or
-separate build. The four ordinary archives await independent verification.
-Other surfaces, shortcuts and Go To checks remain open.
+separate build. The independent reader verifies the four original archives,
+42 PNG digests and all five original node exits. Other surfaces, shortcuts
+and Go To checks remain open.
 [Windows run](https://github.com/edgepillar/syrius/actions/runs/42825530077).
+[Independent reader](https://github.com/edgepillar/syrius/actions/runs/42828778672/job/129872985765).
 
-Source620 snaps the Import drop outline to device pixels. The earlier actual
-and reference pairs differ at the top edge in both themes. The existing dark
-and light paint cases now check the 1x width and retained 2x width. Fresh
-selected tests and both Windows pixel comparisons remain pending.
+Source620 snaps the Import drop outline to device pixels. The existing dark
+and light paint cases check the 1x width and retained 2x width. The selected
+analyzer reports zero findings. All 1,381 Dart cases pass. The 1,108 Python
+cases complete with eighteen skips. The independently verified Windows
+captures show the same single drop-outline top row in both themes. X639 and
+X640 record the remaining dash coverage and first connector differences.
+The two Welcome PNGs equal their earlier bytes and reuse the existing reviews.
+The two Import pairs were individually viewed. Overall 50 pairs have review
+bindings and zero whole-image matches are accepted.
+[Focused run](https://github.com/edgepillar/syrius/actions/runs/42828778672/job/129872985054).
+[Windows producer](https://github.com/edgepillar/syrius/actions/runs/42830536147).
+[Independent reader](https://github.com/edgepillar/syrius/actions/runs/42831787235).
+
+Source621 prepares direct pointer checks for Home Zap and the Activity scope
+control and a pointer and keyboard attempt at the Go To Zap result. Arrow
+Down and Enter require the original current palette and its single unavailable
+result at each input boundary. The existing ordinary Home wallet, storage
+sampler and shutdown are reused. Three in-memory controls pass. Native
+execution remains pending.
 
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied
