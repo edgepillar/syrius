@@ -46,6 +46,7 @@ on:
         default: details
         options:
           - home
+          - home-bell
           - settings
           - navigation
           - details

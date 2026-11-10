@@ -1,7 +1,9 @@
-# prerequisite: unlocked-home with retained notifications in an isolated profile
-# Connection proposals are supplied by a fake client only in widget tests.
+# prerequisite: unlocked-home
+# The hosted catalog uses the bound lab's original retained notifications.
 goto dashboard
-tap --key nav_notifications
-wait --key bell_panel
-assert --key bell_panel
-assert --key bell_clear
+goto notifications
+wait --key bell_clear --kind button --ready --timeout 15
+assert --key bell_close
+# after-capture: tap --key bell_close
+# after-capture: wait --key bell_panel --gone --timeout 10
+# after-capture: wait --key home_hero --timeout 5

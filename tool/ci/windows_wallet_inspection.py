@@ -26,8 +26,8 @@ from . import readonly_settings_capture as settings
 from . import readonly_navigation_capture as navigation
 from . import readonly_details_capture as details
 from .windows_debug_process import IMAGE_NAMES
-from .hosted_chain321 import (EARN_INSPECTION_SCHEMA, READONLY_CATALOG_SCHEMAS,
-    SEND_CONFIRM_INSPECTION_SCHEMA, SENTINEL_INSPECTION_SCHEMA,
+from .hosted_chain321 import (EARN_INSPECTION_SCHEMA, HOME_BELL_INSPECTION_SCHEMA,
+    READONLY_CATALOG_SCHEMAS, SEND_CONFIRM_INSPECTION_SCHEMA, SENTINEL_INSPECTION_SCHEMA,
     readonly_catalog_family)
 
 
@@ -50,6 +50,11 @@ HOME_OPEN_SCREENS = ('home-rest', 'home-open', 'home-hidden')
 HOME_GOTO_SCRIPT = Path('harness/screens/home-goto.txt')
 HOME_GOTO_FILES = HOME_OPEN_FILES + ('05-home-goto-dark.png', '05-home-goto-light.png')
 HOME_GOTO_SCREENS = HOME_OPEN_SCREENS + ('home-goto',)
+HOME_BELL_SCRIPT = Path('harness/screens/home-bell.txt')
+HOME_BELL_FILES = ('04-home-bell-dark.png', '04-home-bell-light.png')
+HOME_BELL_CAPTURE_SCHEMA = 5
+HOME_CAPTURE_SCHEMAS = {'home': 4, 'home-bell': HOME_BELL_CAPTURE_SCHEMA}
+HOME_INSPECTION_SCHEMAS = (1, HOME_BELL_INSPECTION_SCHEMA)
 CHECKS = ('environment', 'source', 'unused_destinations', 'job_owned',
     'entry_gate', 'entry_ready', 'application_owned', 'lab_revalidated',
     'input_released', 'wallet_bound', 'tours_complete', 'locale_verified',
@@ -57,6 +62,7 @@ CHECKS = ('environment', 'source', 'unused_destinations', 'job_owned',
     'output_complete', 'source_unchanged', 'auxiliary_cleanup')
 TOUR_CHECKS = ('tours_complete', 'locale_verified')
 CATALOG_ONLY_FAMILIES = {
+    HOME_BELL_INSPECTION_SCHEMA: 'home-bell',
     SEND_CONFIRM_INSPECTION_SCHEMA: 'send-confirm',
     EARN_INSPECTION_SCHEMA: 'earn',
     SENTINEL_INSPECTION_SCHEMA: 'sentinel-fixture',
@@ -107,7 +113,10 @@ def read_original(path, cap):
 
 def home_catalog_files(schema):
     """Each version admits a finite literal family, never a generic alias."""
-    need(type(schema) is int and schema in (1, 2, 3, 4), 'CAPTURE_REFUSED')
+    need(type(schema) is int and schema in (1, 2, 3, 4, HOME_BELL_CAPTURE_SCHEMA),
+         'CAPTURE_REFUSED')
+    if schema == HOME_BELL_CAPTURE_SCHEMA:
+        return HOME_BELL_FILES
     if schema == 1:
         return HOME_FILES
     if schema == 2:
@@ -117,6 +126,8 @@ def home_catalog_files(schema):
 
 def home_catalog_screens(schema):
     home_catalog_files(schema)
+    if schema == HOME_BELL_CAPTURE_SCHEMA:
+        return ('home-bell',)
     if schema == 1:
         return ('home-rest',)
     if schema == 2:
@@ -155,6 +166,8 @@ def home_capture_records(value, *, schema=1):
              and (row['width'], row['height'], row['scale']) == (1280, 780, 1),
              'CAPTURE_REFUSED')
     need(sum(row['bytes'] for row in value) <= MAX_HOME_CAPTURE_TOTAL, 'CAPTURE_REFUSED')
+    if schema == HOME_BELL_CAPTURE_SCHEMA:
+        need(len({row['sha256'] for row in value}) == len(files), 'CAPTURE_REFUSED')
     return value
 
 
@@ -180,6 +193,9 @@ def _home_script_field(schema):
 
 
 def _home_script_pins(repo, schema):
+    if schema == HOME_BELL_CAPTURE_SCHEMA:
+        return {'home-bell': hashlib.sha256(
+            read_original(repo / HOME_BELL_SCRIPT, 65536)).hexdigest()}
     first = hashlib.sha256(read_original(repo / HOME_SCRIPT, 65536)).hexdigest()
     if schema == 1:
         return first
@@ -456,7 +472,8 @@ def home_failure_diagnostic(value):
          'ENTRY_REFUSED')
     need(('screen' in value) == ('theme' in value), 'ENTRY_REFUSED')
     if 'screen' in value:
-        need(type(value['screen']) is str and value['screen'] in HOME_GOTO_SCREENS
+        need(type(value['screen']) is str
+             and value['screen'] in (*HOME_GOTO_SCREENS, 'home-bell')
              and type(value['theme']) is str and value['theme'] in THEMES,
              'ENTRY_REFUSED')
     script = value['last_entered_step'] in ('scriptLine', 'afterCaptureLine')
@@ -542,8 +559,11 @@ def inspection_catalog_reference(report):
     schema = report.get('schema')
     need(type(schema) is int and schema in READONLY_CATALOG_SCHEMAS.values(),
          'CAPTURE_REFUSED')
-    if schema == 1:
-        return home_catalog_reference(report['home_catalog'])
+    if schema in HOME_INSPECTION_SCHEMAS:
+        reference = home_catalog_reference(report['home_catalog'])
+        need((reference['schema'] == HOME_BELL_CAPTURE_SCHEMA) is
+             (schema == HOME_BELL_INSPECTION_SCHEMA), 'CAPTURE_REFUSED')
+        return reference
     need(report['home_catalog'] is None, 'CAPTURE_REFUSED')
     if schema == 2:
         return settings.catalog_reference(report['settings_catalog'])
@@ -693,9 +713,14 @@ def public_manifest(value):
         need(type(value['input_attempted']) is bool, 'OUTPUT_REFUSED')
     if 'entry_failure' in value:
         entry_failure(value['entry_failure'])
-    if value['home_catalog'] is not None:
-        home_catalog_reference(value['home_catalog'])
-    if schema >= 2:
+    if schema in HOME_INSPECTION_SCHEMAS:
+        if value['home_catalog'] is not None or value['success']:
+            inspection_catalog_reference(value)
+        if schema == HOME_BELL_INSPECTION_SCHEMA:
+            need(all(value[key] is None for key in
+                     ('settings_catalog', 'navigation_catalog', 'details_catalog')),
+                 'OUTPUT_REFUSED')
+    else:
         need(value['home_catalog'] is None, 'OUTPUT_REFUSED')
         if value['schema'] == 2:
             if value['settings_catalog'] is not None:
@@ -715,8 +740,6 @@ def public_manifest(value):
                     inspection_catalog_reference(value)
                 need(not value['success'] or value['details_catalog'] is not None,
                      'OUTPUT_REFUSED')
-    else:
-        need(not value['success'] or value['home_catalog'] is not None, 'OUTPUT_REFUSED')
     if catalog_only_family(value):
         require_catalog_only_samples(value)
     else:
@@ -818,7 +841,10 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
              and parent.get('SYRIUS_NATIVE_STACK_DIAGNOSTIC') == 'true', 'ENVIRONMENT_REFUSED')
         family = readonly_catalog_family(parent)
         details_schema = details.FAMILY_SCHEMAS.get(family, 1)
-        catalog_slot = 'details' if family in details.FAMILY_SCHEMAS else family
+        if family in HOME_CAPTURE_SCHEMAS:
+            catalog_slot = 'home'
+        else:
+            catalog_slot = 'details' if family in details.FAMILY_SCHEMAS else family
         report['schema'] = READONLY_CATALOG_SCHEMAS[family]
         catalog_only = catalog_only_family(report) is not None
         for field, since in (('details_catalog', 4), ('navigation_catalog', 3),
@@ -964,7 +990,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
                         navigation=navigation.capture_receipt,
                         details=details.capture_receipt)
                     catalog_receipt = validators[catalog_slot](receipt)
-                    need(catalog_receipt['schema'] == (4 if family == 'home' else details_schema),
+                    need(catalog_receipt['schema'] == HOME_CAPTURE_SCHEMAS.get(family, details_schema),
                          'ENTRY_REFUSED')
                 elif line.startswith(b'SYRIUS_INSPECTION_VIEWPORT:'):
                     need(not catalog_only and marker == b'CI_INSPECT_DONE' and viewport_receipt is None
@@ -1036,7 +1062,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
         output_bytes(output, catalog_only=catalog_only)
         if not catalog_only:
             report['checks']['captures'] = True
-        if family == 'home':
+        if catalog_slot == 'home':
             report['home_catalog'] = collect_home_catalog(
                 repo, catalog_receipt, source, tree, parent)
         else:
@@ -1183,10 +1209,11 @@ def artifact_paths(parent):
             paths.append(str(relative).replace('\\', '/'))
     catalog_family = {1: 'home-catalog', 2: 'settings-catalog',
         3: 'navigation-catalog', 4: 'details-catalog',
+        HOME_BELL_INSPECTION_SCHEMA: 'home-catalog',
         SEND_CONFIRM_INSPECTION_SCHEMA: 'details-catalog',
         EARN_INSPECTION_SCHEMA: 'details-catalog',
         SENTINEL_INSPECTION_SCHEMA: 'details-catalog'}[value['schema']]
-    if value['schema'] == 1:
+    if value['schema'] in HOME_INSPECTION_SCHEMAS:
         home_paths = home_artifact_paths(repo, value)
     elif value['schema'] == 2:
         home_paths = settings.artifact_paths(repo, value, read_original=read_original,

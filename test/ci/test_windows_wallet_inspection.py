@@ -76,11 +76,13 @@ def details_reference(digest, *, schema=1):
 
 
 def catalog_only_report(value, digest, family):
+    bell = family == 'home-bell'
     return dict(value, schema=lab.READONLY_CATALOG_SCHEMAS[family],
         captures=[], tours={}, locales={}, stalls={},
-        home_catalog=None, settings_catalog=None, navigation_catalog=None,
-        details_catalog=details_reference(
-            digest, schema=inspection.details.FAMILY_SCHEMAS[family]), viewport=None,
+        home_catalog=home_reference(digest, schema=inspection.HOME_BELL_CAPTURE_SCHEMA) if bell else None,
+        settings_catalog=None, navigation_catalog=None, viewport=None,
+        details_catalog=None if bell else details_reference(
+            digest, schema=inspection.details.FAMILY_SCHEMAS[family]),
         checks=dict(value['checks'], tours_complete=False, locale_verified=False))
 
 
@@ -140,6 +142,10 @@ def home_manifest(pixels, script=b'synthetic public script', *, schema=1,
     first = hashlib.sha256(script).hexdigest()
     if schema == 1:
         value['script_sha256'] = first
+    elif schema == inspection.HOME_BELL_CAPTURE_SCHEMA:
+        value['script_sha256_by_screen'] = {'home-bell': first}
+        light = png(255)
+        value['captures'][1].update(bytes=len(light), sha256=hashlib.sha256(light).hexdigest())
     else:
         hidden = hashlib.sha256(script if hidden_script is None else hidden_script).hexdigest()
         if schema == 2:
@@ -185,11 +191,11 @@ def report():
             output_complete=True, overflow=False))
 
 
-def png():
+def png(sample=0):
     def chunk(kind, body):
         return struct.pack('>I', len(body)) + kind + body + struct.pack(
             '>I', zlib.crc32(kind + body) & 0xffffffff)
-    row = b'\0' + b'\0\0\0\xff' * 1280
+    row = b'\0' + bytes((sample, sample, sample, 255)) * 1280
     return (b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', struct.pack('>IIBBBBB',
         1280, 780, 8, 6, 0, 0, 0)) + chunk(b'IDAT', zlib.compress(row * 780)) + chunk(b'IEND', b''))
 
@@ -205,7 +211,7 @@ class InspectionTests(unittest.TestCase):
             SYRIUS_WINDOWS_WALLET_TOUR='false', SYRIUS_LAB_NODE_SOURCE='lab-fix',
             SYRIUS_NATIVE_STACK_DIAGNOSTIC='true')
         self.assertEqual(lab.readonly_catalog_family(parent), 'details')
-        for family, schema in (('home', 1), ('settings', 2),
+        for family, schema in (('home', 1), ('home-bell', 8), ('settings', 2),
                                ('navigation', 3), ('details', 4),
                                ('token-draft', 4), ('send-confirm', 5),
                                ('earn', 6), ('sentinel-fixture', 7)):
@@ -225,7 +231,7 @@ class InspectionTests(unittest.TestCase):
         self.assertIn('default: details', choice)
         self.assertEqual([line.strip()[2:] for line in choice.splitlines()
             if line.strip().startswith('- ')],
-            ['home', 'settings', 'navigation', 'details', 'token-draft',
+            ['home', 'home-bell', 'settings', 'navigation', 'details', 'token-draft',
              'send-confirm', 'earn', 'sentinel-fixture', 'launch', 'launch-settle',
              'lock-catalog', 'quiz-catalog', 'seeded-states',
              'stake-draft', 'project-detail'])
@@ -277,6 +283,21 @@ class InspectionTests(unittest.TestCase):
             self.assertEqual(inspection.inspection_failure_code(error,
                 'lab_revalidation'), 'INTERNAL_ERROR')
         self.assertNotIn('private', json.dumps(labels))
+
+    def test_home_bell_requires_its_own_pair_and_inspection_schema(self):
+        schema = inspection.HOME_BELL_CAPTURE_SCHEMA
+        manifest = home_manifest(png(), schema=schema)
+        inspection.public_home_catalog(manifest)
+        duplicate = copy.deepcopy(manifest)
+        duplicate['captures'][1]['sha256'] = duplicate['captures'][0]['sha256']
+        with self.assertRaises(inspection.Refused):
+            inspection.public_home_catalog(duplicate)
+        selected = catalog_only_report(report(), 'e' * 64, 'home-bell')
+        inspection.public_manifest(selected)
+        for wrong in (dict(selected, home_catalog=home_reference(schema=4)),
+                      dict(report(), home_catalog=home_reference(schema=schema))):
+            with self.assertRaises(inspection.Refused):
+                inspection.public_manifest(wrong)
 
     def test_home_catalog_privacy_geometry_and_fixed_files_are_independent(self):
         pixels = png()

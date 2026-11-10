@@ -28,7 +28,9 @@ const Map<String, ReadonlyDetailsSelection> _detailsSelections =
 String readonlyInspectionCatalogFamily(Map<String, String> environment) {
   final String family =
       environment['SYRIUS_READONLY_CATALOG_FAMILY'] ?? 'details';
-  if (!const <String>{'home', 'settings', 'navigation'}.contains(family) &&
+  if (!const <String>{
+    'home', 'home-bell', 'settings', 'navigation',
+  }.contains(family) &&
       !_detailsSelections.containsKey(family)) {
     throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.command);
   }
@@ -87,6 +89,9 @@ class _InspectionInstance extends cli.Instance {
       'home' => captureReadonlyHomeGotoStates(
         repository: repository, session: _session, onStep: onStep,
       ),
+      'home-bell' => captureReadonlyHomeBell(
+        repository: repository, session: _session, onStep: onStep,
+      ),
       'settings' => captureReadonlySettingsDefaults(
         repository: repository, session: _session, onStep: onStep,
       ),
@@ -140,7 +145,8 @@ Future<void> main() async {
     detailsSelection = _detailsSelections[family];
     final bool sendConfirmation =
         detailsSelection == ReadonlyDetailsSelection.sendConfirmation;
-    final bool catalogOnly = detailsSelection?.catalogOnly ?? false;
+    final bool catalogOnly =
+        family == 'home-bell' || (detailsSelection?.catalogOnly ?? false);
     final String name = environment['SYRIUS_CI_INSPECTION_INSTANCE'] ?? '';
     if (!Platform.isWindows || environment['GITHUB_ACTIONS'] != 'true' ||
         environment['SYRIUS_CI_WALLET_INSPECTION'] != 'true' ||
@@ -283,7 +289,8 @@ Future<void> main() async {
         'longest_ms': timings['longestMs'] as int,
       })}');
     }
-    stage = detailsSelection?.stage ?? '${family}_catalog';
+    stage = detailsSelection?.stage ??
+        (family == 'home-bell' ? 'home_catalog' : '${family}_catalog');
     if (catalogOnly) await cli.goto(instance, 'dashboard');
     final Map<String, Object> catalog = await instance.captureCatalog(
       family,

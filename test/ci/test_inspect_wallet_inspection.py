@@ -576,10 +576,14 @@ class ReaderTests(unittest.TestCase):
             lab.update(success=False, error_codes=['WALLET_INSPECTION_FAILED'], wallet_inspection=None)
         source = b'synthetic source'
         home_pixels = wallet_fixtures.png()
+        bell_only = catalog_only == 'home-bell'
         home = wallet_fixtures.home_manifest(home_pixels, source, schema=home_schema)
         self.assertLessEqual(sum((settings_catalog, navigation_catalog,
             details_catalog, catalog_only is not None)), 1)
-        if catalog_only:
+        if bell_only:
+            home = wallet_fixtures.home_manifest(home_pixels, source,
+                schema=reader.producer.HOME_BELL_CAPTURE_SCHEMA)
+        elif catalog_only:
             home = wallet_fixtures.details_manifest(home_pixels, source,
                 schema=reader.producer.details.FAMILY_SCHEMAS[catalog_only])
         elif details_catalog:
@@ -597,7 +601,7 @@ class ReaderTests(unittest.TestCase):
                 child = wallet_fixtures.catalog_only_report(
                     child, reader.archive.sha(home_manifest), catalog_only)
                 if not positive:
-                    child['details_catalog'] = None
+                    child['home_catalog' if bell_only else 'details_catalog'] = None
                 files = files[:1]
             elif details_catalog:
                 child.update(schema=4, home_catalog=None, settings_catalog=None,
@@ -625,19 +629,31 @@ class ReaderTests(unittest.TestCase):
         wallet_raw = packed(files)
         root_raw = packed([('manifest.json', encode(lab), stat.S_IFREG)])
         home_raw = packed([('manifest.json', home_manifest, stat.S_IFREG)] +
-            [(row['file'], home_pixels, stat.S_IFREG) for row in home['captures']])
+            [(row['file'], wallet_fixtures.png(255)
+              if bell_only and row['theme'] == 'light' else home_pixels, stat.S_IFREG)
+             for row in home['captures']])
         viewport_raw = viewport_fixtures.packed(viewport_manifest, viewport_images)
         blobs = {1: root_raw, 2: wallet_raw, 3: home_raw, 4: viewport_raw}
         artifact_ids = (1,) if child_missing else (1, 2, 3, 4) if positive else (1, 2)
         if catalog_only and positive and not extra_viewport:
             artifact_ids = (1, 2, 3)
+        catalog_name = 'home-catalog-'
+        if details_catalog or (catalog_only and not bell_only):
+            catalog_name = 'details-catalog-'
+        elif navigation_catalog:
+            catalog_name = 'navigation-catalog-'
+        elif settings_catalog:
+            catalog_name = 'settings-catalog-'
         listing = dict(total_count=len(artifact_ids), artifacts=[dict(id=i,
-            name={1: 'chain321-native-', 2: 'wallet-inspection-', 3: 'details-catalog-' if details_catalog or catalog_only else 'navigation-catalog-' if navigation_catalog else 'settings-catalog-' if settings_catalog else 'home-catalog-', 4: 'viewport-observation-'}[i] + 'a' * 40 + '-1-1',
+            name={1: 'chain321-native-', 2: 'wallet-inspection-',
+                  3: catalog_name, 4: 'viewport-observation-'}[i] + 'a' * 40 + '-1-1',
             expired=False, size_in_bytes=len(blobs[i]), digest='sha256:' + reader.archive.sha(blobs[i]),
             workflow_run=dict(id=1, head_sha='a' * 40)) for i in artifact_ids])
         blob = hashlib.sha1(b'blob ' + str(len(source)).encode() + b'\0' + source).hexdigest()
         source_files = reader.SOURCE_FILES
-        if catalog_only == 'earn':
+        if bell_only:
+            source_files += (reader.producer.HOME_BELL_SCRIPT.as_posix(),)
+        elif catalog_only == 'earn':
             source_files += tuple('harness/screens/' + name + '.txt'
                                   for name in reader.producer.details.EARN_SCREENS)
         elif catalog_only == 'sentinel-fixture':
@@ -844,6 +860,27 @@ class ReaderTests(unittest.TestCase):
         self.assertNotIn('Retained readonly viewport observation', text)
         with self.assertRaises(reader.archive.Refused):
             self.run_main(catalog_only='sentinel-fixture', extra_viewport=True)
+
+    def test_bell_only_reader_verifies_the_script_and_two_original_frames(self):
+        value, calls, text = self.run_main(catalog_only='home-bell')
+        self.assertTrue(value['native_inspection_qualified'])
+        self.assertEqual(value['sampling_scope'], 'home-bell-only')
+        self.assertEqual(value['verified_png_count'], 0)
+        self.assertEqual(value['verified_viewport_png_count'], 0)
+        self.assertEqual(value['verified_catalog_png_count'], 2)
+        self.assertEqual(value['producer_source_files_verified'], len(reader.SOURCE_FILES) + 1)
+        self.assertEqual(len(calls), 14)
+        self.assertFalse(value['original_checks']['tours_complete'])
+        messages = [line.split('::', 2)[-1] for line in text.splitlines()
+            if line.startswith('::notice title=Retained readonly Home catalog::')]
+        self.assertEqual(len(messages), 1)
+        observed = json.loads(messages[0])
+        self.assertEqual(observed['filenames'],
+                         ['04-home-bell-dark.png', '04-home-bell-light.png'])
+        self.assertTrue(observed['all_original_png_digests_verified'])
+        self.assertEqual(observed['visual_matches'], 0)
+        with self.assertRaises(reader.archive.Refused):
+            self.run_main(catalog_only='home-bell', extra_viewport=True)
 
     def test_failed_parent_cannot_be_healed_by_a_successful_wallet_archive(self):
         value, _, _ = self.run_main(parent_failed=True)

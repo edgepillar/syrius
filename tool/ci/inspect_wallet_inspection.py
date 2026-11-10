@@ -293,6 +293,8 @@ def unpack(raw, expected_sha, expected_size, head, tree, run_id, lab, lab_summar
 
 def home_script_source_pins(source_digests, schema):
     producer.home_catalog_files(schema)
+    if schema == producer.HOME_BELL_CAPTURE_SCHEMA:
+        return {'home-bell': source_digests[producer.HOME_BELL_SCRIPT.as_posix()]}
     first = source_digests['harness/screens/home-rest.txt']
     if schema == 1:
         return first
@@ -563,6 +565,9 @@ def main(parent=None):
         else:
             PHASE = 'home_catalog_artifact'
             need(reference is not None)
+            if reference['schema'] == producer.HOME_BELL_CAPTURE_SCHEMA:
+                source_digests.update(source_files(repo, producer_tree, tree,
+                    files=(producer.HOME_BELL_SCRIPT.as_posix(),)))
             item = artifact(listing, 'home-catalog-' + head + '-' + text + '-1', head, run_id)
             catalog = unpack_home_catalog(download(item, MAX_HOME_ARCHIVE), item['digest'][7:],
                 item['size_in_bytes'], head, tree, run_id, reference,
@@ -571,10 +576,14 @@ def main(parent=None):
         PHASE = 'viewport_artifact'
         sampling_scope = summary.get('sampling_scope')
         if sampling_scope is not None:
-            need(viewport_reference is None and details_reference is not None
-                 and details_reference['schema'] ==
-                 producer.details.FAMILY_SCHEMAS[sampling_scope.removesuffix('-only')]
+            need(viewport_reference is None
                  and not any(v.get('name') == viewport_name for v in listing['artifacts']))
+            if sampling_scope == 'home-bell-only':
+                need(reference is not None
+                     and reference['schema'] == producer.HOME_BELL_CAPTURE_SCHEMA)
+            else:
+                need(details_reference is not None and details_reference['schema'] ==
+                     producer.details.FAMILY_SCHEMAS[sampling_scope.removesuffix('-only')])
         else:
             need(viewport_reference is not None)
             item = artifact(listing, viewport_name, head, run_id)

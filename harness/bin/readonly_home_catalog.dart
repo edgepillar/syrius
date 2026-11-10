@@ -21,7 +21,7 @@ Map<String, Object>? readonlyHomeFailureDiagnostic(
   final String? theme = observation.theme;
   final int? line = observation.line;
   const Set<String> screens = <String>{
-    'home-rest', 'home-open', 'home-hidden', 'home-goto',
+    'home-rest', 'home-open', 'home-hidden', 'home-goto', 'home-bell',
   };
   final bool script = observation.step == ScreenCaptureStep.scriptLine ||
       observation.step == ScreenCaptureStep.afterCaptureLine;
@@ -221,6 +221,37 @@ Future<Map<String, Object>> captureReadonlyHomeGotoStates({
     'screens': const <String>[
       'home-rest', 'home-open', 'home-hidden', 'home-goto',
     ],
+    'themes': const <String>['dark', 'light'], 'files': files,
+    'width': 1280, 'height': 780, 'scale': 1, 'capture_returned': true,
+  };
+}
+
+/// Captures the two Bell states through the already bound Home session.
+Future<Map<String, Object>> captureReadonlyHomeBell({
+  required Directory repository,
+  required ReadonlyInspectionSession session,
+  void Function(ScreenCaptureObservation step)? onStep,
+}) async {
+  if (!session.walletBound) {
+    throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.binding);
+  }
+  final ScreenCapture capture = _homeCapture(
+    repository: repository, session: session, onStep: onStep,
+  );
+  const List<String> files = <String>[
+    '04-home-bell-dark.png', '04-home-bell-light.png',
+  ];
+  final List<String> captured = await capture.capture(
+    'home-bell', directory: readonlyHomeCatalogDirectory,
+  );
+  if (captured.length != files.length ||
+      captured[0] != '$readonlyHomeCatalogDirectory/${files[0]}' ||
+      captured[1] != '$readonlyHomeCatalogDirectory/${files[1]}') {
+    throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.reply);
+  }
+  return <String, Object>{
+    'schema': 5, 'scope': 'readonly_native_home_catalog_capture',
+    'screens': const <String>['home-bell'],
     'themes': const <String>['dark', 'light'], 'files': files,
     'width': 1280, 'height': 780, 'scale': 1, 'capture_returned': true,
   };
