@@ -784,12 +784,21 @@ The precise P06 transport cause and the paired comparison remain open.
 [Producer](https://github.com/edgepillar/syrius/actions/runs/42865836277) and
 [independent reader](https://github.com/edgepillar/syrius/actions/runs/42868723130).
 
-The cold timing controller asks the original agent to evaluate the enabled,
-reachable password predicate once per request. Both supported pending replies
-allow another sample within the existing deadline. Unexpected HTTP or command
-failures still stop the original attempt. This removes the shared deadline
-between the agent's wait and its transport. Fresh Windows qualification is
-pending.
+Source631 asks the original agent to evaluate the enabled, reachable password
+predicate once per request. The Windows run passes selected analysis, 1,388
+Dart tests and 1,128 Python cases with eighteen skips. The current Release
+records 182 frames. P06 reports STARTUP_DEADLINE with zero frames, and all five
+original actors exit normally. The independent reader binds the original
+13,539-byte archive. The P06 readiness cause and paired comparison remain open.
+[Producer](https://github.com/edgepillar/syrius/actions/runs/42870190367) and
+[independent reader](https://github.com/edgepillar/syrius/actions/runs/42873068988).
+
+The paired controller now uses the existing 50-second absolute startup
+bound for both versions. At a readiness deadline it samples finite original
+window, startup and field states before closing the owned actor. The
+observation retains presence flags and fixed labels. The standalone
+20-second startup checks keep their own scope. Fresh Windows qualification
+is pending.
 
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied

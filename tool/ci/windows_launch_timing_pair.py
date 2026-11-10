@@ -202,8 +202,8 @@ def check_profile(profile, original):
 
 
 def attempt_outcomes(samples):
-    fields = ('role', 'action_complete', 'exit_code', 'forced_kill', 'error_codes')
-    return {sample['name']: [{key: attempt[key] for key in fields}
+    fields = ('role', 'action_complete', 'exit_code', 'forced_kill', 'error_codes', 'lock_diagnostic')
+    return {sample['name']: [{key: attempt[key] for key in fields if key in attempt}
                             for attempt in sample['attempts']] for sample in samples}
 
 
@@ -228,8 +228,11 @@ def measure_sample(repo, parent, current, binaries, name, report):
         launch.need(launch.attempt_passed(warmed))
         check_profile(profile, identity)
     report['phase'] = name + '_measure'
+    diagnostic = {}
     measured, window = launch.run_process(repo, parent, binaries, profile, theme,
-                                          capture=True, settle=True, timing=True)
+        capture=True, settle=True, timing=True, lock_diagnostic=diagnostic)
+    if diagnostic:
+        measured['lock_diagnostic'] = diagnostic
     sample['attempts'].append(measured)
     launch.need(window is not None and launch.attempt_passed(measured))
     check_profile(profile, identity)

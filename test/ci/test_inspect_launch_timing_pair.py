@@ -153,9 +153,32 @@ class PairInspectionTests(unittest.TestCase):
         self.assertEqual(run.call_args_list, [
             mock.call(repo, parent, current, profile, theme, capture=False, settle=True),
             mock.call(repo, parent, baseline, profile, theme, capture=False, settle=False),
-            mock.call(repo, parent, baseline, profile, theme, capture=True, settle=True, timing=True),
+            mock.call(repo, parent, baseline, profile, theme, capture=True, settle=True,
+                      timing=True, lock_diagnostic={}),
         ])
         self.assertEqual(retained['samples'], [sample])
+
+    def test_failed_pair_retains_only_finite_original_lock_observations(self):
+        value = report(self.pins)
+        value.update(success=False, phase='p06_measure', comparison=None,
+                     error_codes=['STARTUP_OBSERVATION_REFUSED'])
+        sample = value['samples'][1]
+        sample['frame_window'] = None
+        diagnostic = dict(status='observed', tab='lock', entry_phase='startup-initialization-started',
+            field='disabled', wallet_path_present=True, wallet_unlocked=False, client_at_target=True,
+            native_window_ready=True, startup_ready=False, welcome_ready=False, entry_held=False)
+        attempt = sample['attempts'][-1]
+        attempt.update(action_complete=False, error_codes=['STARTUP_DEADLINE'], lock_diagnostic=diagnostic)
+        result = self.project(value)
+        self.assertFalse(result['artifact_reported_success'])
+        self.assertEqual(result['normal_actor_exits'], 5)
+        self.assertEqual(result['attempt_outcomes']['p06'][-1]['lock_diagnostic'], diagnostic)
+        for invalid in (dict(diagnostic, path='synthetic private path'),
+                        dict(diagnostic, wallet_path_present=1), dict(diagnostic, field='arbitrary'),
+                        dict(diagnostic, entry_phase='synthetic source string')):
+            attempt['lock_diagnostic'] = invalid
+            with self.subTest(invalid=invalid), self.assertRaises(reader.archive.Refused):
+                self.project(value)
 
     def test_pair_preserves_a_regression_and_frame_gaps(self):
         value = report(self.pins)

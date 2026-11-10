@@ -184,6 +184,36 @@ class StartupInspectionTests(unittest.TestCase):
                 process._rpc.assert_not_called()
                 self.assertEqual(process._exchange.call_count, 1)
 
+    def test_paired_lock_readiness_budget_and_passive_failure_readout(self):
+        launch = inspect.launch
+        process = object.__new__(launch.LaunchProcess)
+        process.deadline, process.started, process.limits = 65, 0, launch.LIMITS
+        process.clock, process.sleep = mock.Mock(side_effect=(1, 2, 50)), mock.Mock()
+        process._exchange = mock.Mock(return_value=(400, dict(ok=False, error='not ready after 0 ms')))
+        with self.assertRaisesRegex(inspect.startup.Failure, '^STARTUP_DEADLINE$'):
+            process._observe_frame_timing(paired=True)
+        self.assertEqual(process._exchange.call_args.kwargs['until'], 50)
+
+        process.clock = lambda: 50
+        process._rpc = mock.Mock(side_effect=[
+            dict(ok=True, booted=True, walletPath='synthetic private path',
+                 size=[1280, 780], tab='lock', walletUnlocked=False),
+            dict(ok=True, available=True, nativeWindowReady=True, startupReady=False,
+                 welcomeReady=False, held=False),
+            dict(ok=True, entryPhase='startup-initialization-started'),
+        ])
+        process._exchange = mock.Mock(return_value=(200, dict(ok=True,
+            target=dict(key='wallet_password_field', kind='field', enabled=False))))
+        observed = process._lock_diagnostic()
+        self.assertEqual(observed['status'], 'observed')
+        self.assertEqual(observed['field'], 'disabled')
+        self.assertTrue(observed['wallet_path_present'])
+        self.assertNotIn('synthetic private path', json.dumps(observed))
+        self.assertEqual([call.args[0]['cmd'] for call in process._rpc.call_args_list],
+                         ['state', 'entry-state', 'wallet-recipe'])
+        process._rpc = mock.Mock(side_effect=inspect.startup.Failure('HTTP_FAILED'))
+        self.assertEqual(process._lock_diagnostic(), dict(status='unavailable', error_code='HTTP_FAILED'))
+
     def test_launch_timing_refuses_unrestored_geometry_at_its_deadline(self):
         launch = inspect.launch
         process = object.__new__(launch.LaunchProcess)

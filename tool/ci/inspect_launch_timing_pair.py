@@ -96,12 +96,16 @@ def samples(rows):
             and row['name'] == name and type(row['attempts']) is list
             and len(row['attempts']) <= len(roles))
         for attempt, role in zip(row['attempts'], roles):
-            archive.need(type(attempt) is dict and set(attempt) == fields
+            archive.need(type(attempt) is dict and set(attempt) in (fields, fields | {'lock_diagnostic'})
                 and attempt['theme'] == pair.launch.TIMING_THEME and attempt['role'] == role
                 and type(attempt['action_complete']) is bool and type(attempt['checks']) is dict
                 and set(attempt['checks']) == set(pair.launch.ATTEMPT_CHECKS)
                 and all(type(value) is bool for value in attempt['checks'].values()))
             codes(attempt['error_codes'], pair.launch.startup.CODES, 16)
+            if 'lock_diagnostic' in attempt:
+                archive.need(role == 'timing' and not attempt['action_complete']
+                    and 'STARTUP_DEADLINE' in attempt['error_codes']
+                    and pair.launch.valid_lock_diagnostic(attempt['lock_diagnostic']))
             closed += normal_exit(attempt) and all(attempt['checks'].values())
         archive.need(all(pair.launch.attempt_passed(attempt) for attempt in row['attempts'][:-1]))
         if row['frame_window'] is not None:

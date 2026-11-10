@@ -24,6 +24,8 @@ TIMING_ARTIFACT_PREFIX = 'windows-launch-timing-'
 TIMING_MAX_ARCHIVE = 64 * 1024
 TIMING_THEME = 'dark'
 TIMING_SIZE = (1280, 780)
+LOCK_DIAGNOSTIC_FLAGS = ('wallet_path_present', 'wallet_unlocked', 'client_at_target',
+    'native_window_ready', 'startup_ready', 'welcome_ready', 'entry_held')
 MAX_TIMING_FRAMES, MAX_TIMING_US = 512, 60000000
 TIMING_FIELDS = ('schema', 'scope', 'windowUs', 'frames')
 TIMING_SOURCE = Path('harness/app/frame_window.dart')
@@ -123,6 +125,19 @@ def frame_timing_window(value):
     return value
 
 
+def valid_lock_diagnostic(value):
+    if type(value) is not dict:
+        return False
+    if set(value) == {'status', 'error_code'} and value['status'] == 'unavailable':
+        code = value['error_code']
+        return type(code) is str and code in startup.CODES
+    return (set(value) == {'status', 'tab', 'entry_phase', 'field', *LOCK_DIAGNOSTIC_FLAGS}
+        and value['status'] == 'observed' and value['tab'] in ('lock', 'none', 'other')
+        and type(value['entry_phase']) is str and value['entry_phase'] in startup.RECIPE_ENTRY_PHASES
+        and value['field'] in ('missing', 'disabled', 'visible')
+        and all(type(value[key]) is bool for key in LOCK_DIAGNOSTIC_FLAGS))
+
+
 def attempt_passed(value):
     return (all(value['checks'].values()) and value['action_complete']
             and value['exit_observed'] and value['exit_code'] == 0
@@ -157,8 +172,10 @@ class LaunchProcess(startup.StartupProbe):
             self.sleep(min(self.limits.poll, max(0, until - self.clock())))
         raise startup.Failure('STARTUP_DEADLINE')
 
-    def _observe_frame_timing(self):
-        until = min(self.deadline - 5, self.started + 50, self.clock() + 20)
+    def _observe_frame_timing(self, *, paired=False):
+        until = min(self.deadline - 5, self.started + 50)
+        if not paired:
+            until = min(until, self.clock() + 20)
         window_pending = False
         # A zero-wait original predicate leaves time for its HTTP reply.
         # P06 and the current agent use different fixed pending messages.
@@ -194,12 +211,49 @@ class LaunchProcess(startup.StartupProbe):
         need(set(raw) == {'ok', *TIMING_FIELDS})
         return frame_timing_window({field: raw[field] for field in TIMING_FIELDS})
 
-    def run_launch(self, theme, *, capture, settle, timing=False):
+    def _lock_diagnostic(self):
+        # This sample occurs after the failed comparison window. Keep only
+        # finite facts from the still-owned original process.
+        until = min(self.deadline - 5, self.clock() + 5)
+        try:
+            state = self._rpc({'cmd': 'state'}, until=until)
+            native = self._rpc({'cmd': 'entry-state'}, until=until)
+            recipe = self._rpc({'cmd': 'wallet-recipe', 'action': 'observe'}, until=until)
+            status, field = self._exchange(dict(cmd='wait', key='wallet_password_field',
+                kind='field', exact=True, timeoutMs=0), until=until)
+            if status == 400 and field['ok'] is False and field.get('error') == 'not there after 0 ms':
+                field_state = 'missing'
+            else:
+                target = field.get('target')
+                need(status == 200 and field['ok'] is True and type(target) is dict
+                     and target.get('key') == 'wallet_password_field' and target.get('kind') == 'field'
+                     and type(target.get('enabled', True)) is bool, 'ENTRY_UNAVAILABLE')
+                field_state = 'visible' if target.get('enabled', True) else 'disabled'
+            wallet_path, size = state.get('walletPath'), state.get('size')
+            need('walletPath' in state and (wallet_path is None or type(wallet_path) is str and wallet_path)
+                 and state.get('booted') is True and native.get('available') is True
+                 and type(size) is list and len(size) == 2
+                 and all(type(value) is int and value >= 0 for value in size), 'ENTRY_INVALID')
+            tab = state.get('tab')
+            value = dict(status='observed', tab='lock' if tab == 'lock' else 'none' if tab is None else 'other',
+                entry_phase=recipe.get('entryPhase'), field=field_state,
+                wallet_path_present=wallet_path is not None, wallet_unlocked=state.get('walletUnlocked'),
+                client_at_target=size == list(TIMING_SIZE), native_window_ready=native.get('nativeWindowReady'),
+                startup_ready=native.get('startupReady'), welcome_ready=native.get('welcomeReady'),
+                entry_held=native.get('held'))
+            need(valid_lock_diagnostic(value), 'ENTRY_INVALID')
+            return value
+        except bounded.SmokeFailure as error:
+            return dict(status='unavailable', error_code=error.code)
+        except Exception:
+            return dict(status='unavailable', error_code='INTERNAL_ERROR')
+
+    def run_launch(self, theme, *, capture, settle, timing=False, lock_diagnostic=None):
         result, complete = None, False
         try:
             self._ready()
             if timing:
-                result = self._observe_frame_timing()
+                result = self._observe_frame_timing(paired=lock_diagnostic is not None)
             elif capture:
                 result = self._observe_pixels(theme, settle=settle)
             else:
@@ -207,6 +261,8 @@ class LaunchProcess(startup.StartupProbe):
             complete = True
         except bounded.SmokeFailure as error:
             self.report.fail(error.code, error)
+            if error.code == 'STARTUP_DEADLINE' and timing and lock_diagnostic is not None:
+                lock_diagnostic.update(self._lock_diagnostic())
         except (Exception, KeyboardInterrupt) as error:
             self.report.fail('INTERNAL_ERROR', error)
         finally:
@@ -225,7 +281,9 @@ class LaunchProcess(startup.StartupProbe):
 
 
 def run_process(repo, parent, binaries, profile, theme, *, capture, settle,
-                process_type=LaunchProcess, timing=False):
+                process_type=LaunchProcess, timing=False, lock_diagnostic=None):
+    need(lock_diagnostic is None or timing and type(lock_diagnostic) is dict and not lock_diagnostic,
+         'ENVIRONMENT_REFUSED')
     need(not timing or (capture and settle and process_type is LaunchProcess),
          'ENVIRONMENT_REFUSED')
     bounded.check_no_existing(repo, parent)
@@ -261,7 +319,8 @@ def run_process(repo, parent, binaries, profile, theme, *, capture, settle,
         bounded.finish_original(process, drain, report, limits)
         raise
     if timing:
-        return session.run_launch(theme, capture=capture, settle=settle, timing=True)
+        return session.run_launch(theme, capture=capture, settle=settle, timing=True,
+                                  lock_diagnostic=lock_diagnostic)
     return session.run_launch(theme, capture=capture, settle=settle)
 
 
