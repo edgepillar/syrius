@@ -720,10 +720,9 @@ Future<void> main() async {
         await cli.reveal(instance, view);
         await requireCurrent();
         await cli.call(instance, <String, Object?>{'cmd': 'tap', ...view});
-        await cli.waitForTarget(instance, cli.Args(<String>[
-          '--key', 'pillar_registration_confirmed', '--exact',
-          '--gone', '--timeout', '10',
-        ]));
+        await cli.call(instance, <String, Object?>{
+          'cmd': 'wait', ...view, 'gone': true, 'timeoutMs': 10000,
+        });
         await closePillarOwnerPanel();
         await cli.restoreScreenRail(instance, expanded: originalRail!);
         await requireCurrent();
