@@ -26,6 +26,7 @@ TIMING_THEME = 'dark'
 TIMING_SIZE = (1280, 780)
 LOCK_DIAGNOSTIC_FLAGS = ('wallet_path_present', 'wallet_unlocked', 'client_at_target',
     'native_window_ready', 'startup_ready', 'welcome_ready', 'entry_held')
+TIMING_COMMAND_STAGES = ('password_readiness', 'lock_state', 'frame_window')
 MAX_TIMING_FRAMES, MAX_TIMING_US = 512, 60000000
 TIMING_FIELDS = ('schema', 'scope', 'windowUs', 'frames')
 TIMING_SOURCE = Path('harness/app/frame_window.dart')
@@ -125,9 +126,30 @@ def frame_timing_window(value):
     return value
 
 
+class TimingCommandRefused(startup.Failure):
+    def __init__(self, stage, http_status, reply):
+        super().__init__('COMMAND_FAILED')
+        self.diagnostic = dict(status='command_refused', stage=stage, http_status=http_status,
+            frame_window_refused=(stage == 'frame_window' and http_status == 400
+                                  and reply.get('error') == 'frame-window-unqualified'))
+
+
+def timing_reply(stage, status, reply):
+    if status != 200 or reply['ok'] is not True:
+        raise TimingCommandRefused(stage, status, reply)
+    return reply
+
+
 def valid_lock_diagnostic(value):
     if type(value) is not dict:
         return False
+    if value.get('status') == 'command_refused':
+        return (set(value) == {'status', 'stage', 'http_status', 'frame_window_refused'}
+            and value['stage'] in TIMING_COMMAND_STAGES
+            and startup.integer(value['http_status'], 100, 599)
+            and type(value['frame_window_refused']) is bool
+            and (not value['frame_window_refused']
+                 or value['stage'] == 'frame_window' and value['http_status'] == 400))
     if set(value) == {'status', 'error_code'} and value['status'] == 'unavailable':
         code = value['error_code']
         return type(code) is str and code in startup.CODES
@@ -186,13 +208,12 @@ class LaunchProcess(startup.StartupProbe):
                 and reply.get('error') in ('not there after 0 ms', 'not ready after 0 ms'))
             target = None
             if not pending:
-                need(status == 200 and reply['ok'] is True, 'COMMAND_FAILED')
-                target = reply.get('target')
+                target = timing_reply('password_readiness', status, reply).get('target')
                 need(type(target) is dict and target.get('key') == 'wallet_password_field'
                      and target.get('kind') == 'field'
                      and type(target.get('enabled', True)) is bool, 'ENTRY_UNAVAILABLE')
             if target is not None and target.get('enabled', True):
-                state = self._rpc({'cmd': 'state'}, until=until)
+                state = timing_reply('lock_state', *self._exchange({'cmd': 'state'}, until=until))
                 need(state.get('booted') is True and state.get('walletUnlocked') is False,
                      'ENTRY_INVALID')
                 size = state.get('size')
@@ -206,8 +227,8 @@ class LaunchProcess(startup.StartupProbe):
             self.sleep(min(self.limits.poll, max(0, until - self.clock())))
         else:
             raise startup.Failure('WINDOW_INVALID' if window_pending else 'STARTUP_DEADLINE')
-        raw = self._rpc(dict(cmd='stalls', frameWindow='end'),
-                        until=min(self.deadline, self.started + 60))
+        raw = timing_reply('frame_window', *self._exchange(dict(cmd='stalls', frameWindow='end'),
+                           until=min(self.deadline, self.started + 60)))
         need(set(raw) == {'ok', *TIMING_FIELDS})
         return frame_timing_window({field: raw[field] for field in TIMING_FIELDS})
 
@@ -261,8 +282,11 @@ class LaunchProcess(startup.StartupProbe):
             complete = True
         except bounded.SmokeFailure as error:
             self.report.fail(error.code, error)
-            if error.code == 'STARTUP_DEADLINE' and timing and lock_diagnostic is not None:
-                lock_diagnostic.update(self._lock_diagnostic())
+            if timing and lock_diagnostic is not None:
+                if isinstance(error, TimingCommandRefused) and valid_lock_diagnostic(error.diagnostic):
+                    lock_diagnostic.update(error.diagnostic)
+                elif error.code == 'STARTUP_DEADLINE':
+                    lock_diagnostic.update(self._lock_diagnostic())
         except (Exception, KeyboardInterrupt) as error:
             self.report.fail('INTERNAL_ERROR', error)
         finally:

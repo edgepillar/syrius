@@ -103,9 +103,12 @@ def samples(rows):
                 and all(type(value) is bool for value in attempt['checks'].values()))
             codes(attempt['error_codes'], pair.launch.startup.CODES, 16)
             if 'lock_diagnostic' in attempt:
+                diagnostic = attempt['lock_diagnostic']
+                archive.need(pair.launch.valid_lock_diagnostic(diagnostic))
+                original_code = ('COMMAND_FAILED' if diagnostic['status'] == 'command_refused'
+                                 else 'STARTUP_DEADLINE')
                 archive.need(role == 'timing' and not attempt['action_complete']
-                    and 'STARTUP_DEADLINE' in attempt['error_codes']
-                    and pair.launch.valid_lock_diagnostic(attempt['lock_diagnostic']))
+                    and original_code in attempt['error_codes'])
             closed += normal_exit(attempt) and all(attempt['checks'].values())
         archive.need(all(pair.launch.attempt_passed(attempt) for attempt in row['attempts'][:-1]))
         if row['frame_window'] is not None:

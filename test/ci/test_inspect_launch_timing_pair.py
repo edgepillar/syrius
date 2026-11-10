@@ -180,6 +180,29 @@ class PairInspectionTests(unittest.TestCase):
             with self.subTest(invalid=invalid), self.assertRaises(reader.archive.Refused):
                 self.project(value)
 
+    def test_failed_pair_binds_the_command_receipt_to_its_original_error(self):
+        value = report(self.pins)
+        value.update(success=False, phase='p06_measure', comparison=None,
+                     error_codes=['STARTUP_OBSERVATION_REFUSED'])
+        sample = value['samples'][1]
+        sample['frame_window'] = None
+        attempt = sample['attempts'][-1]
+        diagnostic = dict(status='command_refused', stage='frame_window', http_status=400,
+                          frame_window_refused=True)
+        attempt.update(action_complete=False, error_codes=['COMMAND_FAILED'], lock_diagnostic=diagnostic)
+        result = self.project(value)
+        self.assertEqual(result['normal_actor_exits'], 5)
+        self.assertEqual(result['attempt_outcomes']['p06'][-1]['lock_diagnostic'], diagnostic)
+        for invalid in (dict(diagnostic, http_status=True), dict(diagnostic, http_status=500),
+                        dict(diagnostic, stage='lock_state'), dict(diagnostic, stage='other'),
+                        dict(diagnostic, error='synthetic private text')):
+            attempt['lock_diagnostic'] = invalid
+            with self.subTest(invalid=invalid), self.assertRaises(reader.archive.Refused):
+                self.project(value)
+        attempt.update(lock_diagnostic=diagnostic, error_codes=['STARTUP_DEADLINE'])
+        with self.assertRaises(reader.archive.Refused):
+            self.project(value)
+
     def test_pair_preserves_a_regression_and_frame_gaps(self):
         value = report(self.pins)
         value['samples'][0]['frame_window'] = frame((0, 2, 17000, 17000, 35000),

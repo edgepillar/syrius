@@ -793,12 +793,22 @@ original actors exit normally. The independent reader binds the original
 [Producer](https://github.com/edgepillar/syrius/actions/runs/42870190367) and
 [independent reader](https://github.com/edgepillar/syrius/actions/runs/42873068988).
 
-The paired controller now uses the existing 50-second absolute startup
-bound for both versions. At a readiness deadline it samples finite original
-window, startup and field states before closing the owned actor. The
-observation retains presence flags and fixed labels. The standalone
-20-second startup checks keep their own scope. Fresh Windows qualification
-is pending.
+Source632 uses the existing 50-second absolute startup bound for both
+versions and retains finite state if readiness expires. The Windows run
+passes selected analysis, 1,388 Dart tests and 1,130 Python cases with
+eighteen skips. The current Release records 171 frames. P06 reports
+COMMAND_FAILED with zero frames. All five original actors exit normally.
+The independent reader binds the 13,183-byte archive and the failed outcome.
+The exact refused request and the paired comparison remain open.
+[Producer](https://github.com/edgepillar/syrius/actions/runs/42874911893) and
+[independent reader](https://github.com/edgepillar/syrius/actions/runs/42878160400).
+
+The paired controller now distinguishes the password readiness query, the
+lock state query and the final frame request. An original command refusal
+retains its HTTP status and whether the final frame request returned the
+fixed frame-window refusal. The reader binds that observation to the
+original COMMAND_FAILED outcome. All 85 selected local controls pass.
+Fresh Windows evidence is pending.
 
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied
