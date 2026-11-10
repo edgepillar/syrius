@@ -560,9 +560,10 @@ final class SeedGuard {
     SeedFrontier previousWs = firstWs;
     SeedFrontier previousHttp = firstHttp;
     bool advancing = false;
+    final bool fullLateSlots = _labSend || recipe == 'project';
     for (int poll = 0; poll < 6; poll++) {
-      // Give the last two P09 samples a full nominal momentum slot each.
-      final Duration interval = _labSend && poll >= 4
+      // Leave a full nominal slot between the final Project and Send reads.
+      final Duration interval = fullLateSlots && poll >= 4
           ? const Duration(seconds: 10)
           : const Duration(seconds: 5);
       await _delay(interval);

@@ -1196,6 +1196,45 @@ void main() {
         expect(source.effectReads, 0);
         expect(journal.attempts, isEmpty);
       }
+      for (final bool advanceInLastSlot in <bool>[false, true]) {
+        final _Source project = _Source()
+          ..advancingWs = false
+          ..advancingHttp = false;
+        final _Journal projectJournal = _Journal();
+        final List<Duration> waits = <Duration>[];
+        final SeedGuard projectGuard = SeedGuard(
+          source: project,
+          journal: projectJournal,
+          delay: (Duration duration) async {
+            waits.add(duration);
+            if (advanceInLastSlot && waits.length == 6 &&
+                duration == const Duration(seconds: 10)) {
+              project
+                ..advancingWs = true
+                ..advancingHttp = true;
+            }
+          },
+        );
+        if (advanceInLastSlot) {
+          await projectGuard.admit('project');
+        } else {
+          await expectLater(
+            projectGuard.publish('project', () async {
+              fail('Stationary Project endpoints cannot reach publication');
+            }),
+            throwsA(isA<SeedRefused>().having(
+              (SeedRefused error) => error.code,
+              'code', 'advancing-momentum-required',
+            )),
+          );
+        }
+        expect(waits.map((Duration value) => value.inSeconds),
+            orderedEquals(<int>[5, 5, 5, 5, 10, 10]));
+        expect(project.wsReads, 7);
+        expect(project.httpReads, 7);
+        expect(projectJournal.attempts, isEmpty);
+        expect(projectGuard.acceptedHash, isNull);
+      }
     },
   );
 

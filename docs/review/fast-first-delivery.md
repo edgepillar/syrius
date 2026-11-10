@@ -323,12 +323,22 @@ catalog has 80 of 94 literal outputs. Reference review remains open.
 [Producer](https://github.com/edgepillar/syrius/actions/runs/42737678394) and
 [independent reader](https://github.com/edgepillar/syrius/actions/runs/42739465363).
 
-Source589 prepares the Start swap draft in both themes. The readonly
-session accepts the original first-use warning once, enters 100 ZNN and
-1,000 QSR with the bound lab counterparty, then closes the original
-form after each capture. It retains only the two draft images and their
-manifest when the native run qualifies. All 119 selected Python controls
-pass in memory. Fresh Dart and Windows verification remain open.
+The Source589 Windows run passes selected analysis, 1,373 Dart cases and
+1,100 controller cases with eighteen skips. The original readonly Start
+swap draft is filled and closed in both themes with publication admission
+paused. The wallet, entry and all five lab nodes close normally. The
+independent reader verifies the exact recipe and two distinct 1280 by 780
+PNGs in a 176,364-byte archive. The catalog has 82 of 94 literal outputs.
+[Producer](https://github.com/edgepillar/syrius/actions/runs/42739755020) and
+[independent reader](https://github.com/edgepillar/syrius/actions/runs/42742250650).
+
+Source590 gives each of the last two Project admission polls the nominal
+ten-second momentum interval. The original four five-second waits, six
+polls and requirement that both endpoints advance remain. The test covers
+advancement on the last slot and a stationary refusal before a claim or
+tap. The Source565 stationary frontier result retains its original
+failure. Fresh Dart and Windows Project detail verification remain open.
+[Pinned consensus configuration](https://github.com/zenon-network/go-zenon/blob/2d1b929cc3fa5269cf133757d4a6963821137984/vm/constants/consensus.go#L25-L32).
 
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,
@@ -460,7 +470,7 @@ frontier reads after such a failure. Their native observation remains pending.
 | --- | --- |
 | P03/P09 | Complete the documented Windows Docker route. Earlier Linux defaults, WSL installation and the Source548 native lab retain their separate scopes. |
 | F06 | Complete the seeded screen states and coordinator/peer Swap prerequisites. Source548 qualifies the original six receipts and copied lifecycle. Source561 qualifies the restored Stake and Token captures. Source563 qualifies the separate New stake draft with one Stake prerequisite. Source569 qualifies the Sentinel fixture pair. |
-| V01/V05 | Obtain 14 missing literal outputs, review all 94 pairs, resolve retained layout/type/spacing findings and explicitly accept each match. Availability is 80/94. Accepted whole-image matches are 0/94. |
+| V01/V05 | Obtain 12 missing literal outputs, review all 94 pairs, resolve retained layout/type/spacing findings and explicitly accept each match. Availability is 82/94. Accepted whole-image matches are 0/94. |
 | V02 | Observe every motion/shader row in the running build and compare page-change, disclosure and launch frame times with the original baseline. Finite widget timing or stall telemetry alone does not close this gate. |
 | V03 | Try every original seam control, shortcut and Go To entry in the running native wallet and verify refusal. Registry and widget controls remain partial evidence. |
 | V06 | Check every original end-state requirement and complete independent final acceptance. The earlier minimum-window/Arabic viewing remains source-bound. |
