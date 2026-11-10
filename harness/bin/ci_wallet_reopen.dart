@@ -781,25 +781,7 @@ Future<void> main() async {
       if (receipts is! List<Map<String, String>>) {
         throw const FormatException('seeded capture receipts refused');
       }
-      if (selection == RestoredSeedSelection.projectDetail) {
-        captureStep = const ScreenCaptureObservation(
-          ScreenCaptureStep.homePreparation,
-        );
-        await requireCurrent();
-        await cli.waitForTarget(instance, cli.Args(<String>[
-          '--key', 'acc_stepper_leave', '--kind', 'button',
-          '--ready', '--timeout', '10',
-        ]));
-        await requireCurrent();
-        await cli.call(instance, <String, Object?>{
-          'cmd': 'tap', 'key': 'acc_stepper_leave',
-          'kind': 'button', 'exact': true,
-        });
-        await cli.waitForTarget(instance, cli.Args(<String>[
-          '--key', 'acc_stepper_leave', '--gone', '--timeout', '10',
-        ]));
-        await requireCurrent();
-      }
+      // Project seed completion already waits for its original route exit.
       final Map<String, Object> captured = await _captureSeededCatalog(
         instance, receipts, owned.selected, requireCurrent,
         (ScreenCaptureObservation step) => captureStep = step,

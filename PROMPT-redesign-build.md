@@ -399,6 +399,8 @@ macOS; Windows provision and acceptance remain pending. See
 - Source610 clears selected Dart analysis and completes 1,380 Dart cases and 1,107 Python cases with eighteen skips. Both Send warning themes retain the original visible warning, disabled Send control and live HTTP and WebSocket lag. The independent reader verifies the two 1280 by 780 PNGs and normal closure. The catalog has 90 of 94 literal outputs. Pillar Done and Accelerator project detail remain open in both themes. [Windows producer](https://github.com/edgepillar/syrius/actions/runs/42794133939) and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42797073123).
 - Source611 clears selected Dart analysis and completes 1,381 Dart cases and 1,107 Python cases with eighteen skips. The Source611 Pillar Done run confirms Fuse, the exact QSR deposit effect and the Pillar registration. The independent reader verifies the two 1280 by 780 PNGs from the same registration and normal original and copied closure. The catalog has 92 of 94 literal outputs. Accelerator project detail remains open in both themes. [Windows producer](https://github.com/edgepillar/syrius/actions/runs/42800970254) and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42804291806).
 - The Source611 Accelerator project-detail run stops before the first wallet send. Both original endpoints remain at height 18 through six preflight reads. A separate passive check records four peers. All five original nodes close normally, and cleanup forces a required wallet actor. The stationary cause remains unestablished. The independent reader verifies both retained manifests. The project-detail pair remains open. [Windows producer](https://github.com/edgepillar/syrius/actions/runs/42797593948) and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42800643251).
+- Source612 clears selected analysis and completes 1,381 Dart cases and 1,107 Python cases with eighteen skips. The original wallet send, twelve-page tour and all five node exits qualify. The copied wallet confirms the Project with a consistent journal and stops in capture preparation with CHECKPOINT_REFUSED. The exact rejected command remains unestablished. The new projection records NODE_MOMENTUM_NOT_BROADCAST from pillar2 in this run. The independent reader verifies the retained original evidence. The catalog retains 92 of 94 literal outputs. [Windows producer](https://github.com/edgepillar/syrius/actions/runs/42804599431) and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42807061092).
+- Source613 uses the Project seed completion that already waits for the original route exit. The next step enters the guarded catalog with the same copied owner, confirmed receipt and exact Project row. The original Project publication and final catalog closure stay required. Fresh Windows capture is pending.
 - Source612 reuses four existing producer failure categories in the finite native node log projection. It reads the same two original files and preserves the existing RPC, shutdown and report bounds. All 74 selected Python controls pass. Fresh Windows evidence and the stationary cause remain open.
 - Source611 leaves twelve seconds before the next Pillar QSR confirmation read when the original confirmed send has no paired receive. The longer interval is used once within the existing eighteen reads. The exact deposit effect still gates registration. A new controlled test checks one tap, one longer interval and the later ledger effect. Fresh Windows evidence remains open.
 - Source610 retains real peer momentum announcements and defers new fetch and synchronization requests during the finite Send warning window. Both original HTTP and WebSocket lag readings and the active wallet's visible warning and disabled Send control still gate the two captures. Fresh Windows and archive evidence remains open.
@@ -744,19 +746,23 @@ the difference and its write paths in the note.
 
 ### Screens
 
+The Home, Settings and Details entries with X rows refer to the exact
+archived pairs reviewed at their original sources. The V01 row tracks
+available captures. Whole-image acceptance remains open.
+
 | # | Screen | Dark | Light |
 | --- | --- | --- | --- |
-| 01 | `home-rest` | todo | todo |
-| 02 | `home-open` | todo | todo |
-| 03 | `home-hidden` | todo | todo |
+| 01 | `home-rest` | X521 | X522 |
+| 02 | `home-open` | X523 | X524 |
+| 03 | `home-hidden` | X525 | X526 |
 | 04 | `home-bell` | todo | todo |
-| 05 | `home-goto` | todo | todo |
+| 05 | `home-goto` | X527 | X528 |
 | 06 | `home-zap` | todo | todo |
 | 07 | `send-rest` | todo | todo |
 | 08 | `send-warn` | todo | todo |
 | 09 | `receive` | todo | todo |
-| 10 | `receive-qr` | todo | todo |
-| 11 | `zap-form` | todo | todo |
+| 10 | `receive-qr` | X476 | X477 |
+| 11 | `zap-form` | X478 | X479 |
 | 12 | `send-confirm` | todo | todo |
 | 13 | `staking` | todo | todo |
 | 14 | `staking-new` | todo | todo |
@@ -767,7 +773,7 @@ the difference and its write paths in the note.
 | 19 | `spawn` | todo | todo |
 | 20 | `pillar-done` | todo | todo |
 | 21 | `plasma` | todo | todo |
-| 22 | `plasma-fuse` | todo | todo |
+| 22 | `plasma-fuse` | X480 | X481 |
 | 23 | `tokens` | todo | todo |
 | 24 | `token-mine` | todo | todo |
 | 25 | `token-new` | todo | todo |
@@ -775,15 +781,15 @@ the difference and its write paths in the note.
 | 27 | `swap-start` | todo | todo |
 | 28 | `az` | todo | todo |
 | 29 | `az-project` | todo | todo |
-| 30 | `set-node` | todo | todo |
-| 31 | `set-security` | todo | todo |
-| 32 | `set-display` | todo | todo |
-| 33 | `set-wallet` | todo | todo |
-| 34 | `set-apps` | todo | todo |
-| 35 | `set-addresses` | todo | todo |
-| 36 | `set-about` | todo | todo |
-| 37 | `set-licences` | todo | todo |
-| 38 | `set-originals` | todo | todo |
+| 30 | `set-node` | X486 | X487 |
+| 31 | `set-security` | X488 | X489 |
+| 32 | `set-display` | X490 | X491 |
+| 33 | `set-wallet` | X492 | X493 |
+| 34 | `set-apps` | X494 | X495 |
+| 35 | `set-addresses` | X496 | X497 |
+| 36 | `set-about` | X498 | X499 |
+| 37 | `set-licences` | X482 | X483 |
+| 38 | `set-originals` | X484 | X485 |
 | 39 | `launch` | todo | todo |
 | 40 | `launch-settle` | todo | todo |
 | 41 | `lock-screen` | todo | todo |

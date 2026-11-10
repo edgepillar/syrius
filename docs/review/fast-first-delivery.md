@@ -582,6 +582,24 @@ producer](https://github.com/edgepillar/syrius/actions/runs/42797593948) and
 [independent
 reader](https://github.com/edgepillar/syrius/actions/runs/42800643251).
 
+Source612 clears selected analysis and completes 1,381 Dart cases and 1,107
+Python cases with eighteen skips. The original wallet send, twelve-page tour
+and all five node exits qualify. The copied wallet confirms the Project with a
+consistent journal and stops in capture preparation with CHECKPOINT_REFUSED.
+The exact rejected command remains unestablished. The new projection records
+NODE_MOMENTUM_NOT_BROADCAST from pillar2 in this run. The independent reader
+verifies the retained original evidence. The catalog retains 92 of 94 literal
+outputs. [Windows
+producer](https://github.com/edgepillar/syrius/actions/runs/42804599431) and
+[independent
+reader](https://github.com/edgepillar/syrius/actions/runs/42807061092).
+
+Source613 uses the Project seed completion that already waits for the original
+route exit. The next step enters the guarded catalog with the same copied
+owner, confirmed receipt and exact Project row. The original Project
+publication and final catalog closure stay required. Fresh Windows capture is
+pending.
+
 Source612 reuses four existing producer failure categories in the finite native
 node log projection. It reads the same two original files and preserves the
 existing RPC, shutdown and report bounds. All 74 selected Python controls pass.
@@ -589,8 +607,11 @@ Fresh Windows evidence and the stationary cause remain open.
 
 The existing comparator computes numeric scores for 32 exact Home, Settings and
 Details pairs from three previously verified archives in memory. Each pair
-retains its historical source and both PNG hashes. The visual verdicts remain
-open.
+retains its historical source and both PNG hashes. The original reviews
+record differences for these 32 archived pairs. The
+Screens table connects them to their X rows. The four Source133 entry
+observations retain their original metadata failure. Whole-image
+acceptance remains open.
 
 The P06 baseline source and Source611 use the same stall collector and Flutter
 pin. The existing readonly tours retain aggregate stall observations. The
