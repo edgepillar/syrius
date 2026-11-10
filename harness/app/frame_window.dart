@@ -9,10 +9,31 @@ typedef _Sample = ({
   int total,
 });
 
+/// Fixed reasons the original collector cannot qualify a frame interval.
+enum HarnessFrameWindowRefusal {
+  /// Engine timings arrived out of order.
+  frameOrder,
+
+  /// The interval exceeded the bounded number of retained frames.
+  frameLimit,
+
+  /// One timing was outside the admitted bounds.
+  frameTiming,
+
+  /// The proposed interval or end was invalid.
+  windowBounds,
+
+  /// A later frame arrived, but the interval contained no samples.
+  noFrames,
+}
+
 /// The interval does not contain a complete timing sample.
 class HarnessFrameWindowRefused implements Exception {
   /// Reports an invalid or incomplete interval.
-  const HarnessFrameWindowRefused();
+  const HarnessFrameWindowRefused(this.reason);
+
+  /// The fixed rejection from the original collector.
+  final HarnessFrameWindowRefusal reason;
 }
 
 /// Attributes batched engine timings to one bounded monotonic interval.
@@ -31,7 +52,7 @@ class HarnessFrameWindow {
   final List<_Sample> _samples = <_Sample>[];
   final Completer<void> _delivered = Completer<void>();
   int? _endUs;
-  bool _refused = false;
+  HarnessFrameWindowRefusal? _failure;
 
   /// Records only frames whose UI build began inside this window.
   void observe(List<ui.FrameTiming> timings) {
@@ -45,7 +66,7 @@ class HarnessFrameWindow {
           (_samples.isNotEmpty &&
               (number <= _samples.last.number ||
                   start < _samples.last.start))) {
-        _refuse();
+        _refuse(HarnessFrameWindowRefusal.frameOrder);
         return;
       }
       if (start < _startUs) continue;
@@ -57,13 +78,16 @@ class HarnessFrameWindow {
       final int build = timing.buildDuration.inMicroseconds;
       final int raster = timing.rasterDuration.inMicroseconds;
       final int total = timing.totalSpan.inMicroseconds;
-      if (_samples.length == maxFrames ||
-          start - _startUs >= _maxWindowUs ||
+      if (_samples.length == maxFrames) {
+        _refuse(HarnessFrameWindowRefusal.frameLimit);
+        return;
+      }
+      if (start - _startUs >= _maxWindowUs ||
           build < 0 ||
           raster < 0 ||
           total < build + raster ||
           total > _maxWindowUs) {
-        _refuse();
+        _refuse(HarnessFrameWindowRefusal.frameTiming);
         return;
       }
       _samples.add((
@@ -76,8 +100,8 @@ class HarnessFrameWindow {
     }
   }
 
-  void _refuse() {
-    _refused = true;
+  void _refuse(HarnessFrameWindowRefusal reason) {
+    _failure = reason;
     _delivered.complete();
   }
 
@@ -87,18 +111,25 @@ class HarnessFrameWindow {
     required void Function() requestFrame,
   }) async {
     final int duration = endUs - _startUs;
-    if (_refused ||
-        _endUs != null ||
+    final HarnessFrameWindowRefusal? before = _failure;
+    if (before != null) throw HarnessFrameWindowRefused(before);
+    if (_endUs != null ||
         duration <= 0 ||
         duration > _maxWindowUs ||
         (_samples.isNotEmpty && _samples.last.start >= endUs)) {
-      throw const HarnessFrameWindowRefused();
+      throw const HarnessFrameWindowRefused(
+        HarnessFrameWindowRefusal.windowBounds,
+      );
     }
     _endUs = endUs;
     requestFrame();
     await _delivered.future.timeout(const Duration(seconds: 4));
-    if (_refused || _samples.isEmpty) {
-      throw const HarnessFrameWindowRefused();
+    final HarnessFrameWindowRefusal? after = _failure;
+    if (after != null) throw HarnessFrameWindowRefused(after);
+    if (_samples.isEmpty) {
+      throw const HarnessFrameWindowRefused(
+        HarnessFrameWindowRefusal.noFrames,
+      );
     }
     final int first = _samples.first.number;
     return <String, Object?>{

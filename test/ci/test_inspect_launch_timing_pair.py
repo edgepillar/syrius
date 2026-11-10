@@ -188,14 +188,16 @@ class PairInspectionTests(unittest.TestCase):
         sample['frame_window'] = None
         attempt = sample['attempts'][-1]
         diagnostic = dict(status='command_refused', stage='frame_window', http_status=400,
-                          frame_window_refused=True)
+                          frame_window_refused=True, frame_reason='frameLimit')
         attempt.update(action_complete=False, error_codes=['COMMAND_FAILED'], lock_diagnostic=diagnostic)
         result = self.project(value)
         self.assertEqual(result['normal_actor_exits'], 5)
         self.assertEqual(result['attempt_outcomes']['p06'][-1]['lock_diagnostic'], diagnostic)
         for invalid in (dict(diagnostic, http_status=True), dict(diagnostic, http_status=500),
                         dict(diagnostic, stage='lock_state'), dict(diagnostic, stage='other'),
-                        dict(diagnostic, error='synthetic private text')):
+                        dict(diagnostic, error='synthetic private text'),
+                        dict(diagnostic, frame_reason='synthetic private text'),
+                        dict(diagnostic, frame_window_refused=False)):
             attempt['lock_diagnostic'] = invalid
             with self.subTest(invalid=invalid), self.assertRaises(reader.archive.Refused):
                 self.project(value)

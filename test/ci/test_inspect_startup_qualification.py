@@ -191,7 +191,10 @@ class StartupInspectionTests(unittest.TestCase):
         cases = (
             ('password_readiness', [(400, dict(ok=False, error='synthetic private text'))], False),
             ('lock_state', [field, (500, dict(ok=False, error='synthetic private text'))], False),
-            ('frame_window', [field, state, (400, dict(ok=False, error='frame-window-unqualified'))], True),
+            ('frame_window', [field, state, (400, dict(ok=False, error='frame-window-unqualified',
+                detail=dict(reason='frameLimit')))], True),
+            ('frame_window', [field, state, (400, dict(ok=False, error='frame-window-unqualified',
+                detail=dict(reason='synthetic private text')))], True),
         )
         for stage, responses, frame_refusal in cases:
             with self.subTest(stage=stage):
@@ -211,8 +214,11 @@ class StartupInspectionTests(unittest.TestCase):
                 self.assertIsNone(frames)
                 self.assertEqual(attempt['error_codes'], ['COMMAND_FAILED'])
                 self.assertEqual(process._exchange.call_count, len(responses))
-                self.assertEqual(diagnostic, dict(status='command_refused', stage=stage,
-                    http_status=responses[-1][0], frame_window_refused=frame_refusal))
+                expected = dict(status='command_refused', stage=stage,
+                    http_status=responses[-1][0], frame_window_refused=frame_refusal)
+                if responses[-1][1].get('detail') == {'reason': 'frameLimit'}:
+                    expected['frame_reason'] = 'frameLimit'
+                self.assertEqual(diagnostic, expected)
                 process._lock_diagnostic.assert_not_called()
 
     def test_paired_lock_readiness_budget_and_passive_failure_readout(self):

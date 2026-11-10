@@ -822,8 +822,18 @@ remain open.
 The Import step connector now uses a one-logical-pixel fill at the
 existing layout position. The new widget case samples a fractional offset
 and checks that the fill occupies one raster row. The two changed Dart
-files pass local analysis. Windows widget and native capture results are
-pending. The remaining Import dash and whole-image reviews stay open.
+files pass local analysis. Source634 passes selected Windows analysis,
+1,387 Dart cases including the connector test and 1,132 Python cases with
+eighteen skips. The focused job retains zero artifacts. Native capture,
+the remaining Import dash and whole-image reviews stay open.
+[Focused run](https://github.com/edgepillar/syrius/actions/runs/42882777346).
+
+The paired timing overlay now retains a fixed reason when the original
+frame window refuses. The reasons distinguish lock checks, frame order,
+frame bounds, sample limits and delivery. The reader verifies the finite
+reason only on an original frame-window refusal. The current and P06
+collectors use the same existing sampling limits. All 85 selected local
+controls pass. The new overlay needs an original Windows run.
 
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied

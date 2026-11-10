@@ -27,6 +27,9 @@ TIMING_SIZE = (1280, 780)
 LOCK_DIAGNOSTIC_FLAGS = ('wallet_path_present', 'wallet_unlocked', 'client_at_target',
     'native_window_ready', 'startup_ready', 'welcome_ready', 'entry_held')
 TIMING_COMMAND_STAGES = ('password_readiness', 'lock_state', 'frame_window')
+FRAME_REFUSALS = ('notCollecting', 'launchNotBooted', 'lockFieldCount', 'lockFieldDisabled',
+    'lockFieldUnreachable', 'deliveryTimeout', 'frameOrder', 'frameLimit', 'frameTiming',
+    'windowBounds', 'noFrames')
 MAX_TIMING_FRAMES, MAX_TIMING_US = 512, 60000000
 TIMING_FIELDS = ('schema', 'scope', 'windowUs', 'frames')
 TIMING_SOURCE = Path('harness/app/frame_window.dart')
@@ -132,6 +135,10 @@ class TimingCommandRefused(startup.Failure):
         self.diagnostic = dict(status='command_refused', stage=stage, http_status=http_status,
             frame_window_refused=(stage == 'frame_window' and http_status == 400
                                   and reply.get('error') == 'frame-window-unqualified'))
+        detail = reply.get('detail')
+        if (self.diagnostic['frame_window_refused'] and type(detail) is dict
+                and set(detail) == {'reason'} and detail['reason'] in FRAME_REFUSALS):
+            self.diagnostic['frame_reason'] = detail['reason']
 
 
 def timing_reply(stage, status, reply):
@@ -144,12 +151,15 @@ def valid_lock_diagnostic(value):
     if type(value) is not dict:
         return False
     if value.get('status') == 'command_refused':
-        return (set(value) == {'status', 'stage', 'http_status', 'frame_window_refused'}
+        fields = {'status', 'stage', 'http_status', 'frame_window_refused'}
+        return (set(value) in (fields, fields | {'frame_reason'})
             and value['stage'] in TIMING_COMMAND_STAGES
             and startup.integer(value['http_status'], 100, 599)
             and type(value['frame_window_refused']) is bool
             and (not value['frame_window_refused']
-                 or value['stage'] == 'frame_window' and value['http_status'] == 400))
+                 or value['stage'] == 'frame_window' and value['http_status'] == 400)
+            and ('frame_reason' not in value
+                 or value['frame_window_refused'] and value['frame_reason'] in FRAME_REFUSALS))
     if set(value) == {'status', 'error_code'} and value['status'] == 'unavailable':
         code = value['error_code']
         return type(code) is str and code in startup.CODES

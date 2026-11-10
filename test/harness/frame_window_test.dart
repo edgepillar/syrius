@@ -46,7 +46,13 @@ void main() {
     final HarnessFrameWindow window = HarnessFrameWindow(100000);
     final Future<void> refused = expectLater(
       window.finish(endUs: 150000, requestFrame: () {}),
-      throwsA(isA<HarnessFrameWindowRefused>()),
+      throwsA(
+        isA<HarnessFrameWindowRefused>().having(
+          (HarnessFrameWindowRefused error) => error.reason,
+          'reason',
+          HarnessFrameWindowRefusal.noFrames,
+        ),
+      ),
     );
     window.observe(<ui.FrameTiming>[_frame(1, 150000)]);
     await refused;
@@ -60,7 +66,13 @@ void main() {
         endUs: 150000,
         requestFrame: () => fail('unexpected frame'),
       ),
-      throwsA(isA<HarnessFrameWindowRefused>()),
+      throwsA(
+        isA<HarnessFrameWindowRefused>().having(
+          (HarnessFrameWindowRefused error) => error.reason,
+          'reason',
+          HarnessFrameWindowRefusal.frameOrder,
+        ),
+      ),
     );
   });
 
@@ -72,7 +84,13 @@ void main() {
         endUs: 150000,
         requestFrame: () => fail('unexpected frame'),
       ),
-      throwsA(isA<HarnessFrameWindowRefused>()),
+      throwsA(
+        isA<HarnessFrameWindowRefused>().having(
+          (HarnessFrameWindowRefused error) => error.reason,
+          'reason',
+          HarnessFrameWindowRefusal.windowBounds,
+        ),
+      ),
     );
   });
 
@@ -87,7 +105,13 @@ void main() {
         endUs: 20000000,
         requestFrame: () => fail('unexpected frame'),
       ),
-      throwsA(isA<HarnessFrameWindowRefused>()),
+      throwsA(
+        isA<HarnessFrameWindowRefused>().having(
+          (HarnessFrameWindowRefused error) => error.reason,
+          'reason',
+          HarnessFrameWindowRefusal.frameLimit,
+        ),
+      ),
     );
   });
 }

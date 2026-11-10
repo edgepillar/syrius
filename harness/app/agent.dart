@@ -5151,6 +5151,8 @@ class HarnessAgent {
     Map<String, dynamic> command,
   ) async {
     const String refusal = 'frame-window-unqualified';
+    HarnessError refused(String reason) =>
+        HarnessError(refusal, <String, String>{'reason': reason});
     if (!const <String>{'interactive', 'launch'}.contains(_frameTimingMode) ||
         command.length != 2) {
       throw HarnessError(refusal);
@@ -5164,18 +5166,19 @@ class HarnessAgent {
         _frameWindow = HarnessFrameWindow(dev.Timeline.now);
         return <String, Object?>{'frameWindow': 'collecting'};
       case 'end':
-        if (window == null) throw HarnessError(refusal);
+        if (window == null) throw refused('notCollecting');
         if (_frameTimingMode == 'launch') {
-          if (!booted) throw HarnessError(refusal);
+          if (!booted) throw refused('launchNotBooted');
           final List<_Node> fields = _matches(
             const <String, dynamic>{'key': 'wallet_password_field'},
             kinds: const <String>['field'],
             only: true,
           );
-          if (fields.length != 1 ||
-              !fields.single.enabled ||
-              !_reachable(fields.single, fields.single.center)) {
-            throw HarnessError(refusal);
+          if (fields.length != 1) throw refused('lockFieldCount');
+          final _Node field = fields.single;
+          if (!field.enabled) throw refused('lockFieldDisabled');
+          if (!_reachable(field, field.center)) {
+            throw refused('lockFieldUnreachable');
           }
         }
         try {
@@ -5184,9 +5187,9 @@ class HarnessAgent {
             requestFrame: SchedulerBinding.instance.scheduleFrame,
           );
         } on TimeoutException {
-          throw HarnessError(refusal);
-        } on HarnessFrameWindowRefused {
-          throw HarnessError(refusal);
+          throw refused('deliveryTimeout');
+        } on HarnessFrameWindowRefused catch (error) {
+          throw refused(error.reason.name);
         } finally {
           _frameWindow = null;
         }

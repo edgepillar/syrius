@@ -27,10 +27,10 @@ FRAME_BUDGET_US = 16000
 P06_ORIGINAL = 'f024e78bf777d9b16d9e4a81c295ef092c9bf79d'
 P06_SOURCE = 'e06330fd5c630fee82f59efd42140f7190260ff9'
 P06_TREE = '197785948b180221aa3521b35fcc4def52620ba9'
-P06_OVERLAY_TREE = '62ad17cc8261251a8278ef841c2607a4619ca5cd'
+P06_OVERLAY_TREE = '5759a0c84c786d1f940ce855b0571c8668439d56'
 PATCH = Path('tool/ci/fixtures/p06-frame-window.patch')
-PATCH_SHA256 = '6b1d9adc4f54bd2cb9418668ba14e48b65b64834b43fd54caa289f399a042640'
-COLLECTOR_SHA256 = 'a5e13ad9ba0302fe6e84f378d568cafd6062c89a3d255846d194a6b406a20a98'
+PATCH_SHA256 = 'b2037d241cd94f3708373ad03ff1794dc6389c9f0af2cfd1b9962cc501031445'
+COLLECTOR_SHA256 = '2dad8b0cadd494654999123ed24e76e89cd75010ba7cbb3900b7da3ab38127c6'
 SAME_INPUTS = ('pubspec.yaml', 'pubspec.lock', 'patched_packages/reown_core-1.3.8',
                'tool/generate_git_metadata.dart', 'windows', 'lib/utils/wallet_file.dart',
                'lib/utils/constants.dart')
