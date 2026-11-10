@@ -15,6 +15,7 @@ from . import dart_test_failure
 from . import windows_baseline as baseline
 from . import windows_entry_capture_smoke as entry
 from . import inspect_startup_qualification as startup
+from . import inspect_launch_timing_pair as paired_timing
 
 
 MAX_LOG = 4 * 1024**2
@@ -299,6 +300,7 @@ def main():
                 startup.launch.JOB_STEP: 'Hosted original cold launch inspection',
                 startup.launch.SETTLE_JOB_STEP: 'Hosted original launch handoff inspection',
                 startup.launch.TIMING_JOB_STEP: 'Hosted original cold lock timing inspection',
+                paired_timing.pair.JOB_STEP: paired_timing.TITLE,
                 startup.lock_catalog.JOB_STEP: 'Hosted original lock catalog inspection',
                 startup.quiz_catalog.JOB_STEP: 'Hosted original seed quiz catalog inspection',
             }
@@ -308,12 +310,17 @@ def main():
             if launch_steps:
                 archive.need(len(launch_steps) == 1 and launch_steps[0]['status'] == 'completed')
                 name = launch_steps[0]['name']
-                emit(launch_titles[name], startup.inspect_launch_run(
-                    client, head=head, tree=tree, run_id=run_id, job=job,
-                    settle=name == startup.launch.SETTLE_JOB_STEP,
-                    lock=name == startup.lock_catalog.JOB_STEP,
-                    quiz=name == startup.quiz_catalog.JOB_STEP,
-                    timing=name == startup.launch.TIMING_JOB_STEP))
+                if name == paired_timing.pair.JOB_STEP:
+                    summary = paired_timing.inspect_run(
+                        client, head=head, tree=tree, run_id=run_id, job=job)
+                else:
+                    summary = startup.inspect_launch_run(
+                        client, head=head, tree=tree, run_id=run_id, job=job,
+                        settle=name == startup.launch.SETTLE_JOB_STEP,
+                        lock=name == startup.lock_catalog.JOB_STEP,
+                        quiz=name == startup.quiz_catalog.JOB_STEP,
+                        timing=name == startup.launch.TIMING_JOB_STEP)
+                emit(launch_titles[name], summary)
                 return 0
             for summary in startup.inspect_run(
                     client, head=head, tree=tree, run_id=run_id, job=job):

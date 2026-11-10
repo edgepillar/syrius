@@ -750,9 +750,23 @@ and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42849
 Source628 waits for the original reachable password field and observes the
 naturally restored client size within the existing deadline. A persistent
 geometry mismatch has its own refusal code. The reader preserves the original
-Source627 producer binding. All 46 selected in-memory controls pass. Fresh
-native timing, paired P06 and page and disclosure measurements, and the
-running Motion and Shaders review remain open.
+Source627 producer binding. Selected analysis reports zero findings, all
+1,388 selected Dart cases pass and 1,118 Python cases complete with eighteen
+skips. The Release build and both actor exits complete. The timing actor
+reports ENTRY_UNAVAILABLE before recording any frame. The independent reader
+verifies the 1,362-byte archive and preserves the original result.
+[Source628 Windows run](https://github.com/edgepillar/syrius/actions/runs/42851137227)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42853554717).
+
+Source629 selects the original password field by key and kind. The paired
+Windows job measures the current build first. Once that window is valid, it
+builds the P06 source in a detached worktree using the same Flutter SDK and
+an offline restore from the shared locked package cache. The P06 source tree
+and the collector overlay have separate pins. One bounded numeric manifest
+retains both windows and the original command and actor outcomes. The
+independent reader recomputes the 16 ms comparison and verifies the retained
+source, inputs and exit evidence. Fresh native timing, the page and disclosure
+measurements, and the running Motion and Shaders review remain open.
 
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied

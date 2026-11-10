@@ -164,7 +164,8 @@ class LaunchProcess(startup.StartupProbe):
             remaining_ms = int((until - self.clock()) * 1000)
             need(remaining_ms > 0, 'STARTUP_DEADLINE')
             reply = self._rpc(dict(cmd='wait', key='wallet_password_field',
-                                   exact=True, ready=True, timeoutMs=remaining_ms), until=until)
+                                   kind='field', exact=True, ready=True,
+                                   timeoutMs=remaining_ms), until=until)
             target = reply.get('target')
             need(type(target) is dict and target.get('key') == 'wallet_password_field'
                  and target.get('kind') == 'field'

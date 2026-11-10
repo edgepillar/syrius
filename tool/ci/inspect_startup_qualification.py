@@ -22,6 +22,10 @@ JOB_NAME = 'Observe original Windows Release startup'
 # The timing lane preserves earlier launch, lock and quiz producers.
 PRE_TIMING_LAUNCH_PRODUCER_SHA = 'e579d76e178e69189069f5269a0ba8981f3e435a10e0f80f69bb2d559b4761a2'
 FIRST_TIMING_LAUNCH_PRODUCER_SHA = '6880559d501bc59bff26865155af96efe56322a61a587a04edccc37b41a487a5'
+PRIOR_TIMING_LAUNCH_PRODUCER_SHAS = (
+    FIRST_TIMING_LAUNCH_PRODUCER_SHA,
+    '0691ffb8a027616aac19115fe0cf3a8c8a9b407a4d0d72217be1be5475bab891',
+)
 # Retained launch archives created before the handoff option use this producer.
 ORIGINAL_LAUNCH_PRODUCER_SHA = 'dbf165b477df62dae61258224a96220e8b5d4575b4673010d9491006c486bce9'
 HANDOFF_LAUNCH_PRODUCER_SHA = 'ffb11b8748080d0973eb08f168f1c926bdf13622e9f9717fe084f2b09571d9fc'
@@ -355,10 +359,10 @@ def inspect_launch_run(client, *, head, tree, run_id, job, settle=False, lock=Fa
             prior = () if lock or quiz else ((HANDOFF_LAUNCH_PRODUCER_SHA,) if settle else
                                       (ORIGINAL_LAUNCH_PRODUCER_SHA, HANDOFF_LAUNCH_PRODUCER_SHA))
             if timing:
-                prior = ((FIRST_TIMING_LAUNCH_PRODUCER_SHA,)
+                prior = (PRIOR_TIMING_LAUNCH_PRODUCER_SHAS
                          if name == 'tool/ci/windows_launch_catalog.py' else ())
             elif name == 'tool/ci/windows_launch_catalog.py':
-                prior = (*prior, PRE_TIMING_LAUNCH_PRODUCER_SHA, FIRST_TIMING_LAUNCH_PRODUCER_SHA)
+                prior = (*prior, PRE_TIMING_LAUNCH_PRODUCER_SHA, *PRIOR_TIMING_LAUNCH_PRODUCER_SHAS)
             if quiz and name == 'tool/ci/windows_quiz_catalog.py':
                 prior = PRIOR_QUIZ_PRODUCER_SHAS
             archive.need(body == current or archive.sha(body) in prior)

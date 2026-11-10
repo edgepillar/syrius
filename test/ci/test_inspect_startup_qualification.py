@@ -152,7 +152,8 @@ class StartupInspectionTests(unittest.TestCase):
             dict(ok=True, **report),
         ])
         self.assertEqual(process._observe_frame_timing(), report)
-        wait = dict(cmd='wait', key='wallet_password_field', exact=True, ready=True, timeoutMs=20000)
+        wait = dict(cmd='wait', key='wallet_password_field', kind='field',
+                    exact=True, ready=True, timeoutMs=20000)
         self.assertEqual([call.args[0] for call in process._rpc.call_args_list], [
             wait, wait, dict(cmd='state'), wait, dict(cmd='state'),
             dict(cmd='stalls', frameWindow='end'),
