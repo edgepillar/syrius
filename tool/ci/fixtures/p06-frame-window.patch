@@ -24,7 +24,59 @@
          return _stallsCmd(c);
        case 'clipboard':
          return _clipboard(c);
-@@ -2458,6 +2461,9 @@
+@@ -1096,6 +1099,33 @@
+           : 'startup-before-initialization';
+     }
+     return phases.single;
++  }
++
++  Map<String, Object?>? _recipeStartupFilmFrame() {
++    final EntryCaptureRegistry registry = EntryCaptureRegistry.instance;
++    final EntryStartupReceipt? startup = registry.startup;
++    if (registry.held || startup == null || !startup.isCurrent) return null;
++    final Object owner = startup.startupOwner;
++    if (owner is! StartupStageSession ||
++        owner.isClosed ||
++        owner.film.cleanupOwnerReplaced) {
++      return null;
++    }
++    final BuildContext? element = owner.filmKey.currentContext;
++    if (element is! StatefulElement || !element.mounted) return null;
++    final Widget movie = element.widget;
++    final LaunchFilmController film = owner.film;
++    if (movie is! LaunchFilm ||
++        !identical(movie.controller, film) ||
++        !identical(film.cleanup?.owner, element.state)) {
++      return null;
++    }
++    // These getters do not change the original film or its clock.
++    return <String, Object?>{
++      'frames': film.frameCount,
++      'shown': film.frame,
++      'done': film.isDone,
++    };
+   }
+
+   _Node? _recipeStartupHint(List<_Node> nodes) {
+@@ -1249,6 +1279,9 @@
+     }
+     final List<_Node> nodes = _snapshot();
+     final _Node? startupHint = _recipeStartupHint(nodes);
++    final Map<String, Object?>? filmFrame = command['action'] == 'observe'
++        ? _recipeStartupFilmFrame()
++        : null;
+     final Set<String> entryPhases = <String>{};
+     final List<Element> views = _recipeNodeViews(entryPhases: entryPhases);
+     final NodeSettingsView? view = views.isEmpty
+@@ -1265,6 +1298,7 @@
+       'harnessMode': 'wallet',
+       'booted': booted,
+       'entryPhase': _recipeEntryPhase(entryPhases),
++      if (filmFrame != null) 'startupFilmFrame': filmFrame,
+       'owner': _recipeOwner,
+       'revision': WalletContextRevision.value,
+       'walletPresent': kWalletFile != null,
+@@ -2458,6 +2492,9 @@
    Future<Map<String, Object?>> _wait(Map<String, dynamic> c) async {
      final int timeout = c['timeoutMs'] as int? ?? 10000;
      final bool gone = c['gone'] == true;
@@ -34,7 +86,7 @@
      final Stopwatch sw = Stopwatch()..start();
      while (true) {
        final List<_Node> hits = _matches(
-@@ -2472,7 +2478,11 @@
+@@ -2472,7 +2509,11 @@
            'error',
          ],
        );
@@ -47,7 +99,7 @@
          return <String, Object?>{
            'ms': sw.elapsedMilliseconds,
            if (!gone) 'target': hits.first.toJson(),
-@@ -2724,6 +2734,61 @@
+@@ -2724,6 +2765,61 @@
 
    // ------------------------------------------------------------------ stalls
 
@@ -109,7 +161,7 @@
    final Stopwatch _stallClock = Stopwatch();
    Duration _stallLast = Duration.zero;
    final List<Map<String, Object?>> _stalls = <Map<String, Object?>>[];
-@@ -2737,6 +2802,9 @@
+@@ -2737,6 +2833,9 @@
    /// even on a still page. The frame timings add what a timer cannot see:
    /// the raster thread, where a large image or a first-use shader costs.
    void _hookStalls() {
@@ -119,7 +171,7 @@
      void record(String kind, int ms) {
        _stalls.add(<String, Object?>{
          'time': DateTime.now().toIso8601String(),
-@@ -2756,6 +2824,7 @@
+@@ -2756,6 +2855,7 @@
        }
      });
      SchedulerBinding.instance.addTimingsCallback((List<ui.FrameTiming> ts) {

@@ -248,6 +248,30 @@ class StartupInspectionTests(unittest.TestCase):
         self.assertNotIn('synthetic private path', json.dumps(observed))
         self.assertEqual([call.args[0]['cmd'] for call in process._rpc.call_args_list],
                          ['state', 'entry-state', 'wallet-recipe'])
+        legacy = dict(frames=54, shown=31, done=False)
+        current = dict(legacy, decoding=32, stage='frame', skip=False,
+                       pending=True, ticking=True)
+        for fields, expected in (
+            (dict(startupFilmFrame=legacy), legacy),
+            (dict(startupFilmProgress=current), legacy),
+            (dict(startupFilmFrame=dict(legacy, shown=54)), None),
+            (dict(startupFilmFrame=dict(legacy, done=0)), None),
+            (dict(startupFilmFrame=dict(legacy, path='synthetic private path')), None),
+            (dict(startupFilmProgress=dict(current, stage='synthetic private stage')), None),
+        ):
+            with self.subTest(fields=fields):
+                process._rpc = mock.Mock(side_effect=[
+                    dict(ok=True, booted=True, walletPath=None, size=[1280, 780],
+                         tab=None, walletUnlocked=False),
+                    dict(ok=True, available=True, nativeWindowReady=True,
+                         startupReady=False, welcomeReady=False, held=False),
+                    dict(ok=True, entryPhase='startup-before-initialization', **fields),
+                ])
+                observed = process._lock_diagnostic()
+                self.assertEqual(observed['status'], 'observed')
+                self.assertEqual(observed.get('film_frame'), expected)
+                self.assertEqual(process._rpc.call_count, 3)
+                self.assertNotIn('synthetic private', json.dumps(observed))
         process._rpc = mock.Mock(side_effect=inspect.startup.Failure('HTTP_FAILED'))
         self.assertEqual(process._lock_diagnostic(), dict(status='unavailable', error_code='HTTP_FAILED'))
 

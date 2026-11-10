@@ -147,6 +147,13 @@ def timing_reply(stage, status, reply):
     return reply
 
 
+def valid_lock_film_frame(value):
+    return (type(value) is dict and set(value) == {'frames', 'shown', 'done'}
+        and startup.integer(value['frames'], 0, 4096)
+        and startup.integer(value['shown'], -1, max(-1, value['frames'] - 1))
+        and type(value['done']) is bool)
+
+
 def valid_lock_diagnostic(value):
     if type(value) is not dict:
         return False
@@ -163,7 +170,9 @@ def valid_lock_diagnostic(value):
     if set(value) == {'status', 'error_code'} and value['status'] == 'unavailable':
         code = value['error_code']
         return type(code) is str and code in startup.CODES
-    return (set(value) == {'status', 'tab', 'entry_phase', 'field', *LOCK_DIAGNOSTIC_FLAGS}
+    fields = {'status', 'tab', 'entry_phase', 'field', *LOCK_DIAGNOSTIC_FLAGS}
+    return (set(value) in (fields, fields | {'film_frame'})
+        and ('film_frame' not in value or valid_lock_film_frame(value['film_frame']))
         and value['status'] == 'observed' and value['tab'] in ('lock', 'none', 'other')
         and type(value['entry_phase']) is str and value['entry_phase'] in startup.RECIPE_ENTRY_PHASES
         and value['field'] in ('missing', 'disabled', 'visible')
@@ -272,6 +281,13 @@ class LaunchProcess(startup.StartupProbe):
                 client_at_target=size == list(TIMING_SIZE), native_window_ready=native.get('nativeWindowReady'),
                 startup_ready=native.get('startupReady'), welcome_ready=native.get('welcomeReady'),
                 entry_held=native.get('held'))
+            film = recipe.get('startupFilmFrame')
+            if 'startupFilmProgress' in recipe:
+                progress = startup.progress_projection(recipe['startupFilmProgress'])
+                film = ({name: progress[name] for name in ('frames', 'shown', 'done')}
+                        if progress is not None else None)
+            if valid_lock_film_frame(film):
+                value['film_frame'] = film
             need(valid_lock_diagnostic(value), 'ENTRY_INVALID')
             return value
         except bounded.SmokeFailure as error:

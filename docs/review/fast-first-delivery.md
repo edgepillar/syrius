@@ -846,8 +846,14 @@ and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42891
 The connector now aligns its top edge in the logical view while preserving
 its one-pixel layout. The updated regression samples the specific row
 through a fractional ancestor paint layer. Both changed Dart files pass
-local analysis. The widget regression and fresh Windows capture remain
-open.
+local analysis.
+
+Source637 independently verifies all four original entry captures and the
+normal exit. The first Import connector covers only reference row 280
+across the sampled 108 columns in both themes. The drop-zone dash and
+whole-image reviews remain open.
+[Original capture](https://github.com/edgepillar/syrius/actions/runs/42893075259)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42894477057).
 
 The paired timing overlay now retains a fixed reason when the original
 frame window refuses. The reasons distinguish lock checks, frame order,
@@ -865,6 +871,14 @@ its failed outcome. The original P06 launch cause and paired comparison
 remain open.
 [Producer](https://github.com/edgepillar/syrius/actions/runs/42885269336)
 and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42888897255).
+
+The P06 overlay records the total frame count, current displayed frame
+and finished flag from the registered original film owner. The lock
+diagnostic uses the existing read-only wallet recipe request. The
+original P06 source and collector retain their recorded identities, and
+the revised observation overlay has its own tree pin. All 86 selected
+local controls pass. The next paired Windows run includes the updated
+Import widget regression and the original P06 launch comparison.
 
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied
