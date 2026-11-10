@@ -2,6 +2,7 @@
 
 from copy import deepcopy
 import unittest
+from unittest import mock
 
 import test_inspect_chain321 as lab_fixtures
 import test_inspect_launch_timing_pair as fixtures
@@ -64,6 +65,78 @@ class InteractiveFramePairTests(unittest.TestCase):
         self.assertEqual(result['normal_wallet_exits'], 2)
         self.assertEqual(result['normal_entry_exits'], 2)
         self.assertTrue(all(result['no_added_reported_slow_frames'].values()))
+
+    def test_profile_progress_preserves_the_original_send_failure(self):
+        profile = pair.profile
+        original_failure = RuntimeError('synthetic private failure')
+        window = fixture()['samples']['current']['observation']['windows']['page_change']
+        for failed in (False, True):
+            report = {}
+            unlocked = False
+
+            def send(command):
+                if command['cmd'] == 'ping':
+                    return dict(ok=True, pid=17, booted=True, harnessMode='wallet')
+                if command['cmd'] == 'state':
+                    return dict(ok=True, walletUnlocked=unlocked, walletInitCompleted=unlocked,
+                        walletPath=None, tab='dashboard', node=profile.NODE,
+                        chainId=321, signingChainId=321, savedSigningChainId=321,
+                        embeddedNode=False, nodeTransitionPending=False, address='fixture-address')
+                self.assertEqual(command['cmd'], 'wait')
+                if failed:
+                    raise original_failure
+                return dict(ok=True)
+
+            def run_entry(payload):
+                nonlocal unlocked
+                self.assertIsInstance(payload, bytes)
+                unlocked = True
+                output = profile.READY + b'\n'
+                return profile.baseline.Outcome(exit_code=0, exit_observed=True,
+                    output_complete=True, output_bytes=len(output), seconds=1, output=output)
+
+            def measure(request, validate, *, size, windows):
+                request(dict(cmd='wait', key='about_page'))
+                windows.update(dict.fromkeys(pair.WINDOWS, window))
+
+            with mock.patch.object(profile.wallet_tour, 'public_fixture', return_value='fixture words'):
+                arguments = (send, run_entry,
+                    lambda: dict(chain=321, genesis_hash=GENESIS, last_height=10,
+                                 cross_transport_hash_equal=True),
+                    measure, lambda address: address == 'fixture-address')
+                options = dict(pid=17, port=15432, token='a' * 43, fixture_text='fixture',
+                    genesis=GENESIS, first_height=10, report=report)
+                if failed:
+                    with self.assertRaises(RuntimeError) as caught:
+                        profile.owned_profile(*arguments, **options)
+                    self.assertIs(caught.exception, original_failure)
+                    self.assertEqual(report['phase'], 'measure')
+                    self.assertFalse(report['success'])
+                else:
+                    profile.owned_profile(*arguments, **options)
+                    self.assertTrue(report['success'])
+            self.assertEqual(report['action_progress'], dict(index=1, command='wait', returned=not failed))
+            encoded = cold.canonical(report)
+            self.assertNotIn(b'synthetic private failure', encoded)
+            self.assertNotIn(b'fixture words', encoded)
+
+    def test_reader_refuses_private_or_inconsistent_action_progress(self):
+        value = fixture()
+        progress = dict(index=1, command='wait', returned=True)
+        value['samples']['current']['observation']['action_progress'] = progress
+        result = self.project(value)
+        self.assertEqual(result['action_progress']['current'], progress)
+        self.assertIsNone(result['action_progress']['p06'])
+        invalid = (
+            dict(progress, index=True), dict(progress, index=33), dict(progress, command=None),
+            dict(progress, command='synthetic private command'), dict(progress, returned=1),
+            dict(progress, private='synthetic private value'), dict(progress, index=0),
+            dict(index=0, command=None, returned=False), dict(progress, returned=False),
+        )
+        for offered in invalid:
+            value['samples']['current']['observation']['action_progress'] = offered
+            with self.subTest(progress=offered), self.assertRaises(archive.Refused):
+                self.project(value)
 
     def test_replaced_profile_preserves_observed_windows_without_accepting_pair(self):
         offered = fixture()

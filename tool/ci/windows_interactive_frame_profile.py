@@ -22,6 +22,8 @@ READY = json.dumps(dict(schema=1, scope=ENTRY_SCOPE, success=True, error_code=No
                    separators=(',', ':')).encode('ascii')
 ENTRY = Path('harness/bin/ci_paired_interactive_entry.dart')
 ENTRY_SHA256 = 'c3a7e420ea32ff2098a378c056a66e979b4ebc40f9ba2fbf65032ba22404a289'
+MEASUREMENT_COMMANDS = frozenset(('theme', 'state', 'stalls', 'tap', 'wait', 'scroll'))
+MAX_MEASUREMENT_COMMANDS = 32
 
 
 class InteractiveRefused(Exception):
@@ -174,7 +176,18 @@ def owned_profile(send, run_entry, revalidate, measure, confirm_address, *,
     need(confirm_address(address) is True, 'WALLET_REFUSED')
     lab()
     report['phase'] = 'measure'
-    measure(send, launch.frame_timing_window, size=list(launch.TIMING_SIZE),
+    progress = dict(index=0, command=None, returned=False)
+    report['action_progress'] = progress
+
+    def observed_send(command):
+        need(type(command) is dict and command.get('cmd') in MEASUREMENT_COMMANDS
+             and progress['index'] < MAX_MEASUREMENT_COMMANDS, 'FRAME_REFUSED')
+        progress.update(index=progress['index'] + 1, command=command['cmd'], returned=False)
+        value = send(command)
+        progress['returned'] = True
+        return value
+
+    measure(observed_send, launch.frame_timing_window, size=list(launch.TIMING_SIZE),
             windows=report['windows'])
     need(set(report['windows']) == {'page_change', 'disclosure'}, 'FRAME_REFUSED')
     for window in report['windows'].values():

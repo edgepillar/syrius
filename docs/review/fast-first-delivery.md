@@ -968,6 +968,20 @@ the original process exits and the enclosing lab receipt. All 136 selected
 local controls and 35 workflow admission cases pass. The new Dart entry
 passes selected analysis. Fresh native observation remains open.
 
+Source643 passes selected analysis, all 1,388 ordinary Dart cases and 1,140
+Python cases with eighteen skips. Its native current session records eleven
+page-change frames. The session stops with `COMMAND_FAILED` during the later
+interaction. The reader verifies both manifests, one normal wallet exit, one
+normal entry exit and all five normal node exits. Disclosure and P06 windows
+are unobserved. The exact failed command remains `NOT_ESTABLISHED`.
+[Producer](https://github.com/edgepillar/syrius/actions/runs/42909977296)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42913087653).
+
+The measurement receipt now retains the last command's finite type, sequence
+number and whether its call returned. The reader validates this optional
+progress record and supports the earlier manifests. Failed calls preserve
+their original exception and the already observed windows.
+
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied
 owner, confirmed receipt and exact Project row. The original Project

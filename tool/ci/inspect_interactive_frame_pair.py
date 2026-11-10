@@ -45,11 +45,21 @@ def sample_receipts(value):
     windows, entry_closed = {}, False
     observed = False
     if observation != {}:
-        archive.need(type(observation) is dict and set(observation) == {
-            'phase', 'lab_revalidations', 'entry', 'windows', 'success'}
+        required = {'phase', 'lab_revalidations', 'entry', 'windows', 'success'}
+        archive.need(type(observation) is dict
+            and required <= set(observation) <= required | {'action_progress'}
             and type(observation['phase']) is str and observation['phase'] in OBSERVATION_PHASES
             and type(observation['success']) is bool
             and pair.shared.launch.startup.integer(observation['lab_revalidations'], 0, 3))
+        progress = observation.get('action_progress')
+        if 'action_progress' in observation:
+            archive.need(type(progress) is dict and set(progress) == {'index', 'command', 'returned'}
+                and pair.shared.launch.startup.integer(progress['index'], 0, pair.profile.MAX_MEASUREMENT_COMMANDS)
+                and type(progress['returned']) is bool
+                and observation['phase'] in ('measure', 'verify_after', 'complete'))
+            archive.need((progress['index'] == 0 and progress['command'] is None and not progress['returned'])
+                or (progress['index'] > 0 and type(progress['command']) is str
+                    and progress['command'] in pair.profile.MEASUREMENT_COMMANDS))
         entry = observation['entry']
         if entry is not None:
             archive.need(type(entry) is dict and set(entry) == READOUT_FIELDS
@@ -72,6 +82,7 @@ def sample_receipts(value):
         observed = (observation['phase'] == 'complete' and observation['lab_revalidations'] == 3
                     and entry_closed and set(windows) == set(pair.WINDOWS))
         archive.need(observation['success'] is observed)
+        archive.need(progress is None or not observed or progress['index'] > 0 and progress['returned'])
     success = completed and observed and value['profile_stable']
     archive.need(value['success'] is success)
     return windows, closed, entry_closed, success
@@ -159,6 +170,8 @@ def project(raw, item, *, head, tree, run_id, lab, expected_entry):
         original_phase=report['phase'],
         error_codes=report['error_codes'], runtime_started=False, verified_png_count=0,
         same_fixture_address=report['same_fixture_address'],
+        action_progress={label: sample['observation'].get('action_progress')
+                         for label, sample in samples.items() if sample.get('observation')},
         normal_wallet_exits=current_closed + p06_closed,
         normal_entry_exits=current_entry + p06_entry,
         frame_counts={label:{name:len(value['frames']) for name,value in window.items()}

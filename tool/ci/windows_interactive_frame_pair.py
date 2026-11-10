@@ -164,6 +164,7 @@ def run(repo, parent, runtime, lab_root, observation):
              error_codes=report['error_codes'], samples={
                  name: dict(success=value.get('success', False),
                             attempt=value.get('attempt'),
+                            action_progress=value.get('observation', {}).get('action_progress'),
                             frame_counts={key: len(window['frames']) for key, window in
                                 value.get('observation', {}).get('windows', {}).items()})
                  for name, value in report['samples'].items()}), separators=(',', ':')))
