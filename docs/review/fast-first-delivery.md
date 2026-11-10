@@ -503,7 +503,12 @@ both the copied deposit preparation and the theme scripts. The scripts close
 the stepper and then its owner panel through their own controls. The copied
 deposit retains a finite observation of the last entered step and any allowed
 original reply. Its confirmed receipt and effect still gate both captures.
-Fresh Windows and archive evidence remains open.
+The Windows run completes 1,106 Python cases with eighteen skips. One
+selected cascade invocation finding stops the gate before Dart tests or
+lab startup, with zero artifacts. Source607 uses the cascade form for the
+two trace calls in their original order before the deposit request. Fresh
+Windows and archive evidence remains open.
+[Original Windows run](https://github.com/edgepillar/syrius/actions/runs/42781599503).
 
 The optional `--no-diff-images` comparison preserves scores, input hashes
 and review state. In-memory controls with 94 synthetic PNG pairs encode

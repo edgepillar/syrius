@@ -1396,8 +1396,9 @@ Future<String> depositPillarCatalogQsr(
     ]));
     trace.at(SeedOperationAction.publish, SeedOperationStep.owner);
     await requireActor();
-    trace.at(SeedOperationAction.publish, SeedOperationStep.request);
-    trace.publicationCallEntered();
+    trace
+      ..at(SeedOperationAction.publish, SeedOperationStep.request)
+      ..publicationCallEntered();
     final Map<String, dynamic> receipt = await inst.send(<String, Object?>{
       'cmd': 'pillar-qsr-deposit',
       'profile': inst.name,
