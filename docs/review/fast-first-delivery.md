@@ -475,6 +475,21 @@ the run stops before lab startup and produces no images. Source604 updates
 the exact gate to 1,378 and tests refusal of the preceding totals. Fresh
 Windows lab evidence remains open. [Original Windows run](https://github.com/edgepillar/syrius/actions/runs/42773245134).
 
+Source604 clears selected analysis and completes 1,378 Dart cases and 1,106
+Python cases with eighteen skips. The original twelve-page tour and all five
+node exits qualify. The copied wallet confirms Fuse and refuses during the
+Pillar QSR step. The independent reader verifies the two original archives.
+The inner deposit cause remains unestablished. The catalog has 86 of 94
+images in 19 verified archives. Both themes remain open for the Send warning,
+Pillar Spawn, Pillar Done and Accelerator project detail.
+[Windows producer](https://github.com/edgepillar/syrius/actions/runs/42775099677) and
+[independent reader](https://github.com/edgepillar/syrius/actions/runs/42777325635).
+
+Source605 samples the active wallet's sync state after the host confirms lag
+and allows one refresh through the existing wallet polling path. The original
+warning, disabled Send control and paired RPC observations still gate the two
+captures. Fresh Windows and archive evidence remains open.
+
 The optional `--no-diff-images` comparison preserves scores, input hashes
 and review state. In-memory controls with 94 synthetic PNG pairs encode
 94 difference images in the standard mode and zero in the compact mode.

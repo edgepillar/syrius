@@ -2,7 +2,7 @@ import 'dart:io';
 
 import '../app/fixtures/send_warning_draft.dart';
 import '../app/readonly_native_commands.dart'
-    show readonlyHomeZapPreviewCommand;
+    show readonlyHomeZapPreviewCommand, readonlySendWarningSyncCommand;
 import 'harness.dart' as cli;
 import 'readonly_inspection_session.dart';
 import 'screen_capture.dart';
@@ -159,6 +159,49 @@ Map<String, Object>? readonlyDetailsFailureDiagnostic(
   };
 }
 
+Map<String, Object?> _sendSyncReceipt(Object? value) {
+  const ReadonlyInspectionRefused refused =
+      ReadonlyInspectionRefused(ReadonlyInspectionReason.reply);
+  if (value is! Map<String, dynamic> || value.length != 3 ||
+      !const <String>{
+        'alreadyReady', 'refreshReturned', 'refreshTimedOut',
+        'refreshRefused', 'formMissing', 'cubitMissing',
+      }.contains(value['outcome']) ||
+      !value.containsKey('before') || !value.containsKey('after')) {
+    throw refused;
+  }
+  Map<String, Object?>? sample(Object? row) {
+    if (row == null) return null;
+    if (row is! Map<String, dynamic> || row.length != 3 ||
+        !const <String>{'initial', 'loading', 'success', 'failure'}
+            .contains(row['status']) ||
+        row['timer_active'] is! bool || !row.containsKey('sync')) {
+      throw refused;
+    }
+    final Object? sync = row['sync'];
+    if (sync != null &&
+        (sync is! Map<String, dynamic> || sync.length != 3 ||
+          sync['state'] is! int ||
+          !const <int>{0, 1, 2, 3}.contains(sync['state']) ||
+          const <String>['current_height', 'target_height'].any((String key) {
+            final Object? height = sync[key];
+            return height is! int || height < 0 || height > 9007199254740991;
+          }))) {
+      throw refused;
+    }
+    return <String, Object?>{
+      'status': row['status'], 'timer_active': row['timer_active'],
+      'sync': sync,
+    };
+  }
+
+  return <String, Object?>{
+    'outcome': value['outcome'],
+    'before': sample(value['before']),
+    'after': sample(value['after']),
+  };
+}
+
 /// Runs the selected details scripts through their original UI owner.
 /// Wallet Ready is captured before that owner opens the dashboard.
 Future<Map<String, Object>> captureReadonlyDetailsDefaults({
@@ -169,6 +212,7 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
   String? labRecipient,
   Future<void> Function()? requireReady,
   Future<void> Function(String event)? sendWarningWindow,
+  Future<void> Function(Map<String, Object?> sample)? sendWarningSync,
 }) async {
   final bool sendConfirmation =
       selection == ReadonlyDetailsSelection.sendConfirmation;
@@ -182,6 +226,7 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
       : session.walletBound && requireReady == null;
   if (!ownerAdmitted ||
       sendWarning != (sendWarningWindow != null) ||
+      sendWarning != (sendWarningSync != null) ||
       selection.requiresLabRecipient != (labRecipient != null) ||
       labRecipient?.isEmpty == true) {
     throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.binding);
@@ -266,8 +311,13 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
             if (!warningWindowOpened) {
               await sendWarningWindow!('BEGIN');
               warningWindowOpened = true;
+              final Map<String, dynamic> reply = await cli.call(
+                instance,
+                <String, Object?>{'cmd': readonlySendWarningSyncCommand},
+              );
+              await sendWarningSync!(_sendSyncReceipt(reply['sendSync']));
             }
-            // The host has observed lag. Allow the wallet's next refresh.
+            // The original widget must still become visibly ready.
             await cli.waitForTarget(instance, cli.Args(<String>[
               '--key', 'send_node_behind', '--exact', '--ready',
               '--timeout', '15',

@@ -285,6 +285,28 @@ void main() {
     expect(lane.calls, 0);
   });
 
+  test('the Send sync command needs the bound wallet and fixed payload',
+      () async {
+    final _Lane lane = _Lane(bindWallet: () => ReadonlyWalletAdmission.seal(
+      ownersCurrent: () => true,
+      observeFrame: () async {},
+    ));
+    await lane.open();
+    const Map<String, dynamic> command =
+        <String, dynamic>{'cmd': readonlySendWarningSyncCommand};
+    await expectLater(lane.commands.run(command),
+        throwsA(isA<ReadonlyNativeCommandRefused>()));
+    expect(lane.calls, 0);
+    await lane.commands.run(<String, dynamic>{'cmd': 'readonly-wallet-bind'});
+    await expectLater(
+      lane.commands.run(<String, dynamic>{...command, 'node': 'foreign'}),
+      throwsA(isA<ReadonlyNativeCommandRefused>()),
+    );
+    final Map<String, Object?> reply = await lane.commands.run(command);
+    expect(reply['original'], isTrue);
+    expect(lane.calls, 1);
+  });
+
   test('one actual wallet observation attaches a separate finite receipt',
       () async {
     int calls = 0;

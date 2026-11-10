@@ -86,6 +86,7 @@ class _InspectionInstance extends cli.Instance {
     String? labRecipient,
     Future<void> Function()? requireReady,
     Future<void> Function(String event)? sendWarningWindow,
+    Future<void> Function(Map<String, Object?> sample)? sendWarningSync,
   }) {
     final Directory repository = Directory(cli.repo);
     if (_detailsSelections[family] case final ReadonlyDetailsSelection choice) {
@@ -93,6 +94,7 @@ class _InspectionInstance extends cli.Instance {
         repository: repository, session: _session, onStep: onStep,
         selection: choice, labRecipient: labRecipient,
         requireReady: requireReady, sendWarningWindow: sendWarningWindow,
+        sendWarningSync: sendWarningSync,
       );
     }
     return switch (family) {
@@ -180,6 +182,13 @@ Future<void> main() async {
         throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.process);
       }
     }
+    Future<void> warningSync(Map<String, Object?> sample) async {
+      await marker('CI_INSPECT_SEND_WARN_SYNC:${jsonEncode(sample)}');
+      if (!await input.moveNext() || input.current != 'LAG_SYNC_RECORDED') {
+        throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.process);
+      }
+    }
+
     await marker('CI_INSPECT_STAGE:gate');
     final String? check = environment['SYRIUS_CI_INSPECTION_CHECK'];
     if (check == 'gate') {
@@ -354,6 +363,8 @@ Future<void> main() async {
           labRecipient: labRecipient,
           sendWarningWindow: family == harnessReadonlySendWarningCatalog
               ? warningWindow : null,
+          sendWarningSync: family == harnessReadonlySendWarningCatalog
+              ? warningSync : null,
         );
     if (catalogOnly) await instance.requireCleanLogs();
     await marker('SYRIUS_INSPECTION_CATALOG:${jsonEncode(catalog)}');

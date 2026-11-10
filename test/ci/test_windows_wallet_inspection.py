@@ -754,11 +754,27 @@ class InspectionTests(unittest.TestCase):
                     window.begin(limit=900)
                     with self.assertRaises(warning.SendWarningWindowRefused):
                         window.sample('dark')
+                    with self.assertRaises(warning.SendWarningWindowRefused):
+                        window.observe_wallet_sync(dict(outcome='formMissing',
+                            before=None, after=None))
                     if scenario == 'ready':
                         reads = [caught_up, unready, admitted, admitted, admitted]
                         with mock.patch.object(window, '_read_pair', side_effect=reads) as rpc:
                             window.wait_until_ready(900)
                             self.assertEqual(clock.now, 10)
+                            state = dict(status='success', timer_active=True, sync=behind)
+                            observed = dict(outcome='refreshReturned',
+                                before=dict(state, sync=synced), after=state)
+                            for invalid in (dict(observed, source='private'),
+                                    dict(observed, outcome='alreadyReady'),
+                                    dict(observed, before=state),
+                                    dict(observed, after=dict(state, timer_active=1))):
+                                with self.assertRaises(warning.SendWarningWindowRefused):
+                                    window.observe_wallet_sync(invalid)
+                            window.observe_wallet_sync(observed)
+                            with self.assertRaises(warning.SendWarningWindowRefused):
+                                window.observe_wallet_sync(observed)
+                            self.assertEqual(window.receipt()['wallet_sync'], observed)
                             window.sample('dark')
                             window.sample('light')
                             self.assertEqual(rpc.call_args_list,

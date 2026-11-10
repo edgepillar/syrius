@@ -104,11 +104,40 @@ def _readiness_lag(value):
     return lag
 
 
+def wallet_sync_receipt(value):
+    _require(type(value) is dict and set(value) == {'outcome', 'before', 'after'})
+    outcome, before, after = value['outcome'], value['before'], value['after']
+    if outcome in ('formMissing', 'cubitMissing'):
+        _require(before is after is None)
+        return dict(value)
+    _require(outcome in ('alreadyReady', 'refreshReturned', 'refreshTimedOut',
+                         'refreshRefused'))
+
+    def sample(row):
+        _require(type(row) is dict and set(row) == {'status', 'timer_active', 'sync'}
+                 and row['status'] in ('initial', 'loading', 'success', 'failure')
+                 and type(row['timer_active']) is bool)
+        sync = row['sync']
+        _require(sync is None or (
+            type(sync) is dict and set(sync) == {'state', 'current_height', 'target_height'}
+            and type(sync['state']) is int and sync['state'] in (0, 1, 2, 3)
+            and all(lab_failure_probe.integer(sync[k]) for k in ('current_height', 'target_height'))))
+        return dict(row, sync=None if sync is None else dict(sync))
+
+    before, after = sample(before), sample(after)
+    sync = before['sync']
+    lagged = (before['status'] == 'success' and sync is not None and sync['state'] != 2
+              and sync['current_height'] > 0 and sync['target_height'] - sync['current_height'] >= 3)
+    _require((outcome == 'alreadyReady') == lagged
+             and (outcome != 'alreadyReady' or before == after))
+    return dict(outcome=outcome, before=before, after=after)
+
+
 def window_receipt(value, *, complete=False):
     # Older reports may have neither the readiness nor producer observations.
     required = {'started', 'released', 'samples'}
     _require(type(value) is dict and required <= set(value) <= required | {
-        'readiness', 'producer_progress'}
+        'readiness', 'producer_progress', 'wallet_sync'}
              and type(value['started']) is type(value['released']) is bool
              and type(value['samples']) is list and len(value['samples']) <= len(THEMES)
              and (value['started'] or not value['released'] and not value['samples']))
@@ -123,12 +152,16 @@ def window_receipt(value, *, complete=False):
             and sample['current_height'] == samples[0]['current_height'] > 0
             and sample['minimum_target_height'] - sample['current_height'] ==
                 sample['minimum_lag'] >= 3)
+    lag = None
     if 'readiness' in value:
         readiness = value['readiness']
         lag = _readiness_lag(readiness)
         _require(value['started'] or readiness['attempts'] == 0)
         _require(not samples or (lag is not None
                                   and samples[0]['current_height'] == lag['current_height']))
+    if 'wallet_sync' in value:
+        _require(value['started'] and lag is not None)
+        wallet_sync_receipt(value['wallet_sync'])
     if 'producer_progress' in value:
         progress = value['producer_progress']
         _require(type(progress) is dict and set(progress) == {'before', 'after_refusal'})
@@ -218,6 +251,7 @@ class SendWarningWindow:
         self._released = False
         self._deadline = None
         self._samples = []
+        self._wallet_sync = None
         self._readiness = dict(attempts=0, read_refused=False, first=None, last=None)
         self._producer_progress = dict(before=None, after_refusal=None) if probe_producers else None
 
@@ -227,6 +261,8 @@ class SendWarningWindow:
             readiness=dict(self._readiness))
         if self._producer_progress is not None:
             value['producer_progress'] = dict(self._producer_progress)
+        if self._wallet_sync is not None:
+            value['wallet_sync'] = wallet_sync_receipt(self._wallet_sync)
         return window_receipt(value)
 
     def release_if_owned(self):
@@ -255,6 +291,13 @@ class SendWarningWindow:
             self._producer_progress['after_refusal'] = _producer_heights(
                 self._active, min(limit, self._deadline))
         raise SendWarningWindowRefused()
+
+    def observe_wallet_sync(self, value):
+        self._active()
+        _require(self._wallet_sync is None and not self._samples
+                 and self._deadline is not None and time.monotonic() < self._deadline
+                 and _readiness_lag(self._readiness) is not None)
+        self._wallet_sync = wallet_sync_receipt(value)
 
     def sample(self, theme):
         index = len(self._samples)

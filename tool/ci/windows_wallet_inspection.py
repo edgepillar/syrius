@@ -859,7 +859,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
         motion_baseline_compared=False, arabic_or_minimum_window_qualified=False)
     original = lines = job = output = transport = token = None
     close_attempted = False
-    warning_gate_refused = False
+    warning_close_grace = False
     catalog_receipt = viewport_receipt = None
     family = catalog_slot = 'details'
     details_schema = 1
@@ -943,7 +943,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
 
         def wait(marker, *, seconds=None):
             nonlocal next_sample, ready, catalog_receipt, viewport_receipt
-            nonlocal warning_gate_refused
+            nonlocal warning_close_grace
             limit = deadline if seconds is None else min(deadline, time.monotonic() + seconds)
             while True:
                 runtime.healthy()
@@ -1027,13 +1027,28 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
                             warning_window.wait_until_ready(limit)
                             write(b'LAG_WINDOW\n')
                         else:
+                            need(b'CI_INSPECT_SEND_WARN_SYNC' in used, 'ENTRY_REFUSED')
                             theme = 'dark' if line.endswith(b'DARK') else 'light'
                             warning_window.sample(theme)
                             write(b'LAG_SAMPLE\n')
                     except send_warning_window.SendWarningWindowRefused:
-                        warning_gate_refused = True
+                        warning_close_grace = True
                         raise
                     report['send_warning_window'] = warning_window.receipt()
+                elif line.startswith(b'CI_INSPECT_SEND_WARN_SYNC:'):
+                    sync_marker = b'CI_INSPECT_SEND_WARN_SYNC'
+                    need(warning_window is not None and marker == b'CI_INSPECT_DONE'
+                         and b'CI_INSPECT_SEND_WARN_BEGIN' in used
+                         and sync_marker not in used and len(line) <= 768
+                         and catalog_receipt is None, 'ENTRY_REFUSED')
+                    try:
+                        warning_window.observe_wallet_sync(json.loads(line.partition(b':')[2]))
+                        used.add(sync_marker)
+                        report['send_warning_window'] = warning_window.receipt()
+                        write(b'LAG_SYNC_RECORDED\n')
+                    except send_warning_window.SendWarningWindowRefused:
+                        warning_close_grace = True
+                        raise
                 elif line.startswith(b'SYRIUS_INSPECTION_CATALOG:'):
                     expected_themes = set() if catalog_only else set(THEMES)
                     need(marker == b'CI_INSPECT_DONE' and catalog_receipt is None
@@ -1056,6 +1071,8 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
                     viewport_receipt = viewport.receipt(json.loads(line.partition(b':')[2]))
                 elif line.startswith(b'CI_INSPECT_ERROR:'):
                     report['entry_failure'] = entry_failure(json.loads(line.partition(b':')[2]))
+                    if warning_window is not None:
+                        warning_close_grace = True
                     raise Refused('ENTRY_FAILED')
                 elif line == b'CI_INSPECT_DONE':
                     need(marker == line and catalog_receipt is not None
@@ -1174,7 +1191,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
                 report['send_warning_window'] = warning_window.receipt()
             except Exception:
                 report['errors'].append('SEND_WARNING_WINDOW_REFUSED')
-        if warning_gate_refused and original is not None:
+        if warning_close_grace and original is not None:
             try:
                 original.stdin.close()
             except OSError:
@@ -1190,7 +1207,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
                     report['cleanup_application_exit'] = job.application_exit()
                 except Exception:
                     report['errors'].append('CLOSE_UNCONFIRMED')
-            if warning_gate_refused and original.poll() is None:
+            if warning_close_grace and original.poll() is None:
                 try:
                     original.wait(timeout=5)
                 except subprocess.TimeoutExpired:
@@ -1217,7 +1234,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
             except Exception:
                 report['entry_exit'] = None
                 report['errors'].append('CLOSE_UNCONFIRMED')
-            if not warning_gate_refused:
+            if not warning_close_grace:
                 try:
                     original.stdin.close()
                 except OSError:

@@ -4,6 +4,9 @@ import 'readonly_wallet_admission.dart';
 /// Requests the fixed visual sample from an already bound native Home.
 const String readonlyHomeZapPreviewCommand = 'readonly-home-zap-preview';
 
+/// Samples the actual session sync state for the isolated Send warning.
+const String readonlySendWarningSyncCommand = 'readonly-send-warning-sync';
+
 /// A native command cannot establish its original readonly SDK admission.
 class ReadonlyNativeCommandRefused implements Exception {
   /// The refused command supplies no successful native observation.
@@ -53,6 +56,7 @@ class ReadonlyNativeCommands {
     'quit',
     'readonly-entry',
     readonlyHomeZapPreviewCommand,
+    readonlySendWarningSyncCommand,
   };
 
   final bool Function() _isBooted;
@@ -132,7 +136,8 @@ class ReadonlyNativeCommands {
       };
     }
     if (name is! String || !_allowed.contains(name) ||
-        name == readonlyHomeZapPreviewCommand &&
+        (name == readonlyHomeZapPreviewCommand ||
+            name == readonlySendWarningSyncCommand) &&
             (_wallet == null || retained.length != 1)) {
       throw const ReadonlyNativeCommandRefused();
     }

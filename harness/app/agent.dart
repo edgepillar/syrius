@@ -17,6 +17,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hive_ce/hive_ce.dart';
 import 'package:logging/logging.dart';
@@ -27,7 +28,8 @@ import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/create_token_stepper/widgets/token_create_frame.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/features.dart'
-    show PillarQsrManagementStep;
+    show NodeSyncStatusCubit, NodeSyncStatusState, PillarQsrManagementStep,
+        sendMomentumsBehind;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/fuse_plasma/view/fuse_plasma_form.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/node_update/node_update.dart'
     show NodeUpdateCard;
@@ -71,7 +73,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/shell/tabs.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/lock_tab_child.dart'
     show LockTabChild, LockViewSource;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart'
-    show AccountBlockTemplate, WebsocketStatus, WsClient,
+    show AccountBlockTemplate, SyncInfo, WebsocketStatus, WsClient,
         getChainIdentifier, znnDefaultPaths, znnZts;
 
 import '../lab_send_failure.dart';
@@ -485,6 +487,7 @@ class HarnessAgent {
   NativeQuizCatalog? _nativeQuiz;
   NativeWindowOwner? _nativeWindow;
   ReadonlyNativeCommands? _readonlyNative;
+  bool _readonlySendSyncReserved = false;
   StatefulElement? _lockViewOwner;
   bool _lockViewBound = false;
   bool _lockViewRetired = false;
@@ -750,6 +753,9 @@ class HarnessAgent {
       }
       return _walletRecipeCommand(command);
     }
+    if (command['cmd'] == readonlySendWarningSyncCommand) {
+      return _observeReadonlySendSync();
+    }
     if (command['cmd'] == readonlyHomeZapPreviewCommand) {
       _requireCaptureFrameIdle();
       if (!_readonlyHomeZapPreview || kCurrentPage != Tabs.dashboard ||
@@ -781,6 +787,75 @@ class HarnessAgent {
       };
     }
     return result;
+  }
+
+  Future<Map<String, Object?>> _observeReadonlySendSync() async {
+    _requireCaptureFrameIdle();
+    if (!_readonlySendWarning || _readonlySendSyncReserved ||
+        kCurrentPage != Tabs.transfer) {
+      throw const ReadonlyNativeCommandRefused();
+    }
+    _readonlySendSyncReserved = true;
+    final List<_Node> forms = _readonlyPositiveKeyNodes(
+      <String, dynamic>{'key': 'send_form_ready', 'exact': true},
+    )!;
+    Map<String, Object?> receipt(
+      String outcome, {
+      Map<String, Object?>? before,
+      Map<String, Object?>? after,
+    }) => <String, Object?>{
+      'sendSync': <String, Object?>{
+        'outcome': outcome, 'before': before, 'after': after,
+      },
+    };
+
+    if (forms.length != 1) return receipt('formMissing');
+    final Element form = forms.single.element;
+    final NodeSyncStatusCubit? cubit = form.read<NodeSyncStatusCubit?>();
+    if (cubit == null) return receipt('cubitMissing');
+
+    bool current() => form.mounted && kCurrentPage == Tabs.transfer &&
+        ModalRoute.of(form)?.isCurrent == true && !cubit.isClosed &&
+        identical(cubit.zenon, app.zenon) &&
+        identical(form.read<NodeSyncStatusCubit?>(), cubit);
+    if (!current()) throw const ReadonlyNativeCommandRefused();
+
+    Map<String, Object?> sample() {
+      final NodeSyncStatusState state = cubit.state;
+      final SyncInfo? info = state.data?.second;
+      const int maxHeight = 9007199254740991;
+      return <String, Object?>{
+        'status': state.status.name,
+        'timer_active': cubit.isTimerActive,
+        'sync': info != null &&
+                info.currentHeight >= 0 && info.currentHeight <= maxHeight &&
+                info.targetHeight >= 0 && info.targetHeight <= maxHeight
+            ? <String, Object>{
+                'state': info.state.index,
+                'current_height': info.currentHeight,
+                'target_height': info.targetHeight,
+              }
+            : null,
+      };
+    }
+
+    final Map<String, Object?> before = sample();
+    if (before['sync'] != null && sendMomentumsBehind(cubit.state) != null) {
+      return receipt('alreadyReady', before: before, after: before);
+    }
+    // Use the bound session's existing polling path once. The original
+    // command wrapper rechecks its readonly wallet and SDK before replying.
+    String outcome;
+    try {
+      await cubit.fetchDataPeriodically().timeout(const Duration(seconds: 4));
+      outcome = 'refreshReturned';
+    } on TimeoutException {
+      outcome = 'refreshTimedOut';
+    } on Object {
+      outcome = 'refreshRefused';
+    }
+    if (!current()) throw const ReadonlyNativeCommandRefused();
+    return receipt(outcome, before: before, after: sample());
   }
 
   Element _requirePresentationCurrent() {
