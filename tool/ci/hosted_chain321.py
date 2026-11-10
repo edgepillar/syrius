@@ -66,6 +66,7 @@ CODES = frozenset((
     "RPC_REFUSED", "GENESIS_MISMATCH", "PRODUCTION_UNPROVEN",
     "DOCKER_REFUSED", "RESOURCE_CHANGED", "INTERNAL_ERROR",
     "NODE_REGRESSIONS_REFUSED", "WALLET_TOUR_FAILED", "WALLET_INSPECTION_FAILED", "CHECKPOINT_REFUSED",
+    "INTERACTIVE_FRAME_PAIR_FAILED",
 )) | wire_policy.CODES
 NODE_DIAGNOSTICS = frozenset((
     "NODE_CLI_REFUSED", "NODE_STORAGE_REFUSED", "NODE_PANIC",
@@ -116,6 +117,7 @@ WALLET_READY_INSPECTION_SCHEMA = 10
 SEND_WARNING_INSPECTION_SCHEMA = 11
 HOME_ZAP_PREVIEW_INSPECTION_SCHEMA = 12
 HOME_SEAMS_FAMILY = 'home-seams'
+INTERACTIVE_FRAME_PAIR_FAMILY = 'interactive-timing-pair'
 SETTINGS_SEAMS_FAMILY = 'settings-seams'
 READONLY_CATALOG_SCHEMAS = {
     'home': 1, 'settings': 2, 'navigation': 3, 'details': 4, 'token-draft': 4,
@@ -169,6 +171,12 @@ def require_environment(backend, parent):
                   HOME_SEAMS_FAMILY, SETTINGS_SEAMS_FAMILY):
         need(inspection and not tour and parent['GITHUB_REPOSITORY'] == 'edgepillar/syrius'
              and parent.get('GITHUB_RUN_ATTEMPT') == '1', 'ENVIRONMENT_REFUSED')
+    if family == INTERACTIVE_FRAME_PAIR_FAMILY:
+        from tool.ci import windows_interactive_frame_pair
+        try:
+            need(windows_interactive_frame_pair.requested(backend, parent), 'ENVIRONMENT_REFUSED')
+        except windows_interactive_frame_pair.profile.InteractiveRefused:
+            raise Failure('ENVIRONMENT_REFUSED') from None
     if family in RESTORED_FAMILIES:
         need(tour and not inspection
              and parent['GITHUB_REPOSITORY'] == 'edgepillar/syrius'
@@ -1203,6 +1211,7 @@ def run(backend):
     parent = os.environ
     wallet_tour = require_environment(backend, parent)
     inspection = wallet_inspection_requested(backend, parent)
+    interactive = parent.get('SYRIUS_READONLY_CATALOG_FAMILY') == INTERACTIVE_FRAME_PAIR_FAMILY
     send_warning = inspection and readonly_catalog_family(parent) == send_warning_window.FAMILY
     stack_debug = backend == "native" and parent.get("SYRIUS_NATIVE_STACK_DIAGNOSTIC") == "true"
     node_source = parent.get("SYRIUS_LAB_NODE_SOURCE", "original")
@@ -1232,6 +1241,8 @@ def run(backend):
         report.update(wallet_inspection_requested=True, wallet_inspection=None)
     if send_warning:
         report["send_warning_node_fixture"] = None
+    if interactive:
+        report['interactive_frame_pair'] = None
     runtime = None
     closed_wallets = []
     reopen_anchor = None
@@ -1276,7 +1287,7 @@ def run(backend):
         report["binary_sha256"] = digest(binary_bytes)
         report["checks"]["build"] = True
         if node_sha == UPSTREAM_NODE_SHA:
-            if wallet_tour or inspection:
+            if wallet_tour or inspection or interactive:
                 run_wallet_shutdown_tests(commands, repo, source, report, compiled_tree=compiled_tree)
             else:
                 run_shutdown_tests(commands, source, report)
@@ -1334,6 +1345,17 @@ def run(backend):
         report["checks"]["started"] = True
         report["observations"] = observe(runtime, root, report)
         report["checks"]["production"] = True
+        if interactive:
+            from tool.ci import windows_interactive_frame_pair
+            report['runtime_phase'] = 'interactive_frame_pair'
+            outcome = windows_interactive_frame_pair.run(
+                repo, parent, runtime, root, report['observations'])
+            path = repo / windows_interactive_frame_pair.OUTPUT / 'manifest.json'
+            manifest_hash = (digest(regular(path, windows_interactive_frame_pair.MAX_MANIFEST))
+                if path.exists() or path.is_symlink() else None)
+            report['interactive_frame_pair'] = dict(success=outcome['success'],
+                phase=outcome['phase'], manifest_sha256=manifest_hash)
+            need(outcome['success'] and manifest_hash is not None, 'INTERACTIVE_FRAME_PAIR_FAILED')
         if inspection:
             from tool.ci import windows_wallet_inspection
             report['runtime_phase'] = 'wallet_inspection'

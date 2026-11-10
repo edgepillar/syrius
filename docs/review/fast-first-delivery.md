@@ -944,6 +944,30 @@ frame-number gaps and exceeded stages. The existing successful, partial and
 regression controls bind this detail to the verified original windows. The
 maximum-size fixture also checks the existing finite notice limit.
 
+Source642 independently reads the same original archive. It reports 347
+engine-key gaps in the current sample and 586 in P06. Longest total frame
+times are 198,399 and 198,373 microseconds respectively. The sorted raster
+and distinct-duration comparisons exceed the baseline. All five original
+actors close normally. The reader completes with zero retained artifacts.
+[Independent detail reader](https://github.com/edgepillar/syrius/actions/runs/42908155514).
+
+The pinned engine allocates a frame key when it constructs a vsync recorder.
+Its animator can return before producing a raster item when the pipeline is
+full. The gap diagnostic therefore counts engine keys between reported
+timings. The specific cause of the archived gaps remains `NOT_ESTABLISHED`.
+The original frame-duration acceptance remains open.
+[Frame recorder](https://github.com/flutter/flutter/blob/deb287481e3ce9468f3434937ced4240a70539ca/engine/src/flutter/flow/frame_timings.cc#L37)
+and [animator](https://github.com/flutter/flutter/blob/deb287481e3ce9468f3434937ced4240a70539ca/engine/src/flutter/shell/common/animator.cc#L86).
+
+The opt-in interactive lane prepares the Home-to-Settings and About licences
+windows in the current and P06 Release builds. It binds both sessions to the
+existing deterministic lab fixture and verified chain-321 anchor. The early
+workflow admission selects the owned fork, branch, first attempt and native
+lab configuration. The independent reader verifies both numeric windows,
+the original process exits and the enclosing lab receipt. All 136 selected
+local controls and 35 workflow admission cases pass. The new Dart entry
+passes selected analysis. Fresh native observation remains open.
+
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied
 owner, confirmed receipt and exact Project row. The original Project

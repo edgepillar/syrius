@@ -64,6 +64,7 @@ on:
           - launch-settle
           - launch-timing
           - launch-timing-pair
+          - interactive-timing-pair
           - lock-catalog
           - quiz-catalog
           - seeded-states
@@ -744,10 +745,10 @@ jobs:
     uses: ./.github/workflows/blockchain-integration-tests.yml
 
   chain321-lab:
-    if: inputs.chain321_lab || inputs.windows_wallet_tour || inputs.windows_wallet_inspection
-    name: ${{ inputs.windows_wallet_inspection && 'Windows readonly inspection with owned chain-321' || inputs.windows_wallet_tour && 'Windows wallet tour with owned chain-321' || format('Chain-321 {0} lab', matrix.backend) }}
+    if: (inputs.chain321_lab || inputs.windows_wallet_tour || inputs.windows_wallet_inspection) && (inputs.readonly_catalog_family != 'interactive-timing-pair' || (inputs.chain321_lab && inputs.chain321_backend == 'native' && inputs.native_stack_diagnostic && inputs.chain321_node_source == 'lab-fix' && github.run_attempt == '1' && github.repository == 'edgepillar/syrius' && github.ref == 'refs/heads/redesign' && github.event_name == 'workflow_dispatch' && !inputs.windows_wallet_tour && !inputs.windows_wallet_inspection))
+    name: ${{ inputs.readonly_catalog_family == 'interactive-timing-pair' && 'Windows paired interactive timing with owned chain-321' || inputs.windows_wallet_inspection && 'Windows readonly inspection with owned chain-321' || inputs.windows_wallet_tour && 'Windows wallet tour with owned chain-321' || format('Chain-321 {0} lab', matrix.backend) }}
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: ${{ (inputs.windows_wallet_tour || inputs.windows_wallet_inspection) && 65 || 40 }}
+    timeout-minutes: ${{ (inputs.windows_wallet_tour || inputs.windows_wallet_inspection || inputs.readonly_catalog_family == 'interactive-timing-pair') && 65 || 40 }}
     strategy:
       fail-fast: false
       matrix:
@@ -779,18 +780,20 @@ jobs:
         run: python -B -m tool.ci.run_asset_tests
 
       - name: Test all isolated controllers before SDK allocation
-        if: inputs.windows_wallet_tour || inputs.windows_wallet_inspection
+        if: inputs.windows_wallet_tour || inputs.windows_wallet_inspection || inputs.readonly_catalog_family == 'interactive-timing-pair'
         env:
           SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
         run: python -B -m tool.ci.run_wallet_tour_tests --all-controllers
 
       - name: Set up Flutter for the owned wallet tour
-        if: inputs.windows_wallet_tour || inputs.windows_wallet_inspection
+        if: inputs.windows_wallet_tour || inputs.windows_wallet_inspection || inputs.readonly_catalog_family == 'interactive-timing-pair'
+        id: owned_wallet_flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
+          pub-cache: ${{ inputs.readonly_catalog_family == 'interactive-timing-pair' && 'false' || '' }}
 
       - name: Restore locked wallet dependencies
         if: inputs.windows_wallet_tour || inputs.windows_wallet_inspection
@@ -801,13 +804,32 @@ jobs:
           dart run tool/generate_git_metadata.dart
           flutter config --enable-windows-desktop
 
+      - name: Restore locked packages for interactive frame timing
+        if: inputs.readonly_catalog_family == 'interactive-timing-pair'
+        env:
+          SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
+          SYRIUS_HARNESS_TESTS_ONLY: "true"
+          PUB_CACHE: ${{ steps.owned_wallet_flutter.outputs['PUB-CACHE-PATH'] }}
+        run: python -B -m tool.ci.prepare_harness_tests
+
       - name: Analyze the gated wallet entry and tour
-        if: inputs.windows_wallet_tour || inputs.windows_wallet_inspection
+        if: inputs.windows_wallet_tour || inputs.windows_wallet_inspection || inputs.readonly_catalog_family == 'interactive-timing-pair'
         run: python -B tool/ci/windows_debug_loop.py --analyze
 
       - name: Test page coverage and refusal before wallet build
-        if: inputs.windows_wallet_tour || inputs.windows_wallet_inspection
+        if: inputs.windows_wallet_tour || inputs.windows_wallet_inspection || inputs.readonly_catalog_family == 'interactive-timing-pair'
         run: python -B tool/ci/run_harness_tour_tests.py
+
+      - name: Build the current Release interactive harness
+        if: inputs.readonly_catalog_family == 'interactive-timing-pair'
+        env:
+          PUB_CACHE: ${{ steps.owned_wallet_flutter.outputs['PUB-CACHE-PATH'] }}
+        shell: bash
+        run: |
+          dart analyze --fatal-infos harness/bin/ci_paired_interactive_entry.dart
+          dart run tool/generate_git_metadata.dart
+          flutter config --enable-windows-desktop
+          flutter build windows --release --no-pub --target harness/app/main.dart --dart-define-from-file=.dart_tool/git_metadata.json
 
       - name: Checkout the exact lab node source
         uses: actions/checkout@v6
@@ -824,15 +846,23 @@ jobs:
           cache: false
 
       - name: Test hosted lab isolation and original-handle rules
-        if: ${{ !inputs.windows_wallet_tour && !inputs.windows_wallet_inspection }}
+        if: ${{ !inputs.windows_wallet_tour && !inputs.windows_wallet_inspection && inputs.readonly_catalog_family != 'interactive-timing-pair' }}
         run: python -B -m unittest discover -s test/ci -v
 
       - name: Build, observe and stop the original isolated lab
+        if: inputs.readonly_catalog_family != 'interactive-timing-pair'
         env:
           SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
           SYRIUS_NATIVE_STACK_DIAGNOSTIC: ${{ matrix.backend == 'native' && inputs.native_stack_diagnostic }}
           SYRIUS_LAB_NODE_SOURCE: ${{ inputs.chain321_node_source }}
         run: python -B -m tool.ci.hosted_chain321 --backend ${{ matrix.backend }}
+
+      - name: Observe paired interactive frames in the original isolated lab
+        if: inputs.readonly_catalog_family == 'interactive-timing-pair'
+        env:
+          SYRIUS_HOSTED_RUNNER: ${{ runner.environment }}
+          PUB_CACHE: ${{ steps.owned_wallet_flutter.outputs['PUB-CACHE-PATH'] }}
+        run: python -B -m tool.ci.hosted_chain321 --backend native
 
       # No node data, keys, profile, private command output or source archive.
       - name: Retain the finite chain-321 manifest
@@ -844,6 +874,16 @@ jobs:
           include-hidden-files: true
           if-no-files-found: error
           path: .harness/ci-chain321/manifest.json
+
+      - name: Retain the finite paired interactive frame manifest
+        if: always() && inputs.readonly_catalog_family == 'interactive-timing-pair' && hashFiles('.harness/ci-interactive-timing-pair/manifest.json') != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: interactive-timing-pair-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          compression-level: 0
+          include-hidden-files: true
+          if-no-files-found: error
+          path: .harness/ci-interactive-timing-pair/manifest.json
 
       # Wallet material and page pixels stay in the private fresh runner.
       - name: Retain only the finite wallet tour manifest
@@ -1073,7 +1113,9 @@ jobs:
             tools/devnet/lab
 
       - name: Test archive and credential boundaries in memory
-        run: python -B -m unittest discover -s test/ci -p test_inspect_chain321.py -v
+        run: |
+          python -B -m unittest discover -s test/ci -p test_inspect_chain321.py -v
+          python -B -m unittest discover -s test/ci -p test_inspect_interactive_frame_pair.py -v
 
       - name: Inspect only the original finite manifests
         timeout-minutes: 3

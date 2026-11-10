@@ -365,11 +365,16 @@ class LaunchProcess(startup.StartupProbe):
 
 
 def run_process(repo, parent, binaries, profile, theme, *, capture, settle,
-                process_type=LaunchProcess, timing=False, lock_diagnostic=None):
+                process_type=LaunchProcess, timing=False, lock_diagnostic=None,
+                interactive=False):
     need(lock_diagnostic is None or timing and type(lock_diagnostic) is dict and not lock_diagnostic,
          'ENVIRONMENT_REFUSED')
     need(not timing or (capture and settle and process_type is LaunchProcess),
          'ENVIRONMENT_REFUSED')
+    need(not interactive or (
+        not timing and not capture and not settle and process_type is not LaunchProcess
+        and parent.get('SYRIUS_PAIRED_INTERACTIVE_PROFILE') == 'true'),
+        'ENVIRONMENT_REFUSED')
     bounded.check_no_existing(repo, parent)
     binary = binaries[0][0]
     for selected, _, original in binaries:
@@ -386,6 +391,9 @@ def run_process(repo, parent, binaries, profile, theme, *, capture, settle,
         paired = lock_diagnostic is not None
         env['SYRIUS_HARNESS_FRAME_TIMING'] = 'paired-launch' if paired else 'launch'
         limits = replace(LIMITS, response_bytes=PAIRED_TIMING_REPLY_CAP if paired else 65536)
+    elif interactive:
+        env['SYRIUS_HARNESS_FRAME_TIMING'] = 'interactive'
+        limits = replace(LIMITS, total=360, response_bytes=65536)
     else:
         if settle:
             env.update(GITHUB_ACTIONS='true', SYRIUS_CI_LAUNCH_SCREEN=process_type.profile_screen)

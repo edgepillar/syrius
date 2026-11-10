@@ -192,14 +192,22 @@ def project_wallet_failure_probe(report, backend):
 
 
 def project(report, backend, head, run_id, expected_node=NODE_SHA, *,
-            expected_patched=False, expected_inspection=False):
+            expected_patched=False, expected_inspection=False, expected_interactive=False):
     pins = {value[0]: value[1] for value in NODE_SOURCES.values()}
     need(expected_node in pins)
     need(backend in ("docker", "native") and report.get("scope") == "hosted_chain321_lab"
          and report.get("application_sha") == head and report.get("node_sha") == expected_node
          and report.get("run_id") == str(run_id) and report.get("attempt") == "1"
          and report.get("backend") == backend and type(report.get("success")) is bool)
-    need(type(expected_inspection) is bool)
+    need(type(expected_inspection) is bool and type(expected_interactive) is bool)
+    need(('interactive_frame_pair' in report) is expected_interactive)
+    if expected_interactive:
+        need(backend == 'native' and expected_patched and not expected_inspection
+             and expected_node == UPSTREAM_NODE_SHA and report.get('native_stack_diagnostic') is True
+             and report.get('wallet_tour_requested') is False and report.get('wallet_tour') is None
+             and report.get('wallet_qualified') is report.get('seed_admitted') is False
+             and all(report.get(key) is None for key in
+                 ('checkpoint', 'path_binding', 'wallet_pointer_binding', 'wallet_reopen')))
     if expected_inspection:
         need(backend == 'native' and expected_patched and expected_node == UPSTREAM_NODE_SHA
              and report.get('wallet_inspection_requested') is True
@@ -246,7 +254,8 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA, *,
     client_fixture = report.get('upstream_client_fixture')
     if client_fixture is not None:
         need(backend == 'native' and expected_patched
-             and (report.get('wallet_tour_requested') is True or expected_inspection))
+             and (report.get('wallet_tour_requested') is True or expected_inspection
+                  or expected_interactive))
         try:
             client_fixture = read_first_client_fixture.validate(client_fixture,
                 required=any(checks[key] for key in ('assets', 'started', 'production')) or report['success'])
@@ -323,7 +332,9 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA, *,
              and report.get("wallet_tour_requested") is True and checks["production"]
              and client_fixture is not None)
          or (phase == 'wallet_inspection' and expected_inspection and backend == 'native'
-             and expected_patched and checks['production'] and client_fixture is not None))
+             and expected_patched and checks['production'] and client_fixture is not None)
+         or (phase == 'interactive_frame_pair' and expected_interactive and checks['production']
+             and client_fixture is not None))
     node_codes = report.get("node_diagnostics", [])
     need(type(node_codes) is list and len(node_codes) <= len(NODE_DIAGNOSTICS)
          and all(code in NODE_DIAGNOSTICS for code in node_codes))
@@ -727,7 +738,10 @@ def main():
     listing = client.json("/actions/runs/" + run_text + "/artifacts?per_page=20")
     need(listing["total_count"] == len(listing["artifacts"]) <= 20)
     wallet_lab = None
+    interactive_lab = interactive_result = None
     seeded = None
+    interactive_items = [item for item in listing['artifacts']
+                         if item['name'].startswith('interactive-timing-pair-')]
     seeded_items = [item for item in listing["artifacts"]
                     if item["name"].startswith("seeded-catalog-")]
     for backend in backends:
@@ -744,8 +758,13 @@ def main():
         PHASE = "unpack_" + backend
         report, manifest_sha = unpack(raw, item["digest"][7:], item["size_in_bytes"])
         PHASE = "projection_" + backend
+        interactive = 'interactive_frame_pair' in report
+        need(not interactive or (backends == ('native',) and expected_choice == 'lab-fix'))
         summary = project(report, backend, head, run_id, expected_node,
-                          expected_patched=expected_choice == "lab-fix")
+                          expected_patched=expected_choice == "lab-fix",
+                          expected_interactive=interactive)
+        if interactive:
+            interactive_lab = report, summary
         if backend == "native" and report.get("wallet_tour") is not None:
             wallet_lab = report
         summary.update(archive_sha256=sha(raw), manifest_sha256=manifest_sha)
@@ -808,10 +827,22 @@ def main():
                 head, commit['tree']['sha'], run_id, reference, pins)
             seeded.update(catalog_capture_qualified=True, parent_closure_qualified=True,
                           atomic_frame_qualified=True)
+    if interactive_lab is not None:
+        from . import inspect_interactive_frame_pair
+        PHASE = 'interactive_pair_inspection'
+        lab_report, lab_summary = interactive_lab
+        interactive_result = inspect_interactive_frame_pair.inspect_run(
+            client, head=head, run_id=run_id, lab=lab_report, lab_summary=lab_summary,
+            listing=listing, run=run)
+    need(not interactive_items or interactive_result is not None)
     need(not seeded_items or seeded is not None)
     PHASE = "source_metadata_after"
     after = client.json("/actions/runs/" + run_text)
     need(all(after[key] == run[key] for key in ("id", "head_sha", "run_attempt", "workflow_id", "status", "conclusion")))
+    if interactive_result is not None:
+        encoded = json.dumps(interactive_result, sort_keys=True, separators=(',', ':'))
+        need(len(encoded.encode('ascii')) <= 3800)
+        print('::notice title=' + inspect_interactive_frame_pair.TITLE + '::' + encoded, flush=True)
     if seeded is not None:
         encoded = json.dumps(seeded, sort_keys=True, separators=(',', ':'))
         need(len(encoded.encode('ascii')) <= 3800)
