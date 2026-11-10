@@ -352,8 +352,13 @@ Source591 prepares both Wallet Ready themes from the original four-step
 new-wallet flow. The empty readonly Windows profile generates its own
 disposable seed. The app answers the original quiz internally and the
 capture retains only the final Ready frames under the same owner. Four
-focused controller checks pass in memory. Selected Dart and native
-verification remain pending.
+focused controller checks pass in memory. The hosted controller observes
+1,101 cases, eighteen skips and one discovery failure. The reader inventory
+expects 108 cases after the added Wallet Ready case takes it to 109. Flutter
+allocation, selected Dart and the native capture remain unreached, with
+zero retained artifacts. Source592 corrects the inventory to 109 and makes
+the discovery control use the declared count. Fresh Windows verification
+is pending. [Original Windows attempt](https://github.com/edgepillar/syrius/actions/runs/42745386023).
 
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,
