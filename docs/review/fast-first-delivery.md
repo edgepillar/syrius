@@ -423,9 +423,21 @@ PNGs in a 128,925-byte archive. The catalog has 84 of 94 literal outputs.
 [Windows producer](https://github.com/edgepillar/syrius/actions/runs/42759417638)
 and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42761591791).
 
-Source599 adds a labelled sample of the original Home Zap message card
-over the readonly Home. Both themes close the card through Nice. Fresh
-Windows capture, actual receipt and the original motion remain open.
+Source599 captures the labelled Home Zap sample over the original Home
+in both themes. Nice returns to the bound Home. The wallet, entry and five
+lab nodes close normally. The independent reader verifies two distinct
+1280 by 780 PNGs in a 231,424-byte archive. The catalog has 86 of 94 literal
+outputs. Actual receipt and the original motion remain open.
+[Windows producer](https://github.com/edgepillar/syrius/actions/runs/42762130710)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42764222434).
+
+Source600 measures paired HTTP and WebSocket lag before admitting the
+wallet warning wait, then reads a fresh sample at each capture. It retains
+bounded readiness and control observations. Fresh Windows verification
+remains pending. The optional `--no-diff-images` comparison preserves
+scores, input hashes and review state. In-memory controls with 94
+synthetic PNG pairs encode 94 difference images in the standard mode
+and zero in the compact mode.
 
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,
@@ -557,7 +569,7 @@ frontier reads after such a failure. Their native observation remains pending.
 | --- | --- |
 | P03/P09 | Complete the documented Windows Docker route. Earlier Linux defaults, WSL installation and the Source548 native lab retain their separate scopes. |
 | F06 | Complete the seeded screen states and coordinator/peer Swap prerequisites. Source548 qualifies the original six receipts and copied lifecycle. Source561 qualifies the restored Stake and Token captures. Source563 qualifies the separate New stake draft with one Stake prerequisite. Source569 qualifies the Sentinel fixture pair. |
-| V01/V05 | Obtain 10 missing literal outputs, review all 94 pairs, resolve retained layout/type/spacing findings and explicitly accept each match. Availability is 84/94. Accepted whole-image matches are 0/94. |
+| V01/V05 | Obtain 8 missing literal outputs, review all 94 pairs, resolve retained layout/type/spacing findings and explicitly accept each match. Availability is 86/94. Accepted whole-image matches are 0/94. |
 | V02 | Observe every motion/shader row in the running build and compare page-change, disclosure and launch frame times with the original baseline. Finite widget timing or stall telemetry alone does not close this gate. |
 | V03 | Try every original seam control, shortcut and Go To entry in the running native wallet and verify refusal. Registry and widget controls remain partial evidence. |
 | V06 | Check every original end-state requirement and complete independent final acceptance. The earlier minimum-window/Arabic viewing remains source-bound. |

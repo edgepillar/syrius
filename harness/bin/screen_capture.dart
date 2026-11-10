@@ -32,8 +32,11 @@ ScreenCaptureReplyCode classifyScreenCaptureReply(
       detail['readonly_wallet_preference'] == 'unavailable') {
     return ScreenCaptureReplyCode.targetUnavailable;
   }
+  final bool sendWarningWait = value == 'not ready after 15000 ms' &&
+      detail is Map<Object?, Object?> && detail['key'] == 'send_node_behind';
   if ((value == 'readonly region is not uniquely visible' ||
-          value == 'not there after 0 ms' || value == 'not ready after 0 ms') &&
+          value == 'not there after 0 ms' || value == 'not ready after 0 ms' ||
+          sendWarningWait) &&
       detail is Map<Object?, Object?> &&
       detail.containsKey('readonly_region')) {
     return switch (detail['readonly_region']) {
@@ -50,12 +53,12 @@ ScreenCaptureReplyCode classifyScreenCaptureReply(
       _ => ScreenCaptureReplyCode.unknown,
     };
   }
-  // Only the original readonly Add wait exports these closed observations.
-  // A different selector, duration or reply keeps its unknown category.
-  if ((value == 'not ready after 0 ms' ||
-          value == 'not ready after 5000 ms') &&
-      detail is Map<Object?, Object?> &&
-      detail['key'] == 'node_settings_add' &&
+  // Only the fixed readonly waits export these observations.
+  if (detail is Map<Object?, Object?> &&
+      (sendWarningWait ||
+          (detail['key'] == 'node_settings_add' &&
+              (value == 'not ready after 0 ms' ||
+                  value == 'not ready after 5000 ms'))) &&
       detail.containsKey('readonly_readiness')) {
     return switch (detail['readonly_readiness']) {
       'missing' => ScreenCaptureReplyCode.targetMissing,

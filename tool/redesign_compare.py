@@ -5,6 +5,7 @@
     python tool/redesign_compare.py --actual-dir <shots> --output-dir <report>
     python tool/redesign_compare.py --actual-manifest <captures.json>
     python tool/redesign_compare.py --reviews <reviews.json> --require-reviewed
+    python tool/redesign_compare.py --no-diff-images --output-dir <compact-report>
 
 Requires Pillow, also used by the mockup pipeline. Input images are linked,
 never copied. The output is local evidence and may contain wallet screenshots;
@@ -267,6 +268,7 @@ def compare_pair(
     required_size: tuple[int, int] = IMAGE_SIZE,
     *,
     actual_sha256: str | None = None,
+    write_diffs: bool = True,
 ) -> dict[str, object]:
     stem = screen.stem(theme)
     expected, before = read_image(expected_dir / f"{stem}.png", output)
@@ -316,12 +318,13 @@ def compare_pair(
             "changed_pixels": changed,
             "changed_pct": round(100 * changed / pixels, 4),
         }
-        # Hashes in the filename keep a new report from showing a cached old diff.
-        diff_name = f"{stem}-{expected['sha256'][:16]}-{actual['sha256'][:16]}.png"
-        diff_path = output / "diffs" / diff_name
-        diff_path.parent.mkdir(parents=True, exist_ok=True)
-        ImageOps.colorize(mask, "#000000", "#ff557f").save(diff_path)
-        pair["diff_url"] = relative_url(diff_path, output)
+        if write_diffs:
+            # Hashes keep a new report from showing a cached old diff.
+            diff_name = f"{stem}-{expected['sha256'][:16]}-{actual['sha256'][:16]}.png"
+            diff_path = output / "diffs" / diff_name
+            diff_path.parent.mkdir(parents=True, exist_ok=True)
+            ImageOps.colorize(mask, "#000000", "#ff557f").save(diff_path)
+            pair["diff_url"] = relative_url(diff_path, output)
         return pair
     finally:
         for image in (before, after):
@@ -348,7 +351,12 @@ def render_html(manifest: dict[str, object]) -> str:
             else f"Pixel similarity {score['similarity_pct']:.4f}%; changed pixels {score['changed_pct']:.4f}%"
         )
         figures = image_cell("Mockup", pair["expected"]) + image_cell("Actual", pair["actual"])
-        diff = {"state": "available", "url": pair["diff_url"]} if pair["diff_url"] else {}
+        if pair["diff_url"]:
+            diff = {"state": "available", "url": pair["diff_url"]}
+        elif score is not None:
+            diff = {"reason": "Difference image omitted for this report"}
+        else:
+            diff = {}
         figures += image_cell("Difference (max RGBA channel)", diff)
         notes = "".join(f"<li><b>{escape(label)}</b> {escape(text)}</li>" for label, text in pair["notes"])
         review = pair["review"]
@@ -394,6 +402,7 @@ def generate_report(
     *,
     actual_manifest: Path | None = None,
     required_size: tuple[int, int] = IMAGE_SIZE,
+    write_diffs: bool = True,
 ) -> dict[str, object]:
     src = repo / "mockups" / "redesign" / "src"
     expected_dir = src.parent / "shots"
@@ -415,7 +424,7 @@ def generate_report(
             path, digest = actuals.get(screen.stem(theme), (None, None))
             pair = compare_pair(
                 screen, theme, expected_dir, path, output, reviews, required_size,
-                actual_sha256=digest,
+                actual_sha256=digest, write_diffs=write_diffs,
             )
             pair["notes"] = notes[screen.id]
             pairs.append(pair)
@@ -447,13 +456,15 @@ def main() -> int:
     inputs.add_argument("--actual-manifest", type=Path, help="Private capture paths and SHA-256 pins")
     parser.add_argument("--output-dir", type=Path, default=ROOT / "mockups" / "redesign" / "compare")
     parser.add_argument("--reviews", type=Path, help="Manual, image-hash-bound visual review JSON")
+    parser.add_argument("--no-diff-images", action="store_true",
+                        help="Link inputs and report scores without writing difference PNGs")
     parser.add_argument("--require-reviewed", action="store_true", help="Exit 1 unless all 94 pairs are reviewed matches")
     args = parser.parse_args()
     try:
         actual_dir = args.actual_dir.resolve() if args.actual_dir is not None else None
         manifest = generate_report(
             ROOT, actual_dir, args.output_dir.resolve(), args.reviews,
-            actual_manifest=args.actual_manifest,
+            actual_manifest=args.actual_manifest, write_diffs=not args.no_diff_images,
         )
     except (OSError, UnicodeError, ValueError) as error:
         # Paths and raw diagnostics can contain private profile information.

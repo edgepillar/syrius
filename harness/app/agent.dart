@@ -4258,7 +4258,9 @@ class HarnessAgent {
           <String, Object?>{
             ..._describe(c), 'readonly_region': ?regionRejection,
             if (_readonlyNative != null && ready &&
-                c['key'] == 'node_settings_add')
+                (c['key'] == 'node_settings_add' ||
+                    (_readonlySendWarning && c['key'] == 'send_node_behind' &&
+                        c['exact'] == true && timeout == 15000)))
               'readonly_readiness': hits.isEmpty ? 'missing'
                   : hits.length != 1 ? 'ambiguous'
                   : !hits.single.enabled ? 'disabled' : 'covered',

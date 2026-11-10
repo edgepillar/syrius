@@ -114,6 +114,16 @@ class CompareTests(unittest.TestCase):
         pair = self.report()["pairs"][0]
         self.assertEqual(pair["score"]["similarity_pct"], 100)
         self.assertEqual(pair["state"], "unreviewed")
+        self.assertIsNotNone(pair["diff_url"])
+        compact = self.repo / "compact-report"
+        result = generate_report(
+            self.repo, self.actual, compact, required_size=(4, 3), write_diffs=False,
+        )
+        self.assertEqual(result["pairs"][0], dict(pair, diff_url=None))
+        self.assertEqual(result["summary"]["visual_review"], "INCOMPLETE")
+        self.assertFalse((compact / "diffs").exists())
+        page = (compact / "index.html").read_text(encoding="utf-8")
+        self.assertIn("Difference image omitted for this report", page)
 
     def test_stale_review_on_either_image_is_invalidated(self) -> None:
         self.add_actual()

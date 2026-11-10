@@ -74,11 +74,9 @@ enum ReadonlyDetailsSelection {
 }
 
 class _DetailsInstance extends cli.Instance {
-  _DetailsInstance(this._session, {required this.sendWarning})
-      : super('readonly-details-catalog');
+  _DetailsInstance(this._session) : super('readonly-details-catalog');
 
   final ReadonlyInspectionSession _session;
-  final bool sendWarning;
 
   @override
   Map<String, dynamic> read() =>
@@ -88,15 +86,8 @@ class _DetailsInstance extends cli.Instance {
   Future<Map<String, dynamic>> send(
     Map<String, Object?> command, {
     Duration timeout = const Duration(seconds: 30),
-  }) {
-    if (sendWarning && command['cmd'] == 'wait' &&
-        command['key'] == 'send_node_behind') {
-      // Three lab momentums plus the original SDK status refresh.
-      return _session.send(command, const Duration(seconds: 55));
-    }
-    return _session.send(command, timeout > const Duration(seconds: 30)
-        ? const Duration(seconds: 30) : timeout);
-  }
+  }) => _session.send(command, timeout > const Duration(seconds: 30)
+      ? const Duration(seconds: 30) : timeout);
 }
 
 Future<void> _typeDraft(cli.Instance instance, String key, String value) async {
@@ -195,9 +186,7 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
       labRecipient?.isEmpty == true) {
     throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.binding);
   }
-  final _DetailsInstance instance = _DetailsInstance(
-    session, sendWarning: sendWarning,
-  );
+  final _DetailsInstance instance = _DetailsInstance(session);
   bool warningContactSaved = false;
   bool warningWindowOpened = false;
   bool swapWarningAcknowledged = false;
@@ -278,9 +267,10 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
               await sendWarningWindow!('BEGIN');
               warningWindowOpened = true;
             }
+            // The host has observed lag. Allow the wallet's next refresh.
             await cli.waitForTarget(instance, cli.Args(<String>[
               '--key', 'send_node_behind', '--exact', '--ready',
-              '--timeout', '50',
+              '--timeout', '15',
             ]));
           case ['wait', '--key', final String key] when
               key == 'send_form_ready' || key == 'home_hero':

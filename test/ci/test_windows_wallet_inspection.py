@@ -716,6 +716,94 @@ class InspectionTests(unittest.TestCase):
             inspection.tour_receipt(partial)
 
 
+    def test_send_warning_requires_owned_rpc_lag_before_sampling_themes(self):
+        warning = inspection.send_warning_window
+        directory = Path.cwd() / 'send-warning-test-markers'
+        synced = dict(state=2, current_height=9, target_height=9)
+        behind = dict(state=1, current_height=9, target_height=13)
+        short = dict(behind, target_height=11)
+        admitted = dict(http=behind, ws=dict(behind, target_height=12))
+        unready = dict(http=short, ws=behind)
+        caught_up = dict(http=synced, ws=synced)
+        for scenario in ('ready', 'stationary', 'read_refused', 'parent_deadline', 'close_unknown'):
+            with self.subTest(scenario=scenario):
+                owners = {directory: object()}
+                clock = SimpleNamespace(now=0)
+
+                def sleep(seconds):
+                    clock.now += seconds
+
+                def mkdir(path, mode):
+                    self.assertEqual(path.parent, directory)
+                    self.assertEqual(mode, 0o700)
+                    self.assertNotIn(path, owners)
+                    owners[path] = object()
+
+                with (mock.patch.object(Path, 'mkdir', new=mkdir),
+                      mock.patch.object(warning, '_identity', owners.get),
+                      mock.patch.object(warning, 'time', SimpleNamespace(
+                          monotonic=lambda: clock.now, sleep=sleep))):
+                    window = warning.SendWarningWindow(directory, lambda: None)
+                    window.begin()
+                    with self.assertRaises(warning.SendWarningWindowRefused):
+                        window.sample('dark')
+                    if scenario == 'ready':
+                        reads = [caught_up, unready, admitted, admitted, admitted]
+                        with mock.patch.object(window, '_read_pair', side_effect=reads) as rpc:
+                            window.wait_until_ready(900)
+                            self.assertEqual(clock.now, 10)
+                            window.sample('dark')
+                            window.sample('light')
+                            self.assertEqual(rpc.call_args_list,
+                                [mock.call(45)] * 3 + [mock.call(90)] * 2)
+                        window.release(within_window=True)
+                        value = warning.window_receipt(window.receipt(), complete=True)
+                        self.assertEqual(value['readiness'],
+                            dict(attempts=3, read_refused=False,
+                                 first=caught_up, last=admitted))
+                        self.assertEqual([row['minimum_lag'] for row in value['samples']], [3, 3])
+                        for change in (
+                            dict(attempts=True), dict(first=admitted),
+                            dict(last=unready), dict(read_refused=True),
+                            dict(last=dict(admitted, raw='private reply')),
+                            dict(last=dict(admitted, ws=dict(behind, current_height=True))),
+                        ):
+                            with self.assertRaises(warning.SendWarningWindowRefused):
+                                warning.window_receipt(dict(value, readiness=dict(
+                                    value['readiness'], **change)), complete=True)
+                    elif scenario == 'close_unknown':
+                        fault = warning.policy.Refused('CLOSE_UNKNOWN')
+                        wire_value = dict(state=1, currentHeight=9, targetHeight=13)
+                        with (mock.patch.object(warning, 'make_transports', return_value=(None, None)),
+                              mock.patch.object(warning._SyncWs, 'connect'),
+                              mock.patch.object(warning._SyncHttp, 'call', return_value=wire_value),
+                              mock.patch.object(warning._SyncWs, 'call', return_value=wire_value),
+                              mock.patch.object(warning._SyncWs, 'close', side_effect=fault)):
+                            with self.assertRaises(warning.policy.Refused) as caught:
+                                window.wait_until_ready(900)
+                        self.assertIs(caught.exception, fault)
+                        window.release_if_owned()
+                        self.assertEqual(window.receipt()['readiness'],
+                            dict(attempts=1, read_refused=True, first=None, last=None))
+                    else:
+                        error = warning.SendWarningWindowRefused() if scenario == 'read_refused' else None
+                        limit = 49 if scenario == 'parent_deadline' else 900
+                        with mock.patch.object(window, '_read_pair',
+                                return_value=unready, side_effect=error) as rpc:
+                            with self.assertRaises(warning.SendWarningWindowRefused):
+                                window.wait_until_ready(limit)
+                        self.assertEqual(rpc.call_count, 9 if scenario == 'stationary' else 1)
+                        self.assertEqual(clock.now, dict(stationary=40, read_refused=0,
+                            parent_deadline=4)[scenario])
+                        window.release_if_owned()
+                        value = window.receipt()
+                        self.assertTrue(value['released'])
+                        self.assertEqual(value['samples'], [])
+                        self.assertEqual(value['readiness']['read_refused'], error is not None)
+                        self.assertEqual(value['readiness']['last'], None if error else unready)
+                        with self.assertRaises(warning.SendWarningWindowRefused):
+                            warning.window_receipt(value, complete=True)
+
     def test_sdk_and_wallet_receipts_refuse_expansion_coercion_and_old_scopes(self):
         for original, validate, changes in (
             (sdk(), inspection.sdk_receipt, ({'schema': True}, {'status': 'PENDING'},

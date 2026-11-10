@@ -757,7 +757,7 @@ void main() {
   );
 
   test(
-    'readonly Add readiness categories require the exact original reply', () {
+    'readonly readiness categories require the fixed original reply', () {
     final Object opaque = _OpaqueReply();
     for (final String error in <String>[
       'not ready after 0 ms', 'not ready after 5000 ms',
@@ -795,6 +795,34 @@ void main() {
     expect(classifyScreenCaptureReply('not ready after 5000 ms',
       <String, Object?>{'key': 'node_settings_add'}),
       ScreenCaptureReplyCode.unknown);
+    for (final MapEntry<String, ScreenCaptureReplyCode> entry in
+        <String, ScreenCaptureReplyCode>{
+      'absent': ScreenCaptureReplyCode.regionMissing,
+      'duplicate': ScreenCaptureReplyCode.regionDuplicate,
+      'boundsRefused': ScreenCaptureReplyCode.regionBoundsRefused,
+      'paintClipCheckRefused':
+          ScreenCaptureReplyCode.regionPaintClipCheckRefused,
+      'other': ScreenCaptureReplyCode.unknown,
+    }.entries) {
+      expect(classifyScreenCaptureReply('not ready after 15000 ms',
+        <String, Object?>{
+          'key': 'send_node_behind', 'readonly_region': entry.key,
+        }), entry.value);
+    }
+    expect(classifyScreenCaptureReply('not ready after 15000 ms',
+      <String, Object?>{
+        'key': 'send_node_behind', 'readonly_readiness': 'covered',
+      }), ScreenCaptureReplyCode.targetCovered);
+    for (final (String error, String key) in <(String, String)>[
+      ('not ready after 15001 ms', 'send_node_behind'),
+      ('not ready after 5000 ms', 'send_node_behind'),
+      ('not ready after 15000 ms', 'node_settings_add'),
+    ]) {
+      expect(classifyScreenCaptureReply(error, <String, Object?>{
+        'key': key, 'readonly_region': 'absent',
+        'readonly_readiness': 'covered',
+      }), ScreenCaptureReplyCode.unknown);
+    }
   });
 
   test(

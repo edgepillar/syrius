@@ -1021,6 +1021,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
                     used.add(line)
                     if line == b'CI_INSPECT_SEND_WARN_BEGIN':
                         warning_window.begin()
+                        warning_window.wait_until_ready(limit)
                         write(b'LAG_WINDOW\n')
                     else:
                         theme = 'dark' if line.endswith(b'DARK') else 'light'
