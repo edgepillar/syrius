@@ -49,6 +49,7 @@ class _WalletUi {
   Duration elapsed = Duration.zero;
   int opens = 0;
   int consents = 0;
+  int quizAnswers = 0;
 
   WalletRecipe driver({Duration timeout = const Duration(seconds: 1)}) =>
       WalletRecipe(
@@ -68,7 +69,18 @@ class _WalletUi {
   Map<String, dynamic> observation() {
     final List<String> keys = switch (phase) {
       'startup' => <String>['launch_skip_hint'],
-      'welcome' => <String>['welcome_import'],
+      'welcome' => <String>['welcome_import', 'welcome_create'],
+      'new-seed' => <String>[
+        'new_wallet_seed_backed_up',
+        'new_wallet_seed_written',
+        'new_wallet_seed_continue',
+      ],
+      'new-quiz' => <String>['seed_quiz_continue'],
+      'new-password' => <String>[
+        'new_wallet_password',
+        'new_wallet_confirm_password',
+        'new_wallet_password_continue',
+      ],
       'seed' => <String>[
         'import_words_12',
         'import_words_24',
@@ -136,7 +148,8 @@ class _WalletUi {
         ])
           <String, dynamic>{
             'key': key,
-            'enabled': key != disabled,
+            'enabled': key != disabled &&
+                (key != 'seed_quiz_continue' || quizAnswers == 3),
             if (key == 'node_settings_chain_toggle') 'expanded': chainOpen,
           },
       ],
@@ -186,6 +199,16 @@ class _WalletUi {
         'error': '${_seed(12)} $_password private diagnostic',
       };
     }
+    if (command['action'] == 'answer-new-wallet-quiz') {
+      expect(phase, 'new-quiz');
+      expect(command['owner'], owner);
+      expect(command['revision'], revision);
+      expect(command.keys, unorderedEquals(<String>[
+        'cmd', 'action', 'owner', 'revision',
+      ]));
+      quizAnswers++;
+      return <String, dynamic>{'ok': true, 'acted': true};
+    }
     if (command['action'] == 'type') {
       typed[key! as String] = command['value']! as String;
       return <String, dynamic>{'ok': true, 'acted': true};
@@ -195,9 +218,16 @@ class _WalletUi {
         phase = 'welcome';
       case 'welcome_import':
         phase = 'seed';
+      case 'welcome_create':
+        phase = 'new-seed';
+      case 'new_wallet_seed_continue':
+        phase = 'new-quiz';
+      case 'seed_quiz_continue':
+        phase = 'new-password';
       case 'import_continue':
         phase = 'password';
       case 'import_password_continue':
+      case 'new_wallet_password_continue':
         initialized = true;
         owner++;
         phase = 'node';
@@ -304,6 +334,43 @@ void main() {
     expect(ui.saved, 321);
     expect(ui.commands.every((Map<String, Object?> command) =>
         command['cmd'] == 'readonly-entry'), isTrue);
+  });
+
+  test('new wallet captures the original Ready before opening it', () async {
+    for (final bool replaceOwner in <bool>[false, true]) {
+      final _WalletUi ui = _WalletUi();
+      final WalletRecipe recipe = _inspection(ui);
+      int captures = 0;
+      final Future<void> run = recipe.createWalletForReadyCapture(
+        password: _password,
+        captureReady: () async {
+          expect(ui.phase, 'ready');
+          expect(ui.quizAnswers, 3);
+          expect(ui.opens, 0);
+          expect(ui.selectedNode, _node);
+          await recipe.requireOriginalReady();
+          captures++;
+          if (replaceOwner) ui.owner++;
+        },
+      );
+      if (replaceOwner) {
+        await expectLater(run, throwsA(isA<WalletRecipeRefused>()));
+        expect(ui.opens, 0);
+      } else {
+        await run;
+        expect(ui.opens, 1);
+        expect(ui.signing, 321);
+        expect(ui.saved, 321);
+      }
+      expect(captures, 1);
+      expect(ui.taps, isNot(contains('welcome_import')));
+    }
+    final _WalletUi ordinary = _WalletUi();
+    await expectLater(ordinary.driver().createWalletForReadyCapture(
+      password: _password,
+      captureReady: () async => fail('ordinary wallet capture was admitted'),
+    ), throwsA(isA<WalletRecipeRefused>()));
+    expect(ordinary.commands, isEmpty);
   });
 
   test('inspection refuses foreign mode PID and SDK receipts before input',

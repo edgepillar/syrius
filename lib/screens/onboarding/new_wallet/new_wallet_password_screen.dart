@@ -38,6 +38,7 @@ class _NewWalletPasswordScreenState extends State<NewWalletPasswordScreen> {
             key: _passwordKey,
             autovalidateMode: AutovalidateMode.onUserInteraction,
             child: PasswordInputField(
+              key: const Key('new_wallet_password'),
               controller: _passwordController,
               validator: InputValidators.validatePassword,
               onChanged: (String value) {
@@ -51,6 +52,7 @@ class _NewWalletPasswordScreenState extends State<NewWalletPasswordScreen> {
             key: _confirmPasswordKey,
             autovalidateMode: AutovalidateMode.onUserInteraction,
             child: PasswordInputField(
+              key: const Key('new_wallet_confirm_password'),
               controller: _confirmPasswordController,
               validator: (String? value) => InputValidators.checkPasswordMatch(
                 _passwordController.text,
@@ -80,6 +82,7 @@ class _NewWalletPasswordScreenState extends State<NewWalletPasswordScreen> {
 
   Widget _getActionButton() {
     return OnboardingButton(
+      key: const Key('new_wallet_password_continue'),
       onPressed: _arePasswordsValid()
           ? () {
               NavigationUtils.push(

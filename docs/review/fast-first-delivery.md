@@ -337,8 +337,23 @@ ten-second momentum interval. The original four five-second waits, six
 polls and requirement that both endpoints advance remain. The test covers
 advancement on the last slot and a stationary refusal before a claim or
 tap. The Source565 stationary frontier result retains its original
-failure. Fresh Dart and Windows Project detail verification remain open.
+failure. Source590 passes selected analysis with zero findings, 1,373
+Dart cases and 1,100 controller cases with eighteen skips. The original
+test transfer confirmation is absent in all eighteen observations. The
+wallet actor requires forced cleanup and the five original nodes close
+normally. The independent reader verifies both retained manifests and
+zero images. Project admission is unreached and the cause of the absent
+confirmation remains `NOT_ESTABLISHED`.
 [Pinned consensus configuration](https://github.com/zenon-network/go-zenon/blob/2d1b929cc3fa5269cf133757d4a6963821137984/vm/constants/consensus.go#L25-L32).
+[Windows producer](https://github.com/edgepillar/syrius/actions/runs/42742511198) and
+[independent reader](https://github.com/edgepillar/syrius/actions/runs/42744907554).
+
+Source591 prepares both Wallet Ready themes from the original four-step
+new-wallet flow. The empty readonly Windows profile generates its own
+disposable seed. The app answers the original quiz internally and the
+capture retains only the final Ready frames under the same owner. Four
+focused controller checks pass in memory. Selected Dart and native
+verification remain pending.
 
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,

@@ -577,7 +577,7 @@ class ReaderTests(unittest.TestCase):
         source = b'synthetic source'
         home_pixels = wallet_fixtures.png()
         bell_only = catalog_only == 'home-bell'
-        distinct_themes = bell_only or catalog_only == 'swap-start'
+        distinct_themes = bell_only or catalog_only in ('swap-start', 'wallet-ready')
         home = wallet_fixtures.home_manifest(home_pixels, source, schema=home_schema)
         self.assertLessEqual(sum((settings_catalog, navigation_catalog,
             details_catalog, catalog_only is not None)), 1)
@@ -660,8 +660,8 @@ class ReaderTests(unittest.TestCase):
         elif catalog_only == 'sentinel-fixture':
             source_files += reader.SENTINEL_FIXTURE_SOURCES + (
                 'harness/screens/sentinels.txt',)
-        elif catalog_only == 'swap-start':
-            source_files += ('harness/screens/swap-start.txt',)
+        elif catalog_only in ('swap-start', 'wallet-ready'):
+            source_files += ('harness/screens/' + catalog_only + '.txt',)
         tree = dict(sha='b' * 40, truncated=False, tree=[dict(path=n, mode='100644', type='blob', sha=blob)
             for n in source_files])
         calls = []
@@ -882,6 +882,22 @@ class ReaderTests(unittest.TestCase):
         self.assertFalse(observed['financial_send_qualified'])
         with self.assertRaises(reader.archive.Refused):
             self.run_main(catalog_only='swap-start', extra_viewport=True)
+
+    def test_wallet_ready_reader_verifies_only_the_original_two_frames(self):
+        value, calls, text = self.run_main(catalog_only='wallet-ready')
+        self.assertEqual(value['sampling_scope'], 'wallet-ready-only')
+        self.assertEqual(value['verified_catalog_png_count'], 2)
+        self.assertEqual(value['producer_source_files_verified'], len(reader.SOURCE_FILES) + 1)
+        notices = [json.loads(line.split('::', 2)[-1]) for line in text.splitlines()
+            if line.startswith('::notice title=Retained readonly Details catalog::')]
+        self.assertEqual(len(notices), 1)
+        self.assertEqual(notices[0]['filenames'],
+            ['47-wallet-ready-dark.png', '47-wallet-ready-light.png'])
+        self.assertTrue(notices[0]['all_original_png_digests_verified'])
+        self.assertTrue(notices[0]['parent_closure_qualified'])
+        self.assertFalse(notices[0]['financial_send_qualified'])
+        with self.assertRaises(reader.archive.Refused):
+            self.run_main(catalog_only='wallet-ready', extra_viewport=True)
 
     def test_bell_only_reader_verifies_the_script_and_two_original_frames(self):
         value, calls, text = self.run_main(catalog_only='home-bell')

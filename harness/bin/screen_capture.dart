@@ -285,6 +285,7 @@ class ScreenCapture {
     this.readonlySendConfirmation = false,
     this.readonlySwapStart = false,
     this.readonlyEarn = false,
+    this.readonlyWalletReady = false,
     this.restoredSeeded = false,
     this.restoredProject = false,
   });
@@ -300,6 +301,7 @@ class ScreenCapture {
   final bool readonlySendConfirmation;
   final bool readonlySwapStart;
   final bool readonlyEarn;
+  final bool readonlyWalletReady;
   final bool restoredSeeded;
   final bool restoredProject;
 
@@ -397,11 +399,14 @@ class ScreenCapture {
         final bool pillarPrepared = readonlyEarn &&
             screen.id == 'pillar-mine' &&
             text == '# prerequisite: readonly-lab-pillar-owner';
+        final bool readyPrepared = readonlyWalletReady &&
+            screen.id == 'wallet-ready' &&
+            text == '# prerequisite: original-new-wallet-ready';
         if (text.startsWith('# prerequisite:') &&
             text != '# prerequisite: unlocked-home' &&
             !sendPrepared && !swapPrepared && !tokenPrepared &&
             !projectPrepared &&
-            !pillarPrepared) {
+            !pillarPrepared && !readyPrepared) {
           throw ScreenCaptureError('${screen.id}: ${text.substring(2)}');
         }
         continue;

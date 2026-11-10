@@ -1,4 +1,4 @@
-# prerequisite: pending F06 isolated onboarding with a confirmed original initialization
+# prerequisite: original-new-wallet-ready
 # no credentials, seed, file path or funded identity belongs in this script
 assert --key wallet_ready_screen_marker
 assert --key wallet_ready_card

@@ -41,6 +41,9 @@ enum ReadonlyDetailsSelection {
   ),
   swapStart(9, 'swap_start_catalog', <String>['swap-start'],
     <String>['27-swap-start-dark.png', '27-swap-start-light.png'],
+  ),
+  walletReady(10, 'wallet_ready_catalog', <String>['wallet-ready'],
+    <String>['47-wallet-ready-dark.png', '47-wallet-ready-light.png'],
   );
 
   const ReadonlyDetailsSelection(
@@ -54,7 +57,7 @@ enum ReadonlyDetailsSelection {
 
   bool get catalogOnly =>
       this == sendConfirmation || this == earn || this == sentinelFixture ||
-      this == swapStart;
+      this == swapStart || this == walletReady;
 
   bool get requiresLabRecipient =>
       this == sendConfirmation || this == swapStart;
@@ -105,19 +108,24 @@ Map<String, Object>? readonlyDetailsFailureDiagnostic(
   };
 }
 
-/// Runs the selected details scripts through the same bound UI owner.
-/// Each positive shot returns to Home before the next preparation can run.
+/// Runs the selected details scripts through their original UI owner.
+/// Wallet Ready is captured before that owner opens the dashboard.
 Future<Map<String, Object>> captureReadonlyDetailsDefaults({
   required Directory repository,
   required ReadonlyInspectionSession session,
   void Function(ScreenCaptureObservation step)? onStep,
   ReadonlyDetailsSelection selection = ReadonlyDetailsSelection.details,
   String? labRecipient,
+  Future<void> Function()? requireReady,
 }) async {
   final bool sendConfirmation =
       selection == ReadonlyDetailsSelection.sendConfirmation;
   final bool swapStart = selection == ReadonlyDetailsSelection.swapStart;
-  if (!session.walletBound ||
+  final bool walletReady = selection == ReadonlyDetailsSelection.walletReady;
+  final bool ownerAdmitted = walletReady
+      ? !session.walletBound && requireReady != null
+      : session.walletBound && requireReady == null;
+  if (!ownerAdmitted ||
       selection.requiresLabRecipient != (labRecipient != null) ||
       labRecipient?.isEmpty == true) {
     throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.binding);
@@ -127,8 +135,24 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
   final ScreenCapture capture = ScreenCapture(
     repository: repository,
     call: (Map<String, Object?> command) => cli.call(instance, command),
-    prepareHome: session.prepareScreenHome,
+    prepareHome: requireReady ?? session.prepareScreenHome,
     runLine: (List<String> words) async {
+      if (walletReady) {
+        if (words.length != 3 || words[0] != 'assert' ||
+            words[1] != '--key' || !const <String>{
+              'wallet_ready_screen_marker', 'wallet_ready_card',
+              'wallet_ready_address', 'wallet_ready_open',
+            }.contains(words[2])) {
+          throw const ReadonlyInspectionRefused(
+            ReadonlyInspectionReason.command,
+          );
+        }
+        // An assertion reply can contain the disposable wallet's address.
+        await cli.call(instance, <String, Object?>{
+          'cmd': 'assert', 'key': words[2], 'exact': true,
+        });
+        return;
+      }
       final String? field = words.length >= 3 && words.first == 'type' &&
           words[1] == '--key' ? words[2] : null;
       final bool recipient = selection.requiresLabRecipient &&
@@ -195,12 +219,13 @@ Future<Map<String, Object>> captureReadonlyDetailsDefaults({
                 'key': 'nodes_sentinel_read_scope', 'exact': true,
               }
             : cli.assertionArgs(cli.Args(words.sublist(1))),
-    readRailState: session.railExpanded,
-    restoreRailState: session.restoreScreenRail,
+    readRailState: walletReady ? null : session.railExpanded,
+    restoreRailState: walletReady ? null : session.restoreScreenRail,
     onStep: onStep,
     readonlySendConfirmation: sendConfirmation,
     readonlySwapStart: swapStart,
     readonlyEarn: selection == ReadonlyDetailsSelection.earn,
+    readonlyWalletReady: walletReady,
   );
   final List<String> captured = await capture.captureSelection(
     selection.screens, directory: readonlyDetailsCatalogDirectory,

@@ -3,7 +3,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import '../app/readonly_native_mode.dart' show harnessReadonlySentinelCatalog;
+import '../app/readonly_native_mode.dart'
+    show harnessReadonlySentinelCatalog, harnessReadonlyWalletReadyCatalog;
 import '../wallet_recipe_failure.dart' show walletRecipePublicDiagnostic;
 import 'harness.dart' as cli;
 import 'readonly_details_catalog.dart';
@@ -23,6 +24,7 @@ const Map<String, ReadonlyDetailsSelection> _detailsSelections =
       'swap-start': ReadonlyDetailsSelection.swapStart,
       'earn': ReadonlyDetailsSelection.earn,
       harnessReadonlySentinelCatalog: ReadonlyDetailsSelection.sentinelFixture,
+      harnessReadonlyWalletReadyCatalog: ReadonlyDetailsSelection.walletReady,
     };
 
 /// One fixed original capture family, with the previous Details default.
@@ -78,12 +80,14 @@ class _InspectionInstance extends cli.Instance {
     String family, {
     void Function(ScreenCaptureObservation step)? onStep,
     String? labRecipient,
+    Future<void> Function()? requireReady,
   }) {
     final Directory repository = Directory(cli.repo);
     if (_detailsSelections[family] case final ReadonlyDetailsSelection choice) {
       return captureReadonlyDetailsDefaults(
         repository: repository, session: _session, onStep: onStep,
         selection: choice, labRecipient: labRecipient,
+        requireReady: requireReady,
       );
     }
     return switch (family) {
@@ -143,6 +147,7 @@ Future<void> main() async {
   try {
     final Map<String, String> environment = Platform.environment;
     final String family = readonlyInspectionCatalogFamily(environment);
+    final bool walletReady = family == harnessReadonlyWalletReadyCatalog;
     detailsSelection = _detailsSelections[family];
     final bool requiresLabRecipient =
         detailsSelection?.requiresLabRecipient ?? false;
@@ -200,10 +205,12 @@ Future<void> main() async {
       throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.process);
     }
     final Object? decoded = jsonDecode(input.current);
-    if (decoded is! Map<String, dynamic> || decoded.length != 4 ||
+    if (decoded is! Map<String, dynamic> ||
+        decoded.length != (walletReady ? 3 : 4) ||
         decoded['chain'] != '321' ||
         decoded['node'] != 'ws://127.0.0.1:45998' ||
-        decoded['mnemonic'] is! String || decoded['password'] is! String) {
+        (!walletReady && decoded['mnemonic'] is! String) ||
+        decoded['password'] is! String) {
       throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.command);
     }
     stage = 'window';
@@ -216,12 +223,42 @@ Future<void> main() async {
           instance.send(command, timeout: timeout),
     );
     stage = 'onboarding';
-    await recipe.importWallet(
-      chain: decoded['chain'] as String,
-      node: decoded['node'] as String,
-      mnemonic: decoded['mnemonic'] as String,
-      password: decoded['password'] as String,
-    );
+    Map<String, Object>? readyCatalog;
+    if (walletReady) {
+      await recipe.createWalletForReadyCapture(
+        password: decoded['password'] as String,
+        captureReady: () async {
+          stage = ReadonlyDetailsSelection.walletReady.stage;
+          final Map<String, dynamic> before = await cli.stateOf(instance);
+          if (before['locale'] != 'en' || before['direction'] != 'ltr') {
+            throw const ReadonlyInspectionRefused(
+              ReadonlyInspectionReason.reply,
+            );
+          }
+          readyCatalog = await instance.captureCatalog(
+            family,
+            requireReady: () async {
+              try {
+                await recipe.requireOriginalReady();
+              } on WalletRecipeRefused {
+                throw const ReadonlyInspectionRefused(
+                  ReadonlyInspectionReason.binding,
+                );
+              }
+            },
+            onStep: (ScreenCaptureObservation value) => lastCatalogStep = value,
+          );
+          stage = 'onboarding';
+        },
+      );
+    } else {
+      await recipe.importWallet(
+        chain: decoded['chain'] as String,
+        node: decoded['node'] as String,
+        mnemonic: decoded['mnemonic'] as String,
+        password: decoded['password'] as String,
+      );
+    }
     stage = 'signing_policy';
     final Map<String, dynamic> state = await cli.stateOf(instance);
     if (state['node'] != 'ws://127.0.0.1:45998' || state['chainId'] != 321 ||
@@ -292,12 +329,15 @@ Future<void> main() async {
     }
     stage = detailsSelection?.stage ??
         (family == 'home-bell' ? 'home_catalog' : '${family}_catalog');
-    if (catalogOnly) await cli.goto(instance, 'dashboard');
-    final Map<String, Object> catalog = await instance.captureCatalog(
-      family,
-      onStep: (ScreenCaptureObservation value) => lastCatalogStep = value,
-      labRecipient: labRecipient,
-    );
+    if (catalogOnly && readyCatalog == null) {
+      await cli.goto(instance, 'dashboard');
+    }
+    final Map<String, Object> catalog = readyCatalog ??
+        await instance.captureCatalog(
+          family,
+          onStep: (ScreenCaptureObservation value) => lastCatalogStep = value,
+          labRecipient: labRecipient,
+        );
     if (catalogOnly) await instance.requireCleanLogs();
     await marker('SYRIUS_INSPECTION_CATALOG:${jsonEncode(catalog)}');
     if (!catalogOnly) {

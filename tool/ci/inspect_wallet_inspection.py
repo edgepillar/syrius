@@ -535,7 +535,8 @@ def main(parent=None):
             scripts = producer.details.catalog_screens(schema)
             if schema in (producer.details.FAMILY_SCHEMAS['earn'],
                           producer.details.FAMILY_SCHEMAS['sentinel-fixture'],
-                          producer.details.FAMILY_SCHEMAS['swap-start']):
+                          producer.details.FAMILY_SCHEMAS['swap-start'],
+                          producer.details.FAMILY_SCHEMAS['wallet-ready']):
                 fixture_sources = (SENTINEL_FIXTURE_SOURCES
                     if schema == producer.details.FAMILY_SCHEMAS['sentinel-fixture'] else ())
                 source_digests.update(source_files(repo, producer_tree, tree,

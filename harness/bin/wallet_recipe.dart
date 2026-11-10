@@ -564,6 +564,70 @@ class WalletRecipe {
         (node != null && !walletRecipeNode(node))) {
       _refuse('wallet-recipe-import-input-refused');
     }
+    await _prepareWelcome();
+    await _act('welcome_import');
+    await _act('import_words_${words.length}');
+    await _act('import_seed_field', value: words.join(' '));
+    await _act('import_continue');
+    await _act('import_new_password', value: password);
+    await _act('import_confirm_password', value: password);
+    await _act('import_password_continue');
+    await _finishOnboarding(requested, node);
+  }
+
+  /// Drives a real new wallet in a fresh readonly Windows inspection profile.
+  /// The original confirmation owner chooses the correct in-process options.
+  Future<void> createWalletForReadyCapture({
+    required String password,
+    required Future<void> Function() captureReady,
+  }) async {
+    if (_inspectionPid == null || password.isEmpty || password.length > 512) {
+      _refuse('wallet-recipe-owned-lab-required');
+    }
+    await _prepareWelcome();
+    await _act('welcome_create');
+    await _act('new_wallet_seed_backed_up', reveal: true);
+    await _act('new_wallet_seed_written', reveal: true);
+    await _act('new_wallet_seed_continue', reveal: true);
+    final Map<String, dynamic> quiz = await _until(
+      (Map<String, dynamic> view) =>
+          _control(view, 'seed_quiz_continue') != null,
+      waitingFor: 'seed_quiz_continue',
+    );
+    _owner = quiz['owner'] as int;
+    for (int index = 0; index < 3; index++) {
+      final Map<String, dynamic> view = await _observe();
+      _policy(view);
+      await _command(<String, Object?>{
+        'action': 'answer-new-wallet-quiz',
+        'owner': view['owner'],
+        'revision': view['revision'],
+      });
+    }
+    await _act('seed_quiz_continue', reveal: true);
+    await _act('new_wallet_password', value: password);
+    await _act('new_wallet_confirm_password', value: password);
+    // Actual creation changes the profile owner once the file exists.
+    _owner = null;
+    await _act('new_wallet_password_continue');
+    await _finishOnboarding(321, 'ws://127.0.0.1:45998',
+      captureReady: captureReady,
+    );
+  }
+
+  /// Rechecks the original ready route before any capture frame is admitted.
+  Future<void> requireOriginalReady() async {
+    final Map<String, dynamic> view = await _observe();
+    _policy(view);
+    if (_inspectionPid == null || view['readyOriginal'] != true ||
+        view['node'] != 'ws://127.0.0.1:45998' || view['chainId'] != 321 ||
+        view['nodeConnected'] != true || view['nodeSelectionSaved'] != true ||
+        view['transitionPending'] != false) {
+      _refuse('wallet-recipe-original-ready-unavailable');
+    }
+  }
+
+  Future<void> _prepareWelcome() async {
     final Map<String, dynamic> start = await _observe();
     _policy(start);
     if (start['walletPresent'] != false ||
@@ -574,13 +638,13 @@ class WalletRecipe {
     // for its authenticated hint or a natural handoff before Welcome.
     _startupHandoff = 'observing';
     await _act('launch_skip_hint');
-    await _act('welcome_import');
-    await _act('import_words_${words.length}');
-    await _act('import_seed_field', value: words.join(' '));
-    await _act('import_continue');
-    await _act('import_new_password', value: password);
-    await _act('import_confirm_password', value: password);
-    await _act('import_password_continue');
+  }
+
+  Future<void> _finishOnboarding(
+    int requested,
+    String? node, {
+    Future<void> Function()? captureReady,
+  }) async {
     final Map<String, dynamic> picker = await _until(
       (Map<String, dynamic> view) =>
           view['nodePicker'] == true || view['readyOriginal'] == true,
@@ -597,6 +661,11 @@ class WalletRecipe {
       _refuse('wallet-recipe-explicit-node-required');
     }
     await selectNode(target, onboarding: true, expectedChain: requested);
+    if (captureReady != null) {
+      await requireOriginalReady();
+      await captureReady();
+      await requireOriginalReady();
+    }
     await _act('wallet_ready_open');
     await _until(
       (Map<String, dynamic> view) =>

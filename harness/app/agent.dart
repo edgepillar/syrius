@@ -38,6 +38,9 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/list_en
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/motion/rise_switcher.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/motion/state_switcher.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/import_wallet/import_wallet_seed_choice_screen.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/onboarding/new_wallet/new_wallet_confirm_seed_screen.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/onboarding/new_wallet/seed_quiz.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/onboarding/new_wallet/seed_quiz_surface.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/wallet_ready_surface.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/wallet_success_screen.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/welcome_surface.dart';
@@ -2006,7 +2009,12 @@ class HarnessAgent {
     };
   }
 
-  static bool _recipeKey(String? key) =>
+  bool get _readonlyWalletReady =>
+      _readonlyNative != null &&
+      Platform.environment['SYRIUS_READONLY_CATALOG_FAMILY'] ==
+          harnessReadonlyWalletReadyCatalog;
+
+  bool _recipeKey(String? key) =>
       key != null &&
       (<String>{
             'launch_skip_hint',
@@ -2033,6 +2041,16 @@ class HarnessAgent {
             'settings_addresses',
             'settings_add_address',
           }.contains(key) ||
+          (_readonlyWalletReady && kWalletFile == null && const <String>{
+            'welcome_create',
+            'new_wallet_seed_backed_up',
+            'new_wallet_seed_written',
+            'new_wallet_seed_continue',
+            'seed_quiz_continue',
+            'new_wallet_password',
+            'new_wallet_confirm_password',
+            'new_wallet_password_continue',
+          }.contains(key)) ||
           kDefaultAddressList.any(
             (String? address) => address != null &&
                 key == 'addresses_select_$address',
@@ -2464,8 +2482,12 @@ class HarnessAgent {
       if (ancestor.widget case final WalletReadySurface value) surface = value;
       return true;
     });
-    return owner != null &&
-        identical(owner!.originalFile, kWalletFile) &&
+    final WalletSuccessScreen? success = owner;
+    return success != null &&
+        identical(success.originalFile, kWalletFile) &&
+        (!_readonlyWalletReady ||
+            (!success.imported &&
+                surface?.imported == false && surface?.hardware == false)) &&
         surface?.binding?.transportQuarantined == false &&
         surface?.binding?.isCurrent == true &&
         ModalRoute.of(node.element)?.isCurrent == true &&
@@ -2651,6 +2673,42 @@ class HarnessAgent {
     return hits.single;
   }
 
+  // Resolve only the current choice inside the original quiz owner. Neither
+  // its answer nor the selected control key enters a recipe reply.
+  _Node _recipeNewWalletQuizAnswer() {
+    if (!_readonlyWalletReady || kWalletFile != null) {
+      throw HarnessError('wallet-recipe-control-refused');
+    }
+    final List<_Node> hits = <_Node>[];
+    for (final _Node node in _snapshot()) {
+      if (node.key?.startsWith('seed_quiz_') != true ||
+          node.kind != 'button' ||
+          ModalRoute.of(node.element)?.isCurrent != true) {
+        continue;
+      }
+      SeedQuiz? quiz;
+      bool original = false;
+      node.element.visitAncestorElements((Element ancestor) {
+        if (ancestor.widget case final SeedQuizSurface surface) {
+          quiz = surface.quiz;
+        }
+        if (ancestor.widget is NewWalletConfirmSeedScreen) original = true;
+        return !original;
+      });
+      final SeedQuiz? current = quiz;
+      if (!original || current == null || current.complete) continue;
+      final int question = current.unlocked;
+      final SeedQuizQuestion next = current.questions[question];
+      final int choice = next.choices.indexOf(next.answer);
+      if (node.key == 'seed_quiz_${question}_$choice' &&
+          _recipeEnabled(node) && _reachable(node, node.center)) {
+        hits.add(node);
+      }
+    }
+    if (hits.length != 1) throw HarnessError('wallet-recipe-control-refused');
+    return hits.single;
+  }
+
   Future<Map<String, Object?>> _walletRecipeCommand(
     Map<String, dynamic> command,
   ) async {
@@ -2737,12 +2795,20 @@ class HarnessAgent {
         await _scroll(<String, dynamic>{'dy': command['dy']});
         return <String, Object?>{'acted': true};
       }
-      final Object? key = command['key'];
+      final bool answerQuiz = action == 'answer-new-wallet-quiz';
+      if (answerQuiz &&
+          (command['cmd'] != 'readonly-entry' ||
+              command.containsKey('key') || command.containsKey('value'))) {
+        throw HarnessError('wallet-recipe-action-refused');
+      }
+      final _Node? answer = answerQuiz ? _recipeNewWalletQuizAnswer() : null;
+      final Object? key = answer?.key ?? command['key'];
       if (key is! String ||
-          !_recipeKey(key) ||
-          (key == 'launch_skip_hint'
-              ? action != 'key'
-              : action != 'tap' && action != 'type')) {
+          (!answerQuiz &&
+              (!_recipeKey(key) ||
+                  (key == 'launch_skip_hint'
+                      ? action != 'key'
+                      : action != 'tap' && action != 'type')))) {
         throw HarnessError('wallet-recipe-action-refused');
       }
       if (NodeTransitions.pending && key != 'node_settings_question_accept') {
@@ -2754,7 +2820,7 @@ class HarnessAgent {
         throw HarnessError('wallet-recipe-original-address-context-changed');
       }
       final bool field = action == 'type';
-      final _Node original = _recipeControl(key, field: field);
+      final _Node original = answer ?? _recipeControl(key, field: field);
       if (key.startsWith('node_settings_select_') ||
           key == 'node_onboarding_continue') {
         final List<Element> views = _recipeNodeViews();
@@ -2808,7 +2874,9 @@ class HarnessAgent {
             !identical(EntryCaptureRegistry.instance.startup, startup)) {
           throw HarnessError('wallet-recipe-original-owner-changed');
         }
-        final _Node fresh = _recipeControl(key, field: field);
+        final _Node fresh = answerQuiz
+            ? _recipeNewWalletQuizAnswer()
+            : _recipeControl(key, field: field);
         final String? change = recipeControlChange(
           original: original.element,
           current: fresh.element,
@@ -3946,7 +4014,11 @@ class HarnessAgent {
           'nodes_sentinel_active', 'nodes_sentinel_owner_address',
           'sentinels_loaded',
         }.contains(key);
-    if (!sentinelRegion && !const <String>{
+    final bool readyRegion = _readonlyWalletReady &&
+        const <String>{
+          'wallet_ready_screen_marker', 'wallet_ready_card',
+        }.contains(key);
+    if (!sentinelRegion && !readyRegion && !const <String>{
           'home_hero', 'home_znn', 'rail_label_dashboard',
           'send_form_ready',
           'send_confirmation_marker',
@@ -4289,6 +4361,10 @@ class HarnessAgent {
         });
       }
       rethrow;
+    }
+    if (_readonlyWalletReady && c['key'] == 'wallet_ready_open' &&
+        !_recipeReady(node)) {
+      throw HarnessError('wallet-recipe-original-ready-unavailable');
     }
     if (!_positiveObservationReachable(node, node.center)) {
       throw HarnessError('assert target is covered', node.toJson());

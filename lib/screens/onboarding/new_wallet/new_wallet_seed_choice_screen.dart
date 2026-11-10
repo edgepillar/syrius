@@ -175,6 +175,7 @@ class _NewWalletSeedChoiceScreenState extends State<NewWalletSeedChoiceScreen> {
 
   Widget _getConfirmSecureCheckboxContainer() {
     return _buildCheckRow(
+      key: const Key('new_wallet_seed_backed_up'),
       value: _isSeedSecure,
       label: 'I have backed up my seed in a safe location',
       onChanged: (bool? value) {
@@ -187,6 +188,7 @@ class _NewWalletSeedChoiceScreenState extends State<NewWalletSeedChoiceScreen> {
 
   Widget _buildContinueButton() {
     return OnboardingButton(
+      key: const Key('new_wallet_seed_continue'),
       onPressed:
           _isSeedSecure! &&
               _isSeedWrittenDown! &&
@@ -211,6 +213,7 @@ class _NewWalletSeedChoiceScreenState extends State<NewWalletSeedChoiceScreen> {
 
   Widget _getConfirmWrittenDownCheckbox() {
     return _buildCheckRow(
+      key: const Key('new_wallet_seed_written'),
       value: _isSeedWrittenDown,
       label: 'I have written down my seed',
       onChanged: (bool? value) {
@@ -222,6 +225,7 @@ class _NewWalletSeedChoiceScreenState extends State<NewWalletSeedChoiceScreen> {
   }
 
   Widget _buildCheckRow({
+    required Key key,
     required bool? value,
     required String label,
     required ValueChanged<bool?> onChanged,
@@ -230,6 +234,7 @@ class _NewWalletSeedChoiceScreenState extends State<NewWalletSeedChoiceScreen> {
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         Checkbox(
+          key: key,
           value: value,
           checkColor: Theme.of(context).colorScheme.primary,
           activeColor: AppColors.znnColor,

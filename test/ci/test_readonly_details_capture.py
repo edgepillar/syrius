@@ -78,6 +78,7 @@ class DetailsCatalogTests(unittest.TestCase):
             (2, 'token-new', 25, 'token_draft_catalog'),
             (3, 'send-confirm', 12, 'send_confirm_catalog'),
             (9, 'swap-start', 27, 'swap_start_catalog'),
+            (10, 'wallet-ready', 47, 'wallet_ready_catalog'),
         ):
             with self.subTest(screen=screen):
                 files = [f'{number}-{screen}-{theme}.png'
@@ -88,7 +89,7 @@ class DetailsCatalogTests(unittest.TestCase):
                 captures = [dict(row, file=name)
                     for row, name in zip(original['captures'][:2], files)]
                 images = dict(zip(files, original_images.values()))
-                if schema == 9:
+                if schema in (9, 10):
                     with self.assertRaises(details.Refused):
                         details.capture_records(captures, schema=schema)
                     light = images[files[1]] = png(255)

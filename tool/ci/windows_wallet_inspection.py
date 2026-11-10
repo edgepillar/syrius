@@ -28,7 +28,7 @@ from . import readonly_details_capture as details
 from .windows_debug_process import IMAGE_NAMES
 from .hosted_chain321 import (EARN_INSPECTION_SCHEMA, HOME_BELL_INSPECTION_SCHEMA,
     READONLY_CATALOG_SCHEMAS, SEND_CONFIRM_INSPECTION_SCHEMA, SENTINEL_INSPECTION_SCHEMA,
-    SWAP_START_INSPECTION_SCHEMA, readonly_catalog_family)
+    SWAP_START_INSPECTION_SCHEMA, WALLET_READY_INSPECTION_SCHEMA, readonly_catalog_family)
 
 
 PAGES = shared.PAGES
@@ -65,6 +65,7 @@ CATALOG_ONLY_FAMILIES = {
     HOME_BELL_INSPECTION_SCHEMA: 'home-bell',
     SEND_CONFIRM_INSPECTION_SCHEMA: 'send-confirm',
     SWAP_START_INSPECTION_SCHEMA: 'swap-start',
+    WALLET_READY_INSPECTION_SCHEMA: 'wallet-ready',
     EARN_INSPECTION_SCHEMA: 'earn',
     SENTINEL_INSPECTION_SCHEMA: 'sentinel-fixture',
 }
@@ -1040,11 +1041,14 @@ def run(repo, parent, runtime, lab_root, observation, revalidate):
         report['phase'] = 'lab_revalidation'
         lab_current()
         report['checks']['lab_revalidated'] = True
-        fixture = shared.public_fixture((repo / 'tools/devnet/lab/README.md').read_text(encoding='utf-8'))
+        private_input = dict(chain='321', node='ws://127.0.0.1:45998',
+            password=secrets.token_hex(16) + 'A!1')
+        if family != 'wallet-ready':
+            private_input['mnemonic'] = shared.public_fixture(
+                (repo / 'tools/devnet/lab/README.md').read_text(encoding='utf-8'))
         report['phase'] = 'onboarding_and_inspection'
         report['input_attempted'] = True
-        write((json.dumps(dict(chain='321', node='ws://127.0.0.1:45998',
-            mnemonic=fixture, password=secrets.token_hex(16) + 'A!1')) + '\n').encode())
+        write((json.dumps(private_input) + '\n').encode())
         report['checks']['input_released'] = True
         wait(b'CI_INSPECT_DONE')
         shared.address_selection_receipt(report['address_selection'])
@@ -1219,6 +1223,7 @@ def artifact_paths(parent):
         HOME_BELL_INSPECTION_SCHEMA: 'home-catalog',
         SEND_CONFIRM_INSPECTION_SCHEMA: 'details-catalog',
         SWAP_START_INSPECTION_SCHEMA: 'details-catalog',
+        WALLET_READY_INSPECTION_SCHEMA: 'details-catalog',
         EARN_INSPECTION_SCHEMA: 'details-catalog',
         SENTINEL_INSPECTION_SCHEMA: 'details-catalog'}[value['schema']]
     if value['schema'] in HOME_INSPECTION_SCHEMAS:
