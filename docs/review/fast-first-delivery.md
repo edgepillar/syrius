@@ -1,6 +1,6 @@
 # First delivery and deferred acceptance
 
-Updated 2026-11-09.
+Updated 2026-11-10.
 
 The core interface and existing basic functionality are available for
 [Draft code review](https://github.com/sol-znn/syrius/pull/6). Unavailable
@@ -295,6 +295,13 @@ The catalog now has 78 of 94 literal outputs. Source586 prepares the original
 Home Bell pair in a focused readonly lab run. Bell qualification remains open.
 [Producer](https://github.com/edgepillar/syrius/actions/runs/42732237291) and
 [independent reader](https://github.com/edgepillar/syrius/actions/runs/42734017009).
+
+The first Source586 Bell run stops before SDK allocation with one failed
+discovery assertion across 1,100 controller cases and eighteen skips. The
+readonly reader still expects 107 cases after the Bell archive control brings
+the suite to 108. The run retains zero artifacts. Source587 updates the
+fixed count and passes all 108 reader cases in memory. Windows capture
+remains open. [Original run](https://github.com/edgepillar/syrius/actions/runs/42734463561).
 
 Source547 Native126 qualifies six copied lab effects with consistent original
 receipts. They cover Stake, Fuse for the derived address, Token, Deposit,
