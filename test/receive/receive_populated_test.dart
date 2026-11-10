@@ -317,8 +317,15 @@ void main() {
       expect(find.byType(ReceiveQrImage), findsNothing);
       expect(find.byKey(const Key('receive_amount_field')), findsNothing);
       expect(find.byKey(const Key('receive_share_image')), findsNothing);
+      final Finder request = find.byKey(const Key('receive_request_toggle'));
+      final Finder requestTitle = find.descendant(
+        of: request,
+        matching: find.text('Request an amount'),
+      );
+      expect(tester.getRect(requestTitle).left, tester.getRect(request).left);
       await _showQr(tester);
       expect(find.text('Hide QR'), findsOneWidget);
+      expect(tester.getRect(requestTitle).left, tester.getRect(request).left);
       expect(
         IconTheme.of(tester.element(qrSymbol)).color,
         AppTokens.of(tester.element(qrSymbol)).foreground,

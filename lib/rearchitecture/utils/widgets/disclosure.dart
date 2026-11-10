@@ -24,6 +24,9 @@ const double _kSlide = 8;
 /// The least height of the header row.
 const double _kHeaderHeight = 44;
 
+const EdgeInsetsDirectional _kHeaderPadding =
+    EdgeInsetsDirectional.fromSTEB(16, 0, 12, 0);
+
 /// The mockup's spring: fast out, long settle, and never past either end,
 /// so a height that follows it is never negative.
 const Cubic _kSpring = Cubic(0.2, 0.8, 0.2, 1);
@@ -117,6 +120,7 @@ class Disclosure extends StatefulWidget {
     this.onChanged,
     this.controller,
     this.keyPrefix,
+    this.headerPadding = _kHeaderPadding,
     this.headerMinHeight = _kHeaderHeight,
     super.key,
   });
@@ -135,7 +139,8 @@ class Disclosure extends StatefulWidget {
   }) : title = null,
        count = null,
        summary = null,
-       keyPrefix = null;
+       keyPrefix = null,
+       headerPadding = _kHeaderPadding;
 
   /// The heading. Null only for [Disclosure.bare], which has no header.
   final String? title;
@@ -182,6 +187,9 @@ class Disclosure extends StatefulWidget {
 
   /// The header can grow for text; other disclosures keep the default.
   final double headerMinHeight;
+
+  /// Insets for the title and chevron inside the header hit target.
+  final EdgeInsetsGeometry headerPadding;
 
   @override
   State<Disclosure> createState() => _DisclosureState();
@@ -341,6 +349,7 @@ class _DisclosureState extends State<Disclosure> with TickerProviderStateMixin {
                   : ValueKey<String>('${widget.keyPrefix}_toggle'),
               title: title,
               minHeight: widget.headerMinHeight,
+              padding: widget.headerPadding,
               count: widget.count,
               summary: widget.summary,
               turned: _turned,
@@ -405,6 +414,7 @@ class _DisclosureHeader extends StatefulWidget {
     required this.toggleKey,
     required this.title,
     required this.minHeight,
+    required this.padding,
     required this.count,
     required this.summary,
     required this.turned,
@@ -414,6 +424,7 @@ class _DisclosureHeader extends StatefulWidget {
 
   final Key? toggleKey;
   final double minHeight;
+  final EdgeInsetsGeometry padding;
   final String title;
   final int? count;
   final String? summary;
@@ -493,7 +504,7 @@ class _DisclosureHeaderState extends State<_DisclosureHeader> {
             child: ConstrainedBox(
               constraints: BoxConstraints(minHeight: widget.minHeight),
               child: Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 12, 0),
+                padding: widget.padding,
                 child: Row(
                   children: <Widget>[
                     // The two share this row, half each at most, and what

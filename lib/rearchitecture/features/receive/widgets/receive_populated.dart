@@ -583,6 +583,7 @@ class _ReceivePopulatedState extends State<ReceivePopulated>
         controller: _request,
         keepAlive: true,
         keyPrefix: 'receive_request',
+        headerPadding: EdgeInsets.zero,
         title: context.l10n.receiveRequestAmount,
         child: _buildRequestFields(tokens),
       ),

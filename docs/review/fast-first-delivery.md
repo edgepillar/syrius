@@ -623,8 +623,19 @@ at the new QR close tap, with zero artifacts.
 
 Source615 uses the covering route's forward and reverse durations, checks
 that the cover is gone and scrolls the QR toggle into view before tapping it.
-Export revocation, the QR payload and the selected address ordinal are still
-checked. Fresh engine and native visual evidence remain open.
+Selected analysis clears, 1,381 Dart cases pass, and 1,107 Python cases
+complete with eighteen skips. The separate ordinary Windows entry lane
+captures Welcome and Import in both themes with normal complete exit. The
+independent reader verifies all four PNGs and the original checks. The four
+reference pairs were viewed and have open differences X635-X638. The catalog
+contains 94 literal outputs and exact review bindings for 50 pairs. Whole-image
+acceptance remains open. [Focused run](https://github.com/edgepillar/syrius/actions/runs/42813611555),
+[Windows producer](https://github.com/edgepillar/syrius/actions/runs/42815475509)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42816631997).
+
+Source616 aligns the Receive request label and chevron with the form's inner
+edges. The existing dark and light tests check label alignment with QR closed
+and open. Fresh engine and native visual evidence remain open.
 
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied
