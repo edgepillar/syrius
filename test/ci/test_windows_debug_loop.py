@@ -699,6 +699,8 @@ class AnalysisAdmissionTests(unittest.TestCase):
             'harness/bin/readonly_settings_catalog.dart',
             'test/window/window_chrome_test.dart',
             'harness/app/retained_renderer_frame.dart',
+            'harness/app/capture_frame.dart',
+            'test/harness/capture_frame_test.dart',
             'harness/app/retained_png.dart',
             'test/harness/retained_renderer_frame_test.dart',
             'lib/screens/onboarding/welcome_surface.dart',

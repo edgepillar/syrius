@@ -25,7 +25,7 @@ except ImportError:
     from windows_baseline import fresh_environment, run_bounded, test_counts
 
 
-EXPECTED_DART_CASES = 1417
+EXPECTED_DART_CASES = 1434
 LAUNCH_ASSET_DART_CASES = 2
 
 
@@ -223,6 +223,7 @@ def main():
             'test/harness/wallet_tour_test.dart', 'test/harness/build_output_test.dart',
             'test/harness/agent_input_test.dart',
             'test/harness/logical_capture_test.dart',
+            'test/harness/capture_frame_test.dart',
             'test/harness/copied_wallet_pointer_test.dart',
             'test/harness/copied_pointer_input_test.dart',
             'test/harness/restored_startup_test.dart',

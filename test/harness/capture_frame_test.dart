@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../harness/app/agent.dart';
@@ -28,6 +29,148 @@ Map<String, dynamic> _shot() => <String, dynamic>{
 };
 
 void main() {
+  testWidgets('post-frame admission requests its own next original frame', (
+    WidgetTester tester,
+  ) async {
+    final TestWidgetsFlutterBinding binding = tester.binding;
+    final Completer<void> deadline = Completer<void>();
+    SchedulerPhase? requestedPhase;
+    int readbacks = 0;
+    Future<String>? capture;
+    final CaptureFrameGate gate = CaptureFrameGate.scheduled(
+      requestFrame: () {
+        requestedPhase = binding.schedulerPhase;
+        binding.scheduleFrame();
+      },
+      waitForFrame: () => binding.endOfFrame,
+      waitUntilDeadline: () => deadline.future,
+    );
+    binding.addPostFrameCallback((_) {
+      capture = gate.capture<String>(() async {
+        readbacks++;
+        return 'original pixels';
+      });
+    });
+    binding.scheduleFrame();
+    await tester.pump();
+    expect(requestedPhase, SchedulerPhase.postFrameCallbacks);
+    expect(binding.hasScheduledFrame, isTrue);
+    expect(gate.receipt!.status, CaptureFrameStatus.pending);
+    expect(readbacks, 0);
+    await tester.pump();
+    expect(await capture, 'original pixels');
+    expect((await gate.receipt!.completion).completed, isTrue);
+    expect(gate.receipt!.timedOut, isFalse);
+    expect(readbacks, 1);
+    deadline.complete();
+    await _turns();
+  });
+
+  test('scheduled admission retains one original through pending readback', () async {
+    final Completer<void> frame = Completer<void>();
+    final Completer<void> deadline = Completer<void>();
+    final Completer<String> pixels = Completer<String>();
+    int requests = 0;
+    int waits = 0;
+    int readbacks = 0;
+    final CaptureFrameGate gate = CaptureFrameGate.scheduled(
+      requestFrame: () => requests++,
+      waitForFrame: () {
+        waits++;
+        return frame.future;
+      },
+      waitUntilDeadline: () => deadline.future,
+    );
+    final Future<String> capture = gate.capture<String>(() {
+      readbacks++;
+      return pixels.future;
+    });
+    final CaptureFrameReceipt original = gate.receipt!;
+    expect(original.original, same(frame.future));
+    expect(readbacks, 0);
+    frame.complete();
+    await _turns();
+    expect(readbacks, 1);
+    expect(gate.requireIdle, throwsA(isA<CaptureFrameRefused>()));
+    await expectLater(gate.capture<String>(() async => 'replacement pixels'),
+        throwsA(isA<CaptureFrameRefused>()));
+    expect(gate.receipt, same(original));
+    expect(requests, 1);
+    expect(waits, 1);
+    pixels.complete('original pixels');
+    expect(await capture, 'original pixels');
+    expect(gate.requireIdle, returnsNormally);
+    deadline.complete();
+    await _turns();
+  });
+
+  test('an original scheduling failure retains its error before any wait', () async {
+    final Object failure = StateError('Synthetic scheduling failure');
+    final StackTrace trace = StackTrace.current;
+    int requests = 0;
+    int waits = 0;
+    int deadlines = 0;
+    final CaptureFrameGate gate = CaptureFrameGate.scheduled(
+      requestFrame: () {
+        requests++;
+        Error.throwWithStackTrace(failure, trace);
+      },
+      waitForFrame: () {
+        waits++;
+        return Future<void>.value();
+      },
+      waitUntilDeadline: () {
+        deadlines++;
+        return Future<void>.value();
+      },
+    );
+    await expectLater(gate.capture<void>(() async => fail('Readback was admitted')),
+        throwsA(isA<CaptureFrameRefused>()));
+    final CaptureFrameReceipt original = gate.receipt!;
+    final CaptureFrameOutcome outcome = await original.completion;
+    expect(original.original, isNull);
+    expect(outcome.error, same(failure));
+    expect(outcome.stackTrace.toString(), trace.toString());
+    expect(original.timedOut, isFalse);
+    expect(gate.heldUnknown, isTrue);
+    await expectLater(gate.capture<void>(() async => fail('Readback was retried')),
+        throwsA(isA<CaptureFrameRefused>()));
+    expect(gate.receipt, same(original));
+    expect(requests, 1);
+    expect(waits, 0);
+    expect(deadlines, 0);
+  });
+
+  testWidgets('a requested late frame cannot clear the actual 250 ms hold', (
+    WidgetTester tester,
+  ) async {
+    final Completer<void> frame = Completer<void>();
+    int requests = 0;
+    int readbacks = 0;
+    final CaptureFrameGate gate = CaptureFrameGate.scheduled(
+      requestFrame: () => requests++,
+      waitForFrame: () => frame.future,
+    );
+    final Future<void> refused = expectLater(gate.capture<void>(() async {
+      readbacks++;
+    }), throwsA(isA<CaptureFrameRefused>()));
+    final CaptureFrameReceipt original = gate.receipt!;
+    await tester.pump(const Duration(milliseconds: 250));
+    await refused;
+    expect(original.timedOut, isTrue);
+    expect(original.outcome, isNull);
+    frame.complete();
+    await _turns();
+    expect((await original.completion).completed, isTrue);
+    expect(original.status, CaptureFrameStatus.held);
+    expect(await original.admission, isFalse);
+    await expectLater(gate.capture<void>(() async => fail('Readback was retried')),
+        throwsA(isA<CaptureFrameRefused>()));
+    expect(gate.receipt, same(original));
+    expect(requests, 1);
+    expect(readbacks, 0);
+  });
+
   test('pending frame reserves admission before any readback', () async {
     final Completer<void> frame = Completer<void>();
     final Completer<void> deadline = Completer<void>();

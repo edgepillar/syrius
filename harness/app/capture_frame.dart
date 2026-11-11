@@ -154,6 +154,20 @@ final class CaptureFrameGate {
     Future<void> Function()? waitUntilDeadline,
   }) : _waitUntilDeadline = waitUntilDeadline ?? _deadline;
 
+  /// A wait registered during post-frame callbacks needs a new frame request.
+  /// Reservation still precedes both effects and retains the original Future.
+  CaptureFrameGate.scheduled({
+    required void Function() requestFrame,
+    required Future<void> Function() waitForFrame,
+    Future<void> Function()? waitUntilDeadline,
+  }) : this(
+         waitForFrame: () {
+           requestFrame();
+           return waitForFrame();
+         },
+         waitUntilDeadline: waitUntilDeadline,
+       );
+
   final Future<void> Function() _waitForFrame;
   final Future<void> Function() _waitUntilDeadline;
   CaptureFrameReceipt? _receipt;

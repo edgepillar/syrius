@@ -583,6 +583,8 @@ def analyze(parent, repo):
         'lib/widgets/modular_widgets/settings_widgets/addresses_settings_view.dart',
         'harness/app/agent.dart', 'harness/app/frame_window.dart',
         'test/harness/frame_window_test.dart',
+        'harness/app/capture_frame.dart',
+        'test/harness/capture_frame_test.dart',
         'harness/wallet_recipe_failure.dart',
         'harness/app/recipe_control_admission.dart',
         'test/harness/recipe_control_admission_test.dart',

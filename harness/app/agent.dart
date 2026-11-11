@@ -424,11 +424,17 @@ class _RecipeSelection {
 
 class HarnessAgent {
   HarnessAgent._()
-    : _captureFrames = CaptureFrameGate(
-        waitForFrame: () => WidgetsBinding.instance.endOfFrame,
-      ),
+    : _captureFrames = _scheduledCaptureFrameGate(),
       _closePresentation = windowManager.close,
       _waitForPresentationClose = null;
+
+  static CaptureFrameGate _scheduledCaptureFrameGate() {
+    final WidgetsBinding binding = WidgetsBinding.instance;
+    return CaptureFrameGate.scheduled(
+      requestFrame: binding.scheduleFrame,
+      waitForFrame: () => binding.endOfFrame,
+    );
+  }
 
   @visibleForTesting
   HarnessAgent.forTest({

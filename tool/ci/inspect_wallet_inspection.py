@@ -36,6 +36,7 @@ SOURCE_FILES = (
     'harness/bin/ci_wallet_inspection.dart',
     'harness/bin/readonly_inspection_session.dart', 'harness/bin/harness.dart',
     'harness/bin/wallet_recipe.dart', 'harness/app/agent.dart',
+    'harness/app/capture_frame.dart',
     'harness/app/readonly_native_mode.dart',
     'harness/app/readonly_native_commands.dart',
     'harness/app/activity_message_seam_binding.dart',

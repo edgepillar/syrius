@@ -1695,3 +1695,39 @@ Git tree path unique. Seven new Python cases prepare 1,192 hosted controls;
 selected local Python controls pass in memory with zero external effects.
 Fresh hosted qualification is pending. All original failures, 72/80 acceptance,
 zero accepted whole-image matches and eight deferred gates remain open.
+
+## Source671 frame refusal and Source672 scheduled admission
+
+The [Source671 producer](https://github.com/edgepillar/syrius/actions/runs/43034263211)
+passes 1,417 Dart cases, 1,192 Python cases with eighteen Windows skips and
+zero selected analyzer findings. Its original child visits 24 pages but refuses
+the dark home-goto shot with frameUnavailable. The entry exits one. The separate
+cleanup-only application exit of zero does not qualify normal actor closure;
+the required-actor forced flag remains. No new owner pointer observation is
+reached, and the exact cause remains NOT_ESTABLISHED.
+
+The [independent reader](https://github.com/edgepillar/syrius/actions/runs/43038750637)
+passes 112 controls, binds both negative archives to 72 source files and
+confirms normal closure of all five original nodes. Zero PNGs qualify. The
+failed producer remains unchanged.
+
+Source672 requests one frame from the captured original binding before
+retaining its original completion Future. Flutter's
+[end-of-frame implementation](https://api.flutter.dev/flutter/scheduler/SchedulerBinding/endOfFrame.html)
+implicitly requests a frame only while idle; a
+[post-frame callback](https://api.flutter.dev/flutter/scheduler/SchedulerBinding/addPostFrameCallback.html)
+registered after that phase starts waits for the next frame without requesting
+one. The same 250 ms admission bound and permanent late hold remain; readback
+still requires actual original completion, and no second request clears refusal.
+
+Four new Dart cases cover post-frame progress on the actual test binding,
+one retained original through pending readback, an original scheduling failure
+and the unchanged actual deadline after a late result. Their file was absent
+from the selected list. Registering all thirteen earlier cases and the four
+new cases prepares 1,434 Dart cases in 106 files, split 53/53. Python remains
+1,192. The reader also pins capture_frame.dart.
+All 219 selected Python controls pass in memory with zero external effects;
+the new Dart cases have not been executed locally.
+Native qualification is pending. The change does not prove the historical
+cause or close the eleven-control plan. All original failures, 72/80 acceptance,
+zero accepted whole-image matches and eight deferred gates remain open.

@@ -3242,3 +3242,30 @@ remain selected. All 219 selected local Python controls pass in memory with
 zero external effects. Fresh hosted qualification is pending. All earlier
 failures, original 72/80 acceptance, zero accepted whole-image matches and all
 eight deferred gates remain open.
+
+## Source671 original frame refusal and Source672 scheduled admission
+
+The [Source671 producer](https://github.com/edgepillar/syrius/actions/runs/43034263211)
+passes 1,417 Dart cases, 1,192 Python cases with eighteen Windows skips and
+zero selected analyzer findings. The original child visits 24 pages but stops
+at the dark home-goto shot request with frameUnavailable. Its entry exits one;
+the cleanup-only application exit of zero does not qualify normal actor closure.
+The required-actor cleanup flag remains forced. The new owner controls are
+unreached, and the exact original cause remains NOT_ESTABLISHED.
+
+The [independent reader](https://github.com/edgepillar/syrius/actions/runs/43038750637)
+passes 112 controls and verifies both finite negative archives and 72 source
+files. Zero PNGs qualify; all five original nodes stop normally. The original
+failure is preserved and is not retried.
+
+Source672 explicitly requests one frame from the original captured binding
+before retaining its original end-of-frame Future. A post-frame registration
+can otherwise wait for a later frame without requesting one. The same 250 ms
+deadline, pending admission, once-only readback, original failure and permanent
+late hold remain. The four new Dart cases and thirteen existing frame-gate
+cases are registered, preparing 1,434 cases across 106 selected files; Python
+remains 1,192. The independent reader also pins the original frame gate.
+This addresses the scheduling gap without establishing the historical cause.
+All 219 selected Python controls pass in memory with zero external effects.
+Fresh qualification, the eleven native controls and all original acceptance
+gates remain open; 72/80 and zero accepted whole-image matches are unchanged.
