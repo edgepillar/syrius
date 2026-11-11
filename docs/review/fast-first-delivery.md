@@ -1748,3 +1748,32 @@ stay 1,434 Dart and 1,192 Python cases. Local tests are not repeated for this
 style-only change. Fresh native/reader qualification and all eleven controls
 remain pending; original failures, 72/80, zero accepted whole-image matches and
 all eight deferred gates stay open.
+
+## Source673 retained failure and Source674 finite frame diagnostics
+
+The [Source673 producer](https://github.com/edgepillar/syrius/actions/runs/43047712566)
+passes all 1,434 selected Dart cases, 1,192 Python cases with eighteen Windows
+skips, five JavaScript controls and analysis with zero findings. It visits
+twelve pages in each theme before the dark Home Go To shot refuses with
+`frameUnavailable`. Entry exits one. Cleanup observes application exit zero,
+but normal original actor closure is unqualified and required cleanup is forced.
+All five original nodes close normally. The [independent reader](https://github.com/edgepillar/syrius/actions/runs/43051747011)
+passes 112 cases and verifies two archives and 73 source files, with zero PNGs.
+All eleven seam observations are unreached. The inner frame cause remains
+`NOT_ESTABLISHED`.
+
+Source674 emits only four finite frame causes: busy admission, deadline,
+original failure and admission-observation failure. The first refusal remains
+visible after a late original result. Unknown and legacy replies keep the
+existing anonymous category; raw errors and traces remain local. Scheduling,
+original Future identity, the 250 ms deadline and permanent holds are unchanged.
+Existing Dart cases check those retained categories and closed replies through
+the original client without retrying it.
+
+The reader adds the four Settings owner views and their shared Segment control,
+bringing its declared sources to 78. Two narrow widget directories enter its
+sparse checkout. All 222 selected in-memory Python controls pass without external
+effects. The selected totals remain 1,434 Dart and 1,192 Python cases. Fresh
+native/reader qualification, eleven Home and eight Settings observations remain
+pending. All earlier failures, 72/80, zero accepted whole-image matches and all
+eight deferred gates remain open.

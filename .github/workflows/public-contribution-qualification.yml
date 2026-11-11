@@ -1110,6 +1110,8 @@ jobs:
             lib/rearchitecture/utils/widgets
             lib/widgets/shell/strip
             lib/widgets/modular_widgets/p2p_swap_widgets/modals
+            lib/widgets/modular_widgets/settings_widgets
+            lib/widgets/modular_widgets/help_widgets
 
       - name: Test both retained lab and readonly archive boundaries in memory
         run: python -B -m tool.ci.run_readonly_reader_tests

@@ -12,6 +12,7 @@ enum ScreenCaptureReplyCode {
   frameUnavailable, captureClientMismatch, captureWindowMinimized,
   captureThemeMismatch, captureLayerUnavailable, captureColorSpaceMismatch,
   captureReadbackUnavailable, captureDimensionsMismatch, captureStateChanged,
+  frameBusy, frameDeadlineExceeded, frameOriginalFailed, frameAdmissionFailed,
 }
 
 abstract interface class ScreenCaptureReplyFailure {
@@ -65,6 +66,16 @@ ScreenCaptureReplyCode classifyScreenCaptureReply(
       'disabled' => ScreenCaptureReplyCode.targetDisabled,
       'covered' => ScreenCaptureReplyCode.targetCovered,
       _ => ScreenCaptureReplyCode.unknown,
+    };
+  }
+  if (value == 'the original capture frame is unavailable' &&
+      detail is Map<Object?, Object?> && detail.length == 1) {
+    return switch (detail['capture_frame_refusal']) {
+      'busy' => ScreenCaptureReplyCode.frameBusy,
+      'deadline' => ScreenCaptureReplyCode.frameDeadlineExceeded,
+      'originalFailure' => ScreenCaptureReplyCode.frameOriginalFailed,
+      'admissionFailure' => ScreenCaptureReplyCode.frameAdmissionFailed,
+      _ => ScreenCaptureReplyCode.frameUnavailable,
     };
   }
   return switch (value) {

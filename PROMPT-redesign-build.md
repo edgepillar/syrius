@@ -3285,3 +3285,29 @@ test registration or assertion. The same 1,434 Dart and 1,192 Python cases remai
 selected. Local tests are not repeated for this style-only change. Fresh
 qualification, eleven native controls and all original acceptance gates remain
 open; every earlier failure, 72/80 and zero accepted whole-image matches remain.
+
+## Source673 retained failure and Source674 finite frame diagnostics
+
+The [Source673 producer](https://github.com/edgepillar/syrius/actions/runs/43047712566)
+passes all 1,434 Dart cases, 1,192 Python cases with eighteen Windows skips,
+five JavaScript controls and selected analysis with zero findings. The original
+wallet visits twelve pages in each theme, then the dark Home Go To shot refuses
+with `frameUnavailable`. Entry exits one. Cleanup observes application exit zero,
+but normal original actor closure is unqualified and required cleanup is forced.
+All five original nodes close normally. The [independent reader](https://github.com/edgepillar/syrius/actions/runs/43051747011)
+passes 112 cases and verifies both archives and 73 source files, with zero PNGs.
+The eleven seam controls are unreached; the inner cause stays `NOT_ESTABLISHED`.
+
+Source674 projects only the retained frame refusal: busy admission, deadline,
+original failure or admission-observation failure. Unknown and legacy replies
+keep their existing anonymous category. Original errors and traces remain local;
+no diagnostic clears admission, retries a request or changes the 250 ms deadline.
+Existing Dart cases now check category retention after late success/failure and
+closed reply handling through the original one-call client path.
+
+The independent reader also pins the four Settings owner views and their shared
+Segment control, for 78 source files. Its sparse checkout adds only the two
+required widget directories. All 222 selected Python controls pass in memory,
+with no external effects. Selected totals remain 1,434 Dart and 1,192 Python
+cases. Fresh native/reader qualification, the Home and Settings seam controls,
+all earlier failures, 72/80 and zero accepted whole-image matches remain open.

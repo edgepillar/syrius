@@ -902,7 +902,49 @@ void main() {
           <String, Object?>{'readonly_region': entry.key, 'selector': opaque}),
           entry.value);
       }
-      // The original shot rejects retain finite causes without reading detail.
+      for (final MapEntry<String, ScreenCaptureReplyCode> entry in
+          <String, ScreenCaptureReplyCode>{
+        'busy': ScreenCaptureReplyCode.frameBusy,
+        'deadline': ScreenCaptureReplyCode.frameDeadlineExceeded,
+        'originalFailure': ScreenCaptureReplyCode.frameOriginalFailed,
+        'admissionFailure': ScreenCaptureReplyCode.frameAdmissionFailed,
+      }.entries) {
+        final Map<String, Object?> detail = <String, Object?>{
+          'capture_frame_refusal': entry.key,
+        };
+        expect(classifyScreenCaptureReply(
+          'the original capture frame is unavailable', detail), entry.value);
+        expect(classifyScreenCaptureReply('Synthetic private error', detail),
+          ScreenCaptureReplyCode.unknown);
+        final _Replies original = _Replies(
+          (Map<String, Object?> command) => <String, dynamic>{
+            'ok': false,
+            'error': 'the original capture frame is unavailable',
+            'detail': detail,
+          },
+        );
+        await expectLater(
+          cli.call(original, <String, Object?>{'cmd': 'shot'}),
+          throwsA(isA<cli.Fail>().having(screenCaptureReplyOf,
+            'finite original frame refusal', entry.value)),
+        );
+        expect(original.commands,
+          <Map<String, Object?>>[<String, Object?>{'cmd': 'shot'}]);
+      }
+      for (final Object? detail in <Object?>[
+        opaque,
+        <String, Object?>{},
+        <String, Object?>{'capture_frame_refusal': opaque},
+        <String, Object?>{'capture_frame_refusal': 'deadline '},
+        <String, Object?>{'capture_frame_refusal': null},
+        <String, Object?>{'capture_frame_refusal': 1},
+        <String, Object?>{'capture_frame_refusal': 'deadline', 'raw': opaque},
+      ]) {
+        expect(classifyScreenCaptureReply(
+          'the original capture frame is unavailable', detail),
+          ScreenCaptureReplyCode.frameUnavailable);
+      }
+      // Legacy shot rejects retain their closed categories.
       for (final MapEntry<String, ScreenCaptureReplyCode> entry in
           <String, ScreenCaptureReplyCode>{
         'the original capture frame is unavailable':

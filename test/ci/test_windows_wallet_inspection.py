@@ -1166,6 +1166,10 @@ class InspectionTests(unittest.TestCase):
             screen='home-rest', theme='dark', line=5)
         shot_replies = (
             'frameUnavailable',
+            'frameBusy',
+            'frameDeadlineExceeded',
+            'frameOriginalFailed',
+            'frameAdmissionFailed',
             'captureClientMismatch',
             'captureWindowMinimized',
             'captureThemeMismatch',

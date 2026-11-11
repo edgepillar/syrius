@@ -12,6 +12,21 @@ enum CaptureFrameStatus {
   held,
 }
 
+/// A finite refusal category, without the original error or trace.
+enum CaptureFrameRefusalReason {
+  /// Another original frame or readback still owns admission.
+  busy,
+
+  /// The original frame did not settle before its admission deadline.
+  deadline,
+
+  /// The original frame callback or Future failed before admission.
+  originalFailure,
+
+  /// Observing the frame or its admission clock failed.
+  admissionFailure,
+}
+
 /// The actual original frame result, including after admission was refused.
 final class CaptureFrameOutcome {
   CaptureFrameOutcome._(this.completed, this.error, this.stackTrace);
@@ -183,6 +198,25 @@ final class CaptureFrameGate {
 
   /// A timeout or original failure remains held after any late settlement.
   bool get heldUnknown => _held || _receipt?.status == CaptureFrameStatus.held;
+
+  /// A late original result cannot replace the earlier admission refusal.
+  /// Unknown held receipts retain the existing anonymous category.
+  CaptureFrameRefusalReason? get refusalReason {
+    final CaptureFrameReceipt? original = _receipt;
+    if (heldUnknown) {
+      if (original?.timedOut ?? false) {
+        return CaptureFrameRefusalReason.deadline;
+      }
+      if (original?.admissionError != null) {
+        return CaptureFrameRefusalReason.admissionFailure;
+      }
+      if (original?.outcome?.completed == false) {
+        return CaptureFrameRefusalReason.originalFailure;
+      }
+      return null;
+    }
+    return _busy ? CaptureFrameRefusalReason.busy : null;
+  }
 
   /// Call before theme effects as well as before starting another readback.
   void requireIdle() {

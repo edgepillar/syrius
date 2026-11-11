@@ -12,11 +12,17 @@ Future<void> _turns() async {
   }
 }
 
-Matcher _agentRefusal() => throwsA(
+Matcher _agentRefusal([
+  CaptureFrameRefusalReason reason = CaptureFrameRefusalReason.deadline,
+]) => throwsA(
   isA<HarnessError>().having(
     (HarnessError error) => error.message,
     'message',
     'the original capture frame is unavailable',
+  ).having(
+    (HarnessError error) => error.detail,
+    'finite capture refusal',
+    <String, String>{'capture_frame_refusal': reason.name},
   ),
 );
 
@@ -94,6 +100,7 @@ void main() {
     await _turns();
     expect(readbacks, 1);
     expect(gate.requireIdle, throwsA(isA<CaptureFrameRefused>()));
+    expect(gate.refusalReason, CaptureFrameRefusalReason.busy);
     await expectLater(gate.capture<String>(() async => 'replacement pixels'),
         throwsA(isA<CaptureFrameRefused>()));
     expect(gate.receipt, same(original));
@@ -102,6 +109,7 @@ void main() {
     pixels.complete('original pixels');
     expect(await capture, 'original pixels');
     expect(gate.requireIdle, returnsNormally);
+    expect(gate.refusalReason, isNull);
     deadline.complete();
     await _turns();
   });
@@ -138,6 +146,7 @@ void main() {
     expect(outcome.stackTrace.toString(), trace.toString());
     expect(original.timedOut, isFalse);
     expect(gate.heldUnknown, isTrue);
+    expect(gate.refusalReason, CaptureFrameRefusalReason.originalFailure);
     await expectLater(
       gate.capture<void>(() async => fail('Readback was retried')),
       throwsA(isA<CaptureFrameRefused>()),
@@ -166,11 +175,13 @@ void main() {
     await refused;
     expect(original.timedOut, isTrue);
     expect(original.outcome, isNull);
+    expect(gate.refusalReason, CaptureFrameRefusalReason.deadline);
     frame.complete();
     await _turns();
     expect((await original.completion).completed, isTrue);
     expect(original.status, CaptureFrameStatus.held);
     expect(await original.admission, isFalse);
+    expect(gate.refusalReason, CaptureFrameRefusalReason.deadline);
     await expectLater(
       gate.capture<void>(() async => fail('Readback was retried')),
       throwsA(isA<CaptureFrameRefused>()),
@@ -301,6 +312,7 @@ void main() {
       expect(receipt.original, same(frame.future));
       expect(receipt.status, CaptureFrameStatus.held);
       expect(receipt.timedOut, isTrue);
+      expect(gate.refusalReason, CaptureFrameRefusalReason.deadline);
       expect(receipt.outcome, isNull);
       expect(gate.heldUnknown, isTrue);
       expect(readbacks, 0);
@@ -324,6 +336,7 @@ void main() {
       expect(receipt.completion, same(completion));
       expect(receipt.status, CaptureFrameStatus.held);
       expect(await receipt.admission, isFalse);
+      expect(gate.refusalReason, CaptureFrameRefusalReason.deadline);
       await expectLater(
         gate.capture<String>(() async => 'replacement pixels'),
         throwsA(isA<CaptureFrameRefused>()),
@@ -358,6 +371,7 @@ void main() {
       expect(outcome.stackTrace.toString(), trace.toString());
       expect(receipt.timedOut, isFalse);
       expect(gate.heldUnknown, isTrue);
+      expect(gate.refusalReason, CaptureFrameRefusalReason.originalFailure);
       deadline.complete();
       await _turns();
       expect(receipt.outcome, same(outcome));
@@ -423,10 +437,12 @@ void main() {
       expect(receipt.admissionError, same(failure));
       expect(receipt.admissionStackTrace.toString(), trace.toString());
       expect(receipt.timedOut, isFalse);
+      expect(gate.refusalReason, CaptureFrameRefusalReason.admissionFailure);
       frame.complete();
       expect((await receipt.completion).completed, isTrue);
       expect(receipt.status, CaptureFrameStatus.held);
       expect(gate.heldUnknown, isTrue);
+      expect(gate.refusalReason, CaptureFrameRefusalReason.admissionFailure);
       expect(gate.requireIdle, throwsA(isA<CaptureFrameRefused>()));
     });
   }
@@ -444,6 +460,7 @@ void main() {
         waits++;
         expect(gate.receipt, isNotNull);
         expect(gate.receipt!.original, isNull);
+        expect(gate.refusalReason, CaptureFrameRefusalReason.busy);
         nested = gate
             .capture<void>(() async {
               fail('Nested readback was admitted');
@@ -579,7 +596,10 @@ void main() {
             'restore': <String, Object?>{'mode': 'dark'},
           },
         ]) {
-          await expectLater(agent.commandForTest(command), _agentRefusal());
+          await expectLater(
+            agent.commandForTest(command),
+            _agentRefusal(CaptureFrameRefusalReason.busy),
+          );
         }
         expect(waits, 1);
         expect(receipt.outcome, isNull);

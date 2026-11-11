@@ -84,6 +84,10 @@ FAILURE_REPLIES = (
     'captureReadbackUnavailable',
     'captureDimensionsMismatch',
     'captureStateChanged',
+    'frameBusy',
+    'frameDeadlineExceeded',
+    'frameOriginalFailed',
+    'frameAdmissionFailed',
 )
 
 

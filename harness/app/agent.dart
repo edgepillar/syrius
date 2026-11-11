@@ -5182,7 +5182,7 @@ class HarnessAgent {
           () => _readShot(c),
         );
       } on CaptureFrameRefused {
-        throw HarnessError('the original capture frame is unavailable');
+        throw _captureFrameUnavailable();
       }
     }
     await _frame();
@@ -5190,11 +5190,21 @@ class HarnessAgent {
     return _readShot(c);
   }
 
+  HarnessError _captureFrameUnavailable() {
+    final CaptureFrameRefusalReason? reason = _captureFrames.refusalReason;
+    return HarnessError(
+      'the original capture frame is unavailable',
+      reason == null ? null : <String, String>{
+        'capture_frame_refusal': reason.name,
+      },
+    );
+  }
+
   void _requireCaptureFrameIdle() {
     try {
       _captureFrames.requireIdle();
     } on CaptureFrameRefused {
-      throw HarnessError('the original capture frame is unavailable');
+      throw _captureFrameUnavailable();
     }
   }
 
