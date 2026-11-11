@@ -2037,3 +2037,19 @@ Source682 Dart/financial/UI implementation is unchanged. See the
 [source grammar and bounds](../../tools/devnet/lab/README.md#closed-momentum-error-log-observations).
 The existing first-delivery scope remains available for Draft review. Original
 Token and Home failures, 72/80 and all eight deferred acceptance gates stay open.
+
+## Source685 exact legacy reader result
+
+The [Source684 reader](https://github.com/edgepillar/syrius/actions/runs/43114766001)
+passes its archive/credential test step and independently reads the two original
+Source682 archives. All six retained notice facts are canonically identical to
+the [earlier reader](https://github.com/edgepillar/syrius/actions/runs/43108340082).
+No timing field is invented for those legacy records. The reader creates zero
+artifacts and starts no SDK, node or wallet.
+
+The 92 focused memory controls pass. The complete current 1,213-case Python
+suite and actual native timing collection remain unqualified. The original
+Token preflight and Home frame failures retain their source pins and unknown
+causes. Source685 changes documentation only; no tests, native requests or
+financial operations are repeated. Original 72/80 and all eight deferred
+acceptance gates remain open.

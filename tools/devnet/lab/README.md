@@ -394,7 +394,12 @@ wallet publication. The original node/recipe/frame guards are unchanged.
 
 Source684 has eight new memory cases and 92 passing focused controls. The total
 Python registration is 1,213; a current complete-suite run is not established.
-Fresh hosted reader validation and actual native collection remain pending.
+The [Source684 hosted reader](https://github.com/edgepillar/syrius/actions/runs/43114766001)
+passes its archive/credential test step and retains the exact six prior notice
+facts from the same two Source682 archives. Legacy timing absence is preserved.
+It creates no artifacts and starts no SDK, node or wallet. Source685 records
+that outcome without another test or native run. Actual native timing collection
+and the original lab failure's cause remain unqualified.
 
 ## Reference recipe result
 

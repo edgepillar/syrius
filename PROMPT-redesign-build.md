@@ -3564,3 +3564,19 @@ and actual native timing collection are pending. See the
 [source grammar and limits](tools/devnet/lab/README.md#closed-momentum-error-log-observations).
 Source682's original Token refusal and its unknown cause, the separate Home
 frame refusal, 72/80 and all eight deferred acceptance gates remain open.
+
+## Source685 independently verified legacy reader facts
+
+The [Source684 reader](https://github.com/edgepillar/syrius/actions/runs/43114766001)
+passes its archive/credential test step and independently reads the two original
+Source682 archives. All six retained notice facts are canonically identical to
+the [earlier reader](https://github.com/edgepillar/syrius/actions/runs/43108340082).
+No timing field is invented for those legacy records. The reader creates zero
+artifacts and starts no SDK, node or wallet.
+
+The 92 focused memory controls pass. The complete current 1,213-case Python
+suite and actual native timing collection remain unqualified. The original
+Token preflight and Home frame failures retain their source pins and unknown
+causes. Source685 changes documentation only; no tests, native requests or
+financial operations are repeated. Original 72/80 and all eight deferred
+acceptance gates remain open.

@@ -135,6 +135,16 @@ no native request is replayed. See the [grammar and scope](../tools/devnet/lab/R
 The original Token/height-23 failure, unknown cause, independent Home failure,
 72/80 and all deferred acceptance gates remain open.
 
+The [Source684 reader](https://github.com/edgepillar/syrius/actions/runs/43114766001)
+passes its archive/credential test step and reads the same two Source682
+archives. All six original notice facts exactly match the earlier independent
+reader. No timing fields are invented for old records, no new artifacts are
+created, and no SDK, node or wallet starts. The 92 focused controls retain their
+separate passing scope. The complete current 1,213-case Python suite, actual
+native timing collection and both original Token/Home causes remain unqualified.
+Source685 records this result in documentation only. No tests or original native
+operation are repeated. Original 72/80 and all eight deferred gates remain open.
+
 ## Retained qualification status (2026-11-05)
 
 The [qualified Source492 Activity result](review/source489-activity-reference-spacing.md#actual-source492-focused-result)
