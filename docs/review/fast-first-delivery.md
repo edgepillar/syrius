@@ -1162,6 +1162,25 @@ criterion remains unchanged. This record changes documentation only; the
 original Source652 runtime, failed result and confirmed prefix stay bound to
 their original hashes. Complete V03 acceptance remains open.
 
+Source654 uses the existing confirmed Stake/Token catalog to try all four
+surface gates in both themes. The actual Issue receipt derives the Token row;
+its pointer probe runs only after that theme's original PNG is retained.
+The other three gates use their existing Home, Pillars and empty Swap draft
+controls in the same native application. The probe enters no financial form
+values and adds no publication operation. Each gate/theme pair is attempted
+once. A changed wallet, receipt, root, navigator, native window, view, route,
+theme or token-row owner refuses further observation.
+
+The parent accepts only all eight ordered pointer/absorption receipts with
+the same preparation digest. The independent reader can qualify the four
+gates only after the existing four-image archive, source pins and normal
+original/copied actor closure verify. All 137 selected controls pass in memory
+without filesystem writes, network or native execution. Eight new Dart cases
+are registered; 1,399 Dart cases, the complete controller suite and selected
+analysis remain required in the hosted lane. Fresh native observations and
+the independent retained reader are pending. The failed readonly pilot,
+all original failures and UNKNOWNs, and full 72/80 acceptance stay unchanged.
+
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied
 owner, confirmed receipt and exact Project row. The original Project

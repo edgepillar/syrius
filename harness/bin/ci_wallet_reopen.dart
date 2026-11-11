@@ -252,6 +252,7 @@ const Set<String> _seededLines = <String>{
   'assert --key @issued-token-row',
   'assert --key mint_beneficiary_field --kind field',
   'assert --key mint_amount_field --kind field',
+  'wait --key token_explorer_control --timeout 5',
   'wait --key mint_amount_field --kind field --gone --timeout 10',
 };
 
@@ -316,6 +317,121 @@ const Set<String> _pillarDoneLines = <String>{
   'assert --key pillar_registration_confirmed',
 };
 
+// Uses the same prepared native wallet after all four PNGs are retained.
+// Only existing unavailable controls are tried; no form input is submitted.
+Future<void> _observePreparedPageSeams(
+  cli.Instance instance,
+  Future<void> Function() requireCurrent,
+  Future<void> Function(String seam, String theme) observe,
+) async {
+  Future<Map<String, dynamic>> send(Map<String, Object?> command) async {
+    await requireCurrent();
+    final Map<String, dynamic> result = await cli.call(instance, command);
+    await requireCurrent();
+    return result;
+  }
+  Future<void> wait(String key, {String? kind, bool gone = false}) async {
+    final Map<String, dynamic> reply = await send(<String, Object?>{
+      'cmd': 'wait', 'key': key, 'exact': true, 'timeoutMs': 5000,
+      if (kind != null) 'kind': kind,
+      if (gone) 'gone': true,
+    });
+    final Object? target = reply['target'];
+    if (gone ? reply.containsKey('target') :
+        target is! Map || target['key'] != key) {
+      throw const FormatException('prepared surface target refused');
+    }
+  }
+  Future<void> tap(String key) async {
+    final Map<String, dynamic> reply = await send(<String, Object?>{
+      'cmd': 'tap', 'key': key, 'kind': 'button', 'exact': true,
+    });
+    final Object? target = reply['target'];
+    if (target is! Map || target['key'] != key) {
+      throw const FormatException('prepared surface target refused');
+    }
+  }
+  Future<String> route(String tab) async {
+    final Map<String, dynamic> state = await send(
+      <String, Object?>{'cmd': 'state'},
+    );
+    final Object? name = state['route'];
+    if (state['tab'] != tab || name is! String || name.isEmpty ||
+        state['node'] != 'ws://127.0.0.1:45998' || state['chainId'] != 321 ||
+        state['signingChainId'] != 321 || state['savedSigningChainId'] != 321 ||
+        state['walletUnlocked'] != true || state['walletInitCompleted'] != true ||
+        state['embeddedNode'] != false || state['harnessFixture'] != null) {
+      throw const FormatException('prepared surface route refused');
+    }
+    return name;
+  }
+  Future<void> sameRoute(String tab, String expected) async {
+    if (await route(tab) != expected) {
+      throw const FormatException('prepared surface route changed');
+    }
+  }
+  final Map<String, dynamic> originalTheme = await send(
+    <String, Object?>{'cmd': 'theme'},
+  );
+  final Map<String, dynamic> originalWindow = await send(
+    <String, Object?>{'cmd': 'window'},
+  );
+  final Map<String, dynamic> shown = await send(<String, Object?>{
+    'cmd': 'window', 'do': 'show', 'width': 1280, 'height': 780,
+  });
+  if (shown['clientMatched'] != true) {
+    throw const FormatException('prepared surface window refused');
+  }
+  for (final String theme in <String>['dark', 'light']) {
+    await send(<String, Object?>{'cmd': 'theme', 'mode': theme});
+    await send(<String, Object?>{'cmd': 'tap', 'tab': 'dashboard'});
+    await wait('home_hero');
+    final String home = await route('dashboard');
+    await wait('strip_update_button', kind: 'button');
+    await sameRoute('dashboard', home);
+    await observe('walletUpdateNotice', theme);
+    await sameRoute('dashboard', home);
+
+    await send(<String, Object?>{'cmd': 'tap', 'tab': 'pillars'});
+    await wait('nodes_tab_pillars');
+    await tap('nodes_tab_pillars');
+    await wait('nodes_pillars_strip');
+    final String pillars = await route('pillars');
+    await tap('pillars_sort');
+    await wait('pillars_sort_apr_gate', kind: 'button');
+    final String menu = await route('pillars');
+    if (menu == pillars) {
+      throw const FormatException('prepared surface menu required');
+    }
+    await observe('pillarAprEstimate', theme);
+    await sameRoute('pillars', menu);
+    await send(<String, Object?>{'cmd': 'key', 'key': 'escape'});
+    await sameRoute('pillars', pillars);
+
+    await send(<String, Object?>{'cmd': 'tap', 'tab': 'p2pSwap'});
+    await wait('p2p_swaps_strip');
+    final String swaps = await route('p2pSwap');
+    await tap('p2p_start_swap');
+    await wait('swap_counterparty_input', kind: 'field');
+    final String draft = await route('p2pSwap');
+    await wait('swap_start_terms_gate', kind: 'button');
+    await observe('swapTerms', theme);
+    await sameRoute('p2pSwap', draft);
+    await wait('swap_counterparty_input', kind: 'field');
+    await tap('swap_action_close');
+    await wait('swap_counterparty_input', kind: 'field', gone: true);
+    await sameRoute('p2pSwap', swaps);
+  }
+  await send(<String, Object?>{'cmd': 'tap', 'tab': 'dashboard'});
+  await wait('home_hero');
+  await route('dashboard');
+  await send(<String, Object?>{'cmd': 'theme', 'restore': originalTheme});
+  await send(<String, Object?>{
+    'cmd': 'window', 'restoreState': originalWindow,
+  });
+  await requireCurrent();
+}
+
 Future<Map<String, Object>> _captureSeededCatalog(
   cli.Instance instance,
   List<Map<String, String>> receipts,
@@ -323,6 +439,7 @@ Future<Map<String, Object>> _captureSeededCatalog(
   Future<void> Function() requireCurrent,
   void Function(ScreenCaptureObservation) onStep, {
   required RestoredSeedSelection selection,
+  required Future<void> Function(String) emitMarker,
   bool pillarSpawn = false,
   bool pillarDone = false,
 }) async {
@@ -375,13 +492,44 @@ Future<Map<String, Object>> _captureSeededCatalog(
     return selector;
   }
 
+  ScreenCaptureObservation? captureContext;
+  Future<void> observeSurface(String name, String theme) async {
+    if (!const <String>{'walletUpdateNotice', 'tokenExplorer',
+        'pillarAprEstimate', 'swapTerms'}.contains(name) ||
+        !const <String>{'dark', 'light'}.contains(theme)) {
+      throw const FormatException('prepared surface selection refused');
+    }
+    await requireCurrent();
+    final Map<String, dynamic> seam = await cli.call(instance, <String, Object?>{
+      'cmd': 'seed', 'action': 'surface-seam',
+      'hash': confirmed('token'), 'seam': name, 'theme': theme,
+    });
+    await requireCurrent();
+    final Map<String, Object> expected = <String, Object>{
+      'schema': 1,
+      'scope': 'owned_seeded_surface_seam_pointer_observation',
+      'seam': name, 'theme': theme,
+      'pointerDispatched': true, 'absorptionObserved': true,
+      'originalReceiptCurrent': true, 'nativeFrameObserved': true,
+    };
+    if (expected.entries.any((MapEntry<String, Object> entry) =>
+        seam[entry.key].runtimeType != entry.value.runtimeType ||
+        seam[entry.key] != entry.value)) {
+      throw const FormatException('prepared surface receipt refused');
+    }
+    await emitMarker('CI_PREPARED_SURFACE_SEAM:${jsonEncode(expected)}');
+  }
+
   final ScreenCapture capture = ScreenCapture(
     repository: Directory(cli.repo),
     restoredSeeded: true,
     restoredProject: projectDetail,
     restoredPillarSpawn: pillarSpawn,
     restoredPillarDone: pillarDone,
-    onStep: onStep,
+    onStep: (ScreenCaptureObservation step) {
+      captureContext = step;
+      onStep(step);
+    },
     call: (Map<String, Object?> command) async {
       await requireCurrent();
       final Map<String, dynamic> result = await cli.call(instance, command);
@@ -472,6 +620,17 @@ Future<Map<String, Object>> _captureSeededCatalog(
           }
       }
       await requireCurrent();
+      if (selection == RestoredSeedSelection.seededCatalog &&
+          authored == 'wait --key token_explorer_control --timeout 5') {
+        final ScreenCaptureObservation? context = captureContext;
+        final String? theme = context?.theme;
+        if (context?.step != ScreenCaptureStep.afterCaptureLine ||
+            context?.screen != 'token-mine' || theme == null ||
+            !const <String>{'dark', 'light'}.contains(theme)) {
+          throw const FormatException('token seam capture context refused');
+        }
+        await observeSurface('tokenExplorer', theme);
+      }
     },
   );
   final List<String> paths = await capture.captureSelection(
@@ -482,6 +641,9 @@ Future<Map<String, Object>> _captureSeededCatalog(
         (int i) => paths[i] != '$_seededDirectory/${catalog.files[i]}',
       )) {
     throw const FormatException('seeded capture paths refused');
+  }
+  if (selection == RestoredSeedSelection.seededCatalog) {
+    await _observePreparedPageSeams(instance, requireCurrent, observeSurface);
   }
   return <String, Object>{
     'schema': catalog.schema,
@@ -707,6 +869,7 @@ Future<void> main() async {
         instance, receipts, sponsored.selected.selected, requireCurrent,
         (ScreenCaptureObservation step) => captureStep = step,
         selection: RestoredSeedSelection.all,
+        emitMarker: marker,
         pillarSpawn: pillarSpawn, pillarDone: pillarDone,
       );
       if (pillarDone) {
@@ -786,6 +949,7 @@ Future<void> main() async {
         instance, receipts, owned.selected, requireCurrent,
         (ScreenCaptureObservation step) => captureStep = step,
         selection: selection,
+        emitMarker: marker,
       );
       await marker('CI_SEEDED_CAPTURE_DONE:${jsonEncode(captured)}');
     }

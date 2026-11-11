@@ -740,6 +740,7 @@ def main():
     wallet_lab = None
     interactive_lab = interactive_result = None
     seeded = None
+    surface_seam_summary = None
     interactive_items = [item for item in listing['artifacts']
                          if item['name'].startswith('interactive-timing-pair-')]
     seeded_items = [item for item in listing["artifacts"]
@@ -827,6 +828,18 @@ def main():
                 head, commit['tree']['sha'], run_id, reference, pins)
             seeded.update(catalog_capture_qualified=True, parent_closure_qualified=True,
                           atomic_frame_qualified=True)
+            surface_seams = reopen.get('seeded_surface_seams')
+            if surface_seams is not None:
+                from . import seeded_surface_seams
+                PHASE = 'seeded_surface_seam_projection'
+                need(reference['schema'] == catalog.SEEDED_SCHEMA
+                     and seeded['seed_receipts_sha256'] == surface_seams['seed_receipts_sha256'])
+                observed = seeded_surface_seams.reference(surface_seams, seeded['seed_receipts_sha256'])
+                surface_seam_summary = dict(observed, scope='retained_seeded_surface_seams',
+                    source_head=head, source_tree=commit['tree']['sha'],
+                    source_run_id=run_id, source_attempt=1,
+                    four_surface_seams_qualified=True,
+                    parent_closure_qualified=True, inspection_only=True, runtime_started=False)
     if interactive_lab is not None:
         from . import inspect_interactive_frame_pair
         PHASE = 'interactive_pair_inspection'
@@ -848,6 +861,10 @@ def main():
         need(len(encoded.encode('ascii')) <= 3800)
         escaped = encoded.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
         print('::notice title=Retained restored seeded catalog::' + escaped, flush=True)
+    if surface_seam_summary is not None:
+        encoded = json.dumps(surface_seam_summary, sort_keys=True, separators=(',', ':'))
+        need(len(encoded.encode('ascii')) <= 3800)
+        print('::notice title=Retained seeded surface seams::' + encoded, flush=True)
 
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
+import 'package:zenon_syrius_wallet_flutter/seams/seam.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../../seed/seed_recipe.dart';
@@ -11,6 +12,7 @@ import 'seed_deposit_presentation.dart';
 import 'seed_policy.dart';
 import 'seed_project_presentation.dart';
 import 'seed_token_presentation.dart';
+import 'seeded_surface_seam.dart';
 
 /// Dispatches a captured control with admission checked at both boundaries.
 typedef SeedTap = Future<void> Function(void Function() admission);
@@ -27,10 +29,13 @@ final class SeedCommands {
     required SeedGuard this._guard,
     required String this._recipe,
     this._confirmed = false,
+    bool catalogTokenHolding = false,
     this._projectPresentation,
     this._tokenPresentation,
     this._depositPresentation,
-  }) : _source = _guard.source;
+  }) : _source = _guard.source {
+    _catalogTokenHolding = catalogTokenHolding;
+  }
 
   SeedGuard? _guard;
   SeedProjectPresentation? _projectPresentation;
@@ -39,6 +44,8 @@ final class SeedCommands {
   SeedSource? _source;
   String? _recipe;
   bool _confirmed = false;
+  bool _catalogTokenHolding = false;
+  final Map<Seam, SeededSurfaceSeam> _surfaceSeams = <Seam, SeededSurfaceSeam>{};
   bool _depositEntryAttempted = false;
   FixtureCleanup? _fixture;
   String? get fixtureName => _fixture?.heldName;
@@ -61,6 +68,8 @@ final class SeedCommands {
     SeedDepositEntry Function(String)? captureDepositEntry,
     SeedProjectPresentation Function(int)? captureProjectPresentation,
     SeedTokenPresentation Function(int, String)? captureTokenPresentation,
+    Future<void> Function(String, Seam, String, void Function())?
+        observeSurfaceSeam,
     SeedDepositPresentation Function(int, String)? captureDepositPresentation,
   }) async {
     try {
@@ -114,6 +123,8 @@ final class SeedCommands {
         _source = source;
         _recipe = recipe;
         _confirmed = false;
+        _catalogTokenHolding = catalogTokenHolding;
+        _surfaceSeams.clear();
         _depositEntryAttempted = false;
         _projectPresentation = null;
         _tokenPresentation = null;
@@ -140,6 +151,46 @@ final class SeedCommands {
       final SeedFuseTarget? fuseTarget = labSource?.fuseTarget;
       guard.requireCurrent();
       if (action == 'check') return <String, Object?>{'current': true};
+      if (action == 'surface-seam') {
+        final SeedTokenPresentation? presentation = _tokenPresentation;
+        final String? hash = guard.acceptedHash;
+        final String? theme = command['theme'] as String?;
+        final Object? seamName = command['seam'];
+        final Seam? seam = seamName is String
+            ? Seam.values.asNameMap()[seamName] : null;
+        if (command.keys.any((String key) =>
+                !const <String>{'cmd', 'action', 'theme', 'hash', 'seam'}
+                    .contains(key)) ||
+            command.containsKey('cmd') && command['cmd'] != 'seed' ||
+            !_catalogTokenHolding || !_confirmed || recipe != 'token' ||
+            presentation == null || !presentation.closed || hash == null ||
+            command['hash'] != hash ||
+            theme == null || seam == null ||
+            !seededSurfaceControls.containsKey(seam) ||
+            observeSurfaceSeam == null) {
+          throw const SeedRefused('confirmed-token-seam-required');
+        }
+        void current() {
+          _requireFixtureClear();
+          guard.requireCurrent();
+          _requireFixtureClear();
+          if (!_confirmed || _recipe != 'token' || !_catalogTokenHolding ||
+              !identical(_guard, guard) || guard.acceptedHash != hash ||
+              !identical(_tokenPresentation, presentation) ||
+              !presentation.closed) {
+            throw const SeedRefused('seeded-surface-seam-owner-changed');
+          }
+        }
+        current();
+        final SeededSurfaceSeam observation =
+            _surfaceSeams[seam] ??= SeededSurfaceSeam(
+          confirmedHash: hash,
+          seam: seam,
+          requireCurrent: current,
+          observe: observeSurfaceSeam,
+        );
+        return await observation.observe(theme);
+      }
       if (action == 'prepare') {
         void requirePreparation() {
           _requireFixtureClear();

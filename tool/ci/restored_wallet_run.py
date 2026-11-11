@@ -14,6 +14,7 @@ from . import closed_lab_checkpoint as checkpoint
 from . import readonly_details_capture as catalog
 from . import windows_debug_loop as debug
 from . import restored_seed_run as seeds
+from . import seeded_surface_seams
 
 
 SCOPE = 'owned_restored_lab_reopen'
@@ -667,7 +668,8 @@ def project(value):
     seed_key = 'catalog_prerequisites' if catalog_seed else 'seed_workflow'
     seed_fields = {seed_key} if seed_key in value else set()
     capture_fields = {'seeded_catalog'} if 'seeded_catalog' in value else set()
-    checkpoint.need(set(value) == common | seed_fields | capture_fields | {'claim_once', 'originals_closed',
+    seam_fields = {'seeded_surface_seams'} if 'seeded_surface_seams' in value else set()
+    checkpoint.need(set(value) == common | seed_fields | capture_fields | seam_fields | {'claim_once', 'originals_closed',
         'chain_continuity', 'journal_unchanged', 'cipher_unchanged', 'wallet',
         'application_exit', 'entry_exit', 'output', 'job_empty', 'forced',
         'nodes', 'private_manifest_sha256', 'seed_admitted'}
@@ -695,6 +697,10 @@ def project(value):
         checkpoint.need(type(seed_value) is dict and seed_value['complete'] is True)
     if reference is not None:
         checkpoint.need(reference['seed_receipts_sha256'] == seed_value['receipts_sha256'])
+    if seam_fields:
+        checkpoint.need(catalog_seed and reference is not None
+                        and reference['schema'] == catalog.SEEDED_SCHEMA)
+        seeded_surface_seams.reference(value['seeded_surface_seams'], seed_value['receipts_sha256'])
     output = value['output']
     checkpoint.need(type(output) is dict and set(output) ==
         {'bytes', 'sha256', 'output_complete', 'overflow'}
@@ -997,6 +1003,8 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
             original.stdin.write(raw)
             original.stdin.flush()
 
+        surface_seam_observations = []
+
         def wait(marker):
             next_sample = 0.0
             while time.monotonic() < deadline:
@@ -1038,13 +1046,28 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
                     return seeds.finish_prefix(record.get('seed_private_prefix'),
                         json.loads(line.partition(b':')[2]),
                         catalog_capture=catalog_capture)
+                if line.startswith(b'CI_PREPARED_SURFACE_SEAM:'):
+                    checkpoint.need(marker == b'CI_SEEDED_CAPTURE_DONE'
+                        and capture_schema == catalog.SEEDED_SCHEMA
+                        and record['phase'] == 'seeded_capture'
+                        and len(surface_seam_observations) < len(seeded_surface_seams.EXPECTED)
+                        and record[seed_key]['complete'] is True)
+                    seam, theme = seeded_surface_seams.EXPECTED[len(surface_seam_observations)]
+                    surface_seam_observations.append(seeded_surface_seams.receipt(
+                        catalog.decode(line.partition(b':')[2]),
+                        seam, theme))
+                    continue
                 if marker == b'CI_SEEDED_CAPTURE_DONE' and line.startswith(marker + b':'):
                     receipt = catalog.capture_receipt(catalog.decode(line.partition(b':')[2]))
                     checkpoint.need(receipt['schema'] == capture_schema)
+                    if capture_schema == catalog.SEEDED_SCHEMA:
+                        record['seeded_surface_seams'] = seeded_surface_seams.completed(
+                            surface_seam_observations, record[seed_key]['receipts_sha256'])
                     return receipt
                 if line == marker:
                     return None
-                checkpoint.need(not line.startswith((b'CI_REOPEN_', b'CI_SEED_', b'CI_SEEDED_')))
+                checkpoint.need(not line.startswith((b'CI_REOPEN_', b'CI_SEED_',
+                    b'CI_SEEDED_', b'CI_PREPARED_SURFACE_')))
             raise checkpoint.Refused()
 
         trace.at('start')
@@ -1237,4 +1260,6 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
     result[seed_key] = record[seed_key]
     if seeded_capture:
         result['seeded_catalog'] = record['seeded_catalog']
+        if capture_schema == catalog.SEEDED_SCHEMA:
+            result['seeded_surface_seams'] = record['seeded_surface_seams']
     return project(result)

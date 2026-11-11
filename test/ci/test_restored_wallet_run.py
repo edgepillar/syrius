@@ -42,6 +42,32 @@ def lock_view_observation():
 
 
 class PolicyTests(unittest.TestCase):
+    def test_surface_seams_require_the_same_catalog_receipts_and_complete_closure(self):
+        from tool.ci import seeded_surface_seams
+        receipts = dict(schema=1, scope='private_restored_seed_catalog_receipts',
+            chain=321, members=3, selected_index=1, derived_once=True,
+            owner_stable=True, receipts=[dict(recipe=name, hash=f'{i:064x}')
+                for i, name in enumerate(('stake', 'token'), 1)])
+        seeds = restored.seeds.completed(receipts, catalog_capture=True)
+        reference = dict(schema=4, scope='restored_native_seeded_catalog_reference',
+            screens=['staking', 'token-mine'], captured=4, manifest_sha256='d' * 64,
+            seed_receipts_sha256=seeds['receipts_sha256'])
+        observations = [dict(schema=1, scope=seeded_surface_seams.SCOPE, seam=seam,
+            theme=theme, pointerDispatched=True, absorptionObserved=True,
+            originalReceiptCurrent=True, nativeFrameObserved=True)
+            for seam, theme in seeded_surface_seams.EXPECTED]
+        seams = seeded_surface_seams.completed(observations, seeds['receipts_sha256'])
+        value = dict(completed(), catalog_prerequisites=seeds,
+                     seeded_catalog=reference, seeded_surface_seams=seams)
+        self.assertEqual(restored.project(value), value)
+        for change in (dict(application_exit=1),
+                       dict(seeded_surface_seams=dict(seams, seed_receipts_sha256='e' * 64)),
+                       dict(seeded_surface_seams=dict(seams, observations=observations[:1]))):
+            with self.subTest(change=change), self.assertRaises(restored.checkpoint.Refused):
+                restored.project(dict(value, **change))
+        with self.assertRaises(restored.checkpoint.Refused):
+            restored.project(dict(completed(), seeded_surface_seams=seams))
+
     def test_only_complete_finite_reopen_facts_are_projected(self):
         value = completed()
         self.assertEqual(restored.project(value), value)

@@ -39,6 +39,8 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/plasma_owner
     show parsePlasmaQsr;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/widgets/send_confirmation.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/widgets/send_populated.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/tokens/widgets/token_card.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/tokens/widgets/token_inline_actions.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/disclosure.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/go_to_palette.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/list_entrance.dart';
@@ -91,6 +93,7 @@ import 'capture_protocol.dart' show CaptureRefused;
 import 'client_window.dart';
 import 'entry_caption_observer.dart';
 import 'fixtures/home_zap_preview.dart';
+import 'fixtures/seeded_surface_seam.dart';
 import 'fixtures/lab_quiescence.dart';
 import 'fixtures/lab_seed_binding.dart';
 import 'fixtures/lab_send_policy.dart';
@@ -123,6 +126,7 @@ import 'seed_deposit_entry_binding.dart';
 import 'seed_deposit_presentation_binding.dart';
 import 'seed_project_presentation_binding.dart';
 import 'seed_token_presentation_binding.dart';
+import 'seeded_surface_seam_binding.dart';
 import 'theme_control.dart';
 
 /// Widgets that say nothing about where a node sits; left out of `path`.
@@ -494,6 +498,8 @@ class HarnessAgent {
   NativeLockCatalog? _nativeLock;
   NativeQuizCatalog? _nativeQuiz;
   NativeWindowOwner? _nativeWindow;
+  SeededSurfaceSeamOwner? _seededSurfaceSeamOwner;
+  bool _seededSurfaceSeamOwnerAttempted = false;
   ReadonlyNativeCommands? _readonlyNative;
   bool _readonlySendSyncReserved = false;
   StatefulElement? _lockViewOwner;
@@ -1126,6 +1132,7 @@ class HarnessAgent {
             captureDepositPresentation: _captureSeedDepositPresentation,
             captureProjectPresentation: _captureSeedProjectPresentation,
             captureTokenPresentation: _captureSeedTokenPresentation,
+            observeSurfaceSeam: _observeSeededSurfaceSeam,
             captureTap: (Map<String, dynamic> selector) =>
                 _captureSeedTap(selector, preparation: seedPreparation),
           );
@@ -2151,6 +2158,84 @@ class HarnessAgent {
             requireAdmission: admission);
       },
     );
+  }
+
+  Future<void> _observeSeededSurfaceSeam(
+    String standard, Seam seam, String theme, VoidCallback requireOwner,
+  ) async {
+    _requireCaptureFrameIdle();
+    requireOwner();
+    if (!_seededSurfaceSeamOwnerAttempted) {
+      _seededSurfaceSeamOwnerAttempted = true;
+      final NativeWindowOwner? window = _nativeWindow;
+      if (window == null) {
+        throw const SeedRefused('seeded-surface-seam-owner-changed');
+      }
+      _seededSurfaceSeamOwner = SeededSurfaceSeamOwner.capture(
+        window: window, readWindow: () => _nativeWindow, readView: () => _view,
+      );
+    }
+    final SeededSurfaceSeamOwner? owner = _seededSurfaceSeamOwner;
+    if (owner == null) {
+      throw const SeedRefused('seeded-surface-seam-owner-changed');
+    }
+    owner.requireCurrent();
+    final String? key = seededSurfaceControls[seam];
+    if (key == null) {
+      throw const SeedRefused('seeded-surface-seam-control-required');
+    }
+    final List<_Node> nodes = _visibleKeyNodes(key);
+    if (nodes.length != 1) {
+      throw const SeedRefused('seeded-surface-seam-control-required');
+    }
+    Element? card;
+    Element? actions;
+    final Element control = nodes.single.element;
+    if (seam == Seam.tokenExplorer) {
+      control.visitAncestorElements((Element ancestor) {
+        if (ancestor.widget is TokenInlineActions) actions = ancestor;
+        if (ancestor.widget is! TokenCard) return true;
+        card = ancestor;
+        return false;
+      });
+    }
+    final Element? original = card;
+    final Element? originalActions = actions;
+    if (seam == Seam.tokenExplorer &&
+        (original == null || originalActions == null)) {
+      throw const SeedRefused('seeded-surface-seam-control-required');
+    }
+    final ModalRoute<dynamic>? route = ModalRoute.of(control);
+    final NavigatorState? routeNavigator = route?.navigator;
+    if (route == null || routeNavigator == null) {
+      throw const SeedRefused('seeded-surface-seam-owner-changed');
+    }
+    void current() {
+      requireOwner();
+      owner.requireCurrent();
+      if (!control.mounted || Theme.of(control).brightness.name != theme ||
+          !route.isCurrent || !route.isActive || !routeNavigator.mounted ||
+          !identical(ModalRoute.of(control), route) ||
+          !identical(route.navigator, routeNavigator)) {
+        throw const SeedRefused('seeded-surface-seam-owner-changed');
+      }
+      if (seam == Seam.tokenExplorer) {
+        final Widget? widget = originalActions?.widget;
+        if (original == null || !original.mounted ||
+            original.widget is! TokenCard || originalActions == null ||
+            !originalActions.mounted || widget is! TokenInlineActions ||
+            widget.token.tokenStandard.toString() != standard) {
+          throw const SeedRefused('seeded-surface-seam-owner-changed');
+        }
+      }
+    }
+    current();
+    await owner.observeFrame(current);
+    current();
+    await _observeSeamPointer(
+      seam, key, requireOwner: current,
+    );
+    current();
   }
 
   SeedTokenPresentation _captureSeedTokenPresentation(
