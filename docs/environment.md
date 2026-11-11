@@ -8,7 +8,7 @@ remains 72/80 original rows. All 94 literal outputs are now available: 50 unique
 pairs have been viewed and 44 await visual review. Accepted whole-image matches
 remain 0/94. The older availability counts below retain their dated scope.
 
-The latest focused runtime source is
+The latest qualified Settings inspection uses
 [`5d555665a643`](https://github.com/edgepillar/syrius/tree/5d555665a6438d5a0370cab5146cdfd9aa48199c).
 Its [Settings producer](https://github.com/edgepillar/syrius/actions/runs/43072345481)
 passes 1,450 Dart cases, 1,200 Python cases with eighteen Windows skips,
@@ -44,8 +44,25 @@ controls, then stops at one `prefer_initializing_formals` analyzer info. There
 are zero errors or warnings; Dart tests and the wallet/lab are unreached, with
 zero retained artifacts and no applicable reader. Source678 uses an initializing
 formal for that same observer field, with no behavior change or repeated local
-tests. Fresh native qualification remains pending; the latest full runtime
-source is the revision linked above.
+tests.
+
+The [Source678 producer](https://github.com/edgepillar/syrius/actions/runs/43087254342)
+passes all 1,450 selected Dart cases, 1,200 Python cases with eighteen Windows
+skips, five JavaScript controls and analysis with zero findings. The light Home
+Go To shot again refuses with `frameDeadlineExceeded`. Home diagnostic schema
+three retains the first refusal: the original binding is current, normal frame
+scheduling is enabled, a frame is scheduled, the scheduler is idle and the
+lifecycle value is absent (`none`). These facts do not establish the original
+frame's settlement or the underlying cause.
+
+The [Source678 reader](https://github.com/edgepillar/syrius/actions/runs/43091092597)
+passes 114 controls and independently verifies both original archives, 81 source
+files and the exact failure state. All eleven Home probes remain unreached,
+with an empty retained prefix and zero qualified PNGs. The five original nodes
+close normally; required actor cleanup is forced and normal application closure
+remains unqualified. Source679 records this result in documentation only. No
+native operation or local artifact transfer is repeated. All eight original
+acceptance gates, 72/80 and zero accepted whole-image matches remain open.
 
 ## Retained qualification status (2026-11-05)
 

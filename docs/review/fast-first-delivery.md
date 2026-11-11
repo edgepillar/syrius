@@ -1910,3 +1910,26 @@ Source677 and are not repeated for this style-only change. Counts remain
 1,450 Dart, 1,200 controller and 114 reader cases with 81 declared reader sources.
 Fresh native qualification, all earlier failures, 72/80 and zero accepted
 whole-image matches remain open.
+
+## Source678 independently verified frame refusal
+
+The [Source678 producer](https://github.com/edgepillar/syrius/actions/runs/43087254342)
+passes all 1,450 selected Dart cases, 1,200 Python cases with eighteen Windows
+skips, five JavaScript controls and analysis with zero findings. Both Dart
+streams complete normally. The light Home Go To shot refuses with
+`frameDeadlineExceeded`. At that first refusal, the original binding is current,
+normal frame scheduling is enabled, a frame is scheduled and the scheduler is
+idle. The absent lifecycle value is retained as `none`; it does not establish
+a paused state or the underlying cause. The original frame's settlement remains
+`NOT_ESTABLISHED`.
+
+The [independent reader](https://github.com/edgepillar/syrius/actions/runs/43091092597)
+passes 114 controls and verifies both original archives, 81 source files and
+the exact schema-three failure state. All eleven Home probes are unreached,
+with an empty prefix and zero qualified PNGs. All five nodes close normally.
+Required actor cleanup is forced; normal application closure and overall native
+inspection remain unqualified.
+
+Source679 changes documentation only. No original operation or local artifact
+transfer is repeated. The remaining Home and Token Explorer controls, all eight
+deferred gates, 72/80 and zero accepted whole-image matches remain open.

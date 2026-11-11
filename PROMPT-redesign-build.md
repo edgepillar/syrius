@@ -3429,3 +3429,28 @@ Source677 behavior. The 234 Source677 in-memory controls stay source-pinned and
 are not repeated locally. Totals stay 1,450 Dart, 1,200 controller and 114 reader
 cases with 81 declared sources. Fresh native qualification, all earlier failures,
 72/80 and zero accepted whole-image matches remain open.
+
+## Source678 independently retained original frame state
+
+The [Source678 producer](https://github.com/edgepillar/syrius/actions/runs/43087254342)
+passes 1,450 selected Dart cases in complete 54/54-file streams, 1,200 Python
+cases with eighteen Windows skips, five JavaScript controls and analysis with
+zero findings. Both original Dart commands exit zero normally with complete
+output. The light Home Go To `shotRequest` refuses with `frameDeadlineExceeded`.
+The first-refusal state reports the original binding current, normal frame
+scheduling enabled, a scheduled frame, an idle scheduler and an absent lifecycle
+value (`none`). The original frame's settlement and underlying cause remain
+`NOT_ESTABLISHED`.
+
+The [independent reader](https://github.com/edgepillar/syrius/actions/runs/43091092597)
+passes 114 controls and verifies both original archives, 81 source files and
+the exact schema-three failure state. All eleven Home probes are unreached;
+their empty prefix and zero qualified PNGs are retained. All five original
+nodes close normally. Required actor cleanup is forced, so normal application
+closure and the overall native inspection remain unqualified.
+
+Source679 records this result without executable or test changes. No original
+operation, local native test or artifact transfer is repeated. Source675's
+later light Swap refusal retains its separate scope. All earlier failures,
+the eight original acceptance gates, 72/80 and zero accepted whole-image
+matches remain open.
