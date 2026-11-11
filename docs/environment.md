@@ -156,6 +156,24 @@ effects. No test or production guard changes. Fresh hosted qualification and
 actual native timing collection remain pending; original failures, 72/80 and all
 eight deferred acceptance gates stay open.
 
+The [Source686 producer](https://github.com/edgepillar/syrius/actions/runs/43119410349)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/43122503428)
+both succeed at `15fec4c9120f`. All 1,467 selected Dart cases pass in complete 54/54-file
+streams (699/768), with complete normal zero-exit commands, no retries and no
+unfinished cases. The 1,213 Python cases have eighteen explicit platform skips
+and no failures/errors; selected analysis has zero findings.
+
+All three original archives verify. The original Send/twelve-page tour, copied
+Stake/Token prerequisites, four Staking/Token Mint captures and normal required
+actor/five-node closure qualify in their original and copied scopes. The reader
+qualifies the schema-2 holder selection and all eight pointer refusal observations
+for the four drawn seams in both themes. Two original error files retain three
+timing occurrences at height three, each bound to the original parent/archive.
+Those diagnostic facts do not establish an earlier stall's cause. The reader
+creates zero artifacts and starts no SDK, node or wallet. Source687 records the
+result in documentation only. The Source682 Token and Source678 Home failures,
+their unknown causes, 72/80 and all eight deferred gates remain open.
+
 ## Retained qualification status (2026-11-05)
 
 The [qualified Source492 Activity result](review/source489-activity-reference-spacing.md#actual-source492-focused-result)

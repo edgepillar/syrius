@@ -3597,3 +3597,28 @@ selected memory controls pass afterward, including the complete 122-case reader
 selection and seventeen frame/runtime controls, with zero external effects.
 Global Python registration remains 1,213. Fresh hosted qualification and actual
 native timing collection remain pending; 72/80 and all eight deferred gates stay open.
+
+## Source687 verified native timing and holder seam results
+
+The [Source686 producer](https://github.com/edgepillar/syrius/actions/runs/43119410349)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/43122503428)
+succeed at `15fec4c9120f`. All 1,467 selected Dart cases pass in complete 54/54-file
+streams (699/768), with 156 hidden and 1,623 terminal events, no retries and
+no unfinished cases. Both original commands exit zero normally with complete
+output. The 1,213 Python cases include eighteen explicit platform skips and
+zero failures/errors; selected analysis has zero errors, warnings or infos.
+
+The reader verifies all three original archives, the original 1 ZNN Send,
+twelve-page tour, copied Stake/Token prerequisites, four Staking/Token Mint
+captures and normal original/copied required actor and five-node closure. The
+schema-2 holder transition to one existing member and all eight pointer refusal
+observations for the four drawn seams qualify in both themes. No service behind
+those seams is implemented by this observation.
+
+Two closed error-file timing receipts retain three occurrences at height three,
+bound to the original parent and archive. Actual collection is observed; the
+earlier Token stall and Home frame causes remain NOT_ESTABLISHED. The reader
+creates zero artifacts and starts no SDK, node or wallet. Source687 changes
+documentation only; it repeats no test, native request or local artifact transfer.
+Original 72/80 acceptance, zero accepted whole-image matches and all eight
+deferred gates remain open.

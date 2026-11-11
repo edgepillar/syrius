@@ -409,6 +409,17 @@ from 114 to 122 after the eight timing tests. All 139 selected memory controls
 pass, including the complete reader selection; no original guard is relaxed.
 Fresh hosted qualification and actual native timing collection remain pending.
 
+The first actual [Source686 native collection](https://github.com/edgepillar/syrius/actions/runs/43119410349)
+and [independent archive reading](https://github.com/edgepillar/syrius/actions/runs/43122503428)
+succeed. Two error files retain three occurrences at height three. Each timing
+notice binds the original error-file metadata, parent notice and source archive;
+no raw message or block identity is exported. The same successful run qualifies
+the copied Stake/Token prerequisites, four captures, the existing-member holder
+transition, eight seam refusal observations and normal original/copied closure.
+These finite log facts do not establish the cause of the earlier Token stall.
+Source687 records the result without another test, native request or local
+artifact transfer. Full F06 and original 72/80 acceptance remain open.
+
 ## Reference recipe result
 
 Source456 73ffe7cc9643 / source-only 41925765311 and manual 41926018636 pass

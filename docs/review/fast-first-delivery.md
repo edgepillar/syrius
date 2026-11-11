@@ -10,6 +10,29 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 
 ## Verified results
 
+The current [Source686 producer](https://github.com/edgepillar/syrius/actions/runs/43119410349)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/43122503428)
+both succeed at `15fec4c9120f`. All 1,467 selected Dart cases pass in complete 54/54-file
+streams (699/768), with zero failures or skips. The 1,213 Python cases have
+eighteen explicit platform skips and zero failures/errors; selected analysis has zero
+errors, warnings or infos.
+
+The reader verifies three original archives, the original 1 ZNN Send and
+twelve-page tour, both copied Stake/Token prerequisites, four Staking/Token Mint
+captures and normal original/copied required actor and five-node closure. It
+qualifies the schema-2 holder transition to one existing member and all eight
+pointer observations for Token Explorer, update notice, APR estimate and Swap
+terms in both themes. These are refusal controls for drawn seams.
+
+The first actual timing collection retains three log occurrences at height three
+from two error files, each bound to the original parent and archive. This bounded
+observation does not establish the cause of an earlier stall. The original
+Source682 Token and Source678 Home failures retain their scope and unknown causes.
+Source687 records these results in documentation only. Full 72/80 acceptance,
+zero accepted whole-image matches and all eight deferred gates remain open.
+
+### Earlier source-bound results
+
 Source548 Native127 qualifies all six copied seed receipts, their journals and
 normal copied wallet, entry and five-node closure. The original send, tour and
 closure also qualify. The independent reader verifies both finite archives.
