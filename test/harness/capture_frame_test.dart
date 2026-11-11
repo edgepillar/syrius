@@ -45,13 +45,14 @@ void main() {
       waitForFrame: () => binding.endOfFrame,
       waitUntilDeadline: () => deadline.future,
     );
-    binding.addPostFrameCallback((_) {
-      capture = gate.capture<String>(() async {
-        readbacks++;
-        return 'original pixels';
-      });
-    });
-    binding.scheduleFrame();
+    binding
+      ..addPostFrameCallback((_) {
+        capture = gate.capture<String>(() async {
+          readbacks++;
+          return 'original pixels';
+        });
+      })
+      ..scheduleFrame();
     await tester.pump();
     expect(requestedPhase, SchedulerPhase.postFrameCallbacks);
     expect(binding.hasScheduledFrame, isTrue);
@@ -66,7 +67,8 @@ void main() {
     await _turns();
   });
 
-  test('scheduled admission retains one original through pending readback', () async {
+  test('scheduled admission retains one original '
+      'through pending readback', () async {
     final Completer<void> frame = Completer<void>();
     final Completer<void> deadline = Completer<void>();
     final Completer<String> pixels = Completer<String>();
@@ -104,7 +106,8 @@ void main() {
     await _turns();
   });
 
-  test('an original scheduling failure retains its error before any wait', () async {
+  test('an original scheduling failure retains its error '
+      'before any wait', () async {
     final Object failure = StateError('Synthetic scheduling failure');
     final StackTrace trace = StackTrace.current;
     int requests = 0;
@@ -124,8 +127,10 @@ void main() {
         return Future<void>.value();
       },
     );
-    await expectLater(gate.capture<void>(() async => fail('Readback was admitted')),
-        throwsA(isA<CaptureFrameRefused>()));
+    await expectLater(
+      gate.capture<void>(() async => fail('Readback was admitted')),
+      throwsA(isA<CaptureFrameRefused>()),
+    );
     final CaptureFrameReceipt original = gate.receipt!;
     final CaptureFrameOutcome outcome = await original.completion;
     expect(original.original, isNull);
@@ -133,8 +138,10 @@ void main() {
     expect(outcome.stackTrace.toString(), trace.toString());
     expect(original.timedOut, isFalse);
     expect(gate.heldUnknown, isTrue);
-    await expectLater(gate.capture<void>(() async => fail('Readback was retried')),
-        throwsA(isA<CaptureFrameRefused>()));
+    await expectLater(
+      gate.capture<void>(() async => fail('Readback was retried')),
+      throwsA(isA<CaptureFrameRefused>()),
+    );
     expect(gate.receipt, same(original));
     expect(requests, 1);
     expect(waits, 0);
@@ -164,8 +171,10 @@ void main() {
     expect((await original.completion).completed, isTrue);
     expect(original.status, CaptureFrameStatus.held);
     expect(await original.admission, isFalse);
-    await expectLater(gate.capture<void>(() async => fail('Readback was retried')),
-        throwsA(isA<CaptureFrameRefused>()));
+    await expectLater(
+      gate.capture<void>(() async => fail('Readback was retried')),
+      throwsA(isA<CaptureFrameRefused>()),
+    );
     expect(gate.receipt, same(original));
     expect(requests, 1);
     expect(readbacks, 0);

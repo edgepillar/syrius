@@ -1731,3 +1731,20 @@ the new Dart cases have not been executed locally.
 Native qualification is pending. The change does not prove the historical
 cause or close the eleven-control plan. All original failures, 72/80 acceptance,
 zero accepted whole-image matches and eight deferred gates remain open.
+
+## Source672 analysis result and Source673 style correction
+
+The [Source672 producer](https://github.com/edgepillar/syrius/actions/runs/43044079704)
+passes 1,192 Python cases with eighteen Windows skips and five JavaScript
+controls. Selected analysis records zero errors/warnings and seven infos:
+constructor order, one cascade and five long lines. The Dart tests and native
+wallet are unreached. Zero artifacts make an independent reader inapplicable.
+
+Source673 keeps both Agent constructors before their unchanged static frame
+adapter, uses one cascade on the same final binding and wraps the same test
+names and assertions. All original request order, Future identity, 250 ms
+deadline, permanent holds and test registrations remain. The selected totals
+stay 1,434 Dart and 1,192 Python cases. Local tests are not repeated for this
+style-only change. Fresh native/reader qualification and all eleven controls
+remain pending; original failures, 72/80, zero accepted whole-image matches and
+all eight deferred gates stay open.

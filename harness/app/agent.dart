@@ -428,14 +428,6 @@ class HarnessAgent {
       _closePresentation = windowManager.close,
       _waitForPresentationClose = null;
 
-  static CaptureFrameGate _scheduledCaptureFrameGate() {
-    final WidgetsBinding binding = WidgetsBinding.instance;
-    return CaptureFrameGate.scheduled(
-      requestFrame: binding.scheduleFrame,
-      waitForFrame: () => binding.endOfFrame,
-    );
-  }
-
   @visibleForTesting
   HarnessAgent.forTest({
     Future<void> Function()? closePresentation,
@@ -447,6 +439,14 @@ class HarnessAgent {
          waitUntilDeadline: waitForCaptureFrameDeadline,
        ),
        _closePresentation = closePresentation ?? _refuseTestClose;
+
+  static CaptureFrameGate _scheduledCaptureFrameGate() {
+    final WidgetsBinding binding = WidgetsBinding.instance;
+    return CaptureFrameGate.scheduled(
+      requestFrame: binding.scheduleFrame,
+      waitForFrame: () => binding.endOfFrame,
+    );
+  }
 
   static Future<void> _refuseTestClose() =>
       throw HarnessError('no test close callback was supplied');

@@ -3269,3 +3269,19 @@ This addresses the scheduling gap without establishing the historical cause.
 All 219 selected Python controls pass in memory with zero external effects.
 Fresh qualification, the eleven native controls and all original acceptance
 gates remain open; 72/80 and zero accepted whole-image matches are unchanged.
+
+## Source672 analysis result and Source673 style correction
+
+The [Source672 attempt](https://github.com/edgepillar/syrius/actions/runs/43044079704)
+passes all 1,192 Python cases with eighteen Windows skips and all five
+JavaScript controls. Selected Dart analysis has zero errors/warnings and seven
+infos: constructor order, one cascade and five long lines. The Dart engine and
+native wallet are unreached; zero artifacts make an archive reader inapplicable.
+
+Source673 groups both Agent constructors before the same static frame adapter,
+uses one cascade on the same final test binding, and wraps the same test names
+and assertions. It changes no frame request, Future, 250 ms deadline, hold,
+test registration or assertion. The same 1,434 Dart and 1,192 Python cases remain
+selected. Local tests are not repeated for this style-only change. Fresh
+qualification, eleven native controls and all original acceptance gates remain
+open; every earlier failure, 72/80 and zero accepted whole-image matches remain.
