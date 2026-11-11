@@ -364,6 +364,7 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA, *,
     stop_mode = report.get("native_shutdown_mode")
     need(stop_mode is None or (backend == "native" and stop_mode == "coordinated_requests_then_wait"))
     first_panic, panic_count, first_stack, stack_count = None, 0, None, 0
+    momentum_timing = []
     for index, item in enumerate(exits):
         if item is None:
             projected_exits.append(dict(exit_code=None, output_complete=None, forced=None,
@@ -388,6 +389,20 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA, *,
         need(logs is None or (type(logs) is dict and logs.get("status") in
                              ("UNAVAILABLE", "READ", "MISSING", "REFUSED")))
         selected["node_log_status"] = None if logs is None else logs["status"]
+        if logs is not None and 'momentum_timing' in logs:
+            from .hosted_chain321 import momentum_log_receipt, Failure as LabFailure
+            need(backend == 'native' and logs['status'] == 'READ'
+                 and type(logs.get('files')) is list and len(logs['files']) <= 2)
+            originals = [entry for entry in logs['files']
+                         if type(entry) is dict and entry.get('kind') == 'error']
+            need(len(originals) == 1)
+            try:
+                timing = momentum_log_receipt(logs['momentum_timing'], originals[0])
+            except LabFailure:
+                raise Refused('INSPECTION_REFUSED') from None
+            need(timing['status'] != 'OBSERVED'
+                 or 'NODE_MOMENTUM_NOT_BROADCAST' in codes)
+            momentum_timing.append(dict(role=ROLES[index], observation=timing))
         panic = item.get("node_panic")
         if panic is not None:
             need(backend == "native" and type(panic) is dict
@@ -504,6 +519,8 @@ def project(report, backend, head, run_id, expected_node=NODE_SHA, *,
         native_shutdown_order=stop_order,
         native_shutdown_mode=stop_mode,
         inspection_only=True, runtime_started=False, seed_admitted=False)
+    if momentum_timing:
+        result['node_momentum_timing'] = momentum_timing
     if 'checkpoint' in report:
         try:
             checkpoint = closed_lab_checkpoint.project(report['checkpoint'])
@@ -604,6 +621,7 @@ def observation_frames(summary):
     """Keep the existing bounded parent and attach optional passive data."""
     parent = dict(summary)
     probe = parent.pop('wallet_failure_probe', None)
+    momentum_timing = parent.pop('node_momentum_timing', None)
     frames = restored_wallet_run.notice_frames(parent)
     if probe is not None:
         try:
@@ -620,6 +638,40 @@ def observation_frames(summary):
                 'manifest_sha256') if key in original})
         need(len(encode(frame)) <= 3800)
         frames.append(('wallet_failure_probe', frame))
+    if momentum_timing is not None:
+        from .hosted_chain321 import momentum_log_receipt, Failure as LabFailure
+        need(type(momentum_timing) is list and 0 < len(momentum_timing) <= len(ROLES))
+        positions = []
+        original = frames[0][1]
+        need(original.get('backend') == 'native'
+             and type(original.get('source_head')) is str
+             and re.fullmatch('[a-f0-9]{40}', original['source_head']) is not None
+             and type(original.get('source_run_id')) is int
+             and original['source_run_id'] > 0
+             and type(original.get('source_attempt')) is int
+             and original['source_attempt'] == 1
+             and all(type(original.get(key)) is str
+                     and re.fullmatch('[a-f0-9]{64}', original[key]) is not None
+                     for key in ('archive_sha256', 'manifest_sha256')))
+        encode = lambda value: json.dumps(value, sort_keys=True,
+            separators=(',', ':')).encode('ascii')
+        for item in momentum_timing:
+            need(type(item) is dict and set(item) == {'role', 'observation'}
+                 and item['role'] in ROLES)
+            positions.append(ROLES.index(item['role']))
+            need(positions == sorted(set(positions)))
+            try:
+                timing = momentum_log_receipt(item['observation'])
+            except LabFailure:
+                raise Refused('INSPECTION_REFUSED') from None
+            frame = dict(schema=1, scope='retained_node_momentum_timing',
+                parent_scope=original['scope'], parent_notice_sha256=sha(encode(original)),
+                role=item['role'], facts=timing, inspection_only=True,
+                runtime_started=False, qualification=False,
+                **{key: original[key] for key in ('source_head', 'source_run_id',
+                    'source_attempt', 'backend', 'archive_sha256', 'manifest_sha256')})
+            need(len(encode(frame)) <= 3800)
+            frames.append(('node_momentum_timing', frame))
     return frames
 
 
@@ -775,6 +827,7 @@ def main():
             encoded = json.dumps(frame, sort_keys=True, separators=(",", ":"))
             title = ('Retained chain-321 observation' if not component else
                      'Retained lab failure probe' if component == 'wallet_failure_probe'
+                     else 'Retained node momentum timing' if component == 'node_momentum_timing'
                      else 'Retained closed copy ' + component)
             escaped = encoded.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
             print('::notice title=' + title + '::' + escaped, flush=True)

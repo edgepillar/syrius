@@ -2,11 +2,15 @@
 
 import io
 import copy
+import hashlib
 import json
+from pathlib import Path
 import stat
 import unittest
 import zipfile
+from unittest import mock
 
+from tool.ci import hosted_chain321 as lab
 from tool.ci import inspect_chain321 as inspect
 from tool.ci import producer_shutdown_patch as producer_patch
 from tool.ci import read_first_client_fixture as client_fixture
@@ -28,6 +32,183 @@ def manifest():
         success=False, checks=dict.fromkeys(inspect.CHECKS, False),
         error_codes=["COMMAND_FAILED"], commands=[dict(compiler_diagnostics=[dict(code="LOCKED_MODULE_CHANGED")])],
         compiler="go version go1.24.1 windows/amd64", private_profile="/fixture/private/profile")
+
+
+def momentum_log_line(*, timestamp=b'2024-01-02T03:04:05+0000', height=24):
+    return (b't=' + timestamp + b' lvl=eror msg="do not broadcast own momentum" '
+        b'module=pillar submodule=worker identifier="{Hash:' + b'a' * 64
+        + b' Height:' + str(height).encode('ascii') + b'}" reason=too-late\n')
+
+
+class MomentumLogTests(unittest.TestCase):
+    def test_closed_log_retains_time_and_height_without_block_identity(self):
+        for timestamp in (b'2024-01-02T03:04:05+0000',
+                          b'2024-01-02T04:04:05+0100',
+                          b'2024-01-02T02:04:05-0100'):
+            raw = momentum_log_line(timestamp=timestamp)
+            value = lab.momentum_log_observation(raw)
+            self.assertEqual(value['status'], 'OBSERVED')
+            self.assertEqual(value['source'], dict(kind='error', bytes=len(raw),
+                sha256=hashlib.sha256(raw).hexdigest()))
+            self.assertEqual(value['events'], [dict(
+                ordinal=1, timestamp=1704164645, height=24)])
+            self.assertEqual(value['matches'], 1)
+            self.assertFalse(value['truncated'])
+            projected = lab.momentum_log_receipt(value, value['source'])
+            value['events'][0]['height'] = 99
+            self.assertEqual(projected['events'][0]['height'], 24)
+            self.assertNotIn('a' * 64, json.dumps(projected))
+
+    def test_first_and_last_occurrences_keep_order_without_deduplication(self):
+        raw = b''.join(momentum_log_line(height=height)
+                       for height in (24, 24, 25, 25, 26, 26, 27))
+        value = lab.momentum_log_observation(raw)
+        self.assertEqual(value['matches'], 7)
+        self.assertTrue(value['truncated'])
+        self.assertEqual([item['ordinal'] for item in value['events']], [1, 2, 6, 7])
+        self.assertEqual([item['height'] for item in value['events']], [24, 24, 26, 27])
+        self.assertEqual(lab.momentum_log_receipt(value), value)
+
+    def test_foreign_or_malformed_decline_records_cannot_become_observations(self):
+        original = momentum_log_line()
+        for raw in (original.replace(b'module=pillar', b'module=wallet'),
+                    original.replace(b'submodule=worker', b'submodule=manager'),
+                    original.replace(b'lvl=eror', b'lvl=info'),
+                    original.replace(b'reason=too-late', b'reason=private'),
+                    original.replace(b'Height:24', b'Height:0'),
+                    original.replace(b'Height:24', b'Height:9223372036854775808'),
+                    original.replace(b'a' * 64, b'a' * 63),
+                    original.replace(b'+0000', b'+0060'),
+                    original.replace(b'+0000', b'+2400'),
+                    original.replace(b'01-02T', b'02-30T'),
+                    original.replace(b'module=pillar', b'module=pillar module=pillar'),
+                    original.rstrip(b'\n') + b' raw=private\n',
+                    b'raw="' + original.rstrip(b'\n') + b'"\n',
+                    original.replace(b'2024', b'\xff024')):
+            with self.subTest(raw=raw):
+                value = lab.momentum_log_observation(original + raw)
+                self.assertEqual(value['status'], 'REFUSED')
+                self.assertIsNone(value['matches'])
+                self.assertEqual(value['events'], [])
+                self.assertNotIn('private', json.dumps(value))
+
+    def test_incomplete_or_over_bound_logs_keep_refusal_and_absence_distinct(self):
+        for raw in (None, True, bytearray(), b'x' * (lab.MIB + 1),
+                    b'\n' * 10001, b'x' * 4097 + b'\n',
+                    momentum_log_line().rstrip(b'\n')):
+            value = lab.momentum_log_observation(raw)
+            self.assertEqual(value['status'], 'REFUSED')
+            self.assertIsNone(value['matches'])
+            self.assertFalse(value['truncated'])
+            self.assertEqual(value['events'], [])
+        for raw in (b'', b'msg="unrelated" raw="/fixture/private"\n'):
+            value = lab.momentum_log_observation(raw)
+            self.assertEqual(value['status'], 'EMPTY')
+            self.assertEqual(value['matches'], 0)
+            self.assertEqual(lab.momentum_log_receipt(value), value)
+            self.assertNotIn('private', json.dumps(value))
+
+    def test_only_the_original_closed_error_file_supplies_the_count(self):
+        raw = momentum_log_line()
+        with mock.patch.object(lab, 'directories'),\
+                mock.patch.object(lab, 'regular', return_value=raw) as read:
+            value = lab.native_log_projection(Path('fixture'))
+        self.assertEqual(read.call_count, 2)
+        self.assertEqual(value['status'], 'READ')
+        self.assertEqual(value['momentum_timing']['matches'], 1)
+        self.assertEqual([item['kind'] for item in value['files']], ['run', 'error'])
+        self.assertEqual(value['momentum_timing']['source'], value['files'][1])
+        self.assertEqual(lab.momentum_log_receipt(
+            value['momentum_timing'], value['files'][1]), value['momentum_timing'])
+
+    @staticmethod
+    def timed_report(*, include_stack=True):
+        report = InspectionTests.wallet_stop_report()
+        observed = lab.momentum_log_observation(b''.join(
+            momentum_log_line(height=height) for height in range(24, 31)))
+        for item in report['node_exits']:
+            if not include_stack:
+                item.pop('stack_probe', None)
+            item['node_diagnostics'].append('NODE_MOMENTUM_NOT_BROADCAST')
+            item['private_log_projection'] = dict(status='READ',
+                files=[dict(observed['source'])], momentum_timing=copy.deepcopy(observed))
+        return report
+
+    @staticmethod
+    def project(report):
+        return inspect.project(report, 'native', 'a' * 40, 40319698922,
+                               inspect.UPSTREAM_NODE_SHA, expected_patched=True)
+
+    def test_reader_keeps_original_failures_and_legacy_absence(self):
+        legacy = self.project(InspectionTests.wallet_stop_report())
+        self.assertNotIn('node_momentum_timing', legacy)
+        value = self.project(self.timed_report())
+        self.assertFalse(value['artifact_reported_success'])
+        self.assertFalse(value['runtime_started'])
+        self.assertFalse(value['seed_admitted'])
+        self.assertEqual(len(value['node_momentum_timing']), 5)
+        self.assertEqual(value['error_codes'], legacy['error_codes'])
+        public_exits = lambda items: [{key: value for key, value in item.items()
+            if key != 'diagnostic_indices'} for item in items]
+        self.assertEqual(public_exits(value['node_exits']), public_exits(legacy['node_exits']))
+
+    def test_reader_refuses_changed_file_identity_and_coerced_or_private_facts(self):
+        original = self.timed_report()
+        for change in (dict(schema=True), dict(status='private'), dict(matches=True),
+                       dict(matches=8), dict(truncated=False), dict(raw='private'),
+                       dict(events=[]), dict(source=None)):
+            report = copy.deepcopy(original)
+            report['node_exits'][0]['private_log_projection']['momentum_timing'].update(change)
+            with self.subTest(change=change), self.assertRaises(inspect.Refused):
+                self.project(report)
+        for field, offered in (('bytes', True), ('sha256', 'b' * 64), ('kind', 'run')):
+            report = copy.deepcopy(original)
+            report['node_exits'][0]['private_log_projection']['files'][0][field] = offered
+            with self.subTest(field=field), self.assertRaises(inspect.Refused):
+                self.project(report)
+        for field in ('ordinal', 'timestamp', 'height'):
+            report = copy.deepcopy(original)
+            event = report['node_exits'][0]['private_log_projection']['momentum_timing']['events'][0]
+            event[field] = True
+            with self.subTest(field=field), self.assertRaises(inspect.Refused):
+                self.project(report)
+        report = copy.deepcopy(original)
+        report['node_exits'][0]['node_diagnostics'].remove('NODE_MOMENTUM_NOT_BROADCAST')
+        with self.assertRaises(inspect.Refused):
+            self.project(report)
+
+    def test_each_bounded_timing_notice_binds_the_same_original_parent(self):
+        value = self.project(self.timed_report(include_stack=False))
+        value.update(archive_sha256='e' * 64, manifest_sha256='f' * 64)
+        frames = inspect.observation_frames(value)
+        self.assertNotIn('node_momentum_timing', frames[0][1])
+        timings = [item for kind, item in frames if kind == 'node_momentum_timing']
+        self.assertEqual([item['role'] for item in timings], list(inspect.ROLES))
+        parent_digest = inspect.sha(json.dumps(frames[0][1], sort_keys=True,
+            separators=(',', ':')).encode('ascii'))
+        for item in timings:
+            self.assertEqual(item['parent_notice_sha256'], parent_digest)
+            self.assertEqual(item['archive_sha256'], 'e' * 64)
+            self.assertEqual(item['manifest_sha256'], 'f' * 64)
+            self.assertFalse(item['qualification'])
+            self.assertFalse(item['runtime_started'])
+            self.assertTrue(item['inspection_only'])
+            self.assertLessEqual(len(json.dumps(item, separators=(',', ':')).encode()), 3800)
+            self.assertNotIn('a' * 64, json.dumps(item['facts']))
+        for offered in ([], value['node_momentum_timing'] * 2,
+                        list(reversed(value['node_momentum_timing']))):
+            changed = dict(value, node_momentum_timing=offered)
+            with self.assertRaises(inspect.Refused):
+                inspect.observation_frames(changed)
+        # Passive components cannot rescue an already oversized original parent.
+        oversized = self.project(self.timed_report())
+        oversized.update(archive_sha256='e' * 64, manifest_sha256='f' * 64)
+        original_parent = {key: value for key, value in oversized.items()
+                           if key != 'node_momentum_timing'}
+        with self.assertRaises(inspect.closed_lab_checkpoint.Refused):
+            inspect.restored_wallet_run.notice_frames(original_parent)
+        with self.assertRaises(inspect.closed_lab_checkpoint.Refused):
+            inspect.observation_frames(oversized)
 
 
 class InspectionTests(unittest.TestCase):

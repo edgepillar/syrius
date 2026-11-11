@@ -370,6 +370,32 @@ command or changed file is held without reverse application. Source-only
 validation and local policy cases do not qualify Windows runtime behaviour.
 The ordinary native and Docker node-only lanes keep their original client.
 
+## Closed momentum error-log observations
+
+The existing native collector reads regular, capped log files only after the
+original node exits. Its optional `momentum_timing` observation uses the error
+file alone. It retains the file byte count and SHA-256, occurrence count, and
+the first two and last two record times/heights. Repeated records retain their
+own ordinals; the duplicate run log is not counted. Block hashes, addresses,
+paths and raw messages are not exported.
+
+The grammar follows the pinned [node logger](https://github.com/zenon-network/go-zenon/blob/2d1b929cc3fa5269cf133757d4a6963821137984/common/logs.go)
+and [logfmt formatter](https://github.com/inconshreveable/log15/blob/8562bdadbbac/format.go).
+The pinned [worker branch](https://github.com/zenon-network/go-zenon/blob/2d1b929cc3fa5269cf133757d4a6963821137984/pillar/worker.go)
+declines broadcast after its three-second slot window. That branch alone does
+not establish the cause or timing of Source682's unchanged frontier.
+
+Malformed matching records, incomplete files and exceeded bounds keep an
+explicit refusal. The reader requires the same error-file metadata and source
+archive, then emits separate notices bound to the original parent. The original
+parent's 3,800-byte limit still applies. Legacy absence stays absent, and none
+of these diagnostic facts qualify production, shutdown, copied lifecycle or
+wallet publication. The original node/recipe/frame guards are unchanged.
+
+Source684 has eight new memory cases and 92 passing focused controls. The total
+Python registration is 1,213; a current complete-suite run is not established.
+Fresh hosted reader validation and actual native collection remain pending.
+
 ## Reference recipe result
 
 Source456 73ffe7cc9643 / source-only 41925765311 and manual 41926018636 pass

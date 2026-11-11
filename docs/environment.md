@@ -124,6 +124,17 @@ request, local artifact transport, test or financial operation is repeated;
 progress/frame guards stay unchanged. Original 72/80 and all deferred gates stay
 open.
 
+Source684 observes bounded times/heights from the existing closed native error
+file. It binds the original file metadata and archive, exports no raw block
+identities or messages, and carries the facts in separate parent-bound notices.
+Legacy absence and the original notice-size refusal stay intact. Eight new
+memory cases and 92 focused controls pass; the full 1,213-case Python suite and
+actual native collection are unqualified. Hosted reader validation is pending.
+The Dart/financial/UI implementation retains its Source682 bytes and evidence;
+no native request is replayed. See the [grammar and scope](../tools/devnet/lab/README.md#closed-momentum-error-log-observations).
+The original Token/height-23 failure, unknown cause, independent Home failure,
+72/80 and all deferred acceptance gates remain open.
+
 ## Retained qualification status (2026-11-05)
 
 The [qualified Source492 Activity result](review/source489-activity-reference-spacing.md#actual-source492-focused-result)

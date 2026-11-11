@@ -9,6 +9,7 @@ opt-in runs a fresh public-fixture profile while those original nodes are owned.
 from __future__ import annotations
 
 import argparse
+from datetime import datetime, timedelta, timezone
 import hashlib
 import json
 import os
@@ -612,12 +613,101 @@ def native_log_projection(data):
                 continue
             result["files"].append(dict(kind=kind, bytes=len(raw), sha256=digest(raw)))
             result["codes"].extend(node_diagnostics(raw, producer_failures=True))
+            if kind == "error":
+                result["momentum_timing"] = momentum_log_observation(raw)
         result["codes"] = sorted(set(result["codes"]))
         result["status"] = "READ" if result["files"] else "MISSING"
     except Exception:
         # Log refusal never replaces an original shutdown result or leaks a path.
         result["status"] = "REFUSED"
     return result
+
+
+MOMENTUM_LOG_SCOPE = "owned_node_momentum_error_log"
+MOMENTUM_LOG_FIELDS = {"schema", "scope", "status", "source", "matches",
+                       "events", "truncated"}
+MOMENTUM_LOG_RECORD = re.compile(
+    rb't=([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}[+-][0-9]{4}) '
+    rb'lvl=eror msg="do not broadcast own momentum" module=pillar submodule=worker '
+    rb'identifier="\{Hash:[a-f0-9]{64} Height:([1-9][0-9]{0,18})\}" reason=too-late')
+
+
+def momentum_log_observation(raw):
+    """Observe a closed pinned logfmt file, without retaining block identities."""
+    result = dict(schema=1, scope=MOMENTUM_LOG_SCOPE, status="REFUSED",
+                  source=None, matches=None, events=[], truncated=False)
+    if type(raw) is not bytes or len(raw) > MIB:
+        return result
+    result["source"] = dict(kind="error", bytes=len(raw), sha256=digest(raw))
+    lines = raw.split(b'\n')
+    if (raw and not raw.endswith(b'\n') or len(lines) > 10001
+            or any(len(line) > 4096 for line in lines)):
+        return result
+    events, matched = [], 0
+    for line in lines:
+        if b'msg="do not broadcast own momentum"' not in line:
+            continue
+        found = MOMENTUM_LOG_RECORD.fullmatch(line)
+        if found is None:
+            return result
+        try:
+            stamp = found[1]
+            hours, minutes = int(stamp[20:22]), int(stamp[22:24])
+            if hours >= 24 or minutes >= 60:
+                return result
+            offset = timedelta(minutes=(hours * 60 + minutes)
+                               * (1 if stamp[19:20] == b'+' else -1))
+            timestamp = int(datetime(
+                int(stamp[:4]), int(stamp[5:7]), int(stamp[8:10]),
+                int(stamp[11:13]), int(stamp[14:16]), int(stamp[17:19]),
+                tzinfo=timezone(offset)).timestamp())
+            height = int(found[2])
+        except (ValueError, OverflowError, OSError):
+            return result
+        if not (0 < timestamp < 2**63 and 0 < height < 2**63):
+            return result
+        matched += 1
+        events.append(dict(ordinal=matched, timestamp=timestamp, height=height))
+        if len(events) > 4:
+            del events[2]
+    result.update(status="OBSERVED" if matched else "EMPTY", matches=matched,
+                  events=events, truncated=matched > len(events))
+    return result
+
+
+def momentum_log_receipt(value, original_file=None):
+    """Validate finite log facts; these grant neither runtime nor progress."""
+    need(type(value) is dict and set(value) == MOMENTUM_LOG_FIELDS
+         and type(value['schema']) is int and value['schema'] == 1
+         and value['scope'] == MOMENTUM_LOG_SCOPE
+         and value['status'] in ('EMPTY', 'OBSERVED', 'REFUSED')
+         and type(value['events']) is list and len(value['events']) <= 4
+         and type(value['truncated']) is bool, 'OUTPUT_REFUSED')
+    source = value['source']
+    need(type(source) is dict and set(source) == {'kind', 'bytes', 'sha256'}
+         and source['kind'] == 'error' and type(source['bytes']) is int
+         and 0 <= source['bytes'] <= MIB and type(source['sha256']) is str
+         and re.fullmatch('[a-f0-9]{64}', source['sha256']) is not None
+         and (original_file is None or source == original_file), 'OUTPUT_REFUSED')
+    if original_file is not None:
+        need(type(original_file) is dict and set(original_file) == set(source)
+             and all(type(original_file[key]) is type(source[key])
+                     for key in source), 'OUTPUT_REFUSED')
+    count, events = value['matches'], value['events']
+    if value['status'] == 'REFUSED':
+        need(count is None and not events and not value['truncated'], 'OUTPUT_REFUSED')
+    else:
+        need(type(count) is int and 0 <= count <= 10000
+             and (value['status'] == 'EMPTY') == (count == 0)
+             and len(events) == min(count, 4)
+             and value['truncated'] == (count > 4), 'OUTPUT_REFUSED')
+        expected = list(range(1, count + 1)) if count <= 4 else [1, 2, count - 1, count]
+        for item, ordinal in zip(events, expected):
+            need(type(item) is dict and set(item) == {'ordinal', 'timestamp', 'height'}
+                 and type(item['ordinal']) is int and item['ordinal'] == ordinal
+                 and all(type(item[key]) is int and 0 < item[key] < 2**63
+                         for key in ('timestamp', 'height')), 'OUTPUT_REFUSED')
+    return dict(value, source=dict(source), events=[dict(item) for item in events])
 
 
 def child_environment(root, parent):

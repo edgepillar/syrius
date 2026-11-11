@@ -2021,3 +2021,19 @@ Source683 records the result in documentation only. The test and implementation
 bytes retain their Source682 qualification and source pins. All earlier failures,
 the independent Home frame refusal, original 72/80, zero accepted whole-image
 matches and all eight deferred acceptance gates remain open.
+
+## Source684 bounded closed-log timing facts
+
+The native collector can now retain bounded event times/heights and the original
+error-file digest after node exit. The reader validates that file binding and
+emits separate notices linked to the same original parent. Raw messages and
+block identities stay private. No progress, frame, publication or shutdown gate
+changes, and absent legacy facts cannot be invented.
+
+Eight new tests and 92 focused memory controls pass. The current Python
+registration is 1,213; a complete current suite and actual native timing
+collection remain unqualified. Hosted reader validation is pending. The
+Source682 Dart/financial/UI implementation is unchanged. See the
+[source grammar and bounds](../../tools/devnet/lab/README.md#closed-momentum-error-log-observations).
+The existing first-delivery scope remains available for Draft review. Original
+Token and Home failures, 72/80 and all eight deferred acceptance gates stay open.

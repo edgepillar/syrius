@@ -3547,3 +3547,20 @@ Source683 records the result in documentation only. The test and implementation
 bytes retain their Source682 qualification and source pins. All earlier failures,
 the independent Home frame refusal, original 72/80, zero accepted whole-image
 matches and all eight deferred acceptance gates remain open.
+
+## Source684 closed node momentum timing
+
+Source684 adds an optional observation to the existing closed native error-log
+read. It retains bounded occurrence times and heights, the same file digest and
+first/last records. Raw block identities and log text are omitted. The independent
+reader validates the original error-file binding and emits separate parent-bound
+notices. Existing report absence, oversized-parent refusal, original outcomes
+and all progress/frame gates retain their behavior.
+
+Eight new memory cases join 92 passing focused controls. Python registration
+becomes 1,213; the current full suite is unexecuted. The Dart/financial/UI bytes
+and their Source682 evidence remain unchanged. Fresh hosted reader validation
+and actual native timing collection are pending. See the
+[source grammar and limits](tools/devnet/lab/README.md#closed-momentum-error-log-observations).
+Source682's original Token refusal and its unknown cause, the separate Home
+frame refusal, 72/80 and all eight deferred acceptance gates remain open.
