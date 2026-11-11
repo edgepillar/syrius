@@ -10,6 +10,10 @@ const String readonlySendWarningSyncCommand = 'readonly-send-warning-sync';
 /// Probes one visible gate through the original readonly pointer path.
 const String readonlySeamPointerCommand = 'readonly-seam-pointer';
 
+/// Observes the original Message gate on an existing history block preview.
+const String readonlyActivityMessageSeamCommand =
+    'readonly-activity-message-seam';
+
 /// A native command cannot establish its original readonly SDK admission.
 class ReadonlyNativeCommandRefused implements Exception {
   /// The refused command supplies no successful native observation.
@@ -61,6 +65,7 @@ class ReadonlyNativeCommands {
     readonlyHomeZapPreviewCommand,
     readonlySendWarningSyncCommand,
     readonlySeamPointerCommand,
+    readonlyActivityMessageSeamCommand,
   };
 
   final bool Function() _isBooted;
@@ -141,6 +146,7 @@ class ReadonlyNativeCommands {
     }
     if (name is! String || !_allowed.contains(name) ||
         (name == readonlyHomeZapPreviewCommand ||
+            name == readonlyActivityMessageSeamCommand ||
             name == readonlySendWarningSyncCommand) &&
             (_wallet == null || retained.length != 1)) {
       throw const ReadonlyNativeCommandRefused();
@@ -171,6 +177,12 @@ class ReadonlyNativeCommands {
       _held = true;
       rethrow;
     }
+  }
+
+  /// Keeps the original sealed wallet across an internal native observation.
+  void requireCurrentWallet() {
+    if (_wallet == null) _refuse();
+    _requireReady();
   }
 
   void _requireReady() {

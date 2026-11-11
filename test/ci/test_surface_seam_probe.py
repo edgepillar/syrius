@@ -228,5 +228,85 @@ class SurfaceSeamProbeTests(unittest.TestCase):
             and command['seam'] == 'tokenExplorer' for command in original.calls))
 
 
+class ActivityMessageSeamProbeTests(unittest.TestCase):
+    @staticmethod
+    def receipt(theme):
+        return dict(schema=1,
+            scope='readonly_native_activity_message_seam_observation',
+            seam='zapReceive', theme=theme, pointerDispatched=True,
+            absorptionObserved=True, originalHistoryRetained=True,
+            previewOnly=True)
+
+    def test_existing_history_preview_is_explicit_and_checked_in_both_themes(self):
+        calls, observed = [], []
+        theme = 'light'
+
+        def send(command):
+            nonlocal theme
+            calls.append(command.copy())
+            if command['cmd'] == 'theme':
+                theme = command.get('mode', command.get('restore', {}).get('mode', theme))
+                return dict(mode=theme)
+            self.assertEqual(command, dict(cmd='readonly-activity-message-seam'))
+            return dict(self.receipt(theme), private='private response detail')
+
+        inspect.observe_activity_message_seams(send, observed, require_home=lambda: None)
+        self.assertEqual(observed, [dict(panel='activity-preview', seam='zapReceive',
+            theme=value, preview_only=True) for value in ('dark', 'light')])
+        self.assertEqual(theme, 'light')
+        self.assertEqual(sum(v['cmd'] == 'readonly-activity-message-seam' for v in calls), 2)
+        self.assertTrue(all(v['cmd'] in ('theme', 'readonly-activity-message-seam') for v in calls))
+        self.assertNotIn('private response detail', str(observed))
+
+    def test_unknown_or_refused_preview_cannot_record_a_pointer_observation(self):
+        for key, value in [('schema', True), ('schema', 2), ('scope', 'foreign'),
+            ('seam', 'zapSend'), ('theme', 'light'), ('pointerDispatched', False),
+            ('absorptionObserved', False), ('originalHistoryRetained', False),
+            ('previewOnly', False)]:
+            calls, observed = [], []
+
+            def send(command):
+                calls.append(command.copy())
+                if command['cmd'] == 'theme':
+                    return dict(mode='dark')
+                result = self.receipt('dark')
+                result[key] = value
+                return result
+
+            with self.subTest(key=key, value=value), self.assertRaises(inspect.Refused):
+                inspect.observe_activity_message_seams(send, observed, require_home=lambda: None)
+            self.assertEqual(observed, [])
+            self.assertEqual(sum(v['cmd'] == 'readonly-activity-message-seam' for v in calls), 1)
+            self.assertFalse(any('restore' in v for v in calls))
+
+    def test_owner_loss_and_original_exchange_error_stop_without_retry(self):
+        for exchange_error in (False, True):
+            calls, observed = [], []
+            current = True
+            original = ValueError('private original failure')
+
+            def require_home():
+                inspect.need(current, 'ENTRY_REFUSED')
+
+            def send(command):
+                nonlocal current
+                calls.append(command.copy())
+                if command['cmd'] == 'theme':
+                    return dict(mode='dark')
+                if exchange_error:
+                    raise original
+                current = False
+                return self.receipt('dark')
+
+            kind = ValueError if exchange_error else inspect.Refused
+            with self.subTest(exchange_error=exchange_error), self.assertRaises(kind) as caught:
+                inspect.observe_activity_message_seams(send, observed, require_home=require_home)
+            if exchange_error:
+                self.assertIs(caught.exception, original)
+            self.assertEqual(observed, [])
+            self.assertEqual(sum(v['cmd'] == 'readonly-activity-message-seam' for v in calls), 1)
+            self.assertFalse(any('restore' in v for v in calls))
+
+
 if __name__ == '__main__':
     unittest.main()

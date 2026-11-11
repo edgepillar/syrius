@@ -3125,3 +3125,30 @@ is transferred. Source666 refreshes documentation only, including the current
 94 available literal outputs, 50 viewed pairs and 44 awaiting review. Original
 72/80 acceptance, zero accepted whole-image matches and all eight open gates
 remain unchanged.
+
+## Source667 Activity Message seam preparation
+
+The read-only Home pilot now prepares the original Message control using one
+existing block from the opened Home's original history source. A harness-only
+route supplies explicit `ActivityZapPreview` metadata to the original
+`ActivityRow`. The block's identity and complete snapshot, history source,
+selected wallet, root, navigator and routes remain guarded throughout the
+original pointer dispatch and normal preview closure. The preview is held after
+source or data loss. It creates no history block and makes no SDK request.
+
+Both themes require actual absorption by the original `zapReceive` gate and
+retention of the original history. The fixed receipt labels this as a preview;
+live Zap receipt remains unqualified. The Home pilot retains its original two
+controls and palette refusal, adding these two Message observations for five
+required observations. The ordinary application files and financial actions are
+unchanged. The independent reader pins the added source files and their checkout
+coverage.
+
+All 201 selected memory controls pass with zero external effects. The first
+local runner's refused source reads and missing test-helper import are preserved;
+the corrected runner preloads exact source inputs before its effect guards.
+Six new Dart cases and three Python cases prepare hosted totals of 1,417 and
+1,185 respectively. Fresh Dart analysis, Dart execution, native observations
+and retained-reader qualification remain pending. Source665's original Send
+failure, the unreached Swap warning, all eight open gates and original 72/80
+acceptance retain their scope.

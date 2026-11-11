@@ -88,6 +88,7 @@ import '../seed/seed_recipe.dart' show requireSeedTokenPreparation;
 import '../seed_preparation_failure.dart';
 import '../wallet_address_context.dart';
 import '../wallet_recipe_failure.dart' show walletRecipeFailureCodes;
+import 'activity_message_seam_binding.dart';
 import 'capture_frame.dart';
 import 'capture_protocol.dart' show CaptureRefused;
 import 'client_window.dart';
@@ -502,6 +503,8 @@ class HarnessAgent {
   bool _seededSurfaceSeamOwnerAttempted = false;
   ReadonlyNativeCommands? _readonlyNative;
   bool _readonlySendSyncReserved = false;
+  final Set<String> _activityMessageSeamThemes = <String>{};
+  bool _activityMessageSeamHeld = false;
   StatefulElement? _lockViewOwner;
   bool _lockViewBound = false;
   bool _lockViewRetired = false;
@@ -769,6 +772,44 @@ class HarnessAgent {
     }
     if (command['cmd'] == readonlySendWarningSyncCommand) {
       return _observeReadonlySendSync();
+    }
+    if (command['cmd'] == readonlyActivityMessageSeamCommand) {
+      _requireCaptureFrameIdle();
+      final ReadonlyNativeCommands? native = _readonlyNative;
+      final BuildContext? context = app.globalNavigatorKey.currentContext;
+      if (native == null || context == null || command.length != 1 ||
+          _activityMessageSeamHeld || kCurrentPage != Tabs.dashboard) {
+        throw const ReadonlyNativeCommandRefused();
+      }
+      final String theme = Theme.of(context).brightness.name;
+      if (!_activityMessageSeamThemes.add(theme)) {
+        _activityMessageSeamHeld = true;
+        throw const ReadonlyNativeCommandRefused();
+      }
+      try {
+        await observeActivityMessageSeam(
+          requireWallet: native.requireCurrentWallet,
+          settle: () async { await _settle(); },
+          observe: (String key, VoidCallback current) =>
+              _observeSeamPointer(Seam.zapReceive, key,
+                requireOwner: current),
+          tap: (String key, VoidCallback current) async {
+            await _tap(<String, dynamic>{
+              'key': key, 'kind': 'button', 'exact': true,
+            }, requireAdmission: current);
+          },
+        );
+        return <String, Object?>{
+          'schema': 1,
+          'scope': 'readonly_native_activity_message_seam_observation',
+          'seam': 'zapReceive', 'theme': theme,
+          'pointerDispatched': true, 'absorptionObserved': true,
+          'originalHistoryRetained': true, 'previewOnly': true,
+        };
+      } on Object {
+        _activityMessageSeamHeld = true;
+        rethrow;
+      }
     }
     if (command['cmd'] == readonlyHomeZapPreviewCommand) {
       _requireCaptureFrameIdle();

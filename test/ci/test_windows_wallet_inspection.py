@@ -345,10 +345,11 @@ class InspectionTests(unittest.TestCase):
         for changed_route in (False, True):
             with self.subTest(changed_route=changed_route):
                 route = 'original-home'
+                theme = 'dark'
                 inputs, observed = [], []
 
                 def send(command):
-                    nonlocal route
+                    nonlocal route, theme
                     inputs.append(command)
                     name = command['cmd']
                     if name == 'state':
@@ -370,6 +371,15 @@ class InspectionTests(unittest.TestCase):
                             route = 'original-home'
                     if name == 'type':
                         return dict(value=command['value'])
+                    if name == 'theme':
+                        theme = command.get('mode', command.get('restore', {}).get('mode', theme))
+                        return dict(mode=theme)
+                    if name == 'readonly-activity-message-seam':
+                        return dict(schema=1,
+                            scope='readonly_native_activity_message_seam_observation',
+                            seam='zapReceive', theme=theme, pointerDispatched=True,
+                            absorptionObserved=True, originalHistoryRetained=True,
+                            previewOnly=True)
                     if name == 'readonly-seam-pointer':
                         return dict(scope='readonly_native_seam_pointer_observation',
                             seam=command['seam'], pointerDispatched=True,
@@ -390,6 +400,8 @@ class InspectionTests(unittest.TestCase):
                 if not changed_route:
                     expected.append(dict(panel='go-to', seam='zapSend',
                                          keyboard_refused=True))
+                    expected.extend(dict(panel='activity-preview', seam='zapReceive',
+                        theme=value, preview_only=True) for value in ('dark', 'light'))
                 self.assertEqual(observed, expected)
                 chords = [v['key'] for v in inputs if v['cmd'] == 'key']
                 self.assertEqual(chords, ['ctrl+k', 'down', 'enter']

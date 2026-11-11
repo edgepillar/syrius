@@ -1105,6 +1105,8 @@ jobs:
             lib/seams
             lib/rearchitecture/features/pillars/view
             lib/rearchitecture/features/tokens
+            lib/rearchitecture/features/latest_transactions
+            lib/rearchitecture/utils/blocs/infinite_list
             lib/rearchitecture/utils/widgets
             lib/widgets/shell/strip
             lib/widgets/modular_widgets/p2p_swap_widgets/modals

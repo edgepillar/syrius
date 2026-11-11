@@ -991,7 +991,32 @@ def observe_home_seam_pointers(send, observed):
     send(dict(cmd='wait', key='go_to_field', gone=True, timeoutMs=5000))
     send(dict(cmd='wait', key='home_hero', timeoutMs=5000))
     need(current() == home_route, 'ENTRY_REFUSED')
+    observe_activity_message_seams(send, observed,
+        require_home=lambda: need(current() == home_route, 'ENTRY_REFUSED'))
     require_seam_clean_logs(send)
+
+
+def observe_activity_message_seams(send, observed, *, require_home):
+    """Use explicit previews of existing history, never a synthetic Zap receipt."""
+    require_home()
+    original_theme = send(dict(cmd='theme'))
+    require_home()
+    for theme in ('dark', 'light'):
+        send(dict(cmd='theme', mode=theme))
+        require_home()
+        result = send(dict(cmd='readonly-activity-message-seam'))
+        need(type(result) is dict and type(result.get('schema')) is int
+             and result['schema'] == 1
+             and result.get('scope') == 'readonly_native_activity_message_seam_observation'
+             and result.get('seam') == 'zapReceive' and result.get('theme') == theme
+             and all(result.get(key) is True for key in ('pointerDispatched',
+                 'absorptionObserved', 'originalHistoryRetained', 'previewOnly')),
+             'ENTRY_REFUSED')
+        require_home()
+        observed.append(dict(panel='activity-preview', seam='zapReceive',
+                             theme=theme, preview_only=True))
+    send(dict(cmd='theme', restore=original_theme))
+    require_home()
 
 
 SURFACE_SEAMS = ('walletUpdateNotice', 'tokenExplorer', 'pillarAprEstimate', 'swapTerms')
@@ -1137,7 +1162,7 @@ SEAM_PILOTS = {
     SETTINGS_SEAMS_FAMILY: ('settings', observe_settings_seam_pointers,
         sum(len(targets) for _, _, targets in SETTINGS_SEAM_PANELS)),
     HOME_SEAMS_FAMILY: ('home', observe_home_seam_pointers,
-        len(HOME_SEAM_CONTROLS) + 1),
+        len(HOME_SEAM_CONTROLS) + 3),
 }
 
 

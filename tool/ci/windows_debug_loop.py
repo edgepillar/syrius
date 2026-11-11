@@ -605,6 +605,8 @@ def analyze(parent, repo):
         'harness/app/readonly_sdk_binding.dart',
         'test/harness/readonly_sdk_binding_test.dart',
         'harness/app/readonly_native_commands.dart',
+        'harness/app/activity_message_seam_binding.dart',
+        'harness/app/fixtures/activity_message_preview.dart',
         'harness/app/fixtures/home_zap_preview.dart',
         'harness/app/logical_capture.dart',
         'harness/app/readonly_shot_layout.dart',

@@ -1,11 +1,15 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/latest_transactions/model/activity_entry.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/original_publications.dart';
+import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+import '../../harness/app/fixtures/activity_message_preview.dart';
 import '../../harness/app/readonly_native_commands.dart';
 import '../../harness/app/readonly_sdk_admission.dart';
 import '../../harness/app/readonly_wallet_admission.dart';
+import '../latest_transactions/activity_fixtures.dart';
 
 class _Lane {
   _Lane({Future<ReadonlyWalletAdmission> Function()? bindWallet}) {
@@ -51,6 +55,132 @@ class _Lane {
 }
 
 void main() {
+  test('activity preview retains one existing block without a Zap receipt', () {
+    final Object source = Object();
+    final AccountBlock block = activityBlock(chainId: 321);
+    final ActivityMessagePreview preview = ActivityMessagePreview.capture(
+      source: source, readSource: () => source,
+      readBlocks: () => <AccountBlock>[block], requireOwner: () {},
+      owner: block.address.toString(),
+    )..requireCurrent();
+    expect(preview.entry.hash, block.hash.toString());
+    expect(preview.entry.owner, block.address.toString());
+    expect(preview.entry.amount, block.amount);
+    expect(preview.entry.kind, ActivityKind.zap);
+    expect(preview.entry.hasMessage, isTrue);
+    expect(ActivityEntry.fromBlock(block).kind, ActivityKind.sent);
+  });
+
+  test('activity preview refuses missing foreign and duplicate history', () {
+    final Object source = Object();
+    final AccountBlock block = activityBlock(chainId: 321);
+    for (final List<AccountBlock> blocks in <List<AccountBlock>>[
+      <AccountBlock>[],
+      <AccountBlock>[activityBlock()],
+      <AccountBlock>[activityBlock(chainId: 321, address: pillarAddress)],
+      <AccountBlock>[activityBlock(chainId: 321, hash: emptyHash.toString())],
+      <AccountBlock>[block, block],
+    ]) {
+      expect(() => ActivityMessagePreview.capture(
+        source: source, readSource: () => source, readBlocks: () => blocks,
+        requireOwner: () {}, owner: block.address.toString(),
+      ), throwsA(isA<ActivityMessagePreviewRefused>()));
+    }
+  });
+
+  test('activity preview holds source and original history changes', () {
+    for (final String fault in <String>[
+      'source', 'removed', 'replacement', 'mutation',
+    ]) {
+      final Object source = Object();
+      Object currentSource = source;
+      final AccountBlock block = activityBlock(chainId: 321);
+      final BigInt amount = block.amount;
+      List<AccountBlock> blocks = <AccountBlock>[block];
+      final ActivityMessagePreview preview = ActivityMessagePreview.capture(
+        source: source, readSource: () => currentSource,
+        readBlocks: () => blocks, requireOwner: () {},
+        owner: block.address.toString(),
+      );
+      switch (fault) {
+        case 'source': currentSource = Object();
+        case 'removed': blocks = <AccountBlock>[];
+        case 'replacement':
+          blocks = <AccountBlock>[activityBlock(chainId: 321)];
+        case 'mutation': block.amount += BigInt.one;
+      }
+      expect(preview.requireCurrent,
+          throwsA(isA<ActivityMessagePreviewRefused>()));
+      currentSource = source;
+      blocks = <AccountBlock>[block];
+      block.amount = amount;
+      expect(preview.requireCurrent,
+          throwsA(isA<ActivityMessagePreviewRefused>()));
+    }
+  });
+
+  test('activity preview preserves the original owner refusal and stays held',
+      () {
+    final Object source = Object();
+    final AccountBlock block = activityBlock(chainId: 321);
+    bool current = true;
+    final StateError original = StateError('private owner diagnostic');
+    final ActivityMessagePreview preview = ActivityMessagePreview.capture(
+      source: source, readSource: () => source,
+      readBlocks: () => <AccountBlock>[block],
+      requireOwner: () { if (!current) throw original; },
+      owner: block.address.toString(),
+    );
+    current = false;
+    expect(preview.requireCurrent, throwsA(same(original)));
+    current = true;
+    expect(preview.requireCurrent,
+        throwsA(isA<ActivityMessagePreviewRefused>()));
+  });
+
+  test('internal preview checks retain the sealed original wallet', () async {
+    final _Lane unbound = _Lane();
+    await unbound.open();
+    expect(unbound.commands.requireCurrentWallet,
+        throwsA(isA<ReadonlyNativeCommandRefused>()));
+    bool current = true;
+    final _Lane lane = _Lane(bindWallet: () => ReadonlyWalletAdmission.seal(
+      ownersCurrent: () => current, observeFrame: () async {},
+    ));
+    await lane.open();
+    await lane.commands.run(<String, dynamic>{'cmd': 'readonly-wallet-bind'});
+    lane.commands.requireCurrentWallet();
+    expect(lane.calls, 0);
+    current = false;
+    expect(lane.commands.requireCurrentWallet,
+        throwsA(isA<ReadonlyWalletAdmissionRefused>()));
+    current = true;
+    expect(lane.commands.requireCurrentWallet,
+        throwsA(isA<ReadonlyNativeCommandRefused>()));
+  });
+
+  test('activity Message observation admits only a bound parameterless call',
+      () async {
+    final _Lane lane = _Lane(bindWallet: () => ReadonlyWalletAdmission.seal(
+      ownersCurrent: () => true, observeFrame: () async {},
+    ));
+    await lane.open();
+    await expectLater(lane.commands.run(<String, dynamic>{
+      'cmd': readonlyActivityMessageSeamCommand,
+    }), throwsA(isA<ReadonlyNativeCommandRefused>()));
+    await lane.commands.run(<String, dynamic>{'cmd': 'readonly-wallet-bind'});
+    await expectLater(lane.commands.run(<String, dynamic>{
+      'cmd': readonlyActivityMessageSeamCommand, 'private': Object(),
+    }), throwsA(isA<ReadonlyNativeCommandRefused>()));
+    expect(lane.calls, 0);
+    final Map<String, Object?> result = await lane.commands.run(
+      <String, dynamic>{'cmd': readonlyActivityMessageSeamCommand},
+    );
+    expect(result['original'], isTrue);
+    expect(result['readOnly'], isTrue);
+    expect(lane.calls, 1);
+  });
+
   test('pending startup exposes no private action or SDK receipt', () async {
     final _Lane lane = _Lane();
     final Map<String, Object?> pending =

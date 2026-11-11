@@ -1,7 +1,8 @@
 import 'dart:convert';
 
 import '../app/readonly_native_commands.dart'
-    show readonlyHomeZapPreviewCommand, readonlySeamPointerCommand,
+    show readonlyActivityMessageSeamCommand, readonlyHomeZapPreviewCommand,
+        readonlySeamPointerCommand,
         readonlySendWarningSyncCommand;
 import '../app/readonly_native_mode.dart';
 import 'screen_capture.dart';
@@ -47,6 +48,7 @@ class ReadonlyInspectionSession {
     readonlyHomeZapPreviewCommand,
     readonlySendWarningSyncCommand,
     readonlySeamPointerCommand,
+    readonlyActivityMessageSeamCommand,
   };
 
   /// The same native process must answer every subsequent original command.
@@ -77,6 +79,7 @@ class ReadonlyInspectionSession {
       if ((!_commands.contains(name) &&
               !(name == 'readonly-wallet-bind' && _binding)) ||
           (name == readonlyHomeZapPreviewCommand ||
+              name == readonlyActivityMessageSeamCommand ||
               name == readonlySendWarningSyncCommand) &&
               (!_walletBound || command.length != 1)) {
         _refuse(ReadonlyInspectionReason.command);

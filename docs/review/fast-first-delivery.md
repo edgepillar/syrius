@@ -1588,3 +1588,23 @@ transfer. Source666 updates documentation only; runtime qualification stays boun
 to Source665. All 94 literal outputs are available, 50 pairs have been viewed and
 44 await review. Original 72/80 acceptance and zero accepted whole-image matches
 remain unchanged.
+
+## Source667 Activity Message seam preparation
+
+The Home pilot adds two theme-bound observations of the original Message gate.
+The harness presents `ActivityRow` with explicit preview metadata for one block
+already present in the original Home history. Source identity, the exact block
+snapshot, wallet, root, navigator and routes remain current across pointer input
+and preview closure. Lost source or history permanently holds the preview.
+The receipt identifies the preview's Message gate; live Zap receipt remains
+open. Ordinary application files and financial actions are unchanged.
+
+The two original Home controls and palette refusal remain required, for five
+observations in total. The independent reader's source pins and sparse checkout
+cover the fixture and original Activity widgets. All 201 local memory controls
+pass with zero external effects after the runner's source preload and test-path
+correction; its initial failure is preserved. Six new Dart and three new Python
+cases prepare 1,417 and 1,185 hosted cases. Fresh Dart analysis/execution, native
+pointer observations and independent retained-reader qualification are pending.
+Source665's original failure and unreached Swap path, original 72/80 acceptance,
+zero accepted whole-image matches and all eight deferred gates remain open.
