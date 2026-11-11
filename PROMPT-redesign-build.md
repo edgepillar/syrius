@@ -3477,3 +3477,27 @@ selected total becomes 1,460 cases in the same 108 files and 54/54 groups.
 Fresh hosted qualification and connection to the native holder probe are
 pending. The earlier frame refusal, all eight original acceptance gates,
 72/80 and zero accepted whole-image matches remain open.
+
+## Source681 original holder native integration
+The [Source680 run](https://github.com/edgepillar/syrius/actions/runs/43096955172)
+ends with GitHub `startup_failure`: zero jobs start and zero artifacts exist.
+Its 234 local in-memory controls passed, but hosted analysis and the 1,460 Dart
+cases did not execute. The original dispatch is not retried, and the underlying
+startup cause remains `NOT_ESTABLISHED`.
+
+Source681 connects the retained holder scope to the copied native catalog.
+After the original four captures, the confirmed Token publication retires once;
+one normal Settings selection chooses the existing third member. The same
+wallet, SDK, transports, open Boxes and native owner must remain current.
+The actual mounted holder's successful proof and private publisher gate Explorer
+in both themes before the existing Update, APR and Swap observations. No extra
+address derivation, transfer, publication or replacement proof is introduced.
+
+A schema-two four-gate receipt adds closed selection facts to all eight original
+pointer observations and the same seed-receipt digest. Legacy schema-one and
+six-observation owner-only scopes remain distinct. Application, entry and all
+five node closure checks remain required. Seven new Dart cases and five Python
+cases prepare totals of 1,467 Dart and 1,205 controller cases; hosted execution
+and independent archive qualification remain pending. The separate Home frame
+refusal, all eight original acceptance gates, 72/80 and zero accepted whole-image
+matches retain their scope.

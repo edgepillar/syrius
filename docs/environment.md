@@ -73,6 +73,23 @@ hosted qualification remain pending; no new financial operation or local SDK
 execution is introduced. Original 72/80 and every earlier failure retain their
 scope.
 
+The [Source680 run](https://github.com/edgepillar/syrius/actions/runs/43096955172)
+ends with GitHub `startup_failure`, zero started jobs and zero artifacts. Its
+234 local in-memory controls passed; hosted analysis and Dart did not execute.
+The original dispatch is not repeated. The inner cause is `NOT_ESTABLISHED`.
+
+Source681 connects the retained scope to the native copied catalog: the original
+confirmed Token admission retires once, then normal Settings selects the existing
+third member. Exact resources and the mounted holder's actual private publisher
+and successful proof remain mandatory. Both Explorer themes precede the existing
+six owner-page pointer observations. A schema-two receipt binds one committed
+selection and all eight pointers to the original seed digest, with unchanged
+required actor/node closure. Legacy full and owner-only scopes stay separate.
+Seven new Dart and five Python cases prepare totals of 1,467 and 1,205. Hosted
+and independent archive qualification remain pending; no new derivation, transfer,
+publication, local SDK execution or artifact transfer is introduced. All earlier
+failures, 72/80 and zero accepted whole-image matches remain open.
+
 ## Retained qualification status (2026-11-05)
 
 The [qualified Source492 Activity result](review/source489-activity-reference-spacing.md#actual-source492-focused-result)

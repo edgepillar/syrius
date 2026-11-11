@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -9,6 +10,68 @@ import '../../harness/bin/screen_capture.dart';
 import '../../harness/bin/wallet_recipe.dart';
 import '../../harness/lock_view_observation.dart';
 import '../../harness/seed/restored_seed_workflow.dart';
+import '../../harness/wallet_address_context.dart';
+
+WalletAddressContext _preparedHolderContext({
+  List<String> members = const <String>['first', 'issuer', 'holder'],
+  String selected = 'issuer',
+  String saved = 'issuer',
+  int revision = 20,
+  int owner = 1,
+}) => WalletAddressContext.parse(<String, dynamic>{
+  'members': members, 'selected': selected, 'saved': saved,
+  'revision': revision, 'owner': owner,
+});
+
+class _HolderPreparation {
+  final WalletAddressContext original = _preparedHolderContext();
+  late WalletAddressContext current = original;
+  bool alive = true;
+  bool earlyReceipt = false;
+  int selections = 0;
+  final List<Map<String, Object?>> commands = <Map<String, Object?>>[];
+  Map<String, dynamic> retirementReply = <String, dynamic>{
+    'ok': true, 'retired': true,
+  };
+  Object? selectionReply = Map<String, Object>.from(
+    entry.preparedTokenHolderSelection,
+  );
+  Future<WalletAddressContext> Function(
+    WalletAddressContext, Future<void> Function(),
+  )? selectOriginal;
+
+  Future<entry.PreparedTokenHolder> prepare() => entry.prepareSeededTokenHolder(
+    hash: List<String>.filled(64, 'a').join(), original: original,
+    parentAlive: () => alive, readContext: () async => current,
+    request: (Map<String, Object?> command) async {
+      commands.add(Map<String, Object?>.from(command));
+      if (command['action'] == 'retire-token') return retirementReply;
+      expect(command['action'], 'holder-current');
+      return <String, dynamic>{
+        'ok': true, 'current': true, 'publicationRetired': true,
+        if (command['selected'] == true || earlyReceipt)
+          'selection': selectionReply,
+      };
+    },
+    select: (WalletAddressContext owner, Future<void> Function() transition)
+        async {
+      selections++;
+      final Future<WalletAddressContext> Function(
+        WalletAddressContext, Future<void> Function(),
+      )? action = selectOriginal;
+      if (action != null) return action(owner, transition);
+      expect(owner, same(original));
+      await transition();
+      current = _preparedHolderContext(saved: 'holder');
+      await transition();
+      current = _preparedHolderContext(
+        selected: 'holder', saved: 'holder', revision: 21,
+      );
+      await transition();
+      return current;
+    },
+  );
+}
 
 class _Unformattable implements Exception {
   @override
@@ -124,6 +187,115 @@ Map<String, dynamic> _view({
 };
 
 void main() {
+  test('prepared holder retires once and selects only one existing member',
+      () async {
+    final _HolderPreparation driver = _HolderPreparation();
+    final entry.PreparedTokenHolder holder = await driver.prepare();
+    expect(holder.selected, same(driver.current));
+    expect(holder.selected.selectedFrom(driver.original, 2), isTrue);
+    await holder.requireCurrent();
+    expect(driver.selections, 1);
+    expect(driver.commands.where((Map<String, Object?> command) =>
+      command['action'] == 'retire-token'), hasLength(1));
+    expect(driver.commands.every((Map<String, Object?> command) =>
+      command['cmd'] == 'seed' &&
+      <String>{'retire-token', 'holder-current'}.contains(command['action'])),
+      isTrue);
+    expect(holder.selection, entry.preparedTokenHolderSelection);
+    expect(() => holder.selection['members'] = 4, throwsUnsupportedError);
+    expect(jsonEncode(holder.selection), isNot(contains('issuer')));
+    expect(jsonEncode(holder.selection), isNot(contains('aaaa')));
+  });
+
+  test('prepared holder cannot recover after context or parent replacement',
+      () async {
+    for (final String lost in <String>[
+      'parent', 'owner', 'revision', 'members', 'original',
+    ]) {
+      final _HolderPreparation driver = _HolderPreparation();
+      final entry.PreparedTokenHolder holder = await driver.prepare();
+      switch (lost) {
+        case 'parent': driver.alive = false;
+        case 'owner': driver.current = _preparedHolderContext(
+          selected: 'holder', saved: 'holder', revision: 21, owner: 2,
+        );
+        case 'revision': driver.current = _preparedHolderContext(
+          selected: 'holder', saved: 'holder', revision: 22,
+        );
+        case 'members': driver.current = _preparedHolderContext(
+          members: <String>['issuer', 'first', 'holder'],
+          selected: 'holder', saved: 'holder', revision: 21,
+        );
+        case 'original': driver.current = driver.original;
+      }
+      await expectLater(holder.requireCurrent(), throwsFormatException);
+      driver.alive = true;
+      driver.current = holder.selected;
+      await expectLater(holder.requireCurrent(), throwsFormatException);
+      expect(driver.selections, 1);
+    }
+  });
+
+  test('prepared holder refuses unknown retirement and coerced selection facts',
+      () async {
+    for (final Object? receipt in <Object?>[
+      null, true, <String, Object>{},
+      <String, Object>{...entry.preparedTokenHolderSelection, 'members': true},
+      <String, Object>{...entry.preparedTokenHolderSelection, 'persisted': 1},
+      <String, Object>{...entry.preparedTokenHolderSelection, 'private': true},
+    ]) {
+      final _HolderPreparation driver = _HolderPreparation()
+        ..selectionReply = receipt;
+      await expectLater(driver.prepare(), throwsFormatException);
+      expect(driver.selections, 1);
+    }
+    for (final Map<String, dynamic> reply in <Map<String, dynamic>>[
+      <String, dynamic>{'ok': true},
+      <String, dynamic>{'ok': true, 'retired': 1},
+      <String, dynamic>{'ok': false, 'retired': true},
+    ]) {
+      final _HolderPreparation driver = _HolderPreparation()
+        ..retirementReply = reply;
+      await expectLater(driver.prepare(), throwsFormatException);
+      expect(driver.selections, 0);
+      expect(driver.commands, hasLength(1));
+    }
+    final _HolderPreparation early = _HolderPreparation()..earlyReceipt = true;
+    await expectLater(early.prepare(), throwsFormatException);
+    expect(early.selections, 0);
+  });
+
+  test('late selected context cannot rearm a held preparation', () async {
+    final _HolderPreparation driver = _HolderPreparation();
+    final Completer<void> selecting = Completer<void>();
+    final Completer<WalletAddressContext> selected =
+        Completer<WalletAddressContext>();
+    late Future<void> Function() retainedTransition;
+    driver.selectOriginal = (WalletAddressContext original,
+        Future<void> Function() transition) async {
+      expect(original, same(driver.original));
+      retainedTransition = transition;
+      await transition();
+      selecting.complete();
+      final WalletAddressContext context = await selected.future;
+      await transition();
+      return context;
+    };
+    final Future<entry.PreparedTokenHolder> preparation = driver.prepare();
+    await selecting.future;
+    driver.alive = false;
+    await expectLater(retainedTransition(), throwsFormatException);
+    driver.alive = true;
+    driver.current = _preparedHolderContext(
+      selected: 'holder', saved: 'holder', revision: 21,
+    );
+    final Future<void> refused = expectLater(preparation, throwsFormatException);
+    selected.complete(driver.current);
+    await refused;
+    await expectLater(retainedTransition(), throwsFormatException);
+    expect(driver.selections, 1);
+  });
+
   Map<String, dynamic> openingReply(Map<String, Object?> command, {
     required bool warning,
     required bool draft,
@@ -285,6 +457,9 @@ void main() {
         'cmd': 'seed', 'action': 'surface-seam',
         'seam': 'walletUpdateNotice', 'hash': _Unformattable(),
       },
+      <String, Object?>{
+        'cmd': 'seed', 'action': 'surface-seam', 'seam': 'tokenExplorer',
+      },
     ];
     for (final Map<String, Object?> command in commands) {
       final entry.PreparedSurfaceOperation operation =
@@ -298,6 +473,20 @@ void main() {
       expect(() => snapshot['target'] = 'private', throwsUnsupportedError);
       expect(operation.toJson(), snapshot);
     }
+    for (final String action in <String>['wait', 'tap']) {
+      final Map<String, Object?> row = <String, Object?>{
+        'cmd': action, 'key': 'token_private_row',
+      };
+      final Map<String, Object?> label =
+          entry.PreparedSurfaceOperation.fromCommand(
+            row, theme: 'dark', issuedTokenRowKey: 'token_private_row',
+          ).toJson();
+      expect(label['target'], 'issuedTokenRow');
+      expect(jsonEncode(label), isNot(contains('token_private_row')));
+      expect(() => entry.PreparedSurfaceOperation.fromCommand(
+        row, issuedTokenRowKey: 'another_private_row',
+      ), throwsFormatException);
+    }
   });
 
   test('prepared operation labels reject foreign commands and targets', () {
@@ -306,9 +495,6 @@ void main() {
       <String, Object?>{'cmd': 'tap', 'tab': 'settings'},
       <String, Object?>{'cmd': 'wait', 'key': 'private'},
       <String, Object?>{'cmd': 'key', 'key': 'enter'},
-      <String, Object?>{
-        'cmd': 'seed', 'action': 'surface-seam', 'seam': 'tokenExplorer',
-      },
       <String, Object?>{'cmd': 'theme', 'mode': 'light'},
     ]) {
       expect(

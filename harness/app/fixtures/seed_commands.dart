@@ -45,6 +45,9 @@ final class SeedCommands {
   String? _recipe;
   bool _confirmed = false;
   bool _catalogTokenHolding = false;
+  bool _holderTransitionAttempted = false;
+  bool _holderHeld = false;
+  SeededTokenHolder? _holder;
   final Map<Seam, SeededSurfaceSeam> _surfaceSeams =
       <Seam, SeededSurfaceSeam>{};
   bool _depositEntryAttempted = false;
@@ -71,10 +74,16 @@ final class SeedCommands {
     SeedTokenPresentation Function(int, String)? captureTokenPresentation,
     Future<void> Function(String, Seam, String, void Function())?
         observeSurfaceSeam,
+    SeededTokenHolder Function(
+      String, SeedEnvironment, void Function(), void Function(),
+    )? captureTokenHolder,
     SeedDepositPresentation Function(int, String)? captureDepositPresentation,
   }) async {
     try {
       final String? action = command['action'] as String?;
+      if (_holderTransitionAttempted) {
+        return await _runHolder(command, observeSurfaceSeam);
+      }
       final bool catalogTokenHolding = command['catalogTokenHolding'] == true;
       if (command.containsKey('catalogTokenHolding') &&
           (!catalogTokenHolding ||
@@ -151,6 +160,48 @@ final class SeedCommands {
           labSource?.restoredFunding == true ? labSource : null;
       final SeedFuseTarget? fuseTarget = labSource?.fuseTarget;
       guard.requireCurrent();
+      if (action == 'retire-token') {
+        _holderTransitionAttempted = true;
+        final SeedTokenPresentation? presentation = _tokenPresentation;
+        final String? hash = guard.acceptedHash;
+        if (command.keys.any((String key) =>
+                !const <String>{'cmd', 'action', 'hash'}.contains(key)) ||
+            command.containsKey('cmd') && command['cmd'] != 'seed' ||
+            !_catalogTokenHolding || !_confirmed || recipe != 'token' ||
+            presentation == null || !presentation.closed || hash == null ||
+            command['hash'] != hash || _surfaceSeams.isNotEmpty ||
+            captureTokenHolder == null) {
+          throw const SeedRefused('confirmed-token-retirement-required');
+        }
+        void requireReceipt() {
+          _requireFixtureClear();
+          if (_holderHeld || !_confirmed || _recipe != 'token' ||
+              !_catalogTokenHolding || !identical(_guard, guard) ||
+              guard.acceptedHash != hash ||
+              !identical(_tokenPresentation, presentation) ||
+              !presentation.closed) {
+            throw const SeedRefused('retired-token-original-changed');
+          }
+        }
+        void original() {
+          requireReceipt();
+          guard.requireCurrent();
+        }
+        void retired() {
+          requireReceipt();
+          guard.requireRetiredToken();
+        }
+        original();
+        final SeededTokenHolder holder = captureTokenHolder(
+          hash, source.environment, original, retired,
+        );
+        original();
+        guard.retireConfirmedToken();
+        retired();
+        _holder = holder;
+        holder.requireTransition();
+        return <String, Object?>{'retired': true};
+      }
       if (action == 'check') return <String, Object?>{'current': true};
       if (action == 'surface-seam') {
         final SeedTokenPresentation? presentation = _tokenPresentation;
@@ -399,11 +450,65 @@ final class SeedCommands {
         'hash': hash,
       };
     } on SeedRefused {
+      if (_holderTransitionAttempted) _holderHeld = true;
       rethrow;
     } on Object {
+      if (_holderTransitionAttempted) _holderHeld = true;
       // Do not return wallet paths, transport diagnostics or SDK payloads.
       throw const SeedRefused('seed-prerequisite-or-read-failed');
     }
+  }
+
+  Future<Map<String, Object?>> _runHolder(
+    Map<String, dynamic> command,
+    Future<void> Function(String, Seam, String, void Function())? observe,
+  ) async {
+    final SeededTokenHolder? holder = _holder;
+    final SeedGuard? guard = _guard;
+    if (_holderHeld || holder == null || guard == null || !guard.retired ||
+        command['hash'] != guard.acceptedHash ||
+        command.containsKey('cmd') && command['cmd'] != 'seed') {
+      throw const SeedRefused('seeded-token-holder-held');
+    }
+    if (command['action'] == 'holder-current') {
+      if (command.keys.any((String key) =>
+              !const <String>{'cmd', 'action', 'hash', 'selected'}
+                  .contains(key)) ||
+          command.containsKey('selected') && command['selected'] is! bool) {
+        throw const SeedRefused('seeded-token-holder-held');
+      }
+      holder.requireTransition();
+      return <String, Object?>{
+        'current': true, 'publicationRetired': true,
+        if (command['selected'] == true) 'selection': holder.selectionReceipt,
+      };
+    }
+    final Object? seamName = command['seam'];
+    final Seam? seam = seamName is String
+        ? Seam.values.asNameMap()[seamName] : null;
+    final Object? theme = command['theme'];
+    if (command['action'] != 'surface-seam' ||
+        command.keys.any((String key) =>
+            !const <String>{'cmd', 'action', 'hash', 'seam', 'theme'}
+                .contains(key)) ||
+        seam == null || !seededSurfaceControls.containsKey(seam) ||
+        theme is! String || observe == null) {
+      throw const SeedRefused('seeded-token-holder-held');
+    }
+    void current() {
+      if (_holderHeld || !identical(_holder, holder)) {
+        throw const SeedRefused('seeded-token-holder-held');
+      }
+      _requireFixtureClear();
+      holder.requireSelected();
+    }
+    current();
+    final SeededSurfaceSeam observation =
+        _surfaceSeams[seam] ??= SeededSurfaceSeam(
+      confirmedHash: guard.acceptedHash!, seam: seam,
+      requireCurrent: current, observe: observe,
+    );
+    return observation.observe(theme);
   }
 
   void _requireFixtureClear() {

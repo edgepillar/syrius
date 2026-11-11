@@ -41,7 +41,58 @@ def lock_view_observation():
             password_failures=0, lifecycle='inactive'))
 
 
+def original_wait(namespace):
+    source = ast.parse(Path('tool/ci/restored_wallet_run.py').read_text())
+    run = next(node for node in source.body
+        if isinstance(node, ast.FunctionDef) and node.name == 'run')
+    waits = [node for node in ast.walk(run)
+        if isinstance(node, ast.FunctionDef) and node.name == 'wait']
+    assert len(waits) == 1
+    wrapper = ast.parse('def bind_original_wait():\n'
+        '    holder_selection_observation = None\n'
+        '    def wait(marker): pass\n'
+        '    return wait\n')
+    wrapper.body[0].body[1] = waits[0]
+    exec(compile(ast.fix_missing_locations(wrapper),
+        '<original-restored-wait>', 'exec'), namespace)
+    return namespace['bind_original_wait']()
+
+
 class PolicyTests(unittest.TestCase):
+    def test_holder_scope_keeps_original_catalog_digest_and_required_actor_closure(self):
+        from tool.ci import seeded_surface_seams
+        receipts = dict(schema=1, scope='private_restored_seed_catalog_receipts',
+            chain=321, members=3, selected_index=1, derived_once=True,
+            owner_stable=True, receipts=[dict(recipe=name, hash=f'{i:064x}')
+                for i, name in enumerate(('stake', 'token'), 1)])
+        seeds = restored.seeds.completed(receipts, catalog_capture=True)
+        reference = dict(schema=4, scope='restored_native_seeded_catalog_reference',
+            screens=['staking', 'token-mine'], captured=4, manifest_sha256='d' * 64,
+            seed_receipts_sha256=seeds['receipts_sha256'])
+        seams = seeded_surface_seams.holder_completed([
+            dict(schema=1, scope=seeded_surface_seams.SCOPE, seam=seam,
+                 theme=theme, **seeded_surface_seams.FACTS)
+            for seam, theme in seeded_surface_seams.EXPECTED],
+            seeded_surface_seams.HOLDER_SELECTION, seeds['receipts_sha256'])
+        value = dict(completed(), catalog_prerequisites=seeds,
+                     seeded_catalog=reference, seeded_surface_seams=seams)
+        self.assertEqual(restored.project(value), value)
+        self.assertEqual(value['wallet']['selected_index'], 1)
+        self.assertEqual(value['seeded_surface_seams']['holder_selection']['selectedIndex'], 2)
+        for change in (dict(application_exit=1), dict(entry_exit=1), dict(forced=True),
+                       dict(seeded_catalog=None), dict(originals_closed=False),
+                       dict(seeded_surface_seams=dict(seams, seed_receipts_sha256='e' * 64)),
+                       dict(seeded_surface_seams=dict(seams, holder_selection=None)),
+                       dict(seeded_owner_page_seams=seams)):
+            with self.subTest(change=change), self.assertRaises(restored.checkpoint.Refused):
+                restored.project(dict(value, **change))
+        changed = json.loads(json.dumps(value))
+        changed['nodes'][-1]['forced'] = True
+        with self.assertRaises(restored.checkpoint.Refused):
+            restored.project(changed)
+        with self.assertRaises(restored.checkpoint.Refused):
+            restored.project(dict(completed(), seeded_surface_seams=seams))
+
     def test_owner_page_seams_need_the_original_closed_catalog_and_cannot_borrow_full_scope(self):
         from tool.ci import seeded_surface_seams
         receipts = dict(schema=1, scope='private_restored_seed_catalog_receipts',
@@ -288,12 +339,6 @@ class ReopenDiagnosticTests(unittest.TestCase):
                .get('child_failure', {}).get('prepared_surface_operation') for _, item in frames])
 
     def test_actual_wait_retains_two_journal_prefixes_before_the_child_fails(self):
-        source = ast.parse(Path('tool/ci/restored_wallet_run.py').read_text())
-        run = next(node for node in source.body
-            if isinstance(node, ast.FunctionDef) and node.name == 'run')
-        waits = [node for node in ast.walk(run)
-            if isinstance(node, ast.FunctionDef) and node.name == 'wait']
-        self.assertEqual(len(waits), 1)
         receipts = [dict(recipe=recipe, hash=str(index+1)*64)
                     for index, recipe in enumerate(restored.seeds.IDS)]
         prefixes = [dict(schema=1, scope='private_restored_seed_prefix', chain=321,
@@ -328,11 +373,10 @@ class ReopenDiagnosticTests(unittest.TestCase):
             wallet_observation=restored.wallet_observation, seeds=restored.seeds,
             unchanged=unchanged, copied_home=Home(), snapshot=snapshot,
             record=record, bounded_read=read, hashlib=hashlib, catalog_capture=False)
-        exec(compile(ast.Module(body=waits, type_ignores=[]),
-            '<original-restored-wait>', 'exec'), namespace)
+        wait = original_wait(namespace)
         with mock.patch.object(restored.checkpoint, 'file_identity',
                 return_value=(1, 2, 100)), self.assertRaises(restored.checkpoint.Refused):
-            namespace['wait'](b'CI_SEED_DONE')
+            wait(b'CI_SEED_DONE')
         trace.failure(ValueError('Synthetic later recipe failure'))
         self.assertEqual(record['seed_private_prefix'], prefixes[-1])
         self.assertEqual(len(snapshot), 6)
@@ -340,6 +384,51 @@ class ReopenDiagnosticTests(unittest.TestCase):
         self.assertEqual(trace.snapshot()['seed_prefix']['confirmed'], 2)
         self.assertEqual(trace.snapshot()['child_phase'], 'seed_token')
         self.assertFalse(trace.snapshot()['seed_prefix']['complete'])
+
+    def test_actual_wait_requires_one_selection_before_all_eight_original_pointers(self):
+        seams = restored.seeded_surface_seams
+        catalog = restored.catalog
+        capture = dict(schema=4, scope='restored_native_seeded_catalog_capture',
+            screens=['staking', 'token-mine'], themes=['dark', 'light'],
+            files=['13-staking-dark.png', '13-staking-light.png',
+                   '24-token-mine-dark.png', '24-token-mine-light.png'],
+            width=1280, height=780, scale=1, capture_returned=True)
+        def line(marker, value):
+            return marker + b':' + json.dumps(value).encode() + b'\n'
+        selection = line(b'CI_PREPARED_HOLDER_SELECTION', seams.HOLDER_SELECTION)
+        pointers = [line(b'CI_PREPARED_SURFACE_SEAM', dict(schema=1,
+            scope=seams.SCOPE, seam=seam, theme=theme, **seams.FACTS))
+            for seam, theme in seams.EXPECTED]
+        done = line(b'CI_SEEDED_CAPTURE_DONE', capture)
+        complete = [selection, *pointers, done]
+        for offered in (complete, pointers + [done],
+                        [selection, selection, *pointers, done],
+                        [selection, *reversed(pointers), done],
+                        [selection, *pointers[:-1], done],
+                        [pointers[0], selection, *pointers[1:], done]):
+            record = dict(phase='seeded_capture', catalog_prerequisites=dict(
+                complete=True, receipts_sha256='a' * 64))
+            trace = restored.ReopenDiagnostic()
+            trace.at('seeded_capture')
+            namespace = dict(deadline=1, time=mock.Mock(monotonic=lambda: 0),
+                checkpoint=restored.checkpoint, runtime=mock.Mock(), sample=mock.Mock(),
+                guard=lambda: True, lines=mock.Mock(take=mock.Mock(side_effect=offered)),
+                original=mock.Mock(poll=lambda: None), trace=trace, json=json,
+                capture_schema=4, catalog=catalog, record=record,
+                seed_key='catalog_prerequisites', seeded_surface_seams=seams,
+                surface_seam_observations=[])
+            wait = original_wait(namespace)
+            if offered is complete:
+                self.assertEqual(wait(b'CI_SEEDED_CAPTURE_DONE'), capture)
+                retained = record['seeded_surface_seams']
+                self.assertEqual(retained['schema'], 2)
+                self.assertEqual(retained['holder_selection'], seams.HOLDER_SELECTION)
+                self.assertEqual(len(retained['observations']), 8)
+                self.assertNotIn('seeded_owner_page_seams', record)
+            else:
+                with self.assertRaises(restored.checkpoint.Refused):
+                    wait(b'CI_SEEDED_CAPTURE_DONE')
+                self.assertNotIn('seeded_surface_seams', record)
 
     def seed_prefix(self, count):
         return dict(schema=1, scope='observed_restored_seed_prefix', complete=False,

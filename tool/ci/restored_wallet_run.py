@@ -104,6 +104,10 @@ SEED_REPLY_CODES = frozenset((
     'bounded-seed-wait-required',
     'close-current-fixture-first',
     'confirmed-token-presentation-required',
+    'confirmed-token-retirement-required',
+    'retired-token-original-changed',
+    'seeded-token-holder-held',
+    'seeded-token-holder-original-required',
     'original-deposit-entry-changed',
     'original-deposit-entry-held',
     'original-deposit-entry-required',
@@ -1072,8 +1076,10 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
             original.stdin.flush()
 
         surface_seam_observations = []
+        holder_selection_observation = None
 
         def wait(marker):
+            nonlocal holder_selection_observation
             next_sample = 0.0
             while time.monotonic() < deadline:
                 checkpoint.need(guard())
@@ -1114,13 +1120,24 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
                     return seeds.finish_prefix(record.get('seed_private_prefix'),
                         json.loads(line.partition(b':')[2]),
                         catalog_capture=catalog_capture)
+                if line.startswith(b'CI_PREPARED_HOLDER_SELECTION:'):
+                    checkpoint.need(marker == b'CI_SEEDED_CAPTURE_DONE'
+                        and capture_schema == catalog.SEEDED_SCHEMA
+                        and record['phase'] == 'seeded_capture'
+                        and holder_selection_observation is None
+                        and not surface_seam_observations
+                        and record[seed_key]['complete'] is True)
+                    holder_selection_observation = seeded_surface_seams.holder_selection(
+                        catalog.decode(line.partition(b':')[2]))
+                    continue
                 if line.startswith(b'CI_PREPARED_SURFACE_SEAM:'):
                     checkpoint.need(marker == b'CI_SEEDED_CAPTURE_DONE'
                         and capture_schema == catalog.SEEDED_SCHEMA
                         and record['phase'] == 'seeded_capture'
-                        and len(surface_seam_observations) < len(seeded_surface_seams.OWNER_EXPECTED)
+                        and holder_selection_observation is not None
+                        and len(surface_seam_observations) < len(seeded_surface_seams.EXPECTED)
                         and record[seed_key]['complete'] is True)
-                    seam, theme = seeded_surface_seams.OWNER_EXPECTED[len(surface_seam_observations)]
+                    seam, theme = seeded_surface_seams.EXPECTED[len(surface_seam_observations)]
                     surface_seam_observations.append(seeded_surface_seams.receipt(
                         catalog.decode(line.partition(b':')[2]),
                         seam, theme))
@@ -1129,13 +1146,14 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
                     receipt = catalog.capture_receipt(catalog.decode(line.partition(b':')[2]))
                     checkpoint.need(receipt['schema'] == capture_schema)
                     if capture_schema == catalog.SEEDED_SCHEMA:
-                        record['seeded_owner_page_seams'] = seeded_surface_seams.owner_completed(
-                            surface_seam_observations, record[seed_key]['receipts_sha256'])
+                        record['seeded_surface_seams'] = seeded_surface_seams.holder_completed(
+                            surface_seam_observations, holder_selection_observation,
+                            record[seed_key]['receipts_sha256'])
                     return receipt
                 if line == marker:
                     return None
                 checkpoint.need(not line.startswith((b'CI_REOPEN_', b'CI_SEED_',
-                    b'CI_SEEDED_', b'CI_PREPARED_SURFACE_')))
+                    b'CI_SEEDED_', b'CI_PREPARED_SURFACE_', b'CI_PREPARED_HOLDER_')))
             raise checkpoint.Refused()
 
         trace.at('start')
@@ -1336,5 +1354,5 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
     if seeded_capture:
         result['seeded_catalog'] = record['seeded_catalog']
         if capture_schema == catalog.SEEDED_SCHEMA:
-            result['seeded_owner_page_seams'] = record['seeded_owner_page_seams']
+            result['seeded_surface_seams'] = record['seeded_surface_seams']
     return project(result)

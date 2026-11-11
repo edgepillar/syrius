@@ -840,6 +840,7 @@ def main():
                     source_head=head, source_tree=commit['tree']['sha'],
                     source_run_id=run_id, source_attempt=1,
                     four_surface_seams_qualified=True,
+                    token_holder_explorer_qualified=observed['schema'] == 2,
                     parent_closure_qualified=True, inspection_only=True, runtime_started=False)
             owner_page_seams = reopen.get('seeded_owner_page_seams')
             if owner_page_seams is not None:

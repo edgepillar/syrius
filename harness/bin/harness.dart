@@ -877,6 +877,10 @@ const Set<String> seedOperationReplyCodes = <String>{
   'bounded-seed-wait-required',
   'close-current-fixture-first',
   'confirmed-token-presentation-required',
+  'confirmed-token-retirement-required',
+  'retired-token-original-changed',
+  'seeded-token-holder-held',
+  'seeded-token-holder-original-required',
   'original-deposit-entry-changed',
   'original-deposit-entry-held',
   'original-deposit-entry-required',
@@ -1786,10 +1790,27 @@ Future<void> importWallet(Instance inst, Args a) async {
 }
 
 /// The recipe never prints private responses or retries an uncertain command.
-WalletRecipe walletRecipe(Instance inst) => WalletRecipe(
-  send: (Map<String, Object?> command, Duration timeout) =>
-      inst.send(command, timeout: timeout),
-);
+WalletRecipe walletRecipe(
+  Instance inst, {
+  Future<void> Function()? requireCurrent,
+}) {
+  if (requireCurrent == null) {
+    return WalletRecipe(
+      send: (Map<String, Object?> command, Duration timeout) =>
+          inst.send(command, timeout: timeout),
+    );
+  }
+  return WalletRecipe(
+    send: (Map<String, Object?> command, Duration timeout) async {
+      await requireCurrent();
+      final Map<String, dynamic> reply = await inst.send(
+        command, timeout: timeout,
+      );
+      await requireCurrent();
+      return reply;
+    },
+  );
+}
 
 /// On a screen that shows the node list (onboarding, or Settings): adds the
 /// node if it is not listed, and selects it.

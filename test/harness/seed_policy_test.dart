@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' as rpc;
 import 'package:mocktail/mocktail.dart';
+import 'package:zenon_syrius_wallet_flutter/seams/seam.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart' as sdk;
 
@@ -14,6 +15,8 @@ import '../../harness/app/fixtures/seed_policy.dart';
 import '../../harness/app/fixtures/seed_project_presentation.dart';
 import '../../harness/app/fixtures/seed_stake_effect.dart';
 import '../../harness/app/fixtures/seed_token_presentation.dart';
+import '../../harness/app/fixtures/seeded_surface_seam.dart';
+import '../../harness/wallet_address_context.dart';
 
 String _hash(int id) => id.toRadixString(16).padLeft(64, '0');
 
@@ -193,6 +196,93 @@ class _Source implements SeedSource {
     if (onEffect != null) return onEffect!();
     return effectPresent;
   }
+}
+
+class _TokenHolderCommands {
+  final _Source source = _Source();
+  final _Journal journal = _Journal();
+  late final SeedGuard guard = SeedGuard(
+    source: source, journal: journal, delay: source.delay,
+  );
+  final WalletAddressContext original = WalletAddressContext.parse(
+    <String, dynamic>{
+      'members': <String>['producer', 'owner', 'recipient'],
+      'selected': 'owner', 'saved': 'owner', 'revision': 3, 'owner': 1,
+    },
+  );
+  late WalletAddressContext current = original;
+  late SeedCommands commands;
+  bool resourcesCurrent = true;
+  bool refuseCapture = false;
+  int captures = 0;
+  int pointers = 0;
+
+  Future<void> initialize() async {
+    await guard.publish('token', () async {
+      source.operations.add(_Original());
+    });
+    final FixtureCleanup fixture = FixtureCleanup(name: 'sentinel');
+    final Object owner = Object();
+    fixture
+      ..open(routeCompleted: Future<void>.value(), push: Future<void>.value)
+      ..attach(owner)
+      ..dispose(owner: owner, dispose: <void Function()>[],
+          close: <Future<void> Function()>[], stateDisposed: () {});
+    await Future<void>.delayed(Duration.zero);
+    expect(fixture.heldName, isNull);
+    final Completer<Object?> route = Completer<Object?>();
+    final SeedTokenPresentation presentation = SeedTokenPresentation(
+      originalCurrent: () => true,
+      submittedCurrent: (String hash) => hash == _hash(9),
+      originalRouteCompleted: route.future,
+      tapOriginalExit: (void Function() admission) async {
+        admission();
+        route.complete(null);
+      },
+    );
+    await presentation.close(_hash(9), guard.requireCurrent);
+    commands = SeedCommands.withFixtureAdmission(
+      fixture: fixture, guard: guard, recipe: 'token', confirmed: true,
+      catalogTokenHolding: true, tokenPresentation: presentation,
+    );
+  }
+
+  void selectHolder() {
+    current = WalletAddressContext.parse(<String, dynamic>{
+      ...original.toJson(), 'selected': 'recipient', 'saved': 'recipient',
+      'revision': original.revision + 1,
+    });
+    source.isCurrent = false;
+  }
+
+  Future<Map<String, Object?>> run(Map<String, dynamic> command) => commands.run(
+    <String, dynamic>{'cmd': 'seed', 'hash': _hash(9), ...command},
+    booted: false,
+    ui: (_) async => throw StateError('Unexpected generic UI query'),
+    captureTap: (_) => throw StateError('Unexpected publication pointer'),
+    captureTokenHolder: (String hash, SeedEnvironment environment,
+        void Function() requireOriginal, void Function() requireRetired) {
+      captures++;
+      requireOriginal();
+      expect(environment, same(source.environment));
+      if (refuseCapture) throw StateError('Original capture refused');
+      return SeededTokenHolder(
+        confirmedHash: hash, original: original,
+        requireRetired: requireRetired,
+        requireResources: () {
+          if (!resourcesCurrent) throw StateError('Original resource changed');
+        },
+        readContext: () => current,
+      );
+    },
+    observeSurfaceSeam: (String standard, Seam seam, String theme,
+        void Function() requireCurrent) async {
+      requireCurrent();
+      expect(standard, seedIssuedTokenStandard(_hash(9)).toString());
+      pointers++;
+      requireCurrent();
+    },
+  );
 }
 
 class _ObservedStakeSource extends _Source implements SeedStakeEffectSource {
@@ -406,6 +496,7 @@ void main() {
     expect(journal.confirmedHashes, <String, String>{'token': _hash(9)});
     expect(guard.requireCurrent, throwsA(isA<SeedRefused>()));
     source.isCurrent = false;
+    guard.requireRetiredToken();
     source.isCurrent = true;
     expect(guard.retireConfirmedToken, throwsA(isA<SeedRefused>()));
     await expectLater(guard.publish('token', () async {
@@ -413,6 +504,116 @@ void main() {
     }), throwsA(isA<SeedRefused>()));
     expect(source.confirmationReads, reads);
     expect(journal.attempts, <String>{'token'});
+  });
+
+  test('retained Token originals remain held after mutation or replacement',
+      () async {
+    for (final String mutation in <String>[
+      'pending', 'failed', 'release', 'hash', 'removed', 'replaced', 'duplicate',
+    ]) {
+      final _Source scoped = _Source();
+      final SeedGuard candidate = SeedGuard(
+        source: scoped, journal: _Journal(), delay: scoped.delay,
+      );
+      final _Original original = _Original();
+      await candidate.publish('token', () async {
+        scoped.operations.add(original);
+      });
+      candidate.retireConfirmedToken();
+      scoped.isCurrent = false;
+      candidate.requireRetiredToken();
+      switch (mutation) {
+        case 'pending': original.settled = false;
+        case 'failed': original.failed = true;
+        case 'release': original.releaseFailed = true;
+        case 'hash': original.acceptedHash = _hash(10);
+        case 'removed': scoped.operations.clear();
+        case 'replaced': scoped.operations[0] = _Original();
+        case 'duplicate': scoped.operations.add(original);
+      }
+      expect(candidate.requireRetiredToken, throwsA(isA<SeedRefused>()));
+      original
+        ..settled = true
+        ..failed = false
+        ..releaseFailed = false
+        ..acceptedHash = _hash(9);
+      scoped.operations
+        ..clear()
+        ..add(original);
+      expect(candidate.requireRetiredToken, throwsA(isA<SeedRefused>()));
+      expect(candidate.requireCurrent, throwsA(isA<SeedRefused>()));
+    }
+  });
+
+  test('retired Token commands retain the original and all eight read-only gates',
+      () async {
+    final _TokenHolderCommands fixture = _TokenHolderCommands();
+    await fixture.initialize();
+    final int originalReads = fixture.source.confirmationReads;
+    expect(await fixture.run(<String, dynamic>{'action': 'retire-token'}),
+      <String, Object?>{'retired': true});
+    expect(fixture.captures, 1);
+    fixture.selectHolder();
+    final Map<String, Object?> selected = await fixture.run(<String, dynamic>{
+      'action': 'holder-current', 'selected': true,
+    });
+    expect(selected['current'], isTrue);
+    expect((selected['selection']! as Map<String, Object>)['selectedIndex'], 2);
+    for (final Seam seam in seededSurfaceControls.keys) {
+      for (final String theme in <String>['dark', 'light']) {
+        final Map<String, Object?> receipt = await fixture.run(
+          <String, dynamic>{'action': 'surface-seam',
+            'seam': seam.name, 'theme': theme},
+        );
+        expect(receipt['pointerDispatched'], isTrue);
+        expect(receipt['seam'], seam.name);
+        expect(receipt['theme'], theme);
+      }
+    }
+    expect(fixture.pointers, 8);
+    expect(fixture.source.operations, hasLength(1));
+    expect(fixture.source.confirmationReads, originalReads);
+    expect(fixture.journal.confirmedHashes, <String, String>{'token': _hash(9)});
+    await expectLater(fixture.run(<String, dynamic>{'action': 'begin'}),
+      throwsA(isA<SeedRefused>()));
+    await expectLater(fixture.run(<String, dynamic>{
+      'action': 'holder-current', 'selected': true,
+    }), throwsA(isA<SeedRefused>()));
+    expect(fixture.captures, 1);
+  });
+
+  test('failed retirement and holder loss cannot reacquire command admission',
+      () async {
+    for (final String failure in <String>['capture', 'resources', 'duplicate']) {
+      final _TokenHolderCommands fixture = _TokenHolderCommands();
+      await fixture.initialize();
+      fixture.refuseCapture = failure == 'capture';
+      final Future<Map<String, Object?>> retirement = fixture.run(
+        <String, dynamic>{'action': 'retire-token'},
+      );
+      if (failure == 'capture') {
+        await expectLater(retirement, throwsA(isA<SeedRefused>()));
+        fixture.refuseCapture = false;
+      } else {
+        await retirement;
+        fixture.selectHolder();
+        fixture.resourcesCurrent = failure != 'resources';
+        final Map<String, dynamic> pointer = <String, dynamic>{
+          'action': 'surface-seam', 'seam': 'tokenExplorer', 'theme': 'dark',
+        };
+        if (failure == 'duplicate') await fixture.run(pointer);
+        await expectLater(fixture.run(pointer), throwsA(isA<SeedRefused>()));
+        fixture.resourcesCurrent = true;
+      }
+      await expectLater(fixture.run(<String, dynamic>{'action': 'retire-token'}),
+        throwsA(isA<SeedRefused>()));
+      await expectLater(fixture.run(<String, dynamic>{
+        'action': 'holder-current', 'selected': true,
+      }), throwsA(isA<SeedRefused>()));
+      expect(fixture.captures, 1);
+      expect(fixture.pointers, failure == 'duplicate' ? 1 : 0);
+      expect(fixture.source.operations, hasLength(1));
+    }
   });
 
   test('retirement cannot borrow another or replaced confirmed original',

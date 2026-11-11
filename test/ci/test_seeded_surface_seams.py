@@ -46,8 +46,62 @@ class SeededSurfaceSeamTests(unittest.TestCase):
             seams.receipt(value, 'walletUpdateNotice', 'dark')
         with self.assertRaises(Refused):
             seams.owner_completed([value] * 6, 'a' * 64)
+        holder_label = dict(value, target='tokenExplorer')
+        self.assertEqual(seams.operation(holder_label), holder_label)
         with self.assertRaises(Refused):
-            seams.operation(dict(value, target='tokenExplorer'))
+            seams.receipt(holder_label, 'tokenExplorer', 'dark')
+        with self.assertRaises(Refused):
+            seams.holder_selection(holder_label)
+
+    def test_holder_selection_is_closed_typed_and_independent_of_pointer_facts(self):
+        value = dict(seams.HOLDER_SELECTION)
+        self.assertEqual(seams.holder_selection(value), value)
+        self.assertIsNot(seams.holder_selection(value), value)
+        for field, expected in value.items():
+            for offered in (None, 'private', False, 1, 2):
+                if type(offered) is type(expected) and offered == expected:
+                    continue
+                with self.subTest(field=field, offered=offered), self.assertRaises(Refused):
+                    seams.holder_selection(dict(value, **{field: offered}))
+            missing = dict(value)
+            del missing[field]
+            with self.assertRaises(Refused):
+                seams.holder_selection(missing)
+        for extra in ('hash', 'address', 'pointerDispatched'):
+            with self.assertRaises(Refused):
+                seams.holder_selection(dict(value, **{extra: 'private'}))
+
+    def test_holder_scope_binds_all_eight_original_pointers_and_selection(self):
+        observations = [observation(seam, theme) for seam, theme in seams.EXPECTED]
+        value = seams.holder_completed(observations, seams.HOLDER_SELECTION, 'a' * 64)
+        self.assertEqual(value['schema'], 2)
+        self.assertEqual(value['holder_selection'], seams.HOLDER_SELECTION)
+        self.assertEqual(seams.reference(value, 'a' * 64), value)
+        legacy = seams.completed(observations, 'a' * 64)
+        self.assertEqual(seams.reference(legacy, 'a' * 64), legacy)
+        self.assertNotIn('holder_selection', legacy)
+        for offered in (observations[:-1], list(reversed(observations)),
+                        [observation(seam, theme) for seam, theme in seams.OWNER_EXPECTED]):
+            with self.assertRaises(Refused):
+                seams.holder_completed(offered, seams.HOLDER_SELECTION, 'a' * 64)
+        with self.assertRaises(Refused):
+            seams.owner_reference(value, 'a' * 64)
+
+    def test_holder_scope_refuses_relabelled_legacy_or_changed_original_receipts(self):
+        observations = [observation(seam, theme) for seam, theme in seams.EXPECTED]
+        original = seams.holder_completed(observations, seams.HOLDER_SELECTION, 'a' * 64)
+        for change in (dict(schema=1), dict(schema=True), dict(schema=3),
+                       dict(holder_selection=None),
+                       dict(holder_selection=dict(seams.HOLDER_SELECTION, persisted=False)),
+                       dict(seed_receipts_sha256='b' * 64), dict(nativeFrameObserved=False),
+                       dict(private='private'), dict(observations=original['observations'][:-1])):
+            with self.subTest(change=change), self.assertRaises(Refused):
+                seams.reference(dict(original, **change), 'a' * 64)
+        legacy = seams.completed(observations, 'a' * 64)
+        with self.assertRaises(Refused):
+            seams.reference(dict(legacy, schema=2), 'a' * 64)
+        with self.assertRaises(Refused):
+            seams.reference(original, 'b' * 64)
 
     def test_owner_pages_are_distinct_from_full_four_gate_acceptance(self):
         values = [observation(seam, theme) for seam, theme in seams.OWNER_EXPECTED]

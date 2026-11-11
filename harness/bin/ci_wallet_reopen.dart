@@ -4,7 +4,7 @@ import 'dart:io';
 
 import '../app/fixtures/seed_policy.dart'
     show pillarDepositRecipeId, pillarRegistrationRecipeId,
-        seedIssuedTokenStandard;
+        seedHash, seedIssuedTokenStandard;
 import '../lock_view_observation.dart';
 import '../seed/restored_seed_workflow.dart';
 import '../wallet_address_context.dart';
@@ -134,21 +134,24 @@ const Map<String, Set<String?>> _preparedSurfaceTargets =
   'windowRead': <String?>{null},
   'windowShow': <String?>{null},
   'windowRestore': <String?>{null},
-  'navigate': <String?>{'dashboard', 'pillars', 'p2pSwap'},
+  'navigate': <String?>{'dashboard', 'pillars', 'p2pSwap', 'tokens'},
   'wait': <String?>{
     'home_hero', 'strip_update_button', 'nodes_tab_pillars',
     'nodes_pillars_strip', 'p2p_swaps_strip', 'swap_counterparty_input',
     'swap_start_terms_gate', 'p2p_warning_continue',
+    'tokens_filter_all', 'issuedTokenRow', 'token_send',
+    'token_explorer_control',
   },
-  'waitGone': <String?>{'swap_counterparty_input'},
+  'waitGone': <String?>{'swap_counterparty_input', 'token_explorer_control'},
   'tap': <String?>{
     'nodes_tab_pillars', 'pillars_sort', 'p2p_start_swap', 'swap_action_close',
     'p2p_warning_continue',
+    'tokens_filter_all', 'issuedTokenRow',
   },
   'state': <String?>{null},
   'escape': <String?>{null},
   'seam': <String?>{
-    'walletUpdateNotice', 'pillarAprEstimate', 'swapTerms',
+    'walletUpdateNotice', 'pillarAprEstimate', 'swapTerms', 'tokenExplorer',
   },
 };
 
@@ -163,6 +166,7 @@ final class PreparedSurfaceOperation {
     Map<String, Object?> command, {
     String? theme,
     String boundary = 'request',
+    String? issuedTokenRowKey,
   }) {
     String? action;
     Object? target;
@@ -191,6 +195,10 @@ final class PreparedSurfaceOperation {
           action = 'seam';
           target = command['seam'];
         }
+    }
+    if ((action == 'wait' || action == 'tap') &&
+        issuedTokenRowKey != null && target == issuedTokenRowKey) {
+      target = 'issuedTokenRow';
     }
     final Set<String?>? targets = _preparedSurfaceTargets[action];
     if (action == null || targets == null ||
@@ -227,10 +235,12 @@ Future<Map<String, dynamic>> preparedSurfaceRequest(
   required Future<void> Function() requireCurrent,
   required void Function(PreparedSurfaceOperation) onOperation,
   String? theme,
+  String? issuedTokenRowKey,
 }) async {
   void enter(String boundary) => onOperation(
     PreparedSurfaceOperation.fromCommand(
       command, theme: theme, boundary: boundary,
+      issuedTokenRowKey: issuedTokenRowKey,
     ),
   );
   enter('ownerBefore');
@@ -241,6 +251,120 @@ Future<Map<String, dynamic>> preparedSurfaceRequest(
   await requireCurrent();
   enter('reply');
   return reply;
+}
+
+/// The expected closed wire shape alone is not a selection receipt.
+const Map<String, Object> preparedTokenHolderSelection = <String, Object>{
+  'schema': 1, 'scope': 'owned_seeded_token_holder_selection',
+  'members': 3, 'originalIndex': 1, 'selectedIndex': 2,
+  'singleTransition': true, 'persisted': true,
+  'originalResourcesCurrent': true, 'publicationRetired': true,
+};
+
+/// Retains the committed context separately from the old seed publication.
+typedef PreparedTokenHolder = ({
+  WalletAddressContext selected,
+  Map<String, Object> selection,
+  Future<void> Function() requireCurrent,
+});
+
+/// Retire once, select one existing member and retain the exact committed view.
+/// No unknown reply or late result can rearm a retained observation.
+Future<PreparedTokenHolder> prepareSeededTokenHolder({
+  required String hash,
+  required WalletAddressContext original,
+  required bool Function() parentAlive,
+  required Future<WalletAddressContext> Function() readContext,
+  required Future<Map<String, dynamic>> Function(Map<String, Object?>) request,
+  required Future<WalletAddressContext> Function(
+    WalletAddressContext, Future<void> Function(),
+  ) select,
+}) async {
+  bool held = false;
+  void parent() {
+    if (held || !parentAlive()) {
+      held = true;
+      throw const FormatException('prepared holder parent unavailable');
+    }
+  }
+  Future<void> lease({required bool selected}) async {
+    try {
+      parent();
+      final Map<String, dynamic> reply = await request(<String, Object?>{
+        'cmd': 'seed', 'action': 'holder-current', 'hash': hash,
+        'selected': selected,
+      });
+      parent();
+      if (reply['ok'] != true || reply['current'] != true ||
+          reply['publicationRetired'] != true) {
+        throw const FormatException('prepared holder scope unavailable');
+      }
+      final Object? offered = reply['selection'];
+      if (!selected) {
+        if (reply.containsKey('selection')) {
+          throw const FormatException('prepared holder receipt unavailable');
+        }
+      } else if (offered is! Map ||
+          offered.length != preparedTokenHolderSelection.length ||
+          preparedTokenHolderSelection.entries.any(
+            (MapEntry<String, Object> entry) =>
+                offered[entry.key].runtimeType != entry.value.runtimeType ||
+                offered[entry.key] != entry.value,
+          )) {
+        throw const FormatException('prepared holder receipt unavailable');
+      }
+    } on Object {
+      held = true;
+      rethrow;
+    }
+  }
+  try {
+    parent();
+    if (!seedHash(hash) || !original.consistent ||
+        original.members.length != 3 ||
+        original.selected != original.members[1] ||
+        !original.same(await readContext())) {
+      throw const FormatException('prepared holder original unavailable');
+    }
+    parent();
+    final Map<String, dynamic> retired = await request(<String, Object?>{
+      'cmd': 'seed', 'action': 'retire-token', 'hash': hash,
+    });
+    parent();
+    if (retired['ok'] != true || retired['retired'] != true ||
+        !original.same(await readContext())) {
+      throw const FormatException('prepared holder retirement unavailable');
+    }
+    Future<void> transition() => lease(selected: false);
+    await transition();
+    final WalletAddressContext selected = await select(original, transition);
+    await transition();
+    if (!selected.selectedFrom(original, 2) ||
+        !selected.same(await readContext())) {
+      throw const FormatException('prepared holder selection unavailable');
+    }
+    await lease(selected: true);
+    Future<void> current() async {
+      try {
+        await lease(selected: true);
+        if (!selected.same(await readContext())) {
+          throw const FormatException('prepared holder context changed');
+        }
+        parent();
+      } on Object {
+        held = true;
+        rethrow;
+      }
+    }
+    await current();
+    return (selected: selected, requireCurrent: current,
+      selection: Map<String, Object>.unmodifiable(
+        preparedTokenHolderSelection,
+      ));
+  } on Object {
+    held = true;
+    rethrow;
+  }
 }
 
 /// The two original views that can follow the one Start activation.
@@ -502,21 +626,25 @@ Future<void> _observePreparedPageSeams(
   cli.Instance instance,
   Future<void> Function() requireCurrent,
   Future<void> Function(String seam, String theme) observe,
-  void Function(PreparedSurfaceOperation) onOperation,
-) async {
+  void Function(PreparedSurfaceOperation) onOperation, {
+  required String tokenRowKey,
+}) async {
   String? currentTheme;
   Future<Map<String, dynamic>> send(Map<String, Object?> command) =>
       preparedSurfaceRequest(
         command, request: (Map<String, Object?> value) =>
             cli.call(instance, value),
         requireCurrent: requireCurrent, onOperation: onOperation,
-        theme: currentTheme,
+        theme: currentTheme, issuedTokenRowKey: tokenRowKey,
       );
-  Future<void> wait(String key, {String? kind, bool gone = false}) async {
+  Future<void> wait(String key, {
+    String? kind, bool gone = false, bool ready = false,
+  }) async {
     final Map<String, dynamic> reply = await send(<String, Object?>{
       'cmd': 'wait', 'key': key, 'exact': true, 'timeoutMs': 5000,
       'kind': ?kind,
       if (gone) 'gone': true,
+      if (ready) 'ready': true,
     });
     final Object? target = reply['target'];
     if (gone ? reply.containsKey('target') :
@@ -564,6 +692,24 @@ Future<void> _observePreparedPageSeams(
   });
   if (shown['clientMatched'] != true) {
     throw const FormatException('prepared surface window refused');
+  }
+  for (final String theme in <String>['dark', 'light']) {
+    currentTheme = theme;
+    await send(<String, Object?>{'cmd': 'theme', 'mode': theme});
+    await send(<String, Object?>{'cmd': 'tap', 'tab': 'tokens'});
+    await wait('tokens_filter_all', kind: 'button', ready: true);
+    await tap('tokens_filter_all');
+    await wait(tokenRowKey);
+    final String tokens = await route('tokens');
+    await tap(tokenRowKey);
+    await wait('token_send', kind: 'button', ready: true);
+    await wait('token_explorer_control', kind: 'button');
+    await sameRoute('tokens', tokens);
+    await observe('tokenExplorer', theme);
+    await sameRoute('tokens', tokens);
+    await tap(tokenRowKey);
+    await wait('token_explorer_control', kind: 'button', gone: true);
+    await sameRoute('tokens', tokens);
   }
   for (final String theme in <String>['dark', 'light']) {
     currentTheme = theme;
@@ -631,6 +777,7 @@ Future<Map<String, Object>> _captureSeededCatalog(
   required RestoredSeedSelection selection,
   required Future<void> Function(String) emitMarker,
   required void Function(PreparedSurfaceOperation) onPreparedOperation,
+  Future<PreparedTokenHolder> Function()? prepareTokenHolder,
   bool pillarSpawn = false,
   bool pillarDone = false,
 }) async {
@@ -683,9 +830,10 @@ Future<Map<String, Object>> _captureSeededCatalog(
     return selector;
   }
 
+  Future<void> Function() surfaceOwner = requireCurrent;
   Future<void> observeSurface(String name, String theme) async {
     if (!const <String>{'walletUpdateNotice',
-        'pillarAprEstimate', 'swapTerms'}.contains(name) ||
+        'pillarAprEstimate', 'swapTerms', 'tokenExplorer'}.contains(name) ||
         !const <String>{'dark', 'light'}.contains(theme)) {
       throw const FormatException('prepared surface selection refused');
     }
@@ -695,7 +843,7 @@ Future<Map<String, Object>> _captureSeededCatalog(
         'hash': confirmed('token'), 'seam': name, 'theme': theme,
       },
       request: (Map<String, Object?> value) => cli.call(instance, value),
-      requireCurrent: requireCurrent, onOperation: onPreparedOperation,
+      requireCurrent: surfaceOwner, onOperation: onPreparedOperation,
       theme: theme,
     );
     final Map<String, Object> expected = <String, Object>{
@@ -822,9 +970,19 @@ Future<Map<String, Object>> _captureSeededCatalog(
     throw const FormatException('seeded capture paths refused');
   }
   if (selection == RestoredSeedSelection.seededCatalog) {
-    await _observePreparedPageSeams(
-      instance, requireCurrent, observeSurface, onPreparedOperation,
+    if (prepareTokenHolder == null || rowKey == null) {
+      throw const FormatException('prepared holder admission required');
+    }
+    final PreparedTokenHolder holder = await prepareTokenHolder();
+    surfaceOwner = holder.requireCurrent;
+    await emitMarker(
+      'CI_PREPARED_HOLDER_SELECTION:${jsonEncode(holder.selection)}',
     );
+    await _observePreparedPageSeams(
+      instance, surfaceOwner, observeSurface, onPreparedOperation,
+      tokenRowKey: rowKey,
+    );
+    await surfaceOwner();
   }
   return <String, Object>{
     'schema': catalog.schema,
@@ -1136,6 +1294,25 @@ Future<void> main() async {
         emitMarker: marker,
         onPreparedOperation: (PreparedSurfaceOperation operation) =>
             surfaceOperation = operation,
+        prepareTokenHolder: selection != RestoredSeedSelection.seededCatalog
+            ? null : () => prepareSeededTokenHolder(
+                hash: receipts.singleWhere((Map<String, String> row) =>
+                    row['recipe'] == 'token')['hash']!,
+                original: owned, parentAlive: () => originalInput.alive,
+                readContext: context,
+                request: (Map<String, Object?> command) =>
+                    cli.call(instance, command),
+                select: (WalletAddressContext original,
+                    Future<void> Function() transition) =>
+                    cli.walletRecipe(instance, requireCurrent: transition)
+                        .selectSeededTokenHolder(original, requireParent: () {
+                          if (!originalInput.alive) {
+                            throw const FormatException(
+                              'prepared holder parent unavailable',
+                            );
+                          }
+                        }),
+              ),
       );
       await marker('CI_SEEDED_CAPTURE_DONE:${jsonEncode(captured)}');
     }

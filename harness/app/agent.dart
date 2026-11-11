@@ -79,7 +79,8 @@ import 'package:zenon_syrius_wallet_flutter/widgets/shell/tabs.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/lock_tab_child.dart'
     show LockTabChild, LockViewSource;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart'
-    show AccountBlockTemplate, Address, SyncInfo, WebsocketStatus, WsClient,
+    show AccountBlockTemplate, Address, Client, SyncInfo, TokenStandard,
+        WebsocketStatus, WsClient,
         getChainIdentifier, znnDefaultPaths, znnZts;
 
 import '../lab_send_failure.dart';
@@ -1195,6 +1196,7 @@ class HarnessAgent {
             captureProjectPresentation: _captureSeedProjectPresentation,
             captureTokenPresentation: _captureSeedTokenPresentation,
             observeSurfaceSeam: _observeSeededSurfaceSeam,
+            captureTokenHolder: _captureSeededTokenHolder,
             captureTap: (Map<String, dynamic> selector) =>
                 _captureSeedTap(selector, preparation: seedPreparation),
           );
@@ -2222,11 +2224,7 @@ class HarnessAgent {
     );
   }
 
-  Future<void> _observeSeededSurfaceSeam(
-    String standard, Seam seam, String theme, VoidCallback requireOwner,
-  ) async {
-    _requireCaptureFrameIdle();
-    requireOwner();
+  SeededSurfaceSeamOwner _originalSeededSurfaceOwner() {
     if (!_seededSurfaceSeamOwnerAttempted) {
       _seededSurfaceSeamOwnerAttempted = true;
       final NativeWindowOwner? window = _nativeWindow;
@@ -2242,6 +2240,67 @@ class HarnessAgent {
       throw const SeedRefused('seeded-surface-seam-owner-changed');
     }
     owner.requireCurrent();
+    return owner;
+  }
+
+  SeededTokenHolder _captureSeededTokenHolder(
+    String hash, SeedEnvironment environment,
+    VoidCallback requireOriginal, VoidCallback requireRetired,
+  ) {
+    _requireCaptureFrameIdle();
+    requireOriginal();
+    final SeededSurfaceSeamOwner owner = _originalSeededSurfaceOwner();
+    final Object? raw = _recipeAddressObservation()['addressContext'];
+    final WalletAddressContext original = WalletAddressContext.parse(raw);
+    if (original.selected != environment.owner ||
+        !listEquals(original.members, environment.members)) {
+      throw const SeedRefused('seeded-token-holder-original-required');
+    }
+    final String? walletPath = kWalletPath;
+    List<Object?> resources() => <Object?>[
+      ..._recipeAddressResources,
+      app.zenon?.embedded.token, app.zenon?.embedded.token.client,
+    ];
+    final List<Object?> retained = List<Object?>.unmodifiable(resources());
+    if (walletPath == null || retained.any((Object? value) => value == null)) {
+      throw const SeedRefused('seeded-token-holder-original-required');
+    }
+    void current() {
+      owner.requireCurrent();
+      final Object? context = _recipeAddressObservation()['addressContext'];
+      final List<Object?> now = resources();
+      final Client? token = app.zenon?.embedded.token.client;
+      final Client? ledger = app.zenon?.ledger.client;
+      final Client? connection = app.zenon?.wsClient;
+      if (context == null || !kWalletInitCompleted ||
+          kWalletPath != walletPath || kCurrentNode != seedWsOrigin ||
+          kNodeChainId != 321 || getChainIdentifier() != 321 ||
+          token is! WsClient || token.url != seedWsOrigin ||
+          ledger is! WsClient || ledger.url != seedWsOrigin ||
+          connection is! WsClient || connection.url != seedWsOrigin ||
+          now.length != retained.length ||
+          Iterable<int>.generate(retained.length).any((int index) =>
+              !identical(now[index], retained[index]))) {
+        throw const SeedRefused('seeded-token-holder-held');
+      }
+    }
+    current();
+    requireOriginal();
+    return SeededTokenHolder(
+      confirmedHash: hash, original: original,
+      requireRetired: requireRetired, requireResources: current,
+      readContext: () => WalletAddressContext.parse(
+        _recipeAddressObservation()['addressContext'],
+      ),
+    );
+  }
+
+  Future<void> _observeSeededSurfaceSeam(
+    String standard, Seam seam, String theme, VoidCallback requireOwner,
+  ) async {
+    _requireCaptureFrameIdle();
+    requireOwner();
+    final SeededSurfaceSeamOwner owner = _originalSeededSurfaceOwner();
     final String? key = seededSurfaceControls[seam];
     if (key == null) {
       throw const SeedRefused('seeded-surface-seam-control-required');
@@ -2267,6 +2326,17 @@ class HarnessAgent {
         (original == null || originalActions == null)) {
       throw const SeedRefused('seeded-surface-seam-control-required');
     }
+    final String? selectedAddress = kSelectedAddress;
+    final TokenHolderObservation? holder = seam != Seam.tokenExplorer ||
+            originalActions == null || selectedAddress == null
+        ? null
+        : TokenInlineActions.captureHolderObservation(
+            originalActions, standard: TokenStandard.parse(standard),
+            selectedAddress: selectedAddress, chainId: 321,
+          );
+    if (seam == Seam.tokenExplorer && holder == null) {
+      throw const SeedRefused('seeded-surface-seam-owner-changed');
+    }
     final ModalRoute<dynamic>? route = ModalRoute.of(control);
     final NavigatorState? routeNavigator = route?.navigator;
     if (route == null || routeNavigator == null) {
@@ -2286,7 +2356,8 @@ class HarnessAgent {
         if (original == null || !original.mounted ||
             original.widget is! TokenCard || originalActions == null ||
             !originalActions.mounted || widget is! TokenInlineActions ||
-            widget.token.tokenStandard.toString() != standard) {
+            widget.token.tokenStandard.toString() != standard ||
+            holder?.isCurrent != true) {
           throw const SeedRefused('seeded-surface-seam-owner-changed');
         }
       }

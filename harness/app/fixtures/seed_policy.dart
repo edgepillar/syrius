@@ -554,25 +554,42 @@ final class SeedGuard {
   String? _hash;
   String? _confirmedRecipe;
   bool _retired = false;
+  bool _retirementHeld = false;
   String? get acceptedHash => _hash;
 
   /// A retired publication scope never becomes current after address changes.
   bool get retired => _retired;
 
+  bool _retainedTokenOriginal() {
+    final SeedOriginal? original = _original;
+    if (_confirmedRecipe != 'token' || _hash == null || original == null) {
+      return false;
+    }
+    final List<SeedOriginal> retained = source.originals().where(
+      (SeedOriginal value) => identical(value.identity, original.identity),
+    ).toList();
+    return retained.length == 1 && retained.single.settled &&
+        !retained.single.failed && !retained.single.releaseFailed &&
+        retained.single.acceptedHash == _hash;
+  }
+
+  /// Observes only the retained original, without reviving selected authority.
+  void requireRetiredToken() {
+    try {
+      if (_retirementHeld || !_retired || !_retainedTokenOriginal()) {
+        throw const SeedRefused('retired-token-original-changed');
+      }
+    } on Object {
+      _retirementHeld = true;
+      throw const SeedRefused('retired-token-original-changed');
+    }
+  }
+
   /// Ends only a positively confirmed Token recipe, preserving its originals.
   /// No new selected account inherits the old publication admission.
   void retireConfirmedToken() {
     requireCurrent();
-    final SeedOriginal? original = _original;
-    final List<SeedOriginal> retained = original == null
-        ? <SeedOriginal>[]
-        : source.originals().where((SeedOriginal value) =>
-            identical(value.identity, original.identity),
-          ).toList();
-    if (_confirmedRecipe != 'token' || _hash == null || original == null ||
-        retained.length != 1 || !retained.single.settled ||
-        retained.single.failed || retained.single.releaseFailed ||
-        retained.single.acceptedHash != _hash) {
+    if (!_retainedTokenOriginal()) {
       _revoked = true;
       throw const SeedRefused('confirmed-token-retirement-required');
     }

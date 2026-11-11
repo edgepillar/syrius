@@ -17,17 +17,21 @@ OWNER_EXPECTED = tuple((seam, theme) for theme in THEMES for seam in OWNER_SEAMS
 OWNER_REFERENCE_SCOPE = 'owned_restored_owner_page_seams'
 FACTS = dict(pointerDispatched=True, absorptionObserved=True,
              originalReceiptCurrent=True, nativeFrameObserved=True)
+HOLDER_SELECTION = dict(schema=1, scope='owned_seeded_token_holder_selection',
+    members=3, originalIndex=1, selectedIndex=2, singleTransition=True,
+    persisted=True, originalResourcesCurrent=True, publicationRetired=True)
 OPERATION_TARGETS = {
     'themeRead': (None,), 'themeSelect': ('dark', 'light'), 'themeRestore': (None,),
     'windowRead': (None,), 'windowShow': (None,), 'windowRestore': (None,),
-    'navigate': ('dashboard', 'pillars', 'p2pSwap'),
+    'navigate': ('dashboard', 'pillars', 'p2pSwap', 'tokens'),
     'wait': ('home_hero', 'strip_update_button', 'nodes_tab_pillars',
              'nodes_pillars_strip', 'p2p_swaps_strip', 'swap_counterparty_input',
-             'swap_start_terms_gate', 'p2p_warning_continue'),
-    'waitGone': ('swap_counterparty_input',),
+             'swap_start_terms_gate', 'p2p_warning_continue', 'tokens_filter_all',
+             'issuedTokenRow', 'token_send', 'token_explorer_control'),
+    'waitGone': ('swap_counterparty_input', 'token_explorer_control'),
     'tap': ('nodes_tab_pillars', 'pillars_sort', 'p2p_start_swap', 'swap_action_close',
-            'p2p_warning_continue'),
-    'state': (None,), 'escape': (None,), 'seam': OWNER_SEAMS,
+            'p2p_warning_continue', 'tokens_filter_all', 'issuedTokenRow'),
+    'state': (None,), 'escape': (None,), 'seam': SEAMS,
 }
 OPERATION_BOUNDARIES = ('ownerBefore', 'request', 'ownerAfter', 'reply')
 
@@ -58,7 +62,28 @@ def receipt(value, seam, theme):
 
 
 def reference(value, seed_receipts_sha256):
+    if type(value) is dict and type(value.get('schema')) is int and value['schema'] == 2:
+        selected = holder_selection(value.get('holder_selection'))
+        original = {key: item for key, item in value.items() if key != 'holder_selection'}
+        original['schema'] = 1
+        base = _reference(original, seed_receipts_sha256, EXPECTED, REFERENCE_SCOPE)
+        return dict(base, schema=2, holder_selection=selected)
     return _reference(value, seed_receipts_sha256, EXPECTED, REFERENCE_SCOPE)
+
+
+def holder_selection(value):
+    """Exact committed selection facts; neither names nor addresses leave the actor."""
+    need(type(value) is dict and set(value) == set(HOLDER_SELECTION)
+         and all(type(value[key]) is type(item) and value[key] == item
+                 for key, item in HOLDER_SELECTION.items()))
+    return dict(HOLDER_SELECTION)
+
+
+def holder_completed(observations, selection, seed_receipts_sha256):
+    """A holder proof supplements every original pointer and receipt binding."""
+    base = completed(observations, seed_receipts_sha256)
+    return reference(dict(base, schema=2, holder_selection=holder_selection(selection)),
+                     seed_receipts_sha256)
 
 
 def owner_reference(value, seed_receipts_sha256):
