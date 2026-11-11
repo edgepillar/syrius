@@ -3580,3 +3580,20 @@ Token preflight and Home frame failures retain their source pins and unknown
 causes. Source685 changes documentation only; no tests, native requests or
 financial operations are repeated. Original 72/80 and all eight deferred
 acceptance gates remain open.
+
+## Source686 retained reader registration correction
+
+The [Source685 hosted run](https://github.com/edgepillar/syrius/actions/runs/43117496647)
+stops before SDK allocation: 1,213 controller cases include one discovery-count
+failure and eighteen explicit platform skips. Dart, analysis, native node and
+wallet execution are unreached; zero artifacts make an archive reader inapplicable.
+The original failed run is retained.
+
+The eight timing tests increased the retained reader selection from 114 to 122.
+Source686 updates that exact expectation without changing tests, discovery,
+financial operations or node/progress/frame/shutdown guards. The original
+foreign-package regression reproduces the mismatch before the change. All 139
+selected memory controls pass afterward, including the complete 122-case reader
+selection and seventeen frame/runtime controls, with zero external effects.
+Global Python registration remains 1,213. Fresh hosted qualification and actual
+native timing collection remain pending; 72/80 and all eight deferred gates stay open.

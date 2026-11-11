@@ -2053,3 +2053,18 @@ Token preflight and Home frame failures retain their source pins and unknown
 causes. Source685 changes documentation only; no tests, native requests or
 financial operations are repeated. Original 72/80 and all eight deferred
 acceptance gates remain open.
+
+## Source686 exact reader-count correction
+
+The [Source685 run](https://github.com/edgepillar/syrius/actions/runs/43117496647)
+fails one of 1,213 controller cases, with eighteen platform skips, before SDK,
+Dart, analysis or native execution. It creates zero artifacts; there is no
+archive for an independent reader. The original failure is preserved.
+
+The retained reader still expected 114 cases after the eight timing tests made
+its selection 122. Source686 updates only that expectation. All 139 selected
+memory controls pass, including all 122 reader cases and seventeen frame/runtime
+controls, with no external effects. Foreign-package independence and exact-count
+refusal stay enforced. Full current hosted qualification and actual timing
+collection remain pending. The first-delivery scope remains available for Draft
+review; original 72/80, earlier native failures and all deferred gates stay open.

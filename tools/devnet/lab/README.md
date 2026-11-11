@@ -401,6 +401,14 @@ It creates no artifacts and starts no SDK, node or wallet. Source685 records
 that outcome without another test or native run. Actual native timing collection
 and the original lab failure's cause remain unqualified.
 
+The [Source685 run](https://github.com/edgepillar/syrius/actions/runs/43117496647)
+stops at the pre-SDK controller gate: one discovery-count failure among 1,213
+cases and eighteen platform skips. It starts no SDK, native node or wallet and
+produces zero artifacts. Source686 corrects the retained reader's exact count
+from 114 to 122 after the eight timing tests. All 139 selected memory controls
+pass, including the complete reader selection; no original guard is relaxed.
+Fresh hosted qualification and actual native timing collection remain pending.
+
 ## Reference recipe result
 
 Source456 73ffe7cc9643 / source-only 41925765311 and manual 41926018636 pass

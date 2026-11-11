@@ -145,6 +145,17 @@ native timing collection and both original Token/Home causes remain unqualified.
 Source685 records this result in documentation only. No tests or original native
 operation are repeated. Original 72/80 and all eight deferred gates remain open.
 
+The [Source685 hosted run](https://github.com/edgepillar/syrius/actions/runs/43117496647)
+fails one discovery-count control among 1,213 cases, with eighteen platform skips.
+SDK allocation, Dart, analysis and native execution are unreached; it retains zero
+artifacts, so an archive reader is inapplicable. The eight new timing cases made
+the reader selection 122 while its expected count remained 114. Source686 updates
+that one constant. The mismatch is reproduced before the change; all 139 selected
+memory controls pass afterward, including all 122 reader cases, without external
+effects. No test or production guard changes. Fresh hosted qualification and
+actual native timing collection remain pending; original failures, 72/80 and all
+eight deferred acceptance gates stay open.
+
 ## Retained qualification status (2026-11-05)
 
 The [qualified Source492 Activity result](review/source489-activity-reference-spacing.md#actual-source492-focused-result)
