@@ -3344,3 +3344,35 @@ regressions prepare 1,197 controller and 113 reader cases. All 230 selected
 in-memory Python controls pass without external effects. Fresh native/reader
 qualification, all earlier failures, 72/80 and zero accepted whole-image matches
 remain open.
+
+## Source675 retained ten-control prefix and Source676 Settings evidence
+
+The [Source675 producer](https://github.com/edgepillar/syrius/actions/runs/43063838599)
+passes 1,450 Dart cases, 1,197 Python cases with eighteen Windows skips,
+five JavaScript controls and analysis with zero findings. Ten of eleven Home
+observations precede `ENTRY_REFUSED` during the light Swap control; the dark
+Swap control is observed. Required wallet and entry actors and all five original
+nodes close normally. The separately qualified compiler telemetry helper retains
+forced cleanup. The 24 tour, eight Home and four viewport capture commands
+report completion, but zero PNGs qualify from this failed attempt.
+
+The [independent reader](https://github.com/edgepillar/syrius/actions/runs/43068570646)
+passes 113 cases and verifies two archives and 81 source files. It verifies the
+same ten-observation prefix and failure from the original manifest. Overall
+native inspection and lab closure qualification remain false; the final light
+Swap refusal's inner cause remains `NOT_ESTABLISHED`.
+
+Source676 retains the eight existing Settings observations in the original
+manifest and independent reader, using the same exact typed-prefix validation
+as Home. Partial or altered observations cannot become success, and legacy
+reports gain no invented evidence. Producer-only finite command context now
+covers Home and Settings, including whether the existing probe deadline had
+been reached when failure was observed. It copies no raw replies or errors,
+forwards each command once and preserves the five-second/34-sample Swap bounds,
+90-second probe bound, capture deadline and production wallet controls.
+
+All 233 selected in-memory Python controls pass without external effects.
+Three regressions prepare 1,200 controller and 114 reader cases; 1,450 selected
+Dart cases and 81 declared reader sources are unchanged. Fresh Home and Settings
+qualification, the real non-native token preparation, all earlier failures,
+72/80 and zero accepted whole-image matches remain open.

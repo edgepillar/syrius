@@ -1809,3 +1809,41 @@ prepare 1,197 controller cases and 113 reader cases. All 230 selected in-memory
 Python controls pass with no external effects. Fresh hosted qualification,
 eleven Home and eight Settings observations remain pending. All earlier failures,
 72/80, zero accepted whole-image matches and all eight deferred gates stay open.
+
+## Source675 retained ten-control prefix and Source676 Settings evidence
+
+The [Source675 producer](https://github.com/edgepillar/syrius/actions/runs/43063838599)
+passes 1,450 selected Dart cases, 1,197 Python cases with eighteen Windows skips,
+five JavaScript controls and analysis with zero findings. Ten of eleven Home
+seam observations precede `ENTRY_REFUSED` during the light Swap control; the
+dark Swap control is observed. Required wallet and entry actors and all five
+original nodes close normally. The separately qualified compiler telemetry
+helper retains forced cleanup. All 24 tour, eight Home and four viewport capture
+commands report completion, but no PNGs qualify from this failed attempt.
+
+The [independent reader](https://github.com/edgepillar/syrius/actions/runs/43068570646)
+passes 113 cases and verifies two archives and 81 source files. The same ten
+observations and their failure are retained in the original manifest and reader
+summary. Overall native inspection and lab closure qualification remain false.
+The last refusal's inner cause remains `NOT_ESTABLISHED`.
+
+Source676 gives the eight existing Settings probes the same closed, typed
+manifest prefix and independent archive checks as Home. Every partial prefix,
+including a later failure after all eight observations, stays a failure.
+Altered archive bytes, reordered observations and incomplete success claims
+are refused. Legacy reports gain no invented observations.
+
+Producer command context now covers Home and Settings as well as the existing
+surface pilot. It exports only finite command, target and request/reply labels,
+plus whether the existing 90-second bound was reached when failure was observed.
+Commands are forwarded once without response bodies or raw errors. The Home
+trace admits up to 1,024 commands; the existing surface and Settings limit is
+128. The original five-second/34-sample Swap observation, 90-second probe bound,
+capture deadline and production wallet controls are unchanged. This context is
+producer-only diagnosis, not independent runtime qualification.
+
+All 233 selected in-memory Python controls pass without external effects.
+Three new regressions prepare 1,200 controller and 114 reader cases; the selected
+Dart count remains 1,450 and declared reader sources remain 81. Fresh Home and
+Settings native qualification, the real non-native token preparation, all eight
+deferred gates, 72/80 and zero accepted whole-image matches remain open.

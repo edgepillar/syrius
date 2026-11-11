@@ -397,6 +397,43 @@ class ReadonlyOwnerSurfaces:
 
 
 class ReadonlyOwnerSeamProbeTests(unittest.TestCase):
+    def test_owner_probe_trace_forwards_original_calls_with_finite_context(self):
+        original, observed = ReadonlyOwnerSurfaces(), []
+        trace = inspect.SeamProbeTrace(maximum=1024)
+        inspect.observe_readonly_owner_seams(
+            lambda command: trace.exchange(original.send, command), observed)
+        self.assertEqual(len(observed), 6)
+        self.assertEqual(trace.receipt()['command_index'], len(original.calls))
+        self.assertLess(len(original.calls), 1024)
+        self.assertEqual(trace.receipt()['command'], 'state')
+        self.assertEqual(trace.receipt()['stage'], 'REPLY')
+        trace.exchange(lambda _: {}, dict(cmd='tree'))
+        self.assertEqual(trace.receipt()['command'], 'tree')
+        trace.exchange(lambda _: {}, dict(cmd='theme', mode='light'))
+        self.assertEqual(trace.receipt()['command'], 'theme')
+        error = ValueError('Synthetic private original error')
+
+        def fail(command):
+            raise error
+
+        with self.assertRaises(ValueError) as caught:
+            trace.exchange(fail, dict(cmd='tap', key='p2p_warning_continue'))
+        self.assertIs(caught.exception, error)
+        self.assertEqual((trace.receipt()['command'], trace.receipt()['target'],
+                          trace.receipt()['stage']), ('tap', 'swap_warning', 'REQUEST'))
+        self.assertNotIn('private', str(trace.receipt()))
+        for maximum in (128, 1024):
+            bounded = inspect.SeamProbeTrace(maximum=maximum)
+            forwarded = []
+            for _ in range(maximum):
+                bounded.exchange(lambda command: forwarded.append(command), dict(cmd='state'))
+            with self.assertRaises(inspect.Refused):
+                bounded.exchange(lambda command: forwarded.append(command), dict(cmd='state'))
+            self.assertEqual(len(forwarded), maximum)
+        for maximum in (True, None, 0, 127, 129, 1025):
+            with self.assertRaises(inspect.Refused):
+                inspect.SeamProbeTrace(maximum=maximum)
+
     def test_both_themes_use_the_original_warning_and_restore_home_and_preference(self):
         original, observed = ReadonlyOwnerSurfaces(), []
         inspect.observe_readonly_owner_seams(original.send, observed)

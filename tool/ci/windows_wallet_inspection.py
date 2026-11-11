@@ -723,7 +723,7 @@ def public_manifest(value):
     optional = {'source_sha', 'source_tree', 'run_id', 'run_attempt', 'input_attempted',
         'entry_failure', 'application_exit', 'cleanup_application_exit', 'entry_exit',
         'owned_job_images_before_close', 'owned_job_active_at_close', 'entry_output',
-        'home_seam_observations'}
+        'home_seam_observations', 'settings_seam_observations'}
     need(type(value) is dict and type(value.get('schema')) is int
          and value['schema'] in READONLY_CATALOG_SCHEMAS.values(), 'OUTPUT_REFUSED')
     schema = value['schema']
@@ -770,12 +770,15 @@ def public_manifest(value):
         need(type(value['input_attempted']) is bool, 'OUTPUT_REFUSED')
     if 'entry_failure' in value:
         entry_failure(value['entry_failure'])
-    if 'home_seam_observations' in value:
-        need(schema == READONLY_CATALOG_SCHEMAS['home'], 'OUTPUT_REFUSED')
-        observations = home_seam_observations(value['home_seam_observations'])
-        need(not value['success'] or observations['complete'], 'OUTPUT_REFUSED')
-        need(observations['probe_failure'] is None
-             or observations['probe_failure'] in value['errors'], 'OUTPUT_REFUSED')
+    for field, family, validate in (
+            ('home_seam_observations', 'home', home_seam_observations),
+            ('settings_seam_observations', 'settings', settings_seam_observations)):
+        if field in value:
+            need(schema == READONLY_CATALOG_SCHEMAS[family], 'OUTPUT_REFUSED')
+            observations = validate(value[field])
+            need(not value['success'] or observations['complete'], 'OUTPUT_REFUSED')
+            need(observations['probe_failure'] is None
+                 or observations['probe_failure'] in value['errors'], 'OUTPUT_REFUSED')
     if schema == SURFACE_SEAMS_SCHEMA:
         require_surface_seam_samples(value, complete=value['success'])
     elif schema in HOME_INSPECTION_SCHEMAS:
@@ -897,6 +900,15 @@ SETTINGS_SEAM_PANELS = (
         ('walletUpdateNotice', 'about_update_gate'),
     )),
 )
+
+
+def expected_settings_seam_observations():
+    return [dict(panel=panel, seam=seam)
+            for panel, _, targets in SETTINGS_SEAM_PANELS for seam, _ in targets]
+
+
+def settings_seam_observations(value):
+    return _seam_observation_prefix(value, expected_settings_seam_observations())
 
 
 def seam_wallet_observation(state, tab):
@@ -1047,12 +1059,15 @@ def expected_home_seam_observations():
 
 
 def home_seam_observations(value):
+    return _seam_observation_prefix(value, expected_home_seam_observations())
+
+
+def _seam_observation_prefix(value, expected):
     """Retain the original closed prefix, including after a later failure."""
     need(type(value) is dict and set(value) == {
         'schema', 'requested', 'observed', 'probe_failure', 'complete'}, 'OUTPUT_REFUSED')
-    expected = expected_home_seam_observations()
     need(type(value['schema']) is int and value['schema'] == 1
-         and type(value['requested']) is int and value['requested'] == len(expected) == 11
+         and type(value['requested']) is int and value['requested'] == len(expected)
          and type(value['complete']) is bool and type(value['observed']) is list
          and len(value['observed']) <= len(expected)
          and (value['probe_failure'] is None
@@ -1236,7 +1251,8 @@ SURFACE_TOKEN_ROW = 'token_zts1znnxxxxxxxxxxxxx9z4ulx_row'
 class SeamProbeTrace:
     """Retain fixed command labels without response bodies or exception text."""
 
-    COMMANDS = frozenset(('state', 'wait', 'tap', 'readonly-seam-pointer', 'key', 'logs'))
+    COMMANDS = frozenset(('state', 'wait', 'tap', 'readonly-seam-pointer', 'key',
+                         'logs', 'tree', 'theme'))
     TARGETS = {
         'addresses_settings_page': 'addresses',
         'home_hero': 'home', 'strip_update_button': 'update',
@@ -1244,17 +1260,20 @@ class SeamProbeTrace:
         'nodes_tab_pillars': 'pillars_tab', 'nodes_pillars_strip': 'pillars_strip',
         'pillars_sort': 'pillars_sort', 'pillars_sort_apr_gate': 'pillar_apr',
         'p2p_swaps_strip': 'swaps_strip', 'p2p_start_swap': 'swap_start',
+        'p2p_warning_continue': 'swap_warning',
         'swap_counterparty_input': 'swap_draft', 'swap_start_terms_gate': 'swap_terms',
         'swap_action_close': 'swap_close', 'escape': 'escape',
     }
     TABS = frozenset(('dashboard', 'tokens', 'pillars', 'p2pSwap'))
 
-    def __init__(self):
+    def __init__(self, *, maximum=128):
+        need(type(maximum) is int and maximum in (128, 1024), 'ENTRY_REFUSED')
+        self._maximum = maximum
         self._index = 0
         self._command, self._target, self._stage = 'NONE', 'NONE', 'NOT_STARTED'
 
     def exchange(self, send, command):
-        need(self._index < 128, 'ENTRY_REFUSED')
+        need(self._index < self._maximum, 'ENTRY_REFUSED')
         self._index += 1
         name = command.get('cmd') if type(command) is dict else None
         self._command = name if type(name) is str and name in self.COMMANDS else 'OTHER'
@@ -1412,9 +1431,12 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
         else:
             catalog_slot = 'details' if family in details.FAMILY_SCHEMAS else family
         report['schema'] = READONLY_CATALOG_SCHEMAS[family]
-        if parent.get('SYRIUS_READONLY_CATALOG_FAMILY') == HOME_SEAMS_FAMILY:
-            report['home_seam_observations'] = dict(schema=1, requested=11,
-                observed=[], probe_failure=None, complete=False)
+        for pilot, field in (
+                (HOME_SEAMS_FAMILY, 'home_seam_observations'),
+                (SETTINGS_SEAMS_FAMILY, 'settings_seam_observations')):
+            if parent.get('SYRIUS_READONLY_CATALOG_FAMILY') == pilot:
+                report[field] = dict(schema=1, requested=SEAM_PILOTS[pilot][2],
+                    observed=[], probe_failure=None, complete=False)
         seams_only = family == SURFACE_SEAMS_FAMILY
         if seams_only:
             report['seam_refusals'] = []
@@ -1711,6 +1733,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
             need(family == expected_family, 'ENTRY_REFUSED')
             seam_pointers = report['seam_refusals'] if seams_only else []
             seam_limit = min(deadline, time.monotonic() + 90)
+            seam_deadline_reached = False
 
             def exchange_seam(command):
                 runtime.healthy()
@@ -1723,23 +1746,23 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
                 return readonly_reply(json.loads(response.body), pid, wallet=True)
 
             try:
-                send_seam = exchange_seam
-                if family == SURFACE_SEAMS_FAMILY:
-                    seam_trace = SeamProbeTrace()
-                    send_seam = lambda command: seam_trace.exchange(exchange_seam, command)
+                seam_trace = SeamProbeTrace(maximum=1024 if family == 'home' else 128)
+                send_seam = lambda command: seam_trace.exchange(exchange_seam, command)
                 observe_seams(send_seam, seam_pointers)
                 need(len(seam_pointers) == seam_pilot[2], 'ENTRY_REFUSED')
                 if seams_only:
                     sample_capture_outputs(repo, family=family, catalog_only=True)
             except Exception as error:
                 seam_failure = inspection_failure_code(error, report['phase'])
+                seam_deadline_reached = time.monotonic() >= seam_limit
                 report['errors'].append(seam_failure)
             finally:
-                if 'home_seam_observations' in report:
-                    report['home_seam_observations'] = dict(schema=1,
-                        requested=seam_pilot[2], observed=[dict(row) for row in seam_pointers],
-                        probe_failure=seam_failure, complete=seam_failure is None
-                            and len(seam_pointers) == seam_pilot[2])
+                for field in ('home_seam_observations', 'settings_seam_observations'):
+                    if field in report:
+                        report[field] = dict(schema=1,
+                            requested=seam_pilot[2], observed=[dict(row) for row in seam_pointers],
+                            probe_failure=seam_failure, complete=seam_failure is None
+                                and len(seam_pointers) == seam_pilot[2])
         lab_current()
         report['phase'] = 'ordinary_close'
         close_attempted = True
@@ -1873,6 +1896,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
                 requested=seam_pilot[2],
                 observed=seam_pointers,
                 probe_failure=seam_failure,
+                probe_deadline_reached=seam_deadline_reached,
                 command_context=seam_trace.receipt() if seam_trace is not None else None,
                 inspection_completed=report['success'],
                 application_exit=report.get('application_exit'),

@@ -9,22 +9,29 @@ pairs have been viewed and 44 await visual review. Accepted whole-image matches
 remain 0/94. The older availability counts below retain their dated scope.
 
 The latest focused runtime source is
-[`a3aff4ec5e33`](https://github.com/edgepillar/syrius/tree/a3aff4ec5e33f77f535f72e8be31a9fa9cb6b6b9).
-Its [original run](https://github.com/edgepillar/syrius/actions/runs/43006822308)
-passes 1,411 Dart cases. Python completes 1,182 controls with eighteen Windows
-skips and no failures or errors; selected analysis has zero findings.
-The first lab Send does not reach exact
-confirmation in eighteen polls. The tour, copied seeds, captures and prepared
-Swap warning are unreached. The
-[independent reader](https://github.com/edgepillar/syrius/actions/runs/43009650502)
-verifies both retained manifests. Passive reads observe four peers and frontier
-height 16; the confirmation failure's cause remains NOT_ESTABLISHED. Five nodes
-close normally, but a required compiler helper needs forced cleanup, so normal
-wallet lifecycle is unqualified. No local artifact transfer occurs.
+[`344802945ec9`](https://github.com/edgepillar/syrius/tree/344802945ec947ab1d91cd113f7d531225dedfe0).
+Its [original run](https://github.com/edgepillar/syrius/actions/runs/43063838599)
+passes 1,450 Dart cases, 1,197 Python cases with eighteen Windows skips,
+five JavaScript controls and selected analysis with zero findings. Ten of eleven
+Home seam observations precede `ENTRY_REFUSED` during the light Swap control.
+The dark Swap control is among the retained observations. Required wallet and
+entry actors and all five original nodes close normally; the separately
+qualified compiler telemetry helper retains forced cleanup.
+
+The [independent reader](https://github.com/edgepillar/syrius/actions/runs/43068570646)
+passes 113 cases and verifies two archives and 81 source files. It verifies the
+same ten-observation prefix and its failure from the original manifest. The
+24 tour, eight Home and four viewport capture commands report completion, but
+zero PNGs qualify from this failed attempt. Overall native inspection and lab
+closure qualification remain false. The final light Swap refusal's inner cause
+remains `NOT_ESTABLISHED`; the eight Settings observations remain pending.
+No local artifact transfer occurs.
 
 The [first-delivery record](review/fast-first-delivery.md) retains current results
-and the eight deferred acceptance gates. This status refresh changes documentation
-only; the tested runtime source remains the revision linked above.
+and the eight deferred acceptance gates. Source676 prepares retained Settings
+prefixes and finite producer command context. All 233 selected in-memory controls
+pass without external effects. Fresh native qualification of that change remains
+pending; the tested runtime source is the revision linked above.
 
 ## Retained qualification status (2026-11-05)
 
