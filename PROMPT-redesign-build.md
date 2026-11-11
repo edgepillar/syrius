@@ -3152,3 +3152,21 @@ Six new Dart cases and three Python cases prepare hosted totals of 1,417 and
 and retained-reader qualification remain pending. Source665's original Send
 failure, the unreached Swap warning, all eight open gates and original 72/80
 acceptance retain their scope.
+
+## Source667 control result and Source668 expectation correction
+
+The [original Source667 run](https://github.com/edgepillar/syrius/actions/runs/43016532250)
+stops before SDK allocation. Its 1,185 Python cases report eighteen Windows
+skips, one failure and zero errors. The full retained-reader test still expects
+sixty base source files after the declared list grew to sixty-seven. Dart
+analysis, Dart execution and native observation are unreached. Zero artifacts
+are retained; an archive reader is inapplicable. The original failure remains.
+
+Source668 corrects five source-count assertions in that existing test. The base
+count follows the complete declared source list; Earn and Sentinel retain their
+additional two and three source files. All original PNG, request-budget,
+metadata, refusal and privacy checks remain. The 202 selected memory controls
+pass with zero external effects, including the full reader flow. Native and
+application code are unchanged from Source667. Fresh hosted qualification of
+1,417 Dart and 1,185 Python cases is pending; original 72/80 acceptance and all
+eight open gates remain unchanged.
