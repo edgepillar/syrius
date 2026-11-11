@@ -238,10 +238,9 @@ final class CaptureFrameGate {
   /// Reserves before either callback can synchronously reenter the caller.
   CaptureFrameGate({
     required this._waitForFrame,
-    CaptureFrameState? Function()? observeState,
+    this._observeState,
     Future<void> Function()? waitUntilDeadline,
-  }) : _observeState = observeState,
-       _waitUntilDeadline = waitUntilDeadline ?? _deadline;
+  }) : _waitUntilDeadline = waitUntilDeadline ?? _deadline;
 
   /// A wait registered during post-frame callbacks needs a new frame request.
   /// Reservation still precedes both effects and retains the original Future.

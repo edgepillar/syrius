@@ -38,8 +38,14 @@ The [first-delivery record](review/fast-first-delivery.md) retains current resul
 and the eight deferred acceptance gates. Source677 prepares a retained, finite
 scheduler snapshot from the original frame receipt's first refusal. All 234
 selected in-memory controls pass without external effects. The original deadline
-and permanent late hold are preserved. Fresh native qualification of that change
-remains pending; the tested runtime source is the revision linked above.
+and permanent late hold are preserved. Its [original run](https://github.com/edgepillar/syrius/actions/runs/43084674096)
+passes 1,200 Python controls with eighteen Windows skips and five JavaScript
+controls, then stops at one `prefer_initializing_formals` analyzer info. There
+are zero errors or warnings; Dart tests and the wallet/lab are unreached, with
+zero retained artifacts and no applicable reader. Source678 uses an initializing
+formal for that same observer field, with no behavior change or repeated local
+tests. Fresh native qualification remains pending; the latest full runtime
+source is the revision linked above.
 
 ## Retained qualification status (2026-11-05)
 

@@ -1891,3 +1891,22 @@ stay 1,450 Dart, 1,200 controller and 114 reader cases, with 81 declared reader
 sources. Fresh native frame-state qualification, the remaining Home and Token
 Explorer controls, all eight deferred gates, 72/80 and zero accepted whole-image
 matches remain open.
+
+## Source677 analyzer result and Source678 constructor style
+
+The [Source677 original run](https://github.com/edgepillar/syrius/actions/runs/43084674096)
+passes all 1,200 Python controls with eighteen Windows skips, five JavaScript
+controls and sixteen asset phases. Selected analysis reports zero errors,
+zero warnings and one `prefer_initializing_formals` info. The analyzer command
+exits zero with complete output, while the qualification gate retains failure.
+Dart tests and the wallet/lab steps are skipped. There are zero artifacts, so
+independent archive inspection is inapplicable; no original request is retried.
+
+Source678 initializes the same optional observer field through its formal
+parameter. This changes only constructor style. The original frame Future,
+request, 250 ms deadline, first-refusal snapshot and permanent late hold keep
+their Source677 implementation. The 234 in-memory controls remain pinned to
+Source677 and are not repeated for this style-only change. Counts remain
+1,450 Dart, 1,200 controller and 114 reader cases with 81 declared reader sources.
+Fresh native qualification, all earlier failures, 72/80 and zero accepted
+whole-image matches remain open.

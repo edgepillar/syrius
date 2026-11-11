@@ -3411,3 +3411,21 @@ late holds and closed diagnostics. Totals stay 1,450 Dart, 1,200 controller and
 114 reader cases with 81 declared reader sources. Fresh native frame-state and
 remaining seam qualification, Source675's light Swap cause, all earlier failures,
 72/80 and zero accepted whole-image matches remain open.
+
+## Source677 analyzer result and Source678 constructor style
+
+The [Source677 original run](https://github.com/edgepillar/syrius/actions/runs/43084674096)
+passes 1,200 Python controls with eighteen Windows skips, five JavaScript controls
+and sixteen asset phases. Selected analysis has zero errors, zero warnings and
+one `prefer_initializing_formals` info. The analyzer exits zero with complete
+output; the qualification gate preserves failure. Dart tests and the wallet/lab
+are unreached. Zero artifacts make independent archive inspection inapplicable.
+The original failed request is not repeated.
+
+Source678 uses an initializing formal for the same optional observer field.
+Only constructor style changes. The original Future, single request, 250 ms
+deadline, immutable first-refusal state and permanent late hold retain their
+Source677 behavior. The 234 Source677 in-memory controls stay source-pinned and
+are not repeated locally. Totals stay 1,450 Dart, 1,200 controller and 114 reader
+cases with 81 declared sources. Fresh native qualification, all earlier failures,
+72/80 and zero accepted whole-image matches remain open.
