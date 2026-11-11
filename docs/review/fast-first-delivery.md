@@ -1533,3 +1533,38 @@ annotation to its existing concrete exception class. Its constructor, identity,
 throw sites, assertions and all registrations are unchanged. The expected
 1,407 Dart cases and native observations still need fresh hosted qualification.
 All original failures, 72/80 and zero accepted whole-image matches remain.
+
+
+## Source664 Swap opening result
+
+The [Source664 producer](https://github.com/edgepillar/syrius/actions/runs/42998637476)
+passes 1,407 Dart cases, with zero failures, errors or skips, 153 hidden and
+1,560 terminal events. Python completes 1,182 controls with eighteen Windows
+skips and no failures or errors; selected analysis is clean. The
+[independent reader](https://github.com/edgepillar/syrius/actions/runs/43002245553)
+verifies both archives, original 1 ZNN Send, twelve-page tour, quiescence and
+normal original application, entry and five-node closure. Stake and Token are
+confirmed in the copied prefix. After capture completion, the original child
+refuses the dark `swap_counterparty_input` wait at its request boundary. The
+operation label supplies this location without exposing raw request or error
+text. Copied lifecycle, six owner-page observations and a seeded catalog archive
+remain unqualified; no whole-image match is accepted.
+
+Source665 handles the original Swap opening before waiting for that field.
+The application shows `P2PSwapWarningModal` until its original guarded Continue
+callback saves the existing preference; only then does it open the draft. The
+prepared driver had omitted this path. It now observes exactly one of the
+original warning control or draft field within a bounded five-second opening
+wait. Only the exact zero-time absence reply is accepted as absence; malformed,
+foreign and ambiguous replies refuse. Every query retains both owner checks.
+Start is activated once. If the warning is visible, the driver uses its original
+Continue button, then retains the existing draft-field wait. It does not write
+preferences directly or add any financial publication. Both themes still need
+all six original gate observations, their native owner/frame/barrier checks,
+four matching PNGs and normal original/copied closure.
+
+Four additional Dart cases cover warning/direct opening, delayed visibility,
+strict response handling, bounded absence and ownership loss before another
+query. The expected hosted totals are 1,411 Dart and 1,182 Python cases. Fresh
+hosted qualification is pending. The earlier failures, original 72/80, zero
+accepted whole-image matches and all eight open gates retain their scope.

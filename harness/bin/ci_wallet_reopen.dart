@@ -138,11 +138,12 @@ const Map<String, Set<String?>> _preparedSurfaceTargets =
   'wait': <String?>{
     'home_hero', 'strip_update_button', 'nodes_tab_pillars',
     'nodes_pillars_strip', 'p2p_swaps_strip', 'swap_counterparty_input',
-    'swap_start_terms_gate',
+    'swap_start_terms_gate', 'p2p_warning_continue',
   },
   'waitGone': <String?>{'swap_counterparty_input'},
   'tap': <String?>{
     'nodes_tab_pillars', 'pillars_sort', 'p2p_start_swap', 'swap_action_close',
+    'p2p_warning_continue',
   },
   'state': <String?>{null},
   'escape': <String?>{null},
@@ -240,6 +241,58 @@ Future<Map<String, dynamic>> preparedSurfaceRequest(
   await requireCurrent();
   enter('reply');
   return reply;
+}
+
+/// The two original views that can follow the one Start activation.
+enum PreparedSwapOpening { warning, draft }
+
+/// Waits for the original warning or draft without repeating Start.
+Future<PreparedSwapOpening> preparedSwapOpening({
+  required Future<Map<String, dynamic>> Function(Map<String, Object?>) request,
+  required Future<void> Function() requireCurrent,
+  required void Function(PreparedSurfaceOperation) onOperation,
+  required String theme,
+  Future<void> Function(Duration)? pause,
+  int Function()? readElapsedMilliseconds,
+}) async {
+  final Stopwatch clock = Stopwatch()..start();
+  final int Function() elapsed =
+      readElapsedMilliseconds ?? () => clock.elapsedMilliseconds;
+  final Future<void> Function(Duration) delay = pause ?? Future<void>.delayed;
+  Future<bool> visible(String key, String kind) async {
+    final Map<String, dynamic> reply = await preparedSurfaceRequest(
+      <String, Object?>{
+        'cmd': 'wait', 'key': key, 'kind': kind, 'exact': true, 'timeoutMs': 0,
+      },
+      request: request, requireCurrent: requireCurrent,
+      onOperation: onOperation, theme: theme,
+    );
+    final Object? target = reply['target'];
+    if (reply['ok'] == true && target is Map<Object?, Object?> &&
+        target['key'] == key && target['kind'] == kind) {
+      return true;
+    }
+    final Object? detail = reply['detail'];
+    if (reply['ok'] == false && reply['error'] == 'not there after 0 ms' &&
+        detail is Map<Object?, Object?> && detail.length == 2 &&
+        detail['key'] == key && detail['kind'] == kind) {
+      return false;
+    }
+    throw const FormatException('prepared swap opening response refused');
+  }
+
+  while (elapsed() < 5000) {
+    final bool warning = await visible('p2p_warning_continue', 'button');
+    final bool draft = await visible('swap_counterparty_input', 'field');
+    if (warning && draft) {
+      throw const FormatException('prepared swap opening ambiguous');
+    }
+    if (warning) return PreparedSwapOpening.warning;
+    if (draft) return PreparedSwapOpening.draft;
+    if (elapsed() >= 5000) break;
+    await delay(const Duration(milliseconds: 150));
+  }
+  throw const FormatException('prepared swap opening timed out');
 }
 
 /// Only typed families and validated fixed labels enter the failure marker.
@@ -542,6 +595,13 @@ Future<void> _observePreparedPageSeams(
     await wait('p2p_swaps_strip');
     final String swaps = await route('p2pSwap');
     await tap('p2p_start_swap');
+    final PreparedSwapOpening opening = await preparedSwapOpening(
+      request: (Map<String, Object?> command) => instance.send(command),
+      requireCurrent: requireCurrent, onOperation: onOperation, theme: theme,
+    );
+    if (opening == PreparedSwapOpening.warning) {
+      await tap('p2p_warning_continue');
+    }
     await wait('swap_counterparty_input', kind: 'field');
     final String draft = await route('p2pSwap');
     await wait('swap_start_terms_gate', kind: 'button');

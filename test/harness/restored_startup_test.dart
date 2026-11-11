@@ -124,6 +124,147 @@ Map<String, dynamic> _view({
 };
 
 void main() {
+  Map<String, dynamic> openingReply(Map<String, Object?> command, {
+    required bool warning,
+    required bool draft,
+  }) {
+    final bool present = command['key'] == 'p2p_warning_continue'
+        ? warning : draft;
+    return present ? <String, dynamic>{
+      'ok': true,
+      'target': <String, Object?>{
+        'key': command['key'], 'kind': command['kind'],
+      },
+    } : <String, dynamic>{
+      'ok': false, 'error': 'not there after 0 ms',
+      'detail': <String, Object?>{
+        'key': command['key'], 'kind': command['kind'],
+      },
+    };
+  }
+
+  test('prepared Swap opening observes the original warning or direct draft',
+      () async {
+    for (final entry.PreparedSwapOpening expected
+        in entry.PreparedSwapOpening.values) {
+      final List<Map<String, Object?>> commands = <Map<String, Object?>>[];
+      int owners = 0;
+      final entry.PreparedSwapOpening actual = await entry.preparedSwapOpening(
+        request: (Map<String, Object?> command) async {
+          commands.add(Map<String, Object?>.of(command));
+          return openingReply(command,
+            warning: expected == entry.PreparedSwapOpening.warning,
+            draft: expected == entry.PreparedSwapOpening.draft,
+          );
+        },
+        requireCurrent: () async { owners++; },
+        onOperation: (entry.PreparedSurfaceOperation _) {},
+        theme: 'dark',
+      );
+      expect(actual, expected);
+      expect(owners, 4);
+      expect(commands.map((Map<String, Object?> value) => value['key']),
+          <String>['p2p_warning_continue', 'swap_counterparty_input']);
+      for (final Map<String, Object?> command in commands) {
+        expect(command['cmd'], 'wait');
+        expect(command['timeoutMs'], 0);
+        expect(command['exact'], isTrue);
+      }
+    }
+  });
+
+  test('prepared Swap opening waits for a real view without another Start',
+      () async {
+    int elapsed = 0;
+    int requests = 0;
+    int pauses = 0;
+    final entry.PreparedSwapOpening actual = await entry.preparedSwapOpening(
+      request: (Map<String, Object?> command) async {
+        requests++;
+        expect(command['cmd'], 'wait');
+        return openingReply(command, warning: false, draft: elapsed >= 150);
+      },
+      requireCurrent: () async {},
+      onOperation: (entry.PreparedSurfaceOperation _) {},
+      theme: 'light',
+      pause: (Duration duration) async {
+        pauses++;
+        elapsed += duration.inMilliseconds;
+      },
+      readElapsedMilliseconds: () => elapsed,
+    );
+    expect(actual, entry.PreparedSwapOpening.draft);
+    expect(requests, 4);
+    expect(pauses, 1);
+  });
+
+  test('prepared Swap opening refuses unknown and ambiguous replies', () async {
+    for (final Map<String, dynamic> reply in <Map<String, dynamic>>[
+      <String, dynamic>{'ok': false, 'error': _Unformattable()},
+      <String, dynamic>{'ok': false, 'error': 'not ready after 0 ms'},
+      <String, dynamic>{
+        'ok': true, 'target': <String, String>{'key': 'private'},
+      },
+      <String, dynamic>{
+        'ok': false, 'error': 'not there after 0 ms',
+        'detail': <String, String>{'key': 'private', 'kind': 'button'},
+      },
+    ]) {
+      await expectLater(entry.preparedSwapOpening(
+        request: (Map<String, Object?> _) async => reply,
+        requireCurrent: () async {},
+        onOperation: (entry.PreparedSurfaceOperation _) {},
+        theme: 'dark',
+      ), throwsFormatException);
+    }
+    await expectLater(entry.preparedSwapOpening(
+      request: (Map<String, Object?> command) async =>
+          openingReply(command, warning: true, draft: true),
+      requireCurrent: () async {},
+      onOperation: (entry.PreparedSurfaceOperation _) {},
+      theme: 'dark',
+    ), throwsFormatException);
+  });
+
+  test('prepared Swap opening holds absent views and lost original owners',
+      () async {
+    int elapsed = 0;
+    int requests = 0;
+    await expectLater(entry.preparedSwapOpening(
+      request: (Map<String, Object?> command) async {
+        requests++;
+        return openingReply(command, warning: false, draft: false);
+      },
+      requireCurrent: () async {},
+      onOperation: (entry.PreparedSurfaceOperation _) {},
+      theme: 'dark',
+      pause: (Duration duration) async {
+        expect(duration, const Duration(milliseconds: 150));
+        elapsed = 5000;
+      },
+      readElapsedMilliseconds: () => elapsed,
+    ), throwsFormatException);
+    expect(requests, 2);
+
+    int owners = 0;
+    requests = 0;
+    final _Unformattable original = _Unformattable();
+    await expectLater(entry.preparedSwapOpening(
+      request: (Map<String, Object?> command) async {
+        requests++;
+        return openingReply(command, warning: true, draft: false);
+      },
+      requireCurrent: () async {
+        owners++;
+        if (owners == 3) throw original;
+      },
+      onOperation: (entry.PreparedSurfaceOperation _) {},
+      theme: 'dark',
+    ), throwsA(same(original)));
+    expect(requests, 1);
+    expect(owners, 3);
+  });
+
   test('prepared operation labels exclude payloads and remain immutable', () {
     final List<Map<String, Object?>> commands = <Map<String, Object?>>[
       <String, Object?>{'cmd': 'theme'},

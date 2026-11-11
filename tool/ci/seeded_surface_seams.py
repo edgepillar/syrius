@@ -23,9 +23,10 @@ OPERATION_TARGETS = {
     'navigate': ('dashboard', 'pillars', 'p2pSwap'),
     'wait': ('home_hero', 'strip_update_button', 'nodes_tab_pillars',
              'nodes_pillars_strip', 'p2p_swaps_strip', 'swap_counterparty_input',
-             'swap_start_terms_gate'),
+             'swap_start_terms_gate', 'p2p_warning_continue'),
     'waitGone': ('swap_counterparty_input',),
-    'tap': ('nodes_tab_pillars', 'pillars_sort', 'p2p_start_swap', 'swap_action_close'),
+    'tap': ('nodes_tab_pillars', 'pillars_sort', 'p2p_start_swap', 'swap_action_close',
+            'p2p_warning_continue'),
     'state': (None,), 'escape': (None,), 'seam': OWNER_SEAMS,
 }
 OPERATION_BOUNDARIES = ('ownerBefore', 'request', 'ownerAfter', 'reply')
