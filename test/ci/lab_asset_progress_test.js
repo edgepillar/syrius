@@ -5,6 +5,9 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path').posix;
 const vm = require('node:vm');
+// Six fixed VM executions stay within the parent's unchanged 30-second bound.
+// A separate refusal case below observes this same deadline on a busy loop.
+const vmTimeoutMs = 3000;
 controlPhase('SOURCE_READ_STARTED');
 const source = fs.readFileSync('tools/devnet/lab/make-assets.js', 'utf8');
 controlPhase('SOURCE_READ_FINISHED');
@@ -54,7 +57,7 @@ function execute(args, options = {}) {
       process: { argv: ['node', 'make-assets.js', ...args],
         stderr: { write: text => { stderr += text; } }, exit: code => { throw new Exit(code); } },
       console: { log: text => { stdout += text + '\n'; }, error: text => { stderr += text + '\n'; } },
-    }, { timeout: 1000 });
+    }, { timeout: vmTimeoutMs });
   } catch (error) {
     if (error instanceof Exit) exit = error.code;
     else if (options.failCopy && error.message === 'fixture copy refusal') exit = 1;
@@ -101,7 +104,11 @@ const interrupted = execute([...args, '--progress'], { failCopy: true });
 controlPhase('INTERRUPTED_RETURNED');
 assert.equal(interrupted.exit, 1);
 assert.equal(interrupted.stderr, phases.slice(0, 6).map(phase => `SYRIUS_LAB_ASSET_PHASE:${phase}\n`).join(''));
+controlPhase('TIMEOUT_STARTED');
+assert.throws(() => vm.runInNewContext('while (true) {}', {}, { timeout: vmTimeoutMs }),
+  { code: 'ERR_SCRIPT_EXECUTION_TIMEOUT' });
+controlPhase('TIMEOUT_RETURNED');
 controlPhase('COMPLETE');
 console.log('::notice title=Lab asset helper tests::' + JSON.stringify({ schema: 1,
-  scope: 'lab_asset_helper_inmemory_cases', success: true, cases: 4,
+  scope: 'lab_asset_helper_inmemory_cases', success: true, cases: 5,
   asset_bytes_equal: true, filesystem_scratch: 0, native_wallet_executions: 0 }));

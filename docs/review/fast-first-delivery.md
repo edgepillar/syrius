@@ -1625,3 +1625,26 @@ controls pass in memory, for 202 cases with zero external effects. Runtime code
 is unchanged from Source667. Fresh 1,417-Dart/1,185-Python hosted qualification
 remains pending. Every original failure, original 72/80 acceptance and all eight
 deferred gates remain open.
+
+## Source668 asset result and Source669 bounded fixture
+
+The [Source668 attempt](https://github.com/edgepillar/syrius/actions/runs/43018909255)
+stops in asset controls before Python controllers or SDK allocation. Node is
+v22.23.4. One original control command exits one normally after 5.516 seconds;
+its 1,121 bytes are complete and unforced. The observed-helper VM reaches its
+one-second deadline after six ordered markers. The deeper cause remains
+NOT_ESTABLISHED. No Dart or native execution occurs; zero artifacts make an
+archive reader inapplicable.
+
+Source669 changes only the test VM budget and its control protocol. Each VM
+retains a finite three-second limit inside the unchanged thirty-second command
+and 64 KiB cap. A new deadline-refusal case checks that a nonterminating
+synchronous fixture is stopped. Six VM budgets total eighteen seconds. All
+original asset, invalid-option, existing-output and interrupted-copy assertions
+remain; the production helper and runtime code are unchanged. The protocol now
+requires five logical cases and sixteen ordered markers.
+
+All 211 selected Python controls pass in memory with zero external effects.
+Actual JavaScript execution and fresh 1,417-Dart/1,185-Python qualification remain
+pending. The original failed attempts, 72/80 acceptance, zero accepted whole-image
+matches and all eight deferred gates retain their scope.

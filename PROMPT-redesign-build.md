@@ -3170,3 +3170,28 @@ pass with zero external effects, including the full reader flow. Native and
 application code are unchanged from Source667. Fresh hosted qualification of
 1,417 Dart and 1,185 Python cases is pending; original 72/80 acceptance and all
 eight open gates remain unchanged.
+
+## Source668 asset result and Source669 bounded fixture
+
+The [Source668 run](https://github.com/edgepillar/syrius/actions/runs/43018909255)
+stops in the memory-only asset controls. Node reports v22.23.4. The original
+control command exits one normally after 5.516 seconds, with 1,121 complete
+bytes. Its fixed failure category is VM_TIMEOUT at the observed-helper call,
+after six ordered phase markers. The exact inner cause remains NOT_ESTABLISHED.
+Python controller execution, SDK allocation, Dart and native observation are
+unreached. Zero artifacts are retained and a retained reader is inapplicable.
+
+Source669 gives each fixture VM a three-second deadline, retaining the outer
+thirty-second command and 64 KiB output cap. A fifth logical case requires the
+same VM deadline to stop a deliberately nonterminating synchronous fixture.
+The six VM execution budgets total eighteen seconds. The
+[Node VM API](https://nodejs.org/api/vm.html#vmruninnewcontextcode-contextobject-options)
+documents the execution deadline and its error outcome. All original asset
+byte comparisons, invalid-option, existing-output and interrupted-copy checks
+remain. The production asset helper, application and harness are unchanged.
+
+All 211 selected Python memory controls pass with zero external effects. The
+five JavaScript controls and sixteen ordered phase markers still need hosted
+execution; no local Node, SDK, native process or artifact transfer runs. The
+expected hosted totals remain 1,417 Dart and 1,185 Python cases. Every original
+failure, original 72/80 acceptance and all eight open gates remain unchanged.

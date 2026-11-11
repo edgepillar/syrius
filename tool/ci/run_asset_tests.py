@@ -18,7 +18,7 @@ CONTROL_PHASES = (
     'LEGACY_STARTED', 'LEGACY_RETURNED', 'OBSERVED_STARTED',
     'OBSERVED_RETURNED', 'INVALID_OPTION_STARTED', 'INVALID_OPTION_RETURNED',
     'EXISTING_STARTED', 'EXISTING_RETURNED', 'INTERRUPTED_STARTED',
-    'INTERRUPTED_RETURNED', 'COMPLETE',
+    'INTERRUPTED_RETURNED', 'TIMEOUT_STARTED', 'TIMEOUT_RETURNED', 'COMPLETE',
 )
 CODES = frozenset(('ENVIRONMENT_REFUSED', 'SOURCE_REFUSED', 'TOOL_REFUSED',
     'VERSION_REFUSED', 'CONTROL_FAILED', 'CONTROL_REPLY_REFUSED', 'OUTPUT_REFUSED',
@@ -73,7 +73,7 @@ def control_reply(raw):
     need(type(value['schema']) is int and value['schema'] == 1
         and value['scope'] == 'lab_asset_helper_inmemory_cases'
         and value['success'] is True and value['asset_bytes_equal'] is True
-        and type(value['cases']) is int and value['cases'] == 4
+        and type(value['cases']) is int and value['cases'] == 5
         and all(type(value[key]) is int and value[key] == 0
                 for key in ('filesystem_scratch', 'native_wallet_executions')),
         'CONTROL_REPLY_REFUSED')

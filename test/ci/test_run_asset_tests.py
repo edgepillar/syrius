@@ -13,7 +13,7 @@ from tool.ci import run_asset_tests as asset
 
 def reply():
     return dict(schema=1, scope='lab_asset_helper_inmemory_cases', success=True,
-        cases=4, asset_bytes_equal=True, filesystem_scratch=0, native_wallet_executions=0)
+        cases=5, asset_bytes_equal=True, filesystem_scratch=0, native_wallet_executions=0)
 
 
 def encoded(value=None):
@@ -56,6 +56,7 @@ class AssetCommandTests(unittest.TestCase):
     def test_extra_duplicate_and_false_result_fields_cannot_pass(self):
         for raw in (encoded() * 2, encoded(dict(reply(), detail='private')),
                     encoded(dict(reply(), success=False)), encoded(dict(reply(), schema=True)),
+                    encoded(dict(reply(), cases=4)), encoded(dict(reply(), cases=True)),
                     asset.PREFIX + b'{"schema":1,"schema":1}\n', b'private', b'x'*65537):
             with self.subTest(size=len(raw)), self.assertRaisesRegex(ValueError, '^CONTROL_REPLY_REFUSED$'):
                 asset.control_reply(raw)
