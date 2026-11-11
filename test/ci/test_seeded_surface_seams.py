@@ -14,6 +14,41 @@ def observation(seam, theme):
 
 
 class SeededSurfaceSeamTests(unittest.TestCase):
+    def test_last_operation_all_targets_are_diagnostic_data_only(self):
+        for action, targets in seams.OPERATION_TARGETS.items():
+            for target in targets:
+                for boundary in seams.OPERATION_BOUNDARIES:
+                    value = dict(schema=1, scope='prepared_owner_surface_operation',
+                        action=action, target=target, theme=target if action == 'themeSelect'
+                        else 'dark', boundary=boundary)
+                    projected = seams.operation(value)
+                    self.assertEqual(projected, value)
+                    self.assertIsNot(projected, value)
+                    self.assertNotIn('qualified', projected)
+                    self.assertNotIn('pointerDispatched', projected)
+
+    def test_last_operation_refuses_private_or_mistyped_fields(self):
+        original = dict(schema=1, scope='prepared_owner_surface_operation',
+            action='wait', target='home_hero', theme='dark', boundary='request')
+        for change in (dict(schema=True), dict(scope='private'), dict(action='publish'),
+                       dict(target='private'), dict(target={}), dict(theme=True),
+                       dict(theme='private'), dict(boundary='accepted'),
+                       dict(raw='private response'), dict(pointerDispatched=True),
+                       dict(action='themeSelect', target='light')):
+            with self.subTest(change=change), self.assertRaises(Refused):
+                seams.operation(dict(original, **change))
+
+    def test_last_operation_cannot_qualify_a_gate_or_borrow_the_holder(self):
+        value = dict(schema=1, scope='prepared_owner_surface_operation',
+            action='seam', target='walletUpdateNotice', theme='dark', boundary='reply')
+        self.assertEqual(seams.operation(value), value)
+        with self.assertRaises(Refused):
+            seams.receipt(value, 'walletUpdateNotice', 'dark')
+        with self.assertRaises(Refused):
+            seams.owner_completed([value] * 6, 'a' * 64)
+        with self.assertRaises(Refused):
+            seams.operation(dict(value, target='tokenExplorer'))
+
     def test_owner_pages_are_distinct_from_full_four_gate_acceptance(self):
         values = [observation(seam, theme) for seam, theme in seams.OWNER_EXPECTED]
         value = seams.owner_completed(values, 'a' * 64)

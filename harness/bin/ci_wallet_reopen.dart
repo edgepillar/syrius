@@ -126,15 +126,141 @@ Future<void> showRestoredStartupWindow(
   }
 }
 
+const Map<String, Set<String?>> _preparedSurfaceTargets =
+    <String, Set<String?>>{
+  'themeRead': <String?>{null},
+  'themeSelect': <String?>{'dark', 'light'},
+  'themeRestore': <String?>{null},
+  'windowRead': <String?>{null},
+  'windowShow': <String?>{null},
+  'windowRestore': <String?>{null},
+  'navigate': <String?>{'dashboard', 'pillars', 'p2pSwap'},
+  'wait': <String?>{
+    'home_hero', 'strip_update_button', 'nodes_tab_pillars',
+    'nodes_pillars_strip', 'p2p_swaps_strip', 'swap_counterparty_input',
+    'swap_start_terms_gate',
+  },
+  'waitGone': <String?>{'swap_counterparty_input'},
+  'tap': <String?>{
+    'nodes_tab_pillars', 'pillars_sort', 'p2p_start_swap', 'swap_action_close',
+  },
+  'state': <String?>{null},
+  'escape': <String?>{null},
+  'seam': <String?>{
+    'walletUpdateNotice', 'pillarAprEstimate', 'swapTerms',
+  },
+};
+
+/// Describes the last entered fixed UI request without granting authority.
+final class PreparedSurfaceOperation {
+  const PreparedSurfaceOperation._(
+    this.action, this.target, this.theme, this.boundary,
+  );
+
+  /// Copies fixed labels only; request payloads and replies stay private.
+  factory PreparedSurfaceOperation.fromCommand(
+    Map<String, Object?> command, {
+    String? theme,
+    String boundary = 'request',
+  }) {
+    String? action;
+    Object? target;
+    switch (command['cmd']) {
+      case 'theme':
+        action = command.containsKey('restore') ? 'themeRestore'
+            : command.containsKey('mode') ? 'themeSelect' : 'themeRead';
+        if (action == 'themeSelect') target = command['mode'];
+      case 'window':
+        action = command.containsKey('restoreState') ? 'windowRestore'
+            : command['do'] == 'show' ? 'windowShow'
+            : command['do'] == null && !command.containsKey('width') &&
+                !command.containsKey('height') ? 'windowRead' : null;
+      case 'tap':
+        action = command.containsKey('tab') ? 'navigate' : 'tap';
+        target = command[command.containsKey('tab') ? 'tab' : 'key'];
+      case 'wait':
+        action = command['gone'] == true ? 'waitGone' : 'wait';
+        target = command['key'];
+      case 'state':
+        action = 'state';
+      case 'key':
+        if (command['key'] == 'escape') action = 'escape';
+      case 'seed':
+        if (command['action'] == 'surface-seam') {
+          action = 'seam';
+          target = command['seam'];
+        }
+    }
+    final Set<String?>? targets = _preparedSurfaceTargets[action];
+    if (action == null || targets == null ||
+        target != null && target is! String || !targets.contains(target) ||
+        theme != null && !const <String>{'dark', 'light'}.contains(theme) ||
+        action == 'themeSelect' && target != theme ||
+        !const <String>{'ownerBefore', 'request', 'ownerAfter', 'reply'}
+            .contains(boundary)) {
+      throw const FormatException('prepared surface metadata refused');
+    }
+    return PreparedSurfaceOperation._(
+      action, target is String ? target : null, theme, boundary,
+    );
+  }
+
+  final String action;
+  final String? target;
+  final String? theme;
+  final String boundary;
+
+  /// This label is not a successful request, pointer or lifecycle receipt.
+  Map<String, Object?> toJson() => Map<String, Object?>.unmodifiable(
+    <String, Object?>{
+      'schema': 1, 'scope': 'prepared_owner_surface_operation',
+      'action': action, 'target': target, 'theme': theme, 'boundary': boundary,
+    },
+  );
+}
+
+/// Retains each original ownership check and request without retrying failures.
+Future<Map<String, dynamic>> preparedSurfaceRequest(
+  Map<String, Object?> command, {
+  required Future<Map<String, dynamic>> Function(Map<String, Object?>) request,
+  required Future<void> Function() requireCurrent,
+  required void Function(PreparedSurfaceOperation) onOperation,
+  String? theme,
+}) async {
+  void enter(String boundary) => onOperation(
+    PreparedSurfaceOperation.fromCommand(
+      command, theme: theme, boundary: boundary,
+    ),
+  );
+  enter('ownerBefore');
+  await requireCurrent();
+  enter('request');
+  final Map<String, dynamic> reply = await request(command);
+  enter('ownerAfter');
+  await requireCurrent();
+  enter('reply');
+  return reply;
+}
+
 /// Only typed families and validated fixed labels enter the failure marker.
 Map<String, Object?>? restoredChildFailure(
   String phase, Object error, {
   ScreenCaptureObservation? captureStep,
+  PreparedSurfaceOperation? surfaceOperation,
   RestoredSeedSelection selection = RestoredSeedSelection.all,
   bool pillarSpawn = false,
   bool pillarDone = false,
 }) {
   if (!restoredChildPhases.contains(phase)) return null;
+  if (surfaceOperation != null &&
+      (phase != 'seeded_capture' ||
+       captureStep?.step != ScreenCaptureStep.complete ||
+       captureStep?.screen != null || captureStep?.theme != null ||
+       captureStep?.line != null ||
+       selection != RestoredSeedSelection.seededCatalog ||
+       pillarSpawn || pillarDone)) {
+    return null;
+  }
   String kind = 'OTHER_ERROR';
   String? code;
   Map<String, String>? recipe;
@@ -204,6 +330,7 @@ Map<String, Object?>? restoredChildFailure(
     'lock_view': ?lockView,
     'seed': ?seed,
     'capture': ?capture,
+    'prepared_surface_operation': ?surfaceOperation?.toJson(),
   };
 }
 
@@ -322,13 +449,16 @@ Future<void> _observePreparedPageSeams(
   cli.Instance instance,
   Future<void> Function() requireCurrent,
   Future<void> Function(String seam, String theme) observe,
+  void Function(PreparedSurfaceOperation) onOperation,
 ) async {
-  Future<Map<String, dynamic>> send(Map<String, Object?> command) async {
-    await requireCurrent();
-    final Map<String, dynamic> result = await cli.call(instance, command);
-    await requireCurrent();
-    return result;
-  }
+  String? currentTheme;
+  Future<Map<String, dynamic>> send(Map<String, Object?> command) =>
+      preparedSurfaceRequest(
+        command, request: (Map<String, Object?> value) =>
+            cli.call(instance, value),
+        requireCurrent: requireCurrent, onOperation: onOperation,
+        theme: currentTheme,
+      );
   Future<void> wait(String key, {String? kind, bool gone = false}) async {
     final Map<String, dynamic> reply = await send(<String, Object?>{
       'cmd': 'wait', 'key': key, 'exact': true, 'timeoutMs': 5000,
@@ -383,6 +513,7 @@ Future<void> _observePreparedPageSeams(
     throw const FormatException('prepared surface window refused');
   }
   for (final String theme in <String>['dark', 'light']) {
+    currentTheme = theme;
     await send(<String, Object?>{'cmd': 'theme', 'mode': theme});
     await send(<String, Object?>{'cmd': 'tap', 'tab': 'dashboard'});
     await wait('home_hero');
@@ -439,6 +570,7 @@ Future<Map<String, Object>> _captureSeededCatalog(
   void Function(ScreenCaptureObservation) onStep, {
   required RestoredSeedSelection selection,
   required Future<void> Function(String) emitMarker,
+  required void Function(PreparedSurfaceOperation) onPreparedOperation,
   bool pillarSpawn = false,
   bool pillarDone = false,
 }) async {
@@ -497,14 +629,15 @@ Future<Map<String, Object>> _captureSeededCatalog(
         !const <String>{'dark', 'light'}.contains(theme)) {
       throw const FormatException('prepared surface selection refused');
     }
-    await requireCurrent();
-    final Map<String, dynamic> seam = await cli.call(
-      instance, <String, Object?>{
+    final Map<String, dynamic> seam = await preparedSurfaceRequest(
+      <String, Object?>{
         'cmd': 'seed', 'action': 'surface-seam',
         'hash': confirmed('token'), 'seam': name, 'theme': theme,
       },
+      request: (Map<String, Object?> value) => cli.call(instance, value),
+      requireCurrent: requireCurrent, onOperation: onPreparedOperation,
+      theme: theme,
     );
-    await requireCurrent();
     final Map<String, Object> expected = <String, Object>{
       'schema': 1,
       'scope': 'owned_seeded_surface_seam_pointer_observation',
@@ -629,7 +762,9 @@ Future<Map<String, Object>> _captureSeededCatalog(
     throw const FormatException('seeded capture paths refused');
   }
   if (selection == RestoredSeedSelection.seededCatalog) {
-    await _observePreparedPageSeams(instance, requireCurrent, observeSurface);
+    await _observePreparedPageSeams(
+      instance, requireCurrent, observeSurface, onPreparedOperation,
+    );
   }
   return <String, Object>{
     'schema': catalog.schema,
@@ -643,6 +778,7 @@ Future<Map<String, Object>> _captureSeededCatalog(
 Future<void> main() async {
   CopiedPointerInput? input;
   ScreenCaptureObservation? captureStep;
+  PreparedSurfaceOperation? surfaceOperation;
   String phase = 'gate';
   RestoredSeedSelection selection = RestoredSeedSelection.all;
   bool pillarSpawn = false;
@@ -856,6 +992,8 @@ Future<void> main() async {
         (ScreenCaptureObservation step) => captureStep = step,
         selection: RestoredSeedSelection.all,
         emitMarker: marker,
+        onPreparedOperation: (PreparedSurfaceOperation operation) =>
+            surfaceOperation = operation,
         pillarSpawn: pillarSpawn, pillarDone: pillarDone,
       );
       if (pillarDone) {
@@ -936,6 +1074,8 @@ Future<void> main() async {
         (ScreenCaptureObservation step) => captureStep = step,
         selection: selection,
         emitMarker: marker,
+        onPreparedOperation: (PreparedSurfaceOperation operation) =>
+            surfaceOperation = operation,
       );
       await marker('CI_SEEDED_CAPTURE_DONE:${jsonEncode(captured)}');
     }
@@ -946,6 +1086,7 @@ Future<void> main() async {
   } on Object catch (error) {
     final Map<String, Object?>? failure = restoredChildFailure(
       phase, error, captureStep: captureStep,
+      surfaceOperation: surfaceOperation,
       selection: selection, pillarSpawn: pillarSpawn, pillarDone: pillarDone,
     );
     if (failure != null) {

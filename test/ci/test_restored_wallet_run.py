@@ -240,6 +240,53 @@ class PolicyTests(unittest.TestCase):
 
 
 class ReopenDiagnosticTests(unittest.TestCase):
+    def test_prepared_operation_requires_completed_issuer_capture_context(self):
+        operation = dict(schema=1, scope='prepared_owner_surface_operation',
+            action='wait', target='home_hero', theme='dark', boundary='request')
+        child = dict(schema=1, scope='owned_reopen_child_failure', phase='seeded_capture',
+            kind='HARNESS_REFUSED', code=None, recipe=None,
+            capture=dict(schema=2, kind='restored_seeded_capture_failure',
+                         last_entered_step='complete', reply='unknown'),
+            prepared_surface_operation=operation)
+        projected = restored.child_failure_projection(child)
+        self.assertEqual(projected, child)
+        for change in (dict(phase='seed_token'), dict(capture=None),
+                       dict(capture=dict(child['capture'], last_entered_step='scriptLine')),
+                       dict(capture=dict(child['capture'], screen='staking', theme='dark', line=1)),
+                       dict(capture=dict(child['capture'], kind='restored_stake_draft_capture_failure')),
+                       dict(prepared_surface_operation=dict(operation, raw='private'))):
+            with self.subTest(change=change), self.assertRaises(restored.checkpoint.Refused):
+                restored.child_failure_projection(dict(child, **change))
+        operation['target'] = 'private'
+        self.assertEqual(projected['prepared_surface_operation']['target'], 'home_hero')
+
+    def test_prepared_operation_frames_keep_the_original_failure_unqualified(self):
+        operation = dict(schema=1, scope='prepared_owner_surface_operation',
+            action='seam', target='pillarAprEstimate', theme='light', boundary='request')
+        child = dict(schema=1, scope='owned_reopen_child_failure', phase='seeded_capture',
+            kind='HARNESS_REFUSED', code=None, recipe=None,
+            capture=dict(schema=2, kind='restored_seeded_capture_failure',
+                         last_entered_step='complete', reply='unknown'),
+            prepared_surface_operation=operation)
+        trace = restored.ReopenDiagnostic()
+        trace.at('seeded_capture')
+        trace.observe_line(b'CI_REOPEN_FAILURE:' + json.dumps(child).encode() + b'\n')
+        trace.failure(restored.checkpoint.Refused())
+        value = restored.project(dict(schema=1, scope=restored.SCOPE, complete=False,
+                                      diagnostic=trace.snapshot()))
+        self.assertFalse(value['complete'])
+        self.assertEqual(value['diagnostic']['error'], 'CHECKPOINT_REFUSED')
+        self.assertEqual(value['diagnostic']['child_failure'], child)
+        frames = restored.notice_frames(dict(scope='synthetic_observation',
+            source_sha='a' * 40, run_id=123, codes=['SYNTHETIC_FINITE'] * 175,
+            wallet_reopen=value))
+        self.assertTrue(all(len(json.dumps(item, separators=(',', ':')).encode()) <= 3800
+                            for _, item in frames))
+        self.assertIn(operation, [item.get('facts', {}).get('diagnostic', {})
+            .get('child_failure', {}).get('prepared_surface_operation') for _, item in frames]
+            + [item.get('wallet_reopen', {}).get('diagnostic', {})
+               .get('child_failure', {}).get('prepared_surface_operation') for _, item in frames])
+
     def test_actual_wait_retains_two_journal_prefixes_before_the_child_fails(self):
         source = ast.parse(Path('tool/ci/restored_wallet_run.py').read_text())
         run = next(node for node in source.body

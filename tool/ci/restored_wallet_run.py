@@ -432,7 +432,8 @@ def child_failure_projection(value):
     """Validate data from the original child; it grants no runtime authority."""
     fields = {'schema', 'scope', 'phase', 'kind', 'code', 'recipe'}
     checkpoint.need(type(value) is dict and set(value) in
-        (fields, fields | {'lock_view'}, fields | {'seed'}, fields | {'capture'})
+        (fields, fields | {'lock_view'}, fields | {'seed'}, fields | {'capture'},
+         fields | {'capture', 'prepared_surface_operation'})
         and type(value['schema']) is int and value['schema'] == 1
         and value['scope'] == 'owned_reopen_child_failure'
         and type(value['phase']) is str and value['phase'] in CHILD_PHASES
@@ -478,6 +479,13 @@ def child_failure_projection(value):
                 capture, catalog_schema=schema)
         except catalog.Refused:
             raise checkpoint.Refused() from None
+    if 'prepared_surface_operation' in value:
+        capture = result['capture']
+        checkpoint.need(capture['kind'] == 'restored_seeded_capture_failure'
+            and capture['last_entered_step'] == 'complete'
+            and not {'screen', 'theme', 'line'} & set(capture))
+        result['prepared_surface_operation'] = seeded_surface_seams.operation(
+            value['prepared_surface_operation'])
     return result
 
 

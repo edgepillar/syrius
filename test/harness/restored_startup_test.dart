@@ -5,8 +5,10 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../../harness/bin/ci_wallet_reopen.dart' as entry;
 import '../../harness/bin/harness.dart' as cli;
+import '../../harness/bin/screen_capture.dart';
 import '../../harness/bin/wallet_recipe.dart';
 import '../../harness/lock_view_observation.dart';
+import '../../harness/seed/restored_seed_workflow.dart';
 
 class _Unformattable implements Exception {
   @override
@@ -122,6 +124,153 @@ Map<String, dynamic> _view({
 };
 
 void main() {
+  test('prepared operation labels exclude payloads and remain immutable', () {
+    final List<Map<String, Object?>> commands = <Map<String, Object?>>[
+      <String, Object?>{'cmd': 'theme'},
+      <String, Object?>{'cmd': 'theme', 'mode': 'dark'},
+      <String, Object?>{'cmd': 'theme', 'restore': _Unformattable()},
+      <String, Object?>{'cmd': 'window'},
+      <String, Object?>{'cmd': 'window', 'do': 'show', 'width': 1280},
+      <String, Object?>{'cmd': 'window', 'restoreState': _Unformattable()},
+      <String, Object?>{'cmd': 'tap', 'tab': 'dashboard'},
+      <String, Object?>{'cmd': 'tap', 'key': 'pillars_sort'},
+      <String, Object?>{'cmd': 'wait', 'key': 'home_hero'},
+      <String, Object?>{
+        'cmd': 'wait', 'key': 'swap_counterparty_input', 'gone': true,
+      },
+      <String, Object?>{'cmd': 'state'},
+      <String, Object?>{'cmd': 'key', 'key': 'escape'},
+      <String, Object?>{
+        'cmd': 'seed', 'action': 'surface-seam',
+        'seam': 'walletUpdateNotice', 'hash': _Unformattable(),
+      },
+    ];
+    for (final Map<String, Object?> command in commands) {
+      final entry.PreparedSurfaceOperation operation =
+          entry.PreparedSurfaceOperation.fromCommand(command, theme: 'dark');
+      final Map<String, Object?> snapshot = operation.toJson();
+      command['private'] = _Unformattable();
+      command['cmd'] = 'private';
+      expect(jsonEncode(snapshot), isNot(contains('private')));
+      expect(snapshot.keys, unorderedEquals(<String>[
+        'schema', 'scope', 'action', 'target', 'theme', 'boundary',
+      ]));
+      expect(() => snapshot['target'] = 'private', throwsUnsupportedError);
+      expect(operation.toJson(), snapshot);
+    }
+  });
+
+  test('prepared operation labels reject foreign commands and targets', () {
+    for (final Map<String, Object?> command in <Map<String, Object?>>[
+      <String, Object?>{'cmd': 'private'},
+      <String, Object?>{'cmd': 'tap', 'tab': 'settings'},
+      <String, Object?>{'cmd': 'wait', 'key': 'private'},
+      <String, Object?>{'cmd': 'key', 'key': 'enter'},
+      <String, Object?>{
+        'cmd': 'seed', 'action': 'surface-seam', 'seam': 'tokenExplorer',
+      },
+      <String, Object?>{'cmd': 'theme', 'mode': 'light'},
+    ]) {
+      expect(
+        () => entry.PreparedSurfaceOperation.fromCommand(
+          command, theme: 'dark',
+        ),
+        throwsFormatException,
+      );
+    }
+    for (final String boundary in <String>['private', '', 'accepted']) {
+      expect(
+        () => entry.PreparedSurfaceOperation.fromCommand(
+          <String, Object?>{'cmd': 'state'}, boundary: boundary,
+        ),
+        throwsFormatException,
+      );
+    }
+  });
+
+  test('prepared requests preserve failures and both ownership boundaries',
+      () async {
+    for (final int failedBoundary in <int>[0, 1, 2, -1]) {
+      final Object originalFailure = _Unformattable();
+      final List<entry.PreparedSurfaceOperation> operations =
+          <entry.PreparedSurfaceOperation>[];
+      int owners = 0;
+      int requests = 0;
+      final Map<String, dynamic> reply = <String, dynamic>{'private': true};
+      final Future<Map<String, dynamic>> result = entry.preparedSurfaceRequest(
+        <String, Object?>{'cmd': 'wait', 'key': 'home_hero'},
+        request: (Map<String, Object?> command) async {
+          requests++;
+          if (failedBoundary == 1) throw originalFailure;
+          return reply;
+        },
+        requireCurrent: () async {
+          owners++;
+          if (failedBoundary == 0 && owners == 1 ||
+              failedBoundary == 2 && owners == 2) {
+            throw originalFailure;
+          }
+        },
+        onOperation: operations.add,
+        theme: 'dark',
+      );
+      if (failedBoundary == -1) {
+        expect(await result, same(reply));
+      } else {
+        await expectLater(result, throwsA(same(originalFailure)));
+      }
+      expect(requests, failedBoundary == 0 ? 0 : 1);
+      expect(owners, failedBoundary == 0 || failedBoundary == 1 ? 1 : 2);
+      expect(operations.last.boundary, switch (failedBoundary) {
+        0 => 'ownerBefore', 1 => 'request', 2 => 'ownerAfter', _ => 'reply',
+      });
+      expect(jsonEncode(operations.last.toJson()), isNot(contains('private')));
+    }
+  });
+
+  test('prepared failure labels belong only to the completed issuer catalog',
+      () {
+    final entry.PreparedSurfaceOperation operation =
+        entry.PreparedSurfaceOperation.fromCommand(
+          <String, Object?>{'cmd': 'state'}, theme: 'light',
+        );
+    const ScreenCaptureObservation complete =
+        ScreenCaptureObservation(ScreenCaptureStep.complete);
+    final Map<String, Object?> result = entry.restoredChildFailure(
+      'seeded_capture', _Unformattable(), captureStep: complete,
+      selection: RestoredSeedSelection.seededCatalog,
+      surfaceOperation: operation,
+    )!;
+    expect(result['prepared_surface_operation'], operation.toJson());
+    expect(result['kind'], 'OTHER_ERROR');
+    for (final String phase in <String>['startup', 'seed_token', 'finish']) {
+      expect(entry.restoredChildFailure(
+        phase, _Unformattable(), captureStep: complete,
+        selection: RestoredSeedSelection.seededCatalog,
+        surfaceOperation: operation,
+      ), isNull);
+    }
+    expect(entry.restoredChildFailure(
+      'seeded_capture', _Unformattable(), captureStep: complete,
+      selection: RestoredSeedSelection.stakeDraft,
+      surfaceOperation: operation,
+    ), isNull);
+    expect(entry.restoredChildFailure(
+      'seeded_capture', _Unformattable(),
+      captureStep: const ScreenCaptureObservation(ScreenCaptureStep.scriptLine),
+      selection: RestoredSeedSelection.seededCatalog,
+      surfaceOperation: operation,
+    ), isNull);
+    expect(entry.restoredChildFailure(
+      'seeded_capture', _Unformattable(),
+      captureStep: const ScreenCaptureObservation(
+        ScreenCaptureStep.complete, screen: 'private',
+      ),
+      selection: RestoredSeedSelection.seededCatalog,
+      surfaceOperation: operation,
+    ), isNull);
+  });
+
   Map<String, dynamic> ready() => <String, dynamic>{
     'walletUnlocked': true, 'walletInitCompleted': true,
     'embeddedNode': false, 'ws': 'running',

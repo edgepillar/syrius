@@ -3021,3 +3021,35 @@ mandatory. No application widget, financial guard, seed step, test registration
 or deadline changes. Source660's assertion formatting is retained; no separate
 Source660 CI attempt is requested before qualifying the combined revision.
 Fresh hosted and independent retained-reader results remain required.
+
+
+## Source661 post-capture result and bounded operation labels
+
+The [Source661 producer](https://github.com/edgepillar/syrius/actions/runs/42989341684)
+passes all 1,403 Dart cases, with zero failures, errors or skips, 153 hidden
+and 1,556 terminal events. Python completes 1,177 controls with eighteen Windows
+skips and no failures or errors; selected analysis has zero findings. The
+[independent reader](https://github.com/edgepillar/syrius/actions/runs/42992555056)
+verifies the two retained archives, original 1 ZNN Send, twelve-page tour,
+quiescence and normal original application, entry and five-node closure.
+The copied prefix confirms Stake and Token with consistent journals. Its last
+capture step is `complete`, followed by an unclassified refusal in the prepared
+page operations. The exact operation and cause remain NOT_ESTABLISHED. No seeded
+catalog archive is retained; the copied lifecycle and six owner-page pointer
+observations remain unqualified. The earlier Mint/holder failure keeps its
+separate original result.
+
+Source662 retains one closed label for the last entered prepared operation:
+fixed action, fixed target, selected theme and ownership/request boundary.
+Request bodies, hashes, addresses, wallet paths, replies and exception text are
+excluded. Each request retains both original ownership checks and its one
+original invocation; the same exception propagates without retry. The metadata
+is accepted only after the completed issuer catalog, and never as a gate,
+financial, capture or lifecycle receipt. All six pointer observations, native
+frame/barrier checks, archive binding and normal closure remain mandatory.
+Four new Dart and five Python cases cover label privacy, immutable copies,
+unsupported targets, original exceptions and stale owners, capture context,
+notice bounds and refusal to treat labels as successful gate observations.
+The expected hosted totals are 1,407 Dart and 1,182 Python cases. Fresh hosted
+qualification is pending. Original 72/80, zero accepted whole-image matches,
+holder Explorer and all eight original open acceptance gates remain unchanged.

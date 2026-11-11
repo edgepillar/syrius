@@ -17,6 +17,34 @@ OWNER_EXPECTED = tuple((seam, theme) for theme in THEMES for seam in OWNER_SEAMS
 OWNER_REFERENCE_SCOPE = 'owned_restored_owner_page_seams'
 FACTS = dict(pointerDispatched=True, absorptionObserved=True,
              originalReceiptCurrent=True, nativeFrameObserved=True)
+OPERATION_TARGETS = {
+    'themeRead': (None,), 'themeSelect': ('dark', 'light'), 'themeRestore': (None,),
+    'windowRead': (None,), 'windowShow': (None,), 'windowRestore': (None,),
+    'navigate': ('dashboard', 'pillars', 'p2pSwap'),
+    'wait': ('home_hero', 'strip_update_button', 'nodes_tab_pillars',
+             'nodes_pillars_strip', 'p2p_swaps_strip', 'swap_counterparty_input',
+             'swap_start_terms_gate'),
+    'waitGone': ('swap_counterparty_input',),
+    'tap': ('nodes_tab_pillars', 'pillars_sort', 'p2p_start_swap', 'swap_action_close'),
+    'state': (None,), 'escape': (None,), 'seam': OWNER_SEAMS,
+}
+OPERATION_BOUNDARIES = ('ownerBefore', 'request', 'ownerAfter', 'reply')
+
+
+def operation(value):
+    """A last-entered label is diagnostic data, never a pointer receipt."""
+    fields = {'schema', 'scope', 'action', 'target', 'theme', 'boundary'}
+    need(type(value) is dict and set(value) == fields
+         and type(value['schema']) is int and value['schema'] == 1
+         and value['scope'] == 'prepared_owner_surface_operation'
+         and type(value['action']) is str and value['action'] in OPERATION_TARGETS
+         and (value['target'] is None or type(value['target']) is str)
+         and value['target'] in OPERATION_TARGETS[value['action']]
+         and (value['theme'] is None or type(value['theme']) is str
+              and value['theme'] in THEMES)
+         and (value['action'] != 'themeSelect' or value['target'] == value['theme'])
+         and type(value['boundary']) is str and value['boundary'] in OPERATION_BOUNDARIES)
+    return dict(value)
 
 
 def receipt(value, seam, theme):
