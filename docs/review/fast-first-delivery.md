@@ -1098,9 +1098,26 @@ to the independent reader checkout. A regression checks checkout coverage for
 every declared producer source, and rejects the earlier missing-source layout.
 The reader also preserves an empty refusal prefix and identifies surface source
 validation as a separate phase. All 112 reader cases pass in memory with no
-filesystem writes, network or native execution. Its next hosted inspection
-targets the same original Source649 archives. No native retry or additional PNG
-capture is requested. The original page-seam refusal cause remains unestablished.
+filesystem writes, network or native execution.
+
+The Source650 hosted reader passes all 112 controls and independently verifies
+the same original Source649 archives and 69 producer source files. It confirms
+zero completed seam attempts and the original ENTRY_REFUSED. Application and
+entry exit zero without forced required actors; all five original nodes exit
+zero with complete, unforced output. The owned compiler helper still requires
+termination. Overall native and lab qualification remain false. The inspection
+starts no native process and produces no artifacts or additional PNGs.
+[Retained reader](https://github.com/edgepillar/syrius/actions/runs/42952833237).
+
+Source651 waits for the original Home marker and update button before the first
+surface pointer attempt. Both waits retain their five-second limit and recheck
+the same selected wallet and Home route. The overall ninety-second probe limit
+and all native gate, hit-test and ownership checks remain unchanged. Its small
+command context reports only fixed labels, a bounded index and whether the
+exchange returned. It never copies reply bodies, entered values or exception
+text. All 147 selected reader and producer controls pass in memory, including
+unready markers, changed owners/routes and diagnostic privacy. Fresh native
+observation and the original page-seam refusal cause remain open.
 
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied

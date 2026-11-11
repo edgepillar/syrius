@@ -994,6 +994,45 @@ SURFACE_SEAMS = ('walletUpdateNotice', 'tokenExplorer', 'pillarAprEstimate', 'sw
 SURFACE_TOKEN_ROW = 'token_zts1znnxxxxxxxxxxxxx9z4ulx_row'
 
 
+class SeamProbeTrace:
+    """Retain fixed command labels without response bodies or exception text."""
+
+    COMMANDS = frozenset(('state', 'wait', 'tap', 'readonly-seam-pointer', 'key', 'logs'))
+    TARGETS = {
+        'home_hero': 'home', 'strip_update_button': 'update',
+        SURFACE_TOKEN_ROW: 'token_row', 'token_explorer_control': 'token_explorer',
+        'nodes_tab_pillars': 'pillars_tab', 'nodes_pillars_strip': 'pillars_strip',
+        'pillars_sort': 'pillars_sort', 'pillars_sort_apr_gate': 'pillar_apr',
+        'p2p_swaps_strip': 'swaps_strip', 'p2p_start_swap': 'swap_start',
+        'swap_counterparty_input': 'swap_draft', 'swap_start_terms_gate': 'swap_terms',
+        'swap_action_close': 'swap_close', 'escape': 'escape',
+    }
+    TABS = frozenset(('dashboard', 'tokens', 'pillars', 'p2pSwap'))
+
+    def __init__(self):
+        self._index = 0
+        self._command, self._target, self._stage = 'NONE', 'NONE', 'NOT_STARTED'
+
+    def exchange(self, send, command):
+        need(self._index < 128, 'ENTRY_REFUSED')
+        self._index += 1
+        name = command.get('cmd') if type(command) is dict else None
+        self._command = name if type(name) is str and name in self.COMMANDS else 'OTHER'
+        key = command.get('key') if type(command) is dict else None
+        tab = command.get('tab') if type(command) is dict else None
+        self._target = (self.TARGETS.get(key, 'OTHER') if type(key) is str else
+                        tab if type(tab) is str and tab in self.TABS else 'NONE')
+        self._stage = 'REQUEST'
+        result = send(command)
+        self._stage = 'REPLY'
+        return result
+
+    def receipt(self):
+        return dict(schema=1, scope='readonly_seam_command_context',
+            command_index=self._index, command=self._command,
+            target=self._target, stage=self._stage)
+
+
 def observe_surface_seams(send, observed):
     """Try four existing unavailable controls without captures or form input."""
     initial = seam_wallet_state(send, 'dashboard')
@@ -1023,6 +1062,10 @@ def observe_surface_seams(send, observed):
         target = result.get('target')
         need(type(target) is dict and target.get('key') == key, 'ENTRY_REFUSED')
 
+    wait('home_hero')
+    need(route('dashboard') == home, 'ENTRY_REFUSED')
+    wait('strip_update_button', kind='button')
+    need(route('dashboard') == home, 'ENTRY_REFUSED')
     require_seam_absorption(send, 'walletUpdateNotice', 'strip_update_button')
     need(route('dashboard') == home, 'ENTRY_REFUSED')
     observed.append('walletUpdateNotice')
@@ -1100,7 +1143,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
     close_attempted = False
     warning_close_grace = False
     catalog_receipt = viewport_receipt = None
-    seam_pointers = seam_failure = seam_pilot = None
+    seam_pointers = seam_failure = seam_pilot = seam_trace = None
     family = catalog_slot = 'details'
     details_schema = 1
     catalog_only = seams_only = False
@@ -1427,7 +1470,11 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
                 return readonly_reply(json.loads(response.body), pid, wallet=True)
 
             try:
-                observe_seams(exchange_seam, seam_pointers)
+                send_seam = exchange_seam
+                if family == SURFACE_SEAMS_FAMILY:
+                    seam_trace = SeamProbeTrace()
+                    send_seam = lambda command: seam_trace.exchange(exchange_seam, command)
+                observe_seams(send_seam, seam_pointers)
                 if seams_only:
                     sample_capture_outputs(repo, family=family, catalog_only=True)
             except Exception as error:
@@ -1565,6 +1612,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
                 requested=seam_pilot[2],
                 observed=seam_pointers,
                 probe_failure=seam_failure,
+                command_context=seam_trace.receipt() if seam_trace is not None else None,
                 inspection_completed=report['success'],
                 application_exit=report.get('application_exit'),
                 entry_exit=report.get('entry_exit')),

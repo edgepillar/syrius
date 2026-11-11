@@ -16,7 +16,8 @@ class OriginalSurfaces:
         self.calls.append(command.copy())
         kind = command['cmd']
         if kind == 'state':
-            return dict(tab=self.tab, route=self.route, address=self.address, locale='en',
+            return dict(tab=self.tab, route=self.route, address=self.address,
+                locale='unexpected' if self.fault == 'initial-state' else 'en',
                 direction='ltr', node='ws://127.0.0.1:45998', chainId=321, signingChainId=321,
                 savedSigningChainId=321, walletUnlocked=True, walletInitCompleted=True,
                 embeddedNode=False, nodeTransitionPending=False)
@@ -46,6 +47,14 @@ class OriginalSurfaces:
             return dict(ok=True)
         if kind == 'wait':
             key = command['key']
+            if key in ('home_hero', 'strip_update_button'):
+                if self.fault == 'missing-' + key:
+                    return dict(ok=True)
+                if key == 'strip_update_button':
+                    if self.fault == 'ready-owner':
+                        self.address = 'replacement-owner'
+                    if self.fault == 'ready-route':
+                        self.route = '/replacement'
             if command.get('gone'):
                 if key == 'token_explorer_control' and self.token_open:
                     raise AssertionError('Token disclosure remained open')
@@ -80,6 +89,69 @@ class OriginalSurfaces:
 
 
 class SurfaceSeamProbeTests(unittest.TestCase):
+    def test_original_home_and_update_are_ready_before_the_first_pointer(self):
+        original = OriginalSurfaces()
+        inspect.observe_surface_seams(original.send, [])
+        first = next(index for index, command in enumerate(original.calls)
+                     if command['cmd'] == 'readonly-seam-pointer')
+        self.assertEqual(original.calls[:first], [
+            dict(cmd='state'),
+            dict(cmd='wait', key='home_hero', exact=True, timeoutMs=5000),
+            dict(cmd='state'),
+            dict(cmd='wait', key='strip_update_button', kind='button', exact=True, timeoutMs=5000),
+            dict(cmd='state'),
+        ])
+
+    def test_unready_home_or_update_stops_before_any_pointer(self):
+        for key in ('home_hero', 'strip_update_button'):
+            original, observed = OriginalSurfaces('missing-' + key), []
+            with self.subTest(key=key), self.assertRaises(inspect.Refused):
+                inspect.observe_surface_seams(original.send, observed)
+            self.assertEqual(observed, [])
+            self.assertFalse(any(command['cmd'] == 'readonly-seam-pointer'
+                                 for command in original.calls))
+
+    def test_owner_or_route_replacement_during_readiness_is_refused(self):
+        for fault in ('ready-owner', 'ready-route'):
+            original, observed = OriginalSurfaces(fault), []
+            with self.subTest(fault=fault), self.assertRaises(inspect.Refused):
+                inspect.observe_surface_seams(original.send, observed)
+            self.assertEqual(observed, [])
+            self.assertFalse(any(command['cmd'] == 'readonly-seam-pointer'
+                                 for command in original.calls))
+
+    def test_command_context_distinguishes_state_checks_from_exchange_failure(self):
+        for exchange_failed in (False, True):
+            original, observed, trace = OriginalSurfaces('initial-state'), [], inspect.SeamProbeTrace()
+
+            def exchange(command):
+                if exchange_failed:
+                    raise RuntimeError('private response or exception detail')
+                return original.send(command)
+
+            expected_error = RuntimeError if exchange_failed else inspect.Refused
+            with self.subTest(exchange_failed=exchange_failed), self.assertRaises(expected_error):
+                inspect.observe_surface_seams(lambda command: trace.exchange(exchange, command), observed)
+            self.assertEqual(observed, [])
+            self.assertEqual(trace.receipt(), dict(schema=1, scope='readonly_seam_command_context',
+                command_index=1, command='state', target='NONE',
+                stage='REQUEST' if exchange_failed else 'REPLY'))
+
+    def test_command_context_never_copies_free_text_or_reply_data(self):
+        trace = inspect.SeamProbeTrace()
+        private = 'private-path-address-token-password-and-error-detail'
+        command = dict(cmd=private, key=private, tab=private, value=private)
+        self.assertEqual(trace.exchange(lambda _: dict(private=private), command), dict(private=private))
+        self.assertEqual(trace.receipt(), dict(schema=1, scope='readonly_seam_command_context',
+            command_index=1, command='OTHER', target='OTHER', stage='REPLY'))
+        self.assertNotIn(private, str(trace.receipt()))
+        original, observed = OriginalSurfaces('pointer-refused'), []
+        with self.assertRaises(inspect.Refused):
+            inspect.observe_surface_seams(lambda value: trace.exchange(original.send, value), observed)
+        self.assertEqual(observed, ['walletUpdateNotice'])
+        self.assertEqual((trace.receipt()['command'], trace.receipt()['target'],
+                          trace.receipt()['stage']), ('readonly-seam-pointer', 'token_explorer', 'REPLY'))
+
     def test_all_four_controls_are_observed_without_financial_or_form_input(self):
         original, observed = OriginalSurfaces(), []
         inspect.observe_surface_seams(original.send, observed)
