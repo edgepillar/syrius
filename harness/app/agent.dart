@@ -433,9 +433,11 @@ class HarnessAgent {
     Future<void> Function()? closePresentation,
     Future<void> Function()? waitForCaptureFrame,
     Future<void> Function()? waitForCaptureFrameDeadline,
+    CaptureFrameState? Function()? observeCaptureFrameState,
     this._waitForPresentationClose,
   }) : _captureFrames = CaptureFrameGate(
          waitForFrame: waitForCaptureFrame ?? _refuseTestCaptureFrame,
+         observeState: observeCaptureFrameState,
          waitUntilDeadline: waitForCaptureFrameDeadline,
        ),
        _closePresentation = closePresentation ?? _refuseTestClose;
@@ -445,8 +447,21 @@ class HarnessAgent {
     return CaptureFrameGate.scheduled(
       requestFrame: binding.scheduleFrame,
       waitForFrame: () => binding.endOfFrame,
+      observeState: () => captureFrameStateForBinding(binding),
     );
   }
+
+  /// Reads only finite flags from the binding retained by the original gate.
+  @visibleForTesting
+  static CaptureFrameState? captureFrameStateForBinding(
+    WidgetsBinding binding,
+  ) => CaptureFrameState.fromJson(<String, Object>{
+    'schema': 1, 'scheduler_phase': binding.schedulerPhase.name,
+    'lifecycle_state': binding.lifecycleState?.name ?? 'none',
+    'frames_enabled': binding.framesEnabled,
+    'has_scheduled_frame': binding.hasScheduledFrame,
+    'binding_current': identical(WidgetsBinding.instance, binding),
+  });
 
   static Future<void> _refuseTestClose() =>
       throw HarnessError('no test close callback was supplied');
@@ -5192,10 +5207,12 @@ class HarnessAgent {
 
   HarnessError _captureFrameUnavailable() {
     final CaptureFrameRefusalReason? reason = _captureFrames.refusalReason;
+    final CaptureFrameState? state = _captureFrames.receipt?.refusalState;
     return HarnessError(
       'the original capture frame is unavailable',
-      reason == null ? null : <String, String>{
+      reason == null ? null : <String, Object>{
         'capture_frame_refusal': reason.name,
+        if (state != null) 'capture_frame_state': state.toJson(),
       },
     );
   }

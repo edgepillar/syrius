@@ -405,6 +405,7 @@ Future<void> main() async {
       if (stage == 'home_catalog') {
         diagnostic = readonlyHomeFailureDiagnostic(lastCatalogStep,
           reply: screenCaptureReplyOf(error),
+          frameState: screenCaptureFrameStateOf(error),
         );
       } else if (detailsSelection != null && stage == detailsSelection.stage) {
         diagnostic = readonlyDetailsFailureDiagnostic(lastCatalogStep,

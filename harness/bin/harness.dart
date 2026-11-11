@@ -26,13 +26,19 @@ import 'wallet_recipe.dart';
 final String repo = File.fromUri(Platform.script).parent.parent.parent.path;
 final String stateRoot = '$repo${Platform.pathSeparator}.harness';
 
-class Fail implements Exception, ScreenCaptureReplyFailure {
-  Fail(this.message, {this._homeTapReply, this._captureReply});
+class Fail implements Exception, ScreenCaptureReplyFailure,
+    ScreenCaptureFrameStateFailure {
+  Fail(this.message, {
+    this._homeTapReply, this._captureReply, this._captureFrameState,
+  });
   final String message;
   final HomeTapReply? _homeTapReply;
   final ScreenCaptureReplyCode? _captureReply;
+  final CaptureFrameState? _captureFrameState;
   @override
   ScreenCaptureReplyCode? get captureReply => _captureReply;
+  @override
+  CaptureFrameState? get captureFrameState => _captureFrameState;
   @override
   String toString() => message;
 }
@@ -507,6 +513,7 @@ Future<Map<String, dynamic>> call(
       '${r['stack'] == null ? '' : '\n${r['stack']}'}',
       homeTapReply: classifyHomeTapReply(r['error']),
       captureReply: classifyScreenCaptureReply(r['error'], detail),
+      captureFrameState: classifyScreenCaptureFrameState(r['error'], detail),
     );
   }
   return r;

@@ -15,6 +15,7 @@ const List<String> _files = <String>[
 Map<String, Object>? readonlyHomeFailureDiagnostic(
   ScreenCaptureObservation? observation, {
   ScreenCaptureReplyCode? reply,
+  CaptureFrameState? frameState,
 }) {
   if (observation == null) return null;
   final String? screen = observation.screen;
@@ -32,12 +33,20 @@ Map<String, Object>? readonlyHomeFailureDiagnostic(
       line != null && (!script || line < 1 || line > 65535)) {
     return null;
   }
+  final CaptureFrameState? originalFrameState =
+      const <ScreenCaptureReplyCode>{
+        ScreenCaptureReplyCode.frameBusy,
+        ScreenCaptureReplyCode.frameDeadlineExceeded,
+        ScreenCaptureReplyCode.frameOriginalFailed,
+        ScreenCaptureReplyCode.frameAdmissionFailed,
+      }.contains(reply) ? frameState : null;
   return <String, Object>{
-    'schema': reply == null ? 1 : 2,
+    'schema': originalFrameState != null ? 3 : reply == null ? 1 : 2,
     'kind': 'readonly_home_capture_failure',
     'last_entered_step': observation.step.name,
     'screen': ?screen, 'theme': ?theme, 'line': ?line,
     'reply': ?reply?.name,
+    if (originalFrameState != null) 'frame_state': originalFrameState.toJson(),
   };
 }
 

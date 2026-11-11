@@ -13,16 +13,23 @@ enum ReadonlyInspectionReason { process, retired, command, reply, binding }
 
 /// No uncertain command can be replayed through this inspection session.
 class ReadonlyInspectionRefused
-    implements Exception, ScreenCaptureReplyFailure {
+    implements Exception, ScreenCaptureReplyFailure,
+        ScreenCaptureFrameStateFailure {
   /// The reason is source-defined rather than copied from an original error.
-  const ReadonlyInspectionRefused(this.reason, {this._captureReply});
+  const ReadonlyInspectionRefused(this.reason, {
+    this._captureReply, this._captureFrameState,
+  });
 
   /// The missing admission, without a profile, address, token or error text.
   final ReadonlyInspectionReason reason;
   final ScreenCaptureReplyCode? _captureReply;
+  final CaptureFrameState? _captureFrameState;
 
   @override
   ScreenCaptureReplyCode? get captureReply => _captureReply;
+
+  @override
+  CaptureFrameState? get captureFrameState => _captureFrameState;
 }
 
 /// Checks every original reply without rewriting the actual harness mode.
@@ -60,6 +67,7 @@ class ReadonlyInspectionSession {
   bool _bindingReserved = false;
   bool _walletBound = false;
   ScreenCaptureReplyCode? _heldReply;
+  CaptureFrameState? _heldFrameState;
 
   /// The wallet scope begins only after the actual bind command completes.
   bool get walletBound => _walletBound;
@@ -95,6 +103,9 @@ class ReadonlyInspectionSession {
       if (reply['ok'] != true) {
         _held = true;
         _heldReply = classifyScreenCaptureReply(
+          reply['error'], reply['detail'],
+        );
+        _heldFrameState = classifyScreenCaptureFrameState(
           reply['error'], reply['detail'],
         );
         return reply;
@@ -209,6 +220,8 @@ class ReadonlyInspectionSession {
 
   Never _refuse(ReadonlyInspectionReason reason) {
     _held = true;
-    throw ReadonlyInspectionRefused(reason, captureReply: _heldReply);
+    throw ReadonlyInspectionRefused(reason,
+      captureReply: _heldReply, captureFrameState: _heldFrameState,
+    );
   }
 }

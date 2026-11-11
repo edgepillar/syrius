@@ -3376,3 +3376,38 @@ Three regressions prepare 1,200 controller and 114 reader cases; 1,450 selected
 Dart cases and 81 declared reader sources are unchanged. Fresh Home and Settings
 qualification, the real non-native token preparation, all earlier failures,
 72/80 and zero accepted whole-image matches remain open.
+
+## Source676 qualified Settings and Source677 original frame state
+
+The [Settings producer](https://github.com/edgepillar/syrius/actions/runs/43072345481)
+passes all eight original Settings seam observations, 1,450 Dart cases,
+1,200 Python cases with eighteen Windows skips, five JavaScript controls and
+analysis with zero findings. The [Settings reader](https://github.com/edgepillar/syrius/actions/runs/43077312134)
+passes 114 cases and verifies four archives, 81 source files and all 42 PNGs:
+24 tour, fourteen Settings and four viewport captures. The complete typed prefix
+and normal original wallet, entry and five-node closure qualify. The separately
+qualified compiler telemetry helper retains forced cleanup.
+
+The same-source [Home producer](https://github.com/edgepillar/syrius/actions/runs/43073168231)
+passes those test and analysis gates before the light Home Go To `shotRequest`
+refuses with `frameDeadlineExceeded`. All eleven Home probes are unreached.
+Entry exits one and required actor cleanup is forced. The [Home reader](https://github.com/edgepillar/syrius/actions/runs/43078271152)
+passes 114 cases and verifies two archives and 81 source files, preserving the
+failure and empty prefix with zero qualified PNGs. All five original nodes close
+normally; normal Home actor closure remains unqualified. The original frame's
+settlement and underlying cause remain `NOT_ESTABLISHED`.
+
+Source677 retains one immutable, closed scheduler snapshot at the original frame
+receipt's first refusal, using that same captured WidgetsBinding. Late original
+completion cannot replace it; diagnostic failure leaves facts absent without
+changing admission or the original outcome. Typed failure wrappers, Home schema
+three and the independent reader carry only the validated facts. Earlier schemas
+remain valid. The identical original Future, single normal request, 250 ms
+deadline, readback guards and permanent late hold are preserved.
+
+All 234 selected in-memory controls pass without external effects. Existing Dart
+cases are extended for real binding lifecycle flags, immutable first refusal,
+late holds and closed diagnostics. Totals stay 1,450 Dart, 1,200 controller and
+114 reader cases with 81 declared reader sources. Fresh native frame-state and
+remaining seam qualification, Source675's light Swap cause, all earlier failures,
+72/80 and zero accepted whole-image matches remain open.

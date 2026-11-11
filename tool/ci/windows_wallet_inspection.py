@@ -462,18 +462,40 @@ def stalls_receipt(value):
     return value
 
 
+def capture_frame_state(value):
+    """Retain only the original refusal's closed scheduler facts."""
+    need(type(value) is dict and set(value) == {
+        'schema', 'scheduler_phase', 'lifecycle_state', 'frames_enabled',
+        'has_scheduled_frame', 'binding_current'}, 'ENTRY_REFUSED')
+    need(type(value['schema']) is int and value['schema'] == 1
+         and type(value['scheduler_phase']) is str and value['scheduler_phase'] in (
+             'idle', 'transientCallbacks', 'midFrameMicrotasks',
+             'persistentCallbacks', 'postFrameCallbacks')
+         and type(value['lifecycle_state']) is str and value['lifecycle_state'] in (
+             'none', 'detached', 'resumed', 'inactive', 'hidden', 'paused')
+         and all(type(value[key]) is bool for key in (
+             'frames_enabled', 'has_scheduled_frame', 'binding_current')),
+         'ENTRY_REFUSED')
+    return value
+
+
 def home_failure_diagnostic(value):
     """Keep only finite context from the failed original Home capture."""
     required = {'schema', 'kind', 'last_entered_step'}
     optional = {'screen', 'theme', 'line'}
     need(type(value) is dict and type(value.get('schema')) is int,
          'ENTRY_REFUSED')
-    if value['schema'] == 2:
+    if value['schema'] in (2, 3):
         required = required | {'reply'}
         need(type(value.get('reply')) is str
              and value['reply'] in settings.FAILURE_REPLIES, 'ENTRY_REFUSED')
     else:
         need(value['schema'] == 1, 'ENTRY_REFUSED')
+    if value['schema'] == 3:
+        required = required | {'frame_state'}
+        need(value['reply'] in ('frameBusy', 'frameDeadlineExceeded',
+             'frameOriginalFailed', 'frameAdmissionFailed'), 'ENTRY_REFUSED')
+        capture_frame_state(value.get('frame_state'))
     need(required <= set(value) <= required | optional, 'ENTRY_REFUSED')
     need(value['kind'] == 'readonly_home_capture_failure'
          and type(value['last_entered_step']) is str

@@ -9,29 +9,37 @@ pairs have been viewed and 44 await visual review. Accepted whole-image matches
 remain 0/94. The older availability counts below retain their dated scope.
 
 The latest focused runtime source is
-[`344802945ec9`](https://github.com/edgepillar/syrius/tree/344802945ec947ab1d91cd113f7d531225dedfe0).
-Its [original run](https://github.com/edgepillar/syrius/actions/runs/43063838599)
-passes 1,450 Dart cases, 1,197 Python cases with eighteen Windows skips,
-five JavaScript controls and selected analysis with zero findings. Ten of eleven
-Home seam observations precede `ENTRY_REFUSED` during the light Swap control.
-The dark Swap control is among the retained observations. Required wallet and
-entry actors and all five original nodes close normally; the separately
-qualified compiler telemetry helper retains forced cleanup.
+[`5d555665a643`](https://github.com/edgepillar/syrius/tree/5d555665a6438d5a0370cab5146cdfd9aa48199c).
+Its [Settings producer](https://github.com/edgepillar/syrius/actions/runs/43072345481)
+passes 1,450 Dart cases, 1,200 Python cases with eighteen Windows skips,
+five JavaScript controls and selected analysis with zero findings. All eight
+Settings seam observations complete. Required wallet and entry actors and all
+five original nodes close normally; the separately qualified compiler telemetry
+helper retains forced cleanup.
 
-The [independent reader](https://github.com/edgepillar/syrius/actions/runs/43068570646)
-passes 113 cases and verifies two archives and 81 source files. It verifies the
-same ten-observation prefix and its failure from the original manifest. The
-24 tour, eight Home and four viewport capture commands report completion, but
-zero PNGs qualify from this failed attempt. Overall native inspection and lab
-closure qualification remain false. The final light Swap refusal's inner cause
-remains `NOT_ESTABLISHED`; the eight Settings observations remain pending.
-No local artifact transfer occurs.
+The [Settings reader](https://github.com/edgepillar/syrius/actions/runs/43077312134)
+passes 114 cases and verifies four archives, 81 source files and all 42 PNGs:
+24 tour, fourteen Settings and four viewport captures. It verifies the original
+complete eight-observation prefix and normal original closure. This qualifies
+the Settings inspection; whole-image comparison remains open.
+
+The same-source [Home producer](https://github.com/edgepillar/syrius/actions/runs/43073168231)
+passes the same test and analysis gates before the light Home Go To shot refuses
+with `frameDeadlineExceeded`. All eleven Home probes are unreached. Entry exits
+one and required actor cleanup is forced. The [Home reader](https://github.com/edgepillar/syrius/actions/runs/43078271152)
+passes 114 cases and verifies two archives and 81 source files, preserving the
+failure and empty prefix with zero qualified PNGs. All five nodes close normally;
+overall Home inspection and normal required actor closure remain unqualified.
+The original frame's settlement and underlying cause remain `NOT_ESTABLISHED`.
+Source675's ten-control Home prefix and final light Swap refusal retain their
+separate source. No local artifact transfer occurs.
 
 The [first-delivery record](review/fast-first-delivery.md) retains current results
-and the eight deferred acceptance gates. Source676 prepares retained Settings
-prefixes and finite producer command context. All 233 selected in-memory controls
-pass without external effects. Fresh native qualification of that change remains
-pending; the tested runtime source is the revision linked above.
+and the eight deferred acceptance gates. Source677 prepares a retained, finite
+scheduler snapshot from the original frame receipt's first refusal. All 234
+selected in-memory controls pass without external effects. The original deadline
+and permanent late hold are preserved. Fresh native qualification of that change
+remains pending; the tested runtime source is the revision linked above.
 
 ## Retained qualification status (2026-11-05)
 

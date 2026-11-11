@@ -1847,3 +1847,47 @@ Three new regressions prepare 1,200 controller and 114 reader cases; the selecte
 Dart count remains 1,450 and declared reader sources remain 81. Fresh Home and
 Settings native qualification, the real non-native token preparation, all eight
 deferred gates, 72/80 and zero accepted whole-image matches remain open.
+
+## Source676 qualified Settings and Source677 original frame state
+
+The [Settings producer](https://github.com/edgepillar/syrius/actions/runs/43072345481)
+passes all eight original Settings seam observations, 1,450 Dart cases,
+1,200 Python cases with eighteen Windows skips, five JavaScript controls and
+analysis with zero findings. The [independent reader](https://github.com/edgepillar/syrius/actions/runs/43077312134)
+passes 114 cases and verifies four archives, 81 source files and 42 PNGs:
+24 tour, fourteen Settings and four viewport captures. The full typed Settings
+prefix and normal original wallet, entry and five-node closure qualify. The
+separate qualified compiler telemetry helper retains forced cleanup.
+
+The same-source [Home producer](https://github.com/edgepillar/syrius/actions/runs/43073168231)
+passes those test and analysis gates but stops at the light Home Go To
+`shotRequest` with `frameDeadlineExceeded`. All eleven Home probes are unreached.
+Entry exits one and required actor cleanup is forced. The [Home reader](https://github.com/edgepillar/syrius/actions/runs/43078271152)
+passes 114 cases and verifies two archives and 81 source files, preserving the
+failure and empty Home prefix with zero qualified PNGs. All five nodes close
+normally. The original frame's actual settlement and underlying cause remain
+`NOT_ESTABLISHED`; Source675's later light Swap refusal retains its own scope.
+
+Source677 captures one immutable scheduler snapshot at the original frame
+receipt's first held decision. The same retained WidgetsBinding supplies only
+closed phase and lifecycle names, frame-enabled and scheduled flags, and binding
+identity equality. A late original result keeps that first snapshot. A missing
+or throwing diagnostic observer leaves metadata absent while original admission,
+outcome and trace remain retained. The 250 ms deadline, single normal frame
+request, identical original Future, readback guards and permanent late hold are
+unchanged. The [scheduler contract](https://api.flutter.dev/flutter/scheduler/SchedulerBinding/scheduleFrame.html)
+allows scheduling to be disabled; the new facts supplement the original receipt
+without replacing its completion evidence.
+
+Typed CLI and inspection failures retain the state through the first failure
+and restoration holds. Home diagnostic schema three exports only these validated
+facts; schemas one and two remain supported. The original manifest and independent
+reader preserve this failure context, including refusing changed archive bytes.
+
+All 234 selected in-memory Python controls pass without external effects.
+Existing Dart cases now prepare checks of paused/resumed real binding flags,
+first-state immutability, late holds and diagnostic failure privacy. The totals
+stay 1,450 Dart, 1,200 controller and 114 reader cases, with 81 declared reader
+sources. Fresh native frame-state qualification, the remaining Home and Token
+Explorer controls, all eight deferred gates, 72/80 and zero accepted whole-image
+matches remain open.

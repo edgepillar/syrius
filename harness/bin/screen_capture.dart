@@ -2,6 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import '../app/capture_frame.dart' show CaptureFrameState;
+
+export '../app/capture_frame.dart' show CaptureFrameState;
+
 /// A finite category from an original rejected command, never response text.
 enum ScreenCaptureReplyCode {
   targetMissing, targetUnavailable, targetDisabled, targetCovered, errorWidget,
@@ -17,6 +21,29 @@ enum ScreenCaptureReplyCode {
 
 abstract interface class ScreenCaptureReplyFailure {
   ScreenCaptureReplyCode? get captureReply;
+}
+
+/// Optional original refusal state, separate from an error's free text.
+abstract interface class ScreenCaptureFrameStateFailure {
+  /// The retained immutable state, absent for legacy or invalid detail.
+  CaptureFrameState? get captureFrameState;
+}
+
+/// Carries only typed state through the original failure wrappers.
+CaptureFrameState? screenCaptureFrameStateOf(Object? error) =>
+    error is ScreenCaptureFrameStateFailure ? error.captureFrameState : null;
+
+/// Only a recognized original frame refusal may carry these closed facts.
+CaptureFrameState? classifyScreenCaptureFrameState(
+  Object? value, Object? detail,
+) {
+  if (value != 'the original capture frame is unavailable' ||
+      detail is! Map<Object?, Object?> || detail.length != 2 ||
+      !const <String>{'busy', 'deadline', 'originalFailure', 'admissionFailure'}
+          .contains(detail['capture_frame_refusal'])) {
+    return null;
+  }
+  return CaptureFrameState.fromJson(detail['capture_frame_state']);
 }
 
 ScreenCaptureReplyCode? screenCaptureReplyOf(Object? error) =>
@@ -69,7 +96,8 @@ ScreenCaptureReplyCode classifyScreenCaptureReply(
     };
   }
   if (value == 'the original capture frame is unavailable' &&
-      detail is Map<Object?, Object?> && detail.length == 1) {
+      detail is Map<Object?, Object?> && (detail.length == 1 ||
+          classifyScreenCaptureFrameState(value, detail) != null)) {
     return switch (detail['capture_frame_refusal']) {
       'busy' => ScreenCaptureReplyCode.frameBusy,
       'deadline' => ScreenCaptureReplyCode.frameDeadlineExceeded,
@@ -110,15 +138,21 @@ ScreenCaptureReplyCode classifyScreenCaptureReply(
   };
 }
 
-class ScreenCaptureError implements Exception, ScreenCaptureReplyFailure {
-  const ScreenCaptureError(this.message, {ScreenCaptureReplyCode? reply})
-      : _captureReply = reply;
+class ScreenCaptureError implements Exception, ScreenCaptureReplyFailure,
+    ScreenCaptureFrameStateFailure {
+  const ScreenCaptureError(this.message, {
+    ScreenCaptureReplyCode? reply, CaptureFrameState? frameState,
+  }) : _captureReply = reply, _captureFrameState = frameState;
 
   final String message;
   final ScreenCaptureReplyCode? _captureReply;
+  final CaptureFrameState? _captureFrameState;
 
   @override
   ScreenCaptureReplyCode? get captureReply => _captureReply;
+
+  @override
+  CaptureFrameState? get captureFrameState => _captureFrameState;
 
   @override
   String toString() => message;
@@ -653,6 +687,7 @@ class ScreenCapture {
               throw ScreenCaptureError(
                 '${script.screen.id}:${line.number}: $e',
                 reply: screenCaptureReplyOf(e),
+                frameState: screenCaptureFrameStateOf(e),
               );
             }
           }
@@ -704,6 +739,7 @@ class ScreenCapture {
               throw ScreenCaptureError(
                 '${script.screen.id}:${line.number}: $e',
                 reply: screenCaptureReplyOf(e),
+                frameState: screenCaptureFrameStateOf(e),
               );
             }
           }
@@ -751,6 +787,7 @@ class ScreenCapture {
             '${captured.length} earlier captures retained',
         ].join('; '),
         reply: screenCaptureReplyOf(failure),
+        frameState: screenCaptureFrameStateOf(failure),
       );
     }
     enter(ScreenCaptureStep.complete);

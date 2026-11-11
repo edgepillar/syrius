@@ -27,6 +27,59 @@ enum CaptureFrameRefusalReason {
   admissionFailure,
 }
 
+/// Closed scheduler facts, without frame, window or wallet identities.
+final class CaptureFrameState {
+  const CaptureFrameState._(
+    this.schedulerPhase, this.lifecycleState, this.framesEnabled,
+    this.hasScheduledFrame, this.bindingCurrent,
+  );
+
+  /// Refuses free text, extra fields and coerced values before retention.
+  static CaptureFrameState? fromJson(Object? value) {
+    if (value is! Map<Object?, Object?> || value.length != 6 ||
+        value['schema'] is! int || value['schema'] != 1) {
+      return null;
+    }
+    final Object? phase = value['scheduler_phase'];
+    final Object? lifecycle = value['lifecycle_state'];
+    final Object? enabled = value['frames_enabled'];
+    final Object? scheduled = value['has_scheduled_frame'];
+    final Object? current = value['binding_current'];
+    if (phase is! String || !const <String>{
+          'idle', 'transientCallbacks', 'midFrameMicrotasks',
+          'persistentCallbacks', 'postFrameCallbacks',
+        }.contains(phase) ||
+        lifecycle is! String || !const <String>{
+          'none', 'detached', 'resumed', 'inactive', 'hidden', 'paused',
+        }.contains(lifecycle) ||
+        enabled is! bool || scheduled is! bool || current is! bool) {
+      return null;
+    }
+    return CaptureFrameState._(phase, lifecycle, enabled, scheduled, current);
+  }
+
+  /// Phase read from the original binding at its first refusal.
+  final String schedulerPhase;
+  /// Lifecycle value read at that same observation.
+  final String lifecycleState;
+  /// Whether normal frame scheduling was enabled at that observation.
+  final bool framesEnabled;
+  /// Whether the original binding already had a scheduled frame.
+  final bool hasScheduledFrame;
+  /// Whether the captured binding still was the installed binding.
+  final bool bindingCurrent;
+
+  /// Exports only the validated finite facts, never a mutable source map.
+  Map<String, Object> toJson() => Map<String, Object>.unmodifiable(
+    <String, Object>{
+      'schema': 1, 'scheduler_phase': schedulerPhase,
+      'lifecycle_state': lifecycleState, 'frames_enabled': framesEnabled,
+      'has_scheduled_frame': hasScheduledFrame,
+      'binding_current': bindingCurrent,
+    },
+  );
+}
+
 /// The actual original frame result, including after admission was refused.
 final class CaptureFrameOutcome {
   CaptureFrameOutcome._(this.completed, this.error, this.stackTrace);
@@ -52,8 +105,9 @@ final class CaptureFrameRefused implements Exception {
 
 /// One original frame Future, with a separate once-only admission decision.
 final class CaptureFrameReceipt {
-  CaptureFrameReceipt._();
+  CaptureFrameReceipt._(this._observeState);
 
+  final CaptureFrameState? Function()? _observeState;
   final Completer<bool> _admission = Completer<bool>();
   final Completer<CaptureFrameOutcome> _completion =
       Completer<CaptureFrameOutcome>();
@@ -63,6 +117,8 @@ final class CaptureFrameReceipt {
   bool _timedOut = false;
   Object? _admissionError;
   StackTrace? _admissionTrace;
+  CaptureFrameState? _refusalState;
+  bool _refusalStateObserved = false;
 
   /// A late original success cannot change held admission back to ready.
   CaptureFrameStatus get status => _status;
@@ -87,6 +143,20 @@ final class CaptureFrameReceipt {
 
   /// The exact trace received if admission could not observe a timely frame.
   StackTrace? get admissionStackTrace => _admissionTrace;
+
+  /// The first refusal's immutable facts, never a later replacement snapshot.
+  CaptureFrameState? get refusalState => _refusalState;
+
+  void _observeRefusalState() {
+    if (_refusalStateObserved) return;
+    _refusalStateObserved = true;
+    try {
+      _refusalState = _observeState?.call();
+    } on Object {
+      // Diagnostic failure cannot settle or replace the original frame.
+      _refusalState = null;
+    }
+  }
 
   void _start(
     Future<void> Function() waitForFrame,
@@ -135,6 +205,7 @@ final class CaptureFrameReceipt {
     _admissionError = error;
     _admissionTrace = trace;
     _status = CaptureFrameStatus.held;
+    _observeRefusalState();
     _admission.complete(false);
   }
 
@@ -154,6 +225,7 @@ final class CaptureFrameReceipt {
       _status = error == null
           ? CaptureFrameStatus.ready
           : CaptureFrameStatus.held;
+      if (error != null) _observeRefusalState();
       _admission.complete(error == null);
     }
     _completion.complete(outcome);
@@ -166,24 +238,29 @@ final class CaptureFrameGate {
   /// Reserves before either callback can synchronously reenter the caller.
   CaptureFrameGate({
     required this._waitForFrame,
+    CaptureFrameState? Function()? observeState,
     Future<void> Function()? waitUntilDeadline,
-  }) : _waitUntilDeadline = waitUntilDeadline ?? _deadline;
+  }) : _observeState = observeState,
+       _waitUntilDeadline = waitUntilDeadline ?? _deadline;
 
   /// A wait registered during post-frame callbacks needs a new frame request.
   /// Reservation still precedes both effects and retains the original Future.
   CaptureFrameGate.scheduled({
     required void Function() requestFrame,
     required Future<void> Function() waitForFrame,
+    CaptureFrameState? Function()? observeState,
     Future<void> Function()? waitUntilDeadline,
   }) : this(
          waitForFrame: () {
            requestFrame();
            return waitForFrame();
          },
+         observeState: observeState,
          waitUntilDeadline: waitUntilDeadline,
        );
 
   final Future<void> Function() _waitForFrame;
+  final CaptureFrameState? Function()? _observeState;
   final Future<void> Function() _waitUntilDeadline;
   CaptureFrameReceipt? _receipt;
   bool _busy = false;
@@ -229,7 +306,7 @@ final class CaptureFrameGate {
   /// Admission remains busy until the original readback callback settles.
   Future<T> capture<T>(Future<T> Function() readback) async {
     requireIdle();
-    final CaptureFrameReceipt original = CaptureFrameReceipt._();
+    final CaptureFrameReceipt original = CaptureFrameReceipt._(_observeState);
     _receipt = original;
     _busy = true;
     original._start(_waitForFrame, _waitUntilDeadline);

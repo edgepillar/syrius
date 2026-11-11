@@ -1266,6 +1266,37 @@ class InspectionTests(unittest.TestCase):
                     with self.assertRaises(inspection.Refused):
                         inspection.home_failure_diagnostic(dict(shot,
                             **{field: 'Synthetic private diagnostic'}))
+        frame_state = dict(schema=1, scheduler_phase='idle', lifecycle_state='paused',
+            frames_enabled=False, has_scheduled_frame=True, binding_current=True)
+        contextual = dict(schema=3, kind='readonly_home_capture_failure',
+            last_entered_step='shotRequest', screen='home-goto', theme='light',
+            reply='frameDeadlineExceeded', frame_state=frame_state)
+        self.assertIs(inspection.home_failure_diagnostic(contextual), contextual)
+        for phase in ('idle', 'transientCallbacks', 'midFrameMicrotasks',
+                      'persistentCallbacks', 'postFrameCallbacks'):
+            for lifecycle in ('none', 'detached', 'resumed', 'inactive', 'hidden', 'paused'):
+                observed = dict(contextual, frame_state=dict(frame_state,
+                    scheduler_phase=phase, lifecycle_state=lifecycle))
+                self.assertIs(inspection.home_failure_diagnostic(observed), observed)
+        for delta in (dict(schema=True), dict(frames_enabled=1),
+                      dict(has_scheduled_frame=None), dict(binding_current=0),
+                      dict(scheduler_phase='Synthetic private phase'),
+                      dict(lifecycle_state='Synthetic private lifecycle'),
+                      dict(raw='Synthetic private reply')):
+            with self.subTest(frame_state=delta), self.assertRaises(inspection.Refused):
+                inspection.home_failure_diagnostic(dict(contextual,
+                    frame_state=dict(frame_state, **delta)))
+        for reply in ('unknown', 'frameUnavailable', 'captureThemeMismatch'):
+            with self.assertRaises(inspection.Refused):
+                inspection.home_failure_diagnostic(dict(contextual, reply=reply))
+        for missing in frame_state:
+            broken = dict(frame_state)
+            broken.pop(missing)
+            with self.assertRaises(inspection.Refused):
+                inspection.home_failure_diagnostic(dict(contextual, frame_state=broken))
+        for schema in (1, 2):
+            with self.assertRaises(inspection.Refused):
+                inspection.home_failure_diagnostic(dict(contextual, schema=schema))
         for screen in inspection.HOME_GOTO_SCREENS:
             for theme in inspection.THEMES:
                 for reply in inspection.settings.FAILURE_REPLIES:

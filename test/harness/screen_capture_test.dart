@@ -930,6 +930,55 @@ void main() {
         );
         expect(original.commands,
           <Map<String, Object?>>[<String, Object?>{'cmd': 'shot'}]);
+        final Map<String, Object> state = <String, Object>{
+          'schema': 1, 'scheduler_phase': 'idle',
+          'lifecycle_state': 'paused', 'frames_enabled': false,
+          'has_scheduled_frame': true, 'binding_current': true,
+        };
+        final Map<String, Object?> extended = <String, Object?>{
+          ...detail, 'capture_frame_state': state,
+        };
+        expect(classifyScreenCaptureReply(
+          'the original capture frame is unavailable', extended), entry.value);
+        final CaptureFrameState retained = classifyScreenCaptureFrameState(
+          'the original capture frame is unavailable', extended,
+        )!;
+        expect(retained.toJson(), state);
+        final _Replies contextual = _Replies(
+          (_) => <String, dynamic>{
+            'ok': false,
+            'error': 'the original capture frame is unavailable',
+            'detail': extended,
+          },
+        );
+        await expectLater(
+          cli.call(contextual, <String, Object?>{'cmd': 'shot'}),
+          throwsA(isA<cli.Fail>().having(
+            (cli.Fail error) => screenCaptureFrameStateOf(error)?.toJson(),
+            'original finite frame state', state,
+          )),
+        );
+        expect(contextual.commands.length, 1);
+        state['lifecycle_state'] = 'resumed';
+        expect(retained.lifecycleState, 'paused');
+        for (final Object? invalid in <Object?>[
+          opaque, null, <String, Object?>{},
+          <String, Object?>{...state, 'schema': true},
+          <String, Object?>{...state, 'frames_enabled': 1},
+          <String, Object?>{...state, 'scheduler_phase': opaque},
+          <String, Object?>{...state, 'lifecycle_state': opaque},
+          <String, Object?>{...state, 'raw': opaque},
+        ]) {
+          final Map<String, Object?> rejected = <String, Object?>{
+            ...detail, 'capture_frame_state': invalid,
+          };
+          expect(classifyScreenCaptureFrameState(
+            'the original capture frame is unavailable', rejected), isNull);
+          expect(classifyScreenCaptureReply(
+            'the original capture frame is unavailable', rejected),
+            ScreenCaptureReplyCode.frameUnavailable,
+          );
+        }
       }
       for (final Object? detail in <Object?>[
         opaque,

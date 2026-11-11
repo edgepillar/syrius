@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' as ui show AppLifecycleState;
 
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -71,6 +72,45 @@ void main() {
     expect(readbacks, 1);
     deadline.complete();
     await _turns();
+
+    final Completer<void> pausedDeadline = Completer<void>();
+    int stateReads = 0;
+    final CaptureFrameGate paused = CaptureFrameGate.scheduled(
+      requestFrame: binding.scheduleFrame,
+      waitForFrame: () => binding.endOfFrame,
+      observeState: () {
+        stateReads++;
+        return HarnessAgent.captureFrameStateForBinding(binding);
+      },
+      waitUntilDeadline: () => pausedDeadline.future,
+    );
+    addTearDown(() => binding.handleAppLifecycleStateChanged(
+      ui.AppLifecycleState.resumed,
+    ));
+    binding.handleAppLifecycleStateChanged(ui.AppLifecycleState.paused);
+    final Future<void> pausedRefusal = expectLater(
+      paused.capture<void>(() async => fail('Paused readback was admitted')),
+      throwsA(isA<CaptureFrameRefused>()),
+    );
+    final CaptureFrameReceipt pausedOriginal = paused.receipt!;
+    expect(pausedOriginal.refusalState, isNull);
+    expect(stateReads, 0);
+    pausedDeadline.complete();
+    await pausedRefusal;
+    final CaptureFrameState pausedState = pausedOriginal.refusalState!;
+    expect(pausedState.lifecycleState, 'paused');
+    expect(pausedState.framesEnabled, isFalse);
+    expect(pausedState.bindingCurrent, isTrue);
+    expect(pausedOriginal.outcome, isNull);
+    expect(stateReads, 1);
+    binding.handleAppLifecycleStateChanged(ui.AppLifecycleState.resumed);
+    await tester.pump();
+    expect((await pausedOriginal.completion).completed, isTrue);
+    expect(pausedOriginal.refusalState, same(pausedState));
+    expect(pausedOriginal.refusalState!.framesEnabled, isFalse);
+    expect(pausedOriginal.status, CaptureFrameStatus.held);
+    expect(await pausedOriginal.admission, isFalse);
+    expect(stateReads, 1);
   });
 
   test('scheduled admission retains one original '
@@ -81,6 +121,7 @@ void main() {
     int requests = 0;
     int waits = 0;
     int readbacks = 0;
+    int stateReads = 0;
     final CaptureFrameGate gate = CaptureFrameGate.scheduled(
       requestFrame: () => requests++,
       waitForFrame: () {
@@ -88,6 +129,10 @@ void main() {
         return frame.future;
       },
       waitUntilDeadline: () => deadline.future,
+      observeState: () {
+        stateReads++;
+        return null;
+      },
     );
     final Future<String> capture = gate.capture<String>(() {
       readbacks++;
@@ -110,6 +155,8 @@ void main() {
     expect(await capture, 'original pixels');
     expect(gate.requireIdle, returnsNormally);
     expect(gate.refusalReason, isNull);
+    expect(gate.receipt!.refusalState, isNull);
+    expect(stateReads, 0);
     deadline.complete();
     await _turns();
   });
@@ -121,10 +168,15 @@ void main() {
     int requests = 0;
     int waits = 0;
     int deadlines = 0;
+    int stateReads = 0;
     final CaptureFrameGate gate = CaptureFrameGate.scheduled(
       requestFrame: () {
         requests++;
         Error.throwWithStackTrace(failure, trace);
+      },
+      observeState: () {
+        stateReads++;
+        throw StateError('Synthetic private diagnostic failure');
       },
       waitForFrame: () {
         waits++;
@@ -155,6 +207,8 @@ void main() {
     expect(requests, 1);
     expect(waits, 0);
     expect(deadlines, 0);
+    expect(stateReads, 1);
+    expect(gate.receipt!.refusalState, isNull);
   });
 
   testWidgets('a requested late frame cannot clear the actual 250 ms hold', (
@@ -293,9 +347,19 @@ void main() {
         ),
       );
       int readbacks = 0;
+      int stateReads = 0;
+      final Map<String, Object> state = <String, Object>{
+        'schema': 1, 'scheduler_phase': 'idle', 'lifecycle_state': 'paused',
+        'frames_enabled': false, 'has_scheduled_frame': false,
+        'binding_current': true,
+      };
       final CaptureFrameGate gate = CaptureFrameGate(
         waitForFrame: () => frame.future,
         waitUntilDeadline: () => deadline.future,
+        observeState: () {
+          stateReads++;
+          return CaptureFrameState.fromJson(state);
+        },
       );
       final Future<void> refusal = expectLater(
         gate.capture<String>(() async {
@@ -316,6 +380,14 @@ void main() {
       expect(receipt.outcome, isNull);
       expect(gate.heldUnknown, isTrue);
       expect(readbacks, 0);
+      final CaptureFrameState firstState = receipt.refusalState!;
+      expect(firstState.toJson(), state);
+      expect(stateReads, 1);
+      state['lifecycle_state'] = 'resumed';
+      state['frames_enabled'] = true;
+      expect(() => firstState.toJson()['frames_enabled'] = true,
+        throwsUnsupportedError,
+      );
       if (lateFailure) {
         frame.completeError(failure, trace);
       } else {
@@ -344,6 +416,10 @@ void main() {
       expect(gate.receipt, same(receipt));
       expect(gate.requireIdle, throwsA(isA<CaptureFrameRefused>()));
       expect(readbacks, 0);
+      expect(receipt.refusalState, same(firstState));
+      expect(firstState.lifecycleState, 'paused');
+      expect(firstState.framesEnabled, isFalse);
+      expect(stateReads, 1);
     });
   }
 

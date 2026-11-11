@@ -698,7 +698,8 @@ class ReaderTests(unittest.TestCase):
                  child_missing=False, auxiliary_forced=False, home_schema=1,
                  settings_catalog=False, navigation_catalog=False,
                  details_catalog=False, catalog_only=None, extra_viewport=False,
-                 surface_seams=False, home_seams=None, settings_seams=None):
+                 surface_seams=False, home_seams=None, settings_seams=None,
+                 entry_failure=None):
         child, lab, files = pair(positive=positive)
         if auxiliary_forced:
             child['forced_cleanup'] = child['auxiliary_cleanup']['forced'] = True
@@ -779,6 +780,9 @@ class ReaderTests(unittest.TestCase):
             if settings_seams is not None:
                 self.assertTrue(settings_catalog)
                 child['settings_seam_observations'] = copy.deepcopy(settings_seams)
+            if entry_failure is not None:
+                self.assertFalse(positive)
+                child['entry_failure'] = copy.deepcopy(entry_failure)
             bind(lab, child)
             files[0] = ('manifest.json', encode(child), stat.S_IFREG)
         if catalog_only == 'send-warn':
@@ -1140,6 +1144,29 @@ class ReaderTests(unittest.TestCase):
             self.assertFalse(value['native_inspection_qualified'])
             self.assertEqual(value['verified_png_count'], 0)
             self.assertEqual(value['original_errors'], ['ENTRY_FAILED'])
+        state = dict(schema=1, scheduler_phase='idle', lifecycle_state='paused',
+            frames_enabled=False, has_scheduled_frame=True, binding_current=True)
+        failure = dict(stage='home_catalog', code=None, diagnostic=dict(schema=3,
+            kind='readonly_home_capture_failure', last_entered_step='shotRequest',
+            screen='home-goto', theme='light', reply='frameDeadlineExceeded',
+            frame_state=state))
+        value, _, text = self.run_main(positive=False, entry_failure=failure)
+        self.assertEqual(value['entry_failure'], failure)
+        self.assertFalse(value['native_inspection_qualified'])
+        self.assertEqual(value['verified_png_count'], 0)
+        notices = [json.loads(line.split('::', 2)[-1]) for line in text.splitlines()
+            if line.startswith('::notice title=Retained readonly wallet inspection::')]
+        self.assertEqual(len(notices), 1)
+        self.assertEqual(notices[0]['entry_failure'], failure)
+        child, lab, files = pair(positive=False)
+        child['entry_failure'] = failure
+        bind(lab, child)
+        files[0] = ('manifest.json', encode(child), stat.S_IFREG)
+        self.assertEqual(self.inspect(child, lab, files)['entry_failure'], failure)
+        altered = copy.deepcopy(child)
+        altered['entry_failure']['diagnostic']['frame_state']['frames_enabled'] = True
+        with self.assertRaises(reader.archive.Refused):
+            self.inspect(altered, lab, [('manifest.json', encode(altered), stat.S_IFREG)])
 
     def test_mutated_attempt_after_transport_is_refused_before_emitting_acceptance(self):
         with self.assertRaises(reader.archive.Refused):

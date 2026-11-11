@@ -177,6 +177,40 @@ void main() {
         });
         expect(restoredWindow, isFalse);
         expect(expanded, isFalse);
+        final Map<String, Object> state = <String, Object>{
+          'schema': 1, 'scheduler_phase': 'idle',
+          'lifecycle_state': 'paused', 'frames_enabled': false,
+          'has_scheduled_frame': true, 'binding_current': true,
+        };
+        final Map<String, Object> retained = Map<String, Object>.of(state);
+        final Map<String, dynamic> frameReply = <String, dynamic>{
+          'ok': false, 'error': 'the original capture frame is unavailable',
+          'detail': <String, Object>{
+            'capture_frame_refusal': 'deadline', 'capture_frame_state': state,
+          },
+        };
+        int originalCalls = 0;
+        final ReadonlyInspectionSession contextual = ReadonlyInspectionSession(
+          processId: 44,
+          original: (_, _) async {
+            originalCalls++;
+            return frameReply;
+          },
+        );
+        expect(await contextual.send(<String, Object?>{'cmd': 'shot'},
+          const Duration(seconds: 1)), same(frameReply),
+        );
+        state['lifecycle_state'] = 'resumed';
+        await expectLater(
+          contextual.send(<String, Object?>{'cmd': 'quit'},
+            const Duration(seconds: 1)),
+          throwsA(isA<ReadonlyInspectionRefused>().having(
+            (ReadonlyInspectionRefused error) =>
+                screenCaptureFrameStateOf(error)?.toJson(),
+            'first refusal state', retained,
+          )),
+        );
+        expect(originalCalls, 1);
       } else {
         final Map<String, Object> receipt = await capture();
         expect(receipt['scope'], 'readonly_native_home_catalog_capture');
@@ -2120,6 +2154,28 @@ void main() {
           'last_entered_step': 'scriptLine', 'screen': screen,
           'theme': 'light', 'line': 10, 'reply': reply.name,
         });
+        final CaptureFrameState frameState = CaptureFrameState.fromJson(
+          <String, Object>{
+            'schema': 1, 'scheduler_phase': 'idle',
+            'lifecycle_state': 'paused', 'frames_enabled': false,
+            'has_scheduled_frame': true, 'binding_current': true,
+          },
+        )!;
+        final Map<String, Object> diagnostic = readonlyHomeFailureDiagnostic(
+          ScreenCaptureObservation(ScreenCaptureStep.shotRequest,
+            screen: screen, theme: 'light'),
+          reply: reply, frameState: frameState,
+        )!;
+        final bool frameReply = const <ScreenCaptureReplyCode>{
+          ScreenCaptureReplyCode.frameBusy,
+          ScreenCaptureReplyCode.frameDeadlineExceeded,
+          ScreenCaptureReplyCode.frameOriginalFailed,
+          ScreenCaptureReplyCode.frameAdmissionFailed,
+        }.contains(reply);
+        expect(diagnostic['schema'], frameReply ? 3 : 2);
+        expect(diagnostic['frame_state'],
+          frameReply ? frameState.toJson() : isNull,
+        );
       }
     }
     for (final ScreenCaptureObservation invalid in <ScreenCaptureObservation>[
