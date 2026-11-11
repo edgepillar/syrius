@@ -387,6 +387,21 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual(value['original_errors'], ['ENTRY_FAILED'])
         self.assertFalse(value['original_lab_closure_qualified'])
 
+    def test_sparse_checkout_covers_every_declared_producer_seam_source(self):
+        workflow = (reader.Path(__file__).absolute().parents[2] / reader.WORKFLOW_SOURCE).read_text()
+        section = workflow.split('  inspect-wallet-inspection:\n', 1)[1].split(
+            '  inspect-chain321:\n', 1)[0]
+        block = section.split('          sparse-checkout: |\n', 1)[1].split('\n\n', 1)[0]
+        directories = tuple(line.strip() for line in block.splitlines() if line.strip())
+        self.assertTrue(directories)
+        # The original workflow blob is read separately from its pinned Git tree.
+        required = set(reader.SOURCE_FILES) | set(reader.SURFACE_SEAM_SOURCES)
+        required.remove(reader.WORKFLOW_SOURCE)
+        missing = sorted(name for name in required if '/' in name
+            and not any(name.startswith(directory + '/') for directory in directories))
+        self.assertEqual(missing, [])
+        self.assertNotIn('lib', directories)
+
     def test_surface_seams_preserve_refusal_prefixes_and_admit_only_the_manifest(self):
         child = child_report()
         child.update(schema=reader.producer.SURFACE_SEAMS_SCHEMA, captures=[], viewport=None,
@@ -411,14 +426,15 @@ class ReaderTests(unittest.TestCase):
                 self.inspect(offered, bind(lab_report(), offered),
                              [('manifest.json', encode(offered), stat.S_IFREG)])
 
-        partial = dict(child, success=False, inspection_qualified=False, errors=['ENTRY_REFUSED'],
-                       seam_refusals=['walletUpdateNotice'])
-        lab = lab_report()
-        lab.update(success=False, error_codes=['WALLET_INSPECTION_FAILED'])
-        observed = self.inspect(partial, bind(lab, partial),
-                                [('manifest.json', encode(partial), stat.S_IFREG)])
-        self.assertFalse(observed['artifact_reported_success'])
-        self.assertEqual(observed['seam_refusals'], ['walletUpdateNotice'])
+        for prefix in ([], ['walletUpdateNotice']):
+            partial = dict(child, success=False, inspection_qualified=False,
+                           errors=['ENTRY_REFUSED'], seam_refusals=prefix)
+            lab = lab_report()
+            lab.update(success=False, error_codes=['WALLET_INSPECTION_FAILED'])
+            observed = self.inspect(partial, bind(lab, partial),
+                                    [('manifest.json', encode(partial), stat.S_IFREG)])
+            self.assertFalse(observed['artifact_reported_success'])
+            self.assertEqual(observed['seam_refusals'], prefix)
 
         result, calls, _ = self.run_main(surface_seams=True)
         self.assertTrue(result['native_inspection_qualified'])

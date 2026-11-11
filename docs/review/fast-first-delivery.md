@@ -1075,9 +1075,32 @@ that own the row and control. The paired timing reader exposes only previously
 validated entry durations and frame-window lengths; its timing and closure
 criteria are unchanged. All 66 selected Python cases pass without filesystem
 writes, network or native execution. A negative control confirms that omitting
-the token attempt fails the new coverage case. Fresh hosted qualification of
-this controller update and its four native page-seam attempts remains open.
-The original Source645 closure failure is preserved.
+the token attempt fails the new coverage case.
+
+The original Source649 Windows lane passes 1,391 Dart cases, 1,151 Python
+cases with eighteen skips and selected analysis with zero findings. Its native
+page-seam attempt stops with ENTRY_REFUSED before the first control is
+confirmed; none of the four refusals is qualified. Application and entry exit
+codes are zero, with complete closure still awaiting the retained-reader result.
+The independent reader passes its 111 controls and refuses at wallet_artifact.
+Its sparse checkout omits four declared token and row-detail source files.
+[Native attempt](https://github.com/edgepillar/syrius/actions/runs/42941392573)
+and [original reader](https://github.com/edgepillar/syrius/actions/runs/42943804183).
+
+The separate Source649 timing reader verifies the original Source645 manifests
+without another native execution. It observes a 29.61-second entry and retained
+page/disclosure windows of 859,906 and 749,476 microseconds. The original
+failed wallet closure and failed timing gate remain unchanged.
+[Retained timing reader](https://github.com/edgepillar/syrius/actions/runs/42942343333).
+
+Source650 adds only the required token/widget directories and the workflow text
+to the independent reader checkout. A regression checks checkout coverage for
+every declared producer source, and rejects the earlier missing-source layout.
+The reader also preserves an empty refusal prefix and identifies surface source
+validation as a separate phase. All 112 reader cases pass in memory with no
+filesystem writes, network or native execution. Its next hosted inspection
+targets the same original Source649 archives. No native retry or additional PNG
+capture is requested. The original page-seam refusal cause remains unestablished.
 
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied

@@ -404,8 +404,8 @@ def source_files(repo, value, tree, *, read_workflow_blob=None, files=SOURCE_FIL
     digests = {}
     for name in files:
         if name == WORKFLOW_SOURCE and read_workflow_blob is not None:
-            # The sparse checkout omits workflows. Read the exact producer blob,
-            # including when the independent reader is from a later revision.
+            # Read the exact producer blob even when the reader checks out a
+            # different workflow revision for its own source-discovery controls.
             need(callable(read_workflow_blob))
             value = read_workflow_blob(entries[name]['sha'])
             need(type(value) is dict and value.get('sha') == entries[name]['sha']
@@ -564,6 +564,7 @@ def main(parent=None):
                  (reference, settings_reference, navigation_reference, details_reference, viewport_reference))
              and listing['total_count'] == 2
              and {item['name'] for item in listing['artifacts']} == {name, root_item['name']})
+        PHASE = 'surface_source_metadata'
         source_digests.update(source_files(repo, producer_tree, tree, files=SURFACE_SEAM_SOURCES))
     if summary['native_inspection_qualified'] and not seams_only:
         need(sum(value is not None for value in

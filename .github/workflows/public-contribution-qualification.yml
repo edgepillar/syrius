@@ -1097,12 +1097,15 @@ jobs:
         with:
           persist-credentials: false
           sparse-checkout: |
+            .github/workflows
             tool/ci
             test/ci
             tools/devnet/lab
             harness
             lib/seams
             lib/rearchitecture/features/pillars/view
+            lib/rearchitecture/features/tokens
+            lib/rearchitecture/utils/widgets
             lib/widgets/shell/strip
             lib/widgets/modular_widgets/p2p_swap_widgets/modals
 
