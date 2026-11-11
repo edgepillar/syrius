@@ -64,6 +64,8 @@ class _AddressUi {
         'nav_settings', 'settings_addresses',
         if (addresses) ...<String>[
           'settings_add_address', 'addresses_select_$_second',
+          if ((context?['members'] as List<dynamic>?)?.length == 3)
+            'addresses_select_$_third',
           if ((context?['members'] as List<dynamic>?)?.length == 4)
             'addresses_select_$_fourth',
         ],
@@ -119,6 +121,12 @@ class _AddressUi {
             WalletAddressContext.parse(context);
         context = _context(members: current.members, selected: _fourth,
           saved: _fourth, revision: current.revision + 1);
+      case 'addresses_select_$_third':
+        final WalletAddressContext current =
+            WalletAddressContext.parse(context);
+        context = _context(members: current.members,
+          selected: selectionUnsettled ? _second : _third, saved: _third,
+          revision: current.revision + (selectionUnsettled ? 0 : 1));
     }
     return <String, dynamic>{'ok': true, 'acted': true};
   }
@@ -128,6 +136,94 @@ void main() {
   _AddressUi seedUi() => _AddressUi()
     ..context = _context(members: <String>[_first, _second],
       selected: _second, saved: _second);
+
+  test('holder selection uses the existing third member exactly once',
+      () async {
+    final _AddressUi ui = _AddressUi()
+      ..context = _context(members: <String>[_first, _second, _third],
+        selected: _second, saved: _second);
+    final WalletAddressContext original =
+        WalletAddressContext.parse(ui.context);
+    int parentChecks = 0;
+    final WalletRecipe driver = ui.driver();
+    final WalletAddressContext selected = await driver.selectSeededTokenHolder(
+      original, requireParent: () { parentChecks++; },
+    );
+    expect(selected.selectedFrom(original, 2), isTrue);
+    expect(ui.taps, <String>['nav_settings', 'settings_addresses',
+      'addresses_select_$_third']);
+    expect(ui.taps, isNot(contains('settings_add_address')));
+    expect(parentChecks, greaterThan(3));
+    final int commands = ui.commands.length;
+    ui.context = original.toJson();
+    await expectLater(driver.selectSeededTokenHolder(original,
+      requireParent: () {},
+    ), throwsA(isA<WalletRecipeRefused>()));
+    expect(ui.commands, hasLength(commands));
+  });
+
+  test('holder selection refuses a lost parent before any input', () async {
+    final _AddressUi ui = _AddressUi()
+      ..context = _context(members: <String>[_first, _second, _third],
+        selected: _second, saved: _second);
+    final WalletRecipe driver = ui.driver();
+    final WalletAddressContext original =
+        WalletAddressContext.parse(ui.context);
+    await expectLater(driver.selectSeededTokenHolder(original,
+      requireParent: () => throw StateError('Synthetic parent closed'),
+    ), throwsA(isA<WalletRecipeRefused>()));
+    await expectLater(driver.selectSeededTokenHolder(original,
+      requireParent: () {},
+    ), throwsA(isA<WalletRecipeRefused>()));
+    expect(ui.commands, isEmpty);
+  });
+
+  test('a pending holder preference never permits another selection tap',
+      () async {
+    final _AddressUi ui = _AddressUi()
+      ..context = _context(members: <String>[_first, _second, _third],
+        selected: _second, saved: _second)
+      ..selectionUnsettled = true;
+    final WalletRecipe driver = ui.driver();
+    final WalletAddressContext original =
+        WalletAddressContext.parse(ui.context);
+    await expectLater(driver.selectSeededTokenHolder(original,
+      requireParent: () {},
+    ), throwsA(isA<WalletRecipeRefused>()));
+    final int commands = ui.commands.length;
+    ui.context = _context(members: original.members,
+      selected: _third, saved: _third, revision: original.revision + 1);
+    await expectLater(driver.selectSeededTokenHolder(original,
+      requireParent: () {},
+    ), throwsA(isA<WalletRecipeRefused>()));
+    expect(ui.commands, hasLength(commands));
+    expect(ui.taps.where((String key) => key == 'addresses_select_$_third'),
+      hasLength(1));
+  });
+
+  test('holder selection refuses changed original membership or generation',
+      () async {
+    for (final Map<String, dynamic> changed in <Map<String, dynamic>>[
+      _context(members: <String>[_third, _second, _first],
+        selected: _second, saved: _second),
+      _context(members: <String>[_first, _second, _third, _fourth],
+        selected: _second, saved: _second),
+      _context(members: <String>[_first, _second, _third],
+        selected: _second, saved: _second, owner: 2),
+      _context(members: <String>[_first, _second, _third],
+        selected: _second, saved: _second, revision: 21),
+    ]) {
+      final WalletAddressContext original = WalletAddressContext.parse(
+        _context(members: <String>[_first, _second, _third],
+          selected: _second, saved: _second),
+      );
+      final _AddressUi ui = _AddressUi()..context = changed;
+      await expectLater(ui.driver().selectSeededTokenHolder(original,
+        requireParent: () {},
+      ), throwsA(isA<WalletRecipeRefused>()));
+      expect(ui.taps, isEmpty);
+    }
+  });
 
   test('blocked original seed controls retain their first fixed guard reason',
       () async {

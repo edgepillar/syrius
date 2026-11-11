@@ -3454,3 +3454,26 @@ operation, local native test or artifact transfer is repeated. Source675's
 later light Swap refusal retains its separate scope. All earlier failures,
 the eight original acceptance gates, 72/80 and zero accepted whole-image
 matches remain open.
+
+## Source680 original Token holder observation primitives
+
+Source680 adds a read-only observation of the actual mounted token holder panel.
+It retains the same private publisher, successful proof, read and view epochs,
+selected account, chain and exact issued standard. Missing proof, a null
+publisher, issuer layout or replaced state cannot qualify the holder control.
+The observation performs no new read or publication and stays held after loss.
+
+A confirmed Token guard can now retire permanently while preserving its exact
+original operation and journal. Retirement refuses unconfirmed, pending, failed,
+removed or replaced originals. A separate read-only holder scope retains the
+original three ordered members, resources and retired admission through one
+committed Settings selection of the existing third member. Pending preferences
+do not authorize a second tap; no address derivation or transfer is added.
+
+Ten new Dart cases cover retirement, one committed selection, replaced owners,
+late outcomes and permanent holds. Existing two-theme holder widget cases also
+check actual proof capture, null publishers and publisher replacement. The
+selected total becomes 1,460 cases in the same 108 files and 54/54 groups.
+Fresh hosted qualification and connection to the native holder probe are
+pending. The earlier frame refusal, all eight original acceptance gates,
+72/80 and zero accepted whole-image matches remain open.

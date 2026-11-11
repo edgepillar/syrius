@@ -30,6 +30,26 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 /// One captured question, injectable so widget cases never sign or use a node.
 typedef TokenActionQuestion = Future<bool> Function(TokenActionIntent intent);
 
+/// Read-only lifetime of one mounted holder panel and its successful proof.
+/// This observation cannot read again, submit, refresh or replace its owner.
+final class TokenHolderObservation {
+  TokenHolderObservation._(this._isCurrent);
+
+  final bool Function() _isCurrent;
+  bool _held = false;
+
+  /// Once lost, the original observation cannot be restored by a later panel.
+  bool get isCurrent {
+    if (_held) return false;
+    try {
+      return !(_held = !_isCurrent());
+    } on Object {
+      _held = true;
+      return false;
+    }
+  }
+}
+
 /// Retained exact fields and factual flags inside one expanded token row.
 class TokenInlineActions extends StatefulWidget {
   /// A legacy dialog selects [fixedMode] and uses this same publication path.
@@ -88,6 +108,22 @@ class TokenInlineActions extends StatefulWidget {
 
   /// A failed pre-dialog capture must not be replaced after opening.
   final bool allowCapture;
+
+  /// Captures actual private state, never the constructor's optional publisher.
+  /// A visible holder layout without a successful current read grants nothing.
+  static TokenHolderObservation? captureHolderObservation(
+    BuildContext context, {
+    required TokenStandard standard,
+    required String selectedAddress,
+    required int chainId,
+  }) {
+    if (context is! StatefulElement || !context.mounted) return null;
+    final State<StatefulWidget> state = context.state;
+    if (state is! _TokenInlineActionsState) return null;
+    return state._captureHolderObservation(
+      standard: standard, selectedAddress: selectedAddress, chainId: chainId,
+    );
+  }
 
   @override
   State<TokenInlineActions> createState() => _TokenInlineActionsState();
@@ -254,6 +290,35 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
       _windowActive &&
       widget.isCurrent() &&
       (_publisher?.session.isCurrent ?? true);
+
+  TokenHolderObservation? _captureHolderObservation({
+    required TokenStandard standard,
+    required String selectedAddress,
+    required int chainId,
+  }) {
+    final TokenActionPublisher? publisher = _publisher;
+    final TokenActionProof? proof = _proof;
+    if (publisher == null || proof == null || chainId <= 0 ||
+        selectedAddress.isEmpty) {
+      return null;
+    }
+    final int epoch = _epoch;
+    final int modeEpoch = _modeEpoch;
+    final Object? read = _read;
+    final TokenHolderObservation observation = TokenHolderObservation._(() =>
+      _current && _sameScope(publisher, standard, epoch) &&
+      identical(_proof, proof) && identical(_read, read) &&
+      identical(proof.session, publisher.session) && proof.isCurrent &&
+      publisher.session.address == selectedAddress &&
+      publisher.session.chainId == chainId &&
+      proof.token.tokenStandard == standard &&
+      proof.token.owner.toString() != selectedAddress &&
+      widget.showFacts && widget.fixedMode == null &&
+      modeEpoch == _modeEpoch && !_loading && !_holderBurnOpen &&
+      !_submitting && !_rearming && !_confirming,
+    );
+    return observation.isCurrent ? observation : null;
+  }
 
   void _resetLocalWork() {
     _operation = null;

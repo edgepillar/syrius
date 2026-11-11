@@ -95,6 +95,7 @@ class WalletRecipe {
   final int? _inspectionPid;
   final Stopwatch _clock = Stopwatch()..start();
   bool _retired = false;
+  bool _tokenHolderSelectionAttempted = false;
   int? _owner;
   String? _expectedNode;
   int? _expectedChain;
@@ -499,6 +500,47 @@ class WalletRecipe {
   Future<WalletAddressContext> prepareSeedAddress(
     WalletAddressContext original,
   ) => _deriveSeedAddress(original, nextIndex: 2);
+
+  /// Selects the already existing third member after Token admission retires.
+  /// One uncertain selection retires this driver without another tap.
+  Future<WalletAddressContext> selectSeededTokenHolder(
+    WalletAddressContext original, {
+    required void Function() requireParent,
+  }) async {
+    if (_tokenHolderSelectionAttempted) {
+      _refuse('wallet-recipe-original-address-context-changed');
+    }
+    _tokenHolderSelectionAttempted = true;
+    void current() {
+      try {
+        requireParent();
+      } on Object {
+        _refuse('wallet-recipe-owned-seed-lab-required');
+      }
+    }
+
+    current();
+    await _openSeedAddressSettings(original, memberCount: 3);
+    current();
+    await _act('addresses_select_${original.members[2]}', reveal: true);
+    current();
+    final Map<String, dynamic> selected = await _until(
+      (Map<String, dynamic> view) {
+        current();
+        final WalletAddressContext context = _addressContext(view);
+        if (!context.selectionPending(original, 2)) {
+          _refuse('wallet-recipe-original-address-context-changed');
+        }
+        return context.selectedFrom(original, 2) &&
+            view['addressesReady'] == true;
+      },
+    );
+    current();
+    _requireSeedAddressPolicy(selected);
+    final WalletAddressContext result = _addressContext(selected);
+    _addressOrigin = result;
+    return result;
+  }
 
   /// Derives the actor and selects it after the original Fuse receipt.
   /// The expected address comes from the owned lab's fixture admission.

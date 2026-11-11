@@ -390,6 +390,64 @@ void main() {
     guard = SeedGuard(source: source, journal: journal, delay: source.delay);
   });
 
+  test('confirmed Token retirement preserves its exact journal and original',
+      () async {
+    final _Original original = _Original();
+    expect(await guard.publish('token', () async {
+      source.operations.add(original);
+    }), _hash(9));
+    final int reads = source.confirmationReads;
+    expect(guard.retired, isFalse);
+    guard.retireConfirmedToken();
+    expect(guard.retired, isTrue);
+    expect(guard.acceptedHash, _hash(9));
+    expect(source.operations.single, same(original));
+    expect(journal.acceptedHashes, <String, String>{'token': _hash(9)});
+    expect(journal.confirmedHashes, <String, String>{'token': _hash(9)});
+    expect(guard.requireCurrent, throwsA(isA<SeedRefused>()));
+    source.isCurrent = false;
+    source.isCurrent = true;
+    expect(guard.retireConfirmedToken, throwsA(isA<SeedRefused>()));
+    await expectLater(guard.publish('token', () async {
+      fail('A retired Token cannot publish again');
+    }), throwsA(isA<SeedRefused>()));
+    expect(source.confirmationReads, reads);
+    expect(journal.attempts, <String>{'token'});
+  });
+
+  test('retirement cannot borrow another or replaced confirmed original',
+      () async {
+    for (final String invalid in <String>[
+      'missing', 'otherRecipe', 'pending', 'failed', 'release', 'hash',
+      'removed', 'replaced', 'owner',
+    ]) {
+      final _Source scoped = _Source();
+      final _Journal ledger = _Journal();
+      final SeedGuard candidate = SeedGuard(
+        source: scoped, journal: ledger, delay: scoped.delay,
+      );
+      final _Original original = _Original();
+      if (invalid != 'missing') {
+        await candidate.publish(invalid == 'otherRecipe' ? 'fuse' : 'token',
+          () async { scoped.operations.add(original); },
+        );
+      }
+      switch (invalid) {
+        case 'pending': original.settled = false;
+        case 'failed': original.failed = true;
+        case 'release': original.releaseFailed = true;
+        case 'hash': original.acceptedHash = _hash(10);
+        case 'removed': scoped.operations.clear();
+        case 'replaced': scoped.operations[0] = _Original();
+        case 'owner': scoped.isCurrent = false;
+      }
+      expect(candidate.retireConfirmedToken, throwsA(isA<SeedRefused>()));
+      expect(candidate.retired, isFalse);
+      scoped.isCurrent = true;
+      expect(candidate.requireCurrent, throwsA(isA<SeedRefused>()));
+    }
+  });
+
   test('funding readiness is checked before the claim and tap', () async {
     int reads = 0;
     int taps = 0;

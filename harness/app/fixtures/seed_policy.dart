@@ -552,7 +552,34 @@ final class SeedGuard {
   bool _attempted = false;
   SeedOriginal? _original;
   String? _hash;
+  String? _confirmedRecipe;
+  bool _retired = false;
   String? get acceptedHash => _hash;
+
+  /// A retired publication scope never becomes current after address changes.
+  bool get retired => _retired;
+
+  /// Ends only a positively confirmed Token recipe, preserving its originals.
+  /// No new selected account inherits the old publication admission.
+  void retireConfirmedToken() {
+    requireCurrent();
+    final SeedOriginal? original = _original;
+    final List<SeedOriginal> retained = original == null
+        ? <SeedOriginal>[]
+        : source.originals().where((SeedOriginal value) =>
+            identical(value.identity, original.identity),
+          ).toList();
+    if (_confirmedRecipe != 'token' || _hash == null || original == null ||
+        retained.length != 1 || !retained.single.settled ||
+        retained.single.failed || retained.single.releaseFailed ||
+        retained.single.acceptedHash != _hash) {
+      _revoked = true;
+      throw const SeedRefused('confirmed-token-retirement-required');
+    }
+    requireCurrent();
+    _retired = true;
+    _revoked = true;
+  }
 
   void requireCurrent() {
     if (_revoked || !source.isCurrent) {
@@ -772,6 +799,7 @@ final class SeedGuard {
         if (await _read(() => source.effect(recipe, block))) {
           requireCurrent();
           journal.confirmed(recipe, hash);
+          _confirmedRecipe = recipe;
           return hash;
         }
         effectPending++;

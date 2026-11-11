@@ -1933,3 +1933,21 @@ inspection remain unqualified.
 Source679 changes documentation only. No original operation or local artifact
 transfer is repeated. The remaining Home and Token Explorer controls, all eight
 deferred gates, 72/80 and zero accepted whole-image matches remain open.
+
+## Source680 retained Token holder primitives
+
+Source680 prepares the actual holder proof before connecting its native probe.
+A read-only token-panel observation retains the private publisher, successful
+read and presentation epochs. It refuses issuer layouts, missing or stale proof,
+null publishers and replacements without reading or publishing again.
+
+The confirmed original Token publication can retire permanently with its exact
+operation and journal preserved. A separate holder scope retains the original
+resources and three ordered members through one normal Settings selection of
+the existing third member. A pending preference or late result cannot authorize
+another selection. No extra derivation or transfer is introduced.
+
+Ten new Dart cases and expanded existing two-theme widget cases prepare 1,460
+selected cases in the same 108 files. Hosted qualification and native probe
+integration remain pending. The fast first-delivery scope remains available for
+Draft review; all eight deferred acceptance gates and original 72/80 remain open.

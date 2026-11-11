@@ -64,6 +64,15 @@ remains unqualified. Source679 records this result in documentation only. No
 native operation or local artifact transfer is repeated. All eight original
 acceptance gates, 72/80 and zero accepted whole-image matches remain open.
 
+Source680 prepares read-only Token holder primitives: actual mounted publisher
+and proof observation, permanent retirement of the confirmed Token admission,
+and one existing-member Settings selection with retained resources and committed
+preference. Ten new Dart cases and expanded two-theme widget controls prepare
+1,460 selected cases in the same 108 files. Native probe integration and fresh
+hosted qualification remain pending; no new financial operation or local SDK
+execution is introduced. Original 72/80 and every earlier failure retain their
+scope.
+
 ## Retained qualification status (2026-11-05)
 
 The [qualified Source492 Activity result](review/source489-activity-reference-spacing.md#actual-source492-focused-result)

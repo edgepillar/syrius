@@ -5,9 +5,132 @@ import 'package:zenon_syrius_wallet_flutter/seams/seam.dart';
 
 import '../../harness/app/fixtures/seed_policy.dart';
 import '../../harness/app/fixtures/seeded_surface_seam.dart';
+import '../../harness/wallet_address_context.dart';
+
+WalletAddressContext _holderContext({
+  List<String> members = const <String>['first', 'issuer', 'holder'],
+  String selected = 'issuer',
+  String saved = 'issuer',
+  int revision = 20,
+  int owner = 1,
+}) => WalletAddressContext.parse(<String, dynamic>{
+  'members': members, 'selected': selected, 'saved': saved,
+  'revision': revision, 'owner': owner,
+});
 
 void main() {
   final String hash = List<String>.filled(64, '1').join();
+
+  test('retired Token handoff retains one committed existing member', () {
+    final WalletAddressContext original = _holderContext();
+    WalletAddressContext current = original;
+    final SeededTokenHolder holder = SeededTokenHolder(
+      confirmedHash: hash, original: original,
+      requireRetired: () {}, requireResources: () {},
+      readContext: () => current,
+    );
+    expect(holder.standard, seedIssuedTokenStandard(hash).toString());
+    holder.requireTransition();
+    current = _holderContext(saved: 'holder');
+    holder.requireTransition();
+    current = _holderContext(
+      selected: 'holder', saved: 'holder', revision: 21,
+    );
+    final WalletAddressContext selected = holder.requireSelected();
+    expect(selected, same(current));
+    expect(holder.requireSelected(), same(selected));
+    final Map<String, Object> receipt = holder.selectionReceipt;
+    expect(receipt, <String, Object>{
+      'schema': 1, 'scope': 'owned_seeded_token_holder_selection',
+      'members': 3, 'originalIndex': 1, 'selectedIndex': 2,
+      'singleTransition': true, 'persisted': true,
+      'originalResourcesCurrent': true, 'publicationRetired': true,
+    });
+    expect(() => receipt['members'] = 4, throwsUnsupportedError);
+    expect(jsonEncode(receipt), isNot(contains(hash)));
+    expect(jsonEncode(receipt), isNot(contains('zts1')));
+    current = original;
+    expect(holder.requireTransition, throwsA(isA<SeedRefused>()));
+    current = selected;
+    expect(holder.requireSelected, throwsA(isA<SeedRefused>()));
+  });
+
+  test('pending selection cannot become a positive holder receipt later', () {
+    WalletAddressContext current = _holderContext(saved: 'holder');
+    final SeededTokenHolder holder = SeededTokenHolder(
+      confirmedHash: hash, original: _holderContext(),
+      requireRetired: () {}, requireResources: () {},
+      readContext: () => current,
+    );
+    holder.requireTransition();
+    expect(holder.requireSelected, throwsA(isA<SeedRefused>()));
+    current = _holderContext(
+      selected: 'holder', saved: 'holder', revision: 21,
+    );
+    expect(holder.requireSelected, throwsA(isA<SeedRefused>()));
+  });
+
+  test('lost retirement, resources or exact selection stay held', () {
+    for (final String loss in <String>[
+      'retirement', 'resources', 'afterRead', 'owner', 'order', 'revision',
+    ]) {
+      bool retired = true;
+      bool resources = true;
+      bool failAfterRead = false;
+      WalletAddressContext current = _holderContext();
+      final SeededTokenHolder holder = SeededTokenHolder(
+        confirmedHash: hash, original: current,
+        requireRetired: () {
+          if (!retired) throw StateError('Synthetic retired scope lost');
+        },
+        requireResources: () {
+          if (!resources) throw StateError('Synthetic resources changed');
+        },
+        readContext: () {
+          if (failAfterRead) resources = false;
+          return current;
+        },
+      );
+      holder.requireTransition();
+      switch (loss) {
+        case 'retirement': retired = false;
+        case 'resources': resources = false;
+        case 'afterRead': failAfterRead = true;
+        case 'owner': current = _holderContext(owner: 2);
+        case 'order': current = _holderContext(
+          members: <String>['holder', 'issuer', 'first'],
+        );
+        case 'revision': current = _holderContext(revision: 22);
+      }
+      expect(holder.requireTransition, throwsA(isA<SeedRefused>()));
+      retired = true;
+      resources = true;
+      failAfterRead = false;
+      current = _holderContext();
+      expect(holder.requireTransition, throwsA(isA<SeedRefused>()));
+    }
+  });
+
+  test('holder handoff refuses missing confirmation or original selection', () {
+    for (final WalletAddressContext original in <WalletAddressContext>[
+      _holderContext(members: <String>['first', 'issuer']),
+      _holderContext(members: <String>['first', 'issuer', 'holder', 'extra']),
+      _holderContext(selected: 'first', saved: 'first'),
+      _holderContext(saved: 'holder'),
+    ]) {
+      expect(() => SeededTokenHolder(
+        confirmedHash: hash, original: original,
+        requireRetired: () => fail('No retirement proof was admitted'),
+        requireResources: () => fail('No resource capture was admitted'),
+        readContext: () => fail('No selection was admitted'),
+      ), throwsA(isA<SeedRefused>()));
+    }
+    expect(() => SeededTokenHolder(
+      confirmedHash: '', original: _holderContext(),
+      requireRetired: () {}, requireResources: () {},
+      readContext: _holderContext,
+    ), throwsA(isA<SeedRefused>()));
+  });
 
   test('four gates in both original themes retain only fixed pointer facts',
       () async {

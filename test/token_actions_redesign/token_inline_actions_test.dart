@@ -131,6 +131,19 @@ Future<void> _ready(WidgetTester tester) => pumpActionUntil(
   () => find.byKey(const Key('mint_amount_field')).evaluate().isNotEmpty,
 );
 
+TokenHolderObservation? _holderObservation(
+  WidgetTester tester,
+  ActionFixture fixture, {
+  TokenStandard? standard,
+  String? selectedAddress,
+  int? chainId,
+}) => TokenInlineActions.captureHolderObservation(
+  tester.element(find.byType(TokenInlineActions)),
+  standard: standard ?? fixture.token.tokenStandard,
+  selectedAddress: selectedAddress ?? fixture.session.address,
+  chainId: chainId ?? fixture.session.chainId,
+);
+
 Future<(NavigatorState, DialogRoute<void>, Future<void>)> _openTokenDialog(
   WidgetTester tester,
   Widget dialog,
@@ -570,6 +583,21 @@ void main() {
               find.byKey(const Key('token_explorer_control')),
               findsNothing,
             );
+            expect(_holderObservation(tester, fixture), isNull);
+            await tester.pumpWidget(_host(
+              TokenInlineActions(
+                token: actionToken(owner: tokenAddress),
+                isCurrent: () => true,
+                allowCapture: false,
+              ),
+              brightness: brightness,
+              direction: direction,
+            ));
+            await tester.pump();
+            expect(find.byKey(const Key('token_explorer_control')),
+              findsOneWidget,
+            );
+            expect(_holderObservation(tester, fixture), isNull);
             expect(fixture.transport.calls, isEmpty);
             expect(tester.takeException(), isNull);
           });
@@ -624,6 +652,20 @@ void main() {
                     tester.widget<OutlinedButton>(burn).onPressed != null,
               );
               await tester.pump(const Duration(milliseconds: 260));
+              final TokenHolderObservation originalHolder =
+                  _holderObservation(tester, fixture)!;
+              expect(originalHolder.isCurrent, isTrue);
+              final int originalTokenReads = fixture.tokenReads;
+              final int originalAccountReads = fixture.accountReads;
+              expect(_holderObservation(tester, fixture,
+                standard: actionToken(id: 2).tokenStandard,
+              ), isNull);
+              expect(_holderObservation(tester, fixture,
+                selectedAddress: tokenAddress.toString(),
+              ), isNull);
+              expect(_holderObservation(tester, fixture, chainId: 1), isNull);
+              expect(fixture.tokenReads, originalTokenReads);
+              expect(fixture.accountReads, originalAccountReads);
               expect(tester.getSize(burn).height, 26);
               for (final String mode in <String>[
                 'mint',
@@ -684,6 +726,7 @@ void main() {
                   findsNothing,
                 );
                 expect(tester.takeException(), isNull);
+                expect(originalHolder.isCurrent, isTrue);
               } finally {
                 semantics.dispose();
               }
@@ -702,6 +745,10 @@ void main() {
                     replacement.accountReads == 1 &&
                     tester.widget<OutlinedButton>(burn).onPressed != null,
               );
+              expect(originalHolder.isCurrent, isFalse);
+              final TokenHolderObservation replacementHolder =
+                  _holderObservation(tester, replacement)!;
+              expect(replacementHolder.isCurrent, isTrue);
               oldBurn();
               oldSend();
               oldExplorer();
@@ -718,6 +765,8 @@ void main() {
               );
               await tester.tap(burn);
               await tester.pump();
+              expect(replacementHolder.isCurrent, isFalse);
+              expect(originalHolder.isCurrent, isFalse);
               await tester.pump(const Duration(milliseconds: 260));
               await _editField(tester, 'burn_amount_field', '1');
               final Finder submit = find.byKey(const Key('token_burn_submit'));
