@@ -16,6 +16,51 @@ def encode(rows):
 
 
 class DartFailureTests(unittest.TestCase):
+    def test_welcome_pixels_require_the_owned_suite_and_finite_color_protocol(self):
+        marker = 'CI_WELCOME_PIXEL:0:2:5:8:4294967295:4281875000'
+        expected = dict(light=False, pixel_ratio=2, fraction_eighths=5,
+                        sample_index=8, expected_argb=4294967295, actual_argb=4281875000)
+
+        def rows(message, *, suite='welcome_surface_test.dart', printed=False, identity=7):
+            events = [
+                dict(type='suite', suite=dict(id=2, path='/fixture/private/' + suite)),
+                dict(type='testStart', test=dict(id=7, suiteID=2, name='private fixture label')),
+            ]
+            if printed:
+                events.append(dict(type='print', testID=identity, message=message))
+            events.append(dict(type='error', testID=7, isFailure=False,
+                error='Expected: color' if printed else '\n' + message + '\nExpected: color',
+                stackTrace=suite + ':199:5'))
+            return events
+
+        for printed in (False, True):
+            value = failure.project(encode(rows(marker, printed=printed)))
+            with self.subTest(printed=printed):
+                self.assertEqual(value['items'][0]['welcome_pixel'], expected)
+                self.assertNotIn('private', json.dumps(value))
+                compact = failure.locations(encode(rows(marker, printed=printed)))
+                self.assertNotIn('welcome_pixel', compact['items'][0])
+        invalid = (
+            'CI_WELCOME_PIXEL:2:2:5:8:0:1',
+            'CI_WELCOME_PIXEL:0:3:5:8:0:1',
+            'CI_WELCOME_PIXEL:0:2:2:8:0:1',
+            'CI_WELCOME_PIXEL:0:2:5:9:0:1',
+            'CI_WELCOME_PIXEL:0:2:5:8:-1:1',
+            'CI_WELCOME_PIXEL:0:2:5:8:4294967296:1',
+            'CI_WELCOME_PIXEL:0:2:5:8:1:4294967296',
+            'CI_WELCOME_PIXEL:0:2:5:8:1.0:1',
+            marker + ':private',
+            marker + '\nCI_WELCOME_PIXEL:private',
+        )
+        for message in invalid:
+            with self.subTest(marker=message):
+                self.assertNotIn('welcome_pixel',
+                    failure.project(encode(rows(message)))['items'][0])
+        for options in (dict(suite='import_surface_test.dart'),
+                        dict(printed=True, identity=8)):
+            value = failure.project(encode(rows(marker, **options)))['items'][0]
+            self.assertNotIn('welcome_pixel', value)
+
     def test_entry_locations_keep_only_exact_names_and_original_numeric_lines(self):
         names = ('entry_capture_source_test.dart', 'entry_capture_opt_in_test.dart',
                  'entry_prepared_draft_test.dart', 'entry_capture_source.dart',

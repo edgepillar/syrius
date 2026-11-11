@@ -157,6 +157,8 @@ void main() {
           tester.view.physicalSize = const Size(1280, 780) * ratio;
           tester.view.devicePixelRatio = ratio;
           for (final double fraction in <double>[0.125, 0.625]) {
+            await tester.pumpWidget(const SizedBox.shrink());
+            await tester.pump();
             final List<WelcomeDestination> calls = <WelcomeDestination>[];
             await tester.pumpWidget(
               welcomeHost(
@@ -196,16 +198,29 @@ void main() {
                 Offset(row.left + 100, row.bottom - 1 / ratio),
               ]);
             }
-            expect(
-              await _paintedColors(tester, points, ratio),
-              <int>[
-                for (final String _ in _actions) ...<int>[
-                  tokens.line.toARGB32(),
-                  tokens.card.toARGB32(),
-                  tokens.line.toARGB32(),
-                ],
-              ],
+            final List<int> colors = await _paintedColors(
+              tester,
+              points,
+              ratio,
             );
+            final List<int> expected = <int>[
+              for (final String _ in _actions) ...<int>[
+                tokens.line.toARGB32(),
+                tokens.card.toARGB32(),
+                tokens.line.toARGB32(),
+              ],
+            ];
+            expect(colors, hasLength(expected.length));
+            for (int index = 0; index < expected.length; index++) {
+              expect(
+                colors[index],
+                expected[index],
+                reason:
+                    '\nCI_WELCOME_PIXEL:${light ? 1 : 0}:'
+                    '${ratio.toInt()}:${(fraction * 8).round()}:$index:'
+                    '${expected[index]}:${colors[index]}\n',
+              );
+            }
             for (final String name in _actions) {
               await tester.tap(_action(name));
             }

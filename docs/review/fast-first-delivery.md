@@ -1032,6 +1032,21 @@ negative control reproduces the Windows-only failure before the correction;
 all 180 selected in-memory controls pass after it. Fresh hosted widget,
 entry capture and seam qualification remain open.
 
+The Source647 Windows lane passes 1,145 controller cases with eighteen skips,
+the asset controls and selected analysis with zero findings. Both Dart streams
+finish, recording 1,389 passes and two failures in the new Welcome color
+comparisons. The lane produces no desktop build or artifact.
+[Original run](https://github.com/edgepillar/syrius/actions/runs/42925966378).
+
+Source648 rebuilds a fresh host for each normal pixel sample, preventing
+focus and ink from earlier callback checks from entering the next sample.
+The same border, fill, size, physical alignment and callback expectations
+remain. An owned Welcome failure can retain only fixed sample coordinates
+and unsigned pixel colors. The updated reader rejects foreign tests and
+malformed or excessive values. All 204 selected in-memory Python controls and
+local analysis of the changed Dart test pass. Fresh hosted widget and native
+qualification remain open.
+
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied
 owner, confirmed receipt and exact Project row. The original Project

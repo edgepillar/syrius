@@ -537,6 +537,23 @@ def location(text, *, tests_only=False):
     return min(found) if found else None
 
 
+def welcome_pixel_diagnostic(text):
+    """Retain only fixed fixture coordinates and unsigned pixel colors."""
+    markers = [line.strip() for line in text.splitlines()
+               if line.lstrip().startswith('CI_WELCOME_PIXEL:')]
+    if not markers:
+        return None
+    match = re.fullmatch(r'CI_WELCOME_PIXEL:([01]):([12]):([15]):([0-8]):'
+        r'(0|[1-9][0-9]{0,9}):(0|[1-9][0-9]{0,9})', markers[-1])
+    if match is None:
+        return None
+    light, ratio, fraction, index, expected, actual = map(int, match.groups())
+    if max(expected, actual) > 0xffffffff:
+        return None
+    return dict(light=bool(light), pixel_ratio=ratio, fraction_eighths=fraction,
+                sample_index=index, expected_argb=expected, actual_argb=actual)
+
+
 def goto_geometry_diagnostic(text):
     """Keep a fixed palette fixture and bounded overflow geometry only."""
     markers = re.findall(
@@ -764,6 +781,10 @@ def project(raw):
             suite = tests.get(identity) if type(identity) is int else None
             if suite is not None:
                 item['suite_file'] = suite
+            if suite == 'welcome_surface_test.dart':
+                pixels = welcome_pixel_diagnostic(details)
+                if pixels is not None:
+                    item['welcome_pixel'] = pixels
             if suite == 'go_to_palette_test.dart':
                 geometry = goto_geometry_diagnostic(details)
                 if geometry is not None:
