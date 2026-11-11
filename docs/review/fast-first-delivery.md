@@ -1664,3 +1664,34 @@ check, expressing the two consecutive calls as a cascade. It changes no guard,
 test registration or assertion. Fresh analysis, 1,417 Dart cases and the native
 Message observations remain pending. The original failures, 72/80 acceptance,
 zero accepted whole-image matches and all eight deferred gates remain open.
+
+## Source670 native Message result and Source671 owner controls
+
+The [Source670 producer](https://github.com/edgepillar/syrius/actions/runs/43026625653)
+passes all 1,417 Dart cases, 1,185 Python cases with eighteen Windows skips,
+five JavaScript controls and zero selected analyzer findings. Both original
+Dart commands exit zero normally with complete, unforced output. The five
+Home observations include the original Message widget in both themes, using
+explicit preview metadata on retained real history. Application and entry
+exit zero; all five original nodes stop normally. The separate VCTIP telemetry
+helper retains its explicitly qualified forced cleanup.
+
+The [independent reader](https://github.com/edgepillar/syrius/actions/runs/43030520713)
+passes 112 controls and verifies four original archives, 67 source inputs and
+36 PNGs: 24 tour, eight Home and four viewport observations. The selected Home
+gate plan qualifies. Live Zap receipt, financial send, visual match, motion
+baseline and full legacy four-surface acceptance remain outside this result.
+
+Source671 prepares both-theme Update, APR and Swap terms checks on the same
+original readonly wallet. Six owner observations follow the existing five.
+Bounded passive tree reads distinguish the original first-use warning from
+the original draft while keeping the successful readonly-response contract.
+The original Start is used once per theme; original Continue and Close inputs,
+wallet and route checks, and theme preference restoration remain explicit.
+No form, send, seed, SDK replacement or ordinary application change is added.
+Five owner-source pins are added to the reader. Its surface fixture keeps each
+Git tree path unique. Seven new Python cases prepare 1,192 hosted controls;
+1,417 Dart cases and 112 independent reader cases remain selected. All 219
+selected local Python controls pass in memory with zero external effects.
+Fresh hosted qualification is pending. All original failures, 72/80 acceptance,
+zero accepted whole-image matches and eight deferred gates remain open.

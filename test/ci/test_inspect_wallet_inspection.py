@@ -440,7 +440,7 @@ class ReaderTests(unittest.TestCase):
         self.assertTrue(result['native_inspection_qualified'])
         self.assertEqual(result['seam_refusals'], list(reader.producer.SURFACE_SEAMS))
         self.assertEqual(result['producer_source_files_verified'],
-                         len(reader.SOURCE_FILES) + len(reader.SURFACE_SEAM_SOURCES))
+                         len(set(reader.SOURCE_FILES) | set(reader.SURFACE_SEAM_SOURCES)))
         self.assertEqual(result['verified_catalog_png_count'], 0)
         self.assertEqual(result['verified_viewport_png_count'], 0)
         self.assertEqual(len(calls), 12)
@@ -749,6 +749,7 @@ class ReaderTests(unittest.TestCase):
             source_files += ('tool/ci/send_warning_window.py',
                 'harness/app/fixtures/send_warning_draft.dart', 'harness/screens/send-warn.txt',
                 *fixture_bytes)
+        source_files = tuple(dict.fromkeys(source_files))
         tree = dict(sha='b' * 40, truncated=False, tree=[
             dict(path=name, mode='100644', type='blob', sha=hashlib.sha1(
                 b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest())

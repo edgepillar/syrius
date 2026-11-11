@@ -993,6 +993,7 @@ def observe_home_seam_pointers(send, observed):
     need(current() == home_route, 'ENTRY_REFUSED')
     observe_activity_message_seams(send, observed,
         require_home=lambda: need(current() == home_route, 'ENTRY_REFUSED'))
+    observe_readonly_owner_seams(send, observed)
     require_seam_clean_logs(send)
 
 
@@ -1017,6 +1018,155 @@ def observe_activity_message_seams(send, observed, *, require_home):
                              theme=theme, preview_only=True))
     send(dict(cmd='theme', restore=original_theme))
     require_home()
+
+
+READONLY_OWNER_SEAMS = ('walletUpdateNotice', 'pillarAprEstimate', 'swapTerms')
+
+
+def readonly_swap_opening(send, read_route, root_route, *, clock=None, pause=None):
+    """Observe the original first-use warning or draft without repeating Start."""
+    clock, pause = clock or time.monotonic, pause or time.sleep
+    deadline = clock() + 5
+    for _ in range(34):
+        if clock() >= deadline:
+            break
+        before = read_route()
+        reply = send(dict(cmd='tree'))
+        after = read_route()
+        nodes = reply.get('nodes') if type(reply) is dict else None
+        need(type(nodes) is list and len(nodes) <= 512
+             and all(type(row) is dict and row.get('kind') != 'error'
+                     for row in nodes), 'ENTRY_REFUSED')
+        visible = []
+        for label, key, kind in (('warning', 'p2p_warning_continue', 'button'),
+                                 ('draft', 'swap_counterparty_input', 'field')):
+            matches = [row for row in nodes if row.get('key') == key]
+            need(len(matches) <= 1 and all(row.get('kind') == kind
+                 and row.get('enabled') is True for row in matches), 'ENTRY_REFUSED')
+            if matches:
+                visible.append(label)
+        need(len(visible) <= 1, 'ENTRY_REFUSED')
+        if visible and before == after and after != root_route:
+            return visible[0], after
+        pause(0.15)
+    raise Refused('ENTRY_REFUSED')
+
+
+def observe_readonly_owner_seams(send, observed):
+    """Try the existing owner controls without a send, seed or form input."""
+    original = seam_wallet_state(send, 'dashboard')
+    home = original.get('route')
+    need(type(home) is str and bool(home), 'ENTRY_REFUSED')
+
+    def route(tab):
+        state = seam_wallet_state(send, tab)
+        value = state.get('route')
+        need(state['address'] == original['address']
+             and type(value) is str and bool(value), 'ENTRY_REFUSED')
+        return value
+
+    def same(tab, expected):
+        need(route(tab) == expected, 'ENTRY_REFUSED')
+
+    def stable(command, tab, expected):
+        same(tab, expected)
+        reply = send(command)
+        same(tab, expected)
+        need(type(reply) is dict, 'ENTRY_REFUSED')
+        return reply
+
+    def wait(key, tab, *, expected=None, kind=None, gone=False):
+        current = route(tab)
+        if expected is not None:
+            need(current == expected, 'ENTRY_REFUSED')
+        command = dict(cmd='wait', key=key, exact=True, timeoutMs=5000)
+        if kind is not None:
+            command['kind'] = kind
+        if gone:
+            command['gone'] = True
+        reply = send(command)
+        current = route(tab)
+        if expected is not None:
+            need(current == expected, 'ENTRY_REFUSED')
+        need(type(reply) is dict, 'ENTRY_REFUSED')
+        target = reply.get('target')
+        need(('target' not in reply if gone else type(target) is dict
+             and target.get('key') == key
+             and (kind is None or target.get('kind') == kind)), 'ENTRY_REFUSED')
+        return current
+
+    def tap(key, tab, expected):
+        same(tab, expected)
+        reply = send(dict(cmd='tap', key=key, kind='button', exact=True))
+        current = route(tab)
+        need(type(reply) is dict, 'ENTRY_REFUSED')
+        target = reply.get('target')
+        need(type(target) is dict and target.get('key') == key
+             and target.get('kind') == 'button', 'ENTRY_REFUSED')
+        return current
+
+    def navigate(tab, previous, expected):
+        same(previous, expected)
+        send(dict(cmd='tap', tab=tab))
+        return route(tab)
+
+    def probe(seam, key, tab, expected):
+        same(tab, expected)
+        require_seam_absorption(send, seam, key)
+        same(tab, expected)
+
+    original_theme = stable(dict(cmd='theme'), 'dashboard', home)
+    need(type(original_theme) is dict and 'mode' in original_theme
+         and original_theme['mode'] in (None, 'dark', 'light', 'system')
+         and original_theme.get('brightness') in THEMES
+         and 'savedMode' in original_theme
+         and (original_theme['savedMode'] is None
+              or type(original_theme['savedMode']) is str), 'ENTRY_REFUSED')
+    for theme in THEMES:
+        selected = stable(dict(cmd='theme', mode=theme), 'dashboard', home)
+        need(selected.get('mode') == selected.get('brightness') == theme
+             and selected.get('savedMode') == 'ThemeMode.' + theme, 'ENTRY_REFUSED')
+        wait('strip_update_button', 'dashboard', expected=home, kind='button')
+        probe('walletUpdateNotice', 'strip_update_button', 'dashboard', home)
+        observed.append(dict(panel='home', seam='walletUpdateNotice', theme=theme))
+
+        pillars = navigate('pillars', 'dashboard', home)
+        wait('nodes_tab_pillars', 'pillars', expected=pillars)
+        need(tap('nodes_tab_pillars', 'pillars', pillars) == pillars, 'ENTRY_REFUSED')
+        wait('nodes_pillars_strip', 'pillars', expected=pillars)
+        menu = tap('pillars_sort', 'pillars', pillars)
+        need(menu != pillars, 'ENTRY_REFUSED')
+        probe('pillarAprEstimate', 'pillars_sort_apr_gate', 'pillars', menu)
+        same('pillars', menu)
+        send(dict(cmd='key', key='escape'))
+        same('pillars', pillars)
+        observed.append(dict(panel='pillars', seam='pillarAprEstimate', theme=theme))
+
+        swaps = navigate('p2pSwap', 'pillars', pillars)
+        wait('p2p_swaps_strip', 'p2pSwap', expected=swaps)
+        tap('p2p_start_swap', 'p2pSwap', swaps)
+        opening, current = readonly_swap_opening(
+            send, lambda: route('p2pSwap'), swaps)
+        if opening == 'warning':
+            tap('p2p_warning_continue', 'p2pSwap', current)
+            draft = wait('swap_counterparty_input', 'p2pSwap', kind='field')
+        else:
+            draft = wait('swap_counterparty_input', 'p2pSwap',
+                         expected=current, kind='field')
+        need(draft != swaps, 'ENTRY_REFUSED')
+        wait('swap_start_terms_gate', 'p2pSwap', expected=draft, kind='button')
+        probe('swapTerms', 'swap_start_terms_gate', 'p2pSwap', draft)
+        wait('swap_counterparty_input', 'p2pSwap', expected=draft, kind='field')
+        tap('swap_action_close', 'p2pSwap', draft)
+        need(wait('swap_counterparty_input', 'p2pSwap', gone=True) == swaps,
+             'ENTRY_REFUSED')
+        observed.append(dict(panel='swap', seam='swapTerms', theme=theme))
+        need(navigate('dashboard', 'p2pSwap', swaps) == home, 'ENTRY_REFUSED')
+        wait('home_hero', 'dashboard', expected=home)
+
+    restored = stable(dict(cmd='theme', restore=original_theme), 'dashboard', home)
+    need(restored.get('mode') == original_theme['mode']
+         and restored.get('savedMode') == original_theme['savedMode'], 'ENTRY_REFUSED')
 
 
 SURFACE_SEAMS = ('walletUpdateNotice', 'tokenExplorer', 'pillarAprEstimate', 'swapTerms')
@@ -1162,7 +1312,7 @@ SEAM_PILOTS = {
     SETTINGS_SEAMS_FAMILY: ('settings', observe_settings_seam_pointers,
         sum(len(targets) for _, _, targets in SETTINGS_SEAM_PANELS)),
     HOME_SEAMS_FAMILY: ('home', observe_home_seam_pointers,
-        len(HOME_SEAM_CONTROLS) + 3),
+        len(HOME_SEAM_CONTROLS) + 3 + len(THEMES) * len(READONLY_OWNER_SEAMS)),
 }
 
 

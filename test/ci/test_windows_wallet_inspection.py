@@ -388,13 +388,16 @@ class InspectionTests(unittest.TestCase):
                         return dict(logs=[])
                     return {}
 
-                if changed_route:
-                    with self.assertRaises(inspection.Refused):
+                with mock.patch.object(inspection, 'observe_readonly_owner_seams') as owner:
+                    if changed_route:
+                        with self.assertRaises(inspection.Refused):
+                            inspection.observe_home_seam_pointers(send, observed)
+                        owner.assert_not_called()
+                    else:
                         inspection.observe_home_seam_pointers(send, observed)
-                else:
-                    inspection.observe_home_seam_pointers(send, observed)
-                    self.assertEqual(route, 'original-home')
-                    self.assertEqual(inputs[-1]['cmd'], 'logs')
+                        owner.assert_called_once_with(send, observed)
+                        self.assertEqual(route, 'original-home')
+                        self.assertEqual(inputs[-1]['cmd'], 'logs')
                 expected = [dict(panel='home', seam='zapSend'),
                     dict(panel='activity', seam='activityAddressScope')]
                 if not changed_route:
