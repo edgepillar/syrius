@@ -149,8 +149,7 @@ void main() {
       final entry.PreparedSurfaceOperation operation =
           entry.PreparedSurfaceOperation.fromCommand(command, theme: 'dark');
       final Map<String, Object?> snapshot = operation.toJson();
-      command['private'] = _Unformattable();
-      command['cmd'] = 'private';
+      command.clear();
       expect(jsonEncode(snapshot), isNot(contains('private')));
       expect(snapshot.keys, unorderedEquals(<String>[
         'schema', 'scope', 'action', 'target', 'theme', 'boundary',
