@@ -1518,3 +1518,18 @@ notice bounds and refusal to treat labels as successful gate observations.
 The expected hosted totals are 1,407 Dart and 1,182 Python cases. Fresh hosted
 qualification is pending. Original 72/80, zero accepted whole-image matches,
 holder Explorer and all eight original open acceptance gates remain unchanged.
+
+
+## Source663 exception-type analysis result
+
+The [Source663 run](https://github.com/edgepillar/syrius/actions/runs/42997303816)
+completes 1,182 Python controls with eighteen Windows skips and no failures or
+errors. Selected analysis reports zero errors and warnings, with two
+`ONLY_THROW_ERRORS` infos at the request/owner exception test. The fixture is an
+Exception, but its local variable was declared as Object. This stops the gate
+before the Dart engine and native lab; zero artifacts are retained and a
+retained-archive reader is inapplicable. Source664 narrows only that variable's
+annotation to its existing concrete exception class. Its constructor, identity,
+throw sites, assertions and all registrations are unchanged. The expected
+1,407 Dart cases and native observations still need fresh hosted qualification.
+All original failures, 72/80 and zero accepted whole-image matches remain.

@@ -190,7 +190,7 @@ void main() {
   test('prepared requests preserve failures and both ownership boundaries',
       () async {
     for (final int failedBoundary in <int>[0, 1, 2, -1]) {
-      final Object originalFailure = _Unformattable();
+      final _Unformattable originalFailure = _Unformattable();
       final List<entry.PreparedSurfaceOperation> operations =
           <entry.PreparedSurfaceOperation>[];
       int owners = 0;
