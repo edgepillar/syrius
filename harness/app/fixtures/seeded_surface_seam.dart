@@ -17,13 +17,8 @@ final class SeededSurfaceSeam {
   SeededSurfaceSeam({
     required String confirmedHash,
     required Seam seam,
-    required void Function() this._requireCurrent,
-    required Future<void> Function(
-      String standard,
-      Seam seam,
-      String theme,
-      void Function() requireOwner,
-    ) this._observe,
+    required this._requireCurrent,
+    required this._observe,
   }) : _confirmedHash = confirmedHash,
        _seam = seam {
     if (!seedHash(confirmedHash) || !seededSurfaceControls.containsKey(seam)) {

@@ -1205,6 +1205,16 @@ source; no local Dart execution or new native result is claimed. Fresh hosted
 zero-finding analysis, engine tests and native observation remain required.
 [Original attempt](https://github.com/edgepillar/syrius/actions/runs/42970944763).
 
+Source656 passes all 1,166 controller cases with eighteen skips. Selected
+analysis reports zero errors, zero warnings and two TYPE_INIT_FORMALS infos.
+Engine tests and native application/lab allocation remain unexecuted, with
+zero artifacts. Source657 removes the redundant constructor formal types;
+both callbacks inherit their unchanged non-null field signatures. The same
+eight seam cases, owner checks, strict analysis rules and 1,399-case engine
+requirement remain. Fresh hosted analysis, engine tests and native observation
+are pending.
+[Original attempt](https://github.com/edgepillar/syrius/actions/runs/42973048527).
+
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied
 owner, confirmed receipt and exact Project row. The original Project
