@@ -1139,7 +1139,28 @@ original Home tab. An already bound Home retains its original route check.
 All wallet, node, chain and readiness checks remain; another initial page is
 refused. All 150 selected controls pass without filesystem writes, network or
 native execution. The old Source651 driver refuses the same valid Settings
-fixture that the new driver completes. Fresh native observation remains open.
+fixture that the new driver completes.
+
+The Source652 native lane passes selected analysis with zero findings,
+1,391 Dart cases and 1,160 Python cases with eighteen skips. The original
+Home preparation completes and the shared update button absorbs pointer input.
+The next command waits for the native ZNN token row and returns ENTRY_REFUSED;
+the token, pillar APR and swap Terms controls are not reached. The independent
+reader passes 112 controls and verifies both original manifests, 69 source
+files and the one confirmed refusal. Application and entry exit zero without
+forced required actors; all five node streams are complete with zero exits.
+The overall native and lab qualification remain false.
+[Native attempt](https://github.com/edgepillar/syrius/actions/runs/42958425732)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42960978652).
+
+Source653 records that result and a further source precondition mismatch.
+`TokensPageController` starts with Held selected, and `TokenListProjection`
+excludes native ZNN and QSR from every filter. The plan's fixed ZNN row cannot
+be supplied by that original list. Token Explorer therefore needs an actual
+non-native token row and its owned lab preparation. The four-control completion
+criterion remains unchanged. This record changes documentation only; the
+original Source652 runtime, failed result and confirmed prefix stay bound to
+their original hashes. Complete V03 acceptance remains open.
 
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied
