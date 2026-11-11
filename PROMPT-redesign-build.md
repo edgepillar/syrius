@@ -3311,3 +3311,36 @@ required widget directories. All 222 selected Python controls pass in memory,
 with no external effects. Selected totals remain 1,434 Dart and 1,192 Python
 cases. Fresh native/reader qualification, the Home and Settings seam controls,
 all earlier failures, 72/80 and zero accepted whole-image matches remain open.
+
+## Source674 seam prefix and Source675 original Swap readiness
+
+The [Source674 producer](https://github.com/edgepillar/syrius/actions/runs/43054586850)
+passes 1,434 Dart cases, 1,192 Python cases with eighteen Windows skips,
+five JavaScript controls and analysis with zero findings. It completes the
+24-page tour, eight Home and four viewport capture commands. Seven of eleven
+Home seam observations precede `ENTRY_REFUSED` in the dark Swap preparation.
+Required wallet and entry actors and all five original nodes close normally;
+the separately qualified compiler telemetry helper retains its forced cleanup.
+The [independent reader](https://github.com/edgepillar/syrius/actions/runs/43058394154)
+passes 112 cases and verifies two archives and 78 source files. No PNGs qualify
+from this failed attempt. The seven observations are producer-only: the older
+manifest did not retain them. The exact inner probe step and historical frame
+refusal causes remain `NOT_ESTABLISHED`.
+
+Source675 fixes a reproduced protocol mismatch. The original tree encoder omits
+`enabled` for ready controls; its explicit false value means disabled. The Swap
+observer now accepts that original omission and waits passively for a disabled
+draft to become ready, within the same five seconds and 34 samples. It retains
+the first opened route and refuses replacement or departure. Start is not
+repeated and no form input or financial operation is dispatched by this observer.
+
+Home observations now enter the original manifest as a closed, typed prefix.
+The independent reader preserves partial results, binds them to the original
+archive and refuses success with incomplete or altered evidence. Three original
+Swap readiness sources join its pins, bringing the declared set to 81.
+Two previously unselected catalog/shortcut files add sixteen existing widget
+cases, preparing 1,450 Dart cases in 108 files split 54/54. Five new Python
+regressions prepare 1,197 controller and 113 reader cases. All 230 selected
+in-memory Python controls pass without external effects. Fresh native/reader
+qualification, all earlier failures, 72/80 and zero accepted whole-image matches
+remain open.

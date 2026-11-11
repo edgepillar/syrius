@@ -463,6 +463,55 @@ class ReadonlyOwnerSeamProbeTests(unittest.TestCase):
 
 
 class ReadonlySwapOpeningTests(unittest.TestCase):
+    def test_original_agent_omits_enabled_for_ready_warning_and_draft(self):
+        for label, key, kind in (
+                ('warning', 'p2p_warning_continue', 'button'),
+                ('draft', 'swap_counterparty_input', 'field')):
+            calls = []
+
+            def send(command):
+                calls.append(command)
+                return dict(nodes=[dict(key=key, kind=kind)])
+
+            observed = inspect.readonly_swap_opening(send, lambda: '/original',
+                '/root', clock=lambda: 0, pause=lambda _: None)
+            self.assertEqual(observed, (label, '/original'))
+            self.assertEqual(calls, [dict(cmd='tree')])
+
+    def test_original_pending_draft_is_observed_without_repeating_start_or_input(self):
+        calls, pauses = [], []
+
+        def send(command):
+            calls.append(command)
+            row = dict(key='swap_counterparty_input', kind='field')
+            if len(calls) == 1:
+                row['enabled'] = False
+            return dict(nodes=[row])
+
+        observed = inspect.readonly_swap_opening(send, lambda: '/original',
+            '/root', clock=lambda: 0, pause=pauses.append)
+        self.assertEqual(observed, ('draft', '/original'))
+        self.assertEqual(calls, [dict(cmd='tree'), dict(cmd='tree')])
+        self.assertEqual(pauses, [0.15])
+
+    def test_pending_original_route_cannot_be_replaced_or_restored(self):
+        for replacement in ('/other', '/root'):
+            route, calls = '/original', []
+
+            def send(command):
+                calls.append(command)
+                return dict(nodes=[dict(key='swap_counterparty_input',
+                    kind='field', enabled=False)])
+
+            def pause(_):
+                nonlocal route
+                route = replacement
+
+            with self.subTest(replacement=replacement), self.assertRaises(inspect.Refused):
+                inspect.readonly_swap_opening(send, lambda: route, '/root',
+                    clock=lambda: 0, pause=pause)
+            self.assertEqual(calls, [dict(cmd='tree')])
+
     def test_one_current_snapshot_selects_warning_or_draft_after_original_transition(self):
         for phase in ('warning', 'draft', 'delayed'):
             route = '/root' if phase == 'delayed' else '/modal'
@@ -491,7 +540,10 @@ class ReadonlySwapOpeningTests(unittest.TestCase):
             dict(nodes=[dict(kind='error')]), dict(nodes=[warning, warning]),
             dict(nodes=[dict(warning, enabled=False)]),
             dict(nodes=[dict(warning, kind='field')]), dict(nodes=[warning, draft]),
-            dict(nodes=[{}] * 513), dict(nodes=[])]
+            dict(nodes=[{}] * 513), dict(nodes=[]),
+            dict(nodes=[dict(draft, enabled=False)]),
+            dict(nodes=[dict(draft, enabled=None)]),
+            dict(nodes=[dict(draft, enabled=1)])]
         for reply in replies:
             calls = []
 
@@ -502,7 +554,8 @@ class ReadonlySwapOpeningTests(unittest.TestCase):
             with self.subTest(reply=reply), self.assertRaises(inspect.Refused):
                 inspect.readonly_swap_opening(send, lambda: '/modal', '/root',
                     clock=lambda: 0, pause=lambda _: None)
-            self.assertEqual(len(calls), 34 if reply == dict(nodes=[]) else 1)
+            pending = reply in (dict(nodes=[]), dict(nodes=[dict(draft, enabled=False)]))
+            self.assertEqual(len(calls), 34 if pending else 1)
             self.assertTrue(all(c == dict(cmd='tree') for c in calls))
 
         calls = []

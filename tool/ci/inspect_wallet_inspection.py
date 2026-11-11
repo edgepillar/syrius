@@ -55,6 +55,9 @@ SOURCE_FILES = (
     'lib/widgets/modular_widgets/settings_widgets/wallet_settings_view.dart',
     'lib/widgets/modular_widgets/help_widgets/about_card.dart',
     'lib/rearchitecture/utils/widgets/segment.dart',
+    'lib/widgets/modular_widgets/p2p_swap_widgets/modals/swap_action_boundary.dart',
+    'lib/widgets/modular_widgets/p2p_swap_widgets/modals/swap_action_surface.dart',
+    'lib/widgets/modular_widgets/p2p_swap_widgets/modals/swap_modal_state.dart',
     'harness/app/readonly_sdk_admission.dart', 'harness/app/readonly_sdk_binding.dart',
     'harness/app/readonly_wallet_admission.dart',
     'harness/app/readonly_wallet_binding.dart', 'harness/app/native_window_owner.dart',
@@ -177,6 +180,8 @@ def projection(report, lab, lab_summary, head, tree, run_id, manifest_sha):
                         for p in v['tour']['visited']) for v in report['tours'].values()))
     if catalog_family == producer.SURFACE_SEAMS_FAMILY:
         samples_complete = tuple(report['seam_refusals']) == producer.SURFACE_SEAMS
+    if 'home_seam_observations' in report:
+        samples_complete = samples_complete and report['home_seam_observations']['complete']
     positive = (report['phase'] == 'complete' and not report['errors']
         and producer.complete_checks(report) and samples_complete
         and report['input_attempted'] is True and report['lab_revalidations'] == 2
@@ -225,6 +230,10 @@ def projection(report, lab, lab_summary, head, tree, run_id, manifest_sha):
         result['sampling_scope'] = catalog_family + '-only'
     if catalog_family == producer.SURFACE_SEAMS_FAMILY:
         result['seam_refusals'] = list(report['seam_refusals'])
+    if 'home_seam_observations' in report:
+        observations = report['home_seam_observations']
+        result['home_seam_observations'] = dict(observations,
+            observed=[dict(row) for row in observations['observed']])
     if send_warning:
         result['send_warning_window'] = producer.require_warning_window(
             report, complete=report['success'])

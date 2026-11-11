@@ -402,6 +402,44 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual(missing, [])
         self.assertNotIn('lib', directories)
 
+    def test_home_seam_prefix_is_bound_to_the_original_archive_and_cannot_be_healed(self):
+        child, lab, files = pair()
+        complete = dict(schema=1, requested=11,
+            observed=reader.producer.expected_home_seam_observations(),
+            probe_failure=None, complete=True)
+        child['home_seam_observations'] = complete
+        bind(lab, child)
+        files[0] = ('manifest.json', encode(child), stat.S_IFREG)
+        self.assertEqual(self.inspect(child, lab, files)['home_seam_observations'],
+            complete)
+        value, calls, text = self.run_main(home_seams=complete, auxiliary_forced=True)
+        self.assertEqual(value['home_seam_observations'], complete)
+        self.assertTrue(value['native_inspection_qualified'])
+        notices = [json.loads(line.split('::', 2)[-1]) for line in text.splitlines()
+            if line.startswith('::notice title=Retained readonly wallet inspection::')]
+        self.assertEqual(len(notices), 1)
+        self.assertEqual(notices[0]['home_seam_observations'], complete)
+        self.assertEqual(len(calls), 16)
+        partial = dict(complete, observed=complete['observed'][:7],
+            probe_failure='ENTRY_REFUSED', complete=False)
+        child.update(success=False, inspection_qualified=False,
+            errors=['ENTRY_REFUSED'], home_seam_observations=partial)
+        lab.update(success=False, error_codes=['WALLET_INSPECTION_FAILED'])
+        bind(lab, child)
+        files = [('manifest.json', encode(child), stat.S_IFREG)]
+        observed = self.inspect(child, lab, files)
+        self.assertEqual(observed['home_seam_observations'], partial)
+        self.assertFalse(observed['artifact_reported_success'])
+        self.assertFalse(observed['native_inspection_qualified'])
+        self.assertEqual(observed['verified_png_count'], 0)
+        changed = copy.deepcopy(child)
+        changed['home_seam_observations']['observed'].pop()
+        with self.assertRaises(reader.archive.Refused):
+            self.inspect(changed, lab, [('manifest.json', encode(changed), stat.S_IFREG)])
+        legacy, legacy_lab, legacy_files = pair()
+        self.assertNotIn('home_seam_observations',
+            self.inspect(legacy, legacy_lab, legacy_files))
+
     def test_surface_seams_preserve_refusal_prefixes_and_admit_only_the_manifest(self):
         child = child_report()
         child.update(schema=reader.producer.SURFACE_SEAMS_SCHEMA, captures=[], viewport=None,
@@ -619,7 +657,7 @@ class ReaderTests(unittest.TestCase):
                  child_missing=False, auxiliary_forced=False, home_schema=1,
                  settings_catalog=False, navigation_catalog=False,
                  details_catalog=False, catalog_only=None, extra_viewport=False,
-                 surface_seams=False):
+                 surface_seams=False, home_seams=None):
         child, lab, files = pair(positive=positive)
         if auxiliary_forced:
             child['forced_cleanup'] = child['auxiliary_cleanup']['forced'] = True
@@ -695,6 +733,8 @@ class ReaderTests(unittest.TestCase):
                     seam_refusals=list(reader.producer.SURFACE_SEAMS))
                 child['checks'].update(tours_complete=False, locale_verified=False, captures=False)
                 files = files[:1]
+            if home_seams is not None:
+                child['home_seam_observations'] = copy.deepcopy(home_seams)
             bind(lab, child)
             files[0] = ('manifest.json', encode(child), stat.S_IFREG)
         if catalog_only == 'send-warn':

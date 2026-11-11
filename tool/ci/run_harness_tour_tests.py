@@ -25,7 +25,7 @@ except ImportError:
     from windows_baseline import fresh_environment, run_bounded, test_counts
 
 
-EXPECTED_DART_CASES = 1434
+EXPECTED_DART_CASES = 1450
 LAUNCH_ASSET_DART_CASES = 2
 
 
@@ -233,6 +233,8 @@ def main():
             'test/window/window_frame_test.dart',
             'test/window/window_chrome_test.dart',
             'test/shell/shell_frame_test.dart',
+            'test/shell/go_to_catalog_test.dart',
+            'test/shell/shortcuts_test.dart',
             'test/transfer/view/transfer_page_test.dart',
             'test/home/home_hero_test.dart',
             'test/go_to_palette/go_to_palette_test.dart',

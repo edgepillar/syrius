@@ -1777,3 +1777,35 @@ effects. The selected totals remain 1,434 Dart and 1,192 Python cases. Fresh
 native/reader qualification, eleven Home and eight Settings observations remain
 pending. All earlier failures, 72/80, zero accepted whole-image matches and all
 eight deferred gates remain open.
+
+## Source674 seam prefix and Source675 original Swap readiness
+
+The [Source674 producer](https://github.com/edgepillar/syrius/actions/runs/43054586850)
+passes all 1,434 selected Dart cases, 1,192 Python cases with eighteen Windows
+skips, five JavaScript controls and analysis with zero findings. All 24 tour,
+eight Home and four viewport capture commands complete. Seven of eleven Home
+seam observations precede `ENTRY_REFUSED` during dark Swap preparation.
+Required wallet and entry actors and all five original nodes close normally.
+The separate, qualified compiler telemetry helper retains forced cleanup.
+The [independent reader](https://github.com/edgepillar/syrius/actions/runs/43058394154)
+passes 112 cases and verifies two archives and 78 source files, with zero
+qualified PNGs. The seven observations remain producer-only because the older
+manifest did not retain them. The exact inner probe step and earlier frame
+refusal causes remain `NOT_ESTABLISHED`.
+
+Source675 corrects a reproduced tree protocol mismatch: enabled controls omit
+the `enabled` field, while false marks a disabled control. A pending draft may
+be observed until ready within the existing five seconds and 34 samples.
+The first opened route stays retained; replacement or departure refuses the
+observer. Start and form input are not repeated. Production wallet controls,
+publication admission and the original capture deadline are unchanged.
+
+The original manifest now retains the exact closed Home prefix. Its independent
+reader preserves failures and rejects altered or incomplete success claims.
+Three original Swap readiness sources bring the declared set to 81. Existing
+catalog and shortcut tests add sixteen previously unselected widget cases,
+preparing 1,450 Dart cases in 108 files split 54/54. Five Python regressions
+prepare 1,197 controller cases and 113 reader cases. All 230 selected in-memory
+Python controls pass with no external effects. Fresh hosted qualification,
+eleven Home and eight Settings observations remain pending. All earlier failures,
+72/80, zero accepted whole-image matches and all eight deferred gates stay open.

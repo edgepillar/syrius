@@ -1155,6 +1155,39 @@ class InspectionTests(unittest.TestCase):
             with self.assertRaises(inspection.Refused):
                 inspection.entry_failure(dict(value, **change))
 
+    def test_home_seam_manifest_retains_only_the_original_typed_prefix(self):
+        expected = inspection.expected_home_seam_observations()
+        complete = dict(schema=1, requested=11, observed=expected,
+            probe_failure=None, complete=True)
+        self.assertEqual(len(expected), 11)
+        self.assertIs(inspection.home_seam_observations(complete), complete)
+        self.assertEqual(inspection.public_manifest(dict(report(),
+            home_seam_observations=complete))['home_seam_observations'], complete)
+        for count in range(11):
+            partial = dict(complete, observed=expected[:count],
+                complete=False, probe_failure='ENTRY_REFUSED')
+            offered = dict(report(), success=False, inspection_qualified=False,
+                errors=['ENTRY_REFUSED'], home_seam_observations=partial)
+            self.assertEqual(inspection.public_manifest(offered)['home_seam_observations'],
+                partial)
+            with self.assertRaises(inspection.Refused):
+                inspection.public_manifest(dict(offered, success=True,
+                    inspection_qualified=True))
+            with self.assertRaises(inspection.Refused):
+                inspection.public_manifest(dict(offered, errors=[]))
+        wrong_boolean = copy.deepcopy(complete)
+        wrong_boolean['observed'][2]['keyboard_refused'] = 1
+        for delta in (dict(schema=True), dict(requested=True), dict(complete=1),
+                      dict(observed=expected[:-1]), dict(observed=expected[::-1]),
+                      dict(observed=expected + expected[:1]),
+                      dict(probe_failure='Synthetic private reply'),
+                      dict(raw='Synthetic private path')):
+            with self.subTest(delta=delta), self.assertRaises(inspection.Refused):
+                inspection.home_seam_observations(dict(complete, **delta))
+        with self.assertRaises(inspection.Refused):
+            inspection.home_seam_observations(wrong_boolean)
+        self.assertNotIn('home_seam_observations', inspection.public_manifest(report()))
+
     def test_home_failure_diagnostic_keeps_only_closed_original_context(self):
         base = dict(schema=1, kind='readonly_home_capture_failure',
             last_entered_step='preflight')

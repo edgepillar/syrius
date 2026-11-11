@@ -722,7 +722,8 @@ def public_manifest(value):
         'workspace_cap_bytes', 'storage_scope', 'storage', 'cleanup'}
     optional = {'source_sha', 'source_tree', 'run_id', 'run_attempt', 'input_attempted',
         'entry_failure', 'application_exit', 'cleanup_application_exit', 'entry_exit',
-        'owned_job_images_before_close', 'owned_job_active_at_close', 'entry_output'}
+        'owned_job_images_before_close', 'owned_job_active_at_close', 'entry_output',
+        'home_seam_observations'}
     need(type(value) is dict and type(value.get('schema')) is int
          and value['schema'] in READONLY_CATALOG_SCHEMAS.values(), 'OUTPUT_REFUSED')
     schema = value['schema']
@@ -769,6 +770,12 @@ def public_manifest(value):
         need(type(value['input_attempted']) is bool, 'OUTPUT_REFUSED')
     if 'entry_failure' in value:
         entry_failure(value['entry_failure'])
+    if 'home_seam_observations' in value:
+        need(schema == READONLY_CATALOG_SCHEMAS['home'], 'OUTPUT_REFUSED')
+        observations = home_seam_observations(value['home_seam_observations'])
+        need(not value['success'] or observations['complete'], 'OUTPUT_REFUSED')
+        need(observations['probe_failure'] is None
+             or observations['probe_failure'] in value['errors'], 'OUTPUT_REFUSED')
     if schema == SURFACE_SEAMS_SCHEMA:
         require_surface_seam_samples(value, complete=value['success'])
     elif schema in HOME_INSPECTION_SCHEMAS:
@@ -1023,30 +1030,83 @@ def observe_activity_message_seams(send, observed, *, require_home):
 READONLY_OWNER_SEAMS = ('walletUpdateNotice', 'pillarAprEstimate', 'swapTerms')
 
 
+def expected_home_seam_observations():
+    return [
+        dict(panel='home', seam='zapSend'),
+        dict(panel='activity', seam='activityAddressScope'),
+        dict(panel='go-to', seam='zapSend', keyboard_refused=True),
+        dict(panel='activity-preview', seam='zapReceive', theme='dark', preview_only=True),
+        dict(panel='activity-preview', seam='zapReceive', theme='light', preview_only=True),
+        dict(panel='home', seam='walletUpdateNotice', theme='dark'),
+        dict(panel='pillars', seam='pillarAprEstimate', theme='dark'),
+        dict(panel='swap', seam='swapTerms', theme='dark'),
+        dict(panel='home', seam='walletUpdateNotice', theme='light'),
+        dict(panel='pillars', seam='pillarAprEstimate', theme='light'),
+        dict(panel='swap', seam='swapTerms', theme='light'),
+    ]
+
+
+def home_seam_observations(value):
+    """Retain the original closed prefix, including after a later failure."""
+    need(type(value) is dict and set(value) == {
+        'schema', 'requested', 'observed', 'probe_failure', 'complete'}, 'OUTPUT_REFUSED')
+    expected = expected_home_seam_observations()
+    need(type(value['schema']) is int and value['schema'] == 1
+         and type(value['requested']) is int and value['requested'] == len(expected) == 11
+         and type(value['complete']) is bool and type(value['observed']) is list
+         and len(value['observed']) <= len(expected)
+         and (value['probe_failure'] is None
+              or type(value['probe_failure']) is str and value['probe_failure'] in CODES),
+         'OUTPUT_REFUSED')
+    for original, required in zip(value['observed'], expected):
+        need(type(original) is dict and set(original) == set(required)
+             and all(type(original[key]) is type(fact) and original[key] == fact
+                     for key, fact in required.items()), 'OUTPUT_REFUSED')
+    need(value['complete'] is (len(value['observed']) == len(expected)
+         and value['probe_failure'] is None), 'OUTPUT_REFUSED')
+    return value
+
+
 def readonly_swap_opening(send, read_route, root_route, *, clock=None, pause=None):
     """Observe the original first-use warning or draft without repeating Start."""
     clock, pause = clock or time.monotonic, pause or time.sleep
     deadline = clock() + 5
+    original_route = None
+
+    def current_route():
+        nonlocal original_route
+        current = read_route()
+        if original_route is None and current != root_route:
+            original_route = current
+        need(original_route is None or current == original_route, 'ENTRY_REFUSED')
+        return current
+
     for _ in range(34):
         if clock() >= deadline:
             break
-        before = read_route()
+        before = current_route()
         reply = send(dict(cmd='tree'))
-        after = read_route()
+        after = current_route()
         nodes = reply.get('nodes') if type(reply) is dict else None
         need(type(nodes) is list and len(nodes) <= 512
              and all(type(row) is dict and row.get('kind') != 'error'
                      for row in nodes), 'ENTRY_REFUSED')
         visible = []
+        ready = True
         for label, key, kind in (('warning', 'p2p_warning_continue', 'button'),
                                  ('draft', 'swap_counterparty_input', 'field')):
             matches = [row for row in nodes if row.get('key') == key]
             need(len(matches) <= 1 and all(row.get('kind') == kind
-                 and row.get('enabled') is True for row in matches), 'ENTRY_REFUSED')
+                 and type(row.get('enabled', True)) is bool for row in matches),
+                 'ENTRY_REFUSED')
             if matches:
                 visible.append(label)
+                enabled = matches[0].get('enabled', True)
+                if label == 'warning':
+                    need(enabled, 'ENTRY_REFUSED')
+                ready = ready and enabled
         need(len(visible) <= 1, 'ENTRY_REFUSED')
-        if visible and before == after and after != root_route:
+        if visible and ready and before == after and after != root_route:
             return visible[0], after
         pause(0.15)
     raise Refused('ENTRY_REFUSED')
@@ -1352,6 +1412,9 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
         else:
             catalog_slot = 'details' if family in details.FAMILY_SCHEMAS else family
         report['schema'] = READONLY_CATALOG_SCHEMAS[family]
+        if parent.get('SYRIUS_READONLY_CATALOG_FAMILY') == HOME_SEAMS_FAMILY:
+            report['home_seam_observations'] = dict(schema=1, requested=11,
+                observed=[], probe_failure=None, complete=False)
         seams_only = family == SURFACE_SEAMS_FAMILY
         if seams_only:
             report['seam_refusals'] = []
@@ -1665,10 +1728,18 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
                     seam_trace = SeamProbeTrace()
                     send_seam = lambda command: seam_trace.exchange(exchange_seam, command)
                 observe_seams(send_seam, seam_pointers)
+                need(len(seam_pointers) == seam_pilot[2], 'ENTRY_REFUSED')
                 if seams_only:
                     sample_capture_outputs(repo, family=family, catalog_only=True)
             except Exception as error:
                 seam_failure = inspection_failure_code(error, report['phase'])
+                report['errors'].append(seam_failure)
+            finally:
+                if 'home_seam_observations' in report:
+                    report['home_seam_observations'] = dict(schema=1,
+                        requested=seam_pilot[2], observed=[dict(row) for row in seam_pointers],
+                        probe_failure=seam_failure, complete=seam_failure is None
+                            and len(seam_pointers) == seam_pilot[2])
         lab_current()
         report['phase'] = 'ordinary_close'
         close_attempted = True
@@ -1696,7 +1767,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
         need(debug.helper_cleanup_complete(report['auxiliary_cleanup']), 'HELPER_CLOSE_UNCONFIRMED')
         report['checks']['auxiliary_cleanup'] = True
         report['phase'] = 'complete'
-        if seam_failure is not None:
+        if seam_failure is not None and seam_failure not in report['errors']:
             report['errors'].append(seam_failure)
     except (Exception, KeyboardInterrupt) as error:
         report['errors'].append(inspection_failure_code(error, report['phase']))
