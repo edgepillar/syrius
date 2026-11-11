@@ -504,11 +504,11 @@ void main() {
             'assert --key mint_amount_field --kind field',
           ]));
       expect(seeded.afterCapture.first.words,
-          <String>[
-            'wait', '--key', 'token_explorer_control', '--timeout', '5',
-          ]);
-      expect(seeded.afterCapture[1].words,
           <String>['tap', '--key', '@issued-token-row']);
+      expect(seeded.afterCapture.length, 2);
+      expect(seeded.afterCapture.last.words,
+          <String>['wait', '--key', 'mint_amount_field', '--kind', 'field',
+                   '--gone', '--timeout', '10']);
       writeScript('az-project',
           File('harness/screens/az-project.txt').readAsStringSync());
       expect(() => seededCapture.preflight('az-project'),

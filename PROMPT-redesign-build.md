@@ -2954,3 +2954,39 @@ Fourteen Source334 Navigation frames and their exact references were viewed indi
 | X638 | review | 2026-11-10T12:42:05Z | `45-import-light.png`. The drop-zone top border spans two sampled rows above the contrast threshold. The reference spans one row. The input outline is heavier at the top edge. |
 | X639 | review | 2026-11-10 | Source620 `45-import-dark.png`. The top drop outline occupies row 312 in both frames at the sampled contrast. Dash coverage differs. The first connector occupies rows 280 and 281 in the actual frame and row 280 in the reference. The input top edge starts at row 460 in both. |
 | X640 | review | 2026-11-10 | Source620 `45-import-light.png`. The top drop outline occupies row 312 in both frames at the sampled contrast. Dash coverage differs. The first connector occupies rows 280 and 281 in the actual frame and row 280 in the reference. The input top edge starts at row 460 in both. |
+
+
+## Source658 result and owner-page seam correction
+
+The [Source658 producer](https://github.com/edgepillar/syrius/actions/runs/42981137527)
+passes 1,399 Dart cases, 1,172 Python cases with eighteen Windows skips, and
+selected analysis with zero errors, warnings or infos. The separate
+[retained reader](https://github.com/edgepillar/syrius/actions/runs/42984805646)
+verifies both finite archives, the original 1 ZNN Send, twelve-page tour,
+quiescence, and normal original application, entry and five-node closure.
+Stake and Token are confirmed in the copied prefix with consistent journals.
+The copied run then refuses the dark Token Mint after-capture wait at line 17.
+Its reply remains UNKNOWN, no seeded catalog archive is retained, and copied
+lifecycle and four-seam acceptance remain unqualified. The passive copied-lab
+failure probe is inapplicable to this capture failure and is not sampled.
+Source657's earlier first-Stake momentum refusal retains its separate result.
+
+Source659 corrects the selector's view assumption. The reference's `tokens`
+holder row has the Explorer link; `token-mine` has the issuer's Mint, Burn,
+Transfer ownership and Flags controls. The application already preserves that
+distinction. The Mint script again closes its original row after retaining the
+image, without requesting the absent holder-only link. Four new widget cases
+cover the owner view in both themes and directions; existing holder pointer,
+semantic, callback and original four-gate controls remain.
+
+The prepared issuer session now observes only the three original Home, Pillars
+and Swap gates, in both themes, after all four PNGs are retained. Its six ordered
+receipts use a distinct `owned_restored_owner_page_seams` scope and the same
+confirmed seed digest. The parent still requires original and copied closure;
+the independent reader also requires the matching four-file catalog archive.
+This scope cannot pass the unchanged eight-receipt four-gate validator. The
+reader explicitly leaves holder Explorer and four-gate qualification false.
+A real holder-view native fixture remains required for Explorer. No application
+widget, seed financial guard, publication attempt or retry rule is changed.
+Fresh hosted qualification is pending. Full acceptance remains 72/80, with zero
+accepted whole-image matches; all eight original open gates remain open.

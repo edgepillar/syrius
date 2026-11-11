@@ -542,6 +542,34 @@ void main() {
   for (final Brightness brightness in Brightness.values) {
     for (final TextDirection direction in TextDirection.values) {
       testWidgets(
+        '${brightness.name} ${direction.name} owner mint keeps the holder '
+        'explorer control absent',
+        (WidgetTester tester) async {
+          await _withFixture(tester, (ActionFixture fixture) async {
+            await tester.pumpWidget(
+              _host(
+                TokenInlineActions(
+                  token: fixture.token,
+                  publisher: fixture.publisher,
+                  isCurrent: () => true,
+                  onSendToken: (_) {},
+                ),
+                brightness: brightness,
+                direction: direction,
+              ),
+            );
+            await _ready(tester);
+            expect(find.byKey(const Key('token_action_mode_mint')), findsOneWidget);
+            expect(find.byKey(const Key('mint_amount_field')), findsOneWidget);
+            expect(find.byKey(const Key('token_send')), findsOneWidget);
+            expect(find.byKey(const Key('token_explorer')), findsNothing);
+            expect(find.byKey(const Key('token_explorer_control')), findsNothing);
+            expect(fixture.transport.calls, isEmpty);
+            expect(tester.takeException(), isNull);
+          });
+        },
+      );
+      testWidgets(
         '${brightness.name} ${direction.name} holder actions refuse '
         'retained callbacks after publisher replacement',
         (WidgetTester tester) async {

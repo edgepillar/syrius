@@ -741,6 +741,7 @@ def main():
     interactive_lab = interactive_result = None
     seeded = None
     surface_seam_summary = None
+    owner_page_seam_summary = None
     interactive_items = [item for item in listing['artifacts']
                          if item['name'].startswith('interactive-timing-pair-')]
     seeded_items = [item for item in listing["artifacts"]
@@ -840,6 +841,20 @@ def main():
                     source_run_id=run_id, source_attempt=1,
                     four_surface_seams_qualified=True,
                     parent_closure_qualified=True, inspection_only=True, runtime_started=False)
+            owner_page_seams = reopen.get('seeded_owner_page_seams')
+            if owner_page_seams is not None:
+                from . import seeded_surface_seams
+                PHASE = 'seeded_owner_page_seam_projection'
+                need(reference['schema'] == catalog.SEEDED_SCHEMA
+                     and seeded['seed_receipts_sha256'] == owner_page_seams['seed_receipts_sha256'])
+                observed = seeded_surface_seams.owner_reference(
+                    owner_page_seams, seeded['seed_receipts_sha256'])
+                owner_page_seam_summary = dict(observed, scope='retained_seeded_owner_page_seams',
+                    source_head=head, source_tree=commit['tree']['sha'],
+                    source_run_id=run_id, source_attempt=1,
+                    owner_page_seams_qualified=True, token_holder_explorer_qualified=False,
+                    four_surface_seams_qualified=False,
+                    parent_closure_qualified=True, inspection_only=True, runtime_started=False)
     if interactive_lab is not None:
         from . import inspect_interactive_frame_pair
         PHASE = 'interactive_pair_inspection'
@@ -865,6 +880,10 @@ def main():
         encoded = json.dumps(surface_seam_summary, sort_keys=True, separators=(',', ':'))
         need(len(encoded.encode('ascii')) <= 3800)
         print('::notice title=Retained seeded surface seams::' + encoded, flush=True)
+    if owner_page_seam_summary is not None:
+        encoded = json.dumps(owner_page_seam_summary, sort_keys=True, separators=(',', ':'))
+        need(len(encoded.encode('ascii')) <= 3800)
+        print('::notice title=Retained seeded owner page seams::' + encoded, flush=True)
 
 
 if __name__ == "__main__":

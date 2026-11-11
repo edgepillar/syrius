@@ -252,7 +252,6 @@ const Set<String> _seededLines = <String>{
   'assert --key @issued-token-row',
   'assert --key mint_beneficiary_field --kind field',
   'assert --key mint_amount_field --kind field',
-  'wait --key token_explorer_control --timeout 5',
   'wait --key mint_amount_field --kind field --gone --timeout 10',
 };
 
@@ -399,7 +398,7 @@ Future<void> _observePreparedPageSeams(
     await wait('nodes_pillars_strip');
     final String pillars = await route('pillars');
     await tap('pillars_sort');
-    await wait('pillars_sort_apr_gate', kind: 'button');
+    await wait('pillars_sort_apr_gate', kind: 'text');
     final String menu = await route('pillars');
     if (menu == pillars) {
       throw const FormatException('prepared surface menu required');
@@ -493,9 +492,8 @@ Future<Map<String, Object>> _captureSeededCatalog(
     return selector;
   }
 
-  ScreenCaptureObservation? captureContext;
   Future<void> observeSurface(String name, String theme) async {
-    if (!const <String>{'walletUpdateNotice', 'tokenExplorer',
+    if (!const <String>{'walletUpdateNotice',
         'pillarAprEstimate', 'swapTerms'}.contains(name) ||
         !const <String>{'dark', 'light'}.contains(theme)) {
       throw const FormatException('prepared surface selection refused');
@@ -529,10 +527,7 @@ Future<Map<String, Object>> _captureSeededCatalog(
     restoredProject: projectDetail,
     restoredPillarSpawn: pillarSpawn,
     restoredPillarDone: pillarDone,
-    onStep: (ScreenCaptureObservation step) {
-      captureContext = step;
-      onStep(step);
-    },
+    onStep: onStep,
     call: (Map<String, Object?> command) async {
       await requireCurrent();
       final Map<String, dynamic> result = await cli.call(instance, command);
@@ -623,17 +618,6 @@ Future<Map<String, Object>> _captureSeededCatalog(
           }
       }
       await requireCurrent();
-      if (selection == RestoredSeedSelection.seededCatalog &&
-          authored == 'wait --key token_explorer_control --timeout 5') {
-        final ScreenCaptureObservation? context = captureContext;
-        final String? theme = context?.theme;
-        if (context?.step != ScreenCaptureStep.afterCaptureLine ||
-            context?.screen != 'token-mine' || theme == null ||
-            !const <String>{'dark', 'light'}.contains(theme)) {
-          throw const FormatException('token seam capture context refused');
-        }
-        await observeSurface('tokenExplorer', theme);
-      }
     },
   );
   final List<String> paths = await capture.captureSelection(

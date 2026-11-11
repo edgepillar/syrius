@@ -14,6 +14,55 @@ def observation(seam, theme):
 
 
 class SeededSurfaceSeamTests(unittest.TestCase):
+    def test_owner_pages_are_distinct_from_full_four_gate_acceptance(self):
+        values = [observation(seam, theme) for seam, theme in seams.OWNER_EXPECTED]
+        value = seams.owner_completed(values, 'a' * 64)
+        self.assertEqual(seams.owner_reference(value, 'a' * 64), value)
+        self.assertEqual(value['observations'], [
+            dict(seam=seam, theme=theme) for theme in ('dark', 'light')
+            for seam in ('walletUpdateNotice', 'pillarAprEstimate', 'swapTerms')])
+        self.assertEqual(len(value['observations']), 6)
+        with self.assertRaises(Refused):
+            seams.reference(value, 'a' * 64)
+        with self.assertRaises(Refused):
+            seams.completed(values, 'a' * 64)
+        full = seams.completed(
+            [observation(seam, theme) for seam, theme in seams.EXPECTED], 'a' * 64)
+        with self.assertRaises(Refused):
+            seams.owner_reference(full, 'a' * 64)
+
+    def test_owner_pages_refuse_holder_link_and_missing_or_repeated_pairs(self):
+        values = [observation(seam, theme) for seam, theme in seams.OWNER_EXPECTED]
+        for offered in ([], values[:-1], list(reversed(values)), values + values[:1],
+                        [values[0]] * 6,
+                        [observation('tokenExplorer', 'dark')] + values[1:]):
+            with self.subTest(offered=offered), self.assertRaises(Refused):
+                seams.owner_completed(offered, 'a' * 64)
+
+    def test_owner_pages_refuse_other_receipts_and_relabelled_full_scope(self):
+        value = seams.owner_completed(
+            [observation(seam, theme) for seam, theme in seams.OWNER_EXPECTED], 'a' * 64)
+        for digest in ('b' * 64, '', None, True):
+            with self.subTest(digest=digest), self.assertRaises(Refused):
+                seams.owner_reference(value, digest)
+        with self.assertRaises(Refused):
+            seams.reference(dict(value, scope=seams.REFERENCE_SCOPE), 'a' * 64)
+        with self.assertRaises(Refused):
+            seams.owner_reference(dict(value, detail='private response'), 'a' * 64)
+
+    def test_owner_pages_require_every_exact_pointer_fact(self):
+        values = [observation(seam, theme) for seam, theme in seams.OWNER_EXPECTED]
+        for field in seams.FACTS:
+            for offered in (False, 1, 'true', None):
+                changed = copy.deepcopy(values)
+                changed[-1][field] = offered
+                with self.subTest(field=field, offered=offered), self.assertRaises(Refused):
+                    seams.owner_completed(changed, 'a' * 64)
+                complete = seams.owner_completed(values, 'a' * 64)
+                complete[field] = offered
+                with self.assertRaises(Refused):
+                    seams.owner_reference(complete, 'a' * 64)
+
     def test_all_four_gates_in_both_themes_bind_the_original_digest(self):
         values = [observation(seam, theme) for seam, theme in seams.EXPECTED]
         value = seams.completed(values, 'a' * 64)
