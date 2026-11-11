@@ -504,7 +504,9 @@ void main() {
             'assert --key mint_amount_field --kind field',
           ]));
       expect(seeded.afterCapture.first.words,
-          <String>['wait', '--key', 'token_explorer_control', '--timeout', '5']);
+          <String>[
+            'wait', '--key', 'token_explorer_control', '--timeout', '5',
+          ]);
       expect(seeded.afterCapture[1].words,
           <String>['tap', '--key', '@issued-token-row']);
       writeScript('az-project',

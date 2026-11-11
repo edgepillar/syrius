@@ -27,12 +27,10 @@ final class SeededSurfaceSeamOwner {
       throw const SeedRefused('seeded-surface-seam-owner-changed');
     }
     final RenderView view = readView();
-    final SeededSurfaceSeamOwner owner = SeededSurfaceSeamOwner._(
+    return SeededSurfaceSeamOwner._(
       window, startup, root, navigator, view, view.flutterView,
       readWindow, readView,
-    );
-    owner.requireCurrent();
-    return owner;
+    )..requireCurrent();
   }
 
   final NativeWindowOwner _window;

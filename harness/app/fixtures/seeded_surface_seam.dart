@@ -17,17 +17,15 @@ final class SeededSurfaceSeam {
   SeededSurfaceSeam({
     required String confirmedHash,
     required Seam seam,
-    required void Function() requireCurrent,
+    required void Function() this._requireCurrent,
     required Future<void> Function(
       String standard,
       Seam seam,
       String theme,
       void Function() requireOwner,
-    ) observe,
+    ) this._observe,
   }) : _confirmedHash = confirmedHash,
-       _seam = seam,
-       _requireCurrent = requireCurrent,
-       _observe = observe {
+       _seam = seam {
     if (!seedHash(confirmedHash) || !seededSurfaceControls.containsKey(seam)) {
       throw const SeedRefused('confirmed-token-seam-required');
     }
@@ -56,7 +54,7 @@ final class SeededSurfaceSeam {
   }
 
   /// A failed or repeated observation holds this original permanently.
-  /// The receipt contains fixed facts; token, wallet and hash values stay local.
+  /// Token, wallet and hash values stay local; receipts hold fixed facts.
   Future<Map<String, Object>> observe(String theme) async {
     if (_held ||
         !const <String>{'dark', 'light'}.contains(theme) ||

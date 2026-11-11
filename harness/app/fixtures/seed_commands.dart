@@ -45,7 +45,8 @@ final class SeedCommands {
   String? _recipe;
   bool _confirmed = false;
   bool _catalogTokenHolding = false;
-  final Map<Seam, SeededSurfaceSeam> _surfaceSeams = <Seam, SeededSurfaceSeam>{};
+  final Map<Seam, SeededSurfaceSeam> _surfaceSeams =
+      <Seam, SeededSurfaceSeam>{};
   bool _depositEntryAttempted = false;
   FixtureCleanup? _fixture;
   String? get fixtureName => _fixture?.heldName;

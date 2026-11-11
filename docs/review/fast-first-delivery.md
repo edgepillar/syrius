@@ -1193,6 +1193,18 @@ The prepared native runtime and all original refusal predicates remain;
 fresh hosted analysis, Dart tests and native qualification stay required.
 [Original attempt](https://github.com/edgepillar/syrius/actions/runs/42970022889).
 
+Source655 passes all 1,166 controller cases with eighteen skips. Selected Dart
+analysis reports zero errors, zero warnings and 21 infos; its strict gate stops
+before engine tests or native application/lab allocation. The original run
+retains zero artifacts. Source656 corrects the reported import ordering,
+sixteen long lines, two callback initializing formals, one constructor cascade
+and one nullable map entry. The eight original seam test names, their
+assertions, all original ownership/refusal checks and the 1,399-case engine
+requirement remain. The Source655 memory evidence stays bound to its original
+source; no local Dart execution or new native result is claimed. Fresh hosted
+zero-finding analysis, engine tests and native observation remain required.
+[Original attempt](https://github.com/edgepillar/syrius/actions/runs/42970944763).
+
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied
 owner, confirmed receipt and exact Project row. The original Project

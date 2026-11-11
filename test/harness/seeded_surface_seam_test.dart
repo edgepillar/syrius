@@ -9,7 +9,8 @@ import '../../harness/app/fixtures/seeded_surface_seam.dart';
 void main() {
   final String hash = List<String>.filled(64, '1').join();
 
-  test('four gates in both original themes retain only fixed pointer facts', () async {
+  test('four gates in both original themes retain only fixed pointer facts',
+      () async {
     int ownerChecks = 0;
     final List<String> themes = <String>[];
     for (final Seam kind in seededSurfaceControls.keys) {
@@ -51,7 +52,9 @@ void main() {
   });
 
   test('missing or malformed confirmation refuses before observation', () {
-    for (final String invalid in <String>['', 'private detail', List<String>.filled(64, '0').join()]) {
+    for (final String invalid in <String>[
+      '', 'private detail', List<String>.filled(64, '0').join(),
+    ]) {
       expect(
         () => SeededSurfaceSeam(
           confirmedHash: invalid, seam: Seam.tokenExplorer,
@@ -77,19 +80,26 @@ void main() {
     final SeededSurfaceSeam seam = SeededSurfaceSeam(
       confirmedHash: hash, seam: Seam.tokenExplorer,
       requireCurrent: () {},
-      observe: (String _, Seam _, String _, void Function() _) async { probes++; },
+      observe: (String _, Seam _, String _, void Function() _) async {
+        probes++;
+      },
     );
-    await expectLater(seam.observe('private detail'), throwsA(isA<SeedRefused>()));
+    await expectLater(
+      seam.observe('private detail'), throwsA(isA<SeedRefused>()),
+    );
     await expectLater(seam.observe('dark'), throwsA(isA<SeedRefused>()));
     expect(probes, 0);
   });
 
-  test('repeated theme cannot replay or replace a successful pointer', () async {
+  test('repeated theme cannot replay or replace a successful pointer',
+      () async {
     int probes = 0;
     final SeededSurfaceSeam seam = SeededSurfaceSeam(
       confirmedHash: hash, seam: Seam.tokenExplorer,
       requireCurrent: () {},
-      observe: (String _, Seam _, String _, void Function() _) async { probes++; },
+      observe: (String _, Seam _, String _, void Function() _) async {
+        probes++;
+      },
     );
     await seam.observe('dark');
     await expectLater(seam.observe('dark'), throwsA(isA<SeedRefused>()));
@@ -105,7 +115,9 @@ void main() {
       requireCurrent: () {
         if (!current) throw StateError('private owner detail');
       },
-      observe: (String _, Seam _, String _, void Function() _) async { probes++; },
+      observe: (String _, Seam _, String _, void Function() _) async {
+        probes++;
+      },
     );
     await expectLater(seam.observe('dark'), throwsA(isA<SeedRefused>()));
     current = true;
@@ -130,19 +142,23 @@ void main() {
     await expectLater(seam.observe('light'), throwsA(isA<SeedRefused>()));
   });
 
-  test('owner loss after observation never becomes a successful receipt', () async {
+  test('owner loss after observation never becomes a successful receipt',
+      () async {
     bool current = true;
     final SeededSurfaceSeam seam = SeededSurfaceSeam(
       confirmedHash: hash, seam: Seam.tokenExplorer,
       requireCurrent: () {
         if (!current) throw StateError('private owner detail');
       },
-      observe: (String _, Seam _, String _, void Function() _) async { current = false; },
+      observe: (String _, Seam _, String _, void Function() _) async {
+        current = false;
+      },
     );
     await expectLater(seam.observe('dark'), throwsA(isA<SeedRefused>()));
   });
 
-  test('an observer error exports only a fixed refusal and stays held', () async {
+  test('an observer error exports only a fixed refusal and stays held',
+      () async {
     int probes = 0;
     final SeededSurfaceSeam seam = SeededSurfaceSeam(
       confirmedHash: hash, seam: Seam.tokenExplorer,
@@ -155,7 +171,8 @@ void main() {
     await expectLater(
       seam.observe('dark'),
       throwsA(isA<SeedRefused>().having(
-        (SeedRefused error) => error.code, 'code', 'seeded-surface-seam-refused',
+        (SeedRefused error) => error.code,
+        'code', 'seeded-surface-seam-refused',
       )),
     );
     await expectLater(seam.observe('light'), throwsA(isA<SeedRefused>()));

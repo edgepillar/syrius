@@ -333,7 +333,7 @@ Future<void> _observePreparedPageSeams(
   Future<void> wait(String key, {String? kind, bool gone = false}) async {
     final Map<String, dynamic> reply = await send(<String, Object?>{
       'cmd': 'wait', 'key': key, 'exact': true, 'timeoutMs': 5000,
-      if (kind != null) 'kind': kind,
+      'kind': ?kind,
       if (gone) 'gone': true,
     });
     final Object? target = reply['target'];
@@ -359,7 +359,8 @@ Future<void> _observePreparedPageSeams(
     if (state['tab'] != tab || name is! String || name.isEmpty ||
         state['node'] != 'ws://127.0.0.1:45998' || state['chainId'] != 321 ||
         state['signingChainId'] != 321 || state['savedSigningChainId'] != 321 ||
-        state['walletUnlocked'] != true || state['walletInitCompleted'] != true ||
+        state['walletUnlocked'] != true ||
+        state['walletInitCompleted'] != true ||
         state['embeddedNode'] != false || state['harnessFixture'] != null) {
       throw const FormatException('prepared surface route refused');
     }
@@ -500,10 +501,12 @@ Future<Map<String, Object>> _captureSeededCatalog(
       throw const FormatException('prepared surface selection refused');
     }
     await requireCurrent();
-    final Map<String, dynamic> seam = await cli.call(instance, <String, Object?>{
-      'cmd': 'seed', 'action': 'surface-seam',
-      'hash': confirmed('token'), 'seam': name, 'theme': theme,
-    });
+    final Map<String, dynamic> seam = await cli.call(
+      instance, <String, Object?>{
+        'cmd': 'seed', 'action': 'surface-seam',
+        'hash': confirmed('token'), 'seam': name, 'theme': theme,
+      },
+    );
     await requireCurrent();
     final Map<String, Object> expected = <String, Object>{
       'schema': 1,
