@@ -1648,3 +1648,19 @@ All 211 selected Python controls pass in memory with zero external effects.
 Actual JavaScript execution and fresh 1,417-Dart/1,185-Python qualification remain
 pending. The original failed attempts, 72/80 acceptance, zero accepted whole-image
 matches and all eight deferred gates retain their scope.
+
+## Source669 controls and Source670 cascade correction
+
+The [Source669 attempt](https://github.com/edgepillar/syrius/actions/runs/43023137985)
+passes five JavaScript controls and sixteen ordered markers on Node v22.23.4.
+The original asset command exits zero normally in 6.125 seconds with complete,
+unforced output. Python completes 1,185 cases with eighteen Windows skips and
+no failures or errors. Selected analysis reports zero errors/warnings and one
+CASCADE_INVOCATIONS info at the preview factory. The Dart engine and native
+wallet are unreached; zero artifacts make an archive reader inapplicable.
+
+Source670 keeps the same constructor, original object and one current-owner
+check, expressing the two consecutive calls as a cascade. It changes no guard,
+test registration or assertion. Fresh analysis, 1,417 Dart cases and the native
+Message observations remain pending. The original failures, 72/80 acceptance,
+zero accepted whole-image matches and all eight deferred gates remain open.

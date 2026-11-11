@@ -46,8 +46,7 @@ final class ActivityMessagePreview {
       source, readSource, readBlocks, requireOwner, block,
       jsonEncode(block.toJson()), ActivityEntry.fromBlock(block,
         zapPreview: const ActivityZapPreview()),
-    );
-    preview.requireCurrent();
+    )..requireCurrent();
     return preview;
   }
 

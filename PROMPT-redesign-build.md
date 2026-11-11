@@ -3195,3 +3195,20 @@ five JavaScript controls and sixteen ordered phase markers still need hosted
 execution; no local Node, SDK, native process or artifact transfer runs. The
 expected hosted totals remain 1,417 Dart and 1,185 Python cases. Every original
 failure, original 72/80 acceptance and all eight open gates remain unchanged.
+
+## Source669 controls and Source670 cascade correction
+
+The [Source669 run](https://github.com/edgepillar/syrius/actions/runs/43023137985)
+passes all five JavaScript cases and sixteen ordered markers on Node v22.23.4.
+The asset command exits zero normally in 6.125 seconds with complete, unforced
+output. All 1,185 Python cases complete with eighteen Windows skips and no
+failures or errors. Selected Dart analysis has zero errors/warnings and one
+CASCADE_INVOCATIONS info at the preview factory's current-owner check. Dart
+execution and native observation are unreached; zero artifacts make a retained
+reader inapplicable.
+
+Source670 uses a cascade for that same constructor followed by the same single
+current-owner check. Object identity, arguments, call order, return value and
+all tests remain unchanged. Fresh analysis, the 1,417 Dart cases and native
+Message observations are pending. Every original failure, 72/80 acceptance,
+zero accepted whole-image matches and all eight open gates remain unchanged.
