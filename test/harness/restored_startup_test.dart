@@ -229,8 +229,9 @@ void main() {
         case 'original': driver.current = driver.original;
       }
       await expectLater(holder.requireCurrent(), throwsFormatException);
-      driver.alive = true;
-      driver.current = holder.selected;
+      driver
+        ..alive = true
+        ..current = holder.selected;
       await expectLater(holder.requireCurrent(), throwsFormatException);
       expect(driver.selections, 1);
     }
@@ -285,11 +286,13 @@ void main() {
     await selecting.future;
     driver.alive = false;
     await expectLater(retainedTransition(), throwsFormatException);
-    driver.alive = true;
-    driver.current = _preparedHolderContext(
-      selected: 'holder', saved: 'holder', revision: 21,
-    );
-    final Future<void> refused = expectLater(preparation, throwsFormatException);
+    driver
+      ..alive = true
+      ..current = _preparedHolderContext(
+        selected: 'holder', saved: 'holder', revision: 21,
+      );
+    final Future<void> refused =
+        expectLater(preparation, throwsFormatException);
     selected.complete(driver.current);
     await refused;
     await expectLater(retainedTransition(), throwsFormatException);

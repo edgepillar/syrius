@@ -3501,3 +3501,19 @@ cases prepare totals of 1,467 Dart and 1,205 controller cases; hosted execution
 and independent archive qualification remain pending. The separate Home frame
 refusal, all eight original acceptance gates, 72/80 and zero accepted whole-image
 matches retain their scope.
+
+## Source682 test style after the original analysis refusal
+
+The [Source681 run](https://github.com/edgepillar/syrius/actions/runs/43103562947)
+passes all 1,205 Python controls with eighteen Windows skips and the asset
+controls. Analysis exits zero with complete output, zero errors, zero warnings
+and twelve style infos. The strict gate remains failed; all 1,467 Dart cases,
+wallet build and native lab are unreached. Zero artifacts make an independent
+archive reader inapplicable. The original dispatch is not retried.
+
+Source682 corrects only cascade invocation style and long lines in three test
+files. Test behavior, assertions, application/harness implementation and selected
+counts stay unchanged. The already passing Python controls are not repeated
+locally. Fresh hosted qualification remains required. The separate Home frame
+failure, original 72/80, zero accepted whole-image matches and all eight deferred
+acceptance gates remain open.

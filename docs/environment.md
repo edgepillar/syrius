@@ -90,6 +90,18 @@ and independent archive qualification remain pending; no new derivation, transfe
 publication, local SDK execution or artifact transfer is introduced. All earlier
 failures, 72/80 and zero accepted whole-image matches remain open.
 
+The [Source681 native request](https://github.com/edgepillar/syrius/actions/runs/43103562947)
+passes 1,205 Python controls with eighteen Windows skips and asset controls.
+Analysis exits zero normally with complete output, zero errors, zero warnings
+and twelve style infos. The strict gate preserves failure; the selected 1,467
+Dart cases, wallet build and lab do not execute. There are zero artifacts and
+no applicable independent reader. The original request is not retried.
+
+Source682 fixes cascade invocation style and long lines in three test files.
+Implementation, assertions and selected counts are unchanged. Passing Python
+controls are not repeated locally. Fresh hosted qualification, the independent
+Home frame failure, original 72/80 and all eight deferred gates remain open.
+
 ## Retained qualification status (2026-11-05)
 
 The [qualified Source492 Activity result](review/source489-activity-reference-spacing.md#actual-source492-focused-result)

@@ -255,7 +255,9 @@ class _TokenHolderCommands {
     source.isCurrent = false;
   }
 
-  Future<Map<String, Object?>> run(Map<String, dynamic> command) => commands.run(
+  Future<Map<String, Object?>> run(
+    Map<String, dynamic> command,
+  ) => commands.run(
     <String, dynamic>{'cmd': 'seed', 'hash': _hash(9), ...command},
     booted: false,
     ui: (_) async => throw StateError('Unexpected generic UI query'),
@@ -509,7 +511,8 @@ void main() {
   test('retained Token originals remain held after mutation or replacement',
       () async {
     for (final String mutation in <String>[
-      'pending', 'failed', 'release', 'hash', 'removed', 'replaced', 'duplicate',
+      'pending', 'failed', 'release', 'hash', 'removed', 'replaced',
+      'duplicate',
     ]) {
       final _Source scoped = _Source();
       final SeedGuard candidate = SeedGuard(
@@ -545,7 +548,8 @@ void main() {
     }
   });
 
-  test('retired Token commands retain the original and all eight read-only gates',
+  test('retired Token commands retain the original '
+      'and all eight read-only gates',
       () async {
     final _TokenHolderCommands fixture = _TokenHolderCommands();
     await fixture.initialize();
@@ -573,7 +577,8 @@ void main() {
     expect(fixture.pointers, 8);
     expect(fixture.source.operations, hasLength(1));
     expect(fixture.source.confirmationReads, originalReads);
-    expect(fixture.journal.confirmedHashes, <String, String>{'token': _hash(9)});
+    expect(fixture.journal.confirmedHashes,
+      <String, String>{'token': _hash(9)});
     await expectLater(fixture.run(<String, dynamic>{'action': 'begin'}),
       throwsA(isA<SeedRefused>()));
     await expectLater(fixture.run(<String, dynamic>{
@@ -582,9 +587,12 @@ void main() {
     expect(fixture.captures, 1);
   });
 
-  test('failed retirement and holder loss cannot reacquire command admission',
+  test('failed retirement and holder loss '
+      'cannot reacquire command admission',
       () async {
-    for (final String failure in <String>['capture', 'resources', 'duplicate']) {
+    for (final String failure in <String>[
+      'capture', 'resources', 'duplicate',
+    ]) {
       final _TokenHolderCommands fixture = _TokenHolderCommands();
       await fixture.initialize();
       fixture.refuseCapture = failure == 'capture';
@@ -596,8 +604,9 @@ void main() {
         fixture.refuseCapture = false;
       } else {
         await retirement;
-        fixture.selectHolder();
-        fixture.resourcesCurrent = failure != 'resources';
+        fixture
+          ..selectHolder()
+          ..resourcesCurrent = failure != 'resources';
         final Map<String, dynamic> pointer = <String, dynamic>{
           'action': 'surface-seam', 'seam': 'tokenExplorer', 'theme': 'dark',
         };
@@ -605,8 +614,10 @@ void main() {
         await expectLater(fixture.run(pointer), throwsA(isA<SeedRefused>()));
         fixture.resourcesCurrent = true;
       }
-      await expectLater(fixture.run(<String, dynamic>{'action': 'retire-token'}),
-        throwsA(isA<SeedRefused>()));
+      await expectLater(
+        fixture.run(<String, dynamic>{'action': 'retire-token'}),
+        throwsA(isA<SeedRefused>()),
+      );
       await expectLater(fixture.run(<String, dynamic>{
         'action': 'holder-current', 'selected': true,
       }), throwsA(isA<SeedRefused>()));

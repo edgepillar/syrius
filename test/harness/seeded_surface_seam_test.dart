@@ -61,8 +61,7 @@ void main() {
       confirmedHash: hash, original: _holderContext(),
       requireRetired: () {}, requireResources: () {},
       readContext: () => current,
-    );
-    holder.requireTransition();
+    )..requireTransition();
     expect(holder.requireSelected, throwsA(isA<SeedRefused>()));
     current = _holderContext(
       selected: 'holder', saved: 'holder', revision: 21,
@@ -90,8 +89,7 @@ void main() {
           if (failAfterRead) resources = false;
           return current;
         },
-      );
-      holder.requireTransition();
+      )..requireTransition();
       switch (loss) {
         case 'retirement': retired = false;
         case 'resources': resources = false;
