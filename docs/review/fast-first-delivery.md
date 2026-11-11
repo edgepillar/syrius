@@ -1991,3 +1991,33 @@ counts stay unchanged. The already passing Python controls are not repeated
 locally. Fresh hosted qualification remains required. The separate Home frame
 failure, original 72/80, zero accepted whole-image matches and all eight deferred
 acceptance gates remain open.
+
+## Source683 verified test gates and separate native refusal
+
+The [Source682 producer](https://github.com/edgepillar/syrius/actions/runs/43105243092)
+passes all 1,467 Dart cases in complete 54/54-file streams (699/768). It runs
+1,205 Python cases with eighteen explicit skips and no failures; analysis has
+zero errors, warnings or infos.
+Both original Dart commands exit zero normally with complete output. The
+separate optional interactive Release-build step is skipped; the owned native
+wallet build and original tour execute in the lab step.
+
+The [independent reader](https://github.com/edgepillar/syrius/actions/runs/43108340082)
+verifies both original archives, the original 1 ZNN Send, twelve-page tour and
+normal original application, entry and five-node closure. Forced compiler-helper
+cleanup keeps its separate scope. The copied session retains one confirmed
+Stake prefix; its Token recipe refuses with `advancing-momentum-required`.
+All six original polls retain the initial height 23 and unchanged hashes on
+both HTTP and WebSocket. The passive failure probe retains that height, three peers and the
+original sync observation; the underlying cause remains `NOT_ESTABLISHED`.
+
+Token captures, the holder transition and all eight prepared pointer observations
+are unreached. Zero new catalog PNGs and the incomplete copied lifecycle remain
+unqualified. Reader success preserves this original failure; it does not qualify
+the copied scenario. No native request, original financial operation or local
+artifact transport is repeated, and no progress or frame guard is relaxed.
+
+Source683 records the result in documentation only. The test and implementation
+bytes retain their Source682 qualification and source pins. All earlier failures,
+the independent Home frame refusal, original 72/80, zero accepted whole-image
+matches and all eight deferred acceptance gates remain open.

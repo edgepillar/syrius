@@ -102,6 +102,28 @@ Implementation, assertions and selected counts are unchanged. Passing Python
 controls are not repeated locally. Fresh hosted qualification, the independent
 Home frame failure, original 72/80 and all eight deferred gates remain open.
 
+The [Source682 producer](https://github.com/edgepillar/syrius/actions/runs/43105243092)
+passes 1,467 Dart cases in complete 54/54-file streams and analysis with zero
+findings. It runs 1,205 Python cases with eighteen explicit skips and no failures. Both Dart commands exit
+zero normally. The optional interactive Release-build step is skipped; the
+native wallet build and original tour run inside the lab step.
+
+The [independent reader](https://github.com/edgepillar/syrius/actions/runs/43108340082)
+verifies both original archives, the original 1 ZNN Send, twelve-page tour and
+normal original required actor/five-node closure. Compiler-helper cleanup is separate.
+The copied session retains one confirmed Stake. The Token recipe refuses with
+`advancing-momentum-required`: six original polls retain the initial
+height 23 and unchanged hashes on both transports. A passive probe retains that frontier,
+three peers and the original sync facts; the inner cause is `NOT_ESTABLISHED`.
+
+Token captures, the holder transition and the eight prepared pointer probes
+are unreached. The copied lifecycle, zero new catalog PNGs and overall native
+acceptance remain unqualified. Source683 changes documentation only, preserving
+the Source682 test/implementation bytes and source-bound results. No old native
+request, local artifact transport, test or financial operation is repeated;
+progress/frame guards stay unchanged. Original 72/80 and all deferred gates stay
+open.
+
 ## Retained qualification status (2026-11-05)
 
 The [qualified Source492 Activity result](review/source489-activity-reference-spacing.md#actual-source492-focused-result)
