@@ -78,6 +78,10 @@ SOURCE_FILES = (
 SURFACE_SEAM_SOURCES = (
     'lib/seams/SEAMS.md', 'lib/seams/seam.dart',
     'lib/widgets/shell/strip/update_slot.dart',
+    'lib/rearchitecture/features/tokens/view/tokens_card.dart',
+    'lib/rearchitecture/features/tokens/widgets/token_card.dart',
+    'lib/rearchitecture/features/tokens/widgets/token_inline_actions.dart',
+    'lib/rearchitecture/utils/widgets/row_detail.dart',
     'lib/rearchitecture/features/pillars/view/pillars_card.dart',
     'lib/widgets/modular_widgets/p2p_swap_widgets/modals/start_native_swap_modal.dart',
 )

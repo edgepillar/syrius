@@ -66,6 +66,32 @@ class InteractiveFramePairTests(unittest.TestCase):
         self.assertEqual(result['normal_entry_exits'], 2)
         self.assertTrue(all(result['no_added_reported_slow_frames'].values()))
 
+    def test_retained_process_and_window_durations_are_bounded_observations(self):
+        offered = fixture()
+        result = self.project(offered)
+        self.assertEqual(result['entry_process_seconds'], {'current': 10, 'p06': 10})
+        self.assertEqual(result['frame_window_us'], {
+            'current': dict.fromkeys(pair.WINDOWS, 1000000),
+            'p06': dict.fromkeys(pair.WINDOWS, 1000000)})
+        self.assertTrue(result['timing_criterion_passed'])
+        offered['samples']['p06'].update(profile_stable=False, success=False)
+        offered.update(phase='p06_interactive', success=False, comparisons=None,
+                       error_codes=['PROFILE_REFUSED'])
+        result = self.project(offered)
+        self.assertEqual(result['entry_process_seconds'], {'current': 10, 'p06': 10})
+        self.assertFalse(result['artifact_reported_success'])
+        self.assertFalse(result['timing_criterion_passed'])
+        for bad in (-1, 221, True, 'private'):
+            sample = fixture()
+            sample['samples']['current']['observation']['entry']['seconds'] = bad
+            with self.subTest(seconds=bad), self.assertRaises(archive.Refused):
+                self.project(sample)
+        for bad in (float('nan'), float('inf')):
+            sample = fixture()['samples']['current']
+            sample['observation']['entry']['seconds'] = bad
+            with self.subTest(nonfinite=type(bad).__name__), self.assertRaises(archive.Refused):
+                inspect.sample_receipts(sample)
+
     def test_normal_about_content_uses_visible_licences_and_keeps_scroll_outside_timing(self):
         window = fixture()['samples']['current']['observation']['windows']['page_change']
         for fault in (None, 'closed', 'content', 'address', 'scroll'):

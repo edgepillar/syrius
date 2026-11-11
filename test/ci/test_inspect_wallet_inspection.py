@@ -404,6 +404,7 @@ class ReaderTests(unittest.TestCase):
 
         for changes in (dict(seam_refusals=['pillarAprEstimate']),
                         dict(seam_refusals=['walletUpdateNotice']),
+                        dict(seam_refusals=['walletUpdateNotice', 'pillarAprEstimate', 'swapTerms']),
                         dict(home_catalog=wallet_fixtures.home_reference())):
             offered = dict(child, **changes)
             with self.assertRaises(reader.producer.Refused):

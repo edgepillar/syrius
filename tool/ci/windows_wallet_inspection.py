@@ -990,11 +990,12 @@ def observe_home_seam_pointers(send, observed):
     require_seam_clean_logs(send)
 
 
-SURFACE_SEAMS = ('walletUpdateNotice', 'pillarAprEstimate', 'swapTerms')
+SURFACE_SEAMS = ('walletUpdateNotice', 'tokenExplorer', 'pillarAprEstimate', 'swapTerms')
+SURFACE_TOKEN_ROW = 'token_zts1znnxxxxxxxxxxxxx9z4ulx_row'
 
 
 def observe_surface_seams(send, observed):
-    """Try three existing unavailable controls without captures or form input."""
+    """Try four existing unavailable controls without captures or form input."""
     initial = seam_wallet_state(send, 'dashboard')
     address, home = initial['address'], initial.get('route')
     need(type(home) is str and bool(home), 'ENTRY_REFUSED')
@@ -1025,6 +1026,19 @@ def observe_surface_seams(send, observed):
     require_seam_absorption(send, 'walletUpdateNotice', 'strip_update_button')
     need(route('dashboard') == home, 'ENTRY_REFUSED')
     observed.append('walletUpdateNotice')
+
+    send(dict(cmd='tap', tab='tokens'))
+    wait(SURFACE_TOKEN_ROW, kind='button')
+    tokens = route('tokens')
+    tap(SURFACE_TOKEN_ROW)
+    wait('token_explorer_control', kind='button')
+    need(route('tokens') == tokens, 'ENTRY_REFUSED')
+    require_seam_absorption(send, 'tokenExplorer', 'token_explorer_control')
+    need(route('tokens') == tokens, 'ENTRY_REFUSED')
+    tap(SURFACE_TOKEN_ROW)
+    wait('token_explorer_control', kind='button', gone=True)
+    need(route('tokens') == tokens, 'ENTRY_REFUSED')
+    observed.append('tokenExplorer')
 
     send(dict(cmd='tap', tab='pillars'))
     wait('nodes_tab_pillars')

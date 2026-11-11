@@ -174,6 +174,11 @@ def project(raw, item, *, head, tree, run_id, lab, expected_entry):
                          for label, sample in samples.items() if sample.get('observation')},
         normal_wallet_exits=current_closed + p06_closed,
         normal_entry_exits=current_entry + p06_entry,
+        entry_process_seconds={label: sample['observation']['entry']['seconds']
+            for label, sample in samples.items() if sample.get('observation')
+            and sample['observation']['entry'] is not None},
+        frame_window_us={label:{name:value['windowUs'] for name,value in window.items()}
+                         for label,window in (('current',windows), ('p06',old))},
         frame_counts={label:{name:len(value['frames']) for name,value in window.items()}
                       for label,window in (('current',windows), ('p06',old))},
         no_added_reported_slow_frames=None if comparisons is None else {

@@ -1,6 +1,6 @@
 # First delivery and deferred acceptance
 
-Updated 2026-11-10.
+Updated 2026-11-11.
 
 The core interface and existing basic functionality are available for
 [Draft code review](https://github.com/sol-znn/syrius/pull/6). Unavailable
@@ -1044,8 +1044,40 @@ The same border, fill, size, physical alignment and callback expectations
 remain. An owned Welcome failure can retain only fixed sample coordinates
 and unsigned pixel colors. The updated reader rejects foreign tests and
 malformed or excessive values. All 204 selected in-memory Python controls and
-local analysis of the changed Dart test pass. Fresh hosted widget and native
-qualification remain open.
+local analysis of the changed Dart test pass. The focused Windows lane passes
+1,391 Dart cases, 1,146 Python cases with eighteen skips and selected analysis
+with zero findings. [Focused run](https://github.com/edgepillar/syrius/actions/runs/42930201796).
+
+The separate Source648 ordinary Debug capture and independent reader verify
+all four Welcome and Import PNGs and normal complete closure. All four pairs
+were individually revisited. At the measured column, the three Welcome card
+edges and fills match in both themes. The Import connector occupies the
+reference's single row. Halo, text and drop-outline coverage differences remain;
+there are still 50 individually reviewed pairs and zero accepted whole-image
+matches. [Producer](https://github.com/edgepillar/syrius/actions/runs/42931992664)
+and [reader](https://github.com/edgepillar/syrius/actions/runs/42933848912).
+
+The Source648 lock seam lane passes 1,393 Dart cases, the same 1,146 Python
+cases with eighteen skips and zero selected analysis findings. Its one Release
+build observes the original Add wallet and password-recovery controls absorbing
+pointer input. Preparation and observation both exit normally with complete
+output. The independent reader verifies the two refusals, exact source hashes
+and both normal exits from the 1,516-byte archive. It starts no native process
+and produces no images. Other seam surfaces and indirect activation remain
+open. [Producer](https://github.com/edgepillar/syrius/actions/runs/42936260665)
+and [reader](https://github.com/edgepillar/syrius/actions/runs/42938457881).
+
+Source649 includes the original ZNN holder's token-explorer control in the
+planned page-seam inspection. It opens and closes the original disclosure,
+checks the same wallet and route throughout, and retains only a confirmed
+refusal prefix on failure. The independent reader also pins the four widgets
+that own the row and control. The paired timing reader exposes only previously
+validated entry durations and frame-window lengths; its timing and closure
+criteria are unchanged. All 66 selected Python cases pass without filesystem
+writes, network or native execution. A negative control confirms that omitting
+the token attempt fails the new coverage case. Fresh hosted qualification of
+this controller update and its four native page-seam attempts remains open.
+The original Source645 closure failure is preserved.
 
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied
