@@ -1215,6 +1215,29 @@ requirement remain. Fresh hosted analysis, engine tests and native observation
 are pending.
 [Original attempt](https://github.com/edgepillar/syrius/actions/runs/42973048527).
 
+Source657 passes all 1,399 Dart cases, 1,166 Python cases with eighteen skips
+and selected analysis with zero findings. Its independent reader verifies both
+manifests, the original Send, twelve-page tour, quiescence and normal original
+wallet, entry and five-node closure. In the copied session, the first Stake
+admission sees height 23 on both transports throughout six polls. The refusal
+precedes that operation's journal claim and pointer tap. Token preparation,
+the four page gates and new catalog captures are unreached. The original
+failure remains; the stationary cause is NOT_ESTABLISHED.
+[Producer](https://github.com/edgepillar/syrius/actions/runs/42975091253)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42977854580).
+
+Source658 prepares one passive peer/sync/frontier sample after this exact
+failed copied seed admission, while original copied-node and root ownership
+remain current and before shutdown. The existing three-read, eight-second
+probe is reused. Its data cannot heal the refusal, qualify a copied lifecycle
+or authorize a publication retry; ordinary observer errors preserve the
+original exception and cleanup. All 178 selected memory controls pass with
+no filesystem writes, network or native execution. Six new controller cases
+cover admission, ownership loss, original exception/cleanup order and closed
+projection. The seed's original six polls, claim order, once-only publication,
+shutdown and 1,399-case Dart requirement remain. Fresh hosted qualification
+is pending; full 72/80 acceptance stays open.
+
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied
 owner, confirmed receipt and exact Project row. The original Project

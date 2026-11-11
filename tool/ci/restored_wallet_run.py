@@ -15,6 +15,7 @@ from . import readonly_details_capture as catalog
 from . import windows_debug_loop as debug
 from . import restored_seed_run as seeds
 from . import seeded_surface_seams
+from . import lab_failure_probe
 
 
 SCOPE = 'owned_restored_lab_reopen'
@@ -480,11 +481,26 @@ def child_failure_projection(value):
     return result
 
 
+def _stalled_seed_child(value):
+    """Only the original pre-claim momentum refusal admits passive reads."""
+    try:
+        child = child_failure_projection(value)
+    except checkpoint.Refused:
+        return False
+    seed = child.get('seed')
+    return (child['kind'] == 'HARNESS_REFUSED' and type(seed) is dict
+        and child['phase'] == 'seed_' + seed['recipe']
+        and seed['kind'] == 'refused' and seed['action'] == 'publish'
+        and seed['step'] == 'reply' and seed.get('publication_call_entered') is True
+        and seed.get('reason') == 'advancing-momentum-required'
+        and type(seed.get('frontier')) is dict and seed['frontier']['polls'] == 6)
+
+
 def diagnostic_projection(value):
     """Retain a finite active failure location without private error text."""
     fields = {'schema', 'scope', 'phase', 'child_phase', 'output', 'error', 'code'}
     checkpoint.need(type(value) is dict and fields <= set(value)
-        and set(value) <= fields | {'child_failure', 'seed_prefix'}
+        and set(value) <= fields | {'child_failure', 'seed_prefix', 'copied_lab_failure_probe'}
         and type(value['schema']) is int and value['schema'] == 1
         and value['scope'] == 'owned_restored_lab_reopen_diagnostic'
         and type(value['phase']) is str and value['phase'] in PHASES
@@ -515,6 +531,16 @@ def diagnostic_projection(value):
     if 'seed_prefix' in value:
         checkpoint.need(PHASES.index(value['phase']) >= PHASES.index('seed_workflow'))
         result['seed_prefix'] = seeds.prefix_projection(value['seed_prefix'])
+    if 'copied_lab_failure_probe' in value:
+        checkpoint.need(value['phase'] == 'seed_workflow'
+            and value['error'] == 'CHECKPOINT_REFUSED'
+            and _stalled_seed_child(value.get('child_failure')))
+        try:
+            sample = lab_failure_probe.project(value['copied_lab_failure_probe'])
+        except lab_failure_probe.Refused:
+            raise checkpoint.Refused() from None
+        checkpoint.need(sample is not None)
+        result['copied_lab_failure_probe'] = sample
     return result
 
 
@@ -526,6 +552,7 @@ class ReopenDiagnostic:
         self.child_phase = self.output = self.error = self.code = None
         self.child_failure = None
         self.seed_prefix = None
+        self.copied_lab_failure_probe = None
 
     def at(self, phase):
         checkpoint.need(self.error is None and type(phase) is str and phase in PHASES)
@@ -605,7 +632,35 @@ class ReopenDiagnostic:
             value['child_failure'] = self.child_failure
         if self.seed_prefix is not None:
             value['seed_prefix'] = self.seed_prefix
+        if (self.copied_lab_failure_probe is not None
+                and self.phase == 'seed_workflow' and self.error == 'CHECKPOINT_REFUSED'
+                and _stalled_seed_child(self.child_failure)):
+            value['copied_lab_failure_probe'] = self.copied_lab_failure_probe
         return diagnostic_projection(value)
+
+
+def _record_copied_failure_probe(trace, runtime, guard, error, *, stack_debug):
+    """One bounded sample before closure; preserve the original exception."""
+    from . import hosted_chain321 as lab
+    if (type(trace) is not ReopenDiagnostic or type(error) is not checkpoint.Refused
+            or stack_debug is not True or not isinstance(runtime, lab.Native)
+            or not callable(guard) or trace.phase != 'seed_workflow'
+            or trace.copied_lab_failure_probe is not None
+            or not _stalled_seed_child(trace.child_failure)):
+        return
+    trace.copied_lab_failure_probe = lab_failure_probe.unavailable()
+
+    def require_owned():
+        checkpoint.need(guard() is True)
+        runtime.healthy()
+        checkpoint.need(guard() is True)
+
+    try:
+        sample = lab_failure_probe.project(lab_failure_probe.collect(require_owned))
+        if sample is not None:
+            trace.copied_lab_failure_probe = sample
+    except Exception:
+        pass
 
 
 def wallet_observation(value):
@@ -1162,6 +1217,13 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
         debug.bounded.verify_source(repo, source, parent)
         checkpoint.need(debug.entry.source_tree(repo, parent) == tree)
         record.update(phase='complete', complete=True, job_empty=True)
+    except (Exception, KeyboardInterrupt) as error:
+        try:
+            _record_copied_failure_probe(trace, runtime, guard, error,
+                stack_debug=original_runtime.stack_debug)
+        except Exception:
+            pass
+        raise
     finally:
         if not close_attempted and transport is not None and token is not None:
             close_attempted = True

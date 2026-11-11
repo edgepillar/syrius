@@ -1,14 +1,18 @@
 """Memory-only fixed-wire failure diagnostics; no sockets, files or processes."""
 
 import copy
+import ast
 import hashlib
 import json
+from pathlib import Path
+from types import SimpleNamespace
 import unittest
 from unittest import mock
 
 from tool.ci import hosted_chain321 as lab
 from tool.ci import inspect_chain321 as inspector
 from tool.ci import lab_failure_probe as probe
+from tool.ci import restored_wallet_run as copied
 
 
 def replies():
@@ -328,6 +332,155 @@ class FailureProbeTests(unittest.TestCase):
         for key in ('source_head', 'source_run_id', 'source_attempt', 'backend',
                     'archive_sha256', 'manifest_sha256'):
             self.assertEqual(frame[key], parent[key])
+
+
+def copied_stall():
+    trace = copied.ReopenDiagnostic()
+    trace.at('seed_workflow')
+    frontier = dict(polls=6, ws_first_height=23, ws_last_height=23,
+        ws_first_timestamp=100, ws_last_timestamp=100, ws_hash_changed=False,
+        http_first_height=23, http_last_height=23,
+        http_first_timestamp=100, http_last_timestamp=100, http_hash_changed=False)
+    seed = dict(schema=1, scope='original_seed_operation_failure', recipe='stake',
+        action='publish', step='reply', command_index=8, publication_call_entered=True,
+        kind='refused', reason='advancing-momentum-required', frontier=frontier)
+    child = dict(schema=1, scope='owned_reopen_child_failure', phase='seed_stake',
+        kind='HARNESS_REFUSED', code=None, recipe=None, seed=seed)
+    trace.observe_line(b'CI_REOPEN_FAILURE:' + json.dumps(child).encode() + b'\n')
+    return trace
+
+
+class CopiedFailureProbeTests(unittest.TestCase):
+    def record(self, trace, transport, guard=lambda: True):
+        runtime = mock.Mock(spec=lab.Native)
+        original = probe.collect
+        with mock.patch.object(probe, 'collect', side_effect=lambda owned:
+                original(owned, transports=lambda: (transport, object()), clock=lambda: 0)):
+            copied._record_copied_failure_probe(trace, runtime, guard,
+                copied.checkpoint.Refused(), stack_debug=True)
+        return runtime
+
+    def test_owned_copied_stall_gets_only_three_passive_reads_without_healing(self):
+        trace, transport = copied_stall(), Transport()
+        runtime = self.record(trace, transport)
+        self.assertEqual([row['method'] for row in transport.requests],
+                         [method for _, method in probe.READS])
+        self.assertTrue(all(row['params'] == [] for row in transport.requests))
+        self.assertTrue(all(wire.close_count == 1 for wire in transport.wires))
+        self.assertIsNone(trace.error)
+        self.assertEqual(trace.phase, 'seed_workflow')
+        self.assertTrue(trace.copied_lab_failure_probe['ownership_current'])
+        runtime.start.assert_not_called()
+        runtime.stop.assert_not_called()
+        original = copied.checkpoint.Refused()
+        trace.failure(original)
+        value = trace.snapshot()
+        self.assertEqual(value['error'], 'CHECKPOINT_REFUSED')
+        self.assertEqual(value['child_failure']['seed']['reason'], 'advancing-momentum-required')
+        self.assertFalse(copied.project(dict(schema=1, scope=copied.SCOPE,
+            complete=False, diagnostic=value))['complete'])
+        self.assertNotIn('Synthetic', json.dumps(value))
+        self.assertNotIn('publicKey', json.dumps(value))
+
+    def test_other_phases_errors_owners_and_disabled_flags_cannot_open_a_wire(self):
+        for change in ('phase', 'child', 'reason', 'error', 'runtime', 'disabled', 'coerced', 'guard'):
+            trace = copied_stall()
+            runtime, error, flag, guard = mock.Mock(spec=lab.Native), copied.checkpoint.Refused(), True, lambda: True
+            if change == 'phase': trace.phase = 'seeded_capture'
+            if change == 'child': trace.child_failure = None
+            if change == 'reason': trace.child_failure['seed']['reason'] = 'unknown'
+            if change == 'error': error = OSError('Synthetic private error')
+            if change == 'runtime': runtime = object()
+            if change == 'disabled': flag = False
+            if change == 'coerced': flag = 1
+            if change == 'guard': guard = None
+            with self.subTest(change=change), mock.patch.object(probe, 'collect') as collect:
+                copied._record_copied_failure_probe(trace, runtime, guard, error, stack_debug=flag)
+            collect.assert_not_called()
+            self.assertIsNone(trace.copied_lab_failure_probe)
+
+    def test_lost_owner_before_the_sample_stays_unavailable_for_future_reentry(self):
+        trace, transport = copied_stall(), Transport()
+        self.record(trace, transport, guard=lambda: False)
+        value = trace.copied_lab_failure_probe
+        self.assertEqual((value['attempted'], value['opened_wires']), (0, 0))
+        self.assertFalse(value['ownership_current'])
+        with mock.patch.object(probe, 'collect') as collect:
+            copied._record_copied_failure_probe(trace, mock.Mock(spec=lab.Native),
+                lambda: True, copied.checkpoint.Refused(), stack_debug=True)
+        collect.assert_not_called()
+        self.assertEqual(transport.requests, [])
+
+    def test_owner_loss_after_an_original_wire_closes_it_and_prevents_more_reads(self):
+        trace, transport = copied_stall(), Transport()
+        owned = [True]
+        transport.write_hook = lambda request: owned.__setitem__(0, False)
+        self.record(trace, transport, guard=lambda: owned[0])
+        value = trace.copied_lab_failure_probe
+        self.assertEqual(value['attempted'], 1)
+        self.assertEqual(value['network'], dict(status='REFUSED', code='OWNER_REFUSED'))
+        self.assertEqual(value['sync'], dict(status='NOT_READ'))
+        self.assertEqual(value['frontier'], dict(status='NOT_READ'))
+        self.assertFalse(value['ownership_current'])
+        self.assertEqual([wire.close_count for wire in transport.wires], [1])
+
+    def test_actual_exception_handler_samples_before_cleanup_and_reraises_the_original(self):
+        tree = ast.parse(Path('tool/ci/restored_wallet_run.py').read_text())
+        run = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == 'run')
+        block = copy.deepcopy(next(node for node in run.body
+            if isinstance(node, ast.Try) and node.finalbody))
+        block.body = ast.parse('raise original_error').body
+        block.finalbody = ast.parse("events.append('close')").body
+        runtime, trace, events = mock.Mock(spec=lab.Native), copied_stall(), []
+        original_error = copied.checkpoint.Refused()
+        def collect(owned):
+            events.append('sample')
+            raise RuntimeError('Synthetic private collection error')
+        scope = dict(_record_copied_failure_probe=copied._record_copied_failure_probe,
+            trace=trace, runtime=runtime, guard=lambda: True, original_error=original_error,
+            original_runtime=SimpleNamespace(stack_debug=True), events=events)
+        program = ast.fix_missing_locations(ast.Module(body=[block], type_ignores=[]))
+        with mock.patch.object(probe, 'collect', side_effect=collect):
+            with self.assertRaises(copied.checkpoint.Refused) as raised:
+                exec(compile(program, 'original_reopen_handler', 'exec'), scope)
+        self.assertIs(raised.exception, original_error)
+        self.assertEqual(events, ['sample', 'close'])
+        self.assertEqual(trace.copied_lab_failure_probe, probe.unavailable())
+        self.assertNotIn('Synthetic', json.dumps(trace.copied_lab_failure_probe))
+        events.clear()
+        scope['_record_copied_failure_probe'] = mock.Mock(
+            side_effect=RuntimeError('Synthetic observer admission failure'))
+        with self.assertRaises(copied.checkpoint.Refused) as raised:
+            exec(compile(program, 'original_reopen_handler', 'exec'), scope)
+        self.assertIs(raised.exception, original_error)
+        self.assertEqual(events, ['close'])
+
+    def test_projection_binds_closed_sample_to_the_original_failed_copy_and_notice(self):
+        trace = copied_stall()
+        self.record(trace, Transport())
+        trace.failure(copied.checkpoint.Refused())
+        value = trace.snapshot()
+        for change in (dict(error=None), dict(error='OS_ERROR'), dict(phase='ordinary_close'),
+                       dict(child_failure=None), dict(copied_lab_failure_probe=None),
+                       dict(copied_lab_failure_probe=value['copied_lab_failure_probe'] | dict(path='private'))):
+            with self.subTest(change=change), self.assertRaises(copied.checkpoint.Refused):
+                copied.diagnostic_projection(value | change)
+        projected = copied.diagnostic_projection(value)
+        value['copied_lab_failure_probe']['network']['reported_peers'] = 128
+        self.assertEqual(projected['copied_lab_failure_probe']['network']['reported_peers'], 3)
+        summary = dict(scope='retained_chain321_observation', source_head='a' * 40,
+            source_run_id=123, backend='native', archive_sha256='b' * 64,
+            manifest_sha256='c' * 64, wallet_reopen=dict(schema=1,
+                scope=copied.SCOPE, complete=False, diagnostic=projected))
+        frames = copied.notice_frames(summary)
+        self.assertTrue(all(len(json.dumps(frame, separators=(',', ':')).encode()) <= 3800
+                            for _, frame in frames))
+        self.assertEqual(len(frames), 1)
+        facts = frames[0][1]['wallet_reopen']
+        self.assertFalse(facts['complete'])
+        self.assertEqual(facts['diagnostic']['error'], 'CHECKPOINT_REFUSED')
+        self.assertEqual(facts['diagnostic']['copied_lab_failure_probe'],
+                         projected['copied_lab_failure_probe'])
 
 
 if __name__ == '__main__':
