@@ -398,7 +398,6 @@ Future<void> _observePreparedPageSeams(
     await wait('nodes_pillars_strip');
     final String pillars = await route('pillars');
     await tap('pillars_sort');
-    await wait('pillars_sort_apr_gate', kind: 'text');
     final String menu = await route('pillars');
     if (menu == pillars) {
       throw const FormatException('prepared surface menu required');

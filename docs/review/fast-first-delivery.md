@@ -1470,3 +1470,19 @@ unexecuted. Source660 wraps only the two assertions, preserving every assertion
 operand, test registration and controller. Fresh hosted qualification is still
 required. All earlier failures, the separate holder Explorer requirement,
 original 72/80 and zero accepted whole-image matches remain unchanged.
+
+
+## Prepared Pillars gate observation
+
+Source661 removes the generic text wait between opening the original Pillars
+sort popup and observing its APR seam. The disabled menu entry contains a
+`Text` behind the original `SeamGate`; the ordinary snapshot can fold that
+text into its enclosing menu control. The native seam observer already resolves
+the exact gate key through the visible element tree and requires the original
+current route, same native frame owner, absorbing render barrier and matching
+hit test before and after pointer input. Those checks remain unchanged. The
+opened-popup route check and all six ordered owner-page observations remain
+mandatory. No application widget, financial guard, seed step, test registration
+or deadline changes. Source660's assertion formatting is retained; no separate
+Source660 CI attempt is requested before qualifying the combined revision.
+Fresh hosted and independent retained-reader results remain required.
