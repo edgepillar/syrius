@@ -559,11 +559,17 @@ void main() {
               ),
             );
             await _ready(tester);
-            expect(find.byKey(const Key('token_action_mode_mint')), findsOneWidget);
+            expect(
+              find.byKey(const Key('token_action_mode_mint')),
+              findsOneWidget,
+            );
             expect(find.byKey(const Key('mint_amount_field')), findsOneWidget);
             expect(find.byKey(const Key('token_send')), findsOneWidget);
             expect(find.byKey(const Key('token_explorer')), findsNothing);
-            expect(find.byKey(const Key('token_explorer_control')), findsNothing);
+            expect(
+              find.byKey(const Key('token_explorer_control')),
+              findsNothing,
+            );
             expect(fixture.transport.calls, isEmpty);
             expect(tester.takeException(), isNull);
           });

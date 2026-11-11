@@ -2990,3 +2990,18 @@ A real holder-view native fixture remains required for Explorer. No application
 widget, seed financial guard, publication attempt or retry rule is changed.
 Fresh hosted qualification is pending. Full acceptance remains 72/80, with zero
 accepted whole-image matches; all eight original open gates remain open.
+
+
+## Source659 analyzer result
+
+The [Source659 run](https://github.com/edgepillar/syrius/actions/runs/42987461482)
+passes all 1,177 Python controls with eighteen Windows skips and fourteen asset
+observations. Selected analysis has zero errors and warnings, but reports two
+`LINES_LONGER_THAN_80_CHARS` infos in the new owner-view widget assertions.
+The gate refuses them before the Dart engine, node compiler and native lab.
+No artifact is retained, so a retained-archive reader is inapplicable to this
+attempt. The 1,403 Dart cases and six owner-page pointer observations remain
+unexecuted. Source660 wraps only the two assertions, preserving every assertion
+operand, test registration and controller. Fresh hosted qualification is still
+required. All earlier failures, the separate holder Explorer requirement,
+original 72/80 and zero accepted whole-image matches remain unchanged.
