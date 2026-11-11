@@ -1181,6 +1181,18 @@ analysis remain required in the hosted lane. Fresh native observations and
 the independent retained reader are pending. The failed readonly pilot,
 all original failures and UNKNOWNs, and full 72/80 acceptance stay unchanged.
 
+The Source654 Windows run stops in the controller step before SDK allocation.
+It reports 1,166 cases, eighteen skips and one failure: the fixed public-test
+filename catalog omits the new seam test. Analysis, Dart tests, native app and
+lab startup, and capture are unexecuted. The original run retains zero
+artifacts. Source655 adds that actual test basename and its two public source
+basenames to the existing catalog. The same privacy case verifies their
+bounded names without exporting a path or error body. All 161 selected
+memory controls pass with no filesystem writes, network or native execution.
+The prepared native runtime and all original refusal predicates remain;
+fresh hosted analysis, Dart tests and native qualification stay required.
+[Original attempt](https://github.com/edgepillar/syrius/actions/runs/42970022889).
+
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied
 owner, confirmed receipt and exact Project row. The original Project
