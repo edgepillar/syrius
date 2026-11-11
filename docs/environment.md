@@ -1,6 +1,32 @@
 # Redesign build environment
 
-## Current qualification status (2026-11-05)
+## Current qualification status (2026-11-11)
+
+The core interface and existing basic functionality are available for
+[Draft code review](https://github.com/sol-znn/syrius/pull/6). Full acceptance
+remains 72/80 original rows. All 94 literal outputs are now available: 50 unique
+pairs have been viewed and 44 await visual review. Accepted whole-image matches
+remain 0/94. The older availability counts below retain their dated scope.
+
+The latest focused runtime source is
+[`a3aff4ec5e33`](https://github.com/edgepillar/syrius/tree/a3aff4ec5e33f77f535f72e8be31a9fa9cb6b6b9).
+Its [original run](https://github.com/edgepillar/syrius/actions/runs/43006822308)
+passes 1,411 Dart cases. Python completes 1,182 controls with eighteen Windows
+skips and no failures or errors; selected analysis has zero findings.
+The first lab Send does not reach exact
+confirmation in eighteen polls. The tour, copied seeds, captures and prepared
+Swap warning are unreached. The
+[independent reader](https://github.com/edgepillar/syrius/actions/runs/43009650502)
+verifies both retained manifests. Passive reads observe four peers and frontier
+height 16; the confirmation failure's cause remains NOT_ESTABLISHED. Five nodes
+close normally, but a required compiler helper needs forced cleanup, so normal
+wallet lifecycle is unqualified. No local artifact transfer occurs.
+
+The [first-delivery record](review/fast-first-delivery.md) retains current results
+and the eight deferred acceptance gates. This status refresh changes documentation
+only; the tested runtime source remains the revision linked above.
+
+## Retained qualification status (2026-11-05)
 
 The [qualified Source492 Activity result](review/source489-activity-reference-spacing.md#actual-source492-focused-result)
 at a1dd38c462699959cb9066f03db2b5136a33848e, tree

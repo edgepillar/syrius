@@ -1568,3 +1568,23 @@ strict response handling, bounded absence and ownership loss before another
 query. The expected hosted totals are 1,411 Dart and 1,182 Python cases. Fresh
 hosted qualification is pending. The earlier failures, original 72/80, zero
 accepted whole-image matches and all eight open gates retain their scope.
+
+## Actual Source665 result
+
+The [original run](https://github.com/edgepillar/syrius/actions/runs/43006822308)
+passes 1,411 Dart cases, with zero failures, errors or skips, 153 hidden and
+1,564 terminal events. Its 1,182 Python controls have eighteen Windows skips and
+no failures or errors; selected analysis is clean. The first lab Send does not
+reaches exact confirmation in eighteen polls, all reporting absence. No tour,
+copied seed workflow, catalog capture or prepared Swap opening is reached.
+
+The [independent reader](https://github.com/edgepillar/syrius/actions/runs/43009650502)
+verifies both retained manifests. The separate passive sample observes four peers
+and frontier height 16, with current ownership and three normally closed wires;
+the failure's cause remains NOT_ESTABLISHED. All five nodes close normally. A
+required compiler helper is forced, so normal wallet lifecycle remains
+unqualified. The failed original is preserved without retry or local artifact
+transfer. Source666 updates documentation only; runtime qualification stays bound
+to Source665. All 94 literal outputs are available, 50 pairs have been viewed and
+44 await review. Original 72/80 acceptance and zero accepted whole-image matches
+remain unchanged.
