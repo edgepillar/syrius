@@ -892,8 +892,8 @@ SETTINGS_SEAM_PANELS = (
 )
 
 
-def seam_wallet_state(send, tab):
-    state = send(dict(cmd='state'))
+def seam_wallet_observation(state, tab):
+    need(type(state) is dict, 'ENTRY_REFUSED')
     address = state.get('address')
     need(state.get('tab') == tab and state.get('locale') == 'en'
          and state.get('direction') == 'ltr'
@@ -906,6 +906,10 @@ def seam_wallet_state(send, tab):
          and state.get('nodeTransitionPending') is False
          and type(address) is str and bool(address), 'ENTRY_REFUSED')
     return state
+
+
+def seam_wallet_state(send, tab):
+    return seam_wallet_observation(send(dict(cmd='state')), tab)
 
 
 def require_seam_absorption(send, seam, key):
@@ -999,6 +1003,7 @@ class SeamProbeTrace:
 
     COMMANDS = frozenset(('state', 'wait', 'tap', 'readonly-seam-pointer', 'key', 'logs'))
     TARGETS = {
+        'addresses_settings_page': 'addresses',
         'home_hero': 'home', 'strip_update_button': 'update',
         SURFACE_TOKEN_ROW: 'token_row', 'token_explorer_control': 'token_explorer',
         'nodes_tab_pillars': 'pillars_tab', 'nodes_pillars_strip': 'pillars_strip',
@@ -1035,7 +1040,10 @@ class SeamProbeTrace:
 
 def observe_surface_seams(send, observed):
     """Try four existing unavailable controls without captures or form input."""
-    initial = seam_wallet_state(send, 'dashboard')
+    initial = send(dict(cmd='state'))
+    need(type(initial) is dict and initial.get('tab') in ('settings', 'dashboard'),
+         'ENTRY_REFUSED')
+    initial = seam_wallet_observation(initial, initial['tab'])
     address, home = initial['address'], initial.get('route')
     need(type(home) is str and bool(home), 'ENTRY_REFUSED')
 
@@ -1062,8 +1070,15 @@ def observe_surface_seams(send, observed):
         target = result.get('target')
         need(type(target) is dict and target.get('key') == key, 'ENTRY_REFUSED')
 
+    from_settings = initial['tab'] == 'settings'
+    if from_settings:
+        wait('addresses_settings_page')
+        need(route('settings') == home, 'ENTRY_REFUSED')
+        send(dict(cmd='tap', tab='dashboard'))
     wait('home_hero')
-    need(route('dashboard') == home, 'ENTRY_REFUSED')
+    current_home = route('dashboard')
+    need(from_settings or current_home == home, 'ENTRY_REFUSED')
+    home = current_home
     wait('strip_update_button', kind='button')
     need(route('dashboard') == home, 'ENTRY_REFUSED')
     require_seam_absorption(send, 'walletUpdateNotice', 'strip_update_button')

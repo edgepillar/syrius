@@ -1116,8 +1116,30 @@ and all native gate, hit-test and ownership checks remain unchanged. Its small
 command context reports only fixed labels, a bounded index and whether the
 exchange returned. It never copies reply bodies, entered values or exception
 text. All 147 selected reader and producer controls pass in memory, including
-unready markers, changed owners/routes and diagnostic privacy. Fresh native
-observation and the original page-seam refusal cause remain open.
+unready markers, changed owners/routes and diagnostic privacy.
+
+The Source651 Windows lane passes selected analysis with zero findings,
+1,391 Dart cases and 1,157 Python cases with eighteen skips. It retains
+ENTRY_REFUSED before any of the four pointer attempts. The fixed command
+context identifies the first state exchange as returned; the controller
+rejects its state before either new readiness wait. The independent reader
+passes 112 controls, verifies both retained manifests and confirms zero
+completed seams. Required actors are unforced: application and entry exit
+zero, and all five node streams are complete with zero exits. Overall native
+and lab qualification remain false. [Native observation](https://github.com/edgepillar/syrius/actions/runs/42955475804)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/42957365842).
+
+Source652 corrects a source-proven precondition mismatch. The generated-address
+branch of `selectLabAddress` finishes on Settings Addresses; the short surface
+entry binds the wallet and finishes there, while the old probe requires Home.
+The raw first tab was deliberately not retained, so this source finding does
+not establish the exclusive native failure cause. The probe now checks the
+bound Settings Addresses marker and unchanged wallet/route, then uses the
+original Home tab. An already bound Home retains its original route check.
+All wallet, node, chain and readiness checks remain; another initial page is
+refused. All 150 selected controls pass without filesystem writes, network or
+native execution. The old Source651 driver refuses the same valid Settings
+fixture that the new driver completes. Fresh native observation remains open.
 
 Source613 uses the Project seed completion that already waits for the original
 route exit. The next step enters the guarded catalog with the same copied

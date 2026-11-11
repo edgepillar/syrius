@@ -6,9 +6,9 @@ from tool.ci import windows_wallet_inspection as inspect
 
 
 class OriginalSurfaces:
-    def __init__(self, fault=None):
+    def __init__(self, fault=None, *, initial_tab='settings'):
         self.fault = fault
-        self.tab, self.route, self.address = 'dashboard', '/dashboard', 'fixture-owner'
+        self.tab, self.route, self.address = initial_tab, '/' + initial_tab, 'fixture-owner'
         self.token_open = False
         self.calls = []
 
@@ -47,9 +47,16 @@ class OriginalSurfaces:
             return dict(ok=True)
         if kind == 'wait':
             key = command['key']
-            if key in ('home_hero', 'strip_update_button'):
+            if key in ('addresses_settings_page', 'home_hero', 'strip_update_button'):
                 if self.fault == 'missing-' + key:
                     return dict(ok=True)
+                if key == 'addresses_settings_page':
+                    if self.fault == 'settings-owner':
+                        self.address = 'replacement-owner'
+                    if self.fault == 'settings-route':
+                        self.route = '/replacement'
+                if key == 'home_hero' and self.fault == 'home-initial-route':
+                    self.route = '/replacement'
                 if key == 'strip_update_button':
                     if self.fault == 'ready-owner':
                         self.address = 'replacement-owner'
@@ -96,20 +103,50 @@ class SurfaceSeamProbeTests(unittest.TestCase):
                      if command['cmd'] == 'readonly-seam-pointer')
         self.assertEqual(original.calls[:first], [
             dict(cmd='state'),
+            dict(cmd='wait', key='addresses_settings_page', exact=True, timeoutMs=5000),
+            dict(cmd='state'),
+            dict(cmd='tap', tab='dashboard'),
             dict(cmd='wait', key='home_hero', exact=True, timeoutMs=5000),
             dict(cmd='state'),
             dict(cmd='wait', key='strip_update_button', kind='button', exact=True, timeoutMs=5000),
             dict(cmd='state'),
         ])
 
-    def test_unready_home_or_update_stops_before_any_pointer(self):
-        for key in ('home_hero', 'strip_update_button'):
+    def test_unready_settings_home_or_update_stops_before_any_pointer(self):
+        for key in ('addresses_settings_page', 'home_hero', 'strip_update_button'):
             original, observed = OriginalSurfaces('missing-' + key), []
             with self.subTest(key=key), self.assertRaises(inspect.Refused):
                 inspect.observe_surface_seams(original.send, observed)
             self.assertEqual(observed, [])
             self.assertFalse(any(command['cmd'] == 'readonly-seam-pointer'
                                  for command in original.calls))
+
+    def test_already_bound_home_keeps_its_original_route(self):
+        original, observed = OriginalSurfaces(initial_tab='dashboard'), []
+        inspect.observe_surface_seams(original.send, observed)
+        self.assertEqual(observed, list(inspect.SURFACE_SEAMS))
+        first = next(index for index, command in enumerate(original.calls)
+                     if command['cmd'] == 'readonly-seam-pointer')
+        self.assertFalse(any(command['cmd'] == 'tap' for command in original.calls[:first]))
+        original, observed = OriginalSurfaces('home-initial-route', initial_tab='dashboard'), []
+        with self.assertRaises(inspect.Refused):
+            inspect.observe_surface_seams(original.send, observed)
+        self.assertEqual(observed, [])
+
+    def test_changed_settings_owner_or_route_prevents_home_navigation(self):
+        for fault in ('settings-owner', 'settings-route'):
+            original, observed = OriginalSurfaces(fault), []
+            with self.subTest(fault=fault), self.assertRaises(inspect.Refused):
+                inspect.observe_surface_seams(original.send, observed)
+            self.assertEqual(observed, [])
+            self.assertFalse(any(command['cmd'] == 'tap' for command in original.calls))
+
+    def test_unexpected_initial_tab_is_refused_before_navigation(self):
+        original, observed = OriginalSurfaces(initial_tab='tokens'), []
+        with self.assertRaises(inspect.Refused):
+            inspect.observe_surface_seams(original.send, observed)
+        self.assertEqual(observed, [])
+        self.assertEqual(original.calls, [dict(cmd='state')])
 
     def test_owner_or_route_replacement_during_readiness_is_refused(self):
         for fault in ('ready-owner', 'ready-route'):
