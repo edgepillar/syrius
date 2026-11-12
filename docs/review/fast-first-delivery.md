@@ -9,9 +9,12 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 73/80 original rows, four review and three blocked.
 
 Detailed qualification has resumed after the first code delivery. Source698
-prepares the [original seeded Swap list capture](source698-seeded-swap-list.md)
-in the existing Windows lane. Its new Dart cases and native capture are pending;
-the earlier first-delivery results keep their recorded revisions and scope.
+now qualifies the [original seeded Swap list capture](source698-seeded-swap-list.md)
+with its six seed receipts and normal closure. The [initial catalog review](source699-initial-catalog-review.md)
+covers all 94 archived pairs, with zero accepted matches. Source699 removes
+shared secondary-action fills and populated-list end notices; fresh hosted
+checks and native recaptures remain pending for those UI changes. Earlier
+first-delivery results keep their recorded revisions and scope.
 
 The [Source695 seam coverage audit](source695-seam-coverage.md) closes original
 V03 using the existing fifteen-value native observations and current runtime

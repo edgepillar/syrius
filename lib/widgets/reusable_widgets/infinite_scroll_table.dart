@@ -80,8 +80,7 @@ class _InfiniteScrollTableState<T> extends State<InfiniteScrollTable<T>> {
                     const SyriusLoadingWidget(),
                 newPageProgressIndicatorBuilder: (_) =>
                     const SyriusLoadingWidget(),
-                noMoreItemsIndicatorBuilder: (_) =>
-                    SyriusErrorWidget(context.l10n.noMoreItems),
+                noMoreItemsIndicatorBuilder: (_) => const SizedBox.shrink(),
                 noItemsFoundIndicatorBuilder: (_) =>
                     SyriusErrorWidget(context.l10n.noItemsFound),
               ),

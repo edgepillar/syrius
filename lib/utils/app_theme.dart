@@ -2337,13 +2337,13 @@ const TextStyle kTitleSmallTextStyle = TextStyle(
   color: AppColors.subtitleColor,
 );
 
-/// The legacy filled TextButton theme, retained during component migration.
+/// Text actions use a transparent surface. Primary controls own their fill.
 final TextButtonThemeData kTextButtonThemeData = TextButtonThemeData(
   style: TextButton.styleFrom(
     textStyle: kTextButtonTextStyle,
     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
     minimumSize: const Size(55, 25),
-    backgroundColor: AppColors.znnColor,
+    backgroundColor: Colors.transparent,
     shape: const StadiumBorder(),
   ),
 );

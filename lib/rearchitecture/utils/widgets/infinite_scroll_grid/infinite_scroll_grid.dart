@@ -96,7 +96,7 @@ class _InfiniteScrollGridState<T> extends State<InfiniteScrollGrid<T>> {
         ),
         SliverToBoxAdapter(
           child: widget.hasReachedMax
-              ? SyriusErrorWidget(context.l10n.noMoreItems)
+              ? const SizedBox.shrink()
               : const SyriusLoadingWidget(),
         ),
       ],
