@@ -464,11 +464,16 @@ def stalls_receipt(value):
 
 def capture_frame_state(value):
     """Retain only the original refusal's closed scheduler facts."""
-    need(type(value) is dict and set(value) == {
+    need(type(value) is dict and type(value.get('schema')) is int
+         and value['schema'] in (1, 2), 'ENTRY_REFUSED')
+    fields = {
         'schema', 'scheduler_phase', 'lifecycle_state', 'frames_enabled',
-        'has_scheduled_frame', 'binding_current'}, 'ENTRY_REFUSED')
-    need(type(value['schema']) is int and value['schema'] == 1
-         and type(value['scheduler_phase']) is str and value['scheduler_phase'] in (
+        'has_scheduled_frame', 'binding_current'}
+    if value['schema'] == 2:
+        fields |= {'begin_frame_callback_registered',
+                   'draw_frame_callback_registered', 'persistent_callbacks_observed'}
+    need(set(value) == fields, 'ENTRY_REFUSED')
+    need(type(value['scheduler_phase']) is str and value['scheduler_phase'] in (
              'idle', 'transientCallbacks', 'midFrameMicrotasks',
              'persistentCallbacks', 'postFrameCallbacks')
          and type(value['lifecycle_state']) is str and value['lifecycle_state'] in (
@@ -476,6 +481,13 @@ def capture_frame_state(value):
          and all(type(value[key]) is bool for key in (
              'frames_enabled', 'has_scheduled_frame', 'binding_current')),
          'ENTRY_REFUSED')
+    if value['schema'] == 2:
+        callbacks = value['persistent_callbacks_observed']
+        need(type(value['begin_frame_callback_registered']) is bool
+             and type(value['draw_frame_callback_registered']) is bool
+             and (type(callbacks) is int and 0 <= callbacks <= 65535
+                  or type(callbacks) is str and callbacks == 'unknown'),
+             'ENTRY_REFUSED')
     return value
 
 

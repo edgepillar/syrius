@@ -959,6 +959,31 @@ void main() {
           )),
         );
         expect(contextual.commands.length, 1);
+        for (final Object callbacks in <Object>[0, 1, 65535, 'unknown']) {
+          final Map<String, Object> progress = <String, Object>{
+            ...state, 'schema': 2,
+            'begin_frame_callback_registered': true,
+            'draw_frame_callback_registered': false,
+            'persistent_callbacks_observed': callbacks,
+          };
+          final _Replies callbackReply = _Replies(
+            (_) => <String, dynamic>{
+              'ok': false,
+              'error': 'the original capture frame is unavailable',
+              'detail': <String, Object?>{
+                ...detail, 'capture_frame_state': progress,
+              },
+            },
+          );
+          await expectLater(
+            cli.call(callbackReply, <String, Object?>{'cmd': 'shot'}),
+            throwsA(isA<cli.Fail>().having(
+              (cli.Fail error) => screenCaptureFrameStateOf(error)?.toJson(),
+              'original callback observation', progress,
+            )),
+          );
+          expect(callbackReply.commands.length, 1);
+        }
         state['lifecycle_state'] = 'resumed';
         expect(retained.lifecycleState, 'paused');
         for (final Object? invalid in <Object?>[

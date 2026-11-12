@@ -174,6 +174,18 @@ creates zero artifacts and starts no SDK, node or wallet. Source687 records the
 result in documentation only. The Source682 Token and Source678 Home failures,
 their unknown causes, 72/80 and all eight deferred gates remain open.
 
+Source688 adds a passive persistent-callback observer to the retained binding.
+At the first capture refusal, schema 2 records begin/draw callback presence and
+the bounded callback count since the original request. Legacy absence stays
+absent; saturation is explicit unknown. The observer schedules no extra frame,
+and callback delivery does not complete or replace the original Future. The
+request, 250 ms admission and permanent late hold retain their existing logic.
+All 140 selected memory controls pass with zero external effects. Two new Dart
+cases and extended transport/reader subcases await hosted qualification. Python
+registration stays 1,213 and the retained reader selection 122; the selected Dart
+expectation becomes 1,469. The original Home cause, 72/80 and all deferred gates
+remain open.
+
 ## Retained qualification status (2026-11-05)
 
 The [qualified Source492 Activity result](review/source489-activity-reference-spacing.md#actual-source492-focused-result)

@@ -27,17 +27,49 @@ enum CaptureFrameRefusalReason {
   admissionFailure,
 }
 
+/// Counts callbacks since the original frame request, without scheduling.
+final class CaptureFrameCallbackCounter {
+  /// A saturated observation stays unknown until another admitted request.
+  static const int maxCallbacks = 65535;
+
+  int _count = 0;
+  bool _known = true;
+
+  /// Starts observation before the existing request; it requests no frame.
+  void begin() {
+    _count = 0;
+    _known = true;
+  }
+
+  /// Records one actual persistent callback without changing its delivery.
+  void observe() {
+    if (!_known) return;
+    if (_count == maxCallbacks) {
+      _known = false;
+    } else {
+      _count++;
+    }
+  }
+
+  /// Unknown is explicit, rather than an exact count after saturation.
+  Object get value => _known ? _count : 'unknown';
+}
+
 /// Closed scheduler facts, without frame, window or wallet identities.
 final class CaptureFrameState {
   const CaptureFrameState._(
     this.schedulerPhase, this.lifecycleState, this.framesEnabled,
-    this.hasScheduledFrame, this.bindingCurrent,
-  );
+    this.hasScheduledFrame, this.bindingCurrent, {
+    this.beginFrameCallbackRegistered,
+    this.drawFrameCallbackRegistered,
+    this.persistentCallbacksObserved,
+  });
 
   /// Refuses free text, extra fields and coerced values before retention.
   static CaptureFrameState? fromJson(Object? value) {
-    if (value is! Map<Object?, Object?> || value.length != 6 ||
-        value['schema'] is! int || value['schema'] != 1) {
+    if (value is! Map<Object?, Object?> || value['schema'] is! int ||
+        (value['schema'] != 1 && value['schema'] != 2) ||
+        value.length != (value['schema'] == 1 ? 6 : 9)) {
       return null;
     }
     final Object? phase = value['scheduler_phase'];
@@ -55,7 +87,23 @@ final class CaptureFrameState {
         enabled is! bool || scheduled is! bool || current is! bool) {
       return null;
     }
-    return CaptureFrameState._(phase, lifecycle, enabled, scheduled, current);
+    if (value['schema'] == 1) {
+      return CaptureFrameState._(phase, lifecycle, enabled, scheduled, current);
+    }
+    final Object? begin = value['begin_frame_callback_registered'];
+    final Object? draw = value['draw_frame_callback_registered'];
+    final Object? callbacks = value['persistent_callbacks_observed'];
+    if (begin is! bool || draw is! bool ||
+        !(callbacks is int && callbacks >= 0 &&
+              callbacks <= CaptureFrameCallbackCounter.maxCallbacks ||
+          callbacks is String && callbacks == 'unknown')) {
+      return null;
+    }
+    return CaptureFrameState._(phase, lifecycle, enabled, scheduled, current,
+      beginFrameCallbackRegistered: begin,
+      drawFrameCallbackRegistered: draw,
+      persistentCallbacksObserved: callbacks,
+    );
   }
 
   /// Phase read from the original binding at its first refusal.
@@ -68,14 +116,27 @@ final class CaptureFrameState {
   final bool hasScheduledFrame;
   /// Whether the captured binding still was the installed binding.
   final bool bindingCurrent;
+  /// Whether the original dispatcher's begin callback was present at refusal.
+  final bool? beginFrameCallbackRegistered;
+  /// Whether the original dispatcher's draw callback was present at refusal.
+  final bool? drawFrameCallbackRegistered;
+  /// Actual callbacks since this request, or unknown after bounded saturation.
+  /// Legacy records contain no observation.
+  final Object? persistentCallbacksObserved;
 
   /// Exports only the validated finite facts, never a mutable source map.
   Map<String, Object> toJson() => Map<String, Object>.unmodifiable(
     <String, Object>{
-      'schema': 1, 'scheduler_phase': schedulerPhase,
+      'schema': beginFrameCallbackRegistered == null ? 1 : 2,
+      'scheduler_phase': schedulerPhase,
       'lifecycle_state': lifecycleState, 'frames_enabled': framesEnabled,
       'has_scheduled_frame': hasScheduledFrame,
       'binding_current': bindingCurrent,
+      if (beginFrameCallbackRegistered != null) ...<String, Object>{
+        'begin_frame_callback_registered': beginFrameCallbackRegistered!,
+        'draw_frame_callback_registered': drawFrameCallbackRegistered!,
+        'persistent_callbacks_observed': persistentCallbacksObserved!,
+      },
     },
   );
 }

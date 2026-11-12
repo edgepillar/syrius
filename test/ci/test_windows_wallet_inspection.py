@@ -1272,6 +1272,32 @@ class InspectionTests(unittest.TestCase):
             last_entered_step='shotRequest', screen='home-goto', theme='light',
             reply='frameDeadlineExceeded', frame_state=frame_state)
         self.assertIs(inspection.home_failure_diagnostic(contextual), contextual)
+        progress = dict(frame_state, schema=2, begin_frame_callback_registered=True,
+            draw_frame_callback_registered=True, persistent_callbacks_observed=0)
+        for callbacks in (0, 1, 65535, 'unknown'):
+            for begin in (False, True):
+                for draw in (False, True):
+                    observed = dict(contextual, frame_state=dict(progress,
+                        begin_frame_callback_registered=begin,
+                        draw_frame_callback_registered=draw,
+                        persistent_callbacks_observed=callbacks))
+                    self.assertIs(inspection.home_failure_diagnostic(observed), observed)
+        for callbacks in (True, False, -1, 65536, 0.0, None, 'Synthetic private frame'):
+            with self.subTest(callbacks=callbacks), self.assertRaises(inspection.Refused):
+                inspection.home_failure_diagnostic(dict(contextual,
+                    frame_state=dict(progress, persistent_callbacks_observed=callbacks)))
+        for delta in (dict(schema=1), dict(schema=3),
+                      dict(begin_frame_callback_registered=1),
+                      dict(draw_frame_callback_registered=None),
+                      dict(private_path='Synthetic private callback')):
+            with self.subTest(progress=delta), self.assertRaises(inspection.Refused):
+                inspection.home_failure_diagnostic(dict(contextual,
+                    frame_state=dict(progress, **delta)))
+        for key in progress:
+            missing = dict(progress)
+            missing.pop(key)
+            with self.subTest(missing=key), self.assertRaises(inspection.Refused):
+                inspection.home_failure_diagnostic(dict(contextual, frame_state=missing))
         for phase in ('idle', 'transientCallbacks', 'midFrameMicrotasks',
                       'persistentCallbacks', 'postFrameCallbacks'):
             for lifecycle in ('none', 'detached', 'resumed', 'inactive', 'hidden', 'paused'):

@@ -1209,3 +1209,26 @@ reader. The UI change also requires a fresh full baseline; expected root counts
 are 4849 passes and one original skip, derived before execution. All bounds,
 original financial/profile/password/seed/reopen inputs and SDK policy remain.
 The prepared Settings catalog is deferred until this correction is qualified.
+
+## Source688 passive capture callback observations
+
+The original capture gate still requests one framework frame, retains that
+Future and holds permanently when its unchanged 250 ms admission refuses.
+One observer per production agent now counts persistent callbacks after that
+same request. It schedules no additional frame; callback delivery is distinct
+from completing the original Future. See the
+[persistent callback contract](https://api.flutter.dev/flutter/scheduler/SchedulerBinding/addPersistentFrameCallback.html).
+
+At first refusal, schema 2 adds only begin/draw callback presence and the count
+through 65,535, or explicit unknown after saturation. These fields identify no
+window, wallet, frame content or process. Schema-1 records retain their original
+absence. Both Dart transport and the independent Python reader validate the
+closed schema; malformed types, missing/extra fields and arbitrary text refuse.
+The Flutter 3.47.7
+[test dispatcher forwards both callback getters](https://github.com/flutter/flutter/blob/3.47.7/packages/flutter_test/lib/src/window.dart#L610-L620).
+
+All 140 selected memory controls pass. Two new Dart cases separate actual
+callback delivery from a pending original Future and preserve its late hold;
+hosted execution is pending. Selected Dart registration is expected at 1,469,
+Python at 1,213 and the retained reader at 122. The original Source678 Home
+cause remains NOT_ESTABLISHED; original 72/80 and all deferred gates stay open.

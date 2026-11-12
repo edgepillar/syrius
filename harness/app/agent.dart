@@ -443,25 +443,51 @@ class HarnessAgent {
        ),
        _closePresentation = closePresentation ?? _refuseTestClose;
 
-  static CaptureFrameGate _scheduledCaptureFrameGate() {
-    final WidgetsBinding binding = WidgetsBinding.instance;
+  static CaptureFrameGate _scheduledCaptureFrameGate() =>
+      captureFrameGateForBinding(WidgetsBinding.instance);
+
+  /// Observes the original binding without requesting or completing extra
+  /// frames.
+  @visibleForTesting
+  static CaptureFrameGate captureFrameGateForBinding(
+    WidgetsBinding binding, {
+    Future<void> Function()? waitForFrame,
+    Future<void> Function()? waitUntilDeadline,
+  }) {
+    final CaptureFrameCallbackCounter callbacks = CaptureFrameCallbackCounter();
+    binding.addPersistentFrameCallback((_) => callbacks.observe());
     return CaptureFrameGate.scheduled(
-      requestFrame: binding.scheduleFrame,
-      waitForFrame: () => binding.endOfFrame,
-      observeState: () => captureFrameStateForBinding(binding),
+      requestFrame: () {
+        callbacks.begin();
+        binding.scheduleFrame();
+      },
+      waitForFrame: waitForFrame ?? () => binding.endOfFrame,
+      waitUntilDeadline: waitUntilDeadline,
+      observeState: () => captureFrameStateForBinding(binding,
+        persistentCallbacksObserved: callbacks.value,
+      ),
     );
   }
 
   /// Reads only finite flags from the binding retained by the original gate.
   @visibleForTesting
   static CaptureFrameState? captureFrameStateForBinding(
-    WidgetsBinding binding,
-  ) => CaptureFrameState.fromJson(<String, Object>{
-    'schema': 1, 'scheduler_phase': binding.schedulerPhase.name,
+    WidgetsBinding binding, {
+    Object? persistentCallbacksObserved,
+  }) => CaptureFrameState.fromJson(<String, Object>{
+    'schema': persistentCallbacksObserved == null ? 1 : 2,
+    'scheduler_phase': binding.schedulerPhase.name,
     'lifecycle_state': binding.lifecycleState?.name ?? 'none',
     'frames_enabled': binding.framesEnabled,
     'has_scheduled_frame': binding.hasScheduledFrame,
     'binding_current': identical(WidgetsBinding.instance, binding),
+    if (persistentCallbacksObserved != null) ...<String, Object>{
+      'begin_frame_callback_registered':
+          binding.platformDispatcher.onBeginFrame != null,
+      'draw_frame_callback_registered':
+          binding.platformDispatcher.onDrawFrame != null,
+      'persistent_callbacks_observed': persistentCallbacksObserved,
+    },
   });
 
   static Future<void> _refuseTestClose() =>

@@ -1,6 +1,6 @@
 # First delivery and deferred acceptance
 
-Updated 2026-11-11.
+Updated 2026-11-12.
 
 The core interface and existing basic functionality are available for
 [Draft code review](https://github.com/sol-znn/syrius/pull/6). Unavailable
@@ -10,7 +10,7 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 
 ## Verified results
 
-The current [Source686 producer](https://github.com/edgepillar/syrius/actions/runs/43119410349)
+The latest qualified [Source686 producer](https://github.com/edgepillar/syrius/actions/runs/43119410349)
 and [independent reader](https://github.com/edgepillar/syrius/actions/runs/43122503428)
 both succeed at `15fec4c9120f`. All 1,467 selected Dart cases pass in complete 54/54-file
 streams (699/768), with zero failures or skips. The 1,213 Python cases have
@@ -30,6 +30,14 @@ observation does not establish the cause of an earlier stall. The original
 Source682 Token and Source678 Home failures retain their scope and unknown causes.
 Source687 records these results in documentation only. Full 72/80 acceptance,
 zero accepted whole-image matches and all eight deferred gates remain open.
+
+Source688 adds passive callback presence/count observations to the existing
+Home capture refusal. One persistent observer requests no frame, and callback
+delivery never substitutes for completion of the original Future. The request,
+250 ms admission, source guards and permanent hold remain. All 140 selected
+memory controls pass; two new Dart cases and fresh hosted/native observation are
+pending. The current selected Dart expectation is 1,469, with 1,213 Python and
+122 reader cases. The original Home cause and full 72/80 acceptance remain open.
 
 ### Earlier source-bound results
 

@@ -3622,3 +3622,21 @@ creates zero artifacts and starts no SDK, node or wallet. Source687 changes
 documentation only; it repeats no test, native request or local artifact transfer.
 Original 72/80 acceptance, zero accepted whole-image matches and all eight
 deferred gates remain open.
+
+## Source688 passive capture callback observations
+
+The Home Go To refusal retains a pending original framework Future. Source688
+adds callback presence and a bounded count of persistent callbacks after that
+same request. It registers one passive observer per production agent, without
+requesting another frame. The original request, Future, 250 ms admission and
+permanent late hold remain unchanged. A callback count is separate from original
+Future completion. Schema-1 absence is preserved; schema 2 has only closed flags
+and a count through 65,535, with explicit unknown after saturation.
+
+All 140 selected memory controls pass without external effects. Two new Dart
+cases cover real callback delivery while an independently retained original is
+pending, late hold and bounded/private schema refusal. Existing transport and
+reader cases gain schema-2 checks. Python registration stays 1,213 and the reader
+selection 122; the selected Dart expectation is 1,469. Current hosted analysis,
+Dart and native observation are pending. Source678's cause, original 72/80 and
+all eight deferred gates remain open.

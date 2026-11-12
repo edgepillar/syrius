@@ -1163,6 +1163,20 @@ class ReaderTests(unittest.TestCase):
         bind(lab, child)
         files[0] = ('manifest.json', encode(child), stat.S_IFREG)
         self.assertEqual(self.inspect(child, lab, files)['entry_failure'], failure)
+        for callbacks in (0, 1, 65535, 'unknown'):
+            contextual = copy.deepcopy(failure)
+            contextual['diagnostic']['frame_state'].update(schema=2,
+                begin_frame_callback_registered=True,
+                draw_frame_callback_registered=False,
+                persistent_callbacks_observed=callbacks)
+            observed, _, text = self.run_main(positive=False, entry_failure=contextual)
+            self.assertEqual(observed['entry_failure'], contextual)
+            self.assertFalse(observed['native_inspection_qualified'])
+            self.assertEqual(observed['verified_png_count'], 0)
+            messages = [json.loads(line.split('::', 2)[-1]) for line in text.splitlines()
+                if line.startswith('::notice title=Retained readonly wallet inspection::')]
+            self.assertEqual(len(messages), 1)
+            self.assertEqual(messages[0]['entry_failure'], contextual)
         altered = copy.deepcopy(child)
         altered['entry_failure']['diagnostic']['frame_state']['frames_enabled'] = True
         with self.assertRaises(reader.archive.Refused):

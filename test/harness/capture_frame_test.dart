@@ -36,6 +36,110 @@ Map<String, dynamic> _shot() => <String, dynamic>{
 };
 
 void main() {
+  testWidgets('passive callback facts distinguish a delivered frame '
+      'from the retained pending original', (WidgetTester tester) async {
+    final TestWidgetsFlutterBinding binding = tester.binding;
+    for (final bool delivered in <bool>[false, true]) {
+      final Completer<void> frame = Completer<void>();
+      final Completer<void> deadline = Completer<void>();
+      int readbacks = 0;
+      final bool scheduledBefore = binding.hasScheduledFrame;
+      final CaptureFrameGate gate = HarnessAgent.captureFrameGateForBinding(
+        binding,
+        waitForFrame: () => frame.future,
+        waitUntilDeadline: () => deadline.future,
+      );
+      expect(binding.hasScheduledFrame, scheduledBefore);
+      final Future<void> refusal = expectLater(
+        gate.capture<void>(() async { readbacks++; }),
+        throwsA(isA<CaptureFrameRefused>()),
+      );
+      final CaptureFrameReceipt original = gate.receipt!;
+      expect(original.original, same(frame.future));
+      expect(original.refusalState, isNull);
+      if (delivered) await tester.pump();
+      deadline.complete();
+      await refusal;
+      final CaptureFrameState state = original.refusalState!;
+      expect(state.persistentCallbacksObserved, delivered ? 1 : 0);
+      expect(state.beginFrameCallbackRegistered,
+        binding.platformDispatcher.onBeginFrame != null);
+      expect(state.drawFrameCallbackRegistered,
+        binding.platformDispatcher.onDrawFrame != null);
+      expect(state.toJson()['schema'], 2);
+      expect(readbacks, 0);
+      expect(original.outcome, isNull);
+      frame.complete();
+      await original.completion;
+      await tester.pump();
+      expect(original.refusalState, same(state));
+      expect(state.persistentCallbacksObserved, delivered ? 1 : 0);
+      expect(original.status, CaptureFrameStatus.held);
+      expect(gate.requireIdle, throwsA(isA<CaptureFrameRefused>()));
+      expect(readbacks, 0);
+    }
+  });
+
+  test('callback observations preserve legacy absence and refuse '
+      'unbounded or foreign values', () {
+    final CaptureFrameCallbackCounter callbacks = CaptureFrameCallbackCounter();
+    callbacks.begin();
+    expect(callbacks.value, 0);
+    callbacks.observe();
+    expect(callbacks.value, 1);
+    for (int i = 1; i < CaptureFrameCallbackCounter.maxCallbacks; i++) {
+      callbacks.observe();
+    }
+    expect(callbacks.value, CaptureFrameCallbackCounter.maxCallbacks);
+    callbacks.observe();
+    expect(callbacks.value, 'unknown');
+    callbacks.observe();
+    expect(callbacks.value, 'unknown');
+    callbacks.begin();
+    expect(callbacks.value, 0);
+    final Map<String, Object> legacy = <String, Object>{
+      'schema': 1, 'scheduler_phase': 'idle', 'lifecycle_state': 'none',
+      'frames_enabled': true, 'has_scheduled_frame': true,
+      'binding_current': true,
+    };
+    final CaptureFrameState retained = CaptureFrameState.fromJson(legacy)!;
+    expect(retained.toJson(), legacy);
+    expect(retained.persistentCallbacksObserved, isNull);
+    final Map<String, Object> progress = <String, Object>{
+      ...legacy, 'schema': 2, 'begin_frame_callback_registered': true,
+      'draw_frame_callback_registered': true,
+      'persistent_callbacks_observed': 0,
+    };
+    for (final Object count in <Object>[0, 1, 65535, 'unknown']) {
+      final Map<String, Object> value = <String, Object>{
+        ...progress, 'persistent_callbacks_observed': count,
+      };
+      expect(CaptureFrameState.fromJson(value)!.toJson(), value);
+    }
+    for (final Object? count in <Object?>[
+      true, false, -1, 65536, 0.0, null, 'Synthetic private frame',
+    ]) {
+      expect(CaptureFrameState.fromJson(<String, Object?>{
+        ...progress, 'persistent_callbacks_observed': count,
+      }), isNull);
+    }
+    for (final String key in progress.keys) {
+      final Map<String, Object> missing = Map<String, Object>.from(progress)
+        ..remove(key);
+      expect(CaptureFrameState.fromJson(missing), isNull);
+    }
+    expect(CaptureFrameState.fromJson(<String, Object>{
+      ...progress, 'begin_frame_callback_registered': 1,
+    }), isNull);
+    expect(CaptureFrameState.fromJson(<String, Object>{
+      ...progress,
+      'draw_frame_callback_registered': 'Synthetic private callback',
+    }), isNull);
+    expect(CaptureFrameState.fromJson(<String, Object>{
+      ...progress, 'private_path': 'Synthetic private source',
+    }), isNull);
+  });
+
   testWidgets('post-frame admission requests its own next original frame', (
     WidgetTester tester,
   ) async {
