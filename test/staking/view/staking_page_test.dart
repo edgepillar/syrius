@@ -484,7 +484,7 @@ void main() {
       history,
       const Stream<FetchState<RewardHistoryList>>.empty(),
       initialState: FetchFailure<RewardHistoryList>(
-        exception: Exception('history unavailable'),
+        exception: FailureException(),
       ),
     );
     await show(tester);

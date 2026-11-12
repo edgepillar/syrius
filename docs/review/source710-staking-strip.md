@@ -15,9 +15,18 @@ remain in use. No illustrative financial values are introduced.
 
 Two existing widget cases now also distinguish unknown history, the explicit
 no-rewards response and an unrelated failure, and check the Collect position.
-Registered test counts are unchanged. Fresh hosted validation and actual
-Windows visual comparison remain pending; the older Staking findings stay
-open.
+Registered test counts are unchanged. Actual Windows visual comparison
+remains pending; the older Staking findings stay open.
+
+The [Source710 full Linux workflow](https://github.com/edgepillar/syrius/actions/runs/43320154448)
+passes controller tests and patched analysis, then stops in application
+analysis. The unrelated-failure widget fixture passed a plain Exception
+where FetchFailure requires SyriusException. Source711 uses the existing
+FailureException emitted by the real FetchBloc. It also applies the new
+adjacent action's null-aware collection element suggested by analysis.
+Unit/widget and generation steps were not reached in the failed run.
+Fresh combined hosted validation is required; no native job was dispatched
+at Source710.
 
 ## Source709 qualification
 

@@ -9,6 +9,13 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 73/80 original rows, four review and three blocked.
 
 Detailed qualification has resumed after the first code delivery.
+Source710's full Linux run stops at application analysis because the new
+unrelated-history-error test uses a plain Exception instead of the required
+SyriusException. Source711 uses the existing FailureException emitted by the
+real FetchBloc and applies the adjacent action's null-aware element. Unit/widget
+and generation checks were not reached; no native job was dispatched at
+Source710. Fresh combined qualification is pending.
+
 [Source710](source710-staking-strip.md) keeps the Staking weekly-reward label
 through unknown responses and places Collect beside the figures. Explicit
 no-rewards data produce zero; other failures remain unknown. Its hosted and

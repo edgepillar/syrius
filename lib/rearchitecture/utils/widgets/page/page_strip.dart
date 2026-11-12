@@ -121,7 +121,7 @@ class PageStrip extends StatelessWidget {
                         SizedBox(width: figureGap ?? tokens.panelGap * 2),
                       Flexible(child: _StripFigureView(figures[i])),
                     ],
-                    if (figureAction != null) figureAction!,
+                    ?figureAction,
                   ],
                 ),
               ),
