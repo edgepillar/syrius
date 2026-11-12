@@ -1,5 +1,9 @@
 # Current checks and remaining redesign acceptance
 
+This is the Source694 snapshot. [Source695](source695-seam-coverage.md)
+subsequently closes the original V03 coverage requirement, bringing progress
+to 73/80 without repeating native execution. The earlier snapshot below remains.
+
 Recorded 2026-11-12. The original scope remains 80 rows: 72 done, four in
 review and four blocked. The core interface is available for Draft review;
 this is not complete redesign acceptance or a release qualification.

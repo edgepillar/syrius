@@ -6,7 +6,13 @@ The core interface and existing basic functionality are available for
 [Draft code review](https://github.com/sol-znn/syrius/pull/6). Unavailable
 services remain drawn behind their registered seams. This milestone follows
 the owner's fast-delivery choice. Complete redesign acceptance remains open:
-72/80 original rows, four review and four blocked.
+73/80 original rows, four review and three blocked.
+
+The [Source695 seam coverage audit](source695-seam-coverage.md) closes original
+V03 using the existing fifteen-value native observations and current runtime
+source correspondence. The later eleven-control Home batch remains incomplete;
+none of its original failures is reclassified. Earlier 72/80 statements below
+retain their historical revisions and scope.
 
 ## Verified results
 
@@ -1495,7 +1501,6 @@ frontier reads after such a failure. Their native observation remains pending.
 | F06 | Complete the required post-seed screen-state proof using the existing HTLC deposit. The missing two-sided Swap coordinator remains seamed and is not an implementation task. Source548 qualifies the original six receipts and copied lifecycle. Source561 qualifies the restored Stake and Token captures. Source563 qualifies the separate New stake draft with one Stake prerequisite. Source569 qualifies the Sentinel fixture pair. Source607 verifies the Spawn pair. Source608 confirms Pillar registration in the incomplete prefix, in its original failed attempt. Source611 separately verifies the confirmed registration, both Pillar Done captures and normal closure. |
 | V01/V05 | Review all 94 available literal pairs, resolve retained layout/type/spacing findings and explicitly accept each match. Availability is 94/94. Accepted whole-image matches are 0/94. |
 | V02 | Observe every motion/shader row in the running build and compare page-change, disclosure and launch frame times with the original baseline. Finite widget timing or stall telemetry alone does not close this gate. |
-| V03 | Try every original seam control, shortcut and Go To entry in the running native wallet and verify refusal. Registry and widget controls remain partial evidence. |
 | V06 | Check every original end-state requirement and complete independent final acceptance. The earlier minimum-window/Arabic viewing remains source-bound. |
 
 Confirmed defects affecting keys, signing, input, current-source or action

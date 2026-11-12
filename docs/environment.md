@@ -286,6 +286,23 @@ terminal, no artifacts are produced and no native wallet/lab lane is selected.
 No test, SDK or artifact is downloaded or executed locally. The earlier native
 causes, zero accepted whole-image matches and full 72/80 acceptance remain.
 
+### Source695 original V03 coverage (2026-11-12)
+
+The [seam audit](review/source695-seam-coverage.md) maps all fifteen registered
+values to existing native control refusals, plus the only seamed Go To route's
+pointer and keyboard refusal. All eight original producer/reader runs and jobs
+are revalidated at their exact heads. Current runtime entries match Source686;
+the sole runtime difference from Source648/670/676 is the token holder observer
+already qualified by Source686. No native experiment or artifact transfer is
+repeated.
+
+Source670's original five-control producer notice remains distinct from its
+legacy reader's context/manifest/closure verification. No new per-control
+archive projection or live Zap receipt is claimed. Original V03 is complete;
+the later eleven-control Home batch and its original failures remain separate.
+Progress becomes 73/80, with seven original gates open. This is documentation
+only and grants no current whole-application native or visual qualification.
+
 ## Retained qualification status (2026-11-05)
 
 The [qualified Source492 Activity result](review/source489-activity-reference-spacing.md#actual-source492-focused-result)
