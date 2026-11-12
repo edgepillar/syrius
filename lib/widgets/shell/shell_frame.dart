@@ -53,21 +53,28 @@ class ShellFrame extends StatelessWidget {
           Expanded(
             child: Padding(
               padding: locked ? EdgeInsets.zero : tokens.shellPadding,
-              child: Column(
+              child: CustomMultiChildLayout(
+                delegate: _ShellSurfaceLayout(
+                  locked: locked,
+                  gap: tokens.shellStatusGap,
+                ),
                 children: <Widget>[
-                  Expanded(
+                  LayoutId(
+                    id: _ShellSurface.page,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(tokens.cardRadius),
                       clipBehavior: locked ? Clip.none : Clip.antiAlias,
                       child: RepaintBoundary(child: page),
                     ),
                   ),
-                  SizedBox(height: locked ? 0 : tokens.shellStatusGap),
-                  Padding(
-                    padding: locked
-                        ? tokens.lockedStatusPadding
-                        : EdgeInsets.zero,
-                    child: RepaintBoundary(child: status),
+                  LayoutId(
+                    id: _ShellSurface.status,
+                    child: Padding(
+                      padding: locked
+                          ? tokens.lockedStatusPadding
+                          : EdgeInsets.zero,
+                      child: RepaintBoundary(child: status),
+                    ),
                   ),
                 ],
               ),
@@ -77,4 +84,36 @@ class ShellFrame extends StatelessWidget {
       );
     },
   );
+}
+
+enum _ShellSurface { page, status }
+
+/// Entry is centered in the full field. Its inset status stays above that
+/// field; the working page instead reserves the status's actual height.
+class _ShellSurfaceLayout extends MultiChildLayoutDelegate {
+  _ShellSurfaceLayout({required this.locked, required this.gap});
+
+  final bool locked;
+  final double gap;
+
+  @override
+  void performLayout(Size size) {
+    final Size status = layoutChild(
+      _ShellSurface.status,
+      BoxConstraints(maxWidth: size.width, maxHeight: size.height),
+    );
+    positionChild(_ShellSurface.status, Offset(0, size.height - status.height));
+    final double pageHeight = locked
+        ? size.height
+        : (size.height - status.height - gap).clamp(0.0, size.height);
+    layoutChild(
+      _ShellSurface.page,
+      BoxConstraints.tight(Size(size.width, pageHeight)),
+    );
+    positionChild(_ShellSurface.page, Offset.zero);
+  }
+
+  @override
+  bool shouldRelayout(_ShellSurfaceLayout oldDelegate) =>
+      locked != oldDelegate.locked || gap != oldDelegate.gap;
 }

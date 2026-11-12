@@ -12,8 +12,11 @@ Detailed qualification has resumed after the first code delivery. Source698
 now qualifies the [original seeded Swap list capture](source698-seeded-swap-list.md)
 with its six seed receipts and normal closure. The [initial catalog review](source699-initial-catalog-review.md)
 covers all 94 archived pairs, with zero accepted matches. Source699 removes
-shared secondary-action fills and populated-list end notices; fresh hosted
-checks and native recaptures remain pending for those UI changes. Earlier
+shared secondary-action fills and populated-list end notices. Its full Linux
+workflow and selected Windows engine tests pass, and an independent reader
+verifies four new Staking/Token captures. Their visual review is pending.
+Source700 fixes Lock centering and the wallet selector arrow; fresh hosted
+checks and native Lock recaptures are pending for those changes. Earlier
 first-delivery results keep their recorded revisions and scope.
 
 The [Source695 seam coverage audit](source695-seam-coverage.md) closes original

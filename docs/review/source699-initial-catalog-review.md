@@ -14,8 +14,14 @@ Browser rendering and the fresh 94-pair review remain pending.
 The first shared fixes remove inherited solid green backgrounds from text
 actions and remove terminal notices after populated tables and grids. Explicit
 primary controls keep their own surfaces. Button sizes, callbacks, pagination,
-loading indicators and genuine empty/error states are unchanged. Fresh hosted
-tests and native recaptures are required for these UI changes.
+loading indicators and genuine empty/error states are unchanged. The
+[full Linux workflow](https://github.com/edgepillar/syrius/actions/runs/43252288032)
+passes analysis, the non-chain test directory and tracked generation checks.
+The [Windows producer](https://github.com/edgepillar/syrius/actions/runs/43252347402)
+and [reader](https://github.com/edgepillar/syrius/actions/runs/43256566119)
+verify four new Staking/Token captures, 1,480 selected Dart passes and normal
+required wallet/node closure. The bounded MSVC telemetry helper termination is
+recorded separately. Visual review of these captures remains pending.
 
 Further observations include shell/header loss in full-page flows, modal and
 lock-card alignment, field and table geometry, and captures made before original

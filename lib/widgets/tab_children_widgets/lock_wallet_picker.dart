@@ -119,27 +119,32 @@ class LockWalletPicker extends StatelessWidget {
           size: tokens.lockGlyphSize,
         ),
         SizedBox(width: tokens.inlineGap),
-        Flexible(
-          child: Tooltip(
-            message: current.name,
-            child: Text(
-              current.name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: tokens.headingText,
-            ),
+        Expanded(
+          child: Row(
+            children: <Widget>[
+              Flexible(
+                child: Tooltip(
+                  message: current.name,
+                  child: Text(
+                    current.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: tokens.headingText,
+                  ),
+                ),
+              ),
+              if (current.address case final String address) ...<Widget>[
+                SizedBox(width: tokens.fieldLabelGap),
+                Flexible(
+                  child: _LockAddress(
+                    address: address,
+                    style: tokens.lockAddressText,
+                  ),
+                ),
+              ],
+            ],
           ),
         ),
-        if (current.address case final String address) ...<Widget>[
-          SizedBox(width: tokens.fieldLabelGap),
-          Flexible(
-            child: _LockAddress(
-              address: address,
-              style: tokens.lockAddressText,
-            ),
-          ),
-        ],
-        const Spacer(),
         SeamGate(
           seam: Seam.walletPicker,
           child: IconButton(

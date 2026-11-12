@@ -178,6 +178,15 @@ void main() {
           expect(find.text('Lab devnet'), findsNothing);
           final Rect field = tester.getRect(find.byKey(_field));
           expect(field.size, Size(362, tokens.fieldHeight));
+          final Rect arrow = tester.getRect(find.byKey(_arrow));
+          final EdgeInsets inset = tokens.lockFieldPadding.resolve(direction);
+          expect(arrow.center.dy, field.center.dy);
+          expect(
+            direction == TextDirection.ltr
+                ? field.right - arrow.right
+                : arrow.left - field.left,
+            (direction == TextDirection.ltr ? inset.right : inset.left) + 1,
+          );
           expect(
             tester
                 .getSize(

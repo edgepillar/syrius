@@ -165,6 +165,7 @@ void main() {
         addTearDown(railFocus.dispose);
         const Key page = ValueKey<String>('page field');
         const Key status = ValueKey<String>('connection status');
+        int statusTaps = 0;
         await tester.pumpWidget(
           MaterialApp(
             home: Directionality(
@@ -181,10 +182,11 @@ void main() {
                     ),
                   ),
                   page: const SizedBox.expand(key: page),
-                  status: const SizedBox(
+                  status: GestureDetector(
                     key: status,
-                    width: double.infinity,
-                    height: 18,
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => statusTaps++,
+                    child: const SizedBox(width: double.infinity, height: 18),
                   ),
                 ),
               ),
@@ -203,7 +205,14 @@ void main() {
         expect(railFocus.hasFocus, isFalse);
         expect(railFocus.canRequestFocus, isFalse);
         expect(tester.getTopLeft(find.byKey(page)).dx, 0);
-        expect(tester.getSize(find.byKey(page)).width, viewport.width);
+        expect(tester.getSize(find.byKey(page)), viewport);
+        expect(
+          tester.getCenter(find.byKey(page)),
+          Offset(viewport.width / 2, viewport.height / 2),
+        );
+        expect(tester.getRect(find.byKey(status)).bottom, viewport.height - 14);
+        await tester.tap(find.byKey(status));
+        expect(statusTaps, 1);
         expect(tester.getTopLeft(find.byKey(status)).dx, 16);
         expect(tester.getSize(find.byKey(status)).width, viewport.width - 32);
         final TickerMode mode = tester.widget<TickerMode>(
