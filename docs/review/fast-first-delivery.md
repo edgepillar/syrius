@@ -15,6 +15,10 @@ full Linux analysis failure remains recorded; its unit/widget and generation
 steps were not reached. The native F06 workflow was not dispatched. Fresh
 hosted qualification is pending.
 
+Source709 also resolves the observer test's six new analyzer infos: one import
+ordering issue and five long lines. Assertions and registered cases are
+unchanged. Combined fresh qualification is pending at the final source.
+
 [Source707](source707-fixture-and-transport.md) adds a bounded observation of
 the existing harness-only aged-fuse view after all six seed effects. Fixed
 facts require the displayed expired rows, disabled controls, banner, actual

@@ -24,3 +24,11 @@ Source706 remains the latest successful full Linux revision. Its independently
 verified Lock HTTP_FAILED result retains zero PNGs, two normal actor exits
 and an unestablished entered command and inner cause. Original acceptance
 remains 73/80, with the same seven rows open and zero whole-image matches.
+
+## Observer test formatting
+
+Source709 orders the new test import and wraps five lines identified by the
+Source707 analyzer. All original assertions and registered cases remain.
+Combined fresh qualification will include the Source707 observer, Source708
+import correction and this test formatting. No intermediate native F06 run
+or successful observation is claimed.

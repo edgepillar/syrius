@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../harness/bin/ci_wallet_reopen.dart' as entry;
 import '../../harness/app/fixtures/fixture_cleanup.dart';
 import '../../harness/app/fixtures/seed_commands.dart';
 import '../../harness/app/fixtures/seed_deposit_entry.dart';
 import '../../harness/app/fixtures/seed_deposit_presentation.dart';
 import '../../harness/app/fixtures/seed_policy.dart';
+import '../../harness/bin/ci_wallet_reopen.dart' as entry;
 import '../../harness/seed_preparation_failure.dart';
 
 class _PrivatePreparationError implements Exception {
@@ -330,7 +330,9 @@ void main() {
   );
 
   test('held cleanup leaves the original confirmed hash readable', () async {
-    for (final String mode in <String>['normal', 'held', 'private', 'replaced']) {
+    for (final String mode in <String>[
+      'normal', 'held', 'private', 'replaced',
+    ]) {
       int elapsed = 0;
       int owners = 0;
       int states = 0;
@@ -365,7 +367,10 @@ void main() {
                 };
               }
               return <String, dynamic>{
-                'ok': true, 'fixture': 'aged-fuse', 'readOnly': true, 'chain': 321,
+                'ok': true,
+                'fixture': 'aged-fuse',
+                'readOnly': true,
+                'chain': 321,
               };
             case 'tree':
               return <String, dynamic>{
@@ -378,7 +383,9 @@ void main() {
                   for (int id = 1; id <= 2; id++) ...<Map<String, Object?>>[
                     <String, Object?>{...rect, 'kind': 'button',
                       'key': 'plasma_cancel_${_hash(id)}', 'enabled': false},
-                    <String, Object?>{...rect, 'kind': 'text', 'label': 'Cancelable'},
+                    <String, Object?>{
+                      ...rect, 'kind': 'text', 'label': 'Cancelable',
+                    },
                   ],
                 ],
               };
@@ -389,7 +396,8 @@ void main() {
             case 'state':
               return <String, dynamic>{
                 'ok': true, 'booted': true, 'walletUnlocked': true,
-                if (++states == 1 || mode == 'held') 'harnessFixture': 'aged-fuse',
+                if (++states == 1 || mode == 'held')
+                  'harnessFixture': 'aged-fuse',
               };
             default:
               throw StateError('Unexpected fixture operation');
@@ -413,7 +421,9 @@ void main() {
         await expectLater(observe(), throwsFormatException);
         expect(owners, 1);
       }
-      expect(observed.where((String command) => command == 'seed'), hasLength(1));
+      expect(
+        observed.where((String command) => command == 'seed'), hasLength(1),
+      );
       expect(observed.where((String command) => command == 'tap'),
           hasLength(mode == 'private' ? 0 : 1));
     }
