@@ -756,7 +756,7 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
         hintText: context.l10n.amount,
         suffixText: token.symbol,
         suffixStyle: tokens.dataText.copyWith(
-          color: cardTokenInk(token.tokenStandard, context),
+          color: tokens.faint,
         ),
         suffixIcon: TextButton(
           onPressed: current() && max > BigInt.zero && !_submitting

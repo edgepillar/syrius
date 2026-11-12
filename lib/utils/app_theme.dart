@@ -2397,6 +2397,43 @@ class AppTheme {
     labelSmall: tokens.ledgerText.copyWith(fontFamily: tokens.sansFontFamily),
   );
 
+  /// Text actions inherit ink independently of the card's surface role.
+  static TextButtonThemeData _textButtonTheme(AppTokens tokens) {
+    final WidgetStateProperty<Color?> ink =
+        WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+          if (states.contains(WidgetState.disabled)) {
+            return tokens.faint;
+          }
+          if (states.contains(WidgetState.hovered) ||
+              states.contains(WidgetState.focused) ||
+              states.contains(WidgetState.pressed)) {
+            return tokens.foreground;
+          }
+          return tokens.dim;
+        });
+    return TextButtonThemeData(
+      style: kTextButtonThemeData.style!.copyWith(
+        foregroundColor: ink,
+        iconColor: ink,
+        overlayColor: WidgetStateProperty.resolveWith<Color?>((
+          Set<WidgetState> states,
+        ) {
+          if (states.contains(WidgetState.disabled)) {
+            return Colors.transparent;
+          }
+          if (states.contains(WidgetState.pressed)) {
+            return tokens.foreground.withValues(alpha: 0.12);
+          }
+          if (states.contains(WidgetState.hovered) ||
+              states.contains(WidgetState.focused)) {
+            return tokens.foreground.withValues(alpha: 0.07);
+          }
+          return Colors.transparent;
+        }),
+      ),
+    );
+  }
+
   /// Existing callers use primary and primaryContainer as raised surfaces.
   /// Brand fills have their own tokens, so a token migration does not turn
   /// every existing card green.
@@ -2433,7 +2470,7 @@ class AppTheme {
     useMaterial3: true,
     extensions: const <ThemeExtension<dynamic>>[AppTokens.light],
     hoverColor: AppTokens.light.hover,
-    textButtonTheme: kTextButtonThemeData,
+    textButtonTheme: _textButtonTheme(AppTokens.light),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: primaryButtonStyle(disabledLine: const Color(0xFFB9BCB9)).copyWith(
         foregroundColor: WidgetStateProperty.resolveWith(
@@ -2600,7 +2637,7 @@ class AppTheme {
     useMaterial3: true,
     extensions: const <ThemeExtension<dynamic>>[AppTokens.dark],
     hoverColor: AppTokens.dark.hover,
-    textButtonTheme: kTextButtonThemeData,
+    textButtonTheme: _textButtonTheme(AppTokens.dark),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: primaryButtonStyle(disabledLine: const Color(0xFF4A4D4A)).copyWith(
         foregroundColor: WidgetStateProperty.resolveWith(

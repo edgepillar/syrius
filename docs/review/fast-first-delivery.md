@@ -9,18 +9,22 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 73/80 original rows, four review and three blocked.
 
 Detailed qualification has resumed after the first code delivery. Source698
-now qualifies the [original seeded Swap list capture](source698-seeded-swap-list.md)
-with its six seed receipts and normal closure. The [initial catalog review](source699-initial-catalog-review.md)
-covers all 94 archived pairs, with zero accepted matches. Source699 removes
-shared secondary-action fills and populated-list end notices. Its full Linux
-workflow and selected Windows engine tests pass, and an independent reader
-verifies four new Staking/Token captures. Their visual review is pending.
-Source700 fixes Lock centering and the wallet selector arrow. Its full Linux
-workflow and selected Windows tests pass; an independent reader verifies six
-Lock captures and four normal actor exits. Their visual review is pending.
-Source701 reuses the measured entry field for Lock and Wallet Ready and restores
-the Ready map scale and completion ledger. Fresh hosted checks and recaptures
-are pending. Earlier first-delivery results keep their revisions and scope.
+qualifies the [original seeded Swap list capture](source698-seeded-swap-list.md)
+with six seed receipts and normal closure. The [initial catalog review](source699-initial-catalog-review.md)
+covers all 94 archived pairs, with zero accepted matches. Four refreshed
+Source699 Staking/Token pairs and six Source701 Lock pairs have now also been
+actually reviewed. They retain mismatches, including weak Token text-action
+contrast and the expanded Lock picker's geometry and active lower controls.
+[Source702](source702-text-actions.md) fixes the shared text-action ink and
+neutral amount-unit suffixes; its hosted checks are pending.
+
+[Source701](source701-entry-surfaces.md) passes the full Linux workflow and
+selected Windows Lock checks. Six Lock captures and four normal actor exits
+are independently verified. Its separate Ready producer fails during
+onboarding with zero images and required-actor forced cleanup. The independent
+reader confirms that failed receipt; the inner cause remains unestablished.
+No native Ready success or retry is claimed. Earlier results keep their own
+revisions and scopes.
 
 The [Source695 seam coverage audit](source695-seam-coverage.md) closes original
 V03 using the existing fifteen-value native observations and current runtime

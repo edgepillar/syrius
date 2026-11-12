@@ -213,6 +213,29 @@ void main() {
         expect(tokens.dollarText.fontSize, 13);
         expect(tokens.dollarText.color, tokens.faint);
         expect(tokens.dataText.color, tokens.foreground);
+        final ThemeData data = theme.key == 'dark'
+            ? AppTheme.darkTheme
+            : AppTheme.lightTheme;
+        for (final Set<WidgetState> states in <Set<WidgetState>>[
+          <WidgetState>{},
+          <WidgetState>{WidgetState.hovered},
+          <WidgetState>{WidgetState.focused},
+          <WidgetState>{WidgetState.pressed},
+        ]) {
+          final Color ink =
+              data.textButtonTheme.style!.foregroundColor!.resolve(states)!;
+          for (final Color surface in <Color>[
+            tokens.background, tokens.card, tokens.card2, tokens.card3,
+          ]) {
+            final double foreground = ink.computeLuminance();
+            final double background = surface.computeLuminance();
+            final double ratio =
+                (math.max(foreground, background) + 0.05) /
+                (math.min(foreground, background) + 0.05);
+            expect(ratio, greaterThanOrEqualTo(4.5),
+              reason: 'Readable text actions in ${theme.key}, $states');
+          }
+        }
       });
 
       test('component measures keep the mockup shape and glass layers', () {
