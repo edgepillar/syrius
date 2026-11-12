@@ -39,6 +39,14 @@ memory controls pass; two new Dart cases and fresh hosted/native observation are
 pending. The current selected Dart expectation is 1,469, with 1,213 Python and
 122 reader cases. The original Home cause and full 72/80 acceptance remain open.
 
+The [Source688 run](https://github.com/edgepillar/syrius/actions/runs/43127664823)
+passes 1,213 Python cases with eighteen platform skips and no failures/errors.
+One callback-test cascade info stops selected analysis, with zero errors or
+warnings. Dart and native execution are unreached, with zero artifacts and no
+applicable archive reader. Source689 joins the same constructor/begin pair with
+cascade syntax. No assertion, production code, count or deadline changes, and
+no local test is repeated. Fresh hosted qualification remains pending.
+
 ### Earlier source-bound results
 
 Source548 Native127 qualifies all six copied seed receipts, their journals and

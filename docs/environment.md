@@ -186,6 +186,16 @@ registration stays 1,213 and the retained reader selection 122; the selected Dar
 expectation becomes 1,469. The original Home cause, 72/80 and all deferred gates
 remain open.
 
+The [Source688 run](https://github.com/edgepillar/syrius/actions/runs/43127664823)
+passes all 1,213 registered Python cases with eighteen explicit platform skips
+and no failures/errors. Selected analysis exits zero but the unchanged strict
+gate refuses its one CASCADE_INVOCATIONS info at callback-test line 86. Zero
+errors/warnings and complete output remain separate from that failed gate.
+Dart tests, node and wallet execution are unreached; zero artifacts make an
+archive reader inapplicable. Source689 expresses the same constructor and first
+begin call as a cascade. Assertions and production bytes remain; current Dart/
+native qualification, the Home cause and full 72/80 acceptance stay open.
+
 ## Retained qualification status (2026-11-05)
 
 The [qualified Source492 Activity result](review/source489-activity-reference-spacing.md#actual-source492-focused-result)

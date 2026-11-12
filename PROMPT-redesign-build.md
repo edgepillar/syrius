@@ -3640,3 +3640,18 @@ reader cases gain schema-2 checks. Python registration stays 1,213 and the reade
 selection 122; the selected Dart expectation is 1,469. Current hosted analysis,
 Dart and native observation are pending. Source678's cause, original 72/80 and
 all eight deferred gates remain open.
+
+## Source689 callback test cascade style
+
+The [Source688 run](https://github.com/edgepillar/syrius/actions/runs/43127664823)
+passes 1,213 Python cases with eighteen explicit platform skips and no failures.
+Selected analysis retains one CASCADE_INVOCATIONS info at the callback test's
+constructor/initialization pair, with zero errors or warnings. The strict gate
+stops before Dart tests and native execution; zero artifacts make a reader
+inapplicable. The original refusal is preserved.
+
+Source689 expresses that same constructor and first begin call as a cascade.
+All assertions, production code, selected counts, 250 ms admission and permanent
+hold remain. The 140 Source688 memory controls retain their original scope and
+are not repeated locally. Fresh hosted Dart/native qualification, the Home
+cause, original 72/80 and all eight deferred gates remain open.

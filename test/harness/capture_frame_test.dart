@@ -82,8 +82,8 @@ void main() {
 
   test('callback observations preserve legacy absence and refuse '
       'unbounded or foreign values', () {
-    final CaptureFrameCallbackCounter callbacks = CaptureFrameCallbackCounter();
-    callbacks.begin();
+    final CaptureFrameCallbackCounter callbacks =
+        CaptureFrameCallbackCounter()..begin();
     expect(callbacks.value, 0);
     callbacks.observe();
     expect(callbacks.value, 1);
