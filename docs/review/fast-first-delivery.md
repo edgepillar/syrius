@@ -66,6 +66,16 @@ Hosted reinspection of the same two Source689 archives is pending. No new native
 producer, SDK, wallet, node or local archive transfer is required. Full 72/80
 acceptance and all eight deferred gates remain open.
 
+The [Source690 reader](https://github.com/edgepillar/syrius/actions/runs/43135399525)
+now succeeds at `095d94e9da36`, attempt one, job `130909419256`.
+All 123 controls pass without skips or failures. It verifies both original
+Source689 archives, all 81 producer sources and two separate parent-bound node
+timing components. The six retained log occurrences do not establish a cause.
+The original light Go To theme failure, forced required actor cleanup, empty
+eleven-control Home prefix and zero qualified PNGs remain. Source689's failed
+reader is not retried or reclassified. Source691 records this result in
+documentation only; native runtime and full 72/80 acceptance remain open.
+
 ### Earlier source-bound results
 
 Source548 Native127 qualifies all six copied seed receipts, their journals and

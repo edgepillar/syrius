@@ -3678,3 +3678,16 @@ All 141 selected memory controls pass with no external effects; Python discovery
 becomes 1,214 and the reader expectation 123. Hosted reinspection reuses the same
 two Source689 archives; no new native producer or local archive transfer is
 required. Full 72/80 acceptance and all eight deferred gates remain open.
+
+## Source691 verified original-archive reader result
+
+The [Source690 reader](https://github.com/edgepillar/syrius/actions/runs/43135399525)
+passes all 123 controls and independently verifies both original Source689
+archives and all 81 producer source files. Its two separate timing components
+bind the original parent, source, attempt, archive and manifest. Their six log
+occurrences do not identify the native cause. The original light Go To
+`themeSelection` failure, forced required actor cleanup, empty eleven-control
+prefix and zero qualified PNGs remain. All jobs are terminal. Source691 records
+the result in documentation only; no test, native producer or original failed
+reader is repeated. Full acceptance remains 72/80 with all eight deferred gates
+open and zero accepted whole-image matches.

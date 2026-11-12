@@ -223,6 +223,18 @@ artifact transport is admitted. Earlier successes and failures retain their
 original revisions and scopes. Full acceptance remains 72/80, with zero accepted
 whole-image matches and all eight deferred gates open.
 
+The [Source690 reader](https://github.com/edgepillar/syrius/actions/runs/43135399525)
+subsequently succeeds at `095d94e9da369ca792b746b450d96e8a2fb96306`,
+attempt one, job `130909419256`. All 123 reader controls pass with no skips,
+failures or errors. Both original Source689 archives and 81 producer sources
+are verified. Two bounded timing components bind the same original parent;
+their six observed log occurrences are not causal evidence. The exact original
+theme failure, forced required actor cleanup and zero qualified PNGs remain.
+No original producer or reader is retried, and no artifact is transferred
+locally. All jobs are terminal and source is unfrozen. Source691 records these
+facts in documentation only; no control or native execution is repeated.
+Original 72/80 acceptance and all eight deferred gates remain open.
+
 ## Retained qualification status (2026-11-05)
 
 The [qualified Source492 Activity result](review/source489-activity-reference-spacing.md#actual-source492-focused-result)
