@@ -1157,6 +1157,32 @@ class InspectionTests(unittest.TestCase):
             with self.assertRaises(inspection.Refused):
                 inspection.entry_failure(dict(value, **change))
 
+        self.assertEqual(inspection.entry_marker_kind(
+            b'CI_INSPECT_ERROR:synthetic private marker'), 'error')
+        self.assertEqual(inspection.entry_marker_kind(
+            b'synthetic private marker'), 'other')
+        self.assertEqual(inspection.entry_marker_kind({}), 'unrecognized')
+        self.assertEqual(inspection.entry_marker_kind(
+            b'SYRIUS_INSPECTION_CATALOG:synthetic private marker'), 'catalog')
+
+        refused = dict(value, diagnostic=dict(value['diagnostic'],
+            password='synthetic private input'), owner='synthetic private owner')
+        with self.assertRaises((inspection.Refused, inspection.shared.Refused)):
+            inspection.entry_failure(refused)
+        projected = inspection.refused_entry_marker(refused)
+        self.assertEqual(projected['stage'], 'onboarding')
+        self.assertEqual(projected['control'], 'import_seed_field')
+        self.assertEqual(projected['reason'], 'wallet-recipe-control-disabled')
+        self.assertNotIn('synthetic private', json.dumps(projected))
+        self.assertNotIn('password', projected)
+        for changed in (None, [], 7, dict(stage=[], code={},
+                diagnostic=dict(action=[], control={}, reason='synthetic private reason'))):
+            projected = inspection.refused_entry_marker(changed)
+            self.assertIsNone(projected['stage'])
+            self.assertIsNone(projected['code'])
+            self.assertIsNone(projected['reason'])
+            self.assertNotIn('synthetic private', json.dumps(projected))
+
     def test_settings_seam_manifest_retains_only_its_original_typed_prefix(self):
         expected = [dict(panel=panel, seam=seam) for panel, seam in (
             ('node', 'sporks'), ('security', 'autoLockOnClose'),

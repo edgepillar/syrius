@@ -96,6 +96,11 @@ class _LockCardState extends State<LockCard>
     animationBehavior: AnimationBehavior.preserve,
   );
   bool _obscure = true;
+  bool _pickerExpanded = false;
+  bool _restorePasswordFocus = false;
+
+  bool get _passwordEnabled =>
+      !widget.busy && widget.canUnlock && !_pickerExpanded;
 
   LaunchFilmController get _activeFilm => widget.startup?.film ?? _film;
 
@@ -116,13 +121,37 @@ class _LockCardState extends State<LockCard>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final bool expanded = context
+            .dependOnInheritedWidgetOfExactType<LockWalletPickerPreview>()
+            ?.visible ??
+        false;
+    if (expanded != _pickerExpanded) {
+      if (expanded) {
+        _obscure = true;
+        _restorePasswordFocus = _passwordFocus.hasFocus;
+        _passwordFocus.unfocus();
+      } else if (_restorePasswordFocus) {
+        _restorePasswordFocus = false;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && _passwordEnabled) {
+            _passwordFocus.requestFocus();
+          }
+        });
+      }
+      _pickerExpanded = expanded;
+    }
+  }
+
+  @override
   void didUpdateWidget(LockCard oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!oldWidget.busy && widget.busy) _obscure = true;
     if ((oldWidget.busy && !widget.busy) ||
         (!oldWidget.canUnlock && widget.canUnlock)) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && !widget.busy && widget.canUnlock) {
+        if (mounted && _passwordEnabled) {
           _passwordFocus.requestFocus();
         }
       });
@@ -146,9 +175,7 @@ class _LockCardState extends State<LockCard>
   }
 
   void _submit() {
-    if (!widget.busy &&
-        widget.canUnlock &&
-        widget.passwordController.text.isNotEmpty) {
+    if (_passwordEnabled && widget.passwordController.text.isNotEmpty) {
       widget.onUnlock();
     }
   }
@@ -280,9 +307,7 @@ class _LockCardState extends State<LockCard>
                               key: const ValueKey<String>(
                                 'wallet_unlock_button',
                               ),
-                              onPressed: widget.busy || !widget.canUnlock
-                                  ? null
-                                  : _submit,
+                              onPressed: _passwordEnabled ? _submit : null,
                               style: ButtonStyle(
                                 minimumSize: WidgetStatePropertyAll<Size>(
                                   Size(0, tokens.lockActionHeight),
@@ -291,7 +316,9 @@ class _LockCardState extends State<LockCard>
                                   tokens.lockActionText,
                                 ),
                               ),
-                              icon: widget.busy
+                              icon: _pickerExpanded
+                                  ? null
+                                  : widget.busy
                                   ? SizedBox.square(
                                       dimension: tokens.lockGlyphSize,
                                       child: CircularProgressIndicator(
@@ -306,8 +333,10 @@ class _LockCardState extends State<LockCard>
                               child: Text(context.l10n.lockUnlock),
                             ),
                           ),
-                          SizedBox(height: tokens.panelGap),
-                          _buildLinks(context, tokens),
+                          if (!_pickerExpanded) ...<Widget>[
+                            SizedBox(height: tokens.panelGap),
+                            _buildLinks(context, tokens),
+                          ],
                         ],
                       ),
                     ),
@@ -364,8 +393,9 @@ class _LockCardState extends State<LockCard>
           key: const ValueKey<String>('wallet_password_field'),
           controller: widget.passwordController,
           focusNode: _passwordFocus,
-          autofocus: widget.startup?.interactive ?? true,
-          enabled: !widget.busy && widget.canUnlock,
+          autofocus:
+              _passwordEnabled && (widget.startup?.interactive ?? true),
+          enabled: _passwordEnabled,
           obscureText: _obscure,
           enableSuggestions: false,
           autocorrect: false,
@@ -386,7 +416,7 @@ class _LockCardState extends State<LockCard>
               width: tokens.fieldHeight,
               height: tokens.fieldHeight,
             ),
-            suffixIcon: IconButton(
+            suffixIcon: _pickerExpanded ? null : IconButton(
               tooltip: _obscure
                   ? context.l10n.lockShowPassword
                   : context.l10n.lockHidePassword,
@@ -395,9 +425,13 @@ class _LockCardState extends State<LockCard>
                 width: tokens.fieldHeight,
                 height: tokens.fieldHeight,
               ),
-              onPressed: widget.busy || !widget.canUnlock
-                  ? null
-                  : () => setState(() => _obscure = !_obscure),
+              onPressed: _passwordEnabled
+                  ? () {
+                      if (_passwordEnabled) {
+                        setState(() => _obscure = !_obscure);
+                      }
+                    }
+                  : null,
               icon: Icon(
                 _obscure
                     ? Icons.visibility_outlined
@@ -424,7 +458,9 @@ class _LockCardState extends State<LockCard>
   OutlineInputBorder _passwordBorder(AppTokens tokens) => OutlineInputBorder(
     borderRadius: BorderRadius.circular(tokens.cardRadius),
     borderSide: BorderSide(
-      color: widget.incorrectPassword ? tokens.error : tokens.faint,
+      color: widget.incorrectPassword
+          ? tokens.error
+          : _pickerExpanded ? tokens.line : tokens.faint,
     ),
   );
 

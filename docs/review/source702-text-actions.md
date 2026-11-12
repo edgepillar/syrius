@@ -16,8 +16,19 @@ original action owners are preserved.
 
 The existing theme case now checks a minimum 4.5:1 luminance ratio for normal,
 hovered, focused and pressed text actions over four surfaces in both themes.
-It adds no registered test case. Hosted qualification of this revision is
-pending.
+It adds no registered test case. The [Source702 full Linux workflow](https://github.com/edgepillar/syrius/actions/runs/43276815364)
+passes application and patched-package analysis, the full non-chain test
+directory and tracked generation checks. Its [Windows producer](https://github.com/edgepillar/syrius/actions/runs/43276861188)
+and [reader](https://github.com/edgepillar/syrius/actions/runs/43282474675)
+verify four PNGs, the original Stake/Token prerequisites and normal required
+wallet/node closure. Selected checks pass 1,480 Dart cases, 1,214 Python cases
+with eighteen platform skips and analysis with zero findings. The separate
+MSVC telemetry helper termination remains recorded.
+
+All four new actual images and references were then viewed. Max, This address
+and Send are readable in both themes, and the amount-unit suffix is neutral.
+X695-X698 retain the remaining strip, table, detail and live-state differences.
+Zero whole-image matches are accepted.
 
 ## Retained visual findings
 

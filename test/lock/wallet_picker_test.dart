@@ -11,6 +11,7 @@ import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
 import 'package:zenon_syrius_wallet_flutter/seams/missing_services.dart';
 import 'package:zenon_syrius_wallet_flutter/seams/seam.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/lock_card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/lock_wallet_picker.dart';
@@ -64,6 +65,7 @@ Widget _host({
   bool light = false,
   TextDirection direction = TextDirection.ltr,
   double scale = 1,
+  ValueListenable<bool>? preview,
 }) => MaterialApp(
   locale: const Locale('en'),
   theme: light ? AppTheme.lightTheme : AppTheme.darkTheme,
@@ -75,7 +77,19 @@ Widget _host({
   ),
   home: Directionality(
     textDirection: direction,
-    child: Scaffold(body: child),
+    child: Scaffold(
+      body: preview == null ? child : ValueListenableBuilder<bool>(
+        valueListenable: preview,
+        child: child,
+        builder: (_, bool visible, Widget? child) => LockWalletPickerPreview(
+          visible: visible,
+          additionalEntries: const <LockWalletDisplayEntry>[
+            _hardware, _secondary,
+          ],
+          child: child!,
+        ),
+      ),
+    ),
   ),
 );
 
@@ -143,7 +157,10 @@ void main() {
         WidgetTester tester,
       ) async {
         final TextEditingController password = TextEditingController();
+        final ValueNotifier<bool> preview = ValueNotifier<bool>(false);
+        int unlocks = 0;
         addTearDown(password.dispose);
+        addTearDown(preview.dispose);
         final SemanticsHandle semantics = tester.ensureSemantics();
         try {
           await _show(
@@ -151,13 +168,14 @@ void main() {
             _host(
               light: light,
               direction: direction,
+              preview: preview,
               child: DefaultAssetBundle(
                 bundle: _PendingArtBundle(),
                 child: LockCard(
                   walletName: _current.name,
                   address: _current.address,
                   passwordController: password,
-                  onUnlock: () {},
+                  onUnlock: () => unlocks++,
                 ),
               ),
             ),
@@ -213,6 +231,60 @@ void main() {
           await tester.tapAt(tester.getCenter(find.byKey(_arrow)));
           await tester.pump();
           expect(find.byKey(_menu), findsNothing);
+          const Key passwordKey = ValueKey<String>('wallet_password_field');
+          const Key unlockKey = ValueKey<String>('wallet_unlock_button');
+          final State<LockCard> cardState = tester.state<State<LockCard>>(
+            find.byType(LockCard),
+          );
+          final Finder editable = find.descendant(
+            of: find.byKey(passwordKey), matching: find.byType(EditableText),
+          );
+          final EditableTextState fieldState =
+              tester.state<EditableTextState>(editable);
+          password.text = 'synthetic input';
+          final VoidCallback submit =
+              tester.widget<PrimaryPill>(find.byKey(unlockKey)).onPressed!;
+          final VoidCallback reveal = (tester.widget<TextField>(
+            find.byKey(passwordKey),
+          ).decoration!.suffixIcon! as IconButton).onPressed!;
+          reveal();
+          await tester.pump();
+          expect(_editable(tester, passwordKey).obscureText, isFalse);
+          preview.value = true;
+          await tester.pump();
+          reveal();
+          await tester.pump();
+          expect(_editable(tester, passwordKey).obscureText, isTrue);
+          expect(find.byKey(_menu), findsOneWidget);
+          expect(
+            tester.widget<TextField>(find.byKey(passwordKey)).enabled, isFalse,
+          );
+          expect(_editable(tester, passwordKey).focusNode.hasFocus, isFalse);
+          expect(
+            tester.widget<PrimaryPill>(find.byKey(unlockKey)).onPressed, isNull,
+          );
+          expect(find.byKey(const Key('lock_add_wallet_gate')), findsNothing);
+          expect(
+            find.byKey(const Key('lock_password_recovery_gate')), findsNothing,
+          );
+          submit();
+          tester.widget<TextField>(find.byKey(passwordKey)).onSubmitted!(
+            'synthetic input',
+          );
+          expect(unlocks, 0);
+          expect(password.text, 'synthetic input');
+          expect(tester.state(find.byType(LockCard)), same(cardState));
+          expect(tester.state(editable), same(fieldState));
+          preview.value = false;
+          await tester.pump();
+          expect(
+            tester.widget<TextField>(find.byKey(passwordKey)).enabled, isTrue,
+          );
+          expect(password.text, 'synthetic input');
+          expect(tester.state(find.byType(LockCard)), same(cardState));
+          expect(tester.state(editable), same(fieldState));
+          submit();
+          expect(unlocks, 1);
           expect(tester.takeException(), isNull);
         } finally {
           semantics.dispose();
@@ -236,7 +308,8 @@ void main() {
         expect(field.size, Size(362, tokens.fieldHeight));
         expect(menu.left, field.left);
         expect(menu.right, field.right);
-        expect(menu.top - field.bottom, tokens.walletPickerMenuGap);
+        expect(menu.height, 206);
+        expect(menu.top - field.bottom, tokens.walletPickerFieldMenuGap);
         expect(find.byIcon(Icons.expand_less), findsOneWidget);
         expect(find.byIcon(Icons.usb_outlined), findsOneWidget);
         expect(find.byIcon(Icons.key_outlined), findsNWidgets(3));
@@ -255,8 +328,10 @@ void main() {
           final Finder row = find.byKey(_entryKey(index));
           final Rect rowBounds = tester.getRect(row);
           expect(rowBounds.height, tokens.walletPickerRowHeight);
-          expect(rowBounds.left, menu.left);
-          expect(rowBounds.right, menu.right);
+          final EdgeInsets inset = tokens.walletPickerMenuPadding
+              .resolve(direction);
+          expect(rowBounds.left, menu.left + inset.left);
+          expect(rowBounds.right, menu.right - inset.right);
           final TextButton button = tester.widget<TextButton>(row);
           final ButtonStyle style = button.style!;
           expect(
@@ -306,7 +381,7 @@ void main() {
         }
         expect(
           tester.getSize(find.byKey(_add)).height,
-          tokens.walletPickerRowHeight,
+          tokens.walletPickerAddRowHeight,
         );
         final Divider divider = tester.widget<Divider>(
           find.byKey(const ValueKey<String>('lock_wallet_picker_separator')),

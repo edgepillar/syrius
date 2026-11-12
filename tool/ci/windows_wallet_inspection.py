@@ -583,6 +583,58 @@ def entry_failure(value):
     return value
 
 
+def refused_entry_marker(value):
+    """Project only fixed labels when an entry failure marker is refused."""
+    marker = value if type(value) is dict else {}
+    diagnostic = marker.get('diagnostic')
+    fields = diagnostic if type(diagnostic) is dict else {}
+
+    def label(candidate, allowed):
+        return candidate if type(candidate) is str and candidate in allowed else None
+
+    kind = ('absent' if diagnostic is None else
+        'recipe' if {'action', 'control', 'reason'} <= set(fields) else
+        'capture' if fields.get('kind') == 'readonly_details_capture_failure' else
+        'other')
+    return dict(schema=1, scope='readonly_entry_marker_refusal',
+        stage=label(marker.get('stage'), STAGES),
+        code=label(marker.get('code'), {
+            'wallet-recipe-command-refused', 'wallet-recipe-stage-unsettled',
+            'wallet-recipe-control-ambiguous',
+            *{'inspection-' + reason for reason in
+                ('process', 'retired', 'command', 'reply', 'binding')}}),
+        diagnostic=kind,
+        action=label(fields.get('action'), shared.RECIPE_ACTIONS),
+        control=label(fields.get('control'), shared.RECIPE_CONTROLS),
+        reason=label(fields.get('reason'), shared.RECIPE_FAILURE_CODES))
+
+
+def entry_marker_kind(line):
+    """Name a fixed marker family without retaining its payload or suffix."""
+    if type(line) is not bytes:
+        return 'unrecognized'
+    for prefix, kind in (
+        (b'CI_INSPECT_STAGE:', 'stage'), (b'CI_INSPECT_READY', 'ready'),
+        (b'CI_INSPECT_DONE', 'done'), (b'CI_INSPECT_ERROR:', 'error'),
+        (b'SYRIUS_INSPECTION_ADDRESS:', 'address'),
+        (b'SYRIUS_INSPECTION_WALLET:', 'wallet'),
+        (b'SYRIUS_INSPECTION_CATALOG:', 'catalog'),
+        (b'SYRIUS_INSPECTION_VIEWPORT:', 'viewport'),
+        (b'SYRIUS_INSPECTION_TOUR:', 'tour'),
+        (b'SYRIUS_INSPECTION_LOCALE:', 'locale'),
+        (b'SYRIUS_INSPECTION_STALLS:', 'stalls'),
+        (b'CI_INSPECT_SEND_WARN_', 'send-warning'),
+        (b'CI_INSPECT_', 'inspection-other'),
+        (b'SYRIUS_INSPECTION_', 'inspection-other'),
+        (b'CI_WALLET_', 'wallet-other'),
+        (b'SYRIUS_WALLET_TOUR:', 'wallet-tour'),
+        (b'SYRIUS_LAB_SEND:', 'lab-send'),
+    ):
+        if line.startswith(prefix):
+            return kind
+    return 'other'
+
+
 def capture_records(value, *, complete=True):
     need(type(value) is list and len(value) <= len(THEMES) * len(PAGES)
          and (not complete or len(value) == len(THEMES) * len(PAGES)), 'CAPTURE_REFUSED')
@@ -1450,6 +1502,8 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
     family = catalog_slot = 'details'
     details_schema = 1
     catalog_only = seams_only = False
+    entry_marker = expected_entry_marker = 'none'
+    entry_candidate = None
     try:
         parent, source = debug.entry.require_ci(parent, None, platform=os.name)
         need(parent.get('GITHUB_EVENT_NAME') == 'workflow_dispatch'
@@ -1558,6 +1612,8 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
         def wait(marker, *, seconds=None):
             nonlocal ready, catalog_receipt, viewport_receipt
             nonlocal warning_close_grace
+            nonlocal entry_marker, expected_entry_marker, entry_candidate
+            expected_entry_marker = entry_marker_kind(marker)
             limit = deadline if seconds is None else min(deadline, time.monotonic() + seconds)
             while True:
                 runtime.healthy()
@@ -1569,6 +1625,8 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
                     need(original.poll() is None or not lines.complete, 'ENTRY_FAILED')
                     continue
                 line = raw.rstrip(b'\r\n')
+                entry_marker = entry_marker_kind(line)
+                entry_candidate = None
                 if line.startswith(b'CI_INSPECT_STAGE:'):
                     ordered = (b'CI_INSPECT_STAGE:gate', b'CI_INSPECT_STAGE:build',
                                b'CI_INSPECT_STAGE:start')
@@ -1672,7 +1730,11 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
                          and catalog_receipt is not None, 'ENTRY_REFUSED')
                     viewport_receipt = viewport.receipt(json.loads(line.partition(b':')[2]))
                 elif line.startswith(b'CI_INSPECT_ERROR:'):
-                    report['entry_failure'] = entry_failure(json.loads(line.partition(b':')[2]))
+                    try:
+                        entry_candidate = json.loads(line.partition(b':')[2])
+                        report['entry_failure'] = entry_failure(entry_candidate)
+                    except (ValueError, TypeError, KeyError, Refused, shared.Refused):
+                        raise Refused('ENTRY_REFUSED') from None
                     if warning_window is not None:
                         warning_close_grace = True
                     raise Refused('ENTRY_FAILED')
@@ -1827,7 +1889,18 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
         if seam_failure is not None and seam_failure not in report['errors']:
             report['errors'].append(seam_failure)
     except (Exception, KeyboardInterrupt) as error:
-        report['errors'].append(inspection_failure_code(error, report['phase']))
+        code = inspection_failure_code(error, report['phase'])
+        report['errors'].append(code)
+        if code == 'ENTRY_REFUSED' and report['phase'] == 'onboarding_and_inspection':
+            notice = refused_entry_marker(entry_candidate)
+            notice.update(marker=entry_marker, expected=expected_entry_marker,
+                address_seen='address' in used, wallet_seen='wallet' in used,
+                stage_count=len(stages), source_sha=source, source_tree=tree,
+                run_id=parent['GITHUB_RUN_ID'],
+                run_attempt=parent['GITHUB_RUN_ATTEMPT'])
+            print('::notice title=Refused entry marker::' +
+                json.dumps(notice, sort_keys=True, separators=(',', ':')),
+                flush=True)
     finally:
         if warning_window is not None and 'send_warning_window' in report:
             try:

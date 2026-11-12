@@ -11,20 +11,27 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 Detailed qualification has resumed after the first code delivery. Source698
 qualifies the [original seeded Swap list capture](source698-seeded-swap-list.md)
 with six seed receipts and normal closure. The [initial catalog review](source699-initial-catalog-review.md)
-covers all 94 archived pairs, with zero accepted matches. Four refreshed
-Source699 Staking/Token pairs and six Source701 Lock pairs have now also been
-actually reviewed. They retain mismatches, including weak Token text-action
-contrast and the expanded Lock picker's geometry and active lower controls.
-[Source702](source702-text-actions.md) fixes the shared text-action ink and
-neutral amount-unit suffixes; its hosted checks are pending.
+covers all 94 archived pairs, with zero accepted matches. Refreshed
+Staking/Token and Lock captures have also been individually reviewed.
 
-[Source701](source701-entry-surfaces.md) passes the full Linux workflow and
-selected Windows Lock checks. Six Lock captures and four normal actor exits
-are independently verified. Its separate Ready producer fails during
-onboarding with zero images and required-actor forced cleanup. The independent
-reader confirms that failed receipt; the inner cause remains unestablished.
-No native Ready success or retry is claimed. Earlier results keep their own
-revisions and scopes.
+[Source702](source702-text-actions.md) passes full Linux checks, 1,480 selected
+Windows Dart cases, 1,214 Python cases with eighteen platform skips and
+selected analysis with zero findings. Its independent reader verifies four
+Staking/Token PNGs, both original prerequisites and normal required wallet/node
+closure. The separate MSVC telemetry helper termination remains recorded.
+Actual review confirms readable Max, This address and Send controls in both
+themes, with neutral unit ink. Remaining layout findings stay open.
+
+[Source703](source703-lock-picker.md) holds the lower password controls while
+the display-only Lock menu is expanded, preserves their original State and
+text, and matches the menu's taller rows and inset. Finite marker diagnostics
+prepare a new observation of the still-unestablished Ready refusal. Fresh
+hosted qualification of this follow-up is pending.
+
+[Source701](source701-entry-surfaces.md) retains its successful Lock result
+and separate failed Ready producer with zero images and required-actor forced
+cleanup. Its independent reader confirms the failed receipt. No earlier
+failure is reclassified; earlier results keep their revisions and scopes.
 
 The [Source695 seam coverage audit](source695-seam-coverage.md) closes original
 V03 using the existing fifteen-value native observations and current runtime

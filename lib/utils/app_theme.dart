@@ -741,19 +741,25 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The wallet menu sits just below its field.
   double get walletPickerMenuGap => 4;
 
-  /// Menu rows keep their own compact pointer target.
-  double get walletPickerRowHeight => 34;
+  /// The field's column gap and the menu's extra inset stay separate.
+  double get walletPickerFieldMenuGap => 10;
+
+  /// Wallet rows reserve the reference's address-bearing geometry.
+  double get walletPickerRowHeight => 49;
+
+  /// The final action has no address line to reserve.
+  double get walletPickerAddRowHeight => 36;
 
   /// Menu contents align with the selected wallet's field.
   EdgeInsetsDirectional get walletPickerRowPadding =>
-      const EdgeInsetsDirectional.symmetric(horizontal: 12, vertical: 7);
+      const EdgeInsetsDirectional.symmetric(horizontal: 10, vertical: 8);
 
   /// The menu separates its first and last rows from its border.
   EdgeInsetsDirectional get walletPickerMenuPadding =>
-      const EdgeInsetsDirectional.symmetric(vertical: 4);
+      const EdgeInsetsDirectional.all(7);
 
   /// Menu names retain the ordinary interface role.
-  TextStyle get walletPickerNameText => bodyText.copyWith(fontSize: 13);
+  TextStyle get walletPickerNameText => bodyText.copyWith(fontSize: 13.5);
 
   /// Wallet identifiers remain mono within the compact menu.
   TextStyle get walletPickerAddressText =>

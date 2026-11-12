@@ -96,7 +96,7 @@ class LockWalletPicker extends StatelessWidget {
         SizedBox(height: tokens.fieldLabelGap),
         _buildField(tokens, showMenu),
         if (showMenu) ...<Widget>[
-          SizedBox(height: tokens.walletPickerMenuGap),
+          SizedBox(height: tokens.walletPickerFieldMenuGap),
           _buildMenu(context, tokens, rows),
         ],
       ],
@@ -211,6 +211,7 @@ class LockWalletPicker extends StatelessWidget {
                   key: const ValueKey<String>('lock_wallet_picker_add'),
                   icon: Icons.add,
                   name: context.l10n.lockAddWallet,
+                  height: tokens.walletPickerAddRowHeight,
                 ),
               ],
             ),
@@ -229,6 +230,7 @@ class LockWalletPicker extends StatelessWidget {
     key: ValueKey<String>('lock_wallet_picker_entry_$index'),
     icon: entry.isLedger ? Icons.usb_outlined : Icons.key_outlined,
     name: entry.name,
+    height: tokens.walletPickerRowHeight,
     address: entry.address,
     selected: identical(entry, current),
   );
@@ -238,6 +240,7 @@ class LockWalletPicker extends StatelessWidget {
     required Key key,
     required IconData icon,
     required String name,
+    required double height,
     String? address,
     bool selected = false,
   }) => SeamGate(
@@ -259,7 +262,7 @@ class LockWalletPicker extends StatelessWidget {
           tokens.walletPickerRowPadding,
         ),
         minimumSize: WidgetStatePropertyAll<Size>(
-          Size(0, tokens.walletPickerRowHeight),
+          Size(0, height),
         ),
         shape: WidgetStatePropertyAll<OutlinedBorder>(
           RoundedRectangleBorder(
