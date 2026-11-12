@@ -64,6 +64,7 @@ class PageStrip extends StatelessWidget {
   const PageStrip({
     required this.figures,
     this.lead,
+    this.figureAction,
     this.actions = const <Widget>[],
     this.minimumContentHeight = kStripLeadSize,
     this.figureGap,
@@ -76,6 +77,10 @@ class PageStrip extends StatelessWidget {
 
   /// The figures, from the start.
   final List<StripFigure> figures;
+
+  /// A control beside the figures, before the row's remaining space.
+  /// The caller supplies the spacing between it and the final figure.
+  final Widget? figureAction;
 
   /// The page's main button and anything beside it, at the end. They keep
   /// their own width.
@@ -116,6 +121,7 @@ class PageStrip extends StatelessWidget {
                         SizedBox(width: figureGap ?? tokens.panelGap * 2),
                       Flexible(child: _StripFigureView(figures[i])),
                     ],
+                    if (figureAction != null) figureAction!,
                   ],
                 ),
               ),

@@ -407,14 +407,16 @@ class _Strip extends StatelessWidget {
     final BigInt? toCollect = uncollected is FetchPopulated<UncollectedReward>
         ? uncollected.data.qsrAmount
         : null;
-    // The reward periods the chart draws, added up. Shown only when the
-    // node has answered with some: a week without rewards has no figure,
-    // as an empty page has none in the mockup.
+    // Add the periods the chart draws. The explicit no-rewards answer is
+    // zero; loading and other failures keep the amount unknown.
     final BigInt? week = history is FetchPopulated<RewardHistoryList>
         ? history.data.list.fold<BigInt>(
             BigInt.zero,
             (BigInt sum, RewardHistoryEntry entry) => sum + entry.qsrAmount,
           )
+        : history is FetchFailure<RewardHistoryList> &&
+              history.exception is NoRewardsLastWeekException
+        ? BigInt.zero
         : null;
 
     // The dollar values hide with the amounts they stand beside.
@@ -428,6 +430,8 @@ class _Strip extends StatelessWidget {
         final bool hidden = BalanceVisibility.instance.hidden;
         return PageStrip(
           key: const Key('staking_strip'),
+          minimumContentHeight: 46,
+          figureGap: 28,
           figures: <StripFigure>[
             StripFigure(
               label: context.l10n.stakingStaked,
@@ -465,7 +469,7 @@ class _Strip extends StatelessWidget {
                       feed: priceFeed,
                     ),
             ),
-            if (week != null && !empty)
+            if (!empty)
               StripFigure(
                 label: context.l10n.stakingLast7Days,
                 value: _StripAmount(
@@ -478,14 +482,18 @@ class _Strip extends StatelessWidget {
                 ),
               ),
           ],
-          actions: <Widget>[
-            if (!empty)
-              KeyedSubtree(
-                key: const Key('staking_collect_button'),
-                child: StakeCollectButton(
-                  enabled: toCollect != null && toCollect > BigInt.zero,
+          figureAction: empty
+              ? null
+              : Padding(
+                  padding: const EdgeInsetsDirectional.only(start: 20),
+                  child: KeyedSubtree(
+                    key: const Key('staking_collect_button'),
+                    child: StakeCollectButton(
+                      enabled: toCollect != null && toCollect > BigInt.zero,
+                    ),
+                  ),
                 ),
-              ),
+          actions: <Widget>[
             if (!empty)
               TextButton.icon(
                 key: const Key('staking_chart_button'),

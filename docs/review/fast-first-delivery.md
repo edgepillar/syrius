@@ -1,6 +1,6 @@
 # First delivery and deferred acceptance
 
-Updated 2026-11-12.
+Updated 2026-11-13.
 
 The core interface and existing basic functionality are available for
 [code review](https://github.com/sol-znn/syrius/pull/6). Unavailable
@@ -9,6 +9,20 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 73/80 original rows, four review and three blocked.
 
 Detailed qualification has resumed after the first code delivery.
+[Source710](source710-staking-strip.md) keeps the Staking weekly-reward label
+through unknown responses and places Collect beside the figures. Explicit
+no-rewards data produce zero; other failures remain unknown. Its hosted and
+visual checks are pending.
+
+The full Source709 Linux workflow passes controller tests, application/patched
+analysis, the full non-chain directory and tracked generation. Its separate
+Windows F06 producer passes 1,480 selected Dart cases and zero-finding analysis,
+then refuses at the original Fuse effect after one verified Stake effect.
+The independent reader verifies both archives and that original failure.
+Aged-fuse is not reached. Five original nodes exit normally; copied closure,
+the eventual Fuse effect and full F06 remain unqualified. No native run is
+retried and no archive is downloaded locally.
+
 [Source708](source708-observer-import.md) adds the observer's missing explicit
 transport-type import and resolves its new local analyzer infos. Source707's
 full Linux analysis failure remains recorded; its unit/widget and generation

@@ -456,8 +456,40 @@ void main() {
     populate(unknown: true);
     await show(tester);
     expect(find.byKey(const Key('staking_empty_rewards')), findsNothing);
+    expect(find.text('LAST 7 DAYS'), findsOneWidget);
     expect(find.byType(AmountText), findsNothing);
     expect(find.text('None yet'), findsNothing);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+
+    populate();
+    whenListen(
+      history,
+      const Stream<FetchState<RewardHistoryList>>.empty(),
+      initialState: FetchFailure<RewardHistoryList>(
+        exception: NoRewardsLastWeekException(),
+      ),
+    );
+    await show(tester);
+    final Finder week = find.descendant(
+      of: find.byKey(const Key('staking_week_value')),
+      matching: find.byType(AmountText),
+    );
+    expect(tester.widget<AmountText>(week).raw, BigInt.zero);
+    expect(find.byKey(const Key('staking_empty_rewards')), findsNothing);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+
+    whenListen(
+      history,
+      const Stream<FetchState<RewardHistoryList>>.empty(),
+      initialState: FetchFailure<RewardHistoryList>(
+        exception: Exception('history unavailable'),
+      ),
+    );
+    await show(tester);
+    expect(find.text('LAST 7 DAYS'), findsOneWidget);
+    expect(week, findsNothing);
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox.shrink());
   });
@@ -470,6 +502,17 @@ void main() {
     await tester.pump();
     expect(find.text(r'$930.00'), findsOneWidget);
     expect(find.text(r'$0.5704'), findsOneWidget);
+    final Rect week = tester.getRect(
+      find.byKey(const Key('staking_week_value')),
+    );
+    final Rect collect = tester.getRect(
+      find.byKey(const Key('staking_collect_button')),
+    );
+    final Rect rewards = tester.getRect(
+      find.byKey(const Key('staking_chart_button')),
+    );
+    expect(collect.left - week.right, inInclusiveRange(19, 21));
+    expect(collect.right, lessThan(rewards.left));
     expectMockupSymbol(
       tester,
       within: find.byKey(const Key('staking_chart_button')),
