@@ -36,3 +36,15 @@ is claimed.
 
 The broader original acceptance remains 73/80, with P03, P09, F06, V01, V02,
 V05 and V06 open and zero accepted whole-image matches.
+
+## Full Linux result
+
+The [Source704 workflow](https://github.com/edgepillar/syrius/actions/runs/43293669273)
+passes application and patched-package analysis. The complete non-chain test
+directory runs, with four failed menu cases: dark/light and LTR/RTL all retain
+the old 13 px name expectation at `test/lock/wallet_picker_test.dart:350`,
+while the Source703 menu intentionally uses 13.5 px. The generation step is
+not reached. [Source705](source705-lock-command-diagnostics.md) corrects that
+stale expectation without changing application typography or adding cases.
+The original Source703 analysis failure and this separate Source704 test
+failure remain preserved.

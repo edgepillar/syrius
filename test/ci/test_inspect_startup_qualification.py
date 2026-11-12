@@ -783,6 +783,41 @@ class StartupInspectionTests(unittest.TestCase):
             with self.assertRaises(inspect.startup.Failure):
                 Probe([changed, settled])._status('dark', False, wait=True)
 
+        class RefusalProbe(catalog.LockProcess):
+            def __init__(self):
+                self.phase, self._command_refusal = 'normal', None
+                self.reply = (400, dict(ok=False, error='covered by something else',
+                                        detail='synthetic private reply'))
+                self.calls = []
+
+            def _exchange(self, command, *, until=None, allow_exit=False):
+                self.calls.append((command, until, allow_exit))
+                return self.reply
+
+        probe = RefusalProbe()
+        command = dict(cmd='type', value='synthetic private input')
+        with self.assertRaises(inspect.startup.Failure) as refused:
+            probe._rpc(command, until=12, allow_exit=True)
+        self.assertEqual(refused.exception.code, 'COMMAND_FAILED')
+        self.assertEqual(probe.calls, [(command, 12, True)])
+        first = dict(command='type', phase='normal', http_status=400, reply='field_covered')
+        self.assertEqual(probe._command_refusal, first)
+        probe.reply = (500, dict(ok=False, error='synthetic private error'))
+        with self.assertRaises(inspect.startup.Failure):
+            probe._rpc(dict(cmd='quit'))
+        self.assertEqual(probe._command_refusal, first)
+        probe.reply = (200, dict(ok=True, status='ready'))
+        self.assertEqual(probe._rpc(dict(cmd='ping')), probe.reply[1])
+        self.assertEqual(probe._command_refusal, first)
+        for hidden in ('synthetic private error', [], {'private': 'value'}, None):
+            projection = catalog.command_refusal(
+                dict(cmd='synthetic private command', value='synthetic private input'),
+                'synthetic private phase', True, dict(error=hidden, detail='private'),
+            )
+            self.assertEqual(projection, dict(command='withheld', phase='unknown',
+                                              http_status=None, reply='withheld'))
+            self.assertNotIn('private', json.dumps(projection))
+
     def test_startup_pair_keeps_the_original_twelve_request_transport_bound(self):
         class Response(io.BytesIO):
             status = 200

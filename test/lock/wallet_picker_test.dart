@@ -347,7 +347,7 @@ void main() {
             <WidgetState>{},
           )!;
           expect(nameStyle.fontFamily, tokens.sansFontFamily);
-          expect(nameStyle.fontSize, 13);
+          expect(nameStyle.fontSize, 13.5);
           final Finder address = find.descendant(
             of: row,
             matching: find.text('synthe…000${index + 1}'),

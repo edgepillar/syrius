@@ -40,6 +40,36 @@ MAX_ARCHIVE = len(FILES) * launch.MAX_PNG + launch.MAX_MANIFEST + 65536
 SAMPLE = 'screen-state'
 REFUSED_SAMPLE = 'redesign-qualification-wrong-password'
 PHASES = ('prepare', 'ready', 'bind', 'input', 'normal', 'picker', 'refusal', 'complete')
+REFUSAL_COMMANDS = frozenset((
+    'ping', 'window', 'theme', 'lock-view', 'type', 'shot', 'lock-catalog', 'tap', 'quit',
+))
+REFUSAL_REPLIES = {
+    'read-only field': 'field_read_only',
+    'covered by something else': 'field_covered',
+    'no field has focus': 'field_unfocused',
+    'lock-view-input-refused': 'lock_input_refused',
+    'lock-view-shape-refused': 'lock_shape_refused',
+    'assert target is covered': 'assertion_covered',
+    'a minimized window cannot be captured': 'window_minimized',
+    'capture theme differs': 'capture_theme_changed',
+    'the view has no image layer': 'image_layer_unavailable',
+    'capture color space is not sRGB': 'image_color_refused',
+    'the engine returned no image': 'image_unavailable',
+    'captured PNG dimensions differ': 'image_dimensions_changed',
+    'capture state changed while encoding': 'capture_state_changed',
+}
+
+
+def command_refusal(command, phase, status, body):
+    """Retain fixed labels only, never command arguments or reply details."""
+    name = command.get('cmd') if type(command) is dict else None
+    error = body.get('error') if type(body) is dict else None
+    return dict(
+        command=name if type(name) is str and name in REFUSAL_COMMANDS else 'withheld',
+        phase=phase if type(phase) is str and phase in PHASES else 'unknown',
+        http_status=status if type(status) is int and 100 <= status <= 599 else None,
+        reply=REFUSAL_REPLIES.get(error, 'withheld') if type(error) is str else 'withheld',
+    )
 
 
 def frame_matches(value, screen):
@@ -60,8 +90,23 @@ class LockProcess(launch.LaunchProcess):
 
     def run_launch(self, theme, *, capture, settle):
         self.phase = 'ready' if capture else 'prepare'
+        self._command_refusal = None
         receipt, result = super().run_launch(theme, capture=capture, settle=settle)
+        if self._command_refusal is not None:
+            notice = dict(self._command_refusal,
+                theme=theme if theme in launch.THEMES else 'unknown',
+                role='capture' if capture else 'prepare')
+            print('::notice title=Original lock command refusal::'
+                  + json.dumps(notice, separators=(',', ':')))
         return dict(receipt, phase=self.phase), result
+
+    def _rpc(self, command, *, until=None, allow_exit=False):
+        status, body = self._exchange(command, until=until, allow_exit=allow_exit)
+        if status != 200 or body['ok'] is not True:
+            if self._command_refusal is None:
+                self._command_refusal = command_refusal(command, self.phase, status, body)
+            raise startup.Failure('COMMAND_FAILED')
+        return body
 
     def _catalog(self, action, *, until=None):
         return self._rpc(dict(cmd='lock-catalog', action=action), until=until)

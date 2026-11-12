@@ -9,10 +9,17 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 73/80 original rows, four review and three blocked.
 
 Detailed qualification has resumed after the first code delivery.
-[Source704](source704-picker-test-import.md) adds the missing foundation import
-to the picker preview test. Source703's full Linux analysis failure is
-preserved; fresh full Linux qualification is pending. Production application,
-harness and CI-controller code are unchanged.
+[Source705](source705-lock-command-diagnostics.md) corrects four stale picker
+font-size expectations and adds a finite first-command refusal notice to the
+Lock controller. One extended existing Python case passes in memory; fresh
+full Linux and instrumented Lock qualification are pending. Production
+application and Dart harness code are unchanged from Source703.
+
+[Source704](source704-picker-test-import.md) passes application and patched
+analysis after the missing import is added. Its full Linux run fails four
+menu cases with the old 13 px expectation against the intended 13.5 px style;
+the generation step is not reached. Both original failed workflows remain
+recorded separately.
 
 Source703's Ready producer and reader verify both PNGs and normal required
 actor and node closure. Its separate Lock producer fails before the first
