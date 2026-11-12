@@ -672,7 +672,7 @@ def main(parent=None):
     PHASE = 'emit'
     layout = summary.pop('_layout_observation', None)
     verified_sources = len(source_digests)
-    for component, frame in archive.restored_wallet_run.notice_frames(lab_summary):
+    for component, frame in archive.observation_frames(lab_summary):
         emit('Readonly inspection parent' + (' ' + component if component else ''), frame)
     summary.update(verified_viewport_png_count=4 if viewport_observation is not None else 0,
         verified_catalog_png_count=catalog['verified_png_count'] if catalog is not None else 0,

@@ -3655,3 +3655,26 @@ All assertions, production code, selected counts, 250 ms admission and permanent
 hold remain. The 140 Source688 memory controls retain their original scope and
 are not repeated locally. Fresh hosted Dart/native qualification, the Home
 cause, original 72/80 and all eight deferred gates remain open.
+
+## Source690 original-archive reader framing
+
+The [Source689 producer](https://github.com/edgepillar/syrius/actions/runs/43129397889)
+passes all 1,469 selected Dart cases, 1,213 Python cases with eighteen platform
+skips and selected analysis with zero findings. Native Home capture fails at
+light Go To `themeSelection`, reply `unknown`, before callback state observation.
+Required actor cleanup is forced and zero captures are qualified. This distinct
+failure does not establish the theme cause or Source678's original frame cause.
+Its [original reader](https://github.com/edgepillar/syrius/actions/runs/43132466433)
+passes 122 controls but refuses at `emit`; archive qualification remains open.
+
+The reader still calls the old parent notice helper directly, so optional node
+timing data remains inside the capped parent. One new entry-point regression
+reproduces this refusal for both successful and failed archive inputs.
+Source690 routes the same summary through the existing passive component helper.
+The original 3,800-byte parent cap remains; timing components retain parent,
+source, attempt, archive and manifest bindings without granting qualification.
+The regression checks the original failed theme context and zero accepted PNGs.
+All 141 selected memory controls pass with no external effects; Python discovery
+becomes 1,214 and the reader expectation 123. Hosted reinspection reuses the same
+two Source689 archives; no new native producer or local archive transfer is
+required. Full 72/80 acceptance and all eight deferred gates remain open.

@@ -196,6 +196,33 @@ archive reader inapplicable. Source689 expresses the same constructor and first
 begin call as a cascade. Assertions and production bytes remain; current Dart/
 native qualification, the Home cause and full 72/80 acceptance stay open.
 
+### Source690 retained reader framing correction (2026-11-12)
+
+The [Source689 producer](https://github.com/edgepillar/syrius/actions/runs/43129397889),
+attempt one, job `130889494339`, passes 1,469 selected Dart cases, 1,213 Python
+cases with eighteen platform skips and selected analysis with zero findings.
+The native Home prefix fails at light Go To `themeSelection`, with reply
+`unknown` and no callback state. There are no qualified captures, and required
+actor cleanup is forced. The theme cause and Source678 frame cause remain
+distinct and unknown. The original two archives remain bound to this failure.
+
+The [original reader](https://github.com/edgepillar/syrius/actions/runs/43132466433),
+attempt one, job `130899683480`, passes 122 controls but refuses at `emit`.
+Its entry point still calls the old parent notice helper directly, leaving the
+optional node timing data inside the capped parent. A new in-memory regression
+reproduces the cap refusal with both successful and failed archive inputs.
+Source690 calls the existing component helper, which retains the original
+3,800-byte parent limit and binds each optional timing component to the parent,
+original source, attempt, archive and manifest. It preserves the original native
+failure and zero admitted PNGs. All 141 selected memory controls pass with no
+external effects; discovery is 1,214 Python cases and the reader expects 123.
+
+Independent hosted inspection of the same two Source689 archives remains
+pending. No native producer is repeated and no local SDK, native binary or
+artifact transport is admitted. Earlier successes and failures retain their
+original revisions and scopes. Full acceptance remains 72/80, with zero accepted
+whole-image matches and all eight deferred gates open.
+
 ## Retained qualification status (2026-11-05)
 
 The [qualified Source492 Activity result](review/source489-activity-reference-spacing.md#actual-source492-focused-result)

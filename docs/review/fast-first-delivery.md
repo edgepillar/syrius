@@ -47,6 +47,25 @@ applicable archive reader. Source689 joins the same constructor/begin pair with
 cascade syntax. No assertion, production code, count or deadline changes, and
 no local test is repeated. Fresh hosted qualification remains pending.
 
+The [Source689 producer](https://github.com/edgepillar/syrius/actions/runs/43129397889)
+subsequently passes 1,469 selected Dart cases, 1,213 Python cases with eighteen
+platform skips and selected analysis with zero findings. Native Home capture
+fails earlier at the light Go To `themeSelection` step with reply `unknown`.
+No callback state or qualified PNG is observed, and required actor cleanup is
+forced. This failure does not identify or reproduce Source678's frame cause.
+The [original reader](https://github.com/edgepillar/syrius/actions/runs/43132466433)
+passes 122 controls but refuses at `emit`, leaving archive qualification open.
+
+Source690 corrects that reader's remaining direct call to the old parent notice
+helper. It uses the existing parent-bound passive component helper without
+changing the 3,800-byte limit. One new in-memory entry-point regression reproduces
+the original refusal for both successful and failed inputs, then verifies the
+separate timing components and preserved native failure. All 141 selected memory
+controls pass; the reader expectation becomes 123 and Python discovery 1,214.
+Hosted reinspection of the same two Source689 archives is pending. No new native
+producer, SDK, wallet, node or local archive transfer is required. Full 72/80
+acceptance and all eight deferred gates remain open.
+
 ### Earlier source-bound results
 
 Source548 Native127 qualifies all six copied seed receipts, their journals and

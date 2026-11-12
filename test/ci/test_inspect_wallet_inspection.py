@@ -699,8 +699,13 @@ class ReaderTests(unittest.TestCase):
                  settings_catalog=False, navigation_catalog=False,
                  details_catalog=False, catalog_only=None, extra_viewport=False,
                  surface_seams=False, home_seams=None, settings_seams=None,
-                 entry_failure=None):
+                 entry_failure=None, node_timing=False):
         child, lab, files = pair(positive=positive)
+        if node_timing:
+            timed = lab_fixtures.MomentumLogTests.timed_report(include_stack=False)
+            for original, observed in zip(lab['node_exits'][:2], timed['node_exits'][:2]):
+                original['node_diagnostics'] = copy.deepcopy(observed['node_diagnostics'])
+                original['private_log_projection'] = copy.deepcopy(observed['private_log_projection'])
         if auxiliary_forced:
             child['forced_cleanup'] = child['auxiliary_cleanup']['forced'] = True
             child['auxiliary_cleanup']['receipts'] = [dict(role='msvc_telemetry',
@@ -896,6 +901,50 @@ class ReaderTests(unittest.TestCase):
                 contextlib.redirect_stdout(output):
             value = reader.main(parent)
         return value, calls, output.getvalue()
+
+    def test_full_reader_keeps_timing_components_bound_to_original_parent_and_failure(self):
+        failure = dict(stage='home_catalog', code=None, diagnostic=dict(
+            kind='readonly_home_capture_failure', schema=2,
+            last_entered_step='themeSelection', reply='unknown',
+            screen='home-goto', theme='light'))
+        for positive in (True, False):
+            with self.subTest(positive=positive):
+                value, calls, text = self.run_main(positive=positive, node_timing=True,
+                    entry_failure=None if positive else failure)
+                parents = [json.loads(line.split('::', 2)[-1])
+                    for line in text.splitlines()
+                    if line.startswith('::notice title=Readonly inspection parent::')]
+                timings = [json.loads(line.split('::', 2)[-1])
+                    for line in text.splitlines()
+                    if line.startswith('::notice title=Readonly inspection parent node_momentum_timing::')]
+                self.assertEqual(len(parents), 1)
+                self.assertNotIn('node_momentum_timing', parents[0])
+                self.assertIs(parents[0]['artifact_reported_success'], positive)
+                self.assertEqual([item['role'] for item in timings], list(reader.archive.ROLES[:2]))
+                parent_digest = reader.archive.sha(encode(parents[0]))
+                for timing in timings:
+                    self.assertEqual(timing['scope'], 'retained_node_momentum_timing')
+                    self.assertEqual(timing['parent_notice_sha256'], parent_digest)
+                    for key in ('source_head', 'source_run_id', 'source_attempt',
+                                'backend', 'archive_sha256', 'manifest_sha256'):
+                        self.assertEqual(timing[key], parents[0][key])
+                    self.assertEqual(timing['facts']['status'], 'OBSERVED')
+                    self.assertEqual(timing['facts']['matches'], 7)
+                    self.assertFalse(timing['runtime_started'])
+                    self.assertFalse(timing['qualification'])
+                    self.assertTrue(timing['inspection_only'])
+                for line in text.splitlines():
+                    if line.startswith('::notice '):
+                        self.assertLessEqual(len(line.split('::', 2)[-1].encode('ascii')), 3800)
+                self.assertLessEqual(len(calls), 16)
+                self.assertIs(value['native_inspection_qualified'], positive)
+                self.assertFalse(value['runtime_started'])
+                if not positive:
+                    self.assertEqual(value['entry_failure'], failure)
+                    self.assertEqual(value['verified_png_count'], 0)
+                    self.assertEqual(value['verified_catalog_png_count'], 0)
+                for private in ('synthetic private token', '/fixture', 'do not broadcast own momentum'):
+                    self.assertNotIn(private, text)
 
     def test_full_reader_binds_both_archives_metadata_and_all_twenty_four_pngs(self):
         for forced, home_schema in ((False, 1), (True, 1), (False, 2), (True, 2), (False, 3), (True, 3), (False, 4), (True, 4)):
