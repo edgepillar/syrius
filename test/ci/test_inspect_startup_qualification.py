@@ -863,6 +863,36 @@ class StartupInspectionTests(unittest.TestCase):
                 self.assertEqual(probe._command_refusal, dict(command='wait',
                     phase='refusal', http_status=400, reply='withheld'))
 
+        probe = object.__new__(catalog.LockProcess)
+        probe.phase = 'normal'
+        probe._transport_failure = None
+        probe.report = types.SimpleNamespace(original_errors=[TimeoutError('synthetic private data')])
+        command = dict(cmd='shot', private='synthetic private argument')
+        original_error = inspect.startup.Failure('HTTP_FAILED')
+        with mock.patch.object(inspect.startup.StartupProbe, '_exchange',
+                               side_effect=original_error) as exchange:
+            with self.assertRaises(inspect.startup.Failure) as refused:
+                probe._exchange(command, token='synthetic private token', until=12, allow_exit=True)
+            self.assertIs(refused.exception, original_error)
+            exchange.assert_called_once_with(command, token='synthetic private token',
+                                               until=12, allow_exit=True)
+        first = dict(command='shot', phase='normal', error_code='HTTP_FAILED', transport='timeout')
+        self.assertEqual(probe._transport_failure, first)
+        with mock.patch.object(inspect.startup.StartupProbe, '_exchange',
+                               side_effect=inspect.startup.Failure('RESPONSE_INVALID')):
+            with self.assertRaises(inspect.startup.Failure):
+                probe._exchange(dict(cmd='quit'))
+        self.assertEqual(probe._transport_failure, first)
+        reply = (200, dict(ok=True))
+        with mock.patch.object(inspect.startup.StartupProbe, '_exchange', return_value=reply):
+            self.assertIs(probe._exchange(dict(cmd='quit')), reply)
+        self.assertEqual(probe._transport_failure, first)
+        for hidden in ('synthetic private error', [], object(), None):
+            projected = catalog.transport_failure(dict(cmd='private'), 'private', hidden, hidden)
+            self.assertEqual(projected, dict(command='withheld', phase='unknown',
+                error_code='INTERNAL_ERROR', transport='withheld'))
+            self.assertNotIn('private', json.dumps(projected))
+
     def test_startup_pair_keeps_the_original_twelve_request_transport_bound(self):
         class Response(io.BytesIO):
             status = 200

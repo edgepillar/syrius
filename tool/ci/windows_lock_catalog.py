@@ -72,6 +72,17 @@ def command_refusal(command, phase, status, body):
     )
 
 
+def transport_failure(command, phase, code, cause):
+    labels = command_refusal(command, phase, None, None)
+    kind = ('timeout' if type(cause) is TimeoutError else
+            'connection' if type(cause) in (ConnectionError, ConnectionResetError,
+                ConnectionAbortedError, BrokenPipeError, ConnectionRefusedError) else
+            'os' if type(cause) is OSError else 'withheld')
+    return dict(command=labels['command'], phase=labels['phase'],
+        error_code=code if type(code) is str and code in bounded.CODES else 'INTERNAL_ERROR',
+        transport=kind)
+
+
 def frame_matches(value, screen):
     expected = {
         'lock-screen': (55, 0, 3, 0, len(SAMPLE)),
@@ -91,6 +102,7 @@ class LockProcess(launch.LaunchProcess):
     def run_launch(self, theme, *, capture, settle):
         self.phase = 'ready' if capture else 'prepare'
         self._command_refusal = None
+        self._transport_failure = None
         receipt, result = super().run_launch(theme, capture=capture, settle=settle)
         if self._command_refusal is not None:
             notice = dict(self._command_refusal,
@@ -98,7 +110,23 @@ class LockProcess(launch.LaunchProcess):
                 role='capture' if capture else 'prepare')
             print('::notice title=Original lock command refusal::'
                   + json.dumps(notice, separators=(',', ':')))
+        if self._transport_failure is not None:
+            notice = dict(self._transport_failure, scope='original_lock_transport_failure',
+                theme=theme if theme in launch.THEMES else 'unknown',
+                role='capture' if capture else 'prepare')
+            print('::notice title=Original lock transport failure::'
+                  + json.dumps(notice, separators=(',', ':')))
         return dict(receipt, phase=self.phase), result
+
+    def _exchange(self, command, *, token=None, allow_exit=False, until=None):
+        try:
+            return super()._exchange(command, token=token, allow_exit=allow_exit, until=until)
+        except bounded.SmokeFailure as error:
+            if getattr(self, '_transport_failure', None) is None:
+                errors = self.report.original_errors
+                cause = errors[-1] if error.code == 'HTTP_FAILED' and type(errors) is list and errors else None
+                self._transport_failure = transport_failure(command, self.phase, error.code, cause)
+            raise
 
     def _rpc(self, command, *, until=None, allow_exit=False):
         return self._reply(command, *self._exchange(command, until=until, allow_exit=allow_exit))

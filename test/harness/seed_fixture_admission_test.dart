@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../harness/bin/ci_wallet_reopen.dart' as entry;
 import '../../harness/app/fixtures/fixture_cleanup.dart';
 import '../../harness/app/fixtures/seed_commands.dart';
 import '../../harness/app/fixtures/seed_deposit_entry.dart';
@@ -329,6 +330,94 @@ void main() {
   );
 
   test('held cleanup leaves the original confirmed hash readable', () async {
+    for (final String mode in <String>['normal', 'held', 'private', 'replaced']) {
+      int elapsed = 0;
+      int owners = 0;
+      int states = 0;
+      final List<String> observed = <String>[];
+      final Map<String, Object?> rect = <String, Object?>{
+        'rect': <int>[10, 10, 40, 20],
+      };
+      Future<Map<String, Object>> observe() => entry.observeAgedFuseFixture(
+        profile: 'ci-wallet-${List<String>.filled(24, 'a').join()}',
+        requireCurrent: () async {
+          owners++;
+          if (mode == 'replaced' && owners == 2) {
+            throw StateError('Synthetic fixture owner replaced');
+          }
+        },
+        readElapsedMilliseconds: () => elapsed,
+        pause: (Duration duration) async {
+          elapsed += mode == 'held' ? 5000 : duration.inMilliseconds;
+        },
+        request: (Map<String, Object?> command, Duration timeout) async {
+          expect(timeout.inMilliseconds, inInclusiveRange(
+            1, command['cmd'] == 'seed' ? 60000 : 5000,
+          ));
+          observed.add(command['cmd']! as String);
+          switch (command['cmd']) {
+            case 'seed':
+              expect(command['action'], 'fixture');
+              expect(command['kind'], 'aged-fuse');
+              if (mode == 'private') {
+                return <String, dynamic>{
+                  'ok': false, 'error': _PrivatePreparationError(),
+                };
+              }
+              return <String, dynamic>{
+                'ok': true, 'fixture': 'aged-fuse', 'readOnly': true, 'chain': 321,
+              };
+            case 'tree':
+              return <String, dynamic>{
+                'ok': true, 'size': <int>[1280, 780],
+                'nodes': <Map<String, Object?>>[
+                  <String, Object?>{...rect, 'kind': 'text',
+                    'label': 'Harness fixture · aged-fuse · read only'},
+                  <String, Object?>{...rect, 'kind': 'text',
+                    'key': 'plasma_fused_count', 'label': '2'},
+                  for (int id = 1; id <= 2; id++) ...<Map<String, Object?>>[
+                    <String, Object?>{...rect, 'kind': 'button',
+                      'key': 'plasma_cancel_${_hash(id)}', 'enabled': false},
+                    <String, Object?>{...rect, 'kind': 'text', 'label': 'Cancelable'},
+                  ],
+                ],
+              };
+            case 'tap':
+              expect(command['key'], 'seed_fixture_close');
+              expect(command['exact'], isTrue);
+              return <String, dynamic>{'ok': true};
+            case 'state':
+              return <String, dynamic>{
+                'ok': true, 'booted': true, 'walletUnlocked': true,
+                if (++states == 1 || mode == 'held') 'harnessFixture': 'aged-fuse',
+              };
+            default:
+              throw StateError('Unexpected fixture operation');
+          }
+        },
+      );
+      if (mode == 'normal') {
+        final Map<String, Object> witness = await observe();
+        expect(witness['rows'], 2);
+        expect(witness['expired_rows'], 2);
+        expect(witness['cleanup_cleared'], isTrue);
+        expect(witness['publication_commands'], 0);
+        expect(observed, <String>['seed', 'tree', 'tap', 'state', 'state']);
+        expect(owners, 2);
+        expect('$witness', isNot(contains('ci-wallet-')));
+        expect('$witness', isNot(contains(_hash(1))));
+      } else if (mode == 'replaced') {
+        await expectLater(observe(), throwsStateError);
+        expect(owners, 2);
+      } else {
+        await expectLater(observe(), throwsFormatException);
+        expect(owners, 1);
+      }
+      expect(observed.where((String command) => command == 'seed'), hasLength(1));
+      expect(observed.where((String command) => command == 'tap'),
+          hasLength(mode == 'private' ? 0 : 1));
+    }
+
     final _Source source = _Source();
     final _Journal journal = _Journal();
     final SeedGuard guard = SeedGuard(

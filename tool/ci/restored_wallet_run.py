@@ -27,13 +27,13 @@ PHASES = ('admission', 'origin', 'roots', 'journals', 'ciphers', 'node_inputs',
     'source', 'reservation', 'claim', 'retire_metadata', 'runtime', 'node_ports',
     'node_start', 'node_observe', 'initial_chain', 'profile', 'launch', 'output',
     'start', 'entry_metadata', 'application', 'transport', 'pre_input',
-    'unlock_and_observe', 'post_observe', 'seed_workflow', 'seed_journals', 'seeded_capture',
+    'unlock_and_observe', 'post_observe', 'seed_workflow', 'seed_journals', 'aged_fuse_fixture', 'seeded_capture',
     'ordinary_close', 'finish', 'source_closed', 'close', 'output_close',
     'transport_close', 'nodes_stop', 'post_close', 'complete_record', 'projection')
 CHILD_PHASES = ('gate', 'start', 'input', 'startup_window', 'startup', 'unlock', 'observe',
     'seed_admission', 'seed_stake', 'seed_fuse', 'seed_token', 'seed_deposit',
     'seed_project', 'seed_fund-address', 'seed_pillar-qsr',
-    'seed_pillar-register', 'seeded_capture', 'finish')
+    'seed_pillar-register', 'aged_fuse_fixture', 'seeded_capture', 'finish')
 OUTPUT_CODES = ('PUB_RESOLUTION', 'PUB_EXECUTABLE_BUILD', 'UNHANDLED_EXCEPTION',
     'COMPILE_OR_USAGE_ERROR', 'VM_SERVICE_LISTENER', 'UNCLASSIFIED_OUTPUT',
     'REOPEN_CHILD_REFUSED')
@@ -720,6 +720,16 @@ class _CapturedOutput:
         return raw
 
 
+def aged_fuse_projection(value):
+    facts = dict(schema=1, scope='owned_native_aged_fuse_fixture', fixture='aged-fuse',
+        rows=2, expired_rows=2, disabled_cancel_controls=2, banner_observed=True,
+        route_closed=True, cleanup_cleared=True, owner_current=True, publication_commands=0)
+    checkpoint.need(type(value) is dict and set(value) == set(facts)
+        and all(type(value[key]) is type(expected) and value[key] == expected
+                for key, expected in facts.items()))
+    return dict(value)
+
+
 def project(value):
     if value is None:
         return None
@@ -735,10 +745,11 @@ def project(value):
     seed_key = 'catalog_prerequisites' if catalog_seed else 'seed_workflow'
     seed_fields = {seed_key} if seed_key in value else set()
     capture_fields = {'seeded_catalog'} if 'seeded_catalog' in value else set()
+    fixture_fields = {'aged_fuse_fixture'} if 'aged_fuse_fixture' in value else set()
     seam_fields = {key for key in ('seeded_surface_seams', 'seeded_owner_page_seams')
                    if key in value}
     checkpoint.need(len(seam_fields) <= 1
-        and set(value) == common | seed_fields | capture_fields | seam_fields | {'claim_once', 'originals_closed',
+        and set(value) == common | seed_fields | capture_fields | seam_fields | fixture_fields | {'claim_once', 'originals_closed',
         'chain_continuity', 'journal_unchanged', 'cipher_unchanged', 'wallet',
         'application_exit', 'entry_exit', 'output', 'job_empty', 'forced',
         'nodes', 'private_manifest_sha256', 'seed_admitted'}
@@ -766,6 +777,10 @@ def project(value):
         checkpoint.need(type(seed_value) is dict and seed_value['complete'] is True)
     if reference is not None:
         checkpoint.need(reference['seed_receipts_sha256'] == seed_value['receipts_sha256'])
+    if fixture_fields:
+        checkpoint.need(seed_fields and
+            (catalog_capture is False or catalog_capture == 'swap-seeded'))
+        aged_fuse_projection(value['aged_fuse_fixture'])
     if seam_fields:
         checkpoint.need(catalog_seed and reference is not None
                         and reference['schema'] == catalog.SEEDED_SCHEMA)
@@ -1120,6 +1135,9 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
                     return seeds.finish_prefix(record.get('seed_private_prefix'),
                         json.loads(line.partition(b':')[2]),
                         catalog_capture=catalog_capture)
+                if marker == b'CI_AGED_FUSE_DONE' and line.startswith(marker + b':'):
+                    checkpoint.need(record['phase'] == 'aged_fuse_fixture')
+                    return aged_fuse_projection(catalog.decode(line.partition(b':')[2]))
                 if line.startswith(b'CI_PREPARED_HOLDER_SELECTION:'):
                     checkpoint.need(marker == b'CI_SEEDED_CAPTURE_DONE'
                         and capture_schema == catalog.SEEDED_SCHEMA
@@ -1153,7 +1171,7 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
                 if line == marker:
                     return None
                 checkpoint.need(not line.startswith((b'CI_REOPEN_', b'CI_SEED_',
-                    b'CI_SEEDED_', b'CI_PREPARED_SURFACE_', b'CI_PREPARED_HOLDER_')))
+                    b'CI_SEEDED_', b'CI_AGED_FUSE_', b'CI_PREPARED_SURFACE_', b'CI_PREPARED_HOLDER_')))
             raise checkpoint.Refused()
 
         trace.at('start')
@@ -1221,6 +1239,12 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
         record[seed_key] = seeds.completed(seed_receipts, catalog_capture=catalog_capture)
         unchanged()
         chain_read(runtime, anchor)
+        if catalog_capture is False or catalog_capture == 'swap-seeded':
+            trace.at('aged_fuse_fixture')
+            record['phase'] = 'aged_fuse_fixture'
+            record['aged_fuse_fixture'] = wait(b'CI_AGED_FUSE_DONE')
+            unchanged()
+            chain_read(runtime, anchor)
         if seeded_capture:
             trace.at('seeded_capture')
             record['phase'] = 'seeded_capture'
@@ -1351,6 +1375,8 @@ def run(repo, parent, wallet, original_runtime, anchor, restored, home, closed, 
         output=record['output'], job_empty=True, forced=False, nodes=record['nodes'],
         private_manifest_sha256=hashlib.sha256(raw).hexdigest(), seed_admitted=False)
     result[seed_key] = record[seed_key]
+    if 'aged_fuse_fixture' in record:
+        result['aged_fuse_fixture'] = record['aged_fuse_fixture']
     if seeded_capture:
         result['seeded_catalog'] = record['seeded_catalog']
         if capture_schema == catalog.SEEDED_SCHEMA:

@@ -19,7 +19,7 @@ const Set<String> restoredChildPhases = <String>{
   'gate', 'start', 'input', 'startup_window', 'startup', 'unlock', 'observe',
   'seed_admission', 'seed_stake', 'seed_fuse', 'seed_token', 'seed_deposit',
   'seed_project', 'seed_fund-address', 'seed_pillar-qsr',
-  'seed_pillar-register', 'seeded_capture',
+  'seed_pillar-register', 'seeded_capture', 'aged_fuse_fixture',
   'finish',
 };
 
@@ -523,6 +523,116 @@ bool restoredWalletReady(Map<String, dynamic> state) =>
     <String>['chainId', 'signingChainId', 'savedSigningChainId'].every(
       (String key) => state[key] is int && state[key] == 321,
     );
+
+/// Observe the existing harness-only aged rows without a publication command.
+Future<Map<String, Object>> observeAgedFuseFixture({
+  required String profile,
+  required WalletRecipeSend request,
+  required Future<void> Function() requireCurrent,
+  Future<void> Function(Duration)? pause,
+  int Function()? readElapsedMilliseconds,
+}) async {
+  final Stopwatch watch = Stopwatch()..start();
+  final int Function() elapsed =
+      readElapsedMilliseconds ?? () => watch.elapsedMilliseconds;
+  final Future<void> Function(Duration) delay = pause ?? Future<void>.delayed;
+  int last = 0;
+  void need(bool value) {
+    if (!value) {
+      throw const FormatException('aged-fuse fixture observation refused');
+    }
+  }
+  int remaining() {
+    final int now = elapsed();
+    need(now >= last && now < 90000);
+    last = now;
+    return 90000 - now;
+  }
+  Future<Map<String, dynamic>> original(Map<String, Object?> command) async {
+    final int budget = remaining();
+    // The original fixture admission observes actual advancing lab momentums.
+    final int cap = command['cmd'] == 'seed' ? 60000 : 5000;
+    final Map<String, dynamic> reply = await request(
+      Map<String, Object?>.unmodifiable(command),
+      Duration(milliseconds: budget < cap ? budget : cap),
+    );
+    remaining();
+    need(reply['ok'] == true);
+    return reply;
+  }
+  Future<void> wait() =>
+      delay(Duration(milliseconds: remaining() < 50 ? remaining() : 50));
+  bool visible(Map<Object?, Object?> node) {
+    final Object? rect = node['rect'];
+    return rect is List<Object?> && rect.length == 4 &&
+        rect.every((Object? part) => part is int) &&
+        (rect[0]! as int) >= 0 && (rect[1]! as int) >= 0 &&
+        (rect[2]! as int) > 0 && (rect[3]! as int) > 0 &&
+        (rect[0]! as int) + (rect[2]! as int) <= 1280 &&
+        (rect[1]! as int) + (rect[3]! as int) <= 780;
+  }
+  need(RegExp(r'^ci-wallet-[a-f0-9]{24}$').hasMatch(profile));
+  await requireCurrent();
+  final Map<String, dynamic> opened = await original(<String, Object?>{
+    'cmd': 'seed', 'action': 'fixture', 'kind': 'aged-fuse', 'profile': profile,
+    'ws': 'ws://127.0.0.1:45998', 'http': 'http://127.0.0.1:45997',
+  });
+  need(opened.length == 4 && opened['fixture'] == 'aged-fuse' &&
+      opened['readOnly'] == true && opened['chain'] is int && opened['chain'] == 321);
+  final Set<String> buttons = <String>{
+    for (int index = 1; index <= 2; index++)
+      'plasma_cancel_${index.toRadixString(16).padLeft(64, '0')}',
+  };
+  while (true) {
+    final Map<String, dynamic> tree = await original(<String, Object?>{'cmd': 'tree'});
+    final Object? raw = tree['nodes'];
+    final Object? size = tree['size'];
+    need(raw is List<Object?> && raw.length <= 4096 &&
+        size is List<Object?> && size.length == 2 && size[0] == 1280 && size[1] == 780);
+    final List<Map<Object?, Object?>> nodes = <Map<Object?, Object?>>[];
+    for (final Object? value in raw! as List<Object?>) {
+      need(value is Map<Object?, Object?>);
+      final Map<Object?, Object?> node = value! as Map<Object?, Object?>;
+      if (visible(node)) nodes.add(node);
+    }
+    bool label(String text, String kind) => nodes.any(
+      (Map<Object?, Object?> node) => node['kind'] == kind && node['label'] == text,
+    );
+    need(!label('Fixture expired', 'text'));
+    final List<Map<Object?, Object?>> cancel = nodes.where(
+      (Map<Object?, Object?> node) => node['kind'] == 'button' && buttons.contains(node['key']),
+    ).toList();
+    final bool count = nodes.any((Map<Object?, Object?> node) =>
+        node['kind'] == 'text' && node['key'] == 'plasma_fused_count' && node['label'] == '2');
+    final int expired = nodes.where((Map<Object?, Object?> node) =>
+        node['kind'] == 'text' && node['label'] == 'Cancelable').length;
+    if (count && expired == 2 && cancel.length == 2 &&
+        cancel.every((Map<Object?, Object?> node) => node['enabled'] == false) &&
+        cancel.map((Map<Object?, Object?> node) => node['key']).toSet().containsAll(buttons) &&
+        label('Harness fixture · aged-fuse · read only', 'text')) {
+      break;
+    }
+    await wait();
+  }
+  await original(<String, Object?>{
+    'cmd': 'tap', 'key': 'seed_fixture_close', 'kind': 'button', 'exact': true,
+  });
+  while (true) {
+    final Map<String, dynamic> state = await original(<String, Object?>{'cmd': 'state'});
+    need(state['booted'] == true && state['walletUnlocked'] == true);
+    if (!state.containsKey('harnessFixture')) break;
+    need(state['harnessFixture'] == 'aged-fuse');
+    await wait();
+  }
+  await requireCurrent();
+  remaining();
+  return const <String, Object>{
+    'schema': 1, 'scope': 'owned_native_aged_fuse_fixture', 'fixture': 'aged-fuse',
+    'rows': 2, 'expired_rows': 2, 'disabled_cancel_controls': 2,
+    'banner_observed': true, 'route_closed': true, 'cleanup_cleared': true,
+    'owner_current': true, 'publication_commands': 0,
+  };
+}
 
 const String _seededDirectory = '.harness/ci-seeded-catalog';
 const List<String> _seededScreens = <String>['staking', 'token-mine'];
@@ -1346,6 +1456,25 @@ Future<void> main() async {
       counterparty, selection: selection,
     );
     await marker('CI_SEED_DONE:${jsonEncode(seeds)}');
+    if (selection == RestoredSeedSelection.all) {
+      phase = 'aged_fuse_fixture';
+      final WalletAddressContext fixtureOwner = await context();
+      if (!fixtureOwner.derivedFrom(originalContext)) {
+        throw const FormatException('aged-fuse fixture owner refused');
+      }
+      final Map<String, Object> witness = await observeAgedFuseFixture(
+        profile: name,
+        request: (Map<String, Object?> command, Duration timeout) =>
+            instance.send(command, timeout: timeout),
+        requireCurrent: () async {
+          if (!originalInput.alive || !fixtureOwner.same(await context()) ||
+              !originalInput.alive) {
+            throw const FormatException('aged-fuse fixture owner changed');
+          }
+        },
+      );
+      await marker('CI_AGED_FUSE_DONE:${jsonEncode(witness)}');
+    }
     if (seededCapture) {
       phase = 'seeded_capture';
       if (await originalInput.read() != 'CAPTURE_SEEDED') {

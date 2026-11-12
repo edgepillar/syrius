@@ -9,10 +9,19 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 73/80 original rows, four review and three blocked.
 
 Detailed qualification has resumed after the first code delivery.
-[Source706](source706-entry-readiness.md) waits for the actual enabled and
-reachable password field before each single type request. It also corrects
-Ready label casing, copy-glyph size and the shared entry shadow. One extended
-existing Python case passes in memory; fresh hosted qualification is pending.
+[Source707](source707-fixture-and-transport.md) adds a bounded observation of
+the existing harness-only aged-fuse view after all six seed effects. Fixed
+facts require the displayed expired rows, disabled controls, banner, actual
+route cleanup and original owner. The same change retains finite Lock
+transport facts. Two extended existing Python cases pass in memory; fresh
+Dart and native qualification remain pending.
+
+[Source706](source706-entry-readiness.md) passes full Linux checks with the
+actual field-readiness wait and Ready label, glyph and shadow changes.
+Its Windows producer passes selected checks but stops before its first PNG
+with HTTP_FAILED in normal capture. The independent reader confirms the
+original failed receipt and two normal actor exits. No native image match
+or resolution of the earlier refusal-phase failure is claimed.
 
 [Source705](source705-lock-command-diagnostics.md) passes the full Linux
 workflow, including the complete non-chain test directory, analysis and

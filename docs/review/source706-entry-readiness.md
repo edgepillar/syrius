@@ -49,3 +49,24 @@ CAS objects. The existing storage policy and historical evidence are unchanged.
 Fresh hosted checks remain necessary. No refreshed native image or whole-image
 match is claimed here. Original acceptance remains 73/80, with P03, P09, F06,
 V01, V02, V05 and V06 open and zero accepted whole-image matches.
+
+## Exact-source hosted results
+
+The [Source706 full Linux workflow](https://github.com/edgepillar/syrius/actions/runs/43301939182)
+passes application and patched-package analysis, the complete non-chain test
+directory and tracked generation. Exact full-suite counts and application
+info totals are not projected.
+
+The [Windows producer](https://github.com/edgepillar/syrius/actions/runs/43302051083)
+passes 1,482 selected Dart cases, 1,214 Python cases with eighteen platform
+skips and selected analysis with zero findings. Its first dark normal capture
+stops with `HTTP_FAILED`, before any retained PNG. Both recorded actors close
+normally with complete output. The [independent reader](https://github.com/edgepillar/syrius/actions/runs/43305270691)
+confirms that original failed receipt and zero PNGs. The entered transport
+command and its inner cause remain `NOT_ESTABLISHED`. The incomplete final
+source-stability check does not establish a changed source.
+
+This failure occurs earlier than Source705's separate refusal-phase result.
+It cannot establish that the later input-readiness correction passed natively.
+[Source707](source707-fixture-and-transport.md) adds fixed transport-command
+labels while preserving both original outcomes.

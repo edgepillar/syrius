@@ -38,6 +38,18 @@ class SeedObservationTests(unittest.TestCase):
         value = dict(completed_reopen(), seed_workflow=seeds.completed(receipts()))
         self.assertEqual(restored.project(value), value)
         self.assertFalse(restored.project(value)['seed_admitted'])
+        fixture = dict(schema=1, scope='owned_native_aged_fuse_fixture', fixture='aged-fuse',
+            rows=2, expired_rows=2, disabled_cancel_controls=2, banner_observed=True,
+            route_closed=True, cleanup_cleared=True, owner_current=True, publication_commands=0)
+        enriched = dict(value, aged_fuse_fixture=fixture)
+        self.assertEqual(restored.project(enriched), enriched)
+        for change in (dict(rows=3), dict(schema=True), dict(cleanup_cleared=False),
+                       dict(publication_commands=True), dict(private='withheld')):
+            with self.subTest(change=change), self.assertRaises(restored.checkpoint.Refused):
+                restored.project(dict(value, aged_fuse_fixture=dict(fixture, **change)))
+        with self.assertRaises(restored.checkpoint.Refused):
+            restored.project(dict(completed_reopen(), aged_fuse_fixture=fixture))
+
 
     def test_incomplete_or_private_seed_facts_cannot_complete_reopen(self):
         for seed in (None, dict(schema=1, scope=seeds.SCOPE, complete=False),
