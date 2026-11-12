@@ -9,12 +9,18 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 73/80 original rows, four review and three blocked.
 
 Detailed qualification has resumed after the first code delivery.
+[Source708](source708-observer-import.md) adds the observer's missing explicit
+transport-type import and resolves its new local analyzer infos. Source707's
+full Linux analysis failure remains recorded; its unit/widget and generation
+steps were not reached. The native F06 workflow was not dispatched. Fresh
+hosted qualification is pending.
+
 [Source707](source707-fixture-and-transport.md) adds a bounded observation of
 the existing harness-only aged-fuse view after all six seed effects. Fixed
 facts require the displayed expired rows, disabled controls, banner, actual
 route cleanup and original owner. The same change retains finite Lock
 transport facts. Two extended existing Python cases pass in memory; fresh
-Dart and native qualification remain pending.
+Dart and native qualification remain pending after the import correction.
 
 [Source706](source706-entry-readiness.md) passes full Linux checks with the
 actual field-readiness wait and Ready label, glyph and shadow changes.

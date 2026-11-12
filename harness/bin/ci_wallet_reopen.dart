@@ -12,7 +12,7 @@ import '../wallet_recipe_failure.dart';
 import 'ci_copied_wallet_pointer.dart' show CopiedPointerInput;
 import 'harness.dart' as cli;
 import 'screen_capture.dart';
-import 'wallet_recipe.dart' show WalletRecipeRefused;
+import 'wallet_recipe.dart' show WalletRecipeRefused, WalletRecipeSend;
 
 /// Fixed child locations, shared with the bounded parent projection.
 const Set<String> restoredChildPhases = <String>{
@@ -537,17 +537,19 @@ Future<Map<String, Object>> observeAgedFuseFixture({
       readElapsedMilliseconds ?? () => watch.elapsedMilliseconds;
   final Future<void> Function(Duration) delay = pause ?? Future<void>.delayed;
   int last = 0;
-  void need(bool value) {
+  void need({required bool value}) {
     if (!value) {
       throw const FormatException('aged-fuse fixture observation refused');
     }
   }
+
   int remaining() {
     final int now = elapsed();
-    need(now >= last && now < 90000);
+    need(value: now >= last && now < 90000);
     last = now;
     return 90000 - now;
   }
+
   Future<Map<String, dynamic>> original(Map<String, Object?> command) async {
     final int budget = remaining();
     // The original fixture admission observes actual advancing lab momentums.
@@ -557,80 +559,132 @@ Future<Map<String, Object>> observeAgedFuseFixture({
       Duration(milliseconds: budget < cap ? budget : cap),
     );
     remaining();
-    need(reply['ok'] == true);
+    need(value: reply['ok'] == true);
     return reply;
   }
-  Future<void> wait() =>
-      delay(Duration(milliseconds: remaining() < 50 ? remaining() : 50));
+
+  Future<void> wait() {
+    final int budget = remaining();
+    return delay(Duration(milliseconds: budget < 50 ? budget : 50));
+  }
+
   bool visible(Map<Object?, Object?> node) {
     final Object? rect = node['rect'];
-    return rect is List<Object?> && rect.length == 4 &&
+    return rect is List<Object?> &&
+        rect.length == 4 &&
         rect.every((Object? part) => part is int) &&
-        (rect[0]! as int) >= 0 && (rect[1]! as int) >= 0 &&
-        (rect[2]! as int) > 0 && (rect[3]! as int) > 0 &&
+        (rect[0]! as int) >= 0 &&
+        (rect[1]! as int) >= 0 &&
+        (rect[2]! as int) > 0 &&
+        (rect[3]! as int) > 0 &&
         (rect[0]! as int) + (rect[2]! as int) <= 1280 &&
         (rect[1]! as int) + (rect[3]! as int) <= 780;
   }
-  need(RegExp(r'^ci-wallet-[a-f0-9]{24}$').hasMatch(profile));
+
+  need(value: RegExp(r'^ci-wallet-[a-f0-9]{24}$').hasMatch(profile));
   await requireCurrent();
   final Map<String, dynamic> opened = await original(<String, Object?>{
-    'cmd': 'seed', 'action': 'fixture', 'kind': 'aged-fuse', 'profile': profile,
-    'ws': 'ws://127.0.0.1:45998', 'http': 'http://127.0.0.1:45997',
+    'cmd': 'seed',
+    'action': 'fixture',
+    'kind': 'aged-fuse',
+    'profile': profile,
+    'ws': 'ws://127.0.0.1:45998',
+    'http': 'http://127.0.0.1:45997',
   });
-  need(opened.length == 4 && opened['fixture'] == 'aged-fuse' &&
-      opened['readOnly'] == true && opened['chain'] is int && opened['chain'] == 321);
+  need(
+    value: opened.length == 4 &&
+        opened['fixture'] == 'aged-fuse' &&
+        opened['readOnly'] == true &&
+        opened['chain'] is int &&
+        opened['chain'] == 321,
+  );
   final Set<String> buttons = <String>{
     for (int index = 1; index <= 2; index++)
       'plasma_cancel_${index.toRadixString(16).padLeft(64, '0')}',
   };
   while (true) {
-    final Map<String, dynamic> tree = await original(<String, Object?>{'cmd': 'tree'});
+    final Map<String, dynamic> tree = await original(
+      <String, Object?>{'cmd': 'tree'},
+    );
     final Object? raw = tree['nodes'];
     final Object? size = tree['size'];
-    need(raw is List<Object?> && raw.length <= 4096 &&
-        size is List<Object?> && size.length == 2 && size[0] == 1280 && size[1] == 780);
+    need(
+      value: raw is List<Object?> &&
+          raw.length <= 4096 &&
+          size is List<Object?> &&
+          size.length == 2 &&
+          size[0] == 1280 &&
+          size[1] == 780,
+    );
     final List<Map<Object?, Object?>> nodes = <Map<Object?, Object?>>[];
     for (final Object? value in raw! as List<Object?>) {
-      need(value is Map<Object?, Object?>);
+      need(value: value is Map<Object?, Object?>);
       final Map<Object?, Object?> node = value! as Map<Object?, Object?>;
       if (visible(node)) nodes.add(node);
     }
     bool label(String text, String kind) => nodes.any(
-      (Map<Object?, Object?> node) => node['kind'] == kind && node['label'] == text,
+      (Map<Object?, Object?> node) =>
+          node['kind'] == kind && node['label'] == text,
     );
-    need(!label('Fixture expired', 'text'));
+    need(value: !label('Fixture expired', 'text'));
     final List<Map<Object?, Object?>> cancel = nodes.where(
-      (Map<Object?, Object?> node) => node['kind'] == 'button' && buttons.contains(node['key']),
+      (Map<Object?, Object?> node) =>
+          node['kind'] == 'button' && buttons.contains(node['key']),
     ).toList();
-    final bool count = nodes.any((Map<Object?, Object?> node) =>
-        node['kind'] == 'text' && node['key'] == 'plasma_fused_count' && node['label'] == '2');
-    final int expired = nodes.where((Map<Object?, Object?> node) =>
-        node['kind'] == 'text' && node['label'] == 'Cancelable').length;
-    if (count && expired == 2 && cancel.length == 2 &&
-        cancel.every((Map<Object?, Object?> node) => node['enabled'] == false) &&
-        cancel.map((Map<Object?, Object?> node) => node['key']).toSet().containsAll(buttons) &&
+    final bool count = nodes.any(
+      (Map<Object?, Object?> node) =>
+          node['kind'] == 'text' &&
+          node['key'] == 'plasma_fused_count' &&
+          node['label'] == '2',
+    );
+    final int expired = nodes.where(
+      (Map<Object?, Object?> node) =>
+          node['kind'] == 'text' && node['label'] == 'Cancelable',
+    ).length;
+    if (count &&
+        expired == 2 &&
+        cancel.length == 2 &&
+        cancel.every(
+          (Map<Object?, Object?> node) => node['enabled'] == false,
+        ) &&
+        cancel
+            .map((Map<Object?, Object?> node) => node['key'])
+            .toSet()
+            .containsAll(buttons) &&
         label('Harness fixture · aged-fuse · read only', 'text')) {
       break;
     }
     await wait();
   }
   await original(<String, Object?>{
-    'cmd': 'tap', 'key': 'seed_fixture_close', 'kind': 'button', 'exact': true,
+    'cmd': 'tap',
+    'key': 'seed_fixture_close',
+    'kind': 'button',
+    'exact': true,
   });
   while (true) {
-    final Map<String, dynamic> state = await original(<String, Object?>{'cmd': 'state'});
-    need(state['booted'] == true && state['walletUnlocked'] == true);
+    final Map<String, dynamic> state = await original(
+      <String, Object?>{'cmd': 'state'},
+    );
+    need(value: state['booted'] == true && state['walletUnlocked'] == true);
     if (!state.containsKey('harnessFixture')) break;
-    need(state['harnessFixture'] == 'aged-fuse');
+    need(value: state['harnessFixture'] == 'aged-fuse');
     await wait();
   }
   await requireCurrent();
   remaining();
   return const <String, Object>{
-    'schema': 1, 'scope': 'owned_native_aged_fuse_fixture', 'fixture': 'aged-fuse',
-    'rows': 2, 'expired_rows': 2, 'disabled_cancel_controls': 2,
-    'banner_observed': true, 'route_closed': true, 'cleanup_cleared': true,
-    'owner_current': true, 'publication_commands': 0,
+    'schema': 1,
+    'scope': 'owned_native_aged_fuse_fixture',
+    'fixture': 'aged-fuse',
+    'rows': 2,
+    'expired_rows': 2,
+    'disabled_cancel_controls': 2,
+    'banner_observed': true,
+    'route_closed': true,
+    'cleanup_cleared': true,
+    'owner_current': true,
+    'publication_commands': 0,
   };
 }
 

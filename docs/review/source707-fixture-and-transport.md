@@ -58,3 +58,16 @@ Fresh full Linux and native qualification remain necessary. Production
 application bytes are unchanged from Source706. Original acceptance remains
 73/80, with P03, P09, F06, V01, V02, V05 and V06 open and zero accepted
 whole-image matches.
+
+## Full Linux analysis result
+
+The [Source707 full Linux workflow](https://github.com/edgepillar/syrius/actions/runs/43307709889)
+passes its preceding controller and patched-package analysis steps, then
+reports `undefined_class` at `harness/bin/ci_wallet_reopen.dart:530:12`.
+The observer uses `WalletRecipeSend`, but the existing explicit import only
+admits `WalletRecipeRefused`. Full unit/widget and generation steps are not
+reached. The heavy native F06 workflow is not dispatched at this source.
+
+[Source708](source708-observer-import.md) adds the missing type to the import
+and resolves the new helper's local analyzer infos. The original failed run,
+pending native observation and existing Python memory scope remain separate.
