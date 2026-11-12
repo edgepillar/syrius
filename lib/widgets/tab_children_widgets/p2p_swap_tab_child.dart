@@ -11,11 +11,15 @@ class P2pSwapTabChild extends StatefulWidget {
   /// Defers periodic list replacement while an owned modal is open.
   const P2pSwapTabChild({
     required this.onStepperNotificationSeeMorePressed,
+    this.captureBinding = captureSwapListBinding,
     super.key,
   });
 
   /// Legacy parent notification navigation hook retained for callers.
   final VoidCallback onStepperNotificationSeeMorePressed;
+
+  /// Captures the catalogue belonging to the current wallet and node.
+  final SwapListBinding? Function() captureBinding;
 
   @override
   State<P2pSwapTabChild> createState() => _P2pSwapTabChildState();
@@ -26,6 +30,7 @@ class _P2pSwapTabChildState extends State<P2pSwapTabChild> {
   Timer? _refreshTimer;
   bool _reading = false;
   bool _modalOpen = false;
+  int _modalEpoch = 0;
 
   @override
   void initState() {
@@ -47,7 +52,8 @@ class _P2pSwapTabChildState extends State<P2pSwapTabChild> {
     if (!mounted || _reading || _modalOpen || _presenter?.deleting == true) {
       return;
     }
-    final SwapListBinding? binding = captureSwapListBinding();
+    final int modalEpoch = _modalEpoch;
+    final SwapListBinding? binding = widget.captureBinding();
     final SwapListPresenter? next = binding == null
         ? null
         : SwapListPresenter(binding);
@@ -69,6 +75,13 @@ class _P2pSwapTabChildState extends State<P2pSwapTabChild> {
           if (!identical(_presenter, next)) next.dispose();
           return;
         }
+        // A read begun before a modal cannot replace its owner or publish a
+        // pre-action catalogue after that modal has closed.
+        if (_modalOpen || modalEpoch != _modalEpoch) {
+          if (!identical(_presenter, next)) next.dispose();
+          if (!_modalOpen) _refresh();
+          return;
+        }
         if (!identical(_presenter, next)) {
           _presenter?.removeListener(_changed);
           _presenter?.dispose();
@@ -84,6 +97,16 @@ class _P2pSwapTabChildState extends State<P2pSwapTabChild> {
     if (mounted) setState(() {});
   }
 
+  void _modalChanged(bool value) {
+    if (_modalOpen == value) return;
+    _modalOpen = value;
+    if (value) {
+      _modalEpoch++;
+    } else {
+      _refresh();
+    }
+  }
+
   @override
   void dispose() {
     _refreshTimer?.cancel();
@@ -97,8 +120,6 @@ class _P2pSwapTabChildState extends State<P2pSwapTabChild> {
   Widget build(BuildContext context) => SwapListView(
     presenter: _presenter,
     onRefresh: _refresh,
-    onBusyChanged: (bool value) {
-      _modalOpen = value;
-    },
+    onBusyChanged: _modalChanged,
   );
 }

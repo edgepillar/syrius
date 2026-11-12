@@ -14,6 +14,13 @@ source correspondence. The later eleven-control Home batch remains incomplete;
 none of its original failures is reclassified. Earlier 72/80 statements below
 retain their historical revisions and scope.
 
+Source696 prepares a narrow correction to the existing Swap list. A read begun
+before a modal cannot replace its active presenter or publish a pre-action
+catalogue after close. The list captures again after the modal closes. Two
+widget cases cover the original read finishing before and after closure.
+Qualification is pending in the existing Linux workflow; no new native,
+capture, lab or harness scope is introduced.
+
 ## Verified results
 
 The [full Source693 Linux workflow](https://github.com/edgepillar/syrius/actions/runs/43140599549)
@@ -21,8 +28,9 @@ now passes the complete non-chain `test/` directory, application and patched
 package analysis, locked dependencies and tracked generated-file checks.
 Exact full-suite counts and application infos are not projected by this
 observation; the selected 1,476-case Windows harness tally remains separate.
-The [current acceptance audit](source694-acceptance-audit.md) maps the original
-end state and eight remaining rows without granting native or image acceptance.
+The [Source694 acceptance audit](source694-acceptance-audit.md) maps the original
+end state at that revision. The V03 closure above leaves seven original rows
+open, without granting full native or image acceptance.
 
 The latest qualified [Source686 producer](https://github.com/edgepillar/syrius/actions/runs/43119410349)
 and [independent reader](https://github.com/edgepillar/syrius/actions/runs/43122503428)

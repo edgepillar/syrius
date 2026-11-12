@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -11,6 +13,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_wid
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/swap_list_binding.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/swap_list_presenter.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/swap_list_view.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/p2p_swap_tab_child.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import 'support.dart';
@@ -48,6 +51,84 @@ Widget host(
 );
 
 void main() {
+  for (final bool closesBeforeRead in <bool>[false, true]) {
+    testWidgets(
+      'a pending refresh preserves the modal owner '
+      'and reloads after close, early=$closesBeforeRead',
+      (WidgetTester tester) async {
+        tester.view.physicalSize = const Size(1280, 780);
+        tester.view.devicePixelRatio = 1;
+        final Completer<SwapListPage> pending = Completer<SwapListPage>();
+        final SwapListRecord originalRow = swapRecord(1);
+        final SwapListRecord lateRow = swapRecord(2);
+        final SwapListRecord freshRow = swapRecord(3);
+        final SwapListFixture original = SwapListFixture()..add(originalRow);
+        final SwapListFixture waiting = SwapListFixture()
+          ..add(lateRow)
+          ..pageRead = (int page, int size) => pending.future;
+        final SwapListFixture fresh = SwapListFixture()..add(freshRow);
+        final List<SwapListFixture> sources = <SwapListFixture>[
+          original,
+          waiting,
+          fresh,
+        ];
+        int captures = 0;
+        SwapListView view() =>
+            tester.widget<SwapListView>(find.byType(SwapListView));
+        try {
+          await tester.pumpWidget(
+            host(
+              P2pSwapTabChild(
+                onStepperNotificationSeeMorePressed: () {},
+                captureBinding: () => sources[captures++].bind(),
+              ),
+            ),
+          );
+          await frames(tester);
+          final SwapListPresenter owner = view().presenter!;
+          expect(owner.snapshot!.rows.single.record.id, originalRow.id);
+          expect(captures, 1);
+
+          view().onRefresh();
+          await tester.pump();
+          expect(waiting.pages, <int>[0]);
+          view().onBusyChanged!(true);
+          if (closesBeforeRead) view().onBusyChanged!(false);
+          expect(captures, 2);
+          pending.complete(
+            SwapListPage(
+              total: 1,
+              more: false,
+              records: <SwapListRecord>[lateRow],
+            ),
+          );
+          await frames(tester, 4);
+
+          if (!closesBeforeRead) {
+            expect(view().presenter, same(owner));
+            expect(owner.canOpen(originalRow), isTrue);
+            expect(owner.snapshot!.rows.single.record.id, originalRow.id);
+            expect(captures, 2);
+            view().onBusyChanged!(false);
+            await frames(tester, 4);
+          }
+          expect(captures, 3);
+          expect(view().presenter, isNot(same(owner)));
+          expect(owner.canOpen(originalRow), isFalse);
+          expect(
+            view().presenter!.snapshot!.rows.single.record.id,
+            freshRow.id,
+          );
+          expect(fresh.pages, <int>[0]);
+          expect(tester.takeException(), isNull);
+        } finally {
+          await tester.pumpWidget(const SizedBox.shrink());
+          tester.view.reset();
+        }
+      },
+    );
+  }
+
   for (final (bool light, bool rtl, double scale, bool reduced)
       in <(bool, bool, double, bool)>[
         (false, false, 1, false),
