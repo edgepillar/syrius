@@ -254,6 +254,19 @@ wallet/lab run or local SDK/artifact execution is admitted. The original
 Source689 theme cause remains unknown. All original failures, 72/80 acceptance
 and the eight deferred gates retain their scope.
 
+The [Source692 harness-only run](https://github.com/edgepillar/syrius/actions/runs/43137401800)
+succeeds at `d7b5213759df072809ca07d441b892370bf2ed1f`, attempt one,
+job `130915935100`. All 1,476 selected Dart cases pass in complete 55/54-file
+streams (708/768), with zero failures, skips, error events, retries or unfinished
+cases. Both original commands exit zero normally and unforced in 219.640 and
+219.047 seconds with complete bounded output. All 1,214 Python cases complete
+with eighteen platform skips and no failures/errors. Selected analysis has zero
+errors, warnings or infos. Both entry refusals and the three startup gates pass
+with normal owned process closure. There are no native wallet/node executions
+or artifacts. All jobs are terminal and source is unfrozen. Source693 records
+this result in documentation only; no test or native run is repeated. Earlier
+native causes, full 72/80 acceptance and all eight deferred gates remain open.
+
 ## Retained qualification status (2026-11-05)
 
 The [qualified Source492 Activity result](review/source489-activity-reference-spacing.md#actual-source492-focused-result)

@@ -3708,3 +3708,16 @@ across 109 files; Python discovery and retained reader remain 1,214/123.
 Fresh hosted harness-only qualification is pending. No native wallet/lab run,
 local SDK execution or artifact transfer is admitted. All original failures,
 full 72/80 acceptance and the eight deferred gates remain open.
+
+## Source693 qualified rendered theme restoration
+
+The [Source692 harness-only run](https://github.com/edgepillar/syrius/actions/runs/43137401800)
+succeeds at `d7b5213759df`: all 1,476 Dart cases pass in complete 55/54-file
+streams (708/768), including the seven selected theme-controller cases.
+All 1,214 Python cases complete with eighteen platform skips and no failures
+or errors; selected analysis has zero errors, warnings or infos. Both entry
+refusals and all three startup gates pass with normal owned process closure.
+No native wallet, lab or artifact is created. All jobs are terminal. Source693
+records the result in documentation only, without repeating tests or native
+execution. Source689's theme cause, Source678's frame cause, all eight deferred
+gates, full 72/80 acceptance and zero accepted whole-image matches remain open.

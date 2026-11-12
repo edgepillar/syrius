@@ -86,6 +86,17 @@ cases. Hosted harness-only qualification is pending, with no native producer or
 lab admitted. Source689's original theme cause, all eight deferred gates and
 full 72/80 acceptance remain open.
 
+The [Source692 harness-only run](https://github.com/edgepillar/syrius/actions/runs/43137401800)
+now succeeds at `d7b5213759df`, attempt one, job `130915935100`.
+All 1,476 Dart cases pass in complete 55/54-file streams (708/768), including
+the seven selected theme-controller cases. All 1,214 Python cases complete with
+eighteen platform skips and no failures/errors; selected analysis has zero
+errors, warnings or infos. Both entry refusals and all three startup gates pass
+with normal closure. No native wallet, lab or artifact is created. Source693
+records this result in documentation only. Source689's original theme cause,
+all eight deferred gates, full 72/80 acceptance and zero accepted whole-image
+matches remain open.
+
 ### Earlier source-bound results
 
 Source548 Native127 qualifies all six copied seed receipts, their journals and
