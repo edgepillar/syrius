@@ -31,7 +31,11 @@ typedef _EntryCaptionPaint = ({
 /// and overlay holds; it never reads the OS animation-effects setting.
 class EntryField extends StatefulWidget {
   /// Creates the continuously animated entry backdrop.
-  const EntryField({super.key});
+  const EntryField({this.paintCaption = true, super.key});
+
+  /// A launch owner keeps the native caption separate until its transform
+  /// settles. The original body field and its clock remain mounted.
+  final bool paintCaption;
 
   @override
   State<EntryField> createState() => _EntryFieldState();
@@ -83,7 +87,8 @@ class _EntryFieldState extends State<EntryField>
   }
 
   AppWindowEntryBackdropPhase _captionPhase() {
-    if (!_captionTickerEnabled || !_captionGeometryCurrent()) {
+    if (!widget.paintCaption || !_captionTickerEnabled ||
+        !_captionGeometryCurrent()) {
       return AppWindowEntryBackdropPhase.hidden;
     }
     final ModalRoute<dynamic>? route = _captionRoute;
@@ -245,6 +250,14 @@ class _EntryFieldState extends State<EntryField>
     _captionTickerEnabled = TickerMode.valuesOf(context).enabled;
     _bindCaption();
     _captionChanges.markPaint();
+  }
+
+  @override
+  void didUpdateWidget(EntryField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.paintCaption != widget.paintCaption) {
+      _captionChanges.markPaint();
+    }
   }
 
   @override

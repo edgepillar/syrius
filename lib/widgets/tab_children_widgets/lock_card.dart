@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
-import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/hero_field.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/entry_field.dart';
 import 'package:zenon_syrius_wallet_flutter/seams/seam.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
@@ -171,12 +171,13 @@ class _LockCardState extends State<LockCard>
         if (widget.startup case final StartupStageSession startup)
           ValueListenableBuilder<double>(
             valueListenable: startup.motion,
-            child: const HeroField(),
-            builder: (_, double progress, Widget? child) =>
-                Opacity(opacity: progress, child: child),
+            builder: (_, double progress, _) => Opacity(
+              opacity: progress,
+              child: EntryField(paintCaption: progress == 1),
+            ),
           )
         else
-          const HeroField(),
+          const EntryField(),
         LayoutBuilder(
           builder: (BuildContext context, BoxConstraints constraints) =>
               SingleChildScrollView(

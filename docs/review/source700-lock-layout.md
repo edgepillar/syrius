@@ -31,7 +31,13 @@ analysis has zero findings. The separately recorded MSVC telemetry helper was
 terminated after the required actors had closed. These captures still need
 visual review.
 
-Source700's layout changes still require fresh hosted tests and a genuine
-Windows Lock recapture. No new visual match is accepted. The original
+The [Source700 full Linux workflow](https://github.com/edgepillar/syrius/actions/runs/43258042063)
+passes analysis, the non-chain test directory and tracked generation checks.
+The [Windows producer](https://github.com/edgepillar/syrius/actions/runs/43258106512)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/43261487421)
+verify six genuine Lock PNGs and four normal actor exits. Selected Windows
+checks pass 1,482 Dart cases, 1,214 Python cases with eighteen platform skips
+and analysis with zero findings. Visual comparison of these captures remains
+pending. No new visual match is accepted. The original
 acceptance remains 73/80; P03, P09, F06, V01, V02, V05 and V06 stay open.
 

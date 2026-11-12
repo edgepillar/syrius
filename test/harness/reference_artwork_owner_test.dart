@@ -462,6 +462,25 @@ void main() {
     expect(_source(tester).referenceArtworkGeneration,
       isNot(same(frame.generation)));
     expect(tester.state(find.byType(AppWindowFrame)), same(caption));
+    final ReferenceArtworkSource replacement = _source(tester);
+    final Object generation = replacement.referenceArtworkGeneration;
+    await tester.pumpWidget(_captionHost(
+      const EntryField(
+        key: ValueKey<String>('replacement-entry-field'),
+        paintCaption: false,
+      ),
+    ));
+    await tester.pump();
+    expect(_source(tester), same(replacement));
+    expect(replacement.captureReferenceArtwork(), isNull);
+    _baseCaption(tester, await _captionPixels(tester), 1200);
+    await tester.pumpWidget(_captionHost(
+      const EntryField(key: ValueKey<String>('replacement-entry-field')),
+    ));
+    await tester.pump();
+    expect(_source(tester), same(replacement));
+    expect(replacement.referenceArtworkGeneration, same(generation));
+    _continuousCaption(await _captionPixels(tester), 1200);
     await tester.pumpWidget(_captionHost(const SizedBox.expand()));
     await tester.pump(const Duration(milliseconds: 400));
     _baseCaption(tester, await _captionPixels(tester), 1200);

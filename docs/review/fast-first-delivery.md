@@ -15,9 +15,12 @@ covers all 94 archived pairs, with zero accepted matches. Source699 removes
 shared secondary-action fills and populated-list end notices. Its full Linux
 workflow and selected Windows engine tests pass, and an independent reader
 verifies four new Staking/Token captures. Their visual review is pending.
-Source700 fixes Lock centering and the wallet selector arrow; fresh hosted
-checks and native Lock recaptures are pending for those changes. Earlier
-first-delivery results keep their recorded revisions and scope.
+Source700 fixes Lock centering and the wallet selector arrow. Its full Linux
+workflow and selected Windows tests pass; an independent reader verifies six
+Lock captures and four normal actor exits. Their visual review is pending.
+Source701 reuses the measured entry field for Lock and Wallet Ready and restores
+the Ready map scale and completion ledger. Fresh hosted checks and recaptures
+are pending. Earlier first-delivery results keep their revisions and scope.
 
 The [Source695 seam coverage audit](source695-seam-coverage.md) closes original
 V03 using the existing fifteen-value native observations and current runtime

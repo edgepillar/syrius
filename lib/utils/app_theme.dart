@@ -1125,6 +1125,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Separation between the first address and its ledger label.
   double get readyAddressGap => 4;
 
+  /// The copy control fits the final address's twenty-pixel line.
+  Size get readyCopySize => const Size(32, 20);
+
   /// Separation between completed entry stages.
   double get readyStepGap => 12;
 

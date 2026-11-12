@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/entry_field.dart';
+import 'package:zenon_syrius_wallet_flutter/screens/onboarding/entry_card_surface.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_ready_binding.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/app_lottie.dart';
@@ -170,13 +172,14 @@ class _WalletReadySurfaceState extends State<WalletReadySurface>
         key: const Key('wallet_ready_screen_marker'),
         fit: StackFit.expand,
         children: <Widget>[
+          const EntryField(),
           ExcludeSemantics(
             child: IgnorePointer(
               child: RepaintBoundary(
                 key: const Key('wallet_ready_map'),
                 child:
                     widget.map ??
-                    const AppLottie(AppLottieAsset.map, fit: BoxFit.cover),
+                    const AppLottie(AppLottieAsset.map, fit: BoxFit.contain),
               ),
             ),
           ),
@@ -221,7 +224,7 @@ class _WalletReadySurfaceState extends State<WalletReadySurface>
                                     crossAxisAlignment:
                                         CrossAxisAlignment.stretch,
                                     children: <Widget>[
-                                      _buildSteps(context, tokens),
+                                      _buildSteps(context),
                                       SizedBox(
                                         height:
                                             tokens.readyGap +
@@ -263,9 +266,12 @@ class _WalletReadySurfaceState extends State<WalletReadySurface>
                                               onPressed: available
                                                   ? _capture(opening: false)
                                                   : null,
-                                              constraints: const BoxConstraints(
-                                                minWidth: 32,
-                                                minHeight: 32,
+                                              padding: EdgeInsets.zero,
+                                              constraints: BoxConstraints(
+                                                minWidth:
+                                                    tokens.readyCopySize.width,
+                                                minHeight:
+                                                    tokens.readyCopySize.height,
                                               ),
                                               icon: buildShellSymbol(
                                                 context,
@@ -315,7 +321,7 @@ class _WalletReadySurfaceState extends State<WalletReadySurface>
     );
   }
 
-  Widget _buildSteps(BuildContext context, AppTokens tokens) {
+  Widget _buildSteps(BuildContext context) {
     final List<String> labels = widget.hardware
         ? <String>[
             context.l10n.walletReadyDevice,
@@ -334,32 +340,10 @@ class _WalletReadySurfaceState extends State<WalletReadySurface>
             context.l10n.walletReadyPassword,
             context.l10n.walletReadyReady,
           ];
-    return Wrap(
+    return EntryStepPosition(
       key: const Key('wallet_ready_steps'),
-      alignment: WrapAlignment.center,
-      spacing: tokens.readyStepGap,
-      runSpacing: tokens.readyAddressGap,
-      children: <Widget>[
-        for (final String label in labels)
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Icon(
-                Icons.check_circle_outline,
-                size: tokens.lockGlyphSize,
-                color: tokens.znn,
-              ),
-              SizedBox(width: tokens.readyAddressGap),
-              Text(
-                label,
-                style: tokens.bodyText.copyWith(
-                  fontSize: 12,
-                  color: tokens.dim,
-                ),
-              ),
-            ],
-          ),
-      ],
+      steps: labels,
+      step: labels.length,
     );
   }
 }
