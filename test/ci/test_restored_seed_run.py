@@ -53,6 +53,10 @@ class SeedObservationTests(unittest.TestCase):
         self.assertEqual(result['receipts_sha256'], seeds.digest(value))
         self.assertNotIn('receipts', result)
         self.assertEqual(seeds.private_receipts(value), value)
+        family = seeds.catalog.SWAP_SEEDED_FAMILY
+        self.assertEqual(seeds.private_receipts(value, catalog_capture=family), value)
+        self.assertEqual(seeds.completed(value, catalog_capture=family), result)
+        self.assertEqual(seeds.CATALOG_SELECTIONS[15], family)
 
     def test_missing_reordered_duplicate_and_unknown_originals_refuse(self):
         for kind in ('missing', 'reordered', 'duplicate', 'unknown'):
@@ -63,6 +67,9 @@ class SeedObservationTests(unittest.TestCase):
             if kind == 'unknown':value['receipts'][0]['hash'] = '0'*64
             with self.subTest(kind=kind), self.assertRaises(restored.checkpoint.Refused):
                 seeds.private_receipts(value)
+            with self.subTest(kind=kind, family='swap-seeded'), \
+                    self.assertRaises(restored.checkpoint.Refused):
+                seeds.private_receipts(value, catalog_capture='swap-seeded')
 
     def test_coerced_state_foreign_chain_and_private_fields_refuse(self):
         for change in (dict(chain=1), dict(chain=321.0), dict(members=True),

@@ -43,7 +43,7 @@ class AdmissionTests(unittest.TestCase):
         with mock.patch.object(lab.sys, 'platform', 'win32'):
             self.assertTrue(lab.require_environment('native', parent))
             for family in ('seeded-states', 'stake-draft', 'project-detail',
-                           'pillar-spawn', 'pillar-done'):
+                           'pillar-spawn', 'pillar-done', 'swap-seeded'):
                 with self.subTest(family=family):
                     seeded = dict(parent, SYRIUS_READONLY_CATALOG_FAMILY=family,
                                   GITHUB_RUN_ATTEMPT='1')

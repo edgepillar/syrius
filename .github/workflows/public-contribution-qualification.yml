@@ -70,6 +70,7 @@ on:
           - lock-seams
           - quiz-catalog
           - seeded-states
+          - swap-seeded
           - stake-draft
           - project-detail
           - pillar-spawn
@@ -930,6 +931,19 @@ jobs:
             .harness/ci-seeded-catalog/13-staking-light.png
             .harness/ci-seeded-catalog/24-token-mine-dark.png
             .harness/ci-seeded-catalog/24-token-mine-light.png
+
+      - name: Retain the two verified seeded Swap list captures
+        if: success() && inputs.windows_wallet_tour && inputs.readonly_catalog_family == 'swap-seeded'
+        uses: actions/upload-artifact@v7
+        with:
+          name: seeded-catalog-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          compression-level: 0
+          include-hidden-files: true
+          if-no-files-found: error
+          path: |
+            .harness/ci-seeded-catalog/manifest.json
+            .harness/ci-seeded-catalog/26-swap-list-dark.png
+            .harness/ci-seeded-catalog/26-swap-list-light.png
 
       - name: Retain the two verified New stake draft captures
         if: success() && inputs.windows_wallet_tour && inputs.readonly_catalog_family == 'stake-draft'

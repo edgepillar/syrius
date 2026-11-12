@@ -33,6 +33,7 @@ CATALOG_SELECTIONS = {
     catalog.PROJECT_DETAIL_SCHEMA: catalog.PROJECT_DETAIL_FAMILY,
     catalog.PILLAR_SPAWN_SCHEMA: catalog.PILLAR_SPAWN_FAMILY,
     catalog.PILLAR_DONE_SCHEMA: catalog.PILLAR_DONE_FAMILY,
+    catalog.SWAP_SEEDED_SCHEMA: catalog.SWAP_SEEDED_FAMILY,
 }
 
 
@@ -54,6 +55,8 @@ class _SeedPlan(NamedTuple):
 
 _PLANS = {
     False: _SeedPlan(IDS, 'private_restored_seed', SCOPE, PREFIX_SCOPE),
+    catalog.SWAP_SEEDED_FAMILY: _SeedPlan(
+        IDS, 'private_restored_seed', SCOPE, PREFIX_SCOPE),
     True: _SeedPlan(CATALOG_IDS, 'private_restored_seed_catalog',
                     CATALOG_SCOPE, CATALOG_PREFIX_SCOPE),
     catalog.STAKE_DRAFT_FAMILY: _SeedPlan(

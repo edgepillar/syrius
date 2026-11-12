@@ -427,6 +427,7 @@ Map<String, Object?>? restoredChildFailure(
   RestoredSeedSelection selection = RestoredSeedSelection.all,
   bool pillarSpawn = false,
   bool pillarDone = false,
+  bool swapList = false,
 }) {
   if (!restoredChildPhases.contains(phase)) return null;
   if (surfaceOperation != null &&
@@ -435,7 +436,7 @@ Map<String, Object?>? restoredChildFailure(
        captureStep?.screen != null || captureStep?.theme != null ||
        captureStep?.line != null ||
        selection != RestoredSeedSelection.seededCatalog ||
-       pillarSpawn || pillarDone)) {
+       pillarSpawn || pillarDone || swapList)) {
     return null;
   }
   String kind = 'OTHER_ERROR';
@@ -485,7 +486,8 @@ Map<String, Object?>? restoredChildFailure(
     final String? reply = screenCaptureReplyOf(error)?.name;
     capture = <String, Object>{
       'schema': reply == null ? 1 : 2,
-      'kind': pillarDone ? 'restored_pillar_done_capture_failure'
+      'kind': swapList ? 'restored_swap_seeded_capture_failure'
+          : pillarDone ? 'restored_pillar_done_capture_failure'
           : pillarSpawn ? 'restored_pillar_spawn_capture_failure'
           : switch (selection) {
         RestoredSeedSelection.stakeDraft =>
@@ -536,6 +538,19 @@ const List<String> _projectScreens = <String>['az-project'];
 const List<String> _projectFiles = <String>[
   '29-az-project-dark.png', '29-az-project-light.png',
 ];
+
+// The ordinary script's final assertion is bound to the confirmed Deposit's
+// disclosure below, including the original frame readback checks.
+const Set<String> _swapListLines = <String>{
+  'goto p2pSwap',
+  'wait --key p2p_swaps_strip --timeout 30',
+  'wait --key p2p_swaps_list --timeout 30',
+  'assert --key swap_filter',
+  'assert --key p2p_start_swap',
+  'assert --key p2p_join_swap',
+  'goto dashboard',
+  'wait --key home_hero --timeout 5',
+};
 
 /// Only these local UI steps may run after the parent validates the journals.
 const Set<String> _seededLines = <String>{
@@ -768,6 +783,51 @@ Future<void> _observePreparedPageSeams(
   await requireCurrent();
 }
 
+/// Opens only the row persisted by the already confirmed original Deposit.
+/// An existing disclosure stays open; no publication or clipboard is invoked.
+Future<void> revealSeededSwapRow(
+  String hash, {
+  required Future<void> Function() requireCurrent,
+  required Future<Map<String, dynamic>> Function(Map<String, Object?>) request,
+}) async {
+  if (!seedHash(hash)) {
+    throw const FormatException('confirmed swap seed required');
+  }
+  Future<Map<String, dynamic>> send(Map<String, Object?> command) async {
+    await requireCurrent();
+    final Map<String, dynamic> reply = await request(command);
+    await requireCurrent();
+    if (reply['ok'] is! bool) {
+      throw const FormatException('seeded swap reply refused');
+    }
+    return reply;
+  }
+  Future<void> require(Map<String, Object?> command) async {
+    if ((await send(command))['ok'] != true) {
+      throw const FormatException('seeded swap row unavailable');
+    }
+  }
+  final String row = 'swap_${hash}_row';
+  final String copy = 'swap_copy_$hash';
+  await require(<String, Object?>{
+    'cmd': 'wait', 'key': row, 'exact': true, 'timeoutMs': 30000,
+  });
+  final Map<String, dynamic> shown = await send(<String, Object?>{
+    'cmd': 'wait', 'key': copy, 'exact': true, 'timeoutMs': 0,
+  });
+  if (shown['ok'] != true) {
+    if (classifyScreenCaptureReply(shown['error'], shown['detail']) !=
+        ScreenCaptureReplyCode.targetMissing) {
+      throw const FormatException('seeded swap disclosure refused');
+    }
+    await require(<String, Object?>{'cmd': 'tap', 'key': row, 'exact': true});
+    await require(<String, Object?>{
+      'cmd': 'wait', 'key': copy, 'exact': true, 'timeoutMs': 30000,
+    });
+  }
+  await require(<String, Object?>{'cmd': 'assert', 'key': copy, 'exact': true});
+}
+
 Future<Map<String, Object>> _captureSeededCatalog(
   cli.Instance instance,
   List<Map<String, String>> receipts,
@@ -780,13 +840,19 @@ Future<Map<String, Object>> _captureSeededCatalog(
   Future<PreparedTokenHolder> Function()? prepareTokenHolder,
   bool pillarSpawn = false,
   bool pillarDone = false,
+  bool swapList = false,
 }) async {
   final ({
     int schema,
     List<String> screens,
     List<String> files,
     Set<String> lines,
-  }) catalog = pillarDone
+  }) catalog = swapList
+      ? (schema: 15, screens: const <String>['swap-list'],
+          files: const <String>['26-swap-list-dark.png',
+                               '26-swap-list-light.png'],
+          lines: _swapListLines)
+      : pillarDone
       ? (schema: 14, screens: const <String>['pillar-done'],
           files: const <String>['20-pillar-done-dark.png',
                                '20-pillar-done-light.png'],
@@ -814,7 +880,8 @@ Future<Map<String, Object>> _captureSeededCatalog(
   final bool stakeDraft = selection == RestoredSeedSelection.stakeDraft;
   final bool projectDetail = selection == RestoredSeedSelection.projectDetail;
   final String? stake =
-      projectDetail || pillarSpawn || pillarDone ? null : confirmed('stake');
+      projectDetail || pillarSpawn || pillarDone || swapList
+          ? null : confirmed('stake');
   final String? rowKey = switch (selection) {
     RestoredSeedSelection.seededCatalog =>
       'token_${seedIssuedTokenStandard(confirmed('token'))}_row',
@@ -826,6 +893,9 @@ Future<Map<String, Object>> _captureSeededCatalog(
     final Map<String, Object?> selector = cli.assertionArgs(cli.Args(args));
     if (stake != null && selector['key'] == 'staking_stakes_count') {
       selector['key'] = stake;
+    }
+    if (swapList && selector['key'] == 'p2p_join_swap') {
+      selector['key'] = 'swap_copy_${confirmed('deposit')}';
     }
     return selector;
   }
@@ -895,6 +965,12 @@ Future<Map<String, Object>> _captureSeededCatalog(
             word,
       ];
       await requireCurrent();
+      if (swapList && authored == 'assert --key p2p_join_swap') {
+        await revealSeededSwapRow(
+          confirmed('deposit'), requireCurrent: requireCurrent,
+          request: instance.send,
+        );
+      }
       switch (words.first) {
         case 'goto':
           await cli.goto(instance, args.single);
@@ -1001,6 +1077,7 @@ Future<void> main() async {
   RestoredSeedSelection selection = RestoredSeedSelection.all;
   bool pillarSpawn = false;
   bool pillarDone = false;
+  bool swapList = false;
   try {
     final Map<String, String> env = Platform.environment;
     final String name = env['SYRIUS_CI_REOPEN_INSTANCE'] ?? '';
@@ -1013,7 +1090,7 @@ Future<void> main() async {
       throw const FormatException('hosted gate refused');
     }
     selection = switch (env['SYRIUS_CI_REOPEN_SEEDED_CAPTURE']) {
-      null || 'false' || 'pillar-spawn' || 'pillar-done' =>
+      null || 'false' || 'pillar-spawn' || 'pillar-done' || 'swap-seeded' =>
         RestoredSeedSelection.all,
       'true' => RestoredSeedSelection.seededCatalog,
       'stake-draft' => RestoredSeedSelection.stakeDraft,
@@ -1022,8 +1099,10 @@ Future<void> main() async {
     };
     pillarSpawn = env['SYRIUS_CI_REOPEN_SEEDED_CAPTURE'] == 'pillar-spawn';
     pillarDone = env['SYRIUS_CI_REOPEN_SEEDED_CAPTURE'] == 'pillar-done';
+    swapList = env['SYRIUS_CI_REOPEN_SEEDED_CAPTURE'] == 'swap-seeded';
     final bool seededCapture =
-        pillarSpawn || pillarDone || selection != RestoredSeedSelection.all;
+        pillarSpawn || pillarDone || swapList ||
+        selection != RestoredSeedSelection.all;
     final CopiedPointerInput originalInput = CopiedPointerInput(
       stdin, allowSeededCapture: seededCapture,
     );
@@ -1292,6 +1371,7 @@ Future<void> main() async {
         (ScreenCaptureObservation step) => captureStep = step,
         selection: selection,
         emitMarker: marker,
+        swapList: swapList,
         onPreparedOperation: (PreparedSurfaceOperation operation) =>
             surfaceOperation = operation,
         prepareTokenHolder: selection != RestoredSeedSelection.seededCatalog
@@ -1325,6 +1405,7 @@ Future<void> main() async {
       phase, error, captureStep: captureStep,
       surfaceOperation: surfaceOperation,
       selection: selection, pillarSpawn: pillarSpawn, pillarDone: pillarDone,
+      swapList: swapList,
     );
     if (failure != null) {
       stdout.writeln('CI_REOPEN_FAILURE:${jsonEncode(failure)}');

@@ -3,10 +3,15 @@
 Updated 2026-11-12.
 
 The core interface and existing basic functionality are available for
-[Draft code review](https://github.com/sol-znn/syrius/pull/6). Unavailable
+[code review](https://github.com/sol-znn/syrius/pull/6). Unavailable
 services remain drawn behind their registered seams. This milestone follows
 the owner's fast-delivery choice. Complete redesign acceptance remains open:
 73/80 original rows, four review and three blocked.
+
+Detailed qualification has resumed after the first code delivery. Source698
+prepares the [original seeded Swap list capture](source698-seeded-swap-list.md)
+in the existing Windows lane. Its new Dart cases and native capture are pending;
+the earlier first-delivery results keep their recorded revisions and scope.
 
 The [Source695 seam coverage audit](source695-seam-coverage.md) closes original
 V03 using the existing fifteen-value native observations and current runtime

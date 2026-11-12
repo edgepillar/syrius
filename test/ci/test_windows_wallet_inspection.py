@@ -238,7 +238,7 @@ class InspectionTests(unittest.TestCase):
                       '../home', 'launch', 'launch-settle', 'launch-timing', 'launch-timing-pair', 'interactive-timing-pair',
                       'lock-catalog', 'lock-seams', 'quiz-catalog', 'seeded-states',
                       'stake-draft', 'project-detail', 'pillar-spawn',
-                      'pillar-done'):
+                      'pillar-done', 'swap-seeded'):
             with self.subTest(value=value), self.assertRaises(lab.Failure):
                 lab.wallet_inspection_requested('native',
                     dict(parent, SYRIUS_READONLY_CATALOG_FAMILY=value))
@@ -253,7 +253,8 @@ class InspectionTests(unittest.TestCase):
              'send-confirm', 'send-warn', 'swap-start', 'wallet-ready', 'earn',
              'sentinel-fixture', 'launch', 'launch-settle', 'launch-timing', 'launch-timing-pair', 'interactive-timing-pair',
              'lock-catalog', 'lock-seams', 'quiz-catalog', 'seeded-states',
-             'stake-draft', 'project-detail', 'pillar-spawn', 'pillar-done'])
+             'swap-seeded', 'stake-draft', 'project-detail', 'pillar-spawn',
+             'pillar-done'])
         self.assertIn('SYRIUS_READONLY_CATALOG_FAMILY: ${{ inputs.readonly_catalog_family }}', workflow)
         for family in ('send-warn', 'settings-seams', 'home-seams', 'surface-seams'):
             scoped = dict(parent, SYRIUS_READONLY_CATALOG_FAMILY=family,
@@ -274,6 +275,7 @@ class InspectionTests(unittest.TestCase):
             ('project-detail', 'Project detail', '29-az-project'),
             ('pillar-spawn', 'Pillar Spawn', '19-spawn'),
             ('pillar-done', 'Pillar Done', '20-pillar-done'),
+            ('swap-seeded', 'seeded Swap list', '26-swap-list'),
         ):
             marker = f'      - name: Retain the two verified {title} captures\n'
             upload = workflow.split(marker, 1)[1].split('\n      - name:', 1)[0]

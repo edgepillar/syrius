@@ -12,6 +12,7 @@ import '../../harness/app/agent.dart';
 import '../../harness/app/fixtures/seed_deposit_presentation.dart';
 import '../../harness/app/fixtures/seed_policy.dart';
 import '../../harness/app/seed_deposit_presentation_binding.dart';
+import '../../harness/bin/ci_wallet_reopen.dart' show revealSeededSwapRow;
 import '../swap_actions/support.dart';
 import '../swap_actions_redesign/support.dart' show
     fixtureDollars, prepareSwapViewport, swapFrames, swapHost;
@@ -128,6 +129,125 @@ class _DepositRoute {
 }
 
 void main() {
+  test('seeded Swap row opens once and stays open for the second theme',
+      () async {
+    final String hash = actionHash(7);
+    final List<Map<String, Object?>> commands = <Map<String, Object?>>[];
+    int guards = 0;
+    bool opened = false;
+    Future<void> current() async {
+      guards++;
+    }
+    Future<Map<String, dynamic>> request(Map<String, Object?> command) async {
+      commands.add(Map<String, Object?>.of(command));
+      if (command['cmd'] == 'tap') opened = true;
+      if (command['timeoutMs'] == 0 && !opened) {
+        return <String, dynamic>{
+          'ok': false, 'error': 'not there after 0 ms',
+        };
+      }
+      return <String, dynamic>{'ok': true};
+    }
+    await revealSeededSwapRow(
+      hash, requireCurrent: current, request: request,
+    );
+    await revealSeededSwapRow(
+      hash, requireCurrent: current, request: request,
+    );
+    expect(
+      commands.map((Map<String, Object?> row) => row['cmd']),
+      <String>['wait', 'wait', 'tap', 'wait', 'assert',
+               'wait', 'wait', 'assert'],
+    );
+    expect(
+      commands.where((Map<String, Object?> row) => row['cmd'] == 'tap')
+          .single['key'],
+      'swap_${hash}_row',
+    );
+    expect(
+      commands.last,
+      <String, Object?>{'cmd': 'assert', 'key': 'swap_copy_$hash',
+                        'exact': true},
+    );
+    expect(guards, commands.length * 2);
+    expect(
+      commands.every((Map<String, Object?> row) => row['exact'] == true),
+      isTrue,
+    );
+  });
+
+  test('seeded Swap disclosure retains the original pending owner check',
+      () async {
+    final Completer<void> observed = Completer<void>();
+    final Completer<Map<String, dynamic>> original =
+        Completer<Map<String, dynamic>>();
+    bool current = true;
+    int taps = 0;
+    Future<void> requireCurrent() async {
+      if (!current) throw StateError('fixture owner changed');
+    }
+    final Future<void> result = revealSeededSwapRow(
+      actionHash(7),
+      requireCurrent: requireCurrent,
+      request: (Map<String, Object?> command) async {
+        if (command['cmd'] == 'tap') taps++;
+        if (command['timeoutMs'] == 0) {
+          observed.complete();
+          return original.future;
+        }
+        return <String, dynamic>{'ok': true};
+      },
+    );
+    await observed.future;
+    current = false;
+    original.complete(<String, dynamic>{
+      'ok': false, 'error': 'not there after 0 ms',
+    });
+    await expectLater(result, throwsStateError);
+    expect(taps, 0);
+  });
+
+  test('seeded Swap refuses covered, unknown and malformed observations',
+      () async {
+    for (final Map<String, dynamic> reply in <Map<String, dynamic>>[
+      <String, dynamic>{'ok': false, 'error': 'covered by something else'},
+      <String, dynamic>{'ok': false, 'error': 'private fixture error'},
+      <String, dynamic>{'ok': 'true'},
+    ]) {
+      int taps = 0;
+      await expectLater(
+        revealSeededSwapRow(
+          actionHash(7),
+          requireCurrent: () async {},
+          request: (Map<String, Object?> command) async {
+            if (command['cmd'] == 'tap') taps++;
+            return command['timeoutMs'] == 0
+                ? reply : <String, dynamic>{'ok': true};
+          },
+        ),
+        throwsFormatException,
+      );
+      expect(taps, 0);
+    }
+  });
+
+  test('seeded Swap refuses an invalid receipt before any observation',
+      () async {
+    int calls = 0;
+    await expectLater(
+      revealSeededSwapRow(
+        'invalid-fixture-hash',
+        requireCurrent: () async { calls++; },
+        request: (Map<String, Object?> command) async {
+          calls++;
+          return <String, dynamic>{'ok': true};
+        },
+      ),
+      throwsFormatException,
+    );
+    expect(calls, 0);
+  });
+
   for (final bool moved in <bool>[false, true]) {
     testWidgets(
       moved ? 'moving the captured seed control cancels its pointer'
