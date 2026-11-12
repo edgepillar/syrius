@@ -8,7 +8,18 @@ services remain drawn behind their registered seams. This milestone follows
 the owner's fast-delivery choice. Complete redesign acceptance remains open:
 73/80 original rows, four review and three blocked.
 
-Detailed qualification has resumed after the first code delivery. Source698
+Detailed qualification has resumed after the first code delivery.
+[Source704](source704-picker-test-import.md) adds the missing foundation import
+to the picker preview test. Source703's full Linux analysis failure is
+preserved; fresh full Linux qualification is pending. Production application,
+harness and CI-controller code are unchanged.
+
+Source703's Ready producer and reader verify both PNGs and normal required
+actor and node closure. Its separate Lock producer fails before the first
+PNG with an unestablished inner command cause. The separate scopes remain
+visible; selected Windows success does not qualify the failed Linux workflow.
+
+ Source698
 qualifies the [original seeded Swap list capture](source698-seeded-swap-list.md)
 with six seed receipts and normal closure. The [initial catalog review](source699-initial-catalog-review.md)
 covers all 94 archived pairs, with zero accepted matches. Refreshed
@@ -25,8 +36,8 @@ themes, with neutral unit ink. Remaining layout findings stay open.
 [Source703](source703-lock-picker.md) holds the lower password controls while
 the display-only Lock menu is expanded, preserves their original State and
 text, and matches the menu's taller rows and inset. Finite marker diagnostics
-prepare a new observation of the still-unestablished Ready refusal. Fresh
-hosted qualification of this follow-up is pending.
+prepare a new observation of the still-unestablished Ready refusal. Its exact-source Ready success, Linux analysis failure and Lock capture
+failure are recorded separately below.
 
 [Source701](source701-entry-surfaces.md) retains its successful Lock result
 and separate failed Ready producer with zero images and required-actor forced

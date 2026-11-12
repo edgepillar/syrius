@@ -52,3 +52,24 @@ open, with zero accepted whole-image matches.
 Source702's four fresh pairs were actually viewed after archive verification.
 Max, This address and Send are readable in both themes and the unit suffix
 is neutral. Remaining table and detail differences are retained as X695-X698.
+
+## Subsequent exact-source results
+
+The [full Linux workflow](https://github.com/edgepillar/syrius/actions/runs/43286127964)
+fails analysis because the new picker test host lacks the foundation import
+for `ValueListenable`. Source704 corrects that test import; the original failed
+result is preserved. The full unit/widget step was not reached.
+
+The [Ready producer](https://github.com/edgepillar/syrius/actions/runs/43286604695)
+and [reader](https://github.com/edgepillar/syrius/actions/runs/43291737582)
+verify two PNGs, normal required actor and node closure, 1,480 selected Dart
+passes and 1,214 Python cases with eighteen skips and zero selected analysis
+findings. The reader passes 123 actual cases. The separate MSVC telemetry
+helper termination is retained. Atomic-frame and visual acceptance remain
+open. This successful new run does not reclassify Source701's failed run.
+
+The [Lock producer](https://github.com/edgepillar/syrius/actions/runs/43286179442)
+retains `COMMAND_FAILED` during its first normal capture, zero PNGs and two
+normal actor exits. The [reader](https://github.com/edgepillar/syrius/actions/runs/43292445165)
+confirms this failed receipt. Its inner cause remains unestablished. See the
+[follow-up record](source704-picker-test-import.md) for the separate scopes.
