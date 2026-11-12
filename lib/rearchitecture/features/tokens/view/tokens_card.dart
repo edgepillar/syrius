@@ -193,7 +193,10 @@ class _TokensCardState extends State<TokensCard> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           Padding(
-            padding: tokens.panelHeaderPadding,
+            padding: const EdgeInsetsDirectional.symmetric(
+              horizontal: 16,
+              vertical: 11,
+            ),
             child: LayoutBuilder(
               builder: (BuildContext context, BoxConstraints constraints) {
                 final Widget segment = Segment<TokensFilter>(

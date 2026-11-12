@@ -36,8 +36,19 @@ class InfiniteScrollTable<T> extends StatefulWidget {
     this.itemKeyGenerator,
     this.onItemTap,
     this.rowBuilder,
+    this.minimumHeaderHeight = 40,
+    this.rowPadding = const EdgeInsets.symmetric(
+      horizontal: kInfiniteTableHorizontalPadding,
+      vertical: kInfiniteTableHorizontalPadding / 2,
+    ),
     super.key,
   });
+
+  /// The header's minimum content height; larger text may grow it.
+  final double minimumHeaderHeight;
+
+  /// Insets around each complete row, shared by its cells.
+  final EdgeInsetsGeometry rowPadding;
 
   /// The columns that will the organized in an fixed header
   final List<InfiniteScrollTableColumnType> columns;
@@ -112,7 +123,11 @@ class _InfiniteScrollTableState<T> extends State<InfiniteScrollTable<T>> {
       controller: _scrollController,
       slivers: <Widget>[
         PinnedHeaderSliver(
-          child: _Header(columns: widget.columns, heads: widget.heads),
+          child: _Header(
+            columns: widget.columns,
+            heads: widget.heads,
+            minimumHeight: widget.minimumHeaderHeight,
+          ),
         ),
         SliverList.separated(
           separatorBuilder: (_, _) => const Divider(
@@ -177,10 +192,7 @@ class _InfiniteScrollTableState<T> extends State<InfiniteScrollTable<T>> {
     final Widget child = DefaultTextStyle.merge(
       style: const TextStyle(fontSize: 13),
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: kInfiniteTableHorizontalPadding,
-          vertical: kInfiniteTableHorizontalPadding / 2,
-        ),
+        padding: widget.rowPadding,
         child: Row(
           children: widget.generateRowCells(item),
         ),
@@ -258,7 +270,13 @@ class _RowHoverState extends State<_RowHover> {
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.columns, required this.heads});
+  const _Header({
+    required this.columns,
+    required this.heads,
+    required this.minimumHeight,
+  });
+
+  final double minimumHeight;
 
   final List<InfiniteScrollTableColumnType> columns;
   final Map<InfiniteScrollTableColumnType, InfiniteScrollTableHead> heads;
@@ -295,8 +313,8 @@ class _Header extends StatelessWidget {
       color: background,
       child: Column(
         children: <Widget>[
-          SizedBox(
-            height: 40,
+          ConstrainedBox(
+            constraints: BoxConstraints(minHeight: minimumHeight),
             child: Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: kInfiniteTableHorizontalPadding,

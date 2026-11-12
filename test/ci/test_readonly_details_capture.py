@@ -169,6 +169,16 @@ class DetailsCatalogTests(unittest.TestCase):
             self.assertIs(details.failure_diagnostic(observed), observed)
             self.assertIs(legacy.entry_failure(dict(stage='details_catalog',
                 code=None, diagnostic=observed))['diagnostic'], observed)
+        # These are existing original Dart refusals, including Ready frames.
+        for reply in ('targetUnavailable', 'frameBusy',
+                      'frameDeadlineExceeded', 'frameOriginalFailed',
+                      'frameAdmissionFailed'):
+            observed = dict(base, schema=2, last_entered_step='shotRequest',
+                screen='wallet-ready', theme='dark', reply=reply)
+            self.assertIs(details.failure_diagnostic(observed,
+                catalog_schema=10), observed)
+            self.assertIs(legacy.entry_failure(dict(stage='wallet_ready_catalog',
+                code=None, diagnostic=observed))['diagnostic'], observed)
         for delta in (
             dict(schema=1, reply='unknown'), dict(schema=2),
             dict(schema=2, reply=True), dict(schema=2, reply=23),

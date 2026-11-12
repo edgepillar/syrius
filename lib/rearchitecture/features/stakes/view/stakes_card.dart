@@ -92,29 +92,32 @@ class _Head extends StatelessWidget {
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
     return Padding(
-      padding: EdgeInsetsDirectional.symmetric(
-        horizontal: tokens.cardPadding.left,
-        vertical: tokens.cardPadding.top,
+      padding: const EdgeInsetsDirectional.symmetric(
+        horizontal: 16,
+        vertical: 11,
       ),
-      child: Row(
-        children: <Widget>[
-          Text(context.l10n.stakesListTitle, style: panelTitleStyle(context)),
-          if (count > 0) ...<Widget>[
-            SizedBox(width: tokens.cardGap),
-            Text(
-              MaterialLocalizations.of(context).formatDecimal(count),
-              key: const Key('staking_stakes_count'),
-              style: tokens.dataText.copyWith(
-                fontSize: 11,
-                color: tokens.faint,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 21),
+        child: Row(
+          children: <Widget>[
+            Text(context.l10n.stakesListTitle, style: panelTitleStyle(context)),
+            if (count > 0) ...<Widget>[
+              SizedBox(width: tokens.cardGap),
+              Text(
+                MaterialLocalizations.of(context).formatDecimal(count),
+                key: const Key('staking_stakes_count'),
+                style: tokens.dataText.copyWith(
+                  fontSize: 11,
+                  color: tokens.faint,
+                ),
               ),
-            ),
+            ],
+            if (retry != null) ...<Widget>[
+              const Spacer(),
+              RefreshButton(onPressed: retry!),
+            ],
           ],
-          if (retry != null) ...<Widget>[
-            const Spacer(),
-            RefreshButton(onPressed: retry!),
-          ],
-        ],
+        ),
       ),
     );
   }
@@ -122,8 +125,8 @@ class _Head extends StatelessWidget {
 
 /// The table's head, and a row with a Cancel button in it, as the table
 /// lays them out; the loading bars are spaced by them.
-const double _kHeadHeight = 40;
-const double _kRowHeight = 26 + kInfiniteTableHorizontalPadding;
+const double _kHeadHeight = 32;
+const double _kRowHeight = 44;
 const double _kSkeletonBar = 12;
 
 /// The list while it loads: a bar where each of the first rows will be,
@@ -164,6 +167,11 @@ class _Populated extends StatelessWidget {
     final AppTokens tokens = AppTokens.of(context);
     return SizedBox.expand(
       child: InfiniteScrollTable<StakeEntry>(
+        minimumHeaderHeight: _kHeadHeight,
+        rowPadding: const EdgeInsetsDirectional.symmetric(
+          horizontal: 16,
+          vertical: 9,
+        ),
         itemKeyGenerator: _stakeKey,
         rowBuilder: (StakeEntry entry, int index, Widget row) =>
             ListEntranceItem(key: _stakeKey(entry), child: row),
@@ -180,6 +188,7 @@ class _Populated extends StatelessWidget {
           .date: InfiniteScrollTableHead(name: context.l10n.stakingStarted),
           .expiration: InfiniteScrollTableHead(
             name: context.l10n.stakingUnlocks,
+            alignment: MainAxisAlignment.start,
           ),
           .blank: const InfiniteScrollTableHead(flex: 2),
         },
@@ -211,7 +220,7 @@ class _Populated extends StatelessWidget {
               stakeEntry.expirationTimestamp - stakeEntry.startTimestamp,
               context.l10n,
             ),
-            textStyle: tokens.dataText.copyWith(fontSize: 13),
+            textStyle: tokens.bodyText,
           ),
           InfiniteScrollTableCell.withText(
             content: _startedText(stakeEntry, context),
@@ -219,14 +228,11 @@ class _Populated extends StatelessWidget {
               stakeEntry.startTimestamp * Duration.millisecondsPerSecond,
               locale: Localizations.localeOf(context),
             ),
-            textStyle: tokens.dataText.copyWith(
-              fontSize: 13,
-              color: tokens.dim,
-            ),
+            textStyle: tokens.bodyText.copyWith(color: tokens.dim),
           ),
           InfiniteScrollTableCell(
             child: Align(
-              alignment: AlignmentDirectional.center,
+              alignment: AlignmentDirectional.centerStart,
               child: Tooltip(
                 message: FormatUtils.formatDateTimeSeconds(
                   stakeEntry.expirationTimestamp *

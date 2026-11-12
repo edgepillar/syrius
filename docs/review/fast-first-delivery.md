@@ -9,6 +9,26 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 73/80 original rows, four review and three blocked.
 
 Detailed qualification has resumed after the first code delivery.
+[Source712](source712-ledger-bands-and-capture-refusals.md) aligns Token filter
+padding and Staking title/table bands, row insets and relative-date typography
+with the reference. It also aligns five recognized details-failure codes with
+the existing Dart protocol. Five selected memory cases pass; the extended
+Ready witness refuses the old allowlist. Fresh hosted and visual validation
+remain pending.
+
+Source711 passes full Linux analysis, the complete non-chain suite and tracked
+generation. Its Staking/Token producer and independent chain reader verify
+four PNGs, the original prerequisites and normal required original/copied
+actor and five-node closure. The actual chain-reader suites contain 75 and
+10 cases, totaling 85; the separate readonly reader below has 123 cases.
+The four Source711 images remain unreviewed.
+
+The parallel Source711 Ready producer stops before any PNG with ENTRY_REFUSED.
+Its readonly reader verifies both failure manifests and required-actor forced
+cleanup. The finite marker identifies the Ready catalog's capture stage;
+the inner cause remains unestablished. Earlier Ready, Lock and F06 outcomes
+retain their exact revisions and scope.
+
 Source710's full Linux run stops at application analysis because the new
 unrelated-history-error test uses a plain Exception instead of the required
 SyriusException. Source711 uses the existing FailureException emitted by the

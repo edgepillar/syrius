@@ -131,6 +131,7 @@ FAILURE_STEPS = ('preflight', 'outputPreflight', 'themeSnapshot', 'windowSnapsho
 
 FAILURE_REPLIES = (
     'targetMissing',
+    'targetUnavailable',
     'targetDisabled',
     'targetCovered',
     'errorWidget',
@@ -154,6 +155,10 @@ FAILURE_REPLIES = (
     'captureReadbackUnavailable',
     'captureDimensionsMismatch',
     'captureStateChanged',
+    'frameBusy',
+    'frameDeadlineExceeded',
+    'frameOriginalFailed',
+    'frameAdmissionFailed',
 )
 
 
