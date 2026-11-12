@@ -14,12 +14,17 @@ source correspondence. The later eleven-control Home batch remains incomplete;
 none of its original failures is reclassified. Earlier 72/80 statements below
 retain their historical revisions and scope.
 
-Source696 prepares a narrow correction to the existing Swap list. A read begun
+Source696 fixes a narrow race in the existing Swap list. A read begun
 before a modal cannot replace its active presenter or publish a pre-action
 catalogue after close. The list captures again after the modal closes. Two
 widget cases cover the original read finishing before and after closure.
-Qualification is pending in the existing Linux workflow; no new native,
-capture, lab or harness scope is introduced.
+The [full Linux workflow](https://github.com/edgepillar/syrius/actions/runs/43152303844)
+passes at `adfda58e412ced4c3d793349cf505d523d353ea2`, attempt one,
+job `130964133238`: controller tests, application and patched package analysis,
+the full non-chain test directory and tracked generated-file checks. Exact
+full-suite counts and application infos are not projected. Source697 records
+this result with unchanged runtime code. No native, capture, lab or harness
+scope is introduced; the Draft body and deferred acceptance scope stay unchanged.
 
 ## Verified results
 
