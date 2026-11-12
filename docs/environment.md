@@ -267,6 +267,25 @@ or artifacts. All jobs are terminal and source is unfrozen. Source693 records
 this result in documentation only; no test or native run is repeated. Earlier
 native causes, full 72/80 acceptance and all eight deferred gates remain open.
 
+### Source694 full Linux checks and acceptance scope (2026-11-12)
+
+The [existing PR Fast Validation run](https://github.com/edgepillar/syrius/actions/runs/43140599549)
+succeeds at `97f47420dff3f24553b7c134f73326024e525ddf`, attempt one,
+job `130926373157`. Its full non-chain `test/` step, patched package analysis,
+application/integration analysis, locked dependencies and tracked generated-file
+check all complete successfully on Ubuntu 24.04. Application analysis permits
+infos; exact full test/skip and info counts are not projected here. Source692's
+1,476 selected Windows harness cases are a separate result.
+
+The [acceptance audit](review/source694-acceptance-audit.md) retains all 80 original
+rows and all eight open gates. F06 retains all six original seed effects while
+its remaining post-seed screen-state proof stays open. The existing HTLC deposit
+is the reachable Swap seed; building the missing two-sided coordinator is not
+required by the redesign. Source694 changes documentation only. All jobs are
+terminal, no artifacts are produced and no native wallet/lab lane is selected.
+No test, SDK or artifact is downloaded or executed locally. The earlier native
+causes, zero accepted whole-image matches and full 72/80 acceptance remain.
+
 ## Retained qualification status (2026-11-05)
 
 The [qualified Source492 Activity result](review/source489-activity-reference-spacing.md#actual-source492-focused-result)

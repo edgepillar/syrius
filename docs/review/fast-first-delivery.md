@@ -10,6 +10,14 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 
 ## Verified results
 
+The [full Source693 Linux workflow](https://github.com/edgepillar/syrius/actions/runs/43140599549)
+now passes the complete non-chain `test/` directory, application and patched
+package analysis, locked dependencies and tracked generated-file checks.
+Exact full-suite counts and application infos are not projected by this
+observation; the selected 1,476-case Windows harness tally remains separate.
+The [current acceptance audit](source694-acceptance-audit.md) maps the original
+end state and eight remaining rows without granting native or image acceptance.
+
 The latest qualified [Source686 producer](https://github.com/edgepillar/syrius/actions/runs/43119410349)
 and [independent reader](https://github.com/edgepillar/syrius/actions/runs/43122503428)
 both succeed at `15fec4c9120f`. All 1,467 selected Dart cases pass in complete 54/54-file
@@ -1484,7 +1492,7 @@ frontier reads after such a failure. Their native observation remains pending.
 | Original gate | Required evidence |
 | --- | --- |
 | P03/P09 | Complete the documented Windows Docker route. Earlier Linux defaults, WSL installation and the Source548 native lab retain their separate scopes. |
-| F06 | Complete the seeded screen states and coordinator/peer Swap prerequisites. Source548 qualifies the original six receipts and copied lifecycle. Source561 qualifies the restored Stake and Token captures. Source563 qualifies the separate New stake draft with one Stake prerequisite. Source569 qualifies the Sentinel fixture pair. Source607 verifies the Spawn pair. Source608 confirms Pillar registration in the incomplete prefix, in its original failed attempt. Source611 separately verifies the confirmed registration, both Pillar Done captures and normal closure. |
+| F06 | Complete the required post-seed screen-state proof using the existing HTLC deposit. The missing two-sided Swap coordinator remains seamed and is not an implementation task. Source548 qualifies the original six receipts and copied lifecycle. Source561 qualifies the restored Stake and Token captures. Source563 qualifies the separate New stake draft with one Stake prerequisite. Source569 qualifies the Sentinel fixture pair. Source607 verifies the Spawn pair. Source608 confirms Pillar registration in the incomplete prefix, in its original failed attempt. Source611 separately verifies the confirmed registration, both Pillar Done captures and normal closure. |
 | V01/V05 | Review all 94 available literal pairs, resolve retained layout/type/spacing findings and explicitly accept each match. Availability is 94/94. Accepted whole-image matches are 0/94. |
 | V02 | Observe every motion/shader row in the running build and compare page-change, disclosure and launch frame times with the original baseline. Finite widget timing or stall telemetry alone does not close this gate. |
 | V03 | Try every original seam control, shortcut and Go To entry in the running native wallet and verify refusal. Registry and widget controls remain partial evidence. |
