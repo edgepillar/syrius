@@ -76,6 +76,16 @@ eleven-control Home prefix and zero qualified PNGs remain. Source689's failed
 reader is not retried or reclassified. Source691 records this result in
 documentation only; native runtime and full 72/80 acceptance remain open.
 
+Source692 closes a separate source-proven restoration gap: matching the original
+mode and stored preference no longer accepts an unrendered original brightness.
+Invalid original brightness is refused before any preference or notifier change.
+Two new widget cases cover the wrong-render and invalid-input paths. The five
+existing theme-controller cases were absent from the selected harness lane;
+all seven are now selected and analyzed, bringing its expectation to 1,476 Dart
+cases. Hosted harness-only qualification is pending, with no native producer or
+lab admitted. Source689's original theme cause, all eight deferred gates and
+full 72/80 acceptance remain open.
+
 ### Earlier source-bound results
 
 Source548 Native127 qualifies all six copied seed receipts, their journals and

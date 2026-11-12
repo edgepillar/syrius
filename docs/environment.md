@@ -235,6 +235,25 @@ locally. All jobs are terminal and source is unfrozen. Source691 records these
 facts in documentation only; no control or native execution is repeated.
 Original 72/80 acceptance and all eight deferred gates remain open.
 
+### Source692 rendered theme restoration (2026-11-12)
+
+Source inspection identifies a separate restoration defect: the controller
+checks the original notifier mode and saved preference but omits the rendered
+brightness. It can therefore return success while the effective theme differs
+from the original snapshot. Source692 validates the saved brightness before
+mutating state and requires it to match after the original settle callback.
+No wait, timer, frame request, retry or preference operation is added.
+
+Two widget regressions cover an unrendered original light theme despite matching
+mode/preference and invalid brightness refused before mutation. The existing
+five theme-controller cases were not in the selected harness file list; all
+seven are now selected and explicitly analyzed. The selected Dart expectation
+is 1,476 across 109 files. Python discovery remains 1,214 and retained reader
+expectation 123. Fresh hosted harness-only controls are pending; no native
+wallet/lab run or local SDK/artifact execution is admitted. The original
+Source689 theme cause remains unknown. All original failures, 72/80 acceptance
+and the eight deferred gates retain their scope.
+
 ## Retained qualification status (2026-11-05)
 
 The [qualified Source492 Activity result](review/source489-activity-reference-spacing.md#actual-source492-focused-result)

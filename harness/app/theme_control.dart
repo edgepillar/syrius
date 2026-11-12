@@ -57,13 +57,20 @@ class HarnessThemeControl {
     if (saved != null && saved is! String) {
       throw ArgumentError('invalid original theme preference');
     }
+    final Object? brightness = state['brightness'];
+    if (brightness != Brightness.dark.name &&
+        brightness != Brightness.light.name) {
+      throw ArgumentError('invalid original theme brightness');
+    }
     // An absent preference reads as null too; both select the app default on
     // its next initialization. No theme preference is inferred from the OS.
     await savePreference(saved);
     _notifier.changeThemeMode(selected);
     await settle();
     final Map<String, Object?> result = snapshot();
-    if (result['mode'] != mode || result['savedMode'] != saved) {
+    if (result['mode'] != mode ||
+        result['savedMode'] != saved ||
+        result['brightness'] != brightness) {
       throw StateError('the original theme was not restored');
     }
     return result;

@@ -122,6 +122,48 @@ void main() {
     expect(control.snapshot(), original);
   });
 
+  testWidgets('restoration requires the original rendered brightness', (
+    WidgetTester tester,
+  ) async {
+    await tester.runAsync(
+      () => prefs.put(kThemeModeKey, ThemeMode.light.toString()),
+    );
+    final HarnessThemeControl initial = await mount(
+      tester,
+      initial: ThemeMode.light,
+    );
+    final Map<String, Object?> original = initial.snapshot();
+    expect(original['brightness'], 'light');
+    final HarnessThemeControl control = await mount(
+      tester,
+      followNotifier: false,
+    );
+    await expectLater(control.restore(original), throwsStateError);
+    final Map<String, Object?> observed = control.snapshot();
+    expect(observed['mode'], original['mode']);
+    expect(observed['savedMode'], original['savedMode']);
+    expect(observed['brightness'], 'dark');
+  });
+
+  testWidgets('invalid original brightness refuses before changing state', (
+    WidgetTester tester,
+  ) async {
+    final HarnessThemeControl control = await mount(tester);
+    final Map<String, Object?> original = control.snapshot();
+    for (final Object? brightness in <Object?>[null, 'system', true, 1]) {
+      await expectLater(
+        control.restore(<String, dynamic>{
+          ...original,
+          'mode': 'light',
+          'savedMode': ThemeMode.light.toString(),
+          'brightness': brightness,
+        }),
+        throwsArgumentError,
+      );
+      expect(control.snapshot(), original);
+    }
+  });
+
   testWidgets('rejects invalid mode and a theme the app did not render', (
     WidgetTester tester,
   ) async {

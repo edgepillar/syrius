@@ -328,7 +328,8 @@ replacement. Interrupted or failed output stays in place for inspection.
 There is no cleanup or overwrite command.
 
 On success or failure, the runner attempts to restore the original theme
-mode, preference, original rail expansion, outer window position and size,
+mode, preference, rendered brightness, original rail expansion, outer window
+position and size,
 and minimized/maximized
 mode. An unset theme preference retains its default meaning. Restoration
 failures are reported alongside the original failure, and earlier captures

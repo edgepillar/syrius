@@ -3691,3 +3691,20 @@ prefix and zero qualified PNGs remain. All jobs are terminal. Source691 records
 the result in documentation only; no test, native producer or original failed
 reader is repeated. Full acceptance remains 72/80 with all eight deferred gates
 open and zero accepted whole-image matches.
+
+## Source692 rendered theme restoration
+
+The theme controller previously accepted restoration based only on the original
+notifier mode and stored preference, without requiring the original rendered
+brightness. Source692 refuses invalid brightness before mutation and requires
+all three observations after its unchanged settle callback. This corrects a
+source-proven false-positive path, not Source689's still-unknown theme cause.
+
+Two new widget cases cover wrong rendered brightness with matching mode and
+preference, and invalid original brightness before mutation. All five existing
+theme-controller cases join those regressions in the selected and analyzed
+harness inputs for the first time. The expectation becomes 1,476 Dart cases
+across 109 files; Python discovery and retained reader remain 1,214/123.
+Fresh hosted harness-only qualification is pending. No native wallet/lab run,
+local SDK execution or artifact transfer is admitted. All original failures,
+full 72/80 acceptance and the eight deferred gates remain open.

@@ -454,6 +454,7 @@ def analyze(parent, repo):
         'harness/app/fixtures/launch_settle_profile.dart',
         'lib/widgets/tab_children_widgets/lock_wallet_picker.dart',
         'harness/bin/harness.dart', 'test/harness/wallet_tour_test.dart',
+        'harness/app/theme_control.dart', 'test/harness/theme_control_test.dart',
         'harness/bin/copied_wallet_pointer.dart',
         'test/harness/copied_wallet_pointer_test.dart',
         'harness/bin/ci_copied_wallet_pointer.dart',
