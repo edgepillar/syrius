@@ -818,6 +818,51 @@ class StartupInspectionTests(unittest.TestCase):
                                               http_status=None, reply='withheld'))
             self.assertNotIn('private', json.dumps(projection))
 
+        class ReadinessProbe(catalog.LockProcess):
+            def __init__(self, replies):
+                self.replies = iter(replies)
+                self.elapsed, self.deadline = 0, 60
+                self.phase, self._command_refusal = 'refusal', None
+                self.limits = inspect.launch.LIMITS
+                self.commands = []
+
+            def clock(self):
+                return self.elapsed
+
+            def sleep(self, seconds):
+                self.elapsed += seconds
+
+            def _exchange(self, command, *, until=None, allow_exit=False):
+                self.commands.append(command['cmd'])
+                if command['cmd'] == 'type':
+                    return 200, dict(ok=True, value='\u2022' * len(command['value']))
+                return next(self.replies, (400, dict(ok=False, error='not ready after 0 ms')))
+
+        pending = (400, dict(ok=False, error='not ready after 0 ms'))
+        ready = (200, dict(ok=True, target=dict(key='wallet_password_field', kind='field')))
+        probe = ReadinessProbe([pending, ready])
+        probe._type_sample('synthetic input')
+        self.assertEqual(probe.commands, ['wait', 'wait', 'type'])
+        self.assertEqual(probe.elapsed, inspect.launch.LIMITS.poll)
+        self.assertIsNone(probe._command_refusal)
+        bad_ready = (200, dict(ok=True, target=dict(key='wallet_password_field',
+                                                   kind='field', enabled=False)))
+        for replies, code in (
+            ([bad_ready], 'ENTRY_INVALID'),
+            ([(400, dict(ok=False, error='synthetic private refusal'))], 'COMMAND_FAILED'),
+            ([], 'STARTUP_DEADLINE'),
+        ):
+            probe = ReadinessProbe(replies)
+            with self.assertRaises(inspect.startup.Failure) as refused:
+                probe._type_sample('synthetic input')
+            self.assertEqual(refused.exception.code, code)
+            self.assertNotIn('type', probe.commands)
+            if code == 'STARTUP_DEADLINE':
+                self.assertEqual(probe.elapsed, 12)
+            if code == 'COMMAND_FAILED':
+                self.assertEqual(probe._command_refusal, dict(command='wait',
+                    phase='refusal', http_status=400, reply='withheld'))
+
     def test_startup_pair_keeps_the_original_twelve_request_transport_bound(self):
         class Response(io.BytesIO):
             status = 200

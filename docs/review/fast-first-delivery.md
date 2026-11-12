@@ -9,11 +9,22 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 73/80 original rows, four review and three blocked.
 
 Detailed qualification has resumed after the first code delivery.
-[Source705](source705-lock-command-diagnostics.md) corrects four stale picker
-font-size expectations and adds a finite first-command refusal notice to the
-Lock controller. One extended existing Python case passes in memory; fresh
-full Linux and instrumented Lock qualification are pending. Production
-application and Dart harness code are unchanged from Source703.
+[Source706](source706-entry-readiness.md) waits for the actual enabled and
+reachable password field before each single type request. It also corrects
+Ready label casing, copy-glyph size and the shared entry shadow. One extended
+existing Python case passes in memory; fresh hosted qualification is pending.
+
+[Source705](source705-lock-command-diagnostics.md) passes the full Linux
+workflow, including the complete non-chain test directory, analysis and
+tracked generation. Its Lock producer and independent reader retain a
+refusal-phase failure with zero PNGs and two normal actor exits. The finite
+notice identifies a type request reaching a read-only field after the picker
+closes. Source703's earlier normal-phase cause remains unestablished.
+
+Both actual Source703 Ready pairs have now been reviewed. The shared field,
+map and centered card align; X699-X700 retain label, glyph, small vertical
+metric and light-shadow differences. The verified archive is retained once;
+the registered disposable PNGs are removed after normal task closure.
 
 [Source704](source704-picker-test-import.md) passes application and patched
 analysis after the missing import is added. Its full Linux run fails four

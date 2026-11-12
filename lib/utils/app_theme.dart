@@ -518,14 +518,12 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Entry glyphs share a common size.
   double get lockGlyphSize => 16;
 
-  /// The entry surface has a deeper drop over the dark field.
-  List<BoxShadow> get lockCardShadow => <BoxShadow>[
+  /// The entry card keeps its CSS drop shadow in both themes.
+  List<BoxShadow> get lockCardShadow => const <BoxShadow>[
     BoxShadow(
-      color: Colors.black.withValues(
-        alpha: background.computeLuminance() < 0.5 ? 0.4 : 0.14,
-      ),
-      offset: const Offset(0, 20),
-      blurRadius: 60,
+      color: Color.fromRGBO(0, 0, 0, 0.35),
+      offset: Offset(0, 20),
+      blurRadius: (60 / 2 - 0.5) / 0.57735,
     ),
   ];
 
@@ -1133,6 +1131,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
 
   /// The copy control fits the final address's twenty-pixel line.
   Size get readyCopySize => const Size(32, 20);
+
+  /// The copy symbol follows the original twelve-pixel inline artwork.
+  double get readyCopyGlyphSize => 12;
 
   /// Separation between completed entry stages.
   double get readyStepGap => 12;

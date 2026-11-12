@@ -41,7 +41,7 @@ SAMPLE = 'screen-state'
 REFUSED_SAMPLE = 'redesign-qualification-wrong-password'
 PHASES = ('prepare', 'ready', 'bind', 'input', 'normal', 'picker', 'refusal', 'complete')
 REFUSAL_COMMANDS = frozenset((
-    'ping', 'window', 'theme', 'lock-view', 'type', 'shot', 'lock-catalog', 'tap', 'quit',
+    'ping', 'window', 'theme', 'lock-view', 'type', 'shot', 'lock-catalog', 'tap', 'quit', 'wait',
 ))
 REFUSAL_REPLIES = {
     'read-only field': 'field_read_only',
@@ -101,7 +101,9 @@ class LockProcess(launch.LaunchProcess):
         return dict(receipt, phase=self.phase), result
 
     def _rpc(self, command, *, until=None, allow_exit=False):
-        status, body = self._exchange(command, until=until, allow_exit=allow_exit)
+        return self._reply(command, *self._exchange(command, until=until, allow_exit=allow_exit))
+
+    def _reply(self, command, status, body):
         if status != 200 or body['ok'] is not True:
             if self._command_refusal is None:
                 self._command_refusal = command_refusal(command, self.phase, status, body)
@@ -158,7 +160,25 @@ class LockProcess(launch.LaunchProcess):
     def _lock_view(self, failures):
         need(self._input_ready(self._lock_owner('observe'), failures), 'ENTRY_INVALID')
 
+    def _wait_input(self):
+        until = min(self.deadline, self.clock() + 12)
+        command = dict(cmd='wait', key='wallet_password_field', kind='field',
+                       exact=True, ready=True, timeoutMs=0)
+        while self.clock() < until:
+            status, body = self._exchange(command, until=until)
+            pending = (status == 400 and body['ok'] is False
+                       and body.get('error') in ('not there after 0 ms', 'not ready after 0 ms'))
+            if not pending:
+                target = self._reply(command, status, body).get('target')
+                need(type(target) is dict and target.get('key') == 'wallet_password_field'
+                     and target.get('kind') == 'field'
+                     and target.get('enabled', True) is True, 'ENTRY_INVALID')
+                return
+            self.sleep(min(self.limits.poll, max(0, until - self.clock())))
+        raise startup.Failure('STARTUP_DEADLINE')
+
     def _type_sample(self, value):
+        self._wait_input()
         body = self._rpc(dict(cmd='type', key='wallet_password_field', value=value, settleMs=0))
         need(body.get('value') == '\u2022' * len(value))
 

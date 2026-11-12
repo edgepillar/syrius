@@ -237,7 +237,8 @@ class _WalletReadySurfaceState extends State<WalletReadySurface>
                                       ),
                                       SizedBox(height: tokens.readyGap),
                                       Text(
-                                        context.l10n.walletReadyFirstAddress,
+                                        context.l10n.walletReadyFirstAddress
+                                            .toUpperCase(),
                                         style: tokens.ledgerText,
                                         textAlign: TextAlign.center,
                                       ),
@@ -276,7 +277,7 @@ class _WalletReadySurfaceState extends State<WalletReadySurface>
                                               icon: buildShellSymbol(
                                                 context,
                                                 'copy',
-                                                size: tokens.lockGlyphSize,
+                                                size: tokens.readyCopyGlyphSize,
                                               ),
                                             ),
                                         ],

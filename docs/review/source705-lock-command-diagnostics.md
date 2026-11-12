@@ -42,3 +42,24 @@ recent successful full Linux workflow.
 
 Original acceptance remains 73/80. P03, P09, F06, V01, V02, V05 and V06 stay
 open, with zero accepted whole-image matches.
+
+## Exact-source hosted results
+
+The [Source705 full Linux workflow](https://github.com/edgepillar/syrius/actions/runs/43297905108)
+passes application and patched-package analysis, the complete non-chain test
+directory and tracked generation. All four stale font-size failures are
+resolved. Exact full-suite counts and application info totals are not projected.
+
+The [instrumented Lock producer](https://github.com/edgepillar/syrius/actions/runs/43297959705)
+passes 1,482 selected Dart cases, 1,214 Python cases with eighteen platform
+skips and selected analysis with zero findings. Its capture stops later in
+`refusal`, after the picker has closed. The finite notice records `type`,
+HTTP 400 and `field_read_only`. Both recorded actors close normally, and no
+PNG is retained. The [independent reader](https://github.com/edgepillar/syrius/actions/runs/43300732860)
+confirms this failed receipt and zero PNGs. Reader case counts are not
+projected by this observation.
+
+This identifies the refused command at Source705. It does not establish
+the cause of Source703's separate failure in `normal`. [Source706](source706-entry-readiness.md)
+waits for the actual enabled, reachable field before its single type request;
+the original failed workflows and their distinct phases remain preserved.
