@@ -9,12 +9,20 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 73/80 original rows, four review and three blocked.
 
 Detailed qualification has resumed after the first code delivery.
+[Source721](source721-inspection-case-registry.md) registers the one additional
+Stream handshake case in the exact selected-suite count. Source720 full Linux
+passes. Its Windows attempt has zero analysis findings and two successful
+Dart engines, then refuses 1,481 ordinary completions against the stale
+1,480-case registry. Wallet compilation and lab startup are not reached; zero
+artifacts remain and the failed attempt is preserved.
+
 [Source720](source720-build-before-lab.md) completes the original readonly
 wallet build before starting the five original lab nodes. A fixed handshake
 keeps application startup behind initial production observation, with fresh
 pre-input revalidation still required. This removes compile/node overlap as
 a possible contention source; it does not establish the earlier failure's
-cause. Fresh same-source Linux, Windows and archive verification are pending.
+cause. Its native scheduling change still needs execution after the registry
+correction, followed by original-archive verification.
 
 [Source719](source719-fixture-wildcard.md) passes full Linux, strict Windows
 analysis and selected tests, then fails production revalidation before wallet

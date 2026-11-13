@@ -35,7 +35,12 @@ selected Python controls pass locally using memory fixtures, without launching
 an SDK, node or native wallet or using the network.
 
 This removes compile/node overlap as a potential source of contention; it is
-not a proven fix for Source719's failure. Fresh full Linux, Windows and
-original-archive verification remain necessary. Node deadlines, genesis,
+not a proven fix for Source719's failure. Full Linux 43373607059 passes. The
+original Windows attempt 43373812621 completes both Dart engines successfully
+but refuses their 1,481 ordinary completions against the stale 1,480-case
+registry, before wallet compilation or lab startup. It has zero artifacts.
+[Source721](source721-inspection-case-registry.md) corrects that registered
+count; fresh native and original-archive verification remain necessary.
+Node deadlines, genesis,
 publication guards, storage limits and the 16 ms comparison are unchanged.
 Original acceptance remains 73/80, with zero accepted whole-image matches.
