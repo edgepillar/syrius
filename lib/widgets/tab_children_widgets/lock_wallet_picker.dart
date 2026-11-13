@@ -4,6 +4,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/ltr.dar
 import 'package:zenon_syrius_wallet_flutter/seams/seam.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart';
 
 /// Display facts supplied by an owner, with no wallet or storage handle.
 @immutable
@@ -114,9 +115,12 @@ class LockWalletPicker extends StatelessWidget {
     ),
     child: Row(
       children: <Widget>[
-        Icon(
-          current.isLedger ? Icons.usb_outlined : Icons.key_outlined,
-          size: tokens.lockGlyphSize,
+        IconTheme.merge(
+          data: IconThemeData(
+            size: tokens.lockGlyphSize,
+            color: tokens.foreground,
+          ),
+          child: ShellSymbol(current.isLedger ? 'usb' : 'key'),
         ),
         SizedBox(width: tokens.inlineGap),
         Expanded(
@@ -209,7 +213,7 @@ class LockWalletPicker extends StatelessWidget {
                 _buildMenuRow(
                   tokens: tokens,
                   key: const ValueKey<String>('lock_wallet_picker_add'),
-                  icon: Icons.add,
+                  icon: 'plus',
                   name: context.l10n.lockAddWallet,
                   height: tokens.walletPickerAddRowHeight,
                 ),
@@ -228,7 +232,7 @@ class LockWalletPicker extends StatelessWidget {
   ) => _buildMenuRow(
     tokens: tokens,
     key: ValueKey<String>('lock_wallet_picker_entry_$index'),
-    icon: entry.isLedger ? Icons.usb_outlined : Icons.key_outlined,
+    icon: entry.isLedger ? 'usb' : 'key',
     name: entry.name,
     height: tokens.walletPickerRowHeight,
     address: entry.address,
@@ -238,7 +242,7 @@ class LockWalletPicker extends StatelessWidget {
   Widget _buildMenuRow({
     required AppTokens tokens,
     required Key key,
-    required IconData icon,
+    required String icon,
     required String name,
     required double height,
     String? address,
@@ -275,7 +279,10 @@ class LockWalletPicker extends StatelessWidget {
       ),
       child: Row(
         children: <Widget>[
-          Icon(icon, size: tokens.lockGlyphSize),
+          IconTheme.merge(
+            data: IconThemeData(size: tokens.lockGlyphSize),
+            child: ShellSymbol(icon),
+          ),
           SizedBox(width: tokens.inlineGap),
           Expanded(
             child: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis),

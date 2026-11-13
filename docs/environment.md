@@ -1,6 +1,23 @@
 # Redesign build environment
 
-## Current qualification status (2026-11-11)
+## Current qualification status (2026-11-13)
+
+PR #6 is [Ready for review](https://github.com/sol-znn/syrius/pull/6).
+Complete redesign acceptance remains 74/80 original rows. F06 is complete at
+Source722; P03, P09, V01, V02, V05 and V06 remain open.
+
+Source730 full Linux and both Windows producers pass, with 1,505 selected
+Dart cases, 1,220 Python cases/eighteen Windows skips and zero selected
+findings. Ready's independent reader passes 123 cases and Staking/Token's
+passes 85. Both Ready pairs are accepted; all 94 archived pairs have initial
+reviews and matches are 2/94. Four new Staking/Token images are independently
+verified and await individual review.
+
+The [current report](review/source731-lock-picker-symbols.md) preserves exact
+source/run boundaries, earlier failures, remaining gates and the prepared
+Lock glyph change. That new implementation still needs hosted qualification.
+
+## Historical qualification snapshot (2026-11-11)
 
 The core interface and existing basic functionality are available for
 [Draft code review](https://github.com/sol-znn/syrius/pull/6). Full acceptance

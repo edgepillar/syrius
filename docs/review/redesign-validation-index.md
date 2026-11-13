@@ -1,5 +1,7 @@
 # Redesign validation index
 
+Current: [Source731 Lock symbols and Source730 results](source731-lock-picker-symbols.md). Source730 full Linux, both Windows producers and both independent readers pass. Two Ready pairs are accepted at that source, giving 2/94 matches and unchanged 74/80 original acceptance. Four new Staking/Token PNGs await individual review. The prepared Lock glyph change needs fresh hosted/native qualification; earlier entries retain their source-bound status.
+
 - Native115 passes 1,361 selected Dart cases, 1,087 Python cases with 18 Windows skips, 14 asset checks and zero selected findings. The original send, tour, quiescence and normal actor exits qualify. Five copied seed recipes confirm. Fund Address passes its corrected readiness wait and enters publish. Fifteen rounds qualify the matching confirmed send with the effect pending. The exact unmet receive or balance condition and the copied lifecycle remain open. [Source525 Native115 result](source524-native114-fund-address-readiness.md#fresh-native115-result).
 
 - Native114 independently qualifies the original one-ZNN UI send, twelve-page tour, quiescence and normal actor exits. The copied session confirms five recipes including Deposit and Project. Fund Address stops on command three before its publication transport. The ordinary Send readiness selectors now use the original recipient field and await a fresh hosted check. [Source524 native result and Fund Address correction](source524-native114-fund-address-readiness.md).

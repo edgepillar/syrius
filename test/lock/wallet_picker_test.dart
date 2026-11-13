@@ -17,6 +17,8 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/fros
 import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/lock_card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/lock_wallet_picker.dart';
 
+import '../helpers/mockup_symbol.dart';
+
 const Key _field = ValueKey<String>('lock_wallet_display');
 const Key _arrow = ValueKey<String>('lock_wallet_picker_arrow');
 const Key _menu = ValueKey<String>('lock_wallet_picker_menu');
@@ -312,9 +314,29 @@ void main() {
         expect(menu.height, 206);
         expect(menu.top - field.bottom, tokens.walletPickerFieldMenuGap);
         expect(find.byIcon(Icons.expand_less), findsOneWidget);
-        expect(find.byIcon(Icons.usb_outlined), findsOneWidget);
-        expect(find.byIcon(Icons.key_outlined), findsNWidgets(3));
-        expect(find.byIcon(Icons.add), findsOneWidget);
+        expectMockupSymbol(
+          tester,
+          within: find.byKey(_field),
+          symbol: 'key',
+          size: tokens.lockGlyphSize,
+          color: tokens.foreground,
+        );
+        for (int index = 0; index < _entries.length; index++) {
+          expectMockupSymbol(
+            tester,
+            within: find.byKey(_entryKey(index)),
+            symbol: _entries[index].isLedger ? 'usb' : 'key',
+            size: tokens.lockGlyphSize,
+            color: index == 0 ? tokens.foreground : tokens.dim,
+          );
+        }
+        expectMockupSymbol(
+          tester,
+          within: find.byKey(_add),
+          symbol: 'plus',
+          size: tokens.lockGlyphSize,
+          color: tokens.dim,
+        );
         final FrostedSurface frost = tester.widget<FrostedSurface>(
           find.byType(FrostedSurface),
         );
@@ -600,7 +622,13 @@ void main() {
       ),
     );
     expect(find.byKey(_menu), findsNothing);
-    expect(find.byIcon(Icons.usb_outlined), findsNothing);
+    expectMockupSymbol(
+      tester,
+      within: find.byKey(_field),
+      symbol: 'key',
+      size: AppTokens.dark.lockGlyphSize,
+      color: AppTokens.dark.foreground,
+    );
     expect(find.byTooltip(_current.address!), findsNothing);
     expect(find.text('Main'), findsNothing);
     expect(find.text('Ledger'), findsNothing);
@@ -639,7 +667,13 @@ void main() {
     expect(find.text(_current.name), findsNothing);
     expect(find.text(_hardware.name), findsOneWidget);
     expect(find.byTooltip(_current.address!), findsNothing);
-    expect(find.byIcon(Icons.usb_outlined), findsOneWidget);
+    expectMockupSymbol(
+      tester,
+      within: find.byKey(_field),
+      symbol: 'usb',
+      size: AppTokens.dark.lockGlyphSize,
+      color: AppTokens.dark.foreground,
+    );
     await tester.pumpWidget(const SizedBox.shrink());
     expect(refused, throwsA(_pickerError));
     await tester.pump(const Duration(seconds: 2));

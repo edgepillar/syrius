@@ -9,6 +9,18 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 74/80 original rows, three review and three blocked.
 
 Detailed qualification has resumed after the first code delivery.
+[Source731](source731-lock-picker-symbols.md) prepares the Lock picker's original
+key/USB/plus paths and updates existing reference-symbol controls. Fresh hosted
+and native qualification of that change remains pending.
+
+Source730 full Linux and both Windows producers pass. Windows selected gates
+have 1,505 Dart cases, 1,220 Python cases/eighteen skips and zero findings.
+Ready's reader passes 123 cases; Staking/Token's separate reader passes 85.
+Two Ready pairs are individually accepted. Four independently verified
+Staking/Token images await review. Matches are 2/94; original progress stays
+74/80 and the six remaining gates stay open.
+
+Earlier entries below retain their preparation and source-bound status.
 [Source730](source730-ready-paint-test-scope.md) restores the original painting
 debug flag before the Ready test returns, including exceptional exits. The
 Source729 early gate records 21 passes and one framework-invariant failure;
@@ -1778,7 +1790,6 @@ frontier reads after such a failure. Their native observation remains pending.
 | Original gate | Required evidence |
 | --- | --- |
 | P03/P09 | Complete the documented Windows Docker route. Earlier Linux defaults, WSL installation and the Source548 native lab retain their separate scopes. |
-| F06 | Complete the required post-seed screen-state proof using the existing HTLC deposit. The missing two-sided Swap coordinator remains seamed and is not an implementation task. Source548 qualifies the original six receipts and copied lifecycle. Source561 qualifies the restored Stake and Token captures. Source563 qualifies the separate New stake draft with one Stake prerequisite. Source569 qualifies the Sentinel fixture pair. Source607 verifies the Spawn pair. Source608 confirms Pillar registration in the incomplete prefix, in its original failed attempt. Source611 separately verifies the confirmed registration, both Pillar Done captures and normal closure. |
 | V01/V05 | Review all 94 available literal pairs, resolve retained layout/type/spacing findings and explicitly accept each match. Availability is 94/94. Accepted whole-image matches are 0/94. |
 | V02 | Observe every motion/shader row in the running build and compare page-change, disclosure and launch frame times with the original baseline. Finite widget timing or stall telemetry alone does not close this gate. |
 | V06 | Check every original end-state requirement and complete independent final acceptance. The earlier minimum-window/Arabic viewing remains source-bound. |
