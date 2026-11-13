@@ -66,6 +66,8 @@ class DartFailureTests(unittest.TestCase):
                  'entry_prepared_draft_test.dart', 'entry_capture_source.dart',
                  'import_wallet_seed_choice_screen.dart', 'native_entry_capture.dart',
                  'launch_decode_observation_test.dart')
+        names += ('wallet_ready_surface.dart', 'wallet_ready_test.dart',
+                  'wallet_ready_capture_test.dart')
         for name in names:
             row = dict(type='error', testID=7, isFailure=False,
                 error='Null check operator used on a null value: private text',

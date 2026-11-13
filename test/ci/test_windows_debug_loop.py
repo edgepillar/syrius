@@ -643,7 +643,11 @@ class AnalysisAdmissionTests(unittest.TestCase):
         self.assertEqual(value['diagnostics'], dict(error=0, warning=0, info=0))
         self.assertEqual(self.analysis_argv.count('test/theme/mockup_tokens_test.dart'), 1)
         for path in ('harness/app/ready_reference_artwork.dart',
-                     'test/harness/ready_reference_artwork_test.dart'):
+                     'test/harness/ready_reference_artwork_test.dart',
+                     'lib/screens/onboarding/wallet_ready_surface.dart',
+                     'lib/utils/wallet_ready_binding.dart',
+                     'test/wallet_ready/wallet_ready_test.dart',
+                     'test/wallet_ready/wallet_ready_capture_test.dart'):
             self.assertEqual(self.analysis_argv.count(path), 1)
         for path in ('lib/rearchitecture/utils/widgets/buttons/paste_content_button.dart',
                      'lib/rearchitecture/utils/widgets/buttons/clear_content_button.dart',

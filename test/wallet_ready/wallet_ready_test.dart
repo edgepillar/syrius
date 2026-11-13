@@ -1,3 +1,7 @@
+import 'dart:typed_data' as typed;
+import 'dart:ui' as ui;
+
+import 'package:flutter/rendering.dart' as rendering;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
@@ -68,7 +72,62 @@ VoidCallback _open(WidgetTester tester) => tester
     .widget<PrimaryPill>(find.byKey(const Key('wallet_ready_open')))
     .onPressed!;
 
+Future<List<Color>> _shadowPixels(WidgetTester tester, CustomPainter painter,
+    Color backdrop) async {
+  final List<Color>? colors = await tester.runAsync<List<Color>>(() async {
+    final ui.PictureRecorder recorder = ui.PictureRecorder();
+    final Canvas canvas = Canvas(recorder)
+      ..clipRect(const Rect.fromLTWH(0, 0, 160, 140))
+      ..drawColor(backdrop, BlendMode.src)
+      ..translate(32, 24);
+    painter.paint(canvas, const Size(80, 60));
+    final ui.Picture picture = recorder.endRecording();
+    try {
+      final ui.Image image = await picture.toImage(160, 140);
+      try {
+        final typed.ByteData pixels = (await image.toByteData())!;
+        Color sample(int x, int y) {
+          final int index = (y * image.width + x) * 4;
+          return Color.fromARGB(pixels.getUint8(index + 3),
+            pixels.getUint8(index), pixels.getUint8(index + 1),
+            pixels.getUint8(index + 2));
+        }
+        return <Color>[sample(72, 54), sample(72, 100)];
+      } finally {
+        image.dispose();
+      }
+    } finally {
+      picture.dispose();
+    }
+  });
+  return colors!;
+}
+
 void main() {
+  testWidgets(
+      'Ready outer shadow leaves the card interior clear in both themes',
+      (WidgetTester tester) async {
+    _prepare(tester);
+    final bool original = rendering.debugDisableShadows;
+    rendering.debugDisableShadows = false;
+    addTearDown(() => rendering.debugDisableShadows = original);
+    final WalletReadyBinding binding = WalletReadyBinding(
+      firstAddress: _first, isCurrent: () => true);
+    for (final bool light in <bool>[false, true]) {
+      await tester.pumpWidget(_host(_surface(binding: binding), light: light));
+      await tester.pump(const Duration(milliseconds: 321));
+      final CustomPaint paint = tester.widget<CustomPaint>(
+        find.byKey(const Key('wallet_ready_shadow')));
+      expect(paint.painter, isNull);
+      final AppTokens tokens = light ? AppTokens.light : AppTokens.dark;
+      final Color backdrop = tokens.glass.withValues(alpha: 1);
+      final List<Color> pixels = await _shadowPixels(tester,
+        paint.foregroundPainter!, backdrop);
+      expect(pixels[0].toARGB32(), backdrop.toARGB32());
+      expect(pixels[1].toARGB32(), lessThan(backdrop.toARGB32()));
+    }
+  });
+
   test('one opening is reserved before its observer can re-enter', () {
     int checks = 0;
     final WalletReadyBinding binding = WalletReadyBinding(

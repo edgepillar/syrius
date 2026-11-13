@@ -47,8 +47,11 @@ jobs:
         # warnings fail this check across the full source tree.
         run: flutter analyze --no-pub --no-fatal-infos
 
-      - name: Verify Ready artwork ownership and restoration
-        run: flutter test test/harness/ready_reference_artwork_test.dart
+      - name: Verify Ready surfaces, ownership and restoration
+        run: >-
+          flutter test test/harness/ready_reference_artwork_test.dart
+          test/wallet_ready/wallet_ready_test.dart
+          test/wallet_ready/wallet_ready_capture_test.dart
 
       - name: Run unit and widget tests
         run: flutter test test --exclude-tags chain

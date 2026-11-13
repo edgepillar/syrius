@@ -661,6 +661,10 @@ def analyze(parent, repo):
         'test/harness/reference_artwork_owner_test.dart',
         'harness/app/ready_reference_artwork.dart',
         'test/harness/ready_reference_artwork_test.dart',
+        'lib/screens/onboarding/wallet_ready_surface.dart',
+        'lib/utils/wallet_ready_binding.dart',
+        'test/wallet_ready/wallet_ready_test.dart',
+        'test/wallet_ready/wallet_ready_capture_test.dart',
         'lib/rearchitecture/utils/widgets/entry_field.dart',
         'lib/rearchitecture/utils/widgets/go_to_palette.dart',
         'lib/widgets/reusable_widgets/app_lottie.dart',
@@ -776,6 +780,10 @@ def analyze(parent, repo):
                                         else 'reference_artwork_test' if relative.endswith('/test/harness/reference_artwork_owner_test.dart')
                                         else 'ready_reference_artwork' if relative.endswith('/harness/app/ready_reference_artwork.dart')
                                         else 'ready_reference_artwork_test' if relative.endswith('/test/harness/ready_reference_artwork_test.dart')
+                                        else 'ready_surface' if relative.endswith('/lib/screens/onboarding/wallet_ready_surface.dart')
+                                        else 'ready_binding' if relative.endswith('/lib/utils/wallet_ready_binding.dart')
+                                        else 'ready_surface_test' if relative.endswith('/test/wallet_ready/wallet_ready_test.dart')
+                                        else 'ready_capture_test' if relative.endswith('/test/wallet_ready/wallet_ready_capture_test.dart')
                                         else 'entry_field' if relative.endswith('/lib/rearchitecture/utils/widgets/entry_field.dart')
                                         else 'app_lottie' if relative.endswith('/lib/widgets/reusable_widgets/app_lottie.dart')
                                         else 'window_frame_test' if relative.endswith('/test/window/window_frame_test.dart')

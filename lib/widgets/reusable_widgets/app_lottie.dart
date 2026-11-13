@@ -268,7 +268,8 @@ class _PlayerState extends State<_Player>
     final double duration = composition.durationFrames;
     if (!duration.isFinite || duration <= 0) return null;
     final int count = (duration + 0.01).floor();
-    final int index = (count * (asset == AppLottieAsset.map ? 0.5 : 0.4)).floor();
+    final int index =
+        (count * (asset == AppLottieAsset.map ? 0.5 : 0.4)).floor();
     final double progress = index / duration;
     if (count <= 0 || count > 1000000 ||
         !progress.isFinite || progress < 0 || progress > 1) {
@@ -286,7 +287,8 @@ class _PlayerState extends State<_Player>
     frame = ReferenceArtworkFrame(
       owner: this, generation: entry, kind: referenceArtworkKind,
       observation: <String, Object>{
-        'kind': asset == AppLottieAsset.map ? 'wallet_ready_map' : 'welcome_globe',
+        'kind': asset == AppLottieAsset.map
+            ? 'wallet_ready_map' : 'welcome_globe',
         'frame': index, 'frame_count': count,
       },
       current: () => originalCurrent() && original.isAnimating &&

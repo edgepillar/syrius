@@ -45,6 +45,8 @@ FILES = ('wallet_tour_test.dart', 'build_output_test.dart',
     'readonly_wallet_admission_test.dart',
     'readonly_inspection_session.dart', 'readonly_inspection_session_test.dart',
     'readonly_viewport_probe.dart',
+    'wallet_ready_surface.dart', 'wallet_ready_test.dart',
+    'wallet_ready_capture_test.dart',
     'ci_wallet_inspection.dart',
     'launch_decode_observation_test.dart')
 # The root baseline also runs suites outside the focused harness. These

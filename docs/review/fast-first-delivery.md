@@ -9,6 +9,19 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 74/80 original rows, three review and three blocked.
 
 Detailed qualification has resumed after the first code delivery.
+[Source729](source729-ready-outer-shadow.md) excludes Ready's drop shadow from
+its card interior and paints it after the original glass. The existing shadow,
+blur, color and layout tokens are retained. One direct paint regression covers
+both themes; eighteen existing Ready cases also join the focused selection.
+All 46 focused memory controls pass. Fresh engine and native checks are pending.
+
+[Source728 full Linux](https://github.com/edgepillar/syrius/actions/runs/43412563461)
+passes controllers, analysis, the early Ready gate, the complete non-chain
+directory and tracked generation. Its two Windows jobs stop at strict analysis
+with the same two Lottie line-length infos, before wallet build or lab startup.
+Both retain zero artifacts. Source729 wraps those exact expressions without
+changing their tokens. Original failures and 74/80 acceptance remain preserved.
+
 [Source728](source728-ready-test-pump-sequencing.md) fixes the new Ready test
 driver's guarded call ordering, addresses 22 new analysis infos and explicitly
 registers both Ready files in strict selected analysis. All 46 focused memory

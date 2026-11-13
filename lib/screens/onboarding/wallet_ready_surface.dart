@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart' as foundation;
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/entry_field.dart';
@@ -200,12 +201,14 @@ class _WalletReadySurfaceState extends State<WalletReadySurface>
                         width: tokens.readyCardWidth,
                         child: RiseIn(
                           duration: const Duration(milliseconds: 320),
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
+                          child: CustomPaint(
+                            key: const Key('wallet_ready_shadow'),
+                            // The glass must not sample its own shadow.
+                            foregroundPainter: _ReadyOuterShadowPainter(
                               borderRadius: BorderRadius.circular(
                                 tokens.dialogRadius,
                               ),
-                              boxShadow: tokens.lockCardShadow,
+                              shadows: tokens.lockCardShadow,
                             ),
                             child: FrostedSurface(
                               sigma: tokens.dialogBlur,
@@ -347,6 +350,45 @@ class _WalletReadySurfaceState extends State<WalletReadySurface>
       step: labels.length,
     );
   }
+}
+
+class _ReadyOuterShadowPainter extends CustomPainter {
+  const _ReadyOuterShadowPainter({
+    required this._borderRadius,
+    required this._shadows,
+  });
+
+  final BorderRadius _borderRadius;
+  final List<BoxShadow> _shadows;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.isEmpty || _shadows.isEmpty) return;
+    final Rect rect = Offset.zero & size;
+    final Path outside = Path()
+      ..fillType = PathFillType.evenOdd
+      ..addRect(canvas.getLocalClipBounds())
+      ..addRRect(_borderRadius.toRRect(rect));
+    canvas.save();
+    try {
+      canvas.clipPath(outside);
+      for (final BoxShadow shadow in _shadows) {
+        canvas.drawRRect(
+          _borderRadius.toRRect(
+            rect.shift(shadow.offset).inflate(shadow.spreadRadius),
+          ),
+          shadow.toPaint(),
+        );
+      }
+    } finally {
+      canvas.restore();
+    }
+  }
+
+  @override
+  bool shouldRepaint(_ReadyOuterShadowPainter oldDelegate) =>
+      oldDelegate._borderRadius != _borderRadius ||
+      !foundation.listEquals(oldDelegate._shadows, _shadows);
 }
 
 class _ReadyAddress extends StatelessWidget {
