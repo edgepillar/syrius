@@ -25,8 +25,8 @@ Three selected existing Python cases pass in memory. They cover the Details
 and Home projections, original entry wrapping, both frame-state versions,
 foreign fields, invalid types and callback bounds. The previous Details
 parser rejects the extended positive witness. Existing Dart coverage now
-checks the Ready projection across every reply category. Fresh hosted Dart,
-analysis and runtime qualification remain pending.
+checks the Ready projection across every reply category. Executed Source716
+checks and the original native failure are recorded below.
 
 ## Executed Source715 results
 
@@ -71,3 +71,28 @@ remains bound to Source714 and its exact comment-only correspondence.
 No original attempt was retried and no artifact was downloaded locally.
 Original acceptance remains 73/80; no new visual match or F06 closure is
 claimed. A separate fixed aged-fuse fixture observation remains design work.
+
+## Executed Source716 result
+
+Source `4f96063993dd71872d1870b8d750b59098f77990`, tree
+`e2cc9870232dcbb37c422c4f63e8de74811f5241`, passes the
+[full Linux workflow](https://github.com/edgepillar/syrius/actions/runs/43349554689):
+controller tests, application/patched analysis, the full non-chain directory
+and tracked generation. Global test and info totals are not projected.
+
+The [Ready producer](https://github.com/edgepillar/syrius/actions/runs/43351077665)
+passes 1,480 selected Dart cases, 1,214 Python cases with eighteen platform
+skips and selected analysis with zero findings. It then retains ENTRY_FAILED
+at the light `shotRequest`, with `frameDeadlineExceeded`. Its schema 3
+observation reports a current binding, enabled frames, registered begin/draw
+callbacks, a scheduled frame, zero observed persistent callbacks, scheduler
+phase `idle` and lifecycle value `none` at the original 250 ms deadline.
+
+The [independent reader](https://github.com/edgepillar/syrius/actions/runs/43353572532)
+passes 123 cases and verifies both original archives and 81 producer files.
+There are zero verified or retained PNGs, with required-actor forced cleanup.
+Five original nodes exit normally; complete lab closure stays unqualified.
+Reaching the light shot request does not establish that no earlier dark
+capture occurred. The original first failure and its underlying cause remain
+separate from Source715's dark shot refusal. No native run or transport is
+retried, and no artifact is downloaded locally.

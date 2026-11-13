@@ -315,9 +315,41 @@ void main() {
     expect(gate.receipt!.refusalState, isNull);
   });
 
-  testWidgets('a requested late frame cannot clear the actual 250 ms hold', (
+  testWidgets('a delayed frame settles once and a late frame stays held', (
     WidgetTester tester,
   ) async {
+    final Completer<void> delayedFrame = Completer<void>();
+    int delayedRequests = 0;
+    int delayedReadbacks = 0;
+    final CaptureFrameGate delayed = CaptureFrameGate.scheduled(
+      requestFrame: () => delayedRequests++,
+      waitForFrame: () => delayedFrame.future,
+    );
+    final Future<void> delivered = expectLater(
+      delayed.capture<String>(() async {
+        delayedReadbacks++;
+        return 'original delayed pixels';
+      }),
+      completion('original delayed pixels'),
+    );
+    final CaptureFrameReceipt delayedOriginal = delayed.receipt!;
+    expect(delayedOriginal.original, same(delayedFrame.future));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(delayedOriginal.status, CaptureFrameStatus.pending);
+    expect(delayedOriginal.outcome, isNull);
+    expect(delayedReadbacks, 0);
+    delayedFrame.complete();
+    await tester.pump();
+    await delivered;
+    expect(delayedOriginal.status, CaptureFrameStatus.ready);
+    expect(delayedOriginal.timedOut, isFalse);
+    expect((await delayedOriginal.completion).completed, isTrue);
+    expect(delayedRequests, 1);
+    expect(delayedReadbacks, 1);
+    await tester.pump(const Duration(milliseconds: 700));
+    expect(delayedOriginal.status, CaptureFrameStatus.ready);
+    expect(delayed.heldUnknown, isFalse);
+
     final Completer<void> frame = Completer<void>();
     int requests = 0;
     int readbacks = 0;
@@ -329,7 +361,11 @@ void main() {
       readbacks++;
     }), throwsA(isA<CaptureFrameRefused>()));
     final CaptureFrameReceipt original = gate.receipt!;
-    await tester.pump(const Duration(milliseconds: 250));
+    await tester.pump(const Duration(milliseconds: 999));
+    expect(original.status, CaptureFrameStatus.pending);
+    expect(original.outcome, isNull);
+    expect(readbacks, 0);
+    await tester.pump(const Duration(milliseconds: 1));
     await refused;
     expect(original.timedOut, isTrue);
     expect(original.outcome, isNull);
@@ -400,7 +436,7 @@ void main() {
     expect(gate.heldUnknown, isFalse);
   });
 
-  testWidgets('the actual 250 ms deadline never completes the frame', (
+  testWidgets('the actual one-second deadline never completes the frame', (
     WidgetTester tester,
   ) async {
     final Completer<void> frame = Completer<void>();
@@ -415,7 +451,7 @@ void main() {
       throwsA(isA<CaptureFrameRefused>()),
     );
     final CaptureFrameReceipt receipt = gate.receipt!;
-    await tester.pump(const Duration(milliseconds: 249));
+    await tester.pump(const Duration(milliseconds: 999));
     expect(receipt.status, CaptureFrameStatus.pending);
     expect(receipt.timedOut, isFalse);
     expect(receipt.outcome, isNull);

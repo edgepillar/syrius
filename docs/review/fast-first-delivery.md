@@ -9,10 +9,22 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 73/80 original rows, four review and three blocked.
 
 Detailed qualification has resumed after the first code delivery.
+[Source717](source717-native-frame-admission.md) waits up to one second for
+the same original native capture frame. Admission still requires its positive
+completion and retains a held receipt after expiry or late completion. Existing
+widget cases cover the 300 ms positive boundary and the one-second refusal.
+Fresh hosted and native qualification remain pending; the 16 ms performance
+comparison and application rendering are unchanged.
+
 [Source716](source716-details-frame-context.md) retains the existing typed
 frame state in Details failure reports. It uses the same closed Python
 validation as Home and preserves all capture, publication and timing bounds.
-Three selected memory cases pass; fresh hosted qualification is pending.
+Three selected memory cases and full Linux analysis, tests and generation
+pass. Its Ready producer and reader preserve a light shotRequest deadline
+failure with zero verified PNGs and required-actor forced cleanup. The original
+250 ms observation has a current binding, enabled frames, registered callbacks
+and a scheduled frame, with zero persistent callbacks. Five original nodes exit
+normally; complete closure and the inner cause remain unqualified.
 
 Source715's paired producer and independent reader verify both launch windows
 and five normal actor exits. Acquisition passes, while the 16 ms duration

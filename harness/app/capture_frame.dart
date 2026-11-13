@@ -326,8 +326,10 @@ final class CaptureFrameGate {
   bool _busy = false;
   bool _held = false;
 
+  // Wait for one original native frame within a bounded capture interval.
+  // This deadline is separate from the measured frame performance budget.
   static Future<void> _deadline() =>
-      Future<void>.delayed(const Duration(milliseconds: 250));
+      Future<void>.delayed(const Duration(seconds: 1));
 
   /// At most one receipt is retained; a held receipt is never replaced.
   /// A finished positive receipt remains available until the next admission.
