@@ -4585,7 +4585,7 @@ abstract class AppLocalizations {
   /// No description provided for @lockTriesLeft.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{1 try left. The wallet resets at the limit.} other{{count} tries left. The wallet resets at the limit.}}'**
+  /// **'{count, plural, one{1 try left, then this wallet is removed from this computer.} other{{count} tries left, then this wallet is removed from this computer.}}'**
   String lockTriesLeft(int count);
 
   /// No description provided for @sendRecent.

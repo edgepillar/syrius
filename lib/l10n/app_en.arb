@@ -2003,7 +2003,7 @@
   "lockShowPassword": "Show password",
   "lockHidePassword": "Hide password",
   "lockAttemptSaveFailed": "Unlock state was not saved. Restart Syrius.",
-  "lockTriesLeft": "{count, plural, one{1 try left. The wallet resets at the limit.} other{{count} tries left. The wallet resets at the limit.}}",
+  "lockTriesLeft": "{count, plural, one{1 try left, then this wallet is removed from this computer.} other{{count} tries left, then this wallet is removed from this computer.}}",
   "@lockTriesLeft": {"placeholders": {"count": {"type": "int"}}},
   "sendRecent": "Recent",
   "sendAddressBook": "Address book",

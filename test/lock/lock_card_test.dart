@@ -273,7 +273,8 @@ void main() {
         );
         expect(
           find.text(
-            'Incorrect password. 2 tries left. The wallet resets at the limit.',
+            'Incorrect password. 2 tries left, then this wallet '
+            'is removed from this computer.',
           ),
           findsOneWidget,
         );
@@ -287,7 +288,7 @@ void main() {
         );
         final TextField field = tester.widget<TextField>(find.byKey(_password));
         expect(field.decoration!.enabledBorder!.borderSide.color, tokens.error);
-        expect(find.textContaining('removed from this computer'), findsNothing);
+        expect(find.textContaining('removed from this computer'), findsOneWidget);
         expect(password.text, isEmpty);
         expect(tester.takeException(), isNull);
       },
@@ -311,7 +312,8 @@ void main() {
       );
       expect(
         find.text(
-          'Incorrect password. 1 try left. The wallet resets at the limit.',
+          'Incorrect password. 1 try left, then this wallet '
+          'is removed from this computer.',
         ),
         findsOneWidget,
       );

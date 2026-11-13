@@ -76,6 +76,23 @@ Future<Uint8List> _pixels(WidgetTester tester, {Finder? surface}) async {
   }))!;
 }
 
+List<ui.Image> _watchEntryRasters() {
+  final List<ui.Image> images = <ui.Image>[];
+  final ui.ImageEventCallback? previous = ui.Image.onCreate;
+  ui.Image.onCreate = (ui.Image image) {
+    previous?.call(image);
+    // The field includes its -20% inset and 3-sigma margin. Exclude the
+    // client-sized readback images that _pixels owns and disposes itself.
+    if (image.width > _size.width && image.height > _size.height) {
+      images.add(image);
+    }
+  };
+  addTearDown(() {
+    ui.Image.onCreate = previous;
+  });
+  return images;
+}
+
 List<int> _rgba(Uint8List pixels, int x, int y) {
   final int offset = (y * _size.width.toInt() + x) * 4;
   return pixels.sublist(offset, offset + 4);
@@ -207,15 +224,20 @@ void main() {
         WidgetTester tester,
       ) async {
         _prepare(tester);
+        final List<ui.Image> rasters = _watchEntryRasters();
         await tester.pumpWidget(_host(light: light));
         await tester.pump();
         final Uint8List start = await _pixels(tester);
+        expect(rasters, hasLength(1));
+        expect(rasters.single.debugDisposed, isFalse);
         await tester.pump(const Duration(seconds: 20));
         final Uint8List end = await _pixels(tester);
         _expectBackground(end, light);
         expect(end, isNot(orderedEquals(start)));
         await tester.pump(const Duration(seconds: 20));
         expect(await _pixels(tester), orderedEquals(start));
+        expect(rasters, hasLength(1));
+        expect(rasters.single.debugDisposed, isFalse);
       },
     );
 
@@ -336,6 +358,7 @@ void main() {
       WidgetTester tester,
     ) async {
       _prepare(tester);
+      final List<ui.Image> rasters = _watchEntryRasters();
       await tester.pumpWidget(_host());
       await tester.pump();
       _expectBackground(await _pixels(tester), false);
@@ -346,6 +369,25 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
       _expectBackground(await _pixels(tester), false);
       expect(find.byType(EntryField), findsOneWidget);
+      // The themes share the three source colours, while the window base
+      // repaints independently. Animation and a theme round-trip reuse it.
+      expect(rasters, hasLength(1));
+      tester.view
+        ..physicalSize = _size * 2
+        ..devicePixelRatio = 2;
+      await tester.pumpWidget(_host());
+      await tester.pump();
+      _expectBackground(await _pixels(tester), false);
+      expect(rasters, hasLength(2));
+      expect(rasters.first.debugDisposed, isTrue);
+      expect(rasters.last.debugDisposed, isFalse);
+      expect(rasters.last.width, rasters.first.width * 2);
+      expect(rasters.last.height, rasters.first.height * 2);
+      await tester.pump(const Duration(seconds: 1));
+      expect(rasters, hasLength(2));
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+      expect(rasters.every((ui.Image image) => image.debugDisposed), isTrue);
     },
   );
 
@@ -403,12 +445,15 @@ void main() {
     WidgetTester tester,
   ) async {
     _prepare(tester);
+    final List<ui.Image> rasters = _watchEntryRasters();
     await tester.pumpWidget(_host());
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
+    expect(rasters, hasLength(1));
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump(const Duration(seconds: 40));
     expect(tester.binding.transientCallbackCount, 0);
+    expect(rasters.single.debugDisposed, isTrue);
     expect(tester.takeException(), isNull);
   });
 }

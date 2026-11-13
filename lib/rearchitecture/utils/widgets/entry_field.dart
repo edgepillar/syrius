@@ -16,6 +16,7 @@ typedef _EntryCaptionPaint = ({
   ValueListenable<double> seconds,
   Size body,
   double height,
+  double pixelRatio,
   Color background,
   Color green,
   Color blue,
@@ -45,6 +46,7 @@ class _EntryFieldState extends State<EntryField>
     with SingleTickerProviderStateMixin
     implements ReferenceArtworkSource {
   late final ShaderClock _clock;
+  final _EntryFieldRaster _raster = _EntryFieldRaster();
   ReferenceArtworkFrame? _referenceFrame;
   ValueListenable<double>? _referenceSeconds;
   ValueListenable<double>? _paintedSeconds;
@@ -128,6 +130,7 @@ class _EntryFieldState extends State<EntryField>
               request.body.width, request.height),
           seconds: request.seconds.value, background: request.background,
           green: request.green, blue: request.blue, pink: request.pink,
+          raster: _raster, pixelRatio: request.pixelRatio,
         );
         canvas.restore();
         if (mounted && identical(_captionLease, lease) && lease.isVisible &&
@@ -142,10 +145,11 @@ class _EntryFieldState extends State<EntryField>
   }
 
   void _captionForLayout(Size size, AppTokens tokens,
-      ValueListenable<double> seconds) {
+      ValueListenable<double> seconds, double pixelRatio) {
     final _EntryCaptionPaint? request =
         size.width.isFinite && size.height.isFinite && !size.isEmpty
         ? (seconds: seconds, body: size, height: tokens.windowCaptionHeight,
+          pixelRatio: pixelRatio,
           background: tokens.background, green: tokens.znn,
           blue: tokens.qsr, pink: tokens.pink, generation: _clock)
         : null;
@@ -265,6 +269,7 @@ class _EntryFieldState extends State<EntryField>
     _captionLease?.dispose();
     _captionLease = null;
     _captionChanges.dispose();
+    _raster.dispose();
     _clock.dispose();
     super.dispose();
   }
@@ -273,10 +278,13 @@ class _EntryFieldState extends State<EntryField>
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
     final ValueListenable<double> paintedSeconds = _referenceSeconds ?? _clock;
+    final double pixelRatio = View.of(context).devicePixelRatio;
     _paintedSeconds = paintedSeconds;
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
-        _captionForLayout(constraints.biggest, tokens, paintedSeconds);
+        _captionForLayout(
+          constraints.biggest, tokens, paintedSeconds, pixelRatio,
+        );
         return RepaintBoundary(
           child: ClipRect(
             child: CustomPaint(
@@ -286,6 +294,8 @@ class _EntryFieldState extends State<EntryField>
                 green: tokens.znn,
                 blue: tokens.qsr,
                 pink: tokens.pink,
+                raster: _raster,
+                pixelRatio: pixelRatio,
               ),
               child: const SizedBox.expand(),
             ),
@@ -296,6 +306,74 @@ class _EntryFieldState extends State<EntryField>
   }
 }
 
+typedef _EntryRasterKey = ({
+  Rect field,
+  Color green,
+  Color blue,
+  Color pink,
+  double pixelRatio,
+});
+
+// One borrowed image serves both original painters. Its owner retires it on
+// geometry/colour/DPR replacement and when the field leaves the tree.
+class _EntryFieldRaster {
+  static const int _maxPixels = 16 * 1024 * 1024;
+  static const int _maxSide = 8192;
+  _EntryRasterKey? _key;
+  ui.Image? _image;
+
+  ui.Image? imageFor(Rect field, {
+    required Color green, required Color blue, required Color pink,
+    required double pixelRatio,
+  }) {
+    final Rect bounds = field.inflate(180);
+    final double width = bounds.width * pixelRatio;
+    final double height = bounds.height * pixelRatio;
+    if (!pixelRatio.isFinite || pixelRatio <= 0 ||
+        !width.isFinite || !height.isFinite || width <= 0 || height <= 0 ||
+        width > _maxSide || height > _maxSide) {
+      dispose();
+      return null;
+    }
+    final int pixelsWide = width.ceil();
+    final int pixelsHigh = height.ceil();
+    if (pixelsWide * pixelsHigh > _maxPixels) {
+      dispose();
+      return null;
+    }
+    final _EntryRasterKey key = (
+      field: field, green: green, blue: blue, pink: pink,
+      pixelRatio: pixelRatio,
+    );
+    if (_key == key) return _image;
+    dispose();
+    final ui.PictureRecorder recorder = ui.PictureRecorder();
+    final Canvas canvas = Canvas(recorder)
+      ..scale(pixelRatio)
+      ..translate(-bounds.left, -bounds.top);
+    _EntryFieldPainter._paintBlurredField(
+      canvas, field, green: green, blue: blue, pink: pink,
+    );
+    final ui.Picture picture = recorder.endRecording();
+    try {
+      // The engine rasterizes this handle asynchronously. Creation is
+      // part of the first original paint, with no extra warm-up or clock.
+      final ui.Image image = picture.toImageSync(pixelsWide, pixelsHigh);
+      _image = image;
+      _key = key;
+      return image;
+    } finally {
+      picture.dispose();
+    }
+  }
+
+  void dispose() {
+    _image?.dispose();
+    _image = null;
+    _key = null;
+  }
+}
+
 class _EntryFieldPainter extends CustomPainter {
   _EntryFieldPainter({
     required this.seconds,
@@ -303,6 +381,8 @@ class _EntryFieldPainter extends CustomPainter {
     required this.green,
     required this.blue,
     required this.pink,
+    required this.raster,
+    required this.pixelRatio,
   }) : super(repaint: seconds);
 
   final ValueListenable<double> seconds;
@@ -310,17 +390,21 @@ class _EntryFieldPainter extends CustomPainter {
   final Color green;
   final Color blue;
   final Color pink;
+  final _EntryFieldRaster raster;
+  final double pixelRatio;
 
   @override
   void paint(Canvas canvas, Size size) => _paintViewport(
     canvas, size, Offset.zero & size,
     seconds: seconds.value, background: background,
     green: green, blue: blue, pink: pink,
+    raster: raster, pixelRatio: pixelRatio,
   );
 
   static void _paintViewport(Canvas canvas, Size size, Rect viewport, {
     required double seconds, required Color background,
     required Color green, required Color blue, required Color pink,
+    required _EntryFieldRaster raster, required double pixelRatio,
   }) {
     if (size.isEmpty || viewport.isEmpty) {
       return;
@@ -348,27 +432,47 @@ class _EntryFieldPainter extends CustomPainter {
         center.dy + field.height * (-0.02 + 0.04 * progress),
       )
       ..rotate(math.pi / 30 * progress)
-      ..translate(-center.dx, -center.dy)
-      // Blur the combined transparent field, then composite it at .35. The
-      // window base is outside this layer, so it is never blurred or tinted
-      // as a raised card. CSS blur(60px) uses a 60 logical-pixel sigma.
-      ..saveLayer(
-        field.inflate(180),
-        Paint()
-          ..color = const Color.fromRGBO(255, 255, 255, 0.35)
-          ..imageFilter = ui.ImageFilter.blur(
-            sigmaX: 60,
-            sigmaY: 60,
-            tileMode: ui.TileMode.decal,
-          ),
+      ..translate(-center.dx, -center.dy);
+    final ui.Image? image = raster.imageFor(
+      field, green: green, blue: blue, pink: pink, pixelRatio: pixelRatio,
+    );
+    if (image == null) {
+      // Oversized surfaces keep the original paint instead of downsampling.
+      _paintBlurredField(canvas, field, green: green, blue: blue, pink: pink);
+    } else {
+      final Rect bounds = field.inflate(180);
+      canvas.drawImageRect(
+        image,
+        Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
+        Rect.fromLTWH(bounds.left, bounds.top,
+          image.width / pixelRatio, image.height / pixelRatio),
+        Paint()..filterQuality = FilterQuality.low,
       );
+    }
+    canvas.restore();
+  }
+
+  static void _paintBlurredField(Canvas canvas, Rect field, {
+    required Color green, required Color blue, required Color pink,
+  }) {
+    // Blur the combined transparent field, then composite it at .35. The
+    // window base is outside this layer. Its 60 logical-pixel sigma and the
+    // original 3-sigma bounds are independent of the rigid drift transform.
+    canvas.saveLayer(
+      field.inflate(180),
+      Paint()
+        ..color = const Color.fromRGBO(255, 255, 255, 0.35)
+        ..imageFilter = ui.ImageFilter.blur(
+          sigmaX: 60,
+          sigmaY: 60,
+          tileMode: ui.TileMode.decal,
+        ),
+    );
     // CSS paints its first background on top of the later backgrounds.
     _paintLight(canvas, field, pink, const Offset(0.55, 0.2), 0.3);
     _paintLight(canvas, field, blue, const Offset(0.7, 0.65), 0.4);
     _paintLight(canvas, field, green, const Offset(0.3, 0.35), 0.4);
-    canvas
-      ..restore()
-      ..restore();
+    canvas.restore();
   }
 
   static void _paintLight(
@@ -420,5 +524,7 @@ class _EntryFieldPainter extends CustomPainter {
       old.background != background ||
       old.green != green ||
       old.blue != blue ||
-      old.pink != pink;
+      old.pink != pink ||
+      old.raster != raster ||
+      old.pixelRatio != pixelRatio;
 }

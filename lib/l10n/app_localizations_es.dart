@@ -2782,8 +2782,8 @@ class AppLocalizationsEs extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count tries left. The wallet resets at the limit.',
-      one: '1 try left. The wallet resets at the limit.',
+      other: '$count tries left, then this wallet is removed from this computer.',
+      one: '1 try left, then this wallet is removed from this computer.',
     );
     return '$_temp0';
   }

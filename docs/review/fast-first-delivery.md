@@ -11,6 +11,16 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
+[Source742](source742-entry-raster-and-lock-warning.md) reuses one bounded
+entry-field image across the original body/caption drift and explains the
+existing selected-wallet removal at the password limit. Existing cases add
+resource lifetime and pixel-ratio checks without new registrations. Hosted
+generation must verify the expected localization outputs. Source741 passes
+full Linux; both Windows profiles pass selected tests and analysis, then
+retain separate capture/lab failures and zero new PNGs. Their independent
+readers preserve those failures. No performance or visual improvement is
+qualified yet; scope and accepted pairs remain 76/80 and 2/94.
+
 [Source741](source741-fact-grid-width-context.md) separates exact preferred
 fact width from constrained layout in the same eight existing cases, then
 returns to 1280 by 780 for all field interactions. Source740 passes all
