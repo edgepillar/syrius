@@ -29,6 +29,7 @@ Widget _host(
   Brightness brightness = Brightness.dark,
   TextDirection direction = TextDirection.ltr,
   double scale = 1,
+  double bodyWidth = 1120,
 }) => MaterialApp(
   theme: brightness == Brightness.dark
       ? AppTheme.darkTheme
@@ -40,7 +41,9 @@ Widget _host(
     child: Directionality(
       textDirection: direction,
       child: Scaffold(
-        body: SingleChildScrollView(child: SizedBox(width: 1120, child: child)),
+        body: SingleChildScrollView(
+          child: SizedBox(width: bodyWidth, child: child),
+        ),
       ),
     ),
   ),
@@ -188,8 +191,9 @@ Future<void> _routeSettled(WidgetTester tester, Future<void> route) async {
 void _expectNaturalFacts(
   WidgetTester tester,
   TextDirection direction,
-  double scale,
-) {
+  double scale, {
+  bool constrained = false,
+}) {
   final Rect decimals = tester.getRect(find.text('DECIMALS'));
   final Rect domain = tester.getRect(find.text('DOMAIN'));
   double leading(Rect rect) =>
@@ -215,7 +219,9 @@ void _expectNaturalFacts(
   expect(domain.top, closeTo(decimals.top, .01));
   expect(
     (leading(domain) - leading(decimals)).abs(),
-    closeTo(firstPair, .01),
+    constrained
+        ? lessThanOrEqualTo(firstPair + .01)
+        : closeTo(firstPair, .01),
   );
 }
 
@@ -230,6 +236,7 @@ void main() {
           'retains exact fields and factual Flags',
           (WidgetTester tester) async {
             await _withFixture(tester, (ActionFixture fixture) async {
+              tester.view.physicalSize = const Size(1920, 780);
               await tester.pumpWidget(
                 _host(
                   TokenInlineActions(
@@ -240,10 +247,14 @@ void main() {
                   brightness: brightness,
                   direction: direction,
                   scale: scale,
+                  bodyWidth: 1800,
                 ),
               );
               await _ready(tester);
               _expectNaturalFacts(tester, direction, scale);
+              tester.view.physicalSize = const Size(1280, 780);
+              await tester.pump();
+              _expectNaturalFacts(tester, direction, scale, constrained: true);
               const String exact = '9007199254740993.12345678';
               await _editField(
                 tester,

@@ -11,6 +11,14 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
+[Source741](source741-fact-grid-width-context.md) separates exact preferred
+fact width from constrained layout in the same eight existing cases, then
+returns to 1280 by 780 for all field interactions. Source740 passes all
+analysis, Ready and Lock gates, then reports 61 compact/Token passes and four
+width-expectation failures. The full directory and generation are skipped.
+Application/workflow bytes and registrations are unchanged; fresh full Linux
+remains required and the original failure is preserved.
+
 [Source740](source740-truncated-fixture-expectation.md) corrects an existing
 synthetic-name expectation: the paragraph actually truncates, so its tooltip
 must remain. Source739 passes all analysis and Ready gates, then reports 34
