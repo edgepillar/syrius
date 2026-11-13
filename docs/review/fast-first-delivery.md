@@ -9,6 +9,13 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 74/80 original rows, three review and three blocked.
 
 Detailed qualification has resumed after the first code delivery.
+[Source732](source732-lock-picker-selected-ink.md) explicitly binds the selected
+Lock glyph to its row's foreground and moves the existing Lock-file tests
+before the full directory. Source731's original Linux run passes controllers,
+analysis and 22 Ready cases, then reports 5,076 passes, four selected-symbol
+color failures and one skip. Generation is skipped and artifacts are zero.
+The color assertions remain; fresh hosted execution is required.
+
 [Source731](source731-lock-picker-symbols.md) prepares the Lock picker's original
 key/USB/plus paths and updates existing reference-symbol controls. Fresh hosted
 and native qualification of that change remains pending.

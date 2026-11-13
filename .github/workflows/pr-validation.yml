@@ -53,6 +53,9 @@ jobs:
           test/wallet_ready/wallet_ready_test.dart
           test/wallet_ready/wallet_ready_capture_test.dart
 
+      - name: Verify Lock picker symbols and seam refusal
+        run: flutter test test/lock/wallet_picker_test.dart --no-pub
+
       - name: Run unit and widget tests
         run: flutter test test --exclude-tags chain
 

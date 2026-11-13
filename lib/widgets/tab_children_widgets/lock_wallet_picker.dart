@@ -280,7 +280,10 @@ class LockWalletPicker extends StatelessWidget {
       child: Row(
         children: <Widget>[
           IconTheme.merge(
-            data: IconThemeData(size: tokens.lockGlyphSize),
+            data: IconThemeData(
+              size: tokens.lockGlyphSize,
+              color: selected ? tokens.foreground : tokens.dim,
+            ),
             child: ShellSymbol(icon),
           ),
           SizedBox(width: tokens.inlineGap),

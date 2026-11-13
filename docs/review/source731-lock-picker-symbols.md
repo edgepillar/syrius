@@ -65,6 +65,15 @@ visual review remains pending. A local metadata-lease timeout refused intake
 before managed-task allocation or artifact transport. That failed admission
 is preserved. They are not accepted matches.
 
+## Observed Source731 result
+
+The original Linux run 43438735767 passes controllers, both analysis steps
+and 22 Ready cases, then reports 5,076 passes, four selected-symbol color
+failures and one skip in the complete directory. Generation is skipped and
+there are zero artifacts. Source732 binds the selected glyph's foreground
+explicitly and adds an early Lock-file gate. See the
+[failure and correction](source732-lock-picker-selected-ink.md).
+
 ## Remaining acceptance
 
 Original acceptance remains 74/80: P03, P09, V01, V02, V05 and V06 remain open.
