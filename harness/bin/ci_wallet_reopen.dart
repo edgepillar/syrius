@@ -5,12 +5,17 @@ import 'dart:io';
 import '../app/fixtures/seed_policy.dart'
     show pillarDepositRecipeId, pillarRegistrationRecipeId,
         seedHash, seedIssuedTokenStandard;
+import '../app/readonly_native_commands.dart'
+    show readonlyAgedFuseFixtureCommand;
+import '../app/readonly_native_mode.dart'
+    show harnessReadonlyNativeWalletMatches;
 import '../lock_view_observation.dart';
 import '../seed/restored_seed_workflow.dart';
 import '../wallet_address_context.dart';
 import '../wallet_recipe_failure.dart';
 import 'ci_copied_wallet_pointer.dart' show CopiedPointerInput;
 import 'harness.dart' as cli;
+import 'readonly_inspection_session.dart';
 import 'screen_capture.dart';
 import 'wallet_recipe.dart' show WalletRecipeRefused, WalletRecipeSend;
 
@@ -532,6 +537,72 @@ Future<Map<String, Object>> observeAgedFuseFixture({
   Future<void> Function(Duration)? pause,
   int Function()? readElapsedMilliseconds,
 }) async {
+  if (!RegExp(r'^ci-wallet-[a-f0-9]{24}$').hasMatch(profile)) {
+    throw const FormatException('aged-fuse fixture observation refused');
+  }
+  return _observeAgedFuseFixture(
+    request: request, requireCurrent: requireCurrent, pause: pause,
+    readElapsedMilliseconds: readElapsedMilliseconds,
+    open: (Duration timeout) => request(
+      Map<String, Object?>.unmodifiable(<String, Object?>{
+        'cmd': 'seed', 'action': 'fixture', 'kind': 'aged-fuse',
+        'profile': profile,
+        'ws': 'ws://127.0.0.1:45998', 'http': 'http://127.0.0.1:45997',
+      }), timeout,
+    ),
+  );
+}
+
+/// Observe the same inert rows through the fixed bound readonly command.
+Future<Map<String, Object>> observeReadonlyAgedFuseFixture({
+  required ReadonlyInspectionSession session,
+  Future<void> Function(Duration)? pause,
+  int Function()? readElapsedMilliseconds,
+}) {
+  Never refuse() => throw const ReadonlyInspectionRefused(
+    ReadonlyInspectionReason.reply,
+  );
+  Future<void> current() async {
+    if (!session.walletBound) refuse();
+    final Map<String, dynamic> reply = await session.send(
+      <String, Object?>{'cmd': 'readonly-state'},
+      const Duration(seconds: 5),
+    );
+    if (reply['ok'] != true) refuse();
+  }
+
+  return _observeAgedFuseFixture(
+    request: session.send, requireCurrent: current, pause: pause,
+    readElapsedMilliseconds: readElapsedMilliseconds,
+    open: (Duration timeout) async {
+      final Map<String, dynamic> reply = await session.send(
+        <String, Object?>{'cmd': readonlyAgedFuseFixtureCommand}, timeout,
+      );
+      const Set<String> keys = <String>{
+        'ok', 'fixture', 'readOnly', 'chain', 'booted', 'pid',
+        'harnessMode', 'readonlyAdmission', 'readonlyWallet',
+      };
+      if (reply.length != keys.length ||
+          reply.keys.any((String key) => !keys.contains(key)) ||
+          reply['ok'] != true || reply['fixture'] != 'aged-fuse' ||
+          reply['chain'] is! int || reply['chain'] != 321 ||
+          !harnessReadonlyNativeWalletMatches(reply, session.processId)) {
+        refuse();
+      }
+      return <String, dynamic>{
+        'ok': true, 'fixture': 'aged-fuse', 'readOnly': true, 'chain': 321,
+      };
+    },
+  );
+}
+
+Future<Map<String, Object>> _observeAgedFuseFixture({
+  required WalletRecipeSend request,
+  required Future<Map<String, dynamic>> Function(Duration) open,
+  required Future<void> Function() requireCurrent,
+  Future<void> Function(Duration)? pause,
+  int Function()? readElapsedMilliseconds,
+}) async {
   final Stopwatch watch = Stopwatch()..start();
   final int Function() elapsed =
       readElapsedMilliseconds ?? () => watch.elapsedMilliseconds;
@@ -552,8 +623,7 @@ Future<Map<String, Object>> observeAgedFuseFixture({
 
   Future<Map<String, dynamic>> original(Map<String, Object?> command) async {
     final int budget = remaining();
-    // The original fixture admission observes actual advancing lab momentums.
-    final int cap = command['cmd'] == 'seed' ? 60000 : 5000;
+    const int cap = 5000;
     final Map<String, dynamic> reply = await request(
       Map<String, Object?>.unmodifiable(command),
       Duration(milliseconds: budget < cap ? budget : cap),
@@ -581,18 +651,16 @@ Future<Map<String, Object>> observeAgedFuseFixture({
         (rect[1]! as int) + (rect[3]! as int) <= 780;
   }
 
-  need(value: RegExp(r'^ci-wallet-[a-f0-9]{24}$').hasMatch(profile));
   await requireCurrent();
-  final Map<String, dynamic> opened = await original(<String, Object?>{
-    'cmd': 'seed',
-    'action': 'fixture',
-    'kind': 'aged-fuse',
-    'profile': profile,
-    'ws': 'ws://127.0.0.1:45998',
-    'http': 'http://127.0.0.1:45997',
-  });
+  // Original fixture admission may observe advancing lab momentums for a
+  // minute. UI reads retain five-second bounds within the same total budget.
+  final int budget = remaining();
+  final Map<String, dynamic> opened = await open(
+    Duration(milliseconds: budget < 60000 ? budget : 60000),
+  );
+  remaining();
   need(
-    value: opened.length == 4 &&
+    value: opened['ok'] == true && opened.length == 4 &&
         opened['fixture'] == 'aged-fuse' &&
         opened['readOnly'] == true &&
         opened['chain'] is int &&

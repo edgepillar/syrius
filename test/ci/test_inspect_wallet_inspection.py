@@ -699,7 +699,7 @@ class ReaderTests(unittest.TestCase):
                  settings_catalog=False, navigation_catalog=False,
                  details_catalog=False, catalog_only=None, extra_viewport=False,
                  surface_seams=False, home_seams=None, settings_seams=None,
-                 entry_failure=None, node_timing=False):
+                 entry_failure=None, node_timing=False, aged_fuse=None):
         child, lab, files = pair(positive=positive)
         if node_timing:
             timed = lab_fixtures.MomentumLogTests.timed_report(include_stack=False)
@@ -785,6 +785,11 @@ class ReaderTests(unittest.TestCase):
             if settings_seams is not None:
                 self.assertTrue(settings_catalog)
                 child['settings_seam_observations'] = copy.deepcopy(settings_seams)
+            if aged_fuse is not None:
+                self.assertEqual(catalog_only, 'sentinel-fixture')
+                child['aged_fuse_fixture'] = (
+                    wallet_fixtures.aged_fuse_witness() if aged_fuse is True
+                    else None if aged_fuse is False else aged_fuse)
             if entry_failure is not None:
                 self.assertFalse(positive)
                 child['entry_failure'] = copy.deepcopy(entry_failure)
@@ -833,6 +838,8 @@ class ReaderTests(unittest.TestCase):
         elif catalog_only == 'sentinel-fixture':
             source_files += reader.SENTINEL_FIXTURE_SOURCES + (
                 'harness/screens/sentinels.txt',)
+            if aged_fuse is not None:
+                source_files += reader.AGED_FUSE_SOURCES
         elif catalog_only in ('swap-start', 'wallet-ready'):
             source_files += ('harness/screens/' + catalog_only + '.txt',)
         elif catalog_only == 'home-zap-preview':
@@ -1084,6 +1091,7 @@ class ReaderTests(unittest.TestCase):
         value, calls, text = self.run_main(catalog_only='sentinel-fixture')
         self.assertTrue(value['native_inspection_qualified'])
         self.assertEqual(value['sampling_scope'], 'sentinel-fixture-only')
+        self.assertNotIn('aged_fuse_fixture', value)
         self.assertEqual(value['verified_catalog_png_count'], 2)
         self.assertEqual(value['producer_source_files_verified'], len(reader.SOURCE_FILES) + 3)
         self.assertEqual(len(calls), 14)
@@ -1092,6 +1100,18 @@ class ReaderTests(unittest.TestCase):
         self.assertNotIn('Retained readonly viewport observation', text)
         with self.assertRaises(reader.archive.Refused):
             self.run_main(catalog_only='sentinel-fixture', extra_viewport=True)
+        current, _, _ = self.run_main(
+            catalog_only='sentinel-fixture', aged_fuse=True)
+        self.assertEqual(current['aged_fuse_fixture'],
+            wallet_fixtures.aged_fuse_witness())
+        self.assertTrue(current['aged_fuse_fixture_qualified'])
+        self.assertEqual(current['producer_source_files_verified'],
+            len(reader.SOURCE_FILES) + 3 + len(reader.AGED_FUSE_SOURCES))
+        for malformed in (False,
+                dict(wallet_fixtures.aged_fuse_witness(), cleanup_cleared=False),
+                dict(wallet_fixtures.aged_fuse_witness(), private='Synthetic private data')):
+            with self.assertRaises(reader.producer.Refused):
+                self.run_main(catalog_only='sentinel-fixture', aged_fuse=malformed)
         value, calls, text = self.run_main(catalog_only='swap-start')
         self.assertTrue(value['native_inspection_qualified'])
         self.assertEqual(value['sampling_scope'], 'swap-start-only')
@@ -1193,6 +1213,14 @@ class ReaderTests(unittest.TestCase):
             self.assertFalse(value['native_inspection_qualified'])
             self.assertEqual(value['verified_png_count'], 0)
             self.assertEqual(value['original_errors'], ['ENTRY_FAILED'])
+        aged, _, _ = self.run_main(positive=False,
+            catalog_only='sentinel-fixture', aged_fuse=False,
+            entry_failure=dict(stage='aged_fuse_fixture', code=None))
+        self.assertIsNone(aged['aged_fuse_fixture'])
+        self.assertFalse(aged['aged_fuse_fixture_qualified'])
+        self.assertFalse(aged['native_inspection_qualified'])
+        self.assertEqual(aged['verified_catalog_png_count'], 0)
+        self.assertEqual(aged['entry_failure']['stage'], 'aged_fuse_fixture')
         state = dict(schema=1, scheduler_phase='idle', lifecycle_state='paused',
             frames_enabled=False, has_scheduled_frame=True, binding_current=True)
         failure = dict(stage='home_catalog', code=None, diagnostic=dict(schema=3,

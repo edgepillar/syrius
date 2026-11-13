@@ -818,6 +818,30 @@ class HarnessAgent {
       }
       return _walletRecipeCommand(command);
     }
+    if (command['cmd'] == readonlyAgedFuseFixtureCommand) {
+      _requireCaptureFrameIdle();
+      final ReadonlyNativeCommands? native = _readonlyNative;
+      final String? profile =
+          Platform.environment['SYRIUS_CI_INSPECTION_INSTANCE'];
+      if (native == null || command.length != 1 || profile == null ||
+          !RegExp(r'^ci-inspect-[a-f0-9]{24}$').hasMatch(profile) ||
+          Platform.environment['SYRIUS_READONLY_CATALOG_FAMILY'] !=
+              harnessReadonlySentinelCatalog ||
+          _seeds.fixtureName != null) {
+        throw const ReadonlyNativeCommandRefused();
+      }
+      native.requireCurrentWallet();
+      // Only the existing inert fixture branch receives these fixed terms.
+      // Its original lab/funding guards and no-publication journal remain.
+      final Map<String, Object?> opened = await _runWalletCommand(
+        <String, dynamic>{
+          'cmd': 'seed', 'action': 'fixture', 'kind': 'aged-fuse',
+          'profile': profile, 'ws': seedWsOrigin, 'http': seedHttpOrigin,
+        },
+      );
+      native.requireCurrentWallet();
+      return opened;
+    }
     if (command['cmd'] == readonlySendWarningSyncCommand) {
       return _observeReadonlySendSync();
     }

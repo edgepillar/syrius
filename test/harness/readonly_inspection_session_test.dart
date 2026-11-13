@@ -2524,6 +2524,7 @@ void main() {
       'seed', 'lab-send', 'lab-quiesce', 'lab-reopen-observe',
       'wallet-recipe', 'clipboard', 'readonly-wallet-bind', 'unknown',
       'readonly-home-zap-preview',
+      'readonly-aged-fuse-fixture',
     ]) {
       int calls = 0;
       final ReadonlyInspectionSession session = ReadonlyInspectionSession(

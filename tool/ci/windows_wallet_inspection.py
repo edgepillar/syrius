@@ -81,7 +81,8 @@ CODES = shared.CODES | shared.LAB_REVALIDATION_CODES | frozenset((
 STAGES = frozenset(('unused_destinations', 'build', 'start', 'input', 'window',
     'onboarding', 'signing_policy', 'onboarding_logs', 'address_selection',
     'wallet_binding', 'tour_dark', 'tour_light', 'home_catalog', 'settings_catalog',
-    'navigation_catalog', *details.CATALOG_STAGES, 'viewport', 'finish'))
+    'navigation_catalog', *details.CATALOG_STAGES, 'aged_fuse_fixture',
+    'viewport', 'finish'))
 
 
 class Refused(Exception):
@@ -688,8 +689,20 @@ def require_surface_seam_samples(report, *, complete):
          'OUTPUT_REFUSED')
 
 
+def aged_fuse_receipt(value, *, code='OUTPUT_REFUSED'):
+    """Reuse the existing closed witness without disclosing original replies."""
+    from . import restored_wallet_run
+    try:
+        return restored_wallet_run.aged_fuse_projection(value)
+    except restored_wallet_run.checkpoint.Refused:
+        raise Refused(code) from None
+
+
 def completed(report):
     try:
+        if 'aged_fuse_fixture' in report:
+            need(report['schema'] == SENTINEL_INSPECTION_SCHEMA)
+            aged_fuse_receipt(report['aged_fuse_fixture'])
         if report['schema'] == SURFACE_SEAMS_SCHEMA:
             require_surface_seam_samples(report, complete=True)
         else:
@@ -788,7 +801,8 @@ def public_manifest(value):
     optional = {'source_sha', 'source_tree', 'run_id', 'run_attempt', 'input_attempted',
         'entry_failure', 'application_exit', 'cleanup_application_exit', 'entry_exit',
         'owned_job_images_before_close', 'owned_job_active_at_close', 'entry_output',
-        'home_seam_observations', 'settings_seam_observations'}
+        'home_seam_observations', 'settings_seam_observations',
+        'aged_fuse_fixture'}
     need(type(value) is dict and type(value.get('schema')) is int
          and value['schema'] in READONLY_CATALOG_SCHEMAS.values(), 'OUTPUT_REFUSED')
     schema = value['schema']
@@ -835,6 +849,12 @@ def public_manifest(value):
         need(type(value['input_attempted']) is bool, 'OUTPUT_REFUSED')
     if 'entry_failure' in value:
         entry_failure(value['entry_failure'])
+    if 'aged_fuse_fixture' in value:
+        need(schema == SENTINEL_INSPECTION_SCHEMA, 'OUTPUT_REFUSED')
+        if value['aged_fuse_fixture'] is not None:
+            aged_fuse_receipt(value['aged_fuse_fixture'])
+        need(not value['success'] or value['aged_fuse_fixture'] is not None,
+             'OUTPUT_REFUSED')
     for field, family, validate in (
             ('home_seam_observations', 'home', home_seam_observations),
             ('settings_seam_observations', 'settings', settings_seam_observations)):
@@ -1498,6 +1518,8 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
         else:
             catalog_slot = 'details' if family in details.FAMILY_SCHEMAS else family
         report['schema'] = READONLY_CATALOG_SCHEMAS[family]
+        if family == 'sentinel-fixture':
+            report['aged_fuse_fixture'] = None
         for pilot, field in (
                 (HOME_SEAMS_FAMILY, 'home_seam_observations'),
                 (SETTINGS_SEAMS_FAMILY, 'settings_seam_observations')):
@@ -1704,6 +1726,14 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
                     catalog_receipt = validators[catalog_slot](receipt)
                     need(catalog_receipt['schema'] == HOME_CAPTURE_SCHEMAS.get(family, details_schema),
                          'ENTRY_REFUSED')
+                elif line.startswith(b'SYRIUS_INSPECTION_AGED_FUSE:'):
+                    need(family == 'sentinel-fixture'
+                         and marker == b'CI_INSPECT_DONE'
+                         and catalog_receipt is not None and 'wallet' in used
+                         and report['aged_fuse_fixture'] is None,
+                         'ENTRY_REFUSED')
+                    report['aged_fuse_fixture'] = aged_fuse_receipt(
+                        json.loads(line.partition(b':')[2]), code='ENTRY_REFUSED')
                 elif line.startswith(b'SYRIUS_INSPECTION_VIEWPORT:'):
                     need(not catalog_only and marker == b'CI_INSPECT_DONE' and viewport_receipt is None
                          and catalog_receipt is not None, 'ENTRY_REFUSED')
@@ -1720,6 +1750,8 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
                 elif line == b'CI_INSPECT_DONE':
                     need(marker == line and 'wallet' in used
                          and (catalog_receipt is not None) is (not seams_only)
+                         and (family != 'sentinel-fixture'
+                              or report['aged_fuse_fixture'] is not None)
                          and (viewport_receipt is not None) is (not catalog_only),
                          'ENTRY_REFUSED')
                     return

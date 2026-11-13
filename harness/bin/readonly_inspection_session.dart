@@ -1,7 +1,8 @@
 import 'dart:convert';
 
 import '../app/readonly_native_commands.dart'
-    show readonlyActivityMessageSeamCommand, readonlyHomeZapPreviewCommand,
+    show readonlyActivityMessageSeamCommand, readonlyAgedFuseFixtureCommand,
+        readonlyHomeZapPreviewCommand,
         readonlySeamPointerCommand,
         readonlySendWarningSyncCommand;
 import '../app/readonly_native_mode.dart';
@@ -56,6 +57,7 @@ class ReadonlyInspectionSession {
     readonlySendWarningSyncCommand,
     readonlySeamPointerCommand,
     readonlyActivityMessageSeamCommand,
+    readonlyAgedFuseFixtureCommand,
   };
 
   /// The same native process must answer every subsequent original command.
@@ -66,6 +68,7 @@ class ReadonlyInspectionSession {
   bool _binding = false;
   bool _bindingReserved = false;
   bool _walletBound = false;
+  bool _agedFuseReserved = false;
   ScreenCaptureReplyCode? _heldReply;
   CaptureFrameState? _heldFrameState;
 
@@ -88,9 +91,14 @@ class ReadonlyInspectionSession {
               !(name == 'readonly-wallet-bind' && _binding)) ||
           (name == readonlyHomeZapPreviewCommand ||
               name == readonlyActivityMessageSeamCommand ||
+              name == readonlyAgedFuseFixtureCommand ||
               name == readonlySendWarningSyncCommand) &&
               (!_walletBound || command.length != 1)) {
         _refuse(ReadonlyInspectionReason.command);
+      }
+      if (name == readonlyAgedFuseFixtureCommand) {
+        if (_agedFuseReserved) _refuse(ReadonlyInspectionReason.command);
+        _agedFuseReserved = true;
       }
       // Nested input must not change while the original HTTP request awaits.
       final Map<String, Object?> retained = Map<String, Object?>.unmodifiable(

@@ -7,7 +7,10 @@ import '../../harness/app/fixtures/seed_commands.dart';
 import '../../harness/app/fixtures/seed_deposit_entry.dart';
 import '../../harness/app/fixtures/seed_deposit_presentation.dart';
 import '../../harness/app/fixtures/seed_policy.dart';
+import '../../harness/app/readonly_native_commands.dart'
+    show readonlyAgedFuseFixtureCommand;
 import '../../harness/bin/ci_wallet_reopen.dart' as entry;
+import '../../harness/bin/readonly_inspection_session.dart';
 import '../../harness/seed_preparation_failure.dart';
 
 class _PrivatePreparationError implements Exception {
@@ -17,6 +20,20 @@ class _PrivatePreparationError implements Exception {
 }
 
 String _hash(int value) => value.toRadixString(16).padLeft(64, '0');
+
+Map<String, dynamic> _readonlyFixtureReply() => <String, dynamic>{
+  'ok': true, 'pid': 44, 'booted': true,
+  'harnessMode': 'readonly-native', 'readOnly': true,
+  'readonlyAdmission': <String, dynamic>{
+    'schema': 1, 'scope': 'readonly_native_sdk_admission', 'status': 'CURRENT',
+    'publicationAdmissionPaused': true, 'automaticReceiveDisabled': true,
+  },
+  'readonlyWallet': <String, dynamic>{
+    'schema': 1, 'scope': 'readonly_native_wallet_admission',
+    'status': 'CURRENT', 'chain': 321, 'selectedIndex': 1,
+    'nativeFrameObserved': true,
+  },
+};
 
 Future<void> _turns() async {
   for (int turn = 0; turn < 8; turn++) {
@@ -330,6 +347,11 @@ void main() {
   );
 
   test('held cleanup leaves the original confirmed hash readable', () async {
+    await expectLater(entry.observeAgedFuseFixture(
+      profile: 'default',
+      requireCurrent: () async => fail('Invalid profile reached its owner'),
+      request: (_, __) async => fail('Invalid profile reached transport'),
+    ), throwsFormatException);
     for (final String mode in <String>[
       'normal', 'held', 'private', 'replaced',
     ]) {
@@ -426,6 +448,99 @@ void main() {
       );
       expect(observed.where((String command) => command == 'tap'),
           hasLength(mode == 'private' ? 0 : 1));
+    }
+
+    for (final String mode in <String>[
+      'normal', 'unbound', 'payload', 'extra', 'private', 'owner', 'held',
+    ]) {
+      int elapsed = 0;
+      int owners = 0;
+      int states = 0;
+      final List<String> commands = <String>[];
+      final ReadonlyInspectionSession session = ReadonlyInspectionSession(
+        processId: 44,
+        original: (Map<String, Object?> command, Duration timeout) async {
+          final String name = command['cmd']! as String;
+          commands.add(name);
+          final Map<String, dynamic> reply = _readonlyFixtureReply();
+          if (name == 'readonly-state' && ++owners == 2 &&
+              mode == 'owner') {
+            reply['pid'] = 45;
+          }
+          if (name == readonlyAgedFuseFixtureCommand) {
+            expect(command, <String, Object?>{'cmd': name});
+            expect(timeout.inMilliseconds, inInclusiveRange(1, 60000));
+            if (mode == 'private') {
+              return <String, dynamic>{
+                'ok': false, 'error': _PrivatePreparationError(),
+              };
+            }
+            reply.addAll(<String, dynamic>{
+              'fixture': 'aged-fuse', 'chain': 321,
+              if (mode == 'extra') 'private': _PrivatePreparationError(),
+            });
+          } else if (name == 'tree') {
+            reply.addAll(<String, dynamic>{
+              'size': <int>[1280, 780],
+              'nodes': <Map<String, Object?>>[
+                <String, Object?>{'rect': <int>[10, 10, 40, 20],
+                  'kind': 'text',
+                  'label': 'Harness fixture · aged-fuse · read only'},
+                <String, Object?>{'rect': <int>[10, 40, 40, 20],
+                  'kind': 'text', 'key': 'plasma_fused_count', 'label': '2'},
+                for (int id = 1; id <= 2; id++) ...<Map<String, Object?>>[
+                  <String, Object?>{'rect': <int>[10, 70, 40, 20],
+                    'kind': 'button', 'key': 'plasma_cancel_${_hash(id)}',
+                    'enabled': false},
+                  <String, Object?>{'rect': <int>[10, 100, 40, 20],
+                    'kind': 'text', 'label': 'Cancelable'},
+                ],
+              ],
+            });
+          } else if (name == 'tap') {
+            expect(command['key'], 'seed_fixture_close');
+          } else if (name == 'state') {
+            reply['walletUnlocked'] = true;
+            if (++states == 1 || mode == 'held') {
+              reply['harnessFixture'] = 'aged-fuse';
+            }
+          }
+          return reply;
+        },
+      );
+      if (mode != 'unbound') await session.bindWallet();
+      if (mode == 'payload') {
+        await expectLater(session.send(<String, Object?>{
+          'cmd': readonlyAgedFuseFixtureCommand, 'kind': 'sentinel',
+        }, const Duration(seconds: 60)),
+          throwsA(isA<ReadonlyInspectionRefused>()));
+        expect(commands, <String>['readonly-wallet-bind']);
+        continue;
+      }
+      Future<Map<String, Object>> observe() =>
+          entry.observeReadonlyAgedFuseFixture(
+        session: session, readElapsedMilliseconds: () => elapsed,
+        pause: (Duration duration) async {
+          elapsed += mode == 'held' ? 5000 : duration.inMilliseconds;
+        },
+      );
+      if (mode == 'normal') {
+        final Map<String, Object> witness = await observe();
+        expect(witness['expired_rows'], 2);
+        expect(witness['cleanup_cleared'], isTrue);
+        expect(witness['publication_commands'], 0);
+        await expectLater(observe(),
+            throwsA(isA<ReadonlyInspectionRefused>()));
+      } else {
+        await expectLater(observe(), mode == 'held'
+            ? throwsFormatException
+            : throwsA(isA<ReadonlyInspectionRefused>()));
+      }
+      expect(commands.where((String name) =>
+          name == readonlyAgedFuseFixtureCommand),
+          hasLength(mode == 'unbound' ? 0 : 1));
+      expect(commands, isNot(contains('seed')));
+      expect(commands, isNot(contains('lab-send')));
     }
 
     final _Source source = _Source();

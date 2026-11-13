@@ -366,18 +366,30 @@ void main() {
 
   test('a caught reentrant query cannot admit the outer positive response',
       () async {
-    final _Lane lane = _Lane();
-    await lane.open();
-    lane.action = (_) async {
-      await expectLater(lane.receipt(),
-          throwsA(isA<ReadonlyNativeCommandRefused>()));
-      return <String, Object?>{'original': true};
-    };
-    await expectLater(
-      lane.commands.run(<String, dynamic>{'cmd': 'state'}),
-      throwsA(isA<ReadonlyNativeCommandRefused>()),
-    );
-    expect(lane.calls, 1);
+    for (final String name in <String>[
+      'state', readonlyAgedFuseFixtureCommand,
+    ]) {
+      final _Lane lane = _Lane(bindWallet: () => ReadonlyWalletAdmission.seal(
+        ownersCurrent: () => true,
+        observeFrame: () async {},
+      ));
+      await lane.open();
+      if (name == readonlyAgedFuseFixtureCommand) {
+        await lane.commands.run(
+          <String, dynamic>{'cmd': 'readonly-wallet-bind'},
+        );
+      }
+      lane.action = (_) async {
+        await expectLater(lane.receipt(),
+            throwsA(isA<ReadonlyNativeCommandRefused>()));
+        return <String, Object?>{'original': true};
+      };
+      await expectLater(
+        lane.commands.run(<String, dynamic>{'cmd': name}),
+        throwsA(isA<ReadonlyNativeCommandRefused>()),
+      );
+      expect(lane.calls, 1);
+    }
   });
 
   test('the original callback receives an immutable command snapshot',
@@ -415,26 +427,52 @@ void main() {
     expect(lane.calls, 0);
   });
 
-  test('the Send sync command needs the bound wallet and fixed payload',
+  test('fixed readonly commands need the bound wallet and fixed payload',
       () async {
-    final _Lane lane = _Lane(bindWallet: () => ReadonlyWalletAdmission.seal(
-      ownersCurrent: () => true,
-      observeFrame: () async {},
-    ));
-    await lane.open();
-    const Map<String, dynamic> command =
-        <String, dynamic>{'cmd': readonlySendWarningSyncCommand};
-    await expectLater(lane.commands.run(command),
-        throwsA(isA<ReadonlyNativeCommandRefused>()));
-    expect(lane.calls, 0);
-    await lane.commands.run(<String, dynamic>{'cmd': 'readonly-wallet-bind'});
-    await expectLater(
-      lane.commands.run(<String, dynamic>{...command, 'node': 'foreign'}),
-      throwsA(isA<ReadonlyNativeCommandRefused>()),
+    for (final String name in <String>[
+      readonlySendWarningSyncCommand, readonlyAgedFuseFixtureCommand,
+    ]) {
+      final _Lane lane = _Lane(bindWallet: () => ReadonlyWalletAdmission.seal(
+        ownersCurrent: () => true,
+        observeFrame: () async {},
+      ));
+      await lane.open();
+      final Map<String, dynamic> command = <String, dynamic>{'cmd': name};
+      await expectLater(lane.commands.run(command),
+          throwsA(isA<ReadonlyNativeCommandRefused>()));
+      expect(lane.calls, 0);
+      await lane.commands.run(<String, dynamic>{'cmd': 'readonly-wallet-bind'});
+      await expectLater(
+        lane.commands.run(<String, dynamic>{...command, 'node': 'foreign'}),
+        throwsA(isA<ReadonlyNativeCommandRefused>()),
+      );
+      final Map<String, Object?> reply = await lane.commands.run(command);
+      expect(reply['original'], isTrue);
+      expect(lane.calls, 1);
+      if (name == readonlyAgedFuseFixtureCommand) {
+        await expectLater(lane.commands.run(command),
+            throwsA(isA<ReadonlyNativeCommandRefused>()));
+        expect(lane.calls, 1);
+      }
+    }
+    final StateError error = StateError('Synthetic original fixture failure');
+    final _Lane uncertain = _Lane(
+      bindWallet: () => ReadonlyWalletAdmission.seal(
+        ownersCurrent: () => true, observeFrame: () async {},
+      ),
     );
-    final Map<String, Object?> reply = await lane.commands.run(command);
-    expect(reply['original'], isTrue);
-    expect(lane.calls, 1);
+    await uncertain.open();
+    await uncertain.commands.run(
+      <String, dynamic>{'cmd': 'readonly-wallet-bind'},
+    );
+    uncertain.action = (_) async => throw error;
+    await expectLater(uncertain.commands.run(<String, dynamic>{
+      'cmd': readonlyAgedFuseFixtureCommand,
+    }), throwsA(same(error)));
+    await expectLater(uncertain.commands.run(<String, dynamic>{
+      'cmd': readonlyAgedFuseFixtureCommand,
+    }), throwsA(isA<ReadonlyNativeCommandRefused>()));
+    expect(uncertain.calls, 1);
   });
 
   test('one actual wallet observation attaches a separate finite receipt',
@@ -474,27 +512,31 @@ void main() {
 
   test('wallet loss during an original UI await permanently holds the lane',
       () async {
-    bool current = true;
-    final _Lane lane = _Lane(bindWallet: () => ReadonlyWalletAdmission.seal(
-      ownersCurrent: () => current,
-      observeFrame: () async {},
-    ));
-    await lane.open();
-    await lane.commands.run(<String, dynamic>{'cmd': 'readonly-wallet-bind'});
-    final Completer<Map<String, Object?>> original =
-        Completer<Map<String, Object?>>();
-    lane.action = (_) => original.future;
-    final Future<void> refused = expectLater(
-      lane.commands.run(<String, dynamic>{'cmd': 'tap'}),
-      throwsA(isA<ReadonlyWalletAdmissionRefused>()),
-    );
-    current = false;
-    original.complete(<String, Object?>{'acted': true});
-    await refused;
-    current = true;
-    await expectLater(lane.receipt(),
-        throwsA(isA<ReadonlyNativeCommandRefused>()));
-    expect(lane.calls, 1);
+    for (final String name in <String>[
+      'tap', readonlyAgedFuseFixtureCommand,
+    ]) {
+      bool current = true;
+      final _Lane lane = _Lane(bindWallet: () => ReadonlyWalletAdmission.seal(
+        ownersCurrent: () => current,
+        observeFrame: () async {},
+      ));
+      await lane.open();
+      await lane.commands.run(<String, dynamic>{'cmd': 'readonly-wallet-bind'});
+      final Completer<Map<String, Object?>> original =
+          Completer<Map<String, Object?>>();
+      lane.action = (_) => original.future;
+      final Future<void> refused = expectLater(
+        lane.commands.run(<String, dynamic>{'cmd': name}),
+        throwsA(isA<ReadonlyWalletAdmissionRefused>()),
+      );
+      current = false;
+      original.complete(<String, Object?>{'acted': true});
+      await refused;
+      current = true;
+      await expectLater(lane.receipt(),
+          throwsA(isA<ReadonlyNativeCommandRefused>()));
+      expect(lane.calls, 1);
+    }
   });
 
   test('failed wallet binding retains its exact original error and trace',

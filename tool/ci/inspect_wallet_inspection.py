@@ -107,6 +107,15 @@ SURFACE_SEAM_SOURCES = (
 )
 SENTINEL_FIXTURE_SOURCES = ('harness/app/main.dart',
     'harness/app/fixtures/sentinel_fixture.dart')
+AGED_FUSE_SOURCES = (
+    'harness/bin/ci_wallet_reopen.dart',
+    'harness/app/fixtures/seed_commands.dart',
+    'harness/app/fixtures/seed_policy.dart',
+    'harness/app/fixtures/lab_seed_binding.dart',
+    'harness/app/fixtures/presentation_fixtures.dart',
+    'harness/app/fixtures/fixture_cleanup.dart',
+    'tool/ci/restored_wallet_run.py',
+)
 HOME_ZAP_PREVIEW_SOURCES = ('harness/app/fixtures/home_zap_preview.dart',)
 PHASE = 'environment'
 
@@ -231,6 +240,10 @@ def projection(report, lab, lab_summary, head, tree, run_id, manifest_sha):
         result['sampling_scope'] = catalog_family + '-only'
     if catalog_family == producer.SURFACE_SEAMS_FAMILY:
         result['seam_refusals'] = list(report['seam_refusals'])
+    if 'aged_fuse_fixture' in report:
+        witness = report['aged_fuse_fixture']
+        result['aged_fuse_fixture'] = (
+            producer.aged_fuse_receipt(witness) if witness is not None else None)
     for field in ('home_seam_observations', 'settings_seam_observations'):
         if field in report:
             observations = report[field]
@@ -594,6 +607,10 @@ def main(parent=None):
              and {item['name'] for item in listing['artifacts']} == {name, root_item['name']})
         PHASE = 'surface_source_metadata'
         source_digests.update(source_files(repo, producer_tree, tree, files=SURFACE_SEAM_SOURCES))
+    if 'aged_fuse_fixture' in summary:
+        PHASE = 'aged_fuse_source_metadata'
+        source_digests.update(source_files(repo, producer_tree, tree,
+            files=AGED_FUSE_SOURCES))
     if summary['native_inspection_qualified'] and not seams_only:
         need(sum(value is not None for value in
             (reference, settings_reference, navigation_reference, details_reference)) == 1)
@@ -678,6 +695,10 @@ def main(parent=None):
         verified_catalog_png_count=catalog['verified_png_count'] if catalog is not None else 0,
         producer_job_id=job['id'], producer_conclusion=job['conclusion'],
         producer_source_files_verified=verified_sources, metadata_revalidated=True)
+    if 'aged_fuse_fixture' in summary:
+        summary['aged_fuse_fixture_qualified'] = bool(
+            summary['native_inspection_qualified']
+            and summary['aged_fuse_fixture'] is not None)
     emit('Retained readonly wallet inspection', summary)
     if layout is not None and summary['native_inspection_qualified']:
         layout.update(archive_sha256=summary['archive_sha256'],

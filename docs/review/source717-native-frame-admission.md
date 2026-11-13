@@ -36,6 +36,28 @@ readbacks, and remain held after its late completion. The positive receipt
 also remains ready after its admission timer eventually fires. Other existing
 injected-deadline, ownership, error and reentrancy controls remain in use.
 
-Fresh hosted Dart, strict analysis and native qualification are pending. No
-local SDK or new artifact download is used to prepare the change. Original
-acceptance remains 73/80, with no new accepted visual match or F06 closure.
+## Executed Source717 result
+
+The [full Linux workflow](https://github.com/edgepillar/syrius/actions/runs/43354840499)
+passes controllers, application/patched analysis, the complete non-chain test
+directory and tracked generation, including the extended default-timer cases.
+
+The [Ready producer](https://github.com/edgepillar/syrius/actions/runs/43356581345)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/43359191086)
+verify two original 1280 by 780 PNGs and 82 producer files. The producer passes
+1,480 selected Dart cases, 1,214 Python cases with eighteen skips and analysis
+with zero findings; the reader passes 123 cases. Required application actors
+and all five original lab nodes close normally. The separately owned MSVC
+telemetry helper requires forced cleanup and has zero remaining processes.
+The prior failures and their unknown underlying cause retain their own scope.
+
+Both PNG/reference pairs were individually viewed. The uppercase label,
+compact copy glyph and stronger light card shadow are present. Card geometry,
+text baselines and address weight retain visual differences. Original addresses
+and animated map phases are preserved, as are the approved RULES.md colors.
+Zero whole-image matches are accepted. The verified archive is retained; only
+this review's registered disposable PNGs are removed after successful closure.
+
+This result qualifies this Ready inspection. It does not establish the earlier
+failure's cause, a motion result or complete redesign acceptance. Original
+acceptance remains 73/80, with no V01/V02 or F06 closure.

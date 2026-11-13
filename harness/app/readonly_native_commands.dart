@@ -14,6 +14,9 @@ const String readonlySeamPointerCommand = 'readonly-seam-pointer';
 const String readonlyActivityMessageSeamCommand =
     'readonly-activity-message-seam';
 
+/// Opens one fixed inert aged-fuse view in the bound Sentinel inspection.
+const String readonlyAgedFuseFixtureCommand = 'readonly-aged-fuse-fixture';
+
 /// A native command cannot establish its original readonly SDK admission.
 class ReadonlyNativeCommandRefused implements Exception {
   /// The refused command supplies no successful native observation.
@@ -66,6 +69,7 @@ class ReadonlyNativeCommands {
     readonlySendWarningSyncCommand,
     readonlySeamPointerCommand,
     readonlyActivityMessageSeamCommand,
+    readonlyAgedFuseFixtureCommand,
   };
 
   final bool Function() _isBooted;
@@ -80,6 +84,7 @@ class ReadonlyNativeCommands {
   bool _attachReserved = false;
   bool _held = false;
   bool _running = false;
+  bool _agedFuseReserved = false;
 
   /// Attaches one sealed original SDK before reporting native readiness.
   void attach(ReadonlySdkAdmission admission) {
@@ -147,9 +152,14 @@ class ReadonlyNativeCommands {
     if (name is! String || !_allowed.contains(name) ||
         (name == readonlyHomeZapPreviewCommand ||
             name == readonlyActivityMessageSeamCommand ||
+            name == readonlyAgedFuseFixtureCommand ||
             name == readonlySendWarningSyncCommand) &&
             (_wallet == null || retained.length != 1)) {
       throw const ReadonlyNativeCommandRefused();
+    }
+    if (name == readonlyAgedFuseFixtureCommand) {
+      if (_agedFuseReserved) _refuse();
+      _agedFuseReserved = true;
     }
     _running = true;
     try {

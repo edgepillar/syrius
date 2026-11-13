@@ -9,12 +9,22 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 73/80 original rows, four review and three blocked.
 
 Detailed qualification has resumed after the first code delivery.
+[Source718](source718-readonly-aged-fuse.md) adds one fixed readonly aged-fuse
+observation after the Sentinel catalog. It reuses the existing inert fixture,
+original guards and bounded UI observer. New success requires the separate
+closed witness; legacy archives retain their earlier scope. Full hosted and
+native qualification remain pending. This alone cannot close F06.
+
 [Source717](source717-native-frame-admission.md) waits up to one second for
 the same original native capture frame. Admission still requires its positive
 completion and retains a held receipt after expiry or late completion. Existing
 widget cases cover the 300 ms positive boundary and the one-second refusal.
-Fresh hosted and native qualification remain pending; the 16 ms performance
-comparison and application rendering are unchanged.
+Full Linux analysis, tests and generation pass. The Ready producer and reader
+verify two PNGs, 82 producer files and normal required actor/five-node closure;
+the reader passes 123 cases. Both pairs are individually viewed, with geometry
+and text differences still open. The separate MSVC helper requires forced
+cleanup. The 16 ms performance comparison and application rendering are
+unchanged, with zero accepted whole-image matches.
 
 [Source716](source716-details-frame-context.md) retains the existing typed
 frame state in Details failure reports. It uses the same closed Python

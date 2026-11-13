@@ -8,6 +8,7 @@ import '../app/readonly_native_mode.dart'
         harnessReadonlySentinelCatalog,
         harnessReadonlyWalletReadyCatalog;
 import '../wallet_recipe_failure.dart' show walletRecipePublicDiagnostic;
+import 'ci_wallet_reopen.dart' show observeReadonlyAgedFuseFixture;
 import 'harness.dart' as cli;
 import 'readonly_details_catalog.dart';
 import 'readonly_home_catalog.dart';
@@ -382,6 +383,13 @@ Future<void> main() async {
         );
     if (catalogOnly) await instance.requireCleanLogs();
     await marker('SYRIUS_INSPECTION_CATALOG:${jsonEncode(catalog)}');
+    if (family == harnessReadonlySentinelCatalog) {
+      stage = 'aged_fuse_fixture';
+      final Map<String, Object> witness =
+          await observeReadonlyAgedFuseFixture(session: instance._session);
+      await instance.requireCleanLogs();
+      await marker('SYRIUS_INSPECTION_AGED_FUSE:${jsonEncode(witness)}');
+    }
     if (!catalogOnly) {
       stage = 'viewport';
       final Map<String, Object> viewport = await instance.captureViewport(

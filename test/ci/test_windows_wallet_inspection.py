@@ -98,6 +98,14 @@ def catalog_only_report(value, digest, family):
     return report
 
 
+def aged_fuse_witness():
+    return dict(schema=1, scope='owned_native_aged_fuse_fixture',
+        fixture='aged-fuse', rows=2, expired_rows=2,
+        disabled_cancel_controls=2, banner_observed=True,
+        route_closed=True, cleanup_cleared=True, owner_current=True,
+        publication_commands=0)
+
+
 def sdk():
     return dict(schema=1, scope='readonly_native_sdk_admission', status='CURRENT',
         publicationAdmissionPaused=True, automaticReceiveDisabled=True)
@@ -790,11 +798,33 @@ class InspectionTests(unittest.TestCase):
             catalog = catalog_only_report(value, 'f' * 64, family)
             self.assertTrue(inspection.completed(catalog))
             self.assertIs(inspection.public_manifest(catalog), catalog)
+            if family == 'sentinel-fixture':
+                self.assertNotIn('aged_fuse_fixture', catalog)
+                current = dict(catalog, aged_fuse_fixture=aged_fuse_witness())
+                self.assertTrue(inspection.completed(current))
+                self.assertIs(inspection.public_manifest(current), current)
+                for witness in (None, {},
+                        dict(aged_fuse_witness(), rows=True),
+                        dict(aged_fuse_witness(), publication_commands=1),
+                        dict(aged_fuse_witness(), private='Synthetic private data')):
+                    malformed = dict(current, aged_fuse_fixture=witness)
+                    self.assertFalse(inspection.completed(malformed))
+                    with self.assertRaises(inspection.Refused):
+                        inspection.public_manifest(malformed)
+                failed = dict(current, success=False, inspection_qualified=False,
+                    errors=['ENTRY_FAILED'], aged_fuse_fixture=None,
+                    phase='onboarding_and_inspection',
+                    entry_failure=dict(stage='aged_fuse_fixture', code=None))
+                self.assertIs(inspection.public_manifest(failed), failed)
+                self.assertFalse(inspection.completed(failed))
             for schema in (4, 5, 6, 7, 9, 10, 11, 12):
                 if schema != catalog['schema']:
                     with self.subTest(family=family, schema=schema), self.assertRaises(inspection.Refused):
                         inspection.public_manifest(dict(catalog, schema=schema))
         warning = catalog_only_report(value, 'f' * 64, 'send-warn')
+        with self.assertRaises(inspection.Refused):
+            inspection.public_manifest(dict(warning,
+                aged_fuse_fixture=aged_fuse_witness()))
         for change in (
             dict(released=False),
             dict(samples=warning['send_warning_window']['samples'][:1]),
