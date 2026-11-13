@@ -11,6 +11,16 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
+[Source738](source738-shared-test-budget.md) shares the unchanged 480-second
+budget across the two complete serial Dart groups. Fourteen memory cases
+pass. Source737 full Linux passes, while its Windows test child times out in
+the first group without terminal success, before app build or native capture.
+All Flutter inputs remain identical; their earlier full validation keeps its
+source. Fresh current Python controls and complete Windows groups remain
+required. The new readonly reader adds old Source715 timing statistics without
+rerunning native measurements; both timing checks remain failed. Scope stays
+76/80 and accepted matches 2/94; Source736 image review remains pending.
+
 [Source737](source737-motion-feedback-and-capture-diagnostics.md) prepares
 owned Send completion feedback, bounded summaries of retained timing samples
 and fixed Lock readback-stage diagnostics. Six memory cases pass; fresh full

@@ -21,7 +21,8 @@ class HarnessAdmissionTests(unittest.TestCase):
     def run_case(self, *, passed=STANDARD_CASES, terminal=True, skipped=0, failed=0,
                  error_events=0, command_success=True, complete=True,
                  source_changed=False, asset_fidelity=False,
-                 first_command_success=True, first_complete=True, duplicate_stream=False):
+                 first_command_success=True, first_complete=True, duplicate_stream=False,
+                 command_clock=None, command_seconds=(0.01, 0.01), expected_command_calls=None):
         parent = dict(GITHUB_WORKSPACE=str(Path.cwd()), FLUTTER_ROOT='/sdk',
                       GITHUB_RUN_ID='1', GITHUB_RUN_ATTEMPT='1')
         if asset_fidelity:
@@ -45,7 +46,8 @@ class HarnessAdmissionTests(unittest.TestCase):
                 transport_complete=transport, public=lambda: dict(
                     exit_code=0 if success else 1, exit_observed=True,
                     forced_kill=False, output_complete=transport, output_overflow=False,
-                    output_bytes=len(raw), seconds=0.01, error_codes=[], success=success))
+                    output_bytes=len(raw), seconds=command_seconds[index - 1],
+                    error_codes=[], success=success))
 
         outcomes = [outcome(1, first_command_success, first_complete),
                     outcome(1 if duplicate_stream else 2, command_success, complete)]
@@ -62,6 +64,9 @@ class HarnessAdmissionTests(unittest.TestCase):
                 mock.patch.object(harness, 'startup_check',
                     side_effect=lambda _repo, _parent, _dart, kind:
                         dict(kind=kind, passed=True)),\
+                mock.patch.object(harness.time, 'monotonic',
+                    **({'return_value': 0} if command_clock is None
+                       else {'side_effect': command_clock})),\
                 mock.patch.object(harness, 'run_bounded',
                     side_effect=[refused, inspection_refused, *outcomes]) as command,\
                 mock.patch.object(harness, 'test_counts',
@@ -72,7 +77,8 @@ class HarnessAdmissionTests(unittest.TestCase):
             code = harness.main()
         report = json.loads(output.getvalue().splitlines()[0])
         stopped_early = source_changed or not first_command_success or not first_complete
-        self.assertEqual(command.call_count, 3 if stopped_early else 4)
+        self.assertEqual(command.call_count, expected_command_calls if expected_command_calls
+                         is not None else 3 if stopped_early else 4)
         self.command_groups = command.call_args_list[2:]
         self.command_argv = [arg for call in self.command_groups for arg in call.args[0]]
         self.selected_paths = [arg for arg in self.command_argv if arg.startswith('test/')]
@@ -319,7 +325,7 @@ class HarnessAdmissionTests(unittest.TestCase):
         self.assertEqual([row['first_suite_index'] for row in report['commands']], [1, 57])
         self.assertEqual(report['total_command_limit_seconds'], 480)
         for call in self.command_groups:
-            self.assertEqual(call.kwargs['timeout'], 240)
+            self.assertEqual(call.kwargs['timeout'], 300)
             self.assertEqual(call.kwargs['cap'], 4 * 1024**2)
             self.assertEqual(call.args[0].count('--concurrency=1'), 1)
         self.assertEqual(len(set(self.selected_paths)), 112)
@@ -370,6 +376,28 @@ class HarnessAdmissionTests(unittest.TestCase):
                      'test/burn_token/token_card_test.dart',
                      'test/theme/mockup_tokens_test.dart'):
             self.assertEqual(self.command_argv.count(path), 1)
+
+        # A slower healthy first group borrows only unspent serial budget.
+        code, timed, _, _ = self.run_case(command_clock=[0, 0, 250, 250, 450],
+                                        command_seconds=(250, 200))
+        self.assertEqual(code, 0)
+        self.assertEqual([call.kwargs['timeout'] for call in self.command_groups], [300, 230])
+        self.assertEqual(timed['commands_elapsed_seconds'], 450)
+        code, boundary, _, _ = self.run_case(command_clock=[0, 0, 300, 300, 480],
+                                           command_seconds=(300, 180))
+        self.assertEqual(code, 0)
+        self.assertEqual(boundary['commands_elapsed_seconds'], 480)
+        for clock, seconds, calls in (([0, 0, 300, 480], (300, 0), 3),
+                                     ([0, 0, 300, 300, 481], (300, 181), 4)):
+            code, refused, _, _ = self.run_case(command_clock=clock,
+                command_seconds=seconds, expected_command_calls=calls)
+            self.assertEqual(code, 1)
+            self.assertFalse(refused['success'])
+            self.assertIsNone(refused['counts'])
+            self.assertEqual(refused['code'], 'TESTS_FAILED')
+        for started, now in ((0, 480), (1, 0), (0, float('nan')), (False, 0)):
+            with self.subTest(clock=(started, now)), self.assertRaises(harness.debug.ProcessRefused):
+                harness.group_command_timeout(started, now)
 
     def test_missing_or_replayed_groups_cannot_borrow_the_aggregate_count(self):
         _, report, _, _ = self.run_case()

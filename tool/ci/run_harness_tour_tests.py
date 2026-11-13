@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import math
 import os
 import re
 from pathlib import Path
@@ -27,6 +28,8 @@ except ImportError:
 
 EXPECTED_DART_CASES = 1505
 LAUNCH_ASSET_DART_CASES = 2
+GROUP_COMMAND_LIMIT_SECONDS = 300
+TOTAL_COMMAND_LIMIT_SECONDS = 480
 
 
 def startup_check(repo, parent, dart, kind):
@@ -123,6 +126,15 @@ def selected_groups(paths):
     return [paths[:middle], paths[middle:]]
 
 
+def group_command_timeout(started, now):
+    """Allocate only the unspent part of the original serial command budget."""
+    debug.need(all(type(value) in (int, float) and math.isfinite(value)
+                   for value in (started, now)), 'TESTS_FAILED')
+    elapsed = now - started
+    debug.need(0 <= elapsed < TOTAL_COMMAND_LIMIT_SECONDS, 'TESTS_FAILED')
+    return min(GROUP_COMMAND_LIMIT_SECONDS, TOTAL_COMMAND_LIMIT_SECONDS - elapsed)
+
+
 def valid_group_counts(row):
     """Require actual normal process completion and every terminal test gate."""
     command, counts = row.get('command'), row.get('counts')
@@ -132,7 +144,8 @@ def valid_group_counts(row):
         command.get('exit_observed') is True and command.get('forced_kill') is False and
         command.get('output_complete') is True and command.get('output_overflow') is False and
         command.get('error_codes') == [] and
-        type(command.get('seconds')) in (int, float) and 0 <= command['seconds'] <= 240 and
+        type(command.get('seconds')) in (int, float) and
+        0 <= command['seconds'] <= GROUP_COMMAND_LIMIT_SECONDS and
         type(command.get('output_bytes')) is int and 0 < command['output_bytes'] <= 4 * 1024**2 and
         type(command.get('output_sha256')) is str and
         re.fullmatch('[a-f0-9]{64}', command['output_sha256']), 'TESTS_FAILED')
@@ -165,6 +178,8 @@ def combined_counts(rows, paths):
         for key in keys:
             result[key] += counts[key]
         first += len(group)
+    debug.need(sum(row['command']['seconds'] for row in rows)
+               <= TOTAL_COMMAND_LIMIT_SECONDS, 'TESTS_FAILED')
     result['terminal_success'] = True
     return result
 
@@ -175,7 +190,9 @@ def main():
     report = dict(schema=2, scope='wallet_tour_controller_tests', success=False,
                   wallet_qualified=False, native_wallet_executions=0, counts=None,
                   commands=[], groups_expected=2, worker_count=1,
-                  command_limit_seconds=240, total_command_limit_seconds=480,
+                  command_limit_seconds=GROUP_COMMAND_LIMIT_SECONDS,
+                  total_command_limit_seconds=TOTAL_COMMAND_LIMIT_SECONDS,
+                  commands_elapsed_seconds=None,
                   command_output_cap=4 * 1024**2,
                   entry_refusal=None, inspection_entry_refusal=None,
                   startup_checks=[], code=None)
@@ -333,15 +350,18 @@ def main():
             *(['test/launch_film/launch_asset_test.dart'] if asset_fidelity else [])
         ]
         first = 1
+        command_started = time.monotonic()
         for index, group in enumerate(selected_groups(selected_tests), 1):
             row = dict(index=index, first_suite_index=first,
                        selected_suites=len(group), status='UNKNOWN', command=None, counts=None)
             report['commands'].append(row)
+            timeout = group_command_timeout(command_started, time.monotonic())
             outcome = run_bounded([str(dart), '--packages=' + str(packages), str(snapshot),
                 'test', '--no-pub', '--reporter', 'json', '--concurrency=1', *group],
-                cwd=repo, env=fresh_environment(repo, parent), timeout=240, cap=4 * 1024**2)
+                cwd=repo, env=fresh_environment(repo, parent), timeout=timeout, cap=4 * 1024**2)
             row['command'] = dict(**outcome.public(),
                 output_sha256=hashlib.sha256(outcome.output).hexdigest())
+            report['commands_elapsed_seconds'] = time.monotonic() - command_started
             row['status'] = 'FAILURE'
             metadata = dict(source_sha=source, source_tree=tree,
                 run_id=parent['GITHUB_RUN_ID'], run_attempt=parent['GITHUB_RUN_ATTEMPT'],
@@ -361,6 +381,8 @@ def main():
                 report['test_failures'] = dart_test_failure.project(outcome.output)
                 report['failed_group'] = index
             debug.need(outcome.transport_complete, 'OUTPUT_REFUSED')
+            debug.need(0 <= report['commands_elapsed_seconds']
+                       <= TOTAL_COMMAND_LIMIT_SECONDS, 'TESTS_FAILED')
             row['counts'] = test_counts(outcome.output)
             valid_group_counts(row)
             row['status'] = 'SUCCESS'
