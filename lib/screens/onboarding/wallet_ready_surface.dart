@@ -209,7 +209,7 @@ class _WalletReadySurfaceState extends State<WalletReadySurface>
                             ),
                             child: FrostedSurface(
                               sigma: tokens.dialogBlur,
-                              child: DecoratedBox(
+                              child: Container(
                                 key: const Key('wallet_ready_card'),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(

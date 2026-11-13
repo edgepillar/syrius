@@ -9,6 +9,11 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 74/80 original rows, three review and three blocked.
 
 Detailed qualification has resumed after the first code delivery.
+[Source724](source724-ready-card-border.md) reserves the Ready card's painted
+border in layout after reviewing both original Source717 pairs again. Fresh
+full Linux checks, Windows captures and independent verification are pending.
+No whole-image match is accepted; original progress remains 74/80.
+
 [Source723](source723-f06-state-qualification.md) completes the F06 state audit.
 Source722 full Linux, Windows and independent original-archive verification
 pass. All six current seed effects and the aged-fuse witness complete in the
