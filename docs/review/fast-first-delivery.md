@@ -6,9 +6,20 @@ The core interface and existing basic functionality are available for
 [code review](https://github.com/sol-znn/syrius/pull/6). Unavailable
 services remain drawn behind their registered seams. This milestone follows
 the owner's fast-delivery choice. Complete redesign acceptance remains open:
-74/80 original rows, three review and three blocked.
+76/80 accepted rows, two review and two blocked. The owner-approved native
+Windows CI substitute closes P03/P09; the original Docker/WSL route remains
+unqualified.
 
 Detailed qualification has resumed after the first code delivery.
+[Source734](source734-native-ci-scope-and-lock-results.md) records the owner's
+accepted native Windows CI route and Source733's executed results through
+documentation only. Full Linux, Windows Lock and independent archive
+verification pass. Every new Lock pair was individually reviewed; all six
+remain mismatches. The owned review closes successfully. Original Docker/WSL
+failures, exact runtime sources and the four remaining acceptance gates stay
+visible. Accepted image matches stay 2/94.
+
+Earlier preparation entries below retain their original scope and dates.
 [Source733](source733-lock-symbol-literals.md) joins the two split Lock SVG
 literals without changing their decoded contents, assertions or registrations.
 Source732 full Linux passes, including the early Lock gate and the complete

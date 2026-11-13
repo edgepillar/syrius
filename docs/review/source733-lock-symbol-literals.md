@@ -54,3 +54,13 @@ Original acceptance stays 74/80, with 2/94 accepted matches, both Ready pairs
 at Source730. P03, P09, V01, V02, V05 and V06 remain open. F06 remains complete
 at Source722. Neither this formatting change nor the completed four-pair
 review closes a remaining acceptance gate.
+
+## Subsequent execution and owner decision
+
+Source733 full Linux, the Windows Lock producer and its independent reader
+subsequently pass. All six actual/reference Lock pairs were individually
+viewed and remain mismatches. The owned review closes successfully.
+The owner also accepts the executed native Windows CI route for P03/P09,
+while preserving the original Docker/WSL route as unqualified. Accepted
+scope becomes 76/80; image matches stay 2/94. See the
+[Source734 scope and result record](source734-native-ci-scope-and-lock-results.md).

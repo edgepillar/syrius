@@ -3,19 +3,22 @@
 ## Current qualification status (2026-11-13)
 
 PR #6 is [Ready for review](https://github.com/sol-znn/syrius/pull/6).
-Complete redesign acceptance remains 74/80 original rows. F06 is complete at
-Source722; P03, P09, V01, V02, V05 and V06 remain open.
+The owner accepted the executed isolated Windows native CI route for P03/P09.
+Accepted scope is now 76/80 rows; V01, V02, V05 and V06 remain open. The
+original Docker/WSL route stays unqualified. Earlier 74/80 records retain
+their original platform criteria.
 
-Source730 full Linux and both Windows producers pass, with 1,505 selected
-Dart cases, 1,220 Python cases/eighteen Windows skips and zero selected
-findings. Ready's independent reader passes 123 cases and Staking/Token's
-passes 85. Both Ready pairs are accepted; all 94 archived pairs have initial
-reviews and matches are 2/94. Four new Staking/Token images are independently
-verified and await individual review.
+Source733 full Linux, Windows Lock producer and independent reader pass at
+b1f0567e81a856f2f2d0bbdaef7ed47d39f34084. Windows selected analysis has zero
+findings; 1,507 Dart cases and 1,220 Python cases/eighteen platform skips pass.
+All six independently verified Lock actual/reference pairs have now been
+individually reviewed and remain mismatches. The owned review closes
+successfully. All four Source730 Staking/Token pairs are also reviewed and
+remain mismatches. Accepted matches stay 2/94, both Ready pairs at Source730.
 
-The [current report](review/source731-lock-picker-symbols.md) preserves exact
-source/run boundaries, earlier failures, remaining gates and the prepared
-Lock glyph change. That new implementation still needs hosted qualification.
+F06 remains complete at Source722. Source734 changes documentation only;
+runtime sources, earlier failures and the remaining visual/motion/final gates
+are preserved in the [current record](review/source734-native-ci-scope-and-lock-results.md).
 
 ## Historical qualification snapshot (2026-11-11)
 
