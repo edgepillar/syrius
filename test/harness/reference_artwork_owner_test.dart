@@ -540,7 +540,8 @@ void main() {
       final ReferenceArtworkSource source = _source(tester);
       final Lottie before = tester.widget<Lottie>(find.byType(Lottie));
       final Object renderer = tester.state(find.byType(Lottie));
-      final AnimationController clock = before.controller! as AnimationController;
+      final AnimationController clock =
+          before.controller! as AnimationController;
       bool completed = false;
       bool canceled = false;
       unawaited(clock.forward(from: 0).orCancel.then<void>(
@@ -555,13 +556,15 @@ void main() {
       await tester.pump(const Duration(milliseconds: 250));
       expect(frame.observed, isTrue);
       expect(frame.observation, <String, Object>{
-        'kind': asset == AppLottieAsset.map ? 'wallet_ready_map' : 'welcome_globe',
+        'kind': asset == AppLottieAsset.map
+            ? 'wallet_ready_map' : 'welcome_globe',
         'frame': expectedFrame, 'frame_count': 120,
       });
       final Lottie sampled = tester.widget<Lottie>(find.byType(Lottie));
       expect(sampled.composition, same(before.composition));
       expect(tester.state(find.byType(Lottie)), same(renderer));
-      expect(sampled.controller!.value, closeTo(expectedFrame / 119.99, 0.0000001));
+      expect(sampled.controller!.value,
+        closeTo(expectedFrame / 119.99, 0.0000001));
       expect(sampled.frameRate, FrameRate.max);
       expect(clock.isAnimating, isTrue);
       expect(clock.value, greaterThan(0));

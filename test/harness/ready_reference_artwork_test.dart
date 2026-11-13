@@ -131,25 +131,36 @@ void main() {
     int reads = 0;
     for (final bool light in <bool>[false, true]) {
       if (light) await _ready(tester, binding, light: true);
-      expect(findReadyArtworkOwner(WidgetsBinding.instance.rootElement), same(owner));
+      expect(findReadyArtworkOwner(WidgetsBinding.instance.rootElement),
+        same(owner));
       final Lottie before = tester.widget<Lottie>(find.byType(Lottie));
-      final AnimationController clock = before.controller! as AnimationController;
-      final Object renderer = tester.state(find.byType(Lottie));
+      final AnimationController clock =
+          before.controller! as AnimationController;
+      final State<StatefulWidget> renderer = tester.state(find.byType(Lottie));
       final double start = clock.value;
+      Lottie? sampled;
+      bool? sampledClockRunning;
+      bool? sampledOwnerMounted;
       expect(await _finish<int>(tester, frames, artwork.capture<int>(
         frames: frames.gate,
         readback: () async {
           reads++;
-          final Lottie sampled = tester.widget<Lottie>(find.byType(Lottie));
-          expect(sampled.composition, same(before.composition));
-          expect(tester.state(find.byType(Lottie)), same(renderer));
-          expect(sampled.controller, isNot(same(clock)));
-          expect(sampled.controller!.value, closeTo(60 / 119.99, 0.0000001));
-          expect(clock.isAnimating, isTrue);
+          // Read the original State here; assert after the pump driver returns.
+          sampled = renderer.widget as Lottie;
+          sampledClockRunning = clock.isAnimating;
+          sampledOwnerMounted = renderer.mounted;
           return reads;
         },
       )), reads);
-      expect(tester.widget<Lottie>(find.byType(Lottie)).controller, same(clock));
+      final Lottie observed = sampled!;
+      expect(observed.composition, same(before.composition));
+      expect(tester.state(find.byType(Lottie)), same(renderer));
+      expect(observed.controller, isNot(same(clock)));
+      expect(observed.controller!.value, closeTo(60 / 119.99, 0.0000001));
+      expect(sampledClockRunning, isTrue);
+      expect(sampledOwnerMounted, isTrue);
+      expect(tester.widget<Lottie>(find.byType(Lottie)).controller,
+        same(clock));
       expect(clock.isAnimating, isTrue);
       expect(clock.value, isNot(start));
       expect(artwork.held, isFalse);
@@ -170,10 +181,13 @@ void main() {
       admitted: () => admitted);
     final _Frames frames = _Frames();
     int reads = 0;
-    await expectLater(_finish<void>(tester, frames, artwork.capture<void>(
+    final Future<void> original = artwork.capture<void>(
       frames: frames.gate,
       readback: () async { reads++; admitted = false; },
-    )), throwsA(isA<ReadyReferenceArtworkRefused>()));
+    );
+    final Future<void> refused = expectLater(original,
+      throwsA(isA<ReadyReferenceArtworkRefused>()));
+    await _finish<void>(tester, frames, refused);
     expect(artwork.held, isTrue);
     admitted = true;
     final int originalRequests = frames.original.length;

@@ -5325,7 +5325,8 @@ class HarnessAgent {
             final ReadonlyNativeCommands? original = _readonlyNative;
             final ReadyReferenceArtwork artwork = _readyArtwork ??=
                 ReadyReferenceArtwork(
-                  owner: findReadyArtworkOwner(WidgetsBinding.instance.rootElement),
+                  owner: findReadyArtworkOwner(
+                    WidgetsBinding.instance.rootElement),
                   admitted: () => booted && _readonlyWalletReady &&
                       identical(_readonlyNative, original),
                 );

@@ -774,8 +774,9 @@ void main() {
 
   test('observe reads classify one original failure without exposing its text',
       () async {
-    expect(entry.RestoredObserveOperation.values.map((entry.RestoredObserveOperation
-        value) => value.code).toSet(), entry.restoredObserveFailureCodes);
+    expect(entry.RestoredObserveOperation.values.map(
+      (entry.RestoredObserveOperation value) => value.code).toSet(),
+      entry.restoredObserveFailureCodes);
     for (final entry.RestoredObserveOperation operation
         in entry.RestoredObserveOperation.values) {
       int reads = 0;
@@ -795,11 +796,13 @@ void main() {
       expect(marker['kind'], 'FORMAT_ERROR');
       expect(marker['code'], operation.code);
       expect(jsonEncode(marker), isNot(contains('fixture-sensitive-text')));
-      expect(entry.restoredChildFailure('seed_stake', failure)?['code'], isNull);
+      expect(entry.restoredChildFailure('seed_stake', failure)?['code'],
+        isNull);
       Object? nested;
       try {
         await entry.restoredObserveRead<void>(
-          entry.RestoredObserveOperation.state, () async => throw failure!);
+          entry.RestoredObserveOperation.state,
+          () => Future<void>.error(failure!));
       } on Object catch (error) {
         nested = error;
       }
@@ -807,13 +810,17 @@ void main() {
     }
     int reads = 0;
     expect(await entry.restoredObserveRead<int>(
-      entry.RestoredObserveOperation.state, () async { reads++; return 7; }), 7);
+      entry.RestoredObserveOperation.state, () async {
+        reads++;
+        return 7;
+      }), 7);
     expect(reads, 1);
     final Object original = _Unformattable();
     Object? observed;
     try {
       await entry.restoredObserveRead<void>(
-        entry.RestoredObserveOperation.state, () async => throw original);
+        entry.RestoredObserveOperation.state,
+        () => Future<void>.error(original));
     } on Object catch (error) {
       observed = error;
     }
@@ -823,10 +830,10 @@ void main() {
   test('observe conditions and parsing keep their original refusal scope', () {
     for (final entry.RestoredObserveOperation operation
         in entry.RestoredObserveOperation.values) {
-      entry.requireRestoredObserve(true, operation);
+      entry.requireRestoredObserve(condition: true, operation: operation);
       Object? failure;
       try {
-        entry.requireRestoredObserve(false, operation);
+        entry.requireRestoredObserve(condition: false, operation: operation);
       } on Object catch (error) {
         failure = error;
       }

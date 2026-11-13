@@ -34,11 +34,10 @@ class ReadyReferenceArtwork {
   /// Retains one original Ready owner and its current admission source.
   ReadyReferenceArtwork({
     required State<WalletReadySurface> owner,
-    required bool Function() admitted,
+    required this._admitted,
   }) : _owner = owner,
        _binding = owner.widget.binding,
-       _route = ModalRoute.of(owner.context),
-       _admitted = admitted;
+       _route = ModalRoute.of(owner.context);
 
   final State<WalletReadySurface> _owner;
   final WalletReadyBinding? _binding;
@@ -55,7 +54,8 @@ class ReadyReferenceArtwork {
     if (!_owner.mounted || !_admitted()) return false;
     final AppLifecycleState? lifecycle = WidgetsBinding.instance.lifecycleState;
     return _binding != null && identical(_owner.widget.binding, _binding) &&
-        _binding.isCurrent && !_owner.widget.imported && !_owner.widget.hardware &&
+        _binding.isCurrent &&
+        !_owner.widget.imported && !_owner.widget.hardware &&
         _route != null && _route.isCurrent &&
         identical(ModalRoute.of(_owner.context), _route) &&
         TickerMode.valuesOf(_owner.context).enabled &&
@@ -123,7 +123,9 @@ class ReadyReferenceArtwork {
         for (int index = 0; index < sources.length; index++) {
           final Future<Object?>? original = readiness[index];
           if (sources[index].referenceArtworkKind ==
-              ReferenceArtworkKind.walletReadyMap && original == null) _refuse();
+              ReferenceArtworkKind.walletReadyMap && original == null) {
+            _refuse();
+          }
           if (original != null) {
             await original.timeout(const Duration(seconds: 1));
           }
@@ -141,13 +143,16 @@ class ReadyReferenceArtwork {
         }
         for (int index = 0; index < sources.length; index++) {
           final ReferenceArtworkSource source = sources[index];
-          final ReferenceArtworkFrame? sample = source.captureReferenceArtwork();
+          final ReferenceArtworkFrame? sample =
+              source.captureReferenceArtwork();
           if (sample == null) _refuse();
           samples.add(sample);
           if (!_current() || !sample.isCurrent ||
               !identical(sample.owner, source) ||
               !identical(sample.generation, generations[index]) ||
-              sample.kind != source.referenceArtworkKind) _refuse();
+              sample.kind != source.referenceArtworkKind) {
+            _refuse();
+          }
         }
       } on Object {
         _refuse();
@@ -182,7 +187,8 @@ class ReadyReferenceArtwork {
           if (!requested) _refuse();
           await frames.capture<void>(() async {
             if (!_current() ||
-                !samples.every((ReferenceArtworkFrame sample) => sample.restored)) {
+                !samples.every((ReferenceArtworkFrame sample) =>
+                  sample.restored)) {
               _refuse();
             }
           });

@@ -120,7 +120,10 @@ T restoredObserveValue<T>(RestoredObserveOperation operation,
 }
 
 /// Preserve an original condition while identifying its fixed refusal point.
-void requireRestoredObserve(bool condition, RestoredObserveOperation operation) {
+void requireRestoredObserve({
+  required bool condition,
+  required RestoredObserveOperation operation,
+}) {
   if (!condition) throw _RestoredObserveRefused(operation);
 }
 
@@ -1467,19 +1470,21 @@ Future<void> main() async {
       () => cli.until(instance, restoredWalletReady, 'restored readiness'));
     final Map<String, dynamic> state = await restoredObserveRead(
       RestoredObserveOperation.state, () => cli.stateOf(instance));
-    requireRestoredObserve(restoredWalletReady(state) && originalInput.alive,
-      RestoredObserveOperation.policy);
+    requireRestoredObserve(
+      condition: restoredWalletReady(state) && originalInput.alive,
+      operation: RestoredObserveOperation.policy);
     Future<WalletAddressContext> context() async {
       final Map<String, dynamic> state = await restoredObserveRead(
         RestoredObserveOperation.contextState, () => cli.stateOf(instance));
-      requireRestoredObserve(restoredWalletReady(state),
-        RestoredObserveOperation.contextPolicy);
+      requireRestoredObserve(condition: restoredWalletReady(state),
+        operation: RestoredObserveOperation.contextPolicy);
       final Map<String, dynamic> view = await restoredObserveRead(
         RestoredObserveOperation.ownerRead, () => instance.send(
         <String, Object>{'cmd': 'wallet-recipe', 'action': 'observe'},
       ));
-      requireRestoredObserve(view['ok'] == true && view['hasError'] == false,
-        RestoredObserveOperation.owner);
+      requireRestoredObserve(
+        condition: view['ok'] == true && view['hasError'] == false,
+        operation: RestoredObserveOperation.owner);
       return restoredObserveValue(RestoredObserveOperation.addressContext,
         () => WalletAddressContext.parse(view['addressContext']));
     }
@@ -1492,11 +1497,13 @@ Future<void> main() async {
         'originalProfile', 'wallet', 'members', 'hash',
       ]) key: decoded[key],
     }));
-    requireRestoredObserve(result['ok'] == true && result['receipt'] is Map,
-      RestoredObserveOperation.receipt);
-    requireRestoredObserve(originalContext.same(await context()),
-      RestoredObserveOperation.contextChanged);
-    requireRestoredObserve(originalInput.alive, RestoredObserveOperation.parent);
+    requireRestoredObserve(
+      condition: result['ok'] == true && result['receipt'] is Map,
+      operation: RestoredObserveOperation.receipt);
+    requireRestoredObserve(condition: originalContext.same(await context()),
+      operation: RestoredObserveOperation.contextChanged);
+    requireRestoredObserve(condition: originalInput.alive,
+      operation: RestoredObserveOperation.parent);
     await marker('CI_REOPEN_DONE:${jsonEncode(result['receipt'])}');
     phase = 'seed_admission';
     final Object? seedInput = jsonDecode(await originalInput.read());

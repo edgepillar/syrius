@@ -659,6 +659,8 @@ def analyze(parent, repo):
         'lib/utils/wallet_maintenance_binding.dart',
         'test/wallet_maintenance/wallet_maintenance_backend_capture_test.dart',
         'test/harness/reference_artwork_owner_test.dart',
+        'harness/app/ready_reference_artwork.dart',
+        'test/harness/ready_reference_artwork_test.dart',
         'lib/rearchitecture/utils/widgets/entry_field.dart',
         'lib/rearchitecture/utils/widgets/go_to_palette.dart',
         'lib/widgets/reusable_widgets/app_lottie.dart',
@@ -772,6 +774,8 @@ def analyze(parent, repo):
                                         else 'maintenance_binding' if relative.endswith('/lib/utils/wallet_maintenance_binding.dart')
                                         else 'maintenance_backend_test' if relative.endswith('/test/wallet_maintenance/wallet_maintenance_backend_capture_test.dart')
                                         else 'reference_artwork_test' if relative.endswith('/test/harness/reference_artwork_owner_test.dart')
+                                        else 'ready_reference_artwork' if relative.endswith('/harness/app/ready_reference_artwork.dart')
+                                        else 'ready_reference_artwork_test' if relative.endswith('/test/harness/ready_reference_artwork_test.dart')
                                         else 'entry_field' if relative.endswith('/lib/rearchitecture/utils/widgets/entry_field.dart')
                                         else 'app_lottie' if relative.endswith('/lib/widgets/reusable_widgets/app_lottie.dart')
                                         else 'window_frame_test' if relative.endswith('/test/window/window_frame_test.dart')

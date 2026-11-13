@@ -9,14 +9,19 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 74/80 original rows, three review and three blocked.
 
 Detailed qualification has resumed after the first code delivery.
-[Source726](source726-ready-artwork-and-observe.md) adds bounded sampling of
-the original Ready map/entry field and fixed copied-observe diagnostic codes.
-Five selected memory controls pass locally. Fresh full Linux, Windows capture,
-independent archive and image qualification were pending at publication.
-The first Linux run then failed two stale registry checks before SDK setup.
-Source727 corrects the known test basename and the exact 110-file grouping;
-all 38 focused memory controls pass. Fresh full Linux and native qualification
-remain pending. Earlier failures and original 74/80 acceptance are preserved.
+[Source728](source728-ready-test-pump-sequencing.md) fixes the new Ready test
+driver's guarded call ordering, addresses 22 new analysis infos and explicitly
+registers both Ready files in strict selected analysis. All 46 focused memory
+controls pass. The three Ready cases now run before the full Linux test
+directory so an ownership/restoration failure can stop that job early.
+Fresh full Linux, Windows capture and image qualification remain required.
+
+[Source726](source726-ready-artwork-and-observe.md) introduced bounded sampling
+of the original Ready map/entry field and fixed copied-observe diagnostic codes.
+Source727 corrected its stale basename catalog and exact 110-file grouping.
+Source727's Linux run then passed controllers and analysis but failed two new
+Ready driver cases; 5,077 tests passed and one was skipped. Both original failed
+runs remain preserved. Original 74/80 acceptance is unchanged.
 
 [Source724](source724-ready-card-border.md) reserves the Ready card's painted
 border in layout. Full Linux checks, the Ready Windows capture and independent
