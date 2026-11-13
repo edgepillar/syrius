@@ -11,6 +11,14 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
+[Source744](source744-generated-localization-output.md) applies the exact
+hosted generator line wrapping in five locale artifacts. Source743 passes
+all analysis, early gates and the complete directory: 5,080 passes, zero
+failures and one skip. Its final generation check stays failed. The existing
+entry-field test file joins the early Ready gate; complete execution and
+generation remain mandatory. Handwritten code, tests and values are unchanged;
+fresh full Linux is required. Scope and pairs stay 76/80 and 2/94.
+
 [Source743](source743-raster-pixel-ratio-dependency.md) observes pixel-ratio
 changes through MediaQuery and updates the test's local media-query fixture
 with the view's ratio. All image reuse, retirement, size and disposal checks
