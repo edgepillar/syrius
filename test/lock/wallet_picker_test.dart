@@ -223,7 +223,13 @@ void main() {
           expect(passwordBounds.height, tokens.fieldHeight);
           expect(find.semantics.byLabel(_current.name), findsWidgets);
           expect(find.semantics.byLabel(_current.address!), findsWidgets);
-          expect(find.byTooltip(_current.name), findsOneWidget);
+          expect(
+            tester
+                .renderObject<RenderParagraph>(find.text(_current.name))
+                .didExceedMaxLines,
+            isFalse,
+          );
+          expect(find.byTooltip(_current.name), findsNothing);
           expect(find.byTooltip(_current.address!), findsOneWidget);
           expect(
             Directionality.of(tester.element(find.text('synthe…0001'))),
@@ -263,6 +269,10 @@ void main() {
             tester.widget<TextField>(find.byKey(passwordKey)).enabled, isFalse,
           );
           expect(_editable(tester, passwordKey).focusNode.hasFocus, isFalse);
+          final RenderBox paintedField = InputDecorator.containerOf(
+            tester.element(editable),
+          )!;
+          expect(paintedField.size.height, closeTo(tokens.fieldHeight, .01));
           expect(
             tester.widget<PrimaryPill>(find.byKey(unlockKey)).onPressed, isNull,
           );
@@ -289,6 +299,31 @@ void main() {
           submit();
           expect(unlocks, 1);
           expect(tester.takeException(), isNull);
+
+          final String longName = List<String>.filled(
+            8, 'Synthetic wallet name',
+          ).join(' ');
+          for (final String name in <String>['Main', longName]) {
+            await tester.pumpWidget(
+              _host(
+                light: light,
+                direction: direction,
+                child: _frame(
+                  LockWalletPicker(
+                    current: LockWalletDisplayEntry(name: name),
+                  ),
+                ),
+              ),
+            );
+            await tester.pump();
+            expect(find.text(name), findsOneWidget);
+            expect(find.semantics.byLabel(name), findsWidgets);
+            expect(
+              find.byTooltip(name),
+              name == longName ? findsOneWidget : findsNothing,
+            );
+            expect(tester.takeException(), isNull);
+          }
         } finally {
           semantics.dispose();
         }

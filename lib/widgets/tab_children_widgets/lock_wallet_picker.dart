@@ -127,14 +127,36 @@ class LockWalletPicker extends StatelessWidget {
           child: Row(
             children: <Widget>[
               Flexible(
-                child: Tooltip(
-                  message: current.name,
-                  child: Text(
-                    current.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: tokens.headingText,
-                  ),
+                child: LayoutBuilder(
+                  builder:
+                      (BuildContext context, BoxConstraints constraints) {
+                    final Widget label = Text(
+                      current.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: tokens.headingText,
+                    );
+                    final TextPainter metrics = TextPainter(
+                      text: TextSpan(
+                        text: current.name,
+                        style: DefaultTextStyle.of(context).style.merge(
+                          tokens.headingText,
+                        ),
+                      ),
+                      textDirection: Directionality.of(context),
+                      textScaler: MediaQuery.textScalerOf(context),
+                      maxLines: 1,
+                      ellipsis: '\u2026',
+                    );
+                    try {
+                      metrics.layout(maxWidth: constraints.maxWidth);
+                      return metrics.didExceedMaxLines
+                          ? Tooltip(message: current.name, child: label)
+                          : label;
+                    } finally {
+                      metrics.dispose();
+                    }
+                  },
                 ),
               ),
               if (current.address case final String address) ...<Widget>[

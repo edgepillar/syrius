@@ -1427,43 +1427,48 @@ class _TokenFacts extends StatelessWidget {
             ? 2
             : 1;
         final int columns = pairs * 2;
-        return Table(
-          defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-          columnWidths: <int, TableColumnWidth>{
-            for (int column = 0; column < columns; column++)
-              column: column.isEven
-                  ? const IntrinsicColumnWidth()
-                  : const FlexColumnWidth(),
-          },
-          children: <TableRow>[
-            for (int start = 0; start < facts.length; start += pairs)
-              TableRow(
-                children: <Widget>[
-                  for (int column = 0; column < columns; column++)
-                    if (start + column ~/ 2 >= facts.length)
-                      const SizedBox.shrink()
-                    else
-                      Padding(
-                        padding: EdgeInsetsDirectional.only(
-                          end: column < columns - 1
-                              ? tokens.tokenDetailColumnGap
-                              : 0,
-                          bottom: start + pairs < facts.length
-                              ? tokens.tokenDetailLabelGap
-                              : 0,
-                        ),
-                        child: Text(
-                          column.isEven
-                              ? facts[start + column ~/ 2].$1.toUpperCase()
-                              : facts[start + column ~/ 2].$2,
-                          style: column.isEven
-                              ? tokens.ledgerText
-                              : valueStyle(facts[start + column ~/ 2].$1),
-                        ),
-                      ),
-                ],
-              ),
-          ],
+        return Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: IntrinsicWidth(
+            child: Table(
+              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+              columnWidths: <int, TableColumnWidth>{
+                for (int column = 0; column < columns; column++)
+                  column: column.isEven
+                      ? const IntrinsicColumnWidth()
+                      : const IntrinsicColumnWidth(flex: 1),
+              },
+              children: <TableRow>[
+                for (int start = 0; start < facts.length; start += pairs)
+                  TableRow(
+                    children: <Widget>[
+                      for (int column = 0; column < columns; column++)
+                        if (start + column ~/ 2 >= facts.length)
+                          const SizedBox.shrink()
+                        else
+                          Padding(
+                            padding: EdgeInsetsDirectional.only(
+                              end: column < columns - 1
+                                  ? tokens.tokenDetailColumnGap
+                                  : 0,
+                              bottom: start + pairs < facts.length
+                                  ? tokens.tokenDetailLabelGap
+                                  : 0,
+                            ),
+                            child: Text(
+                              column.isEven
+                                  ? facts[start + column ~/ 2].$1.toUpperCase()
+                                  : facts[start + column ~/ 2].$2,
+                              style: column.isEven
+                                  ? tokens.ledgerText
+                                  : valueStyle(facts[start + column ~/ 2].$1),
+                            ),
+                          ),
+                    ],
+                  ),
+              ],
+            ),
+          ),
         );
       },
     );

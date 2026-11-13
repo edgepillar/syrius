@@ -430,34 +430,36 @@ class _LockCardState extends State<LockCard>
               width: tokens.fieldHeight,
               height: tokens.fieldHeight,
             ),
-            suffixIcon: _pickerExpanded ? null : IconButton(
-              tooltip: _obscure
-                  ? context.l10n.lockShowPassword
-                  : context.l10n.lockHidePassword,
-              padding: EdgeInsets.zero,
-              constraints: BoxConstraints.tightFor(
-                width: tokens.fieldHeight,
-                height: tokens.fieldHeight,
-              ),
-              onPressed: _passwordEnabled
-                  ? () {
-                      if (_passwordEnabled) {
-                        setState(() => _obscure = !_obscure);
-                      }
-                    }
-                  : null,
-              icon: _obscure
-                  ? ShellSymbol(
-                      'eye',
-                      size: tokens.lockGlyphSize,
-                      color: tokens.faint,
-                    )
-                  : Icon(
-                      Icons.visibility_off_outlined,
-                      size: tokens.lockGlyphSize,
-                      color: tokens.faint,
-                    ),
-            ),
+            suffixIcon: _pickerExpanded
+                ? const SizedBox.shrink()
+                : IconButton(
+                  tooltip: _obscure
+                      ? context.l10n.lockShowPassword
+                      : context.l10n.lockHidePassword,
+                  padding: EdgeInsets.zero,
+                  constraints: BoxConstraints.tightFor(
+                    width: tokens.fieldHeight,
+                    height: tokens.fieldHeight,
+                  ),
+                  onPressed: _passwordEnabled
+                      ? () {
+                          if (_passwordEnabled) {
+                            setState(() => _obscure = !_obscure);
+                          }
+                        }
+                      : null,
+                  icon: _obscure
+                      ? ShellSymbol(
+                          'eye',
+                          size: tokens.lockGlyphSize,
+                          color: tokens.faint,
+                        )
+                      : Icon(
+                          Icons.visibility_off_outlined,
+                          size: tokens.lockGlyphSize,
+                          color: tokens.faint,
+                        ),
+                ),
           ),
         ),
         builder: (BuildContext context, Widget? child) => Transform.translate(

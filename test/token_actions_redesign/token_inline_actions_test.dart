@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -183,6 +184,41 @@ Future<void> _routeSettled(WidgetTester tester, Future<void> route) async {
   await tester.pump(const Duration(milliseconds: 201));
 }
 
+// The reference fact grid keeps each pair at its natural content width.
+void _expectNaturalFacts(
+  WidgetTester tester,
+  TextDirection direction,
+  double scale,
+) {
+  final Rect decimals = tester.getRect(find.text('DECIMALS'));
+  final Rect domain = tester.getRect(find.text('DOMAIN'));
+  double leading(Rect rect) =>
+      direction == TextDirection.ltr ? rect.left : rect.right;
+  if (scale > 1.3) {
+    expect(leading(domain), closeTo(leading(decimals), .01));
+    expect(domain.top, greaterThan(decimals.bottom));
+    return;
+  }
+  double natural(String text) => tester
+      .renderObject<RenderParagraph>(find.text(text).first)
+      .getMaxIntrinsicWidth(double.infinity);
+  double longest(List<String> values) => values
+      .map(natural)
+      .reduce((double a, double b) => a > b ? a : b);
+  final AppTokens tokens = AppTokens.of(
+    tester.element(find.byType(TokenInlineActions)),
+  );
+  final double firstPair =
+      longest(<String>['DECIMALS', 'MINTABLE', 'UTILITY']) +
+      longest(<String>['8', 'Yes, by owner', 'Yes']) +
+      2 * tokens.tokenDetailColumnGap;
+  expect(domain.top, closeTo(decimals.top, .01));
+  expect(
+    (leading(domain) - leading(decimals)).abs(),
+    closeTo(firstPair, .01),
+  );
+}
+
 void main() {
   initHydratedStorage();
 
@@ -207,6 +243,7 @@ void main() {
                 ),
               );
               await _ready(tester);
+              _expectNaturalFacts(tester, direction, scale);
               const String exact = '9007199254740993.12345678';
               await _editField(
                 tester,
@@ -251,6 +288,9 @@ void main() {
               expect(find.byType(Switch), findsNothing);
               expect(find.byType(Checkbox), findsNothing);
               expect(find.text('Issued'), findsNothing);
+              tester.view.physicalSize = const Size(640, 780);
+              await tester.pump();
+              expect(find.text('DOMAIN'), findsOneWidget);
               expect(fixture.transport.calls, isEmpty);
               expect(fixture.transfers, isEmpty);
               expect(tester.takeException(), isNull);

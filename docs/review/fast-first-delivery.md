@@ -11,6 +11,16 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
+[Source739](source739-compact-facts-and-lock-fields.md) prepares content-sized
+Token facts, a stable disabled Lock field and tooltips for truncated wallet
+names. Existing geometry, input, focus and semantics cases are extended;
+registrations are unchanged. Source738 Windows Lock and its reader verify six
+PNGs and four normal actors. All six pairs are reviewed, with two normal views
+under review and four mismatches. Source736's four Staking/Token pairs also
+remain mismatches. Fresh current timing acquisition and its reader pass, but
+both performance comparisons fail. Fresh Linux/native qualification of these
+presentation changes remains required. Scope stays 76/80 and matches 2/94.
+
 [Source738](source738-shared-test-budget.md) shares the unchanged 480-second
 budget across the two complete serial Dart groups. Fourteen memory cases
 pass. Source737 full Linux passes, while its Windows test child times out in
