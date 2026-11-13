@@ -22,6 +22,97 @@ import test_readonly_navigation_capture as navigation_fixtures
 import test_readonly_details_capture as details_fixtures
 
 
+class BuildBeforeLabTests(unittest.TestCase):
+    def test_original_lab_starts_after_build_and_before_one_application_release(self):
+        events = []
+        observation = dict(chain=321, cross_transport_hash_equal=True)
+        start = mock.Mock(side_effect=lambda: (events.append('lab'), observation)[1])
+        current = mock.Mock(side_effect=lambda: events.append('current'))
+        healthy = mock.Mock(side_effect=lambda: events.append('healthy'))
+        gate = inspection.InspectionLabStart(start, current, healthy)
+        self.assertFalse(any(gate.receipt[key] for key in inspection.BUILD_BEFORE_LAB_FLAGS))
+        start.assert_not_called()
+        write = mock.Mock(side_effect=lambda data: events.append(data))
+        with self.assertRaises(inspection.Refused):
+            gate.release(write)
+        gate.start()
+        self.assertIs(gate.observation, observation)
+        gate.release(write)
+        self.assertEqual(events, ['current', 'lab', 'healthy', 'current',
+                                  'healthy', 'current', b'LAB_READY\n'])
+        self.assertTrue(all(gate.receipt[key] for key in inspection.BUILD_BEFORE_LAB_FLAGS))
+        for action in (gate.start, lambda: gate.release(write)):
+            with self.assertRaises(inspection.Refused):
+                action()
+        start.assert_called_once()
+        write.assert_called_once_with(b'LAB_READY\n')
+
+    def test_failed_source_owner_production_or_observation_never_releases_the_child(self):
+        original = inspection.Refused('LAB_REFUSED')
+        for fault in ('source_before', 'lab', 'owner', 'source_after', 'chain', 'transport'):
+            with self.subTest(fault=fault):
+                observation = dict(chain=1 if fault == 'chain' else 321,
+                    cross_transport_hash_equal=fault != 'transport')
+                start = mock.Mock(return_value=observation,
+                    side_effect=original if fault == 'lab' else None)
+                current = mock.Mock(side_effect=(
+                    [original] if fault == 'source_before' else
+                    [None, original] if fault == 'source_after' else None))
+                healthy = mock.Mock(side_effect=original if fault == 'owner' else None)
+                gate = inspection.InspectionLabStart(start, current, healthy)
+                write = mock.Mock()
+                with self.assertRaises(inspection.Refused) as failed:
+                    gate.start()
+                if fault not in ('chain', 'transport'):
+                    self.assertIs(failed.exception, original)
+                self.assertIsNone(gate.observation)
+                self.assertFalse(gate.receipt['initial_production_observed'])
+                for action in (gate.start, lambda: gate.release(write)):
+                    with self.assertRaises(inspection.Refused):
+                        action()
+                self.assertEqual(start.call_count, 0 if fault == 'source_before' else 1)
+                write.assert_not_called()
+
+    def test_failed_release_is_reserved_and_cannot_be_replayed(self):
+        for fault in ('owner', 'source', 'write'):
+            with self.subTest(fault=fault):
+                healthy, current = mock.Mock(), mock.Mock()
+                gate = inspection.InspectionLabStart(
+                    lambda: dict(chain=321, cross_transport_hash_equal=True), current, healthy)
+                gate.start()
+                error = OSError('synthetic original failure')
+                if fault == 'owner':
+                    healthy.side_effect = error
+                if fault == 'source':
+                    current.side_effect = error
+                write = mock.Mock(side_effect=error if fault == 'write' else None)
+                with self.assertRaises(OSError) as failed:
+                    gate.release(write)
+                self.assertIs(failed.exception, error)
+                with self.assertRaises(inspection.Refused):
+                    gate.release(write)
+                self.assertEqual(write.call_count, int(fault == 'write'))
+                self.assertEqual(gate.receipt['application_release_attempted'], fault == 'write')
+
+    def test_public_receipt_preserves_legacy_absence_and_refuses_false_order_or_expansion(self):
+        value = report()
+        self.assertIs(inspection.public_manifest(value), value)
+        receipt = dict(schema=1, scope='readonly_build_before_lab',
+                       **dict.fromkeys(inspection.BUILD_BEFORE_LAB_FLAGS, True))
+        value['build_before_lab'] = receipt
+        self.assertIs(inspection.public_manifest(value), value)
+        for change in (dict(build_complete=False), dict(lab_start_attempted=False),
+                       dict(initial_production_observed=False),
+                       dict(application_release_attempted=False), dict(build_complete=1),
+                       dict(schema=True), dict(extra='synthetic private diagnostic')):
+            with self.subTest(change=change), self.assertRaises(inspection.Refused):
+                inspection.public_manifest(dict(value, build_before_lab=receipt | change))
+        for count in range(len(inspection.BUILD_BEFORE_LAB_FLAGS) + 1):
+            prefix = dict(receipt, **{key: index < count
+                for index, key in enumerate(inspection.BUILD_BEFORE_LAB_FLAGS)})
+            self.assertEqual(inspection.build_before_lab_receipt(prefix), prefix)
+
+
 def settings_manifest(pixels, script):
     value, _ = settings_fixtures.fixture()
     value.update(source_sha='a' * 40, source_tree='b' * 40,

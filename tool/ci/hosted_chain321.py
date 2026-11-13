@@ -1339,6 +1339,7 @@ def run(backend):
     if interactive:
         report['interactive_frame_pair'] = None
     runtime = None
+    runtime_launch_attempted = False
     closed_wallets = []
     reopen_anchor = None
     pointer_diagnostic = None
@@ -1427,8 +1428,6 @@ def run(backend):
             pins[role] = digest(regular(data / "config.json"))
         report["config_sha256"] = pins
         report["checks"]["assets"] = True
-        preflight_ports(backend, stack_debug=stack_debug, probe_producers=send_warning)
-        report["checks"]["preflight"] = True
         warning_directory = None
         if send_warning:
             warning_directory = root / "send-warning-window"
@@ -1436,10 +1435,27 @@ def run(backend):
         runtime = (Docker(commands, binary, configs, nonce) if backend == "docker"
                    else Native(commands, binary, configs, stack_debug=stack_debug,
                                warning_directory=warning_directory))
-        runtime.start()
-        report["checks"]["started"] = True
-        report["observations"] = observe(runtime, root, report)
-        report["checks"]["production"] = True
+        lab_start_attempted = False
+
+        def start_lab():
+            nonlocal lab_start_attempted, runtime_launch_attempted
+            need(not lab_start_attempted, 'RESOURCE_CHANGED')
+            lab_start_attempted = True
+            try:
+                preflight_ports(backend, stack_debug=stack_debug, probe_producers=send_warning)
+                report["checks"]["preflight"] = True
+                runtime_launch_attempted = True
+                runtime.start()
+                report["checks"]["started"] = True
+                report["observations"] = observe(runtime, root, report)
+                report["checks"]["production"] = True
+                return report["observations"]
+            finally:
+                if inspection and report['checks']['production']:
+                    report['runtime_phase'] = 'wallet_inspection'
+
+        if not inspection:
+            start_lab()
         if interactive:
             from tool.ci import windows_interactive_frame_pair
             report['runtime_phase'] = 'interactive_frame_pair'
@@ -1453,13 +1469,14 @@ def run(backend):
             need(outcome['success'] and manifest_hash is not None, 'INTERACTIVE_FRAME_PAIR_FAILED')
         if inspection:
             from tool.ci import windows_wallet_inspection
-            report['runtime_phase'] = 'wallet_inspection'
+            # The child's build phase does not imply that lab production ran.
+            report['runtime_phase'] = None
             options = {}
             if warning_directory is not None:
                 options['warning_window'] = send_warning_window.SendWarningWindow(
                     warning_directory, runtime.healthy, probe_producers=True)
             outcome = windows_wallet_inspection.run(repo, parent, runtime, root,
-                report['observations'], lambda: observe(runtime, root), **options)
+                None, lambda: observe(runtime, root), start_lab=start_lab, **options)
             path = repo / windows_wallet_inspection.OUTPUT / 'manifest.json'
             manifest_hash = digest(regular(path)) if path.exists() or path.is_symlink() else None
             report['wallet_inspection'] = dict(success=outcome['success'],
@@ -1497,7 +1514,7 @@ def run(backend):
         record_wallet_failure_probe(report, runtime,
             wallet_tour=wallet_tour, stack_debug=stack_debug)
     finally:
-        if runtime is not None:
+        if runtime is not None and runtime_launch_attempted:
             try:
                 runtime.stop()
                 report["checks"]["stopped"] = True

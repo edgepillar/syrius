@@ -78,7 +78,7 @@ CATALOG_ONLY_FAMILIES = {
 }
 CODES = shared.CODES | shared.LAB_REVALIDATION_CODES | frozenset((
     'BINDING_REFUSED', 'INSPECTION_REFUSED', 'SEND_WARNING_WINDOW_REFUSED'))
-STAGES = frozenset(('unused_destinations', 'build', 'start', 'input', 'window',
+STAGES = frozenset(('unused_destinations', 'build', 'lab_wait', 'start', 'input', 'window',
     'onboarding', 'signing_policy', 'onboarding_logs', 'address_selection',
     'wallet_binding', 'tour_dark', 'tour_light', 'home_catalog', 'settings_catalog',
     'navigation_catalog', *details.CATALOG_STAGES, 'aged_fuse_fixture',
@@ -802,7 +802,7 @@ def public_manifest(value):
         'entry_failure', 'application_exit', 'cleanup_application_exit', 'entry_exit',
         'owned_job_images_before_close', 'owned_job_active_at_close', 'entry_output',
         'home_seam_observations', 'settings_seam_observations',
-        'aged_fuse_fixture'}
+        'aged_fuse_fixture', 'build_before_lab'}
     need(type(value) is dict and type(value.get('schema')) is int
          and value['schema'] in READONLY_CATALOG_SCHEMAS.values(), 'OUTPUT_REFUSED')
     schema = value['schema']
@@ -847,6 +847,11 @@ def public_manifest(value):
                  and -2**31 <= value[name] < 2**32, 'OUTPUT_REFUSED')
     if 'input_attempted' in value:
         need(type(value['input_attempted']) is bool, 'OUTPUT_REFUSED')
+    if 'build_before_lab' in value:
+        start = build_before_lab_receipt(value['build_before_lab'])
+        need(not (value['success'] or value['checks']['entry_ready']
+                  or value['checks']['input_released'])
+             or all(start[key] for key in BUILD_BEFORE_LAB_FLAGS), 'OUTPUT_REFUSED')
     if 'entry_failure' in value:
         entry_failure(value['entry_failure'])
     if 'aged_fuse_fixture' in value:
@@ -1480,7 +1485,58 @@ SEAM_PILOTS = {
 }
 
 
-def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_window=None):
+BUILD_BEFORE_LAB_FLAGS = ('build_complete', 'lab_start_attempted',
+    'initial_production_observed', 'application_release_attempted')
+
+
+def build_before_lab_receipt(value):
+    need(type(value) is dict
+         and set(value) == {'schema', 'scope', *BUILD_BEFORE_LAB_FLAGS}
+         and type(value['schema']) is int and value['schema'] == 1
+         and value['scope'] == 'readonly_build_before_lab'
+         and all(type(value[key]) is bool for key in BUILD_BEFORE_LAB_FLAGS),
+         'OUTPUT_REFUSED')
+    flags = [value[key] for key in BUILD_BEFORE_LAB_FLAGS]
+    need(not any(later and not earlier for earlier, later in zip(flags, flags[1:])),
+         'OUTPUT_REFUSED')
+    return dict(value)
+
+
+class InspectionLabStart:
+    """One original build, one lab start, and one application release."""
+
+    def __init__(self, start_lab, require_current, healthy):
+        self._start_lab, self._current, self._healthy = start_lab, require_current, healthy
+        self._release_reserved = False
+        self.observation = None
+        self.receipt = dict(schema=1, scope='readonly_build_before_lab',
+                            **dict.fromkeys(BUILD_BEFORE_LAB_FLAGS, False))
+
+    def start(self):
+        need(not self.receipt['build_complete'], 'ENTRY_REFUSED')
+        self.receipt['build_complete'] = True
+        self._current()
+        self.receipt['lab_start_attempted'] = True
+        observed = self._start_lab()
+        self._healthy()
+        self._current()
+        need(type(observed) is dict and observed.get('chain') == 321
+             and observed.get('cross_transport_hash_equal') is True, 'LAB_REFUSED')
+        self.observation = observed
+        self.receipt['initial_production_observed'] = True
+
+    def release(self, write):
+        need(self.receipt['initial_production_observed']
+             and not self._release_reserved, 'ENTRY_REFUSED')
+        self._release_reserved = True
+        self._healthy()
+        self._current()
+        self.receipt['application_release_attempted'] = True
+        write(b'LAB_READY\n')
+
+
+def run(repo, parent, runtime, lab_root, observation, revalidate, *,
+        start_lab=None, warning_window=None):
     report = dict(schema=4, scope='owned_chain321_wallet_inspection', success=False,
         inspection_qualified=False, wallet_qualified=False, seed_admitted=False, visual_matches=0,
         checks=dict.fromkeys(CHECKS, False), errors=[], phase='admission', captures=[],
@@ -1542,6 +1598,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
             if report['schema'] < since:
                 report.pop(field)
         report['checks']['environment'] = True
+        need(observation is None and callable(start_lab), 'ENVIRONMENT_REFUSED')
         debug.bounded.verify_source(repo, source, parent)
         tree = debug.entry.source_tree(repo, parent)
         report.update(source_sha=source, source_tree=tree, run_id=parent['GITHUB_RUN_ID'],
@@ -1577,6 +1634,16 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
         used = set()
         stages = []
         ready = None
+
+        def require_current():
+            need(original.poll() is None, 'ENTRY_FAILED')
+            need(time.monotonic() < deadline, 'TOTAL_DEADLINE')
+            need(shared.directory_identity(debug.bounded.plain(profile)) == profile_identity,
+                 'PROFILE_REFUSED')
+            debug.bounded.verify_source(repo, source, parent)
+
+        lab_start = InspectionLabStart(start_lab, require_current, runtime.healthy)
+        report['build_before_lab'] = lab_start.receipt
 
         def write(data):
             need(original.poll() is None and len(data) <= 4096, 'INPUT_REFUSED')
@@ -1617,7 +1684,8 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
             expected_entry_marker = entry_marker_kind(marker)
             limit = deadline if seconds is None else min(deadline, time.monotonic() + seconds)
             while True:
-                runtime.healthy()
+                if lab_start.receipt['initial_production_observed']:
+                    runtime.healthy()
                 now = time.monotonic()
                 need(now < limit, 'TOTAL_DEADLINE')
                 sample(now)
@@ -1636,6 +1704,10 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
                     used.add(line)
                     if line == marker:
                         return
+                elif line == b'CI_INSPECT_BUILD_DONE':
+                    need(marker == line and len(stages) == 2
+                         and not lab_start.receipt['build_complete'], 'ENTRY_REFUSED')
+                    return
                 elif line.startswith(b'CI_INSPECT_READY:'):
                     need(marker == b'CI_INSPECT_READY' and ready is None
                          and len(stages) == 3, 'ENTRY_REFUSED')
@@ -1763,6 +1835,12 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
         write(b'START\n')
         wait(b'CI_INSPECT_STAGE:gate', seconds=30)
         report['checks']['entry_gate'] = True
+        wait(b'CI_INSPECT_BUILD_DONE')
+        report['phase'] = 'lab_revalidation'
+        lab_start.start()
+        observation = lab_start.observation
+        lab_start.release(write)
+        report['phase'] = 'build_and_start'
         wait(b'CI_INSPECT_READY')
         report['checks']['entry_ready'] = True
         info = debug.bounded.plain(home / 'instance.json')
@@ -1913,13 +1991,18 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
                 json.dumps(notice, sort_keys=True, separators=(',', ':')),
                 flush=True)
     finally:
+        # A completed compiler leaves the original Dart child waiting for one
+        # lab admission. EOF can close that child normally when admission fails.
+        start_receipt = report.get('build_before_lab', {})
+        prelaunch_close_grace = (start_receipt.get('build_complete') is True
+            and start_receipt.get('application_release_attempted') is False)
         if warning_window is not None and 'send_warning_window' in report:
             try:
                 warning_window.release_if_owned()
                 report['send_warning_window'] = warning_window.receipt()
             except Exception:
                 report['errors'].append('SEND_WARNING_WINDOW_REFUSED')
-        if warning_close_grace and original is not None:
+        if (warning_close_grace or prelaunch_close_grace) and original is not None:
             try:
                 original.stdin.close()
             except OSError:
@@ -1935,7 +2018,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
                     report['cleanup_application_exit'] = job.application_exit()
                 except Exception:
                     report['errors'].append('CLOSE_UNCONFIRMED')
-            if warning_close_grace and original.poll() is None:
+            if (warning_close_grace or prelaunch_close_grace) and original.poll() is None:
                 try:
                     original.wait(timeout=5)
                 except subprocess.TimeoutExpired:
@@ -1962,7 +2045,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, warning_win
             except Exception:
                 report['entry_exit'] = None
                 report['errors'].append('CLOSE_UNCONFIRMED')
-            if not warning_close_grace:
+            if not (warning_close_grace or prelaunch_close_grace):
                 try:
                     original.stdin.close()
                 except OSError:

@@ -340,6 +340,16 @@ class ReaderTests(unittest.TestCase):
         self.assertFalse(value['financial_send_qualified'])
         self.assertEqual(value['visual_matches'], 0)
         self.assertEqual(value['visited_pages'], dict(dark=12, light=12))
+        current, current_lab, current_files = pair()
+        receipt = dict(schema=1, scope='readonly_build_before_lab',
+                       **dict.fromkeys(reader.producer.BUILD_BEFORE_LAB_FLAGS, True))
+        current['build_before_lab'] = receipt
+        bind(current_lab, current)
+        current_files[0] = ('manifest.json', encode(current), stat.S_IFREG)
+        retained = self.inspect(current, current_lab, current_files)
+        self.assertEqual(retained['build_before_lab'], receipt)
+        self.assertIsNot(retained['build_before_lab'], receipt)
+        self.assertFalse(retained['native_inspection_qualified'])
         observed = value['_layout_observation']
         self.assertEqual(observed['scope'], 'retained_readonly_shot_layout_observation')
         self.assertEqual(observed['pages'], list(reader.producer.PAGES))
@@ -386,6 +396,31 @@ class ReaderTests(unittest.TestCase):
         self.assertFalse(value['artifact_reported_success'])
         self.assertEqual(value['original_errors'], ['ENTRY_FAILED'])
         self.assertFalse(value['original_lab_closure_qualified'])
+        for started in (False, True):
+            with self.subTest(lab_started=started):
+                child, lab, _ = pair(positive=False)
+                child.update(phase='lab_revalidation', errors=['PRODUCTION_UNPROVEN'],
+                    captures=[], tours={}, locales={}, stalls={}, sdk_admission=None,
+                    wallet_admission=None, address_selection=None, home_catalog=None,
+                    viewport=None, lab_revalidations=0, input_attempted=False,
+                    checks=dict.fromkeys(reader.producer.CHECKS, False),
+                    build_before_lab=dict(schema=1, scope='readonly_build_before_lab',
+                        build_complete=True, lab_start_attempted=started,
+                        initial_production_observed=False,
+                        application_release_attempted=False))
+                lab.update(runtime_phase='advancing_frontier' if started else None,
+                    observations=None)
+                lab['checks'].update(preflight=started, started=started,
+                    production=False, stopped=started, inputs_unchanged=False)
+                if not started:
+                    lab.update(node_exits=[], native_shutdown_order=[])
+                bind(lab, child)
+                value = self.inspect(child, lab,
+                    [('manifest.json', encode(child), stat.S_IFREG)])
+                self.assertEqual(value['build_before_lab'], child['build_before_lab'])
+                self.assertEqual(value['original_errors'], ['PRODUCTION_UNPROVEN'])
+                self.assertEqual(value['verified_png_count'], 0)
+                self.assertFalse(value['original_lab_closure_qualified'])
 
     def test_sparse_checkout_covers_every_declared_producer_seam_source(self):
         workflow = (reader.Path(__file__).absolute().parents[2] / reader.WORKFLOW_SOURCE).read_text()

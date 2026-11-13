@@ -21,6 +21,17 @@ import 'wallet_recipe.dart';
 
 const String _surfaceSeamsFamily = 'surface-seams';
 
+/// Keep the original compiled child paused until its owner admits the lab.
+Future<void> awaitReadonlyInspectionLab(
+  StreamIterator<String> input, {
+  required Future<void> Function(String value) marker,
+}) async {
+  await marker('CI_INSPECT_BUILD_DONE');
+  if (!await input.moveNext() || input.current != 'LAB_READY') {
+    throw const ReadonlyInspectionRefused(ReadonlyInspectionReason.process);
+  }
+}
+
 const Map<String, ReadonlyDetailsSelection> _detailsSelections =
     <String, ReadonlyDetailsSelection>{
       'details': ReadonlyDetailsSelection.details,
@@ -223,6 +234,8 @@ Future<void> main() async {
       '--mode', 'release', '--no-pub', '--metadata',
       '${cli.repo}/.dart_tool/git_metadata.json',
     ]), isolatedInput: true);
+    stage = 'lab_wait';
+    await awaitReadonlyInspectionLab(input, marker: marker);
     stage = 'start';
     await marker('CI_INSPECT_STAGE:start');
     await cli.start(launched, cli.Args(<String>['--mode', 'release']),

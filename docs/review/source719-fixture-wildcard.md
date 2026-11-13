@@ -13,11 +13,14 @@ changes one test callback's unused parameter name; application and harness
 runtime inputs are unchanged. The existing invalid-profile refusal and
 transport prohibition remain the test's assertions.
 
-Fresh full Linux and readonly Sentinel/aged-fuse jobs may run concurrently
-on separate hosted runners against the same frozen source. Final qualification
-requires both jobs and the independent original-archive reader to pass. The
-earlier full Linux result remains bound to Source718 rather than projected
-onto the new commit. No local SDK or artifact download is needed for this fix.
+Its full Linux workflow 43365837667 passes. The original Windows attempt
+43366040425 passes strict analysis, 1,480 selected Dart cases and 1,214 Python
+cases with eighteen skips. It then fails production revalidation before
+wallet input, with zero PNGs and no aged-fuse witness. Reader 43368622856
+passes 123 cases and verifies 88 producer files. Five original nodes exit
+normally; required application actors need forced cleanup. The producer
+failure and its unknown underlying cause remain preserved. See the
+[build-before-lab scheduling change](source720-build-before-lab.md).
 
 The [aged-fuse scope](source718-readonly-aged-fuse.md), original seed guards,
 publication restrictions, image manifest and acceptance gates are unchanged.

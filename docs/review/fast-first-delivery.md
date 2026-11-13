@@ -9,11 +9,18 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 73/80 original rows, four review and three blocked.
 
 Detailed qualification has resumed after the first code delivery.
-[Source719](source719-fixture-wildcard.md) corrects an ignored test parameter
-name after Source718's strict Windows analysis refuses one info before tests
-or builds, with zero artifacts. Runtime inputs are unchanged. Fresh full
-Linux and readonly Windows jobs use separate runners and the same frozen
-source; both must pass before native/reader qualification.
+[Source720](source720-build-before-lab.md) completes the original readonly
+wallet build before starting the five original lab nodes. A fixed handshake
+keeps application startup behind initial production observation, with fresh
+pre-input revalidation still required. This removes compile/node overlap as
+a possible contention source; it does not establish the earlier failure's
+cause. Fresh same-source Linux, Windows and archive verification are pending.
+
+[Source719](source719-fixture-wildcard.md) passes full Linux, strict Windows
+analysis and selected tests, then fails production revalidation before wallet
+input. Its independent reader verifies 88 files and zero PNGs. Five nodes
+close normally; required application actors need forced cleanup. The new
+aged-fuse witness is not reached and F06 stays open.
 
 [Source718](source718-readonly-aged-fuse.md) adds one fixed readonly aged-fuse
 observation after the Sentinel catalog. It reuses the existing inert fixture,

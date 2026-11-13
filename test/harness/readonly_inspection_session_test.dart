@@ -6,7 +6,7 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../harness/bin/ci_wallet_inspection.dart'
-    show readonlyInspectionCatalogFamily;
+    show awaitReadonlyInspectionLab, readonlyInspectionCatalogFamily;
 import '../../harness/bin/readonly_details_catalog.dart';
 import '../../harness/bin/readonly_home_catalog.dart';
 import '../../harness/bin/readonly_inspection_session.dart';
@@ -47,6 +47,42 @@ class _CatalogStdout extends Fake implements Stdout {
 }
 
 void main() {
+  test('the compiled inspection child waits for one exact lab admission',
+      () async {
+    final StreamController<String> control = StreamController<String>();
+    final StreamIterator<String> input = StreamIterator<String>(control.stream);
+    final List<String> markers = <String>[];
+    bool released = false;
+    final Future<void> waiting = awaitReadonlyInspectionLab(input,
+      marker: (String value) async => markers.add(value),
+    ).then<void>((_) {
+      released = true;
+    });
+    await Future<void>.delayed(Duration.zero);
+    expect(markers, <String>['CI_INSPECT_BUILD_DONE']);
+    expect(released, isFalse);
+    control.add('LAB_READY');
+    await waiting;
+    expect(released, isTrue);
+    await input.cancel();
+    await control.close();
+
+    for (final List<String> lines in <List<String>>[
+      <String>[], <String>['START'], <String>['LAB_READY '],
+      <String>['{"lab":"ready"}'],
+    ]) {
+      final StreamIterator<String> refused = StreamIterator<String>(
+        Stream<String>.fromIterable(lines),
+      );
+      final List<String> emitted = <String>[];
+      await expectLater(awaitReadonlyInspectionLab(refused,
+        marker: (String value) async => emitted.add(value),
+      ), throwsA(isA<ReadonlyInspectionRefused>()));
+      expect(emitted, <String>['CI_INSPECT_BUILD_DONE']);
+      await refused.cancel();
+    }
+  });
+
   test('catalog choice preserves the original Details default', () {
     expect(readonlyInspectionCatalogFamily(<String, String>{}), 'details');
     for (final String family in <String>[

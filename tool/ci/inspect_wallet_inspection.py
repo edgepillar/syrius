@@ -244,6 +244,9 @@ def projection(report, lab, lab_summary, head, tree, run_id, manifest_sha):
         witness = report['aged_fuse_fixture']
         result['aged_fuse_fixture'] = (
             producer.aged_fuse_receipt(witness) if witness is not None else None)
+    if 'build_before_lab' in report:
+        result['build_before_lab'] = producer.build_before_lab_receipt(
+            report['build_before_lab'])
     for field in ('home_seam_observations', 'settings_seam_observations'):
         if field in report:
             observations = report[field]
