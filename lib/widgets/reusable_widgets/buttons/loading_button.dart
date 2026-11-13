@@ -21,6 +21,7 @@ class LoadingButton extends StatefulWidget {
     this.borderWidth = kDefaultBorderOutlineWidth,
     this.circularBorderRadius = 16.0,
     this.textStyle,
+    this.style,
   })  : assert(text != null || child != null),
         super(key: key);
 
@@ -138,6 +139,9 @@ class LoadingButton extends StatefulWidget {
   final double circularBorderRadius;
   final TextStyle? textStyle;
 
+  /// Optional presentation overrides; submission and animation stay owned here.
+  final ButtonStyle? style;
+
   @override
   LoadingButtonState createState() => LoadingButtonState();
 }
@@ -231,6 +235,13 @@ class LoadingButtonState extends State<LoadingButton>
 
   Widget _button(Color? textColor, double? radius) {
     return MyOutlinedButton(
+      style: btnState == ButtonState.busy
+          ? widget.style?.copyWith(
+              padding: const WidgetStatePropertyAll<EdgeInsetsGeometry>(
+                EdgeInsets.zero,
+              ),
+            )
+          : widget.style,
       textColor: textColor,
       // A style given to a button replaces the theme's whole, face included,
       // so a caller that only wanted a colour or a size dropped the label

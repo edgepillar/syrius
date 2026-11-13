@@ -166,6 +166,49 @@ class FrostedSurface extends StatelessWidget {
   }
 }
 
+/// Paints rounded shadows after their glass, clipped outside the surface.
+///
+/// Use as a foreground painter so a backdrop cannot sample its own shadow.
+class OuterShadowPainter extends CustomPainter {
+  /// Keeps the caller's existing radius and shadow declarations.
+  const OuterShadowPainter({
+    required this._borderRadius,
+    required this._shadows,
+  });
+
+  final BorderRadius _borderRadius;
+  final List<BoxShadow> _shadows;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.isEmpty || _shadows.isEmpty) return;
+    final Rect rect = Offset.zero & size;
+    final Path outside = Path()
+      ..fillType = PathFillType.evenOdd
+      ..addRect(canvas.getLocalClipBounds())
+      ..addRRect(_borderRadius.toRRect(rect));
+    canvas.save();
+    try {
+      canvas.clipPath(outside);
+      for (final BoxShadow shadow in _shadows) {
+        canvas.drawRRect(
+          _borderRadius.toRRect(
+            rect.shift(shadow.offset).inflate(shadow.spreadRadius),
+          ),
+          shadow.toPaint(),
+        );
+      }
+    } finally {
+      canvas.restore();
+    }
+  }
+
+  @override
+  bool shouldRepaint(OuterShadowPainter oldDelegate) =>
+      oldDelegate._borderRadius != _borderRadius ||
+      !listEquals(oldDelegate._shadows, _shadows);
+}
+
 /// A dialog route whose barrier is a [FrostedBarrier] that follows the
 /// route's own animation, in and out.
 ///

@@ -47,6 +47,10 @@ jobs:
         # warnings fail this check across the full source tree.
         run: flutter analyze --no-pub --no-fatal-infos
 
+      - name: Verify strict selected Dart analysis
+        timeout-minutes: 3
+        run: python3 -B -m tool.ci.focused_analysis
+
       - name: Verify Ready surfaces, ownership and restoration
         run: >-
           flutter test test/harness/ready_reference_artwork_test.dart
@@ -55,6 +59,12 @@ jobs:
 
       - name: Verify Lock picker symbols and seam refusal
         run: flutter test test/lock/wallet_picker_test.dart --no-pub
+
+      - name: Verify compact actions and Token details
+        run: >-
+          flutter test test/sheen/primary_pill_test.dart
+          test/sheen/sheen_test.dart test/staking/view/staking_page_test.dart
+          test/token_actions_redesign/token_inline_actions_test.dart --no-pub
 
       - name: Run unit and widget tests
         run: flutter test test --exclude-tags chain

@@ -252,6 +252,42 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
       await tester.pump();
       expect(key.currentState!.btnState, ButtonState.idle);
+
+      final GlobalKey<LoadingButtonState> compact =
+          GlobalKey<LoadingButtonState>();
+      await tester.pumpWidget(
+        _app(
+          LoadingButton(
+            key: compact,
+            onPressed: () => taps++,
+            text: 'Collect',
+            minimumSize: const Size(30, 30),
+            style: OutlinedButton.styleFrom(
+              visualDensity: VisualDensity.standard,
+              padding: const EdgeInsets.symmetric(horizontal: 13),
+              backgroundColor: AppTokens.dark.card2,
+              disabledBackgroundColor: AppTokens.dark.card2,
+              side: BorderSide(color: AppTokens.dark.line),
+            ),
+          ),
+        ),
+      );
+      final Size idle = tester.getSize(find.byType(OutlinedButton));
+      expect(idle.height, 30);
+      compact.currentState!.animateForward();
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      expect(tester.getSize(find.byType(OutlinedButton)), const Size(30, 30));
+      await tester.tap(find.byType(OutlinedButton));
+      expect(taps, 1);
+      compact.currentState!.animateReverse();
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pump();
+      expect(tester.getSize(find.byType(OutlinedButton)), idle);
+      await tester.tap(find.byType(OutlinedButton));
+      expect(taps, 2);
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('a disabled one gets no pass', (WidgetTester tester) async {

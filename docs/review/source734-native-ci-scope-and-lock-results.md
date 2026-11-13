@@ -61,7 +61,7 @@ Every actual PNG and its individual reference was viewed. All six remain
 mismatches. The original key/USB/plus paths and selected ink are visible;
 card, well and menu placement has improved. Remaining differences include
 glyph measures, input treatment, light glass, selected-name weight and the
-resting state after seam probes.
+resting state with visible Not yet overlays.
 
 | Actual PNG | SHA-256 | Remaining observation |
 | --- | --- | --- |
@@ -70,12 +70,18 @@ resting state after seam probes.
 | 42-lock-wrong-dark.png | 3054b6e1c44dae37f7d293d1a85929a41d57e458b31b8a86e0e4a9043479afcf | Input fill, eye/Unlock/warning shapes and error-note spacing/copy. |
 | 42-lock-wrong-light.png | 1878cc4f10570a79080199ec07e257df6efd6de4d7a263274a477d15d7f5a31c | Error treatment and grayer glass. |
 | 43-lock-pick-dark.png | eb594accbf46794d0838bd39578b827ec170308c93f43a1db638cc836d01153e | The disabled password border paints about 20 px high within its retained field region; the reference is 42 px. Glyphs and selected-name treatment also differ. |
-| 43-lock-pick-light.png | a167c84e68a9de197335627bc58f898ed5fdb960adfd46884236320c89fceabb | The same field/glyph differences, grayer glass and two visible original Not yet tooltips after seam probes. |
+| 43-lock-pick-light.png | a167c84e68a9de197335627bc58f898ed5fdb960adfd46884236320c89fceabb | The same field/glyph differences, grayer glass and two visible original Not yet overlays. |
 
 Unavailable cold-session addresses and genuine node/update facts are retained.
 The actual reset-at-limit warning is not replaced with an unsupported claim
 of wallet removal. Owner-approved brand colors and native font hinting retain
 their existing allowances. No whole-image match is accepted.
+
+The four-picker-gate field enumerates rendered registered controls. It does
+not record four pointer activations in this catalog run. The cause of the
+two visible tooltip overlays is not established by that count; the earlier
+V03 refusal audit remains separate. The former "after seam probes" wording
+was an unsupported inference and is corrected here.
 
 The owned local review closed successfully. The original archive is retained;
 only its registered reproducible temporary images were removed. The four

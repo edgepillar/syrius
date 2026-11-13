@@ -65,14 +65,25 @@ class _StakeCollectButtonState extends State<StakeCollectButton> {
 
   @override
   Widget build(BuildContext context) {
-    // The card's one primary action, like every other Collect; it used to
-    // be drawn in QSR blue, which made it look like a second kind of button.
+    final AppTokens tokens = AppTokens.of(context);
     return BlocListener<SendTransactionBloc, SendTransactionState>(
       listener: (_, SendTransactionState state) =>
           _onTransactionStateChanged(state),
-      child: LoadingButton.stepper(
+      child: LoadingButton(
         key: _collectButtonKey,
         text: context.l10n.collect,
+        minimumSize: Size.square(tokens.compactButtonHeight),
+        style: OutlinedButton.styleFrom(
+          visualDensity: VisualDensity.standard,
+          padding: tokens.compactButtonPadding,
+          foregroundColor: tokens.foreground,
+          disabledForegroundColor: tokens.faint,
+          backgroundColor: tokens.card2,
+          disabledBackgroundColor: tokens.card2,
+          side: BorderSide(color: tokens.line),
+          shape: const StadiumBorder(),
+          textStyle: tokens.compactText.copyWith(fontWeight: FontWeight.w500),
+        ),
         onPressed: widget.enabled
             ? () => _onCollectPressed(
                 bloc: context.read<SendTransactionBloc>(),

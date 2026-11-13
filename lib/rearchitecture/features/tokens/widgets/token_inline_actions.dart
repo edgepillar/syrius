@@ -503,10 +503,7 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
                               children: <Widget>[
                                 Expanded(child: facts),
                                 SizedBox(width: tokens.tokenDetailFactGap),
-                                if (holderView)
-                                  modes
-                                else
-                                  Flexible(child: modes),
+                                modes,
                               ],
                             );
                           },
@@ -1415,31 +1412,60 @@ class _TokenFacts extends StatelessWidget {
           token.isUtility ? context.l10n.tokensYes : context.l10n.tokensNo,
         ),
     ];
-    return Wrap(
-      spacing: tokens.tokenDetailColumnGap,
-      runSpacing: tokens.tokenDetailLabelGap,
-      children: <Widget>[
-        for (final (String label, String value) in facts)
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Text(label.toUpperCase(), style: tokens.ledgerText),
-              SizedBox(width: tokens.tokenDetailColumnGap),
-              Flexible(
-                child: Text(
-                  value,
-                  style: tokens.compactText.copyWith(
-                    fontFamily:
-                        label == context.l10n.createTokenDecimalsLabel ||
-                            label == context.l10n.tokensDomain
-                        ? tokens.monoFontFamily
-                        : null,
-                  ),
-                ),
+    TextStyle valueStyle(String label) => tokens.compactText.copyWith(
+      fontFamily:
+          label == context.l10n.createTokenDecimalsLabel ||
+              label == context.l10n.tokensDomain
+          ? tokens.monoFontFamily
+          : null,
+    );
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final int pairs =
+            constraints.maxWidth >= tokens.tokenDetailGridMinWidth &&
+                MediaQuery.textScalerOf(context).scale(1) <= 1.3
+            ? 2
+            : 1;
+        final int columns = pairs * 2;
+        return Table(
+          defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+          columnWidths: <int, TableColumnWidth>{
+            for (int column = 0; column < columns; column++)
+              column: column.isEven
+                  ? const IntrinsicColumnWidth()
+                  : const FlexColumnWidth(),
+          },
+          children: <TableRow>[
+            for (int start = 0; start < facts.length; start += pairs)
+              TableRow(
+                children: <Widget>[
+                  for (int column = 0; column < columns; column++)
+                    if (start + column ~/ 2 >= facts.length)
+                      const SizedBox.shrink()
+                    else
+                      Padding(
+                        padding: EdgeInsetsDirectional.only(
+                          end: column < columns - 1
+                              ? tokens.tokenDetailColumnGap
+                              : 0,
+                          bottom: start + pairs < facts.length
+                              ? tokens.tokenDetailLabelGap
+                              : 0,
+                        ),
+                        child: Text(
+                          column.isEven
+                              ? facts[start + column ~/ 2].$1.toUpperCase()
+                              : facts[start + column ~/ 2].$2,
+                          style: column.isEven
+                              ? tokens.ledgerText
+                              : valueStyle(facts[start + column ~/ 2].$1),
+                        ),
+                      ),
+                ],
               ),
-            ],
-          ),
-      ],
+          ],
+        );
+      },
     );
   }
 }

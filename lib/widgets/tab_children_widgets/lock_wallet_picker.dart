@@ -159,10 +159,13 @@ class LockWalletPicker extends StatelessWidget {
               width: tokens.lockGlyphSize,
               height: tokens.fieldHeight,
             ),
-            icon: Icon(
-              showMenu ? Icons.expand_less : Icons.expand_more,
-              size: tokens.lockGlyphSize,
-              color: tokens.faint,
+            icon: RotatedBox(
+              quarterTurns: showMenu ? 2 : 0,
+              child: ShellSymbol(
+                'chev',
+                size: tokens.lockGlyphSize,
+                color: tokens.faint,
+              ),
             ),
           ),
         ),
@@ -176,11 +179,11 @@ class LockWalletPicker extends StatelessWidget {
     List<LockWalletDisplayEntry> rows,
   ) {
     final BorderRadius radius = BorderRadius.circular(tokens.cardRadius);
-    return Container(
+    return CustomPaint(
       key: const ValueKey<String>('lock_wallet_picker_menu'),
-      decoration: BoxDecoration(
+      foregroundPainter: OuterShadowPainter(
         borderRadius: radius,
-        boxShadow: <BoxShadow>[tokens.menuShadow],
+        shadows: <BoxShadow>[tokens.menuShadow],
       ),
       child: FrostedSurface(
         sigma: tokens.menuBlur,

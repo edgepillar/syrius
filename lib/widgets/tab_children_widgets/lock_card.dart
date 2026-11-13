@@ -10,6 +10,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/pri
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/launch_film.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/startup_stage.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/lock_wallet_picker.dart';
 
 /// A lock view with no wallet, filesystem or SDK dependency.
@@ -247,10 +248,10 @@ class _LockCardState extends State<LockCard>
     final BorderRadius radius = BorderRadius.circular(tokens.dialogRadius);
     return KeyedSubtree(
       key: const ValueKey<String>('lock_card_surface'),
-      child: Container(
-        decoration: BoxDecoration(
+      child: CustomPaint(
+        foregroundPainter: OuterShadowPainter(
           borderRadius: radius,
-          boxShadow: tokens.lockCardShadow,
+          shadows: tokens.lockCardShadow,
         ),
         child: FrostedSurface(
           sigma: tokens.panelBlur,
@@ -326,8 +327,8 @@ class _LockCardState extends State<LockCard>
                                         color: tokens.primaryButtonForeground,
                                       ),
                                     )
-                                  : Icon(
-                                      Icons.lock_outline,
+                                  : ShellSymbol(
+                                      'lock',
                                       size: tokens.railIconSize,
                                     ),
                               child: Text(context.l10n.lockUnlock),
@@ -399,16 +400,29 @@ class _LockCardState extends State<LockCard>
           obscureText: _obscure,
           enableSuggestions: false,
           autocorrect: false,
-          style: tokens.dataText,
+          style: _obscure ? tokens.lockPasswordText : tokens.dataText,
           onSubmitted: (_) => _submit(),
           decoration: InputDecoration(
             isDense: true,
             filled: true,
             fillColor: tokens.card2,
+            hoverColor: Colors.transparent,
+            focusColor: Colors.transparent,
             contentPadding: tokens.lockFieldPadding,
-            constraints: BoxConstraints(minHeight: tokens.fieldHeight),
+            constraints: BoxConstraints.tightFor(
+              height: math.max(
+                tokens.fieldHeight,
+                MediaQuery.textScalerOf(context)
+                        .scale(tokens.dataText.fontSize!) *
+                    (tokens.dataText.height ?? 1) +
+                    2,
+              ),
+            ),
             hintText: context.l10n.password,
-            hintStyle: tokens.bodyText.copyWith(color: tokens.faint),
+            hintStyle: tokens.bodyText.copyWith(
+              color: tokens.faint,
+              letterSpacing: 0,
+            ),
             enabledBorder: _passwordBorder(tokens),
             focusedBorder: _passwordBorder(tokens),
             disabledBorder: _passwordBorder(tokens),
@@ -432,13 +446,17 @@ class _LockCardState extends State<LockCard>
                       }
                     }
                   : null,
-              icon: Icon(
-                _obscure
-                    ? Icons.visibility_outlined
-                    : Icons.visibility_off_outlined,
-                size: tokens.lockGlyphSize,
-                color: tokens.faint,
-              ),
+              icon: _obscure
+                  ? ShellSymbol(
+                      'eye',
+                      size: tokens.lockGlyphSize,
+                      color: tokens.faint,
+                    )
+                  : Icon(
+                      Icons.visibility_off_outlined,
+                      size: tokens.lockGlyphSize,
+                      color: tokens.faint,
+                    ),
             ),
           ),
         ),
@@ -486,8 +504,8 @@ class _LockCardState extends State<LockCard>
       key: const ValueKey<String>('lock_attempt_note'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Icon(
-          Icons.warning_amber_outlined,
+        ShellSymbol(
+          'warn',
           size: tokens.lockGlyphSize,
           color: tokens.error,
         ),

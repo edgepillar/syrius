@@ -512,6 +512,11 @@ void main() {
       find.byKey(const Key('staking_chart_button')),
     );
     expect(collect.left - week.right, inInclusiveRange(19, 21));
+    expect(collect.height, 30);
+    expect(
+      collect.width,
+      closeTo(tester.getSize(find.text('Collect')).width + 26, 0.01),
+    );
     expect(collect.right, lessThan(rewards.left));
     expectMockupSymbol(
       tester,

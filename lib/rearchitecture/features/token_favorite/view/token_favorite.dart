@@ -97,7 +97,7 @@ class _View extends StatelessWidget {
               isFavorite ? Icons.star : Icons.star_border,
               key: ValueKey<bool>(isFavorite),
               color: isFavorite
-                  ? AppTokens.of(context).znnInk
+                  ? AppTokens.of(context).pinkInk
                   : AppTokens.of(context).faint,
             ),
           ),

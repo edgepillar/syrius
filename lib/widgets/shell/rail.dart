@@ -48,6 +48,7 @@ const Map<String, String> _symbols = <String, String>{
       '<rect x="7" y="3" width="10" height="8" rx="1"/><path d="M9 11v10h6V11M10 6h1M13 6h1"/>',
   'lock':
       '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+  'warn': '<path d="M12 3 2 20h20zM12 10v4M12 17h.01"/>',
   'link':
       '<path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1M14 '
       '10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/>',

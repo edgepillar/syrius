@@ -49,6 +49,9 @@ class PrimaryPill extends StatelessWidget {
               Size(0, tokens.buttonHeight),
             ),
             textStyle: WidgetStatePropertyAll<TextStyle>(tokens.buttonText),
+            padding: WidgetStatePropertyAll<EdgeInsetsGeometry>(
+              tokens.primaryButtonPadding,
+            ),
           ),
         )
         .copyWith(

@@ -313,12 +313,28 @@ void main() {
         expect(menu.right, field.right);
         expect(menu.height, 206);
         expect(menu.top - field.bottom, tokens.walletPickerFieldMenuGap);
-        expect(find.byIcon(Icons.expand_less), findsOneWidget);
+        expect(tokens.lockGlyphSize, 14);
+        expectMockupSymbol(
+          tester,
+          within: find.byKey(_arrow),
+          symbol: 'chev',
+          size: 14,
+          color: tokens.faint,
+        );
+        expect(
+          tester.widget<RotatedBox>(
+            find.descendant(
+              of: find.byKey(_arrow),
+              matching: find.byType(RotatedBox),
+            ),
+          ).quarterTurns,
+          2,
+        );
         expectMockupSymbol(
           tester,
           within: find.byKey(_field),
           symbol: 'key',
-          size: tokens.lockGlyphSize,
+          size: 14,
           color: tokens.foreground,
         );
         for (int index = 0; index < _entries.length; index++) {
@@ -326,7 +342,7 @@ void main() {
             tester,
             within: find.byKey(_entryKey(index)),
             symbol: _entries[index].isLedger ? 'usb' : 'key',
-            size: tokens.lockGlyphSize,
+            size: 14,
             color: index == 0 ? tokens.foreground : tokens.dim,
           );
         }
@@ -334,7 +350,7 @@ void main() {
           tester,
           within: find.byKey(_add),
           symbol: 'plus',
-          size: tokens.lockGlyphSize,
+          size: 14,
           color: tokens.dim,
         );
         final FrostedSurface frost = tester.widget<FrostedSurface>(
@@ -342,10 +358,19 @@ void main() {
         );
         expect(frost.sigma, tokens.menuBlur);
         expect(frost.borderRadius, BorderRadius.circular(tokens.cardRadius));
-        final Container surface = tester.widget<Container>(find.byKey(_menu));
+        final CustomPaint surface = tester.widget<CustomPaint>(
+          find.byKey(_menu),
+        );
+        expect(surface.painter, isNull);
+        expect(surface.foregroundPainter, isA<OuterShadowPainter>());
         expect(
-          (surface.decoration! as BoxDecoration).boxShadow,
-          <BoxShadow>[tokens.menuShadow],
+          surface.foregroundPainter!.shouldRepaint(
+            OuterShadowPainter(
+              borderRadius: BorderRadius.circular(tokens.cardRadius),
+              shadows: <BoxShadow>[tokens.menuShadow],
+            ),
+          ),
+          isFalse,
         );
         for (int index = 0; index < _entries.length; index++) {
           final Finder row = find.byKey(_entryKey(index));
@@ -626,7 +651,7 @@ void main() {
       tester,
       within: find.byKey(_field),
       symbol: 'key',
-      size: AppTokens.dark.lockGlyphSize,
+      size: 14,
       color: AppTokens.dark.foreground,
     );
     expect(find.byTooltip(_current.address!), findsNothing);
@@ -671,7 +696,7 @@ void main() {
       tester,
       within: find.byKey(_field),
       symbol: 'usb',
-      size: AppTokens.dark.lockGlyphSize,
+      size: 14,
       color: AppTokens.dark.foreground,
     );
     await tester.pumpWidget(const SizedBox.shrink());

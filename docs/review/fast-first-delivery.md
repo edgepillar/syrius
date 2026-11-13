@@ -11,6 +11,15 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
+[Source735](source735-compact-controls-and-glass.md) prepares shared primary
+insets, compact Collect, Token metadata/actions and Lock fields/symbols. The
+qualified Ready shadow painter is shared with Lock and its menu. The same
+255-file strict selection now runs in Linux, with an early compact/Token gate
+before the full directory. Five memory cases and two mocked CLI boundaries
+pass on the exact Python bytes; no local SDK/native execution or fresh image
+match is claimed. Accepted scope remains 76/80 and matches 2/94. Fresh hosted
+qualification remains required.
+
 [Source734](source734-native-ci-scope-and-lock-results.md) records the owner's
 accepted native Windows CI route and Source733's executed results through
 documentation only. Full Linux, Windows Lock and independent archive

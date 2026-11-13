@@ -15,6 +15,7 @@ class MyOutlinedButton extends StatefulWidget {
     this.circularBorderRadius,
     this.textColor,
     this.padding,
+    this.style,
     super.key,
   });
 
@@ -43,6 +44,9 @@ class MyOutlinedButton extends StatefulWidget {
   final Color? textColor;
   final EdgeInsets? padding;
 
+  /// Explicit overrides are merged over the legacy button's defaults.
+  final ButtonStyle? style;
+
   @override
   MyOutlinedButtonState createState() => MyOutlinedButtonState();
 }
@@ -60,41 +64,43 @@ class MyOutlinedButtonState extends State<MyOutlinedButton> {
   Widget build(BuildContext context) {
     return OutlinedButton(
       onPressed: _showLoading ? null : widget.onPressed,
-      style: OutlinedButton.styleFrom(
-        foregroundColor: widget.textColor,
-        padding: widget.padding,
-        minimumSize: widget.minimumSize,
-        textStyle: widget.textStyle,
-        //TODO: standardize circular border radius
-        shape: widget.circularBorderRadius != null
-            ? RoundedRectangleBorder(
-                borderRadius:
-                    BorderRadius.circular(widget.circularBorderRadius!),
-              )
-            : null,
-      ).copyWith(
-        side: WidgetStateProperty.resolveWith<BorderSide?>(
-          (Set<WidgetState> states) {
-            if (states.contains(WidgetState.disabled)) {
-              return BorderSide(
-                color: AppColors.lightSecondaryContainer,
-                width: widget.borderWidth,
-              );
-            }
-            if (widget.outlineColor != null) {
-              return BorderSide(
-                color: widget.outlineColor!,
-                width: widget.borderWidth,
-              );
-            }
-            if (widget.borderWidth != kDefaultBorderOutlineWidth) {
-              return BorderSide(
-                width: widget.borderWidth,
-                color: AppColors.znnColor,
-              );
-            }
-            return null;
-          },
+      style: (widget.style ?? const ButtonStyle()).merge(
+        OutlinedButton.styleFrom(
+          foregroundColor: widget.textColor,
+          padding: widget.padding,
+          minimumSize: widget.minimumSize,
+          textStyle: widget.textStyle,
+          //TODO: standardize circular border radius
+          shape: widget.circularBorderRadius != null
+              ? RoundedRectangleBorder(
+                  borderRadius:
+                      BorderRadius.circular(widget.circularBorderRadius!),
+                )
+              : null,
+        ).copyWith(
+          side: WidgetStateProperty.resolveWith<BorderSide?>(
+            (Set<WidgetState> states) {
+              if (states.contains(WidgetState.disabled)) {
+                return BorderSide(
+                  color: AppColors.lightSecondaryContainer,
+                  width: widget.borderWidth,
+                );
+              }
+              if (widget.outlineColor != null) {
+                return BorderSide(
+                  color: widget.outlineColor!,
+                  width: widget.borderWidth,
+                );
+              }
+              if (widget.borderWidth != kDefaultBorderOutlineWidth) {
+                return BorderSide(
+                  width: widget.borderWidth,
+                  color: AppColors.znnColor,
+                );
+              }
+              return null;
+            },
+          ),
         ),
       ),
       child: _showLoading

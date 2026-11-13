@@ -516,7 +516,12 @@ class AppTokens extends ThemeExtension<AppTokens> {
       dataText.copyWith(fontSize: 12.5, color: dim);
 
   /// Entry glyphs share a common size.
-  double get lockGlyphSize => 16;
+  double get lockGlyphSize => 14;
+
+  /// Masked password tracking follows the reference's 0.2 em spacing.
+  TextStyle get lockPasswordText => dataText.copyWith(
+    letterSpacing: dataText.fontSize! * 0.2,
+  );
 
   /// The entry card keeps its CSS drop shadow in both themes.
   List<BoxShadow> get lockCardShadow => const <BoxShadow>[
@@ -698,6 +703,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
 
   /// Separates labels and values in the token fact grid.
   double get tokenDetailColumnGap => 16;
+
+  /// Two fact pairs fit before the metadata changes to one pair per row.
+  double get tokenDetailGridMinWidth => 520;
 
   /// Keeps each token fact's lines together.
   double get tokenDetailLabelGap => 4;
@@ -1506,6 +1514,14 @@ class AppTokens extends ThemeExtension<AppTokens> {
 
   /// The height of an ordinary primary or secondary pill.
   double get buttonHeight => 38;
+
+  /// The reference primary pill's unbordered horizontal inset.
+  EdgeInsets get primaryButtonPadding =>
+      const EdgeInsets.symmetric(horizontal: 16);
+
+  /// Compact outlined pills include their one-pixel border in this inset.
+  EdgeInsets get compactButtonPadding =>
+      const EdgeInsets.symmetric(horizontal: 13);
 
   /// The opacity of a disabled primary action in the mockup.
   double get disabledOpacity => 0.45;
