@@ -9,6 +9,12 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 74/80 original rows, three review and three blocked.
 
 Detailed qualification has resumed after the first code delivery.
+[Source730](source730-ready-paint-test-scope.md) restores the original painting
+debug flag before the Ready test returns, including exceptional exits. The
+Source729 early gate records 21 passes and one framework-invariant failure;
+full-directory execution and generation are skipped. Its product code and
+pixel assertions are unchanged here. Fresh hosted qualification is pending.
+
 [Source729](source729-ready-outer-shadow.md) excludes Ready's drop shadow from
 its card interior and paints it after the original glass. The existing shadow,
 blur, color and layout tokens are retained. One direct paint regression covers

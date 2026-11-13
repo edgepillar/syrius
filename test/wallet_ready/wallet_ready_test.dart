@@ -110,21 +110,26 @@ void main() {
     _prepare(tester);
     final bool original = rendering.debugDisableShadows;
     rendering.debugDisableShadows = false;
-    addTearDown(() => rendering.debugDisableShadows = original);
-    final WalletReadyBinding binding = WalletReadyBinding(
-      firstAddress: _first, isCurrent: () => true);
-    for (final bool light in <bool>[false, true]) {
-      await tester.pumpWidget(_host(_surface(binding: binding), light: light));
-      await tester.pump(const Duration(milliseconds: 321));
-      final CustomPaint paint = tester.widget<CustomPaint>(
-        find.byKey(const Key('wallet_ready_shadow')));
-      expect(paint.painter, isNull);
-      final AppTokens tokens = light ? AppTokens.light : AppTokens.dark;
-      final Color backdrop = tokens.glass.withValues(alpha: 1);
-      final List<Color> pixels = await _shadowPixels(tester,
-        paint.foregroundPainter!, backdrop);
-      expect(pixels[0].toARGB32(), backdrop.toARGB32());
-      expect(pixels[1].toARGB32(), lessThan(backdrop.toARGB32()));
+    try {
+      final WalletReadyBinding binding = WalletReadyBinding(
+        firstAddress: _first, isCurrent: () => true);
+      for (final bool light in <bool>[false, true]) {
+        await tester.pumpWidget(
+          _host(_surface(binding: binding), light: light),
+        );
+        await tester.pump(const Duration(milliseconds: 321));
+        final CustomPaint paint = tester.widget<CustomPaint>(
+          find.byKey(const Key('wallet_ready_shadow')));
+        expect(paint.painter, isNull);
+        final AppTokens tokens = light ? AppTokens.light : AppTokens.dark;
+        final Color backdrop = tokens.glass.withValues(alpha: 1);
+        final List<Color> pixels = await _shadowPixels(tester,
+          paint.foregroundPainter!, backdrop);
+        expect(pixels[0].toARGB32(), backdrop.toARGB32());
+        expect(pixels[1].toARGB32(), lessThan(backdrop.toARGB32()));
+      }
+    } finally {
+      rendering.debugDisableShadows = original;
     }
   });
 
