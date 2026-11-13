@@ -289,6 +289,7 @@ ROOT_TEST_FILES = (
     'readonly_sdk_binding_test.dart',
     'readonly_viewport_probe_test.dart',
     'readonly_wallet_admission_test.dart',
+    'ready_reference_artwork_test.dart',
     'realtime_statistics_cubit_test.dart',
     'receive_cell_test.dart',
     'receive_drain_test.dart',

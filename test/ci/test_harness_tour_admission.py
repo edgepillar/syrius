@@ -315,16 +315,17 @@ class HarnessAdmissionTests(unittest.TestCase):
         code, report, source, tree = self.run_case()
         self.assertEqual((code, report['schema'], source, tree), (0, 2, 3, 3))
         self.assertEqual(report['groups_expected'], 2)
-        self.assertEqual([row['selected_suites'] for row in report['commands']], [55, 54])
+        self.assertEqual([row['selected_suites'] for row in report['commands']], [55, 55])
         self.assertEqual([row['first_suite_index'] for row in report['commands']], [1, 56])
         self.assertEqual(report['total_command_limit_seconds'], 480)
         for call in self.command_groups:
             self.assertEqual(call.kwargs['timeout'], 240)
             self.assertEqual(call.kwargs['cap'], 4 * 1024**2)
             self.assertEqual(call.args[0].count('--concurrency=1'), 1)
-        self.assertEqual(len(set(self.selected_paths)), 109)
+        self.assertEqual(len(set(self.selected_paths)), 110)
         for path in ('test/page_strip/page_strip_test.dart',
                      'test/harness/capture_frame_test.dart',
+                     'test/harness/ready_reference_artwork_test.dart',
                      'test/harness/theme_control_test.dart',
                      'test/shell/go_to_catalog_test.dart',
                      'test/shell/shortcuts_test.dart',

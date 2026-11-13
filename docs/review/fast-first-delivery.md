@@ -12,8 +12,11 @@ Detailed qualification has resumed after the first code delivery.
 [Source726](source726-ready-artwork-and-observe.md) adds bounded sampling of
 the original Ready map/entry field and fixed copied-observe diagnostic codes.
 Five selected memory controls pass locally. Fresh full Linux, Windows capture,
-independent archive and image qualification remain pending. Earlier source
-results, failures and original 74/80 acceptance are preserved.
+independent archive and image qualification were pending at publication.
+The first Linux run then failed two stale registry checks before SDK setup.
+Source727 corrects the known test basename and the exact 110-file grouping;
+all 38 focused memory controls pass. Fresh full Linux and native qualification
+remain pending. Earlier failures and original 74/80 acceptance are preserved.
 
 [Source724](source724-ready-card-border.md) reserves the Ready card's painted
 border in layout. Full Linux checks, the Ready Windows capture and independent

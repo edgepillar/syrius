@@ -5,8 +5,10 @@ Updated 2026-11-13.
 Source724's individually reviewed Ready captures have aligned card/action
 bounds but a different map animation frame. Its separate Staking/Token run
 retains an unclassified FORMAT_ERROR in the copied child's observe phase.
-Source726 addresses those two boundaries. Fresh hosted qualification is
-pending; earlier failures and zero accepted whole-image matches are preserved.
+Source726 addresses those two boundaries. Its first Linux run fails the two
+registry checks described below; Source727 corrects those exact expectations.
+Fresh hosted qualification is pending. Earlier failures and zero accepted
+whole-image matches are preserved.
 
 ## Original Ready renderers
 
@@ -57,6 +59,22 @@ boundaries. The existing Lottie clock/Future case now exercises both entry
 assets. Two Python cases cover the new diagnostic scope. The selected registry
 is updated to 1,486 Dart cases; hosted controller execution is expected to
 discover 1,220 Python cases. These are registrations, not current hosted passes.
+
+### Source727 exact registry correction
+
+The [original Source726 Linux run](https://github.com/edgepillar/syrius/actions/runs/43407180701)
+executes 1,220 Python cases with seventeen platform skips and two failures.
+The new Ready test basename is missing from the fixed public failure-location
+catalog. The serial-group test still expects 109 suites instead of the actual
+110. SDK setup, analysis, Dart tests and generation are skipped; zero artifacts
+are produced. The original failed run is preserved and is not retried.
+
+Source727 adds only that known basename and updates the exact grouping to
+55/55, including a once-only assertion for the new suite. It retains the
+original 240-second child bounds, 480-second total bound, two serial children,
+4 MiB stream caps and all 1,486 selected Dart registrations. All 38 focused
+memory controls pass locally without SDK, native execution, network or fixture
+creation. A fresh complete Linux run and native qualification remain required.
 
 Full Linux analysis/tests/generation, original Windows Ready capture,
 independent archive verification and individual PNG comparison remain required.
