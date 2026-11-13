@@ -34,14 +34,11 @@ class HarnessThemeControl {
     };
     await savePreference(selected.toString());
     _notifier.changeThemeMode(selected);
-    await settle();
-    final Map<String, Object?> result = snapshot();
-    if (result['brightness'] != mode ||
-        result['savedMode'] != selected.toString() ||
-        result['mode'] != mode) {
-      throw StateError('the requested theme was not observed');
-    }
-    return result;
+    return _observe(<String, Object?>{
+      'mode': mode,
+      'savedMode': selected.toString(),
+      'brightness': mode,
+    }, 'the requested theme was not observed');
   }
 
   Future<Map<String, Object?>> restore(Map<String, dynamic> state) async {
@@ -66,13 +63,27 @@ class HarnessThemeControl {
     // its next initialization. No theme preference is inferred from the OS.
     await savePreference(saved);
     _notifier.changeThemeMode(selected);
-    await settle();
-    final Map<String, Object?> result = snapshot();
-    if (result['mode'] != mode ||
-        result['savedMode'] != saved ||
-        result['brightness'] != brightness) {
-      throw StateError('the original theme was not restored');
+    return _observe(<String, Object?>{
+      'mode': mode,
+      'savedMode': saved,
+      'brightness': brightness,
+    }, 'the original theme was not restored');
+  }
+
+  // Observe a delayed render without repeating the original write or change.
+  Future<Map<String, Object?>> _observe(
+    Map<String, Object?> expected,
+    String refusal,
+  ) async {
+    for (int pass = 0; pass < 5; pass++) {
+      await settle();
+      final Map<String, Object?> result = snapshot();
+      if (expected.entries.every(
+        (MapEntry<String, Object?> entry) => result[entry.key] == entry.value,
+      )) {
+        return result;
+      }
     }
-    return result;
+    throw StateError(refusal);
   }
 }

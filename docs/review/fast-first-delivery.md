@@ -9,19 +9,29 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 73/80 original rows, four review and three blocked.
 
 Detailed qualification has resumed after the first code delivery.
-[Source712](source712-ledger-bands-and-capture-refusals.md) aligns Token filter
-padding and Staking title/table bands, row insets and relative-date typography
-with the reference. It also aligns five recognized details-failure codes with
-the existing Dart protocol. Five selected memory cases pass; the extended
-Ready witness refuses the old allowlist. Fresh hosted and visual validation
-remain pending.
+[Source713](source713-theme-token-and-launch.md) stabilizes harness theme
+observation, aligns the Token open surface, arrow, detail inset and Mint field
+proportions, and waits for original toasts before at-rest captures. The paired
+launch mode alone gains a longer bounded observation window; ordinary timing
+and the 16 ms comparison remain unchanged. Nineteen Python memory cases pass;
+both extended regression witnesses fail with the old catalog code. Fresh
+hosted, native and visual qualification of this revision is pending.
+
+Source712 passes the [full Linux workflow](https://github.com/edgepillar/syrius/actions/runs/43329663673),
+including controller tests, application/patched analysis, the complete non-chain
+test directory and tracked generation. Its Ready producer 43331682716 stops at
+light-theme selection with ENTRY_FAILED and an unknown reply category. Reader
+43334770411 passes 123 actual cases and verifies both failure archives, zero
+verified PNGs and required-actor forced cleanup. Five original nodes exit
+normally; the underlying cause and full lab closure remain unqualified.
 
 Source711 passes full Linux analysis, the complete non-chain suite and tracked
 generation. Its Staking/Token producer and independent chain reader verify
 four PNGs, the original prerequisites and normal required original/copied
 actor and five-node closure. The actual chain-reader suites contain 75 and
 10 cases, totaling 85; the separate readonly reader below has 123 cases.
-The four Source711 images remain unreviewed.
+All four Source711 images have now been viewed against their tracked references.
+They retain mismatches; no whole-image match is accepted.
 
 The parallel Source711 Ready producer stops before any PNG with ENTRY_REFUSED.
 Its readonly reader verifies both failure manifests and required-actor forced

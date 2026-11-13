@@ -132,6 +132,7 @@ class _TokenCardState extends State<TokenCard> {
       keyPrefix: 'token_$_standard',
       open: _open,
       onToggle: _toggle,
+      expandedColor: theme.card2,
       detail: (BuildContext context) => Padding(
         padding: EdgeInsetsDirectional.only(
           start: theme.tokenDetailIndent,
@@ -223,7 +224,7 @@ class _TokenCardState extends State<TokenCard> {
                       child: TokenRowAction(
                         key: const Key('token_detail_button'),
                         tooltip: context.l10n.tokenDetails,
-                        icon: const RowDetailChevron(),
+                        icon: const RowDetailChevron(vertical: true),
                         onPressed:
                             _open || (widget.isCurrent?.call() ?? true)
                             ? () => _toggle(!_open)

@@ -248,11 +248,11 @@ class PairInspectionTests(unittest.TestCase):
     def test_packed_pair_preserves_all_frames_and_rejects_corrupt_payloads(self):
         count = pair.launch.MAX_PAIRED_TIMING_FRAMES
         rows = [[0 if index == 0 else 2**32 - count + index,
-                 index * 14000, 20000000, 20000000, 60000000]
+                 index * 28000, 20000000, 20000000, 60000000]
                 for index in range(count)]
         raw = b''.join(struct.pack('<5I', *row) for row in rows)
         packed = zlib.compress(raw)
-        original = dict(schema=2, scope='harness_frame_window', windowUs=60000000,
+        original = dict(schema=2, scope='harness_frame_window', windowUs=120000000,
                         frameCount=count, packedFrames=base64.b64encode(packed).decode('ascii'))
         self.assertEqual(pair.launch.frame_timing_rows(original, allow_packed=True), rows)
         with self.assertRaises(pair.launch.startup.Failure):
@@ -268,10 +268,21 @@ class PairInspectionTests(unittest.TestCase):
         self.assertFalse(result['no_frame_number_gaps'])
         self.assertEqual(result['frame_window_sha256']['p06'], reader.archive.sha(reader.canonical(original)))
 
+        ordinary = dict(schema=1, scope='harness_frame_window',
+                        windowUs=60000001, frames=[[0, 60000000, 10, 5, 20]])
+        with self.assertRaises(pair.launch.startup.Failure):
+            pair.launch.frame_timing_rows(ordinary, allow_packed=True)
+        for bad_row in ([0, 120000000, 10, 5, 20], [0, 1, 10, 5, 60000001]):
+            corrupt = zlib.compress(struct.pack('<5I', *bad_row))
+            invalid = dict(original, frameCount=1,
+                           packedFrames=base64.b64encode(corrupt).decode('ascii'))
+            with self.assertRaises(pair.launch.startup.Failure):
+                pair.launch.frame_timing_rows(invalid, allow_packed=True)
+
         trailing = base64.b64encode(packed + b'\0').decode('ascii')
         truncated = base64.b64encode(packed[:-1]).decode('ascii')
         oversized = base64.b64encode(zlib.compress(raw + raw)).decode('ascii')
-        for change in (dict(frameCount=count - 1), dict(frameCount=count + 1),
+        for change in (dict(windowUs=120000001), dict(frameCount=count - 1), dict(frameCount=count + 1),
                        dict(frameCount=True), dict(packedFrames='!'), dict(packedFrames=trailing),
                        dict(packedFrames=truncated), dict(packedFrames=oversized)):
             with self.subTest(change=tuple(change)), self.assertRaises(pair.launch.startup.Failure):

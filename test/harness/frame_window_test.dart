@@ -100,7 +100,8 @@ void main() {
   test('a packed launch retains each frame through its larger limit', () async {
     const int count = HarnessFrameWindow.maxPackedFrames;
     const int start = 100000;
-    const int spacing = 12000;
+    const int spacing = 28000;
+    const int duration = 120000000;
     const int first = 42;
     final HarnessFrameWindow window = HarnessFrameWindow(start, packed: true)
       ..observe(<ui.FrameTiming>[
@@ -108,11 +109,11 @@ void main() {
           _frame(first + i + i ~/ 1000, start + i * spacing),
       ]);
     final Future<Map<String, Object?>> result = window.finish(
-      endUs: start + count * spacing,
+      endUs: start + duration,
       requestFrame: () {},
     );
     window.observe(<ui.FrameTiming>[
-      _frame(first + count + count ~/ 1000, start + count * spacing),
+      _frame(first + count + count ~/ 1000, start + duration),
     ]);
     final Map<String, Object?> receipt = await result;
     expect(
@@ -127,7 +128,7 @@ void main() {
     );
     expect(receipt['schema'], 2);
     expect(receipt['scope'], 'harness_frame_window');
-    expect(receipt['windowUs'], count * spacing);
+    expect(receipt['windowUs'], duration);
     expect(receipt['frameCount'], count);
     final ByteData rows = ByteData.sublistView(
       Uint8List.fromList(
@@ -147,6 +148,25 @@ void main() {
   });
 
   test('the sample cap refuses rather than dropping retained frames', () async {
+    for (final bool packed in <bool>[false, true]) {
+      final int limit = packed ? 120000000 : 60000000;
+      final HarnessFrameWindow overWindow =
+          HarnessFrameWindow(100000, packed: packed)
+            ..observe(<ui.FrameTiming>[_frame(1, 100000)]);
+      await expectLater(
+        overWindow.finish(
+          endUs: 100000 + limit + 1,
+          requestFrame: () => fail('unexpected frame'),
+        ),
+        throwsA(
+          isA<HarnessFrameWindowRefused>().having(
+            (HarnessFrameWindowRefused error) => error.reason,
+            'reason',
+            HarnessFrameWindowRefusal.windowBounds,
+          ),
+        ),
+      );
+    }
     for (final bool packed in <bool>[false, true]) {
       final int count = packed
           ? HarnessFrameWindow.maxPackedFrames

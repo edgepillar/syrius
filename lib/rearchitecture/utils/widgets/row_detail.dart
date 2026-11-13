@@ -145,6 +145,7 @@ class RowDetail extends StatefulWidget {
     this.id,
     this.initiallyOpen = false,
     this.hoverTint = true,
+    this.expandedColor,
     this.tintBleed = EdgeInsetsDirectional.zero,
     this.keyPrefix,
     super.key,
@@ -177,6 +178,10 @@ class RowDetail extends StatefulWidget {
   /// Whether the row is tinted under the pointer. Off inside a table that
   /// tints its rows itself, or the two are laid one over the other.
   final bool hoverTint;
+
+  /// A ledger may give the open row and detail their own semantic surface.
+  /// Null retains the ordinary translucent hover tint.
+  final Color? expandedColor;
 
   /// How far the tint is painted past the row's own box. A table that pads
   /// its rows leaves this one short of the table's edges, and the block
@@ -352,6 +357,7 @@ class _RowDetailState extends State<RowDetail> with TickerProviderStateMixin {
           reveal: _reveal,
           hovered: _hovered && widget.hoverTint,
           color: tokens.hover,
+          expandedColor: widget.expandedColor,
           bleed: widget.tintBleed.resolve(Directionality.of(context)),
         ),
         // The ink needs a Material to draw on, and the row does not know
@@ -402,6 +408,7 @@ class _TintPainter extends CustomPainter {
     required this.reveal,
     required this.hovered,
     required this.color,
+    required this.expandedColor,
     required this.bleed,
   }) : super(repaint: reveal);
 
@@ -409,15 +416,24 @@ class _TintPainter extends CustomPainter {
   final Animation<double> reveal;
   final bool hovered;
   final Color color;
+  final Color? expandedColor;
   final EdgeInsets bleed;
 
   @override
   void paint(Canvas canvas, Size size) {
     final double strength = hovered ? 1 : reveal.value;
     if (strength <= 0) return;
+    final Color? surface = expandedColor;
+    final Color fill = surface == null
+        ? color.withValues(alpha: color.a * strength)
+        : Color.lerp(
+            color.withValues(alpha: hovered ? color.a : 0),
+            surface,
+            reveal.value,
+          )!;
     canvas.drawRect(
       bleed.inflateRect(Offset.zero & size),
-      Paint()..color = color.withValues(alpha: color.a * strength),
+      Paint()..color = fill,
     );
   }
 
@@ -425,6 +441,7 @@ class _TintPainter extends CustomPainter {
   bool shouldRepaint(_TintPainter oldDelegate) =>
       hovered != oldDelegate.hovered ||
       color != oldDelegate.color ||
+      expandedColor != oldDelegate.expandedColor ||
       bleed != oldDelegate.bleed ||
       reveal != oldDelegate.reveal;
 }
@@ -478,16 +495,21 @@ class _RowDetailReveal extends StatelessWidget {
 /// on, and turned a quarter to point down as the detail opens.
 ///
 /// Right to left it starts from the other side, as the row does, and both
-/// arrive at the same place. Outside a [RowDetail] it stays closed.
+/// arrive at the same place. A vertical ledger chevron instead turns from
+/// down to up. Outside a [RowDetail] it stays closed.
 class RowDetailChevron extends StatelessWidget {
   /// Creates the chevron.
   const RowDetailChevron({
     this.size = AppTokens.disclosureChevronSize,
+    this.vertical = false,
     super.key,
   });
 
   /// The side of the icon's box.
   final double size;
+
+  /// Keeps a table's closed arrow down and its open arrow up in both directions.
+  final bool vertical;
 
   @override
   Widget build(BuildContext context) {
@@ -496,7 +518,10 @@ class RowDetailChevron extends StatelessWidget {
         kAlwaysDismissedAnimation;
     final bool rtl = Directionality.of(context) == TextDirection.rtl;
     return RotationTransition(
-      turns: Tween<double>(begin: rtl ? 0.25 : -0.25, end: 0).animate(turned),
+      turns: Tween<double>(
+        begin: vertical ? 0 : (rtl ? 0.25 : -0.25),
+        end: vertical ? 0.5 : 0,
+      ).animate(turned),
       child: ShellSymbol(
         'chev',
         size: size,

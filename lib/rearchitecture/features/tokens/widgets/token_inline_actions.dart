@@ -854,11 +854,11 @@ class _TokenInlineActionsState extends State<TokenInlineActions>
             return Row(
               children: <Widget>[
                 if (mode != TokenActionMode.transfer)
-                  Expanded(child: amountField),
+                  Expanded(flex: 5, child: amountField),
                 if (mode == TokenActionMode.mint)
                   SizedBox(width: tokens.tokenActionGap),
                 if (mode != TokenActionMode.burn)
-                  Expanded(flex: 2, child: receiverField),
+                  Expanded(flex: 8, child: receiverField),
                 SizedBox(width: tokens.tokenActionGap),
                 action,
               ],

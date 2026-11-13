@@ -4,3 +4,4 @@ goto staking
 wait --key staking_strip --timeout 30
 wait --key staking_stakes_count --timeout 30
 assert --key staking_stakes_count
+wait --type EventToast --gone --timeout 10

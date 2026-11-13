@@ -53,10 +53,12 @@ class HarnessFrameWindow {
   /// Maximum samples in the lossless paired launch reply.
   static const int maxPackedFrames = 4096;
   static const int _maxWindowUs = 60000000;
+  static const int _maxPackedWindowUs = 120000000;
   static const int _packedRowBytes = 20;
 
   final int _startUs;
   final bool _packed;
+  int get _windowLimitUs => _packed ? _maxPackedWindowUs : _maxWindowUs;
   final List<_Sample> _samples = <_Sample>[];
   final Completer<void> _delivered = Completer<void>();
   int? _endUs;
@@ -91,7 +93,7 @@ class HarnessFrameWindow {
         _refuse(HarnessFrameWindowRefusal.frameLimit);
         return;
       }
-      if (start - _startUs >= _maxWindowUs ||
+      if (start - _startUs >= _windowLimitUs ||
           build < 0 ||
           raster < 0 ||
           total < build + raster ||
@@ -124,7 +126,7 @@ class HarnessFrameWindow {
     if (before != null) throw HarnessFrameWindowRefused(before);
     if (_endUs != null ||
         duration <= 0 ||
-        duration > _maxWindowUs ||
+        duration > _windowLimitUs ||
         (_samples.isNotEmpty && _samples.last.start >= endUs)) {
       throw const HarnessFrameWindowRefused(
         HarnessFrameWindowRefusal.windowBounds,

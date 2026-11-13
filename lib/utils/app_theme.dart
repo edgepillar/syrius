@@ -687,8 +687,8 @@ class AppTokens extends ThemeExtension<AppTokens> {
   EdgeInsetsDirectional get plasmaOtherListPadding =>
       const EdgeInsetsDirectional.symmetric(horizontal: 16, vertical: 12);
 
-  /// Token details align below their identity column.
-  double get tokenDetailIndent => 50;
+  /// The reference's detail offset includes the table cell's leading inset.
+  double get tokenDetailIndent => 66;
 
   /// The expanded token leaves room below its retained action form.
   double get tokenDetailBottomInset => 21;

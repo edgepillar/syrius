@@ -71,7 +71,23 @@ void main() {
     (WidgetTester tester) async {
       final HarnessThemeControl control = await mount(tester);
       for (final String mode in <String>['light', 'dark']) {
-        final Map<String, Object?> state = await control.change(mode);
+        int observations = 0;
+        int writes = 0;
+        final HarnessThemeControl delayed = HarnessThemeControl(
+          context: control.context,
+          readPreference: control.readPreference,
+          savePreference: (Object? value) async {
+            writes++;
+            await control.savePreference(value);
+          },
+          settle: () async {
+            observations++;
+            if (observations == 3) await control.settle();
+          },
+        );
+        final Map<String, Object?> state = await delayed.change(mode);
+        expect(observations, 3);
+        expect(writes, 1);
         expect(state['mode'], mode);
         expect(state['brightness'], mode);
         expect(state['savedMode'], 'ThemeMode.$mode');

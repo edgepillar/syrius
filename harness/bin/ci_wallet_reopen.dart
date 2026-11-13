@@ -735,6 +735,7 @@ const Set<String> _seededLines = <String>{
   'assert --key @issued-token-row',
   'assert --key mint_beneficiary_field --kind field',
   'assert --key mint_amount_field --kind field',
+  'wait --type EventToast --gone --timeout 10',
   'wait --key mint_amount_field --kind field --gone --timeout 10',
 };
 

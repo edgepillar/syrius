@@ -35,6 +35,7 @@ FRAME_REFUSALS = ('notCollecting', 'launchNotBooted', 'lockFieldCount', 'lockFie
     'windowBounds', 'noFrames')
 MAX_TIMING_FRAMES, MAX_TIMING_US = 512, 60000000
 MAX_PAIRED_TIMING_FRAMES = 4096
+MAX_PAIRED_TIMING_US = 120000000
 PAIRED_TIMING_REPLY_CAP = 128 * 1024
 TIMING_FIELDS = ('schema', 'scope', 'windowUs', 'frames')
 PACKED_TIMING_FIELDS = ('schema', 'scope', 'windowUs', 'frameCount', 'packedFrames')
@@ -130,9 +131,11 @@ def _packed_frame_rows(value):
 
 def frame_timing_rows(value, *, allow_packed=False):
     """Validate and read every row in the admitted timing representation."""
+    window_limit = (MAX_PAIRED_TIMING_US if allow_packed and type(value) is dict
+                    and value.get('schema') == 2 else MAX_TIMING_US)
     need(type(value) is dict and type(value.get('schema')) is int
         and value.get('scope') == 'harness_frame_window'
-        and startup.integer(value.get('windowUs'), 1, MAX_TIMING_US))
+        and startup.integer(value.get('windowUs'), 1, window_limit))
     duration = value['windowUs']
     if value['schema'] == 1 and set(value) == set(TIMING_FIELDS):
         rows = value['frames']
@@ -247,7 +250,7 @@ class LaunchProcess(startup.StartupProbe):
         raise startup.Failure('STARTUP_DEADLINE')
 
     def _observe_frame_timing(self, *, paired=False):
-        until = min(self.deadline - 5, self.started + 50)
+        until = min(self.deadline - 5, self.started + (90 if paired else 50))
         if not paired:
             until = min(until, self.clock() + 20)
         window_pending = False
@@ -280,7 +283,7 @@ class LaunchProcess(startup.StartupProbe):
         else:
             raise startup.Failure('WINDOW_INVALID' if window_pending else 'STARTUP_DEADLINE')
         raw = timing_reply('frame_window', *self._exchange(dict(cmd='stalls', frameWindow='end'),
-                           until=min(self.deadline, self.started + 60)))
+                           until=min(self.deadline, self.started + (100 if paired else 60))))
         fields = PACKED_TIMING_FIELDS if paired else TIMING_FIELDS
         need(set(raw) == {'ok', *fields})
         return frame_timing_window({field: raw[field] for field in fields}, allow_packed=paired)
@@ -390,7 +393,8 @@ def run_process(repo, parent, binaries, profile, theme, *, capture, settle,
     if timing:
         paired = lock_diagnostic is not None
         env['SYRIUS_HARNESS_FRAME_TIMING'] = 'paired-launch' if paired else 'launch'
-        limits = replace(LIMITS, response_bytes=PAIRED_TIMING_REPLY_CAP if paired else 65536)
+        limits = replace(LIMITS, total=120 if paired else LIMITS.total,
+                         response_bytes=PAIRED_TIMING_REPLY_CAP if paired else 65536)
     elif interactive:
         env['SYRIUS_HARNESS_FRAME_TIMING'] = 'interactive'
         limits = replace(LIMITS, total=360, response_bytes=65536)

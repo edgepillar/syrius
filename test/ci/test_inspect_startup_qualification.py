@@ -166,16 +166,22 @@ class StartupInspectionTests(unittest.TestCase):
         self.assertEqual(process.sleep.call_args_list, [mock.call(launch.LIMITS.poll)] * 4)
 
         count = launch.MAX_TIMING_FRAMES + 1
-        packed = zlib.compress(b''.join(struct.pack('<5I', i, i, 10, 5, 20) for i in range(count)))
-        receipt = dict(schema=2, scope='harness_frame_window', windowUs=1000000,
+        packed = zlib.compress(b''.join(struct.pack('<5I', i, 60000000 + i, 10, 5, 20)
+                                      for i in range(count)))
+        receipt = dict(schema=2, scope='harness_frame_window', windowUs=75000000,
                        frameCount=count, packedFrames=base64.b64encode(packed).decode('ascii'))
         process._exchange = mock.Mock(side_effect=[
             (200, dict(ok=True, target=lock)),
             (200, dict(ok=True, booted=True, walletUnlocked=False, size=[1280, 780])),
             (200, dict(ok=True, **receipt)),
         ])
+        process.deadline = 125
+        process.clock = lambda: 75
         self.assertEqual(process._observe_frame_timing(paired=True), receipt)
-        self.assertEqual(process._exchange.call_count, 3)
+        self.assertEqual(process._exchange.call_args_list, [
+            mock.call(wait, until=90), mock.call(dict(cmd='state'), until=90),
+            mock.call(dict(cmd='stalls', frameWindow='end'), until=100),
+        ])
 
     def test_launch_timing_keeps_pending_distinct_from_an_actual_command_failure(self):
         launch = inspect.launch
@@ -236,14 +242,14 @@ class StartupInspectionTests(unittest.TestCase):
     def test_paired_lock_readiness_budget_and_passive_failure_readout(self):
         launch = inspect.launch
         process = object.__new__(launch.LaunchProcess)
-        process.deadline, process.started, process.limits = 65, 0, launch.LIMITS
-        process.clock, process.sleep = mock.Mock(side_effect=(1, 2, 50)), mock.Mock()
+        process.deadline, process.started, process.limits = 125, 0, launch.LIMITS
+        process.clock, process.sleep = mock.Mock(side_effect=(1, 2, 90)), mock.Mock()
         process._exchange = mock.Mock(return_value=(400, dict(ok=False, error='not ready after 0 ms')))
         with self.assertRaisesRegex(inspect.startup.Failure, '^STARTUP_DEADLINE$'):
             process._observe_frame_timing(paired=True)
-        self.assertEqual(process._exchange.call_args.kwargs['until'], 50)
+        self.assertEqual(process._exchange.call_args.kwargs['until'], 90)
 
-        process.clock = lambda: 50
+        process.clock = lambda: 90
         process._rpc = mock.Mock(side_effect=[
             dict(ok=True, booted=True, walletPath='synthetic private path',
                  size=[1280, 780], tab='lock', walletUnlocked=False),

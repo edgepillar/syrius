@@ -14,5 +14,6 @@ type --key mint_amount_field 5000
 assert --key @issued-token-row
 assert --key mint_beneficiary_field --kind field
 assert --key mint_amount_field --kind field
+wait --type EventToast --gone --timeout 10
 # after-capture: tap --key @issued-token-row
 # after-capture: wait --key mint_amount_field --kind field --gone --timeout 10
