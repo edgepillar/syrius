@@ -10,9 +10,20 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 
 Detailed qualification has resumed after the first code delivery.
 [Source724](source724-ready-card-border.md) reserves the Ready card's painted
-border in layout after reviewing both original Source717 pairs again. Fresh
-full Linux checks, Windows captures and independent verification are pending.
-No whole-image match is accepted; original progress remains 74/80.
+border in layout. Full Linux checks, the Ready Windows capture and independent
+verification pass. Both new pairs have been individually viewed: card bounds
+and action width align, while the map frame, text rendering and light
+glass/shadow retain differences. Required actors and five nodes close normally;
+separate MSVC telemetry cleanup remains recorded. No whole-image match is
+accepted.
+
+The parallel [Source724 Staking/Token attempt](source724-staking-reopen-observe.md)
+passes selected analysis/tests and the original wallet tour, then fails with
+CHECKPOINT_REFUSED. Its independent reader verifies FORMAT_ERROR in the copied
+child's observe phase. The narrower cause remains NOT_ESTABLISHED, no current
+seeded PNG is produced and the original run is not retried. Source725 records
+these results through documentation only; runtime evidence stays bound to
+Source724. Original progress remains 74/80 and Source722's F06 audit is preserved.
 
 [Source723](source723-f06-state-qualification.md) completes the F06 state audit.
 Source722 full Linux, Windows and independent original-archive verification
