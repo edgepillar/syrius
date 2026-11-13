@@ -278,7 +278,7 @@ class _EntryFieldState extends State<EntryField>
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
     final ValueListenable<double> paintedSeconds = _referenceSeconds ?? _clock;
-    final double pixelRatio = View.of(context).devicePixelRatio;
+    final double pixelRatio = MediaQuery.devicePixelRatioOf(context);
     _paintedSeconds = paintedSeconds;
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {

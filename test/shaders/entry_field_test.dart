@@ -21,6 +21,7 @@ Widget _host({
   bool light = false,
   bool enabled = true,
   bool disableAnimations = false,
+  double pixelRatio = 1,
 }) => MaterialApp(
   theme: light ? AppTheme.lightTheme : AppTheme.darkTheme,
   locale: const Locale('en'),
@@ -32,6 +33,7 @@ Widget _host({
       data: MediaQueryData(
         size: _size,
         disableAnimations: disableAnimations,
+        devicePixelRatio: pixelRatio,
       ),
       child: Scaffold(body: child),
     ),
@@ -375,9 +377,11 @@ void main() {
       tester.view
         ..physicalSize = _size * 2
         ..devicePixelRatio = 2;
-      await tester.pumpWidget(_host());
+      await tester.pumpWidget(_host(pixelRatio: 2));
       await tester.pump();
-      _expectBackground(await _pixels(tester), false);
+      final Uint8List scaled = await _pixels(tester);
+      _expectBackground(scaled, false);
+      _expectEntryWash(scaled, false);
       expect(rasters, hasLength(2));
       expect(rasters.first.debugDisposed, isTrue);
       expect(rasters.last.debugDisposed, isFalse);

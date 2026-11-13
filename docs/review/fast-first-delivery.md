@@ -11,6 +11,14 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
+[Source743](source743-raster-pixel-ratio-dependency.md) observes pixel-ratio
+changes through MediaQuery and updates the test's local media-query fixture
+with the view's ratio. All image reuse, retirement, size and disposal checks
+remain, with added color envelopes. Source742 passes analysis and early
+gates, then retains 5,079 passes, one failed ratio-change case and one skip;
+generation is skipped. Fresh full Linux is required before native/timing
+claims. Scope and accepted pairs remain 76/80 and 2/94.
+
 [Source742](source742-entry-raster-and-lock-warning.md) reuses one bounded
 entry-field image across the original body/caption drift and explains the
 existing selected-wallet removal at the password limit. Existing cases add
