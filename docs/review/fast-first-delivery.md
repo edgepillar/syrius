@@ -9,10 +9,25 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 73/80 original rows, four review and three blocked.
 
 Detailed qualification has resumed after the first code delivery.
+[Source716](source716-details-frame-context.md) retains the existing typed
+frame state in Details failure reports. It uses the same closed Python
+validation as Home and preserves all capture, publication and timing bounds.
+Three selected memory cases pass; fresh hosted qualification is pending.
+
+Source715's paired producer and independent reader verify both launch windows
+and five normal actor exits. Acquisition passes, while the 16 ms duration
+comparison and frame-number gap checks fail. Its Staking/Token lane fails at
+the first lab send with node_not_synced; Ready fails at its dark shot request
+with frameDeadlineExceeded. Their independent readers verify the original
+failure archives, zero PNGs and required-actor forced cleanup. Five original
+nodes exit normally in each lane. All three pass strict selected analysis
+and tests. The source-bound runs and limits are in the Source716 report.
+
 [Source715](source715-disclosure-comment-width.md) wraps the new disclosure
 comment within eighty characters. Executable Dart, test and workflow inputs
 remain unchanged from Source714. Full-suite execution is bound to Source714;
-fresh strict Windows analysis and native checks are pending.
+Source715's strict Windows analysis and selected tests pass. The native
+outcomes above retain their own scope.
 
 [Source714](source714-catalog-final-assertions.md) moves the toast wait before
 each catalog script's final assertion and passes the full Linux workflow.

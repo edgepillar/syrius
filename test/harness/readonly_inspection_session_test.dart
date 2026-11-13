@@ -1614,6 +1614,32 @@ void main() {
         'last_entered_step': 'scriptLine', 'screen': 'set-licences',
         'theme': 'dark', 'line': 9, 'reply': reply.name,
       });
+      final CaptureFrameState frameState = CaptureFrameState.fromJson(
+        <String, Object>{
+          'schema': 2, 'scheduler_phase': 'idle',
+          'lifecycle_state': 'resumed', 'frames_enabled': true,
+          'has_scheduled_frame': true, 'binding_current': true,
+          'begin_frame_callback_registered': true,
+          'draw_frame_callback_registered': true,
+          'persistent_callbacks_observed': 0,
+        },
+      )!;
+      final Map<String, Object> diagnostic = readonlyDetailsFailureDiagnostic(
+        const ScreenCaptureObservation(ScreenCaptureStep.shotRequest,
+          screen: 'wallet-ready', theme: 'dark'),
+        reply: reply, frameState: frameState,
+        selection: ReadonlyDetailsSelection.walletReady,
+      )!;
+      final bool frameReply = const <ScreenCaptureReplyCode>{
+        ScreenCaptureReplyCode.frameBusy,
+        ScreenCaptureReplyCode.frameDeadlineExceeded,
+        ScreenCaptureReplyCode.frameOriginalFailed,
+        ScreenCaptureReplyCode.frameAdmissionFailed,
+      }.contains(reply);
+      expect(diagnostic['schema'], frameReply ? 3 : 2);
+      expect(diagnostic['frame_state'],
+        frameReply ? frameState.toJson() : isNull,
+      );
     }
     for (final String fault in <String>[
       'unbound', 'none', 'first', 'shot', 'return', 'late', 'png', 'close',

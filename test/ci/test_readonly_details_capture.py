@@ -179,6 +179,48 @@ class DetailsCatalogTests(unittest.TestCase):
                 catalog_schema=10), observed)
             self.assertIs(legacy.entry_failure(dict(stage='wallet_ready_catalog',
                 code=None, diagnostic=observed))['diagnostic'], observed)
+        state = dict(schema=1, scheduler_phase='idle', lifecycle_state='resumed',
+            frames_enabled=True, has_scheduled_frame=True, binding_current=True)
+        callback_state = dict(state, schema=2, begin_frame_callback_registered=True,
+            draw_frame_callback_registered=True, persistent_callbacks_observed=0)
+        for frame_state in (state, callback_state):
+            for reply in ('frameBusy', 'frameDeadlineExceeded',
+                          'frameOriginalFailed', 'frameAdmissionFailed'):
+                observed = dict(base, schema=3, last_entered_step='shotRequest',
+                    screen='wallet-ready', theme='dark', reply=reply,
+                    frame_state=frame_state)
+                self.assertIs(details.failure_diagnostic(observed,
+                    catalog_schema=10), observed)
+                self.assertIs(legacy.entry_failure(dict(stage='wallet_ready_catalog',
+                    code=None, diagnostic=observed))['diagnostic'], observed)
+                self.assertIs(legacy.capture_frame_state(frame_state), frame_state)
+        frame_diagnostic = dict(base, schema=3, last_entered_step='shotRequest',
+            screen='wallet-ready', theme='dark', reply='frameDeadlineExceeded',
+            frame_state=callback_state)
+        for broken in (
+            dict(callback_state, schema=True),
+            dict(callback_state, persistent_callbacks_observed=True),
+            dict(callback_state, persistent_callbacks_observed=-1),
+            dict(callback_state, persistent_callbacks_observed=65536),
+            dict(callback_state, persistent_callbacks_observed='Synthetic private frame'),
+            dict(callback_state, begin_frame_callback_registered=1),
+            dict(callback_state, draw_frame_callback_registered='Synthetic callback'),
+            dict(callback_state, private_path='Synthetic private path'),
+            {key: value for key, value in callback_state.items()
+             if key != 'frames_enabled'},
+        ):
+            with self.subTest(frame=broken), self.assertRaises(details.Refused):
+                details.failure_diagnostic(dict(frame_diagnostic,
+                    frame_state=broken), catalog_schema=10)
+            with self.subTest(frame=broken), self.assertRaises(legacy.Refused):
+                legacy.entry_failure(dict(stage='wallet_ready_catalog', code=None,
+                    diagnostic=dict(frame_diagnostic, frame_state=broken)))
+        for reply in details.FAILURE_REPLIES:
+            if reply not in ('frameBusy', 'frameDeadlineExceeded',
+                             'frameOriginalFailed', 'frameAdmissionFailed'):
+                with self.subTest(reply=reply), self.assertRaises(details.Refused):
+                    details.failure_diagnostic(dict(frame_diagnostic, reply=reply),
+                        catalog_schema=10)
         for delta in (
             dict(schema=1, reply='unknown'), dict(schema=2),
             dict(schema=2, reply=True), dict(schema=2, reply=23),

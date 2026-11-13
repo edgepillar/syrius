@@ -410,6 +410,7 @@ Future<void> main() async {
       } else if (detailsSelection != null && stage == detailsSelection.stage) {
         diagnostic = readonlyDetailsFailureDiagnostic(lastCatalogStep,
           reply: screenCaptureReplyOf(error),
+          frameState: screenCaptureFrameStateOf(error),
           selection: detailsSelection,
         );
       } else if (stage == 'navigation_catalog') {

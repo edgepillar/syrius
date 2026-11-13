@@ -162,20 +162,52 @@ FAILURE_REPLIES = (
 )
 
 
+def capture_frame_state(value):
+    """Retain only the original refusal's closed scheduler facts."""
+    need(type(value) is dict and type(value.get('schema')) is int
+         and value['schema'] in (1, 2))
+    fields = {
+        'schema', 'scheduler_phase', 'lifecycle_state', 'frames_enabled',
+        'has_scheduled_frame', 'binding_current'}
+    if value['schema'] == 2:
+        fields |= {'begin_frame_callback_registered',
+                   'draw_frame_callback_registered', 'persistent_callbacks_observed'}
+    need(set(value) == fields)
+    need(type(value['scheduler_phase']) is str and value['scheduler_phase'] in (
+             'idle', 'transientCallbacks', 'midFrameMicrotasks',
+             'persistentCallbacks', 'postFrameCallbacks')
+         and type(value['lifecycle_state']) is str and value['lifecycle_state'] in (
+             'none', 'detached', 'resumed', 'inactive', 'hidden', 'paused')
+         and all(type(value[key]) is bool for key in (
+             'frames_enabled', 'has_scheduled_frame', 'binding_current')))
+    if value['schema'] == 2:
+        callbacks = value['persistent_callbacks_observed']
+        need(type(value['begin_frame_callback_registered']) is bool
+             and type(value['draw_frame_callback_registered']) is bool
+             and (type(callbacks) is int and 0 <= callbacks <= 65535
+                  or type(callbacks) is str and callbacks == 'unknown'))
+    return value
+
+
 def failure_diagnostic(value, *, catalog_schema=1):
     required = {'schema', 'kind', 'last_entered_step'}
     optional = {'screen', 'theme', 'line'}
     need(type(value) is dict and type(value.get('schema')) is int)
-    if value['schema'] == 2:
+    if value['schema'] in (2, 3):
         required = required | {'reply'}
         need(type(value.get('reply')) is str
              and value['reply'] in FAILURE_REPLIES)
     else:
         need(value['schema'] == 1)
+    if value['schema'] == 3:
+        required |= {'frame_state'}
+        need(value['reply'] in ('frameBusy', 'frameDeadlineExceeded',
+             'frameOriginalFailed', 'frameAdmissionFailed'))
+        capture_frame_state(value.get('frame_state'))
     need(required <= set(value) <= required | optional)
     kind = RESTORED_FAILURE_KINDS.get(
         catalog_schema, 'readonly_details_capture_failure')
-    need(type(value['schema']) is int and value['schema'] in (1, 2)
+    need(type(value['schema']) is int and value['schema'] in (1, 2, 3)
          and value['kind'] == kind
          and type(value['last_entered_step']) is str
          and value['last_entered_step'] in FAILURE_STEPS)
