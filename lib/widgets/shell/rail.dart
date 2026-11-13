@@ -43,11 +43,9 @@ const Map<String, String> _symbols = <String, String>{
   'gear':
       '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/>',
   'key':
-      '<circle cx="8" cy="15" r="4"/>'
-      '<path d="M11 12 21 2M15 8l3 3M18 5l3 3"/>',
+      '<circle cx="8" cy="15" r="4"/><path d="M11 12 21 2M15 8l3 3M18 5l3 3"/>',
   'usb':
-      '<rect x="7" y="3" width="10" height="8" rx="1"/>'
-      '<path d="M9 11v10h6V11M10 6h1M13 6h1"/>',
+      '<rect x="7" y="3" width="10" height="8" rx="1"/><path d="M9 11v10h6V11M10 6h1M13 6h1"/>',
   'lock':
       '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
   'link':

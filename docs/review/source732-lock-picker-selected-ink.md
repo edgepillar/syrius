@@ -29,5 +29,17 @@ this correction; neither a source edit nor a passing parent qualifies it.
 Source730 retains its [two accepted Ready pairs](source731-lock-picker-symbols.md#two-accepted-ready-pairs)
 and independently verified Staking/Token archive. Original acceptance stays
 74/80, with 2/94 visual matches and P03/P09/V01/V02/V05/V06 open. F06 remains
-complete at Source722. Current Lock pixels and the four new Staking/Token
-individual comparisons remain pending.
+complete at Source722. Current Lock pixels remain pending. The four Source730
+Staking/Token comparisons were subsequently completed with four mismatches;
+their exact sources and observations appear in the
+[Source733 result record](source733-lock-symbol-literals.md).
+
+## Executed Source732 results
+
+The [full Linux run](https://github.com/edgepillar/syrius/actions/runs/43444391753)
+passes, including both early Ready and Lock gates, the complete non-chain
+directory and tracked generation. The original
+[Windows Lock run](https://github.com/edgepillar/syrius/actions/runs/43447648690)
+then stops at two strict-analysis infos before Dart tests or native build.
+Zero artifacts remain. Its original failure and the literal-only Source733
+correction are recorded in the result record above.

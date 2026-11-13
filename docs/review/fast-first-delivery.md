@@ -9,6 +9,19 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 74/80 original rows, three review and three blocked.
 
 Detailed qualification has resumed after the first code delivery.
+[Source733](source733-lock-symbol-literals.md) joins the two split Lock SVG
+literals without changing their decoded contents, assertions or registrations.
+Source732 full Linux passes, including the early Lock gate and the complete
+directory. Its original Windows run stops at two strict-analysis infos before
+selected Dart tests or native build; zero artifacts remain. Fresh hosted
+execution of the literal correction is required.
+
+All four Source730 Staking/Token actual/reference pairs have now been
+individually reviewed and remain mismatches. Their managed review closed
+successfully. The earlier failed admission and both failed Ready storage
+operations remain failed. Matches stay 2/94 and original acceptance 74/80.
+
+Earlier entries below retain their preparation and source-bound status.
 [Source732](source732-lock-picker-selected-ink.md) explicitly binds the selected
 Lock glyph to its row's foreground and moves the existing Lock-file tests
 before the full directory. Source731's original Linux run passes controllers,
@@ -24,7 +37,7 @@ Source730 full Linux and both Windows producers pass. Windows selected gates
 have 1,505 Dart cases, 1,220 Python cases/eighteen skips and zero findings.
 Ready's reader passes 123 cases; Staking/Token's separate reader passes 85.
 Two Ready pairs are individually accepted. Four independently verified
-Staking/Token images await review. Matches are 2/94; original progress stays
+Staking/Token images were subsequently reviewed with four mismatches. Matches are 2/94; original progress stays
 74/80 and the six remaining gates stay open.
 
 Earlier entries below retain their preparation and source-bound status.

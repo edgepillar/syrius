@@ -60,10 +60,12 @@ temporary images were removed and the verified archive remains retained.
 It is not qualified as successful storage work. Neither artifact transport
 nor the native experiment is repeated for that metadata failure.
 
-The four Source730 Staking/Token PNGs are independently verified. Individual
-visual review remains pending. A local metadata-lease timeout refused intake
-before managed-task allocation or artifact transport. That failed admission
-is preserved. They are not accepted matches.
+The four Source730 Staking/Token PNGs are independently verified. A local
+metadata-lease timeout refused the first intake before managed-task allocation
+or artifact transport; that failed admission is preserved. The later managed
+review closed successfully. All four actual/reference pairs were individually
+viewed and remain mismatches; see the
+[four-pair observations](source733-lock-symbol-literals.md#four-source730-staking-and-token-reviews).
 
 ## Observed Source731 result
 
