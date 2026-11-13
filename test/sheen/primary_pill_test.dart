@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/widgets/send_button.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/sheen.dart';
 
 Widget _app(Widget child, ThemeData theme) => MaterialApp(
   theme: theme,
@@ -31,6 +32,14 @@ Finder get _gradient => find.descendant(
         widget is DecoratedBox &&
         widget.decoration is ShapeDecoration &&
         (widget.decoration as ShapeDecoration).gradient != null,
+  ),
+);
+
+Finder get _sendSheenPaint => find.descendant(
+  of: find.byType(Sheen),
+  matching: find.byWidgetPredicate(
+    (Widget widget) =>
+        widget is CustomPaint && widget.foregroundPainter != null,
   ),
 );
 
@@ -261,6 +270,74 @@ void main() {
         await tester.pump();
         expect(presses, 4);
         expect(tester.getSize(find.byType(PrimaryPill)).height, 46);
+
+        // Completion arrives before the busy child has rebuilt as enabled.
+        key.currentState!.animateForward();
+        await tester.pump();
+        key.currentState!
+          ..animateReverse()
+          ..landed();
+        await tester.pump();
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(_sendSheenPaint, paints..clipRRect()..rect());
+        await tester.pumpAndSettle();
+        expect(_sendSheenPaint, isNot(paints..clipRRect()));
+
+        // An idle accepted result also schedules its own frame.
+        key.currentState!.landed();
+        await tester.pump();
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(_sendSheenPaint, paints..clipRRect()..rect());
+        await tester.pumpAndSettle();
+
+        key.currentState!.animateForward();
+        await tester.pump();
+        key.currentState!
+          ..landed()
+          ..animateReverse();
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(_sendSheenPaint, isNot(paints..clipRRect()));
+
+        // A newer operation revokes a queued completion, even if idle again.
+        key.currentState!.animateForward();
+        await tester.pump();
+        key.currentState!
+          ..animateReverse()
+          ..landed()
+          ..animateForward()
+          ..animateReverse();
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(_sendSheenPaint, isNot(paints..clipRRect()));
+
+        key.currentState!.landed();
+        await tester.pumpWidget(
+          _desktopApp(
+            SendButton(key: key, onPressed: null, text: 'Enter address'),
+            theme,
+          ),
+        );
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(_sendSheenPaint, isNot(paints..clipRRect()));
+        await tester.pumpWidget(
+          _desktopApp(
+            SendButton(
+              key: key,
+              onPressed: () => presses++,
+              text: 'Send',
+            ),
+            theme,
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(_sendSheenPaint, isNot(paints..clipRRect()));
+
+        key.currentState!.landed();
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pump();
         expect(tester.takeException(), isNull);
       },
       timeout: const Timeout(Duration(seconds: 30)),

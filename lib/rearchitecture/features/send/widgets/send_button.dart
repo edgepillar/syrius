@@ -28,10 +28,14 @@ class SendButton extends StatefulWidget {
 class SendButtonState extends State<SendButton> {
   final SheenController _sheen = SheenController();
   bool _busy = false;
+  int _operation = 0;
 
   /// Reports that this form's original operation has started.
   void animateForward() {
-    if (!_busy) setState(() => _busy = true);
+    if (!_busy) {
+      _operation++;
+      setState(() => _busy = true);
+    }
   }
 
   /// Releases this form's display on its original success or failure.
@@ -39,8 +43,20 @@ class SendButtonState extends State<SendButton> {
     if (_busy) setState(() => _busy = false);
   }
 
-  /// Plays one sheen only for an accepted result.
-  void landed() => _sheen.pass();
+  /// Plays accepted-result feedback after the idle child has rebuilt.
+  void landed() {
+    if (!mounted || _busy) return;
+    final int operation = _operation;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted &&
+          !_busy &&
+          operation == _operation &&
+          widget.onPressed != null) {
+        _sheen.pass();
+      }
+    });
+    WidgetsBinding.instance.ensureVisualUpdate();
+  }
 
   @override
   void dispose() {

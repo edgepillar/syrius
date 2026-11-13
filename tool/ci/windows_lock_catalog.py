@@ -40,6 +40,8 @@ MAX_ARCHIVE = len(FILES) * launch.MAX_PNG + launch.MAX_MANIFEST + 65536
 SAMPLE = 'screen-state'
 REFUSED_SAMPLE = 'redesign-qualification-wrong-password'
 PHASES = ('prepare', 'ready', 'bind', 'input', 'normal', 'picker', 'refusal', 'complete')
+SHOT_PHASES = ('request', 'readback', 'layer', 'image', 'rgba', 'png',
+               'complete', 'disposed', 'reply')
 REFUSAL_COMMANDS = frozenset((
     'ping', 'window', 'theme', 'lock-view', 'type', 'shot', 'lock-catalog', 'tap', 'quit', 'wait',
 ))
@@ -83,6 +85,30 @@ def transport_failure(command, phase, code, cause):
         transport=kind)
 
 
+def capture_progress(body):
+    """Project fixed capture stages; never retain log text or timestamps."""
+    need(type(body) is dict and set(body) == {'ok', 'seq', 'logs'}
+         and body['ok'] is True and startup.integer(body['seq'], 0, 2**63 - 1)
+         and type(body['logs']) is list and len(body['logs']) <= 64)
+    phases, previous = [], 0
+    for row in body['logs']:
+        need(type(row) is dict and set(row) == {'seq', 'time', 'level', 'logger', 'message'}
+             and startup.integer(row['seq'], previous + 1, body['seq'])
+             and type(row['time']) is str and len(row['time']) <= 64
+             and row['level'] == 'CAPTURE' and row['logger'] == 'original-shot'
+             and type(row['message']) is str and row['message'] in SHOT_PHASES)
+        previous = row['seq']
+        if row['message'] == 'request':
+            phases = []
+        phases.append(row['message'])
+    if not phases:
+        return dict(status='unobserved', phases=[])
+    order = [SHOT_PHASES.index(phase) for phase in phases]
+    need(phases[0] == 'request' and len(phases) <= len(SHOT_PHASES)
+         and order == sorted(set(order)))
+    return dict(status='observed', phases=phases)
+
+
 def frame_matches(value, screen):
     expected = {
         'lock-screen': (55, 0, 3, 0, len(SAMPLE)),
@@ -103,6 +129,7 @@ class LockProcess(launch.LaunchProcess):
         self.phase = 'ready' if capture else 'prepare'
         self._command_refusal = None
         self._transport_failure = None
+        self._capture_progress = None
         receipt, result = super().run_launch(theme, capture=capture, settle=settle)
         if self._command_refusal is not None:
             notice = dict(self._command_refusal,
@@ -116,7 +143,29 @@ class LockProcess(launch.LaunchProcess):
                 role='capture' if capture else 'prepare')
             print('::notice title=Original lock transport failure::'
                   + json.dumps(notice, separators=(',', ':')))
+            if self._transport_failure['command'] == 'shot':
+                progress = self._capture_progress or dict(status='unavailable', phases=[])
+                notice = dict(progress, scope='original_lock_capture_progress',
+                    theme=theme if theme in launch.THEMES else 'unknown',
+                    role='capture' if capture else 'prepare')
+                print('::notice title=Original lock capture progress::'
+                      + json.dumps(notice, separators=(',', ':')))
         return dict(receipt, phase=self.phase), result
+
+    def _quit(self):
+        failure = getattr(self, '_transport_failure', None)
+        try:
+            if failure is not None and failure['command'] == 'shot':
+                try:
+                    status, body = super()._exchange(
+                        dict(cmd='logs', since=0, limit=64, levels=['CAPTURE']),
+                        until=min(self.deadline, self.clock() + 2))
+                    need(status == 200)
+                    self._capture_progress = capture_progress(body)
+                except Exception:
+                    self._capture_progress = dict(status='unavailable', phases=[])
+        finally:
+            super()._quit()
 
     def _exchange(self, command, *, token=None, allow_exit=False, until=None):
         try:

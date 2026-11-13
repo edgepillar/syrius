@@ -5315,6 +5315,7 @@ class HarnessAgent {
 
   Future<Map<String, Object?>> _shot(Map<String, dynamic> c) async {
     _requireCaptureFrameIdle();
+    _lockShotPhase('request');
     if (c['expect'] != null) {
       try {
         if (_readonlyWalletReady) {
@@ -5339,9 +5340,12 @@ class HarnessAgent {
             throw HarnessError('ready artwork frame unavailable');
           }
         }
-        return await _captureFrames.capture<Map<String, Object?>>(
+        final Map<String, Object?> result =
+            await _captureFrames.capture<Map<String, Object?>>(
           () => _readShot(c),
         );
+        _lockShotPhase('reply');
+        return result;
       } on CaptureFrameRefused {
         throw _captureFrameUnavailable();
       }
@@ -5372,6 +5376,7 @@ class HarnessAgent {
   }
 
   Future<Map<String, Object?>> _readShot(Map<String, dynamic> c) async {
+    _lockShotPhase('readback');
     final RenderView view = _view;
     final ClientMetrics metrics = _clientMetrics();
     final bool guarded = c['expect'] != null;
@@ -5407,7 +5412,9 @@ class HarnessAgent {
     final List<Map<String, Object?>>? layoutBefore = _readonlyNative == null
         ? null
         : observeReadonlyShotLayout(WidgetsBinding.instance.rootElement);
+    _lockShotPhase('layer');
     final ui.Image image = await captureLogicalView(view, layer);
+    _lockShotPhase('image');
     try {
       if (image.colorSpace != ui.ColorSpace.sRGB) {
         throw HarnessError('capture color space is not sRGB');
@@ -5416,11 +5423,13 @@ class HarnessAgent {
         format: ui.ImageByteFormat.rawStraightRgba,
       );
       if (rgba == null) throw HarnessError('the engine returned no image');
+      _lockShotPhase('rgba');
       final Uint8List png = await encodeRetainedRgba(
         rgba,
         width: image.width,
         height: image.height,
       );
+      _lockShotPhase('png');
       if (guarded &&
           (image.width != c['width'] || image.height != c['height'])) {
         throw HarnessError('captured PNG dimensions differ', <String, int>{
@@ -5444,6 +5453,7 @@ class HarnessAgent {
           Map<String, dynamic>.from(c['expect'] as Map<Object?, Object?>),
         );
       }
+      _lockShotPhase('complete');
       return <String, Object?>{
         'width': image.width,
         'height': image.height,
@@ -5460,6 +5470,16 @@ class HarnessAgent {
       };
     } finally {
       image.dispose();
+      _lockShotPhase('disposed');
+    }
+  }
+
+  void _lockShotPhase(String phase) {
+    if (_nativeLock == null) return;
+    try {
+      _log('CAPTURE', 'original-shot', phase, null, null);
+    } on Object {
+      // Optional diagnostics cannot change the original capture result.
     }
   }
 

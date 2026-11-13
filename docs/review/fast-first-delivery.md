@@ -11,6 +11,16 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
+[Source737](source737-motion-feedback-and-capture-diagnostics.md) prepares
+owned Send completion feedback, bounded summaries of retained timing samples
+and fixed Lock readback-stage diagnostics. Six memory cases pass; fresh full
+CI is required. Source736 full Linux and the Staking/Token producer/reader
+pass, with four PNGs awaiting manual review. Its Lock capture times out on
+the first shot; the reader verifies that failure and zero PNGs. Required
+actors close normally. Base chain-backed and startup profiles keep their
+actual 1505/1507 Dart counts. Accepted scope and visual matches remain 76/80
+and 2/94 respectively; the original Docker/WSL route remains unqualified.
+
 [Source736](source736-lock-warning-test-coverage.md) updates two existing
 wrong-password cases to check the original SVG warning and includes the Lock
 card file in the early gate. Source735 passed all early checks and strict

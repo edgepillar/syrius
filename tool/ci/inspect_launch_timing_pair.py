@@ -132,7 +132,32 @@ def storage_passed(value):
         and value['sampled_additional_bytes'] <= pair.RESERVATION)
 
 
-def project(raw, expected_sha, expected_size, *, head, tree, run_id, pins):
+
+def window_diagnostics(window):
+    """Describe every reported sample without changing the acceptance test."""
+    rows = pair.launch.frame_timing_rows(window, allow_packed=True)
+    count = len(rows)
+    quarters, slow_raster = [0] * 4, [0] * 4
+    for row in rows:
+        quarter = row[1] * 4 // window['windowUs']
+        quarters[quarter] += 1
+        slow_raster[quarter] += row[3] > 16000
+    def percentiles(column):
+        ordered = sorted(row[column] for row in rows)
+        return [ordered[(p * count + 99) // 100 - 1]
+                for p in (50, 95, 99, 100)]
+    return dict(window_us=window['windowUs'], samples=count,
+        frame_key_gaps=rows[-1][0] + 1 - count,
+        maximum_frame_key_gap=max(
+            (b[0] - a[0] - 1 for a, b in zip(rows, rows[1:])), default=0),
+        maximum_build_start_gap_us=max(
+            (b[1] - a[1] for a, b in zip(rows, rows[1:])), default=0),
+        build_us=percentiles(2), raster_us=percentiles(3), total_us=percentiles(4),
+        quarter_frames=quarters, quarter_slow_raster=slow_raster)
+
+
+def project(raw, expected_sha, expected_size, *, head, tree, run_id, pins,
+            diagnostics=False):
     archive.need(type(raw) is bytes and type(expected_size) is int
         and 0 < len(raw) == expected_size <= pair.MAX_ARCHIVE and archive.sha(raw) == expected_sha)
     with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
@@ -190,7 +215,7 @@ def project(raw, expected_sha, expected_size, *, head, tree, run_id, pins):
                 and report['storage']['samples'] == 2 * len(COMMAND_STAGES) + 4
                 and report['phase'] == 'complete' and not report['error_codes'])
     archive.need(report['success'] is complete and (complete or report['error_codes']))
-    return dict(schema=1, scope='retained_' + pair.SCOPE, source_head=head, source_tree=tree,
+    result = dict(schema=1, scope='retained_' + pair.SCOPE, source_head=head, source_tree=tree,
         source_run_id=run_id, source_attempt=1, archive_sha256=expected_sha,
         manifest_sha256=archive.sha(manifest), artifact_reported_success=complete,
         original_phase=report['phase'], error_codes=report['error_codes'],
@@ -205,6 +230,11 @@ def project(raw, expected_sha, expected_size, *, head, tree, run_id, pins):
             for name, key in (('p06', 'baseline'), ('current', 'current'))},
         no_added_reported_slow_frames=None if comparison is None else comparison['no_added_reported_slow_frames'],
         no_frame_number_gaps=None if comparison is None else comparison['no_frame_number_gaps'])
+    if diagnostics:
+        result['window_diagnostics'] = dict(scope='reported_frames_only',
+            percentiles=[50, 95, 99, 100],
+            windows={name: window_diagnostics(window) for name, window in windows.items()})
+    return result
 
 
 def source(client, name, head):
@@ -249,7 +279,7 @@ def inspect_run(client, *, head, tree, run_id, job):
     location = client.read(archive.API + '/actions/artifacts/' + str(item['id']) + '/zip', redirect=True)
     raw = client.read(location, authenticated=False, cap=pair.MAX_ARCHIVE)
     result = project(raw, item['digest'][7:], item['size_in_bytes'],
-        head=head, tree=tree, run_id=run_id, pins=pins)
+        head=head, tree=tree, run_id=run_id, pins=pins, diagnostics=True)
     archive.need(result['artifact_reported_success'] is (selected[0]['conclusion'] == 'success'))
     result.update(original_job_id=job['id'], original_job_conclusion=job['conclusion'])
     return result

@@ -124,10 +124,11 @@ class PairInspectionTests(unittest.TestCase):
     def setUp(self):
         self.pins = dict.fromkeys(reader.PIN_FIELDS, '1' * 64)
 
-    def project(self, value, **options):
+    def project(self, value, *, diagnostics=False, **options):
         raw = package(value, **options)
         return reader.project(raw, reader.archive.sha(raw), len(raw),
-                              head=HEAD, tree=TREE, run_id=RUN, pins=self.pins)
+                              head=HEAD, tree=TREE, run_id=RUN, pins=self.pins,
+                              diagnostics=diagnostics)
 
     def test_pair_checks_both_windows_and_all_original_closed_actors(self):
         result = self.project(report(self.pins))
@@ -138,6 +139,24 @@ class PairInspectionTests(unittest.TestCase):
         self.assertEqual(result['frame_counts'], {'p06': 2, 'current': 2})
         self.assertEqual(result['slow_frame_counts'], {'p06': 1, 'current': 1})
         self.assertEqual(result['comparison'], report(self.pins)['comparison'])
+
+        observed = dict(schema=1, scope='harness_frame_window', windowUs=4000000,
+            frames=[[0, 0, 1, 16000, 16001], [1, 1000000, 2, 16001, 16003],
+                    [4, 2000000, 3, 1000, 1003], [6, 3000000, 4, 32000, 32004]])
+        derived = reader.window_diagnostics(observed)
+        self.assertEqual(derived['quarter_frames'], [1, 1, 1, 1])
+        self.assertEqual(derived['quarter_slow_raster'], [0, 1, 0, 1])
+        self.assertEqual(derived['build_us'], [2, 4, 4, 4])
+        self.assertEqual(derived['raster_us'], [16000, 32000, 32000, 32000])
+        self.assertEqual(derived['frame_key_gaps'], 3)
+        self.assertEqual(derived['maximum_frame_key_gap'], 2)
+        self.assertEqual(derived['maximum_build_start_gap_us'], 1000000)
+        single = reader.window_diagnostics(frame((0, 0, 0, 0, 0)))
+        self.assertEqual(single['quarter_frames'], [1, 0, 0, 0])
+        self.assertEqual(single['build_us'], [0, 0, 0, 0])
+        for field in ('frame_key_gaps', 'maximum_frame_key_gap',
+                      'maximum_build_start_gap_us'):
+            self.assertEqual(single[field], 0)
 
     def test_p06_warmup_and_measurement_use_the_selected_baseline_binary(self):
         _, sample = report(self.pins)['samples']
@@ -224,11 +243,21 @@ class PairInspectionTests(unittest.TestCase):
                                                     (2, 30000, 600, 400, 2000))
         value['comparison'] = pair.compare_windows(value['samples'][1]['frame_window'],
                                                    value['samples'][0]['frame_window'])
-        result = self.project(value)
+        result = self.project(value, diagnostics=True)
         self.assertTrue(result['artifact_reported_success'])
         self.assertFalse(result['no_added_reported_slow_frames'])
         self.assertFalse(result['no_frame_number_gaps'])
         self.assertEqual(result['comparison'], value['comparison'])
+        derived = result['window_diagnostics']
+        self.assertEqual(derived['scope'], 'reported_frames_only')
+        self.assertEqual(derived['percentiles'], [50, 95, 99, 100])
+        current = derived['windows']['current']
+        self.assertEqual(current['frame_key_gaps'], 1)
+        self.assertEqual(current['maximum_frame_key_gap'], 1)
+        self.assertEqual(current['maximum_build_start_gap_us'], 29998)
+        self.assertEqual(current['quarter_frames'], [2, 0, 0, 0])
+        self.assertEqual(current['quarter_slow_raster'], [1, 0, 0, 0])
+        self.assertEqual(current['build_us'], [600, 17000, 17000, 17000])
 
     def test_pair_retains_the_full_frame_limit_within_one_manifest(self):
         value = report(self.pins)
@@ -240,9 +269,12 @@ class PairInspectionTests(unittest.TestCase):
             sample['frame_window'] = full
         value['comparison'] = pair.compare_windows(full, full)
         self.assertLessEqual(len(reader.canonical(value)) + 1, pair.MAX_MANIFEST)
-        result = self.project(value)
+        result = self.project(value, diagnostics=True)
         self.assertEqual(result['frame_counts'], {'p06': 512, 'current': 512})
         self.assertEqual(result['slow_frame_counts'], {'p06': 512, 'current': 512})
+        self.assertEqual(result['window_diagnostics']['windows']['p06']['quarter_frames'],
+                         [0, 0, 0, 512])
+        result.update(original_job_id=2**63 - 1, original_job_conclusion='success')
         self.assertLessEqual(len(json.dumps(result, sort_keys=True).encode('ascii')), 3800)
 
     def test_packed_pair_preserves_all_frames_and_rejects_corrupt_payloads(self):
@@ -262,11 +294,17 @@ class PairInspectionTests(unittest.TestCase):
             sample['frame_window'] = original
         value['comparison'] = pair.compare_windows(original, original)
         self.assertLessEqual(len(reader.canonical(value)) + 1, pair.MAX_MANIFEST)
-        result = self.project(value)
+        result = self.project(value, diagnostics=True)
         self.assertEqual(result['frame_counts'], {'p06': count, 'current': count})
         self.assertEqual(result['slow_frame_counts'], {'p06': count, 'current': count})
         self.assertFalse(result['no_frame_number_gaps'])
         self.assertEqual(result['frame_window_sha256']['p06'], reader.archive.sha(reader.canonical(original)))
+        self.assertEqual(result['window_diagnostics']['windows']['p06']['quarter_frames'],
+                         [1072, 1071, 1072, 881])
+        self.assertEqual(result['window_diagnostics']['windows']['current']['raster_us'],
+                         [20000000] * 4)
+        result.update(original_job_id=2**63 - 1, original_job_conclusion='success')
+        self.assertLessEqual(len(json.dumps(result, sort_keys=True).encode('ascii')), 3800)
 
         ordinary = dict(schema=1, scope='harness_frame_window',
                         windowUs=60000001, frames=[[0, 60000000, 10, 5, 20]])
@@ -369,5 +407,7 @@ class PairInspectionTests(unittest.TestCase):
                     first = json.loads(output.getvalue().splitlines()[0])
                     self.assertEqual(first['scope'], 'retained_' + pair.SCOPE)
                     self.assertEqual(first['original_job_id'], 4)
+                    self.assertEqual(first['window_diagnostics']['scope'], 'reported_frames_only')
+                    self.assertEqual(first['window_diagnostics']['windows']['current']['samples'], 2)
                 else:
                     self.assertNotIn('memory-location', offered.calls)

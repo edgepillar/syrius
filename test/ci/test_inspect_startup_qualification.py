@@ -899,6 +899,42 @@ class StartupInspectionTests(unittest.TestCase):
                 error_code='INTERNAL_ERROR', transport='withheld'))
             self.assertNotIn('private', json.dumps(projected))
 
+        phases = ('request', 'readback', 'layer', 'image')
+        body = dict(ok=True, seq=4, logs=[dict(seq=index, time='synthetic-time',
+            level='CAPTURE', logger='original-shot', message=phase)
+            for index, phase in enumerate(phases, 1)])
+        self.assertEqual(catalog.capture_progress(body),
+                         dict(status='observed', phases=list(phases)))
+        self.assertEqual(catalog.capture_progress(dict(ok=True, seq=0, logs=[])),
+                         dict(status='unobserved', phases=[]))
+        for invalid in (dict(body, logs=body['logs'] * 17),
+                        dict(body, seq=True),
+                        dict(body, logs=[dict(body['logs'][0], message='synthetic private data')]),
+                        dict(body, logs=[body['logs'][0], body['logs'][2], body['logs'][1]])):
+            with self.subTest(progress='invalid'), self.assertRaises(inspect.startup.Failure):
+                catalog.capture_progress(invalid)
+        probe.deadline, probe.clock = 12, lambda: 10
+        for response in ((200, body), TimeoutError('synthetic private timeout')):
+            with self.subTest(progress=type(response).__name__), \
+                 mock.patch.object(inspect.startup.StartupProbe, '_exchange',
+                    **({'side_effect': response} if isinstance(response, Exception)
+                       else {'return_value': response})) as exchange, \
+                 mock.patch.object(inspect.startup.StartupProbe, '_quit') as quit_original:
+                probe._quit()
+                exchange.assert_called_once_with(
+                    dict(cmd='logs', since=0, limit=64, levels=['CAPTURE']), until=12)
+                quit_original.assert_called_once_with()
+                self.assertEqual(probe._transport_failure, first)
+                self.assertNotIn('private', json.dumps(probe._capture_progress))
+                self.assertEqual(probe._capture_progress['status'],
+                                 'unavailable' if isinstance(response, Exception) else 'observed')
+        probe._transport_failure = None
+        with mock.patch.object(inspect.startup.StartupProbe, '_exchange') as exchange, \
+             mock.patch.object(inspect.startup.StartupProbe, '_quit') as quit_original:
+            probe._quit()
+            exchange.assert_not_called()
+            quit_original.assert_called_once_with()
+
     def test_startup_pair_keeps_the_original_twelve_request_transport_bound(self):
         class Response(io.BytesIO):
             status = 200
