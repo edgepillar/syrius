@@ -9,13 +9,19 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 73/80 original rows, four review and three blocked.
 
 Detailed qualification has resumed after the first code delivery.
+[Source714](source714-catalog-final-assertions.md) moves the toast wait before
+each catalog script's final assertion. Source713 passes application/patched
+analysis but its full Linux suite fails two existing ScreenCapture guard cases;
+generation is not reached and no native experiment is dispatched. Fresh
+qualification of the corrected revision is pending.
+
 [Source713](source713-theme-token-and-launch.md) stabilizes harness theme
 observation, aligns the Token open surface, arrow, detail inset and Mint field
 proportions, and waits for original toasts before at-rest captures. The paired
 launch mode alone gains a longer bounded observation window; ordinary timing
 and the 16 ms comparison remain unchanged. Nineteen Python memory cases pass;
-both extended regression witnesses fail with the old catalog code. Fresh
-hosted, native and visual qualification of this revision is pending.
+both extended regression witnesses fail with the old catalog code. The original
+two script-guard failures remain recorded; native and visual checks are pending.
 
 Source712 passes the [full Linux workflow](https://github.com/edgepillar/syrius/actions/runs/43329663673),
 including controller tests, application/patched analysis, the complete non-chain
