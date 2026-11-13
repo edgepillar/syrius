@@ -46,8 +46,18 @@ Existing Dart cases cover unbound or extra payloads, repeated and reentrant
 calls, original errors, delayed owner loss, refused or expanded replies and
 cleanup that never clears. Selected Python memory controls validate legacy
 absence, positive source-bound projection and refusal of missing or malformed
-current witnesses. Full hosted Dart, strict analysis and native/reader
-qualification remain pending for this change.
+current witnesses. The [Source718 full Linux workflow](https://github.com/edgepillar/syrius/actions/runs/43363124347)
+passes controllers, application/patched analysis, the full non-chain test
+directory and tracked generation.
+
+The [original Windows attempt](https://github.com/edgepillar/syrius/actions/runs/43364682001)
+stops in strict analysis on one UNNECESSARY_UNDERSCORES info in the new invalid
+profile test callback. Selected Dart tests, the wallet and lab are not run;
+there are no artifacts to inspect. That attempt stays failed. Source719 uses
+two ignored wildcard parameters in that callback. Its fresh full Linux and
+Windows controls run separately, with qualification requiring both to pass.
+Native and independent reader qualification of the aged-fuse witness remain
+pending.
 
 This fixture is a distinct F06 sub-check. It cannot close the complete state
 audit, current visual acceptance, motion comparisons or final acceptance.

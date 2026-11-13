@@ -350,7 +350,7 @@ void main() {
     await expectLater(entry.observeAgedFuseFixture(
       profile: 'default',
       requireCurrent: () async => fail('Invalid profile reached its owner'),
-      request: (_, __) async => fail('Invalid profile reached transport'),
+      request: (_, _) async => fail('Invalid profile reached transport'),
     ), throwsFormatException);
     for (final String mode in <String>[
       'normal', 'held', 'private', 'replaced',

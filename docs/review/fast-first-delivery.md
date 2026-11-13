@@ -9,11 +9,19 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 73/80 original rows, four review and three blocked.
 
 Detailed qualification has resumed after the first code delivery.
+[Source719](source719-fixture-wildcard.md) corrects an ignored test parameter
+name after Source718's strict Windows analysis refuses one info before tests
+or builds, with zero artifacts. Runtime inputs are unchanged. Fresh full
+Linux and readonly Windows jobs use separate runners and the same frozen
+source; both must pass before native/reader qualification.
+
 [Source718](source718-readonly-aged-fuse.md) adds one fixed readonly aged-fuse
 observation after the Sentinel catalog. It reuses the existing inert fixture,
 original guards and bounded UI observer. New success requires the separate
-closed witness; legacy archives retain their earlier scope. Full hosted and
-native qualification remain pending. This alone cannot close F06.
+closed witness; legacy archives retain their earlier scope. Its full Linux
+workflow passes. The original Windows attempt stops at the test parameter
+info described above; aged-fuse native qualification remains pending. This
+alone cannot close F06.
 
 [Source717](source717-native-frame-admission.md) waits up to one second for
 the same original native capture frame. Admission still requires its positive
