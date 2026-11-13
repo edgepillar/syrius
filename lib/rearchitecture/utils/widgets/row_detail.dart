@@ -508,7 +508,8 @@ class RowDetailChevron extends StatelessWidget {
   /// The side of the icon's box.
   final double size;
 
-  /// Keeps a table's closed arrow down and its open arrow up in both directions.
+  /// Keeps a table's closed arrow down and its open arrow up in both
+  /// directions.
   final bool vertical;
 
   @override

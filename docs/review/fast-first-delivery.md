@@ -9,11 +9,16 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 73/80 original rows, four review and three blocked.
 
 Detailed qualification has resumed after the first code delivery.
+[Source715](source715-disclosure-comment-width.md) wraps the new disclosure
+comment within eighty characters. Executable Dart, test and workflow inputs
+remain unchanged from Source714. Full-suite execution is bound to Source714;
+fresh strict Windows analysis and native checks are pending.
+
 [Source714](source714-catalog-final-assertions.md) moves the toast wait before
-each catalog script's final assertion. Source713 passes application/patched
-analysis but its full Linux suite fails two existing ScreenCapture guard cases;
-generation is not reached and no native experiment is dispatched. Fresh
-qualification of the corrected revision is pending.
+each catalog script's final assertion and passes the full Linux workflow.
+Its three Windows attempts stop before selected Dart execution or wallet
+builds on one line-width info. All retain zero artifacts. Source713's two
+original script-guard failures remain recorded.
 
 [Source713](source713-theme-token-and-launch.md) stabilizes harness theme
 observation, aligns the Token open surface, arrow, detail inset and Mint field
