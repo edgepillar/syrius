@@ -1056,6 +1056,20 @@ class InspectionTests(unittest.TestCase):
         value = inspect.project_wallet_tour(report, lab, 'a'*40, 123, 'b'*40, 'c'*64)
         self.assertIsNone(value['lab_send'])
         self.assertEqual(value['address_selection'], report['address_selection'])
+        from tool.ci import windows_wallet_tour as wallet
+        receipt = dict(schema=1, scope='wallet_build_before_lab',
+            **dict.fromkeys(wallet.BUILD_BEFORE_LAB_FLAGS, True))
+        report['build_before_lab'] = receipt
+        value = inspect.project_wallet_tour(report, lab, 'a'*40, 123, 'b'*40, 'c'*64)
+        self.assertEqual(value['build_before_lab'], receipt)
+        self.assertIsNot(value['build_before_lab'], receipt)
+        for change in (dict(build_complete=False), dict(schema=True),
+                       dict(scope='readonly_build_before_lab'),
+                       dict(extra='Synthetic private data')):
+            report['build_before_lab'] = receipt | change
+            with self.subTest(change=change), self.assertRaises(inspect.Refused):
+                inspect.project_wallet_tour(report, lab, 'a'*40, 123, 'b'*40, 'c'*64)
+        report['build_before_lab'] = receipt
         report['address_selection']['members_raw'] = ['private']
         with self.assertRaises(inspect.Refused):
             inspect.project_wallet_tour(report, lab, 'a'*40, 123, 'b'*40, 'c'*64)

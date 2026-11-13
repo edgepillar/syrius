@@ -870,6 +870,17 @@ class CompletionTests(unittest.TestCase):
 
     def test_all_original_exits_and_complete_output_are_required(self):
         self.assertTrue(tour.completed(self.report()))
+        report = self.report()
+        start = dict(schema=1, scope='wallet_build_before_lab',
+                     **dict.fromkeys(tour.BUILD_BEFORE_LAB_FLAGS, True))
+        report['build_before_lab'] = start
+        self.assertTrue(tour.completed(report))
+        for change in (*({key: False} for key in tour.BUILD_BEFORE_LAB_FLAGS),
+                       dict(schema=True), dict(scope='readonly_build_before_lab'),
+                       dict(extra='Synthetic private field')):
+            with self.subTest(start=change):
+                report['build_before_lab'] = start | change
+                self.assertFalse(tour.completed(report))
         for key in ('application_exit', 'entry_exit', 'owned_job_active_at_close'):
             for value in (None, False, 1):
                 report = self.report();report[key] = value

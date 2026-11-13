@@ -180,7 +180,7 @@ def tour_failure_diagnostic(value):
 def entry_failure(value):
     """Keep fixed onboarding labels; reject raw reply fields before recording."""
     need(type(value) is dict and set(value) in ({'stage', 'code'}, {'stage', 'code', 'diagnostic'})
-         and value['stage'] in ('unused_destinations', 'build', 'start', 'input', 'onboarding',
+         and value['stage'] in ('unused_destinations', 'build', 'lab_wait', 'start', 'input', 'onboarding',
              'signing_policy', 'onboarding_logs', 'window', 'address_selection',
              'lab_send', 'tour', 'finish')
          and (value['code'] is None or type(value['code']) is str
@@ -296,6 +296,10 @@ def completed(report):
             address_selection_receipt(report['address_selection'])
         if 'lab_send' in report:
             lab_send_receipt(report['lab_send'])
+        if 'build_before_lab' in report:
+            start = build_before_lab_receipt(report['build_before_lab'])
+            if not all(start[key] for key in BUILD_BEFORE_LAB_FLAGS):
+                return False
         checks = report['checks']
         expected = CHECKS if version == 1 else CURRENT_CHECKS
         if (type(checks) is not dict or set(checks) != set(expected)
@@ -570,7 +574,63 @@ class _ClosedWallet:
         return receipt['by_role']['wallet_profile']
 
 
-def run(repo, parent, runtime, lab_root, observation, revalidate, *, retain_closed=None):
+BUILD_BEFORE_LAB_FLAGS = ('build_complete', 'lab_start_attempted',
+    'initial_production_observed', 'application_release_attempted')
+
+
+def build_before_lab_receipt(value, *, scope='wallet_build_before_lab', require=need):
+    require(scope in ('wallet_build_before_lab', 'readonly_build_before_lab')
+         and type(value) is dict
+         and set(value) == {'schema', 'scope', *BUILD_BEFORE_LAB_FLAGS}
+         and type(value['schema']) is int and value['schema'] == 1
+         and value['scope'] == scope
+         and all(type(value[key]) is bool for key in BUILD_BEFORE_LAB_FLAGS),
+         'OUTPUT_REFUSED')
+    flags = [value[key] for key in BUILD_BEFORE_LAB_FLAGS]
+    require(not any(later and not earlier for earlier, later in zip(flags, flags[1:])),
+            'OUTPUT_REFUSED')
+    return dict(value)
+
+
+class BuildBeforeLabStart:
+    """One original build, one lab start, and one application release."""
+
+    def __init__(self, start_lab, require_current, healthy, *,
+                 scope='wallet_build_before_lab', require=need):
+        require(scope in ('wallet_build_before_lab', 'readonly_build_before_lab'),
+                'OUTPUT_REFUSED')
+        self._start_lab, self._current, self._healthy = start_lab, require_current, healthy
+        self._require = require
+        self._release_reserved = False
+        self.observation = None
+        self.receipt = dict(schema=1, scope=scope,
+                            **dict.fromkeys(BUILD_BEFORE_LAB_FLAGS, False))
+
+    def start(self):
+        self._require(not self.receipt['build_complete'], 'ENTRY_REFUSED')
+        self.receipt['build_complete'] = True
+        self._current()
+        self.receipt['lab_start_attempted'] = True
+        observed = self._start_lab()
+        self._healthy()
+        self._current()
+        self._require(type(observed) is dict and observed.get('chain') == 321
+             and observed.get('cross_transport_hash_equal') is True, 'LAB_REFUSED')
+        self.observation = observed
+        self.receipt['initial_production_observed'] = True
+
+    def release(self, write):
+        self._require(self.receipt['initial_production_observed']
+             and not self._release_reserved, 'ENTRY_REFUSED')
+        self._release_reserved = True
+        self._healthy()
+        self._current()
+        self.receipt['application_release_attempted'] = True
+        write(b'LAB_READY\n')
+
+
+def run(repo, parent, runtime, lab_root, observation, revalidate, *,
+        start_lab=None, retain_closed=None):
     report = dict(schema=2, scope='owned_chain321_wallet_tour', success=False,
         wallet_qualified=False, seed_admitted=False, visual_matches=0,
         checks=dict.fromkeys(CURRENT_CHECKS, False), errors=[], captures=[], tour=None,
@@ -592,6 +652,7 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, retain_clos
              and parent.get('SYRIUS_HOSTED_RUNNER') == 'github-hosted'
              and parent.get('SYRIUS_LAB_NODE_SOURCE') == 'lab-fix'
              and parent.get('SYRIUS_NATIVE_STACK_DIAGNOSTIC') == 'true', 'ENVIRONMENT_REFUSED')
+        need(observation is None and callable(start_lab), 'ENVIRONMENT_REFUSED')
         report['checks']['environment'] = True
         debug.bounded.verify_source(repo, source, parent)
         tree = debug.entry.source_tree(repo, parent)
@@ -629,6 +690,17 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, retain_clos
         lines = debug.Lines(original.stdout)
         deadline, next_sample = time.monotonic() + 900, 0.0
         used = set()
+        stages = []
+
+        def require_current():
+            need(original.poll() is None, 'ENTRY_FAILED')
+            need(time.monotonic() < deadline, 'TOTAL_DEADLINE')
+            need(directory_identity(debug.bounded.plain(tool_profile)) == profile_identity,
+                 'PROFILE_REFUSED')
+            debug.bounded.verify_source(repo, source, parent)
+
+        lab_start = BuildBeforeLabStart(start_lab, require_current, runtime.healthy)
+        report['build_before_lab'] = lab_start.receipt
 
         def write(data):
             need(original.poll() is None and len(data) <= 4096, 'INPUT_REFUSED')
@@ -639,7 +711,8 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, retain_clos
             nonlocal next_sample
             limit = deadline if seconds is None else min(deadline, time.monotonic() + seconds)
             while True:
-                runtime.healthy()
+                if lab_start.receipt['initial_production_observed']:
+                    runtime.healthy()
                 now = time.monotonic()
                 need(now < limit, 'TOTAL_DEADLINE')
                 if now >= next_sample:
@@ -668,11 +741,18 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, retain_clos
                 line = raw.rstrip(b'\r\n')
                 if line.startswith(b'CI_WALLET_STAGE:'):
                     stage = line.partition(b':')[2]
-                    need(stage in (b'gate', b'build', b'start') and line not in used, 'ENTRY_REFUSED')
+                    ordered = (b'gate', b'build', b'start')
+                    need(len(stages) < len(ordered) and stage == ordered[len(stages)]
+                         and line not in used, 'ENTRY_REFUSED')
+                    stages.append(stage)
                     used.add(line)
                     report['entry_stage'] = stage.decode('ascii')
                     if line == marker:
                         return
+                elif line == b'CI_WALLET_BUILD_DONE':
+                    need(marker == line and stages == [b'gate', b'build']
+                         and not lab_start.receipt['build_complete'], 'ENTRY_REFUSED')
+                    return
                 elif line.startswith(b'SYRIUS_LAB_ADDRESS:'):
                     need('address' not in used and 'tour' not in used
                          and marker == b'CI_WALLET_DONE', 'ENTRY_REFUSED')
@@ -696,13 +776,24 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, retain_clos
                     raise Refused('ENTRY_FAILED')
                 elif line in (b'CI_WALLET_READY', b'CI_WALLET_DONE', b'CI_WALLET_ERROR'):
                     need(line == marker and line not in used, 'ENTRY_FAILED')
+                    if line == b'CI_WALLET_READY':
+                        need(len(stages) == 3
+                             and lab_start.receipt['application_release_attempted'], 'ENTRY_REFUSED')
                     used.add(line)
                     return
+                elif line.startswith((b'CI_WALLET_', b'SYRIUS_LAB_', b'SYRIUS_WALLET_TOUR:')):
+                    raise Refused('ENTRY_REFUSED')
 
         report['phase'] = 'build_and_start'
         write(b'START\n')
         wait(b'CI_WALLET_STAGE:gate', seconds=30)
         report['checks']['entry_gate'] = True
+        wait(b'CI_WALLET_BUILD_DONE')
+        report['phase'] = 'lab_revalidation'
+        lab_start.start()
+        observation = lab_start.observation
+        lab_start.release(write)
+        report['phase'] = 'build_and_start'
         wait(b'CI_WALLET_READY')
         report['checks']['entry_ready'] = True
         instance = home / 'instance.json'
@@ -803,6 +894,20 @@ def run(repo, parent, runtime, lab_root, observation, revalidate, *, retain_clos
             code = code if code in CODES else 'INTERNAL_ERROR'
         report['errors'].append(code)
     finally:
+        start_receipt = report.get('build_before_lab', {})
+        prelaunch_close_grace = (start_receipt.get('build_complete') is True
+            and start_receipt.get('application_release_attempted') is False)
+        if prelaunch_close_grace and original is not None:
+            try:
+                original.stdin.close()
+            except OSError:
+                report['errors'].append('CLOSE_UNCONFIRMED')
+            try:
+                original.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                pass  # Keep the existing owned-job forced-cleanup accounting.
+            except OSError:
+                report['errors'].append('CLOSE_UNCONFIRMED')
         if job is not None:
             if job.application is not None and not close_attempted:
                 close_attempted = True

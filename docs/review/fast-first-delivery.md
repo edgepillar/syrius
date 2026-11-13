@@ -9,12 +9,25 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 73/80 original rows, four review and three blocked.
 
 Detailed qualification has resumed after the first code delivery.
+[Source722](source722-wallet-tour-build-before-lab.md) applies the qualified
+build-before-lab schedule to the ordinary wallet tour. It shares the once-only
+Python gate while retaining separate receipt scopes and the original UI send,
+quiescence, closed-copy handoff and single-attempt seed workflow. Eight selected
+memory controls pass; hosted qualification and the current complete seed
+session remain pending. Source721's readonly fixture success closes that
+sub-check, while complete same-session F06 acceptance stays open.
+
 [Source721](source721-inspection-case-registry.md) registers the one additional
 Stream handshake case in the exact selected-suite count. Source720 full Linux
 passes. Its Windows attempt has zero analysis findings and two successful
 Dart engines, then refuses 1,481 ordinary completions against the stale
 1,480-case registry. Wallet compilation and lab startup are not reached; zero
 artifacts remain and the failed attempt is preserved.
+Source721 full Linux, Windows and the independent reader now pass: 1,481
+selected Dart cases, 1,218 Python cases with eighteen skips, zero analysis
+findings, 123 reader cases, 91 producer files, two Sentinel PNGs and the aged-fuse
+witness. Required actors and five nodes close normally; separate MSVC telemetry
+termination is recorded. Current pixels have not been individually viewed.
 
 [Source720](source720-build-before-lab.md) completes the original readonly
 wallet build before starting the five original lab nodes. A fixed handshake

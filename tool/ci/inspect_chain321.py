@@ -727,6 +727,11 @@ def project_wallet_tour(report, lab, head, run_id, tree, manifest_sha):
                                    else wallet.quiescence_receipt(report['quiescence']))
         else:
             need('quiescence' not in report)
+        if 'build_before_lab' in report:
+            start = wallet.build_before_lab_receipt(report['build_before_lab'])
+            need(not (report['success'] or checks['entry_ready'] or checks['input_released'])
+                 or all(start[key] for key in wallet.BUILD_BEFORE_LAB_FLAGS))
+            extra['build_before_lab'] = start
     except wallet.Refused:
         raise Refused("INSPECTION_REFUSED") from None
     visited = 0 if tour is None else len(tour["visited"])

@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../../harness/bin/ci_wallet_inspection.dart'
     show awaitReadonlyInspectionLab, readonlyInspectionCatalogFamily;
+import '../../harness/bin/ci_wallet_tour.dart' show awaitWalletTourLab;
 import '../../harness/bin/readonly_details_catalog.dart';
 import '../../harness/bin/readonly_home_catalog.dart';
 import '../../harness/bin/readonly_inspection_session.dart';
@@ -47,40 +48,52 @@ class _CatalogStdout extends Fake implements Stdout {
 }
 
 void main() {
-  test('the compiled inspection child waits for one exact lab admission',
+  test('compiled inspection and tour children wait for exact lab admission',
       () async {
-    final StreamController<String> control = StreamController<String>();
-    final StreamIterator<String> input = StreamIterator<String>(control.stream);
-    final List<String> markers = <String>[];
-    bool released = false;
-    final Future<void> waiting = awaitReadonlyInspectionLab(input,
-      marker: (String value) async => markers.add(value),
-    ).then<void>((_) {
-      released = true;
-    });
-    await Future<void>.delayed(Duration.zero);
-    expect(markers, <String>['CI_INSPECT_BUILD_DONE']);
-    expect(released, isFalse);
-    control.add('LAB_READY');
-    await waiting;
-    expect(released, isTrue);
-    await input.cancel();
-    await control.close();
+    Future<void> exercise({required bool readonly}) async {
+      Future<void> waitForLab(StreamIterator<String> iterator,
+          Future<void> Function(String) marker) => readonly
+          ? awaitReadonlyInspectionLab(iterator, marker: marker)
+          : awaitWalletTourLab(iterator, marker: marker);
+      final String expected = readonly
+          ? 'CI_INSPECT_BUILD_DONE' : 'CI_WALLET_BUILD_DONE';
+      final StreamController<String> control = StreamController<String>();
+      final StreamIterator<String> input =
+          StreamIterator<String>(control.stream);
+      final List<String> markers = <String>[];
+      bool released = false;
+      final Future<void> waiting = waitForLab(input,
+        (String value) async => markers.add(value),
+      ).then<void>((_) {
+        released = true;
+      });
+      await Future<void>.delayed(Duration.zero);
+      expect(markers, <String>[expected]);
+      expect(released, isFalse);
+      control.add('LAB_READY');
+      await waiting;
+      expect(released, isTrue);
+      await input.cancel();
+      await control.close();
 
-    for (final List<String> lines in <List<String>>[
-      <String>[], <String>['START'], <String>['LAB_READY '],
-      <String>['{"lab":"ready"}'],
-    ]) {
-      final StreamIterator<String> refused = StreamIterator<String>(
-        Stream<String>.fromIterable(lines),
-      );
-      final List<String> emitted = <String>[];
-      await expectLater(awaitReadonlyInspectionLab(refused,
-        marker: (String value) async => emitted.add(value),
-      ), throwsA(isA<ReadonlyInspectionRefused>()));
-      expect(emitted, <String>['CI_INSPECT_BUILD_DONE']);
-      await refused.cancel();
+      for (final List<String> lines in <List<String>>[
+        <String>[], <String>['START'], <String>['LAB_READY '],
+        <String>['{"lab":"ready"}'],
+      ]) {
+        final StreamIterator<String> refused = StreamIterator<String>(
+          Stream<String>.fromIterable(lines),
+        );
+        final List<String> emitted = <String>[];
+        await expectLater(waitForLab(refused,
+          (String value) async => emitted.add(value),
+        ), throwsA(readonly
+            ? isA<ReadonlyInspectionRefused>() : isA<StateError>()));
+        expect(emitted, <String>[expected]);
+        await refused.cancel();
+      }
     }
+    await exercise(readonly: true);
+    await exercise(readonly: false);
   });
 
   test('catalog choice preserves the original Details default', () {

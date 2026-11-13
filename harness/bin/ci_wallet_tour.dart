@@ -9,6 +9,17 @@ import 'build_output.dart';
 import 'harness.dart' as cli;
 import 'wallet_recipe.dart' show WalletRecipeRefused;
 
+/// Keep this original compiled child behind its owner's lab admission.
+Future<void> awaitWalletTourLab(
+  StreamIterator<String> input, {
+  required Future<void> Function(String value) marker,
+}) async {
+  await marker('CI_WALLET_BUILD_DONE');
+  if (!await input.moveNext() || input.current != 'LAB_READY') {
+    throw StateError('lab admission unavailable');
+  }
+}
+
 Future<void> main() async {
   final StreamIterator<String> input = StreamIterator<String>(
     stdin.transform(utf8.decoder).transform(const LineSplitter()),
@@ -59,6 +70,8 @@ Future<void> main() async {
       '--mode', 'release', '--no-pub', '--metadata',
       '${cli.repo}/.dart_tool/git_metadata.json',
     ]), isolatedInput: true);
+    stage = 'lab_wait';
+    await awaitWalletTourLab(input, marker: marker);
     stage = 'start';
     await marker('CI_WALLET_STAGE:start');
     await cli.start(

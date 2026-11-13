@@ -1485,54 +1485,20 @@ SEAM_PILOTS = {
 }
 
 
-BUILD_BEFORE_LAB_FLAGS = ('build_complete', 'lab_start_attempted',
-    'initial_production_observed', 'application_release_attempted')
+BUILD_BEFORE_LAB_FLAGS = shared.BUILD_BEFORE_LAB_FLAGS
 
 
 def build_before_lab_receipt(value):
-    need(type(value) is dict
-         and set(value) == {'schema', 'scope', *BUILD_BEFORE_LAB_FLAGS}
-         and type(value['schema']) is int and value['schema'] == 1
-         and value['scope'] == 'readonly_build_before_lab'
-         and all(type(value[key]) is bool for key in BUILD_BEFORE_LAB_FLAGS),
-         'OUTPUT_REFUSED')
-    flags = [value[key] for key in BUILD_BEFORE_LAB_FLAGS]
-    need(not any(later and not earlier for earlier, later in zip(flags, flags[1:])),
-         'OUTPUT_REFUSED')
-    return dict(value)
+    return shared.build_before_lab_receipt(value,
+        scope='readonly_build_before_lab', require=need)
 
 
-class InspectionLabStart:
-    """One original build, one lab start, and one application release."""
+class InspectionLabStart(shared.BuildBeforeLabStart):
+    """Keep the existing readonly scope and refusal vocabulary."""
 
     def __init__(self, start_lab, require_current, healthy):
-        self._start_lab, self._current, self._healthy = start_lab, require_current, healthy
-        self._release_reserved = False
-        self.observation = None
-        self.receipt = dict(schema=1, scope='readonly_build_before_lab',
-                            **dict.fromkeys(BUILD_BEFORE_LAB_FLAGS, False))
-
-    def start(self):
-        need(not self.receipt['build_complete'], 'ENTRY_REFUSED')
-        self.receipt['build_complete'] = True
-        self._current()
-        self.receipt['lab_start_attempted'] = True
-        observed = self._start_lab()
-        self._healthy()
-        self._current()
-        need(type(observed) is dict and observed.get('chain') == 321
-             and observed.get('cross_transport_hash_equal') is True, 'LAB_REFUSED')
-        self.observation = observed
-        self.receipt['initial_production_observed'] = True
-
-    def release(self, write):
-        need(self.receipt['initial_production_observed']
-             and not self._release_reserved, 'ENTRY_REFUSED')
-        self._release_reserved = True
-        self._healthy()
-        self._current()
-        self.receipt['application_release_attempted'] = True
-        write(b'LAB_READY\n')
+        super().__init__(start_lab, require_current, healthy,
+            scope='readonly_build_before_lab', require=need)
 
 
 def run(repo, parent, runtime, lab_root, observation, revalidate, *,

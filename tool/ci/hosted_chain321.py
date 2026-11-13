@@ -1451,10 +1451,10 @@ def run(backend):
                 report["checks"]["production"] = True
                 return report["observations"]
             finally:
-                if inspection and report['checks']['production']:
-                    report['runtime_phase'] = 'wallet_inspection'
+                if (inspection or wallet_tour) and report['checks']['production']:
+                    report['runtime_phase'] = 'wallet_inspection' if inspection else 'wallet_tour'
 
-        if not inspection:
+        if not inspection and not wallet_tour:
             start_lab()
         if interactive:
             from tool.ci import windows_interactive_frame_pair
@@ -1487,10 +1487,10 @@ def run(backend):
             need(outcome['success'] and manifest_hash is not None, 'WALLET_INSPECTION_FAILED')
         if wallet_tour:
             from tool.ci import windows_wallet_tour
-            report['runtime_phase'] = 'wallet_tour'
+            report['runtime_phase'] = None
             outcome = windows_wallet_tour.run(repo, parent, runtime, root,
-                report['observations'], lambda: observe(runtime, root),
-                retain_closed=closed_wallets.append)
+                None, lambda: observe(runtime, root),
+                start_lab=start_lab, retain_closed=closed_wallets.append)
             manifest = regular(repo / '.harness/ci-wallet-tour/manifest.json')
             report['wallet_tour'] = dict(success=outcome['success'],
                 phase=outcome['phase'], checks=outcome['checks'], errors=outcome['errors'],

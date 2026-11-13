@@ -16,6 +16,7 @@ import zlib
 
 from tool.ci import hosted_chain321 as lab
 from tool.ci import windows_wallet_inspection as inspection
+from tool.ci import windows_wallet_tour as tour_controller
 import test_readonly_viewport_capture as viewport_fixtures
 import test_readonly_settings_capture as settings_fixtures
 import test_readonly_navigation_capture as navigation_fixtures
@@ -46,6 +47,19 @@ class BuildBeforeLabTests(unittest.TestCase):
                 action()
         start.assert_called_once()
         write.assert_called_once_with(b'LAB_READY\n')
+        ordinary_start = mock.Mock(return_value=observation)
+        ordinary = tour_controller.BuildBeforeLabStart(ordinary_start, mock.Mock(), mock.Mock())
+        ordinary_write = mock.Mock()
+        with self.assertRaises(tour_controller.Refused):
+            ordinary.release(ordinary_write)
+        ordinary.start()
+        ordinary.release(ordinary_write)
+        self.assertEqual(ordinary.receipt['scope'], 'wallet_build_before_lab')
+        for action in (ordinary.start, lambda: ordinary.release(ordinary_write)):
+            with self.assertRaises(tour_controller.Refused):
+                action()
+        ordinary_start.assert_called_once()
+        ordinary_write.assert_called_once_with(b'LAB_READY\n')
 
     def test_failed_source_owner_production_or_observation_never_releases_the_child(self):
         original = inspection.Refused('LAB_REFUSED')
@@ -111,6 +125,12 @@ class BuildBeforeLabTests(unittest.TestCase):
             prefix = dict(receipt, **{key: index < count
                 for index, key in enumerate(inspection.BUILD_BEFORE_LAB_FLAGS)})
             self.assertEqual(inspection.build_before_lab_receipt(prefix), prefix)
+        ordinary = dict(receipt, scope='wallet_build_before_lab')
+        self.assertEqual(tour_controller.build_before_lab_receipt(ordinary), ordinary)
+        with self.assertRaises(tour_controller.Refused):
+            tour_controller.build_before_lab_receipt(receipt)
+        with self.assertRaises(inspection.Refused):
+            inspection.build_before_lab_receipt(ordinary)
 
 
 def settings_manifest(pixels, script):
