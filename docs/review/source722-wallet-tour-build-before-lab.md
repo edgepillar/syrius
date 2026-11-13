@@ -22,9 +22,10 @@ viewed and zero whole-image matches are accepted.
 | Sentinel and aged-fuse fixtures | Source721 independently qualifies the Sentinel catalog and two expired, disabled-cancel aged rows, banner, route close, cleared cleanup and zero publication commands. These run in a separate readonly session. |
 | Ordinary-build separation | The ordinary `lib` tree has no harness import/export directives. The fixture implementation remains under `harness/app/`; this source check is not a binary-link scan. |
 
-A current complete same-session seed/state workflow remains unqualified.
-Source721's readonly witness does not project Source698's six effects onto a
-new revision or settle any earlier unknown send. F06 stays open.
+At preparation, a current complete same-session seed/state workflow remained
+unqualified. Source721's readonly witness did not project Source698's six
+effects onto a new revision or settle any earlier unknown send. The actual
+Source722 result and completed audit are recorded below.
 
 ## Source722
 
@@ -46,5 +47,22 @@ Eight selected memory controls pass, including readonly regression, ordinary
 startup, refused replay, source/owner loss, receipt scope and failed closure.
 The existing Dart handshake test covers both
 entrypoints, retaining 1,481 registered cases. Python registration remains
-1,218 cases. Fresh hosted controls and the current seed session remain pending.
-Original acceptance remains 73/80.
+1,218 cases.
+
+## Actual Source722 result
+
+The [full Linux workflow](https://github.com/edgepillar/syrius/actions/runs/43381114695),
+[Windows producer](https://github.com/edgepillar/syrius/actions/runs/43381591719)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/43384604930)
+pass at `00d57dcdd31c9e18f183b02325303d38fcbf85e0`. Both original archives
+verify. The original UI send, quiescence, normally closed live handoff,
+independent restore, six distinct seed effects and aged-fuse witness complete.
+Original and copied required actors and both sets of five nodes close normally.
+Strict analysis has zero findings; 1,481 selected Dart cases and 1,218 Python
+cases with eighteen skips pass. The startup receipt verifies the same original
+build-before-lab sequence.
+
+The [complete F06 audit](source723-f06-state-qualification.md) records the
+remaining source and historical state evidence without projecting older
+pixels onto the current source. F06 is complete; original progress is 74/80.
+P03, P09 and V01/V02/V05/V06 remain open, with zero accepted whole-image matches.

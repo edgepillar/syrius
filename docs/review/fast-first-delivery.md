@@ -6,16 +6,26 @@ The core interface and existing basic functionality are available for
 [code review](https://github.com/sol-znn/syrius/pull/6). Unavailable
 services remain drawn behind their registered seams. This milestone follows
 the owner's fast-delivery choice. Complete redesign acceptance remains open:
-73/80 original rows, four review and three blocked.
+74/80 original rows, three review and three blocked.
 
 Detailed qualification has resumed after the first code delivery.
+[Source723](source723-f06-state-qualification.md) completes the F06 state audit.
+Source722 full Linux, Windows and independent original-archive verification
+pass. All six current seed effects and the aged-fuse witness complete in the
+same copied session, with normal original/copied actor and five-node closure.
+The initial genesis, unchanged Sentinel fixture and earlier post-seed state
+captures retain their documented source bounds. The real HTLC Deposit supplies
+the reachable Swap seed; the two-sided coordinator remains the existing seam.
+This documentation-only record closes F06, leaving P03, P09 and V01/V02/V05/V06
+open. Zero whole-image matches are accepted.
+
 [Source722](source722-wallet-tour-build-before-lab.md) applies the qualified
 build-before-lab schedule to the ordinary wallet tour. It shares the once-only
 Python gate while retaining separate receipt scopes and the original UI send,
 quiescence, closed-copy handoff and single-attempt seed workflow. Eight selected
-memory controls pass; hosted qualification and the current complete seed
-session remain pending. Source721's readonly fixture success closes that
-sub-check, while complete same-session F06 acceptance stays open.
+memory controls pass. Its full Linux run 43381114695, Windows run 43381591719
+and independent reader 43384604930 subsequently pass, completing the current
+same-session seed and aged-fuse checks. See the Source723 audit above.
 
 [Source721](source721-inspection-case-registry.md) registers the one additional
 Stream handshake case in the exact selected-suite count. Source720 full Linux
