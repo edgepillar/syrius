@@ -227,9 +227,9 @@ void main() {
             tester
                 .renderObject<RenderParagraph>(find.text(_current.name))
                 .didExceedMaxLines,
-            isFalse,
+            isTrue,
           );
-          expect(find.byTooltip(_current.name), findsNothing);
+          expect(find.byTooltip(_current.name), findsOneWidget);
           expect(find.byTooltip(_current.address!), findsOneWidget);
           expect(
             Directionality.of(tester.element(find.text('synthe…0001'))),

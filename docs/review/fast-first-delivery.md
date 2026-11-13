@@ -11,6 +11,13 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
+[Source740](source740-truncated-fixture-expectation.md) corrects an existing
+synthetic-name expectation: the paragraph actually truncates, so its tooltip
+must remain. Source739 passes all analysis and Ready gates, then reports 34
+Lock passes and four failures at that expectation. Compact/Token, the full
+directory and generation are skipped. Application code and registrations are
+unchanged; the original failure is preserved and fresh full Linux is required.
+
 [Source739](source739-compact-facts-and-lock-fields.md) prepares content-sized
 Token facts, a stable disabled Lock field and tooltips for truncated wallet
 names. Existing geometry, input, focus and semantics cases are extended;
