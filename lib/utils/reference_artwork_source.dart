@@ -1,10 +1,13 @@
-/// The two original moving surfaces used by the entry references.
+/// Original moving surfaces used by the entry references.
 enum ReferenceArtworkKind {
   /// The original welcome composition at the reference's selected frame.
   welcomeGlobe,
 
   /// The original entry painter at the reference capture-time position.
   entryField,
+
+  /// The original Ready map at the reference's selected frame.
+  walletReadyMap,
 }
 
 /// Implemented by the actual private State; it creates no alternate surface.

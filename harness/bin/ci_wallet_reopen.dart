@@ -46,6 +46,84 @@ const Set<String> restoredUnlockFailureCodes = <String>{
   'UNLOCK_TAP_REFUSED', 'UNLOCK_WAIT_REFUSED', 'UNLOCK_FAILURE_TREE_REFUSED',
 };
 
+/// Only fixed locations of the original observe operation may leave the child.
+const Set<String> restoredObserveFailureCodes = <String>{
+  'OBSERVE_READINESS_FORMAT', 'OBSERVE_STATE_FORMAT',
+  'OBSERVE_POLICY_REFUSED', 'OBSERVE_CONTEXT_STATE_FORMAT',
+  'OBSERVE_CONTEXT_POLICY_REFUSED', 'OBSERVE_OWNER_READ_FORMAT',
+  'OBSERVE_OWNER_REFUSED', 'OBSERVE_ADDRESS_CONTEXT_FORMAT',
+  'OBSERVE_RECEIPT_READ_FORMAT', 'OBSERVE_RECEIPT_REFUSED',
+  'OBSERVE_CONTEXT_CHANGED', 'OBSERVE_PARENT_REFUSED',
+};
+
+/// Locations classify the original attempt; they grant no operation authority.
+enum RestoredObserveOperation {
+  /// The existing bounded readiness predicate.
+  readiness('OBSERVE_READINESS_FORMAT'),
+  /// The first original state response.
+  state('OBSERVE_STATE_FORMAT'),
+  /// The original initialized policy and parent check.
+  policy('OBSERVE_POLICY_REFUSED'),
+  /// The existing context state response.
+  contextState('OBSERVE_CONTEXT_STATE_FORMAT'),
+  /// The original context policy check.
+  contextPolicy('OBSERVE_CONTEXT_POLICY_REFUSED'),
+  /// The original recipe-owner observation response.
+  ownerRead('OBSERVE_OWNER_READ_FORMAT'),
+  /// The original recipe-owner availability check.
+  owner('OBSERVE_OWNER_REFUSED'),
+  /// Parsing of the original address context.
+  addressContext('OBSERVE_ADDRESS_CONTEXT_FORMAT'),
+  /// The original lab-reopen observation response.
+  receiptRead('OBSERVE_RECEIPT_READ_FORMAT'),
+  /// The original receipt-shape check.
+  receipt('OBSERVE_RECEIPT_REFUSED'),
+  /// The original before/after context comparison.
+  contextChanged('OBSERVE_CONTEXT_CHANGED'),
+  /// The original final parent-liveness check.
+  parent('OBSERVE_PARENT_REFUSED');
+
+  const RestoredObserveOperation(this.code);
+
+  /// A closed label, never an exception message or native response.
+  final String code;
+}
+
+class _RestoredObserveRefused extends FormatException {
+  const _RestoredObserveRefused(this.operation)
+      : super('Original observation refused');
+  final RestoredObserveOperation operation;
+}
+
+/// Run one original read once and classify only its original format failure.
+Future<T> restoredObserveRead<T>(RestoredObserveOperation operation,
+    Future<T> Function() read) async {
+  try {
+    return await read();
+  } on _RestoredObserveRefused {
+    rethrow;
+  } on FormatException {
+    throw _RestoredObserveRefused(operation);
+  }
+}
+
+/// Parse one original value without retaining the value or exception text.
+T restoredObserveValue<T>(RestoredObserveOperation operation,
+    T Function() read) {
+  try {
+    return read();
+  } on _RestoredObserveRefused {
+    rethrow;
+  } on FormatException {
+    throw _RestoredObserveRefused(operation);
+  }
+}
+
+/// Preserve an original condition while identifying its fixed refusal point.
+void requireRestoredObserve(bool condition, RestoredObserveOperation operation) {
+  if (!condition) throw _RestoredObserveRefused(operation);
+}
+
 class _RestoredUnlockRefused implements Exception {
   const _RestoredUnlockRefused(this.code, this.lockView);
 
@@ -478,6 +556,12 @@ Map<String, Object?>? restoredChildFailure(
     seed = value;
   } else if (error is cli.Fail || error is ScreenCaptureError) {
     kind = 'HARNESS_REFUSED';
+  } else if (error.runtimeType == _RestoredObserveRefused) {
+    kind = 'FORMAT_ERROR';
+    final String value = (error as _RestoredObserveRefused).operation.code;
+    if (phase == 'observe' && restoredObserveFailureCodes.contains(value)) {
+      code = value;
+    }
   } else if (error is FormatException) {
     kind = 'FORMAT_ERROR';
   } else if (error is TypeError) {
@@ -1379,36 +1463,40 @@ Future<void> main() async {
       instance, decoded['password'] as String, observeView: true,
     );
     phase = 'observe';
-    await cli.until(instance, restoredWalletReady, 'restored readiness');
-    final Map<String, dynamic> state = await cli.stateOf(instance);
-    if (!restoredWalletReady(state) || !originalInput.alive) {
-      throw const FormatException('restored policy refused');
-    }
+    await restoredObserveRead(RestoredObserveOperation.readiness,
+      () => cli.until(instance, restoredWalletReady, 'restored readiness'));
+    final Map<String, dynamic> state = await restoredObserveRead(
+      RestoredObserveOperation.state, () => cli.stateOf(instance));
+    requireRestoredObserve(restoredWalletReady(state) && originalInput.alive,
+      RestoredObserveOperation.policy);
     Future<WalletAddressContext> context() async {
-      final Map<String, dynamic> state = await cli.stateOf(instance);
-      if (!restoredWalletReady(state)) {
-        throw const FormatException('seed policy changed');
-      }
-      final Map<String, dynamic> view = await instance.send(
+      final Map<String, dynamic> state = await restoredObserveRead(
+        RestoredObserveOperation.contextState, () => cli.stateOf(instance));
+      requireRestoredObserve(restoredWalletReady(state),
+        RestoredObserveOperation.contextPolicy);
+      final Map<String, dynamic> view = await restoredObserveRead(
+        RestoredObserveOperation.ownerRead, () => instance.send(
         <String, Object>{'cmd': 'wallet-recipe', 'action': 'observe'},
-      );
-      if (view['ok'] != true || view['hasError'] != false) {
-        throw const FormatException('seed owner unavailable');
-      }
-      return WalletAddressContext.parse(view['addressContext']);
+      ));
+      requireRestoredObserve(view['ok'] == true && view['hasError'] == false,
+        RestoredObserveOperation.owner);
+      return restoredObserveValue(RestoredObserveOperation.addressContext,
+        () => WalletAddressContext.parse(view['addressContext']));
     }
     final WalletAddressContext originalContext = await context();
-    final Map<String, dynamic> result = await instance.send(<String, Object?>{
+    final Map<String, dynamic> result = await restoredObserveRead(
+      RestoredObserveOperation.receiptRead,
+      () => instance.send(<String, Object?>{
       'cmd': 'lab-reopen-observe', 'profile': name,
       for (final String key in <String>[
         'originalProfile', 'wallet', 'members', 'hash',
       ]) key: decoded[key],
-    });
-    if (result['ok'] != true || result['receipt'] is! Map ||
-        !originalContext.same(await context()) ||
-        !originalInput.alive) {
-      throw const FormatException('restored observation refused');
-    }
+    }));
+    requireRestoredObserve(result['ok'] == true && result['receipt'] is Map,
+      RestoredObserveOperation.receipt);
+    requireRestoredObserve(originalContext.same(await context()),
+      RestoredObserveOperation.contextChanged);
+    requireRestoredObserve(originalInput.alive, RestoredObserveOperation.parent);
     await marker('CI_REOPEN_DONE:${jsonEncode(result['receipt'])}');
     phase = 'seed_admission';
     final Object? seedInput = jsonDecode(await originalInput.read());

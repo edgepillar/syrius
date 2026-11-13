@@ -1116,6 +1116,9 @@ jobs:
             test/ci
             tools/devnet/lab
             harness
+            lib/utils
+            lib/screens/onboarding
+            lib/widgets/reusable_widgets
             lib/seams
             lib/rearchitecture/features/pillars/view
             lib/rearchitecture/features/tokens

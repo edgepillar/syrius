@@ -772,6 +772,87 @@ void main() {
     }
   });
 
+  test('observe reads classify one original failure without exposing its text',
+      () async {
+    expect(entry.RestoredObserveOperation.values.map((entry.RestoredObserveOperation
+        value) => value.code).toSet(), entry.restoredObserveFailureCodes);
+    for (final entry.RestoredObserveOperation operation
+        in entry.RestoredObserveOperation.values) {
+      int reads = 0;
+      Object? failure;
+      try {
+        await entry.restoredObserveRead<void>(operation, () async {
+          reads++;
+          throw const FormatException('fixture-sensitive-text');
+        });
+      } on Object catch (error) {
+        failure = error;
+      }
+      expect(reads, 1);
+      expect(failure, isA<FormatException>());
+      final Map<String, Object?> marker =
+          entry.restoredChildFailure('observe', failure!)!;
+      expect(marker['kind'], 'FORMAT_ERROR');
+      expect(marker['code'], operation.code);
+      expect(jsonEncode(marker), isNot(contains('fixture-sensitive-text')));
+      expect(entry.restoredChildFailure('seed_stake', failure)?['code'], isNull);
+      Object? nested;
+      try {
+        await entry.restoredObserveRead<void>(
+          entry.RestoredObserveOperation.state, () async => throw failure!);
+      } on Object catch (error) {
+        nested = error;
+      }
+      expect(nested, same(failure));
+    }
+    int reads = 0;
+    expect(await entry.restoredObserveRead<int>(
+      entry.RestoredObserveOperation.state, () async { reads++; return 7; }), 7);
+    expect(reads, 1);
+    final Object original = _Unformattable();
+    Object? observed;
+    try {
+      await entry.restoredObserveRead<void>(
+        entry.RestoredObserveOperation.state, () async => throw original);
+    } on Object catch (error) {
+      observed = error;
+    }
+    expect(observed, same(original));
+  });
+
+  test('observe conditions and parsing keep their original refusal scope', () {
+    for (final entry.RestoredObserveOperation operation
+        in entry.RestoredObserveOperation.values) {
+      entry.requireRestoredObserve(true, operation);
+      Object? failure;
+      try {
+        entry.requireRestoredObserve(false, operation);
+      } on Object catch (error) {
+        failure = error;
+      }
+      expect(entry.restoredChildFailure('observe', failure!)?['code'],
+        operation.code);
+    }
+    int parses = 0;
+    Object? failure;
+    try {
+      entry.restoredObserveValue<void>(
+        entry.RestoredObserveOperation.addressContext, () {
+          parses++;
+          throw const FormatException('fixture-sensitive-value');
+        });
+    } on Object catch (error) {
+      failure = error;
+    }
+    expect(parses, 1);
+    expect(entry.restoredChildFailure('observe', failure!)?['code'],
+      'OBSERVE_ADDRESS_CONTEXT_FORMAT');
+    expect(entry.restoredObserveValue<int>(
+      entry.RestoredObserveOperation.addressContext, () => 8), 8);
+    expect(entry.restoredChildFailure('observe',
+      const FormatException('fixture-sensitive-value'))?['code'], isNull);
+  });
+
   test('child failures export fixed types and validated recipe labels only',
       () async {
     final Map<String, String> diagnostic = <String, String>{

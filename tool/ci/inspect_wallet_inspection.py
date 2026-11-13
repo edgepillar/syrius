@@ -435,6 +435,26 @@ def unpack_home_catalog(raw, expected_sha, expected_size, head, tree, run_id,
     return result
 
 
+READY_ARTWORK_SOURCES = (
+    'harness/app/ready_reference_artwork.dart',
+    'lib/utils/reference_artwork_source.dart',
+    'lib/widgets/reusable_widgets/app_lottie.dart',
+    'lib/screens/onboarding/wallet_ready_surface.dart',
+    'lib/utils/wallet_ready_binding.dart',
+    'lib/rearchitecture/utils/widgets/entry_field.dart')
+
+
+def ready_artwork_sources(repo, value, tree):
+    """Bind new Ready renderers while retaining earlier producer requirements."""
+    need(type(value) is dict and value.get('sha') == tree
+         and value.get('truncated') is False
+         and type(value.get('tree')) is list and len(value['tree']) <= 10000
+         and all(type(item) is dict for item in value['tree']))
+    if not any(item.get('path') == READY_ARTWORK_SOURCES[0] for item in value['tree']):
+        return {}
+    return source_files(repo, value, tree, files=READY_ARTWORK_SOURCES)
+
+
 def source_files(repo, value, tree, *, read_workflow_blob=None, files=SOURCE_FILES):
     need(type(value) is dict and value.get('sha') == tree and value.get('truncated') is False
          and type(value.get('tree')) is list and len(value['tree']) <= 10000)
@@ -547,6 +567,7 @@ def main(parent=None):
     source_digests = source_files(repo, producer_tree, tree,
         read_workflow_blob=lambda blob: decode(client.read(
             archive.API + '/git/blobs/' + blob, cap=MAX_WORKFLOW_RESPONSE)))
+    source_digests.update(ready_artwork_sources(repo, producer_tree, tree))
     jobs = client.json('/actions/runs/' + text + '/attempts/1/jobs?per_page=50')
     job = selected_job(jobs, head, run_id)
     need((run.get('conclusion') == 'success') is (job['conclusion'] == 'success'))

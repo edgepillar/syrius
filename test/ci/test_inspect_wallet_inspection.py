@@ -430,7 +430,8 @@ class ReaderTests(unittest.TestCase):
         directories = tuple(line.strip() for line in block.splitlines() if line.strip())
         self.assertTrue(directories)
         # The original workflow blob is read separately from its pinned Git tree.
-        required = set(reader.SOURCE_FILES) | set(reader.SURFACE_SEAM_SOURCES)
+        required = (set(reader.SOURCE_FILES) | set(reader.SURFACE_SEAM_SOURCES)
+            | set(reader.READY_ARTWORK_SOURCES))
         required.remove(reader.WORKFLOW_SOURCE)
         missing = sorted(name for name in required if '/' in name
             and not any(name.startswith(directory + '/') for directory in directories))
@@ -696,6 +697,27 @@ class ReaderTests(unittest.TestCase):
                     value['tree'][0]['sha'] = 'e' * 40
                 with self.subTest(fault=fault), self.assertRaises(reader.archive.Refused):
                     reader.source_files(Path('/fixture'), value, 'b' * 40)
+        with mock.patch.object(reader.producer, 'read_original', return_value=raw) as read:
+            self.assertEqual(reader.ready_artwork_sources(Path('/fixture'), tree, 'b' * 40), {})
+            read.assert_not_called()
+            current = dict(sha='b' * 40, truncated=False, tree=[dict(path=n,
+                mode='100644', type='blob', sha=blob) for n in reader.READY_ARTWORK_SOURCES])
+            self.assertEqual(set(reader.ready_artwork_sources(
+                Path('/fixture'), current, 'b' * 40)), set(reader.READY_ARTWORK_SOURCES))
+            for fault in ('partial', 'changed', 'truncated', 'alias', 'source'):
+                value = copy.deepcopy(current)
+                if fault == 'partial':
+                    value['tree'].pop()
+                elif fault == 'truncated':
+                    value['truncated'] = True
+                elif fault == 'alias':
+                    value['tree'][0]['mode'] = '120000'
+                elif fault == 'source':
+                    value['sha'] = 'e' * 40
+                else:
+                    value['tree'][0]['sha'] = 'e' * 40
+                with self.subTest(ready_fault=fault), self.assertRaises(reader.archive.Refused):
+                    reader.ready_artwork_sources(Path('/fixture'), value, 'b' * 40)
 
     def test_job_metadata_cannot_borrow_another_attempt_or_skipped_preflight(self):
         value = jobs()

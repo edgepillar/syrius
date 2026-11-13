@@ -644,6 +644,7 @@ class ReopenDiagnosticTests(unittest.TestCase):
                 ('restoredChildKinds', restored.CHILD_FAILURE_KINDS),
                 ('restoredWindowFailureCodes', restored.WINDOW_FAILURE_CODES),
                 ('restoredUnlockFailureCodes', restored.UNLOCK_FAILURE_CODES),
+                ('restoredObserveFailureCodes', restored.OBSERVE_FAILURE_CODES),
                 ('restoredRecipeExtraCodes', restored.CHILD_RECIPE_EXTRA_CODES)):
             match = re.search(r'const Set<String> ' + name
                 + r' = <String>\{(.*?)\};', source, re.S)
@@ -1689,6 +1690,38 @@ class SeedFailureProjectionTests(unittest.TestCase):
         legacy = self.child(self.seed())
         del legacy['seed']
         self.assertEqual(restored.child_failure_projection(legacy), legacy)
+
+
+class ObserveFailureProjectionTests(unittest.TestCase):
+    @staticmethod
+    def child(**changes):
+        return dict(dict(schema=1, scope='owned_reopen_child_failure',
+            phase='observe', kind='FORMAT_ERROR', code=None, recipe=None), **changes)
+
+    def test_fixed_observe_codes_are_data_only_and_bound_to_the_original_scope(self):
+        for code in restored.OBSERVE_FAILURE_CODES:
+            child = self.child(code=code)
+            with self.subTest(code=code):
+                projected = restored.child_failure_projection(child)
+                self.assertEqual(projected, child)
+                self.assertIsNot(projected, child)
+                for changes in (dict(phase='startup'), dict(phase='seed_stake'),
+                        dict(kind='TYPE_ERROR'), dict(kind='HARNESS_REFUSED'),
+                        dict(recipe=dict(private='fixture-sensitive-text'))):
+                    with self.assertRaises(restored.checkpoint.Refused):
+                        restored.child_failure_projection(dict(child, **changes))
+
+    def test_legacy_unknown_failures_remain_unknown_and_free_text_is_rejected(self):
+        for phase in restored.CHILD_PHASES:
+            child = self.child(phase=phase)
+            self.assertEqual(restored.child_failure_projection(child), child)
+        for code in (True, 1, '', 'fixture-sensitive-text', 'OBSERVE_UNKNOWN',
+                ['OBSERVE_OWNER_REFUSED']):
+            with self.subTest(code=code), self.assertRaises(restored.checkpoint.Refused):
+                restored.child_failure_projection(self.child(code=code))
+        for key in ('message', 'reply', 'path', 'address', 'private'):
+            with self.subTest(key=key), self.assertRaises(restored.checkpoint.Refused):
+                restored.child_failure_projection(self.child(**{key: 'fixture-sensitive-text'}))
 
 
 if __name__ == '__main__':

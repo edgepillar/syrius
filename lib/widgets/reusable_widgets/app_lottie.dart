@@ -242,7 +242,9 @@ class _PlayerState extends State<_Player>
 
   @override
   ReferenceArtworkKind get referenceArtworkKind =>
-      ReferenceArtworkKind.welcomeGlobe;
+      _configuration.asset == AppLottieAsset.map
+          ? ReferenceArtworkKind.walletReadyMap
+          : ReferenceArtworkKind.welcomeGlobe;
 
   @override
   Object get referenceArtworkGeneration => _entry ?? this;
@@ -254,9 +256,10 @@ class _PlayerState extends State<_Player>
   ReferenceArtworkFrame? captureReferenceArtwork() {
     final _Entry? entry = _entry;
     final LottieComposition? composition = _composition;
+    final AppLottieAsset asset = _configuration.asset;
     if (!mounted || !_active || !_clock.isAnimating || entry == null ||
         composition == null || _referenceFrame != null ||
-        _configuration.asset != AppLottieAsset.globe ||
+        (asset != AppLottieAsset.globe && asset != AppLottieAsset.map) ||
         _configuration.controller != null) {
       return null;
     }
@@ -265,7 +268,7 @@ class _PlayerState extends State<_Player>
     final double duration = composition.durationFrames;
     if (!duration.isFinite || duration <= 0) return null;
     final int count = (duration + 0.01).floor();
-    final int index = (count * 0.4).floor();
+    final int index = (count * (asset == AppLottieAsset.map ? 0.5 : 0.4)).floor();
     final double progress = index / duration;
     if (count <= 0 || count > 1000000 ||
         !progress.isFinite || progress < 0 || progress > 1) {
@@ -278,12 +281,13 @@ class _PlayerState extends State<_Player>
         _referenceEpoch == epoch &&
         identical(_entry, entry) && identical(_composition, composition) &&
         identical(_clock, original) && _configuration.controller == null &&
-        _configuration.asset == AppLottieAsset.globe;
+        _configuration.asset == asset;
     late final ReferenceArtworkFrame frame;
     frame = ReferenceArtworkFrame(
       owner: this, generation: entry, kind: referenceArtworkKind,
       observation: <String, Object>{
-        'kind': 'welcome_globe', 'frame': index, 'frame_count': count,
+        'kind': asset == AppLottieAsset.map ? 'wallet_ready_map' : 'welcome_globe',
+        'frame': index, 'frame_count': count,
       },
       current: () => originalCurrent() && original.isAnimating &&
           identical(_referenceFrame, frame) &&

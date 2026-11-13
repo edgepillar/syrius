@@ -122,6 +122,7 @@ import 'readonly_native_mode.dart';
 import 'readonly_sdk_admission.dart';
 import 'readonly_shot_layout.dart';
 import 'readonly_wallet_binding.dart';
+import 'ready_reference_artwork.dart';
 import 'recipe_control_admission.dart';
 import 'retained_png.dart';
 import 'seed_deposit_entry_binding.dart';
@@ -550,6 +551,8 @@ class HarnessAgent {
   SeededSurfaceSeamOwner? _seededSurfaceSeamOwner;
   bool _seededSurfaceSeamOwnerAttempted = false;
   ReadonlyNativeCommands? _readonlyNative;
+  ReadyReferenceArtwork? _readyArtwork;
+  bool _readyArtworkRefused = false;
   bool _readonlySendSyncReserved = false;
   final Set<String> _activityMessageSeamThemes = <String>{};
   bool _activityMessageSeamHeld = false;
@@ -5314,6 +5317,27 @@ class HarnessAgent {
     _requireCaptureFrameIdle();
     if (c['expect'] != null) {
       try {
+        if (_readonlyWalletReady) {
+          try {
+            if (_readyArtworkRefused) {
+              throw const ReadyReferenceArtworkRefused();
+            }
+            final ReadonlyNativeCommands? original = _readonlyNative;
+            final ReadyReferenceArtwork artwork = _readyArtwork ??=
+                ReadyReferenceArtwork(
+                  owner: findReadyArtworkOwner(WidgetsBinding.instance.rootElement),
+                  admitted: () => booted && _readonlyWalletReady &&
+                      identical(_readonlyNative, original),
+                );
+            return await artwork.capture<Map<String, Object?>>(
+              frames: _captureFrames,
+              readback: () => _readShot(c),
+            );
+          } on ReadyReferenceArtworkRefused {
+            _readyArtworkRefused = true;
+            throw HarnessError('ready artwork frame unavailable');
+          }
+        }
         return await _captureFrames.capture<Map<String, Object?>>(
           () => _readShot(c),
         );

@@ -9,6 +9,12 @@ the owner's fast-delivery choice. Complete redesign acceptance remains open:
 74/80 original rows, three review and three blocked.
 
 Detailed qualification has resumed after the first code delivery.
+[Source726](source726-ready-artwork-and-observe.md) adds bounded sampling of
+the original Ready map/entry field and fixed copied-observe diagnostic codes.
+Five selected memory controls pass locally. Fresh full Linux, Windows capture,
+independent archive and image qualification remain pending. Earlier source
+results, failures and original 74/80 acceptance are preserved.
+
 [Source724](source724-ready-card-border.md) reserves the Ready card's painted
 border in layout. Full Linux checks, the Ready Windows capture and independent
 verification pass. Both new pairs have been individually viewed: card bounds

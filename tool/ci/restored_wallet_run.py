@@ -47,6 +47,13 @@ UNLOCK_FAILURE_CODES = frozenset(('UNLOCK_STATE_REFUSED', 'UNLOCK_LOCK_REQUIRED'
     'UNLOCK_FIELD_READY_REFUSED',
     'UNLOCK_TYPE_REFUSED', 'UNLOCK_TAP_REFUSED', 'UNLOCK_WAIT_REFUSED',
     'UNLOCK_FAILURE_TREE_REFUSED'))
+OBSERVE_FAILURE_CODES = frozenset((
+    'OBSERVE_READINESS_FORMAT', 'OBSERVE_STATE_FORMAT',
+    'OBSERVE_POLICY_REFUSED', 'OBSERVE_CONTEXT_STATE_FORMAT',
+    'OBSERVE_CONTEXT_POLICY_REFUSED', 'OBSERVE_OWNER_READ_FORMAT',
+    'OBSERVE_OWNER_REFUSED', 'OBSERVE_ADDRESS_CONTEXT_FORMAT',
+    'OBSERVE_RECEIPT_READ_FORMAT', 'OBSERVE_RECEIPT_REFUSED',
+    'OBSERVE_CONTEXT_CHANGED', 'OBSERVE_PARENT_REFUSED'))
 CHILD_RECIPE_EXTRA_CODES = frozenset(('wallet-recipe-restored-lock-required',
     'wallet-recipe-observation-refused', 'wallet-recipe-controls-unavailable',
     'wallet-recipe-control-ambiguous', 'wallet-recipe-command-uncertain',
@@ -453,6 +460,9 @@ def child_failure_projection(value):
     elif kind == 'HARNESS_REFUSED':
         checkpoint.need(code is None or value['phase'] == 'unlock'
             and type(code) is str and code in UNLOCK_FAILURE_CODES)
+    elif kind == 'FORMAT_ERROR':
+        checkpoint.need(code is None or value['phase'] == 'observe'
+            and type(code) is str and code in OBSERVE_FAILURE_CODES)
     else:
         checkpoint.need(code is None)
     if recipe is not None:
