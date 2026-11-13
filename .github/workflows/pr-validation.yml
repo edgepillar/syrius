@@ -58,7 +58,9 @@ jobs:
           test/wallet_ready/wallet_ready_capture_test.dart
 
       - name: Verify Lock picker symbols and seam refusal
-        run: flutter test test/lock/wallet_picker_test.dart --no-pub
+        run: >-
+          flutter test test/lock/lock_card_test.dart
+          test/lock/wallet_picker_test.dart --no-pub
 
       - name: Verify compact actions and Token details
         run: >-

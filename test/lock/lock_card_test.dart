@@ -16,6 +16,8 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/launch_film
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/lock_card.dart';
 
+import '../helpers/mockup_symbol.dart';
+
 const MethodChannel _window = MethodChannel('window_manager');
 const String _address = 'z1qq9n7fpaqd8lpcljandzmx4xtku9w4ftwyg0mq';
 const Key _password = ValueKey<String>('wallet_password_field');
@@ -276,10 +278,13 @@ void main() {
           findsOneWidget,
         );
         final AppTokens tokens = light ? AppTokens.light : AppTokens.dark;
-        final Icon warning = tester.widget<Icon>(
-          find.byIcon(Icons.warning_amber_outlined),
+        expectMockupSymbol(
+          tester,
+          within: find.byKey(const ValueKey<String>('lock_attempt_note')),
+          symbol: 'warn',
+          size: 14,
+          color: tokens.error,
         );
-        expect(warning.color, tokens.error);
         final TextField field = tester.widget<TextField>(find.byKey(_password));
         expect(field.decoration!.enabledBorder!.borderSide.color, tokens.error);
         expect(find.textContaining('removed from this computer'), findsNothing);

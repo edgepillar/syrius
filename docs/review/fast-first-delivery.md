@@ -11,6 +11,14 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
+[Source736](source736-lock-warning-test-coverage.md) updates two existing
+wrong-password cases to check the original SVG warning and includes the Lock
+card file in the early gate. Source735 passed all early checks and strict
+analysis, then reported 5,078 passes, two stale Material-icon finder failures
+and one skip in the full directory. Generation was skipped. Production
+behavior and case registrations are unchanged; fresh full CI remains required
+before native captures. The original failure stays preserved.
+
 [Source735](source735-compact-controls-and-glass.md) prepares shared primary
 insets, compact Collect, Token metadata/actions and Lock fields/symbols. The
 qualified Ready shadow painter is shared with Lock and its menu. The same
