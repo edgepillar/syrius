@@ -252,6 +252,9 @@ void main() {
         same(originalView),
       );
       final NavigatorState bodyNavigator = Navigator.of(page.context);
+      final OverlayState clientOverlay = Overlay.of(
+        page.context, rootOverlay: true,
+      );
       final OverlayState captionOverlay = Overlay.of(
         tester.element(control('window-minimize')),
       );
@@ -260,17 +263,23 @@ void main() {
         same(originalView),
       );
       expect(captionOverlay, isNot(same(bodyNavigator.overlay)));
+      expect(clientOverlay, isNot(same(bodyNavigator.overlay)));
+      expect(clientOverlay, isNot(same(captionOverlay)));
       expect(Overlay.of(page.context), same(bodyNavigator.overlay));
       expect(
         Overlay.of(page.context, rootOverlay: true),
-        same(bodyNavigator.overlay),
+        same(clientOverlay),
       );
       expect(
         Overlay.of(
           tester.element(control('window-minimize')),
           rootOverlay: true,
         ),
-        same(captionOverlay),
+        same(clientOverlay),
+      );
+      expect(
+        tester.getSize(find.byWidget(clientOverlay.widget)),
+        const Size(1280, 780),
       );
       expect(
         tester.getSize(find.byWidget(captionOverlay.widget)),
@@ -333,6 +342,9 @@ void main() {
       );
       final NavigatorState originalNavigator = navigator.currentState!;
       final OverlayState originalBodyOverlay = originalNavigator.overlay!;
+      final OverlayState originalClientOverlay = Overlay.of(
+        page.context, rootOverlay: true,
+      );
       final FocusScopeNode originalFocus = FocusScope.of(page.context);
       expect(Theme.of(page.context).brightness, Brightness.dark);
       expect(
@@ -342,7 +354,7 @@ void main() {
       expect(Overlay.of(page.context), same(originalBodyOverlay));
       expect(
         Overlay.of(page.context, rootOverlay: true),
-        same(originalBodyOverlay),
+        same(originalClientOverlay),
       );
       final OverlayState originalCaptionOverlay = Overlay.of(
         tester.element(control('window-minimize')),
@@ -383,7 +395,7 @@ void main() {
       expect(Overlay.of(after.context), same(originalBodyOverlay));
       expect(
         Overlay.of(after.context, rootOverlay: true),
-        same(originalBodyOverlay),
+        same(originalClientOverlay),
       );
       expect(
         Overlay.of(tester.element(control('window-minimize'))),
@@ -418,10 +430,13 @@ void main() {
       final Route<dynamic> original = observer.pushed.single;
       final NavigatorState originalNavigator = navigator.currentState!;
       final OverlayState bodyOverlay = originalNavigator.overlay!;
+      final OverlayState clientOverlay = Overlay.of(
+        page.context, rootOverlay: true,
+      );
       expect(Overlay.of(page.context), same(bodyOverlay));
       expect(
         Overlay.of(page.context, rootOverlay: true),
-        same(bodyOverlay),
+        same(clientOverlay),
       );
       final Future<void> push = originalNavigator.push<void>(
         MaterialPageRoute<void>(
@@ -448,7 +463,7 @@ void main() {
       expect(Overlay.of(barrierContext), same(bodyOverlay));
       expect(
         Overlay.of(barrierContext, rootOverlay: true),
-        same(bodyOverlay),
+        same(clientOverlay),
       );
       expect(navigator.currentState, same(originalNavigator));
       expect(
@@ -460,7 +475,7 @@ void main() {
       await modal;
       expect(page.disposals, 0);
       int intercepted = 0;
-      const Key probeKey = ValueKey<String>('body-root-overlay-probe');
+      const Key probeKey = ValueKey<String>('body-overlay-probe');
       final OverlayEntry probe = OverlayEntry(
         builder: (_) => Positioned.fill(
           child: Listener(
@@ -471,7 +486,7 @@ void main() {
           ),
         ),
       );
-      Overlay.of(page.context, rootOverlay: true).insert(probe);
+      bodyOverlay.insert(probe);
       try {
         await settle(tester);
         expect(

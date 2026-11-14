@@ -9,13 +9,49 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/event_toast.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/bell_panel.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/window_frame.dart';
 
+import '../../helpers/mockup_symbol.dart';
 import 'support.dart';
+
+class _WindowVariant extends TargetPlatformVariant {
+  const _WindowVariant(super.values);
+
+  @override
+  String describeValue(TargetPlatform value) => '';
+}
+
+const TargetPlatformVariant _windows = _WindowVariant(
+  <TargetPlatform>{TargetPlatform.windows},
+);
+
+List<MethodCall> _prepareFrame(WidgetTester tester) {
+  const MethodChannel channel = MethodChannel('window_manager');
+  final List<MethodCall> calls = <MethodCall>[];
+  tester.view
+    ..physicalSize = const Size(1280, 780)
+    ..devicePixelRatio = 1;
+  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+      .setMockMethodCallHandler(channel, (MethodCall call) async {
+        calls.add(call);
+        if (call.method == 'isMaximized' || call.method == 'isFullScreen') {
+          return false;
+        }
+        return null;
+      });
+  addTearDown(() {
+    tester.view.reset();
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, null);
+  });
+  return calls;
+}
 
 Widget _app(
   BellController controller, {
   bool dark = true,
   bool rtl = false,
+  bool framed = false,
   FocusNode? field,
   GlobalKey<NavigatorState>? navigator,
 }) => MaterialApp(
@@ -23,6 +59,9 @@ Widget _app(
   theme: dark ? AppTheme.darkTheme : AppTheme.lightTheme,
   localizationsDelegates: appLocalizationsDelegates,
   supportedLocales: AppLocalizations.supportedLocales,
+  builder: framed
+      ? (_, Widget? child) => AppWindowFrame(child: child!)
+      : null,
   home: Directionality(
     textDirection: rtl ? TextDirection.rtl : TextDirection.ltr,
     child: Scaffold(
@@ -59,8 +98,9 @@ void _bellTest(
     MemoryBellHistory history,
     BellController controller,
   )
-  body,
-) {
+  body, {
+  TestVariant<Object?> variant = const DefaultTestVariant(),
+}) {
   testWidgets(description, (WidgetTester tester) async {
     // Futures created by widget frames must finish before fake time stops.
     final MemoryBellHistory history = MemoryBellHistory();
@@ -70,7 +110,7 @@ void _bellTest(
     } finally {
       await _closeBell(tester, controller, history);
     }
-  });
+  }, variant: variant);
 }
 
 Future<void> _closeBell(
@@ -323,4 +363,162 @@ void main() {
       await statesClosed;
     }
   });
+
+  for (final bool dark in <bool>[false, true]) {
+    for (final bool rtl in <bool>[false, true]) {
+      _bellTest(
+        'the native client panel starts at zero, dark=$dark rtl=$rtl',
+        (
+          WidgetTester tester,
+          MemoryBellHistory history,
+          BellController controller,
+        ) async {
+          final List<MethodCall> calls = _prepareFrame(tester);
+          tester.binding.platformDispatcher.accessibilityFeaturesTestValue =
+              const FakeAccessibilityFeatures(disableAnimations: true);
+          addTearDown(
+            tester.binding.platformDispatcher
+                .clearAccessibilityFeaturesTestValue,
+          );
+          final FocusNode field = FocusNode();
+          addTearDown(field.dispose);
+          final GlobalKey<NavigatorState> navigator =
+              GlobalKey<NavigatorState>();
+          await tester.pumpWidget(_app(
+            controller, dark: dark, rtl: rtl, framed: true,
+            field: field, navigator: navigator,
+          ));
+          field.requestFocus();
+          await tester.pump();
+          final Rect body = tester.getRect(
+            find.byKey(const ValueKey<String>('window-body')),
+          );
+          final EditableTextState original = tester.state<EditableTextState>(
+            find.byType(EditableText),
+          );
+          expect(body.top, 32);
+          expect(body.size, const Size(1280, 748));
+          final Future<void> closed = showBellPanel(
+            context: tester.element(find.byKey(const Key('open_bell'))),
+            controller: controller,
+          );
+          await tester.pump();
+          await tester.pump(const Duration(milliseconds: 120));
+          final Finder panel = find.byKey(const Key('bell_panel'));
+          final ModalRoute<dynamic> route =
+              ModalRoute.of(tester.element(panel))!;
+          expect(route.settings.name, 'bell-panel');
+          expect(route.animation!.value, inExclusiveRange(0, 1));
+          expect(Navigator.of(tester.element(panel)),
+            same(navigator.currentState));
+          await tester.pump(const Duration(milliseconds: 120));
+          expect(route.animation!.value, 1);
+          final Rect rect = tester.getRect(panel);
+          expect(rect.top, 0);
+          expect(rect.bottom, 780);
+          expect(rect.width, 380);
+          expect(rtl ? rect.left : rect.right, rtl ? 0 : 1280);
+          expect(MediaQuery.sizeOf(tester.element(panel)),
+            const Size(1280, 780));
+          expect(tester.getRect(
+            find.byKey(const ValueKey<String>('window-body'))), body);
+          final Rect close = tester.getRect(
+            find.byKey(const Key('bell_close')),
+          );
+          expect(close.size, const Size(32, 32));
+          expect(tester.getSize(find.byKey(const Key('bell_header'))).height, 48);
+          expect(tester.getSize(find.byKey(const Key('bell_clear'))).height, 32);
+          expectMockupSymbol(
+            tester,
+            within: find.byKey(const Key('bell_close')),
+            symbol: 'x',
+            size: 14,
+            color: AppTokens.of(tester.element(panel)).faint,
+          );
+          final Offset captionPoint = Offset(close.center.dx, close.top + 4);
+          expect(captionPoint.dy, lessThan(32));
+          expect(close.contains(captionPoint), isTrue);
+          await tester.tapAt(captionPoint);
+          await tester.pump();
+          await tester.pump(const Duration(milliseconds: 120));
+          expect(route.animation!.status, AnimationStatus.reverse);
+          expect(route.animation!.value, inExclusiveRange(0, 1));
+          expect(panel, findsOneWidget);
+          await tester.pump(const Duration(milliseconds: 120));
+          await _finishOwnedFuture(tester, closed);
+          expect(find.byKey(const Key('bell_panel')), findsNothing);
+          expect(calls.where((MethodCall call) => call.method == 'close'),
+            isEmpty);
+          expect(tester.state<EditableTextState>(find.byType(EditableText)),
+            same(original));
+          expect(field.hasFocus, isTrue);
+          expect(FrostHold.count.value, 0);
+          expect(tester.takeException(), isNull);
+        },
+        variant: _windows,
+      );
+    }
+  }
+
+  _bellTest(
+    'a newer dialog stays interactive and restores the original panel',
+    (
+      WidgetTester tester,
+      MemoryBellHistory history,
+      BellController controller,
+    ) async {
+      _prepareFrame(tester);
+      final GlobalKey<NavigatorState> navigator = GlobalKey<NavigatorState>();
+      await tester.pumpWidget(_app(
+        controller, navigator: navigator, framed: true,
+      ));
+      final Future<void> closed = showBellPanel(
+        context: tester.element(find.byKey(const Key('open_bell'))),
+        controller: controller,
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 240));
+      final Element original = tester.element(
+        find.byKey(const Key('bell_panel')),
+      );
+      int taps = 0;
+      final Future<void> newer = navigator.currentState!.push<void>(
+        FrostedDialogRoute<void>(
+          barrierLabel: 'Close',
+          pageBuilder: (_, _, _) => Align(
+            alignment: Alignment.topRight,
+            child: Material(
+              child: TextButton(
+                key: const Key('newer_route_action'),
+                onPressed: () => taps++,
+                child: const Text('Newer route'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.byKey(const Key('bell_panel')), findsNothing);
+      expect(tester.element(find.byKey(
+        const Key('bell_panel'), skipOffstage: false)), same(original));
+      await tester.tap(find.byKey(const Key('newer_route_action')));
+      await tester.pump();
+      expect(taps, 1);
+      navigator.currentState!.pop();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      await _finishOwnedFuture(tester, newer);
+      expect(tester.element(find.byKey(const Key('bell_panel'))),
+        same(original));
+      controller.setPrivate(value: true);
+      await tester.pump();
+      await _finishOwnedFuture(tester, closed);
+      expect(find.byKey(const Key('bell_panel'), skipOffstage: false),
+        findsNothing);
+      expect(FrostHold.count.value, 0);
+      expect(tester.takeException(), isNull);
+    },
+    variant: _windows,
+  );
 }

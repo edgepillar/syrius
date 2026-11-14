@@ -11,22 +11,26 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
-[Source765](source765-home-field-raster.md) follows Source764 full Linux
-43635806741, with all thirteen required steps passing. Its Plasma
-slot/footer/state-retention and Swap RTL/scaled/symbol/menu cases pass;
-all dispatched outputs are consumed. Source764 native work is grouped after
-this Home packet. The stationary blurred light layer is now one bounded
-widget-owned image, retaining the source colors, blur, group opacity,
-eighteen/thirty-six-second drift, transform and separate theme base. Geometry,
-color, DPR, preset and owner changes retire the image; oversized requests use
-the original analytic paint. Three hosted cases extend the existing entry
-test file without new fixture names. That file joins strict analysis at 275
-and already runs in the early gate. Fresh full Linux precedes grouped
-Windows/image work. Latest native/image evidence remains Source763:
-38 Settings/general pairs viewed, 22 mismatches, 16 unresolved, no new
-acceptance and successful owned closure with both archives/full report
-retained. General captures remain pattern evidence. No performance
-improvement or Source744 cold-lock cause is established. Scope and pairs
+[Source766](source766-bell-client-layout.md) follows completed Source765
+qualification: full Linux 43638180557 passes all thirteen required steps;
+Windows 43639780927 and reader 43642361243 verify 1505 Dart/1220 Python
+cases with eighteen skips, zero selected findings, 123 reader controls and
+42 PNGs. Required actors and five lab nodes exit normally; auxiliary VCTIP
+cleanup leaves complete runner lifecycle unqualified. All 24 general pairs
+are individually viewed: 16 mismatches, 8 unresolved and no new acceptance.
+The archive and complete 21,342-byte report remain protected after successful
+owned closure; all dispatched outputs are consumed. General images remain
+pattern evidence. Fourteen Settings and four viewport images remain verified
+without another local transfer or local review. No speedup or Source744
+cold-lock cause is established.
+
+The original Bell route now uses a full-client portal while retaining the
+body Navigator, normal modal bounds and original state. Startup/replay select
+that Navigator explicitly. The header is compact, with the canonical close
+symbol. Five cases extend the existing Bell file for both themes/directions,
+caption input, entry/exit motion, focus/state retention, newer-route interaction
+and privacy closure. Strict selection becomes 277; Bell joins the early gate.
+Fresh full Linux precedes grouped Windows/image work. Scope and accepted pairs
 stay 76/80 and 2/94.
 
 [Source761](source761-address-action-gap.md) preserves Source760 full Linux

@@ -253,34 +253,36 @@ class AppWindowFrameState extends State<AppWindowFrame> {
         ),
       ),
     );
-    // Keep body lookups in the original Navigator and View ancestry.
-    // Only the caption uses the full-client tooltip Overlay.
-    return Stack(
-      fit: StackFit.expand,
-      children: <Widget>[
-        Column(
-          children: <Widget>[
-            SizedBox(height: tokens.windowCaptionHeight),
-            Expanded(
-              child: LayoutBuilder(
-                builder: (BuildContext context, BoxConstraints constraints) =>
-                    MediaQuery(
-                      key: const ValueKey<String>('window-body'),
-                      data: MediaQuery.of(
-                        context,
-                      ).copyWith(size: constraints.biggest),
-                      child: widget.child,
-                    ),
+    // Preserve the original Navigator body bounds and View ancestry.
+    // Route-owned panels can use the outer overlay's full client bounds.
+    return Overlay.wrap(
+      child: Stack(
+        fit: StackFit.expand,
+        children: <Widget>[
+          Column(
+            children: <Widget>[
+              SizedBox(height: tokens.windowCaptionHeight),
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (BuildContext context, BoxConstraints constraints) =>
+                      MediaQuery(
+                        key: const ValueKey<String>('window-body'),
+                        data: MediaQuery.of(
+                          context,
+                        ).copyWith(size: constraints.biggest),
+                        child: widget.child,
+                      ),
+                ),
               ),
-            ),
-          ],
-        ),
-        Positioned.fill(
-          child: Overlay.wrap(
-            child: Align(alignment: Alignment.topCenter, child: caption),
+            ],
           ),
-        ),
-      ],
+          Positioned.fill(
+            child: Overlay.wrap(
+              child: Align(alignment: Alignment.topCenter, child: caption),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

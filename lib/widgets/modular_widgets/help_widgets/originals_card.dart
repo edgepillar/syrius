@@ -245,7 +245,8 @@ class _OriginalsCardState extends State<OriginalsCard>
 
   void _replay(bool Function() current) {
     if (_entry != null || !current()) return;
-    final OverlayState overlay = Overlay.of(context, rootOverlay: true);
+    final OverlayState overlay =
+        Navigator.of(context, rootNavigator: true).overlay!;
     final Object run = Object();
     _run = run;
     _returnFocus = FocusManager.instance.primaryFocus;

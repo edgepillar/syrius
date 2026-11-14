@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart'
+    show OverlayChildLocation, OverlayPortal, OverlayPortalController;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/notifications/bell_controller.dart';
@@ -8,6 +10,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buil
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/event_toast.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/notifications_tab_child.dart';
 
 export 'package:zenon_syrius_wallet_flutter/rearchitecture/features/notifications/bell_controller.dart';
@@ -19,6 +22,7 @@ Future<void> showBellPanel({
 }) async {
   if (controller.state.private || !context.mounted) return;
   final NavigatorState navigator = Navigator.of(context, rootNavigator: true);
+  final ModalRoute<dynamic>? originRoute = ModalRoute.of(context);
   final FocusNode? previousFocus = FocusManager.instance.primaryFocus;
   final CapturedThemes themes = InheritedTheme.capture(
     from: context,
@@ -35,56 +39,20 @@ Future<void> showBellPanel({
     sigma: 0,
     traversalEdgeBehavior: TraversalEdgeBehavior.closedLoop,
     transitionDuration: const Duration(milliseconds: 240),
-    pageBuilder: (_, _, _) => themes.wrap(
+    pageBuilder: (_, Animation<double> animation, _) => themes.wrap(
       Directionality(
         textDirection: direction,
-        child: Align(
-          alignment: AlignmentDirectional.centerEnd,
-          child: BellPanel(controller: controller),
+        child: _BellClientSurface(
+          animation: animation,
+          direction: direction,
+          child: Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: BellPanel(controller: controller),
+          ),
         ),
       ),
     ),
-    transitionBuilder:
-        (
-          BuildContext context,
-          Animation<double> animation,
-          Animation<double> secondary,
-          Widget child,
-        ) {
-          final Animation<double> motion = animation.drive(
-            CurveTween(curve: AppTokens.of(context).spring),
-          );
-          return AnimatedBuilder(
-            animation: motion,
-            child: child,
-            builder: (_, Widget? child) => IgnorePointer(
-              ignoring:
-                  animation.status == AnimationStatus.reverse ||
-                  animation.value == 0,
-              child: ExcludeFocus(
-                excluding:
-                    animation.status == AnimationStatus.reverse ||
-                    animation.value == 0,
-                child: ExcludeSemantics(
-                  excluding:
-                      animation.status == AnimationStatus.reverse ||
-                      animation.value == 0,
-                  child: Opacity(
-                    opacity: motion.value,
-                    child: Transform.translate(
-                      offset: Offset(
-                        (direction == TextDirection.ltr ? 24 : -24) *
-                            (1 - motion.value),
-                        0,
-                      ),
-                      child: child,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
+    transitionBuilder: (_, _, _, Widget child) => child,
   );
   final StreamSubscription<BellState> privacy = controller.stream.listen(
     (BellState state) {
@@ -112,10 +80,114 @@ Future<void> showBellPanel({
   }
   if (!controller.state.private &&
       context.mounted &&
+      (originRoute?.isCurrent ?? true) &&
       previousFocus?.context != null &&
       previousFocus!.canRequestFocus) {
     previousFocus.requestFocus();
   }
+}
+
+/// Paints this original route's panel in the frame's full client overlay.
+/// The route, inherited owners and shell controller stay in the same subtree.
+class _BellClientSurface extends StatefulWidget {
+  const _BellClientSurface({
+    required Animation<double> animation,
+    required TextDirection direction,
+    required Widget child,
+  }) : _animation = animation,
+       _direction = direction,
+       _child = child;
+
+  final Animation<double> _animation;
+  final TextDirection _direction;
+  final Widget _child;
+
+  @override
+  State<_BellClientSurface> createState() => _BellClientSurfaceState();
+}
+
+class _BellClientSurfaceState extends State<_BellClientSurface> {
+  late final OverlayPortalController _portal;
+
+  @override
+  void initState() {
+    super.initState();
+    // The controller is unattached here, before the portal's first build.
+    _portal = OverlayPortalController()..show();
+  }
+
+  @override
+  Widget build(BuildContext context) => OverlayPortal(
+    controller: _portal,
+    overlayLocation: OverlayChildLocation.rootOverlay,
+    overlayChildBuilder: (BuildContext context) {
+      final bool current = ModalRoute.of(context)?.isCurrent ?? false;
+      return AnimatedBuilder(
+        animation: widget._animation,
+        child: LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) =>
+              MediaQuery(
+                data: MediaQuery.of(context).copyWith(
+                  size: constraints.biggest,
+                ),
+                child: _buildBellMotion(
+                  context, widget._animation, widget._direction,
+                  widget._child,
+                ),
+              ),
+        ),
+        builder: (_, Widget? child) => Visibility(
+          // A popped route loses isCurrent before its reverse motion ends.
+          visible: current ||
+              widget._animation.status == AnimationStatus.reverse,
+          maintainState: true,
+          child: ExcludeFocus(excluding: !current, child: child!),
+        ),
+      );
+    },
+    child: const SizedBox.expand(),
+  );
+}
+
+Widget _buildBellMotion(
+  BuildContext context,
+  Animation<double> animation,
+  TextDirection direction,
+  Widget child,
+) {
+  final Animation<double> motion = animation.drive(
+    CurveTween(curve: AppTokens.of(context).spring),
+  );
+  return AnimatedBuilder(
+    animation: motion,
+    child: child,
+    builder: (_, Widget? child) => IgnorePointer(
+      ignoring:
+          animation.status == AnimationStatus.reverse ||
+          animation.value == 0,
+      child: ExcludeFocus(
+        excluding:
+            animation.status == AnimationStatus.reverse ||
+            animation.value == 0,
+        child: ExcludeSemantics(
+          excluding:
+              animation.status == AnimationStatus.reverse ||
+              animation.value == 0,
+          child: Opacity(
+            opacity: motion.value,
+            child: Transform.translate(
+              offset: Offset(
+                (direction == TextDirection.ltr ? 24 : -24) *
+                    (1 - motion.value),
+                0,
+              ),
+              child: child,
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
 }
 
 /// The frosted history and connection-decision panel at the reading edge.
@@ -171,12 +243,8 @@ class BellPanel extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: <Widget>[
                             Padding(
-                              padding: const EdgeInsetsDirectional.fromSTEB(
-                                16,
-                                8,
-                                8,
-                                8,
-                              ),
+                              key: const Key('bell_header'),
+                              padding: tokens.bellHeaderPadding,
                               child: Row(
                                 children: <Widget>[
                                   Expanded(
@@ -189,6 +257,19 @@ class BellPanel extends StatelessWidget {
                                   ),
                                   TextButton(
                                     key: const Key('bell_clear'),
+                                    style: TextButton.styleFrom(
+                                      minimumSize: Size(
+                                        0, tokens.bellHeaderControlSize,
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                      ),
+                                      foregroundColor: tokens.dim,
+                                      textStyle: tokens.bellClearText,
+                                      visualDensity: VisualDensity.standard,
+                                      tapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
+                                    ),
                                     onPressed: state.records.isEmpty
                                         ? null
                                         : () => unawaited(
@@ -198,12 +279,30 @@ class BellPanel extends StatelessWidget {
                                   ),
                                   IconButton(
                                     key: const Key('bell_close'),
+                                    style: IconButton.styleFrom(
+                                      minimumSize: Size.square(
+                                        tokens.bellHeaderControlSize,
+                                      ),
+                                      maximumSize: Size.square(
+                                        tokens.bellHeaderControlSize,
+                                      ),
+                                      padding: EdgeInsets.zero,
+                                      visualDensity: VisualDensity.standard,
+                                      tapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
+                                    ),
+                                    constraints: BoxConstraints.tightFor(
+                                      width: tokens.bellHeaderControlSize,
+                                      height: tokens.bellHeaderControlSize,
+                                    ),
+                                    padding: EdgeInsets.zero,
                                     tooltip: context.l10n.commonClose,
                                     onPressed: () =>
                                         Navigator.of(context).maybePop(),
-                                    icon: Icon(
-                                      Icons.close,
-                                      size: 16,
+                                    icon: buildShellSymbol(
+                                      context,
+                                      'x',
+                                      size: tokens.bellCloseGlyphSize,
                                       color: tokens.faint,
                                     ),
                                   ),

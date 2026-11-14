@@ -1561,6 +1561,20 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The notification panel's width at the reading edge.
   double get bellPanelWidth => 380;
 
+  /// Compact header controls keep the panel's title row at 48 pixels.
+  double get bellHeaderControlSize => 32;
+
+  /// The original small close symbol in the notification header.
+  double get bellCloseGlyphSize => 14;
+
+  /// The panel header's reading-start inset and compact vertical space.
+  EdgeInsetsDirectional get bellHeaderPadding =>
+      const EdgeInsetsDirectional.fromSTEB(16, 8, 8, 8);
+
+  /// The original extra-small Clear action.
+  TextStyle get bellClearText =>
+      bodyText.copyWith(fontSize: 12, fontWeight: FontWeight.w500);
+
   /// The content inset of a floating toast.
   EdgeInsetsDirectional get toastPadding =>
       const EdgeInsetsDirectional.fromSTEB(14, 12, 14, 10);

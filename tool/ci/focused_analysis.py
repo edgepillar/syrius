@@ -98,6 +98,8 @@ SELECTED_DART_SOURCES = (
     'test/sentinels/view/sentinel_values_test.dart',
     'test/sentinels_by_owner/view/sentinel_strip_test.dart',
     'test/shell/rail_test.dart',
+    'lib/widgets/shell/bell_panel.dart',
+    'test/shell/bell/bell_panel_test.dart',
     'test/helpers/mockup_symbol.dart',
     'lib/rearchitecture/features/fused_plasma/view/fused_plasma_card.dart',
     'test/plasma_redesign/plasma_list_test.dart',

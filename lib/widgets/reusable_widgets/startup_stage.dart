@@ -124,7 +124,7 @@ class StartupStageSession implements Listenable {
       maintainState: true,
       builder: (_) => _StartupStage(session: this),
     );
-    Overlay.of(context, rootOverlay: true).insert(_entry!);
+    Navigator.of(context, rootNavigator: true).overlay!.insert(_entry!);
   }
 
   /// Binds the existing shell callbacks without rebuilding another owner.
