@@ -11,22 +11,22 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
-[Source763](source763-settings-switch-end-alignment.md) follows
-Source762 full Linux 43620349386, which passes all thirteen required steps.
-Windows Settings 43621807638 and reader 43623432326 verify 1505 Dart cases,
-1220 Python cases/eighteen skips, zero selected findings and 42 PNGs.
-Required actors and five lab nodes exit normally; auxiliary compiler cleanup
-still leaves complete runner lifecycle unqualified. All fourteen Settings
-pairs are viewed and retain differences, with no new accepted pair. The
-archive and full report are retained with successful owned closure. Source762
-heading, menu, tabular-preference, ledger and outline-action corrections are
-visible. The new packet moves switch input padding to the leading side so
-the visible track reaches the reference edge, preserving the 48 by 32 input
-area, vertical insets, clocks, focus and semantics. Existing cases extend
-physical/end and input checks without added/removed cases. The implementation
-and test join strict analysis at 270 sources and the test joins the early
-gate. Fresh full Linux precedes grouped native/image work. Scope and pairs
-stay 76/80 and 2/94.
+[Source764](source764-plasma-swap-layout.md) follows Source763 full Linux
+43626703110, with all thirteen required steps passing. Windows 43628213156
+and reader 43630226377 verify 1505 Dart cases, 1220 Python cases/eighteen skips,
+zero selected findings and 42 PNGs. Required actors and five lab nodes exit
+normally; auxiliary VCTIP termination leaves complete runner lifecycle
+unqualified. All 38 Settings/general originals are individually reviewed:
+22 mismatches, 16 unresolved and no new accepted pair. Both archives and the
+31,513-byte report are retained with successful owned closure. General
+captures remain pattern evidence. The empty Staking Rewards footer and the
+owner's heatmap/dark well remain after source review. The new packet reduces
+the Plasma slot to 120 pixels, aligns the Swap heading, moves Refresh into
+More and uses canonical Start/Join symbols. Existing cases extend geometry,
+original-State retention and menu callback checks without added/removed
+cases or filenames. Strict selection grows from 270 to 274 and the existing
+well/Swap tests join the early gate. Fresh full Linux precedes grouped
+affected native/image work. Scope and pairs stay 76/80 and 2/94.
 
 [Source761](source761-address-action-gap.md) preserves Source760 full Linux
 43609477103 as failed after strict analysis, Ready and Lock pass. Both added

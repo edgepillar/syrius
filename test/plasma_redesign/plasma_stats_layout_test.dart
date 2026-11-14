@@ -99,6 +99,8 @@ void main() {
             const Key('plasma_other_addresses'),
           );
           final Element originalDisclosure = tester.element(disclosure);
+          expect(tester.getSize(mark), const Size.square(120));
+          expect(tester.getTopLeft(mark).dy - card.top, 22);
           expect(tester.getBottomRight(toggle).dy, card.bottom);
           final double restingTop = tester.getTopLeft(toggle).dy;
 
@@ -113,6 +115,9 @@ void main() {
           expect(openTop, greaterThan(card.top + card.height * .35));
           expect(openTop, lessThan(card.top + card.height * .65));
           expect(tester.state<State<PlasmaGlow>>(mark), same(glow));
+          final Size openMark = tester.getSize(mark);
+          expect(openMark.width, inInclusiveRange(96, 120));
+          expect(openMark.height, openMark.width);
           expect(tester.element(disclosure), same(originalDisclosure));
           expect(tester.takeException(), isNull);
 
@@ -124,6 +129,7 @@ void main() {
           expect(closingTop, lessThan(restingTop));
           await tester.pump(const Duration(milliseconds: 240));
           expect(tester.getBottomRight(toggle).dy, card.bottom);
+          expect(tester.getSize(mark), const Size.square(120));
           expect(tester.state<State<PlasmaGlow>>(mark), same(glow));
           expect(tester.element(disclosure), same(originalDisclosure));
           expect(tester.widget<Disclosure>(disclosure).keepAlive, isTrue);

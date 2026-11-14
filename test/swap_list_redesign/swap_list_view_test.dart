@@ -16,6 +16,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_wid
 import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/p2p_swap_tab_child.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+import '../helpers/mockup_symbol.dart';
 import 'support.dart';
 
 Future<void> frames(WidgetTester tester, [int count = 16]) async {
@@ -147,11 +148,12 @@ void main() {
         final SwapListPresenter presenter = SwapListPresenter(source.bind());
         await presenter.load();
         int starts = 0;
+        int refreshes = 0;
         await tester.pumpWidget(
           host(
             SwapListView(
               presenter: presenter,
-              onRefresh: () {},
+              onRefresh: () => refreshes++,
               onStart: () => starts++,
               onJoin: () {},
               onOpen: (_) {},
@@ -166,6 +168,29 @@ void main() {
         await frames(tester);
         expect(find.byKey(const Key('p2p_swaps_strip')), findsOneWidget);
         expect(find.byKey(const Key('p2p_swaps_list')), findsOneWidget);
+        final Rect list = tester.getRect(
+          find.byKey(const Key('p2p_swaps_list')),
+        );
+        final Rect title = tester.getRect(find.text('Swaps'));
+        expect(rtl ? list.right - title.right : title.left - list.left, 16);
+        expectMockupSymbol(
+          tester,
+          within: find.byKey(const Key('p2p_join_swap')),
+          symbol: 'link',
+          size: 18,
+        );
+        expectMockupSymbol(
+          tester,
+          within: find.byKey(const Key('p2p_start_swap')),
+          symbol: 'plus',
+          size: 18,
+        );
+        expect(find.byKey(const Key('swap_refresh')), findsNothing);
+        await tester.tap(find.byKey(const Key('p2p_swaps_menu')));
+        await frames(tester, 12);
+        await tester.tap(find.byKey(const Key('swap_refresh')));
+        await frames(tester, 12);
+        expect(refreshes, 1);
         expect(find.byType(P2pSwapsListItem), findsNWidgets(3));
         expect(
           find.text('Waiting for the counterparty. Keep Syrius open.'),

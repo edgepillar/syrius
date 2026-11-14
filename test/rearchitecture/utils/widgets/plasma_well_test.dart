@@ -1,14 +1,14 @@
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/plasma_well.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 
 // The shader does not load under test, so a box of the mark's size stands in
 // for PlasmaGlow, set in the well as each call site sets it.
 
-/// The Plasma page's mark: a 200 px square, the disc as wide.
+/// The Plasma page's reference slot: a 120 px square, the disc as wide.
 Widget _pageMark() => const PlasmaWell(
-  child: SizedBox.square(key: Key('plasma_page_mark'), dimension: 200),
+  child: SizedBox.square(key: Key('plasma_page_mark'), dimension: 120),
 );
 
 /// The status strip's mark: 36 px under a radial fade, the disc 38 px.
@@ -40,7 +40,7 @@ Finder _wellOf(String mark) => find.descendant(
 void main() {
   final Map<String, ({Widget Function() build, double disc})> sites =
       <String, ({Widget Function() build, double disc})>{
-        'plasma_page_mark': (build: _pageMark, disc: 200),
+        'plasma_page_mark': (build: _pageMark, disc: 120),
         'strip_plasma': (build: _stripMark, disc: 38),
       };
 

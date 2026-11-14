@@ -10,6 +10,8 @@ import 'package:zenon_syrius_wallet_flutter/utils/toast_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_widgets/swap_list_presenter.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show ShellSymbol;
 
 /// The counts and actions share the table's one complete captured snapshot.
 class P2pSwapOptionsCard extends StatelessWidget {
@@ -66,7 +68,7 @@ class P2pSwapOptionsCard extends StatelessWidget {
               ? null
               : () => _invoke(context, onJoin!),
           style: secondaryButtonStyle(context),
-          icon: Icon(Icons.link, size: tokens.railIconSize),
+          icon: ShellSymbol('link', size: tokens.actionGlyphSize),
           label: Text(context.l10n.swapListJoin),
         ),
         PrimaryPill(
@@ -74,7 +76,7 @@ class P2pSwapOptionsCard extends StatelessWidget {
           onPressed: onStart == null || binding?.ownsResources() != true
               ? null
               : () => _invoke(context, onStart!),
-          icon: Icon(Icons.add, size: tokens.railIconSize),
+          icon: ShellSymbol('plus', size: tokens.actionGlyphSize),
           child: Text(context.l10n.swapListStart),
         ),
       ],

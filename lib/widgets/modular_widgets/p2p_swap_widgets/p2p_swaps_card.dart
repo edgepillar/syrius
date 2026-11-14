@@ -13,7 +13,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/p2p_swap_wid
 
 enum _Filter { all, active, completed, reclaimable }
 
-enum _Menu { recover, tutorial, clear }
+enum _Menu { refresh, recover, tutorial, clear }
 
 /// One complete catalogue; filters never perform a second independent read.
 class P2pSwapsCard extends StatefulWidget {
@@ -77,16 +77,22 @@ class _P2pSwapsCardState extends State<P2pSwapsCard> {
     return Panel(
       key: const Key('p2p_swaps_list'),
       title: context.l10n.swapListTitle,
-      heading: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Text(context.l10n.swapListTitle, style: tokens.headingText),
-          SizedBox(width: tokens.inlineGap),
-          Text(
-            snapshot?.rows.length.toString() ?? context.l10n.swapListUnknown,
-            style: tokens.captionText,
-          ),
-        ],
+      heading: Padding(
+        padding: EdgeInsetsDirectional.only(
+          start:
+              tokens.panelHeaderPadding.start - tokens.tabHeaderPadding.start,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Text(context.l10n.swapListTitle, style: tokens.headingText),
+            SizedBox(width: tokens.inlineGap),
+            Text(
+              snapshot?.rows.length.toString() ?? context.l10n.swapListUnknown,
+              style: tokens.ledgerText,
+            ),
+          ],
+        ),
       ),
       actions: <Widget>[
         if (snapshot != null && snapshot.rows.length >= kMaxP2pSwapsToStore)
@@ -134,16 +140,6 @@ class _P2pSwapsCardState extends State<P2pSwapsCard> {
             ),
           ),
         ),
-        IconButton(
-          key: const Key('swap_refresh'),
-          tooltip: context.l10n.swapListRefresh,
-          onPressed: presenter?.loading == true ? null : widget.onRefresh,
-          icon: Icon(
-            Icons.refresh,
-            size: tokens.settingsIconSize,
-            color: tokens.faint,
-          ),
-        ),
         PopupMenuButton<_Menu>(
           key: const Key('p2p_swaps_menu'),
           tooltip: context.l10n.swapListMore,
@@ -154,6 +150,8 @@ class _P2pSwapsCardState extends State<P2pSwapsCard> {
           ),
           onSelected: (_Menu value) {
             switch (value) {
+              case _Menu.refresh:
+                widget.onRefresh();
               case _Menu.recover:
                 widget.onRecover();
               case _Menu.tutorial:
@@ -163,6 +161,12 @@ class _P2pSwapsCardState extends State<P2pSwapsCard> {
             }
           },
           itemBuilder: (BuildContext context) => <PopupMenuEntry<_Menu>>[
+            PopupMenuItem<_Menu>(
+              key: const Key('swap_refresh'),
+              value: _Menu.refresh,
+              enabled: presenter?.loading != true,
+              child: Text(context.l10n.swapListRefresh),
+            ),
             PopupMenuItem<_Menu>(
               value: _Menu.recover,
               enabled: current,

@@ -72,6 +72,8 @@ jobs:
           test/settings_apps_redesign/apps_settings_view_test.dart
           test/plasma_redesign/plasma_list_test.dart
           test/plasma_redesign/plasma_stats_layout_test.dart
+          test/rearchitecture/utils/widgets/plasma_well_test.dart
+          test/swap_list_redesign/swap_list_view_test.dart
           test/segment/segment_test.dart
           test/segment/segment_availability_test.dart
           test/segment/segment_heading_test.dart

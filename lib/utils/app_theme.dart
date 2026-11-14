@@ -613,8 +613,8 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The Plasma well is distinct from the beneficiary's owned-fusion list.
   double get plasmaWellWidth => 340;
 
-  /// The original Plasma mark's resting size in its dark well.
-  double get plasmaMarkSize => 200;
+  /// The reference mark's layout slot, retaining the original heatmap.
+  double get plasmaMarkSize => 120;
 
   /// Keeps the mark legible in the minimum window.
   double get plasmaMarkMinSize => 96;
