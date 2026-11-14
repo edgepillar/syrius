@@ -501,6 +501,18 @@ class AppTokens extends ThemeExtension<AppTokens> {
   EdgeInsetsDirectional get lockFieldPadding =>
       const EdgeInsetsDirectional.symmetric(horizontal: 12);
 
+  /// Aligns the input's leading ink with the reference field inset.
+  EdgeInsetsDirectional lockPasswordFieldPadding({required bool masked}) {
+    final EdgeInsetsDirectional field = lockFieldPadding;
+    // The native input starts 3 px beyond the reference. Mask tracking also
+    // contributes half an advance before its first glyph.
+    final double leading =
+        3 + (masked ? lockPasswordText.letterSpacing! / 2 : 0);
+    return EdgeInsetsDirectional.fromSTEB(
+      field.start - leading, field.top, field.end, field.bottom,
+    );
+  }
+
   /// The entry action remains a compact gradient pill.
   double get lockActionHeight => 46;
 

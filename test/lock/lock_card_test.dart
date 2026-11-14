@@ -396,13 +396,26 @@ void main() {
     );
     await tester.tap(find.byKey(_unlock));
     expect(submitted, isEmpty);
+    final Finder editor = find.descendant(
+      of: find.byKey(_password),
+      matching: find.byType(EditableText),
+    );
+    final EditableTextState owner = tester.state<EditableTextState>(editor);
+    final double emptyStart = tester.getTopLeft(editor).dx;
+    final Rect fieldBounds = tester.getRect(find.byKey(_password));
     await tester.enterText(find.byKey(_password), 'fixture password');
+    await tester.pump();
+    expect(tester.getTopLeft(editor).dx, closeTo(emptyStart - 1.4, .01));
+    expect(tester.getRect(find.byKey(_password)), fieldBounds);
+    expect(tester.state(editor), same(owner));
     await tester.tap(find.byTooltip('Show password'));
     await tester.pump();
     expect(
       tester.widget<TextField>(find.byKey(_password)).obscureText,
       isFalse,
     );
+    expect(tester.getTopLeft(editor).dx, closeTo(emptyStart, .01));
+    expect(tester.state(editor), same(owner));
     expect(find.byTooltip('Hide password'), findsOneWidget);
     await tester.tap(find.byKey(_unlock));
     expect(submitted, <String>['fixture password']);
@@ -413,6 +426,11 @@ void main() {
     final TextField field = tester.widget<TextField>(find.byKey(_password));
     expect(field.autocorrect, isFalse);
     expect(field.enableSuggestions, isFalse);
+    password.clear();
+    await tester.pump();
+    expect(tester.getTopLeft(editor).dx, closeTo(emptyStart, .01));
+    expect(tester.state(editor), same(owner));
+    expect(submitted, <String>['fixture password', 'fixture password']);
   });
 
   testWidgets('busy state refuses submit and re-hides a revealed password', (

@@ -11,6 +11,16 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
+[Source746](source746-lock-leading-content.md) corrects the remaining Lock
+input leading offset after Source745 passes full Linux, Windows capture and
+its independent reader. All six actual/reference pairs are viewed. The caret,
+light-picker tooltips and extra status strips are gone; placeholder ink is
+3 px too far right and mask ink about 4.4 px. The local field builder follows
+typing, reveal and clear while retaining its owners. Existing cases extend
+actual editable geometry and state retention without new registrations.
+Fresh hosted/native qualification remains required. Scope stays 76/80 and
+accepted pairs 2/94; earlier performance failures stay open.
+
 [Source745](source745-lock-status-and-resting-input.md) follows successful full
 Linux and independent Windows acquisition/readers at Source744. All six Lock
 pairs are reviewed: two unresolved and four mismatches. No new match or cache

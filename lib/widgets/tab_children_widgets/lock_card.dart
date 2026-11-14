@@ -418,76 +418,81 @@ class _LockCardState extends State<LockCard>
       SizedBox(height: tokens.fieldLabelGap),
       AnimatedBuilder(
         animation: _shake,
-        child: TextField(
-          key: const ValueKey<String>('wallet_password_field'),
-          controller: widget.passwordController,
-          focusNode: _passwordFocus,
-          autofocus:
-              _passwordEnabled && (widget.startup?.interactive ?? true),
-          enabled: _passwordEnabled,
-          obscureText: _obscure,
-          enableSuggestions: false,
-          autocorrect: false,
-          style: _obscure ? tokens.lockPasswordText : tokens.dataText,
-          onSubmitted: (_) => _submit(),
-          decoration: InputDecoration(
-            isDense: true,
-            filled: true,
-            fillColor: tokens.card2,
-            hoverColor: Colors.transparent,
-            focusColor: Colors.transparent,
-            contentPadding: tokens.lockFieldPadding,
-            constraints: BoxConstraints.tightFor(
-              height: math.max(
-                tokens.fieldHeight,
-                MediaQuery.textScalerOf(context)
-                        .scale(tokens.dataText.fontSize!) *
-                    (tokens.dataText.height ?? 1) +
-                    2,
+        child: ListenableBuilder(
+          listenable: widget.passwordController,
+          builder: (BuildContext context, Widget? _) => TextField(
+            key: const ValueKey<String>('wallet_password_field'),
+            controller: widget.passwordController,
+            focusNode: _passwordFocus,
+            autofocus:
+                _passwordEnabled && (widget.startup?.interactive ?? true),
+            enabled: _passwordEnabled,
+            obscureText: _obscure,
+            enableSuggestions: false,
+            autocorrect: false,
+            style: _obscure ? tokens.lockPasswordText : tokens.dataText,
+            onSubmitted: (_) => _submit(),
+            decoration: InputDecoration(
+              isDense: true,
+              filled: true,
+              fillColor: tokens.card2,
+              hoverColor: Colors.transparent,
+              focusColor: Colors.transparent,
+              contentPadding: tokens.lockPasswordFieldPadding(
+                masked: _obscure && widget.passwordController.text.isNotEmpty,
               ),
-            ),
-            hintText: context.l10n.password,
-            hintStyle: tokens.bodyText.copyWith(
-              color: tokens.faint,
-              letterSpacing: 0,
-            ),
-            enabledBorder: _passwordBorder(tokens),
-            focusedBorder: _passwordBorder(tokens),
-            disabledBorder: _passwordBorder(tokens),
-            suffixIconConstraints: BoxConstraints.tightFor(
-              width: tokens.fieldHeight,
-              height: tokens.fieldHeight,
-            ),
-            suffixIcon: _pickerExpanded
-                ? const SizedBox.shrink()
-                : IconButton(
-                  tooltip: _obscure
-                      ? context.l10n.lockShowPassword
-                      : context.l10n.lockHidePassword,
-                  padding: EdgeInsets.zero,
-                  constraints: BoxConstraints.tightFor(
-                    width: tokens.fieldHeight,
-                    height: tokens.fieldHeight,
-                  ),
-                  onPressed: _passwordEnabled
-                      ? () {
-                          if (_passwordEnabled) {
-                            setState(() => _obscure = !_obscure);
-                          }
-                        }
-                      : null,
-                  icon: _obscure
-                      ? ShellSymbol(
-                          'eye',
-                          size: tokens.lockGlyphSize,
-                          color: tokens.faint,
-                        )
-                      : Icon(
-                          Icons.visibility_off_outlined,
-                          size: tokens.lockGlyphSize,
-                          color: tokens.faint,
-                        ),
+              constraints: BoxConstraints.tightFor(
+                height: math.max(
+                  tokens.fieldHeight,
+                  MediaQuery.textScalerOf(context)
+                          .scale(tokens.dataText.fontSize!) *
+                      (tokens.dataText.height ?? 1) +
+                      2,
                 ),
+              ),
+              hintText: context.l10n.password,
+              hintStyle: tokens.bodyText.copyWith(
+                color: tokens.faint,
+                letterSpacing: 0,
+              ),
+              enabledBorder: _passwordBorder(tokens),
+              focusedBorder: _passwordBorder(tokens),
+              disabledBorder: _passwordBorder(tokens),
+              suffixIconConstraints: BoxConstraints.tightFor(
+                width: tokens.fieldHeight,
+                height: tokens.fieldHeight,
+              ),
+              suffixIcon: _pickerExpanded
+                  ? const SizedBox.shrink()
+                  : IconButton(
+                    tooltip: _obscure
+                        ? context.l10n.lockShowPassword
+                        : context.l10n.lockHidePassword,
+                    padding: EdgeInsets.zero,
+                    constraints: BoxConstraints.tightFor(
+                      width: tokens.fieldHeight,
+                      height: tokens.fieldHeight,
+                    ),
+                    onPressed: _passwordEnabled
+                        ? () {
+                            if (_passwordEnabled) {
+                              setState(() => _obscure = !_obscure);
+                            }
+                          }
+                        : null,
+                    icon: _obscure
+                        ? ShellSymbol(
+                            'eye',
+                            size: tokens.lockGlyphSize,
+                            color: tokens.faint,
+                          )
+                        : Icon(
+                            Icons.visibility_off_outlined,
+                            size: tokens.lockGlyphSize,
+                            color: tokens.faint,
+                          ),
+                  ),
+            ),
           ),
         ),
         builder: (BuildContext context, Widget? child) => Transform.translate(
