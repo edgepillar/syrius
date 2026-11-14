@@ -11,21 +11,27 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
-[Source769](source769-bell-transition-completion.md) follows Source768 full
-Linux 43649738310: 1226 Python controls, patched/global and 280-source strict
-analysis, Ready and Lock pass. The compact gate reports four framed Bell
-variants at final panel absence; the newer-dialog case and both Accelerator
-gap/original-symbol cases pass. Full directory and generation are skipped.
-The complete 441,327-byte log is retained after successful owned closure;
-all outputs are consumed without retrying CI.
+[Source770](source770-control-metrics.md) groups the prepared Bell completion
+correction with compact Node collection controls, scoped Send fields/native
+coin/symbols and full-height search decoration. Collect measures its actual
+localized/scaled label, retains the original loader key and motion, and uses
+a thirty-pixel height. Send fields use an eight-pixel radius and a forty-two-
+pixel token field that grows for scaled text. Original data, callbacks,
+financial owners and other Transfer radii remain.
 
-Bell now waits for its original route's completed transition before returning.
-The 240 ms duration, intermediate reverse-motion checks, original final
-absence/focus assertions and privacy owner remain. Framed cases also check
-that completion waits for reverse motion. The existing frame suite joins
-the early gate; no case or fixture filename is added. Fresh full Linux is
-grouped with the following control-metrics packet. Strict selection stays
-280; no Source769 native run is dispatched.
+Existing dark/light cases extend real geometry and original-symbol checks;
+the original collection case also checks the busy circle and same-state
+return. Strict selection becomes 282. Node rewards, Send and Pillars join
+the early Bell/frame gate without a new case or fixture filename. No
+Source769 hosted run was dispatched. One fresh combined full Linux is
+required before grouped native/image qualification.
+
+Source768 full Linux 43649738310 passes 1226 Python controls, patched/global
+and 280-source strict analysis, Ready and Lock. Four Bell final-absence
+failures remain, with the newer-dialog and Accelerator cases passing.
+Full directory and generation are skipped. Its complete 441,327-byte log
+is retained after successful owned closure; all outputs are consumed without
+a CI retry. Older failures remain preserved.
 
 Current native/image evidence remains Source765, with 24 general pairs
 individually viewed: 16 mismatches, 8 unresolved and no acceptance. Its archive

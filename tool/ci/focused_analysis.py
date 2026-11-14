@@ -102,6 +102,8 @@ SELECTED_DART_SOURCES = (
     'test/sentinels/view/sentinel_values_test.dart',
     'test/sentinels_by_owner/view/sentinel_strip_test.dart',
     'test/shell/rail_test.dart',
+    'lib/rearchitecture/features/node_owner/node_collect_button.dart',
+    'test/nodes/nodes_rewards_test.dart',
     'lib/widgets/modular_widgets/accelerator_widgets/accelerator_list_view.dart',
     'lib/widgets/modular_widgets/accelerator_widgets/accelerator_stats.dart',
     'test/accelerator_list_redesign/accelerator_list_view_test.dart',

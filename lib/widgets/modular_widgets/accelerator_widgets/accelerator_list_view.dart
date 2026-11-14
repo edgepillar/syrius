@@ -15,6 +15,8 @@ import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_project_list_item.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_stats.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show ShellSymbol;
 
 /// The fund strip and one project ledger, with presentation state retained.
 class AcceleratorListView extends StatefulWidget {
@@ -248,8 +250,14 @@ class _AcceleratorListViewState extends State<AcceleratorListView> {
         style: tokens.compactText,
         decoration: InputDecoration(
           hintText: context.l10n.acceleratorSearch,
+          constraints: BoxConstraints(minHeight: tokens.tokenSearchHeight),
           hintStyle: tokens.compactText.copyWith(color: tokens.faint),
-          prefixIcon: Icon(Icons.search, size: 16, color: tokens.faint),
+          prefixIcon: ShellSymbol(
+            'search', size: tokens.smallActionGlyphSize, color: tokens.faint,
+          ),
+          prefixIconConstraints: BoxConstraints(
+            minWidth: tokens.tokenSearchHeight,
+          ),
           isDense: true,
           contentPadding: EdgeInsets.symmetric(horizontal: tokens.inlineGap),
           border: OutlineInputBorder(
@@ -263,7 +271,7 @@ class _AcceleratorListViewState extends State<AcceleratorListView> {
       key: const Key('accelerator_sort'),
       style: accToolbarButtonStyle(context),
       onPressed: model.toggleSort,
-      icon: const Icon(Icons.swap_vert, size: 14),
+      icon: ShellSymbol('sort', size: tokens.inlineGlyphSize),
       label: Text(
         model.newestFirst
             ? context.l10n.acceleratorNewest

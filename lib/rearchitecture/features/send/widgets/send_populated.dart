@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
@@ -30,6 +31,8 @@ import 'package:zenon_syrius_wallet_flutter/utils/wallet_file.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show buildShellSymbol;
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -420,7 +423,7 @@ class _SendPopulatedState extends State<SendPopulated>
     final LookAlike? finding = _lookAlike;
     final String typed = _recipient;
     final OutlineInputBorder border = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(tokens.transferControlRadius),
+      borderRadius: BorderRadius.circular(tokens.transferFieldRadius),
       borderSide: BorderSide(color: tokens.line),
     );
     final ThemeData theme = Theme.of(context);
@@ -591,7 +594,7 @@ class _SendPopulatedState extends State<SendPopulated>
             ? null
             : OutlineInputBorder(
                 borderRadius: BorderRadius.circular(
-                  tokens.transferControlRadius,
+                  tokens.transferFieldRadius,
                 ),
                 borderSide: BorderSide(color: tokens.transferWarningLine),
               ),
@@ -601,17 +604,23 @@ class _SendPopulatedState extends State<SendPopulated>
             IconButton(
               key: const Key('send_address_book'),
               tooltip: context.l10n.sendAddressBook,
-              iconSize: tokens.heroCopyIconSize,
+              iconSize: tokens.smallActionGlyphSize,
               onPressed: _busy ? null : _openContacts,
-              icon: const Icon(Icons.menu_book_outlined),
+              icon: buildShellSymbol(
+                context, 'book', size: tokens.smallActionGlyphSize,
+                color: tokens.dim,
+              ),
             ),
             if (_recipient.isNotEmpty)
               IconButton(
                 key: const Key('send_clear_recipient'),
                 tooltip: context.l10n.sendClearRecipient,
-                iconSize: tokens.heroCopyIconSize,
+                iconSize: tokens.smallActionGlyphSize,
                 onPressed: _busy ? null : _recipientController.clear,
-                icon: const Icon(Icons.close),
+                icon: buildShellSymbol(
+                  context, 'x', size: tokens.smallActionGlyphSize,
+                  color: tokens.dim,
+                ),
               ),
           ],
         ),
@@ -1019,8 +1028,37 @@ class _SendPopulatedState extends State<SendPopulated>
 
   Widget _buildCoinDropdown() {
     final AppTokens tokens = AppTokens.of(context);
+    final double fieldHeight = math.max(
+      tokens.fieldHeight,
+      MediaQuery.textScalerOf(context).scale(tokens.bodyText.fontSize!) *
+          tokens.bodyText.height! + 2,
+    );
+    final bool znn = _selectedToken.tokenStandard == kZnnCoin.tokenStandard;
     return DropdownMenu<Token>(
       key: const Key('send_token_field'),
+      inputDecorationTheme: InputDecorationTheme(
+        constraints: BoxConstraints.tightFor(height: fieldHeight),
+        contentPadding: EdgeInsetsDirectional.symmetric(
+          horizontal: tokens.transferFieldPadding.start,
+        ),
+        prefixIconConstraints: BoxConstraints.tightFor(
+          width: tokens.fieldHeight, height: fieldHeight,
+        ),
+        suffixIconConstraints: BoxConstraints.tightFor(
+          width: tokens.fieldHeight, height: fieldHeight,
+        ),
+      ),
+      trailingIcon: buildShellSymbol(
+        context, 'chev', size: tokens.smallActionGlyphSize,
+        color: tokens.faint,
+      ),
+      selectedTrailingIcon: RotatedBox(
+        quarterTurns: 2,
+        child: buildShellSymbol(
+          context, 'chev', size: tokens.smallActionGlyphSize,
+          color: tokens.faint,
+        ),
+      ),
       enabled: !_busy,
       expandedInsets: EdgeInsets.zero,
       initialSelection: _selectedToken,
@@ -1032,12 +1070,30 @@ class _SendPopulatedState extends State<SendPopulated>
               ) ==
               null
           ? null
-          : Icon(
-              Icons.circle,
-              size: tokens.heroIconSize,
-              color: _selectedToken.tokenStandard == kZnnCoin.tokenStandard
-                  ? tokens.znn
-                  : tokens.qsr,
+          : ExcludeSemantics(
+              child: Center(
+                child: Container(
+                  key: const Key('send_token_mark'),
+                  width: tokens.transferTokenMarkSize,
+                  height: tokens.transferTokenMarkSize,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: znn ? tokens.znn : tokens.qsr,
+                  ),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      znn ? 'Z' : 'Q',
+                      style: tokens.transferTokenMarkText.copyWith(
+                        color: znn
+                            ? tokens.onZnn
+                            : tokens.transferTokenMarkText.color,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ),
       dropdownMenuEntries: <DropdownMenuEntry<Token>>[
         for (final Token token in _availableAssets)

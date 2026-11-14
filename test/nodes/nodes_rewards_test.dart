@@ -238,6 +238,23 @@ void main() {
       find.byType(LoadingButton),
     );
     expect(buttons, hasLength(2));
+    for (final LoadingButton button in buttons) {
+      final Size size = tester.getSize(find.byWidget(button));
+      expect(size.height, 30);
+      expect(size.width, inExclusiveRange(30, 100));
+    }
+    final Finder first = find.byType(LoadingButton).first;
+    final LoadingButtonState original = tester.state<LoadingButtonState>(first);
+    original.animateForward();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(tester.getSize(first), const Size(30, 30));
+    original.animateReverse();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(tester.state<LoadingButtonState>(first), same(original));
+    expect(original.btnState, ButtonState.idle);
+    expect(tester.getSize(first).width, inExclusiveRange(30, 100));
     expect(
       buttons.every((LoadingButton button) => button.onPressed == null),
       isTrue,

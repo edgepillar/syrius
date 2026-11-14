@@ -12,6 +12,8 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_action_context.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_flight_registry.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart'
+    show secondaryButtonStyle;
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/strip/flight.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
@@ -286,11 +288,39 @@ class _NodeCollectButtonState extends State<NodeCollectButton> {
     super.dispose();
   }
 
-  LoadingButton _buildButton(VoidCallback? onPressed) => LoadingButton.stepper(
-    key: _button,
-    text: context.l10n.collect,
-    onPressed: onPressed,
-  );
+  LoadingButton _buildButton(VoidCallback? onPressed) {
+    final AppTokens tokens = AppTokens.of(context);
+    final TextStyle labelStyle = tokens.compactText.copyWith(
+      fontWeight: FontWeight.w500,
+    );
+    final TextPainter label = TextPainter(
+      text: TextSpan(text: context.l10n.collect, style: labelStyle),
+      textDirection: Directionality.of(context),
+      textScaler: MediaQuery.textScalerOf(context),
+      maxLines: 1,
+    )..layout();
+    final double width = label.width.ceilToDouble() +
+        tokens.compactButtonPadding.horizontal;
+    label.dispose();
+    final ButtonStyle secondary = secondaryButtonStyle(context);
+    return LoadingButton(
+      key: _button,
+      text: context.l10n.collect,
+      onPressed: onPressed,
+      minimumSize: Size(width, tokens.compactButtonHeight),
+      paddingAroundChild: tokens.compactButtonPadding,
+      circularBorderRadius: tokens.pillRadius,
+      textStyle: labelStyle,
+      style: ButtonStyle(
+        backgroundColor: secondary.backgroundColor,
+        foregroundColor: secondary.foregroundColor,
+        side: secondary.side,
+        overlayColor: secondary.overlayColor,
+        visualDensity: VisualDensity.standard,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

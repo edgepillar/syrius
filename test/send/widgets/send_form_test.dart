@@ -25,6 +25,7 @@ import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../../../harness/app/fixtures/send_warning_draft.dart';
 import '../../helpers/hydrated_bloc.dart';
+import '../../helpers/mockup_symbol.dart';
 
 String _address(int n) => Address(
   'z',
@@ -417,6 +418,35 @@ void main() {
         await show(tester, light: light);
         await fill(tester, amount: '12.50000001');
         expect(find.text('Send 12.50000001 ZNN'), findsOneWidget);
+        final Finder token = find.byKey(const Key('send_token_field'));
+        final Finder decorated = find.descendant(
+          of: token, matching: find.byType(InputDecorator),
+        ).first;
+        expect(tester.getSize(decorated).height, 42);
+        expect(tester.getSize(find.byKey(const Key('send_token_mark'))),
+          const Size(22, 22));
+        final InputDecorator recipientDecoration =
+            tester.widget<InputDecorator>(
+              find.descendant(
+                of: find.byKey(const Key('send_recipient_field')),
+                matching: find.byType(InputDecorator),
+              ).first,
+            );
+        expect((recipientDecoration.decoration.enabledBorder!
+          as OutlineInputBorder).borderRadius, BorderRadius.circular(8));
+        for (final (String, String) glyph in <(String, String)>[
+          ('send_address_book', 'book'), ('send_clear_recipient', 'x'),
+        ]) {
+          expectMockupSymbol(
+            tester, within: find.byKey(Key(glyph.$1)),
+            symbol: glyph.$2, size: 14,
+            color: AppTokens.of(tester.element(token)).dim,
+          );
+        }
+        expectMockupSymbol(
+          tester, within: token, symbol: 'chev', size: 14,
+          color: AppTokens.of(tester.element(token)).faint,
+        );
         expect(prices.priceOf(PricedCoin.znn), isNotNull);
         expect(find.text(r'≈ $7.75'), findsOneWidget);
         expect(action(tester).onPressed, isNotNull);

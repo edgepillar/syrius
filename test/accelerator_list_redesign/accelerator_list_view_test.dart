@@ -103,6 +103,19 @@ void main() {
             find.byKey(const Key('accelerator_list')),
           );
           expect(ledger.top - strip.bottom, 12);
+          final Finder search = find.byKey(const Key('accelerator_search'));
+          expect(tester.getSize(find.descendant(
+            of: search, matching: find.byType(InputDecorator),
+          )).height, 30);
+          expectMockupSymbol(
+            tester, within: search, symbol: 'search', size: 14,
+            color: AppTokens.of(tester.element(search)).faint,
+          );
+          expectMockupSymbol(
+            tester,
+            within: find.byKey(const Key('accelerator_sort')),
+            symbol: 'sort', size: 12,
+          );
           expectMockupSymbol(
             tester,
             within: find.byKey(const Key('acc_donate')),

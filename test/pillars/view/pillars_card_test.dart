@@ -270,6 +270,12 @@ void main() {
         tester.element(find.byType(PillarsCard)),
       );
       _expectSortFrame(tester);
+      final Finder searchPaint = find.descendant(
+        of: find.byKey(const Key('pillars_search')),
+        matching: find.byType(InputDecorator),
+      );
+      expect(tester.getSize(searchPaint).height, 30);
+
       for (final (String, double, Color) control in <(String, double, Color)>[
         ('pillars_search', 14, tokens.faint),
         ('pillars_sort', 12, tokens.dim),

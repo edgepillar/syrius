@@ -1614,6 +1614,17 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The transfer shape's field and row radius.
   double get transferControlRadius => 14;
 
+  /// Send's ordinary input outline follows the reference field radius.
+  double get transferFieldRadius => cardRadius;
+
+  /// The native token initial inside the Send selector.
+  double get transferTokenMarkSize => 22;
+
+  /// Compact native-token lettering; ZNN uses its dedicated on-color.
+  TextStyle get transferTokenMarkText => dataText.copyWith(
+    fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white,
+  );
+
   /// The shared Transfer header keeps the reference's 11/16-pixel inset.
   EdgeInsetsDirectional get transferHeaderPadding =>
       const EdgeInsetsDirectional.symmetric(horizontal: 16, vertical: 11);

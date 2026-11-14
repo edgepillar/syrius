@@ -249,6 +249,7 @@ class _ViewState extends State<_View> {
         onChanged: (_) => setState(() {}),
         decoration: InputDecoration(
           hintText: context.l10n.pillarsSearchLoaded,
+          constraints: BoxConstraints(minHeight: tokens.pillarSearchHeight),
           isDense: true,
           contentPadding: EdgeInsetsDirectional.symmetric(
             horizontal: tokens.inlineGap,
