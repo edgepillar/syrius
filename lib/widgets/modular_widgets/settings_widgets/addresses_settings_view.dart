@@ -872,7 +872,7 @@ class _AddressesSettingsViewState extends State<AddressesSettingsView>
                     iconSize: tokens.settingsIconSize,
                     icon: const Icon(Icons.edit_outlined),
                   ),
-                  SizedBox(width: tokens.fieldLabelGap),
+                  SizedBox(width: tokens.addressesActionGap),
                   IconButton(
                     key: ValueKey<String>('addresses_copy_$address'),
                     tooltip: context.l10n.receiveCopyAddress,

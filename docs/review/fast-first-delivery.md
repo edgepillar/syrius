@@ -11,6 +11,17 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
+[Source761](source761-address-action-gap.md) preserves Source760 full Linux
+43609477103 as failed after strict analysis, Ready and Lock pass. Both added
+Addresses gap checks observe six instead of four pixels; the full directory
+and generation are skipped. The complete bounded log is retained with
+successful owned closure and unchanged policy. A dedicated four-pixel
+address-action token replaces the incorrectly reused shared six-pixel gap.
+The exact tests, callbacks, semantics, control sizes, columns and real data
+remain. Source760's description is corrected. No test/workflow/registration
+or strict-selection changes. Fresh full Linux precedes grouped affected
+Windows/image work; scope and accepted pairs stay 76/80 and 2/94.
+
 [Source760](source760-address-table-controls.md) follows successful Source759
 full Linux 43607802383: all thirteen required steps, complete directory and
 generation pass. The new packet scopes compact thirty-two-pixel icon-button

@@ -20,7 +20,9 @@ A scoped table-only IconButtonTheme now sets thirty-two-pixel minimum and
 maximum sizes, zero padding, standard density and shrink-wrapped input areas.
 Two semantic tokens name the action size and sixteen-pixel selection mark.
 The existing thirty-six-pixel selection slot centers the smaller input area
-without expanding its row. Rename and Copy retain a four-pixel gap.
+without expanding its row. The intended four-pixel Rename/Copy gap incorrectly
+uses the shared six-pixel field-label token. Source761 corrects that mismatch
+after preserving the original failed hosted result.
 
 The existing Material selection icons, checked/mutually-exclusive semantics,
 keys, tooltips, disabled predicates and original callbacks remain. The theme

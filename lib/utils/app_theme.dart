@@ -920,6 +920,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The reference's circular table action and its input area.
   double get addressesActionSize => 32;
 
+  /// Separation between account-row Rename and Copy actions.
+  double get addressesActionGap => 4;
+
   /// One complete asset balance column in the address table.
   double get addressesBalanceWidth => 168;
 
