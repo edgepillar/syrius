@@ -179,6 +179,19 @@ void main() {
   ) async {
     await show(tester);
     expect(find.byType(SettingRow), findsNWidgets(7));
+    for (final SettingRow row in tester.widgetList<SettingRow>(
+      find.byType(SettingRow),
+    )) {
+      if (row.hint == null) continue;
+      final Finder container = find.byWidget(row);
+      final Rect label = tester.getRect(
+        find.descendant(of: container, matching: find.text(row.label)),
+      );
+      final Rect hint = tester.getRect(
+        find.descendant(of: container, matching: find.text(row.hint!)),
+      );
+      expect(hint.top - label.bottom, closeTo(0, 1e-10));
+    }
     expect(find.textContaining('Confirm'), findsNothing);
     expect(control(tester, 'display_dollar_values').value, isTrue);
     expect(control(tester, 'display_hide_balances').value, isFalse);

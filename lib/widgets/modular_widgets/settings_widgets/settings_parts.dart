@@ -117,10 +117,8 @@ class SettingRow extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
                     Text(label, style: theme.textTheme.bodyLarge),
-                    if (hint != null) ...<Widget>[
-                      const SizedBox(height: 2),
+                    if (hint != null)
                       Text(hint!, style: settingHintStyle(context)),
-                    ],
                   ],
                 ),
               ),

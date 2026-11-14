@@ -107,6 +107,7 @@ SELECTED_DART_SOURCES = (
     'lib/rearchitecture/utils/widgets/page/page_widgets.dart',
     'lib/widgets/modular_widgets/settings_widgets/node_settings_view.dart',
     'lib/widgets/modular_widgets/settings_widgets/security_settings_rows.dart',
+    'lib/widgets/modular_widgets/settings_widgets/settings_parts.dart',
     'test/segment/segment_test.dart',
     'test/segment/segment_availability_test.dart',
     'test/segment/segment_heading_test.dart',

@@ -166,6 +166,12 @@ void main() {
           find.byKey(const Key('wallet_settings_preferences')),
         );
         expect(panel.width, 1000);
+        final ButtonStyle deleteStyle = tester
+            .widget<TextButton>(
+              find.byKey(const Key('wallet_settings_delete_cache')),
+            )
+            .style!;
+        expect(deleteStyle.textStyle!.resolve(<WidgetState>{})!.fontSize, 13);
         expect(find.text('Preferences'), findsNothing);
         expect(_switch(tester, _auto).value, isTrue);
         expect(_switch(tester, _notifications).value, isFalse);

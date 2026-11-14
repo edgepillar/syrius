@@ -245,7 +245,7 @@ class _WalletSettingsViewState extends State<WalletSettingsView>
                             visualDensity: VisualDensity.standard,
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             shape: const StadiumBorder(),
-                            textStyle: tokens.captionText.copyWith(
+                            textStyle: tokens.compactText.copyWith(
                               color: tokens.foreground,
                               fontWeight: FontWeight.w500,
                             ),

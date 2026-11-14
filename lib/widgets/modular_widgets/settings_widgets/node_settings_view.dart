@@ -620,7 +620,7 @@ class _NodeSettingsViewState extends State<NodeSettingsView>
     final NodeSettingsPresenter owner = _presenter;
     final AppTokens tokens = AppTokens.of(context);
     final int formEpoch = _formEpoch;
-    return Padding(
+    final Widget form = Padding(
       padding: tokens.settingsRowPadding,
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -675,6 +675,11 @@ class _NodeSettingsViewState extends State<NodeSettingsView>
           ),
         ],
       ),
+    );
+    // The endpoint, Save and Cancel keep their order when rows reflow.
+    return FocusTraversalGroup(
+      policy: WidgetOrderTraversalPolicy(),
+      child: form,
     );
   }
 

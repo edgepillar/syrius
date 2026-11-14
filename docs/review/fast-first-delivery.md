@@ -11,6 +11,17 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
+[Source757](source757-settings-focus-and-hint-layout.md) preserves Source756
+full Linux 43594481152 as failed: strict analysis, Ready and Lock pass,
+then four scaled Node variants fail the existing endpoint-to-Save focus
+assertion. Full directory and generation are skipped. The endpoint form now
+has explicit widget-order traversal; its existing cases also check Cancel
+and reverse Tab before the original save. Shared hints lose their extra
+two-pixel gap and Wallet Delete uses thirteen-pixel text. Existing tests
+extend these metrics without registrations. The complete bounded log is
+retained and its owned task closes successfully under unchanged policy.
+Fresh full Linux is required; affected native captures remain grouped.
+
 [Source756](source756-settings-control-metrics.md) follows successful
 Source755 full Linux 43585720542 and the completed fourteen-pair Source751
 Settings review. All fourteen retain mismatches; no new pair is accepted.

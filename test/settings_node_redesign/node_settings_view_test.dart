@@ -229,6 +229,14 @@ void main() {
         await tester.sendKeyEvent(LogicalKeyboardKey.tab);
         await tester.pump();
         expect(_focusWithin(tester, 'node_settings_endpoint_save'), isTrue);
+        await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+        await tester.pump();
+        expect(_focusWithin(tester, 'node_settings_endpoint_cancel'), isTrue);
+        await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+        await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+        await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+        await tester.pump();
+        expect(_focusWithin(tester, 'node_settings_endpoint_save'), isTrue);
         await tester.sendKeyEvent(LogicalKeyboardKey.enter);
         await _until(tester, () => source.calls.contains('notice:added'));
         expect(
