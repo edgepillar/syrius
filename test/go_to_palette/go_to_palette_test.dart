@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart' as foundation;
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -542,8 +543,19 @@ void main() {
       _reportGeometry('scroll', viewport.height, last.height,
           startGap: last.top - viewport.top,
           endGap: viewport.bottom - last.bottom);
-      expect(last.top, greaterThanOrEqualTo(viewport.top));
-      expect(last.bottom, lessThanOrEqualTo(viewport.bottom));
+      // Fractional row heights may accumulate floating-point round-off.
+      expect(
+        last.top,
+        greaterThanOrEqualTo(
+          viewport.top - foundation.precisionErrorTolerance,
+        ),
+      );
+      expect(
+        last.bottom,
+        lessThanOrEqualTo(
+          viewport.bottom + foundation.precisionErrorTolerance,
+        ),
+      );
       expect(_rowSemantics(tester, 'entry_23').properties.selected, isTrue);
       await tester.enterText(find.byKey(_field), 'Entry 0');
       await tester.pumpAndSettle();

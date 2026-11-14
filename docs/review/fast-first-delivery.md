@@ -11,6 +11,15 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
+[Source749](source749-palette-scroll-rounding.md) corrects only the existing
+scroll-visibility test's accumulated double round-off. Source748 passes every
+analysis step and all eight declared icon/gap geometry combinations, then
+the keyboard-scroll case sees 498.00000000000006 against 498.0. Both viewport
+edges now use Flutter's 1e-10 numerical tolerance. Application and workflow
+bytes remain unchanged. The original failure, skipped complete directory and
+generation, zero artifacts and no native dispatch are preserved. Fresh full
+execution and the affected Windows Home palette remain required.
+
 [Source748](source748-palette-content-metrics.md) follows successful Source747
 full Linux and Home acquisition/readers. All eight Home pairs are individually
 viewed and their owned task closes: the palette now starts at y120 in both
