@@ -11,27 +11,31 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
-[Source766](source766-bell-client-layout.md) follows completed Source765
-qualification: full Linux 43638180557 passes all thirteen required steps;
-Windows 43639780927 and reader 43642361243 verify 1505 Dart/1220 Python
-cases with eighteen skips, zero selected findings, 123 reader controls and
-42 PNGs. Required actors and five lab nodes exit normally; auxiliary VCTIP
-cleanup leaves complete runner lifecycle unqualified. All 24 general pairs
-are individually viewed: 16 mismatches, 8 unresolved and no new acceptance.
-The archive and complete 21,342-byte report remain protected after successful
-owned closure; all dispatched outputs are consumed. General images remain
-pattern evidence. Fourteen Settings and four viewport images remain verified
-without another local transfer or local review. No speedup or Source744
-cold-lock cause is established.
+[Source767](source767-accelerator-gap-symbols.md) follows Source766 full
+Linux 43646155019: Python controls and patched/global analysis pass, then
+strict analysis reports six infos. Ready, Lock, compact widgets, the complete
+non-chain directory and generation are skipped. The original 320,431-byte
+job log and both local reader failures remain; all outputs are reconciled
+and consumed without retrying CI or changing manager/receipt modes.
 
-The original Bell route now uses a full-client portal while retaining the
-body Navigator, normal modal bounds and original state. Startup/replay select
-that Navigator explicitly. The header is compact, with the canonical close
-symbol. Five cases extend the existing Bell file for both themes/directions,
-caption input, entry/exit motion, focus/state retention, newer-route interaction
-and privacy closure. Strict selection becomes 277; Bell joins the early gate.
-Fresh full Linux precedes grouped Windows/image work. Scope and accepted pairs
-stay 76/80 and 2/94.
+The six Bell declarations/lines are corrected. Accelerator selects the
+reference's twelve-pixel strip-to-ledger gap through an optional PageGrid
+override; default callers retain their spacing. Donate/Create use the
+original hand/plus symbols and original callbacks. Existing dark/light cases
+check actual spacing and artwork. Strict selection becomes 280; Accelerator
+joins the early gate. Fresh full Linux is required; native/image work remains
+grouped. The five Bell behavior cases still require execution.
+
+Current native/image evidence remains Source765: Windows 43639780927 and
+reader 43642361243 verify 1505 Dart/1220 Python cases with eighteen skips,
+zero selected findings, 123 reader controls and 42 PNGs. Required actors and
+five lab nodes exit normally; auxiliary VCTIP cleanup leaves complete runner
+lifecycle unqualified. All 24 general pairs are individually viewed: 16
+mismatches, 8 unresolved and no acceptance. The archive and full 21,342-byte
+report remain protected after successful owned closure. General captures
+remain pattern evidence; fourteen Settings and four viewport images remain
+verified without another local transfer or review. No speedup or Source744
+cold-lock cause is established. Scope and accepted pairs stay 76/80 and 2/94.
 
 [Source761](source761-address-action-gap.md) preserves Source760 full Linux
 43609477103 as failed after strict analysis, Ready and Lock pass. Both added

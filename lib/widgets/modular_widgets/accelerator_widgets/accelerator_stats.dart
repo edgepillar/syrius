@@ -7,6 +7,8 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_list_presenter.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show ShellSymbol;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// The actual fund and exact selected Pillar's outstanding project count.
@@ -101,13 +103,13 @@ class AcceleratorStats extends StatelessWidget {
           key: const Key('acc_donate'),
           style: secondaryButtonStyle(context),
           onPressed: current ? onDonate : null,
-          icon: const Icon(Icons.volunteer_activism_outlined, size: 18),
+          icon: const ShellSymbol('hand'),
           label: Text(context.l10n.acceleratorDonate),
         ),
         PrimaryPill(
           key: const Key('acc_create_project'),
           onPressed: current ? onCreateProject : null,
-          icon: const Icon(Icons.add, size: 18),
+          icon: const ShellSymbol('plus'),
           child: Text(context.l10n.acceleratorCreateProject),
         ),
       ],

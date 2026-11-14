@@ -685,14 +685,17 @@ class PageRow {
 /// does the page scroll, and then every row keeps that least height.
 class PageGrid extends StatelessWidget {
   /// Creates a page of [rows].
-  const PageGrid({required this.rows, super.key});
+  const PageGrid({required this.rows, this.gap, super.key});
 
   /// Top to bottom.
   final List<PageRow> rows;
 
+  /// Optional page-specific spacing; null retains the shared panel gap.
+  final double? gap;
+
   @override
   Widget build(BuildContext context) {
-    final double gap = AppTokens.of(context).panelGap;
+    final double gap = this.gap ?? AppTokens.of(context).panelGap;
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         final double least =

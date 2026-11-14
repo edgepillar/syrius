@@ -1,8 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart'
-    show OverlayChildLocation, OverlayPortal, OverlayPortalController;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/notifications/bell_controller.dart';
@@ -91,12 +89,10 @@ Future<void> showBellPanel({
 /// The route, inherited owners and shell controller stay in the same subtree.
 class _BellClientSurface extends StatefulWidget {
   const _BellClientSurface({
-    required Animation<double> animation,
-    required TextDirection direction,
-    required Widget child,
-  }) : _animation = animation,
-       _direction = direction,
-       _child = child;
+    required this._animation,
+    required this._direction,
+    required this._child,
+  });
 
   final Animation<double> _animation;
   final TextDirection _direction;

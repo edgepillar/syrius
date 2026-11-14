@@ -9,6 +9,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/accelerator_widgets/accelerator_project_list_item.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
+import '../helpers/mockup_symbol.dart';
 import 'fixtures.dart';
 
 class _Routes extends NavigatorObserver {
@@ -95,6 +96,25 @@ void main() {
           await tester.pumpWidget(host(listView(presenter), light: light));
           await tester.pump(const Duration(milliseconds: 700));
           expect(find.byKey(const Key('accelerator_strip')), findsOneWidget);
+          final Rect strip = tester.getRect(
+            find.byKey(const Key('accelerator_strip')),
+          );
+          final Rect ledger = tester.getRect(
+            find.byKey(const Key('accelerator_list')),
+          );
+          expect(ledger.top - strip.bottom, 12);
+          expectMockupSymbol(
+            tester,
+            within: find.byKey(const Key('acc_donate')),
+            symbol: 'hand',
+            size: 18,
+          );
+          expectMockupSymbol(
+            tester,
+            within: find.byKey(const Key('acc_create_project')),
+            symbol: 'plus',
+            size: 18,
+          );
           expect(
             find.byKey(const Key('accelerator_filter_voting')),
             findsOneWidget,

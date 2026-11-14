@@ -426,8 +426,14 @@ void main() {
             find.byKey(const Key('bell_close')),
           );
           expect(close.size, const Size(32, 32));
-          expect(tester.getSize(find.byKey(const Key('bell_header'))).height, 48);
-          expect(tester.getSize(find.byKey(const Key('bell_clear'))).height, 32);
+          expect(
+            tester.getSize(find.byKey(const Key('bell_header'))).height,
+            48,
+          );
+          expect(
+            tester.getSize(find.byKey(const Key('bell_clear'))).height,
+            32,
+          );
           expectMockupSymbol(
             tester,
             within: find.byKey(const Key('bell_close')),

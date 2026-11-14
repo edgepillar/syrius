@@ -14,6 +14,10 @@ import 'package:zenon_syrius_wallet_flutter/widgets/shell/tabs.dart';
 // Canonical symbol contents from 00-head.html. Their original paths keep
 // the silhouette and stroke consistent across shell and entry controls.
 const Map<String, String> _symbols = <String, String>{
+  'hand':
+      '<path d="M8 13V5a1.5 1.5 0 0 1 3 0v6M11 11V3.5a1.5 1.5 0 0 1 3 0V11M14'
+      ' 11V5a1.5 1.5 0 0 1 3 0v8M17 13v-2a1.5 1.5 0 0 1 3 0v4a7 7 0 0 1-7 7h-'
+      '1a7 7 0 0 1-6-3.4L4 15a1.5 1.5 0 0 1 2.6-1.5L8 15"/>',
   'home':
       '<path d="M3 11 12 3l9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   'send': '<path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/>',

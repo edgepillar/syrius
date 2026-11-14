@@ -139,6 +139,7 @@ class _AcceleratorListViewState extends State<AcceleratorListView> {
     final Widget ledger = _buildLedger(context, source, epoch);
     if (!widget.showStrip) return ledger;
     return PageGrid(
+      gap: tokens.pageGap,
       rows: <PageRow>[
         PageRow.fixed(
           math.max(
