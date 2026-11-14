@@ -117,7 +117,10 @@ class SecuritySettingsButton extends StatelessWidget {
         ),
         visualDensity: VisualDensity.standard,
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        textStyle: data ? tokens.dataText : tokens.bodyText,
+        textStyle: (data ? tokens.dataText : tokens.compactText).copyWith(
+          fontSize: tokens.compactText.fontSize,
+          fontWeight: FontWeight.w500,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -132,7 +135,7 @@ class SecuritySettingsButton extends StatelessWidget {
               )
             else
               Icon(icon, size: tokens.zapSmallGlyphSize),
-            SizedBox(width: tokens.fieldLabelGap),
+            SizedBox(width: tokens.inlineGap),
           ],
           Flexible(child: Text(label)),
         ],

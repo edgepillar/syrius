@@ -72,6 +72,12 @@ jobs:
           test/settings_apps_redesign/apps_settings_view_test.dart
           test/plasma_redesign/plasma_list_test.dart
           test/plasma_redesign/plasma_stats_layout_test.dart
+          test/segment/segment_test.dart
+          test/segment/segment_availability_test.dart
+          test/segment/segment_heading_test.dart
+          test/rearchitecture/utils/widgets/panel_test.dart
+          test/settings_node_redesign/node_settings_view_test.dart
+          test/settings_security_redesign/security_settings_view_test.dart
           test/token_actions_redesign/token_inline_actions_test.dart --no-pub
 
       - name: Run unit and widget tests

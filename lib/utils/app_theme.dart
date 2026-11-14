@@ -898,8 +898,8 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Separation of actions that wrap when a Settings form is scaled.
   double get settingsActionGap => 10;
 
-  /// Compact actions beside Security rows.
-  double get securitySettingsButtonHeight => 26;
+  /// Ordinary small actions beside Security rows; table actions stay smaller.
+  double get securitySettingsButtonHeight => 30;
 
   /// Compact policy numbers retain the shared mono and tabular data role.
   TextStyle get securitySettingsValueText =>
@@ -1427,7 +1427,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
       const Duration(milliseconds: 300);
 
   /// Horizontal inset inside Security row actions.
-  double get securitySettingsButtonInset => 10;
+  double get securitySettingsButtonInset => 12;
 
   /// Quiet identifiers in expanded Security groups.
   TextStyle get securitySettingsLabelText =>
@@ -1771,12 +1771,15 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Search is constrained beside the Nodes tabs.
   double get pillarSearchWidth => 200;
 
-  /// A card title or tab row starts at the same compact height.
+  /// A card title with actions or a tab row reserves this height.
   double get panelHeaderHeight => 48;
+
+  /// A plain title without actions uses the reference's smaller header.
+  double get panelPlainHeaderHeight => 44;
 
   /// Ordinary card titles retain their wider leading inset.
   EdgeInsetsDirectional get panelHeaderPadding =>
-      const EdgeInsetsDirectional.fromSTEB(16, 0, 8, 0);
+      const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 0);
 
   /// Heading tabs share the mockup's inset with the trailing actions.
   EdgeInsetsDirectional get tabHeaderPadding =>

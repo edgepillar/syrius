@@ -92,6 +92,7 @@ void main() {
             tester.widget<Text>(find.text('5 min')).style!.fontFamily,
             AppTokens.dark.monoFontFamily,
           );
+          expect(tester.widget<Text>(find.text('5 min')).style!.fontSize, 14);
           expect(
             tester.getSemantics(_cell(2)),
             isSemantics(isEnabled: false, hasTapAction: false),

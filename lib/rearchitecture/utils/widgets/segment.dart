@@ -482,6 +482,7 @@ class _SegmentCellState extends State<_SegmentCell> {
     final TextStyle style =
         widget.labelStyle ??
         (heading ? tokens.bodyText : theme.textTheme.bodyMedium!).copyWith(
+          fontSize: heading ? null : tokens.compactText.fontSize,
           fontWeight: FontWeight.w500,
         );
     final Color lit = style.color ?? theme.colorScheme.onSurface;

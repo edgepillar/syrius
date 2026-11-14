@@ -102,6 +102,13 @@ void main() {
       final double zap = _rect(tester, _cell(_Tab.zap)).width;
       expect(receive, greaterThan(send));
       expect(send, greaterThan(zap));
+      for (final String label in <String>['Send', 'Receive', 'Zap']) {
+        expect(tester.widget<Text>(find.text(label)).style!.fontSize, 13);
+      }
+      expect(
+        send - tester.getSize(find.text('Send')).width,
+        closeTo(28, 1e-10),
+      );
       // The same padding round each: the widths differ by the labels alone.
       expect(
         receive - send,

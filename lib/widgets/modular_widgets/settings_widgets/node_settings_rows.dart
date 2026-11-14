@@ -97,7 +97,13 @@ class _NodeSettingsHeader extends StatelessWidget {
                     ),
                     const Spacer(),
                     if (!summaryBelow) ...<Widget>[
-                      Flexible(flex: 4, child: summary),
+                      Expanded(
+                        flex: 4,
+                        child: Align(
+                          alignment: AlignmentDirectional.centerEnd,
+                          child: summary,
+                        ),
+                      ),
                       SizedBox(width: tokens.cardGap),
                     ],
                     _NodeSettingsButton(

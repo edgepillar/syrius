@@ -175,6 +175,13 @@ void main() {
           find.byKey(const Key('node_settings_sporks_gate')),
         );
         expect(nodes.width, 992);
+        final Rect add = tester.getRect(
+          find.byKey(const Key('node_settings_add')),
+        );
+        expect(
+          rtl ? add.left - nodes.left : nodes.right - add.right,
+          closeTo(16, 1e-10),
+        );
         expect(updater.width, nodes.width);
         expect(updater.top - nodes.bottom, 12);
         expect(chain.top - updater.bottom, 12);
@@ -198,6 +205,16 @@ void main() {
         WidgetTester tester,
       ) async {
         await open(tester, light: light, rtl: rtl, scale: 1.75, width: 500);
+        final Rect nodes = tester.getRect(
+          find.byKey(const Key('node_settings_nodes')),
+        );
+        final Rect add = tester.getRect(
+          find.byKey(const Key('node_settings_add')),
+        );
+        expect(
+          rtl ? add.left - nodes.left : nodes.right - add.right,
+          closeTo(16, 1e-10),
+        );
         await tester.tap(find.byKey(const Key('node_settings_add')));
         await tester.pump(const Duration(milliseconds: 250));
         final Finder endpoint = find.byKey(const Key('node_settings_endpoint'));

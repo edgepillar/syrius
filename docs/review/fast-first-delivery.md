@@ -11,6 +11,19 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
+[Source756](source756-settings-control-metrics.md) follows successful
+Source755 full Linux 43585720542 and the completed fourteen-pair Source751
+Settings review. All fourteen retain mismatches; no new pair is accepted.
+The compact report/manifest path closes successfully with an 11,260-byte
+report and 750-byte receipt after preserving the original failed intake and
+reusing its verified archive without another transport. No policy changes.
+The next packet aligns the Node heading, uses compact default pill labels,
+corrects ordinary Security actions and separates plain/action Panel header
+metrics. Existing cases extend physical geometry, RTL, scaled layouts and
+style retention without registrations. Fresh full Linux is required; new
+affected Windows/image work remains deferred for grouped qualification.
+Scope and accepted matches stay 76/80 and 2/94.
+
 [Source755](source755-plasma-test-catalog.md) adds the new layout test's
 literal filename to the existing sorted privacy catalog. Source754 full
 Linux 43584765921 fails its exact catalog-coverage assertion in the Python

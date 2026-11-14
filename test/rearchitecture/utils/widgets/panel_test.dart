@@ -1,5 +1,5 @@
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/page_widgets.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 
@@ -49,8 +49,34 @@ void main() {
           ),
         );
         expect(tester.takeException(), isNull);
-        // 48 title row, 1 divider, 10 + 30 + 10 body.
+        // 44 title row, 1 divider, 10 + 30 + 10 body.
+        expect(tester.getSize(find.byKey(const Key('panel'))).height, 95);
+        await tester.pumpWidget(
+          _host(
+            const Column(
+              children: <Widget>[
+                Panel(
+                  key: Key('panel'),
+                  title: 'To collect',
+                  shrinkWrap: true,
+                  padding: EdgeInsets.all(10),
+                  actions: <Widget>[
+                    SizedBox(key: Key('action'), width: 40, height: 30),
+                  ],
+                  child: SizedBox(height: 30),
+                ),
+                Expanded(child: SizedBox()),
+              ],
+            ),
+          ),
+        );
         expect(tester.getSize(find.byKey(const Key('panel'))).height, 99);
+        expect(
+          tester.getTopRight(find.byKey(const Key('panel'))).dx -
+              tester.getTopRight(find.byKey(const Key('action'))).dx,
+          16,
+        );
+        expect(tester.takeException(), isNull);
       },
     );
 

@@ -191,6 +191,16 @@ void main() {
         }
         expect(action.height,
           greaterThanOrEqualTo(tokens.securitySettingsButtonHeight));
+        expect(tokens.securitySettingsButtonHeight, 30);
+        final ButtonStyle actionStyle = tester
+            .widget<TextButton>(
+              find.descendant(
+                of: find.byKey(const Key('security_settings_password')),
+                matching: find.byType(TextButton),
+              ).first,
+            )
+            .style!;
+        expect(actionStyle.textStyle!.resolve(<WidgetState>{})!.fontSize, 13);
         expect(source.target.calls, isEmpty);
         expect(crypto.calls, isEmpty);
         expect(find.byType(Slider), findsNothing);

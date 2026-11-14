@@ -227,7 +227,14 @@ class Panel extends StatelessWidget {
       ),
     );
     if (heading == null) {
-      return SizedBox(height: tokens.panelHeaderHeight, child: header);
+      return ConstrainedBox(
+        constraints: BoxConstraints(
+          minHeight: actions.isEmpty
+              ? tokens.panelPlainHeaderHeight
+              : tokens.panelHeaderHeight,
+        ),
+        child: IntrinsicHeight(child: header),
+      );
     }
     // Headings and actions share the full row height. Asking their actual
     // intrinsics lets translated or scaled labels grow without moving the
