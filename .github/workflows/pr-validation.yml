@@ -71,6 +71,7 @@ jobs:
           test/sheen/sheen_test.dart test/staking/view/staking_page_test.dart
           test/settings_apps_redesign/apps_settings_view_test.dart
           test/plasma_redesign/plasma_list_test.dart
+          test/plasma_redesign/plasma_stats_layout_test.dart
           test/token_actions_redesign/token_inline_actions_test.dart --no-pub
 
       - name: Run unit and widget tests

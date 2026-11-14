@@ -101,6 +101,8 @@ SELECTED_DART_SOURCES = (
     'test/helpers/mockup_symbol.dart',
     'lib/rearchitecture/features/fused_plasma/view/fused_plasma_card.dart',
     'test/plasma_redesign/plasma_list_test.dart',
+    'lib/rearchitecture/features/plasma_stats/view/plasma_stats_card.dart',
+    'test/plasma_redesign/plasma_stats_layout_test.dart',
     'lib/rearchitecture/features/send/bloc/send_transaction/send_transaction_bloc.dart',
     'test/send/bloc/sender_admission_test.dart',
     'test/harness/lab_send_policy_test.dart',

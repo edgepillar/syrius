@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/blocs/blocs.dart';
@@ -106,7 +104,7 @@ class _PageBody extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            const Flexible(child: _Mark()),
+            const Expanded(child: _Mark()),
             const Divider(),
             _OtherAddresses(
               maxHeight: height * tokens.plasmaOtherShare,
@@ -334,16 +332,6 @@ class _OtherAddresses extends StatelessWidget {
                       PlasmaLevel.low,
                 )
                 .length;
-            // Compact rows have no dividers. The list scrolls only after
-            // its rows and body inset use the space beneath the figures.
-            final double wanted = loaded && others.isNotEmpty
-                ? others.length * tokens.plasmaOtherRowHeight +
-                      tokens.plasmaOtherListPadding.vertical
-                : loaded
-                ? tokens.plasmaOtherRowHeight +
-                      tokens.plasmaOtherListPadding.vertical
-                : tokens.plasmaOtherRowHeight * 2 +
-                      tokens.plasmaOtherListPadding.vertical;
             return Disclosure(
               key: const Key('plasma_other_addresses'),
               title: context.l10n.plasmaPageOtherAddresses,
@@ -355,7 +343,10 @@ class _OtherAddresses extends StatelessWidget {
               // of addresses, and the selected one may be on it.
               keepAlive: true,
               child: SizedBox(
-                height: math.min(wanted, maxHeight),
+                // The reference reserves the lower body even for a short
+                // list. The original reveal lends this height to the mark
+                // while closed, so its header rests at the card's foot.
+                height: maxHeight,
                 child: Padding(
                   padding: tokens.plasmaOtherListPadding,
                   child: _LevelsView(

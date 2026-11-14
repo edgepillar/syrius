@@ -11,6 +11,18 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
+[Source754](source754-plasma-address-footer.md) makes the Plasma well's
+closed address heading rest at the card's foot and uses the existing bounded
+lower body when opened. The original disclosure animation moves the header;
+the shader state, artwork, persistence, pagination and guarded actions remain.
+Four new widget cases cover both themes and constrained/normal heights,
+including intermediate motion and element retention. Strict analysis and
+the early compact gate include the affected files. Fresh full Linux is
+required; new affected Windows capture remains deferred for grouped
+qualification. The existing image review is prepared but still waits for
+a live shared metadata lease. No storage policy changes or new transfer
+occurs. Scope and accepted matches remain 76/80 and 2/94.
+
 [Source752](source752-ledger-controls.md) passes full Linux 43579068184:
 all thirteen required steps, the early Apps/Plasma geometry gates, the
 complete non-chain directory and tracked generation. It fixes Apps
