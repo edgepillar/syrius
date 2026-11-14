@@ -11,20 +11,22 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
-[Source771](source771-collection-test-cascade.md) follows Source770 full
-Linux 43652104173: Python controls and patched/global analysis pass, then
-strict analysis reports one info at the consecutive collection-state call.
-Its bounded notice retains only the selected location; the original code
-remains opaque. Ready, Lock, compact widgets, the complete directory and
-generation are skipped. All source-bound metadata is consumed with no full
-log/binary transfer or new storage task. The failed CI run is preserved.
+[Source772](source772-transition-frame.md) retains the original Bell two
+120 ms samples, adds explicit 240 ms reverse-duration/zero-end-value checks,
+and flushes one following harness frame before unchanged completion,
+absence/input/focus assertions. Collection retains both 500 ms samples and
+flushes one frame before its unchanged idle/identity checks. The pinned
+Flutter 3.47.7 simulation distinguishes its boundary value from its later
+completion status. No application, workflow, 282-file selection or test
+registration changes; no physical refresh-rate claim is made.
 
-The call now uses a cascade with the same state, order, finite pumps and all
-assertions. The known public cascade code joins the notice allowlist; all
-six existing memory-only privacy/bounds/exit cases pass after extension.
-Application bytes, 282-file selection and both workflows remain unchanged.
-Fresh full Linux must execute the combined Bell completion, original frame
-ownership and Source770 control metrics before native/image qualification.
+No Source771 hosted run was dispatched. Its cascade correction and this
+test-clock correction share one fresh full Linux run for the combined
+Bell/frame and Source770 control metrics before native/image qualification.
+Source770 full Linux 43652104173 retains one strict info and five skipped
+widget/generation stages. Its bounded source-location notice is consumed;
+no full log or binary transfer is made. The original code remains opaque;
+the cascade is a source-review interpretation. Older failures remain.
 
 Current native/image evidence remains Source765, with 24 general pairs
 individually viewed: 16 mismatches, 8 unresolved and no acceptance. Its archive

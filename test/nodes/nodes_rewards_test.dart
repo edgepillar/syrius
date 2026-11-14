@@ -252,6 +252,8 @@ void main() {
     original.animateReverse();
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
+    // The following frame delivers the original controller's idle status.
+    await tester.pump(const Duration(milliseconds: 16));
     expect(tester.state<LoadingButtonState>(first), same(original));
     expect(original.btnState, ButtonState.idle);
     expect(tester.getSize(first).width, inExclusiveRange(30, 100));

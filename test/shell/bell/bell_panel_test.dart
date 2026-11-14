@@ -409,6 +409,8 @@ void main() {
           final ModalRoute<dynamic> route =
               ModalRoute.of(tester.element(panel))!;
           expect(route.settings.name, 'bell-panel');
+          expect(route.reverseTransitionDuration,
+            const Duration(milliseconds: 240));
           expect(route.animation!.value, inExclusiveRange(0, 1));
           expect(Navigator.of(tester.element(panel)),
             same(navigator.currentState));
@@ -453,6 +455,9 @@ void main() {
           expect(completed, isFalse);
           expect(panel, findsOneWidget);
           await tester.pump(const Duration(milliseconds: 120));
+          expect(route.animation!.value, closeTo(0, 1e-9));
+          // The following frame delivers dismissal and removes the portal.
+          await tester.pump(const Duration(milliseconds: 16));
           await _finishOwnedFuture(tester, closed);
           expect(completed, isTrue);
           expect(find.byKey(const Key('bell_panel')), findsNothing);
