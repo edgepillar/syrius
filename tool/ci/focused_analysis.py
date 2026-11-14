@@ -112,6 +112,7 @@ SELECTED_DART_SOURCES = (
     'test/segment/segment_availability_test.dart',
     'test/segment/segment_heading_test.dart',
     'test/rearchitecture/utils/widgets/panel_test.dart',
+    'test/page/panel_collapse_test.dart',
     'test/settings_node_redesign/node_settings_view_test.dart',
     'lib/rearchitecture/features/send/bloc/send_transaction/send_transaction_bloc.dart',
     'test/send/bloc/sender_admission_test.dart',

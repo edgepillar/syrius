@@ -55,9 +55,11 @@ their existing dimensions.
 
 Ordinary Panel titles without actions use a forty-four-pixel minimum.
 Titles with actions retain forty-eight pixels, and both can grow with their
-content. Their ordinary end inset is sixteen pixels. Heading tabs and
-folding panels retain their existing layout. Body sizing, panel padding and
-the divider remain unchanged.
+content. Their ordinary end inset is sixteen pixels. Heading tabs retain
+their layout. Folding code and its forty-eight-pixel height remain; its
+shared header end inset is also sixteen pixels. Body sizing rules, panel
+padding and the divider remain unchanged. Source758 corrects the earlier
+claim that the folding layout was entirely unchanged.
 
 Existing tests extend physical end alignment in both directions, normal
 and scaled Node forms, pill typography and label padding, explicit mono

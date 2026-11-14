@@ -76,6 +76,7 @@ jobs:
           test/segment/segment_availability_test.dart
           test/segment/segment_heading_test.dart
           test/rearchitecture/utils/widgets/panel_test.dart
+          test/page/panel_collapse_test.dart
           test/settings_node_redesign/node_settings_view_test.dart
           test/settings_security_redesign/security_settings_view_test.dart
           test/settings/display_settings_test.dart

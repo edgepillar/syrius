@@ -1,11 +1,11 @@
 import 'dart:io';
 import 'dart:ui' show PointerDeviceKind;
 
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce/hive_ce.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/page_widgets.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
@@ -21,6 +21,7 @@ const Key _action = Key('action');
 const String _prefix = 'panel_collapsed_';
 
 const double _header = 48;
+const double _plainHeader = 44;
 
 // The app theme: its divider takes 1 px, Material's default takes 16.
 Widget _host(Widget child, {TextDirection direction = TextDirection.ltr}) =>
@@ -103,7 +104,7 @@ void main() {
       expect(_height(tester, _panel), 600);
       expect(tester.getSize(_card()).height, 600);
       // The body has what the title row and the divider leave.
-      expect(_height(tester, _body), 600 - _header - 1);
+      expect(_height(tester, _body), 600 - _plainHeader - 1);
       expect(
         find.descendant(
           of: find.byKey(_panel),
@@ -128,8 +129,8 @@ void main() {
       expect(find.byKey(_body), findsOneWidget);
       expect(_chevron(), findsOneWidget);
       expect(_height(tester, _panel), _header + 1 + 30);
-      // Trailing: 8 of padding from the card's right edge.
-      expect(tester.getRect(_chevron()).right, 400 - 8);
+      // The shared header inset is 16 at either reading end.
+      expect(tester.getRect(_chevron()).right, 400 - 16);
       expect(
         tester.getRect(_chevron()).left,
         greaterThanOrEqualTo(tester.getRect(find.text('Activity')).right),
@@ -401,9 +402,8 @@ void main() {
           _host(_stacked(_short()), direction: TextDirection.rtl),
         );
 
-        // 8 of padding from the card's left edge, where left to right has
-        // the title 16 in.
-        expect(tester.getRect(_chevron()).left, 8);
+        // Both title and chevron retain the ordinary 16-pixel inset.
+        expect(tester.getRect(_chevron()).left, 16);
         expect(tester.getRect(find.text('Activity')).right, 400 - 16);
         expect(
           tester.getRect(_chevron()).right,
@@ -414,7 +414,7 @@ void main() {
         await tester.tap(find.text('Activity'));
         await tester.pumpAndSettle();
         expect(_turns(tester), 0);
-        expect(tester.getRect(_chevron()).left, 8);
+        expect(tester.getRect(_chevron()).left, 16);
         expect(find.byKey(_body), findsNothing);
       },
     );

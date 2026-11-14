@@ -11,6 +11,17 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
+[Source758](source758-panel-regression-metrics.md) preserves Source757 full
+Linux 43596162392 as failed after every early gate passes. The full directory
+finds three old Panel metric assumptions; generation is skipped. The existing
+fixture now separates the 44-pixel ordinary header from the 48-pixel folding
+header and checks the shared sixteen-pixel end inset in both directions.
+Its motion, persistence, sizing, keyboard and action checks remain. The file
+joins strict analysis and the early gate without new registrations. Source756's
+earlier folding-layout description is corrected. Application bytes remain
+Source757. The complete bounded log is retained with successful owned closure.
+Fresh full Linux is required before grouped affected Windows/image work.
+
 [Source757](source757-settings-focus-and-hint-layout.md) preserves Source756
 full Linux 43594481152 as failed: strict analysis, Ready and Lock pass,
 then four scaled Node variants fail the existing endpoint-to-Save focus
