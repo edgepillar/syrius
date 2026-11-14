@@ -378,10 +378,11 @@ class _WalletSettingsViewState extends State<WalletSettingsView>
     seam: Seam.operatorModes,
     child: Padding(
       padding: AppTokens.of(context).settingsRowPadding,
-      child: Wrap(
+      child: OverflowBar(
+        alignment: MainAxisAlignment.spaceBetween,
         spacing: AppTokens.of(context).pageGap,
-        runSpacing: AppTokens.of(context).inlineGap,
-        crossAxisAlignment: WrapCrossAlignment.center,
+        overflowSpacing: AppTokens.of(context).inlineGap,
+        overflowAlignment: OverflowBarAlignment.end,
         children: <Widget>[
           Column(
             mainAxisSize: MainAxisSize.min,
@@ -394,43 +395,51 @@ class _WalletSettingsViewState extends State<WalletSettingsView>
               ),
             ],
           ),
-          for (final String label in <String>[
-            context.l10n.pillar,
-            context.l10n.sentinel,
-            context.l10n.nodeSettingsSporks,
-          ])
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Text(label, style: AppTokens.of(context).compactText),
-                SizedBox(width: AppTokens.of(context).walletModeLabelGap),
-                Segment<String>(
-                  items: <SegmentItem<String>>[
-                    for (final String mode in const <String>[
-                      'auto',
-                      'on',
-                      'off',
-                    ])
-                      SegmentItem<String>(
-                        value: mode,
-                        labelStyle: AppTokens.of(context).compactText,
-                        label: switch (mode) {
-                          'auto' => context.l10n.walletSettingsAuto,
-                          'on' => context.l10n.walletSettingsOn,
-                          _ => context.l10n.walletSettingsOff,
-                        },
-                        enabled: false,
+          Wrap(
+            spacing: AppTokens.of(context).pageGap,
+            runSpacing: AppTokens.of(context).inlineGap,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: <Widget>[
+              for (final String label in <String>[
+                context.l10n.pillar,
+                context.l10n.sentinel,
+                context.l10n.nodeSettingsSporks,
+              ])
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Text(label, style: AppTokens.of(context).compactText),
+                    SizedBox(width: AppTokens.of(context).walletModeLabelGap),
+                    Segment<String>(
+                      items: <SegmentItem<String>>[
+                        for (final String mode in const <String>[
+                          'auto',
+                          'on',
+                          'off',
+                        ])
+                          SegmentItem<String>(
+                            value: mode,
+                            labelStyle: AppTokens.of(context).compactText,
+                            label: switch (mode) {
+                              'auto' => context.l10n.walletSettingsAuto,
+                              'on' => context.l10n.walletSettingsOn,
+                              _ => context.l10n.walletSettingsOff,
+                            },
+                            enabled: false,
+                          ),
+                      ],
+                      // No backing policy exists, so no effective mode
+                      // is claimed.
+                      selected: null,
+                      onChanged: (_) => runUnlessSeamed(
+                        seam: Seam.operatorModes,
+                        action: () {},
                       ),
+                    ),
                   ],
-                  // No backing policy exists, so no effective mode is claimed.
-                  selected: null,
-                  onChanged: (_) => runUnlessSeamed(
-                    seam: Seam.operatorModes,
-                    action: () {},
-                  ),
                 ),
-              ],
-            ),
+            ],
+          ),
         ],
       ),
     ),

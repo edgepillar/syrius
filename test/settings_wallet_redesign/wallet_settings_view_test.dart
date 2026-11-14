@@ -191,6 +191,18 @@ void main() {
           final double pillarY = tester.getTopLeft(find.text('Pillar')).dy;
           expect(tester.getTopLeft(find.text('Sentinel')).dy, pillarY);
           expect(tester.getTopLeft(find.text('Sporks')).dy, pillarY);
+          final Rect modes = tester.getRect(
+            find.byKey(const Key('wallet_settings_modes_gate')),
+          );
+          final Rect lastMode = tester.getRect(
+            find.byType(Segment<String>).last,
+          );
+          expect(modes.right - lastMode.right, closeTo(16, 1e-10));
+          expect(
+            tester.getTopLeft(find.text('Sentinel')).dx -
+                tester.getTopRight(find.byType(Segment<String>).first).dx,
+            closeTo(12, 1e-10),
+          );
         }
         await tester.ensureVisible(find.byKey(_maintenance));
         await tester.tap(find.byKey(_maintenance));

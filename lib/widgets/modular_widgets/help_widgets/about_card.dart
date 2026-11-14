@@ -247,6 +247,15 @@ class _AboutCardState extends State<AboutCard> {
           SecondaryAction(
             child: OutlinedButton(
               key: const Key('about_what_changed'),
+              style: OutlinedButton.styleFrom(
+                minimumSize: Size(0, tokens.compactButtonHeight),
+                padding: tokens.compactButtonPadding,
+                visualDensity: VisualDensity.standard,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                textStyle: tokens.compactText.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
               onPressed: () =>
                   throw const SeamNotBuilt(Seam.walletUpdateNotice),
               child: Text(context.l10n.aboutWhatChanged),

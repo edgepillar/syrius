@@ -81,6 +81,7 @@ jobs:
           test/settings_security_redesign/security_settings_view_test.dart
           test/settings/display_settings_test.dart
           test/settings_wallet_redesign/wallet_settings_view_test.dart
+          test/settings_about_redesign/about_settings_view_test.dart
           test/token_actions_redesign/token_inline_actions_test.dart --no-pub
 
       - name: Run unit and widget tests

@@ -179,6 +179,21 @@ void main() {
   ) async {
     await show(tester);
     expect(find.byType(SettingRow), findsNWidgets(7));
+    for (final Finder group in <Finder>[
+      find.byType(Segment<ThemeMode>),
+      find.byType(Segment<TextScaling>),
+      find.byKey(const Key('display_menu_icons')),
+      find.byKey(const Key('display_menu_labels')),
+    ]) {
+      final Iterable<Text> labels = tester.widgetList<Text>(
+        find.descendant(of: group, matching: find.byType(Text)),
+      );
+      expect(labels, isNotEmpty);
+      for (final Text label in labels) {
+        expect(label.style!.fontSize, 13);
+        expect(label.style!.fontWeight, FontWeight.w400);
+      }
+    }
     for (final SettingRow row in tester.widgetList<SettingRow>(
       find.byType(SettingRow),
     )) {

@@ -113,6 +113,27 @@ void main() {
           expect(_text(tester, 'about_version').data, '9.8.7-rc.2');
           expect(_text(tester, 'about_embedded_version').data, 'Unknown');
           expect(_text(tester, 'about_build').data, '00042 · abcdef12');
+          final ButtonStyle actionStyle = tester
+              .widget<OutlinedButton>(
+                find.byKey(const Key('about_what_changed')),
+              )
+              .style!;
+          expect(
+            actionStyle.minimumSize!.resolve(<WidgetState>{})!.height,
+            30,
+          );
+          expect(
+            actionStyle.padding!.resolve(<WidgetState>{}),
+            const EdgeInsets.symmetric(horizontal: 13),
+          );
+          expect(
+            actionStyle.textStyle!.resolve(<WidgetState>{})!.fontSize,
+            13,
+          );
+          expect(
+            actionStyle.textStyle!.resolve(<WidgetState>{})!.fontWeight,
+            FontWeight.w500,
+          );
           expect(find.text('Confirm'), findsNothing);
           expect(find.text('0.3.0 is out'), findsNothing);
           expect(find.text('18'), findsOneWidget);

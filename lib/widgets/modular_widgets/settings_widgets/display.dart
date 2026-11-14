@@ -89,6 +89,7 @@ class _DisplayWidget extends State<DisplayWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final AppTokens tokens = AppTokens.of(context);
     final ThemeMode? themeMode = context
         .watch<AppThemeNotifier>()
         .currentThemeMode;
@@ -125,14 +126,17 @@ class _DisplayWidget extends State<DisplayWidget> {
                     items: <SegmentItem<ThemeMode>>[
                       SegmentItem<ThemeMode>(
                         value: ThemeMode.system,
+                        labelStyle: tokens.compactText,
                         label: context.l10n.displaySystem,
                       ),
                       SegmentItem<ThemeMode>(
                         value: ThemeMode.dark,
+                        labelStyle: tokens.compactText,
                         label: context.l10n.displayDark,
                       ),
                       SegmentItem<ThemeMode>(
                         value: ThemeMode.light,
+                        labelStyle: tokens.compactText,
                         label: context.l10n.displayLight,
                       ),
                     ],
@@ -148,6 +152,7 @@ class _DisplayWidget extends State<DisplayWidget> {
                       for (final TextScaling scale in scales)
                         SegmentItem<TextScaling>(
                           value: scale,
+                          labelStyle: tokens.compactText,
                           label: switch (scale) {
                             TextScaling.small => context.l10n.displaySmall,
                             TextScaling.large => context.l10n.displayLarge,
@@ -177,10 +182,12 @@ class _DisplayWidget extends State<DisplayWidget> {
                     items: <SegmentItem<_MenuStyle>>[
                       SegmentItem<_MenuStyle>(
                         value: _MenuStyle.icons,
+                        labelStyle: tokens.compactText,
                         label: context.l10n.displayIcons,
                       ),
                       SegmentItem<_MenuStyle>(
                         value: _MenuStyle.labels,
+                        labelStyle: tokens.compactText,
                         label: context.l10n.displayLabels,
                       ),
                     ],

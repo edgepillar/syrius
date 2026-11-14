@@ -418,13 +418,7 @@ class SegmentThumb extends StatelessWidget {
     final ThemeData theme = Theme.of(context);
     return DecoratedBox(
       decoration: ShapeDecoration(
-        // The mockup's third card tone has no name in the theme. The hover
-        // tint laid over the track lands within three steps of it in both
-        // themes, and stays a step above the track if either is retuned.
-        color: Color.alphaBlend(
-          tokens.hover,
-          theme.colorScheme.primaryContainer,
-        ),
+        color: tokens.card3,
         shape: StadiumBorder(side: BorderSide(color: _lineOf(theme))),
       ),
     );

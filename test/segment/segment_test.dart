@@ -554,6 +554,7 @@ void main() {
                     .decoration
                 as ShapeDecoration;
         expect(thumb.color, isNot(theme.colorScheme.primaryContainer));
+        expect(thumb.color, (light ? AppTokens.light : AppTokens.dark).card3);
         expect(
           (thumb.shape as StadiumBorder).side.color,
           theme.dividerTheme.color,

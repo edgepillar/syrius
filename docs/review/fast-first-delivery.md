@@ -11,16 +11,25 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
-[Source758](source758-panel-regression-metrics.md) preserves Source757 full
-Linux 43596162392 as failed after every early gate passes. The full directory
-finds three old Panel metric assumptions; generation is skipped. The existing
-fixture now separates the 44-pixel ordinary header from the 48-pixel folding
-header and checks the shared sixteen-pixel end inset in both directions.
-Its motion, persistence, sizing, keyboard and action checks remain. The file
-joins strict analysis and the early gate without new registrations. Source756's
-earlier folding-layout description is corrected. Application bytes remain
-Source757. The complete bounded log is retained with successful owned closure.
-Fresh full Linux is required before grouped affected Windows/image work.
+[Source759](source759-settings-pill-styles-and-spacing.md) follows successful
+Source758 full Linux 43598440932, Windows Settings 43599891472 and reader
+43601984665. Native checks verify 1505 Dart cases, 1220 Python cases/eighteen
+skips, zero selected findings and 42 PNGs. Required entry/application actors
+and five lab nodes exit normally. Auxiliary VCTIP cleanup leaves complete
+runner lifecycle unqualified. All fourteen Settings pairs are individually
+reviewed and remain mismatches; the owned review closes successfully with
+the archive and full report retained. The new packet corrects pill fill,
+Display label weight, Wallet mode-group alignment and the compact About
+action. Existing cases extend exact metrics without registrations. The
+existing About file joins the early gate; strict selection remains 268.
+Fresh full Linux is required. These source changes establish no new visual
+match: scope and accepted pairs stay 76/80 and 2/94.
+
+[Source758](source758-panel-regression-metrics.md) separates the ordinary
+44-pixel header from the retained 48-pixel folding height and checks shared
+sixteen-pixel end insets. The old three Panel failures and four Node focus
+failures retain their original revisions and failed outcomes. Motion,
+persistence, sizing, keyboard and action assertions remain intact.
 
 [Source757](source757-settings-focus-and-hint-layout.md) preserves Source756
 full Linux 43594481152 as failed: strict analysis, Ready and Lock pass,
