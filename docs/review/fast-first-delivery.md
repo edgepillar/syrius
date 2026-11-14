@@ -11,27 +11,20 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
-[Source770](source770-control-metrics.md) groups the prepared Bell completion
-correction with compact Node collection controls, scoped Send fields/native
-coin/symbols and full-height search decoration. Collect measures its actual
-localized/scaled label, retains the original loader key and motion, and uses
-a thirty-pixel height. Send fields use an eight-pixel radius and a forty-two-
-pixel token field that grows for scaled text. Original data, callbacks,
-financial owners and other Transfer radii remain.
+[Source771](source771-collection-test-cascade.md) follows Source770 full
+Linux 43652104173: Python controls and patched/global analysis pass, then
+strict analysis reports one info at the consecutive collection-state call.
+Its bounded notice retains only the selected location; the original code
+remains opaque. Ready, Lock, compact widgets, the complete directory and
+generation are skipped. All source-bound metadata is consumed with no full
+log/binary transfer or new storage task. The failed CI run is preserved.
 
-Existing dark/light cases extend real geometry and original-symbol checks;
-the original collection case also checks the busy circle and same-state
-return. Strict selection becomes 282. Node rewards, Send and Pillars join
-the early Bell/frame gate without a new case or fixture filename. No
-Source769 hosted run was dispatched. One fresh combined full Linux is
-required before grouped native/image qualification.
-
-Source768 full Linux 43649738310 passes 1226 Python controls, patched/global
-and 280-source strict analysis, Ready and Lock. Four Bell final-absence
-failures remain, with the newer-dialog and Accelerator cases passing.
-Full directory and generation are skipped. Its complete 441,327-byte log
-is retained after successful owned closure; all outputs are consumed without
-a CI retry. Older failures remain preserved.
+The call now uses a cascade with the same state, order, finite pumps and all
+assertions. The known public cascade code joins the notice allowlist; all
+six existing memory-only privacy/bounds/exit cases pass after extension.
+Application bytes, 282-file selection and both workflows remain unchanged.
+Fresh full Linux must execute the combined Bell completion, original frame
+ownership and Source770 control metrics before native/image qualification.
 
 Current native/image evidence remains Source765, with 24 general pairs
 individually viewed: 16 mismatches, 8 unresolved and no acceptance. Its archive

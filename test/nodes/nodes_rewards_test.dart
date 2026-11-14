@@ -244,8 +244,8 @@ void main() {
       expect(size.width, inExclusiveRange(30, 100));
     }
     final Finder first = find.byType(LoadingButton).first;
-    final LoadingButtonState original = tester.state<LoadingButtonState>(first);
-    original.animateForward();
+    final LoadingButtonState original = tester.state<LoadingButtonState>(first)
+      ..animateForward();
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
     expect(tester.getSize(first), const Size(30, 30));

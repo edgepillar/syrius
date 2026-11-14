@@ -296,7 +296,8 @@ SELECTED_DART_SOURCES = (
 MAX_NOTICE_INPUT = 256 * 1024
 _NOTICE_CODES = frozenset((
     'argument_type_not_assignable', 'avoid_redundant_argument_values',
-    'directives_ordering', 'invalid_assignment', 'lines_longer_than_80_chars',
+    'cascade_invocations', 'directives_ordering', 'invalid_assignment',
+    'lines_longer_than_80_chars',
     'missing_required_argument', 'missing_whitespace_between_adjacent_strings',
     'prefer_const_constructors', 'prefer_const_declarations',
     'prefer_initializing_formals', 'unnecessary_import', 'unnecessary_lambdas',

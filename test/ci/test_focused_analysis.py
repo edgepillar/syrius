@@ -38,14 +38,18 @@ class FocusedAnalysisTests(unittest.TestCase):
         for repo, path in (
                 ('/fixture', '/fixture/lib/view.dart'),
                 ('C:/fixture', 'C:\\fixture\\lib\\view.dart')):
-            value = self.project(finding(path, message='private credential'), repo=repo)
-            self.assertEqual(value['diagnostics'][0]['file'], 'lib/view.dart')
-            self.assertTrue(value['locations_complete'])
-            rendered = json.dumps(value)
-            self.assertNotIn('fixture', rendered)
-            self.assertNotIn('private', rendered)
-            self.assertNotIn('credential', rendered)
-            self.assertFalse(value['qualification'])
+            for code in ('unnecessary_import', 'cascade_invocations'):
+                value = self.project(
+                    finding(path, code=code, message='private credential'),
+                    repo=repo)
+                self.assertEqual(value['diagnostics'][0]['file'], 'lib/view.dart')
+                self.assertEqual(value['diagnostics'][0]['code'], code)
+                self.assertTrue(value['locations_complete'])
+                rendered = json.dumps(value)
+                self.assertNotIn('fixture', rendered)
+                self.assertNotIn('private', rendered)
+                self.assertNotIn('credential', rendered)
+                self.assertFalse(value['qualification'])
 
     def test_foreign_unselected_parent_and_uri_paths_never_escape(self):
         for path in ('/outside/private.dart', '../lib/view.dart',
