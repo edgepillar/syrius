@@ -11,20 +11,22 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
-[Source767](source767-accelerator-gap-symbols.md) follows Source766 full
-Linux 43646155019: Python controls and patched/global analysis pass, then
-strict analysis reports six infos. Ready, Lock, compact widgets, the complete
-non-chain directory and generation are skipped. The original 320,431-byte
-job log and both local reader failures remain; all outputs are reconciled
-and consumed without retrying CI or changing manager/receipt modes.
+[Source768](source768-strict-notices.md) follows Source767 full Linux
+43648027442: Python controls and patched/global analysis pass, then strict
+analysis reports only one adjacent-SVG-string whitespace info. Source766's
+six previous infos are corrected. Ready, Lock, compact widgets, the complete
+non-chain directory and generation remain skipped. The complete 318,170-byte
+log is protected after successful owned closure; all dispatched outputs are
+consumed without retrying CI. Older failures remain preserved.
 
-The six Bell declarations/lines are corrected. Accelerator selects the
-reference's twelve-pixel strip-to-ledger gap through an optional PageGrid
-override; default callers retain their spacing. Donate/Create use the
-original hand/plus symbols and original callbacks. Existing dark/light cases
-check actual spacing and artwork. Strict selection becomes 280; Accelerator
-joins the early gate. Fresh full Linux is required; native/image work remains
-grouped. The five Bell behavior cases still require execution.
+The original hand path is now split only at existing spaces, retaining its
+exact bytes. The strict runner also projects bounded advisory failure
+locations into check annotations, excluding messages, absolute roots and
+unknown code text. The original command, fatal-infos flag and actual exits
+remain. Six memory-only Python privacy/bounds/exit cases pass without SDK
+execution. Strict selection stays 280 and workflow bytes are unchanged.
+Fresh full Linux is required. Bell/Accelerator cases still require execution;
+Windows/image work remains grouped.
 
 Current native/image evidence remains Source765: Windows 43639780927 and
 reader 43642361243 verify 1505 Dart/1220 Python cases with eighteen skips,

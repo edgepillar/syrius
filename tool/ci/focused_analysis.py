@@ -1,6 +1,10 @@
 """One ordered strict Dart analysis selection for Linux and Windows CI."""
 
+import json
+from pathlib import Path
+import re
 import subprocess
+import sys
 
 SELECTED_DART_SOURCES = (
     'tool/ci/windows_debug_service_probe.dart',
@@ -286,11 +290,88 @@ SELECTED_DART_SOURCES = (
 )
 
 
+
+MAX_NOTICE_INPUT = 256 * 1024
+_NOTICE_CODES = frozenset((
+    'argument_type_not_assignable', 'avoid_redundant_argument_values',
+    'directives_ordering', 'invalid_assignment', 'lines_longer_than_80_chars',
+    'missing_required_argument', 'missing_whitespace_between_adjacent_strings',
+    'prefer_const_constructors', 'prefer_const_declarations',
+    'prefer_initializing_formals', 'unnecessary_import', 'unnecessary_lambdas',
+    'unnecessary_this', 'unused_import', 'undefined_class',
+    'undefined_identifier', 'undefined_method', 'undefined_named_parameter',
+))
+_FINDING = re.compile(
+    r'^\s*(error|warning|info) - (.+?):([0-9]+):([0-9]+) - .* - '
+    r'([a-z][a-z0-9_]{0,99})\s*$')
+
+
+def failure_notice(raw, actual_exit, *, repo, sources=SELECTED_DART_SOURCES):
+    """Project selected locations without messages, roots or unknown codes."""
+    from .analysis_delta import Refused, notice_projection, relative_source
+
+    result = dict(schema=1, scope='strict_dart_analysis', success=False,
+                  qualification=False, actual_exit=actual_exit)
+    refused = dict(result, status='REFUSED', diagnostics=[],
+                   total_diagnostics=0, truncated=False)
+    if (type(raw) is not bytes or len(raw) > MAX_NOTICE_INPUT or
+            type(actual_exit) is not int or not -255 <= actual_exit <= 255):
+        return refused
+    rows = []
+    counts = dict(error=0, warning=0, info=0)
+    summary = None
+    try:
+        for line in raw.decode('utf-8', 'replace').splitlines():
+            if len(line) > 65536:
+                return refused
+            match = _FINDING.fullmatch(line)
+            if match:
+                level, offered, row, column, code = match.groups()
+                path = relative_source(offered, repo, set(sources))
+                row, column = int(row), int(column)
+                if not (0 < row <= 10**7 and 0 < column <= 10**7):
+                    return refused
+                known = code in _NOTICE_CODES
+                rows.append(dict(file=path, line=row, column=column,
+                                 code=code if known else 'other',
+                                 unknown_code=not known, level=level))
+                counts[level] += 1
+            found = re.fullmatch(r'\s*([0-9]+) issues? found[.!]?\s*', line)
+            if found:
+                summary = int(found[1])
+    except (Refused, TypeError, ValueError):
+        return refused
+    result.update(status='OBSERVED', counts=counts,
+                  locations_complete=summary == len(rows))
+    projected = notice_projection(result, rows, cap=3600)
+    projected['diagnostics'] = projected.pop('groups')
+    projected['total_diagnostics'] = projected.pop('total_groups')
+    return projected
+
+
 def main():
-    return subprocess.run(
+    """Keep the original command/exit while exposing bounded failure metadata."""
+    captured = bytearray()
+    overflow = False
+    with subprocess.Popen(
         ['dart', 'analyze', '--fatal-infos', *SELECTED_DART_SOURCES],
-        stdin=subprocess.DEVNULL, check=False,
-    ).returncode
+        stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    ) as process:
+        while chunk := process.stdout.read(65536):
+            sys.stdout.buffer.write(chunk)
+            if not overflow and len(captured) + len(chunk) <= MAX_NOTICE_INPUT:
+                captured.extend(chunk)
+            else:
+                overflow = True
+        actual_exit = process.wait()
+    if actual_exit:
+        notice = failure_notice(
+            None if overflow else bytes(captured), actual_exit, repo=Path.cwd())
+        print('::notice title=Strict Dart analysis::' +
+              json.dumps(notice, sort_keys=True, separators=(',', ':')),
+              flush=True)
+    return actual_exit
 
 
 if __name__ == '__main__':
