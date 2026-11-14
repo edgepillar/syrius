@@ -11,33 +11,29 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
-[Source768](source768-strict-notices.md) follows Source767 full Linux
-43648027442: Python controls and patched/global analysis pass, then strict
-analysis reports only one adjacent-SVG-string whitespace info. Source766's
-six previous infos are corrected. Ready, Lock, compact widgets, the complete
-non-chain directory and generation remain skipped. The complete 318,170-byte
-log is protected after successful owned closure; all dispatched outputs are
-consumed without retrying CI. Older failures remain preserved.
+[Source769](source769-bell-transition-completion.md) follows Source768 full
+Linux 43649738310: 1226 Python controls, patched/global and 280-source strict
+analysis, Ready and Lock pass. The compact gate reports four framed Bell
+variants at final panel absence; the newer-dialog case and both Accelerator
+gap/original-symbol cases pass. Full directory and generation are skipped.
+The complete 441,327-byte log is retained after successful owned closure;
+all outputs are consumed without retrying CI.
 
-The original hand path is now split only at existing spaces, retaining its
-exact bytes. The strict runner also projects bounded advisory failure
-locations into check annotations, excluding messages, absolute roots and
-unknown code text. The original command, fatal-infos flag and actual exits
-remain. Six memory-only Python privacy/bounds/exit cases pass without SDK
-execution. Strict selection stays 280 and workflow bytes are unchanged.
-Fresh full Linux is required. Bell/Accelerator cases still require execution;
-Windows/image work remains grouped.
+Bell now waits for its original route's completed transition before returning.
+The 240 ms duration, intermediate reverse-motion checks, original final
+absence/focus assertions and privacy owner remain. Framed cases also check
+that completion waits for reverse motion. The existing frame suite joins
+the early gate; no case or fixture filename is added. Fresh full Linux is
+grouped with the following control-metrics packet. Strict selection stays
+280; no Source769 native run is dispatched.
 
-Current native/image evidence remains Source765: Windows 43639780927 and
-reader 43642361243 verify 1505 Dart/1220 Python cases with eighteen skips,
-zero selected findings, 123 reader controls and 42 PNGs. Required actors and
-five lab nodes exit normally; auxiliary VCTIP cleanup leaves complete runner
-lifecycle unqualified. All 24 general pairs are individually viewed: 16
-mismatches, 8 unresolved and no acceptance. The archive and full 21,342-byte
-report remain protected after successful owned closure. General captures
-remain pattern evidence; fourteen Settings and four viewport images remain
-verified without another local transfer or review. No speedup or Source744
-cold-lock cause is established. Scope and accepted pairs stay 76/80 and 2/94.
+Current native/image evidence remains Source765, with 24 general pairs
+individually viewed: 16 mismatches, 8 unresolved and no acceptance. Its archive
+and full 21,342-byte report remain protected after successful owned closure.
+General captures remain pattern evidence; fourteen Settings and four viewport
+images remain verified without another local transfer or review. No speedup
+or Source744 cold-lock cause is established. Scope and accepted pairs stay
+76/80 and 2/94.
 
 [Source761](source761-address-action-gap.md) preserves Source760 full Linux
 43609477103 as failed after strict analysis, Ready and Lock pass. Both added

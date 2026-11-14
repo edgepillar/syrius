@@ -398,10 +398,11 @@ void main() {
           );
           expect(body.top, 32);
           expect(body.size, const Size(1280, 748));
+          bool completed = false;
           final Future<void> closed = showBellPanel(
             context: tester.element(find.byKey(const Key('open_bell'))),
             controller: controller,
-          );
+          ).whenComplete(() => completed = true);
           await tester.pump();
           await tester.pump(const Duration(milliseconds: 120));
           final Finder panel = find.byKey(const Key('bell_panel'));
@@ -449,9 +450,11 @@ void main() {
           await tester.pump(const Duration(milliseconds: 120));
           expect(route.animation!.status, AnimationStatus.reverse);
           expect(route.animation!.value, inExclusiveRange(0, 1));
+          expect(completed, isFalse);
           expect(panel, findsOneWidget);
           await tester.pump(const Duration(milliseconds: 120));
           await _finishOwnedFuture(tester, closed);
+          expect(completed, isTrue);
           expect(find.byKey(const Key('bell_panel')), findsNothing);
           expect(calls.where((MethodCall call) => call.method == 'close'),
             isEmpty);

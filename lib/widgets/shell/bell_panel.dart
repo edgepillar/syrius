@@ -72,6 +72,8 @@ Future<void> showBellPanel({
     final Future<void> closed = navigator.push<void>(route);
     route.animation?.addStatusListener(acknowledge);
     await closed;
+    // The pop result precedes reverse motion and overlay removal.
+    await route.completed;
   } finally {
     route.animation?.removeStatusListener(acknowledge);
     await privacy.cancel();
