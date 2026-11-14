@@ -117,7 +117,7 @@ class _SettingsSwitchState extends State<SettingsSwitch>
                       ),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.all(5),
+                      padding: tokens.settingsSwitchHitPadding,
                       child: SizedBox(
                         width: tokens.settingsSwitchWidth,
                         height: tokens.settingsSwitchHeight,

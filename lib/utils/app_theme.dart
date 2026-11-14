@@ -870,6 +870,10 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The compact switch's track height.
   double get settingsSwitchHeight => 22;
 
+  /// Extra input area stays before the track, keeping its reading end flush.
+  EdgeInsetsDirectional get settingsSwitchHitPadding =>
+      const EdgeInsetsDirectional.only(start: 10, top: 5, bottom: 5);
+
   /// The compact switch's thumb diameter.
   double get settingsSwitchThumb => 16;
 

@@ -67,10 +67,16 @@ void main() {
         final Finder thumb = find.byKey(const Key('settings_switch_thumb'));
         final Finder track = find.byKey(const Key('settings_switch_track'));
         final Rect off = tester.getRect(thumb);
+        final Rect input = tester.getRect(find.byType(SettingsSwitch));
+        final Rect visible = tester.getRect(track);
+        expect(input.size, const Size(48, 32));
+        expect(visible.right, input.right);
+        expect(visible.top - input.top, 5);
+        expect(input.bottom - visible.bottom, 5);
         expect(tester.getSize(track), const Size(38, 22));
         expect(off.size, const Size(16, 16));
         expect(_trackColour(tester), tokens.line);
-        await tester.tap(find.byType(SettingsSwitch));
+        await tester.tapAt(Offset(input.left + 1, input.center.dy));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 75));
         expect(
@@ -139,6 +145,10 @@ void main() {
     addTearDown(choice.dispose);
     await tester.pumpWidget(_app(choice, rtl: true));
     final Finder thumb = find.byKey(const Key('settings_switch_thumb'));
+    final Finder track = find.byKey(const Key('settings_switch_track'));
+    final Rect input = tester.getRect(find.byType(SettingsSwitch));
+    expect(input.size, const Size(48, 32));
+    expect(tester.getRect(track).left, input.left);
     final double start = tester.getTopLeft(thumb).dx;
     choice.value = true;
     await tester.pump();
@@ -151,5 +161,10 @@ void main() {
     await tester.pump();
     await tester.pumpAndSettle();
     expect(tester.getTopLeft(thumb).dx, start);
+    await tester.pumpWidget(_app(choice, light: true, rtl: true));
+    final Rect lightInput = tester.getRect(find.byType(SettingsSwitch));
+    expect(lightInput.size, const Size(48, 32));
+    expect(tester.getRect(track).left, lightInput.left);
+    expect(tester.takeException(), isNull);
   });
 }
