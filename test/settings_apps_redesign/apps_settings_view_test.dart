@@ -151,6 +151,20 @@ void main() {
               tester.getTopLeft(connected).dx,
           16,
         );
+        final Finder tableHeader = find.ancestor(
+          of: find.text('SITE'),
+          matching: find.byWidgetPredicate(
+            (Widget widget) =>
+                widget is Padding &&
+                widget.padding ==
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          ),
+        );
+        expect(tableHeader, findsOneWidget);
+        expect(
+          tester.getSize(tableHeader).height,
+          inInclusiveRange(31.5, 32.5),
+        );
 
         source.rows = <AppsConnection>[];
         source.changes.add(null);

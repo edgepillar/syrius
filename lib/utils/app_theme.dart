@@ -901,9 +901,8 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Ordinary small actions beside Security rows; table actions stay smaller.
   double get securitySettingsButtonHeight => 30;
 
-  /// Compact policy numbers retain the shared mono and tabular data role.
-  TextStyle get securitySettingsValueText =>
-      dataText.copyWith(fontSize: compactText.fontSize);
+  /// Preference choices use interface text with tabular figures.
+  TextStyle get securitySettingsValueText => compactText;
 
   /// The operator name precedes its grouped mode choices.
   double get walletModeLabelGap => 6;
@@ -986,6 +985,10 @@ class AppTokens extends ThemeExtension<AppTokens> {
 
   /// Keeps site identifiers and connection actions readable in short windows.
   double get appsSettingsTableMinWidth => 640;
+
+  /// The reference ledger header has a smaller vertical inset than its rows.
+  EdgeInsets get appsSettingsHeaderPadding =>
+      const EdgeInsets.symmetric(horizontal: 16, vertical: 8);
 
   /// A compact empty connection table still has room for its explanation.
   double get appsSettingsTableMinHeight => 128;

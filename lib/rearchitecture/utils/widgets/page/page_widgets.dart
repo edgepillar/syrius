@@ -48,11 +48,7 @@ void _storeCollapsed(String collapseKey, {required bool collapsed}) {
 
 /// The title of a panel: the one size every card heading uses.
 TextStyle panelTitleStyle(BuildContext context) =>
-    Theme.of(context).textTheme.headlineSmall!.copyWith(
-      fontSize: 15,
-      fontWeight: FontWeight.w500,
-      height: 1.2,
-    );
+    AppTokens.of(context).headingText;
 
 /// The ledger label: mono capitals, faint. Labels only, never values.
 ///

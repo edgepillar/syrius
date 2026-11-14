@@ -190,6 +190,10 @@ class _SectionItemState extends State<_SectionItem>
               child: InkWell(
                 key: ValueKey<String>('settings_${widget.section.name}'),
                 borderRadius: radius,
+                // Selection and keyboard focus already own their feedback.
+                overlayColor: const WidgetStatePropertyAll<Color>(
+                  Colors.transparent,
+                ),
                 onFocusChange: (bool focused) {
                   if (mounted) setState(() => _focused = focused);
                 },

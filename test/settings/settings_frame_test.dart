@@ -114,6 +114,19 @@ void main() {
             _surface(tester, SettingsSectionId.addresses).color,
             light ? AppTokens.light.card2 : AppTokens.dark.card2,
           );
+          for (final SettingsSectionId section in SettingsSectionId.values) {
+            final InkWell link = tester.widget<InkWell>(_section(section));
+            for (final WidgetState state in <WidgetState>[
+              WidgetState.hovered,
+              WidgetState.pressed,
+              WidgetState.focused,
+            ]) {
+              expect(
+                link.overlayColor!.resolve(<WidgetState>{state}),
+                Colors.transparent,
+              );
+            }
+          }
           expect(tester.takeException(), isNull);
 
           await tester.pumpWidget(

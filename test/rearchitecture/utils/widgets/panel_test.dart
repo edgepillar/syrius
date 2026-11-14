@@ -26,6 +26,13 @@ void main() {
         ),
       );
       expect(tester.getSize(find.byKey(const Key('panel'))).height, 600);
+      final TextStyle title = tester
+          .widget<Text>(find.text('To collect'))
+          .style!;
+      expect(title.fontFamily, kSansFontFamily);
+      expect(title.fontSize, 14);
+      expect(title.fontWeight, FontWeight.w600);
+      expect(title.height, 1.45);
     });
 
     testWidgets(

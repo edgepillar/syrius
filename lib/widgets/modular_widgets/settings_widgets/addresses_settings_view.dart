@@ -16,6 +16,8 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/format_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/addresses_settings_presenter.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show buildShellSymbol;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// Fixed results of the original input predicates, without wallet values.
@@ -590,7 +592,7 @@ class _AddressesSettingsViewState extends State<AddressesSettingsView>
                 ],
               ),
             ),
-            SizedBox(height: tokens.panelGap),
+            SizedBox(height: tokens.pageGap),
             _card(
               context,
               context.l10n.addressesContacts,
@@ -623,7 +625,7 @@ class _AddressesSettingsViewState extends State<AddressesSettingsView>
                 ],
               ),
             ),
-            SizedBox(height: tokens.panelGap),
+            SizedBox(height: tokens.pageGap),
             Panel(
               child: Disclosure(
                 title: context.l10n.addressesAccountChain(chainLabel),
@@ -870,7 +872,12 @@ class _AddressesSettingsViewState extends State<AddressesSettingsView>
                         ? () => _editLabel(address, current)
                         : null,
                     iconSize: tokens.settingsIconSize,
-                    icon: const Icon(Icons.edit_outlined),
+                    icon: buildShellSymbol(
+                      context,
+                      'edit',
+                      size: tokens.settingsIconSize,
+                      color: enabled ? tokens.dim : tokens.faint,
+                    ),
                   ),
                   SizedBox(width: tokens.addressesActionGap),
                   IconButton(
@@ -880,7 +887,12 @@ class _AddressesSettingsViewState extends State<AddressesSettingsView>
                         ? () => unawaited(_copy(address, owner, current))
                         : null,
                     iconSize: tokens.settingsIconSize,
-                    icon: const Icon(Icons.copy_outlined),
+                    icon: buildShellSymbol(
+                      context,
+                      'copy',
+                      size: tokens.settingsIconSize,
+                      color: enabled ? tokens.dim : tokens.faint,
+                    ),
                   ),
                 ],
               ),

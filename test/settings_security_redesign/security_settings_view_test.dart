@@ -211,7 +211,7 @@ void main() {
     }
   }
 
-  testWidgets('saved positive custom policy appears with mono exact value', (
+  testWidgets('saved positive custom policy keeps its exact tabular value', (
     WidgetTester tester,
   ) async {
     await presenter.close();
@@ -224,12 +224,13 @@ void main() {
         .widgetList<Segment<String>>(find.byType(Segment<String>));
     expect(segments.first.selected, '7');
     expect(segments.last.selected, '4');
+    final TextStyle valueStyle = segments.first.items
+        .firstWhere((SegmentItem<String> item) => item.value == '7')
+        .labelStyle!;
+    expect(valueStyle.fontFamily, kSansFontFamily);
     expect(
-      segments.first.items
-          .firstWhere((SegmentItem<String> item) => item.value == '7')
-          .labelStyle
-          ?.fontFamily,
-      'JetBrainsMono',
+      valueStyle.fontFeatures,
+      contains(const ui.FontFeature.tabularFigures()),
     );
     expect(source.target.calls, isEmpty);
     await close(tester);

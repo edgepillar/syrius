@@ -484,7 +484,7 @@ class _ConnectionsTable extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 Padding(
-                  padding: tokens.settingsRowPadding,
+                  padding: tokens.appsSettingsHeaderPadding,
                   child: _AppsColumns(
                     children: <Widget>[
                       Text(
