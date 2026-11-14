@@ -136,7 +136,9 @@ void main() {
         expect(
           tester.getBottomLeft(find.byType(Disclosure)).dy,
           closeTo(
-            tester.getBottomLeft(find.byKey(const Key('apps_settings_page'))).dy,
+            tester.getBottomLeft(
+              find.byKey(const Key('apps_settings_page')),
+            ).dy,
             .001,
           ),
         );

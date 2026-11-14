@@ -11,6 +11,14 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
+[Source751](source751-apps-assertion-line-wrap.md) wraps one added Apps test
+expression after Source750 passes general analysis and stops at one strict
+selected info for an 81-character line. All widget gates and generation are
+skipped; zero artifacts and no native dispatch are retained. Expectations,
+registrations, application and workflow bytes are unchanged. The original
+job is not retried. Fresh full Linux and affected Windows output remain
+required, with 76/80 accepted rows and 2/94 accepted pairs.
+
 [Source750](source750-apps-fill-and-source749-results.md) follows successful
 Source749 full Linux, Windows Home and independent image verification. All
 thirty-two Home/general pattern pairs are viewed, with six mismatches,
