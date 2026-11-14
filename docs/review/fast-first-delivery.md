@@ -11,6 +11,16 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
+[Source755](source755-plasma-test-catalog.md) adds the new layout test's
+literal filename to the existing sorted privacy catalog. Source754 full
+Linux 43584765921 fails its exact catalog-coverage assertion in the Python
+stage; Flutter setup, analysis, widgets and generation are skipped, with
+zero artifacts and no native dispatch. The original failed job is retained.
+All 24 existing privacy-projection controls pass in memory after the single
+catalog addition. Application, tests, strict selection and workflow bytes
+remain unchanged. Fresh full Linux is required, with 76/80 accepted rows and
+2/94 accepted pairs.
+
 [Source754](source754-plasma-address-footer.md) makes the Plasma well's
 closed address heading rest at the card's foot and uses the existing bounded
 lower body when opened. The original disclosure animation moves the header;

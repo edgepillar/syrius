@@ -267,6 +267,7 @@ ROOT_TEST_FILES = (
     'plasma_meter_test.dart',
     'plasma_purpose_test.dart',
     'plasma_read_test.dart',
+    'plasma_stats_layout_test.dart',
     'plasma_transport_test.dart',
     'plasma_well_test.dart',
     'pow_generating_status_bloc_test.dart',
