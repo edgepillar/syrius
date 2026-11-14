@@ -11,6 +11,17 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
+[Source760](source760-address-table-controls.md) follows successful Source759
+full Linux 43607802383: all thirteen required steps, complete directory and
+generation pass. The new packet scopes compact thirty-two-pixel icon-button
+areas to address/contact tables, uses sixteen-pixel selection marks and
+retains a four-pixel Rename/Copy gap. Original keys, semantics, callbacks,
+ownership, real data and column reservations remain. Existing dark/default
+and light/RTL/scaled cases extend exact geometry without registrations and
+join the early gate. Strict selection stays 268. Fresh full Linux precedes
+grouped affected Windows/image work; accepted scope and pairs stay 76/80
+and 2/94.
+
 [Source759](source759-settings-pill-styles-and-spacing.md) follows successful
 Source758 full Linux 43598440932, Windows Settings 43599891472 and reader
 43601984665. Native checks verify 1505 Dart cases, 1220 Python cases/eighteen
@@ -22,8 +33,8 @@ the archive and full report retained. The new packet corrects pill fill,
 Display label weight, Wallet mode-group alignment and the compact About
 action. Existing cases extend exact metrics without registrations. The
 existing About file joins the early gate; strict selection remains 268.
-Fresh full Linux is required. These source changes establish no new visual
-match: scope and accepted pairs stay 76/80 and 2/94.
+Its fresh full Linux result is recorded above. These source changes establish
+no new visual match: scope and accepted pairs stay 76/80 and 2/94.
 
 [Source758](source758-panel-regression-metrics.md) separates the ordinary
 44-pixel header from the retained 48-pixel folding height and checks shared

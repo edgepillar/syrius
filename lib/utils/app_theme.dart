@@ -914,6 +914,12 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Space for the selected-account indicator.
   double get addressesChoiceWidth => 36;
 
+  /// The reference's account-selection mark.
+  double get addressesChoiceSize => 16;
+
+  /// The reference's circular table action and its input area.
+  double get addressesActionSize => 32;
+
   /// One complete asset balance column in the address table.
   double get addressesBalanceWidth => 168;
 

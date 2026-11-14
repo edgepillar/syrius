@@ -727,13 +727,24 @@ class _AddressesSettingsViewState extends State<AddressesSettingsView>
             width: constraints.maxWidth > minimum
                 ? constraints.maxWidth
                 : minimum,
-            child: Column(
-              children: <Widget>[
-                for (int index = 0; index < rows.length; index++) ...<Widget>[
-                  if (index > 0) const Divider(),
-                  rows[index],
+            child: IconButtonTheme(
+              data: IconButtonThemeData(
+                style: IconButton.styleFrom(
+                  minimumSize: Size.square(tokens.addressesActionSize),
+                  maximumSize: Size.square(tokens.addressesActionSize),
+                  padding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.standard,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+              ),
+              child: Column(
+                children: <Widget>[
+                  for (int index = 0; index < rows.length; index++) ...<Widget>[
+                    if (index > 0) const Divider(),
+                    rows[index],
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
         );
@@ -762,21 +773,24 @@ class _AddressesSettingsViewState extends State<AddressesSettingsView>
           children: <Widget>[
             SizedBox(
               width: tokens.addressesChoiceWidth,
-              child: Semantics(
-                checked: selected,
-                inMutuallyExclusiveGroup: true,
-                child: IconButton(
-                  key: ValueKey<String>('addresses_select_$address'),
-                  tooltip: label,
-                  onPressed: enabled && !selected
-                      ? () => unawaited(_select(address, current))
-                      : null,
-                  iconSize: tokens.settingsIconSize,
-                  icon: Icon(
-                    selected
-                        ? Icons.radio_button_checked
-                        : Icons.radio_button_off,
-                    color: selected ? tokens.znnInk : tokens.faint,
+              child: Center(
+                heightFactor: 1,
+                child: Semantics(
+                  checked: selected,
+                  inMutuallyExclusiveGroup: true,
+                  child: IconButton(
+                    key: ValueKey<String>('addresses_select_$address'),
+                    tooltip: label,
+                    onPressed: enabled && !selected
+                        ? () => unawaited(_select(address, current))
+                        : null,
+                    iconSize: tokens.addressesChoiceSize,
+                    icon: Icon(
+                      selected
+                          ? Icons.radio_button_checked
+                          : Icons.radio_button_off,
+                      color: selected ? tokens.znnInk : tokens.faint,
+                    ),
                   ),
                 ),
               ),
@@ -858,6 +872,7 @@ class _AddressesSettingsViewState extends State<AddressesSettingsView>
                     iconSize: tokens.settingsIconSize,
                     icon: const Icon(Icons.edit_outlined),
                   ),
+                  SizedBox(width: tokens.fieldLabelGap),
                   IconButton(
                     key: ValueKey<String>('addresses_copy_$address'),
                     tooltip: context.l10n.receiveCopyAddress,

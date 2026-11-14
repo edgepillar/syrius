@@ -108,6 +108,29 @@ void main() {
         expect(find.text('Contacts'), findsOneWidget);
         expect(find.text('Selected'), findsOneWidget);
         expect(find.byType(AmountText), findsNWidgets(4));
+        for (final String address in source.members) {
+          final Finder choice = find.byKey(
+            ValueKey<String>('addresses_select_$address'),
+          );
+          final Finder rename = find.byKey(
+            ValueKey<String>('addresses_rename_$address'),
+          );
+          final Finder copy = find.byKey(
+            ValueKey<String>('addresses_copy_$address'),
+          );
+          for (final Finder action in <Finder>[choice, rename, copy]) {
+            expect(tester.getSize(action), const Size.square(32));
+          }
+          expect(tester.widget<IconButton>(choice).iconSize, 16);
+          final Rect renameBounds = tester.getRect(rename);
+          final Rect copyBounds = tester.getRect(copy);
+          expect(
+            variant.$2
+                ? renameBounds.left - copyBounds.right
+                : copyBounds.left - renameBounds.right,
+            closeTo(4, 1e-10),
+          );
+        }
         expect(
           find.byKey(const Key('addresses_account_chain_toggle')),
           findsOneWidget,
