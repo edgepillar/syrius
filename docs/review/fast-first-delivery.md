@@ -11,6 +11,15 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
+[Source752](source752-ledger-controls.md) follows successful Source751 full
+Linux, Windows Settings and independent readers. All 42 PNGs are verified;
+local image review remains pending metadata capacity. The next packet fixes
+Apps ledger-header case, compact Plasma checkbox/copy controls and the Fused
+heading inset. Existing theme and refusal cases remain, with no registrations
+added. Fresh full Linux is required; new affected Windows/image work is
+deferred for grouped qualification. Scope and accepted matches stay 76/80 and
+2/94. Every original failure and unqualified performance result remains.
+
 [Source751](source751-apps-assertion-line-wrap.md) wraps one added Apps test
 expression after Source750 passes general analysis and stops at one strict
 selected info for an 81-character line. All widget gates and generation are

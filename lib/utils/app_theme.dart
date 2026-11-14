@@ -628,6 +628,15 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The check column does not shift exact fusion amounts.
   double get plasmaCheckboxWidth => 36;
 
+  /// The reference checkbox mark, independent of its compact hit target.
+  double get plasmaCheckboxMarkSize => 16;
+
+  /// Rounded ledger controls retain the reference border after scaling.
+  double get plasmaCheckboxCornerRadius => 4;
+
+  /// The visible stroke of an owned-fusion selection mark.
+  double get plasmaCheckboxStrokeWidth => 1.5;
+
   /// Separates the available and aggregate owner-fused figures.
   double get plasmaStripGap => 28;
 

@@ -107,7 +107,11 @@ class _FusedPlasmaCardState extends State<FusedPlasmaCard> {
         return Panel(
           key: const Key('plasma_fused_list'),
           heading: Padding(
-            padding: EdgeInsetsDirectional.only(start: tokens.cardGap),
+            padding: EdgeInsetsDirectional.only(
+              start:
+                  tokens.panelHeaderPadding.start -
+                  tokens.tabHeaderPadding.start,
+            ),
             child: Row(
               children: <Widget>[
                 Text(
@@ -256,6 +260,7 @@ class _FusedPlasmaCardState extends State<FusedPlasmaCard> {
   ) {
     final AppTokens tokens = AppTokens.of(context);
     final PlasmaOwnerController owner = widget.owner;
+    final double checkboxScale = tokens.plasmaCheckboxMarkSize / Checkbox.width;
     bool current() => isCurrent() && owner.canSelect(entry);
     final bool eligible = current();
     return Container(
@@ -263,16 +268,37 @@ class _FusedPlasmaCardState extends State<FusedPlasmaCard> {
       color: owner.selected.contains(entry.hash) ? tokens.card2 : tokens.card,
       padding: tokens.pillarCellPadding,
       child: _columns(
-        check: Checkbox(
-          key: ValueKey<String>('plasma_select_${entry.hash}'),
-          value: owner.selected.contains(entry.hash),
-          onChanged: eligible
-              ? (bool? selected) {
-                  if (current()) {
-                    owner.select(entry, selected: selected ?? false);
-                  }
-                }
-              : null,
+        check: SizedBox(
+          height: tokens.smallButtonHeight,
+          child: Transform.scale(
+            scale: checkboxScale,
+            child: Checkbox(
+              key: ValueKey<String>('plasma_select_${entry.hash}'),
+              value: owner.selected.contains(entry.hash),
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              visualDensity: VisualDensity.standard,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(
+                  tokens.plasmaCheckboxCornerRadius / checkboxScale,
+                ),
+              ),
+              side: WidgetStateBorderSide.resolveWith(
+                (Set<WidgetState> states) => BorderSide(
+                  color: states.contains(WidgetState.selected)
+                      ? tokens.znn
+                      : tokens.faint,
+                  width: tokens.plasmaCheckboxStrokeWidth / checkboxScale,
+                ),
+              ),
+              onChanged: eligible
+                  ? (bool? selected) {
+                      if (current()) {
+                        owner.select(entry, selected: selected ?? false);
+                      }
+                    }
+                  : null,
+            ),
+          ),
         ),
         amount: Tooltip(
           message: entry.hash,
@@ -482,7 +508,20 @@ class _Beneficiary extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          CopyToClipboardButton(address, iconSize: tokens.heroCopyIconSize),
+          IconButtonTheme(
+            data: IconButtonThemeData(
+              style: IconButton.styleFrom(
+                minimumSize: Size.square(tokens.smallButtonHeight),
+                padding: EdgeInsets.zero,
+                visualDensity: VisualDensity.standard,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+            ),
+            child: CopyToClipboardButton(
+              address,
+              iconSize: tokens.heroCopyIconSize,
+            ),
+          ),
         ],
       ),
     );

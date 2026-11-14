@@ -216,7 +216,17 @@ void main() {
           );
           expect(tester.widget<Checkbox>(eligible).onChanged, isNotNull);
           expect(tester.widget<Checkbox>(locked).onChanged, isNull);
+          final Finder list = find.byKey(const Key('plasma_fused_list'));
+          expect(
+            tester.getTopLeft(find.text('Fused')).dx -
+                tester.getTopLeft(list).dx,
+            16,
+          );
           for (final int id in <int>[1, 2]) {
+            final Finder row = find.byKey(
+              ValueKey<String>('plasma_row_${plasmaTestHash(id)}'),
+            );
+            expect(tester.getSize(row).height, 44);
             final Finder cancel = find.byKey(
               ValueKey<String>('plasma_cancel_${plasmaTestHash(id)}'),
             );

@@ -488,16 +488,19 @@ class _ConnectionsTable extends StatelessWidget {
                   child: _AppsColumns(
                     children: <Widget>[
                       Text(
-                        context.l10n.appsSettingsSite,
-                        style: tokens.ledgerText,
-                      ),
-                      Text(context.l10n.address, style: tokens.ledgerText),
-                      Text(
-                        context.l10n.appsSettingsLastUsed,
+                        context.l10n.appsSettingsSite.toUpperCase(),
                         style: tokens.ledgerText,
                       ),
                       Text(
-                        context.l10n.appsSettingsVia,
+                        context.l10n.address.toUpperCase(),
+                        style: tokens.ledgerText,
+                      ),
+                      Text(
+                        context.l10n.appsSettingsLastUsed.toUpperCase(),
+                        style: tokens.ledgerText,
+                      ),
+                      Text(
+                        context.l10n.appsSettingsVia.toUpperCase(),
                         style: tokens.ledgerText,
                       ),
                       const SizedBox.shrink(),
