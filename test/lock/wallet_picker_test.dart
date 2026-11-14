@@ -14,6 +14,7 @@ import 'package:zenon_syrius_wallet_flutter/seams/seam.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/entry_status.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/lock_card.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/lock_wallet_picker.dart';
 
@@ -69,6 +70,7 @@ Widget _host({
   TextDirection direction = TextDirection.ltr,
   double scale = 1,
   ValueListenable<bool>? preview,
+  ValueChanged<bool>? onEntryStatusVisibility,
 }) => MaterialApp(
   locale: const Locale('en'),
   theme: light ? AppTheme.lightTheme : AppTheme.darkTheme,
@@ -81,16 +83,26 @@ Widget _host({
   home: Directionality(
     textDirection: direction,
     child: Scaffold(
-      body: preview == null ? child : ValueListenableBuilder<bool>(
-        valueListenable: preview,
-        child: child,
-        builder: (_, bool visible, Widget? child) => LockWalletPickerPreview(
-          visible: visible,
-          additionalEntries: const <LockWalletDisplayEntry>[
-            _hardware, _secondary,
-          ],
-          child: child!,
-        ),
+      body: NotificationListener<EntryStatusVisibility>(
+        onNotification: (EntryStatusVisibility notification) {
+          onEntryStatusVisibility?.call(notification.visible);
+          return true;
+        },
+        child: preview == null
+            ? child
+            : ValueListenableBuilder<bool>(
+                valueListenable: preview,
+                child: child,
+                builder: (_, bool visible, Widget? child) =>
+                    LockWalletPickerPreview(
+                      visible: visible,
+                      additionalEntries: const <LockWalletDisplayEntry>[
+                        _hardware,
+                        _secondary,
+                      ],
+                      child: child!,
+                    ),
+              ),
       ),
     ),
   ),
@@ -161,6 +173,7 @@ void main() {
       ) async {
         final TextEditingController password = TextEditingController();
         final ValueNotifier<bool> preview = ValueNotifier<bool>(false);
+        final List<bool> status = <bool>[];
         int unlocks = 0;
         addTearDown(password.dispose);
         addTearDown(preview.dispose);
@@ -172,6 +185,7 @@ void main() {
               light: light,
               direction: direction,
               preview: preview,
+              onEntryStatusVisibility: status.add,
               child: DefaultAssetBundle(
                 bundle: _PendingArtBundle(),
                 child: LockCard(
@@ -191,6 +205,7 @@ void main() {
           expect(picker.current.address, _current.address);
           expect(picker.entries, isEmpty);
           expect(picker.expanded, isFalse);
+          expect(status, <bool>[true]);
           expect(find.byKey(_menu), findsNothing);
           expect(find.byKey(_add), findsNothing);
           expect(find.text(_hardware.name), findsNothing);
@@ -261,6 +276,7 @@ void main() {
           expect(_editable(tester, passwordKey).obscureText, isFalse);
           preview.value = true;
           await tester.pump();
+          expect(status, <bool>[true, false]);
           reveal();
           await tester.pump();
           expect(_editable(tester, passwordKey).obscureText, isTrue);
@@ -290,6 +306,7 @@ void main() {
           expect(tester.state(editable), same(fieldState));
           preview.value = false;
           await tester.pump();
+          expect(status, <bool>[true, false, true]);
           expect(
             tester.widget<TextField>(find.byKey(passwordKey)).enabled, isTrue,
           );

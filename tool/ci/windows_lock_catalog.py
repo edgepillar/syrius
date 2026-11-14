@@ -278,6 +278,10 @@ class LockProcess(launch.LaunchProcess):
     def _still(self, theme, screen, *, masked, picker):
         self._status(theme, picker, wait=True)
         self._lock_view(0)
+        # The reference is a resting field, not an active insertion point.
+        # A real blank-area click also dismisses existing hover tooltips.
+        self._rpc(dict(cmd='tap', at=[0, 779], settleMs=0))
+        self._lock_view(0)
         body = self._rpc(dict(cmd='shot', width=1280, height=780, theme=theme,
                               expect=dict(key='wallet_unlock_button')))
         need(body.get('asserted') is True and body.get('theme') == theme

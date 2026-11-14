@@ -10,6 +10,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/pri
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/launch_film.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/startup_stage.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/entry_status.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/lock_wallet_picker.dart';
 
@@ -99,6 +100,24 @@ class _LockCardState extends State<LockCard>
   bool _obscure = true;
   bool _pickerExpanded = false;
   bool _restorePasswordFocus = false;
+  bool? _reportedEntryStatus;
+
+  bool get _entryStatusVisible =>
+      !_pickerExpanded && !widget.incorrectPassword;
+
+  void _reportEntryStatus() {
+    final bool visible = _entryStatusVisible;
+    if (_reportedEntryStatus == visible) return;
+    _reportedEntryStatus = visible;
+    // The shell receives only the current presentation after this frame.
+    // A reparented cold-start card keeps its original auth and field owners.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _entryStatusVisible == visible &&
+          _reportedEntryStatus == visible) {
+        EntryStatusVisibility(visible: visible).dispatch(context);
+      }
+    });
+  }
 
   bool get _passwordEnabled =>
       !widget.busy && widget.canUnlock && !_pickerExpanded;
@@ -143,6 +162,14 @@ class _LockCardState extends State<LockCard>
       }
       _pickerExpanded = expanded;
     }
+    _reportEntryStatus();
+  }
+
+  @override
+  void activate() {
+    super.activate();
+    _reportedEntryStatus = null;
+    _reportEntryStatus();
   }
 
   @override
@@ -167,6 +194,7 @@ class _LockCardState extends State<LockCard>
       _shake.forward(from: 0);
       _replay();
     }
+    _reportEntryStatus();
   }
 
   void _replay() {

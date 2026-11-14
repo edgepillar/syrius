@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/entry_status.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/shell_frame.dart';
 
 class _Owner extends StatefulWidget {
@@ -41,9 +42,12 @@ void main() {
       WidgetTester tester,
     ) async {
       final ValueNotifier<bool> locked = ValueNotifier<bool>(true);
+      final FocusNode statusFocus = FocusNode();
       addTearDown(locked.dispose);
+      addTearDown(statusFocus.dispose);
       int created = 0;
       int disposed = 0;
+      const Key status = ValueKey<String>('retained entry status');
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -54,13 +58,33 @@ void main() {
                 onCreate: () => created++,
                 onDispose: () => disposed++,
               ),
-              status: const SizedBox(height: 18),
+              status: Focus(
+                focusNode: statusFocus,
+                child: const SizedBox(key: status, height: 18),
+              ),
             ),
           ),
         ),
       );
       final _OwnerState owner = tester.state<_OwnerState>(find.byType(_Owner));
+      final Element statusElement = tester.element(find.byKey(status));
       await tester.enterText(find.byType(TextField), 'local fixture');
+      final Rect entryBounds = tester.getRect(find.byType(_Owner));
+      for (final bool visible in <bool>[false, true, false]) {
+        EntryStatusVisibility(visible: visible).dispatch(owner.context);
+        await tester.pump();
+        expect(find.byKey(status), visible ? findsOneWidget : findsNothing);
+        expect(statusFocus.canRequestFocus, visible);
+        expect(
+          tester.element(find.byKey(status, skipOffstage: false)),
+          same(statusElement),
+        );
+        expect(tester.getRect(find.byType(_Owner)), entryBounds);
+        expect(tester.state(find.byType(_Owner)), same(owner));
+        expect(owner.password.text, 'local fixture');
+        expect(created, 1);
+        expect(disposed, 0);
+      }
       for (final bool value in <bool>[false, true, false]) {
         locked.value = value;
         await tester.pump();
@@ -68,6 +92,8 @@ void main() {
         expect(owner.password.text, 'local fixture');
         expect(created, 1);
         expect(disposed, 0);
+        expect(find.byKey(status), value ? findsNothing : findsOneWidget);
+        expect(statusFocus.canRequestFocus, !value);
       }
       await tester.pumpWidget(const SizedBox.shrink());
       expect(disposed, 1);
@@ -217,10 +243,9 @@ void main() {
         expect(tester.getSize(find.byKey(status)).width, viewport.width - 32);
         final TickerMode mode = tester.widget<TickerMode>(
           find
-              .descendant(
-                of: find.byType(Offstage, skipOffstage: false).last,
+              .ancestor(
+                of: find.text('Private rail', skipOffstage: false),
                 matching: find.byType(TickerMode, skipOffstage: false),
-                skipOffstage: false,
               )
               .first,
         );

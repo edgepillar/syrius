@@ -14,6 +14,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/launch_film.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/entry_status.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/tab_children_widgets/lock_card.dart';
 
 import '../helpers/mockup_symbol.dart';
@@ -59,6 +60,7 @@ Widget _host({
   int? attemptsRemaining,
   String? error,
   ValueListenable<int>? replay,
+  ValueChanged<bool>? onEntryStatusVisibility,
   TextDirection direction = TextDirection.ltr,
   double textScale = 1,
 }) => MaterialApp(
@@ -76,22 +78,28 @@ Widget _host({
   home: Scaffold(
     body: Directionality(
       textDirection: direction,
-      child: DefaultAssetBundle(
-        bundle: bundle,
-        child: LockCard(
-          walletName: name,
-          address: address,
-          passwordController: password,
-          onUnlock: onUnlock ?? () {},
-          busy: busy,
-          canUnlock: canUnlock,
-          opening: opening,
-          incorrectPassword: incorrect,
-          passwordFailures: failures,
-          failedAttempts: failedAttempts,
-          attemptsRemaining: attemptsRemaining,
-          errorMessage: error,
-          replay: replay,
+      child: NotificationListener<EntryStatusVisibility>(
+        onNotification: (EntryStatusVisibility notification) {
+          onEntryStatusVisibility?.call(notification.visible);
+          return true;
+        },
+        child: DefaultAssetBundle(
+          bundle: bundle,
+          child: LockCard(
+            walletName: name,
+            address: address,
+            passwordController: password,
+            onUnlock: onUnlock ?? () {},
+            busy: busy,
+            canUnlock: canUnlock,
+            opening: opening,
+            incorrectPassword: incorrect,
+            passwordFailures: failures,
+            failedAttempts: failedAttempts,
+            attemptsRemaining: attemptsRemaining,
+            errorMessage: error,
+            replay: replay,
+          ),
         ),
       ),
     ),
@@ -252,6 +260,7 @@ void main() {
       (
         WidgetTester tester,
       ) async {
+        final List<bool> status = <bool>[];
         await _show(
           tester,
           _host(
@@ -261,6 +270,7 @@ void main() {
             incorrect: true,
             failedAttempts: 1,
             attemptsRemaining: 2,
+            onEntryStatusVisibility: status.add,
           ),
         );
         expect(
@@ -288,8 +298,28 @@ void main() {
         );
         final TextField field = tester.widget<TextField>(find.byKey(_password));
         expect(field.decoration!.enabledBorder!.borderSide.color, tokens.error);
-        expect(find.textContaining('removed from this computer'), findsOneWidget);
+        expect(
+          find.textContaining('removed from this computer'),
+          findsOneWidget,
+        );
         expect(password.text, isEmpty);
+        expect(status, <bool>[false]);
+        final State<LockCard> owner = tester.state<State<LockCard>>(
+          find.byType(LockCard),
+        );
+        password.text = 'retained fixture';
+        await tester.pumpWidget(
+          _host(
+            password: password,
+            bundle: pendingFilm,
+            light: light,
+            onEntryStatusVisibility: status.add,
+          ),
+        );
+        await tester.pump();
+        expect(status, <bool>[false, true]);
+        expect(tester.state(find.byType(LockCard)), same(owner));
+        expect(password.text, 'retained fixture');
         expect(tester.takeException(), isNull);
       },
     );

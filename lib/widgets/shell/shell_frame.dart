@@ -1,9 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/entry_status.dart';
 
 /// Keeps the page owner mounted while entry and working geometry change.
-class ShellFrame extends StatelessWidget {
+class ShellFrame extends StatefulWidget {
   /// Creates a shell with independently owned rail, page and status surfaces.
   const ShellFrame({
     required this.locked,
@@ -22,12 +23,30 @@ class ShellFrame extends StatelessWidget {
   /// The current page retains its state across a lock-status change.
   final Widget page;
 
-  /// Connection status remains available at entry without wallet flight data.
+  /// Normal entry shows connection status without wallet flight data.
   final Widget status;
 
   @override
+  State<ShellFrame> createState() => _ShellFrameState();
+}
+
+class _ShellFrameState extends State<ShellFrame> {
+  final ValueNotifier<bool> _entryStatusVisible = ValueNotifier<bool>(true);
+
+  bool _showEntryStatus(EntryStatusVisibility notification) {
+    _entryStatusVisible.value = notification.visible;
+    return true;
+  }
+
+  @override
+  void dispose() {
+    _entryStatusVisible.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) => ValueListenableBuilder<bool>(
-    valueListenable: locked,
+    valueListenable: widget.locked,
     builder: (BuildContext context, bool locked, _) {
       final AppTokens tokens = AppTokens.of(context);
       return Row(
@@ -43,7 +62,7 @@ class ShellFrame extends StatelessWidget {
                   excluding: locked,
                   child: IgnorePointer(
                     ignoring: locked,
-                    child: RepaintBoundary(child: rail),
+                    child: RepaintBoundary(child: widget.rail),
                   ),
                 ),
               ),
@@ -64,7 +83,12 @@ class ShellFrame extends StatelessWidget {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(tokens.cardRadius),
                       clipBehavior: locked ? Clip.none : Clip.antiAlias,
-                      child: RepaintBoundary(child: page),
+                      child: RepaintBoundary(
+                        child: NotificationListener<EntryStatusVisibility>(
+                          onNotification: _showEntryStatus,
+                          child: widget.page,
+                        ),
+                      ),
                     ),
                   ),
                   LayoutId(
@@ -73,7 +97,19 @@ class ShellFrame extends StatelessWidget {
                       padding: locked
                           ? tokens.lockedStatusPadding
                           : EdgeInsets.zero,
-                      child: RepaintBoundary(child: status),
+                      child: ValueListenableBuilder<bool>(
+                        valueListenable: _entryStatusVisible,
+                        child: RepaintBoundary(child: widget.status),
+                        builder: (_, bool visible, Widget? child) =>
+                            ExcludeFocus(
+                              excluding: locked && !visible,
+                              child: Visibility(
+                                visible: !locked || visible,
+                                maintainState: true,
+                                child: child!,
+                              ),
+                            ),
+                      ),
                     ),
                   ),
                 ],

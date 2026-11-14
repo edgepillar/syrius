@@ -1,6 +1,6 @@
 # First delivery and deferred acceptance
 
-Updated 2026-11-13.
+Updated 2026-11-14.
 
 The core interface and existing basic functionality are available for
 [code review](https://github.com/sol-znn/syrius/pull/6). Unavailable
@@ -11,6 +11,15 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
+[Source745](source745-lock-status-and-resting-input.md) follows successful full
+Linux and independent Windows acquisition/readers at Source744. All six Lock
+pairs are reviewed: two unresolved and four mismatches. No new match or cache
+speedup is accepted, and both timing checks fail. The next correction gives
+entry status its original state-specific visibility and uses a real blank
+client-margin click before resting Lock shots. Existing owner/input controls
+are extended without new registrations. Fresh hosted qualification is required;
+scope and accepted pairs remain 76/80 and 2/94.
+
 [Source744](source744-generated-localization-output.md) applies the exact
 hosted generator line wrapping in five locale artifacts. Source743 passes
 all analysis, early gates and the complete directory: 5,080 passes, zero
