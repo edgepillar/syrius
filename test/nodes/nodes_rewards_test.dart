@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
+import 'package:flutter/services.dart' show FontLoader, rootBundle;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -75,8 +76,23 @@ Widget _strip(
 );
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   late _Prices feed;
   late int asked;
+
+  setUpAll(() async {
+    final FontLoader fonts = FontLoader(kSansFontFamily);
+    for (final String asset in const <String>[
+      'assets/fonts/SpaceGrotesk-Regular.ttf',
+      'assets/fonts/SpaceGrotesk-Medium.ttf',
+      'assets/fonts/SpaceGrotesk-SemiBold.ttf',
+      'assets/fonts/SpaceGrotesk-Bold.ttf',
+    ]) {
+      fonts.addFont(rootBundle.load(asset));
+    }
+    await fonts.load();
+  });
 
   setUp(() {
     sharedPrefsService = null;

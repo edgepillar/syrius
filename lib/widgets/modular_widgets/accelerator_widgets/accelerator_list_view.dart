@@ -252,8 +252,12 @@ class _AcceleratorListViewState extends State<AcceleratorListView> {
           hintText: context.l10n.acceleratorSearch,
           constraints: BoxConstraints(minHeight: tokens.tokenSearchHeight),
           hintStyle: tokens.compactText.copyWith(color: tokens.faint),
-          prefixIcon: ShellSymbol(
-            'search', size: tokens.smallActionGlyphSize, color: tokens.faint,
+          prefixIcon: Center(
+            widthFactor: 1,
+            heightFactor: 1,
+            child: ShellSymbol(
+              'search', size: tokens.smallActionGlyphSize, color: tokens.faint,
+            ),
           ),
           prefixIconConstraints: BoxConstraints(
             minWidth: tokens.tokenSearchHeight,

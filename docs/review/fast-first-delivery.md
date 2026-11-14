@@ -11,22 +11,20 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
-[Source772](source772-transition-frame.md) retains the original Bell two
-120 ms samples, adds explicit 240 ms reverse-duration/zero-end-value checks,
-and flushes one following harness frame before unchanged completion,
-absence/input/focus assertions. Collection retains both 500 ms samples and
-flushes one frame before its unchanged idle/identity checks. The pinned
-Flutter 3.47.7 simulation distinguishes its boundary value from its later
-completion status. No application, workflow, 282-file selection or test
-registration changes; no physical refresh-rate claim is made.
+[Source773](source773-font-and-search-constraints.md) records Source772 full
+Linux 43653756641 with three compact-gate failures after 1226 Python cases,
+patched/global and 282-file strict analysis, Ready and Lock pass. All four
+framed Bell variants, fifteen WindowFrame cases and dark/light Send/Pillars
+metrics pass. Collection measures 117 pixels without explicitly loading the
+bundled interface font; both Accelerator themes observe a 30-by-14 symbol
+box. The full non-chain directory and generation are skipped. The complete
+original log is retained with successful owned closure.
 
-No Source771 hosted run was dispatched. Its cascade correction and this
-test-clock correction share one fresh full Linux run for the combined
-Bell/frame and Source770 control metrics before native/image qualification.
-Source770 full Linux 43652104173 retains one strict info and five skipped
-widget/generation stages. Its bounded source-location notice is consumed;
-no full log or binary transfer is made. The original code remains opaque;
-the cascade is a source-review interpretation. Older failures remain.
+The collection test now loads the same bundled Space Grotesk files as
+Welcome and retains its exact width, busy-circle, motion and identity checks.
+Accelerator centers the original 14-pixel search symbol inside the unchanged
+30-pixel prefix slot. No test registration, Python case, workflow or strict
+selection changes. Fresh full Linux precedes grouped native/image work.
 
 Current native/image evidence remains Source765, with 24 general pairs
 individually viewed: 16 mismatches, 8 unresolved and no acceptance. Its archive
