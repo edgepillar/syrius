@@ -11,14 +11,24 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
-[Source752](source752-ledger-controls.md) follows successful Source751 full
-Linux, Windows Settings and independent readers. All 42 PNGs are verified;
-local image review remains pending metadata capacity. The next packet fixes
-Apps ledger-header case, compact Plasma checkbox/copy controls and the Fused
+[Source752](source752-ledger-controls.md) passes full Linux 43579068184:
+all thirteen required steps, the early Apps/Plasma geometry gates, the
+complete non-chain directory and tracked generation. It fixes Apps
+ledger-header case, compact Plasma checkbox/copy controls and the Fused
 heading inset. Existing theme and refusal cases remain, with no registrations
-added. Fresh full Linux is required; new affected Windows/image work is
-deferred for grouped qualification. Scope and accepted matches stay 76/80 and
-2/94. Every original failure and unqualified performance result remains.
+added. Source751's 42 Windows PNGs remain verified and locally unreviewed;
+they do not qualify Source752. New affected Windows/image work is deferred
+for grouped qualification. Scope and accepted matches stay 76/80 and 2/94.
+Every original failure and unqualified performance result remains.
+
+The Source749 review-record refusal exceeded the unchanged 32 KiB limit
+for one receipt; global metadata exhaustion was an incorrect diagnosis.
+The quota-increase request is withdrawn. A compact report/manifest helper
+passes nine memory-only controls, while actual managed-store integration
+and current capacity remain unqualified during another operation's live
+metadata lease. No task is interrupted, policy changed or archive transferred.
+This status correction changes no application, test, workflow or generated
+file.
 
 [Source751](source751-apps-assertion-line-wrap.md) wraps one added Apps test
 expression after Source750 passes general analysis and stops at one strict
@@ -31,8 +41,8 @@ required, with 76/80 accepted rows and 2/94 accepted pairs.
 [Source750](source750-apps-fill-and-source749-results.md) follows successful
 Source749 full Linux, Windows Home and independent image verification. All
 thirty-two Home/general pattern pairs are viewed, with six mismatches,
-twenty-six unresolved and no new match. The original managed receipt reaches
-its metadata quota after review; its FAILURE, closed task, retained archives
+twenty-six unresolved and no new match. The original managed receipt exceeds
+its per-record metadata limit after review; its FAILURE, closed task, retained archives
 and separate manual record remain. Palette origin and the 38-pixel selection
 run align in both themes. The next correction fills the normal Apps page
 while retaining constrained scrolling and original guarded actions. Fresh

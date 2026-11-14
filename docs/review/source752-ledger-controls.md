@@ -13,10 +13,18 @@ and artifact bindings. Required entry/application actors and five nodes exit
 normally; a separate compiler helper needs forced cleanup. Full runner
 lifecycle remains unqualified.
 
-Those current PNGs are not locally viewed. The existing metadata-capacity
-refusal remains pending an owner decision, with no storage-policy change or
-new local artifact transfer. Source749's thirty-two manual reviews and closed
-failed metadata record retain their original evidence and outcomes.
+Those current PNGs are not locally viewed. Source749's thirty-two manual
+reviews and closed failed metadata record retain their original evidence
+and outcomes. The original refusal came from a single JSON receipt exceeding
+the unchanged 32 KiB per-record limit, before global capacity checks. The
+earlier interpretation as exhaustion of the global metadata quota was
+incorrect, and the associated quota-increase request is withdrawn.
+
+A compact report/manifest helper passes nine memory-only controls. It keeps
+the complete review as a referenced report rather than embedding it in a
+small receipt. Actual managed-store integration and current capacity remain
+unqualified while another live operation holds the shared metadata lease.
+No existing task is interrupted, policy changed or new archive transferred.
 
 ## Bounded presentation changes
 
@@ -45,9 +53,16 @@ publication, source/read tickets and session admission remain unchanged.
 Apps presenter/binding, the original copy widget, heatmap artwork, motion
 clocks, native controllers and dependencies retain their bytes.
 
-Fresh full Linux is required for this candidate. New affected Windows
-capture and image acceptance remain deferred until the existing image review
-can proceed, allowing related visual fixes to share qualification. No result
-at Source751 is promoted into native qualification of this new revision.
+[Full Linux 43579068184](https://github.com/edgepillar/syrius/actions/runs/43579068184)
+passes all thirteen required steps at Source752
+(`484f836c55dafd953070d7f7d676157d5ddb9a9c`), including strict selected
+analysis, the early Apps/Plasma geometry gates, the complete non-chain
+directory and tracked generation. No global test or analyzer-info count is
+inferred. This documentation update changes no application, test, workflow,
+dependency or generated file.
+
+New affected Windows capture and image acceptance remain deferred for
+grouped qualification. No result at Source751 is promoted into native
+qualification of Source752 or this documentation revision.
 No new image match or performance pass is claimed. Accepted scope stays
 76/80 and accepted Ready pairs 2/94; V01, V02, V05 and V06 remain open.
