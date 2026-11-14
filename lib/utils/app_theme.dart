@@ -1461,7 +1461,16 @@ class AppTokens extends ThemeExtension<AppTokens> {
   double get goToEdgeInset => 24;
 
   /// A palette result's base height before text scaling.
-  double get goToRowHeight => 40;
+  double get goToRowHeight => 18 + bodyText.fontSize! * bodyText.height!;
+
+  /// The dialog border occupies layout space inside its outer width.
+  double get goToBorderWidth => 1;
+
+  /// Palette results use the reference's small symbol, not the rail size.
+  double get goToIconSize => 14;
+
+  /// The query and result rows share the reference's inline gap.
+  double get goToInlineGap => 10;
 
   /// A palette category heading's base height.
   double get goToHeadingHeight => 28;
@@ -1492,6 +1501,12 @@ class AppTokens extends ThemeExtension<AppTokens> {
 
   /// The reference query uses a thin insertion mark.
   double get goToCaretWidth => 1;
+
+  /// The insertion mark inherits the query foreground at forty percent.
+  Color get goToCaretColor => foreground.withValues(alpha: 0.4);
+
+  /// Only the matching portion of a result receives the HTML bold role.
+  TextStyle get goToMatchText => const TextStyle(fontWeight: FontWeight.w700);
 
   /// Exact identifiers in the result's secondary line.
   TextStyle get goToIdentifierText =>

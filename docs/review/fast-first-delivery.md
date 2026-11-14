@@ -11,6 +11,17 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
+[Source748](source748-palette-content-metrics.md) follows successful Source747
+full Linux and Home acquisition/readers. All eight Home pairs are individually
+viewed and their owned task closes: the palette now starts at y120 in both
+themes, while its row, icon and content-inset metrics still differ. The next
+correction reserves the border, uses the compact symbol and CSS row metrics,
+and aligns matched-text and caret roles. Existing geometry cases cover both
+icon paths without new registrations. Source747 Lock times out at its first
+shot after passing tests, analysis and Release build; its independent reader
+preserves the failed manifest and zero PNGs. No original job is retried. Fresh
+qualification remains required, with 76/80 rows and 2/94 accepted matches.
+
 [Source747](source747-palette-origin-and-entry-details.md) follows successful
 Source746 full Linux and both Windows producers/readers. Fourteen targeted
 actual/reference pairs are viewed and their owned review tasks close. Lock

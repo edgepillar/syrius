@@ -160,10 +160,11 @@ void main() {
                     child: SizedBox(
                       width: 560,
                       child: GoToPalette<int>(entries: <GoToEntry<int>>[
-                        const GoToEntry<int>(
+                        GoToEntry<int>(
                           id: 'short', value: 1, label: 'Delegation',
                           detail: 'Nodes', shortcut: 'Ctrl 4',
-                          icon: Icons.layers,
+                          iconBuilder: (BuildContext context, Color color) =>
+                              Icon(Icons.layers, size: 18, color: color),
                         ),
                         GoToEntry<int>(
                           id: 'long', value: 2,
@@ -192,10 +193,26 @@ void main() {
               of: _row(id), matching: find.byType(Icon),
             ));
             expect(icon.color, tokens.foreground);
+            final Rect iconRect = tester.getRect(find.descendant(
+              of: _row(id), matching: find.byType(Icon),
+            ));
+            // The reference's small symbol and inline gap also apply to
+            // a borrowed builder whose original size belongs to the rail.
+            expect(iconRect.width, closeTo(14, 0.01));
+            expect(iconRect.height, closeTo(14, 0.01));
             final RichText label = tester.widget<RichText>(_rowRichText(
               id, id == 'short' ? 'Delegation' : 'Long destination ' * 24,
             ));
             expect(label.text.style?.color, tokens.foreground);
+            final Rect labelRect = tester.getRect(_rowRichText(
+              id, id == 'short' ? 'Delegation' : 'Long destination ' * 24,
+            ));
+            expect(
+              direction == TextDirection.ltr
+                  ? labelRect.left - iconRect.right
+                  : iconRect.left - labelRect.right,
+              closeTo(10, 0.01),
+            );
           }
           for (final MapEntry<String, String> pair in <String, String>{
             'short': 'Ctrl 4', 'long': 'Ctrl D',
@@ -325,7 +342,7 @@ void main() {
       });
       final TextSpan first = spans.first;
       expect(first.text, 'Del');
-      expect(first.style!.fontWeight, FontWeight.w600);
+      expect(first.style!.fontWeight, FontWeight.w700);
       expect(_rowSemantics(tester, 'prefix').properties.selected, isTrue);
     },
   );

@@ -365,7 +365,7 @@ class _GoToPaletteState<T> extends State<GoToPalette<T>> {
     child: Row(
       children: <Widget>[
         buildShellSymbol(context, 'search', color: tokens.faint),
-        SizedBox(width: tokens.inlineGap),
+        SizedBox(width: tokens.goToInlineGap),
         Expanded(
           child: TextField(
             key: const Key('go_to_field'),
@@ -373,7 +373,7 @@ class _GoToPaletteState<T> extends State<GoToPalette<T>> {
             autofocus: true,
             textInputAction: TextInputAction.go,
             style: tokens.goToQueryText,
-            cursorColor: tokens.foreground,
+            cursorColor: tokens.goToCaretColor,
             cursorWidth: tokens.goToCaretWidth,
             cursorHeight: MediaQuery.textScalerOf(context).scale(
               tokens.goToQueryText.fontSize!,
@@ -390,7 +390,7 @@ class _GoToPaletteState<T> extends State<GoToPalette<T>> {
             onSubmitted: (_) => _take(),
           ),
         ),
-        SizedBox(width: tokens.inlineGap),
+        SizedBox(width: tokens.goToInlineGap),
         const AppKeyHint('Esc'),
       ],
     ),
@@ -409,7 +409,7 @@ class _GoToPaletteState<T> extends State<GoToPalette<T>> {
     return (
       heading: (tokens.goToHeadingHeight + growth(tokens.ledgerText))
           .ceilToDouble(),
-      row: (tokens.goToRowHeight + growth(tokens.bodyText)).ceilToDouble(),
+      row: tokens.goToRowHeight + growth(tokens.bodyText),
     );
   }
 
@@ -498,7 +498,8 @@ class _GoToPaletteState<T> extends State<GoToPalette<T>> {
         ];
         final double fontSize = tokens.captionText.fontSize!;
         final double scaledWidth =
-            (tokens.goToWidth - tokens.goToFooterPadding.horizontal) *
+            (tokens.goToWidth - 2 * tokens.goToBorderWidth -
+                tokens.goToFooterPadding.horizontal) *
             MediaQuery.textScalerOf(context).scale(fontSize) / fontSize;
         // Keep the reference row when it fits. A scaled or narrower palette
         // gives the full shortcut summary its own width instead of a sliver.
@@ -584,12 +585,15 @@ class _GoToPaletteState<T> extends State<GoToPalette<T>> {
                   ),
                   child: FrostedSurface(
                     borderRadius: radius,
-                    child: DecoratedBox(
-                      position: DecorationPosition.foreground,
-                      decoration: BoxDecoration(
+                    child: Container(
+                      foregroundDecoration: BoxDecoration(
                         borderRadius: radius,
-                        border: Border.all(color: tokens.line),
+                        border: Border.all(
+                          color: tokens.line,
+                          width: tokens.goToBorderWidth,
+                        ),
                       ),
+                      padding: EdgeInsets.all(tokens.goToBorderWidth),
                       child: DecoratedBox(
                         decoration: BoxDecoration(
                           border: Border(top: tokens.glassTopEdge),
@@ -717,9 +721,14 @@ class _PaletteRowState<T> extends State<_PaletteRow<T>>
         builder: (BuildContext context, BoxConstraints constraints) => Row(
           children: <Widget>[
             if (iconBuilder != null || entry.icon != null) ...<Widget>[
-              iconBuilder?.call(context, ink) ??
-                  Icon(entry.icon, size: tokens.railIconSize, color: ink),
-              SizedBox(width: tokens.railLabelGap),
+              SizedBox.square(
+                dimension: tokens.goToIconSize,
+                child: FittedBox(
+                  child: iconBuilder?.call(context, ink) ??
+                      Icon(entry.icon, size: tokens.goToIconSize, color: ink),
+                ),
+              ),
+              SizedBox(width: tokens.goToInlineGap),
             ],
             // Fill the content slot before laying out the trailing hint.
             // Loose text widths must not leave space after that hint.
@@ -848,7 +857,7 @@ class _MatchedText extends StatelessWidget {
         spans.add(
           TextSpan(
             text: text.substring(match.start, match.end),
-            style: const TextStyle(fontWeight: FontWeight.w600),
+            style: AppTokens.of(context).goToMatchText,
           ),
         );
         cursor = match.end;
