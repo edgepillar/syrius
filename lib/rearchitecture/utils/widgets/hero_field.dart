@@ -45,6 +45,7 @@ class HeroField extends StatefulWidget {
 class _HeroFieldState extends State<HeroField>
     with SingleTickerProviderStateMixin {
   late final ShaderClock _clock;
+  final _HomeFieldRaster _raster = _HomeFieldRaster();
 
   @override
   void initState() {
@@ -63,12 +64,14 @@ class _HeroFieldState extends State<HeroField>
     super.didUpdateWidget(oldWidget);
     if (oldWidget._referenceHome != widget._referenceHome) {
       _clock.active = false;
+      _raster.dispose();
     }
   }
 
   @override
   void dispose() {
     _clock.dispose();
+    _raster.dispose();
     super.dispose();
   }
 
@@ -76,6 +79,7 @@ class _HeroFieldState extends State<HeroField>
   Widget build(BuildContext context) {
     if (widget._referenceHome) {
       final AppTokens tokens = AppTokens.of(context);
+      final double pixelRatio = MediaQuery.devicePixelRatioOf(context);
       _clock.active = true;
       return RepaintBoundary(
         child: ClipRect(
@@ -86,6 +90,8 @@ class _HeroFieldState extends State<HeroField>
               green: tokens.znn,
               blue: tokens.qsr,
               pink: tokens.pink,
+              raster: _raster,
+              pixelRatio: pixelRatio,
             ),
             child: const SizedBox.expand(),
           ),
@@ -116,6 +122,74 @@ class _HeroFieldState extends State<HeroField>
   }
 }
 
+typedef _HomeRasterKey = ({
+  Rect field,
+  Color green,
+  Color blue,
+  Color pink,
+  double pixelRatio,
+});
+
+// One bounded image holds the Home lights; the original clock moves it.
+// Its owner retires it on geometry/colour/DPR replacement and unmount.
+class _HomeFieldRaster {
+  static const int _maxPixels = 16 * 1024 * 1024;
+  static const int _maxSide = 8192;
+  _HomeRasterKey? _key;
+  ui.Image? _image;
+
+  ui.Image? imageFor(Rect field, {
+    required Color green, required Color blue, required Color pink,
+    required double pixelRatio,
+  }) {
+    final Rect bounds = field.inflate(120);
+    final double width = bounds.width * pixelRatio;
+    final double height = bounds.height * pixelRatio;
+    if (!pixelRatio.isFinite || pixelRatio <= 0 ||
+        !width.isFinite || !height.isFinite || width <= 0 || height <= 0 ||
+        width > _maxSide || height > _maxSide) {
+      dispose();
+      return null;
+    }
+    final int pixelsWide = width.ceil();
+    final int pixelsHigh = height.ceil();
+    if (pixelsWide * pixelsHigh > _maxPixels) {
+      dispose();
+      return null;
+    }
+    final _HomeRasterKey key = (
+      field: field, green: green, blue: blue, pink: pink,
+      pixelRatio: pixelRatio,
+    );
+    if (_key == key) return _image;
+    dispose();
+    final ui.PictureRecorder recorder = ui.PictureRecorder();
+    final Canvas canvas = Canvas(recorder)
+      ..scale(pixelRatio)
+      ..translate(-bounds.left, -bounds.top);
+    _HomeHeroFieldPainter._paintBlurredField(
+      canvas, field, green: green, blue: blue, pink: pink,
+    );
+    final ui.Picture picture = recorder.endRecording();
+    try {
+      // The engine rasterizes this handle asynchronously. Creation is
+      // part of the first original paint, with no extra warm-up or clock.
+      final ui.Image image = picture.toImageSync(pixelsWide, pixelsHigh);
+      _image = image;
+      _key = key;
+      return image;
+    } finally {
+      picture.dispose();
+    }
+  }
+
+  void dispose() {
+    _image?.dispose();
+    _image = null;
+    _key = null;
+  }
+}
+
 class _HomeHeroFieldPainter extends CustomPainter {
   _HomeHeroFieldPainter({
     required this.seconds,
@@ -123,6 +197,8 @@ class _HomeHeroFieldPainter extends CustomPainter {
     required this.green,
     required this.blue,
     required this.pink,
+    required this.raster,
+    required this.pixelRatio,
   }) : super(repaint: seconds);
 
   final ValueListenable<double> seconds;
@@ -130,10 +206,15 @@ class _HomeHeroFieldPainter extends CustomPainter {
   final Color green;
   final Color blue;
   final Color pink;
+  final _HomeFieldRaster raster;
+  final double pixelRatio;
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (size.isEmpty) return;
+    if (size.isEmpty) {
+      raster.dispose();
+      return;
+    }
     final Rect viewport = Offset.zero & size;
     canvas.drawRect(viewport, Paint()..color = base);
     // CSS inset percentages use the card; translation uses the enlarged field.
@@ -156,25 +237,45 @@ class _HomeHeroFieldPainter extends CustomPainter {
         center.dy + field.height * (-0.02 + 0.04 * progress),
       )
       ..rotate(math.pi / 30 * progress)
-      ..translate(-center.dx, -center.dy)
-      // Group opacity and blur apply to the transparent lights, above the base.
-      ..saveLayer(
-        field.inflate(120),
-        Paint()
-          ..color = const Color.fromRGBO(255, 255, 255, 0.55)
-          ..imageFilter = ui.ImageFilter.blur(
-            sigmaX: 40,
-            sigmaY: 40,
-            tileMode: ui.TileMode.decal,
-          ),
+      ..translate(-center.dx, -center.dy);
+    final ui.Image? image = raster.imageFor(
+      field, green: green, blue: blue, pink: pink, pixelRatio: pixelRatio,
+    );
+    if (image == null) {
+      // Oversized surfaces retain the original full-resolution paint.
+      _paintBlurredField(canvas, field, green: green, blue: blue, pink: pink);
+    } else {
+      final Rect bounds = field.inflate(120);
+      canvas.drawImageRect(
+        image,
+        Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
+        Rect.fromLTWH(bounds.left, bounds.top,
+          image.width / pixelRatio, image.height / pixelRatio),
+        Paint()..filterQuality = FilterQuality.low,
       );
+    }
+    canvas.restore();
+  }
+
+  static void _paintBlurredField(Canvas canvas, Rect field, {
+    required Color green, required Color blue, required Color pink,
+  }) {
+    // Keep the original grouped blur and opacity above the separate card base.
+    canvas.saveLayer(
+      field.inflate(120),
+      Paint()
+        ..color = const Color.fromRGBO(255, 255, 255, 0.55)
+        ..imageFilter = ui.ImageFilter.blur(
+          sigmaX: 40,
+          sigmaY: 40,
+          tileMode: ui.TileMode.decal,
+        ),
+    );
     // The first CSS background is painted over the later backgrounds.
     _light(canvas, field, pink, const Offset(0.5, 0.9), 0.38);
     _light(canvas, field, blue, const Offset(0.7, 0.6), 0.45);
     _light(canvas, field, green, const Offset(0.3, 0.4), 0.45);
-    canvas
-      ..restore()
-      ..restore();
+    canvas.restore();
   }
 
   static void _light(
@@ -221,7 +322,8 @@ class _HomeHeroFieldPainter extends CustomPainter {
   @override
   bool shouldRepaint(_HomeHeroFieldPainter old) =>
       old.seconds != seconds || old.base != base || old.green != green ||
-      old.blue != blue || old.pink != pink;
+      old.blue != blue || old.pink != pink || old.raster != raster ||
+      old.pixelRatio != pixelRatio;
 }
 
 class _HeroFieldPainter extends CustomPainter {

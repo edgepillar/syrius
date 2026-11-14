@@ -7,6 +7,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/entry_field.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/hero_field.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/entry_card_surface.dart';
 import 'package:zenon_syrius_wallet_flutter/screens/onboarding/welcome_surface.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
@@ -458,6 +459,111 @@ void main() {
     await tester.pump(const Duration(seconds: 40));
     expect(tester.binding.transientCallbackCount, 0);
     expect(rasters.single.debugDisposed, isTrue);
+    expect(tester.takeException(), isNull);
+  });
+
+  for (final bool light in <bool>[false, true]) {
+    testWidgets(
+      'Home reuses one raster through its 18/36 second drift, light=$light',
+      (WidgetTester tester) async {
+        _prepare(tester);
+        final List<ui.Image> rasters = _watchEntryRasters();
+        const Widget field = HeroField.home();
+        Finder surface() => find.descendant(
+          of: find.byType(HeroField),
+          matching: find.byType(RepaintBoundary),
+        );
+        await tester.pumpWidget(_host(
+          child: field, light: light, disableAnimations: true,
+        ));
+        await tester.pump();
+        final Uint8List start = await _pixels(tester, surface: surface());
+        expect(rasters, hasLength(1));
+        expect(rasters.single.width, 2544);
+        expect(rasters.single.height, 1644);
+        await tester.pump(const Duration(seconds: 18));
+        expect(await _pixels(tester, surface: surface()),
+          isNot(orderedEquals(start)));
+        await tester.pump(const Duration(seconds: 18));
+        expect(await _pixels(tester, surface: surface()), orderedEquals(start));
+        expect(rasters, hasLength(1));
+        expect(rasters.single.debugDisposed, isFalse);
+
+        // An oversized requested raster keeps the original analytic paint.
+        await tester.pumpWidget(_host(
+          child: field, light: light, pixelRatio: 100,
+          disableAnimations: true,
+        ));
+        await tester.pump();
+        expect(rasters, hasLength(1));
+        expect(rasters.single.debugDisposed, isTrue);
+        final Uint8List fallback = await _pixels(tester, surface: surface());
+        for (final (int x, int y) in <(int, int)>[
+          (120, 120), (380, 330), (640, 390), (900, 580), (1160, 660),
+        ]) {
+          final List<int> cached = _rgba(start, x, y);
+          final List<int> analytic = _rgba(fallback, x, y);
+          for (int channel = 0; channel < 4; channel++) {
+            expect(cached[channel], closeTo(analytic[channel], 2));
+          }
+        }
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pump(const Duration(seconds: 36));
+        expect(tester.binding.transientCallbackCount, 0);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
+
+  testWidgets('Home retires rasters on DPR, geometry and owner changes', (
+    WidgetTester tester,
+  ) async {
+    _prepare(tester);
+    final List<ui.Image> rasters = _watchEntryRasters();
+    const Widget field = HeroField.home();
+    Finder surface() => find.descendant(
+      of: find.byType(HeroField),
+      matching: find.byType(RepaintBoundary),
+    );
+    await tester.pumpWidget(_host(child: field));
+    await tester.pump();
+    final Uint8List dark = await _pixels(tester, surface: surface());
+    await tester.pumpWidget(_host(child: field, light: true));
+    await tester.pump(const Duration(milliseconds: 300));
+    final Uint8List light = await _pixels(tester, surface: surface());
+    expect(light, isNot(orderedEquals(dark)));
+    expect(rasters, hasLength(1));
+    await tester.pumpWidget(_host(child: field));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(rasters, hasLength(1));
+
+    tester.view
+      ..physicalSize = _size * 2
+      ..devicePixelRatio = 2;
+    await tester.pumpWidget(_host(child: field, pixelRatio: 2));
+    await tester.pump();
+    expect(rasters, hasLength(2));
+    expect(rasters.first.debugDisposed, isTrue);
+    expect(rasters.last.debugDisposed, isFalse);
+    expect(rasters.last.width, rasters.first.width * 2);
+    expect(rasters.last.height, rasters.first.height * 2);
+    expect(rasters.last.width * rasters.last.height,
+      lessThanOrEqualTo(16 * 1024 * 1024));
+
+    tester.view
+      ..physicalSize = const Size(1200, 600)
+      ..devicePixelRatio = 1;
+    await tester.pumpWidget(_host(child: field));
+    await tester.pump();
+    expect(rasters, hasLength(3));
+    expect(rasters[1].debugDisposed, isTrue);
+    expect(rasters.last.debugDisposed, isFalse);
+    expect(rasters.last.width, 2400);
+    expect(rasters.last.height, 1320);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(seconds: 36));
+    expect(rasters.every((ui.Image image) => image.debugDisposed), isTrue);
+    expect(tester.binding.transientCallbackCount, 0);
     expect(tester.takeException(), isNull);
   });
 }

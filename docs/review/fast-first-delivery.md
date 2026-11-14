@@ -11,22 +11,23 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
-[Source764](source764-plasma-swap-layout.md) follows Source763 full Linux
-43626703110, with all thirteen required steps passing. Windows 43628213156
-and reader 43630226377 verify 1505 Dart cases, 1220 Python cases/eighteen skips,
-zero selected findings and 42 PNGs. Required actors and five lab nodes exit
-normally; auxiliary VCTIP termination leaves complete runner lifecycle
-unqualified. All 38 Settings/general originals are individually reviewed:
-22 mismatches, 16 unresolved and no new accepted pair. Both archives and the
-31,513-byte report are retained with successful owned closure. General
-captures remain pattern evidence. The empty Staking Rewards footer and the
-owner's heatmap/dark well remain after source review. The new packet reduces
-the Plasma slot to 120 pixels, aligns the Swap heading, moves Refresh into
-More and uses canonical Start/Join symbols. Existing cases extend geometry,
-original-State retention and menu callback checks without added/removed
-cases or filenames. Strict selection grows from 270 to 274 and the existing
-well/Swap tests join the early gate. Fresh full Linux precedes grouped
-affected native/image work. Scope and pairs stay 76/80 and 2/94.
+[Source765](source765-home-field-raster.md) follows Source764 full Linux
+43635806741, with all thirteen required steps passing. Its Plasma
+slot/footer/state-retention and Swap RTL/scaled/symbol/menu cases pass;
+all dispatched outputs are consumed. Source764 native work is grouped after
+this Home packet. The stationary blurred light layer is now one bounded
+widget-owned image, retaining the source colors, blur, group opacity,
+eighteen/thirty-six-second drift, transform and separate theme base. Geometry,
+color, DPR, preset and owner changes retire the image; oversized requests use
+the original analytic paint. Three hosted cases extend the existing entry
+test file without new fixture names. That file joins strict analysis at 275
+and already runs in the early gate. Fresh full Linux precedes grouped
+Windows/image work. Latest native/image evidence remains Source763:
+38 Settings/general pairs viewed, 22 mismatches, 16 unresolved, no new
+acceptance and successful owned closure with both archives/full report
+retained. General captures remain pattern evidence. No performance
+improvement or Source744 cold-lock cause is established. Scope and pairs
+stay 76/80 and 2/94.
 
 [Source761](source761-address-action-gap.md) preserves Source760 full Linux
 43609477103 as failed after strict analysis, Ready and Lock pass. Both added
