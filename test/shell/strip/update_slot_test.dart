@@ -48,7 +48,11 @@ void main() {
   testWidgets('an explicit display version is drawn but remains seamed', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(_app(const WalletUpdateSlot(version: '0.3.0')));
+    await tester.pumpWidget(
+      _app(
+        const WalletUpdateSlot(version: '0.3.0', releaseNotesLabel: true),
+      ),
+    );
     expect(find.text('Syrius 0.3.0 is out'), findsOneWidget);
     await tester.tap(
       find.byKey(const Key('strip_update_button')),

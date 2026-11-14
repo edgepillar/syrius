@@ -57,6 +57,7 @@ jobs:
           test/harness/ready_reference_artwork_test.dart
           test/wallet_ready/wallet_ready_test.dart
           test/wallet_ready/wallet_ready_capture_test.dart
+          test/go_to_palette/palette_surface_test.dart
 
       - name: Verify Lock picker symbols and seam refusal
         run: >-

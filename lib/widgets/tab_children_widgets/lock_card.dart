@@ -552,7 +552,7 @@ class _LockCardState extends State<LockCard>
                 if (error != null && error.isNotEmpty)
                   TextSpan(
                     text: attempts == null ? error : '$error. ',
-                    style: const TextStyle(fontWeight: FontWeight.w600),
+                    style: tokens.lockNoteLeadText,
                   ),
                 if (attempts != null)
                   TextSpan(text: context.l10n.lockTriesLeft(attempts)),

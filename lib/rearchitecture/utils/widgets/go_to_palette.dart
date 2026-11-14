@@ -10,6 +10,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/fros
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
     show buildShellSymbol;
+import 'package:zenon_syrius_wallet_flutter/widgets/window_frame.dart';
 
 /// The three groups in the palette. Contacts share the addresses group.
 enum GoToCategory {
@@ -372,6 +373,11 @@ class _GoToPaletteState<T> extends State<GoToPalette<T>> {
             autofocus: true,
             textInputAction: TextInputAction.go,
             style: tokens.goToQueryText,
+            cursorColor: tokens.foreground,
+            cursorWidth: tokens.goToCaretWidth,
+            cursorHeight: MediaQuery.textScalerOf(context).scale(
+              tokens.goToQueryText.fontSize!,
+            ),
             decoration: InputDecoration(
               filled: false,
               isDense: true,
@@ -527,6 +533,20 @@ class _GoToPaletteState<T> extends State<GoToPalette<T>> {
     ),
   );
 
+  double _topInset(AppTokens tokens, double bodyHeight) {
+    final AppWindowFrameState? frame =
+        context.findAncestorStateOfType<AppWindowFrameState>();
+    final double caption = (frame?.hasClientCaption ?? false)
+        ? tokens.windowCaptionHeight
+        : 0;
+    // The reference top is in client coordinates; this Navigator begins
+    // below the original frame's caption. Keep the short-window bound there.
+    return math.max(
+      0,
+      math.min(tokens.goToTopInset, (bodyHeight + caption) / 4) - caption,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
@@ -546,7 +566,7 @@ class _GoToPaletteState<T> extends State<GoToPalette<T>> {
         builder: (BuildContext context, BoxConstraints constraints) => Padding(
           padding: EdgeInsetsDirectional.fromSTEB(
             tokens.goToEdgeInset,
-            math.min(tokens.goToTopInset, constraints.maxHeight / 4),
+            _topInset(tokens, constraints.maxHeight),
             tokens.goToEdgeInset,
             tokens.goToEdgeInset,
           ),
@@ -594,8 +614,10 @@ class _GoToPaletteState<T> extends State<GoToPalette<T>> {
                                   maxHeight: math.max(
                                     0,
                                     constraints.maxHeight -
-                                        math.min(tokens.goToTopInset,
-                                            constraints.maxHeight / 4) -
+                                        _topInset(
+                                          tokens,
+                                          constraints.maxHeight,
+                                        ) -
                                         tokens.goToEdgeInset,
                                   ) / 3,
                                 ),

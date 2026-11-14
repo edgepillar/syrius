@@ -53,6 +53,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/shell/bell_panel.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/go_to_catalog.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/shell.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/strip/peer_count.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/strip/update_slot.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -381,6 +382,9 @@ class _MainAppContainerState extends State<MainAppContainer>
                             page: _tabIndex,
                             peers: _peers,
                             showFlight: !locked,
+                            trailing: WalletUpdateSlot(
+                              releaseNotesLabel: locked,
+                            ),
                             flight: WalletFlightRegistry.instance.forWallet(
                               getChainIdentifier(),
                               kDefaultAddressList.whereType<String>(),

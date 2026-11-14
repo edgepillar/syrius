@@ -1,5 +1,6 @@
 import 'dart:ui' show ImageFilter;
 
+import 'package:flutter/foundation.dart' as foundation;
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,11 +11,13 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/go_to_p
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/window_frame.dart';
 
 Widget _host({
   bool light = false,
   TextDirection direction = TextDirection.ltr,
   bool mediaQuery = false,
+  bool windowFrame = false,
 }) => MaterialApp(
   theme: light ? AppTheme.lightTheme : AppTheme.darkTheme,
   locale: const Locale('en'),
@@ -22,7 +25,10 @@ Widget _host({
   supportedLocales: AppLocalizations.supportedLocales,
   builder: (BuildContext context, Widget? child) => MediaQuery(
     data: MediaQuery.of(context).copyWith(disableAnimations: mediaQuery),
-    child: Directionality(textDirection: direction, child: child!),
+    child: Directionality(
+      textDirection: direction,
+      child: windowFrame ? AppWindowFrame(child: child!) : child!,
+    ),
   ),
   home: Scaffold(
     body: Builder(
@@ -180,6 +186,47 @@ void main() {
           expect(find.byKey(const Key('original_mark')), findsOneWidget);
           expect(find.byIcon(Icons.home), findsNothing);
           expect(tester.takeException(), isNull);
+
+          await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+          await tester.pumpAndSettle();
+          final foundation.TargetPlatform? previousPlatform =
+              foundation.debugDefaultTargetPlatformOverride;
+          const MethodChannel channel = MethodChannel('window_manager');
+          final TestDefaultBinaryMessenger messenger =
+              TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+          messenger.setMockMethodCallHandler(channel, (MethodCall call) async {
+            return switch (call.method) {
+              'isFullScreen' || 'isMaximized' => false,
+              _ => null,
+            };
+          });
+          try {
+            foundation.debugDefaultTargetPlatformOverride =
+                foundation.TargetPlatform.windows;
+            await tester.pumpWidget(
+              _host(light: light, direction: direction, windowFrame: true),
+            );
+            await tester.tap(find.text('Open'));
+            await tester.pumpAndSettle();
+            expect(
+              find.byKey(const ValueKey<String>('window-caption')),
+              findsOneWidget,
+            );
+            final Rect framed = tester.getRect(
+              find.byKey(const Key('go_to_palette')),
+            );
+            expect(framed.width, 560);
+            expect(framed.top, 120);
+            expect(
+              framed.bottom,
+              lessThanOrEqualTo(600 - tokens.goToEdgeInset),
+            );
+            expect(tester.takeException(), isNull);
+          } finally {
+            await tester.pumpWidget(const SizedBox.shrink());
+            messenger.setMockMethodCallHandler(channel, null);
+            foundation.debugDefaultTargetPlatformOverride = previousPlatform;
+          }
         },
       );
     }

@@ -11,6 +11,15 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
+[Source747](source747-palette-origin-and-entry-details.md) follows successful
+Source746 full Linux and both Windows producers/readers. Fourteen targeted
+actual/reference pairs are viewed and their owned review tasks close. Lock
+leading content aligns; the Home palette is 32 px too low in client space.
+The next correction accounts for the real caption, styles the query caret,
+uses the reference warning emphasis and selects release-note wording only
+while locked. Existing window-surface cases add the native-caption phase.
+Fresh qualification remains required, with 76/80 rows and 2/94 matches.
+
 [Source746](source746-lock-leading-content.md) corrects the remaining Lock
 input leading offset after Source745 passes full Linux, Windows capture and
 its independent reader. All six actual/reference pairs are viewed. The caret,

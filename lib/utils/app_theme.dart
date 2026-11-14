@@ -523,6 +523,10 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Auxiliary entry links stay secondary to unlocking.
   TextStyle get lockLinkText => bodyText.copyWith(fontSize: 12.5, color: dim);
 
+  /// The reference's bold error lead inherits the warning's size and color.
+  TextStyle get lockNoteLeadText =>
+      const TextStyle(fontWeight: FontWeight.w700);
+
   /// The selected wallet's available address uses the data role.
   TextStyle get lockAddressText =>
       dataText.copyWith(fontSize: 12.5, color: dim);
@@ -1485,6 +1489,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
 
   /// The palette query's text.
   TextStyle get goToQueryText => bodyText.copyWith(fontSize: 16);
+
+  /// The reference query uses a thin insertion mark.
+  double get goToCaretWidth => 1;
 
   /// Exact identifiers in the result's secondary line.
   TextStyle get goToIdentifierText =>

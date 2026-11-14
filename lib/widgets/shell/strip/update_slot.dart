@@ -10,10 +10,17 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 class WalletUpdateSlot extends StatelessWidget {
   /// Creates the slot. A supplied version must come from verified display
   /// data or an explicit harness fixture; there is no example-version default.
-  const WalletUpdateSlot({this.version, super.key});
+  const WalletUpdateSlot({
+    this.version,
+    this.releaseNotesLabel = false,
+    super.key,
+  });
 
   /// The known release version, absent until the caller has real data.
   final String? version;
+
+  /// The entry screen's wording for the same gated notice control.
+  final bool releaseNotesLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +77,11 @@ class WalletUpdateSlot extends StatelessWidget {
                 fontWeight: FontWeight.w500,
               ),
             ),
-            child: Text(context.l10n.update),
+            child: Text(
+              releaseNotesLabel
+                  ? context.l10n.aboutWhatChanged
+                  : context.l10n.update,
+            ),
           ),
         ],
       ),
