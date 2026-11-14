@@ -11,6 +11,16 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
+[Source750](source750-apps-fill-and-source749-results.md) follows successful
+Source749 full Linux, Windows Home and independent image verification. All
+thirty-two Home/general pattern pairs are viewed, with six mismatches,
+twenty-six unresolved and no new match. The original managed receipt reaches
+its metadata quota after review; its FAILURE, closed task, retained archives
+and separate manual record remain. Palette origin and the 38-pixel selection
+run align in both themes. The next correction fills the normal Apps page
+while retaining constrained scrolling and original guarded actions. Fresh
+qualification remains required; accepted scope and pairs stay 76/80 and 2/94.
+
 [Source749](source749-palette-scroll-rounding.md) corrects only the existing
 scroll-visibility test's accumulated double round-off. Source748 passes every
 analysis step and all eight declared icon/gap geometry combinations, then

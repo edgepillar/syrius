@@ -208,139 +208,168 @@ class _AppsSettingsViewState extends State<AppsSettingsView>
                         tokens.appsSettingsTableMinHeight,
                         tokens.appsSettingsTableMaxHeight,
                       );
-              return SingleChildScrollView(
-                key: const Key('apps_settings_page'),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    Panel(
-                      child: _WebAppsSwitch(
-                        snapshot: snapshot,
-                        busy: state.busy,
-                        onChanged:
-                            current && snapshot.webAppsAvailable && !state.busy
-                            ? (bool value) {
-                                if (sourceCurrent()) _setEnabled(value);
-                              }
-                            : null,
-                      ),
-                    ),
-                    SizedBox(height: tokens.appsSettingsGap),
-                    Panel(
-                      key: const Key('apps_settings_connected'),
-                      title: context.l10n.appsSettingsConnected,
-                      shrinkWrap: true,
-                      heading: Padding(
-                        padding: EdgeInsetsDirectional.only(
-                          start:
-                              tokens.panelHeaderPadding.start -
-                              tokens.tabHeaderPadding.start,
-                        ),
-                        child: Row(
-                          children: <Widget>[
-                            Flexible(
-                              child: Text(
-                                context.l10n.appsSettingsConnected,
-                                style: tokens.headingText,
-                              ),
-                            ),
-                            SizedBox(width: tokens.cardGap),
-                            Text(
-                              snapshot.webAppsAvailable &&
-                                      snapshot.walletConnectAvailable
-                                  ? '${snapshot.connections.length}'
-                                  : context.l10n.appsSettingsUnknown,
-                              key: const Key('apps_settings_count'),
-                              style: tokens.ledgerText,
-                            ),
-                          ],
+              final double scale = MediaQuery.textScalerOf(
+                context,
+              ).scale(1).clamp(1, double.infinity).toDouble();
+              final bool hasFailure =
+                  state.outcome?.status == AppsActionStatus.failed ||
+                  state.outcome?.status == AppsActionStatus.saveFailed;
+              // The normal closed section fills its page. Expanded details,
+              // failures and constrained layouts retain a scrolling page.
+              final bool fillsViewport =
+                  constraints.hasBoundedHeight &&
+                  constraints.maxWidth >=
+                      tokens.appsSettingsTableMinWidth * scale &&
+                  constraints.maxHeight >=
+                      (tokens.appsSettingsTableMinHeight +
+                              tokens.panelHeaderHeight +
+                              tokens.settingsItemHeight * 3 +
+                              tokens.appsSettingsGap * 2) *
+                          scale &&
+                  !_details.isOpen &&
+                  !hasFailure;
+              final Widget connected = Panel(
+                key: const Key('apps_settings_connected'),
+                title: context.l10n.appsSettingsConnected,
+                shrinkWrap: !fillsViewport,
+                heading: Padding(
+                  padding: EdgeInsetsDirectional.only(
+                    start:
+                        tokens.panelHeaderPadding.start -
+                        tokens.tabHeaderPadding.start,
+                  ),
+                  child: Row(
+                    children: <Widget>[
+                      Flexible(
+                        child: Text(
+                          context.l10n.appsSettingsConnected,
+                          style: tokens.headingText,
                         ),
                       ),
-                      actions: <Widget>[
-                        _AppsButton(
-                          key: const Key('apps_settings_connect'),
-                          label: context.l10n.appsSettingsConnectByLink,
-                          icon: Icons.add,
-                          onPressed:
-                              current &&
-                                  snapshot.walletConnectAvailable &&
-                                  !state.busy
-                              ? () {
-                                  if (sourceCurrent()) {
-                                    unawaited(_connectByLink());
-                                  }
-                                }
-                              : null,
-                        ),
-                      ],
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minHeight: tokens.appsSettingsTableMinHeight,
-                          maxHeight: tableMaxHeight,
-                        ),
-                        child: _ConnectionsTable(
-                          snapshot: snapshot,
-                          enabled: current && !state.busy,
-                          disconnect: (AppsConnection row) {
-                            if (sourceCurrent()) _disconnect(row);
-                          },
-                        ),
+                      SizedBox(width: tokens.cardGap),
+                      Text(
+                        snapshot.webAppsAvailable &&
+                                snapshot.walletConnectAvailable
+                            ? '${snapshot.connections.length}'
+                            : context.l10n.appsSettingsUnknown,
+                        key: const Key('apps_settings_count'),
+                        style: tokens.ledgerText,
                       ),
-                    ),
-                    if (state.outcome?.status == AppsActionStatus.failed ||
-                        state.outcome?.status == AppsActionStatus.saveFailed)
-                      Padding(
-                        padding: tokens.settingsRowPadding,
-                        child: Row(
-                          children: <Widget>[
-                            Icon(
-                              Icons.error_outline,
-                              size: 16,
-                              color: tokens.error,
-                            ),
-                            SizedBox(width: tokens.fieldLabelGap),
-                            Flexible(
-                              child: Text(
-                                state.outcome?.status ==
-                                        AppsActionStatus.saveFailed
-                                    ? context.l10n.appsSettingsNotSaved
-                                    : context.l10n.appsSettingsOutcomeUnknown,
-                                style: tokens.captionText.copyWith(
-                                  color: tokens.error,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    SizedBox(height: tokens.appsSettingsGap),
-                    Panel(
-                      child: Disclosure(
-                        title: context.l10n.appsSettingsWalletConnect,
-                        summary: snapshot.walletConnectAvailable
-                            ? context.l10n.appsSettingsSummary(
-                                snapshot.sessionCount,
-                                snapshot.pairings.length,
-                              )
-                            : context.l10n.appsSettingsUnavailable,
-                        controller: _details,
-                        keyPrefix: 'apps_settings_details',
-                        child: _WalletConnectDetails(
-                          snapshot: snapshot,
-                          enabled: current && !state.busy && _details.isOpen,
-                          disconnectPairing: (AppsPairing row) {
-                            if (sourceCurrent() &&
-                                detailEpoch == _detailsEpoch &&
-                                _details.isOpen) {
-                              _disconnectPairing(row);
+                    ],
+                  ),
+                ),
+                actions: <Widget>[
+                  _AppsButton(
+                    key: const Key('apps_settings_connect'),
+                    label: context.l10n.appsSettingsConnectByLink,
+                    icon: Icons.add,
+                    onPressed:
+                        current &&
+                            snapshot.walletConnectAvailable &&
+                            !state.busy
+                        ? () {
+                            if (sourceCurrent()) {
+                              unawaited(_connectByLink());
                             }
-                          },
-                        ),
-                      ),
-                    ),
-                  ],
+                          }
+                        : null,
+                  ),
+                ],
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: tokens.appsSettingsTableMinHeight,
+                    maxHeight: tableMaxHeight,
+                  ),
+                  child: _ConnectionsTable(
+                    snapshot: snapshot,
+                    enabled: current && !state.busy,
+                    disconnect: (AppsConnection row) {
+                      if (sourceCurrent()) _disconnect(row);
+                    },
+                  ),
                 ),
               );
+              final Widget page = Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Panel(
+                    child: _WebAppsSwitch(
+                      snapshot: snapshot,
+                      busy: state.busy,
+                      onChanged:
+                          current && snapshot.webAppsAvailable && !state.busy
+                          ? (bool value) {
+                              if (sourceCurrent()) _setEnabled(value);
+                            }
+                          : null,
+                    ),
+                  ),
+                  SizedBox(height: tokens.appsSettingsGap),
+                  if (fillsViewport)
+                    Expanded(child: connected)
+                  else
+                    connected,
+                  if (hasFailure)
+                    Padding(
+                      padding: tokens.settingsRowPadding,
+                      child: Row(
+                        children: <Widget>[
+                          Icon(
+                            Icons.error_outline,
+                            size: 16,
+                            color: tokens.error,
+                          ),
+                          SizedBox(width: tokens.fieldLabelGap),
+                          Flexible(
+                            child: Text(
+                              state.outcome?.status ==
+                                      AppsActionStatus.saveFailed
+                                  ? context.l10n.appsSettingsNotSaved
+                                  : context.l10n.appsSettingsOutcomeUnknown,
+                              style: tokens.captionText.copyWith(
+                                color: tokens.error,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  SizedBox(height: tokens.appsSettingsGap),
+                  Panel(
+                    child: Disclosure(
+                      title: context.l10n.appsSettingsWalletConnect,
+                      summary: snapshot.walletConnectAvailable
+                          ? context.l10n.appsSettingsSummary(
+                              snapshot.sessionCount,
+                              snapshot.pairings.length,
+                            )
+                          : context.l10n.appsSettingsUnavailable,
+                      controller: _details,
+                      keyPrefix: 'apps_settings_details',
+                      child: _WalletConnectDetails(
+                        snapshot: snapshot,
+                        enabled: current && !state.busy && _details.isOpen,
+                        disconnectPairing: (AppsPairing row) {
+                          if (sourceCurrent() &&
+                              detailEpoch == _detailsEpoch &&
+                              _details.isOpen) {
+                            _disconnectPairing(row);
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              );
+              return fillsViewport
+                  ? SizedBox.expand(
+                      key: const Key('apps_settings_page'),
+                      child: page,
+                    )
+                  : SingleChildScrollView(
+                      key: const Key('apps_settings_page'),
+                      child: page,
+                    );
             },
           );
         },

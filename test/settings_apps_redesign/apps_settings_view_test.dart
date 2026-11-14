@@ -131,7 +131,15 @@ void main() {
         final Finder connected = find.byKey(
           const Key('apps_settings_connected'),
         );
-        expect(tester.getSize(connected).height, lessThan(260));
+        final double connectedHeight = tester.getSize(connected).height;
+        expect(connectedHeight, greaterThan(450));
+        expect(
+          tester.getBottomLeft(find.byType(Disclosure)).dy,
+          closeTo(
+            tester.getBottomLeft(find.byKey(const Key('apps_settings_page'))).dy,
+            .001,
+          ),
+        );
         expect(
           tester.getTopLeft(find.byType(Disclosure)).dy,
           greaterThan(tester.getBottomLeft(connected).dy),
@@ -151,7 +159,10 @@ void main() {
               .data,
           '0',
         );
-        expect(tester.getSize(connected).height, lessThan(260));
+        expect(
+          tester.getSize(connected).height,
+          closeTo(connectedHeight, .001),
+        );
         expect(find.byKey(const Key('apps_disconnect_0')), findsNothing);
 
         source.rows = List<AppsConnection>.generate(
@@ -172,7 +183,10 @@ void main() {
               .data,
           '30',
         );
-        expect(tester.getSize(connected).height, lessThan(400));
+        expect(
+          tester.getSize(connected).height,
+          closeTo(connectedHeight, .001),
+        );
         final Finder list = find.byKey(
           const PageStorageKey<String>('apps_connections'),
         );
@@ -195,6 +209,19 @@ void main() {
         }
         expect(lastAction.hitTestable(), findsOneWidget);
         expect(_action(tester, 'apps_disconnect_29').onPressed, isNotNull);
+        await tester.tap(find.byKey(const Key('apps_settings_details_toggle')));
+        await _frames(tester);
+        expect(disclosure.controller!.isOpen, isTrue);
+        expect(tester.getSize(connected).height, lessThan(connectedHeight));
+        expect(tester.takeException(), isNull);
+        await tester.tap(find.byKey(const Key('apps_settings_details_toggle')));
+        await tester.pump(const Duration(milliseconds: 500));
+        await tester.pump();
+        expect(disclosure.controller!.isOpen, isFalse);
+        expect(
+          tester.getSize(connected).height,
+          closeTo(connectedHeight, .001),
+        );
         expect(source.writes, isEmpty);
         expect(source.actions, isEmpty);
         expect(tester.takeException(), isNull);
