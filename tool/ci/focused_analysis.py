@@ -17,6 +17,7 @@ SELECTED_DART_SOURCES = (
     'harness/app/fixtures/launch_settle_profile.dart',
     'lib/widgets/tab_children_widgets/lock_wallet_picker.dart',
     'harness/bin/harness.dart',
+    'harness/bin/ci_paired_interactive_entry.dart',
     'test/harness/wallet_tour_test.dart',
     'harness/app/theme_control.dart',
     'test/harness/theme_control_test.dart',
@@ -307,6 +308,7 @@ _NOTICE_CODES = frozenset((
     'prefer_initializing_formals', 'unnecessary_import', 'unnecessary_lambdas',
     'unnecessary_this', 'unused_import', 'undefined_class',
     'undefined_identifier', 'undefined_method', 'undefined_named_parameter',
+    'use_null_aware_elements',
 ))
 _FINDING = re.compile(
     r'^\s*(error|warning|info) - (.+?):([0-9]+):([0-9]+) - .* - '

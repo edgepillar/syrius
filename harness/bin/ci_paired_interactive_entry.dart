@@ -161,7 +161,7 @@ Future<void> main(List<String> args) async {
     if (error != null)
       'failure': <String, Object?>{
         'phase': phase.name,
-        if (recipeFailure != null) 'recipe': recipeFailure,
+        'recipe': ?recipeFailure,
       },
   }));
   exitCode = error == null ? 0 : 1;

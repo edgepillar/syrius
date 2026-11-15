@@ -177,8 +177,16 @@ class _TokensPageState extends State<_TokenSourcePage> {
             StripFigure(
               label: context.l10n.tokensYouHold,
               value: Ltr(
-                child: Text(
-                  held?.toString() ?? '-',
+                child: Text.rich(
+                  TextSpan(
+                    text: '${held?.toString() ?? '-'} ',
+                    children: <TextSpan>[
+                      TextSpan(
+                        text: context.l10n.tokens.toLowerCase(),
+                        style: tokens.tokenStripCountUnitText,
+                      ),
+                    ],
+                  ),
                   key: const Key('tokens_figure_held'),
                 ),
               ),

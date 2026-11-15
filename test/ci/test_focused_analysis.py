@@ -38,7 +38,8 @@ class FocusedAnalysisTests(unittest.TestCase):
         for repo, path in (
                 ('/fixture', '/fixture/lib/view.dart'),
                 ('C:/fixture', 'C:\\fixture\\lib\\view.dart')):
-            for code in ('unnecessary_import', 'cascade_invocations'):
+            for code in ('unnecessary_import', 'cascade_invocations',
+                         'use_null_aware_elements'):
                 value = self.project(
                     finding(path, code=code, message='private credential'),
                     repo=repo)
@@ -97,6 +98,8 @@ class FocusedAnalysisTests(unittest.TestCase):
         self.assertEqual(child.call_args.args[0],
                          ['dart', 'analyze', '--fatal-infos',
                           *focused.SELECTED_DART_SOURCES])
+        self.assertEqual(child.call_args.args[0].count(
+            'harness/bin/ci_paired_interactive_entry.dart'), 1)
         self.assertEqual(child.call_args.kwargs['stdin'], subprocess.DEVNULL)
         return result, rendered
 

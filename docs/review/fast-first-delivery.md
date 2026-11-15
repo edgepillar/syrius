@@ -11,12 +11,19 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
-[Source790](source790-private-preparation-diagnostics.md) retains fixed phases
-and existing filtered recipe labels from complete failed preparation markers.
-The successful marker and original refusal before measurement remain. All ten
-existing Python memory controls pass; current Dart execution and paired native
-measurement remain required. No original recipe, renderer, action, clock,
-command limit, performance threshold, workflow, SDK pin or selection changes.
+[Source791](source791-entry-analysis-and-token-count.md) fixes the paired entry's
+null-aware map diagnostic and adds it once to the early strict analysis list,
+now 287 files. Tokens restores the small localized noun beside the genuine held
+count. All sixteen existing Python controls pass. Original markers, recipes,
+actions, clocks, limits, workflows, SDK pins and native case selections remain.
+
+Source790 full Linux 43718315690 passes all thirteen required steps. Windows
+43719433171 passes 1505 selected Dart cases, 1226 Python cases/eighteen skips
+and zero selected findings. Its separate entry analysis then stops the Release
+step at use_null_aware_elements, before the lab or either timing measurement.
+Zero artifacts remain. The complete 72035-byte original log is verified, owned
+storage closes and outputs are consumed without retry. P06's inner preparation
+cause and performance comparison remain unestablished.
 
 Source789 full Linux 43713429377 passes all thirteen required steps, including
 analysis, the complete non-chain directory and generation. Its retained reader
@@ -42,7 +49,7 @@ succeeds. The exact P06 preparation cause remains unestablished. Source645 and
 Source744 failed results stay preserved. Outputs are consumed without local
 SDK execution or artifact transfer.
 
-Fresh Source790 full Linux and paired native execution remain required.
+Fresh Source791 full Linux and paired native execution remain required.
 Scope and Source730 Ready pairs stay 76/80 and 2/94.
 
 [Source761](source761-address-action-gap.md) preserves Source760 full Linux

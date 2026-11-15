@@ -687,6 +687,10 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The token mark shares the strip's 28 px gap between facts.
   double get tokenStripLeadGap => 28;
 
+  /// The held-count noun stays secondary to the original exact count.
+  TextStyle get tokenStripCountUnitText =>
+      dataText.copyWith(fontSize: 13, color: dim);
+
   /// Reserves space for each token's exact available units.
   double get tokenBalanceWidth => 140;
 

@@ -431,8 +431,11 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(seconds: 2));
       expect(
-        tester.widget<Text>(find.byKey(const Key('tokens_figure_held'))).data,
-        '1',
+        tester
+            .widget<Text>(find.byKey(const Key('tokens_figure_held')))
+            .textSpan!
+            .toPlainText(),
+        '1 tokens',
       );
       expect(
         tester.widget<Text>(find.byKey(const Key('tokens_figure_issued'))).data,

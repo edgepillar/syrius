@@ -21,7 +21,7 @@ NODE = 'ws://127.0.0.1:45998'
 READY = json.dumps(dict(schema=1, scope=ENTRY_SCOPE, success=True, error_code=None),
                    separators=(',', ':')).encode('ascii')
 ENTRY = Path('harness/bin/ci_paired_interactive_entry.dart')
-ENTRY_SHA256 = '60b39f5cc88ee6e8e67a04a0e48b4c22a6af5f9659919fa332c07c55ec8d1c9b'
+ENTRY_SHA256 = 'f32594842d49d8c9f64ded47f95b5d5f36369593fabb7111ba72bbbfb4dd2d88'
 MEASUREMENT_COMMANDS = frozenset(('theme', 'state', 'stalls', 'tap', 'wait', 'scroll'))
 MAX_MEASUREMENT_COMMANDS = 32
 PREPARATION_PHASES = frozenset(('environment', 'input', 'ownerBefore', 'emptyProfile',
