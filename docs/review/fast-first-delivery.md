@@ -11,42 +11,31 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
-[Source779](source779-search-paint-and-strip-actions.md) prepares the search
-decoration and strip action corrections observed in Source778's current
-general captures. Node/Accelerator fields keep their 30-pixel outer size and
-14-pixel symbols while their prefix regions also establish the filled height.
-Existing cases check the actual container as well as the outer field.
+[Source780](source780-strip-line-box-measurement.md) corrects the text strip's
+fixed height. Source779 Linux 43675916184 passes 1226 Python controls, both
+analyses, strict 284-file selection and Ready/Lock gates, then fails five
+existing Accelerator cases with the same 0.5-pixel vertical overflow. Full
+directory and generated-file checks are skipped.
 
-Text-only Plasma, swap, Accelerator and node summaries use their smaller
-content minimum; ordinary defaults and actual 48-pixel animation slots remain.
-The Accelerator row follows current scaled line boxes. Delegate/Collect stay
-beside their figures, centered across both lines, with existing callbacks and
-disabled/busy admission. The existing strip case checks ordering, both
-directions, callback delivery and scaled growth.
+Each paragraph's actual line box is now measured with TextPainter and the
+current scaling, direction and locale. The existing gap, minima, padding,
+48-pixel actual animation slots and action callbacks remain. Both temporary
+painters are disposed. The existing strip case now exercises the computed
+fixed height with centered actions in both directions and enlarged text.
+No test method, suite registration or expected count changes.
 
-Six mocked focused-analysis controls pass without a local Dart SDK. Two
-newly touched files join strict analysis, now 284, and the existing strip suite
-joins the early compact gate. Test registrations remain unchanged. Fresh full
-Linux precedes another native observation; Source779 is not yet qualified.
+The original failed CI job and complete log remain retained. Its managed
+task is closed successfully, registered scratch is removed and all outputs
+are consumed. No CI job is retried and no Source779 native run is claimed.
+Fresh full Linux precedes Windows; current expected counts remain 1505 Dart,
+1226 Python/eighteen skips and 284 strictly analyzed files.
 
-Source778 Linux 43667601132 passes all thirteen required steps. Windows
-43668531162 and reader 43670437574 verify 1505 Dart passes, 1226 Python cases
-with eighteen skips, zero selected findings, 123 reader controls, 87 source
-files and 42 PNGs. Required actors and all five nodes exit normally; auxiliary
-VCTIP cleanup remains forced and runner lifecycle remains unqualified.
-
-All twenty-four current general PNGs are individually viewed: fourteen
-mismatches, ten unresolved pairs and zero matches. Unchanged references reuse
-their pinned prior views; eight are reopened. Bell client/header geometry is
-corrected. Real empty/genesis states remain, with no invented sample data.
-
-Three local review-record refusals remain closed failures. A distinct
-metadata-only reconciliation uses the verified archive/report objects with
-no new transport, CI or image replay. All owned outputs are consumed and
-registered disposable scratch is removed. Earlier failed CI remains preserved.
-
-Accepted scope and Source730 Ready pairs remain 76/80 and 2/94. No new send,
-seed, whole-image acceptance or performance improvement is claimed.
+Source778 remains the latest qualified native/image source: producer
+43668531162 and reader 43670437574 verify 42 original PNGs, normal required
+actors and five normal node exits. Auxiliary VCTIP cleanup remains forced.
+Its 24 general-page pairs retain fourteen mismatches, ten unresolved and
+zero matches. Accepted scope and Source730 Ready pairs stay 76/80 and 2/94.
+No new send, seed, visual acceptance or performance result is claimed.
 
 [Source761](source761-address-action-gap.md) preserves Source760 full Linux
 43609477103 as failed after strict analysis, Ready and Lock pass. Both added

@@ -17,8 +17,25 @@ double stripTextHeight(BuildContext context) {
   final TextScaler scaler = MediaQuery.textScalerOf(context);
   final TextStyle label = ledgerLabelStyle(context);
   final TextStyle value = stripValueStyle(context);
-  final double content = scaler.scale(label.fontSize!) * (label.height ?? 1) +
-      3 + scaler.scale(value.fontSize!) * (value.height ?? 1);
+  double lineHeight(TextStyle style) {
+    final TextPainter painter = TextPainter(
+      text: TextSpan(text: '0', style: style),
+      textDirection: Directionality.of(context),
+      textScaler: scaler,
+      locale: Localizations.maybeLocaleOf(context),
+      maxLines: 1,
+    );
+    try {
+      painter.layout();
+      return painter.height;
+    } finally {
+      painter.dispose();
+    }
+  }
+
+  // Each paragraph has its own rounded line box. Adding nominal font sizes
+  // and height multipliers can undersize the fixed row by half a pixel.
+  final double content = lineHeight(label) + 3 + lineHeight(value);
   return math.max(kStripTextContentHeight, content) +
       tokens.stripPadding.vertical;
 }

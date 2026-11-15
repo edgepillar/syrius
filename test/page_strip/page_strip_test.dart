@@ -36,9 +36,16 @@ Widget _host(
 );
 
 /// A strip above the list it heads, as on a page.
-Widget _page(PageStrip strip) => Column(
+Widget _page(Widget strip) => Column(
   crossAxisAlignment: CrossAxisAlignment.stretch,
   children: <Widget>[strip, const Spacer()],
+);
+
+Widget _fixedHeight(PageStrip strip) => Builder(
+  builder: (BuildContext context) => SizedBox(
+    height: stripTextHeight(context),
+    child: strip,
+  ),
 );
 
 Widget _button(String label) => SizedBox(
@@ -190,26 +197,28 @@ void main() {
         await tester.pumpWidget(
           _host(
             _page(
-              PageStrip(
-                key: _strip,
-                minimumContentHeight: kStripTextContentHeight,
-                figures: <StripFigure>[
-                  StripFigure(
-                    label: 'To collect',
-                    value: const Text('3.214 ZNN'),
-                    action: TextButton(
-                      key: inlineAction,
-                      onPressed: () => activations++,
-                      style: TextButton.styleFrom(
-                        minimumSize: const Size(0, 30),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
+              _fixedHeight(
+                PageStrip(
+                  key: _strip,
+                  minimumContentHeight: kStripTextContentHeight,
+                  figures: <StripFigure>[
+                    StripFigure(
+                      label: 'To collect',
+                      value: const Text('3.214 ZNN'),
+                      action: TextButton(
+                        key: inlineAction,
+                        onPressed: () => activations++,
+                        style: TextButton.styleFrom(
+                          minimumSize: const Size(0, 30),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                        ),
+                        child: const Text('Collect'),
                       ),
-                      child: const Text('Collect'),
                     ),
-                  ),
-                  const StripFigure(label: 'Revocable', value: Text('now')),
-                ],
+                    const StripFigure(label: 'Revocable', value: Text('now')),
+                  ],
+                ),
               ),
             ),
             direction: direction,
@@ -240,12 +249,14 @@ void main() {
           MediaQuery(
             data: const MediaQueryData(textScaler: TextScaler.linear(2)),
             child: _page(
-              const PageStrip(
-                key: _strip,
-                minimumContentHeight: 46,
-                figures: <StripFigure>[
-                  StripFigure(label: 'Staked', value: Text('0')),
-                ],
+              _fixedHeight(
+                const PageStrip(
+                  key: _strip,
+                  minimumContentHeight: 46,
+                  figures: <StripFigure>[
+                    StripFigure(label: 'Staked', value: Text('0')),
+                  ],
+                ),
               ),
             ),
           ),
