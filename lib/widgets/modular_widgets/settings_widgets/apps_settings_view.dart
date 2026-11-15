@@ -253,7 +253,7 @@ class _AppsSettingsViewState extends State<AppsSettingsView>
                             ? '${snapshot.connections.length}'
                             : context.l10n.appsSettingsUnknown,
                         key: const Key('apps_settings_count'),
-                        style: ledgerLabelStyle(context),
+                        style: tokens.headingCountText,
                       ),
                     ],
                   ),

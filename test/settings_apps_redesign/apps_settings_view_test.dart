@@ -126,7 +126,9 @@ void _expectLedgerLabels(
     find.byKey(const Key('apps_settings_count')),
   );
   expect(count.style?.fontSize, 11);
-  expect(count.style?.letterSpacing, tracking);
+  expect(count.style?.fontFamily, tokens.monoFontFamily);
+  expect(count.style?.fontWeight, FontWeight.w600);
+  expect(count.style?.letterSpacing, 0);
   expect(count.style?.color, tokens.faint);
 }
 

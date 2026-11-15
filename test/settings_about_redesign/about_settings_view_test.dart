@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/disclosure.dart';
 import 'package:zenon_syrius_wallet_flutter/seams/seam.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
@@ -158,6 +159,30 @@ void main() {
           expect(find.semantics.byLabel('Open folder'), findsNothing);
           expect(find.byType(SeamGate), findsOneWidget);
           expect(tester.takeException(), isNull);
+          for (final Locale locale in const <Locale>[
+            Locale('en'), Locale('ar'),
+          ]) {
+            await tester.pumpWidget(aboutHost(
+              card, light: variant.$1,
+              rtl: locale.languageCode == 'ar' || variant.$2,
+              scale: variant.$3, locale: locale,
+            ));
+            await tester.pump();
+            final BuildContext view = tester.element(find.byType(AboutCard));
+            final AppLocalizations labels = AppLocalizations.of(view)!;
+            expect(Localizations.localeOf(view), locale);
+            await _toggle(tester, 'about_computer_toggle');
+            final String label = locale.languageCode == 'en'
+                ? labels.aboutPaths.toUpperCase() : labels.aboutPaths;
+            final Text paths = tester.widget<Text>(find.text(label));
+            expect(paths.style?.fontSize, 11);
+            expect(paths.style?.letterSpacing,
+              locale.languageCode == 'en' ? 0.66 : 0);
+            expect(paths.style?.color, AppTokens.of(view).faint);
+            expect(registryReads, 0);
+            expect(tester.takeException(), isNull);
+            await _toggle(tester, 'about_computer_toggle');
+          }
         } finally {
           semantics.dispose();
         }

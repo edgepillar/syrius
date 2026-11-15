@@ -15,9 +15,10 @@ Widget aboutHost(
   double scale = 1,
   double width = 1000,
   double height = 650,
+  Locale locale = const Locale('en'),
 }) => MaterialApp(
   theme: light ? AppTheme.lightTheme : AppTheme.darkTheme,
-  locale: const Locale('en'),
+  locale: locale,
   localizationsDelegates: appLocalizationsDelegates,
   supportedLocales: AppLocalizations.supportedLocales,
   home: MediaQuery(

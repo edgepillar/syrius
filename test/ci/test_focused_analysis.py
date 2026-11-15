@@ -100,6 +100,8 @@ class FocusedAnalysisTests(unittest.TestCase):
                           *focused.SELECTED_DART_SOURCES])
         self.assertEqual(child.call_args.args[0].count(
             'harness/bin/ci_paired_interactive_entry.dart'), 1)
+        self.assertEqual(child.call_args.args[0].count(
+            'test/settings_about_redesign/support.dart'), 1)
         self.assertEqual(child.call_args.kwargs['stdin'], subprocess.DEVNULL)
         return result, rendered
 

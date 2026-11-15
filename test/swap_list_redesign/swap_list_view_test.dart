@@ -31,9 +31,10 @@ Widget host(
   bool rtl = false,
   double scale = 1,
   bool disableAnimations = false,
+  Locale locale = const Locale('en'),
 }) => MaterialApp(
   theme: light ? AppTheme.lightTheme : AppTheme.darkTheme,
-  locale: const Locale('en'),
+  locale: locale,
   localizationsDelegates: appLocalizationsDelegates,
   supportedLocales: AppLocalizations.supportedLocales,
   home: MediaQuery(
@@ -50,6 +51,19 @@ Widget host(
     ),
   ),
 );
+
+void _expectHeadingCount(WidgetTester tester) {
+  final Finder count = find.byKey(const Key('swap_list_count'));
+  expect(count, findsOneWidget);
+  final Text value = tester.widget<Text>(count);
+  final AppTokens tokens = AppTokens.of(tester.element(count));
+  expect(value.data, '3');
+  expect(value.style?.fontSize, 11);
+  expect(value.style?.fontFamily, tokens.monoFontFamily);
+  expect(value.style?.fontWeight, FontWeight.w600);
+  expect(value.style?.letterSpacing, 0);
+  expect(value.style?.color, tokens.faint);
+}
 
 void main() {
   for (final bool closesBeforeRead in <bool>[false, true]) {
@@ -149,16 +163,17 @@ void main() {
         await presenter.load();
         int starts = 0;
         int refreshes = 0;
+        final SwapListView view = SwapListView(
+          presenter: presenter,
+          onRefresh: () => refreshes++,
+          onStart: () => starts++,
+          onJoin: () {},
+          onOpen: (_) {},
+          onRecover: () {},
+        );
         await tester.pumpWidget(
           host(
-            SwapListView(
-              presenter: presenter,
-              onRefresh: () => refreshes++,
-              onStart: () => starts++,
-              onJoin: () {},
-              onOpen: (_) {},
-              onRecover: () {},
-            ),
+            view,
             light: light,
             rtl: rtl,
             scale: scale,
@@ -168,6 +183,7 @@ void main() {
         await frames(tester);
         expect(find.byKey(const Key('p2p_swaps_strip')), findsOneWidget);
         expect(find.byKey(const Key('p2p_swaps_list')), findsOneWidget);
+        _expectHeadingCount(tester);
         final Rect list = tester.getRect(
           find.byKey(const Key('p2p_swaps_list')),
         );
@@ -201,6 +217,21 @@ void main() {
         await tester.tap(find.byKey(const Key('p2p_start_swap')));
         await tester.pump();
         expect(starts, 1);
+        await tester.pumpWidget(host(
+          view, light: light, rtl: true, scale: scale,
+          disableAnimations: reduced, locale: const Locale('ar'),
+        ));
+        await frames(tester);
+        final BuildContext localized = tester.element(
+          find.byKey(const Key('p2p_swaps_list')),
+        );
+        expect(Localizations.localeOf(localized), const Locale('ar'));
+        final AppLocalizations labels = AppLocalizations.of(localized)!;
+        expect(find.text(labels.swapListTitle), findsOneWidget);
+        _expectHeadingCount(tester);
+        expect(starts, 1);
+        expect(refreshes, 1);
+        expect(tester.takeException(), isNull);
         await tester.pumpWidget(const SizedBox.shrink());
         presenter.dispose();
         tester.view.reset();

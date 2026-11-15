@@ -402,7 +402,9 @@ class _AboutCardState extends State<AboutCard> {
               usesLatinScript(context)
                   ? context.l10n.aboutPaths.toUpperCase()
                   : context.l10n.aboutPaths,
-              style: tokens.ledgerText,
+              style: tokens.ledgerText.copyWith(
+                letterSpacing: usesLatinScript(context) ? 0.66 : 0,
+              ),
             ),
           ),
           row(

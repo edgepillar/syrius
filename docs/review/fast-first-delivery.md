@@ -11,6 +11,19 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
+[Source800](source800-heading-counts-and-paths-tracking.md) applies the reference
+heading-count value role to Apps/Swaps and script-dependent tracking to the
+About Paths label. Existing English checks remain, with real Arabic/RTL role
+coverage added to existing cases. Strict analysis preserves all prior paths and
+adds the changed About host, for 288. Source799 full Linux 43761170991 passes
+all thirteen stages. Windows 43762683498 / reader 43764989586 retain a successful
+current preparation and complete measurement actions, then fail normal wallet
+closure. Four nodes close normally; the primary Pillar is forced after its
+stop timeout, with protocol/wait-group and Syncer frames retained. P06 is not
+reached and the shutdown cause remains unestablished. All owned outputs are
+consumed before this change. Fresh validation remains required; accepted scope
+and Ready pairs stay 76/80 and 2/94.
+
 [Source799](source799-entry-phase-type-guard.md) replaces the nullable phase
 cast with an explicit String guard. Readiness and action/budget guards remain.
 Source798 full Linux 43758084444 passes package/application analysis, then

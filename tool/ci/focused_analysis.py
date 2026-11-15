@@ -241,6 +241,7 @@ SELECTED_DART_SOURCES = (
     'lib/widgets/modular_widgets/help_widgets/about_card.dart',
     'test/page_strip/page_strip_test.dart',
     'test/settings_about_redesign/about_settings_view_test.dart',
+    'test/settings_about_redesign/support.dart',
     'lib/rearchitecture/features/node_update/view/node_update_card.dart',
     'lib/rearchitecture/features/node_update/widgets/node_update_rows.dart',
     'test/node_update/view/node_update_card_test.dart',

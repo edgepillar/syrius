@@ -89,7 +89,8 @@ class _P2pSwapsCardState extends State<P2pSwapsCard> {
             SizedBox(width: tokens.inlineGap),
             Text(
               snapshot?.rows.length.toString() ?? context.l10n.swapListUnknown,
-              style: tokens.ledgerText,
+              key: const Key('swap_list_count'),
+              style: tokens.headingCountText,
             ),
           ],
         ),

@@ -2080,6 +2080,14 @@ class AppTokens extends ThemeExtension<AppTokens> {
     color: faint,
   );
 
+  /// A small value beside a card heading, without label tracking.
+  TextStyle get headingCountText => dataText.copyWith(
+    fontSize: 11,
+    fontWeight: FontWeight.w600,
+    letterSpacing: 0,
+    color: faint,
+  );
+
   /// The headline amount in the Home hero.
   TextStyle get heroAmountText => dataText.copyWith(
     fontSize: 34,
