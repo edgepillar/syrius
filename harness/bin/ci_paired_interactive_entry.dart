@@ -29,9 +29,8 @@ class _Refused implements Exception {
 }
 
 class _OwnedInstance extends cli.Instance {
-  _OwnedInstance(this._receipt, {WalletRecipeSend? transport})
-      : _transport = transport,
-        super('ci-paired-interactive');
+  _OwnedInstance(this._receipt, [this._transport])
+      : super('ci-paired-interactive');
 
   final Map<String, dynamic> _receipt;
   final WalletRecipeSend? _transport;
@@ -218,7 +217,7 @@ WalletRecipeSend pairedFrameWelcomeSend(
             : const Duration(seconds: 90),
       );
       if (beforeTap != null) {
-        await beforeTap(() { remaining(); }).timeout(remaining());
+        await beforeTap(remaining).timeout(remaining());
       }
       final Duration left = remaining();
       return await send(command, left).timeout(left);
@@ -314,7 +313,7 @@ Future<void> main(List<String> args) async {
     phase = _PreparationPhase.importWallet;
     final _OwnedInstance importer = _OwnedInstance(
       instance.read(),
-      transport: pairedFrameWelcomeSend(
+      pairedFrameWelcomeSend(
         (Map<String, Object?> command, Duration timeout) =>
             instance.send(command, timeout: timeout),
         beforeTap: (void Function() requireCurrent) async {

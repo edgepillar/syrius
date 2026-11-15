@@ -11,6 +11,15 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
+[Source797](source797-entry-analysis-style.md) addresses the two Source796
+strict analysis info findings using a private transport field formal and the
+existing remaining-time function directly. Command order, payloads and budgets
+remain unchanged. Source796 full Linux 43750848364 passes package/application
+analysis, then stops at strict analysis; all later Dart gates and generation
+are skipped. The original terminal failure has no artifacts and is preserved
+without retry; outputs are consumed. Fresh current-source execution remains
+required, with scope and accepted Ready pairs still 76/80 and 2/94.
+
 [Source796](source796-original-handoff-and-apps-labels.md) lets the original
 importer's startup handoff run before waiting at its first original Welcome
 tap. The adapter forwards the exact command and deducts waiting/owner checks
