@@ -506,7 +506,8 @@ void main() {
         of: sender, matching: find.text('1,000'),
       );
       expect(grouped, findsOneWidget);
-      final Finder announced = find.semantics.byLabel(RegExp(r'1,000'));
+      final SemanticsFinder announced =
+          find.semantics.byLabel(RegExp(r'1,000'));
       expect(announced, findsWidgets);
       BalanceVisibility.instance.set(true);
       await tester.pump();
