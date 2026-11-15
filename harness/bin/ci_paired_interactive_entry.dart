@@ -147,11 +147,12 @@ Future<void> pairedFrameWaitForWelcome(
         : matches.single['enabled'] != true
         ? 'wallet-recipe-control-disabled'
         : 'wallet-recipe-stage-unsettled';
-    if ((phase == 'welcome' || originalStartup) && matches.isNotEmpty &&
+    if (phase is String &&
+        (phase == 'welcome' || originalStartup) && matches.isNotEmpty &&
         matches.single['enabled'] == true) {
       final (int, int, int, String) context = (
         view['owner'] as int, view['revision'] as int,
-        view['signingChainId'] as int, phase as String,
+        view['signingChainId'] as int, phase,
       );
       if (context != readyContext) {
         readyContext = context;

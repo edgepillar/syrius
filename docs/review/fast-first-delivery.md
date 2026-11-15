@@ -11,6 +11,15 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
+[Source799](source799-entry-phase-type-guard.md) replaces the nullable phase
+cast with an explicit String guard. Readiness and action/budget guards remain.
+Source798 full Linux 43758084444 passes package/application analysis, then
+stops at one strict info finding confirmed in the bounded original log.
+All later Dart gates and generation are skipped. The original CI failure and
+first refused log read remain preserved; both owned storage tasks are closed
+with their actual outcomes. Fresh execution remains required, with accepted
+scope and Ready pairs still 76/80 and 2/94.
+
 [Source798](source798-stable-original-entry-admission.md) waits for stable
 empty Welcome or the original enabled startup handoff control before invoking
 the unchanged original recipe. Its first observation controls that recipe's
