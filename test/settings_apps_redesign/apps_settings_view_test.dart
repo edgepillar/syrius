@@ -21,11 +21,12 @@ Widget _host(
   bool rtl = false,
   double scale = 1,
   double width = 1000,
+  Locale locale = const Locale('en'),
 }) {
   final bool Function() current = source.captureView();
   return MaterialApp(
     theme: light ? AppTheme.lightTheme : AppTheme.darkTheme,
-    locale: const Locale('en'),
+    locale: locale,
     localizationsDelegates: appLocalizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
     home: MediaQuery(
@@ -57,12 +58,21 @@ Future<void> _prepare(
   bool rtl = false,
   double scale = 1,
   double width = 1000,
+  Locale locale = const Locale('en'),
 }) async {
   tester.view.physicalSize = const Size(1280, 780);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
   await tester.pumpWidget(
-    _host(source, binding, light: light, rtl: rtl, scale: scale, width: width),
+    _host(
+      source,
+      binding,
+      light: light,
+      rtl: rtl,
+      scale: scale,
+      width: width,
+      locale: locale,
+    ),
   );
 }
 
@@ -94,6 +104,32 @@ OutlinedButton _action(WidgetTester tester, String key) =>
       ),
     );
 
+void _expectLedgerLabels(
+  WidgetTester tester,
+  List<String> labels, {
+  required double tracking,
+}) {
+  final Finder section = find.byType(AppsSettingsSection);
+  final AppTokens tokens = AppTokens.of(tester.element(section));
+  for (final String label in labels) {
+    final Finder heading = find.descendant(
+      of: section,
+      matching: find.text(label),
+    );
+    expect(heading, findsOneWidget);
+    final Text text = tester.widget<Text>(heading);
+    expect(text.style?.fontSize, 11);
+    expect(text.style?.letterSpacing, tracking);
+    expect(text.style?.color, tokens.faint);
+  }
+  final Text count = tester.widget<Text>(
+    find.byKey(const Key('apps_settings_count')),
+  );
+  expect(count.style?.fontSize, 11);
+  expect(count.style?.letterSpacing, tracking);
+  expect(count.style?.color, tokens.faint);
+}
+
 void main() {
   late AppsFixture source;
   setUp(() => source = AppsFixture());
@@ -105,6 +141,9 @@ void main() {
       '${light ? 'light' : 'dark'}',
       (WidgetTester tester) async {
         await _prepare(tester, source, source.bind(), light: light);
+        _expectLedgerLabels(tester, <String>[
+          'SITE', 'ADDRESS', 'LAST USED', 'VIA',
+        ], tracking: 0.66);
         expect(find.byType(SettingsSwitch), findsOneWidget);
         expect(find.text('sample.example'), findsOneWidget);
         expect(find.text('Example app'), findsOneWidget);
@@ -471,7 +510,23 @@ void main() {
         rtl: true,
         scale: 2,
         width: 700,
+        locale: const Locale('ar'),
       );
+      await _frames(tester);
+      final BuildContext context = tester.element(
+        find.byType(AppsSettingsSection),
+      );
+      expect(Localizations.localeOf(context), const Locale('ar'));
+      final AppLocalizations l10n = Localizations.of<AppLocalizations>(
+        context,
+        AppLocalizations,
+      )!;
+      _expectLedgerLabels(tester, <String>[
+        l10n.appsSettingsSite,
+        l10n.address,
+        l10n.appsSettingsLastUsed,
+        l10n.appsSettingsVia,
+      ], tracking: 0);
       expect(find.byKey(const Key('apps_settings_web_switch')), findsOneWidget);
       expect(find.byKey(const Key('apps_settings_connect')), findsOneWidget);
       expect(find.byKey(const Key('apps_disconnect_0')), findsOneWidget);

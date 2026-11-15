@@ -253,7 +253,7 @@ class _AppsSettingsViewState extends State<AppsSettingsView>
                             ? '${snapshot.connections.length}'
                             : context.l10n.appsSettingsUnknown,
                         key: const Key('apps_settings_count'),
-                        style: tokens.ledgerText,
+                        style: ledgerLabelStyle(context),
                       ),
                     ],
                   ),
@@ -464,6 +464,11 @@ class _ConnectionsTable extends StatelessWidget {
   final bool enabled;
   final ValueChanged<AppsConnection> disconnect;
 
+  Widget _buildHeading(BuildContext context, String label) => Text(
+    usesLatinScript(context) ? label.toUpperCase() : label,
+    style: ledgerLabelStyle(context),
+  );
+
   @override
   Widget build(BuildContext context) {
     final AppTokens tokens = AppTokens.of(context);
@@ -487,22 +492,10 @@ class _ConnectionsTable extends StatelessWidget {
                   padding: tokens.appsSettingsHeaderPadding,
                   child: _AppsColumns(
                     children: <Widget>[
-                      Text(
-                        context.l10n.appsSettingsSite.toUpperCase(),
-                        style: tokens.ledgerText,
-                      ),
-                      Text(
-                        context.l10n.address.toUpperCase(),
-                        style: tokens.ledgerText,
-                      ),
-                      Text(
-                        context.l10n.appsSettingsLastUsed.toUpperCase(),
-                        style: tokens.ledgerText,
-                      ),
-                      Text(
-                        context.l10n.appsSettingsVia.toUpperCase(),
-                        style: tokens.ledgerText,
-                      ),
+                      _buildHeading(context, context.l10n.appsSettingsSite),
+                      _buildHeading(context, context.l10n.address),
+                      _buildHeading(context, context.l10n.appsSettingsLastUsed),
+                      _buildHeading(context, context.l10n.appsSettingsVia),
                       const SizedBox.shrink(),
                     ],
                   ),

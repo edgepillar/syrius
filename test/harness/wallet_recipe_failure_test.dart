@@ -14,7 +14,10 @@ import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_wid
 
 import '../../harness/app/agent.dart';
 import '../../harness/bin/ci_paired_interactive_entry.dart'
-    show pairedFrameRecipeDiagnostic, pairedFrameWaitForWelcome;
+    show
+        pairedFrameRecipeDiagnostic,
+        pairedFrameWaitForWelcome,
+        pairedFrameWelcomeSend;
 import '../../harness/bin/wallet_recipe.dart';
 import '../../harness/wallet_recipe_failure.dart';
 import '../node_update/support.dart' as node_fixture;
@@ -566,6 +569,64 @@ void main() {
         elapsed - lastRevision!,
         greaterThanOrEqualTo(const Duration(seconds: 1)),
       );
+      elapsed = Duration.zero;
+      reads = 0;
+      bool handedOff = false;
+      int taps = 0;
+      int ownerChecks = 0;
+      Duration? tapTimeout;
+      final List<String> trace = <String>[];
+      final Map<String, Object?> originalHandoff = <String, Object?>{
+        'cmd': 'wallet-recipe', 'action': 'key', 'key': 'launch_skip_hint',
+        'owner': 7, 'revision': 1,
+      };
+      final Map<String, Object?> originalTap = <String, Object?>{
+        'cmd': 'wallet-recipe', 'action': 'tap', 'key': 'welcome_import',
+        'owner': 7, 'revision': 1,
+      };
+      final WalletRecipeSend wrapped = pairedFrameWelcomeSend(
+        (Map<String, Object?> command, Duration timeout) async {
+          if (command['action'] == 'observe') {
+            reads++;
+            expect(handedOff, isTrue);
+            return _pairedWelcomeView();
+          }
+          if (command['action'] == 'key') {
+            expect(identical(command, originalHandoff), isTrue);
+            expect(reads, 0);
+            handedOff = true;
+            trace.add('handoff');
+          } else {
+            expect(identical(command, originalTap), isTrue);
+            expect(ownerChecks, 1);
+            taps++;
+            tapTimeout = timeout;
+            trace.add('tap');
+          }
+          return <String, dynamic>{'ok': true, 'acted': true};
+        },
+        wait: (Duration duration) async { elapsed += duration; },
+        elapsed: () => elapsed,
+        beforeTap: (void Function() requireCurrent) async {
+          requireCurrent();
+          expect(taps, 0);
+          ownerChecks++;
+          trace.add('owner');
+        },
+      );
+      await wrapped(originalHandoff, const Duration(seconds: 10));
+      expect(reads, 0);
+      await wrapped(originalTap, const Duration(seconds: 10));
+      expect(trace, <String>['handoff', 'owner', 'tap']);
+      expect(reads, greaterThan(7));
+      expect(elapsed, greaterThanOrEqualTo(const Duration(seconds: 1)));
+      expect(tapTimeout, const Duration(seconds: 10) - elapsed);
+      expect(tapTimeout, lessThan(const Duration(seconds: 10)));
+      await expectLater(
+        wrapped(originalTap, const Duration(seconds: 10)),
+        throwsA(isA<WalletRecipeRefused>()),
+      );
+      expect(taps, 1);
     },
   );
 
@@ -780,6 +841,84 @@ void main() {
     expect(pending?.code, 'wallet-recipe-deadline');
     expect(jsonEncode(pairedFrameRecipeDiagnostic(pending)),
       isNot(contains('synthetic private')));
+    for (final String fault in <String>[
+      'observe', 'owner', 'expired', 'backward', 'tap',
+    ]) {
+      elapsed = Duration.zero;
+      int observations = 0;
+      int taps = 0;
+      final WalletRecipeSend wrapped = pairedFrameWelcomeSend(
+        (Map<String, Object?> command, Duration timeout) async {
+          if (command['action'] == 'observe') {
+            observations++;
+            if (fault == 'observe') {
+              throw StateError('synthetic private transport');
+            }
+            return _pairedWelcomeView();
+          }
+          taps++;
+          throw StateError('synthetic private tap');
+        },
+        wait: (Duration duration) async { elapsed += duration; },
+        elapsed: () => elapsed,
+        beforeTap: (void Function() requireCurrent) async {
+          requireCurrent();
+          if (fault == 'owner') {
+            throw StateError('synthetic private owner');
+          }
+          if (fault == 'expired') elapsed += const Duration(seconds: 10);
+          if (fault == 'backward') elapsed = Duration.zero;
+        },
+      );
+      final Map<String, Object?> command = <String, Object?>{
+        'cmd': 'wallet-recipe', 'action': 'tap', 'key': 'welcome_import',
+      };
+      WalletRecipeRefused? failed;
+      try {
+        await wrapped(command, const Duration(seconds: 10));
+      } on WalletRecipeRefused catch (error) {
+        failed = error;
+      }
+      expect(failed, isNotNull, reason: fault);
+      expect(jsonEncode(pairedFrameRecipeDiagnostic(failed)),
+        isNot(contains('synthetic private')));
+      expect(taps, fault == 'tap' ? 1 : 0);
+      final int originalReads = observations;
+      await expectLater(wrapped(command, const Duration(seconds: 10)),
+        throwsA(isA<WalletRecipeRefused>()));
+      expect(observations, originalReads);
+      expect(taps, fault == 'tap' ? 1 : 0);
+    }
+    elapsed = Duration.zero;
+    int lateTaps = 0;
+    int lateOwnerFollowups = 0;
+    final Completer<void> lateOwner = Completer<void>();
+    final WalletRecipeSend late = pairedFrameWelcomeSend(
+      (Map<String, Object?> command, Duration timeout) async {
+        if (command['action'] == 'observe') return _pairedWelcomeView();
+        lateTaps++;
+        return <String, dynamic>{'ok': true, 'acted': true};
+      },
+      wait: (Duration duration) async { elapsed += duration; },
+      elapsed: () => elapsed,
+      beforeTap: (void Function() requireCurrent) async {
+        await lateOwner.future;
+        requireCurrent();
+        lateOwnerFollowups++;
+      },
+    );
+    final Map<String, Object?> tap = <String, Object?>{
+      'cmd': 'wallet-recipe', 'action': 'tap', 'key': 'welcome_import',
+    };
+    await expectLater(late(tap, const Duration(milliseconds: 1100)),
+      throwsA(isA<WalletRecipeRefused>()));
+    lateOwner.complete();
+    await Future<void>.delayed(Duration.zero);
+    expect(lateTaps, 0);
+    expect(lateOwnerFollowups, 0);
+    await expectLater(late(tap, const Duration(seconds: 10)),
+      throwsA(isA<WalletRecipeRefused>()));
+    expect(lateTaps, 0);
   });
 
   testWidgets('the server preserves a fixed owner refusal without acting', (

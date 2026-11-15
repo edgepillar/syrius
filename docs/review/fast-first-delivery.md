@@ -11,6 +11,22 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
+[Source796](source796-original-handoff-and-apps-labels.md) lets the original
+importer's startup handoff run before waiting at its first original Welcome
+tap. The adapter forwards the exact command and deducts waiting/owner checks
+from the original timeout. Retired callbacks admit no late action or owner
+query. Apps headings/counts also use the locale-aware ledger role, with real
+Arabic coverage in the existing RTL case. Sixteen Python memory controls pass;
+new Dart controls and current-source execution remain required.
+
+Source795 full Linux 43742663026 passes all thirteen steps. Windows 43744010149
+and reader 43746776839 verify two normal wallet exits, five normal node exits,
+eleven current page-change and twelve disclosure frames. P06's complete
+287-byte failed entry remains at startup-before-initialization for the
+pre-import wait. Its original handoff is not invoked and no P06 window exists.
+Earlier closure failure causes remain unestablished. Original failed runs
+are preserved and outputs consumed. Scope and Ready pairs stay 76/80 and 2/94.
+
 [Source795](source795-pillars-ledger-test-scope.md) scopes the existing
 English/Arabic label finder to the original Pillars ledger. The same localized
 weight text appears in its separate sort control. Application behavior,

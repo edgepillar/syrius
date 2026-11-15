@@ -29,12 +29,23 @@ class _Refused implements Exception {
 }
 
 class _OwnedInstance extends cli.Instance {
-  _OwnedInstance(this._receipt) : super('ci-paired-interactive');
+  _OwnedInstance(this._receipt, {WalletRecipeSend? transport})
+      : _transport = transport,
+        super('ci-paired-interactive');
 
   final Map<String, dynamic> _receipt;
+  final WalletRecipeSend? _transport;
 
   @override
   Map<String, dynamic> read() => _receipt;
+
+  @override
+  Future<Map<String, dynamic>> send(
+    Map<String, Object?> command, {
+    Duration timeout = const Duration(seconds: 120),
+  }) => _transport == null
+      ? super.send(command, timeout: timeout)
+      : _transport(command, timeout);
 }
 
 /// The marker retains only the recipe's existing allowlisted labels.
@@ -43,13 +54,16 @@ Map<String, String>? pairedFrameRecipeDiagnostic(Object? failure) =>
     ? walletRecipePublicDiagnostic(failure.diagnostic)
     : null;
 
-/// Observe the genuine empty Welcome before the original one-shot import.
+/// Observe the genuine empty Welcome at the original tap boundary.
 Future<void> pairedFrameWaitForWelcome(
   WalletRecipeSend send, {
   Future<void> Function(Duration)? wait,
   Duration Function()? elapsed,
+  Duration budget = const Duration(seconds: 90),
 }) async {
-  const Duration budget = Duration(seconds: 90);
+  if (budget <= Duration.zero || budget > const Duration(seconds: 90)) {
+    throw const WalletRecipeRefused('wallet-recipe-deadline');
+  }
   const Duration quiet = Duration(seconds: 1);
   final Stopwatch clock = Stopwatch()..start();
   final Future<void> Function(Duration) pause = wait ?? Future<void>.delayed;
@@ -155,6 +169,67 @@ Future<void> pairedFrameWaitForWelcome(
   refuse('wallet-recipe-deadline');
 }
 
+/// Preserve the original handoff, then wait before its one Welcome tap.
+WalletRecipeSend pairedFrameWelcomeSend(
+  WalletRecipeSend send, {
+  Future<void> Function(void Function() requireCurrent)? beforeTap,
+  Future<void> Function(Duration)? wait,
+  Duration Function()? elapsed,
+}) {
+  bool reserved = false;
+  bool retired = false;
+  return (Map<String, Object?> command, Duration timeout) async {
+    if (retired) {
+      throw const WalletRecipeRefused('wallet-recipe-retired');
+    }
+    try {
+      if (timeout <= Duration.zero) {
+        throw const WalletRecipeRefused('wallet-recipe-deadline');
+      }
+      if (command['cmd'] != 'wallet-recipe' ||
+          command['action'] != 'tap' || command['key'] != 'welcome_import') {
+        return await send(command, timeout).timeout(timeout);
+      }
+      if (reserved) {
+        throw const WalletRecipeRefused('wallet-recipe-retired');
+      }
+      reserved = true;
+      final Stopwatch clock = Stopwatch()..start();
+      final Duration origin = elapsed?.call() ?? Duration.zero;
+      Duration previous = Duration.zero;
+      Duration spent() {
+        if (retired) {
+          throw const WalletRecipeRefused('wallet-recipe-retired');
+        }
+        final Duration value = (elapsed?.call() ?? clock.elapsed) - origin;
+        if (value < previous || value >= timeout) {
+          throw const WalletRecipeRefused('wallet-recipe-deadline');
+        }
+        previous = value;
+        return value;
+      }
+      Duration remaining() => timeout - spent();
+      await pairedFrameWaitForWelcome(
+        send,
+        wait: wait,
+        elapsed: spent,
+        budget: timeout < const Duration(seconds: 90)
+            ? timeout
+            : const Duration(seconds: 90),
+      );
+      if (beforeTap != null) {
+        await beforeTap(() { remaining(); }).timeout(remaining());
+      }
+      final Duration left = remaining();
+      return await send(command, left).timeout(left);
+    } on Object catch (error) {
+      retired = true;
+      if (error is WalletRecipeRefused || error is _Refused) rethrow;
+      throw const WalletRecipeRefused('wallet-recipe-command-uncertain');
+    }
+  };
+}
+
 Future<Map<String, dynamic>> _input() async {
   final List<int> bytes = <int>[];
   await for (final List<int> chunk in stdin.timeout(
@@ -237,16 +312,24 @@ Future<void> main(List<String> args) async {
     phase = _PreparationPhase.emptyProfile;
     await _emptyProfile(instance);
     phase = _PreparationPhase.importWallet;
-    await pairedFrameWaitForWelcome(
-      (Map<String, Object?> command, Duration timeout) =>
-          instance.send(command, timeout: timeout),
+    final _OwnedInstance importer = _OwnedInstance(
+      instance.read(),
+      transport: pairedFrameWelcomeSend(
+        (Map<String, Object?> command, Duration timeout) =>
+            instance.send(command, timeout: timeout),
+        beforeTap: (void Function() requireCurrent) async {
+          requireCurrent();
+          phase = _PreparationPhase.ownerBefore;
+          await _owner(instance, pid);
+          requireCurrent();
+          phase = _PreparationPhase.emptyProfile;
+          await _emptyProfile(instance);
+          requireCurrent();
+          phase = _PreparationPhase.importWallet;
+        },
+      ),
     );
-    phase = _PreparationPhase.ownerBefore;
-    await _owner(instance, pid);
-    phase = _PreparationPhase.emptyProfile;
-    await _emptyProfile(instance);
-    phase = _PreparationPhase.importWallet;
-    await cli.walletRecipe(instance).importWallet(
+    await cli.walletRecipe(importer).importWallet(
       chain: '321',
       mnemonic: offered['mnemonic'] as String,
       password: offered['password'] as String,
