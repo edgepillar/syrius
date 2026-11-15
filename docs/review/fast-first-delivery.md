@@ -11,31 +11,32 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
-[Source784](source784-retained-plasma-localizations.md) retains the exact
-seven-file localization delta from Source783 hosted generation 43686479831.
-Source admission, five finite controls and actual pinned-SDK generation pass.
-The localization interface, five locales and missing-key report match hosted
-byte counts and SHA-256; the finite validator accepts the reconstruction.
-Existing getters/translations and handwritten code remain unchanged. The
-original log is retained, the owned task is closed and outputs are consumed.
+[Source785](source785-sender-semantics-lifecycle.md) disposes the sender test's
+SemanticsHandle inside try/finally before the framework completion check.
+Grouping, hit-testing, privacy semantics and restoration expressions remain.
+Production UI, generated localization bytes, test methods, workflows, 286-file
+selection and command limits remain unchanged.
 
-The grouped UI changes prepare exterior Bell shadows after glass, exact sender
-balance grouping, a canonical small Tokens search glyph and localized Plasma
-Beneficiary/Expires captions. Sender grouping/privacy/restoration and Tokens
-source/size/ink/container checks remain in the early compact gate. Strict
-analysis selects 286 files; expected Windows selections stay 1505 Dart and
-1226 Python/eighteen skips. Fresh full Linux precedes grouped Windows review.
+Source784 Linux 43687397653 passes 1226 Python controls with seventeen skips,
+patched/application analysis, strict selected analysis and early Ready/Lock gates.
+The compact gate has one handle-lifecycle exception; full tests and tracked
+generation are skipped. Its complete 454900-byte original log is retained,
+the owned task closes successfully and all outputs are consumed.
 
-Source781's original type-error and Source782's original raw-string-lint failure
-remain retained and consumed. Source780 remains the latest qualified native/image
-source at publication: producer 43678423037 and reader 43680276935 verify 1505
-Dart passes, 1226 Python/eighteen skips, 123 reader controls and 42 original PNGs.
-Required actors/five nodes exit normally; auxiliary VCTIP cleanup is forced.
-Its 24 general originals retain thirteen mismatches, eleven unresolved pairs
-and zero new matches.
+Source783 hosted generation 43686479831 passes admission, five finite controls
+and actual pinned-SDK generation. Source784 retains its exact interface, five
+locale artifacts and missing-key report, matching hosted byte counts and hashes.
+The grouped UI prepares exterior Bell shadows after glass, exact sender balance
+grouping, the small Tokens search glyph and localized Plasma captions.
+Fresh full Linux precedes grouped Windows/image qualification.
 
+Source780 remains the latest qualified native/image source: producer 43678423037
+and reader 43680276935 verify 1505 Dart passes, 1226 Python/eighteen skips,
+123 reader controls and 42 original PNGs. Required actors/five nodes exit
+normally; auxiliary VCTIP cleanup is forced. Its 24 general originals retain
+thirteen mismatches, eleven unresolved pairs and zero new matches.
 Accepted scope and Source730 Ready pairs stay 76/80 and 2/94. No current native,
-new financial send, seed, visual acceptance or performance result is claimed.
+new financial send, seed, visual acceptance or performance pass is claimed.
 
 [Source761](source761-address-action-gap.md) preserves Source760 full Linux
 43609477103 as failed after strict analysis, Ready and Lock pass. Both added
