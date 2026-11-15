@@ -67,6 +67,37 @@ void main() {
           (BoxDecoration value) =>
               value.boxShadow?.contains(tokens.dialogShadow) ?? false,
         ),
+        isFalse,
+      );
+      final CustomPaint chrome = tester.widget<CustomPaint>(
+        find.descendant(
+          of: find.byType(Dialog),
+          matching: find.byWidgetPredicate(
+            (Widget widget) =>
+                widget is CustomPaint &&
+                widget.foregroundPainter is OuterShadowPainter,
+          ),
+        ),
+      );
+      expect(chrome.painter, isNull);
+      final OuterShadowPainter shadow =
+          chrome.foregroundPainter! as OuterShadowPainter;
+      final BorderRadius radius = BorderRadius.circular(tokens.dialogRadius);
+      // The original theme shadow is now painted after the backdrop. The
+      // empty-shadow comparison also proves that its retained drop matters.
+      expect(
+        shadow.shouldRepaint(
+          OuterShadowPainter(
+            borderRadius: radius,
+            shadows: <BoxShadow>[tokens.dialogShadow],
+          ),
+        ),
+        isFalse,
+      );
+      expect(
+        shadow.shouldRepaint(
+          OuterShadowPainter(borderRadius: radius, shadows: const <BoxShadow>[]),
+        ),
         isTrue,
       );
       expect(
