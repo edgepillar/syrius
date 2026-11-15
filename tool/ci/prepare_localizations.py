@@ -14,8 +14,7 @@ from . import windows_debug_loop as debug
 from .analysis_delta import SDK
 
 
-LABELS = dict(zapReceivedBack='Zap back', zapReceivedNice='Nice',
-             zapSenderAttribution='Written by the sender, not by Syrius.')
+LABELS = dict(plasmaBeneficiary='Beneficiary', plasmaExpires='Expires')
 DART_FILES = ('lib/l10n/app_localizations.dart',) + tuple(
     'lib/l10n/app_localizations_' + locale + '.dart'
     for locale in ('ar', 'en', 'es', 'hi', 'zh'))

@@ -11,29 +11,30 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
-[Source782](source782-semantics-finder-type.md) corrects the sender-header
-privacy test's declared result type. Source781 Linux 43683357062 passes 1226
-Python controls with seventeen skips and patched-package analysis, then fails
-application analysis on one invalid_assignment. Its strict selected analysis,
-widget gates, complete directory and generation are skipped.
+[Source783](source783-plasma-column-localization.md) prepares compact Plasma
+Beneficiary/Expires captions through two dedicated English fallback keys. General
+address and expiration labels and existing translations retain their bytes.
+The finite hosted generator admits exactly these two getters; actual generated
+bytes must be retained before full Linux. No table geometry or chain behavior
+changes, and no generated Dart is edited by hand.
 
-The label query now retains its SemanticsFinder type. All grouping, hiding,
-semantics and restoration checks remain. Production UI retains Source781's
-glass composition, exact sender grouping and small Tokens search path. No
-test method, suite registration, 286-file selection or budget changes.
-The original failed CI job and complete log remain retained. Its managed
-task is closed, registered scratch is removed and all outputs are consumed.
+Source782 Linux 43684867049 passes 1226 Python controls with seventeen skips,
+patched-package analysis and application analysis. Strict selected analysis
+reports one unnecessary_raw_strings info. Widget gates, the full directory and
+generation are skipped. Source783 removes only that raw-string prefix from the
+sender privacy assertion. The complete log is retained, the owned task is closed
+and all outputs are consumed. The existing assertions and 286-file strict
+selection remain.
 
-Fresh full Linux is required before grouped native qualification. The last
-qualified Windows/image source remains Source780: producer 43678423037 and
-reader 43680276935 verify 1505 Dart passes, 1226 Python/eighteen skips,
-123 reader controls and 42 original PNGs. Required actors and five nodes
-exit normally; auxiliary VCTIP cleanup is forced.
+Fresh full Linux precedes grouped Windows qualification. Source780 remains the
+latest qualified Windows/image source: producer 43678423037 and reader 43680276935
+verify 1505 Dart passes, 1226 Python/eighteen skips, 123 reader controls and 42
+original PNGs. Required actors and five nodes exit normally; auxiliary VCTIP
+cleanup is forced. Its 24 general originals retain thirteen mismatches, eleven
+unresolved pairs and zero new matches.
 
-Its 24 general originals retain thirteen mismatches, eleven unresolved pairs
-and zero new matches. Accepted scope and Source730 Ready pairs stay 76/80
-and 2/94. No current native, financial send, seed, visual acceptance or
-performance result is claimed.
+Accepted scope and Source730 Ready pairs stay 76/80 and 2/94. No current native,
+new financial send, seed, visual acceptance or performance result is claimed.
 
 [Source761](source761-address-action-gap.md) preserves Source760 full Linux
 43609477103 as failed after strict analysis, Ready and Lock pass. Both added

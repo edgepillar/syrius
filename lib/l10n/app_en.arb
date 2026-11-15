@@ -2668,5 +2668,9 @@
   "zapReceivedNice": "Nice",
   "@zapReceivedNice": {"description": "Dismiss action in the received Zap message."},
   "zapSenderAttribution": "Written by the sender, not by Syrius.",
-  "@zapSenderAttribution": {"description": "Attribution below an untrusted sender's plain-text message."}
+  "@zapSenderAttribution": {"description": "Attribution below an untrusted sender's plain-text message."},
+  "plasmaBeneficiary": "Beneficiary",
+  "@plasmaBeneficiary": {"description": "Compact beneficiary column heading in the owned-fusion ledger."},
+  "plasmaExpires": "Expires",
+  "@plasmaExpires": {"description": "Compact expiration column heading in the owned-fusion ledger."}
 }

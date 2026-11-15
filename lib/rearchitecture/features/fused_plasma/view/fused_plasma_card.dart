@@ -192,11 +192,11 @@ class _FusedPlasmaCardState extends State<FusedPlasmaCard> {
                         style: tokens.ledgerText,
                       ),
                       beneficiary: Text(
-                        context.l10n.beneficiaryAddress.toUpperCase(),
+                        context.l10n.plasmaBeneficiary.toUpperCase(),
                         style: tokens.ledgerText,
                       ),
                       expires: Text(
-                        context.l10n.expiration.toUpperCase(),
+                        context.l10n.plasmaExpires.toUpperCase(),
                         style: tokens.ledgerText,
                       ),
                       action: SizedBox(width: tokens.plasmaCheckboxWidth * 2),
