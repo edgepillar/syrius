@@ -11,24 +11,23 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
-[Source785](source785-sender-semantics-lifecycle.md) disposes the sender test's
-SemanticsHandle inside try/finally before the framework completion check.
-Grouping, hit-testing, privacy semantics and restoration expressions remain.
-Production UI, generated localization bytes, test methods, workflows, 286-file
-selection and command limits remain unchanged.
+[Source786](source786-generated-locale-imports.md) retains the actual final
+hosted import layout: one blank separator removed from each of five locale Dart
+artifacts. Getter/value/translation bytes, the interface, missing-key report and
+handwritten code remain unchanged. The reconstructed files match the complete
+hosted patch and reported Git blob prefixes. No local SDK regeneration occurs.
 
-Source784 Linux 43687397653 passes 1226 Python controls with seventeen skips,
-patched/application analysis, strict selected analysis and early Ready/Lock gates.
-The compact gate has one handle-lifecycle exception; full tests and tracked
-generation are skipped. Its complete 454900-byte original log is retained,
-the owned task closes successfully and all outputs are consumed.
+Source785 Linux 43689235790 passes 1226 Python cases/seventeen skips, application
+analysis, 286-file strict analysis, every early widget gate and the complete
+non-chain directory. Only tracked generation fails. Sender grouping/privacy,
+semantics restoration and in-body handle disposal pass. The full 1412920-byte
+log is retained, its owned task closes successfully and outputs are consumed.
+The original failed job and earlier failures retain their exact outcomes.
 
-Source783 hosted generation 43686479831 passes admission, five finite controls
-and actual pinned-SDK generation. Source784 retains its exact interface, five
-locale artifacts and missing-key report, matching hosted byte counts and hashes.
-The grouped UI prepares exterior Bell shadows after glass, exact sender balance
-grouping, the small Tokens search glyph and localized Plasma captions.
-Fresh full Linux precedes grouped Windows/image qualification.
+Fresh full Linux must pass all thirteen required steps before grouped Windows
+and original-image qualification. The grouped UI retains Bell's exterior shadow
+after glass, exact sender grouping, the small canonical Tokens search glyph and
+localized Plasma captions. Cases, selections and command limits remain unchanged.
 
 Source780 remains the latest qualified native/image source: producer 43678423037
 and reader 43680276935 verify 1505 Dart passes, 1226 Python/eighteen skips,
