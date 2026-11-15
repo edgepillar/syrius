@@ -24,6 +24,14 @@ in the same existing case. No test registration is added.
 
 ## Retained results
 
+[Source776 Linux 43664598771](https://github.com/edgepillar/syrius/actions/runs/43664598771)
+passes root Python and patched/global analysis, then strict analysis reports
+one info at the multiline observation guard's inline return. Its exact code
+remains opaque. The earlier expected-coordinate location is absent. Widget
+tests and generation are skipped, with zero artifacts. Source777 gives that
+guard an explicit block; its condition and return value are unchanged.
+All metadata is consumed without a full-log transfer or owned storage task.
+
 [Source775 Linux 43662748180](https://github.com/edgepillar/syrius/actions/runs/43662748180)
 passes the root Python and patched/global analysis steps, then strict analysis
 reports one info at the expected-coordinate list in the Bell test. The bounded

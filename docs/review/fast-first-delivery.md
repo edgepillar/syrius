@@ -11,7 +11,14 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
-[Source776](source776-bell-observation-and-absence.md) permits the Bell
+[Source777](source776-bell-observation-and-absence.md) gives the multiline
+Bell observation guard an explicit return block. Source776 Linux 43664598771
+stops at one opaque strict info at its inline return; the previous coordinate
+location is absent. Widgets and generation are skipped, with zero artifacts.
+The guard condition, return value and existing test assertions remain.
+All metadata is consumed without a log transfer or owned storage task.
+
+Source776 permits the Bell
 passive marker in the ordinary tour as well as the sealed readonly lane.
 Other passive regions keep their current admission. The original Close wait
 now requires actual structural removal: retained hidden, offstage or clipped

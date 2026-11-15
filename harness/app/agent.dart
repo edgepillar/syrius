@@ -4758,7 +4758,9 @@ class HarnessAgent {
         key == 'pillar_registration_confirmed';
     final bool bellPanel = key == 'bell_panel';
     if ((_readonlyNative == null && !pillarDone && !bellPanel) ||
-        key is! String) return null;
+        key is! String) {
+      return null;
+    }
     final bool sentinelRegion =
         Platform.environment['SYRIUS_READONLY_CATALOG_FAMILY'] ==
             harnessReadonlySentinelCatalog &&
