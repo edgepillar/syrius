@@ -158,9 +158,11 @@ class _TransferSender extends StatelessWidget {
                         child: HiddenAmount(
                           style: tokens.captionText,
                           child: Text(
-                            balances![selected]!
-                                .getBalance(kZnnCoin.tokenStandard)
-                                .addDecimals(kZnnCoin.decimals),
+                            splitAmount(
+                              balances![selected]!
+                                  .getBalance(kZnnCoin.tokenStandard),
+                              kZnnCoin.decimals,
+                            ).$1,
                             style: tokens.captionText,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,

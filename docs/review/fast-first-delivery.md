@@ -11,31 +11,39 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
-[Source780](source780-strip-line-box-measurement.md) corrects the text strip's
-fixed height. Source779 Linux 43675916184 passes 1226 Python controls, both
-analyses, strict 284-file selection and Ready/Lock gates, then fails five
-existing Accelerator cases with the same 0.5-pixel vertical overflow. Full
-directory and generated-file checks are skipped.
+[Source781](source781-glass-and-selector-details.md) prepares three focused
+corrections from Source780's original-image review. Bell uses the existing
+exterior shadow painter after its glass, retaining tint, blur and geometry.
+The sender selector reuses exact amount grouping and its privacy wrapper.
+Tokens search uses the canonical small path inside its existing compact slot.
 
-Each paragraph's actual line box is now measured with TextPainter and the
-current scaling, direction and locale. The existing gap, minima, padding,
-48-pixel actual animation slots and action callbacks remain. Both temporary
-painters are disposed. The existing strip case now exercises the computed
-fixed height with centered actions in both directions and enlarged text.
-No test method, suite registration or expected count changes.
+Existing header cases cover grouped balance hiding/restoration, including
+semantics. Existing Tokens theme/direction cases check the actual SVG and
+painted field. Both suites join the early gate. Strict selection grows to
+286; six mocked analysis controls pass without a local SDK. Test methods and
+expected native counts remain unchanged. Fresh full Linux is required; the
+next native run will qualify grouped UI work.
 
-The original failed CI job and complete log remain retained. Its managed
-task is closed successfully, registered scratch is removed and all outputs
-are consumed. No CI job is retried and no Source779 native run is claimed.
-Fresh full Linux precedes Windows; current expected counts remain 1505 Dart,
-1226 Python/eighteen skips and 284 strictly analyzed files.
+Source780 Linux 43677281957 passes all thirteen required steps. Windows
+43678423037 and reader 43680276935 verify 1505 Dart passes, 1226 Python
+cases/eighteen skips, zero selected findings, 123 reader controls, 87 source
+files and 42 original PNGs. Required actors and all five nodes exit normally;
+auxiliary VCTIP cleanup remains forced and full runner lifecycle unqualified.
 
-Source778 remains the latest qualified native/image source: producer
-43668531162 and reader 43670437574 verify 42 original PNGs, normal required
-actors and five normal node exits. Auxiliary VCTIP cleanup remains forced.
-Its 24 general-page pairs retain fourteen mismatches, ten unresolved and
-zero matches. Accepted scope and Source730 Ready pairs stay 76/80 and 2/94.
-No new send, seed, visual acceptance or performance result is claimed.
+All 24 general originals are individually reviewed: thirteen mismatches,
+eleven unresolved pairs and zero new matches. Ten references are reopened;
+other unchanged references reuse pinned prior views. Real empty/genesis
+states remain. The general family provides pattern review. Settings/viewport
+files are independently verified without another local review.
+
+The original general archive and prevalidated manual report are retained.
+Its single transport is complete with actual exit zero; the owned task is
+closed successfully, registered scratch is removed and all outputs are
+consumed. Earlier failed jobs retain their exact evidence.
+
+Accepted scope and Source730 Ready pairs stay 76/80 and 2/94. Current runtime,
+image and performance qualification is pending; no new send, seed or visual
+acceptance is claimed.
 
 [Source761](source761-address-action-gap.md) preserves Source760 full Linux
 43609477103 as failed after strict analysis, Ready and Lock pass. Both added

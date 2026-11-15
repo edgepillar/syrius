@@ -221,9 +221,11 @@ class BellPanel extends StatelessWidget {
                 key: const Key('bell_panel'),
                 width: tokens.bellPanelWidth,
                 height: double.infinity,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    boxShadow: <BoxShadow>[tokens.panelShadow],
+                child: CustomPaint(
+                  // The glass must not sample its own exterior shadow.
+                  foregroundPainter: OuterShadowPainter(
+                    borderRadius: BorderRadius.zero,
+                    shadows: <BoxShadow>[tokens.panelShadow],
                   ),
                   child: FrostedSurface(
                     sigma: tokens.panelBlur,

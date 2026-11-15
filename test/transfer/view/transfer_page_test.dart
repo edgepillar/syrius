@@ -486,6 +486,8 @@ void main() {
   testWidgets('Send sender follows the trailing header content edge', (
     WidgetTester tester,
   ) async {
+    final SemanticsHandle semantics = tester.ensureSemantics();
+    addTearDown(semantics.dispose);
     for (final bool light in <bool>[false, true]) {
       await show(tester, light: light, reduced: true);
       final Finder sender = find.byKey(const Key('transfer_sender'));
@@ -500,6 +502,20 @@ void main() {
         closeTo(tester.getRect(_mode(TransferMode.send)).center.dy, 0.01));
       expect(selector.left, greaterThan(card.center.dx));
       expect(sender.hitTestable(), findsOneWidget);
+      final Finder grouped = find.descendant(
+        of: sender, matching: find.text('1,000'),
+      );
+      expect(grouped, findsOneWidget);
+      final Finder announced = find.semantics.byLabel(RegExp(r'1,000'));
+      expect(announced, findsWidgets);
+      BalanceVisibility.instance.set(true);
+      await tester.pump();
+      expect(grouped.hitTestable(), findsNothing);
+      expect(announced, findsNothing);
+      BalanceVisibility.instance.set(false);
+      await tester.pump();
+      expect(grouped, findsOneWidget);
+      expect(announced, findsWidgets);
       expect(tester.takeException(), isNull);
     }
   });

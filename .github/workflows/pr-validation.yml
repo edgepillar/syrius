@@ -75,6 +75,8 @@ jobs:
           test/window/window_frame_test.dart
           test/nodes/nodes_rewards_test.dart
           test/send/widgets/send_form_test.dart
+          test/transfer/view/transfer_page_test.dart
+          test/tokens_redesign/tokens_view_test.dart
           test/pillars/view/pillars_card_test.dart
           test/accelerator_list_redesign/accelerator_list_view_test.dart
           test/plasma_redesign/plasma_list_test.dart

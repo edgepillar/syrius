@@ -16,6 +16,8 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/pa
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/row_detail.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/segment.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show ShellSymbol;
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 /// One token ledger. Search and filters share the same complete sources.
@@ -347,7 +349,11 @@ class _SearchField extends StatelessWidget {
           horizontal: tokens.pageGap,
         ),
         hintText: context.l10n.tokensSearchHint,
-        prefixIcon: const Icon(Icons.search, size: kTokenRowActionIconSize),
+        prefixIcon: Center(
+          widthFactor: 1,
+          heightFactor: 1,
+          child: ShellSymbol('search', size: 14, color: tokens.faint),
+        ),
         prefixIconConstraints: BoxConstraints.tightFor(
           width: tokens.tokenSearchHeight,
           height: tokens.tokenSearchHeight,

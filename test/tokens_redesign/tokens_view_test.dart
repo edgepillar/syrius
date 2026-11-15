@@ -22,6 +22,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/app_lottie.
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../helpers/hydrated_bloc.dart';
+import '../helpers/mockup_symbol.dart';
 import 'support.dart';
 
 class _Web3Service extends Mock implements IWeb3WalletService {
@@ -170,6 +171,18 @@ void main() {
           );
           await tester.pump();
           await tester.pump(const Duration(milliseconds: 500));
+          final Finder search = find.byKey(const Key('tokens_search_field'));
+          expectMockupSymbol(
+            tester, within: search, symbol: 'search', size: 14,
+            color: AppTokens.of(tester.element(search)).faint,
+          );
+          final Finder input = find.descendant(
+            of: search, matching: find.byType(EditableText),
+          );
+          final Size fill = InputDecorator.containerOf(
+            tester.element(input),
+          )!.size;
+          expect(fill.height, 30);
           expect(find.text('Held token'), findsOneWidget);
           expect(find.text('Unheld favorite'), findsNothing);
           final Finder disclosure = find.byKey(
