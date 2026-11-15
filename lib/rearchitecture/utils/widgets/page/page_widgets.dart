@@ -75,6 +75,7 @@ class Panel extends StatelessWidget {
     required this.child,
     this.title,
     this.heading,
+    this.headingMinHeight,
     this.actions = const <Widget>[],
     this.padding,
     this.shrinkWrap = false,
@@ -102,6 +103,10 @@ class Panel extends StatelessWidget {
 
   /// Shared Nodes tabs replace the plain title without duplicating a header.
   final Widget? heading;
+
+  /// Minimum height of the custom [heading] row. Text can grow beyond it.
+  /// Null keeps the shared tab-header minimum.
+  final double? headingMinHeight;
 
   /// Small controls at the right of the title row.
   final List<Widget> actions;
@@ -236,7 +241,9 @@ class Panel extends StatelessWidget {
     // intrinsics lets translated or scaled labels grow without moving the
     // underline away from the card's divider.
     return ConstrainedBox(
-      constraints: BoxConstraints(minHeight: tokens.panelHeaderHeight),
+      constraints: BoxConstraints(
+        minHeight: headingMinHeight ?? tokens.panelHeaderHeight,
+      ),
       child: IntrinsicHeight(child: header),
     );
   }

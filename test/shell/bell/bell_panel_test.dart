@@ -11,6 +11,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/fros
 import 'package:zenon_syrius_wallet_flutter/widgets/shell/bell_panel.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/window_frame.dart';
 
+import '../../../harness/app/agent.dart';
 import '../../helpers/mockup_symbol.dart';
 import 'support.dart';
 
@@ -423,6 +424,15 @@ void main() {
           expect(rtl ? rect.left : rect.right, rtl ? 0 : 1280);
           expect(MediaQuery.sizeOf(tester.element(panel)),
             const Size(1280, 780));
+          final HarnessAgent agent = HarnessAgent.forTest()..booted = true;
+          final Map<String, Object?> tree = await agent.commandForTest(
+            <String, dynamic>{'cmd': 'tree'},
+          );
+          final Set<Object?> keys = (tree['nodes']! as List<Object?>)
+              .whereType<Map<String, Object?>>()
+              .map((Map<String, Object?> node) => node['key'])
+              .toSet();
+          expect(keys, containsAll(<String>['bell_panel', 'bell_close']));
           expect(tester.getRect(
             find.byKey(const ValueKey<String>('window-body'))), body);
           final Rect close = tester.getRect(

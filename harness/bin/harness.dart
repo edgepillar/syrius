@@ -1676,21 +1676,30 @@ Future<void> until(
 
 Future<void> goto(Instance inst, String tab, {
   HomePreparationObserver? observe,
+  void Function(WalletTourStep step)? tourObserve,
 }) async {
   observe?.call(HomePreparationStep.gotoState);
+  tourObserve?.call(tab == 'notifications'
+      ? WalletTourStep.bellState : WalletTourStep.railState);
   final Map<String, dynamic> s = await stateOf(inst);
   observe?.call(HomePreparationStep.gotoTarget, state: s);
+  tourObserve?.call(tab == 'notifications'
+      ? WalletTourStep.bellTarget : WalletTourStep.railTarget);
   final List<dynamic> tabs = s['tabs'] as List<dynamic>;
   if (!tabs.contains(tab)) {
     throw Fail('no tab "$tab"; tabs are ${tabs.join(', ')}');
   }
   observe?.call(HomePreparationStep.gotoTap);
+  tourObserve?.call(tab == 'notifications'
+      ? WalletTourStep.bellTap : WalletTourStep.railTap);
   await call(inst, <String, Object?>{'cmd': 'tap', 'tab': tab});
   if (tab == 'notifications') {
     // The real rail opens a panel over the original page, not another tab.
+    tourObserve?.call(WalletTourStep.bellWait);
     await call(inst, <String, Object?>{
       'cmd': 'wait', 'key': 'bell_panel', 'timeoutMs': 5000,
     });
+    tourObserve?.call(WalletTourStep.bellOriginalPageState);
     final Map<String, dynamic> current = await stateOf(inst);
     if (current['tab'] != s['tab']) {
       throw Fail('goto notifications: original page changed');
@@ -1698,6 +1707,7 @@ Future<void> goto(Instance inst, String tab, {
     return;
   }
   observe?.call(HomePreparationStep.gotoWait);
+  tourObserve?.call(WalletTourStep.railWait);
   await until(
     inst,
     (Map<String, dynamic> s) {
@@ -1863,6 +1873,8 @@ enum WalletTourStep {
   sectionPageWait, pointerNeutral, nodeRestingTap, settle, tree, logs, capture,
   afterPage,
   bellClose, bellGone, afterBell, returnHome,
+  railState, railTarget, railTap, railWait,
+  bellState, bellTarget, bellTap, bellWait, bellOriginalPageState,
 }
 
 /// Fixed error categories, without response text, values or host locations.
@@ -1905,9 +1917,9 @@ Future<void> _tourPage(Instance inst, String page, {
   // The intended bell view belongs to Home. The ordinary goto operation
   // still opens the panel over whichever page its caller actually owns.
   if (page == 'notifications') {
-    await goto(inst, 'dashboard');
+    await goto(inst, 'dashboard', tourObserve: observe);
   }
-  await goto(inst, rail);
+  await goto(inst, rail, tourObserve: observe);
   final (String, String)? section = switch (page) {
     'pillars' => ('nodes_tab_pillars', 'nodes_pillars_strip'),
     'sentinels' => ('nodes_tab_sentinels', 'nodes_sentinels_strip'),

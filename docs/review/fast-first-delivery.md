@@ -11,28 +11,33 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
-[Source773](source773-font-and-search-constraints.md) records Source772 full
-Linux 43653756641 with three compact-gate failures after 1226 Python cases,
-patched/global and 282-file strict analysis, Ready and Lock pass. All four
-framed Bell variants, fifteen WindowFrame cases and dark/light Send/Pillars
-metrics pass. Collection measures 117 pixels without explicitly loading the
-bundled interface font; both Accelerator themes observe a 30-by-14 symbol
-box. The full non-chain directory and generation are skipped. The complete
-original log is retained with successful owned closure.
+[Source774](source774-navigation-and-plasma-heading.md) follows Source773
+full Linux 43655783810, with all thirteen required steps passing. Source773
+Windows 43657055394 and reader 43658885602 retain a failed dark notification
+tour at railNavigation after 1505 selected Dart passes, 1226 Python
+cases/eighteen skips, zero selected findings, a completed Release build and
+initial lab production. Nine pages are visited and no PNG is produced.
+Required actor cleanup is forced. Five lab nodes exit normally, while full
+lab/runner closure stays unqualified. The reader passes 123 controls and
+verifies both original archives and 87 source files. All owned outputs are
+consumed without local artifact transport or retry.
 
-The collection test now loads the same bundled Space Grotesk files as
-Welcome and retains its exact width, busy-circle, motion and identity checks.
-Accelerator centers the original 14-pixel search symbol inside the unchanged
-30-pixel prefix slot. No test registration, Python case, workflow or strict
-selection changes. Fresh full Linux precedes grouped native/image work.
+Four existing framed Bell cases now require panel and Close keys from the
+real harness snapshot. Finite goto observation separates original state,
+target, tap and wait operations without changing commands or deadlines.
+The five existing memory-only diagnostic controls retain privacy refusal
+and exact catalog coverage. Plasma Fused receives a 44-pixel heading minimum
+through the existing plain-header token; shared custom headings keep their
+48-pixel default and text may grow. Existing dark/light cases add the exact
+divider-height check while retaining expiry, selection and cancellation.
 
-Current native/image evidence remains Source765, with 24 general pairs
-individually viewed: 16 mismatches, 8 unresolved and no acceptance. Its archive
-and full 21,342-byte report remain protected after successful owned closure.
-General captures remain pattern evidence; fourteen Settings and four viewport
-images remain verified without another local transfer or review. No speedup
-or Source744 cold-lock cause is established. Scope and accepted pairs stay
-76/80 and 2/94.
+Fresh full Linux precedes further native work. Workflows, the 282-file strict
+selection and all test registrations remain. Source773 establishes no new
+native/image pass. The latest native/image qualification remains Source765,
+with 24 general pairs individually viewed: 16 mismatches, 8 unresolved and
+no acceptance. Fourteen Settings and four viewport images remain verified
+without another local review. Scope and accepted pairs remain 76/80 and
+2/94; no speedup or Source744 cold-lock cause is established.
 
 [Source761](source761-address-action-gap.md) preserves Source760 full Linux
 43609477103 as failed after strict analysis, Ready and Lock pass. Both added

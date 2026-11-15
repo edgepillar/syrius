@@ -106,6 +106,7 @@ class _FusedPlasmaCardState extends State<FusedPlasmaCard> {
         final PlasmaCancellationBatch? batch = owner.lastBatch;
         return Panel(
           key: const Key('plasma_fused_list'),
+          headingMinHeight: tokens.panelPlainHeaderHeight,
           heading: Padding(
             padding: EdgeInsetsDirectional.only(
               start:

@@ -161,6 +161,8 @@ TOUR_FAILURE_STEPS = frozenset((
     'sectionPageWait', 'pointerNeutral', 'nodeRestingTap', 'settle', 'tree',
     'logs', 'capture', 'afterPage',
     'bellClose', 'bellGone', 'afterBell', 'returnHome',
+    'railState', 'railTarget', 'railTap', 'railWait',
+    'bellState', 'bellTarget', 'bellTap', 'bellWait', 'bellOriginalPageState',
 ))
 TOUR_FAILURE_KINDS = frozenset(('refused', 'timeout', 'replyShape', 'filesystem', 'other'))
 

@@ -217,6 +217,13 @@ void main() {
           expect(tester.widget<Checkbox>(eligible).onChanged, isNotNull);
           expect(tester.widget<Checkbox>(locked).onChanged, isNull);
           final Finder list = find.byKey(const Key('plasma_fused_list'));
+          final Finder divider = find.descendant(
+            of: list, matching: find.byType(Divider),
+          ).first;
+          expect(
+            tester.getTopLeft(divider).dy - tester.getTopLeft(list).dy,
+            44,
+          );
           expect(
             tester.getTopLeft(find.text('Fused')).dx -
                 tester.getTopLeft(list).dx,
