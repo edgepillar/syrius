@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 
+import '../wallet_recipe_failure.dart' show walletRecipePublicDiagnostic;
 import 'harness.dart' as cli;
+import 'wallet_recipe.dart' show WalletRecipeRefused;
 
 const String _scope = 'owned_chain321_frame_profile_preparation';
 const String _node = 'ws://127.0.0.1:45998';
@@ -13,6 +15,11 @@ const Set<String> _fields = <String>{
   'mnemonic',
   'password',
 };
+
+enum _PreparationPhase {
+  environment, input, ownerBefore, emptyProfile, importWallet, ownerAfter,
+  walletReady,
+}
 
 class _Refused implements Exception {
   const _Refused(this.code);
@@ -28,6 +35,12 @@ class _OwnedInstance extends cli.Instance {
   @override
   Map<String, dynamic> read() => _receipt;
 }
+
+/// The marker retains only the recipe's existing allowlisted labels.
+Map<String, String>? pairedFrameRecipeDiagnostic(Object? failure) =>
+    failure is WalletRecipeRefused
+    ? walletRecipePublicDiagnostic(failure.diagnostic)
+    : null;
 
 Future<Map<String, dynamic>> _input() async {
   final List<int> bytes = <int>[];
@@ -75,6 +88,8 @@ Future<void> _owner(_OwnedInstance instance, int pid) async {
 
 Future<void> main(List<String> args) async {
   String? error;
+  _PreparationPhase phase = _PreparationPhase.environment;
+  Map<String, String>? recipeFailure;
   try {
     final Map<String, String> env = Platform.environment;
     if (args.isNotEmpty ||
@@ -88,13 +103,16 @@ Future<void> main(List<String> args) async {
         env['SYRIUS_PAIRED_INTERACTIVE_PROFILE'] != 'true') {
       throw const _Refused('ENVIRONMENT_REFUSED');
     }
+    phase = _PreparationPhase.input;
     final Map<String, dynamic> offered = await _input();
     final int pid = offered['pid'] as int;
     final _OwnedInstance instance = _OwnedInstance(<String, dynamic>{
       'port': offered['port'],
       'token': offered['token'],
     });
+    phase = _PreparationPhase.ownerBefore;
     await _owner(instance, pid);
+    phase = _PreparationPhase.emptyProfile;
     final Map<String, dynamic> before =
         await cli.call(instance, <String, Object?>{'cmd': 'state'});
     if (before['walletUnlocked'] != false ||
@@ -102,13 +120,16 @@ Future<void> main(List<String> args) async {
         before['walletPath'] != null) {
       throw const _Refused('PROFILE_REFUSED');
     }
+    phase = _PreparationPhase.importWallet;
     await cli.walletRecipe(instance).importWallet(
       chain: '321',
       mnemonic: offered['mnemonic'] as String,
       password: offered['password'] as String,
       node: _node,
     );
+    phase = _PreparationPhase.ownerAfter;
     await _owner(instance, pid);
+    phase = _PreparationPhase.walletReady;
     final Map<String, dynamic> after =
         await cli.call(instance, <String, Object?>{'cmd': 'state'});
     if (after['walletUnlocked'] != true ||
@@ -124,6 +145,9 @@ Future<void> main(List<String> args) async {
     }
   } on _Refused catch (failure) {
     error = failure.code;
+  } on WalletRecipeRefused catch (failure) {
+    error = 'PREPARATION_REFUSED';
+    recipeFailure = pairedFrameRecipeDiagnostic(failure);
   } on FormatException {
     error = 'INPUT_REFUSED';
   } on Object {
@@ -134,6 +158,11 @@ Future<void> main(List<String> args) async {
     'scope': _scope,
     'success': error == null,
     'error_code': error,
+    if (error != null)
+      'failure': <String, Object?>{
+        'phase': phase.name,
+        if (recipeFailure != null) 'recipe': recipeFailure,
+      },
   }));
   exitCode = error == null ? 0 : 1;
 }

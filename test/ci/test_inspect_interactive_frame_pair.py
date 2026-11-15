@@ -106,6 +106,39 @@ class InteractiveFramePairTests(unittest.TestCase):
         self.assertEqual(partial['frame_counts']['p06'], {})
         self.assertFalse(partial['artifact_reported_success'])
         self.assertFalse(partial['timing_criterion_passed'])
+        self.assertEqual(partial['preparation_failures'], {})
+        failure = dict(code='PREPARATION_REFUSED', phase='importWallet', recipe=dict(
+            action='tap', control='welcome_import', reason='wallet-recipe-control-absent',
+            entry='startup-initialization-started'))
+        traced = deepcopy(preparation)
+        observation = traced['samples']['p06']['observation']
+        observation['preparation_failure'] = failure
+        observation['entry']['output_bytes'] = len(
+            pair.profile.preparation_failure_marker(failure)) + 1
+        projected = self.project(traced)
+        self.assertEqual(projected['preparation_failures'], {'p06': failure})
+        self.assertFalse(projected['artifact_reported_success'])
+        self.assertFalse(projected['timing_criterion_passed'])
+        for field, value in (
+            ('exit_code', 0), ('forced_kill', True), ('output_complete', False),
+            ('output_overflow', True), ('exit_observed', False),
+            ('error_codes', ['CLEANUP_FAILED']), ('output_bytes', 4097),
+            ('output_bytes', 1),
+        ):
+            private = deepcopy(traced)
+            private['samples']['p06']['observation']['entry'][field] = value
+            with self.subTest(preparation_field=field), self.assertRaises(archive.Refused):
+                self.project(private)
+        for invalid in (
+            dict(failure, phase='synthetic private phase'),
+            dict(failure, phase='ownerBefore'),
+            dict(failure, recipe=dict(failure['recipe'], detail='synthetic private reply')),
+            dict(failure, recipe=dict(failure['recipe'], control='synthetic private input')),
+        ):
+            private = deepcopy(traced)
+            private['samples']['p06']['observation']['preparation_failure'] = invalid
+            with self.subTest(preparation=invalid), self.assertRaises(archive.Refused):
+                self.project(private)
         for phase in ('synthetic private phase', None, True):
             private = deepcopy(preparation)
             private['samples']['p06']['observation']['phase'] = phase
@@ -263,6 +296,84 @@ class InteractiveFramePairTests(unittest.TestCase):
             encoded = cold.canonical(report)
             self.assertNotIn(b'synthetic private failure', encoded)
             self.assertNotIn(b'fixture words', encoded)
+
+        failure = dict(code='PREPARATION_REFUSED', phase='importWallet', recipe=dict(
+            action='tap', control='welcome_import', reason='wallet-recipe-control-absent',
+            entry='startup-initialization-started'))
+        marker = (
+            b'{"schema":1,"scope":"owned_chain321_frame_profile_preparation",'
+            b'"success":false,"error_code":"PREPARATION_REFUSED",'
+            b'"failure":{"phase":"importWallet","recipe":{"action":"tap",'
+            b'"control":"welcome_import","reason":"wallet-recipe-control-absent",'
+            b'"entry":"startup-initialization-started"}}}\n'
+        )
+
+        def outcome(raw=marker, **changes):
+            value = profile.baseline.Outcome(exit_code=1, exit_observed=True,
+                output_complete=True, output_bytes=len(raw), seconds=1, output=raw)
+            for key, offered in changes.items():
+                setattr(value, key, offered)
+            return value
+
+        self.assertEqual(profile.entry_preparation_failure(outcome()), failure)
+        self.assertEqual(profile.entry_preparation_failure(outcome(marker[:-1] + b'\r\n')), failure)
+        for invalid in (
+            dict(exit_code=0), dict(exit_code=True), dict(exit_observed=False),
+            dict(forced_kill=True), dict(output_complete=False), dict(output_overflow=True),
+            dict(errors=('CLEANUP_FAILED',)), dict(output_bytes=1),
+        ):
+            with self.subTest(process=invalid):
+                self.assertIsNone(profile.entry_preparation_failure(outcome(**invalid)))
+        message = inspect.json.loads(marker)
+        malformed = (
+            dict(message, password='synthetic private input'),
+            dict(message, schema=True), dict(message, success=True),
+            dict(message, scope='synthetic private scope'),
+            dict(message, error_code='synthetic private exception'),
+            dict(message, failure=dict(phase='synthetic private phase')),
+            dict(message, failure=dict(message['failure'],
+                recipe=dict(failure['recipe'], detail='synthetic private reply'))),
+        )
+        for invalid in malformed:
+            raw = inspect.json.dumps(invalid, separators=(',', ':')).encode('ascii') + b'\n'
+            with self.subTest(marker=invalid):
+                self.assertIsNone(profile.entry_preparation_failure(outcome(raw)))
+        for raw in (
+            b'synthetic private exception\n', b' ' * 4097, marker + b'private',
+            marker.replace(b'"schema":1', b'"schema":1,"schema":1'),
+            marker.replace(b'"action":"tap"', b'"action":"tap","action":"tap"'),
+            marker.replace(b'"schema":1', b'"schema": 1'),
+        ):
+            with self.subTest(raw_size=len(raw)):
+                self.assertIsNone(profile.entry_preparation_failure(outcome(raw)))
+        self.assertIsNone(profile.entry_preparation_failure(outcome(profile.READY + b'\n')))
+
+        commands = []
+
+        def empty_send(command):
+            commands.append(command.copy())
+            if command['cmd'] == 'ping':
+                return dict(ok=True, pid=17, booted=True, harnessMode='wallet')
+            self.assertEqual(command, dict(cmd='state'))
+            return dict(ok=True, walletUnlocked=False, walletInitCompleted=False, walletPath=None)
+
+        report = {}
+        measure = mock.Mock(side_effect=AssertionError('measurement must not start'))
+        with mock.patch.object(profile.wallet_tour, 'public_fixture', return_value='fixture words'):
+            with self.assertRaises(profile.InteractiveRefused) as caught:
+                profile.owned_profile(empty_send, lambda _: outcome(),
+                    lambda: dict(chain=321, genesis_hash=GENESIS, last_height=10,
+                                 cross_transport_hash_equal=True),
+                    measure, mock.Mock(), pid=17, port=15432, token='a' * 43,
+                    fixture_text='fixture', genesis=GENESIS, first_height=10, report=report)
+        self.assertEqual(str(caught.exception), 'PROFILE_PREPARATION_REFUSED')
+        self.assertEqual(report['phase'], 'prepare_profile')
+        self.assertEqual(report['preparation_failure'], failure)
+        self.assertFalse(report['success'])
+        self.assertEqual(report['windows'], {})
+        self.assertEqual(commands, [dict(cmd='ping'), dict(cmd='state')])
+        measure.assert_not_called()
+        self.assertNotIn(b'fixture words', cold.canonical(report))
 
     def test_reader_refuses_private_or_inconsistent_action_progress(self):
         value = fixture()

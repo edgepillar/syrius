@@ -47,7 +47,7 @@ def sample_receipts(value):
     if observation != {}:
         required = {'phase', 'lab_revalidations', 'entry', 'windows', 'success'}
         archive.need(type(observation) is dict
-            and required <= set(observation) <= required | {'action_progress'}
+            and required <= set(observation) <= required | {'action_progress', 'preparation_failure'}
             and type(observation['phase']) is str and observation['phase'] in OBSERVATION_PHASES
             and type(observation['success']) is bool
             and pair.shared.launch.startup.integer(observation['lab_revalidations'], 0, 3))
@@ -71,6 +71,19 @@ def sample_receipts(value):
         offered = observation['windows']
         archive.need(type(offered) is dict and set(offered) <= set(pair.WINDOWS)
             and ('disclosure' not in offered or 'page_change' in offered))
+        if 'preparation_failure' in observation:
+            failure = observation['preparation_failure']
+            marker = pair.profile.preparation_failure_marker(failure)
+            archive.need(type(failure) is dict
+                and pair.profile.preparation_failure(failure) == failure
+                and marker is not None
+                and observation['phase'] == 'prepare_profile'
+                and not observation['success'] and not offered and progress is None
+                and entry is not None and entry['exit_code'] == 1
+                and entry['exit_observed'] and not entry['forced_kill']
+                and entry['output_complete'] and not entry['output_overflow']
+                and not entry['error_codes'] and 0 < entry['output_bytes'] <= 4096
+                and entry['output_bytes'] in (len(marker) + 1, len(marker) + 2))
         try:
             windows = {name: pair.shared.launch.frame_timing_window(window)
                        for name, window in offered.items()}
@@ -174,6 +187,9 @@ def project(raw, item, *, head, tree, run_id, lab, expected_entry):
                          for label, sample in samples.items() if sample.get('observation')},
         observation_phases={label: sample['observation']['phase']
                             for label, sample in samples.items() if sample.get('observation')},
+        preparation_failures={label: sample['observation']['preparation_failure']
+                              for label, sample in samples.items() if sample.get('observation')
+                              and 'preparation_failure' in sample['observation']},
         normal_wallet_exits=current_closed + p06_closed,
         normal_entry_exits=current_entry + p06_entry,
         entry_process_results={label: {key: sample['observation']['entry'][key] for key in (

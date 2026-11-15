@@ -13,6 +13,8 @@ import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_wid
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/settings_parts.dart';
 
 import '../../harness/app/agent.dart';
+import '../../harness/bin/ci_paired_interactive_entry.dart'
+    show pairedFrameRecipeDiagnostic;
 import '../../harness/bin/wallet_recipe.dart';
 import '../../harness/wallet_recipe_failure.dart';
 import '../node_update/support.dart' as node_fixture;
@@ -486,6 +488,12 @@ void main() {
     );
     expect(value['entry'], 'startup-platform-error');
     expect(walletRecipePublicDiagnostic(value), value);
+    final Map<String, String>? projected = pairedFrameRecipeDiagnostic(
+      WalletRecipeRefused('synthetic private code', diagnostic: value),
+    );
+    expect(projected, value);
+    expect(jsonEncode(projected), isNot(contains('synthetic private')));
+    expect(() => projected!['control'] = 'changed', throwsUnsupportedError);
     expect(walletRecipePublicDiagnostic(<String, String>{
       ...value, 'entry': 'synthetic private exception text',
     }), isNull);
@@ -594,6 +602,15 @@ void main() {
     expect(value['control'], 'node_settings_select');
     expect(value['reason'], 'wallet-recipe-refused');
     expect(jsonEncode(value), isNot(contains('synthetic')));
+    expect(pairedFrameRecipeDiagnostic(value), isNull);
+    for (final Map<String, String> invalid in <Map<String, String>>[
+      <String, String>{...value, 'detail': 'synthetic private data'},
+      <String, String>{...value, 'reason': 'synthetic private data'},
+    ]) {
+      expect(pairedFrameRecipeDiagnostic(
+        WalletRecipeRefused('synthetic private code', diagnostic: invalid),
+      ), isNull);
+    }
     expect(walletRecipePublicDiagnostic(<String, String>{
       ...value, 'detail': 'synthetic private data',
     }), isNull);

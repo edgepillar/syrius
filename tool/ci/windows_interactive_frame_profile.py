@@ -21,9 +21,19 @@ NODE = 'ws://127.0.0.1:45998'
 READY = json.dumps(dict(schema=1, scope=ENTRY_SCOPE, success=True, error_code=None),
                    separators=(',', ':')).encode('ascii')
 ENTRY = Path('harness/bin/ci_paired_interactive_entry.dart')
-ENTRY_SHA256 = 'c3a7e420ea32ff2098a378c056a66e979b4ebc40f9ba2fbf65032ba22404a289'
+ENTRY_SHA256 = '60b39f5cc88ee6e8e67a04a0e48b4c22a6af5f9659919fa332c07c55ec8d1c9b'
 MEASUREMENT_COMMANDS = frozenset(('theme', 'state', 'stalls', 'tap', 'wait', 'scroll'))
 MAX_MEASUREMENT_COMMANDS = 32
+PREPARATION_PHASES = frozenset(('environment', 'input', 'ownerBefore', 'emptyProfile',
+                              'importWallet', 'ownerAfter', 'walletReady'))
+PREPARATION_ERROR_PHASES = {
+    'ENVIRONMENT_REFUSED': frozenset(('environment',)),
+    'INPUT_REFUSED': frozenset(('input',)),
+    'OWNER_REFUSED': frozenset(('ownerBefore', 'ownerAfter')),
+    'PROFILE_REFUSED': frozenset(('emptyProfile',)),
+    'WALLET_REFUSED': frozenset(('walletReady',)),
+    'PREPARATION_REFUSED': PREPARATION_PHASES,
+}
 
 
 class InteractiveRefused(Exception):
@@ -33,6 +43,72 @@ class InteractiveRefused(Exception):
 def need(condition, code):
     if not condition:
         raise InteractiveRefused(code)
+
+
+def preparation_failure(value):
+    """Validate fixed entry phases and the existing onboarding-label filter."""
+    if (type(value) is not dict or set(value) not in (
+            {'code', 'phase'}, {'code', 'phase', 'recipe'})
+            or type(value['code']) is not str or type(value['phase']) is not str
+            or value['phase'] not in PREPARATION_ERROR_PHASES.get(value['code'], ())):
+        return None
+    result = dict(code=value['code'], phase=value['phase'])
+    if 'recipe' in value:
+        if value['code'] != 'PREPARATION_REFUSED' or value['phase'] != 'importWallet':
+            return None
+        try:
+            wallet_tour.entry_failure(dict(stage='onboarding',
+                code='wallet-recipe-command-refused', diagnostic=value['recipe']))
+        except wallet_tour.Refused:
+            return None
+        result['recipe'] = dict(value['recipe'])
+    return result
+
+
+def preparation_failure_marker(value):
+    """Rebuild the fixed marker for original-output and retained-size checks."""
+    value = preparation_failure(value)
+    if value is None:
+        return None
+    detail = dict(phase=value['phase'])
+    if 'recipe' in value:
+        detail['recipe'] = value['recipe']
+    return json.dumps(dict(schema=1, scope=ENTRY_SCOPE, success=False,
+        error_code=value['code'], failure=detail), separators=(',', ':')).encode('ascii')
+
+
+def entry_preparation_failure(outcome):
+    """Project a complete failed marker; raw stdout and errors remain private."""
+    if (type(outcome) is not baseline.Outcome or type(outcome.exit_code) is not int
+            or outcome.exit_code != 1 or outcome.exit_observed is not True
+            or outcome.forced_kill is not False or outcome.output_complete is not True
+            or outcome.output_overflow is not False or outcome.errors
+            or type(outcome.output) is not bytes or not 0 < len(outcome.output) <= 4096
+            or outcome.output_bytes != len(outcome.output)):
+        return None
+
+    def unique(items):
+        result = dict(items)
+        if len(result) != len(items):
+            raise ValueError()
+        return result
+
+    try:
+        value = json.loads(outcome.output.decode('ascii'), object_pairs_hook=unique)
+    except (ValueError, UnicodeError, RecursionError):
+        return None
+    if (type(value) is not dict or set(value) != {
+            'schema', 'scope', 'success', 'error_code', 'failure'}
+            or type(value['schema']) is not int or value['schema'] != 1
+            or value['scope'] != ENTRY_SCOPE or value['success'] is not False
+            or type(value['failure']) is not dict or set(value['failure']) not in (
+                {'phase'}, {'phase', 'recipe'})):
+        return None
+    failure = preparation_failure(dict(code=value['error_code'], **value['failure']))
+    marker = preparation_failure_marker(failure)
+    if marker is None or outcome.output not in (marker + b'\n', marker + b'\r\n'):
+        return None
+    return failure
 
 
 def reply(send, command):
@@ -160,6 +236,9 @@ def owned_profile(send, run_entry, revalidate, measure, confirm_address, *,
     outcome = run_entry(payload)
     need(type(outcome) is baseline.Outcome, 'PROFILE_PREPARATION_REFUSED')
     report['entry'] = outcome.public()
+    failure = entry_preparation_failure(outcome)
+    if failure is not None:
+        report['preparation_failure'] = failure
     need(outcome.success and outcome.output in (READY + b'\n', READY + b'\r\n'),
          'PROFILE_PREPARATION_REFUSED')
 
