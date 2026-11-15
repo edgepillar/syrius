@@ -8277,6 +8277,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Written by the sender, not by Syrius.'**
   String get zapSenderAttribution;
+
+  /// Compact beneficiary column heading in the owned-fusion ledger.
+  ///
+  /// In en, this message translates to:
+  /// **'Beneficiary'**
+  String get plasmaBeneficiary;
+
+  /// Compact expiration column heading in the owned-fusion ledger.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires'**
+  String get plasmaExpires;
 }
 
 class _AppLocalizationsDelegate

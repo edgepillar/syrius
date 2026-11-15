@@ -1357,7 +1357,9 @@
     "walletCreationUnavailable",
     "zapReceivedBack",
     "zapReceivedNice",
-    "zapSenderAttribution"
+    "zapSenderAttribution",
+    "plasmaBeneficiary",
+    "plasmaExpires"
   ],
 
   "es": [
@@ -2718,7 +2720,9 @@
     "walletCreationUnavailable",
     "zapReceivedBack",
     "zapReceivedNice",
-    "zapSenderAttribution"
+    "zapSenderAttribution",
+    "plasmaBeneficiary",
+    "plasmaExpires"
   ],
 
   "hi": [
@@ -4079,7 +4083,9 @@
     "walletCreationUnavailable",
     "zapReceivedBack",
     "zapReceivedNice",
-    "zapSenderAttribution"
+    "zapSenderAttribution",
+    "plasmaBeneficiary",
+    "plasmaExpires"
   ],
 
   "zh": [
@@ -5440,6 +5446,8 @@
     "walletCreationUnavailable",
     "zapReceivedBack",
     "zapReceivedNice",
-    "zapSenderAttribution"
+    "zapSenderAttribution",
+    "plasmaBeneficiary",
+    "plasmaExpires"
   ]
 }

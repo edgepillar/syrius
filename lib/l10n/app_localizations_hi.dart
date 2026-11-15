@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -4788,4 +4789,10 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get zapSenderAttribution => 'Written by the sender, not by Syrius.';
+
+  @override
+  String get plasmaBeneficiary => 'Beneficiary';
+
+  @override
+  String get plasmaExpires => 'Expires';
 }

@@ -11,27 +11,28 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
-[Source783](source783-plasma-column-localization.md) prepares compact Plasma
-Beneficiary/Expires captions through two dedicated English fallback keys. General
-address and expiration labels and existing translations retain their bytes.
-The finite hosted generator admits exactly these two getters; actual generated
-bytes must be retained before full Linux. No table geometry or chain behavior
-changes, and no generated Dart is edited by hand.
+[Source784](source784-retained-plasma-localizations.md) retains the exact
+seven-file localization delta from Source783 hosted generation 43686479831.
+Source admission, five finite controls and actual pinned-SDK generation pass.
+The localization interface, five locales and missing-key report match hosted
+byte counts and SHA-256; the finite validator accepts the reconstruction.
+Existing getters/translations and handwritten code remain unchanged. The
+original log is retained, the owned task is closed and outputs are consumed.
 
-Source782 Linux 43684867049 passes 1226 Python controls with seventeen skips,
-patched-package analysis and application analysis. Strict selected analysis
-reports one unnecessary_raw_strings info. Widget gates, the full directory and
-generation are skipped. Source783 removes only that raw-string prefix from the
-sender privacy assertion. The complete log is retained, the owned task is closed
-and all outputs are consumed. The existing assertions and 286-file strict
-selection remain.
+The grouped UI changes prepare exterior Bell shadows after glass, exact sender
+balance grouping, a canonical small Tokens search glyph and localized Plasma
+Beneficiary/Expires captions. Sender grouping/privacy/restoration and Tokens
+source/size/ink/container checks remain in the early compact gate. Strict
+analysis selects 286 files; expected Windows selections stay 1505 Dart and
+1226 Python/eighteen skips. Fresh full Linux precedes grouped Windows review.
 
-Fresh full Linux precedes grouped Windows qualification. Source780 remains the
-latest qualified Windows/image source: producer 43678423037 and reader 43680276935
-verify 1505 Dart passes, 1226 Python/eighteen skips, 123 reader controls and 42
-original PNGs. Required actors and five nodes exit normally; auxiliary VCTIP
-cleanup is forced. Its 24 general originals retain thirteen mismatches, eleven
-unresolved pairs and zero new matches.
+Source781's original type-error and Source782's original raw-string-lint failure
+remain retained and consumed. Source780 remains the latest qualified native/image
+source at publication: producer 43678423037 and reader 43680276935 verify 1505
+Dart passes, 1226 Python/eighteen skips, 123 reader controls and 42 original PNGs.
+Required actors/five nodes exit normally; auxiliary VCTIP cleanup is forced.
+Its 24 general originals retain thirteen mismatches, eleven unresolved pairs
+and zero new matches.
 
 Accepted scope and Source730 Ready pairs stay 76/80 and 2/94. No current native,
 new financial send, seed, visual acceptance or performance result is claimed.
