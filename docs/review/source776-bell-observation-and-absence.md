@@ -24,6 +24,26 @@ in the same existing case. No test registration is added.
 
 ## Retained results
 
+[Source777 Linux 43665083875](https://github.com/edgepillar/syrius/actions/runs/43665083875)
+passes root Python, patched/global and 282-file strict analysis, Ready, Lock
+and the compact widget gate, including all four framed Bell variants. The
+full directory has one failure: the existing passive-ancestor matrix times
+out after ten minutes. Its retained Bell element now has a valid absence wait,
+but the original negative command omits a timeout. Awaiting its delayed loop
+does not advance the widget test's fake clock. Generation is skipped.
+
+Source778 supplies timeoutMs zero in that existing negative observation. It
+still requires refusal while the panel is retained, without scheduling a
+delayed poll. Production waits, deadlines and all runtime code are unchanged.
+The existing readonly observer suite also joins the early compact gate so
+this contract is exercised before the complete directory. No new test case or suite file is added. The diagnostic allowlist and strict
+source selection remain unchanged.
+
+The complete 1,391,699-byte original log is retained with its SHA-256 and exact
+run/source binding. Successful owned closure consumes its output; the failed
+CI execution is not retried. A prior metadata-only HEAD probe returned 404
+while the job was running and remains retained separately.
+
 [Source776 Linux 43664598771](https://github.com/edgepillar/syrius/actions/runs/43664598771)
 passes root Python and patched/global analysis, then strict analysis reports
 one info at the multiline observation guard's inline return. Its exact code

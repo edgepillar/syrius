@@ -1407,7 +1407,9 @@ void main() {
       for (final Map<String, dynamic> command in <Map<String, dynamic>>[
         <String, dynamic>{'cmd': 'tap', 'key': key},
         <String, dynamic>{'cmd': 'assert', 'key': key, 'nth': 1},
-        <String, dynamic>{'cmd': 'wait', 'key': key, 'gone': true},
+        <String, dynamic>{
+          'cmd': 'wait', 'key': key, 'gone': true, 'timeoutMs': 0,
+        },
       ]) {
         await refused(command);
       }

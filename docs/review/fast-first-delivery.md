@@ -11,41 +11,33 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
-[Source777](source776-bell-observation-and-absence.md) gives the multiline
-Bell observation guard an explicit return block. Source776 Linux 43664598771
-stops at one opaque strict info at its inline return; the previous coordinate
-location is absent. Widgets and generation are skipped, with zero artifacts.
-The guard condition, return value and existing test assertions remain.
-All metadata is consumed without a log transfer or owned storage task.
+[Source778](source776-bell-observation-and-absence.md) gives the existing
+retained-region refusal a zero timeout. Bell's now-valid absence loop had
+awaited a delayed poll inside the widget fake-clock test. The assertion still
+requires refusal while the panel is retained. Production waits and runtime
+code stay unchanged. The existing readonly observer suite now joins the early
+compact gate; there is no new case or suite file.
 
-Source776 permits the Bell
-passive marker in the ordinary tour as well as the sealed readonly lane.
-Other passive regions keep their current admission. The original Close wait
-now requires actual structural removal: retained hidden, offstage or clipped
-elements prevent absence, and missing roots or search-bound exhaustion refuse
-it. Success has no target or input ref. Production commands and deadlines stay.
+Source777 Linux 43665083875 passes root Python, patched/global and 282-file
+strict analysis, Ready, Lock and compact widgets, including all four framed
+Bell variants. Its complete directory has one failure: the passive-ancestor
+matrix times out after ten minutes. Generation is skipped. The complete
+1,391,699-byte log remains protected after successful owned closure. The
+earlier metadata-only active-job probe returns 404 and is retained separately.
+All owned outputs are consumed; no failed CI job is retried.
 
-Four framed variants retain geometry, motion, completion and focus checks,
-with refusal during retained reverse states and success after removal. The
-existing generic region matrix covers ordinary observation, retained hidden
-states and real removal. No case or suite filename is added.
-
-Source775 Linux 43662748180 passes root Python and patched/global analysis,
-then stops at one opaque strict info at the Bell expected-coordinate list.
-Ready, Lock, compact/full widget tests and generation are skipped. There are
-zero artifacts and no log transfer. The coordinate conditional is now assigned
-to a local integer; the diagnostic allowlist remains unchanged.
-
-Source774's four missing-marker failures and complete log remain protected,
-including the earlier zero-byte transport failure. Source773's failed native
-tour, zero captures and forced required-actor cleanup remain preserved.
-All owned outputs are consumed. Native/image qualification remains Source765,
-with 16 general mismatches and 8 unresolved pairs.
+Source776's strict inline-return info and Source775's coordinate-list info
+remain preserved with their skipped widget/generation steps. Source777 clears
+both analysis locations. Source774's four missing-marker failures and complete
+log remain protected, including its earlier zero-byte transport failure.
+Source773's failed native tour, zero captures and forced required-actor cleanup
+remain preserved. Native/image qualification remains Source765, with sixteen
+general mismatches and eight unresolved pairs.
 
 Fresh full Linux precedes native work. Panel widgets, input and financial
-admission, workflows, 282-file selection and test registrations stay unchanged.
-Scope and accepted pairs remain 76/80 and 2/94; no native pass or speedup is
-claimed.
+admission, the native workflow, 282-file strict selection and test case
+registrations stay unchanged. Scope and accepted pairs remain 76/80 and 2/94;
+no native pass or speedup is claimed.
 
 [Source761](source761-address-action-gap.md) preserves Source760 full Linux
 43609477103 as failed after strict analysis, Ready and Lock pass. Both added
