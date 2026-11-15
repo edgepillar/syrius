@@ -74,6 +74,11 @@ class InteractiveFramePairTests(unittest.TestCase):
         self.assertEqual(result['entry_process_results'], dict.fromkeys(('current', 'p06'), dict(
             success=True, exit_code=0, exit_observed=True, forced_kill=False,
             output_complete=True, output_overflow=False, error_codes=[], output_bytes=110)))
+        self.assertEqual(result['wallet_process_results'], dict.fromkeys(('current', 'p06'), dict(
+            exit_code=0, exit_observed=True, forced_kill=False, output_complete=True,
+            output_overflow=False, error_codes=[], action_complete=True,
+            checks=dict(identity=True, auth=True, close_ack=True, exit=True))))
+        self.assertEqual(result['profile_stable'], dict(current=True, p06=True))
         self.assertEqual(result['frame_window_us'], {
             'current': dict.fromkeys(pair.WINDOWS, 1000000),
             'p06': dict.fromkeys(pair.WINDOWS, 1000000)})
@@ -83,8 +88,41 @@ class InteractiveFramePairTests(unittest.TestCase):
                        error_codes=['PROFILE_REFUSED'])
         result = self.project(offered)
         self.assertEqual(result['entry_process_seconds'], {'current': 10, 'p06': 10})
+        self.assertEqual(result['profile_stable'], dict(current=True, p06=False))
         self.assertFalse(result['artifact_reported_success'])
         self.assertFalse(result['timing_criterion_passed'])
+        interrupted = fixture()
+        current = interrupted['samples']['current']
+        current['attempt'].update(exit_code=1, forced_kill=True,
+                                  error_codes=['CLEANUP_FAILED'])
+        current['attempt']['checks'].update(close_ack=False, exit=False)
+        current['success'] = False
+        interrupted.update(phase='current_interactive', success=False, comparisons=None,
+                           samples=dict(current=current), same_fixture_address=False,
+                           commands=[], p06=dict(cold.P06_IDENTITY, overlay_verified=False),
+                           error_codes=['FRAME_REFUSED'])
+        projected = self.project(interrupted)
+        self.assertEqual(projected['wallet_process_results'], dict(current=dict(
+            exit_code=1, exit_observed=True, forced_kill=True, output_complete=True,
+            output_overflow=False, error_codes=['CLEANUP_FAILED'], action_complete=True,
+            checks=dict(identity=True, auth=True, close_ack=False, exit=False))))
+        self.assertEqual(projected['profile_stable'], dict(current=True))
+        self.assertEqual(projected['observation_phases'], dict(current='complete'))
+        self.assertEqual(projected['normal_wallet_exits'], 0)
+        self.assertFalse(projected['artifact_reported_success'])
+        self.assertFalse(projected['timing_criterion_passed'])
+        self.assertIsNone(projected['no_added_reported_slow_frames'])
+        self.assertIsNone(projected['no_frame_number_gaps'])
+        for field, value in (
+            ('stdout', 'synthetic private output'),
+            ('error_codes', ['synthetic private output']),
+            ('checks', dict(identity=True, auth=True, close_ack=True, exit=True,
+                            private='synthetic private output')),
+        ):
+            private = fixture()
+            private['samples']['current']['attempt'][field] = value
+            with self.subTest(attempt_field=field), self.assertRaises(archive.Refused):
+                self.project(private)
         preparation = fixture()
         baseline = preparation['samples']['p06']
         baseline['attempt'].update(action_complete=False,

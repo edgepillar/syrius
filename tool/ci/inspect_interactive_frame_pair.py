@@ -200,6 +200,11 @@ def project(raw, item, *, head, tree, run_id, lab, expected_entry):
         entry_process_seconds={label: sample['observation']['entry']['seconds']
             for label, sample in samples.items() if sample.get('observation')
             and sample['observation']['entry'] is not None},
+        wallet_process_results={label: {key: sample['attempt'][key] for key in (
+            'exit_code', *cold.EXIT_FLAGS, 'error_codes', 'action_complete', 'checks')}
+            for label, sample in samples.items() if sample.get('attempt') is not None},
+        profile_stable={label: sample['profile_stable']
+            for label, sample in samples.items() if sample},
         frame_window_us={label:{name:value['windowUs'] for name,value in window.items()}
                          for label,window in (('current',windows), ('p06',old))},
         frame_counts={label:{name:len(value['frames']) for name,value in window.items()}

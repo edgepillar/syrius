@@ -203,8 +203,10 @@ void main() {
     bool light = false,
     bool rtl = false,
     bool blocked = false,
+    Locale? locale,
     double textScale = 1,
   }) => MaterialApp(
+    locale: locale,
     theme: theme ?? (light ? AppTheme.lightTheme : AppTheme.darkTheme),
     localizationsDelegates: appLocalizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
@@ -243,6 +245,7 @@ void main() {
     bool light = false,
     bool rtl = false,
     bool blocked = false,
+    Locale? locale,
   }) async {
     tester.view.physicalSize = const Size(1280, 780);
     tester.view.devicePixelRatio = 1;
@@ -254,7 +257,13 @@ void main() {
       initialState: _loaded(items, complete: complete),
     );
     await tester.pumpWidget(
-      host(theme: theme, light: light, rtl: rtl, blocked: blocked),
+      host(
+        theme: theme,
+        light: light,
+        rtl: rtl,
+        blocked: blocked,
+        locale: locale,
+      ),
     );
   }
 
@@ -308,6 +317,10 @@ void main() {
         'APR EST.',
       ]) {
         expect(find.text(heading), findsOneWidget);
+        final Text label = tester.widget<Text>(find.text(heading));
+        expect(label.style?.fontSize, 11);
+        expect(label.style?.letterSpacing, 0.66);
+        expect(label.style?.color, tokens.faint);
       }
       expect(find.text('0% / 100%'), findsOneWidget);
       expect(find.text('99.9%'), findsOneWidget);
@@ -518,17 +531,50 @@ void main() {
   testWidgets('data remains left to right inside a mirrored list', (
     WidgetTester tester,
   ) async {
-    await show(tester, <PillarInfo>[_pillar('alpha')], rtl: true);
-    await _frames(tester);
-    await tester.tap(find.byKey(const Key('pillar_alpha_row')));
-    await _frames(tester);
-    final Text weight = tester.widget<Text>(find.text('1K ZNN'));
-    final Text momentums = tester.widget<Text>(
-      find.text('1,760 of 1,762 expected'),
-    );
-    expect(weight.textDirection, TextDirection.ltr);
-    expect(momentums.textDirection, TextDirection.ltr);
-    expect(tester.takeException(), isNull);
-    await tester.pumpWidget(const SizedBox.shrink());
+    for (final (Locale, double) localeCase in <(Locale, double)>[
+      (const Locale('en'), 0.66),
+      (const Locale('ar'), 0),
+    ]) {
+      await show(
+        tester,
+        <PillarInfo>[_pillar('alpha')],
+        rtl: true,
+        locale: localeCase.$1,
+      );
+      await _frames(tester);
+      await tester.tap(find.byKey(const Key('pillar_alpha_row')));
+      await _frames(tester);
+      final BuildContext context = tester.element(find.byType(PillarsCard));
+      final AppLocalizations l10n = context.l10n;
+      expect(Localizations.localeOf(context), localeCase.$1);
+      final AppTokens tokens = AppTokens.of(context);
+      for (final String label in <String>[
+        l10n.name,
+        l10n.weight,
+        l10n.pillarsShares,
+        l10n.uptime,
+        l10n.pillarsAprEstimate,
+        l10n.producerAddress,
+        l10n.pillarsReward,
+        l10n.pillarsMomentums,
+        l10n.pillarsRegistered,
+      ]) {
+        final String shown = localeCase.$1.languageCode == 'en'
+            ? label.toUpperCase()
+            : label;
+        final Text text = tester.widget<Text>(find.text(shown));
+        expect(text.style?.letterSpacing, localeCase.$2);
+        expect(text.style?.fontSize, 11);
+        expect(text.style?.color, tokens.faint);
+      }
+      final Text weight = tester.widget<Text>(find.text('1K ZNN'));
+      final Text momentums = tester.widget<Text>(
+        find.text(l10n.pillarsMomentumsValue('1,760', '1,762')),
+      );
+      expect(weight.textDirection, TextDirection.ltr);
+      expect(momentums.textDirection, TextDirection.ltr);
+      expect(tester.takeException(), isNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+    }
   });
 }

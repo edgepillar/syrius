@@ -138,10 +138,9 @@ class _PillarsTable extends StatelessWidget {
   }
 
   Widget _buildHeading(BuildContext context, String text) {
-    final AppTokens tokens = AppTokens.of(context);
     return Text(
       usesLatinScript(context) ? text.toUpperCase() : text,
-      style: tokens.ledgerText,
+      style: ledgerLabelStyle(context),
       overflow: TextOverflow.ellipsis,
       maxLines: 1,
     );
@@ -366,7 +365,7 @@ class _DetailField extends StatelessWidget {
         Flexible(
           child: Text(
             usesLatinScript(context) ? label.toUpperCase() : label,
-            style: tokens.ledgerText,
+            style: ledgerLabelStyle(context),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),

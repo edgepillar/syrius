@@ -11,6 +11,21 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
+[Source794](source794-pillars-locale-and-actor-results.md) uses the existing
+locale-aware ledger style for Pillars headings and detail labels. Existing
+cases now check real English/Arabic locales and the original numeric direction.
+The retained inspector also projects validated wallet exit flags, fixed codes,
+admission checks and profile stability. All ten memory controls pass.
+
+Source793 full Linux 43730611156 passes all thirteen required steps. Windows
+43732156875 / reader 43734203019 verify a successful current preparation entry,
+twelve page-change and twelve disclosure frames, then unqualified wallet
+closure. Four nodes exit normally; pillar2 reaches WAIT_TIMEOUT and is forced.
+P06 is not attempted. The original failure and outputs remain preserved;
+no paired comparison or P06 readiness qualification is established.
+Fresh Source794 hosted execution and retained closure inspection remain
+required. Scope and accepted Ready pairs stay 76/80 and 2/94.
+
 [Source793](source793-dart-line-limits.md) wraps five added Dart lines without
 behavior or literal changes. Every added line is within 80 characters.
 Source792 full Linux 43729237290 passes application and patched analysis,
