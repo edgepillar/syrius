@@ -225,18 +225,22 @@ class _AcceleratorListViewState extends State<AcceleratorListView> {
         SegmentItem<AcceleratorListFilter>(
           value: AcceleratorListFilter.voting,
           label: context.l10n.acceleratorVoting,
+          labelStyle: tokens.acceleratorFilterLabelText,
         ),
         SegmentItem<AcceleratorListFilter>(
           value: AcceleratorListFilter.active,
           label: context.l10n.acceleratorActive,
+          labelStyle: tokens.acceleratorFilterLabelText,
         ),
         SegmentItem<AcceleratorListFilter>(
           value: AcceleratorListFilter.mine,
           label: context.l10n.acceleratorMine,
+          labelStyle: tokens.acceleratorFilterLabelText,
         ),
         SegmentItem<AcceleratorListFilter>(
           value: AcceleratorListFilter.all,
           label: context.l10n.acceleratorAll,
+          labelStyle: tokens.acceleratorFilterLabelText,
         ),
       ],
     );
@@ -284,6 +288,7 @@ class _AcceleratorListViewState extends State<AcceleratorListView> {
       ),
     );
     return ConstrainedBox(
+      key: const Key('accelerator_toolbar'),
       constraints: BoxConstraints(minHeight: tokens.acceleratorToolbarHeight),
       child: Padding(
         padding: tokens.panelHeaderPadding,
@@ -327,15 +332,16 @@ class _AcceleratorListViewState extends State<AcceleratorListView> {
           horizontal: tokens.acceleratorCellPadding.start,
         ),
         child: Text(
-          value.toUpperCase(),
+          usesLatinScript(context) ? value.toUpperCase() : value,
           textAlign: end ? TextAlign.end : null,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: tokens.ledgerText,
+          style: ledgerLabelStyle(context),
         ),
       ),
     );
     return SizedBox(
+      key: const Key('accelerator_table_header'),
       height: tokens.acceleratorHeaderHeight,
       child: Row(
         children: <Widget>[

@@ -81,7 +81,17 @@ class AcceleratorStats extends StatelessWidget {
                 key: const Key('accelerator_fund_znn'),
                 child: amount(fund.znn, qsr: false),
               ),
-              Text('  ·  ', style: tokens.dataText.copyWith(color: tokens.dim)),
+              Text.rich(
+                TextSpan(
+                  style: tokens.stripAmountText,
+                  children: <InlineSpan>[
+                    const TextSpan(text: ' '),
+                    TextSpan(text: '·', style: tokens.acceleratorStripDetailText),
+                    const TextSpan(text: ' '),
+                  ],
+                ),
+                key: const Key('accelerator_fund_separator'),
+              ),
               KeyedSubtree(
                 key: const Key('accelerator_fund_qsr'),
                 child: amount(fund.qsr, qsr: true),
@@ -96,7 +106,10 @@ class AcceleratorStats extends StatelessWidget {
             key: const Key('accelerator_need_vote_count'),
             style: tokens.stripAmountText,
           ),
-          trailing: Text(context.l10n.acceleratorNeedYourPillar),
+          trailing: Text(
+            context.l10n.acceleratorNeedYourPillar,
+            style: tokens.acceleratorStripDetailText,
+          ),
         ),
       ],
       actions: <Widget>[

@@ -14,11 +14,25 @@ import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_wid
 
 import '../../harness/app/agent.dart';
 import '../../harness/bin/ci_paired_interactive_entry.dart'
-    show pairedFrameRecipeDiagnostic;
+    show pairedFrameRecipeDiagnostic, pairedFrameWaitForWelcome;
 import '../../harness/bin/wallet_recipe.dart';
 import '../../harness/wallet_recipe_failure.dart';
 import '../node_update/support.dart' as node_fixture;
 import '../welcome/support.dart';
+
+Map<String, dynamic> _pairedWelcomeView({
+  String phase = 'welcome',
+  int revision = 1,
+  bool enabled = true,
+}) => <String, dynamic>{
+  'ok': true, 'harnessMode': 'wallet', 'booted': true, 'hasError': false,
+  'owner': 7, 'revision': revision, 'walletPresent': false,
+  'transitionPending': false, 'signingPolicyReady': true,
+  'signingChainId': 1, 'savedSigningChainId': 1, 'entryPhase': phase,
+  'controls': <Map<String, dynamic>>[
+    <String, dynamic>{'key': 'welcome_import', 'enabled': enabled},
+  ],
+};
 
 class _HeldNodeLibrary extends node_fixture.FakeNodeLibrary {
   final Completer<NodeLibraryStatus> answer = Completer<NodeLibraryStatus>();
@@ -481,7 +495,7 @@ void main() {
     expect(selected, 0);
   });
 
-  test('entry labels reject raw text and keep only known view families', () {
+  test('entry labels reject raw text and keep only known view families', () async {
     final Map<String, String> value = walletRecipeDiagnostic(
       <String, Object?>{'action': 'observe', 'key': 'welcome_import'},
       'wallet-recipe-control-absent', entryPhase: 'startup-platform-error',
@@ -522,6 +536,34 @@ void main() {
         ...value, 'film': film,
       }), isNull);
     }
+    Duration elapsed = Duration.zero;
+    Duration? lastRevision;
+    int reads = 0;
+    await pairedFrameWaitForWelcome(
+      (Map<String, Object?> command, Duration timeout) async {
+        expect(command, <String, Object?>{
+          'cmd': 'wallet-recipe', 'action': 'observe',
+        });
+        expect(timeout, greaterThan(Duration.zero));
+        expect(timeout, lessThanOrEqualTo(const Duration(seconds: 10)));
+        reads++;
+        if (reads == 7) lastRevision = elapsed;
+        final Map<String, dynamic> view = _pairedWelcomeView(
+          phase: reads <= 2 ? 'startup-initialization-started' : 'welcome',
+          revision: reads < 7 ? 1 : 2,
+          enabled: reads != 5,
+        );
+        if (reads <= 2) view['controls'] = <Map<String, dynamic>>[];
+        return view;
+      },
+      wait: (Duration duration) async { elapsed += duration; },
+      elapsed: () => elapsed,
+    );
+    expect(reads, greaterThan(8));
+    expect(
+      elapsed - lastRevision!,
+      greaterThanOrEqualTo(const Duration(seconds: 1)),
+    );
   });
 
   for (final bool disabled in <bool>[false, true]) {
@@ -648,6 +690,91 @@ void main() {
     expect('$failure', isNot(contains('synthetic private')));
     await expectLater(run(), throwsA(isA<WalletRecipeRefused>()));
     expect(calls, 1);
+
+    for (final (String, Object?, String) mutation in <(String, Object?, String)>[
+      ('booted', false, 'wallet-recipe-observation-refused'),
+      ('hasError', true, 'wallet-recipe-observation-refused'),
+      ('harnessMode', 'capture', 'wallet-recipe-observation-refused'),
+      ('owner', 'synthetic private owner', 'wallet-recipe-observation-refused'),
+      ('revision', null, 'wallet-recipe-observation-refused'),
+      ('controls', <Object?>[null], 'wallet-recipe-observation-refused'),
+      ('walletPresent', true, 'wallet-recipe-empty-profile-required'),
+      ('transitionPending', true, 'wallet-recipe-empty-profile-required'),
+      ('signingPolicyReady', false, 'wallet-recipe-signing-policy-unavailable'),
+      ('savedSigningChainId', 321, 'wallet-recipe-signing-policy-unavailable'),
+      ('controls', <Map<String, dynamic>>[
+        <String, dynamic>{'key': 'welcome_import', 'enabled': true},
+        <String, dynamic>{'key': 'welcome_import', 'enabled': true},
+      ], 'wallet-recipe-control-ambiguous'),
+    ]) {
+      int reads = 0;
+      int waits = 0;
+      final Map<String, dynamic> view = _pairedWelcomeView()
+        ..[mutation.$1] = mutation.$2;
+      await expectLater(pairedFrameWaitForWelcome(
+        (Map<String, Object?> command, Duration timeout) async {
+          reads++;
+          return view;
+        },
+        wait: (Duration duration) async { waits++; },
+        elapsed: () => Duration.zero,
+      ), throwsA(isA<WalletRecipeRefused>().having(
+        (WalletRecipeRefused error) => error.code, 'code', mutation.$3,
+      )));
+      expect(reads, 1);
+      expect(waits, 0);
+    }
+
+    int reads = 0;
+    int waits = 0;
+    await expectLater(pairedFrameWaitForWelcome(
+      (Map<String, Object?> command, Duration timeout) async {
+        reads++;
+        throw StateError('synthetic private transport');
+      },
+      wait: (Duration duration) async { waits++; },
+      elapsed: () => Duration.zero,
+    ), throwsA(isA<WalletRecipeRefused>().having(
+      (WalletRecipeRefused error) => error.code, 'code',
+      'wallet-recipe-command-uncertain',
+    )));
+    expect(reads, 1);
+    expect(waits, 0);
+
+    reads = 0;
+    await expectLater(pairedFrameWaitForWelcome(
+      (Map<String, Object?> command, Duration timeout) async {
+        reads++;
+        return _pairedWelcomeView();
+      },
+      wait: (Duration duration) async {
+        waits++;
+        throw StateError('synthetic private clock');
+      },
+      elapsed: () => Duration.zero,
+    ), throwsA(isA<WalletRecipeRefused>().having(
+      (WalletRecipeRefused error) => error.code, 'code', 'wallet-recipe-deadline',
+    )));
+    expect(reads, 1);
+    expect(waits, 1);
+
+    Duration elapsed = Duration.zero;
+    WalletRecipeRefused? pending;
+    try {
+      await pairedFrameWaitForWelcome(
+        (Map<String, Object?> command, Duration timeout) async =>
+            _pairedWelcomeView(phase: 'synthetic private phase'),
+        wait: (Duration duration) async {
+          elapsed += const Duration(seconds: 30);
+        },
+        elapsed: () => elapsed,
+      );
+    } on WalletRecipeRefused catch (error) {
+      pending = error;
+    }
+    expect(pending?.code, 'wallet-recipe-deadline');
+    expect(jsonEncode(pairedFrameRecipeDiagnostic(pending)),
+      isNot(contains('synthetic private')));
   });
 
   testWidgets('the server preserves a fixed owner refusal without acting', (

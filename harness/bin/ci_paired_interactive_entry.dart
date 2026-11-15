@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 
-import '../wallet_recipe_failure.dart' show walletRecipePublicDiagnostic;
+import '../wallet_recipe_failure.dart'
+    show walletRecipeDiagnostic, walletRecipePublicDiagnostic;
 import 'harness.dart' as cli;
-import 'wallet_recipe.dart' show WalletRecipeRefused;
+import 'wallet_recipe.dart' show WalletRecipeRefused, WalletRecipeSend;
 
 const String _scope = 'owned_chain321_frame_profile_preparation';
 const String _node = 'ws://127.0.0.1:45998';
@@ -41,6 +42,118 @@ Map<String, String>? pairedFrameRecipeDiagnostic(Object? failure) =>
     failure is WalletRecipeRefused
     ? walletRecipePublicDiagnostic(failure.diagnostic)
     : null;
+
+/// Observe the genuine empty Welcome before the original one-shot import.
+Future<void> pairedFrameWaitForWelcome(
+  WalletRecipeSend send, {
+  Future<void> Function(Duration)? wait,
+  Duration Function()? elapsed,
+}) async {
+  const Duration budget = Duration(seconds: 90);
+  const Duration quiet = Duration(seconds: 1);
+  final Stopwatch clock = Stopwatch()..start();
+  final Future<void> Function(Duration) pause = wait ?? Future<void>.delayed;
+  Duration previous = Duration.zero;
+  Duration? readySince;
+  (int, int, int)? readyContext;
+  Object? phase;
+  String reason = 'wallet-recipe-control-absent';
+
+  Never refuse(String code) => throw WalletRecipeRefused(
+    code,
+    diagnostic: walletRecipeDiagnostic(
+      <String, Object?>{'action': 'observe', 'key': 'welcome_import'},
+      reason,
+      entryPhase: phase,
+    ),
+  );
+
+  Duration now() {
+    final Duration value = elapsed?.call() ?? clock.elapsed;
+    if (value < previous || value >= budget) {
+      refuse('wallet-recipe-deadline');
+    }
+    previous = value;
+    return value;
+  }
+
+  // P06's original row enters over 320 ms with a 40 ms stagger. Keep its
+  // identity and exact-center admission intact; wait before the first tap.
+  for (int turn = 0; turn < 600; turn++) {
+    final Duration remaining = budget - now();
+    final Duration limit = remaining < const Duration(seconds: 10)
+        ? remaining
+        : const Duration(seconds: 10);
+    final Map<String, dynamic> view;
+    try {
+      view = await send(<String, Object?>{
+        'cmd': 'wallet-recipe', 'action': 'observe',
+      }, limit).timeout(limit);
+    } on Object {
+      refuse('wallet-recipe-command-uncertain');
+    }
+    final Duration observedAt = now();
+    phase = view['entryPhase'];
+    final Object? controls = view['controls'];
+    if (view['ok'] != true || view['harnessMode'] != 'wallet' ||
+        view['booted'] != true || view['hasError'] != false ||
+        view['owner'] is! int || view['revision'] is! int ||
+        controls is! List ||
+        controls.any((dynamic value) => value is! Map<String, dynamic>)) {
+      reason = 'wallet-recipe-refused';
+      refuse('wallet-recipe-observation-refused');
+    }
+    if (view['walletPresent'] != false || view['transitionPending'] != false) {
+      reason = 'wallet-recipe-refused';
+      refuse('wallet-recipe-empty-profile-required');
+    }
+    if (view['signingPolicyReady'] != true || view['signingChainId'] is! int ||
+        (view['signingChainId'] as int) <= 0 ||
+        view['signingChainId'] != view['savedSigningChainId']) {
+      reason = 'wallet-recipe-refused';
+      refuse('wallet-recipe-signing-policy-unavailable');
+    }
+    final List<Map<String, dynamic>> matches = controls
+        .cast<Map<String, dynamic>>()
+        .where((Map<String, dynamic> value) => value['key'] == 'welcome_import')
+        .toList();
+    if (matches.length > 1) {
+      reason = 'wallet-recipe-control-ambiguous';
+      refuse('wallet-recipe-control-ambiguous');
+    }
+    reason = matches.isEmpty
+        ? 'wallet-recipe-control-absent'
+        : matches.single['enabled'] != true
+        ? 'wallet-recipe-control-disabled'
+        : 'wallet-recipe-stage-unsettled';
+    if (phase == 'welcome' && matches.isNotEmpty &&
+        matches.single['enabled'] == true) {
+      final (int, int, int) context = (
+        view['owner'] as int, view['revision'] as int,
+        view['signingChainId'] as int,
+      );
+      if (context != readyContext) {
+        readyContext = context;
+        readySince = observedAt;
+      }
+      if (observedAt - readySince! >= quiet) return;
+      reason = 'wallet-recipe-stage-unsettled';
+    } else {
+      readyContext = null;
+      readySince = null;
+    }
+    final Duration left = budget - now();
+    final Duration tick = left < const Duration(milliseconds: 150)
+        ? left
+        : const Duration(milliseconds: 150);
+    try {
+      await pause(tick).timeout(left);
+    } on Object {
+      refuse('wallet-recipe-deadline');
+    }
+  }
+  refuse('wallet-recipe-deadline');
+}
 
 Future<Map<String, dynamic>> _input() async {
   final List<int> bytes = <int>[];
@@ -86,6 +199,15 @@ Future<void> _owner(_OwnedInstance instance, int pid) async {
   }
 }
 
+Future<void> _emptyProfile(_OwnedInstance instance) async {
+  final Map<String, dynamic> state =
+      await cli.call(instance, <String, Object?>{'cmd': 'state'});
+  if (state['walletUnlocked'] != false ||
+      state['walletInitCompleted'] != false || state['walletPath'] != null) {
+    throw const _Refused('PROFILE_REFUSED');
+  }
+}
+
 Future<void> main(List<String> args) async {
   String? error;
   _PreparationPhase phase = _PreparationPhase.environment;
@@ -113,13 +235,16 @@ Future<void> main(List<String> args) async {
     phase = _PreparationPhase.ownerBefore;
     await _owner(instance, pid);
     phase = _PreparationPhase.emptyProfile;
-    final Map<String, dynamic> before =
-        await cli.call(instance, <String, Object?>{'cmd': 'state'});
-    if (before['walletUnlocked'] != false ||
-        before['walletInitCompleted'] != false ||
-        before['walletPath'] != null) {
-      throw const _Refused('PROFILE_REFUSED');
-    }
+    await _emptyProfile(instance);
+    phase = _PreparationPhase.importWallet;
+    await pairedFrameWaitForWelcome(
+      (Map<String, Object?> command, Duration timeout) =>
+          instance.send(command, timeout: timeout),
+    );
+    phase = _PreparationPhase.ownerBefore;
+    await _owner(instance, pid);
+    phase = _PreparationPhase.emptyProfile;
+    await _emptyProfile(instance);
     phase = _PreparationPhase.importWallet;
     await cli.walletRecipe(instance).importWallet(
       chain: '321',

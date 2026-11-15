@@ -11,11 +11,22 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
-[Source791](source791-entry-analysis-and-token-count.md) fixes the paired entry's
-null-aware map diagnostic and adds it once to the early strict analysis list,
-now 287 files. Tokens restores the small localized noun beside the genuine held
-count. All sixteen existing Python controls pass. Original markers, recipes,
-actions, clocks, limits, workflows, SDK pins and native case selections remain.
+[Source792](source792-welcome-readiness-and-accelerator-header.md) observes the
+genuine empty Welcome and unchanged ready context for one second before the
+original paired import, then rechecks owner and empty profile. Original tap
+guards remain; no refused or uncertain action is retried. Accelerator's fund
+separator, support text and header roles follow the reference. All sixteen
+existing Python controls pass; current Dart execution remains required. Original
+markers, recipes, measured actions, clocks, outer limits, workflows, SDK pins
+and case selections remain; strict analysis stays 287 files.
+
+Source791 full Linux 43722307789 passes all thirteen required steps. Windows
+43723784390 / reader 43725729400 verify fourteen current page-change frames,
+sixteen disclosure frames, two normal application exits and five normal node
+exits. P06's original Import tap refuses at original-control-changed, with code
+1, complete 253-byte output, no overflow and no forced termination. The exact
+changed property and comparison remain unestablished. Outputs are consumed,
+local owned storage is closed and original failed runs remain preserved.
 
 Source790 full Linux 43718315690 passes all thirteen required steps. Windows
 43719433171 passes 1505 selected Dart cases, 1226 Python cases/eighteen skips
@@ -49,7 +60,7 @@ succeeds. The exact P06 preparation cause remains unestablished. Source645 and
 Source744 failed results stay preserved. Outputs are consumed without local
 SDK execution or artifact transfer.
 
-Fresh Source791 full Linux and paired native execution remain required.
+Fresh Source792 full Linux and paired native execution remain required.
 Scope and Source730 Ready pairs stay 76/80 and 2/94.
 
 [Source761](source761-address-action-gap.md) preserves Source760 full Linux

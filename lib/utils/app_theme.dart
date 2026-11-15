@@ -1420,13 +1420,21 @@ class AppTokens extends ThemeExtension<AppTokens> {
   double get acceleratorStripHeight => 70;
 
   /// Minimum height of Accelerator search and sort controls.
-  double get acceleratorToolbarHeight => 60;
+  double get acceleratorToolbarHeight => 59;
 
   /// Minimum height of a project row before text scaling.
   double get acceleratorRowHeight => 60;
 
   /// The project table's quiet column header.
-  double get acceleratorHeaderHeight => 34;
+  double get acceleratorHeaderHeight => 32;
+
+  /// Secondary strip text retains the reference's smaller mono role.
+  TextStyle get acceleratorStripDetailText =>
+      dataText.copyWith(fontSize: 13, color: dim);
+
+  /// Header pills inherit their surrounding semibold label weight.
+  TextStyle get acceleratorFilterLabelText =>
+      compactText.copyWith(fontWeight: FontWeight.w600);
 
   /// The complete Accelerator table remains horizontally scrollable.
   double get acceleratorTableMinWidth => 1000;

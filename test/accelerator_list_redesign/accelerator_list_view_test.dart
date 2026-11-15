@@ -104,6 +104,16 @@ void main() {
           );
           expect(ledger.top - strip.bottom, 12);
           expect(strip.height, inInclusiveRange(70, 71));
+          expect(tester.getRect(
+            find.byKey(const Key('accelerator_toolbar')),
+          ).height, 59);
+          expect(tester.getRect(
+            find.byKey(const Key('accelerator_table_header')),
+          ).height, 32);
+          final Text separator = tester.widget<Text>(
+            find.byKey(const Key('accelerator_fund_separator')),
+          );
+          expect(separator.textSpan!.toPlainText(), ' · ');
           final Finder search = find.byKey(const Key('accelerator_search'));
           expect(tester.getSize(find.descendant(
             of: search, matching: find.byType(InputDecorator),
@@ -152,6 +162,16 @@ void main() {
             find.byKey(const Key('accelerator_filter_all')),
             findsOneWidget,
           );
+          for (final String filter in <String>['voting', 'active', 'mine', 'all']) {
+            final Finder label = find.descendant(
+              of: find.byKey(Key('accelerator_filter_$filter')),
+              matching: find.byType(Text),
+            );
+            final TextStyle style = DefaultTextStyle.of(tester.element(label))
+                .style.merge(tester.widget<Text>(label).style);
+            expect(style.fontSize, 13);
+            expect(style.fontWeight, FontWeight.w600);
+          }
           expect(find.text('Sentinel snapshot sync'), findsOneWidget);
           expect(find.text('Syrius desktop redesign'), findsOneWidget);
           expect(
