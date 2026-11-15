@@ -11,6 +11,21 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
+[Source795](source795-pillars-ledger-test-scope.md) scopes the existing
+English/Arabic label finder to the original Pillars ledger. The same localized
+weight text appears in its separate sort control. Application behavior,
+test methods, selections and Python implementation remain unchanged.
+Source794 full Linux 43735918720 passes analysis, strict analysis, Ready and
+Lock, then fails the compact gate; the full directory and generation are
+skipped. Source inspection finds the selector ambiguity; the exact logged
+test failure has not been independently read.
+
+Retained reader 43736362287 verifies the original Source793 archives with all
+prior projected values unchanged. Profile, identity, authentication and close
+acknowledgement pass; exit fails with forced termination and incomplete output.
+The underlying process/output cause remains open. Source795 hosted execution
+remains required; scope and Ready pairs stay 76/80 and 2/94.
+
 [Source794](source794-pillars-locale-and-actor-results.md) uses the existing
 locale-aware ledger style for Pillars headings and detail labels. Existing
 cases now check real English/Arabic locales and the original numeric direction.

@@ -548,6 +548,10 @@ void main() {
       final AppLocalizations l10n = context.l10n;
       expect(Localizations.localeOf(context), localeCase.$1);
       final AppTokens tokens = AppTokens.of(context);
+      final Finder ledger = find.byKey(
+        const PageStorageKey<String>('pillars_list'),
+      );
+      expect(ledger, findsOneWidget);
       for (final String label in <String>[
         l10n.name,
         l10n.weight,
@@ -562,7 +566,12 @@ void main() {
         final String shown = localeCase.$1.languageCode == 'en'
             ? label.toUpperCase()
             : label;
-        final Text text = tester.widget<Text>(find.text(shown));
+        final Finder labelFinder = find.descendant(
+          of: ledger,
+          matching: find.text(shown),
+        );
+        expect(labelFinder, findsOneWidget);
+        final Text text = tester.widget<Text>(labelFinder);
         expect(text.style?.letterSpacing, localeCase.$2);
         expect(text.style?.fontSize, 11);
         expect(text.style?.color, tokens.faint);
