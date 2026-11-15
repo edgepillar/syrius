@@ -11,33 +11,35 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
-[Source774](source774-navigation-and-plasma-heading.md) follows Source773
-full Linux 43655783810, with all thirteen required steps passing. Source773
-Windows 43657055394 and reader 43658885602 retain a failed dark notification
-tour at railNavigation after 1505 selected Dart passes, 1226 Python
-cases/eighteen skips, zero selected findings, a completed Release build and
-initial lab production. Nine pages are visited and no PNG is produced.
-Required actor cleanup is forced. Five lab nodes exit normally, while full
-lab/runner closure stays unqualified. The reader passes 123 controls and
-verifies both original archives and 87 source files. All owned outputs are
-consumed without local artifact transport or retry.
+[Source775](source775-bell-passive-region.md) registers the panel's outer key
+with the existing readonly positive-region observer. The new inner header
+key shadows it in the common single-key control snapshot. Current, unique
+mounted elements, actual client bounds and paint clips remain required.
+The region keeps ref zero and never becomes a control snapshot/input ref.
+The four existing framed variants require sealed readonly SDK admission and
+a ready 380-by-780 region, plus the original Close control. The existing
+generic passive-ancestor case extends its positive and negative matrix.
 
-Four existing framed Bell cases now require panel and Close keys from the
-real harness snapshot. Finite goto observation separates original state,
-target, tap and wait operations without changing commands or deadlines.
-The five existing memory-only diagnostic controls retain privacy refusal
-and exact catalog coverage. Plasma Fused receives a 44-pixel heading minimum
-through the existing plain-header token; shared custom headings keep their
-48-pixel default and text may grow. Existing dark/light cases add the exact
-divider-height check while retaining expiry, selection and cancellation.
+Source774 Linux 43660331234 passes 1226 Python cases, patched/global and
+282-file strict analysis, Ready and Lock. Four framed variants reproduce the
+missing bell_panel snapshot key; the physical geometry/route assertions
+before it pass. Both Plasma 44-pixel headings, Collect metrics and both
+Accelerator cases pass. Full non-chain tests and generation are skipped.
+The complete 451,382-byte log remains protected after successful owned
+closure. The earlier zero-byte connection timeout remains a closed failure.
+All owned outputs are consumed; no failed CI job is retried.
 
-Fresh full Linux precedes further native work. Workflows, the 282-file strict
-selection and all test registrations remain. Source773 establishes no new
-native/image pass. The latest native/image qualification remains Source765,
-with 24 general pairs individually viewed: 16 mismatches, 8 unresolved and
-no acceptance. Fourteen Settings and four viewport images remain verified
-without another local review. Scope and accepted pairs remain 76/80 and
-2/94; no speedup or Source744 cold-lock cause is established.
+Source773 Windows 43657055394 and reader 43658885602 preserve the failed dark
+notification tour after 1505 Dart passes, 1226 Python cases/eighteen skips,
+zero selected findings, a completed Release build and initial lab production.
+No PNG is produced; required actor cleanup is forced. Five nodes exit
+normally without full lab/runner qualification. Native/image qualification
+remains Source765, with 16 general mismatches and 8 unresolved pairs.
+
+Fresh full Linux precedes native work. No widget, input, financial, workflow,
+282-file selection or test registration changes. The native fix is prepared,
+not executed. Scope and accepted pairs remain 76/80 and 2/94; no speedup or
+Source744 cold-lock cause is established.
 
 [Source761](source761-address-action-gap.md) preserves Source760 full Linux
 43609477103 as failed after strict analysis, Ready and Lock pass. Both added

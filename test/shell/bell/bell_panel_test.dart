@@ -12,6 +12,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/shell/bell_panel.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/window_frame.dart';
 
 import '../../../harness/app/agent.dart';
+import '../../../harness/app/readonly_sdk_admission.dart';
 import '../../helpers/mockup_symbol.dart';
 import 'support.dart';
 
@@ -424,7 +425,22 @@ void main() {
           expect(rtl ? rect.left : rect.right, rtl ? 0 : 1280);
           expect(MediaQuery.sizeOf(tester.element(panel)),
             const Size(1280, 780));
-          final HarnessAgent agent = HarnessAgent.forTest()..booted = true;
+          final Object sdk = Object();
+          bool automaticDisabled = false;
+          final HarnessAgent agent = HarnessAgent.forTest()
+            ..reserveReadonlyNative();
+          final ReadonlySdkAdmission admission =
+              await ReadonlySdkAdmission.seal(
+            sdkOwner: sdk,
+            ownersCurrent: () => true,
+            automaticDisabled: () => automaticDisabled,
+            disableAutomatic: () async {
+              automaticDisabled = true;
+            },
+          );
+          agent
+            ..attachReadonlyNative(admission)
+            ..booted = true;
           final Map<String, Object?> tree = await agent.commandForTest(
             <String, dynamic>{'cmd': 'tree'},
           );
@@ -432,7 +448,19 @@ void main() {
               .whereType<Map<String, Object?>>()
               .map((Map<String, Object?> node) => node['key'])
               .toSet();
-          expect(keys, containsAll(<String>['bell_panel', 'bell_close']));
+          expect(keys, contains('bell_close'));
+          final Map<String, Object?> observed = await agent.commandForTest(
+            <String, dynamic>{
+              'cmd': 'wait', 'key': 'bell_panel',
+              'ready': true, 'timeoutMs': 0,
+            },
+          );
+          final Map<String, Object?> region =
+              observed['target']! as Map<String, Object?>;
+          expect(region['key'], 'bell_panel');
+          expect(region['kind'], 'region');
+          expect(region['ref'], 0);
+          expect(region['rect'], <int>[rtl ? 0 : 900, 0, 380, 780]);
           expect(tester.getRect(
             find.byKey(const ValueKey<String>('window-body'))), body);
           final Rect close = tester.getRect(

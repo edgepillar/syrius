@@ -4779,6 +4779,7 @@ class HarnessAgent {
         !zapPreview &&
         !const <String>{
           'home_hero', 'home_znn', 'rail_label_dashboard',
+          'bell_panel',
           'send_form_ready',
           'send_confirmation_marker',
           'receive_form_ready',
