@@ -11,6 +11,19 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
+[Source798](source798-stable-original-entry-admission.md) waits for stable
+empty Welcome or the original enabled startup handoff control before invoking
+the unchanged original recipe. Its first observation controls that recipe's
+handoff branch. Unknown/in-progress stages are not admitted; the existing tap
+wait remains Welcome-only. Source797 full Linux 43752165370 passes all thirteen
+steps. Windows 43753713215 / reader 43756131967 retain thirteen current frames
+in each window and verify both normal wallet exits and five normal node exits.
+P06 still refuses while observing startup-before-initialization with Welcome
+absent. Its first original observation and actual branch are not retained;
+the exact runtime cause remains unestablished. Original failures are preserved
+and outputs consumed. Fresh execution is required; scope and accepted Ready
+pairs remain 76/80 and 2/94.
+
 [Source797](source797-entry-analysis-style.md) addresses the two Source796
 strict analysis info findings using a private transport field formal and the
 existing remaining-time function directly. Command order, payloads and budgets

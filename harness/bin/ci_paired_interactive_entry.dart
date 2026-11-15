@@ -53,12 +53,16 @@ Map<String, String>? pairedFrameRecipeDiagnostic(Object? failure) =>
     ? walletRecipePublicDiagnostic(failure.diagnostic)
     : null;
 
-/// Observe the genuine empty Welcome at the original tap boundary.
+/// Observe empty entry readiness without sending its original action.
+///
+/// The initial gate may also admit the original startup handoff control.
+/// The tap boundary retains the default Welcome-only requirement.
 Future<void> pairedFrameWaitForWelcome(
   WalletRecipeSend send, {
   Future<void> Function(Duration)? wait,
   Duration Function()? elapsed,
   Duration budget = const Duration(seconds: 90),
+  bool allowOriginalStartup = false,
 }) async {
   if (budget <= Duration.zero || budget > const Duration(seconds: 90)) {
     throw const WalletRecipeRefused('wallet-recipe-deadline');
@@ -68,14 +72,15 @@ Future<void> pairedFrameWaitForWelcome(
   final Future<void> Function(Duration) pause = wait ?? Future<void>.delayed;
   Duration previous = Duration.zero;
   Duration? readySince;
-  (int, int, int)? readyContext;
+  (int, int, int, String)? readyContext;
   Object? phase;
+  String control = 'welcome_import';
   String reason = 'wallet-recipe-control-absent';
 
   Never refuse(String code) => throw WalletRecipeRefused(
     code,
     diagnostic: walletRecipeDiagnostic(
-      <String, Object?>{'action': 'observe', 'key': 'welcome_import'},
+      <String, Object?>{'action': 'observe', 'key': control},
       reason,
       entryPhase: phase,
     ),
@@ -126,9 +131,12 @@ Future<void> pairedFrameWaitForWelcome(
       reason = 'wallet-recipe-refused';
       refuse('wallet-recipe-signing-policy-unavailable');
     }
+    final bool originalStartup = allowOriginalStartup &&
+        phase == 'startup-before-initialization';
+    control = originalStartup ? 'launch_skip_hint' : 'welcome_import';
     final List<Map<String, dynamic>> matches = controls
         .cast<Map<String, dynamic>>()
-        .where((Map<String, dynamic> value) => value['key'] == 'welcome_import')
+        .where((Map<String, dynamic> value) => value['key'] == control)
         .toList();
     if (matches.length > 1) {
       reason = 'wallet-recipe-control-ambiguous';
@@ -139,11 +147,11 @@ Future<void> pairedFrameWaitForWelcome(
         : matches.single['enabled'] != true
         ? 'wallet-recipe-control-disabled'
         : 'wallet-recipe-stage-unsettled';
-    if (phase == 'welcome' && matches.isNotEmpty &&
+    if ((phase == 'welcome' || originalStartup) && matches.isNotEmpty &&
         matches.single['enabled'] == true) {
-      final (int, int, int) context = (
+      final (int, int, int, String) context = (
         view['owner'] as int, view['revision'] as int,
-        view['signingChainId'] as int,
+        view['signingChainId'] as int, phase as String,
       );
       if (context != readyContext) {
         readyContext = context;
@@ -306,6 +314,16 @@ Future<void> main(List<String> args) async {
       'port': offered['port'],
       'token': offered['token'],
     });
+    phase = _PreparationPhase.ownerBefore;
+    await _owner(instance, pid);
+    phase = _PreparationPhase.emptyProfile;
+    await _emptyProfile(instance);
+    phase = _PreparationPhase.importWallet;
+    await pairedFrameWaitForWelcome(
+      (Map<String, Object?> command, Duration timeout) =>
+          instance.send(command, timeout: timeout),
+      allowOriginalStartup: true,
+    );
     phase = _PreparationPhase.ownerBefore;
     await _owner(instance, pid);
     phase = _PreparationPhase.emptyProfile;
