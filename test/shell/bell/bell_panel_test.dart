@@ -460,7 +460,16 @@ void main() {
           expect(region['key'], 'bell_panel');
           expect(region['kind'], 'region');
           expect(region['ref'], 0);
-          expect(region['rect'], <int>[rtl ? 0 : 900, 0, 380, 780]);
+          final int panelLeft = rtl ? 0 : 900;
+          expect(region['rect'], <int>[panelLeft, 0, 380, 780]);
+          Future<void> stillPresent() => expectLater(
+            agent.commandForTest(<String, dynamic>{
+              'cmd': 'wait', 'key': 'bell_panel',
+              'gone': true, 'timeoutMs': 0,
+            }),
+            throwsA(isA<HarnessError>()),
+          );
+          await stillPresent();
           expect(tester.getRect(
             find.byKey(const ValueKey<String>('window-body'))), body);
           final Rect close = tester.getRect(
@@ -492,13 +501,22 @@ void main() {
           expect(route.animation!.value, inExclusiveRange(0, 1));
           expect(completed, isFalse);
           expect(panel, findsOneWidget);
+          await stillPresent();
           await tester.pump(const Duration(milliseconds: 120));
           expect(route.animation!.value, closeTo(0, 1e-9));
+          await stillPresent();
           // The following frame delivers dismissal and removes the portal.
           await tester.pump(const Duration(milliseconds: 16));
           await _finishOwnedFuture(tester, closed);
           expect(completed, isTrue);
           expect(find.byKey(const Key('bell_panel')), findsNothing);
+          final Map<String, Object?> absent = await agent.commandForTest(
+            <String, dynamic>{
+              'cmd': 'wait', 'key': 'bell_panel',
+              'gone': true, 'timeoutMs': 0,
+            },
+          );
+          expect(absent.containsKey('target'), isFalse);
           expect(calls.where((MethodCall call) => call.method == 'close'),
             isEmpty);
           expect(tester.state<EditableTextState>(find.byType(EditableText)),

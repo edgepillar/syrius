@@ -1369,9 +1369,23 @@ void main() {
         ));
     for (final String key in keys) {
       await show(region(key));
-      await expectLater(ordinary.commandForTest(<String, dynamic>{
-        'cmd': 'assert', 'key': key,
-      }), throwsA(isA<HarnessError>()));
+      if (key == 'bell_panel') {
+        final Map<String, Object?> observed =
+            await ordinary.commandForTest(<String, dynamic>{
+          'cmd': 'assert', 'key': key,
+        });
+        final Map<String, Object?> target =
+            observed['target']! as Map<String, Object?>;
+        expect(target['kind'], 'region');
+        expect(target['ref'], 0);
+        await expectLater(ordinary.commandForTest(<String, dynamic>{
+          'cmd': 'tap', 'key': key,
+        }), throwsA(isA<HarnessError>()));
+      } else {
+        await expectLater(ordinary.commandForTest(<String, dynamic>{
+          'cmd': 'assert', 'key': key,
+        }), throwsA(isA<HarnessError>()));
+      }
       for (final String command in <String>['assert', 'wait']) {
         final Map<String, Object?> result =
             await scope.agent.commandForTest(<String, dynamic>{
@@ -1449,7 +1463,23 @@ void main() {
         );
         await refused(<String, dynamic>{'cmd': 'wait', 'key': key,
           'timeoutMs': 0, 'ready': true}, reason: reason);
+        if (key == 'bell_panel') {
+          await refused(<String, dynamic>{'cmd': 'wait', 'key': key,
+            'timeoutMs': 0, 'gone': true});
+        }
         expect(tester.takeException(), isNull);
+      }
+      if (key == 'bell_panel') {
+        await show(const SizedBox.shrink());
+        for (final HarnessAgent observer in <HarnessAgent>[
+          scope.agent, ordinary,
+        ]) {
+          final Map<String, Object?> absent =
+              await observer.commandForTest(<String, dynamic>{
+            'cmd': 'wait', 'key': key, 'timeoutMs': 0, 'gone': true,
+          });
+          expect(absent.containsKey('target'), isFalse);
+        }
       }
     }
     for (final String key in <String>[

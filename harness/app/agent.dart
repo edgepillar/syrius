@@ -4748,14 +4748,17 @@ class HarnessAgent {
   // -------------------------------------------------------------------- wait
 
   // Passive regions are absent when text is folded into a button. Only
-  // the readonly lane observes these fixed keys; input/ref matching stays.
+  // The Bell marker is also observable in the ordinary tour lane.
+  // Other fixed regions keep their readonly admission; input matching stays.
   List<_Node>? _readonlyPositiveKeyNodes(Map<String, dynamic> command, {
     void Function(String reason)? onRejected,
   }) {
     final Object? key = command['key'];
     final bool pillarDone = _labPillarRegistration != null &&
         key == 'pillar_registration_confirmed';
-    if ((_readonlyNative == null && !pillarDone) || key is! String) return null;
+    final bool bellPanel = key == 'bell_panel';
+    if ((_readonlyNative == null && !pillarDone && !bellPanel) ||
+        key is! String) return null;
     final bool sentinelRegion =
         Platform.environment['SYRIUS_READONLY_CATALOG_FAMILY'] ==
             harnessReadonlySentinelCatalog &&
@@ -5025,12 +5028,63 @@ class HarnessAgent {
     return false;
   }
 
+  bool _bellPanelAbsent() {
+    final Element? root = WidgetsBinding.instance.rootElement;
+    if (root == null || !root.mounted) {
+      throw HarnessError('Bell absence root is unavailable');
+    }
+    int visited = 0;
+    bool present = false;
+    bool overflow = false;
+    void visit(Element element) {
+      if (present || overflow) return;
+      if (++visited > 16384) {
+        overflow = true;
+        return;
+      }
+      if (element.widget.key == const ValueKey<String>('bell_panel')) {
+        present = true;
+        return;
+      }
+      // Retained offstage and hidden elements still prevent absence proof.
+      element.visitChildElements(visit);
+    }
+    visit(root);
+    if (overflow) throw HarnessError('Bell absence search limit exceeded');
+    return !present;
+  }
+
+  Future<Map<String, Object?>> _waitBellAbsent(
+    Map<String, dynamic> command,
+    int timeout,
+  ) async {
+    const Set<String> fields = <String>{
+      'cmd', 'key', 'exact', 'timeoutMs', 'gone',
+    };
+    if (command.keys.any((String key) => !fields.contains(key))) {
+      throw HarnessError('Bell absence needs a stable key selector');
+    }
+    final Stopwatch watch = Stopwatch()..start();
+    while (true) {
+      if (_bellPanelAbsent()) {
+        return <String, Object?>{'ms': watch.elapsedMilliseconds};
+      }
+      if (watch.elapsedMilliseconds >= timeout) {
+        throw HarnessError('Bell panel is still retained', _describe(command));
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 150));
+    }
+  }
+
   Future<Map<String, Object?>> _wait(Map<String, dynamic> c) async {
     final int timeout = c['timeoutMs'] as int? ?? 10000;
     final bool gone = c['gone'] == true;
     final bool ready = c['ready'] == true;
     if (ready && gone) {
       throw HarnessError('ready requires a positive selector');
+    }
+    if (gone && c['key'] == 'bell_panel') {
+      return _waitBellAbsent(c, timeout);
     }
     final Object? ordinal = c['nth'];
     if (ready && ordinal != null && (ordinal is! int || ordinal < 0)) {

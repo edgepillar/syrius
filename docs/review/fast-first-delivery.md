@@ -11,35 +11,34 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
-[Source775](source775-bell-passive-region.md) registers the panel's outer key
-with the existing readonly positive-region observer. The new inner header
-key shadows it in the common single-key control snapshot. Current, unique
-mounted elements, actual client bounds and paint clips remain required.
-The region keeps ref zero and never becomes a control snapshot/input ref.
-The four existing framed variants require sealed readonly SDK admission and
-a ready 380-by-780 region, plus the original Close control. The existing
-generic passive-ancestor case extends its positive and negative matrix.
+[Source776](source776-bell-observation-and-absence.md) permits the Bell
+passive marker in the ordinary tour as well as the sealed readonly lane.
+Other passive regions keep their current admission. The original Close wait
+now requires actual structural removal: retained hidden, offstage or clipped
+elements prevent absence, and missing roots or search-bound exhaustion refuse
+it. Success has no target or input ref. Production commands and deadlines stay.
 
-Source774 Linux 43660331234 passes 1226 Python cases, patched/global and
-282-file strict analysis, Ready and Lock. Four framed variants reproduce the
-missing bell_panel snapshot key; the physical geometry/route assertions
-before it pass. Both Plasma 44-pixel headings, Collect metrics and both
-Accelerator cases pass. Full non-chain tests and generation are skipped.
-The complete 451,382-byte log remains protected after successful owned
-closure. The earlier zero-byte connection timeout remains a closed failure.
-All owned outputs are consumed; no failed CI job is retried.
+Four framed variants retain geometry, motion, completion and focus checks,
+with refusal during retained reverse states and success after removal. The
+existing generic region matrix covers ordinary observation, retained hidden
+states and real removal. No case or suite filename is added.
 
-Source773 Windows 43657055394 and reader 43658885602 preserve the failed dark
-notification tour after 1505 Dart passes, 1226 Python cases/eighteen skips,
-zero selected findings, a completed Release build and initial lab production.
-No PNG is produced; required actor cleanup is forced. Five nodes exit
-normally without full lab/runner qualification. Native/image qualification
-remains Source765, with 16 general mismatches and 8 unresolved pairs.
+Source775 Linux 43662748180 passes root Python and patched/global analysis,
+then stops at one opaque strict info at the Bell expected-coordinate list.
+Ready, Lock, compact/full widget tests and generation are skipped. There are
+zero artifacts and no log transfer. The coordinate conditional is now assigned
+to a local integer; the diagnostic allowlist remains unchanged.
 
-Fresh full Linux precedes native work. No widget, input, financial, workflow,
-282-file selection or test registration changes. The native fix is prepared,
-not executed. Scope and accepted pairs remain 76/80 and 2/94; no speedup or
-Source744 cold-lock cause is established.
+Source774's four missing-marker failures and complete log remain protected,
+including the earlier zero-byte transport failure. Source773's failed native
+tour, zero captures and forced required-actor cleanup remain preserved.
+All owned outputs are consumed. Native/image qualification remains Source765,
+with 16 general mismatches and 8 unresolved pairs.
+
+Fresh full Linux precedes native work. Panel widgets, input and financial
+admission, workflows, 282-file selection and test registrations stay unchanged.
+Scope and accepted pairs remain 76/80 and 2/94; no native pass or speedup is
+claimed.
 
 [Source761](source761-address-action-gap.md) preserves Source760 full Linux
 43609477103 as failed after strict analysis, Ready and Lock pass. Both added
