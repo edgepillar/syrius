@@ -259,6 +259,7 @@ class _View extends StatelessWidget {
       listenable: BalanceVisibility.instance,
       builder: (BuildContext context, Widget? child) => PageStrip(
         key: const Key('nodes_pillars_strip'),
+        minimumContentHeight: kStripTextContentHeight,
         figures: <StripFigure>[
           StripFigure(
             label: context.l10n.nodesDelegatedTo,
@@ -304,7 +305,7 @@ class _View extends StatelessWidget {
                     ),
                     style: tokens.compactText,
                   ),
-            trailing: TextButton(
+            action: TextButton(
               key: const Key('nodes_delegate'),
               style: nodesQuietButtonStyle(context),
               onPressed: busy ? null : () => showDelegationChooser(context),
@@ -317,8 +318,11 @@ class _View extends StatelessWidget {
           ),
           nodesRewardsFigure(context, state: rewards),
         ],
+        figureAction: Padding(
+          padding: EdgeInsetsDirectional.only(start: tokens.pageGap),
+          child: PillarCollectAction(enabled: hasNodesRewards(rewards)),
+        ),
         actions: <Widget>[
-          PillarCollectAction(enabled: hasNodesRewards(rewards)),
           TextButton.icon(
             key: const Key('nodes_pillar_rewards'),
             style: nodesQuietButtonStyle(context),

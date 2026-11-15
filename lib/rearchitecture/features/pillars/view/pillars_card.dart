@@ -254,13 +254,18 @@ class _ViewState extends State<_View> {
           contentPadding: EdgeInsetsDirectional.symmetric(
             horizontal: tokens.inlineGap,
           ),
-          prefixIcon: ShellSymbol(
-            'search',
-            size: tokens.settingsIconSize,
-            color: tokens.faint,
+          prefixIcon: Center(
+            widthFactor: 1,
+            heightFactor: 1,
+            child: ShellSymbol(
+              'search',
+              size: tokens.settingsIconSize,
+              color: tokens.faint,
+            ),
           ),
           prefixIconConstraints: BoxConstraints(
             minWidth: tokens.pillarSearchHeight,
+            minHeight: tokens.pillarSearchHeight,
           ),
           filled: true,
           fillColor: tokens.card2,

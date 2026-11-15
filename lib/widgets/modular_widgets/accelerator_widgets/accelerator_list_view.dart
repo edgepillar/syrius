@@ -7,7 +7,7 @@ import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/list_en
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/motion/motion.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/empty_note.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/page_strip.dart'
-    show kStripLeadSize;
+    show stripTextHeight;
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/page_widgets.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/segment.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
@@ -146,7 +146,7 @@ class _AcceleratorListViewState extends State<AcceleratorListView> {
         PageRow.fixed(
           math.max(
             tokens.acceleratorStripHeight,
-            kStripLeadSize + tokens.stripPadding.vertical,
+            stripTextHeight(context),
           ),
           <PageCell>[
             PageCell(
@@ -261,6 +261,7 @@ class _AcceleratorListViewState extends State<AcceleratorListView> {
           ),
           prefixIconConstraints: BoxConstraints(
             minWidth: tokens.tokenSearchHeight,
+            minHeight: tokens.tokenSearchHeight,
           ),
           isDense: true,
           contentPadding: EdgeInsets.symmetric(horizontal: tokens.inlineGap),

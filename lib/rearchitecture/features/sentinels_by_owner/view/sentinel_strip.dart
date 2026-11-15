@@ -102,6 +102,7 @@ class SentinelStrip extends StatelessWidget {
 
     final Widget strip = PageStrip(
       key: const Key('nodes_sentinels_strip'),
+      minimumContentHeight: kStripTextContentHeight,
       lead: sentinel == null
           ? null
           : NodeObject.sentinel(
@@ -119,7 +120,7 @@ class SentinelStrip extends StatelessWidget {
         StripFigure(
           label: context.l10n.nodesToCollect,
           value: HiddenAmount(child: rewards),
-          trailing: collectAction,
+          action: collectAction,
         ),
         if (!empty)
           StripFigure(

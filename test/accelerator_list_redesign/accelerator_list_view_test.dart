@@ -103,10 +103,18 @@ void main() {
             find.byKey(const Key('accelerator_list')),
           );
           expect(ledger.top - strip.bottom, 12);
+          expect(strip.height, inInclusiveRange(70, 71));
           final Finder search = find.byKey(const Key('accelerator_search'));
           expect(tester.getSize(find.descendant(
             of: search, matching: find.byType(InputDecorator),
           )).height, 30);
+          final Finder searchInput = find.descendant(
+            of: search, matching: find.byType(EditableText),
+          );
+          final Size searchFill = InputDecorator.containerOf(
+            tester.element(searchInput),
+          )!.size;
+          expect(searchFill.height, 30);
           expectMockupSymbol(
             tester, within: search, symbol: 'search', size: 14,
             color: AppTokens.of(tester.element(search)).faint,

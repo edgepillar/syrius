@@ -184,6 +184,57 @@ void main() {
           expect(tester.getSize(find.byKey(_lead)), const Size.square(48));
         }
       }
+      int activations = 0;
+      const Key inlineAction = Key('strip-inline-action');
+      for (final TextDirection direction in TextDirection.values) {
+        await tester.pumpWidget(
+          _host(
+            _page(
+              PageStrip(
+                key: _strip,
+                minimumContentHeight: kStripTextContentHeight,
+                figures: <StripFigure>[
+                  StripFigure(
+                    label: 'To collect',
+                    value: const Text('3.214 ZNN'),
+                    action: TextButton(
+                      key: inlineAction,
+                      onPressed: () => activations++,
+                      style: TextButton.styleFrom(
+                        minimumSize: const Size(0, 30),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                      ),
+                      child: const Text('Collect'),
+                    ),
+                  ),
+                  const StripFigure(label: 'Revocable', value: Text('now')),
+                ],
+              ),
+            ),
+            direction: direction,
+          ),
+        );
+        final Rect strip = tester.getRect(find.byKey(_strip));
+        final Rect action = tester.getRect(find.byKey(inlineAction));
+        final Rect value = tester.getRect(find.text('3.214 ZNN'));
+        final Rect next = tester.getRect(find.text('REVOCABLE'));
+        expect(action.center.dy, closeTo(strip.center.dy, 0.01));
+        expect(strip.height, inInclusiveRange(70, 71));
+        expect(stripTextHeight(tester.element(find.byKey(_strip))),
+          inInclusiveRange(70, 71),
+        );
+        if (direction == TextDirection.ltr) {
+          expect(action.left, greaterThan(value.right));
+          expect(action.right, lessThan(next.left));
+        } else {
+          expect(action.right, lessThan(value.left));
+          expect(action.left, greaterThan(next.right));
+        }
+        await tester.tap(find.byKey(inlineAction));
+        await tester.pump();
+      }
+      expect(activations, 2);
       await tester.pumpWidget(
         _host(
           MediaQuery(

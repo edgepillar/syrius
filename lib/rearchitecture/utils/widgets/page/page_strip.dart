@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/page_widgets.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
@@ -5,6 +7,21 @@ import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 /// The edge of the strip's [PageStrip.lead] slot: the smallest size an
 /// object animation is still drawn at.
 const double kStripLeadSize = 48;
+
+/// Text-only strips keep the mockup's smaller content minimum.
+const double kStripTextContentHeight = 46;
+
+/// The ordinary text figure's line boxes, including accessible text scaling.
+double stripTextHeight(BuildContext context) {
+  final AppTokens tokens = AppTokens.of(context);
+  final TextScaler scaler = MediaQuery.textScalerOf(context);
+  final TextStyle label = ledgerLabelStyle(context);
+  final TextStyle value = stripValueStyle(context);
+  final double content = scaler.scale(label.fontSize!) * (label.height ?? 1) +
+      3 + scaler.scale(value.fontSize!) * (value.height ?? 1);
+  return math.max(kStripTextContentHeight, content) +
+      tokens.stripPadding.vertical;
+}
 
 /// The style of a figure's value in a [PageStrip].
 ///
@@ -29,6 +46,7 @@ class StripFigure {
     required this.label,
     required this.value,
     this.trailing,
+    this.action,
     this.onTap,
   });
 
@@ -46,6 +64,9 @@ class StripFigure {
   /// Shown after the value, dim: a dollar amount. It inherits
   /// [stripTrailingStyle].
   final Widget? trailing;
+
+  /// A control beside the whole figure, centered across both text lines.
+  final Widget? action;
 
   /// Makes the figure a button with a chevron at its end: "Your pillar"
   /// opening its panel.
@@ -194,7 +215,17 @@ class _StripFigureViewState extends State<_StripFigureView> {
         ),
       ],
     );
-    if (figure.onTap == null) return column;
+    final Widget content = figure.action == null
+        ? column
+        : Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Flexible(child: column),
+              SizedBox(width: tokens.pageGap),
+              figure.action!,
+            ],
+          );
+    if (figure.onTap == null) return content;
     final bool rtl = Directionality.of(context) == TextDirection.rtl;
     return Semantics(
       button: true,
@@ -220,7 +251,7 @@ class _StripFigureViewState extends State<_StripFigureView> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              Flexible(child: column),
+              Flexible(child: content),
               // The chevron points the way the interface reads.
               Icon(
                 rtl ? Icons.chevron_left : Icons.chevron_right,

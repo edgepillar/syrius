@@ -275,6 +275,14 @@ void main() {
         matching: find.byType(InputDecorator),
       );
       expect(tester.getSize(searchPaint).height, 30);
+      final Finder searchInput = find.descendant(
+        of: searchPaint,
+        matching: find.byType(EditableText),
+      );
+      final Size searchFill = InputDecorator.containerOf(
+        tester.element(searchInput),
+      )!.size;
+      expect(searchFill.height, 30);
 
       for (final (String, double, Color) control in <(String, double, Color)>[
         ('pillars_search', 14, tokens.faint),
@@ -288,6 +296,7 @@ void main() {
         final SvgPicture mark = tester.widget<SvgPicture>(original);
         expect(mark.width, control.$2);
         expect(mark.height, control.$2);
+        expect(tester.getSize(original), Size.square(control.$2));
         expect(mark.colorFilter, ColorFilter.mode(control.$3, BlendMode.srcIn));
         expect(mark.excludeFromSemantics, isTrue);
       }

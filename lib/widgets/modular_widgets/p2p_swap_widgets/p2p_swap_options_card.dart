@@ -47,6 +47,7 @@ class P2pSwapOptionsCard extends StatelessWidget {
         Ltr(child: Text(value?.toString() ?? context.l10n.swapListUnknown));
     final Widget strip = PageStrip(
       key: const Key('p2p_swaps_strip'),
+      minimumContentHeight: kStripTextContentHeight,
       figures: <StripFigure>[
         StripFigure(
           label: context.l10n.swapListActive,

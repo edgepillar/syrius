@@ -1,6 +1,6 @@
 # First delivery and deferred acceptance
 
-Updated 2026-11-14.
+Updated 2026-11-15.
 
 The core interface and existing basic functionality are available for
 [code review](https://github.com/sol-znn/syrius/pull/6). Unavailable
@@ -11,33 +11,42 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
-[Source778](source776-bell-observation-and-absence.md) gives the existing
-retained-region refusal a zero timeout. Bell's now-valid absence loop had
-awaited a delayed poll inside the widget fake-clock test. The assertion still
-requires refusal while the panel is retained. Production waits and runtime
-code stay unchanged. The existing readonly observer suite now joins the early
-compact gate; there is no new case or suite file.
+[Source779](source779-search-paint-and-strip-actions.md) prepares the search
+decoration and strip action corrections observed in Source778's current
+general captures. Node/Accelerator fields keep their 30-pixel outer size and
+14-pixel symbols while their prefix regions also establish the filled height.
+Existing cases check the actual container as well as the outer field.
 
-Source777 Linux 43665083875 passes root Python, patched/global and 282-file
-strict analysis, Ready, Lock and compact widgets, including all four framed
-Bell variants. Its complete directory has one failure: the passive-ancestor
-matrix times out after ten minutes. Generation is skipped. The complete
-1,391,699-byte log remains protected after successful owned closure. The
-earlier metadata-only active-job probe returns 404 and is retained separately.
-All owned outputs are consumed; no failed CI job is retried.
+Text-only Plasma, swap, Accelerator and node summaries use their smaller
+content minimum; ordinary defaults and actual 48-pixel animation slots remain.
+The Accelerator row follows current scaled line boxes. Delegate/Collect stay
+beside their figures, centered across both lines, with existing callbacks and
+disabled/busy admission. The existing strip case checks ordering, both
+directions, callback delivery and scaled growth.
 
-Source776's strict inline-return info and Source775's coordinate-list info
-remain preserved with their skipped widget/generation steps. Source777 clears
-both analysis locations. Source774's four missing-marker failures and complete
-log remain protected, including its earlier zero-byte transport failure.
-Source773's failed native tour, zero captures and forced required-actor cleanup
-remain preserved. Native/image qualification remains Source765, with sixteen
-general mismatches and eight unresolved pairs.
+Six mocked focused-analysis controls pass without a local Dart SDK. Two
+newly touched files join strict analysis, now 284, and the existing strip suite
+joins the early compact gate. Test registrations remain unchanged. Fresh full
+Linux precedes another native observation; Source779 is not yet qualified.
 
-Fresh full Linux precedes native work. Panel widgets, input and financial
-admission, the native workflow, 282-file strict selection and test case
-registrations stay unchanged. Scope and accepted pairs remain 76/80 and 2/94;
-no native pass or speedup is claimed.
+Source778 Linux 43667601132 passes all thirteen required steps. Windows
+43668531162 and reader 43670437574 verify 1505 Dart passes, 1226 Python cases
+with eighteen skips, zero selected findings, 123 reader controls, 87 source
+files and 42 PNGs. Required actors and all five nodes exit normally; auxiliary
+VCTIP cleanup remains forced and runner lifecycle remains unqualified.
+
+All twenty-four current general PNGs are individually viewed: fourteen
+mismatches, ten unresolved pairs and zero matches. Unchanged references reuse
+their pinned prior views; eight are reopened. Bell client/header geometry is
+corrected. Real empty/genesis states remain, with no invented sample data.
+
+Three local review-record refusals remain closed failures. A distinct
+metadata-only reconciliation uses the verified archive/report objects with
+no new transport, CI or image replay. All owned outputs are consumed and
+registered disposable scratch is removed. Earlier failed CI remains preserved.
+
+Accepted scope and Source730 Ready pairs remain 76/80 and 2/94. No new send,
+seed, whole-image acceptance or performance improvement is claimed.
 
 [Source761](source761-address-action-gap.md) preserves Source760 full Linux
 43609477103 as failed after strict analysis, Ready and Lock pass. Both added
