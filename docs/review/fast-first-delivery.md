@@ -11,6 +11,13 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
+[Source793](source793-dart-line-limits.md) wraps five added Dart lines without
+behavior or literal changes. Every added line is within 80 characters.
+Source792 full Linux 43729237290 passes application and patched analysis,
+then stops at five fatal-info line findings with no errors or warnings. Widget
+gates, the full directory and generation are skipped. Zero artifacts and no
+native dispatch remain; the original failure and all outputs are preserved.
+
 [Source792](source792-welcome-readiness-and-accelerator-header.md) observes the
 genuine empty Welcome and unchanged ready context for one second before the
 original paired import, then rechecks owner and empty profile. Original tap
@@ -60,7 +67,7 @@ succeeds. The exact P06 preparation cause remains unestablished. Source645 and
 Source744 failed results stay preserved. Outputs are consumed without local
 SDK execution or artifact transfer.
 
-Fresh Source792 full Linux and paired native execution remain required.
+Fresh Source793 full Linux and paired native execution remain required.
 Scope and Source730 Ready pairs stay 76/80 and 2/94.
 
 [Source761](source761-address-action-gap.md) preserves Source760 full Linux

@@ -162,7 +162,9 @@ void main() {
             find.byKey(const Key('accelerator_filter_all')),
             findsOneWidget,
           );
-          for (final String filter in <String>['voting', 'active', 'mine', 'all']) {
+          for (final String filter in <String>[
+            'voting', 'active', 'mine', 'all',
+          ]) {
             final Finder label = find.descendant(
               of: find.byKey(Key('accelerator_filter_$filter')),
               matching: find.byType(Text),

@@ -86,7 +86,9 @@ class AcceleratorStats extends StatelessWidget {
                   style: tokens.stripAmountText,
                   children: <InlineSpan>[
                     const TextSpan(text: ' '),
-                    TextSpan(text: '·', style: tokens.acceleratorStripDetailText),
+                    TextSpan(
+                      text: '·', style: tokens.acceleratorStripDetailText,
+                    ),
                     const TextSpan(text: ' '),
                   ],
                 ),

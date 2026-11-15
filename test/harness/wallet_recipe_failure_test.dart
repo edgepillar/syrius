@@ -495,76 +495,79 @@ void main() {
     expect(selected, 0);
   });
 
-  test('entry labels reject raw text and keep only known view families', () async {
-    final Map<String, String> value = walletRecipeDiagnostic(
-      <String, Object?>{'action': 'observe', 'key': 'welcome_import'},
-      'wallet-recipe-control-absent', entryPhase: 'startup-platform-error',
-    );
-    expect(value['entry'], 'startup-platform-error');
-    expect(walletRecipePublicDiagnostic(value), value);
-    final Map<String, String>? projected = pairedFrameRecipeDiagnostic(
-      WalletRecipeRefused('synthetic private code', diagnostic: value),
-    );
-    expect(projected, value);
-    expect(jsonEncode(projected), isNot(contains('synthetic private')));
-    expect(() => projected!['control'] = 'changed', throwsUnsupportedError);
-    expect(walletRecipePublicDiagnostic(<String, String>{
-      ...value, 'entry': 'synthetic private exception text',
-    }), isNull);
-    expect(walletRecipeDiagnostic(<String, Object?>{'action': 'observe'},
-      'wallet-recipe-control-absent', entryPhase: 'synthetic private data',
-    ).containsKey('entry'), isFalse);
-    for (final String handoff in walletRecipeStartupHandoffs) {
-      final Map<String, String> traced = <String, String>{
-        ...value, 'startup': handoff,
-      };
-      expect(walletRecipePublicDiagnostic(traced), traced);
-    }
-    expect(walletRecipePublicDiagnostic(<String, String>{
-      ...value, 'startup': 'synthetic private input',
-    }), isNull);
-    for (final String film in walletRecipeStartupFilmStates) {
-      final Map<String, String> traced = <String, String>{
-        ...value, 'startup': 'key-confirmed', 'film': film,
-      };
-      expect(walletRecipePublicDiagnostic(traced), traced);
-    }
-    for (final Object? film in <Object?>[
-      'synthetic private asset', 1, true, null,
-    ]) {
-      expect(walletRecipePublicDiagnostic(<String, Object?>{
-        ...value, 'film': film,
+  test(
+    'entry labels reject raw text and keep only known view families',
+    () async {
+      final Map<String, String> value = walletRecipeDiagnostic(
+        <String, Object?>{'action': 'observe', 'key': 'welcome_import'},
+        'wallet-recipe-control-absent', entryPhase: 'startup-platform-error',
+      );
+      expect(value['entry'], 'startup-platform-error');
+      expect(walletRecipePublicDiagnostic(value), value);
+      final Map<String, String>? projected = pairedFrameRecipeDiagnostic(
+        WalletRecipeRefused('synthetic private code', diagnostic: value),
+      );
+      expect(projected, value);
+      expect(jsonEncode(projected), isNot(contains('synthetic private')));
+      expect(() => projected!['control'] = 'changed', throwsUnsupportedError);
+      expect(walletRecipePublicDiagnostic(<String, String>{
+        ...value, 'entry': 'synthetic private exception text',
       }), isNull);
-    }
-    Duration elapsed = Duration.zero;
-    Duration? lastRevision;
-    int reads = 0;
-    await pairedFrameWaitForWelcome(
-      (Map<String, Object?> command, Duration timeout) async {
-        expect(command, <String, Object?>{
-          'cmd': 'wallet-recipe', 'action': 'observe',
-        });
-        expect(timeout, greaterThan(Duration.zero));
-        expect(timeout, lessThanOrEqualTo(const Duration(seconds: 10)));
-        reads++;
-        if (reads == 7) lastRevision = elapsed;
-        final Map<String, dynamic> view = _pairedWelcomeView(
-          phase: reads <= 2 ? 'startup-initialization-started' : 'welcome',
-          revision: reads < 7 ? 1 : 2,
-          enabled: reads != 5,
-        );
-        if (reads <= 2) view['controls'] = <Map<String, dynamic>>[];
-        return view;
-      },
-      wait: (Duration duration) async { elapsed += duration; },
-      elapsed: () => elapsed,
-    );
-    expect(reads, greaterThan(8));
-    expect(
-      elapsed - lastRevision!,
-      greaterThanOrEqualTo(const Duration(seconds: 1)),
-    );
-  });
+      expect(walletRecipeDiagnostic(<String, Object?>{'action': 'observe'},
+        'wallet-recipe-control-absent', entryPhase: 'synthetic private data',
+      ).containsKey('entry'), isFalse);
+      for (final String handoff in walletRecipeStartupHandoffs) {
+        final Map<String, String> traced = <String, String>{
+          ...value, 'startup': handoff,
+        };
+        expect(walletRecipePublicDiagnostic(traced), traced);
+      }
+      expect(walletRecipePublicDiagnostic(<String, String>{
+        ...value, 'startup': 'synthetic private input',
+      }), isNull);
+      for (final String film in walletRecipeStartupFilmStates) {
+        final Map<String, String> traced = <String, String>{
+          ...value, 'startup': 'key-confirmed', 'film': film,
+        };
+        expect(walletRecipePublicDiagnostic(traced), traced);
+      }
+      for (final Object? film in <Object?>[
+        'synthetic private asset', 1, true, null,
+      ]) {
+        expect(walletRecipePublicDiagnostic(<String, Object?>{
+          ...value, 'film': film,
+        }), isNull);
+      }
+      Duration elapsed = Duration.zero;
+      Duration? lastRevision;
+      int reads = 0;
+      await pairedFrameWaitForWelcome(
+        (Map<String, Object?> command, Duration timeout) async {
+          expect(command, <String, Object?>{
+            'cmd': 'wallet-recipe', 'action': 'observe',
+          });
+          expect(timeout, greaterThan(Duration.zero));
+          expect(timeout, lessThanOrEqualTo(const Duration(seconds: 10)));
+          reads++;
+          if (reads == 7) lastRevision = elapsed;
+          final Map<String, dynamic> view = _pairedWelcomeView(
+            phase: reads <= 2 ? 'startup-initialization-started' : 'welcome',
+            revision: reads < 7 ? 1 : 2,
+            enabled: reads != 5,
+          );
+          if (reads <= 2) view['controls'] = <Map<String, dynamic>>[];
+          return view;
+        },
+        wait: (Duration duration) async { elapsed += duration; },
+        elapsed: () => elapsed,
+      );
+      expect(reads, greaterThan(8));
+      expect(
+        elapsed - lastRevision!,
+        greaterThanOrEqualTo(const Duration(seconds: 1)),
+      );
+    },
+  );
 
   for (final bool disabled in <bool>[false, true]) {
     test('wait labels identify the unavailable control $disabled', () async {
@@ -691,7 +694,8 @@ void main() {
     await expectLater(run(), throwsA(isA<WalletRecipeRefused>()));
     expect(calls, 1);
 
-    for (final (String, Object?, String) mutation in <(String, Object?, String)>[
+    for (final (String, Object?, String) mutation
+        in <(String, Object?, String)>[
       ('booted', false, 'wallet-recipe-observation-refused'),
       ('hasError', true, 'wallet-recipe-observation-refused'),
       ('harnessMode', 'capture', 'wallet-recipe-observation-refused'),
@@ -753,7 +757,8 @@ void main() {
       },
       elapsed: () => Duration.zero,
     ), throwsA(isA<WalletRecipeRefused>().having(
-      (WalletRecipeRefused error) => error.code, 'code', 'wallet-recipe-deadline',
+      (WalletRecipeRefused error) => error.code,
+      'code', 'wallet-recipe-deadline',
     )));
     expect(reads, 1);
     expect(waits, 1);
