@@ -714,6 +714,10 @@ class AppTokens extends ThemeExtension<AppTokens> {
   TextStyle get plasmaFuseHintText =>
       bodyText.copyWith(fontSize: 12.5, color: dim);
 
+  /// Selection instructions are interface prose, separate from dollar data.
+  TextStyle get plasmaSelectionText =>
+      bodyText.copyWith(fontSize: 12.5, color: dim);
+
   /// The one Fuse action aligns with the compact fields.
   double get plasmaFuseActionHeight => 42;
 
@@ -1666,6 +1670,14 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Recent-recipient chips keep their compact line height.
   EdgeInsetsDirectional get transferChipPadding =>
       const EdgeInsetsDirectional.symmetric(horizontal: 10, vertical: 3);
+
+  /// Address selectors use the reference chip size and dim interface role.
+  TextStyle get transferChipText =>
+      bodyText.copyWith(fontSize: 12, color: dim);
+
+  /// Exact selector balances retain the mono data role at the same size.
+  TextStyle get transferChipDataText =>
+      transferChipText.copyWith(fontFamily: monoFontFamily);
 
   /// Token selection stays secondary to the amount.
   double get transferTokenWidth => 170;

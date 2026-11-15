@@ -31,7 +31,7 @@ class _TransferReceiver extends StatelessWidget {
             }
           },
           style: TextButton.styleFrom(
-            foregroundColor: tokens.foreground,
+            foregroundColor: tokens.dim,
             backgroundColor: tokens.card2,
             minimumSize: Size(0, tokens.compactButtonHeight),
             padding: tokens.transferChipPadding,
@@ -39,7 +39,7 @@ class _TransferReceiver extends StatelessWidget {
               borderRadius: BorderRadius.circular(tokens.transferControlRadius),
               side: BorderSide(color: tokens.line),
             ),
-            textStyle: tokens.compactText,
+            textStyle: tokens.transferChipText,
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -148,30 +148,30 @@ class _TransferSender extends StatelessWidget {
                       Flexible(
                         child: Text(
                           label(selected),
-                          style: tokens.compactText,
+                          style: tokens.transferChipText,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       ExcludeSemantics(
-                        child: Text(' · ', style: tokens.captionText),
+                        child: Text(' · ', style: tokens.transferChipText),
                       ),
                       Flexible(
                         child: HiddenAmount(
-                          style: tokens.captionText,
+                          style: tokens.transferChipDataText,
                           child: Text(
                             splitAmount(
                               balances![selected]!
                                   .getBalance(kZnnCoin.tokenStandard),
                               kZnnCoin.decimals,
                             ).$1,
-                            style: tokens.captionText,
+                            style: tokens.transferChipDataText,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ),
-                      Text(' ZNN', style: tokens.captionText),
+                      Text(' ZNN', style: tokens.transferChipDataText),
                       SizedBox(width: tokens.transferRecentGap),
                       ShellSymbol(
                         'chev',

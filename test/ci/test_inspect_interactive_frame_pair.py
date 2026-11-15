@@ -70,6 +70,10 @@ class InteractiveFramePairTests(unittest.TestCase):
         offered = fixture()
         result = self.project(offered)
         self.assertEqual(result['entry_process_seconds'], {'current': 10, 'p06': 10})
+        self.assertEqual(result['observation_phases'], {'current': 'complete', 'p06': 'complete'})
+        self.assertEqual(result['entry_process_results'], dict.fromkeys(('current', 'p06'), dict(
+            success=True, exit_code=0, exit_observed=True, forced_kill=False,
+            output_complete=True, output_overflow=False, error_codes=[], output_bytes=110)))
         self.assertEqual(result['frame_window_us'], {
             'current': dict.fromkeys(pair.WINDOWS, 1000000),
             'p06': dict.fromkeys(pair.WINDOWS, 1000000)})
@@ -81,6 +85,37 @@ class InteractiveFramePairTests(unittest.TestCase):
         self.assertEqual(result['entry_process_seconds'], {'current': 10, 'p06': 10})
         self.assertFalse(result['artifact_reported_success'])
         self.assertFalse(result['timing_criterion_passed'])
+        preparation = fixture()
+        baseline = preparation['samples']['p06']
+        baseline['attempt'].update(action_complete=False,
+                                  error_codes=['STARTUP_OBSERVATION_REFUSED'])
+        baseline['observation'].update(phase='prepare_profile', lab_revalidations=1,
+            entry=pair.shared.baseline.Outcome(exit_code=1, exit_observed=True,
+                output_complete=True, output_bytes=97, seconds=34).public(),
+            success=False, windows={})
+        baseline['success'] = False
+        preparation.update(phase='p06_interactive', success=False, comparisons=None,
+                           same_fixture_address=False, error_codes=['FRAME_REFUSED'])
+        partial = self.project(preparation)
+        self.assertEqual(partial['observation_phases'],
+                         {'current': 'complete', 'p06': 'prepare_profile'})
+        self.assertEqual(partial['entry_process_results']['p06'], dict(
+            success=False, exit_code=1, exit_observed=True, forced_kill=False,
+            output_complete=True, output_overflow=False, error_codes=[], output_bytes=97))
+        self.assertEqual(partial['normal_entry_exits'], 1)
+        self.assertEqual(partial['frame_counts']['p06'], {})
+        self.assertFalse(partial['artifact_reported_success'])
+        self.assertFalse(partial['timing_criterion_passed'])
+        for phase in ('synthetic private phase', None, True):
+            private = deepcopy(preparation)
+            private['samples']['p06']['observation']['phase'] = phase
+            with self.subTest(phase=phase), self.assertRaises(archive.Refused):
+                self.project(private)
+        for code in ('synthetic private output', True, 2**32):
+            private = deepcopy(preparation)
+            private['samples']['p06']['observation']['entry']['exit_code'] = code
+            with self.subTest(exit_code=code), self.assertRaises(archive.Refused):
+                self.project(private)
         for bad in (-1, 221, True, 'private'):
             sample = fixture()
             sample['samples']['current']['observation']['entry']['seconds'] = bad
@@ -290,6 +325,7 @@ class InteractiveFramePairTests(unittest.TestCase):
         result = self.project(offered)
         self.assertTrue(result['artifact_reported_success'])
         self.assertEqual(result['frame_counts']['p06'], {'page_change': 512, 'disclosure': 512})
+        self.assertLessEqual(len(cold.canonical(result)), 3800)
         self.assertFalse(any(result['no_frame_number_gaps'].values()))
         self.assertFalse(result['timing_criterion_passed'])
 

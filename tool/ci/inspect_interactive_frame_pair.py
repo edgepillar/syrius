@@ -172,8 +172,15 @@ def project(raw, item, *, head, tree, run_id, lab, expected_entry):
         same_fixture_address=report['same_fixture_address'],
         action_progress={label: sample['observation'].get('action_progress')
                          for label, sample in samples.items() if sample.get('observation')},
+        observation_phases={label: sample['observation']['phase']
+                            for label, sample in samples.items() if sample.get('observation')},
         normal_wallet_exits=current_closed + p06_closed,
         normal_entry_exits=current_entry + p06_entry,
+        entry_process_results={label: {key: sample['observation']['entry'][key] for key in (
+            'success', 'exit_code', 'exit_observed', 'forced_kill', 'output_complete',
+            'output_overflow', 'error_codes', 'output_bytes')}
+            for label, sample in samples.items() if sample.get('observation')
+            and sample['observation']['entry'] is not None},
         entry_process_seconds={label: sample['observation']['entry']['seconds']
             for label, sample in samples.items() if sample.get('observation')
             and sample['observation']['entry'] is not None},

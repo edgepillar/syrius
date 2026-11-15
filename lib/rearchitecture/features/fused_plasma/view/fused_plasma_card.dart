@@ -133,7 +133,7 @@ class _FusedPlasmaCardState extends State<FusedPlasmaCard> {
             if (owner.selected.isNotEmpty) ...<Widget>[
               Text(
                 context.l10n.plasmaPageSelected(owner.selected.length),
-                style: tokens.dollarText,
+                style: tokens.plasmaSelectionText,
               ),
               SizedBox(width: tokens.cardGap),
               OutlinedButton(
@@ -159,7 +159,7 @@ class _FusedPlasmaCardState extends State<FusedPlasmaCard> {
                         batch.intent.entries.length,
                       ),
                 key: const Key('plasma_batch_summary'),
-                style: tokens.dollarText,
+                style: tokens.plasmaSelectionText,
               ),
           ],
           child: ListEntrance(
@@ -189,15 +189,15 @@ class _FusedPlasmaCardState extends State<FusedPlasmaCard> {
                       check: const SizedBox.shrink(),
                       amount: Text(
                         context.l10n.amount.toUpperCase(),
-                        style: tokens.ledgerText,
+                        style: ledgerLabelStyle(context),
                       ),
                       beneficiary: Text(
                         context.l10n.plasmaBeneficiary.toUpperCase(),
-                        style: tokens.ledgerText,
+                        style: ledgerLabelStyle(context),
                       ),
                       expires: Text(
                         context.l10n.plasmaExpires.toUpperCase(),
-                        style: tokens.ledgerText,
+                        style: ledgerLabelStyle(context),
                       ),
                       action: SizedBox(width: tokens.plasmaCheckboxWidth * 2),
                     ),
