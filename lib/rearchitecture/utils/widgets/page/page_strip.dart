@@ -106,12 +106,20 @@ class PageStrip extends StatelessWidget {
     this.actions = const <Widget>[],
     this.minimumContentHeight = kStripLeadSize,
     this.figureGap,
+    this.leadSize = const Size.square(kStripLeadSize),
+    this.leadGap,
     super.key,
   });
 
-  /// What leads the strip, in a square of [kStripLeadSize]: the page's
-  /// object animation, or the plasma glow.
+  /// What leads the strip: the page's object animation or plasma glow.
   final Widget? lead;
+
+  /// The lead's layout footprint, independent of its painted artwork.
+  /// Ordinary strips keep the original [kStripLeadSize] square.
+  final Size leadSize;
+
+  /// Space after the lead. Null keeps the ordinary card spacing.
+  final double? leadGap;
 
   /// The figures, from the start.
   final List<StripFigure> figures;
@@ -148,8 +156,8 @@ class PageStrip extends StatelessWidget {
           child: Row(
             children: <Widget>[
               if (lead != null) ...<Widget>[
-                SizedBox.square(dimension: kStripLeadSize, child: lead),
-                SizedBox(width: tokens.cardGap),
+                SizedBox.fromSize(size: leadSize, child: lead),
+                SizedBox(width: leadGap ?? tokens.cardGap),
               ],
               Expanded(
                 child: Row(

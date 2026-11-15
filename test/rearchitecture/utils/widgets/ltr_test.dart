@@ -118,21 +118,20 @@ void main() {
       expect(_span(p, 0, 1).right, lessThanOrEqualTo(_span(p, 1, 8).left));
     });
 
-    testWidgets('is what it was under a left-to-right interface', (
+    testWidgets('uses mono units after a full-size space left to right', (
       WidgetTester tester,
     ) async {
-      // The widget as it was built before the pin.
+      // The reference's unit changes size after the amount's full-size space.
       final Widget before = Text.rich(
         TextSpan(
           style: monoStyle(_style),
           children: const <InlineSpan>[
             TextSpan(text: '1,204.5'),
+            TextSpan(text: ' '),
             TextSpan(
-              text: ' ZNN',
+              text: 'ZNN',
               style: TextStyle(
-                fontFamily: kSansFontFamily,
                 fontSize: 28 * 0.53,
-                fontWeight: FontWeight.w500,
               ),
             ),
           ],

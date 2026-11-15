@@ -11,31 +11,29 @@ Windows CI substitute closes P03/P09; the original Docker/WSL route remains
 unqualified.
 
 Detailed qualification has resumed after the first code delivery.
-[Source786](source786-generated-locale-imports.md) retains the actual final
-hosted import layout: one blank separator removed from each of five locale Dart
-artifacts. Getter/value/translation bytes, the interface, missing-key report and
-handwritten code remain unchanged. The reconstructed files match the complete
-hosted patch and reported Git blob prefixes. No local SDK regeneration occurs.
+[Source787](source787-strip-and-dialog-layout.md) aligns the original Tokens
+mark's authored flow footprint, full-size amount/unit whitespace, the sender
+separator and the shared dialog's header/body/footer. Glass shadows paint
+outside and after the backdrop. Confirmation keeps full addresses, immutable
+facts, genuine notices, original callbacks and the existing transfer radius.
 
-Source785 Linux 43689235790 passes 1226 Python cases/seventeen skips, application
-analysis, 286-file strict analysis, every early widget gate and the complete
-non-chain directory. Only tracked generation fails. Sender grouping/privacy,
-semantics restoration and in-body handle disposal pass. The full 1412920-byte
-log is retained, its owned task closes successfully and outputs are consumed.
-The original failed job and earlier failures retain their exact outcomes.
+Existing tests cover original artwork geometry, amount direction, sender
+privacy and confirmation actions in both themes and a compact viewport.
+No test methods, selections, workflows or command limits change. Fresh hosted
+qualification is required before claiming current-source native or image results.
 
-Fresh full Linux must pass all thirteen required steps before grouped Windows
-and original-image qualification. The grouped UI retains Bell's exterior shadow
-after glass, exact sender grouping, the small canonical Tokens search glyph and
-localized Plasma captions. Cases, selections and command limits remain unchanged.
+Source786 Linux 43691421388 passes all thirteen required steps. Windows
+43692591063 and reader 43694795977 verify 1505 Dart passes, 1226 Python cases
+with eighteen skips, zero selected findings, 123 reader controls and 42 PNGs.
+Required actors and all five nodes exit normally; forced auxiliary compiler
+cleanup leaves full runner lifecycle unqualified.
 
-Source780 remains the latest qualified native/image source: producer 43678423037
-and reader 43680276935 verify 1505 Dart passes, 1226 Python/eighteen skips,
-123 reader controls and 42 original PNGs. Required actors/five nodes exit
-normally; auxiliary VCTIP cleanup is forced. Its 24 general originals retain
-thirteen mismatches, eleven unresolved pairs and zero new matches.
-Accepted scope and Source730 Ready pairs stay 76/80 and 2/94. No current native,
-new financial send, seed, visual acceptance or performance pass is claimed.
+Source786's 24 individually viewed general originals retain twelve mismatches,
+twelve unresolved pairs and no new matches. Eight references were reopened.
+Its archive/report are retained, owned task closes successfully and scratch is
+removed. All outputs are consumed before source changes; earlier failures stay
+preserved. Scope and Source730 Ready pairs remain 76/80 and 2/94. Current-source
+visual acceptance, financial-send/seed and performance results are not projected.
 
 [Source761](source761-address-action-gap.md) preserves Source760 full Linux
 43609477103 as failed after strict analysis, Ready and Lock pass. Both added

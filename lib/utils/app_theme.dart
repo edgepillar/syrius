@@ -674,6 +674,19 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// The token search field matches the compact page heading.
   double get tokenSearchHeight => 30;
 
+  /// The original 52 px token artwork keeps the reference's negative
+  /// margins: 38 by 36 px in flow, without shrinking its painted mark.
+  Size get tokenStripLeadSize => const Size(38, 36);
+
+  /// The original token composition is drawn at its authored strip size.
+  double get tokenStripArtworkSize => 52;
+
+  /// The negative start margin belongs to the artwork, not its next fact.
+  double get tokenStripArtworkStartOverhang => 6;
+
+  /// The token mark shares the strip's 28 px gap between facts.
+  double get tokenStripLeadGap => 28;
+
   /// Reserves space for each token's exact available units.
   double get tokenBalanceWidth => 140;
 
@@ -1935,6 +1948,24 @@ class AppTokens extends ThemeExtension<AppTokens> {
 
   /// The blur within a glass dialog.
   double get dialogBlur => 10;
+
+  /// Dialog sections retain the original header, body and footer insets.
+  EdgeInsetsDirectional get dialogHeaderPadding =>
+      const EdgeInsetsDirectional.symmetric(horizontal: 20, vertical: 14);
+
+  /// The scrollable body is separate from the divided header.
+  EdgeInsetsDirectional get dialogBodyPadding =>
+      const EdgeInsetsDirectional.symmetric(horizontal: 20, vertical: 16);
+
+  /// Actions have a smaller top inset and remain clear of the bottom edge.
+  EdgeInsetsDirectional get dialogFooterPadding =>
+      const EdgeInsetsDirectional.fromSTEB(20, 12, 20, 16);
+
+  /// Independent facts and notices are separate blocks in a dialog body.
+  double get dialogBodyGap => 12;
+
+  /// Related confirmation facts use the reference's compact key/value gap.
+  double get confirmationFactGap => 6;
 
   /// The blur within a panel or toast.
   double get panelBlur => 12;

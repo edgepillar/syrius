@@ -442,7 +442,25 @@ void main() {
       final AppLottie original = tester.widget<AppLottie>(
         find.byType(AppLottie),
       );
-      expect(original.size, kStripLeadSize);
+      final AppTokens tokens = AppTokens.of(
+        tester.element(find.byKey(const Key('tokens_strip'))),
+      );
+      expect(original.size, tokens.tokenStripArtworkSize);
+      final Rect strip = tester.getRect(find.byKey(const Key('tokens_strip')));
+      final Rect artwork = tester.getRect(find.byType(AppLottie));
+      expect(artwork.size, const Size.square(52));
+      expect(
+        artwork.left - strip.left,
+        closeTo(tokens.stripPadding.start - 6, 0.01),
+      );
+      expect(artwork.center.dy, closeTo(strip.center.dy, 0.01));
+      expect(
+        tester.getRect(find.byKey(const Key('tokens_figure_held'))).left -
+            strip.left,
+        closeTo(tokens.stripPadding.start + 38 + 28, 0.01),
+      );
+      expect(strip.height, inInclusiveRange(70, 71));
+      expect(tester.takeException(), isNull);
       expect(
         find.byWidgetPredicate(
           (Widget widget) =>

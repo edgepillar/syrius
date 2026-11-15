@@ -506,6 +506,14 @@ void main() {
           of: sender, matching: find.text('1,000'),
         );
         expect(grouped, findsOneWidget);
+        final Finder separator = find.descendant(
+          of: sender, matching: find.text(' · '),
+        );
+        expect(separator, findsOneWidget);
+        expect(
+          tester.getRect(separator).right,
+          lessThanOrEqualTo(tester.getRect(grouped).left),
+        );
         final SemanticsFinder announced =
             find.semantics.byLabel(RegExp('1,000'));
         expect(announced, findsWidgets);

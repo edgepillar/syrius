@@ -7,7 +7,7 @@ import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/fros
 /// The widest a dialog gets.
 const double kDialogWidth = 420;
 
-/// The padding inside every dialog and modal.
+/// The shared inset for modal bodies that supply their own chrome.
 const EdgeInsets kDialogPadding = EdgeInsets.fromLTRB(24, 20, 24, 20);
 
 /// The line colour of the theme in force. The stepper screens run under a
@@ -174,8 +174,7 @@ class _RiseInState extends State<RiseIn> with SingleTickerProviderStateMixin {
 }
 
 /// The surface of an ordinary dialog: the glass tone, the dialog radius, a
-/// title in the panel title style, a short body, and the actions at the
-/// right with the primary one last.
+/// divided title row, a scrollable body, and a separate action footer.
 class DialogCard extends StatelessWidget {
   /// Creates a dialog surface.
   const DialogCard({
@@ -224,10 +223,11 @@ class DialogCard extends StatelessWidget {
         ),
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: width),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
+          child: CustomPaint(
+            // Paint outside the glass after its backdrop has been sampled.
+            foregroundPainter: OuterShadowPainter(
               borderRadius: radius,
-              boxShadow: <BoxShadow>[tokens.dialogShadow],
+              shadows: <BoxShadow>[tokens.dialogShadow],
             ),
             child: FrostedSurface(
               borderRadius: radius,
@@ -244,57 +244,59 @@ class DialogCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       border: Border(top: tokens.glassTopEdge),
                     ),
-                    child: Padding(
-                      padding: kDialogPadding,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: <Widget>[
-                          Row(
-                            children: <Widget>[
-                              if (icon != null) ...<Widget>[
-                                icon!,
-                                const SizedBox(width: 10),
-                              ],
-                              Expanded(
-                                child: Text(
-                                  title,
-                                  style: panelTitleStyle(context),
-                                ),
-                              ),
-                            ],
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        DecoratedBox(
+                          decoration: BoxDecoration(
+                            border: Border(
+                              bottom: BorderSide(color: tokens.line),
+                            ),
                           ),
-                          const SizedBox(height: 10),
-                          Flexible(
-                            child: SingleChildScrollView(
+                          child: Padding(
+                            padding: tokens.dialogHeaderPadding,
+                            child: Row(
+                              children: <Widget>[
+                                if (icon != null) ...<Widget>[
+                                  icon!,
+                                  SizedBox(width: tokens.cardGap),
+                                ],
+                                Expanded(
+                                  child: Text(
+                                    title,
+                                    style: panelTitleStyle(context),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Flexible(
+                          child: SingleChildScrollView(
+                            child: Padding(
+                              padding: tokens.dialogBodyPadding,
                               child: DefaultTextStyle.merge(
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  height: 1.45,
-                                  color: dimColorOf(context),
+                                style: tokens.bodyText.copyWith(
+                                  color: tokens.dim,
                                 ),
                                 child: body,
                               ),
                             ),
                           ),
-                          if (actions.isNotEmpty) ...<Widget>[
-                            const SizedBox(height: 20),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: <Widget>[
-                                for (
-                                  int i = 0;
-                                  i < actions.length;
-                                  i++
-                                ) ...<Widget>[
-                                  if (i > 0) const SizedBox(width: 8),
-                                  actions[i],
-                                ],
-                              ],
+                        ),
+                        if (actions.isNotEmpty)
+                          Padding(
+                            padding: tokens.dialogFooterPadding,
+                            child: OverflowBar(
+                              alignment: MainAxisAlignment.end,
+                              overflowAlignment: OverflowBarAlignment.end,
+                              spacing: tokens.inlineGap,
+                              overflowSpacing: tokens.inlineGap,
+                              children: actions,
                             ),
-                          ],
-                        ],
-                      ),
+                          ),
+                      ],
                     ),
                   ),
                 ),

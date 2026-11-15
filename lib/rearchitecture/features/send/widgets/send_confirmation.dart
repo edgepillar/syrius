@@ -2,9 +2,12 @@ import 'package:material_ui/material_ui.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/model/send_intent.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/extensions/buildcontext_extension.dart';
 import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/ltr.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/utils/widgets/page/page_widgets.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/rail.dart'
+    show ShellSymbol;
 
 /// Shows the exact captured transfer without performing any wallet operation.
 class SendConfirmation extends StatelessWidget {
@@ -51,19 +54,27 @@ class SendConfirmation extends StatelessWidget {
     Widget party(String? name, String address) => Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        if (name != null && name.isNotEmpty) Text(name),
-        Ltr(child: SelectableText(address, style: tokens.receiveQrAddressText)),
+        if (name != null && name.isNotEmpty) Text(name, style: tokens.bodyText),
+        Ltr(
+          child: SelectableText(
+            address,
+            style: tokens.dataText.copyWith(fontSize: 13, color: tokens.dim),
+          ),
+        ),
       ],
     );
-    Widget row(String label, Widget value) => Padding(
-      padding: EdgeInsetsDirectional.only(bottom: tokens.transferFieldGap),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          SizedBox(width: 62, child: Text(label, style: tokens.captionText)),
-          Expanded(child: value),
-        ],
-      ),
+    Widget row(String label, Widget value) => Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        SizedBox(
+          width: 62,
+          child: Text(
+            usesLatinScript(context) ? label.toUpperCase() : label,
+            style: ledgerLabelStyle(context),
+          ),
+        ),
+        Expanded(child: value),
+      ],
     );
     return DialogCard(
       key: const Key('send_confirmation_marker'),
@@ -78,10 +89,12 @@ class SendConfirmation extends StatelessWidget {
             context.l10n.sendConfirmTo,
             party(recipientName, intent.toAddress),
           ),
+          SizedBox(height: tokens.confirmationFactGap),
           row(
             context.l10n.sendConfirmFrom,
             party(senderName, intent.fromAddress),
           ),
+          SizedBox(height: tokens.confirmationFactGap),
           row(
             context.l10n.plasma,
             Text(
@@ -89,19 +102,17 @@ class SendConfirmation extends StatelessWidget {
               style: tokens.transferCaptionText,
             ),
           ),
-          if (contactsUnavailable || firstTime)
-            Padding(
-              padding: EdgeInsetsDirectional.only(
-                bottom: tokens.transferFieldGap,
-              ),
-              child: Text(
-                contactsUnavailable
-                    ? context.l10n.sendContactsUnavailable
-                    : context.l10n.sendFirstTimeRecipient,
-                style: tokens.transferCaptionText.copyWith(color: tokens.warn),
-              ),
+          if (contactsUnavailable || firstTime) ...<Widget>[
+            SizedBox(height: tokens.dialogBodyGap),
+            Text(
+              contactsUnavailable
+                  ? context.l10n.sendContactsUnavailable
+                  : context.l10n.sendFirstTimeRecipient,
+              style: tokens.transferCaptionText.copyWith(color: tokens.warn),
             ),
-          if (hardware)
+          ],
+          if (hardware) ...<Widget>[
+            SizedBox(height: tokens.dialogBodyGap),
             Container(
               padding: tokens.transferWarningPadding,
               decoration: BoxDecoration(
@@ -110,18 +121,31 @@ class SendConfirmation extends StatelessWidget {
                   tokens.transferControlRadius,
                 ),
               ),
-              child: Text(
-                context.l10n.sendHardwareConfirm,
-                style: tokens.transferCaptionText,
+              child: Row(
+                children: <Widget>[
+                  ShellSymbol(
+                    'usb',
+                    size: tokens.smallActionGlyphSize,
+                    color: tokens.dim,
+                  ),
+                  SizedBox(width: tokens.inlineGap),
+                  Expanded(
+                    child: Text(
+                      context.l10n.sendHardwareConfirm,
+                      style: tokens.transferCaptionText,
+                    ),
+                  ),
+                ],
               ),
             ),
+          ],
         ],
       ),
       actions: <Widget>[
         TextButton(
           key: const Key('send_confirmation_cancel'),
           onPressed: onCancel,
-          style: quietButtonStyle(context),
+          style: secondaryButtonStyle(context),
           child: Text(context.l10n.cancel),
         ),
         PrimaryPill(

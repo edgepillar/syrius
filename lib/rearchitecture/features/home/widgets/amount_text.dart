@@ -76,18 +76,20 @@ class AmountText extends StatelessWidget {
         style: mono,
         children: <InlineSpan>[
           TextSpan(text: head),
-          if (symbol != null)
+          if (symbol != null) ...<InlineSpan>[
+            // CSS leaves this space in the amount's run, before the
+            // smaller mono unit. Shrinking it makes adjacent data touch.
+            const TextSpan(text: ' '),
             TextSpan(
-              text: ' $symbol',
+              text: symbol,
               style: TextStyle(
-                fontFamily: kSansFontFamily,
                 fontSize: (style.fontSize ?? 14) * 0.53 < 13
                     ? 13
                     : (style.fontSize ?? 14) * 0.53,
-                fontWeight: FontWeight.w500,
                 color: symbolColor,
               ),
             ),
+          ],
         ],
       ),
       // Left to right in every language: under a right-to-left interface

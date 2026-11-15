@@ -151,7 +151,28 @@ class _TokensPageState extends State<_TokenSourcePage> {
       children: <Widget>[
         PageStrip(
           key: const Key('tokens_strip'),
-          lead: const AppLottie(AppLottieAsset.zts, size: kStripLeadSize),
+          minimumContentHeight: kStripTextContentHeight,
+          leadSize: tokens.tokenStripLeadSize,
+          leadGap: tokens.tokenStripLeadGap,
+          lead: OverflowBox(
+            alignment: AlignmentDirectional.centerStart,
+            minWidth: tokens.tokenStripArtworkSize,
+            maxWidth: tokens.tokenStripArtworkSize,
+            minHeight: tokens.tokenStripArtworkSize,
+            maxHeight: tokens.tokenStripArtworkSize,
+            child: Transform.translate(
+              offset: Offset(
+                Directionality.of(context) == TextDirection.rtl
+                    ? tokens.tokenStripArtworkStartOverhang
+                    : -tokens.tokenStripArtworkStartOverhang,
+                0,
+              ),
+              child: AppLottie(
+                AppLottieAsset.zts,
+                size: tokens.tokenStripArtworkSize,
+              ),
+            ),
+          ),
           figures: <StripFigure>[
             StripFigure(
               label: context.l10n.tokensYouHold,

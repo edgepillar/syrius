@@ -153,7 +153,9 @@ class _TransferSender extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      SizedBox(width: tokens.transferRecentGap),
+                      ExcludeSemantics(
+                        child: Text(' · ', style: tokens.captionText),
+                      ),
                       Flexible(
                         child: HiddenAmount(
                           style: tokens.captionText,
@@ -170,6 +172,7 @@ class _TransferSender extends StatelessWidget {
                         ),
                       ),
                       Text(' ZNN', style: tokens.captionText),
+                      SizedBox(width: tokens.transferRecentGap),
                       ShellSymbol(
                         'chev',
                         size: tokens.activityIconSize,

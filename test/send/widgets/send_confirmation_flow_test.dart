@@ -23,6 +23,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/pair.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_context_revision.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/zts_utils.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/primary_pill.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/frosted_route.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
 import '../../helpers/hydrated_bloc.dart';
@@ -470,6 +471,53 @@ void main() {
         expect(find.text('First send recorded here'), findsOneWidget);
         expect(find.text('Confirm on your device after Send.'), findsNothing);
         expect(find.text(to), findsWidgets);
+        final Finder dialog = find.byKey(const Key('send_confirmation_marker'));
+        final AppTokens tokens = AppTokens.of(tester.element(dialog));
+        final Rect surface = tester.getRect(
+          find.descendant(of: dialog, matching: find.byType(FrostedSurface)),
+        );
+        expect(
+          tester.getRect(find.text('Send 12.5 ZNN?')).left - surface.left,
+          closeTo(21, 0.01),
+        );
+        final Text label = tester.widget<Text>(
+          find.descendant(of: dialog, matching: find.text('TO')),
+        );
+        expect(label.style!.fontFamily, kMonoFontFamily);
+        expect(label.style!.fontSize, 11);
+        expect(label.style!.letterSpacing, 0.66);
+        final Finder cancel = find.byKey(const Key('send_confirmation_cancel'));
+        final TextButton button = tester.widget<TextButton>(cancel);
+        expect(
+          button.style!.backgroundColor!.resolve(<WidgetState>{}),
+          tokens.card2,
+        );
+        expect(
+          surface.right -
+              tester.getRect(
+                find.byKey(const Key('send_confirmation_accept')),
+              ).right,
+          closeTo(21, 0.01),
+        );
+        expect(
+          find.descendant(
+            of: dialog,
+            matching: find.byWidgetPredicate(
+              (Widget widget) =>
+                  widget is CustomPaint &&
+                  widget.foregroundPainter is OuterShadowPainter,
+            ),
+          ),
+          findsOneWidget,
+        );
+        tester.view.physicalSize = const Size(400, 400);
+        await tester.pump();
+        expect(cancel.hitTestable(), findsOneWidget);
+        expect(
+          find.byKey(const Key('send_confirmation_accept')).hitTestable(),
+          findsOneWidget,
+        );
+        expect(tester.takeException(), isNull);
         await tester.tap(find.byKey(const Key('send_confirmation_cancel')));
         await tester.pumpAndSettle();
         expect(publishCount, 0);
