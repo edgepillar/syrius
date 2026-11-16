@@ -1,6 +1,14 @@
 # First delivery and deferred acceptance
 
-Current source: Source803 observes existing close phases without changing
+Current source: Source804 corrects the exact native test total to 1507 without
+changing Dart or the shutdown observations. Source803 passed all thirteen
+Linux stages and 1507 selected Windows Dart cases, then its stale 1505 total
+refused the job before Release or native execution. Fourteen existing memory
+controls pass and the old total is refused. Fresh hosted/native qualification
+remain required; acceptance and Ready matches stay 76/80 and 2/94. See
+[exact shutdown test total](source804-exact-shutdown-test-total.md).
+
+Earlier source: Source803 observes existing close phases without changing
 operations or deadlines. One bounded passive snapshot after EXIT_TIMEOUT
 preserves the original failure. Twenty-nine Python memory controls pass;
 fresh hosted and native qualification remain required. Source802 full Linux

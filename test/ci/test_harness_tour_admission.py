@@ -104,7 +104,7 @@ class HarnessAdmissionTests(unittest.TestCase):
         for passed in (1338, 1349, 1351, 1352, 1353, 1350, 1357, 1358, 1359,
                        1360, 1361, 1362, 1363, 1364, 1365, 1366, 1367, 1368,
                        1369, 1370, 1371, 1372, 1373, 1374, 1375, 1376,
-                       STANDARD_CASES - 1, STANDARD_CASES + 1):
+                       1505, STANDARD_CASES - 1, STANDARD_CASES + 1):
             code, report, _, _ = self.run_case(passed=passed)
             self.assertEqual(code, 1)
             self.assertFalse(report['success'])

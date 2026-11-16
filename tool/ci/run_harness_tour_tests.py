@@ -26,7 +26,8 @@ except ImportError:
     from windows_baseline import fresh_environment, run_bounded, test_counts
 
 
-EXPECTED_DART_CASES = 1505
+# Includes the two shutdown-owner/terminal cases in wallet_recipe_test.dart.
+EXPECTED_DART_CASES = 1507
 LAUNCH_ASSET_DART_CASES = 2
 GROUP_COMMAND_LIMIT_SECONDS = 300
 TOTAL_COMMAND_LIMIT_SECONDS = 480
