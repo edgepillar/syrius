@@ -76,7 +76,27 @@
        'owner': _recipeOwner,
        'revision': WalletContextRevision.value,
        'walletPresent': kWalletFile != null,
-@@ -2458,6 +2492,12 @@
+@@ -1609,7 +1643,18 @@
+     final Key? navKey = w.key;
+     if (navKey is ValueKey<String> && navKey.value.startsWith('nav_')) {
+       final _Node? t = n.tappable;
+-      if (t != null) t.extra['tab'] = navKey.value.substring(4);
++      if (t != null) {
++        t.extra['tab'] = navKey.value.substring(4);
++        // P06 keeps its navigation key on the full-size decoration inside
++        // the InkWell. Preserve that original button and its tap guards.
++        if (w is DecoratedBox &&
++            t.element.widget is InkWell &&
++            t.key == null &&
++            _rectOf(e) == t.rect &&
++            const <String>{'nav_settings', 'nav_dashboard'}.contains(navKey.value)) {
++          t.key = navKey.value;
++        }
++      }
+     }
+     if (w is Tab) {
+       // The main tab bar is built in kTabs order; half of it is icons.
+@@ -2458,6 +2503,12 @@
    Future<Map<String, Object?>> _wait(Map<String, dynamic> c) async {
      final int timeout = c['timeoutMs'] as int? ?? 10000;
      final bool gone = c['gone'] == true;
@@ -89,7 +109,7 @@
      final Stopwatch sw = Stopwatch()..start();
      while (true) {
        final List<_Node> hits = _matches(
-@@ -2472,7 +2512,11 @@
+@@ -2472,7 +2523,11 @@
            'error',
          ],
        );
@@ -102,7 +122,7 @@
          return <String, Object?>{
            'ms': sw.elapsedMilliseconds,
            if (!gone) 'target': hits.first.toJson(),
-@@ -2724,6 +2768,64 @@
+@@ -2724,6 +2779,64 @@
 
    // ------------------------------------------------------------------ stalls
 
@@ -167,7 +187,7 @@
    final Stopwatch _stallClock = Stopwatch();
    Duration _stallLast = Duration.zero;
    final List<Map<String, Object?>> _stalls = <Map<String, Object?>>[];
-@@ -2737,6 +2839,12 @@
+@@ -2737,6 +2850,12 @@
    /// even on a still page. The frame timings add what a timer cannot see:
    /// the raster thread, where a large image or a first-use shader costs.
    void _hookStalls() {
@@ -180,7 +200,7 @@
      void record(String kind, int ms) {
        _stalls.add(<String, Object?>{
          'time': DateTime.now().toIso8601String(),
-@@ -2756,6 +2864,7 @@
+@@ -2756,6 +2875,7 @@
        }
      });
      SchedulerBinding.instance.addTimingsCallback((List<ui.FrameTiming> ts) {

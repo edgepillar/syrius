@@ -3761,7 +3761,18 @@ class HarnessAgent {
     final Key? navKey = w.key;
     if (navKey is ValueKey<String> && navKey.value.startsWith('nav_')) {
       final _Node? t = n.tappable;
-      if (t != null) t.extra['tab'] = navKey.value.substring(4);
+      if (t != null) {
+        t.extra['tab'] = navKey.value.substring(4);
+        // P06 keeps its navigation key on the full-size decoration inside
+        // the InkWell. Preserve that original button and its tap guards.
+        if (w is DecoratedBox &&
+            t.element.widget is InkWell &&
+            t.key == null &&
+            _rectOf(e) == t.rect &&
+            const <String>{'nav_settings', 'nav_dashboard'}.contains(navKey.value)) {
+          t.key = navKey.value;
+        }
+      }
     }
     if (w is Tab) {
       // The main tab bar is built in kTabs order; half of it is icons.

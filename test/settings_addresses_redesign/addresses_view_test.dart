@@ -108,6 +108,25 @@ void main() {
         expect(find.text('Contacts'), findsOneWidget);
         expect(find.text('Selected'), findsOneWidget);
         expect(find.byType(AmountText), findsNWidgets(4));
+        final AppTokens tokens = AppTokens.of(
+          tester.element(find.byKey(const Key('addresses_settings_page'))),
+        );
+        for (final (String, int) heading in <(String, int)>[
+          ('Your addresses', source.members.length),
+          ('Contacts', 1),
+        ]) {
+          final Finder row = find.ancestor(
+            of: find.text(heading.$1),
+            matching: find.byType(Row),
+          ).first;
+          final Text count = tester.widget<Text>(find.descendant(
+            of: row,
+            matching: find.text('${heading.$2}'),
+          ));
+          expect(count.style, tokens.headingCountText);
+          expect(count.style!.letterSpacing, 0);
+          expect(count.style!.fontWeight, FontWeight.w600);
+        }
         for (final String address in source.members) {
           final Finder choice = find.byKey(
             ValueKey<String>('addresses_select_$address'),

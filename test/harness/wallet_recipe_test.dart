@@ -883,7 +883,7 @@ void main() {
     });
   }
 
-  testWidgets('recipe observations omit private field values', (
+  testWidgets('recipe observations retain original keys and omit private values', (
     WidgetTester tester,
   ) async {
     final TextEditingController input = TextEditingController(text: _seed(12));
@@ -899,6 +899,23 @@ void main() {
           home: Scaffold(
             body: Column(
               children: <Widget>[
+                InkWell(
+                  onTap: () {},
+                  child: const DecoratedBox(
+                    key: Key('nav_settings'),
+                    decoration: BoxDecoration(),
+                    child: SizedBox(width: 100, height: 36),
+                  ),
+                ),
+                InkWell(
+                  key: const Key('original_navigation'),
+                  onTap: () {},
+                  child: const DecoratedBox(
+                    key: Key('nav_dashboard'),
+                    decoration: BoxDecoration(),
+                    child: SizedBox(width: 100, height: 36),
+                  ),
+                ),
                 TextField(
                   key: const Key('import_seed_field'),
                   controller: input,
@@ -923,12 +940,27 @@ void main() {
       expect(view.containsKey('addresses'), isFalse);
       expect(view['signingPolicyReady'], isFalse);
       expect(jsonEncode(view), isNot(contains(_password)));
+      final List<Map<String, Object?>> controls =
+          view['controls']! as List<Map<String, Object?>>;
+      expect(
+        controls.where((Map<String, Object?> control) =>
+            control['key'] == 'nav_settings' && control['enabled'] == true),
+        hasLength(1),
+      );
+      expect(controls.where((Map<String, Object?> control) =>
+          control['key'] == 'nav_dashboard'), isEmpty);
 
       final Map<String, Object?> tree = await agent.commandForTest(
         <String, dynamic>{'cmd': 'tree'},
       );
       final List<Map<String, Object?>> nodes =
           tree['nodes']! as List<Map<String, Object?>>;
+      expect(nodes.where((Map<String, Object?> node) =>
+          node['key'] == 'nav_settings' && node['type'] == 'InkWell'),
+          hasLength(1));
+      expect(nodes.where((Map<String, Object?> node) =>
+          node['key'] == 'original_navigation' && node['kind'] == 'button'),
+          hasLength(1));
       for (final String key in passwords.keys) {
         final Iterable<Map<String, Object?>> field = nodes.where(
           (Map<String, Object?> node) => node['key'] == key &&

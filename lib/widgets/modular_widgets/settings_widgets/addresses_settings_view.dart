@@ -666,7 +666,7 @@ class _AddressesSettingsViewState extends State<AddressesSettingsView>
             Flexible(child: Text(title, style: tokens.headingText)),
             if (count != null) ...<Widget>[
               SizedBox(width: tokens.inlineGap),
-              Text('$count', style: tokens.ledgerText),
+              Text('$count', style: tokens.headingCountText),
             ],
           ],
         ),

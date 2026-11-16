@@ -1,5 +1,13 @@
 # First delivery and deferred acceptance
 
+Current source: Source801 preserves original decorated P06 navigation selectors
+without changing baseline widgets or tap guards, and gives Addresses heading
+counts their value role. Twenty-two related Python memory controls pass. Fresh
+hosted and paired native validation remain required. Source800 Linux and
+Settings validation pass; its timing run retains the P06 nav_settings refusal.
+Acceptance stays 76/80 and Ready matches 2/94. See
+[original navigation keys and address counts](source801-original-navigation-key-and-address-counts.md).
+
 Updated 2026-11-15.
 
 The core interface and existing basic functionality are available for
