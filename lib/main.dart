@@ -327,6 +327,8 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
+  Future<void>? _windowCloseAttempt;
+
   @override
   void initState() {
     windowManager.addListener(this);
@@ -518,7 +520,17 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
   }
 
   @override
-  Future<void> onWindowClose() async {
+  Future<void> onWindowClose() {
+    final Future<void>? retained = _windowCloseAttempt;
+    if (retained != null) return retained;
+
+    final Completer<void> attempt = Completer<void>();
+    _windowCloseAttempt = attempt.future;
+    attempt.complete(Future<void>.sync(_closeWindow));
+    return attempt.future;
+  }
+
+  Future<void> _closeWindow() async {
     appShutdownObservation.begin(this);
     void stage(ShutdownPhase phase) =>
         appShutdownObservation.mark(this, phase);

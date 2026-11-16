@@ -1,7 +1,9 @@
 import 'dart:async';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:zenon_syrius_wallet_flutter/main.dart' as app;
 import 'package:zenon_syrius_wallet_flutter/utils/window_chrome.dart';
 
 class _Window implements AppWindowBackend {
@@ -60,6 +62,66 @@ Future<void> _flush() async {
 }
 
 void main() {
+  testWidgets('root close retains one attempt and its native failure', (
+    WidgetTester tester,
+  ) async {
+    const MethodChannel channel = MethodChannel('window_manager');
+    final Completer<Object?> query = Completer<Object?>();
+    final List<String> requests = <String>[];
+    final List<Future<Object?>> observed = <Future<Object?>>[];
+    final WindowListener root =
+        const app.MyApp().createState() as WindowListener;
+    Future<void>? reentrant;
+
+    Future<void> close() {
+      // WindowListener declares void; observe the override's original Future.
+      final Future<void> attempt =
+          Function.apply(root.onWindowClose, const <Object?>[])
+              as Future<void>;
+      observed.add(
+        attempt.then<Object?>((_) => null, onError: (Object error) => error),
+      );
+      return attempt;
+    }
+
+    final TestDefaultBinaryMessenger messenger =
+        tester.binding.defaultBinaryMessenger;
+    messenger.setMockMethodCallHandler(channel, (MethodCall call) async {
+      requests.add(call.method);
+      if (requests.length == 1) reentrant = close();
+      return query.future;
+    });
+    try {
+      final Future<void> original = close();
+      final Future<void> duplicate = close();
+      await tester.pump();
+      expect(duplicate, same(original));
+      expect(reentrant, same(original));
+      expect(requests, <String>['isMaximized']);
+      query.completeError(PlatformException(code: 'synthetic_refusal'));
+      final List<Object?> failures = await Future.wait(observed);
+      expect(
+        failures.first,
+        isA<PlatformException>().having(
+          (PlatformException error) => error.code,
+          'code',
+          'synthetic_refusal',
+        ),
+      );
+      expect(failures, everyElement(same(failures.first)));
+      expect(close(), same(original));
+      expect(await observed.last, same(failures.first));
+      expect(requests, <String>['isMaximized']);
+    } finally {
+      if (!query.isCompleted) {
+        query.completeError(PlatformException(code: 'synthetic_refusal'));
+      }
+      await tester.pump();
+      await Future.wait(observed);
+      messenger.setMockMethodCallHandler(channel, null);
+    }
+  });
+
   test(
     'immutable status retains one opaque owner through pending and disposal',
     () async {

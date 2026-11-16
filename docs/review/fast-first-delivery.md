@@ -1,6 +1,23 @@
 # First delivery and deferred acceptance
 
-Current source: Source811 preserves fixed shared-transport labels in shutdown
+Current source: Source812 retains one original root-close Future before the
+unchanged shutdown body starts. Duplicate and reentrant callbacks share its
+result, including failure; a partially completed close cannot be retried.
+One new window-channel widget case awaits hosted execution. Exact selected
+Dart totals become 1509 standard and 1511 cold, with all 112/113 suites,
+1227 Python cases and 289 strict paths retained. Forty-three memory controls
+pass. No duplicate callback or native closure cause has been established.
+
+Source811 full Linux passes all thirteen stages. Its independent interactive
+reader verifies sixteen returned current actions and five normal node exits,
+but the wallet fails original closure with forced termination and incomplete
+output; P06 measurement is not reached. Separate cold acquisition retains
+225/2231 frames and five normal actors, while original timing and coverage
+acceptance fail. All outputs are consumed. Fresh hosted/native qualification
+is required; scope and Source730 Ready matches stay 76/80 and 2/94. See
+[retained window close](source812-retained-window-close.md).
+
+Earlier source: Source811 preserves fixed shared-transport labels in shutdown
 and original absent-navigation diagnostics. The real request/exchange path is
 covered by the existing regression case; all 43 memory controls pass, with no
 new test methods. Original failure identity, one-second bounds, process exit
