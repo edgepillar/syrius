@@ -222,26 +222,30 @@ class _EventToastState extends State<EventToast> with TickerProviderStateMixin {
                             ],
                             SizedBox(height: tokens.inlineGap),
                             ExcludeSemantics(
-                              child: ClipRRect(
-                                // The mockup's three-pixel draining bar.
-                                borderRadius: BorderRadius.circular(2),
-                                child: SizedBox(
-                                  height: 3,
-                                  child: ColoredBox(
-                                    color: tokens.line,
-                                    child: AnimatedBuilder(
-                                      animation: _remaining,
-                                      child: ColoredBox(color: accent),
-                                      builder:
-                                          (
-                                            BuildContext context,
-                                            Widget? child,
-                                          ) => FractionallySizedBox(
-                                            alignment: AlignmentDirectional
-                                                .centerStart,
-                                            widthFactor: _remaining.value,
-                                            child: child,
-                                          ),
+                              // The draining bar must not repaint the static
+                              // frosted card on every clock tick.
+                              child: RepaintBoundary(
+                                child: ClipRRect(
+                                  // The mockup's three-pixel draining bar.
+                                  borderRadius: BorderRadius.circular(2),
+                                  child: SizedBox(
+                                    height: 3,
+                                    child: ColoredBox(
+                                      color: tokens.line,
+                                      child: AnimatedBuilder(
+                                        animation: _remaining,
+                                        child: ColoredBox(color: accent),
+                                        builder:
+                                            (
+                                              BuildContext context,
+                                              Widget? child,
+                                            ) => FractionallySizedBox(
+                                              alignment: AlignmentDirectional
+                                                  .centerStart,
+                                              widthFactor: _remaining.value,
+                                              child: child,
+                                            ),
+                                      ),
                                     ),
                                   ),
                                 ),

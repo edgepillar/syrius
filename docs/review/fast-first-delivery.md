@@ -1,6 +1,23 @@
 # First delivery and deferred acceptance
 
-Current source: Source816 adjusts shared Apps, Pillars, Token and Plasma
+Current source: Source817 isolates the toast countdown from its static
+frosted card. Existing dark/LTR and light/RTL cases also require retained
+card paint while the bar advances. All eight existing toast cases enter
+Windows selection once: 1517/1519 Dart cases, 1229 Python cases, 113/114
+suites and 291 strict analysis paths. Forty-five memory controls pass;
+extended Flutter assertions require hosted execution. Original look, clocks,
+actions, baseline overlay and performance predicates remain.
+
+Source816 full Linux passes thirteen stages. Original Windows and independent
+reading qualify both sixteen-command measurements with normal exits of two
+entries, two wallets and five nodes. The original slow-frame/gap comparisons
+fail. Retained rows locate the cost in raster work without establishing a
+cause. The original 11784-byte archive was read once and owned scratch
+closed. All outputs are consumed; earlier failures remain. Fresh hosted and
+native qualification is required. Scope and Source730 Ready matches remain
+76/80 and 2/94. See [toast countdown paint](source817-toast-countdown-paint.md).
+
+Earlier source: Source816 adjusts shared Apps, Pillars, Token and Plasma
 column geometry. The existing two-theme Plasma selection case also checks
 checkbox alignment. One bounded read of the existing startup film counters
 can observe the exact original P06 Welcome refusal before cleanup. The

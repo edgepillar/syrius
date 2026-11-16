@@ -149,6 +149,8 @@ SELECTED_DART_SOURCES = (
     'lib/rearchitecture/features/pillars/view/pillars_card.dart',
     'test/pillars/view/pillars_card_test.dart',
     'lib/rearchitecture/utils/widgets/disclosure.dart',
+    'lib/widgets/reusable_widgets/event_toast.dart',
+    'test/toast/event_toast_test.dart',
     'lib/rearchitecture/utils/widgets/row_detail.dart',
     'test/disclosure/disclosure_test.dart',
     'test/row_detail/row_detail_test.dart',

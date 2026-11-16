@@ -1,5 +1,7 @@
 import 'dart:ui' show PointerDeviceKind;
 
+import 'package:flutter/rendering.dart'
+    show BackdropFilterLayer, ContainerLayer, Layer, PictureLayer;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -30,6 +32,25 @@ Finder get _bar => find.descendant(
 
 double _remaining(WidgetTester tester) =>
     tester.widget<FractionallySizedBox>(_bar).widthFactor!;
+
+PictureLayer? _firstPicture(Layer layer) {
+  if (layer is PictureLayer) return layer;
+  if (layer is ContainerLayer) {
+    for (
+      Layer? child = layer.firstChild;
+      child != null;
+      child = child.nextSibling
+    ) {
+      final PictureLayer? picture = _firstPicture(child);
+      if (picture != null) return picture;
+    }
+  }
+  return null;
+}
+
+PictureLayer _toastCardPicture(WidgetTester tester) => _firstPicture(
+  tester.layers.whereType<BackdropFilterLayer>().single,
+)!;
 
 double _rise(WidgetTester tester) => tester
     .widget<Transform>(
@@ -194,6 +215,18 @@ void main() {
       );
       expect(fill.width, closeTo(bar.width / 2, 1e-6));
       expect(light ? fill.right : fill.left, light ? bar.right : bar.left);
+      final PictureLayer cardPicture = _toastCardPicture(tester);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(_remaining(tester), closeTo(0.48, 1e-9));
+      expect(_toastCardPicture(tester), same(cardPicture));
+      final Rect advancedFill = tester.getRect(
+        find.descendant(of: _bar, matching: find.byType(ColoredBox)),
+      );
+      expect(advancedFill.width, closeTo(bar.width * 0.48, 1e-6));
+      expect(
+        light ? advancedFill.right : advancedFill.left,
+        light ? bar.right : bar.left,
+      );
       await tester.tap(find.byTooltip('Close'));
       await tester.pump();
       expect(find.text('Incoming'), findsNothing);

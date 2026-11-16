@@ -1,6 +1,8 @@
 # Redesign validation index
 
-Current: [Source731 Lock symbols and Source730 results](source731-lock-picker-symbols.md). Source730 full Linux, both Windows producers and both independent readers pass. Two Ready pairs are accepted at that source, giving 2/94 matches and unchanged 74/80 original acceptance. Four new Staking/Token PNGs await individual review. The prepared Lock glyph change needs fresh hosted/native qualification; earlier entries retain their source-bound status.
+Current: [Source817 toast countdown paint](source817-toast-countdown-paint.md). Source816 full Linux and both original Windows/independent inspection jobs succeed; both finite measurements qualify, while the original timing and gap comparisons fail. Source817 prepares repaint isolation and extends existing tests; hosted/native qualification is pending. Accepted rows remain 76/80 and literal Source730 Ready matches remain 2/94.
+
+Earlier: [Source731 Lock symbols and Source730 results](source731-lock-picker-symbols.md). Source730 full Linux, both Windows producers and both independent readers pass. Two Ready pairs are accepted at that source, giving 2/94 matches and unchanged 74/80 original acceptance. Four new Staking/Token PNGs await individual review. The prepared Lock glyph change needs fresh hosted/native qualification; earlier entries retain their source-bound status.
 
 - Native115 passes 1,361 selected Dart cases, 1,087 Python cases with 18 Windows skips, 14 asset checks and zero selected findings. The original send, tour, quiescence and normal actor exits qualify. Five copied seed recipes confirm. Fund Address passes its corrected readiness wait and enters publish. Fifteen rounds qualify the matching confirmed send with the effect pending. The exact unmet receive or balance condition and the copied lifecycle remain open. [Source525 Native115 result](source524-native114-fund-address-readiness.md#fresh-native115-result).
 

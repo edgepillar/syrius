@@ -104,7 +104,7 @@ class HarnessAdmissionTests(unittest.TestCase):
         for passed in (1338, 1349, 1351, 1352, 1353, 1350, 1357, 1358, 1359,
                        1360, 1361, 1362, 1363, 1364, 1365, 1366, 1367, 1368,
                        1369, 1370, 1371, 1372, 1373, 1374, 1375, 1376,
-                       1505, STANDARD_CASES - 1, STANDARD_CASES + 1):
+                       1505, 1509, 1511, STANDARD_CASES - 1, STANDARD_CASES + 1):
             code, report, _, _ = self.run_case(passed=passed)
             self.assertEqual(code, 1)
             self.assertFalse(report['success'])
@@ -160,7 +160,7 @@ class HarnessAdmissionTests(unittest.TestCase):
         for passed in (1340, 1350, 1351, 1353, 1354, 1352, 1358, 1359, 1360,
                        1361, 1362, 1363, 1364, 1365, 1366, 1367, 1368, 1369,
                        1370, 1371, 1372, 1373, 1374, 1375, 1376, 1377, 1378,
-                       ASSET_CASES - 1, ASSET_CASES + 1):
+                       1509, 1511, 1517, ASSET_CASES - 1, ASSET_CASES + 1):
             code, report, _, _ = self.run_case(
                 passed=passed, asset_fidelity=True)
             self.assertEqual(code, 1)
@@ -321,14 +321,16 @@ class HarnessAdmissionTests(unittest.TestCase):
         code, report, source, tree = self.run_case()
         self.assertEqual((code, report['schema'], source, tree), (0, 2, 3, 3))
         self.assertEqual(report['groups_expected'], 2)
-        self.assertEqual([row['selected_suites'] for row in report['commands']], [56, 56])
-        self.assertEqual([row['first_suite_index'] for row in report['commands']], [1, 57])
+        self.assertEqual([row['selected_suites'] for row in report['commands']], [57, 56])
+        self.assertEqual([row['first_suite_index'] for row in report['commands']], [1, 58])
         self.assertEqual(report['total_command_limit_seconds'], 480)
         for call in self.command_groups:
             self.assertEqual(call.kwargs['timeout'], 300)
             self.assertEqual(call.kwargs['cap'], 4 * 1024**2)
             self.assertEqual(call.args[0].count('--concurrency=1'), 1)
-        self.assertEqual(len(set(self.selected_paths)), 112)
+        self.assertEqual(len(set(self.selected_paths)), 113)
+        self.assertEqual(self.selected_paths.count(
+            'test/toast/event_toast_test.dart'), 1)
         for path in ('test/page_strip/page_strip_test.dart',
                      'test/harness/capture_frame_test.dart',
                      'test/harness/ready_reference_artwork_test.dart',

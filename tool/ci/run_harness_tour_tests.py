@@ -29,7 +29,8 @@ except ImportError:
 # Includes the two shutdown-owner/terminal cases in wallet_recipe_test.dart.
 # Also includes the original input-frame admission matrix.
 # Includes the retained root-close/native-failure case.
-EXPECTED_DART_CASES = 1509
+# Includes all eight existing toast cases and retained-card paint assertions.
+EXPECTED_DART_CASES = 1517
 LAUNCH_ASSET_DART_CASES = 2
 GROUP_COMMAND_LIMIT_SECONDS = 300
 TOTAL_COMMAND_LIMIT_SECONDS = 480
@@ -288,6 +289,7 @@ def main():
             'test/seams/seams_document_test.dart',
             'test/create_token_redesign/token_create_view_test.dart',
             'test/disclosure/disclosure_test.dart',
+            'test/toast/event_toast_test.dart',
             'test/send/widgets/send_form_test.dart',
             'test/harness/seed_recipe_test.dart',
             'test/cancel_stake/bloc/cancel_stake_bloc_test.dart',
