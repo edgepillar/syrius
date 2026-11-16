@@ -29,7 +29,7 @@ def sample_receipts(value):
     required = {'attempt', 'observation', 'profile_stable', 'success'}
     archive.need(type(value) is dict
         and required <= set(value) <= required | {
-            'shutdown_observation', 'navigation_observation'}
+            'shutdown_observation', 'shutdown_trace', 'navigation_observation'}
         and type(value['success']) is type(value['profile_stable']) is bool)
     attempt = value['attempt']
     closed = completed = False
@@ -46,6 +46,10 @@ def sample_receipts(value):
     if 'shutdown_observation' in value:
         archive.need(attempt is not None and 'EXIT_TIMEOUT' in attempt['error_codes']
             and pair.profile.valid_shutdown_observation(value['shutdown_observation']))
+    if 'shutdown_trace' in value:
+        trace = value['shutdown_trace']
+        archive.need(attempt is not None and pair.profile.valid_shutdown_trace(trace)
+            and trace['output_complete'] is attempt['output_complete'])
     observation = value['observation']
     if 'navigation_observation' in value:
         archive.need(attempt is not None
@@ -203,6 +207,8 @@ def project(raw, item, *, head, tree, run_id, lab, expected_entry):
         shutdown_observations={label: sample['shutdown_observation']
                                for label, sample in samples.items()
                                if 'shutdown_observation' in sample},
+        shutdown_traces={label: sample['shutdown_trace'] for label, sample in samples.items()
+                         if 'shutdown_trace' in sample},
         navigation_observations={label: sample['navigation_observation']
                                  for label, sample in samples.items()
                                  if 'navigation_observation' in sample},

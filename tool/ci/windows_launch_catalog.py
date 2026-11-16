@@ -409,7 +409,8 @@ def run_process(repo, parent, binaries, profile, theme, *, capture, settle,
         stderr=subprocess.STDOUT, bufsize=0)
     drain = None
     try:
-        drain = bounded.OutputDrain(process.stdout, limits.output_bytes)
+        drain = bounded.OutputDrain(process.stdout, limits.output_bytes,
+                                    retain=interactive)
         session = process_type(process, bounded.LoopbackTransport(port, limits.response_bytes),
                                 token, drain, report, limits=limits)
     except BaseException:

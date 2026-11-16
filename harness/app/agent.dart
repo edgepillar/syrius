@@ -579,6 +579,7 @@ class HarnessAgent {
   final Future<void> Function() _closePresentation;
   final Future<void> Function()? _waitForPresentationClose;
   bool _presentationCloseReserved = false;
+  bool _shutdownObserved = false;
   PresentationCloseAttempt? _presentationCloseAttempt;
 
   @visibleForTesting
@@ -1324,6 +1325,14 @@ class HarnessAgent {
       case 'quit':
         // The app's own close path: it saves window state, stops the
         // embedded node and exits.
+        if (!_shutdownObserved &&
+            Platform.environment['SYRIUS_HARNESS_FRAME_TIMING'] ==
+                'interactive') {
+          _shutdownObserved = true;
+          appShutdownObservation.observe((Map<String, Object> snapshot) {
+            stdout.writeln('SYRIUS_SHUTDOWN ${jsonEncode(snapshot)}');
+          });
+        }
         unawaited(
           Future<void>.delayed(
             const Duration(milliseconds: 100),

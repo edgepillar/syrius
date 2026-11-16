@@ -24,6 +24,7 @@ ENTRY = Path('harness/bin/ci_paired_interactive_entry.dart')
 ENTRY_SHA256 = 'c86d6a93a8751554df06e642b941850215d193ba070c137d27075877f956bcd6'
 MEASUREMENT_COMMANDS = frozenset(('theme', 'state', 'stalls', 'tap', 'wait', 'scroll'))
 MAX_MEASUREMENT_COMMANDS = 32
+SHUTDOWN_PREFIX = b'SYRIUS_SHUTDOWN '
 SHUTDOWN_PHASES = frozenset((
     'idle', 'windowMaximizedRead', 'windowMaximizedSave', 'windowSizeRead',
     'windowWidthSave', 'windowHeightSave', 'windowPositionRead', 'windowXSave',
@@ -60,6 +61,74 @@ def valid_shutdown_observation(value):
     return (set(value) == {'status', 'error_code'}
         and value['status'] == 'unavailable' and type(value['error_code']) is str
         and value['error_code'] in launch.startup.CODES)
+
+
+def valid_shutdown_trace(value):
+    """A last observed label cannot establish final state or normal exit."""
+    if type(value) is not dict or type(value.get('output_complete')) is not bool:
+        return False
+    if set(value) == {'status', 'output_complete'}:
+        return value['status'] == 'absent'
+    if set(value) == {'status', 'error_code', 'output_complete'}:
+        return (value['status'] == 'unavailable'
+            and value['error_code'] in ('STATE_INVALID', 'OUTPUT_OVERFLOW', 'INTERNAL_ERROR'))
+    return (set(value) == {'status', 'phase', 'failed', 'event_count', 'output_complete'}
+        and value['status'] == 'observed' and type(value['phase']) is str
+        and value['phase'] in SHUTDOWN_PHASES and type(value['failed']) is bool
+        and not (value['phase'] == 'idle' and value['failed'])
+        and type(value['event_count']) is int
+        and 1 <= value['event_count'] <= len(SHUTDOWN_PHASES) + 1)
+
+
+def observe_shutdown_trace(raw, *, output_complete, output_overflow, cap=131072):
+    """Read only bounded complete protocol lines; never project child output."""
+    def unavailable(code):
+        return dict(status='unavailable', error_code=code,
+                    output_complete=output_complete is True)
+
+    if (type(raw) is not bytes or type(cap) is not int or not 0 < cap <= 131072
+            or type(output_complete) is not bool or type(output_overflow) is not bool):
+        return unavailable('STATE_INVALID')
+    if output_overflow or len(raw) > cap:
+        return unavailable('OUTPUT_OVERFLOW')
+
+    def closed(pairs):
+        value = dict(pairs)
+        if len(pairs) != len(value):
+            raise ValueError()
+        return value
+
+    events = []
+    lines = raw.split(b'\n')
+    for index, line in enumerate(lines):
+        if not line.startswith(SHUTDOWN_PREFIX):
+            continue
+        if len(line) > 256:
+            return unavailable('STATE_INVALID')
+        if index == len(lines) - 1 and not output_complete:
+            break
+        try:
+            value = json.loads(line[len(SHUTDOWN_PREFIX):], object_pairs_hook=closed)
+        except (ValueError, UnicodeError):
+            return unavailable('STATE_INVALID')
+        if (index == len(lines) - 1 or type(value) is not dict
+                or set(value) != {'phase', 'failed'}
+                or type(value['phase']) is not str or value['phase'] not in SHUTDOWN_PHASES
+                or type(value['failed']) is not bool
+                or value['phase'] == 'idle' and value['failed']
+                or len(events) >= len(SHUTDOWN_PHASES) + 1):
+            return unavailable('STATE_INVALID')
+        if events:
+            previous = events[-1]
+            if (previous == value or previous['failed']
+                    or previous['phase'] == 'exitRequested' and not (
+                        value['phase'] == 'exitRequested' and value['failed'])):
+                return unavailable('STATE_INVALID')
+        events.append(value)
+    if not events:
+        return dict(status='absent', output_complete=output_complete)
+    return dict(status='observed', **events[-1], event_count=len(events),
+                output_complete=output_complete)
 
 
 def valid_navigation_observation(value):
@@ -362,11 +431,32 @@ def owned_profile(send, run_entry, revalidate, measure, confirm_address, *,
 
 
 class InteractiveSession(launch.LaunchProcess):
-    def __init__(self, *args, observe, shutdown_observation=None, **kwargs):
+    def __init__(self, *args, observe, shutdown_observation=None, shutdown_trace=None,
+                 **kwargs):
         super().__init__(*args, **kwargs)
         self.observe = observe
         self.shutdown_observation = (
             {} if shutdown_observation is None else shutdown_observation)
+        self.shutdown_trace = {} if shutdown_trace is None else shutdown_trace
+
+    def run_launch(self, *args, **kwargs):
+        try:
+            return super().run_launch(*args, **kwargs)
+        finally:
+            complete = False
+            try:
+                complete = self.report.output_complete is True
+                data = self.drain.data
+                value = observe_shutdown_trace(
+                    bytes(data) if type(data) in (bytes, bytearray) else None,
+                    output_complete=complete,
+                    output_overflow=self.report.output_overflow, cap=self.limits.output_bytes)
+            except (Exception, KeyboardInterrupt):
+                value = dict(status='unavailable', error_code='INTERNAL_ERROR',
+                             output_complete=complete)
+            target = getattr(self, 'shutdown_trace', None)
+            if type(target) is dict:
+                target.update(value)
 
     def _quit(self):
         try:
@@ -416,6 +506,7 @@ def measure_process(repo, build_repo, parent, binaries, revalidate, measure,
     original = launch.bounded.plain(profile)
     report.update(attempt=None, observation={}, profile_stable=False, success=False)
     shutdown = {}
+    trace = {}
     navigation = {}
 
     def observe(session):
@@ -431,7 +522,7 @@ def measure_process(repo, build_repo, parent, binaries, revalidate, measure,
 
     def session(*args, **kwargs):
         return InteractiveSession(*args, observe=observe,
-                                  shutdown_observation=shutdown, **kwargs)
+                                  shutdown_observation=shutdown, shutdown_trace=trace, **kwargs)
 
     attempt, _ = launch.run_process(
         repo, parent, binaries, profile, launch.TIMING_THEME,
@@ -439,6 +530,8 @@ def measure_process(repo, build_repo, parent, binaries, revalidate, measure,
     report['attempt'] = dict(attempt, role='interactive')
     if shutdown:
         report['shutdown_observation'] = shutdown
+    if trace:
+        report['shutdown_trace'] = trace
     if navigation:
         report['navigation_observation'] = navigation
     current = launch.bounded.plain(profile)

@@ -893,12 +893,20 @@ void main() {
     final ShutdownObservation observation = ShutdownObservation();
     final Object owner = Object();
     final Object replacement = Object();
+    final List<Map<String, Object>> events = <Map<String, Object>>[];
+    int replacements = 0;
+    expect(observation.observe((Map<String, Object> snapshot) {
+      events.add(Map<String, Object>.of(snapshot));
+      snapshot['phase'] = 'synthetic private value';
+    }), isTrue);
+    expect(observation.observe((_) => replacements++), isFalse);
     expect(observation.snapshot(), <String, Object>{
       'phase': 'idle',
       'failed': false,
     });
     observation
       ..begin(owner)
+      ..mark(owner, ShutdownPhase.wakeLockRead)
       ..mark(owner, ShutdownPhase.wakeLockRead)
       ..begin(replacement)
       ..mark(replacement, ShutdownPhase.exitRequested)
@@ -910,19 +918,33 @@ void main() {
     });
     snapshot['phase'] = 'synthetic private value';
     expect(observation.snapshot()['phase'], 'wakeLockRead');
+    expect(events.map((Map<String, Object> value) => value['phase']),
+        <String>['idle', 'windowMaximizedRead', 'wakeLockRead']);
+    expect(events.every((Map<String, Object> value) =>
+        value['failed'] == false), isTrue);
+    expect(replacements, 0);
   });
 
   test('shutdown failure and exit labels ignore late stage changes', () {
     final Object owner = Object();
-    final ShutdownObservation failed = ShutdownObservation()
+    final List<Map<String, Object>> failures = <Map<String, Object>>[];
+    final ShutdownObservation failed = ShutdownObservation();
+    expect(failed.observe((Map<String, Object> snapshot) {
+      failures.add(Map<String, Object>.of(snapshot));
+      throw StateError('synthetic private observer failure');
+    }), isTrue);
+    failed
       ..begin(owner)
       ..mark(owner, ShutdownPhase.serviceReset)
+      ..fail(owner)
       ..fail(owner)
       ..mark(owner, ShutdownPhase.exitRequested);
     expect(failed.snapshot(), <String, Object>{
       'phase': 'serviceReset',
       'failed': true,
     });
+    expect(failures, hasLength(4));
+    expect(failures.last, failed.snapshot());
     final ShutdownObservation exiting = ShutdownObservation()
       ..begin(owner)
       ..mark(owner, ShutdownPhase.exitRequested)

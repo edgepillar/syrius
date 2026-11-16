@@ -1,6 +1,23 @@
 # First delivery and deferred acceptance
 
-Current source: Source813 installs the root-close case's mock handler as a
+Current source: Source814 prepares fixed close events after original process
+cleanup. The interactive harness alone attaches one snapshot observer.
+Opaque output stays in CI memory under the original cap; only bounded phase
+labels and failure flags reach the separate trace. Original shutdown, HTTP
+diagnostic, actor operations, exit limits, P06 overlay and frame predicates
+remain. Forty-five memory controls pass; extended Dart assertions still need
+hosted execution. Counts are 1509/1511 Dart, 1229 Python, 112/113 suites and
+289 strict paths.
+
+Source813 full Linux passes thirteen stages. Windows and independent reading
+verify all sixteen current actions and five normal node exits, but wallet
+closure retains timeout, forced termination and incomplete output. P06
+measurement is not reached; HTTP_FAILED provides no phase. All owned outputs
+are consumed. Fresh hosted/native qualification is required; no closure cause
+or native repair is established. Scope and Source730 Ready matches stay
+76/80 and 2/94. See [fixed close events](source814-fixed-close-events.md).
+
+Earlier source: Source813 installs the root-close case's mock handler as a
 cascade on its original messenger initializer. One exact source replacement
 preserves every handler, assertion, cleanup and registration. Production
 shutdown, overlay, workflows, budgets and performance predicates remain.

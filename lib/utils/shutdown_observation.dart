@@ -45,6 +45,23 @@ class ShutdownObservation {
   Object? _owner;
   ShutdownPhase _phase = ShutdownPhase.idle;
   bool _failed = false;
+  void Function(Map<String, Object>)? _observer;
+
+  /// Retains one process observer; a later caller cannot replace it.
+  bool observe(void Function(Map<String, Object>) observer) {
+    if (_observer != null) return false;
+    _observer = observer;
+    _emit();
+    return true;
+  }
+
+  void _emit() {
+    try {
+      _observer?.call(snapshot());
+    } on Object {
+      // A diagnostic sink must never interrupt the original close operation.
+    }
+  }
 
   /// Retains the first closing root; another root cannot replace its record.
   void begin(Object owner) {
@@ -57,15 +74,20 @@ class ShutdownObservation {
     if (!identical(owner, _owner) ||
         _failed ||
         _phase == ShutdownPhase.exitRequested ||
+        _phase == phase ||
         phase == ShutdownPhase.idle) {
       return;
     }
     _phase = phase;
+    _emit();
   }
 
   /// Retains failure without retaining an exception, stack or private value.
   void fail(Object owner) {
-    if (identical(owner, _owner)) _failed = true;
+    if (identical(owner, _owner) && !_failed) {
+      _failed = true;
+      _emit();
+    }
   }
 
   /// Exposes fixed labels only; callers cannot mutate the retained record.

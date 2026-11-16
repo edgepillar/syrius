@@ -1,6 +1,8 @@
 """Memory controls for the paired interactive frame manifest."""
 
 from copy import deepcopy
+import json
+from types import SimpleNamespace
 import unittest
 from unittest import mock
 
@@ -57,6 +59,159 @@ class InteractiveFramePairTests(unittest.TestCase):
         raw, item, lab = package(value, **options)
         return inspect.project(raw, item, head=HEAD, tree=TREE, run_id=RUN, lab=lab,
                                expected_entry=pair.profile.ENTRY_SHA256)
+
+    def test_shutdown_trace_has_closed_labels_bounded_lines_and_no_private_output(self):
+        profile = pair.profile
+
+        def row(phase, failed=False):
+            return profile.SHUTDOWN_PREFIX + json.dumps(
+                dict(phase=phase, failed=failed), separators=(',', ':')).encode() + b'\n'
+
+        def read(raw, complete=True, overflow=False, **options):
+            result = profile.observe_shutdown_trace(raw, output_complete=complete,
+                output_overflow=overflow, **options)
+            self.assertTrue(profile.valid_shutdown_trace(result))
+            self.assertNotIn('synthetic private', json.dumps(result))
+            return result
+
+        original = b'synthetic private child output\n' + row('idle') + row('serviceReset')
+        self.assertEqual(read(original), dict(status='observed', phase='serviceReset',
+            failed=False, event_count=2, output_complete=True))
+        partial = original + profile.SHUTDOWN_PREFIX + b'{"phase":"synthetic private'
+        self.assertEqual(read(partial, complete=False), dict(status='observed',
+            phase='serviceReset', failed=False, event_count=2, output_complete=False))
+        self.assertEqual(read(b'synthetic private child output\n'),
+                         dict(status='absent', output_complete=True))
+        self.assertEqual(read(row('exitRequested') + row('exitRequested', True))['failed'], True)
+        invalid = (
+            row('synthetic private phase'), row('idle', True), row('serviceReset', 1),
+            profile.SHUTDOWN_PREFIX + b'{"phase":"idle","failed":false,"private":"synthetic private"}\n',
+            profile.SHUTDOWN_PREFIX + b'{"phase":"synthetic private","phase":"idle","failed":false}\n',
+            profile.SHUTDOWN_PREFIX + b'{"phase":"\xff","failed":false}\n',
+            profile.SHUTDOWN_PREFIX + b' ' * 256 + b'\n', partial,
+            row('idle') + row('idle'), row('serviceReset', True) + row('windowSizeRead'),
+            row('exitRequested') + row('windowSizeRead'),
+            b''.join(row('serviceReset' if turn % 2 else 'windowSizeRead')
+                     for turn in range(len(profile.SHUTDOWN_PHASES) + 2)),
+        )
+        for raw in invalid:
+            with self.subTest(raw_size=len(raw)):
+                self.assertEqual(read(raw)['error_code'], 'STATE_INVALID')
+        self.assertEqual(read(original, overflow=True)['error_code'], 'OUTPUT_OVERFLOW')
+        self.assertEqual(read(original, cap=1)['error_code'], 'OUTPUT_OVERFLOW')
+        for cap in (False, 0, 131073):
+            self.assertEqual(read(original, cap=cap)['error_code'], 'STATE_INVALID')
+        for value in (
+            None, dict(status='absent', output_complete=1),
+            dict(status='observed', phase='synthetic private', failed=False,
+                 event_count=1, output_complete=True),
+            dict(status='observed', phase='idle', failed=True, event_count=1, output_complete=True),
+            dict(status='observed', phase='idle', failed=False, event_count=True, output_complete=True),
+            dict(status='observed', phase='idle', failed=False, event_count=0, output_complete=True),
+            dict(status='unavailable', error_code='synthetic private', output_complete=True),
+            dict(status='absent', output_complete=True, private='synthetic private'),
+        ):
+            self.assertFalse(profile.valid_shutdown_trace(value))
+
+    def test_shutdown_trace_runs_after_original_cleanup_and_cannot_qualify_failed_exit(self):
+        profile = pair.profile
+        row = profile.SHUTDOWN_PREFIX + b'{"phase":"exitRequested","failed":false}\n'
+        for parent_error, parser_error in ((False, False), (True, False), (True, True)):
+            actor = profile.InteractiveSession.__new__(profile.InteractiveSession)
+            actor.report = SimpleNamespace(output_complete=True, output_overflow=False)
+            actor.drain = SimpleNamespace(data=bytearray())
+            actor.limits = SimpleNamespace(output_bytes=131072)
+            actor.shutdown_trace = {}
+            actor.process = mock.Mock()
+            actor._rpc = mock.Mock()
+            original = profile.launch.startup.Failure('EXIT_TIMEOUT')
+            receipt = object()
+
+            def finish(*args, **kwargs):
+                actor.report.output_complete = False
+                actor.drain.data.extend(row)
+                if parent_error:
+                    raise original
+                return receipt
+
+            parser = profile.observe_shutdown_trace
+            with mock.patch.object(profile.launch.LaunchProcess, 'run_launch',
+                    side_effect=finish) as run, mock.patch.object(profile, 'observe_shutdown_trace',
+                    side_effect=RuntimeError('synthetic private parser') if parser_error else parser):
+                if parent_error:
+                    with self.assertRaises(profile.launch.startup.Failure) as raised:
+                        actor.run_launch('dark', capture=False, settle=False)
+                    self.assertIs(raised.exception, original)
+                else:
+                    self.assertIs(actor.run_launch('dark', capture=False, settle=False), receipt)
+                run.assert_called_once_with('dark', capture=False, settle=False)
+            actor.process.wait.assert_not_called()
+            actor._rpc.assert_not_called()
+            self.assertTrue(profile.valid_shutdown_trace(actor.shutdown_trace))
+            self.assertFalse(actor.shutdown_trace['output_complete'])
+            self.assertNotIn('synthetic private', json.dumps(actor.shutdown_trace))
+            self.assertEqual(actor.shutdown_trace['status'],
+                             'unavailable' if parser_error else 'observed')
+
+        offered = fixture()
+        current = offered['samples']['current']
+        current['attempt'].update(exit_code=0, forced_kill=True, output_complete=False,
+            error_codes=['EXIT_TIMEOUT', 'FORCED_TERMINATION', 'OUTPUT_INCOMPLETE'])
+        current['attempt']['checks']['exit'] = False
+        current['success'] = False
+        trace = dict(status='observed', phase='exitRequested', failed=False,
+                     event_count=2, output_complete=False)
+        current['shutdown_trace'] = trace
+        current['shutdown_observation'] = dict(status='unavailable', error_code='HTTP_FAILED')
+        offered.update(phase='current_interactive', success=False, comparisons=None,
+            samples=dict(current=current), same_fixture_address=False, commands=[],
+            p06=dict(cold.P06_IDENTITY, overlay_verified=False), error_codes=['FRAME_REFUSED'])
+        result = self.project(offered)
+        self.assertEqual(result['shutdown_traces'], dict(current=trace))
+        self.assertEqual(result['shutdown_observations'],
+                         dict(current=current['shutdown_observation']))
+        self.assertEqual(result['normal_wallet_exits'], 0)
+        self.assertFalse(result['artifact_reported_success'])
+        self.assertFalse(result['timing_criterion_passed'])
+        for update in (dict(output_complete=True), dict(phase='synthetic private'),
+                       dict(event_count=0), dict(private='synthetic private')):
+            current['shutdown_trace'] = dict(trace, **update)
+            with self.assertRaises(archive.Refused):
+                self.project(offered)
+
+        for interactive in (False, True):
+            process = mock.Mock(stdout=object())
+            session = mock.Mock()
+            receipt = object()
+            session.run_launch.return_value = receipt
+            factory = mock.Mock(return_value=session)
+            context = mock.MagicMock()
+            context.__enter__.return_value.getsockname.return_value = ('127.0.0.1', 12345)
+            env = {}
+            info = SimpleNamespace(st_dev=1, st_ino=2, st_size=3, st_mtime_ns=4)
+            catalog = profile.launch
+            with mock.patch.object(catalog.bounded, 'check_no_existing'), \
+                    mock.patch.object(catalog.bounded, 'plain', return_value=info), \
+                    mock.patch.object(catalog.entry, 'child_environment', return_value=env), \
+                    mock.patch.object(catalog.socket, 'socket', return_value=context), \
+                    mock.patch.object(catalog.subprocess, 'Popen', return_value=process) as spawn, \
+                    mock.patch.object(catalog.bounded, 'OutputDrain') as drain:
+                result = catalog.run_process(fixtures.Path('synthetic'),
+                    dict(SYRIUS_PAIRED_INTERACTIVE_PROFILE='true'),
+                    [(fixtures.Path('runner.exe'), None, (1, 2, 3, 4))],
+                    fixtures.Path('profile'), 'dark', capture=False, settle=False,
+                    process_type=factory, interactive=interactive)
+            self.assertIs(result, receipt)
+            spawn.assert_called_once()
+            drain.assert_called_once_with(process.stdout, catalog.LIMITS.output_bytes,
+                                          retain=interactive)
+            limits = factory.call_args.kwargs['limits']
+            self.assertEqual(limits.exit, 10)
+            self.assertEqual(limits.cleanup, catalog.LIMITS.cleanup)
+            self.assertEqual(limits.output_bytes, 131072)
+            self.assertEqual(env.get('SYRIUS_HARNESS_FRAME_TIMING'),
+                             'interactive' if interactive else None)
+            process.wait.assert_not_called()
 
     def test_both_timings_require_the_same_owned_fixture_and_closed_actors(self):
         result = self.project(fixture())
