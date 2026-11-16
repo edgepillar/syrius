@@ -24,6 +24,12 @@ ENTRY = Path('harness/bin/ci_paired_interactive_entry.dart')
 ENTRY_SHA256 = 'c86d6a93a8751554df06e642b941850215d193ba070c137d27075877f956bcd6'
 MEASUREMENT_COMMANDS = frozenset(('theme', 'state', 'stalls', 'tap', 'wait', 'scroll'))
 MAX_MEASUREMENT_COMMANDS = 32
+SHUTDOWN_PHASES = frozenset((
+    'idle', 'windowMaximizedRead', 'windowMaximizedSave', 'windowSizeRead',
+    'windowWidthSave', 'windowHeightSave', 'windowPositionRead', 'windowXSave',
+    'windowYSave', 'webSocketStop', 'embeddedNodeClose', 'wakeLockRead',
+    'wakeLockDisable', 'embeddedStopRequest', 'embeddedStopWait',
+    'embeddedCleanup', 'serviceReset', 'widgetDispose', 'exitRequested'))
 PREPARATION_PHASES = frozenset(('environment', 'input', 'ownerBefore', 'emptyProfile',
                               'importWallet', 'ownerAfter', 'walletReady'))
 PREPARATION_ERROR_PHASES = {
@@ -38,6 +44,19 @@ PREPARATION_ERROR_PHASES = {
 
 class InteractiveRefused(Exception):
     pass
+
+
+def valid_shutdown_observation(value):
+    """Accept fixed close labels, never private errors or successful-exit claims."""
+    if type(value) is not dict:
+        return False
+    if set(value) == {'status', 'phase', 'failed'}:
+        return (value['status'] == 'observed' and type(value['phase']) is str
+            and value['phase'] in SHUTDOWN_PHASES and type(value['failed']) is bool
+            and not (value['phase'] == 'idle' and value['failed']))
+    return (set(value) == {'status', 'error_code'}
+        and value['status'] == 'unavailable' and type(value['error_code']) is str
+        and value['error_code'] in launch.startup.CODES)
 
 
 def need(condition, code):
@@ -279,9 +298,35 @@ def owned_profile(send, run_entry, revalidate, measure, confirm_address, *,
 
 
 class InteractiveSession(launch.LaunchProcess):
-    def __init__(self, *args, observe, **kwargs):
+    def __init__(self, *args, observe, shutdown_observation=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.observe = observe
+        self.shutdown_observation = (
+            {} if shutdown_observation is None else shutdown_observation)
+
+    def _quit(self):
+        try:
+            super()._quit()
+        except launch.startup.Failure as original:
+            if original.code == 'EXIT_TIMEOUT' and not self.shutdown_observation:
+                try:
+                    body = self._rpc({'cmd': 'shutdown-state'}, allow_exit=True,
+                                     until=min(self.deadline, self.clock() + 1))
+                    if (type(body) is not dict or set(body) != {'ok', 'phase', 'failed'}
+                            or body['ok'] is not True or type(body['phase']) is not str
+                            or body['phase'] not in SHUTDOWN_PHASES
+                            or type(body['failed']) is not bool
+                            or body['phase'] == 'idle' and body['failed']):
+                        raise launch.startup.Failure('STATE_INVALID')
+                    self.shutdown_observation.update(status='observed',
+                        phase=body['phase'], failed=body['failed'])
+                except launch.startup.Failure as diagnostic:
+                    self.shutdown_observation.update(status='unavailable',
+                        error_code=diagnostic.code)
+                except (Exception, KeyboardInterrupt):
+                    self.shutdown_observation.update(status='unavailable',
+                        error_code='INTERNAL_ERROR')
+            raise
 
     def _prepare_theme(self, theme):
         super()._prepare_theme(theme)
@@ -301,6 +346,7 @@ def measure_process(repo, build_repo, parent, binaries, revalidate, measure,
     profile = launch.entry.new_profile(repo)
     original = launch.bounded.plain(profile)
     report.update(attempt=None, observation={}, profile_stable=False, success=False)
+    shutdown = {}
 
     def observe(session):
         owned_profile(session._rpc, lambda payload: run_entry_process(
@@ -310,12 +356,15 @@ def measure_process(repo, build_repo, parent, binaries, revalidate, measure,
             first_height=first_height, report=report['observation'])
 
     def session(*args, **kwargs):
-        return InteractiveSession(*args, observe=observe, **kwargs)
+        return InteractiveSession(*args, observe=observe,
+                                  shutdown_observation=shutdown, **kwargs)
 
     attempt, _ = launch.run_process(
         repo, parent, binaries, profile, launch.TIMING_THEME,
         capture=False, settle=False, process_type=session, interactive=True)
     report['attempt'] = dict(attempt, role='interactive')
+    if shutdown:
+        report['shutdown_observation'] = shutdown
     current = launch.bounded.plain(profile)
     report['profile_stable'] = (current.st_dev, current.st_ino) == (original.st_dev, original.st_ino)
     need(report['profile_stable'], 'PROFILE_REFUSED')

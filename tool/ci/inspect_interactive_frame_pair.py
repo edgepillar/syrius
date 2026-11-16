@@ -26,8 +26,9 @@ READOUT_FIELDS = {*EXIT_FIELDS, 'output_bytes', 'seconds', 'success'}
 def sample_receipts(value):
     if value == {}:
         return {}, False, False, False
+    required = {'attempt', 'observation', 'profile_stable', 'success'}
     archive.need(type(value) is dict
-        and set(value) == {'attempt', 'observation', 'profile_stable', 'success'}
+        and required <= set(value) <= required | {'shutdown_observation'}
         and type(value['success']) is type(value['profile_stable']) is bool)
     attempt = value['attempt']
     closed = completed = False
@@ -41,6 +42,9 @@ def sample_receipts(value):
         cold.codes(attempt['error_codes'], pair.shared.launch.startup.CODES, 16)
         closed = cold.normal_exit(attempt) and all(attempt['checks'].values())
         completed = closed and attempt['action_complete'] and not attempt['error_codes']
+    if 'shutdown_observation' in value:
+        archive.need(attempt is not None and 'EXIT_TIMEOUT' in attempt['error_codes']
+            and pair.profile.valid_shutdown_observation(value['shutdown_observation']))
     observation = value['observation']
     windows, entry_closed = {}, False
     observed = False
@@ -190,6 +194,9 @@ def project(raw, item, *, head, tree, run_id, lab, expected_entry):
         preparation_failures={label: sample['observation']['preparation_failure']
                               for label, sample in samples.items() if sample.get('observation')
                               and 'preparation_failure' in sample['observation']},
+        shutdown_observations={label: sample['shutdown_observation']
+                               for label, sample in samples.items()
+                               if 'shutdown_observation' in sample},
         normal_wallet_exits=current_closed + p06_closed,
         normal_entry_exits=current_entry + p06_entry,
         entry_process_results={label: {key: sample['observation']['entry'][key] for key in (

@@ -7,6 +7,7 @@ import subprocess
 import sys
 
 SELECTED_DART_SOURCES = (
+    'lib/utils/shutdown_observation.dart',
     'tool/ci/windows_debug_service_probe.dart',
     'harness/app/main.dart',
     'harness/app/native_launch_capture.dart',

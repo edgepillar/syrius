@@ -113,6 +113,36 @@ class InteractiveFramePairTests(unittest.TestCase):
         self.assertFalse(projected['timing_criterion_passed'])
         self.assertIsNone(projected['no_added_reported_slow_frames'])
         self.assertIsNone(projected['no_frame_number_gaps'])
+        timed = deepcopy(interrupted)
+        timed['samples']['current']['attempt'].update(
+            error_codes=['EXIT_TIMEOUT', 'FORCED_TERMINATION', 'OUTPUT_INCOMPLETE'],
+            output_complete=False)
+        valid_close = (
+            dict(status='observed', phase='wakeLockRead', failed=False),
+            dict(status='observed', phase='serviceReset', failed=True),
+            dict(status='unavailable', error_code='COMMAND_FAILED'),
+        )
+        for diagnostic in valid_close:
+            timed['samples']['current']['shutdown_observation'] = diagnostic
+            result = self.project(timed)
+            self.assertEqual(result['shutdown_observations'], dict(current=diagnostic))
+            self.assertFalse(result['artifact_reported_success'])
+            self.assertFalse(result['timing_criterion_passed'])
+            self.assertEqual(result['normal_wallet_exits'], 0)
+        for diagnostic in (
+            dict(status='observed', phase='synthetic private value', failed=False),
+            dict(status='observed', phase='idle', failed=True),
+            dict(status='observed', phase='wakeLockRead', failed=1),
+            dict(status='observed', phase='wakeLockRead', failed=False, private='value'),
+            dict(status='unavailable', error_code='synthetic private value'),
+        ):
+            timed['samples']['current']['shutdown_observation'] = diagnostic
+            with self.subTest(shutdown=diagnostic), self.assertRaises(archive.Refused):
+                self.project(timed)
+        normal = fixture()
+        normal['samples']['current']['shutdown_observation'] = valid_close[0]
+        with self.assertRaises(archive.Refused):
+            self.project(normal)
         for field, value in (
             ('stdout', 'synthetic private output'),
             ('error_codes', ['synthetic private output']),
@@ -280,6 +310,61 @@ class InteractiveFramePairTests(unittest.TestCase):
                 self.assertFalse(collecting)
                 self.assertFalse(any(call.get('key') in ('about_page', 'about_licences_list')
                                      for call in calls))
+
+    def test_close_observation_preserves_the_original_exit_failure(self):
+        profile = pair.profile
+        base = profile.launch.LaunchProcess
+
+        def session(reply=None, error=None):
+            value = object.__new__(profile.InteractiveSession)
+            value.shutdown_observation = {}
+            value.deadline = 50.0
+            value.clock = lambda: 10.0
+            value._rpc = mock.Mock(return_value=reply, side_effect=error)
+            return value
+
+        for failure in (None, profile.launch.startup.Failure('CLOSE_FAILED')):
+            actor = session()
+            with mock.patch.object(base, '_quit', side_effect=failure):
+                if failure is None:
+                    actor._quit()
+                else:
+                    with self.assertRaises(profile.launch.startup.Failure) as raised:
+                        actor._quit()
+                    self.assertIs(raised.exception, failure)
+            actor._rpc.assert_not_called()
+            self.assertEqual(actor.shutdown_observation, {})
+
+        cases = (
+            (dict(ok=True, phase='wakeLockRead', failed=False), None,
+             dict(status='observed', phase='wakeLockRead', failed=False)),
+            (dict(ok=True, phase='serviceReset', failed=True), None,
+             dict(status='observed', phase='serviceReset', failed=True)),
+            (dict(ok=True, phase='idle', failed=True), None,
+             dict(status='unavailable', error_code='STATE_INVALID')),
+            (dict(ok=1, phase='wakeLockRead', failed=False), None,
+             dict(status='unavailable', error_code='STATE_INVALID')),
+            (dict(ok=True, phase='wakeLockRead', failed=1), None,
+             dict(status='unavailable', error_code='STATE_INVALID')),
+            (dict(ok=True, phase='private', failed=False), None,
+             dict(status='unavailable', error_code='STATE_INVALID')),
+            (dict(ok=True, phase='wakeLockRead', failed=False, private='value'), None,
+             dict(status='unavailable', error_code='STATE_INVALID')),
+            (None, profile.launch.startup.Failure('HTTP_FAILED'),
+             dict(status='unavailable', error_code='HTTP_FAILED')),
+            (None, RuntimeError('synthetic private failure'),
+             dict(status='unavailable', error_code='INTERNAL_ERROR')),
+        )
+        for reply, error, expected in cases:
+            actor = session(reply, error)
+            original = profile.launch.startup.Failure('EXIT_TIMEOUT')
+            with mock.patch.object(base, '_quit', side_effect=original):
+                with self.assertRaises(profile.launch.startup.Failure) as raised:
+                    actor._quit()
+            self.assertIs(raised.exception, original)
+            actor._rpc.assert_called_once_with(
+                {'cmd': 'shutdown-state'}, allow_exit=True, until=11.0)
+            self.assertEqual(actor.shutdown_observation, expected)
 
     def test_profile_progress_preserves_the_original_send_failure(self):
         profile = pair.profile

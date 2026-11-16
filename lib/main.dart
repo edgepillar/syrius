@@ -41,6 +41,7 @@ import 'package:zenon_syrius_wallet_flutter/services/web3wallet_service.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/font_licences.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/functions.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/motion_binding.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/shutdown_observation.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/utils.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/window_chrome.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart';
@@ -518,44 +519,64 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
 
   @override
   Future<void> onWindowClose() async {
-    final bool windowMaximized = await windowManager.isMaximized();
-    await sharedPrefsService!.put(
-      kWindowMaximizedKey,
-      windowMaximized,
-    );
-
-    if (!windowMaximized) {
-      final Size windowSize = await windowManager.getSize();
+    appShutdownObservation.begin(this);
+    void stage(ShutdownPhase phase) =>
+        appShutdownObservation.mark(this, phase);
+    try {
+      final bool windowMaximized = await windowManager.isMaximized();
+      stage(ShutdownPhase.windowMaximizedSave);
       await sharedPrefsService!.put(
-        kWindowSizeWidthKey,
-        windowSize.width,
-      );
-      await sharedPrefsService!.put(
-        kWindowSizeHeightKey,
-        windowSize.height,
+        kWindowMaximizedKey,
+        windowMaximized,
       );
 
-      final Offset windowPosition = await windowManager.getPosition();
-      await sharedPrefsService!.put(
-        kWindowPositionXKey,
-        windowPosition.dx,
+      if (!windowMaximized) {
+        stage(ShutdownPhase.windowSizeRead);
+        final Size windowSize = await windowManager.getSize();
+        stage(ShutdownPhase.windowWidthSave);
+        await sharedPrefsService!.put(
+          kWindowSizeWidthKey,
+          windowSize.width,
+        );
+        stage(ShutdownPhase.windowHeightSave);
+        await sharedPrefsService!.put(
+          kWindowSizeHeightKey,
+          windowSize.height,
+        );
+
+        stage(ShutdownPhase.windowPositionRead);
+        final Offset windowPosition = await windowManager.getPosition();
+        stage(ShutdownPhase.windowXSave);
+        await sharedPrefsService!.put(
+          kWindowPositionXKey,
+          windowPosition.dx,
+        );
+        stage(ShutdownPhase.windowYSave);
+        await sharedPrefsService!.put(
+          kWindowPositionYKey,
+          windowPosition.dy,
+        );
+      }
+
+      stage(ShutdownPhase.webSocketStop);
+      sl<Zenon>().wsClient.stop();
+      unawaited(
+        Future<void>.delayed(const Duration(seconds: 60)).then((_) => exit(0)),
       );
-      await sharedPrefsService!.put(
-        kWindowPositionYKey,
-        windowPosition.dy,
-      );
+      stage(ShutdownPhase.embeddedNodeClose);
+      await NodeUtils.closeEmbeddedNode(observeShutdown: stage);
+      stage(ShutdownPhase.serviceReset);
+      await sl.reset();
+      stage(ShutdownPhase.widgetDispose);
+      super.onWindowClose();
+      deactivate();
+      dispose();
+      stage(ShutdownPhase.exitRequested);
+      exit(0);
+    } on Object {
+      appShutdownObservation.fail(this);
+      rethrow;
     }
-
-    sl<Zenon>().wsClient.stop();
-    unawaited(
-      Future<void>.delayed(const Duration(seconds: 60)).then((_) => exit(0)),
-    );
-    await NodeUtils.closeEmbeddedNode();
-    await sl.reset();
-    super.onWindowClose();
-    deactivate();
-    dispose();
-    exit(0);
   }
 
   @override

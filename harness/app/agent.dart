@@ -60,6 +60,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/constants.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/entry_capture_source.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/node_transition.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/shutdown_observation.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_context_revision.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_initialization.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/modular_widgets/settings_widgets/addresses_settings_presenter.dart'
@@ -1205,6 +1206,11 @@ class HarnessAgent {
         };
       case 'state':
         return _state();
+      case 'shutdown-state':
+        if (c.keys.any((String key) => key != 'cmd')) {
+          throw HarnessError('shutdown observation input refused');
+        }
+        return appShutdownObservation.snapshot();
       case 'lock-view':
         return _lockViewCommand(c);
       case 'lock-catalog':

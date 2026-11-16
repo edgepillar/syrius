@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/shutdown_observation.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart'
     show PasswordInputField;
@@ -883,6 +884,50 @@ void main() {
     });
   }
 
+  test('shutdown observations retain the original owner and fixed labels', () {
+    final ShutdownObservation observation = ShutdownObservation();
+    final Object owner = Object();
+    final Object replacement = Object();
+    expect(observation.snapshot(), <String, Object>{
+      'phase': 'idle',
+      'failed': false,
+    });
+    observation
+      ..begin(owner)
+      ..mark(owner, ShutdownPhase.wakeLockRead)
+      ..begin(replacement)
+      ..mark(replacement, ShutdownPhase.exitRequested)
+      ..fail(replacement);
+    final Map<String, Object> snapshot = observation.snapshot();
+    expect(snapshot, <String, Object>{
+      'phase': 'wakeLockRead',
+      'failed': false,
+    });
+    snapshot['phase'] = 'synthetic private value';
+    expect(observation.snapshot()['phase'], 'wakeLockRead');
+  });
+
+  test('shutdown failure and exit labels ignore late stage changes', () {
+    final Object owner = Object();
+    final ShutdownObservation failed = ShutdownObservation()
+      ..begin(owner)
+      ..mark(owner, ShutdownPhase.serviceReset)
+      ..fail(owner)
+      ..mark(owner, ShutdownPhase.exitRequested);
+    expect(failed.snapshot(), <String, Object>{
+      'phase': 'serviceReset',
+      'failed': true,
+    });
+    final ShutdownObservation exiting = ShutdownObservation()
+      ..begin(owner)
+      ..mark(owner, ShutdownPhase.exitRequested)
+      ..mark(owner, ShutdownPhase.windowSizeRead);
+    expect(exiting.snapshot(), <String, Object>{
+      'phase': 'exitRequested',
+      'failed': false,
+    });
+  });
+
   testWidgets('recipe observations retain keys and omit private values', (
     WidgetTester tester,
   ) async {
@@ -894,6 +939,17 @@ void main() {
     };
     final HarnessAgent agent = HarnessAgent.forTest()..booted = true;
     try {
+      expect(
+        await agent.commandForTest(<String, dynamic>{'cmd': 'shutdown-state'}),
+        <String, Object>{'phase': 'idle', 'failed': false},
+      );
+      await expectLater(
+        agent.commandForTest(<String, dynamic>{
+          'cmd': 'shutdown-state',
+          'private': 'synthetic private value',
+        }),
+        throwsA(isA<HarnessError>()),
+      );
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(

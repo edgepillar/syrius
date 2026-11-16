@@ -15,6 +15,7 @@ import 'package:zenon_syrius_wallet_flutter/utils/global.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/node_receive_binding.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/node_transition.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/notification_utils.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/shutdown_observation.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/wallet_context_revision.dart';
 import 'package:znn_sdk_dart/znn_sdk_dart.dart';
 
@@ -102,7 +103,16 @@ class NodeUtils {
   /// Stops only the captured native owner and awaits its actual exit message.
   static Future<void> closeEmbeddedNode({
     void Function()? requireCurrent,
+    void Function(ShutdownPhase)? observeShutdown,
   }) async {
+    void observe(ShutdownPhase phase) {
+      try {
+        observeShutdown?.call(phase);
+      } on Object {
+        // Passive diagnostics cannot replace the original close outcome.
+      }
+    }
+
     final String? node = kCurrentNode;
     final SendPort? commands = ui.IsolateNameServer.lookupPortByName(
       'embeddedIsolate',
@@ -143,9 +153,11 @@ class NodeUtils {
     }
 
     requireOwner();
+    observe(ShutdownPhase.wakeLockRead);
     final bool heldWakeLock = await WakelockPlus.enabled;
     requireOwner();
     if (heldWakeLock) {
+      observe(ShutdownPhase.wakeLockDisable);
       await WakelockPlus.disable();
       requireOwner();
     }
@@ -195,7 +207,9 @@ class NodeUtils {
             'The original embedded-node command port is absent.',
           );
         }
+        observe(ShutdownPhase.embeddedStopRequest);
         commands.send('stop');
+        observe(ShutdownPhase.embeddedStopWait);
         await embeddedStoppedCompleter.future;
         requireOwner();
         final SendPort? replacement = ui.IsolateNameServer.lookupPortByName(
@@ -206,6 +220,7 @@ class NodeUtils {
         }
         kEmbeddedNodeRunning = false;
       } finally {
+        observe(ShutdownPhase.embeddedCleanup);
         await subscription.cancel();
       }
     }
