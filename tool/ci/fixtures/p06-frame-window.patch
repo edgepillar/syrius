@@ -16,7 +16,46 @@
  import 'logical_capture.dart';
  import 'native_entry_capture.dart';
  import 'native_window_owner.dart';
-@@ -746,6 +748,11 @@
+@@ -356,7 +358,8 @@
+
+ class HarnessAgent {
+   HarnessAgent._()
+-    : _captureFrames = CaptureFrameGate(
++    : _waitForInputFrame = _bindingInputFrame,
++      _captureFrames = CaptureFrameGate(
+         waitForFrame: () => WidgetsBinding.instance.endOfFrame,
+       ),
+       _closePresentation = windowManager.close,
+@@ -365,14 +368,19 @@
+   @visibleForTesting
+   HarnessAgent.forTest({
+     Future<void> Function()? closePresentation,
++    Future<void> Function()? waitForInputFrame,
+     Future<void> Function()? waitForCaptureFrame,
+     Future<void> Function()? waitForCaptureFrameDeadline,
+     this._waitForPresentationClose,
+-  }) : _captureFrames = CaptureFrameGate(
++  }) : _waitForInputFrame = waitForInputFrame ?? _bindingInputFrame,
++       _captureFrames = CaptureFrameGate(
+          waitForFrame: waitForCaptureFrame ?? _refuseTestCaptureFrame,
+          waitUntilDeadline: waitForCaptureFrameDeadline,
+        ),
+        _closePresentation = closePresentation ?? _refuseTestClose;
++
++  static Future<void> _bindingInputFrame() =>
++      WidgetsBinding.instance.endOfFrame;
+
+   static Future<void> _refuseTestClose() =>
+       throw HarnessError('no test close callback was supplied');
+@@ -417,6 +425,7 @@
+   bool _presentationRevoked = false;
+   int _presentationEpoch = 0;
+   int _presentationRevision = 0;
++  final Future<void> Function() _waitForInputFrame;
+   final CaptureFrameGate _captureFrames;
+   final Future<void> Function() _closePresentation;
+   final Future<void> Function()? _waitForPresentationClose;
+@@ -746,6 +755,11 @@
          };
        case 'state':
          return _state();
@@ -28,7 +67,7 @@
        case 'wallet-recipe':
          return _walletRecipeCommand(c);
        case 'entry-caption':
-@@ -793,6 +800,7 @@
+@@ -793,6 +807,7 @@
        case 'logs':
          return _logsCmd(c);
        case 'stalls':
@@ -36,7 +75,7 @@
          return _stallsCmd(c);
        case 'clipboard':
          return _clipboard(c);
-@@ -1096,6 +1104,33 @@
+@@ -1096,6 +1111,33 @@
            : 'startup-before-initialization';
      }
      return phases.single;
@@ -70,7 +109,7 @@
    }
 
    _Node? _recipeStartupHint(List<_Node> nodes) {
-@@ -1249,6 +1284,9 @@
+@@ -1249,6 +1291,9 @@
      }
      final List<_Node> nodes = _snapshot();
      final _Node? startupHint = _recipeStartupHint(nodes);
@@ -80,7 +119,7 @@
      final Set<String> entryPhases = <String>{};
      final List<Element> views = _recipeNodeViews(entryPhases: entryPhases);
      final NodeSettingsView? view = views.isEmpty
-@@ -1265,6 +1303,7 @@
+@@ -1265,6 +1310,7 @@
        'harnessMode': 'wallet',
        'booted': booted,
        'entryPhase': _recipeEntryPhase(entryPhases),
@@ -88,7 +127,7 @@
        'owner': _recipeOwner,
        'revision': WalletContextRevision.value,
        'walletPresent': kWalletFile != null,
-@@ -1534,6 +1573,33 @@
+@@ -1534,6 +1580,33 @@
 
    // ---------------------------------------------------------------- snapshot
 
@@ -122,7 +161,7 @@
    List<_Node> _snapshot() {
      final List<_Node> out = <_Node>[];
      final Element? root = WidgetsBinding.instance.rootElement;
-@@ -1609,7 +1675,45 @@
+@@ -1609,7 +1682,45 @@
      final Key? navKey = w.key;
      if (navKey is ValueKey<String> && navKey.value.startsWith('nav_')) {
        final _Node? t = n.tappable;
@@ -169,7 +208,40 @@
      }
      if (w is Tab) {
        // The main tab bar is built in kTabs order; half of it is icons.
-@@ -2458,6 +2562,12 @@
+@@ -2027,6 +2138,14 @@
+   }
+
+   // ----------------------------------------------------------------- pointer
++
++  Future<void> _inputFrame() async {
++    try {
++      await _waitForInputFrame().timeout(const Duration(seconds: 1));
++    } on Object {
++      throw HarnessError('wallet-recipe-control-refused');
++    }
++  }
+
+   Future<void> _frame() => WidgetsBinding.instance.endOfFrame.timeout(
+     const Duration(milliseconds: 250),
+@@ -2336,7 +2455,7 @@
+       }
+       // Click into it first, as a person would: focus listeners fire.
+       await _click(node.center, requireAdmission: requireAdmission);
+-      await _frame();
++      await _inputFrame();
+       requireAdmission?.call();
+       state = (node.element as StatefulElement).state as EditableTextState;
+     } else {
+@@ -2354,7 +2473,7 @@
+       ),
+       SelectionChangedCause.keyboard,
+     );
+-    await _frame();
++    await _inputFrame();
+     if (c['submit'] == true) {
+       state.performAction(TextInputAction.done);
+     }
+@@ -2458,6 +2577,12 @@
    Future<Map<String, Object?>> _wait(Map<String, dynamic> c) async {
      final int timeout = c['timeoutMs'] as int? ?? 10000;
      final bool gone = c['gone'] == true;
@@ -182,7 +254,7 @@
      final Stopwatch sw = Stopwatch()..start();
      while (true) {
        final List<_Node> hits = _matches(
-@@ -2472,7 +2582,11 @@
+@@ -2472,7 +2597,11 @@
            'error',
          ],
        );
@@ -195,7 +267,7 @@
          return <String, Object?>{
            'ms': sw.elapsedMilliseconds,
            if (!gone) 'target': hits.first.toJson(),
-@@ -2724,6 +2838,64 @@
+@@ -2724,6 +2853,64 @@
 
    // ------------------------------------------------------------------ stalls
 
@@ -260,7 +332,7 @@
    final Stopwatch _stallClock = Stopwatch();
    Duration _stallLast = Duration.zero;
    final List<Map<String, Object?>> _stalls = <Map<String, Object?>>[];
-@@ -2737,6 +2909,12 @@
+@@ -2737,6 +2924,12 @@
    /// even on a still page. The frame timings add what a timer cannot see:
    /// the raster thread, where a large image or a first-use shader costs.
    void _hookStalls() {
@@ -273,7 +345,7 @@
      void record(String kind, int ms) {
        _stalls.add(<String, Object?>{
          'time': DateTime.now().toIso8601String(),
-@@ -2756,6 +2934,7 @@
+@@ -2756,6 +2949,7 @@
        }
      });
      SchedulerBinding.instance.addTimingsCallback((List<ui.FrameTiming> ts) {

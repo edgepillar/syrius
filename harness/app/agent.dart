@@ -427,18 +427,21 @@ class _RecipeSelection {
 
 class HarnessAgent {
   HarnessAgent._()
-    : _captureFrames = _scheduledCaptureFrameGate(),
+    : _waitForInputFrame = _bindingInputFrame,
+      _captureFrames = _scheduledCaptureFrameGate(),
       _closePresentation = windowManager.close,
       _waitForPresentationClose = null;
 
   @visibleForTesting
   HarnessAgent.forTest({
     Future<void> Function()? closePresentation,
+    Future<void> Function()? waitForInputFrame,
     Future<void> Function()? waitForCaptureFrame,
     Future<void> Function()? waitForCaptureFrameDeadline,
     CaptureFrameState? Function()? observeCaptureFrameState,
     this._waitForPresentationClose,
-  }) : _captureFrames = CaptureFrameGate(
+  }) : _waitForInputFrame = waitForInputFrame ?? _bindingInputFrame,
+       _captureFrames = CaptureFrameGate(
          waitForFrame: waitForCaptureFrame ?? _refuseTestCaptureFrame,
          observeState: observeCaptureFrameState,
          waitUntilDeadline: waitForCaptureFrameDeadline,
@@ -491,6 +494,9 @@ class HarnessAgent {
       'persistent_callbacks_observed': persistentCallbacksObserved,
     },
   });
+
+  static Future<void> _bindingInputFrame() =>
+      WidgetsBinding.instance.endOfFrame;
 
   static Future<void> _refuseTestClose() =>
       throw HarnessError('no test close callback was supplied');
@@ -568,6 +574,7 @@ class HarnessAgent {
   bool _presentationRevoked = false;
   int _presentationEpoch = 0;
   int _presentationRevision = 0;
+  final Future<void> Function() _waitForInputFrame;
   final CaptureFrameGate _captureFrames;
   final Future<void> Function() _closePresentation;
   final Future<void> Function()? _waitForPresentationClose;
@@ -4329,6 +4336,14 @@ class HarnessAgent {
 
   // ----------------------------------------------------------------- pointer
 
+  Future<void> _inputFrame() async {
+    try {
+      await _waitForInputFrame().timeout(const Duration(seconds: 1));
+    } on Object {
+      throw HarnessError('wallet-recipe-control-refused');
+    }
+  }
+
   Future<void> _frame() => WidgetsBinding.instance.endOfFrame.timeout(
     const Duration(milliseconds: 250),
     onTimeout: () {},
@@ -4690,7 +4705,7 @@ class HarnessAgent {
       }
       // Click into it first, as a person would: focus listeners fire.
       await _click(node.center, requireAdmission: requireAdmission);
-      await _frame();
+      await _inputFrame();
       requireAdmission?.call();
       state = (node.element as StatefulElement).state as EditableTextState;
     } else {
@@ -4708,7 +4723,7 @@ class HarnessAgent {
       ),
       SelectionChangedCause.keyboard,
     );
-    await _frame();
+    await _inputFrame();
     if (c['submit'] == true) {
       state.performAction(TextInputAction.done);
     }

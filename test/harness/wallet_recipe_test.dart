@@ -933,6 +933,110 @@ void main() {
     });
   });
 
+  testWidgets('typing waits for original input frames and retains failures', (
+    WidgetTester tester,
+  ) async {
+    List<Completer<void>> frames = <Completer<void>>[];
+    int requests = 0;
+    final HarnessAgent agent = HarnessAgent.forTest(
+      waitForInputFrame: () => frames[requests++].future,
+    )..booted = true;
+    Future<void> until(bool Function() ready) async {
+      for (int turn = 0; turn < 40 && !ready(); turn++) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      expect(ready(), isTrue);
+    }
+
+    for (final String variant in <String>[
+      'delayed', 'before-timeout', 'before-error',
+      'after-timeout', 'after-error',
+    ]) {
+      frames = <Completer<void>>[
+        Completer<void>(), Completer<void>(),
+      ];
+      requests = 0;
+      Object? outcome;
+      final TextEditingController input =
+          TextEditingController(text: 'original input');
+      final List<String> changes = <String>[];
+      try {
+        await tester.pumpWidget(MaterialApp(
+          home: Scaffold(body: TextField(
+            key: const Key('import_seed_field'),
+            controller: input,
+            onChanged: changes.add,
+          )),
+        ));
+        final Future<void> operation = agent.commandForTest(
+          <String, dynamic>{
+            'cmd': 'type',
+            'key': 'import_seed_field',
+            'value': 'synthetic private input',
+          },
+        ).then<void>(
+          (Map<String, Object?> value) { outcome = value; },
+          onError: (Object error) { outcome = error; },
+        );
+        await until(() => requests == 1 || outcome != null);
+        expect(requests, 1);
+        expect(outcome, isNull);
+        expect(input.text, 'original input');
+        expect(changes, isEmpty);
+        final bool before = variant.startsWith('before');
+        if (!before) {
+          await tester.pump(const Duration(milliseconds: 350));
+          expect(input.text, 'original input');
+          expect(changes, isEmpty);
+          expect(outcome, isNull);
+          frames.first.complete();
+          await until(() => requests == 2 || outcome != null);
+          expect(requests, 2);
+          expect(input.text, 'synthetic private input');
+          expect(changes, <String>['synthetic private input']);
+        }
+        final Completer<void> original = frames[before ? 0 : 1];
+        if (variant.endsWith('timeout')) {
+          await tester.pump(const Duration(milliseconds: 999));
+          expect(outcome, isNull);
+          await tester.pump(const Duration(milliseconds: 1));
+        } else if (variant.endsWith('error')) {
+          original.completeError(StateError('synthetic private diagnostic'));
+          await tester.pump();
+        } else {
+          await tester.pump(const Duration(milliseconds: 350));
+          expect(outcome, isNull);
+          expect(requests, 2);
+          original.complete();
+          await until(() => outcome != null);
+        }
+        await operation;
+        if (variant == 'delayed') {
+          expect(outcome, isA<Map<String, Object?>>());
+        } else {
+          expect(outcome, isA<HarnessError>().having(
+            (HarnessError error) => error.message, 'fixed failure',
+            'wallet-recipe-control-refused',
+          ));
+          expect(outcome.toString(), isNot(contains('synthetic private')));
+          if (!original.isCompleted) original.complete();
+          await tester.pump(const Duration(milliseconds: 400));
+          expect(outcome, isA<HarnessError>());
+        }
+        expect(requests, before ? 1 : 2);
+        expect(input.text,
+            before ? 'original input' : 'synthetic private input');
+        expect(changes, before ? isEmpty : hasLength(1));
+      } finally {
+        for (final Completer<void> frame in frames) {
+          if (!frame.isCompleted) frame.complete();
+        }
+        await tester.pumpWidget(const SizedBox.shrink());
+        input.dispose();
+      }
+    }
+  });
+
   testWidgets('recipe observations retain keys and omit private values', (
     WidgetTester tester,
   ) async {

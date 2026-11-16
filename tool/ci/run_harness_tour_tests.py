@@ -27,7 +27,8 @@ except ImportError:
 
 
 # Includes the two shutdown-owner/terminal cases in wallet_recipe_test.dart.
-EXPECTED_DART_CASES = 1507
+# Also includes the original input-frame admission matrix.
+EXPECTED_DART_CASES = 1508
 LAUNCH_ASSET_DART_CASES = 2
 GROUP_COMMAND_LIMIT_SECONDS = 300
 TOTAL_COMMAND_LIMIT_SECONDS = 480

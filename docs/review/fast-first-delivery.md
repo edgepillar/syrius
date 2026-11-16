@@ -1,6 +1,20 @@
 # First delivery and deferred acceptance
 
-Current source: Source807 applies five exact CI-regenerated blank-line removals
+Current source: Source808 requires original frame completion around text input,
+with one-second admission and fixed refusal on timeout/error. Pointer/input
+behavior, all outer budgets and performance gates remain. The exact P06 overlay
+keeps original widgets/CLI/collector; 43 memory controls pass. One new widget
+matrix raises the selected Dart total to 1508, retaining all 112 suites,
+Python 1227 and strict 289 paths. Fresh hosted/native execution is pending.
+
+Source807 passes all thirteen full Linux stages. Its native reader verifies
+an earlier disabled import_continue refusal, both wallets/five nodes closing
+normally and no P06 timing or navigation observation. Original failures and
+consumed outputs remain preserved. Acceptance and Source730 Ready matches stay
+76/80 and 2/94. See
+[original input frames](source808-original-input-frames.md).
+
+Earlier source: Source807 applies five exact CI-regenerated blank-line removals
 after Source806 passes twelve required stages and fails the final Git diff.
 The original P06 rail engine case passes; native preparation stays unqualified.
 A passive navigation read observes only the identical original preparation
