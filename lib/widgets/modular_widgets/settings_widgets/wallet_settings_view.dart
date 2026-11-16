@@ -216,6 +216,8 @@ class _WalletSettingsViewState extends State<WalletSettingsView>
                       WalletPreference.desktopNotifications,
                       context.l10n.walletSettingsDesktopNotifications,
                       current,
+                      hint:
+                          context.l10n.walletSettingsDesktopNotificationsHint,
                     ),
                     _buildPreference(
                       state,

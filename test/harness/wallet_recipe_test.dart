@@ -3,14 +3,19 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/app_localizations.dart';
+import 'package:zenon_syrius_wallet_flutter/l10n/l10n.dart';
+import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/shutdown_observation.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/modals/modal_chrome.dart';
+import 'package:zenon_syrius_wallet_flutter/widgets/shell/tabs.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/widgets.dart'
     show PasswordInputField;
 
 import '../../harness/app/agent.dart';
 import '../../harness/bin/harness.dart' as cli;
 import '../../harness/bin/wallet_recipe.dart';
+import 'fixtures/p06_rail.dart' as original_rail;
 
 const String _node = 'ws://127.0.0.1:45998';
 const String _password = 'synthetic password input';
@@ -938,6 +943,8 @@ void main() {
       'new_wallet_confirm_password': TextEditingController(text: _password),
     };
     final HarnessAgent agent = HarnessAgent.forTest()..booted = true;
+    final original_rail.RailCollapse baselineCollapse =
+        original_rail.RailCollapse();
     try {
       expect(
         await agent.commandForTest(<String, dynamic>{'cmd': 'shutdown-state'}),
@@ -1041,12 +1048,70 @@ void main() {
         await tester.pump();
         expect(tester.widget<EditableText>(editable).obscureText, isTrue);
       }
+
+      tester.view.physicalSize = const Size(1280, 780);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.darkTheme,
+          locale: const Locale('en'),
+          localizationsDelegates: appLocalizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                original_rail.ShellRail(
+                  collapse: baselineCollapse,
+                  selected: Tabs.dashboard,
+                  locked: false,
+                  onSelected: (_) {},
+                ),
+                const Expanded(child: SizedBox()),
+              ],
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('nav_settings')), findsOneWidget);
+      final Map<String, Object?> originalView = await agent.commandForTest(
+        <String, dynamic>{'cmd': 'wallet-recipe', 'action': 'observe'},
+      );
+      final Map<String, Object?> originalTree = await agent.commandForTest(
+        <String, dynamic>{'cmd': 'tree'},
+      );
+      final List<Map<String, Object?>> originalNodes =
+          originalTree['nodes']! as List<Map<String, Object?>>;
+      final List<Map<String, Object?>> originalControls =
+          originalView['controls']! as List<Map<String, Object?>>;
+      final String binding = jsonEncode(<Map<String, Object?>>[
+        for (final Map<String, Object?> node in originalNodes)
+          if (node['tab'] == 'settings' || node['key'] == 'nav_settings')
+            <String, Object?>{
+              'kind': node['kind'],
+              'type': node['type'],
+              'key': node['key'],
+              'tab': node['tab'],
+            },
+      ]);
+      expect(
+        originalControls.where((Map<String, Object?> control) =>
+            control['key'] == 'nav_settings' && control['enabled'] == true),
+        hasLength(1),
+        reason: binding,
+      );
     } finally {
       await tester.pumpWidget(const SizedBox());
       for (final TextEditingController controller in passwords.values) {
         controller.dispose();
       }
       input.dispose();
+      baselineCollapse.dispose();
     }
   });
 

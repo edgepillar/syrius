@@ -1,6 +1,15 @@
 # First delivery and deferred acceptance
 
-Current source: Source805 prepares one English Wallet notification hint and
+Current source: Source806 applies the seven actual SDK-generated outputs and
+shows the localized Wallet notification hint. All original bytes and hashes
+match; both local log-reader outcomes remain preserved and all owned storage
+tasks are closed. The existing recipe case also checks an exact original P06
+rail fixture. No test method, collector or baseline-overlay change is added.
+Fresh hosted execution remains required, with scope and Ready matches still
+76/80 and 2/94. See
+[notification guidance and original rail coverage](source806-notification-guidance-and-p06-rail.md).
+
+Earlier source: Source805 prepares one English Wallet notification hint and
 retains the finite generator's original bounds. Five existing memory cases
 pass; real hosted generation and faithful application are still required.
 Source804 full Linux passes thirteen stages. Windows and independent reading

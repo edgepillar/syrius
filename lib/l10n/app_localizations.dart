@@ -6196,6 +6196,12 @@ abstract class AppLocalizations {
   /// **'Desktop notifications'**
   String get walletSettingsDesktopNotifications;
 
+  /// No description provided for @walletSettingsDesktopNotificationsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Incoming funds and wallet activity'**
+  String get walletSettingsDesktopNotificationsHint;
+
   /// No description provided for @walletSettingsLaunchAtStartup.
   ///
   /// In en, this message translates to:
