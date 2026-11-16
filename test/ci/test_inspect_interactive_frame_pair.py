@@ -446,6 +446,55 @@ class InteractiveFramePairTests(unittest.TestCase):
                 profile._observe_navigation_failure(actor, observation, diagnostic)
                 actor._rpc.assert_called_once()
 
+        bounded = profile.launch.bounded
+        for role in ('shutdown', 'navigation'):
+            for variant, error, expected in (
+                ('timeout', TimeoutError('synthetic private timeout'), 'HTTP_FAILED'),
+                ('connection', ConnectionRefusedError('synthetic private connection'),
+                 'HTTP_FAILED'),
+                ('shared', bounded.SmokeFailure('OUTPUT_INCOMPLETE'),
+                 'OUTPUT_INCOMPLETE'),
+                ('invalid', None, 'RESPONSE_INVALID'),
+                ('expired', None, 'TOTAL_DEADLINE'),
+            ):
+                actor = session()
+                del actor._rpc  # Exercise the inherited request and exchange path.
+                actor.token = 'a' * 43
+                actor.process = mock.Mock()
+                actor.process.poll.return_value = None
+                actor.drain = mock.Mock(error=None)
+                actor.drain.overflow.is_set.return_value = False
+                actor.report = mock.Mock(original_errors=[])
+                actor.limits = bounded.Limits()
+                actor.transport = mock.Mock()
+                actor.transport.exchange.side_effect = error
+                actor.transport.exchange.return_value = bounded.Reply(
+                    200, b'{"ok":1}', 'application/json')
+                if variant == 'expired':
+                    actor.deadline = 9.0
+                if role == 'shutdown':
+                    original = profile.launch.startup.Failure('EXIT_TIMEOUT')
+                    with mock.patch.object(base, '_quit', side_effect=original):
+                        with self.assertRaises(profile.launch.startup.Failure) as raised:
+                            actor._quit()
+                    self.assertIs(raised.exception, original)
+                    diagnostic = actor.shutdown_observation
+                else:
+                    diagnostic = {}
+                    profile._observe_navigation_failure(actor, observation, diagnostic)
+                self.assertEqual(diagnostic,
+                    dict(status='unavailable', error_code=expected))
+                self.assertTrue(profile.valid_shutdown_observation(diagnostic))
+                self.assertTrue(profile.valid_navigation_observation(diagnostic))
+                self.assertNotIn('synthetic private', repr(diagnostic))
+                if variant == 'expired':
+                    actor.transport.exchange.assert_not_called()
+                else:
+                    actor.transport.exchange.assert_called_once_with(
+                        {'cmd': role + '-state'}, actor.token, 1.0)
+                actor.process.wait.assert_not_called()
+                actor.process.kill.assert_not_called()
+
     def test_profile_progress_preserves_the_original_send_failure(self):
         profile = pair.profile
         original_failure = RuntimeError('synthetic private failure')

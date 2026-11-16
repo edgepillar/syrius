@@ -138,10 +138,12 @@ def _observe_navigation_failure(session, observation, diagnostic):
             raise launch.startup.Failure('STATE_INVALID')
         diagnostic.update(status='observed', settingsCount=value['settingsCount'],
                           bindings=[dict(row) for row in value['bindings']])
-    except launch.startup.Failure as error:
+    except launch.bounded.SmokeFailure as error:
         code = error.code
         diagnostic.update(status='unavailable', error_code=code
             if type(code) is str and code in launch.startup.CODES else 'INTERNAL_ERROR')
+    except ConnectionRefusedError:
+        diagnostic.update(status='unavailable', error_code='HTTP_FAILED')
     except (Exception, KeyboardInterrupt):
         diagnostic.update(status='unavailable', error_code='INTERNAL_ERROR')
 
@@ -382,9 +384,14 @@ class InteractiveSession(launch.LaunchProcess):
                         raise launch.startup.Failure('STATE_INVALID')
                     self.shutdown_observation.update(status='observed',
                         phase=body['phase'], failed=body['failed'])
-                except launch.startup.Failure as diagnostic:
+                except launch.bounded.SmokeFailure as diagnostic:
+                    code = diagnostic.code
                     self.shutdown_observation.update(status='unavailable',
-                        error_code=diagnostic.code)
+                        error_code=code if type(code) is str
+                        and code in launch.startup.CODES else 'INTERNAL_ERROR')
+                except ConnectionRefusedError:
+                    self.shutdown_observation.update(status='unavailable',
+                        error_code='HTTP_FAILED')
                 except (Exception, KeyboardInterrupt):
                     self.shutdown_observation.update(status='unavailable',
                         error_code='INTERNAL_ERROR')

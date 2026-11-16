@@ -1,6 +1,21 @@
 # First delivery and deferred acceptance
 
-Current source: Source810 prepares the baseline-only P06 startup handoff and
+Current source: Source811 preserves fixed shared-transport labels in shutdown
+and original absent-navigation diagnostics. The real request/exchange path is
+covered by the existing regression case; all 43 memory controls pass, with no
+new test methods. Original failure identity, one-second bounds, process exit
+admission, current Dart, overlay and performance predicates remain.
+Fresh hosted qualification is required.
+
+Source810 full Linux passes thirteen stages. Windows passes selected 1508/1227
+tests with eighteen skips, zero selected findings and current Release. The
+independent reader verifies all sixteen current actions, an original
+EXIT_TIMEOUT with a final zero unforced complete exit, and five normal node
+exits. P06 measurement is not reached; all owned outputs are consumed. Scope
+and Source730 Ready matches stay 76/80 and 2/94. See
+[diagnostic transport labels](source811-diagnostic-transport-labels.md).
+
+Earlier source: Source810 prepares the baseline-only P06 startup handoff and
 current keyboard transport without changing measured widgets or frame-time
 predicates. The exact overlay stays within the original cap; 43 memory controls
 pass. Current Dart source and selected 1508/1227 registrations remain.
