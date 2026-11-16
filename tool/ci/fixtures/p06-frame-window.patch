@@ -1,23 +1,18 @@
 --- a/harness/app/agent.dart
 +++ b/harness/app/agent.dart
-@@ -8,6 +8,7 @@
-
+@@ -9,4 +9,5 @@
  import 'dart:async';
  import 'dart:convert';
 +import 'dart:developer' as dev;
  import 'dart:io';
  import 'dart:ui' as ui;
-
-@@ -57,6 +58,7 @@
- import 'entry_caption_observer.dart';
+@@ -58,4 +59,5 @@
  import 'fixtures/seed_commands.dart';
  import 'fixtures/seed_policy.dart';
 +import 'frame_window.dart';
  import 'logical_capture.dart';
  import 'native_entry_capture.dart';
- import 'native_window_owner.dart';
-@@ -356,7 +358,8 @@
-
+@@ -357,5 +359,6 @@
  class HarnessAgent {
    HarnessAgent._()
 -    : _captureFrames = CaptureFrameGate(
@@ -25,9 +20,7 @@
 +      _captureFrames = CaptureFrameGate(
          waitForFrame: () => WidgetsBinding.instance.endOfFrame,
        ),
-       _closePresentation = windowManager.close,
-@@ -365,14 +368,19 @@
-   @visibleForTesting
+@@ -366,12 +369,17 @@
    HarnessAgent.forTest({
      Future<void> Function()? closePresentation,
 +    Future<void> Function()? waitForInputFrame,
@@ -46,17 +39,13 @@
 +      WidgetsBinding.instance.endOfFrame;
 
    static Future<void> _refuseTestClose() =>
-       throw HarnessError('no test close callback was supplied');
-@@ -417,6 +425,7 @@
-   bool _presentationRevoked = false;
+@@ -418,4 +426,5 @@
    int _presentationEpoch = 0;
    int _presentationRevision = 0;
 +  final Future<void> Function() _waitForInputFrame;
    final CaptureFrameGate _captureFrames;
    final Future<void> Function() _closePresentation;
-   final Future<void> Function()? _waitForPresentationClose;
-@@ -746,6 +755,11 @@
-         };
+@@ -747,4 +756,9 @@
        case 'state':
          return _state();
 +      case 'navigation-state':
@@ -66,17 +55,13 @@
 +        return _navigationState();
        case 'wallet-recipe':
          return _walletRecipeCommand(c);
-       case 'entry-caption':
-@@ -793,6 +807,7 @@
-       case 'logs':
+@@ -794,4 +808,5 @@
          return _logsCmd(c);
        case 'stalls':
 +        if (c.containsKey('frameWindow')) return _frameWindowCmd(c);
          return _stallsCmd(c);
        case 'clipboard':
-         return _clipboard(c);
-@@ -1096,6 +1111,33 @@
-           : 'startup-before-initialization';
+@@ -1097,4 +1112,31 @@
      }
      return phases.single;
 +  }
@@ -108,9 +93,7 @@
 +    };
    }
 
-   _Node? _recipeStartupHint(List<_Node> nodes) {
-@@ -1249,6 +1291,9 @@
-     }
+@@ -1250,4 +1292,7 @@
      final List<_Node> nodes = _snapshot();
      final _Node? startupHint = _recipeStartupHint(nodes);
 +    final Map<String, Object?>? filmFrame = command['action'] == 'observe'
@@ -118,19 +101,22 @@
 +        : null;
      final Set<String> entryPhases = <String>{};
      final List<Element> views = _recipeNodeViews(entryPhases: entryPhases);
-     final NodeSettingsView? view = views.isEmpty
-@@ -1265,6 +1310,7 @@
-       'harnessMode': 'wallet',
+@@ -1266,4 +1311,5 @@
        'booted': booted,
        'entryPhase': _recipeEntryPhase(entryPhases),
 +      if (filmFrame != null) 'startupFilmFrame': filmFrame,
        'owner': _recipeOwner,
        'revision': WalletContextRevision.value,
-       'walletPresent': kWalletFile != null,
-@@ -1534,6 +1580,33 @@
+@@ -1485,4 +1531,5 @@
+         // the complete key pair in one turn so its ordinary handoff does not
+         // become a second pointer admission against the retired hint.
++        FocusManager.instance.applyFocusChangesIfNeeded();
+         admission();
+         final Map<String, Object?> reply = await _key(
+@@ -1534,4 +1581,31 @@
 
    // ---------------------------------------------------------------- snapshot
-
++
 +  List<Map<String, Object?>>? _navigationProbe;
 +  bool _navigationProbeOverflow = false;
 +
@@ -157,12 +143,9 @@
 +      _navigationProbeOverflow = false;
 +    }
 +  }
-+
+
    List<_Node> _snapshot() {
-     final List<_Node> out = <_Node>[];
-     final Element? root = WidgetsBinding.instance.rootElement;
-@@ -1609,7 +1682,45 @@
-     final Key? navKey = w.key;
+@@ -1610,5 +1684,43 @@
      if (navKey is ValueKey<String> && navKey.value.startsWith('nav_')) {
        final _Node? t = n.tappable;
 -      if (t != null) t.extra['tab'] = navKey.value.substring(4);
@@ -207,9 +190,7 @@
 +      }
      }
      if (w is Tab) {
-       // The main tab bar is built in kTabs order; half of it is icons.
-@@ -2027,6 +2138,14 @@
-   }
+@@ -2028,4 +2140,12 @@
 
    // ----------------------------------------------------------------- pointer
 +
@@ -222,27 +203,39 @@
 +  }
 
    Future<void> _frame() => WidgetsBinding.instance.endOfFrame.timeout(
-     const Duration(milliseconds: 250),
-@@ -2336,7 +2455,7 @@
-       }
+@@ -2337,5 +2457,5 @@
        // Click into it first, as a person would: focus listeners fire.
        await _click(node.center, requireAdmission: requireAdmission);
 -      await _frame();
 +      await _inputFrame();
        requireAdmission?.call();
        state = (node.element as StatefulElement).state as EditableTextState;
-     } else {
-@@ -2354,7 +2473,7 @@
-       ),
+@@ -2355,5 +2475,5 @@
        SelectionChangedCause.keyboard,
      );
 -    await _frame();
 +    await _inputFrame();
      if (c['submit'] == true) {
        state.performAction(TextInputAction.done);
-     }
-@@ -2458,6 +2577,12 @@
-   Future<Map<String, Object?>> _wait(Map<String, dynamic> c) async {
+@@ -2409,7 +2529,6 @@
+   bool _dispatchKey(KeyEvent e) {
+     final bool handled = HardwareKeyboard.instance.handleKeyEvent(e);
+-    if (handled) return true;
+-    // Older bindings register Focus through this bridge. Use it only when
+-    // the hardware path has not already handled the event.
++    // Flutter 3.47 delivers to both destinations before combining results.
++    // Focus is registered through the message bridge in this pinned SDK.
+     // ignore: deprecated_member_use
+     final KeyMessageHandler? h =
+@@ -2419,5 +2538,6 @@
+     // This pinned bridge returns the actual Shortcuts and editing result.
+     // ignore: deprecated_member_use
+-    return h?.call(KeyMessage(<KeyEvent>[e], null)) ?? false;
++    final bool focusHandled = h?.call(KeyMessage(<KeyEvent>[e], null)) ?? false;
++    return handled || focusHandled;
+   }
+
+@@ -2459,4 +2579,10 @@
      final int timeout = c['timeoutMs'] as int? ?? 10000;
      final bool gone = c['gone'] == true;
 +    final bool launchReady =
@@ -253,9 +246,7 @@
 +        c['key'] == 'wallet_password_field';
      final Stopwatch sw = Stopwatch()..start();
      while (true) {
-       final List<_Node> hits = _matches(
-@@ -2472,7 +2597,11 @@
-           'error',
+@@ -2473,5 +2599,9 @@
          ],
        );
 -      if (gone ? hits.isEmpty : hits.isNotEmpty) {
@@ -266,9 +257,7 @@
 +      if (gone ? hits.isEmpty : found) {
          return <String, Object?>{
            'ms': sw.elapsedMilliseconds,
-           if (!gone) 'target': hits.first.toJson(),
-@@ -2724,6 +2853,64 @@
-
+@@ -2725,4 +2855,62 @@
    // ------------------------------------------------------------------ stalls
 
 +  static const String _pairedLaunchTiming = 'paired-launch';
@@ -331,9 +320,7 @@
 +
    final Stopwatch _stallClock = Stopwatch();
    Duration _stallLast = Duration.zero;
-   final List<Map<String, Object?>> _stalls = <Map<String, Object?>>[];
-@@ -2737,6 +2924,12 @@
-   /// even on a still page. The frame timings add what a timer cannot see:
+@@ -2738,4 +2926,10 @@
    /// the raster thread, where a large image or a first-use shader costs.
    void _hookStalls() {
 +    if (_isLaunchTiming) {
@@ -344,27 +331,21 @@
 +    }
      void record(String kind, int ms) {
        _stalls.add(<String, Object?>{
-         'time': DateTime.now().toIso8601String(),
-@@ -2756,6 +2949,7 @@
-       }
+@@ -2757,4 +2951,5 @@
      });
      SchedulerBinding.instance.addTimingsCallback((List<ui.FrameTiming> ts) {
 +      _frameWindow?.observe(ts);
        for (final ui.FrameTiming t in ts) {
          if (t.buildDuration > const Duration(milliseconds: 16)) {
-           record('build', t.buildDuration.inMilliseconds);
 --- a/harness/bin/harness.dart
 +++ b/harness/bin/harness.dart
-@@ -61,6 +61,7 @@
-     'key',
+@@ -62,4 +62,5 @@
      'timeout',
      'min',
 +    'frame-window',
      'out',
      'settle',
-     'since',
-@@ -716,6 +717,19 @@
-         stdout.writeln('seq ${out['seq']}');
+@@ -717,4 +718,17 @@
        }
      case 'stalls':
 +      final String? operation = a['frame-window'];
@@ -382,4 +363,34 @@
 +      }
        final Map<String, dynamic> out = await call(inst, <String, Object?>{
          'cmd': 'stalls',
-         if (a.has('reset')) 'reset': true,
+--- a/harness/bin/wallet_recipe.dart
++++ b/harness/bin/wallet_recipe.dart
+@@ -198,10 +198,13 @@
+     if (!reveal) {
+       return _until(
+-        (Map<String, dynamic> view) =>
+-            _control(view, key)?['enabled'] == true ||
+-            key == 'launch_skip_hint' &&
+-                <String>{
+-                  'startup-initialization-started', 'welcome',
+-                }.contains(view['entryPhase']),
++        (Map<String, dynamic> view) {
++          final bool enabled = _control(view, key)?['enabled'] == true;
++          if (key != 'launch_skip_hint') return enabled;
++          return view['entryPhase'] == 'startup-before-initialization' &&
++                  enabled ||
++              <String>{
++                'startup-initialization-started', 'welcome',
++              }.contains(view['entryPhase']);
++        },
+         waitingFor: key,
+       );
+@@ -292,7 +295,5 @@
+       _refuse('wallet-recipe-empty-profile-required');
+     }
+-    if (start['entryPhase'] == 'startup-before-initialization') {
+-      await _act('launch_skip_hint');
+-    }
++    await _act('launch_skip_hint');
+     await _act('welcome_import');
+     await _act('import_words_${words.length}');

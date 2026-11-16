@@ -1,6 +1,20 @@
 # First delivery and deferred acceptance
 
-Current source: Source809 binds the input-frame test samples to the original
+Current source: Source810 prepares the baseline-only P06 startup handoff and
+current keyboard transport without changing measured widgets or frame-time
+predicates. The exact overlay stays within the original cap; 43 memory controls
+pass. Current Dart source and selected 1508/1227 registrations remain.
+Fresh complete Linux and original Windows qualification are required.
+
+Source809 full Linux passes thirteen stages. Its Windows selected tests,
+analysis and current Release pass, and all sixteen current measurement actions
+complete. P06 refuses welcome_import during startup preparation before baseline
+measurement. The independent reader verifies normal exits of both wallets and
+five nodes; all owned outputs are consumed. Acceptance and Source730 Ready
+matches stay 76/80 and 2/94. See
+[original P06 startup preparation](source810-p06-startup-handoff.md).
+
+Earlier source: Source809 binds the input-frame test samples to the original
 wait's binding clock. Original deadlines/assertions and all production/overlay
 bytes remain; 43 memory controls pass. Selection stays 1508/1227, 112 suites
 and 289 strict paths. Fresh hosted/native execution is pending.
