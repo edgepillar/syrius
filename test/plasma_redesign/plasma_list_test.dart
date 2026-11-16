@@ -234,6 +234,13 @@ void main() {
               ValueKey<String>('plasma_row_${plasmaTestHash(id)}'),
             );
             expect(tester.getSize(row).height, 44);
+            final Finder selection = find.byKey(
+              ValueKey<String>('plasma_select_${plasmaTestHash(id)}'),
+            );
+            expect(
+              tester.getCenter(selection).dx - tester.getTopLeft(row).dx,
+              24,
+            );
             final Finder cancel = find.byKey(
               ValueKey<String>('plasma_cancel_${plasmaTestHash(id)}'),
             );

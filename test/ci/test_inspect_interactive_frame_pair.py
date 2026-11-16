@@ -385,6 +385,52 @@ class InteractiveFramePairTests(unittest.TestCase):
             wrong['samples']['p06']['navigation_observation'] = valid_navigation[0]
             with self.assertRaises(archive.Refused):
                 self.project(wrong)
+        startup = deepcopy(traced)
+        startup_sample = startup['samples']['p06']
+        startup_sample['observation']['preparation_failure'] = dict(
+            code='PREPARATION_REFUSED', phase='importWallet', recipe=dict(
+                action='observe', control='welcome_import',
+                entry='startup-before-initialization',
+                reason='wallet-recipe-control-absent'))
+        startup_sample['observation']['entry']['output_bytes'] = len(
+            pair.profile.preparation_failure_marker(
+                startup_sample['observation']['preparation_failure'])) + 1
+        snapshot = dict(status='observed', entry='startup-before-initialization',
+                        frames=240, shown=12, done=False)
+        for diagnostic in (
+            snapshot, dict(snapshot, frames=0, shown=-1), dict(snapshot, done=True),
+            dict(snapshot, frames=5000, shown=4999),
+            dict(status='absent', entry='welcome'),
+            dict(status='unavailable', error_code='HTTP_FAILED'),
+        ):
+            startup_sample['startup_observation'] = deepcopy(diagnostic)
+            result = self.project(startup)
+            self.assertEqual(result['startup_observations'], dict(p06=diagnostic))
+            self.assertFalse(result['artifact_reported_success'])
+            self.assertFalse(result['timing_criterion_passed'])
+            self.assertEqual(result['normal_wallet_exits'], 2)
+        for diagnostic in (
+            dict(snapshot, frames=True), dict(snapshot, frames=-1),
+            dict(snapshot, frames=5001), dict(snapshot, shown=True),
+            dict(snapshot, shown=-2), dict(snapshot, shown=240),
+            dict(snapshot, done=1), dict(snapshot, entry='synthetic private phase'),
+            dict(snapshot, private='synthetic private value'),
+            dict(status='observed', entry='welcome'),
+            dict(status='unavailable', error_code='synthetic private error'),
+        ):
+            startup_sample['startup_observation'] = diagnostic
+            with self.subTest(startup=diagnostic), self.assertRaises(archive.Refused):
+                self.project(startup)
+        for wrong in (fixture(), traced, navigation):
+            wrong = deepcopy(wrong)
+            wrong['samples']['p06']['startup_observation'] = snapshot
+            with self.assertRaises(archive.Refused):
+                self.project(wrong)
+        mixed = deepcopy(startup)
+        mixed['samples']['p06'].update(startup_observation=snapshot,
+                                      navigation_observation=valid_navigation[0])
+        with self.assertRaises(archive.Refused):
+            self.project(mixed)
         for field, value in (
             ('exit_code', 0), ('forced_kill', True), ('output_complete', False),
             ('output_overflow', True), ('exit_observed', False),
@@ -649,6 +695,151 @@ class InteractiveFramePairTests(unittest.TestCase):
                         {'cmd': role + '-state'}, actor.token, 1.0)
                 actor.process.wait.assert_not_called()
                 actor.process.kill.assert_not_called()
+
+        startup = dict(phase='prepare_profile', preparation_failure=dict(
+            code='PREPARATION_REFUSED', phase='importWallet', recipe=dict(
+                action='observe', control='welcome_import',
+                entry='startup-before-initialization',
+                reason='wallet-recipe-control-absent')))
+        body = dict(ok=True, booted=True, harnessMode='wallet', walletPresent=False,
+                    transitionPending=False, hasError=False,
+                    entryPhase='startup-before-initialization',
+                    startupFilmFrame=dict(frames=240, shown=0, done=False),
+                    controls=[dict(key='synthetic private control')],
+                    private='synthetic private input')
+        snapshot = dict(status='observed', entry='startup-before-initialization',
+                        frames=240, shown=0, done=False)
+        for wrong in ({}, observation, None, dict(phase='complete')):
+            actor, diagnostic = session(body), {}
+            profile._observe_startup_failure(actor, wrong, diagnostic)
+            actor._rpc.assert_not_called()
+            self.assertEqual(diagnostic, {})
+        for reply, error, expected in (
+            (body, None, snapshot),
+            (dict(body, startupFilmFrame=None, entryPhase='welcome'), None,
+             dict(status='absent', entry='welcome')),
+            (dict(body, startupFilmFrame=dict(frames=0, shown=-1, done=False)), None,
+             dict(snapshot, frames=0, shown=-1)),
+            (dict(body, startupFilmFrame=dict(frames=True, shown=0, done=False)), None,
+             dict(status='unavailable', error_code='STATE_INVALID')),
+            (dict(body, startupFilmFrame=dict(frames=240, shown=0, done=1)), None,
+             dict(status='unavailable', error_code='STATE_INVALID')),
+            (dict(body, startupFilmFrame=dict(frames=240, shown=0, done=False,
+                                             private='synthetic private frame')), None,
+             dict(status='unavailable', error_code='STATE_INVALID')),
+            (dict(body, booted=1), None,
+             dict(status='unavailable', error_code='STATE_INVALID')),
+            (dict(body, walletPresent=True), None,
+             dict(status='unavailable', error_code='STATE_INVALID')),
+            (dict(body, entryPhase='synthetic private phase'), None,
+             dict(status='unavailable', error_code='STATE_INVALID')),
+            (None, profile.launch.startup.Failure('HTTP_FAILED'),
+             dict(status='unavailable', error_code='HTTP_FAILED')),
+            (None, RuntimeError('synthetic private failure'),
+             dict(status='unavailable', error_code='INTERNAL_ERROR')),
+        ):
+            for deadline in (50.0, 10.25, 9.0):
+                offered = deepcopy(reply)
+                actor, diagnostic = session(offered, error), {}
+                actor.deadline = deadline
+                profile._observe_startup_failure(actor, startup, diagnostic)
+                actor._rpc.assert_called_once_with(
+                    {'cmd': 'wallet-recipe', 'action': 'observe'},
+                    until=min(deadline, 11.0))
+                self.assertEqual(diagnostic, expected)
+                self.assertTrue(profile.valid_startup_observation(diagnostic))
+                self.assertNotIn('synthetic private', repr(diagnostic))
+                if offered is not None and type(offered.get('startupFilmFrame')) is dict:
+                    offered['startupFilmFrame']['frames'] = 'synthetic private replacement'
+                    self.assertNotIn('synthetic private', repr(diagnostic))
+                profile._observe_startup_failure(actor, startup, diagnostic)
+                actor._rpc.assert_called_once()
+
+        for variant, error, expected in (
+            ('timeout', TimeoutError('synthetic private timeout'), 'HTTP_FAILED'),
+            ('connection', ConnectionRefusedError('synthetic private connection'), 'HTTP_FAILED'),
+            ('shared', bounded.SmokeFailure('OUTPUT_INCOMPLETE'), 'OUTPUT_INCOMPLETE'),
+            ('invalid', None, 'RESPONSE_INVALID'), ('expired', None, 'TOTAL_DEADLINE'),
+        ):
+            actor = session()
+            del actor._rpc
+            actor.token = 'a' * 43
+            actor.process = mock.Mock()
+            actor.process.poll.return_value = None
+            actor.drain = mock.Mock(error=None)
+            actor.drain.overflow.is_set.return_value = False
+            actor.report = mock.Mock(original_errors=[])
+            actor.limits = bounded.Limits()
+            actor.transport = mock.Mock()
+            actor.transport.exchange.side_effect = error
+            actor.transport.exchange.return_value = bounded.Reply(
+                200, b'{"ok":1}', 'application/json')
+            if variant == 'expired':
+                actor.deadline = 9.0
+            diagnostic = {}
+            profile._observe_startup_failure(actor, startup, diagnostic)
+            self.assertEqual(diagnostic, dict(status='unavailable', error_code=expected))
+            if variant == 'expired':
+                actor.transport.exchange.assert_not_called()
+            else:
+                actor.transport.exchange.assert_called_once_with(
+                    {'cmd': 'wallet-recipe', 'action': 'observe'}, actor.token, 1.0)
+            actor.process.wait.assert_not_called()
+            actor.process.kill.assert_not_called()
+
+        for failure, reply, field in (
+            (startup, body, 'startup_observation'),
+            (observation, dict(ok=True, settingsCount=1, bindings=[binding]),
+             'navigation_observation'),
+        ):
+            report, order = {}, []
+            original = profile.InteractiveRefused('PROFILE_PREPARATION_REFUSED')
+            actor = session(deepcopy(reply))
+            actor.process = SimpleNamespace(pid=17)
+            actor.transport = SimpleNamespace(port=15432)
+            actor.token = 'a' * 43
+            actor._rpc.side_effect = lambda *a, **k: (order.append('probe'), deepcopy(reply))[1]
+
+            def owner(*args, **kwargs):
+                kwargs['report'].update(deepcopy(failure))
+                raise original
+
+            def factory(*args, **kwargs):
+                actor.observe = kwargs['observe']
+                return actor
+
+            def run(*args, **kwargs):
+                instance = kwargs['process_type']()
+                with self.assertRaises(profile.InteractiveRefused) as caught:
+                    instance.observe(instance)
+                self.assertIs(caught.exception, original)
+                order.append('cleanup')
+                attempt = fixture()['samples']['p06']['attempt']
+                attempt.update(action_complete=False, error_codes=['STARTUP_OBSERVATION_REFUSED'])
+                return attempt, {}
+
+            with mock.patch.object(profile.launch.entry, 'require_ci',
+                    return_value=({'SYRIUS_PAIRED_INTERACTIVE_PROFILE': 'true'}, None)), \
+                    mock.patch.object(profile.launch.entry, 'new_profile',
+                                      return_value=fixtures.Path('synthetic-profile')), \
+                    mock.patch.object(profile.launch.bounded, 'plain',
+                                      return_value=SimpleNamespace(st_dev=1, st_ino=2)), \
+                    mock.patch.object(profile, 'owned_profile', side_effect=owner), \
+                    mock.patch.object(profile, 'InteractiveSession', side_effect=factory), \
+                    mock.patch.object(profile.launch, 'run_process', side_effect=run):
+                with self.assertRaises(profile.InteractiveRefused) as caught:
+                    profile.measure_process(fixtures.Path('synthetic'), fixtures.Path('build'),
+                        {}, [], mock.Mock(), mock.Mock(), mock.Mock(), fixture_text='fixture',
+                        genesis=GENESIS, first_height=10, report=report)
+            self.assertEqual(str(caught.exception), 'FRAME_REFUSED')
+            self.assertEqual(order, ['probe', 'cleanup'])
+            actor._rpc.assert_called_once()
+            self.assertTrue(profile.valid_startup_observation(report[field])
+                            if field == 'startup_observation'
+                            else profile.valid_navigation_observation(report[field]))
+            self.assertFalse(report['success'])
+            self.assertEqual(report['observation'], failure)
+            self.assertNotIn('synthetic private', json.dumps(report))
 
     def test_profile_progress_preserves_the_original_send_failure(self):
         profile = pair.profile

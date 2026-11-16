@@ -34,6 +34,9 @@ SHUTDOWN_PHASES = frozenset((
 NAVIGATION_FLAGS = frozenset(('hasExistingKey', 'expectedKey', 'sameRectangle',
                              'visibleInsideDecoration', 'enabled'))
 NAVIGATION_CARRIERS = frozenset(('absent', 'inkwell', 'gesture', 'other'))
+STARTUP_ENTRY_PHASES = frozenset(('startup-before-initialization',
+                                'startup-initialization-started', 'welcome'))
+STARTUP_FRAME_LIMIT = 5000
 PREPARATION_PHASES = frozenset(('environment', 'input', 'ownerBefore', 'emptyProfile',
                               'importWallet', 'ownerAfter', 'walletReady'))
 PREPARATION_ERROR_PHASES = {
@@ -157,6 +160,25 @@ def valid_navigation_observation(value):
     return True
 
 
+def valid_startup_observation(value):
+    """Keep only the original startup phase and bounded film counters."""
+    if type(value) is not dict:
+        return False
+    if set(value) == {'status', 'error_code'}:
+        return (value['status'] == 'unavailable'
+            and type(value['error_code']) is str
+            and value['error_code'] in launch.startup.CODES)
+    if type(value.get('entry')) is not str or value['entry'] not in STARTUP_ENTRY_PHASES:
+        return False
+    if set(value) == {'status', 'entry'}:
+        return value['status'] == 'absent'
+    return (set(value) == {'status', 'entry', 'frames', 'shown', 'done'}
+        and value['status'] == 'observed' and type(value['frames']) is int
+        and 0 <= value['frames'] <= STARTUP_FRAME_LIMIT
+        and type(value['shown']) is int and -1 <= value['shown'] < value['frames']
+        and type(value['done']) is bool)
+
+
 def need(condition, code):
     if not condition:
         raise InteractiveRefused(code)
@@ -189,6 +211,49 @@ def navigation_failure(value):
             code='PREPARATION_REFUSED', phase='importWallet', recipe=dict(
                 action='observe', control='nav_settings', entry='unknown',
                 reason='wallet-recipe-control-absent')))
+
+
+def startup_failure(value):
+    """Select the retained Welcome refusal before original initialization."""
+    return (type(value) is dict and value.get('phase') == 'prepare_profile'
+        and preparation_failure(value.get('preparation_failure')) == dict(
+            code='PREPARATION_REFUSED', phase='importWallet', recipe=dict(
+                action='observe', control='welcome_import',
+                entry='startup-before-initialization',
+                reason='wallet-recipe-control-absent')))
+
+
+def _observe_startup_failure(session, observation, diagnostic):
+    if diagnostic or not startup_failure(observation):
+        return
+    try:
+        body = session._rpc({'cmd': 'wallet-recipe', 'action': 'observe'},
+                            until=min(session.deadline, session.clock() + 1))
+        if (type(body) is not dict or body.get('ok') is not True
+                or body.get('harnessMode') != 'wallet' or body.get('booted') is not True
+                or body.get('walletPresent') is not False
+                or body.get('transitionPending') is not False
+                or body.get('hasError') is not False):
+            raise launch.startup.Failure('STATE_INVALID')
+        entry = body.get('entryPhase')
+        frame = body.get('startupFilmFrame')
+        if frame is None:
+            value = dict(status='absent', entry=entry)
+        else:
+            if type(frame) is not dict or set(frame) != {'frames', 'shown', 'done'}:
+                raise launch.startup.Failure('STATE_INVALID')
+            value = dict(status='observed', entry=entry, **frame)
+        if not valid_startup_observation(value):
+            raise launch.startup.Failure('STATE_INVALID')
+        diagnostic.update(value)
+    except launch.bounded.SmokeFailure as error:
+        code = error.code
+        diagnostic.update(status='unavailable', error_code=code
+            if type(code) is str and code in launch.startup.CODES else 'INTERNAL_ERROR')
+    except ConnectionRefusedError:
+        diagnostic.update(status='unavailable', error_code='HTTP_FAILED')
+    except (Exception, KeyboardInterrupt):
+        diagnostic.update(status='unavailable', error_code='INTERNAL_ERROR')
 
 
 def _observe_navigation_failure(session, observation, diagnostic):
@@ -508,6 +573,7 @@ def measure_process(repo, build_repo, parent, binaries, revalidate, measure,
     shutdown = {}
     trace = {}
     navigation = {}
+    startup = {}
 
     def observe(session):
         try:
@@ -517,7 +583,10 @@ def measure_process(repo, build_repo, parent, binaries, revalidate, measure,
                 token=session.token, fixture_text=fixture_text, genesis=genesis,
                 first_height=first_height, report=report['observation'])
         except (InteractiveRefused, actions.FrameActionRefused):
-            _observe_navigation_failure(session, report['observation'], navigation)
+            if navigation_failure(report['observation']):
+                _observe_navigation_failure(session, report['observation'], navigation)
+            else:
+                _observe_startup_failure(session, report['observation'], startup)
             raise
 
     def session(*args, **kwargs):
@@ -534,6 +603,8 @@ def measure_process(repo, build_repo, parent, binaries, revalidate, measure,
         report['shutdown_trace'] = trace
     if navigation:
         report['navigation_observation'] = navigation
+    if startup:
+        report['startup_observation'] = startup
     current = launch.bounded.plain(profile)
     report['profile_stable'] = (current.st_dev, current.st_ino) == (original.st_dev, original.st_ino)
     need(report['profile_stable'], 'PROFILE_REFUSED')

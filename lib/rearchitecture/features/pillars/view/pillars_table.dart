@@ -169,17 +169,18 @@ class _PillarColumns extends StatelessWidget {
     final AppTokens tokens = AppTokens.of(context);
     return Row(
       children: <Widget>[
+        // Keep the name and final action edges; move numeric roles inward.
         Expanded(flex: 26, child: name),
         SizedBox(width: tokens.pillarColumnGap),
-        Expanded(flex: 17, child: _buildEnd(weight)),
+        Expanded(flex: 16, child: _buildEnd(weight)),
         SizedBox(width: tokens.pillarColumnGap),
         Expanded(flex: 16, child: _buildEnd(shares)),
         SizedBox(width: tokens.pillarColumnGap),
-        Expanded(flex: 13, child: _buildEnd(uptime)),
+        Expanded(flex: 11, child: _buildEnd(uptime)),
         SizedBox(width: tokens.pillarColumnGap),
         Expanded(flex: 14, child: _buildEnd(apr)),
         SizedBox(width: tokens.pillarColumnGap),
-        Expanded(flex: 14, child: _buildEnd(action)),
+        Expanded(flex: 17, child: _buildEnd(action)),
       ],
     );
   }

@@ -169,7 +169,7 @@ class _TokenCardState extends State<TokenCard> {
                       repository: widget.favoriteRepository,
                     ),
                   ),
-                  SizedBox(width: tokens.inlineGap),
+                  SizedBox(width: tokens.tokenFavoriteGap),
                   Container(
                     width: tokens.homeTokenBadgeSize,
                     height: tokens.homeTokenBadgeSize,
@@ -202,7 +202,7 @@ class _TokenCardState extends State<TokenCard> {
                   if (wide)
                     Padding(
                       padding: EdgeInsetsDirectional.only(
-                        start: tokens.pageGap,
+                        start: tokens.tokenOwnerColumnGap,
                       ),
                       child: SizedBox(
                         width: tokens.tokenOwnerWidth,
@@ -508,8 +508,7 @@ class _Owner extends StatelessWidget {
   }
 }
 
-/// The ledger labels over the columns of the token list. Laid out as a
-/// [TokenCard] is, so each label sits over its column.
+/// The Token label starts at the mark; amounts and owner keep their columns.
 class TokenListHeader extends StatelessWidget {
   /// Creates the header.
   const TokenListHeader({super.key});
@@ -524,7 +523,7 @@ class TokenListHeader extends StatelessWidget {
         builder: (BuildContext context, BoxConstraints constraints) => Row(
           children: <Widget>[
             const SizedBox(width: kTokenRowActionSize),
-            SizedBox(width: tokens.homeTokenBadgeSize + tokens.inlineGap * 2),
+            SizedBox(width: tokens.tokenFavoriteGap),
             Expanded(
               child: Text(context.l10n.tokensToken.toUpperCase(), style: style),
             ),
@@ -548,7 +547,9 @@ class TokenListHeader extends StatelessWidget {
             ),
             if (constraints.maxWidth >= tokens.tokenTableMinWidth)
               Padding(
-                padding: EdgeInsetsDirectional.only(start: tokens.pageGap),
+                padding: EdgeInsetsDirectional.only(
+                  start: tokens.tokenOwnerColumnGap,
+                ),
                 child: SizedBox(
                   width: tokens.tokenOwnerWidth,
                   child: Text(

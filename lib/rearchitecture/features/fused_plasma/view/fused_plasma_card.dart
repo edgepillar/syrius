@@ -244,15 +244,35 @@ class _FusedPlasmaCardState extends State<FusedPlasmaCard> {
     required Widget beneficiary,
     required Widget expires,
     required Widget action,
-  }) => Row(
-    children: <Widget>[
-      SizedBox(width: AppTokens.of(context).plasmaCheckboxWidth, child: check),
-      Expanded(flex: 2, child: amount),
-      Expanded(flex: 4, child: beneficiary),
-      Expanded(flex: 3, child: expires),
-      action,
-    ],
-  );
+  }) {
+    final AppTokens tokens = AppTokens.of(context);
+    final double markInset =
+        (tokens.plasmaCheckboxWidth - tokens.plasmaCheckboxMarkSize) / 2;
+    return Row(
+      children: <Widget>[
+        // Align the mark with the cell inset while retaining its hit area.
+        Padding(
+          padding: EdgeInsetsDirectional.only(end: tokens.pageGap),
+          child: SizedBox(
+            width: tokens.plasmaCheckboxWidth,
+            child: Transform.translate(
+              offset: Offset(
+                Directionality.of(context) == TextDirection.rtl
+                    ? markInset
+                    : -markInset,
+                0,
+              ),
+              child: check,
+            ),
+          ),
+        ),
+        Expanded(flex: 21, child: amount),
+        Expanded(flex: 41, child: beneficiary),
+        Expanded(flex: 38, child: expires),
+        action,
+      ],
+    );
+  }
 
   Widget _buildRow(
     PlasmaFusion entry,

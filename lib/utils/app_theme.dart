@@ -695,10 +695,16 @@ class AppTokens extends ThemeExtension<AppTokens> {
   double get tokenBalanceWidth => 140;
 
   /// The supply column may include the genuine maximum.
-  double get tokenSupplyWidth => 200;
+  double get tokenSupplyWidth => 274;
 
   /// Owner identifiers retain their dedicated mono column.
-  double get tokenOwnerWidth => 160;
+  double get tokenOwnerWidth => 293;
+
+  /// The Token heading starts at the mark after the favorite slot.
+  double get tokenFavoriteGap => 18;
+
+  /// The owner column follows the reference's wider cell gutter.
+  double get tokenOwnerColumnGap => 32;
 
   /// Horizontal scrolling preserves all token columns in a narrow window.
   double get tokenTableMinWidth => 1000;

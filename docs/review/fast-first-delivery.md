@@ -1,6 +1,24 @@
 # First delivery and deferred acceptance
 
-Current source: Source815 preserves original navigation selectors on the same
+Current source: Source816 adjusts shared Apps, Pillars, Token and Plasma
+column geometry. The existing two-theme Plasma selection case also checks
+checkbox alignment. One bounded read of the existing startup film counters
+can observe the exact original P06 Welcome refusal before cleanup. The
+reader permits only fixed labels/counters on that failed preparation. Input,
+deadlines, shutdown, baseline widgets/decoder, overlay and frame criteria
+remain. Forty-five memory controls pass; counts remain 1509/1511 Dart,
+1229 Python, 112/113 suites and 289 strict paths.
+
+Source815 full Linux passes thirteen stages. Windows and independent reading
+verify sixteen current commands, sixteen/eighteen frames and normal exits
+of both wallets/five nodes. P06 preparation fails at welcome_import before
+initialization; measurement remains unreached. No startup or closure cause
+is established. All owned outputs are consumed and earlier failures remain.
+Fresh hosted/native and visual qualification is required. Scope and literal
+Source730 Ready matches remain 76/80 and 2/94. See
+[ledger layout and startup observation](source816-ledger-layout-startup-observation.md).
+
+Earlier source: Source815 preserves original navigation selectors on the same
 unkeyed InkWell when an ancestor key is inherited. Explicit button selectors,
 equal-rectangle admission and original tap/owner guards remain. The existing
 engine case mounts the byte-identical original P06 rail with a keyed host.

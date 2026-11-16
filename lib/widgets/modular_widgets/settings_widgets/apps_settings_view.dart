@@ -615,7 +615,8 @@ class _AppsColumns extends StatelessWidget {
     children: <Widget>[
       for (int index = 0; index < children.length; index++)
         Expanded(
-          flex: const <int>[3, 2, 2, 2, 2][index],
+          // Keep the Via and action edges while giving the site more room.
+          flex: const <int>[36, 17, 17, 20, 20][index],
           child: Padding(
             padding: EdgeInsetsDirectional.only(
               end: index == children.length - 1
