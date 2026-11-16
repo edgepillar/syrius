@@ -1,6 +1,24 @@
 # First delivery and deferred acceptance
 
-Current source: Source814 prepares fixed close events after original process
+Current source: Source815 preserves original navigation selectors on the same
+unkeyed InkWell when an ancestor key is inherited. Explicit button selectors,
+equal-rectangle admission and original tap/owner guards remain. The existing
+engine case mounts the byte-identical original P06 rail with a keyed host.
+The reconstructed 14888-byte overlay changes only the baseline agent;
+widgets, assets, dependencies, CLI and collector remain. Forty-five memory
+controls pass. Counts stay 1509/1511 Dart, 1229 Python, 112/113 suites and
+289 strict paths. Extended engine assertions need hosted execution.
+
+Source814 full Linux passes thirteen stages. Windows and independent reading
+verify all sixteen current commands, eight/fourteen frames and normal exits
+of both wallets/five nodes. The current fixed trace reaches exitRequested
+with fifteen complete events. No closure cause or repair is established.
+P06 preparation refuses absent nav_settings, leaving paired performance
+unqualified. All owned outputs are consumed, with earlier failures retained.
+Fresh hosted qualification is required. Scope and Source730 Ready matches
+stay 76/80 and 2/94. See [inherited navigation selectors](source815-inherited-navigation-selector.md).
+
+Earlier source: Source814 prepares fixed close events after original process
 cleanup. The interactive harness alone attaches one snapshot observer.
 Opaque output stays in CI memory under the original cap; only bounded phase
 labels and failure flags reach the separate trace. Original shutdown, HTTP

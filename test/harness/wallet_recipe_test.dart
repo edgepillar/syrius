@@ -1239,6 +1239,7 @@ void main() {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
                 original_rail.ShellRail(
+                  key: const Key('inherited_rail_host'),
                   collapse: baselineCollapse,
                   selected: Tabs.dashboard,
                   locked: false,
@@ -1277,6 +1278,27 @@ void main() {
             control['key'] == 'nav_settings' && control['enabled'] == true),
         hasLength(1),
         reason: binding,
+      );
+      expect(originalNodes.where((Map<String, Object?> node) =>
+          node['key'] == 'nav_settings' && node['type'] == 'InkWell'),
+          hasLength(1));
+      expect(
+        await agent.commandForTest(<String, dynamic>{
+          'cmd': 'navigation-state',
+        }),
+        <String, Object?>{
+          'settingsCount': 1,
+          'bindings': <Map<String, Object?>>[
+            <String, Object?>{
+              'carrier': 'inkwell',
+              'hasExistingKey': true,
+              'expectedKey': false,
+              'sameRectangle': true,
+              'visibleInsideDecoration': true,
+              'enabled': true,
+            },
+          ],
+        },
       );
 
       await tester.pumpWidget(

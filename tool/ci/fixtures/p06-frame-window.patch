@@ -145,7 +145,7 @@
 +  }
 
    List<_Node> _snapshot() {
-@@ -1610,5 +1684,43 @@
+@@ -1610,5 +1684,44 @@
      if (navKey is ValueKey<String> && navKey.value.startsWith('nav_')) {
        final _Node? t = n.tappable;
 -      if (t != null) t.extra['tab'] = navKey.value.substring(4);
@@ -179,10 +179,11 @@
 +      if (t != null) {
 +        t.extra['tab'] = navKey.value.substring(4);
 +        // P06 keeps its navigation key on the full-size decoration inside
-+        // the InkWell. Preserve that original button and its tap guards.
++        // the InkWell. An inherited key can yield to that selector; keep a
++        // selector declared on the original button and all its tap guards.
 +        if (w is DecoratedBox &&
 +            t.element.widget is InkWell &&
-+            t.key == null &&
++            (t.key == null || t.element.widget.key == null) &&
 +            _rectOf(e) == t.rect &&
 +            const <String>{'nav_settings', 'nav_dashboard'}.contains(navKey.value)) {
 +          t.key = navKey.value;
@@ -190,7 +191,7 @@
 +      }
      }
      if (w is Tab) {
-@@ -2028,4 +2140,12 @@
+@@ -2028,4 +2141,12 @@
 
    // ----------------------------------------------------------------- pointer
 +
@@ -203,21 +204,21 @@
 +  }
 
    Future<void> _frame() => WidgetsBinding.instance.endOfFrame.timeout(
-@@ -2337,5 +2457,5 @@
+@@ -2337,5 +2458,5 @@
        // Click into it first, as a person would: focus listeners fire.
        await _click(node.center, requireAdmission: requireAdmission);
 -      await _frame();
 +      await _inputFrame();
        requireAdmission?.call();
        state = (node.element as StatefulElement).state as EditableTextState;
-@@ -2355,5 +2475,5 @@
+@@ -2355,5 +2476,5 @@
        SelectionChangedCause.keyboard,
      );
 -    await _frame();
 +    await _inputFrame();
      if (c['submit'] == true) {
        state.performAction(TextInputAction.done);
-@@ -2409,7 +2529,6 @@
+@@ -2409,7 +2530,6 @@
    bool _dispatchKey(KeyEvent e) {
      final bool handled = HardwareKeyboard.instance.handleKeyEvent(e);
 -    if (handled) return true;
@@ -227,7 +228,7 @@
 +    // Focus is registered through the message bridge in this pinned SDK.
      // ignore: deprecated_member_use
      final KeyMessageHandler? h =
-@@ -2419,5 +2538,6 @@
+@@ -2419,5 +2539,6 @@
      // This pinned bridge returns the actual Shortcuts and editing result.
      // ignore: deprecated_member_use
 -    return h?.call(KeyMessage(<KeyEvent>[e], null)) ?? false;
@@ -235,7 +236,7 @@
 +    return handled || focusHandled;
    }
 
-@@ -2459,4 +2579,10 @@
+@@ -2459,4 +2580,10 @@
      final int timeout = c['timeoutMs'] as int? ?? 10000;
      final bool gone = c['gone'] == true;
 +    final bool launchReady =
@@ -246,7 +247,7 @@
 +        c['key'] == 'wallet_password_field';
      final Stopwatch sw = Stopwatch()..start();
      while (true) {
-@@ -2473,5 +2599,9 @@
+@@ -2473,5 +2600,9 @@
          ],
        );
 -      if (gone ? hits.isEmpty : hits.isNotEmpty) {
@@ -257,7 +258,7 @@
 +      if (gone ? hits.isEmpty : found) {
          return <String, Object?>{
            'ms': sw.elapsedMilliseconds,
-@@ -2725,4 +2855,62 @@
+@@ -2725,4 +2856,62 @@
    // ------------------------------------------------------------------ stalls
 
 +  static const String _pairedLaunchTiming = 'paired-launch';
@@ -320,7 +321,7 @@
 +
    final Stopwatch _stallClock = Stopwatch();
    Duration _stallLast = Duration.zero;
-@@ -2738,4 +2926,10 @@
+@@ -2738,4 +2927,10 @@
    /// the raster thread, where a large image or a first-use shader costs.
    void _hookStalls() {
 +    if (_isLaunchTiming) {
@@ -331,7 +332,7 @@
 +    }
      void record(String kind, int ms) {
        _stalls.add(<String, Object?>{
-@@ -2757,4 +2951,5 @@
+@@ -2757,4 +2952,5 @@
      });
      SchedulerBinding.instance.addTimingsCallback((List<ui.FrameTiming> ts) {
 +      _frameWindow?.observe(ts);

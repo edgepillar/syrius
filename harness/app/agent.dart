@@ -3845,10 +3845,11 @@ class HarnessAgent {
       if (t != null) {
         t.extra['tab'] = navKey.value.substring(4);
         // P06 keeps its navigation key on the full-size decoration inside
-        // the InkWell. Preserve that original button and its tap guards.
+        // the InkWell. An inherited key can yield to that selector; keep a
+        // selector declared on the original button and all its tap guards.
         if (w is DecoratedBox &&
             t.element.widget is InkWell &&
-            t.key == null &&
+            (t.key == null || t.element.widget.key == null) &&
             _rectOf(e) == t.rect &&
             const <String>{
               'nav_settings',
