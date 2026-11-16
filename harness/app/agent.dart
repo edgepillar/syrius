@@ -3637,8 +3637,19 @@ class HarnessAgent {
         // The owned startup receiver consumes Space on key-down. Dispatch
         // the complete key pair in one turn so its ordinary handoff does not
         // become a second pointer admission against the retired hint.
+        final FocusNode? receiver = Focus.maybeOf(
+          original.element, createDependency: false,
+        );
+        if (receiver == null || !receiver.canRequestFocus ||
+            receiver.onKeyEvent == null) {
+          throw HarnessError('wallet-recipe-control-refused');
+        }
+        receiver.requestFocus();
         FocusManager.instance.applyFocusChangesIfNeeded();
         admission();
+        if (!receiver.hasPrimaryFocus) {
+          throw HarnessError('wallet-recipe-control-refused');
+        }
         final Object? owner = startup?.startupOwner;
         if (owner is! StartupStageSession || owner.isClosed) {
           throw HarnessError('wallet-recipe-original-owner-changed');

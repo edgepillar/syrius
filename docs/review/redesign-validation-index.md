@@ -1,6 +1,6 @@
 # Redesign validation index
 
-Current: [Source817 toast countdown paint](source817-toast-countdown-paint.md). Source816 full Linux and both original Windows/independent inspection jobs succeed; both finite measurements qualify, while the original timing and gap comparisons fail. Source817 prepares repaint isolation and extends existing tests; hosted/native qualification is pending. Accepted rows remain 76/80 and literal Source730 Ready matches remain 2/94.
+Current: [Source818 original startup focus](source818-original-startup-focus.md). Both adapters target the selected hint's original receiver before one complete Space pair; the existing startup case now begins with an unrelated consuming primary focus. Forty-five mocked controls pass; fresh hosted/native execution is pending. Source817 full Linux, Windows source gates and toast paint-retention cases pass, while its producer fails at P06 preparation with a qualified incomplete-film snapshot and no baseline measurement. All original outputs are consumed without retry. Accepted rows remain 76/80 and literal Source730 Ready matches remain 2/94.
 
 Earlier: [Source731 Lock symbols and Source730 results](source731-lock-picker-symbols.md). Source730 full Linux, both Windows producers and both independent readers pass. Two Ready pairs are accepted at that source, giving 2/94 matches and unchanged 74/80 original acceptance. Four new Staking/Token PNGs await individual review. The prepared Lock glyph change needs fresh hosted/native qualification; earlier entries retain their source-bound status.
 

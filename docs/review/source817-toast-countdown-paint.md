@@ -67,3 +67,26 @@ outputs are consumed; prior failures and the original predicates remain.
 No new visual match, performance improvement, financial success or final
 acceptance is claimed. Rows remain 76/80; the two literal Ready matches
 remain Source730 evidence, giving 2/94. V01/V02/V05/V06 stay open.
+
+## Executed Source817 result
+
+[Full Linux](https://github.com/edgepillar/syrius/actions/runs/43931513271)
+passes all thirteen required stages. The
+[original Windows producer](https://github.com/edgepillar/syrius/actions/runs/43934475881)
+and [independent reader](https://github.com/edgepillar/syrius/actions/runs/43939496209)
+verify 1517 selected Dart cases, 1229 Python cases/eighteen skips, zero
+selected analysis findings and Release. All eight toast cases, including
+the static-card PictureLayer retention assertions, pass.
+
+The current wallet completes sixteen measurement commands with eleven
+page-change and thirteen disclosure frames. Both wallets and five nodes
+exit normally. The original producer fails at P06 preparation: `importWallet`
+cannot observe `welcome_import` before startup initialization. One finite
+snapshot records 56 film frames, zero-based last presented index 2 and
+`done=false`. It proves neither input delivery nor a rendering root cause.
+P06 never reaches measurement; no native timing improvement is established.
+
+All original outputs are consumed without a retry or local artifact download.
+The [next input-targeting change](source818-original-startup-focus.md) requires
+fresh execution. Original failures, 76/80 acceptance and Source730's 2/94
+literal matches remain.

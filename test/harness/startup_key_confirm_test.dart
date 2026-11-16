@@ -107,8 +107,24 @@ void main() {
     expect(fixture.done, 0);
     expect(getChainIdentifier(), originalChain);
     expect(preferences.get(kChainIdKey), 321);
+    int unrelatedKeys = 0;
+    final FocusNode unrelated = FocusNode(onKeyEvent: (_, _) {
+      unrelatedKeys++;
+      return KeyEventResult.handled;
+    });
+    addTearDown(unrelated.dispose);
+    // A root sibling cannot bubble keys to the original startup receiver.
+    unrelated.attach(tester.element(find.byKey(
+      const ValueKey<String>('launch_skip_hint'),
+    ))).reparent(parent: FocusManager.instance.rootScope);
+    unrelated.requestFocus();
+    FocusManager.instance.applyFocusChangesIfNeeded();
+    expect(unrelated.hasPrimaryFocus, isTrue);
+    expect(fixture.session.film.skipRequested, isFalse);
     final Map<String, Object?> reply = await fixture.press();
     expect(reply['acted'], isTrue);
+    expect(unrelatedKeys, 0);
+    expect(unrelated.hasFocus, isFalse);
     expect(getChainIdentifier(), originalChain);
     expect(preferences.get(kChainIdKey), 321);
     expect(fixture.session.film.skipRequested, isTrue);
