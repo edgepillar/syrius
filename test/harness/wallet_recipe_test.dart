@@ -883,7 +883,7 @@ void main() {
     });
   }
 
-  testWidgets('recipe observations retain original keys and omit private values', (
+  testWidgets('recipe observations retain keys and omit private values', (
     WidgetTester tester,
   ) async {
     final TextEditingController input = TextEditingController(text: _seed(12));

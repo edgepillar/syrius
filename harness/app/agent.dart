@@ -3769,7 +3769,10 @@ class HarnessAgent {
             t.element.widget is InkWell &&
             t.key == null &&
             _rectOf(e) == t.rect &&
-            const <String>{'nav_settings', 'nav_dashboard'}.contains(navKey.value)) {
+            const <String>{
+              'nav_settings',
+              'nav_dashboard',
+            }.contains(navKey.value)) {
           t.key = navKey.value;
         }
       }

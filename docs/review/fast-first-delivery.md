@@ -1,5 +1,12 @@
 # First delivery and deferred acceptance
 
+Current source: Source802 fixes the two navigation line-length findings
+retained by Source801 full Linux 43779505026. All 68 added Dart lines since
+Source800 now fit the 80-character bound. Collector semantics, the baseline
+overlay, test methods and workflow selections remain. Fresh hosted and native
+qualification remain required; scope and Ready matches stay 76/80 and 2/94.
+See [navigation line limits](source802-navigation-line-limits.md).
+
 Current source: Source801 preserves original decorated P06 navigation selectors
 without changing baseline widgets or tap guards, and gives Addresses heading
 counts their value role. Twenty-two related Python memory controls pass. Fresh
