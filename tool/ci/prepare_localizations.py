@@ -14,7 +14,8 @@ from . import windows_debug_loop as debug
 from .analysis_delta import SDK
 
 
-LABELS = dict(plasmaBeneficiary='Beneficiary', plasmaExpires='Expires')
+LABELS = dict(
+    walletSettingsDesktopNotificationsHint='Incoming funds and wallet activity')
 DART_FILES = ('lib/l10n/app_localizations.dart',) + tuple(
     'lib/l10n/app_localizations_' + locale + '.dart'
     for locale in ('ar', 'en', 'es', 'hi', 'zh'))

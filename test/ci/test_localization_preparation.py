@@ -49,6 +49,8 @@ class LocalizationDeltaTests(unittest.TestCase):
         name = preparation.DART_FILES[0]
         for value in (after[name].replace(b'Locale', b'Other'),
                       after[name] + b'String get plasmaBeneficiary;\n',
+                      after[name] + ('String get ' + next(iter(preparation.LABELS))
+                                     + ';\n').encode(),
                       after[name] + b"String get privateLabel => 'private';\n",
                       after[name] + 'private \u00e9\n'.encode()):
             with self.assertRaisesRegex(Exception, 'DELTA_REFUSED'):
@@ -66,7 +68,7 @@ class LocalizationDeltaTests(unittest.TestCase):
         before, after = self.sample()
         name = preparation.DART_FILES[0]
         for value in (b'x' * (1024**2 + 1), 'private',
-                      after[name].replace(b'plasmaBeneficiary', b'private')):
+                      after[name].replace(next(iter(preparation.LABELS)).encode(), b'private')):
             with self.assertRaisesRegex(Exception, 'DELTA_REFUSED'):
                 preparation.delta(before, dict(after, **{name: value}))
 

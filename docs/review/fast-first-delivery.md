@@ -1,6 +1,16 @@
 # First delivery and deferred acceptance
 
-Current source: Source804 corrects the exact native test total to 1507 without
+Current source: Source805 prepares one English Wallet notification hint and
+retains the finite generator's original bounds. Five existing memory cases
+pass; real hosted generation and faithful application are still required.
+Source804 full Linux passes thirteen stages. Windows and independent reading
+retain all sixteen current actions, two normal wallet exits and five normal
+node exits, followed by P06's absent-nav_settings preparation refusal. The
+earlier close timeout is not reproduced and its cause remains unestablished.
+Scope and Ready matches stay 76/80 and 2/94. See
+[Wallet notification hint preparation](source805-wallet-notification-localization.md).
+
+Earlier source: Source804 corrects the exact native test total to 1507 without
 changing Dart or the shutdown observations. Source803 passed all thirteen
 Linux stages and 1507 selected Windows Dart cases, then its stale 1505 total
 refused the job before Release or native execution. Fourteen existing memory

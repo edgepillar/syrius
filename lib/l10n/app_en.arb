@@ -2305,6 +2305,7 @@
   "walletSettingsAutoReceive": "Auto-receive",
   "walletSettingsAutoReceiveHint": "Off: receive each transaction by hand",
   "walletSettingsDesktopNotifications": "Desktop notifications",
+  "walletSettingsDesktopNotificationsHint": "Incoming funds and wallet activity",
   "walletSettingsLaunchAtStartup": "Launch at startup",
   "walletSettingsModes": "Modes",
   "walletSettingsModesHint": "Auto: shown when the selected address owns one",
