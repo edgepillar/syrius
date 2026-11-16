@@ -937,9 +937,13 @@ void main() {
     WidgetTester tester,
   ) async {
     List<Completer<void>> frames = <Completer<void>>[];
+    List<DateTime> waitStartedAt = <DateTime>[];
     int requests = 0;
     final HarnessAgent agent = HarnessAgent.forTest(
-      waitForInputFrame: () => frames[requests++].future,
+      waitForInputFrame: () {
+        waitStartedAt.add(tester.binding.clock.now());
+        return frames[requests++].future;
+      },
     )..booted = true;
     Future<void> until(bool Function() ready) async {
       for (int turn = 0; turn < 40 && !ready(); turn++) {
@@ -956,6 +960,7 @@ void main() {
         Completer<void>(), Completer<void>(),
       ];
       requests = 0;
+      waitStartedAt = <DateTime>[];
       Object? outcome;
       final TextEditingController input =
           TextEditingController(text: 'original input');
@@ -997,9 +1002,16 @@ void main() {
         }
         final Completer<void> original = frames[before ? 0 : 1];
         if (variant.endsWith('timeout')) {
-          await tester.pump(const Duration(milliseconds: 999));
+          final Duration elapsed = tester.binding.clock.now().difference(
+            waitStartedAt[before ? 0 : 1],
+          );
+          final Duration beforeDeadline =
+              const Duration(milliseconds: 999) - elapsed;
+          expect(beforeDeadline, greaterThan(Duration.zero));
+          await tester.pump(beforeDeadline);
           expect(outcome, isNull);
           await tester.pump(const Duration(milliseconds: 1));
+          expect(outcome, isA<HarnessError>());
         } else if (variant.endsWith('error')) {
           original.completeError(StateError('synthetic private diagnostic'));
           await tester.pump();

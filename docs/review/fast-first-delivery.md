@@ -1,6 +1,18 @@
 # First delivery and deferred acceptance
 
-Current source: Source808 requires original frame completion around text input,
+Current source: Source809 binds the input-frame test samples to the original
+wait's binding clock. Original deadlines/assertions and all production/overlay
+bytes remain; 43 memory controls pass. Selection stays 1508/1227, 112 suites
+and 289 strict paths. Fresh hosted/native execution is pending.
+
+Source808's eleven required stages pass before its full test directory reports
+5094 passes, one matrix failure and one skip; generation is skipped. Its
+complete 1413578-byte log is retained by a closed successful managed reader,
+and all outputs are consumed. Latest successful full Linux remains Source807.
+Acceptance and Source730 Ready matches stay 76/80 and 2/94. See
+[original input deadline clock](source809-original-input-clock.md).
+
+Earlier source: Source808 requires original frame completion around text input,
 with one-second admission and fixed refusal on timeout/error. Pointer/input
 behavior, all outer budgets and performance gates remain. The exact P06 overlay
 keeps original widgets/CLI/collector; 43 memory controls pass. One new widget
