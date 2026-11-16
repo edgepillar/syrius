@@ -12,6 +12,22 @@ void main() {
       (WidgetTester tester) async {
     final StartupKeyFixture fixture = StartupKeyFixture();
     await fixture.mount(tester);
+    final FocusNode receiver = Focus.of(tester.element(find.byKey(
+      const ValueKey<String>('launch_skip_hint'),
+    )), createDependency: false);
+    receiver.canRequestFocus = false;
+    try {
+      expect((await fixture.observe())['controls'], isNot(contains(
+        <String, Object?>{'key': 'launch_skip_hint', 'enabled': true},
+      )));
+      await expectLater(fixture.press(), throwsA(
+        isA<HarnessError>().having((HarnessError value) => value.message,
+          'unfocusable receiver', 'wallet-recipe-control-refused'),
+      ));
+      expect(fixture.session.film.skipRequested, isFalse);
+    } finally {
+      receiver.canRequestFocus = true;
+    }
     await Hive.box<dynamic>(kSharedPrefsBox).put(kChainIdKey, 321);
     final Map<String, Object?> view = await fixture.observe();
     expect(view['signingPolicyReady'], isTrue);

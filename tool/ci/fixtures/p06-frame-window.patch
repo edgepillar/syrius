@@ -61,11 +61,9 @@
 +        if (c.containsKey('frameWindow')) return _frameWindowCmd(c);
          return _stallsCmd(c);
        case 'clipboard':
-@@ -1097,4 +1112,31 @@
-     }
-     return phases.single;
-+  }
-+
+@@ -1099,4 +1114,31 @@
+   }
+
 +  Map<String, Object?>? _recipeStartupFilmFrame() {
 +    final EntryCaptureRegistry registry = EntryCaptureRegistry.instance;
 +    final EntryStartupReceipt? startup = registry.startup;
@@ -91,8 +89,17 @@
 +      'shown': film.frame,
 +      'done': film.isDone,
 +    };
-   }
-
++  }
++
+   _Node? _recipeStartupHint(List<_Node> nodes) {
+     final EntryCaptureRegistry registry = EntryCaptureRegistry.instance;
+@@ -1129,5 +1171,5 @@
+         if (widget is Focus &&
+             widget.onKeyEvent != null &&
+-            widget.focusNode?.hasPrimaryFocus == true) {
++            widget.focusNode?.canRequestFocus == true) {
+           found = ancestor;
+           return false;
 @@ -1250,4 +1292,7 @@
      final List<_Node> nodes = _snapshot();
      final _Node? startupHint = _recipeStartupHint(nodes);

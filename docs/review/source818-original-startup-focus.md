@@ -71,3 +71,22 @@ run. All original outputs are consumed, with no retry or local download.
 Fresh full Linux and native execution are required for Source818. Earlier
 failures remain. Accepted rows stay 76/80; the two literal Ready matches
 belong only to Source730, giving 2/94. V01/V02/V05/V06 remain open.
+
+## Executed Source818 failure
+
+The [original full Linux run](https://github.com/edgepillar/syrius/actions/runs/43945119834)
+passes eleven required stages. Unit/widget tests report 5095 passed, one
+failed and one skipped; generated-file verification is skipped. The extended
+positive startup case fails at the initial `_recipeControl` lookup, before
+the new focus request can run. The selector still requires primary focus
+while that test deliberately gives it to an unrelated sibling.
+
+The complete original job text and stack are retained by digest in managed
+storage. The read closes successfully; earlier admission/capture failures
+remain separately recorded. No original CI test or native task is repeated.
+All owned outputs are consumed. Source818 has no Windows measurement.
+
+[Source819](source819-focusable-startup-selector.md) separates focusable
+selection from the existing primary-focus admission immediately before
+input. The original P06 preparation cause remains unestablished; fresh
+execution is required. Acceptance stays 76/80 with Source730's 2/94 matches.

@@ -3183,7 +3183,7 @@ class HarnessAgent {
         final Widget widget = ancestor.widget;
         if (widget is Focus &&
             widget.onKeyEvent != null &&
-            widget.focusNode?.hasPrimaryFocus == true) {
+            widget.focusNode?.canRequestFocus == true) {
           found = ancestor;
           return false;
         }

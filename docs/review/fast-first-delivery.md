@@ -1,23 +1,24 @@
 # First delivery and deferred acceptance
 
-Current source: Source818 targets the selected startup hint's original
-keyboard receiver before the existing Space pair. Current and original P06
-adapters use the same focus admission. The existing startup case now begins
-with an unrelated consuming primary focus and requires the original skip.
-Forty-five mocked Python controls pass; extended Flutter assertions require
-hosted execution. Selection remains 1517/1519 Dart cases, 1229 Python cases,
-113/114 suites and 291 strict analysis paths. Widgets, film/decoder,
-collector, waits and performance predicates remain.
+Current source: Source819 selects the original startup receiver when it can
+request focus. The existing action still requires primary focus immediately
+before its original Space pair. Both adapters use the same order; original
+owner, route, film/controller, callback and reachability checks remain.
+The positive case also checks discovery under unrelated focus; the existing
+refusal case checks an unfocusable receiver before its early-handler guard.
+Forty-five mocked Python controls pass. Extended Flutter assertions need
+hosted execution. Counts stay 1517/1519 Dart, 1229 Python, 113/114 suites and
+291 strict analysis paths. Widgets, decoder, collector and budgets remain.
 
-Source817 full Linux passes thirteen stages; Windows source gates, Release
-and toast paint-retention cases pass. The current wallet completes all
-sixteen measurement commands. Both wallets and five nodes exit normally.
-The original producer fails at P06 preparation before initialization; its
-finite film snapshot is incomplete and does not establish a cause or skip
-delivery. No same-fixture performance comparison qualifies. All outputs are
-consumed without retry or local download. Fresh hosted/native qualification
-is required for Source818. Accepted scope and Source730 Ready matches remain
-76/80 and 2/94. See [original startup focus](source818-original-startup-focus.md).
+Source818 full Linux passes eleven required stages. Unit/widget tests report
+5095 passed, one failed and one skipped; generation verification is skipped.
+The original stack identifies the startup selector's primary-focus demand
+before its focus request. The complete original job text is retained once
+by digest, and all owned output/scratch is closed before source changes.
+No CI test is repeated to obtain that failure; no Source818 Windows task
+starts. Fresh Source819 full Linux and native qualification are required.
+Accepted scope and Source730 Ready matches remain 76/80 and 2/94. See
+[focusable startup selection](source819-focusable-startup-selector.md).
 
 Earlier source: Source816 adjusts shared Apps, Pillars, Token and Plasma
 column geometry. The existing two-theme Plasma selection case also checks
