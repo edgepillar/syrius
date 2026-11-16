@@ -1,6 +1,22 @@
 # First delivery and deferred acceptance
 
-Current source: Source812 retains one original root-close Future before the
+Current source: Source813 installs the root-close case's mock handler as a
+cascade on its original messenger initializer. One exact source replacement
+preserves every handler, assertion, cleanup and registration. Production
+shutdown, overlay, workflows, budgets and performance predicates remain.
+Forty-three memory controls pass; counts stay 1509/1511 Dart, 1227 Python,
+112/113 standard/cold suites and 289 strict paths.
+
+Source812 full Linux passes controller discovery and application/integration
+analysis, then refuses one cascade_invocations information item with zero
+selected errors or warnings. Later Dart and generation stages are skipped;
+the new root-close case has not executed. The failed job has no artifacts,
+and all owned outputs are consumed without retry. Fresh full Linux/native
+qualification is required. Earlier closure/timing failures remain; native
+cause and repair remain unestablished. Scope and Source730 Ready matches
+stay 76/80 and 2/94. See [native mock cascade](source813-native-mock-cascade.md).
+
+Earlier source: Source812 retains one original root-close Future before the
 unchanged shutdown body starts. Duplicate and reentrant callbacks share its
 result, including failure; a partially completed close cannot be retried.
 One new window-channel widget case awaits hosted execution. Exact selected

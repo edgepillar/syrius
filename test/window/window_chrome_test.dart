@@ -85,12 +85,12 @@ void main() {
     }
 
     final TestDefaultBinaryMessenger messenger =
-        tester.binding.defaultBinaryMessenger;
-    messenger.setMockMethodCallHandler(channel, (MethodCall call) async {
-      requests.add(call.method);
-      if (requests.length == 1) reentrant = close();
-      return query.future;
-    });
+        tester.binding.defaultBinaryMessenger
+          ..setMockMethodCallHandler(channel, (MethodCall call) async {
+            requests.add(call.method);
+            if (requests.length == 1) reentrant = close();
+            return query.future;
+          });
     try {
       final Future<void> original = close();
       final Future<void> duplicate = close();
