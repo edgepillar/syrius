@@ -121,9 +121,9 @@ void main() {
     FocusManager.instance.applyFocusChangesIfNeeded();
     expect(unrelated.hasPrimaryFocus, isTrue);
     expect(fixture.session.film.skipRequested, isFalse);
-    expect((await fixture.observe())['controls'], contains(
+    expect((await fixture.observe())['controls'], contains(equals(
       <String, Object?>{'key': 'launch_skip_hint', 'enabled': true},
-    ));
+    )));
     final Map<String, Object?> reply = await fixture.press();
     expect(reply['acted'], isTrue);
     expect(unrelatedKeys, 0);

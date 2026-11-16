@@ -76,6 +76,8 @@ jobs:
           test/toast/event_toast_test.dart
           test/shell/bell/bell_panel_test.dart
           test/harness/readonly_native_agent_test.dart
+          test/harness/startup_key_confirm_test.dart
+          test/harness/startup_key_refusal_test.dart
           test/window/window_frame_test.dart
           test/nodes/nodes_rewards_test.dart
           test/send/widgets/send_form_test.dart

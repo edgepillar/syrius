@@ -1,21 +1,22 @@
 # First delivery and deferred acceptance
 
-Current source: Source820 cascades an existing startup test's Focus.of
-initializer and its following focusability assignment. The same receiver,
-assertions and restoration remain. Production, selection, workflows and
-zero-finding analysis gates are unchanged. Source819's focusable startup
-selection and primary-focus admission remain intact in both adapters.
-Counts stay 1517/1519 Dart, 1229 Python, 113/114 suites and 291 strict paths.
+Current source: Source821 compares startup control map contents with nested
+equals matchers in both existing positive and refusal observations. Original
+values, methods, commands and input/effect assertions remain. Both startup
+files enter the early compact Linux step once; the complete non-chain test
+command and all thirteen required stages remain. Counts stay 1517/1519 Dart,
+1229 Python, 113/114 suites and 291 strict paths. Production, zero-info
+analysis, the P06 overlay and runtime budgets remain.
 
-Source819 full Linux passes seven required stages, then strict analysis
-refuses one cascade_invocations info with zero errors/warnings. Subsequent
-widget/unit and generation checks are skipped. The complete typed location
-is retained without artifact or raw-log download. All owned outputs are
-consumed; the original failure remains and no native task starts. Source819's
-forty-five mocked controls retain their source bound. Fresh Source820 hosted
-analysis, engine and native qualification remain required. Acceptance and
-Source730 Ready matches remain 76/80 and 2/94. See
-[analysis format](source819-focusable-startup-selector.md#source820-analysis-format).
+Source820 full Linux passes strict analysis and eleven required stages.
+Unit/widget tests report 5095 passed, one failed and one skipped; generation
+verification is skipped. The positive test observes the correct enabled
+control, then its raw-map identity comparison fails before key dispatch.
+The complete original log is retained once by digest and its owned read
+closes normally. All outputs are consumed without CI retry; no native task
+starts. Fresh Source821 hosted/native qualification remains required.
+Acceptance and Source730 Ready matches remain 76/80 and 2/94. See
+[structural startup match](source819-focusable-startup-selector.md#source821-structural-startup-match).
 
 Earlier source: Source816 adjusts shared Apps, Pillars, Token and Plasma
 column geometry. The existing two-theme Plasma selection case also checks

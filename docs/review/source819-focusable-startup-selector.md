@@ -96,3 +96,47 @@ P06 overlay stays at 15756 bytes, tree
 `77d34a31fae1da66ca049fdb45c280bb5f51929e`, patch SHA-256
 `df273871338251d3b65935d02c0f3077157d6c79d160c355836fad6a4901c7dc`.
 Acceptance remains 76/80; Source730's two Ready matches remain source-bound.
+
+## Original Source820 map comparison failure
+
+[Source820 full Linux](https://github.com/edgepillar/syrius/actions/runs/43968447791)
+passes strict analysis and eleven required stages. Unit/widget tests report
+5095 passed, one failed and one skipped; generation verification is skipped.
+The original positive startup case now observes the genuine enabled hint
+under unrelated primary focus. Its actual list contains the expected key
+and enabled value, but the raw-map `contains` assertion fails at line 124.
+The recipe's key dispatch is not reached in that case.
+
+The complete 1415337-byte original job text is retained by SHA-256
+`0f3dd896542b9eec400c4e59a6b91181d6402b526cdde8926fdebb2ea1837788`.
+Its owned read closes successfully with complete output; all owned outputs
+are consumed before changes. No CI test is retried and no native task starts.
+
+## Source821 structural startup match
+
+Both existing observations now use `contains(equals(expectedMap))`:
+the positive case checks matching contents and the refusal case requires
+their absence. This also removes the negative assertion's reliance on
+different map instances. Every original command, field, expected value,
+test method and subsequent ownership/input/effect assertion remains.
+
+The pinned matcher 0.12.20 supports a nested matcher in
+[contains](https://pub.dev/documentation/matcher/latest/matcher/contains.html);
+[equals](https://pub.dev/documentation/matcher/latest/matcher/equals.html)
+compares map contents recursively.
+
+Both existing startup files enter the early compact Linux step once.
+The complete non-chain test command still follows, and all thirteen stage
+names, previous early files, zero-info analysis and native test groups remain.
+There are no new test methods, selected suites or analysis paths. Counts
+stay 1517/1519 Dart, 1229 Python/eighteen Windows skips, 113/114 suites and
+291 strict paths. Production, the 15756-byte P06 overlay, frame collection
+and timing/exit criteria remain unchanged.
+
+Forty-five related mocked Python controls pass with zero failures, errors or
+skips. No local SDK executes.
+
+Fresh hosted execution is required to reach and qualify the original key
+effect in this extended positive case. No native preparation cause, new
+visual match, performance gain or financial success is established. Original
+failures and 76/80 acceptance remain; V01/V02/V05/V06 stay open.

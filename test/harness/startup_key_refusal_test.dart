@@ -16,9 +16,9 @@ void main() {
       const ValueKey<String>('launch_skip_hint'),
     )), createDependency: false)..canRequestFocus = false;
     try {
-      expect((await fixture.observe())['controls'], isNot(contains(
+      expect((await fixture.observe())['controls'], isNot(contains(equals(
         <String, Object?>{'key': 'launch_skip_hint', 'enabled': true},
-      )));
+      ))));
       await expectLater(fixture.press(), throwsA(
         isA<HarnessError>().having((HarnessError value) => value.message,
           'unfocusable receiver', 'wallet-recipe-control-refused'),
