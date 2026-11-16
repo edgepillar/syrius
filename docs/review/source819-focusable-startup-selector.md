@@ -67,3 +67,32 @@ and native qualification remain required for Source819. Original failures,
 76/80 acceptance and Source730's two literal Ready matches remain; there is
 no new visual match, native repair, performance gain or financial claim.
 V01/V02/V05/V06 stay open.
+
+## Original Source819 strict-analysis result
+
+The [original Source819 full Linux run](https://github.com/edgepillar/syrius/actions/runs/43965442320)
+passes seven required stages. Strict selected analysis reports zero errors,
+zero warnings and one info: `cascade_invocations` at line 18 of
+`test/harness/startup_key_refusal_test.dart`. Its diagnostic locations are
+complete and untruncated. The unchanged zero-finding gate refuses the result.
+Ready, Lock, compact controls, unit/widget tests and generation verification
+are skipped. No new Flutter assertion or Windows measurement is qualified.
+
+The original typed report is sufficient to locate this formatting issue;
+no artifact or raw-log download is needed. All owned outputs are consumed,
+the original failure is retained and no native job starts.
+
+## Source820 analysis format
+
+The existing Focus.of initializer now cascades its immediately following
+`canRequestFocus = false` assignment. It configures the same receiver before
+the same refusal assertions and restores it in the same finally block.
+Production code, guards, test methods, selection, workflows and the zero-info
+analysis requirement remain unchanged.
+
+Source819's forty-five related mocked controls remain evidence at that source.
+Fresh hosted analysis and engine execution are required for Source820. The
+P06 overlay stays at 15756 bytes, tree
+`77d34a31fae1da66ca049fdb45c280bb5f51929e`, patch SHA-256
+`df273871338251d3b65935d02c0f3077157d6c79d160c355836fad6a4901c7dc`.
+Acceptance remains 76/80; Source730's two Ready matches remain source-bound.

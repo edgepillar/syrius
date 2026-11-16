@@ -14,8 +14,7 @@ void main() {
     await fixture.mount(tester);
     final FocusNode receiver = Focus.of(tester.element(find.byKey(
       const ValueKey<String>('launch_skip_hint'),
-    )), createDependency: false);
-    receiver.canRequestFocus = false;
+    )), createDependency: false)..canRequestFocus = false;
     try {
       expect((await fixture.observe())['controls'], isNot(contains(
         <String, Object?>{'key': 'launch_skip_hint', 'enabled': true},

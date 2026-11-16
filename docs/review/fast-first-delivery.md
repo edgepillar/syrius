@@ -1,24 +1,21 @@
 # First delivery and deferred acceptance
 
-Current source: Source819 selects the original startup receiver when it can
-request focus. The existing action still requires primary focus immediately
-before its original Space pair. Both adapters use the same order; original
-owner, route, film/controller, callback and reachability checks remain.
-The positive case also checks discovery under unrelated focus; the existing
-refusal case checks an unfocusable receiver before its early-handler guard.
-Forty-five mocked Python controls pass. Extended Flutter assertions need
-hosted execution. Counts stay 1517/1519 Dart, 1229 Python, 113/114 suites and
-291 strict analysis paths. Widgets, decoder, collector and budgets remain.
+Current source: Source820 cascades an existing startup test's Focus.of
+initializer and its following focusability assignment. The same receiver,
+assertions and restoration remain. Production, selection, workflows and
+zero-finding analysis gates are unchanged. Source819's focusable startup
+selection and primary-focus admission remain intact in both adapters.
+Counts stay 1517/1519 Dart, 1229 Python, 113/114 suites and 291 strict paths.
 
-Source818 full Linux passes eleven required stages. Unit/widget tests report
-5095 passed, one failed and one skipped; generation verification is skipped.
-The original stack identifies the startup selector's primary-focus demand
-before its focus request. The complete original job text is retained once
-by digest, and all owned output/scratch is closed before source changes.
-No CI test is repeated to obtain that failure; no Source818 Windows task
-starts. Fresh Source819 full Linux and native qualification are required.
-Accepted scope and Source730 Ready matches remain 76/80 and 2/94. See
-[focusable startup selection](source819-focusable-startup-selector.md).
+Source819 full Linux passes seven required stages, then strict analysis
+refuses one cascade_invocations info with zero errors/warnings. Subsequent
+widget/unit and generation checks are skipped. The complete typed location
+is retained without artifact or raw-log download. All owned outputs are
+consumed; the original failure remains and no native task starts. Source819's
+forty-five mocked controls retain their source bound. Fresh Source820 hosted
+analysis, engine and native qualification remain required. Acceptance and
+Source730 Ready matches remain 76/80 and 2/94. See
+[analysis format](source819-focusable-startup-selector.md#source820-analysis-format).
 
 Earlier source: Source816 adjusts shared Apps, Pillars, Token and Plasma
 column geometry. The existing two-theme Plasma selection case also checks
