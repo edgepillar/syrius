@@ -187,6 +187,49 @@ class InteractiveFramePairTests(unittest.TestCase):
         self.assertEqual(projected['preparation_failures'], {'p06': failure})
         self.assertFalse(projected['artifact_reported_success'])
         self.assertFalse(projected['timing_criterion_passed'])
+        navigation = deepcopy(traced)
+        nav_failure = dict(code='PREPARATION_REFUSED', phase='importWallet', recipe=dict(
+            action='observe', control='nav_settings', entry='unknown',
+            reason='wallet-recipe-control-absent'))
+        nav_sample = navigation['samples']['p06']
+        nav_sample['observation']['preparation_failure'] = nav_failure
+        nav_sample['observation']['entry']['output_bytes'] = len(
+            pair.profile.preparation_failure_marker(nav_failure)) + 1
+        binding = dict(carrier='inkwell', hasExistingKey=False, expectedKey=False,
+            sameRectangle=True, visibleInsideDecoration=True, enabled=True)
+        valid_navigation = (
+            dict(status='observed', settingsCount=0, bindings=[]),
+            dict(status='observed', settingsCount=1, bindings=[binding]),
+            dict(status='unavailable', error_code='HTTP_FAILED'),
+        )
+        for diagnostic in valid_navigation:
+            nav_sample['navigation_observation'] = deepcopy(diagnostic)
+            result = self.project(navigation)
+            self.assertEqual(result['navigation_observations'], dict(p06=diagnostic))
+            self.assertFalse(result['artifact_reported_success'])
+            self.assertFalse(result['timing_criterion_passed'])
+            self.assertEqual(result['normal_wallet_exits'], 2)
+        for diagnostic in (
+            dict(status='observed', settingsCount=True, bindings=[]),
+            dict(status='observed', settingsCount=5, bindings=[]),
+            dict(status='observed', settingsCount=0, bindings=[binding] * 5),
+            dict(status='observed', settingsCount=1, bindings=[dict(binding, carrier='private')]),
+            dict(status='observed', settingsCount=1, bindings=[dict(binding, enabled=1)]),
+            dict(status='observed', settingsCount=1, bindings=[dict(binding, expectedKey=True)]),
+            dict(status='observed', settingsCount=1,
+                 bindings=[dict(binding, visibleInsideDecoration=False)]),
+            dict(status='observed', settingsCount=1, bindings=[dict(binding, carrier='absent')]),
+            dict(status='observed', settingsCount=0, bindings=[], private='value'),
+            dict(status='unavailable', error_code='synthetic private value'),
+        ):
+            nav_sample['navigation_observation'] = diagnostic
+            with self.subTest(navigation=diagnostic), self.assertRaises(archive.Refused):
+                self.project(navigation)
+        for wrong in (fixture(), traced):
+            wrong = deepcopy(wrong)
+            wrong['samples']['p06']['navigation_observation'] = valid_navigation[0]
+            with self.assertRaises(archive.Refused):
+                self.project(wrong)
         for field, value in (
             ('exit_code', 0), ('forced_kill', True), ('output_complete', False),
             ('output_overflow', True), ('exit_observed', False),
@@ -365,6 +408,43 @@ class InteractiveFramePairTests(unittest.TestCase):
             actor._rpc.assert_called_once_with(
                 {'cmd': 'shutdown-state'}, allow_exit=True, until=11.0)
             self.assertEqual(actor.shutdown_observation, expected)
+
+        observation = dict(phase='prepare_profile', preparation_failure=dict(
+            code='PREPARATION_REFUSED', phase='importWallet', recipe=dict(
+                action='observe', control='nav_settings', entry='unknown',
+                reason='wallet-recipe-control-absent')))
+        binding = dict(carrier='inkwell', hasExistingKey=False, expectedKey=False,
+            sameRectangle=True, visibleInsideDecoration=True, enabled=True)
+        for value in ({}, dict(phase='complete'), None,
+                      dict(observation, preparation_failure=dict(code='OWNER_REFUSED',
+                                                                phase='ownerBefore'))):
+            actor, diagnostic = session(), {}
+            profile._observe_navigation_failure(actor, value, diagnostic)
+            actor._rpc.assert_not_called()
+            self.assertEqual(diagnostic, {})
+        for reply, error, expected in (
+            (dict(ok=True, settingsCount=1, bindings=[binding]), None,
+             dict(status='observed', settingsCount=1, bindings=[binding])),
+            (dict(ok=True, settingsCount=True, bindings=[]), None,
+             dict(status='unavailable', error_code='STATE_INVALID')),
+            (dict(ok=True, settingsCount=0, bindings=[], private='value'), None,
+             dict(status='unavailable', error_code='STATE_INVALID')),
+            (dict(ok=True, settingsCount=1, bindings=[dict(binding, carrier='private')]), None,
+             dict(status='unavailable', error_code='STATE_INVALID')),
+            (None, profile.launch.startup.Failure('HTTP_FAILED'),
+             dict(status='unavailable', error_code='HTTP_FAILED')),
+            (None, RuntimeError('synthetic private failure'),
+             dict(status='unavailable', error_code='INTERNAL_ERROR')),
+        ):
+            for deadline in (50.0, 10.25, 9.0):
+                actor, diagnostic = session(deepcopy(reply), error), {}
+                actor.deadline = deadline
+                profile._observe_navigation_failure(actor, observation, diagnostic)
+                actor._rpc.assert_called_once_with(
+                    {'cmd': 'navigation-state'}, until=min(deadline, 11.0))
+                self.assertEqual(diagnostic, expected)
+                profile._observe_navigation_failure(actor, observation, diagnostic)
+                actor._rpc.assert_called_once()
 
     def test_profile_progress_preserves_the_original_send_failure(self):
         profile = pair.profile

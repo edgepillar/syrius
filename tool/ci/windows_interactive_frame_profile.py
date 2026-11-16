@@ -30,6 +30,9 @@ SHUTDOWN_PHASES = frozenset((
     'windowYSave', 'webSocketStop', 'embeddedNodeClose', 'wakeLockRead',
     'wakeLockDisable', 'embeddedStopRequest', 'embeddedStopWait',
     'embeddedCleanup', 'serviceReset', 'widgetDispose', 'exitRequested'))
+NAVIGATION_FLAGS = frozenset(('hasExistingKey', 'expectedKey', 'sameRectangle',
+                             'visibleInsideDecoration', 'enabled'))
+NAVIGATION_CARRIERS = frozenset(('absent', 'inkwell', 'gesture', 'other'))
 PREPARATION_PHASES = frozenset(('environment', 'input', 'ownerBefore', 'emptyProfile',
                               'importWallet', 'ownerAfter', 'walletReady'))
 PREPARATION_ERROR_PHASES = {
@@ -59,6 +62,32 @@ def valid_shutdown_observation(value):
         and value['error_code'] in launch.startup.CODES)
 
 
+def valid_navigation_observation(value):
+    """Accept only bounded selector flags, never labels or wallet data."""
+    if type(value) is not dict:
+        return False
+    if set(value) == {'status', 'error_code'}:
+        return (value['status'] == 'unavailable'
+            and type(value['error_code']) is str
+            and value['error_code'] in launch.startup.CODES)
+    if (set(value) != {'status', 'settingsCount', 'bindings'}
+            or value['status'] != 'observed'
+            or type(value['settingsCount']) is not int
+            or not 0 <= value['settingsCount'] <= 4
+            or type(value['bindings']) is not list or len(value['bindings']) > 4):
+        return False
+    for row in value['bindings']:
+        if (type(row) is not dict or set(row) != NAVIGATION_FLAGS | {'carrier'}
+                or type(row['carrier']) is not str
+                or row['carrier'] not in NAVIGATION_CARRIERS
+                or any(type(row[key]) is not bool for key in NAVIGATION_FLAGS)
+                or row['expectedKey'] and not row['hasExistingKey']
+                or row['sameRectangle'] and not row['visibleInsideDecoration']
+                or row['carrier'] == 'absent' and any(row[key] for key in NAVIGATION_FLAGS)):
+            return False
+    return True
+
+
 def need(condition, code):
     if not condition:
         raise InteractiveRefused(code)
@@ -82,6 +111,39 @@ def preparation_failure(value):
             return None
         result['recipe'] = dict(value['recipe'])
     return result
+
+
+def navigation_failure(value):
+    """Select only the retained original missing-Settings preparation failure."""
+    return (type(value) is dict and value.get('phase') == 'prepare_profile'
+        and preparation_failure(value.get('preparation_failure')) == dict(
+            code='PREPARATION_REFUSED', phase='importWallet', recipe=dict(
+                action='observe', control='nav_settings', entry='unknown',
+                reason='wallet-recipe-control-absent')))
+
+
+def _observe_navigation_failure(session, observation, diagnostic):
+    if diagnostic or not navigation_failure(observation):
+        return
+    try:
+        body = session._rpc({'cmd': 'navigation-state'},
+                            until=min(session.deadline, session.clock() + 1))
+        if (type(body) is not dict
+                or set(body) != {'ok', 'settingsCount', 'bindings'}
+                or body['ok'] is not True):
+            raise launch.startup.Failure('STATE_INVALID')
+        value = dict(status='observed', settingsCount=body['settingsCount'],
+                     bindings=body['bindings'])
+        if not valid_navigation_observation(value):
+            raise launch.startup.Failure('STATE_INVALID')
+        diagnostic.update(status='observed', settingsCount=value['settingsCount'],
+                          bindings=[dict(row) for row in value['bindings']])
+    except launch.startup.Failure as error:
+        code = error.code
+        diagnostic.update(status='unavailable', error_code=code
+            if type(code) is str and code in launch.startup.CODES else 'INTERNAL_ERROR')
+    except (Exception, KeyboardInterrupt):
+        diagnostic.update(status='unavailable', error_code='INTERNAL_ERROR')
 
 
 def preparation_failure_marker(value):
@@ -347,13 +409,18 @@ def measure_process(repo, build_repo, parent, binaries, revalidate, measure,
     original = launch.bounded.plain(profile)
     report.update(attempt=None, observation={}, profile_stable=False, success=False)
     shutdown = {}
+    navigation = {}
 
     def observe(session):
-        owned_profile(session._rpc, lambda payload: run_entry_process(
-            build_repo, parent, profile, payload), revalidate, measure,
-            confirm_address, pid=session.process.pid, port=session.transport.port,
-            token=session.token, fixture_text=fixture_text, genesis=genesis,
-            first_height=first_height, report=report['observation'])
+        try:
+            owned_profile(session._rpc, lambda payload: run_entry_process(
+                build_repo, parent, profile, payload), revalidate, measure,
+                confirm_address, pid=session.process.pid, port=session.transport.port,
+                token=session.token, fixture_text=fixture_text, genesis=genesis,
+                first_height=first_height, report=report['observation'])
+        except (InteractiveRefused, actions.FrameActionRefused):
+            _observe_navigation_failure(session, report['observation'], navigation)
+            raise
 
     def session(*args, **kwargs):
         return InteractiveSession(*args, observe=observe,
@@ -365,6 +432,8 @@ def measure_process(repo, build_repo, parent, binaries, revalidate, measure,
     report['attempt'] = dict(attempt, role='interactive')
     if shutdown:
         report['shutdown_observation'] = shutdown
+    if navigation:
+        report['navigation_observation'] = navigation
     current = launch.bounded.plain(profile)
     report['profile_stable'] = (current.st_dev, current.st_ino) == (original.st_dev, original.st_ino)
     need(report['profile_stable'], 'PROFILE_REFUSED')

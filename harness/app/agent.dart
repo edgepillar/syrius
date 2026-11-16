@@ -1206,6 +1206,11 @@ class HarnessAgent {
         };
       case 'state':
         return _state();
+      case 'navigation-state':
+        if (c.keys.any((String key) => key != 'cmd')) {
+          throw HarnessError('navigation observation input refused');
+        }
+        return _navigationState();
       case 'shutdown-state':
         if (c.keys.any((String key) => key != 'cmd')) {
           throw HarnessError('shutdown observation input refused');
@@ -3677,6 +3682,33 @@ class HarnessAgent {
 
   // ---------------------------------------------------------------- snapshot
 
+  List<Map<String, Object?>>? _navigationProbe;
+  bool _navigationProbeOverflow = false;
+
+  Map<String, Object?> _navigationState() {
+    if (_navigationProbe != null) {
+      throw HarnessError('navigation observation already pending');
+    }
+    final List<Map<String, Object?>> rows = <Map<String, Object?>>[];
+    _navigationProbe = rows;
+    _navigationProbeOverflow = false;
+    try {
+      final List<_Node> nodes = _snapshot();
+      final int count = nodes.where(
+        (_Node node) =>
+            node.key == 'nav_settings' &&
+            const <String>{'button', 'toggle', 'field'}.contains(node.kind),
+      ).length;
+      if (_navigationProbeOverflow || count > 4) {
+        throw HarnessError('navigation observation ambiguous');
+      }
+      return <String, Object?>{'settingsCount': count, 'bindings': rows};
+    } finally {
+      _navigationProbe = null;
+      _navigationProbeOverflow = false;
+    }
+  }
+
   List<_Node> _snapshot() {
     final List<_Node> out = <_Node>[];
     final Element? root = WidgetsBinding.instance.rootElement;
@@ -3767,6 +3799,33 @@ class HarnessAgent {
     final Key? navKey = w.key;
     if (navKey is ValueKey<String> && navKey.value.startsWith('nav_')) {
       final _Node? t = n.tappable;
+      final List<Map<String, Object?>>? probe = _navigationProbe;
+      if (probe != null &&
+          navKey.value == 'nav_settings' &&
+          w is DecoratedBox) {
+        if (probe.length >= 4) {
+          _navigationProbeOverflow = true;
+        } else {
+          final Rect? decoration = _rectOf(e);
+          probe.add(<String, Object?>{
+            'carrier': t == null
+                ? 'absent'
+                : t.element.widget is InkWell
+                ? 'inkwell'
+                : t.element.widget is GestureDetector
+                ? 'gesture'
+                : 'other',
+            'hasExistingKey': t?.key != null,
+            'expectedKey': t?.key == 'nav_settings',
+            'sameRectangle':
+                decoration != null && t != null && decoration == t.rect,
+            'visibleInsideDecoration':
+                decoration != null && t != null &&
+                _contains(decoration, t.rect),
+            'enabled': t?.enabled ?? false,
+          });
+        }
+      }
       if (t != null) {
         t.extra['tab'] = navKey.value.substring(4);
         // P06 keeps its navigation key on the full-size decoration inside

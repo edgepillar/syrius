@@ -1,6 +1,16 @@
 # First delivery and deferred acceptance
 
-Current source: Source806 applies the seven actual SDK-generated outputs and
+Current source: Source807 applies five exact CI-regenerated blank-line removals
+after Source806 passes twelve required stages and fails the final Git diff.
+The original P06 rail engine case passes; native preparation stays unqualified.
+A passive navigation read observes only the identical original preparation
+failure, within one second and the original deadline, then preserves it.
+Twenty-nine memory controls pass; no method, action, mapping or timing gate is
+removed. Fresh hosted/native execution remains required, with scope and Ready
+matches still 76/80 and 2/94. See
+[generated layout and navigation observation](source807-generated-layout-and-navigation-observation.md).
+
+Earlier source: Source806 applies the seven actual SDK-generated outputs and
 shows the localized Wallet notification hint. All original bytes and hashes
 match; both local log-reader outcomes remain preserved and all owned storage
 tasks are closed. The existing recipe case also checks an exact original P06

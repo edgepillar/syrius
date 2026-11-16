@@ -28,7 +28,8 @@ def sample_receipts(value):
         return {}, False, False, False
     required = {'attempt', 'observation', 'profile_stable', 'success'}
     archive.need(type(value) is dict
-        and required <= set(value) <= required | {'shutdown_observation'}
+        and required <= set(value) <= required | {
+            'shutdown_observation', 'navigation_observation'}
         and type(value['success']) is type(value['profile_stable']) is bool)
     attempt = value['attempt']
     closed = completed = False
@@ -46,6 +47,11 @@ def sample_receipts(value):
         archive.need(attempt is not None and 'EXIT_TIMEOUT' in attempt['error_codes']
             and pair.profile.valid_shutdown_observation(value['shutdown_observation']))
     observation = value['observation']
+    if 'navigation_observation' in value:
+        archive.need(attempt is not None
+            and 'STARTUP_OBSERVATION_REFUSED' in attempt['error_codes']
+            and pair.profile.navigation_failure(observation)
+            and pair.profile.valid_navigation_observation(value['navigation_observation']))
     windows, entry_closed = {}, False
     observed = False
     if observation != {}:
@@ -197,6 +203,9 @@ def project(raw, item, *, head, tree, run_id, lab, expected_entry):
         shutdown_observations={label: sample['shutdown_observation']
                                for label, sample in samples.items()
                                if 'shutdown_observation' in sample},
+        navigation_observations={label: sample['navigation_observation']
+                                 for label, sample in samples.items()
+                                 if 'navigation_observation' in sample},
         normal_wallet_exits=current_closed + p06_closed,
         normal_entry_exits=current_entry + p06_entry,
         entry_process_results={label: {key: sample['observation']['entry'][key] for key in (

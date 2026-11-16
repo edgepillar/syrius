@@ -1013,6 +1013,41 @@ void main() {
       expect(controls.where((Map<String, Object?> control) =>
           control['key'] == 'nav_dashboard'), isEmpty);
 
+      final Map<String, Object?> navigation = await agent.commandForTest(
+        <String, dynamic>{'cmd': 'navigation-state'},
+      );
+      expect(navigation, <String, Object?>{
+        'settingsCount': 1,
+        'bindings': <Map<String, Object?>>[
+          <String, Object?>{
+            'carrier': 'inkwell',
+            'hasExistingKey': false,
+            'expectedKey': false,
+            'sameRectangle': true,
+            'visibleInsideDecoration': true,
+            'enabled': true,
+          },
+        ],
+      });
+      expect(jsonEncode(navigation), isNot(contains(_seed(12))));
+      expect(jsonEncode(navigation), isNot(contains(_password)));
+      await expectLater(
+        agent.commandForTest(<String, dynamic>{
+          'cmd': 'navigation-state',
+          'private': 'synthetic private value',
+        }),
+        throwsA(isA<HarnessError>()),
+      );
+      final List<Map<String, Object?>> bindings =
+          navigation['bindings']! as List<Map<String, Object?>>;
+      bindings.single['carrier'] = 'synthetic private value';
+      expect(
+        jsonEncode(await agent.commandForTest(
+          <String, dynamic>{'cmd': 'navigation-state'},
+        )),
+        isNot(contains('synthetic private value')),
+      );
+
       final Map<String, Object?> tree = await agent.commandForTest(
         <String, dynamic>{'cmd': 'tree'},
       );
@@ -1104,6 +1139,40 @@ void main() {
             control['key'] == 'nav_settings' && control['enabled'] == true),
         hasLength(1),
         reason: binding,
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Column(
+              children: <Widget>[
+                for (int index = 0; index < 5; index++)
+                  InkWell(
+                    onTap: () {},
+                    child: const DecoratedBox(
+                      key: Key('nav_settings'),
+                      decoration: BoxDecoration(),
+                      child: SizedBox(width: 100, height: 24),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      await expectLater(
+        agent.commandForTest(<String, dynamic>{'cmd': 'navigation-state'}),
+        throwsA(isA<HarnessError>()),
+      );
+      final Map<String, Object?> duplicates = await agent.commandForTest(
+        <String, dynamic>{'cmd': 'wallet-recipe', 'action': 'observe'},
+      );
+      expect(
+        (duplicates['controls']! as List<Map<String, Object?>>).where(
+          (Map<String, Object?> control) => control['key'] == 'nav_settings',
+        ),
+        hasLength(5),
       );
     } finally {
       await tester.pumpWidget(const SizedBox());
