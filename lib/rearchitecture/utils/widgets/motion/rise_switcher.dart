@@ -264,7 +264,12 @@ class _RiseSwitcherState extends State<RiseSwitcher>
                         animation: entry.primary,
                         secondaryAnimation: entry.exit,
                         fillColor: Colors.transparent,
-                        child: child,
+                        child: TickerMode(
+                          // Only child tickers follow visibility; the
+                          // transition's own clocks keep running.
+                          enabled: entry.primary.value > _exitEnd,
+                          child: child!,
+                        ),
                       ),
                     ),
                   ),

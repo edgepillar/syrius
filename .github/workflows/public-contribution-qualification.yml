@@ -1159,6 +1159,7 @@ jobs:
             tool/ci
             test/ci
             tools/devnet/lab
+            harness/bin
 
       - name: Test archive and credential boundaries in memory
         run: |

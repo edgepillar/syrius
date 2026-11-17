@@ -318,6 +318,7 @@ ROOT_TEST_FILES = (
     'revoke_pillar_bloc_test.dart',
     'revoke_sentinel_bloc_test.dart',
     'revoke_sentinel_button_test.dart',
+    'rise_switcher_clock_test.dart',
     'rise_switcher_test.dart',
     'row_detail_test.dart',
     'screen_capture_test.dart',

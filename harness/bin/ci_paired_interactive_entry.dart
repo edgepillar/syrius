@@ -177,14 +177,14 @@ Future<void> pairedFrameWaitForWelcome(
   refuse('wallet-recipe-deadline');
 }
 
-/// Preserve the original handoff, then wait before its one Welcome tap.
+/// Preserve the original Welcome and signing taps within one finite budget.
 WalletRecipeSend pairedFrameWelcomeSend(
   WalletRecipeSend send, {
   Future<void> Function(void Function() requireCurrent)? beforeTap,
   Future<void> Function(Duration)? wait,
   Duration Function()? elapsed,
 }) {
-  bool reserved = false;
+  final Set<String> reserved = <String>{};
   bool retired = false;
   return (Map<String, Object?> command, Duration timeout) async {
     if (retired) {
@@ -194,14 +194,15 @@ WalletRecipeSend pairedFrameWelcomeSend(
       if (timeout <= Duration.zero) {
         throw const WalletRecipeRefused('wallet-recipe-deadline');
       }
+      final bool signing = command['key'] == 'node_settings_chain_toggle';
       if (command['cmd'] != 'wallet-recipe' ||
-          command['action'] != 'tap' || command['key'] != 'welcome_import') {
+          command['action'] != 'tap' ||
+          command['key'] != 'welcome_import' && !signing) {
         return await send(command, timeout).timeout(timeout);
       }
-      if (reserved) {
+      if (!reserved.add(command['key'] as String)) {
         throw const WalletRecipeRefused('wallet-recipe-retired');
       }
-      reserved = true;
       final Stopwatch clock = Stopwatch()..start();
       final Duration origin = elapsed?.call() ?? Duration.zero;
       Duration previous = Duration.zero;
@@ -217,16 +218,28 @@ WalletRecipeSend pairedFrameWelcomeSend(
         return value;
       }
       Duration remaining() => timeout - spent();
-      await pairedFrameWaitForWelcome(
-        send,
-        wait: wait,
-        elapsed: spent,
-        budget: timeout < const Duration(seconds: 90)
-            ? timeout
-            : const Duration(seconds: 90),
-      );
-      if (beforeTap != null) {
-        await beforeTap(remaining).timeout(remaining());
+      if (signing) {
+        // Let the Settings entrance finish before its original first tap.
+        // Keep the exact center guard and the original command deadline.
+        const Duration settle = Duration(seconds: 1);
+        if (remaining() <= settle) {
+          throw const WalletRecipeRefused('wallet-recipe-deadline');
+        }
+        final Future<void> Function(Duration) pause =
+            wait ?? Future<void>.delayed;
+        await pause(settle).timeout(remaining());
+      } else {
+        await pairedFrameWaitForWelcome(
+          send,
+          wait: wait,
+          elapsed: spent,
+          budget: timeout < const Duration(seconds: 90)
+              ? timeout
+              : const Duration(seconds: 90),
+        );
+        if (beforeTap != null) {
+          await beforeTap(remaining).timeout(remaining());
+        }
       }
       final Duration left = remaining();
       return await send(command, left).timeout(left);

@@ -14,6 +14,7 @@ import warnings
 import zipfile
 
 from tool.ci import inspect_wallet_inspection as reader
+from tool.ci import windows_interactive_frame_profile as frame_profile
 import test_inspect_chain321 as lab_fixtures
 import test_windows_wallet_inspection as wallet_fixtures
 import test_readonly_viewport_capture as viewport_fixtures
@@ -437,6 +438,13 @@ class ReaderTests(unittest.TestCase):
             and not any(name.startswith(directory + '/') for directory in directories))
         self.assertEqual(missing, [])
         self.assertNotIn('lib', directories)
+
+        chain = workflow.split('  inspect-chain321:\n', 1)[1]
+        block = chain.split('          sparse-checkout: |\n', 1)[1].split('\n\n', 1)[0]
+        directories = tuple(line.strip() for line in block.splitlines() if line.strip())
+        entry = frame_profile.ENTRY.as_posix()
+        self.assertTrue(any(entry.startswith(directory + '/') for directory in directories),
+            'The chain reader must retain the entry source read by its tests.')
 
     def test_settings_seam_prefix_keeps_archive_binding_failures_and_emitted_notice(self):
         child, lab, files = pair()

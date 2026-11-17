@@ -21,7 +21,7 @@ NODE = 'ws://127.0.0.1:45998'
 READY = json.dumps(dict(schema=1, scope=ENTRY_SCOPE, success=True, error_code=None),
                    separators=(',', ':')).encode('ascii')
 ENTRY = Path('harness/bin/ci_paired_interactive_entry.dart')
-ENTRY_SHA256 = '02c491c5a08ed4b82e13fe662f05679535b74ef8b0284f73b8aa1c41f3041ab1'
+ENTRY_SHA256 = '86608b9414a384c3fccb160194fc39967410006562b7b3ee12ccc333b1ef03b7'
 MEASUREMENT_COMMANDS = frozenset(('theme', 'state', 'stalls', 'tap', 'wait', 'scroll'))
 MAX_MEASUREMENT_COMMANDS = 32
 SHUTDOWN_PREFIX = b'SYRIUS_SHUTDOWN '

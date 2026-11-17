@@ -1166,4 +1166,92 @@ void main() {
     );
     await tester.pumpWidget(const SizedBox());
   });
+
+  test('signing toggle settles once inside its original deadline', () async {
+    final Map<String, Object?> tap = <String, Object?>{
+      'cmd': 'wallet-recipe',
+      'action': 'tap',
+      'key': 'node_settings_chain_toggle',
+      'owner': 7,
+      'revision': 11,
+      'originalSigningChain': 1,
+    };
+    for (final String fault in <String>[
+      'none', 'expired', 'backward', 'wait', 'tap',
+    ]) {
+      Duration elapsed = const Duration(seconds: 2);
+      int taps = 0;
+      int waits = 0;
+      int welcomeChecks = 0;
+      final WalletRecipeSend wrapped = pairedFrameWelcomeSend(
+        (Map<String, Object?> command, Duration timeout) async {
+          taps++;
+          expect(command, same(tap));
+          expect(timeout, const Duration(seconds: 9));
+          if (fault == 'tap') throw StateError('synthetic private tap');
+          return <String, dynamic>{'ok': true, 'acted': true};
+        },
+        wait: (Duration duration) async {
+          waits++;
+          expect(taps, 0);
+          expect(duration, const Duration(seconds: 1));
+          if (fault == 'wait') throw StateError('synthetic private wait');
+          elapsed = fault == 'backward'
+              ? Duration.zero
+              : elapsed + Duration(seconds: fault == 'expired' ? 10 : 1);
+        },
+        elapsed: () => elapsed,
+        beforeTap: (void Function() requireCurrent) async {
+          welcomeChecks++;
+          requireCurrent();
+        },
+      );
+      if (fault == 'none') {
+        expect(await wrapped(tap, const Duration(seconds: 10)),
+          <String, dynamic>{'ok': true, 'acted': true});
+      } else {
+        await expectLater(wrapped(tap, const Duration(seconds: 10)),
+          throwsA(isA<WalletRecipeRefused>()));
+      }
+      expect(waits, 1);
+      expect(taps, fault == 'none' || fault == 'tap' ? 1 : 0);
+      expect(welcomeChecks, 0);
+      await expectLater(wrapped(tap, const Duration(seconds: 10)),
+        throwsA(isA<WalletRecipeRefused>()));
+      expect(waits, 1);
+      expect(taps, fault == 'none' || fault == 'tap' ? 1 : 0);
+    }
+
+    int shortTaps = 0;
+    final WalletRecipeSend short = pairedFrameWelcomeSend(
+      (Map<String, Object?> command, Duration timeout) async {
+        shortTaps++;
+        return <String, dynamic>{'ok': true};
+      },
+      elapsed: () => Duration.zero,
+    );
+    await expectLater(short(tap, const Duration(seconds: 1)),
+      throwsA(isA<WalletRecipeRefused>()));
+    expect(shortTaps, 0);
+
+    Duration elapsed = Duration.zero;
+    int concurrentTaps = 0;
+    final Completer<void> gate = Completer<void>();
+    final WalletRecipeSend concurrent = pairedFrameWelcomeSend(
+      (Map<String, Object?> command, Duration timeout) async {
+        concurrentTaps++;
+        return <String, dynamic>{'ok': true};
+      },
+      wait: (Duration duration) => gate.future,
+      elapsed: () => elapsed,
+    );
+    final Future<Map<String, dynamic>> first =
+        concurrent(tap, const Duration(seconds: 10));
+    await expectLater(concurrent(tap, const Duration(seconds: 10)),
+      throwsA(isA<WalletRecipeRefused>()));
+    elapsed += const Duration(seconds: 1);
+    gate.complete();
+    await expectLater(first, throwsA(isA<WalletRecipeRefused>()));
+    expect(concurrentTaps, 0);
+  });
 }

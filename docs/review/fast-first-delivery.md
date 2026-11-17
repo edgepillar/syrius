@@ -1,6 +1,21 @@
 # First delivery and deferred acceptance
 
-Current source: Source832 updates the paired entry's stale SHA-256 and adds
+Current source: Source833 stops hidden incoming shader clocks, restores the chain reader's
+entry source dependency and settles the original signing toggle inside its
+existing command deadline. Two broad shader widget cases and one selected
+Dart deadline matrix are added; expected selected totals become 1521/1523,
+with unchanged 113/114 suites, 291 strict paths and 1230 Python methods.
+All 42 selected local source/mocked controls pass. Source832 Linux passes
+fourteen stages. Windows completes the current sixteen actions, then P06
+refuses a changed signing-toggle center. The hosted reader fails on its
+missing sparse-checkout entry file; independent managed reading verifies
+both original archives and the complete failure log. Both wallet actors
+and five nodes close normally. All outputs are consumed; both failures
+and false lab input-immutability remain. Fresh qualification is required;
+76/80 acceptance and Source730-only Ready matches remain.
+[Scope](source833-visible-clocks-and-preparation-controls.md).
+
+Earlier source: Source832 updates the paired entry's stale SHA-256 and adds
 a source-coupling check to existing pre-SDK controller discovery. Dart code,
 1520/1522 expected cases, selections, limits and the P06 patch remain.
 Python totals become 1230 with eighteen Windows skips. Source831 Linux

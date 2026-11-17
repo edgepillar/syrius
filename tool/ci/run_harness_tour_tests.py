@@ -30,8 +30,8 @@ except ImportError:
 # Also includes the original input-frame admission matrix.
 # Includes the retained root-close/native-failure case.
 # Includes all eight existing toast cases and retained-card paint assertions.
-# Includes the three pre-Welcome ordering, refusal and shared-deadline cases.
-EXPECTED_DART_CASES = 1520
+# Includes pre-Welcome guards and one signing-control deadline matrix.
+EXPECTED_DART_CASES = 1521
 LAUNCH_ASSET_DART_CASES = 2
 GROUP_COMMAND_LIMIT_SECONDS = 300
 TOTAL_COMMAND_LIMIT_SECONDS = 480
