@@ -385,6 +385,8 @@ repository; `features/` is `lib/rearchitecture/features/`, `tabs/` is
 
 ## Progress
 
+- Windows close now lets the native runner exit its message loop after application cleanup. Source844 passes all Linux stages and builds Windows Release. The current wallet records fourteen page-change and seventeen disclosure frames, then exceeds the exit deadline after reaching the exit request. P06 does not start. Both original manifests pass independent verification. Fresh Windows closure and timing evidence remain open. Acceptance stays at 76/80. [Windows runner exit](docs/review/source814-fixed-close-events.md#windows-runner-exit).
+
 - The first Licences open now rebuilds its own panel. Source843 passed strict analysis and the original P06 Git check, then the compact test observed the version strip repaint at 80 ms. The same assertions remain for the localized update. The full test directory and generation were skipped on Source843. Acceptance stays at 76/80. [First-open update](docs/review/source840-status-pulse-idle.md#first-open-update).
 
 - The About version strip now retains its own paint during disclosure layout. The existing Licences test checks the retained layer and the late version update. Source842 passes Linux and Windows Release, and the independent reader verifies both native samples. Both 16 ms comparisons fail. A fresh hosted run is required for the strip change. Acceptance stays at 76/80. [About disclosure paint and Source842 measurements](docs/review/source840-status-pulse-idle.md#about-disclosure-paint).

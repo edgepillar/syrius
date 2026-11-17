@@ -36,7 +36,7 @@ enum ShutdownPhase {
   serviceReset,
   /// Runs the existing root-widget cleanup.
   widgetDispose,
-  /// Calls the original process exit.
+  /// Requests process exit.
   exitRequested,
 }
 

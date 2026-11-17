@@ -57,3 +57,27 @@ occur. Fresh full Linux and native qualification remain required.
 This is bounded observation preparation, with no native repair, performance,
 financial or new visual qualification. Scope stays 76/80; literal Source730
 Ready matches stay 2/94. V01/V02/V05/V06 remain open.
+
+## Source844 close result
+
+[Linux](https://github.com/edgepillar/syrius/actions/runs/44190606770)
+passes all fourteen stages. The [Windows producer](https://github.com/edgepillar/syrius/actions/runs/44192692737)
+passes the selected tests, analysis and Release build. All sixteen current
+measurement actions return, with fourteen page-change and seventeen
+disclosure frames. The current wallet acknowledges close, then exceeds the
+exit deadline. The retained shutdown trace reaches `exitRequested` in
+fifteen events and the captured output is incomplete. The preparation
+process and all five nodes exit normally. P06 never enters measurement.
+The [independent reader](https://github.com/edgepillar/syrius/actions/runs/44195751015)
+verifies these outcomes from both retained manifests.
+
+## Windows runner exit
+
+After the existing window-state, socket, service and widget cleanup,
+Windows now uses the window manager destroy call that the tray menu uses.
+Version 0.5.1 posts a quit message to the runner's native message loop.
+The runner can then return through its normal cleanup. Other desktop
+platforms use Dart's process exit. The fallback calls Dart exit after
+sixty seconds. The cause of the prior timeout remains unestablished.
+Fresh hosted execution must satisfy the original exit deadline and
+produce both frame windows. [Pinned Windows plugin](https://github.com/leanflutter/window_manager/blob/625d44d2746bfbf1e843321b066d8e9f77951e05/packages/window_manager/windows/window_manager.cpp#L232-L234).

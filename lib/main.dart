@@ -584,6 +584,11 @@ class _MyAppState extends State<MyApp> with WindowListener, TrayListener {
       deactivate();
       dispose();
       stage(ShutdownPhase.exitRequested);
+      if (Platform.isWindows) {
+        // Let the Windows runner leave its message loop and release Flutter.
+        await windowManager.destroy();
+        return;
+      }
       exit(0);
     } on Object {
       appShutdownObservation.fail(this);
