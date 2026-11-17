@@ -1,6 +1,21 @@
 # First delivery and deferred acceptance
 
-Current source: Source822 restores the address table's 32-pixel separation
+Current source: Source823 uses the original quiet plus in address-add actions
+and removes the extra single-line Wallet row padding around the unchanged
+32-pixel switch target. Both existing layout variants check the row, track
+and input geometry. Source822 full Linux passes thirteen stages; Windows
+production and independent reading verify 42 original PNGs. All 38 general
+and Settings originals are individually reviewed with no complete match.
+The lost local worker remains UNKNOWN; its same owned task retains the
+completed review and closes with FAILURE. All three named runs' outputs are
+consumed without transport or native retry. Required actors exit normally;
+auxiliary MSVC telemetry is forcibly stopped. Original P06 comparison stays
+open. Fresh Source823 qualification is required. Counts remain 1517/1519
+Dart, 1229 Python, 113/114 suites and 291 strict paths. Acceptance and the
+Source730-only Ready matches stay 76/80 and 2/94. See
+[Settings actions and row spacing](source823-settings-action-and-row-spacing.md).
+
+Earlier source: Source822 restores the address table's 32-pixel separation
 before trailing actions and uses the original plus/zap SVG paths for Apps
 and Fuse. Actual balances, selection, hit areas, callbacks and the animated
 Plasma well remain. Source821 full Linux passes thirteen stages. Its image

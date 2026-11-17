@@ -175,6 +175,27 @@ void main() {
         expect(find.text('Preferences'), findsNothing);
         expect(_switch(tester, _auto).value, isTrue);
         expect(_switch(tester, _notifications).value, isFalse);
+        final Finder startup = find.byKey(
+          const Key('wallet_settings_launchAtStartup'),
+        );
+        final Rect startupRow = tester.getRect(
+          find.byKey(const Key('wallet_settings_row_launchAtStartup')),
+        );
+        expect(tester.getSize(startup), const Size(48, 32));
+        expect(startupRow.height, closeTo(40, 1e-10));
+        expect(
+          tester.getRect(startup).center.dy,
+          closeTo(startupRow.center.dy, 1e-10),
+        );
+        expect(
+          tester.getSize(
+            find.descendant(
+              of: startup,
+              matching: find.byKey(const Key('settings_switch_track')),
+            ),
+          ),
+          const Size(38, 22),
+        );
         expect(_switch(tester, _clipboard).value, isFalse);
         expect(find.byKey(_clipboard).hitTestable(), findsNothing);
         expect(find.semantics.byLabel('Clipboard watcher'), findsNothing);

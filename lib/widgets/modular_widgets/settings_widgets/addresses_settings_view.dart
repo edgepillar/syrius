@@ -708,7 +708,12 @@ class _AddressesSettingsViewState extends State<AddressesSettingsView>
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           if (add) ...<Widget>[
-            Icon(Icons.add, size: tokens.settingsIconSize),
+            buildShellSymbol(
+              context,
+              'plus',
+              color: action == null ? tokens.faint : tokens.foreground,
+              size: tokens.settingsCompactButtonIconSize,
+            ),
             SizedBox(width: tokens.fieldLabelGap),
           ],
           Text(label),

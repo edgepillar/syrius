@@ -85,6 +85,7 @@ class SettingRow extends StatelessWidget {
     this.hint,
     this.trailing,
     this.below,
+    this.padding,
     super.key,
   });
 
@@ -100,11 +101,14 @@ class SettingRow extends StatelessWidget {
   /// A form that needs the row's whole width.
   final Widget? below;
 
+  /// Overrides the outer inset when the control includes extra input space.
+  final EdgeInsetsGeometry? padding;
+
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     return Padding(
-      padding: AppTokens.of(context).settingsRowPadding,
+      padding: padding ?? AppTokens.of(context).settingsRowPadding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,

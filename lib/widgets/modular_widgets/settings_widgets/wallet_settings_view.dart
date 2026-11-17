@@ -335,6 +335,9 @@ class _WalletSettingsViewState extends State<WalletSettingsView>
       key: ValueKey<String>('wallet_settings_row_${preference.name}'),
       label: label,
       hint: hint,
+      padding: hint == null && value != null
+          ? AppTokens.of(context).settingsSingleLineSwitchRowPadding
+          : null,
       trailing: value == null
           ? Text(
               context.l10n.walletSettingsUnavailable,

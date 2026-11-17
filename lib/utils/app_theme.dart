@@ -890,6 +890,10 @@ class AppTokens extends ThemeExtension<AppTokens> {
   EdgeInsets get settingsRowPadding =>
       const EdgeInsets.symmetric(horizontal: 16, vertical: 9);
 
+  /// A single-line switch row accounts for its larger input area.
+  EdgeInsets get settingsSingleLineSwitchRowPadding =>
+      const EdgeInsets.symmetric(horizontal: 16, vertical: 4);
+
   /// The quiet explanation under a setting's name.
   TextStyle get settingsHintText =>
       bodyText.copyWith(fontSize: 12.5, color: dim);
