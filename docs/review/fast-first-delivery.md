@@ -1,6 +1,17 @@
 # First delivery and deferred acceptance
 
-Current source: Source823 uses the original quiet plus in address-add actions
+Current source: Source824 requires the original P06 film's skip, completion
+or initialization effect after handled Space. Passive original-film flags
+join versioned failure snapshots without changing its decoder or clock.
+The 14999-byte overlay stays below the unchanged 16 KiB cap. All 25 methods
+in the two selected mocked Python modules pass; the later broader-count
+refusal is preserved and reconciled without repeating the tests. Source823
+full Linux passes all thirteen stages and its outputs are consumed. Fresh
+Source824 hosted/native qualification is required. Earlier P06 failures,
+timing criteria, 76/80 acceptance and Source730-only Ready matches remain.
+See [original P06 film acknowledgement](source824-p06-original-film-acknowledgement.md).
+
+Earlier source: Source823 uses the original quiet plus in address-add actions
 and removes the extra single-line Wallet row padding around the unchanged
 32-pixel switch target. Both existing layout variants check the row, track
 and input geometry. Source822 full Linux passes thirteen stages; Windows

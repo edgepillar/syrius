@@ -1,52 +1,40 @@
 --- a/harness/app/agent.dart
 +++ b/harness/app/agent.dart
-@@ -9,4 +9,5 @@
- import 'dart:async';
+@@ -10,2 +10,3 @@
  import 'dart:convert';
 +import 'dart:developer' as dev;
  import 'dart:io';
- import 'dart:ui' as ui;
-@@ -58,4 +59,5 @@
- import 'fixtures/seed_commands.dart';
+@@ -59,2 +60,3 @@
  import 'fixtures/seed_policy.dart';
 +import 'frame_window.dart';
  import 'logical_capture.dart';
- import 'native_entry_capture.dart';
-@@ -357,5 +359,6 @@
- class HarnessAgent {
+@@ -358,3 +360,4 @@
    HarnessAgent._()
 -    : _captureFrames = CaptureFrameGate(
 +    : _waitForInputFrame = _bindingInputFrame,
 +      _captureFrames = CaptureFrameGate(
          waitForFrame: () => WidgetsBinding.instance.endOfFrame,
-       ),
-@@ -366,12 +369,17 @@
-   HarnessAgent.forTest({
+@@ -367,2 +370,3 @@
      Future<void> Function()? closePresentation,
 +    Future<void> Function()? waitForInputFrame,
      Future<void> Function()? waitForCaptureFrame,
-     Future<void> Function()? waitForCaptureFrameDeadline,
+@@ -370,3 +374,4 @@
      this._waitForPresentationClose,
 -  }) : _captureFrames = CaptureFrameGate(
 +  }) : _waitForInputFrame = waitForInputFrame ?? _bindingInputFrame,
 +       _captureFrames = CaptureFrameGate(
           waitForFrame: waitForCaptureFrame ?? _refuseTestCaptureFrame,
-          waitUntilDeadline: waitForCaptureFrameDeadline,
-        ),
+@@ -375,2 +380,5 @@
         _closePresentation = closePresentation ?? _refuseTestClose;
 +
 +  static Future<void> _bindingInputFrame() =>
 +      WidgetsBinding.instance.endOfFrame;
 
-   static Future<void> _refuseTestClose() =>
-@@ -418,4 +426,5 @@
-   int _presentationEpoch = 0;
+@@ -419,2 +427,3 @@
    int _presentationRevision = 0;
 +  final Future<void> Function() _waitForInputFrame;
    final CaptureFrameGate _captureFrames;
-   final Future<void> Function() _closePresentation;
-@@ -747,4 +756,9 @@
-       case 'state':
+@@ -748,2 +757,7 @@
          return _state();
 +      case 'navigation-state':
 +        if (c.keys.any((String key) => key != 'cmd')) {
@@ -54,15 +42,11 @@
 +        }
 +        return _navigationState();
        case 'wallet-recipe':
-         return _walletRecipeCommand(c);
-@@ -794,4 +808,5 @@
-         return _logsCmd(c);
+@@ -795,2 +809,3 @@
        case 'stalls':
 +        if (c.containsKey('frameWindow')) return _frameWindowCmd(c);
          return _stallsCmd(c);
-       case 'clipboard':
-@@ -1099,4 +1114,31 @@
-   }
+@@ -1100,2 +1115,33 @@
 
 +  Map<String, Object?>? _recipeStartupFilmFrame() {
 +    final EntryCaptureRegistry registry = EntryCaptureRegistry.instance;
@@ -85,37 +69,33 @@
 +    }
 +    // These getters do not change the original film or its clock.
 +    return <String, Object?>{
++      'schema': 2,
 +      'frames': film.frameCount,
 +      'shown': film.frame,
 +      'done': film.isDone,
++      'skip': film.skipRequested,
++      'pending': film.framePending,
++      'ticking': film.clockTicking,
 +    };
 +  }
 +
    _Node? _recipeStartupHint(List<_Node> nodes) {
-     final EntryCaptureRegistry registry = EntryCaptureRegistry.instance;
-@@ -1129,5 +1171,5 @@
-         if (widget is Focus &&
+@@ -1130,3 +1176,3 @@
              widget.onKeyEvent != null &&
 -            widget.focusNode?.hasPrimaryFocus == true) {
 +            widget.focusNode?.canRequestFocus == true) {
            found = ancestor;
-           return false;
-@@ -1250,4 +1292,7 @@
-     final List<_Node> nodes = _snapshot();
+@@ -1251,2 +1297,5 @@
      final _Node? startupHint = _recipeStartupHint(nodes);
 +    final Map<String, Object?>? filmFrame = command['action'] == 'observe'
 +        ? _recipeStartupFilmFrame()
 +        : null;
      final Set<String> entryPhases = <String>{};
-     final List<Element> views = _recipeNodeViews(entryPhases: entryPhases);
-@@ -1266,4 +1311,5 @@
-       'booted': booted,
+@@ -1267,2 +1316,3 @@
        'entryPhase': _recipeEntryPhase(entryPhases),
 +      if (filmFrame != null) 'startupFilmFrame': filmFrame,
        'owner': _recipeOwner,
-       'revision': WalletContextRevision.value,
-@@ -1485,5 +1531,17 @@
-         // the complete key pair in one turn so its ordinary handoff does not
+@@ -1486,3 +1536,19 @@
          // become a second pointer admission against the retired hint.
 +        final FocusNode? receiver = Focus.maybeOf(
 +          original.element, createDependency: false,
@@ -130,10 +110,19 @@
 +        if (!receiver.hasPrimaryFocus) {
 +          throw HarnessError('wallet-recipe-control-refused');
 +        }
++        final Object? owner = startup?.startupOwner;
++        if (owner is! StartupStageSession || owner.isClosed) {
++          throw HarnessError('wallet-recipe-original-owner-changed');
++        }
          final Map<String, Object?> reply = await _key(
-           <String, dynamic>{'key': 'space', 'settleMs': 0},
-@@ -1534,4 +1592,31 @@
-
+@@ -1492,2 +1558,6 @@
+           throw HarnessError('wallet-recipe-control-refused');
++        }
++        if (!owner.film.skipRequested && !owner.film.isDone &&
++            startup?.initializationStarted != true) {
++          throw HarnessError('wallet-recipe-startup-key-unconfirmed');
+         }
+@@ -1535,2 +1605,29 @@
    // ---------------------------------------------------------------- snapshot
 +
 +  List<Map<String, Object?>>? _navigationProbe;
@@ -163,9 +152,7 @@
 +    }
 +  }
 
-   List<_Node> _snapshot() {
-@@ -1610,5 +1695,44 @@
-     if (navKey is ValueKey<String> && navKey.value.startsWith('nav_')) {
+@@ -1611,3 +1708,42 @@
        final _Node? t = n.tappable;
 -      if (t != null) t.extra['tab'] = navKey.value.substring(4);
 +      final List<Map<String, Object?>>? probe = _navigationProbe;
@@ -209,9 +196,7 @@
 +        }
 +      }
      }
-     if (w is Tab) {
-@@ -2028,4 +2152,12 @@
-
+@@ -2029,2 +2165,10 @@
    // ----------------------------------------------------------------- pointer
 +
 +  Future<void> _inputFrame() async {
@@ -222,23 +207,17 @@
 +    }
 +  }
 
-   Future<void> _frame() => WidgetsBinding.instance.endOfFrame.timeout(
-@@ -2337,5 +2469,5 @@
-       // Click into it first, as a person would: focus listeners fire.
+@@ -2338,3 +2482,3 @@
        await _click(node.center, requireAdmission: requireAdmission);
 -      await _frame();
 +      await _inputFrame();
        requireAdmission?.call();
-       state = (node.element as StatefulElement).state as EditableTextState;
-@@ -2355,5 +2487,5 @@
-       SelectionChangedCause.keyboard,
+@@ -2356,3 +2500,3 @@
      );
 -    await _frame();
 +    await _inputFrame();
      if (c['submit'] == true) {
-       state.performAction(TextInputAction.done);
-@@ -2409,7 +2541,6 @@
-   bool _dispatchKey(KeyEvent e) {
+@@ -2410,5 +2554,4 @@
      final bool handled = HardwareKeyboard.instance.handleKeyEvent(e);
 -    if (handled) return true;
 -    // Older bindings register Focus through this bridge. Use it only when
@@ -246,17 +225,13 @@
 +    // Flutter 3.47 delivers to both destinations before combining results.
 +    // Focus is registered through the message bridge in this pinned SDK.
      // ignore: deprecated_member_use
-     final KeyMessageHandler? h =
-@@ -2419,5 +2550,6 @@
-     // This pinned bridge returns the actual Shortcuts and editing result.
+@@ -2420,3 +2563,4 @@
      // ignore: deprecated_member_use
 -    return h?.call(KeyMessage(<KeyEvent>[e], null)) ?? false;
 +    final bool focusHandled = h?.call(KeyMessage(<KeyEvent>[e], null)) ?? false;
 +    return handled || focusHandled;
    }
-
-@@ -2459,4 +2591,10 @@
-     final int timeout = c['timeoutMs'] as int? ?? 10000;
+@@ -2460,2 +2604,8 @@
      final bool gone = c['gone'] == true;
 +    final bool launchReady =
 +        !gone &&
@@ -265,9 +240,7 @@
 +        c['exact'] == true &&
 +        c['key'] == 'wallet_password_field';
      final Stopwatch sw = Stopwatch()..start();
-     while (true) {
-@@ -2473,5 +2611,9 @@
-         ],
+@@ -2474,3 +2624,7 @@
        );
 -      if (gone ? hits.isEmpty : hits.isNotEmpty) {
 +      final bool found = launchReady
@@ -276,9 +249,7 @@
 +          : hits.isNotEmpty;
 +      if (gone ? hits.isEmpty : found) {
          return <String, Object?>{
-           'ms': sw.elapsedMilliseconds,
-@@ -2725,4 +2867,62 @@
-   // ------------------------------------------------------------------ stalls
+@@ -2726,2 +2880,60 @@
 
 +  static const String _pairedLaunchTiming = 'paired-launch';
 +  static String? get _frameTimingMode =>
@@ -339,9 +310,7 @@
 +  }
 +
    final Stopwatch _stallClock = Stopwatch();
-   Duration _stallLast = Duration.zero;
-@@ -2738,4 +2938,10 @@
-   /// the raster thread, where a large image or a first-use shader costs.
+@@ -2739,2 +2951,8 @@
    void _hookStalls() {
 +    if (_isLaunchTiming) {
 +      _frameWindow = HarnessFrameWindow(
@@ -350,23 +319,17 @@
 +      );
 +    }
      void record(String kind, int ms) {
-       _stalls.add(<String, Object?>{
-@@ -2757,4 +2963,5 @@
-     });
+@@ -2758,2 +2976,3 @@
      SchedulerBinding.instance.addTimingsCallback((List<ui.FrameTiming> ts) {
 +      _frameWindow?.observe(ts);
        for (final ui.FrameTiming t in ts) {
-         if (t.buildDuration > const Duration(milliseconds: 16)) {
 --- a/harness/bin/harness.dart
 +++ b/harness/bin/harness.dart
-@@ -62,4 +62,5 @@
-     'timeout',
+@@ -63,2 +63,3 @@
      'min',
 +    'frame-window',
      'out',
-     'settle',
-@@ -717,4 +718,17 @@
-       }
+@@ -718,2 +719,15 @@
      case 'stalls':
 +      final String? operation = a['frame-window'];
 +      if (operation != null) {
@@ -382,11 +345,9 @@
 +        break;
 +      }
        final Map<String, dynamic> out = await call(inst, <String, Object?>{
-         'cmd': 'stalls',
 --- a/harness/bin/wallet_recipe.dart
 +++ b/harness/bin/wallet_recipe.dart
-@@ -198,10 +198,13 @@
-     if (!reveal) {
+@@ -199,8 +199,11 @@
        return _until(
 -        (Map<String, dynamic> view) =>
 -            _control(view, key)?['enabled'] == true ||
@@ -404,13 +365,30 @@
 +              }.contains(view['entryPhase']);
 +        },
          waitingFor: key,
-       );
-@@ -292,7 +295,5 @@
-       _refuse('wallet-recipe-empty-profile-required');
+@@ -293,5 +296,3 @@
      }
 -    if (start['entryPhase'] == 'startup-before-initialization') {
 -      await _act('launch_skip_hint');
 -    }
 +    await _act('launch_skip_hint');
      await _act('welcome_import');
-     await _act('import_words_${words.length}');
+--- a/lib/widgets/reusable_widgets/launch_film.dart
++++ b/lib/widgets/reusable_widgets/launch_film.dart
+@@ -124,2 +124,11 @@
+   bool get isDone => _isDone;
++
++  /// Whether the original attached film received a skip request.
++  bool get skipRequested => _state?._skipping ?? false;
++
++  /// Whether the original film has a decoded frame waiting to be shown.
++  bool get framePending => _state?._next != null;
++
++  /// Whether the original film's ticker is receiving callbacks.
++  bool get clockTicking => _state?._ticker.isTicking ?? false;
+
+--- a/harness/wallet_recipe_failure.dart
++++ b/harness/wallet_recipe_failure.dart
+@@ -21,2 +21,3 @@
+   'wallet-recipe-action-refused', 'wallet-recipe-control-refused',
++  'wallet-recipe-startup-key-unconfirmed',
+   'wallet-recipe-input-refused', 'wallet-recipe-node-view-ambiguous',

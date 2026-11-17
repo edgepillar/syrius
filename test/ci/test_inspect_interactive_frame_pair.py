@@ -397,9 +397,11 @@ class InteractiveFramePairTests(unittest.TestCase):
                 startup_sample['observation']['preparation_failure'])) + 1
         snapshot = dict(status='observed', entry='startup-before-initialization',
                         frames=240, shown=12, done=False)
+        progress = dict(snapshot, schema=2, skip=True, pending=False, ticking=True)
         for diagnostic in (
             snapshot, dict(snapshot, frames=0, shown=-1), dict(snapshot, done=True),
             dict(snapshot, frames=5000, shown=4999),
+            progress, dict(progress, pending=True, ticking=False),
             dict(status='absent', entry='welcome'),
             dict(status='unavailable', error_code='HTTP_FAILED'),
         ):
@@ -409,12 +411,40 @@ class InteractiveFramePairTests(unittest.TestCase):
             self.assertFalse(result['artifact_reported_success'])
             self.assertFalse(result['timing_criterion_passed'])
             self.assertEqual(result['normal_wallet_exits'], 2)
+        unconfirmed = deepcopy(startup)
+        unconfirmed_sample = unconfirmed['samples']['p06']
+        unconfirmed_sample['observation']['preparation_failure'] = dict(
+            code='PREPARATION_REFUSED', phase='importWallet', recipe=dict(
+                action='key', control='launch_skip_hint',
+                reason='wallet-recipe-startup-key-unconfirmed', startup='key-sent'))
+        unconfirmed_sample['observation']['entry']['output_bytes'] = len(
+            pair.profile.preparation_failure_marker(
+                unconfirmed_sample['observation']['preparation_failure'])) + 1
+        unconfirmed_sample['startup_observation'] = deepcopy(progress)
+        result = self.project(unconfirmed)
+        self.assertEqual(result['startup_observations'], dict(p06=progress))
+        self.assertFalse(result['artifact_reported_success'])
+        self.assertFalse(result['timing_criterion_passed'])
+        for change in (
+            {'reason': 'wallet-recipe-control-refused'},
+            {'startup': 'key-confirmed'}, {'control': 'welcome_import'},
+            {'entry': 'welcome'},
+        ):
+            wrong = deepcopy(unconfirmed)
+            wrong['samples']['p06']['observation']['preparation_failure']['recipe'].update(change)
+            with self.subTest(unconfirmed=change), self.assertRaises(archive.Refused):
+                self.project(wrong)
         for diagnostic in (
             dict(snapshot, frames=True), dict(snapshot, frames=-1),
             dict(snapshot, frames=5001), dict(snapshot, shown=True),
             dict(snapshot, shown=-2), dict(snapshot, shown=240),
             dict(snapshot, done=1), dict(snapshot, entry='synthetic private phase'),
             dict(snapshot, private='synthetic private value'),
+            dict(progress, schema=True), dict(progress, schema=1),
+            dict(progress, schema=3), dict(progress, skip=1),
+            dict(progress, pending=None), dict(progress, ticking='synthetic private'),
+            {key: value for key, value in progress.items() if key != 'pending'},
+            dict(progress, private='synthetic private value'),
             dict(status='observed', entry='welcome'),
             dict(status='unavailable', error_code='synthetic private error'),
         ):
@@ -709,6 +739,21 @@ class InteractiveFramePairTests(unittest.TestCase):
                     private='synthetic private input')
         snapshot = dict(status='observed', entry='startup-before-initialization',
                         frames=240, shown=0, done=False)
+        progress_frame = dict(body['startupFilmFrame'], schema=2,
+                              skip=True, pending=False, ticking=True)
+        progress = dict(snapshot, schema=2, skip=True, pending=False, ticking=True)
+        unconfirmed = dict(phase='prepare_profile', preparation_failure=dict(
+            code='PREPARATION_REFUSED', phase='importWallet', recipe=dict(
+                action='key', control='launch_skip_hint',
+                reason='wallet-recipe-startup-key-unconfirmed', startup='key-sent')))
+        for bits in range(8):
+            flags = dict(skip=bool(bits & 1), pending=bool(bits & 2), ticking=bool(bits & 4))
+            actor, diagnostic = session(dict(body,
+                startupFilmFrame=dict(progress_frame, **flags))), {}
+            profile._observe_startup_failure(actor, unconfirmed, diagnostic)
+            self.assertEqual(diagnostic, dict(progress, **flags))
+            actor._rpc.assert_called_once()
+            self.assertTrue(profile.valid_startup_observation(diagnostic))
         for wrong in ({}, observation, None, dict(phase='complete')):
             actor, diagnostic = session(body), {}
             profile._observe_startup_failure(actor, wrong, diagnostic)
@@ -716,6 +761,23 @@ class InteractiveFramePairTests(unittest.TestCase):
             self.assertEqual(diagnostic, {})
         for reply, error, expected in (
             (body, None, snapshot),
+            (dict(body, startupFilmFrame=progress_frame), None, progress),
+            (dict(body, startupFilmFrame=dict(progress_frame, schema=True)), None,
+             dict(status='unavailable', error_code='STATE_INVALID')),
+            (dict(body, startupFilmFrame=dict(progress_frame, schema=1)), None,
+             dict(status='unavailable', error_code='STATE_INVALID')),
+            (dict(body, startupFilmFrame=dict(progress_frame, skip=1)), None,
+             dict(status='unavailable', error_code='STATE_INVALID')),
+            (dict(body, startupFilmFrame=dict(progress_frame, pending=None)), None,
+             dict(status='unavailable', error_code='STATE_INVALID')),
+            (dict(body, startupFilmFrame=dict(progress_frame, ticking=0)), None,
+             dict(status='unavailable', error_code='STATE_INVALID')),
+            (dict(body, startupFilmFrame={key: value for key, value in
+                progress_frame.items() if key != 'pending'}), None,
+             dict(status='unavailable', error_code='STATE_INVALID')),
+            (dict(body, startupFilmFrame=dict(progress_frame,
+                 private='synthetic private frame')), None,
+             dict(status='unavailable', error_code='STATE_INVALID')),
             (dict(body, startupFilmFrame=None, entryPhase='welcome'), None,
              dict(status='absent', entry='welcome')),
             (dict(body, startupFilmFrame=dict(frames=0, shown=-1, done=False)), None,
@@ -789,6 +851,7 @@ class InteractiveFramePairTests(unittest.TestCase):
 
         for failure, reply, field in (
             (startup, body, 'startup_observation'),
+            (unconfirmed, dict(body, startupFilmFrame=progress_frame), 'startup_observation'),
             (observation, dict(ok=True, settingsCount=1, bindings=[binding]),
              'navigation_observation'),
         ):

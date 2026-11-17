@@ -37,6 +37,7 @@ NAVIGATION_CARRIERS = frozenset(('absent', 'inkwell', 'gesture', 'other'))
 STARTUP_ENTRY_PHASES = frozenset(('startup-before-initialization',
                                 'startup-initialization-started', 'welcome'))
 STARTUP_FRAME_LIMIT = 5000
+STARTUP_PROGRESS_FLAGS = frozenset(('skip', 'pending', 'ticking'))
 PREPARATION_PHASES = frozenset(('environment', 'input', 'ownerBefore', 'emptyProfile',
                               'importWallet', 'ownerAfter', 'walletReady'))
 PREPARATION_ERROR_PHASES = {
@@ -161,7 +162,7 @@ def valid_navigation_observation(value):
 
 
 def valid_startup_observation(value):
-    """Keep only the original startup phase and bounded film counters."""
+    """Keep legacy counters or versioned original-film flags without payloads."""
     if type(value) is not dict:
         return False
     if set(value) == {'status', 'error_code'}:
@@ -172,8 +173,14 @@ def valid_startup_observation(value):
         return False
     if set(value) == {'status', 'entry'}:
         return value['status'] == 'absent'
-    return (set(value) == {'status', 'entry', 'frames', 'shown', 'done'}
-        and value['status'] == 'observed' and type(value['frames']) is int
+    fields = {'status', 'entry', 'frames', 'shown', 'done'}
+    if set(value) == fields | {'schema', *STARTUP_PROGRESS_FLAGS}:
+        if (type(value['schema']) is not int or value['schema'] != 2
+                or any(type(value[key]) is not bool for key in STARTUP_PROGRESS_FLAGS)):
+            return False
+    elif set(value) != fields:
+        return False
+    return (value['status'] == 'observed' and type(value['frames']) is int
         and 0 <= value['frames'] <= STARTUP_FRAME_LIMIT
         and type(value['shown']) is int and -1 <= value['shown'] < value['frames']
         and type(value['done']) is bool)
@@ -214,13 +221,16 @@ def navigation_failure(value):
 
 
 def startup_failure(value):
-    """Select the retained Welcome refusal before original initialization."""
+    """Select the original Welcome refusal or explicitly unconfirmed Skip."""
     return (type(value) is dict and value.get('phase') == 'prepare_profile'
-        and preparation_failure(value.get('preparation_failure')) == dict(
-            code='PREPARATION_REFUSED', phase='importWallet', recipe=dict(
+        and preparation_failure(value.get('preparation_failure')) in (
+            dict(code='PREPARATION_REFUSED', phase='importWallet', recipe=dict(
                 action='observe', control='welcome_import',
                 entry='startup-before-initialization',
-                reason='wallet-recipe-control-absent')))
+                reason='wallet-recipe-control-absent')),
+            dict(code='PREPARATION_REFUSED', phase='importWallet', recipe=dict(
+                action='key', control='launch_skip_hint',
+                reason='wallet-recipe-startup-key-unconfirmed', startup='key-sent'))))
 
 
 def _observe_startup_failure(session, observation, diagnostic):
@@ -240,7 +250,9 @@ def _observe_startup_failure(session, observation, diagnostic):
         if frame is None:
             value = dict(status='absent', entry=entry)
         else:
-            if type(frame) is not dict or set(frame) != {'frames', 'shown', 'done'}:
+            fields = {'frames', 'shown', 'done'}
+            if (type(frame) is not dict or set(frame) not in (
+                    fields, fields | {'schema', *STARTUP_PROGRESS_FLAGS})):
                 raise launch.startup.Failure('STATE_INVALID')
             value = dict(status='observed', entry=entry, **frame)
         if not valid_startup_observation(value):
