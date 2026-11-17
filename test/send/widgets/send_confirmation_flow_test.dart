@@ -272,6 +272,24 @@ void main() {
     expect(observed.single.block, same(accepted));
     expect(draft.state.isEmpty, isTrue);
     expect(sender.busy.value, isFalse);
+    await tester.pump();
+    final Finder face = find.descendant(
+      of: find.byKey(const Key('send_submit_button')),
+      matching: find.byType(PrimaryPill),
+    );
+    final Finder sheen = find.descendant(
+      of: face,
+      matching: find.byWidgetPredicate(
+        (Widget widget) =>
+            widget is CustomPaint && widget.foregroundPainter != null,
+      ),
+    );
+    expect(tester.widget<PrimaryPill>(face).onPressed, isNull);
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(sheen, paints..clipRRect()..rect());
+    await tester.pump(const Duration(milliseconds: 350));
+    expect(sheen, isNot(paints..clipRRect()));
+    expect(publishCount, 1);
     await tester.pumpWidget(const SizedBox.shrink());
   });
 

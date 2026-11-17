@@ -2,6 +2,7 @@ import 'dart:ui' show PointerDeviceKind;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:zenon_syrius_wallet_flutter/rearchitecture/features/send/widgets/send_button.dart';
 import 'package:zenon_syrius_wallet_flutter/utils/app_theme.dart';
 import 'package:zenon_syrius_wallet_flutter/widgets/reusable_widgets/buttons/buttons.dart';
 
@@ -315,5 +316,196 @@ void main() {
       expect(label.text.style!.fontFamily, kOutlinedButtonTextStyle.fontFamily);
       expect(label.text.style!.fontSize, kBodyMediumTextStyle.fontSize);
     });
+  });
+
+  testWidgets('accepted feedback keeps a disabled face and its full clock', (
+    WidgetTester tester,
+  ) async {
+    final SheenController controller = SheenController();
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(_app(
+      PrimaryPill(
+        onPressed: null,
+        sheen: controller,
+        child: const Text('Sent'),
+      ),
+      reduceMotion: true,
+    ));
+    await tester.pumpAndSettle();
+    controller.landed(isCurrent: () => true);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 590));
+    expect(_paint, paints..clipRRect()..rect());
+    expect(tester.widget<OutlinedButton>(find.byType(OutlinedButton)).onPressed,
+      isNull);
+    await tester.pump(const Duration(milliseconds: 10));
+    expect(_paint, isNot(paints..clipRRect()));
+    await tester.pump(const Duration(milliseconds: 1));
+    expect(tester.binding.hasScheduledFrame, isFalse);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('accepted feedback waits for an existing hover pass', (
+    WidgetTester tester,
+  ) async {
+    final SheenController controller = SheenController();
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(_app(Sheen(
+      controller: controller,
+      child: OutlinedButton(onPressed: () {}, child: const Text('go')),
+    )));
+    await _hover(tester, find.byType(OutlinedButton));
+    await tester.pump(const Duration(milliseconds: 200));
+    controller.landed(isCurrent: () => true);
+    await tester.pump(const Duration(milliseconds: 399));
+    expect(_paint, paints..clipRRect()..rect());
+    await tester.pump(const Duration(milliseconds: 1));
+    expect(_paint, isNot(paints..clipRRect()));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(_paint, paints..clipRRect()..rect());
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(_paint, isNot(paints..clipRRect()));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('stale owners retire active and queued accepted feedback', (
+    WidgetTester tester,
+  ) async {
+    final SheenController controller = SheenController();
+    addTearDown(controller.dispose);
+    bool current = true;
+    await tester.pumpWidget(_app(Sheen(
+      controller: controller,
+      child: const SizedBox(width: 120, height: 40),
+    )));
+    await tester.pumpAndSettle();
+    controller.pass();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    controller.landed(isCurrent: () => current);
+    current = false;
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(_paint, isNot(paints..clipRRect()));
+
+    current = true;
+    controller.landed(isCurrent: () => current);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(_paint, paints..clipRRect()..rect());
+    current = false;
+    await tester.pump(const Duration(milliseconds: 1));
+    expect(_paint, isNot(paints..clipRRect()));
+    current = true;
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(_paint, isNot(paints..clipRRect()));
+
+    controller.landed(isCurrent: () => current);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    controller.cancel();
+    await tester.pump();
+    expect(_paint, isNot(paints..clipRRect()));
+    expect(tester.binding.hasScheduledFrame, isFalse);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('LoadingButton delivers one accepted pass after idle rebuild', (
+    WidgetTester tester,
+  ) async {
+    final GlobalKey<LoadingButtonState> action =
+        GlobalKey<LoadingButtonState>();
+    bool enabled = true;
+    late StateSetter rebuild;
+    await tester.pumpWidget(_app(StatefulBuilder(
+      builder: (_, StateSetter update) {
+        rebuild = update;
+        return LoadingButton(
+          key: action,
+          onPressed: enabled ? () {} : null,
+          text: 'Fuse',
+        );
+      },
+    )));
+    await tester.pumpAndSettle();
+    action.currentState!.animateForward();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    action.currentState!.landed(isCurrent: () => true);
+    action.currentState!.landed(isCurrent: () => true);
+    rebuild(() => enabled = false);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(_paint, isNot(paints..clipRRect()));
+    action.currentState!.animateReverse();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 501));
+    await tester.pump();
+    expect(action.currentState!.btnState, ButtonState.idle);
+    expect(tester.widget<OutlinedButton>(find.byType(OutlinedButton)).onPressed,
+      isNull);
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(_paint, paints..clipRRect()..rect());
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pump(const Duration(milliseconds: 1));
+    expect(_paint, isNot(paints..clipRRect()));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(_paint, isNot(paints..clipRRect()));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('LoadingButton retires an earlier pending operation', (
+    WidgetTester tester,
+  ) async {
+    final GlobalKey<LoadingButtonState> action =
+        GlobalKey<LoadingButtonState>();
+    await tester.pumpWidget(_app(LoadingButton(
+      key: action, onPressed: () {}, text: 'Fuse',
+    )));
+    await tester.pumpAndSettle();
+    action.currentState!.animateForward();
+    action.currentState!.landed(isCurrent: () => true);
+    action.currentState!.animateReverse();
+    action.currentState!.animateForward();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(_paint, isNot(paints..clipRRect()));
+    action.currentState!.animateReverse();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 501));
+    await tester.pump();
+    expect(action.currentState!.btnState, ButtonState.idle);
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(_paint, isNot(paints..clipRRect()));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('stale send completion cannot cross a new operation', (
+    WidgetTester tester,
+  ) async {
+    final GlobalKey<SendButtonState> action = GlobalKey<SendButtonState>();
+    bool current = true;
+    await tester.pumpWidget(_app(SendButton(
+      key: action, onPressed: () {}, text: 'Send',
+    )));
+    await tester.pumpAndSettle();
+    action.currentState!.animateForward();
+    await tester.pump();
+    action.currentState!.animateReverse();
+    action.currentState!.landed(isCurrent: () => current);
+    action.currentState!.animateForward();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(_paint, isNot(paints..clipRRect()));
+    action.currentState!.animateReverse();
+    action.currentState!.landed(isCurrent: () => current);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(_paint, paints..clipRRect()..rect());
+    current = false;
+    await tester.pump(const Duration(milliseconds: 1));
+    expect(_paint, isNot(paints..clipRRect()));
+    expect(tester.takeException(), isNull);
   });
 }

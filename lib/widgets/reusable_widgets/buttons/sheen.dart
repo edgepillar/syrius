@@ -5,13 +5,35 @@ import 'package:material_ui/material_ui.dart';
 /// How long one pass of the band takes, edge to edge.
 const Duration kSheenDuration = Duration(milliseconds: 600);
 
-/// Tells a [Sheen] that the action its button stands for has landed.
-///
-/// The button does not know that on its own: a send is confirmed by a bloc,
-/// long after the press. Whoever hears the confirmation calls [pass].
+enum _SheenRequest { pass, landed, cancel }
+
+/// Separates available-button passes from an original accepted result.
 class SheenController extends ChangeNotifier {
-  /// Runs one pass of the band, unless the [Sheen] is disabled.
-  void pass() => notifyListeners();
+  _SheenRequest _request = _SheenRequest.pass;
+  bool Function()? _current;
+
+  /// Runs one pass while the button is available.
+  void pass() => _notify(_SheenRequest.pass);
+
+  /// Reports an accepted result without changing the button's input state.
+  void landed({required bool Function() isCurrent}) =>
+      _notify(_SheenRequest.landed, current: isCurrent);
+
+  /// Retires an earlier operation's active and queued feedback.
+  void cancel() => _notify(_SheenRequest.cancel);
+
+  void _notify(_SheenRequest request, {bool Function()? current}) {
+    final _SheenRequest previous = _request;
+    final bool Function()? previousCurrent = _current;
+    _request = request;
+    _current = current;
+    try {
+      notifyListeners();
+    } finally {
+      _request = previous;
+      _current = previousCurrent;
+    }
+  }
 }
 
 /// One band of light that crosses a primary pill: once when the pointer
@@ -30,6 +52,7 @@ class Sheen extends StatefulWidget {
   const Sheen({
     required this.child,
     this.enabled = true,
+    this.busy = false,
     this.borderRadius,
     this.controller,
     this.color,
@@ -39,9 +62,12 @@ class Sheen extends StatefulWidget {
   /// The button.
   final Widget child;
 
-  /// False while the button cannot be pressed. A pill that is not ready must
-  /// not answer the pointer, so no pass starts and a running one is dropped.
+  /// Whether ordinary hover and controller passes are available.
+  /// Accepted-result feedback never changes this input gate.
   final bool enabled;
+
+  /// Holds every pass while the surface is a busy spinner.
+  final bool busy;
 
   /// The child's corners. Null is a stadium, the shape of every pill.
   final BorderRadius? borderRadius;
@@ -68,47 +94,125 @@ class _SheenState extends State<Sheen> with SingleTickerProviderStateMixin {
   late final AnimationController _pass = AnimationController(
     vsync: this,
     duration: kSheenDuration,
-    // The pass is the feedback itself. The default behaviour shortens it to
-    // a twentieth when the OS asks for less motion, which would leave a
-    // single bright frame: a flash, worse than the movement it replaces.
     animationBehavior: AnimationBehavior.preserve,
   );
+  bool _completion = false;
+  bool Function()? _completionCurrent;
+  bool Function()? _queuedCompletion;
 
   @override
   void initState() {
     super.initState();
-    widget.controller?.addListener(_run);
+    _pass
+      ..addListener(_checkCurrent)
+      ..addStatusListener(_onStatus);
+    widget.controller?.addListener(_requested);
   }
 
   @override
   void didUpdateWidget(Sheen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.controller != widget.controller) {
-      oldWidget.controller?.removeListener(_run);
-      widget.controller?.addListener(_run);
+      oldWidget.controller?.removeListener(_requested);
+      _cancel();
+      widget.controller?.addListener(_requested);
     }
-    if (!widget.enabled && _pass.isAnimating) {
-      _pass
-        ..stop()
-        ..value = 0;
+    if (widget.busy) {
+      _cancel();
+    } else if (!widget.enabled && !_completion && _pass.isAnimating) {
+      _stopPass();
+      _startQueued();
     }
   }
 
   @override
   void dispose() {
-    widget.controller?.removeListener(_run);
+    widget.controller?.removeListener(_requested);
     _pass.dispose();
     super.dispose();
   }
 
-  void _run() {
-    // A pass in flight is left to finish: restarting it on every enter would
-    // make a pointer resting on the pill's edge strobe the band.
-    if (!widget.enabled || _pass.isAnimating) {
+  bool _stillCurrent(bool Function()? current) {
+    try {
+      return current?.call() ?? true;
+    } on Object {
+      // Presentation uncertainty cannot replace an original result.
+      return false;
+    }
+  }
+
+  void _requested() {
+    final SheenController? controller = widget.controller;
+    if (controller == null) return;
+    switch (controller._request) {
+      case _SheenRequest.pass:
+        _run();
+        return;
+      case _SheenRequest.landed:
+        final bool Function()? current = controller._current;
+        if (widget.busy || current == null || !_stillCurrent(current)) return;
+        if (_pass.isAnimating) {
+          _queuedCompletion = current;
+        } else {
+          _run(completion: current);
+        }
+        return;
+      case _SheenRequest.cancel:
+        _cancel();
+        return;
+    }
+  }
+
+  void _checkCurrent() {
+    if (_queuedCompletion != null && !_stillCurrent(_queuedCompletion)) {
+      _queuedCompletion = null;
+    }
+    if (_pass.isAnimating &&
+        _completion &&
+        !_stillCurrent(_completionCurrent)) {
+      _cancel();
+    }
+  }
+
+  void _onStatus(AnimationStatus status) {
+    if (status == AnimationStatus.completed) {
+      _completion = false;
+      _completionCurrent = null;
+      _startQueued();
+    }
+  }
+
+  void _startQueued() {
+    final bool Function()? current = _queuedCompletion;
+    _queuedCompletion = null;
+    if (current != null) _run(completion: current);
+  }
+
+  void _stopPass() {
+    if (_pass.isAnimating || _pass.value != 0) {
+      _pass
+        ..stop()
+        ..value = 0;
+    }
+    _completion = false;
+    _completionCurrent = null;
+  }
+
+  void _cancel() {
+    _queuedCompletion = null;
+    _stopPass();
+  }
+
+  void _run({bool Function()? completion}) {
+    if (widget.busy ||
+        _pass.isAnimating ||
+        (!widget.enabled && completion == null) ||
+        !_stillCurrent(completion)) {
       return;
     }
-    // Left at 1 when done: the painter draws nothing there, and winding it
-    // back would cost a frame to repaint nothing.
+    // A result waits for an existing hover pass; it never shortens that pass.
+    _completion = completion != null;
+    _completionCurrent = completion;
     _pass.forward(from: 0);
   }
 
@@ -116,8 +220,6 @@ class _SheenState extends State<Sheen> with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) {
     return RepaintBoundary(
       child: MouseRegion(
-        // The region only watches. Deferring to the child keeps the button
-        // the one thing under the pointer, cursor and tap included.
         hitTestBehavior: HitTestBehavior.deferToChild,
         onEnter: (_) => _run(),
         child: CustomPaint(

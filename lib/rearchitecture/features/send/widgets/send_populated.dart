@@ -892,7 +892,14 @@ class _SendPopulatedState extends State<SendPopulated>
       if (handle == null) return;
       _sendPaymentButtonKey.currentState?.animateForward();
       unawaited(
-        _observeOriginal(handle, intent, draftOwner, originalDraft, observer),
+        _observeOriginal(
+          handle,
+          intent,
+          draftOwner,
+          originalDraft,
+          observer,
+          session.isCurrent,
+        ),
       );
     } on Object {
       // No publication was admitted when confirmation or capture failed.
@@ -949,6 +956,7 @@ class _SendPopulatedState extends State<SendPopulated>
     SendDraftCubit? draft,
     SendDraft? originalDraft,
     SendResultObserver observer,
+    bool Function() isCurrent,
   ) async {
     final SendRequestResult result = await handle.result;
     try {
@@ -973,7 +981,9 @@ class _SendPopulatedState extends State<SendPopulated>
           }
         }
         _sendPaymentButtonKey.currentState?.animateReverse();
-        if (result.accepted) _sendPaymentButtonKey.currentState?.landed();
+        if (result.accepted) {
+          _sendPaymentButtonKey.currentState?.landed(isCurrent: isCurrent);
+        }
       }
     } on Object {
       // A draft or animation observer cannot alter the settled result.

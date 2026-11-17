@@ -415,6 +415,23 @@ void main() {
       isNull,
     );
     verify(() => balances.add(any())).called(1);
+    await tester.pump();
+    final Finder sheen = find.descendant(
+      of: find.byKey(_submitKey),
+      matching: find.byWidgetPredicate(
+        (Widget widget) =>
+            widget is CustomPaint && widget.foregroundPainter != null,
+      ),
+    );
+    expect(
+      tester.widget<PrimaryPill>(find.byKey(_submitKey)).onPressed,
+      isNull,
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(sheen, paints..clipRRect()..rect());
+    await tester.pump(const Duration(milliseconds: 350));
+    expect(sheen, isNot(paints..clipRRect()));
+    verifyNever(() => transactions.add(any()));
     await tester.pumpWidget(const SizedBox.shrink());
   });
 

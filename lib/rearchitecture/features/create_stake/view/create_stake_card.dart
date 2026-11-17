@@ -192,6 +192,7 @@ class _PopulatedState extends State<_Populated> {
   Duration? _selectedStakeDuration;
   bool _submitting = false;
   Object? _request;
+  int _feedbackRevision = 0;
 
   bool get _sourceIsCurrent =>
       mounted &&
@@ -423,6 +424,7 @@ class _PopulatedState extends State<_Populated> {
         builder: (_, _) => PrimaryPill(
           key: const Key('create_stake_submit_button'),
           sheen: _submitSheen,
+          busy: busy,
           style: OutlinedButton.styleFrom(
             minimumSize: Size(_kButtonMinWidth, tokens.fieldHeight),
             padding: EdgeInsetsDirectional.symmetric(
@@ -537,6 +539,8 @@ class _PopulatedState extends State<_Populated> {
     );
     if (!_canEdit || !current()) return;
     final Object request = Object();
+    _feedbackRevision++;
+    _submitSheen.cancel();
     final VoidCallback onCreated = widget.onStakeCreated;
     final ValueChanged<AccountBlockTemplate>? onPublished =
         widget.onStakePublished;
@@ -579,17 +583,28 @@ class _PopulatedState extends State<_Populated> {
       }
     }
     if (!mounted || !identical(_request, handle.requestId)) return;
+    final int feedbackRevision = _feedbackRevision;
     setState(() {
       _submitting = false;
       _request = null;
     });
     if (!current()) return;
     if (result.accepted) {
-      _submitSheen.pass();
       setState(() {
         _amountController.clear();
         _selectedStakeDuration = null;
       });
+      bool feedbackCurrent() =>
+          mounted &&
+          feedbackRevision == _feedbackRevision &&
+          !_submitting &&
+          current();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && feedbackRevision == _feedbackRevision) {
+          _submitSheen.landed(isCurrent: feedbackCurrent);
+        }
+      });
+      WidgetsBinding.instance.ensureVisualUpdate();
       if (!current()) return;
       onCreated();
       if (current()) _fetchBalance();

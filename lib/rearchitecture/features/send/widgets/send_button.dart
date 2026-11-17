@@ -29,11 +29,13 @@ class SendButtonState extends State<SendButton> {
   final SheenController _sheen = SheenController();
   bool _busy = false;
   int _operation = 0;
+  int? _landedOperation;
 
   /// Reports that this form's original operation has started.
   void animateForward() {
     if (!_busy) {
       _operation++;
+      _sheen.cancel();
       setState(() => _busy = true);
     }
   }
@@ -44,15 +46,18 @@ class SendButtonState extends State<SendButton> {
   }
 
   /// Plays accepted-result feedback after the idle child has rebuilt.
-  void landed() {
-    if (!mounted || _busy) return;
+  void landed({bool Function()? isCurrent}) {
+    if (!mounted || _busy || _landedOperation == _operation) return;
     final int operation = _operation;
+    _landedOperation = operation;
+    bool current() =>
+        mounted &&
+        !_busy &&
+        operation == _operation &&
+        (isCurrent?.call() ?? true);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted &&
-          !_busy &&
-          operation == _operation &&
-          widget.onPressed != null) {
-        _sheen.pass();
+      if (mounted && !_busy && operation == _operation) {
+        _sheen.landed(isCurrent: current);
       }
     });
     WidgetsBinding.instance.ensureVisualUpdate();
@@ -72,6 +77,7 @@ class SendButtonState extends State<SendButton> {
       child: PrimaryPill(
         onPressed: _busy ? null : widget.onPressed,
         sheen: _sheen,
+        busy: _busy,
         style: ButtonStyle(
           minimumSize: WidgetStatePropertyAll<Size>(
             Size(0, tokens.transferActionHeight),

@@ -429,7 +429,9 @@ class _NodeCollectButtonState extends State<NodeCollectButton> {
       );
       if (!mounted || !action.isCurrent || result == null) return;
       if (owner.attempt?.accepted ?? false) {
-        _button.currentState?.landed();
+        _button.currentState?.landed(
+          isCurrent: () => mounted && action.isCurrent,
+        );
         try {
           await sl.get<NotificationsBloc>().addNotification(
             WalletNotification(

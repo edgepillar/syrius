@@ -1,6 +1,18 @@
 # First delivery and deferred acceptance
 
-Current source: Source835 retains the hidden arrival's exact ticker hold and moves the
+Current source: Source836 separates original accepted-result feedback from input
+availability. Send, Stake and Fuse retain their original owner predicates;
+busy buttons deliver once after idle, hover overlap queues one pass and
+stale operations retire. Eight broad widget cases and existing real
+Send/Stake request checks cover the proposed 600 ms behavior. Input,
+financial authority and secondary styling remain. Expected selected
+totals stay 1521/1523, Python 1230. Source835 passes all fourteen Linux
+stages and its actual twenty-two-command Git gate; all zero-artifact
+outputs are consumed. Fresh Source836 engine/native qualification and
+76/80 acceptance remain.
+[Scope](source836-owned-completion-feedback.md).
+
+Earlier source: Source835 retains the hidden arrival's exact ticker hold and moves the
 original focus assertion into an explicit visible-page focus hold.
 All original assertions and declarations remain; expected selected totals
 stay 1521/1523 and Python stays 1230. Product and measurement code remain.

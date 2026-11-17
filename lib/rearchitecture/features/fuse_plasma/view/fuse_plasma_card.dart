@@ -469,6 +469,7 @@ class _PopulatedState extends State<_Populated> {
       _submitting = false;
       _fuseButtonKey.currentState?.animateReverse();
       if (!current) return;
+      _fuseButtonKey.currentState?.landed(isCurrent: effectsCurrent);
       if (_amount == _submittedAmount &&
           _beneficiary == _submittedBeneficiary) {
         _amountController.clear();

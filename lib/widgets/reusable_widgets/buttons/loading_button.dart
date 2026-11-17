@@ -156,6 +156,10 @@ class LoadingButtonState extends State<LoadingButton>
 
   final GlobalKey<MyOutlinedButtonState> _outlineButtonKey = GlobalKey();
   final SheenController _sheen = SheenController();
+  int _operation = 0;
+  int? _landedOperation;
+  bool _completionScheduled = false;
+  bool Function()? _pendingCompletion;
   double _minWidth = 0;
 
   double get minWidth => _minWidth;
@@ -192,6 +196,7 @@ class LoadingButtonState extends State<LoadingButton>
         setState(() {
           btnState = ButtonState.idle;
         });
+        _deliverCompletion();
       }
     });
 
@@ -227,6 +232,7 @@ class LoadingButtonState extends State<LoadingButton>
     return Sheen(
       // A busy button is a spinner in a shrinking circle: no band over that.
       enabled: widget.onPressed != null && btnState == ButtonState.idle,
+      busy: btnState == ButtonState.busy,
       borderRadius: radius == null ? null : BorderRadius.circular(radius),
       controller: _sheen,
       child: _button(textColor, radius),
@@ -274,6 +280,9 @@ class LoadingButtonState extends State<LoadingButton>
 
   void animateForward() {
     if (btnState == ButtonState.idle) {
+      _operation++;
+      _pendingCompletion = null;
+      _sheen.cancel();
       setState(() {
         btnState = ButtonState.busy;
       });
@@ -292,7 +301,36 @@ class LoadingButtonState extends State<LoadingButton>
   /// The button cannot tell on its own. [animateReverse] is called for a
   /// failure as well as a success, so the caller that knows which it was
   /// says so here.
-  void landed() => _sheen.pass();
+  void landed({bool Function()? isCurrent}) {
+    if (!mounted || _landedOperation == _operation) return;
+    final int operation = _operation;
+    _landedOperation = operation;
+    _pendingCompletion = () =>
+        mounted &&
+        operation == _operation &&
+        btnState == ButtonState.idle &&
+        (isCurrent?.call() ?? true);
+    _deliverCompletion();
+  }
+
+  void _deliverCompletion() {
+    if (_completionScheduled ||
+        btnState != ButtonState.idle ||
+        _pendingCompletion == null) {
+      return;
+    }
+    _completionScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _completionScheduled = false;
+      if (!mounted) return;
+      final bool Function()? current = _pendingCompletion;
+      _pendingCompletion = null;
+      if (btnState == ButtonState.idle && current != null) {
+        _sheen.landed(isCurrent: current);
+      }
+    });
+    WidgetsBinding.instance.ensureVisualUpdate();
+  }
 
   double? lerpWidth(double a, double b, double t) {
     if (a == 0.0 || b == 0.0) {

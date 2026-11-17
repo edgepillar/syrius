@@ -456,6 +456,65 @@ void main() {
     });
   }
 
+  for (final bool succeeds in <bool>[true, false]) {
+    testWidgets('owned Fuse feedback follows its original result $succeeds', (
+      WidgetTester tester,
+    ) async {
+      final _CardFixture fixture = await _prepare(tester);
+      await tester.enterText(find.byKey(_amount), '100.00000001');
+      await tester.pump();
+      fixture.source.transport.deferred = true;
+      _button(tester).onPressed!();
+      await _until(tester, fixture,
+        () => fixture.source.transport.pending.isNotEmpty);
+      final AccountBlockTemplate response = fixture.source.transport.accepted(
+        fixture.source.transport.calls.single,
+      );
+      final StateError error = StateError('Synthetic original SDK failure');
+      if (succeeds) {
+        fixture.source.transport.completeNext(response: response);
+      } else {
+        fixture.source.transport.completeNext(error: error);
+      }
+      await _until(tester, fixture, () => fixture.bloc.lastOutcome != null,
+        allowFailure: !succeeds);
+      await _until(tester, fixture, () => tester
+        .state<LoadingButtonState>(find.byType(LoadingButton))
+        .btnState == ButtonState.idle, allowFailure: !succeeds);
+      await tester.pump();
+      final PlasmaFuseOutcome original = fixture.bloc.lastOutcome!;
+      expect(original.accepted, succeeds);
+      final Finder sheen = find.descendant(
+        of: find.byKey(_submit),
+        matching: find.byWidgetPredicate(
+          (Widget widget) =>
+              widget is CustomPaint && widget.foregroundPainter != null,
+        ),
+      );
+      if (succeeds) {
+        expect(original.result.block, same(response));
+        expect(tester.widget<TextField>(find.byKey(_amount)).controller!.text,
+          isEmpty);
+        expect(_button(tester).onPressed, isNull);
+        expect(fixture.outcomes, 1);
+        expect(fixture.refreshed, 1);
+      } else {
+        expect(original.result.error, same(error));
+        expect(fixture.outcomes, 0);
+      }
+      await tester.pump(const Duration(milliseconds: 300));
+      if (succeeds) {
+        expect(sheen, paints..clipRRect()..rect());
+      } else {
+        expect(sheen, isNot(paints..clipRRect()));
+      }
+      await tester.pump(const Duration(milliseconds: 350));
+      expect(sheen, isNot(paints..clipRRect()));
+      expect(fixture.source.transport.calls, hasLength(1));
+      expect(tester.takeException(), isNull);
+    });
+  }
+
   testWidgets('owning card requires confirmed Another and fences '
       'its old controls', (WidgetTester tester) async {
     final _CardFixture fixture = await _prepare(tester);
