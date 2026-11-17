@@ -1,5 +1,10 @@
 # First delivery and deferred acceptance
 
+Source842 awaits asynchronous delivery in both plasma fixture helpers.
+Source841 verifies plasma completion and both pulse cases. Its early
+widget stage reports 497 passed and one restart failure, leaving the full
+directory and generation skipped. [Restart fixture follow-up](source840-status-pulse-idle.md#restart-fixture-follow-up).
+
 Source841 delivers the asynchronous plasma completion before pumping the
 existing status strip test. The strip and pulse suites now run early in the
 Linux workflow. Source840 passes the pulse cases but fails the plasma fixture

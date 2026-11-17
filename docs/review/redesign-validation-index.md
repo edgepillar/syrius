@@ -1,5 +1,9 @@
 # Redesign validation index
 
+Source842 [awaits each plasma fixture event before pumping](source840-status-pulse-idle.md#restart-fixture-follow-up).
+Source841 passed both pulse cases and verified plasma completion. Its early
+stage caught one restart failure before the full directory ran.
+
 Source841 [awaits the test fixture's plasma completion](source840-status-pulse-idle.md#plasma-fixture-follow-up).
 Source840 passes the pulse cases and strict analysis. Its full Linux run
 reports 5,109 passed, one plasma fixture failure and one skip. Generation

@@ -46,3 +46,18 @@ assertions require the bolt and elapsed time to disappear and the fixture
 to record 14 seconds. The status strip and pulse suites also run in the
 early compact stage, with the complete test directory still running later.
 Fresh Linux execution and the paired Windows frame measurements remain open.
+
+## Restart fixture follow-up
+
+At `3c2114fe560fd1ee4538d0e03954a78f34b71c00`, the early test stage
+reports 497 passed and one failed. Both pulse cases pass. The plasma
+fixture verifies completion and records 14 seconds, then reads the counter
+before the asynchronous second start renders. The full test directory and
+generation stages are skipped. The original job log is retained once.
+[Source841 Linux](https://github.com/edgepillar/syrius/actions/runs/44176269903).
+
+Source842 waits for delivery in both existing fixture helpers. All callers
+await each start or completion before pumping. The test still requires the
+second run to start from zero and show the first run's 14-second duration.
+The early strip and pulse suites and complete Linux pass will verify this
+revision. The Windows comparison remains open.

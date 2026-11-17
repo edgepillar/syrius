@@ -385,6 +385,8 @@ repository; `features/` is `lib/rearchitecture/features/`, `tabs/` is
 
 ## Progress
 
+- Source842 awaits status delivery in both plasma fixture helpers. Source841 verified completion but its early stage caught the same scheduling assumption on restart. The original failure is retained. Fresh Linux and paired Windows results remain open. Acceptance stays at 76/80. [Restart fixture follow-up](docs/review/source840-status-pulse-idle.md#restart-fixture-follow-up).
+
 - Source841 delivers the asynchronous plasma completion before pumping the status strip test. The early compact stage now exercises the strip and pulse suites. Source840 passed both pulse cases but failed the plasma fixture in the full Linux directory. The failed output is retained. Fresh Linux and paired Windows results remain open. Acceptance stays at 76/80. [Fixture follow-up](docs/review/source840-status-pulse-idle.md#plasma-fixture-follow-up).
 
 - Source840 stops the status halo's frame requests during the transparent part of its 2.4-second cycle and extends the existing motion tests to check the quiet interval and restart. Source839 completed both native samples and the independent read. Its original comparison still fails the 16 ms raster criterion. Original acceptance stays at 76/80. [Status pulse and measurement](docs/review/source840-status-pulse-idle.md).

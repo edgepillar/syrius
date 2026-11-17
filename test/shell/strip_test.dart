@@ -73,17 +73,19 @@ class _Rig {
   /// The test's clock, which `pump` moves.
   Duration uptime() => tester.binding.clock.now().difference(_start);
 
-  /// Starts a new observed SDK generation without replaying an old owner.
-  void startWork() {
+  /// Starts a new SDK generation and delivers its status before painting.
+  Future<void> startWork() async {
     final PowWorkToken work = pow.claimWork();
     _work = work;
     pow.update(work, PowStatus.generating);
+    await tester.idle();
   }
 
-  /// Completes only the SDK generation started by this fixture.
-  void finishWork() {
+  /// Delivers completion for the SDK generation started by this fixture.
+  Future<void> finishWork() async {
     final PowWorkToken? work = _work;
     if (work != null) pow.update(work, PowStatus.done);
+    await tester.idle();
   }
 
   Future<void> show({
@@ -215,7 +217,7 @@ void main() {
     rig.sync.answer(current: 100, target: 100);
     await rig.show(width: 2000);
 
-    rig.startWork();
+    await rig.startWork();
     await tester.pump();
     expect(tester.widget(find.byKey(_plasma)), isA<AppLottie>());
     expect(
@@ -233,16 +235,14 @@ void main() {
     await tester.pump(const Duration(seconds: 13));
     expect(tester.widget<Text>(find.byKey(_elapsed)).data, '14 s');
 
-    rig.finishWork();
-    // Deliver the completion even while the status halo requests no frame.
-    await tester.idle();
+    await rig.finishWork();
     await tester.pump();
     expect(find.byKey(_plasma), findsNothing);
     expect(find.byKey(_elapsed), findsNothing);
     expect(rig.times.typical, const Duration(seconds: 14));
 
     // The second generation starts from zero and knows the first.
-    rig.startWork();
+    await rig.startWork();
     await tester.pump();
     expect(tester.widget<Text>(find.byKey(_elapsed)).data, '0 s');
     expect(
@@ -466,7 +466,7 @@ void main() {
         theme: theme,
         trailing: const Text('Syrius 0.3.0 is out', key: _notice),
       );
-      rig.startWork();
+      await rig.startWork();
       await tester.pump();
       await tester.pump(const Duration(seconds: 14));
       expect(tester.takeException(), isNull);
@@ -479,7 +479,7 @@ void main() {
         tester.getRect(find.byType(StatusStrip)).width,
         _narrowest,
       );
-      rig.finishWork();
+      await rig.finishWork();
       await tester.pump();
     }
   });
@@ -503,14 +503,14 @@ void main() {
         direction: TextDirection.rtl,
         trailing: const Text('Wallet updates', key: _notice),
       );
-      rig.startWork();
+      await rig.startWork();
       await tester.pump();
       await tester.pump(const Duration(seconds: 2));
       expect(_drawn(_sync), isTrue);
       expect(_drawn(_behind), isTrue);
       expect(_drawn(_elapsed), isTrue);
       expect(tester.takeException(), isNull);
-      rig.finishWork();
+      await rig.finishWork();
       await tester.pump();
     }
   });
