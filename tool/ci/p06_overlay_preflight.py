@@ -20,6 +20,8 @@ SCOPE = 'original_p06_strict_git_overlay'
 FLOOR = 10 * 1024**3
 RESERVATION = 256 * 1024**2
 OUTPUT = Path('.harness/ci-p06-overlay/manifest.json')
+REPORT_CAP = 32768
+NOTICE_CAP = 3500
 BROKEN_SOURCE = '4de1f6c47bca2511ad808f3abec6fe1ba7ef7a34'
 BROKEN_PATCH_SHA256 = '44d8efc152083c690552ba7880bbc09cda15626c3717c53aa0a9d1705fdb01dd'
 FILES = (
@@ -43,6 +45,52 @@ def need(value, code):
 
 def sha(data):
     return hashlib.sha256(data).hexdigest()
+
+
+def encoded(value):
+    return json.dumps(value, sort_keys=True, separators=(',', ':')).encode('ascii')
+
+
+def public_notices(report):
+    """Keep every command record in independently bounded annotations."""
+    data = encoded(report)
+    need(len(data) <= REPORT_CAP, 'OUTPUT_REFUSED')
+    commands = report['commands']
+    need(type(commands) is list and len(commands) <= 64, 'OUTPUT_REFUSED')
+    report_pin, ledger_pin = sha(data), sha(encoded(commands))
+
+    def part(rows, number, total):
+        return dict(schema=1, scope=SCOPE + '_commands',
+                    source_head=report['source_head'],
+                    source_tree=report['source_tree'],
+                    source_run_id=report['source_run_id'],
+                    source_attempt=report['source_attempt'],
+                    report_sha256=report_pin, command_ledger_sha256=ledger_pin,
+                    part=number, parts=total, commands=rows)
+
+    groups, current = [], []
+    for row in commands:
+        if len(encoded(part(current + [row], 999, 999))) > NOTICE_CAP:
+            need(current, 'OUTPUT_REFUSED')
+            groups.append(current)
+            current = []
+        current.append(row)
+        need(len(encoded(part(current, 999, 999))) <= NOTICE_CAP,
+             'OUTPUT_REFUSED')
+    if current:
+        groups.append(current)
+    summary = {key: value for key, value in report.items() if key != 'commands'}
+    summary.update(notice_schema=1, report_sha256=report_pin,
+                   command_ledger_sha256=ledger_pin,
+                   command_count=len(commands), command_notice_parts=len(groups))
+    need(len(encoded(summary)) <= NOTICE_CAP, 'OUTPUT_REFUSED')
+    notices = [('P06 strict Git overlay', encoded(summary).decode('ascii'))]
+    for number, rows in enumerate(groups, 1):
+        message = encoded(part(rows, number, len(groups)))
+        need(len(message) <= NOTICE_CAP, 'OUTPUT_REFUSED')
+        notices.append(('P06 Git commands ' + str(number) + '/' + str(len(groups)),
+                        message.decode('ascii')))
+    return notices
 
 
 def read_file(path, cap):
@@ -169,8 +217,11 @@ def qualify(repo, parent, report):
         re.fullmatch(r'100644 blob [0-9a-f]{40}\t' + re.escape(name), row)
         for name, row in zip(sorted(FILES), entries)), 'SOURCE_REFUSED')
     command('materialize_original_files', [
-        'checkout-index', '--prefix=' + str(source) + '/', '--', *FILES],
+        'checkout-index', '-u', '--', *FILES],
         environment=private, cwd=source)
+    need(ids(command('materialized_original_tree', ['write-tree'],
+                     environment=private, cwd=source, cap=128), 1)
+         == [timing.P06_TREE], 'SOURCE_REFUSED')
     original = {name: sha(read_file(source / name, 256 * 1024)) for name in FILES}
     report['original_files_sha256'] = original
     previous = scratch / 'regression.patch'
@@ -241,8 +292,8 @@ def main():
             root.parent.mkdir(mode=0o700, exist_ok=True)
             need(stat.S_ISDIR(baseline.plain(root.parent).st_mode), 'SOURCE_REFUSED')
             root.mkdir(mode=0o700)
-            data = json.dumps(report, sort_keys=True, separators=(',', ':')).encode('ascii')
-            need(len(data) <= 32768, 'OUTPUT_REFUSED')
+            data = encoded(report)
+            need(len(data) <= REPORT_CAP, 'OUTPUT_REFUSED')
             with (repo / OUTPUT).open('xb') as output:
                 output.write(data)
                 output.flush()
@@ -250,8 +301,21 @@ def main():
             (repo / OUTPUT).chmod(0o400)
         except (Exception, KeyboardInterrupt):
             report.update(success=False, error_code='OUTPUT_REFUSED')
-    print('::notice title=P06 strict Git overlay::' + json.dumps(
-        report, sort_keys=True, separators=(',', ':')))
+    try:
+        for title, message in public_notices(report):
+            print('::notice title=' + title + '::' + message)
+    except (Exception, KeyboardInterrupt):
+        original_pin = sha(encoded(report))
+        report.update(success=False, error_code='OUTPUT_REFUSED')
+        fallback = dict(schema=1, scope=SCOPE, success=False,
+                        source_head=report['source_head'],
+                        source_tree=report['source_tree'],
+                        source_run_id=report['source_run_id'],
+                        source_attempt=report['source_attempt'],
+                        error_code='OUTPUT_REFUSED',
+                        full_notice_report_available=False,
+                        original_report_sha256=original_pin)
+        print('::notice title=P06 strict Git overlay::' + encoded(fallback).decode('ascii'))
     return 0 if report['success'] else 1
 
 

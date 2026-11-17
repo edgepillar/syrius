@@ -1,6 +1,18 @@
 # First delivery and deferred acceptance
 
-Current source: Source827 preserves trailing context in the 16002-byte P06
+Current source: Source828 refreshes the original P06 index entries and
+verifies the unchanged tree before strict patch checks. Complete Git reports
+use bounded summary/ledger annotations with source/run pins and both digests.
+The 16002-byte patch, applied files and collector remain. All 25 selected
+mocked methods, eight environment rejections and nine transport controls pass.
+Source827 Linux fails before Flutter on index-mismatch diagnostics; eleven
+original stages are skipped and no Windows job starts. Its incomplete
+annotation and UNKNOWN post-refusal input immutability are preserved, and
+owned outputs are consumed. Source828 hosted Git, full Linux and native
+qualification remain pending. Acceptance stays 76/80.
+[Scope and limits](source828-p06-index-and-bounded-reports.md).
+
+Earlier source: Source827 preserves trailing context in the 16002-byte P06
 patch without changing its five applied files or overlay tree. The new
 SDK-free Git preflight runs before Flutter on the owned manual lane. It
 requires the previous patch's complete refusal and unchanged fixture, then
